@@ -1,6 +1,7 @@
 package edit
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"regexp"
@@ -16,30 +17,28 @@ var z15Before = map[string]int{
 	"isalnum": 2, "iscntrl": 1, "ispunct": 1,
 	"isalpha": 3, "isdigit": 7, "isgraph": 1, "islower": 1, "isupper": 5,
 	"iswupper": 1, "isspace": 0, "isprint": 0,
-	"atoi": 7, "atol": 3, "qsort": 1, "bsearch": 4,
+	"atoi": 7, "atol": 3, "strtol": 0, "qsort": 1, "bsearch": 4,
 	"utf_convert": 4, "sort_strings": 3, "sort_compare": 1,
 }
 
-// z15Free are the nineteen musl_ names this phase defines.  This file is ONE
+// z15Free are the twenty musl_ names this phase defines.  This file is ONE
 // namespace and a silent collision between a tentative definition and a vendored
 // one is exactly what CLAUDE.md warns about, so each is required to be free.
 var z15Free = []string{"musl_isdigit", "musl_isalpha", "musl_isupper", "musl_islower",
 	"musl_isgraph", "musl_isspace", "musl_isalnum", "musl_iscntrl",
 	"musl_ispunct", "musl_tolower", "musl_toupper", "musl_atoi",
-	"musl_atol", "musl_bsearch", "musl_qsort", "musl_towupper",
+	"musl_atol", "musl_strtol", "musl_bsearch", "musl_qsort", "musl_towupper",
 	"musl_towlower", "musl_toUpper", "musl_toLower"}
 
-// z15Rewrite is the sixteen names and the number of call sites each has BELOW
-// the inserted block.
-var z15Rewrite = []struct {
-	name string
-	want int
-}{
-	{"tolower", 2}, {"toupper", 2}, {"towlower", 2}, {"towupper", 2},
-	{"isalnum", 2}, {"iscntrl", 1}, {"ispunct", 1},
-	{"isalpha", 3}, {"isdigit", 7}, {"isgraph", 1}, {"islower", 1},
-	{"isupper", 5},
-	{"atoi", 7}, {"atol", 3}, {"qsort", 1}, {"bsearch", 4},
+// z15Rewrite is the seventeen names rewritten BELOW the inserted block.  How
+// many call sites each has is READ from the input: z15Before is the input this
+// was written against, and upstream moving one atol to strtol (vim 9.2.1122's
+// getdigits) made every count there a refusal of a correct phase.
+var z15Rewrite = []string{
+	"tolower", "toupper", "towlower", "towupper",
+	"isalnum", "iscntrl", "ispunct",
+	"isalpha", "isdigit", "isgraph", "islower", "isupper",
+	"atoi", "atol", "strtol", "qsort", "bsearch",
 }
 
 // z15Provided is everything <ctype.h> and <wctype.h> could still be providing.
@@ -91,23 +90,28 @@ func Zero15(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return []byte(strings.ReplaceAll(string(t), old, new)), nil
 	}
 
-	// ---- 0. the shape every anchor below was counted against ------------------
+	// ---- 0. the input's calls, READ ---------------------------------------------
+	// iswupper's one call is a fact the phase depends on -- section C deletes
+	// exactly that statement -- and so is `isspace` and `isprint` having none.
+	calls := map[string]int{}
+	var shape []string
 	for _, name := range sortedKeys(z15Before) {
-		if k := zCalls(text, name); k != z15Before[name] {
-			return nil, p.die("%s is called %d times, expected %d -- the anchors below were counted "+
-				"against a different file", name, k, z15Before[name])
-		}
+		calls[name] = zCalls(text, name)
+		shape = append(shape, fmt.Sprintf("%s %d", name, calls[name]))
 	}
-	p.say("eleven undefined symbols at 2 2 2 2 2 1 1 / 7 3 / 1 4 calls, the SIX macros " +
-		"that produce no undefined symbol at all at 3 7 1 1 5 (isspace 0), and iswupper " +
-		"at 1 -- the file the three anchors were counted against")
+	if calls["iswupper"] != 1 || calls["isspace"] != 0 || calls["isprint"] != 0 {
+		return nil, p.die("iswupper is called %d times, isspace %d and isprint %d: this phase deletes "+
+			"the one iswupper and adds nothing for the other two", calls["iswupper"],
+			calls["isspace"], calls["isprint"])
+	}
+	p.say("the input's calls: " + strings.Join(shape, ", "))
 
 	for _, name := range z15Free {
 		if regexp.MustCompile(`\b` + name + `\b`).Match(text) {
 			return nil, p.die("%s already exists in the file", name)
 		}
 	}
-	p.say("the nineteen musl_ names this phase defines are all free")
+	p.say("the twenty musl_ names this phase defines are all free")
 
 	// ---- THE INVARIANT, COMPUTED BEFORE ANYTHING IS INSERTED ------------------
 	if k := len(z15Dead.FindAll(text, -1)); k != 2 {
@@ -118,7 +122,7 @@ func Zero15(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"unreachable `if (c >= 0x100)` -- which is the shape that makes iswupper a name " +
 		"in the source and not a symbol in the object")
 
-	// ---- A. the seventeen functions, after NGETTEXT ---------------------------
+	// ---- A. the eighteen functions, after NGETTEXT ---------------------------
 	blockB, err := os.ReadFile(args[0])
 	if err != nil {
 		return nil, p.die("%v", err)
@@ -130,7 +134,7 @@ func Zero15(text []byte, w io.Writer, args []string) ([]byte, error) {
 	const z15Tail = "    dest[18] = '\\0';\n    return 18;\n}\n"
 	const z15Wall = "\nenum { BH_DIRTY = 1 };\n"
 	if text, err = textEdit(text, z15Tail+z15Wall, z15Tail+block+z15Wall,
-		"the seventeen functions go at the END OF PHASE 14's BLOCK, before the "+
+		"the eighteen functions go at the END OF PHASE 14's BLOCK, before the "+
 			"enum wall -- one vendored block and not two -- defined before every "+
 			"use, so only the two dead tow* mentions need a prototype", 1); err != nil {
 		return nil, err
@@ -164,18 +168,20 @@ func Zero15(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// have turned musl_tolower's body into musl_musl_tolower.
 	cut := strings.Index(string(text), block) + len(block)
 	head, body := string(text[:cut]), string(text[cut:])
+	total := 0
 	for _, r := range z15Rewrite {
 		var idx [][]int
-		for _, m := range zCallRe(r.name).FindAllStringIndex(body, -1) {
+		for _, m := range zCallRe(r).FindAllStringIndex(body, -1) {
 			if m[0] > 0 && isWordByte(body[m[0]-1]) {
 				continue
 			}
 			idx = append(idx, m)
 		}
-		if len(idx) != r.want {
-			return nil, p.die("%s is called %d times below the inserted block, expected %d",
-				r.name, len(idx), r.want)
+		if len(idx) != calls[r] {
+			return nil, p.die("%s is called %d times below the inserted block, and %d times in the input",
+				r, len(idx), calls[r])
 		}
+		total += len(idx)
 		// ONE PASS over the original text, in order, because a span is an OFFSET
 		// and every offset after a replacement is wrong -- CLAUDE.md's rule, and
 		// the reason zero23 left five of 437 size_t behind when it was two.
@@ -188,17 +194,18 @@ func Zero15(text []byte, w io.Writer, args []string) ([]byte, error) {
 			// prefixing it leaves `musl_isupper (c)`, which is the same program
 			// and a different file -- measured, 6 lines of the tree.
 			out.WriteString(body[prev:m[0]])
-			out.WriteString("musl_" + r.name + "(")
+			out.WriteString("musl_" + r + "(")
 			prev = m[1]
 		}
 		out.WriteString(body[prev:])
 		body = out.String()
 	}
 	text = []byte(head + body)
-	p.say("sixteen counted rewrites: tolower 2, toupper 2, towlower 2, towupper 2, " +
-		"isalnum 2, iscntrl 1, ispunct 1, isalpha 3, isdigit 7, isgraph 1, islower 1, " +
-		"isupper 5, atoi 7, atol 3, qsort 1, bsearch 4 -- 44 call sites, every one of " +
-		"them BELOW the block, so no vendored body rewrites itself")
+	p.say(fmt.Sprintf("seventeen names rewritten at the counts read above -- %d call sites, every one "+
+		"of them BELOW the block, so no vendored body rewrites itself", total))
+	if k := zCalls(text, "strtol"); k != 0 {
+		return nil, p.die("strtol is still called %d times, and <stdlib.h> would keep providing it", k)
+	}
 
 	// ---- what the sweep is handed, as a count rather than as trust ------------
 	var left []string

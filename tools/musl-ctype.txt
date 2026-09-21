@@ -125,6 +125,55 @@ musl_atol(const char *s)
     return neg ? n : -n;
 }
 
+    static long
+musl_strtol(const char *s, char **end, int base)
+{
+    const char *p = s;
+    unsigned long n = 0;
+    unsigned long lim;
+    int neg = 0;
+    int any = 0;
+    int over = 0;
+
+    while (musl_isspace(*p))
+    {
+        ++p;
+    }
+    if (*p == '-')
+    {
+        neg = 1;
+        ++p;
+    }
+    else if (*p == '+')
+    {
+        ++p;
+    }
+    lim = (~0UL >> 1) + (unsigned long)neg;
+    while (base == 10 && musl_isdigit(*p))
+    {
+        unsigned long d = (unsigned long)(*p++ - '0');
+
+        any = 1;
+        if (over || n > (lim - d) / 10)
+        {
+            over = 1;
+        }
+        else
+        {
+            n = 10 * n + d;
+        }
+    }
+    if (end)
+    {
+        *end = (char *)(any ? p : s);
+    }
+    if (over)
+    {
+        n = lim;
+    }
+    return neg ? (long)(0UL - n) : (long)n;
+}
+
     static void *
 musl_bsearch(const void *key, const void *base, size_t nel, size_t width, int (*cmp)(const void *, const void *))
 {

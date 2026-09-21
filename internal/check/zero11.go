@@ -88,12 +88,37 @@ func Zero11(w io.Writer, args []string) error {
 	// --- 2. what must NOT be at zero -----------------------------------------
 	var fail []string
 	count := func(t, name string) int {
-		return len(regexp.MustCompile(`\b` + regexp.QuoteMeta(name) + `\b`).FindAllString(t, -1))
+		return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).FindAllString(t, -1))
 	}
-	nOld := len(dead.FuncDefinitions([]byte(oldT), cutil.Blank([]byte(oldT))))
-	nNew := len(dead.FuncDefinitions(src, cutil.Blank(src)))
-	if nOld != 1742 || nNew != 1726 {
-		fail = append(fail, fmt.Sprintf("the function count went %d -> %d, expected 1742 -> 1726: one fold takes SIXTEEN, and eleven of them are the switch-buffer island", nOld, nNew))
+	// The claim is WHICH functions one fold takes, not how many the file
+	// holds: the absolute counts, 1742 -> 1726, broke the day upstream added
+	// two functions this phase never touches (vim 9.2.1122, 1744 -> 1728).
+	// So the set that disappeared must be exactly the sixteen named above.
+	defsOld := dead.FuncDefinitions([]byte(oldT), cutil.Blank([]byte(oldT)))
+	defsNew := dead.FuncDefinitions(src, cutil.Blank(src))
+	want := map[string]bool{}
+	for _, g := range z11Gone[:16] {
+		want[g] = true
+	}
+	var went, extra []string
+	for name := range defsOld {
+		if _, ok := defsNew[name]; !ok {
+			went = append(went, name)
+			if !want[name] {
+				extra = append(extra, name)
+			}
+		}
+	}
+	for name := range defsNew {
+		if _, ok := defsOld[name]; !ok {
+			extra = append(extra, "+"+name)
+		}
+	}
+	if len(went) != 16 || len(extra) != 0 {
+		sort.Strings(extra)
+		fail = append(fail, fmt.Sprintf("the functions that went are %d, not the sixteen named (%d -> %d; unexpected: %v): one fold takes SIXTEEN, and eleven of them are the switch-buffer island", len(went), len(defsOld), len(defsNew), extra))
+	} else {
+		r.say("the functions that went, %d -> %d, are exactly the sixteen named -- eleven of them the switch-buffer island", len(defsOld), len(defsNew))
 	}
 	names := make([]string, 0, len(z11Kept))
 	for n := range z11Kept {
@@ -240,7 +265,10 @@ func Zero11(w io.Writer, args []string) error {
 	evOld, evNew := filepath.Join(tmp, "ev.old"), filepath.Join(tmp, "ev.new")
 	var ewg sync.WaitGroup
 	ewg.Add(1)
-	go func() { defer ewg.Done(); exec.Command("sh", "tools/enumvals.sh", filepath.Join(state, "old.c"), evOld).Run() }()
+	go func() {
+		defer ewg.Done()
+		exec.Command("sh", "tools/enumvals.sh", filepath.Join(state, "old.c"), evOld).Run()
+	}()
 	exec.Command("sh", "tools/enumvals.sh", f, evNew).Run()
 	ewg.Wait()
 	if err := z11Enums(r, readFile(evOld), readFile(evNew)); err != nil {

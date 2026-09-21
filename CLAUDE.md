@@ -22,11 +22,11 @@ slim-vim.c  --whim-->  whim-vim.c  --zero-->  zero-vim.c
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
 - **whim** (`whim.mk`, `WHIM-GOAL.md`) removes capability on purpose -- 83 phases
-  in 13 stages, from 180,847 lines to 86,617 -- and every phase **declares its
+  in 13 stages, from 180,870 lines to 86,583 -- and every phase **declares its
   delta in advance** in `pipes/whim.delta`; the harness proves it changed that
   and nothing else.
 - **zero** (`zero.mk`, `ZERO-GOAL.md`) turns `whim-vim.c` into an embeddable core,
-  46 phases to 78,666 lines: no filesystem, the host behind a line in the file,
+  46 phases to 78,681 lines: no filesystem, the host behind a line in the file,
   no libc the core names, the text a tree. `ZERO-GOAL.md` *The pipeline as it
   stands* is the phase-by-phase account and belongs there, not here.
 

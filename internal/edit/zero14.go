@@ -1,6 +1,7 @@
 package edit
 
 import (
+	"fmt"
 	"io"
 	"regexp"
 	"strings"
@@ -61,15 +62,27 @@ func Zero14(text []byte, w io.Writer) ([]byte, error) {
 		return nil
 	}
 
-	// ---- 0. the shape every anchor below was counted against ------------------
-	for _, name := range sortedKeys(z14Before) {
-		if k := mentions(t, name); k != z14Before[name] {
-			return nil, p.die("%s has %d mentions, expected %d -- the anchors below were counted "+
-				"against a different file", name, k, z14Before[name])
-		}
+	// ---- 0. the input's counts, READ rather than remembered ---------------------
+	// z14Before was the input these anchors were first written against.  An
+	// upstream that drops three memset calls this phase never touches made
+	// every one of those constants refuse a correct phase, so the counts are
+	// measured here and the phase's OWN additions -- z14After less z14Before,
+	// per name -- are what stays fixed.  What guards the edit is the exact-once
+	// anchor at every site it rewrites, below, and the partition at the end.
+	before := map[string]int{}
+	for name := range z14Before {
+		before[name] = mentions(t, name)
 	}
-	p.say("the seventeen at 606 + 22 occurrences, tolower at 2, vim_snprintf at 55 -- the " +
-		"file the anchors below were counted against")
+	sixteen := 0
+	for _, name := range z14Names {
+		sixteen += before[name]
+	}
+	if before["sprintf"] != 22 {
+		return nil, p.die("sprintf has %d mentions, and this phase rewrites exactly 22: thirteen external "+
+			"call sites and nine inside vim_vsnprintf_typval", before["sprintf"])
+	}
+	p.say(fmt.Sprintf("the sixteen at %d occurrences and sprintf at 22, tolower at %d, vim_snprintf at %d -- "+
+		"read from this input", sixteen, before["tolower"], before["vim_snprintf"]))
 
 	// ---- THE SINGLE CALLER, COUNTED BEFORE THE BOUND IS CHOSEN ----------------
 	// highlight_arg_to_string takes a POINTER, so sizeof(buf) is 8 and the bound
@@ -158,12 +171,12 @@ func Zero14(text []byte, w io.Writer) ([]byte, error) {
 	// ORDER MATTERS: a phase that renamed first and edited sprintf afterwards
 	// would leave four bare strlen behind, which would compile and would keep the
 	// symbol.
-	if renamed != 610 {
-		return nil, p.die("%d identifiers were renamed, expected 610 -- 606 in the input plus the four "+
-			"strlen the size expressions above introduce", renamed)
+	if renamed != sixteen+4 {
+		return nil, p.die("%d identifiers were renamed, expected %d -- %d in the input plus the four "+
+			"strlen the size expressions above introduce", renamed, sixteen+4, sixteen)
 	}
-	p.say("610 identifiers renamed to musl_*, none of them inside a literal -- 606 of the " +
-		"input and the four strlen the size arguments added")
+	p.say(fmt.Sprintf("%d identifiers renamed to musl_*, none of them inside a literal -- %d of the "+
+		"input and the four strlen the size arguments added", renamed, sixteen))
 
 	// ---- D. the definitions, after the eighteen #includes ---------------------
 	if err := textEdit(z14Anchor, z14Anchor+strings.TrimLeft(z14Defs, "\n")+"\n",
@@ -175,8 +188,15 @@ func Zero14(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- E. what the sweep is handed, as counts rather than as trust ----------
 	for _, name := range sortedKeys(z14After) {
-		if k := mentions(t, name); k != z14After[name] {
-			return nil, p.die("%s has %d mentions after the cut, expected %d", name, k, z14After[name])
+		want := z14After[name]
+		base := strings.TrimPrefix(name, "musl_")
+		if b, ok := z14Before[base]; ok && base != name {
+			want = before[base] + (z14After[name] - b)
+		} else if b, ok := z14Before[name]; ok && name == "vim_snprintf" {
+			want = before[name] + (z14After[name] - b)
+		}
+		if k := mentions(t, name); k != want {
+			return nil, p.die("%s has %d mentions after the cut, expected %d", name, k, want)
 		}
 	}
 	// The Python writes `(?<!_)\bname\b`, and the lookbehind never decides

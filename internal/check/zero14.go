@@ -91,7 +91,7 @@ func Zero14(w io.Writer, args []string) error {
 	// seventeen -- strncasecmp is 13 occurrences on 7 lines.
 	var fail []string
 	count := func(t, name string) int {
-		return len(regexp.MustCompile(`\b` + regexp.QuoteMeta(name) + `\b`).FindAllString(t, -1))
+		return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).FindAllString(t, -1))
 	}
 	sortedKeys := func(m map[string]int) []string {
 		k := make([]string, 0, len(m))
@@ -101,10 +101,11 @@ func Zero14(w io.Writer, args []string) error {
 		sort.Strings(k)
 		return k
 	}
-	for _, name := range sortedKeys(z14Input) {
-		if count(oldT, name) != z14Input[name] {
-			fail = append(fail, fmt.Sprintf("the input is not the file this phase was written against: %s %d, expected %d", name, count(oldT, name), z14Input[name]))
-		}
+	// The input's counts are READ, not remembered: z14Input is the input these
+	// were first written against, and only sprintf's 22 is a fact the phase
+	// depends on -- thirteen external sites and nine inside the formatter.
+	if k := count(oldT, "sprintf"); k != 22 {
+		fail = append(fail, fmt.Sprintf("sprintf has %d mentions in the input, and this phase rewrites exactly 22", k))
 	}
 	// `(?<!_)\b` in the Python is `\b` alone: `_` is a word character, so a
 	// word boundary already refuses a match inside musl_memmove.
@@ -113,9 +114,16 @@ func Zero14(w io.Writer, args []string) error {
 			fail = append(fail, fmt.Sprintf("%s survives as a bare libc name %d times", name, k))
 		}
 	}
+	// What the phase ADDS per name is fixed (z14After less z14Input); the base
+	// is the input's own count.
 	for _, name := range sortedKeys(z14After) {
-		if k := count(newT, name); k != z14After[name] {
-			fail = append(fail, fmt.Sprintf("%s has %d mentions, expected %d", name, k, z14After[name]))
+		want := z14After[name]
+		base := strings.TrimPrefix(name, "musl_")
+		if b, ok := z14Input[base]; ok {
+			want = count(oldT, base) + (z14After[name] - b)
+		}
+		if k := count(newT, name); k != want {
+			fail = append(fail, fmt.Sprintf("%s has %d mentions, expected %d", name, k, want))
 		}
 	}
 	if !regexp.MustCompile(`(?m)^highlight_arg_to_string\(int .*char_u      \*buf\)$`).MatchString(newT) {
@@ -254,7 +262,10 @@ func Zero14(w io.Writer, args []string) error {
 	evOld, evNew := filepath.Join(tmp, "ev.old"), filepath.Join(tmp, "ev.new")
 	var ewg sync.WaitGroup
 	ewg.Add(1)
-	go func() { defer ewg.Done(); exec.Command("sh", "tools/enumvals.sh", filepath.Join(state, "old.c"), evOld).Run() }()
+	go func() {
+		defer ewg.Done()
+		exec.Command("sh", "tools/enumvals.sh", filepath.Join(state, "old.c"), evOld).Run()
+	}()
 	exec.Command("sh", "tools/enumvals.sh", f, evNew).Run()
 	ewg.Wait()
 	if err := z14Enums(r, readFile(evOld), readFile(evNew)); err != nil {

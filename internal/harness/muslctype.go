@@ -117,6 +117,7 @@ const muslCtypeMain = "\n" +
 	"        int A = (int)sizeof(al) - 1;\n" +
 	"        long cnt = 0;\n" +
 	"        long bada = 0;\n" +
+	"        long bads = 0;\n" +
 	"        int len;\n" +
 	"        char buf[8];\n" +
 	"\n" +
@@ -143,9 +144,31 @@ const muslCtypeMain = "\n" +
 	"                cnt++;\n" +
 	"                bada += musl_atoi(buf) != atoi(buf);\n" +
 	"                bada += musl_atol(buf) != atol(buf);\n" +
+	"                {\n" +
+	"                    char *e1;\n" +
+	"                    char *e2;\n" +
+	"\n" +
+	"                    bads += musl_strtol(buf, &e1, 10) != strtol(buf, &e2, 10) || e1 != e2;\n" +
+	"                }\n" +
 	"            }\n" +
 	"        }\n" +
 	"        printf(\"atoi %ld %ld\\n\", cnt, bada);\n" +
+	"        {\n" +
+	"            static const char *edge[] = {\"9223372036854775806\", \"9223372036854775807\", \"9223372036854775808\",\n" +
+	"                \"-9223372036854775807\", \"-9223372036854775808\", \"-9223372036854775809\",\n" +
+	"                \"99999999999999999999999\", \"-99999999999999999999999\", \"  +00012x\", \"-\", \"+\", \"\", \" \"};\n" +
+	"            int k;\n" +
+	"\n" +
+	"            for (k = 0; k < (int)(sizeof(edge) / sizeof(edge[0])); k++)\n" +
+	"            {\n" +
+	"                char *e1;\n" +
+	"                char *e2;\n" +
+	"\n" +
+	"                cnt++;\n" +
+	"                bads += musl_strtol(edge[k], &e1, 10) != strtol(edge[k], &e2, 10) || e1 != e2;\n" +
+	"            }\n" +
+	"        }\n" +
+	"        printf(\"strtol %ld %ld\\n\", cnt, bads);\n" +
 	"    }\n" +
 	"\n" +
 	"    {\n" +
@@ -238,14 +261,14 @@ const muslCtypeMain = "\n" +
 	"}\n" +
 	""
 
-// muslCtypeNames are the fifteen the block must define exactly once each.  The
+// muslCtypeNames are the sixteen the block must define exactly once each.  The
 // slice is by text, so a block that lost a function would still compile if
 // libc supplied the name -- this is what stops that.
 var muslCtypeNames = []string{
 	"musl_isdigit", "musl_isalpha", "musl_isupper", "musl_islower",
 	"musl_isgraph", "musl_isspace", "musl_isalnum", "musl_iscntrl",
 	"musl_ispunct", "musl_tolower", "musl_toupper", "musl_atoi",
-	"musl_atol", "musl_bsearch", "musl_qsort",
+	"musl_atol", "musl_strtol", "musl_bsearch", "musl_qsort",
 }
 
 const muslCtypeTag = "vendor"
@@ -339,6 +362,7 @@ func MuslCtypeVerify(path string, out *os.File) error {
 	}
 	ctypeN, ctypeBad := get("ctype", 0), get("ctype", 1)
 	atoiN, atoiBad := get("atoi", 0), get("atoi", 1)
+	strtolN, strtolBad := get("strtol", 0), get("strtol", 1)
 	bsN, bsBad := get("bsearch", 0), get("bsearch", 1)
 	qsBad := get("qsort", 1)
 	tiesMoved, tiesOrder := get("ties", 0), get("ties", 1)
@@ -351,6 +375,12 @@ func MuslCtypeVerify(path string, out *os.File) error {
 	}
 	if atoiN != 137560 || atoiBad != 0 {
 		fail = append(fail, fmt.Sprintf("atoi/atol: %d %d", atoiN, atoiBad))
+	}
+	// strtol is fed every string atoi and atol are, plus thirteen edges: both
+	// overflow clamps, a long run of digits either sign, and the strings with
+	// no digits at all, where the end pointer must stay at the start.
+	if strtolN != atoiN+13 || strtolBad != 0 {
+		fail = append(fail, fmt.Sprintf("strtol: %d %d", strtolN, strtolBad))
 	}
 	if bsN != 1845 || bsBad != 0 {
 		fail = append(fail, fmt.Sprintf("bsearch: %d %d", bsN, bsBad))
@@ -379,10 +409,11 @@ func MuslCtypeVerify(path string, out *os.File) error {
 	}
 	fmt.Fprintf(out, "  %-12s the block compiled OUT OF THE PRODUCED SOURCE agrees with libc: "+
 		"%d int values (bounded -- all 2^32 were checked once, 0 disagreements, and "+
-		"it costs 66 s), %d atoi/atol strings, %d bsearch lookups compared by "+
+		"it costs 66 s), %d atoi/atol strings, %d strtol strings with their end "+
+		"pointers, the overflow clamps among them, %d bsearch lookups compared by "+
 		"POINTER, 2000 qsort arrays -- and the three-equal-keys case moves %d of 5 "+
 		"pointers while sorting to the same strings, which is what says the harness "+
 		"can see a tie at all\n",
-		muslCtypeTag, ctypeN, atoiN, bsN, tiesMoved)
+		muslCtypeTag, ctypeN, atoiN, strtolN, bsN, tiesMoved)
 	return nil
 }

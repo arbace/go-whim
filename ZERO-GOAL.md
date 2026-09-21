@@ -66,8 +66,8 @@ tagless clock struct, `MIN`/`MAX` and `__builtin_offsetof`, and nine plain libc
 prototypes, **while the real headers are still above them to be cross-checked against**;
 and 27 moves the eleven `#include`s below the core, so that **above them there is not
 one preprocessor directive** and the first `#include` is the line between the core and
-the host. `make editor.c` writes the lines above it — **76,687** of `zero-vim.c`'s
-78,666 today — and they are a complete translation unit whose warnings are the
+the host. `make editor.c` writes the lines above it — **76,716** of `zero-vim.c`'s
+78,681 today — and they are a complete translation unit whose warnings are the
 interface. Phases 28 to 32 are five separate answers to *what the core may still name
 and still call*: 28 gives the elapsed-milliseconds clock to the host as one scalar,
 `long musl_now_ms(void)`, and deletes the tagless `struct timeval` mirror phase 26 had
@@ -300,7 +300,7 @@ being a bump allocator into a 1 GiB arena and `host_free()` a function that retu
 `va_start` appears once in
 the whole file, `NULL` and `size_t`
 are gone in favour of two names the language supplies, and **the eleven `#include`s are
-no longer at the top**: they sit at line 76,689 and the first of them is the line
+no longer at the top**: they sit at line 76,718 and the first of them is the line
 between the core and the host. **And since phase 36 the core names no libc function at
 all**: the block of ordinary, non-`static` declarations it kept above that line is empty
 and gone, every outward call is a `musl_` or a `host_`, and the claim is checked by
@@ -507,10 +507,10 @@ strerror fopen fdopen opendir` absent from **both** the source and `nm -u`. The 
 can read, write, close and dup fds 0, 1 and 2 and nothing else. `ZERO-PLAN.md` §4b
 states the invariant and it is assertable in that strongest form from here on.
 
-**After forty-six phases zero-vim is 78,666 lines and 14 libc symbols, and what is
+**After forty-six phases zero-vim is 78,681 lines and 14 libc symbols, and what is
 left of the host boundary is a line in the file and nothing else.** From
-`whim-vim.c`'s 86,617 lines, 869,512
-bytes and 79 symbols that is **−7,951 lines (9.2 %), −109,088 bytes and −65 symbols**;
+`whim-vim.c`'s 86,583 lines, 869,512
+bytes and 80 symbols that is **−7,902 lines (9.1 %), −109,088 bytes and −66 symbols**;
 the binary is 760,424 bytes, still `EXEC` with no `INTERP`, no dynamic section and no
 relocation. **The file grew for the first time at phases 14 and 15** — 79,603 →
 80,440 lines — because those phases move code *in*, which is the trade the symbol
@@ -9767,17 +9767,17 @@ flakiness `CLAUDE.md` already records; and **`del_file` is still an unread param
 ### What zero-vim is after phase 45
 
 ```
-zero-vim.c        78,666 lines          from whim-vim.c's 86,617  (-7,951, 9.2%)
-                  76,687 above the boundary, 1,979 below it
-functions         1,734
-type definitions  880
-DWARF enumerators 1,167
+zero-vim.c        78,681 lines          from whim-vim.c's 86,583  (-7,902, 9.1%)
+                  76,716 above the boundary, 1,965 below it
+functions         1,737
+type definitions  881
+DWARF enumerators 1,168
 cmdnames[] rows   98    (create_cmdidxs floor 80; 18 rows of margin)
 nv_cmds[] rows    194   (nvidxcheck: a permutation)
 options[] rows    109 that are not a t_ capability, 95 distinct globals
                         (orphanopts floor 80; 15 of margin)
 built-in terminals 2 of whim's 10: xterm-256color and debug
-#include          11, at line 76,689, and NOT ONE DIRECTIVE above them
+#include          11, at line 76,718, and NOT ONE DIRECTIVE above them
 core -> host      18 names: vim_snprintf, host_exit, host_message, host_time,
                   host_alloc, host_free, host_write, host_raise, ten musl_*
 libc prototypes   0 -- the core names no libc function at all
@@ -9789,7 +9789,7 @@ binary            760,424 bytes, EXEC, no INTERP, no dynamic section, no relocat
 declared delta    term-moved at 38 and four command lines at 39; 40 to 45 declare
                   nothing at all -- with 2 stderr-moved and the records of 4 to 11
                   before them
-make editor.c     76,687 lines: 0 directives, 0 errors, 18 warnings, all of them
+make editor.c     76,716 lines: 0 directives, 0 errors, 18 warnings, all of them
                   `used but never defined` and all of them the interface
 ```
 

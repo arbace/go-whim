@@ -26,9 +26,9 @@ var z15Had = strings.Fields("isalnum isalpha isdigit isgraph islower ispunct isc
 
 var z15Defs = strings.Fields(`musl_isdigit musl_isalpha musl_isupper musl_islower musl_isgraph
 musl_isspace musl_isalnum musl_iscntrl musl_ispunct musl_tolower musl_toupper musl_atoi
-musl_atol musl_bsearch musl_qsort musl_towupper musl_towlower`)
+musl_atol musl_strtol musl_bsearch musl_qsort musl_towupper musl_towlower`)
 
-var z15Rewritten = strings.Fields("tolower toupper towlower towupper isalnum iscntrl ispunct isalpha isdigit isgraph islower isupper isspace atoi atol qsort bsearch")
+var z15Rewritten = strings.Fields("tolower toupper towlower towupper isalnum iscntrl ispunct isalpha isdigit isgraph islower isupper isspace atoi atol strtol qsort bsearch")
 
 // z15Calls is `(?<![\w])name\s*\(`: a call whose name is not the tail of a
 // longer identifier.  RE2 has no lookbehind, so the byte before is tested.
@@ -69,7 +69,7 @@ func Zero15(w io.Writer, args []string) error {
 	}
 	defer os.RemoveAll(tmp)
 	words := func(t, name string) int {
-		return len(regexp.MustCompile(`\b` + regexp.QuoteMeta(name) + `\b`).FindAllString(t, -1))
+		return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).FindAllString(t, -1))
 	}
 
 	// --- 1. the source, as counts --------------------------------------------
@@ -113,7 +113,7 @@ func Zero15(w io.Writer, args []string) error {
 	}
 	block := readFile("tools/musl-ctype.txt") + readFile("tools/musl-case.txt")
 	for _, name := range []string{"tolower", "toupper", "towlower", "towupper", "isalnum", "iscntrl",
-		"ispunct", "isalpha", "isdigit", "isgraph", "islower", "isupper", "isspace", "atoi", "atol", "qsort", "bsearch"} {
+		"ispunct", "isalpha", "isdigit", "isgraph", "islower", "isupper", "isspace", "atoi", "atol", "strtol", "qsort", "bsearch"} {
 		want := z15Calls(oldT, name) + z15Calls(block, "musl_"+name)
 		if got := z15Calls(newT, "musl_"+name); got != want {
 			fail = append(fail, fmt.Sprintf("musl_%s is called %d times, expected %d -- the %d sites the input called %s at, plus the %d times the vendored text names it",
@@ -124,8 +124,11 @@ func Zero15(w io.Writer, args []string) error {
 	for _, n := range z15Rewritten {
 		moved += z15Calls(oldT, n)
 	}
-	if moved != 44 {
-		fail = append(fail, fmt.Sprintf("the input has %d call sites to rewrite, not the 44 this phase was written against", moved))
+	// How many sites there are is the input's (44 in both 9.2.1037's and
+	// 9.2.1122's, one atol having become a strtol); the per-name counts above
+	// are the partition.
+	if moved == 0 {
+		fail = append(fail, "the input has no call site to rewrite")
 	}
 	for _, name := range []string{"toUpper", "toLower"} {
 		want := words(oldT, name)
@@ -231,8 +234,15 @@ func Zero15(w io.Writer, args []string) error {
 	}
 	after := strings.Fields(readFile(".cache/symbols/last/undefined"))
 	goneU, cameU := comm23(before, after), comm23(after, before)
-	if strings.Join(goneU, " ") != "atoi atol bsearch isalnum iscntrl ispunct qsort tolower toupper towlower towupper" || len(cameU) > 0 {
-		r.say("the libc surface did not move by exactly the eleven:")
+	// The eleven, and strtol wherever the input calls it: vim 9.2.1122's
+	// getdigits() moved from atol to strtol, which this phase vendors too.
+	wantGone := strings.Fields("atoi atol bsearch isalnum iscntrl ispunct qsort tolower toupper towlower towupper")
+	if z15Calls(oldT, "strtol") > 0 {
+		wantGone = append(wantGone, "strtol")
+	}
+	sort.Strings(wantGone)
+	if strings.Join(goneU, " ") != strings.Join(wantGone, " ") || len(cameU) > 0 {
+		r.say("the libc surface did not move by exactly %s:", strings.Join(wantGone, " "))
 		r.cont("  gone: %s ", strings.Join(goneU, " "))
 		r.cont("  came: %s ", strings.Join(cameU, " "))
 		return harness.ErrReported
@@ -247,15 +257,18 @@ func Zero15(w io.Writer, args []string) error {
 			return stop("%s is undefined, and the core has had no way to open a file since phase 13", absent)
 		}
 	}
-	r.say("symbols %s -> %s, the set is exactly atoi atol bsearch isalnum iscntrl ispunct qsort tolower toupper towlower towupper -- and FIVE MORE identifiers left the source with no symbol to show for it, isalpha isdigit isgraph islower isupper being macros in musl, which is why phase 16 needs this phase's own count and not nm -u",
+	r.say("symbols %s -> %s, the set is exactly %s -- and FIVE MORE identifiers left the source with no symbol to show for it, isalpha isdigit isgraph islower isupper being macros in musl, which is why phase 16 needs this phase's own count and not nm -u",
 		strings.TrimSpace(readFile(".cache/symbols/last/before")),
-		strings.TrimSpace(readFile(".cache/symbols/last/after")))
+		strings.TrimSpace(readFile(".cache/symbols/last/after")), strings.Join(wantGone, " "))
 
 	// --- 5. the enumerators --------------------------------------------------
 	evOld, evNew := filepath.Join(tmp, "ev.old"), filepath.Join(tmp, "ev.new")
 	var ewg sync.WaitGroup
 	ewg.Add(1)
-	go func() { defer ewg.Done(); exec.Command("sh", "tools/enumvals.sh", filepath.Join(state, "old.c"), evOld).Run() }()
+	go func() {
+		defer ewg.Done()
+		exec.Command("sh", "tools/enumvals.sh", filepath.Join(state, "old.c"), evOld).Run()
+	}()
 	exec.Command("sh", "tools/enumvals.sh", f, evNew).Run()
 	ewg.Wait()
 	if err := z15Enums(r, readFile(evOld), readFile(evNew)); err != nil {
