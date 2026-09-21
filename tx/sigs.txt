@@ -1,0 +1,1723 @@
+func musl_memcpy(dest any, src any, n usize) any
+func musl_memmove(dest any, src any, n usize) any
+func musl_memset(dest any, c int32, n usize) any
+func musl_memcmp(vl any, vr any, n usize) int32
+func musl_strlen(s Ptr[byte]) usize
+func musl_strcpy(dest Ptr[byte], src Ptr[byte]) Ptr[byte]
+func musl_strncpy(dest Ptr[byte], src Ptr[byte], n usize) Ptr[byte]
+func musl_strcat(dest Ptr[byte], src Ptr[byte]) Ptr[byte]
+func musl_strcmp(l Ptr[byte], r Ptr[byte]) int32
+func musl_strncmp(ls Ptr[byte], rs Ptr[byte], n usize) int32
+func musl_strcasecmp(ls Ptr[byte], rs Ptr[byte]) int32
+func musl_strncasecmp(ls Ptr[byte], rs Ptr[byte], n usize) int32
+func musl_strchr(s Ptr[byte], c int32) Ptr[byte]
+func musl_strstr(h Ptr[byte], n Ptr[byte]) Ptr[byte]
+func musl_strpbrk(s Ptr[byte], b Ptr[byte]) Ptr[byte]
+func musl_isdigit(c int32) int32
+func musl_isalpha(c int32) int32
+func musl_isupper(c int32) int32
+func musl_islower(c int32) int32
+func musl_isgraph(c int32) int32
+func musl_isspace(c int32) int32
+func musl_isalnum(c int32) int32
+func musl_iscntrl(c int32) int32
+func musl_ispunct(c int32) int32
+func musl_tolower(c int32) int32
+func musl_toupper(c int32) int32
+func musl_atoi(s Ptr[byte]) int32
+func musl_atol(s Ptr[byte]) int64
+func musl_strtol(s Ptr[byte], end *Ptr[byte], base int32) int64
+func musl_abs(a int32) int32
+func musl_labs(a int64) int64
+func musl_bsearch(key any, base any, nel usize, width usize, cmp func(any, any) int32) any
+func musl_qsort(base any, nel usize, width usize, cmp func(any, any) int32)
+func gettext_(x Ptr[byte]) Ptr[byte]
+func NGETTEXT(x Ptr[byte], xs Ptr[byte], n uint64) Ptr[byte]
+func vim_snprintf(p0 Ptr[byte], p1 usize, p2 Ptr[byte], args ...any) int32 // host
+func musl_host_init() // host
+func musl_get_winsize(rows *int32, cols *int32) int32 // host
+func musl_term_start() // host
+func musl_term_stop() // host
+func musl_tty_keys(fd int32, bs *int32, intr *int32, cr *int32, nlcr *int32) int32 // host
+func musl_now_ms() int64 // host
+func musl_delay(ms int64, interruptible int32) // host
+func musl_wait_for_input(ms int64) int32 // host
+func musl_read_input(buf Ptr[byte], len_ int32) int32 // host
+func musl_suspend() // host
+func host_exit(r int32) // host
+func host_message(msg Ptr[byte], len_ int32, err int32) // host
+func host_alloc(n usize) any // host
+func host_free(p any) // host
+func host_write(s Ptr[byte], len_ int32) int32 // host
+func host_time() int64 // host
+func host_raise(sig int32) // host
+func alloc(size usize) any
+func alloc_clear(size usize) any
+func lalloc_clear(size usize, message int32) any
+func lalloc(size usize, message int32) any
+func do_outofmem_msg(size usize)
+func vim_memsave(p Ptr[byte], len_ usize) Ptr[byte]
+func vim_free(x any)
+func ga_clear(gap *S_growarray)
+func ga_clear_strings(gap *S_growarray)
+func ga_init(gap *S_growarray)
+func ga_init2(gap *S_growarray, itemsize usize, growsize int32)
+func ga_grow(gap *S_growarray, n int32) int32
+func ga_grow_inner(gap *S_growarray, n int32) int32
+func ga_concat(gap *S_growarray, s Ptr[byte])
+func ga_concat_len(gap *S_growarray, s Ptr[byte], len_ usize)
+func ga_append(gap *S_growarray, c int32) int32
+func block_autocmds()
+func unblock_autocmds()
+func calc_percentage(part int64, whole int64) int32
+func open_buffer() int32
+func set_bufref(bufref *bufref_T, buf *S_file_buffer)
+func bufref_valid(bufref *bufref_T) int32
+func buf_valid(buf *S_file_buffer) int32
+func buf_hashtab_add(buf *S_file_buffer)
+func buf_hashtab_remove(buf *S_file_buffer)
+func can_unload_buffer(buf *S_file_buffer) int32
+func close_buffer(win *S_window_S, buf *S_file_buffer, action int32, abort_if_last int32, ignore_abort int32, set_context int32) int32
+func buf_clear_file(buf *S_file_buffer)
+func buf_freeall(buf *S_file_buffer, flags int32) int32
+func free_buffer(buf *S_file_buffer)
+func init_changedtick(buf *S_file_buffer)
+func clear_wininfo(buf *S_file_buffer)
+func free_buffer_stuff(buf *S_file_buffer, free_options int32)
+func free_wininfo(wip *S_wininfo_S)
+func curbuf_reusable() int32
+func buflist_new(lnum linenr_T, flags int32) *S_file_buffer
+func free_buf_options(buf *S_file_buffer, free_p_ff int32)
+func buflist_findnr(nr int32) Ptr[S_file_buffer]
+func buflist_setfpos(buf *S_file_buffer, win *S_window_S, lnum linenr_T, col colnr_T, copy_options int32)
+func getaltfname(errmsg int32) Ptr[byte]
+func fileinfo(fullname int32, shorthelp int32, dont_truncate int32)
+func col_print(buf Ptr[byte], buflen usize, col int32, vcol int32) int32
+func get_rel_pos(wp *S_window_S, buf Ptr[byte], buflen int32) int32
+func bt_help(buf *S_file_buffer) int32
+func buf_spname(buf *S_file_buffer) Ptr[byte]
+func buf_get_fname(buf *S_file_buffer) Ptr[byte]
+func new_file_message() Ptr[byte]
+func changed()
+func changed_internal()
+func changed_common(lnum linenr_T, col colnr_T, lnume linenr_T, xtra int64)
+func changedOneline(buf *S_file_buffer, lnum linenr_T)
+func changed_bytes(lnum linenr_T, col colnr_T)
+func inserted_bytes(lnum linenr_T, col colnr_T, added int32)
+func appended_lines(lnum linenr_T, count int64)
+func appended_lines_mark(lnum linenr_T, count int64)
+func deleted_lines(lnum linenr_T, count int64)
+func deleted_lines_mark(lnum linenr_T, count int64)
+func changed_lines_buf(buf *S_file_buffer, lnum linenr_T, lnume linenr_T, xtra int64)
+func changed_lines(lnum linenr_T, col colnr_T, lnume linenr_T, xtra int64)
+func unchanged(buf *S_file_buffer, ff int32, always_inc_changedtick int32)
+func ins_bytes(p Ptr[byte])
+func ins_bytes_len(p Ptr[byte], len_ int32)
+func ins_char(c int32)
+func ins_char_bytes(buf Ptr[byte], charlen int32)
+func ins_str(s Ptr[byte], slen usize)
+func del_char(fixpos int32) int32
+func del_chars(count int64, fixpos int32) int32
+func del_bytes(count int64, fixpos_arg int32, use_delcombine int32) int32
+func open_line(dir int32, flags int32, second_line_indent int32, did_do_comment *int32) int32
+func truncate_line(fixpos int32) int32
+func del_lines(nlines int64, undo int32)
+func init_chartab() int32
+func buf_init_chartab(buf *S_file_buffer, global int32) int32
+func check_isopt(var_ Ptr[byte]) int32
+func parse_isopt(var_ Ptr[byte], buf *S_file_buffer, only_check int32) int32
+func trans_characters(buf Ptr[byte], bufsize int32)
+func transchar(c int32) Ptr[byte]
+func transchar_buf(buf *S_file_buffer, c int32) Ptr[byte]
+func transchar_byte(c int32) Ptr[byte]
+func transchar_byte_buf(buf *S_file_buffer, c int32) Ptr[byte]
+func transchar_nonprint(buf *S_file_buffer, charbuf Ptr[byte], c int32)
+func transchar_hex(buf Ptr[byte], c int32)
+func nr2hex(c uint32) uint32
+func byte2cells(b int32) int32
+func char2cells(c int32) int32
+func ptr2cells(p Ptr[byte]) int32
+func vim_strsize(s Ptr[byte]) int32
+func vim_strnsize(s Ptr[byte], len_ int32) int32
+func chartabsize(p Ptr[byte], col colnr_T) int32
+func linetabsize_str(s Ptr[byte]) int32
+func linetabsize_col(startcol int32, s Ptr[byte]) int32
+func win_linetabsize(wp *S_window_S, lnum linenr_T, line Ptr[byte], len_ colnr_T) int32
+func linetabsize(wp *S_window_S, lnum linenr_T) int32
+func linetabsize_eol(wp *S_window_S, lnum linenr_T) int32
+func linetabsize_no_outer(wp *S_window_S, lnum linenr_T) int32
+func win_linetabsize_cts(cts *chartabsize_T, len_ colnr_T)
+func vim_isIDc(c int32) int32
+func vim_isNormalIDc(c int32) int32
+func vim_iswordc(c int32) int32
+func vim_iswordc_buf(c int32, buf *S_file_buffer) int32
+func vim_iswordp(p Ptr[byte]) int32
+func vim_iswordp_buf(p Ptr[byte], buf *S_file_buffer) int32
+func vim_isfilec(c int32) int32
+func vim_isprintc(c int32) int32
+func vim_isprintc_strict(c int32) int32
+func init_chartabsize_arg(cts *chartabsize_T, wp *S_window_S, lnum linenr_T, col colnr_T, line Ptr[byte], ptr Ptr[byte])
+func lbr_chartabsize(cts *chartabsize_T) int32
+func lbr_chartabsize_adv(cts *chartabsize_T) int32
+func win_lbr_chartabsize(cts *chartabsize_T, headp *int32, tailp *int32) int32
+func win_nolbr_chartabsize(cts *chartabsize_T, headp *int32) int32
+func in_win_border(wp *S_window_S, vcol colnr_T) int32
+func getvcol(wp *S_window_S, pos *pos_T, start *colnr_T, cursor *colnr_T, end *colnr_T, flags int32)
+func getvcol_nolist(posp *pos_T) colnr_T
+func getvvcol(wp *S_window_S, pos *pos_T, start *colnr_T, cursor *colnr_T, end *colnr_T, flags int32)
+func getvcols(wp *S_window_S, pos1 *pos_T, pos2 *pos_T, left *colnr_T, right *colnr_T, flags int32)
+func skipwhite(q Ptr[byte]) Ptr[byte]
+func getwhitecols_curline() int32
+func getwhitecols(p Ptr[byte]) int32
+func skipdigits(q Ptr[byte]) Ptr[byte]
+func vim_isdigit(c int32) int32
+func vim_isxdigit(c int32) int32
+func vim_isbdigit(c int32) int32
+func vim_isodigit(c int32) int32
+func vim_islower(c int32) int32
+func vim_isupper(c int32) int32
+func vim_toupper(c int32) int32
+func vim_tolower(c int32) int32
+func skiptowhite(p Ptr[byte]) Ptr[byte]
+func getdigits(pp *Ptr[byte]) int64
+func getdigits_quoted(pp *Ptr[byte]) int64
+func vim_str2nr(start Ptr[byte], prep *int32, len_ *int32, what int32, nptr *varnumber_T, unptr *uvarnumber_T, maxlen int32, strict int32, overflow *int32)
+func hex2nr(c int32) int32
+func hexhex2nr(p Ptr[byte]) int32
+func rem_backslash(str Ptr[byte]) int32
+func skip_string(p Ptr[byte]) Ptr[byte]
+func check_linecomment(line Ptr[byte]) int32
+func free_xp_files_extra(xp *S_expand, numfiles int32)
+func ExpandInit(xp *S_expand)
+func ExpandCleanup(xp *S_expand)
+func clear_cmdline_orig()
+func get_hislen() int32
+func get_histentry(hist_type int32) Ptr[S_hist_entry]
+func get_hisidx(hist_type int32) Ptr[int32]
+func hist_char2type(c int32) int32
+func init_history()
+func clear_hist_entry(hisptr Ptr[S_hist_entry])
+func in_history(type_ int32, str Ptr[byte], move_to_front int32, sep int32, writing int32) int32
+func get_histtype(name Ptr[byte]) int32
+func add_to_history(histype int32, new_entry Ptr[byte], new_entrylen usize, in_map int32, sep int32)
+func ex_history(eap *S_exarg)
+func get_lcs_ext(wp *S_window_S) int32
+func handle_lnum_col(wp *S_window_S, wlv *winlinevars_T, sign_present int32, num_attr int32)
+func wlv_screen_line(wp *S_window_S, wlv *winlinevars_T, clear_end int32)
+func draw_screen_line(wp *S_window_S, wlv *winlinevars_T)
+func win_line_start(wp *S_window_S, wlv *winlinevars_T, save_extra int32)
+func win_line_continue(wlv *winlinevars_T)
+func win_line(wp *S_window_S, lnum linenr_T, startrow int32, endrow int32, number_only int32) int32
+func update_screen(type_arg int32) int32
+func statusline_row(wp *S_window_S) int32
+func win_redr_status(wp *S_window_S, ignore_pum int32)
+func showruler(always int32)
+func win_redr_ruler(wp *S_window_S, always int32, ignore_pum int32)
+func after_updating_screen(may_resize_shell int32)
+func update_curbuf(type_ int32)
+func win_update(wp *S_window_S)
+func redraw_asap(type_ int32) int32
+func redraw_later(type_ int32)
+func redraw_win_later(wp *S_window_S, type_ int32)
+func redraw_later_clear()
+func redraw_all_later(type_ int32)
+func set_must_redraw(type_ int32)
+func redraw_curbuf_later(type_ int32)
+func redraw_buf_later(buf *S_file_buffer, type_ int32)
+func ruler_redraw_lastwin()
+func status_redraw_all()
+func status_redraw_curbuf()
+func redraw_statuslines()
+func redrawWinline(wp *S_window_S, lnum linenr_T)
+func redraw_win_range_later(wp *S_window_S, first linenr_T, last linenr_T)
+func edit(cmdchar int32, startln int32, count int64) int32
+func ins_redraw(ready int32)
+func ins_ctrl_v()
+func decodeModifyOtherKeys(c int32) int32
+func edit_putchar(c int32, highlight int32)
+func edit_unputchar()
+func display_dollar(col_arg colnr_T)
+func undisplay_dollar()
+func truncate_spaces(line Ptr[byte], len_ usize)
+func backspace_until_column(col int32)
+func del_char_after_col(limit_col int32) int32
+func get_literal(noReduceKeys int32) int32
+func insert_special(c int32, allow_modmask int32, ctrlv int32)
+func insertchar(c int32, flags int32, second_indent int32)
+func redo_literal(c int32)
+func start_arrow(end_insert_pos *pos_T)
+func start_arrow_with_change(end_insert_pos *pos_T, end_change int32)
+func start_arrow_common(end_insert_pos *pos_T, end_change int32)
+func stop_arrow() int32
+func stop_insert(end_insert_pos *pos_T, esc int32, nomove int32)
+func set_last_insert(c int32)
+func add_char2buf(c int32, s Ptr[byte]) Ptr[byte]
+func beginline(flags int32)
+func oneright() int32
+func oneleft() int32
+func cursor_up_inner(wp *S_window_S, n int64)
+func cursor_up(n int64, upd_topline int32) int32
+func cursor_down_inner(wp *S_window_S, n int64)
+func cursor_down(n int64, upd_topline int32) int32
+func stuff_inserted(c int32, count int64, no_esc int32) int32
+func get_last_insert() string_T
+func get_last_insert_save() Ptr[byte]
+func replace_push(c int32)
+func replace_push_mb(p Ptr[byte]) int32
+func replace_pop() int32
+func replace_join(off int32)
+func replace_pop_ins()
+func mb_replace_pop_ins(cc int32)
+func replace_flush()
+func replace_do_bs(limit_col int32)
+func ins_reg()
+func ins_ctrl_g()
+func ins_esc(count *int64, cmdchar int32, nomove int32) int32
+func ins_start_select(c int32) int32
+func ins_insert(replaceState int32)
+func ins_ctrl_o()
+func ins_shift(c int32, lastc int32)
+func ins_del()
+func ins_bs_one()
+func ins_bs(c int32, mode int32, inserted_space_p *int32) int32
+func bracketed_paste(mode paste_mode_T, drop int32, gap *S_growarray) int32
+func ins_left()
+func ins_home(c int32)
+func ins_end(c int32)
+func ins_s_left()
+func ins_right()
+func ins_s_right()
+func ins_up(startcol int32)
+func ins_pageup()
+func ins_down(startcol int32)
+func ins_pagedown()
+func ins_tab() int32
+func ins_eol(c int32) int32
+func ins_copychar(lnum linenr_T) int32
+func ins_ctrl_ey(tc int32) int32
+func get_nolist_virtcol() colnr_T
+func do_ascii(eap *S_exarg)
+func do_move(line1 linenr_T, line2 linenr_T, dest linenr_T) int32
+func ex_copy(line1 linenr_T, line2 linenr_T, n linenr_T)
+func do_fixdel(eap *S_exarg)
+func print_line_no_prefix(lnum linenr_T, use_number int32, list int32)
+func print_line(lnum linenr_T, use_number int32, list int32)
+func ex_append(eap *S_exarg)
+func ex_change(eap *S_exarg)
+func ex_z(eap *S_exarg)
+func skip_substitute(start Ptr[byte], delimiter int32) Ptr[byte]
+func check_regexp_delim(c int32) int32
+func ex_substitute(eap *S_exarg)
+func do_sub_msg(count_only int32) int32
+func global_exe_one(cmd Ptr[byte], lnum linenr_T)
+func ex_global(eap *S_exarg)
+func global_exe(cmd Ptr[byte])
+func skip_vimgrep_pat(p Ptr[byte], s *Ptr[byte], flags *int32) Ptr[byte]
+func skip_vimgrep_pat_ext(p Ptr[byte], s *Ptr[byte], flags *int32, nulp *Ptr[byte], cp *int32) Ptr[byte]
+func check_fname() int32
+func msg_verbose_cmd(lnum linenr_T, cmd Ptr[byte])
+func do_cmdline_cmd(cmd Ptr[byte]) int32
+func do_cmdline(cmdline Ptr[byte], fgetline func(int32, any, int32, getline_opt_T) Ptr[byte], cookie any, flags int32) int32
+func getline_equal(fgetline func(int32, any, int32, getline_opt_T) Ptr[byte], cookie any, func_ func(int32, any, int32, getline_opt_T) Ptr[byte]) int32
+func do_one_cmd(cmdlinep *Ptr[byte], flags int32, fgetline func(int32, any, int32, getline_opt_T) Ptr[byte], cookie any) Ptr[byte]
+func ex_errmsg(msg Ptr[byte], arg Ptr[byte]) Ptr[byte]
+func ex_range_without_command(eap *S_exarg) Ptr[byte]
+func checkforcmd_opt(pp *Ptr[byte], cmd Ptr[byte], len_ int32, noparen int32) int32
+func checkforcmd_noparen(pp *Ptr[byte], cmd Ptr[byte], len_ int32) int32
+func parse_command_modifiers(eap *S_exarg, errormsg *Ptr[byte], cmod *cmdmod_T, skip_only int32) int32
+func apply_cmdmod(cmod *cmdmod_T)
+func undo_cmdmod(cmod *cmdmod_T)
+func parse_cmd_address(eap *S_exarg, errormsg *Ptr[byte], silent int32) int32
+func append_command(cmd Ptr[byte])
+func one_letter_cmd(p Ptr[byte], idx *cmdidx_T) int32
+func find_ex_command(eap *S_exarg, full *int32, lookup func(Ptr[byte], usize, int32, *S_cctx_S) int32, cctx *S_cctx_S) Ptr[byte]
+func skip_range(cmd_start Ptr[byte], skip_star int32, ctx *int32) Ptr[byte]
+func addr_error(addr_type cmd_addr_T)
+func default_address(eap *S_exarg) linenr_T
+func get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T, skip int32, silent int32, to_other_file int32, address_count int32) linenr_T
+func address_default_all(eap *S_exarg)
+func get_flags(eap *S_exarg)
+func invalid_range(eap *S_exarg) Ptr[byte]
+func correct_range(eap *S_exarg)
+func separate_nextcmd(eap *S_exarg, keep_backslash int32)
+func getargcmd(argp *Ptr[byte]) Ptr[byte]
+func skip_cmd_arg(p Ptr[byte], rembs int32) Ptr[byte]
+func ends_excmd(c int32) int32
+func ends_excmd2(cmd_start Ptr[byte], cmd Ptr[byte]) int32
+func find_nextcmd(p Ptr[byte]) Ptr[byte]
+func check_nextcmd(p Ptr[byte]) Ptr[byte]
+func set_nextcmd(eap *S_exarg, arg Ptr[byte])
+func ex_highlight(eap *S_exarg)
+func before_quit_autocmds(wp *S_window_S, quit_all int32, forceit int32) int32
+func ex_quit(eap *S_exarg)
+func ex_cquit(eap *S_exarg)
+func ex_stop(eap *S_exarg)
+func ex_print(eap *S_exarg)
+func ex_wrongmodifier(eap *S_exarg)
+func ex_equal(eap *S_exarg)
+func do_sleep(msec int64, hide_cursor int32)
+func ex_winsize(eap *S_exarg)
+func ex_operators(eap *S_exarg)
+func ex_put(eap *S_exarg)
+func ex_iput(eap *S_exarg)
+func ex_copymove(eap *S_exarg)
+func ex_may_print(eap *S_exarg)
+func ex_submagic(eap *S_exarg)
+func ex_join(eap *S_exarg)
+func ex_at(eap *S_exarg)
+func ex_undo(eap *S_exarg)
+func ex_redo(eap *S_exarg)
+func ex_later(eap *S_exarg)
+func ex_redraw(eap *S_exarg)
+func redraw_cmd(clear_ int32)
+func ex_redrawstatus(eap *S_exarg)
+func ex_mark(eap *S_exarg)
+func update_topline_cursor()
+func save_current_state(sst *save_state_T) int32
+func restore_current_state(sst *save_state_T)
+func ex_normal(eap *S_exarg)
+func exec_normal_cmd(cmd Ptr[byte], remap int32, silent int32)
+func exec_normal(was_typed int32, use_vpeekc int32, may_use_terminal_loop int32)
+func set_no_hlsearch(flag int32)
+func ex_nohlsearch(eap *S_exarg)
+func abandon_cmdline()
+func empty_pattern(p Ptr[byte], len_ usize, delim int32) int32
+func empty_pattern_magic(p Ptr[byte], len_ usize, magic_val magic_T) int32
+func save_viewstate(vs *viewstate_T)
+func restore_viewstate(vs *viewstate_T)
+func init_incsearch_state(is_state *incsearch_state_T)
+func set_search_match(t *pos_T)
+func parse_pattern_and_range(incsearch_start *pos_T, search_delim *int32, skiplen *int32, patlen *int32) int32
+func do_incsearch_highlighting(firstc int32, search_delim *int32, is_state *incsearch_state_T, skiplen *int32, patlen *int32) int32
+func finish_incsearch_highlighting(gotesc int32, is_state *incsearch_state_T, call_update_screen int32)
+func may_do_incsearch_highlighting(firstc int32, count int64, is_state *incsearch_state_T)
+func may_adjust_incsearch_highlighting(firstc int32, count int64, is_state *incsearch_state_T, c int32) int32
+func may_add_char_to_search(firstc int32, c *int32, is_state *incsearch_state_T) int32
+func cmdline_init()
+func cmdline_handle_ctrl_bsl(c int32, gotesc *int32) int32
+func cmdline_erase_chars(c int32, indent int32, isp *incsearch_state_T) int32
+func cmdline_insert_reg(gotesc *int32) int32
+func cmdline_browse_history(c int32, firstc int32, curcmdstr *Ptr[byte], curcmdstrlen *usize, histype int32, hiscnt_p *int32, xp *S_expand) int32
+func init_ccline(firstc int32, indent int32) int32
+func getcmdline(firstc int32, count int64, indent int32, do_concat getline_opt_T) Ptr[byte]
+func getcmdline_int(firstc int32, count int64, indent int32, clear_ccline int32) Ptr[byte]
+func text_locked() int32
+func text_locked_msg()
+func get_text_locked_msg() Ptr[byte]
+func curbuf_locked() int32
+func allbuf_locked() int32
+func cmdline_charsize(idx int32) int32
+func set_cmdspos()
+func set_cmdspos_cursor()
+func correct_cmdspos(idx int32, cells int32)
+func getexline(c int32, cookie any, indent int32, options getline_opt_T) Ptr[byte]
+func dealloc_cmdbuff()
+func alloc_cmdbuff(len_ usize)
+func realloc_cmdbuff(len_ int32) int32
+func draw_cmdline(start int32, len_ int32)
+func putcmdline(c int32, shift int32)
+func unputcmdline()
+func put_on_cmdline(str Ptr[byte], len_ int32, redraw int32) int32
+func save_cmdline(ccp *cmdline_info_T)
+func restore_cmdline(ccp *cmdline_info_T)
+func cmdline_paste(regname int32, literally int32, remcr int32) int32
+func cmdline_paste_str(s Ptr[byte], literally int32)
+func redrawcmdline()
+func redrawcmdline_ex(do_compute_cmdrow int32)
+func redrawcmdprompt()
+func redrawcmd()
+func compute_cmdrow()
+func cursorcmd()
+func gotocmdline(clr int32)
+func get_cmdline_info() *cmdline_info_T
+func get_cmdline_firstc() int32
+func get_list_range(str *Ptr[byte], num1 *int32, num2 *int32) int32
+func shorten_fnames()
+func shorten_dir_len(str Ptr[byte], trim_len int32)
+func shorten_dir(str Ptr[byte])
+func home_replace(buf *S_file_buffer, src Ptr[byte], dst Ptr[byte], dstlen int32, one int32) usize
+func gettail(fname Ptr[byte]) Ptr[byte]
+func get_past_head(path Ptr[byte]) Ptr[byte]
+func vim_ispathsep(c int32) int32
+func vim_ispathsep_nocolon(c int32) int32
+func FreeWild(count int32, files Ptr[Ptr[byte]])
+func file_name_at_cursor(options int32, count int64, file_lnum *linenr_T) Ptr[byte]
+func file_name_in_line(line Ptr[byte], col int32, options int32, count int64, rel_fname Ptr[byte], file_lnum *linenr_T) Ptr[byte]
+func find_file_name_in_path(ptr Ptr[byte], len_ int32, options int32, count int64, rel_fname Ptr[byte]) Ptr[byte]
+func free_buff(buf *S_buffheader)
+func get_buffcont(buffer *S_buffheader, dozero int32, len_ *usize) Ptr[byte]
+func get_recorded() Ptr[byte]
+func get_inserted() string_T
+func add_buff(buf *S_buffheader, s Ptr[byte], slen int64)
+func delete_buff_tail(buf *S_buffheader, slen int32)
+func add_num_buff(buf *S_buffheader, n int64)
+func add_char_buff(buf *S_buffheader, c int32)
+func read_readbuffers(advance int32) int32
+func read_readbuf(buf *S_buffheader, advance int32) int32
+func start_stuff()
+func stuff_empty() int32
+func typeahead_noflush(c int32)
+func flush_buffers(flush_typeahead flush_buffers_T)
+func ResetRedobuff()
+func CancelRedo()
+func AppendToRedobuff(s Ptr[byte])
+func AppendToRedobuffLit(str Ptr[byte], len_ int32)
+func AppendToRedobuffSpec(s Ptr[byte])
+func AppendCharToRedobuff(c int32)
+func AppendNumberToRedobuff(n int64)
+func stuffReadbuff(s Ptr[byte])
+func stuffRedoReadbuff(s Ptr[byte])
+func stuffReadbuffLen(s Ptr[byte], len_ int64)
+func stuffcharReadbuff(c int32)
+func stuffnumReadbuff(n int64)
+func stuffescaped(arg Ptr[byte], literally int32)
+func read_redo(init_ int32, old_redo int32) int32
+func copy_redo(old_redo int32)
+func start_redo(count int64, old_redo int32) int32
+func start_redo_ins() int32
+func stop_redo_ins()
+func init_typebuf()
+func ins_typebuf(str Ptr[byte], noremap int32, offset int32, nottyped int32, silent int32) int32
+func ins_char_typebuf(c int32, modifiers int32) int32
+func typebuf_changed(tb_change_cnt int32) int32
+func typebuf_typed() int32
+func typebuf_maplen() int32
+func del_typebuf(len_ int32, offset int32)
+func gotchars_add_byte(state *gotchars_state_T, byte_ char_u) int32
+func gotchars(chars Ptr[byte], len_ int32)
+func gotchars_ignore()
+func ungetchars(len_ int32)
+func may_sync_undo()
+func alloc_typebuf() int32
+func free_typebuf()
+func can_get_old_char() int32
+func save_typeahead(tp *tasave_T)
+func restore_typeahead(tp *tasave_T, overwrite int32)
+func merge_modifyOtherKeys(c_arg int32, modifiers *int32) int32
+func add_byte_to_showcmd(byte_ char_u)
+func vgetc() int32
+func safe_vgetc() int32
+func plain_vgetc_nopaste() int32
+func plain_vgetc() int32
+func vpeekc() int32
+func char_avail() int32
+func check_simplify_modifier(max_offset int32) int32
+func key_protocol_enabled() int32
+func handle_mapping(keylenp *int32, timedout *int32, mapdepth *int32) int32
+func vungetc(c int32)
+func check_end_reg_executing(advance int32)
+func vgetorpeek(advance int32) int32
+func inchar(buf Ptr[byte], maxlen int32, wait_time int64) int32
+func fix_input_buffer(buf Ptr[byte], len_ int32) int32
+func input_available() int32
+func getcmdkeycmd(promptc int32, cookie any, indent int32, do_concat getline_opt_T) Ptr[byte]
+func do_cmdkey_command(key int32, flags int32) int32
+func hash_init(ht *S_hashtable_S)
+func check_hashtab_frozen(ht *S_hashtable_S, command Ptr[byte]) int32
+func hash_find(ht *S_hashtable_S, key Ptr[byte]) Ptr[S_hashitem_S]
+func hash_lookup(ht *S_hashtable_S, key Ptr[byte], hash hash_T) Ptr[S_hashitem_S]
+func hash_add(ht *S_hashtable_S, key Ptr[byte], command Ptr[byte]) int32
+func hash_add_item(ht *S_hashtable_S, hi Ptr[S_hashitem_S], key Ptr[byte], hash hash_T) int32
+func hash_remove(ht *S_hashtable_S, hi Ptr[S_hashitem_S], command Ptr[byte]) int32
+func hash_may_resize(ht *S_hashtable_S, minitems int32) int32
+func hash_hash(key Ptr[byte]) hash_T
+func init_highlight(both int32, reset int32)
+func lookup_color(idx int32, foreground int32, boldp *int32) int32
+func highlight_group_link(from_hg Ptr[byte], from_len int32, to_hg Ptr[byte], to_len int32, dodefault int32, forceit int32, init_ int32)
+func highlight_reset_all()
+func highlight_set_termgui_attr(idx int32, key Ptr[byte], arg Ptr[byte], init_ int32) int32
+func hl_set_ctermfg_normal_group(color int32, bold int32)
+func highlight_set_ctermfg(idx int32, color int32, is_normal_group int32)
+func hl_set_ctermbg_normal_group(color int32)
+func highlight_set_ctermbg(idx int32, color int32, is_normal_group int32)
+func hl_set_ctermul_normal_group(color int32)
+func highlight_set_ctermul(idx int32, color int32, is_normal_group int32)
+func highlight_set_cterm_font(idx int32, arg Ptr[byte], init_ int32) int32
+func highlight_set_cterm_color(idx int32, key Ptr[byte], key_start Ptr[byte], arg Ptr[byte], is_normal_group int32, init_ int32) int32
+func highlight_set_startstop_termcode(idx int32, key Ptr[byte], arg Ptr[byte], init_ int32) int32
+func do_highlight(line Ptr[byte], forceit int32, init_ int32)
+func restore_cterm_colors()
+func hl_has_settings(idx int32, check_link int32) int32
+func highlight_clear(idx int32)
+func get_attr_entry(table *S_growarray, aep *S_attr_entry) int32
+func clear_hl_tables()
+func hl_combine_attr(char_attr int32, prim_attr int32) int32
+func cterm_idx_to_rgb(idx int32, r *int32, g *int32, b *int32)
+func rgb_to_cterm_idx(r int32, g int32, b int32) int32
+func resolve_color_to_rgb(cterm_c int32, rgb int64, r *int32, g *int32, b *int32) bool
+func resolve_fallback_color(cterm_c int32, rgb int64, default_rgb int64) int64
+func resolve_fallback_fg_to_rgb()
+func resolve_fallback_bg_to_rgb()
+func blend_cterm_colors(popup_c int32, popup_rgb int64, under_c int32, under_rgb int64, default_rgb int32, blend_val int32) int32
+func hl_blend_attr_common(char_attr int32, popup_attr int32, blend int32, blend_fg int32) int32
+func hl_blend_attr(char_attr int32, popup_attr int32, blend int32, blend_fg int32) int32
+func hl_pum_blend_attr(char_attr int32, popup_attr int32, blend int32) int32
+func syn_attr2attr(attr int32) int32
+func syn_term_attr2entry(attr int32) *S_attr_entry
+func syn_cterm_attr2entry(attr int32) *S_attr_entry
+func highlight_list_one(id int32)
+func highlight_arg_to_string(type_ int32, iarg int32, sarg Ptr[byte], buf Ptr[byte]) Ptr[byte]
+func highlight_list_arg(id int32, didh int32, type_ int32, iarg int32, sarg Ptr[byte], name Ptr[byte]) int32
+func syn_list_header(did_header int32, outlen int32, id int32) int32
+func set_hl_attr(idx int32)
+func syn_override(id int32) int32
+func syn_name2id_len(name Ptr[byte], len_ int32) int32
+func syn_namen2id(linep Ptr[byte], len_ int32) int32
+func syn_check_group(pp Ptr[byte], len_ int32) int32
+func syn_add_group(name Ptr[byte]) int32
+func syn_unadd_group()
+func syn_id2attr(hl_id int32) int32
+func syn_get_final_id(hl_id int32) int32
+func highlight_changed() int32
+func update_highlight_overrides(old Ptr[hl_override_T], hl_new Ptr[hl_override_T], newlen int32)
+func set_highlight_attr(arr Ptr[hl_override_T], len_ int32, update_ids bool)
+func push_highlight_overrides(arr Ptr[hl_override_T], len_ int32) bool
+func pop_highlight_overrides()
+func parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byte]) Ptr[hl_override_T]
+func update_winhighlight(wp *S_window_S, opt Ptr[byte]) Ptr[byte]
+func hlf_get_id(wp *S_window_S, hlf int32) int32
+func update_wincolor(wp *S_window_S, opt Ptr[byte]) Ptr[byte]
+func get_sw_value(buf *S_file_buffer) int64
+func get_sw_value_pos(buf *S_file_buffer, pos *pos_T, left int32) int64
+func get_sw_value_indent(buf *S_file_buffer, left int32) int64
+func get_sw_value_col(buf *S_file_buffer, col colnr_T, left int32) int64
+func get_sts_value() int64
+func get_indent() int32
+func get_indent_lnum(lnum linenr_T) int32
+func get_indent_str(ptr Ptr[byte], ts int32, no_ts int32) int32
+func set_indent(size int32, flags int32) int32
+func inindent(extra int32) int32
+func preprocs_left() int32
+func may_do_si() int32
+func ins_try_si(c int32)
+func change_indent(type_ int32, amount int32, round int32, replaced int32, call_changed_bytes int32)
+func copy_indent(size int32, src Ptr[byte]) int32
+func fix_indent()
+func ctrl_x_mode_scroll() int32
+func get_maphash_list(state int32, c int32) *S_mapblock
+func get_buf_maphash_list(state int32, c int32) *S_mapblock
+func is_maphash_valid() int32
+func validate_maphash()
+func map_free(mpp Ptr[*S_mapblock])
+func map_mode_to_chars(mode int32) Ptr[byte]
+func showmap(mp *S_mapblock, local int32)
+func map_add(map_table Ptr[*S_mapblock], abbr_table Ptr[*S_mapblock], keys Ptr[byte], rhs Ptr[byte], orig_rhs Ptr[byte], noremap int32, nowait int32, silent int32, mode int32, is_abbr int32, simplified int32) *S_mapblock
+func list_mappings(keyround int32, abbrev int32, haskey int32, keys Ptr[byte], keys_len int32, mode int32, did_local *int32)
+func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev int32) int32
+func get_map_mode(cmdp *Ptr[byte], forceit int32) int32
+func map_clear(cmdp Ptr[byte], arg Ptr[byte], forceit int32, abbr int32)
+func is_map_locked() int32
+func map_clear_mode(buf *S_file_buffer, mode int32, local int32, abbr int32)
+func vim_strsave_escape_csi(p Ptr[byte]) Ptr[byte]
+func vim_unescape_csi(p Ptr[byte]) usize
+func check_map_keycodes()
+func init_mappings()
+func add_map(map_ Ptr[byte], mode int32, nore int32)
+func do_exmap(eap *S_exarg, isabbrev int32)
+func ex_map(eap *S_exarg)
+func ex_unmap(eap *S_exarg)
+func ex_mapclear(eap *S_exarg)
+func setmark(c int32) int32
+func setmark_pos(c int32, pos *pos_T, fnum int32) int32
+func setpcmark()
+func checkpcmark()
+func movechangelist(count int32) Ptr[pos_T]
+func getmark_buf(buf *S_file_buffer, c int32, changefile int32) Ptr[pos_T]
+func getmark(c int32, changefile int32) Ptr[pos_T]
+func getmark_buf_fnum(buf *S_file_buffer, c int32, changefile int32, fnum *int32) Ptr[pos_T]
+func getnextmark(startpos Ptr[pos_T], dir int32, begin_line int32) Ptr[pos_T]
+func check_mark(pos Ptr[pos_T]) int32
+func clrallmarks(buf *S_file_buffer)
+func mark_line(mp Ptr[pos_T], lead_len int32) Ptr[byte]
+func ex_marks(eap *S_exarg)
+func show_one_mark(c int32, arg Ptr[byte], p Ptr[pos_T], name_arg Ptr[byte], current int32)
+func ex_delmarks(eap *S_exarg)
+func ex_changes(eap *S_exarg)
+func mark_adjust(line1 linenr_T, line2 linenr_T, amount int64, amount_after int64)
+func mark_adjust_nofold(line1 linenr_T, line2 linenr_T, amount int64, amount_after int64)
+func mark_adjust_internal(line1 linenr_T, line2 linenr_T, amount int64, amount_after int64, adjust_folds int32)
+func mark_col_adjust(lnum linenr_T, mincol colnr_T, lnum_amount int64, col_amount int64, spaces_removed int32)
+func set_last_cursor(win *S_window_S)
+func match_add(wp *S_window_S, grp Ptr[byte], pat Ptr[byte], prio int32, id int32, pos_list *S_listvar_S, conceal_char Ptr[byte]) int32
+func match_delete(wp *S_window_S, id int32, perr int32) int32
+func init_search_hl(wp *S_window_S, search_hl *match_T)
+func next_search_hl_pos(shl *match_T, lnum linenr_T, match *S_matchitem, mincol colnr_T) int32
+func next_search_hl(win *S_window_S, search_hl *match_T, shl *match_T, lnum linenr_T, mincol colnr_T, cur *S_matchitem)
+func prepare_search_hl(wp *S_window_S, search_hl *match_T, lnum linenr_T)
+func check_cur_search_hl(wp *S_window_S, shl *match_T)
+func prepare_search_hl_line(wp *S_window_S, lnum linenr_T, mincol colnr_T, line *Ptr[byte], search_hl *match_T, search_attr *int32) int32
+func update_search_hl(wp *S_window_S, lnum linenr_T, col colnr_T, line *Ptr[byte], search_hl *match_T, has_match_conc *int32, match_conc *int32, did_line_attr int32, lcs_eol_one int32, on_last_col *int32) int32
+func get_prevcol_hl_flag(wp *S_window_S, search_hl *match_T, curcol int64) int32
+func get_search_match_hl(wp *S_window_S, search_hl *match_T, col int64, char_attr *int32)
+func ex_match(eap *S_exarg)
+func mb_init() Ptr[byte]
+func mb_get_class(p Ptr[byte]) int32
+func mb_get_class_buf(p Ptr[byte], buf *S_file_buffer) int32
+func intable(table Ptr[S_interval], size usize, c int32) int32
+func utf_char2cells(c int32) int32
+func utf_ptr2cells(p Ptr[byte]) int32
+func mb_string2cells(p Ptr[byte], len_ int32) int32
+func utf_off2cells(off uint32, max_off uint32) int32
+func utf_ptr2char_and_len(p Ptr[byte], lenp *int32) int32
+func utf_ptr2char_and_len_len(p Ptr[byte], size int32, lenp *int32) int32
+func utf_iscomposinglike_char(c1 int32, c2 int32) int32
+func utf_ptr2char(p Ptr[byte]) int32
+func utf_safe_read_char_adv(s *Ptr[byte], n *usize) int32
+func mb_ptr2char_adv(pp *Ptr[byte]) int32
+func mb_cptr2char_adv(pp *Ptr[byte]) int32
+func utfc_ptr2char(p Ptr[byte], pcc Ptr[int32]) int32
+func utfc_ptr2char_len(p Ptr[byte], pcc Ptr[int32], maxlen int32) int32
+func utfc_char2bytes(off int32, buf Ptr[byte]) int32
+func utf_ptr2len(p Ptr[byte]) int32
+func utfc_ptr2len(p Ptr[byte]) int32
+func utfc_ptr2len_len(p Ptr[byte], size int32) int32
+func utf_char2len(c int32) int32
+func utf_char2bytes(c int32, buf Ptr[byte]) int32
+func utf_iscomposing(c int32) int32
+func utf_printable(c int32) int32
+func utf_class(c int32) int32
+func utf_class_buf(c int32, buf *S_file_buffer) int32
+func utf_ambiguous_width(c int32) int32
+func utf_convert(a int32, table Ptr[convertStruct], tableSize int32) int32
+func utf_fold(a int32) int32
+func musl_towupper(a int32) int32
+func musl_towlower(a int32) int32
+func utf_toupper(a int32) int32
+func utf_islower(a int32) int32
+func utf_tolower(a int32) int32
+func utf_isupper(a int32) int32
+func utf_strnicmp(s1 Ptr[byte], s2 Ptr[byte], n1 usize, n2 usize) int32
+func mb_strnicmp2(s1 Ptr[byte], s2 Ptr[byte], n1 usize, n2 usize) int32
+func mb_strnicmp(s1 Ptr[byte], s2 Ptr[byte], nn usize) int32
+func show_utf8()
+func utf_head_off(base Ptr[byte], p Ptr[byte]) int32
+func mb_copy_char(fp *Ptr[byte], tp *Ptr[byte])
+func mb_off_next(base Ptr[byte], p Ptr[byte]) int32
+func utf_find_illegal()
+func mb_adjust_cursor()
+func mb_adjustpos(buf *S_file_buffer, lp *pos_T)
+func mb_prevptr(line Ptr[byte], p Ptr[byte]) Ptr[byte]
+func mb_charlen(str Ptr[byte]) int32
+func mb_unescape(pp *Ptr[byte]) Ptr[byte]
+func mb_lefthalve(row int32, col int32) int32
+func mb_fix_col(col int32, row int32) int32
+func ml_free_tree(hp *S_block_hdr)
+func ml_alloc_line(line Ptr[byte], len_ colnr_T) Ptr[byte]
+func ml_open(buf *S_file_buffer) int32
+func ml_close(buf *S_file_buffer, del_file int32)
+func ml_close_all(del_file int32)
+func ml_close_notmod()
+func ml_get(lnum linenr_T) Ptr[byte]
+func ml_get_pos(pos *pos_T) Ptr[byte]
+func ml_get_curline() Ptr[byte]
+func ml_get_cursor() Ptr[byte]
+func ml_get_len(lnum linenr_T) colnr_T
+func ml_get_pos_len(pos *pos_T) colnr_T
+func ml_get_curline_len() colnr_T
+func ml_get_cursor_len() colnr_T
+func ml_get_buf_len(buf *S_file_buffer, lnum linenr_T) colnr_T
+func ml_get_buf(buf *S_file_buffer, lnum linenr_T, will_change int32) Ptr[byte]
+func ml_line_alloced() int32
+func ml_append_int(buf *S_file_buffer, lnum linenr_T, line_arg Ptr[byte], len_arg colnr_T, flags int32) int32
+func ml_append_flush(buf *S_file_buffer, lnum linenr_T, line Ptr[byte], len_ colnr_T, flags int32) int32
+func ml_append(lnum linenr_T, line Ptr[byte], len_ colnr_T) int32
+func ml_append_flags(lnum linenr_T, line Ptr[byte], len_ colnr_T, flags int32) int32
+func ml_replace(lnum linenr_T, line Ptr[byte], copy_ int32) int32
+func ml_replace_len(lnum linenr_T, line_arg Ptr[byte], len_arg colnr_T, has_props int32, copy_ int32) int32
+func ml_delete_int(buf *S_file_buffer, lnum linenr_T, flags int32) int32
+func ml_delete(lnum linenr_T) int32
+func ml_delete_flags(lnum linenr_T, flags int32) int32
+func ml_setmarked(lnum linenr_T)
+func ml_firstmarked() linenr_T
+func ml_clearmarked()
+func ml_flush_line(buf *S_file_buffer)
+func ml_new_data() *S_block_hdr
+func ml_new_ptr() *S_block_hdr
+func ml_find_line(buf *S_file_buffer, lnum linenr_T, action int32) *S_block_hdr
+func ml_add_stack(buf *S_file_buffer) int32
+func ml_lineadd(buf *S_file_buffer, count int32)
+func msg(s Ptr[byte]) int32
+func msg_attr(s Ptr[byte], attr int32) int32
+func msg_attr_keep(s Ptr[byte], attr int32, keep int32) int32
+func msg_strtrunc(s Ptr[byte], force int32) Ptr[byte]
+func trunc_string(s Ptr[byte], buf Ptr[byte], room_in int32, buflen int32)
+func iobuff_room() usize
+func emsg_iobuff_room() usize
+func iobuff_or(s Ptr[byte]) Ptr[byte]
+func safelen_result(str Ptr[byte], str_m usize, str_l int32) usize
+func append_room(str Ptr[byte], str_m usize) usize
+func reset_last_sourcing()
+func other_sourcing_name() int32
+func get_emsg_source() Ptr[byte]
+func get_emsg_lnum() Ptr[byte]
+func msg_source(attr int32)
+func emsg_not_now() int32
+func emsg_core(s Ptr[byte]) int32
+func emsg(s Ptr[byte]) int32
+func iemsg(s Ptr[byte])
+func internal_error(where Ptr[byte])
+func emsg_invreg(name int32)
+func msg_trunc_attr(s Ptr[byte], force int32, attr int32) Ptr[byte]
+func msg_may_trunc(force int32, s Ptr[byte]) Ptr[byte]
+func add_msg_hist(s Ptr[byte], len_ int32, attr int32)
+func delete_first_msg() int32
+func check_msg_hist()
+func messagesopt_changed() int32
+func ex_messages(eap *S_exarg)
+func wait_return(redraw int32)
+func hit_return_msg()
+func set_keep_msg(s Ptr[byte], attr int32)
+func set_keep_msg_from_hist()
+func msg_start()
+func msg_starthere()
+func msg_putchar(c int32)
+func msg_putchar_attr(c int32, attr int32)
+func msg_outtrans(str Ptr[byte]) int32
+func msg_outtrans_attr(str Ptr[byte], attr int32) int32
+func msg_outtrans_len(str Ptr[byte], len_ int32) int32
+func msg_outtrans_len_attr(msgstr Ptr[byte], len_ int32, attr int32) int32
+func msg_outtrans_special(strstart Ptr[byte], from int32, maxlen int32) int32
+func str2special(sp *Ptr[byte], replace_spaces int32, replace_others int32) Ptr[byte]
+func str2specialbuf(sp Ptr[byte], buf Ptr[byte], len_ int32)
+func msg_prt_line(s Ptr[byte], list int32)
+func screen_puts_mbyte(s Ptr[byte], l int32, attr int32) Ptr[byte]
+func msg_puts(s Ptr[byte])
+func msg_puts_title(s Ptr[byte])
+func msg_puts_attr(s Ptr[byte], attr int32)
+func msg_puts_attr_len(str Ptr[byte], maxlen int32, attr int32)
+func msg_puts_display(str Ptr[byte], maxlen int32, attr int32, recurse int32)
+func message_filtered(msg Ptr[byte]) int32
+func msg_scroll_up()
+func inc_msg_scrolled()
+func store_sb_text(sb_str *Ptr[byte], s Ptr[byte], attr int32, sb_col *int32, finish int32)
+func may_clear_sb_text()
+func sb_text_start_cmdline()
+func sb_text_restart_cmdline()
+func sb_text_end_cmdline()
+func clear_sb_text(all int32)
+func show_sb_text()
+func msg_sb_start(mps *S_msgchunk_S) *S_msgchunk_S
+func msg_sb_eol()
+func disp_sb_line(row int32, smp *S_msgchunk_S, clear_to_eol int32) *S_msgchunk_S
+func t_puts(t_col *int32, t_s Ptr[byte], s Ptr[byte], attr int32)
+func msg_use_printf() int32
+func do_more_prompt(typed_char int32) int32
+func msg_screen_putchar(c int32, attr int32)
+func msg_moremsg(full int32)
+func repeat_message()
+func msg_check_screen() int32
+func msg_clr_eos()
+func msg_clr_eos_force()
+func msg_clr_cmdline()
+func msg_end() int32
+func msg_check()
+func verbose_enter_scroll()
+func verbose_leave_scroll()
+func give_warning(message Ptr[byte], hl int32)
+func give_warning_with_source(message Ptr[byte], hl int32, with_source int32)
+func msg_advance(col int32)
+func msg_warn_missing_clipboard()
+func plines(lnum linenr_T) int32
+func plines_win(wp *S_window_S, lnum linenr_T, limit_winheight int32) int32
+func plines_win_nofold(wp *S_window_S, lnum linenr_T) int32
+func plines_win_col(wp *S_window_S, lnum linenr_T, column int64) int32
+func plines_m_win(wp *S_window_S, first linenr_T, last linenr_T, max_ int32) int32
+func gchar_pos(pos *pos_T) int32
+func gchar_cursor() int32
+func pchar_cursor(c int32)
+func skip_to_option_part(p Ptr[byte]) Ptr[byte]
+func check_status(buf *S_file_buffer)
+func ask_yesno(str Ptr[byte], direct int32) int32
+func get_keystroke() int32
+func msgmore(n int64)
+func beep_flush()
+func vim_beep(val uint32)
+func expand_env_esc(srcp Ptr[byte], dst Ptr[byte], dstlen int32, esc_chars Ptr[byte], one int32, startstr Ptr[byte]) usize
+func prepare_to_exit()
+func preserve_exit()
+func line_breakcheck()
+func fast_breakcheck()
+func goto_im() int32
+func path_is_url(p Ptr[byte]) int32
+func vim_append_digit_long(value *int64, digit int32) int32
+func trim_to_int(x vimlong_T) int32
+func virtual_active() int32
+func getviscol() int32
+func coladvance_force(wcol colnr_T) int32
+func getviscol2(col colnr_T, coladd colnr_T) int32
+func coladvance(wantcol colnr_T) int32
+func getvpos(pos *pos_T, wantcol colnr_T) int32
+func coladvance2(pos *pos_T, addspaces int32, finetune int32, wcol_arg colnr_T) int32
+func inc_cursor() int32
+func inc(lp *pos_T) int32
+func incl(lp *pos_T) int32
+func dec_cursor() int32
+func dec(lp *pos_T) int32
+func decl(lp *pos_T) int32
+func get_cursor_rel_lnum(wp *S_window_S, lnum linenr_T) linenr_T
+func check_pos(buf *S_file_buffer, pos *pos_T)
+func check_cursor_lnum()
+func check_cursor_col()
+func check_cursor_col_win(win *S_window_S)
+func check_cursor()
+func check_visual_pos()
+func adjust_cursor_col()
+func set_leftcol(leftcol colnr_T) int32
+func copy_option_part(option *Ptr[byte], buf Ptr[byte], maxlen int32, sep_chars Ptr[byte]) int32
+func vim_isspace(x int32) int32
+func name_to_mod_mask(c int32) int32
+func simplify_key(key int32, modifiers *int32) int32
+func handle_x_keys(key int32) int32
+func get_special_key_name(c int32, modifiers int32) Ptr[byte]
+func trans_special(srcp *Ptr[byte], dst Ptr[byte], flags int32, escape_ks int32, did_simplify *int32) int32
+func special_to_buf(key int32, modifiers int32, escape_ks int32, dst Ptr[byte]) int32
+func find_special_key(srcp *Ptr[byte], modp *int32, flags int32, did_simplify *int32) int32
+func may_adjust_key_for_ctrl(modifiers int32, key int32) int32
+func may_remove_shift_modifier(modifiers int32, key int32) int32
+func extract_modifiers(key int32, modp *int32, simplify int32, did_simplify *int32) int32
+func find_special_key_in_table(c int32) int32
+func cmp_key_name_entry(a any, b any) int32
+func get_special_key_code(name Ptr[byte]) int32
+func get_real_state() int32
+func cmp_keyvalue_value_n(a any, b any) int32
+func cmp_keyvalue_value_i(a any, b any) int32
+func cmp_keyvalue_value_ni(a any, b any) int32
+func adjust_plines_for_skipcol(wp *S_window_S) int32
+func plines_correct_topline(wp *S_window_S, lnum linenr_T, limit_winheight int32) int32
+func comp_botline(wp *S_window_S)
+func redraw_for_cursorline(wp *S_window_S)
+func set_valid_virtcol(wp *S_window_S, vcol colnr_T)
+func sms_marker_overlap(wp *S_window_S, extra2 int32) int32
+func skipcol_from_plines(wp *S_window_S, plines_off int32) int32
+func reset_skipcol()
+func update_topline_redraw()
+func use_scrolloffpad() bool
+func scrolloffpad_eof_pressure(lnum linenr_T, so int64) bool
+func update_topline()
+func scrolljump_value() int32
+func check_top_offset() int32
+func update_curswant_force()
+func update_curswant()
+func check_cursor_moved(wp *S_window_S)
+func changed_window_setting()
+func changed_window_setting_win(wp *S_window_S)
+func set_topline(wp *S_window_S, lnum linenr_T)
+func changed_cline_bef_curs()
+func changed_cline_bef_curs_win(wp *S_window_S)
+func changed_line_abv_curs()
+func changed_line_abv_curs_win(wp *S_window_S)
+func validate_botline()
+func validate_botline_win(wp *S_window_S)
+func invalidate_botline()
+func invalidate_botline_win(wp *S_window_S)
+func approximate_botline_win(wp *S_window_S)
+func validate_cursor()
+func curs_rows(wp *S_window_S)
+func validate_virtcol()
+func validate_virtcol_win(wp *S_window_S)
+func validate_cheight()
+func validate_cursor_col()
+func win_col_off(wp *S_window_S) int32
+func curwin_col_off() int32
+func win_col_off2(wp *S_window_S) int32
+func curwin_col_off2() int32
+func curs_columns(may_scroll int32)
+func cursor_correct_sms()
+func scroll_redraw(up int32, count int64)
+func scrolldown(line_count int64, byfold int32)
+func scrollup(line_count int64, byfold int32)
+func adjust_skipcol()
+func scrolldown_clamp()
+func scrollup_clamp()
+func topline_back_winheight(lp *lineoff_T, winheight int32)
+func topline_back(lp *lineoff_T)
+func botline_forw(lp *lineoff_T)
+func scroll_cursor_top(min_scroll int32, always int32)
+func set_empty_rows(wp *S_window_S, used int32)
+func scroll_cursor_bot(min_scroll int32, set_topbot int32)
+func scroll_cursor_halfway(atend int32, prefer_above int32)
+func cursor_correct()
+func get_scroll_overlap(dir int32) int32
+func scroll_with_sms(dir int32, count int64, curscount *int64) int32
+func pagescroll(dir int32, count int64, half int32) int32
+func find_command(cmdchar int32) int32
+func check_text_locked(oap *S_oparg_S) int32
+func check_text_or_curbuf_locked(oap *S_oparg_S) int32
+func normal_cmd_get_count(cap_ *S_cmdarg_S, c int32, toplevel int32, set_prevcount int32, ctrl_w *int32, need_flushbuf *int32) int32
+func normal_cmd_needs_more_chars(cap_ *S_cmdarg_S, cmd_flags short_u) int32
+func normal_cmd_get_more_chars(idx_arg int32, cap_ *S_cmdarg_S, need_flushbuf *int32) int32
+func normal_cmd_need_to_wait_for_msg(cap_ *S_cmdarg_S, old_pos *pos_T) int32
+func normal_cmd_wait_for_msg()
+func normal_cmd(oap *S_oparg_S, toplevel int32)
+func check_visual_highlight()
+func end_visual_mode()
+func end_visual_mode_keep_button()
+func restore_visual_mode()
+func find_is_eval_item(ptr Ptr[byte], colp *int32, bnp *int32, dir int32) int32
+func find_ident_under_cursor(text *Ptr[byte], find_type int32) int32
+func find_ident_at_pos(wp *S_window_S, lnum linenr_T, startcol colnr_T, text *Ptr[byte], textcol *int32, find_type int32) int32
+func prep_redo_cmd(cap_ *S_cmdarg_S)
+func prep_redo(regname int32, num int64, cmd1 int32, cmd2 int32, cmd3 int32, cmd4 int32, cmd5 int32)
+func prep_redo_num2(regname int32, num1 int64, cmd1 int32, cmd2 int32, num2 int64, cmd3 int32, cmd4 int32, cmd5 int32)
+func checkclearop(oap *S_oparg_S) int32
+func checkclearopq(oap *S_oparg_S) int32
+func clearop(oap *S_oparg_S)
+func clearopbeep(oap *S_oparg_S)
+func unshift_special(cap_ *S_cmdarg_S)
+func may_clear_cmdline()
+func clear_showcmd()
+func add_to_showcmd(c int32) int32
+func add_to_showcmd_c(c int32)
+func del_from_showcmd(len_ int32)
+func push_showcmd()
+func pop_showcmd()
+func showcmd_update_clear_state()
+func display_showcmd()
+func nv_ignore(cap_ *S_cmdarg_S)
+func nv_nop(cap_ *S_cmdarg_S)
+func nv_error(cap_ *S_cmdarg_S)
+func nv_help(cap_ *S_cmdarg_S)
+func nv_addsub(cap_ *S_cmdarg_S)
+func nv_page(cap_ *S_cmdarg_S)
+func nv_screengo(oap *S_oparg_S, dir int32, dist int64) int32
+func nv_scroll_line(cap_ *S_cmdarg_S)
+func nv_z_get_count(cap_ *S_cmdarg_S, nchar_arg *int32) int32
+func nv_zet(cap_ *S_cmdarg_S)
+func nv_colon(cap_ *S_cmdarg_S)
+func nv_ctrlg(cap_ *S_cmdarg_S)
+func nv_ctrlh(cap_ *S_cmdarg_S)
+func nv_clear(cap_ *S_cmdarg_S)
+func nv_ctrlo(cap_ *S_cmdarg_S)
+func nv_Zet(cap_ *S_cmdarg_S)
+func nv_ident(cap_ *S_cmdarg_S)
+func nv_tagpop(cap_ *S_cmdarg_S)
+func nv_scroll(cap_ *S_cmdarg_S)
+func nv_right(cap_ *S_cmdarg_S)
+func nv_left(cap_ *S_cmdarg_S)
+func nv_up(cap_ *S_cmdarg_S)
+func nv_down(cap_ *S_cmdarg_S)
+func nv_end(cap_ *S_cmdarg_S)
+func nv_dollar(cap_ *S_cmdarg_S)
+func nv_search(cap_ *S_cmdarg_S)
+func nv_next(cap_ *S_cmdarg_S)
+func normal_search(cap_ *S_cmdarg_S, dir int32, pat Ptr[byte], patlen usize, opt int32, wrapped *int32) int32
+func nv_csearch(cap_ *S_cmdarg_S)
+func nv_bracket_block(cap_ *S_cmdarg_S, old_pos *pos_T)
+func nv_brackets(cap_ *S_cmdarg_S)
+func nv_percent(cap_ *S_cmdarg_S)
+func nv_mark(cap_ *S_cmdarg_S)
+func nv_undo(cap_ *S_cmdarg_S)
+func nv_kundo(cap_ *S_cmdarg_S)
+func nv_replace(cap_ *S_cmdarg_S)
+func v_swap_corners(cmdchar int32)
+func nv_Replace(cap_ *S_cmdarg_S)
+func nv_vreplace(cap_ *S_cmdarg_S)
+func n_swapchar(cap_ *S_cmdarg_S)
+func nv_cursormark(cap_ *S_cmdarg_S, flag int32, pos Ptr[pos_T])
+func v_visop(cap_ *S_cmdarg_S)
+func nv_subst(cap_ *S_cmdarg_S)
+func nv_abbrev(cap_ *S_cmdarg_S)
+func nv_optrans(cap_ *S_cmdarg_S)
+func nv_gomark(cap_ *S_cmdarg_S)
+func nv_pcmark(cap_ *S_cmdarg_S)
+func nv_regname(cap_ *S_cmdarg_S)
+func nv_visual(cap_ *S_cmdarg_S)
+func start_selection()
+func may_start_select(c int32)
+func n_start_visual_mode(c int32)
+func nv_suspend(cap_ *S_cmdarg_S)
+func nv_gv_cmd(cap_ *S_cmdarg_S)
+func nv_g_home_m_cmd(cap_ *S_cmdarg_S)
+func nv_g_underscore_cmd(cap_ *S_cmdarg_S)
+func nv_g_dollar_cmd(cap_ *S_cmdarg_S)
+func nv_gi_cmd(cap_ *S_cmdarg_S)
+func nv_g_cmd(cap_ *S_cmdarg_S)
+func n_opencmd(cap_ *S_cmdarg_S)
+func nv_dot(cap_ *S_cmdarg_S)
+func nv_redo_or_register(cap_ *S_cmdarg_S)
+func nv_Undo(cap_ *S_cmdarg_S)
+func nv_tilde(cap_ *S_cmdarg_S)
+func nv_operator(cap_ *S_cmdarg_S)
+func nv_lineop(cap_ *S_cmdarg_S)
+func nv_home(cap_ *S_cmdarg_S)
+func nv_pipe(cap_ *S_cmdarg_S)
+func nv_bck_word(cap_ *S_cmdarg_S)
+func nv_wordcmd(cap_ *S_cmdarg_S)
+func adjust_cursor(oap *S_oparg_S)
+func nv_beginline(cap_ *S_cmdarg_S)
+func adjust_for_sel(cap_ *S_cmdarg_S)
+func unadjust_for_sel() int32
+func unadjust_for_sel_inner(pp *pos_T) int32
+func nv_select(cap_ *S_cmdarg_S)
+func nv_goto(cap_ *S_cmdarg_S)
+func nv_normal(cap_ *S_cmdarg_S)
+func nv_esc(cap_ *S_cmdarg_S)
+func set_cursor_for_append_to_line()
+func nv_edit(cap_ *S_cmdarg_S)
+func invoke_edit(cap_ *S_cmdarg_S, repl int32, cmd int32, startln int32)
+func nv_object(cap_ *S_cmdarg_S)
+func nv_record(cap_ *S_cmdarg_S)
+func nv_at(cap_ *S_cmdarg_S)
+func nv_halfpage(cap_ *S_cmdarg_S)
+func nv_join(cap_ *S_cmdarg_S)
+func nv_put(cap_ *S_cmdarg_S)
+func nv_put_opt(cap_ *S_cmdarg_S, fix_indent int32)
+func nv_open(cap_ *S_cmdarg_S)
+func nv_cursorhold(cap_ *S_cmdarg_S)
+func get_op_type(char1 int32, char2 int32) int32
+func op_on_lines(op int32) int32
+func get_op_char(optype int32) int32
+func get_extra_op_char(optype int32) int32
+func op_shift(oap *S_oparg_S, curs_top int32, amount int32)
+func get_new_sw_indent(left int32, round int32, amount vimlong_T, sw_val vimlong_T) vimlong_T
+func shift_line(left int32, round int32, amount int32, call_changed_bytes int32)
+func shift_block(oap *S_oparg_S, amount int32)
+func block_insert(oap *S_oparg_S, s Ptr[byte], slen usize, b_insert int32, bdp *S_block_def)
+func op_delete(oap *S_oparg_S) int32
+func mb_adjust_opend(oap *S_oparg_S)
+func replace_character(c int32)
+func op_replace(oap *S_oparg_S, c int32) int32
+func op_tilde(oap *S_oparg_S)
+func swapchars(op_type int32, pos *pos_T, length int32) int32
+func swapchar(op_type int32, pos *pos_T) int32
+func op_insert(oap *S_oparg_S, count1 int64)
+func op_change(oap *S_oparg_S) int32
+func adjust_cursor_eol()
+func do_join(count int64, insert_space int32, save_undo int32, use_formatoptions int32, setmark int32) int32
+func block_prep(oap *S_oparg_S, bdp *S_block_def, lnum linenr_T, is_del int32)
+func charwise_block_prep(start pos_T, end pos_T, bdp *S_block_def, lnum linenr_T, inclusive int32)
+func op_addsub(oap *S_oparg_S, Prenum1 linenr_T, g_cmd int32)
+func do_addsub(op_type int32, pos *pos_T, length int32, Prenum1 linenr_T) int32
+func clear_oparg(oap *S_oparg_S)
+func line_count_info(line Ptr[byte], wc *varnumber_T, cc *varnumber_T, limit varnumber_T, eol_size int32) varnumber_T
+func cursor_pos_info(dict *S_dictvar_S)
+func op_colon(oap *S_oparg_S)
+func get_op_vcol(oap *S_oparg_S, redo_VIsual_vcol colnr_T, initial int32)
+func is_ex_cmdchar(cap_ *S_cmdarg_S) int32
+func do_pending_operator(cap_ *S_cmdarg_S, old_col int32, gui_yank int32)
+func pbyte(lp pos_T, c int32)
+func set_init_expand_env()
+func set_init_1()
+func set_option_default(opt_idx int32, opt_flags int32, compatible int32)
+func set_options_default(opt_flags int32)
+func set_string_default_esc(name Ptr[byte], val Ptr[byte], escape int32)
+func set_string_default(name Ptr[byte], val Ptr[byte])
+func find_dup_item(origval Ptr[byte], newval Ptr[byte], newvallen usize, flags long_u) Ptr[byte]
+func set_number_default(name Ptr[byte], val int64)
+func set_init_2()
+func ex_set(eap *S_exarg)
+func get_option_prefix(argp *Ptr[byte]) set_prefix_T
+func parse_option_name(arg Ptr[byte], opt_idxp *int32, lenp *int32, keyp *int32) int32
+func get_opt_op(arg Ptr[byte]) set_op_T
+func validate_opt_idx(opt_idx int32, opt_flags int32, flags long_u, errmsg *Ptr[byte], prefix set_prefix_T) int32
+func stropt_get_default_val(opt_idx int32, varp any, flags int32, cp_val int32) Ptr[byte]
+func opt_backspace_nr2str(varp any, origval_p *Ptr[byte], origval_l_p *Ptr[byte], origval_g_p *Ptr[byte], oldval_p *Ptr[byte])
+func opt_whichwrap_nr2str(argp *Ptr[byte], whichwrap Ptr[byte]) Ptr[byte]
+func stropt_copy_value(origval Ptr[byte], argp *Ptr[byte], op set_op_T, flags int32) Ptr[byte]
+func stropt_expand_envvar(opt_idx int32, origval Ptr[byte], newval Ptr[byte], op set_op_T) Ptr[byte]
+func stropt_concat_with_comma(origval Ptr[byte], newval Ptr[byte], op set_op_T, flags int32)
+func stropt_remove_val(origval Ptr[byte], newval Ptr[byte], flags int32, strval Ptr[byte], len_ int32)
+func find_key_item(src Ptr[byte], key Ptr[byte], keylen int32, itemlenp *int32) Ptr[byte]
+func remove_comma_item(str Ptr[byte], item Ptr[byte], itemlen int32)
+func remove_key_item(str Ptr[byte], key Ptr[byte], keylen int32, skip Ptr[byte])
+func append_item(str Ptr[byte], item Ptr[byte], item_len int32)
+func prepend_item(str Ptr[byte], item Ptr[byte], item_len int32)
+func stropt_handle_keymatch(origval Ptr[byte], newval Ptr[byte], op set_op_T, flags int32) bool
+func stropt_remove_dupflags(newval Ptr[byte], flags int32)
+func stropt_get_newval(nextchar int32, opt_idx int32, argp *Ptr[byte], varp any, origval_arg *Ptr[byte], origval_l_arg *Ptr[byte], origval_g_arg *Ptr[byte], oldval_arg *Ptr[byte], op_arg *set_op_T, flags int32, cp_val int32) Ptr[byte]
+func do_set_option_string(opt_idx int32, opt_flags int32, argp *Ptr[byte], nextchar int32, op_arg set_op_T, flags long_u, cp_val int32, varp_arg any, errbuf Ptr[byte], errbuflen usize, value_checked *int32, errmsg *Ptr[byte]) int32
+func do_set_option_bool(opt_idx int32, opt_flags int32, prefix set_prefix_T, flags long_u, varp any, nextchar int32, afterchar int32, cp_val int32) Ptr[byte]
+func do_set_option_numeric(opt_idx int32, opt_flags int32, argp *Ptr[byte], nextchar int32, op set_op_T, flags long_u, cp_val int32, varp any, errbuf Ptr[byte], errbuflen usize) Ptr[byte]
+func do_set_option_keycode(argp *Ptr[byte], key_name Ptr[byte], nextchar int32) Ptr[byte]
+func do_set_option_value(opt_idx int32, opt_flags int32, argp *Ptr[byte], prefix set_prefix_T, op set_op_T, flags long_u, varp any, key_name Ptr[byte], nextchar int32, afterchar int32, cp_val int32, stopopteval *int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte]
+func do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[byte], startarg *Ptr[byte], did_show *int32, stopopteval *int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte]
+func do_set(arg_start Ptr[byte], opt_flags int32) int32
+func did_set_option(opt_idx int32, opt_flags int32, new_value int32, value_checked int32)
+func option_expand(opt_idx int32, val Ptr[byte]) Ptr[byte]
+func didset_options()
+func didset_options2()
+func check_options()
+func get_term_opt_idx(p Ptr[Ptr[byte]]) int32
+func set_term_option_alloced(p Ptr[Ptr[byte]]) int32
+func redraw_titles()
+func did_set_cmdheight(args *optset_T) Ptr[byte]
+func did_set_compatible(args *optset_T) Ptr[byte]
+func did_set_hlsearch(args *optset_T) Ptr[byte]
+func did_set_ignorecase(args *optset_T) Ptr[byte]
+func did_set_insertmode(args *optset_T) Ptr[byte]
+func did_set_laststatus(args *optset_T) Ptr[byte]
+func did_set_maxcombine(args *optset_T) Ptr[byte]
+func did_set_modifiable(args *optset_T) Ptr[byte]
+func did_set_modified(args *optset_T) Ptr[byte]
+func did_set_number_relativenumber(args *optset_T) Ptr[byte]
+func did_set_osctimeoutlen(args *optset_T) Ptr[byte]
+func did_set_paste(args *optset_T) Ptr[byte]
+func did_set_maxsearchcount(args *optset_T) Ptr[byte]
+func did_set_shiftwidth_tabstop(args *optset_T) Ptr[byte]
+func did_set_smoothscroll(args *optset_T) Ptr[byte]
+func did_set_termsync(args *optset_T) Ptr[byte]
+func did_set_terse(args *optset_T) Ptr[byte]
+func did_set_textwidth(args *optset_T) Ptr[byte]
+func update_global_undolevels(value int64, old_value int64)
+func update_buflocal_undolevels(value int64, old_value int64)
+func did_set_undolevels(args *optset_T) Ptr[byte]
+func did_set_weirdinvert(args *optset_T) Ptr[byte]
+func did_set_window(args *optset_T) Ptr[byte]
+func did_set_wrap(args *optset_T) Ptr[byte]
+func set_bool_option(opt_idx int32, varp any, value int32, opt_flags int32) Ptr[byte]
+func check_num_option_bounds(pp *int64, old_value int64, old_Rows int64, old_Columns int64, errbuf Ptr[byte], errbuflen usize, errmsg Ptr[byte]) Ptr[byte]
+func set_num_option(opt_idx int32, varp any, value int64, errbuf Ptr[byte], errbuflen usize, opt_flags int32) Ptr[byte]
+func check_redraw(flags long_u)
+func findoption(arg Ptr[byte]) int32
+func get_option_flags(opt_idx int32) long_u
+func set_option_flag(opt_idx int32, flag long_u)
+func is_global_option(opt_idx int32) int32
+func is_global_local_option(opt_idx int32) int32
+func is_window_local_option(opt_idx int32) int32
+func is_hidden_option(opt_idx int32) int32
+func set_option_value(name Ptr[byte], number int64, string_ Ptr[byte], opt_flags int32) Ptr[byte]
+func set_option_value_give_err(name Ptr[byte], number int64, string_ Ptr[byte], opt_flags int32)
+func get_term_code(tname Ptr[byte]) Ptr[byte]
+func get_highlight_default() Ptr[byte]
+func find_key_option(arg_arg Ptr[byte], has_lt int32) int32
+func showoptions(all int32, opt_flags int32)
+func optval_default(p Ptr[S_vimoption], varp any, compatible int32) int32
+func showoneopt(p Ptr[S_vimoption], opt_flags int32)
+func clear_termoptions()
+func free_termoptions()
+func free_one_termoption(var_ Ptr[byte])
+func set_term_defaults()
+func istermoption(p Ptr[S_vimoption]) int32
+func istermoption_idx(opt_idx int32) int32
+func get_varp_scope(p Ptr[S_vimoption], scope int32) any
+func get_option_varp_scope(opt_idx int32, scope int32) Ptr[byte]
+func get_varp(p Ptr[S_vimoption]) any
+func get_option_var(opt_idx int32) Ptr[byte]
+func get_option_did_set_cb(opt_idx int32) func(*optset_T) Ptr[byte]
+func after_copy_winopt(wp *S_window_S)
+func copy_option_val(val Ptr[byte]) Ptr[byte]
+func copy_winopt(from *winopt_T, to *winopt_T)
+func check_win_options(win *S_window_S)
+func check_winopt(wop *winopt_T)
+func clear_winopt(wop *winopt_T)
+func buf_copy_options(buf *S_file_buffer, flags int32)
+func option_value2string(opp Ptr[S_vimoption], scope int32)
+func shortmess(x int32) int32
+func option_was_set(name Ptr[byte]) int32
+func reset_option_was_set(name Ptr[byte]) int32
+func compatible_set()
+func can_bs(what int32) int32
+func get_scrolloff_value() int64
+func get_scrolloffpad_value() int64
+func get_sidescrolloff_value() int64
+func get_ve_flags() uint32
+func magic_isset() int32
+func didset_string_options()
+func illegal_char(errbuf Ptr[byte], errbuflen usize, c int32) Ptr[byte]
+func check_buf_options(buf *S_file_buffer)
+func free_string_option(p Ptr[byte])
+func clear_string_option(pp *Ptr[byte])
+func check_string_option(pp *Ptr[byte])
+func set_string_option_global(opt_idx int32, varp Ptr[Ptr[byte]])
+func set_string_option_direct(name Ptr[byte], opt_idx int32, val Ptr[byte], opt_flags int32, set_sid int32)
+func set_string_option_direct_in_win(wp *S_window_S, name Ptr[byte], opt_idx int32, val Ptr[byte], opt_flags int32, set_sid int32)
+func set_string_option(opt_idx int32, value Ptr[byte], opt_flags int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte]
+func check_illegal_path_names(opt_idx int32, varp Ptr[Ptr[byte]]) int32
+func did_set_opt_flags(val Ptr[byte], values Ptr[Ptr[byte]], flagp *uint32, list int32) Ptr[byte]
+func did_set_opt_strings(val Ptr[byte], values Ptr[Ptr[byte]], list int32) Ptr[byte]
+func did_set_option_listflag(val Ptr[byte], flags Ptr[byte], errbuf Ptr[byte], errbuflen usize) Ptr[byte]
+func did_set_ambiwidth(args *optset_T) Ptr[byte]
+func did_set_background(args *optset_T) Ptr[byte]
+func did_set_backspace(args *optset_T) Ptr[byte]
+func did_set_belloff(args *optset_T) Ptr[byte]
+func did_set_casemap(args *optset_T) Ptr[byte]
+func did_set_global_listfillchars(val Ptr[byte], opt_lcs int32, opt_flags int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte]
+func did_set_chars_option(args *optset_T) Ptr[byte]
+func did_set_cpoptions(args *optset_T) Ptr[byte]
+func did_set_display(args *optset_T) Ptr[byte]
+func did_set_highlight(args *optset_T) Ptr[byte]
+func did_set_iskeyword(args *optset_T) Ptr[byte]
+func did_set_isopt(args *optset_T) Ptr[byte]
+func did_set_keymodel(args *optset_T) Ptr[byte]
+func did_set_keyprotocol(args *optset_T) Ptr[byte]
+func did_set_matchpairs(args *optset_T) Ptr[byte]
+func did_set_messagesopt(args *optset_T) Ptr[byte]
+func did_set_nrformats(args *optset_T) Ptr[byte]
+func did_set_pastetoggle(args *optset_T) Ptr[byte]
+func did_set_selection(args *optset_T) Ptr[byte]
+func did_set_selectmode(args *optset_T) Ptr[byte]
+func did_set_shortmess(args *optset_T) Ptr[byte]
+func did_set_showcmdloc(args *optset_T) Ptr[byte]
+func did_set_term(args *optset_T) Ptr[byte]
+func did_set_term_option(args *optset_T) Ptr[byte]
+func did_set_virtualedit(args *optset_T) Ptr[byte]
+func did_set_whichwrap(args *optset_T) Ptr[byte]
+func did_set_wincolor(args *optset_T) Ptr[byte]
+func did_set_winhighlight(args *optset_T) Ptr[byte]
+func did_set_string_option(opt_idx int32, varp Ptr[Ptr[byte]], oldval Ptr[byte], value Ptr[byte], errbuf Ptr[byte], errbuflen usize, opt_flags int32, op set_op_T, value_checked *int32) Ptr[byte]
+func check_opt_strings(val Ptr[byte], values Ptr[Ptr[byte]], list int32) int32
+func opt_strings_flags(val Ptr[byte], values Ptr[Ptr[byte]], flagp *uint32, list int32) int32
+func mch_write(s Ptr[byte], len_ int32)
+func mch_inchar(buf Ptr[byte], maxlen int32, wtime int64, tb_change_cnt int32) int32
+func mch_delay(msec int64, flags int32)
+func deathtrap(sigarg int32)
+func mch_suspend()
+func mch_init()
+func vim_handle_signal(sig int32) int32
+func vim_is_xterm(name Ptr[byte]) int32
+func exit_scroll()
+func mch_exit(r int32)
+func get_stty()
+func get_tty_info(fd int32, info *ttyinfo_T) int32
+func mch_set_shellsize()
+func mch_breakcheck(force int32)
+func WaitForChar(msec int64, interrupted *int32, ignore_input int32) int32
+func RealWaitForChar(fd int32, msec int64, check_for_gpm *int32, interrupted *int32) int32
+func no_Magic(x int32) int32
+func toggle_Magic(x int32) int32
+func re_multi_type(c int32) int32
+func backslash_trans(c int32) int32
+func get_char_class(pp *Ptr[byte]) int32
+func init_class_tab()
+func re_multiline(prog *S_regprog) int32
+func get_coll_element(pp *Ptr[byte]) int32
+func get_cpo_flags()
+func skip_anyof(p Ptr[byte]) Ptr[byte]
+func skip_regexp(startp Ptr[byte], delim int32, magic int32) Ptr[byte]
+func skip_regexp_ex(startp Ptr[byte], dirc int32, magic int32, newp *Ptr[byte], dropped *int32, magic_val *magic_T) Ptr[byte]
+func initchr(str Ptr[byte])
+func peekchr() int32
+func skipchr()
+func skipchr_keepstart()
+func getchr() int32
+func ungetchr()
+func gethexchrs(maxinputlen int32) vimlong_T
+func getdecchrs() vimlong_T
+func getoctchrs() int64
+func read_limits(minval *int64, maxval *int64) int32
+func reg_iswordc(c int32) int32
+func reg_getline_common(lnum linenr_T, flags reg_getline_flags_T, line *Ptr[byte], length *colnr_T)
+func reg_getline(lnum linenr_T) Ptr[byte]
+func reg_getline_len(lnum linenr_T) colnr_T
+func reg_prev_class() int32
+func reg_match_visual() int32
+func prog_magic_wrong() int32
+func cleanup_subexpr()
+func reg_nextline()
+func match_with_backref(start_lnum linenr_T, start_col colnr_T, end_lnum linenr_T, end_col colnr_T, bytelen *int32) int32
+func re_mult_next(what Ptr[byte]) int32
+func mb_decompose(c int32, c1 *int32, c2 *int32, c3 *int32)
+func cstrncmp(s1 Ptr[byte], s2 Ptr[byte], n *int32) int32
+func cstrchr(s Ptr[byte], c int32) Ptr[byte]
+func do_upper(d *int32, c int32)
+func do_lower(d *int32, c int32)
+func regtilde(source Ptr[byte], magic int32) Ptr[byte]
+func vim_regsub_multi(rmp *regmmatch_T, lnum linenr_T, source Ptr[byte], dest Ptr[byte], destlen int32, flags int32) int32
+func vim_regsub_both(source Ptr[byte], expr *S_typval_S, dest Ptr[byte], destlen int32, flags int32) int32
+func init_regexec_multi(rmp *regmmatch_T, win *S_window_S, buf *S_file_buffer, lnum linenr_T)
+func regcomp_start(expr Ptr[byte], re_flags int32)
+func use_multibytecode(c int32) int32
+func regc(b int32)
+func regmbc(c int32)
+func regnode(op int32) Ptr[byte]
+func re_put_long(p Ptr[byte], val long_u) Ptr[byte]
+func regnext(p Ptr[byte]) Ptr[byte]
+func regtail(p Ptr[byte], val Ptr[byte])
+func regoptail(p Ptr[byte], val Ptr[byte])
+func reginsert(op int32, opnd Ptr[byte])
+func reginsert_nr(op int32, val int64, opnd Ptr[byte])
+func reginsert_limits(op int32, minval int64, maxval int64, opnd Ptr[byte])
+func seen_endbrace(refnum int32) int32
+func regatom(flagp *int32) Ptr[byte]
+func regpiece(flagp *int32) Ptr[byte]
+func regconcat(flagp *int32) Ptr[byte]
+func regbranch(flagp *int32) Ptr[byte]
+func reg(paren int32, flagp *int32) Ptr[byte]
+func bt_regcomp(expr Ptr[byte], re_flags int32) *S_regprog
+func coll_get_char() int32
+func bt_regfree(prog *S_regprog)
+func reg_save(save *regsave_T, gap *S_growarray)
+func reg_restore(save *regsave_T, gap *S_growarray)
+func reg_save_equal(save *regsave_T) int32
+func save_se_multi(savep *save_se_T, posp Ptr[lpos_T])
+func save_se_one(savep *save_se_T, pp Ptr[Ptr[byte]])
+func regrepeat(p Ptr[byte], maxcount int64) int32
+func regstack_push(state regstate_T, scan Ptr[byte]) Ptr[S_regitem_S]
+func regstack_pop(scan *Ptr[byte])
+func save_subexpr(bp Ptr[S_regbehind_S])
+func restore_subexpr(bp Ptr[S_regbehind_S])
+func regmatch(scan Ptr[byte], timed_out *int32) int32
+func regtry(prog *bt_regprog_T, col colnr_T, timed_out *int32) int64
+func bt_regexec_both(line Ptr[byte], startcol colnr_T, timed_out *int32) int64
+func bt_regexec_nl(rmp *regmatch_T, line Ptr[byte], col colnr_T, line_lbr int32) int32
+func bt_regexec_multi(rmp *regmmatch_T, win *S_window_S, buf *S_file_buffer, lnum linenr_T, col colnr_T, timed_out *int32) int64
+func re_num_cmp(val long_u, scan Ptr[byte]) int32
+func vim_regcomp(expr_arg Ptr[byte], re_flags int32) *S_regprog
+func vim_regfree(prog *S_regprog)
+func vim_regexec_string(rmp *regmatch_T, line Ptr[byte], col colnr_T, nl int32) int32
+func vim_regexec(rmp *regmatch_T, line Ptr[byte], col colnr_T) int32
+func vim_regexec_multi(rmp *regmmatch_T, win *S_window_S, buf *S_file_buffer, lnum linenr_T, col colnr_T, timed_out *int32) int64
+func reset_y_append()
+func valid_yank_reg(regname int32, writing int32) int32
+func get_yank_register(regname int32, writing int32) int32
+func get_register(name int32, copy_ int32) any
+func put_register(name int32, reg any)
+func do_record(c int32) int32
+func stuff_yank(regname int32, p Ptr[byte]) int32
+func execreg_line_continuation(lines Ptr[string_T], idx *int64) Ptr[byte]
+func do_execreg(regname int32, colon int32, addcr int32, silent int32) int32
+func put_reedit_in_typebuf(silent int32)
+func put_in_typebuf(s Ptr[byte], esc int32, colon int32, silent int32) int32
+func insert_reg(regname int32, literally_arg int32) int32
+func get_spec_reg(regname int32, argp *Ptr[byte], allocated *int32, errmsg int32) int32
+func cmdline_paste_reg(regname int32, literally_arg int32, remcr int32) int32
+func shift_delete_registers()
+func init_yank()
+func free_yank(n int64)
+func free_yank_all()
+func op_yank(oap *S_oparg_S, deleting int32, mess int32) int32
+func yank_copy_line(bd *S_block_def, y_idx int64, exclude_trailing_space int32) int32
+func do_put(regname int32, expr_result Ptr[byte], dir int32, count int64, flags int32)
+func get_register_name(num int32) int32
+func ex_display(eap *S_exarg)
+func dis_msg(p Ptr[byte], skip_esc int32)
+func get_reg_type(regname int32, reglen *int64) char_u
+func get_win_attr(wp *S_window_S) int32
+func screen_fill_end(wp *S_window_S, c1 int32, c2 int32, off int32, width int32, row int32, endrow int32, attr int32) int32
+func win_draw_end(wp *S_window_S, c1 int32, c2 int32, draw_margin int32, row int32, endrow int32, hl hlf_T)
+func comp_char_differs(off_from int32, off_to int32) int32
+func char_needs_redraw(off_from int32, off_to int32, cols int32) int32
+func reset_screen_attr()
+func screen_line(wp *S_window_S, row int32, coloff int32, endcol int32, clear_width int32, last_vcol colnr_T, flags int32)
+func draw_vsep_win(wp *S_window_S, row int32)
+func screen_putchar(c int32, row int32, col int32, attr int32)
+func screen_getbytes(row int32, col int32, bytes Ptr[byte], attrp *int32)
+func screen_comp_differs(off int32, u8cc Ptr[int32]) int32
+func screen_puts(text Ptr[byte], row int32, col int32, attr int32)
+func screen_puts_len(text Ptr[byte], textlen int32, row int32, col int32, attr_arg int32)
+func start_search_hl()
+func end_search_hl()
+func screen_start_highlight(attr int32)
+func screen_stop_highlight()
+func reset_cterm_colors()
+func screen_char(off uint32, row int32, col int32)
+func screen_draw_rectangle(row int32, col int32, height int32, width int32, invert int32)
+func redraw_block(row int32, end int32, wp *S_window_S)
+func space_to_screenline(off int32, attr int32)
+func screen_fill(start_row int32, end_row int32, start_col int32, end_col int32, c1 int32, c2 int32, attr int32)
+func check_for_delay(check_msg_scroll int32)
+func clear_TabPageIdxs()
+func screen_valid(doclear int32) int32
+func screenalloc(doclear int32)
+func free_screenlines()
+func screenclear() int32
+func redraw_as_cleared()
+func screenclear2(doclear int32) int32
+func lineclear(off uint32, width int32, attr int32)
+func lineinvalid(off uint32, width int32)
+func linecopy(to int32, from int32, wp *S_window_S)
+func can_clear(p Ptr[byte]) int32
+func screen_start()
+func windgoto(row int32, col int32)
+func setcursor()
+func setcursor_mayforce(force int32)
+func win_ins_lines(wp *S_window_S, row int32, line_count int32, invalid int32, mayclear int32) int32
+func win_del_lines(wp *S_window_S, row int32, line_count int32, invalid int32, mayclear int32, clear_attr int32) int32
+func win_do_lines(wp *S_window_S, row int32, line_count int32, mayclear int32, del int32, clear_attr int32) int32
+func win_rest_invalid(wp *S_window_S)
+func screen_ins_lines(off int32, row int32, line_count int32, end int32, clear_attr int32, wp *S_window_S) int32
+func screen_del_lines(off int32, row int32, line_count int32, end int32, force int32, clear_attr int32, wp *S_window_S) int32
+func skip_showmode() int32
+func showmode() int32
+func msg_pos_mode()
+func unshowmode(force int32)
+func clearmode()
+func recording_mode(attr int32)
+func draw_tabline()
+func get_trans_bufname(buf *S_file_buffer)
+func fillchar_status(attr *int32, wp *S_window_S) int32
+func vsep_row_is_curwin(wp *S_window_S, row int32) bool
+func fillchar_vsep(attr *int32, wp *S_window_S, row int32) int32
+func typed_ahead() int32
+func redrawing() int32
+func messaging() int32
+func comp_col()
+func get_encoded_char_adv(p *Ptr[byte]) int32
+func field_value_err(errbuf Ptr[byte], errbuflen usize, fmt Ptr[byte], field Ptr[byte]) Ptr[byte]
+func set_chars_option(wp *S_window_S, value Ptr[byte], is_listchars int32, apply int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte]
+func set_fillchars_option(wp *S_window_S, val Ptr[byte], apply int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte]
+func set_listchars_option(wp *S_window_S, val Ptr[byte], apply int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte]
+func check_chars_options() Ptr[byte]
+func estack_init()
+func estack_push(type_ etype_T, name Ptr[byte], lnum int64) Ptr[estack_T]
+func estack_pop() Ptr[estack_T]
+func estack_sfile(which estack_arg_T) Ptr[byte]
+func search_regcomp(pat Ptr[byte], patlen usize, used_pat *Ptr[byte], pat_save int32, pat_use int32, options int32, regmatch *regmmatch_T) int32
+func get_search_pat() Ptr[byte]
+func save_re_pat(idx int32, pat Ptr[byte], patlen usize, magic int32)
+func save_last_search_pattern()
+func restore_last_search_pattern()
+func ignorecase(pat Ptr[byte]) int32
+func ignorecase_opt(pat Ptr[byte], ic_in int32, scs int32) int32
+func pat_has_uppercase(pat Ptr[byte]) int32
+func set_csearch_direction(cdir int32)
+func set_csearch_until(t_cmd int32)
+func last_search_pat() Ptr[byte]
+func last_pat_prog(regmatch *regmmatch_T)
+func searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_pos *pos_T, dir int32, pat Ptr[byte], patlen usize, count int64, options int32, pat_use int32, extra_arg *searchit_arg_T) int32
+func parse_search_pattern_offset(pat *Ptr[byte], patlen *usize, search_delim int32, options int32, strcopy *Ptr[byte], searchstr *Ptr[byte], searchstrlen *usize, dircp *Ptr[byte], offset *S_soffset) int32
+func do_search(oap *S_oparg_S, dirc int32, search_delim int32, pat Ptr[byte], patlen usize, count int64, options int32, sia *searchit_arg_T) int32
+func searchc(cap_ *S_cmdarg_S, t_cmd int32) int32
+func findmatch(oap *S_oparg_S, initc int32) *pos_T
+func check_prevcol(linep Ptr[byte], col int32, ch int32, prevcol *int32) int32
+func find_rawstring_end(linep Ptr[byte], startpos *pos_T, endpos *pos_T) int32
+func find_mps_values(initc *int32, findc *int32, backwards *int32, switchit int32)
+func findmatchlimit(oap *S_oparg_S, initc int32, flags int32, maxtravel int32) *pos_T
+func showmatch(c int32)
+func is_zero_width(pattern Ptr[byte], patternlen usize, move int32, cur *pos_T, direction int32) int32
+func current_search(count int64, forward int32) int32
+func cmdline_search_stat(dirc int32, pos *pos_T, cursor_pos *pos_T, show_top_bot_msg int32, msgbuf Ptr[byte], msgbuflen usize, recompute int32, maxcount int32, timeout int64)
+func update_search_stat(dirc int32, pos *pos_T, cursor_pos *pos_T, stat *S_searchstat, recompute int32, maxcount int32, timeout int64)
+func vim_strsave(string_ Ptr[byte]) Ptr[byte]
+func vim_strnsave(string_ Ptr[byte], len_ usize) Ptr[byte]
+func vim_strsave_escaped(string_ Ptr[byte], esc_chars Ptr[byte]) Ptr[byte]
+func vim_strsave_escaped_ext(string_ Ptr[byte], esc_chars Ptr[byte], cc int32, bsl int32) Ptr[byte]
+func vim_strnsave_up(string_ Ptr[byte], len_ usize) Ptr[byte]
+func vim_strup(p Ptr[byte])
+func del_trailing_spaces(ptr Ptr[byte])
+func vim_strncpy(to Ptr[byte], from Ptr[byte], len_ usize)
+func vim_strcat(to Ptr[byte], from Ptr[byte], tosize usize)
+func vim_strnicmp_asc(s1 Ptr[byte], s2 Ptr[byte], len_ usize) int32
+func vim_strchr(string_ Ptr[byte], c int32) Ptr[byte]
+func vim_strbyte(string_ Ptr[byte], c int32) Ptr[byte]
+func sort_compare(s1 any, s2 any) int32
+func sort_strings(files Ptr[Ptr[byte]], count int32)
+func concat_str(str1 Ptr[byte], str2 Ptr[byte]) Ptr[byte]
+func set_rgb_term_prop()
+func init_term_props(all int32)
+func find_builtin_term(term Ptr[byte]) Ptr[tcap_entry_T]
+func apply_builtin_tcap(term Ptr[byte], entries Ptr[tcap_entry_T], overwrite int32)
+func apply_keyprotocol(term Ptr[byte], prot keyprot_T)
+func parse_builtin_tcap(term Ptr[byte])
+func set_color_count(nr int32)
+func may_adjust_color_count(val int32)
+func term_strings_not_set(idx int32) int32
+func report_term_error(error_msg Ptr[byte], term Ptr[byte])
+func match_keyprotocol(term Ptr[byte]) keyprot_T
+func set_termname(term Ptr[byte]) int32
+func add_termcap_entry(name Ptr[byte], force int32) int32
+func term_is_builtin(name Ptr[byte]) int32
+func term_is_8bit(name Ptr[byte]) int32
+func term_7to8bit(p Ptr[byte]) int32
+func tltoa(i uint64) Ptr[byte]
+func tgoto(cm Ptr[byte], x int32, y int32) Ptr[byte]
+func termcapinit()
+func out_flush()
+func out_flush_cursor(force int32, clear_selection int32)
+func out_char(c uint32)
+func out_char_nf(c int32) int32
+func out_str_nf(s Ptr[byte])
+func out_str_cf(s Ptr[byte])
+func out_str(s Ptr[byte])
+func term_windgoto(row int32, col int32)
+func term_cursor_right(i int32)
+func term_append_lines(line_count int32)
+func term_delete_lines(line_count int32)
+func term_set_winsize(height int32, width int32)
+func term_font(n int32)
+func term_color(s Ptr[byte], n int32)
+func term_fg_color(n int32)
+func term_bg_color(n int32)
+func term_ul_color(n int32)
+func term_bg_default() Ptr[byte]
+func ttest(pairs int32)
+func check_shellsize()
+func limit_screen_size()
+func win_new_shellsize()
+func shell_resized()
+func set_shellsize_inner(width int32, height int32, mustset int32)
+func set_shellsize(width int32, height int32, mustset int32)
+func out_str_t_TE()
+func out_str_t_TI()
+func out_str_t_BE()
+func may_send_t_RK()
+func term_enter()
+func term_leave()
+func starttermcap()
+func stoptermcap()
+func swapping_screen() int32
+func scroll_start()
+func cursor_on_force()
+func cursor_on()
+func cursor_off()
+func cursor_sleep()
+func cursor_unsleep()
+func scroll_region_set(wp *S_window_S, off int32)
+func scroll_region_reset()
+func clear_termcodes()
+func adjust_modlen(idx int32)
+func add_termcode(name Ptr[byte], string_ Ptr[byte], flags int32)
+func accept_modifiers_for_function_keys()
+func termcode_star(code Ptr[byte], len_ int32) int32
+func find_termcode(name Ptr[byte]) Ptr[byte]
+func del_termcode(name Ptr[byte])
+func del_termcode_idx(idx int32)
+func switch_to_8bit()
+func put_string_in_typebuf(offset int32, slen int32, string_ Ptr[byte], new_slen int32, buf Ptr[byte], bufsize int32, buflen *int32) int32
+func decode_modifiers(n int32) int32
+func modifiers2keycode(modifiers int32, key *int32, string_ Ptr[byte]) int32
+func handle_u7_response(arg Ptr[int32], tp Ptr[byte], csi_len int32)
+func handle_version_response(first int32, arg Ptr[int32], argc int32, tp Ptr[byte])
+func add_key_to_buf(key int32, buf Ptr[byte]) int32
+func put_key_modifiers_in_typebuf(key_arg int32, modifiers_arg int32, csi_len int32, offset int32, buf Ptr[byte], bufsize int32, buflen *int32) int32
+func parse_csi_f_keys(arg int32) int32
+func handle_key_with_modifier(arg Ptr[int32], csi_len int32, offset int32, buf Ptr[byte], bufsize int32, buflen *int32, iskitty int32, trail int32) int32
+func handle_key_without_modifier(arg Ptr[int32], csi_len int32, offset int32, buf Ptr[byte], bufsize int32, buflen *int32, trail int32) int32
+func handle_csi_function_key(argc int32, arg Ptr[int32], trail int32, csi_len int32, key_name Ptr[byte], offset int32, buf Ptr[byte], bufsize int32, buflen *int32) int32
+func handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset int32, buf Ptr[byte], bufsize int32, buflen *int32, key_name Ptr[byte], slen *int32) int32
+func check_for_color_response(resp Ptr[byte], len_ int32)
+func in_osc_sequence() bool
+func handle_osc(tp Ptr[byte], len_ int32, key_name Ptr[byte], slen *int32) int32
+func handle_dcs(tp Ptr[byte], argp Ptr[byte], len_ int32, key_name Ptr[byte], slen *int32) int32
+func check_termcode(max_offset int32, buf Ptr[byte], bufsize int32, buflen *int32) int32
+func replace_termcodes(from Ptr[byte], bufp *Ptr[byte], sid_arg scid_T, flags int32, did_simplify *int32) Ptr[byte]
+func find_term_bykeys(src Ptr[byte], matchlen *int32) int32
+func gather_termleader()
+func show_termcodes(flags int32)
+func show_one_termcode(name Ptr[byte], code Ptr[byte], printit int32) int32
+func term_disable_dec()
+func sync_output_active() int32
+func term_set_sync_output(flags int32)
+func internal_format(textwidth int32, second_indent int32, flags int32, format_only int32, c int32)
+func comp_textwidth() int32
+func cls() int32
+func fwd_word(count int64, bigword int32, eol int32) int32
+func bck_word(count int64, bigword int32, stop int32) int32
+func end_word(count int64, bigword int32, stop int32, empty int32) int32
+func bckend_word(count int64, bigword int32, eol int32) int32
+func skip_chars(cclass int32, dir int32) int32
+func back_in_line()
+func current_word(oap *S_oparg_S, count int64, include int32, bigword int32) int32
+func current_block(oap *S_oparg_S, count int64, include int32, what int32, other int32) int32
+func find_next_quote(line Ptr[byte], col int32, quotechar int32, escape Ptr[byte]) int32
+func find_prev_quote(line Ptr[byte], col_start int32, quotechar int32, escape Ptr[byte]) int32
+func current_quote(oap *S_oparg_S, count int64, include int32, quotechar int32) int32
+func add_time(buf Ptr[byte], buflen usize, tt time_T)
+func ui_write(s Ptr[byte], len_ int32)
+func ui_inchar(buf Ptr[byte], maxlen int32, wtime int64, tb_change_cnt int32) int32
+func inchar_loop(buf Ptr[byte], maxlen int32, wtime int64, tb_change_cnt int32, wait_func func(int64, *int32, int32) int32, resize_func func(int32) int32) int32
+func ui_delay(msec_arg int64, ignoreinput int32)
+func ui_suspend()
+func ui_get_shellsize() int32
+func ui_set_shellsize(mustset int32)
+func ui_new_shellsize()
+func ui_breakcheck()
+func ui_breakcheck_force(force int32)
+func vim_is_input_buf_full() int32
+func vim_is_input_buf_empty() int32
+func get_input_buf() any
+func set_input_buf(p Ptr[byte], overwrite int32)
+func trash_input_buf()
+func read_from_input_buf(buf Ptr[byte], maxlen int64) int32
+func fill_input_buf(exit_on_error int32)
+func read_error_exit()
+func check_col(col int32) int32
+func check_row(row int32) int32
+func ui_focus_change(in_focus int32)
+func u_save_cursor() int32
+func u_save(top linenr_T, bot linenr_T) int32
+func u_savesub(lnum linenr_T) int32
+func u_inssub(lnum linenr_T) int32
+func u_savedel(lnum linenr_T, nlines int64) int32
+func undo_allowed() int32
+func get_undolevel() int64
+func u_save_line(ul Ptr[undoline_T], lnum linenr_T) int32
+func u_savecommon(top linenr_T, bot linenr_T, newbot linenr_T, reload int32) int32
+func u_undo(count int32)
+func u_redo(count int32)
+func u_doit(startcount int32)
+func undo_time(step int64, sec int32, file int32, absolute int32)
+func u_undoredo(undo int32)
+func u_undo_end(did_undo int32, absolute int32)
+func u_sync(force int32)
+func ex_undolist(eap *S_exarg)
+func ex_undojoin(eap *S_exarg)
+func u_get_headentry() *S_u_entry
+func u_getbot()
+func u_freeheader(buf *S_file_buffer, uhp *S_u_header, uhpp **S_u_header)
+func u_freebranch(buf *S_file_buffer, uhp *S_u_header, uhpp **S_u_header)
+func u_freeentries(buf *S_file_buffer, uhp *S_u_header, uhpp **S_u_header)
+func u_freeentry(uep *S_u_entry, n int64)
+func u_clearall(buf *S_file_buffer)
+func u_blockfree(buf *S_file_buffer)
+func u_clearallandblockfree(buf *S_file_buffer)
+func u_saveline(lnum linenr_T)
+func u_clearline()
+func u_undoline()
+func bufIsChanged(buf *S_file_buffer) int32
+func anyBufIsChanged() int32
+func bufIsChangedNotTerm(buf *S_file_buffer) int32
+func curbufIsChanged() int32
+func uc_fun_cmd() Ptr[byte]
+func init_longVersion()
+func win_valid(win *S_window_S) int32
+func win_valid_any_tab(win *S_window_S) int32
+func win_init_empty(wp *S_window_S)
+func curwin_init()
+func snapshot_windows_scroll_size()
+func may_make_initial_scroll_size_snapshot()
+func frame_new_height(topfrp *S_frame_S, height int32, topfirst int32, wfh int32, set_ch int32)
+func frame_new_width(topfrp *S_frame_S, width int32, leftfirst int32, wfw int32)
+func frame_minheight(topfrp *S_frame_S, next_curwin *S_window_S) int32
+func unuse_tabpage(tp *S_tabpage_S)
+func win_alloc_first() int32
+func win_alloc_firstwin(oldwin *S_window_S) int32
+func new_frame(wp *S_window_S)
+func win_init_size()
+func alloc_tabpage() *S_tabpage_S
+func win_alloc(after *S_window_S, hidden int32) *S_window_S
+func win_alloc_lines(wp *S_window_S) int32
+func win_free_lsize(wp *S_window_S)
+func shell_new_rows()
+func shell_new_columns()
+func win_comp_pos()
+func frame_comp_pos(topfrp *S_frame_S, row *int32, col *int32)
+func win_ensure_size()
+func win_setheight(height int32)
+func win_setheight_win(height int32, win *S_window_S)
+func frame_setheight(curfrp *S_frame_S, height int32)
+func win_setwidth(width int32)
+func win_setwidth_win(width int32, wp *S_window_S)
+func frame_setwidth(curfrp *S_frame_S, width int32)
+func set_fraction(wp *S_window_S)
+func win_fix_scroll(resize int32)
+func win_fix_cursor(normal int32)
+func win_new_height(wp *S_window_S, height int32)
+func scroll_to_fraction(wp *S_window_S, prev_height int32)
+func win_new_width(wp *S_window_S, width int32)
+func win_comp_scroll(wp *S_window_S)
+func command_height()
+func frame_add_height(frp *S_frame_S, n int32)
+func last_status(morewin int32)
+func last_status_rec(fr *S_frame_S, statusline int32)
+func statusline_height(wp *S_window_S) int32
+func last_stl_height(morewin int32) int32
+func min_rows() int32
+func min_rows_for_all_tabpages() int32
+func frame_check_height(topfrp *S_frame_S, height int32) int32
+func frame_check_width(topfrp *S_frame_S, width int32) int32
+func vim_main2() int32
+func common_init_1()
+func common_init_2(paramp *mparm_T)
+func op_pending() int32
+func is_safe_now() int32
+func may_trigger_safestate(safe int32)
+func work_pending() int32
+func may_trigger_deferred_events()
+func main_loop(cmdwin int32)
+func getout(exitval int32)
+func command_line_scan(parmp *mparm_T)
+func create_windows(parmp *mparm_T)
+func exe_commands(parmp *mparm_T)
+func mainerr(n int32, str Ptr[byte])
+func vim_main(argc int32, argv Ptr[Ptr[byte]]) int32
