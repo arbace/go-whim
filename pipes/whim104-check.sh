@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 104 (zero phase 21), the check -- the messages are the editor's, the writing is the host's.
-# See pipes/whim104-edit.sh, and ZERO-GOAL.md.
+# Whim phase 104, the check -- the messages are the editor's, the writing is the host's.
+# See pipes/whim104-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim104-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -21,11 +21,11 @@
 #               11.
 #   STRUCTURE   the file has exactly TWO bare `write()` call sites -- `mch_write`'s and
 #               `host_message`'s -- and one `vim_host_message` the launcher installs
-#               through vim_main()'s parameter list, exactly as phase 19 installs
+#               through vim_main()'s parameter list, exactly as phase 102 installs
 #               `vim_host_exit`.  `zhostonly` is run unchanged, and the phase
 #               deliberately adds nothing to its VOCAB (pipes/whim104-edit.sh says why:
 #               `write` would be false while mch_write holds one, and the stdio words
-#               would fail phase 20's own output and so `make zero-verify` at r20).
+#               would fail phase 103's own output and so `make whim-verify` at q103).
 #   BEHAVIOUR   NOTHING AT ALL.  The same bytes reach the same file descriptors at the
 #               same moments; only the syscall underneath them changes.
 #
@@ -33,14 +33,14 @@
 # tools/zerodelta.sh.  Measured on the control below: `diff -r` of the two recordings
 # reports 217 lines across 24 moved records and zerodelta.sh names only FOURTEEN,
 # because ten of the 24 argv rows (`-`, `--`, `-e`, `-E`, `-e -s`, `-v`, `f.txt`,
-# `f.txt g.txt`, `+q! f.txt`, `-- +q!`) are already declared movers from phases 4 and 5
+# `f.txt g.txt`, `+q! f.txt`, `-- +q!`) are already declared movers from phases 87 and 88
 # and tools/zcompare.py therefore accepts any FURTHER movement in them silently.  So
 # this check diffs the recording of the binary it was handed against the recording of
 # the one it made, and uses zerodelta.sh as the second opinion -- on the CONTROL, where
 # it must refuse.
 #
 # THE INSTRUMENTED PAIR IS THE EVIDENCE THAT THE DELTA IS EMPTY FOR THE RIGHT REASON.
-# Phase 9's shape: the input source built with `write(2, "MESSAGE-OUT\n", 12)` at all
+# Phase 92's shape: the input source built with `write(2, "MESSAGE-OUT\n", 12)` at all
 # NINETEEN output statements, and the output source built with the IDENTICAL instrument
 # inside `host_message`.  Both must mark exactly the same records -- 24 of the 30 argv
 # rows, by name, and 0 of the 102 screens, 0 of ref-excmds.txt, 0 of ref-pty.txt and 0
@@ -58,14 +58,14 @@
 #     and `nm -u`.
 #   * `errno` DOES NOT MOVE, 3 -> 3, and `__errno_location` is REQUIRED still undefined.
 #     It is held by `host_tty_set`'s and `musl_wait_for_input`'s two `== EINTR` tests,
-#     both of them inside phase 20's host block, and it leaves at the split.  Removing
+#     both of them inside phase 103's host block, and it leaves at the split.  Removing
 #     stdio has nothing to do with it -- said out loud, because a reader who watches
 #     seven symbols go will look for the eighth.
 #   * `msg_use_printf` 6 AND `msg_puts_printf` 3, UNCHANGED.  They are not dead: the
 #     first returns TRUE 23 times in 106 records.  Removing them is a later phase's
 #     question and would free nothing, the symbols being gone here.
 #   * `host_message` AND `vim_host_message` ARE DIFFERENT WORDS to \b, which is why
-#     their counts are separate -- phase 19 learnt that with `host_exit`.
+#     their counts are separate -- phase 102 learnt that with `host_exit`.
 #
 # THE ONE THING THAT REALLY CHANGES AND NO RECORDING CAN SEE IS THE BUFFER'S BOUND.
 # `mainerr`'s `str` and `report_term_error`'s `term` are argv, and a 1024-byte assembly

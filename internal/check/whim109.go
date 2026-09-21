@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim109", Zero26) }
+func init() { register("whim109", Whim109) }
 
 const z26Host = "static volatile sig_atomic_t host_winch_pending"
 
@@ -138,9 +138,9 @@ func z26Count(text, tmpl string) int {
 	return n
 }
 
-// Zero26 is phase 26's check: the header types and macros the core can own,
+// Whim109 is phase 109's check: the header types and macros the core can own,
 // asserted WHILE THE HEADERS ARE STILL ABOVE THEM to be cross-checked against.
-func Zero26(w io.Writer, args []string) error {
+func Whim109(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim109 <work-dir> <state-dir>")
 	}
@@ -192,7 +192,7 @@ func Zero26(w io.Writer, args []string) error {
 	t := readFile(f)
 
 	// ---- the eight controls ----------------------------------------------
-	// r0 -- THE CLOCK ALONE REVERTED.  If its binary is the binary the phase
+	// q83 -- THE CLOCK ALONE REVERTED.  If its binary is the binary the phase
 	// was handed, the six renames, the macro expansions and the nine
 	// prototypes generate not one different instruction.
 	r0 := t
@@ -310,7 +310,7 @@ static_assert(__builtin_offsetof(bt_regprog_T, program) == offsetof(bt_regprog_T
 	}
 	// tag -- the eleven includes and nothing else.  A probe and not a whole
 	// file, because the point is the dialect and the whole file does not
-	// compile under -std=c11 (phase 23's `typeof`).
+	// compile under -std=c11 (phase 106's `typeof`).
 	inc := strings.Join(strings.Split(t, "\n")[:11], "\n")
 	os.WriteFile(filepath.Join(tmp, "tag.c"),
 		[]byte(inc+"\ntypedef struct timeval { long tv_sec; long tv_usec; } elapsed_T;\n"), 0o644)
@@ -319,7 +319,7 @@ static_assert(__builtin_offsetof(bt_regprog_T, program) == offsetof(bt_regprog_T
 		"four mismatched declarations, swap musl_gettimeofday writing its two fields " +
 		"the wrong way round, tag the struct with a tag")
 
-	// r0 and swap are full static links and the slowest; the rest are warning
+	// q83 and swap are full static links and the slowest; the rest are warning
 	// runs.  The ones EXPECTED to fail have their status discarded, which is
 	// the measurement and not an oversight.
 	var errR0, errSwap error
@@ -537,7 +537,7 @@ static_assert(__builtin_offsetof(bt_regprog_T, program) == offsetof(bt_regprog_T
 	if err := r.done(); err != nil {
 		return err
 	}
-	r.say("the core takes NOTHING from a header but the twelve constants phase 27 " +
+	r.say("the core takes NOTHING from a header but the twelve constants phase 110 " +
 		"moves: size_t time_t sig_atomic_t uintptr_t `struct timeval` MIN MAX offsetof " +
 		"are all 0 above the host block, which keeps its own 3 sig_atomic_t and 3 " +
 		"`struct timeval`")
@@ -577,7 +577,7 @@ static_assert(__builtin_offsetof(bt_regprog_T, program) == offsetof(bt_regprog_T
 		"uintptr_t and IS size_t, time_T IS time_t, int IS sig_atomic_t and time IS " +
 		"long(long *), and __builtin_offsetof == <stddef.h>'s offsetof at all six " +
 		"types.  EVERY ONE NAMES A HEADER TYPE, so not one of them can be written after " +
-		"phase 27 moves the includes -- which is the whole argument for doing this " +
+		"phase 110 moves the includes -- which is the whole argument for doing this " +
 		"first.  The control with one comparison wrong fails, so they are compiled and " +
 		"not merely present")
 

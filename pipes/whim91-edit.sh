@@ -1,26 +1,26 @@
 #!/bin/sh
-# Whim phase 91 (zero phase 8) -- the editor loses every way to name something else to edit.
-# See ZERO-GOAL.md.
+# Whim phase 91 -- the editor loses every way to name something else to edit.
+# See WHIM-GOAL.md.
 #
 # Usage: pipes/whim91-edit.sh <work-dir> <state-dir>      (run from the repository root)
 #
-# Phases 6 and 7 took the commands that put bytes on a disk and the one that takes
+# Phases 89 and 90 took the commands that put bytes on a disk and the one that takes
 # them off it.  This one takes the commands that point the editor AT a file --
 # `:edit :enew :ex :visual :view` -- and the four Normal-mode keys that do the same
 # thing from the buffer's own text, `gf gF [f ]f`.  What is left of opening
 # anything is `readfile()` and `open_buffer()`, which the startup path still uses
-# and which are the "nothing reads a byte" phase's (ZERO-PLAN.md P8); this phase
+# and which are the "nothing reads a byte" phase's (WHIM-PLAN.md part II P8); this phase
 # asserts by count that both are untouched.
 #
 # WHAT THE FIVE COMMANDS ACTUALLY WERE, measured on the input binary in a directory
 # holding a file called `keys`: `do_exedit` is thirty lines -- a lock guard, a
 # `readonlymode` save/set/restore testing CMD_view and CMD_enew, `setpcmark()` and
 # one `do_ecmd()` call.  So `:ex` and `:visual` are `:edit` spelled differently
-# (their Ex-mode escape has had nothing to escape from since phase 4), `:view` is
+# (their Ex-mode escape has had nothing to escape from since phase 87), `:view` is
 # `:edit` with `'readonly'` set, and `:enew` is `:edit` with a NULL file name.  One
 # handler, `ex_edit`, is all five rows, which is why they go together.
 #
-# SIX ANCHORS, and everything else is the sweep's (ZERO-GOAL.md rule 1: removal is
+# SIX ANCHORS, and everything else is the sweep's (WHIM-GOAL.md core rule 1: removal is
 # computed, not listed).  Sixteen functions go without one of them being named
 # here, seventeen with anchor 6:
 #
@@ -56,7 +56,7 @@
 #
 # ANCHOR 6 IS WORTH ITS LINES, and it is measured rather than argued.  `EX_ARGOPT`
 # -- `++ff=`, `++enc=`, `++bin`, `++edit` -- was on five rows: `:read`, which phase
-# 7 took, and these four.  After anchor 2 it is on NONE, so the block can never be
+# 90 took, and these four.  After anchor 2 it is on NONE, so the block can never be
 # entered, `getargopt()` can never run, and `exarg_T.read_edit` is written by
 # nothing and read by nothing.  Deleting the block hands all three to the sweep.
 # Measured: 30 lines, one more function, and a recording BYTE-IDENTICAL to the one
@@ -76,7 +76,7 @@
 # answers, which nothing here sweeps, so the delta could not be checked; and
 # ``orphanopts`` refuses the opposite direction, a global whose row has
 # gone.  The check asserts `p_ur` at exactly 2 with its row intact, and the
-# manifest carries `uses options:11 files:8 mechanical` for the phase that takes it.
+# manifest carries `uses options:94 files:91 mechanical` for the phase that takes it.
 #
 # THE ROW FLOOR IS CROSSED HERE, AND THE FLOOR MOVES IN THIS COMMIT.  `cmdnames[]`
 # goes 104 -> 99 and create_cmdidxs's `names()` refused a table of fewer than 100 --
@@ -84,12 +84,12 @@
 # names() tries both parsers with check=False and neither answer clears the bar.
 # `zexcmds` enumerates zero's whole Ex sweep through names(), so the old
 # floor would have stopped the sweep, tools/zerodelta.sh, the recording and every
-# later phase's check rather than giving a wrong answer.  ZERO-PLAN.md decision 8:
+# later phase's check rather than giving a wrong answer.  WHIM-PLAN.md II decision 8:
 # lowered deliberately, to 80, in the phase that crosses it and in the same commit,
 # with the reason in the tool's own docstring.  The margin is 19 rows and the next
 # row the plan removes is `:file`'s.
 #
-# THE TEXT THIS EDIT LEAVES DOES NOT COMPILE, as phases 6 and 7 leave theirs, and
+# THE TEXT THIS EDIT LEAVES DOES NOT COMPILE, as phases 89 and 90 leave theirs, and
 # the invariant at the end is the honest form of that, computed rather than listed:
 # every surviving mention of a deleted enumerator is inside a function definition,
 # and no surviving `cmdnames[]` row names that function -- which is the whole
@@ -116,7 +116,7 @@ state=${2:?usage: whim91-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

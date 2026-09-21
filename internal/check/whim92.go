@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim92", Zero9) }
+func init() { register("whim92", Whim92) }
 
 var z9Gone = []string{"readfile", "read_buffer", "read_eintr", "readfile_linenr", "filemess",
 	"msg_add_fname", "msg_add_lines", "msg_add_eol", "after_pathsep",
@@ -56,15 +56,15 @@ var z9EnumWant = []string{"BF_NEW_W", "CONV_RESTLEN", "CPO_FNAMER", "NOTDONE", "
 
 const z9Mark = "READFILE-ENTERED"
 
-// Zero9 is phase 9's check: the machinery under every way of naming a file.
+// Whim92 is phase 92's check: the machinery under every way of naming a file.
 //
 // THIS IS THE ONE ZERO PHASE NO RECORDING CAN SEE, and it says so.  readfile()
-// was already unreachable when the phase ran -- phases 5 to 8 took every way to
+// was already unreachable when the phase ran -- phases 88 to 91 took every way to
 // name a file -- so the declared delta is nothing at all and two full
 // recordings are byte-identical.  The evidence is an INSTRUMENTED PAIR: the
 // input source built twice, with a write(2, ...) first in readfile() and then
 // in open_buffer(), the identical instrument.
-func Zero9(w io.Writer, args []string) error {
+func Whim92(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim92 <work-dir> <state-dir>")
 	}
@@ -259,14 +259,14 @@ func Zero9(w io.Writer, args []string) error {
 		}
 		r.cont(`a "no mention anywhere" check fails on a correct phase here:`)
 		r.cont("check_readonly was readfile's LOCAL and reaches 0 only now,")
-		r.cont(`readonlymode goes 5 -> 3 where phase 8 asserted 5, "[RO]" and`)
+		r.cont(`readonlymode goes 5 -> 3 where phase 91 asserted 5, "[RO]" and`)
 		r.cont(`"[readonly]" each keep a speaker, and read_cmd_fd is the`)
 		r.cont("terminal's and does not move at all.")
 		return harness.ErrReported
 	}
 	r.say(`the 24 strings gone and "[RO]" 3 -> 2, "[readonly]" 2 -> 1 and CTRL-G's counter kept: readfile was one speaker of the first two and none of the third`)
-	r.cont("kept: open_buffer 5, read_cmd_fd 12 on 11 lines (the terminal's), b_ffname 32 and b_fname 29 (phase 10's), setfname 2 (set_rw_fname was its second caller), E32 and E37 with their speakers")
-	r.cont("left and named rather than folded: msg_scrolled_ign at 2 mentions, FALSE for ever with one reader in msg_puts_attr_len, and b_mtime_read, b_mtime_read_ns, b_orig_size and b_orig_mode write-only -- phase 10's")
+	r.cont("kept: open_buffer 5, read_cmd_fd 12 on 11 lines (the terminal's), b_ffname 32 and b_fname 29 (phase 93's), setfname 2 (set_rw_fname was its second caller), E32 and E37 with their speakers")
+	r.cont("left and named rather than folded: msg_scrolled_ign at 2 mentions, FALSE for ever with one reader in msg_puts_attr_len, and b_mtime_read, b_mtime_read_ns, b_orig_size and b_orig_mode write-only -- phase 93's")
 	r.cont("table: 99 rows and names() reads 99, unchanged -- this phase removes no command, and the floor keeps its 19 rows of margin")
 
 	// --- 3. the compile, the linkage and the libc surface --------------------
@@ -284,7 +284,7 @@ func Zero9(w io.Writer, args []string) error {
 	}
 	for _, keep := range []string{"stat", "getcwd", "strerror", "fsync", "read", "close", "dup"} {
 		if !contains(after, keep) {
-			return stop("%s went, and it is not this phase's: read, close and dup are the terminal's, stat, getcwd and strerror are phase 10's, fsync the FILE* phase's", keep)
+			return stop("%s went, and it is not this phase's: read, close and dup are the terminal's, stat, getcwd and strerror are phase 93's, fsync the FILE* phase's", keep)
 		}
 	}
 	r.say("symbols %s -> %s, and the set is exactly access fcntl open; read close dup stat getcwd strerror fsync all still undefined",
@@ -346,7 +346,7 @@ func min(a, b int) int {
 	return b
 }
 
-// z9Enums: SEVENTEEN GO AND NOTHING RENUMBERS, which is the opposite of phase 8
+// z9Enums: SEVENTEEN GO AND NOTHING RENUMBERS, which is the opposite of phase 91
 // and worth the four seconds either side to say.  A whole anonymous definition
 // leaving takes no survivor's value with it.
 func z9Enums(r *rep, oldTxt, newTxt string) error {

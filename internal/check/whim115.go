@@ -16,7 +16,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim115", Zero32) }
+func init() { register("whim115", Whim115) }
 
 var (
 	z32Time    = regexp.MustCompile(`\btime\b`)
@@ -71,8 +71,8 @@ func (r z32Res) show() string {
 	return strconv.Itoa(r.got)
 }
 
-// Zero32 is phase 32's check: the clock crosses the boundary.
-func Zero32(w io.Writer, args []string) error {
+// Whim115 is phase 115's check: the clock crosses the boundary.
+func Whim115(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim115 <work-dir> <state-dir>")
 	}
@@ -473,7 +473,7 @@ func Zero32(w io.Writer, args []string) error {
 	}
 	r.say("THE PROTOTYPE WAS LOAD-BEARING AND WHAT REPLACES IT IS STRONGER, in four compiles.  m1: the input's " +
 		"`long time(long *tp);` written `int time(int *tp);` is `conflicting types for 'time'` from <time.h> " +
-		"below it -- that WAS the guarantee, and it is what phase 26 relied on when it wrote `typedef long " +
+		"below it -- that WAS the guarantee, and it is what phase 109 relied on when it wrote `typedef long " +
 		"time_T;`.  m2: the same input with `time_T` perturbed to `int` and the prototype LEFT ALONE compiles " +
 		"in SILENCE -- so the prototype pinned `long == time_t` and never `time_T == long`.  p1: the output " +
 		"with the static_assert deleted and time_T perturbed compiles in silence too -- that is the regression " +
@@ -542,8 +542,8 @@ func Zero32(w io.Writer, args []string) error {
 	}
 	r.say("the `make editor.c` cut: %d lines -> %d, 0 directives, 0 errors under `-fsyntax-only`, and the "+
 		"WHOLE warning set is the core -> host boundary -- %d names -> %d, with `host_time` ARRIVING and "+
-		"NOTHING gone, compared name by name at run time and never written out here (phase 28 renamed one of "+
-		"them and phase 31 renames none)", cutN["old"], cutN["new"], len(bset["old"]), len(bset["new"]))
+		"NOTHING gone, compared name by name at run time and never written out here (phase 111 renamed one of "+
+		"them and phase 114 renames none)", cutN["old"], cutN["new"], len(bset["old"]), len(bset["new"]))
 
 	// --- 4. canon.sh ----------------------------------------------------------------
 	wgCanon.Wait()
@@ -599,7 +599,7 @@ func Zero32(w io.Writer, args []string) error {
 	}
 	r.say("`nm -u` is THE SAME SET, %d names, as a `comm` empty in BOTH directions, and `main` is still the "+
 		"only external symbol.  `time` IS STILL THERE and this phase says so as an equality, exactly as phase "+
-		"28 did for `gettimeofday`: the host calls it to implement host_time(), and a symbol leaves when its "+
+		"111 did for `gettimeofday`: the host calls it to implement host_time(), and a symbol leaves when its "+
 		"last CALLER leaves the FILE, which is the split and not this phase.  The binary is %d bytes against %d "+
 		"and they are NOT the same bytes", len(uNew), sizeOf(T("new")), sizeOf(filepath.Join(state, "old")))
 	pc := exec.Command("sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols"))

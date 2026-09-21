@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim127", Zero44) }
+func init() { register("whim127", Whim127) }
 
 const z44Bit = "((unsigned)1 << ((sizeof(unsigned) * 8) - 1))"
 
@@ -86,8 +86,8 @@ func z44Instrument(src, dst string, out bool) (string, string) {
 	return strings.Join(names, " "), ""
 }
 
-// Zero44 is phase 44's check: de-page the leaf.
-func Zero44(w io.Writer, args []string) error {
+// Whim127 is phase 127's check: de-page the leaf.
+func Whim127(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim127 <work-dir> <state-dir>")
 	}
@@ -410,7 +410,7 @@ func Zero44(w io.Writer, args []string) error {
 	}
 	if len(zero) > 0 {
 		fmt.Fprintf(w, "the corpus reaches none of: %s -- a corpus that MEANS to reach a split and does not is the "+
-			"defect zero phase 40 exists to end\n", strings.Join(zero, " "))
+			"defect phase 123 exists to end\n", strings.Join(zero, " "))
 		return harness.ErrReported
 	}
 	var low, ln, lo []string

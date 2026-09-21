@@ -19,7 +19,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim113", Zero30) }
+func init() { register("whim113", Whim113) }
 
 var (
 	z30Stamp = regexp.MustCompile(`compiled [A-Z][a-z][a-z] [ 0-9][0-9] [0-9]{4} [0-9:]{8}`)
@@ -224,8 +224,8 @@ func z30Same(a, b string) bool {
 	return e1 == nil && e2 == nil && string(x) == string(y)
 }
 
-// Zero30 is phase 30's check: the message fold.
-func Zero30(w io.Writer, args []string) error {
+// Whim113 is phase 113's check: the message fold.
+func Whim113(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim113 <work-dir> <state-dir>")
 	}
@@ -534,9 +534,9 @@ func Zero30(w io.Writer, args []string) error {
 		return s
 	}
 	if gone, came := minus26(uOld, uNew), minus26(uNew, uOld); len(gone)+len(came) > 0 {
-		return stop("`nm -u` moved: gone [%s] arrived [%s].  Phase 21 took printf, fprintf, fflush and "+
+		return stop("`nm -u` moved: gone [%s] arrived [%s].  Phase 104 took printf, fprintf, fflush and "+
 			"stderr with the calls THEMSELVES, so removing the function that no longer made them frees "+
-			"nothing -- this is an EQUALITY and phase 21 predicted it", sp(gone), sp(came))
+			"nothing -- this is an EQUALITY and phase 104 predicted it", sp(gone), sp(came))
 	}
 	ext := nmField26(filepath.Join(tmp, "new.o"), []string{"--extern-only", "--defined-only"}, 2)
 	if extS := sp(ext); extS != "main " {
@@ -544,7 +544,7 @@ func Zero30(w io.Writer, args []string) error {
 	}
 	r.say("`nm -u` is THE SAME SET, %d names, as a `comm` empty in BOTH directions, and `main` is still "+
 		"the only external symbol.  Removing 75 lines that call nothing libc has frees nothing, which is "+
-		"what phase 21 said when it took the four stdio symbols with the CALLS and left the function", len(uNew))
+		"what phase 104 said when it took the four stdio symbols with the CALLS and left the function", len(uNew))
 	r.say("the binary is %d bytes against the input's %d", sizeOf(filepath.Join(tmp, "new")),
 		sizeOf(filepath.Join(state, "old")))
 	pc := exec.Command("sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols"))
@@ -628,7 +628,7 @@ func Zero30(w io.Writer, args []string) error {
 	}
 	r.say("the `make editor.c` cut: %d lines -> %d, 0 directives, 0 errors under `-fsyntax-only`, and the "+
 		"WHOLE warning set is the core -> host boundary -- %d names, IDENTICAL to the input's, compared name "+
-		"by name at run time and never written out here (phase 28 renames one of them)",
+		"by name at run time and never written out here (phase 111 renames one of them)",
 		cutN["old"], cutN["new"], len(bset["new"]))
 
 	// --- 5. the probes: 32 on a pipe and 4 on a pty, both sides ------------------
@@ -778,7 +778,7 @@ func Zero30(w io.Writer, args []string) error {
 		r6.bad("a recording is %d records, and a measurement over a corpus nothing "+
 			"wrote passes.  The count is REPORTED and not pinned: it was 106 when "+
 			"this phase was written -- 102 screen cases and four files -- and is "+
-			"122 since zero phase 40 added the memline corpus", nRec)
+			"122 since phase 123 added the memline corpus", nRec)
 	}
 	if len(pp) > 0 {
 		show := pp
@@ -811,7 +811,7 @@ func Zero30(w io.Writer, args []string) error {
 	if err := r6.done(); err != nil {
 		return err
 	}
-	r.say("THE INSTRUMENTED PAIR, phase 12's shape because this is phase 12's kind "+
+	r.say("THE INSTRUMENTED PAIR, phase 95's shape because this is phase 95's kind "+
 		"of dead: the INPUT source built twice with the identical "+
 		"`write(2, \"PP-ENTERED\\n\", 11)`, first in msg_puts_printf() -- %d of %d records, "+
 		"%d occurrences -- and then in msg_puts_display() -- %d of %d records, %d "+

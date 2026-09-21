@@ -1,14 +1,14 @@
 #!/bin/sh
-# Whim phase 89 (zero phase 6) -- the editor loses every way to write a file.  See ZERO-GOAL.md.
+# Whim phase 89 -- the editor loses every way to write a file.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim89-edit.sh <work-dir> <state-dir>      (run from the repository root)
 #
 # A core does not own a disk.  Reading and writing files is the host's business
-# (ZERO-GOAL.md, the charter), and this is the first half of taking the filesystem
+# (WHIM-GOAL.md, the charter), and this is the first half of taking the filesystem
 # away: the six Ex commands that put bytes on a disk -- `:write :wq :xit :exit
 # :update :saveas` -- and, with them, everything only they reached.
 #
-# FOUR ANCHORS, AND NOT ONE FOLD.  Everything else is the sweep's (ZERO-GOAL.md
+# FOUR ANCHORS, AND NOT ONE FOLD.  Everything else is the sweep's (WHIM-GOAL.md
 # rule 1: removal is computed, not listed).  The alternative was measured: an edit
 # that also deletes `ex_write`, `ex_update`, `ex_exit`, `do_write`, `check_writable`,
 # `check_overwrite`, `not_writing` and `check_readonly` by name produces a
@@ -29,7 +29,7 @@
 # type `:x` at a command that no longer exists and answer E492.  The user's settled
 # decision is that ZZ is ZQ, and `case:zz_key` moves either way -- E32 today, E492
 # if the string is left, nothing at all with `q!` -- so this phase owns it and says
-# so rather than leaving a dead command named in the source.  ZERO-PLAN.md gives it
+# so rather than leaving a dead command named in the source.  WHIM-PLAN.md part II gives it
 # to the `:q` phase; that row is annotated as built.
 #
 # THE TEXT THIS EDIT LEAVES DOES NOT COMPILE, and that is stated here because
@@ -47,14 +47,14 @@
 # that stops matching otherwise yields a plausible all-zero index, so the floor is
 # deliberate.  ``zexcmds`` enumerates the table through it, so crossing the
 # floor would stop zero's command sweep rather than give a wrong answer.  After this
-# phase the margin is FIVE ROWS.  ZERO-PLAN.md 3a: the `:edit` phase is the one that
+# phase the margin is FIVE ROWS.  WHIM-PLAN.md II.3a: the `:edit` phase is the one that
 # spends it, and it is the phase that must lower the floor.
 #
-# NO ENUMERATOR DUMP HERE, and phase 5 had one for a reason that does not apply.
+# NO ENUMERATOR DUMP HERE, and phase 88 had one for a reason that does not apply.
 # Deleting the six renumbers 89 survivors, all of them `CMD_*` -- measured with
 # tools/enumvals.sh: 1,323 enumerator values in, 1,303 out, 20 gone (the six plus
 # fourteen single-constant explicit-value enums the sweep takes with their types),
-# 89 moved and every one a command index.  Phase 5's `main_errors[]` was a table
+# 89 moved and every one a command index.  Phase 88's `main_errors[]` was a table
 # indexed by the enumerators it removed, with the rows written in order, so a wrong
 # index was invisible to the build and DWARF was the only witness.  `cmdnames[]` is
 # DESIGNATED: a row lands at its own enumerator whatever the numbering is, the
@@ -83,7 +83,7 @@ state=${2:?usage: whim89-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

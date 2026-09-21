@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim124", Zero41) }
+func init() { register("whim124", Whim124) }
 
 var (
 	z41Arena   = regexp.MustCompile(`ARENA used=(\d+) calls=(\d+)`)
@@ -107,8 +107,8 @@ func z41Bss(bin string) int64 {
 	return v
 }
 
-// Zero41 is phase 41's check: freeing is free.
-func Zero41(w io.Writer, args []string) error {
+// Whim124 is phase 124's check: freeing is free.
+func Whim124(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim124 <work-dir> <state-dir>")
 	}
@@ -383,8 +383,8 @@ func Zero41(w io.Writer, args []string) error {
 	r.say("THE PARTITION: `malloc` %d mentions in and 0 out, `free` %d and 0, "+
 		"`realloc` %d and 0 -- every one of them was below the boundary and in one of the "+
 		"four runs of text the edit rewrites, and the output does not name a libc "+
-		"allocator anywhere.  Two were the wrappers phase 35 wrote; the other two are the "+
-		"sites phase 35 and phase 34 each SAW and left, in the formatter island phase 27 "+
+		"allocator anywhere.  Two were the wrappers phase 118 wrote; the other two are the "+
+		"sites phase 118 and phase 117 each SAW and left, in the formatter island phase 110 "+
 		"moved below the includes -- and they had to move here, because a free() or a "+
 		"realloc() of a pointer the arena handed out is undefined from this phase on",
 		mentions(oldT, "malloc"), mentions(oldT, "free"), mentions(oldT, "realloc"))
@@ -415,7 +415,7 @@ func Zero41(w io.Writer, args []string) error {
 			}
 		}
 		if len(lines) <= 70000 {
-			return cutT{}, stop("the cut of %s is %d lines, and zero.mk's floor is 70,000 -- a cut that found "+
+			return cutT{}, stop("the cut of %s is %d lines, and whim.mk's floor is 70,000 -- a cut that found "+
 				"line 1 would be empty and every check below would pass on nothing", src, len(lines))
 		}
 		os.Remove(dst + ".o")
@@ -532,7 +532,7 @@ func Zero41(w io.Writer, args []string) error {
 			"here because the expected direction is DOWN: .bss is NOBITS, so the arena adds no bytes to the file, "+
 			"and musl's allocator is no longer linked in", newSize, oldSize)
 	}
-	r.say("THE IMAGE: EXEC, no INTERP, no dynamic section, no relocation -- phases 0 and 1's four facts, undisturbed "+
+	r.say("THE IMAGE: EXEC, no INTERP, no dynamic section, no relocation -- phases 83 and 84's four facts, undisturbed "+
 		"by a %d-byte object.  `.bss` goes %d -> %d bytes, a growth of %d, which is the arena LESS %d -- musl's own "+
 		"allocator state, `__malloc_context` and five smaller objects, leaving .bss with the three symbols.  AND "+
 		"THE FILE SHRINKS, %d -> %d, %d bytes: `.bss` is NOBITS, so the section header records a size and the "+
@@ -600,7 +600,7 @@ func Zero41(w io.Writer, args []string) error {
 		return stop("a recording holds %d records, and a comparison of two things "+
 			"nothing wrote passes.  The count is REPORTED and not pinned: it is 122 "+
 			"here -- 102 screen cases, 16 memline cases and four sweeps -- and was 106 "+
-			"before zero phase 40 added the memline corpus", len(base))
+			"before phase 123 added the memline corpus", len(base))
 	}
 	movedRec := func(which string) ([]string, error) {
 		d := T("REC-" + which)
@@ -843,7 +843,7 @@ func Zero41(w io.Writer, args []string) error {
 		len(cases["memline"]))
 	r.cont("  host_free doing NOTHING AT ALL moves 0 of %d screen cases and 0 of %d "+
 		"memline cases, and that is PHASE 35'S OWN CONTROL re-run on this phase's input "+
-		"rather than a new claim -- on a corpus phase 35 did not have.  A leak is invisible "+
+		"rather than a new claim -- on a corpus phase 118 did not have.  A leak is invisible "+
 		"to this corpus too, so the byte-identical recording above is NOT what says the "+
 		"freeing changed; it says the ALLOCATION did not.  What says the freeing changed is "+
 		"`free` leaving nm -u", len(cases["screen"]), len(cases["memline"]))
@@ -954,7 +954,7 @@ func Zero41(w io.Writer, args []string) error {
 		"the two binaries print the same bytes.  Its sibling, format_overflow_error()'s "+
 		"free of argcopy, cannot be probed because it cannot RUN: its guard is "+
 		"`overflow_err`, which is `tvs != nullptr`, and vim_vsnprintf_typval has one caller "+
-		"in this file passing nullptr -- phase 9's and phase 17's kind, and it is rewritten "+
+		"in this file passing nullptr -- phase 92's and phase 100's kind, and it is rewritten "+
 		"for the same reason a dead branch is kept correct", ma[1])
 
 	// --- 9. the host's vocabulary is still the host's --------------------------------------
@@ -963,9 +963,9 @@ func Zero41(w io.Writer, args []string) error {
 	if err := zh.Run(); err != nil {
 		return harness.ErrReported
 	}
-	r.say("and that is phase 20's check, undisturbed and unamended.  zhostonly reads the host region from " +
+	r.say("and that is phase 103's check, undisturbed and unamended.  zhostonly reads the host region from " +
 		"host_winch_pending to musl_suspend's last brace, and this phase writes NOTHING in it: host_alloc and " +
-		"host_free have sat BELOW that brace since phase 35 put them beside main.  Neither `malloc`, `free`, " +
+		"host_free have sat BELOW that brace since phase 118 put them beside main.  Neither `malloc`, `free`, " +
 		"`realloc`, `max_align_t` nor `alignof` is in that tool's vocabulary, so it needed no new word and no new " +
 		"exception -- the phase moves memory, not a syscall")
 
@@ -976,7 +976,7 @@ func Zero41(w io.Writer, args []string) error {
 	}
 	r.say("<stdlib.h> IS NOW DEAD AND IT STAYS, which is measured rather than argued: malloc, free and realloc were "+
 		"its only users, and the output built with the directive DELETED is BYTE-IDENTICAL, %d bytes either way.  "+
-		"ZERO-GOAL.md lets a phase remove a directive; phase 13 is the precedent for declining, having measured "+
+		"WHIM-GOAL.md lets a phase remove a directive; phase 96 is the precedent for declining, having measured "+
 		"that removing three was free and written \"the count stays 18\" into its own program.  Eleven stays "+
 		"eleven: this phase's subject is the allocator, the removal is free for whoever asks for it, and a phase "+
 		"that changes two things cannot say which one a difference came from", sizeOf(T("new")))

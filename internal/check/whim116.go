@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim116", Zero33) }
+func init() { register("whim116", Whim116) }
 
 var (
 	z33Named = regexp.MustCompile(`\{\s*"([^"]*)"`)
@@ -80,9 +80,9 @@ func unifiedHead(w io.Writer, a, b string, n int) {
 	}
 }
 
-// Zero33 is zero phase 33, whole: the terminal table is asked with
+// Whim116 is phase 116, whole: the terminal table is asked with
 // `+set term={name}`.
-func Zero33(w io.Writer, args []string) error {
+func Whim116(w io.Writer, args []string) error {
 	if len(args) < 1 {
 		return fmt.Errorf("usage: check whim116 <work-dir>")
 	}
@@ -114,7 +114,7 @@ func Zero33(w io.Writer, args []string) error {
 			for _, l := range head(rows, 2) {
 				fmt.Fprintln(w, "                 "+l)
 			}
-			b.cont("Zero phase 0 records it, from whim-vim.c -- the pipeline's")
+			b.cont("Phase 83 records it, from whim-vim.c -- the pipeline's")
 			b.cont("immutable input -- and REFUSES to overwrite a set that")
 			b.cont("differs, so a changed harness needs both paths removed:")
 			fmt.Fprintln(w, "                 rm -rf .reference/zero-baselines .cache/q83 && make whim-phase-83")

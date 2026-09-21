@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 118 (zero phase 35), the check -- the core calls nothing but the host.
-# See pipes/whim118-edit.sh, and ZERO-PLAN.md 4c.
+# Whim phase 118, the check -- the core calls nothing but the host.
+# See pipes/whim118-edit.sh, and WHIM-PLAN.md II.4c.
 #
 # Usage: pipes/whim118-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -34,10 +34,10 @@
 #               that takes every `malloc`, `free` and `write` out of the core frees
 #               NOTHING, and that is not a disappointment: the host calls all three, and
 #               an undefined symbol leaves when its last caller leaves the FILE.  Phase
-#               28 is the contrast -- it freed `gettimeofday` because the last caller
+#               111 is the contrast -- it freed `gettimeofday` because the last caller
 #               went -- and a reader who expects this phase to move the count is owed
 #               the equality with its reason.
-#   THE CUT     `awk '/^ *# *include / { exit }'`, zero.mk's own rule, on the INPUT and
+#   THE CUT     `awk '/^ *# *include / { exit }'`, whim.mk's own rule, on the INPUT and
 #               on the OUTPUT: 0 errors under -fsyntax-only either side, and the warning
 #               set -- which IS the core -> host interface, every name `used but never
 #               defined` -- grows by EXACTLY `host_alloc host_free host_write`.  The
@@ -53,7 +53,7 @@
 #               and every short write; and three sessions drive the paths by hand -- a
 #               200,000-character insert, a free of a null pointer, and the largest
 #               write the corpus can produce.
-#   STRUCTURE   `zhostonly`, phase 20's structural check, still passes.
+#   STRUCTURE   `zhostonly`, phase 103's structural check, still passes.
 
 # THE BODY IS GO: internal/check/whim118.go, run through tools/st.sh.
 # The tools it runs, named as PATHS so tools/implhash.sh hashes them into

@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim97", Zero14) }
+func init() { register("whim97", Whim97) }
 
 var z14Seventeen = []string{"memmove", "strlen", "memset", "strncmp", "strcmp", "strcpy", "sprintf",
 	"memcpy", "strncasecmp", "strcat", "strcasecmp", "strncpy", "strstr",
@@ -64,9 +64,9 @@ var z14Absent = []string{"open", "creat", "openat", "stat", "access", "fcntl", "
 
 var z14CallRe = regexp.MustCompile(`call[[:space:]]+(memcpy|memset|memmove|strlen|sprintf|strcpy|strcat|strcmp|strncmp|strchr|strstr|memchr|memcmp|strncpy|strcasecmp|strncasecmp|strpbrk)\b`)
 
-// Zero14 is phase 14's check: the libc that is pure computation, defined in
+// Whim97 is phase 97's check: the libc that is pure computation, defined in
 // the file as `static musl_*`.
-func Zero14(w io.Writer, args []string) error {
+func Whim97(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim97 <work-dir> <state-dir>")
 	}
@@ -165,7 +165,7 @@ func Zero14(w io.Writer, args []string) error {
 		}
 	}
 	if len(directives) != 18 || !allInclude {
-		fail = append(fail, fmt.Sprintf("the file has %d lines starting with #, and ZERO-GOAL.md says eighteen #includes and nothing else", len(directives)))
+		fail = append(fail, fmt.Sprintf("the file has %d lines starting with #, and WHIM-GOAL.md says eighteen #includes and nothing else", len(directives)))
 	}
 	for _, p := range []struct{ tok, name string }{{"/*", "a block comment"}, {"\t", "a tab"}} {
 		if strings.Count(newT, p.tok) != strings.Count(oldT, p.tok) {
@@ -183,7 +183,7 @@ func Zero14(w io.Writer, args []string) error {
 	if i := strings.Index(newT, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newT[i:], "\n};")
 		if len(z12RowRe.FindAllString(newT[i:i+j], -1)) != 108 {
-			fail = append(fail, "options[] is not the 108 rows phase 12 left")
+			fail = append(fail, "options[] is not the 108 rows phase 95 left")
 		}
 	}
 	for _, flag := range []string{"P_NFNAME", "P_NDNAME"} {
@@ -251,7 +251,7 @@ func Zero14(w io.Writer, args []string) error {
 	}
 	for _, absent := range z14Absent {
 		if contains(after, absent) {
-			return stop("%s is undefined, and the core has neither a way to open a file nor a stdio stream since phase 13", absent)
+			return stop("%s is undefined, and the core has neither a way to open a file nor a stdio stream since phase 96", absent)
 		}
 	}
 	r.say("symbols %s -> %s, and the set is exactly the seventeen -- with NOT ONE call to any of them left in the assembly, so gcc emits none of them for itself here and nothing had to be defined under a real name",

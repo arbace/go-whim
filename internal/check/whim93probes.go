@@ -165,7 +165,7 @@ func z10Probes(r *rep, old, bin string) error {
 	}
 	for _, p := range []struct{ tag, stream string }{{"the input binary", o.oS}, {"this one", o.nS}} {
 		if strings.Contains(p.stream, `"%`) || strings.Contains(p.stream, `"#`) {
-			fail = append(fail, fmt.Sprintf("registers: %s printed a `\"%%` or `\"#` line, and neither has been printable since phase 5", p.tag))
+			fail = append(fail, fmt.Sprintf("registers: %s printed a `\"%%` or `\"#` line, and neither has been printable since phase 88", p.tag))
 		}
 	}
 	if len(fail) > 0 {

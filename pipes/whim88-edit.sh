@@ -1,10 +1,10 @@
 #!/bin/sh
-# Whim phase 88 (zero phase 5) -- the command line is `+{command}` and `-T {term}`.  See ZERO-GOAL.md.
+# Whim phase 88 -- the command line is `+{command}` and `-T {term}`.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim88-edit.sh <work-dir> <state-dir>      (run from the repository root)
 #
 # A core is handed its buffer by a host, not by a shell.  What is left of
-# `command_line_scan()` after phases 2 and 4 is five things -- `+cmd`, `-T`, a bare
+# `command_line_scan()` after phases 85 and 87 is five things -- `+cmd`, `-T`, a bare
 # `-`, `--` and a file argument -- and the last three are the three that name a
 # FILE or a STREAM to edit.  They go, and argv ends as exactly two options: the
 # commands to run and the terminal to assume.  Everything else is what every other
@@ -54,7 +54,7 @@
 # WHERE THE LINE IS AGAINST THE LATER PHASES, and why it is there:
 #   * `readfile()`'s stdin half -- its `read_stdin` PARAMETER and the arms that read
 #     it, in readfile(), read_buffer() and open_buffer() -- is the "nothing reads a
-#     byte" phase's (ZERO-PLAN.md P8).  This phase removes the FUNCTION
+#     byte" phase's (WHIM-PLAN.md part II P8).  This phase removes the FUNCTION
 #     `read_stdin()`, which is argv's entry point into that code; the parameter's 23
 #     mentions are asserted UNCHANGED, so a phase that took them here would fail.
 #   * `read_cmd_fd` keeps its definition and its twelve remaining mentions.  Nothing assigns it
@@ -71,7 +71,7 @@
 # and ME_EXTRA_CMD; `-T {term}` with want_argument, ME_GARBAGE and
 # mainerr_arg_missing; ME_UNKNOWN_OPTION as the answer to everything else;
 # `exe_commands()` and the `+cmd` execution path; and `'paste'`, which every case of
-# the corpus seeds itself with (ZERO-PLAN.md 2d).
+# the corpus seeds itself with (WHIM-PLAN.md II.2d).
 #
 # THERE IS NO usage() TO LEAVE ALONE.  The brief warns that the help text may still
 # advertise options that no longer exist; in this file it does not exist either --
@@ -90,7 +90,7 @@ state=${2:?usage: whim88-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

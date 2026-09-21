@@ -196,7 +196,7 @@ func z8Probes(r *rep, old, bin string) error {
 	}
 	o = by["cmd_read"]
 	if !strings.Contains(o.oT, z6E492) || !strings.Contains(o.nT, z6E492) {
-		fail = append(fail, "cmd_read: `:read keys` was E492 on both sides before this phase was written -- zero phase 7 took it")
+		fail = append(fail, "cmd_read: `:read keys` was E492 on both sides before this phase was written -- phase 90 took it")
 	}
 	if len(fail) > 0 {
 		for _, l := range fail {

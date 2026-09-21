@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 95 (zero phase 12), the check -- the options nothing reads.
-# See pipes/whim95-edit.sh, and ZERO-GOAL.md.
+# Whim phase 95, the check -- the options nothing reads.
+# See pipes/whim95-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim95-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -38,7 +38,7 @@
 #        and one writer, which no tool reports.
 #      * `w_readonly` is a `static char *` INSIDE `change_warning()`, not at file
 #        scope, so a check that greps for it at file scope finds nothing either way.
-#      * `'paste'` IS EXEMPT FOR EVER (ZERO-PLAN.md 2d and decision 8, the user's
+#      * `'paste'` IS EXEMPT FOR EVER (WHIM-PLAN.md II.2d and decision 8, the user's
 #        standing promise): `p_paste` 12 mentions and its five `*_nopaste` save slots
 #        at four each, before and after, and `+{command}` untouched.  The next person
 #        to widen the computation must meet this assertion, not just the comment.
@@ -48,7 +48,7 @@
 #    string literal from the value, so removing a letter from a list could not move
 #    `:set cpo?` or `:set shm?` -- but it WOULD turn `:set shm=F`, accepted silently,
 #    into `E539: Illegal character`, and no corpus case, Ex row, argv row or pty
-#    scenario types `:set shm=`.  That is exactly the change ZERO-GOAL.md rule 2
+#    scenario types `:set shm=`.  That is exactly the change WHIM-GOAL.md core rule 2
 #    exists to prevent, so both literals are compared character for character against
 #    the input, and four probes require `:set shm=F` and `:set cpo=g` to be accepted
 #    on both binaries and `:set shm=y` and `:set cpo=<a non-letter>` to answer E539 on
@@ -72,7 +72,7 @@
 #    and thirteen must not.  `ro_w10` is the one that shows the phase removing
 #    BEHAVIOUR rather than a row: `:set ro` on an unmodified buffer, then an insert,
 #    and the old binary prints `W10: Warning: Changing a readonly file` and PAUSES A
-#    SECOND -- 1,008 ms measured against 3 ms here, the same shape as phase 2's
+#    SECOND -- 1,008 ms measured against 3 ms here, the same shape as phase 85's
 #    2,010 ms -> 5 ms.  The message is never in a snapshot: it is drawn, a Press-ENTER
 #    follows and the redraw wipes it, exactly as whim90-check's E319, so the assertion
 #    is on the STREAM and on the elapsed time.  THE BUFFER MUST BE UNMODIFIED WHEN

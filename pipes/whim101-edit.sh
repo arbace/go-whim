@@ -1,5 +1,5 @@
 #!/bin/sh
-# Whim phase 101 (zero phase 18) -- main() is demoted to vim_main().  See ZERO-GOAL.md.
+# Whim phase 101 -- main() is demoted to vim_main().  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim101-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
@@ -15,7 +15,7 @@
 #
 # becomes `static int vim_main(int argc, char **argv)` with the SAME BODY, and a new
 # five-line `main()` at the bottom of the file whose whole content is
-# `return vim_main(argc, argv);`.  Nothing else moves.  This is ZERO-PLAN.md 4c's
+# `return vim_main(argc, argv);`.  Nothing else moves.  This is WHIM-PLAN.md II.4c's
 # first step, and it is deliberately the ONLY thing this phase does: the host
 # boundary is a sequence of small demotions and this is the one that names them.
 #
@@ -64,7 +64,7 @@ state=${2:?usage: whim101-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).  The
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).  The
 # input binary is kept because the check probes the exit statuses of BOTH.
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")

@@ -1,12 +1,12 @@
 #!/bin/sh
-# Whim phase 123 (zero phase 40) -- the instrument learns to see the text layer.
-#                  See ZERO-GOAL.md, ZERO-PLAN.md.
+# Whim phase 123 -- the instrument learns to see the text layer.
+#                  See WHIM-GOAL.md, WHIM-PLAN.md part II.
 #
 # Usage: pipes/whim123.sh <work-dir>      (run from the repository root)
 #
-# NO SOURCE CHANGE AT ALL: r40's whim-vim.c is its input's, byte for byte, and this
+# NO SOURCE CHANGE AT ALL: q123's whim-vim.c is its input's, byte for byte, and this
 # phase asserts it first and last.  What changes is what every later phase is
-# measured with.  This is zero phase 3's shape and zero phase 33's -- the two other
+# measured with.  This is phase 86's shape and phase 116's -- the two other
 # phases that change no source and replace or repair an instrument -- and it is here
 # for the same reason both of those were: a harness that cannot see a phase must be
 # fixed BEFORE the phase, never after.
@@ -29,8 +29,8 @@
 #
 # WHAT THE NEW PART IS.  ``zmemline``, the sixth part of a recording
 # (`tools/zrecord.sh`): 16 cases that build buffers of 200 to 25,000 lines IN THE
-# EDITOR -- there is no file argument (phase 5), no `:edit` (phase 8) and no
-# `:read` (phase 7) -- churn them in the middle, and read them back.  Every line
+# EDITOR -- there is no file argument (phase 88), no `:edit` (phase 91) and no
+# `:read` (phase 90) -- churn them in the middle, and read them back.  Every line
 # begins with its own line number, so a screen drawn with `'number'` shows the
 # tree's answer beside the question; `zcompare.py` compares them under a `mem:`
 # token beside `case:`.
@@ -58,11 +58,11 @@
 # says the record does not depend on the clock AT ALL, rather than that two runs of
 # it happened to agree.
 #
-# WHY RE-RECORDING THE BASELINES IS LEGITIMATE is zero phase 33's argument and is
+# WHY RE-RECORDING THE BASELINES IS LEGITIMATE is phase 116's argument and is
 # not repeated here: the baselines come from `whim-vim.c`, the pipeline's immutable
 # input, built with WHIM's compile line, recorded three times and required
 # identical, and nothing zero produces is on the recording side.  A new PART of a
-# recording is a new file in that set, so phase 0 must record it:
+# recording is a new file in that set, so phase 83 must record it:
 #
 #     rm -rf .reference/zero-baselines .cache/q83 && make whim-phase-83
 #
@@ -97,7 +97,7 @@
 #      no memline record may move -- while some of the 102 must, which is what
 #      keeps that from being a control with no effect;
 #   7. the declared delta holds -- NOTHING, and nothing new: tools/zerodelta.sh
-#      --phase 40 against .reference/zero-baselines.
+#      --phase 123 against .reference/zero-baselines.
 
 # THE BODY IS GO: internal/check/whim123.go, run through tools/st.sh.
 # The tools it runs, named as PATHS so tools/implhash.sh hashes them into

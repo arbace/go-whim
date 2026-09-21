@@ -1,11 +1,11 @@
 #!/bin/sh
-# Whim phase 127 (zero phase 44)'s check -- de-page the leaf.
+# Whim phase 127's check -- de-page the leaf.
 #
 # Usage: pipes/whim127-check.sh <work-dir> <state-dir>   (run from the repository root)
 #
 # THE DECLARED DELTA IS NOTHING AT ALL AND IT IS THE WEAKEST KIND THERE IS.  The code
 # changes, the binary moves, and the claim is that a replacement does what the thing
-# it replaces did -- which is zero phases 14 and 15's kind and no other.  There is no
+# it replaces did -- which is phases 97 and 98's kind and no other.  There is no
 # `cmp` to be had: every line of the buffer is stored somewhere else now.  So the
 # recordings are the floor and not the evidence, and what carries the phase is the
 # controls: eleven builds of this phase's own output with one thing changed, eight of
@@ -29,14 +29,14 @@
 #   9  nm -u unchanged both ways, the cut, and the ordinary phase checks
 #
 # WHY SECTION 6 EXISTS AND WHY IT IS THIS PHASE'S AND NOT PHASE 40'S.  Before phase
-# 40 a whim-vim with one line deleted from ml_find_line()'s descent recorded all 102
+# 123 a whim-vim with one line deleted from ml_find_line()'s descent recorded all 102
 # screen cases byte for byte.  This phase rewrites the leaf that corpus was built to
 # see, so it owes the measurement in both directions: the output must still reach the
 # splits, and the input's own numbers are taken in the same run with the same
 # instrument, so that "it reaches them" is a comparison and not an assertion.
 #
 # ONE PATH IS REMOVED ON PURPOSE AND THE SECTION SAYS SO.  A line longer than a page
-# used to make the data block two pages -- phase 40's MLBIGLINE marker, reached by
+# used to make the data block two pages -- phase 123's MLBIGLINE marker, reached by
 # three of the sixteen cases.  A record is a pointer, so there is no such thing any
 # more, and the marker has no anchor in the output at all.  That is the one number
 # that may go down.

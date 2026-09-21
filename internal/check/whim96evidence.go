@@ -37,7 +37,7 @@ func z13Evidence(r *rep, tmp, inst, old, bin string) error {
 		r.say("a recording is %d files, and a comparison of two things", total)
 		r.cont("nothing wrote passes.  The COUNT is reported and not pinned:")
 		r.cont("a recording held 106 records when this phase was written and")
-		r.cont("holds 122 since zero phase 40 added the memline corpus, so")
+		r.cont("holds 122 since phase 123 added the memline corpus, so")
 		r.cont("what is asserted is 0 marked here and the identical")
 		r.cont("instrument marking nearly all of them on ui_write().")
 		return harness.ErrReported

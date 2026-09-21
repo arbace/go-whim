@@ -14,7 +14,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim89", Zero6) }
+func init() { register("whim89", Whim89) }
 
 var z6GoneFuncs = []string{
 	"ex_write", "ex_update", "ex_exit", "do_write", "check_writable", "check_overwrite",
@@ -34,7 +34,7 @@ var z6Later = []string{"check_changed", "no_write_message", "do_bang", "check_fn
 
 var z6RowRe = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
 
-// Zero6 is phase 6's check: every way to write a file.
+// Whim89 is phase 89's check: every way to write a file.
 //
 // THE CORPUS CANNOT SEE WRITING, which is why the probes exist.  Every one of
 // zcases's 102 cases types its own text and never names a file, so `cmd_write`
@@ -42,7 +42,7 @@ var z6RowRe = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
 // -- an editor that FAILED to write.  A declared delta of "cmd_write and zz_key
 // moved" is therefore consistent with a phase that changed one error message
 // and left buf_write() reachable.
-func Zero6(w io.Writer, args []string) error {
+func Whim89(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim89 <work-dir> <state-dir>")
 	}

@@ -10,7 +10,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim89", Zero6) }
+func init() { register("whim89", Whim89) }
 
 // z6Six are the six commands that put bytes on a disk, and nothing else.
 var z6Six = []string{"CMD_exit", "CMD_saveas", "CMD_update", "CMD_write", "CMD_wq", "CMD_xit"}
@@ -21,14 +21,14 @@ const (
 	z6Floor      = 100
 )
 
-// Zero6 takes every way to write a file: the six Ex commands, ZZ and the
+// Whim89 takes every way to write a file: the six Ex commands, ZZ and the
 // `:w >>` / `:w !` parse.
 //
 // FOUR ANCHORS AND NOT ONE FOLD.  The row is the only reference a command
 // handler has, so taking the row is what makes the handler unreachable and the
 // sweep is what removes it.  The text this edit leaves DOES NOT COMPILE --
 // step 5 is the honest form of that claim, computed rather than listed.
-func Zero6(text []byte, w io.Writer) ([]byte, error) {
+func Whim89(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"nowrite", w}
 
 	// literal is the heredoc's, and it does NOT report: step 1 and step 2 each
@@ -91,7 +91,7 @@ func Zero6(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.die("cmdnames[] has %d rows after the cut, expected %d", n, z6RowsAfter)
 	}
 	p.sayf("six cmdnames[] rows; %d -> %d, and create_cmdidxs.names() refuses under %d, "+
-		"so the margin is %d rows -- the :edit phase spends it (ZERO-PLAN.md 3a)",
+		"so the margin is %d rows -- the :edit phase spends it (WHIM-PLAN.md II.3a)",
 		z6RowsBefore, z6RowsAfter, z6Floor, z6RowsAfter-z6Floor)
 
 	// ---- 3. ZZ ----------------------------------------------------------------

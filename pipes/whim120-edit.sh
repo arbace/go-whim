@@ -1,7 +1,7 @@
 #!/bin/sh
-# Whim phase 120 (zero phase 37) -- the degenerate unions go.
-# See ZERO-GOAL.md, whose charter is that the core is what a transpiler reads, and
-# ZERO-PLAN.md 4c, whose rule is that the core's meaning must be on the page.
+# Whim phase 120 -- the degenerate unions go.
+# See WHIM-GOAL.md, whose charter is that the core is what a transpiler reads, and
+# WHIM-PLAN.md II.4c, whose rule is that the core's meaning must be on the page.
 #
 # Usage: pipes/whim120-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
@@ -29,7 +29,7 @@
 # extension: ISO C requires a struct-declaration-list to be non-empty, and gcc accepts it
 # only because it accepts empty structs and unions as an extension -- `-Wpedantic` says
 # so, and the check measures that the input draws exactly one such diagnostic and the
-# output none.  ZERO-GOAL.md's core is meant to be readable by something that is not gcc,
+# output none.  WHIM-GOAL.md's core is meant to be readable by something that is not gcc,
 # and a construct the C standard forbids is exactly the kind of latent exotic that costs
 # a reader later.  It is also the cheapest possible removal: the field has ZERO uses, one
 # mention in the whole file, its own declaration.
@@ -54,9 +54,9 @@
 # struct with a field of the same name and a different member would all land in the
 # leftover class and stop the phase.  The counts are read off the text here and nowhere
 # written down, so this stays true of a file the phase has never seen -- which is the
-# lesson phase 35 was taught when phase 34 moved its counted anchors.
+# lesson phase 118 was taught when phase 117 moved its counted anchors.
 #
-# LITERAL-AWARE AND SINGLE-PASS, for the reason phase 23 measured.  The file has no
+# LITERAL-AWARE AND SINGLE-PASS, for the reason phase 106 measured.  The file has no
 # preprocessor and no comments, so a string or character literal is exactly a quote and
 # the escaped bytes to its match, and the scan is exact; no literal in this file holds any
 # of the six names, which is asserted rather than assumed.  And every span -- six
@@ -81,7 +81,7 @@ state=${2:?usage: whim120-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

@@ -1,9 +1,9 @@
 #!/bin/sh
-# Whim phase 102 (zero phase 19) -- the core can no longer stop the process.  See ZERO-GOAL.md.
+# Whim phase 102 -- the core can no longer stop the process.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim102-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
-# `mch_exit()` ends the editor, and its last statement was `exit(r);`.  Phase 17 left
+# `mch_exit()` ends the editor, and its last statement was `exit(r);`.  Phase 100 left
 # that as the ONLY `exit()` call in the file and this phase replaces it with a call
 # through a function pointer the host installs:
 #
@@ -12,7 +12,7 @@
 #     vim_main(int argc, char **argv, void (*exit_fn)(int))
 #         vim_host_exit = exit_fn;                 vim_main's first statement
 #
-# and phase 18's six-line launcher becomes twenty: a jump buffer, a status, a
+# and phase 101's six-line launcher becomes twenty: a jump buffer, a status, a
 # `host_exit()` that records the status and jumps, and a `main()` that lands there and
 # RETURNS the status.  The editor no longer ends the process; it hands the process
 # back, with a number.
@@ -29,11 +29,11 @@
 #     naming mechanisms, and it costs symbols -- see below.
 #   * the core calls out and does not come back.  `vim_host_exit(r);` is four words of
 #     C that say exactly that, the host decides HOW, and an indirect call names no
-#     symbol.  ZERO-PLAN.md 4c settles it, and it is the one route whose C text
+#     symbol.  WHIM-PLAN.md II.4c settles it, and it is the one route whose C text
 #     already says what a JVM host would have to do: an interface call whose
 #     implementation throws.
 #
-# THE INDIRECTION IS TEMPORARY AND ZERO-PLAN.md 4c SAYS SO.  It exists because
+# THE INDIRECTION IS TEMPORARY AND WHIM-PLAN.md II.4c SAYS SO.  It exists because
 # everything is still one translation unit and "nothing is global but main()" is still
 # the invariant: a pointer the launcher installs through a parameter adds no external
 # symbol, where a `musl_exit(int)` the host defines would.  Once the file is split
@@ -98,7 +98,7 @@ state=${2:?usage: whim102-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

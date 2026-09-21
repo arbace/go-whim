@@ -1,10 +1,10 @@
 #!/bin/sh
-# Whim phase 112 (zero phase 29) -- THE CASE TABLES BECOME ONE, AND IT IS THE UNION.
+# Whim phase 112 -- THE CASE TABLES BECOME ONE, AND IT IS THE UNION.
 #
 # Usage: pipes/whim112-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
 # `whim-vim.c` carried TWO complete Unicode simple-case maps and they did the same job.
-# vim's own `toUpper[]`/`toLower[]` have been there since whim; zero phase 15 added
+# vim's own `toUpper[]`/`toLower[]` have been there since whim; phase 98 added
 # musl's as `musl_toUpper[]`/`musl_toLower[]`, range-compressed into the same
 # `convertStruct` shape and read by the same `utf_convert()`, so that `towupper` and
 # `towlower` could leave `nm -u`.  Which of the two the editor consults is decided by
@@ -74,7 +74,7 @@ state=${2:?usage: whim112-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).  The check needs
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).  The check needs
 # the binary this phase was HANDED, to run its twelve probes on both sides.
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")

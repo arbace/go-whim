@@ -9,8 +9,8 @@
 # removes files and preprocessor and changes nothing about the editor; this
 # pipeline removes capability on purpose, so every phase states its delta in
 # advance and the harness shows exactly that set and no more.  Phases 0-82
-# (WHIM-GOAL.md) leave an editor with no runtime to install; phases 83-128
-# (ZERO-GOAL.md, where they were a pipeline of their own called zero, numbered
+# (WHIM-GOAL.md Part I) leave an editor with no runtime to install; phases 83-128
+# (WHIM-GOAL.md Part II; they were a pipeline of their own called zero, numbered
 # from 0) turn it into an embeddable core -- no filesystem, the host behind a line
 # in the file, no libc the core names, the text a tree.
 #
@@ -168,7 +168,7 @@ whim-repass:
 # pipes/whimN-check.sh, declare its delta in pipes/zero.delta (pipes/whim.delta is
 # for phases before 83, tools/pipeline.sh's ZERO_FROM), add N to the `phases` line
 # of pipes/whim.stages and put it in the last stage or a new one and in a package
-# there (ZERO-GOAL.md, "Adding a phase"), and `make whim-tip`.  Only the last stage runs,
+# there (WHIM-GOAL.md, "Adding a phase"), and `make whim-tip`.  Only the last stage runs,
 # and its earlier edits come from the edit cache.
 #
 # WHAT THIS DOES NOT DO, and must not be mistaken for: falsify the boundaries
@@ -271,7 +271,7 @@ whim-residue:
 # What phases 83 onwards are for.  whim-vim.c is one translation unit with two parts:
 # above, the core editor, with no preprocessor syntax at all; below, the host,
 # beginning with the #includes -- and that first directive IS the boundary, marked
-# by nothing else (ZERO-PLAN.md 4c).  The product of the whole project is the upper
+# by nothing else (WHIM-PLAN.md II.4c).  The product of the whole project is the upper
 # part, and this is the rule that takes it.
 #
 # The cut is `stop at the first #include`, which is one awk clause and no judgement.
@@ -287,7 +287,7 @@ whim-residue:
 # first non-blank character is `#`: the defining property of the upper part is that it
 # has no directive, and a cut that produced one has found the wrong line.
 #
-# THE GUARD SAID `grep -q '#'` UNTIL PHASE 110 (ZERO PHASE 27), AND IT COULD ONLY EVER HAVE BEEN
+# THE GUARD SAID `grep -q '#'` UNTIL PHASE 110 (Phase 110), AND IT COULD ONLY EVER HAVE BEEN
 # WRITTEN AGAINST AN EMPTY FILE.  A `#` is also an ordinary character, and the editor is
 # full of them: measured on the first cut this rule ever produced, 63 lines hold one --
 # `enum { CPO_HASH = '#' };`, `if (ptr[0] == '#')`, the two latin1 case tables, the
@@ -301,7 +301,7 @@ whim-residue:
 # and a warning set equal to the declared boundary -- and that is the reorganisation
 # phase's check, not this rule's.
 #
-# THIS RULE WROTE AN EMPTY FILE UNTIL PHASE 110 (ZERO PHASE 27), and that was the honest answer
+# THIS RULE WROTE AN EMPTY FILE UNTIL PHASE 110 (Phase 110), and that was the honest answer
 # rather than a defect: the includes were the first eleven lines, so there was nothing
 # above the first one.  It was written before the phase that fills it precisely so that
 # the phase would change the SOURCE and not the makefile -- and it did.  Phase 110 moved

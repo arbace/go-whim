@@ -181,7 +181,7 @@ func main() {
 //
 // Every temporary a subcommand makes goes through os.MkdirTemp("", ...) or
 // through a child that reads TMPDIR -- gcc's cc*.s among them -- and about
-// twenty sites never removed theirs: one `make zero-verify` left 1,060
+// twenty sites never removed theirs: one `make whim-verify` left 1,060
 // harness-bin-* directories behind, plus pty homes and gcc temporaries.  A
 // private directory removed on the way out catches all of them, including
 // sites not written yet, where patching each one would catch only those in

@@ -9,7 +9,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { register("whim97", Zero14) }
+func init() { register("whim97", Whim97) }
 
 // z14Before is the seventeen as OCCURRENCES.  Nothing here is approximate: a
 // rename is only safe if the count of what is about to be renamed is known
@@ -41,9 +41,9 @@ var z14Names = []string{"memmove", "strlen", "memset", "strncmp", "strcmp", "str
 
 const z14Pad = "                                "
 
-// Zero14 vendors the sixteen mem*/str* of <string.h> as local `static musl_*`
+// Whim97 vendors the sixteen mem*/str* of <string.h> as local `static musl_*`
 // functions, with sprintf moved onto the editor's own vim_snprintf instead.
-func Zero14(text []byte, w io.Writer) ([]byte, error) {
+func Whim97(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"strings", w}
 	t := string(text)
 

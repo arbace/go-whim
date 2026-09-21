@@ -1,5 +1,5 @@
 #!/bin/sh
-# Whim phase 100 (zero phase 17) -- the deadly ladder that cannot run.  See ZERO-GOAL.md.
+# Whim phase 100 -- the deadly ladder that cannot run.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim100-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
@@ -17,8 +17,8 @@
 #     }
 #
 # NOTHING IN ANY BUILD OF whim-vim CAN MAKE `entered` REACH 3, and that is the whole
-# phase.  It is phase 13's kind of cut -- the POSSIBILITY has never existed -- rather
-# than phase 9's, where an earlier zero phase made a live path unreachable.  What makes
+# phase.  It is phase 96's kind of cut -- the POSSIBILITY has never existed -- rather
+# than phase 92's, where an earlier zero phase made a live path unreachable.  What makes
 # it impossible is two facts about this file, and neither is zero's doing:
 #
 #   * `catch_signals()` installs the deadly handler with `sa.sa_flags = 0` and
@@ -68,7 +68,7 @@ state=${2:?usage: whim100-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

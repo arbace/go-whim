@@ -14,7 +14,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim98", Zero15) }
+func init() { register("whim98", Whim98) }
 
 var z15Provided = strings.Fields(`isalnum isalpha isblank iscntrl isdigit isgraph islower isprint
 ispunct isspace isupper isxdigit isascii toascii tolower toupper
@@ -47,9 +47,9 @@ func z15Calls(text, name string) int {
 	return n
 }
 
-// Zero15 is phase 15's check: the character classes, the two ato*, qsort and
+// Whim98 is phase 98's check: the character classes, the two ato*, qsort and
 // bsearch, vendored as static musl_* functions.
-func Zero15(w io.Writer, args []string) error {
+func Whim98(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim98 <work-dir> <state-dir>")
 	}
@@ -163,7 +163,7 @@ func Zero15(w io.Writer, args []string) error {
 		fail = append(fail, "the directives are not the 18 #includes they were")
 	}
 	if !strings.Contains(newT, "#include <ctype.h>") || !strings.Contains(newT, "#include <wctype.h>") {
-		fail = append(fail, "a header was removed, and removing them is phase 16's")
+		fail = append(fail, "a header was removed, and removing them is phase 99's")
 	}
 	rows := z6RowRe.FindAllString(newT, -1)
 	got, _ := harness.CommandNamesIn(src, "whim-vim.c")
@@ -173,7 +173,7 @@ func Zero15(w io.Writer, args []string) error {
 	if i := strings.Index(newT, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newT[i:], "\n};")
 		if len(z12RowRe.FindAllString(newT[i:i+j], -1)) != 108 {
-			fail = append(fail, "options[] is not the 108 rows phase 12 left")
+			fail = append(fail, "options[] is not the 108 rows phase 95 left")
 		}
 	}
 	if len(fail) > 0 {
@@ -185,7 +185,7 @@ func Zero15(w io.Writer, args []string) error {
 		r.cont("unreachable arms this phase does not touch.")
 		return harness.ErrReported
 	}
-	r.say("nothing <ctype.h> or <wctype.h> provides is called anywhere and iswupper is gone -- while the input called twelve of them and named iswupper, so the assertion is one that can fail; seventeen musl_ definitions, 44 rewritten call sites; vim keeps toUpper[] and toLower[] and musl's sit BESIDE them, utf_convert at six callers; latin1flags 3, latin1upper 2 and latin1lower 2 SURVIVING, because the seventeen other statements that cannot run are a phase of their own; 18 directives, both headers still there because removing them is phase 16's")
+	r.say("nothing <ctype.h> or <wctype.h> provides is called anywhere and iswupper is gone -- while the input called twelve of them and named iswupper, so the assertion is one that can fail; seventeen musl_ definitions, 44 rewritten call sites; vim keeps toUpper[] and toLower[] and musl's sit BESIDE them, utf_convert at six callers; latin1flags 3, latin1upper 2 and latin1lower 2 SURVIVING, because the seventeen other statements that cannot run are a phase of their own; 18 directives, both headers still there because removing them is phase 99's")
 
 	// --- 2. the two equivalence tools ----------------------------------------
 	for _, t := range []string{"muslcase", "muslctype"} {
@@ -210,7 +210,7 @@ func Zero15(w io.Writer, args []string) error {
 	strip(filepath.Join(state, "old.c"), noincOld)
 	gccArgs := []string{"-c", "-O0", "-Wall", "-Wextra", "-Wno-unused-parameter", "-o", "/dev/null"}
 	if out, err := exec.Command("gcc", append(gccArgs, noinc)...).CombinedOutput(); err != nil || len(out) > 0 {
-		r.say("the produced source does not compile without <ctype.h> and <wctype.h>, so phase 16 could not remove them:")
+		r.say("the produced source does not compile without <ctype.h> and <wctype.h>, so phase 99 could not remove them:")
 		lines := strings.Split(strings.TrimRight(string(out), "\n"), "\n")
 		for i, l := range lines {
 			if i >= 5 {
@@ -224,7 +224,7 @@ func Zero15(w io.Writer, args []string) error {
 		return stop("the INPUT also compiles without the two headers, so this check cannot fail and proves nothing")
 	}
 	oldErr, _ := exec.Command("gcc", "-c", "-O0", "-o", "/dev/null", noincOld).CombinedOutput()
-	r.say("the produced source compiles SILENTLY with #include <ctype.h> and <wctype.h> deleted, and the source this phase was handed gives %d errors under the same deletion -- that pair, and not a grep, is what says phase 16 can move",
+	r.say("the produced source compiles SILENTLY with #include <ctype.h> and <wctype.h> deleted, and the source this phase was handed gives %d errors under the same deletion -- that pair, and not a grep, is what says phase 99 can move",
 		countLinesWith(oldErr, "error:"))
 
 	// --- 4. the compile, the linkage and the libc surface --------------------
@@ -254,10 +254,10 @@ func Zero15(w io.Writer, args []string) error {
 	}
 	for _, absent := range strings.Fields("open creat openat stat access fcntl getcwd strerror fopen fdopen opendir fclose getc putc fsync") {
 		if contains(after, absent) {
-			return stop("%s is undefined, and the core has had no way to open a file since phase 13", absent)
+			return stop("%s is undefined, and the core has had no way to open a file since phase 96", absent)
 		}
 	}
-	r.say("symbols %s -> %s, the set is exactly %s -- and FIVE MORE identifiers left the source with no symbol to show for it, isalpha isdigit isgraph islower isupper being macros in musl, which is why phase 16 needs this phase's own count and not nm -u",
+	r.say("symbols %s -> %s, the set is exactly %s -- and FIVE MORE identifiers left the source with no symbol to show for it, isalpha isdigit isgraph islower isupper being macros in musl, which is why phase 99 needs this phase's own count and not nm -u",
 		strings.TrimSpace(readFile(".cache/symbols/last/before")),
 		strings.TrimSpace(readFile(".cache/symbols/last/after")), strings.Join(wantGone, " "))
 

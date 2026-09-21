@@ -14,7 +14,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim91", Zero8) }
+func init() { register("whim91", Whim91) }
 
 var z8GoneWords = []string{"do_ecmd", "get_visual_text", "check_lnums_both", "do_exedit",
 	"nv_gotofile", "grab_file_name", "prepare_help_buffer", "u_unch_branch",
@@ -47,8 +47,8 @@ var z8EnumOK = map[string]bool{
 
 var z8Lock = regexp.MustCompile(`(?m)^.*EX_LOCK_OK.*curbuf_locked\(\).*$`)
 
-// Zero8 is phase 8's check: every way to name another file to edit.
-func Zero8(w io.Writer, args []string) error {
+// Whim91 is phase 91's check: every way to name another file to edit.
+func Whim91(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim91 <work-dir> <state-dir>")
 	}
@@ -123,7 +123,7 @@ func Zero8(w io.Writer, args []string) error {
 		}
 	}
 	if !z7QRow.MatchString(newT) {
-		fail = append(fail, "the 'Q' row is no longer nv_error's, and phase 4 put it there")
+		fail = append(fail, "the 'Q' row is no longer nv_error's, and phase 87 put it there")
 	}
 	for _, key := range []string{`'g'`, `'\['`, `'\]'`} {
 		if !regexp.MustCompile(`(?m)^ *\{` + key + `, nv_`).MatchString(newT) {
@@ -175,9 +175,9 @@ func Zero8(w io.Writer, args []string) error {
 		r.cont(`E447 keeps another speaker, and "ex" is a belloff value.`)
 		return harness.ErrReported
 	}
-	r.say("kept: readfile 5, read_buffer 17, open_buffer 5 (do_ecmd was the fifth caller, NOT a caller of readfile -- ZERO-PLAN.md 3c is corrected), E447 and E32 with their other speakers")
+	r.say("kept: readfile 5, read_buffer 17, open_buffer 5 (do_ecmd was the fifth caller, NOT a caller of readfile -- WHIM-PLAN.md II.3c is corrected), E447 and E32 with their other speakers")
 	r.cont("left write-only and named rather than removed: do_ecmd_cmd 6, do_ecmd_lnum 2, readonlymode 5 (and FALSE for ever), p_ur 2 with its row -- 'undoreload' is the options phase's")
-	r.cont("table: 99 rows, names() reads 99, static_assert in place, and the floor is 80: 19 rows of margin (ZERO-PLAN.md decision 8)")
+	r.cont("table: 99 rows, names() reads 99, static_assert in place, and the floor is 80: 19 rows of margin (WHIM-PLAN.md II decision 8)")
 
 	// --- 3. the compile, the linkage and the libc surface --------------------
 	before := strings.Fields(readFile(filepath.Join(state, "symbols", "undefined")))
@@ -189,7 +189,7 @@ func Zero8(w io.Writer, args []string) error {
 		r.say("the libc surface moved, and this phase frees nothing:")
 		r.cont("  gone: %s ", strings.Join(comm23(before, after), " "))
 		r.cont("  came: %s ", strings.Join(comm23(after, before), " "))
-		r.cont("  open, access and read are the byte-reader phase's (ZERO-PLAN.md P8)")
+		r.cont("  open, access and read are the byte-reader phase's (WHIM-PLAN.md part II P8)")
 		return harness.ErrReported
 	}
 	for _, keep := range []string{"open", "read", "close", "stat"} {

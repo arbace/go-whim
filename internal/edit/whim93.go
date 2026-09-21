@@ -9,7 +9,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { register("whim93", Zero10) }
+func init() { register("whim93", Whim93) }
 
 // z10Fields are the three the whole phase is about, and they are NULL for ever
 // once part B has run.
@@ -45,10 +45,10 @@ var (
 	z10ElseTop = regexp.MustCompile(`^[ \t]*else[ \t]*\n[ \t]*\{`)
 )
 
-// Zero10 takes the buffer's NAME: `:file`, buflist_new()'s two name parameters,
+// Whim93 takes the buffer's NAME: `:file`, buflist_new()'s two name parameters,
 // sixteen folds of b_ffname/b_sfname/b_fname and three further folds that free
 // the last three questions the core asked the filesystem.
-func Zero10(text []byte, w io.Writer) ([]byte, error) {
+func Whim93(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"noname", w}
 	var err error
 
@@ -262,7 +262,7 @@ func Zero10(text []byte, w io.Writer) ([]byte, error) {
 		"reference, and rename_buffer and setfname no other caller")
 	if text, err = textEdit(text, z10lit4, z10lit5,
 		"do_one_cmd's curbuf_locked() exemption: `ea.cmdidx != CMD_file` is "+
-			"TRUE for ever, and phase 8 kept it saying this phase would take it", 1); err != nil {
+			"TRUE for ever, and phase 91 kept it saying this phase would take it", 1); err != nil {
 		return nil, err
 	}
 	if text, err = textEdit(text, z10lit6, "",
@@ -423,7 +423,7 @@ func Zero10(text []byte, w io.Writer) ([]byte, error) {
 			"guess: %s", len(left), zHead(left[0], 60))
 	}
 	p.say("no cmdnames[] row carries EX_XFILE any more -- :file was the last, as :read " +
-		"was EX_ARGOPT's in phase 7 and the :edit family in phase 8")
+		"was EX_ARGOPT's in phase 90 and the :edit family in phase 91")
 	if text, err = fold(text, "do_one_cmd", "never",
 		`(?m)^    if \(\(ea\.argt & EX_XFILE\) && expand_filename\(&ea, cmdlinep, &errormsg\) == FAIL\)$`,
 		"do_one_cmd's expand_filename() call: `ea.argt & EX_XFILE` is 0 for every "+
@@ -449,8 +449,8 @@ func Zero10(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 	if text, err = textEdit(text, z10lit45, "",
-		"and the definition of readonlymode, which phase 8 asserted at 5 "+
-			"mentions and phase 9 at 3", 1); err != nil {
+		"and the definition of readonlymode, which phase 91 asserted at 5 "+
+			"mentions and phase 92 at 3", 1); err != nil {
 		return nil, err
 	}
 	if text, err = within(text, "buflist_new", z10lit21, "",
@@ -467,7 +467,7 @@ func Zero10(text []byte, w io.Writer) ([]byte, error) {
 	}
 	for _, e := range []struct{ old, new, what string }{
 		{z10lit47, z10lit48, "and its prototype takes void, because an unused PARAMETER is what " +
-			"tools/sweep.sh's -Wno-unused-parameter cannot see -- phase 9's " +
+			"tools/sweep.sh's -Wno-unused-parameter cannot see -- phase 92's " +
 			"anchor 4 measured that"},
 		{z10lit49, z10lit50, "the definition with it"},
 		{z10lit51, z10lit52, "and its one call site"},

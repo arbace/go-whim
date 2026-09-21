@@ -10,7 +10,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { registerArgs("whim98", Zero15) }
+func init() { registerArgs("whim98", Whim98) }
 
 var z15Before = map[string]int{
 	"tolower": 2, "toupper": 2, "towlower": 2, "towupper": 2,
@@ -73,8 +73,8 @@ func zCallRe(name string) *regexp.Regexp {
 	return regexp.MustCompile(regexp.QuoteMeta(name) + `\s*\(`)
 }
 
-// Zero15 vendors the character classes, the two ato*, qsort and bsearch.
-func Zero15(text []byte, w io.Writer, args []string) ([]byte, error) {
+// Whim98 vendors the character classes, the two ato*, qsort and bsearch.
+func Whim98(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p := ph{"vendor", w}
 	if len(args) != 2 {
 		return nil, p.die("usage: edit whim98 <file> <musl-ctype.txt> <musl-case.txt>")
@@ -215,7 +215,7 @@ func Zero15(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 	if len(left) > 0 {
-		return nil, p.die("<ctype.h>/<wctype.h> still has a user and phase 16 could not remove it: %s",
+		return nil, p.die("<ctype.h>/<wctype.h> still has a user and phase 99 could not remove it: %s",
 			strings.Join(left, " "))
 	}
 	for _, tn := range []string{"wint_t", "wctype_t", "wctrans_t"} {
@@ -224,7 +224,7 @@ func Zero15(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 	p.say("nothing <ctype.h> or <wctype.h> provides is called anywhere, and no wint_t, " +
-		"wctype_t or wctrans_t is named -- which is the contract phase 16 removes the " +
+		"wctype_t or wctrans_t is named -- which is the contract phase 99 removes the " +
 		"two headers on, asserted here so that a miss fails THIS phase")
 	if zCalls(text, "iswupper") > 0 || regexp.MustCompile(`\biswupper\b`).Match(text) {
 		return nil, p.die("iswupper survives")
@@ -243,6 +243,6 @@ func Zero15(text []byte, w io.Writer, args []string) ([]byte, error) {
 			len(directives), strings.Join(bad, " "))
 	}
 	p.say("18 directives, every one an #include of a system header -- this phase adds no " +
-		"preprocessor and removes none; the two it makes unnecessary are phase 16's")
+		"preprocessor and removes none; the two it makes unnecessary are phase 99's")
 	return text, nil
 }

@@ -44,8 +44,8 @@ mkdir -p "$cache"
 # read the boundary before it and REFUSE when that file is absent -- a missing
 # r$((first - 1)) means the phase list has a gap, and falling back to `input`
 # there keys the unit on a digest that never moves, so a cached result is served
-# back whatever the real input became.  Measured: phase 36's result, cached
-# against r30, was a hit after a rebase onto r32, and the pass reported a
+# back whatever the real input became.  Measured: phase 119's result, cached
+# against q113, was a hit after a rebase onto q115, and the pass reported a
 # boundary in twelve seconds that was the phase applied to the wrong tree.
 # tools/verifypass.sh tests `first = 0` and this used to test `cat` failing,
 # which is the same answer to a different question.

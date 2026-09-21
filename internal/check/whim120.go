@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim120", Zero37) }
+func init() { register("whim120", Whim120) }
 
 var (
 	z37Union   = regexp.MustCompile(`\bunion\b`)
@@ -81,8 +81,8 @@ func z37Scan(text, which string) ([]z37U, string) {
 	return found, ""
 }
 
-// Zero37 is phase 37's check: the degenerate unions.
-func Zero37(w io.Writer, args []string) error {
+// Whim120 is phase 120's check: the degenerate unions.
+func Whim120(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim120 <work-dir> <state-dir>")
 	}
@@ -524,7 +524,7 @@ func Zero37(w io.Writer, args []string) error {
 		"[-Wpedantic]` %d time on the input and %d on the output, and the rest of the pedantic diagnostic set "+
 		"does not move -- %d -> %d, a difference of exactly one.  A minimal probe confirms the construct is a "+
 		"HARD ERROR under -pedantic-errors and that the identical struct with a ONE-member union is silent, so "+
-		"the probe is proven able to pass in the same run.  ZERO-GOAL.md's core is meant to be read by "+
+		"the probe is proven able to pass in the same run.  WHIM-GOAL.md's core is meant to be read by "+
 		"something that is not gcc, and a construct ISO C forbids is exactly the latent exotic that costs a "+
 		"reader later", po, pn, to, tn)
 
@@ -566,7 +566,7 @@ func Zero37(w io.Writer, args []string) error {
 			}
 		}
 		if len(lines) <= 70000 {
-			return cut{}, stop("the cut of %s is %d lines, and zero.mk's floor is 70,000 -- a cut that found "+
+			return cut{}, stop("the cut of %s is %d lines, and whim.mk's floor is 70,000 -- a cut that found "+
 				"line 1 would be empty and every check below would pass on nothing", src, len(lines))
 		}
 		c := exec.Command("gcc", "-O0", "-fno-stack-protector", "-fsyntax-only", dst)
@@ -699,7 +699,7 @@ func Zero37(w io.Writer, args []string) error {
 		"the whole of this phase's evidence.  A byte-identical binary subsumes every screen case, every "+
 		"Ex-command row, every command line and every pty scenario at once, because the program that would be "+
 		"run is the same program.  This phase's declared delta is NOTHING AT ALL, and that is the STRONGEST of "+
-		"the five kinds of empty declaration and not the weakest: it is phase 16's and phase 23's kind", newSize)
+		"the five kinds of empty declaration and not the weakest: it is phase 99's and phase 106's kind", newSize)
 
 	// --- 6. the controls, and the first of them is the point --------------------------
 	for _, j := range ctlJobs {
@@ -808,13 +808,13 @@ func Zero37(w io.Writer, args []string) error {
 		"measures is that the instrument is deterministic, and it is reported in those "+
 		"words rather than offered as evidence for the edit", len(base))
 
-	// --- 8. phase 20's structural check ------------------------------------------------
+	// --- 8. phase 103's structural check ------------------------------------------------
 	zh := exec.Command("sh", "tools/st.sh", "zhostonly", f)
 	zh.Stdout, zh.Stderr = w, w
 	if err := zh.Run(); err != nil {
 		return harness.ErrReported
 	}
-	r.say("and that is phase 20's check, undisturbed: none of the six names this phase removes is in its " +
+	r.say("and that is phase 103's check, undisturbed: none of the six names this phase removes is in its " +
 		"vocabulary, and the host block is untouched")
 	return nil
 }

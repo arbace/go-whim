@@ -7,15 +7,15 @@ import (
 	"strings"
 )
 
-func init() { register("whim104", Zero21) }
+func init() { register("whim104", Whim104) }
 
 var z21Stmt = regexp.MustCompile(`(?m)^\s*(?:printf|fprintf|fflush)\(`)
 
-// Zero21 makes the messages the editor's and the writing the host's: twenty
+// Whim104 makes the messages the editor's and the writing the host's: twenty
 // output statements in five functions become eight calls through one
 // vim_host_message(msg, len, err) the launcher installs, with <stdio.h> and
 // seven symbols going with them.
-func Zero21(text []byte, w io.Writer) ([]byte, error) {
+func Whim104(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"message", w}
 	t := text
 
@@ -44,7 +44,7 @@ func Zero21(text []byte, w io.Writer) ([]byte, error) {
 	// ---- 0. this is the file the phase was written against ---------------
 	// Counted on the INPUT, so a later phase that moved one of these fails
 	// here and not in the middle of a cut.  `fprintf` is 16 and not the
-	// brief's 17, and `stderr` 17 and not 18, because phase 20 took nv_esc's
+	// brief's 17, and `stderr` 17 and not 18, because phase 103 took nv_esc's
 	// with the out_redir arm.
 	for _, x := range []struct {
 		name string
@@ -77,13 +77,13 @@ func Zero21(text []byte, w io.Writer) ([]byte, error) {
 	}
 	p.say("the input is r20: 20 statements put bytes on a stream -- `fprintf` 16, " +
 		"`printf` 13 words of which THREE are calls, `fflush` 1 -- and `FILE` and " +
-		"`stdout` are both at 0, which phase 13 is what left")
+		"`stdout` are both at 0, which phase 96 is what left")
 
 	// ---- 1. the pointer, at the top, because its readers are scattered ---
 	// A file-scope OBJECT and not a prototype: CLAUDE.md's rule is that
 	// objects do not inherit linkage from a declaration, so the keyword is
 	// written here and is why `nm --extern-only` still prints one name.
-	// Phase 19 put `vim_host_exit` immediately above its one reader; this one
+	// Phase 102 put `vim_host_exit` immediately above its one reader; this one
 	// has EIGHT, the earliest of them 37,000 lines up, so it goes with the
 	// two musl_ prototypes that are already the file's boundary declarations.
 	if err := sub("static int musl_towupper(int a);\nstatic int musl_towlower(int a);\n",
@@ -162,7 +162,7 @@ func Zero21(text []byte, w io.Writer) ([]byte, error) {
 	// It runs from set_termname from termcapinit, which is the function that
 	// sets `full_screen = TRUE` afterwards -- so this message is emitted
 	// while there is no screen at all, which is the literal reading of
-	// ZERO-PLAN.md 4c's "the messages that appear before there is a screen".
+	// WHIM-PLAN.md II.4c's "the messages that appear before there is a screen".
 	if err := sub(`report_term_error(char *error_msg, char_u *term)
 {
      fprintf(stderr, "%s", ("\r\n")) ;
@@ -267,7 +267,7 @@ vim_main(int argc, char **argv, void (*exit_fn)(int), void (*message_fn)(const c
 	}
 
 	// ---- 8. the launcher -------------------------------------------------
-	// host_message() goes beside host_exit(), which is where phase 19 put the
+	// host_message() goes beside host_exit(), which is where phase 102 put the
 	// other half of this boundary, and main() stays the last thing in the
 	// file (CLAUDE.md).  `len < 0` means NUL-terminated; every one of today's
 	// eight call sites passes -1, and the parameter is there because the host
@@ -338,14 +338,14 @@ main(int argc, char **argv)
 }
 `
 	if !bytes.HasSuffix(t, []byte(old)) {
-		return nil, p.die("whim-vim.c does not end with phase 19's twenty-line launcher, so this " +
+		return nil, p.die("whim-vim.c does not end with phase 102's twenty-line launcher, so this " +
 			"is not the file this phase was written against")
 	}
 	t = append(append([]byte(nil), t[:len(t)-len(old)]...), new...)
 
 	// ---- 9. the header the symbols came from -----------------------------
-	// ZERO-GOAL.md's charter: a phase may REMOVE a directive and may never add
-	// one.  This is the second removal in the pipeline; phase 16 was the
+	// WHIM-GOAL.md's charter: a phase may REMOVE a directive and may never add
+	// one.  This is the second removal in the pipeline; phase 99 was the
 	// first, and made the argument.
 	if err := sub("#include <stdio.h>\n", "", 1, "H1"); err != nil {
 		return nil, err
@@ -374,9 +374,9 @@ main(int argc, char **argv)
 		{"host_message", 2, "the launcher's definition and the argument main() passes.  " +
 			"`vim_host_message` is a DIFFERENT word and \\b does not " +
 			"match inside it, which is why these two counts are " +
-			"separate -- phase 19 learnt that with host_exit"},
-		{"vim_host_exit", 3, "phase 19's, untouched"},
-		{"host_exit", 2, "phase 19's, untouched"},
+			"separate -- phase 102 learnt that with host_exit"},
+		{"vim_host_exit", 3, "phase 102's, untouched"},
+		{"host_exit", 2, "phase 102's, untouched"},
 		{"msg_use_printf", 6, "a prototype, a definition and four call sites -- " +
 			"UNTOUCHED, and deliberately: it returns TRUE 23 times in " +
 			"106 records"},
@@ -384,11 +384,11 @@ main(int argc, char **argv)
 			"stay, and only what they call changes"},
 		{"info_message", 9, "untouched, because the four sites that read it kept their " +
 			"`if (info_message)` shape"},
-		{"errno", 3, "phase 21 is not the errno phase: the #include and two uses, both " +
-			"inside phase 20's host block"},
+		{"errno", 3, "phase 104 is not the errno phase: the #include and two uses, both " +
+			"inside phase 103's host block"},
 		{"vim_snprintf", 73, "FOUR more than the input -- the two multi-part speakers " +
 			"each assemble in two arms, with the only formatter the " +
-			"file has had since phase 14"},
+			"file has had since phase 97"},
 		{"musl_strlen", 134, "one more than the input: host_message's, in the len < 0 " +
 			"arm"},
 	} {

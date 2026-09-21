@@ -28,7 +28,7 @@ var zexcmdsSkip = map[string]bool{"stop": true, "suspend": true}
 //
 // The editor starts with +set paste and the seed is typed under it, then
 // 'nopaste' is set back: the corpus types its own text rather than opening a
-// file, because from zero phase 8 there is no way to name one.
+// file, because from phase 91 there is no way to name one.
 func ZExCmds(bin, table, out string, w io.Writer) error {
 	names, err := CommandNames(table)
 	if err != nil {

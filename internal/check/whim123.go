@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim123", Zero40) }
+func init() { register("whim123", Whim123) }
 
 type z40Mark struct{ name, anchor, where, cond, extra string }
 
@@ -86,8 +86,8 @@ func prefixed(w io.Writer, prefix, text string) {
 	}
 }
 
-// Zero40 is zero phase 40, whole: the instrument could not see the text layer.
-func Zero40(w io.Writer, args []string) error {
+// Whim123 is phase 123, whole: the instrument could not see the text layer.
+func Whim123(w io.Writer, args []string) error {
 	if len(args) < 1 {
 		return fmt.Errorf("usage: check whim123 <work-dir>")
 	}
@@ -106,7 +106,7 @@ func Zero40(w io.Writer, args []string) error {
 		if _, e := os.Stat(base + "/memline"); e != nil {
 			b := &rep{tag: "baselines", w: w}
 			b.say("%s has no memline/ -- it is the recording of five parts", base)
-			b.cont("and a recording is six now (tools/zrecord.sh).  Zero phase 0")
+			b.cont("and a recording is six now (tools/zrecord.sh).  Phase 83")
 			b.cont("records them, from whim-vim.c -- the pipeline's immutable")
 			b.cont("input -- and REFUSES to overwrite a set that differs, so")
 			b.cont("BOTH paths have to go:")

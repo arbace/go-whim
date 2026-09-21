@@ -16,7 +16,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim121", Zero38) }
+func init() { register("whim121", Whim121) }
 
 var (
 	z38Row      = regexp.MustCompile(`(?m)^[ \t]*\{\s*"([^"]*)"\s*,\s*(\w+)\s*\},\n`)
@@ -101,8 +101,8 @@ func z38Blocks(p string) ([]string, map[string]string) {
 	return order, out
 }
 
-// Zero38 is phase 38's check: the eight terminal names.
-func Zero38(w io.Writer, args []string) error {
+// Whim121 is phase 121's check: the eight terminal names.
+func Whim121(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim121 <work-dir> <state-dir>")
 	}
@@ -682,7 +682,7 @@ func Zero38(w io.Writer, args []string) error {
 	wgT.Wait()
 	os.WriteFile(T("term-new"), []byte(readFile(filepath.Join(T("rec-new"), "ref-term.txt"))), 0o644)
 	rt := &rep{tag: "terminals", w: w}
-	rt.say("the nineteen rows, before and after -- ztermcheck, `+set term={name}` on a real pty (zero phase 33):")
+	rt.say("the nineteen rows, before and after -- ztermcheck, `+set term={name}` on a real pty (phase 116):")
 	ta := strings.Split(readFile(T("term-old")), "\n")
 	tb := strings.Split(readFile(T("term-new")), "\n")
 	ta, tb = ta[:len(ta)-1], tb[:len(tb)-1]

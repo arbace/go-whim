@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func init() { register("whim115", Zero32) }
+func init() { register("whim115", Whim115) }
 
 var (
 	z32Inc      = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
@@ -65,10 +65,10 @@ func z32Code(lines [][]byte) []byte {
 	return bytes.Join(out, []byte{'\n'})
 }
 
-// Zero32 sends the wall clock across the boundary: vim_time() becomes
+// Whim115 sends the wall clock across the boundary: vim_time() becomes
 // host_time() below the line, `long time(long *tp);` leaves the core's
 // prototype block and a static_assert stronger than it replaces it.
-func Zero32(text []byte, w io.Writer) ([]byte, error) {
+func Whim115(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"wallclock", w}
 	t := text
 
@@ -88,8 +88,8 @@ func Zero32(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- 0. the file this edit was written against ----------------------
 	// ELEVEN DIRECTIVES, every one an `#include <...>`, CONTIGUOUS, and
-	// NOTHING ABOVE THEM.  Phase 27 made the first of them the boundary
-	// between the core and the host (ZERO-PLAN.md 4c); this phase edits both
+	// NOTHING ABOVE THEM.  Phase 110 made the first of them the boundary
+	// between the core and the host (WHIM-PLAN.md II.4c); this phase edits both
 	// sides of that line and must know where it is.
 	var directives []int
 	for i, l := range lines {
@@ -170,7 +170,7 @@ func Zero32(text []byte, w io.Writer) ([]byte, error) {
 	}
 	if len(at) != 1 {
 		return nil, p.die("`%s` is not on a line of its own exactly once above the boundary -- it "+
-			"is phase 26's, and it is what this phase removes", tp)
+			"is phase 109's, and it is what this phase removes", tp)
 	}
 	a, b := at[0], at[0]
 	for len(bytes.TrimSpace(lines[a-1])) > 0 {
@@ -181,7 +181,7 @@ func Zero32(text []byte, w io.Writer) ([]byte, error) {
 	}
 	if b >= cut {
 		return nil, p.die("the prototype block runs past the boundary, so it is not the block " +
-			"phase 26 wrote")
+			"phase 109 wrote")
 	}
 	var notProto []string
 	for _, l := range lines[a : b+1] {
@@ -195,7 +195,7 @@ func Zero32(text []byte, w io.Writer) ([]byte, error) {
 	}
 	for _, l := range lines[a : b+1] {
 		if bytes.HasPrefix(l, []byte("static ")) {
-			return nil, p.die("a prototype in the block is `static`, which phase 26 forbade: it " +
+			return nil, p.die("a prototype in the block is `static`, which phase 109 forbade: it " +
 				"would give the core an internal function that is never defined")
 		}
 	}
@@ -209,7 +209,7 @@ func Zero32(text []byte, w io.Writer) ([]byte, error) {
 		b-a+1, a+1, b+1, strings.Join(protoNames, " "), b-a)
 
 	// ---- 3. the literals -------------------------------------------------
-	// Phase 23 was caught out by three string literals holding `NULL`; 26 and
+	// Phase 106 was caught out by three string literals holding `NULL`; 26 and
 	// 28 applied the lesson rather than assuming it.  So does this one.
 	spans, err := literalSpans(p, t)
 	if err != nil {
@@ -302,7 +302,7 @@ host_time(void)
 		return nil, err
 	}
 	// It lands between musl_now_ms and musl_delay: beside the clock that
-	// crossed at phase 28, and INSIDE the region `zhostonly` reads as the
+	// crossed at phase 111, and INSIDE the region `zhostonly` reads as the
 	// host.
 	t, err = once(t, `    static void
 musl_delay(long ms, int interruptible)
@@ -326,14 +326,14 @@ musl_delay(long ms, int interruptible)
 
 	// ---- 6. the prototype the core no longer needs, and what replaces it --
 	t, err = once(t, tp+"\n", "",
-		"phase 26's prototype for time(): nothing above the boundary calls it now")
+		"phase 109's prototype for time(): nothing above the boundary calls it now")
 	if err != nil {
 		return nil, err
 	}
 	t, err = once(t, "static_assert(15 == SIGTERM, \"SIGTERM\");\n",
 		"static_assert(15 == SIGTERM, \"SIGTERM\");\n"+
 			"static_assert(_Generic((time_T)0, time_t: 1, default: 0), \"time_T is time_t\");\n",
-		"the twelve constants phase 27 put below the includes, which is the only place "+
+		"the twelve constants phase 110 put below the includes, which is the only place "+
 			"in the file where a core name and a header name are both in scope")
 	if err != nil {
 		return nil, err

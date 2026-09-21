@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 108 (zero phase 25), the check -- the plain host calls.
-# See pipes/whim108-edit.sh, and ZERO-PLAN.md 4c.
+# Whim phase 108, the check -- the plain host calls.
+# See pipes/whim108-edit.sh, and WHIM-PLAN.md II.4c.
 #
 # Usage: pipes/whim108-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -9,7 +9,7 @@
 # What the edit left there is `old.c`, the source this phase was HANDED, and `old`, that
 # source built with SOURCE_DATE_EPOCH=0 and the boundary's own flags.
 #
-# THE BINARY IS NOT BYTE-IDENTICAL AND THIS CHECK DOES NOT ASK FOR IT.  Phases 23 and 24
+# THE BINARY IS NOT BYTE-IDENTICAL AND THIS CHECK DOES NOT ASK FOR IT.  Phases 106 and 107
 # rested on `cmp`, which is tier 1 of CLAUDE.md's verification table; this phase cannot,
 # because an indirect call through a function pointer and a direct call are different
 # instructions at -O0 and removing two file-scope objects moves everything after them.
@@ -39,16 +39,16 @@
 #               mistake this phase could have made without anything else noticing.
 #   SYMBOLS     `nm -u` is THE SAME SET, as a `comm` empty in BOTH directions.  This
 #               phase frees NOTHING and says so as an equality: `exit` does not come
-#               back, because the host's definition still does not call it -- phase 19's
+#               back, because the host's definition still does not call it -- phase 102's
 #               __builtin_longjmp launcher is untouched.
 #   THE BINARY  the same SIZE and NOT the same bytes, both stated as measurements.
 #   THE RECORD  two full tools/zrecord.sh recordings, `diff -r` empty, with one control
 #               per name: `host_code = r;` -> `r + 1` in host_exit moves 105 of the 106
 #               records, and host_message's `write(err ? 2 : 1, ...)` with the streams
 #               swapped moves 24 of the 30 command lines AND NOTHING ELSE -- which is
-#               phase 21's own finding, that everything reaching host_message is a
+#               phase 104's own finding, that everything reaching host_message is a
 #               message printed before there is a screen.
-#   STRUCTURE   `zhostonly`, phase 20's structural check, still passes.  Renaming
+#   STRUCTURE   `zhostonly`, phase 103's structural check, still passes.  Renaming
 #               nine call sites cannot disturb it -- `host_exit` and `host_message` are
 #               not in its vocabulary, which is libc's terminal and signal names -- and
 #               a phase that moves host calls about is exactly the one that should say so

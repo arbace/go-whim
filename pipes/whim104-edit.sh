@@ -1,14 +1,14 @@
 #!/bin/sh
-# Whim phase 104 (zero phase 21) -- the messages are the editor's, the writing is the host's.
-# See ZERO-GOAL.md.
+# Whim phase 104 -- the messages are the editor's, the writing is the host's.
+# See WHIM-GOAL.md.
 #
 # Usage: pipes/whim104-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
-# ZERO-PLAN.md 4c's second step, and the half of it that is not the screen:
+# WHIM-PLAN.md II.4c's second step, and the half of it that is not the screen:
 # "`printf` for the messages that appear before there is a screen, which is itself a
 # question for the host".  This phase answers it.  Every byte this file has ever put
 # on a stream instead of a screen goes through one call the launcher installs, in
-# EXACTLY phase 19's shape:
+# EXACTLY phase 102's shape:
 #
 #     static void (*vim_host_message)(const char *msg, int len, int err);
 #     vim_main(int argc, char **argv, void (*exit_fn)(int),
@@ -17,12 +17,12 @@
 #     host_message()   beside host_exit(), in the launcher, write(err ? 2 : 1, ...)
 #
 # and `<stdio.h>` goes with them: TWELVE DIRECTIVES BECOME ELEVEN.  That is the second
-# time a zero phase has removed one (phase 16 was the first), and it is the same
+# time a zero phase has removed one (phase 99 was the first), and it is the same
 # argument -- this is the header the phase's symbols came from, the charter permits a
 # removal and forbids an addition, and from here the "no stdio stream" invariant phase
-# 13 asserted is visible in the directive list as well as in `nm -u`.
+# 96 asserted is visible in the directive list as well as in `nm -u`.
 #
-# UNLIKE PHASE 20, THIS ONE REALLY FREES SYMBOLS, and the reason is the rule phase 20
+# UNLIKE PHASE 20, THIS ONE REALLY FREES SYMBOLS, and the reason is the rule phase 103
 # stated: a symbol leaves when its last CALLER leaves the file.  `printf` and
 # `fprintf` were being CALLED here, not merely mentioned, and deleting the calls
 # deletes the callers.  `nm -u` 24 -> 17, the gone set exactly
@@ -49,12 +49,12 @@
 #
 # THE BRIEF THIS PHASE WAS WRITTEN FROM COUNTED 21 STATEMENTS IN SIX FUNCTIONS, and
 # the sixth was `nv_esc`'s `Type :qa! and press <Enter> to abandon all changes`.  It
-# went at phase 20, with `stdout_isatty` and the `out_redir` arm it sat in.  So
+# went at phase 103, with `stdout_isatty` and the `out_redir` arm it sat in.  So
 # `fprintf` is SIXTEEN here and not seventeen and `stderr` is seventeen and not
 # eighteen, and the edit counts the input rather than trusting the survey.
 #
 # FORMATTING STAYS IN THE CORE, and that is what turns 20 statements into 8 call
-# sites.  `vim_snprintf` has been the only formatter in the file since phase 14, so
+# sites.  `vim_snprintf` has been the only formatter in the file since phase 97, so
 # the two multi-part speakers assemble into a local buffer and hand over one string,
 # and the other six sites are one call each with the text unchanged.  MEASURED with a
 # SOCK_SEQPACKET socketpair as fd 2, which preserves write boundaries exactly: `-Q`
@@ -80,30 +80,30 @@
 # `msg_clr_eos_force()`, where `full_screen` is FALSE and the body it guards therefore
 # does nothing.  It is never true at `msg_puts_attr()`'s call site, so
 # `msg_puts_printf()` is entered ZERO times against a control that marks 100 of 102
-# screens.  That is phase 12's kind of dead and not phase 9's: the branch CAN be taken
+# screens.  That is phase 95's kind of dead and not phase 92's: the branch CAN be taken
 # and never is.  Folding it at `msg_clr_eos_force()` would run `screen_fill()` with no
 # valid screen; folding it at `msg_puts_attr()` would hand a message to
 # `msg_puts_display()` on a screen the test has just called unusable.  Removing it is a
 # separate phase with a separate question -- "the screen is always usable in this
-# build" -- and phase 12's kind of evidence to gather, and it would free nothing,
+# build" -- and phase 95's kind of evidence to gather, and it would free nothing,
 # because the symbols are gone HERE.
 #
 # `__errno_location` IS NOT THIS PHASE'S EITHER, and it is said out loud because a
 # reader who sees stdio leave will look for it.  MEASURED: `errno` is 3 mentions --
 # `#include <errno.h>` and two uses, `host_tty_set`'s `tcsetattr(...) == -1 && errno ==
-# EINTR` and `musl_wait_for_input`'s `ret == -1 && errno == EINTR`.  Phase 20 moved both
+# EINTR` and `musl_wait_for_input`'s `ret == -1 && errno == EINTR`.  Phase 103 moved both
 # INTO the host block and kept them.  They leave when the file splits, not here, and
 # this phase's `comm` requires `__errno_location` still present for exactly that reason.
 #
 # `write` IS NOT ADDED TO `zhostonly`'s VOCAB, and the reason is that it would
-# be false: `mch_write()` still holds one `write(1, ...)`, which is ZERO-PLAN.md 4c's
+# be false: `mch_write()` still holds one `write(1, ...)`, which is WHIM-PLAN.md II.4c's
 # remaining step and not this one.  What IS assertable, and what pipes/whim104-check.sh
 # asserts instead, is that the whole file now has exactly TWO bare `write()` call sites
 # -- `mch_write`'s and `host_message`'s -- where before this phase it had one and a
 # stdio layer beside it.  Adding the stdio words to that tool's VOCAB is impossible for
-# a different reason and worth writing down: phase 20's own output says `fprintf`
-# sixteen times in the core, so a VOCAB that forbade it would fail `make zero-verify`
-# at r20.
+# a different reason and worth writing down: phase 103's own output says `fprintf`
+# sixteen times in the core, so a VOCAB that forbade it would fail `make whim-verify`
+# at q103.
 #
 # THE COUNTING TRAP, WHICH IS PHASE 19'S `exit` TRAP WITH DIFFERENT WORDS.
 # `assert printf at 0 mentions` FAILS ON A CORRECT PHASE.  `printf` is 13 words in the
@@ -121,7 +121,7 @@ state=${2:?usage: whim104-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

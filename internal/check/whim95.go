@@ -14,7 +14,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim95", Zero12) }
+func init() { register("whim95", Whim95) }
 
 var z12Gone = []string{"b_p_ro", "b_p_fs", "b_did_warn", "change_warning", "did_set_readonly",
 	"w_readonly", "SHM_RO", "BV_RO", "BV_FS", "p_fs", "p_ro", "p_ur", "p_write", "p_wa", "p_prompt"}
@@ -42,13 +42,13 @@ var (
 	z12Fmt    = regexp.MustCompile(`"\\"%s%s%s%s%s", curbufIsChanged\(\)`)
 )
 
-// Zero12 is phase 12's check: the options nothing reads.
+// Whim95 is phase 95's check: the options nothing reads.
 //
 // EVERY VISIBLE EFFECT OF THIS PHASE IS OUTSIDE THE INSTRUMENT: no recorded
 // case or row asks any of the six, bare `:set` does not move, and zexcmds
 // keeps no stream digest for the `set` row.  The probes are not a supplement,
 // they are the check.
-func Zero12(w io.Writer, args []string) error {
+func Whim95(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim95 <work-dir> <state-dir>")
 	}
@@ -125,7 +125,7 @@ func Zero12(w io.Writer, args []string) error {
 		fail = append(fail, "'modified' moved: its row must stay, p_mod at 2 and did_set_modified at 3 -- decision 5 keeps it, and it is now the only option row with no reader of its own global")
 	}
 	if !rowsNew["paste"] || count(newT, "p_paste") != 12 {
-		fail = append(fail, fmt.Sprintf("'paste' moved, and it is EXEMPT FOR EVER (ZERO-PLAN.md 2d): p_paste has %d mentions, expected 12", count(newT, "p_paste")))
+		fail = append(fail, fmt.Sprintf("'paste' moved, and it is EXEMPT FOR EVER (WHIM-PLAN.md II.2d): p_paste has %d mentions, expected 12", count(newT, "p_paste")))
 	}
 	for _, slot := range []string{"p_ai_nopaste", "p_et_nopaste", "p_sts_nopaste", "p_tw_nopaste", "p_wm_nopaste"} {
 		if count(newT, slot) != 4 || count(oldT, slot) != 4 {
@@ -196,7 +196,7 @@ func Zero12(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	r.say("rows: 114 -> 108 and 102 -> 96 distinct globals, the set that went being exactly fsync prompt readonly undoreload write writeany, none arriving and none left in modeline_whitelist[]")
-	r.cont("kept: 'modified' with p_mod 2 and did_set_modified 3 -- decision 5, and it is now the only row with no reader of its own global -- and 'paste' with p_paste 12 and its five save slots at four each, EXEMPT FOR EVER (ZERO-PLAN.md 2d)")
+	r.cont("kept: 'modified' with p_mod 2 and did_set_modified 3 -- decision 5, and it is now the only row with no reader of its own global -- and 'paste' with p_paste 12 and its five save slots at four each, EXEMPT FOR EVER (WHIM-PLAN.md II.2d)")
 	r.cont("the two validity lists are untouched character for character; 23 of 'cpoptions' 60 letters and 14 of 'shortmess' 23 are inert, and this phase makes exactly one more so -- 'shortmess''s `r`")
 	r.cont("the later phase's line: scriptin 8, redir_fd 6, vim_fsync 3; the table is 98 rows and untouched")
 

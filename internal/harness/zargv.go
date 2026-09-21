@@ -19,7 +19,7 @@ var zargvKeys = [][]byte{[]byte("\x1b:q!\r")}
 // whatever the editor does, and a phase that removes an option declares the
 // rows that move.  That is why the list holds spellings that were already
 // errors -- `-T` with no argument, `--` alone -- since a phase can move the
-// MESSAGE without moving the outcome, which zero phase 39 did when the
+// MESSAGE without moving the outcome, which phase 122 did when the
 // enumerators behind ME_ARG_MISSING and ME_GARBAGE went.
 var zargvInvocations = [][]string{
 	{}, {"+q!"}, {"+set nu", "+q!"}, {"+set nu"},

@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 109 (zero phase 26), the check -- the header types and macros the core can own.
-# See pipes/whim109-edit.sh, and ZERO-PLAN.md 4c.
+# Whim phase 109, the check -- the header types and macros the core can own.
+# See pipes/whim109-edit.sh, and WHIM-PLAN.md II.4c.
 #
 # Usage: pipes/whim109-check.sh <work-dir> <state-dir>    (run from the repository root)
 #

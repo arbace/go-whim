@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func init() { register("whim111", Zero28) }
+func init() { register("whim111", Whim111) }
 
 var (
 	whim111Inc   = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
@@ -32,22 +32,22 @@ func whim111Once(p ph, text []byte, old, new, why string) ([]byte, error) {
 	return bytes.Replace(text, []byte(old), []byte(new), 1), nil
 }
 
-// Zero28 makes the clock a scalar: `long musl_now_ms(void)` replaces
+// Whim111 makes the clock a scalar: `long musl_now_ms(void)` replaces
 // `void musl_gettimeofday(long *, long *)` and takes elapsed_T, elapsed() and
 // the out-parameter pair with it.
 //
 // THE POINT IS THE SIGNATURE AND NOT THE SAVING: after this phase no core ->
-// host call's shape is decided by a type the core cannot name.  Phase 26 had
+// host call's shape is decided by a type the core cannot name.  Phase 109 had
 // to invent a tagless `struct timeval` mirror for the core to hold; this
 // deletes it.
-func Zero28(text []byte, w io.Writer) ([]byte, error) {
+func Whim111(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"clock", w}
 	lines := bytes.Split(text, []byte{'\n'})
 	runsBefore := p.blankRuns(text)
 	var err error
 
 	// ---- 0. the file this edit was written against -----------------------
-	// ELEVEN DIRECTIVES, contiguous, and NOTHING ABOVE THEM.  Phase 27 made
+	// ELEVEN DIRECTIVES, contiguous, and NOTHING ABOVE THEM.  Phase 110 made
 	// the first of them the boundary; this phase edits both sides of that
 	// line and must know exactly where it is.
 	var directives []int
@@ -120,12 +120,12 @@ func Zero28(text []byte, w io.Writer) ([]byte, error) {
 			"phase was written against 0 and 3", tvCore, tvBelow)
 	}
 	p.say("the core's clock is elapsed_T 8, elapsed 6, musl_gettimeofday 6 and `struct " +
-		"timeval` 0 -- phase 26 took the last of those; the host has musl_gettimeofday's " +
+		"timeval` 0 -- phase 109 took the last of those; the host has musl_gettimeofday's " +
 		"definition, its one real `gettimeofday` call and three `struct timeval`")
 
 	// ---- 3. the literals -------------------------------------------------
-	// Phase 23 was caught out by three string literals holding `NULL`, and
-	// phase 26 applied the lesson rather than assuming it.  So does this one.
+	// Phase 106 was caught out by three string literals holding `NULL`, and
+	// phase 109 applied the lesson rather than assuming it.  So does this one.
 	spans, err := literalSpans(p, text)
 	if err != nil {
 		return nil, err
@@ -153,7 +153,7 @@ typedef struct {
     long        tv_usec;
 } elapsed_T;
 static long elapsed(elapsed_T *start_tv);
-`, "", "the tagless struct and the prototype, which phase 26 wrote")
+`, "", "the tagless struct and the prototype, which phase 109 wrote")
 	if err != nil {
 		return nil, err
 	}

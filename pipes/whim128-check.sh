@@ -1,9 +1,9 @@
 #!/bin/sh
-# Whim phase 128 (zero phase 45)'s check -- fold the node types.
+# Whim phase 128's check -- fold the node types.
 #
 # Usage: pipes/whim128-check.sh <work-dir> <state-dir>   (run from the repository root)
 #
-# THE DECLARED DELTA IS NOTHING AT ALL AND IT IS ZERO PHASES 14, 15 AND 44'S WEAKEST
+# THE DECLARED DELTA IS NOTHING AT ALL AND IT IS PHASES 97, 98 AND 127'S WEAKEST
 # KIND.  The code changes, the binary moves, and the claim is that a replacement does
 # what the thing it replaces did.  There is no `cmp` to be had: every block in the
 # editor is allocated differently, reached differently and tagged differently.  So the
@@ -38,8 +38,8 @@
 # PB_COUNT_MAX; the two agree at 255 only because `PTR_EN` is still 16 bytes.  At 8 the
 # fanout would be 511, `mem_deep_jumps`'s 391 data blocks would fall under it, and the
 # ONE case of sixteen that reaches a root split would stop reaching it -- while every
-# recording still matched and every check still passed.  That is the defect zero phase
-# 40 exists to have ended, so it is asserted in the source, compiled on both sides, and
+# recording still matched and every check still passed.  That is the defect phase
+# 123 exists to have ended, so it is asserted in the source, compiled on both sides, and
 # then MEASURED in section 6 and demonstrated by a control in section 8.
 
 # THE BODY IS GO: internal/check/whim128.go, run through tools/st.sh.

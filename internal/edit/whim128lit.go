@@ -6,7 +6,7 @@ package edit
 //
 // TWO ROWS CARRY A PLACEHOLDER and are formatted by the Go: the two block ids,
 // `(('p' << 8) + 't')` and its twin, are CARRIED out of the definitions being
-// replaced and never spelled -- they are zero phase 9's macro expansion, and an
+// replaced and never spelled -- they are phase 92's macro expansion, and an
 // edit that wrote them out would be quoting somebody else's text.  The
 // placeholders are the fmt verbs %[1]s (the data id) and %[2]s (the pointer
 // id), and the three blocks that carry one are formatted before they are spliced.

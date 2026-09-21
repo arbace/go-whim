@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 88 (zero phase 5), the check -- argv is `+{command}` and `-T {term}`, and nothing else.
-# See pipes/whim88-edit.sh, and ZERO-GOAL.md.
+# Whim phase 88, the check -- argv is `+{command}` and `-T {term}`, and nothing else.
+# See pipes/whim88-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim88-check.sh <work-dir> <state-dir>     (run from the repository root)
 #

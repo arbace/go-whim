@@ -1,5 +1,5 @@
 #!/bin/sh
-# Whim phase 96 (zero phase 13) -- no `FILE *` that is never opened.  See ZERO-GOAL.md.
+# Whim phase 96 -- no `FILE *` that is never opened.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim96-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
@@ -7,7 +7,7 @@
 # THEM IN ANY BUILD OF zero-vim: `scriptin[NSCRIPT]`, which `-s {scriptfile}` filled
 # and which whim removed the option for, and `redir_fd`, which `:redir > file` filled
 # and which whim removed the command for.  So this phase removes the POSSIBILITY
-# rather than a behaviour -- the same situation as phase 9, and the same answer:
+# rather than a behaviour -- the same situation as phase 92, and the same answer:
 # nothing it takes is reachable, the declared delta is nothing at all, and the
 # evidence is an instrumented pair and a set of counts.
 #
@@ -37,7 +37,7 @@
 #   C  `ui_write()`'s `console` is FALSE at its one call site, so the `vim_fsync(1)`
 #      it guards can never be entered.  THE PARAMETER GOES TOO, and that is what
 #      makes the cut honest: leaving it would leave `__attribute__((unused))` on
-#      something that will never be read again, which is phase 2's argument for
+#      something that will never be read again, which is phase 85's argument for
 #      `check_tty(void)` -- and tools/sweep.sh compiles with -Wno-unused-parameter,
 #      so an unused parameter is invisible where an unused local is not.
 #
@@ -48,7 +48,7 @@
 #   WRITTEN: gcc has no warning for that, tools/deadsweep.py acts on warnings, and
 #   leaving it would mean `inchar()` returns an uninitialised value on a path the
 #   compiler thinks exists.  `return retesc;` becomes `return FALSE;` and the
-#   declaration goes.  This is phase 7's `usefilter` judgement in this phase's shape.
+#   declaration goes.  This is phase 90's `usefilter` judgement in this phase's shape.
 #
 #   `did_return` is the same shape one level down: the `if (!did_return)` block the
 #   redir_write extra removes is its only reader, and an `if` with an empty body is
@@ -67,7 +67,7 @@
 # this phase `typedef struct stat stat_T;` has no user and `#include <sys/stat.h>`
 # and `#include <fcntl.h>` are needed by nothing.  Removing all three is free -- it
 # was measured: same binary, byte-identical recording -- but it would be the FIRST
-# TIME ANY ZERO PHASE CHANGES THE DIRECTIVE COUNT, and ZERO-GOAL.md's charter says
+# TIME ANY ZERO PHASE CHANGES THE DIRECTIVE COUNT, and WHIM-GOAL.md's charter says
 # `whim-vim.c` "inherits 18 directives from `whim-vim.c`".  That sentence is a
 # statement about the pipeline, so the change belongs to whoever decides it, either
 # here or as an includes phase of its own.  The count stays 18.
@@ -83,7 +83,7 @@ state=${2:?usage: whim96-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

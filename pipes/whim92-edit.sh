@@ -1,10 +1,10 @@
 #!/bin/sh
-# Whim phase 92 (zero phase 9) -- nothing reads a byte.
-# See ZERO-GOAL.md.
+# Whim phase 92 -- nothing reads a byte.
+# See WHIM-GOAL.md.
 #
 # Usage: pipes/whim92-edit.sh <work-dir> <state-dir>      (run from the repository root)
 #
-# Phases 6, 7 and 8 took every way to ASK for a file: the six commands that put
+# Phases 89, 90 and 91 took every way to ASK for a file: the six commands that put
 # bytes on a disk, the one that takes them off it, and the five that point the
 # editor at another one.  What was left of reading a file is the machinery under
 # those commands -- `readfile()`, 787 lines, and the two arms of `open_buffer()`
@@ -15,7 +15,7 @@
 # call sites are one in `read_buffer()` and two in `open_buffer()`, and
 # `read_buffer`'s only callers are those same two arms; the outer arm needs
 # `curbuf->b_ffname != NULL` and the inner one needs a `read_stdin` argument that,
-# since phase 5 removed the file argument and the bare `-`, all four callers pass
+# since phase 88 removed the file argument and the bare `-`, all four callers pass
 # as FALSE.  So no input this editor can be given reaches it, and gcc keeps it only
 # because it cannot prove `b_ffname != NULL` never holds.  The difference this
 # phase makes is between code that cannot run and code that is not there -- and
@@ -23,7 +23,7 @@
 # what stands in for one: the input source built twice, instrumented.
 #
 # FOUR ANCHORS, ALL INSIDE open_buffer(), and everything else is the sweep's
-# (ZERO-GOAL.md rule 1: removal is computed, not listed).  Sixteen functions go
+# (WHIM-GOAL.md core rule 1: removal is computed, not listed).  Sixteen functions go
 # without one of them being named here.
 #
 #   1. the `if (curbuf->b_ffname != NULL) {...} else if (read_stdin) {...}` pair,
@@ -70,7 +70,7 @@ state=${2:?usage: whim92-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

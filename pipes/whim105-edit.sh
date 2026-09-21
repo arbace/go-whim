@@ -1,10 +1,10 @@
 #!/bin/sh
-# Whim phase 105 (zero phase 22) -- the variadic collapse: the seven wrappers that walk a va_list are
-# expanded at their 129 call sites.  See ZERO-PLAN.md 4c and ZERO-GOAL.md.
+# Whim phase 105 -- the variadic collapse: the seven wrappers that walk a va_list are
+# expanded at their 129 call sites.  See WHIM-PLAN.md II.4c and WHIM-GOAL.md.
 #
 # Usage: pipes/whim105-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
-# ZERO-PLAN.md 4c settled the variadic question on 2026-09-18: the formatter goes to the
+# WHIM-PLAN.md II.4c settled the variadic question on 2026-09-18: the formatter goes to the
 # host rather than `__builtin_va_list` going into `editor.c`.  It also said the move
 # splits in two and that ONLY THE SECOND NEEDS TWO FILES.  This is the first: everything
 # that can be done about `va_start` inside one translation unit, done here, where the
@@ -194,7 +194,7 @@
 # prototype, and the sweep does not take a redundant one -- so it is removed here by
 # name.  It is this phase's own residue and not a tidy smuggled in.
 #
-# NO `need 22 swept`, AND IT WAS CHECKED RATHER THAN ASSUMED: the edit finds its sites
+# NO `need 105 swept`, AND IT WAS CHECKED RATHER THAN ASSUMED: the edit finds its sites
 # by word boundary and balanced parens over the whole file, not by counted anchors, so
 # it gives the same answer on swept and unswept text.  The only counts it asserts are
 # the seven wrappers' whole-file mention totals, which no sweep moves.
@@ -205,7 +205,7 @@ state=${2:?usage: whim105-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

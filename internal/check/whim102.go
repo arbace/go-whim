@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim102", Zero19) }
+func init() { register("whim102", Whim102) }
 
 func z19Probe(ind string) string {
 	p := ind
@@ -34,10 +34,10 @@ const (
 	z19Launch  = "\nstatic void *host_jump[5];\nstatic int host_code;\n\n    static void\nhost_exit(int r)\n{\n    host_code = r;\n    __builtin_longjmp(host_jump, 1);\n}\n\n    int\nmain(int argc, char **argv)\n{\n    if (__builtin_setjmp(host_jump) != 0)\n    {\n        return host_code;\n    }\n    return vim_main(argc, argv, host_exit);\n}\n"
 )
 
-// Zero19 is phase 19's check: the core can no longer stop the process.
+// Whim102 is phase 102's check: the core can no longer stop the process.
 // mch_exit()'s `exit(r);` becomes `vim_host_exit(r);` through a pointer the
 // launcher installs, and the launcher lands on __builtin_setjmp and returns.
-func Zero19(w io.Writer, args []string) error {
+func Whim102(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim102 <work-dir> <state-dir>")
 	}
@@ -123,7 +123,7 @@ func Zero19(w io.Writer, args []string) error {
 	}
 	exitStmt := regexp.MustCompile(`(?m)^\s*exit\(`)
 	if strings.Count(oldC, "    exit(r);\n") != 1 || len(exitStmt.FindAllString(oldC, -1)) != 1 {
-		fail = append(fail, "the input did not hold exactly one `exit(` statement, so this is not the file the phase was written against -- phase 17 is what left one")
+		fail = append(fail, "the input did not hold exactly one `exit(` statement, so this is not the file the phase was written against -- phase 100 is what left one")
 	}
 	for _, name := range []string{"vim_host_exit", "host_exit", "host_jump", "host_code"} {
 		if mentions(oldC, name) > 0 {
@@ -137,7 +137,7 @@ func Zero19(w io.Writer, args []string) error {
 		fail = append(fail, "a statement in the output still begins with `exit(`")
 	}
 	if mentions(newC, "_exit") > 0 {
-		fail = append(fail, "`_exit` is back, and phase 17 took it to zero")
+		fail = append(fail, "`_exit` is back, and phase 100 took it to zero")
 	}
 	for _, name := range []string{"setjmp", "longjmp", "sigsetjmp", "siglongjmp", "sigjmp_buf", "jmp_buf"} {
 		if mentions(newC, name) > 0 {
@@ -186,12 +186,12 @@ func Zero19(w io.Writer, args []string) error {
 	rows := z6RowRe.FindAllString(newC, -1)
 	got, _ := harness.CommandNamesIn([]byte(newC), "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
-		fail = append(fail, "cmdnames[] is not the 98 rows phase 10 left")
+		fail = append(fail, "cmdnames[] is not the 98 rows phase 93 left")
 	}
 	if i := strings.Index(newC, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newC[i:], "\n};")
 		if len(z12RowRe.FindAllString(newC[i:i+j], -1)) != 108 {
-			fail = append(fail, "options[] is not the 108 rows phase 12 left")
+			fail = append(fail, "options[] is not the 108 rows phase 95 left")
 		}
 	}
 	nd, allInc := 0, true
@@ -204,7 +204,7 @@ func Zero19(w io.Writer, args []string) error {
 		}
 	}
 	if nd != 12 || !allInc {
-		fail = append(fail, "the output does not have exactly the twelve `#include` directives phase 16 left -- a thirteenth would be <setjmp.h>, and avoiding it is half of why the launcher jumps with gcc builtins")
+		fail = append(fail, "the output does not have exactly the twelve `#include` directives phase 99 left -- a thirteenth would be <setjmp.h>, and avoiding it is half of why the launcher jumps with gcc builtins")
 	}
 	if len(fail) > 0 {
 		for _, l := range fail {
@@ -214,7 +214,7 @@ func Zero19(w io.Writer, args []string) error {
 	}
 	r.say("mch_exit() ends `vim_host_exit(r);`, the pointer is declared above it, vim_main() takes the callback as its third parameter and installs it, and the launcher is twenty lines that land on __builtin_setjmp and RETURN the status.  +18 lines, four hunks")
 	r.cont("the counting trap: `exit` as a word is 5 -> 4 and the number of `exit(` STATEMENTS is 1 -> 0.  The four that stay are two string literals and a `goto exit;` with its `exit:` label in vim_regsub_both(), so `assert exit at 0` fails on a correct phase.  No spelling of setjmp or longjmp is in the file either")
-	r.cont("and the twelve #includes are phase 16's, untouched: <setjmp.h> would be a thirteenth, which is half of what the library spelling costs")
+	r.cont("and the twelve #includes are phase 99's, untouched: <setjmp.h> would be a thirteenth, which is half of what the library spelling costs")
 
 	// --- 3. the compile, the linkage and the libc surface --------------------
 	before := strings.Fields(readFile(filepath.Join(state, "symbols", "undefined")))
@@ -238,7 +238,7 @@ func Zero19(w io.Writer, args []string) error {
 	}
 	for _, absent := range strings.Fields("open creat openat stat access fcntl getcwd strerror fopen fdopen opendir fclose getc putc fsync") {
 		if contains(after, absent) {
-			return stop("%s is undefined, and the core has had no way to open a file since phase 13", absent)
+			return stop("%s is undefined, and the core has had no way to open a file since phase 96", absent)
 		}
 	}
 	r.say("symbols %s -> %s, the gone set is EXACTLY exit and NOTHING arrives -- the core cannot end the process, cannot abort, cannot _exit and names no jump",

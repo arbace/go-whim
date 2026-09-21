@@ -11,7 +11,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { register("whim106", Zero23) }
+func init() { register("whim106", Whim106) }
 
 var (
 	whim106Inc     = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
@@ -26,13 +26,13 @@ var (
 const whim106Typedef = "typedef typeof(sizeof(0)) usize;"
 const whim106Anchor = "#include <termios.h>\n\n"
 
-// Zero23 gives the core two names the language supplies instead of a header:
+// Whim106 gives the core two names the language supplies instead of a header:
 // NULL becomes nullptr and size_t becomes usize.
-func Zero23(text []byte, w io.Writer) ([]byte, error) {
+func Whim106(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"language", w}
 
 	// ---- 0. the file this edit was written against -----------------------
-	// ELEVEN DIRECTIVES on the first eleven lines: phase 21 left that, and
+	// ELEVEN DIRECTIVES on the first eleven lines: phase 104 left that, and
 	// this phase adds a line directly below them, so it must know exactly
 	// where they end.
 	if err := whim106Directives(p, text, 11, "the file does not have exactly eleven preprocessor directives on its first "+
@@ -164,7 +164,7 @@ func Zero23(text []byte, w io.Writer) ([]byte, error) {
 		"`nullptr` is typed, so it says nothing a reader needs", nCast)
 
 	// ---- 5. the one new line ---------------------------------------------
-	// DIRECTLY BELOW THE ELEVEN INCLUDES, so that when phase 27 moves them to
+	// DIRECTLY BELOW THE ELEVEN INCLUDES, so that when phase 110 moves them to
 	// the bottom the typedef is the first line of the core.  A TYPEDEF and
 	// not a `static` anything: `usize` is a type name, and every one of its
 	// uses is a type-name position.

@@ -1,17 +1,17 @@
 #!/bin/sh
-# Whim phase 90 (zero phase 7) -- the editor loses every way to read a file.  See ZERO-GOAL.md.
+# Whim phase 90 -- the editor loses every way to read a file.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim90-edit.sh <work-dir> <state-dir>      (run from the repository root)
 #
-# The other half of taking the filesystem away.  Phase 6 removed the six commands
+# The other half of taking the filesystem away.  Phase 89 removed the six commands
 # that put bytes on a disk; this one removes the command that takes them off it,
 # `:read`, and with it the `:r !cmd` arm -- the last caller of the filter and shell
 # plumbing whim left as stubs.  What remains of reading a file is `readfile()`
 # itself, which the startup path still uses and which is the "nothing reads a byte"
-# phase's (ZERO-PLAN.md P8); this phase asserts that it is untouched, by count.
+# phase's (WHIM-PLAN.md part II P8); this phase asserts that it is untouched, by count.
 #
 # THREE ANCHORS, AND ONE FOLD THAT IS A JUDGEMENT.  Everything else is the sweep's
-# (ZERO-GOAL.md rule 1: removal is computed, not listed), and six functions go
+# (WHIM-GOAL.md core rule 1: removal is computed, not listed), and six functions go
 # without one of them being named here:
 #
 #   1. the `CMD_read` enumerator of `enum CMD_index`, one line;
@@ -21,13 +21,13 @@
 #      because its condition names the enumerator that is going.  It must go in the
 #      same edit as anchor 1 or nothing declares what it reads.
 #
-# THE JUDGEMENT: `exarg_T.usefilter`.  Phase 6 removed one of its two writers
+# THE JUDGEMENT: `exarg_T.usefilter`.  Phase 89 removed one of its two writers
 # (`:w >>` and `:w !cmd`) and anchor 3 removes the other, so after this edit the
 # field is WRITTEN NOWHERE -- and `do_one_cmd` memsets the struct, so every reader
 # is constantly FALSE.  No tool here can see that: tools/deadfields.py removes a
 # field nothing NAMES, and gcc has no warning for a struct member that is only
 # read.  So the six readers are folded by hand and the field goes with them, which
-# is phase 4's argument for `exmode_active` in a smaller shape.  Measured on this
+# is phase 87's argument for `exmode_active` in a smaller shape.  Measured on this
 # input: folding costs 13 lines and gives a BYTE-IDENTICAL recording -- the fold
 # changes no behaviour at all, it removes a test whose answer was already fixed.
 #
@@ -48,7 +48,7 @@
 # NO HANDLER IS DELETED BY NAME.  The row is the only reference a command handler
 # has, so taking the row is what makes `ex_read` unreachable, and `do_bang`,
 # `do_shell`, `do_filter`, `check_secure` and `prevcmd_is_set` follow it -- `:!` has
-# not existed since whim, and phase 6 swept `ex_write`, which held `do_bang`'s other
+# not existed since whim, and phase 89 swept `ex_write`, which held `do_bang`'s other
 # call (`:w !cmd`).  The check records the six as a measurement of what the sweep
 # did.
 #
@@ -57,9 +57,9 @@
 # a plausible all-zero index, so the floor is deliberate.  `zexcmds`
 # enumerates the table through it, so crossing the floor would stop zero's command
 # sweep rather than give a wrong answer.  After this phase the margin is FOUR rows,
-# and ZERO-PLAN.md 3a gives it to the `:edit` phase, which must lower the floor.
+# and WHIM-PLAN.md II.3a gives it to the `:edit` phase, which must lower the floor.
 #
-# NO ENUMERATOR DUMP, for phase 6's reason.  Deleting one renumbers 46 survivors and
+# NO ENUMERATOR DUMP, for phase 89's reason.  Deleting one renumbers 46 survivors and
 # every one is a `CMD_*`: `cmdnames[]` is DESIGNATED, so a row lands at its own
 # enumerator whatever the numbering is, the `static_assert` on the row count catches
 # a dropped pair, and all 104 surviving names are dispatched by `zexcmds`
@@ -83,7 +83,7 @@ state=${2:?usage: whim90-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

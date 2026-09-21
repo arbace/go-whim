@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func init() { register("whim117", Zero34) }
+func init() { register("whim117", Whim117) }
 
 var (
 	whim117Directive = regexp.MustCompile(`^ *#`)
@@ -94,13 +94,13 @@ const whim117NewKs = `            char_u  *t_buf = buf;
 
 const whim117Proto = "void *realloc(void *p, usize n);\n"
 
-// Zero34 stops the core reallocating: `realloc` is rewritten at its two core
+// Whim117 stops the core reallocating: `realloc` is rewritten at its two core
 // sites as an allocation, a copy of the OLD size and a free.
 //
 // It is the one libc function that cannot be vendored at all -- to move the
 // old contents it needs a length its interface does not carry -- so the route
 // is each call site supplying the length it already knows.
-func Zero34(text []byte, w io.Writer) ([]byte, error) {
+func Whim117(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"realloc", w}
 	lines := bytes.Split(text, []byte{'\n'})
 	linesBefore := len(lines)
@@ -149,7 +149,7 @@ func Zero34(text []byte, w io.Writer) ([]byte, error) {
 		"get_keystroke's -- and 1 in the host, adjust_types(), which is NOT this phase's " +
 		"and is why the symbol does not leave")
 
-	// NO LITERAL MAY HOLD THE NAME.  Phase 23 was caught out by three string
+	// NO LITERAL MAY HOLD THE NAME.  Phase 106 was caught out by three string
 	// literals holding `NULL`; the lesson is applied rather than assumed.
 	spans, err := literalSpansShort(p, text)
 	if err != nil {
@@ -202,7 +202,7 @@ func Zero34(text []byte, w io.Writer) ([]byte, error) {
 	// ---- 4. the prototype, which now declares nothing the core uses ------
 	if bytes.Count(text, []byte(whim117Proto)) != 1 {
 		return nil, p.die("`%s` is not in the file exactly once -- it is one of the plain libc prototypes "+
-			"phase 26 wrote and phase 27 carried above the includes", strings.TrimSpace(whim117Proto))
+			"phase 109 wrote and phase 110 carried above the includes", strings.TrimSpace(whim117Proto))
 	}
 	text = bytes.Replace(text, []byte(whim117Proto), nil, 1)
 	p.say("`void *realloc(void *p, usize n);` is gone from the core's libc prototype block.  " +

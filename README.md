@@ -18,16 +18,16 @@ commit in `upstream.sha`.
 
 **whim** (`whim.mk`, 129 phases) removes capability on purpose, and every phase
 declares in advance what it changes and a harness proves it changed exactly that
-and nothing else. **Phases 0-82** (`WHIM-GOAL.md`, `WHIM-PLAN.md`) remove the
+and nothing else. **Phases 0-82** (`WHIM-GOAL.md` and `WHIM-PLAN.md`, Part I of each) remove the
 runtime files, the eval layer, windows beyond one, buffers beyond one, the
 command-line arguments and 489 Ex commands; their deltas are `pipes/whim.delta`.
-**Phases 83-128** (`ZERO-GOAL.md`, `ZERO-PLAN.md`) turn what is left into an
+**Phases 83-128** (Part II of each) turn what is left into an
 embeddable core: the filesystem goes, the signals and the terminal cross to a
 host block at the bottom of the same file, the libc that is pure computation is
 vendored, the core names no libc function at all, and the memline stops being
 pages and becomes a tree; their deltas are `pipes/zero.delta`, against an
 instrument that reads the screen. Those were a second pipeline, zero, numbered
-from 0 — zero phase N is phase N+83 — and the documents still number them so.
+from 0 — zero phase N is phase N+83.
 
 **A phase is a function of the tree it is handed**, memoized by content — the
 input boundary's digest and the implementation's — so re-running a pass is free,

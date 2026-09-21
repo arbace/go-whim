@@ -15,16 +15,16 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim101", Zero18) }
+func init() { register("whim101", Whim101) }
 
 const (
 	z18Head   = "\n    int\nmain\n(int argc, char **argv)\n{\n"
 	z18Launch = "\n    int\nmain(int argc, char **argv)\n{\n    return vim_main(argc, argv);\n}\n"
 )
 
-// Zero18 is phase 18's check: main() demoted to a static vim_main(), with a
+// Whim101 is phase 101's check: main() demoted to a static vim_main(), with a
 // six-line launcher appended below it.
-func Zero18(w io.Writer, args []string) error {
+func Whim101(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim101 <work-dir> <state-dir>")
 	}
@@ -131,12 +131,12 @@ func Zero18(w io.Writer, args []string) error {
 	rows := z6RowRe.FindAllString(newC, -1)
 	got, _ := harness.CommandNamesIn([]byte(newC), "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
-		fail = append(fail, "cmdnames[] is not the 98 rows phase 10 left")
+		fail = append(fail, "cmdnames[] is not the 98 rows phase 93 left")
 	}
 	if i := strings.Index(newC, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newC[i:], "\n};")
 		if len(z12RowRe.FindAllString(newC[i:i+j], -1)) != 108 {
-			fail = append(fail, "options[] is not the 108 rows phase 12 left")
+			fail = append(fail, "options[] is not the 108 rows phase 95 left")
 		}
 	}
 	var dirs []string
@@ -150,13 +150,13 @@ func Zero18(w io.Writer, args []string) error {
 		}
 	}
 	if len(dirs) != 12 || !allInc {
-		fail = append(fail, "the output does not have exactly the twelve `#include` directives phase 16 left -- this phase adds no header, and that is the point of doing the demotion before anything that might")
+		fail = append(fail, "the output does not have exactly the twelve `#include` directives phase 99 left -- this phase adds no header, and that is the point of doing the demotion before anything that might")
 	}
 	if regexp.MustCompile(`\bexit\b`).MatchString(newC) && len(regexp.MustCompile(`(?m)^\s*exit\(`).FindAllString(newC, -1)) != 1 {
-		fail = append(fail, "`exit(` is not at exactly one statement -- mch_exit's `exit(r);`, which phase 17 left as the file's only one and which is the NEXT phase's, not this one's")
+		fail = append(fail, "`exit(` is not at exactly one statement -- mch_exit's `exit(r);`, which phase 100 left as the file's only one and which is the NEXT phase's, not this one's")
 	}
 	if mentions(newC, "_exit") > 0 {
-		fail = append(fail, "`_exit` is back, and phase 17 took it to zero")
+		fail = append(fail, "`_exit` is back, and phase 100 took it to zero")
 	}
 	if len(fail) > 0 {
 		for _, l := range fail {
@@ -166,7 +166,7 @@ func Zero18(w io.Writer, args []string) error {
 	}
 	r.say("main() is now `static int vim_main(int argc, char **argv)` with its body unchanged BYTE FOR BYTE, and the last six lines of the file are a launcher whose whole content is `return vim_main(argc, argv);`.  +5 lines and two hunks")
 	r.cont("the three words one by one, because a substring grep confuses them: `main` 1 -- the launcher, and the only bare `main` in the file -- `vim_main` 2, its definition and the one call, and `vim_main2` 2, which is upstream's and does not move.  No prototype for vim_main: it is defined above its only call")
-	r.cont("and `exit(` is still at exactly one statement, mch_exit's `exit(r);` -- this phase does not touch it, and the twelve #includes are phase 16's")
+	r.cont("and `exit(` is still at exactly one statement, mch_exit's `exit(r);` -- this phase does not touch it, and the twelve #includes are phase 99's")
 
 	// --- 3. the compile, the linkage and the libc surface --------------------
 	before := readFile(filepath.Join(state, "symbols", "undefined"))
@@ -187,7 +187,7 @@ func Zero18(w io.Writer, args []string) error {
 	}
 	for _, absent := range strings.Fields("open creat openat stat access fcntl getcwd strerror fopen fdopen opendir fclose getc putc fsync _exit") {
 		if contains(after, absent) {
-			return stop("%s is undefined, and the core has had no way to open a file since phase 13", absent)
+			return stop("%s is undefined, and the core has had no way to open a file since phase 96", absent)
 		}
 	}
 	r.say("symbols %s -> %s, the two sets IDENTICAL as a cmp and not merely the same size -- moving the entry point is not a libc question, and 'exit' is still undefined because mch_exit still calls it",
@@ -312,7 +312,7 @@ func z18Ways(r *rep, old, bin, off string) error {
 		}
 		return harness.ErrReported
 	}
-	r.say("every way the editor can end, the same on both binaries: %s -- ex_quit, ex_cquit, read_error_exit, mainerr and deathtrap twice, which is every route ZERO-PLAN.md maps that a phase can reach from outside", strings.Join(rows, "  "))
+	r.say("every way the editor can end, the same on both binaries: %s -- ex_quit, ex_cquit, read_error_exit, mainerr and deathtrap twice, which is every route WHIM-PLAN.md part II maps that a phase can reach from outside", strings.Join(rows, "  "))
 	r.cont("and the table is PROVEN able to fail: the output built a second time with mch_exit's `exit(r)` changed to `exit(r + 1)` -- one character -- moves ALL SIX (%s).  Six statuses that agree prove nothing unless a wrong one would have been caught", strings.Join(offRows, "  "))
 	return nil
 }

@@ -17,7 +17,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim88", Zero5) }
+func init() { register("whim88", Whim88) }
 
 var (
 	z5Gone     = []string{"had_minmin", "edit_type", "EDIT_NONE", "EDIT_FILE", "EDIT_STDIN", "ME_TOO_MANY_ARGS", "buflist_add"}
@@ -32,7 +32,7 @@ var (
 	z5Unk    = "Unknown option argument"
 )
 
-// Zero5 is phase 5's check: argv ends as `+{command}` and `-T {term}`.
+// Whim88 is phase 88's check: argv ends as `+{command}` and `-T {term}`.
 //
 // FOUR THINGS ARE PROVED HERE and only the first is a grep.  The cut.  The
 // RENUMBERING, against DWARF and not against the build, because main_errors[]
@@ -42,7 +42,7 @@ var (
 // cannot say "the old one opened the file".  And the INSTRUMENT SWAP this phase
 // causes: termcheck asks with a file argument, which is an unknown option from
 // here on.
-func Zero5(w io.Writer, args []string) error {
+func Whim88(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim88 <work-dir> <state-dir>")
 	}

@@ -8,7 +8,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { register("whim96", Zero13) }
+func init() { register("whim96", Whim96) }
 
 var z13Before = map[string]int{
 	"scriptin": 8, "curscript": 11, "NSCRIPT": 3, "saved_typebuf": 2,
@@ -35,7 +35,7 @@ var (
 	z13RedirOff    = regexp.MustCompile(`(?m)^[ \t]*redir_off = (?:TRUE|FALSE);\n`)
 )
 
-// Zero13 removes the two `static FILE *` that nothing has ever opened in any
+// Whim96 removes the two `static FILE *` that nothing has ever opened in any
 // build of whim-vim, ui_write()'s console parameter, and the five functions the
 // sweep finds under them.
 //
@@ -43,7 +43,7 @@ var (
 // ONCE in the whole file, to NULL, inside the function this phase removes, and
 // redir_fd only by its own declaration -- so the phase removes the POSSIBILITY
 // and not a behaviour.
-func Zero13(text []byte, w io.Writer) ([]byte, error) {
+func Whim96(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"nofile", w}
 	var err error
 
@@ -220,7 +220,7 @@ func Zero13(text []byte, w io.Writer) ([]byte, error) {
 		"definition")
 
 	// A local draws -Wunused-but-set-variable, which the sweep may act on; a
-	// FILE-SCOPE static draws NOTHING AT ALL -- phase 10's `readonlymode` in this
+	// FILE-SCOPE static draws NOTHING AT ALL -- phase 93's `readonlymode` in this
 	// phase's shape -- so both go here rather than being left to a tool.
 	for _, e := range []struct{ old, what string }{
 		{z13lit13, "msg_end's `did_return`, written once and read never now"},

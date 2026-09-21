@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func init() { register("whim100", Zero17) }
+func init() { register("whim100", Whim100) }
 
 var whim100ExitCall = regexp.MustCompile(`(?m)^\s*exit\(`)
 
@@ -65,13 +65,13 @@ const whim100Ladder = "    if (entered >= 3)\n" +
 	"        exit(7);\n" +
 	"    }\n"
 
-// Zero17 removes the deadly ladder that cannot run: nine lines of deathtrap()'s
+// Whim100 removes the deadly ladder that cannot run: nine lines of deathtrap()'s
 // `entered >= 3` arm, with `_exit(8)` and `exit(7)`.
 //
 // The argument has two halves and a reader is most likely to assume the first:
 // there are only TWO deadly signals, and each is blocked inside its own
 // handler, so `entered` can reach 2 and never 3.
-func Zero17(text []byte, w io.Writer) ([]byte, error) {
+func Whim100(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"deadly", w}
 
 	// ---- 1. there is no third deadly signal, and there never was ---------

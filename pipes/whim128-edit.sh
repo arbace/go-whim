@@ -1,5 +1,5 @@
 #!/bin/sh
-# Whim phase 128 (zero phase 45) -- fold the node types.  See ZERO-GOAL.md.
+# Whim phase 128 -- fold the node types.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim128-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
@@ -25,14 +25,14 @@
 # It is named here so it is not lost: it would take the leaf from 112 bytes a line to
 # 64, and it would MAKE AN OFF-BY-ONE IN THE CAPACITY BOUND VISIBLE, which today it is
 # not."  Both halves are measured by the check rather than repeated: the leaf's node
-# cost falls from 64.5 bytes a line to 16.25, and phase 44's own `cap` control -- the
+# cost falls from 64.5 bytes a line to 16.25, and phase 127's own `cap` control -- the
 # leaf capacity test widened by one -- moves 0 of 118 records on the input and 4 of 118
 # here, in one run, with the input's binary built from the source beside it.
 #
 # WHAT THE FANOUT DOES, WHICH IS THE ONE THING THIS PHASE COULD HAVE DESTROYED.
 # `pb_count_max` was computed per block as
 # `(mf_page_size - offsetof(PTR_BL, pb_pointer)) / sizeof(PTR_EN)`, which is
-# (4096 - 8) / 16 = 255, and it is the tree's fanout.  Zero phase 40's corpus reaches a
+# (4096 - 8) / 16 = 255, and it is the tree's fanout.  Phase 123's corpus reaches a
 # ROOT SPLIT in exactly one of its sixteen cases, `mem_deep_jumps`, because that case
 # builds 391 data blocks and 391 > 255; the other fifteen and all 102 screen cases
 # reach none of it.  A phase that took `sizeof(PTR_EN)` to 8 would put the fanout at
@@ -50,7 +50,7 @@
 #     if a later phase narrows the entry.
 #
 # The check measures the consequence and not just the arithmetic: the five markers of
-# zero phase 40's instrument, on this phase's output and on its input in the same run,
+# phase 123's instrument, on this phase's output and on its input in the same run,
 # case by case.  And a control builds this phase's output with PB_COUNT_MAX = 511 and
 # reports what it costs -- 0 of 118 records move and MLSPLITPTR, MLSPLITROOT and MLDEEP
 # go 1 -> 0, which is the hazard demonstrated rather than described.
@@ -77,7 +77,7 @@
 #   page_count page_size   8
 #
 # AND WHAT THE SWEEP TAKES, STATED HERE AS THE OTHER HALF OF THE SAME PARTITION, which
-# is zero phase 43's form: `BH_LOCKED`, whose only three readers were mf_new, mf_get and
+# is phase 126's form: `BH_LOCKED`, whose only three readers were mf_new, mf_get and
 # mf_put, and `e_block_was_not_locked`, the E293 mf_put raised.  The edit leaves each at
 # exactly ONE mention -- its own definition -- and the check requires the sweep to take
 # both to zero and to take NOTHING ELSE.
@@ -88,7 +88,7 @@
 # instead and frees the same set.  It is recursive and the depth is the tree's height,
 # which is 3 on the heaviest case the corpus has.  `mf_free()`'s two call sites in
 # ml_delete_int() become `vim_free(hp)`, one allocation where there were two.  A control
-# measures that removing both is invisible, for the reason ZERO-GOAL.md's charter gives:
+# measures that removing both is invisible, for the reason WHIM-GOAL.md's charter gives:
 # host_free() returns without doing anything.
 #
 # THE ZEROING IS KEPT AND IT IS LOAD-BEARING ONCE.  mf_new() memset the page to 0 and
@@ -102,7 +102,7 @@
 # own first and last line; every local the fold stops using is removed by COMPUTING that
 # its name is left mentioned once in its own function, never by listing it; and the two
 # id constants are carried as they are found rather than spelled, because `(('p' << 8) +
-# 't')` is zero phase 9's macro expansion and not this phase's text.  No line number is
+# 't')` is phase 92's macro expansion and not this phase's text.  No line number is
 # pinned and no line this phase does not itself replace is quoted.
 set -eu
 
@@ -111,7 +111,7 @@ state=${2:?usage: whim128-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

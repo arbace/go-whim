@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 121 (zero phase 38), the check -- the eight terminal names go, leaving two.
-# See pipes/whim121-edit.sh, and ZERO-GOAL.md.
+# Whim phase 121, the check -- the eight terminal names go, leaving two.
+# See pipes/whim121-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim121-check.sh <work-dir> <state-dir>   (run from the repository root)
 #
@@ -57,12 +57,12 @@
 #                that is a statement rather than a disappointment: this phase deletes
 #                DATA -- three static arrays and eight rows -- and data calls nothing.
 #                `nm --extern-only --defined-only` is still exactly `main`.
-#   THE CUT (2)  `awk '/^ *# *include / { exit }'`, zero.mk's own rule, on the INPUT
+#   THE CUT (2)  `awk '/^ *# *include / { exit }'`, whim.mk's own rule, on the INPUT
 #                and on the OUTPUT: eleven directives, none above them, 0 errors
 #                under -fsyntax-only either side, and the boundary's warning set --
 #                which IS the core -> host interface -- UNCHANGED.  The input's set
 #                is computed here and never written down.
-#   STRUCTURE    `zhostonly`, phase 20's structural check, and
+#   STRUCTURE    `zhostonly`, phase 103's structural check, and
 #                tools/phasecheck.sh.
 
 # THE BODY IS GO: internal/check/whim121.go, run through tools/st.sh.

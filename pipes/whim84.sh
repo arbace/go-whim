@@ -1,5 +1,5 @@
 #!/bin/sh
-# Whim phase 84 (zero phase 1) -- the stack protector goes.  See ZERO-GOAL.md.
+# Whim phase 84 -- the stack protector goes.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim84.sh <work-dir>       (run from the repository root)
 #
@@ -15,7 +15,7 @@
 # once, as WHIMCFLAGS in whim.mk, and `make whim-pass` refuses when they disagree
 # with the makefile the last phase left.
 #
-# One whole program, like phase 0: there is no source edit, so nothing for a sweep
+# One whole program, like phase 83: there is no source edit, so nothing for a sweep
 # to do, and a split phase would pay one for nothing.  Five things, in order:
 #
 #   1. the makefile's CFLAGS line is exactly one, and lacks the flag; it gets it;
@@ -25,7 +25,7 @@
 #   3. whim-vim.c is byte for byte what the phase was handed;
 #   4. it builds, still absolutely static: EXEC, no INTERP, no dynamic section,
 #      no relocation;
-#   5. tools/zerodelta.sh --phase 1: no behaviour case, Ex command or terminal
+#   5. tools/zerodelta.sh --phase 84: no behaviour case, Ex command or terminal
 #      moved against whim-vim's baselines.
 set -eu
 

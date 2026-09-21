@@ -17,7 +17,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim114", Zero31) }
+func init() { register("whim114", Whim114) }
 
 var (
 	z31Section = regexp.MustCompile(`^\s*\[\s*\d+\]\s+(\.\S+)\s+\S+\s+([0-9a-f]+)\s+[0-9a-f]+\s+` +
@@ -180,8 +180,8 @@ func z31Head(w io.Writer, path string, n int, prefix string) {
 	}
 }
 
-// Zero31 is phase 31's check: abs and labs, the two the core took on trust.
-func Zero31(w io.Writer, args []string) error {
+// Whim114 is phase 114's check: abs and labs, the two the core took on trust.
+func Whim114(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim114 <work-dir> <state-dir>")
 	}
@@ -455,7 +455,7 @@ func Zero31(w io.Writer, args []string) error {
 		"and `musl_labs` 0 -> %d, each a definition at column 0 and the calls its "+
 		"prototype used to serve.  Every count is computed FROM THE INPUT", inAbs, inLabs, inAbs, inLabs)
 	r.cont("the core's libc declaration block is %d entries and was %d, and the two "+
-		"it lost are `long labs(long n);` and `int abs(int n);` -- what phase 26 wrote "+
+		"it lost are `long labs(long n);` and `int abs(int n);` -- what phase 109 wrote "+
 		"when the headers were still above it.  The core is %d lines against %d (+10) and "+
 		"the host is unchanged at %d", len(nb), len(ob), ncut, ocut, len(nlines)-ncut)
 
@@ -545,7 +545,7 @@ func Zero31(w io.Writer, args []string) error {
 	}
 	r.say("tools/canon.sh is a NO-OP on the output: the two definitions are written the way this file " +
 		"writes every other function, the name at column 0 on a line of its own -- which is what " +
-		"tools/funcreach.py reads, and what phase 14 got wrong")
+		"tools/funcreach.py reads, and what phase 97 got wrong")
 
 	// --- 4. the boundary, with the set taken from the input's own cut ----------
 	r4 := &rep{tag: "arith", w: w}

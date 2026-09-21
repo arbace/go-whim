@@ -13,7 +13,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim100", Zero17) }
+func init() { register("whim100", Whim100) }
 
 // The instrument's anchors.  Each must occur exactly once or the zero it
 // measures is a probe that cannot fail.
@@ -48,14 +48,14 @@ const (
 
 var z17Builds = []string{"in_mark", "in_forced", "in_nodefer3", "in_nodefer4", "out_forced"}
 
-// Zero17 is phase 17's check: the deadly ladder that cannot run.
+// Whim100 is phase 100's check: the deadly ladder that cannot run.
 //
 // The evidence is the same source built five ways, of which two differ in ONE
 // sigaction field: with sa_flags = 0 a forced double signal stops at depth 2 and
 // exits 1, and with SA_NODEFER it reaches depth 3, runs the ladder and exits 7 --
 // which is exit(7) executing -- and one forced signal further exits 8, which is
 // _exit(8).
-func Zero17(w io.Writer, args []string) error {
+func Whim100(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim100 <work-dir> <state-dir>")
 	}
@@ -211,12 +211,12 @@ func Zero17(w io.Writer, args []string) error {
 	rows := z6RowRe.FindAllString(newC, -1)
 	got, _ := harness.CommandNamesIn([]byte(newC), "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
-		fail = append(fail, "cmdnames[] is not the 98 rows phase 10 left")
+		fail = append(fail, "cmdnames[] is not the 98 rows phase 93 left")
 	}
 	if i := strings.Index(newC, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newC[i:], "\n};")
 		if len(z12RowRe.FindAllString(newC[i:i+j], -1)) != 108 {
-			fail = append(fail, "options[] is not the 108 rows phase 12 left")
+			fail = append(fail, "options[] is not the 108 rows phase 95 left")
 		}
 	}
 	var d []string
@@ -230,10 +230,10 @@ func Zero17(w io.Writer, args []string) error {
 		}
 	}
 	if len(d) != 12 || !allInc {
-		fail = append(fail, "the output does not have exactly the twelve `#include` directives phase 16 left")
+		fail = append(fail, "the output does not have exactly the twelve `#include` directives phase 99 left")
 	}
 	if regexp.MustCompile(`\bFILE\b`).MatchString(newC) {
-		fail = append(fail, "FILE is named in whim-vim.c, and phase 13 took it to zero")
+		fail = append(fail, "FILE is named in whim-vim.c, and phase 96 took it to zero")
 	}
 	if len(fail) > 0 {
 		for _, l := range fail {
@@ -264,7 +264,7 @@ func Zero17(w io.Writer, args []string) error {
 	}
 	for _, absent := range strings.Fields("open creat openat stat access fcntl getcwd strerror fopen fdopen opendir fclose getc putc fsync") {
 		if contains(after, absent) {
-			return stop("%s is undefined, and the core has had no way to open a file since phase 13", absent)
+			return stop("%s is undefined, and the core has had no way to open a file since phase 96", absent)
 		}
 	}
 	r.say("symbols %s -> %s, the gone set is EXACTLY _exit and nothing arrives -- 'exit' is still undefined, being mch_exit's and a later phase's, and the WORD 'exit' is useless as a source assertion because two string literals and a goto label carry it",

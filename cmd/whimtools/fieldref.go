@@ -14,7 +14,7 @@ import (
 // taken -- resolved to the field of a SPECIFIC struct and not to a name.
 //
 // WHY IT EXISTS.  tools/deadfields.py matches a field by NAME, so a name two
-// structs share is invisible to it for ever: zero phase 39 removes
+// structs share is invisible to it for ever: phase 122 removes
 // `mparm_T.term` while `attr_entry.ae_u.term` has 32 mentions in the same file,
 // and that phase had to compute the partition by hand to earn the right to take
 // the member.  And the tool reports 0 for a field that is WRITTEN -- zero 42's
@@ -159,7 +159,7 @@ func fieldKey(f *cc.Field) string {
 // fieldOwner names the struct a field belongs to.  An anonymous struct behind a
 // typedef is named by the typedef and an anonymous member is named THROUGH the
 // field that holds it, so that `mparm_T.term` and `attr_entry.ae_u.term` -- the
-// collision zero phase 39 had to partition by hand, 1 mention against 32 -- are
+// collision phase 122 had to partition by hand, 1 mention against 32 -- are
 // two rows and not one.  Without this the tool is blind in exactly the way it
 // exists to cure.
 func fieldOwner(f *cc.Field) string {

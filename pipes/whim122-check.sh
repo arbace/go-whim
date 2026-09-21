@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 122 (zero phase 39), the check -- `-T {term}` goes, and the command line is `+{command}`.
-# See pipes/whim122-edit.sh, and ZERO-GOAL.md.
+# Whim phase 122, the check -- `-T {term}` goes, and the command line is `+{command}`.
+# See pipes/whim122-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim122-check.sh <work-dir> <state-dir>   (run from the repository root)
 #
@@ -40,7 +40,7 @@
 #                asked `+set term={unknown}` on a real pty, takes the no-screen test's
 #                arm on both, which is what makes the fold ALWAYS and not a guess.
 #   THE MESSAGE  report_term_error() still runs -- it is the run-time refusal's, not
-#                the fallback's, which is the payoff phase 38 predicted and did NOT
+#                the fallback's, which is the payoff phase 121 predicted and did NOT
 #                get -- and it no longer promises a default that cannot happen.  Both
 #                halves on a pty, with E522 and the terminal unchanged either side.
 #   256-COLOUR   the test does NOT fold, and that is measured in both directions: with
@@ -51,7 +51,7 @@
 #   SYMBOLS      `nm -u` is THE SAME SET, as a `comm` empty in both directions: this
 #                phase deletes a parser arm and calls nothing new.  `nm --extern-only
 #                --defined-only` is still exactly `main`.
-#   THE CUT (2)  zero.mk's own rule on the INPUT and the OUTPUT: eleven directives,
+#   THE CUT (2)  whim.mk's own rule on the INPUT and the OUTPUT: eleven directives,
 #                none above them, 0 errors under -fsyntax-only either side, and the
 #                boundary's warning set -- computed here and never written down --
 #                UNCHANGED.  Then `zhostonly` and tools/phasecheck.sh.

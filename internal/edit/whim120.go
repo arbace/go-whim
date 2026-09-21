@@ -10,7 +10,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { register("whim120", Zero37) }
+func init() { register("whim120", Whim120) }
 
 var (
 	z37Inc  = regexp.MustCompile(`^ *# *include <([A-Za-z0-9_/.]+)>$`)
@@ -37,13 +37,13 @@ type z37Edit struct {
 	rep  string
 }
 
-// Zero37 removes the degenerate unions -- the ones that unite nothing with
+// Whim120 removes the degenerate unions -- the ones that unite nothing with
 // anything, five single-member and one EMPTY, which ISO C forbids.
 //
 // NOTHING HERE IS A NAME THIS PROGRAM KNOWS IN ADVANCE: the braces are matched
 // and the members counted at depth 1, so it states a property of the file rather
 // than a memory of one.
-func Zero37(text []byte, w io.Writer) ([]byte, error) {
+func Whim120(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"unions", w}
 	t := string(text)
 

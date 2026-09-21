@@ -1,11 +1,11 @@
 #!/bin/sh
-# Whim phase 117 (zero phase 34) -- the core stops reallocating.
-# See ZERO-PLAN.md 4c, whose transpilation rule is this phase's justification.
+# Whim phase 117 -- the core stops reallocating.
+# See WHIM-PLAN.md II.4c, whose transpilation rule is this phase's justification.
 #
 # Usage: pipes/whim117-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
 # THERE IS NO `musl_realloc` TO VENDOR, AND THAT IS THE WHOLE REASON THIS PHASE IS A
-# REWRITE AND NOT A VENDORING.  Phases 14 and 15 gave the core its own definitions of
+# REWRITE AND NOT A VENDORING.  Phases 97 and 98 gave the core its own definitions of
 # sixteen mem*/str* functions and of qsort/bsearch, because each of those is a function
 # of its arguments.  `realloc` is NOT: to move the old contents it must know how many
 # bytes the old block held, and its interface -- `void *realloc(void *p, usize n)` --
@@ -15,7 +15,7 @@
 # WRITTEN AT ALL: there is nothing to give the copy for a length.
 #
 # The only route left is to rewrite each call site with the size IT knows, and the
-# phase exists because both core sites know it.  ZERO-PLAN.md 4c's rule -- the core is
+# phase exists because both core sites know it.  WHIM-PLAN.md II.4c's rule -- the core is
 # optimised for transpilation, so its meaning must be on the page -- is what makes that
 # worth doing: on a JVM there is no `realloc`, and `malloc` + a copy + `free` is an
 # array allocation and an arraycopy, which is exactly what these two sites now say.
@@ -30,7 +30,7 @@
 #                     immediately above the call, and the rewrite saves it in `t_buflen`
 #                     beside the `t_buf` the input already saves, rather than writing
 #                     `buflen - 100` and asking a reader to do the arithmetic.
-#   adjust_types()    THE HOST'S, below the boundary, in the formatter island phase 27
+#   adjust_types()    THE HOST'S, below the boundary, in the formatter island phase 110
 #                     moved down.  It is left exactly as it is, and `realloc` therefore
 #                     STAYS in `nm -u` -- an equality this phase declares rather than a
 #                     symbol it frees.  See the check.
@@ -70,10 +70,10 @@
 #      reason rather than as an omission.
 #
 # THE PROTOTYPE GOES WITH THE LAST CORE CALL.  `void *realloc(void *p, usize n);` is one
-# of the nine plain libc prototypes phase 26 wrote below the `usize` typedef and phase 27
+# of the nine plain libc prototypes phase 109 wrote below the `usize` typedef and phase 110
 # carried above the includes; with no core call left it declares nothing the core uses,
 # and `adjust_types()` takes its declaration from <stdlib.h>, which is above it.  Eight
-# prototypes remain.  Phases 31 and 35 also shrink this block, and the check computes
+# prototypes remain.  Phases 114 and 118 also shrink this block, and the check computes
 # the count from the input rather than stating it, so this phase composes with either.
 set -eu
 
@@ -82,7 +82,7 @@ state=${2:?usage: whim117-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

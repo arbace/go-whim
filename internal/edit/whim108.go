@@ -8,17 +8,17 @@ import (
 	"strings"
 )
 
-func init() { register("whim108", Zero25) }
+func init() { register("whim108", Whim108) }
 
 var (
 	whim108IncLine  = regexp.MustCompile(`^#include <[A-Za-z0-9_/.]+>$`)
 	whim108Boundary = regexp.MustCompile(`^static [\w ]+\**(musl_|host_)\w+\([^\n]*\);$`)
 )
 
-// Zero25 makes the two host calls plain: the function pointers the launcher
+// Whim108 makes the two host calls plain: the function pointers the launcher
 // installed become a forward declaration and a direct call, so vim_main is
-// phase 18's signature again.
-func Zero25(text []byte, w io.Writer) ([]byte, error) {
+// phase 101's signature again.
+func Whim108(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"hostcall", w}
 	linesBefore := bytes.Count(text, []byte{'\n'})
 	runsBefore := p.blankRuns(text)
@@ -116,14 +116,14 @@ func Zero25(text []byte, w io.Writer) ([]byte, error) {
 	p.sayf("the two prototypes are BUILT OUT OF THE DEFINITIONS' OWN LINES and not retyped, "+
 		"so they cannot disagree with what they declare: %s", strings.Join(protos, "  /  "))
 
-	// ---- 3. the nine prototypes phase 20 left, and the two that join them
-	// The boundary is one block.  `musl_suspend` is the last of phase 20's
+	// ---- 3. the nine prototypes phase 103 left, and the two that join them
+	// The boundary is one block.  `musl_suspend` is the last of phase 103's
 	// nine, and the order the two are added in is the order their definitions
 	// appear at the bottom.
 	text, err = p.swapOnce(text,
 		"static void musl_suspend(void);\n",
 		"static void musl_suspend(void);\n"+strings.Join(protos, "\n")+"\n",
-		"the last of phase 20's nine musl_ prototypes",
+		"the last of phase 103's nine musl_ prototypes",
 		"the core -> host boundary is ONE run of declarations, and these two belong in it "+
 			"rather than wherever an object happened to sit")
 	if err != nil {
@@ -137,7 +137,7 @@ func Zero25(text []byte, w io.Writer) ([]byte, error) {
 			"static void (*vim_host_message)(const char *msg, int len, int err);\n"+
 			"\n",
 		"static int musl_towlower(int a);\n\n",
-		"the vim_host_message object, where phase 21 put it",
+		"the vim_host_message object, where phase 104 put it",
 		"it and the blank line that separated it from what follows go together, so the "+
 			"paragraphing either side of it is what it was")
 	if err != nil {
@@ -152,7 +152,7 @@ func Zero25(text []byte, w io.Writer) ([]byte, error) {
 			"mch_exit(int r)\n"+
 			"{\n",
 		"}\n\n    static void\nmch_exit(int r)\n{\n",
-		"the vim_host_exit object, where phase 19 put it -- immediately above mch_exit",
+		"the vim_host_exit object, where phase 102 put it -- immediately above mch_exit",
 		"the same: the object and its blank line, leaving mch_exit separated from the "+
 			"function above it exactly as every other function in this file is")
 	if err != nil {
@@ -170,7 +170,7 @@ func Zero25(text []byte, w io.Writer) ([]byte, error) {
 			"\n",
 		"    static int\nvim_main(int argc, char **argv)\n{\n\n",
 		"vim_main()'s head and the two installations",
-		"the signature goes back to the one phase 18 wrote, and the two assignments and "+
+		"the signature goes back to the one phase 101 wrote, and the two assignments and "+
 			"the blank line that followed them go with the parameters they read")
 	if err != nil {
 		return nil, err
@@ -290,7 +290,7 @@ func Zero25(text []byte, w io.Writer) ([]byte, error) {
 	}
 	nBoundary += 2
 	p.sayf("the core -> host boundary is now ONE run of %d prototypes ending at line %d: "+
-		"phase 20's nine `musl_` and these two", nBoundary, block[0]+3)
+		"phase 103's nine `musl_` and these two", nBoundary, block[0]+3)
 
 	if n := len(L) - 1; n != linesBefore-5 {
 		return nil, p.die("the file is %d lines and the input was %d -- expected exactly 5 fewer: two "+
@@ -318,7 +318,7 @@ func Zero25(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if !ok {
-		return nil, p.die("the output does not have exactly the eleven `#include` directives phase 21 " +
+		return nil, p.die("the output does not have exactly the eleven `#include` directives phase 104 " +
 			"left, on its first eleven lines -- this phase adds a DECLARATION and not a " +
 			"directive")
 	}

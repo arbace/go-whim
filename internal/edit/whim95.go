@@ -11,13 +11,13 @@ import (
 )
 
 func init() {
-	register("whim95", Zero12)
+	register("whim95", Whim95)
 	// THE SECOND HEREDOC IS A SECOND REGISTRATION, not a tail of the first, and
 	// the position is the reason: two `tools/st.sh droplocal` and two
 	// `tools/st.sh dropoptions` calls run BETWEEN them, and the counts this one
 	// asserts are the counts after those four have run.  Folding the two into
 	// one call would move the assertion to before its subject.
-	register("whim95rows", Zero12Rows)
+	register("whim95rows", Whim95Rows)
 }
 
 var (
@@ -64,8 +64,8 @@ func init() {
 	}
 }
 
-// Zero12 removes the options nothing reads.
-func Zero12(text []byte, w io.Writer) ([]byte, error) {
+// Whim95 removes the options nothing reads.
+func Whim95(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"noopts", w}
 	var err error
 
@@ -162,18 +162,18 @@ func Zero12(text []byte, w io.Writer) ([]byte, error) {
 	p.say("seven of the 114 rows have no reader of their own global, computed with " +
 		"dropoptions --strict's own test: fsync modified prompt readonly undoreload " +
 		"write writeany")
-	p.say("and 'modified' is the one that STAYS -- ZERO-PLAN.md decision 5: the state it " +
+	p.say("and 'modified' is the one that STAYS -- WHIM-PLAN.md II decision 5: the state it " +
 		"reports lives in b_changed and not in p_mod, so the row is not a lie.  A " +
 		"computation that took \"no reader\" as the criterion would delete it")
 
 	// THE EXEMPTION, ASSERTED RATHER THAN ONLY WRITTEN DOWN.
 	if _, a := got["paste"]; a {
 		return nil, p.die("'paste' came out of the computation with no reader, and it is EXEMPT FOR " +
-			"EVER (ZERO-PLAN.md 2d): nothing in this pipeline may drop it")
+			"EVER (WHIM-PLAN.md II.2d): nothing in this pipeline may drop it")
 	}
 	if _, a := z12Want["paste"]; a {
 		return nil, p.die("'paste' came out of the computation with no reader, and it is EXEMPT FOR " +
-			"EVER (ZERO-PLAN.md 2d): nothing in this pipeline may drop it")
+			"EVER (WHIM-PLAN.md II.2d): nothing in this pipeline may drop it")
 	}
 	p.say("'paste' is exempt for ever and is not in the set: p_paste 12 mentions, and its " +
 		"five save slots p_ai_nopaste p_et_nopaste p_sts_nopaste p_tw_nopaste " +
@@ -194,8 +194,8 @@ func Zero12(text []byte, w io.Writer) ([]byte, error) {
 			"and a definition is all of it", k)
 	}
 	p.say("the W10 warning: six calls to change_warning() and the definition, which takes " +
-		"the static string w_readonly and the ui_delay(1002L, TRUE) with it -- ZERO-GOAL " +
-		"phase 2 named that as one of the eight other pauses.  It has NO prototype, so a " +
+		"the static string w_readonly and the ui_delay(1002L, TRUE) with it -- WHIM-GOAL.md " +
+		"phase 85 named that as one of the eight other pauses.  It has NO prototype, so a " +
 		"program that removed one would fail here")
 
 	// ---- C2. the [RO] in fileinfo() -------------------------------------------
@@ -238,9 +238,9 @@ func Zero12(text []byte, w io.Writer) ([]byte, error) {
 	return text, nil
 }
 
-// Zero12Rows is the second heredoc: what the sweep is handed, as a count rather
+// Whim95Rows is the second heredoc: what the sweep is handed, as a count rather
 // than as trust, taken AFTER the four droplocal/dropoptions calls between them.
-func Zero12Rows(text []byte, w io.Writer) ([]byte, error) {
+func Whim95Rows(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"noopts", w}
 	mentions := func(name string) int {
 		return len(regexp.MustCompile(`\b`+name+`\b`).FindAll(text, -1))

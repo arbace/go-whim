@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 93 (zero phase 10), the check -- the buffer has no name any more.
-# See pipes/whim93-edit.sh, and ZERO-GOAL.md.
+# Whim phase 93, the check -- the buffer has no name any more.
+# See pipes/whim93-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim93-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -19,14 +19,14 @@
 #    call site that passes NULL, sixteen folds, and an `if` on a flag no row carries.
 #
 #    THE TRAPS, ALL MEASURED, that make a copied "every name at zero" loop wrong:
-#      * `otherfile` IS ALREADY ZERO.  Phase 8 swept it; `otherfile_buf` is this
-#        phase's.  A list copied from ZERO-PLAN.md's P9 row would "prove" a name
+#      * `otherfile` IS ALREADY ZERO.  Phase 91 swept it; `otherfile_buf` is this
+#        phase's.  A list copied from WHIM-PLAN.md part II's P9 row would "prove" a name
 #        that went two phases ago.
-#      * `E447: Can't find file "%s" in path` REACHES ZERO HERE, and phase 8's check
-#        asserts it SURVIVES.  Phase 8 removed the `gf` key; the message belonged to
+#      * `E447: Can't find file "%s" in path` REACHES ZERO HERE, and phase 91's check
+#        asserts it SURVIVES.  Phase 91 removed the `gf` key; the message belonged to
 #        `find_file_name_in_path()`'s search arm, which part G folds away.  The two
-#        checks disagree on purpose and `apart 8 10` is not needed for it only
-#        because `apart 8 9` and `apart 9 10` already forbid the stage.
+#        checks disagree on purpose and `apart 91 93` is not needed for it only
+#        because `apart 91 92` and `apart 92 93` already forbid the stage.
 #      * `"file"` reaches zero and `E32: No file name` DOES NOT.  `check_fname()`
 #        survives, folded to an unconditional emsg, because `get_spec_reg()`'s `%`
 #        still calls it.  A check that wanted both gone fails on a correct phase.
@@ -41,7 +41,7 @@
 #    READ by `fileinfo()`, so CTRL-G still tests them and neither test can fire.
 #    `b_shortname` has the same shape and was already write-only before this phase.
 #    Folding any of the three would change the string set for no gain, so they are
-#    asserted where they are.  `msg_scrolled_ign` is phase 9's leftover and does not
+#    asserted where they are.  `msg_scrolled_ign` is phase 92's leftover and does not
 #    move.
 #
 # 3. THE LINE AGAINST THE PHASES AFTER THIS ONE, stated as counts so that reaching

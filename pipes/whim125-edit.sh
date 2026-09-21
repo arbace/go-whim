@@ -1,5 +1,5 @@
 #!/bin/sh
-# Whim phase 125 (zero phase 42) -- the swap file's residue.  See ZERO-GOAL.md and ZERO-PLAN.md 4a.
+# Whim phase 125 -- the swap file's residue.  See WHIM-GOAL.md and WHIM-PLAN.md II.4a.
 #
 # Usage: pipes/whim125-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
@@ -25,7 +25,7 @@
 #      any build of whim-vim, and the edit proves that as a partition over every mention
 #      of every one of them: a declaration, an assignment, or a call that copies INTO the
 #      field.  Nothing may yield a value.  The field list is read out of the struct rather
-#      than typed here, because zero phase 36 already took `b0_pid` and a typed list would
+#      than typed here, because phase 119 already took `b0_pid` and a typed list would
 #      be a phase out of date.
 #
 #      THE TWO SURVIVING BLOCKS MOVE DOWN BY ONE.  ml_open() allocated block nr 0 for the
@@ -95,7 +95,7 @@ state=${2:?usage: whim125-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

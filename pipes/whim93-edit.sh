@@ -1,9 +1,9 @@
 #!/bin/sh
-# Whim phase 93 (zero phase 10) -- the buffer has no name.  See ZERO-GOAL.md.
+# Whim phase 93 -- the buffer has no name.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim93-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
-# Phases 6, 7 and 8 took every way to ASK for a file and phase 9 took the machinery
+# Phases 89, 90 and 91 took every way to ASK for a file and phase 92 took the machinery
 # that read one.  What is left of the filesystem in this editor is a NAME: three
 # char_u* fields on every buffer -- `b_ffname`, `b_sfname`, `b_fname` -- and the one
 # command that could still set them, `:file`.  This phase takes the command, stops
@@ -24,10 +24,10 @@
 #   strerror  `mch_dirname()`'s error arm, and nothing else's.
 #
 # SEVEN PARTS, A to G, and every removal that is not one of them is the sweep's
-# (ZERO-GOAL.md rule 1).  Sixty functions go and this file names not one of them.
+# (WHIM-GOAL.md core rule 1).  Sixty functions go and this file names not one of them.
 #
 #   A  `:file` goes: the enumerator, the cmdnames[] row, and BOTH of do_one_cmd's
-#      CMD_file tests -- the `curbuf_locked()` conjunct phase 8 deliberately kept,
+#      CMD_file tests -- the `curbuf_locked()` conjunct phase 91 deliberately kept,
 #      and the second test below it.  All in one edit with the enumerator, or the
 #      text does not compile.  `ex_file` -> `rename_buffer` -> `setfname` then die
 #      by the sweep; `fileinfo()` SURVIVES, having three other callers.
@@ -41,7 +41,7 @@
 #   D  `EX_XFILE` reaches zero rows -- `:file` was its last one -- so do_one_cmd's
 #      `expand_filename()` call can never be entered.  Folding it never is what
 #      hands the sweep 32 functions and some 1,300 lines, the same shape as phase
-#      8's EX_ARGOPT.
+#      91's EX_ARGOPT.
 #   E  `readonlymode` and `b_dev_valid`'s assignment, each write-only after C and
 #      B, and neither of them anything a warning or a sweep tool can see.
 #   F  `shorten_fnames()` loses the cwd it fetched for a now-empty
@@ -61,7 +61,7 @@
 # a body and dropping an else is not what it does.  fileinfo(), set_b0_fname() and
 # get_trans_bufname() use the local fold_always_else() below, which keeps the if
 # body dedented four columns -- right only because each of the three is written one
-# level inside its function, which was read and not assumed, phase 8's anchor 5
+# level inside its function, which was read and not assumed, phase 91's anchor 5
 # being what a wrong dedent costs.  And FOUR MORE are a function whose whole body is
 # the `if`: buf_spname(), buf_get_fname(), check_fname() and getaltfname().
 # fold_always there leaves an unreachable `return buf->b_fname;` behind -- measured
@@ -76,15 +76,15 @@
 # check requires `eval_vars` at 0 mentions afterwards, which is the assertion that
 # replaces the fold.
 #
-# WHAT THIS PHASE NEEDS OF PHASES 7, 8 AND 9, and none of it can be a `uses` line,
+# WHAT THIS PHASE NEEDS OF PHASES 90, 91 AND 92, and none of it can be a `uses` line,
 # packages.sh refusing one inside a package: `:read` was one of the six EX_XFILE
-# rows and phase 7 took it; four more went with the :edit family in phase 8, which
+# rows and phase 90 took it; four more went with the :edit family in phase 91, which
 # is why :file is the LAST and part D exists at all; and `set_rw_fname` was
-# `setfname`'s second caller and went with `readfile` in phase 9, which is what
+# `setfname`'s second caller and went with `readfile` in phase 92, which is what
 # leaves `rename_buffer` as its only one.
 #
 # THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own makefile
-# flags, as every zero edit since phase 2 does, and the source goes with it as
+# flags, as every zero edit since phase 85 does, and the source goes with it as
 # $state/old.c.  The check needs both: `:file NEWNAME` is the one thing that proves
 # the old binary could name a buffer at all, and no recording can see it.
 set -eu
@@ -94,7 +94,7 @@ state=${2:?usage: whim93-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-func init() { register("whim101", Zero18) }
+func init() { register("whim101", Whim101) }
 
 // head is upstream's #ifdef'ed signature with the conditional gone: the name
 // sits on a line of its own because there was a directive between it and the
@@ -14,7 +14,7 @@ const whim101Head = "\n    int\nmain\n(int argc, char **argv)\n{\n"
 
 const whim101NewHead = "\n    static int\nvim_main(int argc, char **argv)\n{\n"
 
-// The launcher.  Five lines, and every one of them is what ZERO-PLAN.md 4c
+// The launcher.  Five lines, and every one of them is what WHIM-PLAN.md II.4c
 // says the host file will hold: it calls the editor and it does nothing else.
 //
 // No prototype is written for vim_main -- it is DEFINED above its only call,
@@ -26,9 +26,9 @@ const whim101Launch = "\n" +
 	"    return vim_main(argc, argv);\n" +
 	"}\n"
 
-// Zero18 demotes main() to a static vim_main() and appends a launcher, both
+// Whim101 demotes main() to a static vim_main() and appends a launcher, both
 // still in the one file.
-func Zero18(text []byte, w io.Writer) ([]byte, error) {
+func Whim101(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"demote", w}
 	linesBefore := p.lines(text)
 	runsBefore := p.blankRuns(text)

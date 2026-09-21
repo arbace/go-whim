@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 97 (zero phase 14), the check -- the strings are the editor's own.
-# See pipes/whim97-edit.sh, and ZERO-GOAL.md.
+# Whim phase 97, the check -- the strings are the editor's own.
+# See pipes/whim97-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim97-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -48,7 +48,7 @@
 #    gcc's threshold (measured between 8 KiB and 16 KiB) and assigns it whole fails
 #    loudly rather than quietly reacquiring a libc symbol.
 #
-#    ZERO-PLAN.md 4b's invariant is asserted again beside it, unchanged.
+#    WHIM-PLAN.md II.4b's invariant is asserted again beside it, unchanged.
 #
 # 3. THE ENUMERATORS, which must not move at all: this phase deletes no type, no
 #    enum and no table row, so all 1,181 must come back with the same values.
@@ -87,7 +87,7 @@
 #    `musl_fmtptr` (nothing formats a pointer).  Their correctness rests on musl's
 #    source, not on the recording.
 #
-#    The corpus itself is tools/zerodelta.sh --phase 14, which tools/phaserun.sh runs
+#    The corpus itself is tools/zerodelta.sh --phase 97, which tools/phaserun.sh runs
 #    after this check, and its declaration is NOTHING AT ALL.
 
 # THE BODY IS GO: internal/check/whim97.go and internal/check/whim97probes.go, run through tools/st.sh.

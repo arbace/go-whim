@@ -9,7 +9,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim90", Zero7) }
+func init() { register("whim90", Whim90) }
 
 const (
 	z7RowsBefore = 105
@@ -23,7 +23,7 @@ var z7Dying = []string{"CMD_read", "usefilter"}
 
 var z7Assign = regexp.MustCompile(`\busefilter\s*=`)
 
-// Zero7 takes the way to read a file: `:read`, its `:r !cmd` arm, and the
+// Whim90 takes the way to read a file: `:read`, its `:r !cmd` arm, and the
 // exarg_T.usefilter field that nothing writes once both `:w !` and `:r !` are
 // gone.
 //
@@ -31,7 +31,7 @@ var z7Assign = regexp.MustCompile(`\busefilter\s*=`)
 // have found: a struct member that is READ and never written draws no warning,
 // and deadfields.py removes only a member nothing names.  do_one_cmd memsets
 // `ea`, so every test folded there is constantly FALSE.
-func Zero7(text []byte, w io.Writer) ([]byte, error) {
+func Whim90(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"noread", w}
 	var err error
 
@@ -110,7 +110,7 @@ func Zero7(text []byte, w io.Writer) ([]byte, error) {
 	}
 	if writes := len(z7Assign.FindAll(text, -1)); writes != 2 {
 		return nil, p.die("usefilter is assigned %d times, expected the 2 that anchor 3 removes -- "+
-			"phase 6 took the other two with `:w >>` and `:w !cmd`", writes)
+			"phase 89 took the other two with `:w >>` and `:w !cmd`", writes)
 	}
 	p.say("cmdnames[] 105 rows, CMD_read 3 mentions, usefilter 10 -- the field, the two " +
 		"writes anchor 3 removes and seven reads")
@@ -132,7 +132,7 @@ func Zero7(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.die("cmdnames[] has %d rows after the cut, expected %d", n, z7RowsAfter)
 	}
 	p.sayf("the cmdnames[] row; %d -> %d, and create_cmdidxs names() refuses under %d, so "+
-		"the margin is %d rows -- the :edit phase spends it (ZERO-PLAN.md 3a)",
+		"the margin is %d rows -- the :edit phase spends it (WHIM-PLAN.md II.3a)",
 		z7RowsBefore, z7RowsAfter, z7Floor, z7RowsAfter-z7Floor)
 
 	// ---- 3. do_one_cmd's `:r!` and `:r !cmd` parse -----------------------------

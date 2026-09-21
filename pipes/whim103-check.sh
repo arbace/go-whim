@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 103 (zero phase 20), the check -- the signals and the terminal are the host's.
-# See pipes/whim103-edit.sh, and ZERO-GOAL.md.
+# Whim phase 103, the check -- the signals and the terminal are the host's.
+# See pipes/whim103-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim103-check.sh <work-dir> <state-dir>    (run from the repository root)
 #

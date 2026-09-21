@@ -31,7 +31,7 @@ var vimError = regexp.MustCompile(`\bE\d+:`)
 // builtin_terminals[], the new table moves exactly 1 of 19 and the old one
 // moves 0 of 19.
 //
-// No file argument and no file: zero phase 5 made a file argument an unknown
+// No file argument and no file: phase 88 made a file argument an unknown
 // option.
 func ZTermCheck(bin, out string, w io.Writer) error {
 	home, err := os.MkdirTemp("", "ztermcheck-home-")

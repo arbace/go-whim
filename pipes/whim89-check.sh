@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 89 (zero phase 6), the check -- nothing can put bytes on a disk any more.
-# See pipes/whim89-edit.sh, and ZERO-GOAL.md.
+# Whim phase 89, the check -- nothing can put bytes on a disk any more.
+# See pipes/whim89-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim89-check.sh <work-dir> <state-dir>     (run from the repository root)
 #
@@ -37,7 +37,7 @@
 # 2. THE TABLE.  105 rows, create_cmdidxs.names() reading exactly those, the
 #    static_assert still there, and the five rows of margin above the tool's floor
 #    of 100 said out loud -- the :edit phase is the one that must lower it
-#    (ZERO-PLAN.md 3a).
+#    (WHIM-PLAN.md II.3a).
 #
 # 3. THE PROBES, on BOTH binaries, because THE CORPUS CANNOT SEE WRITING.  Every
 #    one of `zcases`'s 102 cases types its own text and never names a file:
@@ -51,7 +51,7 @@
 #
 # 4. THE INHERITANCE CHECK.  whim's Phase 80 gave every row its shortest
 #    abbreviation and made a match require at least that many characters, so a
-#    removed name cannot be inherited by the next row (ZERO-PLAN.md 3a) -- but that
+#    removed name cannot be inherited by the next row (WHIM-PLAN.md II.3a) -- but that
 #    is an argument, and `:w` silently becoming `:winsize` is exactly the shape of
 #    bug CLAUDE.md records for `:help` -> `:helpclose`.  Eight spellings are typed
 #    and each must answer E492 now and something else before.
@@ -60,9 +60,9 @@
 #    probe above went through a pipe.  The session is run on both binaries: the old
 #    one writes the file and exits, the new one answers E492 and writes nothing.
 #    pipes/whim85-check.sh drives a pty with `:wq` and reads the file back too, and
-#    pipes/zero.stages says why that needs no `apart 2 6`: it opens the file as an
-#    ARGUMENT and phase 5 already made that an unknown option, so it never reaches
-#    the `:wq` -- measured identically on a phase 5 and a phase 6 tree.
+#    pipes/whim.stages says why that needs no `apart 85 89`: it opens the file as an
+#    ARGUMENT and phase 88 already made that an unknown option, so it never reaches
+#    the `:wq` -- measured identically on a phase 88 and a phase 89 tree.
 #
 # A record is built the way `zcases` builds one and scrubbed the same way
 # (tools/zrec.py), with one section added: the files the run left behind.

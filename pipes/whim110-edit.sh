@@ -1,10 +1,10 @@
 #!/bin/sh
-# Whim phase 110 (zero phase 27) -- THE MOVE.  The first `#include` becomes the boundary.
-# See ZERO-PLAN.md 4c, ZERO-GOAL.md, and .claude/briefs/zero-reorg.md 1, 4, 5, 6 and 7.
+# Whim phase 110 -- THE MOVE.  The first `#include` becomes the boundary.
+# See WHIM-PLAN.md II.4c, WHIM-GOAL.md, and .claude/briefs/zero-reorg.md 1, 4, 5, 6 and 7.
 #
 # Usage: pipes/whim110-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
-# ZERO-PLAN.md 4c's design, which the user settled and which this phase performs:
+# WHIM-PLAN.md II.4c's design, which the user settled and which this phase performs:
 #
 #   whim-vim.c  upper part  the core editor.  NO PREPROCESSOR SYNTAX AT ALL.  At its
 #                           top, the musl_-prefixed prototypes: its calls to the host.
@@ -18,13 +18,13 @@
 #
 # WHAT IT DOES, in the order the constraint forces:
 #
-#   1  THE ELEVEN `#include`s GO DOWN, to just above the host block phases 18 and 20
+#   1  THE ELEVEN `#include`s GO DOWN, to just above the host block phases 101 and 103
 #      put at the bottom of the file.  Nothing else marks the line.
 #   2  THE VARIADIC LAYER GOES WITH THEM.  `va_list` is <stdarg.h>'s and the core
 #      cannot declare it, so every function that holds one is on the host's side:
 #      vim_snprintf, vim_vsnprintf, vim_vsnprintf_typval and skip_to_arg -- FOUR, not
-#      three; skip_to_arg is the positional-argument walker and ZERO-PLAN.md missed it
-#      until phase 22 counted.  Their two prototypes go with them, for the same reason.
+#      three; skip_to_arg is the positional-argument walker and WHIM-PLAN.md part II missed it
+#      until phase 105 counted.  Their two prototypes go with them, for the same reason.
 #   3  AND WHATEVER ONLY THEY USE, COMPUTED TO A FIXPOINT rather than listed.  The
 #      brief's cut reported five functions and two objects after ONE round; this edit
 #      compiles the cut, moves what gcc calls unused, and compiles again until nothing
@@ -36,13 +36,13 @@
 #      { INT_MAX = (int)(~0u >> 1) };` placed AFTER `#include <limits.h>` is
 #      `enum : int { 0x7fffffff = ... };`, a syntax error.  So the constants cannot be
 #      written before the move and need no renaming after it: they are exactly this
-#      phase's, and that is why phase 26 left them and said so.
+#      phase's, and that is why phase 109 left them and said so.
 #
 # THE TWELVE CONSTANTS ARE NOT A LIST THIS PROGRAM REMEMBERS, THEY ARE WHAT THE
 # COMPILER ASKS FOR.  The edit performs the move, compiles the cut ALONE, and collects
 # every `'X' undeclared` and `unknown type name 'X'` it reports.  That set must be
 # exactly the twelve below, or the phase stops: a thirteenth name would mean the core
-# still takes something from a header and phase 26 did not finish, and a missing one
+# still takes something from a header and phase 109 did not finish, and a missing one
 # would mean this program is declaring something nobody needs.  MEASURED on the input:
 # 23 errors naming exactly these twelve.
 #
@@ -59,7 +59,7 @@
 # later `#define INT_MAX 0x7fffffff` governs only textual occurrences AFTER it, so the
 # enumerator above the boundary and the macro below are silent together -- which is a
 # different position from `size_t`, where a typedef redefinition has to be
-# type-identical, and is the whole reason phase 23 renamed that one and this one
+# type-identical, and is the whole reason phase 106 renamed that one and this one
 # renames none of these.
 #
 # AND IT IS ALSO WHY THE CROSS-CHECK HAS TO RESTATE THE DERIVATION.  Below the
@@ -72,8 +72,8 @@
 #
 # and the left-hand side is not typed twice -- it is the enumerator's own initialiser,
 # emitted from the same table, and the check reads both out of the output and requires
-# them equal text.  That is the same cross-check phase 26 used, in the only shape the
-# move leaves available, and unlike phase 26's it lives in the PRODUCT: the core
+# them equal text.  That is the same cross-check phase 109 used, in the only shape the
+# move leaves available, and unlike phase 109's it lives in the PRODUCT: the core
 # declares, the host verifies, and the verification is the ordinary build.
 #
 # THE FOUR ASSERTED CONSTANTS ARE ASSERTED AND NOT DERIVED, and the file says so by
@@ -84,14 +84,14 @@
 #
 # NOTHING MOVES UP.  In ONE translation unit everything above the cut is visible below
 # it, so only the core -> host direction ever needs a declaration.  MEASURED at phase
-# 25: the four variadic functions call twenty distinct core functions at forty-one
+# 108: the four variadic functions call twenty distinct core functions at forty-one
 # sites and read IObuff once, and not one of them costs a declaration.
 #
-# WHAT THE MOVE DESTROYS, said plainly, because phase 26's check was built on it.
+# WHAT THE MOVE DESTROYS, said plainly, because phase 109's check was built on it.
 # After this phase a wrong `void *malloc(int n);` above the boundary is no longer
 # `error: conflicting types for 'malloc'` -- there is no second declaration to
 # conflict with -- and a `static` one is no longer an error at the declaration but a
-# LINK failure, `'malloc' used but never defined`.  That is exactly why phase 26 came
+# LINK failure, `'malloc' used but never defined`.  That is exactly why phase 109 came
 # first and wrote sixteen static_asserts against headers that were still above it.
 # The check here breaks the `static` trap in its new shape.
 set -eu
@@ -101,7 +101,7 @@ state=${2:?usage: whim110-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

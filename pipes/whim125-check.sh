@@ -1,5 +1,5 @@
 #!/bin/sh
-# Whim phase 125 (zero phase 42)'s proof -- the swap file's residue.  See pipes/whim125-edit.sh.
+# Whim phase 125's proof -- the swap file's residue.  See pipes/whim125-edit.sh.
 #
 # Usage: pipes/whim125-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -41,8 +41,8 @@
 #
 # THIS IS THE FIRST MEMLINE CHANGE SINCE ZERO PHASE 40, which added a corpus of buffers
 # big enough to have a tree for exactly this reason, and that corpus is the only recorded
-# thing that tells the two apart: section 7b.  It also NARROWS what phase 40 reaches, and
-# the check asserts that as an inequality rather than as a count -- phase 40 sized its
+# thing that tells the two apart: section 7b.  It also NARROWS what phase 123 reaches, and
+# the check asserts that as an inequality rather than as a count -- phase 123 sized its
 # buffers from `sizeof(PTR_EN)`, and a phase that makes a pointer block hold MORE children
 # can only move cases out of the root-splitting set, never into it.  Section 8 is then the
 # direct proof, at sixty thousand lines, with an instrument on the branch itself.

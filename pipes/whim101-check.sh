@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 101 (zero phase 18), the check -- main() is demoted to vim_main().
-# See pipes/whim101-edit.sh, and ZERO-GOAL.md.
+# Whim phase 101, the check -- main() is demoted to vim_main().
+# See pipes/whim101-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim101-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -17,7 +17,7 @@
 #     still prints exactly `main` -- which tools/phasecheck.sh asserts for every zero
 #     phase and which section 3 re-states here in the phase's own words.
 #   * the LIBC SURFACE.  A phase that frees nothing says so as an EQUALITY, the way
-#     phases 7, 8, 11, 12 and 16 do: the undefined set before and after is compared
+#     phases 90, 91, 94, 95 and 99 do: the undefined set before and after is compared
 #     with `cmp` and must be the same 33 names in the same order, not the same COUNT.
 #   * the EXIT STATUS.  `return vim_main(argc, argv);` is a value this phase put in
 #     the program's path that was not there before, so every way the editor can end
@@ -27,7 +27,7 @@
 # AND THE PROBE IS PROVEN ABLE TO FAIL.  A table of six statuses that agree proves
 # nothing unless a wrong status would have been caught, so the output is built a
 # SECOND time with `mch_exit`'s `exit(r)` changed to `exit(r + 1)` -- one character --
-# and every one of the six is required to MOVE.  That is phase 17's `SA_NODEFER`
+# and every one of the six is required to MOVE.  That is phase 100's `SA_NODEFER`
 # control in this phase's shape: the same source with the reason removed.
 #
 # THE BINARY IS NOT BYTE-IDENTICAL AND IS NOT ASSERTED TO BE.  At -O0 a call frame is

@@ -147,7 +147,7 @@ func z11Probes(r *rep, old, bin string) error {
 		}
 	}
 	if by["zz_key"].oT != by["zq_key"].oT {
-		fail = append(fail, "ZZ and ZQ do not leave the same record, and they have run the same command string since phase 6")
+		fail = append(fail, "ZZ and ZQ do not leave the same record, and they have run the same command string since phase 89")
 	}
 	if len(fail) > 0 {
 		for _, l := range fail {

@@ -10,7 +10,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { register("whim88", Zero5) }
+func init() { register("whim88", Whim88) }
 
 var (
 	z5EnumRun  = regexp.MustCompile(`(?m)(?:^enum \{ ME_\w+ = \d+ \};\n)+`)
@@ -44,9 +44,9 @@ var z5After = map[string]int{
 	"exe_commands": 3,
 }
 
-// Zero5 leaves the command line as `+{command}` and `-T {term}`: the file
+// Whim88 leaves the command line as `+{command}` and `-T {term}`: the file
 // argument, the bare `-` and `--` all become mainerr(ME_UNKNOWN_OPTION).
-func Zero5(text []byte, w io.Writer) ([]byte, error) {
+func Whim88(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"noargv", w}
 	var err error
 

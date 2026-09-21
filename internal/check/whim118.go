@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim118", Zero35) }
+func init() { register("whim118", Whim118) }
 
 var (
 	z35Dir     = regexp.MustCompile(`^ *# *`)
@@ -102,8 +102,8 @@ probe_dump(void)
 
 `
 
-// Zero35 is phase 35's check: the core calls nothing but the host.
-func Zero35(w io.Writer, args []string) error {
+// Whim118 is phase 118's check: the core calls nothing but the host.
+func Whim118(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim118 <work-dir> <state-dir>")
 	}
@@ -362,8 +362,8 @@ func Zero35(w io.Writer, args []string) error {
 		hcnt int
 		why  string
 	}{
-		{"malloc", 0, "lalloc(), and phase 34's two"},
-		{"free", 1, "vim_free(), update_wincolor() and phase 34's two; and " +
+		{"malloc", 0, "lalloc(), and phase 117's two"},
+		{"free", 1, "vim_free(), update_wincolor() and phase 117's two; and " +
 			"format_overflow_error() below the boundary already did"},
 		{"write", 1, "mch_write(); and host_message() below the boundary already did"},
 	} {
@@ -700,7 +700,7 @@ func Zero35(w io.Writer, args []string) error {
 			}
 		}
 		if len(lines) <= 70000 {
-			return cut{}, stop("the cut of %s is %d lines, and zero.mk's floor is 70,000 -- a cut that found "+
+			return cut{}, stop("the cut of %s is %d lines, and whim.mk's floor is 70,000 -- a cut that found "+
 				"line 1 would be empty and every check below would pass on nothing", src, len(lines))
 		}
 		c := exec.Command("gcc", "-O0", "-fno-stack-protector", "-fsyntax-only", dst)
@@ -1127,7 +1127,7 @@ func Zero35(w io.Writer, args []string) error {
 	r.cont("  host_alloc  refusing only the allocations above 200,000 bytes -- in "+
 		"this editor exactly ONE, the screen -- moves %d of 102, and the two that survive "+
 		"are ctrl_c_clean and ctrl_c_changed, which exit before a key is looked up "+
-		"(ZERO-PLAN.md 2g)", len(mv["cbig"]))
+		"(WHIM-PLAN.md II.2g)", len(mv["cbig"]))
 	r.cont("  host_free   doing NOTHING AT ALL moves 0 of 102.  A leak is invisible "+
 		"to a 106-record corpus, so the recording is NOT what says host_free is called; "+
 		"the instrument above is, at %d calls across the same 102 cases.  A control that "+
@@ -1143,13 +1143,13 @@ func Zero35(w io.Writer, args []string) error {
 		"on the wrapper rather than assumed from the standard.  The core does not rely on " +
 		"it -- 0 of the corpus's frees are null -- but the wrapper inherits it")
 
-	// --- 9. phase 20's structural check -----------------------------------------------------
+	// --- 9. phase 103's structural check -----------------------------------------------------
 	zh := exec.Command("sh", "tools/st.sh", "zhostonly", f)
 	zh.Stdout, zh.Stderr = w, w
 	if err := zh.Run(); err != nil {
 		return harness.ErrReported
 	}
-	r.say("and that is phase 20's check, undisturbed.  Its vocabulary is libc's terminal, signal and descriptor " +
+	r.say("and that is phase 103's check, undisturbed.  Its vocabulary is libc's terminal, signal and descriptor " +
 		"names and `write` is deliberately NOT in it -- its own comment says so, naming mch_write as a later " +
 		"phase's.  THIS is that phase, and the assertion it owes is made directly above instead: `write` is 0 " +
 		"mentions above the boundary, computed from the input, which is stronger than a word list")

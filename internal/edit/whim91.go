@@ -9,7 +9,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim91", Zero8) }
+func init() { register("whim91", Whim91) }
 
 const (
 	z8RowsBefore = 104
@@ -29,8 +29,8 @@ var z8Before = map[string]int{
 	"readfile": 5, "open_buffer": 6, "p_ur": 4,
 }
 
-// Zero8 takes every way to name another file to edit.
-func Zero8(text []byte, w io.Writer) ([]byte, error) {
+// Whim91 takes every way to name another file to edit.
+func Whim91(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"noedit", w}
 	var err error
 
@@ -80,7 +80,7 @@ func Zero8(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	// EX_ARGOPT's five rows are what anchor 6 rests on: four here and `:read`'s,
-	// which phase 7 took.  Counted, so that a row arriving would refuse rather
+	// which phase 90 took.  Counted, so that a row arriving would refuse rather
 	// than leave a reachable block with no way in.
 	argopt := 0
 	for _, r := range zRows(text) {
@@ -116,7 +116,7 @@ func Zero8(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.die("cmdnames[] has %d rows after the cut, expected %d", n, z8RowsAfter)
 	}
 	p.sayf("the five cmdnames[] rows; %d -> %d, which is under the floor create_cmdidxs "+
-		"names() had -- lowered to %d in this phase's own commit (ZERO-PLAN.md "+
+		"names() had -- lowered to %d in this phase's own commit (WHIM-PLAN.md part II "+
 		"decision 8), so the margin is %d rows",
 		z8RowsBefore, z8RowsAfter, z8Floor, z8RowsAfter-z8Floor)
 

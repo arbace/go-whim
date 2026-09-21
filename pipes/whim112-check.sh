@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 112 (zero phase 29), the check -- THE CASE TABLES BECOME ONE, AND IT IS THE UNION.
-# See pipes/whim112-edit.sh, and ZERO-GOAL.md.
+# Whim phase 112, the check -- THE CASE TABLES BECOME ONE, AND IT IS THE UNION.
+# See pipes/whim112-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim112-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -22,7 +22,7 @@
 #                 fail.
 #   THE AUTHORITY the musl half is re-derived from THIS MACHINE'S libc through ctypes
 #                 (muslcase's `libc()`), not read out of the table the phase
-#                 deleted.  So the check does not trust the bytes phase 15 shipped
+#                 deleted.  So the check does not trust the bytes phase 98 shipped
 #                 either.
 #   THE RULE      nothing this phase changes on the DEFAULT arm may go un-probed, and
 #                 nothing it stops mapping may go un-probed either.  Both sets are
@@ -37,7 +37,7 @@
 #                 compiling silently with the SAME thirteen names, read at run time.
 #   SYMBOLS       `nm -u` is THE SAME SET, as a `comm` empty in both directions, and
 #                 `main` is still the only external symbol.  Changing data frees no libc
-#                 symbol and needs none; the eleven phase 15 freed stay freed.
+#                 symbol and needs none; the eleven phase 98 freed stay freed.
 #
 # THE DELTA RUNS ON BOTH ARMS, and getting that wrong is the easiest mistake here.
 # `utf_toupper()`/`utf_tolower()` read musl's table whenever `internal` is NOT in
@@ -62,7 +62,7 @@
 #
 # AND THE RECORDED CORPUS CANNOT SEE ANY OF IT, so `pipes/zero.delta` gains no line.
 # All 102 screen cases seed themselves by typing ASCII and none of them touches
-# `'casemap'`; two full recordings are byte-identical.  That is zero phase 2's
+# `'casemap'`; two full recordings are byte-identical.  That is phase 85's
 # situation -- a blind harness rather than a static phase -- and a phase in it owes
 # probes of its own.  These are they.
 

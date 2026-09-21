@@ -18,7 +18,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim111", Zero28) }
+func init() { register("whim111", Whim111) }
 
 var (
 	z28CFlags  = regexp.MustCompile(`(?m)^CFLAGS  *= *(.*)$`)
@@ -159,8 +159,8 @@ type z28Res struct {
 	ok            bool // false is Python's (None, None, None): the probe blocked
 }
 
-// Zero28 is phase 28's check: the scalar clock.
-func Zero28(w io.Writer, args []string) error {
+// Whim111 is phase 111's check: the scalar clock.
+func Whim111(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim111 <work-dir> <state-dir>")
 	}
@@ -512,7 +512,7 @@ func Zero28(w io.Writer, args []string) error {
 		"int, long, usize, char * and int *, with vim_snprintf's `...` held to printf " +
 		"arguments by `format(printf, 3, 4)` on a build that is -Wall -Wextra clean.  IT " +
 		"IS TRUE OF THE INPUT TOO, and this phase does not claim to have made it so: " +
-		"phase 26 wrote `musl_gettimeofday(long *, long *)` precisely so that `struct " +
+		"phase 109 wrote `musl_gettimeofday(long *, long *)` precisely so that `struct " +
 		"timeval` would not cross.  WHAT THIS PHASE EARNS is that the workaround is gone " +
 		"-- no host call's shape is decided any more by a type the core cannot name, and " +
 		"the core declares nothing shaped like a libc struct")

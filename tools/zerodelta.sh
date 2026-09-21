@@ -20,7 +20,7 @@
 # starts empty at 83.  pipes/whim83.sh says why a recording of q82 is not the mistake
 # CLAUDE.md warns about: nothing from 83 on can reach it.
 #
-# THE INSTRUMENT IS THE SCREEN (phase 86, ZERO-PLAN.md 2): keystrokes in on stdin,
+# THE INSTRUMENT IS THE SCREEN (phase 86, WHIM-PLAN.md II.2): keystrokes in on stdin,
 # escape sequences out on stdout, and a screen per redraw rebuilt from them.  The
 # file-based harnesses -- behaviour, exsweep -- are phases 0-82's and are untouched;
 # they cannot measure these, because the editor they measure is on its way to having
@@ -54,14 +54,14 @@ orphans() {
     if wait $pid_o; then cat "$tmp/orphanopts"; else cat "$tmp/orphanopts"; fail=1; fi
 }
 
-# Unlike whimdelta.sh, an absent baseline is a failure and not a note: zero phase 0
+# Unlike whimdelta.sh, an absent baseline is a failure and not a note: phase 83
 # records them before anything is compared, so a missing set means the pipeline is
 # being run out of order.
 if [ ! -d "$base/screen" ] || [ ! -f "$base/ref-excmds.txt" ] \
         || [ ! -f "$base/ref-argv.txt" ] || [ ! -f "$base/ref-term.txt" ] \
         || [ ! -f "$base/ref-pty.txt" ]; then
     orphans
-    echo "  delta        no zero baselines at $base -- zero phase 0 records them"
+    echo "  delta        no zero baselines at $base -- phase 83 records them"
     echo "               (a recording is screen/, ref-excmds.txt, ref-argv.txt,"
     echo "                ref-pty.txt and ref-term.txt: tools/zrecord.sh)"
     exit 1

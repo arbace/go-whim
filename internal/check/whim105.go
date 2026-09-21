@@ -14,7 +14,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim105", Zero22) }
+func init() { register("whim105", Whim105) }
 
 const (
 	z22Room  = "iobuff_room(void)\n{\n    if (IObuff == NULL)\n    {\n        return 0;\n    }\n    return  (1024+1) ;\n}"
@@ -56,8 +56,8 @@ var (
 	z22InFunc = regexp.MustCompile(`In function (?:‘(\w+)’|'(\w+)')`)
 )
 
-// Zero22 is phase 22's check: the variadic collapse.
-func Zero22(w io.Writer, args []string) error {
+// Whim105 is phase 105's check: the variadic collapse.
+func Whim105(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim105 <work-dir> <state-dir>")
 	}
@@ -167,7 +167,7 @@ func Zero22(w io.Writer, args []string) error {
 		want int
 		why  string
 	}{
-		{"va_list", 8, "the prototype and definition of `vim_vsnprintf`, the same of `vim_vsnprintf_typval` plus its local, `vim_snprintf`'s local and `skip_to_arg`'s two parameters -- FOUR functions, and ZERO-PLAN.md 4c names three"},
+		{"va_list", 8, "the prototype and definition of `vim_vsnprintf`, the same of `vim_vsnprintf_typval` plus its local, `vim_snprintf`'s local and `skip_to_arg`'s two parameters -- FOUR functions, and WHIM-PLAN.md II.4c names three"},
 		{"va_end", 3, "vim_snprintf's, vim_vsnprintf_typval's two"},
 		{"va_arg", 21, "UNCHANGED, all of them inside vim_vsnprintf_typval"},
 		{"va_copy", 2, "UNCHANGED, likewise"},
@@ -203,12 +203,12 @@ func Zero22(w io.Writer, args []string) error {
 	rows := z6RowRe.FindAllString(newC, -1)
 	got, _ := harness.CommandNamesIn([]byte(newC), "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
-		fail = append(fail, "cmdnames[] is not the 98 rows phase 10 left -- this phase touches no Ex command")
+		fail = append(fail, "cmdnames[] is not the 98 rows phase 93 left -- this phase touches no Ex command")
 	}
 	if i := strings.Index(newC, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newC[i:], "\n};")
 		if m := len(z12RowRe.FindAllString(newC[i:i+j], -1)); m != 107 {
-			fail = append(fail, fmt.Sprintf("options[] has %d rows, expected the 107 phase 20 left -- this phase removes no option", m))
+			fail = append(fail, fmt.Sprintf("options[] has %d rows, expected the 107 phase 103 left -- this phase removes no option", m))
 		}
 	}
 	nd, allInc := 0, true
@@ -222,7 +222,7 @@ func Zero22(w io.Writer, args []string) error {
 		}
 	}
 	if nd != 11 || !allInc {
-		fail = append(fail, "the output does not have exactly the eleven `#include` directives phase 21 left.  <stdarg.h> STAYS: the one surviving va_start needs it, and it leaves at the SPLIT and not here")
+		fail = append(fail, "the output does not have exactly the eleven `#include` directives phase 104 left.  <stdarg.h> STAYS: the one surviving va_start needs it, and it leaves at the SPLIT and not here")
 	}
 	for k := 1; k < len(L); k++ {
 		if L[k] == "" && L[k-1] == "" {
@@ -236,7 +236,7 @@ func Zero22(w io.Writer, args []string) error {
 		}
 		return harness.ErrReported
 	}
-	r.say("`va_start` 8 -> 1 AND THE ONE IS INSIDE `vim_snprintf`; `va_list` 15 -> 8, `va_end` 10 -> 3, `va_arg` and `va_copy` untouched at 21 and 2.  The eight surviving `va_list` mentions are in FOUR functions -- vim_snprintf, vim_vsnprintf, vim_vsnprintf_typval and skip_to_arg -- where ZERO-PLAN.md 4c names three")
+	r.say("`va_start` 8 -> 1 AND THE ONE IS INSIDE `vim_snprintf`; `va_list` 15 -> 8, `va_end` 10 -> 3, `va_arg` and `va_copy` untouched at 21 and 2.  The eight surviving `va_list` mentions are in FOUR functions -- vim_snprintf, vim_vsnprintf, vim_vsnprintf_typval and skip_to_arg -- where WHIM-PLAN.md II.4c names three")
 	r.cont("the seven wrappers are at 0 mentions; `vim_snprintf` %d -> %d, one redundant prototype away and one mention at each of the 129 sites; five helpers at 15, 106, 119, 13 and 3; the tails at msg 63, emsg 218, iemsg 45, msg_attr 21 and msg_attr_keep 6, every one of them a function that already existed", mentions(oldC, "vim_snprintf"), mentions(newC, "vim_snprintf"))
 	r.cont("cmdnames[] 98 unchanged, options[] 107 unchanged, eleven #includes unchanged -- <stdarg.h> stays for the one va_start and leaves at the SPLIT -- and no run of two blank lines")
 
@@ -323,7 +323,7 @@ func Zero22(w io.Writer, args []string) error {
 	}
 	for _, absent := range strings.Fields("open creat openat stat access fcntl getcwd strerror fopen fdopen opendir fclose getc putc fsync exit _exit") {
 		if contains(after, absent) {
-			return stop("%s is undefined, and no phase since 13 has put it back", absent)
+			return stop("%s is undefined, and no phase since 96 has put it back", absent)
 		}
 	}
 	r.say("symbols %s -> %s, THE SAME SET as a comm that is empty in BOTH directions -- nothing left and nothing arrived.  That equality is the headline: eight functions calling va_start cannot be split and one can, but until the formatter LEAVES THE FILE no symbol can move",

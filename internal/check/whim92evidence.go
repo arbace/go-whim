@@ -71,13 +71,13 @@ func z9Evidence(r *rep, tmp, inst, state, f, old, bin string) error {
 	probeWith, _ := marked(filepath.Join(tmp, "REC.probe"), z9Mark)
 	total := len(walkFiles(filepath.Join(tmp, "REC.probe")))
 	ctlWith, ctlQuiet := marked(filepath.Join(tmp, "REC.ctl"), z9Mark)
-	// THE COUNT IS REPORTED AND NOT PINNED.  zero phase 40 added a sixth part
+	// THE COUNT IS REPORTED AND NOT PINNED.  phase 123 added a sixth part
 	// to a recording and this phase once said `not the 106 this phase counted`
 	// at a corpus that had grown on purpose.
 	if total < 100 {
 		r.say("a recording is %d files, and a comparison of two things", total)
 		r.cont("nothing wrote passes.  The COUNT is reported and not pinned:")
-		r.cont("zero phase 40 added a sixth part to a recording and this")
+		r.cont("phase 123 added a sixth part to a recording and this")
 		r.cont("phase said `not the 106 this phase counted` at a corpus that")
 		r.cont("had grown on purpose.  What is asserted below is the SHAPE --")
 		r.cont("0 marked, and the control marked everywhere but the two")

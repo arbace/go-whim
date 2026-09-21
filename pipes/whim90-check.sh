@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 90 (zero phase 7), the check -- nothing can take bytes off a disk on request any more.
-# See pipes/whim90-edit.sh, and ZERO-GOAL.md.
+# Whim phase 90, the check -- nothing can take bytes off a disk on request any more.
+# See pipes/whim90-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim90-check.sh <work-dir> <state-dir>     (run from the repository root)
 #
@@ -34,7 +34,7 @@
 #        speaker, and after this phase nothing in the file says it.  Both are
 #        asserted, in opposite directions.
 #
-# 2. THE LINE AGAINST THE PHASE THAT STOPS READING A BYTE (ZERO-PLAN.md P8), stated
+# 2. THE LINE AGAINST THE PHASE THAT STOPS READING A BYTE (WHIM-PLAN.md part II P8), stated
 #    as counts so that taking any of it here would fail rather than widen quietly:
 #    `readfile` is required to keep EXACTLY 5 mentions -- its prototype, its
 #    definition and the three calls in read_buffer() and open_buffer() -- with
@@ -42,7 +42,7 @@
 #    that were ex_read's.  The table is checked the same way: 104 rows, names()
 #    reading exactly those, the static_assert in place, and the FOUR rows of margin
 #    above create_cmdidxs's floor of 100 said out loud -- the `:edit` phase is the
-#    one that must lower it (ZERO-PLAN.md 3a).
+#    one that must lower it (WHIM-PLAN.md II.3a).
 #
 # 3. THE PROBES, on BOTH binaries, because THE CORPUS CANNOT SEE A FILE BEING READ.
 #    Every one of `zcases`'s 102 cases types its own text and names no file:
@@ -70,7 +70,7 @@
 #
 # 5. A REAL TERMINAL.  Every probe above went through a pipe.  The session types
 #    `:r <file>` on a pty, where the file is one the RUNNER wrote -- the editor has
-#    had no way to write one since phase 6 -- and the old binary puts its line in
+#    had no way to write one since phase 89 -- and the old binary puts its line in
 #    the buffer while this one answers E492.  An ordinary editing session beside it
 #    is required to be identical.
 #

@@ -16,7 +16,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim104", Zero21) }
+func init() { register("whim104", Whim104) }
 
 var z21PrintfStmt = regexp.MustCompile(`^\s*(printf|fprintf)\(`)
 
@@ -39,9 +39,9 @@ func z21BareWrite(l string) bool {
 	}
 }
 
-// Zero21 is phase 21's check: the messages are the editor's, the writing is
+// Whim104 is phase 104's check: the messages are the editor's, the writing is
 // the host's.
-func Zero21(w io.Writer, args []string) error {
+func Whim104(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim104 <work-dir> <state-dir>")
 	}
@@ -133,15 +133,15 @@ func Zero21(w io.Writer, args []string) error {
 		{"printf", 10, "THE COUNTING TRAP: nine `format(printf, ...)` attributes and the string \"E767: Too many arguments for printf()\".  None is a call, and `assert printf at 0` fails on a correct phase"},
 		{"vim_host_message", 10, "the declaration, vim_main()'s installation and the EIGHT call sites -- 4 in msg_puts_printf, 2 in exit_scroll, 1 in report_term_error, 1 in mainerr"},
 		{"host_message", 2, "the launcher's definition and the argument main() passes.  `vim_host_message` is a DIFFERENT word to \\b"},
-		{"vim_host_exit", 3, "phase 19's, untouched"},
-		{"host_exit", 2, "phase 19's, untouched"},
+		{"vim_host_exit", 3, "phase 102's, untouched"},
+		{"host_exit", 2, "phase 102's, untouched"},
 		{"vim_main", 2, "its definition and the one call from the launcher"},
 		{"main", 1, "still the only bare `main` in the file"},
 		{"msg_use_printf", 6, "a prototype, a definition and four call sites -- UNTOUCHED.  It returns TRUE in 23 of 106 records, so it is not dead and folding it is a later phase"},
 		{"msg_puts_printf", 3, "a prototype, a definition and one call -- all 75 lines stay and only what they call changes"},
 		{"info_message", 9, "untouched: the four sites that read it kept their `if (info_message)` shape, so this phase changes which primitive writes and nothing about which stream"},
-		{"errno", 3, "UNCHANGED, and said out loud: the #include and two uses, both inside phase 20's host block.  __errno_location is NOT this phase's and is required below to be still undefined"},
-		{"vim_snprintf", 73, "four more than the input -- report_term_error and mainerr each assemble in two arms, with the only formatter the file has had since phase 14"},
+		{"errno", 3, "UNCHANGED, and said out loud: the #include and two uses, both inside phase 103's host block.  __errno_location is NOT this phase's and is required below to be still undefined"},
+		{"vim_snprintf", 73, "four more than the input -- report_term_error and mainerr each assemble in two arms, with the only formatter the file has had since phase 97"},
 		{"musl_strlen", 134, "one more than the input: host_message's, in the len < 0 arm.  The launcher may call it -- it is the same translation unit and it goes to the host file at the split"},
 	} {
 		if m := mentions(newC, p.name); m != p.want {
@@ -180,12 +180,12 @@ func Zero21(w io.Writer, args []string) error {
 	rows := z6RowRe.FindAllString(newC, -1)
 	got, _ := harness.CommandNamesIn([]byte(newC), "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
-		fail = append(fail, "cmdnames[] is not the 98 rows phase 10 left -- this phase touches no Ex command")
+		fail = append(fail, "cmdnames[] is not the 98 rows phase 93 left -- this phase touches no Ex command")
 	}
 	if i := strings.Index(newC, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newC[i:], "\n};")
 		if m := len(z12RowRe.FindAllString(newC[i:i+j], -1)); m != 107 {
-			fail = append(fail, fmt.Sprintf("options[] has %d rows, expected the 107 phase 20 left -- this phase touches no option", m))
+			fail = append(fail, fmt.Sprintf("options[] has %d rows, expected the 107 phase 103 left -- this phase touches no option", m))
 		}
 	}
 	dirs := func(t string) (int, bool) {
@@ -203,7 +203,7 @@ func Zero21(w io.Writer, args []string) error {
 	dn, dok := dirs(newC)
 	do, _ := dirs(oldC)
 	if do != 12 || dn != 11 || !dok {
-		fail = append(fail, fmt.Sprintf("the directive count is %d -> %d, expected 12 -> 11 with every survivor an #include of a system header.  ZERO-GOAL.md permits a phase to REMOVE one and forbids adding one; this is the second removal in the pipeline, and <stdio.h> is the header these seven symbols came from", do, dn))
+		fail = append(fail, fmt.Sprintf("the directive count is %d -> %d, expected 12 -> 11 with every survivor an #include of a system header.  WHIM-GOAL.md permits a phase to REMOVE one and forbids adding one; this is the second removal in the pipeline, and <stdio.h> is the header these seven symbols came from", do, dn))
 	}
 	if strings.Contains(newC, "<stdio.h>") {
 		fail = append(fail, "<stdio.h> is still named somewhere in the output")
@@ -229,7 +229,7 @@ func Zero21(w io.Writer, args []string) error {
 	r.cont("exactly TWO bare write() call sites: mch_write's write(1, ...) and host_message's write(err ? 2 : 1, ...).  msg_use_printf 6, msg_puts_printf 3 and info_message 9 are UNTOUCHED, and errno does not move at all (3 -> 3)")
 	r.cont("directives 12 -> 11, <stdio.h> gone and named nowhere; cmdnames[] 98 and options[] 107 unchanged; no run of two blank lines")
 
-	// --- 3. phase 20's structural check --------------------------------------
+	// --- 3. phase 103's structural check --------------------------------------
 	if err := run(w, "tools/st.sh", "zhostonly", f); err != nil {
 		return harness.ErrReported
 	}
@@ -255,19 +255,19 @@ func Zero21(w io.Writer, args []string) error {
 			r.say("%s is NOT undefined any more, and this phase does not", want)
 			r.cont("claim to free it.  __errno_location in particular is held")
 			// The shell's backquotes ran `== EINTR` as a command, which failed
-			// and printed nothing: the line reads "by phase 20's two  tests".
-			r.cont("by phase 20's two  tests and leaves at the split.")
+			// and printed nothing: the line reads "by phase 103's two  tests".
+			r.cont("by phase 103's two  tests and leaves at the split.")
 			return harness.ErrReported
 		}
 	}
 	for _, absent := range strings.Fields("open creat openat stat access fcntl getcwd strerror fopen fdopen opendir fclose getc putc fsync exit _exit close dup isatty") {
 		if contains(after, absent) {
-			return stop("%s is undefined, and no phase since 13 has put it back", absent)
+			return stop("%s is undefined, and no phase since 96 has put it back", absent)
 		}
 	}
 	r.say("symbols %s -> %s, the gone set is EXACTLY fflush fputc fputs fwrite printf putchar stderr and NOTHING arrives -- four of the seven (fputc fputs fwrite putchar) are gcc's own, named nowhere in the source, predicted to leave with the construct and verified by building",
 		strings.TrimSpace(readFile(".cache/symbols/last/before")), strings.TrimSpace(readFile(".cache/symbols/last/after")))
-	r.say("write and read are REQUIRED still present -- the core still writes fd 1 through mch_write and the host writes fd 2 through host_message, which is what is left of ZERO-PLAN.md 4c; __errno_location is required present too, and it is phase 20's")
+	r.say("write and read are REQUIRED still present -- the core still writes fd 1 through mch_write and the host writes fd 2 through host_message, which is what is left of WHIM-PLAN.md II.4c; __errno_location is required present too, and it is phase 103's")
 
 	// --- 5. the binary -------------------------------------------------------
 	b := &rep{tag: "build", w: w}
@@ -349,7 +349,7 @@ func Zero21(w io.Writer, args []string) error {
 		tail5()
 		return harness.ErrReported
 	}
-	r.say("the second opinion: tools/zerodelta.sh REFUSES the control and names %d argv rows, against the 24 records diff -r sees.  That gap is exactly why diff -r is the first check and this is the second: ten of the 24 are rows phases 4 and 5 already declared, and tools/zcompare.py no longer compares them", named)
+	r.say("the second opinion: tools/zerodelta.sh REFUSES the control and names %d argv rows, against the 24 records diff -r sees.  That gap is exactly why diff -r is the first check and this is the second: ten of the 24 are rows phases 87 and 88 already declared, and tools/zcompare.py no longer compares them", named)
 	return nil
 }
 
@@ -576,12 +576,12 @@ func z21Probes(r *rep, old, bin, tmp string) error {
 		return harness.ErrReported
 	}
 	sq := func(k string) seq { return g[k].(seq) }
-	r.say("MUST NOT DIFFER: the whole recording, `diff -r`, %d lines -- 102 screen cases, ref-excmds.txt, ref-argv.txt, ref-pty.txt and ref-term.txt.  THAT is the check and not tools/zerodelta.sh, which accepts further movement in the ten argv rows phases 4 and 5 already declared", dNew)
+	r.say("MUST NOT DIFFER: the whole recording, `diff -r`, %d lines -- 102 screen cases, ref-excmds.txt, ref-argv.txt, ref-pty.txt and ref-term.txt.  THAT is the check and not tools/zerodelta.sh, which accepts further movement in the ten argv rows phases 87 and 88 already declared", dNew)
 	r.cont("MUST DIFFER, the control: this phase's own output with `err ? 2 : 1` made `err ? 1 : 1`, one character, moves %d lines of `diff -r`.  The table can fail", dCtl)
 	r.cont("MUST DIFFER, the write boundaries, with a SOCK_SEQPACKET fd 2: `-Q` is %d writes of %d bytes on the input and %d of %d here; `-T no-such-term-9x` is %d of %d and %d of %d.  The same bytes, one syscall -- and the latent hazard goes with them, stdout's buffered printf arm arriving after everything the editor drew",
 		sq("seq_Q_old").n, len(sq("seq_Q_old").b), sq("seq_Q_new").n, len(sq("seq_Q_new").b),
 		sq("seq_T_old").n, len(sq("seq_T_old").b), sq("seq_T_new").n, len(sq("seq_T_new").b))
-	r.cont("THE INSTRUMENTED PAIR, phase 9's shape: the input built with write(2, \"MESSAGE-OUT\\n\", 12) at all 19 output statements and the output with the IDENTICAL instrument inside host_message() mark exactly the same %d of the 30 argv rows, by name, and 0 of 102 screens, 0 excmds, 0 pty, 0 term.  The 24 are 23 mainerr and one report_term_error, so msg_puts_printf and exit_scroll's printf arm fire in ZERO of 106 records and are nonetheless kept", len(av.hit))
+	r.cont("THE INSTRUMENTED PAIR, phase 92's shape: the input built with write(2, \"MESSAGE-OUT\\n\", 12) at all 19 output statements and the output with the IDENTICAL instrument inside host_message() mark exactly the same %d of the 30 argv rows, by name, and 0 of 102 screens, 0 excmds, 0 pty, 0 term.  The 24 are 23 mainerr and one report_term_error, so msg_puts_printf and exit_scroll's printf arm fire in ZERO of 106 records and are nonetheless kept", len(av.hit))
 	r.cont("THE BOUND, stated rather than discovered: an unknown option of 900 characters is the same %d bytes on both binaries and one of 2,000 is %d bytes on the input and exactly %d here; a -T of 2,000 is %d against %d -- the same cap, reached by the other speaker.  1024 is IOSIZE and is what every other message in this editor is built in",
 		len(by("long900_old")), len(by("long2k_old")), len(by("long2k_new")), len(by("termlong_old")), len(by("termlong_new")))
 	return nil

@@ -16,7 +16,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim112", Zero29) }
+func init() { register("whim112", Whim112) }
 
 // The probe text, in ONE place: part 1 asserts that every codepoint this
 // phase changes on the default arm, and every one it stops mapping, is probed
@@ -160,8 +160,8 @@ type z29Sum struct {
 	defs                            string
 }
 
-// Zero29 is phase 29's check: the case tables become one, and it is the union.
-func Zero29(w io.Writer, args []string) error {
+// Whim112 is phase 112's check: the case tables become one, and it is the union.
+func Whim112(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim112 <work-dir> <state-dir>")
 	}
@@ -418,7 +418,7 @@ func Zero29(w io.Writer, args []string) error {
 		}
 	}
 	if len(d) != 11 || !allInc {
-		src = append(src, "the directives are not the eleven #includes phase 21 left")
+		src = append(src, "the directives are not the eleven #includes phase 104 left")
 	} else {
 		for k, i := range d {
 			if i != d[0]+k {
@@ -518,7 +518,7 @@ func Zero29(w io.Writer, args []string) error {
 			return s
 		}
 		return stop("`nm -u` moved: gone [%s] arrived [%s].  CHANGING DATA FREES NO LIBC SYMBOL AND NEEDS NONE -- "+
-			"the eleven phase 15 freed were freed by the two wrappers, which this phase keeps", sp(gone), sp(came))
+			"the eleven phase 98 freed were freed by the two wrappers, which this phase keeps", sp(gone), sp(came))
 	}
 	ext := nmField26(filepath.Join(tmp, "new.o"), []string{"--extern-only", "--defined-only"}, 2)
 	if extS := strings.Join(ext, " ") + " "; extS != "main " {
@@ -527,7 +527,7 @@ func Zero29(w io.Writer, args []string) error {
 	for _, absent := range []string{"towupper", "towlower", "toupper", "tolower", "open", "stat", "fopen"} {
 		for _, u := range uNew {
 			if u == absent {
-				return stop("%s is undefined again, and phase 15 freed it", absent)
+				return stop("%s is undefined again, and phase 98 freed it", absent)
 			}
 		}
 	}
@@ -668,7 +668,7 @@ func Zero29(w io.Writer, args []string) error {
 	}
 	r.say("cut at the first #include, %d lines -> %d, 0 directives, 0 errors and no warning that is not a "+
 		"boundary name -- and THE SAME %d NAMES either side, read at run time, so the core -> host interface "+
-		"phase 27 drew did not move", cutLines["old.c"], cutLines["whim-vim.c"],
+		"phase 110 drew did not move", cutLines["old.c"], cutLines["whim-vim.c"],
 		strings.Count(boundary["whim-vim.c"], "\n"))
 
 	// --- 5. the binary, and the two controls ----------------------------------

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Whim phase 97 (zero phase 14) -- the strings are the editor's own.  See ZERO-GOAL.md.
+# Whim phase 97 -- the strings are the editor's own.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim97-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
@@ -26,7 +26,7 @@
 # (Measured and NOT taken: `-fno-builtin` and `-ffreestanding` each ADD `abs fprintf
 # labs` and remove `fputc fputs fwrite putchar`.  A different set, not a smaller
 # problem, and none of it is this phase's.  ZEROCFLAGS is untouched, so this phase
-# edits no makefile and zero.mk needs no change.)
+# edits no makefile and whim.mk needs no change.)
 #
 # `sprintf` IS TWO POPULATIONS AND THE SPLIT IS THE WHOLE STORY.  Of its 22
 # occurrences, THIRTEEN are ordinary call sites that become `vim_snprintf(dest, size,
@@ -70,7 +70,7 @@ state=${2:?usage: whim97-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

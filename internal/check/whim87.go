@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim87", Zero4) }
+func init() { register("whim87", Whim87) }
 
 // z4Gone are the 21 identifiers the edit counted, matched BY WORD, plus the two
 // strings only reachable through them.  `e_at_end_of_file`'s string is here and
@@ -29,7 +29,7 @@ var z4Gone = []string{
 
 var z4GoneText = []string{"Entering Ex mode", "E501: At end-of-file"}
 
-// z4GoneWord is by WORD and not by substring: `stdout_isatty` is phase 2's and
+// z4GoneWord is by WORD and not by substring: `stdout_isatty` is phase 85's and
 // survives this phase, and it contains `stdout`.
 var z4GoneWord = []string{"setvbuf", "stdout"}
 
@@ -46,7 +46,7 @@ const (
 	z4Unk   = "Unknown option argument"
 )
 
-// Zero4 is phase 4's check: Ex mode, silent mode and the four options.
+// Whim87 is phase 87's check: Ex mode, silent mode and the four options.
 //
 // THE DECLARED DELTA IS NOT THE WHOLE EVIDENCE, for two reasons that pull in
 // opposite directions.  pipes/zero.delta says six records move and
@@ -56,7 +56,7 @@ const (
 // probes say it, by running both binaries -- and they are in two halves, the
 // six that MUST differ and the twenty-four that must NOT, because a probe that
 // only checks the new binary passes just as well on a phase that did nothing.
-func Zero4(w io.Writer, args []string) error {
+func Whim87(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim87 <work-dir> <state-dir>")
 	}

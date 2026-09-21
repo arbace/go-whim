@@ -17,7 +17,7 @@ import (
 //
 // The terminal part is ZTermCheck and NOT TermCheck, and the difference is one
 // argument: the whim tool opens a FILE to put something on the screen, and
-// from zero phase 5 a file argument is an unknown option, so every row would
+// from phase 88 a file argument is an unknown option, so every row would
 // read `(none)`.
 func ZRecord(bin, src, out string, w io.Writer) error {
 	if err := os.RemoveAll(out); err != nil {

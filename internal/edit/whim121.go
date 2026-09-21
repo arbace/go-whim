@@ -11,7 +11,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { register("whim121", Zero38) }
+func init() { register("whim121", Whim121) }
 
 // THE ONLY THING WRITTEN DOWN IN THIS PHASE.  Everything else is computed from
 // it and from the source: which rows go, which capability tables die, which
@@ -39,10 +39,10 @@ type whim121Edit struct {
 	rep  string
 }
 
-// Zero38 takes the terminal vocabulary: builtin_terminals[] goes from ten rows
+// Whim121 takes the terminal vocabulary: builtin_terminals[] goes from ten rows
 // to two, with three capability tables, find_builtin_term()'s xterm-family
 // clause and a repair to set_termname()'s no-screen fallback.
-func Zero38(text []byte, w io.Writer) ([]byte, error) {
+func Whim121(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"terms", w}
 	b := cutil.Blank(text)
 
@@ -322,8 +322,8 @@ func Zero38(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- 5. ONE PASS over the original text ------------------------------
 	// Every edit below is an offset into the text as it was read.  A second
-	// pass would index its spans against the first pass's output; zero phase
-	// 23 measured that and left five of 437 names behind in a file that still
+	// pass would index its spans against the first pass's output; phase
+	// 106 measured that and left five of 437 names behind in a file that still
 	// compiled.
 	var edits []whim121Edit
 	for _, r := range rows {

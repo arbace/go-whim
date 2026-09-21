@@ -13,7 +13,7 @@ var zRowRe = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
 
 func zRows(text []byte) [][]byte { return zRowRe.FindAll(text, -1) }
 
-// zResidue is step 5 of zero 6, 7, 8 and 9, which those phases write the same
+// zResidue is step 5 of phases 89, 90, 91 and 92, which those phases write the same
 // way because it is the same argument: THE TEXT THIS EDIT LEAVES DOES NOT
 // COMPILE, and the honest form of that is a computation rather than a list of
 // handlers.  Every surviving mention of a dying name must be inside a function
@@ -21,8 +21,8 @@ func zRows(text []byte) [][]byte { return zRowRe.FindAll(text, -1) }
 // is the whole reason the sweep, and not the phase, takes the handler.
 //
 // It returns the number of mentions, the holding functions' names sorted, and
-// the dying names actually FOUND, sorted -- zero 8 reports that third one where
-// 6, 7 and 9 report the list they were given.  Each phase writes its own report
+// the dying names actually FOUND, sorted -- phase 91 reports that third one where
+// 89, 90 and 92 report the list they were given.  Each phase writes its own report
 // line, because the wording is the phase's.
 func zResidue(p ph, text []byte, dying []string) (int, []string, []string, error) {
 	blanked := cutil.Blank(text)

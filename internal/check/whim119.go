@@ -16,7 +16,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim119", Zero36) }
+func init() { register("whim119", Whim119) }
 
 var (
 	z36Probe  = regexp.MustCompile(`PROBE b0=(\d+) vhs=(\d+) raise=(\d+)`)
@@ -98,8 +98,8 @@ func z36ShellRC(err error, ps *os.ProcessState) int {
 	return ps.ExitCode()
 }
 
-// Zero36 is phase 36's check: the core names no libc function at all.
-func Zero36(w io.Writer, args []string) error {
+// Whim119 is phase 119's check: the core names no libc function at all.
+func Whim119(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim119 <work-dir> <state-dir>")
 	}
@@ -538,7 +538,7 @@ func Zero36(w io.Writer, args []string) error {
 		len(blockAfter), len(blockBefore), tail)
 	r.cont("THE FOLD WAS SURVEYED AND NOT TAKEN: deathtrap() is byte-identical in and "+
 		"out, %d lines either side, and vim_handle_signal() differs in exactly one line.  "+
-		"`entered` has three reachable values since phase 17 and every one of them is read "+
+		"`entered` has three reachable values since phase 100 and every one of them is read "+
 		"-- 0 by the entry guard, 1 and 2 by BOTH the double-signal arm and `v_dying = "+
 		"entered`, which getout() tests -- so there is no fold to take and the phase says "+
 		"so here rather than leaving it to be believed", len(od))
@@ -566,7 +566,7 @@ func Zero36(w io.Writer, args []string) error {
 			}
 		}
 		if len(lines) <= 70000 {
-			return cut{}, stop("the cut of %s is %d lines, and zero.mk's floor is 70,000 -- a cut that found "+
+			return cut{}, stop("the cut of %s is %d lines, and whim.mk's floor is 70,000 -- a cut that found "+
 				"line 1 would be empty and every check below would pass on nothing", src, len(lines))
 		}
 		os.Remove(dst + ".o")

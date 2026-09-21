@@ -10,7 +10,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { register("whim113", Zero30) }
+func init() { register("whim113", Whim113) }
 
 var whim113Directive = regexp.MustCompile(`^ *#`)
 var whim113Include = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
@@ -33,15 +33,15 @@ const whim113New = `    if (msg_use_printf())
     }
 `
 
-// Zero30 folds msg_puts_attr_len()'s never-taken arm into one host_message()
+// Whim113 folds msg_puts_attr_len()'s never-taken arm into one host_message()
 // call.
-func Zero30(text []byte, w io.Writer) ([]byte, error) {
+func Whim113(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"msgfold", w}
 	linesBefore := p.lines(text)
 	runsBefore := p.blankRuns(text)
 
 	// ---- 0. the file this edit was written against -----------------------
-	// ELEVEN DIRECTIVES AND NONE ABOVE THE BOUNDARY.  Phase 27 made the first
+	// ELEVEN DIRECTIVES AND NONE ABOVE THE BOUNDARY.  Phase 110 made the first
 	// `#include` the core -> host boundary; this phase adds no directive,
 	// removes none and moves none.
 	lines := bytes.Split(text, []byte{'\n'})
@@ -135,7 +135,7 @@ func Zero30(text []byte, w io.Writer) ([]byte, error) {
 	p.say("and the THREE sites this phase leaves alone, each asserted verbatim: " +
 		"hit_return_msg's `!msg_use_printf()` guard, msg_clr_eos_force's test (folding " +
 		"it moves t_ti_stopterm 2,266 -> 2,280 and hup_clean 2,124 -> 2,142) and " +
-		"exit_scroll's (its printf arm is ALIVE, and phase 21 named it dead)")
+		"exit_scroll's (its printf arm is ALIVE, and phase 104 named it dead)")
 
 	// ---- 3. the fold, at the one anchor whose count is 1 -----------------
 	if got := bytes.Count(text, []byte(whim113Old)); got != 1 {

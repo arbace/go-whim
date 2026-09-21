@@ -1,9 +1,9 @@
 #!/bin/sh
-# Whim phase 86 (zero phase 3) -- the instrument becomes the screen.  See ZERO-GOAL.md, ZERO-PLAN.md.
+# Whim phase 86 -- the instrument becomes the screen.  See WHIM-GOAL.md, WHIM-PLAN.md part II.
 #
 # Usage: pipes/whim86.sh <work-dir>       (run from the repository root)
 #
-# NO SOURCE CHANGE AT ALL: r3's whim-vim.c is r2's, byte for byte, and this phase
+# NO SOURCE CHANGE AT ALL: q86's whim-vim.c is q85's, byte for byte, and this phase
 # asserts it.  What changes is how every later phase is measured.
 #
 # Zero's editor is on its way to having no file to write, no file to read and no
@@ -15,7 +15,7 @@
 #
 # The instrument they are replaced with is `tools/zrecord.sh`: keystrokes in on
 # stdin, escape sequences out on stdout, and a screen per redraw rebuilt from them
-# (ZERO-PLAN.md 2).  Five parts -- 102 keystroke cases, every Ex command typed at
+# (WHIM-PLAN.md II.2).  Five parts -- 102 keystroke cases, every Ex command typed at
 # `:`, every command line the parser may see, four pty scenarios for what only a
 # terminal shows, and whim's own terminal table.
 #
@@ -29,9 +29,9 @@
 #      FAIL -- CLAUDE.md's canonical break -- must move EXACTLY the eleven cases
 #      that increment or decrement, and no others.  A corpus that cannot fail is
 #      not evidence;
-#   5. the declared delta holds: tools/zerodelta.sh --phase 3 against
-#      .reference/zero-baselines, which zero phase 0 records from whim-vim.  Those
-#      baselines are the INPUT's behaviour, so the delta is cumulative -- phase 2
+#   5. the declared delta holds: tools/zerodelta.sh --phase 86 against
+#      .reference/zero-baselines, which phase 83 records from whim-vim.  Those
+#      baselines are the INPUT's behaviour, so the delta is cumulative -- phase 85
 #      removed the two "not to a terminal" warnings, and `stderr-moved` is that,
 #      declared once and checked at every phase after it;
 #   6. the old instrument still reaches whim's baselines: tools/whimdelta.sh on the

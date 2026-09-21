@@ -2,7 +2,7 @@
 #
 # Sourced, not run:  . tools/pipeline.sh [whim]
 #
-#   whim-vim.c = G(slim-vim.c)       WHIM-GOAL.md and ZERO-GOAL.md, work in whim/
+#   whim-vim.c = G(slim-vim.c)       WHIM-GOAL.md, work in whim/
 #
 # There was a second pipeline, zero, which took the committed whim-vim.c to an
 # embeddable core.  It is phases 83 onwards of this one now -- zero phase N is whim

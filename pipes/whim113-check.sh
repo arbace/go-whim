@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 113 (zero phase 30), the check -- the message fold.
-# See pipes/whim113-edit.sh, and ZERO-PLAN.md 4c.
+# Whim phase 113, the check -- the message fold.
+# See pipes/whim113-edit.sh, and WHIM-PLAN.md II.4c.
 #
 # Usage: pipes/whim113-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -16,8 +16,8 @@
 #               definitions leave, `msg_use_printf` STAYS at 6 -- the test is alive
 #               and only the arm went -- the eleven directives are where they were,
 #               and tools/canon.sh is a NO-OP.
-#   THE PAIR    the phase's whole positive evidence, and it is phase 12's shape
-#               because this is phase 12's kind of dead.  The INPUT source built
+#   THE PAIR    the phase's whole positive evidence, and it is phase 95's shape
+#               because this is phase 95's kind of dead.  The INPUT source built
 #               twice, once with `write(2, "PP-ENTERED\n", 11)` as the first statement
 #               of `msg_puts_printf()` and once with the IDENTICAL instrument in
 #               `msg_puts_display()`: 0 of 106 records against 103 of 106.  A
@@ -42,18 +42,18 @@
 #               its false arm, the same site guarded by `msg_check_screen()` instead,
 #               and `exit_scroll()`'s printf arm folded to `out_char('\n')`.  The
 #               first two are the bug a corpus-only check would ship; the third is
-#               ALIVE and phase 21 named it dead.
+#               ALIVE and phase 104 named it dead.
 #   SYMBOLS     `nm -u` is THE SAME SET, as a `comm` empty in BOTH directions, and
-#               `main` is the only external symbol.  Phase 21 already took `printf`,
+#               `main` is the only external symbol.  Phase 104 already took `printf`,
 #               `fprintf`, `fflush` and `stderr`, so removing their last non-caller
-#               frees nothing: the assertion is an EQUALITY, which phase 21 predicted
+#               frees nothing: the assertion is an EQUALITY, which phase 104 predicted
 #               in as many words.
 #   THE CUT     `make editor.c`'s rule, run here: the prefix above the first
 #               `#include` is 0 directives, 0 errors under `-fsyntax-only`, and its
 #               warning set -- the core -> host boundary -- is compared WITH THE
-#               INPUT'S, name by name, at run time.  It is never written out: phase 28
+#               INPUT'S, name by name, at run time.  It is never written out: phase 111
 #               renames one of those names, and a check that spelled the set would
-#               fail on a tree that is exactly right (ZERO-GOAL.md, "count them as a
+#               fail on a tree that is exactly right (WHIM-GOAL.md, "count them as a
 #               rule and not as a table of constants").
 #
 # THE RECORDING CANNOT FAIL THIS PHASE AND CANNOT PASS IT EITHER, and that is stated

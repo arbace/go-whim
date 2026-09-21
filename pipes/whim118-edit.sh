@@ -1,24 +1,24 @@
 #!/bin/sh
-# Whim phase 118 (zero phase 35) -- the core calls nothing but the host.  ZERO-PLAN.md 4c, ZERO-GOAL.md.
+# Whim phase 118 -- the core calls nothing but the host.  WHIM-PLAN.md II.4c, WHIM-GOAL.md.
 #
 # Usage: pipes/whim118-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
 # THREE LIBC FUNCTIONS ARE LEFT IN THE CORE AND THIS PHASE MOVES ALL THREE.  Everything
 # else the core still asks the operating system for went out through a named call in an
-# earlier phase -- the terminal, the signals, the window size and the sleep at phase 20,
-# the exit at 19, the messages at 21, the clock at 26 and 28 -- and what survived is the
+# earlier phase -- the terminal, the signals, the window size and the sleep at phase 103,
+# the exit at 102, the messages at 104, the clock at 109 and 111 -- and what survived is the
 # three the editor uses so constantly that nobody looked at them: `malloc`, `free` and
 # `write`.  The user's words, 2026-09-19: "malloc, free and write should be moved to
 # host, then I guess there is no functional dependency in core beyond host."
 #
-#   malloc   its prototype and every call of it -- lalloc(), and since phase 34 the
+#   malloc   its prototype and every call of it -- lalloc(), and since phase 117 the
 #            malloc-copy-free that replaced ga_grow_inner's and get_keystroke's realloc
 #   free     its prototype and every call -- vim_free(), update_wincolor(), and phase
-#            34's two again
+#            117's two again
 #   write    its prototype and mch_write() -- every byte the editor draws
 #
 # HOW MANY OF EACH IS READ OFF THE TEXT AND NOT WRITTEN HERE.  This phase asserted the
-# counts once, was handed a boundary where phase 34 had changed two of them, and refused;
+# counts once, was handed a boundary where phase 117 had changed two of them, and refused;
 # what it asserts now is a PARTITION -- every mention above the boundary is the
 # declaration or a call, and each call is rewritten -- which is the same claim about a
 # file this phase has never seen (CLAUDE.md, *Rename a name across the whole file*).
@@ -46,8 +46,8 @@
 # only the arm it allocated -- but the wrapper inherits it rather than adding a test.
 #
 # WHY host_write() DROPS THE DESCRIPTOR AND THE OTHER TWO KEEP THEIR SIGNATURE.  The
-# core's two neighbours on this boundary already name no fd: phase 20's
-# `musl_read_input(char *buf, int len)` reads fd 0 inside the host, and phase 21's
+# core's two neighbours on this boundary already name no fd: phase 103's
+# `musl_read_input(char *buf, int len)` reads fd 0 inside the host, and phase 104's
 # `host_message(const char *msg, int len, int err)` chooses between fd 2 and fd 1 from a
 # FLAG, not from a number the core passes.  A descriptor is the host's idea of where the
 # screen is; `host_write(s, len)` is the core's -- "these bytes go to the screen" -- and
@@ -62,7 +62,7 @@
 # WHAT THIS PHASE IS FOR, AND IT IS A PROPERTY OF THE BLOCK AND NOT OF THESE THREE
 # NAMES.  Above the first `#include` the core carries a run of ORDINARY (non-`static`)
 # declarations -- the libc it calls, declared by hand since the headers went below it at
-# phase 27.  This edit does not assume what is in that run: it finds it, requires the
+# phase 110.  This edit does not assume what is in that run: it finds it, requires the
 # three lines it owns to be in it, takes exactly those three out, and prints what is
 # left.  When the run is EMPTY the core names no libc function at all, and every
 # outward call it makes is a `musl_` or a `host_`.  That is the arc's claim, and the
@@ -76,7 +76,7 @@ state=${2:?usage: whim118-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 91 (zero phase 8), the check -- nothing can point the editor at another file any more.
-# See pipes/whim91-edit.sh, and ZERO-GOAL.md.
+# Whim phase 91, the check -- nothing can point the editor at another file any more.
+# See pipes/whim91-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim91-check.sh <work-dir> <state-dir>     (run from the repository root)
 #
@@ -44,11 +44,11 @@
 #        buffer-name phase's, and a struct member that is only written draws no
 #        warning from anything.
 #
-# 2. THE LINE AGAINST THE PHASE THAT STOPS READING A BYTE (ZERO-PLAN.md P8), stated
+# 2. THE LINE AGAINST THE PHASE THAT STOPS READING A BYTE (WHIM-PLAN.md part II P8), stated
 #    as counts so that taking any of it here would fail rather than widen quietly:
 #    `readfile` keeps EXACTLY 5 mentions -- its prototype, its definition and the
 #    three calls in read_buffer() and open_buffer() -- and `read_buffer` 17.
-#    `open_buffer` goes 6 -> 5, and that is the one number ZERO-PLAN.md 3c got
+#    `open_buffer` goes 6 -> 5, and that is the one number WHIM-PLAN.md II.3c got
 #    backwards: do_ecmd was a caller of `open_buffer`, NOT of `readfile`, so what
 #    this phase costs the read path is one call site and nothing else.  The `uses`
 #    line the plan wrote for P8 is corrected there.
@@ -59,7 +59,7 @@
 #    changes what `:set` answers and nothing here sweeps `:set`, so the delta could
 #    not be checked, and `orphanopts` refuses the opposite direction.  It is
 #    asserted at exactly 2 mentions WITH its row, and the manifest carries
-#    `uses options:11 files:8 mechanical` for the phase that takes it.
+#    `uses options:94 files:91 mechanical` for the phase that takes it.
 #
 # 4. THE PROBES, on BOTH binaries, because THE CORPUS CANNOT SEE A FILE BEING
 #    OPENED.  The two cases it does see are `cmd_edit`, which types `:edit` with no
@@ -93,7 +93,7 @@
 #
 # 6. A REAL TERMINAL.  Every probe above went through a pipe.  The session types
 #    `:e <file>` on a pty, where the file is one the RUNNER wrote -- the editor has
-#    had no way to write one since phase 6 -- and the old binary puts its line in
+#    had no way to write one since phase 89 -- and the old binary puts its line in
 #    the buffer while this one answers E492.  An ordinary editing session beside it
 #    is required to be identical.
 #

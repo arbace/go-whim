@@ -1,5 +1,5 @@
 #!/bin/sh
-# Whim phase 85 (zero phase 2) -- the core stops diagnosing its own terminal.  See ZERO-GOAL.md.
+# Whim phase 85 -- the core stops diagnosing its own terminal.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim85-edit.sh <work-dir> <state-dir>      (run from the repository root)
 #
@@ -67,7 +67,7 @@ f="$work/whim-vim.c"
 
 # The input binary, for the check's before-and-after.  The flags are read out of the
 # boundary's makefile rather than written here a second time: zero's compile line is
-# the boundary's (ZERO-GOAL.md rule 8), and a copy of it in this file would be a
+# the boundary's (WHIM-GOAL.md core rule 8), and a copy of it in this file would be a
 # second statement of it that could drift.
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")

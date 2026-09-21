@@ -1,9 +1,9 @@
 #!/bin/sh
-# Whim phase 103 (zero phase 20) -- the signals and the terminal are the host's.  See ZERO-GOAL.md.
+# Whim phase 103 -- the signals and the terminal are the host's.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim103-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
-# ZERO-PLAN.md 4c's third step, and the largest of the three: `mch_get_shellsize`,
+# WHIM-PLAN.md II.4c's third step, and the largest of the three: `mch_get_shellsize`,
 # `mch_settmode` and the signal handlers move across, "which takes ioctl, tcgetattr,
 # tcsetattr, select, nanosleep and the nine signal symbols with them".  It takes none
 # of them, and the phase says so rather than implying a reduction it does not make.
@@ -99,8 +99,8 @@
 # recovers (measured to 26 s) on a build of this phase's own output with the two
 # `host_tty_set` calls deleted.  The parameter is `interruptible`.
 #
-# NOTHING ASKS WHETHER THIS IS A TERMINAL, which is ZERO-PLAN.md 1's decision 7 --
-# "the check goes entirely" -- finally kept: phases 2 and 4 left three `isatty()`
+# NOTHING ASKS WHETHER THIS IS A TERMINAL, which is WHIM-PLAN.md II.1's decision 7 --
+# "the check goes entirely" -- finally kept: phases 85 and 87 left three `isatty()`
 # calls alive and this takes all three.  `mch_check_win` and `stdout_isatty` go, and
 # `nv_esc`'s `out_redir` folds to the terminal arm.  `musl_is_terminal()` is NOT
 # written: the two questions had different subjects (fd 1 for the size, fd 0 for the
@@ -111,7 +111,7 @@
 # `close(0); vim_ignored = dup(2);` arm -- the core reopening its own stdin from its
 # stderr when stdin hit EOF and was not a terminal -- is the core second-guessing the
 # host about where input comes from, and once the host owns the terminal that is the
-# host's business.  ZERO-PLAN.md 4b's invariant becomes absolute: the core is handed
+# host's business.  WHIM-PLAN.md II.4b's invariant becomes absolute: the core is handed
 # fds 0, 1 and 2 and that is the whole of it.  The behaviour that goes is real and
 # probe-only: with stdin at EOF and a TERMINAL on fd 2 the old binary reopens fd 0 and
 # carries on editing (2,016 bytes drawn), where this one prints `Vim: Finished.` and
@@ -126,7 +126,7 @@
 # `deathtrap`: the process is killed by the signal, no message, tty still raw.  Keeping
 # the body reachable costs nothing and keeps all of it: `deathtrap -> preserve_exit ->
 # prepare_to_exit -> term_leave()` restores the tty, writes `Vim: Caught deadly signal
-# TERM`, and ends through phase 19's `vim_host_exit` -> `__builtin_longjmp` -> `return
+# TERM`, and ends through phase 102's `vim_host_exit` -> `__builtin_longjmp` -> `return
 # 1`.  MEASURED identical on both binaries, to the byte: 2,241 on SIGTERM and 2,240 on
 # SIGHUP, tty back to ICANON=1 ECHO=1 ISIG=1 ONLCR=1 ICRNL=1, exit 1.
 #
@@ -145,7 +145,7 @@
 # ONLY from `ui_get_shellsize()`'s side effect.  With the flag, a pty resized while
 # the editor sits at a Press-ENTER prompt stays 24x80 for ever (measured, twice).  So
 # `mch_get_shellsize()`'s body moves to the host as `musl_get_winsize(int *, int *)` --
-# which is the name ZERO-PLAN.md 4c gave it -- and `ui_get_shellsize()` keeps its
+# which is the name WHIM-PLAN.md II.4c gave it -- and `ui_get_shellsize()` keeps its
 # shape.  That also disposes of the `set_termname()` trap the survey spent an hour on:
 # on a pipe the host's ioctl fails, `ui_get_shellsize()` returns FAIL exactly as
 # before, `t_CWS` is still emitted and the recording does not move by one byte.
@@ -156,7 +156,7 @@ state=${2:?usage: whim103-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

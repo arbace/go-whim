@@ -12,15 +12,15 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim103", Zero20) }
+func init() { register("whim103", Whim103) }
 
 const (
 	z20SleepA = "    if (relax)\n    {\n        host_tty_set(FALSE, TRUE);\n    }\n"
 	z20SleepB = "    if (relax)\n    {\n        host_tty_set(TRUE, FALSE);\n    }\n"
 )
 
-// Zero20 is phase 20's check: the signals and the terminal are the host's.
-func Zero20(w io.Writer, args []string) error {
+// Whim103 is phase 103's check: the signals and the terminal are the host's.
+func Whim103(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim103 <work-dir> <state-dir>")
 	}
@@ -119,7 +119,7 @@ func Zero20(w io.Writer, args []string) error {
 		{"tcgetattr", 2, "host_tty_set() and musl_tty_keys()"},
 		{"tcsetattr", 1, "host_tty_set()"},
 		{"nanosleep", 1, "musl_delay()"},
-		{"select", 1, "musl_wait_for_input().  There is no #include for it: it arrives transitively through <sys/param.h> (ZERO-PLAN.md 4c)"},
+		{"select", 1, "musl_wait_for_input().  There is no #include for it: it arrives transitively through <sys/param.h> (WHIM-PLAN.md II.4c)"},
 		{"getpid", 2, "mch_get_pid()'s and vim_handle_signal()'s -- neither is this phase's, and getpid stays"},
 	} {
 		if n := mentions(newC, p.name); n != p.want {
@@ -129,12 +129,12 @@ func Zero20(w io.Writer, args []string) error {
 	rows := z6RowRe.FindAllString(newC, -1)
 	got, _ := harness.CommandNamesIn([]byte(newC), "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
-		fail = append(fail, "cmdnames[] is not the 98 rows phase 10 left -- this phase touches no Ex command")
+		fail = append(fail, "cmdnames[] is not the 98 rows phase 93 left -- this phase touches no Ex command")
 	}
 	if i := strings.Index(newC, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newC[i:], "\n};")
 		if n := len(z12RowRe.FindAllString(newC[i:i+j], -1)); n != 107 {
-			fail = append(fail, fmt.Sprintf("options[] has %d rows, expected 107 -- 'termresize' is the one row this phase removes, from the 108 phase 12 left", n))
+			fail = append(fail, fmt.Sprintf("options[] has %d rows, expected 107 -- 'termresize' is the one row this phase removes, from the 108 phase 95 left", n))
 		}
 	}
 	nd, allInc := 0, true
@@ -148,7 +148,7 @@ func Zero20(w io.Writer, args []string) error {
 		}
 	}
 	if nd != 12 || !allInc {
-		fail = append(fail, "the output does not have exactly the twelve `#include` directives phase 16 left.  This phase adds none and removes none: <errno.h> and <termios.h> are still needed, by the HOST")
+		fail = append(fail, "the output does not have exactly the twelve `#include` directives phase 99 left.  This phase adds none and removes none: <errno.h> and <termios.h> are still needed, by the HOST")
 	}
 	for k := 1; k < len(L); k++ {
 		if L[k] == "" && L[k-1] == "" {
@@ -196,13 +196,13 @@ func Zero20(w io.Writer, args []string) error {
 	}
 	for _, absent := range strings.Fields("open creat openat stat access fcntl getcwd strerror fopen fdopen opendir fclose getc putc fsync exit _exit") {
 		if contains(after, absent) {
-			r.say("%s is undefined, and no phase since 13 has put it back", absent)
+			r.say("%s is undefined, and no phase since 96 has put it back", absent)
 			return harness.ErrReported
 		}
 	}
 	r.say("symbols %s -> %s, the gone set is EXACTLY close dup isatty raise sigaddset sigismember sigprocmask and NOTHING arrives -- and sigaction sigemptyset kill ioctl tcgetattr tcsetattr nanosleep select are REQUIRED still present, because moving a call inside one translation unit frees nothing",
 		strings.TrimSpace(readFile(".cache/symbols/last/before")), strings.TrimSpace(readFile(".cache/symbols/last/after")))
-	r.say("ZERO-PLAN.md 4b in its strongest form: with close and dup gone the core cannot open, close or duplicate ANY descriptor -- it is handed fds 0, 1 and 2 and that is the whole of it")
+	r.say("WHIM-PLAN.md II.4b in its strongest form: with close and dup gone the core cannot open, close or duplicate ANY descriptor -- it is handed fds 0, 1 and 2 and that is the whole of it")
 
 	// --- 5. the binary -------------------------------------------------------
 	b := &rep{tag: "build", w: w}

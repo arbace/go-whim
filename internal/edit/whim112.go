@@ -11,7 +11,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { register("whim112", Zero29) }
+func init() { register("whim112", Whim112) }
 
 var z29Row = regexp.MustCompile(`^        \{(0x[0-9a-f]+),(0x[0-9a-f]+),(-?\d+),(-?\d+)\},?$`)
 
@@ -20,11 +20,11 @@ var z29Names = []string{"toUpper", "toLower", "musl_toUpper", "musl_toLower"}
 
 type z29Rec struct{ lo, hi, step, off int }
 
-// Zero29 makes the case tables one, and it is the UNION: vim's toUpper[]/toLower[]
-// and the musl_to*[] phase 15 vendored disagreed at 97 upper and 96 lower
+// Whim112 makes the case tables one, and it is the UNION: vim's toUpper[]/toLower[]
+// and the musl_to*[] phase 98 vendored disagreed at 97 upper and 96 lower
 // codepoints -- vim's newer by ninety-six and musl's knowing `ß -> ẞ` alone --
 // and a core with no C library has nothing for 'casemap' to choose between.
-func Zero29(text []byte, w io.Writer) ([]byte, error) {
+func Whim112(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"casemap", w}
 	t := string(text)
 	before := strings.Count(t, "\n")

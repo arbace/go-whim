@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 117 (zero phase 34), the check -- the core stops reallocating.
-# See pipes/whim117-edit.sh, and ZERO-PLAN.md 4c.
+# Whim phase 117, the check -- the core stops reallocating.
+# See pipes/whim117-edit.sh, and WHIM-PLAN.md II.4c.
 #
 # Usage: pipes/whim117-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -13,7 +13,7 @@
 #
 #   ARITHMETIC  computed FROM THE INPUT: `realloc` 3 -> 0 above the boundary and 1 -> 1
 #               below it, the libc prototype block one line shorter than the input's
-#               (counted, never stated -- phases 31 and 35 also shrink it), the file
+#               (counted, never stated -- phases 114 and 118 also shrink it), the file
 #               +10 lines, the directives unmoved relative to the text, and
 #               tools/canon.sh a NO-OP.
 #   THE HARNESS THE PHASE'S REAL EVIDENCE, because every way this rewrite can be wrong
@@ -25,8 +25,8 @@
 #               allocation, and through the 100-byte extension.  The two transcripts
 #               must be IDENTICAL and neither may report a finding.
 #   CONTROLS    seven, each a way the rewrite could be wrong, SIX OF WHICH MOVE and one
-#               of which does not -- which is reported rather than hidden (zero phases
-#               22 and 31 set that precedent).  Each mover is required to give its own
+#               of which does not -- which is reported rather than hidden (phases
+#               105 and 114 set that precedent).  Each mover is required to give its own
 #               named sanitizer finding, so "the harness noticed" is not one bucket.
 #   THE GUARD   what `if (gap->ga_data != nullptr)` actually buys, measured in both
 #               directions.  It changes NO behaviour here -- a null `ga_data` implies
@@ -37,7 +37,7 @@
 #   SYMBOLS     `nm -u` is THE SAME SET, as a `comm` empty in BOTH directions, and
 #               `realloc` is STILL IN IT.  A reader expects a phase that removes a call
 #               to move the count; this one does not, because adjust_types() is below
-#               the boundary and still calls it.  Phases 14, 15 and 21 each require
+#               the boundary and still calls it.  Phases 97, 98 and 104 each require
 #               `realloc` to be undefined and all three still pass.
 #   THE CUT     `make editor.c`'s rule run on both sides: 0 directives, 0 errors under
 #               `-fsyntax-only`, and the whole warning set -- the core -> host boundary

@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-func init() { registerArgs("whim127", Zero44) }
+func init() { registerArgs("whim127", Whim127) }
 
 const z44DbLineMax = 64
 
-// z44Bit is the mark, which used to be the top bit of an offset.  Zero phase 9's
+// z44Bit is the mark, which used to be the top bit of an offset.  Phase 92's
 // macro expansion left it spelled out, and this is THE TEXT and not a description
 // of it.
 const z44Bit = "((unsigned)1 << ((sizeof(unsigned) * 8) - 1))"
@@ -40,10 +40,10 @@ var (
 // first word of a declaration is a type, never one of these.
 var z44NotDecl = []string{"return", "goto", "break", "continue", "case", "else", "do"}
 
-// Zero44 de-pages the leaf: a data block stops being an index of byte offsets
+// Whim127 de-pages the leaf: a data block stops being an index of byte offsets
 // over a text arena and becomes `DATA_LN db_line[DB_LINE_MAX]`, so a line's text
 // is its own allocation valid for the lifetime of the process.
-func Zero44(text []byte, w io.Writer, args []string) ([]byte, error) {
+func Whim127(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p := ph{"leaf", w}
 	if len(args) != 1 {
 		return nil, p.die("usage: edit whim127 <file> <state-dir>")
@@ -156,8 +156,8 @@ func Zero44(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return "<file scope>"
 	}
 	// carry: the `ml_flags |=` statements inside [lo,hi], re-indented.  They are
-	// CARRIED and not written: ML_LOCKED_DIRTY and ML_LOCKED_POS are zero phase
-	// 42's to remove, and an edit that spelled them would break on it.
+	// CARRIED and not written: ML_LOCKED_DIRTY and ML_LOCKED_POS are phase
+	// 125's to remove, and an edit that spelled them would break on it.
 	carry := func(lo, hi, indent int) []string {
 		var out []string
 		for i := lo; i <= hi; i++ {
@@ -169,7 +169,7 @@ func Zero44(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	// lastArg: line i's call to callee loses its last argument, or gets `new` in
 	// its place.  The argument is found by PLACE and never by its text, because
-	// what it says is zero phase 42's and 43's to change and what it IS is this
+	// what it says is phase 125's and 43's to change and what it IS is this
 	// phase's.
 	lastArg := func(i int, callee, new string) (string, error) {
 		m := regexp.MustCompile(regexp.QuoteMeta(callee) + `\(`).FindStringIndex(lines[i])

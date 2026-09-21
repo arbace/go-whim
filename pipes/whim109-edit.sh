@@ -1,11 +1,11 @@
 #!/bin/sh
-# Whim phase 109 (zero phase 26) -- the header types and macros the core can own.
-# See ZERO-PLAN.md 4c, ZERO-GOAL.md, and .claude/briefs/zero-reorg.md 1 and 7.
+# Whim phase 109 -- the header types and macros the core can own.
+# See WHIM-PLAN.md II.4c, WHIM-GOAL.md, and .claude/briefs/zero-reorg.md 1 and 7.
 #
 # Usage: pipes/whim109-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
-# ZERO-PLAN.md 4c's design is that the FIRST `#include` becomes the boundary: the core
-# is the prefix above it and has no preprocessor syntax at all.  That is phase 27's
+# WHIM-PLAN.md II.4c's design is that the FIRST `#include` becomes the boundary: the core
+# is the prefix above it and has no preprocessor syntax at all.  That is phase 110's
 # move.  This phase is the part of it that can be done BEFORE the move, and doing it
 # before is the whole point -- see THE ORDERING below.
 #
@@ -13,7 +13,7 @@
 # `grep -ow` above the host block and every one is re-measured from the input here:
 #
 #   time_t          6   ->  `typedef long time_T;` and `time_T` at the other five.
-#                           The core chooses the width, as phase 23 made it choose
+#                           The core chooses the width, as phase 106 made it choose
 #                           usize's.  What PINS the choice is the `time` prototype
 #                           below: `long time(long *)` is accepted against <time.h>
 #                           only where `time_t` IS `long`.
@@ -27,7 +27,7 @@
 #                           changes code; see THE CLOCK.
 #   MIN 7 / MAX 16  ->      expanded at 19 lines to the text <sys/param.h> gives,
 #                           READ FROM THE HEADER rather than written here.
-#   offsetof        9   ->  `__builtin_offsetof`, which ZERO-PLAN.md 4c settled.
+#   offsetof        9   ->  `__builtin_offsetof`, which WHIM-PLAN.md II.4c settled.
 #   ten libc calls  ->      plain prototypes: malloc realloc free time getpid kill
 #                           write labs abs -- nine, `gettimeofday` being the tenth and
 #                           the one that cannot stay, its argument being a struct.
@@ -36,7 +36,7 @@
 # after `#include <limits.h>` is `enum : int { 0x7fffffff = ... };`, a syntax error, so
 # the twelve constants LONG_MAX INT_MAX PATH_MAX ULLONG_MAX LLONG_MAX INT_MIN SIGHUP
 # SIGTERM LONG_MIN LLONG_MIN SIZE_MAX EXIT_FAILURE can only be written once the
-# includes have moved.  They belong to phase 27 with the move, and they are the only
+# includes have moved.  They belong to phase 110 with the move, and they are the only
 # header-supplied names this phase leaves in the core.
 #
 # THE ORDERING -- WHY THIS IS A PHASE OF ITS OWN AND WHY IT COMES FIRST.  Every
@@ -97,7 +97,7 @@ state=${2:?usage: whim109-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

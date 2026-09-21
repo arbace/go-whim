@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 105 (zero phase 22), the check -- the variadic collapse.
-# See pipes/whim105-edit.sh, and ZERO-PLAN.md 4c.
+# Whim phase 105, the check -- the variadic collapse.
+# See pipes/whim105-edit.sh, and WHIM-PLAN.md II.4c.
 #
 # Usage: pipes/whim105-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -62,7 +62,7 @@
 # "the guards are correct by construction and the probes say so about b1 and b2".
 #
 # WHAT THE CHECK DELIBERATELY DOES NOT ASSERT: `vim_snprintf`'s mention count BEFORE the
-# edit.  Phase 21 formats its host message with `vim_snprintf`, so that number is the
+# edit.  Phase 104 formats its host message with `vim_snprintf`, so that number is the
 # message layer's and moves under it; this phase asserts the count AFTER, as the
 # transformer's own arithmetic against whatever it was handed.
 

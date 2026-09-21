@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 96 (zero phase 13), the check -- no `FILE *` that is never opened.
-# See pipes/whim96-edit.sh, and ZERO-GOAL.md.
+# Whim phase 96, the check -- no `FILE *` that is never opened.
+# See pipes/whim96-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim96-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -10,14 +10,14 @@
 # and `old.c`, the source it was built from.
 #
 # NOTHING THIS PHASE REMOVES IS REACHABLE, so there is no behavioural must-differ
-# probe and no dishonest one is offered instead.  It is phase 9's situation and phase
-# 9's answer: the source the phase was handed, built TWICE.
+# probe and no dishonest one is offered instead.  It is phase 92's situation and phase
+# 92's answer: the source the phase was handed, built TWICE.
 #
 #   probe  `(void)write(2, "FILESTAR-ENTERED\n", 17);` at FIVE places -- the top of
 #          `closescript()`, inside `inchar()`'s `getc(scriptin[curscript])` loop,
 #          inside `redir_write()`'s `redirecting()` block, inside `undo_cmdmod`'s,
 #          and the top of `vim_fsync()`.  ZERO of the records may carry it -- 106 of
-#          them when this phase was written, 122 since zero phase 40 added the
+#          them when this phase was written, 122 since phase 123 added the
 #          memline corpus, and the check counts rather than pins.
 #   ctl    the IDENTICAL instrument at the top of `ui_write()`, which is reached by
 #          every byte the editor draws.  It must mark almost all of them, and the
@@ -36,7 +36,7 @@
 #      * `may_sync_undo()` AND `is_safe_now()` MUST NOT BE DELETED.  Both survive one
 #        conjunct shorter and still do their real work, and a check that expected
 #        them at 0 would fail on a correct phase.
-#      * `fputs` DOES NOT LEAVE, and ZERO-PLAN.md row 12 says it does.  After this
+#      * `fputs` DOES NOT LEAVE, and WHIM-PLAN.md II row 12 says it does.  After this
 #        phase the source names it nowhere and `nm -u` still lists it: gcc lowers
 #        `fprintf(stderr, "...")` to it, exactly as it lowers `printf` to `fputc`,
 #        `fwrite` and `putchar`.  The freed set is asserted as exactly
@@ -50,7 +50,7 @@
 #      * `NSCRIPT` is the one enumerator that leaves, and NOTHING RENUMBERS.
 #
 # 2. THE LIBC SURFACE, NAMED AS A SET AND NOT AS A COUNT -- `fclose getc putc fsync`
-#    and nothing else -- and ZERO-PLAN.md 4b's invariant asserted in its strongest
+#    and nothing else -- and WHIM-PLAN.md II.4b's invariant asserted in its strongest
 #    form: `open creat openat stat access fcntl getcwd strerror fopen fdopen opendir`
 #    absent from BOTH the source and the undefined set.  After this phase the core
 #    has no `open`, no `stat`, no stdio stream and no fourth descriptor: it can only
@@ -68,7 +68,7 @@
 #    of the five.
 #
 # 5. AND THE ORDINARY SESSIONS, byte-identical either side, each required to be doing
-#    something.  The corpus itself is `tools/zerodelta.sh --phase 13`, which
+#    something.  The corpus itself is `tools/zerodelta.sh --phase 96`, which
 #    tools/phaserun.sh runs after this check.
 
 # THE BODY IS GO: internal/check/whim96.go and internal/check/whim96evidence.go, run through tools/st.sh.

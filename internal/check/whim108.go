@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim108", Zero25) }
+func init() { register("whim108", Whim108) }
 
 var (
 	z25ProtoLn = regexp.MustCompile(`^static \w+ host_(exit|message)\(.*\);$`)
@@ -54,7 +54,7 @@ func isWordByteC(c byte) bool {
 		(c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
 }
 
-// Zero25 is phase 25's check: the two function pointers the launcher installed
+// Whim108 is phase 108's check: the two function pointers the launcher installed
 // become a forward declaration and a direct call.
 //
 // WHAT IT ASSERTS, in the shell's order, because ORDER IS OUTPUT:
@@ -66,9 +66,9 @@ func isWordByteC(c byte) bool {
 //	the libc surface    a `cmp` of the whole undefined set, empty both ways
 //	the binary          the same SIZE and NOT the same bytes, both measured
 //	the recording       byte-identical, with one control per name
-//	zhostonly           phase 20's structural check, re-run because this phase
+//	zhostonly           phase 103's structural check, re-run because this phase
 //	                    moves host calls about and should say so
-func Zero25(w io.Writer, args []string) error {
+func Whim108(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim108 <work-dir> <state-dir>")
 	}
@@ -161,7 +161,7 @@ func Zero25(w io.Writer, args []string) error {
 	}
 
 	// c4 -- host_exit's own statement.  The core calls host_exit DIRECTLY now;
-	// this is what says the call arrives.  It is phase 18's control, which was
+	// this is what says the call arrives.  It is phase 101's control, which was
 	// `exit(r);` -> `exit(r + 1);` before there was a launcher.
 	const exitStmt = "    host_code = r;\n"
 	if strings.Count(newS, exitStmt) != 1 {
@@ -304,7 +304,7 @@ func Zero25(w io.Writer, args []string) error {
 			}
 		}
 		if !ok {
-			r.bad("the two prototypes are not the two lines below phase 20's last " +
+			r.bad("the two prototypes are not the two lines below phase 103's last " +
 				"`musl_` prototype -- the core -> host boundary is ONE block of eleven")
 		}
 		anyPtr := false
@@ -342,13 +342,13 @@ func Zero25(w io.Writer, args []string) error {
 	rows := z25CmdRow.FindAllString(newS, -1)
 	names, nerr := harness.CommandNames(f)
 	if len(rows) != 98 || nerr != nil || len(names) != 98 {
-		r.bad("cmdnames[] is not the 98 rows phase 10 left -- this phase touches no Ex " +
+		r.bad("cmdnames[] is not the 98 rows phase 93 left -- this phase touches no Ex " +
 			"command")
 	}
 	i := strings.Index(newS, "static struct vimoption options[]")
 	j := strings.Index(newS[i:], "\n};") + i
 	if nOpt := len(z25OptRow.FindAllString(newS[i:j], -1)); nOpt != 107 {
-		r.bad("options[] has %d rows, expected the 107 phase 20 left -- this phase "+
+		r.bad("options[] has %d rows, expected the 107 phase 103 left -- this phase "+
 			"removes no option", nOpt)
 	}
 	var d []string
@@ -368,7 +368,7 @@ func Zero25(w io.Writer, args []string) error {
 	}
 	if badInc {
 		r.bad("the output does not have exactly the eleven `#include` directives phase " +
-			"21 left, on its first eleven lines.  This phase adds a DECLARATION, and " +
+			"104 left, on its first eleven lines.  This phase adds a DECLARATION, and " +
 			"MOVING THE INCLUDES IS A LATER PHASE")
 	}
 
@@ -380,7 +380,7 @@ func Zero25(w io.Writer, args []string) error {
 		"two parameters, two assignments and two arguments gone, TWO PROTOTYPES " +
 		"arrived, and every count is computed FROM THE INPUT")
 	r.cont("the two prototypes are what the definitions say they must be, byte for "+
-		"byte -- %s -- and they are the two lines below phase 20's last `musl_` "+
+		"byte -- %s -- and they are the two lines below phase 103's last `musl_` "+
 		"prototype, so the core -> host boundary is ONE block of eleven",
 		strings.Join(built, " / "))
 	r.cont("%d -> %d lines, five fewer; cmdnames[] 98 and options[] 107 unmoved; "+
@@ -523,7 +523,7 @@ func Zero25(w io.Writer, args []string) error {
 	}
 	r.say("symbols %s -> %s, and the set is IDENTICAL as a cmp -- nothing left and "+
 		"nothing arrived.  `exit` does NOT come back: the host still records a status "+
-		"and jumps, phase 19's __builtin_longjmp launcher being untouched here.  main "+
+		"and jumps, phase 102's __builtin_longjmp launcher being untouched here.  main "+
 		"is still the only external symbol",
 		strings.TrimSpace(readFile(".cache/symbols/last/before")),
 		strings.TrimSpace(readFile(".cache/symbols/last/after")))
@@ -704,7 +704,7 @@ func Zero25(w io.Writer, args []string) error {
 		return stop("THE CONTROL c5 DID NOT SHOW AS MEASURED: host_message with its two "+
 			"streams swapped moves %s, and it was measured to move ref-argv.txt and "+
 			"nothing else -- everything that reaches host_message is a message printed "+
-			"before there is a screen (phase 21)", s)
+			"before there is a screen (phase 104)", s)
 	}
 	r.say("THE RECORDING IS BYTE-IDENTICAL, all %d records -- 102 screen cases, every "+
 		"Ex command typed at `:`, every command line the parser may see, the four pty "+
@@ -714,18 +714,18 @@ func Zero25(w io.Writer, args []string) error {
 	r.cont("AND IT CAN FAIL, ONCE FOR EACH NAME THIS PHASE MAKES DIRECT.  host_exit "+
 		"with `host_code = r + 1;` moves %d of the %d -- every record but the terminal "+
 		"table, which does not record an exit status.  host_message with its two "+
-		"streams swapped moves ref-argv.txt AND NOTHING ELSE, which is phase 21's own "+
+		"streams swapped moves ref-argv.txt AND NOTHING ELSE, which is phase 104's own "+
 		"finding read back: everything reaching host_message is printed before there "+
 		"is a screen", len(m4), len(base))
 
-	// ---- 7. phase 20's structural check, which a phase that renames host
+	// ---- 7. phase 103's structural check, which a phase that renames host
 	// calls owes.
 	zh := exec.Command("sh", "tools/st.sh", "zhostonly", f)
 	zh.Stdout, zh.Stderr = w, w
 	if err := zh.Run(); err != nil {
 		return harness.ErrReported
 	}
-	r.say("and that is phase 20's check, undisturbed: its vocabulary is libc's " +
+	r.say("and that is phase 103's check, undisturbed: its vocabulary is libc's " +
 		"terminal, signal and descriptor names, and `host_exit`/`host_message` are not " +
 		"in it -- so renaming nine call sites adds no host WORD to the core.  Running " +
 		"it here rather than assuming it is the point")

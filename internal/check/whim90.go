@@ -14,7 +14,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim90", Zero7) }
+func init() { register("whim90", Whim90) }
 
 var z7GoneWords = []string{"ex_read", "do_bang", "do_shell", "do_filter", "check_secure",
 	"prevcmd_is_set", "prevcmd", "CMD_read", "usefilter"}
@@ -36,8 +36,8 @@ var z7Later = []string{"check_changed", "do_ecmd", "setfname", "otherfile", "fix
 
 var z7QRow = regexp.MustCompile(`(?m)^ *\{'Q', nv_error,`)
 
-// Zero7 is phase 7's check: the way to read a file.
-func Zero7(w io.Writer, args []string) error {
+// Whim90 is phase 90's check: the way to read a file.
+func Whim90(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim90 <work-dir> <state-dir>")
 	}
@@ -100,7 +100,7 @@ func Zero7(w io.Writer, args []string) error {
 		}
 	}
 	if !z7QRow.MatchString(newT) {
-		fail = append(fail, "the 'Q' row is no longer nv_error's, and phase 4 put it there")
+		fail = append(fail, "the 'Q' row is no longer nv_error's, and phase 87 put it there")
 	}
 	rows := z6RowRe.FindAllString(newT, -1)
 	got, _ := harness.CommandNamesIn(src, "whim-vim.c")
@@ -155,7 +155,7 @@ func Zero7(w io.Writer, args []string) error {
 		r.say("the libc surface moved, and this phase frees nothing:")
 		r.cont("  gone: %s ", strings.Join(comm23(before, after), " "))
 		r.cont("  came: %s ", strings.Join(comm23(after, before), " "))
-		r.cont("  open, access and read are the byte-reader phase's (ZERO-PLAN.md P8)")
+		r.cont("  open, access and read are the byte-reader phase's (WHIM-PLAN.md part II P8)")
 		return harness.ErrReported
 	}
 	for _, keep := range []string{"open", "read", "close", "stat"} {

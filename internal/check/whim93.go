@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim93", Zero10) }
+func init() { register("whim93", Whim93) }
 
 var z10Gone = []string{"ex_file", "rename_buffer", "setfname", "buf_name_changed", "ml_timestamp",
 	"ml_upd_block0", "ml_check_b0_id", "buflist_name_nr", "buflist_findlnum",
@@ -59,8 +59,8 @@ var z10Prefix = []string{"EW_", "WILD_", "EXPAND_", "XP_BS_", "SPEC_", "BLOCK0_"
 
 var z10Spellings = []string{"f", "fi", "fil", "file", "file!"}
 
-// Zero10 is phase 10's check: the buffer's NAME.
-func Zero10(w io.Writer, args []string) error {
+// Whim93 is phase 93's check: the buffer's NAME.
+func Whim93(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim93 <work-dir> <state-dir>")
 	}
@@ -142,7 +142,7 @@ func Zero10(w io.Writer, args []string) error {
 		fail = append(fail, "E23 went, and getaltfname() says it unconditionally now")
 	}
 	if strings.Contains(newT, "E447") {
-		fail = append(fail, "E447 survives, and part G removed the only arm that could say it -- phase 8's check asserts the opposite, which is why the two phases cannot share a stage")
+		fail = append(fail, "E447 survives, and part G removed the only arm that could say it -- phase 91's check asserts the opposite, which is why the two phases cannot share a stage")
 	}
 	if !strings.Contains(oldT, "E447") {
 		fail = append(fail, "the input did not say E447, so this phase is being checked against a file it was not written for")
@@ -176,7 +176,7 @@ func Zero10(w io.Writer, args []string) error {
 		fail = append(fail, "the static_assert on the row count went, and it is what catches an enumerator removed without its row")
 	}
 	if !z7QRow.MatchString(newT) {
-		fail = append(fail, "the 'Q' row is no longer nv_error's, and phase 4 put it there")
+		fail = append(fail, "the 'Q' row is no longer nv_error's, and phase 87 put it there")
 	}
 	// THE EXEMPTION PHASE 8 KEPT, from the other side.
 	m := z8Lock.FindString(newT)
@@ -204,8 +204,8 @@ func Zero10(w io.Writer, args []string) error {
 		for _, l := range fail {
 			r.say("%s", l)
 		}
-		r.cont("a check copied from phase 8 or 9 fails on a correct phase 10:")
-		r.cont("`otherfile` went at phase 8, E447 SURVIVED phase 8 and reaches")
+		r.cont("a check copied from phase 91 or 92 fails on a correct phase 93:")
+		r.cont("`otherfile` went at phase 91, E447 SURVIVED phase 91 and reaches")
 		r.cont("zero here, `fileinfo` keeps three callers, E32 keeps its")
 		r.cont(`speaker, and "[No Name]" occurs twice and both are live.`)
 		return harness.ErrReported

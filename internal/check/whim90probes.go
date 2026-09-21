@@ -217,7 +217,7 @@ func z7Pty(r *rep, old, bin string) error {
 	}
 	say := func(format string, a ...any) error { r.say(format, a...); return harness.ErrReported }
 	// THE RUNNER WRITES THE FILE, because the editor has had no way to write
-	// one since phase 6 -- which is what makes this a probe of reading alone.
+	// one since phase 89 -- which is what makes this a probe of reading alone.
 	rk := [][]byte{[]byte("ityped on a terminal\x1b"), []byte(":r planted.txt\r"), []byte(":q!\r")}
 	oT, _, err := session(old, rk, "planted.txt", "FROMTHEDISK\n")
 	if err != nil {

@@ -12,7 +12,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { register("whim99", Zero16) }
+func init() { register("whim99", Whim99) }
 
 var whim99Inc = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
 var whim99StructStat = regexp.MustCompile(`\bstruct\s+stat\b`)
@@ -31,35 +31,35 @@ var whim99Gone = []struct{ header, why, ids string }{
 	{"sys/stat.h", "nothing: `struct stat` is named once, in a typedef nothing uses",
 		"fstat lstat chmod fchmod ftruncate mkdir umask st_mode st_size st_mtim st_ino " +
 			"st_dev S_ISDIR S_IFMT S_IRUSR S_IWUSR"},
-	{"fcntl.h", "nothing at all -- phase 9 freed the symbol and left the header",
+	{"fcntl.h", "nothing at all -- phase 92 freed the symbol and left the header",
 		"fcntl creat openat O_RDONLY O_WRONLY O_RDWR O_CREAT O_TRUNC O_APPEND O_EXCL " +
 			"O_NONBLOCK O_NOFOLLOW F_GETFD F_SETFD F_GETFL F_SETFL FD_CLOEXEC AT_FDCWD"},
 	{"iconv.h", "nothing at all -- whim removed the conversion layer and left the " +
 		"header, and nobody had noticed",
 		"iconv iconv_t iconv_open iconv_close"},
-	{"string.h", "the sixteen mem*/str* functions, which phase 14 vendored",
+	{"string.h", "the sixteen mem*/str* functions, which phase 97 vendored",
 		"memchr memcmp memcpy memmove memset strcasecmp strcat strchr strcmp strcpy " +
 			"strlen strncasecmp strncmp strncpy strpbrk strstr"},
-	{"ctype.h", "TEN identifiers, which phase 15 vendored -- five real calls and the " +
+	{"ctype.h", "TEN identifiers, which phase 98 vendored -- five real calls and the " +
 		"five musl MACROS a survey driven by nm -u cannot see",
 		"isalnum isalpha iscntrl isdigit isgraph islower ispunct isupper tolower " +
 			"toupper"},
-	{"wctype.h", "towlower and towupper, vendored by phase 15, and iswupper, which " +
-		"phase 15 deleted: a NAME with no symbol, on a line gcc never emitted",
+	{"wctype.h", "towlower and towupper, vendored by phase 98, and iswupper, which " +
+		"phase 98 deleted: a NAME with no symbol, on a line gcc never emitted",
 		"iswupper towlower towupper"},
 }
 
 var whim99Keep = []string{"stdio.h", "stdlib.h", "unistd.h", "sys/param.h", "time.h",
 	"signal.h", "errno.h", "stdint.h", "stdarg.h", "stddef.h", "sys/ioctl.h", "termios.h"}
 
-// Zero16 removes the six `#include`s nothing names, and the stat_T typedef no
+// Whim99 removes the six `#include`s nothing names, and the stat_T typedef no
 // sweep could take.
-func Zero16(text []byte, w io.Writer) ([]byte, error) {
+func Whim99(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"includes", w}
 
 	// ---- 0. the file this edit was written against -----------------------
 	// EVERY DIRECTIVE IS AN #include OF A SYSTEM HEADER, they are the first
-	// lines of the file, and there are eighteen.  ZERO-GOAL.md's charter is
+	// lines of the file, and there are eighteen.  WHIM-GOAL.md's charter is
 	// that sentence, and this is where it is checked rather than believed.
 	lines := bytes.Split(text, []byte{'\n'})
 	var dirIdx []int
@@ -169,7 +169,7 @@ func Zero16(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	p.say("the twelve that stay, each held by something this file still names: <stddef.h> " +
-		"by offsetof alone, <stdint.h> by SIZE_MAX and by the uintptr_t phase 14 brought, " +
+		"by offsetof alone, <stdint.h> by SIZE_MAX and by the uintptr_t phase 97 brought, " +
 		"and <sys/param.h> by MIN and " +
 		"MAX -- plus, through sys/resource.h -> sys/time.h -> sys/select.h and no other " +
 		"header in this file, select, gettimeofday, fd_set, struct timeval and every " +

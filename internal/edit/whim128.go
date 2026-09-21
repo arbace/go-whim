@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func init() { registerArgs("whim128", Zero45) }
+func init() { registerArgs("whim128", Whim128) }
 
 // z45Fanout is the fanout, and it is a LITERAL rather than a computation: the
 // corpus's root-split coverage is measured against the number the input gives,
@@ -54,10 +54,10 @@ var (
 	z45BlankRun = regexp.MustCompile(`\n\n\n`)
 )
 
-// Zero45 folds the node types: `bhdr_T` becomes `struct block_hdr { short_u
+// Whim128 folds the node types: `bhdr_T` becomes `struct block_hdr { short_u
 // bh_id; }`, `memfile_T` goes entirely, and a node is ONE allocation at its own
 // size.
-func Zero45(text []byte, w io.Writer, args []string) ([]byte, error) {
+func Whim128(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p := ph{"node", w}
 	if len(args) != 1 {
 		return nil, p.die("usage: edit whim128 <file> <state-dir>")
@@ -269,7 +269,7 @@ func Zero45(text []byte, w io.Writer, args []string) ([]byte, error) {
 			"root-split coverage is measured against the first number", (page-8)/16, z45Fanout)
 	}
 	say("the input's fanout is (%d - 8) / 16 = %d, and that is the number this phase "+
-		"fixes: zero phase 40 reaches a ROOT SPLIT in one of sixteen cases because that "+
+		"fixes: phase 123 reaches a ROOT SPLIT in one of sixteen cases because that "+
 		"case builds more data blocks than this", page, z45Fanout)
 
 	// --- 1. struct block_hdr becomes the node's tag, and nothing else --------
@@ -340,7 +340,7 @@ func Zero45(text []byte, w io.Writer, args []string) ([]byte, error) {
 		tails = append(tails, f[len(f)-1])
 	}
 	if strings.Join(tails, " ") != "db_id; db_line_count; db_line[DB_LINE_MAX];" {
-		return nil, die("struct data_block is not the leaf zero phase 44 left: %s",
+		return nil, die("struct data_block is not the leaf phase 127 left: %s",
 			strings.Join(members, " "))
 	}
 	lines[a+2] = z45s0
@@ -749,7 +749,7 @@ func Zero45(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"all %d functions that asked it, plus ml_delete_int, which asked it through its own "+
 		"copy of the handle -- and ml_root was compared with nullptr in none of them before",
 		len(was))
-	// THE INPUT IS ASKED FIRST, and that is what `need 45 swept` is.
+	// THE INPUT IS ASKED FIRST, and that is what `need 128 swept` is.
 	if z45BlankRun.MatchString(t0) {
 		return nil, die("the input already has a run of two blank lines, so this edit cannot say it " +
 			"left none: it needs swept text (pipes/whim.stages, `need 128 swept`)")

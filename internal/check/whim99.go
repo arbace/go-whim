@@ -1,7 +1,7 @@
 package check
 
-// Zero phase 16, the check -- the includes nothing names.
-// See pipes/whim99-edit.sh, and ZERO-GOAL.md.
+// Phase 99, the check -- the includes nothing names.
+// See pipes/whim99-edit.sh, and WHIM-GOAL.md.
 //
 // Runs after pipes/whim99-edit.sh and the sweep tools/phaserun.sh runs between
 // them, and reads nothing from the edit's shell -- only the work tree and the
@@ -15,7 +15,7 @@ package check
 // -- "pure formatting: the binary is byte-identical (cmp)" -- and a
 // byte-identical binary subsumes every screen case, every Ex-command row,
 // every command line and every pty scenario at once, because the program that
-// would be run is literally the same program.  tools/zerodelta.sh --phase 16
+// would be run is literally the same program.  tools/zerodelta.sh --phase 99
 // still runs, from tools/phaserun.sh after this check, and it corroborates; it
 // is not the evidence.
 //
@@ -31,7 +31,7 @@ package check
 //	on the input     18 compiles, and EXACTLY SIX MUST SUCCEED -- the six
 //	                 this phase removed -- while the other twelve fail.  That
 //	                 is the same loop proving it can fail, in the same run, on
-//	                 the same code path: it is phase 13's ui_write() control
+//	                 the same code path: it is phase 96's ui_write() control
 //	                 in this phase's shape.
 //
 // Measured: the two loops together are 30 compiles and about 5 seconds, run at
@@ -72,7 +72,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim99", Zero16) }
+func init() { register("whim99", Whim99) }
 
 var (
 	z16Inc     = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
@@ -169,8 +169,8 @@ func z16Directives(text string) []z16Directive {
 	return out
 }
 
-// Zero16 is the check for zero phase 16.
-func Zero16(w io.Writer, args []string) error {
+// Whim99 is the check for phase 99.
+func Whim99(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim99 <work-dir> <state-dir>")
 	}
@@ -320,12 +320,12 @@ func Zero16(w io.Writer, args []string) error {
 
 	// --- what must NOT have moved ------------------------------------------
 	if z16File.MatchString(newS) {
-		r.bad("FILE is named in whim-vim.c, and phase 13 took it to zero")
+		r.bad("FILE is named in whim-vim.c, and phase 96 took it to zero")
 	}
 	for _, absent := range z16Absent {
 		if z16Called(newS, absent) {
 			r.bad("%s( is called in the source, and the core has had no way to name or "+
-				"open anything since phase 13", absent)
+				"open anything since phase 96", absent)
 		}
 	}
 
@@ -353,7 +353,7 @@ func Zero16(w io.Writer, args []string) error {
 	i := strings.Index(newS, "static struct vimoption options[]")
 	j := strings.Index(newS[i:], "\n};") + i
 	if k := len(z16OptRow.FindAllString(newS[i:j], -1)); k != 108 {
-		r.bad("options[] is not the 108 rows phase 12 left")
+		r.bad("options[] is not the 108 rows phase 95 left")
 	}
 
 	// And the line count: EIGHT lines and no more -- the six `#include` lines,
@@ -449,7 +449,7 @@ func Zero16(w io.Writer, args []string) error {
 
 	// --- 4. the compile, the linkage and the libc surface ------------------
 	// NOTHING IS FREED AND NOTHING ARRIVES.  Stated as a `cmp` of the whole
-	// undefined set, which is phase 5's, 11's and 12's equality: a symbol
+	// undefined set, which is phase 88's, 94's and 95's equality: a symbol
 	// ARRIVING must fail as loudly as one leaving.  A header is not code, so
 	// this is what the phase predicts.
 	beforeU, err := os.ReadFile(filepath.Join(state, "symbols", "undefined"))
@@ -476,7 +476,7 @@ func Zero16(w io.Writer, args []string) error {
 	r.say("symbols %s -> %s, and the set is IDENTICAL as a cmp -- this phase frees "+
 		"nothing and nothing arrives, which is what removing a header that supplied "+
 		"nothing must do; main is still the only external symbol, which is also what "+
-		"says phases 14 and 15 did not forget a 'static' keyword",
+		"says phases 97 and 98 did not forget a 'static' keyword",
 		strings.TrimSpace(string(sb)), strings.TrimSpace(string(sa)))
 
 	// --- 5. the binary, which is the whole of this phase's evidence --------
@@ -545,7 +545,7 @@ func Zero16(w io.Writer, args []string) error {
 		"verification table, and the whole of this phase's evidence.  A byte-identical "+
 		"binary subsumes every screen case, every Ex-command row, every command line "+
 		"and every pty scenario at once, because the program that would be run is the "+
-		"same program; tools/zerodelta.sh --phase 16 runs next and corroborates rather "+
+		"same program; tools/zerodelta.sh --phase 99 runs next and corroborates rather "+
 		"than proves", newSt.Size())
 	return nil
 }

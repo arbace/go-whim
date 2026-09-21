@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-func init() { register("whim105", Zero22) }
+func init() { register("whim105", Whim105) }
 
 // z22Wrap is the seven wrappers that walk a va_list, and their whole-file
-// mention totals in r21.  `vim_snprintf`'s OWN count is deliberately NOT
-// asserted up front: phase 21 formats its host message with it, so the number
+// mention totals in q104.  `vim_snprintf`'s OWN count is deliberately NOT
+// asserted up front: phase 104 formats its host message with it, so the number
 // before the edit is the message layer's business and not this phase's.
 var z22Wrap = []struct {
 	name string
@@ -31,10 +31,10 @@ var z22Lead = map[string]int{
 	"smsg": 0, "smsg_attr": 1, "smsg_attr_keep": 1, "semsg": 0, "siemsg": 0,
 }
 
-// Zero22 is the variadic collapse: the seven wrappers expanded at their 129 call
+// Whim105 is the variadic collapse: the seven wrappers expanded at their 129 call
 // sites into vim_snprintf plus the tail each already had, so `va_start` appears
 // ONCE in the whole file.
-func Zero22(text []byte, w io.Writer) ([]byte, error) {
+func Whim105(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"format", w}
 	t := string(text)
 

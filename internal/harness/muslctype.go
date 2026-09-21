@@ -13,7 +13,7 @@ import (
 // MuslCtypeVerify is tools/muslctype.py: compile the vendored musl block OUT OF
 // THE SOURCE THE PHASE PRODUCED and hold it to the libc this machine links.
 //
-// The claim zero phase 15 makes is not "these look like musl's" but "these
+// The claim phase 98 makes is not "these look like musl's" but "these
 // compute what musl computes", and the only way to say that is to run both.  So
 // the block is sliced out of the .c the phase wrote -- not out of
 // tools/musl-ctype.txt, which would only prove the copy was faithful -- wrapped

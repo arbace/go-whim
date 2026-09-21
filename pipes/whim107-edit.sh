@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 107 (zero phase 24) -- the attributes: 113 that say nothing, 20 that change spelling, 6 that
-# stay.  See ZERO-PLAN.md 4c and ZERO-GOAL.md.
+# Whim phase 107 -- the attributes: 113 that say nothing, 20 that change spelling, 6 that
+# stay.  See WHIM-PLAN.md II.4c and WHIM-GOAL.md.
 #
 # Usage: pipes/whim107-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
@@ -49,14 +49,14 @@
 # and 20 times in the output, which is the assertion that says so.
 #
 # C23 IS NOT A NEW DEPENDENCY AND THE CHECK STATES WHAT IT IS RATHER THAN ASSUMING IT.
-# Phase 23 measured `-std=c11` REFUSING its typedef; `[[fallthrough]]` is weaker than
+# Phase 106 measured `-std=c11` REFUSING its typedef; `[[fallthrough]]` is weaker than
 # that and the difference is written down rather than glossed: gcc accepts it under
 # every `-std` it has, and below C23 `-Wpedantic` says `ISO C does not support '[[]]'
 # attributes before C23` and `-pedantic-errors` REFUSES it.  The GNU spelling it
 # replaces is pedantically clean everywhere, being a reserved identifier.  So taken
 # alone this swap narrows the dialects the file compiles under, and it costs nothing
 # because the file is already C23 by four other routes -- `enum : long`,
-# `static_assert`, lowercase `bool`, and phase 23's `typeof` and `nullptr`.  MEASURED,
+# `static_assert`, lowercase `bool`, and phase 106's `typeof` and `nullptr`.  MEASURED,
 # and computed rather than written here: `-std=c11` on the WHOLE file gives the same
 # number of errors before this phase and after it.  The dialect floor does not move.
 #
@@ -65,7 +65,7 @@
 # warnings to ZERO.  They emit no code and decide what gcc will catch:
 #
 #   format(printf, 3, 4)   on vim_snprintf, and format(printf, 3, 0) on the two
-#                          v-forms.  Phase 22 expanded seven wrappers into 129 direct
+#                          v-forms.  Phase 105 expanded seven wrappers into 129 direct
 #                          calls, so this ONE attribute is now what type-checks 201
 #                          `vim_snprintf` mentions' arguments.  The check takes the
 #                          prototype line verbatim out of the output and hands
@@ -84,7 +84,7 @@
 # what a later phase should apply to anything new.
 #
 # THE INPUT BINARY IS BUILT HERE with SOURCE_DATE_EPOCH=0, and it is this phase's whole
-# evidence, exactly as at phase 23.  Neither edit generates code: `unused` suppresses a
+# evidence, exactly as at phase 106.  Neither edit generates code: `unused` suppresses a
 # diagnostic and `[[fallthrough]]` is a hint to the same diagnostic machinery.  The
 # check rebuilds the output the same way and requires THE SAME BYTES -- tier 1 of
 # CLAUDE.md's verification table, which subsumes every screen case, every Ex-command
@@ -97,7 +97,7 @@ state=${2:?usage: whim107-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

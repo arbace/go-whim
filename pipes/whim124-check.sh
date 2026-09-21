@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 124 (zero phase 41), the check -- freeing is free.  See pipes/whim124-edit.sh, and
-# ZERO-GOAL.md's charter bullet "A GARBAGE COLLECTOR IS ASSUMED FROM HERE ON".
+# Whim phase 124, the check -- freeing is free.  See pipes/whim124-edit.sh, and
+# WHIM-GOAL.md's charter bullet "A GARBAGE COLLECTOR IS ASSUMED FROM HERE ON".
 #
 # Usage: pipes/whim124-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -21,9 +21,9 @@
 #               interface -- is the same names either side, which follows.
 #   SYMBOLS     `nm -u` loses EXACTLY `free malloc realloc` and nothing else moves, as a
 #               `comm` in both directions against the stage's snapshot.  17 -> 14.  Two
-#               of the three are the allocator; the third is the one phase 34 left below
-#               the boundary and phase 35 left with it.
-#   THE IMAGE   EXEC, no INTERP, no dynamic section, no relocation -- phases 0 and 1's
+#               of the three are the allocator; the third is the one phase 117 left below
+#               the boundary and phase 118 left with it.
+#   THE IMAGE   EXEC, no INTERP, no dynamic section, no relocation -- phases 83 and 84's
 #               four facts, which a gigabyte object could have disturbed and does not.
 #               `.bss` grows by the arena and THE FILE SHRINKS, both as measurements:
 #               `.bss` is NOBITS and musl's allocator is no longer linked in.
@@ -41,7 +41,7 @@
 #               whose bookkeeping did nothing would hand the same block out twice and
 #               still pass every test above, and this is what says it does not.
 #   host_free   PHASE 35'S OWN CONTROL, RE-RUN ON THIS PHASE'S INPUT AND NOT REINVENTED:
-#               `cf`, host_free doing nothing, which phase 35 measured at 0 of 102.  It
+#               `cf`, host_free doing nothing, which phase 118 measured at 0 of 102.  It
 #               is the same 0 here, and it is REPORTED rather than hidden -- a leak is
 #               invisible to this corpus, so the recording above is NOT what says the
 #               freeing changed, and nothing in this check pretends it is.
@@ -51,7 +51,7 @@
 #               two binaries must print the same bytes.
 #   <stdlib.h>  MEASURED AND DECLINED.  With malloc, free and realloc gone the directive
 #               is dead, and the output built without it is BYTE-IDENTICAL.  It stays:
-#               phase 13's precedent, and this phase's subject is the allocator.
+#               phase 96's precedent, and this phase's subject is the allocator.
 
 # THE BODY IS GO: internal/check/whim124.go, run through tools/st.sh.
 # The tools it runs, named as PATHS so tools/implhash.sh hashes them into

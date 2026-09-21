@@ -88,16 +88,16 @@ fi
 # parallel and each calls tools/st.sh, which calls this; and tools/verifypass.sh
 # runs 64 units at a time.  Writing fork.mod and fork.sum at their final names
 # meant one builder truncating with `cp` what another was already reading.  Two
-# units of one cold `make zero-verify` failed that way, 44 of 46 passing around
+# units of one cold `make whim-verify` failed that way, 44 of 46 passing around
 # them, and NEITHER MESSAGE NAMES CONCURRENCY -- which is why the two states
 # were reproduced by hand rather than guessed at, each giving its unit's message
 # byte for byte:
 #
 #   an EMPTY fork.mod                -> `fork.mod: missing module declaration`
-#                                       (r0, caught inside `cp go.mod`)
+#                                       (q83, caught inside `cp go.mod`)
 #   fork.mod copied, fork.sum empty  -> `missing go.sum entry for module
 #                                       providing package modernc.org/cc/v4`
-#                                       (r1, caught between the two `cp`s)
+#                                       (q84, caught between the two `cp`s)
 #
 # The window is the first few milliseconds of a `go build`, which reads both
 # files and then never looks again, so the race is not reproducible on demand --

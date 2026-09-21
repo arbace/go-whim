@@ -8,7 +8,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { register("whim92", Zero9) }
+func init() { register("whim92", Whim92) }
 
 // z9Before is the file the four anchors were counted against.
 var z9Before = map[string]int{
@@ -21,13 +21,13 @@ var z9After = map[string]int{"readfile": 3, "read_buffer": 15, "read_stdin": 20,
 
 var z9Assign = regexp.MustCompile(`\bretval\b\s*=[^=]`)
 
-// Zero9 takes the machinery under every way to name a file: readfile(),
+// Whim92 takes the machinery under every way to name a file: readfile(),
 // read_buffer() and the message layer that reported what had been read.
 //
 // IT IS THE ONE ZERO PHASE NO RECORDING CAN SEE, and its declared delta is
-// nothing at all: readfile() was already unreachable when it ran, phases 5 to 8
+// nothing at all: readfile() was already unreachable when it ran, phases 88 to 91
 // having taken every way to name a file.
-func Zero9(text []byte, w io.Writer) ([]byte, error) {
+func Whim92(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"nobyte", w}
 	var err error
 
@@ -53,7 +53,7 @@ func Zero9(text []byte, w io.Writer) ([]byte, error) {
 	// open_buffer AT EXACTLY 5 IS WHY THIS PHASE NEEDS SWEPT TEXT.
 	if k := mentions(text, "open_buffer"); k != 5 {
 		return nil, p.die("open_buffer has %d mentions, expected 5 -- the definition and four callers, "+
-			"every one of them `open_buffer(FALSE, NULL, 0)`.  On the text phase 8's "+
+			"every one of them `open_buffer(FALSE, NULL, 0)`.  On the text phase 91's "+
 			"EDIT leaves there are six: do_ecmd is still there to make "+
 			"`(void)open_buffer(FALSE, eap, readfile_flags);`, which anchor 4 would not "+
 			"rewrite.  This phase needs swept text", k)

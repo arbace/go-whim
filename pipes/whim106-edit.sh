@@ -1,10 +1,10 @@
 #!/bin/sh
-# Whim phase 106 (zero phase 23) -- `nullptr` and `usize`: the two the language supplies.
-# See ZERO-PLAN.md 4c and ZERO-GOAL.md.
+# Whim phase 106 -- `nullptr` and `usize`: the two the language supplies.
+# See WHIM-PLAN.md II.4c and WHIM-GOAL.md.
 #
 # Usage: pipes/whim106-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
-# ZERO-PLAN.md 4c settled the design on 2026-09-18: THERE IS NO SPLIT INTO TWO FILES,
+# WHIM-PLAN.md II.4c settled the design on 2026-09-18: THERE IS NO SPLIT INTO TWO FILES,
 # there is one file with two parts, and THE FIRST `#include` IS THE BOUNDARY.  The core
 # is the prefix above it and must name nothing a header supplies.  Four phases get
 # there; this is the first, and it is deliberately the smallest, BECAUSE IT IS THE ONE
@@ -87,11 +87,11 @@
 # INTERFACE CHANGE.  `musl_memcpy musl_memmove musl_memset musl_memcmp musl_memchr
 # musl_strncpy musl_strncmp musl_strncasecmp musl_bsearch musl_qsort` take `usize`
 # parameters and `musl_strlen` returns one.  They have been the core's OWN `static`
-# definitions since phases 14 and 15 -- nothing outside this file calls them and nothing
+# definitions since phases 97 and 98 -- nothing outside this file calls them and nothing
 # forces libc's spelling on them -- so renaming their parameter type changes no
 # contract with anybody.
 #
-# THE `#include`s STAY WHERE THEY ARE.  Moving them to the bottom is phase 26, and it is
+# THE `#include`s STAY WHERE THEY ARE.  Moving them to the bottom is phase 109, and it is
 # what makes this phase's own rename load-bearing rather than cosmetic.  Until then
 # `size_t` is still DECLARED above every line of this file, which has one consequence
 # the check reports rather than hides: reverting a `usize` to `size_t` still compiles
@@ -112,7 +112,7 @@ state=${2:?usage: whim106-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

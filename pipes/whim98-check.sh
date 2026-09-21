@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 98 (zero phase 15), the check -- the character classes, the numbers and the sort.
-# See pipes/whim98-edit.sh, and ZERO-GOAL.md.
+# Whim phase 98, the check -- the character classes, the numbers and the sort.
+# See pipes/whim98-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim98-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -10,7 +10,7 @@
 # and `old.c`, the source it was built from.
 #
 # THE DECLARED DELTA IS NOTHING AT ALL, AND IT IS A THIRD KIND OF EMPTY DECLARATION.
-# Phase 9's was code that could not run; phase 13's was a possibility that had never
+# Phase 92's was code that could not run; phase 96's was a possibility that had never
 # existed; this one is an EQUALITY.  The code this phase replaces runs constantly --
 # `towupper` alone is entered 892 times in a trivial session, before 'casemap' has
 # even been applied -- and what is claimed is that the replacement computes the same
@@ -33,7 +33,7 @@
 # THE HEADER CONTRACT IS ASSERTED HERE AND NOT LEFT TO PHASE 16.  A copy of the
 # produced source with `#include <ctype.h>` and `#include <wctype.h>` deleted must
 # compile SILENTLY, and the same deletion on the source this phase was HANDED must
-# fail.  That is a check that can fail in both directions, and it is what phase 16
+# fail.  That is a check that can fail in both directions, and it is what phase 99
 # needs to be true before it can move.  Neither copy is left in the tree: this phase
 # changes no directive, and the count stays 18.
 #
@@ -63,7 +63,7 @@
 # 2. THE LIBC SURFACE, NAMED AS A SET AND NOT AS A COUNT -- `atoi atol bsearch
 #    isalnum iscntrl ispunct qsort tolower toupper towlower towupper` and nothing
 #    else -- with the terminal, the memory and the message layer asserted still
-#    there, and ZERO-PLAN.md 4b's invariant asserted again.
+#    there, and WHIM-PLAN.md II.4b's invariant asserted again.
 #
 # 3. THE TWO EQUIVALENCE TOOLS, above.
 #

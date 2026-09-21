@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func init() { registerArgs("whim126", Zero43) }
+func init() { registerArgs("whim126", Whim126) }
 
 var (
 	z43Lit     = regexp.MustCompile(`"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'`)
@@ -31,10 +31,10 @@ var (
 	z43FreeList = []string{"mf_ins_free", "mf_rem_free"}
 )
 
-// Zero43 turns a block number into a reference: `pe_bnum` and `ip_bnum` become
+// Whim126 turns a block number into a reference: `pe_bnum` and `ip_bnum` become
 // `bhdr_T *`, `memline_T` gains `ml_root`, and the hash table that turned an
 // integer into a page goes with the free list and `mf_blocknr_max`.
-func Zero43(text []byte, w io.Writer, args []string) ([]byte, error) {
+func Whim126(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p := ph{"refblocks", w}
 	if len(args) != 1 {
 		return nil, p.die("usage: edit whim126 <file> <state-dir>")
@@ -256,7 +256,7 @@ func Zero43(text []byte, w io.Writer, args []string) ([]byte, error) {
 			strings.Join(shown, ", "))
 	}
 	p.sayf("`mf_used_last` IS WRITE-ONLY: %d mentions, its declaration and %d writes and not "+
-		"one read -- phase 42 took ml_setflags(), which was the last thing that walked the "+
+		"one read -- phase 125 took ml_setflags(), which was the last thing that walked the "+
 		"used list backwards.  No warning gcc emits covers a struct member in either "+
 		"direction, so it goes in this edit with its writes", len(lastw), len(lastw)-1)
 
@@ -431,7 +431,7 @@ func Zero43(text []byte, w io.Writer, args []string) ([]byte, error) {
 			lead = "a name this phase removes is"
 		}
 		return nil, p.die("%s still said: %s.  If they are `blocknr_T`, `mf_hashitem_T` and "+
-			"`mf_hashtab_T` at one mention each, the input is UNSWEPT: phase 42 leaves "+
+			"`mf_hashtab_T` at one mention each, the input is UNSWEPT: phase 125 leaves "+
 			"`mf_hash_free_all` standing for tools/sweep.sh and its forward declaration "+
 			"names all three (`need 126 swept` in pipes/whim.stages)",
 			lead, strings.Join(left, ", "))

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Whim phase 126 (zero phase 43) -- a block number becomes a reference.
+# Whim phase 126 -- a block number becomes a reference.
 #
 # Usage: pipes/whim126-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
@@ -12,17 +12,17 @@
 #
 # THIS IS THE PHASE THAT BUYS THE PORT THE MOST, AND IT IS WORTH SAYING WHY IN ONE
 # SENTENCE: an integer key into a side hash table becomes an object reference, which is
-# the one thing a JVM has and C does not make it say.  ZERO-PLAN.md 4d lists what a port
+# the one thing a JVM has and C does not make it say.  WHIM-PLAN.md II.4d lists what a port
 # would have to be told about rather than translate, and the memline page is the whole
 # of the list; this removes the outer half of it -- the indirection BETWEEN pages.  It
 # does NOT remove the inner half: `db_index[1]` indexed to the line count, the fourteen
 # `(char_u *)dp + start` interior pointers and the page arithmetic are untouched and are
-# phase 44's.  A reference to a block whose innards are still a byte array is halfway.
+# phase 127's.  A reference to a block whose innards are still a byte array is halfway.
 #
 # WHAT WAS THERE.  `mf_new()` handed every block an integer from a counter, inserted it
 # in `mf_hash` under that integer, and the tree stored the integer; `mf_get()` took the
 # integer back and hashed it to the page.  Nothing had been written to a disk since zero
-# phase 6 and nothing could be read from one since phase 9, so the hash had held every
+# phase 89 and nothing could be read from one since phase 92, so the hash had held every
 # live block for thirty-four phases and a lookup could not miss.  Four measurements say
 # that in the text rather than as a story, and they are this edit's first act:
 #
@@ -31,9 +31,9 @@
 #   * `mf_get()`'s two ways of failing are `nr >= mf_blocknr_max || nr < 0` and a miss,
 #     and no caller passes anything but a number the tree stored;
 #   * the used list is not an ordering anything reads.  `mf_used_last` is WRITE-ONLY
-#     here -- phase 42 took `ml_setflags()`, its last reader -- and there is no release
+#     here -- phase 125 took `ml_setflags()`, its last reader -- and there is no release
 #     path left to walk it: `mf_release_all` is WHIM'S, three mentions in `slim-vim.c`
-#     and none in `whim-vim.c`, and phase 42 showed `mf_dont_release` to be a constant.
+#     and none in `whim-vim.c`, and phase 125 showed `mf_dont_release` to be a constant.
 #     So moving a block to the head of the list is bookkeeping nothing observes, and
 #     this edit keeps it anyway;
 #   * `pe_page_count` is read ONCE, into the argument `mf_get()` is about to lose.
@@ -45,7 +45,7 @@
 # its own type; it finds none of `mf_used_last`, `bh_page_count`, `pe_page_count` or
 # `pe_bnum`, because every one of them is WRITTEN.  tools/deadfields.py reports 0 fields
 # in this region for exactly that reason, and gcc has no warning for a struct member in
-# either direction.  Phase 20's trap is the other half of it: remove a member and leave
+# either direction.  Phase 103's trap is the other half of it: remove a member and leave
 # its initialiser and the compile says `excess elements in struct initializer`, which is
 # a correct phase failing.  Every field here goes WITH its writes, in this edit, and
 # every mention of every one of them is partitioned below by the function it sits in --
@@ -79,7 +79,7 @@ state=${2:?usage: whim126-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are the boundary makefile's and are not written here a second time
-# (ZERO-GOAL.md rule 8).  The check needs the binary this phase was HANDED, for the
+# (WHIM-GOAL.md core rule 8).  The check needs the binary this phase was HANDED, for the
 # instrumented pair and for the two recordings, so it is built here and left in the
 # state directory (tools/phaserun.sh: what passes between the parts is files).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
@@ -97,6 +97,6 @@ tools/st.sh edit whim126 "$f" "$state"
 #
 # An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 wait $pid_old || { echo "  refblocks    the input binary did not build with '$cflags' '$ldflags'"; exit 1; }
-echo "  refblocks    the input is $state/old, $(stat -c%s "$state/old") bytes, built with SOURCE_DATE_EPOCH=0 beside $state/old.c.  Every block in the tree is reached differently, so the binary is NOT byte-identical and this phase cannot use tier 1 of CLAUDE.md's verification table: the evidence is two whole recordings -- including the sixteen memline cases zero phase 40 added, which are the only part of any zero recording that asks the TREE a question -- an instrumented pair for the one message it changes, and controls that move what it must not"
+echo "  refblocks    the input is $state/old, $(stat -c%s "$state/old") bytes, built with SOURCE_DATE_EPOCH=0 beside $state/old.c.  Every block in the tree is reached differently, so the binary is NOT byte-identical and this phase cannot use tier 1 of CLAUDE.md's verification table: the evidence is two whole recordings -- including the sixteen memline cases phase 123 added, which are the only part of any zero recording that asks the TREE a question -- an instrumented pair for the one message it changes, and controls that move what it must not"
 
 # tools/phaserun.sh sweeps next, then runs pipes/whim126-check.sh.

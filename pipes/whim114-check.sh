@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 114 (zero phase 31), the check -- abs and labs, the two the core took on trust.
-# See pipes/whim114-edit.sh, and ZERO-PLAN.md 4c.
+# Whim phase 114, the check -- abs and labs, the two the core took on trust.
+# See pipes/whim114-edit.sh, and WHIM-PLAN.md II.4c.
 #
 # Usage: pipes/whim114-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -17,7 +17,7 @@
 # name -- and that is exactly the problem.  Nothing in the language promises it.  A
 # compiler that emitted the calls the source asks for would have added two libc symbols
 # to a file whose whole claim is the shortness of that list, and no check in this
-# pipeline would have said so until it happened.  ZERO-PLAN.md 4c: the core is
+# pipeline would have said so until it happened.  WHIM-PLAN.md II.4c: the core is
 # optimised for transpilation, not for performance, and may not depend on latent
 # compiler behaviour.
 #
@@ -47,7 +47,7 @@
 #               `make editor.c`'s cut, computed here by the same awk clause: 0
 #               directives, `-fsyntax-only` with no error and no warning that is not a
 #               boundary name, and THE SET OF NAMES TAKEN FROM THE INPUT'S OWN CUT and
-#               required back -- never written out, because phase 28 renamed one of them
+#               required back -- never written out, because phase 111 renamed one of them
 #               and a check that quotes a list is a check that goes stale in silence.
 #   THE BINARY  IT MOVES, and no `cmp` is attempted: at -O0 a call to a static function
 #               is a call and inline arithmetic is not.  What is asserted instead is

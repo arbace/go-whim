@@ -4,7 +4,7 @@
 # Usage: tools/zrecord.sh <binary> <source> <outdir>   (run from the repository root)
 #
 # The instrument zero has is the screen, so every part of this drives the editor
-# and keeps what it drew (ZERO-PLAN.md 2):
+# and keeps what it drew (WHIM-PLAN.md II.2):
 #
 #   screen/          zcases   102 keystroke cases, one record each
 #   memline/         zmemline 16 big-buffer cases, one record each (below)
@@ -14,7 +14,7 @@
 #   ref-term.txt     ztermcheck the terminal table, whim's termcheck.py
 #                                      asked with no file argument (see below)
 #
-# zmemline is the sixth part and zero phase 40 is why: every one of the
+# zmemline is the sixth part and phase 123 is why: every one of the
 # 102 screen cases allocates exactly ONE data block, so nothing above ml_get() was
 # ever asked a question the memline TREE answers -- measured, a binary with one
 # line deleted from ml_find_line's pointer bookkeeping records all 102 of them byte
@@ -43,7 +43,7 @@ p3=$!
 tools/st.sh zpty "$bin" "$out/ref-pty.txt" >/dev/null &
 p4=$!
 # NOT termcheck, and the difference is one argument: it opens a file to
-# put something on the screen, and from zero phase 5 a file argument is an unknown
+# put something on the screen, and from phase 88 a file argument is an unknown
 # option, so every row would read `(none)`.  ztermcheck is that tool with
 # its ask() replaced and nothing else, proven to record the same nineteen rows.
 tools/st.sh ztermcheck "$bin" "$out/ref-term.txt" >/dev/null &

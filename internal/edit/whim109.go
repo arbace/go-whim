@@ -11,7 +11,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { registerArgs("whim109", Zero26) }
+func init() { registerArgs("whim109", Whim109) }
 
 var (
 	z26Inc   = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
@@ -23,11 +23,11 @@ var (
 	z26MM    = regexp.MustCompile(`\b(MIN|MAX)\(`)
 )
 
-// Zero26 gives the core the header types and macros it can own: time_t,
+// Whim109 gives the core the header types and macros it can own: time_t,
 // sig_atomic_t, uintptr_t, struct timeval, MIN, MAX and offsetof become the
 // core's own and nine libc prototypes are written out, WHILE THE HEADERS ARE
 // STILL ABOVE THEM to be cross-checked against.
-func Zero26(text []byte, w io.Writer, args []string) ([]byte, error) {
+func Whim109(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p := ph{"headers", w}
 	if len(args) != 1 {
 		return nil, p.die("usage: edit whim109 <file> <minmax.txt>")
@@ -39,8 +39,8 @@ func Zero26(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// ---- 0. the file this edit was written against ----------------------
 	// ELEVEN DIRECTIVES, every one an `#include` of a system header, on the
-	// first eleven lines -- ZERO-GOAL.md's charter.  This phase adds no
-	// directive and moves none: the move is phase 27's, and a phase that
+	// first eleven lines -- WHIM-GOAL.md's charter.  This phase adds no
+	// directive and moves none: the move is phase 110's, and a phase that
 	// quietly did it here would make every cross-check below impossible
 	// rather than merely wrong.
 	var dIdx []int
@@ -90,7 +90,7 @@ func Zero26(text []byte, w io.Writer, args []string) ([]byte, error) {
 		strings.Join(shown, " "))
 
 	// ---- 1. the host block, which is the other side of the boundary ------
-	// The core is everything above it.  Phase 27 puts the eleven includes
+	// The core is everything above it.  Phase 110 puts the eleven includes
 	// here; today the line is already exactly where the host block begins,
 	// and the counts below are the counts that matter -- a `sig_atomic_t` in
 	// the host is not this phase's business and a `sig_atomic_t` in the core
@@ -139,11 +139,11 @@ func Zero26(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	p.say("the core takes eight things from a header: time_t 6, sig_atomic_t 2, " +
 		"uintptr_t 1, struct timeval 4, MIN 7, MAX 16, offsetof 9 -- and size_t 0, " +
-		"phase 23 having taken it.  The host block keeps its own sig_atomic_t 3 and " +
+		"phase 106 having taken it.  The host block keeps its own sig_atomic_t 3 and " +
 		"struct timeval 2")
 
 	// ---- 3. the literals -------------------------------------------------
-	// Phase 23 was caught out by three string literals holding `NULL`.  The
+	// Phase 106 was caught out by three string literals holding `NULL`.  The
 	// lesson is applied rather than assumed: no literal may hold any name
 	// this phase substitutes.
 	spans, err := literalSpans(p, t)
@@ -185,7 +185,7 @@ long labs(long n);
 int abs(int n);
 `
 	if bytes.Count(t, []byte(anchor)) != 1 {
-		return nil, p.die("`%s` is not in the file exactly once -- phase 23 put it directly below "+
+		return nil, p.die("`%s` is not in the file exactly once -- phase 106 put it directly below "+
 			"the last `#include` and this phase declares the libc calls beneath it",
 			strings.TrimSpace(anchor))
 	}
@@ -304,7 +304,7 @@ musl_gettimeofday(long *sec, long *usec)
 		"zhostonly reads", nGt)
 
 	// ---- 9. offsetof -> __builtin_offsetof -------------------------------
-	// ZERO-PLAN.md 4c settled this.  The plain-C alternative
+	// WHIM-PLAN.md II.4c settled this.  The plain-C alternative
 	// `(usize)&(((T *)0)->m)` was measured to compile, to run, and to
 	// static_assert equal to libc's offsetof -- but `-Wpedantic` says it is
 	// not an integer constant expression, so it could never be an enumerator.
@@ -476,6 +476,6 @@ musl_gettimeofday(long *sec, long *usec)
 	p.say("the core is clean: size_t, time_t, sig_atomic_t, uintptr_t, struct timeval, " +
 		"MIN, MAX and offsetof are ALL at 0 above the host block, the eleven directives " +
 		"are where they were, and the only header-supplied names left are the twelve " +
-		"constants phase 27 takes with the move")
+		"constants phase 110 takes with the move")
 	return t, nil
 }

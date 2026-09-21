@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 110 (zero phase 27), the check -- THE MOVE, and the boundary as an assertion.
-# See pipes/whim110-edit.sh, ZERO-PLAN.md 4c and .claude/briefs/zero-reorg.md 5.
+# Whim phase 110, the check -- THE MOVE, and the boundary as an assertion.
+# See pipes/whim110-edit.sh, WHIM-PLAN.md II.4c and .claude/briefs/zero-reorg.md 5.
 #
 # Usage: pipes/whim110-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -27,7 +27,7 @@
 #                 caught only here -- a `#define` above the cut, an `#include` back at
 #                 the top, and one core function moved below the cut -- each built
 #                 both ways; and a fourth that is NOT silent and is the whole reason
-#                 phase 26 came first: `#include <limits.h>` at line 1, where the
+#                 phase 109 came first: `#include <limits.h>` at line 1, where the
 #                 twelve enumerators become their own values and the compiler says
 #                 `expected identifier before numeric constant`.
 #   THE CONSTANTS the twelve are in the PRODUCT and they are compiled: one derivation
@@ -35,12 +35,12 @@
 #                 assert restates the derivation rather than naming the enumerator is
 #                 MEASURED, not argued: the same wrong enumerator with the assert
 #                 written `INT_MAX == INT_MAX` builds in SILENCE.
-#   THE TRAP      the `static` prototype trap in its NEW shape.  Phase 26 measured it
+#   THE TRAP      the `static` prototype trap in its NEW shape.  Phase 109 measured it
 #                 as `error: static declaration of 'malloc' follows non-static
 #                 declaration`, which needed <stdlib.h> above it.  Here there is no
 #                 second declaration, so it is `'malloc' declared 'static' but never
 #                 defined [-Wunused-function]` on <stdlib.h>'s own line, which is the
-#                 one part of phase 26's evidence this phase had to replace -- and it
+#                 one part of phase 109's evidence this phase had to replace -- and it
 #                 is WEAKER than the brief predicted: MEASURED, it links anyway and the
 #                 binary is byte-identical, so it is a warning the sweep catches.
 #   SYMBOLS       `nm -u` is THE SAME SET, as a `comm` empty in BOTH directions, and
@@ -52,7 +52,7 @@
 #                 tools/zerodelta.sh is run by tools/phaserun.sh after this check and
 #                 is the second opinion.
 #
-# THERE IS NO `cmp` HERE AND THERE CANNOT BE.  Phases 16, 23 and 24 could each say
+# THERE IS NO `cmp` HERE AND THERE CANNOT BE.  Phases 99, 106 and 107 could each say
 # "the binary is the same bytes"; this one moves 1,800 lines of definitions, so every
 # address below the first of them moves and the image is a different one of the same
 # size.  What replaces it is the multiset equality above -- the source is the same

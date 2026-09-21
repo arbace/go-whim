@@ -19,7 +19,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim126", Zero43) }
+func init() { register("whim126", Whim126) }
 
 var (
 	z43Lit      = regexp.MustCompile(`"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'`)
@@ -79,8 +79,8 @@ func z43PyList(xs []string) string {
 	return "[" + strings.Join(q, ", ") + "]"
 }
 
-// Zero43 is phase 43's check: a block number becomes a reference.
-func Zero43(w io.Writer, args []string) error {
+// Whim126 is phase 126's check: a block number becomes a reference.
+func Whim126(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim126 <work-dir> <state-dir>")
 	}
@@ -437,7 +437,7 @@ func Zero43(w io.Writer, args []string) error {
 		m := z43Arena.FindString(text)
 		if m == "" {
 			return "", die("%s has no `HOST_ARENA_BYTES` enumerator, and sections 5 and 7 raise the "+
-				"arena so that this phase's evidence does not rest on phase 41's number", what)
+				"arena so that this phase's evidence does not rest on phase 124's number", what)
 		}
 		out := strings.Replace(text, m, z43Rig, 1)
 		if out == text && m != z43Rig {
@@ -695,7 +695,7 @@ func Zero43(w io.Writer, args []string) error {
 			"ml_append_int()'s root test with nothing to see it do so.  That is a corpus "+
 			"whose case sizes are line counts against a tree that now holds %d children per "+
 			"pointer block, and it is not something this phase may work around: the sizes "+
-			"have to be derived from the block arithmetic (zero phase 40)", len(a), maxN)
+			"have to be derived from the block arithmetic (phase 123)", len(a), maxN)
 	}
 	var parts []string
 	for _, k := range akeys {
@@ -907,7 +907,7 @@ func Zero43(w io.Writer, args []string) error {
 	if len(blind) == 0 {
 		return die("every control moves the two-hundred-line session as well, so none of them is a " +
 			"control the 102 screen cases could not see, and this check has not shown that " +
-			"zero phase 40 was needed")
+			"phase 123 was needed")
 	}
 	sk := make([]string, 0, len(seen))
 	for k := range seen {
@@ -927,7 +927,7 @@ func Zero43(w io.Writer, args []string) error {
 	}
 	sort.Strings(blind)
 	say("FOUR CONTROLS, EACH MOVING SOMETHING: %s.  %d of them (%s) leave a two-hundred-line "+
-		"session alone, which is the case zero phase 40 exists for -- a binary that draws "+
+		"session alone, which is the case phase 123 exists for -- a binary that draws "+
 		"every screen case correctly and gets the tree wrong -- and c_mlroot moves all three, "+
 		"which is what keeps that finding from being a session nothing could fail",
 		strings.Join(mparts, "; "), len(blind), strings.Join(blind, ", "))
@@ -942,7 +942,7 @@ func Zero43(w io.Writer, args []string) error {
 		}
 	}
 	say("and a fifth that moves NOTHING and is reported: c_pages, mf_alloc_bhdr() sizing "+
-		"every block one page, moves %d of the %d sessions -- because phase 41's arena has "+
+		"every block one page, moves %d of the %d sessions -- because phase 124's arena has "+
 		"no redzone, so writing past a short allocation is a memory bug rather than a "+
 		"difference (CLAUDE.md, the last row of the verification table).  What says the "+
 		"allocation is still right is the text: `page_count` still multiplies the page size "+
@@ -1012,7 +1012,7 @@ func Zero43(w io.Writer, args []string) error {
 	// --- 10. what this phase declares ---------------------------------------------------
 	decl, _ := exec.Command("sh", "tools/zerodelta.sh", "--declared", "126").Output()
 	if strings.Join(strings.Fields(string(decl)), "") != "" {
-		return die("pipes/zero.delta declares something for phase 43, and this phase declares nothing at all")
+		return die("pipes/zero.delta declares something for phase 126, and this phase declares nothing at all")
 	}
 	say("pipes/zero.delta declares NOTHING for this phase: CLAUDE.md's sixth kind, the code runs and the instrument " +
 		"sees it do the same thing.  One statement inside it is the second kind -- E323's text, which can run and " +

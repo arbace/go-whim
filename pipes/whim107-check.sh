@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 107 (zero phase 24), the check -- the attributes.
-# See pipes/whim107-edit.sh, and ZERO-PLAN.md 4c.
+# Whim phase 107, the check -- the attributes.
+# See pipes/whim107-edit.sh, and WHIM-PLAN.md II.4c.
 #
 # Usage: pipes/whim107-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -14,7 +14,7 @@
 # than any recording: THE BINARY IS THE SAME BYTES.  That is tier 1 of CLAUDE.md's
 # verification table and it subsumes every screen case, every Ex-command row, every
 # command line and every pty scenario at once, because the program that would be run is
-# literally the same program.  It is phase 23's shape exactly.
+# literally the same program.  It is phase 106's shape exactly.
 #
 # BUT THE BINARY IS ALSO BLIND TO THE ONLY DECISION IN THIS PHASE THAT COULD BE WRONG,
 # and that is why there are three more sections.  An attribute emits no code: MEASURED,
@@ -48,7 +48,7 @@
 #               `-std=c11` on the whole file gives the SAME number of errors before this
 #               phase and after it.
 #   WARNINGS    `-Wformat=2` gives THE IDENTICAL 115 `-Wformat-nonliteral` warnings in
-#               THE IDENTICAL 53 functions, before and after -- phase 22's invariant,
+#               THE IDENTICAL 53 functions, before and after -- phase 105's invariant,
 #               and what proves the six survivors were not disturbed.  Two controls
 #               break it in opposite directions.
 #   SYMBOLS     `nm -u` is THE SAME SET, as a `comm` empty in BOTH directions, and

@@ -24,17 +24,16 @@ slim-vim.c  --whim-->  whim-vim.c
 - **whim** (`whim.mk`) removes capability on purpose, 129 phases from 180,870
   lines to 78,681, and every phase **declares its delta in advance**; the harness
   proves it changed that and nothing else. It is two arcs:
-  - **phases 0-82** (`WHIM-GOAL.md`) leave an editor with no runtime to install,
-    86,583 lines at q82; their delta is `pipes/whim.delta`, against
+  - **phases 0-82** (`WHIM-GOAL.md` Part I) leave an editor with no runtime to
+    install, 86,583 lines at q82; their delta is `pipes/whim.delta`, against
     `.reference/baselines`;
-  - **phases 83-128** (`ZERO-GOAL.md`) turn it into an embeddable core: no
-    filesystem, the host behind a line in the file, no libc the core names, the
+  - **phases 83-128** (`WHIM-GOAL.md` Part II) turn it into an embeddable core:
+    no filesystem, the host behind a line in the file, no libc the core names, the
     text a tree. Their delta is `pipes/zero.delta`, against
     `.reference/zero-baselines`, with another instrument. They were a pipeline of
-    their own, **zero**, numbered from 0: zero phase N is whim phase N+83, and the
-    prose in `ZERO-GOAL.md`, `ZERO-PLAN.md`, `pipes/zero.delta`, the second half of
-    `pipes/whim.stages` and the programs of 83-128 still numbers them so -- read
-    "phase N" there as N+83. `ZERO-GOAL.md` *The pipeline as it stands* is the
+    their own, **zero**, numbered from 0, and every document and program here now
+    numbers them as this one does: zero phase N is phase N+83, and a Part II
+    heading gives both. `WHIM-GOAL.md` *Phases 83 to 128 as they stand* is the
     phase-by-phase account and belongs there, not here.
 
   `ZERO_FROM=83` in `tools/pipeline.sh` is the line between the two arcs, stated
@@ -220,12 +219,12 @@ between the editor core and its host**, marked by nothing else. `make editor.c`
 cuts there: a complete translation unit with 0 preprocessor lines, 0 errors under
 `-fsyntax-only`, and an interface of exactly the names the host defines --
 computed, never listed. The core names no libc function at all, holds no file
-descriptor of its own, and uses no floating point. `ZERO-PLAN.md` §4 is the
+descriptor of its own, and uses no floating point. `WHIM-PLAN.md` §II.4 is the
 design.
 
 ## Adding a phase
 
-`ZERO-GOAL.md` *Adding a phase* has the process; the next phase is 129. In
+`WHIM-GOAL.md` *Adding a phase* has the process; the next phase is 129. In
 short: write `pipes/whimN-edit.sh` (it calls `tools/st.sh edit whimN`, whose body
 is `internal/edit/`) and `pipes/whimN-check.sh`, declare its delta in
 `pipes/zero.delta`, add N to the `phases` line, a stage and a package in

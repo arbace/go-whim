@@ -1,10 +1,10 @@
 #!/bin/sh
-# Whim phase 108 (zero phase 25) -- the plain host calls.  See ZERO-PLAN.md 4c and ZERO-GOAL.md.
+# Whim phase 108 -- the plain host calls.  See WHIM-PLAN.md II.4c and WHIM-GOAL.md.
 #
 # Usage: pipes/whim108-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
 # THE CORE REACHES THE HOST THROUGH TWO FUNCTION POINTERS, AND THE ONE REASON THEY ARE
-# POINTERS IS GONE.  Phase 19 wrote `static void (*vim_host_exit)(int);` and phase 21
+# POINTERS IS GONE.  Phase 102 wrote `static void (*vim_host_exit)(int);` and phase 104
 # wrote `static void (*vim_host_message)(const char *, int, int);`, each installed
 # through a parameter of `vim_main()` that `main()` passes.  pipes/whim102-edit.sh says
 # why in as many words: "a pointer the launcher installs through a parameter adds no
@@ -13,7 +13,7 @@
 # time being TWO TRANSLATION UNITS, where the host's definition of a function the core
 # calls has external linkage by construction.
 #
-# THE DESIGN CHANGED ON 2026-09-18 AND THE INDIRECTION DID NOT FOLLOW IT.  ZERO-PLAN.md
+# THE DESIGN CHANGED ON 2026-09-18 AND THE INDIRECTION DID NOT FOLLOW IT.  WHIM-PLAN.md part II
 # 4c is now one file with two parts and the first `#include` as the boundary, so the
 # host's definitions sit BELOW the core in the SAME translation unit.  A `static`
 # forward declaration above and a `static` definition below is all a direct call needs,
@@ -22,13 +22,13 @@
 # parameters, two assignments and two arguments:
 #
 #     static void host_exit(int r);                            beside the nine musl_
-#     static void host_message(const char *, int, int);        prototypes phase 20 left
+#     static void host_message(const char *, int, int);        prototypes phase 103 left
 #     host_exit(r);            in mch_exit                     1 call site
 #     host_message(...);       in five core functions          8 call sites
-#     vim_main(int argc, char **argv)                          the signature phase 18
+#     vim_main(int argc, char **argv)                          the signature phase 101
 #                                                              wrote, back again
 #
-# WHERE THE DECLARATIONS GO, AND IT IS NOT "THE TOP OF THE FILE".  Phase 20 left NINE
+# WHERE THE DECLARATIONS GO, AND IT IS NOT "THE TOP OF THE FILE".  Phase 103 left NINE
 # `musl_` prototypes in one run -- musl_host_init, musl_get_winsize, musl_term_start,
 # musl_term_stop, musl_tty_keys, musl_delay, musl_wait_for_input, musl_read_input,
 # musl_suspend -- and those ARE the core's declared calls to the host.  The two go at
@@ -57,7 +57,7 @@
 # `vim_vsnprintf_typval` and `skip_to_arg`, the ones a later phase moves below the
 # boundary -- call TWENTY distinct core functions at FORTY-ONE sites, `emsg`, `iemsg`,
 # `iobuff_or` and `emsg_iobuff_room` among them, and read `IObuff` once.  A two-file
-# split would have had to answer for every one of those; phase 22's survey flagged
+# split would have had to answer for every one of those; phase 105's survey flagged
 # exactly that and called it a genuine boundary question with three unattractive
 # answers.  UNDER ONE FILE THERE IS NO QUESTION, and it is recorded here so that the
 # earlier note does not send the next reader looking for a problem that the design
@@ -68,7 +68,7 @@
 # relative call to a known address.  Different instructions, and removing two file-scope
 # objects moves everything after them.  MEASURED: the same 788,488 bytes, and 347,279 of
 # them differ.  So the evidence is the RECORDING -- two full tools/zrecord.sh runs,
-# byte-identical -- which is how every zero phase before 23 was checked, with a control
+# byte-identical -- which is how every zero phase before 106 was checked, with a control
 # for each of the two names this phase makes direct.
 #
 # THE INPUT BINARY IS BUILT HERE with SOURCE_DATE_EPOCH=0, and the check records from it.
@@ -79,7 +79,7 @@ state=${2:?usage: whim108-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

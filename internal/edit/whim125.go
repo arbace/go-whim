@@ -11,7 +11,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { registerArgs("whim125", Zero42) }
+func init() { registerArgs("whim125", Whim125) }
 
 type z42Class struct {
 	label string
@@ -38,11 +38,11 @@ var z42Left = map[string]string{
 	"ML_LOCKED_DIRTY":          "an enumerator nothing mentions",
 }
 
-// Zero42 takes the swap file's residue: four groups of bookkeeping that is
+// Whim125 takes the swap file's residue: four groups of bookkeeping that is
 // WRITTEN and never read, which is exactly why no tool in tools/ can see any of
 // it -- deadfields.py takes a field named nowhere outside its own type, and gcc
 // has no warning for a file-scope object in either direction.
-func Zero42(text []byte, w io.Writer, args []string) ([]byte, error) {
+func Whim125(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p := ph{"swapres", w}
 	if len(args) != 1 {
 		return nil, p.die("usage: edit whim125 <file> <state-dir>")
@@ -222,7 +222,7 @@ func Zero42(text []byte, w io.Writer, args []string) ([]byte, error) {
 		linesBefore, len(directivesBefore), directivesBefore[0]+1)
 
 	// ==== PART 1 -- THE SWAP FILE'S HEADER BLOCK ===============================
-	// The field list is READ OUT OF THE STRUCT and not written here: phase 36
+	// The field list is READ OUT OF THE STRUCT and not written here: phase 119
 	// already took `b0_pid`, so a list typed from a survey would be one name long.
 	L := lines()
 	sbv, err := only(func(l string) bool { return l == "struct block0" }, "`struct block0`", 0, -1, 1)

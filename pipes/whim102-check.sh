@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 102 (zero phase 19), the check -- the core can no longer stop the process.
-# See pipes/whim102-edit.sh, and ZERO-GOAL.md.
+# Whim phase 102, the check -- the core can no longer stop the process.
+# See pipes/whim102-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim102-check.sh <work-dir> <state-dir>    (run from the repository root)
 #

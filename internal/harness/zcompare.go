@@ -188,7 +188,7 @@ func ZCompare(basedir, newdir, delta string, phase int, w io.Writer) error {
 		}
 		if len(b) == 0 {
 			fail = append(fail, fmt.Sprintf(
-				"  delta        the baselines hold no %s -- zero phase 0 records it", part.what))
+				"  delta        the baselines hold no %s -- phase 83 records it", part.what))
 			continue
 		}
 		bad, still := compareSet(b, x, part.prefix, tokens, dims, movedDim)

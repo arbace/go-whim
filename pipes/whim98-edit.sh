@@ -1,9 +1,9 @@
 #!/bin/sh
-# Whim phase 98 (zero phase 15) -- the character classes, the numbers and the sort.  See ZERO-GOAL.md.
+# Whim phase 98 -- the character classes, the numbers and the sort.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim98-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
-# THE CHARTER SAYS "no musl dependencies in `whim-vim.c` itself".  Phase 14 took the
+# THE CHARTER SAYS "no musl dependencies in `whim-vim.c` itself".  Phase 97 took the
 # strings; this takes everything else that is PURE COMPUTATION -- a function of its
 # arguments that asks the operating system nothing -- and defines it in the file, as
 # plain C, with no preprocessor and no comment.  Eleven undefined symbols go:
@@ -17,7 +17,7 @@
 # <ctype.h> -- `isalpha isdigit isgraph islower isupper`, and `isspace` through
 # `__isspace` -- so a source that calls them produces no undefined symbol at all.
 # Five of them are live here, at 17 sites, and until they go <ctype.h> cannot.  A
-# phase scoped by `nm -u` would look finished and leave phase 16 unable to move.
+# phase scoped by `nm -u` would look finished and leave phase 99 unable to move.
 #
 # <wctype.h> HAS A THIRD USER AND IT IS A DEAD STATEMENT.  `iswupper` is named once,
 # at the line after `return utf_isupper(c);` inside `vim_isupper` -- the residue of
@@ -79,9 +79,9 @@
 #      THE SEVENTEEN USE THE FILE'S TWO-LINE DEFINITION STYLE, and that is mechanical
 #      rather than cosmetic.  tools/funcreach.py finds a definition with
 #      `^([A-Za-z_]\w*)\(...\)$` -- the NAME at column 0, which is what
-#      `    static int` on its own line gives.  Phase 14 wrote one-line headers
+#      `    static int` on its own line gives.  Phase 97 wrote one-line headers
 #      (`static void *musl_memcpy(...)`), and MEASURED, funcreach.py sees 1,719
-#      definitions on this phase's input, exactly as it did before phase 14 ran: not
+#      definitions on this phase's input, exactly as it did before phase 97 ran: not
 #      one of its nineteen is in the reachability graph.  Nothing is wrong today --
 #      the block calls nothing funcreach tracks, and gcc's -Wunused-function still
 #      covers a dead one -- but a function written that way is outside the sweep, so
@@ -93,7 +93,7 @@
 #      after the inserted block so that the block's own bodies are never rewritten.
 #
 # THE DECLARED DELTA IS NOTHING AT ALL, and it is the third kind of empty
-# declaration this pipeline has.  Phase 9's was code that could not run; phase 13's
+# declaration this pipeline has.  Phase 92's was code that could not run; phase 96's
 # was a possibility that had never existed; THIS ONE IS AN EQUALITY -- the code runs
 # constantly and computes the same answer, so the evidence is equivalence rather
 # than unreachability, and every probe is a MUST-NOT-DIFFER.
@@ -104,7 +104,7 @@ state=${2:?usage: whim98-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).  The
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).  The
 # check needs the binary this phase was HANDED, to run its probes on both sides.
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")

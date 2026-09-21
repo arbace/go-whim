@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim110", Zero27) }
+func init() { register("whim110", Whim110) }
 
 var (
 	z27Inc     = regexp.MustCompile(`^ *# *include `)
@@ -136,8 +136,8 @@ func z27Total(c z27Counter) int {
 	return n
 }
 
-// Zero27 is phase 27's check: the move, the cut and the boundary.
-func Zero27(w io.Writer, args []string) error {
+// Whim110 is phase 110's check: the move, the cut and the boundary.
+func Whim110(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim110 <work-dir> <state-dir>")
 	}
@@ -218,7 +218,7 @@ func Zero27(w io.Writer, args []string) error {
 		// the twelve, which is what makes the build silent.
 		{"top", "#include <stddef.h>\n" + t},
 		// limits -- the SAME break with a header that does: the constraint
-		// that made this phase and phase 26 separate, measured.
+		// that made this phase and phase 109 separate, measured.
 		{"limits", "#include <limits.h>\n" + t},
 	}
 
@@ -661,15 +661,15 @@ func Zero27(w io.Writer, args []string) error {
 		return fatal("with <limits.h> put back at line 1 the enumerator `INT_MAX = "+
 			"(int)(~0u >> 1)` should become `0x7fffffff = ...` and the compiler should "+
 			"say `expected identifier before numeric constant`.  It did not, so the "+
-			"constraint that separates this phase from phase 26 is not what "+
-			"ZERO-PLAN.md 4c says it is:", filepath.Join(tmp, "w.limits"), 6)
+			"constraint that separates this phase from phase 109 is not what "+
+			"WHIM-PLAN.md II.4c says it is:", filepath.Join(tmp, "w.limits"), 6)
 	}
 	r.say("AND THE CONSTRAINT THAT MADE THIS PHASE AND PHASE 26 SEPARATE, MEASURED ON " +
 		"THE PRODUCT: with `#include <limits.h>` put back at line 1 the twelve " +
 		"enumerators become their own values -- `enum : int { 0x7fffffff = ... };` -- " +
 		"and the build stops at that line with `expected identifier before numeric " +
 		"constant`.  The constants could not have been written before the move, which " +
-		"is why phase 26 left them and this phase has them")
+		"is why phase 109 left them and this phase has them")
 	for _, c := range []string{"hash", "top", "elapsed"} {
 		if readFile(filepath.Join(tmp, "w."+c)) != "" {
 			return fatal(fmt.Sprintf("the %s control was expected to build in SILENCE "+
@@ -756,7 +756,7 @@ func Zero27(w io.Writer, args []string) error {
 	}
 	wStat := readFile(filepath.Join(tmp, "w.stat"))
 	if strings.Contains(wStat, "static declaration of 'malloc' follows non-static declaration") {
-		return stop("the `static` malloc prototype still gives phase 26's error, which " +
+		return stop("the `static` malloc prototype still gives phase 109's error, which " +
 			"means a declaration of malloc is still ABOVE it and the includes did not move")
 	}
 	if !strings.Contains(wStat, "'malloc' used but never defined") {
@@ -781,7 +781,7 @@ func Zero27(w io.Writer, args []string) error {
 			"the diagnostic and not the code")
 	}
 	r.say("THE TRAP HAS CHANGED SHAPE AND IT IS WEAKER, WHICH THE BRIEF DID NOT " +
-		"PREDICT.  Phase 26 measured a `static` libc prototype as `error: static " +
+		"PREDICT.  Phase 109 measured a `static` libc prototype as `error: static " +
 		"declaration of 'malloc' follows non-static declaration`, which needed " +
 		"<stdlib.h> ABOVE it; the brief expected it to become a link failure here.  " +
 		"MEASURED: it is neither.  gcc gives <stdlib.h>'s own declaration internal " +

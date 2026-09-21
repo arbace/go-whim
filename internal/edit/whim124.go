@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func init() { registerArgs("whim124", Zero41) }
+func init() { registerArgs("whim124", Whim124) }
 
 // z41Names are the three libc allocators.  `\b` does not match inside
 // `host_free`, `vim_free` or `realloc_cmdbuff` -- `_` is a word character --
@@ -20,12 +20,12 @@ var (
 	z41Inc = regexp.MustCompile(`^#include <[A-Za-z0-9_/.]+>$`)
 )
 
-// Zero41 makes freeing free: host_alloc() becomes a bump allocator into a 1 GiB
+// Whim124 makes freeing free: host_alloc() becomes a bump allocator into a 1 GiB
 // arena and host_free() a function that returns.
 //
 // IT TOUCHES NO CORE LINE, and that is the phase's central claim: the text above
 // the first `#include` must be BYTE-IDENTICAL in and out.
-func Zero41(text []byte, w io.Writer, args []string) ([]byte, error) {
+func Whim124(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p := ph{"arena", w}
 	if len(args) != 1 {
 		return nil, p.die("usage: edit whim124 <file> <state-dir>")
@@ -64,7 +64,7 @@ func Zero41(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	if len(directives) != 11 {
 		return nil, p.die("the file holds %d preprocessor directives and this phase was written against "+
-			"the eleven `#include`s phase 21 left", len(directives))
+			"the eleven `#include`s phase 104 left", len(directives))
 	}
 	for i := range directives {
 		if directives[i] != directives[0]+i {
@@ -155,7 +155,7 @@ func Zero41(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// as a place before it is stated as a `cmp`.
 	for _, name := range z41Names {
 		if regexp.MustCompile(`\b` + name + `\b`).MatchString(coreBefore) {
-			return nil, p.die("`%s` is mentioned above the boundary, and phases 34 and 35 took the core's "+
+			return nil, p.die("`%s` is mentioned above the boundary, and phases 117 and 118 took the core's "+
 				"last one -- this phase changes the host and nothing else", name)
 		}
 	}
@@ -183,9 +183,9 @@ func Zero41(text []byte, w io.Writer, args []string) ([]byte, error) {
 		{z41OverflowOld, z41lit2, "format_overflow_error()'s free of argcopy",
 			"argcopy came from alloc_clear(), which is host_alloc(), and from the line above " +
 				"this one libc's free() of that pointer is undefined.  It is the same rename " +
-				"phase 35 made at every core site, made at the one site below the boundary"},
+				"phase 118 made at every core site, made at the one site below the boundary"},
 		{z41ReallocOld, z41ReallocNew, "adjust_types()'s realloc of *ap_types",
-			"phase 34's rewrite at the one site phase 34 left: allocate, copy what was there, " +
+			"phase 117's rewrite at the one site phase 117 left: allocate, copy what was there, " +
 				"free the old block.  The old size is `*num_posarg` entries, which the function " +
 				"already has, and the guard is the same `*ap_types != nullptr` the arm above tests"},
 	} {

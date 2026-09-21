@@ -9,7 +9,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { register("whim94", Zero11) }
+func init() { register("whim94", Whim94) }
 
 // z11Swept are the twelve the sweep reads out of check_changed_any's tail, and
 // they are mostly three mentions each -- a prototype, a definition and one call.
@@ -53,10 +53,10 @@ func init() {
 	}
 }
 
-// Zero11 takes the last thing the filesystem left behind: the refusal,
+// Whim94 takes the last thing the filesystem left behind: the refusal,
 // `E37: No write since last change`, which has had no remedy to offer since
-// phase 6 took every `:write`.
-func Zero11(text []byte, w io.Writer) ([]byte, error) {
+// phase 89 took every `:write`.
+func Whim94(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"noquit", w}
 	var err error
 

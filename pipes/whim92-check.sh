@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 92 (zero phase 9), the check -- nothing in the editor reads a byte any more.
-# See pipes/whim92-edit.sh, and ZERO-GOAL.md.
+# Whim phase 92, the check -- nothing in the editor reads a byte any more.
+# See pipes/whim92-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim92-check.sh <work-dir> <state-dir>     (run from the repository root)
 #
@@ -12,7 +12,7 @@
 #
 # THE HONEST PROBLEM, AND WHAT IS DONE ABOUT IT.  There is no behavioural probe for
 # this phase, and no dishonest one is offered instead.  `readfile()` was ALREADY
-# unreachable when the phase was handed the tree -- phases 5 through 8 took the
+# unreachable when the phase was handed the tree -- phases 88 through 91 took the
 # file argument, the bare `-`, and every command that could name a file -- so
 # nothing this editor can be given reached it before the cut either, and every
 # recording is byte-identical across the phase BY CONSTRUCTION.  A probe that
@@ -24,7 +24,7 @@
 #   probe   old.c with `(void)write(2, "READFILE-ENTERED\n", 17);` as readfile()'s
 #           first statement.  Recorded with tools/zrecord.sh: ZERO of the 106
 #           records a recording held WHEN THIS PHASE WAS WRITTEN -- it is 122 since
-#           zero phase 40 added the memline corpus, and the assertions below are
+#           phase 123 added the memline corpus, and the assertions below are
 #           written against the count the run measures, not against that number --
 #           records may carry the marker.  That is the claim -- on the binary this
 #           phase was handed, nothing the instrument can do enters readfile().

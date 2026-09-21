@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 111 (zero phase 28), the check -- the scalar clock.
-# See pipes/whim111-edit.sh, and ZERO-PLAN.md 4c.
+# Whim phase 111, the check -- the scalar clock.
+# See pipes/whim111-edit.sh, and WHIM-PLAN.md II.4c.
 #
 # Usage: pipes/whim111-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -23,7 +23,7 @@
 #               REPLACED by musl_now_ms and not added to.
 #   THE SHAPE   every one of the thirteen signatures takes scalars and byte buffers
 #               only.  IT IS COMPUTED ON THE INPUT TOO, and the input satisfies it:
-#               phase 26 chose `musl_gettimeofday(long *, long *)` precisely so that
+#               phase 109 chose `musl_gettimeofday(long *, long *)` precisely so that
 #               `struct timeval` would not cross, so this phase does NOT earn that
 #               sentence and must not claim it.  What it earns is stated below.
 #   THE ROUNDING
@@ -36,8 +36,8 @@
 #               the eight new statements and musl_now_ms are written the way this file
 #               writes everything else.
 #   HOST        `zhostonly`, whose vocabulary this phase EXTENDS: `gettimeofday`
-#               is a host word from here, with the five core call sites phase 26 moved
-#               named as exceptions at the counts they had at r20, r21 and r25.
+#               is a host word from here, with the five core call sites phase 109 moved
+#               named as exceptions at the counts they had at q103, q104 and q108.
 #   SYMBOLS     `nm -u` is THE SAME SET -- 17 names, `comm` empty in both directions --
 #               and `main` is still the only external symbol.  **`gettimeofday` DOES
 #               NOT LEAVE**, and the check says so as an equality rather than letting a
@@ -54,7 +54,7 @@
 # vim_beep's 500 ms rate limit is never exercised a second time and the only reading the
 # corpus could see never happens.  Measured: a control whose clock NEVER ADVANCES, one
 # that RUNS BACKWARDS and one that runs 1000x FAST all move 0 of the 102 cases.  Phase
-# 26's control moved six, and it was not a clock control: swapping musl_gettimeofday's
+# 109's control moved six, and it was not a clock control: swapping musl_gettimeofday's
 # two output fields makes each reading an independent random number rather than a
 # consistently wrong one, which is a different thing from a clock.
 #

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func init() { register("whim114", Zero31) }
+func init() { register("whim114", Whim114) }
 
 var (
 	z31Inc  = regexp.MustCompile(`^#include <[A-Za-z0-9_/.]+>$`)
@@ -36,10 +36,10 @@ musl_labs(long a)
 
 const z31Anchor = "    static void *\nmusl_bsearch("
 
-// Zero31 vendors abs and labs -- called by the core, never in `nm -u` because
+// Whim114 vendors abs and labs -- called by the core, never in `nm -u` because
 // gcc lowers both to inline arithmetic, so the phase's whole value is that the
 // core stops depending on behaviour nothing states.
-func Zero31(text []byte, w io.Writer) ([]byte, error) {
+func Whim114(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"arith", w}
 
 	mentions := func(t []byte, name string) int {
@@ -86,7 +86,7 @@ func Zero31(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- 0. the file this edit was written against ----------------------------
 	// ELEVEN DIRECTIVES, contiguous, every one an `#include` of a system header --
-	// and since zero phase 27 THEY ARE NOT AT THE TOP.  The first of them is the
+	// and since phase 110 THEY ARE NOT AT THE TOP.  The first of them is the
 	// boundary between the core and the host, so everything this phase writes
 	// must land ABOVE it.
 	d, lines := directives(text)

@@ -10,7 +10,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { register("whim107", Zero24) }
+func init() { register("whim107", Whim107) }
 
 var (
 	z24Inc     = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
@@ -30,8 +30,8 @@ var (
 // rather than leave it or guess -- a partition and not a count.
 var z24Kinds = []string{"unused", "fallthrough", "format", "format_arg"}
 
-// Zero24 takes the attributes: 139 GNU `__attribute__` to six.
-func Zero24(text []byte, w io.Writer) ([]byte, error) {
+// Whim107 takes the attributes: 139 GNU `__attribute__` to six.
+func Whim107(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"attrs", w}
 
 	blankRuns := func(t []byte) int {

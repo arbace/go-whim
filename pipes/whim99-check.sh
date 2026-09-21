@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 99 (zero phase 16), the check -- the includes nothing names.
-# See pipes/whim99-edit.sh, and ZERO-GOAL.md.
+# Whim phase 99, the check -- the includes nothing names.
+# See pipes/whim99-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim99-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -15,7 +15,7 @@
 # binary is byte-identical (cmp)" -- and a byte-identical binary subsumes every screen
 # case, every Ex-command row, every command line and every pty scenario at once, because
 # the program that would be run is literally the same program.  tools/zerodelta.sh
-# --phase 16 still runs, from tools/phaserun.sh after this check, and it corroborates;
+# --phase 99 still runs, from tools/phaserun.sh after this check, and it corroborates;
 # it is not the evidence.
 #
 # THE ARGUMENT IS A COMPUTATION AND NOT A LIST, and section 3 is the whole phase.  A
@@ -28,7 +28,7 @@
 #   on the input     18 compiles, and EXACTLY SIX MUST SUCCEED -- the six this phase
 #                    removed -- while the other twelve fail.  That is the same loop
 #                    proving it can fail, in the same run, on the same code path: it
-#                    is phase 13's ui_write() control in this phase's shape.
+#                    is phase 96's ui_write() control in this phase's shape.
 #
 # Measured: the two loops together are 30 compiles and about 5 seconds, run at once.
 # gcc 15 defaults to C23, where an implicit function declaration is a HARD ERROR, so a
@@ -45,13 +45,13 @@
 # WHAT MUST NOT MOVE, and each is asserted rather than assumed:
 #
 #   * the libc surface, as a `cmp` OF THE WHOLE SET.  This phase frees nothing and
-#     nothing arrives -- it is phase 5's, 11's and 12's equality, and a symbol
+#     nothing arrives -- it is phase 88's, 94's and 95's equality, and a symbol
 #     ARRIVING must fail as loudly as one leaving.
-#   * `main` the only external symbol (tools/phasecheck.sh).  Phases 14 and 15 added
+#   * `main` the only external symbol (tools/phasecheck.sh).  Phases 97 and 98 added
 #     twenty-eight `static` definitions of what were libc functions, and that check is
 #     what says the keyword was not forgotten; this phase re-asserts it for free.
 #   * `FILE` at zero mentions, and nothing that could open or name a file called --
-#     ZERO-PLAN.md 4b's invariant, which <fcntl.h> and <sys/stat.h> leaving makes
+#     WHIM-PLAN.md II.4b's invariant, which <fcntl.h> and <sys/stat.h> leaving makes
 #     visible in the directive list for the first time.
 #   * `cmdnames[]`, `nv_cmds[]` and `options[]`, none of which this phase touches.
 #   * the blank-line paragraphing, which no verification tier can see: CLAUDE.md says

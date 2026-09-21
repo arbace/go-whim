@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim117", Zero34) }
+func init() { register("whim117", Whim117) }
 
 var (
 	z34Realloc = regexp.MustCompile(`\brealloc\b`)
@@ -309,8 +309,8 @@ func z34Driver(src, out string, nullwatch bool) error {
 	return os.WriteFile(out, []byte(body), 0o644)
 }
 
-// Zero34 is phase 34's check: the core stops reallocating.
-func Zero34(w io.Writer, args []string) error {
+// Whim117 is phase 117's check: the core stops reallocating.
+func Whim117(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim117 <work-dir> <state-dir>")
 	}
@@ -521,10 +521,10 @@ func Zero34(w io.Writer, args []string) error {
 	}
 	r.say("`realloc` is 3 -> 0 above the boundary and %d -> %d below it.  THE "+
 		"SYMBOL DOES NOT LEAVE and this phase does not claim it does: adjust_types(), in "+
-		"the formatter island phase 27 moved down, is the host's and still calls it", oh, nh)
+		"the formatter island phase 110 moved down, is the host's and still calls it", oh, nh)
 	r.say("the core's plain libc prototype block is %d lines where the input's was "+
 		"%d, and the one it lost is `void *realloc(void *p, usize n);` -- counted from the "+
-		"input, never stated here, because phases 31 and 35 shrink the same block", len(np), len(op))
+		"input, never stated here, because phases 114 and 118 shrink the same block", len(np), len(op))
 	r.say("both rewrites are in the output exactly once: ga_grow_inner with the copy " +
 		"and the free GUARDED by `ga_data != nullptr`, its `return FAIL` above anything " +
 		"being freed, and its tail-zeroing statement unmoved below the copy; " +
@@ -770,7 +770,7 @@ func Zero34(w io.Writer, args []string) error {
 		"-- the rewrite WITHOUT `if (gap->ga_data != nullptr)` -- gives a byte-identical unit transcript and no "+
 		"sanitizer finding, because a null ga_data implies ga_maxlen == 0 implies old_len == 0, musl_memcpy's "+
 		"`for (; n; n--)` never dereferences and free(nullptr) is a no-op.  What the guard buys is on the PAGE, "+
-		"which is what ZERO-PLAN.md 4c's transpilation rule asks for: the same driver with musl_memcpy "+
+		"which is what WHIM-PLAN.md II.4c's transpilation rule asks for: the same driver with musl_memcpy "+
 		"announcing a null source reports %d from the output and %d from the unguarded control.  A null passed "+
 		"to a copy is not something the core may leave for a runtime to be lenient about", nwNew, nwNg)
 
@@ -794,7 +794,7 @@ func Zero34(w io.Writer, args []string) error {
 	}
 	if !contains(uNew, "realloc") {
 		return stop("`realloc` is NOT undefined any more, and this phase does not claim to free it: " +
-			"adjust_types() is the host's and still calls it.  Phases 14, 15 and 21 each require it to be there")
+			"adjust_types() is the host's and still calls it.  Phases 97, 98 and 104 each require it to be there")
 	}
 	if !contains(uNew, "malloc") || !contains(uNew, "free") {
 		return stop("`malloc` or `free` left, and the rewrite is written over both")
@@ -805,7 +805,7 @@ func Zero34(w io.Writer, args []string) error {
 	}
 	r.say("`nm -u` is THE SAME SET, %d names, as a `comm` empty in BOTH directions, and `main` is still the "+
 		"only external symbol.  `realloc` IS STILL IN IT, which is what a reader will not expect: the core no "+
-		"longer calls it, adjust_types() below the boundary does, and phases 14, 15 and 21 each assert it is "+
+		"longer calls it, adjust_types() below the boundary does, and phases 97, 98 and 104 each assert it is "+
 		"there", len(uNew))
 	r.say("the binary is %d bytes against the input's %d.  This phase is NOT tier 1 of CLAUDE.md's table and "+
 		"does not pretend to be: one call becomes a test, a call, a copy loop and a free, and at -O0 that is "+
@@ -972,7 +972,7 @@ func Zero34(w io.Writer, args []string) error {
 	if nl.files < 100 {
 		r7.bad("a recording is %d records, and a measurement over a corpus nothing "+
 			"wrote passes.  The count is REPORTED and not pinned: it was 106 when "+
-			"this phase was written and is 122 since zero phase 40 added the "+
+			"this phase was written and is 122 since phase 123 added the "+
 			"memline corpus", nl.files)
 	}
 	if nl.total < 1000 || hv.total < 500 {

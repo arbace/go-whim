@@ -11,7 +11,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { registerArgs("whim119", Zero36) }
+func init() { registerArgs("whim119", Whim119) }
 
 var (
 	z36Dir     = regexp.MustCompile(`^ *# *`)
@@ -38,12 +38,12 @@ func z36IsDecl(l string) bool {
 	return z36DeclRe.MatchString(l)
 }
 
-// Zero36 leaves the core naming no libc function at all.  The last two go by
+// Whim119 leaves the core naming no libc function at all.  The last two go by
 // DIFFERENT routes: `getpid` is avoidable outright, its one caller feeding a
 // `b0_pid` that nothing reads; `kill` is moved, becoming host_raise(), which
 // takes no pid because a core that cannot ask for its own process id must not be
 // handed one.
-func Zero36(text []byte, w io.Writer, args []string) ([]byte, error) {
+func Whim119(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p := ph{"noclib", w}
 	if len(args) != 1 {
 		return nil, p.die("usage: edit whim119 <file> <state-dir>")
@@ -113,7 +113,7 @@ func Zero36(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	if len(directives) != 11 {
 		return nil, p.die("the file holds %d preprocessor directives and this phase was written against "+
-			"the eleven `#include`s phase 21 left", len(directives))
+			"the eleven `#include`s phase 104 left", len(directives))
 	}
 	for i := range directives {
 		if directives[i] != directives[0]+i {

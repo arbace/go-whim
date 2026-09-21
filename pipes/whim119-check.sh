@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 119 (zero phase 36), the check -- the core's libc prototype block empties.
-# See pipes/whim119-edit.sh, and ZERO-PLAN.md 4c.
+# Whim phase 119, the check -- the core's libc prototype block empties.
+# See pipes/whim119-edit.sh, and WHIM-PLAN.md II.4c.
 #
 # Usage: pipes/whim119-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -28,7 +28,7 @@
 #               the identical computation on the INPUT finds exactly two that are not,
 #               `getpid` and `kill`, and that is the control.  The cut also defines no
 #               external symbol at all.
-#   VOCABULARY  `zhostonly`, phase 20's structural check, plus the stronger thing
+#   VOCABULARY  `zhostonly`, phase 103's structural check, plus the stronger thing
 #               this boundary can say: above the first `#include` the ONLY words of that
 #               tool's host vocabulary left are `SIGHUP` and `SIGTERM`, the two the core
 #               NAMES because it prints them.

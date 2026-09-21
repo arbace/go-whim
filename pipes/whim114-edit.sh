@@ -1,11 +1,11 @@
 #!/bin/sh
-# Whim phase 114 (zero phase 31) -- abs and labs, the two the core took on trust.
-# See ZERO-PLAN.md 4c, and ZERO-GOAL.md.
+# Whim phase 114 -- abs and labs, the two the core took on trust.
+# See WHIM-PLAN.md II.4c, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim114-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
 # THE CORE IS OPTIMISED FOR TRANSPILATION, NOT FOR PERFORMANCE, AND SO IT MAY NOT
-# DEPEND ON LATENT COMPILER BEHAVIOUR (ZERO-PLAN.md 4c, the user's rule of
+# DEPEND ON LATENT COMPILER BEHAVIOUR (WHIM-PLAN.md II.4c, the user's rule of
 # 2026-09-19).  This phase is the first application of it, and it is the reason the
 # phase exists at all -- because by every number this pipeline usually reports, it
 # does nothing.
@@ -22,7 +22,7 @@
 # WHAT IT DOES, in three parts:
 #
 #   the two prototypes    `long labs(long n);` and `int abs(int n);`, which zero
-#                         phase 26 wrote into the core's block of libc declarations
+#                         phase 109 wrote into the core's block of libc declarations
 #                         when the headers were still above it.  The block loses two
 #                         of its entries and nothing else changes in it.
 #   the three call sites  8152 `musl_labs((long)get_cursor_rel_lnum(...))` in the
@@ -32,12 +32,12 @@
 #                         last_status_rec.  The line numbers are where they were
 #                         when this was written and nothing below depends on them.
 #   the two definitions   `static musl_abs` and `static musl_labs`, in the `musl_`
-#                         block phases 14 and 15 built, immediately above
+#                         block phases 97 and 98 built, immediately above
 #                         `musl_bsearch` so that the four `<stdlib.h>` scalar
 #                         functions the core owns -- musl_atoi, musl_atol, musl_abs,
 #                         musl_labs -- sit together and above every use.
 #
-# MUSL'S SPELLING IS COPIED AND NOT IMPROVED, which is phase 14's rule applied to
+# MUSL'S SPELLING IS COPIED AND NOT IMPROVED, which is phase 97's rule applied to
 # two more functions.  /root/musl/src/stdlib/abs.c and labs.c are one line each:
 #
 #     int abs(int a) { return a>0 ? a : -a; }
@@ -69,7 +69,7 @@ state=${2:?usage: whim114-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

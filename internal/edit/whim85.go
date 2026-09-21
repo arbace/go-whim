@@ -5,9 +5,9 @@ import (
 	"regexp"
 )
 
-func init() { register("whim85", Zero2) }
+func init() { register("whim85", Whim85) }
 
-// Zero2 stops the core diagnosing its own terminal.
+// Whim85 stops the core diagnosing its own terminal.
 //
 // An embeddable core is handed its input and output by a host.  Whether either
 // is a terminal is the host's business, and vim's answer to it is to print two
@@ -24,7 +24,7 @@ func init() { register("whim85", Zero2) }
 // second reader survives the branch that went.  So all five isatty() calls
 // remain and the undefined symbol count does not move.  This phase is the
 // warnings, the pause and the flag -- not every isatty caller.
-func Zero2(text []byte, w io.Writer) ([]byte, error) {
+func Whim85(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"nottywarn", w}
 	var err error
 

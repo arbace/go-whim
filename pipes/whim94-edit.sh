@@ -1,9 +1,9 @@
 #!/bin/sh
-# Whim phase 94 (zero phase 11) -- `:q` quits, and `ZZ` is `ZQ`.  See ZERO-GOAL.md.
+# Whim phase 94 -- `:q` quits, and `ZZ` is `ZQ`.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim94-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
-# Phases 6 to 10 took every way to reach a file.  What is left of the filesystem in
+# Phases 89 to 93 took every way to reach a file.  What is left of the filesystem in
 # this editor is a REFUSAL: `:q` on a modified buffer answers `E37: No write since
 # last change (add ! to override)` and stays.  The protection has no remedy once
 # nothing can be written -- there is no `:w` to answer it with and no file the text
@@ -17,7 +17,7 @@
 #
 # and the test is the refusal.  Folding it NEVER keeps the `else` -- "quit" -- and
 # is the last reference `check_changed()` has.  FIFTEEN FUNCTIONS THEN GO AND THIS
-# FILE NAMES NOT ONE OF THEM (ZERO-GOAL.md rule 1), which is the largest surprise
+# FILE NAMES NOT ONE OF THEM (WHIM-GOAL.md core rule 1), which is the largest surprise
 # the phase has: eleven of the fifteen are not the refusal at all.
 # `check_changed_any()`'s tail is "go to the buffer that refused" -- it calls
 # `set_curbuf()`, which calls `enter_buffer()` and `win_enter_ext()` -- and after
@@ -45,7 +45,7 @@
 # TWO EXTRAS GO WITH THE FOLD, each measured byte-identical in the recording.
 #
 #   A  TWO STRUCT FIELDS THAT BECOME WRITE-ONLY, WHICH NO TOOL CAN SEE.  This is
-#      phase 7's `usefilter` judgement in a smaller shape: tools/deadfields.py
+#      phase 90's `usefilter` judgement in a smaller shape: tools/deadfields.py
 #      removes a field nothing NAMES, and gcc has no warning for a member that is
 #      only written.  `win_T.w_topline_was_set`'s only reader was in
 #      `enter_buffer()` and `wininfo_S.wi_changelistidx`'s only reader was in
@@ -64,10 +64,10 @@
 #      other tree: the fold is right only because it sets `exiting` for itself.
 #
 # `ZZ` IS ALREADY `ZQ` AND STAYS SO.  `nv_Zet` runs `do_cmdline_cmd("q!")` for
-# `case 'Z'` AND for `case 'Q'`, identical since phase 6.  After this phase `:q` and
+# `case 'Z'` AND for `case 'Q'`, identical since phase 89.  After this phase `:q` and
 # `:q!` are also identical, so all four spellings are one thing.  THE STRINGS ARE
 # NOT REWRITTEN TO `"q"`: it would move `zz_key` and `zq_key` for no gain, and
-# `case:zz_key` is phase 6's declaration and must not be re-declared here.
+# `case:zz_key` is phase 89's declaration and must not be re-declared here.
 #
 # WHAT LEAVES FOR A LATER PHASE TO NOTICE.  `SHM_FILEINFO` is the `'shortmess'` `F`
 # letter and its only reader was inside `enter_buffer()`; the sweep takes it, and
@@ -75,7 +75,7 @@
 # are not touched here.
 #
 # THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own makefile
-# flags, as every zero edit since phase 2 does, and the source goes with it as
+# flags, as every zero edit since phase 85 does, and the source goes with it as
 # $state/old.c.  The check needs both: the exit status of a session that quits with
 # unsaved changes is what moves, and no recording can see it.
 set -eu
@@ -85,7 +85,7 @@ state=${2:?usage: whim94-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

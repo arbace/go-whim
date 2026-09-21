@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func init() { register("whim103", Zero20) }
+func init() { register("whim103", Whim103) }
 
 // z20Before is counted on the INPUT, so a later phase that moved one of these
 // fails here and not in the middle of a cut.
@@ -21,11 +21,11 @@ var z20Before = []struct {
 	{"win_resize_enabled", 6}, {"got_tstp", 4}, {"do_resize", 6},
 }
 
-// Zero20 gives the signals and the terminal to the host: the five signal
+// Whim103 gives the signals and the terminal to the host: the five signal
 // handlers, mch_settmode's three-valued mode, mch_delay's sleep,
 // RealWaitForChar's select, mch_get_shellsize and all three isatty() calls move
 // into a 229-line host block at the bottom of the same file.
-func Zero20(text []byte, w io.Writer) ([]byte, error) {
+func Whim103(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"host", w}
 	t := string(text)
 
@@ -103,7 +103,7 @@ func Zero20(text []byte, w io.Writer) ([]byte, error) {
 	// neither has text to count and neither is a call the generator can lift.
 	// Each is performed by the TAG of the act that follows it and never by a
 	// line number, because a table keyed on line numbers is a dependency on
-	// every line above it (CLAUDE.md, `apart 24 25`).
+	// every line above it (CLAUDE.md, `apart 107 108`).
 	//
 	// The way the omission showed was one mention short at the very end:
 	// `musl_wait_for_input has 2 mentions, expected 3 -- its prototype, its
@@ -145,7 +145,7 @@ func Zero20(text []byte, w io.Writer) ([]byte, error) {
 			a := op.args
 			if a == nil {
 				// The computed splice: the host block goes INSIDE the launcher
-				// region phase 18 created and phase 19 filled, immediately above
+				// region phase 101 created and phase 102 filled, immediately above
 				// `host_jump`, because that region is what becomes the second
 				// file at the split.
 				old := "\nstatic void *host_jump[5];\nstatic int host_code;\n"

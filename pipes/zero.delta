@@ -1,8 +1,9 @@
-# The zero pipeline's declared delta: what each phase changes, in advance.
+# The declared delta of phases 83 onwards: what each changes, in advance.
 #
 # Read by tools/zerodelta.sh --phase N, which takes every line up to phase N and
-# checks the binary moved in exactly that way -- and nothing else (ZERO-GOAL.md,
-# rule 2).  The grammar is pipes/whim.delta's, one line per phase that changes the
+# checks the binary moved in exactly that way -- and nothing else (WHIM-GOAL.md,
+# core rule 2).  tools/whimdelta.sh hands it every phase from ZERO_FROM
+# (tools/pipeline.sh) on; pipes/whim.delta is phases 0 to 82's.  The grammar is pipes/whim.delta's, one line per phase that changes the
 # list, continuation lines indented:
 #
 #   word             an Ex command name: its block in ref-excmds.txt now differs
@@ -24,13 +25,13 @@
 # (proven, by declaring it here and watching tools/zcompare.py refuse).  Everything
 # outside the declared dimension is still checked record by record.
 #
-# THE DIFFERENCE IS FROM WHIM-VIM, not from slim-vim.  The baselines it is measured
-# against are .reference/zero-baselines, which zero phase 0 records from the
-# committed whim-vim.c built with whim's own compile line.  So everything whim
-# removed is already in them, and the list below starts empty: each zero phase
-# declares only what it changes relative to whim.
+# THE DIFFERENCE IS FROM q82, not from slim-vim.  The baselines it is measured
+# against are .reference/zero-baselines, which phase 83 records from the tree it is
+# handed, built with the compile line that tree carries.  So everything phases 0 to
+# 82 removed is already in them, and the list below starts empty: each phase from
+# 83 declares only what it changes relative to q82.
 #
-# 83 (zero 0) declares nothing: the seed is whim-vim.c byte for byte, built -no-pie, and the
+# 83 (zero 0) declares nothing: q82's whim-vim.c unchanged, built -no-pie, and the
 # harnesses must see no difference at all.
 #
 # 84 (zero 1) declares nothing: -fno-stack-protector changes the code gcc emits around a
@@ -42,7 +43,7 @@
 # editor: behaviour.py and exsweep.py ran it `-e -s`, where exmode_active is set
 # before check_tty() and its other branch is taken, so no recorded stderr ever
 # held the warnings, and termcheck.py drives a pty where both streams ARE
-# terminals.  The instrument phase 3 installs runs the editor on a pipe, which is
+# terminals.  The instrument phase 86 installs runs the editor on a pipe, which is
 # exactly where those warnings were printed, so the difference is visible now and
 # is declared where it happened: every one of the 102 cases, 109 of the 111 command
 # rows (:stop and :suspend are skipped and run nothing) and 13 of the 30 command
@@ -99,7 +100,7 @@
 #   list says so rather than letting a dimension cover it.
 #
 # Nothing else moves, and the screen corpus is the reason it cannot: every case
-# seeds itself by TYPING under `'paste'` (ZERO-PLAN.md 2d), so not one of the 102
+# seeds itself by TYPING under `'paste'` (WHIM-PLAN.md II.2d), so not one of the 102
 # passes a file argument.  Measured: all 102 cases, all 111 Ex-command rows, the
 # four pty scenarios and the terminal table are identical, as are the other 24
 # command lines -- including every `+{command}` form and all three `-T` spellings.
@@ -113,13 +114,13 @@
 #   `cmd_write` types `:write` WITH NO FILE NAME, so what the baselines hold is an
 #   editor that FAILED to write, `E32: No file name`.  It is `E492: Not an editor
 #   command: write` now.  That is the whole of what the corpus can see of this
-#   phase, which is why pipes/zero6-check.sh runs both binaries in a directory it
+#   phase, which is why pipes/whim89-check.sh runs both binaries in a directory it
 #   keeps and requires the old one to leave a file on the disk.
 #   `zz_key` moves because `nv_Zet` ran the command string `"x"`.  ZZ IS ZQ NOW, by
 #   the user's decision, so the string is `"q!"`: one bell becomes none, E32 goes,
 #   and the record loses two snapshots.  It moves whatever is done here -- left
 #   alone, `ZZ` would answer E492 for a command that no longer exists -- so this
-#   phase owns it.  ZERO-PLAN.md gives it to the `:q` phase; that row is annotated.
+#   phase owns it.  WHIM-PLAN.md part II gives it to the `:q` phase; that row is annotated.
 #   the six ref-excmds.txt rows do not change message: they CEASE TO EXIST.
 #   tools/zexcmds.py enumerates the table through create_cmdidxs.names(), which
 #   reads 105 names where it read 111, so there is no row to compare.
@@ -137,7 +138,7 @@
 # TWO SCREEN CASES AND ONE COMMAND ROW MOVE:
 #
 #   `cmd_read` types `:read` WITH NO FILE NAME, so what the baselines hold is an
-#   editor that FAILED to read, `E32: No file name` -- the shape phase 6 left
+#   editor that FAILED to read, `E32: No file name` -- the shape phase 89 left
 #   `:write` in.  It is `E492: Not an editor command: read` now.
 #   `read_cmd_gone` types `:r !echo piped`, which whim's stub answered with
 #   `E319: Sorry, the command is not available in this version`.  It is E492 now:
@@ -176,7 +177,7 @@
 #   the five ref-excmds.txt rows do not change message: they CEASE TO EXIST.
 #   tools/zexcmds.py enumerates the table through create_cmdidxs' names(), which
 #   reads 99 names where it read 104 -- and 99 is under the floor that tool had, so
-#   this phase lowers it to 80 (ZERO-PLAN.md decision 8) in its own commit.
+#   this phase lowers it to 80 (WHIM-PLAN.md II decision 8) in its own commit.
 #
 # Nothing else moves.  Measured with tools/zcompare.py: the other 100 screen cases,
 # the other 94 command rows, all 30 command lines, the four pty scenarios and the
@@ -184,7 +185,7 @@
 # them, which is the inheritance check five removed names ask for, and `:q` on a
 # modified buffer (still E37: check_changed stays and is the `:q` phase's).
 #
-# THE CORPUS SEES TWO CASES AND NEITHER OPENS A FILE, which is why pipes/zero8-check.sh
+# THE CORPUS SEES TWO CASES AND NEITHER OPENS A FILE, which is why pipes/whim91-check.sh
 # runs both binaries: `:e! keys`, `:ex! keys`, `:visual! keys` and `:view! keys` all
 # load a file on the input binary, `:view` alone making `:set ro?` answer `readonly`,
 # and `:enew!` empties the buffer -- that is the whole of do_exedit, measured from
@@ -197,15 +198,15 @@
 # than an omission.  This phase removes the file-reading path -- `readfile()`, 787
 # lines, `read_buffer()`, the four functions of the message layer that reported what
 # had been read, and eleven more the sweep finds under them -- and it declares
-# nothing because THE PATH STOPPED BEING REACHABLE AT PHASE 8.  Phase 5 took the file
-# argument and the bare `-`, phases 6, 7 and 8 took every command that could name a
+# nothing because THE PATH STOPPED BEING REACHABLE AT PHASE 8.  Phase 88 took the file
+# argument and the bare `-`, phases 89, 90 and 91 took every command that could name a
 # file, and after them `open_buffer()`'s two arms need either `b_ffname != NULL` or a
 # `read_stdin` argument that all four callers pass as FALSE.  gcc kept the code
 # because it cannot prove the first never holds; nothing the editor can be given
 # reaches it.  So the difference this phase makes is between code that cannot run and
 # code that is not there, and a recording that MOVED would mean the cut was wrong.
 #
-# WHICH MEANS THE DELTA CANNOT BE THE EVIDENCE, and pipes/zero9-check.sh says what is
+# WHICH MEANS THE DELTA CANNOT BE THE EVIDENCE, and pipes/whim92-check.sh says what is
 # instead: the source this phase was handed, built twice with
 # `(void)write(2, "READFILE-ENTERED\n", 17);` as the first statement of `readfile()`
 # and then of `open_buffer()`, and recorded with tools/zrecord.sh.  Zero of the 106
@@ -217,7 +218,7 @@
 # Measured twice over: `diff -rq` of two full recordings, the binary the phase was
 # handed against the one it made, is EMPTY -- all 102 screen cases, all 111 Ex-command
 # rows, all 30 command lines, the four pty scenarios and the nineteen terminal rows --
-# and tools/zerodelta.sh --phase 9 finds the same against whim-vim's frozen baselines.
+# and tools/zerodelta.sh --phase 92 finds the same against whim-vim's frozen baselines.
 #
 # 93 (zero 10) takes the buffer's NAME: the one command that could still set it, `:file`, the
 # three char_u* fields on every buffer, and the sixteen places that asked what the
@@ -234,7 +235,7 @@
 #
 # NOTHING ELSE CAN MOVE, and the reason is stronger than a measurement: every fold
 # this phase makes takes the branch the code already took at run time.  `b_ffname`,
-# `b_sfname` and `b_fname` have been NULL since phase 5 took the file argument and
+# `b_sfname` and `b_fname` have been NULL since phase 88 took the file argument and
 # `:file` was the last thing that could set one, so `== NULL` was already TRUE at
 # every site and `!= NULL` already FALSE.  `[No Name]` survives as the ONLY answer
 # buf_spname() can give rather than as one of two -- which is why CTRL-G, `g CTRL-G`,
@@ -259,18 +260,18 @@
 #   loses a snapshot -- 2,342 -> 2,213 bytes of stream.  The exit status does NOT
 #   move, and that is the corpus's limit rather than the phase's: every zcases.py
 #   case ends with a trailing `:q!`, which quits the old binary too.  The status is
-#   what pipes/zero11-check.sh's `q_alone` probe is for -- `:q` with NOTHING after
+#   what pipes/whim94-check.sh's `q_alone` probe is for -- `:q` with NOTHING after
 #   it, where the old binary draws E37, runs out of stdin, prints `Vim: Finished.`
 #   and exits 1, and this one quits and exits 0.
 #   the ref-excmds.txt row `quit` CHANGES MESSAGE AND DOES NOT CEASE TO EXIST,
-#   unlike every row phases 6 to 10 declared: `:quit` is still a command and still
+#   unlike every row phases 89 to 93 declared: `:quit` is still a command and still
 #   has its row, so tools/zexcmds.py enumerates the same 98 names and compares the
 #   block.  Its `msgs` lose the E37 line -- `:set nopaste / E37... / :q!` becomes
 #   `:set nopaste / :quit`.  The `cquit` row does not move.
 #
 # NOTHING ELSE CAN MOVE.  The fold takes the branch the code took whenever the
 # buffer was unmodified, and `:q!` took it already; `ZZ` and `ZQ` have run
-# `do_cmdline_cmd("q!")` since phase 6, so all four spellings were already one
+# `do_cmdline_cmd("q!")` since phase 89, so all four spellings were already one
 # thing for an unmodified buffer and are one thing for every buffer now.  The
 # buffer still KNOWS it is modified -- CTRL-G still prints `[Modified]`, the status
 # line still draws `[+]`, `:set modified?` still answers -- so what went is the
@@ -282,7 +283,7 @@
 94    case:quit_modified
       quit
 #
-# 95 (zero 12) DECLARES NOTHING AT ALL, and the reason is not phase 9's.  Phase 9 removed code
+# 95 (zero 12) DECLARES NOTHING AT ALL, and the reason is not phase 92's.  Phase 92 removed code
 # that could not run; this phase removes code that CAN run and that the instrument
 # cannot see.  Six option rows go -- `'fsync'`, `'prompt'`, `'readonly'`,
 # `'undoreload'`, `'write'` and `'writeany'`, the six of a computed seven whose global
@@ -307,10 +308,10 @@
 #   stream would be invisible there.
 #
 # So a phase that did nothing and a phase that did everything have the same
-# recording, and pipes/zero12-check.sh says what the evidence is instead: 26 probes on
+# recording, and pipes/whim95-check.sh says what the evidence is instead: 26 probes on
 # both binaries, of which `ro_w10` is the one that shows BEHAVIOUR going -- `:set ro`
 # on an unmodified buffer and then an insert draws W10 and pauses 1,008 ms on the
-# binary this phase was handed and 3 ms here, the same shape as phase 2's 2,010 -> 5.
+# binary this phase was handed and 3 ms here, the same shape as phase 85's 2,010 -> 5.
 #
 # THE FLAG LETTERS ARE NOT TOUCHED AND THAT IS A DECISION, not an omission.  A letter
 # in `'cpoptions'`' or `'shortmess'`'s validity list with no enumerator is accepted
@@ -324,10 +325,10 @@
 # Measured: `diff -rq` over two full recordings, the binary the phase was handed
 # against the one it made, is EMPTY -- all 102 screen cases, all 111 Ex-command rows,
 # all 30 command lines, the four pty scenarios and the nineteen terminal rows -- and
-# tools/zerodelta.sh --phase 12 finds the same against whim-vim's frozen baselines,
-# with the nine lines phases 2 to 11 declared and nothing new.
+# tools/zerodelta.sh --phase 95 finds the same against whim-vim's frozen baselines,
+# with the nine lines phases 85 to 94 declared and nothing new.
 #
-# 96 (zero 13) DECLARES NOTHING AT ALL, for phase 9's reason and not phase 12's.  Two `static
+# 96 (zero 13) DECLARES NOTHING AT ALL, for phase 92's reason and not phase 95's.  Two `static
 # FILE *` survive in this editor and NOTHING HAS EVER OPENED EITHER OF THEM IN ANY
 # BUILD OF zero-vim: `scriptin[NSCRIPT]`, which `-s {scriptfile}` filled and for which
 # whim removed the option, and `redir_fd`, which `:redir > file` filled and for which
@@ -336,7 +337,7 @@
 # declaration.  So removing them is the difference between code that cannot run and
 # code that is not there, and a recording that MOVED would mean the cut was wrong.
 #
-# WHICH MEANS THE DELTA CANNOT BE THE EVIDENCE, and pipes/zero13-check.sh says what is
+# WHICH MEANS THE DELTA CANNOT BE THE EVIDENCE, and pipes/whim96-check.sh says what is
 # instead: the source this phase was handed, built twice with
 # `(void)write(2, "FILESTAR-ENTERED\n", 17);` at FIVE places -- the top of
 # `closescript()`, inside `inchar()`'s `getc(scriptin[curscript])` loop, inside
@@ -350,7 +351,7 @@
 # Measured twice over: `diff -rq` of two full recordings, the binary the phase was
 # handed against the one it made, is EMPTY -- all 102 screen cases, all 111 Ex-command
 # rows, all 30 command lines, the four pty scenarios and the nineteen terminal rows --
-# and tools/zerodelta.sh --phase 13 finds the same against whim-vim's frozen baselines.
+# and tools/zerodelta.sh --phase 96 finds the same against whim-vim's frozen baselines.
 #
 # Four libc symbols go with it, `fclose getc putc fsync`, and after them the core has
 # no `open`, no `stat`, no stdio stream and no fourth descriptor: it can read, write,
@@ -358,8 +359,8 @@
 # asserts it STILL undefined: the source names it nowhere and gcc lowers
 # `fprintf(stderr, "...")` to it.
 #
-# 97 (zero 14) DECLARES NOTHING AT ALL, and the reason is a THIRD one -- neither phase 9's nor
-# phase 12's.  Phase 9 removed code that could not run.  Phase 12 removed code that
+# 97 (zero 14) DECLARES NOTHING AT ALL, and the reason is a THIRD one -- neither phase 92's nor
+# phase 95's.  Phase 92 removed code that could not run.  Phase 95 removed code that
 # can run and that the instrument cannot see.  This phase REMOVES NO CODE AND CHANGES
 # NO BEHAVIOUR: it brings sixteen libc string and memory functions into the file as
 # `static musl_*` written from /root/musl/src/string/, and moves `sprintf` onto the
@@ -369,7 +370,7 @@
 # Measured twice over: `diff -rq` of two full recordings, the binary the phase was
 # handed against the one it made, is EMPTY -- all 102 screen cases, all 111
 # Ex-command rows, all 30 command lines, the four pty scenarios and the nineteen
-# terminal rows -- and tools/zerodelta.sh --phase 14 finds the same against
+# terminal rows -- and tools/zerodelta.sh --phase 97 finds the same against
 # whim-vim's frozen baselines.  Not one enumerator moves either, because nothing is
 # deleted: no type, no enum, no cmdnames[] row, no options[] row.
 #
@@ -379,7 +380,7 @@
 # was the open question: gcc emits `memcpy` and `memset` for ITSELF, for aggregate
 # assignments and large zero initialisers, whatever the source calls -- and in this
 # file it emits none, so nothing had to be defined under a real name and
-# "nothing is global but main()" is untouched.  pipes/zero14-check.sh asserts it from
+# "nothing is global but main()" is untouched.  pipes/whim97-check.sh asserts it from
 # the assembly as well as from nm.
 #
 # ONE THING DOES CHANGE ON ONE REACHABLE INPUT, AND IT IS A BUG FIX, so it is written
@@ -394,8 +395,8 @@
 # renders as vim's own printf spells it rather than as musl's, while `%d` and `%1$d`
 # are identical -- and that `%s` segfaults on BOTH binaries and is not this phase's.
 
-# 98 (zero 15) DECLARES NOTHING AT ALL, and it is a THIRD KIND of empty declaration.  Phase 9's
-# was code that COULD NOT RUN -- readfile() was already unreachable.  Phase 13's was a
+# 98 (zero 15) DECLARES NOTHING AT ALL, and it is a THIRD KIND of empty declaration.  Phase 92's
+# was code that COULD NOT RUN -- readfile() was already unreachable.  Phase 96's was a
 # POSSIBILITY THAT HAD NEVER EXISTED -- neither `FILE *` had been opened in any build.
 # This one is an EQUALITY.  The code it replaces runs constantly: `towupper` alone is
 # entered 892 times in a trivial session, from `utf_islower()` inside
@@ -403,7 +404,7 @@
 # 128..255.  What is claimed is that eleven libc functions and six <ctype.h> macros
 # have been replaced by C that computes the same answer.
 #
-# SO THE EVIDENCE IS EQUIVALENCE, NOT UNREACHABILITY, and pipes/zero15-check.sh says
+# SO THE EVIDENCE IS EQUIVALENCE, NOT UNREACHABILITY, and pipes/whim98-check.sh says
 # what it is.  tools/muslcase.py re-derives all 1,114,112 codepoints from THIS
 # MACHINE'S libc through ctypes and compares them with the 187 + 171 convertStruct rows
 # the phase shipped; tools/muslctype.py slices the seventeen functions OUT OF THE
@@ -425,7 +426,7 @@
 # Measured: two full recordings, the binary the phase was handed against the one it
 # made, are byte-identical -- all 102 screen cases, all 111 Ex-command rows, all 30
 # command lines, the four pty scenarios and the nineteen terminal rows -- and
-# tools/zerodelta.sh --phase 15 finds the same against whim-vim's frozen baselines.
+# tools/zerodelta.sh --phase 98 finds the same against whim-vim's frozen baselines.
 #
 # Eleven libc symbols go, `atoi atol bsearch isalnum iscntrl ispunct qsort tolower
 # toupper towlower towupper`, and FIVE MORE identifiers leave the source with no symbol
@@ -436,7 +437,7 @@
 # 99 (zero 16) DECLARES NOTHING AT ALL, and it is a FOURTH kind of empty declaration.  Three
 # phases before it declared nothing, each for a different reason, and the reason is
 # the statement: 9 removed code that COULD NOT RUN, every way to name a file having
-# gone at phase 8; 12 removed code that CAN run and that this instrument CANNOT SEE,
+# gone at phase 91; 12 removed code that CAN run and that this instrument CANNOT SEE,
 # nothing recorded ever asking `:set ro?`; 13 removed the POSSIBILITY, two `FILE *`
 # that had never been opened in any build of zero-vim.
 #
@@ -449,15 +450,15 @@
 # program that would be run is literally the same program.  tools/zerodelta.sh --phase
 # 99 (zero 16) runs and finds nothing moved, as it must; here it corroborates rather than proves.
 #
-# Phases 14 and 15 declare nothing for a fifth reason again, and it is the weakest of
+# Phases 97 and 98 declare nothing for a fifth reason again, and it is the weakest of
 # the five: their code changes and their binary moves, and the claim is that
 # twenty-eight replacement implementations do what the ones they replace did.  Their
 # own checks are where that is argued.  This phase's claim is the only one in the
 # pipeline that a byte comparison can settle outright.
 #
-# 100 (zero 17) DECLARES NOTHING AT ALL, and it is phase 13's kind rather than phase 9's.  Phase 9
+# 100 (zero 17) DECLARES NOTHING AT ALL, and it is phase 96's kind rather than phase 92's.  Phase 92
 # removed code that had BECOME unreachable -- `readfile()` was live at the start of this
-# pipeline and phases 5 to 8 took every way to reach it.  This phase, like 13, removes a
+# pipeline and phases 88 to 91 took every way to reach it.  This phase, like 13, removes a
 # POSSIBILITY THAT HAS NEVER EXISTED IN ANY BUILD OF zero-vim: `deathtrap()`'s
 # `entered >= 3` ladder, which is `reset_signals()`, `_exit(8)` and `exit(7)`.
 #
@@ -471,7 +472,7 @@
 # further.
 #
 # WHERE PHASE 13'S ARGUMENT WAS TEXTUAL, THIS ONE IS ABOUT SIGNAL MASKS, so it is
-# measured rather than read.  pipes/zero17-check.sh instruments the source this phase was
+# measured rather than read.  pipes/whim100-check.sh instruments the source this phase was
 # HANDED with `write(2, "DTn\n", 4)` after `++entered;` and `write(2, "DTLADDER\n", 9)`
 # inside the ladder, and builds it five ways.  Bombarded -- eight concurrent sessions,
 # sixty alternating SIGTERM/SIGHUP each at full speed -- the maximum `entered` ever
@@ -486,7 +487,7 @@
 # give the binary this phase was handed and the one it made the same exit status and the
 # same stdout and stderr byte for byte, with `Vim: Caught deadly signal TERM`/`HUP` and
 # `Vim: Finished.` required to be in what was drawn -- so the equality is not two empty
-# streams agreeing.  tools/zerodelta.sh --phase 17 finds the corpus unmoved, as it must.
+# streams agreeing.  tools/zerodelta.sh --phase 100 finds the corpus unmoved, as it must.
 #
 # `_exit` goes with the nine lines and `exit` does NOT: `mch_exit`'s `exit(r);` is the
 # one call left in the file, and demoting it is a later phase's.  The word `exit` is
@@ -504,14 +505,14 @@
 # The five before it each removed SOMETHING and the reason each declared nothing was
 # different: 9 removed code that COULD NOT RUN, 12 removed code that CAN run and that
 # this instrument CANNOT SEE, 13 removed a POSSIBILITY, 16 changed no code at all and
-# its binary is the same bytes, and 14 and 15 replaced code with code that computes the
+# its binary is the same bytes, and 97 and 98 replaced code with code that computes the
 # same answers.  THIS ONE ADDS A FRAME AND THAT IS ALL, so its binary is NOT the same
 # bytes -- at -O0 a call is real code -- and 16's tier-1 argument is not available.
 #
 # What is available instead is every way the editor can end, probed on both binaries:
 # `:q!` 0, `:cq 3` 3, EOF 1, a bad option 1, SIGTERM 1, SIGHUP 1 -- ex_quit, ex_cquit,
 # read_error_exit, mainerr and deathtrap twice, which is every termination route
-# ZERO-PLAN.md maps that a probe can reach from outside.  `return vim_main(argc, argv);`
+# WHIM-PLAN.md part II maps that a probe can reach from outside.  `return vim_main(argc, argv);`
 # puts a value in the program's path that was not there before, and that table is what
 # says it arrives.  The table is PROVEN able to fail: the output built a second time
 # with mch_exit's `exit(r)` changed to `exit(r + 1)` moves all six.
@@ -531,11 +532,11 @@
 # and zexcmds record it per case and zerodelta compares it -- so an unchanged status is
 # part of "nothing moved" and the probe table is what makes it legible.
 #
-# 101 (zero 18) and 19 are the first two phases in this pipeline whose empty declaration means
+# 101 (zero 18) and 102 are the first two phases in this pipeline whose empty declaration means
 # NEITHER "nothing ran" NOR "the instrument cannot see it": the code runs, the
 # instrument sees it, and it does the same thing.
 
-# 103 (zero 20) DECLARES NOTHING AT ALL, and it is the same kind as 18 and 19: the code runs, the
+# 103 (zero 20) DECLARES NOTHING AT ALL, and it is the same kind as 101 and 102: the code runs, the
 # instrument sees it run, and it does the same thing.  Every keystroke now reaches the
 # core through `musl_read_input()`, every wait is `musl_wait_for_input()`, the terminal
 # is put in raw mode by `musl_term_start()` and given back by `musl_term_stop()`, and
@@ -547,7 +548,7 @@
 # phase changes the instrument CANNOT see: on a pipe `tcgetattr`/`tcsetattr` fail and
 # change nothing, no recorded case sends a signal, no recorded case resizes a window,
 # no recorded case types `gs`, and no recorded case reaches end of input with a
-# terminal on fd 2.  So the phase owes probes, and pipes/zero20-check.sh runs fifteen
+# terminal on fd 2.  So the phase owes probes, and pipes/whim103-check.sh runs fifteen
 # of them on both binaries: seven that MUST differ and eight that MUST NOT.
 #
 # ONE BEHAVIOUR REALLY GOES AND IT IS PROBE-ONLY.  `fill_input_buf`'s `close(0);
@@ -556,7 +557,7 @@
 # was handed reopens fd 0 and carries on editing -- 2,016 bytes of drawn screen -- and
 # this one prints `Vim: Finished.` and exits 1, 168 bytes.  It fired 0 times across all
 # 336 (zero 253) recorded rows, which is why the declaration is empty and the probe is the
-# evidence.  What it buys is ZERO-PLAN.md 4b in its strongest form: with `close` and
+# evidence.  What it buys is WHIM-PLAN.md II.4b in its strongest form: with `close` and
 # `dup` gone the core cannot open, close or duplicate any descriptor at all.
 #
 # THE OTHER SIX MUST-DIFFER PROBES ARE THE PHASE WORKING.  `:set trz?` and `:set
@@ -570,7 +571,7 @@
 # in-band path rather than the core's own `got_tstp` flag.
 
 
-# 104 (zero 21) DECLARES NOTHING AT ALL, and it is 18, 19 and 20's kind: the code runs, the
+# 104 (zero 21) DECLARES NOTHING AT ALL, and it is 101, 102 and 103's kind: the code runs, the
 # instrument sees it run, and it does the same thing.  Every byte this editor has ever
 # put on a stream instead of a screen -- 20 statements in five functions -- now goes
 # through one `vim_host_message(msg, len, err)` the launcher installs and
@@ -579,19 +580,19 @@
 # ref-excmds.txt, ref-argv.txt, ref-pty.txt and ref-term.txt.  Only the syscall
 # underneath the bytes changes.
 #
-# AND THE INSTRUMENT CAN SEE IT, which is what separates this from phases 2, 12 and 20.
+# AND THE INSTRUMENT CAN SEE IT, which is what separates this from phases 85, 95 and 103.
 # 107 (zero 24) of the 30 ref-argv.txt rows really do carry a message -- 23 mainerr and one
 # report_term_error -- and the phase proves it marks the SAME 24 either side, with the
 # input built with `write(2, "MESSAGE-OUT\n", 12)` at all nineteen output statements and
 # the output with the identical instrument inside host_message().  So an empty
 # declaration here is not blindness; it is the strongest kind this pipeline has short of
-# phase 16's byte-identical binary.
+# phase 99's byte-identical binary.
 #
 # THE PHASE OWES A CONTROL FOR EXACTLY THAT REASON, and it is one character:
 # `write(err ? 2 : 1, ...)` made `write(err ? 1 : 1, ...)` moves all 24 records, 217
 # lines of `diff -r` -- where tools/zerodelta.sh names only 14 of them, ten of the 24
-# being argv rows phases 4 and 5 already declared and tools/zcompare.py therefore no
-# longer comparing.  That gap is why pipes/zero21-check.sh diffs the two recordings
+# being argv rows phases 87 and 88 already declared and tools/zcompare.py therefore no
+# longer comparing.  That gap is why pipes/whim104-check.sh diffs the two recordings
 # itself and keeps zerodelta.sh as the second opinion.
 #
 # ONE THING REALLY CHANGES AND NO INSTRUMENT IN THIS PIPELINE CAN SEE IT: mainerr and
@@ -602,7 +603,7 @@
 # because nothing in the corpus is within 800 characters of it and `pipes/zero.delta` is
 # a list of records that moved; it is pinned as a probe in both directions instead.
 
-# 105 (zero 22) DECLARES NOTHING AT ALL, and it is phase 2's kind rather than phase 9's: the code
+# 105 (zero 22) DECLARES NOTHING AT ALL, and it is phase 85's kind rather than phase 92's: the code
 # runs, and the instrument can barely see it.  Seven wrapper functions that took `...`,
 # opened a `va_list` and handed it to `vim_vsnprintf` are expanded at their 129 call
 # sites into `vim_snprintf(...)` plus the tail the wrapper ran afterwards -- `msg()`,
@@ -617,7 +618,7 @@
 # seven, run over the 102 screen cases: `vim_snprintf_safelen` is entered 617 times,
 # `smsg_attr_keep` 6, `vim_snprintf_add` 2, and `smsg`, `smsg_attr`, `semsg` and
 # `siemsg` NOT ONCE.  `semsg` is 94 of the 129 sites and the screen corpus never enters
-# it.  So the phase owes probes, and pipes/zero22-check.sh runs 263 of them on both
+# it.  So the phase owes probes, and pipes/whim105-check.sh runs 263 of them on both
 # binaries -- the Ex-command errors, 132 regexp errors over both engines and three magic
 # settings (which are where the 18 comma-expression sites live), the report messages,
 # the substitute-confirm prompt, undo, CTRL-G and the ruler, and four incsearch probes
@@ -661,18 +662,18 @@
 # SO THE DELTA CANNOT BE THE EVIDENCE AND IS NOT ASKED TO BE.  Tier 1 of CLAUDE.md's
 # verification table subsumes every screen case, every Ex-command row, every command
 # line and every pty scenario at once, because the program that would be run is the same
-# program; tools/zerodelta.sh --phase 23 corroborates.
+# program; tools/zerodelta.sh --phase 106 corroborates.
 #
 # WHAT COULD HAVE MOVED IS DATA, AND THAT IS THE ONE THING THIS PHASE HAD TO GET RIGHT.
 # Three string literals in this file contain `NULL` -- the E1507 internal-error message,
 # `"[NULL]"` and `"NULL"` -- and a line-wise sed rewrites all three.  Measured: the
 # binary then differs by 1,598 bytes, 1,354 of them in `.rodata`, and `strings` finds
 # `[nullptr]` and an E1507 message that names a C keyword at the user.  With the three
-# excluded the binary is `cmp`-identical.  pipes/zero23-check.sh builds the
+# excluded the binary is `cmp`-identical.  pipes/whim106-check.sh builds the
 # literal-unaware form as a control and requires it to differ, which is what keeps the
 # equality above from being two numbers agreeing.
 #
-# 107 (zero 24) DECLARES NOTHING AT ALL, and it is phase 23's kind: THE BINARY IS BYTE-IDENTICAL,
+# 107 (zero 24) DECLARES NOTHING AT ALL, and it is phase 106's kind: THE BINARY IS BYTE-IDENTICAL,
 # 788,488 bytes either side, built with SOURCE_DATE_EPOCH=0 and the boundary's own flags.
 # 196 (zero 113) `__attribute__((unused))` are deleted, 20 `__attribute__((fallthrough));` are
 # respelled as the C23 `[[fallthrough]];`, and 6 `format`/`format_arg` are kept -- 139
@@ -681,30 +682,30 @@
 # suppresses a diagnostic, `fallthrough` gives one a hint, and `format` decides what gcc
 # will check.  So tier 1 of CLAUDE.md's verification table applies in full and subsumes
 # every screen case, every Ex-command row, every command line and every pty scenario at
-# once; tools/zerodelta.sh --phase 24 corroborates.
+# once; tools/zerodelta.sh --phase 107 corroborates.
 #
 # AND THE BINARY IS BLIND TO THE ONE DECISION HERE THAT COULD BE WRONG, which is why the
 # phase does not rest on it alone.  MEASURED: removing the six survivors as well leaves
 # the binary STILL cmp-identical, while `-Wformat=2` goes from 115 `-Wformat-nonliteral`
 # warnings to zero.  The evidence for keeping them is therefore the warnings and not the
-# bytes: the identical 115 in the identical 53 functions before and after -- phase 22's
+# bytes: the identical 115 in the identical 53 functions before and after -- phase 105's
 # invariant -- with two controls that break it in opposite directions, vim_snprintf's
 # `format(printf, 3, 4)` removed giving 0 and `_()`'s `format_arg(1)` removed giving 135.
 #
-# 108 (zero 25) DECLARES NOTHING AT ALL, and it is NOT phase 23's and 24's kind: THE BINARY IS NOT
+# 108 (zero 25) DECLARES NOTHING AT ALL, and it is NOT phase 106's and 107's kind: THE BINARY IS NOT
 # BYTE-IDENTICAL AND THE PHASE DOES NOT AIM FOR IT.  The core reached the host through
-# two function pointers -- `vim_host_exit`, phase 19's, and `vim_host_message`, phase
-# 21's -- each a file-scope object installed through a parameter of `vim_main()` that
-# `main()` passed.  The one reason they were pointers is gone: pipes/zero19-edit.sh put
+# two function pointers -- `vim_host_exit`, phase 102's, and `vim_host_message`, phase
+# 104's -- each a file-scope object installed through a parameter of `vim_main()` that
+# `main()` passed.  The one reason they were pointers is gone: pipes/whim102-edit.sh put
 # it plainly, "a pointer the launcher installs through a parameter adds no external
 # symbol, where a `musl_exit(int)` the host defines would", which was true of a design
-# with TWO TRANSLATION UNITS.  ZERO-PLAN.md 4c is now ONE FILE with the first `#include`
+# with TWO TRANSLATION UNITS.  WHIM-PLAN.md II.4c is now ONE FILE with the first `#include`
 # as the boundary, so the host's definitions sit below the core in the same translation
 # unit and a `static` forward declaration plus a direct call does the same job with less
 # machinery and no global to avoid.  Two objects, two parameters, two assignments and two
-# arguments go; two prototypes arrive, at the end of the nine `musl_` ones phase 20 left,
+# arguments go; two prototypes arrive, at the end of the nine `musl_` ones phase 103 left,
 # so the core -> host boundary is ONE block of eleven declarations.  80,178 -> 80,173
-# lines, and `vim_main(int argc, char **argv)` is the signature phase 18 wrote.
+# lines, and `vim_main(int argc, char **argv)` is the signature phase 101 wrote.
 #
 # THE BINARY IS THE SAME SIZE AND NOT THE SAME BYTES, both measured: 788,488 either side,
 # 347,279 of them differing.  An indirect call through a pointer loads the pointer and
@@ -720,21 +721,21 @@
 # `host_code = r;` changed to `r + 1` moves 105 of the 106 records -- every one but the
 # terminal table, which records no exit status -- and host_message's `write(err ? 2 : 1,
 # ...)` with the two streams swapped moves ref-argv.txt AND NOTHING ELSE, which is phase
-# 21's finding read back: everything reaching that function is a message printed before
+# 104's finding read back: everything reaching that function is a message printed before
 # there is a screen.
 #
 # THE PHASE FREES NO SYMBOL AND SAYS SO AS AN EQUALITY.  `nm -u` is the same set as a cmp
 # in both directions, and `exit` does not come back -- the host still records a status
-# and jumps, phase 19's __builtin_longjmp launcher being untouched here.  `nm
+# and jumps, phase 102's __builtin_longjmp launcher being untouched here.  `nm
 # --extern-only --defined-only` is still exactly `main`, which is the assertion that
 # matters most in a phase that makes the core NAME the host's two functions: with
 # `static` off the two prototypes gcc refuses, and with it off the prototypes and the
-# definitions the build is silent and two symbols become external.  pipes/zero25-check.sh
+# definitions the build is silent and two symbols become external.  pipes/whim108-check.sh
 # builds both.
 #
 # 109 (zero 26) DECLARES NOTHING AT ALL, and it is a SIXTH kind: not code that could not run (9,
 # 17), not code the instrument cannot see (12), not a possibility removed (13), not a
-# `cmp` of the binary (16, 23, 24), and not phase 25's "the code runs, the instrument
+# `cmp` of the binary (99, 106, 107), and not phase 108's "the code runs, the instrument
 # sees it, and it does the same thing" either -- it is SIX OF SEVEN CHANGES THAT ARE A
 # `cmp` AND ONE THAT IS A RECORDING, and the phase separates them rather than taking the
 # weaker evidence for all of it.  The core stops taking eight things from a header:
@@ -765,12 +766,12 @@
 #
 # THE TWELVE DERIVED CONSTANTS ARE NOT IN THIS PHASE and cannot be: `enum : int { INT_MAX
 # = ... };` placed after `#include <limits.h>` is `enum : int { 0x7fffffff = ... };`, a
-# syntax error.  They are phase 27's, with the move, and they are the only
+# syntax error.  They are phase 110's, with the move, and they are the only
 # header-supplied names this phase leaves above the host block.
 #
 # 110 (zero 27) DECLARES NOTHING AT ALL, and it is the SEVENTH kind -- one no earlier zero phase
-# has had, because none of them moved code without changing a line of it.  Phase 16's
-# and 23's empty declarations were a byte-identical BINARY, which is CLAUDE.md's tier 1
+# has had, because none of them moved code without changing a line of it.  Phase 99's
+# and 106's empty declarations were a byte-identical BINARY, which is CLAUDE.md's tier 1
 # and subsumes every case at once; this phase cannot have that, because it moves 1,800
 # lines of definitions past the rest of the file and every address below the first of
 # them moves.  What it has instead is tier 1 ONE LEVEL UP, on the SOURCE: the output is
@@ -783,7 +784,7 @@
 #
 # WHAT MOVES.  The eleven `#include`s go down to just above the host block, and THE
 # FIRST OF THEM IS THE BOUNDARY between the core and the host -- nothing else marks it
-# (ZERO-PLAN.md 4c).  With them go the four functions that hold a `va_list`, which the
+# (WHIM-PLAN.md II.4c).  With them go the four functions that hold a `va_list`, which the
 # core cannot declare: vim_snprintf, vim_vsnprintf, vim_vsnprintf_typval and
 # skip_to_arg.  And with THOSE goes whatever only they use, computed to a fixpoint by
 # compiling the cut and moving what gcc calls unused -- five rounds, 15 functions, 18
@@ -793,7 +794,7 @@
 # twelve enumerators because PATH_MAX is an ARRAY BOUND.
 #
 # AND THE RECORDING IS THE ONLY THING THAT CAN ANSWER FOR IT, which is why this phase
-# is 25's and 21's kind and not 16's: the code runs, the instrument sees it, and it does
+# is 108's and 104's kind and not 16's: the code runs, the instrument sees it, and it does
 # the same thing.  Two full recordings, of the binary the phase was handed and of its
 # own, are byte-identical across all 106 records -- and the binary is 788,488 bytes on
 # both sides, the same size and not the same bytes.  `nm -u` is the same 17 names in
@@ -816,14 +817,14 @@
 # the only clock reading a screen case could reach, is never asked to suppress anything.
 # Three controls built from this phase's own source say the same thing from the other
 # side: a clock that NEVER ADVANCES, one that RUNS BACKWARDS and one that runs 1000x
-# FAST each move 0 of the 102.  (Phase 26's control moved six, and it was not a clock
+# FAST each move 0 of the 102.  (Phase 109's control moved six, and it was not a clock
 # control: swapping musl_gettimeofday's two output fields makes each reading an
 # independent random number rather than a consistently wrong one.)
 #
 # WHAT THE PHASE DOES.  The core's whole use of time is STAMP NOW, then ASK HOW MANY
 # MILLISECONDS HAVE PASSED, at four places -- do_sleep's `done < msec` loop, vim_beep's
 # 583 (zero 500) ms rate limit, handle_osc's `>= p_ost` timeout and inchar_loop's deadline -- and
-# not one of them reads a field, prints a reading or compares two stamps.  So phase 26's
+# not one of them reads a field, prints a reading or compares two stamps.  So phase 109's
 # `elapsed_T`, its tagless mirror of `struct timeval`, and `elapsed()`, whose entire body
 # is one clock read and one subtraction, and `musl_gettimeofday(long *, long *)`, whose
 # out-parameter pair existed only because a struct could not cross the boundary, all go
@@ -869,13 +870,13 @@
 
 # 112 (zero 29) DECLARES NOTHING AT ALL, AND IT IS PHASE 2'S KIND AND 20'S AND 22'S -- the code
 # runs, it does something DIFFERENT, and the instrument cannot see it.  It is not phase
-# 9's kind (code that could not run), not 16's or 23's (a byte-identical binary), not
+# 92's kind (code that could not run), not 16's or 23's (a byte-identical binary), not
 # 26's or 27's (a move), and not 14's or 15's (a replacement computing the same answer).
 # THIS PHASE CHANGES WHAT THE EDITOR DOES, on both arms of one option, and no recorded
 # record moves.
 #
 # WHAT IT DOES.  `zero-vim.c` carried two complete Unicode simple-case maps -- vim's own
-# `toUpper[]`/`toLower[]` and the `musl_toUpper[]`/`musl_toLower[]` phase 15 vendored --
+# `toUpper[]`/`toLower[]` and the `musl_toUpper[]`/`musl_toLower[]` phase 98 vendored --
 # and `'casemap'` chose between them: `internal` reads vim's, its absence reads musl's.
 # This phase makes it ONE table and the table is the UNION.  Expanded over all of
 # Unicode the two disagree at 97 upper codepoints and 96 lower, at none of which both
@@ -904,7 +905,7 @@
 # raw mode; the terminal table is `:set term? t_Co?`.  Two full recordings of the binary
 # the phase was handed and the binary it makes are byte-identical in all 106 records, so
 # this file gains no line -- and a phase whose declaration is empty because THE HARNESS
-# IS BLIND owes probes of its own (zero phase 2 is where that distinction was first made
+# IS BLIND owes probes of its own (phase 85 is where that distinction was first made
 # and paid for).  There are twelve, six that move and six that must not, with a control
 # for each half of the union.
 #
@@ -918,7 +919,7 @@
 # having disagreed below U+0100 at U+00DF alone and the union taking musl's answer
 # there.
 # 113 (zero 30) DECLARES NOTHING AT ALL, and it is PHASE 12'S KIND -- the one where the code CAN
-# run and the instrument never sees it -- which is stated because phase 9's kind is the
+# run and the instrument never sees it -- which is stated because phase 92's kind is the
 # obvious reading and is not available here.  `msg_puts_attr_len()`'s
 # `if (msg_use_printf())` arm is folded to the two lines
 # `host_message((char *)str, maxlen, !info_message); msg_didout = TRUE;`, and
@@ -926,7 +927,7 @@
 # prototype -- which the sweep finds, that call being its only one -- go with it.  Two
 # full recordings, of the binary the phase was handed and of its own, are BYTE-IDENTICAL
 # across all 106 records; the binary is 788,488 bytes either side and `nm -u` is the same
-# seventeen names, phase 21 having taken printf, fprintf, fflush and stderr with the
+# seventeen names, phase 104 having taken printf, fprintf, fflush and stderr with the
 # CALLS.
 #
 # THE PREDICATE IS NOT DEAD AND THE PHASE DOES NOT CLAIM IT IS.  `msg_use_printf()`
@@ -936,7 +937,7 @@
 # of its four call sites: the input built with `write(2, "PP-ENTERED\n", 11)` as the
 # first statement of `msg_puts_printf()` marks 0 of 106 records, and the IDENTICAL
 # instrument in `msg_puts_display()` marks 103 of 106.  That pair is the phase's whole
-# positive evidence, and phase 12 is where this pipeline learned it owes one.
+# positive evidence, and phase 95 is where this pipeline learned it owes one.
 #
 # THE RECORDING CANNOT FAIL THIS PHASE AND CANNOT PASS IT EITHER, which is why the check
 # is 36 probes and an instrumented pair rather than a `diff -r`.  The two folds this
@@ -954,9 +955,9 @@
 #   `msg_check_screen()` instead is NOT a cheaper spelling of the same thing: it drops
 #   the `swapping_screen() && !termcap_active` disjunct, which is exactly what
 #   `t_ti_stopterm` reaches, and it moves the same two probes to the same two numbers.
-#   Both folds are built by pipes/zero30-check.sh and REQUIRED to move.
+#   Both folds are built by pipes/whim113-check.sh and REQUIRED to move.
 #
-#   `exit_scroll()`'s printf arm IS ALIVE, and phase 21 was wrong to name it a follow-up
+#   `exit_scroll()`'s printf arm IS ALIVE, and phase 104 was wrong to name it a follow-up
 #   beside `msg_puts_printf()`.  Both "fire in ZERO of 106 records" is true of the
 #   CORPUS and true of the editor only for the first.  With NO SIGNAL AT ALL the arm
 #   fires in three of this phase's 32 stream probes -- `t_ti_more`, `debug_more`,
@@ -964,7 +965,7 @@
 #   in three of its four deadly-signal probes.  Folding it to `out_char('\n')` emits the
 #   same two bytes and moves them from FD 2 TO FD 1, which on a pty where both are the
 #   same device is byte-identical and therefore UNDECLARABLE here.  It belongs to the
-#   phase that decides the core writes nothing to fd 2 at all -- ZERO-PLAN.md 4c's
+#   phase that decides the core writes nothing to fd 2 at all -- WHIM-PLAN.md II.4c's
 #   host-boundary question -- and the check builds that fold too, so "this phase did not
 #   disturb it" is measured rather than asserted.
 # 115 (zero 32) DECLARES NOTHING AT ALL, and it is a SIXTH kind -- the code runs, the instrument
@@ -972,7 +973,7 @@
 # standalone `time(nullptr)` calls inside `ui_focus_change()` become `vim_time()`, and
 # that wrapper then moves below the first `#include` as `host_time()`, declared in the
 # core's host block beside host_exit and host_message.  `long time(long *tp);` leaves the
-# core's libc prototype block -- SEVEN entries to six, phase 31 having vendored `abs`
+# core's libc prototype block -- SEVEN entries to six, phase 114 having vendored `abs`
 # and `labs` out of it just before -- and the host takes `time` from <time.h>.  The block
 # is found by its shape and not by a count, which is why the phase needed no edit when
 # that happened.  Two full recordings, of the binary the phase was handed and of its own, are
@@ -1006,7 +1007,7 @@
 # was not decoration: `typedef long time_T;` is correct only because gcc compared that
 # prototype with <time.h>'s below it.  It is replaced by
 # `static_assert(_Generic((time_T)0, time_t: 1, default: 0), "time_T is time_t");` beside
-# the twelve constants phase 27 put below the includes, and the replacement is STRICTLY
+# the twelve constants phase 110 put below the includes, and the replacement is STRICTLY
 # STRONGER -- measured in four compiles.  The input with the prototype written
 # `int time(int *tp);` is `conflicting types for 'time'`; the input with `time_T`
 # perturbed to `int` and the prototype LEFT ALONE compiles in SILENCE, so the prototype
@@ -1016,8 +1017,8 @@
 # `static assertion failed: "time_T is time_t"` for `int` and for `long long` alike.
 #
 # 116 (zero 33) DECLARES NOTHING AT ALL, and it is a NINTH kind: the phase changes no source at
-# all -- r33's zero-vim.c is its input's, byte for byte -- and what moves is the
-# question one of the five harnesses asks.  Phase 3 is the only other of that kind,
+# all -- q116's zero-vim.c is its input's, byte for byte -- and what moves is the
+# question one of the five harnesses asks.  Phase 86 is the only other of that kind,
 # and neither declares anything, for the same reason: nothing about the editor
 # changed, so nothing about its behaviour can have.
 #
@@ -1031,7 +1032,7 @@
 # tables passed tools/zcompare.py against the real baselines DECLARING NOTHING.  The
 # phase asks `+set term={name}` instead, which reaches did_set_term(), and the
 # baselines are re-recorded from whim-vim.c -- the pipeline's immutable input, with
-# whim's own compile line, which is zero phase 0's job and not a re-recording from
+# whim's own compile line, which is phase 83's job and not a re-recording from
 # zero's own output.
 #
 # WHY THAT DOES NOT MOVE AN EARLIER PHASE'S DECLARED DELTA, measured rather than
@@ -1039,7 +1040,7 @@
 # built with whim's line, records the SAME nineteen rows under the new question --
 # ONE md5 across all of them, exactly as the old question gave one md5 across all of
 # them.  The baseline and every phase's recording move together, so `term-moved`
-# stays undeclared at every phase, before this one and after it.  pipes/zero33.sh
+# stays undeclared at every phase, before this one and after it.  pipes/whim116.sh
 # makes that check rather than citing it.
 #
 # AND THE INSTRUMENT IS PROVEN ABLE TO FAIL, which the old one was not: with ONE row
@@ -1048,7 +1049,7 @@
 # ALL.  That pair is the phase.
 # 117 (zero 34) DECLARES NOTHING AT ALL, AND IT IS THE ONE KIND THIS PIPELINE HAS RARELY HAD: the
 # code runs, it runs constantly, and the recording is byte-identical because the rewrite
-# IS the same function.  It is not phase 9's kind (code that could not run), not 12's or
+# IS the same function.  It is not phase 92's kind (code that could not run), not 12's or
 # 13's or 30's (code the instrument cannot see), not 16's or 23's (a byte-identical
 # binary) and not 29's (different answers no record holds).  ga_grow_inner() is on the
 # path of every growarray in the editor and a recording drives it 4,289 times in 104 of
@@ -1062,20 +1063,20 @@
 # prototype block.  The third site, `adjust_types()`, is below the first `#include` and
 # is the HOST's, so `realloc` STAYS in `nm -u` -- 17 names either side, the same set --
 # which is an equality the phase declares rather than a symbol it frees, exactly as
-# phase 28 did for `gettimeofday` and phase 30 for the four stdio names.
+# phase 111 did for `gettimeofday` and phase 113 for the four stdio names.
 #
 # WHY THE REWRITE AND NOT A VENDORING.  `realloc` CANNOT BE IMPLEMENTED from `malloc` and
 # `free`: to move the old contents it needs the old size, and its interface does not
 # carry one -- musl reads it back out of the chunk header below the pointer, which is a
 # fact about musl's heap and not about C.  So there is no `musl_realloc` to write beside
-# phase 14's sixteen, and the only route is the call sites, each with the size IT knows.
+# phase 97's sixteen, and the only route is the call sites, each with the size IT knows.
 # Both do: ga_grow_inner already computes `ga_itemsize * ga_maxlen` on the next line, to
 # zero the tail, and get_keystroke's old size is `buflen` before the `+= 100` that sits
 # immediately above the call.
 #
 # THE FOUR TRAPS ARE MEMORY BUGS AND NOT DIFFERENCES, which is why the phase owes a unit
 # harness and not probes.  A recording cannot see a leak, a double free, or an overread
-# whose bytes are overwritten before anything reads them.  pipes/zero34-check.sh extracts
+# whose bytes are overwritten before anything reads them.  pipes/whim117-check.sh extracts
 # both rewritten sites from the input source and from the output, runs them through one
 # AddressSanitizer driver -- eight doublings from empty, six independent first grows, a
 # failed allocation, and the 100-byte extension -- and requires the two transcripts to be
@@ -1083,7 +1084,7 @@
 # finding, and the seventh is the interesting one: dropping the `gap->ga_data != nullptr`
 # guard changes NOTHING measurable, because a null ga_data implies ga_maxlen == 0 implies
 # a copy of length zero and musl_memcpy is a plain `for (; n; n--)` loop.  The guard is
-# kept for what ZERO-PLAN.md 4c asks of the core -- that its meaning be on the page -- and
+# kept for what WHIM-PLAN.md II.4c asks of the core -- that its meaning be on the page -- and
 # the check proves it with a driver whose musl_memcpy announces a null source: 0 from the
 # output, 8 from the unguarded control.
 #
@@ -1096,11 +1097,11 @@
 # 118 (zero 35) DECLARES NOTHING AT ALL, and it is the SIXTH kind -- the code runs, the instrument
 # sees it, and it does the same thing.  The core's last three libc CALLS go to the host:
 # `malloc`, called by lalloc(); `free`, called by vim_free() and update_wincolor(); and
-# `write`, called by mch_write() -- and, since phase 34 rewrote `realloc` as a malloc, a
+# `write`, called by mch_write() -- and, since phase 117 rewrote `realloc` as a malloc, a
 # copy and a free, by ga_grow_inner() and get_keystroke() as well.  Above the first
 # `#include` they are 4, 5 and 2 mentions -- each a declaration and its call sites, and
 # HOW MANY is read off the text rather than written down -- and all three become 0, with
-# three `static` prototypes at the end of the block phase 25 made of eleven and three
+# three `static` prototypes at the end of the block phase 108 made of eleven and three
 # definitions below the boundary that call the same libc functions with the same
 # arguments.  `host_alloc(usize n)` returns what malloc() returned, nullptr included, so
 # lalloc()'s clear_sb_text()/do_outofmem_msg() failure path is reached exactly as before;
@@ -1125,7 +1126,7 @@
 # out, a cmp in both directions, and `malloc`, `free` and `write` are all three still in
 # it.  That is not a disappointment and it is the general rule of this pipeline read
 # back: a symbol leaves when its last CALLER leaves the file, and inside one translation
-# unit moving a call from the core into the host moves no caller out.  Phase 28 is the
+# unit moving a call from the core into the host moves no caller out.  Phase 111 is the
 # contrast -- it freed `gettimeofday` because the last caller went with it.  What DOES
 # move is the thing `nm -u` cannot show: the editor.c cut's warning set, which IS the
 # core -> host interface, goes from 14 names to 17.  An implicit libc dependency hidden
@@ -1149,7 +1150,7 @@
 # rely on it -- 0 of the corpus's 22,417 frees are null, every call site guarding -- but
 # the wrapper inherits it rather than adding a test of its own.
 
-# 119 (zero 36) DECLARES NOTHING AT ALL, and it is phase 2's kind and phase 12's: the code RUNS and
+# 119 (zero 36) DECLARES NOTHING AT ALL, and it is phase 85's kind and phase 95's: the code RUNS and
 # the instrument cannot see it -- so the phase owes probes, and it runs six binaries of
 # its own.  The core's block of ordinary declarations, the libc it names, is EMPTY: the
 # two lines left in it were `int getpid(void);` and `int kill(int pid, int sig);`, and
@@ -1166,8 +1167,8 @@
 # `host_raise(got_signal)`, with `static void host_raise(int sig);` at the end of the
 # core -> host block and a definition inside the host region that calls
 # `kill(getpid(), sig)`.  IT TAKES NO PID: a core that can no longer ask for its own
-# process id must not be handed one, which is host_write's rule (phase 35) and
-# musl_read_input's (phase 20).  79,804 -> 79,799 lines.
+# process id must not be handed one, which is host_write's rule (phase 118) and
+# musl_read_input's (phase 103).  79,804 -> 79,799 lines.
 #
 # THE CLAIM IS MEASURED FROM THE CUT AND NOT FROM THE BLOCK, because those are two
 # different assertions.  A bare `extern` declaration is INVISIBLE to `-fsyntax-only` --
@@ -1200,7 +1201,7 @@
 # the re-raise given SIGHUP instead of the signal that was deferred the screen says
 # `Caught deadly signal HUP` (47 bytes).
 #
-# AND THE FOLD THAT WAS SURVEYED AND NOT TAKEN.  Phase 17 removed deathtrap()'s
+# AND THE FOLD THAT WAS SURVEYED AND NOT TAKEN.  Phase 100 removed deathtrap()'s
 # `entered >= 3` ladder, which leaves `entered` able to reach 2 and no further, and the
 # question was whether that makes the `if (entered == 2)` arm foldable.  It does not:
 # `entered` has three reachable values and every one is read -- 0 by the entry guard, and
@@ -1209,7 +1210,7 @@
 # the check asserts that rather than leaving it to be believed.
 # ---------------------------------------------------------------------------------------
 # PHASE 37 DECLARES NOTHING AT ALL, and it is the STRONGEST kind of empty declaration
-# rather than the weakest -- phase 16's and phase 23's kind, a BYTE-IDENTICAL BINARY.
+# rather than the weakest -- phase 99's and phase 106's kind, a BYTE-IDENTICAL BINARY.
 #
 # The phase removes the six `union` keywords of thirteen that union nothing with
 # anything: the four single-member `u_header` link fields, whose swapfile-block arm went
@@ -1220,11 +1221,11 @@
 # moves, no expression changes value and `uh_next.ptr` and `uh_next` name the same object
 # at the same address.
 #
-# Measured on r36: 782,760 bytes either side, `cmp`-identical, both built with
+# Measured on q119: 782,760 bytes either side, `cmp`-identical, both built with
 # SOURCE_DATE_EPOCH=0 and the boundary's own flags.  That subsumes every screen case,
 # every Ex-command row, every command line and every pty scenario at once, because the
-# program that would be run is literally the same program -- so unlike phase 20's and
-# phase 22's empty declarations this phase owes no probes, and unlike phases 14 and 15 it
+# program that would be run is literally the same program -- so unlike phase 103's and
+# phase 105's empty declarations this phase owes no probes, and unlike phases 97 and 98 it
 # is not asking anybody to believe a replacement does what the original did.
 #
 # The control that keeps the cmp from being two numbers agreeing is the output with the
@@ -1236,13 +1237,13 @@
 #
 # 121 (zero 38) keeps two of `builtin_terminals[]`' ten rows -- `xterm-256color` and `debug` --
 # and is THE FIRST ZERO PHASE TO DECLARE `term-moved`.  The token has been in this
-# grammar since phase 0 and no phase has used it: the terminal table was nineteen
-# ways of recording that the environment decided nothing until zero phase 33 changed
+# grammar since phase 83 and no phase has used it: the terminal table was nineteen
+# ways of recording that the environment decided nothing until phase 116 changed
 # the question to `+set term={name}`, and this is the phase that question was changed
 # for.  So the declaration is a real delta and not a harness artefact -- which is the
-# distinction ZERO-GOAL.md rule 2 and CLAUDE.md's *A phase can break a harness rather
+# distinction WHIM-GOAL.md core rule 2 and CLAUDE.md's *A phase can break a harness rather
 # than change behaviour* exist to keep apart, and this phase is on the other side of
-# it from zero phase 5's.
+# it from phase 88's.
 #
 # `term-moved` is a whole-file token, so what MOVED is written here rather than left
 # to it.  EIGHT of the nineteen rows move and every one of them is a name this phase
@@ -1270,7 +1271,7 @@
 # `E437: Terminal capability "cm" required`, an editor with no cursor motion, drawing
 # 2,045 bytes where the baseline draws 2,117.  The phase retargets the fallback onto
 # the compiled default instead, so those two rows are the baseline's again and the
-# declaration below is the whole of the difference.  pipes/zero38-check.sh builds the
+# declaration below is the whole of the difference.  pipes/whim121-check.sh builds the
 # repair-left-out form as a control and requires it to move exactly those two.
 #
 # NOT DECLARED BECAUSE NO HARNESS ASKS IT, and stated here rather than omitted:
@@ -1281,7 +1282,7 @@
 # `screen.xterm`, and `builtin_xterm` exactly, with `xterm-kitty` the one exclusion.
 # Deleting the row deletes all of it, and only the exact `xterm-256color` is left.
 # None of those names is among the nineteen `tools/termcheck.py` asks about, so the
-# phase owes probes and pipes/zero38-check.sh runs six, derived from
+# phase owes probes and pipes/whim121-check.sh runs six, derived from
 # `vim_is_xterm()`'s own prefix list: every one resolves on the binary the phase was
 # handed and every one is E522 here.  `:set term=builtin_xterm` is the same finding
 # through `term_is_builtin()`, which strips the prefix and leaves `xterm`.
@@ -1291,7 +1292,7 @@
 # a condition that is false at run time, and nothing in tools/sweep.sh reads one.
 121   term-moved
 
-# Phase 39 -- `-T {term}` goes, and the command line is `+{command}` alone.
+# Phase 122 -- `-T {term}` goes, and the command line is `+{command}` alone.
 #
 # FOUR OF tools/zargv.py's THIRTY INVOCATIONS, and they are exactly the four that
 # spell the removed option letter.  The set is not written from memory: the check
@@ -1308,18 +1309,18 @@
 # anyway, because the two messages they gave are ME_ARG_MISSING and ME_GARBAGE --
 # enumerators whose last use was the `-T` argument block, removed here with the
 # main_errors[] rows they index.  A row that was already `Unknown option argument`
-# before -- the file arguments, `--`, `-e`, `-R` and the rest of phase 5's leftovers --
+# before -- the file arguments, `--`, `-e`, `-R` and the rest of phase 88's leftovers --
 # must NOT move, and the check requires that of all twenty-six.
 #
 # NOTHING ELSE MOVES, and three things that could have are worth naming.  The 102
 # screen cases, the 98 Ex-command rows and the four pty scenarios are recorded from a
 # binary started with no `-T` at all, so the compiled default applies either way.  The
-# nineteen terminal rows are asked with `+set term={name}` (zero phase 33), which
+# nineteen terminal rows are asked with `+set term={name}` (phase 116), which
 # reaches did_set_term() and not termcapinit(), and that path is untouched: `term-moved`
-# is declared at phase 38 and carries forward, but this phase's recording of the table
-# is the INPUT's byte for byte.  And the fallback that phase 38 repaired is deleted
+# is declared at phase 121 and carries forward, but this phase's recording of the table
+# is the INPUT's byte for byte.  And the fallback that phase 121 repaired is deleted
 # here rather than fixed again -- it was reachable only through `-T`, which is the
-# whole reason phase 38 had to repair it and this one may remove it.
+# whole reason phase 121 had to repair it and this one may remove it.
 #
 # TWO CHANGES THIS DELTA CANNOT NAME, both measured by the phase's own probes because
 # no harness records them:
@@ -1338,7 +1339,7 @@
 # 124 (zero 41) DECLARES NOTHING AT ALL, and it is the SIXTH kind -- the code runs, the instrument
 # sees it, and it does the same thing.  `host_alloc` becomes a bump allocator into a
 # fixed 1 GiB arena and `host_free` returns without doing anything, which is
-# ZERO-GOAL.md's charter bullet "A GARBAGE COLLECTOR IS ASSUMED FROM HERE ON" built.  The
+# WHIM-GOAL.md's charter bullet "A GARBAGE COLLECTOR IS ASSUMED FROM HERE ON" built.  The
 # editor asks for exactly the memory it asked for before and is handed as much of it;
 # what changes is where the bytes come from and that giving them back costs nothing.
 # 79,592 -> 79,660 lines, 68 more, and every one of them below the first `#include`.
@@ -1355,11 +1356,11 @@
 # EARLIER.  The input built with a counter on host_alloc, totalling every request as the
 # allocator rounds it and dumped from host_exit(), over the whole of tools/zrecord.sh:
 # 351 (zero 268) sessions in 122 records, and the largest asks for 200,458,672 bytes -- two
-# recordings, the same number.  It is ONE case, zero phase 40's mem_deep_jumps, a
+# recordings, the same number.  It is ONE case, phase 123's mem_deep_jumps, a
 # 25,000-line buffer churned in the middle; the next three memline cases are near 52
 # million and the heaviest of the 102 SCREEN cases is 1,722,512, which is 115 times less.
 # So an arena sized from the 102 alone would have been sized from a corpus that provably
-# cannot reach the text layer, which is the defect phase 40 exists to have ended.  This
+# cannot reach the text layer, which is the defect phase 123 exists to have ended.  This
 # phase found that out the hard way and the record says so: 64 MiB was written first and
 # the recording refused it -- `THE RECORDING MOVED, in 1 of 122 records:
 # memline/mem_deep_jumps`, the case dying with `host arena exhausted: 67108864 bytes,
@@ -1384,7 +1385,7 @@
 # must hold a session's whole allocation TRAFFIC and not its live data, and this editor's
 # traffic is QUADRATIC in the length of a single line being typed: `+normal 200000ax`
 # asks for 20,013,114,624 bytes across 400,475 calls, and `+normal 500000ax` for
-# 44,075,360,179.  Phase 35's own by-hand probe was `+normal 200000ax`, so this is not a
+# 44,075,360,179.  Phase 118's own by-hand probe was `+normal 200000ax`, so this is not a
 # hypothetical shape -- a later phase that writes a probe like it will hit the wall.
 # Buffers, by contrast, are LINEAR and cheap: 100,000 lines cost 12,862,224 bytes and
 # 300,000 lines 35,157,264, about 112 bytes a line.  It is churn and not size that fills
@@ -1396,10 +1397,10 @@
 # run: the worst child peaks at 13.6 MiB on the input and 191.8 MiB here, FOURTEEN TIMES
 # more, at either arena size.  The 16 memline cases run concurrently, so a single
 # tools/zrecord.sh run holds about 475 MiB rather than about 30.  A whole
-# `make zero-verify` with this phase in it -- 42 units at once -- peaks at 13.7 GiB of a
+# `make whim-verify` with this phase in it -- 42 units at once -- peaks at 13.7 GiB of a
 # 145 (zero 62) GiB machine against 13.1 GiB measured the same way on the boundary before it, which
 # is 591 MiB and 4.4% more, with 41 GiB still available.  Comfortable, and recorded here
-# because zero phases 42 to 45 each change how much the memline allocates: the number to
+# because phases 125 to 128 each change how much the memline allocates: the number to
 # watch is not the arena, which is free, but this one.
 #
 # THE ARENA COSTS NOTHING TO STORE AND THE IMAGE SHRINKS.  `.bss` is NOBITS, so the
@@ -1413,19 +1414,19 @@
 # IT IS THE FIRST ZERO PHASE SINCE 28 TO FREE A SYMBOL, AND IT FREES THREE.  `nm -u` goes
 # 100 (zero 17) -> 14 on the boundary's own flags (18 -> 15 as tools/symbols.sh counts it, which
 # compiles plain -O0 and so adds __stack_chk_fail), and the set moves by EXACTLY `free`,
-# `malloc` and `realloc`, a comm empty in the other direction.  Phase 35 freed none and
+# `malloc` and `realloc`, a comm empty in the other direction.  Phase 118 freed none and
 # said so as an equality -- a symbol leaves when its last CALLER leaves the file -- and
 # this is that rule read the other way: the callers did not move, the calls went.
 #
 # TWO OF THE FOUR REWRITES ARE NOT IN THE ALLOCATOR, and without them the phase would be
 # WRONG rather than incomplete.  The formatter's private island -- the four functions
-# phase 27 moved below the includes because they need `va_list` -- still called libc's
+# phase 110 moved below the includes because they need `va_list` -- still called libc's
 # `free` and libc's `realloc` directly, on pointers that came from alloc_clear(), which is
-# to say from host_alloc.  Phase 35 named one of them in its own program ("and
-# format_overflow_error() below the boundary") and phase 34 named the other ("`realloc`
+# to say from host_alloc.  Phase 118 named one of them in its own program ("and
+# format_overflow_error() below the boundary") and phase 117 named the other ("`realloc`
 # call is the host's and is not this phase's").  Both were right while host_alloc WAS
 # malloc; from this phase a free() or a realloc() of an arena pointer is undefined.  The
-# realloc moves by phase 34's own pattern -- allocate, copy, free -- with phase 34's three
+# realloc moves by phase 117's own pattern -- allocate, copy, free -- with phase 117's three
 # traps read off this site.
 #
 # NEITHER IS REACHABLE BY ANY RECORDING AND ONE IS NOT REACHABLE AT ALL, so the check
@@ -1435,7 +1436,7 @@
 # through it, enters the grow arm 17 times in each, and the two binaries print the same
 # bytes.  format_overflow_error() cannot be probed because it cannot RUN -- its guard is
 # `overflow_err`, which is `tvs != nullptr`, and vim_vsnprintf_typval has one caller in
-# this file passing nullptr.  That is phase 9's and phase 17's kind, and it is rewritten
+# this file passing nullptr.  That is phase 92's and phase 100's kind, and it is rewritten
 # for the reason a dead branch is kept correct rather than left to rot.
 #
 # THE CONTROLS, OVER BOTH CORPORA, AND THE ONE THAT MOVES NOTHING IS REPORTED RATHER THAN
@@ -1445,7 +1446,7 @@
 # returned the arena's base for ever would pass the symbol check, the cut and the size
 # assertion, and this is what says the bookkeeping is live.  host_free doing NOTHING AT
 # ALL moves 0 of 102 and 0 of 16, and that is PHASE 35'S OWN `cf` CONTROL re-run on this
-# phase's input rather than a new claim -- on a corpus phase 35 did not have.  A leak is
+# phase's input rather than a new claim -- on a corpus phase 118 did not have.  A leak is
 # invisible to this corpus too, so the byte-identical recording is NOT what says the
 # freeing changed; `free` leaving nm -u is.  And the guard, which no recording can ever
 # take: with a 256 KiB arena a bare session aborts with `zero-vim: host arena exhausted:
@@ -1455,14 +1456,14 @@
 #
 # <stdlib.h> IS NOW DEAD AND IT STAYS, measured rather than argued: malloc, free and
 # realloc were its only users, and the output built with the directive DELETED is
-# BYTE-IDENTICAL, 772,872 bytes either way.  ZERO-GOAL.md lets a phase remove a directive
-# and phase 13 is the precedent for declining -- it measured that removing three was free
+# BYTE-IDENTICAL, 772,872 bytes either way.  WHIM-GOAL.md lets a phase remove a directive
+# and phase 96 is the precedent for declining -- it measured that removing three was free
 # and wrote "the count stays 18" into its own program.  Eleven stays eleven: a phase that
 # changes two things cannot say which one a difference came from, and the removal is free
 # for whoever asks for it.
 # ---------------------------------------------------------------------------------------
 # PHASE 43 DECLARES NOTHING AT ALL, and it is CLAUDE.md's SIXTH kind: the code runs, and
-# the instrument sees it do the same thing.  Phases 18, 19, 21, 25, 32, 34 and 35 are the
+# the instrument sees it do the same thing.  Phases 101, 102, 104, 108, 115, 117 and 118 are the
 # others, and this is the strongest instance of it any zero phase has had -- not because
 # the phase is careful but because of WHERE it is.  Every keystroke this editor draws
 # reaches its text through `ml_find_line()`, and this phase changes how that function
@@ -1484,14 +1485,14 @@
 # be found.  `E323: Line count wrong in block %ld` is the only message in the file that
 # printed a block number, and there is no number left to print, so it becomes `E323: Line
 # count wrong in block`.  That IS a change to what the editor would draw -- and it is
-# phase 12's kind inside a phase of phase 21's kind: the arm is `ml_find_line()`'s
+# phase 95's kind inside a phase of phase 104's kind: the arm is `ml_find_line()`'s
 # integrity check, the one that fires when the line counts under a pointer block do not
 # add up to the tree's own count, and it is reachable only from a tree that is already
 # corrupt.  So the phase owes a probe and runs two.  The input built with
 # `host_message("MARK-E323\n", 10, TRUE);` on that arm carries the marker in 0 of a whole
 # recording's records, and the IDENTICAL marker on the line above it -- the descent into a
 # pointer block, which every case reaches -- is carried by most of them, which is phase
-# 9's instrumented pair and phase 13's.  Then both sources are built with the pointer-block
+# 92's instrumented pair and phase 96's.  Then both sources are built with the pointer-block
 # scan forced to find nothing, and both DO draw E323, so what the phase changed is
 # exhibited rather than argued: `E323: Line count wrong in block 0` against `E323: Line
 # count wrong in block`.
@@ -1503,14 +1504,14 @@
 #
 # WHAT THE PHASE DOES NOT BUY, because the claim is easy to overstate.  The pointer
 # BETWEEN pages is a reference; the page itself is still a byte array with interior
-# offsets read back as pointers.  ZERO-PLAN.md 4d's list -- `db_index[1]` indexed to the
+# offsets read back as pointers.  WHIM-PLAN.md II.4d's list -- `db_index[1]` indexed to the
 # line count, the fourteen `(char_u *)dp + start` interior pointers, the top bit of an
 # offset used as a flag, the padding that is part of the layout -- is untouched, and the
-# arena and its interior pointers survive until phase 44.  This is half of the thing a
+# arena and its interior pointers survive until phase 127.  This is half of the thing a
 # JVM cannot express, not the whole of it.
 #
-# 127 (zero 44) DECLARES NOTHING AT ALL, AND IT IS THE WEAKEST KIND ON THIS LIST -- phases 14 and
-# 15's, and no other.  The code changes, the binary moves, and the claim is that a
+# 127 (zero 44) DECLARES NOTHING AT ALL, AND IT IS THE WEAKEST KIND ON THIS LIST -- phases 97 and
+# 98's, and no other.  The code changes, the binary moves, and the claim is that a
 # replacement does what the thing it replaces did.  There is no `cmp` to be had: a data
 # block stops being a header, an index of byte offsets and a text arena and becomes an
 # array of `{char_u *dl_text; colnr_T dl_len; char dl_marked;}`, so every line of every
@@ -1537,7 +1538,7 @@
 #           both directions -- 32, 64, 128 and 1 all record identically -- which is why
 #           the value is chosen by REACHABILITY and not by a recording.
 #
-# ONE THING THE CORPUS REACHES LESS, AND IT IS BECAUSE THE CODE IS GONE.  Phase 40's
+# ONE THING THE CORPUS REACHES LESS, AND IT IS BECAUSE THE CODE IS GONE.  Phase 123's
 # MLBIGLINE marker -- a data block of more than one page, for a line longer than a page
 # -- fires in 3 of the 16 memline cases on the input and has NO ANCHOR in the output at
 # all: a record is a pointer, so there is no such thing to measure.  Every other marker
@@ -1550,22 +1551,22 @@
 # phase's constraint and not this one's.  DB_LINE_MAX = 64 makes mem_deep_jumps build
 # 474 (zero 391) data blocks against the input's 321, and pb_count_max is 255 -- so one case of
 # sixteen splits the root, on both sides, and no other case comes near.  pb_count_max
-# has gone 127 -> 170 -> 255 across phases 42 and 43 while the corpus's sizes have not
-# moved: the same table taken on r40 had 128 reaching 1 and it reaches 0 here.  A PTR_EN
+# has gone 127 -> 170 -> 255 across phases 125 and 126 while the corpus's sizes have not
+# moved: the same table taken on q123 had 128 reaching 1 and it reaches 0 here.  A PTR_EN
 # of 8 bytes would put pb_count_max at 511 and take even 64 to zero.
 #
 # AND ONE COST THAT IS NOT A DIFFERENCE, measured because a per-line allocation is the
 # one thing about this phase a byte-identical recording says nothing about.  The
 # heaviest memline session asks the host for 201,927,792 bytes where the input asks
-# 200,438,864, +0.7%, mem_deep_jumps either side.  With nothing freed (phase 41) that
+# 200,438,864, +0.7%, mem_deep_jumps either side.  With nothing freed (phase 124) that
 # is a session's TRAFFIC and not its live data.  The counter is checked against a known
 # answer before it is believed -- on the 233 non-memline sessions it reproduces phase
-# 41's own published high-water to the byte, 1,734,544 -- and the bound it enforces is
+# 124's own published high-water to the byte, 1,734,544 -- and the bound it enforces is
 # proven able to fail: ml_alloc_line() over-allocating by one page a line asks
 # 304,354,000, 1.52 times the input, against the real output's 1.007.  A quarter as
 # much again is the bound the check enforces.
 #
-# 128 (zero 45) DECLARES NOTHING AT ALL, AND IT IS 44'S KIND -- phases 14 and 15's, the weakest on
+# 128 (zero 45) DECLARES NOTHING AT ALL, AND IT IS 44'S KIND -- phases 97 and 98's, the weakest on
 # this list.  The code changes, the binary moves, and the claim is that a replacement
 # does what the thing it replaces did.  There is no `cmp` to be had: a node stops being
 # a `bhdr_T` of four members with a 4,096-byte page hanging off a `char_u *bh_data` and
@@ -1589,16 +1590,16 @@
 #            AND THAT IS THE POINT: the same binary takes MLSPLITPTR, MLSPLITROOT and
 #            MLDEEP from 1 to 0.  391 data blocks is more than 255 and less than 511, so
 #            narrowing the entry would take the root split out of the corpus WITHOUT
-#            MOVING ONE RECORD.  The control is run under phase 40's instrument as well
+#            MOVING ONE RECORD.  The control is run under phase 123's instrument as well
 #            as under the recording, because the recording is exactly what cannot see it.
 #   noclear  alloc() for alloc_clear() in ml_new_data.  The host's arena is a bump
 #            pointer over fresh pages, so the memory is already zero -- a fact about
 #            this host, not a promise the core may rest on, and ml_open's error path
 #            does rest on it: it walks a root whose one entry has not been filled in.
 #   nofree   ml_free_tree() walking the tree and freeing nothing, so a closed buffer
-#            keeps every node it had.  0 of 118 because ZERO-GOAL.md's charter says
+#            keeps every node it had.  0 of 118 because WHIM-GOAL.md's charter says
 #            host_free() returns without doing anything: what a core gives back is
-#            unobservable by construction (zero phase 41).
+#            unobservable by construction (phase 124).
 #
 # THE CORPUS REACHES EXACTLY WHAT IT REACHED, case by case and not only in total:
 # MLSPLITDATA 16, MLSPLITPTR 1, MLSPLITROOT 1, MLIDXNZ 16 and MLDEEP 1, every marker in
@@ -1628,7 +1629,7 @@
 # 201,927,792, -0.6%, and the biggest fall is mem_join_split at -9.2%.  The difference
 # is the node overhead and it is arithmetic: 391 data blocks x (4,128 - 1,040) is
 # 1,207,408 of the 1,207,536 bytes that go.  Per line a leaf costs 16.25 bytes where it
-# cost 64.5.  With nothing freed (phase 41) that is a session's TRAFFIC and not its live
+# cost 64.5.  With nothing freed (phase 124) that is a session's TRAFFIC and not its live
 # data.
 #
 # WHAT THE PHASE DOES NOT BUY.  The tree is a counted tree of nodes now and there is no

@@ -1,11 +1,11 @@
 #!/bin/sh
-# Whim phase 124 (zero phase 41) -- freeing is free.  ZERO-GOAL.md's charter bullet, "A GARBAGE
+# Whim phase 124 -- freeing is free.  WHIM-GOAL.md's charter bullet, "A GARBAGE
 # COLLECTOR IS ASSUMED FROM HERE ON".
 #
 # Usage: pipes/whim124-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
 # `host_alloc` BECOMES A BUMP ALLOCATOR AND `host_free` RETURNS WITHOUT DOING ANYTHING.
-# Phase 35 moved `malloc` and `free` across the boundary and wrote the two wrappers that
+# Phase 118 moved `malloc` and `free` across the boundary and wrote the two wrappers that
 # forwarded to them; this phase changes what is behind those two names and nothing else.
 # The charter's words: "No real collector is built: `host_alloc` becomes a bump allocator
 # in the host with enough arena for the test suite and `host_free` returns without doing
@@ -31,10 +31,10 @@
 #
 # THE ARENA COULD NOT HAVE BEEN SIZED BEFORE ZERO PHASE 40, and that is worth saying
 # plainly rather than leaving in the manifest.  The heaviest of the 102 screen cases asks
-# for 1,722,512 bytes and the heaviest of phase 40's 16 memline cases asks for 115 TIMES
+# for 1,722,512 bytes and the heaviest of phase 123's 16 memline cases asks for 115 TIMES
 # MORE.  A phase written one boundary earlier would have measured the 102, found 1.7 MB,
 # and sized an arena from a corpus that provably cannot reach the text layer at all --
-# which is the defect phase 40 exists to have ended, arriving one phase later in a shape
+# which is the defect phase 123 exists to have ended, arriving one phase later in a shape
 # nobody predicted.  A 64 MiB arena was in fact written here first and the recording
 # refused it: `THE RECORDING MOVED, in 1 of 122 records: memline/mem_deep_jumps`, the case
 # dying with `host arena exhausted: 67108864 bytes, 67058640 used, request 60263`.
@@ -72,20 +72,20 @@
 #                   carry on, and a phase whose declared delta is nothing must not have
 #                   a way of quietly doing less.
 #   2  host_free    `(void)p;`.
-#   3  format_overflow_error()'s `free(argcopy)`     BELOW the boundary, and phase 35
+#   3  format_overflow_error()'s `free(argcopy)`     BELOW the boundary, and phase 118
 #   4  adjust_types()'s `realloc(*ap_types, ...)`    left both deliberately.
 #
 # PARTS 3 AND 4 ARE WHAT MAKES THIS PHASE CORRECT RATHER THAN NEARLY CORRECT, and
-# neither is in the core.  The formatter's private island -- the four functions phase 27
+# neither is in the core.  The formatter's private island -- the four functions phase 110
 # moved BELOW the includes because they need `va_list` -- still called libc's `free` and
 # libc's `realloc` directly, on pointers that came from `alloc_clear()`, which is to say
-# from `host_alloc`.  Phase 35 saw them and left them, naming `free`'s one below-boundary
-# mention as "format_overflow_error() below the boundary", and phase 34 saw the other and
+# from `host_alloc`.  Phase 118 saw them and left them, naming `free`'s one below-boundary
+# mention as "format_overflow_error() below the boundary", and phase 117 saw the other and
 # said in as many words that the remaining `realloc` "is the host's and is not this
 # phase's".  Both were right while `host_alloc` WAS `malloc`: the two allocators were one
 # allocator.  This phase is where they stop being one, and a `free()` or a `realloc()` of
 # an arena pointer is undefined behaviour from the line below.  So they move here, and
-# the realloc moves by phase 34's own rewrite -- allocate, copy, free -- with phase 34's
+# the realloc moves by phase 117's own rewrite -- allocate, copy, free -- with phase 117's
 # own traps read off this site:
 #
 #     TRAP 1  `realloc(nullptr, n)` is `malloc(n)`.  Not reachable here: the null case is
@@ -101,15 +101,15 @@
 # check owns a probe for them instead of a recording.  `format_overflow_error()` is
 # called only when `get_unsigned_int`'s `overflow_err` is true, and that argument is
 # `tvs != nullptr`, and `vim_vsnprintf_typval` has ONE caller in this file, passing
-# nullptr -- so it is phase 9's and phase 17's kind, code no build of whim-vim can run.
+# nullptr -- so it is phase 92's and phase 100's kind, code no build of whim-vim can run.
 # `adjust_types()` needs a positional format spec and no string literal in the file holds
 # one, so it takes a runtime format to reach; the check reaches it with one.
 #
 # WHAT THIS PHASE DOES NOT DO, AND IT IS MEASURED RATHER THAN OVERLOOKED.  `malloc`,
 # `free` and `realloc` were the only users of `<stdlib.h>`, and with them gone the
 # directive is dead: the check builds the output without it and the binary is
-# BYTE-IDENTICAL.  It stays.  ZERO-GOAL.md permits a phase to remove a directive and
-# phase 13 is the precedent for declining -- it measured that removing three of them was
+# BYTE-IDENTICAL.  It stays.  WHIM-GOAL.md permits a phase to remove a directive and
+# phase 96 is the precedent for declining -- it measured that removing three of them was
 # free and wrote "the count stays 18" into its own program.  The eleven stay eleven here
 # for the same reason: this phase's subject is the allocator, the removal is free
 # whenever somebody asks for it, and a phase that changes two things cannot say which one
@@ -127,7 +127,7 @@ state=${2:?usage: whim124-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

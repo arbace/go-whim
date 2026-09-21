@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim107", Zero24) }
+func init() { register("whim107", Whim107) }
 
 // pyRepr is Python's repr() of a str: single quotes unless the text holds a
 // single quote and no double one, and backslash escapes for the rest.
@@ -128,8 +128,8 @@ var (
 	z24Unused   = regexp.MustCompile(`^.*?:(\d+):\d+: warning: unused parameter .(\w+)`)
 )
 
-// Zero24 is phase 24's check: the attributes.
-func Zero24(w io.Writer, args []string) error {
+// Whim107 is phase 107's check: the attributes.
+func Whim107(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim107 <work-dir> <state-dir>")
 	}
@@ -334,12 +334,12 @@ func Zero24(w io.Writer, args []string) error {
 	rows := z6RowRe.FindAllString(newC, -1)
 	got, _ := harness.CommandNamesIn([]byte(newC), "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
-		fail = append(fail, "cmdnames[] is not the 98 rows phase 10 left -- this phase touches no Ex command")
+		fail = append(fail, "cmdnames[] is not the 98 rows phase 93 left -- this phase touches no Ex command")
 	}
 	if i := strings.Index(newC, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newC[i:], "\n};")
 		if m := len(z12RowRe.FindAllString(newC[i:i+j], -1)); m != 107 {
-			fail = append(fail, fmt.Sprintf("options[] has %d rows, expected the 107 phase 20 left -- this phase removes no option", m))
+			fail = append(fail, fmt.Sprintf("options[] has %d rows, expected the 107 phase 103 left -- this phase removes no option", m))
 		}
 	}
 	var d []string
@@ -355,7 +355,7 @@ func Zero24(w io.Writer, args []string) error {
 		}
 	}
 	if !dirOK {
-		fail = append(fail, "the output does not have exactly the eleven `#include` directives phase 21 left, on its first eleven lines.  `[[fallthrough]]` is a STATEMENT and not a directive, and MOVING THEM IS A LATER PHASE")
+		fail = append(fail, "the output does not have exactly the eleven `#include` directives phase 104 left, on its first eleven lines.  `[[fallthrough]]` is a STATEMENT and not a directive, and MOVING THEM IS A LATER PHASE")
 	}
 	for k := 1; k < len(NL); k++ {
 		if NL[k] == "" && NL[k-1] == "" {
@@ -441,7 +441,7 @@ func Zero24(w io.Writer, args []string) error {
 		return stop("THE CONTROLS DID NOT SHOW.  Removing vim_snprintf's format(printf, 3, 4) gives %d warnings and must give 0 -- gcc stops checking formats at all -- and removing `_()`'s format_arg(1) gives %d and must give MORE than %d, gcc losing the ability to see through the translation wrapper.  Without both, the equality above is two numbers agreeing (CLAUDE.md)", n1, n2, no)
 	}
 	r.say("-Wformat=2: THE IDENTICAL %d `-Wformat-nonliteral` warnings in THE IDENTICAL %d functions, before and after.  THIS IS THE EVIDENCE FOR THE SIX SURVIVORS AND THE BINARY CANNOT GIVE IT: an attribute emits no code, so a cmp-identical build is equally happy without them", no, len(distinct(fo)))
-	r.cont("AND IT CAN FAIL, IN BOTH DIRECTIONS.  With vim_snprintf's format(printf, 3, 4) removed the count is %d -- gcc checks no format anywhere, and phase 22 is why one attribute now carries 201 `vim_snprintf` mentions.  With `_()`'s format_arg(1) removed it is %d, %d MORE: that attribute is what lets -Wformat see THROUGH the translation wrapper, which CLAUDE.md names as the reason `_()` and `NGETTEXT` were never macro-expanded", n1, n2, n2-no)
+	r.cont("AND IT CAN FAIL, IN BOTH DIRECTIONS.  With vim_snprintf's format(printf, 3, 4) removed the count is %d -- gcc checks no format anywhere, and phase 105 is why one attribute now carries 201 `vim_snprintf` mentions.  With `_()`'s format_arg(1) removed it is %d, %d MORE: that attribute is what lets -Wformat see THROUGH the translation wrapper, which CLAUDE.md names as the reason `_()` and `NGETTEXT` were never macro-expanded", n1, n2, n2-no)
 	if err := z24Buys(w, r, NL, tmp); err != nil {
 		return err
 	}
@@ -527,7 +527,7 @@ func Zero24(w io.Writer, args []string) error {
 		}
 		return harness.ErrReported
 	}
-	r.say("THE BINARY IS BYTE-IDENTICAL, %d bytes either side -- tier 1 of CLAUDE.md's verification table, and the whole of this phase's evidence for the 133 it removed and respelled.  A byte-identical binary subsumes every screen case, every Ex-command row, every command line and every pty scenario at once, because the program that would be run is the same program; tools/zerodelta.sh --phase 24 runs next and corroborates rather than proves", newSize)
+	r.say("THE BINARY IS BYTE-IDENTICAL, %d bytes either side -- tier 1 of CLAUDE.md's verification table, and the whole of this phase's evidence for the 133 it removed and respelled.  A byte-identical binary subsumes every screen case, every Ex-command row, every command line and every pty scenario at once, because the program that would be run is the same program; tools/zerodelta.sh --phase 107 runs next and corroborates rather than proves", newSize)
 	if jC4.wait().err != nil {
 		r.say("the control c4 did not build:")
 		for _, l := range head(strings.Split(strings.TrimRight(jC4.out, "\n"), "\n"), 5) {
@@ -806,7 +806,7 @@ func z24C23(w io.Writer, r *rep, newC, tmp string, j11o, j11n *z24Job) error {
 	if eOld != eNew || eOld < 100 {
 		r.say("the whole file gives %d errors under -std=c11 before this phase and %d after.", eOld, eNew)
 		r.cont("They must be equal and large: this file has been C23 since long before")
-		r.cont("this phase -- enum : long, static_assert, lowercase bool, and phase 23's")
+		r.cont("this phase -- enum : long, static_assert, lowercase bool, and phase 106's")
 		r.cont("typeof and nullptr -- and respelling 20 attributes must not move the floor.")
 		return harness.ErrReported
 	}
@@ -826,7 +826,7 @@ func z24Buys(w io.Writer, r *rep, NL []string, tmp string) error {
 		}
 	}
 	if proto == "" || tdef == "" {
-		r.say("vim_snprintf's prototype, or phase 23's usize typedef, is not in the")
+		r.say("vim_snprintf's prototype, or phase 106's usize typedef, is not in the")
 		r.cont("output in the shape this probe reads them -- the probe is built from")
 		r.cont("the output's own lines and not from retyped ones, so it cannot pass")
 		r.cont("while the file says something else.")
@@ -864,6 +864,6 @@ func z24Buys(w io.Writer, r *rep, NL []string, tmp string) error {
 		r.say("the %%d probe warned WITHOUT the attribute, so the attribute is not what catches it")
 		return harness.ErrReported
 	}
-	r.say("AND WHAT IT BUYS, built from the output's OWN prototype and phase 23's OWN typedef: vim_snprintf(b, 10, \"%%d\", s) handed a const char * draws %d warning with the attribute and NOTHING AT ALL without it.  That is the whole argument for stopping at 133 removals and not 139", countLinesWith([]byte(fe), "expects argument of type"))
+	r.say("AND WHAT IT BUYS, built from the output's OWN prototype and phase 106's OWN typedef: vim_snprintf(b, 10, \"%%d\", s) handed a const char * draws %d warning with the attribute and NOTHING AT ALL without it.  That is the whole argument for stopping at 133 removals and not 139", countLinesWith([]byte(fe), "expects argument of type"))
 	return nil
 }

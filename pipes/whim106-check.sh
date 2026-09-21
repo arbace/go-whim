@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 106 (zero phase 23), the check -- `nullptr` and `usize`.
-# See pipes/whim106-edit.sh, and ZERO-PLAN.md 4c.
+# Whim phase 106, the check -- `nullptr` and `usize`.
+# See pipes/whim106-edit.sh, and WHIM-PLAN.md II.4c.
 #
 # Usage: pipes/whim106-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -14,8 +14,8 @@
 # BYTES.  That is tier 1 of CLAUDE.md's verification table, and it subsumes every screen
 # case, every Ex-command row, every command line and every pty scenario at once, because
 # the program that would be run is literally the same program.  tools/zerodelta.sh
-# --phase 23 still runs, from tools/phaserun.sh after this check, and corroborates; it
-# is not the evidence.  It is phase 16's shape exactly, on three thousand edits instead
+# --phase 106 still runs, from tools/phaserun.sh after this check, and corroborates; it
+# is not the evidence.  It is phase 99's shape exactly, on three thousand edits instead
 # of seven.
 #
 # WHAT IS CLAIMED, in five parts:
@@ -53,8 +53,8 @@
 # `usize` to `size_t` compiles cleanly and gives a byte-identical binary, because the
 # `#include`s are still at the TOP of the file and `size_t` is therefore still declared
 # above every line of it.  That is the honest statement of what this phase's evidence
-# cannot reach: the rename is not yet load-bearing, and it becomes so at phase 26, where
-# the same control is three hard errors.  It is phase 22's b3/b4 in this phase's shape.
+# cannot reach: the rename is not yet load-bearing, and it becomes so at phase 109, where
+# the same control is three hard errors.  It is phase 105's b3/b4 in this phase's shape.
 
 # THE BODY IS GO: internal/check/whim106.go, run through tools/st.sh.
 # The tools it runs, named as PATHS so tools/implhash.sh hashes them into

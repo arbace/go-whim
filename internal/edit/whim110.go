@@ -14,7 +14,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { registerArgs("whim110", Zero27) }
+func init() { registerArgs("whim110", Whim110) }
 
 // ---- the twelve constants -----------------------------------------------
 // Eight derived and four asserted.  The initialiser text is used TWICE -- as
@@ -87,10 +87,10 @@ type z27Enum struct {
 	own   map[string]int
 }
 
-// Zero27 is the move: the eleven `#include`s go below the core, twelve
+// Whim110 is the move: the eleven `#include`s go below the core, twelve
 // header-supplied constants become enumerators asserted from below, and the
 // formatter's private island follows the four `va_list` functions down.
-func Zero27(text []byte, w io.Writer, args []string) ([]byte, error) {
+func Whim110(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p := ph{"boundary", w}
 	if len(args) != 1 {
 		return nil, p.die("usage: edit whim110 <file> <state-dir>")
@@ -110,7 +110,7 @@ func Zero27(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// ---- 0. the file this edit was written against ----------------------
 	// ELEVEN DIRECTIVES, every one an `#include` of a system header, on the
-	// first eleven lines -- what phase 21 left and what phases 23 and 26 each
+	// first eleven lines -- what phase 104 left and what phases 106 and 109 each
 	// asserted in turn.  This is the LAST phase for which that sentence is
 	// true, and making it false is the point.
 	var dIdx []int
@@ -165,7 +165,7 @@ func Zero27(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 	if nTypedef != 1 {
-		return nil, p.die("`%s` is not in the input exactly once -- phase 23 put it below the last "+
+		return nil, p.die("`%s` is not in the input exactly once -- phase 106 put it below the last "+
 			"`#include` and the constants go beneath it", z27Typedef)
 	}
 	if k := blankRuns(base); k != 0 {
@@ -446,7 +446,7 @@ func Zero27(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// variadic layer, compile the cut ALONE, and collect every name it says
 	// is undeclared.  That set must be exactly the twelve this phase
 	// declares: a thirteenth would mean the core still takes something from a
-	// header and phase 26 did not finish, and a missing one would mean this
+	// header and phase 109 did not finish, and a missing one would mean this
 	// program declares something nobody needs.
 	l0, _, _, err := build(z27Variadic, nil, nil, false)
 	if err != nil {

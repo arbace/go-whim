@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 120 (zero phase 37), the check -- the degenerate unions go.
-# See pipes/whim120-edit.sh, and ZERO-GOAL.md.
+# Whim phase 120, the check -- the degenerate unions go.
+# See pipes/whim120-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim120-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -14,7 +14,7 @@
 # BINARY IS THE SAME BYTES.  That is tier 1 of CLAUDE.md's verification table, and it
 # subsumes every screen case, every Ex-command row, every command line and every pty
 # scenario at once, because the program that would be run is literally the same program.
-# It is phase 16's and phase 23's kind of empty declaration -- THE STRONGEST OF THE FIVE
+# It is phase 99's and phase 106's kind of empty declaration -- THE STRONGEST OF THE FIVE
 # and not the weakest -- and this check says which kind it is rather than leaving a
 # reader to guess.
 #
@@ -26,7 +26,7 @@
 #               with two or more must survive BYTE FOR BYTE, each degenerate name must
 #               keep its declaration and every `.member` access on it must be a plain
 #               field reference.  Not one of those numbers is written in this file, which
-#               is the lesson phase 35 was taught when phase 34 moved its counted
+#               is the lesson phase 118 was taught when phase 117 moved its counted
 #               anchors.
 #   THE DIALECT the empty union's own argument, MEASURED.  `union { } es_info;` is a GNU
 #               C extension: gcc reports `union has no members [-Wpedantic]` on the input
@@ -37,7 +37,7 @@
 #               is still the only external symbol.  Deleting a wrapper type inside one
 #               translation unit cannot move either, and a symbol ARRIVING must fail as
 #               loudly as one leaving.
-#   THE CUT     `awk '/^ *# *include / { exit }'`, zero.mk's own rule, on the INPUT and on
+#   THE CUT     `awk '/^ *# *include / { exit }'`, whim.mk's own rule, on the INPUT and on
 #               the OUTPUT: 0 directives and 0 errors under `-fsyntax-only` either side,
 #               and the warning set -- which IS the core -> host interface -- IDENTICAL,
 #               computed at run time from the input and never written down.
@@ -58,7 +58,7 @@
 #               no program at all.  If either ever moves, this phase's account of itself
 #               has to be rewritten rather than the number quietly updated.
 #   STRUCTURE   tools/canon.sh is a no-op on the output, and `zhostonly` -- phase
-#               20's structural check -- still passes.
+#               103's structural check -- still passes.
 #
 # AND TWO FULL RECORDINGS, WHICH ARE A CHECK ON THE HARNESS AND NOT ON THE PHASE.  With a
 # byte-identical binary a `tools/zrecord.sh` of each side compares a program with itself,

@@ -9,7 +9,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { register("whim87", Zero4) }
+func init() { register("whim87", Whim87) }
 
 var z4Before = map[string]int{
 	"exmode_active": 49, "silent_mode": 23, "pending_exmode_active": 4,
@@ -39,8 +39,8 @@ var (
 	z4BreakCon = regexp.MustCompile(`\b(break|continue)\b`)
 )
 
-// Zero4 removes Ex mode, silent mode and the `-e -E -s -v` options.
-func Zero4(text []byte, w io.Writer) ([]byte, error) {
+// Whim87 removes Ex mode, silent mode and the `-e -E -s -v` options.
+func Whim87(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"noexmode", w}
 	var err error
 

@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 87 (zero phase 4), the check -- Ex mode, silent mode and the four options are gone.
-# See pipes/whim87-edit.sh, and ZERO-GOAL.md.
+# Whim phase 87, the check -- Ex mode, silent mode and the four options are gone.
+# See pipes/whim87-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim87-check.sh <work-dir> <state-dir>     (run from the repository root)
 #

@@ -1,9 +1,9 @@
 #!/bin/sh
-# Whim phase 95 (zero phase 12) -- the options nothing reads.  See ZERO-GOAL.md.
+# Whim phase 95 -- the options nothing reads.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim95-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
-# Phases 6 to 11 took every way to reach a file and then the refusal that guarded
+# Phases 89 to 94 took every way to reach a file and then the refusal that guarded
 # the text.  What they left behind is a set of SETTINGS: `options[]` rows whose
 # global nothing reads any more, so that `:set fsync?` answers a question about
 # machinery that is not there.  An option that cannot do anything is a lie, and the
@@ -19,19 +19,19 @@
 #   fsync       p_fs       PV_BOTH   goes, but needs droplocal.py b_p_fs first
 #   modified    p_mod      PV_BUF    STAYS -- see below
 #   prompt      p_prompt   PV_NONE   goes
-#   readonly    p_ro       PV_BUF    goes, by ZERO-PLAN.md decision 5
+#   readonly    p_ro       PV_BUF    goes, by WHIM-PLAN.md II decision 5
 #   undoreload  p_ur       PV_NONE   goes
 #   write       p_write    PV_NONE   goes
 #   writeany    p_wa       PV_NONE   goes
 #
-# `'modified'` HAS NO READER OF `p_mod` EITHER AND MUST NOT GO.  ZERO-PLAN.md
+# `'modified'` HAS NO READER OF `p_mod` EITHER AND MUST NOT GO.  WHIM-PLAN.md part II
 # decision 5 keeps it: the state it reports lives in `b_changed`, not in `p_mod`, so
 # `:set modified?` answers correctly and the row is not a lie.  A computation that
 # took "no reader" as the criterion would delete it, which is why the seven are
 # computed and the six are chosen.  `dropoptions` refuses it anyway, on the
 # PV_ guard.
 #
-# `'paste'` IS EXEMPT FOR EVER, and this is the comment that says so -- ZERO-PLAN.md
+# `'paste'` IS EXEMPT FOR EVER, and this is the comment that says so -- WHIM-PLAN.md part II
 # 2d and decision 8, the user's standing promise.  `p_paste` has 12 mentions here and
 # has them afterwards, and its five save slots `p_ai_nopaste p_et_nopaste
 # p_sts_nopaste p_tw_nopaste p_wm_nopaste` are the non-pointer orphans
@@ -50,12 +50,12 @@
 #      "local if set" form.  Then `--strict --local fsync`.
 #   C  `'readonly'`, which is LIVE CODE and not an inert row.  `p_ro` the global has
 #      had no reader since whim; what survives is the buffer-local `b_p_ro`, and
-#      since phase 6 nothing but `:set ro` can set it -- decision 5's premise.  Five
+#      since phase 89 nothing but `:set ro` can set it -- decision 5's premise.  Five
 #      edits, in this order and for this reason:
 #        1  the W10 warning.  `change_warning()` and its six call sites, each one
 #           statement on a line of its own.  There is NO PROTOTYPE -- it is defined
 #           above its first call -- so a program that removes one fails loudly.  This
-#           also takes the `ui_delay(1002L, TRUE)` that ZERO-GOAL.md phase 2 named as
+#           also takes the `ui_delay(1002L, TRUE)` that WHIM-GOAL.md phase 85 named as
 #           one of the eight other pauses.
 #        2  the `[RO]` in `fileinfo()`.  THE FORMAT STRING AND THE ARGUMENT MOVE
 #           TOGETHER -- `%s%s%s%s%s%s` to `%s%s%s%s%s` -- and nothing in the build
@@ -82,14 +82,14 @@
 # But `:set shm=F` is accepted silently and `:set shm=y` answers E539, and dropping a
 # letter from the list turns the first into the second -- a behaviour change no
 # corpus case, Ex row, argv row or pty scenario can see, which is exactly what
-# ZERO-GOAL.md rule 2 exists to prevent.  Accepting a letter that does nothing is
+# WHIM-GOAL.md core rule 2 exists to prevent.  Accepting a letter that does nothing is
 # what upstream does for every feature a build lacks.  Measured: 23 of 'cpoptions'
 # 60 letters and 14 of 'shortmess' 23 are inert here, and THIS PHASE MAKES EXACTLY
 # ONE MORE SO -- `'shortmess'`'s `r`, whose SHM_RO the sweep takes with the `[RO]`
 # indicator.  The check asserts both literals character for character.
 #
 # THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own makefile
-# flags, as every zero edit since phase 2 does, and the source goes with it as
+# flags, as every zero edit since phase 85 does, and the source goes with it as
 # $state/old.c.  The check needs both, and needs them more than any phase so far:
 # THIS PHASE DECLARES NOTHING, because `:set` is the one thing zero's instrument
 # cannot read, and the probes are the whole evidence.
@@ -100,7 +100,7 @@ state=${2:?usage: whim95-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

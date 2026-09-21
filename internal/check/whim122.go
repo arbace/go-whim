@@ -17,7 +17,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim122", Zero39) }
+func init() { register("whim122", Whim122) }
 
 var (
 	z39TermpArm  = regexp.MustCompile(`(?m)^[ \t]*if \(termp == nullptr\)$`)
@@ -115,8 +115,8 @@ func z39Pad(s string, n int) string {
 	return s
 }
 
-// Zero39 is phase 39's check: -T {term} goes.
-func Zero39(w io.Writer, args []string) error {
+// Whim122 is phase 122's check: -T {term} goes.
+func Whim122(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim122 <work-dir> <state-dir>")
 	}

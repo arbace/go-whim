@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim128", Zero45) }
+func init() { register("whim128", Whim128) }
 
 var (
 	z45Name     = regexp.MustCompile(`\b[A-Za-z_][A-Za-z0-9_]*\b`)
@@ -53,7 +53,7 @@ func z45Code(t string) string {
 	return out.String()
 }
 
-// z45Instrument is this phase's MARK_PY: phase 40's five markers, three of
+// z45Instrument is this phase's MARK_PY: phase 123's five markers, three of
 // them at lines this phase rewrote, so each side names its own.
 func z45Instrument(src, dst string, out bool) (string, string) {
 	pick := func(a, b string) string {
@@ -106,8 +106,8 @@ func z45Instrument(src, dst string, out bool) (string, string) {
 	return strings.Join(names, " "), ""
 }
 
-// Zero45 is phase 45's check: fold the node types.
-func Zero45(w io.Writer, args []string) error {
+// Whim128 is phase 128's check: fold the node types.
+func Whim128(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim128 <work-dir> <state-dir>")
 	}
@@ -346,7 +346,7 @@ func Zero45(w io.Writer, args []string) error {
 		var eb strings.Builder
 		c.Stderr = &eb
 		if err := c.Run(); err != nil {
-			say("fanout", "sizeof(PTR_EN) is NOT 16 on the %s side, so the tree's fanout has moved and zero phase 40's "+
+			say("fanout", "sizeof(PTR_EN) is NOT 16 on the %s side, so the tree's fanout has moved and phase 123's "+
 				"root-split coverage is not what it was:", side)
 			L := strings.Split(strings.TrimRight(eb.String(), "\n"), "\n")
 			if len(L) > 3 {
@@ -519,7 +519,7 @@ func Zero45(w io.Writer, args []string) error {
 	}
 	if len(zero) > 0 {
 		fmt.Fprintf(w, "the corpus reaches none of: %s -- a corpus that MEANS to reach a split and does not is the defect "+
-			"zero phase 40 exists to end\n", strings.Join(zero, " "))
+			"phase 123 exists to end\n", strings.Join(zero, " "))
 		return harness.ErrReported
 	}
 	scrSet := map[string]bool{}
@@ -793,7 +793,7 @@ func Zero45(w io.Writer, args []string) error {
 			"zero -- which is a fact about this host and not a promise the core may rest on, and ml_open's error path does " +
 			"rest on it",
 		"nofree": "ml_free_tree() walking the tree and freeing NOTHING, so a closed buffer keeps every node it had: " +
-			"ZERO-GOAL.md's charter says host_free() returns without doing anything, so what a core gives back is " +
+			"WHIM-GOAL.md's charter says host_free() returns without doing anything, so what a core gives back is " +
 			"unobservable by construction",
 	}
 	movedOf := func(base, cand string) (int, int, bool) {
@@ -891,18 +891,18 @@ func Zero45(w io.Writer, args []string) error {
 		"more than 255 and less than 511, so an 8-byte PTR_EN would take the root split out of the corpus WITHOUT MOVING "+
 		"ONE RECORD", strings.Join(hp, "  "), strings.Join(lost, " "))
 
-	// --- 9. zero phase 44's prediction, measured --------------------------------------------
+	// --- 9. phase 127's prediction, measured --------------------------------------------
 	mkdir("oldcap")
 	nt := strings.Replace(oldT, "    if (dp->db_line_count < DB_LINE_MAX)", "    if (dp->db_line_count <= DB_LINE_MAX)", 1)
 	nt = strings.Replace(nt, "if (dp->db_line_count >= DB_LINE_MAX && db_idx", "if (dp->db_line_count > DB_LINE_MAX && db_idx", 1)
 	if nt == oldT {
-		say("prediction", "phase 44's own control could not be made from this phase's input:")
-		prefixed("the leaf capacity bound is not where zero phase 44 left it")
+		say("prediction", "phase 127's own control could not be made from this phase's input:")
+		prefixed("the leaf capacity bound is not where phase 127 left it")
 		return harness.ErrReported
 	}
 	os.WriteFile(filepath.Join(T("oldcap"), "whim-vim.c"), []byte(nt), 0o644)
 	if exec.Command("make", "-C", T("oldcap")).Run() != nil {
-		return die("prediction", "phase 44's control did not build on the input")
+		return die("prediction", "phase 127's control did not build on the input")
 	}
 	ocb := filepath.Join(T("oldcap"), "whim-vim")
 	if recReport(w, recCmd("sh", "tools/st.sh", "zcases", ocb, filepath.Join(T("oldcap"), "screen")),
@@ -919,13 +919,13 @@ func Zero45(w io.Writer, args []string) error {
 	}
 	if oi != 0 {
 		return die("prediction", "the leaf capacity bound widened by one moves %d of %d records on the INPUT, where zero "+
-			"phase 44 measured 0 -- so the comparison below is not the one that phase set up", oi, ti)
+			"phase 127 measured 0 -- so the comparison below is not the one that phase set up", oi, ti)
 	}
 	if oo == 0 {
 		return die("prediction", "the leaf capacity bound widened by one still moves nothing, so allocating a block at "+
-			"its own size did NOT make the off-by-one visible and zero phase 44's prediction is unmet")
+			"its own size did NOT make the off-by-one visible and phase 127's prediction is unmet")
 	}
-	say("prediction", "zero phase 44 wrote that allocating a block at its own size would make an off-by-one in the "+
+	say("prediction", "phase 127 wrote that allocating a block at its own size would make an off-by-one in the "+
 		"capacity bound VISIBLE.  Its own control, the leaf capacity test widened by one, moves %d of %d records on this "+
 		"phase's INPUT -- the 0 of 118 that phase recorded -- and %d of %d here.  A leaf is 1,040 bytes of its own "+
 		"allocation now and was 1,040 bytes of a 4,096-byte page", oi, ti, oo, to)

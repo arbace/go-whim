@@ -10,23 +10,23 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { registerArgs("whim118", Zero35) }
+func init() { registerArgs("whim118", Whim118) }
 
 var (
 	z35Seed    = "void *malloc(usize n);"
 	z35CastFd1 = regexp.MustCompile(`\(int\)write\(1, `)
 )
 
-// Zero35 makes the core call nothing but the host: `malloc`, `free` and `write`
+// Whim118 makes the core call nothing but the host: `malloc`, `free` and `write`
 // become `host_alloc`, `host_free` and `host_write`, three prototypes above the
 // boundary and three definitions below it.
 //
-// ITS ANCHORS ARE A PARTITION AND NOT A COUNT, and phase 34 is why.  They first
+// ITS ANCHORS ARE A PARTITION AND NOT A COUNT, and phase 117 is why.  They first
 // asserted `malloc` at 2 mentions, `free` at 3 and `write` at 2 -- the counts
-// measured on one boundary -- and phase 34's realloc rewrite took two of them to
+// measured on one boundary -- and phase 117's realloc rewrite took two of them to
 // 4 and 5.  A count is a fact about a tree that WAS measured; a partition is a
 // fact about the tree that arrives.
-func Zero35(text []byte, w io.Writer, args []string) ([]byte, error) {
+func Whim118(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p := ph{"hostcall", w}
 	if len(args) != 1 {
 		return nil, p.die("usage: edit whim118 <file> <state-dir>")
@@ -69,7 +69,7 @@ func Zero35(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	if len(directives) != 11 {
 		return nil, p.die("the file holds %d preprocessor directives and this phase was written against "+
-			"the eleven `#include`s phase 21 left", len(directives))
+			"the eleven `#include`s phase 104 left", len(directives))
 	}
 	for i := range directives {
 		if directives[i] != directives[0]+i {
@@ -214,7 +214,7 @@ func Zero35(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if err := swap("static void host_message(const char *msg, int len, int err);\n",
 		"static void host_message(const char *msg, int len, int err);\n"+
 			strings.Join(z35Protos, "\n")+"\n",
-		"the last of the core -> host prototypes phase 25 left",
+		"the last of the core -> host prototypes phase 108 left",
 		"the boundary is ONE block, and these three belong at the end of it rather than "+
 			"wherever a declaration happened to fit"); err != nil {
 		return nil, err

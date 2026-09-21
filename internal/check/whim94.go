@@ -16,7 +16,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim94", Zero11) }
+func init() { register("whim94", Whim94) }
 
 var z11Gone = []string{"check_changed", "check_changed_any", "no_write_message",
 	"no_write_message_nobang", "not_exiting",
@@ -50,9 +50,9 @@ var (
 	z11Assign = regexp.MustCompile(`^\s*(\)\s*)?([-+|&^*/]|<<|>>)?=[^=]`)
 )
 
-// Zero11 is phase 11's check: the REFUSAL, `E37: No write since last change`,
-// which has had no remedy to offer since phase 6 took every `:write`.
-func Zero11(w io.Writer, args []string) error {
+// Whim94 is phase 94's check: the REFUSAL, `E37: No write since last change`,
+// which has had no remedy to offer since phase 89 took every `:write`.
+func Whim94(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim94 <work-dir> <state-dir>")
 	}
@@ -147,7 +147,7 @@ func Zero11(w io.Writer, args []string) error {
 			orNothing(woNew), orNothing(woOld)))
 	}
 	if strings.Contains(newT, "No write since last change") {
-		fail = append(fail, "E37 or E162 survives, and this phase removes the refusal that said them -- phases 6 to 10 all assert the opposite, which is why none of them can share a stage with this one")
+		fail = append(fail, "E37 or E162 survives, and this phase removes the refusal that said them -- phases 89 to 93 all assert the opposite, which is why none of them can share a stage with this one")
 	}
 	if !strings.Contains(oldT, "No write since last change") {
 		fail = append(fail, "the input did not refuse, so this phase is being checked against a file it was not written for")
@@ -184,7 +184,7 @@ func Zero11(w io.Writer, args []string) error {
 		zet = newT[a:z]
 	}
 	if strings.Count(zet, `do_cmdline_cmd((char_u *)"q!")`) != 2 {
-		fail = append(fail, "nv_Zet does not run `q!` for both ZZ and ZQ: it has since phase 6 and rewriting either string would move a record phase 6 declared")
+		fail = append(fail, "nv_Zet does not run `q!` for both ZZ and ZQ: it has since phase 89 and rewriting either string would move a record phase 89 declared")
 	}
 	rows := z6RowRe.FindAllString(newT, -1)
 	got, errN := harness.CommandNamesIn(src, "whim-vim.c")
@@ -203,7 +203,7 @@ func Zero11(w io.Writer, args []string) error {
 		fail = append(fail, "the static_assert on the row count went, and it is what catches an enumerator removed without its row")
 	}
 	if !z7QRow.MatchString(newT) {
-		fail = append(fail, "the 'Q' row is no longer nv_error's, and phase 4 put it there")
+		fail = append(fail, "the 'Q' row is no longer nv_error's, and phase 87 put it there")
 	}
 	for _, p := range []struct{ opt, v string }{{"'undoreload'", "p_ur"}, {"'readonly'", "p_ro"}} {
 		if !strings.Contains(newT, "(char_u *)&"+p.v+",") {
@@ -372,7 +372,7 @@ func z11Enums(r *rep, oldTxt, newTxt string) error {
 		}
 		return harness.ErrReported
 	}
-	r.say("enumerators %d -> %d: the four CCGD_, the two DOBUF_, SHM_FILEINFO and the five WEE_ go as whole anonymous definitions, NOT ONE SURVIVOR RENUMBERED and none arrived -- the opposite of phase 10, where 85 moved",
+	r.say("enumerators %d -> %d: the four CCGD_, the two DOBUF_, SHM_FILEINFO and the five WEE_ go as whole anonymous definitions, NOT ONE SURVIVOR RENUMBERED and none arrived -- the opposite of phase 93, where 85 moved",
 		len(o), len(n))
 	return nil
 }

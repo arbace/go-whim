@@ -1,12 +1,12 @@
 #!/bin/sh
-# Whim phase 116 (zero phase 33) -- the terminal table is asked with `+set term={name}`.
-#                  See ZERO-GOAL.md, ZERO-PLAN.md 4c.
+# Whim phase 116 -- the terminal table is asked with `+set term={name}`.
+#                  See WHIM-GOAL.md, WHIM-PLAN.md II.4c.
 #
 # Usage: pipes/whim116.sh <work-dir>      (run from the repository root)
 #
-# NO SOURCE CHANGE AT ALL: r33's whim-vim.c is its input's, byte for byte, and this
+# NO SOURCE CHANGE AT ALL: q116's whim-vim.c is its input's, byte for byte, and this
 # phase asserts it first and last.  What changes is one fifth of how every later
-# phase is measured.  This is zero phase 3's shape exactly -- the other phase that
+# phase is measured.  This is phase 86's shape exactly -- the other phase that
 # changes no source and replaces an instrument -- and it is here for the same reason:
 # a harness that cannot see a phase must be fixed BEFORE the phase, never after.
 #
@@ -28,17 +28,17 @@
 #
 # WHAT THE NEW QUESTION IS.  `+set term={name}`, which reaches `did_set_term()`
 # rather than `termcapinit()`'s compiled default, and which is `+{command}` -- the
-# one facility ZERO-PLAN.md decision 8 promises to survive every phase.  It is NOT
+# one facility WHIM-PLAN.md II decision 8 promises to survive every phase.  It is NOT
 # `-T {term}`: measured, a `-T` harness records nothing but `(none)` against a binary
 # with no `-T`, which is precisely the failure the tool's own docstring exists to
 # prevent, and `-T` is being abandoned.  `termcheck` is imported and
 # untouched -- it is named by tools/whimdelta.sh and tools/verify.sh and its bytes
-# are in every whim stage's key (ZERO-GOAL.md rule 9).
+# are in every whim stage's key (WHIM-GOAL.md core rule 9).
 #
 # WHY RE-RECORDING THE BASELINES IS LEGITIMATE, which is the delicate part.
 # CLAUDE.md's rule is "never regenerate it from the current binary, which would make
 # the comparison self-fulfilling".  The mistake it names is a pipeline re-recording
-# from its OWN OUTPUT.  Zero phase 0 does the opposite and pipes/whim83.sh enforces
+# from its OWN OUTPUT.  Phase 83 does the opposite and pipes/whim83.sh enforces
 # it: the baselines come from `whim-vim.c`, the pipeline's immutable input, built
 # with WHIM's compile line, recorded three times and required identical.  Nothing
 # zero produces is on the recording side.  The same input, the same compile line,
@@ -83,7 +83,7 @@
 #      when the same names are asked the old way.  A corpus that cannot fail is not
 #      evidence, and that pair is the whole of this phase in one measurement;
 #   7. the declared delta holds -- NOTHING, and nothing new: tools/zerodelta.sh
-#      --phase 33 against the re-recorded .reference/zero-baselines.
+#      --phase 116 against the re-recorded .reference/zero-baselines.
 
 # THE BODY IS GO: internal/check/whim116.go, run through tools/st.sh.
 # The tools it runs, named as PATHS so tools/implhash.sh hashes them into

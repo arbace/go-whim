@@ -6,11 +6,11 @@ import (
 	"regexp"
 )
 
-func init() { register("whim102", Zero19) }
+func init() { register("whim102", Whim102) }
 
 var whim102ExitCall = regexp.MustCompile(`(?m)^\s*exit\(`)
 
-// whim102Old is phase 18's five-line launcher; whim102New is the twenty-line one
+// whim102Old is phase 101's five-line launcher; whim102New is the twenty-line one
 // that lands on __builtin_setjmp and RETURNS the status.
 const whim102Old = "\n    int\nmain(int argc, char **argv)\n{\n" +
 	"    return vim_main(argc, argv);\n}\n"
@@ -35,18 +35,18 @@ const whim102New = "\nstatic void *host_jump[5];\n" +
 	"    return vim_main(argc, argv, host_exit);\n" +
 	"}\n"
 
-// Zero19 takes the core's last way of stopping the process: mch_exit()'s
+// Whim102 takes the core's last way of stopping the process: mch_exit()'s
 // `exit(r);` becomes a call through a pointer the launcher installs.
 //
 // __builtin_setjmp rather than <setjmp.h> because this phase adds no header,
 // and the directive count is asserted at the end to say so.
-func Zero19(text []byte, w io.Writer) ([]byte, error) {
+func Whim102(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"hostexit", w}
 	linesBefore := p.lines(text)
 	runsBefore := p.blankRuns(text)
 	var err error
 
-	// ---- 1. there is exactly one way out, and phase 17 is why ------------
+	// ---- 1. there is exactly one way out, and phase 100 is why ------------
 	// The counting trap first: `exit` is five words and one call.
 	for _, f := range []struct{ s, why string }{
 		{"                char *ms = _(\"Type  :qa!  and press <Enter> to abandon all " +
@@ -65,10 +65,10 @@ func Zero19(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.die("`exit` as a word has %d mentions, expected the 5 named above", k)
 	}
 	if p.mentions(text, "_exit") != 0 {
-		return nil, p.die("`_exit` is back, and phase 17 took it to zero")
+		return nil, p.die("`_exit` is back, and phase 100 took it to zero")
 	}
 	if k := len(whim102ExitCall.FindAll(text, -1)); k != 1 {
-		return nil, p.die("%d statements begin with `exit(`, expected exactly 1 -- phase 17 left "+
+		return nil, p.die("%d statements begin with `exit(`, expected exactly 1 -- phase 100 left "+
 			"mch_exit's `exit(r);` as the file's only one, which is what makes this phase "+
 			"ONE line in ONE function", k)
 	}
@@ -80,7 +80,7 @@ func Zero19(text []byte, w io.Writer) ([]byte, error) {
 	}
 	p.say("`exit` is FIVE mentions and exactly ONE call -- two string literals, a `goto " +
 		"exit;` and its `exit:` label in vim_regsub_both(), and mch_exit's `exit(r);`.  " +
-		"Phase 17 is what left one call site, and it is why this phase is one line in one " +
+		"Phase 100 is what left one call site, and it is why this phase is one line in one " +
 		"function")
 
 	// ---- 2. the pointer, beside the function that is its only reader -----
@@ -113,7 +113,7 @@ func Zero19(text []byte, w io.Writer) ([]byte, error) {
 		"    static int\nvim_main(int argc, char **argv)\n{\n\n",
 		"    static int\nvim_main(int argc, char **argv, void (*exit_fn)(int))\n{\n\n"+
 			"    vim_host_exit = exit_fn;\n\n",
-		"vim_main()'s head, which phase 18 made",
+		"vim_main()'s head, which phase 101 made",
 		"the pointer is installed by the caller and is not a global the host assigns, "+
 			"because \"nothing is global but main()\" is still the invariant")
 	if err != nil {
@@ -122,7 +122,7 @@ func Zero19(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- 5. the launcher -------------------------------------------------
 	if !bytes.HasSuffix(text, []byte(whim102Old)) {
-		return nil, p.die("whim-vim.c does not end with phase 18's five-line launcher, so this is not " +
+		return nil, p.die("whim-vim.c does not end with phase 101's five-line launcher, so this is not " +
 			"the file this phase was written against")
 	}
 	text = append(text[:len(text)-len(whim102Old)], []byte(whim102New)...)

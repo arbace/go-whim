@@ -1,12 +1,12 @@
 #!/bin/sh
-# Whim phase 115 (zero phase 32) -- the clock crosses the boundary.
-# See ZERO-PLAN.md 4c, ZERO-GOAL.md, pipes/whim109-edit.sh (which wrote the core's libc
+# Whim phase 115 -- the clock crosses the boundary.
+# See WHIM-PLAN.md II.4c, WHIM-GOAL.md, pipes/whim109-edit.sh (which wrote the core's libc
 # prototypes) and pipes/whim111-edit.sh (the scalar clock, whose musl_now_ms is this
 # phase's sibling).
 #
 # Usage: pipes/whim115-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
-# THE CORE READS TWO CLOCKS AND ONLY ONE OF THEM HAS CROSSED.  Phase 28 gave the
+# THE CORE READS TWO CLOCKS AND ONLY ONE OF THEM HAS CROSSED.  Phase 111 gave the
 # elapsed-milliseconds clock to the host as `long musl_now_ms(void)`.  The other one --
 # the wall clock, `time(2)`, which the editor stamps a history entry and an undo header
 # with -- is still the core's: `time_T vim_time(void) { return time(nullptr); }` at
@@ -23,12 +23,12 @@
 #              <time.h>, which is one of the eleven includes.
 #
 # THE PROTOTYPE IS LOAD-BEARING AND REMOVING IT WOULD SILENTLY REGRESS.  `typedef long
-# time_T;` is phase 26's, and it is correct ONLY because `long time(long *tp);` sits
+# time_T;` is phase 109's, and it is correct ONLY because `long time(long *tp);` sits
 # above <time.h>'s own declaration of the same function: gcc compares the two and says
-# `conflicting types for 'time'` if they disagree -- MEASURED by phase 26's `m1`
-# control, and measured again here.  Phase 26's sixteen static_asserts were a control in
+# `conflicting types for 'time'` if they disagree -- MEASURED by phase 109's `m1`
+# control, and measured again here.  Phase 109's sixteen static_asserts were a control in
 # ITS check and are NOT in the product (the twelve that survive below the includes are
-# phase 27's constants), so once the prototype goes there is nothing left comparing the
+# phase 110's constants), so once the prototype goes there is nothing left comparing the
 # core's width to the host's, and `host_time()` returning a narrower type than `time_t`
 # would truncate in silence on a target where the two differ.  So the prototype is
 # REPLACED, not merely deleted:
@@ -70,7 +70,7 @@ state=${2:?usage: whim115-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Whim phase 87 (zero phase 4) -- no streaming Ex.  See ZERO-GOAL.md.
+# Whim phase 87 -- no streaming Ex.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim87-edit.sh <work-dir> <state-dir>      (run from the repository root)
 #
@@ -71,7 +71,7 @@
 # `BO_EX` -- each with an explicit value, so nothing renumbers), and
 # `mch_input_isatty()`, with the fifth of the five `isatty()` calls.
 #
-# `check_tty()` IS PHASE 2'S AS MUCH AS THIS ONE'S.  Phase 2 took its warning branch
+# `check_tty()` IS PHASE 2'S AS MUCH AS THIS ONE'S.  Phase 85 took its warning branch
 # and kept the `if (exmode_active)` one deliberately, saying Ex mode was a later
 # phase's.  This is that phase, and nothing is left -- which is why `isatty` goes
 # from five calls to four here and not there.  It is deleted by name rather than
@@ -88,7 +88,7 @@ state=${2:?usage: whim87-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

@@ -14,7 +14,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim86", Zero3) }
+func init() { register("whim86", Whim86) }
 
 func sha256File(p string) string {
 	b, _ := os.ReadFile(p)
@@ -70,8 +70,8 @@ func dirCount(p string) int {
 	return len(e)
 }
 
-// Zero3 is zero phase 3, whole: the instrument becomes the screen.
-func Zero3(w io.Writer, args []string) error {
+// Whim86 is phase 86, whole: the instrument becomes the screen.
+func Whim86(w io.Writer, args []string) error {
 	if len(args) < 1 {
 		return fmt.Errorf("usage: check whim86 <work-dir>")
 	}

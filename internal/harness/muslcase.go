@@ -16,7 +16,7 @@ import (
 // zero-vim.c can carry itself.
 //
 // zero-vim.c called towupper()/towlower() from utf_toupper()/utf_tolower(),
-// and zero phase 15 vendors them.  musl implements both with a two-level
+// and phase 98 vendors them.  musl implements both with a two-level
 // base-6 packed table and forty lines of bit arithmetic, which is exactly what
 // this repository's "obvious, simple, idiomatic C" rule is not -- but the SAME
 // MAPPING fits the shape zero-vim.c already has: convertStruct rows of

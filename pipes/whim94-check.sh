@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 94 (zero phase 11), the check -- `:q` quits, and nothing refuses any more.
-# See pipes/whim94-edit.sh, and ZERO-GOAL.md.
+# Whim phase 94, the check -- `:q` quits, and nothing refuses any more.
+# See pipes/whim94-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim94-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -19,9 +19,9 @@
 #    the buffer that refused", and after whim removed the buffer list and the window
 #    commands that tail was the last caller of the whole switch-buffer/switch-window
 #    island.  The list below is a RECORDING of what the sweep did, which is the only
-#    place a list of removed names belongs (ZERO-GOAL.md rule 1), and the COUNT is
+#    place a list of removed names belongs (WHIM-GOAL.md core rule 1), and the COUNT is
 #    asserted beside it -- 1,742 definitions to 1,726 -- because a check written
-#    from ZERO-PLAN.md's three names would pass while the island silently went.
+#    from WHIM-PLAN.md part II's three names would pass while the island silently went.
 #
 #    THE TRAPS, ALL MEASURED, that make a copied loop wrong here:
 #      * `bufIsChanged` GOES 10 -> 7 AND MUST NOT GO TO 0, and `curbufIsChanged`
@@ -32,7 +32,7 @@
 #        three return early ABOVE the anchor, so `:q` can still decline -- just not
 #        for the reason this phase removed.
 #      * `open_buffer` goes 5 -> 4, `buf_spname` 5 -> 4 and `exiting` 17 -> 13.
-#        Phase 9's brief pinned `open_buffer` at 5 and phase 10's check at 5; both
+#        Phase 92's brief pinned `open_buffer` at 5 and phase 93's check at 5; both
 #        were right there and would fail here, `enter_buffer()` having been one of
 #        its four callers.
 #      * `p_wh` LOOKS WRITE-ONLY AND IS NOT.  It goes 4 -> 2 -- the two reads in
@@ -45,7 +45,7 @@
 #
 # 2. NOTHING IS LEFT WRITE-ONLY, AND IT IS COMPUTED ON BOTH TEXTS.  A file-scope
 #    static that is assigned and never read draws no warning, deadsweep.py acts on
-#    warnings, and nothing else here looks -- phase 10 had to take `readonlymode` by
+#    warnings, and nothing else here looks -- phase 93 had to take `readonlymode` by
 #    hand for exactly that shape.  So the scan runs on the source this phase was
 #    handed as well as on the one it made, and the two answers must be the SAME SET
 #    and must be exactly `vim_ignored`, upstream's sink for a return value that is
@@ -65,7 +65,7 @@
 # 4. THE ENUMERATORS, DUMPED EITHER SIDE.  Twelve go -- the four `CCGD_`, the two
 #    `DOBUF_`, `SHM_FILEINFO` and the five `WEE_` -- and NOTHING RENUMBERS, because
 #    typereach.py takes whole anonymous definitions and a whole definition leaving
-#    takes no survivor's value with it.  That is the opposite of phase 10, where 85
+#    takes no survivor's value with it.  That is the opposite of phase 93, where 85
 #    moved, and it is worth the four seconds either side to say so rather than
 #    assume it.
 #

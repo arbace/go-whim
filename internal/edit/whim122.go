@@ -12,7 +12,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-func init() { register("whim122", Zero39) }
+func init() { register("whim122", Whim122) }
 
 var (
 	z39SwitchC   = regexp.MustCompile(`\bswitch \(c\)`)
@@ -57,11 +57,11 @@ func z39Mentions(text []byte, name string) int {
 		FindAll(cutil.Blank(text), -1))
 }
 
-// Zero39 removes `-T {term}`: command_line_scan() becomes one `if (argv[0][0]
+// Whim122 removes `-T {term}`: command_line_scan() becomes one `if (argv[0][0]
 // == '+')` and one `else` answering mainerr(ME_UNKNOWN_OPTION), with two
 // main_errors[] rows and their enumerators, mparm_T.term, and the no-screen
 // arm of set_termname() that only -T could reach.
-func Zero39(text []byte, w io.Writer) ([]byte, error) {
+func Whim122(text []byte, w io.Writer) ([]byte, error) {
 	p := ph{"cmdline", w}
 
 	span := func(t []byte, name string) (int, int, error) {
@@ -95,7 +95,7 @@ func Zero39(text []byte, w io.Writer) ([]byte, error) {
 		sw := z39SwitchC.FindAllIndex(s, -1)
 		if len(sw) != 2 {
 			return nil, p.die("command_line_scan() holds %d `switch (c)`, and this phase is written "+
-				"against the two zero phase 5 left -- the letter and its argument", len(sw))
+				"against the two phase 88 left -- the letter and its argument", len(sw))
 		}
 		o := sw[0][0] + bytes.IndexByte(b[sw[0][0]:], '{')
 		c := cutil.Match(b, o)
@@ -609,7 +609,7 @@ func Zero39(text []byte, w io.Writer) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	p.sayf("report_term_error() stops promising %s: phase 38 moved the message and the "+
+	p.sayf("report_term_error() stops promising %s: phase 121 moved the message and the "+
 		"fallback together because nothing in the build checks that a message tells the "+
 		"truth, and this is that rule with no fallback left to name", cutil.PyRepr(promised))
 

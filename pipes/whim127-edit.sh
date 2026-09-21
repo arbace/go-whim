@@ -1,5 +1,5 @@
 #!/bin/sh
-# Whim phase 127 (zero phase 44) -- de-page the leaf.  See ZERO-GOAL.md.
+# Whim phase 127 -- de-page the leaf.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim127-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
@@ -20,8 +20,8 @@
 # bytes; replacing a line stores a pointer.
 #
 # WHY IT IS CHEAP NOW AND WAS NOT BEFORE.  The arena exists for exactly one reason,
-# to avoid a malloc per line, and ZERO-GOAL.md's charter has retired that reason: "A
-# GARBAGE COLLECTOR IS ASSUMED FROM HERE ON".  Zero phase 41 made host_alloc a bump
+# to avoid a malloc per line, and WHIM-GOAL.md's charter has retired that reason: "A
+# GARBAGE COLLECTOR IS ASSUMED FROM HERE ON".  Phase 124 made host_alloc a bump
 # allocator and host_free a return, so a per-line allocation costs a pointer bump and
 # freeing costs nothing.  This phase spends that.
 #
@@ -30,7 +30,7 @@
 # asks 200,438,864, +0.7%.  A leaf page per 64 lines costs about what a leaf page per
 # 78 lines and its arena cost, and the per-line text is what the arena used to hold
 # inside the page.  With nothing freed that figure is a session's TRAFFIC and not its
-# live data, which is why it is two hundred megabytes and why zero phase 41's arena
+# live data, which is why it is two hundred megabytes and why phase 124's arena
 # is a gigabyte -- a number that phase and this one arrived at from opposite ends
 # with instruments written apart, agreeing to the byte.
 #
@@ -67,14 +67,14 @@
 # DB_LINE_MAX of 32, 64, 128 and even 1 all record the 102 screen cases and the 16
 # memline cases byte for byte, so no argument from "the recording agrees" is worth
 # anything here.  What it does decide is how much of the tree the corpus REACHES, and
-# that is measured, with zero phase 40's own markers, ON THIS PHASE'S ACTUAL INPUT:
+# that is measured, with phase 123's own markers, ON THIS PHASE'S ACTUAL INPUT:
 #
 #     DB_LINE_MAX   SPLITDATA  SPLITPTR  SPLITROOT  IDXNZ  DEEP
 #         32           16         5          5        16     5
 #         64           16         1          1        16     1
 #        128           16         0          0        16     0
 #        255           14         0          0        14     0
-#     r43, the input  16         1          1        16     1
+#     q126, the input  16         1          1        16     1
 #
 # 64 IS TAKEN BECAUSE IT REACHES EXACTLY WHAT THE INPUT REACHES, and 255 -- the value
 # that would fill the page -- is the one that must not be chosen: it reaches no
@@ -82,11 +82,11 @@
 # nothing, would blind the instrument on the very phase that rewrites the tree.
 #
 # THE MARGIN IS ONE CASE AND IT HAS BEEN NARROWING UNDER THIS PHASE, which is worth
-# writing down rather than discovering.  The same table taken on r40 read 6/5/1/0 in
+# writing down rather than discovering.  The same table taken on q123 read 6/5/1/0 in
 # the SPLITROOT column, so 128 was a live choice then and reaches ZERO now: zero
-# phase 42 took `pe_old_lnum` out of PTR_EN and phase 43 took the block number and the
+# phase 125 took `pe_old_lnum` out of PTR_EN and phase 126 took the block number and the
 # page count, and pb_count_max has gone 127 -> 170 -> 255 while the corpus's buffer
-# sizes have not moved.  Measured directly on r43: mem_deep_jumps makes 321 data
+# sizes have not moved.  Measured directly on q126: mem_deep_jumps makes 321 data
 # blocks on the input and 391 here, against a pb_count_max of 255, and no other case
 # reaches 255 on either side.  So a PTR_EN of 8 bytes would put pb_count_max at 511
 # and take even 64 to zero -- at which point the corpus needs resizing or DB_LINE_MAX
@@ -97,13 +97,13 @@
 # sizeof(DATA_BL) is 1,040 bytes of a 4,096-byte page, which the edit asserts with a
 # static_assert rather than leaving to be discovered.  Allocating a block at its own
 # size means giving memfile a byte size where it has a page count, which is block
-# NUMBERING as well as block size -- the machinery zero phase 43 has just rewritten --
+# NUMBERING as well as block size -- the machinery phase 126 has just rewritten --
 # and a phase that replaced the leaf's representation and changed how blocks are
 # allocated in one act would have two claims and one set of evidence.  It is named
 # here so it is not lost: it would take the leaf from 112 bytes a line to 64, and it
 # would make an off-by-one in the capacity bound VISIBLE, which today it is not (the
 # check measures that and reports it).  Two findings of the same neighbourhood go with
-# it, and phase 43 has already taken one of them from the other side: `pe_page_count`
+# it, and phase 126 has already taken one of them from the other side: `pe_page_count`
 # and `bh_page_count` were constant 1 after this phase and are gone before it.
 #
 # NOTHING IS FREED, AND THAT IS THE LIFETIME RULE.  A record owns its text and never
@@ -118,14 +118,14 @@
 # every assignment to `dl_text` in the output, and probes it with a build that
 # poisons the text a record stops owning.
 #
-# HOW THE EDIT IS WRITTEN, because phases 42 and 43 rewrite the same functions.
+# HOW THE EDIT IS WRITTEN, because phases 125 and 126 rewrite the same functions.
 # Nothing here is anchored to a line this phase does not itself replace: every region
 # is found by the function it is in and by its own first and last line, every call
 # whose arity changes is rewritten by DROPPING ITS LAST ARGUMENT rather than by
 # matching the argument, every `ml_flags |=` statement inside a replaced region is
 # carried forward as it was found, and every local that the rewrite stops using is
 # removed by COMPUTING that its name is left mentioned once.  A phase that wrote
-# `ML_LOCKED_DIRTY` out would break on phase 42, which removes it.
+# `ML_LOCKED_DIRTY` out would break on phase 125, which removes it.
 set -eu
 
 work=${1:?usage: whim127-edit.sh <work-dir> <state-dir>}
@@ -133,7 +133,7 @@ state=${2:?usage: whim127-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

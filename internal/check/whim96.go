@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim96", Zero13) }
+func init() { register("whim96", Whim96) }
 
 const z13Mark = "FILESTAR-ENTERED"
 
@@ -42,8 +42,8 @@ var z13Absent = []string{"open", "creat", "openat", "fopen", "fdopen", "opendir"
 	"access", "fcntl", "getcwd", "strerror", "fclose", "getc", "putc",
 	"fsync", "mkdir", "rename", "unlink", "readlink"}
 
-// Zero13 is phase 13's check: no FILE * that is never opened.
-func Zero13(w io.Writer, args []string) error {
+// Whim96 is phase 96's check: no FILE * that is never opened.
+func Whim96(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim96 <work-dir> <state-dir>")
 	}
@@ -174,7 +174,7 @@ func Zero13(w io.Writer, args []string) error {
 	if i := strings.Index(newT, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newT[i:], "\n};")
 		if len(z12RowRe.FindAllString(newT[i:i+j], -1)) != 108 {
-			fail = append(fail, "options[] is not the 108 rows phase 12 left")
+			fail = append(fail, "options[] is not the 108 rows phase 95 left")
 		}
 	}
 	for _, p := range []struct {
@@ -198,7 +198,7 @@ func Zero13(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	r.say("kept: may_sync_undo 3 and is_safe_now 3, both SURVIVING one conjunct shorter and still doing their work, free_typebuf 4 (closescript was its fifth mention), ui_write 3 with a TWO-parameter signature and mch_write() as its whole body")
-	r.cont("fputs, fputc, fwrite and putchar are named nowhere in the source and are gcc's own -- ZERO-PLAN.md row 12 gives fputs to this phase and it does not go")
+	r.cont("fputs, fputc, fwrite and putchar are named nowhere in the source and are gcc's own -- WHIM-PLAN.md II row 12 gives fputs to this phase and it does not go")
 	r.cont("and nothing that could open or name anything is called: open, creat, openat, fopen, fdopen, opendir, stat, access, fcntl, getcwd, strerror, fclose, getc, putc and fsync are absent from the source")
 
 	// --- 3. the compile, the linkage and the libc surface --------------------

@@ -5,7 +5,7 @@ import (
 	"strconv"
 )
 
-// The two facts about the memline corpus that zero phase 40 sizes against the
+// The two facts about the memline corpus that phase 123 sizes against the
 // editor's block arithmetic.  tools/zmemline.py states them as LINE_BYTES and
 // SIZES; the table here was transcribed flat, so both are READ BACK out of it
 // rather than written a second time -- a number restated beside a table is a

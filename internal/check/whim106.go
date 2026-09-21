@@ -14,7 +14,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim106", Zero23) }
+func init() { register("whim106", Whim106) }
 
 // z23Spans is the heredoc's literal_spans(): every string and character
 // literal, escapes skipped, refusing one a newline or the end of the text cuts.
@@ -77,8 +77,8 @@ func z23CmpL(a, b []byte) int {
 	return d
 }
 
-// Zero23 is phase 23's check: `nullptr` and `usize`.
-func Zero23(w io.Writer, args []string) error {
+// Whim106 is phase 106's check: `nullptr` and `usize`.
+func Whim106(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim106 <work-dir> <state-dir>")
 	}
@@ -201,7 +201,7 @@ func Zero23(w io.Writer, args []string) error {
 	const typedef = "typedef typeof(sizeof(0)) usize;"
 	L := strings.Split(newC, "\n")
 	if strings.Count(newC, typedef+"\n") != 1 || len(L) < 13 || L[12] != typedef {
-		fail = append(fail, fmt.Sprintf("`%s` is not on line 13 of the output exactly once -- it belongs directly below the includes, so that when phase 26 moves them to the bottom it is the first line of the core", typedef))
+		fail = append(fail, fmt.Sprintf("`%s` is not on line 13 of the output exactly once -- it belongs directly below the includes, so that when phase 109 moves them to the bottom it is the first line of the core", typedef))
 	}
 	intro := regexp.MustCompile(`(?m)^[^\n]*\btypedef\b[^\n]*\busize\b[^\n]*$`).FindAllString(newC, -1)
 	if len(intro) != 1 || intro[0] != typedef {
@@ -224,12 +224,12 @@ func Zero23(w io.Writer, args []string) error {
 	rows := z6RowRe.FindAllString(newC, -1)
 	got, _ := harness.CommandNamesIn([]byte(newC), "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
-		fail = append(fail, "cmdnames[] is not the 98 rows phase 10 left -- this phase touches no Ex command")
+		fail = append(fail, "cmdnames[] is not the 98 rows phase 93 left -- this phase touches no Ex command")
 	}
 	if i := strings.Index(newC, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newC[i:], "\n};")
 		if m := len(z12RowRe.FindAllString(newC[i:i+j], -1)); m != 107 {
-			fail = append(fail, fmt.Sprintf("options[] has %d rows, expected the 107 phase 20 left -- this phase removes no option", m))
+			fail = append(fail, fmt.Sprintf("options[] has %d rows, expected the 107 phase 103 left -- this phase removes no option", m))
 		}
 	}
 	var d []string
@@ -245,7 +245,7 @@ func Zero23(w io.Writer, args []string) error {
 		}
 	}
 	if !dirOK {
-		fail = append(fail, "the output does not have exactly the eleven `#include` directives phase 21 left, on its first eleven lines.  MOVING THEM IS PHASE 26")
+		fail = append(fail, "the output does not have exactly the eleven `#include` directives phase 104 left, on its first eleven lines.  MOVING THEM IS PHASE 26")
 	}
 	for k := 1; k < len(L); k++ {
 		if L[k] == "" && L[k-1] == "" {
@@ -261,7 +261,7 @@ func Zero23(w io.Writer, args []string) error {
 	}
 	r.say("`NULL` %d -> %d and `nullptr` 0 -> %d; `size_t` %d -> 0 and `usize` 0 -> %d, the extra one being its own typedef.  Every count is computed FROM THE INPUT, so this is a check on the phase and not on whatever it was handed", inNull, litNull, inNull-litNull, inSize, inSize+1)
 	r.cont("THE THREE LITERALS ARE UNCHANGED, and they are the whole of what a line-wise sed would have got wrong: %s", strings.Join(want, ", "))
-	r.cont("%d `(void *)NULL` became plain `nullptr` -- the cast existed for the variadic hazard of an untyped null constant, and there is not one `(void *)nullptr` left; eleven vendored signatures took `usize` with everything else, and they have been the core's own since phases 14 and 15, so no contract with anybody moved", nCast)
+	r.cont("%d `(void *)NULL` became plain `nullptr` -- the cast existed for the variadic hazard of an untyped null constant, and there is not one `(void *)nullptr` left; eleven vendored signatures took `usize` with everything else, and they have been the core's own since phases 97 and 98, so no contract with anybody moved", nCast)
 	r.cont("eleven #includes still on the first eleven lines -- MOVING THEM IS PHASE 26 -- cmdnames[] 98, options[] 107, %d -> %d lines and no run of two blank lines", before, len(L)-1)
 
 	// --- 2. C23, and that `usize` IS `size_t` --------------------------------
@@ -371,7 +371,7 @@ func Zero23(w io.Writer, args []string) error {
 		}
 		return harness.ErrReported
 	}
-	r.say("THE BINARY IS BYTE-IDENTICAL, %d bytes either side -- tier 1 of CLAUDE.md's verification table, and the whole of this phase's evidence.  A byte-identical binary subsumes every screen case, every Ex-command row, every command line and every pty scenario at once, because the program that would be run is the same program; tools/zerodelta.sh --phase 23 runs next and corroborates rather than proves", newSize)
+	r.say("THE BINARY IS BYTE-IDENTICAL, %d bytes either side -- tier 1 of CLAUDE.md's verification table, and the whole of this phase's evidence.  A byte-identical binary subsumes every screen case, every Ex-command row, every command line and every pty scenario at once, because the program that would be run is the same program; tools/zerodelta.sh --phase 106 runs next and corroborates rather than proves", newSize)
 
 	// --- 5. the controls -----------------------------------------------------
 	for _, c := range []string{"c1", "c2"} {
@@ -422,6 +422,6 @@ func Zero23(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	r.say("AND IT CAN FAIL: this phase's own output with the literal exclusion removed -- the plain `sed 's/\\bNULL\\b/nullptr/g'`, which is the one mistake this phase can make -- differs from the input's binary in %d bytes, %d of them in .rodata, and `strings` finds '[nullptr]' where the editor's data said '[NULL]'.  That is CLAUDE.md's rule that the check for DATA is the strings, arriving on a phase nobody expected it on", diffBytes, rodataBytes)
-	r.say("AND ONE CONTROL MOVES NOTHING, WHICH IS REPORTED RATHER THAN HIDDEN: one vendored `usize` reverted to `size_t` is byte-identical, because the #includes are still at the TOP and `size_t` is still declared above every line of the file.  The rename is not load-bearing YET; at phase 26, which moves them, the same control is three hard errors")
+	r.say("AND ONE CONTROL MOVES NOTHING, WHICH IS REPORTED RATHER THAN HIDDEN: one vendored `usize` reverted to `size_t` is byte-identical, because the #includes are still at the TOP and `size_t` is still declared above every line of the file.  The rename is not load-bearing YET; at phase 109, which moves them, the same control is three hard errors")
 	return nil
 }

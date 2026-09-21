@@ -1,10 +1,10 @@
 #!/bin/sh
-# Whim phase 119 (zero phase 36) -- the core's libc prototype block empties.  ZERO-PLAN.md 4c, ZERO-GOAL.md.
+# Whim phase 119 -- the core's libc prototype block empties.  WHIM-PLAN.md II.4c, WHIM-GOAL.md.
 #
 # Usage: pipes/whim119-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
 # TWO LINES ARE LEFT IN THE CORE'S BLOCK OF ORDINARY DECLARATIONS AND THIS PHASE TAKES
-# BOTH.  Phase 35 took `malloc`, `free` and `write`, the three the editor uses so
+# BOTH.  Phase 118 took `malloc`, `free` and `write`, the three the editor uses so
 # constantly that nobody had looked at them, and wrote its own programs so that the phase
 # which empties the block would need no further edit to the machinery:
 #
@@ -21,7 +21,7 @@
 #            whim-vim reads it back, because the swap file it belonged to is a disk
 #            format this editor has not had since the filesystem phases took every way
 #            to name a file.  So the write goes, mch_get_pid() goes with it, and `getpid`
-#            leaves the core without anybody calling a host.  Zero phase 20 saw this
+#            leaves the core without anybody calling a host.  Phase 103 saw this
 #            coming and said so -- "`b0_pid` is written and never read, so one line frees
 #            it whenever block zero is somebody's phase".  This is that phase.
 #   kill     NEEDS A HOST CALL.  Its one core site is in vim_handle_signal():
@@ -36,11 +36,11 @@
 #            can no longer ask for its own process id must not be handed one.  What the
 #            core says is "raise this signal on me"; WHICH process that is, is the host's
 #            idea, exactly as fd 1 is the host's idea of where the screen is
-#            (host_write, phase 35) and fd 0 the host's idea of where the keyboard is
-#            (musl_read_input, phase 20).
+#            (host_write, phase 118) and fd 0 the host's idea of where the keyboard is
+#            (musl_read_input, phase 103).
 #
-# THE DEFINITION GOES INSIDE THE HOST BLOCK AND NOT BELOW IT, which is phase 26's lesson
-# about musl_gettimeofday and phase 28's about musl_now_ms.  `zhostonly` reads the
+# THE DEFINITION GOES INSIDE THE HOST BLOCK AND NOT BELOW IT, which is phase 109's lesson
+# about musl_gettimeofday and phase 111's about musl_now_ms.  `zhostonly` reads the
 # host region as the lines from `host_winch_pending` to musl_suspend's last brace, and
 # host_raise's body says `kill` and `getpid`; a definition below musl_suspend would put
 # two host words outside the region and the tool would refuse.  So it is written
@@ -51,12 +51,12 @@
 # because `_` is a word character -- the same trick that lets `musl_gettimeofday` sit in
 # the host block while the bare `gettimeofday` is a word the core may not say.  And
 # host_raise's body calls `kill(getpid(), sig)` rather than libc's `raise()`: `raise` has
-# not been an undefined symbol of this file since phase 20, and a wrapper that reached
+# not been an undefined symbol of this file since phase 103, and a wrapper that reached
 # for it would ADD a libc symbol in a phase whose whole subject is the core's last two.
 #
 # WHAT THIS PHASE IS FOR.  When the block is empty the core names no libc function at
 # all.  The edit does not assert that -- it finds the block, takes the two lines it owns
-# out of it, and prints what is left, exactly as phase 35's does; the check states the
+# out of it, and prints what is left, exactly as phase 118's does; the check states the
 # claim as a measurement of the OUTPUT, and computes it from `make editor.c`'s cut rather
 # than from the block, because those are two different assertions and only the first is
 # the claim.  A bare declaration is invisible to the cut -- gcc warns `used but never
@@ -64,7 +64,7 @@
 # check measures is `nm -u` of an object of the CUT ALONE, which is the set of names the
 # core needs from outside itself.
 #
-# THE FOLD THAT IS NOT THERE, SURVEYED AND NOT TAKEN.  Phase 17 removed deathtrap()'s
+# THE FOLD THAT IS NOT THERE, SURVEYED AND NOT TAKEN.  Phase 100 removed deathtrap()'s
 # `entered >= 3` ladder as code no build of whim-vim could reach, which leaves `entered`
 # able to reach 2 and no further, and the question was put whether that makes anything
 # around the `if (entered == 2)` arm foldable.  Measured, it does not: `entered` has
@@ -86,7 +86,7 @@ state=${2:?usage: whim119-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

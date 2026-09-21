@@ -17,7 +17,7 @@ row() {
     [ -f "$src" ] || { printf '  %-10s %s\n' "$name" "absent"; return; }
     # BUILD WHEN THE BINARY IS MISSING **OR OLDER THAN THE SOURCE**.  Testing only
     # for absence reports the bytes of whatever was lying about: measured, after
-    # zero phases 14-16 this printed 799,816 for a source that builds to 805,544,
+    # phases 97-99 this printed 799,816 for a source that builds to 805,544,
     # because the binary on disk predated them by eight hours.  The lines and the
     # symbols were right -- both are recomputed from the source below -- so the one
     # stale column was the plausible-looking one.  That is CLAUDE.md's "a clean

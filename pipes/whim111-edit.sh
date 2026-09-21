@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 111 (zero phase 28) -- the scalar clock.
-# See ZERO-PLAN.md 4c, ZERO-GOAL.md, and pipes/whim109-edit.sh, which created the thing
+# Whim phase 111 -- the scalar clock.
+# See WHIM-PLAN.md II.4c, WHIM-GOAL.md, and pipes/whim109-edit.sh, which created the thing
 # this phase retires.
 #
 # Usage: pipes/whim111-edit.sh <work-dir> <state-dir>     (run from the repository root)
@@ -12,22 +12,22 @@
 # and NOT ONE of the four ever reads a field, prints a reading or compares two stamps
 # for equality.  So the core never needs the LAYOUT of a clock, only a scalar.
 #
-# WHAT GOES, all of it phase 26's:
+# WHAT GOES, all of it phase 109's:
 #
 #   elapsed_T       8 mentions.  A core-owned TAGLESS `struct { long tv_sec; long
-#                   tv_usec; }` -- phase 26's mirror of <sys/time.h>'s struct timeval,
+#                   tv_usec; }` -- phase 109's mirror of <sys/time.h>'s struct timeval,
 #                   whose layout that phase had to static_assert equal.  The core
 #                   stops modelling a host structure: the four objects become `long`.
 #   elapsed()       6 mentions.  Its entire body is one clock read and a subtraction to
 #                   milliseconds; with a scalar clock the subtraction is the caller's
 #                   one operator and the function has nothing left to do.
 #   musl_gettimeofday(long *, long *)
-#                   7 mentions.  The host call phase 26 introduced, an out-parameter
+#                   7 mentions.  The host call phase 109 introduced, an out-parameter
 #                   pair because a struct could not cross.  It becomes
 #                   `long musl_now_ms(void)`: a value, not two stores.
 #
 # WHAT IT EARNS.  Read all thirteen core -> host signatures and the sentence is true:
-# every one takes scalars and byte buffers only.  IT WAS ALREADY TRUE AT r27 -- phase 26
+# every one takes scalars and byte buffers only.  IT WAS ALREADY TRUE AT q110 -- phase 109
 # chose `long *, long *` precisely so that `struct timeval` would not cross -- so this
 # phase does not earn THAT sentence and the check does not claim it.  What it earns is
 # the narrower one that was false until now: the core no longer DECLARES a type shaped
@@ -79,7 +79,7 @@ state=${2:?usage: whim111-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"
@@ -91,6 +91,6 @@ tools/st.sh edit whim111 "$f"
 
 # An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 wait $pid_old || { echo "  clock        the input binary did not build with '$cflags' '$ldflags'"; exit 1; }
-echo "  clock        the input is $state/old, $(stat -c%s "$state/old") bytes, built with SOURCE_DATE_EPOCH=0 beside the source it came from -- EVERY substitution here changes code, so unlike phase 26 there is no tier 1 equality to fall back on and the recording answers for all of it"
+echo "  clock        the input is $state/old, $(stat -c%s "$state/old") bytes, built with SOURCE_DATE_EPOCH=0 beside the source it came from -- EVERY substitution here changes code, so unlike phase 109 there is no tier 1 equality to fall back on and the recording answers for all of it"
 
 # tools/phaserun.sh sweeps next, then runs pipes/whim111-check.sh.

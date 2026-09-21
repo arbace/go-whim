@@ -1,5 +1,5 @@
 #!/bin/sh
-# Whim phase 121 (zero phase 38) -- the eight terminal names go, leaving two.  See ZERO-GOAL.md.
+# Whim phase 121 -- the eight terminal names go, leaving two.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim121-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
@@ -96,7 +96,7 @@
 # unreachable and the sweep takes `report_term_error()` with it.
 #
 # THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own makefile
-# flags, as every zero edit since phase 2 does, and the source goes with it as
+# flags, as every zero edit since phase 85 does, and the source goes with it as
 # $state/old.c.  The check needs both: this phase's delta is `term-moved`, and a
 # table that moved is only evidence beside the table it moved from.
 set -eu
@@ -106,7 +106,7 @@ state=${2:?usage: whim121-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

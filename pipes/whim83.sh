@@ -1,7 +1,7 @@
 #!/bin/sh
-# Whim phase 83 (zero phase 0) -- where the core begins: take zero's compile line,
+# Whim phase 83 -- where the core begins: take zero's compile line,
 # prove the binary is absolutely static, and record what the editor does.
-# See ZERO-GOAL.md, whose phase N is phase 83+N here.
+# See WHIM-GOAL.md, whose phase N is phase 83+N here.
 #
 # Usage: pipes/whim83.sh <work-dir>       (run from the repository root)
 #
@@ -79,7 +79,7 @@ echo "  build        ok, $(stat -c%s "$bin") bytes: EXEC, no INTERP, no dynamic 
 # Three runs, and every run must be the same bytes -- a nondeterministic baseline
 # is worse than none (SLIM-GOAL.md).  A recording is tools/zrecord.sh's five parts:
 # the 102 keystroke cases, every Ex command typed at `:`, every command line the
-# parser may see, the pty scenarios and the terminal table.  ZERO PHASE 3 is where
+# parser may see, the pty scenarios and the terminal table.  PHASE 86 is where
 # the instrument became this; before it, the recording was the file-based
 # behaviour.py and exsweep.py, which an editor with no file to write cannot use.
 for r in 1 2 3; do
@@ -100,7 +100,7 @@ terms=$(grep -c '' "$tmp/run1/ref-term.txt")
 # no file in common, so a diff would print every line of both and say nothing.
 if [ -d "$base" ] && [ ! -d "$base/screen" ]; then
     echo "  baselines    $base is the old file-based recording (behaviour/, ref-exsweep.txt)."
-    echo "               Zero phase 3 replaced the instrument: a recording is now"
+    echo "               Phase 86 replaced the instrument: a recording is now"
     echo "               screen/, ref-excmds.txt, ref-argv.txt, ref-pty.txt and"
     echo "               ref-term.txt (tools/zrecord.sh).  Remove it once, by hand,"
     echo "               and this phase records the new one from whim-vim:"

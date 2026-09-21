@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 113 (zero phase 30) -- the message fold: msg_puts_printf() and the branch that reaches it.
-# See ZERO-PLAN.md 4c, ZERO-GOAL.md, and .claude/briefs/zero-last-two.md PART ONE.
+# Whim phase 113 -- the message fold: msg_puts_printf() and the branch that reaches it.
+# See WHIM-PLAN.md II.4c, WHIM-GOAL.md, and .claude/briefs/zero-last-two.md PART ONE.
 #
 # Usage: pipes/whim113-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
@@ -19,11 +19,11 @@
 # With it go `msg_puts_printf()` (75 lines), its prototype, and `vim_strlen_maxlen()`
 # and its prototype, which the sweep finds because that function held its only call.
 #
-# WHICH KIND OF DEAD THIS IS, AND IT IS NOT PHASE 9'S.  Phase 9 removed code that
+# WHICH KIND OF DEAD THIS IS, AND IT IS NOT PHASE 9'S.  Phase 92 removed code that
 # COULD NOT RUN; this removes code that CAN run and never does.  `msg_use_printf()`
 # returns TRUE 23 times in a single recording -- once per `mainerr` row of
 # ref-argv.txt -- so the predicate is alive; it is never TRUE at THIS call site.  That
-# is phase 12's kind, and phase 12's evidence is what is owed: an instrument at the
+# is phase 95's kind, and phase 95's evidence is what is owed: an instrument at the
 # site, a control that proves the instrument works, and probes that try hard to make
 # it fire.  pipes/whim113-check.sh has all three -- the input built twice with
 # `write(2, "PP-ENTERED\n", 11)`, first in `msg_puts_printf()` (0 of 106 records) and
@@ -33,8 +33,8 @@
 # WHY THE MESSAGE IS KEPT RATHER THAN DROPPED.  Deleting the arm's body outright is
 # five lines smaller and records identically, and it was REJECTED: a phase about
 # removing dead CODE must not quietly remove a CAPABILITY.  `host_message()` is
-# already the core's declared way to speak when there is no screen (phase 21 wrote it,
-# phase 25 made it a direct call), and `host_message(msg, len, err)` treats `len < 0`
+# already the core's declared way to speak when there is no screen (phase 104 wrote it,
+# phase 108 made it a direct call), and `host_message(msg, len, err)` treats `len < 0`
 # as `strlen` and `len >= 0` as an exact count -- which is `msg_puts_printf`'s own
 # `maxlen` contract, MEASURED by reading both.  The call is never executed, so
 # "exactly equivalent" is not claimed: what the two lines do not reproduce is the
@@ -60,7 +60,7 @@
 #    `t_ti_stopterm` reaches -- measured, it moves the same two probes, to the same two
 #    numbers.  The check builds both of those and requires them to move.
 #
-# 2. `exit_scroll()`'s printf arm IS ALIVE, and phase 21 was wrong to name it a
+# 2. `exit_scroll()`'s printf arm IS ALIVE, and phase 104 was wrong to name it a
 #    follow-up beside `msg_puts_printf()`.  pipes/whim104-check.sh says the two "fire in
 #    ZERO of 106 records"; that is true of the CORPUS and true of the editor only for
 #    the first.  MEASURED: the arm fires with no signal at all in three of this phase's
@@ -70,7 +70,7 @@
 #    `out_char('\n')` emits `\r` first, so the bytes are the same two.  It moves them
 #    from FD 2 TO FD 1, which on a pty where both are the same device is invisible and
 #    therefore undeclarable.  It belongs to whichever phase decides the core writes
-#    nothing to fd 2 at all -- ZERO-PLAN.md 4c's host-boundary question, not a tidy-up.
+#    nothing to fd 2 at all -- WHIM-PLAN.md II.4c's host-boundary question, not a tidy-up.
 #    The check builds that fold too and requires it to move three stream probes and
 #    three signal probes, which is the evidence that THIS phase did not disturb it.
 #
@@ -90,7 +90,7 @@ state=${2:?usage: whim113-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

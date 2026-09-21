@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 115 (zero phase 32), the check -- the clock crosses the boundary.
-# See pipes/whim115-edit.sh, and ZERO-PLAN.md 4c.
+# Whim phase 115, the check -- the clock crosses the boundary.
+# See pipes/whim115-edit.sh, and WHIM-PLAN.md II.4c.
 #
 # Usage: pipes/whim115-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -32,7 +32,7 @@
 #               sides: 0 directives, `-fsyntax-only` with no error and no warning that
 #               is not a boundary name, and the warning set compared AT RUN TIME with
 #               the input's -- exactly `host_time` arriving, nothing gone, 13 -> 14.
-#               The thirteen are never written out: phase 28 renamed one of them and a
+#               The thirteen are never written out: phase 111 renamed one of them and a
 #               list here would already be stale.
 #   CANON       tools/canon.sh is a NO-OP on the output.
 #   HOST        `zhostonly`, unchanged: `time` is not in its vocabulary and this
@@ -43,7 +43,7 @@
 #               and this is said as an equality rather than left for a reader to expect
 #               otherwise: the host still calls it to implement host_time(), and a symbol
 #               leaves when its last caller leaves the FILE, which is the split and not
-#               this phase.  That is phase 28's sentence about `gettimeofday`, and the
+#               this phase.  That is phase 111's sentence about `gettimeofday`, and the
 #               two clocks are now in exactly the same position.
 #   THE READS   THE INSTRUMENTED PAIR, and it is the evidence the recording cannot give.
 #               `write(2, "TICK\n", 5)` at EVERY clock read on both sides -- on the input
@@ -62,7 +62,7 @@
 # `ui_focus_change()` is called from `handle_key_without_mapping`'s KE_FOCUSGAINED and
 # KE_FOCUSLOST arms, and those key codes arrive as `\033[I` and `\033[O`, which
 # `set_termname()` registers unconditionally.  So a keystroke file CAN drive it -- which
-# ZERO-PLAN.md 2l calls a hazard (a typed Escape followed by `[` is read as a key code)
+# WHIM-PLAN.md II.2l calls a hazard (a typed Escape followed by `[` is read as a key code)
 # and which is exactly what is wanted here.  The probes are:
 #
 #   focus        \033[O \033[I         3 TICKs on both binaries
@@ -92,7 +92,7 @@
 # control built for it, `add_time()` reporting one second more: exactly three records
 # move -- undo_after_ins, undo_block, undo_redo, which are exactly the three whose screen
 # carries `<ago>` -- and in each of them exactly ONE line moves, the `--- stream` line,
-# with the 24 screen lines byte-identical.  Under a 33-way concurrent `make zero-verify`
+# with the 24 screen lines byte-identical.  Under a 33-way concurrent `make whim-verify`
 # the gap between `u_savecommon()`'s stamp and `undo_time()`'s read can straddle a second
 # tick, and one such run failed here on `undo_after_ins` alone.
 #
@@ -109,8 +109,8 @@
 #
 # THE TOOL THIS PHASE DOES NOT EDIT, and it is a decision rather than an oversight.
 # ``zhostonly`` asserts that the core names none of the host's vocabulary, and
-# `gettimeofday` joined that vocabulary at phase 28 for exactly this shape of reason.
-# `time` is NOT added here.  Adding it would re-key phases 20, 21, 25, 26 and 27, whose
+# `gettimeofday` joined that vocabulary at phase 111 for exactly this shape of reason.
+# `time` is NOT added here.  Adding it would re-key phases 103, 104, 108, 109 and 110, whose
 # checks run the tool on their own output, and every one of those boundaries has the core
 # calling `time()` -- so each would need a named exception with a count, and four
 # boundaries would have to be re-verified to buy a fact this check already asserts

@@ -24,7 +24,7 @@ func Setsid(c *exec.Cmd) { setsidAttr(c) }
 // Go's ExitCode() answers -1 for every signal death, so a SIGSEGV and a SIGKILL
 // and a SIGABRT all read the same -- and the Python harnesses this package
 // replaced record `exit -11` for a segfault.  The difference was latent for as
-// long as nothing in the corpus crashed, and it surfaced at zero phase 14,
+// long as nothing in the corpus crashed, and it surfaced at phase 97,
 // whose whole evidence is that the binary it was handed dies with SIGSEGV and
 // the one it made does not: `-1` there would pass for a clean exit's cousin
 // and say nothing about WHICH signal.

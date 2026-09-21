@@ -19,7 +19,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim125", Zero42) }
+func init() { register("whim125", Whim125) }
 
 var (
 	z42Ident    = regexp.MustCompile(`[A-Za-z_]\w*`)
@@ -121,8 +121,8 @@ func z42Repeat(k [][]byte, s string, n int) [][]byte {
 	return k
 }
 
-// Zero42 is phase 42's check: the swap file's residue.
-func Zero42(w io.Writer, args []string) error {
+// Whim125 is phase 125's check: the swap file's residue.
+func Whim125(w io.Writer, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("usage: check whim125 <work-dir> <state-dir>")
 	}
@@ -681,7 +681,7 @@ func Zero42(w io.Writer, args []string) error {
 		{"sc", "the screen corpus failed on the instrumented build"},
 		{"ex", "the Ex sweep failed on the instrumented build"},
 		{"av", "the argv sweep failed on the instrumented build"},
-		{"ml", "phase 40's memline corpus failed on the instrumented build"},
+		{"ml", "phase 123's memline corpus failed on the instrumented build"},
 		{"st", "the stress sessions failed on the instrumented build"},
 	} {
 		if res[x[0]] != nil {
@@ -787,7 +787,7 @@ func Zero42(w io.Writer, args []string) error {
 	say("AND THE CORPUS CANNOT SEE THE ROOT AT ALL: ml_find_line() descended into "+
 		"a pointer block in %d of %d records and %d times, but ml_append_int()'s split "+
 		"loop was reached in %d and its root-preserving branch in %d.  That is why "+
-		"sections 7b and 8 exist: phase 40's memline corpus, and sixty thousand lines "+
+		"sections 7b and 8 exist: phase 123's memline corpus, and sixty thousand lines "+
 		"driven by hand", hit["find_ptr"], nrec, tot["find_ptr"], hit["split_seen"], hit["split_root"])
 
 	// --- 6. the controls that MUST move the recording --------------------------------
@@ -845,19 +845,19 @@ func Zero42(w io.Writer, args []string) error {
 	say("BH_LOCKED stays: it is read by mf_put()'s `e_block_was_not_locked` test, which is the one thing bh_flags is "+
 		"asked, and %d mentions of it survive", nLocked)
 
-	// --- 7b. phase 40's memline corpus -----------------------------------------------------
+	// --- 7b. phase 123's memline corpus -----------------------------------------------------
 	if exec.Command("sh", "tools/st.sh", "zmemline", T("c_root"), T("ML-croot")).Run() != nil {
-		return die("phase 40's corpus failed on the c_root control")
+		return die("phase 123's corpus failed on the c_root control")
 	}
 	jobs["wkp"].wg.Wait()
 	if exec.Command("sh", "tools/st.sh", "zmemline", T("wkp"), T("ML-out")).Run() != nil {
-		return die("phase 40's corpus failed on the instrumented output")
+		return die("phase 123's corpus failed on the instrumented output")
 	}
 	if fi, e := os.Stat(T("ML-in")); e != nil || !fi.IsDir() {
 		return die("section 5 left no instrumented memline record")
 	}
 	if fi, e := os.Stat(filepath.Join(T("REC-new"), "memline")); e != nil || !fi.IsDir() {
-		return die("tools/zrecord.sh recorded no memline/, so phase 40's corpus is not in the recording this check compares")
+		return die("tools/zrecord.sh recorded no memline/, so phase 123's corpus is not in the recording this check compares")
 	}
 	var mv []string
 	for _, l := range diffRQ(filepath.Join(T("REC-new"), "memline"), T("ML-croot")) {
@@ -865,7 +865,7 @@ func Zero42(w io.Writer, args []string) error {
 	}
 	moved := strings.TrimRight(strings.Join(mv, " ")+" ", " ")
 	if moved == "" {
-		return die("the c_root control moves NONE of phase 40's cases, so nothing in this pipeline can see ml_append_int()'s root test")
+		return die("the c_root control moves NONE of phase 123's cases, so nothing in this pipeline can see ml_append_int()'s root test")
 	}
 	if !strings.Contains(" "+moved+" ", " mem_deep_jumps ") {
 		return die("the c_root control moves %s, and mem_deep_jumps is the case measured to reach the root split on THIS phase's output", moved)
@@ -881,15 +881,15 @@ func Zero42(w io.Writer, args []string) error {
 	}
 	mlIn, mlOut := filesMatching(T("ML-in"), z42SplitIn), filesMatching(T("ML-out"), z42PresOut)
 	if mlOut < 1 {
-		return die("no case of phase 40's corpus reaches the root split on this phase's output")
+		return die("no case of phase 123's corpus reaches the root split on this phase's output")
 	}
 	if mlIn <= mlOut {
-		return die("phase 40's corpus reaches the root split in %d cases on the input and %d on the output, and this phase can only make a pointer block hold MORE children, never fewer", mlIn, mlOut)
+		return die("phase 123's corpus reaches the root split in %d cases on the input and %d on the output, and this phase can only make a pointer block hold MORE children, never fewer", mlIn, mlOut)
 	}
 	say("PHASE 40'S CORPUS SEES THIS PHASE, and it is the only recorded thing that does: the c_root control -- "+
 		"ml_append_int()'s root test left at the old block number, which all 102 screen cases are blind to -- moves %s "+
 		"of its sixteen cases.  AND THIS PHASE NARROWS WHAT THAT CORPUS REACHES: %d of the sixteen split the root on "+
-		"the input and %d on the output, because phase 40 derived its buffer sizes from sizeof(PTR_EN) and "+
+		"the input and %d on the output, because phase 123 derived its buffer sizes from sizeof(PTR_EN) and "+
 		"pe_old_lnum has left PTR_EN.  A case named for the root split is a case sized for a fanout, and this phase "+
 		"changes the fanout", moved, mlIn, mlOut)
 
@@ -1014,7 +1014,7 @@ func Zero42(w io.Writer, args []string) error {
 	// --- 9. what this phase declares ---------------------------------------------------
 	decl, _ := exec.Command("sh", "tools/zerodelta.sh", "--declared", "125").Output()
 	if strings.Join(strings.Fields(string(decl)), "") != "" {
-		return die("pipes/zero.delta declares something for phase 42, and this phase declares nothing at all")
+		return die("pipes/zero.delta declares something for phase 125, and this phase declares nothing at all")
 	}
 	say("pipes/zero.delta declares NOTHING for this phase, and that is two statements and not one: the negative-block island could not run, and block zero ran everywhere and was never read")
 	return nil

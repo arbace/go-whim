@@ -16,7 +16,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func init() { register("whim85", Zero2) }
+func init() { register("whim85", Whim85) }
 
 // z2Gone is what the cut removed, matched as FIXED strings because two of them
 // are C fragments with parentheses in.
@@ -53,7 +53,7 @@ func occurrences(pat string, src []byte) int {
 	return len(regexp.MustCompile(pat).FindAll(src, -1))
 }
 
-// Zero2 is phase 2's check: the two terminal warnings, the pause after them and
+// Whim85 is phase 85's check: the two terminal warnings, the pause after them and
 // --ttyfail.
 //
 // THE PROBES ARE THIS PHASE'S EVIDENCE and they are two-sided.  The three
@@ -63,7 +63,7 @@ func occurrences(pat string, src []byte) int {
 // the declared delta is legitimately none, and a delta of none from a blind
 // harness proves nothing on its own.  Every probe requires the OLD binary to do
 // the thing and the new one not to.
-func Zero2(w io.Writer, args []string) error {
+func Whim85(w io.Writer, args []string) error {
 	if len(args) < 2 {
 		return fmt.Errorf("usage: check whim85 <work-dir> <state-dir>")
 	}
@@ -130,7 +130,7 @@ func Zero2(w io.Writer, args []string) error {
 	// --- 4. the binary -------------------------------------------------------
 	// NOT tools/phasebuild.sh, which links the object the sweep compiled along
 	// the way: that object is `gcc -c -O0` with this machine's defaults, which
-	// since phase 1 are not zero's -- it carries the canaries
+	// since phase 84 are not zero's -- it carries the canaries
 	// -fno-stack-protector removes and PIE code where the link is -no-pie.
 	_ = exec.Command("make", "-C", work, "clean").Run()
 	if err := exec.Command("make", "-C", work).Run(); err != nil {

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Whim phase 99 (zero phase 16) -- the includes nothing names.  See ZERO-GOAL.md.
+# Whim phase 99 -- the includes nothing names.  See WHIM-GOAL.md.
 #
 # Usage: pipes/whim99-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
@@ -11,31 +11,31 @@
 # missed twice:
 #
 #   <sys/stat.h>  supplies nothing.  Its ONE user is `typedef struct stat stat_T;`,
-#                 and nothing uses `stat_T`.  Phase 13 named this header and declined
-#                 it, because ZERO-GOAL.md's charter stated the directive count as a
+#                 and nothing uses `stat_T`.  Phase 96 named this header and declined
+#                 it, because WHIM-GOAL.md's charter stated the directive count as a
 #                 property of the pipeline.
 #   <fcntl.h>     supplies nothing at all: O_RDONLY, O_WRONLY, O_CREAT, O_APPEND,
 #                 O_NONBLOCK and fcntl() are at zero mentions, and have been since
-#                 phase 9 freed the symbol.
+#                 phase 92 freed the symbol.
 #   <iconv.h>     supplies nothing at all, and NOBODY HAD NOTICED: `iconv` occurs
 #                 exactly once in whim-vim.c and that once is its own `#include`
 #                 line.  whim removed the conversion layer and left the header
-#                 behind.  ZERO-PLAN.md 4 says "16 directives" for this cut; it is
+#                 behind.  WHIM-PLAN.md II.4 says "16 directives" for this cut; it is
 #                 15, and this header is why.
 #
 # THREE MORE DIED IN PHASES 14 AND 15, which moved what they supplied inside the file:
 #
-#   <string.h>    the sixteen `mem*`/`str*` functions, vendored by phase 14.
+#   <string.h>    the sixteen `mem*`/`str*` functions, vendored by phase 97.
 #   <ctype.h>     TEN identifiers, not five.  isalnum, iscntrl, ispunct, tolower and
 #                 toupper are real calls; isalpha, isdigit, isgraph, islower and
 #                 isupper are musl MACROS -- `#define isalpha(a) (0 ? isalpha(a) :
 #                 (((unsigned)(a)|32)-'a') < 26)` -- so they are in no `nm -u` and a
-#                 survey driven by the symbol list cannot see them.  Phase 15 took
+#                 survey driven by the symbol list cannot see them.  Phase 98 took
 #                 all ten.
 #   <wctype.h>    towlower and towupper, and `iswupper`, which was a NAME the header
 #                 had to supply while being no symbol at all: its one occurrence sat
 #                 directly after a `return` inside vim_isupper(), so gcc never
-#                 emitted it.  Phase 15 deleted that statement rather than vendoring
+#                 emitted it.  Phase 98 deleted that statement rather than vendoring
 #                 a function nothing calls.
 #
 # WHAT THIS PHASE ASSERTS IS NOT THE LIST.  The edit below states, for each of the six,
@@ -95,7 +95,7 @@ state=${2:?usage: whim99-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

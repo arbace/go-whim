@@ -1,14 +1,14 @@
 #!/bin/sh
-# Whim phase 122 (zero phase 39) -- `-T {term}` goes, and the command line is `+{command}` alone.
-# See ZERO-GOAL.md.
+# Whim phase 122 -- `-T {term}` goes, and the command line is `+{command}` alone.
+# See WHIM-GOAL.md.
 #
 # Usage: pipes/whim122-edit.sh <work-dir> <state-dir>     (run from the repository root)
 #
-# Zero phase 5 left argv as exactly two options: `+{command}`, which is how a host
+# Phase 88 left argv as exactly two options: `+{command}`, which is how a host
 # tells the editor what to do, and `-T {term}`, which is how a SHELL told it what it
 # was attached to.  A core is told that by its host or not at all -- and `-T` has
 # had a replacement inside the editor since before this pipeline began: `+set term=`
-# reaches did_set_term() and does everything `-T` did, which is why zero phase 33
+# reaches did_set_term() and does everything `-T` did, which is why phase 116
 # rebuilt the terminal harness on it.  So this removes the option, and after it
 # `+{command}` is the whole command line: every other word is what every unknown
 # word already was, `mainerr(ME_UNKNOWN_OPTION)`.
@@ -30,7 +30,7 @@
 #                   because it is ME_ARG_MISSING's only other mention: the
 #                   enumerator cannot go while its one reader is still there.
 #   mparm_T.term    the field nothing assigns now.  It goes in the EDIT for a
-#                   reason phase 38's dead clause did not have: deadfields.py
+#                   reason phase 121's dead clause did not have: deadfields.py
 #                   matches by NAME, and this file holds thirty-two mentions of
 #                   another struct's `.term` member (attr_entry's `ae_u.term`), so
 #                   that tool can never see this one dead.  The edit computes that
@@ -48,13 +48,13 @@
 # from the second, where `starting` is NO_BUFFERS or 0 and never NO_SCREEN (the edit
 # reads every assignment to `starting` and requires none of them to be NO_SCREEN).
 # So `if (starting != NO_SCREEN)` is always true there, the block returns FAIL, and
-# the three statements after it are unreachable: the fallback that phase 38 had to
+# the three statements after it are unreachable: the fallback that phase 121 had to
 # repair, report_default_term(), and the option write that recorded it.
 # pipes/whim122-check.sh measures all of that with the same marker in the same place
 # on both texts -- the input enters the fallback in exactly the two `-T` records and
 # a control built from THIS phase's output enters it in none.
 #
-# THE MESSAGE GOES WITH THE FALLBACK, for phase 38's reason read backwards.  That
+# THE MESSAGE GOES WITH THE FALLBACK, for phase 121's reason read backwards.  That
 # phase retargeted `' not known, defaulting to 'xterm''` onto the name it kept
 # because nothing in the build checks that a message tells the truth.  There is no
 # fallback to name now, so the clause that promised one is cut -- the NAME is read
@@ -90,7 +90,7 @@ state=${2:?usage: whim122-edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (ZERO-GOAL.md rule 8).
+# second time: zero's compile line is the boundary's (WHIM-GOAL.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

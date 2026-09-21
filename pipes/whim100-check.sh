@@ -1,6 +1,6 @@
 #!/bin/sh
-# Whim phase 100 (zero phase 17), the check -- the deadly ladder that cannot run.
-# See pipes/whim100-edit.sh, and ZERO-GOAL.md.
+# Whim phase 100, the check -- the deadly ladder that cannot run.
+# See pipes/whim100-edit.sh, and WHIM-GOAL.md.
 #
 # Usage: pipes/whim100-check.sh <work-dir> <state-dir>    (run from the repository root)
 #
@@ -11,7 +11,7 @@
 #
 # WHAT IS CLAIMED is that `deathtrap()`'s `entered >= 3` ladder -- `reset_signals()`,
 # `_exit(8)` and `exit(7)` -- cannot be reached in any build of whim-vim, so removing
-# it removes a POSSIBILITY and not a behaviour.  That is phase 13's kind of claim and
+# it removes a POSSIBILITY and not a behaviour.  That is phase 96's kind of claim and
 # it is argued the same way: an instrumented build of the source the phase was HANDED,
 # with a control that must fire.
 #
