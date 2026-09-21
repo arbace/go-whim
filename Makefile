@@ -15,6 +15,12 @@
 #
 # whim.mk and zero.mk are the pipelines; tools/ and pipes/ are what they run.
 
+# Every temporary a recipe makes -- mktemp, Go's os.MkdirTemp, the harnesses'
+# scratch homes, verifypass's and specpass's scratch roots -- goes in .tmp/
+# here, not the shared /tmp.  Gitignored.
+export TMPDIR := $(CURDIR)/.tmp
+$(shell mkdir -p $(TMPDIR))
+
 CC      = gcc
 CFLAGS  = -O0
 LDFLAGS = -static -s

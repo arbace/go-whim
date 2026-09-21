@@ -79,6 +79,14 @@ make                 # all: whim-vim and zero-vim, producing either only when it
 - **`gcc` exits 0 with warnings**; a check on the dead-code sweep is that it
   prints *nothing*, never that it succeeded.
 
+## Temporaries
+
+Every temporary goes in `.tmp/` (gitignored), never the shared `/tmp`: the
+`Makefile` exports `TMPDIR` there, so `mktemp`, Go's `os.MkdirTemp`, the
+harnesses' scratch homes and the verify and specpass scratch roots all land in
+it. Worktrees go in `.tmp/worktrees/`. Outside `make`, run with
+`TMPDIR=$PWD/.tmp`.
+
 ## The memoize
 
 A phase is a function of the tree it is handed, so a pipeline is `p_N = f_N(p_{N-1})`

@@ -28,9 +28,9 @@ zero/
 # content-keyed, so deleting it costs only the time to recompute.
 .cache/
 
-# Logs a pass writes at the root.
-.whim-pass.log
-.zero-pass.log
+# Every temporary goes here, not the shared /tmp: the Makefile exports
+# TMPDIR to it, and worktrees go in .tmp/worktrees/.
+.tmp/
 
 # Editor swap files: vim names the first .swp and then walks backwards.
 *.sw[a-p]
