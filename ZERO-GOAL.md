@@ -1218,8 +1218,12 @@ first — and the rest of this section is how it joins.
    `tools/whimdelta.sh` hands it to `tools/zerodelta.sh`.
 3. **Place it**: add N to the `phases` line of `pipes/whim.stages` — the phase list
    lives there and not in `tools/pipeline.sh`, so adding a phase moves no other key —
-   then a `stage` line for it (or widen the last stage), any `need` and `apart` it
-   has, and put it in a `package` with its `uses` lines. `tools/stages.sh whim
+   then widen the last `each` stage to end at N (a split phase), or give it a
+   `stage N` of its own (a single-file program, or a phase that must not re-run the
+   last stage's checks). Inside an each stage every edit is swept before the next
+   and every check sees its own tree, so write its `need` and `apart` lines anyway,
+   measured: they are what a shared stage would have to respect. Then put it in a
+   `package` with its `uses` lines. `tools/stages.sh whim
    --check` and `tools/packages.sh whim --check` must be silent.
 4. Write its `## Phase N — ...` section here.
 5. `make whim-tip` runs the last stage and records it; `make whim-verify` then proves

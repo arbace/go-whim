@@ -228,79 +228,43 @@ uses  commands:80     tidy:79         mechanical  the length field's one reader,
 # ==========================================================================
 
 
+# --- the schedule, 83 to 128 ---------------------------------------------
+# Zero ran every phase as a stage of one, and the `apart` and `need` lines below are
+# why no SHARED stage (one sweep for all the edits) could hold two neighbours: almost
+# every zero check states its own line arithmetic, pins what a later phase takes,
+# quotes C a later phase respells, or compares its libc surface with its own input's
+# -- each true after its phase and deliberately untrue after the next, which is the
+# rule this manifest's first half states for its six `apart` lines.  And almost every
+# zero edit builds the binary it is handed, which unswept text often is not.
+#
+# So these phases run in EACH stages (tools/stages.sh): every edit followed by its
+# own sweep, then every check and every delta at once, each in a root of its own on
+# exactly the tree, state and symbol snapshot it had as a stage of one.  No `need` or
+# `apart` can be broken inside one, and none of those lines is removed: they are what
+# a SHARED stage of these phases would have to respect, measured.  Measured before
+# this schedule, with tools/phaserun.sh on each phase's recorded input, a phase here
+# is 3-11 s of edit, 3-18 s of sweep, 5-6 s of delta and 4-176 s of check (28 of the
+# 43 split phases over 20 s), so the check is what an each stage runs at once and
+# what makes it fast; and `stage 87-89 each` on q86 reproduced the recorded q89 in
+# 84 s where the three stages of one took 133.
+#
+# Five phases are ONE program each and cannot be in a stage with anything, because a
+# stage of more than one phase is made of edits and checks (tools/stages.sh refuses
+# it before a check runs): 83 records the zero baselines, 84 is a makefile flag, 86
+# and 116 replace an instrument, and 123 re-records one.  Each is a stage of its own,
+# and the split phases between them are the each stages.  116 has no `apart` and
+# needs none, for that reason.
+#
 #   stage   phases
 stage       83
 stage       84
 stage       85
 stage       86
-stage       87
-stage       88
-stage       89
-stage       90
-stage       91
-stage       92
-stage       93
-stage       94
-stage       95
-stage       96
-stage       97
-stage       98
-stage       99
-stage       100
-stage       101
-stage       102
-stage       103
-stage       104
-stage       105
-stage       106
-stage       107
-stage       108
-stage       109
-stage       110
-stage       111
-stage       112
-stage       113
-stage       114
-stage       115
-# 33 CANNOT SHARE A STAGE WITH ANYTHING AND NEEDS NO `apart` TO SAY SO, exactly as
-# phase 3 does not.  A stage of more than one phase is made of split programs, and
-# pipes/zero33.sh is ONE file: measured, `tools/phaserun.sh --parts zero 33` prints
-# one line, which is the condition tools/stages.sh already refuses on.  Nor is there
-# a `need`: a whole-phase program is handed the previous boundary's tree and there is
-# no edit part for a sweep to precede.
+stage       87-115 each
 stage       116
-# 34 NEEDS NO `apart 33 34` AND CANNOT HAVE ONE, for the reason stated just above: a
-# stage of more than one phase is made of split programs, and pipes/zero33.sh is one
-# file.  Measured, `stage 33-34` is refused by tools/stages.sh before any check runs --
-# `phase 33 is in stage 33-34 but is not an edit and a check` -- and tools/phaserun.sh
-# refuses the same unit with `zero phase 33 has no edit and check to run`.  Nor is there
-# a `need 34`: its edit was run on phase 30's UNSWEPT output and every anchor held, and
-# a phase whose predecessor can never share its stage is handed a boundary either way.
-stage       117
-stage       118
-stage       119
-# 37 is a stage of its own, as every zero phase is.  `apart 36 37` is written below and
-# was measured in BOTH directions; there is no `need 37`, and that was measured too.
-stage       120
-stage       121
-stage       122
+stage       117-122 each
 stage       123
-stage       124
-stage       125
-stage       126
-# 44 is a stage of one, as every zero phase is.  `apart 43 44` is written below and was
-# measured in one direction; there is NO `need 44`, and that was measured in the
-# strongest form there is -- see below.
-stage       127
-# 45 is a stage of one, as every zero phase is.  `apart 44 45` is written below and was
-# measured in one direction, and `need 45 swept` IS required -- the first `need` in this
-# pipeline that is about blank lines, declared below with its measurement.  This comment
-# said the opposite until it was noticed: it was copied from phase 44's two lines above,
-# which correctly say there is no `need 44`, and not corrected.  Nothing running could
-# have caught that -- the manifest is read by tools/stages.sh and tools/packages.sh and
-# NAMED BY NO PHASE PROGRAM, so tools/implhash.sh never hashes it and a wrong line here
-# is never a failing run.  A reader is the only guard this file has.
-stage       128
+stage       124-128 each
 
 # `apart 43 44` IS THE NAME-PARTITION FORM OF `apart 36 37`, AND IT IS SHARPER.
 # tools/phaserun.sh zero 43-44 on r42 runs both edits, one sweep and phase 43's check,
@@ -330,8 +294,8 @@ stage       128
 #   apart 2 4   phase 2's check runs the binary it was handed AND the one it made
 #               with `-e -s` and requires both to exit 0 -- which is how it proves
 #               `--`, `+cmd` and `-T` still work.  Phase 4 removes `-e`, so that
-#               check cannot run on a tree phase 4 has touched.  Every zero phase
-#               is its own stage today, so this is a statement rather than a
+#               check cannot run on a tree phase 4 has touched.  No each stage can
+#               break it (see the schedule), so this is a statement rather than a
 #               constraint; it becomes one the moment two of them share a sweep.
 apart       85 87
 # Phase 4's check names EDIT_STDIN, read_cmd_fd = 2, had_minmin, buflist_add and
@@ -660,7 +624,7 @@ apart       111 112
 # phase 23's check still finds its four control texts verbatim -- this phase touches no
 # `NULL`, no `size_t` and none of the helpers 23 quotes -- and phase 24's check reads
 # only attributes, which 23 neither creates nor destroys.  The two phases are in separate
-# stages today because every zero phase is, not because they may not share one.  The one
+# stages because zero ran every phase in one, not because they may not share one.  The one
 # thing a shared stage DOES change is visible in that run and is not a constraint: the
 # stage's symbol snapshot is r22's, and both phases state their libc surface as a `cmp`
 # against it, which both still satisfy, neither freeing anything.
@@ -669,7 +633,7 @@ apart       111 112
 # `fclose fsync getc putc` and that `fputs fputc fwrite putchar` are STILL undefined,
 # and phase 14 moves seventeen more -- so phase 13's check does fail on a phase 14
 # tree, and a stage holding both would be wrong.  It is not written because every
-# zero phase is its own stage and because it is the same shape as the missing
+# zero phase was its own stage and because it is the same shape as the missing
 # `apart 2 6`: nothing can hold 13 and 14 without holding them adjacent, and the
 # constraint would become real only if a later phase joined them.  THE ONE THAT WILL
 # MATTER is `apart 14 15`, which the character-class phase owns: this phase's check
@@ -677,8 +641,8 @@ apart       111 112
 # undefined, and that phase takes them.
 
 # What phase 7's edit needs of the text it is handed (pipes/whim.stages defines the
-# word).  Every zero phase is its own stage today, so this is a statement rather
-# than a constraint; it becomes one the moment two of them share a sweep.
+# word).  An each stage sweeps before every edit, so this is a statement rather
+# than a constraint there; it becomes one the moment two of them share a sweep.
 #   need 7 swept   anchor: `usefilter` has exactly 10 mentions -- the field, the two
 #                  writes anchor 3 removes and seven reads.  On the text phase 6's
 #                  edit leaves it has ELEVEN, ex_write still being there to read it,
@@ -858,8 +822,8 @@ need        94 swept
 # and survives intact; that is what makes this a narrow requirement rather than a wide
 # one.  The whole of phase 21's check cannot be run on this tree to watch it fail,
 # because its state directory is written by ITS edit and phases 22-29 sit between -- so
-# the measurement is the pin table, applied directly.  Zero's one-stage-per-phase
-# schedule keeps the two apart anyway; this line is what would stop a stage holding both
+# the measurement is the pin table, applied directly.  An each stage
+# keeps the two apart anyway; this line is what would stop a SHARED stage holding both
 # the day one is built, exactly as `apart 2 4` is.
 apart       104 113
 # FOUR `apart` LINES FOR PHASE 32, and three of them are one fact measured three ways:
@@ -894,8 +858,8 @@ apart       104 113
 #                is also where `need 32` was confirmed unnecessary, 32's edit applying
 #                unchanged to phase 31's UNSWEPT output with every anchor at its count.
 #
-# Zero's one-stage-per-phase schedule keeps all five apart anyway; these lines are what
-# would stop a stage holding any of the pairs the day one is built.
+# An each stage keeps all five apart anyway; these lines are what would stop a
+# SHARED stage holding any of the pairs the day one is built.
 apart       109 115
 apart       110 115
 apart       111 115
@@ -961,8 +925,8 @@ apart       113 117
 # usize);`.  Run as a pair it does not compile at all -- `implicit declaration of
 # function 'write'` and then `conflicting types for 'write'` -- before its line count
 # (73 where 91 was expected) is even reached.  A check that CALLS libc from above the
-# boundary is a dependency on the core still declaring it.  Zero's one-stage-per-phase
-# schedule keeps all six apart anyway; these lines are what would stop a stage holding
+# boundary is a dependency on the core still declaring it.  An each stage
+# keeps all six apart anyway; these lines are what would stop a SHARED stage holding
 # any of the pairs the day one is built.
 apart       109 118
 apart       110 118
@@ -1153,7 +1117,7 @@ apart       127 128
 #                  than a count of anything, so a sweep that removed a function has
 #                  nothing to move.  The one number it computes, the line delta, is
 #                  computed from its own four replacements.
-#   NO `apart`.    Every zero phase is its own stage, so an `apart` line here would be a
+#   NO `apart`.    Zero ran every phase as its own stage, so an `apart` line here would be a
 #                  statement and not a constraint (see `apart 2 4`).  The statement worth
 #                  writing is the SHAPE it would have, because the next phase that thinks
 #                  of sharing a sweep needs it: 41's check states its gone set as EXACTLY

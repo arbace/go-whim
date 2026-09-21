@@ -135,8 +135,17 @@ delta_lines() {
     fi
 }
 
+# A stage's MODE (tools/stages.sh: shared or each) is part of what runs it and is
+# written in the manifest, which nothing hashes -- so it is hashed here, and moving
+# a stage between the two can never replay a boundary the other mode produced.
+unit_mode() {
+    [ -z "${edit_only:-}" ] || return 0
+    echo "mode $(tools/stages.sh "$PIPE" --mode "$phase")"
+}
+
 {
     for p in $progs; do cat "$p"; done
+    unit_mode
     delta_lines
     for d in $( { for p in $progs; do deps "$p"; done; driven; } | sort -u); do
         [ -f "$d" ] || continue

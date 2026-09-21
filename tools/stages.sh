@@ -4,11 +4,28 @@
 # Usage: tools/stages.sh <pipeline>              every unit, in order, one per line
 #        tools/stages.sh <pipeline> --of <N>     the unit containing phase N
 #        tools/stages.sh <pipeline> --check      check the manifest; silent when it holds
+#        tools/stages.sh <pipeline> --mode <U>   how unit U runs: shared or each
 #
 # A UNIT is what memo.sh keys, the cache stores, make sequences and verifypass.sh
 # runs: a phase number (`0`, `79`) or a range of phases (`13-41`), which is a STAGE
 # -- every phase's edit in order, one sweep, every phase's check (tools/phaserun.sh).
 # Its boundary is the boundary of its last phase: q41 for 13-41.
+#
+# A stage runs in one of two MODES, and the manifest says which:
+#
+#   stage A-B         SHARED: every edit, ONE sweep, every check on the one swept
+#                     text.  What makes phases 1-82 fast: a sweep was 70-90% of a
+#                     whim phase.  A check that asserts something a later phase in
+#                     the stage undoes cannot share one, hence `apart`.
+#   stage A-B each    EACH: every edit followed by a sweep of its own, then every
+#                     check and every delta at once, each on EXACTLY the tree and
+#                     state it would have had as a stage of one (tools/phaserun.sh).
+#                     What makes phases 83 on fast: there the CHECKS are the cost,
+#                     60-75% of a phase, and each was written against its own
+#                     boundary.  Nothing a check or an edit sees differs from a
+#                     stage of one, so no `need` and no `apart` can be broken
+#                     inside an each stage; what is shared is the wall time and the
+#                     boundary, which is the stage's end.
 #
 # A pipeline with no pipes/<pipeline>.stages runs every phase as a unit of its own,
 # which is slim, and which is exactly how both pipelines ran before stages existed.
@@ -42,6 +59,14 @@ units() {
     awk '$1 == "stage" { print $2 }' "$manifest"
 }
 
+# The mode of a unit: `each` when its stage line says so, `shared` otherwise --
+# including a unit of one phase, for which the two are the same thing.
+unit_mode() {
+    [ -f "$manifest" ] || { echo shared; return; }
+    awk -v u="$1" '$1 == "stage" && $2 == u { m = ($3 == "each") ? "each" : "shared" }
+                   END { print (m == "" ? "shared" : m) }' "$manifest"
+}
+
 check() {
     [ -f "$manifest" ] || return 0
     # Coverage: the ranges, expanded, are the phase list.
@@ -55,6 +80,11 @@ check() {
         echo "stages: $manifest does not cover the $PIPE phases exactly once, in order" >&2
         return 1
     fi
+    bad_mode=$(awk '$1 == "stage" && NF > 2 && $3 != "each" { print $2 " " $3 }' "$manifest")
+    if [ -n "$bad_mode" ]; then
+        echo "stages: a stage's mode is \`each\` or nothing, not: $bad_mode" >&2
+        return 1
+    fi
     for u in $(units); do
         case $u in *-*) ;; *) continue ;; esac
         for p in $(seq "${u%-*}" "${u#*-}"); do
@@ -65,10 +95,15 @@ check() {
         done
     done
     # Requirements.
-    awk '$1 == "stage" { print "stage", $2 } $1 == "need" || $1 == "apart" { print $1, $2, $3 }' "$manifest" \
+    # Inside an each stage every phase is handed swept text and every check its own
+    # tree, so for the requirements below each of its phases starts a stage of its
+    # own and is apart from the others.
+    awk '$1 == "stage" { print "stage", $2, $3 } $1 == "need" || $1 == "apart" { print $1, $2, $3 }' "$manifest" \
     | awk -v impl="$IMPL" '
         $1 == "stage" { split($2, r, "-"); a = r[1]; b = (2 in r) ? r[2] : r[1]
-                        for (p = a; p <= b; p++) { first[p] = (p == a); unit[p] = $2 }
+                        for (p = a; p <= b; p++) {
+                            first[p] = (p == a || $3 == "each")
+                            unit[p] = ($3 == "each") ? $2 ":" p : $2 }
                         next }
         { req[++n] = $0 }
         END {
@@ -105,6 +140,7 @@ check() {
 case $mode in
     '')      check && units ;;
     --check) check ;;
+    --mode)  unit_mode "${3:?usage: stages.sh <pipeline> --mode U}" ;;
     --of)
         n=${3:?usage: stages.sh <pipeline> --of N}
         for u in $(units); do
@@ -112,5 +148,5 @@ case $mode in
         done
         echo "stages: no $PIPE unit contains phase $n" >&2
         exit 1 ;;
-    *) echo "usage: stages.sh <pipeline> [--of N | --check]" >&2; exit 2 ;;
+    *) echo "usage: stages.sh <pipeline> [--of N | --check | --mode U]" >&2; exit 2 ;;
 esac

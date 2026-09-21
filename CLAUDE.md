@@ -118,10 +118,19 @@ end; the tier-3 cache key is the input boundary's digest **and**
   whim-pass`**: the prerequisite is the previous boundary *file*. `make
   whim-phase-N` (runs the stage holding N) and `make whim-tip` force it; after
   editing a phase that is not in the last stage, `make whim-repass`.
-- **Stages** (`pipes/whim.stages`): a run of phases whose edits share one sweep;
-  only a stage's end is a boundary. `need P swept` and `apart P K` are declared,
-  measured facts, and `tools/stages.sh` refuses a schedule that breaks them.
-  Inside a stage each edit is cached by its input (`.cache/edit/`).
+- **Stages** (`pipes/whim.stages`): a run of phases whose end is the only
+  boundary, in one of two modes. A **shared** stage (`stage A-B`, phases 1-82)
+  runs every edit, ONE sweep, every check on the one swept text -- a sweep was
+  most of a whim phase. `need P swept` and `apart P K` are declared, measured
+  facts, and `tools/stages.sh` refuses a schedule that breaks them. An **each**
+  stage (`stage A-B each`, phases 87-128) sweeps after every edit, then runs every
+  check and delta at once (`CHECK_JOBS`, default 8), each in a root of its own
+  under `.cache/state/` on exactly the tree, state and symbol snapshot it had as a
+  stage of one -- there the checks are most of a phase, and each was written
+  against its own boundary, so no `need` or `apart` can break inside one. A
+  single-file program (`whimN.sh`) is always a stage of its own. Edits are cached
+  by their input (`.cache/edit/`); in an each stage, with their sweep. The mode is
+  in `tools/implhash.sh`'s key.
 - **A tier-3 replay copies the recorded digest rather than recomputing it**, so a
   warm pass agrees with the oracle whatever the oracle says. Only a run that
   recomputes can falsify a boundary: **`make whim-verify`** runs every stage at once on the recorded boundary before it, in scratch roots

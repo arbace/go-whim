@@ -97,6 +97,111 @@ fi
 tools/stages.sh "$PIPE" --check
 f=$work/$PSOURCE
 
+# ---- an EACH stage (tools/stages.sh): its own sweep per edit, the checks at once ----
+#
+# Every phase's edit runs on the swept tree the phase before it left, and is swept
+# before the next edit sees it -- exactly the sequence a stage of one per phase
+# runs, so every edit is handed the text it was written against and `need` cannot
+# fail.  After its sweep each phase's TREE and STATE are copied into a root of its
+# own, and once every edit has run, every check and every delta runs at once, each
+# in its own root, handed exactly the arguments, the tree, the symbol snapshot and
+# the input line count it would have had as a stage of one -- so no check can see
+# another phase's work and `apart` cannot fail.  What the stage shares is the wall
+# time of the checks, which are most of a phase from 83 on, and the boundary, which
+# is its end.
+#
+# A ROOT OF ITS OWN, because checks are not independent in the working directory:
+# tools/phasecheck.sh writes .cache/symbols/last and thirty checks read it back by
+# that path, and the sweep's object is reused from .cache/compile.  A root is a
+# directory with tools/, pipes/, cmd/, internal/, go.mod and go.sum linked from this
+# one, the baselines linked read-only, the Go build cache linked so whimtools is not
+# rebuilt, and a .cache/ of its own -- tools/verifypass.sh's construct, one level
+# down.  The phase's tree is its whim/ and its state is .cache/state/<tag><N>, the
+# same relative paths the check is always given.
+#
+# THE REPORTS ARE PRINTED IN PHASE ORDER, each whole, after they have all finished:
+# order is output, and a report interleaved with another is not one.  A phase that
+# fails keeps its root; a stage that passes removes them.
+#
+# The edit and its sweep are CACHED together per phase, keyed on the phase, the
+# digest of the tree the edit is handed and tools/implhash.sh --edit -- the edit
+# cache below, with `each` in the key since what it holds differs.  The checks are
+# not cached: they are the stage's evidence and always run.
+if [ "$(tools/stages.sh "$PIPE" --mode "$unit")" = each ]; then
+    here=$(pwd -P)
+    jobs=${CHECK_JOBS:-8}
+    each_digest() {
+        ( cd "$work" && find . -type f -print0 | sort -z | xargs -0 sha256sum ) \
+            | grep -Ev '/objects/|\.(o|d)$|/(whim-|zero-)?vim$' | sha256sum | cut -c1-32
+    }
+    roots=.cache/state/$TAG$unit.each
+    rm -rf "$roots"
+    mkdir -p "$roots"
+    for p in $phases; do
+        state=.cache/state/$TAG$p
+        rm -rf "$state"
+        mkdir -p "$state"
+        grep -c '' "$f" > "$state/input-lines"
+        tools/symbols.sh "$f" "$state/symbols"
+        name=$(tools/phasename.sh "$p" "$PIPE" 2>/dev/null || true)
+        ekey=$(printf '%s\neach\n%s\n%s\n' "$p" "$(each_digest)" "$(tools/implhash.sh --edit "$p" "$PIPE")" \
+               | sha256sum | cut -c1-32)
+        ecache=.cache/edit/$TAG$p/$ekey
+        if [ -f "$ecache.tree.tar" ] && [ -f "$ecache.state.tar" ]; then
+            tools/restore.sh "$ecache.tree.tar" "$work"
+            tar --extract --file "$ecache.state.tar" -C "$state"
+            printf '  %-12s %s  (edit and sweep cached for this input)\n' "edit $p" "$name"
+        else
+            printf '  %-12s %s\n' "edit $p" "$name"
+            "pipes/$IMPL$p-edit.sh" "$work" "$state"
+            tools/sweep.sh "$f"
+            mkdir -p ".cache/edit/$TAG$p"
+            tar --create --file "$ecache.state.part" -C "$state" --exclude=./input-lines --exclude=./symbols .
+            tar --create --file "$ecache.tree.part" -C "$work" .
+            mv "$ecache.state.part" "$ecache.state.tar"
+            mv "$ecache.tree.part" "$ecache.tree.tar"
+        fi
+        r=$roots/$p
+        mkdir -p "$r/.cache/state" "$r/.reference" "$r/$PWORK"
+        for x in tools pipes cmd internal go.mod go.sum; do ln -s "$here/$x" "$r/$x"; done
+        for x in .cache/gobin .cache/gofork; do [ -e "$here/$x" ] && ln -s "$here/$x" "$r/$x"; done
+        for b in baselines zero-baselines; do
+            [ -e "$here/.reference/$b" ] && ln -s "$here/.reference/$b" "$r/.reference/$b"
+        done
+        [ -e "$here/slim-vim.c" ] && ln -s "$here/slim-vim.c" "$r/slim-vim.c"
+        tar --create --file - -C "$work" . | tar --extract --file - -C "$r/$PWORK"
+        mv "$state" "$r/.cache/state/$TAG$p"
+    done
+
+    # Every check, then its delta, in its own root, $jobs at a time -- the delta
+    # on the phase's own binary (delta_binary below).
+    printf '%s\n' $phases | xargs -P "$jobs" -I{} sh -c '
+        r=$1/$2
+        rm -f "$r/$4/$7"
+        ( cd "$r" && "pipes/$3$2-check.sh" "$4" ".cache/state/$5$2" \
+          && { [ -f "$4/$7" ] || make -C "$4" >/dev/null 2>&1 \
+               || { echo "  build        FAILED -- the binary the delta measures: make -C $4"; exit 1; }; } \
+          && "$6" "$4/$7" "$4/$8" --phase "$2" ) > "$r.log" 2>&1
+        echo $? > "$r.rc"' sh "$roots" {} "$IMPL" "$PWORK" "$TAG" "$PDELTA" "${PSOURCE%.c}" "$PSOURCE"
+
+    fail=
+    for p in $phases; do
+        printf '  %-12s %s\n' "check $p" "$(tools/phasename.sh "$p" "$PIPE" 2>/dev/null || true)"
+        cat "$roots/$p.log"
+        [ "$(cat "$roots/$p.rc" 2>/dev/null)" = 0 ] || fail="$fail $p"
+    done
+    if [ -n "$fail" ]; then
+        echo "  phaserun     stage $unit: the check or delta of phase(s)$fail FAILED; each root is kept in $roots"
+        exit 1
+    fi
+    # The boundary is the last phase's tree as its check left it, which is what a
+    # stage of one snapshots.
+    rm -rf "$work"
+    mv "$roots/$last/$PWORK" "$work"
+    rm -rf "$roots"
+    exit 0
+fi
+
 # The stage's start: the symbol snapshot, once, of the text the first edit is
 # handed -- the one text in a stage that is certain to compile.
 stage_state=.cache/state/$TAG$unit.stage
@@ -149,6 +254,14 @@ tools/sweep.sh "$f"
 
 # The checks, in order, all on the stage's one swept text and one binary.  Every
 # check compares symbols with the stage's start.
+# THE DELTA MEASURES THE STAGE'S OWN BINARY, and nothing else guarantees it: a
+# boundary's tar carries the binary the last check to build one left, and five
+# checks (109 110 111 113 115) build theirs elsewhere and never rebuild the tree's --
+# so their delta measured the PREVIOUS boundary's binary, and passed.  Found when an
+# each stage handed them one from further back and declared tokens stopped moving.
+# So the binary the stage was handed goes before the checks, and one no check
+# rebuilt is built from the tree's own makefile before the delta runs.
+rm -f "$work/${PSOURCE%.c}"
 for p in $phases; do
     state=.cache/state/$TAG$p
     rm -rf "$state/symbols"
@@ -164,6 +277,10 @@ done
 # Never name a zero tool's path in this file: every whim edit's key reads what
 # this file names, so the name would put that tool in all of them.
 if [ -f "pipes/$IMPL.delta" ]; then
+    if [ ! -f "$work/${PSOURCE%.c}" ] && ! make -C "$work" >/dev/null 2>&1; then
+        echo "  build        FAILED -- the binary the delta measures: make -C $work"
+        exit 1
+    fi
     "$PDELTA" "$work/${PSOURCE%.c}" "$f" --phase "$last"
 fi
 
