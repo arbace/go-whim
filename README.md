@@ -18,20 +18,34 @@ commit in `upstream.sha`.
 
 **whim** (`whim.mk`, 129 phases) removes capability on purpose, and every phase
 declares in advance what it changes and a harness proves it changed exactly that
-and nothing else. **Phases 0-82** (`WHIM-GOAL.md` and `WHIM-PLAN.md`, Part I of each) remove the
-runtime files, the eval layer, windows beyond one, buffers beyond one, the
-command-line arguments and 489 Ex commands; their deltas are `pipes/whim.delta`.
-**Phases 83-128** (Part II of each) turn what is left into an
-embeddable core: the filesystem goes, the signals and the terminal cross to a
-host block at the bottom of the same file, the libc that is pure computation is
-vendored, the core names no libc function at all, and the memline stops being
-pages and becomes a tree; their deltas are `pipes/zero.delta`, against an
-instrument that reads the screen. Those were a second pipeline, zero, numbered
-from 0 — zero phase N is phase N+83.
+and nothing else. **Phases 0-82** remove the runtime files, the eval layer,
+windows beyond one, buffers beyond one, the command-line arguments and 489 Ex
+commands; their deltas are `pipes/whim.delta`. **Phases 83-128** turn what is
+left into an embeddable core: the filesystem goes, the signals and the terminal
+cross to a host block at the bottom of the same file, the libc that is pure
+computation is vendored, the core names no libc function at all, and the memline
+stops being pages and becomes a tree; their deltas are `pipes/zero.delta`,
+against an instrument that reads the screen. Those were a second pipeline, zero,
+numbered from 0 — zero phase N is phase N+83.
 
 **A phase is a function of the tree it is handed**, memoized by content — the
 input boundary's digest and the implementation's — so re-running a pass is free,
-and editing one phase re-runs that phase and the ones after it.
+and editing one phase re-runs that phase and the ones after it. Phases run in
+**stages**, and only a stage's end is a boundary: phases 1-82 share one sweep per
+stage, because there the sweep is most of a phase; from 87 each phase is swept on
+its own and every check in a stage runs at once, because there the checks are.
+
+## Documents
+
+- **`WHIM-GOAL.md`** — what the pipeline removes and why. **Part I** is phases
+  0-82, **Part II** phases 83-128 with the core's own charter and rules; each has a
+  section per phase, and Part II's *Adding a phase* is the process for the next
+  one.
+- **`WHIM-PLAN.md`** — the plans the phases were built from: **Part I** grouped
+  phases 0-82 into stages and packages, **Part II** (sections II.1-II.6) planned
+  phases 83 onwards.
+- **`CLAUDE.md`** — the working guide: how the memoize keys a phase, how a check is
+  verified, and what to know before changing anything shared.
 
 ## Use
 
@@ -48,11 +62,11 @@ it with every stage speculated at once on the previous pass's boundaries first.
 ## Requirements
 
 Linux, **Go 1.27**, **gcc** that links a static binary against **musl** (the
-product is built `-static -no-pie`, and phases before 83 `-static`), `git`, `curl`, and
-binutils (`readelf`, `nm`, `objcopy`, `strings`). Measured on Alpine Linux with
-gcc 15.2 and musl. The first build downloads `modernc.org/cc/v4`, pinned in
-`go.mod` and patched by `tools/patches/cc-v4-c23.patch` for two C23 productions;
-after that `make clean-cache` needs no network.
+product is built `-static -no-pie`, and phases before 83 `-static`), `git`,
+`curl`, and binutils (`readelf`, `nm`, `objcopy`, `strings`). Measured on Alpine
+Linux with gcc 15.2 and musl. The first build downloads `modernc.org/cc/v4`,
+pinned in `go.mod` and patched by `tools/patches/cc-v4-c23.patch` for two C23
+productions; after that `make clean-cache` needs no network.
 
 There is no Python in this repository and no agent: every phase is a program,
 and a phase that refuses stops the pass with its own report.
@@ -68,15 +82,12 @@ pipes/           the phases: whimN.sh or whimN-edit.sh + whimN-check.sh;
                  (phases 0-82) and zero.delta (83 on) the declared deltas
 tools/           the memoize driver and the shell wrappers around whimtools
 whim.mk          the pipeline as make targets
-whim-vim.c       the product, tracked
+whim-vim.c       the product, tracked; make editor.c cuts the core out of it
 upstream.sha     the arbace/slim-vim commit slim-vim.c was fetched from
 slim.sha         slim-vim.c's digest, from which whim-vim.c was produced
 ```
 
-`CLAUDE.md` is the working guide: how the memoize keys a phase, how a check is
-verified, and what to know before changing anything shared.
-
 ## License
 
-The products are modified vim, under vim's licence: `LICENSE`, fetched with
+The product is modified vim, under vim's licence: `LICENSE`, fetched with
 `slim-vim.c`, unmodified, as its clause II.1 requires.
