@@ -1,10 +1,21 @@
-# The whim pipeline's declared delta: what each phase changes, in advance.
+# The declared delta of phases 0 to 82: what each changes, in advance.
 #
 # Read by tools/whimdelta.sh --phase N, which takes every line up to phase N and
 # checks the binary moved in exactly that way: these Ex commands, these behaviour
-# cases, the terminal table or not -- and nothing else (WHIM-GOAL.md, the rule that
-# separates it from SLIM-GOAL.md).  One line per phase that changes the list; a
-# phase with no line declares nothing new.  Continuation lines are indented.
+# cases, the terminal table or not -- and nothing else (WHIM-GOAL.md Part I, rule 2,
+# the rule that separates it from SLIM-GOAL.md).  One line per phase that changes
+# the list; a phase with no line declares nothing new.  Continuation lines are
+# indented.
+#
+# THIS FILE ENDS AT PHASE 82.  From ZERO_FROM (tools/pipeline.sh) on, a phase is
+# measured against other baselines with another instrument, and tools/whimdelta.sh
+# hands it to tools/zerodelta.sh: its delta is pipes/zero.delta, against
+# .reference/zero-baselines, which phase 83 records from q82.  This list is not
+# retired there: phase 83 checks the whole of it, to 82, once more against its
+# -no-pie binary and slim-vim's baselines.  tools/implhash.sh reads the lines of
+# both files up to a stage's last phase, so a line here moves the key of every
+# stage of edits and checks from its phase on; a single-file program declares and
+# checks its own.
 #
 #   word          an Ex command whose exit, or what it leaves behind, now differs
 #   case:NAME     a behaviour case (tools/behaviour.py) whose recording now differs
