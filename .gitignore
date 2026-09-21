@@ -1,0 +1,38 @@
+# The input, fetched by `make` from github.com/arbace/slim-vim at the commit in
+# upstream.sha.  Not tracked: this repository records WHICH slim-vim.c it was
+# built from (upstream.sha, and its digest in slim.sha), as arbace/slim-vim
+# records the upstream vim commit it was built from and not the tree.
+slim-vim.c
+
+# The products' binaries.
+slim-vim
+whim-vim
+zero-vim
+
+# The core half of zero-vim.c, cut at the first #include by `make editor.c`.
+editor.c
+
+# The work directories: one file and a makefile each, rebuilt on demand.
+whim/
+zero/
+
+# What a pass leaves behind: a tar and a content digest per boundary.
+.build-whim/
+.build-zero/
+
+# The recorded baselines and boundary digests.  Data a pass produces, and the one
+# thing worth keeping across passes: every delta is measured against it.
+.reference/
+
+# The memoize's tier 3, the Go binary and the patched cc/v4 fork -- all
+# content-keyed, so deleting it costs only the time to recompute.
+.cache/
+
+# Logs a pass writes at the root.
+.whim-pass.log
+.zero-pass.log
+
+# Editor swap files: vim names the first .swp and then walks backwards.
+*.sw[a-p]
+
+.claude/
