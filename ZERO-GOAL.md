@@ -1,5 +1,19 @@
 # ZERO-GOAL.md — reduce whim-vim to an embeddable editor core
 
+> **Zero is no longer a pipeline of its own.** Its phases are **whim phases 83 to
+> 128**: zero phase *N* is whim phase *N*+83, run by `whim.mk` on the tree whim
+> phase 82 leaves, and the one product is `whim-vim.c` — what this document calls
+> `zero-vim.c`. The programs are `pipes/whim<N+83>*.sh` and
+> `internal/{edit,check}/whim<N+83>*.go`; the schedule and packages are the second
+> half of `pipes/whim.stages`; the delta is still `pipes/zero.delta`, in whim
+> numbering, against `.reference/zero-baselines`, which phase 83 now records from the
+> q82 tree (`tools/pipeline.sh`, `ZERO_FROM`). The phase headings below carry both
+> numbers. **The prose does not**: it is the record of what was measured as it was
+> measured, so "phase *N*", `rN` and `zero<N>` in it are zero's numbering — read them
+> as *N*+83 — and `zero-vim.c`, `zero/`, `.build-zero`, `zero.mk`, `make zero-…` are
+> today's `whim-vim.c`, `whim/`, `.build-whim`, `whim.mk` and `make whim-…`. *Adding a
+> phase* below is current.
+
 `whim-vim.c` is an embedded editor: one static binary that expects nothing to have
 been installed for it. **`zero-vim.c` is what is left when the editor stops being a
 program at all, and becomes a component a host program runs.**
@@ -1192,35 +1206,48 @@ between the two pipelines' recordings.
 
 ## Adding a phase
 
-Only on request, and one at a time:
+Only on request, and one at a time. A new phase is the next whim phase — 129 is the
+first — and the rest of this section is how it joins.
 
-1. Write the program: `pipes/zero<N>-edit.sh <work> <state>` and
-   `pipes/zero<N>-check.sh <work> <state>`, as `WHIM-GOAL.md`'s *Adding a phase*
-   describes for whim.
-2. **Declare its delta** in `pipes/zero.delta`, before running it.
-3. **Place it**: add N to the `phases` line of `pipes/zero.stages` — the phase list
-   lives there and not in `tools/pipeline.sh`, so adding a zero phase moves no whim
-   key — then a `stage` line for it (or widen the last stage), any `need` and `apart`
-   it has, and put it in a `package` with its `uses` lines. `tools/stages.sh zero
-   --check` and `tools/packages.sh zero --check` must be silent.
+1. Write the program: `pipes/whim<N>-edit.sh <work> <state>` and
+   `pipes/whim<N>-check.sh <work> <state>`, as `WHIM-GOAL.md`'s *Adding a phase*
+   describes, with the body in `internal/edit/whim<N>.go` and
+   `internal/check/whim<N>.go`.
+2. **Declare its delta** in `pipes/zero.delta`, before running it: every phase from
+   83 on is measured against `.reference/zero-baselines` with `tools/zrecord.sh`, and
+   `tools/whimdelta.sh` hands it to `tools/zerodelta.sh`.
+3. **Place it**: add N to the `phases` line of `pipes/whim.stages` — the phase list
+   lives there and not in `tools/pipeline.sh`, so adding a phase moves no other key —
+   then a `stage` line for it (or widen the last stage), any `need` and `apart` it
+   has, and put it in a `package` with its `uses` lines. `tools/stages.sh whim
+   --check` and `tools/packages.sh whim --check` must be silent.
 4. Write its `## Phase N — ...` section here.
-5. `make zero-tip` runs the last stage and records it; `make zero-verify` then proves
+5. `make whim-tip` runs the last stage and records it; `make whim-verify` then proves
    every stage from the recorded one before it.
-6. **`make zero-pass`, which is the step that copies the product out.** `zero-tip`
-   records a boundary and nothing else; the tracked `zero-vim.c` is an **output** of the
+6. **`make whim-pass`, which is the step that copies the product out.** `whim-tip`
+   records a boundary and nothing else; the tracked `whim-vim.c` is an **output** of the
    memoize and an input to nothing, so it can be arbitrarily wrong while every boundary
-   reproduces. Measured: running only the first left the tracked product **two phases
-   stale** — r36's 79,799 lines while the pipeline was at r38's 79,668 — and it was
-   pushed in that state, with `make zero-verify` reporting every boundary reproducing,
-   correctly, throughout. `zero.mk` now **warns** when the tracked file is not the last
-   boundary's, printing what it is, what it should be and the one command that fixes it;
-   it is a warning and not a failure because between a phase landing and `zero-pass`
-   running the product is *expected* to lag, and a target that refused there would be
-   disabled within a day. The contributing half is that a phase branch need not carry
-   the product — 37, 38 and 39 each committed their programs and their manifest lines
-   and not `zero-vim.c` — so the guard is at the merger's end.
+   reproduces. Measured, in the old zero pipeline: running only the first left the
+   tracked product **two phases stale** — r36's 79,799 lines while the pipeline was at
+   r38's 79,668 — and it was pushed in that state, with the verify reporting every
+   boundary reproducing, correctly, throughout. `whim.mk` **warns**
+   (`whim-product-check`) when the tracked file is not the last boundary's; it is a
+   warning and not a failure because between a phase landing and `whim-pass` running
+   the product is *expected* to lag.
 
-## Phase 0 — seed, and prove the copy is a copy
+## Phase 83 (zero 0) — the core's compile line, and the baselines it is measured against
+
+**Since the merge this phase is not a seed.** It is handed q82's tree — `whim-vim.c`
+and the makefile whim's phases carry, `tools/templates/whim.mk` — and there is no
+committed file for it to `cmp` with. So step 1 below is now *build the tree it was
+handed with the compile line it carries*: that binary is the one the zero baselines
+are recorded from (step 3), and the phase then writes `tools/templates/zero.mk` over
+the makefile and builds again (step 2). The baselines are therefore recorded from the
+pipeline's own output at q82 — the one place it does so, and legitimate for the
+reason recording from an input is: nothing from 83 on can reach q82. What it costs is
+that a change to what phases 0-82 produce moves the recording, and this phase refuses
+rather than overwrite it. `pipes/whim83.sh` carries the argument. What follows is the
+phase as it was written.
 
 `zero-vim.c` starts as a byte-for-byte copy of the committed `whim-vim.c`, and the
 phase is `pipes/zero0.sh`, one whole program. Four things, each depending on the one
@@ -1255,7 +1282,7 @@ A tier-3 hit on this phase records nothing, because the phase does not run. So
 `ref-term.txt`, naming the fix: `rm -rf .cache/r0 && make zero-phase-0`. The check
 lives in `zero.mk`, which no implementation digest reads, so it moves no key.
 
-## Phase 1 — the stack protector goes
+## Phase 84 (zero 1) — the stack protector goes
 
 `pipes/zero1.sh`, one whole program: there is no source edit, so there is nothing
 for a sweep to do and a split phase would pay for one. `zero-vim.c` comes out of it
@@ -1302,7 +1329,7 @@ It is `stage 1` and `package build` in `pipes/zero.stages`, with one `uses`:
 `build:1 seed:0 mechanical`, because `zerodelta.sh` refuses without the
 `.reference/zero-baselines` phase 0 records. It runs in 9 seconds.
 
-## Phase 2 — the core stops diagnosing its own terminal
+## Phase 85 (zero 2) — the core stops diagnosing its own terminal
 
 `pipes/zero2-edit.sh` and `pipes/zero2-check.sh`, `stage 2`, `package terminal`. The
 first phase that cuts source, and the first piece of *a component, not a program*: a
@@ -1393,7 +1420,7 @@ command table ends with: the derived first-two-letters index went with the table
 reduced, there are no `ex_cmdidxs.h` banners left in `whim-vim.c`, and the tool
 raises rather than reporting nothing.
 
-## Phase 3 — the instrument becomes the screen
+## Phase 86 (zero 3) — the instrument becomes the screen
 
 **No source change at all**: `r3`'s `zero-vim.c` is `r2`'s byte for byte, and the
 phase asserts it — the two boundaries have the same digest, `74ca3e1ffeb8`. What
@@ -1527,7 +1554,7 @@ and it makes `make zero-verify` reproduce r0 again. Phase 5 is where that was
 found, because it is the first phase whose gate ran every boundary from the
 recorded one before it.
 
-## Phase 4 — no streaming Ex
+## Phase 87 (zero 4) — no streaming Ex
 
 `pipes/zero4-edit.sh` and `pipes/zero4-check.sh`, `stage 4`, `package streams`. The
 second cut, and the first that removes a *mode*. Ex mode is the arrangement a core
@@ -1658,7 +1685,7 @@ exit 0, which is how it proves `--`, `+cmd` and `-T` still work — and this pha
 removes `-e`. Every zero phase is a stage of its own today, so the line is a
 statement; it becomes a constraint the moment two of them share a sweep.
 
-## Phase 5 — argv is `+{command}` and `-T {term}`
+## Phase 88 (zero 5) — argv is `+{command}` and `-T {term}`
 
 `pipes/zero5-edit.sh` and `pipes/zero5-check.sh`, `stage 5`, `package streams`. A
 core is handed its buffer by a host, not by a shell. What phases 2 and 4 left of
@@ -1840,7 +1867,7 @@ mechanical`, because an argv record is something a zero recording only has from
 phase 3. Phase 4 is in the same package, so the ordering between them is the
 package's and not a `uses`.
 
-## Phase 6 — no write
+## Phase 89 (zero 6) — no write
 
 `pipes/zero6-edit.sh` and `pipes/zero6-check.sh`, `stage 6`, `package files`. A
 core does not own a disk: reading and writing files is the host's business, and
@@ -2034,7 +2061,7 @@ reaches the `:wq`. So the failure at 6 is phase 5's, a stage holding 2 and 6
 holds 4, and `apart 2 4` forbids it already. Phase 4's check fails on a phase 6
 tree for the reasons `apart 4 5` records.
 
-## Phase 7 — no read
+## Phase 90 (zero 7) — no read
 
 `pipes/zero7-edit.sh` and `pipes/zero7-check.sh`, `stage 7`, `package files`. The
 other half of taking the filesystem away. Phase 6 removed the six commands that put
@@ -2223,7 +2250,7 @@ with `tools/phaserun.sh zero 6-7`, which says `usefilter has 11 mentions, expect
 non-compiling intermediate, which is true of every zero edit that builds one and is
 not declared for that reason.
 
-## Phase 8 — no `:edit`, and no `gf`
+## Phase 91 (zero 8) — no `:edit`, and no `gf`
 
 `pipes/zero8-edit.sh` and `pipes/zero8-check.sh`, `stage 8`, `package files`. Phases
 6 and 7 took the commands that put bytes on a disk and the one that takes them off
@@ -2478,7 +2505,7 @@ Phase 6's check *does* fail on a phase 8 tree — measured: `do_bang went`, `oth
 went`, `cmdnames[] has 99 rows and names() reads 99; both must be 105`, exit 1 — but
 a stage holding 6 and 8 holds 7, and `apart 6 7` forbids that already.
 
-## Phase 9 — nothing reads a byte
+## Phase 92 (zero 9) — nothing reads a byte
 
 `pipes/zero9-edit.sh` and `pipes/zero9-check.sh`, `stage 9`, `package files`. Phases
 6, 7 and 8 took every way to *ask* for a file. This one takes the machinery those
@@ -2704,7 +2731,7 @@ mentions, expected 5` among them, and exits 1. Its symbol check would fail too,
 being a `cmp` of the whole undefined set against a phase that frees three, but the
 source assertions come first.
 
-## Phase 10 — the buffer has no name
+## Phase 93 (zero 10) — the buffer has no name
 
 `pipes/zero10-edit.sh` and `pipes/zero10-check.sh`, `stage 10`, `package files`.
 Phases 6, 7 and 8 took every way to *ask* for a file and phase 9 took the machinery
@@ -2951,7 +2978,7 @@ expected 32` among them, plus `b_mtime_read is no longer a field of buf_T`, and 
 — it requires E447 to survive — because a stage holding 8 and 10 holds 9, and `apart
 8 9` forbids that already. It is the shape of the missing `apart 2 6` and `apart 6 8`.
 
-## Phase 11 — `:q` quits, and `ZZ` is `ZQ`
+## Phase 94 (zero 11) — `:q` quits, and `ZZ` is `ZQ`
 
 `pipes/zero11-edit.sh` and `pipes/zero11-check.sh`, `stage 11`, `package buffers`.
 Phases 6 to 10 took every way to reach a file. What was left of the filesystem in
@@ -3156,7 +3183,7 @@ written**, and the four before it are implied: a stage holding 6 and 11 holds 10
 that line forbids it already. It is the shape of the missing `apart 2 6`, `apart 6 8`
 and `apart 8 10`.
 
-## Phase 12 — the options nothing reads
+## Phase 95 (zero 12) — the options nothing reads
 
 `pipes/zero12-edit.sh` and `pipes/zero12-check.sh`, `stage 12`, `package options`.
 Phases 6 to 11 took every way to reach a file and then the refusal that guarded the
@@ -3394,7 +3421,7 @@ read it) and `the function count went 1742 -> 1724, expected 1742 -> 1726` among
 and exits 1. Phase 10's check pins the same two rows and would fail too, but a stage
 holding 10 and 12 holds 11 and `apart 10 11` forbids that already.
 
-## Phase 13 — no `FILE *` that is never opened
+## Phase 96 (zero 13) — no `FILE *` that is never opened
 
 `pipes/zero13-edit.sh` and `pipes/zero13-check.sh`, `stage 13`, `package tidy`. Two
 `static FILE *` survive in this editor and **nothing has ever opened either of them in
@@ -3578,7 +3605,7 @@ against a phase that frees four, but the source assertions come first. Phase 11'
 pins the same three and would fail as well, but a stage holding 11 and 13 holds 12 and
 `apart 11 12` forbids that already.
 
-## Phase 14 — the strings are the editor's own
+## Phase 97 (zero 14) — the strings are the editor's own
 
 `pipes/zero14-edit.sh` and `pipes/zero14-check.sh`, `stage 14`, `package vendor`.
 Seventeen of the 61 libc symbols zero-vim still asked for are string and memory work,
@@ -3767,7 +3794,7 @@ it is the shape of the missing `apart 2 6`. **`apart 14 15` is phase 15's**, and
 the one that matters: this check pins `tolower` and `toupper` and requires both still
 undefined, and phase 15 takes them.
 
-## Phase 15 — the character classes, the numbers and the sort
+## Phase 98 (zero 15) — the character classes, the numbers and the sort
 
 `pipes/zero15-edit.sh` and `pipes/zero15-check.sh`, `stage 15`, `package vendor`. Phase
 14 took the strings; this takes everything else in `zero-vim.c` that is **pure
@@ -4048,7 +4075,7 @@ leaves it is **0**.
 phases -- sixteen, r0 to r15, when this phase was written, and seventeen since -- and
 all 107 whim and slim implementation keys are unchanged.
 
-## Phase 16 — the includes nothing names
+## Phase 99 (zero 16) — the includes nothing names
 
 `pipes/zero16-edit.sh` and `pipes/zero16-check.sh`, `stage 16`, `package includes`.
 `zero-vim.c` inherited **eighteen** preprocessor directives from `whim-vim.c`, every
@@ -4305,7 +4332,7 @@ left in the core after that move; they are already gone.** Phases 18 and 19 are 
 demotion itself: the launcher exists, at the bottom of the same file, and the core
 asks it to end the process rather than ending it.
 
-## Phase 17 — the deadly ladder that cannot run
+## Phase 100 (zero 17) — the deadly ladder that cannot run
 
 `pipes/zero17-edit.sh` and `pipes/zero17-check.sh`, `stage 17`, `package host`. Nine
 lines, one libc symbol, and the smallest zero phase so far. `deathtrap()` — the handler
@@ -4514,7 +4541,7 @@ boundary that is not a device:
 was for as much as the symbol: the next phase in this package has one line to replace in
 one function rather than three in two.
 
-## Phase 18 — `main()` is demoted to `vim_main()`
+## Phase 101 (zero 18) — `main()` is demoted to `vim_main()`
 
 `pipes/zero18-edit.sh` and `pipes/zero18-check.sh`, `stage 18`, `package host`. Five
 lines, no libc symbol, and `ZERO-PLAN.md` §4c's first step. What was
@@ -4681,7 +4708,7 @@ declared delta    20 records + stderr-moved, from whim-vim
 a phase that renames one function and adds another is entitled to move. `exit` is still
 `mch_exit`'s single call site; the next phase in this package is the one that takes it.
 
-## Phase 19 — the core can no longer stop the process
+## Phase 102 (zero 19) — the core can no longer stop the process
 
 `pipes/zero19-edit.sh` and `pipes/zero19-check.sh`, `stage 19`, `package host`.
 Eighteen lines, one libc symbol, and `ZERO-PLAN.md` §4c's second step. `mch_exit()`'s
@@ -4927,7 +4954,7 @@ host boundary is a terminal, a clock, three allocations and eight signal calls �
 §4c's remaining step is the one that takes the first and the last of those out
 together.
 
-## Phase 20 — the signals and the terminal are the host's
+## Phase 103 (zero 20) — the signals and the terminal are the host's
 
 `pipes/zero20-edit.sh` and `pipes/zero20-check.sh`, `stage 20`, `package host`.
 `ZERO-PLAN.md` §4c's third step, and it is **one** phase where the plan and two
@@ -5398,7 +5425,7 @@ itself. What remains after that is the file split, and `tools/zhostonly.py` is t
 check that survives into it: when `editor.c` and `zero-vim.c` become two files, the
 host block becomes the second file and the tool becomes `grep` over the first.
 
-## Phase 21 — the messages are the editor's, the writing is the host's
+## Phase 104 (zero 21) — the messages are the editor's, the writing is the host's
 
 `pipes/zero21-edit.sh` and `pipes/zero21-check.sh`, `stage 21`, `package host`.
 `ZERO-PLAN.md` §4c's second step, and the half of it that is not the screen: *"`printf`
@@ -5640,7 +5667,7 @@ here the **core** still does for itself as well as the host: `mch_write`'s
 `write(1, …)`, which with `musl_read_input`'s `read(0, …)` is all of `ZERO-PLAN.md`
 §4c's remaining step.
 
-## Phase 22 — the variadic collapse
+## Phase 105 (zero 22) — the variadic collapse
 
 `pipes/zero22-edit.sh` and `pipes/zero22-check.sh`, `stage 22`, `package format`.
 C cannot forward `...` — which is why `vsnprintf` exists beside `snprintf` — so a
@@ -5877,7 +5904,7 @@ omission. What it produced is not a symbol, a line count or a row but a *shape*:
 `va_start` in the file, which is what the split needs and what nothing before it could
 have asserted.
 
-## Phase 23 — `nullptr` and `usize`
+## Phase 106 (zero 23) — `nullptr` and `usize`
 
 `pipes/zero23-edit.sh` and `pipes/zero23-check.sh`, `stage 23`, `package boundary`.
 `ZERO-PLAN.md` §4c settled the design: **there is no split into two files, there is one
@@ -6105,7 +6132,7 @@ instrument is nearly blind to it, so 263 probes stand in; 23 **the binary is the
 bytes**, which is the strongest kind this pipeline has — phase 16's, and the reason this
 phase was made the smallest of the four rather than the first convenient one.
 
-## Phase 24 — the attributes
+## Phase 107 (zero 24) — the attributes
 
 `pipes/zero24-edit.sh` and `pipes/zero24-check.sh`, `stage 24`, `package dialect`.
 `__attribute__` is a GNU extension, and a core on its way to another runtime was
@@ -6316,7 +6343,7 @@ attributes it keeps — is outside it, and the phase had to go and get a second 
 for that part rather than let the strongest evidence it had cover a decision the evidence
 cannot see.
 
-## Phase 25 — the plain host calls
+## Phase 108 (zero 25) — the plain host calls
 
 `pipes/zero25-edit.sh` and `pipes/zero25-check.sh`, `stage 25`, `package boundary`.
 The core reached the host through two function pointers:
@@ -6489,7 +6516,7 @@ reproduces it — but a merge whose diff holds the programs and not the thing th
 is easy to read as a phase that changed no source, and it is worth knowing that two of
 these four look like that in `git log`.
 
-## Phase 26 — the header types and macros the core can own
+## Phase 109 (zero 26) — the header types and macros the core can own
 
 `pipes/zero26-edit.sh` and `pipes/zero26-check.sh`, `stage 26`, `package boundary`.
 Eight things the core took from a header stop coming from one:
@@ -6700,7 +6727,7 @@ if it is asked for.
 **Its product landed separately too**, like phase 25's: the branch and the merge hold the
 programs, and `zero-vim.c` came in the commit after.
 
-## Phase 27 — the move: the first `#include` becomes the boundary
+## Phase 110 (zero 27) — the move: the first `#include` becomes the boundary
 
 `pipes/zero27-edit.sh` and `pipes/zero27-check.sh`, `stage 27`, `package boundary`.
 This is what the pipeline had been clearing the ground for. **The eleven `#include`s
@@ -6947,7 +6974,7 @@ seven changes are a `cmp` and one is a recording (26), and the source is the sam
 rearranged (27). The last is new, and it is the one a pipeline needs the day it starts
 moving code rather than deleting it.
 
-## Phase 28 — the scalar clock
+## Phase 111 (zero 28) — the scalar clock
 
 `pipes/zero28-edit.sh` and `pipes/zero28-check.sh`, `stage 28`, `package boundary`.
 The core's whole use of time is *stamp now, then ask how many milliseconds have
@@ -7071,7 +7098,7 @@ permanently true, with the five core call sites phase 26 moved named as exceptio
 the counts they had at r20, r21 and r25. Measured: exactly ten keys move — zero units
 and edits 20, 21, 25, 26 and 27 — and **not one slim or whim key of the 107**.
 
-## Phase 29 — the case tables become one, and it is the union
+## Phase 112 (zero 29) — the case tables become one, and it is the union
 
 `pipes/zero29-edit.sh` and `pipes/zero29-check.sh`, `stage 29`, `package casemap`.
 `zero-vim.c` carried **two complete Unicode simple-case maps** and they did the same
@@ -7192,7 +7219,7 @@ on a missing tar. And `make zero-tip` in a fresh worktree re-runs every phase, b
 `git worktree add` gives `whim-vim.c` a new mtime and `$(ZEROBUILD)/input.sha256`
 depends on it.
 
-## Phase 30 — the message fold: `msg_puts_printf()` and the branch that reaches it
+## Phase 113 (zero 30) — the message fold: `msg_puts_printf()` and the branch that reaches it
 
 `pipes/zero30-edit.sh` and `pipes/zero30-check.sh`, `stage 30`, `package host`.
 `msg_puts_attr_len()` ends in a two-armed test: the true arm handed the message to
@@ -7312,7 +7339,7 @@ writes that set out: it computes it from the input and from the output and requi
 two to be equal, so the rename cost it nothing. **That is the whole argument for
 counting a set as a rule rather than as a table of constants.**
 
-## Phase 31 — `abs` and `labs`, the two the core took on trust
+## Phase 114 (zero 31) — `abs` and `labs`, the two the core took on trust
 
 `pipes/zero31-edit.sh` and `pipes/zero31-check.sh`, `stage 31`, `package vendor`.
 **The core is optimised for transpilation, not for performance, and so it may not depend
@@ -7416,7 +7443,7 @@ shape exactly, and it is one direction only. The same run measures that **`need 
 swept` is not required**, this edit applying unchanged to phase 30's unswept output with
 all five anchors holding.
 
-## Phase 32 — the clock crosses the boundary
+## Phase 115 (zero 32) — the clock crosses the boundary
 
 `pipes/zero32-edit.sh` and `pipes/zero32-check.sh`, `stage 32`, `package host`.
 The core read **two** clocks and only one of them had crossed. Phase 28 gave the
@@ -7572,7 +7599,7 @@ symmetric difference being exactly `{host_time}`. The fourth was measured with
 the core at a difference of 3 where 10 was expected, and *"the host changed size, and
 this phase does not touch it"*. **No `need 32`**, measured in the same run.
 
-## Phase 33 — the terminal table is asked with `+set term=`, not `$TERM`
+## Phase 116 (zero 33) — the terminal table is asked with `+set term=`, not `$TERM`
 
 `pipes/zero33.sh`, one whole program, `stage 33`, `package harness`. The second phase
 in the pipeline that changes **no source at all** — phase 3 is the other — and it is
@@ -7716,7 +7743,7 @@ copy of `tools/` and `pipes/`, one change at a time: editing `tools/ztermcheck.p
 is what zero's phase list living in `pipes/zero.stages` rather than in
 `tools/pipeline.sh` buys.
 
-## Phase 34 — the core stops reallocating
+## Phase 117 (zero 34) — the core stops reallocating
 
 `pipes/zero34-edit.sh` and `pipes/zero34-check.sh`, `stage 34`, `package boundary`.
 
@@ -7846,7 +7873,7 @@ run on phase 30's unswept output, 79,858 lines against the swept 79,776, and eve
 and every count held — and it could not be exercised anyway, a phase whose predecessor can
 never share its stage being handed a boundary either way.
 
-## Phase 35 — the core calls nothing but the host
+## Phase 118 (zero 35) — the core calls nothing but the host
 
 `pipes/zero35-edit.sh` and `pipes/zero35-check.sh`, `stage 35`, `package host`. The three
 libc functions the core still **called** for itself go to the host: `malloc`, called by
@@ -8056,7 +8083,7 @@ host's `errno`. **The two that are not are `getpid` and `kill`.** What the core 
 for itself is one re-raise of a deadly signal and one `getpid()` that fills a `b0_pid`
 nothing reads.
 
-## Phase 36 — the core names no libc function at all
+## Phase 119 (zero 36) — the core names no libc function at all
 
 `pipes/zero36-edit.sh` and `pipes/zero36-check.sh`, `stage 36`, `package host`. Phase 35
 ended with a sentence it would not write down, and this is the phase that gets to write
@@ -8226,7 +8253,7 @@ or slim key**: the units and the edits of phases 20, 21, 25, 26, 27, 28, 30, 32,
 `make whim-verify` (13 of 13) and `make slim-verify` (12 of 12) are the gate rule 9 asks
 for, and both were green.
 
-## Phase 37 — the degenerate unions go
+## Phase 120 (zero 37) — the degenerate unions go
 
 `pipes/zero37-edit.sh` and `pipes/zero37-check.sh`, `stage 37`, `package tidy`. Thirteen
 `union` keywords in `zero-vim.c`, and **six of them union nothing with anything**. Five
@@ -8364,7 +8391,7 @@ and every part held, at exactly the counts it gets on swept text. It asserts no 
 sweep can move. Adding the phase moved no existing implementation key — 144 whim, slim and
 zero keys identical either side, with only z37 new.
 
-## Phase 38 — the eight terminal names go, leaving two
+## Phase 121 (zero 38) — the eight terminal names go, leaving two
 
 `pipes/zero38-edit.sh` and `pipes/zero38-check.sh`, `stage 38`, `package terminal`.
 `builtin_terminals[]` is the whole of what the core knows how to draw on: a name and a
@@ -8535,7 +8562,7 @@ phase's to take, so it was reported; the fix bounds the loop by the phase's own 
 and the rule it states is **a phase may assert anything it likes about the past; it may
 not assert that the future will not change what it measured.**
 
-## Phase 39 — `-T {term}` goes, and the command line is `+{command}`
+## Phase 122 (zero 39) — `-T {term}` goes, and the command line is `+{command}`
 
 `pipes/zero39-edit.sh` and `pipes/zero39-check.sh`, `stage 39`, `package terminal`. Zero
 phase 5 left argv as exactly two options: `+{command}`, which is how a **host** tells the
@@ -8751,7 +8778,7 @@ and since phase 36 **so are the other two**: `getpid` and `kill` are `host_raise
 words inside string literals — the two `NGETTEXT` strings in `op_shift()` that say *time*,
 and `E222`'s *"already read from"*, measured on this file.
 
-## Phase 40 — the instrument could not see the text layer
+## Phase 123 (zero 40) — the instrument could not see the text layer
 
 `pipes/zero40.sh` — one file, like phases 0, 1, 3 and 33 — `stage 40`, `package harness
 3 33 40`. It changes no source at all: r40's `zero-vim.c` is r39's byte for byte and its
@@ -8918,7 +8945,7 @@ the other 106 records is expensive rather than hard: the `--- stream` line is na
 **eighty files**, forty-seven times in zero phase 12's check alone. It deserves a pass of
 its own. Phase 32's section states the hazard and phase 16 is where it struck.
 
-## Phase 41 — freeing is free, and the arena is measured
+## Phase 124 (zero 41) — freeing is free, and the arena is measured
 
 `pipes/zero41-edit.sh` and `pipes/zero41-check.sh`, `stage 41`, `package host`.
 `host_alloc()` becomes a **bump allocator** into a fixed 1 GiB arena and `host_free()`
@@ -9082,7 +9109,7 @@ has already taken the three symbols by then, so it would pass.
 **sweep is a no-op** — its edit's output on r40 is byte-identical to r41 — so there is no
 unswept text for phase 42 to be handed at all. `make zero-verify` is 42 of 42.
 
-## Phase 42 — the swap file's residue, and what no sweep could find
+## Phase 125 (zero 42) — the swap file's residue, and what no sweep could find
 
 `pipes/zero42-edit.sh` and `pipes/zero42-check.sh`, `stage 42`, `package tidy 13 37 42`.
 The filesystem went at phases 6 to 10 and the swap file's **bookkeeping** did not:
@@ -9218,7 +9245,7 @@ indent draft above; the output with `ml_find_line()`'s descent put back to block
 refuses at the block numbers; and the edit run on its own output refuses at
 `struct block0`. `make zero-verify` is 43 of 43.
 
-## Phase 43 — a block number becomes a reference
+## Phase 126 (zero 43) — a block number becomes a reference
 
 `pipes/zero43-edit.sh` and `pipes/zero43-check.sh`, `stage 43`, `package memline 43 44
 45`. `pe_bnum` and `ip_bnum` become `bhdr_T *`, `memline_T` gains `ml_root`, and
@@ -9393,7 +9420,7 @@ swept input and does not start a stage (42-43)* and exits 1 **before any check r
 nobody can measure is phase 36's rule. Both halves are written down so the next reader
 knows it was checked and not assumed.
 
-## Phase 44 — de-page the leaf
+## Phase 127 (zero 44) — de-page the leaf
 
 `pipes/zero44-edit.sh` and `pipes/zero44-check.sh`, `stage 44`, `package memline`. A data
 block stops being a **page of bytes** and becomes an **array of line records**. Until this
@@ -9587,7 +9614,7 @@ the check states that division: **`ML_APPEND_MARK` is reachable code that can ne
 true once the fallback goes**, so no sweep can see it and the edit takes it.
 `make zero-verify` is 45 of 45.
 
-## Phase 45 — fold the node types
+## Phase 128 (zero 45) — fold the node types
 
 `pipes/zero45-edit.sh` and `pipes/zero45-check.sh`, `stage 45`, `package memline`. The
 memfile goes, and with it the last thing between the tree and its nodes. Until this phase

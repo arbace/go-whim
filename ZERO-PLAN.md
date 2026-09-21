@@ -1,5 +1,9 @@
 # ZERO-PLAN.md — how zero-vim loses the filesystem, the streams and its own `main()`
 
+> A plan, kept as written. Zero is whim phases 83 onwards now — zero phase *N* is
+> whim phase *N*+83 and `zero-vim.c` is the product `whim-vim.c` (`ZERO-GOAL.md`
+> says what moved where); the numbers and names below are zero's.
+
 `ZERO-GOAL.md` is the charter and has two phases in it. This is the plan for the
 next eleven: **the editor stops being something you pipe text through and becomes
 something you type at, on a screen, and nothing else.** It was written without

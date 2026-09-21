@@ -2,7 +2,7 @@
 # Speculate every phase of a pass at once, so the sequential pass only waits
 # where it has to.
 #
-# Usage: tools/specpass.sh slim|whim|zero    (run from the repository root)
+# Usage: tools/specpass.sh slim|whim    (run from the repository root)
 #        JOBS=n to run fewer at once than there are CPUs
 #        KEEP=1 to keep every job's work and log
 #
@@ -66,10 +66,10 @@ if [ "${1:-}" = "--one" ]; then
     for x in tools pipes cmd internal go.mod go.sum; do ln -s "$root/$x" "$d/$x"; done
     if [ -d "$root/.reference/baselines" ]; then ln -s "$root/.reference/baselines" "$d/.reference/baselines"; fi
     if [ -f "$root/slim-vim.c" ]; then ln -s "$root/slim-vim.c" "$d/slim-vim.c"; fi
-    if [ "$PIPE" = zero ]; then
-        if [ -f "$root/whim-vim.c" ]; then ln -s "$root/whim-vim.c" "$d/whim-vim.c"; fi
-        if [ -d "$root/.reference/zero-baselines" ]; then ln -s "$root/.reference/zero-baselines" "$d/.reference/zero-baselines"; fi
-    fi
+    if [ -d "$root/.reference/zero-baselines" ]; then ln -s "$root/.reference/zero-baselines" "$d/.reference/zero-baselines"; fi
+    # Phase 116's check builds q82's whim-vim.c -- the tree the zero baselines were
+    # recorded from -- and reads it out of that boundary's tar.
+    if [ -f "$root/.build-whim/q82.tar" ]; then mkdir -p "$d/.build-whim"; ln -s "$root/.build-whim/q82.tar" "$d/.build-whim/q82.tar"; fi
     start=$(date +%s)
     (
         cd "$d"
@@ -111,7 +111,7 @@ if [ "${1:-}" = "--one" ]; then
     exit 0
 fi
 
-pipe=${1:?usage: specpass.sh whim|zero}
+pipe=${1:?usage: specpass.sh whim}
 jobs=${JOBS:-$(nproc)}
 . tools/pipeline.sh "$pipe"
 scratch=$(mktemp -d "${TMPDIR:-/tmp}/specpass-$PIPE.XXXXXX")

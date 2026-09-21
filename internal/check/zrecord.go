@@ -66,7 +66,7 @@ func zRecordFiles(binary string, args []string, keys [][]byte, timeout time.Dura
 }
 
 // zRecordStream is the same runner with no `files` section and the raw STREAM
-// handed back beside the record.  zero7 needs it because E319 and :registers
+// handed back beside the record.  whim90 needs it because E319 and :registers
 // are drawn, followed by a Press ENTER prompt, and the next redraw wipes the
 // line before the cursor comes back -- which is where zscreen takes its
 // picture.  So those two live in the stream and in no snapshot.
@@ -75,7 +75,7 @@ func zRecordStream(binary string, args []string, keys [][]byte, timeout time.Dur
 	return x.text, x.stream
 }
 
-// zRecordSnaps is zRecordStream with the SNAPSHOT COUNT as well, which zero8
+// zRecordSnaps is zRecordStream with the SNAPSHOT COUNT as well, which whim91
 // needs: its four keys stop drawing a message, and one redraw fewer is the
 // check where the bell is not -- the key beeps from the same place every other
 // unused g/[/] key does, so the bell is identical either side and only the
@@ -85,7 +85,7 @@ func zRecordSnaps(binary string, args []string, keys [][]byte, timeout time.Dura
 	return x.text, x.stream, x.snaps
 }
 
-// zRecordFull adds the EXIT STATUS and the bell count, which zero11 needs
+// zRecordFull adds the EXIT STATUS and the bell count, which whim94 needs
 // because its whole phase is a status: `:q` with nothing after it draws E37,
 // runs out of stdin and exits 1 on the binary that refuses, and exits 0 on the
 // one that quits.  No recording can see that -- every zcases case ends with a
@@ -96,7 +96,7 @@ func zRecordFull(binary string, args []string, keys [][]byte, timeout time.Durat
 }
 
 // zRecordTimed adds the ELAPSED TIME of the run alone -- not the staging --
-// which zero12 needs: change_warning() ends in ui_delay(1002L, TRUE), and a
+// which whim95 needs: change_warning() ends in ui_delay(1002L, TRUE), and a
 // second of wall clock is the clearest evidence there is that the warning was
 // really drawn and not merely a string in the binary.
 func zRecordTimed(binary string, args []string, keys [][]byte, timeout time.Duration) (string, string, int64) {

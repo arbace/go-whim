@@ -15,7 +15,7 @@
 # for the file: the shell ran thirteen programs a round, each re-reading and
 # rewriting a multi-megabyte file, and the Go reads once, transforms in memory,
 # and writes twice -- for deadsweep, which asks gcc about the file, and
-# deadenums, which asks tools/enumvals.sh.  Measured on zero42's unswept
+# deadenums, which asks tools/enumvals.sh.  Measured on whim125's unswept
 # output, 79,380 lines: 15.675s became 8.353s and the output was identical.
 # What is left is gcc, which neither version can avoid.
 #

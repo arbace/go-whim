@@ -664,7 +664,7 @@ func indexOf(s []string, v string) int {
 }
 
 // contains is GENERIC because two sessions wrote one each and they collided:
-// whim80's over []string and zero25's over []int.  One generic definition is
+// whim80's over []string and whim108's over []int.  One generic definition is
 // the merge, and neither call site changed.
 func contains[T comparable](s []T, v T) bool {
 	for _, x := range s {
@@ -699,7 +699,7 @@ func minus(a, b []string) []string {
 }
 
 // first is GENERIC for the same reason contains is: whim80 slices []string and
-// zero42 slices []int, and one definition is cheaper than two names.
+// whim125 slices []int, and one definition is cheaper than two names.
 func first[T any](s []T, n int) []T {
 	if len(s) > n {
 		return s[:n]

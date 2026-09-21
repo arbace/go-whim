@@ -6,8 +6,13 @@ expecting a filesystem to have been installed for it.**
 
 ```
 slim-vim.c = F(upstream@sha)          SLIM-GOAL.md, twelve phases
-whim-vim.c = G(slim-vim.c)            this document
+whim-vim.c = G(slim-vim.c)            this document, phases 0-82;
+                                      ZERO-GOAL.md, phases 83-128
 ```
+
+Phases 83 onwards were a second pipeline, zero, handed the committed result of
+phase 82 and numbered from 0; they are this one's now, and `ZERO-GOAL.md` is
+their document. This one is about 0 to 82.
 
 The two pipelines are the same construct — a phase is a function of the tree it
 is handed, memoized in three tiers — and differ only in what they remove.
@@ -133,10 +138,11 @@ binary against exactly that, and a stage checks its last phase's.
    `tools/phasebuild.sh` and the probes. Neither sweeps at its end and neither checks
    the delta; anything the check needs from the edit goes in `$state` by name.
 2. **Declare its delta** in `pipes/whim.delta`: a line `N  command… case:name…`, or
-   none if the harness sees nothing new — before running it.
-3. **Place it in the schedule.** Add N to `WHIMPHASES` in `whim.mk` and to the whim
-   `PHASE_LIST` in `tools/pipeline.sh`, then add `stage N` to `pipes/whim.stages` as a
-   stage of its own, or widen the last stage to end at N. It must start a stage if its edit counts anchors against,
+   none if the harness sees nothing new — before running it. (From phase 83 on the
+   delta is `pipes/zero.delta`'s, against other baselines: `ZERO-GOAL.md`.)
+3. **Place it in the schedule.** Add N to the `phases` line of `pipes/whim.stages`,
+   then add `stage N` there as a stage of its own, or widen the last stage to end
+   at N. It must start a stage if its edit counts anchors against,
    or computes its cut from, swept text (declare `need N swept`), or needs a silent
    compile (`need N silent`). It must not share a stage with an earlier phase whose
    check it breaks (declare `apart P N`) — run the earlier checks on its result to

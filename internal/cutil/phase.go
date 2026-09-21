@@ -2,7 +2,7 @@ package cutil
 
 // The part of cutil.py the SWEEP does not reach, added as a phase program
 // needs it.  The package docstring says these are "left out until something
-// needs them"; zero39 needs both.
+// needs them"; whim122 needs both.
 
 // RMatch returns the index of the OPENER matching the closer at b[i], or -1 if
 // the text is unbalanced.
@@ -52,7 +52,7 @@ func RMatch(b []byte, i int) int {
 // would delete literal contents.
 //
 // Its use is comparing two statements for sameness when only their layout
-// differs -- zero39 asks whether a `-` arm and the final `else` arm are the
+// differs -- whim122 asks whether a `-` arm and the final `else` arm are the
 // same statement before collapsing the chain, and they are written with
 // different indentation.
 func CollapseWS(s []byte) []byte {

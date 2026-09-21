@@ -120,10 +120,15 @@ driven() {
 delta_lines() {
     [ -f "pipes/$IMPL.delta" ] || return 0
     case $progs in *-edit.sh*) ;; *) return 0 ;; esac
-    awk -v N="${phase#*-}" -v ONLY="${edit_only:-}" '
-        /^[ \t]*#/ || NF == 0 { next }
-        /^[0-9]/ { p = $1 + 0 }
-        p <= N && (ONLY == "" || p == N) { print }' "pipes/$IMPL.delta"
+    # Two files, one per set of baselines (tools/pipeline.sh, ZERO_FROM): each
+    # numbers its phases in the one list, so a phase's lines are in one of them.
+    for df in "pipes/$IMPL.delta" pipes/zero.delta; do
+        [ -f "$df" ] || continue
+        awk -v N="${phase#*-}" -v ONLY="${edit_only:-}" '
+            /^[ \t]*#/ || NF == 0 { next }
+            /^[0-9]/ { p = $1 + 0 }
+            p <= N && (ONLY == "" || p == N) { print }' "$df"
+    done
     if [ -z "${edit_only:-}" ]; then
         cat "$PDELTA"
         for e in $(deps "$PDELTA" | sort -u); do [ -f "$e" ] && cat "$e"; done

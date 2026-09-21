@@ -7,18 +7,15 @@ slim-vim.c
 # The products' binaries.
 slim-vim
 whim-vim
-zero-vim
 
 # The core half of zero-vim.c, cut at the first #include by `make editor.c`.
 editor.c
 
 # The work directories: one file and a makefile each, rebuilt on demand.
 whim/
-zero/
 
 # What a pass leaves behind: a tar and a content digest per boundary.
 .build-whim/
-.build-zero/
 
 # The recorded baselines and boundary digests.  Data a pass produces, and the one
 # thing worth keeping across passes: every delta is measured against it.

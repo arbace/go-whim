@@ -1,34 +1,30 @@
 #!/bin/sh
-# What zero-vim does differently from whim-vim, as a check rather than a report.
+# What whim-vim does from phase 83 on, differently from q82, as a check rather
+# than a report.
 #
 # Usage: tools/zerodelta.sh <binary> <source> --phase N
 #        tools/zerodelta.sh --declared N
 #
-# tools/whimdelta.sh's rule against a different instrument.  --phase N records the
+# tools/whimdelta.sh's rule against a different instrument, and whimdelta.sh hands
+# every phase from ZERO_FROM (tools/pipeline.sh) on to it.  --phase N records the
 # binary with tools/zrecord.sh and hands the recording, the baselines and
 # pipes/zero.delta to zcompare, which requires **exactly** the declared
 # difference: every record that moved is declared, every declaration moved
 # something, and nothing else differs at all.  --declared N prints what phase N
 # itself declares, for a phase program that wants to assert its own list.
 #
-# THE BASELINES ARE WHIM-VIM'S: .reference/zero-baselines, recorded by zero phase 0
-# from the committed whim-vim.c built with whim's own compile line.  So the delta is
-# the difference from whim, not from slim; it is CUMULATIVE, as whim's is against
-# slim -- the lines up to phase N are the whole difference from the input at N --
-# and it starts empty.  Recording the baselines from the pipeline's INPUT is not
-# the mistake CLAUDE.md warns about, which is a pipeline re-recording from its own
-# current binary and then agreeing with itself by construction.  whim-vim.c is
-# immutable to this pipeline; zero-vim is what gets compared.
+# THE BASELINES ARE q82'S: .reference/zero-baselines, recorded by phase 83 from the
+# tree it is handed, built with the compile line that tree carries.  So the delta is
+# the difference from q82, not from slim; it is CUMULATIVE, as whim.delta is against
+# slim -- the lines up to phase N are the whole difference from q82 at N -- and it
+# starts empty at 83.  pipes/whim83.sh says why a recording of q82 is not the mistake
+# CLAUDE.md warns about: nothing from 83 on can reach it.
 #
-# THE INSTRUMENT IS THE SCREEN (zero phase 3, ZERO-PLAN.md 2): keystrokes in on
-# stdin, escape sequences out on stdout, and a screen per redraw rebuilt from them.
-# The old file-based harnesses -- behaviour.py, exsweep.py -- are whim's and slim's
-# and are untouched; they cannot be zero's, because the editor they measure is on
-# its way to having no file to write and no stream to print on.
-#
-# A separate tool and not a mode of whimdelta.sh, because whimdelta.sh is hashed into
-# every whim stage's key: a zero line there would re-run all of whim.  This file is
-# named by nothing whim runs.
+# THE INSTRUMENT IS THE SCREEN (phase 86, ZERO-PLAN.md 2): keystrokes in on stdin,
+# escape sequences out on stdout, and a screen per redraw rebuilt from them.  The
+# file-based harnesses -- behaviour, exsweep -- are phases 0-82's and are untouched;
+# they cannot measure these, because the editor they measure is on its way to having
+# no file to write and no stream to print on.
 #
 # "Six commands differ" is a check.  "Some commands differ" is not.
 set -eu

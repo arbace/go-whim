@@ -1,7 +1,7 @@
 #!/bin/sh
 # Check every recorded boundary of a pipeline at once, on as many CPUs as there are.
 #
-# Usage: tools/verifypass.sh slim|whim|zero [unit...]      (run from the repository root)
+# Usage: tools/verifypass.sh slim|whim [unit...]      (run from the repository root)
 #        JOBS=n to run fewer at once than there are CPUs
 #        KEEP=1 to keep every phase's work and log even when all reproduce
 #
@@ -75,16 +75,16 @@ if [ "${1:-}" = "--one" ]; then
     # over a file, `sed -i` without a temp, a `cp` onto the original.
     for x in tools pipes cmd internal go.mod go.sum; do ln -s "$scratch/.src/$x" "$d/$x"; done
     ln -s "$root/.reference/baselines" "$d/.reference/baselines"
-    # The whim pipeline's declared input, which its phase 0 compares the seed
-    # against by name, and, for zero only, zero's.  Read-only, like everything else
-    # linked in.  Zero's baselines are linked only where they exist: zero phase 0
-    # compares a recording with them and never writes over them, and records into
-    # the scratch root's own .reference/ when there are none.
+    # The pipeline's declared input, which phase 0 compares the seed against by
+    # name.  Read-only, like everything else linked in.  The zero baselines are
+    # linked only where they exist: phase 83 compares a recording with them and
+    # never writes over them, and records into the scratch root's own .reference/
+    # when there are none.
     if [ -f "$root/slim-vim.c" ]; then ln -s "$root/slim-vim.c" "$d/slim-vim.c"; fi
-    if [ "$PIPE" = zero ]; then
-        if [ -f "$root/whim-vim.c" ]; then ln -s "$root/whim-vim.c" "$d/whim-vim.c"; fi
-        if [ -d "$root/.reference/zero-baselines" ]; then ln -s "$root/.reference/zero-baselines" "$d/.reference/zero-baselines"; fi
-    fi
+    if [ -d "$root/.reference/zero-baselines" ]; then ln -s "$root/.reference/zero-baselines" "$d/.reference/zero-baselines"; fi
+    # Phase 116's check builds q82's whim-vim.c -- the tree the zero baselines were
+    # recorded from -- and reads it out of that boundary's tar.
+    if [ -f "$root/.build-whim/q82.tar" ]; then mkdir -p "$d/.build-whim"; ln -s "$root/.build-whim/q82.tar" "$d/.build-whim/q82.tar"; fi
     [ -n "$want" ] || { echo "$TAG$u UNRECORDED" > "$res"; exit 0; }
     start=$(date +%s)
     (
@@ -131,7 +131,7 @@ if [ "${1:-}" = "--one" ]; then
     exit 0
 fi
 
-pipe=${1:?usage: verifypass.sh whim|zero [unit...]}
+pipe=${1:?usage: verifypass.sh whim [unit...]}
 shift
 jobs=${JOBS:-$(nproc)}
 . tools/pipeline.sh "$pipe"

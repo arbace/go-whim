@@ -95,7 +95,7 @@ func runFieldRef(args []string) int {
 		// with no `&` written, and `b0p->b0_id[0] = x` reads the member only to
 		// index it -- both are the member's ADDRESS and neither consults what
 		// it holds.  Counting them as reads is correct C and answers the wrong
-		// question: it makes zero42's eight write-only `struct block0` members
+		// question: it makes whim125's eight write-only `struct block0` members
 		// look read, which is exactly the claim that phase had to make by hand.
 		case f.Type() != nil && f.Type().Kind() == cc.Array:
 			t.addrs++

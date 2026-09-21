@@ -44,10 +44,9 @@ row() {
 }
 
 row slim-vim slim-vim.c slim-vim
-row whim-vim whim-vim.c whim-vim
-# zero's compile line is its own: -no-pie from the seed, -fno-stack-protector from
-# phase 1.  zero.mk states it once, as ZEROCFLAGS and ZEROLDFLAGS, and `make score`
-# passes both; the defaults here are for a run by hand.  The flags are applied to the
-# object as well as the binary, because __stack_chk_fail is a symbol the default
-# CFLAGS put there.
-row zero-vim zero-vim.c zero-vim "${ZEROLDFLAGS:--static -no-pie -s}" "${ZEROCFLAGS:--O0 -fno-stack-protector}"
+# whim-vim's compile line is the last boundary's: -no-pie from phase 83,
+# -fno-stack-protector from phase 84.  whim.mk states it once, as WHIMCFLAGS and
+# WHIMLDFLAGS, and `make score` passes both; the defaults here are for a run by hand.
+# The flags are applied to the object as well as the binary, because
+# __stack_chk_fail is a symbol the default CFLAGS put there.
+row whim-vim whim-vim.c whim-vim "${WHIMLDFLAGS:--static -no-pie -s}" "${WHIMCFLAGS:--O0 -fno-stack-protector}"

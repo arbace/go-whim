@@ -11,7 +11,7 @@ import "regexp"
 // file cannot.
 
 // MuslCaseLibc is muslcase.libc(): this machine's libc towupper/towlower, as
-// two {codepoint: offset} maps.  zero29 re-derives the musl half of the
+// two {codepoint: offset} maps.  whim112 re-derives the musl half of the
 // case-map union from it rather than from the table the phase deleted.
 func MuslCaseLibc() (map[int]int, map[int]int, error) { return muslCaseLibc() }
 
@@ -19,7 +19,7 @@ func MuslCaseLibc() (map[int]int, map[int]int, error) { return muslCaseLibc() }
 const MuslCasePlanes = muslCasePlanes
 
 // HostVocab is zhostonly.VOCAB: the words a core that has given its host
-// everything must no longer say.  zero36 reads which of them the core above
+// everything must no longer say.  whim119 reads which of them the core above
 // the boundary still says.
 func HostVocab() *regexp.Regexp { return vocab }
 

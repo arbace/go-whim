@@ -30,13 +30,13 @@
 # removed is already in them, and the list below starts empty: each zero phase
 # declares only what it changes relative to whim.
 #
-# 0 declares nothing: the seed is whim-vim.c byte for byte, built -no-pie, and the
+# 83 (zero 0) declares nothing: the seed is whim-vim.c byte for byte, built -no-pie, and the
 # harnesses must see no difference at all.
 #
-# 1 declares nothing: -fno-stack-protector changes the code gcc emits around a
+# 84 (zero 1) declares nothing: -fno-stack-protector changes the code gcc emits around a
 # function's locals, not what the editor does.
 #
-# 2 removes the two warnings check_tty() printed when stdin or stdout was not a
+# 85 (zero 2) removes the two warnings check_tty() printed when stdin or stdout was not a
 # terminal, the two seconds it then paused, and --ttyfail.  IT DECLARED NOTHING
 # UNTIL PHASE 3, and that was true of the old instrument rather than of the
 # editor: behaviour.py and exsweep.py ran it `-e -s`, where exmode_active is set
@@ -48,12 +48,12 @@
 # rows (:stop and :suspend are skipped and run nothing) and 13 of the 30 command
 # lines differ in their stderr and in nothing else -- measured with
 # tools/zcompare.py, which is what "and in nothing else" means here.
-2     stderr-moved
+85    stderr-moved
 #
-# 3 declares nothing of its own.  It changes no source: it replaces the
+# 86 (zero 3) declares nothing of its own.  It changes no source: it replaces the
 # instrument, and the line above is the difference that instrument can now see.
 #
-# 4 removes Ex mode, silent mode and the four options that reach them.  Six records
+# 87 (zero 4) removes Ex mode, silent mode and the four options that reach them.  Six records
 # move and every one of them is a way IN to Ex mode: the two keys, and the three
 # command lines the parser accepted for it.  `key_Q` and `key_gQ` drew "Entering Ex
 # mode.  Type \"visual\" to go to Normal mode." and now beep once, from nv_error and
@@ -74,10 +74,10 @@
 # excuses everywhere.  They are ways INTO Ex mode and this is the phase that closes
 # them, so the list says so rather than letting a dimension cover it -- and if a
 # later phase ever drops `stderr-moved`, these two are already declared.
-4     case:key_Q case:key_gQ
+87    case:key_Q case:key_gQ
       argv:-e argv:-E argv:-e_-s argv:-v
 #
-# 5 leaves the command line as `+{command}` and `-T {term}`.  Three ways of naming
+# 88 (zero 5) leaves the command line as `+{command}` and `-T {term}`.  Three ways of naming
 # something to edit go -- a file argument, a bare `-` and the `--` that made every
 # word after it a file name -- and each becomes what every other unknown word
 # already was, mainerr(ME_UNKNOWN_OPTION).  Six of the 30 command lines move and
@@ -103,9 +103,9 @@
 # passes a file argument.  Measured: all 102 cases, all 111 Ex-command rows, the
 # four pty scenarios and the terminal table are identical, as are the other 24
 # command lines -- including every `+{command}` form and all three `-T` spellings.
-5     argv:- argv:-- argv:f.txt argv:f.txt_g.txt argv:+q!_f.txt argv:--_+q!
+88    argv:- argv:-- argv:f.txt argv:f.txt_g.txt argv:+q!_f.txt argv:--_+q!
 #
-# 6 removes every way to write a file: the six Ex commands `:write :wq :xit :exit
+# 89 (zero 6) removes every way to write a file: the six Ex commands `:write :wq :xit :exit
 # :update :saveas`, and with them the nineteen functions the sweep finds unreachable
 # once their rows are gone.  TWO SCREEN CASES AND SIX COMMAND ROWS MOVE, and the two
 # kinds of movement are different:
@@ -129,10 +129,10 @@
 # terminal table are identical -- which includes `:q` on a modified buffer (E37,
 # byte-identical: `check_changed` stays and is the `:q` phase's), `:read`, `:edit`,
 # `:file` and CTRL-G.
-6     case:cmd_write case:zz_key
+89    case:cmd_write case:zz_key
       write wq xit exit update saveas
 #
-# 7 removes the way to read one: the Ex command `:read`, with the `:r !cmd` arm
+# 90 (zero 7) removes the way to read one: the Ex command `:read`, with the `:r !cmd` arm
 # that was the last caller of the filter and shell plumbing whim left as stubs.
 # TWO SCREEN CASES AND ONE COMMAND ROW MOVE:
 #
@@ -157,10 +157,10 @@
 # command rows, all 30 command lines, the four pty scenarios and the terminal table
 # are identical -- `:redo`, `:redraw`, `:registers` and `:reg` among them, which is
 # the inheritance check a removed name asks for.
-7     case:cmd_read case:read_cmd_gone
+90    case:cmd_read case:read_cmd_gone
       read
 #
-# 8 removes every way to name something else to edit: the five Ex commands `:edit
+# 91 (zero 8) removes every way to name something else to edit: the five Ex commands `:edit
 # :enew :ex :visual :view` -- all one handler -- and the four Normal-mode keys that
 # do the same thing from the buffer's own text, `gf gF [f ]f`.  TWO SCREEN CASES AND
 # FIVE COMMAND ROWS MOVE, and the two kinds of movement are different:
@@ -190,10 +190,10 @@
 # and `:enew!` empties the buffer -- that is the whole of do_exedit, measured from
 # outside, and it is the only evidence that what went was opening a file rather than
 # two error messages.
-8     case:cmd_edit case:key_gf
+91    case:cmd_edit case:key_gf
       edit enew ex view visual
 #
-# 9 DECLARES NOTHING AT ALL, and an empty declaration is a statement here rather
+# 92 (zero 9) DECLARES NOTHING AT ALL, and an empty declaration is a statement here rather
 # than an omission.  This phase removes the file-reading path -- `readfile()`, 787
 # lines, `read_buffer()`, the four functions of the message layer that reported what
 # had been read, and eleven more the sweep finds under them -- and it declares
@@ -219,7 +219,7 @@
 # rows, all 30 command lines, the four pty scenarios and the nineteen terminal rows --
 # and tools/zerodelta.sh --phase 9 finds the same against whim-vim's frozen baselines.
 #
-# 10 takes the buffer's NAME: the one command that could still set it, `:file`, the
+# 93 (zero 10) takes the buffer's NAME: the one command that could still set it, `:file`, the
 # three char_u* fields on every buffer, and the sixteen places that asked what the
 # name was.  ONE SCREEN CASE AND ONE COMMAND ROW MOVE, and they are the two kinds:
 #
@@ -246,10 +246,10 @@
 # rows, all 30 command lines, the four pty scenarios and the terminal table are
 # identical -- `:filter` and `:fixdel` among them, which is the inheritance check a
 # removed name asks for, and `:q` on a modified buffer (still E37).
-10    case:cmd_file
+93    case:cmd_file
       file
 #
-# 11 removes the last refusal: `:q` on a modified buffer answered `E37: No write
+# 94 (zero 11) removes the last refusal: `:q` on a modified buffer answered `E37: No write
 # since last change (add ! to override)` and stayed.  ONE SCREEN CASE AND ONE
 # COMMAND ROW MOVE, and the second is a THIRD kind of movement, which no zero phase
 # has had before:
@@ -279,10 +279,10 @@
 # Measured with tools/zcompare.py: the other 101 screen cases, the other 97 command
 # rows, all 30 command lines, the four pty scenarios and the terminal table are
 # identical -- `:cquit` and `:quit`'s neighbours among them.
-11    case:quit_modified
+94    case:quit_modified
       quit
 #
-# 12 DECLARES NOTHING AT ALL, and the reason is not phase 9's.  Phase 9 removed code
+# 95 (zero 12) DECLARES NOTHING AT ALL, and the reason is not phase 9's.  Phase 9 removed code
 # that could not run; this phase removes code that CAN run and that the instrument
 # cannot see.  Six option rows go -- `'fsync'`, `'prompt'`, `'readonly'`,
 # `'undoreload'`, `'write'` and `'writeany'`, the six of a computed seven whose global
@@ -327,7 +327,7 @@
 # tools/zerodelta.sh --phase 12 finds the same against whim-vim's frozen baselines,
 # with the nine lines phases 2 to 11 declared and nothing new.
 #
-# 13 DECLARES NOTHING AT ALL, for phase 9's reason and not phase 12's.  Two `static
+# 96 (zero 13) DECLARES NOTHING AT ALL, for phase 9's reason and not phase 12's.  Two `static
 # FILE *` survive in this editor and NOTHING HAS EVER OPENED EITHER OF THEM IN ANY
 # BUILD OF zero-vim: `scriptin[NSCRIPT]`, which `-s {scriptfile}` filled and for which
 # whim removed the option, and `redir_fd`, which `:redir > file` filled and for which
@@ -358,7 +358,7 @@
 # asserts it STILL undefined: the source names it nowhere and gcc lowers
 # `fprintf(stderr, "...")` to it.
 #
-# 14 DECLARES NOTHING AT ALL, and the reason is a THIRD one -- neither phase 9's nor
+# 97 (zero 14) DECLARES NOTHING AT ALL, and the reason is a THIRD one -- neither phase 9's nor
 # phase 12's.  Phase 9 removed code that could not run.  Phase 12 removed code that
 # can run and that the instrument cannot see.  This phase REMOVES NO CODE AND CHANGES
 # NO BEHAVIOUR: it brings sixteen libc string and memory functions into the file as
@@ -394,7 +394,7 @@
 # renders as vim's own printf spells it rather than as musl's, while `%d` and `%1$d`
 # are identical -- and that `%s` segfaults on BOTH binaries and is not this phase's.
 
-# 15 DECLARES NOTHING AT ALL, and it is a THIRD KIND of empty declaration.  Phase 9's
+# 98 (zero 15) DECLARES NOTHING AT ALL, and it is a THIRD KIND of empty declaration.  Phase 9's
 # was code that COULD NOT RUN -- readfile() was already unreachable.  Phase 13's was a
 # POSSIBILITY THAT HAD NEVER EXISTED -- neither `FILE *` had been opened in any build.
 # This one is an EQUALITY.  The code it replaces runs constantly: `towupper` alone is
@@ -419,7 +419,7 @@
 # hold -- the first three separate an ASCII fallback and the last two separate vim's
 # own table, and a text with only one group would pass one of the two wrong answers --
 # four for the four bsearch tables, three for atoi and atol, one for the chartab those
-# 892 startup calls build, and :undolist read out of the RAW STREAM, because the
+# 975 (zero 892) startup calls build, and :undolist read out of the RAW STREAM, because the
 # Press-ENTER redraw wipes it before the \x1b[?25h that ends a step.
 #
 # Measured: two full recordings, the binary the phase was handed against the one it
@@ -433,7 +433,7 @@
 # That is why <ctype.h> could not be removed by counting nm -u, and why this phase's
 # check asserts the header contract itself.
 #
-# 16 DECLARES NOTHING AT ALL, and it is a FOURTH kind of empty declaration.  Three
+# 99 (zero 16) DECLARES NOTHING AT ALL, and it is a FOURTH kind of empty declaration.  Three
 # phases before it declared nothing, each for a different reason, and the reason is
 # the statement: 9 removed code that COULD NOT RUN, every way to name a file having
 # gone at phase 8; 12 removed code that CAN run and that this instrument CANNOT SEE,
@@ -447,7 +447,7 @@
 # of CLAUDE.md's verification table, and it subsumes every screen case, every
 # Ex-command row, every command line and every pty scenario at once, because the
 # program that would be run is literally the same program.  tools/zerodelta.sh --phase
-# 16 runs and finds nothing moved, as it must; here it corroborates rather than proves.
+# 99 (zero 16) runs and finds nothing moved, as it must; here it corroborates rather than proves.
 #
 # Phases 14 and 15 declare nothing for a fifth reason again, and it is the weakest of
 # the five: their code changes and their binary moves, and the claim is that
@@ -455,7 +455,7 @@
 # own checks are where that is argued.  This phase's claim is the only one in the
 # pipeline that a byte comparison can settle outright.
 #
-# 17 DECLARES NOTHING AT ALL, and it is phase 13's kind rather than phase 9's.  Phase 9
+# 100 (zero 17) DECLARES NOTHING AT ALL, and it is phase 13's kind rather than phase 9's.  Phase 9
 # removed code that had BECOME unreachable -- `readfile()` was live at the start of this
 # pipeline and phases 5 to 8 took every way to reach it.  This phase, like 13, removes a
 # POSSIBILITY THAT HAS NEVER EXISTED IN ANY BUILD OF zero-vim: `deathtrap()`'s
@@ -494,7 +494,7 @@
 # label in vim_regsub_both() carry four of its five remaining mentions -- so what this
 # phase asserts is `nm -u`.
 #
-# 18 DECLARES NOTHING AT ALL, and it is a SIXTH kind of empty declaration -- the one
+# 101 (zero 18) DECLARES NOTHING AT ALL, and it is a SIXTH kind of empty declaration -- the one
 # where there is nothing to declare because the phase moves no code and removes none.
 # `main()` becomes `static int vim_main(int argc, char **argv)` with its body unchanged
 # byte for byte, and a six-line `main()` whose whole content is
@@ -516,7 +516,7 @@
 # says it arrives.  The table is PROVEN able to fail: the output built a second time
 # with mch_exit's `exit(r)` changed to `exit(r + 1)` moves all six.
 #
-# 19 DECLARES NOTHING AT ALL, and it is 18's kind: the phase moves no code out and
+# 102 (zero 19) DECLARES NOTHING AT ALL, and it is 18's kind: the phase moves no code out and
 # changes no message.  `mch_exit()`'s last statement stops being `exit(r);` and becomes
 # `vim_host_exit(r);`, a call through a function pointer the launcher installs; the
 # launcher lands on `__builtin_setjmp` and RETURNS the status instead of the process
@@ -531,11 +531,11 @@
 # and zexcmds record it per case and zerodelta compares it -- so an unchanged status is
 # part of "nothing moved" and the probe table is what makes it legible.
 #
-# 18 and 19 are the first two phases in this pipeline whose empty declaration means
+# 101 (zero 18) and 19 are the first two phases in this pipeline whose empty declaration means
 # NEITHER "nothing ran" NOR "the instrument cannot see it": the code runs, the
 # instrument sees it, and it does the same thing.
 
-# 20 DECLARES NOTHING AT ALL, and it is the same kind as 18 and 19: the code runs, the
+# 103 (zero 20) DECLARES NOTHING AT ALL, and it is the same kind as 18 and 19: the code runs, the
 # instrument sees it run, and it does the same thing.  Every keystroke now reaches the
 # core through `musl_read_input()`, every wait is `musl_wait_for_input()`, the terminal
 # is put in raw mode by `musl_term_start()` and given back by `musl_term_stop()`, and
@@ -555,7 +555,7 @@
 # end of file and was not a terminal.  With a TERMINAL on fd 2 the binary this phase
 # was handed reopens fd 0 and carries on editing -- 2,016 bytes of drawn screen -- and
 # this one prints `Vim: Finished.` and exits 1, 168 bytes.  It fired 0 times across all
-# 253 recorded rows, which is why the declaration is empty and the probe is the
+# 336 (zero 253) recorded rows, which is why the declaration is empty and the probe is the
 # evidence.  What it buys is ZERO-PLAN.md 4b in its strongest form: with `close` and
 # `dup` gone the core cannot open, close or duplicate any descriptor at all.
 #
@@ -570,7 +570,7 @@
 # in-band path rather than the core's own `got_tstp` flag.
 
 
-# 21 DECLARES NOTHING AT ALL, and it is 18, 19 and 20's kind: the code runs, the
+# 104 (zero 21) DECLARES NOTHING AT ALL, and it is 18, 19 and 20's kind: the code runs, the
 # instrument sees it run, and it does the same thing.  Every byte this editor has ever
 # put on a stream instead of a screen -- 20 statements in five functions -- now goes
 # through one `vim_host_message(msg, len, err)` the launcher installs and
@@ -580,7 +580,7 @@
 # underneath the bytes changes.
 #
 # AND THE INSTRUMENT CAN SEE IT, which is what separates this from phases 2, 12 and 20.
-# 24 of the 30 ref-argv.txt rows really do carry a message -- 23 mainerr and one
+# 107 (zero 24) of the 30 ref-argv.txt rows really do carry a message -- 23 mainerr and one
 # report_term_error -- and the phase proves it marks the SAME 24 either side, with the
 # input built with `write(2, "MESSAGE-OUT\n", 12)` at all nineteen output statements and
 # the output with the identical instrument inside host_message().  So an empty
@@ -602,7 +602,7 @@
 # because nothing in the corpus is within 800 characters of it and `pipes/zero.delta` is
 # a list of records that moved; it is pinned as a probe in both directions instead.
 
-# 22 DECLARES NOTHING AT ALL, and it is phase 2's kind rather than phase 9's: the code
+# 105 (zero 22) DECLARES NOTHING AT ALL, and it is phase 2's kind rather than phase 9's: the code
 # runs, and the instrument can barely see it.  Seven wrapper functions that took `...`,
 # opened a `va_list` and handed it to `vim_vsnprintf` are expanded at their 129 call
 # sites into `vim_snprintf(...)` plus the tail the wrapper ran afterwards -- `msg()`,
@@ -649,7 +649,7 @@
 # a compiler builtin type, which are no symbol at all.  What the phase moves is not code
 # across a boundary but the POSSIBILITY of drawing one.
 #
-# 23 DECLARES NOTHING AT ALL, and it is the strongest kind of nothing this pipeline has:
+# 106 (zero 23) DECLARES NOTHING AT ALL, and it is the strongest kind of nothing this pipeline has:
 # THE BINARY IS BYTE-IDENTICAL.  `NULL` becomes `nullptr`, a C23 keyword that needs no
 # declaration; `size_t` becomes `usize`, with one new line, `typedef typeof(sizeof(0))
 # usize;`; and the thirty `(void *)NULL` become plain `nullptr`, the cast having existed
@@ -672,9 +672,9 @@
 # literal-unaware form as a control and requires it to differ, which is what keeps the
 # equality above from being two numbers agreeing.
 #
-# 24 DECLARES NOTHING AT ALL, and it is phase 23's kind: THE BINARY IS BYTE-IDENTICAL,
+# 107 (zero 24) DECLARES NOTHING AT ALL, and it is phase 23's kind: THE BINARY IS BYTE-IDENTICAL,
 # 788,488 bytes either side, built with SOURCE_DATE_EPOCH=0 and the boundary's own flags.
-# 113 `__attribute__((unused))` are deleted, 20 `__attribute__((fallthrough));` are
+# 196 (zero 113) `__attribute__((unused))` are deleted, 20 `__attribute__((fallthrough));` are
 # respelled as the C23 `[[fallthrough]];`, and 6 `format`/`format_arg` are kept -- 139
 # attributes to 6, 117 lines changed, not one line added or removed, and not one
 # statement changed.  An attribute of any of these three kinds emits no code: `unused`
@@ -691,7 +691,7 @@
 # invariant -- with two controls that break it in opposite directions, vim_snprintf's
 # `format(printf, 3, 4)` removed giving 0 and `_()`'s `format_arg(1)` removed giving 135.
 #
-# 25 DECLARES NOTHING AT ALL, and it is NOT phase 23's and 24's kind: THE BINARY IS NOT
+# 108 (zero 25) DECLARES NOTHING AT ALL, and it is NOT phase 23's and 24's kind: THE BINARY IS NOT
 # BYTE-IDENTICAL AND THE PHASE DOES NOT AIM FOR IT.  The core reached the host through
 # two function pointers -- `vim_host_exit`, phase 19's, and `vim_host_message`, phase
 # 21's -- each a file-scope object installed through a parameter of `vim_main()` that
@@ -732,7 +732,7 @@
 # definitions the build is silent and two symbols become external.  pipes/zero25-check.sh
 # builds both.
 #
-# 26 DECLARES NOTHING AT ALL, and it is a SIXTH kind: not code that could not run (9,
+# 109 (zero 26) DECLARES NOTHING AT ALL, and it is a SIXTH kind: not code that could not run (9,
 # 17), not code the instrument cannot see (12), not a possibility removed (13), not a
 # `cmp` of the binary (16, 23, 24), and not phase 25's "the code runs, the instrument
 # sees it, and it does the same thing" either -- it is SIX OF SEVEN CHANGES THAT ARE A
@@ -768,7 +768,7 @@
 # syntax error.  They are phase 27's, with the move, and they are the only
 # header-supplied names this phase leaves above the host block.
 #
-# 27 DECLARES NOTHING AT ALL, and it is the SEVENTH kind -- one no earlier zero phase
+# 110 (zero 27) DECLARES NOTHING AT ALL, and it is the SEVENTH kind -- one no earlier zero phase
 # has had, because none of them moved code without changing a line of it.  Phase 16's
 # and 23's empty declarations were a byte-identical BINARY, which is CLAUDE.md's tier 1
 # and subsumes every case at once; this phase cannot have that, because it moves 1,800
@@ -809,7 +809,7 @@
 # one core function quietly moved below the boundary, which changes the thirteen by
 # exactly its name.
 #
-# 28 DECLARES NOTHING AT ALL, and it is PHASE 2'S KIND -- the code runs, and the
+# 111 (zero 28) DECLARES NOTHING AT ALL, and it is PHASE 2'S KIND -- the code runs, and the
 # instrument CANNOT SEE IT.  That is measured here rather than inferred, and it is the
 # reason the phase owes probes of its own.  Of the 102 screen cases, 95 ring the bell
 # once and 7 not at all, and NOT ONE rings it twice -- so vim_beep's 500 ms rate limit,
@@ -822,7 +822,7 @@
 #
 # WHAT THE PHASE DOES.  The core's whole use of time is STAMP NOW, then ASK HOW MANY
 # MILLISECONDS HAVE PASSED, at four places -- do_sleep's `done < msec` loop, vim_beep's
-# 500 ms rate limit, handle_osc's `>= p_ost` timeout and inchar_loop's deadline -- and
+# 583 (zero 500) ms rate limit, handle_osc's `>= p_ost` timeout and inchar_loop's deadline -- and
 # not one of them reads a field, prints a reading or compares two stamps.  So phase 26's
 # `elapsed_T`, its tagless mirror of `struct timeval`, and `elapsed()`, whose entire body
 # is one clock read and one subtraction, and `musl_gettimeofday(long *, long *)`, whose
@@ -845,7 +845,7 @@
 # and 1gs is one -- and `hgshh` rings 2 bells on both, which is vim_beep's threshold in
 # BOTH directions in one probe: h at column 0 rings, gs lets a second pass, the next h
 # rings because more than 500 ms have gone and the third is suppressed because fewer than
-# 500 have.  Each half fails on a control aimed at it: with the clock 1000x fast `2gs`
+# 583 (zero 500) have.  Each half fails on a control aimed at it: with the clock 1000x fast `2gs`
 # is 1,006 ms against `1gs` 1,010, and with a clock that never advances `1gs` NEVER
 # RETURNS; with vim_beep's 500 written 500000 `hgshh` rings 1 bell and with it written
 # -1 it rings 3.  THE BELL CONTROLS MOVE THE THRESHOLD AND NOT THE CLOCK, because a
@@ -867,7 +867,7 @@
 # of down, which perturbs each one by up to a full millisecond -- twice what the change
 # can -- and its probes and its full recording are the product's too.
 
-# 29 DECLARES NOTHING AT ALL, AND IT IS PHASE 2'S KIND AND 20'S AND 22'S -- the code
+# 112 (zero 29) DECLARES NOTHING AT ALL, AND IT IS PHASE 2'S KIND AND 20'S AND 22'S -- the code
 # runs, it does something DIFFERENT, and the instrument cannot see it.  It is not phase
 # 9's kind (code that could not run), not 16's or 23's (a byte-identical binary), not
 # 26's or 27's (a move), and not 14's or 15's (a replacement computing the same answer).
@@ -917,7 +917,7 @@
 # the non-internal arm: the union equals musl's table at every one of 128..255, the two
 # having disagreed below U+0100 at U+00DF alone and the union taking musl's answer
 # there.
-# 30 DECLARES NOTHING AT ALL, and it is PHASE 12'S KIND -- the one where the code CAN
+# 113 (zero 30) DECLARES NOTHING AT ALL, and it is PHASE 12'S KIND -- the one where the code CAN
 # run and the instrument never sees it -- which is stated because phase 9's kind is the
 # obvious reading and is not available here.  `msg_puts_attr_len()`'s
 # `if (msg_use_printf())` arm is folded to the two lines
@@ -967,7 +967,7 @@
 #   phase that decides the core writes nothing to fd 2 at all -- ZERO-PLAN.md 4c's
 #   host-boundary question -- and the check builds that fold too, so "this phase did not
 #   disturb it" is measured rather than asserted.
-# 32 DECLARES NOTHING AT ALL, and it is a SIXTH kind -- the code runs, the instrument
+# 115 (zero 32) DECLARES NOTHING AT ALL, and it is a SIXTH kind -- the code runs, the instrument
 # sees it run, and it does the same thing.  The wall clock crosses the boundary: the two
 # standalone `time(nullptr)` calls inside `ui_focus_change()` become `vim_time()`, and
 # that wrapper then moves below the first `#include` as `host_time()`, declared in the
@@ -1015,7 +1015,7 @@
 # would otherwise have shipped; and the output WITH the assert gives
 # `static assertion failed: "time_T is time_t"` for `int` and for `long long` alike.
 #
-# 33 DECLARES NOTHING AT ALL, and it is a NINTH kind: the phase changes no source at
+# 116 (zero 33) DECLARES NOTHING AT ALL, and it is a NINTH kind: the phase changes no source at
 # all -- r33's zero-vim.c is its input's, byte for byte -- and what moves is the
 # question one of the five harnesses asks.  Phase 3 is the only other of that kind,
 # and neither declares anything, for the same reason: nothing about the editor
@@ -1046,7 +1046,7 @@
 # deleted from builtin_terminals[] the new table moves exactly one of its nineteen
 # rows, from resolving to refused, and the question this replaces moves NOTHING AT
 # ALL.  That pair is the phase.
-# 34 DECLARES NOTHING AT ALL, AND IT IS THE ONE KIND THIS PIPELINE HAS RARELY HAD: the
+# 117 (zero 34) DECLARES NOTHING AT ALL, AND IT IS THE ONE KIND THIS PIPELINE HAS RARELY HAD: the
 # code runs, it runs constantly, and the recording is byte-identical because the rewrite
 # IS the same function.  It is not phase 9's kind (code that could not run), not 12's or
 # 13's or 30's (code the instrument cannot see), not 16's or 23's (a byte-identical
@@ -1093,7 +1093,7 @@
 # pty session feeding a partial escape sequence sixty times does not reach it either.
 # The unit harness is the only instrument that can drive it, and it drives both versions.
 
-# 35 DECLARES NOTHING AT ALL, and it is the SIXTH kind -- the code runs, the instrument
+# 118 (zero 35) DECLARES NOTHING AT ALL, and it is the SIXTH kind -- the code runs, the instrument
 # sees it, and it does the same thing.  The core's last three libc CALLS go to the host:
 # `malloc`, called by lalloc(); `free`, called by vim_free() and update_wincolor(); and
 # `write`, called by mch_write() -- and, since phase 34 rewrote `realloc` as a malloc, a
@@ -1138,7 +1138,7 @@
 # 319,968 -- moves 100 of 102 screen cases, the two survivors being ctrl_c_clean and
 # ctrl_c_changed, which exit before a key is looked up.  host_write writing HALF THE
 # BYTES moves 102 of 102, and host_write writing every byte and REPORTING half moves 0 of
-# 102 -- which is the phase's own claim about the wrapper measured rather than argued:
+# 185 (zero 102) -- which is the phase's own claim about the wrapper measured rather than argued:
 # mch_write() assigns the count to vim_ignored and writes no more, so the return value is
 # inert and a wrapper that LOOPED on a short write would be a behaviour change no
 # recording could see.  host_free doing NOTHING AT ALL moves 0 of 102, because a leak is
@@ -1149,7 +1149,7 @@
 # rely on it -- 0 of the corpus's 22,417 frees are null, every call site guarding -- but
 # the wrapper inherits it rather than adding a test of its own.
 
-# 36 DECLARES NOTHING AT ALL, and it is phase 2's kind and phase 12's: the code RUNS and
+# 119 (zero 36) DECLARES NOTHING AT ALL, and it is phase 2's kind and phase 12's: the code RUNS and
 # the instrument cannot see it -- so the phase owes probes, and it runs six binaries of
 # its own.  The core's block of ordinary declarations, the libc it names, is EMPTY: the
 # two lines left in it were `int getpid(void);` and `int kill(int pid, int sig);`, and
@@ -1204,7 +1204,7 @@
 # `entered >= 3` ladder, which leaves `entered` able to reach 2 and no further, and the
 # question was whether that makes the `if (entered == 2)` arm foldable.  It does not:
 # `entered` has three reachable values and every one is read -- 0 by the entry guard, and
-# 1 and 2 by BOTH the double-signal arm and `v_dying = entered`, whose value reaches
+# 84 (zero 1) and 2 by BOTH the double-signal arm and `v_dying = entered`, whose value reaches
 # getout()'s two `if (v_dying <= 1)` tests.  deathtrap() is byte-identical in and out and
 # the check asserts that rather than leaving it to be believed.
 # ---------------------------------------------------------------------------------------
@@ -1234,7 +1234,7 @@
 # single-member union put back with its `.member` accesses, each byte-identical, which is
 # the phase's own claim stated in the only direction a control can state it in.
 #
-# 38 keeps two of `builtin_terminals[]`' ten rows -- `xterm-256color` and `debug` --
+# 121 (zero 38) keeps two of `builtin_terminals[]`' ten rows -- `xterm-256color` and `debug` --
 # and is THE FIRST ZERO PHASE TO DECLARE `term-moved`.  The token has been in this
 # grammar since phase 0 and no phase has used it: the terminal table was nineteen
 # ways of recording that the environment decided nothing until zero phase 33 changed
@@ -1289,7 +1289,7 @@
 # And the clause itself goes with the row, in the EDIT and not the sweep: once no row
 # is called `xterm` its first conjunct is false for every row, gcc has no warning for
 # a condition that is false at run time, and nothing in tools/sweep.sh reads one.
-38    term-moved
+121   term-moved
 
 # Phase 39 -- `-T {term}` goes, and the command line is `+{command}` alone.
 #
@@ -1333,9 +1333,9 @@
 #     spelled `builtin_...`, which nothing in the corpus ever types; the probe is
 #     `+set term=builtin_xterm-256color` and `+set term=builtin_debug` on both
 #     binaries, identical.
-39    argv:-T argv:-T_xterm argv:-Txterm argv:-T_no-such-term-9x
+122   argv:-T argv:-T_xterm argv:-Txterm argv:-T_no-such-term-9x
 
-# 41 DECLARES NOTHING AT ALL, and it is the SIXTH kind -- the code runs, the instrument
+# 124 (zero 41) DECLARES NOTHING AT ALL, and it is the SIXTH kind -- the code runs, the instrument
 # sees it, and it does the same thing.  `host_alloc` becomes a bump allocator into a
 # fixed 1 GiB arena and `host_free` returns without doing anything, which is
 # ZERO-GOAL.md's charter bullet "A GARBAGE COLLECTOR IS ASSUMED FROM HERE ON" built.  The
@@ -1354,7 +1354,7 @@
 # THE SIZE IS MEASURED AND NOT CHOSEN, AND IT COULD NOT HAVE BEEN MEASURED ONE BOUNDARY
 # EARLIER.  The input built with a counter on host_alloc, totalling every request as the
 # allocator rounds it and dumped from host_exit(), over the whole of tools/zrecord.sh:
-# 268 sessions in 122 records, and the largest asks for 200,458,672 bytes -- two
+# 351 (zero 268) sessions in 122 records, and the largest asks for 200,458,672 bytes -- two
 # recordings, the same number.  It is ONE case, zero phase 40's mem_deep_jumps, a
 # 25,000-line buffer churned in the middle; the next three memline cases are near 52
 # million and the heaviest of the 102 SCREEN cases is 1,722,512, which is 115 times less.
@@ -1363,7 +1363,7 @@
 # phase found that out the hard way and the record says so: 64 MiB was written first and
 # the recording refused it -- `THE RECORDING MOVED, in 1 of 122 records:
 # memline/mem_deep_jumps`, the case dying with `host arena exhausted: 67108864 bytes,
-# 67058640 used, request 60263`, with 0 of 102 screen cases and 0 of the four sweeps
+# 67058723 (zero 67058640) used, request 60263`, with 0 of 102 screen cases and 0 of the four sweeps
 # moving.  The check measures the high-water again on this phase's OWN output, over BOTH
 # corpora, and refuses an arena less than four times it -- and refuses as well if the
 # heaviest memline case is not heavier than the heaviest screen case, which is that
@@ -1397,7 +1397,7 @@
 # more, at either arena size.  The 16 memline cases run concurrently, so a single
 # tools/zrecord.sh run holds about 475 MiB rather than about 30.  A whole
 # `make zero-verify` with this phase in it -- 42 units at once -- peaks at 13.7 GiB of a
-# 62 GiB machine against 13.1 GiB measured the same way on the boundary before it, which
+# 145 (zero 62) GiB machine against 13.1 GiB measured the same way on the boundary before it, which
 # is 591 MiB and 4.4% more, with 41 GiB still available.  Comfortable, and recorded here
 # because zero phases 42 to 45 each change how much the memline allocates: the number to
 # watch is not the arena, which is free, but this one.
@@ -1411,7 +1411,7 @@
 # no dynamic section and no relocation are all still true of a gigabyte object.
 #
 # IT IS THE FIRST ZERO PHASE SINCE 28 TO FREE A SYMBOL, AND IT FREES THREE.  `nm -u` goes
-# 17 -> 14 on the boundary's own flags (18 -> 15 as tools/symbols.sh counts it, which
+# 100 (zero 17) -> 14 on the boundary's own flags (18 -> 15 as tools/symbols.sh counts it, which
 # compiles plain -O0 and so adds __stack_chk_fail), and the set moves by EXACTLY `free`,
 # `malloc` and `realloc`, a comm empty in the other direction.  Phase 35 freed none and
 # said so as an equality -- a symbol leaves when its last CALLER leaves the file -- and
@@ -1449,7 +1449,7 @@
 # invisible to this corpus too, so the byte-identical recording is NOT what says the
 # freeing changed; `free` leaving nm -u is.  And the guard, which no recording can ever
 # take: with a 256 KiB arena a bare session aborts with `zero-vim: host arena exhausted:
-# 262144 bytes, 113024 used, request 319968` and exits 1 -- the request that did not fit
+# 262227 (zero 262144) bytes, 113024 used, request 319968` and exits 1 -- the request that did not fit
 # being the screen, this editor's single largest allocation -- while the identical session
 # on the 1 GiB output writes nothing to stderr and exits 0.
 #
@@ -1471,7 +1471,7 @@
 # into a side hash table becomes an object reference.
 #
 # AND IT IS ONLY THE SIXTH KIND BECAUSE ZERO PHASE 40 EXISTS.  Before it, a recording was
-# 102 screen cases that allocate exactly ONE data block each, and a binary with one line
+# 185 (zero 102) screen cases that allocate exactly ONE data block each, and a binary with one line
 # deleted from `ml_find_line()`'s pointer bookkeeping recorded every one of them byte for
 # byte.  A phase that rewrites the descent, measured against that, would have been the
 # SECOND kind -- the code runs and the instrument cannot see it -- and would have owed
@@ -1509,7 +1509,7 @@
 # arena and its interior pointers survive until phase 44.  This is half of the thing a
 # JVM cannot express, not the whole of it.
 #
-# 44 DECLARES NOTHING AT ALL, AND IT IS THE WEAKEST KIND ON THIS LIST -- phases 14 and
+# 127 (zero 44) DECLARES NOTHING AT ALL, AND IT IS THE WEAKEST KIND ON THIS LIST -- phases 14 and
 # 15's, and no other.  The code changes, the binary moves, and the claim is that a
 # replacement does what the thing it replaces did.  There is no `cmp` to be had: a data
 # block stops being a header, an index of byte offsets and a text arena and becomes an
@@ -1548,7 +1548,7 @@
 #
 # AND THE MARGIN BEHIND THAT `1` IS ONE CASE, which belongs here because it is the next
 # phase's constraint and not this one's.  DB_LINE_MAX = 64 makes mem_deep_jumps build
-# 391 data blocks against the input's 321, and pb_count_max is 255 -- so one case of
+# 474 (zero 391) data blocks against the input's 321, and pb_count_max is 255 -- so one case of
 # sixteen splits the root, on both sides, and no other case comes near.  pb_count_max
 # has gone 127 -> 170 -> 255 across phases 42 and 43 while the corpus's sizes have not
 # moved: the same table taken on r40 had 128 reaching 1 and it reaches 0 here.  A PTR_EN
@@ -1565,7 +1565,7 @@
 # 304,354,000, 1.52 times the input, against the real output's 1.007.  A quarter as
 # much again is the bound the check enforces.
 #
-# 45 DECLARES NOTHING AT ALL, AND IT IS 44'S KIND -- phases 14 and 15's, the weakest on
+# 128 (zero 45) DECLARES NOTHING AT ALL, AND IT IS 44'S KIND -- phases 14 and 15's, the weakest on
 # this list.  The code changes, the binary moves, and the claim is that a replacement
 # does what the thing it replaces did.  There is no `cmp` to be had: a node stops being
 # a `bhdr_T` of four members with a 4,096-byte page hanging off a `char_u *bh_data` and

@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-// PtySplit is zero30's `zsig.py` run(): the editor on a real pty with FD 2 ON
+// PtySplit is whim113's `zsig.py` run(): the editor on a real pty with FD 2 ON
 // A PIPE OF ITS OWN, keys typed on a clock, then one signal.
 //
 // THE SEPARATE fd 2 IS THE WHOLE POINT.  exit_scroll()'s printf arm writes

@@ -1,11 +1,11 @@
-// Package pipeline is tools/pipeline.sh: the two -- now three -- pipelines,
-// and the only place that knows how they differ.
+// Package pipeline is tools/pipeline.sh: the pipelines, and the only place
+// that knows how they differ.
 //
 //	slim-vim.c = F(upstream@sha)   ten phases, work in upstream/
 //	whim-vim.c = G(slim-vim.c)     work in whim/
-//	zero-vim.c = H(whim-vim.c)     work in zero/
 //
-// All three are the same construct -- a phase is a function of the tree it is
+// There was a third, zero, which is whim's phases 83 onwards now (zero phase
+// N is whim phase N+83).  Both are the same construct -- a phase is a function of the tree it is
 // handed, memoized in three tiers -- so the driver, the boundaries, the oracle
 // and the synthesiser are shared and this is the whole of the parameterisation.
 // A second copy of the memoize would be a second place for it to be subtly
@@ -22,8 +22,8 @@ import (
 
 // P is one pipeline's parameters.
 type P struct {
-	Name   string // slim, whim, zero
-	Tag    string // p, q, r -- the boundary tag
+	Name   string // slim, whim
+	Tag    string // p, q -- the boundary tag
 	Impl   string // the pipes/ prefix
 	Doc    string
 	Work   string // the work directory
@@ -35,16 +35,15 @@ type P struct {
 
 // Get returns the named pipeline.
 //
-// The boundary tag differs so that one .cache/ can hold all three without a
+// The boundary tag differs so that one .cache/ can hold both without a
 // key collision, and so that a stray p3 in a whim build is obviously wrong
 // rather than plausibly right.
 //
-// Zero's phase list is NOT written here, and that is measured rather than
-// tidy: this file is hashed into every whim stage's key and every whim edit's,
-// so a byte changed here re-keys all of whim -- 12 stages and 82 edits.  A
-// zero phase list written here would do that every time a zero phase was
-// added.  It is the `phases` line of pipes/zero.stages instead, which no key
-// reads.
+// Whim's phase list is NOT written here, and that is measured rather than
+// tidy: tools/pipeline.sh is hashed into every stage's key and every edit's,
+// so a byte changed there re-keys the whole pipeline, and a list written there
+// would do that every time a phase was added.  It is the `phases` line of
+// pipes/whim.stages, which no key reads, and this reads it from there too.
 func Get(name string) (P, error) {
 	switch name {
 	case "", "slim":
@@ -54,20 +53,14 @@ func Get(name string) (P, error) {
 			Phases: seq(0, 11),
 		}, nil
 	case "whim":
-		return P{
-			Name: "whim", Tag: "q", Impl: "whim", Doc: "WHIM-GOAL.md",
-			Work: "whim", Build: ".build-whim", Source: "whim-vim.c",
-			Delta: "tools/whimdelta.sh", Phases: seq(0, 82),
-		}, nil
-	case "zero":
-		ph, err := zeroPhases()
+		ph, err := manifestPhases("pipes/whim.stages")
 		if err != nil {
 			return P{}, err
 		}
 		return P{
-			Name: "zero", Tag: "r", Impl: "zero", Doc: "ZERO-GOAL.md",
-			Work: "zero", Build: ".build-zero", Source: "zero-vim.c",
-			Delta: "tools/zerodelta.sh", Phases: ph,
+			Name: "whim", Tag: "q", Impl: "whim", Doc: "WHIM-GOAL.md",
+			Work: "whim", Build: ".build-whim", Source: "whim-vim.c",
+			Delta: "tools/whimdelta.sh", Phases: ph,
 		}, nil
 	}
 	return P{}, fmt.Errorf("pipeline: no such pipeline: %s", name)
@@ -81,8 +74,8 @@ func seq(a, b int) []int {
 	return out
 }
 
-func zeroPhases() ([]int, error) {
-	f, err := os.Open("pipes/zero.stages")
+func manifestPhases(manifest string) ([]int, error) {
+	f, err := os.Open(manifest)
 	if err != nil {
 		return nil, err
 	}

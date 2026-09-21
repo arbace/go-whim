@@ -79,7 +79,7 @@ func (e *E) constOf(name, expect string) {
 func pyRepr(s string) string { return "'" + s + "'" }
 
 // sortedKeys is GENERIC in the map's value, because three of us wrote one each:
-// whim79 over map[string]string, zero5 over map[string]int and zero27 over
+// whim79 over map[string]string, whim88 over map[string]int and whim110 over
 // map[string]bool.  Ranging a Go map yields a different order every run, and
 // every one of those three was written because a REPORT line is built from the
 // keys -- which is the difference a boundary cannot see and editcmp can.

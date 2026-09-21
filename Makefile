@@ -1,19 +1,19 @@
-# go-whim: whim-vim.c = G(slim-vim.c), and zero-vim.c = H(whim-vim.c).
+# go-whim: whim-vim.c = G(slim-vim.c).
 #
 # The input is ONE FILE, slim-vim.c, from github.com/arbace/slim-vim -- vim 9.2 as
 # a single translation unit, produced there by its own pipeline.  This makefile
 # asks that repository for its head, fetches slim-vim.c (and vim's LICENSE, which
 # every modified vim must carry) at exactly that commit, and records the commit in
 # upstream.sha.  Everything downstream is keyed on CONTENT, not on the commit:
-# whim-vim.c is produced again only when slim-vim.c's digest moved (slim.sha), and
-# zero-vim.c only when whim-vim.c's did (whim.sha).  So a slim-vim commit that
-# does not change slim-vim.c costs a fetch and nothing else.
+# whim-vim.c is produced again only when slim-vim.c's digest moved (slim.sha).
+# So a slim-vim commit that does not change slim-vim.c costs a fetch and nothing
+# else.
 #
-#   make                 fetch if the upstream moved, then whim-vim and zero-vim
-#   make whim-verify     every whim boundary, reproduced at once
-#   make zero-verify     every zero boundary, reproduced at once
+#   make                 fetch if the upstream moved, then whim-vim
+#   make whim-verify     every boundary, reproduced at once
+#   make editor.c        the core, cut from whim-vim.c at its first #include
 #
-# whim.mk and zero.mk are the pipelines; tools/ and pipes/ are what they run.
+# whim.mk is the pipeline; tools/ and pipes/ are what it runs.
 
 # Every temporary a recipe makes -- mktemp, Go's os.MkdirTemp, the harnesses'
 # scratch homes, verifypass's and specpass's scratch roots -- goes in .tmp/
@@ -22,8 +22,6 @@ export TMPDIR := $(CURDIR)/.tmp
 $(shell mkdir -p $(TMPDIR))
 
 CC      = gcc
-CFLAGS  = -O0
-LDFLAGS = -static -s
 
 SLIMVIM_URL    = https://github.com/arbace/slim-vim
 SLIMVIM_BRANCH = main
@@ -32,10 +30,9 @@ SLIMVIM_RAW    = https://raw.githubusercontent.com/arbace/slim-vim
 .DEFAULT_GOAL := all
 
 .PHONY: all
-all: whim-vim zero-vim
+all: whim-vim
 
 include whim.mk
-include zero.mk
 
 # --- the input ------------------------------------------------------------
 # It cannot be a timestamp -- a clone writes every file at checkout time in
@@ -69,17 +66,16 @@ whim-vim.c: slim-vim.c
 
 .PHONY: clean
 clean:
-	rm -f slim-vim whim-vim zero-vim
+	rm -f slim-vim whim-vim
 
 .PHONY: clean-cache
 clean-cache:
 	rm -rf .cache
 
-# Bytes to store and symbols to provide, the three editors side by side --
-# slim-vim.c being the input, it is measured too.
+# Bytes to store and symbols to provide, the input and the product side by side.
 .PHONY: score
 score:
-	@ZEROCFLAGS='$(ZEROCFLAGS)' ZEROLDFLAGS='$(ZEROLDFLAGS)' tools/score.sh
+	@WHIMCFLAGS='$(WHIMCFLAGS)' WHIMLDFLAGS='$(WHIMLDFLAGS)' tools/score.sh
 
 force: ;
 

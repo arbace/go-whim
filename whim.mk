@@ -1,24 +1,43 @@
-# The whim pipeline: whim-vim.c = G(slim-vim.c).
+# The pipeline: whim-vim.c = G(slim-vim.c).
 #
 # Included by the root Makefile, and the same construct as arbace/slim-vim's slim.mk -- phases as
 # targets, boundaries as content digests, results memoized in three tiers.  The
-# driver, the oracle and the synthesiser are shared and take the pipeline as an
-# argument; tools/pipeline.sh is the whole of the difference between the two.
+# driver, the oracle and the synthesiser take the pipeline as an argument;
+# tools/pipeline.sh is where its parameters are stated.
 #
-# What differs is what the phases DO.  arbace/slim-vim's SLIM-GOAL.md removes files and
-# preprocessor and changes nothing about the editor; WHIM-GOAL.md removes
-# capability on purpose, so every phase there has to state its delta in advance
-# and the harness has to show exactly that set and no more.
+# What differs from slim is what the phases DO.  arbace/slim-vim's SLIM-GOAL.md
+# removes files and preprocessor and changes nothing about the editor; this
+# pipeline removes capability on purpose, so every phase states its delta in
+# advance and the harness shows exactly that set and no more.  Phases 0-82
+# (WHIM-GOAL.md) leave an editor with no runtime to install; phases 83-128
+# (ZERO-GOAL.md, where they were a pipeline of their own called zero, numbered
+# from 0) turn it into an embeddable core -- no filesystem, the host behind a line
+# in the file, no libc the core names, the text a tree.
 #
 # The input is slim-vim.c, fetched by the root Makefile from arbace/slim-vim at
 # the commit in upstream.sha -- one file, not that repository's pipeline.  The
 # memoize key is slim-vim.c's DIGEST and the implementation's, so a slim-vim
 # commit that leaves slim-vim.c alone produces nothing here.
+#
+# THE COMPILE LINE IS THE BOUNDARY'S.  Phase 0 starts from tools/templates/whim.mk,
+# gcc -O0 -static -s (a static-PIE); phase 83 replaces it with
+# tools/templates/zero.mk, -no-pie; phase 84 adds -fno-stack-protector.  A phase
+# changes the flags by editing whim/Makefile, never a template, which is the
+# pipeline's input.  The product rule below cannot read whim/, which does not exist
+# in a checkout that only builds the committed whim-vim.c, so it states them once,
+# as WHIMCFLAGS and WHIMLDFLAGS, and whim-pass refuses to copy whim-vim.c out when
+# they differ from the last boundary's makefile.
 
 WHIMWORK   = whim
 WHIMBUILD  = .build-whim
 WHIMORACLE = .reference/whim-phases
-WHIMPHASES = 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82
+WHIMCFLAGS  = -O0 -fno-stack-protector
+WHIMLDFLAGS = -static -no-pie -s
+
+# The phase list is the `phases` line of pipes/whim.stages, read through
+# tools/pipeline.sh -- not written out here and not in tools/pipeline.sh, whose every
+# byte is in every stage's key.  One list, so it cannot disagree with itself.
+WHIMPHASES := $(shell . tools/pipeline.sh whim && echo $$PHASE_LIST)
 
 # --- the chain ------------------------------------------------------------
 # The chain is of STAGES, read from pipes/whim.stages by tools/stages.sh: a stage
@@ -56,12 +75,12 @@ $(WHIMBUILD)/input.sha256: slim-vim.c tools/templates/whim.mk
 # The same content-keyed dependency the other pipeline uses, for the same
 # reason: whim-vim.c and slim-vim.c are both tracked, and a fresh clone writes
 # them at checkout time in arbitrary order, so an mtime dependency would run a
-# whim pass on a tree that is exactly right.  slim.sha records the slim-vim.c
-# this whim-vim.c was produced from.
+# pass on a tree that is exactly right.  slim.sha records the slim-vim.c this
+# whim-vim.c was produced from.
 whim-vim: whim-vim.c
-	@printf '  %-12s %s\n' "compiling" "$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<"
-	@t0=`date +%s`; $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<; \
-	 printf '  %-12s %s bytes, static-PIE, %ss\n' "$@" \
+	@printf '  %-12s %s\n' "compiling" "$(CC) $(WHIMCFLAGS) $(WHIMLDFLAGS) -o $@ $<"
+	@t0=`date +%s`; $(CC) $(WHIMCFLAGS) $(WHIMLDFLAGS) -o $@ $<; \
+	 printf '  %-12s %s bytes, static, not PIE, %ss\n' "$@" \
 	     "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
 	     "$$((`date +%s` - t0))"
 
@@ -80,6 +99,16 @@ whim-vim.c: force
 .PHONY: whim-pass
 whim-pass: $(WHIMBUILD)/q$(WHIMLAST).sha256
 	@$(MAKE) --no-print-directory whim-baselines-check
+	@m=$$(tar -xOf $(WHIMBUILD)/q$(WHIMLAST).tar ./Makefile 2>/dev/null \
+	      || tar -xOf $(WHIMBUILD)/q$(WHIMLAST).tar Makefile); \
+	 c=$$(printf '%s\n' "$$m" | sed -n 's/^CFLAGS  *= *//p'); \
+	 l=$$(printf '%s\n' "$$m" | sed -n 's/^LDFLAGS  *= *//p'); \
+	 if [ "$$c" != "$(WHIMCFLAGS)" ] || [ "$$l" != "$(WHIMLDFLAGS)" ]; then \
+	     echo "  flags        whim.mk builds whim-vim with '$(WHIMCFLAGS)' '$(WHIMLDFLAGS)',"; \
+	     echo "               but the last boundary's makefile says '$$c' '$$l'."; \
+	     echo "               WHIMCFLAGS and WHIMLDFLAGS must state the boundary's flags."; \
+	     exit 1; \
+	 fi
 	@tar -xOf $(WHIMBUILD)/q$(WHIMLAST).tar ./whim-vim.c > whim-vim.c 2>/dev/null \
 	 || tar -xOf $(WHIMBUILD)/q$(WHIMLAST).tar whim-vim.c > whim-vim.c
 	@echo
@@ -95,7 +124,8 @@ whim-pass: $(WHIMBUILD)/q$(WHIMLAST).sha256
 $(WHIMPHASES:%=whim-phase-%): whim-phase-%:
 	@u=$$(tools/stages.sh whim --of $*) && last=$${u#*-} && \
 	 rm -f $(WHIMBUILD)/q$$last.sha256 && \
-	 $(MAKE) --no-print-directory $(WHIMBUILD)/q$$last.sha256
+	 $(MAKE) --no-print-directory $(WHIMBUILD)/q$$last.sha256 && \
+	 $(MAKE) --no-print-directory whim-baselines-check
 
 # Only a stage's end can be replayed: nothing else was ever a tree on disk.
 .PHONY: $(WHIMPHASES:%=whim-replay-%)
@@ -121,7 +151,7 @@ whim-repass:
 	@rm -rf $(WHIMBUILD)
 	@$(MAKE) --no-print-directory whim-pass
 
-# Both phases are programs and this pipeline has no agent in it, so a boundary
+# Every phase is a program and this pipeline has no agent in it, so a boundary
 # it produced is reproducible by construction -- there is no advisory stage to
 # pass through.  Recorded only after a run that built, swept to silence and
 # showed exactly the declared delta.
@@ -129,15 +159,16 @@ whim-repass:
 # older than nothing that changed, so make skips them, and this target runs only
 # the last stage.  Their tier 3 entries are a different matter.  tools/implhash.sh
 # reads a phase's own program, the tools it names and the tools those name -- not
-# whim.mk, but tools/pipeline.sh, named by tools/phaserun.sh, which holds whim's
-# phase list.  Measured: one byte there moves all 12 split stage keys and all 82
-# edit keys, so the next whim-repass recomputes everything (whim-specpass is the
-# cheap way back).
+# whim.mk, but tools/pipeline.sh, named by tools/phaserun.sh.  Measured, when the
+# phase list was written there: one byte moved all 12 split stage keys and all 82
+# edit keys, so the list is the `phases` line of pipes/whim.stages now, which no
+# key reads.
 #
 # So the loop while you are trying ideas out is: write pipes/whimN-edit.sh and
-# pipes/whimN-check.sh, declare its delta in pipes/whim.delta, add N here and in
-# tools/pipeline.sh, put it in the last stage or a new one in pipes/whim.stages
-# (WHIM-GOAL.md, "Adding a phase"), and `make whim-tip`.  Only the last stage runs,
+# pipes/whimN-check.sh, declare its delta in pipes/zero.delta (pipes/whim.delta is
+# for phases before 83, tools/pipeline.sh's ZERO_FROM), add N to the `phases` line
+# of pipes/whim.stages and put it in the last stage or a new one and in a package
+# there (ZERO-GOAL.md, "Adding a phase"), and `make whim-tip`.  Only the last stage runs,
 # and its earlier edits come from the edit cache.
 #
 # WHAT THIS DOES NOT DO, and must not be mistaken for: falsify the boundaries
@@ -163,6 +194,36 @@ whim-tip:
 	@tools/packages.sh whim --check && \
 	 $(MAKE) --no-print-directory whim-phase-$(WHIMLAST) && \
 	 $(MAKE) --no-print-directory whim-record | tail -1
+	@$(MAKE) --no-print-directory whim-product-check
+
+# Is the TRACKED product the boundary the pipeline just recorded?
+#
+# `whim-tip` records a boundary; `whim-pass` copies the product out of the last
+# boundary's tar into the repository root.  They are different targets and
+# running only the first leaves whim-vim.c behind -- measured, the product of the
+# old zero pipeline went TWO phases stale that way, and it was PUSHED.
+#
+# Nothing else can catch it.  A boundary is a tar and a digest under .build-whim,
+# and tools/verifypass.sh reproduces each one from the boundary before it in a
+# scratch root -- none of that reads the tracked product.  It is an OUTPUT of the
+# memoize and an input to nothing, so it can be arbitrarily wrong while `make
+# whim-verify` reports every boundary reproducing.
+#
+# So this says so, and says the fix, and is deliberately a WARNING rather than a
+# failure: mid-arc the product is expected to lag its boundary between a phase
+# landing and `whim-pass` running, and a target that refused there would be
+# refusing the normal case.  whim.mk is in no implementation digest, so none of
+# this is in any key.
+.PHONY: whim-product-check
+whim-product-check:
+	@t=$(WHIMBUILD)/q$(WHIMLAST).tar; \
+	 if [ -f "$$t" ] && [ -f whim-vim.c ]; then \
+	     if ! (tar -xOf "$$t" ./whim-vim.c 2>/dev/null || tar -xOf "$$t" whim-vim.c) \
+	          | cmp -s - whim-vim.c; then \
+	         echo "  product      the tracked whim-vim.c is NOT q$(WHIMLAST) -- `grep -c '' whim-vim.c` lines here"; \
+	         echo "               against the boundary just recorded.  Run: make whim-pass"; \
+	     fi; \
+	 fi
 
 # Every recorded boundary, checked at once.  Each stage is run on the recorded
 # boundary before it, in a scratch root of its own, and must reproduce the one it
@@ -198,7 +259,7 @@ whim-record:
 
 .PHONY: whim-clean
 whim-clean:
-	rm -rf $(WHIMBUILD) $(WHIMWORK) whim-vim
+	rm -rf $(WHIMBUILD) $(WHIMWORK) whim-vim editor.c
 
 # How much of each phase is still a recorded diff rather than a rule.  The twin
 # of slim-residue; the scoreboard is the same question either side.
@@ -206,16 +267,92 @@ whim-clean:
 whim-residue:
 	@tools/residue.sh whim
 
-# Whim phase 0 records .reference/baselines from slim-vim.c, and every whim delta
-# is measured against them -- but a tier 3 hit on phase 0 records nothing, so a
-# fresh .reference/ beside a warm .cache/ would leave every delta check running
-# its baseline-free half.  zero.mk's zero-baselines-check is the same guard.
+# --- editor.c, the upper part on its own ----------------------------------
+# What phases 83 onwards are for.  whim-vim.c is one translation unit with two parts:
+# above, the core editor, with no preprocessor syntax at all; below, the host,
+# beginning with the #includes -- and that first directive IS the boundary, marked
+# by nothing else (ZERO-PLAN.md 4c).  The product of the whole project is the upper
+# part, and this is the rule that takes it.
+#
+# The cut is `stop at the first #include`, which is one awk clause and no judgement.
+# The rest of the awk drops trailing blank lines, so the file ends on its last line
+# of code rather than on whatever blank separated the core from the host.
+#
+# THE PATTERN IS `^ *# *include `, NEVER `^#include`, and tools/macros.py already
+# carries the reason: whitespace between `#` and the keyword is insignificant to C,
+# and this tree has had plenty of `# define` -- what the conditional-resolution pass
+# left when it dedented `#  define` by one level and stopped.  A cut that missed
+# ` # include` would not fail, it would run PAST the boundary and take the host with
+# it.  So the rule also refuses if the file it wrote holds a DIRECTIVE -- a line whose
+# first non-blank character is `#`: the defining property of the upper part is that it
+# has no directive, and a cut that produced one has found the wrong line.
+#
+# THE GUARD SAID `grep -q '#'` UNTIL PHASE 110 (ZERO PHASE 27), AND IT COULD ONLY EVER HAVE BEEN
+# WRITTEN AGAINST AN EMPTY FILE.  A `#` is also an ordinary character, and the editor is
+# full of them: measured on the first cut this rule ever produced, 63 lines hold one --
+# `enum { CPO_HASH = '#' };`, `if (ptr[0] == '#')`, the two latin1 case tables, the
+# `"E1281: Atom '\%%#=%c'"` message.  None is a directive and the rule refused all the
+# same.  `^ *#` is what the paragraph above already says it means, and it is measured
+# at 0 on the cut and at 11 on the whole file, which is the eleven `#include`s.
+#
+# IT DOES NOT COMPILE ON ITS OWN, AND THAT IS CORRECT, not a defect to fix: the core
+# calls the musl_ functions the host defines below, so the upper part declares them
+# and defines none.  What it must do is PARSE -- `gcc -fsyntax-only` with no errors
+# and a warning set equal to the declared boundary -- and that is the reorganisation
+# phase's check, not this rule's.
+#
+# THIS RULE WROTE AN EMPTY FILE UNTIL PHASE 110 (ZERO PHASE 27), and that was the honest answer
+# rather than a defect: the includes were the first eleven lines, so there was nothing
+# above the first one.  It was written before the phase that fills it precisely so that
+# the phase would change the SOURCE and not the makefile -- and it did.  Phase 110 moved
+# the includes to 78,360 and the rule now writes the 78,358 lines above them, which is
+# the product of this whole project.
+.PHONY: editor.c
+editor.c: whim-vim.c
+	@awk '/^ *# *include / { exit } { a[NR] = $$0; if (NF) last = NR } \
+	      END { for (i = 1; i <= last; i++) print a[i] }' $< > $@
+	@if grep -q '^ *#' $@; then \
+	    echo "  editor.c     REFUSED -- the cut holds a directive, so it found the wrong line:"; \
+	    grep -n '^ *#' $@ | head -3 | sed 's/^/               /'; \
+	    rm -f $@; exit 1; \
+	 fi
+	@printf '  %-12s %s lines, cut at the first #include of %s\n' "$@" \
+	    "`grep -c '' $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
+	    "`grep -c '' $< | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
+
+# There are two sets of baselines (tools/pipeline.sh, ZERO_FROM).  Phase 0 records
+# .reference/baselines from slim-vim.c, and every delta before phase 83 is measured
+# against them; phase 83 records .reference/zero-baselines from the tree it is
+# handed, and every delta from it on is measured against those.  Each is a side
+# effect of running, so a tier 3 hit on either phase records nothing -- and a fresh
+# .reference/ beside a warm .cache/ would end a pass looking fine, with every later
+# delta check running its baseline-free half.  So every target that can end a pass
+# on a cached phase 0 or 83 asks afterwards, and refuses with the fix.  It is here,
+# in a makefile no implementation digest reads, so it moves no key.
+#
+# BOTH PATHS in the second fix, and the first is not redundant.  This target only
+# sees the MISSING case, but the other way to get here is a CHANGED recording --
+# a harness that asks something new, or a phase before 83 that changed what it
+# produces -- and pipes/whim83.sh REFUSES a set that differs rather than
+# overwriting it, naming the file that moved and exiting 1.  Which one it was must
+# be NAMED before the recording is thrown away.
 .PHONY: whim-baselines-check
 whim-baselines-check:
 	@for x in behaviour ref-term.txt ref-exsweep.txt; do \
 	    [ -e .reference/baselines/$$x ] && continue; \
-	    echo "  baselines    .reference/baselines/$$x is missing, so no whim delta was checked in full."; \
-	    echo "               Whim phase 0 records them from slim-vim.c; a cached phase 0 records nothing:"; \
+	    echo "  baselines    .reference/baselines/$$x is missing, so no delta before phase 83 was checked in full."; \
+	    echo "               Phase 0 records them from slim-vim.c; a cached phase 0 records nothing:"; \
 	    echo "                 rm -rf .reference/baselines .cache/q0 && make whim-phase-0"; \
 	    exit 1; \
 	done
+	@b=.reference/zero-baselines; \
+	 if [ -d $$b/screen ] && [ -n "$$(ls -A $$b/screen 2>/dev/null)" ] \
+	    && [ -d $$b/memline ] && [ -n "$$(ls -A $$b/memline 2>/dev/null)" ] \
+	    && [ -s $$b/ref-excmds.txt ] && [ -s $$b/ref-argv.txt ] \
+	    && [ -s $$b/ref-pty.txt ] && [ -s $$b/ref-term.txt ]; then exit 0; fi; \
+	 echo "  baselines    $$b is missing or of the old shape: it must hold screen/, memline/,"; \
+	 echo "               ref-excmds.txt, ref-argv.txt, ref-pty.txt and ref-term.txt"; \
+	 echo "               (tools/zrecord.sh), so no delta from phase 83 on was checked in full."; \
+	 echo "               Phase 83 records them; a cached phase 83 records nothing:"; \
+	 echo "                 rm -rf .reference/zero-baselines .cache/q83 && make whim-phase-83"; \
+	 exit 1

@@ -8,10 +8,10 @@ reasoning.
 
 ## What this is
 
-Two pipelines, and the Go toolset they run:
+One pipeline, and the Go toolset it runs:
 
 ```
-slim-vim.c  --whim-->  whim-vim.c  --zero-->  zero-vim.c
+slim-vim.c  --whim-->  whim-vim.c
 ```
 
 - **The input is one file**, `slim-vim.c`: vim 9.2 as a single C23 translation
@@ -21,18 +21,27 @@ slim-vim.c  --whim-->  whim-vim.c  --zero-->  zero-vim.c
   that repository's `main` points to, and records the commit in `upstream.sha`.
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
-- **whim** (`whim.mk`, `WHIM-GOAL.md`) removes capability on purpose -- 83 phases
-  in 13 stages, from 180,870 lines to 86,583 -- and every phase **declares its
-  delta in advance** in `pipes/whim.delta`; the harness proves it changed that
-  and nothing else.
-- **zero** (`zero.mk`, `ZERO-GOAL.md`) turns `whim-vim.c` into an embeddable core,
-  46 phases to 78,681 lines: no filesystem, the host behind a line in the file,
-  no libc the core names, the text a tree. `ZERO-GOAL.md` *The pipeline as it
-  stands* is the phase-by-phase account and belongs there, not here.
+- **whim** (`whim.mk`) removes capability on purpose, 129 phases from 180,870
+  lines to 78,681, and every phase **declares its delta in advance**; the harness
+  proves it changed that and nothing else. It is two arcs:
+  - **phases 0-82** (`WHIM-GOAL.md`) leave an editor with no runtime to install,
+    86,583 lines at q82; their delta is `pipes/whim.delta`, against
+    `.reference/baselines`;
+  - **phases 83-128** (`ZERO-GOAL.md`) turn it into an embeddable core: no
+    filesystem, the host behind a line in the file, no libc the core names, the
+    text a tree. Their delta is `pipes/zero.delta`, against
+    `.reference/zero-baselines`, with another instrument. They were a pipeline of
+    their own, **zero**, numbered from 0: zero phase N is whim phase N+83, and the
+    prose in `ZERO-GOAL.md`, `ZERO-PLAN.md`, `pipes/zero.delta`, the second half of
+    `pipes/whim.stages` and the programs of 83-128 still numbers them so -- read
+    "phase N" there as N+83. `ZERO-GOAL.md` *The pipeline as it stands* is the
+    phase-by-phase account and belongs there, not here.
 
-`whim-vim.c` and `zero-vim.c` are **produced, not edited**. `slim.sha` records the
-digest of the `slim-vim.c` the committed `whim-vim.c` came from, `whim.sha` the
-`whim-vim.c` the committed `zero-vim.c` came from.
+  `ZERO_FROM=83` in `tools/pipeline.sh` is the line between the two arcs, stated
+  once.
+
+`whim-vim.c` is **produced, not edited**. `slim.sha` records the digest of the
+`slim-vim.c` the committed `whim-vim.c` came from.
 
 **There is no Python and no agent here.** Every phase is a program; a phase that
 refuses stops the pass with its own report, and there is no tier below it to fall
@@ -43,17 +52,18 @@ through to. arbace/slim-vim keeps both, for its own pipeline.
 ```
 cmd/whimtools/     one binary, every tool a subcommand: whimtools <subcommand>
 internal/          the Go: sweep, canon, dead, cut/cutil (the cutters), edit (the
-                   whim and zero edit programs), harness (every recorder), check
+                   phases' edit programs), harness (every recorder), check
                    (one check per phase), memo and pipeline (dormant Go ports of
                    the shell driver -- the shell is what runs)
-pipes/             the phases, whimN.sh or whimN-edit.sh + whimN-check.sh, the
-                   same for zero; *.stages the schedules, *.delta the deltas
+pipes/             the phases, whimN.sh or whimN-edit.sh + whimN-check.sh;
+                   whim.stages the schedule, whim.delta and zero.delta the deltas
 tools/             the driver (memo, phaserun, stages, implhash, verifypass,
                    specpass, oracle, snapshot, restore) and the three wrappers
                    that run Go: st.sh, sweep.sh, canon.sh
-tools/templates/   the makefile each pipeline's work tree is built with
+tools/templates/   whim.mk, the makefile phase 0 starts from, and zero.mk, the one
+                   phase 83 writes over it
 tools/patches/     cc-v4-c23.patch, two C23 productions modernc.org/cc/v4 lacks
-Makefile           fetches the input and includes whim.mk and zero.mk
+Makefile           fetches the input and includes whim.mk
 ```
 
 `tools/gobuild.sh` builds `cmd/whimtools` into `.cache/gobin/<key>/`, keyed on
@@ -64,15 +74,16 @@ rather than vendoring it, because a patched `vendor/` fails `go mod verify`.
 ## Build
 
 ```sh
-make                 # all: whim-vim and zero-vim, producing either only when its input moved
+make                 # all: whim-vim, producing whim-vim.c only when slim-vim.c moved
 ```
 
-- whim's compile line is `gcc -O0 -static -s` (a static-PIE), zero's is
-  `gcc -O0 -fno-stack-protector -static -no-pie -s` (`EXEC`, no `INTERP`, no
-  dynamic section, no relocation -- zero phase 0 and 1 require all four).
-  `zero.mk` states zero's flags once more as `ZEROCFLAGS`/`ZEROLDFLAGS` and
-  `zero-pass` refuses to copy the product out when they differ from the last
-  boundary's makefile.
+- **The compile line is the boundary's**, in the work tree's `Makefile`. Up to
+  q82 it is `gcc -O0 -static -s` (a static-PIE); phase 83 writes
+  `tools/templates/zero.mk` over it, `-static -no-pie -s`, and phase 84 adds
+  `-fno-stack-protector` (`EXEC`, no `INTERP`, no dynamic section, no relocation
+  -- 83 and 84 require all four). `whim.mk` states the product's flags once more
+  as `WHIMCFLAGS`/`WHIMLDFLAGS` and `whim-pass` refuses to copy the product out
+  when they differ from the last boundary's makefile.
 - **No `-g`**, so a formatting change leaves the binary byte-identical -- the
   cheapest verification there is. `SOURCE_DATE_EPOCH=0` pins `__DATE__`/`__TIME__`
   when two builds are compared.
@@ -106,26 +117,24 @@ end; the tier-3 cache key is the input boundary's digest **and**
 - **Editing an existing phase's program does not re-run it under `make
   whim-pass`**: the prerequisite is the previous boundary *file*. `make
   whim-phase-N` (runs the stage holding N) and `make whim-tip` force it; after
-  editing a phase that is not in the last stage, `make whim-repass`. The same for
-  zero.
+  editing a phase that is not in the last stage, `make whim-repass`.
 - **Stages** (`pipes/whim.stages`): a run of phases whose edits share one sweep;
   only a stage's end is a boundary. `need P swept` and `apart P K` are declared,
   measured facts, and `tools/stages.sh` refuses a schedule that breaks them.
   Inside a stage each edit is cached by its input (`.cache/edit/`).
 - **A tier-3 replay copies the recorded digest rather than recomputing it**, so a
   warm pass agrees with the oracle whatever the oracle says. Only a run that
-  recomputes can falsify a boundary: **`make whim-verify` / `make zero-verify`**
-  run every stage at once on the recorded boundary before it, in scratch roots
+  recomputes can falsify a boundary: **`make whim-verify`** runs every stage at once on the recorded boundary before it, in scratch roots
   that snapshot `tools/`, `pipes/`, `cmd/`, `internal/`, `go.mod` and `go.sum`,
-  and require each recorded boundary back. Run one before a push and whenever a
+  and requires each recorded boundary back. Run it before a push and whenever a
   shared tool changes.
 - **`make whim-specpass`** speculates every stage at once on the previous pass's
   boundaries, then runs the sequential pass, which hits the cache wherever the
   guess was right.
-- **A phase list with a gap refuses** (`memo: zero unit 40 wants r39…`): the
+- **A phase list with a gap refuses** (`memo: whim unit 123 wants q122…`): the
   input half of a key must be a function of the input.
-- Zero's phase list is the `phases` line of `pipes/zero.stages` and not
-  `tools/pipeline.sh`, because `pipeline.sh` is in every whim key.
+- The phase list is the `phases` line of `pipes/whim.stages` and not
+  `tools/pipeline.sh`, because `pipeline.sh` is in every key.
 
 ## Checks
 
@@ -133,7 +142,7 @@ Every split phase's check part is a **dispatcher**: the shell header -- which is
 where a check's argument lives -- then `exec tools/st.sh check <phase> "$work"
 "$state"`, whose body is `internal/check/`. The dispatcher names, in a comment,
 every `tools/` path its Go runs, for `implhash.sh`. The whole-phase programs
-`zero3.sh`, `zero33.sh` and `zero40.sh` dispatch the same way.
+`whim86.sh`, `whim116.sh` and `whim123.sh` dispatch the same way.
 
 - A check reads nothing from its edit's shell: the state directory
   (`.cache/state/q<N>`) holds the input's line count, the stage's symbol snapshot
@@ -160,15 +169,20 @@ passes: every delta is measured against it.
   moved here: the Go harnesses on `slim-vim.c`'s binary reproduce arbace/slim-vim's
   own baselines byte for byte (67 behaviour cases, 19 terminals, 600 Ex
   commands). `tools/whimdelta.sh` checks whim's declared delta against them.
-- **`.reference/zero-baselines/`** is recorded by **zero phase 0 from
-  `whim-vim.c`**, built with whim's own compile line; `tools/zerodelta.sh` checks
-  zero's delta against it.
-- **Never regenerate a baseline from the pipeline's own output**, which would
-  agree by construction. Both are recorded from the pipeline's immutable input.
-- A tier-3 hit on phase 0 records nothing, so `whim-pass` ends with
-  `whim-baselines-check` and zero's targets with `zero-baselines-check`, each
-  naming the fix: `rm -rf .reference/baselines .cache/q0 && make whim-phase-0`,
-  and `rm -rf .reference/zero-baselines .cache/r0 && make zero-phase-0`.
+- **`.reference/zero-baselines/`** -- `screen/`, `memline/`, `ref-excmds.txt`,
+  `ref-argv.txt`, `ref-pty.txt`, `ref-term.txt` (`tools/zrecord.sh`) -- is
+  recorded by **phase 83 from q82**, the tree it is handed, built with the compile
+  line that tree carries; `tools/whimdelta.sh` hands every phase from 83 on to
+  `tools/zerodelta.sh`, which checks `pipes/zero.delta` against it.
+- **Never regenerate a baseline from a binary a later phase can reach**, which
+  would agree by construction. `slim-vim.c` is the pipeline's immutable input, and
+  nothing from 83 on can reach q82. The cost of the second: a change to what
+  phases 0-82 produce moves it, and phase 83 **refuses** rather than overwrite it
+  -- name what moved before removing the set.
+- A tier-3 hit on phase 0 or 83 records nothing, so every target that can end a
+  pass ends with `whim-baselines-check`, which names the fix:
+  `rm -rf .reference/baselines .cache/q0 && make whim-phase-0`, and
+  `rm -rf .reference/zero-baselines .cache/q83 && make whim-phase-83`.
 
 ## Harness rules that were each learned the hard way
 
@@ -184,7 +198,7 @@ passes: every delta is measured against it.
   returns 0 whatever it waited for.
 - Under heavy parallel load a pty scenario can stall; a unit that fails a verify
   and passes alone in less time is the load. Re-run it by itself:
-  `sh tools/verifypass.sh --one zero <N> <scratch>` after removing that unit's
+  `sh tools/verifypass.sh --one whim <unit> <scratch>` after removing that unit's
   directory and result.
 - `-e -s` never initialises the terminal; anything about terminals, mappings or
   `:set` reporting needs a real pty. And silent Ex mode exits 0 on almost
@@ -192,7 +206,7 @@ passes: every delta is measured against it.
 
 ## The core and the host
 
-`zero-vim.c`'s eleven `#include`s are not at the top: **the first one is the line
+`whim-vim.c`'s eleven `#include`s are not at the top: **the first one is the line
 between the editor core and its host**, marked by nothing else. `make editor.c`
 cuts there: a complete translation unit with 0 preprocessor lines, 0 errors under
 `-fsyntax-only`, and an interface of exactly the names the host defines --
@@ -202,12 +216,12 @@ design.
 
 ## Adding a phase
 
-`WHIM-GOAL.md` and `ZERO-GOAL.md` have the process. In short: write
-`pipes/<p>N-edit.sh` (it calls `tools/st.sh edit <p>N`, whose body is
-`internal/edit/`) and `pipes/<p>N-check.sh`, declare its delta in
-`pipes/<p>.delta`, add N to the schedule and a package in `pipes/<p>.stages`
-(and, for whim, to `tools/pipeline.sh`), and `make <p>-tip`. A new phase starts a
-stage of its own if its edit needs swept input.
+`ZERO-GOAL.md` *Adding a phase* has the process; the next phase is 129. In
+short: write `pipes/whimN-edit.sh` (it calls `tools/st.sh edit whimN`, whose body
+is `internal/edit/`) and `pipes/whimN-check.sh`, declare its delta in
+`pipes/zero.delta`, add N to the `phases` line, a stage and a package in
+`pipes/whim.stages`, and `make whim-tip`, then `make whim-pass` to copy the
+product out. A new phase starts a stage of its own if its edit needs swept input.
 
 ## Commit style
 
