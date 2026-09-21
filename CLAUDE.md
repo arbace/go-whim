@@ -33,11 +33,21 @@ slim-vim.c  --whim-->  whim-vim.c
     `.reference/zero-baselines`, with another instrument. They were a pipeline of
     their own, **zero**, numbered from 0, and every document and program here now
     numbers them as this one does: zero phase N is phase N+83, and a Part II
-    heading gives both. `WHIM-GOAL.md` *Phases 83 to 128 as they stand* is the
-    phase-by-phase account and belongs there, not here.
+    heading gives both. `WHIM-GOAL.md` Part II, *Phases 83 to 128 as they
+    stand*, is the phase-by-phase account and belongs there, not here.
 
   `ZERO_FROM=83` in `tools/pipeline.sh` is the line between the two arcs, stated
   once.
+
+The two documents follow the two arcs. **`WHIM-GOAL.md`** is Part I (phases 0-82:
+charter, rules, the sweep, the concept index, one section per phase), **Part II**
+(phases 83-128: the core's charter, what is measured from 83 on, the core's rules
+-- cited as *core rule N*, and holding beside Part I's -- *Phases 83 to 128 as they
+stand*, *Adding a phase*, one section per phase) and *What comes next*. Every
+phase's section is `## Phase N — …`, which is where `tools/phasename.sh` reads its
+name. **`WHIM-PLAN.md`** is Part I, the plan that grouped phases 0-82 into stages
+and packages, and Part II, the plan phases 83 onwards were built from, its
+sections numbered II.1-II.6 (cited `WHIM-PLAN.md II.4c`).
 
 `whim-vim.c` is **produced, not edited**. `slim.sha` records the digest of the
 `slim-vim.c` the committed `whim-vim.c` came from.
@@ -224,12 +234,14 @@ design.
 
 ## Adding a phase
 
-`WHIM-GOAL.md` *Adding a phase* has the process; the next phase is 129. In
+`WHIM-GOAL.md` Part II, *Adding a phase*, has the process; the next phase is 129. In
 short: write `pipes/whimN-edit.sh` (it calls `tools/st.sh edit whimN`, whose body
 is `internal/edit/`) and `pipes/whimN-check.sh`, declare its delta in
 `pipes/zero.delta`, add N to the `phases` line, a stage and a package in
 `pipes/whim.stages`, and `make whim-tip`, then `make whim-pass` to copy the
-product out. A new phase starts a stage of its own if its edit needs swept input.
+product out. A split phase joins the last `each` stage (its edit is swept on its
+own and its check sees its own tree, so no `need` or `apart` can bind there); a
+single-file program is a stage of its own.
 
 ## Commit style
 
