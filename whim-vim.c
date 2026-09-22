@@ -75791,6 +75791,7 @@ vim_main(int argc, char **argv)
 #include <stddef.h>
 #include <sys/ioctl.h>
 #include <termios.h>
+#include <fcntl.h>
 
 static_assert((int)(~0u >> 1) == INT_MAX, "INT_MAX");
 static_assert(-(int)(~0u >> 1) - 1 == INT_MIN, "INT_MIN");
@@ -77347,6 +77348,8 @@ error:
 static volatile sig_atomic_t host_winch_pending = FALSE;
 static volatile sig_atomic_t host_tstp_pending = FALSE;
 static volatile sig_atomic_t host_int_pending = FALSE;
+static volatile sig_atomic_t host_death_pending = 0;
+static int host_death_pipe[2] = {-1, -1};
 static struct termios host_tty_saved;
 static int host_tty_valid = FALSE;
 static int host_tty_raw = FALSE;
@@ -77380,6 +77383,40 @@ host_on_tstp(int sigarg)
 host_on_int(int sigarg)
 {
     host_int_pending = TRUE;
+}
+
+    static void
+host_on_death(int sigarg)
+{
+    int         e = errno;
+
+    host_death_pending = sigarg;
+    if (host_death_pipe[1] >= 0)
+    {
+        (void)write(host_death_pipe[1], "", 1);
+    }
+    errno = e;
+}
+
+    static void
+host_deliver_death(void)
+{
+    char        b[16];
+    int         sig;
+
+    if (host_death_pipe[0] >= 0)
+    {
+        while (read(host_death_pipe[0], b, sizeof(b)) > 0)
+        {
+            ;
+        }
+    }
+    sig = host_death_pending;
+    if (sig != 0)
+    {
+        host_death_pending = 0;
+        deathtrap(sig);
+    }
 }
 
     static void
@@ -77420,8 +77457,13 @@ host_tty_set(int raw, int sleep)
     static void
 musl_host_init(void)
 {
-    host_catch(SIGHUP, deathtrap);
-    host_catch(SIGTERM, deathtrap);
+    if (pipe2(host_death_pipe, O_NONBLOCK | O_CLOEXEC) != 0)
+    {
+        host_death_pipe[0] = -1;
+        host_death_pipe[1] = -1;
+    }
+    host_catch(SIGHUP, host_on_death);
+    host_catch(SIGTERM, host_on_death);
     host_catch(SIGWINCH, host_on_winch);
     host_catch(SIGCONT, host_on_winch);
     host_catch(SIGTSTP, host_on_tstp);
@@ -77537,14 +77579,23 @@ musl_wait_for_input(long ms)
     }
     for (;;)
     {
+        host_deliver_death();
         if (host_winch_pending || host_tstp_pending || host_int_pending)
         {
             return 1;
         }
         FD_ZERO(&rfds);
         FD_SET(0, &rfds);
-        ret = select(1, &rfds, nullptr, nullptr, tvp);
+        if (host_death_pipe[0] >= 0)
+        {
+            FD_SET(host_death_pipe[0], &rfds);
+        }
+        ret = select(host_death_pipe[0] >= 0 ? host_death_pipe[0] + 1 : 1, &rfds, nullptr, nullptr, tvp);
         if (ret == -1 && errno == EINTR)
+        {
+            continue;
+        }
+        if (ret > 0 && host_death_pipe[0] >= 0 && FD_ISSET(host_death_pipe[0], &rfds))
         {
             continue;
         }
@@ -77555,6 +77606,7 @@ musl_wait_for_input(long ms)
     static int
 musl_read_input(char *buf, int len)
 {
+    host_deliver_death();
     if (host_int_pending)
     {
         host_int_pending = FALSE;
