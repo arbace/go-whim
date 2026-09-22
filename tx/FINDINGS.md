@@ -1,14 +1,14 @@
 # editor.c → editor.go: what the transpilation found
 
-`editor/editor.go` is `editor.c` transpiled by hand, faithfully. Its 1,689 C
-functions are Go functions with the same names and control flow: 60,883 lines,
+`editor/editor.go` is `editor.c` transpiled by hand, faithfully. Its 1,695 C
+functions are Go functions with the same names and control flow: 60,823 lines,
 plus `editor/crt.go` (the C runtime it is written against, 274 lines) and
 `editor/host.go` (the host, from the Go runtime, 1,704 lines). It follows
-phase 150's core; how it got there from the first pass, which followed phase
+phase 152's core; how it got there from the first pass, which followed phase
 128's, is the section *The transpilation, brought to phase 149*.
 
 **It works.** `go build ./editor` gives an editor that `tools/zerodelta.sh …
---phase 150` accepts as exactly phase 150's declared delta: 102 screen cases,
+--phase 152` accepts as exactly phase 152's declared delta: 102 screen cases,
 111 Ex rows, 30 command lines, the pty scenarios, 19 terminals and the memline
 corpus. The first pass was measured the same way against phase 128, and
 there, byte for byte against the C binary's 122 files. The control: the same
@@ -140,6 +140,17 @@ gone. The three `f13_sizeof_*` constants stay: `regstack_bytes` counts C's
 x86-64 sizes so that E363 comes where it did. Measured: `--phase 150` is
 accepted, the control is refused, and phase 150's `'maxmempattern'` probe gives
 the Go editor the C's threshold exactly (E363 at 93, none at 94).
+
+Phases 151 and 152 followed the same way. Their 53 functions were
+re-transpiled by two agents, and the 187 rows of the Go option table were
+converted by rule. `any` and its type assertions are gone from the option
+code, and so are the seven helpers that emulated the casts (`f11_defnum`,
+`f12_allbuf_varp` and the rest). One pointer decision flipped with them:
+`getdigits()` and `check_string_option()` take a `Ptr[Ptr[byte]]` now, since an
+option's string variable can be an element of `term_strings`, and their 22
+callers pass `Addr(&x)`. Measured: `--phase 152` is accepted and the control is
+refused. Phase 152's option probes, 151's `:set all&` and the numeric
+`'whichwrap'` and `'backspace'` draw the same bytes on the Go and C binaries.
 
 ## Not done here
 
