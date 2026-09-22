@@ -15497,6 +15497,62 @@ requires every lost and gained line to be one the phase accounts for. Its
 probes cover `\%)`, `\%t)`, `\%f]`, `\%>`, `\_%)`, `\_[` and `.` before a
 composing character; each control moves.
 
+## Phase 144 — `edit()` has no goto
+
+Insert mode's loop jumped to three labels (finding 11):
+- `doESCkey`, the second half of the Esc case, from nine places, some of them
+  before the switch;
+- `normalchar`, the default case's insertion, from seven cases;
+- `do_intr`, the start of the Esc case, from the default case when the key is
+  the interrupt character.
+
+The two labelled blocks become functions: `edit_esc()`, which says whether
+Insert mode ends, and `edit_normalchar()`. The locals they wrote (`count`,
+`o_lnum`, `inserted_space`) are passed by pointer. Each jump becomes a call:
+- **`doESCkey`:** `if (edit_esc(...)) return (c == Ctrl_O); continue;`. A
+  `continue` means "the next key" only where the innermost loop is the main
+  one, and the edit checks that at every site. The one jump inside a do-while
+  sets `esc_now`, breaks out, and the flag is tested (and reset) right after
+  the loop;
+- **`normalchar`:** a call and a `break`, checked to leave the main switch;
+- **`do_intr`:** its `goto_im()` test written out, then the call.
+
+`check_termcode()`'s jump into an `if` body is phase 145's.
+
+**Declared delta: nothing.** The check requires the helpers to be the input's
+blocks, line for line apart from the pointers. It requires every `continue`
+and `break` at a former jump to bind where the label's own did. It diffs
+`edit()` and requires every change to be accounted for. It probes every key
+whose case jumped that a terminal can deliver: Esc, CTRL-O, Tab, CTRL-K,
+CTRL-], CTRL-F, CTRL-S, CTRL-L, CTRL-Z, CTRL-A and Enter. Three paths are out
+of the harness's reach:
+- CTRL-C: on its pty it is SIGINT, and both binaries exit before drawing;
+- the do-while's site, which needs `stop_insert_mode`;
+- `do_intr`'s, which needs an interrupt character other than CTRL-C.
+
+For those three, where their `continue` and `break` bind is the evidence.
+
+## Phase 145 — `check_termcode()` has no goto
+
+While an OSC response was arriving over several reads, `check_termcode()`
+jumped from the top of its loop to `handle_osc`, a label inside the OSC branch
+of the if-chain in `if (key_name[0] == NUL)`, skipping everything in between.
+That was the last `goto` of finding 11 that the transpilation had to
+restructure. Nothing follows that chain inside its block, so the jump ran
+exactly the OSC handling and then the code after the block. Now the jump's
+`if` does the handling itself, and everything the jump skipped, from the key's
+first byte through the end of the block, becomes its `else`. A `continue` or
+`break` in that code binds to the same loop as before, because an `if` catches
+neither.
+
+**Declared delta: nothing.** The check proves from the input that the label's
+chain is the last thing in its block. It requires the `else` to be the
+skipped code byte for byte, indented four spaces further. Its probe sends an
+OSC response in two writes and then types, and requires the same output
+from both binaries. Two controls move: typing other text, and sending no
+response. Whether the pty delivers the two writes as two reads is up to the
+kernel, so for that path the byte-for-byte `else` is the evidence.
+
 # What comes next
 
 Not yet done, and each one only when it is asked for:

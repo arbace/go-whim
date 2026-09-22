@@ -10568,9 +10568,47 @@ static int      ins_need_undo;
 static int      dont_sync_undo = FALSE;
 
     static int
+edit_esc(long *count, int cmdchar, int nomove, linenr_T *o_lnum)
+{
+    if (ins_at_eol && gchar_cursor() == NUL)
+    {
+        *o_lnum = curwin->w_cursor.lnum;
+    }
+
+    if (ins_esc(count, cmdchar, nomove))
+    {
+        did_cursorhold = FALSE;
+
+        if (!char_avail() && curbuf->b_last_changedtick_i == curbuf->b_changedtick)
+        {
+            curbuf->b_last_changedtick = curbuf->b_changedtick;
+        }
+        return TRUE;
+    }
+    return FALSE;
+}
+
+    static void
+edit_normalchar(int c, int *inserted_space)
+{
+    ins_try_si(c);
+
+    if (c == ' ')
+    {
+        *inserted_space = TRUE;
+    }
+
+    if (vim_iswordc(c) || c != Ctrl_RSB)
+    {
+        insert_special(c, FALSE, FALSE);
+    }
+}
+
+    static int
 edit(int         cmdchar, int         startln, long        count)
 {
     int         c = 0;
+    int         esc_now = FALSE;
     char_u      *ptr;
     int         lastc = 0;
     int         mincol;
@@ -10763,7 +10801,11 @@ edit(int         cmdchar, int         startln, long        count)
         if (stop_insert_mode)
         {
             count = 0;
-            goto doESCkey;
+            if (edit_esc(&count, cmdchar, nomove, &o_lnum))
+            {
+                return (c == Ctrl_O);
+            }
+            continue;
         }
 
         if (!arrow_used)
@@ -10854,9 +10896,19 @@ edit(int         cmdchar, int         startln, long        count)
                     {
                         nomove = TRUE;
                     }
-                    goto doESCkey;
+                    esc_now = TRUE;
+                    break;
                 }
             } while (c ==   (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8)))   || c ==   (-((KS_EXTRA) + ((int)(KE_NOP) << 8)))  );
+            if (esc_now)
+            {
+                esc_now = FALSE;
+                if (edit_esc(&count, cmdchar, nomove, &o_lnum))
+                {
+                    return (c == Ctrl_O);
+                }
+                continue;
+            }
         }
 
         did_cursorhold = TRUE;
@@ -10891,7 +10943,11 @@ edit(int         cmdchar, int         startln, long        count)
                     nomove = TRUE;
                 }
                 count = 0;
-                goto doESCkey;
+                if (edit_esc(&count, cmdchar, nomove, &o_lnum))
+                {
+                    return (c == Ctrl_O);
+                }
+                continue;
             }
         }
 
@@ -10914,7 +10970,6 @@ edit(int         cmdchar, int         startln, long        count)
         [[fallthrough]];
         case Ctrl_C:
 
-do_intr:
             if (goto_im())
             {
                 if (got_int)
@@ -10928,20 +10983,8 @@ do_intr:
                 }
                 break;
             }
-doESCkey:
-            if (ins_at_eol && gchar_cursor() == NUL)
+            if (edit_esc(&count, cmdchar, nomove, &o_lnum))
             {
-                o_lnum = curwin->w_cursor.lnum;
-            }
-
-            if (ins_esc(&count, cmdchar, nomove))
-            {
-                did_cursorhold = FALSE;
-
-                if (!char_avail() && curbuf->b_last_changedtick_i == curbuf->b_changedtick)
-                {
-                    curbuf->b_last_changedtick = curbuf->b_changedtick;
-                }
                 return (c == Ctrl_O);
             }
             continue;
@@ -10949,7 +10992,8 @@ doESCkey:
         case Ctrl_Z:
             if (!p_im)
             {
-                goto normalchar;
+                edit_normalchar(c, &inserted_space);
+                break;
             }
             do_cmdline_cmd((char_u *)"stop");
             continue;
@@ -10963,7 +11007,11 @@ doESCkey:
                 nomove = TRUE;
             }
             count = 0;
-            goto doESCkey;
+            if (edit_esc(&count, cmdchar, nomove, &o_lnum))
+            {
+                return (c == Ctrl_O);
+            }
+            continue;
 
         case   (-(('k') + ((int)('I') << 8)))  :
         case   (-((KS_EXTRA) + ((int)(KE_KINS) << 8)))  :
@@ -10981,14 +11029,22 @@ doESCkey:
             {
                 need_start_insertmode = TRUE;
             }
-            goto doESCkey;
+            if (edit_esc(&count, cmdchar, nomove, &o_lnum))
+            {
+                return (c == Ctrl_O);
+            }
+            continue;
 
         case   (-((KS_ZERO) + ((int)( ('X') ) << 8)))  :
         case NUL:
         case Ctrl_A:
             if (stuff_inserted(NUL, 1L, (c == Ctrl_A)) == FAIL && c != Ctrl_A && !p_im)
             {
-                goto doESCkey;
+                if (edit_esc(&count, cmdchar, nomove, &o_lnum))
+                {
+                    return (c == Ctrl_O);
+                }
+                continue;
             }
             inserted_space = FALSE;
             break;
@@ -11036,7 +11092,11 @@ doESCkey:
             bracketed_paste(PASTE_INSERT, FALSE, nullptr);
             if (cmdchar ==   (-(('P') + ((int)('S') << 8)))  )
             {
-                goto doESCkey;
+                if (edit_esc(&count, cmdchar, nomove, &o_lnum))
+                {
+                    return (c == Ctrl_O);
+                }
+                continue;
             }
             break;
         case   (-(('P') + ((int)('E') << 8)))  :
@@ -11164,7 +11224,8 @@ doESCkey:
             inserted_space = FALSE;
             if (ins_tab())
             {
-                goto normalchar;
+                edit_normalchar(c, &inserted_space);
+                break;
             }
             break;
 
@@ -11175,33 +11236,46 @@ doESCkey:
         case NL:
             if (ins_eol(c) == FAIL && !p_im)
             {
-                goto doESCkey;
+                if (edit_esc(&count, cmdchar, nomove, &o_lnum))
+                {
+                    return (c == Ctrl_O);
+                }
+                continue;
             }
             inserted_space = FALSE;
             break;
 
         case Ctrl_K:
-            goto normalchar;
+            edit_normalchar(c, &inserted_space);
+            break;
 
         case Ctrl_X:
             break;
 
         case Ctrl_RSB:
-            goto normalchar;
+            edit_normalchar(c, &inserted_space);
+            break;
 
         case Ctrl_F:
-            goto normalchar;
+            edit_normalchar(c, &inserted_space);
+            break;
 
         case 's':
         case Ctrl_S:
-            goto normalchar;
+            edit_normalchar(c, &inserted_space);
+            break;
 
         case Ctrl_L:
             if (p_im)
             {
-                goto doESCkey;
+                if (edit_esc(&count, cmdchar, nomove, &o_lnum))
+                {
+                    return (c == Ctrl_O);
+                }
+                continue;
             }
-            goto normalchar;
+            edit_normalchar(c, &inserted_space);
+            break;
 
         case Ctrl_P:
         case Ctrl_N:
@@ -11215,22 +11289,27 @@ doESCkey:
         default:
             if (c == intr_char)
             {
-                goto do_intr;
+                if (goto_im())
+                {
+                    if (got_int)
+                    {
+                        (void)vgetc();
+                        got_int = FALSE;
+                    }
+                    else
+                    {
+                        vim_beep(BO_IM);
+                    }
+                    break;
+                }
+                if (edit_esc(&count, cmdchar, nomove, &o_lnum))
+                {
+                    return (c == Ctrl_O);
+                }
+                continue;
             }
 
-normalchar:
-            ins_try_si(c);
-
-            if (c == ' ')
-            {
-                inserted_space = TRUE;
-            }
-
-            if (vim_iswordc(c) || c != Ctrl_RSB)
-            {
-                insert_special(c, FALSE, FALSE);
-            }
-
+            edit_normalchar(c, &inserted_space);
             break;
         }
 
@@ -70378,119 +70457,54 @@ check_termcode(int         max_offset, char_u      *buf, int         bufsize, in
             key_name[0] = NUL;
             key_name[1] = NUL;
             modifiers = 0;
-            goto handle_osc;
-        }
-
-        i = *tp;
-        for (p = termleader; *p && *p != i; ++p)
-        {
-            ;
-        }
-        if (*p == NUL)
-        {
-            continue;
-        }
-
-        if (*tp == ESC && !p_ek && (State & MODE_INSERT))
-        {
-            continue;
-        }
-
-        tp[len] = NUL;
-        key_name[0] = NUL;
-        key_name[1] = NUL;
-        modifiers = 0;
-
-        {
-            int keypad_index_found = -1;
-            int keypad_slen_found = 0;
-
-            for (idx = 0; idx < tc_len; ++idx)
+            if (handle_osc(tp, len, key_name, &slen) == FAIL)
             {
-                int     is_keypad = FALSE;
-                slen = termcodes[idx].len;
-                modifiers_start = nullptr;
-                if (cpo_koffset && offset && len < slen)
+                return -1;
+            }
+        }
+        else
+        {
+            i = *tp;
+            for (p = termleader; *p && *p != i; ++p)
+            {
+                ;
+            }
+            if (*p == NUL)
+            {
+                continue;
+            }
+
+            if (*tp == ESC && !p_ek && (State & MODE_INSERT))
+            {
+                continue;
+            }
+
+            tp[len] = NUL;
+            key_name[0] = NUL;
+            key_name[1] = NUL;
+            modifiers = 0;
+
+            {
+                int keypad_index_found = -1;
+                int keypad_slen_found = 0;
+
+                for (idx = 0; idx < tc_len; ++idx)
                 {
-                    continue;
-                }
-                if ( musl_strncmp((char *)(termcodes[idx].code), (char *)(tp), ((usize)(slen > len ? len : slen)))  == 0)
-                {
-
-                    if (len < slen)
-                    {
-                        return -1;
-                    }
-
-                    if (termcodes[idx].name[0] == 'K' && ( ((unsigned)(termcodes[idx].name[1]) - '0' < 10)  ||  ((unsigned)(termcodes[idx].name[1]) - 'A' < 26) ))
-                    {
-                        is_keypad = TRUE;
-                        if (keypad_index_found < 0)
-                        {
-                            keypad_index_found = idx;
-                            keypad_slen_found = slen;
-                        }
-                    }
-
-                    if (!is_keypad)
-                    {
-                        key_name[0] = termcodes[idx].name[0];
-                        key_name[1] = termcodes[idx].name[1];
-                        break;
-                    }
-                }
-
-                if (termcodes[idx].modlen > 0)
-                {
-                    modslen = termcodes[idx].modlen;
-                    if (cpo_koffset && offset && len < modslen)
+                    int     is_keypad = FALSE;
+                    slen = termcodes[idx].len;
+                    modifiers_start = nullptr;
+                    if (cpo_koffset && offset && len < slen)
                     {
                         continue;
                     }
-                    if ( musl_strncmp((char *)(termcodes[idx].code), (char *)(tp), ((usize)(modslen > len ? len : modslen)))  == 0)
+                    if ( musl_strncmp((char *)(termcodes[idx].code), (char *)(tp), ((usize)(slen > len ? len : slen)))  == 0)
                     {
-                        int         n;
 
-                        if (len <= modslen)
+                        if (len < slen)
                         {
                             return -1;
                         }
 
-                        if (tp[modslen] == termcodes[idx].code[slen - 1])
-                        {
-                            slen = modslen + 1;
-                        }
-                        else if (tp[modslen] != ';' && modslen == slen - 3)
-                        {
-                            continue;
-                        }
-                        else if (termcodes[idx].code[modslen] == '@' && (tp[modslen] != '1' || tp[modslen + 1] != ';'))
-                        {
-                            continue;
-                        }
-                        else
-                        {
-                            for (j = slen - 2; j < len && ( (musl_isdigit((unsigned char)(tp[j])))  || tp[j] == '-' || tp[j] == ';'); ++j)
-                            {
-                                ;
-                            }
-                            ++j;
-                            if (len < j)
-                            {
-                                return -1;
-                            }
-                            if (tp[j - 1] != termcodes[idx].code[slen - 1])
-                            {
-                                continue;
-                            }
-
-                            modifiers_start = tp + slen - 2;
-
-                            n = musl_atoi((char *)modifiers_start);
-                            modifiers |= decode_modifiers(n);
-
-                            slen = j;
-                        }
                         if (termcodes[idx].name[0] == 'K' && ( ((unsigned)(termcodes[idx].name[1]) - '0' < 10)  ||  ((unsigned)(termcodes[idx].name[1]) - 'A' < 26) ))
                         {
                             is_keypad = TRUE;
@@ -70500,6 +70514,7 @@ check_termcode(int         max_offset, char_u      *buf, int         bufsize, in
                                 keypad_slen_found = slen;
                             }
                         }
+
                         if (!is_keypad)
                         {
                             key_name[0] = termcodes[idx].name[0];
@@ -70507,43 +70522,111 @@ check_termcode(int         max_offset, char_u      *buf, int         bufsize, in
                             break;
                         }
                     }
+
+                    if (termcodes[idx].modlen > 0)
+                    {
+                        modslen = termcodes[idx].modlen;
+                        if (cpo_koffset && offset && len < modslen)
+                        {
+                            continue;
+                        }
+                        if ( musl_strncmp((char *)(termcodes[idx].code), (char *)(tp), ((usize)(modslen > len ? len : modslen)))  == 0)
+                        {
+                            int         n;
+
+                            if (len <= modslen)
+                            {
+                                return -1;
+                            }
+
+                            if (tp[modslen] == termcodes[idx].code[slen - 1])
+                            {
+                                slen = modslen + 1;
+                            }
+                            else if (tp[modslen] != ';' && modslen == slen - 3)
+                            {
+                                continue;
+                            }
+                            else if (termcodes[idx].code[modslen] == '@' && (tp[modslen] != '1' || tp[modslen + 1] != ';'))
+                            {
+                                continue;
+                            }
+                            else
+                            {
+                                for (j = slen - 2; j < len && ( (musl_isdigit((unsigned char)(tp[j])))  || tp[j] == '-' || tp[j] == ';'); ++j)
+                                {
+                                    ;
+                                }
+                                ++j;
+                                if (len < j)
+                                {
+                                    return -1;
+                                }
+                                if (tp[j - 1] != termcodes[idx].code[slen - 1])
+                                {
+                                    continue;
+                                }
+
+                                modifiers_start = tp + slen - 2;
+
+                                n = musl_atoi((char *)modifiers_start);
+                                modifiers |= decode_modifiers(n);
+
+                                slen = j;
+                            }
+                            if (termcodes[idx].name[0] == 'K' && ( ((unsigned)(termcodes[idx].name[1]) - '0' < 10)  ||  ((unsigned)(termcodes[idx].name[1]) - 'A' < 26) ))
+                            {
+                                is_keypad = TRUE;
+                                if (keypad_index_found < 0)
+                                {
+                                    keypad_index_found = idx;
+                                    keypad_slen_found = slen;
+                                }
+                            }
+                            if (!is_keypad)
+                            {
+                                key_name[0] = termcodes[idx].name[0];
+                                key_name[1] = termcodes[idx].name[1];
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (idx == tc_len && keypad_index_found >= 0)
+                {
+                    key_name[0] = termcodes[keypad_index_found].name[0];
+                    key_name[1] = termcodes[keypad_index_found].name[1];
+                    slen = keypad_slen_found;
                 }
             }
-            if (idx == tc_len && keypad_index_found >= 0)
-            {
-                key_name[0] = termcodes[keypad_index_found].name[0];
-                key_name[1] = termcodes[keypad_index_found].name[1];
-                slen = keypad_slen_found;
-            }
-        }
 
-        if (key_name[0] == NUL)
-        {
-            char_u *argp = tp[0] == ESC ? tp + 2 : tp + 1;
-
-            if (((tp[0] == ESC && len >= 3 && tp[1] == '[') || (tp[0] == CSI && len >= 2)) && vim_strchr((char_u *)"0123456789>?ABCDEFHPQRS", *argp) != nullptr)
+            if (key_name[0] == NUL)
             {
-                int resp = handle_csi(tp, len, argp, offset, buf, bufsize, buflen, key_name, &slen);
-                if (resp != 0)
+                char_u *argp = tp[0] == ESC ? tp + 2 : tp + 1;
+
+                if (((tp[0] == ESC && len >= 3 && tp[1] == '[') || (tp[0] == CSI && len >= 2)) && vim_strchr((char_u *)"0123456789>?ABCDEFHPQRS", *argp) != nullptr)
                 {
-                    return resp;
+                    int resp = handle_csi(tp, len, argp, offset, buf, bufsize, buflen, key_name, &slen);
+                    if (resp != 0)
+                    {
+                        return resp;
+                    }
                 }
-            }
 
-            else if ((tp[0] == ESC && len >= 2 && tp[1] == ']') || tp[0] == OSC)
-            {
-handle_osc:
-                if (handle_osc(tp, len, key_name, &slen) == FAIL)
+                else if ((tp[0] == ESC && len >= 2 && tp[1] == ']') || tp[0] == OSC)
                 {
-                    return -1;
+                    if (handle_osc(tp, len, key_name, &slen) == FAIL)
+                    {
+                        return -1;
+                    }
                 }
-            }
 
-            else if ((tp[0] == ESC && len >= 2 && tp[1] == 'P') || tp[0] == DCS)
-            {
-                if (handle_dcs(tp, argp, len, key_name, &slen) == FAIL)
+                else if ((tp[0] == ESC && len >= 2 && tp[1] == 'P') || tp[0] == DCS)
                 {
-                    return -1;
+                    if (handle_dcs(tp, argp, len, key_name, &slen) == FAIL)
+                    {
+                        return -1;
+                    }
                 }
             }
         }

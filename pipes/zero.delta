@@ -1699,3 +1699,11 @@
 # 143 declares nothing: regatom() makes the same nodes without jumping into
 # other cases.  The check probes the delimiter atom (\%) \%t) \%f] \%> \_%)),
 # the collection reached by \_[ and `.` before a composing character.
+
+# 144 declares nothing: Insert mode reaches the same code without jumping into
+# a case.  The check probes every key whose case jumped that the pty can
+# deliver; CTRL-C (a signal there), stop_insert_mode's site and a non-CTRL-C
+# interrupt character's are shown by where their continue and break bind.
+
+# 145 declares nothing: an OSC response arriving over several reads is handled
+# in the jump's own if, and the code the jump skipped is its else, byte for byte.
