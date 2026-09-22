@@ -57455,8 +57455,115 @@ regrepeat(char_u      *p, long        maxcount)
 
       case RE_WHITE:
       case RE_WHITE + ADD_NL:
-        testval = mask = RI_WHITE;
-do_class:
+      case NWHITE:
+      case NWHITE + ADD_NL:
+      case DIGIT:
+      case DIGIT + ADD_NL:
+      case NDIGIT:
+      case NDIGIT + ADD_NL:
+      case HEX:
+      case HEX + ADD_NL:
+      case NHEX:
+      case NHEX + ADD_NL:
+      case OCTAL:
+      case OCTAL + ADD_NL:
+      case NOCTAL:
+      case NOCTAL + ADD_NL:
+      case WORD:
+      case WORD + ADD_NL:
+      case NWORD:
+      case NWORD + ADD_NL:
+      case HEAD:
+      case HEAD + ADD_NL:
+      case NHEAD:
+      case NHEAD + ADD_NL:
+      case ALPHA:
+      case ALPHA + ADD_NL:
+      case NALPHA:
+      case NALPHA + ADD_NL:
+      case LOWER:
+      case LOWER + ADD_NL:
+      case NLOWER:
+      case NLOWER + ADD_NL:
+      case UPPER:
+      case UPPER + ADD_NL:
+      case NUPPER:
+      case NUPPER + ADD_NL:
+        switch ( ((int)*(p)) )
+        {
+          case RE_WHITE:
+          case RE_WHITE + ADD_NL:
+            testval = mask = RI_WHITE;
+            break;
+          case NWHITE:
+          case NWHITE + ADD_NL:
+            mask = RI_WHITE;
+            break;
+          case DIGIT:
+          case DIGIT + ADD_NL:
+            testval = mask = RI_DIGIT;
+            break;
+          case NDIGIT:
+          case NDIGIT + ADD_NL:
+            mask = RI_DIGIT;
+            break;
+          case HEX:
+          case HEX + ADD_NL:
+            testval = mask = RI_HEX;
+            break;
+          case NHEX:
+          case NHEX + ADD_NL:
+            mask = RI_HEX;
+            break;
+          case OCTAL:
+          case OCTAL + ADD_NL:
+            testval = mask = RI_OCTAL;
+            break;
+          case NOCTAL:
+          case NOCTAL + ADD_NL:
+            mask = RI_OCTAL;
+            break;
+          case WORD:
+          case WORD + ADD_NL:
+            testval = mask = RI_WORD;
+            break;
+          case NWORD:
+          case NWORD + ADD_NL:
+            mask = RI_WORD;
+            break;
+          case HEAD:
+          case HEAD + ADD_NL:
+            testval = mask = RI_HEAD;
+            break;
+          case NHEAD:
+          case NHEAD + ADD_NL:
+            mask = RI_HEAD;
+            break;
+          case ALPHA:
+          case ALPHA + ADD_NL:
+            testval = mask = RI_ALPHA;
+            break;
+          case NALPHA:
+          case NALPHA + ADD_NL:
+            mask = RI_ALPHA;
+            break;
+          case LOWER:
+          case LOWER + ADD_NL:
+            testval = mask = RI_LOWER;
+            break;
+          case NLOWER:
+          case NLOWER + ADD_NL:
+            mask = RI_LOWER;
+            break;
+          case UPPER:
+          case UPPER + ADD_NL:
+            testval = mask = RI_UPPER;
+            break;
+          case NUPPER:
+          case NUPPER + ADD_NL:
+            mask = RI_UPPER;
+            break;
+        }
         while (count < maxcount)
         {
             int         l;
@@ -57497,75 +57604,6 @@ do_class:
             ++count;
         }
         break;
-
-      case NWHITE:
-      case NWHITE + ADD_NL:
-        mask = RI_WHITE;
-        goto do_class;
-      case DIGIT:
-      case DIGIT + ADD_NL:
-        testval = mask = RI_DIGIT;
-        goto do_class;
-      case NDIGIT:
-      case NDIGIT + ADD_NL:
-        mask = RI_DIGIT;
-        goto do_class;
-      case HEX:
-      case HEX + ADD_NL:
-        testval = mask = RI_HEX;
-        goto do_class;
-      case NHEX:
-      case NHEX + ADD_NL:
-        mask = RI_HEX;
-        goto do_class;
-      case OCTAL:
-      case OCTAL + ADD_NL:
-        testval = mask = RI_OCTAL;
-        goto do_class;
-      case NOCTAL:
-      case NOCTAL + ADD_NL:
-        mask = RI_OCTAL;
-        goto do_class;
-      case WORD:
-      case WORD + ADD_NL:
-        testval = mask = RI_WORD;
-        goto do_class;
-      case NWORD:
-      case NWORD + ADD_NL:
-        mask = RI_WORD;
-        goto do_class;
-      case HEAD:
-      case HEAD + ADD_NL:
-        testval = mask = RI_HEAD;
-        goto do_class;
-      case NHEAD:
-      case NHEAD + ADD_NL:
-        mask = RI_HEAD;
-        goto do_class;
-      case ALPHA:
-      case ALPHA + ADD_NL:
-        testval = mask = RI_ALPHA;
-        goto do_class;
-      case NALPHA:
-      case NALPHA + ADD_NL:
-        mask = RI_ALPHA;
-        goto do_class;
-      case LOWER:
-      case LOWER + ADD_NL:
-        testval = mask = RI_LOWER;
-        goto do_class;
-      case NLOWER:
-      case NLOWER + ADD_NL:
-        mask = RI_LOWER;
-        goto do_class;
-      case UPPER:
-      case UPPER + ADD_NL:
-        testval = mask = RI_UPPER;
-        goto do_class;
-      case NUPPER:
-      case NUPPER + ADD_NL:
-        mask = RI_UPPER;
-        goto do_class;
 
       case EXACTLY:
         {

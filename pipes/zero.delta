@@ -1685,3 +1685,7 @@
 # a hash key by subtracting the key's offset; the lookup scans the array for the
 # same unique upper-cased name.  The check's probes see a lookup in another
 # case, a group a failed :hi took back, and a link.
+
+# 141 declares nothing: each character class sets the mask and testval it set,
+# in a switch instead of before a jump into another case, and runs the same
+# loop.  The check's probe substitutes with all eighteen classes.

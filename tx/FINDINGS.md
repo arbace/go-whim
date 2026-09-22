@@ -79,7 +79,7 @@ the Go simpler and the patch smaller.
 
 ## Which findings are phases now
 
-Phases 129 to 140 (`WHIM-GOAL.md`, Part II) remove from the C what the
+Phases 129 to 141 (`WHIM-GOAL.md`, Part II) remove from the C what the
 transpilation worked around, each declaring no behavioural delta:
 
 | Finding | Phase |
@@ -91,13 +91,22 @@ transpilation worked around, each declaring no behavioural delta:
 | 3, `container_of` | 133, one buffer needs no hash table; 140, highlight groups are found in their array |
 | 4, `regprog_T` / `bt_regprog_T` | 135, one program type; 136, the engine called directly |
 | 7, `void *` walked (`qsort`, `bsearch`) | 139, the core sorts and searches typed arrays |
+| 11, `goto` into `switch` (`regrepeat`) | 141, `regrepeat()` does not jump into a case |
 | the eval value types the transpilation carried (`typval_T`, lists, dicts, classes) | 137, the changedtick is a number; 138, no parameter carries an eval value |
 
-Not yet phases: 2 (option `varp`), 4's memline
-header, 5 and 8 (the regstack and `sizeof` accounting), 7's `ga_data`, 9's allocation-failure branches, 11 (`goto` into `switch`), 12
-(signals) and 13 (`__DATE__`). 9's branches are dead only where the size is
-not 0: `host_alloc()` never returns NULL, but `lalloc(0)` does, after an
-internal error, so each branch needs its size proved non-zero.
+Not yet phases:
+- 2, option `varp`;
+- 4's memline header;
+- 5 and 8, the regstack and `sizeof` accounting;
+- 7's `ga_data`;
+- 9's allocation-failure branches. These are dead only where the size is not
+  0: `host_alloc()` never returns NULL, but `lalloc(0)` does, after an
+  internal error, so each branch needs its size proved non-zero;
+- 11's `edit`, `regatom` and `check_termcode` (the last jumps into an `if`
+  body, not a case);
+- 12, signals;
+- 13, `__DATE__`.
+
 `editor/editor.go` is still the transpilation of phase 128's core.
 
 ## Not done here
