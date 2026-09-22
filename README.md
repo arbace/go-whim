@@ -115,8 +115,10 @@ pipes/           the phases: whimN.sh or whimN-edit.sh + whimN-check.sh;
                  (phases 0-82) and zero.delta (83 on) the declared deltas
 tools/           the memoize driver and the shell wrappers around whimtools
 editor/          the core transpiled into Go, with its runtime and host
-tx/              tx/skel (the skeleton generator), tx/pre (ccx's reports on an
-                 editor.c), sigs.txt, CONVENTIONS.md and FINDINGS.md
+tx/              tx/skel (the skeleton generator and, with -bodies, the body
+                 emitter), tx/splice (measures the emitted bodies in a copy of
+                 editor/), tx/pre (ccx's reports on an editor.c), sigs.txt,
+                 CONVENTIONS.md and FINDINGS.md
 whim.mk          the pipeline as make targets
 whim-vim.c       the product, tracked; make editor.c cuts the core out of it
 upstream.sha     the arbace/slim-vim commit slim-vim.c was fetched from

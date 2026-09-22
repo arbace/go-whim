@@ -158,6 +158,34 @@ order, in phase 155's own terms. Each can fail, and was seen to:
 - gotos refused phase 160's core (`errorret`), and funcs refused phase 161's
   (`getline_equal()`).
 
+## The emitter
+
+`tx/skel <editor.c> <dir> -bodies` writes the functions' bodies as well as the
+skeleton. It applies `tx/CONVENTIONS.md` to the AST, using the skeleton's own
+pointer analysis for every `*T` against `Ptr[T]`. A function containing a
+construct it has no rule for is left out and listed in `bodies.txt` with the
+reason, so every function it writes is whole. `tx/splice <editor-dir>
+<bodies.go> <out-dir>` measures the result: it puts every emitted function in
+place of the hand-written one in a copy of `editor/`, builds it, and takes
+back the hand-written body of any function the compiler rejects, until the
+copy builds.
+
+The first measurement, on phase 162's core:
+- the emitter writes 1,587 of the 1,693 functions it is asked for (the runtime's
+  own `alloc`, the byte functions and `ga_grow_inner()` are `crt.go`'s);
+- the build keeps 1,549 of those, 87% of `editor.go`'s 1,783 functions, and
+  358 are the hand-written function exactly, after gofmt;
+- **the copy with those 1,549 emitted functions passes
+  `tools/zerodelta.sh --phase 162` exactly as declared**: 102 screen cases, 16
+  memline cases, 111 Ex rows and 30 command lines.
+
+What is left is the emitter's to-do list:
+- 106 functions stop the emitter. Most are case labels written as constant
+  expressions, braced initializers other than `{0}`, and allocations assigned
+  without a cast;
+- the compiler rejects 38, most of them for a pointer to a pointer
+  dereferenced as `*p`.
+
 ## The transpilation, brought to phase 149
 
 `editor/editor.go` is now the transpilation of phase 149's core. The first

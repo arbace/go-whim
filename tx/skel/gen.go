@@ -26,6 +26,7 @@ type gen struct {
 	seenEnum   map[*cc.EnumType]bool
 	globalName map[string]string // C global or static-local key -> Go name
 	defined    map[string]bool
+	aliasOf    map[string]string // a type alias's name -> what it is
 }
 
 func newGen(ast *cc.AST, a *an) *gen {

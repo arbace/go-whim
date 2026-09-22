@@ -22,7 +22,7 @@ func parse(path string) (*cc.AST, error) {
 
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Fprintln(os.Stderr, "usage: skel <editor.c> <outdir>")
+		fmt.Fprintln(os.Stderr, "usage: skel <editor.c> <outdir> [-bodies]")
 		os.Exit(2)
 	}
 	ast, err := parse(os.Args[1])
@@ -40,6 +40,12 @@ func main() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+	if len(os.Args) > 3 && os.Args[3] == "-bodies" {
+		if err := g.writeBodies(os.Args[2], crtFuncs); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+	}
 	// the facts, for review
 	facts := map[string]string{}
 	for k := range a.u.parent {
@@ -55,3 +61,11 @@ func main() {
 	fmt.Fprintf(os.Stderr, "skel: %d objects, %d cursors, %d statics, %d functions used as values\n",
 		len(a.u.parent), len(facts), len(a.statics), len(a.addr))
 }
+
+// crtFuncs are the C functions editor/crt.go replaces: their calls are
+// translated, their bodies are not (tx/CONVENTIONS.md).  ga_grow_inner()'s
+// body is the one rule of its own: it grows the storage with GaGrowTo, in
+// elements of the storage's type.
+var crtFuncs = map[string]bool{"alloc": true, "alloc_clear": true, "lalloc": true, "lalloc_clear": true,
+	"musl_memmove": true, "musl_memcpy": true, "musl_memset": true, "musl_memcmp": true,
+	"ga_grow_inner": true}
