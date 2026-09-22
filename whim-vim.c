@@ -62041,7 +62041,7 @@ screen_start_highlight(int attr)
 
     if (aep != nullptr)
     {
-        if (aep->ae_u.cterm.font > 0 && aep->ae_u.cterm.font < 12)
+        if (t_colors > 1 && aep->ae_u.cterm.font > 0 && aep->ae_u.cterm.font < 12)
         {
                 term_font(aep->ae_u.cterm.font);
         }

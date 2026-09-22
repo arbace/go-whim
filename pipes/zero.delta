@@ -1756,3 +1756,6 @@
 
 # 157 declares nothing: typing the register changes no code; the check requires
 # the binary byte-identical.
+
+# 158 declares nothing: the font test it guards read the top two bytes of a
+# pointer on every term entry, which are 0, and so failed as it now does.

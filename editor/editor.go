@@ -8,9 +8,9 @@
 // The types, globals and every signature were generated from editor.c by
 // tx/skel (modernc.org/cc/v4); the function bodies and initial values were
 // written by hand, to tx/CONVENTIONS.md.  It is the transpilation of phase
-// 157's core: the functions phases 129-157 changed were re-transpiled from
+// 158's core: the functions phases 129-158 changed were re-transpiled from
 // their new C, the rest carried over.  Measured: built with `go build
-// ./editor`, tools/zerodelta.sh --phase 157 accepts it -- 102 screen cases,
+// ./editor`, tools/zerodelta.sh --phase 158 accepts it -- 102 screen cases,
 // 111 Ex rows, 30 command lines, the pty scenarios, 19 terminals and the
 // memline corpus, exactly as declared.
 
@@ -50485,7 +50485,7 @@ func screen_start_highlight(attr int32) {
 	}
 
 	if aep != nil {
-		if aep.ae_u.cterm.font > 0 && aep.ae_u.cterm.font < 12 {
+		if t_colors > 1 && aep.ae_u.cterm.font > 0 && aep.ae_u.cterm.font < 12 {
 			term_font(int32(aep.ae_u.cterm.font))
 		}
 		if t_colors > 1 {

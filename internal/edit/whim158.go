@@ -1,0 +1,27 @@
+package edit
+
+import (
+	"io"
+)
+
+func init() { register("whim158", Whim158) }
+
+// W158Font is the test phase 158 finds and the one it writes.
+const (
+	W158Font  = "        if (aep->ae_u.cterm.font > 0 && aep->ae_u.cterm.font < 12)\n"
+	W158Guard = "        if (t_colors > 1 && aep->ae_u.cterm.font > 0 && aep->ae_u.cterm.font < 12)\n"
+)
+
+// Whim158 reads a highlight's terminal font only from a colour entry.
+//
+// attrentry_T holds either a term entry (the start and stop strings) or a
+// cterm entry (the colours and a font) in one union, and which one is
+// t_colors > 1.  screen_start_highlight() tests cterm.font before it looks
+// at t_colors, so on a terminal without colours it reads the font out of a
+// term entry: the top two bytes of term.start, which no x86-64 user-space
+// pointer has set.  The one union member read where its discriminant does not
+// say it holds (internal/ccx's Unions).  The test now asks t_colors first.
+func Whim158(text []byte, w io.Writer) ([]byte, error) {
+	p := ph{tag: "font", w: w}
+	return p.literal(text, W158Font, W158Guard, "screen_start_highlight() reads cterm.font only when t_colors > 1 says the entry is a cterm entry", 1)
+}

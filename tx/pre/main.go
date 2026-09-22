@@ -3,6 +3,8 @@
 //
 //	pre casts <editor.c>     every pointer cast, by what it converts
 //	pre order <editor.c>     unsequenced operands whose effects collide
+//	pre unions <editor.c>    every union member access, by its discriminant
+//	                         (CCX_GUARDS=1 prints what holds at each leftover)
 package main
 
 import (
@@ -14,7 +16,7 @@ import (
 
 func main() {
 	if len(os.Args) != 3 {
-		fmt.Fprintln(os.Stderr, "usage: pre casts|order <editor.c>")
+		fmt.Fprintln(os.Stderr, "usage: pre casts|order|unions <editor.c>")
 		os.Exit(2)
 	}
 	ast, err := ccx.Parse(os.Args[2])
@@ -28,6 +30,8 @@ func main() {
 		r = ccx.Casts(ast)
 	case "order":
 		r = ccx.Order(ast)
+	case "unions":
+		r = ccx.Unions(ast)
 	default:
 		fmt.Fprintln(os.Stderr, "pre: no check", os.Args[1])
 		os.Exit(2)
