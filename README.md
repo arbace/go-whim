@@ -56,7 +56,7 @@ its own and every check in a stage runs at once, because there the checks are.
 ## Use
 
 ```sh
-make                 # fetch slim-vim.c if upstream moved, then whim-go, the editor
+make                 # fetch slim-vim.c if upstream moved, then bin/whim, the editor
 make whim-vim        # the C product's binary
 make whim-verify     # reproduce every recorded boundary, all stages at once,
                      # and refuse an editor/editor.go that is not what tx/skel writes
@@ -84,8 +84,8 @@ it copies `whim-vim.c` out, and `make editor/editor.go` does it on its own.
 writes (`make whim-editor-check` asks just that).
 
 ```sh
-make                                                 # whim-go
-tools/zerodelta.sh whim-go whim-vim.c --phase N      # N: the last phase
+make                                                 # bin/whim
+tools/zerodelta.sh bin/whim whim-vim.c --phase N     # N: the last phase
 ```
 
 It is measured the way the C is: the Go build must record exactly the declared

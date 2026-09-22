@@ -97,7 +97,7 @@ rather than vendoring it, because a patched `vendor/` fails `go mod verify`.
 ## Build
 
 ```sh
-make                 # all: whim-go, the editor (editor/ built), through whim-vim.c
+make                 # all: bin/whim, the editor (editor/ built), through whim-vim.c
                      # (produced only when slim-vim.c moved) and editor/editor.go
 make whim-vim        # the C product's binary
 ```
@@ -108,7 +108,7 @@ make whim-vim        # the C product's binary
   `whim-editor-check`, which refuses a tracked file that is not what the
   program writes. `tx/gen.sh` writes only when the content differs and never
   runs make: through `whim-vim.c`'s rule a check could start a pass. The binary
-  is `whim-go`, because `whim/` is the work tree.
+  is `bin/whim`; not `whim`, which is the work tree `whim/`.
 
 - **The compile line is the boundary's**, in the work tree's `Makefile`. Up to
   q82 it is `gcc -O0 -static -s` (a static-PIE); phase 83 writes
