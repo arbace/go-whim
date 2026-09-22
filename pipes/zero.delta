@@ -1759,3 +1759,6 @@
 
 # 158 declares nothing: the font test it guards read the top two bytes of a
 # pointer on every term entry, which are 0, and so failed as it now does.
+
+# 159 declares nothing: an array inside its struct or behind a pointer holds the
+# same bytes; nothing copied, sized or declared the three structs but the heads.

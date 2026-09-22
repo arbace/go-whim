@@ -8,9 +8,9 @@
 // The types, globals and every signature were generated from editor.c by
 // tx/skel (modernc.org/cc/v4); the function bodies and initial values were
 // written by hand, to tx/CONVENTIONS.md.  It is the transpilation of phase
-// 158's core: the functions phases 129-158 changed were re-transpiled from
+// 159's core: the functions phases 129-159 changed were re-transpiled from
 // their new C, the rest carried over.  Measured: built with `go build
-// ./editor`, tools/zerodelta.sh --phase 158 accepts it -- 102 screen cases,
+// ./editor`, tools/zerodelta.sh --phase 159 accepts it -- 102 screen cases,
 // 111 Ex rows, 30 command lines, the pty scenarios, 19 terminals and the
 // memline corpus, exactly as declared.
 
@@ -399,7 +399,7 @@ type S_regprog struct {
 	reganch   char_u
 	regmust   Ptr[byte]
 	regmlen   int32
-	program   Ptr[byte] // C struct hack: sized at allocation
+	program   Ptr[byte]
 }
 
 type regmmatch_T struct {
@@ -553,7 +553,7 @@ type regmatch_T struct {
 type S_buffblock struct {
 	b_next   *S_buffblock
 	b_strlen usize
-	b_str    Ptr[byte] // C struct hack: sized at allocation
+	b_str    Ptr[byte]
 }
 
 type S_buffheader struct {
@@ -972,7 +972,7 @@ type S_msgchunk_S struct {
 	sb_eol     byte
 	sb_msg_col int32
 	sb_attr    int32
-	sb_text    Ptr[byte] // C struct hack: sized at allocation
+	sb_text    Ptr[byte]
 }
 
 type S_modmasktable struct {
@@ -5718,9 +5718,9 @@ func init() {
 	main_errors = [3]Ptr[byte]{S("Unknown option argument"), S("Too many \"+command\", \"-c command\" or \"--cmd command\" arguments"), S("Invalid argument for")}
 }
 
-// C: the five buffheader_T initializers {{NULL, 0, {NUL}}, NULL, 0, 0, FALSE}.
-// b_str is C's one-element inline array (the struct hack), holding a NUL;
-// every other member is zero.
+// C: the five buffheader_T initializers {{nullptr, 0, (char_u[1]){NUL}},
+// nullptr, 0, 0, FALSE}: each head's b_str is a byte of its own, holding a
+// NUL; every other member is zero.
 func init() {
 	redobuff.bh_first.b_str = Mk[byte](1)
 	old_redobuff.bh_first.b_str = Mk[byte](1)

@@ -1334,7 +1334,7 @@ typedef struct regprog
     char_u              reganch;
     char_u              *regmust;
     int                 regmlen;
-    char_u              program[1];
+    char_u              *program;
 } regprog_T;
 
 typedef struct
@@ -1472,7 +1472,7 @@ struct buffblock
 {
     buffblock_T *b_next;
     usize      b_strlen;
-    char_u      b_str[1];
+    char_u      *b_str;
 };
 
 struct buffheader
@@ -20612,9 +20612,9 @@ find_file_name_in_path(char_u      *ptr, int         len, int         options, l
 
 enum { MINIMAL_SIZE = 20 };
 
-static buffheader_T redobuff = {{nullptr, 0, {NUL}}, nullptr, 0, 0, FALSE};
-static buffheader_T old_redobuff = {{nullptr, 0, {NUL}}, nullptr, 0, 0, FALSE};
-static buffheader_T recordbuff = {{nullptr, 0, {NUL}}, nullptr, 0, 0, FALSE};
+static buffheader_T redobuff = {{nullptr, 0, (char_u[1]){NUL}}, nullptr, 0, 0, FALSE};
+static buffheader_T old_redobuff = {{nullptr, 0, (char_u[1]){NUL}}, nullptr, 0, 0, FALSE};
+static buffheader_T recordbuff = {{nullptr, 0, (char_u[1]){NUL}}, nullptr, 0, 0, FALSE};
 
 static int typeahead_char = 0;
 
@@ -20777,7 +20777,8 @@ add_buff(buffheader_T        *buf, char_u              *s, long                s
         {
             len = slen;
         }
-        p = alloc(__builtin_offsetof(buffblock_T, b_str) + len + 1);
+        p = alloc(sizeof(buffblock_T));
+        p->b_str = alloc(len + 1);
         vim_strncpy(p->b_str, s, (usize)slen);
         p->b_strlen = slen;
         buf->bh_space = (int)(len - slen);
@@ -20858,9 +20859,9 @@ add_char_buff(buffheader_T *buf, int c)
     }
 }
 
-static buffheader_T readbuf1 = {{nullptr, 0, {NUL}}, nullptr, 0, 0, FALSE};
+static buffheader_T readbuf1 = {{nullptr, 0, (char_u[1]){NUL}}, nullptr, 0, 0, FALSE};
 
-static buffheader_T readbuf2 = {{nullptr, 0, {NUL}}, nullptr, 0, 0, FALSE};
+static buffheader_T readbuf2 = {{nullptr, 0, (char_u[1]){NUL}}, nullptr, 0, 0, FALSE};
 
     static int
 read_readbuffers(int advance)
@@ -34809,7 +34810,7 @@ struct msgchunk_S
     char        sb_eol;
     int         sb_msg_col;
     int         sb_attr;
-    char_u      sb_text[1];
+    char_u      *sb_text;
 };
 
 static msgchunk_T *last_msgchunk = nullptr;
@@ -34839,7 +34840,8 @@ store_sb_text(char_u      **sb_str, char_u      *s, int         attr, int       
 
     if (s > *sb_str)
     {
-        mp = alloc(__builtin_offsetof(msgchunk_T, sb_text) + (s - *sb_str) + 1);
+        mp = alloc(sizeof(msgchunk_T));
+        mp->sb_text = alloc((s - *sb_str) + 1);
         mp->sb_eol = finish;
         mp->sb_msg_col = *sb_col;
         mp->sb_attr = attr;
@@ -56895,7 +56897,8 @@ bt_regcomp(char_u *expr, int re_flags)
         return nullptr;
     }
 
-    r = alloc(__builtin_offsetof(regprog_T, program) + regsize);
+    r = alloc(sizeof(regprog_T));
+    r->program = alloc(regsize);
     r->re_in_use = FALSE;
 
     regcomp_start(expr, re_flags);
