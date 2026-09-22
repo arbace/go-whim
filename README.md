@@ -3,7 +3,7 @@
 One pipeline that takes vim apart on purpose, written in Go.
 
 ```
-slim-vim.c  ──────── 0-82 ────────▶  q82  ──────── 83-154 ────────▶  whim-vim.c
+slim-vim.c  ──────── 0-82 ────────▶  q82  ──────── 83-157 ────────▶  whim-vim.c
 (input)              an editor with no           an embeddable editor core:
                      runtime to install          no filesystem, no libc it did
                                                  not vendor, the text a tree
@@ -26,7 +26,7 @@ cross to a host block at the bottom of the same file, the libc that is pure
 computation is vendored, the core names no libc function at all, and the memline
 stops being pages and becomes a tree; their deltas are `pipes/zero.delta`,
 against an instrument that reads the screen. Those were a second pipeline, zero,
-numbered from 0 — zero phase N is phase N+83. **Phases 129-154** take out of
+numbered from 0 — zero phase N is phase N+83. **Phases 129-157** take out of
 the core what transpiling it to Go (`editor/`, `tx/FINDINGS.md`) had to work
 around; all but one change nothing the editor does, and 142 drops the build
 date from the version line.
@@ -107,14 +107,16 @@ and a phase that refuses stops the pass with its own report.
 ```
 cmd/whimtools/   the one binary every tool runs as: whimtools <subcommand>
 internal/        the cutters, the sweep, the canonicalisers, the harnesses,
-                 and one check per phase (internal/check/)
+                 one check per phase (internal/check/), and ccx: what the
+                 core's C leaves a translation to decide -- pointer casts,
+                 evaluation order -- partitioned
 pipes/           the phases: whimN.sh or whimN-edit.sh + whimN-check.sh;
                  whim.stages is the schedule and the packages, whim.delta
                  (phases 0-82) and zero.delta (83 on) the declared deltas
 tools/           the memoize driver and the shell wrappers around whimtools
 editor/          the core transpiled into Go, with its runtime and host
-tx/              tx/skel (the skeleton generator), sigs.txt, CONVENTIONS.md
-                 and FINDINGS.md
+tx/              tx/skel (the skeleton generator), tx/pre (ccx's reports on an
+                 editor.c), sigs.txt, CONVENTIONS.md and FINDINGS.md
 whim.mk          the pipeline as make targets
 whim-vim.c       the product, tracked; make editor.c cuts the core out of it
 upstream.sha     the arbace/slim-vim commit slim-vim.c was fetched from

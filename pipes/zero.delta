@@ -1746,3 +1746,13 @@
 # was a write through NULL, which no recorded case reaches.  The fix of vim's
 # intent -- clearing t_Co when there is no t_AB and no t_Sb -- would change
 # behaviour and is not this phase.
+
+# 155 declares nothing: the eleven calls whose arguments both have effects
+# evaluate them in the order gcc already did, now written as a local before the
+# call; the check measures gcc's order in both binaries' code.
+
+# 156 declares nothing: the regex size pass's sentinel is only ever compared, so
+# which address it is changes nothing a pattern does.
+
+# 157 declares nothing: typing the register changes no code; the check requires
+# the binary byte-identical.

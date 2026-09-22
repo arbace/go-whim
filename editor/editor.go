@@ -8,9 +8,9 @@
 // The types, globals and every signature were generated from editor.c by
 // tx/skel (modernc.org/cc/v4); the function bodies and initial values were
 // written by hand, to tx/CONVENTIONS.md.  It is the transpilation of phase
-// 154's core: the functions phases 129-154 changed were re-transpiled from
+// 157's core: the functions phases 129-157 changed were re-transpiled from
 // their new C, the rest carried over.  Measured: built with `go build
-// ./editor`, tools/zerodelta.sh --phase 154 accepts it -- 102 screen cases,
+// ./editor`, tools/zerodelta.sh --phase 157 accepts it -- 102 screen cases,
 // 111 Ex rows, 30 command lines, the pty scenarios, 19 terminals and the
 // memline corpus, exactly as declared.
 
@@ -6545,6 +6545,11 @@ func fileinfo(fullname int32, shorthelp int32, dont_truncate int32) {
 	bufferlen += safelen_result(buffer.Add(int(bufferlen)), (1024+1)-bufferlen, vim_snprintf(buffer.Add(int(bufferlen)), (1024+1)-bufferlen, S("%s"), name))
 
 	var a1, a2, a3, a4, a5 Ptr[byte]
+	if curbuf.b_flags&BF_NEW != 0 {
+		a3 = new_file_message()
+	} else {
+		a3 = S("")
+	}
 	if curbufIsChanged() != 0 {
 		if shortmess(SHM_MOD) != 0 {
 			a1 = S(" [+]")
@@ -6558,11 +6563,6 @@ func fileinfo(fullname int32, shorthelp int32, dont_truncate int32) {
 		a2 = gettext_(S("[Not edited]"))
 	} else {
 		a2 = S("")
-	}
-	if curbuf.b_flags&BF_NEW != 0 {
-		a3 = new_file_message()
-	} else {
-		a3 = S("")
 	}
 	if curbuf.b_flags&BF_READERR != 0 {
 		a4 = gettext_(S("[Read errors]"))
@@ -7140,11 +7140,19 @@ func open_line(dir int32, flags int32, second_line_indent int32, did_do_comment 
 	var did_append int32
 	saved_pi := curbuf.b_p_pi
 
-	saved_line = vim_strnsave(ml_get_curline(), usize(ml_get_curline_len()))
+	{
+		len := ml_get_curline_len()
+
+		saved_line = vim_strnsave(ml_get_curline(), usize(len))
+	}
 
 	if State&VREPLACE_FLAG != 0 {
 		if curwin.w_cursor.lnum < linenr_T(orig_line_count) {
-			next_line = vim_strnsave(ml_get(curwin.w_cursor.lnum+1), usize(ml_get_len(curwin.w_cursor.lnum+1)))
+			{
+				len := ml_get_len(curwin.w_cursor.lnum + 1)
+
+				next_line = vim_strnsave(ml_get(curwin.w_cursor.lnum+1), usize(len))
+			}
 		} else {
 			next_line = vim_strsave(S(""))
 		}
@@ -7383,7 +7391,11 @@ func open_line(dir int32, flags int32, second_line_indent int32, did_do_comment 
 	}
 
 	if State&VREPLACE_FLAG != 0 {
-		p_extra = vim_strnsave(ml_get_curline(), usize(ml_get_curline_len()))
+		{
+			len := ml_get_curline_len()
+
+			p_extra = vim_strnsave(ml_get_curline(), usize(len))
+		}
 
 		ml_replace(curwin.w_cursor.lnum, next_line, FALSE)
 
@@ -13750,7 +13762,11 @@ func ins_tab() int32 {
 		if State&VREPLACE_FLAG != 0 {
 			pos = curwin.w_cursor
 			cursor = &pos
-			saved_line = vim_strnsave(ml_get_curline(), usize(ml_get_curline_len()))
+			{
+				len := ml_get_curline_len()
+
+				saved_line = vim_strnsave(ml_get_curline(), usize(len))
+			}
 			ptr = saved_line.Add(int(pos.col))
 		} else {
 			ptr = ml_get_cursor()
@@ -14041,7 +14057,11 @@ func do_move(line1 linenr_T, line2 linenr_T, dest linenr_T) int32 {
 	}
 	extra = 0
 	for l = line1; l <= line2; l++ {
-		str = vim_strnsave(ml_get(l+extra), usize(ml_get_len(l+extra)))
+		{
+			len := ml_get_len(l + extra)
+
+			str = vim_strnsave(ml_get(l+extra), usize(len))
+		}
 		ml_append(dest+l-line1, str, 0)
 		if dest < line1 {
 			extra++
@@ -14120,7 +14140,11 @@ func ex_copy(line1 linenr_T, line2 linenr_T, n linenr_T) {
 
 	curwin.w_cursor.lnum = n
 	for line1 <= line2 {
-		p = vim_strnsave(ml_get(line1), usize(ml_get_len(line1)))
+		{
+			len := ml_get_len(line1)
+
+			p = vim_strnsave(ml_get(line1), usize(len))
+		}
 		ml_append(curwin.w_cursor.lnum, p, 0)
 		if line1 == n {
 			line1 = curwin.w_cursor.lnum
@@ -23657,7 +23681,11 @@ func change_indent(type_ int32, amount int32, round int32, replaced int32, call_
 	var orig_line Ptr[byte] = Ptr[byte]{}
 
 	if State&VREPLACE_FLAG != 0 {
-		orig_line = vim_strnsave(ml_get_curline(), usize(ml_get_curline_len()))
+		{
+			len := ml_get_curline_len()
+
+			orig_line = vim_strnsave(ml_get_curline(), usize(len))
+		}
 		orig_col = curwin.w_cursor.col
 	}
 
@@ -23800,7 +23828,11 @@ func change_indent(type_ int32, amount int32, round int32, replaced int32, call_
 			return
 		}
 
-		new_line = vim_strnsave(ml_get_curline(), usize(ml_get_curline_len()))
+		{
+			len := ml_get_curline_len()
+
+			new_line = vim_strnsave(ml_get_curline(), usize(len))
+		}
 
 		new_line.Set(int(curwin.w_cursor.col), NUL)
 
@@ -37434,8 +37466,8 @@ func nv_put(cap_ *S_cmdarg_S) {
 
 func nv_put_opt(cap_ *S_cmdarg_S, fix_indent int32) {
 	var regname int32 = 0
-	var reg1 any = nil
-	var reg2 any = nil
+	var reg1 *yankreg_T = nil
+	var reg2 *yankreg_T = nil
 	var empty int32 = FALSE
 	var was_visual int32 = FALSE
 	var dir int32
@@ -39825,7 +39857,11 @@ func cursor_pos_info() {
 			p = ml_get_curline()
 			validate_virtcol()
 			col_print(buf1, 50, int32(curwin.w_cursor.col)+1, int32(curwin.w_virtcol)+1)
-			col_print(buf2, 40, ml_get_curline_len(), linetabsize_str(p))
+			{
+				vcol := linetabsize_str(p)
+
+				col_print(buf2, 40, ml_get_curline_len(), vcol)
+			}
 
 			if char_count_cursor == byte_count_cursor && char_count == byte_count {
 				vim_snprintf(IObuff, (1024 + 1), gettext_(S("Col %s of %s; Line %ld of %ld; Word %lld of %lld; Byte %lld of %lld")), buf1, buf2, int64(curwin.w_cursor.lnum), int64(curbuf.b_ml.ml_line_count), word_count_cursor, word_count, byte_count_cursor, byte_count)
@@ -45036,10 +45072,9 @@ exit:
 // ==== from f13.go ====
 // Transpiled by hand from editor.c: init_regexec_multi .. bt_regexec_both.
 
-// f13_JUST_CALC_SIZE is C's `(char_u *) -1`: regcode while regcomp only
-// measures the program.  A distinct one-byte allocation that no real regcode
-// can equal.
-var f13_JUST_CALC_SIZE = Mk[byte](1)
+// reg_calc_size_node is regcode while regcomp only measures the program: a
+// byte no real regcode can equal, only ever compared.
+var reg_calc_size_node = Mk[byte](1)
 
 // sizeof(regitem_T), sizeof(regstar_T), sizeof(regbehind_T) and
 // sizeof(backpos_T): C's x86-64 struct sizes.  The three regexp stacks are
@@ -45140,7 +45175,7 @@ func use_multibytecode(c int32) int32 {
 }
 
 func regc(b int32) {
-	if regcode == f13_JUST_CALC_SIZE {
+	if regcode == reg_calc_size_node {
 		regsize++
 	} else {
 		regcode.Put(byte(b))
@@ -45149,7 +45184,7 @@ func regc(b int32) {
 }
 
 func regmbc(c int32) {
-	if regcode == f13_JUST_CALC_SIZE {
+	if regcode == reg_calc_size_node {
 		regsize += int64(utf_char2len(c))
 	} else {
 		regcode = regcode.Add(int(utf_char2bytes(c, regcode)))
@@ -45160,7 +45195,7 @@ func regnode(op int32) Ptr[byte] {
 	var ret Ptr[byte]
 
 	ret = regcode
-	if ret == f13_JUST_CALC_SIZE {
+	if ret == reg_calc_size_node {
 		regsize += 3
 	} else {
 		regcode.Put(byte(op))
@@ -45188,7 +45223,7 @@ func re_put_long(p Ptr[byte], val long_u) Ptr[byte] {
 func regnext(p Ptr[byte]) Ptr[byte] {
 	var offset int32
 
-	if p == f13_JUST_CALC_SIZE || reg_toolong != 0 {
+	if p == reg_calc_size_node || reg_toolong != 0 {
 		return Ptr[byte]{}
 	}
 
@@ -45209,7 +45244,7 @@ func regtail(p Ptr[byte], val Ptr[byte]) {
 	var temp Ptr[byte]
 	var offset int32
 
-	if p == f13_JUST_CALC_SIZE {
+	if p == reg_calc_size_node {
 		return
 	}
 
@@ -45236,7 +45271,7 @@ func regtail(p Ptr[byte], val Ptr[byte]) {
 }
 
 func regoptail(p Ptr[byte], val Ptr[byte]) {
-	if p.Nil() || p == f13_JUST_CALC_SIZE || (int32(p.Get()) != BRANCH && (int32(p.Get()) < BRACE_COMPLEX || int32(p.Get()) > BRACE_COMPLEX+9)) {
+	if p.Nil() || p == reg_calc_size_node || (int32(p.Get()) != BRANCH && (int32(p.Get()) < BRACE_COMPLEX || int32(p.Get()) > BRACE_COMPLEX+9)) {
 		return
 	}
 	regtail(p.Add(3), val)
@@ -45247,7 +45282,7 @@ func reginsert(op int32, opnd Ptr[byte]) {
 	var dst Ptr[byte]
 	var place Ptr[byte]
 
-	if regcode == f13_JUST_CALC_SIZE {
+	if regcode == reg_calc_size_node {
 		regsize += 3
 		return
 	}
@@ -45273,7 +45308,7 @@ func reginsert_nr(op int32, val int64, opnd Ptr[byte]) {
 	var dst Ptr[byte]
 	var place Ptr[byte]
 
-	if regcode == f13_JUST_CALC_SIZE {
+	if regcode == reg_calc_size_node {
 		regsize += 7
 		return
 	}
@@ -45301,7 +45336,7 @@ func reginsert_limits(op int32, minval int64, maxval int64, opnd Ptr[byte]) {
 	var dst Ptr[byte]
 	var place Ptr[byte]
 
-	if regcode == f13_JUST_CALC_SIZE {
+	if regcode == reg_calc_size_node {
 		regsize += 11
 		return
 	}
@@ -45633,7 +45668,7 @@ func regatom(flagp *int32) Ptr[byte] {
 					}
 					lastbranch = regnode(BRANCH)
 					br = regnode(NOTHING)
-					if ret != f13_JUST_CALC_SIZE {
+					if ret != reg_calc_size_node {
 						regtail(lastnode, br)
 						regtail(lastbranch, br)
 						for br = ret; br != lastnode; {
@@ -45725,7 +45760,7 @@ func regatom(flagp *int32) Ptr[byte] {
 					if no_Magic(c) == '\'' && n == 0 {
 						c = getchr()
 						ret = regnode(RE_MARK)
-						if ret == f13_JUST_CALC_SIZE {
+						if ret == reg_calc_size_node {
 							regsize += 2
 						} else {
 							regcode.Put(byte(c))
@@ -45765,7 +45800,7 @@ func regatom(flagp *int32) Ptr[byte] {
 							}
 							ret = regnode(RE_VCOL)
 						}
-						if ret == f13_JUST_CALC_SIZE {
+						if ret == reg_calc_size_node {
 							regsize += 5
 						} else {
 							regcode = re_put_long(regcode, n)
@@ -45849,7 +45884,7 @@ func regatom(flagp *int32) Ptr[byte] {
 						} else if regparse.Get() == '\\' && reg_cpo_bsl == 0 && (!vim_strchr(REGEXP_INRANGE, int32(regparse.At(1))).Nil() || (reg_cpo_lit == 0 && !vim_strchr(REGEXP_ABBR, int32(regparse.At(1))).Nil())) {
 							regparse = regparse.Add(1)
 							if regparse.Get() == 'n' {
-								if ret != f13_JUST_CALC_SIZE {
+								if ret != reg_calc_size_node {
 									if int32(ret.Get()) == ANYOF {
 										ret.Put(ANYOF + ADD_NL)
 										*flagp |= HASNL
@@ -46400,7 +46435,7 @@ func bt_regcomp(expr Ptr[byte], re_flags int32) *S_regprog {
 	init_class_tab()
 
 	regcomp_start(expr, re_flags)
-	regcode = f13_JUST_CALC_SIZE
+	regcode = reg_calc_size_node
 	regc(REGMAGIC)
 	if reg(REG_NOPAREN, &flags).Nil() {
 		return nil
@@ -48418,7 +48453,7 @@ func get_yank_register(regname int32, writing int32) int32 {
 	return ret
 }
 
-func get_register(name int32, copy_ int32) any {
+func get_register(name int32, copy_ int32) *yankreg_T {
 	var reg *yankreg_T
 	var i int32
 
@@ -48445,10 +48480,10 @@ func get_register(name int32, copy_ int32) any {
 	return reg
 }
 
-func put_register(name int32, reg any) {
+func put_register(name int32, reg *yankreg_T) {
 	get_yank_register(name, 0)
 	free_yank_all()
-	*y_current.P() = *reg.(*yankreg_T)
+	*y_current.P() = *reg
 }
 
 func do_record(c int32) int32 {
@@ -57288,7 +57323,11 @@ func internal_format(textwidth int32, second_indent int32, flags int32, format_o
 		}
 
 		if (State & VREPLACE_FLAG) != 0 {
-			saved_text = vim_strnsave(ml_get_cursor(), usize(ml_get_cursor_len()))
+			{
+				len := ml_get_cursor_len()
+
+				saved_text = vim_strnsave(ml_get_cursor(), usize(len))
+			}
 			curwin.w_cursor.col = orig_col
 			if saved_text.Nil() {
 				break

@@ -3039,8 +3039,8 @@ static long vim_regexec_multi(regmmatch_T *rmp, win_T *win, buf_T *buf, linenr_T
 static void reset_y_append(void);
 static int valid_yank_reg(int regname, int writing);
 static int get_yank_register(int regname, int writing);
-static void *get_register(int name, int copy);
-static void put_register(int name, void *reg);
+static yankreg_T *get_register(int name, int copy);
+static void put_register(int name, yankreg_T *reg);
 static int do_record(int c);
 static int do_execreg(int regname, int colon, int addcr, int silent);
 static int insert_reg(int regname, int literally_arg);
@@ -4536,7 +4536,11 @@ fileinfo(int fullname, int shorthelp, int dont_truncate)
     name = buf_spname(curbuf);
     bufferlen += safelen_result(buffer + bufferlen, (1024+1)  - bufferlen, vim_snprintf(buffer + bufferlen, (1024+1)  - bufferlen, "%s", name));
 
-    bufferlen += safelen_result(buffer + bufferlen, (1024+1)  - bufferlen, vim_snprintf(buffer + bufferlen, (1024+1)  - bufferlen, "\"%s%s%s%s%s", curbufIsChanged() ? (shortmess(SHM_MOD) ?  " [+]" : _(" [Modified]")) : " ", (curbuf->b_flags & BF_NOTEDITED) ? _("[Not edited]") : "", (curbuf->b_flags & BF_NEW) ? new_file_message() : "", (curbuf->b_flags & BF_READERR) ? _("[Read errors]") : "", (curbufIsChanged() || (curbuf->b_flags &  (BF_NOTEDITED + BF_NEW + BF_READERR) )) ? " " : ""));
+    {
+        char        *new_msg = (curbuf->b_flags & BF_NEW) ? new_file_message() : "";
+
+        bufferlen += safelen_result(buffer + bufferlen, (1024+1)  - bufferlen, vim_snprintf(buffer + bufferlen, (1024+1)  - bufferlen, "\"%s%s%s%s%s", curbufIsChanged() ? (shortmess(SHM_MOD) ?  " [+]" : _(" [Modified]")) : " ", (curbuf->b_flags & BF_NOTEDITED) ? _("[Not edited]") : "", new_msg, (curbuf->b_flags & BF_READERR) ? _("[Read errors]") : "", (curbufIsChanged() || (curbuf->b_flags &  (BF_NOTEDITED + BF_NEW + BF_READERR) )) ? " " : ""));
+    }
 
     if (curbuf->b_ml.ml_flags & ML_EMPTY)
     {
@@ -5246,13 +5250,21 @@ open_line(int         dir, int         flags, int         second_line_indent, in
     int         did_append;
     int         saved_pi = curbuf->b_p_pi;
 
-    saved_line = vim_strnsave(ml_get_curline(), ml_get_curline_len());
+    {
+        colnr_T     len = ml_get_curline_len();
+
+        saved_line = vim_strnsave(ml_get_curline(), len);
+    }
 
     if (State & VREPLACE_FLAG)
     {
         if (curwin->w_cursor.lnum < orig_line_count)
         {
-            next_line = vim_strnsave(ml_get(curwin->w_cursor.lnum + 1), ml_get_len(curwin->w_cursor.lnum + 1));
+            {
+                colnr_T     len = ml_get_len(curwin->w_cursor.lnum + 1);
+
+                next_line = vim_strnsave(ml_get(curwin->w_cursor.lnum + 1), len);
+            }
         }
         else
         {
@@ -5558,7 +5570,11 @@ open_line(int         dir, int         flags, int         second_line_indent, in
 
     if (State & VREPLACE_FLAG)
     {
-        p_extra = vim_strnsave(ml_get_curline(), ml_get_curline_len());
+        {
+            colnr_T     len = ml_get_curline_len();
+
+            p_extra = vim_strnsave(ml_get_curline(), len);
+        }
 
         ml_replace(curwin->w_cursor.lnum, next_line, FALSE);
 
@@ -13588,7 +13604,11 @@ ins_tab(void)
         {
             pos = curwin->w_cursor;
             cursor = &pos;
-            saved_line = vim_strnsave(ml_get_curline(), ml_get_curline_len());
+            {
+                colnr_T     len = ml_get_curline_len();
+
+                saved_line = vim_strnsave(ml_get_curline(), len);
+            }
             ptr = saved_line + pos.col;
         }
         else
@@ -13926,7 +13946,11 @@ do_move(linenr_T line1, linenr_T line2, linenr_T dest)
     extra = 0;
     for (l = line1; l <= line2; l++)
     {
-        str = vim_strnsave(ml_get(l + extra), ml_get_len(l + extra));
+        {
+            colnr_T     len = ml_get_len(l + extra);
+
+            str = vim_strnsave(ml_get(l + extra), len);
+        }
         ml_append(dest + l - line1, str, (colnr_T)0);
         if (dest < line1)
         {
@@ -14025,7 +14049,11 @@ ex_copy(linenr_T line1, linenr_T line2, linenr_T n)
     curwin->w_cursor.lnum = n;
     while (line1 <= line2)
     {
-        p = vim_strnsave(ml_get(line1), ml_get_len(line1));
+        {
+            colnr_T     len = ml_get_len(line1);
+
+            p = vim_strnsave(ml_get(line1), len);
+        }
         ml_append(curwin->w_cursor.lnum, p, (colnr_T)0);
         if (line1 == n)
         {
@@ -26072,7 +26100,11 @@ change_indent(int         type, int         amount, int         round, int      
 
     if (State & VREPLACE_FLAG)
     {
-        orig_line = vim_strnsave(ml_get_curline(), ml_get_curline_len());
+        {
+            colnr_T     len = ml_get_curline_len();
+
+            orig_line = vim_strnsave(ml_get_curline(), len);
+        }
         orig_col = curwin->w_cursor.col;
     }
 
@@ -26235,7 +26267,11 @@ change_indent(int         type, int         amount, int         round, int      
             return;
         }
 
-        new_line = vim_strnsave(ml_get_curline(), ml_get_curline_len());
+        {
+            colnr_T     len = ml_get_curline_len();
+
+            new_line = vim_strnsave(ml_get_curline(), len);
+        }
 
         new_line[curwin->w_cursor.col] = NUL;
 
@@ -44778,8 +44814,8 @@ nv_put(cmdarg_T *cap)
 nv_put_opt(cmdarg_T *cap, int fix_indent)
 {
     int         regname = 0;
-    void *reg1 = nullptr;
-    void *reg2 = nullptr;
+    yankreg_T *reg1 = nullptr;
+    yankreg_T *reg2 = nullptr;
     int         empty = FALSE;
     int         was_visual = FALSE;
     int         dir;
@@ -47640,7 +47676,11 @@ cursor_pos_info(void)
             p = ml_get_curline();
             validate_virtcol();
             col_print(buf1, sizeof(buf1), (int)curwin->w_cursor.col + 1, (int)curwin->w_virtcol + 1);
-            col_print(buf2, sizeof(buf2), ml_get_curline_len(), linetabsize_str(p));
+            {
+                int         vcol = linetabsize_str(p);
+
+                col_print(buf2, sizeof(buf2), ml_get_curline_len(), vcol);
+            }
 
             if (char_count_cursor == byte_count_cursor && char_count == byte_count)
             {
@@ -55103,6 +55143,7 @@ enum { WORST = 0 };
 
 static int      num_complex_braces;
 static char_u   *regcode;
+static char_u   reg_calc_size_node[1];
 static long     regsize;
 static int      reg_toolong;
 static int      bt_reg_parse_depth;
@@ -55243,7 +55284,7 @@ use_multibytecode(int c)
     static void
 regc(int b)
 {
-    if (regcode ==  ((char_u *) -1) )
+    if (regcode ==  reg_calc_size_node )
     {
         regsize++;
     }
@@ -55256,7 +55297,7 @@ regc(int b)
     static void
 regmbc(int c)
 {
-    if (regcode ==  ((char_u *) -1) )
+    if (regcode ==  reg_calc_size_node )
     {
         regsize += utf_char2len(c);
     }
@@ -55272,7 +55313,7 @@ regnode(int op)
     char_u  *ret;
 
     ret = regcode;
-    if (ret ==  ((char_u *) -1) )
+    if (ret ==  reg_calc_size_node )
     {
         regsize += 3;
     }
@@ -55300,7 +55341,7 @@ regnext(char_u *p)
 {
     int     offset;
 
-    if (p ==  ((char_u *) -1)  || reg_toolong)
+    if (p ==  reg_calc_size_node  || reg_toolong)
     {
         return nullptr;
     }
@@ -55328,7 +55369,7 @@ regtail(char_u *p, char_u *val)
     char_u      *temp;
     int         offset;
 
-    if (p ==  ((char_u *) -1) )
+    if (p ==  reg_calc_size_node )
     {
         return;
     }
@@ -55366,7 +55407,7 @@ regtail(char_u *p, char_u *val)
     static void
 regoptail(char_u *p, char_u *val)
 {
-    if (p == nullptr || p ==  ((char_u *) -1)  || ( ((int)*(p))  != BRANCH && ( ((int)*(p))  < BRACE_COMPLEX ||  ((int)*(p))  > BRACE_COMPLEX + 9)))
+    if (p == nullptr || p ==  reg_calc_size_node  || ( ((int)*(p))  != BRANCH && ( ((int)*(p))  < BRACE_COMPLEX ||  ((int)*(p))  > BRACE_COMPLEX + 9)))
     {
         return;
     }
@@ -55380,7 +55421,7 @@ reginsert(int op, char_u *opnd)
     char_u      *dst;
     char_u      *place;
 
-    if (regcode ==  ((char_u *) -1) )
+    if (regcode ==  reg_calc_size_node )
     {
         regsize += 3;
         return;
@@ -55406,7 +55447,7 @@ reginsert_nr(int op, long val, char_u *opnd)
     char_u      *dst;
     char_u      *place;
 
-    if (regcode ==  ((char_u *) -1) )
+    if (regcode ==  reg_calc_size_node )
     {
         regsize += 7;
         return;
@@ -55433,7 +55474,7 @@ reginsert_limits(int         op, long        minval, long        maxval, char_u 
     char_u      *dst;
     char_u      *place;
 
-    if (regcode ==  ((char_u *) -1) )
+    if (regcode ==  reg_calc_size_node )
     {
         regsize += 11;
         return;
@@ -55857,7 +55898,7 @@ regatom(int *flagp)
                                   }
                                   lastbranch = regnode(BRANCH);
                                   br = regnode(NOTHING);
-                                  if (ret !=  ((char_u *) -1) )
+                                  if (ret !=  reg_calc_size_node )
                                   {
                                       regtail(lastnode, br);
                                       regtail(lastbranch, br);
@@ -55988,7 +56029,7 @@ regatom(int *flagp)
                                   {
                                       c = getchr();
                                       ret = regnode(RE_MARK);
-                                      if (ret ==  ((char_u *) -1) )
+                                      if (ret ==  reg_calc_size_node )
                                       {
                                           regsize += 2;
                                       }
@@ -56041,7 +56082,7 @@ regatom(int *flagp)
                                           }
                                           ret = regnode(RE_VCOL);
                                       }
-                                      if (ret ==  ((char_u *) -1) )
+                                      if (ret ==  reg_calc_size_node )
                                       {
                                           regsize += 5;
                                       }
@@ -56142,7 +56183,7 @@ regatom(int *flagp)
                             regparse++;
                             if (*regparse == 'n')
                             {
-                                if (ret !=  ((char_u *) -1) )
+                                if (ret !=  reg_calc_size_node )
                                 {
                                     if (*ret == ANYOF)
                                     {
@@ -56847,7 +56888,7 @@ bt_regcomp(char_u *expr, int re_flags)
     init_class_tab();
 
     regcomp_start(expr, re_flags);
-    regcode =  ((char_u *) -1) ;
+    regcode =  reg_calc_size_node ;
     regc(REGMAGIC);
     if (reg(REG_NOPAREN, &flags) == nullptr)
     {
@@ -59561,7 +59602,7 @@ get_yank_register(int regname, int writing)
     return ret;
 }
 
-    static void *
+    static yankreg_T *
 get_register(int         name, int         copy)
 {
     yankreg_T   *reg;
@@ -59595,15 +59636,15 @@ get_register(int         name, int         copy)
     {
         y_current->y_array = nullptr;
     }
-    return (void *)reg;
+    return reg;
 }
 
     static void
-put_register(int name, void *reg)
+put_register(int name, yankreg_T *reg)
 {
     get_yank_register(name, 0);
     free_yank_all();
-    *y_current = *(yankreg_T *)reg;
+    *y_current = *reg;
 
 }
 
@@ -70789,7 +70830,11 @@ internal_format(int         textwidth, int         second_indent, int         fl
 
         if (State & VREPLACE_FLAG)
         {
-            saved_text = vim_strnsave(ml_get_cursor(), ml_get_cursor_len());
+            {
+                colnr_T     len = ml_get_cursor_len();
+
+                saved_text = vim_strnsave(ml_get_cursor(), len);
+            }
             curwin->w_cursor.col = orig_col;
             if (saved_text == nullptr)
             {

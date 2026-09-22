@@ -1,14 +1,14 @@
 # editor.c → editor.go: what the transpilation found
 
 `editor/editor.go` is `editor.c` transpiled by hand, faithfully. Its 1,695 C
-functions are Go functions with the same names and control flow: 60,823 lines,
+functions are Go functions with the same names and control flow: 60,839 lines,
 plus `editor/crt.go` (the C runtime it is written against, 274 lines) and
 `editor/host.go` (the host, from the Go runtime, 1,704 lines). It follows
-phase 154's core; how it got there from the first pass, which followed phase
+phase 157's core; how it got there from the first pass, which followed phase
 128's, is the section *The transpilation, brought to phase 149*.
 
 **It works.** `go build ./editor` gives an editor that `tools/zerodelta.sh …
---phase 154` accepts as exactly phase 154's declared delta: 102 screen cases,
+--phase 157` accepts as exactly phase 157's declared delta: 102 screen cases,
 111 Ex rows, 30 command lines, the pty scenarios, 19 terminals and the memline
 corpus. The first pass was measured the same way against phase 128, and
 there, byte for byte against the C binary's 122 files. The control: the same
@@ -81,7 +81,7 @@ the Go simpler and the patch smaller.
 
 ## Which findings are phases now
 
-Phases 129 to 154 (`WHIM-GOAL.md`, Part II) remove from the C what the
+Phases 129 to 157 (`WHIM-GOAL.md`, Part II) remove from the C what the
 transpilation worked around. Each declares no behavioural delta; 142's change
 is to stderr, which the recording excludes, and its check measures it:
 
@@ -99,6 +99,9 @@ is to stderr, which the recording excludes, and its check measures it:
 | 11, `goto` into `switch` or a block | 141, `regrepeat()` does not jump into a case; 143, `regatom()`, 144, `edit()` and 145, `check_termcode()` have no goto |
 | a pointer cast the Go could not write (`free_one_termoption()`) | 153, `free_one_termoption()` compares without a cast; 154, its NULL write is gone |
 | 12, signals | 147, `deathtrap()` runs at the host's next wait, woken by a self-pipe |
+| call arguments whose order is unspecified in C and left to right in Go | 155, arguments with effects are evaluated in gcc's order |
+| an integer made a pointer (`(char_u *) -1`) | 156, the regex size pass's node is a static byte |
+| a register carried through `void *` | 157, `get_register()` and `put_register()` carry a `yankreg_T *` |
 | 13, `__DATE__ " " __TIME__` | 142, the version names no build date or time |
 | the eval value types the transpilation carried (`typval_T`, lists, dicts, classes) | 137, the changedtick is a number; 138, no parameter carries an eval value |
 
