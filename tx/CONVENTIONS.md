@@ -1,7 +1,10 @@
 # Transpiling editor.c to Go: the conventions
 
-> Written for the one parallel pass that produced `editor/editor.go`, and kept
-> as the record of how each C construct was translated. The per-file pieces it
+> **These are now the rules of a program.** `tx/skel -editor` applies them to
+> write `editor/editor.go` whole (`tx/gen.sh`); the text below is kept as their
+> statement, and a rule the program applies differently is a bug in one or the
+> other. It was written for the one parallel pass that produced the first
+> `editor/editor.go` by hand. The per-file pieces it
 > names (`types.go`, `globals.go`, the chunk files) and its checking script
 > were folded into `editor/editor.go` afterwards; `tx/skel` regenerates the
 > generated part and `tx/sigs.txt` is the signature list the pass used.

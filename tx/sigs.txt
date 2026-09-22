@@ -1180,7 +1180,6 @@ func optval_default(p Ptr[S_vimoption], varp optvar_T, compatible int32) int32
 func showoneopt(p Ptr[S_vimoption], opt_flags int32)
 func clear_termoptions()
 func free_termoptions()
-func free_one_termoption(var_ Ptr[byte])
 func set_term_defaults()
 func istermoption(p Ptr[S_vimoption]) int32
 func istermoption_idx(opt_idx int32) int32
@@ -1359,8 +1358,8 @@ func vim_regexec_multi(rmp *regmmatch_T, win *S_window_S, buf *S_file_buffer, ln
 func reset_y_append()
 func valid_yank_reg(regname int32, writing int32) int32
 func get_yank_register(regname int32, writing int32) int32
-func get_register(name int32, copy_ int32) any
-func put_register(name int32, reg any)
+func get_register(name int32, copy_ int32) *yankreg_T
+func put_register(name int32, reg *yankreg_T)
 func do_record(c int32) int32
 func stuff_yank(regname int32, p Ptr[byte]) int32
 func execreg_line_continuation(lines Ptr[string_T], idx *int64) Ptr[byte]

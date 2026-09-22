@@ -22,7 +22,7 @@ func parse(path string) (*cc.AST, error) {
 
 func main() {
 	if len(os.Args) < 3 {
-		fmt.Fprintln(os.Stderr, "usage: skel <editor.c> <outdir> [-bodies]")
+		fmt.Fprintln(os.Stderr, "usage: skel <editor.c> <outdir> [-bodies | -editor <editor.go>]")
 		os.Exit(2)
 	}
 	ast, err := parse(os.Args[1])
@@ -39,6 +39,12 @@ func main() {
 	if err := g.write(os.Args[2]); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
+	}
+	if len(os.Args) > 4 && os.Args[3] == "-editor" {
+		if err := g.writeEditor(os.Args[4], crtFuncs); err != nil {
+			fmt.Fprintln(os.Stderr, "skel:", err)
+			os.Exit(1)
+		}
 	}
 	if len(os.Args) > 3 && os.Args[3] == "-bodies" {
 		if err := g.writeBodies(os.Args[2], crtFuncs); err != nil {

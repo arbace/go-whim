@@ -52,6 +52,9 @@ func stripCasts(e cc.ExpressionNode) cc.ExpressionNode {
 
 func isNullConst(e cc.ExpressionNode) bool {
 	e = unparenE(e)
+	if p, ok := e.(*cc.PostfixExpression); ok && p.Case == cc.PostfixExpressionComplit {
+		return false // storage of its own, whatever cc makes its value
+	}
 	if c, ok := e.(*cc.CastExpression); ok && c.Case == cc.CastExpressionCast {
 		if t := c.Type(); t != nil && (t.Kind() == cc.Ptr) {
 			return isNullConst(c.CastExpression)
@@ -307,6 +310,22 @@ func (f *fnEmit) postfix(x *cc.PostfixExpression, to string) val {
 		return val{s: p, t: f.fieldType(x), c: x.Type()}
 	case cc.PostfixExpressionCall:
 		return f.call(x, to)
+	case cc.PostfixExpressionComplit:
+		// a compound literal array: storage of its own, zeroed
+		at, ok := x.TypeName.Type().(*cc.ArrayType)
+		if !ok || at.Len() <= 0 {
+			f.no(x, "a compound literal of a %s", x.TypeName.Type())
+		}
+		for l := x.InitializerList; l != nil; l = l.InitializerList {
+			if l.Designation != nil || !zeroInit(l.Initializer) {
+				f.no(x, "a compound literal that is not zeros")
+			}
+		}
+		et := f.g.goType(at.Elem(), "")
+		if isByteType(at.Elem()) {
+			et = "byte"
+		}
+		return val{s: fmt.Sprintf("Mk[%s](%d)", et, at.Len()), t: "Ptr[" + et + "]", c: x.Type()}
 	case cc.PostfixExpressionInc, cc.PostfixExpressionDec:
 		lv := f.lval(x.PostfixExpression)
 		t := f.newTemp(lv.t)
@@ -1174,6 +1193,9 @@ func (f *fnEmit) exprStmt(e cc.ExpressionNode) {
 }
 
 func isZeroConst(e cc.ExpressionNode) bool {
+	if p, ok := unparenE(e).(*cc.PostfixExpression); ok && p.Case == cc.PostfixExpressionComplit {
+		return false // storage of its own, whatever cc makes its value
+	}
 	switch v := unparenE(e).Value().(type) {
 	case cc.Int64Value:
 		return v == 0

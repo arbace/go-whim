@@ -67,17 +67,20 @@ it with every stage speculated at once on the previous pass's boundaries first.
 
 ## The Go editor
 
-`editor/` is the core, `editor.c`, transpiled by hand into Go:
-- **`editor.go`**: every C function a Go function with the same name and
-  control flow, so the two read line for line;
+`editor/` is the core, `editor.c`, in Go:
+- **`editor.go`**: **generated** by `tx/gen.sh` (`tx/skel` on `modernc.org/cc/v4`):
+  every C function a Go function with the same name and control flow, so the
+  two read line for line;
 - **`crt.go`**: the C runtime it is written against, `Ptr[T]` for a C pointer
   that walks;
 - **`host.go`**: the host, from the Go runtime and standard library only.
 
-It follows the current core. When a phase changes the C, the functions it
-changed are re-transpiled from their new C, and the rest carried over.
+It follows the current core: when a phase changes the C, `sh tx/gen.sh`
+writes `editor.go` again, and `sh tx/gen.sh --check` refuses a committed file
+that is not what the program writes.
 
 ```sh
+sh tx/gen.sh
 go build -o editor.bin ./editor
 tools/zerodelta.sh editor.bin whim-vim.c --phase N   # N: the last phase
 ```
