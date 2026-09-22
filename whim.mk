@@ -114,6 +114,7 @@ whim-pass: $(WHIMBUILD)/q$(WHIMLAST).sha256
 	@echo
 	@printf '  %-12s %s lines, from slim-vim.c\n' "whim-vim.c" \
 	    "`grep -c '' whim-vim.c | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
+	@$(MAKE) --no-print-directory whim-editor
 
 # The same per-phase handles arbace/slim-vim's slim.mk has, and one semantic change: a phase is run
 # by running THE STAGE THAT CONTAINS IT, because only a stage's end is a boundary
@@ -233,6 +234,7 @@ whim-product-check:
 whim-verify:
 	@tools/packages.sh whim --check && \
 	 tools/verifypass.sh whim
+	@$(MAKE) --no-print-directory whim-editor-check
 
 # A repass that waits only where it has to.  Every stage first runs at once on
 # the previous pass's boundary before it, and its result goes into the tier 3
@@ -307,18 +309,49 @@ whim-residue:
 # the phase would change the SOURCE and not the makefile -- and it did.  Phase 110 moved
 # the includes to 78,360 and the rule now writes the 78,358 lines above them, which is
 # the product of this whole project.
+# The cut, as a canned recipe: editor.c's rule runs it after whim-vim.c is
+# current, and whim-pass and whim-editor-check run it on the tracked whim-vim.c
+# as it stands -- through whim-vim.c's own rule they would start a pass.
+define cut-editor
+	@awk '/^ *# *include / { exit } { a[NR] = $$0; if (NF) last = NR } \
+	      END { for (i = 1; i <= last; i++) print a[i] }' whim-vim.c > editor.c
+	@if grep -q '^ *#' editor.c; then \
+	    echo "  editor.c     REFUSED -- the cut holds a directive, so it found the wrong line:"; \
+	    grep -n '^ *#' editor.c | head -3 | sed 's/^/               /'; \
+	    rm -f editor.c; exit 1; \
+	 fi
+	@printf '  %-12s %s lines, cut at the first #include of %s\n' editor.c \
+	    "`grep -c '' editor.c | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
+	    "`grep -c '' whim-vim.c | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
+endef
+
 .PHONY: editor.c
 editor.c: whim-vim.c
-	@awk '/^ *# *include / { exit } { a[NR] = $$0; if (NF) last = NR } \
-	      END { for (i = 1; i <= last; i++) print a[i] }' $< > $@
-	@if grep -q '^ *#' $@; then \
-	    echo "  editor.c     REFUSED -- the cut holds a directive, so it found the wrong line:"; \
-	    grep -n '^ *#' $@ | head -3 | sed 's/^/               /'; \
-	    rm -f $@; exit 1; \
-	 fi
-	@printf '  %-12s %s lines, cut at the first #include of %s\n' "$@" \
-	    "`grep -c '' $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
-	    "`grep -c '' $< | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
+	$(cut-editor)
+
+# --- editor/editor.go, the core in Go -----------------------------------------
+# GENERATED: tx/skel writes it whole from editor.c (tx/gen.sh), and it is
+# tracked, so it must be what the program writes from the tracked whim-vim.c.
+# tx/gen.sh writes it only when that differs, so a current file keeps its mtime.
+#
+#   make editor/editor.go    write it again from whim-vim.c
+#   make whim-editor-check   refuse if the tracked file is not what it would be
+#
+# whim-pass writes it after copying whim-vim.c out, since a phase that changes
+# the C changes it; whim-verify, run before a push, refuses a stale one.
+.PHONY: editor/editor.go
+editor/editor.go: editor.c
+	@sh tx/gen.sh
+
+.PHONY: whim-editor
+whim-editor:
+	$(cut-editor)
+	@sh tx/gen.sh
+
+.PHONY: whim-editor-check
+whim-editor-check:
+	$(cut-editor)
+	@sh tx/gen.sh --check
 
 # There are two sets of baselines (tools/pipeline.sh, ZERO_FROM).  Phase 0 records
 # .reference/baselines from slim-vim.c, and every delta before phase 83 is measured

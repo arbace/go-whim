@@ -4,9 +4,10 @@
 # records the upstream vim commit it was built from and not the tree.
 slim-vim.c
 
-# The products' binaries.
+# The products' binaries: the C product's, and the editor's, the core in Go.
 slim-vim
 whim-vim
+whim-go
 
 # The core half of zero-vim.c, cut at the first #include by `make editor.c`.
 editor.c

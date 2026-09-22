@@ -16,7 +16,7 @@ nothing about what the editor does. `make` asks that repository for its head,
 fetches `slim-vim.c` and vim's `LICENSE` at exactly that commit, and records the
 commit in `upstream.sha`.
 
-**whim** (`whim.mk`, 155 phases) removes capability on purpose, and every phase
+**whim** (`whim.mk`, 163 phases) removes capability on purpose, and every phase
 declares in advance what it changes and a harness proves it changed exactly that
 and nothing else. **Phases 0-82** remove the runtime files, the eval layer,
 windows beyond one, buffers beyond one, the command-line arguments and 489 Ex
@@ -56,9 +56,12 @@ its own and every check in a stage runs at once, because there the checks are.
 ## Use
 
 ```sh
-make                 # fetch slim-vim.c if upstream moved, then whim-vim
-make whim-verify     # reproduce every recorded boundary, all stages at once
+make                 # fetch slim-vim.c if upstream moved, then whim-go, the editor
+make whim-vim        # the C product's binary
+make whim-verify     # reproduce every recorded boundary, all stages at once,
+                     # and refuse an editor/editor.go that is not what tx/skel writes
 make editor.c        # whim-vim.c's core, cut at the line between core and host
+make editor/editor.go  # the core in Go, generated from editor.c
 make score           # bytes to store and libc symbols to provide, input and product
 ```
 
@@ -75,14 +78,14 @@ it with every stage speculated at once on the previous pass's boundaries first.
   that walks;
 - **`host.go`**: the host, from the Go runtime and standard library only.
 
-It follows the current core: when a phase changes the C, `sh tx/gen.sh`
-writes `editor.go` again, and `sh tx/gen.sh --check` refuses a committed file
-that is not what the program writes.
+It follows the current core. `make whim-pass` writes `editor.go` again after
+it copies `whim-vim.c` out, and `make editor/editor.go` does it on its own.
+`make whim-verify` refuses a committed file that is not what the program
+writes (`make whim-editor-check` asks just that).
 
 ```sh
-sh tx/gen.sh
-go build -o editor.bin ./editor
-tools/zerodelta.sh editor.bin whim-vim.c --phase N   # N: the last phase
+make                                                 # whim-go
+tools/zerodelta.sh whim-go whim-vim.c --phase N      # N: the last phase
 ```
 
 It is measured the way the C is: the Go build must record exactly the declared

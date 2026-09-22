@@ -9,9 +9,12 @@
 # So a slim-vim commit that does not change slim-vim.c costs a fetch and nothing
 # else.
 #
-#   make                 fetch if the upstream moved, then whim-vim
-#   make whim-verify     every boundary, reproduced at once
+#   make                 fetch if the upstream moved, then whim-go: the editor, the
+#                        core in Go (editor/) built with its runtime and host
+#   make whim-vim        the C product's binary
+#   make whim-verify     every boundary, reproduced at once, and editor.go current
 #   make editor.c        the core, cut from whim-vim.c at its first #include
+#   make editor/editor.go  the core in Go, generated from editor.c
 #
 # whim.mk is the pipeline; tools/ and pipes/ are what it runs.
 
@@ -30,9 +33,17 @@ SLIMVIM_RAW    = https://raw.githubusercontent.com/arbace/slim-vim
 .DEFAULT_GOAL := all
 
 .PHONY: all
-all: whim-vim
+all: whim-go
 
 include whim.mk
+
+# The editor: editor/ built -- editor.go as tx/skel writes it from whim-vim.c,
+# crt.go and host.go.  Go's own build cache decides what compiles again, so the
+# rule runs every time and costs nothing when nothing moved.
+whim-go: editor/editor.go force
+	@go build -o $@ ./editor
+	@printf '  %-12s %s bytes, the core in Go (editor/)\n' "$@" \
+	    "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
 
 # --- the input ------------------------------------------------------------
 # It cannot be a timestamp -- a clone writes every file at checkout time in
@@ -66,7 +77,7 @@ whim-vim.c: slim-vim.c
 
 .PHONY: clean
 clean:
-	rm -f slim-vim whim-vim
+	rm -f slim-vim whim-vim whim-go
 
 .PHONY: clean-cache
 clean-cache:
