@@ -1,6 +1,6 @@
 # Phase 96 — no `FILE *` that is never opened
 
-`phase/096/edit.sh` and `phase/096/check.sh`, `stage 96`, `package tidy`. Two
+`phase/096/edit.go` and `phase/096/check.go`, `stage 96`, `package tidy`. Two
 `static FILE *` survive in this editor and **nothing has ever opened either of them in
 any build of `whim-vim`**: `scriptin[NSCRIPT]`, which `-s {scriptfile}` filled and for
 which whim removed the option, and `redir_fd`, which `:redir > file` filled and for

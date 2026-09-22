@@ -357,7 +357,7 @@ apart       90 91
 # `readonlymode` at 5, `b_ffname` at 43 and `b_fname` at 37 -- the line it draws
 # against the byte-reader phase, stated as counts so that reaching into the read
 # path would fail rather than widen quietly.  This phase takes all of it: measured
-# by running phase/091/check.sh on the tree phase 92 leaves, which gives five
+# by running phase/091/check.go on the tree phase 92 leaves, which gives five
 # complaints -- `readfile has 0 mentions, expected 5`, `read_buffer has 0 mentions,
 # expected 17`, `readonlymode has 3 mentions, expected 5` and the two name counts --
 # and exits 1.  Its symbol check would fail too, being a `cmp` of the whole
@@ -369,7 +369,7 @@ apart       91 92
 # expand_filename 3, fix_fname 3, vim_FullName 3, mch_FullName 3, buf_store_time 3
 # and the four write-only fields b_mtime_read, b_mtime_read_ns, b_orig_size and
 # b_orig_mode at 3 each -- and it names the four as things this phase takes.  This
-# phase takes every one of them to 0.  Measured by running phase/092/check.sh on
+# phase takes every one of them to 0.  Measured by running phase/092/check.go on
 # the tree phase 93 leaves: eighteen count complaints, `b_ffname has 0 mentions,
 # expected 32` among them, plus `b_mtime_read is no longer a field of buf_T`, and it
 # exits 1.  Its symbol check would fail too, being a cmp of the whole undefined set
@@ -382,8 +382,8 @@ apart       91 92
 apart       92 93
 # Phases 89, 90, 91, 92 AND 10 all assert `E37: No write since last change` in the new
 # record of their `quit_modified` probe, and all five name `check_changed` as a thing
-# the `:q` phase takes -- phase/089/check.sh:158 and :422-424 are the first of them.
-# This phase takes it.  Measured by running phase/093/check.sh on the tree phase 94
+# the `:q` phase takes -- phase/089/check.go:158 and :422-424 are the first of them.
+# This phase takes it.  Measured by running phase/093/check.go on the tree phase 94
 # leaves: five complaints -- `check_changed has 0 mentions, expected 4`,
 # `no_write_message has 0 mentions, expected 3`, `buf_spname has 4 mentions, expected
 # 5`, `open_buffer has 4 mentions, expected 5` and `E37 went, and check_changed() is
@@ -396,7 +396,7 @@ apart       92 93
 apart       93 94
 # Phase 94's check pins `p_ro` and `p_ur` at 2 mentions WITH their option rows and
 # says in as many words that removing one is the options phase's.  This phase removes
-# both rows.  Measured by running phase/094/check.sh on the tree phase 95 leaves:
+# both rows.  Measured by running phase/094/check.go on the tree phase 95 leaves:
 # six complaints -- `p_ro has 0 mentions, expected 2`, `p_ur has 0 mentions, expected
 # 2`, `'undoreload' lost its option row, and that is the options phase's`, the same
 # for `'readonly'`, `curbufIsChanged has 6 mentions, expected 7` (change_warning's
@@ -408,7 +408,7 @@ apart       94 95
 # Phase 95's check pins `scriptin` at 8 mentions, `redir_fd` at 6 and `vim_fsync` at
 # 3, and names all three as the FILE* phase's; it also requires `fclose`, `getc`,
 # `putc` and `fsync` to be STILL undefined.  This phase takes every one of them to 0
-# and frees all four symbols.  Measured by running phase/095/check.sh on the tree
+# and frees all four symbols.  Measured by running phase/095/check.go on the tree
 # phase 96 leaves: three complaints -- `redir_fd has 0 mentions, expected 6`,
 # `scriptin has 0 mentions, expected 8` and `vim_fsync has 0 mentions, expected 3` --
 # and exit 1.  Its symbol check would fail as well, being a cmp of the whole undefined
@@ -565,7 +565,7 @@ apart       107 108
 # claimed and unmeasured: phase 108's check refuses before phase 109's ever runs, so there
 # is nothing after it to observe.  That is `apart 102 103`'s shape.
 apart       108 109
-# MEASURED rather than predicted, by running phase/109/check.sh on the tree phase 110
+# MEASURED rather than predicted, by running phase/109/check.go on the tree phase 110
 # leaves -- q108 restored, 26's edit, 27's edit, one sweep, then 26's check.  It stops
 # with TWO complaints, and behind them a third that never gets a chance to speak.  `the
 # output is 80232 lines and the input was 80173, a difference of 59 where 24 was
@@ -583,7 +583,7 @@ apart       108 109
 # the text and binary ITS OWN edit was handed, which is 26's output either way, and it
 # takes no symbol snapshot from the stage.
 apart       109 110
-# MEASURED rather than predicted, by running phase/110/check.sh on the tree phase 111
+# MEASURED rather than predicted, by running phase/110/check.go on the tree phase 111
 # leaves.  It stops at its first act, before it has compiled anything: ``elapsed` is not
 # defined exactly once above the boundary, so the control that moves one core function
 # below it would not be a control`, exit 1.  Phase 110's whole argument for the boundary
@@ -818,7 +818,7 @@ need        94 swept
 #                  no-op at this point in the pipeline: one round, 0 prototypes, 0
 #                  functions, 0 variables, 0 types, 0 fields, 0 enumerators, canon
 #                  settled, the file not one line shorter than the edit left it.
-# phase/104/check.sh pins `msg_puts_printf` at 3 mentions -- "a prototype, a
+# phase/104/check.go pins `msg_puts_printf` at 3 mentions -- "a prototype, a
 # definition and one call -- all 75 lines stay and only what they call changes" -- and
 # this phase takes it to 0.  MEASURED by applying phase 104's whole thirteen-name pin
 # table to the tree this phase was handed and to the tree it leaves: SEVEN of the
@@ -988,12 +988,12 @@ apart       118 119
 #                  has is read off the text rather than written down, which is also why
 #                  phase 117 adding two of them cost this phase nothing but a re-run.
 # 38 CANNOT SHARE A STAGE WITH 33, for the reason written against 34 above:
-# phase/116/make.sh is ONE file and a stage of more than one phase is made of split
+# phase/116/check.go is ONE file and a stage of more than one phase is made of split
 # programs, so tools/stages.sh refuses any stage containing 33 before a check runs.  BUT
 # PHASE 33'S CHECK REALLY DOES BREAK ON THIS PHASE'S OUTPUT, AND NOT THROUGH A STAGE,
 # which no `apart` line can say: its section 4 extracts ./zero-vim from EVERY
 # .build/r*.tar it can find and requires one terminal table across all of them.
-# MEASURED, by putting this phase's own tar in .build and running phase/116/make.sh
+# MEASURED, by putting this phase's own tar in .build and running phase/116/check.go
 # on q116: it gets as far as `same` and then stops with `boundaries   q121 records a
 # different table:` and the eight rows, exit 1.  So once an q121 tar exists,
 # `make whim-phase-116` in the repository root fails -- a scratch root has no .build
@@ -1083,7 +1083,7 @@ apart       124 125
 # a POINTER block, which is still a page of entries and is not the leaf.  De-paging the
 # branch is a phase of its own ... this one leaves it alone and says so", and its check
 # says it as `new.count('offsetof(PTR_BL') != 1`.  This is that phase.  MEASURED by
-# running phase/127/check.sh on the q128 tree with phase 127's own state directory:
+# running phase/127/check.go on the q128 tree with phase 127's own state directory:
 #
 #   partition    ml_new_ptr's offsetof moved, and a POINTER block is still a page and
 #                is not this phase's
@@ -1092,7 +1092,7 @@ apart       124 125
 # cannot run at all -- `need 128 swept` below forbids it before any check is reached.
 apart       127 128
 #   NO `apart 122 123` AND NO `need 123`, AND NEITHER IS AN OMISSION.  Phase 123 is a
-#                  WHOLE-PHASE program, phase/123/make.sh -- phase 86's shape and
+#                  WHOLE-PHASE program, phase/123/check.go -- phase 86's shape and
 #                  phase 116's -- so it cannot share a stage with anything at all,
 #                  and that is enforced rather than agreed: `tools/stages.sh zero` with
 #                  `stage 122-123` in this file refuses before any check runs, with
@@ -1135,7 +1135,7 @@ apart       127 128
 #                  a `cmp` against the input's, so it cannot share one with any phase
 #                  that changes a core line at all, which is most of them.
 #                  AND WITH ITS ACTUAL PREDECESSOR IT COULD NOT SHARE ONE ANYWAY, for
-#                  phase 117's reason rather than for any of its own: phase/123/make.sh is
+#                  phase 117's reason rather than for any of its own: phase/123/check.go is
 #                  ONE file, so a stage holding 123 and 124 is refused by tools/stages.sh
 #                  before a check runs -- `phase 123 is in stage 123-124 but is not an edit
 #                  and a check`.  An `apart 123 124` would be unreachable as well as
@@ -1298,8 +1298,8 @@ package  format       105
 # not called `language`, although that is what the first and third of those do: the
 # other two would then be in no package that describes them, and the four are one idea
 # and not two.  THOSE THREE WERE GOING TO BE 107, 108 AND 26 AND ARE NOW 108, 109 AND 27,
-# phase 107 having gone to `dialect` below.  phase/106/edit.sh and
-# phase/106/check.sh still say "phase 109" where they mean the move, and they are
+# phase 107 having gone to `dialect` below.  phase/106/edit.go and
+# phase/106/check.go still say "phase 109" where they mean the move, and they are
 # NOT corrected: every byte of a phase program is in its unit's implementation digest,
 # so editing a comment there would re-key q106 and cost a boundary to say nothing new.
 #
@@ -1461,7 +1461,7 @@ uses  tidy:96     terminal:85 rationale   ui_write()'s `console` argument is FAL
 uses  vendor:98   seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
 uses  vendor:98   harness:86  mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one
 uses  includes:99 seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
-uses  includes:99 tidy:96    rationale   phase/096/edit.sh names <sys/stat.h> and <fcntl.h>, measures that removing them is free, and DECLINES -- "the count stays 18" -- because the charter stated the directive count as a property of the pipeline.  This phase is that decision reversed, and it finds a third header phase 96 did not: <iconv.h>, whose only occurrence in zero-vim.c was its own #include line
+uses  includes:99 tidy:96    rationale   phase/096/edit.go names <sys/stat.h> and <fcntl.h>, measures that removing them is free, and DECLINES -- "the count stays 18" -- because the charter stated the directive count as a property of the pipeline.  This phase is that decision reversed, and it finds a third header phase 96 did not: <iconv.h>, whose only occurrence in zero-vim.c was its own #include line
 uses  includes:99 vendor:97  mechanical  <string.h> is unused only because phase 97 moved all sixteen mem*/str* functions inside the file as static definitions
 uses  includes:99 vendor:98  mechanical  <ctype.h> and <wctype.h> likewise -- and <wctype.h> needed `iswupper` handled as well, a NAME with no libc symbol, sitting on a line gcc never emitted, which phase 98 deleted rather than vendoring a function nothing calls
 uses  host:100     seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
@@ -1567,7 +1567,7 @@ uses  tidy:125      harness:123   mechanical  this is the FIRST memline change s
 uses  tidy:125      host:124      mechanical  `apart 124 125`, MEASURED and not the mechanism that was predicted.  The prediction was `apart 97 98`'s shape -- phase 125's check states the undefined set as an equality and phase 124 frees `free malloc realloc`.  What actually happens is that phase 124's check refuses FIRST, and for its own reason: it asserts that the text above the first `#include` is BYTE-IDENTICAL in and out, because phase 124 is entirely below the boundary.  `tools/phaserun.sh whim 124-125` on q123 stops with `the text above the first #include is not byte-identical in and out, and this phase is entirely below it`, and again with `the eleven #include directives are not on the same eleven lines`.  Phase 125 deletes 366 lines of core, so a phase that promises to touch none cannot share its stage.  One direction only: phase 125's own check compares the undefined set of the text ITS edit was handed with its output, and phase 124's edit has already taken the three symbols by then, so it would pass
 
 # A NOTE FOR THE PHASE AFTER 42, because a check that quotes C is a dependency on
-# spelling (phase/stages, and zero's own `apart 105 106`).  phase/125/check.sh
+# spelling (phase/stages, and zero's own `apart 105 106`).  phase/125/check.go
 # builds two of its controls by matching the OUTPUT's text verbatim --
 # `pp->pb_pointer[0].pe_bnum = 1;` and ml_append_int()'s
 # `if (hp-> bh_hashitem.mhi_key  != 0)` -- because those are the two block numbers phase

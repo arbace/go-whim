@@ -1,6 +1,6 @@
 # Phase 126 — a block number becomes a reference
 
-`phase/126/edit.sh` and `phase/126/check.sh`, `stage 126`, `package memline 126 127
+`phase/126/edit.go` and `phase/126/check.go`, `stage 126`, `package memline 126 127
 128`. `pe_bnum` and `ip_bnum` become `bhdr_T *`, `memline_T` gains `ml_root`, and
 `mf_get(mfp, nr, page_count)` becomes `mf_get(mfp, hp)`. The hash table that turned an
 integer block number into a page then has nothing left to look up, so it goes — with the

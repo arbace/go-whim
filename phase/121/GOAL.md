@@ -1,6 +1,6 @@
 # Phase 121 — the eight terminal names go, leaving two
 
-`phase/121/edit.sh` and `phase/121/check.sh`, `stage 121`, `package terminal`.
+`phase/121/edit.go` and `phase/121/check.go`, `stage 121`, `package terminal`.
 `builtin_terminals[]` is the whole of what the core knows how to draw on: a name and a
 capability table, ten times. **An embeddable core has no business carrying ten terminal
 descriptions** — the host decides what it is attached to — so this phase keeps **two**:
@@ -113,7 +113,7 @@ The cut was stated here as its own check counted it, and that was **one more tha
 takes `whim.mk`'s rule, which drops the cut's trailing blank line. Both are the same text.
 
 **That has since been repaired in both programs, and the repair is worth stating because
-the defect was a comment.** `phase/121/check.sh`'s header said the cut was *"whim.mk's
+the defect was a comment.** `phase/121/check.go`'s header said the cut was *"whim.mk's
 own rule"* while the `awk` beside it was not — and 122 had the same line, and is where the
 next phase would have copied it from. **A comment that claims to be the rule and is not is
 the thing that propagates.** Both now carry the rule entire, `{ a[NR] = $0; if (NF) last =
@@ -160,7 +160,7 @@ declaration says. Phase 116 needed a re-record because the **harness** changed s
 phase changes the **editor**.
 
 **And it broke another phase's program, which it measured and declined to repair.**
-`phase/116/make.sh`'s section 4 extracted `./whim-vim` from **every** `.build/r*.tar`
+`phase/116/check.go`'s section 4 extracted `./whim-vim` from **every** `.build/r*.tar`
 and required one terminal table across all of them — a glob that reaches boundaries which
 did not exist when the phase ran, so the first later phase to move the table on purpose
 makes phase 116's check fail. Measured, with this phase's tar present: *q121 records a

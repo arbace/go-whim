@@ -12,21 +12,21 @@ import (
 )
 
 func init() {
-	register("whim66", Whim66)
-	register("whim67", Whim67)
-	register("whim68", Whim68)
-	register("whim69", Whim69)
-	register("whim70", Whim70)
-	register("whim71", Whim71)
-	register("whim72", Whim72)
-	register("whim73", Whim73)
-	register("whim74", Whim74)
-	register("whim75", Whim75)
-	register("whim76", Whim76)
-	register("whim77", Whim77)
-	register("whim78", Whim78)
-	register("whim79", Whim79)
-	register("whim82", Whim82)
+	Register("whim66", Whim66)
+	Register("whim67", Whim67)
+	Register("whim68", Whim68)
+	Register("whim69", Whim69)
+	Register("whim70", Whim70)
+	Register("whim71", Whim71)
+	Register("whim72", Whim72)
+	Register("whim73", Whim73)
+	Register("whim74", Whim74)
+	Register("whim75", Whim75)
+	Register("whim76", Whim76)
+	Register("whim77", Whim77)
+	Register("whim78", Whim78)
+	Register("whim79", Whim79)
+	Register("whim82", Whim82)
 }
 
 // cnt0 is `n=$(grep -cE "\b$g\b" f); [ "$n" = 0 ] || { echo "PREFIX$g still
@@ -47,7 +47,7 @@ func (s *wsh) fnBody(start string) string { return awkRanges(s.src(), start, `^\
 // probeFile is the scratch-copy probe most later checks run: write CONTENT,
 // run the editor with ARGS on FILE, and read it back through READ.
 func probeFile(d, file, content string, args ...string) string {
-	put(filepath.Join(d, file), content)
+	Put(filepath.Join(d, file), content)
 	inD(d, append(append([]string{"-e", "-s"}, args...), file)...)
 	return filepath.Join(d, file)
 }
@@ -75,48 +75,48 @@ func Whim66(w io.Writer, args []string) error {
 	const sample = "One two. Three four.\n\nvoid f(void)\n{\n    if (x)\n    {\n        y;\n    }\n}\n#if A\n#endif\n"
 	t := filepath.Join(d, "t.txt")
 	for _, k := range []string{")ix", "(ix", "}ix", "{ix", "]]ix", "[[ix", "[mix", "]mix", "[#ix", "[/ix", "dapix", "disix"} {
-		put(t, sample)
+		Put(t, sample)
 		inD(d, "-e", "-s", "+5", "+normal! "+k, "+wq", "t.txt")
-		if readFile(t) != sample {
+		if ReadFile(t) != sample {
 			s.echo("  nopara       %s changed the file:", k)
-			for _, l := range head(lines(readFile(t)), 3) {
+			for _, l := range Head(Lines(ReadFile(t)), 3) {
 				s.echo("               %s", l)
 			}
 			return harness.ErrReported
 		}
 	}
-	put(t, sample)
+	Put(t, sample)
 	inD(d, "-e", "-s", "+5", "+normal! ix", "+wq", "t.txt")
-	if !grepQ(readFile(t), `^    xif (x)$`, gBRE) {
+	if !grepQ(ReadFile(t), `^    xif (x)$`, gBRE) {
 		s.echo("  nopara       the control insert failed")
 		return harness.ErrReported
 	}
 	firstX := func() string { return strings.SplitN(grepNum(t, "X", gBRE), "\n", 2)[0] }
-	put(t, sample)
+	Put(t, sample)
 	inD(d, "-e", "-s", "+7", "+normal! [{", "+s/^/X/", "+wq", "t.txt")
-	if !grepQ(readFile(t), `^X    {$`, gBRE) {
+	if !grepQ(ReadFile(t), `^X    {$`, gBRE) {
 		s.echo("  nopara       [{ no longer walks out: %s", firstX())
 		return harness.ErrReported
 	}
-	put(t, sample)
+	Put(t, sample)
 	inD(d, "-e", "-s", "+4", "+normal! %", "+s/^/X/", "+wq", "t.txt")
-	if !grepQ(readFile(t), `^X}$`, gBRE) {
+	if !grepQ(ReadFile(t), `^X}$`, gBRE) {
 		s.echo("  nopara       %% no longer matches: %s", firstX())
 		return harness.ErrReported
 	}
-	put(t, sample)
+	Put(t, sample)
 	inD(d, "-e", "-s", "+7", "+normal! di{", "+wq", "t.txt")
-	if !grepQ(readFile(t), `^    {$`, gBRE) {
+	if !grepQ(ReadFile(t), `^    {$`, gBRE) {
 		s.echo("  nopara       i{ took the enclosing braces too")
 		return harness.ErrReported
 	}
-	if grepQ(readFile(t), "y;", gBRE) {
+	if grepQ(ReadFile(t), "y;", gBRE) {
 		s.echo("  nopara       i{ no longer selects a block -- y; survived")
 		return harness.ErrReported
 	}
-	put(t, sample)
+	Put(t, sample)
 	inD(d, "-e", "-s", "+'{,'}d", "+wq", "t.txt")
-	if !grepQ(readFile(t), `^One two\. Three four\.$`, gBRE) {
+	if !grepQ(ReadFile(t), `^One two\. Three four\.$`, gBRE) {
 		s.echo("  nopara       '{,'} still addressed a paragraph")
 		return harness.ErrReported
 	}
@@ -204,7 +204,7 @@ func Whim68(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	q := probeFile(d, "q.txt", "one\n", "+normal! ix", "+q", "+wq")
-	if !grepQ(readFile(q), `^xone$`, gBRE) {
+	if !grepQ(ReadFile(q), `^xone$`, gBRE) {
 		s.echo("  onewindow    :q on a modified buffer did not refuse")
 		return harness.ErrReported
 	}
@@ -238,8 +238,8 @@ func (s *wsh) edits(d, prefix, file, content, want string) bool {
 
 // switchesE is `:e h2.txt` from h1.txt, with the two refusals a check names.
 func (s *wsh) switchesE(d, prefix, a, b, ac, bc, bwant, add string) bool {
-	put(filepath.Join(d, a), ac)
-	put(filepath.Join(d, b), bc)
+	Put(filepath.Join(d, a), ac)
+	Put(filepath.Join(d, b), bc)
 	inD(d, "-e", "-s", "+e "+b, add, "+wq", a)
 	if catS(filepath.Join(d, a)) != strings.TrimRight(ac, "\n") {
 		s.echo("%s:e wrote over the first file: %s", prefix, catS(filepath.Join(d, a)))
@@ -281,8 +281,8 @@ func Whim69(w io.Writer, args []string) error {
 	if !s.loads(d, "  onearg       ", "l1\nl2\nl3\n", "l1|l2|LAST l3|") || !s.edits(d, "  onearg       ", "e.txt", "a\nb\nc\n", "a|c|") {
 		return harness.ErrReported
 	}
-	put(filepath.Join(d, "g1.txt"), "one\n")
-	put(filepath.Join(d, "g2.txt"), "two\n")
+	Put(filepath.Join(d, "g1.txt"), "one\n")
+	Put(filepath.Join(d, "g2.txt"), "two\n")
 	if inD(d, "-e", "-s", "+normal! iX", "+wq", "g1.txt", "g2.txt") == 0 {
 		s.echo("  onearg       two file arguments were accepted")
 		return harness.ErrReported
@@ -291,13 +291,13 @@ func Whim69(w io.Writer, args []string) error {
 		s.echo("  onearg       a refused command line still wrote")
 		return harness.ErrReported
 	}
-	put(filepath.Join(d, "n.txt"), "n1\n")
+	Put(filepath.Join(d, "n.txt"), "n1\n")
 	if inD(d, "-e", "-s", "+next", "+q!", "n.txt") == 0 {
 		s.echo("  onearg       :next was accepted")
 		return harness.ErrReported
 	}
-	put(filepath.Join(d, "h1.txt"), "h1\n")
-	put(filepath.Join(d, "h2.txt"), "h2\n")
+	Put(filepath.Join(d, "h1.txt"), "h1\n")
+	Put(filepath.Join(d, "h2.txt"), "h2\n")
 	inD(d, "-e", "-s", "+e h2.txt", "+normal! iE", "+wq", "h1.txt")
 	if !(catS(filepath.Join(d, "h1.txt")) == "h1" && catS(filepath.Join(d, "h2.txt")) == "Eh2") {
 		s.echo("  onearg       :e broke: h1=%s h2=%s", catS(filepath.Join(d, "h1.txt")), catS(filepath.Join(d, "h2.txt")))
@@ -673,7 +673,7 @@ func Whim75(w io.Writer, args []string) error {
 		s.echo("  noautocmd    writing broke: '%s'", bar(wt))
 		return harness.ErrReported
 	}
-	put(filepath.Join(d, "src.txt"), "x1\n")
+	Put(filepath.Join(d, "src.txt"), "x1\n")
 	os.Remove(filepath.Join(d, "dst.txt"))
 	inD(d, "-e", "-s", "+w dst.txt", "+q!", "src.txt")
 	if catS(filepath.Join(d, "dst.txt")) != "x1" {
@@ -683,15 +683,18 @@ func Whim75(w io.Writer, args []string) error {
 	if !s.switchesE(d, p, "e1.txt", "e2.txt", "e1\n", "e2\n", "e2-E", "+normal! A-E") {
 		return harness.ErrReported
 	}
-	for _, c := range []struct{ file, content, want, what string; args []string }{
+	for _, c := range []struct {
+		file, content, want, What string
+		Args                      []string
+	}{
 		{"g.txt", "keep1\ndrop\nkeep2\n", "keep1|keep2|", ":g broke", []string{"+g/drop/d", "+wq"}},
 		{"s.txt", "s1\ns2\n", "S1|S2|", ":s broke", []string{"+%s/^s/S/", "+wq"}},
 		{"m.txt", "m1\nm2\nm3\n", "m2|m3|m1|", ":m broke", []string{"+1m$", "+wq"}},
 		{"u.txt", "u1\nu2\n", "u1|u2|", "undo broke", []string{"+1", "+normal! dd", "+normal! u", "+wq"}},
 	} {
-		f := probeFile(d, c.file, c.content, c.args...)
+		f := probeFile(d, c.file, c.content, c.Args...)
 		if bar(f) != c.want {
-			s.echo("  noautocmd    %s: '%s'", c.what, bar(f))
+			s.echo("  noautocmd    %s: '%s'", c.What, bar(f))
 			return harness.ErrReported
 		}
 	}
@@ -733,16 +736,19 @@ func Whim76(w io.Writer, args []string) error {
 	if !s.loads(d, p, "a\nb\nc\n", "a|b|LAST c|") {
 		return harness.ErrReported
 	}
-	for _, c := range []struct{ file, content, want, what string; args []string }{
+	for _, c := range []struct {
+		file, content, want, What string
+		Args                      []string
+	}{
 		{"s.txt", "alpha\nbeta\ngamma\n", "XlphX|betX|gXmmX|", "a quantified match broke", []string{`+%s/a\+/X/g`, "+wq"}},
 		{"d.txt", "one1\ntwo2\nthree3\n", "oneN|twoN|threeN|", ":g over a pattern broke", []string{"+g/[0-9]$/s/[0-9]$/N/", "+wq"}},
 		{"r.txt", "foo\nbar\nfoobar\n", "foo|bar|barfoo|", "back-references broke", []string{`+%s/\(foo\)\(bar\)/\2\1/`, "+wq"}},
 		{"c.txt", "aaa\nbbb\n", "Za|Zb|", "a counted group broke", []string{`+%s/\%(a\|b\)\{2}/Z/`, "+wq"}},
 		{"n.txt", "x\ny\n", "x|y-found|", "search broke", []string{"+/y", "+normal! A-found", "+wq"}},
 	} {
-		f := probeFile(d, c.file, c.content, c.args...)
+		f := probeFile(d, c.file, c.content, c.Args...)
 		if bar(f) != c.want {
-			s.echo("  oneengine    %s: '%s'", c.what, bar(f))
+			s.echo("  oneengine    %s: '%s'", c.What, bar(f))
 			return harness.ErrReported
 		}
 	}
@@ -771,12 +777,12 @@ func Whim77(w io.Writer, args []string) error {
 		s.echo("  nobufpat     only %d checks still consult ni, expected at least 7", n)
 		return harness.ErrReported
 	}
-	body := s.fnBody(`^do_one_cmd\(`)
-	if !grepQ(body, `^doend:$`, gERE) {
+	Body := s.fnBody(`^do_one_cmd\(`)
+	if !grepQ(Body, `^doend:$`, gERE) {
 		s.echo("  nobufpat     do_one_cmd lost its shared exit label")
 		return harness.ErrReported
 	}
-	if g := grepC(body, `goto doend;`, gERE); g < 5 {
+	if g := grepC(Body, `goto doend;`, gERE); g < 5 {
 		s.echo("  nobufpat     only %d gotos target doend, expected many -- the label may have been orphaned", g)
 		return harness.ErrReported
 	}
@@ -872,14 +878,17 @@ func Whim78(w io.Writer, args []string) error {
 		s.echo("  nostubs      insert broke: %s", catS(i))
 		return harness.ErrReported
 	}
-	for _, c := range []struct{ file, content, want, what string; args []string }{
+	for _, c := range []struct {
+		file, content, want, What string
+		Args                      []string
+	}{
 		{"g.txt", "one1\ntwo2\n", "oneN|twoN|", ":g broke", []string{"+g/[0-9]$/s/[0-9]$/N/", "+wq"}},
 		{"s.txt", "x\ny\n", "x|y-found|", "search broke", []string{"+/y", "+normal! A-found", "+wq"}},
 		{"c.txt", "c1\nc2\n", "c1-ch|c2|", ":set cmdheight broke", []string{"+set cmdheight=2", "+1", "+normal! A-ch", "+wq"}},
 	} {
-		f := probeFile(d, c.file, c.content, c.args...)
+		f := probeFile(d, c.file, c.content, c.Args...)
 		if bar(f) != c.want {
-			s.echo("  nostubs      %s: '%s'", c.what, bar(f))
+			s.echo("  nostubs      %s: '%s'", c.What, bar(f))
 			return harness.ErrReported
 		}
 	}
@@ -940,12 +949,12 @@ func Whim79(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	for _, fn := range []string{"ex_quit", "ex_exit"} {
-		body := s.fnBody(`^` + fn + `\(exarg_T`)
-		if n := grepC(body, `getout\(0\);`, gERE); n != 1 {
+		Body := s.fnBody(`^` + fn + `\(exarg_T`)
+		if n := grepC(Body, `getout\(0\);`, gERE); n != 1 {
 			s.echo("  noconstfn    %s has %d getout(0) calls, expected 1", fn, n)
 			return harness.ErrReported
 		}
-		if n := grepC(body, `not_exiting\(save_exiting\);`, gERE); n != 2 {
+		if n := grepC(Body, `not_exiting\(save_exiting\);`, gERE); n != 2 {
 			s.echo("  noconstfn    %s has %d not_exiting calls, expected 2", fn, n)
 			return harness.ErrReported
 		}
@@ -961,7 +970,7 @@ func Whim79(w io.Writer, args []string) error {
 	defer done()
 	quit := func(file, add string, args ...string) (int, string) {
 		f := filepath.Join(d, file)
-		put(f, "a\nb\n")
+		Put(f, "a\nb\n")
 		rc := inD(d, append(append([]string{"-e", "-s"}, args...), file)...)
 		_ = add
 		return rc, bar(f)
@@ -1017,14 +1026,17 @@ func Whim79(w io.Writer, args []string) error {
 		s.echo("  noconstfn    :set and >> broke: '%s'", catS(sw))
 		return harness.ErrReported
 	}
-	for _, c := range []struct{ file, content, want, what string; args []string }{
+	for _, c := range []struct {
+		file, content, want, What string
+		Args                      []string
+	}{
 		{"w.txt", "q1\nq2\n", "q1-e|q2|", "writing broke", []string{"+1", "+normal! A-e", "+wq"}},
 		{"m.txt", "z1\nz2\n", "z1-mk|z2|", "marks broke", []string{"+1", "+normal! ma", "+2", "+normal! 'aA-mk", "+wq"}},
 		{"u.txt", "r1\nr2\nr3\n", "r1|r2|r3|", "undo broke", []string{"+2", "+normal! dd", "+normal! u", "+wq"}},
 	} {
-		f := probeFile(d, c.file, c.content, c.args...)
+		f := probeFile(d, c.file, c.content, c.Args...)
 		if bar(f) != c.want {
-			s.echo("  noconstfn    %s: '%s'", c.what, bar(f))
+			s.echo("  noconstfn    %s: '%s'", c.What, bar(f))
 			return harness.ErrReported
 		}
 	}
@@ -1038,18 +1050,18 @@ func Whim82(w io.Writer, args []string) error {
 		return err
 	}
 	silent := func(p string) bool {
-		out, err := exec.Command("gcc", "-fsyntax-only", "-O0", "-Wall", "-Wextra", "-Wno-unused-parameter", p).CombinedOutput()
-		return err == nil && len(out) == 0
+		Out, err := exec.Command("gcc", "-fsyntax-only", "-O0", "-Wall", "-Wextra", "-Wno-unused-parameter", p).CombinedOutput()
+		return err == nil && len(Out) == 0
 	}
 	var total int
-	fmt.Sscan(readFile(filepath.Join(s.state, "total")), &total)
-	keep := len(lines(readFile(filepath.Join(s.state, "keep"))))
+	fmt.Sscan(ReadFile(filepath.Join(s.State, "total")), &total)
+	keep := len(Lines(ReadFile(filepath.Join(s.State, "keep"))))
 	left := grepC(s.src(), `^#include <`, gERE)
 	if left != total-keep {
 		s.echo("  includes     %d includes left, expected %d", left, total-keep)
 		return harness.ErrReported
 	}
-	if !silent(s.f) {
+	if !silent(s.F) {
 		s.echo("  includes     the result does not compile silently")
 		return harness.ErrReported
 	}
@@ -1064,15 +1076,15 @@ func Whim82(w io.Writer, args []string) error {
 	build := func(sub, src string) error {
 		dir := filepath.Join(d, sub)
 		os.MkdirAll(dir, 0o755)
-		put(filepath.Join(dir, "whim-vim.c"), readFile(src))
+		Put(filepath.Join(dir, "whim-vim.c"), ReadFile(src))
 		c := exec.Command("gcc", "-O0", "-static", "-s", "-o", "vim", "whim-vim.c")
 		c.Dir, c.Env = dir, envWith("SOURCE_DATE_EPOCH=0")
 		return c.Run()
 	}
-	if build("old", filepath.Join(s.state, "old", "whim-vim.c")) != nil || build("new", s.f) != nil {
+	if build("old", filepath.Join(s.State, "old", "whim-vim.c")) != nil || build("new", s.F) != nil {
 		return harness.ErrReported
 	}
-	ob, nb := readFile(filepath.Join(d, "old", "vim")), readFile(filepath.Join(d, "new", "vim"))
+	ob, nb := ReadFile(filepath.Join(d, "old", "vim")), ReadFile(filepath.Join(d, "new", "vim"))
 	if ob != nb {
 		s.echo("  includes     the binary changed -- a header was doing more than declaring")
 		return harness.ErrReported

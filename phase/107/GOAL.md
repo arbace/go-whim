@@ -1,6 +1,6 @@
 # Phase 107 — the attributes
 
-`phase/107/edit.sh` and `phase/107/check.sh`, `stage 107`, `package dialect`.
+`phase/107/edit.go` and `phase/107/check.go`, `stage 107`, `package dialect`.
 `__attribute__` is a GNU extension, and a core on its way to another runtime was
 carrying 139 of them. This phase looks at all 139, in three groups, and takes a
 different decision on each:

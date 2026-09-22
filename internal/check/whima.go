@@ -12,20 +12,20 @@ import (
 )
 
 func init() {
-	register("whim3", Whim3)
-	register("whim8", Whim8)
-	register("whim9", Whim9)
-	register("whim11", Whim11)
-	register("whim12", Whim12)
-	register("whim16", Whim16)
-	register("whim17", Whim17)
-	register("whim18", Whim18)
-	register("whim19", Whim19)
-	register("whim20", Whim20)
-	register("whim21", Whim21)
-	register("whim22", Whim22)
-	register("whim23", Whim23)
-	register("whim24", Whim24)
+	Register("whim3", Whim3)
+	Register("whim8", Whim8)
+	Register("whim9", Whim9)
+	Register("whim11", Whim11)
+	Register("whim12", Whim12)
+	Register("whim16", Whim16)
+	Register("whim17", Whim17)
+	Register("whim18", Whim18)
+	Register("whim19", Whim19)
+	Register("whim20", Whim20)
+	Register("whim21", Whim21)
+	Register("whim22", Whim22)
+	Register("whim23", Whim23)
+	Register("whim24", Whim24)
 }
 
 // globalsExtra is what whims 16 to 20 say after a surviving global.
@@ -51,7 +51,7 @@ func Whim3(w io.Writer, args []string) error {
 	if err != nil {
 		return err
 	}
-	if !s.gone("  cmdline      ", gERE, gERE, true, nil,
+	if !s.Gone("  cmdline      ", gERE, gERE, true, nil,
 		`\blist_version\b`, `\busage\(`, `\bmaybe_intro_message\b`,
 		`\bcompiled_(user|sys)\b`, `\bearly_arg_scan\b`, `\bmake_tabpages\b`,
 		`\bset_init_clean_rtp\b`,
@@ -66,7 +66,7 @@ func Whim3(w io.Writer, args []string) error {
 	if err := s.phasebuild(); err != nil {
 		return err
 	}
-	if !s.st("clicheck", filepath.Join(s.work, "whim-vim")) {
+	if !s.st("clicheck", filepath.Join(s.Work, "whim-vim")) {
 		return harness.ErrReported
 	}
 	return nil
@@ -88,14 +88,14 @@ func Whim8(w io.Writer, args []string) error {
 }
 
 // encodingIn is whims 9 and 12's probe: `:set encoding?` redirected to a file
-// in $work, with spaces and newlines taken out.
-func (s *wsh) encodingIn(txt, out string) string {
-	put(filepath.Join(s.work, txt), "x\n")
-	s.inWork("-u", "NONE", "-i", "NONE", "-e", "-s", "-c", "redir! > "+out,
+// in $work, with spaces and newlines taken Out.
+func (s *wsh) encodingIn(txt, Out string) string {
+	Put(filepath.Join(s.Work, txt), "x\n")
+	s.inWork("-u", "NONE", "-i", "NONE", "-e", "-s", "-c", "redir! > "+Out,
 		"-c", "set encoding?", "-c", "redir END", "-c", "qall!", txt)
-	e := strings.NewReplacer(" ", "", "\n", "").Replace(readFile(filepath.Join(s.work, out)))
-	os.Remove(filepath.Join(s.work, txt))
-	os.Remove(filepath.Join(s.work, out))
+	e := strings.NewReplacer(" ", "", "\n", "").Replace(ReadFile(filepath.Join(s.Work, Out)))
+	os.Remove(filepath.Join(s.Work, txt))
+	os.Remove(filepath.Join(s.Work, Out))
 	return e
 }
 
@@ -127,8 +127,8 @@ func Whim11(w io.Writer, args []string) error {
 	if err := s.phasebuild(); err != nil {
 		return err
 	}
-	d := s.sub(".swtest")
-	put(filepath.Join(d, "f.txt"), "a\nb\n")
+	d := s.Sub(".swtest")
+	Put(filepath.Join(d, "f.txt"), "a\nb\n")
 	vimRC(d, "", "../whim-vim", "-u", "NONE", "-i", "NONE", "-e", "-s", "-c", "normal ohello", "-c", "wq", "f.txt")
 	sw := lsA(d)
 	os.RemoveAll(d)
@@ -154,7 +154,7 @@ func Whim12(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	var left strings.Builder
-	for _, l := range lines(readFile(".cache/symbols/last/undefined")) {
+	for _, l := range Lines(ReadFile(".cache/symbols/last/undefined")) {
 		if strings.HasPrefix(l, "iconv") {
 			left.WriteString(l + " ")
 		}
@@ -172,8 +172,8 @@ func Whim12(w io.Writer, args []string) error {
 		s.echo("  encoding     got '%s', expected encoding=utf-8", enc)
 		return harness.ErrReported
 	}
-	u := filepath.Join(s.work, ".u.txt")
-	put(u, "\303\240\303\251\n")
+	u := filepath.Join(s.Work, ".u.txt")
+	Put(u, "\303\240\303\251\n")
 	s.inWork("-u", "NONE", "-i", "NONE", "-e", "-s", "-c", "normal gUU", "-c", "wq", ".u.txt")
 	ok := odX(u)
 	os.Remove(u)
@@ -194,7 +194,7 @@ func globalsCheck(name string, count, shown gmode, verdict string, pats ...strin
 		if err != nil {
 			return err
 		}
-		if !s.gone("  globals      ", count, shown, true, globalsExtra, pats...) {
+		if !s.Gone("  globals      ", count, shown, true, globalsExtra, pats...) {
 			return harness.ErrReported
 		}
 		s.echo("%s", verdict)
@@ -230,12 +230,12 @@ func Whim18(w io.Writer, args []string) error {
 	if err != nil {
 		return err
 	}
-	if !s.gone("  globals      ", gBRE, gBRE, true, globalsExtra,
+	if !s.Gone("  globals      ", gBRE, gBRE, true, globalsExtra,
 		"p_exrc", "process_env", "set_init_xdg_rtp", "source_startup_scripts", `"VIMINIT"`, `"EXINIT"`, `"XDG_CONFIG_HOME"`) {
 		return harness.ErrReported
 	}
 	s.echo("  startup      no config path, option or environment name is left")
-	if !s.gone("  globals      ", gBRE, gBRE, true, globalsExtra,
+	if !s.Gone("  globals      ", gBRE, gBRE, true, globalsExtra,
 		"evim_mode", "check_restricted", "EX_RESTRICT", "restricted", `"vif"`) {
 		return harness.ErrReported
 	}
@@ -246,14 +246,14 @@ func Whim18(w io.Writer, args []string) error {
 	if err := s.phasebuild(); err != nil {
 		return err
 	}
-	out, rc := s.outWork("-e", "-s", "-c", "qa!")
+	Out, rc := s.outWork("-e", "-s", "-c", "qa!")
 	if rc != 0 {
-		s.echo("  cli          the control failed: -e -s -c qa! exits %d: %s", rc, out)
+		s.echo("  cli          the control failed: -e -s -c qa! exits %d: %s", rc, Out)
 		return harness.ErrReported
 	}
-	out, rc = s.outWork("-u", "NONE", "-e", "-s", "-c", "qa!")
-	if !strings.Contains(out, "Unknown option argument") {
-		s.echo("  cli          -u is not refused as unknown (exit %d): %s", rc, out)
+	Out, rc = s.outWork("-u", "NONE", "-e", "-s", "-c", "qa!")
+	if !strings.Contains(Out, "Unknown option argument") {
+		s.echo("  cli          -u is not refused as unknown (exit %d): %s", rc, Out)
 		return harness.ErrReported
 	}
 	if rc != 1 {
@@ -274,12 +274,12 @@ func Whim20(w io.Writer, args []string) error {
 	if err != nil {
 		return err
 	}
-	if !s.gone("  globals      ", gBRE, gBRE, true, globalsExtra,
+	if !s.Gone("  globals      ", gBRE, gBRE, true, globalsExtra,
 		`getenv((char \*)((char_u \*)"HOME")`, "homedir", "init_users", "match_user", "getpwnam") {
 		return harness.ErrReported
 	}
 	s.echo("  home         nothing asks where home is, or who this is")
-	if !s.gone("  environment  ", gBREw, gBREw, true, nil, "getenv", "setenv", "unsetenv", "environ", "vim_getenv") {
+	if !s.Gone("  environment  ", gBREw, gBREw, true, nil, "getenv", "setenv", "unsetenv", "environ", "vim_getenv") {
 		return harness.ErrReported
 	}
 	s.echo("  environment  nothing in the source asks the environment anything")
@@ -298,7 +298,7 @@ func Whim21(w io.Writer, args []string) error {
 	if err != nil {
 		return err
 	}
-	if !s.gone("  memfile      ", gBREw, gBREw, true, nil, "mf_fd", "mf_fname", "mf_ffname", "mf_write", "mf_read",
+	if !s.Gone("  memfile      ", gBREw, gBREw, true, nil, "mf_fd", "mf_fname", "mf_ffname", "mf_write", "mf_read",
 		"mf_release", "total_mem_used", "p_mmt", "p_dir", "mch_total_mem", "mch_get_host_name") {
 		return harness.ErrReported
 	}
@@ -317,9 +317,9 @@ func Whim21(w io.Writer, args []string) error {
 	if err := s.phasebuild(); err != nil {
 		return err
 	}
-	d := s.sub(".ovtest")
-	put(filepath.Join(d, "a.txt"), "one\n")
-	put(filepath.Join(d, "b.txt"), "two\n")
+	d := s.Sub(".ovtest")
+	Put(filepath.Join(d, "a.txt"), "one\n")
+	Put(filepath.Join(d, "b.txt"), "two\n")
 	rc := vimRC(d, "", "../whim-vim", "-e", "-s", "-c", "w! b.txt", "-c", "qa!", "a.txt")
 	ov := fmt.Sprintf("%d:%s", rc, catS(filepath.Join(d, "b.txt")))
 	os.RemoveAll(d)
@@ -337,7 +337,7 @@ func Whim22(w io.Writer, args []string) error {
 		return err
 	}
 	// Counted with grep -c and shown with grep -nw, as the shell does.
-	if !s.gone("  cwd          ", gBRE, gBREw, true, nil,
+	if !s.Gone("  cwd          ", gBRE, gBREw, true, nil,
 		"mch_chdir(", "chdir(", "fchdir(", "win_fix_current_dir(", `\bglobaldir\b`, `\bstart_dir\b`) {
 		return harness.ErrReported
 	}
@@ -356,15 +356,15 @@ func Whim22(w io.Writer, args []string) error {
 	if err := s.phasebuild(); err != nil {
 		return err
 	}
-	d := s.sub(".reltest")
+	d := s.Sub(".reltest")
 	os.MkdirAll(filepath.Join(d, "sub"), 0o755)
-	put(filepath.Join(d, "sub", "f.txt"), "one\ntwo\n")
+	Put(filepath.Join(d, "sub", "f.txt"), "one\ntwo\n")
 	vimRC(d, "", "../whim-vim", "-e", "-s", "-c", "normal Gothree", "-c", "wq", "sub/f.txt")
 	vimRC(filepath.Join(d, "sub"), "", "../../whim-vim", "-e", "-s", "-c", "%s/two/2/", "-c", "wq", "../sub/f.txt")
-	rel := strings.ReplaceAll(readFile(filepath.Join(d, "sub", "f.txt")), "\n", " ")
+	Rel := strings.ReplaceAll(ReadFile(filepath.Join(d, "sub", "f.txt")), "\n", " ")
 	os.RemoveAll(d)
-	if rel != "one 2 three " {
-		s.echo("  relative     a relative path gave '%s', expected 'one 2 three '", rel)
+	if Rel != "one 2 three " {
+		s.echo("  relative     a relative path gave '%s', expected 'one 2 three '", Rel)
 		return harness.ErrReported
 	}
 	s.echo("  relative     a relative path with a directory in it opens and writes")
@@ -376,7 +376,7 @@ func Whim23(w io.Writer, args []string) error {
 	if err != nil {
 		return err
 	}
-	if !s.gone("  libm         ", gBRE, gBRE, true, nil, "ceil(", "floor(", "log10(", "infinity_str", "TYPE_FLOAT", "typename_float") {
+	if !s.Gone("  libm         ", gBRE, gBRE, true, nil, "ceil(", "floor(", "log10(", "infinity_str", "TYPE_FLOAT", "typename_float") {
 		return harness.ErrReported
 	}
 	s.echo("  libm         nothing calls a floating-point function")
@@ -401,7 +401,7 @@ func Whim24(w io.Writer, args []string) error {
 	if err != nil {
 		return err
 	}
-	if !s.gone("  mouse        ", gBRE, gBRE, true, nil, "do_mouse", "jump_to_mouse", "setmouse", "mouse_has", "nv_mouse",
+	if !s.Gone("  mouse        ", gBRE, gBRE, true, nil, "do_mouse", "jump_to_mouse", "setmouse", "mouse_has", "nv_mouse",
 		"check_termcode_mouse", "p_mouse", "ttymouse", `"LeftMouse"`, "ScrollWheelUp", "WaitForCharOrMouse") {
 		return harness.ErrReported
 	}

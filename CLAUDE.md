@@ -43,13 +43,15 @@ slim-vim.c  --whim-->  whim-vim.c
   once.
 
 **A phase is a directory, `phase/NNN/`**, its number in three digits so that they
-sort: its program -- `make.sh`, or `edit.sh` and `check.sh` -- its `GOAL.md`,
-which opens `# Phase N — …` (where `tools/phasename.sh` reads its name) and says
-what the phase removes, why and what was measured, and its `delta`, the tokens it
-declares with `#` notes, or `# declares nothing`. `tools/declared.sh` reads a run
-of deltas in the one grammar both delta checkers take. A phase number is a plain
-integer everywhere but the directory name (`phasedir`, `tools/pipeline.sh`):
-shell arithmetic reads a padded `010` as octal.
+sort, and **a Go package of its own**, `pNNN`: `edit.go` (its cut) and
+`check.go` (its evidence), `GOAL.md`, which opens `# Phase N — …` and says what
+the phase removes, why and what was measured, and `delta`, the tokens it
+declares with `#` notes, or `# declares nothing`. A phase with more to say
+splits it: `editlit.go`, `checkprobes.go`, `checkevidence.go`. Each registers
+itself with `internal/edit` and `internal/check` in an `init()`, and
+`phase/registry.go` is what links them in -- `cmd/whimtools` imports it blank.
+`tools/declared.sh` reads a run of deltas in the one grammar both delta checkers
+take.
 
 **`GOALS.md`** is what holds for every phase: Part I (phases 0-82: the charter,
 what is measured and the declared delta, the rules, the sweep, the concept index,
@@ -70,18 +72,16 @@ through to. arbace/slim-vim keeps both, for its own pipeline.
 
 ```
 cmd/whimtools/     one binary, every tool a subcommand: whimtools <subcommand>
-internal/          the Go: sweep, canon, dead, cut/cutil (the cutters), edit (the
-                   phases' edit programs), steps (every transformation a phase
-                   names, as one table), build (the plan: what each phase does to
-                   the source, and the driver that runs it), verify (the same plan
-                   with every check and delta), harness (every recorder), check
-                   (one check per phase), ccx (the core's pointer casts and
-                   evaluation order, partitioned)
-phase/NNN/         a phase: GOAL.md, delta, and the programs it was written as --
-                   make.sh, or edit.sh + check.sh.  THE PROGRAMS NO LONGER RUN:
-                   internal/build carries what they did and internal/verify runs
-                   their checks; they are kept for their implementation notes
-                   until those move into GOAL.md
+internal/          the Go: sweep, canon, dead, cut/cutil (the cutters), edit and
+                   check (what the phases' edits and checks are written against --
+                   the drivers, the reporters, and in shared.go what more than one
+                   phase uses), steps (every transformation a phase names, as one
+                   table), build (the plan: what each phase does to the source,
+                   and the driver that runs it), verify (the same plan with every
+                   check and delta, and the baseline recorder), harness (every
+                   recorder), ccx (the core's pointer casts and evaluation order)
+phase/NNN/         a phase, and a package: edit.go, check.go, GOAL.md, delta
+phase/registry.go  every phase package, blank-imported so they register
 phase/stages       the record the plan was read from: the stages, need and apart,
                    the packages.  Prose now, not a manifest a program reads
 tools/             the instruments a check or a delta runs -- whimdelta, coredelta,
@@ -194,9 +194,9 @@ were being written, and that is over.
 
 ## Checks
 
-A check is `internal/check/whim<N>.go`, one per phase, taking the work tree and
-a state directory. `internal/verify` looks it up and runs it; the `check.sh`
-files that used to dispatch to it are kept for their notes and are not run.
+A check is `phase/NNN/check.go`, one per phase, taking the work tree and a state
+directory. `internal/verify` looks it up in `internal/check`'s registry and runs
+it.
 
 - A check reads nothing from an edit's shell: the state directory holds the
   input's line count, the stage's symbol snapshot and whatever the phase leaves
@@ -236,11 +236,12 @@ passes: every delta is measured against it.
   phases 0-82 produce moves it, and phase 83 **refuses** rather than overwrite it
   -- name what moved before removing the set.
 - `make whim-verify` asks for both sets before it starts (`whim-baselines-check`)
-  and names the fix: **`make whim-baselines`**, which builds the tree each
-  recorder needs -- `slim-vim.c` for phase 0, q82 for phase 83 -- and runs
-  `phase/000/make.sh` and `phase/083/make.sh` on it. A set that DIFFERS is not
-  the missing case: phase 83 refuses rather than overwrite, and what moved must
-  be named before the recording is thrown away.
+  and names the fix: **`make whim-baselines`**, which is `whimtools record`
+  (`internal/verify`) -- the recording phase 0's program and phase 83's did,
+  building q82 to make the second. Each set is recorded three times and required
+  identical, and an existing set is COMPARED, never overwritten: a set that
+  DIFFERS is not the missing case, and what moved must be named before the
+  recording is thrown away.
 
 ## Harness rules that were each learned the hard way
 
@@ -274,13 +275,14 @@ design.
 
 ## Adding a phase
 
-`GOALS.md` Part II, *Adding a phase*, has the process as it was; the next phase
-is 163, and no more are expected -- the pipeline's goal is met. What a new one
-takes now: `phase/NNN/GOAL.md` and `delta`, its edit in `internal/edit/` and its
-check in `internal/check/`, and an entry at the end of `internal/build`'s `Plan`
-naming its steps, its stage and whether a sweep follows. Then `make
-whim-build-check` (the product moves, so the tracked `whim-vim.c` and
-`editor/editor.go` are rewritten by `make whim-build`) and `make whim-verify`.
+`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 163,
+and no more are expected -- the pipeline's goal is met. What a new one takes:
+`phase/NNN/` with `GOAL.md`, `delta`, `edit.go` and `check.go` in package
+`pNNN`, registering themselves; a line in `phase/registry.go`; and an entry at
+the end of `internal/build`'s `Plan` naming its steps, its stage and whether a
+sweep follows. Then `make whim-build-check` (the product moves, so the tracked
+`whim-vim.c` and `editor/editor.go` are rewritten by `make whim-build`) and
+`make whim-verify`.
 
 ## Commit style
 

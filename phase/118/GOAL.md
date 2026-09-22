@@ -1,6 +1,6 @@
 # Phase 118 — the core calls nothing but the host
 
-`phase/118/edit.sh` and `phase/118/check.sh`, `stage 118`, `package host`. The three
+`phase/118/edit.go` and `phase/118/check.go`, `stage 118`, `package host`. The three
 libc functions the core still **called** for itself go to the host: `malloc`, called by
 `lalloc()`; `free`, called by `vim_free()` and `update_wincolor()`; and `write`, called by
 `mch_write()` — and, since phase 117 rewrote `realloc` as a malloc, a copy and a free, by

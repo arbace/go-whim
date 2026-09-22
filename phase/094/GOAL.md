@@ -1,6 +1,6 @@
 # Phase 94 — `:q` quits, and `ZZ` is `ZQ`
 
-`phase/094/edit.sh` and `phase/094/check.sh`, `stage 94`, `package buffers`.
+`phase/094/edit.go` and `phase/094/check.go`, `stage 94`, `package buffers`.
 Phases 89 to 93 took every way to reach a file. What was left of the filesystem in
 this editor was a **refusal**: `:q` on a modified buffer answered `E37: No write
 since last change (add ! to override)` and stayed. The protection has no remedy once
@@ -43,7 +43,7 @@ nothing *names*, and gcc has no warning for a member that is only written.
 `wininfo_S.wi_changelistidx`'s only reader was in `get_winopts()`. The declaration
 and the one surviving write of each go by hand, and **the text the edit leaves does
 not compile** — both readers are still there, inside functions the sweep is about to
-take — which is said in the program rather than discovered, as `phase/090/edit.sh`
+take — which is said in the program rather than discovered, as `phase/090/edit.go`
 says of its own.
 
 **B — the tail that cannot run.** After the fold `ex_quit()` ended `int save_exiting

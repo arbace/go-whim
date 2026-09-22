@@ -1,6 +1,6 @@
 # Phase 92 — nothing reads a byte
 
-`phase/092/edit.sh` and `phase/092/check.sh`, `stage 92`, `package files`. Phases
+`phase/092/edit.go` and `phase/092/check.go`, `stage 92`, `package files`. Phases
 89, 90 and 91 took every way to *ask* for a file. This one takes the machinery those
 commands used: `readfile()`, 787 lines, `read_buffer()`, the four functions of the
 message layer that reported what had been read, and eleven more the sweep finds

@@ -7,7 +7,7 @@
 // so they are the larger half of the port and they do not collapse.  Measured
 // over all 225: 94 are bespoke drivers over cutil, 60 are bespoke regex
 // programs, and exactly ONE is the simple "assert a literal occurs once and
-// replace it" shape.  There is no idiom to factor out; there is a phase's
+// replace it" shape.  There is no idiom to factor Out; there is a phase's
 // argument, written once, per phase.
 //
 // THE SHAPE IS THE CUTTERS', deliberately: func([]byte, io.Writer) ([]byte,
@@ -44,11 +44,11 @@ type ArgFunc func(text []byte, w io.Writer, args []string) ([]byte, error)
 // live beside its code, so the packages never collide.
 var phases = map[string]ArgFunc{}
 
-func register(name string, f Func) {
-	registerArgs(name, func(t []byte, w io.Writer, _ []string) ([]byte, error) { return f(t, w) })
+func Register(name string, f Func) {
+	RegisterArgs(name, func(t []byte, w io.Writer, _ []string) ([]byte, error) { return f(t, w) })
 }
 
-func registerArgs(name string, f ArgFunc) {
+func RegisterArgs(name string, f ArgFunc) {
 	if _, dup := phases[name]; dup {
 		panic("edit: " + name + " registered twice")
 	}
@@ -65,12 +65,12 @@ func Lookup(phase string) (ArgFunc, bool) {
 // message -- ranging a Go map yields a different order every run, and a usage
 // message that reorders itself is a diff nobody wanted.
 func Names() []string {
-	out := make([]string, 0, len(phases))
+	Out := make([]string, 0, len(phases))
 	for k := range phases {
-		out = append(out, k)
+		Out = append(Out, k)
 	}
-	sort.Strings(out)
-	return out
+	sort.Strings(Out)
+	return Out
 }
 
 // Once replaces the single occurrence of old with new, refusing unless it
@@ -93,7 +93,7 @@ func Once(text []byte, old, new string, what string) ([]byte, error) {
 func countBytes(text []byte, s string) int {
 	n, b := 0, []byte(s)
 	for i := 0; i+len(b) <= len(text); {
-		j := indexFrom(text, b, i)
+		j := IndexFrom(text, b, i)
 		if j < 0 {
 			break
 		}
@@ -105,17 +105,17 @@ func countBytes(text []byte, s string) int {
 
 func replaceBytes(text []byte, old, new string) []byte {
 	o, nw := []byte(old), []byte(new)
-	i := indexFrom(text, o, 0)
+	i := IndexFrom(text, o, 0)
 	if i < 0 {
 		return text
 	}
-	out := make([]byte, 0, len(text)-len(o)+len(nw))
-	out = append(out, text[:i]...)
-	out = append(out, nw...)
-	return append(out, text[i+len(o):]...)
+	Out := make([]byte, 0, len(text)-len(o)+len(nw))
+	Out = append(Out, text[:i]...)
+	Out = append(Out, nw...)
+	return append(Out, text[i+len(o):]...)
 }
 
-func indexFrom(text, needle []byte, from int) int {
+func IndexFrom(text, needle []byte, from int) int {
 	for i := from; i+len(needle) <= len(text); i++ {
 		k := 0
 		for k < len(needle) && text[i+k] == needle[k] {

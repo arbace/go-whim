@@ -10,18 +10,18 @@ import (
 )
 
 func init() {
-	register("whim59", Whim59)
-	register("whim60", Whim60)
-	register("whim61", Whim61)
-	register("whim62", Whim62)
-	register("whim63", Whim63)
-	register("whim64", Whim64)
-	register("whim65", Whim65)
+	Register("whim59", Whim59)
+	Register("whim60", Whim60)
+	Register("whim61", Whim61)
+	Register("whim62", Whim62)
+	Register("whim63", Whim63)
+	Register("whim64", Whim64)
+	Register("whim65", Whim65)
 }
 
 // grepNum is "$(grep -n PAT f)", as a refusal prints it.
 func grepNum(p, pat string, m gmode) string {
-	nums, ls := grepLines(readFile(p), pat, m)
+	nums, ls := grepLines(ReadFile(p), pat, m)
 	var o []string
 	for i := range nums {
 		o = append(o, fmt.Sprintf("%d:%s", nums[i], ls[i]))
@@ -60,7 +60,7 @@ func Whim59(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	o := filepath.Join(d, "onlyone.txt")
-	put(o, "x\n")
+	Put(o, "x\n")
 	inD(d, "-e", "-s", "+e onlyone.txt", "+1s/x/y/", "+w", "+q!")
 	if catS(o) != "y" {
 		s.echo("  nocompletion :e onlyone.txt did not edit it: '%s'", catS(o))
@@ -92,7 +92,7 @@ func Whim60(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	g := filepath.Join(d, "g.txt")
-	put(g, "aaa bbb\n")
+	Put(g, "aaa bbb\n")
 	inD(d, "-e", "-s", "+set tw=4", "+1normal! gqq", "+wq", "g.txt")
 	if bar(g) != "aaa|bbb|" {
 		s.echo("  nosixopts    gqq with tw=4 left '%s'", bar(g))
@@ -151,7 +151,7 @@ func Whim62(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	f := filepath.Join(d, "w.txt")
-	put(f, "x\n")
+	Put(f, "x\n")
 	inD(d, "-e", "-s", "+1s/x/y/", "+w", "+q!", "w.txt")
 	if catS(f) != "y" {
 		s.echo("  nobufopts    :w did not write: '%s'", catS(f))
@@ -191,14 +191,14 @@ func Whim63(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	j := filepath.Join(d, "j.txt")
-	put(j, "a\nb\nc\n")
+	Put(j, "a\nb\nc\n")
 	inD(d, "-e", "-s", "+1", "+normal! 3G", "+normal! \017", "+s/^/X/", "+wq", "j.txt")
 	if bar(j) != "a|b|Xc|" {
 		s.echo("  nojumplist   CTRL-O moved the cursor: '%s'", bar(j))
 		return harness.ErrReported
 	}
 	k := filepath.Join(d, "k.txt")
-	put(k, "a\nb\nc\n")
+	Put(k, "a\nb\nc\n")
 	inD(d, "-e", "-s", "+1", "+normal! 3G''", "+s/^/Y/", "+wq", "k.txt")
 	if bar(k) != "Ya|b|c|" {
 		s.echo("  nojumplist   '' did not return to line 1: '%s'", bar(k))
@@ -240,14 +240,14 @@ func Whim64(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	wt := filepath.Join(d, "w.txt")
-	put(wt, "")
+	Put(wt, "")
 	inD(d, "-e", "-s", "+set tw=10", "+normal! Aaaa bbb ccc ddd", "+wq", "w.txt")
 	if bar(wt) != "aaa bbb|ccc ddd|" {
 		s.echo("  noformatopts typing did not wrap at 'textwidth': '%s'", bar(wt))
 		return harness.ErrReported
 	}
 	g := filepath.Join(d, "g.txt")
-	put(g, "one two three four five six seven eight nine ten\nshort\n")
+	Put(g, "one two three four five six seven eight nine ten\nshort\n")
 	inD(d, "-e", "-s", "+1", "+set tw=10", "+normal! gqq", "+wq", "g.txt")
 	if bar(g) != "one two three four five six seven eight nine ten|short|" {
 		s.echo("  noformatopts gqq still formatted: '%s'", bar(g))
@@ -259,36 +259,36 @@ func Whim64(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	gd := filepath.Join(d, "gd.txt")
-	put(gd, "int x;\n\nvoid f(void)\n{\n    int x;\n    x = x + 1;\n}\n")
+	Put(gd, "int x;\n\nvoid f(void)\n{\n    int x;\n    x = x + 1;\n}\n")
 	inD(d, "-e", "-s", "+6", "+normal! 0fxgd", "+s/^/HERE /", "+wq", "gd.txt")
-	if !grepQ(readFile(gd), `^HERE     x = x + 1;$`, gBRE) {
+	if !grepQ(ReadFile(gd), `^HERE     x = x + 1;$`, gBRE) {
 		s.echo("  noformatopts gd moved the cursor: %s", grepNum(gd, "HERE", gBRE))
 		return harness.ErrReported
 	}
 	op := filepath.Join(d, "op.txt")
 	for _, k := range []string{"=", "!"} {
-		put(op, "a\nb\nc\n")
+		Put(op, "a\nb\nc\n")
 		inD(d, "-e", "-s", "+1", "+normal! "+k+"jix", "+wq", "op.txt")
 		if bar(op) != "a|b|c|" {
 			s.echo("  noformatopts %s still ran as an operator: '%s'", k, bar(op))
 			return harness.ErrReported
 		}
 	}
-	put(op, "a\nb\nc\n")
+	Put(op, "a\nb\nc\n")
 	inD(d, "-e", "-s", "+1", "+normal! ix", "+wq", "op.txt")
 	if bar(op) != "xa|b|c|" {
 		s.echo("  noformatopts the control insert failed: '%s'", bar(op))
 		return harness.ErrReported
 	}
 	si := filepath.Join(d, "si.txt")
-	put(si, "if (x) {\n")
+	Put(si, "if (x) {\n")
 	inD(d, "-e", "-s", "+set si sw=4", "+normal! GA\ry;", "+normal! o}", "+wq", "si.txt")
 	if strings.ReplaceAll(catA(si), "\n", "|") != "if (x) {$|    y;$|}$|" {
 		s.echo("  noformatopts smartindent stopped indenting: '%s'", bar(si))
 		return harness.ErrReported
 	}
 	p := filepath.Join(d, "p.txt")
-	put(p, "a\n.PP\nb\n")
+	Put(p, "a\n.PP\nb\n")
 	inD(d, "-e", "-s", "+1", "+normal! }", "+s/^/X/", "+wq", "p.txt")
 	if bar(p) != "a|.PP|Xb|" {
 		s.echo("  noformatopts } stopped somewhere other than the last line: '%s'", bar(p))
@@ -329,7 +329,7 @@ func Whim65(w io.Writer, args []string) error {
 	t := filepath.Join(d, "t.txt")
 	for _, p := range [][2]string{{"g?g?", "abc def|ghi|"}, {"g??", "abc def|ghi|"}, {"g@g@", "abc def|ghi|"},
 		{"gUU", "ABC DEF|ghi|"}, {"guu", "abc def|ghi|"}, {"g~~", "ABC DEF|ghi|"}, {"zyy", "abc def|ghi|"}} {
-		put(t, "abc def\nghi\n")
+		Put(t, "abc def\nghi\n")
 		inD(d, "-e", "-s", "+1", "+normal! "+p[0], "+wq", "t.txt")
 		if got := bar(t); got != p[1] {
 			s.echo("  norot13      %s gave '%s', expected '%s'", p[0], got, p[1])

@@ -1,6 +1,6 @@
 # Phase 99 — the includes nothing names
 
-`phase/099/edit.sh` and `phase/099/check.sh`, `stage 99`, `package includes`.
+`phase/099/edit.go` and `phase/099/check.go`, `stage 99`, `package includes`.
 `whim-vim.c` inherited **eighteen** preprocessor directives from `whim-vim.c`, every
 one an `#include` of a system header, and fifteen phases removed none of them. Six are
 now needed by nothing, and this phase takes them — **the first Part II phase to change
@@ -19,7 +19,7 @@ recording.
 | `<wctype.h>` | `towlower`, `towupper` — and `iswupper` | phase 98 |
 
 **`<iconv.h>` is the find, and it was missed twice.** `GOALS.md` §II.4 measures this
-cut as "79,599 lines and **16 directives**", and `phase/096/edit.sh` names two
+cut as "79,599 lines and **16 directives**", and `phase/096/edit.go` names two
 headers where there are three. Both were counting `<sys/stat.h>` and `<fcntl.h>` and
 neither looked at the rest; the answer is **15 directives** at that point and twelve
 here.
@@ -67,7 +67,7 @@ includes, the typedef and one blank is **eight lines**.
 ## The argument is a computation and not a list
 
 A phase that deleted six named headers would prove only that six named headers were
-deletable. `phase/099/check.sh` proves something else, and it is the whole phase:
+deletable. `phase/099/check.go` proves something else, and it is the whole phase:
 
 * **on the output**, each of the twelve surviving `#include`s is removed in turn and
   the compile **must fail**. A dead include that survived this phase would be a compile
@@ -166,7 +166,7 @@ phases 97 and 98 did not forget a `static`.
 
 `stage 99`, `package includes`, and four `uses` lines: `includes:99 seed:83 mechanical`,
 because the "none" is checked against phase 83's baselines; `includes:99 tidy:96
-rationale`, because `phase/096/edit.sh` names `<sys/stat.h>` and `<fcntl.h>`,
+rationale`, because `phase/096/edit.go` names `<sys/stat.h>` and `<fcntl.h>`,
 measures that removing them is free and **declines** — *"the count stays 18"* — so this
 phase is that decision reversed; and one line each to `vendor:97` and `vendor:98`, whose vendoring
 is the only reason `<string.h>`, `<ctype.h>` and `<wctype.h>` are unused.

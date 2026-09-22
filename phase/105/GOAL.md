@@ -1,6 +1,6 @@
 # Phase 105 — the variadic collapse
 
-`phase/105/edit.sh` and `phase/105/check.sh`, `stage 105`, `package format`.
+`phase/105/edit.go` and `phase/105/check.go`, `stage 105`, `package format`.
 C cannot forward `...` — which is why `vsnprintf` exists beside `snprintf` — so a
 function that takes `...`, opens a `va_list` and hands it to `vim_vsnprintf` cannot
 survive a split unless the formatter goes with it. There are eight such functions.

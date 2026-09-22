@@ -1,6 +1,6 @@
 # Phase 113 — the message fold: `msg_puts_printf()` and the branch that reaches it
 
-`phase/113/edit.sh` and `phase/113/check.sh`, `stage 113`, `package host`.
+`phase/113/edit.go` and `phase/113/check.go`, `stage 113`, `package host`.
 `msg_puts_attr_len()` ends in a two-armed test: the true arm handed the message to
 `msg_puts_printf()`, 75 lines that reach the terminal **without a screen**, and the
 false arm draws it. The true arm is never taken, and this phase folds it to two lines
@@ -58,7 +58,7 @@ rejected folds and requires each to move a named probe**:
   same thing: it drops the `swapping_screen() && !termcap_active` disjunct, which is
   exactly what `t_ti_stopterm` reaches.
 * **`exit_scroll()`'s printf arm is ALIVE, and phase 104 was wrong to name it a follow-up
-  beside `msg_puts_printf()`.** `phase/104/check.sh` says the two "fire in ZERO of
+  beside `msg_puts_printf()`.** `phase/104/check.go` says the two "fire in ZERO of
   106 records"; that is true of the **corpus** and true of the editor only for the
   first. With **no signal at all** the arm fires in **three of this phase's 32 stream
   probes** — `t_ti_more`, `debug_more`, `term_ti_then_ti` — and in **three of its four

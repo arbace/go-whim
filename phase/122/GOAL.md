@@ -1,6 +1,6 @@
 # Phase 122 — `-T {term}` goes, and the command line is `+{command}`
 
-`phase/122/edit.sh` and `phase/122/check.sh`, `stage 122`, `package terminal`. Zero
+`phase/122/edit.go` and `phase/122/check.go`, `stage 122`, `package terminal`. Zero
 phase 88 left argv as exactly two options: `+{command}`, which is how a **host** tells the
 editor what to do, and `-T {term}`, which is how a **shell** told it what terminal it was
 attached to. A core is told that by its host or not at all, and `-T` has had a replacement
@@ -41,7 +41,7 @@ struct's `.term` member — `attr_entry`'s `ae_u.term` — so that tool can neve
 dead. The edit **computes the partition**, every `.term` left belonging to `ae_u`, rather
 than asserting it. `termcapinit()` then takes no name at all, and the compiled default it
 substituted when given none, read out of the function, becomes its initialiser — which is
-`phase/096/edit.sh`'s `ui_write(console)` again.
+`phase/096/edit.go`'s `ui_write(console)` again.
 
 ## And then `set_termname()`'s no-screen arm cannot run, which is what phase 121 predicted
 
@@ -149,7 +149,7 @@ there**, which is the sharpest form of `apart 105 106`'s lesson: phase 121's rep
 on that stage's tree, which is byte-identical to the sequential one. No `need 122`, measured
 in the same run on phase 121's unswept output.
 
-And `phase/116/make.sh`, the one phase program that reads other boundaries, was run in the
+And `phase/116/check.go`, the one phase program that reads other boundaries, was run in the
 repository root with this phase's tar present: *all 34 recorded boundary binaries up to q116
 record the SAME table*, because its scan has been bounded by its own number since the fix
 phase 121 asked for, and this phase changes no terminal row at all.

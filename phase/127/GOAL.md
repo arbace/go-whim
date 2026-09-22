@@ -1,6 +1,6 @@
 # Phase 127 — de-page the leaf
 
-`phase/127/edit.sh` and `phase/127/check.sh`, `stage 127`, `package memline`. A data
+`phase/127/edit.go` and `phase/127/check.go`, `stage 127`, `package memline`. A data
 block stops being a **page of bytes** and becomes an **array of line records**. Until this
 phase a leaf is a header, an index of byte offsets growing up from it and a text arena
 growing down from the end of the page, with `db_free` bytes of gap where they meet: a

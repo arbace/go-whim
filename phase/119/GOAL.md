@@ -1,6 +1,6 @@
 # Phase 119 — the core names no libc function at all
 
-`phase/119/edit.sh` and `phase/119/check.sh`, `stage 119`, `package host`. Phase 118
+`phase/119/edit.go` and `phase/119/check.go`, `stage 119`, `package host`. Phase 118
 ended with a sentence it would not write down, and this is the phase that gets to write
 it. The core's block of ordinary, non-`static` declarations — the libc the editor spells
 out by hand since phase 110 put the headers below it — was two lines, and both go:

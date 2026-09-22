@@ -1,6 +1,6 @@
 # Phase 123 — the instrument could not see the text layer
 
-`phase/123/make.sh` — one file, like phases 83, 84, 86 and 116 — `stage 123`, `package harness
+`phase/123/check.go` — one file, like phases 83, 84, 86 and 116 — `stage 123`, `package harness
 3 33 40`. It changes no source at all: q123's `whim-vim.c` is q122's byte for byte and its
 boundary digest is its input's, `68e450fd6912` either side. What it adds is the **sixth
 part of a recording**, `tools/zmemline.py`, and it is here for the reason phase 86 and
@@ -133,7 +133,7 @@ is the measurement rather than the claim, so core rule 9's gate does not apply.
 
 `stage 123`, `package harness 86 116 123`, which is *the phase changed no source and moved
 the instrument instead*. **There is no `apart 122 123` and no `need 123`**, and both are
-refusals rather than omissions: `phase/123/make.sh` is a whole-phase program, so
+refusals rather than omissions: `phase/123/check.go` is a whole-phase program, so
 `stage 122-123` is answered by `tools/stages.sh` with *phase 123 is in stage 122-123 but is
 not an edit and a check* and by `tools/phaserun.sh` with *phase 123 has no edit and
 check to run in stage 122-123*, both measured — and `need` is a statement about an edit
@@ -152,9 +152,9 @@ block arithmetic instead of carrying them as constants, and chunks the buffer bu
 Measured, it reaches a **root split in 4 of 16 cases** both at the real fanout and at a
 forced `PB_COUNT_MAX = 511` — the value an 8-byte `PTR_EN` would give — where the corpus
 as committed reaches **1 and 0**. It is blocked because **two merged checks assert the
-corpus's insufficiency as a requirement**: `phase/125/check.sh:686` requires
+corpus's insufficiency as a requirement**: `phase/125/check.go:686` requires
 root-split coverage to *decrease* under phase 125's wider pointer block, and
-`phase/126/check.sh:557` requires identical tree-event tuples across a fanout change.
+`phase/126/check.go:557` requires identical tree-event tuples across a fanout change.
 Both pass today **only because the instrument is too small to see otherwise**, so
 landing the better corpus means rewriting two checks that were correct when they were
 written. That is a phase's worth of work and is recorded here rather than done quietly.

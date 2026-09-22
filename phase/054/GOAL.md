@@ -3,7 +3,7 @@
 A row of `options[]` whose variable is `(char_u *)NULL` is an option `:set` accepts,
 reports and ignores: its feature was never compiled in — folding, syntax, the GUI,
 printing, cscope, the interpreter DLLs — or went in an earlier phase. **172 of
-them.** `phase/054/make.sh` computes the set from the table rather than listing it,
+them.** `phase/054/check.go` computes the set from the table rather than listing it,
 so a row upstream adds later without a variable goes too, and hands it to
 `dropoptions.py`. None was buffer- or window-local, and no code outside the table
 names one by string.

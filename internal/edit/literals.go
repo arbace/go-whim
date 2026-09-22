@@ -24,8 +24,8 @@ import "bytes"
 // It lives in its own file rather than in driver.go because driver.go is the
 // other session's from the merge on, and a shared helper added there is the
 // one edit we would both make.
-func literalSpans(p ph, t []byte) ([][2]int, error) {
-	var out [][2]int
+func LiteralSpans(p Ph, t []byte) ([][2]int, error) {
+	var Out [][2]int
 	i, n := 0, len(t)
 	for i < n {
 		c := t[i]
@@ -46,17 +46,17 @@ func literalSpans(p ph, t []byte) ([][2]int, error) {
 				if c == '"' {
 					kind = "string"
 				}
-				return nil, p.die("an unterminated %s literal at line %d -- the scanner has lost its "+
+				return nil, p.Die("an unterminated %s literal at line %d -- the scanner has lost its "+
 					"place and every span after it would be wrong",
 					kind, bytes.Count(t[:i], []byte{'\n'})+1)
 			}
-			out = append(out, [2]int{i, j + 1})
+			Out = append(Out, [2]int{i, j + 1})
 			i = j + 1
 		} else {
 			i++
 		}
 	}
-	return out, nil
+	return Out, nil
 }
 
 // literalSpansShort is the same scanner with the shorter refusal whim117's
@@ -66,8 +66,8 @@ func literalSpans(p ph, t []byte) ([][2]int, error) {
 // held to the heredoc it replaces byte for byte, report included, so folding
 // these into one would change one phase's output to match the other's.  The
 // difference is the Python's and is preserved rather than tidied.
-func literalSpansShort(p ph, t []byte) ([][2]int, error) {
-	var out [][2]int
+func LiteralSpansShort(p Ph, t []byte) ([][2]int, error) {
+	var Out [][2]int
 	i, n := 0, len(t)
 	for i < n {
 		c := t[i]
@@ -88,14 +88,14 @@ func literalSpansShort(p ph, t []byte) ([][2]int, error) {
 				if c == '"' {
 					kind = "string"
 				}
-				return nil, p.die("an unterminated %s literal at line %d -- the scanner has lost its "+
+				return nil, p.Die("an unterminated %s literal at line %d -- the scanner has lost its "+
 					"place", kind, bytes.Count(t[:i], []byte{'\n'})+1)
 			}
-			out = append(out, [2]int{i, j + 1})
+			Out = append(Out, [2]int{i, j + 1})
 			i = j + 1
 		} else {
 			i++
 		}
 	}
-	return out, nil
+	return Out, nil
 }

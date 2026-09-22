@@ -1,6 +1,6 @@
 # Phase 106 — `nullptr` and `usize`
 
-`phase/106/edit.sh` and `phase/106/check.sh`, `stage 106`, `package boundary`.
+`phase/106/edit.go` and `phase/106/check.go`, `stage 106`, `package boundary`.
 `GOALS.md` §II.4c settled the design: **there is no split into two files, there is one
 file with two parts, and the first `#include` is the boundary.** The core is the prefix
 above it and must name nothing a header supplies. Four phases draw that line; this is

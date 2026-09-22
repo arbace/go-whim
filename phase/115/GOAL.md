@@ -1,6 +1,6 @@
 # Phase 115 — the clock crosses the boundary
 
-`phase/115/edit.sh` and `phase/115/check.sh`, `stage 115`, `package host`.
+`phase/115/edit.go` and `phase/115/check.go`, `stage 115`, `package host`.
 The core read **two** clocks and only one of them had crossed. Phase 111 gave the
 elapsed-milliseconds clock to the host as `long musl_now_ms(void)`; the wall clock
 stayed behind as `static time_T vim_time(void) { return time(nullptr); }`, with five

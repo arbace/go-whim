@@ -1,6 +1,6 @@
 # Phase 89 — no write
 
-`phase/089/edit.sh` and `phase/089/check.sh`, `stage 89`, `package files`. A
+`phase/089/edit.go` and `phase/089/check.go`, `stage 89`, `package files`. A
 core does not own a disk: reading and writing files is the host's business, and
 this is the first half of taking the filesystem away. The six Ex commands that
 put bytes on one go — `:write :wq :xit :exit :update :saveas` — and with them

@@ -1,6 +1,6 @@
 # Phase 84 — the stack protector goes
 
-`phase/084/make.sh`, one whole program: there is no source edit, so there is nothing
+`phase/084/check.go`, one whole program: there is no source edit, so there is nothing
 for a sweep to do and a split phase would pay for one. `whim-vim.c` comes out of it
 byte for byte as it went in, and what changes is one line of `zero/Makefile`:
 

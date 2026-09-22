@@ -20,23 +20,23 @@ var (
 // asmCalls compiles src at -O0 with line information and returns, for every
 // source line, the functions its code calls, in the order the code calls them
 // -- gcc's evaluation order, measured.
-func asmCalls(src string) (map[int][]string, error) {
+func AsmCalls(src string) (map[int][]string, error) {
 	tmp, err := os.MkdirTemp("", "asmcalls-")
 	if err != nil {
 		return nil, err
 	}
 	defer os.RemoveAll(tmp)
 	obj := filepath.Join(tmp, "o.o")
-	if out, err := exec.Command("gcc", "-O0", "-g", "-fno-stack-protector", "-c", "-o", obj, src).CombinedOutput(); err != nil {
-		return nil, &asmErr{string(out)}
+	if Out, err := exec.Command("gcc", "-O0", "-g", "-fno-stack-protector", "-c", "-o", obj, src).CombinedOutput(); err != nil {
+		return nil, &AsmErr{string(Out)}
 	}
-	out, err := exec.Command("objdump", "-d", "-l", "--no-show-raw-insn", obj).Output()
+	Out, err := exec.Command("objdump", "-d", "-l", "--no-show-raw-insn", obj).Output()
 	if err != nil {
 		return nil, err
 	}
 	calls := map[int][]string{}
 	cur := 0
-	for _, l := range strings.Split(string(out), "\n") {
+	for _, l := range strings.Split(string(Out), "\n") {
 		if m := asmLine.FindStringSubmatch(l); m != nil {
 			cur, _ = strconv.Atoi(m[1])
 			continue
@@ -48,12 +48,12 @@ func asmCalls(src string) (map[int][]string, error) {
 	return calls, nil
 }
 
-type asmErr struct{ out string }
+type AsmErr struct{ Out string }
 
-func (e *asmErr) Error() string { return "gcc -g: " + e.out }
+func (e *AsmErr) Error() string { return "gcc -g: " + e.Out }
 
 // firstOf is the position of the first call to any of names in calls, or -1.
-func firstOf(calls []string, names []string) int {
+func FirstOf(calls []string, names []string) int {
 	for i, c := range calls {
 		for _, n := range names {
 			if c == n {
@@ -66,7 +66,7 @@ func firstOf(calls []string, names []string) int {
 
 // parseCore parses the core of a whim-vim.c text -- everything above its first
 // #include, as `make editor.c` cuts it; line numbers are the file's own.
-func parseCore(text string) (*cc.AST, error) {
+func ParseCore(text string) (*cc.AST, error) {
 	i := strings.Index(text, "\n#include")
 	if i < 0 {
 		i = len(text) - 1

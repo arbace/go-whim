@@ -24,6 +24,10 @@ package main
 import (
 	"fmt"
 	"os"
+
+	// The phases register themselves with internal/edit and internal/check
+	// when their packages are linked in, and this is what links them in.
+	_ "github.com/arbace/go-whim/phase"
 )
 
 // A tool is one subcommand.  It is handed everything after the subcommand
@@ -43,7 +47,7 @@ var order = []string{
 	"deadsweep", "deadprotos", "typereach", "funcreach", "deadfields", "deadenums",
 	"snapshot",
 	"symbols", "nvidx", "orphanopts", "exsweep", "cmdnames", "cmdidxs", "muslctype", "muslcase", "starcheck", "termrestore", "complcheck", "clicheck", "behaviour", "termcheck", "zscreen", "zhostonly", "zargv", "zexcmds", "zcases", "ztermcheck", "zpty", "zmemline", "zcompare", "zrecord", "dropoptions", "retire", "droplocal", "nointro", "noargv0", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "dropopts", "nostartup", "nohome", "nocmdargs", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "check", "query",
-	"build", "verify",
+	"build", "verify", "record",
 	"parse", "fieldref",
 }
 
@@ -148,6 +152,7 @@ var tools = map[string]tool{
 	"noenc":       {fileStep("noenc"), "noenc <file>"},
 	"utf8only":    {fileStep("utf8only"), "utf8only <file>"},
 	"fold":        {runFold, "fold <always|never|dropif> <file> <pattern> <count>"},
+	"record":      {runRecord, "record"},
 	"verify":      {runVerify, "verify [--from N --src B] [--to N] [--root D]"},
 	"build":       {runBuild, "build [--check] [--from N] [--to N] [--src F] [--out F] [--work D]"},
 	"parse":       {runParse, "parse <file.c>"},

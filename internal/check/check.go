@@ -39,7 +39,7 @@ type Func func(w io.Writer, args []string) error
 
 var checks = map[string]Func{}
 
-func register(name string, f Func) {
+func Register(name string, f Func) {
 	if _, dup := checks[name]; dup {
 		panic("check: " + name + " registered twice")
 	}
@@ -54,12 +54,12 @@ func Lookup(phase string) (Func, bool) {
 
 // Names returns every phase that has a check here, sorted.
 func Names() []string {
-	out := make([]string, 0, len(checks))
+	Out := make([]string, 0, len(checks))
 	for k := range checks {
-		out = append(out, k)
+		Out = append(Out, k)
 	}
-	sort.Strings(out)
-	return out
+	sort.Strings(Out)
+	return Out
 }
 
 // rep is the report a check prints, and it is the whole reason this package
@@ -70,24 +70,24 @@ func Names() []string {
 // so in one run rather than over four twenty-minute gates.  say() prints as it
 // goes because ORDER IS OUTPUT; bad() appends; and the error at the end is the
 // exit status.
-type rep struct {
-	tag  string
-	w    io.Writer
-	fail []string
+type Rep struct {
+	Tag  string
+	W    io.Writer
+	Fail []string
 }
 
-func (r *rep) say(format string, a ...any) {
-	fmt.Fprintf(r.w, "  %-12s %s\n", r.tag, fmt.Sprintf(format, a...))
+func (r *Rep) Say(format string, a ...any) {
+	fmt.Fprintf(r.W, "  %-12s %s\n", r.Tag, fmt.Sprintf(format, a...))
 }
 
 // cont is say with the tag column left blank: a continuation of the line
 // above, which several checks use for a list under a heading.
-func (r *rep) cont(format string, a ...any) {
-	fmt.Fprintf(r.w, "  %-12s %s\n", "", fmt.Sprintf(format, a...))
+func (r *Rep) Cont(format string, a ...any) {
+	fmt.Fprintf(r.W, "  %-12s %s\n", "", fmt.Sprintf(format, a...))
 }
 
-func (r *rep) bad(format string, a ...any) {
-	r.fail = append(r.fail, fmt.Sprintf(format, a...))
+func (r *Rep) Bad(format string, a ...any) {
+	r.Fail = append(r.Fail, fmt.Sprintf(format, a...))
 }
 
 // done prints every collected disagreement and returns the failure, or nil.
@@ -99,12 +99,12 @@ func (r *rep) bad(format string, a ...any) {
 // -- the control below refused on both sides with the same assertion and the
 // Go added `includes: 1 assertion(s) failed`, which is exactly the kind of
 // difference a report comparison exists to catch.
-func (r *rep) done() error {
-	if len(r.fail) == 0 {
+func (r *Rep) Done() error {
+	if len(r.Fail) == 0 {
 		return nil
 	}
-	for _, l := range r.fail {
-		fmt.Fprintf(r.w, "  %-12s %s\n", r.tag, l)
+	for _, l := range r.Fail {
+		fmt.Fprintf(r.W, "  %-12s %s\n", r.Tag, l)
 	}
 	return harness.ErrReported
 }

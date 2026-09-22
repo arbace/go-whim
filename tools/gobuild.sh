@@ -42,13 +42,20 @@ patch=tools/patches/cc-v4-c23.patch
 
 # The key is every tracked input to the build.  find is sorted so the digest
 # does not depend on directory order.
-# -L: a verify root or an each stage's check root LINKS cmd/ and internal/, and
-# find does not follow a starting-point link without it -- so the key covered no
-# Go file there, and a root found whatever binary the empty key last named.
+#
+# PHASE/ IS IN IT, and that is not optional: every phase is a package of its own
+# there, linked in through phase/registry.go, so a binary built before a phase
+# changed is a binary that runs the old phase.  Measured, when phase/ was left
+# out: editing a check changed nothing a run could see, because tools/st.sh kept
+# handing back the binary the unchanged key named.
+#
+# -L: a verify root LINKS cmd/, internal/ and phase/, and find does not follow a
+# starting-point link without it -- so the key covered no Go file there, and a
+# root found whatever binary the empty key last named.
 key=$(
     {
         cat go.mod go.sum "$patch"
-        find -L cmd internal -name '*.go' -type f | LC_ALL=C sort | xargs cat
+        find -L cmd internal phase -name '*.go' -type f | LC_ALL=C sort | xargs cat
     } | sha256sum | cut -c1-16
 )
 

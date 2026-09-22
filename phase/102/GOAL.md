@@ -1,6 +1,6 @@
 # Phase 102 — the core can no longer stop the process
 
-`phase/102/edit.sh` and `phase/102/check.sh`, `stage 102`, `package host`.
+`phase/102/edit.go` and `phase/102/check.go`, `stage 102`, `package host`.
 Eighteen lines, one libc symbol, and `GOALS.md` §II.4c's second step. `mch_exit()`'s
 last statement stops being `exit(r);`:
 
@@ -88,7 +88,7 @@ two symbols arrive in its place, plus a thirteenth `#include` in a file whose la
 phase but two removed six. The review this phase comes from recommended `sigsetjmp`,
 having counted the *core* at 42 with the launcher's cost attributed to a host file that
 does not exist yet; in one translation unit there is no separate. So
-`phase/102/check.sh` **builds the `sigsetjmp` variant on every run** and requires
+`phase/102/check.go` **builds the `sigsetjmp` variant on every run** and requires
 `nm -u` to show 33 against the output's 32, with `sigsetjmp` and `siglongjmp` present
 and `exit` gone from both — the road not taken as a number rather than a memory. It is
 compiled to an object; it is an answer, not a program.

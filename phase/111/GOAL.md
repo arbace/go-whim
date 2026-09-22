@@ -1,6 +1,6 @@
 # Phase 111 — the scalar clock
 
-`phase/111/edit.sh` and `phase/111/check.sh`, `stage 111`, `package boundary`.
+`phase/111/edit.go` and `phase/111/check.go`, `stage 111`, `package boundary`.
 The core's whole use of time is *stamp now, then ask how many milliseconds have
 passed*. That is four places — `do_sleep`'s `done < msec` loop, `vim_beep`'s 500 ms
 rate limit, `handle_osc`'s `>= p_ost` timeout and `inchar_loop`'s deadline — and **not

@@ -1,6 +1,6 @@
 # Phase 116 — the terminal table is asked with `+set term=`, not `$TERM`
 
-`phase/116/make.sh`, one whole program, `stage 116`, `package harness`. The second phase
+`phase/116/check.go`, one whole program, `stage 116`, `package harness`. The second phase
 in the pipeline that changes **no source at all** — phase 86 is the other — and it is
 there for the same reason: the pipeline was about to measure itself with a question
 that could not see the answer.
@@ -47,7 +47,7 @@ environment at all, so `termcheck.one` is overridden as well as `termcheck.ask`.
 
 `CLAUDE.md`'s rule is *never regenerate it from the current binary, which would make the
 comparison self-fulfilling*, and the mistake it names is a pipeline re-recording from
-its **own output**. `phase/083/make.sh` does the opposite and enforces it: the baselines
+its **own output**. `phase/083/check.go` does the opposite and enforces it: the baselines
 come from `whim-vim.c`, the pipeline's immutable input, built with **whim's** compile
 line, recorded three times and required identical. Nothing the core produces is on the
 recording side. The incantation is
@@ -56,7 +56,7 @@ recording side. The incantation is
 rm -rf .reference/core-baselines .cache/r0 && make whim-phase-83
 ```
 
-and **both paths are needed**: measured, with only `.cache/r0` removed `phase/083/make.sh`
+and **both paths are needed**: measured, with only `.cache/r0` removed `phase/083/check.go`
 refuses — *"baselines DIFFER from the recorded `.reference/core-baselines` … a harness
 changed, or the frozen `whim-vim.c` did. Name which before removing it"* — and exits 1
 naming `ref-term.txt`. It is right to refuse. `whim.mk`'s `whim-baselines-check` said
@@ -66,7 +66,7 @@ says why; `whim.mk` is in no implementation digest.
 
 ## What makes the re-record safe is measured and not cited
 
-The baseline and every phase's recording move **together**, and `phase/116/make.sh`
+The baseline and every phase's recording move **together**, and `phase/116/check.go`
 measures that: `./whim-vim` extracted from every recorded boundary tar — all 33 of them —
 plus `whim-vim.c` built with whim's own line records the same table, **one digest across
 every one of them** under the new question, exactly as the old question gave one digest
@@ -128,7 +128,7 @@ empty buffer.
 
 **Phase 116 can share a stage with nothing and needs no `apart` to say so**, exactly as
 phase 86 does not. A stage of more than one phase is made of **split** programs and
-`phase/116/make.sh` is one file, so the schedule is refused before any check runs:
+`phase/116/check.go` is one file, so the schedule is refused before any check runs:
 measured, `stage 116-117` gives `phase 116 is in stage 116-117 but is not an edit and a check`
 from `tools/stages.sh`, and `tools/phaserun.sh` refuses the same unit with `phase 116
 has no edit and check to run`. Nor is there a `need`: a whole-phase program is handed the

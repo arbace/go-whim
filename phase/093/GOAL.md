@@ -1,6 +1,6 @@
 # Phase 93 — the buffer has no name
 
-`phase/093/edit.sh` and `phase/093/check.sh`, `stage 93`, `package files`.
+`phase/093/edit.go` and `phase/093/check.go`, `stage 93`, `package files`.
 Phases 89, 90 and 91 took every way to *ask* for a file and phase 92 took the machinery
 that read one. What was left of the filesystem in this editor is a **name**: three
 `char_u *` fields on every buffer — `b_ffname`, `b_sfname`, `b_fname` — and the one

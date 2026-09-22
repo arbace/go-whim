@@ -1,6 +1,6 @@
 # Phase 100 — the deadly ladder that cannot run
 
-`phase/100/edit.sh` and `phase/100/check.sh`, `stage 100`, `package host`. Nine
+`phase/100/edit.go` and `phase/100/check.go`, `stage 100`, `package host`. Nine
 lines, one libc symbol, and the smallest Part II phase so far. `deathtrap()` — the handler
 for the deadly signals — opens with a ladder that counts how often it has been entered:
 
@@ -47,7 +47,7 @@ later phase cannot quietly falsify either without this check saying so.
 
 ## The argument is two binaries differing in one field
 
-`phase/100/check.sh` instruments the source the phase was **handed** —
+`phase/100/check.go` instruments the source the phase was **handed** —
 `write(2, "DTn\n", 4)` immediately after `++entered;`, and `write(2, "DTLADDER\n", 9)` as
 the first statement inside the ladder — and builds it five ways:
 

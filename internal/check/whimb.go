@@ -12,22 +12,22 @@ import (
 )
 
 func init() {
-	register("whim25", Whim25)
-	register("whim26", Whim26)
-	register("whim27", Whim27)
-	register("whim28", Whim28)
-	register("whim29", Whim29)
-	register("whim30", Whim30)
-	register("whim31", Whim31)
-	register("whim32", Whim32)
-	register("whim34", Whim34)
-	register("whim35", Whim35)
-	register("whim36", Whim36)
-	register("whim37", Whim37)
-	register("whim38", Whim38)
-	register("whim39", Whim39)
-	register("whim40", Whim40)
-	register("whim41", Whim41)
+	Register("whim25", Whim25)
+	Register("whim26", Whim26)
+	Register("whim27", Whim27)
+	Register("whim28", Whim28)
+	Register("whim29", Whim29)
+	Register("whim30", Whim30)
+	Register("whim31", Whim31)
+	Register("whim32", Whim32)
+	Register("whim34", Whim34)
+	Register("whim35", Whim35)
+	Register("whim36", Whim36)
+	Register("whim37", Whim37)
+	Register("whim38", Whim38)
+	Register("whim39", Whim39)
+	Register("whim40", Whim40)
+	Register("whim41", Whim41)
 }
 
 // goneTools is the commonest whole check: the names gone, the verdict, and the
@@ -76,13 +76,13 @@ func Whim25(w io.Writer, args []string) error {
 	if err != nil {
 		return err
 	}
-	if !s.gone("  backup       ", gBRE, gBRE, true, nil, `p_bk\b`, `p_wb\b`, `p_bkc\b`, `p_bdir\b`, `p_bex\b`, `p_bsk\b`, `p_pm\b`,
+	if !s.Gone("  backup       ", gBRE, gBRE, true, nil, `p_bk\b`, `p_wb\b`, `p_bkc\b`, `p_bdir\b`, `p_bex\b`, `p_bsk\b`, `p_pm\b`,
 		"b_p_bkc", "vim_rename", "vim_copyfile", "set_file_time", "mch_get_acl",
 		"vim_acl_T", "backup_copy", "dobackup") {
 		return harness.ErrReported
 	}
 	s.echo("  backup       nothing is copied aside, renamed, or timestamped")
-	if !s.gone("  owner        ", gBRE, gBRE, true, nil, "getuid", "getgid", "get_user_name", "ROOT_UID", "b0_uname") {
+	if !s.Gone("  owner        ", gBRE, gBRE, true, nil, "getuid", "getgid", "get_user_name", "ROOT_UID", "b0_uname") {
 		return harness.ErrReported
 	}
 	s.echo("  owner        nothing asks who you are")
@@ -104,8 +104,8 @@ func Whim25(w io.Writer, args []string) error {
 	if err := s.phasebuild(); err != nil {
 		return err
 	}
-	d := s.sub(".bktest")
-	put(filepath.Join(d, "f.txt"), "one\n")
+	d := s.Sub(".bktest")
+	Put(filepath.Join(d, "f.txt"), "one\n")
 	vimRC(d, "", "../whim-vim", "-e", "-s", "-c", "%s/one/two/", "-c", "wq", "f.txt")
 	bk := fmt.Sprintf("%s:%s", lsA(d), catS(filepath.Join(d, "f.txt")))
 	os.RemoveAll(d)
@@ -114,8 +114,8 @@ func Whim25(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	s.echo("  overwrite    overwriting a file leaves the file, and nothing beside it")
-	d = s.sub(".rotest")
-	put(filepath.Join(d, "f.txt"), "one\n")
+	d = s.Sub(".rotest")
+	Put(filepath.Join(d, "f.txt"), "one\n")
 	os.Chmod(filepath.Join(d, "f.txt"), 0o444)
 	vimRC(d, "", "../whim-vim", "-e", "-s", "-c", "%s/one/two/", "-c", "wq!", "f.txt")
 	ro := catS(filepath.Join(d, "f.txt"))
@@ -153,7 +153,7 @@ func Whim26(w io.Writer, args []string) error {
 		s.echo("               which mch_suspend() sets around the stop")
 		return harness.ErrReported
 	}
-	if !s.gone("  signals      ", gBRE, gBRE, false, nil, "sigaltstack", "may_core_dump", "catch_sigpwr", "catch_sigusr1", "got_sigusr1",
+	if !s.Gone("  signals      ", gBRE, gBRE, false, nil, "sigaltstack", "may_core_dump", "catch_sigpwr", "catch_sigusr1", "got_sigusr1",
 		"signal_stack", "sigstk") {
 		return harness.ErrReported
 	}
@@ -169,7 +169,7 @@ func Whim26(w io.Writer, args []string) error {
 	if err := s.phasebuild(); err != nil {
 		return err
 	}
-	if s.st("termrestore", filepath.Join(s.work, "whim-vim")) {
+	if s.st("termrestore", filepath.Join(s.Work, "whim-vim")) {
 		s.echo("  terminal     SIGTERM still puts the terminal back")
 		return nil
 	}
@@ -183,7 +183,7 @@ func Whim27(w io.Writer, args []string) error {
 	if err != nil {
 		return err
 	}
-	if !s.gone("  equiclass    ", gBRE, gBRE, false, nil, "reg_equi_class", "get_equi_class") {
+	if !s.Gone("  equiclass    ", gBRE, gBRE, false, nil, "reg_equi_class", "get_equi_class") {
 		return harness.ErrReported
 	}
 	if !s.keptCall("  equiclass    ", " went too -- [[:alpha:]] and [[.x.]] are different", "get_char_class", "get_coll_element") {
@@ -196,13 +196,13 @@ func Whim27(w io.Writer, args []string) error {
 	if err := s.phasebuild(); err != nil {
 		return err
 	}
-	d := s.sub(".eqtest")
-	put(filepath.Join(d, "f.txt"), "xax\nx\303\241x\nx=x\n")
+	d := s.Sub(".eqtest")
+	Put(filepath.Join(d, "f.txt"), "xax\nx\303\241x\nx=x\n")
 	vimRC(d, "", "../whim-vim", "-e", "-s", "-c", "s/[[=a=]]/#/g", "-c", "wq", "f.txt")
-	t := strings.ReplaceAll(readFile(filepath.Join(d, "f.txt")), "\n", " ")
-	put(filepath.Join(d, "g.txt"), "a1b\n")
+	t := strings.ReplaceAll(ReadFile(filepath.Join(d, "f.txt")), "\n", " ")
+	Put(filepath.Join(d, "g.txt"), "a1b\n")
 	vimRC(d, "", "../whim-vim", "-e", "-s", "-c", "s/[[:alpha:]]/#/g", "-c", "wq", "g.txt")
-	alpha := strings.ReplaceAll(readFile(filepath.Join(d, "g.txt")), "\n", " ")
+	alpha := strings.ReplaceAll(ReadFile(filepath.Join(d, "g.txt")), "\n", " ")
 	os.RemoveAll(d)
 	if strings.Contains(t, "x#x") {
 		s.echo("  equiclass    [[=a=]] still matched an accented a")
@@ -221,7 +221,7 @@ func Whim28(w io.Writer, args []string) error {
 	if err != nil {
 		return err
 	}
-	if !s.gone("  cindent      ", gBRE, gBRE, true, nil, "get_c_indent", "in_cinkeys", "do_c_expr_indent", "b_p_cin", "b_p_cino", "p_cinw") {
+	if !s.Gone("  cindent      ", gBRE, gBRE, true, nil, "get_c_indent", "in_cinkeys", "do_c_expr_indent", "b_p_cin", "b_p_cino", "p_cinw") {
 		return harness.ErrReported
 	}
 	if !s.keptCall("  cindent      ", " went too -- 'lisp' and 'autoindent' are not this", "get_lisp_indent", "get_indent") {
@@ -234,12 +234,12 @@ func Whim28(w io.Writer, args []string) error {
 	if err := s.phasebuild(); err != nil {
 		return err
 	}
-	d := s.sub(".citest")
-	put(filepath.Join(d, "f.txt"), "    one\n")
+	d := s.Sub(".citest")
+	Put(filepath.Join(d, "f.txt"), "    one\n")
 	vimRC(d, "", "../whim-vim", "-e", "-s", "-c", "set autoindent", "-c", "normal Gotwo", "-c", "wq", "f.txt")
 	ai := ""
-	if l := sedN(filepath.Join(d, "f.txt"), 2); l != "" || len(lines(readFile(filepath.Join(d, "f.txt")))) >= 2 {
-		put(filepath.Join(d, ".l2"), l+"\n")
+	if l := sedN(filepath.Join(d, "f.txt"), 2); l != "" || len(Lines(ReadFile(filepath.Join(d, "f.txt")))) >= 2 {
+		Put(filepath.Join(d, ".l2"), l+"\n")
 		ai = strings.TrimSuffix(catA(filepath.Join(d, ".l2")), "\n")
 	}
 	os.RemoveAll(d)
@@ -269,7 +269,7 @@ func Whim30(w io.Writer, args []string) error {
 	if err != nil {
 		return err
 	}
-	if !s.gone("  ident        ", gBRE, gBRE, true, nil, "nv_K_getcmd", "do_nv_ident", "g_tag_at_cursor") {
+	if !s.Gone("  ident        ", gBRE, gBRE, true, nil, "nv_K_getcmd", "do_nv_ident", "g_tag_at_cursor") {
 		return harness.ErrReported
 	}
 	for _, g := range []string{"{'*', nv_ident", "{'#', nv_ident", "{POUND, nv_ident", "{Ctrl_RSB, nv_error", "{'K', nv_error"} {
@@ -285,7 +285,7 @@ func Whim30(w io.Writer, args []string) error {
 	if err := s.phasebuild(); err != nil {
 		return err
 	}
-	if s.st("starcheck", filepath.Join(s.work, "whim-vim")) {
+	if s.st("starcheck", filepath.Join(s.Work, "whim-vim")) {
 		s.echo("  ident        * still finds the next whole word, and skips foobar")
 		return nil
 	}
@@ -313,12 +313,12 @@ func Whim31(w io.Writer, args []string) error {
 	if err := s.phasebuild(); err != nil {
 		return err
 	}
-	d := s.sub(".fmtest")
+	d := s.Sub(".fmtest")
 	os.MkdirAll(filepath.Join(d, "sub"), 0o755)
-	put(filepath.Join(d, "sub", "f.txt"), "one\n")
+	Put(filepath.Join(d, "sub", "f.txt"), "one\n")
 	vimRC(d, "", "../whim-vim", "-e", "-s", "-c", "w! copy.txt", "-c", "qa!", "sub/f.txt")
 	vimRC(d, "", "../whim-vim", "-e", "-s", "-c", "normal Gotwo", "-c", "w! %", "-c", "qa!", "sub/f.txt")
-	t := strings.ReplaceAll(readFile(filepath.Join(d, "sub", "f.txt")), "\n", " ")
+	t := strings.ReplaceAll(ReadFile(filepath.Join(d, "sub", "f.txt")), "\n", " ")
 	os.RemoveAll(d)
 	if t != "one two " {
 		s.echo("  fnamemod     `:w %%` gave '%s', expected 'one two '", t)
@@ -351,7 +351,7 @@ func Whim32(w io.Writer, args []string) error {
 	if err := s.phasebuild(); err != nil {
 		return err
 	}
-	if s.st("complcheck", filepath.Join(s.work, "whim-vim")) {
+	if s.st("complcheck", filepath.Join(s.Work, "whim-vim")) {
 		s.echo("  compl        insert mode still inserts; CTRL-X CTRL-N completes nothing")
 		return nil
 	}
@@ -425,9 +425,9 @@ func Whim39(w io.Writer, args []string) error {
 		return err
 	}
 	for _, o := range []string{"-o", "-O", "-o2"} {
-		out, rc := s.outWork(o, "-e", "-s", "-c", "qa!")
-		if !strings.Contains(out, "Unknown option argument") {
-			s.echo("  cli          %s is not refused as unknown (exit %d): %s", o, rc, out)
+		Out, rc := s.outWork(o, "-e", "-s", "-c", "qa!")
+		if !strings.Contains(Out, "Unknown option argument") {
+			s.echo("  cli          %s is not refused as unknown (exit %d): %s", o, rc, Out)
 			return harness.ErrReported
 		}
 		if rc != 1 {
@@ -496,7 +496,7 @@ func Whim41(w io.Writer, args []string) error {
 	}
 	if len(left) > 0 {
 		s.echo("  buflist      a retired buffer command is still named outside the table:")
-		for _, l := range head(left, 5) {
+		for _, l := range Head(left, 5) {
 			s.echo("               %s", cutC(l, 120))
 		}
 		return harness.ErrReported

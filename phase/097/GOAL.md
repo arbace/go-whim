@@ -1,6 +1,6 @@
 # Phase 97 — the strings are the editor's own
 
-`phase/097/edit.sh` and `phase/097/check.sh`, `stage 97`, `package vendor`.
+`phase/097/edit.go` and `phase/097/check.go`, `stage 97`, `package vendor`.
 Seventeen of the 61 libc symbols whim-vim still asked for are string and memory work,
 and every one of them is **pure computation**: no descriptor, no clock, no signal,
 nothing the host owns. So they are not a boundary to move, they are code the file can

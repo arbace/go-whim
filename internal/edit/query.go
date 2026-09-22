@@ -19,7 +19,7 @@ type QueryFunc func(text []byte, w io.Writer) error
 
 var queries = map[string]QueryFunc{}
 
-func registerQuery(name string, f QueryFunc) {
+func RegisterQuery(name string, f QueryFunc) {
 	if _, dup := queries[name]; dup {
 		panic("edit: query " + name + " registered twice")
 	}
@@ -34,10 +34,10 @@ func LookupQuery(name string) (QueryFunc, bool) {
 
 // QueryNames returns every query, sorted.
 func QueryNames() []string {
-	out := make([]string, 0, len(queries))
+	Out := make([]string, 0, len(queries))
 	for k := range queries {
-		out = append(out, k)
+		Out = append(Out, k)
 	}
-	sort.Strings(out)
-	return out
+	sort.Strings(Out)
+	return Out
 }

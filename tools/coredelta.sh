@@ -17,7 +17,7 @@
 # tree it is handed, built with the compile line that tree carries.  So the delta is
 # the difference from q82, not from slim; it is CUMULATIVE, as phases 0-82's are
 # against slim -- the declarations up to phase N are the whole difference from q82
-# at N -- and it starts empty at 83.  phase/083/make.sh says why a recording of q82 is not the mistake
+# at N -- and it starts empty at 83.  whimtools record says why a recording of q82 is not the mistake
 # CLAUDE.md warns about: nothing from 83 on can reach it.
 #
 # THE INSTRUMENT IS THE SCREEN (phase 86, GOALS.md II.2): keystrokes in on stdin,

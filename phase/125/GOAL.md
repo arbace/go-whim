@@ -1,6 +1,6 @@
 # Phase 125 — the swap file's residue, and what no sweep could find
 
-`phase/125/edit.sh` and `phase/125/check.sh`, `stage 125`, `package tidy 96 120 125`.
+`phase/125/edit.go` and `phase/125/check.go`, `stage 125`, `package tidy 96 120 125`.
 The filesystem went at phases 89 to 93 and the swap file's **bookkeeping** did not:
 memline and memfile still kept a header block carrying the editor's version and the
 buffer's name, a translation table for blocks not yet written out, a three-valued

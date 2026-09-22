@@ -1,6 +1,6 @@
 # Phase 112 — the case tables become one, and it is the union
 
-`phase/112/edit.sh` and `phase/112/check.sh`, `stage 112`, `package casemap`.
+`phase/112/edit.go` and `phase/112/check.go`, `stage 112`, `package casemap`.
 `whim-vim.c` carried **two complete Unicode simple-case maps** and they did the same
 job: vim's own `toUpper[]`/`toLower[]`, there since whim, and musl's, which phase 98
 added as `musl_toUpper[]`/`musl_toLower[]` range-compressed into the same

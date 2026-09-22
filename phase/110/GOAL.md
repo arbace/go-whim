@@ -1,6 +1,6 @@
 # Phase 110 — the move: the first `#include` becomes the boundary
 
-`phase/110/edit.sh` and `phase/110/check.sh`, `stage 110`, `package boundary`.
+`phase/110/edit.go` and `phase/110/check.go`, `stage 110`, `package boundary`.
 This is what the pipeline had been clearing the ground for. **The eleven `#include`s
 move from the first eleven lines to line 78,360, and above them there is not one
 preprocessor directive.** `whim-vim.c` is now one translation unit with a core editor on

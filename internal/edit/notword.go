@@ -15,7 +15,7 @@ import "regexp"
 //
 // `\w` is [0-9A-Za-z_] and nothing else: these files are ASCII, which the
 // tree asserts elsewhere.
-func isWordByte(c byte) bool {
+func IsWordByte(c byte) bool {
 	return c == '_' ||
 		(c >= '0' && c <= '9') ||
 		(c >= 'A' && c <= 'Z') ||
@@ -24,34 +24,34 @@ func isWordByte(c byte) bool {
 
 // callsNotAfterWord returns the byte offsets of every `name(` whose preceding
 // byte is not a word character.
-func callsNotAfterWord(text []byte, name string) [][]int {
+func CallsNotAfterWord(text []byte, name string) [][]int {
 	re := regexp.MustCompile(regexp.QuoteMeta(name) + `\(`)
-	var out [][]int
+	var Out [][]int
 	for _, loc := range re.FindAllIndex(text, -1) {
-		if loc[0] > 0 && isWordByte(text[loc[0]-1]) {
+		if loc[0] > 0 && IsWordByte(text[loc[0]-1]) {
 			continue
 		}
-		out = append(out, loc)
+		Out = append(Out, loc)
 	}
-	return out
+	return Out
 }
 
 // subNotAfterWord rewrites every such call to `repl(` and returns the new text
 // and the number of substitutions -- which is Python's re.subn of the same
 // pattern.
-func subNotAfterWord(text []byte, name, repl string) ([]byte, int) {
-	locs := callsNotAfterWord(text, name)
+func SubNotAfterWord(text []byte, name, repl string) ([]byte, int) {
+	locs := CallsNotAfterWord(text, name)
 	if len(locs) == 0 {
 		return text, 0
 	}
-	var out []byte
+	var Out []byte
 	last := 0
 	for _, loc := range locs {
-		out = append(out, text[last:loc[0]]...)
-		out = append(out, repl...)
-		out = append(out, '(')
+		Out = append(Out, text[last:loc[0]]...)
+		Out = append(Out, repl...)
+		Out = append(Out, '(')
 		last = loc[1]
 	}
-	out = append(out, text[last:]...)
-	return out, len(locs)
+	Out = append(Out, text[last:]...)
+	return Out, len(locs)
 }

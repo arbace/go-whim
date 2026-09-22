@@ -1,6 +1,6 @@
 # Phase 101 — `main()` is demoted to `vim_main()`
 
-`phase/101/edit.sh` and `phase/101/check.sh`, `stage 101`, `package host`. Five
+`phase/101/edit.go` and `phase/101/check.go`, `stage 101`, `package host`. Five
 lines, no libc symbol, and `GOALS.md` §II.4c's first step. What was
 
 ```c

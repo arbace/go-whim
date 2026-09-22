@@ -1,6 +1,6 @@
 # Phase 124 — freeing is free, and the arena is measured
 
-`phase/124/edit.sh` and `phase/124/check.sh`, `stage 124`, `package host`.
+`phase/124/edit.go` and `phase/124/check.go`, `stage 124`, `package host`.
 `host_alloc()` becomes a **bump allocator** into a fixed 1 GiB arena and `host_free()`
 returns without doing anything. That is the charter bullet *A GARBAGE COLLECTOR IS
 ASSUMED FROM HERE ON* built, and it is what makes the four phases after it cheap rather

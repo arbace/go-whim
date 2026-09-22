@@ -18,9 +18,9 @@ import (
 // zRec is one probe recording: the scrubbed record text, the raw stream and the
 // bell count.  Several zero checks build exactly this and compare it between
 // two binaries, so it is written once here rather than in each.
-type zRec struct {
-	text  string
-	out   []byte
+type ZRec struct {
+	Text  string
+	Out   []byte
 	bells int
 }
 
@@ -28,28 +28,28 @@ type zRec struct {
 // same way, because mainerr() prints the version banner and that carries
 // __DATE__ and __TIME__ -- two binaries built a minute apart would disagree on
 // stderr for a reason that is not the editor's behaviour.
-func zRecord(binary string, args []string, keys [][]byte) zRec {
-	scr, out, errb, rc, err := harness.ZSession(binary, keys, "xterm", args, 24, 80, 8*time.Second)
+func ZRecord(binary string, args []string, keys [][]byte) ZRec {
+	scr, Out, errb, rc, err := harness.ZSession(binary, keys, "xterm", args, 24, 80, 8*time.Second)
 	if err == harness.ErrBlocked {
 		// `vim -` reads the keystroke file as buffer text and then waits for
 		// keys that never come.  That is a recording, not a crash.
-		body := "took the input over and never returned"
-		return zRec{harness.Section("blocked", &body), nil, 0}
+		Body := "took the input over and never returned"
+		return ZRec{harness.Section("blocked", &Body), nil, 0}
 	}
 	if err != nil {
-		return zRec{"ERROR " + err.Error(), nil, 0}
+		return ZRec{"ERROR " + err.Error(), nil, 0}
 	}
 	text := harness.Section(fmt.Sprintf("exit %d", rc), nil)
 	text += harness.Section(fmt.Sprintf("bells %d", scr.Bells), nil)
-	sum := sha256.Sum256(out)
-	text += harness.Section(fmt.Sprintf("stream %d sha=%s", len(out), hex.EncodeToString(sum[:])[:16]), nil)
+	sum := sha256.Sum256(Out)
+	text += harness.Section(fmt.Sprintf("stream %d sha=%s", len(Out), hex.EncodeToString(sum[:])[:16]), nil)
 	e := strings.TrimRight(string(errb), "\n")
 	text += harness.Section("stderr", &e)
 	for i, s := range scr.Snaps {
 		d := s.Text
 		text += harness.Section(fmt.Sprintf("snap %d cursor=%d,%d bells=%d", i, s.Y, s.X, s.Bells), &d)
 	}
-	return zRec{harness.Scrub(text), out, scr.Bells}
+	return ZRec{harness.Scrub(text), Out, scr.Bells}
 }
 
 // zRecordFiles is zRecord except that the run directory is LOOKED IN.
@@ -60,9 +60,9 @@ func zRecord(binary string, args []string, keys [][]byte) zRec {
 // because argv[0] decides what the editor is, the environment is emptied so no
 // vimrc is found, and the session is its own so a stop signal cannot reach the
 // caller's shell.
-func zRecordFiles(binary string, args []string, keys [][]byte, timeout time.Duration) (string, map[string]int64) {
+func ZRecordFiles(binary string, args []string, keys [][]byte, timeout time.Duration) (string, map[string]int64) {
 	x := zRun(binary, args, keys, timeout, true)
-	return x.text, x.files
+	return x.Text, x.files
 }
 
 // zRecordStream is the same runner with no `files` section and the raw STREAM
@@ -70,9 +70,9 @@ func zRecordFiles(binary string, args []string, keys [][]byte, timeout time.Dura
 // are drawn, followed by a Press ENTER prompt, and the next redraw wipes the
 // line before the cursor comes back -- which is where zscreen takes its
 // picture.  So those two live in the stream and in no snapshot.
-func zRecordStream(binary string, args []string, keys [][]byte, timeout time.Duration) (string, string) {
+func ZRecordStream(binary string, args []string, keys [][]byte, timeout time.Duration) (string, string) {
 	x := zRun(binary, args, keys, timeout, false)
-	return x.text, x.stream
+	return x.Text, x.stream
 }
 
 // zRecordSnaps is zRecordStream with the SNAPSHOT COUNT as well, which whim91
@@ -80,28 +80,28 @@ func zRecordStream(binary string, args []string, keys [][]byte, timeout time.Dur
 // check where the bell is not -- the key beeps from the same place every other
 // unused g/[/] key does, so the bell is identical either side and only the
 // snapshot count moves.
-func zRecordSnaps(binary string, args []string, keys [][]byte, timeout time.Duration) (string, string, int) {
+func ZRecordSnaps(binary string, args []string, keys [][]byte, timeout time.Duration) (string, string, int) {
 	x := zRun(binary, args, keys, timeout, false)
-	return x.text, x.stream, x.snaps
+	return x.Text, x.stream, x.snaps
 }
 
 // zRecordFull adds the EXIT STATUS and the bell count, which whim94 needs
 // because its whole phase is a status: `:q` with nothing after it draws E37,
-// runs out of stdin and exits 1 on the binary that refuses, and exits 0 on the
+// runs Out of stdin and exits 1 on the binary that refuses, and exits 0 on the
 // one that quits.  No recording can see that -- every zcases case ends with a
 // trailing `:q!`, which quits both.
-func zRecordFull(binary string, args []string, keys [][]byte, timeout time.Duration) (string, string, int, string, int) {
+func ZRecordFull(binary string, args []string, keys [][]byte, timeout time.Duration) (string, string, int, string, int) {
 	x := zRun(binary, args, keys, timeout, false)
-	return x.text, x.stream, x.snaps, x.rc, x.bells
+	return x.Text, x.stream, x.snaps, x.Rc, x.bells
 }
 
 // zRecordTimed adds the ELAPSED TIME of the run alone -- not the staging --
 // which whim95 needs: change_warning() ends in ui_delay(1002L, TRUE), and a
 // second of wall clock is the clearest evidence there is that the warning was
 // really drawn and not merely a string in the binary.
-func zRecordTimed(binary string, args []string, keys [][]byte, timeout time.Duration) (string, string, int64) {
+func ZRecordTimed(binary string, args []string, keys [][]byte, timeout time.Duration) (string, string, int64) {
 	x := zRun(binary, args, keys, timeout, false)
-	return x.text, x.stream, x.ms
+	return x.Text, x.stream, x.ms
 }
 
 // zRes is everything one run can say.  It is a struct and not six positional
@@ -109,11 +109,11 @@ func zRecordTimed(binary string, args []string, keys [][]byte, timeout time.Dura
 // unreadable, and each new check needs one more field rather than one more
 // arity.
 type zRes struct {
-	text   string
+	Text   string
 	files  map[string]int64
 	stream string
 	snaps  int
-	rc     string
+	Rc     string
 	bells  int
 	ms     int64
 }
@@ -121,7 +121,7 @@ type zRes struct {
 func zRun(binary string, args []string, keys [][]byte, timeout time.Duration, withFiles bool) zRes {
 	vim, err := harness.Stage(binary)
 	if err != nil {
-		return zRes{text: "ERROR " + err.Error()}
+		return zRes{Text: "ERROR " + err.Error()}
 	}
 	home, _ := os.MkdirTemp("", "zrun-home-")
 	defer os.RemoveAll(home)
@@ -134,7 +134,7 @@ func zRun(binary string, args []string, keys [][]byte, timeout time.Duration, wi
 	}
 	os.WriteFile(kf, buf, 0o644)
 
-	env := z2Env(home)
+	env := Z2Env(home)
 	for i := 0; i < len(env); i++ {
 		if strings.HasPrefix(env[i], "LINES=") || strings.HasPrefix(env[i], "COLUMNS=") {
 			env = append(env[:i], env[i+1:]...)
@@ -142,7 +142,7 @@ func zRun(binary string, args []string, keys [][]byte, timeout time.Duration, wi
 		}
 	}
 	rcText := ""
-	var out, errb []byte
+	var Out, errb []byte
 	in, _ := os.Open(kf)
 	c := exec.Command(vim, args...)
 	c.Stdin, c.Dir, c.Env = in, d, env
@@ -153,28 +153,28 @@ func zRun(binary string, args []string, keys [][]byte, timeout time.Duration, wi
 	harness.Setsid(c)
 	done := make(chan error, 1)
 	if err := c.Start(); err != nil {
-		return zRes{text: "ERROR " + err.Error()}
+		return zRes{Text: "ERROR " + err.Error()}
 	}
 	t0 := time.Now()
 	go func() { done <- c.Wait() }()
 	select {
 	case e := <-done:
-		out, errb = ob.Bytes(), eb.Bytes()
+		Out, errb = ob.Bytes(), eb.Bytes()
 		if e == nil {
 			rcText = "0"
 		} else {
-			rcText = fmt.Sprintf("%d", exitCode(e))
+			rcText = fmt.Sprintf("%d", ExitCode(e))
 		}
 	case <-time.After(timeout):
 		_ = c.Process.Kill()
 		<-done
-		rcText, out, errb = "timeout", nil, nil
+		rcText, Out, errb = "timeout", nil, nil
 	}
 	in.Close()
 	ms := time.Since(t0).Milliseconds()
 
 	scr := harness.NewScreen(24, 80)
-	scr.Feed(out)
+	scr.Feed(Out)
 	left := map[string]int64{}
 	ents, _ := os.ReadDir(d)
 	for _, e := range ents {
@@ -189,23 +189,23 @@ func zRun(binary string, args []string, keys [][]byte, timeout time.Duration, wi
 	text := harness.Section("exit "+rcText, nil)
 	text += harness.Section(fmt.Sprintf("bells %d", scr.Bells), nil)
 	if withFiles {
-		text += harness.Section("files "+pyDict(left), nil)
+		text += harness.Section("files "+PyDict(left), nil)
 	}
-	sum := sha256.Sum256(out)
-	text += harness.Section(fmt.Sprintf("stream %d sha=%s", len(out), hex.EncodeToString(sum[:])[:16]), nil)
+	sum := sha256.Sum256(Out)
+	text += harness.Section(fmt.Sprintf("stream %d sha=%s", len(Out), hex.EncodeToString(sum[:])[:16]), nil)
 	e := strings.TrimRight(string(errb), "\n")
 	text += harness.Section("stderr", &e)
 	for i, s := range scr.Snaps {
 		dd := s.Text
 		text += harness.Section(fmt.Sprintf("snap %d cursor=%d,%d bells=%d", i, s.Y, s.X, s.Bells), &dd)
 	}
-	return zRes{harness.Scrub(text), left, string(out), len(scr.Snaps), rcText, scr.Bells, ms}
+	return zRes{harness.Scrub(text), left, string(Out), len(scr.Snaps), rcText, scr.Bells, ms}
 }
 
 // pyDict is Python's %r of a dict of name -> size, which is what the record
 // carries: `{'out.txt': 6}`, keys in sorted order because the Python built it
 // from a sorted listdir.
-func pyDict(m map[string]int64) string {
+func PyDict(m map[string]int64) string {
 	if len(m) == 0 {
 		return "{}"
 	}

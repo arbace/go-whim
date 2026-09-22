@@ -22,7 +22,7 @@ import (
 // readFile is `cat`, and an unreadable file is the empty string: every caller
 // here is asserting about content, and a missing file fails that assertion on
 // its own terms rather than by panicking somewhere else.
-func readFile(p string) string {
+func ReadFile(p string) string {
 	b, err := os.ReadFile(p)
 	if err != nil {
 		return ""
@@ -31,7 +31,7 @@ func readFile(p string) string {
 }
 
 // sizeOf is `stat -c%s`.
-func sizeOf(p string) int64 {
+func SizeOf(p string) int64 {
 	fi, err := os.Stat(p)
 	if err != nil {
 		return -1
@@ -41,7 +41,7 @@ func sizeOf(p string) int64 {
 
 // copyExec is `cp` of a binary, and the mode matters: a staged editor that is
 // not executable fails with a message about the shell rather than the phase.
-func copyExec(src, dst string) error {
+func CopyExec(src, dst string) error {
 	b, err := os.ReadFile(src)
 	if err != nil {
 		return err
@@ -51,12 +51,12 @@ func copyExec(src, dst string) error {
 
 // pipeJoin is `tr '\n' '|'`, which is how every check here compares a small
 // file's contents on one line.
-func pipeJoin(s string) string { return strings.ReplaceAll(s, "\n", "|") }
+func PipeJoin(s string) string { return strings.ReplaceAll(s, "\n", "|") }
 
 // exitCode is `$?` for a command that ran and refused.  A signal or a failure
 // to start is -1, which no check expects, so it refuses rather than passing as
 // some other status.
-func exitCode(err error) int {
+func ExitCode(err error) int {
 	var ee *exec.ExitError
 	if errorsAs(err, &ee) {
 		return harness.PyReturnCode(ee)
@@ -75,34 +75,34 @@ func errorsAs(err error, target **exec.ExitError) bool {
 // awkRange is `awk '/from/,/to/'`: every line from the first match of from
 // through the first following match of to, inclusive, and nothing if from is
 // never seen.  It is awk's range and not a brace match -- the checks that use
-// it are reading a function body whose closing `}` is in column 1, which is
+// it are reading a function Body whose closing `}` is in column 1, which is
 // what the tree's own formatting guarantees.
-func awkRange(src []byte, from, to string) string {
+func AwkRange(src []byte, from, to string) string {
 	f := regexp.MustCompile("(?m)" + from)
 	t := regexp.MustCompile("(?m)" + to)
-	var out []string
+	var Out []string
 	in := false
 	for _, line := range strings.Split(string(bytes.TrimRight(src, "\n")), "\n") {
 		if !in {
 			if f.MatchString(line) {
 				in = true
-				out = append(out, line)
+				Out = append(Out, line)
 			}
 			continue
 		}
-		out = append(out, line)
+		Out = append(Out, line)
 		if t.MatchString(line) {
 			break
 		}
 	}
-	return strings.Join(out, "\n")
+	return strings.Join(Out, "\n")
 }
 
 // hasLine is `grep -qxF`: one whole line, matched literally.  It exists
 // because a shell check writes `grep -q '^check_tty(void)$'`, where basic
 // regular expressions leave the parentheses alone -- compiled as an RE2
 // pattern the same string is a group and matches something else entirely.
-func hasLine(src []byte, line string) bool {
+func HasLine(src []byte, line string) bool {
 	for _, l := range strings.Split(string(src), "\n") {
 		if l == line {
 			return true
@@ -112,12 +112,12 @@ func hasLine(src []byte, line string) bool {
 }
 
 // countWord is `grep -cw`: lines holding the name as a whole word.
-func countWord(src []byte, name string) int {
+func CountWord(src []byte, name string) int {
 	return len(regexp.MustCompile(`(?m)^.*\b`+regexp.QuoteMeta(name)+`\b.*$`).FindAll(src, -1))
 }
 
 // countLinesWith is `grep -cF`: lines holding the text literally.
-func countLinesWith(src []byte, text string) int {
+func CountLinesWith(src []byte, text string) int {
 	n := 0
 	for _, l := range strings.Split(string(src), "\n") {
 		if strings.Contains(l, text) {
@@ -127,9 +127,9 @@ func countLinesWith(src []byte, text string) int {
 	return n
 }
 
-// countLines is `grep -c ''`, which counts LINES and not newlines: a file whose
+// countLines is `grep -c ”`, which counts LINES and not newlines: a file whose
 // last line has no newline still has that line.
-func countLines(src []byte) int {
+func CountLines(src []byte) int {
 	s := string(src)
 	if s == "" {
 		return 0
@@ -144,7 +144,7 @@ func countLines(src []byte) int {
 // hasLinePrefix is `grep -q '^literal'` where the literal holds regex
 // metacharacters -- `^getexline(` is an unclosed group to RE2 and an ordinary
 // prefix to grep.
-func hasLinePrefix(src []byte, prefix string) bool {
+func HasLinePrefix(src []byte, prefix string) bool {
 	for _, l := range strings.Split(string(src), "\n") {
 		if strings.HasPrefix(l, prefix) {
 			return true
@@ -154,21 +154,21 @@ func hasLinePrefix(src []byte, prefix string) bool {
 }
 
 // comm23 is `comm -23`: what is in a and not in b, both already sorted.
-func comm23(a, b []string) []string {
+func Comm23(a, b []string) []string {
 	in := map[string]bool{}
 	for _, v := range b {
 		in[v] = true
 	}
-	var out []string
+	var Out []string
 	for _, v := range a {
 		if !in[v] {
-			out = append(out, v)
+			Out = append(Out, v)
 		}
 	}
-	return out
+	return Out
 }
 
-func contains(ss []string, v string) bool {
+func Contains(ss []string, v string) bool {
 	for _, s := range ss {
 		if s == v {
 			return true
@@ -181,7 +181,7 @@ func contains(ss []string, v string) bool {
 // It is a plain set difference in file order, not an LCS: every caller here is
 // reporting "these went and those arrived" about two sorted symbol lists or two
 // recordings, and the shape of the edit script is not what they say.
-func diffLines(a, b string) []string {
+func DiffLines(a, b string) []string {
 	as, bs := strings.Split(a, "\n"), strings.Split(b, "\n")
 	inB := map[string]bool{}
 	for _, l := range bs {
@@ -191,44 +191,44 @@ func diffLines(a, b string) []string {
 	for _, l := range as {
 		inA[l] = true
 	}
-	var out []string
+	var Out []string
 	for _, l := range as {
 		if l != "" && !inB[l] {
-			out = append(out, "< "+l)
+			Out = append(Out, "< "+l)
 		}
 	}
 	for _, l := range bs {
 		if l != "" && !inA[l] {
-			out = append(out, "> "+l)
+			Out = append(Out, "> "+l)
 		}
 	}
-	return out
+	return Out
 }
 
 // cutilRepr is Python's %r of a short string, for a refusal message that
 // quotes a needle.
-func cutilRepr(s string) string { return "'" + s + "'" }
+func CutilRepr(s string) string { return "'" + s + "'" }
 
 // walkFiles is `find <dir> -type f`, sorted, with paths relative to dir --
 // which is what `grep -rl ... | sed "s|$dir/||" | sort` produces.
-func walkFiles(dir string) []string {
-	var out []string
+func WalkFiles(dir string) []string {
+	var Out []string
 	filepath.Walk(dir, func(p string, fi os.FileInfo, err error) error {
 		if err == nil && fi.Mode().IsRegular() {
 			r, _ := filepath.Rel(dir, p)
-			out = append(out, r)
+			Out = append(Out, r)
 		}
 		return nil
 	})
-	sort.Strings(out)
-	return out
+	sort.Strings(Out)
+	return Out
 }
 
 // marked splits a recording's files into those that hold the needle and those
 // that do not: `grep -rl` and `grep -rL` in one walk.
-func marked(dir, needle string) (with, without []string) {
-	for _, r := range walkFiles(dir) {
-		if strings.Contains(readFile(filepath.Join(dir, r)), needle) {
+func Marked(dir, needle string) (with, without []string) {
+	for _, r := range WalkFiles(dir) {
+		if strings.Contains(ReadFile(filepath.Join(dir, r)), needle) {
 			with = append(with, r)
 		} else {
 			without = append(without, r)
@@ -239,20 +239,20 @@ func marked(dir, needle string) (with, without []string) {
 
 // diffRQ is `diff -rq a b` reduced to its lines, which is all any check here
 // prints of it.
-func diffRQ(a, b string) []string {
-	var out []string
-	fa, fb := walkFiles(a), walkFiles(b)
+func DiffRQ(a, b string) []string {
+	var Out []string
+	fa, fb := WalkFiles(a), WalkFiles(b)
 	inB := map[string]bool{}
 	for _, f := range fb {
 		inB[f] = true
 	}
 	for _, f := range fa {
 		if !inB[f] {
-			out = append(out, fmt.Sprintf("Only in %s: %s", a, f))
+			Out = append(Out, fmt.Sprintf("Only in %s: %s", a, f))
 			continue
 		}
-		if readFile(filepath.Join(a, f)) != readFile(filepath.Join(b, f)) {
-			out = append(out, fmt.Sprintf("Files %s and %s differ", filepath.Join(a, f), filepath.Join(b, f)))
+		if ReadFile(filepath.Join(a, f)) != ReadFile(filepath.Join(b, f)) {
+			Out = append(Out, fmt.Sprintf("Files %s and %s differ", filepath.Join(a, f), filepath.Join(b, f)))
 		}
 	}
 	inA := map[string]bool{}
@@ -261,8 +261,8 @@ func diffRQ(a, b string) []string {
 	}
 	for _, f := range fb {
 		if !inA[f] {
-			out = append(out, fmt.Sprintf("Only in %s: %s", b, f))
+			Out = append(Out, fmt.Sprintf("Only in %s: %s", b, f))
 		}
 	}
-	return out
+	return Out
 }

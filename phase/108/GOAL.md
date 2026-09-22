@@ -1,6 +1,6 @@
 # Phase 108 — the plain host calls
 
-`phase/108/edit.sh` and `phase/108/check.sh`, `stage 108`, `package boundary`.
+`phase/108/edit.go` and `phase/108/check.go`, `stage 108`, `package boundary`.
 The core reached the host through two function pointers:
 
 ```c
@@ -16,7 +16,7 @@ the signature phase 101 wrote when it demoted `main()`. 80,178 → 80,173 lines.
 
 ## The indirection had one reason, and the design changed underneath it
 
-`phase/102/edit.sh` states it in as many words: *a pointer the launcher installs
+`phase/102/edit.go` states it in as many words: *a pointer the launcher installs
 through a parameter adds no external symbol, where a `musl_exit(int)` the host defines
 would.* The invariant it was protecting is `nm --extern-only --defined-only` printing
 exactly `main`, and under **two translation units** the sentence is true — the host's

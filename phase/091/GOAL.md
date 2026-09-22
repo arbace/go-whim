@@ -1,6 +1,6 @@
 # Phase 91 — no `:edit`, and no `gf`
 
-`phase/091/edit.sh` and `phase/091/check.sh`, `stage 91`, `package files`. Phases
+`phase/091/edit.go` and `phase/091/check.go`, `stage 91`, `package files`. Phases
 89 and 90 took the commands that put bytes on a disk and the one that takes them off
 it. This one takes the commands that point the editor **at** a file — `:edit :enew
 :ex :visual :view` — and the four Normal-mode keys that do the same thing from the

@@ -1,6 +1,6 @@
 # Phase 87 — no streaming Ex
 
-`phase/087/edit.sh` and `phase/087/check.sh`, `stage 87`, `package streams`. The
+`phase/087/edit.go` and `phase/087/check.go`, `stage 87`, `package streams`. The
 second cut, and the first that removes a *mode*. Ex mode is the arrangement a core
 does not have: the editor takes stdin over, prints its own prompt, reads a line at a
 time and writes the result back on stdout. Silent mode comes with it — the message

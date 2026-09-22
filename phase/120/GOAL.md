@@ -1,6 +1,6 @@
 # Phase 120 — the degenerate unions go
 
-`phase/120/edit.sh` and `phase/120/check.sh`, `stage 120`, `package tidy`. Thirteen
+`phase/120/edit.go` and `phase/120/check.go`, `stage 120`, `package tidy`. Thirteen
 `union` keywords in `whim-vim.c`, and **six of them union nothing with anything**. Five
 are single-member — `u_header`'s `uh_next`, `uh_prev`, `uh_alt_next` and `uh_alt_prev`,
 each `union { u_header_T *ptr; }`, and `typval_S.vval`, `union { varnumber_T v_number;
@@ -105,7 +105,7 @@ earlier cuts, which is phase 96's kind, and only the sixth has a dialect argumen
 **It was for a while the one phase after the seed with no `uses` line at all**, and that
 looked defensible — its evidence is a `cmp` and not the recording, so it does not rest on
 phase 83's baselines the way every other empty declaration does. **It was still wrong.**
-`phase/120/check.sh` names `tools/coredelta.sh` twice, the delta check runs at its stage
+`phase/120/check.go` names `tools/coredelta.sh` twice, the delta check runs at its stage
 end like every other phase's, and the two **other** `cmp`-evidenced phases, 99 and 106, both
 declare the dependency — five `uses` lines and six respectively. So the line is written now,
 with the reason it was missing recorded in it. It was found by a documentation pass and not

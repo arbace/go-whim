@@ -9,11 +9,11 @@ the makefile and builds again (step 2). The baselines are therefore recorded fro
 pipeline's own output at q82 — the one place it does so, and legitimate for the
 reason recording from an input is: nothing from 83 on can reach q82. What it costs is
 that a change to what phases 0-82 produce moves the recording, and this phase refuses
-rather than overwrite it. `phase/083/make.sh` carries the argument. What follows is the
+rather than overwrite it. `phase/083/check.go` carries the argument. What follows is the
 phase as it was written.
 
 `whim-vim.c` starts as a byte-for-byte copy of the committed `whim-vim.c`, and the
-phase is `phase/083/make.sh`, one whole program. Four things, each depending on the one
+phase is `phase/083/check.go`, one whole program. Four things, each depending on the one
 before:
 
 1. **The seed is the input.** `cmp` against `whim-vim.c`; the boundary digest is the

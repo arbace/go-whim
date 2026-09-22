@@ -42,9 +42,10 @@ phase is swept on its own.
 
 ## Documents
 
-- **`phase/NNN/`** — one directory per phase, numbered in three digits: its
-  program (`make.sh`, or `edit.sh` and `check.sh`), its **`GOAL.md`** — what it
-  removes, why, and what was measured — and its declared **`delta`**.
+- **`phase/NNN/`** — one directory per phase, numbered in three digits, and a Go
+  package of its own: **`edit.go`** (its cut), **`check.go`** (its evidence),
+  **`GOAL.md`** — what it removes, why, and what was measured — and its declared
+  **`delta`**.
 - **`GOALS.md`** — what holds for every phase. **Part I** is phases 0-82, **Part
   II** phases 83 onwards with the core's own charter and rules; each has an index
   of its phases, Part II's *Adding a phase* is the process for the next one, and
@@ -122,8 +123,7 @@ internal/        the cutters, the sweep, the canonicalisers, the harnesses,
                  one check per phase (internal/check/), and ccx: what the
                  core's C leaves a translation to decide -- pointer casts,
                  evaluation order -- partitioned
-phase/NNN/       a phase: GOAL.md, delta, and the programs it was written as,
-                 which no longer run (internal/build carries what they did)
+phase/NNN/       a phase, and a Go package: edit.go, check.go, GOAL.md, delta
 phase/stages     the record the stages were read from: need, apart, the packages
 tools/           the instruments a check runs, and the wrappers around whimtools
 editor/          the core transpiled into Go, with its runtime and host

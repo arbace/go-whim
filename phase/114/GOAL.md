@@ -1,6 +1,6 @@
 # Phase 114 — `abs` and `labs`, the two the core took on trust
 
-`phase/114/edit.sh` and `phase/114/check.sh`, `stage 114`, `package vendor`.
+`phase/114/edit.go` and `phase/114/check.go`, `stage 114`, `package vendor`.
 **The core is optimised for transpilation, not for performance, and so it may not depend
 on latent compiler behaviour** (`GOALS.md` §II.4c, the user's rule). This is the first
 application of it, and by every number this pipeline usually reports it does nothing:

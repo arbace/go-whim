@@ -1,6 +1,6 @@
 # Phase 103 — the signals and the terminal are the host's
 
-`phase/103/edit.sh` and `phase/103/check.sh`, `stage 103`, `package host`.
+`phase/103/edit.go` and `phase/103/check.go`, `stage 103`, `package host`.
 `GOALS.md` §II.4c's third step, and it is **one** phase where the plan and two
 surveys had two. The signals half on its own leaves the terminal in **raw mode** after
 `kill -TERM`, because the only way to delete the core's signal handlers is to delete
@@ -50,7 +50,7 @@ four lines of `sigaction`. `isatty` is all three surviving calls. `close` and `d
 `mch_tcgetattr`'s dead `close(tty_fd)` and `fill_input_buf`'s `close(0); dup(2)` arm.
 
 **So the phase's real claim is structural, and it ships the assertion for it.**
-`tools/zhostonly.py` is new, Part II-only, and named by `phase/103/check.sh` alone: 43
+`tools/zhostonly.py` is new, Part II-only, and named by `phase/103/check.go` alone: 43
 host words — `sigaction`, `kill`, `ioctl`, `tcsetattr`, `select`, `nanosleep`, every
 `SIG*`, `struct termios`, `fd_set`, `ICANON`, `VMIN` — and **every mention of every one
 of them must be inside the host block**. It reports 60 mentions of 43 words, all of

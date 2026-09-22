@@ -128,4 +128,3 @@ func (r Result) Print(w interface{ Write([]byte) (int, error) }) bool {
 	}
 	return len(r.Left) == 0
 }
-

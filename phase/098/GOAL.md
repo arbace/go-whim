@@ -1,6 +1,6 @@
 # Phase 98 — the character classes, the numbers and the sort
 
-`phase/098/edit.sh` and `phase/098/check.sh`, `stage 98`, `package vendor`. Phase
+`phase/098/edit.go` and `phase/098/check.go`, `stage 98`, `package vendor`. Phase
 97 took the strings; this takes everything else in `whim-vim.c` that is **pure
 computation** — a function of its arguments that asks the operating system nothing —
 and defines it in the file, as plain C, with no preprocessor and no comment. Eleven

@@ -1,6 +1,6 @@
 # Phase 128 — fold the node types
 
-`phase/128/edit.sh` and `phase/128/check.sh`, `stage 128`, `package memline`. The
+`phase/128/edit.go` and `phase/128/check.go`, `stage 128`, `package memline`. The
 memfile goes, and with it the last thing between the tree and its nodes. Until this phase
 a memline node is **two** allocations: a `bhdr_T` of four members — two used-list
 pointers, a `char_u *bh_data` and a lock flag — and, hanging off it, a 4,096-byte page cast
@@ -152,7 +152,7 @@ written into the package comment instead; eight `uses` lines record the cross-pa
 reasoning.** That phase wrote that `offsetof(PTR_BL, pb_pointer)` *"measures a POINTER
 block, which is still a page of entries and is not the leaf ... De-paging the branch is a
 phase of its own"*, and its check says it as a count of 1. Measured by running
-`phase/127/check.sh` on the q128 tree with phase 127's own state directory: *`ml_new_ptr`'s
+`phase/127/check.go` on the q128 tree with phase 127's own state directory: *`ml_new_ptr`'s
 offsetof moved, and a POINTER block is still a page and is not this phase's*. One direction
 only, because there is nothing to observe in the other — the stage cannot run at all.
 

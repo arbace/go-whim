@@ -102,15 +102,13 @@ whim-verify:  ## every phase's check and every declared delta, from slim-vim.c
 	@$(MAKE) --no-print-directory whim-editor-check
 
 # --- the baselines ---------------------------------------------------------
-# Recorded by the two phase programs that record them, on a tree this makefile
-# builds for them: phase 0 from slim-vim.c, phase 83 from q82.  Both refuse to
-# overwrite a set that differs rather than agreeing with themselves.
+# What phase 0's program and phase 83's recorded while a pass still ran shell:
+# .reference/baselines from slim-vim.c, and .reference/core-baselines from q82,
+# which this builds in order to record from.  Each set is recorded three times
+# and required identical, and an existing set is COMPARED, never overwritten.
 .PHONY: whim-baselines
-whim-baselines:  ## record .reference/: phase 0 from slim-vim.c, phase 83 from q82
-	@tools/st.sh build --to 0 --work $(WHIMWORK).rec0 --out $(WHIMWORK).rec0/whim-vim.c >/dev/null
-	@phase/000/make.sh $(WHIMWORK).rec0
-	@tools/st.sh build --to 82 --work $(WHIMWORK).rec82 --out $(WHIMWORK).rec82/whim-vim.c
-	@phase/083/make.sh $(WHIMWORK).rec82
+whim-baselines:  ## record .reference/: from slim-vim.c, and from q82
+	@tools/st.sh record
 
 # ==== the editor
 # --- editor.c, the upper part on its own ----------------------------------
@@ -211,7 +209,7 @@ whim-editor-check:  ## refuse if the tracked editor.go is not what tx/skel write
 # BOTH PATHS in the second fix, and the first is not redundant.  This target only
 # sees the MISSING case, but the other way to get here is a CHANGED recording --
 # a harness that asks something new, or a phase before 83 that changed what it
-# produces -- and phase/083/make.sh REFUSES a set that differs rather than
+# produces -- and whimtools record REFUSES a set that differs rather than
 # overwriting it, naming the file that moved and exiting 1.  Which one it was must
 
 # There are two sets of baselines, and the line between them is phase 83
@@ -222,7 +220,7 @@ whim-editor-check:  ## refuse if the tracked editor.go is not what tx/skel write
 # baseline-free half and look fine, so it asks first and refuses with the fix.
 #
 # THE FIX IS `make whim-baselines`, and a set that DIFFERS is not the same case
-# as one that is missing: phase/083/make.sh refuses a differing set rather than
+# as one that is missing: whimtools record refuses a differing set rather than
 # overwriting it, naming the file that moved.  Which one it was must be NAMED
 # before the recording is thrown away.
 .PHONY: whim-baselines-check
@@ -230,7 +228,7 @@ whim-baselines-check:
 	@for x in behaviour ref-term.txt ref-exsweep.txt; do \
 	    [ -e .reference/baselines/$$x ] && continue; \
 	    echo "  baselines    .reference/baselines/$$x is missing, so no delta before phase 83 can be checked in full."; \
-	    echo "               Phase 0 records them from slim-vim.c:  make whim-baselines"; \
+	    echo "               They are recorded from slim-vim.c:  make whim-baselines"; \
 	    exit 1; \
 	done
 	@b=.reference/core-baselines; \
@@ -241,7 +239,7 @@ whim-baselines-check:
 	 echo "  baselines    $$b is missing or of the old shape: it must hold screen/, memline/,"; \
 	 echo "               ref-excmds.txt, ref-argv.txt, ref-pty.txt and ref-term.txt"; \
 	 echo "               (tools/zrecord.sh), so no delta from phase 83 on can be checked in full."; \
-	 echo "               Phase 83 records them from q82:  make whim-baselines"; \
+	 echo "               They are recorded from q82:  make whim-baselines"; \
 	 exit 1
 
 # ==== housekeeping

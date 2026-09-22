@@ -1,6 +1,6 @@
 # Phase 90 — no read
 
-`phase/090/edit.sh` and `phase/090/check.sh`, `stage 90`, `package files`. The
+`phase/090/edit.go` and `phase/090/check.go`, `stage 90`, `package files`. The
 other half of taking the filesystem away. Phase 89 removed the six commands that put
 bytes on a disk; this one removes the command that takes them off it on request —
 `:read` — and with it the `:r !cmd` arm, which was the last caller of the filter and

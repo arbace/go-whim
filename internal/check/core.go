@@ -27,26 +27,26 @@ import (
 // staying byte for byte what it was; the probes here are for what the
 // recording cannot see.
 type core struct {
-	w            io.Writer
-	work, state  string
-	f            string // whim-vim.c in the work tree
-	old, new     string // the source the phase was handed, and the output
-	r            *rep
-	symbolsInput string // the undefined symbols of the stage's input, saved before phasecheck removes them
+	W            io.Writer
+	Work, State  string
+	F            string // whim-vim.c in the work tree
+	Old, New     string // the source the phase was handed, and the output
+	R            *Rep
+	SymbolsInput string // the undefined symbols of the stage's input, saved before phasecheck removes them
 }
 
-func newCore(w io.Writer, args []string, name, tag string) (*core, error) {
+func NewCore(w io.Writer, args []string, name, tag string) (*core, error) {
 	if len(args) != 2 {
 		return nil, fmt.Errorf("usage: check %s <work-dir> <state-dir>", name)
 	}
-	c := &core{w: w, work: args[0], state: args[1], r: &rep{tag: tag, w: w}}
-	c.f = filepath.Join(c.work, "whim-vim.c")
-	c.old = readFile(filepath.Join(c.state, "old.c"))
-	c.new = readFile(c.f)
-	if c.old == "" || c.new == "" {
+	c := &core{W: w, Work: args[0], State: args[1], R: &Rep{Tag: tag, W: w}}
+	c.F = filepath.Join(c.Work, "whim-vim.c")
+	c.Old = ReadFile(filepath.Join(c.State, "old.c"))
+	c.New = ReadFile(c.F)
+	if c.Old == "" || c.New == "" {
 		return nil, fmt.Errorf("%s: the edit left no old.c beside the output", name)
 	}
-	c.symbolsInput = readFile(filepath.Join(c.state, "symbols", "undefined"))
+	c.SymbolsInput = ReadFile(filepath.Join(c.State, "symbols", "undefined"))
 	return c, nil
 }
 
@@ -54,20 +54,20 @@ func newCore(w io.Writer, args []string, name, tag string) (*core, error) {
 // no warning, main the only external symbol, nv_cmds indexed, the libc
 // surface) and tools/phasebuild.sh (the binary).  sameSymbols requires the
 // libc surface to be the one the stage was handed, as a set.
-func (c *core) gate(sameSymbols bool) error {
-	if err := run(c.w, "sh", "tools/phasecheck.sh", c.work, c.f, filepath.Join(c.state, "symbols")); err != nil {
+func (c *core) Gate(sameSymbols bool) error {
+	if err := Run(c.W, "sh", "tools/phasecheck.sh", c.Work, c.F, filepath.Join(c.State, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 	if sameSymbols {
-		after := readFile(".cache/symbols/last/undefined")
-		if c.symbolsInput == "" || after != c.symbolsInput {
-			c.r.say("the libc surface moved, and this phase frees and needs nothing:\n    before %q\n    after  %q",
-				strings.Fields(c.symbolsInput), strings.Fields(after))
+		after := ReadFile(".cache/symbols/last/undefined")
+		if c.SymbolsInput == "" || after != c.SymbolsInput {
+			c.R.Say("the libc surface moved, and this phase frees and needs nothing:\n    before %q\n    after  %q",
+				strings.Fields(c.SymbolsInput), strings.Fields(after))
 			return harness.ErrReported
 		}
 	}
-	before := strings.TrimSpace(readFile(filepath.Join(c.state, "input-lines")))
-	if err := run(c.w, "sh", "tools/phasebuild.sh", c.work, before); err != nil {
+	before := strings.TrimSpace(ReadFile(filepath.Join(c.State, "input-lines")))
+	if err := Run(c.W, "sh", "tools/phasebuild.sh", c.Work, before); err != nil {
 		return harness.ErrReported
 	}
 	return nil
@@ -75,29 +75,29 @@ func (c *core) gate(sameSymbols bool) error {
 
 // bins are the binary the phase was handed ($state/old, built by the edit)
 // and the one it made.
-func (c *core) bins() (string, string) {
-	return filepath.Join(c.state, "old"), filepath.Join(c.work, "whim-vim")
+func (c *core) Bins() (string, string) {
+	return filepath.Join(c.State, "old"), filepath.Join(c.Work, "whim-vim")
 }
 
 // stream runs a binary over keys on the harness's 80x24 terminal and returns
 // the digest of every byte it wrote, and its exit status.  Two binaries that
 // draw the same thing write the same bytes; the digest is the comparison.
-func stream(bin string, keys [][]byte, args []string) (string, int, error) {
-	_, out, _, rc, err := harness.ZSession(bin, keys, "xterm", args, 24, 80, 20*time.Second)
+func Stream(bin string, keys [][]byte, args []string) (string, int, error) {
+	_, Out, _, rc, err := harness.ZSession(bin, keys, "xterm", args, 24, 80, 20*time.Second)
 	if err != nil {
 		return "", rc, err
 	}
-	s := sha256.Sum256(out)
+	s := sha256.Sum256(Out)
 	return hex.EncodeToString(s[:])[:16], rc, nil
 }
 
 // word counts whole-word mentions of name.
-func word(text, name string) int {
+func Word(text, name string) int {
 	return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).FindAllStringIndex(text, -1))
 }
 
 // linesWith is every line mentioning name as a word, trimmed.
-func linesWith(text, name string) []string {
+func LinesWith(text, name string) []string {
 	re := regexp.MustCompile(`\b` + regexp.QuoteMeta(name) + `\b`)
 	var r []string
 	for _, l := range strings.Split(text, "\n") {
@@ -110,8 +110,8 @@ func linesWith(text, name string) []string {
 
 // buildAt builds src with the boundary's CFLAGS and LDFLAGS and
 // SOURCE_DATE_EPOCH=epoch, and returns the binary's bytes.
-func (c *core) buildAt(src, epoch string) (string, error) {
-	mk := readFile(filepath.Join(c.work, "Makefile"))
+func (c *core) BuildAt(src, epoch string) (string, error) {
+	mk := ReadFile(filepath.Join(c.Work, "Makefile"))
 	flag := func(k string) []string {
 		m := regexp.MustCompile(`(?m)^` + k + `  *= *(.*)$`).FindStringSubmatch(mk)
 		if m == nil {
@@ -124,23 +124,23 @@ func (c *core) buildAt(src, epoch string) (string, error) {
 		return "", err
 	}
 	defer os.RemoveAll(tmp)
-	out := filepath.Join(tmp, "b")
-	cmd := exec.Command("gcc", append(append(flag("CFLAGS"), flag("LDFLAGS")...), "-o", out, src)...)
+	Out := filepath.Join(tmp, "b")
+	cmd := exec.Command("gcc", append(append(flag("CFLAGS"), flag("LDFLAGS")...), "-o", Out, src)...)
 	cmd.Env = append(os.Environ(), "SOURCE_DATE_EPOCH="+epoch)
 	if err := cmd.Run(); err != nil {
 		return "", err
 	}
-	return readFile(out), nil
+	return ReadFile(Out), nil
 }
 
 // sameBinary: both sources built with the boundary's flags, SOURCE_DATE_EPOCH=0,
 // are the same bytes.  For a phase whose claim is that it changes no code.
-func (c *core) sameBinary() (bool, int, error) {
-	a, err := c.buildAt(filepath.Join(c.state, "old.c"), "0")
+func (c *core) SameBinary() (bool, int, error) {
+	a, err := c.BuildAt(filepath.Join(c.State, "old.c"), "0")
 	if err != nil {
 		return false, 0, err
 	}
-	b, err := c.buildAt(c.f, "0")
+	b, err := c.BuildAt(c.F, "0")
 	if err != nil {
 		return false, 0, err
 	}
@@ -151,7 +151,7 @@ func (c *core) sameBinary() (bool, int, error) {
 // run through tools/sweep.sh, the sweep every stage runs.  A check that states
 // its phase's output as "this rule applied to the input" computes it with the
 // sweep the pipeline really uses, and not a copy of its rules.
-func swept(text string) (string, error) {
+func Swept(text string) (string, error) {
 	tmp, err := os.MkdirTemp("", "core-swept-")
 	if err != nil {
 		return "", err
@@ -161,17 +161,17 @@ func swept(text string) (string, error) {
 	if err := os.WriteFile(pf, []byte(text), 0o644); err != nil {
 		return "", err
 	}
-	if out, err := exec.Command("sh", "tools/sweep.sh", pf).CombinedOutput(); err != nil {
-		return "", fmt.Errorf("the sweep refused the computed text: %s", strings.TrimSpace(string(out)))
+	if Out, err := exec.Command("sh", "tools/sweep.sh", pf).CombinedOutput(); err != nil {
+		return "", fmt.Errorf("the sweep refused the computed text: %s", strings.TrimSpace(string(Out)))
 	}
-	return readFile(pf), nil
+	return ReadFile(pf), nil
 }
 
-// sweptLines is what the sweep took from pre to reach out, beyond structure:
-// the non-brace lines of pre that out does not have, in order.
-func sweptLines(pre, out string) []string {
+// sweptLines is what the sweep took from pre to reach Out, beyond structure:
+// the non-brace lines of pre that Out does not have, in order.
+func SweptLines(pre, Out string) []string {
 	have := map[string]int{}
-	for _, l := range strings.Split(out, "\n") {
+	for _, l := range strings.Split(Out, "\n") {
 		have[l]++
 	}
 	var took []string
@@ -188,11 +188,11 @@ func sweptLines(pre, out string) []string {
 }
 
 // firstDiff names the first line two texts disagree on.
-func firstDiff(a, b string) (int, string, string) {
+func FirstDiff(a, b string) (int, string, string) {
 	x, y := strings.Split(a, "\n"), strings.Split(b, "\n")
 	i := 0
 	for i < len(x) && i < len(y) && x[i] == y[i] {
 		i++
 	}
-	return i + 1, at(x, i), at(y, i)
+	return i + 1, At(x, i), At(y, i)
 }

@@ -18,7 +18,7 @@ import (
 
 // whimEnv is whim80's and whim81's environment: the caller's, with an empty
 // home and no vimrc from anywhere.
-func whimEnv(home string) []string {
+func WhimEnv(home string) []string {
 	var env []string
 	for _, kv := range os.Environ() {
 		k := kv[:strings.IndexByte(kv, '=')]
@@ -33,36 +33,36 @@ func whimEnv(home string) []string {
 
 // whimRes is one headless run: its status, its stderr, what it left in its
 // directory and one file's contents afterwards (nil when there is none).
-type whimRes struct {
-	rc      string
-	stderr  []byte
+type WhimRes struct {
+	Rc      string
+	Stderr  []byte
 	left    []string
-	body    *string
-	timeout bool
+	Body    *string
+	Timeout bool
 }
 
-func (a whimRes) eq(b whimRes, withLeft bool) bool {
-	if a.timeout || b.timeout {
-		return a.timeout == b.timeout
+func (a WhimRes) Eq(b WhimRes, withLeft bool) bool {
+	if a.Timeout || b.Timeout {
+		return a.Timeout == b.Timeout
 	}
-	if a.rc != b.rc || !bytes.Equal(a.stderr, b.stderr) {
+	if a.Rc != b.Rc || !bytes.Equal(a.Stderr, b.Stderr) {
 		return false
 	}
 	if withLeft && strings.Join(a.left, "\x00") != strings.Join(b.left, "\x00") {
 		return false
 	}
-	if (a.body == nil) != (b.body == nil) {
+	if (a.Body == nil) != (b.Body == nil) {
 		return false
 	}
-	return a.body == nil || *a.body == *b.body
+	return a.Body == nil || *a.Body == *b.Body
 }
 
 // whimRun runs `vim -e -s <args> f.txt` in a fresh directory holding the
 // three-line f.txt, and reads `file` back afterwards.
-func whimRun(vim, tmp string, env []string, argv []string, file string) whimRes {
+func WhimRun(vim, tmp string, env []string, argv []string, file string) WhimRes {
 	w, err := os.MkdirTemp(tmp, "c-")
 	if err != nil {
-		return whimRes{rc: "MKDIR"}
+		return WhimRes{Rc: "MKDIR"}
 	}
 	defer os.RemoveAll(w)
 	os.WriteFile(filepath.Join(w, "f.txt"), []byte("a\nba\nca\n"), 0o644)
@@ -75,11 +75,11 @@ func whimRun(vim, tmp string, env []string, argv []string, file string) whimRes 
 	c.Stdout, c.Stderr = &so, &se
 	e := c.Run()
 	if ctx.Err() != nil {
-		return whimRes{timeout: true, rc: "TIMEOUT"}
+		return WhimRes{Timeout: true, Rc: "TIMEOUT"}
 	}
 	rc := "0"
 	if e != nil {
-		rc = strconv.Itoa(exitCode(e))
+		rc = strconv.Itoa(ExitCode(e))
 	}
 	ents, _ := os.ReadDir(w)
 	var left []string
@@ -87,16 +87,16 @@ func whimRun(vim, tmp string, env []string, argv []string, file string) whimRes 
 		left = append(left, x.Name())
 	}
 	sort.Strings(left)
-	var body *string
+	var Body *string
 	if b, err := os.ReadFile(filepath.Join(w, file)); err == nil {
 		s := strings.ToValidUTF8(string(b), "�")
-		body = &s
+		Body = &s
 	}
-	return whimRes{rc: rc, stderr: se.Bytes(), left: left, body: body}
+	return WhimRes{Rc: rc, Stderr: se.Bytes(), left: left, Body: Body}
 }
 
 // whimPool runs fn over n items with one worker per CPU.
-func whimPool(n int, fn func(i int)) {
+func WhimPool(n int, fn func(i int)) {
 	sem := make(chan struct{}, runtime.NumCPU())
 	var wg sync.WaitGroup
 	for i := 0; i < n; i++ {

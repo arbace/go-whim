@@ -1,6 +1,6 @@
 # Phase 85 — the core stops diagnosing its own terminal
 
-`phase/085/edit.sh` and `phase/085/check.sh`, `stage 85`, `package terminal`. The
+`phase/085/edit.go` and `phase/085/check.go`, `stage 85`, `package terminal`. The
 first phase that cuts source, and the first piece of *a component, not a program*: a
 host hands the core its input and output, and whether either is a terminal is the
 host's business. Upstream's answer is to complain and then wait —
@@ -47,7 +47,7 @@ warnings were never on any recorded stderr (grepped: the only baseline line
 mentioning a terminal is `exsweep`'s `SKIPPED (hands over the terminal)`).
 `termcheck.py` drives a real pty, where both streams *are* terminals. A delta of
 "none" from a harness that cannot see the code proves nothing, so
-`phase/085/check.sh` measures the removed behaviour directly, in both directions:
+`phase/085/check.go` measures the removed behaviour directly, in both directions:
 the edit part first builds the binary the phase was **handed**, from the boundary's
 own makefile flags, and every probe requires the old binary to do the thing and the
 new one not to.

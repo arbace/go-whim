@@ -13,8 +13,8 @@ var (
 	storesKey  = map[string]bool{"return": true, "goto": true, "case": true, "else": true, "sizeof": true}
 )
 
-// DeadStores takes out every local that is only ever given a value: a variable
-// declared inside a function body, alone on its line, whose every other mention up to
+// DeadStores takes Out every local that is only ever given a value: a variable
+// declared inside a function Body, alone on its line, whose every other mention up to
 // the end of the function is a statement of its own, `name = E;`, where E -- and
 // the initialiser, if it has one -- only reads (W134Pure).  Such a variable
 // holds a value nothing reads, and none of its lines does anything else.
@@ -35,14 +35,14 @@ func DeadStores(core []byte) ([]byte, []string) {
 	for {
 		changed := false
 		// the functions' bodies, by brace depth on the text with its strings
-		// and characters blanked: a body opens at depth 0, on a line whose
+		// and characters blanked: a Body opens at depth 0, on a line whose
 		// line above -- the head -- ends with its parameter list, and closes
 		// where the depth is 0 again.  Not the columns: a brace in column 0
-		// inside a body is not rare enough to rely on.
-		body := make([]int, len(lines)) // the body's last line, or -1
+		// inside a Body is not rare enough to rely on.
+		Body := make([]int, len(lines)) // the Body's last line, or -1
 		depth, open := 0, -1
 		for k, l := range lines {
-			body[k] = -1
+			Body[k] = -1
 			b := cutil.Blank([]byte(l))
 			if depth == 0 && strings.TrimSpace(l) == "{" && k > 0 && strings.HasSuffix(lines[k-1], ")") {
 				open = k
@@ -50,13 +50,13 @@ func DeadStores(core []byte) ([]byte, []string) {
 			depth += bytes.Count(b, []byte("{")) - bytes.Count(b, []byte("}"))
 			if depth == 0 && open >= 0 {
 				for i := open; i <= k; i++ {
-					body[i] = k
+					Body[i] = k
 				}
 				open = -1
 			}
 		}
 		for k := 0; k < len(lines) && !changed; k++ {
-			end := body[k]
+			end := Body[k]
 			if end < 0 {
 				continue
 			}

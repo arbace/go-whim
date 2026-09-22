@@ -11,7 +11,7 @@ import (
 // zRowRe is the one physical line of a designated cmdnames[] row.
 var zRowRe = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
 
-func zRows(text []byte) [][]byte { return zRowRe.FindAll(text, -1) }
+func ZRows(text []byte) [][]byte { return zRowRe.FindAll(text, -1) }
 
 // zResidue is step 5 of phases 89, 90, 91 and 92, which those phases write the same
 // way because it is the same argument: THE TEXT THIS EDIT LEAVES DOES NOT
@@ -24,12 +24,12 @@ func zRows(text []byte) [][]byte { return zRowRe.FindAll(text, -1) }
 // the dying names actually FOUND, sorted -- phase 91 reports that third one where
 // 89, 90 and 92 report the list they were given.  Each phase writes its own report
 // line, because the wording is the phase's.
-func zResidue(p ph, text []byte, dying []string) (int, []string, []string, error) {
+func ZResidue(p Ph, text []byte, dying []string) (int, []string, []string, error) {
 	blanked := cutil.Blank(text)
 	defs := dead.FuncDefinitions(text, blanked)
 	type span struct {
 		a, z int
-		name string
+		Name string
 	}
 	spans := make([]span, 0, len(defs))
 	for name, s := range defs {
@@ -45,7 +45,7 @@ func zResidue(p ph, text []byte, dying []string) (int, []string, []string, error
 		if spans[i].z != spans[j].z {
 			return spans[i].z < spans[j].z
 		}
-		return spans[i].name < spans[j].name
+		return spans[i].Name < spans[j].Name
 	})
 	left := 0
 	holders := map[string]bool{}
@@ -56,11 +56,11 @@ func zResidue(p ph, text []byte, dying []string) (int, []string, []string, error
 			who := ""
 			for _, s := range spans {
 				if s.a <= m[0] && m[0] < s.z {
-					who = s.name
+					who = s.Name
 				}
 			}
 			if who == "" {
-				return 0, nil, nil, p.die("%s is still named at file scope, at offset %d -- this phase only "+
+				return 0, nil, nil, p.Die("%s is still named at file scope, at offset %d -- this phase only "+
 					"knows the shape where what is left is inside a function", e, m[0])
 			}
 			holders[who] = true
@@ -72,12 +72,12 @@ func zResidue(p ph, text []byte, dying []string) (int, []string, []string, error
 		names = append(names, fn)
 	}
 	sort.Strings(names)
-	survivors := zRows(text)
+	survivors := ZRows(text)
 	for _, fn := range names {
 		re := regexp.MustCompile(`\b` + fn + `\b`)
 		for _, r := range survivors {
 			if re.Match(r) {
-				return 0, nil, nil, p.die("%s still has a cmdnames[] row, so it is not the sweep's to take", fn)
+				return 0, nil, nil, p.Die("%s still has a cmdnames[] row, so it is not the sweep's to take", fn)
 			}
 		}
 	}

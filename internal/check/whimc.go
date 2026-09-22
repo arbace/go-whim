@@ -11,21 +11,21 @@ import (
 )
 
 func init() {
-	register("whim42", Whim42)
-	register("whim43", Whim43)
-	register("whim44", Whim44)
-	register("whim45", Whim45)
-	register("whim46", Whim46)
-	register("whim47", Whim47)
-	register("whim49", Whim49)
-	register("whim50", Whim50)
-	register("whim51", Whim51)
-	register("whim52", Whim52)
-	register("whim53", Whim53)
-	register("whim55", Whim55)
-	register("whim56", Whim56)
-	register("whim57", Whim57)
-	register("whim58", Whim58)
+	Register("whim42", Whim42)
+	Register("whim43", Whim43)
+	Register("whim44", Whim44)
+	Register("whim45", Whim45)
+	Register("whim46", Whim46)
+	Register("whim47", Whim47)
+	Register("whim49", Whim49)
+	Register("whim50", Whim50)
+	Register("whim51", Whim51)
+	Register("whim52", Whim52)
+	Register("whim53", Whim53)
+	Register("whim55", Whim55)
+	Register("whim56", Whim56)
+	Register("whim57", Whim57)
+	Register("whim58", Whim58)
 }
 
 func Whim42(w io.Writer, args []string) error {
@@ -58,12 +58,12 @@ func Whim42(w io.Writer, args []string) error {
 	d, done := s.scratch()
 	defer done()
 	a := filepath.Join(d, "a")
-	put(a, "one\ntwo\nthree\n")
-	put(filepath.Join(d, "b"), "other\n")
+	Put(a, "one\ntwo\nthree\n")
+	Put(filepath.Join(d, "b"), "other\n")
 	vimRC(d, "", "./vim", "-e", "-s", "+2", "+mark a", "+e b", "+e a", "+'ad", "+w", "+q!", "a")
 	if catS(a) != "one\ntwo\nthree" {
 		s.echo("  onebuffer    a mark survived leaving its file -- the buffer was kept, not wiped")
-		for _, l := range lines(readFile(a)) {
+		for _, l := range Lines(ReadFile(a)) {
 			s.echo("               %s", l)
 		}
 		return harness.ErrReported
@@ -72,7 +72,7 @@ func Whim42(w io.Writer, args []string) error {
 		s.echo("  onebuffer    :e # succeeded, so there is still an alternate file")
 		return harness.ErrReported
 	}
-	put(a, "one\n")
+	Put(a, "one\n")
 	vimRC(d, "", "./vim", "-e", "-s", "+saveas c", "+s/$/X/", "+w", "+q!", "a")
 	if catS(a) != "one" || catS(filepath.Join(d, "c")) != "oneX" {
 		s.echo("  onebuffer    :saveas did not rename the buffer: a=%s c=%s", catS(a), catS(filepath.Join(d, "c")))
@@ -102,9 +102,9 @@ func Whim43(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	for _, o := range []string{"-c qa!", "-cqa!", "--cmd qa!", "-R", "-m", "-M", "-w7"} {
-		out, rc := s.outWork(append(strings.Fields(o), "-e", "-s", "+q!")...)
-		if !strings.Contains(out, "Unknown option argument") {
-			s.echo("  cli          %s is not refused as unknown (exit %d): %s", o, rc, out)
+		Out, rc := s.outWork(append(strings.Fields(o), "-e", "-s", "+q!")...)
+		if !strings.Contains(Out, "Unknown option argument") {
+			s.echo("  cli          %s is not refused as unknown (exit %d): %s", o, rc, Out)
 			return harness.ErrReported
 		}
 		if rc != 1 {
@@ -141,12 +141,12 @@ func Whim46(w io.Writer, args []string) error {
 	if err := s.phasebuild(); err != nil {
 		return err
 	}
-	if out, rc := s.outWork("-e", "-s", "+q!"); rc != 0 {
-		s.echo("  quit         +q! exits %d: %s", rc, out)
+	if Out, rc := s.outWork("-e", "-s", "+q!"); rc != 0 {
+		s.echo("  quit         +q! exits %d: %s", rc, Out)
 		return harness.ErrReported
 	}
-	if out, rc := s.outWork("-e", "-s", "+qa!"); rc != 1 {
-		s.echo("  quit         +qa! exits %d, expected 1: %s", rc, out)
+	if Out, rc := s.outWork("-e", "-s", "+qa!"); rc != 1 {
+		s.echo("  quit         +qa! exits %d, expected 1: %s", rc, Out)
 		return harness.ErrReported
 	}
 	s.echo("  quit         :q! quits, :qa! is not a command")
@@ -174,20 +174,20 @@ func Whim49(w io.Writer, args []string) error {
 	if err := s.phasebuild(); err != nil {
 		return err
 	}
-	if out, rc := s.outWork("-e", "-s", "+set ts=3", "+q!"); rc != 0 {
-		s.echo("  optset       the control failed: :set ts=3 exits %d: %s", rc, out)
+	if Out, rc := s.outWork("-e", "-s", "+set ts=3", "+q!"); rc != 0 {
+		s.echo("  optset       the control failed: :set ts=3 exits %d: %s", rc, Out)
 		return harness.ErrReported
 	}
-	if out, rc := s.outWork("-e", "-s", "+set ts<", "+q!"); rc != 1 {
-		s.echo("  optset       :set ts< exits %d, expected 1: %s", rc, out)
+	if Out, rc := s.outWork("-e", "-s", "+set ts<", "+q!"); rc != 1 {
+		s.echo("  optset       :set ts< exits %d, expected 1: %s", rc, Out)
 		return harness.ErrReported
 	}
 	d, _ := os.MkdirTemp("", "whimchk")
 	defer os.RemoveAll(d)
 	m := filepath.Join(d, "m.txt")
-	put(m, "one\n# vim: set sw=2:\n")
+	Put(m, "one\n# vim: set sw=2:\n")
 	// "$OLDPWD/$work/whim-vim": the work tree as seen from where the check runs.
-	bin, _ := filepath.Abs(filepath.Join(s.work, "whim-vim"))
+	bin, _ := filepath.Abs(filepath.Join(s.Work, "whim-vim"))
 	vimRC(d, d, bin, "-e", "-s", "+1normal! >>", "+w", "+q!", "m.txt")
 	if first := sedN(m, 1); first != "    one" {
 		s.echo("  optset       a modeline set 'shiftwidth': the first line is '%s'", first)
@@ -217,9 +217,9 @@ func Whim50(w io.Writer, args []string) error {
 	}
 	d, done := s.scratch()
 	defer done()
-	out, rc := vimOut(d, "", "./vim", true, "-b", "-e", "-s", "+q!")
-	if !strings.Contains(out, "Unknown option argument") {
-		s.echo("  lfonly       -b is not refused as unknown (exit %d): %s", rc, out)
+	Out, rc := vimOut(d, "", "./vim", true, "-b", "-e", "-s", "+q!")
+	if !strings.Contains(Out, "Unknown option argument") {
+		s.echo("  lfonly       -b is not refused as unknown (exit %d): %s", rc, Out)
 		return harness.ErrReported
 	}
 	if vimRC(d, "", "./vim", "-e", "-s", "+set ts=3", "+q!") != 0 {
@@ -231,14 +231,14 @@ func Whim50(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	c := filepath.Join(d, "crlf.txt")
-	put(c, "one\r\ntwo\r\n")
+	Put(c, "one\r\ntwo\r\n")
 	vimRC(d, "", "./vim", "-e", "-s", "+%s/$/X/", "+wq", "crlf.txt")
 	if odC(c) != `one\rX\ntwo\rX\n` {
 		s.echo("  lfonly       a CR LF file was not edited as LF text: %s", odCs(c))
 		return harness.ErrReported
 	}
 	n := filepath.Join(d, "noeol.txt")
-	put(n, "one\ntwo")
+	Put(n, "one\ntwo")
 	vimRC(d, "", "./vim", "-e", "-s", "+w", "+q!", "noeol.txt")
 	if odC(n) != `one\ntwo\n` {
 		s.echo("  lfonly       a last line was written without LF: %s", odCs(n))
@@ -266,21 +266,21 @@ func Whim51(w io.Writer, args []string) error {
 	d, done := s.scratch()
 	defer done()
 	u := filepath.Join(d, "u.txt")
-	put(u, "caf\303\251\n")
+	Put(u, "caf\303\251\n")
 	inD(d, "-e", "-s", `+s/\%u00e9/E/`, "+wq", "u.txt")
 	if catS(u) != "cafE" {
 		s.echo("  keepbytes    the control failed: a UTF-8 edit gave '%s'", catS(u))
 		return harness.ErrReported
 	}
 	ill := filepath.Join(d, "ill.txt")
-	put(ill, "ok\n\377 bad\n")
+	Put(ill, "ok\n\377 bad\n")
 	inD(d, "-e", "-s", "+1s/ok/OK/", "+wq", "ill.txt")
 	if odC(ill) != `OK\n377bad\n` {
 		s.echo("  keepbytes    an invalid byte was not written back unchanged: %s", odCs(ill))
 		return harness.ErrReported
 	}
-	out, _ := vimOut(d, d, "./vim", true, "-e", "-s", "+set ro?", "+q!", "ill.txt")
-	ro := strings.NewReplacer(" ", "", "\n", "").Replace(out)
+	Out, _ := vimOut(d, d, "./vim", true, "-e", "-s", "+set ro?", "+q!", "ill.txt")
+	ro := strings.NewReplacer(" ", "", "\n", "").Replace(Out)
 	if ro != "noreadonly" {
 		s.echo("  keepbytes    reading an invalid byte made the buffer '%s'", ro)
 		return harness.ErrReported
@@ -311,14 +311,14 @@ func Whim52(w io.Writer, args []string) error {
 	d, done := s.scratch()
 	defer done()
 	u := filepath.Join(d, "u.txt")
-	put(u, "\303\240\303\251\n")
+	Put(u, "\303\240\303\251\n")
 	inD(d, "-e", "-s", "+1normal! gUU", "+wq", "u.txt")
 	if odX(u) != "c380c3890a" {
 		s.echo("  utf8only     gUU over a-grave e-acute gave %s", odXs(u))
 		return harness.ErrReported
 	}
 	x := filepath.Join(d, "x.txt")
-	put(x, "a\346\227\245b\n")
+	Put(x, "a\346\227\245b\n")
 	inD(d, "-e", "-s", "+1normal! 0lx", "+wq", "x.txt")
 	if catS(x) != "ab" {
 		s.echo("  utf8only     x on a three-byte character left '%s'", catS(x))
@@ -360,20 +360,20 @@ func Whim53(w io.Writer, args []string) error {
 		s.echo("  noconv       :set menc? was accepted")
 		return harness.ErrReported
 	}
-	put(filepath.Join(d, "e.txt"), "x\n")
+	Put(filepath.Join(d, "e.txt"), "x\n")
 	if inD(d, "-e", "-s", "+e ++enc=latin1 e.txt", "+q!") == 0 {
 		s.echo("  noconv       ++enc was accepted")
 		return harness.ErrReported
 	}
 	u := filepath.Join(d, "u.txt")
-	put(u, "\303\240\303\251\n")
+	Put(u, "\303\240\303\251\n")
 	inD(d, "-e", "-s", "+1normal! gUU", "+wq", "u.txt")
 	if odX(u) != "c380c3890a" {
 		s.echo("  noconv       gUU over a-grave e-acute gave %s", odXs(u))
 		return harness.ErrReported
 	}
 	ill := filepath.Join(d, "ill.txt")
-	put(ill, "ok\n\377 bad\n")
+	Put(ill, "ok\n\377 bad\n")
 	inD(d, "-e", "-s", "+1s/ok/OK/", "+wq", "ill.txt")
 	if odC(ill) != `OK\n377bad\n` {
 		s.echo("  noconv       an invalid byte was not kept: %s", odCs(ill))
@@ -472,7 +472,7 @@ func Whim57(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	m := filepath.Join(d, "m.txt")
-	put(m, "(a ; b)\n")
+	Put(m, "(a ; b)\n")
 	inD(d, "-e", "-s", "+1normal! 0%x", "+wq", "m.txt")
 	if catS(m) != "(a ; b" {
 		s.echo("  nolisp       %% across ';' left '%s'", catS(m))
@@ -509,7 +509,7 @@ func Whim58(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	h := filepath.Join(d, "h.txt")
-	put(h, "x\n")
+	Put(h, "x\n")
 	inD(d, "-e", "-s", "+1normal! Ia\036b", "+wq", "h.txt")
 	if catS(h) != "abx" {
 		s.echo("  nolangmap    CTRL-^ in Insert mode left '%s'", catS(h))

@@ -1,6 +1,6 @@
 # Phase 88 — argv is `+{command}` and `-T {term}`
 
-`phase/088/edit.sh` and `phase/088/check.sh`, `stage 88`, `package streams`. A
+`phase/088/edit.go` and `phase/088/check.go`, `stage 88`, `package streams`. A
 core is handed its buffer by a host, not by a shell. What phases 85 and 87 left of
 `command_line_scan()` is five things — `+cmd`, `-T`, a bare `-`, `--` and a file
 argument — and this phase takes the last three, which are exactly the three that

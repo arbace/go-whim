@@ -178,8 +178,8 @@ A new phase is the next one after the last, and Part II's *Adding a phase* is th
 current process for it; what follows is how the mechanics work, and holds for both
 parts. A phase is a directory, `phase/NNN/`, its number in three digits.
 
-1. Write the cut in `internal/edit/whim<N>.go` and the assertions in
-   `internal/check/whim<N>.go` — `tools/phasecheck.sh`, `tools/phasebuild.sh` and
+1. Write the cut in `phase/NNN/edit.go` and the assertions in
+   `phase/NNN/check.go` — `tools/phasecheck.sh`, `tools/phasebuild.sh` and
    the probes. Neither sweeps at its end and neither checks the delta; anything
    the check needs from the edit goes in the state directory by name.
 2. **Declare its delta** in `phase/NNN/delta`: its tokens — `command… case:name…` —
@@ -1150,8 +1150,8 @@ Cited as *core rule N*; Part I's rules still hold.
 4. **The product is `whim-vim.c`, produced from the committed `slim-vim.c`** by one pass
    of every phase, as Part I's rule 4 says.
 5. **Phases are programs, not agents.** A phase is an edit and a check,
-   `internal/edit/whim<N>.go` and `internal/check/whim<N>.go`, run by
-   `internal/build` and `internal/verify` in stages. From phase 87 the phases run
+   `phase/NNN/edit.go` and `phase/NNN/check.go`, each a package of its own, run
+   by `internal/build` and `internal/verify` in stages. From phase 87 the phases run
    in **each** stages: every edit swept on its own, and every check on exactly its
    own tree.
 6. **Stages and packages are declared.** `internal/build/plan.go` holds what runs
@@ -1216,163 +1216,163 @@ boundary in the same file.
 `GOALS.md` states what it is for — an embeddable editor core that keeps the
 screen and all visual editing and loses the filesystem, with `main()` demoted to a
 host launcher and the text later held as a tree — and has forty-six phases:
-`phase/083/make.sh`, the seed; `phase/084/make.sh`, which adds `-fno-stack-protector`;
-`phase/085/edit.sh` with `phase/085/check.sh`, the first source cut — the two
+`phase/083/check.go`, the seed; `phase/084/check.go`, which adds `-fno-stack-protector`;
+`phase/085/edit.go` with `phase/085/check.go`, the first source cut — the two
 "not to a terminal" warnings, the two-second pause after them and `--ttyfail`;
-`phase/086/make.sh`, which changes no source at all and replaces the instrument
-(below), so q86's tree and q85's have the same digest; `phase/087/edit.sh` with
-`phase/087/check.sh`, which removes Ex mode, silent mode and the `-e -E -s -v`
-options; `phase/088/edit.sh` with `phase/088/check.sh`, which leaves the
+`phase/086/check.go`, which changes no source at all and replaces the instrument
+(below), so q86's tree and q85's have the same digest; `phase/087/edit.go` with
+`phase/087/check.go`, which removes Ex mode, silent mode and the `-e -E -s -v`
+options; `phase/088/edit.go` with `phase/088/check.go`, which leaves the
 command line as `+{command}` and `-T {term}` — the file argument, the bare `-` and
-`--` all become `mainerr(ME_UNKNOWN_OPTION)`; and `phase/089/edit.sh` with
-`phase/089/check.sh`, which takes every way to write a file — the six Ex commands
+`--` all become `mainerr(ME_UNKNOWN_OPTION)`; and `phase/089/edit.go` with
+`phase/089/check.go`, which takes every way to write a file — the six Ex commands
 `:write :wq :xit :exit :update :saveas`, four anchors and nineteen functions the
-sweep finds, `ZZ` becoming `q!`; and `phase/090/edit.sh` with
-`phase/090/check.sh`, which takes the way to read one — `:read` and its `:r !cmd`
+sweep finds, `ZZ` becoming `q!`; and `phase/090/edit.go` with
+`phase/090/check.go`, which takes the way to read one — `:read` and its `:r !cmd`
 arm, three anchors, six functions the sweep finds and one fold no tool could make,
 the `exarg_T.usefilter` field that nothing writes once both `:w !` and `:r !` are
-gone; and `phase/091/edit.sh` with `phase/091/check.sh`, which takes every way to
+gone; and `phase/091/edit.go` with `phase/091/check.go`, which takes every way to
 name another file to edit — the five Ex commands `:edit :enew :ex :visual :view`,
 which are one handler, and the `gf gF [f ]f` keys, which are **arms** inside two
 surviving handlers and not `nv_cmds[]` rows, six anchors and seventeen functions the
-sweep finds; and `phase/092/edit.sh` with `phase/092/check.sh`, which takes the
+sweep finds; and `phase/092/edit.go` with `phase/092/check.go`, which takes the
 machinery under all of those — `readfile()`, `read_buffer()` and the message layer
 that reported what had been read, four anchors all inside `open_buffer()` and sixteen
-functions the sweep finds; and `phase/093/edit.sh` with `phase/093/check.sh`,
+functions the sweep finds; and `phase/093/edit.go` with `phase/093/check.go`,
 which takes the buffer's **name** — `:file`, `buflist_new()`'s two name parameters,
 sixteen folds of `b_ffname`/`b_sfname`/`b_fname`, and three further folds that free
 the last three questions the core asked the filesystem — seven parts and **sixty**
 functions the sweep finds, the most any Part II phase has handed it; and
-`phase/094/edit.sh` with `phase/094/check.sh`, which takes the last thing the
+`phase/094/edit.go` with `phase/094/check.go`, which takes the last thing the
 filesystem left behind — the **refusal**, `E37: No write since last change`, which has
 had no remedy to offer since phase 89 took every `:write` — as ONE fold of `ex_quit`'s
 test, and sixteen functions the sweep finds, eleven of them the whole
 switch-buffer/switch-window island that hung off `check_changed_any()`'s tail and that
-no plan foresaw; and `phase/095/edit.sh` with `phase/095/check.sh`, **the
+no plan foresaw; and `phase/095/edit.go` with `phase/095/check.go`, **the
 options nothing reads** — six `options[]` rows of a *computed* seven whose global has
 no reader left, `'fsync' 'prompt' 'readonly' 'undoreload' 'write' 'writeany'`, with
 `'readonly'`'s `W10` warning, its one-second pause and its two `[RO]` indicators;
-and `phase/096/edit.sh` with `phase/096/check.sh`, **no `FILE *` that is never
+and `phase/096/edit.go` with `phase/096/check.go`, **no `FILE *` that is never
 opened** — `scriptin[NSCRIPT]` and `redir_fd`, two `static FILE *` that nothing has
 ever opened in any build of whim-vim, `ui_write()`'s `console` parameter, and the
-five functions the sweep finds under them; `phase/097/edit.sh` with
-`phase/097/check.sh` and `phase/098/edit.sh` with `phase/098/check.sh`, **the
+five functions the sweep finds under them; `phase/097/edit.go` with
+`phase/097/check.go` and `phase/098/edit.go` with `phase/098/check.go`, **the
 libc that is pure computation**, defined in the file as local `static musl_*`
 functions — the sixteen `mem*`/`str*` of `<string.h>`, with `sprintf` moved onto the
 editor's own `vim_snprintf` instead, then the character classes, the two `ato*`,
-`qsort` and `bsearch`; and `phase/099/edit.sh` with
-`phase/099/check.sh`, **the includes nothing names** — six of eighteen,
+`qsort` and `bsearch`; and `phase/099/edit.go` with
+`phase/099/check.go`, **the includes nothing names** — six of eighteen,
 `<sys/stat.h>` `<fcntl.h>` `<iconv.h>` dead since before the pipeline and `<string.h>`
 `<ctype.h>` `<wctype.h>` dead since phase 98, with the `stat_T` typedef no sweep could
-take; and `phase/100/edit.sh` with `phase/100/check.sh`, **the deadly ladder
+take; and `phase/100/edit.go` with `phase/100/check.go`, **the deadly ladder
 that cannot run** — the nine lines of `deathtrap()`'s `entered >= 3` arm,
 `reset_signals()`, `_exit(8)` and `exit(7)`, which no build of whim-vim could ever
-reach; and `phase/101/edit.sh` with `phase/101/check.sh`, **`main()` demoted to
+reach; and `phase/101/edit.go` with `phase/101/check.go`, **`main()` demoted to
 `vim_main()`** — `static`, with a six-line launcher appended below it, both still in the
-one file; and `phase/102/edit.sh` with `phase/102/check.sh`, **the core can no
+one file; and `phase/102/edit.go` with `phase/102/check.go`, **the core can no
 longer stop the process** — `mch_exit()`'s `exit(r);` becomes `vim_host_exit(r);`
 through a pointer the launcher installs, and the launcher lands on `__builtin_setjmp`
-and returns the status; and `phase/103/edit.sh` with `phase/103/check.sh`, **the
+and returns the status; and `phase/103/edit.go` with `phase/103/check.go`, **the
 signals and the terminal are the host's** — the five signal handlers, `mch_settmode`'s
 three-valued mode, `mch_delay`'s sleep, `RealWaitForChar`'s `select`, `mch_get_shellsize`
 and all three `isatty()` calls move into a 229-line `host_*`/`musl_*` block at the
 bottom of the same file, the resize and the external stop and the interrupt arrive as
 **bytes** in the input stream, and `fill_input_buf`'s `close(0); dup(2)` arm goes; and
-`phase/104/edit.sh` with `phase/104/check.sh`, **the messages are the editor's and
+`phase/104/edit.go` with `phase/104/check.go`, **the messages are the editor's and
 the writing is the host's** — twenty output statements in five functions become eight
 calls through one `vim_host_message(msg, len, err)` the launcher installs, with
-`<stdio.h>` and seven symbols going with them; and `phase/105/edit.sh` with
-`phase/105/check.sh`, **the variadic collapse** — the seven wrappers that walk a
+`<stdio.h>` and seven symbols going with them; and `phase/105/edit.go` with
+`phase/105/check.go`, **the variadic collapse** — the seven wrappers that walk a
 `va_list` expanded at their 129 call sites into `vim_snprintf` plus the tail each
 already had, five helpers against seven deleted definitions, so `va_start` appears
-**once**; and `phase/106/edit.sh` with `phase/106/check.sh`, **`nullptr` and
+**once**; and `phase/106/edit.go` with `phase/106/check.go`, **`nullptr` and
 `usize`** — `NULL` 2,555 → 3 and `size_t` 437 → 0, two names the language supplies
-instead of a header, on a **byte-identical binary**; `phase/107/edit.sh` with
-`phase/107/check.sh`, **the attributes** — 139 GNU `__attribute__` to six, the 113
+instead of a header, on a **byte-identical binary**; `phase/107/edit.go` with
+`phase/107/check.go`, **the attributes** — 139 GNU `__attribute__` to six, the 113
 `unused` deleted (**21 of them false**, marking a parameter the code reads), the 20
 `fallthrough` respelled as the C23 `[[fallthrough]]`, and the three `format` and three
-`format_arg` kept because they *are* the check `-Wformat` performs; `phase/108/edit.sh`
-with `phase/108/check.sh`, **the plain host calls** — the two function pointers the
+`format_arg` kept because they *are* the check `-Wformat` performs; `phase/108/edit.go`
+with `phase/108/check.go`, **the plain host calls** — the two function pointers the
 launcher installed become a forward declaration and a direct call, so `vim_main(int argc,
-char **argv)` is phase 101's signature again; `phase/109/edit.sh` with
-`phase/109/check.sh`, **the header types and macros the core can own** — `time_t`,
+char **argv)` is phase 101's signature again; `phase/109/edit.go` with
+`phase/109/check.go`, **the header types and macros the core can own** — `time_t`,
 `sig_atomic_t`, `uintptr_t`, `struct timeval`, `MIN`, `MAX` and `offsetof` become the
 core's own and nine libc prototypes are written out, **while the headers are still above
-them to be cross-checked against**; and `phase/110/edit.sh` with
-`phase/110/check.sh`, **the move** — the eleven `#include`s go below the core, twelve
+them to be cross-checked against**; and `phase/110/edit.go` with
+`phase/110/check.go`, **the move** — the eleven `#include`s go below the core, twelve
 header-supplied constants become enumerators asserted from below, and the formatter's
-private island follows the four `va_list` functions down; and `phase/111/edit.sh`
-with `phase/111/check.sh`, **the scalar clock** — `long musl_now_ms(void)` replaces
+private island follows the four `va_list` functions down; and `phase/111/edit.go`
+with `phase/111/check.go`, **the scalar clock** — `long musl_now_ms(void)` replaces
 `void musl_gettimeofday(long *, long *)` and takes `elapsed_T`, `elapsed()` and the
 out-parameter pair with it, **so no host call's shape is decided any more by a type the
-core cannot name**; and `phase/112/edit.sh` with `phase/112/check.sh`, **the case
+core cannot name**; and `phase/112/edit.go` with `phase/112/check.go`, **the case
 tables become one, and it is the union** — vim's `toUpper[]`/`toLower[]` and the
 `musl_to*[]` phase 98 vendored disagreed at 97 upper and 96 lower codepoints, vim's
 newer by ninety-six and musl's knowing `ß → ẞ` alone, and a core with no C library has
-nothing for `'casemap'` to choose between; and `phase/113/edit.sh` with
-`phase/113/check.sh`, **the message fold** — `msg_puts_attr_len()`'s never-taken arm
+nothing for `'casemap'` to choose between; and `phase/113/edit.go` with
+`phase/113/check.go`, **the message fold** — `msg_puts_attr_len()`'s never-taken arm
 becomes one `host_message()` call, with `msg_puts_printf()` and `vim_strlen_maxlen()`
-going, and **two folds measured and declined**; and `phase/114/edit.sh` with
-`phase/114/check.sh`, **`abs` and `labs`** — called by the core, never in `nm -u`
+going, and **two folds measured and declined**; and `phase/114/edit.go` with
+`phase/114/check.go`, **`abs` and `labs`** — called by the core, never in `nm -u`
 because gcc lowers both to inline arithmetic, and vendored so that the core stops
-depending on behaviour nothing states; and `phase/115/edit.sh` with
-`phase/115/check.sh`, **the wall clock crosses too** — `vim_time()` becomes
+depending on behaviour nothing states; and `phase/115/edit.go` with
+`phase/115/check.go`, **the wall clock crosses too** — `vim_time()` becomes
 `host_time()` below the boundary, `long time(long *tp);` leaves the core's prototype
-block and a `static_assert` stronger than it replaces it; and `phase/116/make.sh`,
+block and a `static_assert` stronger than it replaces it; and `phase/116/check.go`,
 **the terminal table is asked a question it can answer** — the second phase that changes
 no source at all, replacing `$TERM`, which phase 19 stopped the editor reading, with
 `+set term={name}`, so nineteen rows that carried one answer between them carried ten
 resolutions and nine refusals — two and seventeen since phase 121; and
-`phase/117/edit.sh` with
-`phase/117/check.sh`, **the core stops reallocating** — `realloc` rewritten at its two
+`phase/117/edit.go` with
+`phase/117/check.go`, **the core stops reallocating** — `realloc` rewritten at its two
 core sites as a `host` allocation, a `musl_memcpy` of the **old** size and a free, because
 `realloc` is the one libc function that cannot be vendored at all: to move the old
-contents it needs a length its interface does not carry; and `phase/118/edit.sh` with
-`phase/118/check.sh`, **the core calls nothing but the host** — `malloc`, `free` and
+contents it needs a length its interface does not carry; and `phase/118/edit.go` with
+`phase/118/check.go`, **the core calls nothing but the host** — `malloc`, `free` and
 `write` become `host_alloc`, `host_free` and `host_write`, three prototypes above the
-boundary and three definitions below it; and `phase/119/edit.sh` with
-`phase/119/check.sh`, **the core names no libc function at all** — the last two
+boundary and three definitions below it; and `phase/119/edit.go` with
+`phase/119/check.go`, **the core names no libc function at all** — the last two
 declarations go, and by different routes: `getpid` is **avoidable outright**, its one
 caller `mch_get_pid()` feeding a `b0_pid` that whim's removal of recovery had already
 left write-only, so the write, the function and the field all go and nothing calls a
 host; `kill` is **moved**, `vim_handle_signal()`'s `kill(getpid(), got_signal)` becoming
 `host_raise(got_signal)`, which takes no pid because a core that cannot ask for its own
-process id must not be handed one; and `phase/120/edit.sh` with
-`phase/120/check.sh`, **the degenerate unions** — six of the thirteen `union`
+process id must not be handed one; and `phase/120/edit.go` with
+`phase/120/check.go`, **the degenerate unions** — six of the thirteen `union`
 keywords unite nothing with anything, five single-member (`uh_next`, `uh_prev`,
 `uh_alt_next`, `uh_alt_prev`, `vval`) and one **empty** (`es_info`), every one a leftover
 of a cut already made and the last of them a GNU extension ISO C forbids, on a
-**byte-identical binary**; and `phase/121/edit.sh` with `phase/121/check.sh`, **the
+**byte-identical binary**; and `phase/121/edit.go` with `phase/121/check.go`, **the
 eight terminal names** — `builtin_terminals[]` goes from ten rows to **two**,
 `xterm-256color`, which is already the compiled default, and `debug`, with three
 capability tables, `find_builtin_term()`'s xterm-family clause and a repair to
-`set_termname()`'s no-screen fallback that is not optional; and `phase/122/edit.sh`
-with `phase/122/check.sh`, **`-T {term}` goes** — `command_line_scan()` becomes one
+`set_termname()`'s no-screen fallback that is not optional; and `phase/122/edit.go`
+with `phase/122/check.go`, **`-T {term}` goes** — `command_line_scan()` becomes one
 `if (argv[0][0] == '+')` and one `else` answering `mainerr(ME_UNKNOWN_OPTION)`, with two
 `main_errors[]` rows and their enumerators, `mparm_T.term`, and the no-screen arm of
 `set_termname()` that only `-T` could reach; and then the **memline arc**, which is one
-arc and not six phases — `phase/123/make.sh`, **the instrument could not see the text
+arc and not six phases — `phase/123/check.go`, **the instrument could not see the text
 layer**, a whole-phase program that changes no source and adds the sixth part of a
 recording, because a `whim-vim` with `pp->pb_pointer[idx].pe_line_count--` deleted from
 `ml_find_line()`'s descent recorded **all 102 screen cases byte for byte** and forty
 phases had been verified by a corpus that allocates exactly one data block a case;
-`phase/124/edit.sh` with `phase/124/check.sh`, **freeing is free** — `host_alloc()`
+`phase/124/edit.go` with `phase/124/check.go`, **freeing is free** — `host_alloc()`
 a bump allocator into a 1 GiB arena and `host_free()` a function that returns, the
 charter's *a garbage collector is assumed from here on* built entirely below the
-boundary, with `free malloc realloc` leaving `nm -u`; `phase/125/edit.sh` with
-`phase/125/check.sh`, **the swap file's residue** — `struct block0` with eight fields
+boundary, with `free malloc realloc` leaving `nm -u`; `phase/125/edit.go` with
+`phase/125/check.go`, **the swap file's residue** — `struct block0` with eight fields
 written and none read, the negative block numbers `ml_append()`'s `newfile` could never
 make, a three-layer dirtiness nothing tests and `pe_old_lnum`, none of which any tool in
-`tools/` can see because **every one of them is written**; `phase/126/edit.sh` with
-`phase/126/check.sh`, **a block number becomes a reference** — `pe_bnum` and `ip_bnum`
+`tools/` can see because **every one of them is written**; `phase/126/edit.go` with
+`phase/126/check.go`, **a block number becomes a reference** — `pe_bnum` and `ip_bnum`
 become `bhdr_T *`, `memline_T` gains `ml_root`, and the hash table that turned an integer
 into a page goes with the free list and `mf_blocknr_max`, eleven functions and three
-types; `phase/127/edit.sh` with `phase/127/check.sh`, **de-page the leaf** — a data
+types; `phase/127/edit.go` with `phase/127/check.go`, **de-page the leaf** — a data
 block stops being an index of byte offsets over a text arena and becomes
 `DATA_LN db_line[DB_LINE_MAX]`, so a line's text is its own allocation valid for the
 lifetime of the process, taking `db_index`'s 34 mentions, the fourteen interior pointers
 and both `offsetof(DATA_BL, db_index)` **by having nothing left to measure**; and
-`phase/128/edit.sh` with `phase/128/check.sh`, **fold the node types** — `bhdr_T`
+`phase/128/edit.go` with `phase/128/check.go`, **fold the node types** — `bhdr_T`
 becomes `struct block_hdr { short_u bh_id; }`, `memfile_T` goes entirely, a node is one
 allocation at its own size (1,040 bytes for a leaf and 4,088 for a branch against 4,128
 for either before), and the file gains a `static_assert` that **fails to compile** if a
@@ -1867,7 +1867,7 @@ real shared stage, where phase 117's check stops four ways and two of them are
 the code it wrote **verbatim**, `pp = malloc(new_len);` and `free(gap->ga_data);`, and 118
 renames exactly those calls. **There cannot be an `apart 116 117` at all, and that is a
 measurement and not an omission**: a stage of more than one phase is made of split
-programs and `phase/116/make.sh` is ONE file, so `stage 116-117` is refused before any check
+programs and `phase/116/check.go` is ONE file, so `stage 116-117` is refused before any check
 runs — `phase 116 is in stage 116-117 but is not an edit and a check` from
 `tools/stages.sh`, and `phase 116 has no edit and check to run` from
 `tools/phaserun.sh`. **No `need 116`, `need 117`, `need 118` or `need 119`** — 118's measured
@@ -1907,7 +1907,7 @@ phase 120's sweep removing nothing at all.
 
 **The memline arc adds three `apart` lines and two `need`s, and one `apart` is forbidden
 rather than declared.** There is **no `apart 122 123` and no `need 123`**, for the reason
-there is no `apart 116 117`: `phase/123/make.sh` is one file, so `stage 122-123` is refused
+there is no `apart 116 117`: `phase/123/check.go` is one file, so `stage 122-123` is refused
 before any check runs — *phase 123 is in stage 122-123 but is not an edit and a check* from
 `tools/stages.sh` and *phase 123 has no edit and check to run* from
 `tools/phaserun.sh`, both measured — and `need` is a statement about an **edit part**,
@@ -1991,12 +1991,12 @@ fail and the old one proven not to be**, in one measurement: with one row delete
 t_Co=256` and one `E529`**, the empty string, which `'term'` refuses before any table is
 consulted.
 **The re-record was safe because the baseline and every phase's recording move
-together**, and `phase/116/make.sh` measures that rather than citing it: `./whim-vim` out
+together**, and `phase/116/check.go` measures that rather than citing it: `./whim-vim` out
 of every recorded boundary tar **up to its own number** plus `whim-vim.c` built with
 whim's own line gives one digest across every one of them, so `term-moved` stays
 undeclared at every phase before it. The incantation, and **both halves are needed** —
 measured, with only
-`.cache/r0` removed `phase/083/make.sh` refuses and names `ref-term.txt`, which is right —
+`.cache/r0` removed `phase/083/check.go` refuses and names `ref-term.txt`, which is right —
 is `rm -rf .reference/core-baselines .cache/r0 && make whim-phase-83`.
 
 **That bound is a repair, and the rule behind it is general.** The loop globbed
@@ -2101,8 +2101,9 @@ Only on request, and one at a time — and the pipeline's goal is met, so the
 expected number of new phases is none. A phase is a directory, `phase/NNN/`, its
 number in three digits, and this is how one would join now.
 
-1. **Write it in Go**: the edit in `internal/edit/whim<N>.go`, the check in
-   `internal/check/whim<N>.go`, registered as every other is.
+1. **Write it in Go**: `phase/NNN/` is a package of its own, `pNNN` -- `edit.go`
+   is its cut and `check.go` its evidence, each registering itself in an
+   `init()`, and `phase/registry.go` gains a line so they are linked in.
 2. **Declare its delta** in `phase/NNN/delta`, before running it: every phase
    from 83 on is measured against `.reference/core-baselines` with
    `tools/zrecord.sh`, and `tools/whimdelta.sh` hands it to
@@ -2642,7 +2643,7 @@ compile line, three times, requiring the three runs to be identical — `GOALS.m
 core rule 3, unchanged. Recording them from the pipeline's input is legitimate where
 recording them from its current output would not be.
 
-The programs are zero-only files, named by `phase/083/make.sh` and
+The programs are zero-only files, named by `phase/083/check.go` and
 `tools/coredelta.sh` and by nothing whim or slim runs — `tools/zscreen.py` (the
 emulator), `tools/zstream.py` (the driver), `tools/zcases.py` (the corpus),
 `tools/zexcmds.py` (the command sweep) and `tools/zargv.py` (the invocations) —
@@ -2652,7 +2653,7 @@ whim or slim key moves. (`termcheck.py` is still untouched, and from phase 88 it
 no longer *run*: zero records the terminal table with `tools/ztermcheck.py`, which
 imports it and replaces the one call that passes a file argument.)
 
-**This is a change to phase 83's program**, not a new phase: `phase/083/make.sh` is
+**This is a change to phase 83's program**, not a new phase: `phase/083/check.go` is
 what records the baselines and what refuses when they differ. It moves phase 83's
 implementation digest, so phases 83 and 84 re-run (9 s and a build), and
 `.reference/core-baselines` is rewritten once, with the difference named — which is

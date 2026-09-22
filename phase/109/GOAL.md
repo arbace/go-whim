@@ -1,6 +1,6 @@
 # Phase 109 — the header types and macros the core can own
 
-`phase/109/edit.sh` and `phase/109/check.sh`, `stage 109`, `package boundary`.
+`phase/109/edit.go` and `phase/109/check.go`, `stage 109`, `package boundary`.
 Eight things the core took from a header stop coming from one:
 
 ```

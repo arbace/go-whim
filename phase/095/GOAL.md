@@ -1,6 +1,6 @@
 # Phase 95 — the options nothing reads
 
-`phase/095/edit.sh` and `phase/095/check.sh`, `stage 95`, `package options`.
+`phase/095/edit.go` and `phase/095/check.go`, `stage 95`, `package options`.
 Phases 89 to 94 took every way to reach a file and then the refusal that guarded the
 text. What they left behind is a set of **settings**: `options[]` rows whose global
 nothing reads any more, so that `:set fsync?` answers a question about machinery that

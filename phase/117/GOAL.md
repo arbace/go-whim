@@ -1,6 +1,6 @@
 # Phase 117 — the core stops reallocating
 
-`phase/117/edit.sh` and `phase/117/check.sh`, `stage 117`, `package boundary`.
+`phase/117/edit.go` and `phase/117/check.go`, `stage 117`, `package boundary`.
 
 **`realloc` cannot be implemented from `malloc` and `free`**, and that is why this phase
 is a rewrite of two call sites rather than a seventeenth vendored function beside phase
@@ -32,7 +32,7 @@ of the four stdio names.
 ## The four traps are memory bugs and not differences, so the phase owes a harness
 
 A recording cannot see a leak, a double free, a premature free, or an overread whose
-bytes are overwritten before anything reads them. `phase/117/check.sh` extracts
+bytes are overwritten before anything reads them. `phase/117/check.go` extracts
 `ga_grow_inner()`, `musl_memcpy()`, `musl_memset()`, `garray_T` and `get_keystroke`'s
 extension block **from the input source and from the output at run time**, drops both
 into the same AddressSanitizer driver, and drives eight doublings from an empty
@@ -120,7 +120,7 @@ mirror image, *"a difference of −82 where 10 was expected"*.
 
 **The pair that would normally need measuring — 116 and 117 — cannot have an `apart` at
 all, and that is itself a measurement.** A stage of more than one phase is made of split
-programs and `phase/116/make.sh` is ONE file, so the schedule is refused before any check
+programs and `phase/116/check.go` is ONE file, so the schedule is refused before any check
 runs: `stage 116-117` gives `phase 116 is in stage 116-117 but is not an edit and a check`
 from `tools/stages.sh`, and `tools/phaserun.sh` refuses the same unit with `phase 116
 has no edit and check to run`. **`need 117` is measured not to be required** — the edit was
