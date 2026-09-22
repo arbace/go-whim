@@ -73,7 +73,13 @@ func (f *fnEmit) exprGoType(e cc.ExpressionNode) string {
 	if t == nil {
 		return ""
 	}
-	if t.Kind() == cc.Ptr || t.Kind() == cc.Array {
+	if t.Kind() == cc.Array {
+		if p, ok := unparenE(e).(*cc.PrimaryExpression); ok && p.Case == cc.PrimaryExpressionIdent {
+			return f.ident(p).t
+		}
+		return f.g.goType(t, f.g.a.obj(e))
+	}
+	if t.Kind() == cc.Ptr {
 		return f.objType(t, f.g.a.obj(e))
 	}
 	if s := scalar(t); s != "" {
@@ -98,6 +104,9 @@ func pure(s string) bool {
 }
 
 func (f *fnEmit) index(v val) string {
+	if v.boolean {
+		return "int(B2i(" + v.s + "))"
+	}
 	if v.konst {
 		return v.s
 	}
@@ -118,7 +127,27 @@ func (f *fnEmit) exprTo(e cc.ExpressionNode, to string) val {
 	if isNullConst(e) && e.Type() != nil && e.Type().Kind() == cc.Ptr {
 		return val{s: "nil", t: to, c: e.Type(), null: true}
 	}
+	v := f.exprTo1(e, to)
+	if v.konst && !v.hasCv {
+		switch c := e.Value().(type) {
+		case cc.Int64Value:
+			v.cv, v.hasCv = int64(c), true
+		case cc.UInt64Value:
+			v.cv, v.hasCv = int64(c), true
+			if int64(c) < 0 || (e.Type() != nil && !cc.IsSignedInteger(e.Type()) && strings.Contains(v.s, "^")) {
+				// Go's untyped arithmetic is not C's unsigned arithmetic
+				v.s = strconv.FormatUint(uint64(c), 10)
+				v.hasCv = int64(c) >= 0
+			}
+		}
+	}
+	return v
+}
+
+func (f *fnEmit) exprTo1(e cc.ExpressionNode, to string) val {
 	switch x := e.(type) {
+	case *cc.ConstantExpression:
+		return f.exprTo(x.ConditionalExpression, to)
 	case *cc.ExpressionList:
 		for x.ExpressionList != nil {
 			f.exprStmt(x.AssignmentExpression)
@@ -258,7 +287,7 @@ func (f *fnEmit) postfix(x *cc.PostfixExpression, to string) val {
 		base := f.expr(x.PostfixExpression)
 		ix := f.expr(x.ExpressionList)
 		bt := f.g.canon(base.t)
-		et := f.exprGoType(x)
+		et := elemOfGo(base.t)
 		switch {
 		case strings.HasPrefix(bt, "Ptr["):
 			if x.Type().Kind() == cc.Struct || x.Type().Kind() == cc.Union {
@@ -270,6 +299,10 @@ func (f *fnEmit) postfix(x *cc.PostfixExpression, to string) val {
 		}
 		f.no(x, "an index into a %s", base.t)
 	case cc.PostfixExpressionSelect, cc.PostfixExpressionPSelect:
+		if x.Token2.SrcStr() == "ga_data" && strings.HasPrefix(f.g.canon(to), "Ptr[") {
+			// read as the type it is converted to: the storage GaData makes
+			return f.gadataGo(x, elemOfGo(to))
+		}
 		p := f.path(x)
 		return val{s: p, t: f.fieldType(x), c: x.Type()}
 	case cc.PostfixExpressionCall:
@@ -298,6 +331,9 @@ func (f *fnEmit) path(e cc.ExpressionNode) string {
 		case cc.PostfixExpressionSelect:
 			return f.path(x.PostfixExpression) + "." + GoName(x.Token2.SrcStr())
 		case cc.PostfixExpressionPSelect:
+			if u, ok := unparenE(x.PostfixExpression).(*cc.UnaryExpression); ok && u.Case == cc.UnaryExpressionAddrof {
+				return f.path(u.CastExpression) + "." + GoName(x.Token2.SrcStr())
+			}
 			b := f.expr(x.PostfixExpression)
 			bt := f.g.canon(b.t)
 			switch {
@@ -307,6 +343,8 @@ func (f *fnEmit) path(e cc.ExpressionNode) string {
 				return b.s + ".P()." + GoName(x.Token2.SrcStr())
 			}
 			f.no(x, "a -> on a %s", b.t)
+		case cc.PostfixExpressionCall:
+			return f.call(x, "").s
 		case cc.PostfixExpressionIndex:
 			base := f.expr(x.PostfixExpression)
 			ix := f.expr(x.ExpressionList)
@@ -366,7 +404,7 @@ func (f *fnEmit) lval(e cc.ExpressionNode) lvalue {
 				i = t
 			}
 			bt := f.g.canon(base.t)
-			et := f.exprGoType(x)
+			et := elemOfGo(base.t)
 			switch {
 			case strings.HasPrefix(bt, "Ptr["):
 				b := base.s
@@ -386,8 +424,11 @@ func (f *fnEmit) lval(e cc.ExpressionNode) lvalue {
 			case strings.HasPrefix(bt, "Ptr["):
 				return lvalue{get: b.s + ".Get()", t: et, set: func(s string) string { return b.s + ".Put(" + s + ")" }}
 			case strings.HasPrefix(bt, "*"):
-				g := "*" + b.s
-				return lvalue{get: g, t: et, set: func(s string) string { return g + " = " + s }, op: true}
+				g := "(*" + b.s + ")"
+				return lvalue{get: g, t: et, set: func(s string) string { return "*" + b.s + " = " + s }, op: true}
+			case strings.HasPrefix(bt, "["):
+				g := b.s + "[0]"
+				return lvalue{get: g, t: elemOfGo(b.t), set: func(s string) string { return g + " = " + s }, op: true}
 			}
 			f.no(x, "a store through a %s", b.t)
 		}
@@ -495,7 +536,9 @@ func (f *fnEmit) unary(x *cc.UnaryExpression) val {
 			}
 			return val{s: b.s + ".Get()", t: f.exprGoType(x), c: x.Type()}
 		case strings.HasPrefix(bt, "*"):
-			return val{s: "*" + b.s, t: elemOfGo(b.t), c: x.Type()}
+			return val{s: "(*" + b.s + ")", t: elemOfGo(b.t), c: x.Type()}
+		case strings.HasPrefix(bt, "["):
+			return val{s: b.s + "[0]", t: elemOfGo(b.t), c: x.Type()}
 		}
 		f.no(x, "* of a %s", b.t)
 	case cc.UnaryExpressionPlus:
@@ -507,11 +550,12 @@ func (f *fnEmit) unary(x *cc.UnaryExpression) val {
 		if x.Case == cc.UnaryExpressionCpl {
 			op = "^"
 		}
-		s := v.s
 		if !v.konst {
-			s = f.conv(v, t)
+			return val{s: op + paren(f.conv(v, t)), t: t, c: x.Type()}
 		}
-		return val{s: op + paren(s), t: t, c: x.Type(), konst: v.konst}
+		// a constant: its value is known, and conv writes it for an
+		// unsigned type that the untyped negative would not fit
+		return val{s: op + paren(v.s), t: t, c: x.Type(), konst: true}
 	case cc.UnaryExpressionNot:
 		v := f.expr(x.CastExpression)
 		return val{s: f.falsity(v), t: "bool", c: x.Type(), boolean: true}
@@ -578,14 +622,7 @@ func (f *fnEmit) addr(e cc.ExpressionNode) val {
 }
 
 func (f *fnEmit) arithOperands(l, r val, t string) (string, string) {
-	a, b := l.s, r.s
-	if !l.konst || l.boolean {
-		a = f.conv(l, t)
-	}
-	if !r.konst || r.boolean {
-		b = f.conv(r, t)
-	}
-	return paren(a), paren(b)
+	return paren(f.conv(l, t)), paren(f.conv(r, t))
 }
 
 func (f *fnEmit) binary(x cc.ExpressionNode, op string, le, re cc.ExpressionNode) val {
@@ -832,7 +869,7 @@ var allocators = map[string]bool{"alloc": true, "alloc_clear": true, "lalloc": t
 
 func calleeName(x *cc.PostfixExpression) string {
 	if p, ok := unparenE(x.PostfixExpression).(*cc.PrimaryExpression); ok && p.Case == cc.PrimaryExpressionIdent {
-		if _, fn := p.ResolvedTo().(*cc.Declarator); fn {
+		if d, ok := p.ResolvedTo().(*cc.Declarator); ok && d.Type() != nil && d.Type().Kind() == cc.Function {
 			return p.Token.SrcStr()
 		}
 	}
@@ -861,6 +898,18 @@ func (f *fnEmit) gadata(e cc.ExpressionNode, elem cc.Type) val {
 		et = "byte"
 	}
 	return val{s: "GaData[" + et + "](" + gap + ")", t: "Ptr[" + et + "]", c: e.Type()}
+}
+
+// gadataGo is gadata with the element's Go type.
+func (f *fnEmit) gadataGo(x *cc.PostfixExpression, et string) val {
+	var gap string
+	if x.Case == cc.PostfixExpressionSelect {
+		gap = "&" + f.path(x.PostfixExpression)
+	} else {
+		b := f.expr(x.PostfixExpression)
+		gap = f.conv(b, "*garray_T")
+	}
+	return val{s: "GaData[" + et + "](" + gap + ")", t: "Ptr[" + et + "]", c: x.Type()}
 }
 
 // sizeCount is a size in bytes as a count of elements of Go type et whose C
@@ -933,19 +982,19 @@ func (f *fnEmit) call(x *cc.PostfixExpression, to string) val {
 	name := calleeName(x)
 	switch name {
 	case "musl_memmove", "musl_memcpy":
-		d, s := f.expr(stripCasts(args[0])), f.expr(stripCasts(args[1]))
+		d, s := f.memArg(args[0]), f.memArg(args[1])
 		et := elemOfGo(f.g.canon(d.t))
 		dt := "Ptr[" + et + "]"
 		elem := elemCType(stripCasts(args[0]))
 		return val{s: "Memmove(" + f.conv(d, dt) + ", " + f.conv(s, dt) + ", " + f.sizeCount(args[2], elem) + ")", t: dt, c: x.Type()}
 	case "musl_memset":
-		d := f.expr(stripCasts(args[0]))
+		d := f.memArg(args[0])
 		c := f.expr(args[1])
 		elem := elemCType(stripCasts(args[0]))
 		if isByteType(elem) {
 			return val{s: "Memset(" + f.conv(d, "Ptr[byte]") + ", " + f.conv(c, "int32") + ", " + f.sizeCount(args[2], elem) + ")", t: "Ptr[byte]", c: x.Type()}
 		}
-		if c.s == "0" {
+		if isZeroConst(args[1]) {
 			dt := f.g.canon(d.t)
 			switch {
 			case strings.HasPrefix(dt, "*"):
@@ -953,16 +1002,34 @@ func (f *fnEmit) call(x *cc.PostfixExpression, to string) val {
 				return val{s: "", t: ""}
 			case strings.HasPrefix(dt, "Ptr["):
 				return val{s: "Zero(" + d.s + ", " + f.sizeCount(args[2], elem) + ")", t: "", c: x.Type()}
+			case strings.HasPrefix(dt, "["):
+				f.line("%s = %s{}", d.s, d.t)
+				return val{s: "", t: ""}
 			}
 		}
-		f.no(x, "a memset of a %s", d.t)
+		// every byte of every element is the fill byte
+		f.fill(d, c, args[2], elem, x)
+		return val{s: "", t: ""}
 	case "musl_memcmp":
-		a, b := f.expr(stripCasts(args[0])), f.expr(stripCasts(args[1]))
+		if e := elemCType(stripCasts(args[0])); e != nil && (e.Kind() == cc.Struct || e.Kind() == cc.Union) {
+			// two structs compared whole, where only equality is asked
+			a, b := f.memArg(args[0]), f.memArg(args[1])
+			if f.sizeCount(args[2], e) != "1" {
+				f.no(x, "a memcmp of more than one struct")
+			}
+			return val{s: "B2i(" + f.conv(a, "*"+elemOfGo(a.t)) + " != " + f.conv(b, "*"+elemOfGo(a.t)) + ")", t: "int32", c: x.Type()}
+		}
+		a, b := f.memArg(args[0]), f.memArg(args[1])
 		return val{s: "Memcmp(" + f.conv(a, "Ptr[byte]") + ", " + f.conv(b, "Ptr[byte]") + ", " + f.index(f.expr(args[2])) + ")", t: "int32", c: x.Type()}
+	case "__builtin_expect":
+		return f.exprTo(args[0], to)
 	case "alloc", "alloc_clear", "lalloc", "lalloc_clear":
 		var elem cc.Type
-		if strings.HasPrefix(to, "Ptr[byte]") || to == "" {
-			elem = nil
+		if !strings.HasPrefix(f.g.canon(to), "Ptr[byte]") && to != "" && to != "any" {
+			elem = sizeofElem(args[0])
+			if elem == nil {
+				f.no(x, "an allocation of no element type for a %s", to)
+			}
 		}
 		return f.alloc(x, elem, to)
 	}
@@ -997,8 +1064,13 @@ func (f *fnEmit) call(x *cc.PostfixExpression, to string) val {
 	var as []string
 	for i, a := range args {
 		if i < len(ps) {
-			pt := f.g.goType(ps[i].Type(), fmt.Sprintf("%s:%d", key, i))
+			pkey := fmt.Sprintf("%s:%d", key, i)
+			pt := f.g.goType(ps[i].Type(), pkey)
 			v := f.exprTo(a, pt)
+			if strings.HasPrefix(pt, "func(") && strings.HasPrefix(v.t, "func(") && f.g.canon(v.t) != f.g.canon(pt) {
+				as = append(as, f.adapter(a, ps[i].Type(), pkey, v))
+				continue
+			}
 			as = append(as, f.conv(v, pt))
 			continue
 		}
@@ -1099,4 +1171,139 @@ func (f *fnEmit) exprStmt(e cc.ExpressionNode) {
 	if v.s != "" {
 		f.line("_ = %s", v.s)
 	}
+}
+
+func isZeroConst(e cc.ExpressionNode) bool {
+	switch v := unparenE(e).Value().(type) {
+	case cc.Int64Value:
+		return v == 0
+	case cc.UInt64Value:
+		return v == 0
+	}
+	return false
+}
+
+// sizeofElem is T in sizeof(T), k * sizeof(T) or sizeof(T) * k.
+func sizeofElem(n cc.ExpressionNode) cc.Type {
+	st := func(e cc.ExpressionNode) cc.Type {
+		u, ok := unparenE(e).(*cc.UnaryExpression)
+		if !ok {
+			return nil
+		}
+		switch u.Case {
+		case cc.UnaryExpressionSizeofType:
+			return u.TypeName.Type()
+		case cc.UnaryExpressionSizeofExpr:
+			return u.UnaryExpression.Type()
+		}
+		return nil
+	}
+	if t := st(n); t != nil {
+		return t
+	}
+	if m, ok := unparenE(n).(*cc.MultiplicativeExpression); ok && m.Case == cc.MultiplicativeExpressionMul {
+		if t := st(m.MultiplicativeExpression); t != nil {
+			return t
+		}
+		return st(m.CastExpression)
+	}
+	return nil
+}
+
+// memArg is an argument of a function of bytes, seen through its casts; a
+// growarray's storage is read as the type the cast gave it.
+func (f *fnEmit) memArg(a cc.ExpressionNode) val {
+	s := stripCasts(a)
+	if x, ok := unparenE(s).(*cc.PostfixExpression); ok && memberOf(x) == "ga_data" {
+		et := "byte"
+		if e := elemCType(unparenE(a)); e != nil && !isByteType(e) && e.Kind() != cc.Void {
+			et = f.g.goType(e, "")
+		}
+		return f.gadataGo(x, et)
+	}
+	return f.expr(s)
+}
+
+// repeated is the byte expression b repeated through an integer of k bytes.
+func repeated(b string, k int64) string {
+	switch k {
+	case 1:
+		return b
+	case 2:
+		return "uint16(" + b + ")*0x0101"
+	case 4:
+		return "uint32(" + b + ")*0x01010101"
+	}
+	return "uint64(" + b + ")*0x0101010101010101"
+}
+
+// fill is memset(p, c, n) of elements that are not bytes: every byte of each
+// element is c's low byte, field by field for a struct of integers.
+func (f *fnEmit) fill(d, c val, n cc.ExpressionNode, elem cc.Type, at cc.Node) {
+	count := f.sizeCount(n, elem)
+	if !strings.HasPrefix(f.g.canon(d.t), "Ptr[") {
+		f.no(at, "a fill of a %s", d.t)
+	}
+	b := f.newTemp("byte")
+	f.line("%s = %s", b, f.conv(c, "byte"))
+	i := f.newTemp("int")
+	f.line("for %s = 0; %s < %s; %s++ {", i, i, count, i)
+	switch {
+	case scalar(elem) != "" && elem.Kind() != cc.Float && elem.Kind() != cc.Double:
+		et := elemOfGo(d.t)
+		f.line("	%s.Set(%s, %s(%s))", d.s, i, et, repeated(b, elem.Size()))
+	case elem.Kind() == cc.Struct:
+		st := elem.(*cc.StructType)
+		for k := 0; k < st.NumFields(); k++ {
+			fl := st.FieldByIndex(k)
+			if scalar(fl.Type()) == "" {
+				f.no(at, "a fill of a struct with a %s", fl.Type())
+			}
+			f.line("	%s.Ref(%s).%s = %s(%s)", d.s, i, GoName(fl.Name()), f.g.goType(fl.Type(), fieldKey(fl)), repeated(b, fl.Type().Size()))
+		}
+	default:
+		f.no(at, "a fill of %s", elem)
+	}
+	f.line("}")
+}
+
+// adapter is a function passed where a function pointer of another Go type
+// is wanted -- the skeleton gave their parameters different pointer kinds --
+// as a closure that converts each argument.
+func (f *fnEmit) adapter(a cc.ExpressionNode, pt cc.Type, pkey string, v val) string {
+	p, ok := unparenE(a).(*cc.PrimaryExpression)
+	if !ok || p.Case != cc.PrimaryExpressionIdent {
+		f.no(a, "a function pointer of another type that is not a function")
+	}
+	src := calleeNameOf(p)
+	if src == "" {
+		f.no(a, "a function pointer of another type that is not a function")
+	}
+	tf, _ := pt.(*cc.PointerType).Elem().(*cc.FunctionType)
+	sf, _ := p.ResolvedTo().(*cc.Declarator).Type().(*cc.FunctionType)
+	if tf == nil || sf == nil || len(tf.Parameters()) != len(sf.Parameters()) {
+		f.no(a, "an adapter between functions of different arity")
+	}
+	var params, args []string
+	for j, tp := range tf.Parameters() {
+		tt := f.g.goType(tp.Type(), fmt.Sprintf("fp:%s:%d", pkey, j))
+		st := f.g.goType(sf.Parameters()[j].Type(), fmt.Sprintf("param:%s:%d", src, j))
+		n := fmt.Sprintf("a%d", j)
+		params = append(params, n+" "+tt)
+		args = append(args, f.conv(val{s: n, t: tt}, st))
+	}
+	rt := f.g.goType(tf.Result(), "ret:fp:"+pkey)
+	sr := f.g.goType(sf.Result(), "ret:"+src)
+	call := GoName(src) + "(" + strings.Join(args, ", ") + ")"
+	if rt == "" {
+		return "func(" + strings.Join(params, ", ") + ") { " + call + " }"
+	}
+	return "func(" + strings.Join(params, ", ") + ") " + rt + " { return " + f.conv(val{s: call, t: sr}, rt) + " }"
+}
+
+func calleeNameOf(p *cc.PrimaryExpression) string {
+	if d, ok := p.ResolvedTo().(*cc.Declarator); ok && d.Type() != nil && d.Type().Kind() == cc.Function {
+		return p.Token.SrcStr()
+	}
+	return ""
 }

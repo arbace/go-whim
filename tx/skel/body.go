@@ -35,7 +35,9 @@ type val struct {
 	c       cc.Type
 	konst   bool
 	boolean bool
-	null    bool // C's null pointer constant
+	null    bool  // C's null pointer constant
+	cv      int64 // a constant's C value
+	hasCv   bool
 }
 
 type local struct {
@@ -77,12 +79,24 @@ func (g *gen) canon(t string) string {
 			}
 		}
 	}
+	switch {
+	case strings.HasPrefix(t, "*"):
+		return "*" + g.canon(t[1:])
+	case strings.HasPrefix(t, "Ptr[") && strings.HasSuffix(t, "]"):
+		return "Ptr[" + g.canon(t[4:len(t)-1]) + "]"
+	case strings.HasPrefix(t, "[") && strings.Contains(t, "]"):
+		i := strings.Index(t, "]")
+		return t[:i+1] + g.canon(t[i+1:])
+	}
 	for i := 0; i < 8; i++ {
 		v, ok := g.aliasOf[t]
 		if !ok {
 			break
 		}
 		t = v
+	}
+	if t != "" && t != "any" && (strings.HasPrefix(t, "*") || strings.HasPrefix(t, "Ptr[") || strings.HasPrefix(t, "[")) {
+		return g.canon(t)
 	}
 	return t
 }
@@ -223,15 +237,32 @@ func (f *fnEmit) conv(v val, to string) string {
 		}
 		return to + "(B2i(" + v.s + "))"
 	}
+	if from == "bool" && isIntGo(want) {
+		if want == "int32" {
+			return "B2i(" + v.s + ")"
+		}
+		return to + "(B2i(" + v.s + "))"
+	}
 	if want == "bool" && !v.boolean {
 		return "(" + f.truth(v) + ")"
 	}
 	if from == want {
 		return v.s
 	}
+	if v.konst && v.hasCv && v.cv == 0 && (strings.HasPrefix(want, "Ptr[") || strings.HasPrefix(want, "*")) {
+		return f.conv(val{s: "nil", t: to, null: true}, to) // a 0 is a null pointer constant
+	}
 	if v.konst && (isIntGo(want) || want == "bool") {
-		if c := constValue(v.c, v); c != "" && isIntGo(want) {
-			return c
+		if k, ok := ikOf[want]; ok && v.hasCv && !k.signed && v.cv < 0 {
+			// a negative constant made unsigned: its value, as C converts it
+			u := uint64(v.cv)
+			if k.size < 8 {
+				u &= 1<<(8*k.size) - 1
+			}
+			return strconv.FormatUint(u, 10)
+		}
+		if want == "usize" && v.hasCv && v.cv < 0 {
+			return strconv.FormatUint(uint64(v.cv), 10)
 		}
 		return v.s
 	}
@@ -252,12 +283,6 @@ func (f *fnEmit) conv(v val, to string) string {
 		return v.s
 	}
 	f.no(nil, "no conversion from %s to %s for %s", v.t, to, v.s)
-	return ""
-}
-
-// constValue is a constant as a Go literal of its C value when it would not
-// fit the Go type as written (a negative constant made unsigned).
-func constValue(t cc.Type, v val) string {
 	return ""
 }
 
@@ -368,8 +393,8 @@ func (f *fnEmit) ident(x *cc.PrimaryExpression) val {
 			l.read = true
 			return val{s: l.name, t: l.typ, c: t}
 		}
-		if t.Kind() == cc.Function {
-			return val{s: GoName(d.Name()), t: f.g.goType(t, d.Name()), c: t}
+		if ft, ok := t.(*cc.FunctionType); ok {
+			return val{s: GoName(d.Name()), t: f.g.funcSig(d.Name(), ft), c: t}
 		}
 		key := f.g.a.declKey(d)
 		if strings.HasPrefix(key, "static:") {
@@ -400,3 +425,22 @@ func (f *fnEmit) ident(x *cc.PrimaryExpression) val {
 
 var _ = sort.Strings
 var _ = strconv.Itoa
+
+// funcSig is a defined function's Go type, from its own parameters' classes.
+func (g *gen) funcSig(name string, ft *cc.FunctionType) string {
+	var ps []string
+	for i, p := range ft.Parameters() {
+		if p.Type() != nil && p.Type().Kind() == cc.Void {
+			continue
+		}
+		ps = append(ps, g.goType(p.Type(), fmt.Sprintf("param:%s:%d", name, i)))
+	}
+	if ft.IsVariadic() {
+		ps = append(ps, "...any")
+	}
+	s := "func(" + strings.Join(ps, ", ") + ")"
+	if r := g.goType(ft.Result(), "ret:"+name); r != "" {
+		s += " " + r
+	}
+	return s
+}

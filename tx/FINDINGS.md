@@ -170,21 +170,36 @@ place of the hand-written one in a copy of `editor/`, builds it, and takes
 back the hand-written body of any function the compiler rejects, until the
 copy builds.
 
-The first measurement, on phase 162's core:
-- the emitter writes 1,587 of the 1,693 functions it is asked for (the runtime's
-  own `alloc`, the byte functions and `ga_grow_inner()` are `crt.go`'s);
-- the build keeps 1,549 of those, 87% of `editor.go`'s 1,783 functions, and
-  358 are the hand-written function exactly, after gofmt;
-- **the copy with those 1,549 emitted functions passes
-  `tools/zerodelta.sh --phase 162` exactly as declared**: 102 screen cases, 16
-  memline cases, 111 Ex rows and 30 command lines.
+Measured on phase 162's core:
+- the emitter writes all 1,693 functions it is asked for. The runtime's own
+  `alloc`, the byte functions and `ga_grow_inner()` belong to `crt.go`;
+- the build keeps all 1,693. 362 are the hand-written function exactly, after
+  gofmt; the rest differ in form: hoisted locals, explicit conversions,
+  temporaries;
+- **the copy with every body emitted passes `tools/zerodelta.sh --phase 162`
+  exactly as declared**: 102 screen cases, 16 memline cases, 111 Ex rows and
+  30 command lines. The control is refused: the same copy with one message
+  word changed.
 
-What is left is the emitter's to-do list:
-- 106 functions stop the emitter. Most are case labels written as constant
-  expressions, braced initializers other than `{0}`, and allocations assigned
-  without a cast;
-- the compiler rejects 38, most of them for a pointer to a pointer
-  dereferenced as `*p`.
+What is still written by hand:
+- the global variables' initial values (`editor.go`'s `init()` functions);
+- the runtime and the host (`crt.go`, `host.go`), which are fixed by design;
+- a few helpers the hand transpilation introduced.
+
+Emitting the initializers is the next step. After that, `editor.go` can be
+generated whole and compared with the hand-written file.
+
+Each rule of the emitter was found by the same loop: splice, record the
+screen cases (under a second), and read the panic trace of a case that moved.
+Among the rules:
+- cc's `Unknown` value is not a constant;
+- `&a[i]` of a Go array is a view that can walk, not `Addr`;
+- a growarray's storage read without a cast is still `GaData[T]`, because it
+  is made lazily;
+- a constant with `~` is written as its C value;
+- `memset` of a non-zero byte into wider elements repeats the byte;
+- a function passed where the skeleton gave its parameters other pointer
+  kinds goes through an adapter closure.
 
 ## The transpilation, brought to phase 149
 

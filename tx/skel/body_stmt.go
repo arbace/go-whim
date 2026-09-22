@@ -100,31 +100,92 @@ func (f *fnEmit) declaration(d *cc.Declaration) {
 			v := f.exprTo(id.Initializer.AssignmentExpression, typ)
 			f.line("%s = %s", lc.name, f.conv(v, typ))
 		case cc.InitializerInitList:
-			if !zeroInit(id.Initializer) {
-				f.no(dd, "a braced initializer that is not {0}")
-			}
-			if !strings.HasPrefix(typ, "Ptr[") {
-				f.line("%s = %s{}", lc.name, typ)
+			switch {
+			case zeroInit(id.Initializer):
+				if !strings.HasPrefix(typ, "Ptr[") {
+					f.line("%s = %s{}", lc.name, typ)
+				}
+			case strings.HasPrefix(typ, "Ptr["):
+				at, ok := t.(*cc.ArrayType)
+				if !ok {
+					f.no(dd, "a braced initializer for a pointer")
+				}
+				et := elemOfGo(typ)
+				for i, in := range listItems(f, id.Initializer) {
+					if zeroInit(in) {
+						continue
+					}
+					f.line("%s.Set(%d, %s)", lc.name, i, f.initValue(et, at.Elem(), "elem:"+key, in))
+				}
+			default:
+				f.line("%s = %s", lc.name, f.initValue(typ, t, key, id.Initializer))
 			}
 		}
 	}
 }
 
-// zeroInit says a braced initializer is {0} or {}.
+// zeroInit says an initializer is all zeros and nulls: {0}, {}, {0, nullptr}.
 func zeroInit(in *cc.Initializer) bool {
-	l := in.InitializerList
-	if l == nil {
-		return true
+	if in.Case == cc.InitializerExpr {
+		return isZeroConst(in.AssignmentExpression) || isNullConst(in.AssignmentExpression)
 	}
-	if l.InitializerList != nil || l.Designation != nil {
-		return false
+	for l := in.InitializerList; l != nil; l = l.InitializerList {
+		if l.Designation != nil || !zeroInit(l.Initializer) {
+			return false
+		}
 	}
-	i := l.Initializer
-	if i.Case == cc.InitializerInitList {
-		return zeroInit(i)
+	return true
+}
+
+// listItems are a braced initializer's elements, in order; a designator
+// stops the function.
+func listItems(f *fnEmit, in *cc.Initializer) []*cc.Initializer {
+	var r []*cc.Initializer
+	for l := in.InitializerList; l != nil; l = l.InitializerList {
+		if l.Designation != nil {
+			f.no(in, "a designated initializer")
+		}
+		r = append(r, l.Initializer)
 	}
-	v := i.AssignmentExpression.Value()
-	return v != nil && fmt.Sprint(v) == "0"
+	return r
+}
+
+// initValue is an initializer as a Go value of type typ.
+func (f *fnEmit) initValue(typ string, t cc.Type, key string, in *cc.Initializer) string {
+	if in.Case == cc.InitializerExpr {
+		v := f.exprTo(in.AssignmentExpression, typ)
+		return f.conv(v, typ)
+	}
+	if zeroInit(in) {
+		return typ + "{}"
+	}
+	items := listItems(f, in)
+	var parts []string
+	switch x := t.(type) {
+	case *cc.StructType:
+		for i, it := range items {
+			fl := x.FieldByIndex(i)
+			if fl == nil {
+				f.no(in, "more initializers than fields")
+			}
+			ft := f.g.goType(fl.Type(), fieldKey(fl))
+			parts = append(parts, GoName(fl.Name())+": "+f.initValue(ft, fl.Type(), fieldKey(fl), it))
+		}
+	case *cc.ArrayType:
+		if !strings.HasPrefix(typ, "[") {
+			f.no(in, "an array initializer for a %s", typ)
+		}
+		et := elemOfGo(typ)
+		for _, it := range items {
+			parts = append(parts, f.initValue(et, x.Elem(), "elem:"+key, it))
+		}
+	default:
+		if len(items) == 1 {
+			return f.initValue(typ, t, key, items[0])
+		}
+		f.no(in, "a braced initializer for a %s", t)
+	}
+	return typ + "{" + strings.Join(parts, ", ") + "}"
 }
 
 func (f *fnEmit) selection(s *cc.SelectionStatement) {
@@ -137,7 +198,15 @@ func (f *fnEmit) selection(s *cc.SelectionStatement) {
 			el := s.Statement2
 			if el.Case == cc.StatementSelection && el.SelectionStatement.Case != cc.SelectionStatementSwitch {
 				var c2 string
+				nl, nt := len(f.locals), f.tmp
 				pre := f.capture(func() { c2 = f.condition(el.SelectionStatement.ExpressionList) })
+				if pre != "" {
+					// not an else-if: what the condition made is made again below
+					for _, l := range f.locals[nl:] {
+						delete(f.taken, l.name)
+					}
+					f.locals, f.tmp = f.locals[:nl], nt
+				}
 				if pre == "" {
 					f.line("} else if %s {", c2)
 					s = el.SelectionStatement
