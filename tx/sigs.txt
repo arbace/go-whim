@@ -1333,6 +1333,8 @@ func reg_save_equal(save *regsave_T) int32
 func save_se_multi(savep *save_se_T, posp Ptr[lpos_T])
 func save_se_one(savep *save_se_T, pp Ptr[Ptr[byte]])
 func regrepeat(p Ptr[byte], maxcount int64) int32
+func regstack_star_top() Ptr[S_regstar_S]
+func regstack_behind_top() Ptr[S_regbehind_S]
 func regstack_push(state regstate_T, scan Ptr[byte]) Ptr[S_regitem_S]
 func regstack_pop(scan *Ptr[byte])
 func save_subexpr(bp Ptr[S_regbehind_S])

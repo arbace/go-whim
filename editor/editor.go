@@ -8,9 +8,9 @@
 // The types, globals and every signature were generated from editor.c by
 // tx/skel (modernc.org/cc/v4); the function bodies and initial values were
 // written by hand, to tx/CONVENTIONS.md.  It is the transpilation of phase
-// 149's core: the 185 functions phases 129-149 changed were re-transpiled from
+// 150's core: the functions phases 129-150 changed were re-transpiled from
 // their new C, the rest carried over.  Measured: built with `go build
-// ./editor`, tools/zerodelta.sh --phase 149 accepts it -- 102 screen cases,
+// ./editor`, tools/zerodelta.sh --phase 150 accepts it -- 102 screen cases,
 // 111 Ex rows, 30 command lines, the pty scenarios, 19 terminals and the
 // memline corpus, exactly as declared.
 
@@ -2981,6 +2981,9 @@ var one_exactly int32
 var classchars Ptr[byte]
 var classcodes [27]int32
 var regstack S_growarray
+var regstack_star S_growarray
+var regstack_behind S_growarray
+var regstack_bytes int32
 var backpos S_growarray
 var behind_pos regsave_T
 var bl_minval int64
@@ -45117,11 +45120,12 @@ exit:
 // can equal.
 var f13_JUST_CALC_SIZE = Mk[byte](1)
 
-// The C regstack is one byte array holding regitem_T, regstar_T and
-// regbehind_T back to back; ga_len counts bytes (and p_mmp limits them).  Go
-// cannot overlay structs on bytes, so the growarray keeps C's byte accounting
-// with C's x86-64 struct sizes, and each struct lives in f13_regstack_objs,
-// keyed by the byte offset where C would have put it.
+// sizeof(regitem_T), sizeof(regstar_T), sizeof(regbehind_T) and
+// sizeof(backpos_T): C's x86-64 struct sizes.  The three regexp stacks are
+// typed growarrays, but regstack_bytes keeps the byte count C's does -- the
+// sum of these sizes over what the stacks hold -- because 'maxmempattern'
+// (E363) is measured against it; regstack's itemsize and REGSTACK_INITIAL /
+// sizeof(regitem_T) use them too.
 const (
 	f13_sizeof_regitem   = 40
 	f13_sizeof_regstar   = 32
@@ -45129,24 +45133,11 @@ const (
 	f13_sizeof_backpos   = 32
 )
 
-var f13_regstack_objs = map[int32]any{}
-
-// f13_regstack_top is (regitem_T *)((char *)regstack.ga_data + regstack.ga_len) - 1.
-func f13_regstack_top() Ptr[regitem_T] {
-	if o, ok := f13_regstack_objs[regstack.ga_len-f13_sizeof_regitem].(*regitem_T); ok {
-		return Addr(o)
-	}
-	return Ptr[regitem_T]{}
+func regstack_star_top() Ptr[S_regstar_S] {
+	return GaData[regstar_T](&regstack_star).Add(int(regstack_star.ga_len - 1))
 }
-
-// f13_regstar_below is ((regstar_T *)rp) - 1 for the item at byte offset off.
-func f13_regstar_below(off int32) *regstar_T {
-	return f13_regstack_objs[off-f13_sizeof_regstar].(*regstar_T)
-}
-
-// f13_regbehind_below is ((regbehind_T *)rp) - 1 for the item at byte offset off.
-func f13_regbehind_below(off int32) *regbehind_T {
-	return f13_regstack_objs[off-f13_sizeof_regbehind].(*regbehind_T)
+func regstack_behind_top() Ptr[S_regbehind_S] {
+	return GaData[regbehind_T](&regstack_behind).Add(int(regstack_behind.ga_len - 1))
 }
 
 // f13_magic_arg is the `cond ? "" : "\\"` argument of the EMSG2 macros.
@@ -46948,36 +46939,34 @@ func regrepeat(p Ptr[byte], maxcount int64) int32 {
 	return int32(count)
 }
 
-// regstack_push: the item lives in f13_regstack_objs at its byte offset.
 func regstack_push(state regstate_T, scan Ptr[byte]) Ptr[S_regitem_S] {
-	var rp *regitem_T
+	var rp Ptr[regitem_T]
 
-	if int64(uint32(regstack.ga_len)>>10) >= p_mmp {
+	if int64(uint32(regstack_bytes)>>10) >= p_mmp {
 		emsg(gettext_(e_pattern_uses_more_memory_than_maxmempattern))
 		return Ptr[S_regitem_S]{}
 	}
-	if regstack.ga_maxlen-regstack.ga_len < f13_sizeof_regitem {
-		if ga_grow_inner(&regstack, f13_sizeof_regitem) == FAIL {
-			return Ptr[S_regitem_S]{}
-		}
+	if ga_grow(&regstack, 1) == FAIL {
+		return Ptr[S_regitem_S]{}
 	}
 
-	rp = new(regitem_T)
-	f13_regstack_objs[regstack.ga_len] = rp
-	rp.rs_state = state
-	rp.rs_scan = scan
+	rp = GaData[regitem_T](&regstack).Add(int(regstack.ga_len))
+	rp.P().rs_state = state
+	rp.P().rs_scan = scan
 
-	regstack.ga_len += f13_sizeof_regitem
-	return Addr(rp)
+	regstack.ga_len++
+	regstack_bytes += f13_sizeof_regitem
+	return rp
 }
 
 func regstack_pop(scan *Ptr[byte]) {
 	var rp Ptr[regitem_T]
 
-	rp = f13_regstack_top()
+	rp = GaData[regitem_T](&regstack).Add(int(regstack.ga_len - 1))
 	*scan = rp.P().rs_scan
 
-	regstack.ga_len -= f13_sizeof_regitem
+	regstack.ga_len--
+	regstack_bytes -= f13_sizeof_regitem
 }
 
 func save_subexpr(bp Ptr[S_regbehind_S]) {
@@ -47018,9 +47007,6 @@ func restore_subexpr(bp Ptr[S_regbehind_S]) {
 	}
 }
 
-// regmatch: the regstack's regstar_T and regbehind_T below an item are
-// reached through f13_regstar_below/f13_regbehind_below at the item's byte
-// offset, where C casts the item pointer and subtracts one.
 func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 	var next Ptr[byte]
 	var op int32
@@ -47032,6 +47018,9 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 	_ = timed_out
 
 	regstack.ga_len = 0
+	regstack_star.ga_len = 0
+	regstack_behind.ga_len = 0
+	regstack_bytes = 0
 	backpos.ga_len = 0
 
 	for {
@@ -47711,16 +47700,16 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 							enough = rst.count >= rst.maxval
 						}
 						if enough {
-							if int64(uint32(regstack.ga_len)>>10) >= p_mmp {
+							if int64(uint32(regstack_bytes)>>10) >= p_mmp {
 								emsg(gettext_(e_pattern_uses_more_memory_than_maxmempattern))
 								status = RA_FAIL
-							} else if regstack.ga_maxlen-regstack.ga_len < f13_sizeof_regstar && ga_grow_inner(&regstack, f13_sizeof_regstar) == FAIL {
+							} else if ga_grow(&regstack_star, 1) == FAIL {
 								status = RA_FAIL
 							} else {
 								var state regstate_T
-								staroff := regstack.ga_len
 
-								regstack.ga_len += f13_sizeof_regstar
+								regstack_star.ga_len++
+								regstack_bytes += f13_sizeof_regstar
 								if rst.minval <= rst.maxval {
 									state = RS_STAR_LONG
 								} else {
@@ -47730,8 +47719,7 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 								if rp.Nil() {
 									status = RA_FAIL
 								} else {
-									saved := rst
-									f13_regstack_objs[staroff] = &saved // *(((regstar_T *)rp) - 1) = rst
+									regstack_star_top().Put(rst)
 									status = RA_BREAK
 								}
 							}
@@ -47751,20 +47739,19 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					}
 
 				case BEHIND, NOBEHIND:
-					if int64(uint32(regstack.ga_len)>>10) >= p_mmp {
+					if int64(uint32(regstack_bytes)>>10) >= p_mmp {
 						emsg(gettext_(e_pattern_uses_more_memory_than_maxmempattern))
 						status = RA_FAIL
-					} else if regstack.ga_maxlen-regstack.ga_len < f13_sizeof_regbehind && ga_grow_inner(&regstack, f13_sizeof_regbehind) == FAIL {
+					} else if ga_grow(&regstack_behind, 1) == FAIL {
 						status = RA_FAIL
 					} else {
-						behind := new(regbehind_T)
-						f13_regstack_objs[regstack.ga_len] = behind // ((regbehind_T *)rp) - 1
-						regstack.ga_len += f13_sizeof_regbehind
+						regstack_behind.ga_len++
+						regstack_bytes += f13_sizeof_regbehind
 						rp = regstack_push(RS_BEHIND1, scan)
 						if rp.Nil() {
 							status = RA_FAIL
 						} else {
-							save_subexpr(Addr(behind))
+							save_subexpr(regstack_behind_top())
 
 							rp.P().rs_no = int16(op)
 							reg_save(&rp.P().rs_un.regsave, &backpos)
@@ -47873,8 +47860,7 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 		}
 
 		for regstack.ga_len > 0 && status != RA_FAIL {
-			rp = f13_regstack_top()
-			rpoff := regstack.ga_len - f13_sizeof_regitem
+			rp = GaData[regitem_T](&regstack).Add(int(regstack.ga_len - 1))
 			switch rp.P().rs_state {
 			case RS_NOPEN:
 				regstack_pop(&scan)
@@ -47968,12 +47954,12 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 			case RS_BEHIND1:
 				if status == RA_NOMATCH {
 					regstack_pop(&scan)
-					regstack.ga_len -= f13_sizeof_regbehind
+					regstack_behind.ga_len--
+					regstack_bytes -= f13_sizeof_regbehind
 				} else {
-					bh := f13_regbehind_below(rpoff)
-					reg_save(&bh.save_after, &backpos)
+					reg_save(&regstack_behind_top().P().save_after, &backpos)
 
-					bh.save_behind = behind_pos
+					regstack_behind_top().P().save_behind = behind_pos
 					behind_pos = rp.P().rs_un.regsave
 
 					rp.P().rs_state = RS_BEHIND2
@@ -47983,17 +47969,17 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 				}
 
 			case RS_BEHIND2:
-				bh := f13_regbehind_below(rpoff)
 				if status == RA_MATCH && reg_save_equal(&behind_pos) != 0 {
-					behind_pos = bh.save_behind
+					behind_pos = regstack_behind_top().P().save_behind
 					if int32(rp.P().rs_no) == BEHIND {
-						reg_restore(&bh.save_after, &backpos)
+						reg_restore(&regstack_behind_top().P().save_after, &backpos)
 					} else {
 						status = RA_NOMATCH
-						restore_subexpr(Addr(bh))
+						restore_subexpr(regstack_behind_top())
 					}
 					regstack_pop(&scan)
-					regstack.ga_len -= f13_sizeof_regbehind
+					regstack_behind.ga_len--
+					regstack_bytes -= f13_sizeof_regbehind
 				} else {
 					var limit int64
 					rs := &rp.P().rs_un.regsave
@@ -48041,31 +48027,33 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 						scan = rp.P().rs_scan.Add(3).Add(4)
 						if status == RA_MATCH {
 							status = RA_NOMATCH
-							restore_subexpr(Addr(bh))
+							restore_subexpr(regstack_behind_top())
 						}
 					} else {
-						behind_pos = bh.save_behind
+						behind_pos = regstack_behind_top().P().save_behind
 						if int32(rp.P().rs_no) == NOBEHIND {
-							reg_restore(&bh.save_after, &backpos)
+							reg_restore(&regstack_behind_top().P().save_after, &backpos)
 							status = RA_MATCH
 						} else {
 							if status == RA_MATCH {
 								status = RA_NOMATCH
-								restore_subexpr(Addr(bh))
+								restore_subexpr(regstack_behind_top())
 							}
 						}
 						regstack_pop(&scan)
-						regstack.ga_len -= f13_sizeof_regbehind
+						regstack_behind.ga_len--
+						regstack_bytes -= f13_sizeof_regbehind
 					}
 				}
 
 			case RS_STAR_LONG, RS_STAR_SHORT:
 				{
-					var rst *regstar_T = f13_regstar_below(rpoff)
+					var rst *regstar_T = regstack_star_top().P()
 
 					if status == RA_MATCH {
 						regstack_pop(&scan)
-						regstack.ga_len -= f13_sizeof_regstar
+						regstack_star.ga_len--
+						regstack_bytes -= f13_sizeof_regstar
 						break
 					}
 
@@ -48117,13 +48105,14 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					}
 					if status != RA_CONT {
 						regstack_pop(&scan)
-						regstack.ga_len -= f13_sizeof_regstar
+						regstack_star.ga_len--
+						regstack_bytes -= f13_sizeof_regstar
 						status = RA_NOMATCH
 					}
 				}
 			}
 
-			if status == RA_CONT || rp == f13_regstack_top() {
+			if status == RA_CONT || rp == GaData[regitem_T](&regstack).Add(int(regstack.ga_len-1)) {
 				break
 			}
 		}
@@ -48173,7 +48162,8 @@ func regtry(prog *S_regprog, col colnr_T, timed_out *int32) int64 {
 }
 
 // bt_regexec_both: the regstack's storage is made at once (GaData) so that
-// `regstack.ga_data == NULL` means what it means in C.
+// `regstack.ga_data == NULL` means what it means in C.  REGSTACK_INITIAL /
+// sizeof(regitem_T) is C's size_t division with regitem_T's x86-64 size.
 func bt_regexec_both(line Ptr[byte], startcol colnr_T, timed_out *int32) int64 {
 	var prog *S_regprog
 	var s Ptr[byte]
@@ -48181,10 +48171,12 @@ func bt_regexec_both(line Ptr[byte], startcol colnr_T, timed_out *int32) int64 {
 	var retval int64 = 0
 
 	if regstack.ga_data == nil {
-		ga_init2(&regstack, 1, REGSTACK_INITIAL)
-		ga_grow(&regstack, REGSTACK_INITIAL)
-		GaData[byte](&regstack)
-		regstack.ga_growsize = REGSTACK_INITIAL * 8
+		ga_init2(&regstack, f13_sizeof_regitem, int32(REGSTACK_INITIAL/f13_sizeof_regitem))
+		ga_grow(&regstack, int32(REGSTACK_INITIAL/f13_sizeof_regitem))
+		GaData[regitem_T](&regstack)
+		regstack.ga_growsize = int32(REGSTACK_INITIAL * 8 / f13_sizeof_regitem)
+		ga_init2(&regstack_star, f13_sizeof_regstar, 16)
+		ga_init2(&regstack_behind, f13_sizeof_regbehind, 4)
 	}
 
 	if backpos.ga_data == nil {
@@ -48311,7 +48303,7 @@ theend:
 	if reg_tofreelen > 400 {
 		reg_tofree = Ptr[byte]{}
 	}
-	if regstack.ga_maxlen > REGSTACK_INITIAL {
+	if regstack.ga_maxlen > int32(REGSTACK_INITIAL/f13_sizeof_regitem) {
 		ga_clear(&regstack)
 	}
 	if backpos.ga_maxlen > BACKPOS_INITIAL {

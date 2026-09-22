@@ -1,14 +1,14 @@
 # editor.c → editor.go: what the transpilation found
 
-`editor/editor.go` is `editor.c` transpiled by hand, faithfully. Its 1,687 C
-functions are Go functions with the same names and control flow: 60,889 lines,
+`editor/editor.go` is `editor.c` transpiled by hand, faithfully. Its 1,689 C
+functions are Go functions with the same names and control flow: 60,883 lines,
 plus `editor/crt.go` (the C runtime it is written against, 274 lines) and
 `editor/host.go` (the host, from the Go runtime, 1,704 lines). It follows
-phase 149's core; how it got there from the first pass, which followed phase
+phase 150's core; how it got there from the first pass, which followed phase
 128's, is the section *The transpilation, brought to phase 149*.
 
 **It works.** `go build ./editor` gives an editor that `tools/zerodelta.sh …
---phase 149` accepts as exactly phase 149's declared delta: 102 screen cases,
+--phase 150` accepts as exactly phase 150's declared delta: 102 screen cases,
 111 Ex rows, 30 command lines, the pty scenarios, 19 terminals and the memline
 corpus. The first pass was measured the same way against phase 128, and
 there, byte for byte against the C binary's 122 files. The control: the same
@@ -133,6 +133,13 @@ Measured: `go build ./editor` gives an editor that `tools/zerodelta.sh …
 functions for the core's 1,687 plus its helpers, down from 61,883. The control,
 the same build with the ruler's `All` spelled `ALL`, is refused: the screen
 cases, the memline corpus and the Ex rows move.
+
+Phase 150 followed the same way. Its six functions were re-transpiled, and
+the regstack side table `f13_regstack_objs`, with its three offset lookups, is
+gone. The three `f13_sizeof_*` constants stay: `regstack_bytes` counts C's
+x86-64 sizes so that E363 comes where it did. Measured: `--phase 150` is
+accepted, the control is refused, and phase 150's `'maxmempattern'` probe gives
+the Go editor the C's threshold exactly (E363 at 93, none at 94).
 
 ## Not done here
 
