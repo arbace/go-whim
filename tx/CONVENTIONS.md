@@ -147,14 +147,14 @@ here.
 
 ## Option variables: `varp`
 
-`vimoption_T.var`, `vimoption_T.def_val`, `optset_T.os_varp`, the results of
-`get_varp`, `get_varp_scope`, `get_input_buf`, and every parameter or local
-named `varp` hold **the address of an option variable of any type**, cast to
-`char_u *`. In Go they are `any`, holding a `*int32`, `*int64` or
-`*Ptr[byte]`: `*(int *)varp` is `*varp.(*int32)`, `*(long *)varp` is
-`*varp.(*int64)`, `*(char_u **)varp` is `*varp.(*Ptr[byte])`, and
-`(char_u *)&p_ai` is `&p_ai`. `def_val` also holds numbers cast to pointers:
-`(char_u *)8L` is `int64(8)`, read back as `varp.(int64)`.
+Since phases 151 and 152 the C types them, and so does the Go:
+- `vimoption_T.var`, `optset_T.os_varp` and every `varp` are an `optvar_T`
+  (`ov_int *int32`, `ov_long *int64`, `ov_str Ptr[Ptr[byte]]`, `ov_win`);
+- the defaults are `def_str [2]Ptr[byte]` and `def_num [2]int64`.
+
+A string variable is `Addr(&p_x)`, and a terminal option is
+`View(term_strings[:]).Add(int(K))`. Compare an `ov_str` against the same
+construction, so that the pointers are equal where C's are.
 
 ## Expressions and statements
 
