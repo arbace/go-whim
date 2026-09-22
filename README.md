@@ -41,9 +41,12 @@ its own and every check in a stage runs at once, because there the checks are.
 ## Documents
 
 - **`WHIM-GOAL.md`** — what the pipeline removes and why. **Part I** is phases
-  0-82, **Part II** phases 83-128 with the core's own charter and rules; each has a
-  section per phase, and Part II's *Adding a phase* is the process for the next
-  one.
+  0-82, **Part II** phases 83 onwards with the core's own charter and rules; each
+  has a section per phase, and Part II's *Adding a phase* is the process for the
+  next one.
+- **`tx/FINDINGS.md`** — what transpiling the core to Go found, and which phase
+  took each finding out of the C; `tx/CONVENTIONS.md` is how the C is written in
+  Go.
 - **`WHIM-PLAN.md`** — the plans the phases were built from: **Part I** grouped
   phases 0-82 into stages and packages, **Part II** (sections II.1-II.6) planned
   phases 83 onwards.
@@ -61,6 +64,31 @@ make score           # bytes to store and libc symbols to provide, input and pro
 
 `make whim-repass` recomputes the pipeline from nothing; `make whim-specpass` does
 it with every stage speculated at once on the previous pass's boundaries first.
+
+## The Go editor
+
+`editor/` is the core, `editor.c`, transpiled by hand into Go:
+- **`editor.go`**: every C function a Go function with the same name and
+  control flow, so the two read line for line;
+- **`crt.go`**: the C runtime it is written against, `Ptr[T]` for a C pointer
+  that walks;
+- **`host.go`**: the host, from the Go runtime and standard library only.
+
+It follows the current core. When a phase changes the C, the functions it
+changed are re-transpiled from their new C, and the rest carried over.
+
+```sh
+go build -o editor.bin ./editor
+tools/zerodelta.sh editor.bin whim-vim.c --phase N   # N: the last phase
+```
+
+It is measured the way the C is: the Go build must record exactly the declared
+delta of the last phase, byte for byte across the screen cases, the Ex rows, the
+command lines, the pty scenarios, the terminals and the memline corpus.
+
+The Go is faithful, not yet idiomatic. The phases from 129 on removed from the C
+what it had to work around; making the Go idiomatic comes next, measured by the
+same recording.
 
 ## Requirements
 
@@ -84,6 +112,9 @@ pipes/           the phases: whimN.sh or whimN-edit.sh + whimN-check.sh;
                  whim.stages is the schedule and the packages, whim.delta
                  (phases 0-82) and zero.delta (83 on) the declared deltas
 tools/           the memoize driver and the shell wrappers around whimtools
+editor/          the core transpiled into Go, with its runtime and host
+tx/              tx/skel (the skeleton generator), sigs.txt, CONVENTIONS.md
+                 and FINDINGS.md
 whim.mk          the pipeline as make targets
 whim-vim.c       the product, tracked; make editor.c cuts the core out of it
 upstream.sha     the arbace/slim-vim commit slim-vim.c was fetched from

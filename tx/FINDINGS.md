@@ -167,3 +167,16 @@ refused. Phase 152's option probes, 151's `:set all&` and the numeric
 The Go is faithful, not idiomatic: `Ptr[T]` everywhere a C pointer walked,
 C's integer widths, `goto`, `B2i`. Idiomatic Go is the phases that follow,
 each measurable the same way: `go build ./editor` and the recording.
+
+**Input as a channel, tried and measured.** The first idiomatic step tried was
+the host's input as a Go channel: a goroutine reading the terminal ahead of the
+core, and the waits as `select`s over input, a wake-up channel and a timer. It
+builds, and the recording refuses it: `case:ctrl_c_changed` moves. The reason is
+structural. vim's break check polls for input with a zero timeout, to see a
+typed CTRL-C during a long operation, and that poll needs the kernel's answer:
+is there input now? A goroutine reading ahead cannot give it, because between
+the kernel having the bytes and the channel holding them, the poll says no. So
+the host keeps `select(2)` on the terminal for readiness. A channel design would
+need the reader to report readiness without consuming, or the core's polls to
+become waits, and the second is a change the recording will have to show is
+invisible.
