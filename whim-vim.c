@@ -55160,6 +55160,9 @@ typedef struct backpos_S
 } backpos_T;
 
 static garray_T regstack = {0, 0, 0, 0, nullptr};
+static garray_T regstack_star = {0, 0, 0, 0, nullptr};
+static garray_T regstack_behind = {0, 0, 0, 0, nullptr};
+static int regstack_bytes = 0;
 static garray_T backpos = {0, 0, 0, 0, nullptr};
 
 static regsave_T behind_pos;
@@ -57460,26 +57463,39 @@ regrepeat(char_u      *p, long        maxcount)
     return (int)count;
 }
 
+    static regstar_T *
+regstack_star_top(void)
+{
+    return &((regstar_T *)regstack_star.ga_data)[regstack_star.ga_len - 1];
+}
+
+    static regbehind_T *
+regstack_behind_top(void)
+{
+    return &((regbehind_T *)regstack_behind.ga_data)[regstack_behind.ga_len - 1];
+}
+
     static regitem_T *
 regstack_push(regstate_T state, char_u *scan)
 {
     regitem_T   *rp;
 
-    if ((long)((unsigned)regstack.ga_len >> 10) >= p_mmp)
+    if ((long)((unsigned)regstack_bytes >> 10) >= p_mmp)
     {
         emsg(_(e_pattern_uses_more_memory_than_maxmempattern));
         return nullptr;
     }
-    if (  __builtin_expect(((((&regstack)->ga_maxlen - (&regstack)->ga_len < ((int)sizeof(regitem_T))) ? ga_grow_inner((&regstack), ((int)sizeof(regitem_T))) : OK) == FAIL), 0)  )
+    if (ga_grow(&regstack, 1) == FAIL)
     {
         return nullptr;
     }
 
-    rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len);
+    rp = &((regitem_T *)regstack.ga_data)[regstack.ga_len];
     rp->rs_state = state;
     rp->rs_scan = scan;
 
-    regstack.ga_len += sizeof(regitem_T);
+    ++regstack.ga_len;
+    regstack_bytes += sizeof(regitem_T);
     return rp;
 }
 
@@ -57488,10 +57504,11 @@ regstack_pop(char_u **scan)
 {
     regitem_T   *rp;
 
-    rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len) - 1;
+    rp = &((regitem_T *)regstack.ga_data)[regstack.ga_len - 1];
     *scan = rp->rs_scan;
 
-    regstack.ga_len -= sizeof(regitem_T);
+    --regstack.ga_len;
+    regstack_bytes -= sizeof(regitem_T);
 }
 
     static void
@@ -57557,6 +57574,9 @@ regmatch(char_u      *scan, int         *timed_out)
   int           status;
 
   regstack.ga_len = 0;
+  regstack_star.ga_len = 0;
+  regstack_behind.ga_len = 0;
+  regstack_bytes = 0;
   backpos.ga_len = 0;
 
   for (;;)
@@ -58489,18 +58509,19 @@ regmatch(char_u      *scan, int         *timed_out)
                 }
                 if (rst.minval <= rst.maxval ? rst.count >= rst.minval : rst.count >= rst.maxval)
                 {
-                    if ((long)((unsigned)regstack.ga_len >> 10) >= p_mmp)
+                    if ((long)((unsigned)regstack_bytes >> 10) >= p_mmp)
                     {
                         emsg(_(e_pattern_uses_more_memory_than_maxmempattern));
                         status = RA_FAIL;
                     }
-                    else if (  __builtin_expect(((((&regstack)->ga_maxlen - (&regstack)->ga_len < ((int)sizeof(regstar_T))) ? ga_grow_inner((&regstack), ((int)sizeof(regstar_T))) : OK) == FAIL), 0)  )
+                    else if (ga_grow(&regstack_star, 1) == FAIL)
                     {
                         status = RA_FAIL;
                     }
                     else
                     {
-                        regstack.ga_len += sizeof(regstar_T);
+                        ++regstack_star.ga_len;
+                        regstack_bytes += sizeof(regstar_T);
                         rp = regstack_push(rst.minval <= rst.maxval ? RS_STAR_LONG : RS_STAR_SHORT, scan);
                         if (rp == nullptr)
                         {
@@ -58508,7 +58529,7 @@ regmatch(char_u      *scan, int         *timed_out)
                         }
                         else
                         {
-                            *(((regstar_T *)rp) - 1) = rst;
+                            *regstack_star_top() = rst;
                             status = RA_BREAK;
                         }
                     }
@@ -58539,18 +58560,19 @@ regmatch(char_u      *scan, int         *timed_out)
 
           case BEHIND:
           case NOBEHIND:
-            if ((long)((unsigned)regstack.ga_len >> 10) >= p_mmp)
+            if ((long)((unsigned)regstack_bytes >> 10) >= p_mmp)
             {
                 emsg(_(e_pattern_uses_more_memory_than_maxmempattern));
                 status = RA_FAIL;
             }
-            else if (  __builtin_expect(((((&regstack)->ga_maxlen - (&regstack)->ga_len < ((int)sizeof(regbehind_T))) ? ga_grow_inner((&regstack), ((int)sizeof(regbehind_T))) : OK) == FAIL), 0)  )
+            else if (ga_grow(&regstack_behind, 1) == FAIL)
             {
                 status = RA_FAIL;
             }
             else
             {
-                regstack.ga_len += sizeof(regbehind_T);
+                ++regstack_behind.ga_len;
+                regstack_bytes += sizeof(regbehind_T);
                 rp = regstack_push(RS_BEHIND1, scan);
                 if (rp == nullptr)
                 {
@@ -58558,7 +58580,7 @@ regmatch(char_u      *scan, int         *timed_out)
                 }
                 else
                 {
-                    save_subexpr(((regbehind_T *)rp) - 1);
+                    save_subexpr(regstack_behind_top());
 
                     rp->rs_no = op;
                     reg_save(&rp->rs_un.regsave, &backpos);
@@ -58705,7 +58727,7 @@ regmatch(char_u      *scan, int         *timed_out)
 
     while (regstack.ga_len > 0 && status != RA_FAIL)
     {
-        rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len) - 1;
+        rp = &((regitem_T *)regstack.ga_data)[regstack.ga_len - 1];
         switch (rp->rs_state)
         {
           case RS_NOPEN:
@@ -58814,13 +58836,14 @@ regmatch(char_u      *scan, int         *timed_out)
             if (status == RA_NOMATCH)
             {
                 regstack_pop(&scan);
-                regstack.ga_len -= sizeof(regbehind_T);
+                --regstack_behind.ga_len;
+                regstack_bytes -= sizeof(regbehind_T);
             }
             else
             {
-                reg_save(&(((regbehind_T *)rp) - 1)->save_after, &backpos);
+                reg_save(&regstack_behind_top()->save_after, &backpos);
 
-                (((regbehind_T *)rp) - 1)->save_behind = behind_pos;
+                regstack_behind_top()->save_behind = behind_pos;
                 behind_pos = rp->rs_un.regsave;
 
                 rp->rs_state = RS_BEHIND2;
@@ -58833,18 +58856,19 @@ regmatch(char_u      *scan, int         *timed_out)
           case RS_BEHIND2:
             if (status == RA_MATCH && reg_save_equal(&behind_pos))
             {
-                behind_pos = (((regbehind_T *)rp) - 1)->save_behind;
+                behind_pos = regstack_behind_top()->save_behind;
                 if (rp->rs_no == BEHIND)
                 {
-                    reg_restore(&(((regbehind_T *)rp) - 1)->save_after, &backpos);
+                    reg_restore(&regstack_behind_top()->save_after, &backpos);
                 }
                 else
                 {
                     status = RA_NOMATCH;
-                    restore_subexpr(((regbehind_T *)rp) - 1);
+                    restore_subexpr(regstack_behind_top());
                 }
                 regstack_pop(&scan);
-                regstack.ga_len -= sizeof(regbehind_T);
+                --regstack_behind.ga_len;
+                regstack_bytes -= sizeof(regbehind_T);
             }
             else
             {
@@ -58902,15 +58926,15 @@ regmatch(char_u      *scan, int         *timed_out)
                     if (status == RA_MATCH)
                     {
                         status = RA_NOMATCH;
-                        restore_subexpr(((regbehind_T *)rp) - 1);
+                        restore_subexpr(regstack_behind_top());
                     }
                 }
                 else
                 {
-                    behind_pos = (((regbehind_T *)rp) - 1)->save_behind;
+                    behind_pos = regstack_behind_top()->save_behind;
                     if (rp->rs_no == NOBEHIND)
                     {
-                        reg_restore(&(((regbehind_T *)rp) - 1)->save_after, &backpos);
+                        reg_restore(&regstack_behind_top()->save_after, &backpos);
                         status = RA_MATCH;
                     }
                     else
@@ -58918,11 +58942,12 @@ regmatch(char_u      *scan, int         *timed_out)
                         if (status == RA_MATCH)
                         {
                             status = RA_NOMATCH;
-                            restore_subexpr(((regbehind_T *)rp) - 1);
+                            restore_subexpr(regstack_behind_top());
                         }
                     }
                     regstack_pop(&scan);
-                    regstack.ga_len -= sizeof(regbehind_T);
+                    --regstack_behind.ga_len;
+                    regstack_bytes -= sizeof(regbehind_T);
                 }
             }
             break;
@@ -58930,12 +58955,13 @@ regmatch(char_u      *scan, int         *timed_out)
           case RS_STAR_LONG:
           case RS_STAR_SHORT:
             {
-                regstar_T           *rst = ((regstar_T *)rp) - 1;
+                regstar_T           *rst = regstack_star_top();
 
                 if (status == RA_MATCH)
                 {
                     regstack_pop(&scan);
-                    regstack.ga_len -= sizeof(regstar_T);
+                    --regstack_star.ga_len;
+                    regstack_bytes -= sizeof(regstar_T);
                     break;
                 }
 
@@ -59004,14 +59030,15 @@ regmatch(char_u      *scan, int         *timed_out)
                 if (status != RA_CONT)
                 {
                     regstack_pop(&scan);
-                    regstack.ga_len -= sizeof(regstar_T);
+                    --regstack_star.ga_len;
+                    regstack_bytes -= sizeof(regstar_T);
                     status = RA_NOMATCH;
                 }
             }
             break;
         }
 
-        if (status == RA_CONT || rp == (regitem_T *) ((char *)regstack.ga_data + regstack.ga_len) - 1)
+        if (status == RA_CONT || rp == &((regitem_T *)regstack.ga_data)[regstack.ga_len - 1])
         {
             break;
         }
@@ -59089,9 +59116,11 @@ bt_regexec_both(char_u      *line, colnr_T     startcol, int         *timed_out)
 
     if (regstack.ga_data == nullptr)
     {
-        ga_init2(&regstack, 1, REGSTACK_INITIAL);
-        (void)ga_grow(&regstack, REGSTACK_INITIAL);
-        regstack.ga_growsize = REGSTACK_INITIAL * 8;
+        ga_init2(&regstack, sizeof(regitem_T), REGSTACK_INITIAL / sizeof(regitem_T));
+        (void)ga_grow(&regstack, REGSTACK_INITIAL / sizeof(regitem_T));
+        regstack.ga_growsize = REGSTACK_INITIAL * 8 / sizeof(regitem_T);
+        ga_init2(&regstack_star, sizeof(regstar_T), 16);
+        ga_init2(&regstack_behind, sizeof(regbehind_T), 4);
     }
 
     if (backpos.ga_data == nullptr)
@@ -59243,7 +59272,7 @@ theend:
     {
          (reg_tofree) = nullptr;
     }
-    if (regstack.ga_maxlen > REGSTACK_INITIAL)
+    if (regstack.ga_maxlen > (int)(REGSTACK_INITIAL / sizeof(regitem_T)))
     {
         ga_clear(&regstack);
     }
