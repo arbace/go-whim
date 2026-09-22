@@ -4,11 +4,11 @@
 functions are Go functions with the same names and control flow: 60,839 lines,
 plus `editor/crt.go` (the C runtime it is written against, 274 lines) and
 `editor/host.go` (the host, from the Go runtime, 1,704 lines). It follows
-phase 159's core; how it got there from the first pass, which followed phase
+phase 160's core; how it got there from the first pass, which followed phase
 128's, is the section *The transpilation, brought to phase 149*.
 
 **It works.** `go build ./editor` gives an editor that `tools/zerodelta.sh …
---phase 159` accepts as exactly phase 159's declared delta: 102 screen cases,
+--phase 160` accepts as exactly phase 160's declared delta: 102 screen cases,
 111 Ex rows, 30 command lines, the pty scenarios, 19 terminals and the memline
 corpus. The first pass was measured the same way against phase 128, and
 there, byte for byte against the C binary's 122 files. The control: the same
@@ -81,7 +81,7 @@ the Go simpler and the patch smaller.
 
 ## Which findings are phases now
 
-Phases 129 to 159 (`WHIM-GOAL.md`, Part II) remove from the C what the
+Phases 129 to 160 (`WHIM-GOAL.md`, Part II) remove from the C what the
 transpilation worked around. Each declares no behavioural delta; 142's change
 is to stderr, which the recording excludes, and its check measures it:
 
@@ -104,6 +104,7 @@ is to stderr, which the recording excludes, and its check measures it:
 | a register carried through `void *` | 157, `get_register()` and `put_register()` carry a `yankreg_T *` |
 | a union read through a member its discriminant does not say holds (the Go gives every member its own field) | 158, a highlight's terminal font is read only from a colour entry |
 | a struct's last member an array sized at allocation (`b_str`, `sb_text`, `program`) | 159, a struct's text is a pointer to an allocation of its own |
+| a `void *` that is not memory (`do_cmdline()`'s cookie, `find_func_t`) | 160, no line getter takes a cookie |
 | 13, `__DATE__ " " __TIME__` | 142, the version names no build date or time |
 | the eval value types the transpilation carried (`typval_T`, lists, dicts, classes) | 137, the changedtick is a number; 138, no parameter carries an eval value |
 
@@ -116,8 +117,11 @@ whose one effect was that write; the sweep takes the function. Doing what vim
 meant, clearing `t_Co` on a terminal with neither `t_AB` nor `t_Sb`, would
 change behaviour and would need a declared delta.
 
-Not yet phases:
-- 7's `ga_data`;
+7's `ga_data` needs no phase. `internal/ccx`'s `GrowArrays` shows that every
+growarray object has one element type, which is what `GaData[T]` assumes and
+panics without.
+
+Not yet a phase:
 - 9's `ga_grow()` failure, which only an overflowing size can take and which
   the tests after it still guard.
 

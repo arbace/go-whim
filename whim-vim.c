@@ -2244,8 +2244,6 @@ typedef enum
     TERM_SYNC_OUTPUT_FLUSH = 1 << 3,
 } term_sync_output_T;
 
-typedef long (*find_func_t)(const char *line, long line_len, char *buffer, long buffer_size, void *priv);
-
 enum { TABSTOP_MAX = 9999 };
 
 typedef enum {
@@ -2431,8 +2429,7 @@ struct exarg
     int         amount;
     int         regname;
     char        *errmsg;
-    char_u      *(*ea_getline)(int, void *, int, getline_opt_T);
-    void        *cookie;
+    char_u      *(*ea_getline)(int, int, getline_opt_T);
 };
 
 enum { EXFLAG_LIST = 0x01 };
@@ -2554,8 +2551,8 @@ static char_u *skip_vimgrep_pat_ext(char_u *p, char_u **s, int *flags, char_u **
 
 static int check_fname(void);
 static int do_cmdline_cmd(char_u *cmd);
-static int do_cmdline(char_u *cmdline, char_u *(*fgetline)(int, void *, int, getline_opt_T), void *cookie, int flags);
-static int getline_equal(char_u *(*fgetline)(int, void *, int, getline_opt_T), void *cookie, char_u *(*func)(int, void *, int, getline_opt_T));
+static int do_cmdline(char_u *cmdline, char_u *(*fgetline)(int, int, getline_opt_T), int flags);
+static int getline_equal(char_u *(*fgetline)(int, int, getline_opt_T), char_u *(*func)(int, int, getline_opt_T));
 static char *ex_errmsg(char *msg, char_u *arg);
 static char *ex_range_without_command(exarg_T *eap);
 static int parse_command_modifiers(exarg_T *eap, char **errormsg, cmdmod_T *cmod, int skip_only);
@@ -2585,7 +2582,7 @@ static void text_locked_msg(void);
 static char *get_text_locked_msg(void);
 static int curbuf_locked(void);
 static int allbuf_locked(void);
-static char_u *getexline(int c, void *cookie, int indent, getline_opt_T options);
+static char_u *getexline(int c, int indent, getline_opt_T options);
 static int realloc_cmdbuff(int len);
 static void putcmdline(int c, int shift);
 static int put_on_cmdline(char_u *str, int len, int redraw);
@@ -14195,7 +14192,7 @@ ex_append(exarg_T *eap)
             int save_State = State;
 
             State = MODE_CMDLINE;
-            theline = eap->ea_getline(NUL, eap->cookie, indent, GETLINE_CONCAT_CONT);
+            theline = eap->ea_getline(NUL, indent, GETLINE_CONCAT_CONT);
             State = save_State;
         }
         lines_left = Rows - 1;
@@ -15451,11 +15448,11 @@ global_exe_one(char_u *cmd, linenr_T lnum)
     curwin->w_cursor.col = 0;
     if (*cmd == NUL || *cmd == '\n')
     {
-        do_cmdline((char_u *)"p", nullptr, nullptr, DOCMD_NOWAIT);
+        do_cmdline((char_u *)"p", nullptr, DOCMD_NOWAIT);
     }
     else
     {
-        do_cmdline(cmd, nullptr, nullptr, DOCMD_NOWAIT);
+        do_cmdline(cmd, nullptr, DOCMD_NOWAIT);
     }
 }
 
@@ -15723,7 +15720,7 @@ check_fname(void)
 
 static int      quitmore = 0;
 
-static char_u   *do_one_cmd(char_u **, int, char_u *(*fgetline)(int, void *, int, getline_opt_T), void *cookie);
+static char_u   *do_one_cmd(char_u **, int, char_u *(*fgetline)(int, int, getline_opt_T));
 static void     append_command(char_u *cmd);
 
 static char_u   *getargcmd(char_u **);
@@ -15778,11 +15775,11 @@ msg_verbose_cmd(linenr_T lnum, char_u *cmd)
     static int
 do_cmdline_cmd(char_u *cmd)
 {
-    return do_cmdline(cmd, nullptr, nullptr, DOCMD_VERBOSE|DOCMD_NOWAIT|DOCMD_KEYTYPED);
+    return do_cmdline(cmd, nullptr, DOCMD_VERBOSE|DOCMD_NOWAIT|DOCMD_KEYTYPED);
 }
 
     static int
-do_cmdline(char_u      *cmdline, char_u      *(*fgetline)(int, void *, int, getline_opt_T), void        *cookie, int         flags)
+do_cmdline(char_u      *cmdline, char_u      *(*fgetline)(int, int, getline_opt_T), int         flags)
 {
     char_u      *next_cmdline;
     char_u      *cmdline_copy = nullptr;
@@ -15803,7 +15800,7 @@ do_cmdline(char_u      *cmdline, char_u      *(*fgetline)(int, void *, int, getl
 
     did_emsg = FALSE;
 
-    if (!(flags & DOCMD_KEYTYPED) && !getline_equal(fgetline, cookie, getexline))
+    if (!(flags & DOCMD_KEYTYPED) && !getline_equal(fgetline, getexline))
     {
         KeyTyped = FALSE;
     }
@@ -15818,11 +15815,11 @@ do_cmdline(char_u      *cmdline, char_u      *(*fgetline)(int, void *, int, getl
 
         if (next_cmdline == nullptr)
         {
-            if (count == 1 && getline_equal(fgetline, cookie, getexline))
+            if (count == 1 && getline_equal(fgetline, getexline))
             {
                 msg_didout = TRUE;
             }
-            if (fgetline == nullptr || (next_cmdline = fgetline(':', cookie, 0, GETLINE_CONCAT_CONT)) == nullptr)
+            if (fgetline == nullptr || (next_cmdline = fgetline(':', 0, GETLINE_CONCAT_CONT)) == nullptr)
             {
                 if (KeyTyped && !(flags & DOCMD_REPEAT))
                 {
@@ -15872,14 +15869,14 @@ do_cmdline(char_u      *cmdline, char_u      *(*fgetline)(int, void *, int, getl
         }
 
         ++recursive;
-        next_cmdline = do_one_cmd(&cmdline_copy, flags,  fgetline ,  cookie );
+        next_cmdline = do_one_cmd(&cmdline_copy, flags,  fgetline );
         --recursive;
 
         if (next_cmdline == nullptr)
         {
              (cmdline_copy) = nullptr;
 
-            if (getline_equal(fgetline, cookie, getexline) && new_last_cmdline != nullptr)
+            if (getline_equal(fgetline, getexline) && new_last_cmdline != nullptr)
             {
                 last_cmdline = new_last_cmdline;
                 new_last_cmdline = nullptr;
@@ -15892,7 +15889,7 @@ do_cmdline(char_u      *cmdline, char_u      *(*fgetline)(int, void *, int, getl
         }
 
     }
-    while (!((got_int)) && !(did_emsg && used_getline && getline_equal(fgetline, cookie, getexline)) && (next_cmdline != nullptr || (flags & DOCMD_REPEAT)))
+    while (!((got_int)) && !(did_emsg && used_getline && getline_equal(fgetline, getexline)) && (next_cmdline != nullptr || (flags & DOCMD_REPEAT)))
         ;
 
     if (did_inc_RedrawingDisabled)
@@ -15921,13 +15918,13 @@ do_cmdline(char_u      *cmdline, char_u      *(*fgetline)(int, void *, int, getl
 }
 
     static int
-getline_equal(char_u      *(*fgetline)(int, void *, int, getline_opt_T), void        *cookie, char_u      *(*func)(int, void *, int, getline_opt_T))
+getline_equal(char_u      *(*fgetline)(int, int, getline_opt_T), char_u      *(*func)(int, int, getline_opt_T))
 {
     return fgetline == func;
 }
 
     static char_u *
-do_one_cmd(char_u      **cmdlinep, int         flags, char_u      *(*fgetline)(int, void *, int, getline_opt_T), void        *cookie)
+do_one_cmd(char_u      **cmdlinep, int         flags, char_u      *(*fgetline)(int, int, getline_opt_T))
 {
     char_u      *p;
     linenr_T    lnum;
@@ -15961,7 +15958,6 @@ do_one_cmd(char_u      **cmdlinep, int         flags, char_u      *(*fgetline)(i
     ea.cmd = *cmdlinep;
     ea.cmdlinep = cmdlinep;
     ea.ea_getline = fgetline;
-    ea.cookie = cookie;
     if (parse_command_modifiers(&ea, &errormsg, &cmdmod, FALSE) == FAIL)
     {
         goto doend;
@@ -17809,7 +17805,7 @@ ex_at(exarg_T *eap)
 
     while (!stuff_empty() || typebuf.tb_len > prev_len)
     {
-        (void)do_cmdline(nullptr, getexline, nullptr, DOCMD_NOWAIT|DOCMD_VERBOSE);
+        (void)do_cmdline(nullptr, getexline, DOCMD_NOWAIT|DOCMD_VERBOSE);
     }
 
     exec_from_reg = save_efr;
@@ -19789,7 +19785,7 @@ correct_cmdspos(int idx, int cells)
 }
 
     static char_u *
-getexline(int         c, void        *cookie, int         indent, getline_opt_T options)
+getexline(int         c, int         indent, getline_opt_T options)
 {
     if (exec_from_reg && vpeekc() == ':')
     {
@@ -23030,7 +23026,7 @@ input_available(void)
 }
 
     static char_u *
-getcmdkeycmd(int             promptc, void            *cookie, int             indent, getline_opt_T   do_concat)
+getcmdkeycmd(int             promptc, int             indent, getline_opt_T   do_concat)
 {
     garray_T    line_ga;
     int         c1 = -1;
@@ -23137,7 +23133,7 @@ do_cmdkey_command(int key, int flags)
 {
     int     res;
 
-    res = do_cmdline(nullptr, getcmdkeycmd, nullptr, flags);
+    res = do_cmdline(nullptr, getcmdkeycmd, flags);
 
     return res;
 }
@@ -42048,7 +42044,7 @@ nv_colon(cmdarg_T *cap)
     }
     else
     {
-        cmd_result = do_cmdline(nullptr, getexline, nullptr, flags);
+        cmd_result = do_cmdline(nullptr, getexline, flags);
     }
 
     if (p_im != old_p_im)

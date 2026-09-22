@@ -8,9 +8,9 @@
 // The types, globals and every signature were generated from editor.c by
 // tx/skel (modernc.org/cc/v4); the function bodies and initial values were
 // written by hand, to tx/CONVENTIONS.md.  It is the transpilation of phase
-// 159's core: the functions phases 129-159 changed were re-transpiled from
+// 160's core: the functions phases 129-160 changed were re-transpiled from
 // their new C, the rest carried over.  Measured: built with `go build
-// ./editor`, tools/zerodelta.sh --phase 159 accepts it -- 102 screen cases,
+// ./editor`, tools/zerodelta.sh --phase 160 accepts it -- 102 screen cases,
 // 111 Ex rows, 30 command lines, the pty scenarios, 19 terminals and the
 // memline corpus, exactly as declared.
 
@@ -47,7 +47,6 @@ type etype_T = int32
 type ex_func_T = func(*S_exarg)
 type exarg_T = S_exarg
 type expand_T = S_expand
-type find_func_t = func(Ptr[byte], int64, Ptr[byte], int64, any) int64
 type flush_buffers_T = int32
 type fmark_T = S_filemark
 type fptr_T = func(*int32, int32)
@@ -826,8 +825,7 @@ type S_exarg struct {
 	amount      int32
 	regname     int32
 	errmsg      Ptr[byte]
-	ea_getline  func(int32, any, int32, getline_opt_T) Ptr[byte]
-	cookie      any
+	ea_getline  func(int32, int32, getline_opt_T) Ptr[byte]
 }
 
 type winlinevars_T struct {
@@ -14259,7 +14257,7 @@ func ex_append(eap *S_exarg) {
 			var save_State int32 = State
 
 			State = MODE_CMDLINE
-			theline = eap.ea_getline(NUL, eap.cookie, indent, GETLINE_CONCAT_CONT)
+			theline = eap.ea_getline(NUL, indent, GETLINE_CONCAT_CONT)
 			State = save_State
 		}
 		lines_left = int32(Rows - 1)
@@ -15282,9 +15280,9 @@ func global_exe_one(cmd Ptr[byte], lnum linenr_T) {
 	curwin.w_cursor.lnum = lnum
 	curwin.w_cursor.col = 0
 	if cmd.Get() == NUL || cmd.Get() == '\n' {
-		do_cmdline(S("p"), nil, nil, DOCMD_NOWAIT)
+		do_cmdline(S("p"), nil, DOCMD_NOWAIT)
 	} else {
-		do_cmdline(cmd, nil, nil, DOCMD_NOWAIT)
+		do_cmdline(cmd, nil, DOCMD_NOWAIT)
 	}
 }
 
@@ -15514,7 +15512,7 @@ func msg_verbose_cmd(lnum linenr_T, cmd Ptr[byte]) {
 }
 
 func do_cmdline_cmd(cmd Ptr[byte]) int32 {
-	return do_cmdline(cmd, nil, nil, DOCMD_VERBOSE|DOCMD_NOWAIT|DOCMD_KEYTYPED)
+	return do_cmdline(cmd, nil, DOCMD_VERBOSE|DOCMD_NOWAIT|DOCMD_KEYTYPED)
 }
 
 // ==== from f04.go ====
@@ -15525,7 +15523,7 @@ func init() {
 	do_cmdline_call_depth = 0
 }
 
-func do_cmdline(cmdline Ptr[byte], fgetline func(int32, any, int32, getline_opt_T) Ptr[byte], cookie any, flags int32) int32 {
+func do_cmdline(cmdline Ptr[byte], fgetline func(int32, int32, getline_opt_T) Ptr[byte], flags int32) int32 {
 	var next_cmdline Ptr[byte]
 	var cmdline_copy Ptr[byte]
 	var used_getline int32 = FALSE
@@ -15542,7 +15540,7 @@ func do_cmdline(cmdline Ptr[byte], fgetline func(int32, any, int32, getline_opt_
 
 	did_emsg = FALSE
 
-	if !(flags&DOCMD_KEYTYPED != 0) && getline_equal(fgetline, cookie, getexline) == 0 {
+	if !(flags&DOCMD_KEYTYPED != 0) && getline_equal(fgetline, getexline) == 0 {
 		KeyTyped = FALSE
 	}
 
@@ -15553,12 +15551,12 @@ func do_cmdline(cmdline Ptr[byte], fgetline func(int32, any, int32, getline_opt_
 		}
 
 		if next_cmdline.Nil() {
-			if count == 1 && getline_equal(fgetline, cookie, getexline) != 0 {
+			if count == 1 && getline_equal(fgetline, getexline) != 0 {
 				msg_didout = TRUE
 			}
 			fail := fgetline == nil
 			if !fail {
-				next_cmdline = fgetline(':', cookie, 0, GETLINE_CONCAT_CONT)
+				next_cmdline = fgetline(':', 0, GETLINE_CONCAT_CONT)
 				fail = next_cmdline.Nil()
 			}
 			if fail {
@@ -15601,13 +15599,13 @@ func do_cmdline(cmdline Ptr[byte], fgetline func(int32, any, int32, getline_opt_
 		}
 
 		do_cmdline_recursive++
-		next_cmdline = do_one_cmd(&cmdline_copy, flags, fgetline, cookie)
+		next_cmdline = do_one_cmd(&cmdline_copy, flags, fgetline)
 		do_cmdline_recursive--
 
 		if next_cmdline.Nil() {
 			cmdline_copy = Ptr[byte]{}
 
-			if getline_equal(fgetline, cookie, getexline) != 0 && !new_last_cmdline.Nil() {
+			if getline_equal(fgetline, getexline) != 0 && !new_last_cmdline.Nil() {
 				last_cmdline = new_last_cmdline
 				new_last_cmdline = Ptr[byte]{}
 			}
@@ -15616,7 +15614,7 @@ func do_cmdline(cmdline Ptr[byte], fgetline func(int32, any, int32, getline_opt_
 			next_cmdline = cmdline_copy
 		}
 
-		if !(got_int == 0 && !(did_emsg != 0 && used_getline != 0 && getline_equal(fgetline, cookie, getexline) != 0) && (!next_cmdline.Nil() || flags&DOCMD_REPEAT != 0)) {
+		if !(got_int == 0 && !(did_emsg != 0 && used_getline != 0 && getline_equal(fgetline, getexline) != 0) && (!next_cmdline.Nil() || flags&DOCMD_REPEAT != 0)) {
 			break
 		}
 	}
@@ -15642,14 +15640,14 @@ func do_cmdline(cmdline Ptr[byte], fgetline func(int32, any, int32, getline_opt_
 }
 
 // Go cannot compare two func values with ==; the code pointers are compared.
-func getline_equal(fgetline func(int32, any, int32, getline_opt_T) Ptr[byte], cookie any, func_ func(int32, any, int32, getline_opt_T) Ptr[byte]) int32 {
+func getline_equal(fgetline func(int32, int32, getline_opt_T) Ptr[byte], func_ func(int32, int32, getline_opt_T) Ptr[byte]) int32 {
 	if fgetline == nil || func_ == nil {
 		return B2i(fgetline == nil && func_ == nil)
 	}
 	return B2i(reflect.ValueOf(fgetline).Pointer() == reflect.ValueOf(func_).Pointer())
 }
 
-func do_one_cmd(cmdlinep *Ptr[byte], flags int32, fgetline func(int32, any, int32, getline_opt_T) Ptr[byte], cookie any) Ptr[byte] {
+func do_one_cmd(cmdlinep *Ptr[byte], flags int32, fgetline func(int32, int32, getline_opt_T) Ptr[byte]) Ptr[byte] {
 	var p Ptr[byte]
 	var lnum linenr_T
 	var n int64
@@ -15680,7 +15678,6 @@ func do_one_cmd(cmdlinep *Ptr[byte], flags int32, fgetline func(int32, any, int3
 	ea.cmd = *cmdlinep
 	ea.cmdlinep = cmdlinep
 	ea.ea_getline = fgetline
-	ea.cookie = cookie
 	if parse_command_modifiers(&ea, &errormsg, &cmdmod, FALSE) == FAIL {
 		goto doend
 	}
@@ -17113,7 +17110,7 @@ func ex_at(eap *S_exarg) {
 	exec_from_reg = TRUE
 
 	for stuff_empty() == 0 || typebuf.tb_len > prev_len {
-		do_cmdline(Ptr[byte]{}, getexline, nil, DOCMD_NOWAIT|DOCMD_VERBOSE)
+		do_cmdline(Ptr[byte]{}, getexline, DOCMD_NOWAIT|DOCMD_VERBOSE)
 	}
 
 	exec_from_reg = save_efr
@@ -18784,7 +18781,7 @@ func correct_cmdspos(idx int32, cells int32) {
 	}
 }
 
-func getexline(c int32, cookie any, indent int32, options getline_opt_T) Ptr[byte] {
+func getexline(c int32, indent int32, options getline_opt_T) Ptr[byte] {
 	if exec_from_reg != 0 && vpeekc() == ':' {
 		vgetc()
 	}
@@ -21394,7 +21391,7 @@ func input_available() int32 {
 	return B2i(vim_is_input_buf_empty() == 0)
 }
 
-func getcmdkeycmd(promptc int32, cookie any, indent int32, do_concat getline_opt_T) Ptr[byte] {
+func getcmdkeycmd(promptc int32, indent int32, do_concat getline_opt_T) Ptr[byte] {
 	var line_ga garray_T
 	c1 := int32(-1)
 	var c2 int32
@@ -21501,7 +21498,7 @@ func getcmdkeycmd(promptc int32, cookie any, indent int32, do_concat getline_opt
 func do_cmdkey_command(key int32, flags int32) int32 {
 	var res int32
 
-	res = do_cmdline(Ptr[byte]{}, getcmdkeycmd, nil, flags)
+	res = do_cmdline(Ptr[byte]{}, getcmdkeycmd, flags)
 
 	return res
 }
@@ -35278,7 +35275,7 @@ func nv_colon(cap_ *S_cmdarg_S) {
 	if is_cmdkey != 0 {
 		cmd_result = do_cmdkey_command(cap_.cmdchar, flags)
 	} else {
-		cmd_result = do_cmdline(Ptr[byte]{}, getexline, nil, flags)
+		cmd_result = do_cmdline(Ptr[byte]{}, getexline, flags)
 	}
 
 	if p_im != old_p_im {

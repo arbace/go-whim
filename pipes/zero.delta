@@ -1762,3 +1762,6 @@
 
 # 159 declares nothing: an array inside its struct or behind a pointer holds the
 # same bytes; nothing copied, sized or declared the three structs but the heads.
+
+# 160 declares nothing: a parameter that was always nullptr and read by nothing
+# goes, and a typedef nothing named.
