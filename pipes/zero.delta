@@ -1717,3 +1717,10 @@
 # inside the handler.  The libc surface grows by pipe2, which the check requires
 # exactly.  Its pty probes send both signals while waiting, and SIGTERM while
 # busy, which interrupts as before.
+
+# 148 declares nothing: no allocation fails, before or after.  The one path that
+# changes is a request for zero bytes, an internal error no input reaches: it
+# says E341 as before and now gets a pointer to no bytes where it got NULL.
+
+# 149 declares nothing: the NULL tests it folds follow allocations that cannot
+# return NULL, so none was ever true (or, `!= nullptr`, ever false).

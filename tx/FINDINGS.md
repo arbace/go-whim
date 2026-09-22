@@ -79,7 +79,7 @@ the Go simpler and the patch smaller.
 
 ## Which findings are phases now
 
-Phases 129 to 147 (`WHIM-GOAL.md`, Part II) remove from the C what the
+Phases 129 to 149 (`WHIM-GOAL.md`, Part II) remove from the C what the
 transpilation worked around. Each declares no behavioural delta; 142's change
 is to stderr, which the recording excludes, and its check measures it:
 
@@ -88,7 +88,7 @@ is to stderr, which the recording excludes, and its check measures it:
 | 1, `p_emoji` | 129, `p_emoji` is an `int` |
 | 10, `(pos_T *)-1` | 130, the tests go |
 | 6, the input buffer as `char_u *` | 131, it is a `garray_T *` |
-| 9, the frees | 132, nothing frees; 134, the blocks that held only a free fold |
+| 9, the frees and the allocation failures | 132, nothing frees; 134, the blocks that held only a free fold; 148, allocation cannot fail; 149, the allocation-failure branches fold |
 | 3, `container_of` | 133, one buffer needs no hash table; 140, highlight groups are found in their array |
 | 4, struct prefix inheritance | 135, one regexp program type; 136, the engine called directly; 146, a memline node names its block |
 | 7, `void *` walked (`qsort`, `bsearch`) | 139, the core sorts and searches typed arrays |
@@ -101,9 +101,8 @@ Not yet phases:
 - 2, option `varp`;
 - 5 and 8, the regstack and `sizeof` accounting;
 - 7's `ga_data`;
-- 9's allocation-failure branches. These are dead only where the size is not
-  0: `host_alloc()` never returns NULL, but `lalloc(0)` does, after an
-  internal error, so each branch needs its size proved non-zero.
+- 9's `ga_grow()` failure, which only an overflowing size can take and which
+  the tests after it still guard.
 
 `editor/editor.go` is still the transpilation of phase 128's core.
 

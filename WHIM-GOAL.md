@@ -15614,6 +15614,50 @@ same output, stderr and exit status on both binaries. The controls:
 - the busy run is interrupted and never finishes its substitution, so the
   signal did land mid-computation. It says `Interrupted`, as it did before.
 
+## Phase 148 — allocation cannot fail
+
+`lalloc()`, which `alloc()`, `alloc_clear()` and `lalloc_clear()` call,
+returned NULL in two cases:
+- **`host_alloc()` returning NULL**, which it never does. When the arena is
+  full it ends the process through `host_exit()`, which longjmps and never
+  returns; otherwise it returns a pointer into the arena. So the
+  out-of-memory branches (release the scrollback, say E342) were dead;
+- **a request for zero bytes**, which reported E341, an internal error, and
+  returned NULL. That case now reports the same error and returns
+  `host_alloc(0)`: a pointer to no bytes, where NULL was.
+
+So no allocation in the core can fail, and every failure branch after an
+allocation is dead (finding 9). Phase 149 folds them.
+
+**Declared delta: nothing.** The recording never asks for zero bytes and never
+runs out. The zero-byte path is an internal error that no input reaches. The
+check proves from the input that `host_alloc()` never returns NULL, and
+requires the new `lalloc()` body.
+
+## Phase 149 — the allocation-failure branches fold
+
+A function whose every return is an allocation, or a local only ever assigned
+one, can't return NULL either. The set of such functions is found to a
+fixpoint starting from `host_alloc()`, and comes to 19: `vim_strsave()`,
+`vim_strnsave()`, `alloc_tabpage()`, `ml_new_data()` and the rest. Each
+NULL test of such a call's result that directly follows it can't go the
+failure way:
+- `== nullptr` is never true, and folds away;
+- `!= nullptr` is always true, and folds to its body.
+
+That covers both `v = f(...); if (v == nullptr)` and
+`if ((v = f(...)) == nullptr)`. Folding one test can make another function
+never-NULL, so the rule recomputes the set and goes on until nothing changes:
+134 tests fold. Labels that only the folded branches jumped to go too, and
+the sweep takes what only those branches used. The Go transpilation never had
+these branches.
+
+**Declared delta: nothing.** The check computes the whole output with the same
+rule and the real sweep, and requires byte equality. It re-checks the
+never-NULL set on the output with a second, simpler test: each function
+returns only calls and names, never NULL or a literal. It requires the rule to
+fold nothing more.
+
 # What comes next
 
 Not yet done, and each one only when it is asked for:

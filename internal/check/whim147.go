@@ -27,8 +27,10 @@ func init() { register("whim147", Whim147) }
 //     probe runs.  The core already blocks deadly signals outside the wait in
 //     ui_inchar() -- vim_handle_signal() turns one into an interrupt and raises
 //     it again when the wait unblocks -- so a busy editor says "Interrupted";
-//     that the phase does not disturb it is the probe.  Each is the same
-//     output, stderr and exit status on both binaries.  The CONTROLS: SIGTERM
+//     that the phase does not disturb it is the probe.  The waiting runs are
+//     the same output, stderr and exit status on both binaries; the busy run
+//     is interrupted on both, with the same stderr and exit status -- how much
+//     of its screen is drawn by the end of the window is the machine's load.  The CONTROLS: SIGTERM
 //     and SIGHUP differ (the message names the signal), and the busy run was
 //     interrupted and never finished its substitution (no E486).
 func Whim147(w io.Writer, args []string) error {
@@ -94,8 +96,18 @@ func Whim147(w io.Writer, args []string) error {
 			r.say("a probe did not run: %v %v", e1, e2)
 			return harness.ErrReported
 		}
-		if !bytes.Equal(a.out, b.out) || !bytes.Equal(a.errb, b.errb) || a.rc != b.rc {
+		isBusy := len(pr.keys) > 1
+		switch {
+		case !isBusy && (!bytes.Equal(a.out, b.out) || !bytes.Equal(a.errb, b.errb) || a.rc != b.rc):
 			r.bad("%s: the two binaries differ (exit %d and %d)", pr.what, a.rc, b.rc)
+		case isBusy && (!bytes.Equal(a.errb, b.errb) || a.rc != b.rc ||
+			!bytes.Contains(a.out, []byte("Interrupted")) || !bytes.Contains(b.out, []byte("Interrupted")) ||
+			bytes.Contains(a.out, []byte("E486")) || bytes.Contains(b.out, []byte("E486"))):
+			// how much of the interrupted screen is drawn by the end of the
+			// probe's window depends on the machine's load: run alone the two
+			// binaries drew the same bytes, and in a loaded stage they did
+			// not, so the busy run compares what the claim is about
+			r.bad("%s: the two binaries are not both interrupted with the same stderr and exit (%d and %d)", pr.what, a.rc, b.rc)
 		}
 		if pr.keys[0][0] == 'i' && len(pr.keys) == 1 && !bytes.Contains(b.out, []byte("Caught deadly signal")) {
 			r.bad("%s: the editor did not report a deadly signal", pr.what)
