@@ -314,7 +314,7 @@ func Whim104(w io.Writer, args []string) error {
 	}
 
 	// --- 8. the second opinion, on the control -------------------------------
-	zd, zerr := exec.Command("sh", "tools/zerodelta.sh", filepath.Join(tmp, "ctl"), filepath.Join(tmp, "ctl.c"), "--phase", "104").CombinedOutput()
+	zd, zerr := exec.Command("sh", "tools/coredelta.sh", filepath.Join(tmp, "ctl"), filepath.Join(tmp, "ctl.c"), "--phase", "104").CombinedOutput()
 	tail5 := func() {
 		ls := strings.Split(string(zd), "\n")
 		if len(ls) > 0 && ls[len(ls)-1] == "" {
@@ -328,7 +328,7 @@ func Whim104(w io.Writer, args []string) error {
 		}
 	}
 	if zerr == nil {
-		r.say("tools/zerodelta.sh ACCEPTED the control, which sends every")
+		r.say("tools/coredelta.sh ACCEPTED the control, which sends every")
 		r.cont("message to stdout instead of stderr.  It must refuse.")
 		tail5()
 		return harness.ErrReported
@@ -345,11 +345,11 @@ func Whim104(w io.Writer, args []string) error {
 		}
 	}
 	if named < 1 {
-		r.say("tools/zerodelta.sh refused the control for some other reason:")
+		r.say("tools/coredelta.sh refused the control for some other reason:")
 		tail5()
 		return harness.ErrReported
 	}
-	r.say("the second opinion: tools/zerodelta.sh REFUSES the control and names %d argv rows, against the 24 records diff -r sees.  That gap is exactly why diff -r is the first check and this is the second: ten of the 24 are rows phases 87 and 88 already declared, and tools/zcompare.py no longer compares them", named)
+	r.say("the second opinion: tools/coredelta.sh REFUSES the control and names %d argv rows, against the 24 records diff -r sees.  That gap is exactly why diff -r is the first check and this is the second: ten of the 24 are rows phases 87 and 88 already declared, and tools/zcompare.py no longer compares them", named)
 	return nil
 }
 
@@ -576,7 +576,7 @@ func z21Probes(r *rep, old, bin, tmp string) error {
 		return harness.ErrReported
 	}
 	sq := func(k string) seq { return g[k].(seq) }
-	r.say("MUST NOT DIFFER: the whole recording, `diff -r`, %d lines -- 102 screen cases, ref-excmds.txt, ref-argv.txt, ref-pty.txt and ref-term.txt.  THAT is the check and not tools/zerodelta.sh, which accepts further movement in the ten argv rows phases 87 and 88 already declared", dNew)
+	r.say("MUST NOT DIFFER: the whole recording, `diff -r`, %d lines -- 102 screen cases, ref-excmds.txt, ref-argv.txt, ref-pty.txt and ref-term.txt.  THAT is the check and not tools/coredelta.sh, which accepts further movement in the ten argv rows phases 87 and 88 already declared", dNew)
 	r.cont("MUST DIFFER, the control: this phase's own output with `err ? 2 : 1` made `err ? 1 : 1`, one character, moves %d lines of `diff -r`.  The table can fail", dCtl)
 	r.cont("MUST DIFFER, the write boundaries, with a SOCK_SEQPACKET fd 2: `-Q` is %d writes of %d bytes on the input and %d of %d here; `-T no-such-term-9x` is %d of %d and %d of %d.  The same bytes, one syscall -- and the latent hazard goes with them, stdout's buffered printf arm arriving after everything the editor drew",
 		sq("seq_Q_old").n, len(sq("seq_Q_old").b), sq("seq_Q_new").n, len(sq("seq_Q_new").b),

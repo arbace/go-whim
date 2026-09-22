@@ -1,4 +1,4 @@
-// Command whimtools is every tool the whim and zero pipelines run.
+// Command whimtools is every tool the pipeline run.
 //
 // It is one binary with subcommands rather than one binary per tool, because
 // every subcommand works on the same multi-megabyte file and the sweep runs
@@ -63,10 +63,10 @@ var tools = map[string]tool{
 	"deadenums":   {runDeadenums, "deadenums <file> <enumvals.txt> [--delete|--verify]"},
 	"deadsweep":   {runDeadsweep, "deadsweep <file> [--keep <dir>]"},
 	"sweep":       {runSweep, "sweep <file.c>"},
-	"implhash":    {runImplhash, "implhash [--edit] <unit> [pipeline]"},
-	"parts":       {runParts, "parts <pipeline> <unit>"},
+	"implhash":    {runImplhash, "implhash [--edit] <unit>"},
+	"parts":       {runParts, "parts <unit>"},
 	"symbols":     {runSymbols, "symbols <file.c> <outdir>"},
-	"oracle":      {runOracle, "oracle <phase> <build-dir> <oracle-dir> [pipeline]"},
+	"oracle":      {runOracle, "oracle <phase> <build-dir> <oracle-dir>"},
 	"phasecheck":  {runPhasecheck, "phasecheck <work-dir> <source> <before-dir>"},
 	"nvidx":       {runNvidx, "nvidx <file>"},
 	"orphanopts":  {runOrphanopts, "orphanopts <file>"},
@@ -152,16 +152,16 @@ var tools = map[string]tool{
 	"noenc":       {runNoenc, "noenc <file>"},
 	"utf8only":    {runUtf8only, "utf8only <file>"},
 	"fold":        {runFold, "fold <always|never|dropif> <file> <pattern> <count>"},
-	"phaserun":    {runPhaserun, "phaserun <pipeline> <unit> <work-dir>"},
+	"phaserun":    {runPhaserun, "phaserun <unit> <work-dir>"},
 	"treedigest":  {runTreedigest, "treedigest <work-dir>"},
-	"phasename":   {runPhasename, "phasename <phase> [pipeline]"},
+	"phasename":   {runPhasename, "phasename <phase>"},
 	"restore":     {runRestore, "restore <in.tar> <dir>"},
-	"stages":      {runStages, "stages <pipeline> [--of N | --check]"},
-	"memo":        {runMemo, "memo <unit> <work-dir> <build-dir> [pipeline]"},
+	"stages":      {runStages, "stages [--of N | --check]"},
+	"memo":        {runMemo, "memo <unit> <work-dir> <build-dir>"},
 	"snapshot":    {runSnapshot, "snapshot <dir> <out.tar> <out.sha256>"},
-	"memokey":     {runMemokey, "memokey <unit> <build-dir> [pipeline]"},
-	"verifypass":  {runVerifypass, "verifypass <pipeline> [unit...]"},
-	"specpass":    {runSpecpass, "specpass <pipeline>"},
+	"memokey":     {runMemokey, "memokey <unit> <build-dir>"},
+	"verifypass":  {runVerifypass, "verifypass [unit...]"},
+	"specpass":    {runSpecpass, "specpass"},
 	"parse":       {runParse, "parse <file.c>"},
 	"fieldref":    {runFieldRef, "fieldref <file.c>"},
 }

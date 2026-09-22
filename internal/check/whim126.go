@@ -1010,7 +1010,7 @@ func Whim126(w io.Writer, args []string) error {
 		z30BytesRepr(bytes.TrimSpace(z43E323Any.Find(smOld.out))), z30BytesRepr(bytes.TrimSpace(z43E323Any.Find(smNew.out))))
 
 	// --- 10. what this phase declares ---------------------------------------------------
-	decl, _ := exec.Command("sh", "tools/zerodelta.sh", "--declared", "126").Output()
+	decl, _ := exec.Command("sh", "tools/coredelta.sh", "--declared", "126").Output()
 	if strings.Join(strings.Fields(string(decl)), "") != "" {
 		return die("phase/126/delta declares something for phase 126, and this phase declares nothing at all")
 	}

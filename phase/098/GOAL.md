@@ -215,7 +215,7 @@ build they move **and** stop showing the Greek capital.
 
 Two full recordings, the binary the phase was handed against the one it made, are
 byte-identical — all 102 screen cases, all 111 Ex-command rows, all 30 command lines,
-the four pty scenarios and the nineteen terminal rows — and `tools/zerodelta.sh --phase
+the four pty scenarios and the nineteen terminal rows — and `tools/coredelta.sh --phase
 98` finds the same against whim-vim's frozen baselines. `phase/098/delta` gets a
 comment and no line.
 
@@ -254,7 +254,7 @@ The sweep is **1 round** and removes **nothing** — every one of the seventeen 
 functions is called — and `tools/canon.sh` is a **no-op** on the output, so the
 inserted text is already in the file's canonical form. The phase is **41 s**: 7 s the
 edit and its build of the input binary, 6 s the sweep, 24 s the check and 4 s
-`tools/zerodelta.sh`. `make whim-tip` is 48 s. Its boundary is `b1b12e506ceb`.
+`tools/coredelta.sh`. `make whim-tip` is 48 s. Its boundary is `b1b12e506ceb`.
 
 ## Its placement
 

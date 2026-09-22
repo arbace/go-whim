@@ -3,8 +3,8 @@
 **Since the merge this phase is not a seed.** It is handed q82's tree — `whim-vim.c`
 and the makefile whim's phases carry, `tools/templates/whim.mk` — and there is no
 committed file for it to `cmp` with. So step 1 below is now *build the tree it was
-handed with the compile line it carries*: that binary is the one the zero baselines
-are recorded from (step 3), and the phase then writes `tools/templates/zero.mk` over
+handed with the compile line it carries*: that binary is the one the core baselines
+are recorded from (step 3), and the phase then writes `tools/templates/core.mk` over
 the makefile and builds again (step 2). The baselines are therefore recorded from the
 pipeline's own output at q82 — the one place it does so, and legitimate for the
 reason recording from an input is: nothing from 83 on can reach q82. What it costs is
@@ -18,19 +18,19 @@ before:
 
 1. **The seed is the input.** `cmp` against `whim-vim.c`; the boundary digest is the
    same file's.
-2. **It builds, absolutely static.** `make -C zero` with `tools/templates/zero.mk`,
+2. **It builds, absolutely static.** `make -C zero` with `tools/templates/core.mk`,
    `gcc -O0 -static -no-pie -s`, and then `readelf`: the type is `EXEC`, there is no
    `INTERP`, no dynamic section and no relocation. Measured on this input: 894,088
    bytes, where whim's static-PIE of the same source is 955,976 bytes, `DYN`, with a
    dynamic section and 1,986 relative relocations.
-3. **The zero baselines are whim-vim's.** `whim-vim.c` is built in a scratch
+3. **The core baselines are whim-vim's.** `whim-vim.c` is built in a scratch
    directory with `tools/templates/whim.mk` — whim's compile line — and the three
    harnesses whim's delta reads, `behaviour.py`, `exsweep.py` and `termcheck.py`,
-   record it three times; the runs must be identical. If `.reference/zero-baselines`
+   record it three times; the runs must be identical. If `.reference/core-baselines`
    exists the recording must equal it, and it is never overwritten: a difference
    means a harness or the input changed, and has to be named. If it does not exist,
    it is written.
-4. **whim-vim does exactly what whim-vim does.** `tools/zerodelta.sh zero/whim-vim
+4. **whim-vim does exactly what whim-vim does.** `tools/coredelta.sh zero/whim-vim
    zero/whim-vim.c --phase 83`, with `phase/083/delta` empty, requires no behaviour
    case, no Ex command and not the terminal table to move — so `-no-pie` changed
    nothing a harness sees. And `tools/whimdelta.sh --phase 82` on the same binary,
@@ -41,6 +41,6 @@ A tier-3 hit on this phase records nothing, because the phase does not run. So
 `whim.mk` checks afterwards: `whim-pass`, and `zero-phase-N` — and through them
 `whim-repass`, `whim-specpass`, `whim-tip` and the `whim-vim.c` rule — run
 `whim-baselines-check` once the chain has reached its boundary, and it refuses unless
-`.reference/zero-baselines` holds a non-empty `behaviour/`, `ref-exsweep.txt` and
+`.reference/core-baselines` holds a non-empty `behaviour/`, `ref-exsweep.txt` and
 `ref-term.txt`, naming the fix: `rm -rf .cache/r0 && make whim-phase-83`. The check
 lives in `whim.mk`, which no implementation digest reads, so it moves no key.

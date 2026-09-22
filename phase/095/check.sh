@@ -58,7 +58,7 @@
 #
 # 3. THE ROW FLOOR, WHICH THIS PHASE CROSSES.  ``orphanopts`` refused a table
 #    it parsed fewer than 100 distinct `&p_xx` out of, and this phase takes the count
-#    102 -> 96.  `tools/zerodelta.sh` runs that tool beside its harnesses, so crossing
+#    102 -> 96.  `tools/coredelta.sh` runs that tool beside its harnesses, so crossing
 #    the floor would not fail this phase -- it would fail the delta check of EVERY
 #    Part II phase after it.  The floor is 80 now, lowered in this phase's own commit
 #    with the reason in the tool's docstring, the same number and the same argument as

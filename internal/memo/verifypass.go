@@ -29,7 +29,7 @@ func VerifyPass(p pipeline.P, units []string, jobs int, w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	scratch, err := os.MkdirTemp("", "verifypass-"+p.Name+".")
+	scratch, err := os.MkdirTemp("", "verifypass.")
 	if err != nil {
 		return err
 	}
@@ -64,8 +64,8 @@ func VerifyPass(p pipeline.P, units []string, jobs int, w io.Writer) error {
 		jobs = runtime.NumCPU()
 	}
 	start := time.Now()
-	fmt.Fprintf(w, "  %-12s %d units of %s, %d at a time, in %s\n",
-		"verifypass", len(units), p.Name, jobs, scratch)
+	fmt.Fprintf(w, "  %-12s %d units, %d at a time, in %s\n",
+		"verifypass", len(units), jobs, scratch)
 
 	results := make([]string, len(units))
 	sem := make(chan struct{}, jobs)
@@ -149,9 +149,9 @@ func verifyOne(p pipeline.P, u, root, scratch string) string {
 	if fileExists(filepath.Join(root, "slim-vim.c")) {
 		os.Symlink(filepath.Join(root, "slim-vim.c"), filepath.Join(d, "slim-vim.c"))
 	}
-	if fileExists(filepath.Join(root, ".reference", "zero-baselines")) {
-		os.Symlink(filepath.Join(root, ".reference", "zero-baselines"),
-			filepath.Join(d, ".reference", "zero-baselines"))
+	if fileExists(filepath.Join(root, ".reference", "core-baselines")) {
+		os.Symlink(filepath.Join(root, ".reference", "core-baselines"),
+			filepath.Join(d, ".reference", "core-baselines"))
 	}
 	// Phase 116's check builds q82's whim-vim.c from that boundary's tar.
 	if q82 := filepath.Join(root, ".build", "q82.tar"); fileExists(q82) {
@@ -182,7 +182,7 @@ func verifyOne(p pipeline.P, u, root, scratch string) string {
 	if err != nil {
 		return fmt.Sprintf("%s%s FAILED to open its log", p.Tag, u)
 	}
-	cmd := exec.Command("tools/phaserun.sh", p.Name, u, p.Work)
+	cmd := exec.Command("tools/phaserun.sh", u, p.Work)
 	cmd.Dir = d
 	cmd.Stdout, cmd.Stderr = logFile, logFile
 	runErr := cmd.Run()

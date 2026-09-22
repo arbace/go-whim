@@ -48,7 +48,7 @@
 #   tools/canon.sh
 #   tools/phasecheck.sh
 #   tools/st.sh
-#   tools/zerodelta.sh
+#   tools/coredelta.sh
 #   tools/zrecord.sh
 set -eu
 

@@ -89,7 +89,7 @@ func Whim116(w io.Writer, args []string) error {
 	work := args[0]
 	const self = 116
 	f := filepath.Join(work, "whim-vim.c")
-	base := ".reference/zero-baselines"
+	base := ".reference/core-baselines"
 	tmp, err := os.MkdirTemp("", "whim116")
 	if err != nil {
 		return err
@@ -117,7 +117,7 @@ func Whim116(w io.Writer, args []string) error {
 			b.cont("Phase 83 records it, from whim-vim.c -- the pipeline's")
 			b.cont("immutable input -- and REFUSES to overwrite a set that")
 			b.cont("differs, so a changed harness needs both paths removed:")
-			fmt.Fprintln(w, "                 rm -rf .reference/zero-baselines .cache/q83 && make whim-phase-83")
+			fmt.Fprintln(w, "                 rm -rf .reference/core-baselines .cache/q83 && make whim-phase-83")
 			return harness.ErrReported
 		}
 	}
@@ -126,7 +126,7 @@ func Whim116(w io.Writer, args []string) error {
 	before := sha256File(f)
 
 	// --- 2. the build ---------------------------------------------------------
-	// The input the zero baselines were recorded from is q82's whim-vim.c, the
+	// The input the core baselines were recorded from is q82's whim-vim.c, the
 	// tree phase 83 was handed, and it is read out of that boundary's tar.
 	var whim chan error
 	if in, e := exec.Command("tar", "-xOf", ".build/q82.tar", "./whim-vim.c").Output(); e == nil && len(in) > 0 {
@@ -369,7 +369,7 @@ func Whim116(w io.Writer, args []string) error {
 	af.say("%s, and 0 of %d under the question this replaces -- whose %d rows carry %d distinct answer between them", moved, len(oldRows), len(oldRows), len(ans))
 
 	// --- 7. the declared delta ------------------------------------------------
-	if err := run(w, "sh", "tools/zerodelta.sh", bin, f, "--phase", "116"); err != nil {
+	if err := run(w, "sh", "tools/coredelta.sh", bin, f, "--phase", "116"); err != nil {
 		return harness.ErrReported
 	}
 

@@ -79,7 +79,7 @@ ways into Ex mode and this is the phase that closes them.
 
 ## The probes, and why a delta is not enough here
 
-The baselines are one recording of one binary, so `tools/zerodelta.sh` can say
+The baselines are one recording of one binary, so `tools/coredelta.sh` can say
 "exactly these six moved" and cannot say "the old binary entered Ex mode". The check
 says it, by running both: the binary the phase was **handed**, built by the edit
 part from the boundary's own makefile flags, and the one it made. **29 probes, in

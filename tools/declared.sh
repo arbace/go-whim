@@ -5,7 +5,7 @@
 # token per way, `#` notes saying why, and nothing at all for a phase that
 # declares nothing (the words are GOALS.md's, *What is measured*).  This prints
 # the declarations of a run of phases in the grammar tools/whimdelta.sh and
-# tools/zerodelta.sh read -- `N  tokens` for a phase's first line, continuation
+# tools/coredelta.sh read -- `N  tokens` for a phase's first line, continuation
 # lines indented, notes and blank lines left out -- so a checker reads one list
 # however the phases keep theirs.
 #

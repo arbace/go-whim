@@ -53,7 +53,7 @@
 # this phase was handed and the one it made -- is sent a single SIGTERM and a single
 # SIGHUP, and each pair must agree on the exit status, on stderr and on WHAT THE EDITOR
 # DREW: every snapshot, the final screen and the bell count, rebuilt from the escape
-# stream by tools/zscreen.py, which is zero's own instrument.  The raw stream is NOT
+# stream by tools/zscreen.py, which is the core's own instrument.  The raw stream is NOT
 # comparable and section 5 says why it is not.  `Vim: Caught deadly signal TERM`/`HUP`
 # and `Vim: Finished.` are required to be on that screen, so the equality is not two
 # blank screens agreeing.

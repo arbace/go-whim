@@ -19,7 +19,7 @@
 # NOTHING IN ANY BUILD OF whim-vim CAN MAKE `entered` REACH 3, and that is the whole
 # phase.  It is phase 96's kind of cut -- the POSSIBILITY has never existed -- rather
 # than phase 92's, where an earlier Part II phase made a live path unreachable.  What makes
-# it impossible is two facts about this file, and neither is zero's doing:
+# it impossible is two facts about this file, and neither is the core's doing:
 #
 #   * `catch_signals()` installs the deadly handler with `sa.sa_flags = 0` and
 #     `sigemptyset(&sa.sa_mask)`.  NO `SA_NODEFER`, so the signal being handled is
@@ -68,7 +68,7 @@ state=${2:?usage: phase/100/edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (GOALS.md core rule 8).
+# second time: the core's compile line is the boundary's (GOALS.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

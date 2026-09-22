@@ -29,7 +29,7 @@ slim-vim.c  --whim-->  whim-vim.c
     `.reference/baselines`;
   - **phases 83-128** (`GOALS.md` Part II) turn it into an embeddable core:
     no filesystem, the host behind a line in the file, no libc the core names, the
-    text a tree. Their deltas are measured against `.reference/zero-baselines`,
+    text a tree. Their deltas are measured against `.reference/core-baselines`,
     with another instrument. `GOALS.md` Part II, *Phases 83 to 128 as they
     stand*, is the account read across and belongs there, not here;
   - **phases 129-162** (Part II too) remove from the core what transpiling it to
@@ -39,7 +39,7 @@ slim-vim.c  --whim-->  whim-vim.c
     drops the build date from the version line, which only stderr shows.
     `tx/FINDINGS.md` maps each finding to its phase.
 
-  `ZERO_FROM=83` in `tools/pipeline.sh` is the line between the two arcs, stated
+  `CORE_FROM=83` in `tools/pipeline.sh` is the line between the two arcs, stated
   once.
 
 **A phase is a directory, `phase/NNN/`**, its number in three digits so that they
@@ -81,11 +81,11 @@ phase/stages       the schedule: the phase list, the stages, need and apart, the
 tools/             the driver (memo, phaserun, stages, implhash, verifypass,
                    specpass, oracle, snapshot, restore) and the three wrappers
                    that run Go: st.sh, sweep.sh, canon.sh
-tools/templates/   whim.mk, the makefile phase 0 starts from, and zero.mk, the one
+tools/templates/   whim.mk, the makefile phase 0 starts from, and core.mk, the one
                    phase 83 writes over it
 tools/patches/     cc-v4-c23.patch, two C23 productions modernc.org/cc/v4 lacks
 editor/            the core in Go: editor.go GENERATED (make editor/editor.go; never edit it),
-                   its runtime crt.go and host host.go by hand; tools/zerodelta.sh
+                   its runtime crt.go and host host.go by hand; tools/coredelta.sh
                    measures a build of it
 tx/                skel (types, globals, signatures and, with -bodies, the bodies),
                    splice (emitted bodies measured in a copy of editor/), pre
@@ -116,7 +116,7 @@ make whim-vim        # the C product's binary
 
 - **The compile line is the boundary's**, in the work tree's `Makefile`. Up to
   q82 it is `gcc -O0 -static -s` (a static-PIE); phase 83 writes
-  `tools/templates/zero.mk` over it, `-static -no-pie -s`, and phase 84 adds
+  `tools/templates/core.mk` over it, `-static -no-pie -s`, and phase 84 adds
   `-fno-stack-protector` (`EXEC`, no `INTERP`, no dynamic section, no relocation
   -- 83 and 84 require all four). `whim.mk` states the product's flags once more
   as `WHIMCFLAGS`/`WHIMLDFLAGS` and `whim-pass` refuses to copy the product out
@@ -218,11 +218,11 @@ passes: every delta is measured against it.
   moved here: the Go harnesses on `slim-vim.c`'s binary reproduce arbace/slim-vim's
   own baselines byte for byte (67 behaviour cases, 19 terminals, 600 Ex
   commands). `tools/whimdelta.sh` checks whim's declared delta against them.
-- **`.reference/zero-baselines/`** -- `screen/`, `memline/`, `ref-excmds.txt`,
+- **`.reference/core-baselines/`** -- `screen/`, `memline/`, `ref-excmds.txt`,
   `ref-argv.txt`, `ref-pty.txt`, `ref-term.txt` (`tools/zrecord.sh`) -- is
   recorded by **phase 83 from q82**, the tree it is handed, built with the compile
   line that tree carries; `tools/whimdelta.sh` hands every phase from 83 on to
-  `tools/zerodelta.sh`, which checks the declarations from 83 on against it.
+  `tools/coredelta.sh`, which checks the declarations from 83 on against it.
 - **Never regenerate a baseline from a binary a later phase can reach**, which
   would agree by construction. `slim-vim.c` is the pipeline's immutable input, and
   nothing from 83 on can reach q82. The cost of the second: a change to what
@@ -231,7 +231,7 @@ passes: every delta is measured against it.
 - A tier-3 hit on phase 0 or 83 records nothing, so every target that can end a
   pass ends with `whim-baselines-check`, which names the fix:
   `rm -rf .reference/baselines .cache/q0 && make whim-phase-0`, and
-  `rm -rf .reference/zero-baselines .cache/q83 && make whim-phase-83`.
+  `rm -rf .reference/core-baselines .cache/q83 && make whim-phase-83`.
 
 ## Harness rules that were each learned the hard way
 

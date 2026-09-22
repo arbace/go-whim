@@ -104,7 +104,7 @@ cpo=h` to answer E539 on both.
 
 `tools/orphanopts.py` refused a table it parsed fewer than 100 distinct `&p_xx` out
 of; this phase takes the count **102 → 96**, and its first call crosses it.
-`tools/zerodelta.sh` runs that tool beside its harnesses, so crossing the floor does
+`tools/coredelta.sh` runs that tool beside its harnesses, so crossing the floor does
 not fail *this* phase — it fails the delta check of **every Part II phase after it**, with
 a message about a table that moved. It is the same failure shape as
 `create_cmdidxs.py`'s 100-row floor at phase 91, arriving from a different table.
@@ -147,7 +147,7 @@ and that the instrument cannot see**. Measured record by record:
 
 So a phase that did nothing and a phase that did everything have the same recording.
 `diff -rq` over two full recordings — the binary the phase was handed against the one
-it made — is **empty**, and `tools/zerodelta.sh --phase 95` finds the nine lines phases
+it made — is **empty**, and `tools/coredelta.sh --phase 95` finds the nine lines phases
 85 to 94 declared and nothing new. `phase/095/delta` gets a comment and no line.
 
 ## The probes, which are not a supplement but the check
@@ -221,7 +221,7 @@ mechanical`, which the plan does not have** — `'prompt'`'s only reader was
 `getexmodeline()`.
 
 **`need 95 swept` is not required, and it was measured rather than assumed.**
-`tools/phaserun.sh whim 94-95` runs phase 95's edit on the unswept text phase 94's edit
+`tools/phaserun.sh 94-95` runs phase 95's edit on the unswept text phase 94's edit
 leaves, and every counted anchor matches: the same seven rows come back from the
 computation and the cut ends at the same 108 rows and 96 globals. The run fails only
 on the edit's build of its input binary, which is true of every Part II edit that builds

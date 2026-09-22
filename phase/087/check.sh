@@ -11,7 +11,7 @@
 #
 # THE DECLARED DELTA IS NOT THE WHOLE EVIDENCE HERE, for two reasons that pull in
 # opposite directions.  `phase/087/delta` says six records move -- `key_Q`,
-# `key_gQ` and the argv rows `-e`, `-E`, `-e -s`, `-v` -- and tools/zerodelta.sh
+# `key_gQ` and the argv rows `-e`, `-E`, `-e -s`, `-v` -- and tools/coredelta.sh
 # proves that exactly those and nothing else did, against baselines recorded from
 # whim-vim.  What it cannot show is a BEFORE: the baselines are one recording of one
 # binary, so "the old one entered Ex mode and the new one beeps" is not a sentence

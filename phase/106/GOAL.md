@@ -44,7 +44,7 @@ difference at all**. That is tier 1 of `CLAUDE.md`'s verification table, and it 
 every screen case, every Ex-command row, every command line and every pty scenario at
 once, **because the program that would be run is the same program**. `nm -u` holds still
 as a `comm` empty both ways, `main` is still the only external symbol, the sweep took
-nothing and canon settled in one round. `tools/zerodelta.sh --phase 106` still runs and
+nothing and canon settled in one round. `tools/coredelta.sh --phase 106` still runs and
 corroborates; it is not the evidence. It is phase 99's shape exactly, on three thousand
 edits instead of seven.
 
@@ -191,7 +191,7 @@ preserves, 5 on unswept text against 0 on swept, and it **preserves whatever it 
 handed** rather than requiring a value.
 
 **`apart 105 106`, measured, and the refusal is a phase that renamed nothing breaking on a
-phase that renamed two type names.** `tools/phaserun.sh whim 105-106` on q104 runs both
+phase that renamed two type names.** `tools/phaserun.sh 105-106` on q104 runs both
 edits and two sweeps and stops at phase 105's check's **first act** — ``iobuff_room` is
 not in the output exactly once, so the controls below would not be controls`. Phase 105
 writes its four controls by matching the helpers' text **verbatim**, and two of the three

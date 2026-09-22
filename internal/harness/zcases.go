@@ -15,8 +15,8 @@ import (
 // ZCases records the 102 screen cases: keystrokes in, escape sequences out,
 // and a screen rebuilt per redraw.
 //
-// This is zero's instrument, and it is zero's own.  The file-based harnesses
-// are whim's and slim's and cannot be zero's, because the editor they measure
+// This is the core's instrument, and it is the core's own.  The file-based harnesses
+// are whim's and slim's and cannot be the core's, because the editor they measure
 // is on its way to having no file to write and no stream to print on.
 //
 // It is proven able to fail: do_addsub() returning FAIL moves exactly 11 of

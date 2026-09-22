@@ -20,7 +20,7 @@ import (
 //
 // It was 100 while the smallest table in play was slim's and whim's 116
 // distinct option globals.  Phase 95 drops six rows, 102 -> 96, which
-// the old floor refused.  zerodelta runs this beside its harnesses, so
+// the old floor refused.  coredelta runs this beside its harnesses, so
 // crossing the floor does not fail that phase -- it fails the delta check of
 // EVERY phase after it, with a message about a table that moved.  Lowered
 // in that phase's own commit and never silently; 80 leaves 16 globals of

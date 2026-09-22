@@ -137,7 +137,7 @@ counts are **raw and not scrubbed** except at 900: the version banner's
 `__DATE__`/`__TIME__` differ between two builds and their *length* does not, so only the
 equality needs scrubbing and the caps do not.
 
-## `zerodelta.sh` is the second opinion here and not the first
+## `coredelta.sh` is the second opinion here and not the first
 
 The declared delta is nothing at all, and two full recordings either side are
 **byte-identical** — `diff -r` reports 0 lines across 102 screen cases, `ref-excmds.txt`,
@@ -146,11 +146,11 @@ fail: `write(err ? 2 : 1, …)` made `write(err ? 1 : 1, …)`, **one character*
 records and **217 lines** of `diff -r`.
 
 **And it confirms a trap the survey named.** Run on the same control,
-`tools/zerodelta.sh` names only **fourteen** of those twenty-four, because ten of them
+`tools/coredelta.sh` names only **fourteen** of those twenty-four, because ten of them
 are argv rows phases 87 and 88 already declared (`-`, `--`, `-e`, `-E`, `-e -s`, `-v`,
 `f.txt`, `f.txt g.txt`, `+q! f.txt`, `-- +q!`) and `tools/zcompare.py` therefore accepts
 any *further* movement in them silently. A declared row is not compared again. So this
-check diffs the two recordings itself and keeps `zerodelta.sh` as the second opinion —
+check diffs the two recordings itself and keeps `coredelta.sh` as the second opinion —
 run on the control, where it must refuse.
 
 **The instrumented pair is what makes the empty declaration mean something**, and it is
@@ -198,7 +198,7 @@ twenty statements, the eleven output counts and the whole launcher tail. Its cut
 exact text in functions no sweep touches and its computed parts are counts of words a
 sweep cannot create, so there is nothing that could shrink silently.
 
-**`apart 103 104`, measured, one direction only.** `tools/phaserun.sh whim 103-104` on q102
+**`apart 103 104`, measured, one direction only.** `tools/phaserun.sh 103-104` on q102
 runs both edits and two sweeps and stops in phase 103's check on one message — *"the
 output does not have exactly the twelve `#include` directives phase 99 left"*. Phase 103
 states the twelve as a property it preserves and this phase takes `<stdio.h>`. There is

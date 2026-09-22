@@ -72,7 +72,7 @@
 #   tools/canon.sh
 #   tools/phasecheck.sh
 #   tools/st.sh
-#   tools/zerodelta.sh
+#   tools/coredelta.sh
 set -eu
 
 work=${1:?usage: phase/107/check.sh <work-dir> <state-dir>}

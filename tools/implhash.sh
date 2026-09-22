@@ -1,7 +1,7 @@
 #!/bin/sh
 # The identity of a phase's tier-2 implementation.
 #
-# Usage: tools/implhash.sh <unit> [pipeline]      a phase N, or a stage A-B
+# Usage: tools/implhash.sh <unit>                a phase N, or a stage A-B
 #
 # Half of a memoize key.  The other half is the input boundary; together they
 # say "this implementation, applied to this input", which is the only thing a
@@ -22,15 +22,15 @@ set -eu
 # --edit N: the identity of phase N's EDIT part alone, and what it names -- the key
 # tools/phaserun.sh caches that edit's result under inside a stage.
 if [ "${1:-}" = "--edit" ]; then
-    phase=${2:?usage: implhash.sh --edit <phase> [pipeline]}
-    . tools/pipeline.sh "${3:-whim}"
-    progs=$(tools/phaserun.sh --parts "$PIPE" "$phase" | grep -- '/edit\.sh$' || true)
+    phase=${2:?usage: implhash.sh --edit <phase>}
+    . tools/pipeline.sh
+    progs=$(tools/phaserun.sh --parts "$phase" | grep -- '/edit\.sh$' || true)
     [ -n "$progs" ] || { echo "implhash: phase $phase has no edit part" >&2; exit 1; }
     edit_only=1
 else
-    phase=${1:?usage: implhash.sh <unit> [pipeline]}
-    . tools/pipeline.sh "${2:-whim}"
-    progs=$(tools/phaserun.sh --parts "$PIPE" "$phase")
+    phase=${1:?usage: implhash.sh <unit>}
+    . tools/pipeline.sh
+    progs=$(tools/phaserun.sh --parts "$phase")
 fi
 
 [ -n "$progs" ] || { echo agent; exit 0; }
@@ -150,7 +150,7 @@ delta_lines() {
 # a stage between the two can never replay a boundary the other mode produced.
 unit_mode() {
     [ -z "${edit_only:-}" ] || return 0
-    echo "mode $(tools/stages.sh "$PIPE" --mode "$phase")"
+    echo "mode $(tools/stages.sh --mode "$phase")"
 }
 
 {

@@ -70,7 +70,7 @@
 # 4. FOURTEEN PROBE SESSIONS ON BOTH BINARIES, byte-identical, each required to be
 #    doing something.  The corpus is ASCII-only and seeds itself by typing, so it
 #    cannot reach Unicode case folding, `'casemap'`, the four bsearch tables or the
-#    sort at all -- which is exactly why `tools/zerodelta.sh` saying "nothing moved"
+#    sort at all -- which is exactly why `tools/coredelta.sh` saying "nothing moved"
 #    is not enough on its own.
 #
 # 5. AND THE SORT, WHICH NO RECORD CAN SEE.  `:undolist` is wiped by the Press-ENTER

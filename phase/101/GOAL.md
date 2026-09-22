@@ -108,7 +108,7 @@ declaration. The five before it each removed *something*: **9** code that could 
 **12** code that can run and that the instrument cannot see, **13** a possibility, **16**
 no code at all with the binary the same bytes, **14** and **15** code replaced by code
 that computes the same answers. **This one adds a call frame and removes nothing**, so
-there is nothing to declare and nothing for a recording to show. `tools/zerodelta.sh
+there is nothing to declare and nothing for a recording to show. `tools/coredelta.sh
 --phase 101` finds the corpus unmoved, as it must: 102 of 102 screen cases, 111 of 111
 Ex-command rows, 30 of 30 command lines.
 
@@ -140,7 +140,7 @@ sweep has ever touched.
 **`apart 100 101`, measured.** Phase 100's check requires the file to have lost **exactly
 nine** lines and this phase adds five, so on a shared stage the one swept text 17's
 check is handed is four lines shorter than its input rather than nine:
-`tools/phaserun.sh whim 100-101` on q99 reports *"the file lost 4 lines, expected 9"* and
+`tools/phaserun.sh 100-101` on q99 reports *"the file lost 4 lines, expected 9"* and
 exits 1. It is `apart 99 100`'s shape in **one** direction only — phase 101's own check
 compares against the text *its* edit was handed, which is 100's output either way, so it
 passes on a 100-101 stage.

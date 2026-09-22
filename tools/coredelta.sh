@@ -2,18 +2,18 @@
 # What whim-vim does from phase 83 on, differently from q82, as a check rather
 # than a report.
 #
-# Usage: tools/zerodelta.sh <binary> <source> --phase N
-#        tools/zerodelta.sh --declared N
+# Usage: tools/coredelta.sh <binary> <source> --phase N
+#        tools/coredelta.sh --declared N
 #
 # tools/whimdelta.sh's rule against a different instrument, and whimdelta.sh hands
-# every phase from ZERO_FROM (tools/pipeline.sh) on to it.  --phase N records the
+# every phase from CORE_FROM (tools/pipeline.sh) on to it.  --phase N records the
 # binary with tools/zrecord.sh and hands the recording, the baselines and
-# the declarations from ZERO_FROM on (tools/declared.sh) to zcompare, which requires **exactly** the declared
-# difference: every record that moved is declared, every declaration moved
-# something, and nothing else differs at all.  --declared N prints what phase N
+# the declarations from CORE_FROM on (tools/declared.sh) to zcompare, which
+# requires **exactly** the declared difference: every record that moved is
+# declared, every declaration moved something, and nothing else differs at all.  --declared N prints what phase N
 # itself declares, for a phase program that wants to assert its own list.
 #
-# THE BASELINES ARE q82'S: .reference/zero-baselines, recorded by phase 83 from the
+# THE BASELINES ARE q82'S: .reference/core-baselines, recorded by phase 83 from the
 # tree it is handed, built with the compile line that tree carries.  So the delta is
 # the difference from q82, not from slim; it is CUMULATIVE, as phases 0-82's are
 # against slim -- the declarations up to phase N are the whole difference from q82
@@ -29,23 +29,23 @@
 # "Six commands differ" is a check.  "Some commands differ" is not.
 set -eu
 
-. tools/pipeline.sh whim
+. tools/pipeline.sh
 
 if [ "${1:-}" = "--declared" ]; then
-    n=${2:?usage: zerodelta.sh --declared N}
+    n=${2:?usage: coredelta.sh --declared N}
     d=$(mktemp)
-    tools/declared.sh "$ZERO_FROM" "$n" > "$d"
+    tools/declared.sh "$CORE_FROM" "$n" > "$d"
     tools/st.sh zcompare --declared "$d" "$n"
     rm -f "$d"
     exit 0
 fi
 
-bin=${1:?usage: zerodelta.sh <binary> <source> --phase N}
-src=${2:?usage: zerodelta.sh <binary> <source> --phase N}
-[ "${3:-}" = "--phase" ] || { echo "usage: zerodelta.sh <binary> <source> --phase N" >&2; exit 2; }
-n=${4:?usage: zerodelta.sh <binary> <source> --phase N}
+bin=${1:?usage: coredelta.sh <binary> <source> --phase N}
+src=${2:?usage: coredelta.sh <binary> <source> --phase N}
+[ "${3:-}" = "--phase" ] || { echo "usage: coredelta.sh <binary> <source> --phase N" >&2; exit 2; }
+n=${4:?usage: coredelta.sh <binary> <source> --phase N}
 
-base=.reference/zero-baselines
+base=.reference/core-baselines
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 fail=0
@@ -66,7 +66,7 @@ if [ ! -d "$base/screen" ] || [ ! -f "$base/ref-excmds.txt" ] \
         || [ ! -f "$base/ref-argv.txt" ] || [ ! -f "$base/ref-term.txt" ] \
         || [ ! -f "$base/ref-pty.txt" ]; then
     orphans
-    echo "  delta        no zero baselines at $base -- phase 83 records them"
+    echo "  delta        no core baselines at $base -- phase 83 records them"
     echo "               (a recording is screen/, ref-excmds.txt, ref-argv.txt,"
     echo "                ref-pty.txt and ref-term.txt: tools/zrecord.sh)"
     exit 1
@@ -75,6 +75,6 @@ fi
 tools/zrecord.sh "$bin" "$src" "$tmp/now"
 orphans
 
-tools/declared.sh "$ZERO_FROM" "$n" > "$tmp/declared"
+tools/declared.sh "$CORE_FROM" "$n" > "$tmp/declared"
 tools/st.sh zcompare "$base" "$tmp/now" "$tmp/declared" "$n" || fail=1
 exit $fail

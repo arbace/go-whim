@@ -21,10 +21,10 @@
 # current binary.
 set -eu
 
-phase=${1:?usage: oracle.sh <phase> <build-dir> <oracle-dir> [pipeline]}
+phase=${1:?usage: oracle.sh <phase> <build-dir> <oracle-dir>}
 build=${2:?}
 oracle=${3:?}
-. tools/pipeline.sh "${4:-whim}"
+. tools/pipeline.sh
 
 got="$build/$TAG$phase.sha256"
 [ -f "$got" ] || { echo "  oracle       $TAG$phase: no digest at $got"; exit 1; }

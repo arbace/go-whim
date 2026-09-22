@@ -31,7 +31,7 @@
 #               a pure restructure inside one translation unit frees nothing.  The
 #               binary GROWS, which is the same fact wearing its other face, and the
 #               check reports the number rather than letting it look like a mistake.
-#   BEHAVIOUR   the declared delta is NOTHING AT ALL, so tools/zerodelta.sh proves the
+#   BEHAVIOUR   the declared delta is NOTHING AT ALL, so tools/coredelta.sh proves the
 #               recording did not move.  And the recording is NEARLY BLIND to this
 #               phase, which is measured rather than asserted (see below), so the phase
 #               owes probes: 263 of them on both binaries, and FOUR DELIBERATE BREAKS

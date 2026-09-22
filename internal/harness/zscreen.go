@@ -51,7 +51,7 @@ type Snap struct {
 }
 
 // Screen is a 24x80 terminal rebuilt from the escape sequences the editor
-// wrote.  It is zero's instrument: keystrokes in on stdin, escape sequences
+// wrote.  It is the core's instrument: keystrokes in on stdin, escape sequences
 // out on stdout, and a screen per redraw.
 type Screen struct {
 	Rows, Cols int

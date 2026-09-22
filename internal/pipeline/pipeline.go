@@ -19,50 +19,39 @@ import (
 	"strings"
 )
 
-// P is one pipeline's parameters.
+// P is the pipeline's parameters.
 type P struct {
-	Name   string // slim, whim
-	Tag    string // p, q -- the boundary tag
-	Impl   string // the pipeline's name in its tools' arguments
+	Tag    string // q -- the boundary tag
 	Doc    string
 	Work   string // the work directory
 	Build  string // where boundaries are recorded
-	Source string // the one file a sweep runs on; slim has none
-	Delta  string // the declared-delta checker; slim has none
+	Source string // the one file a sweep runs on
+	Delta  string // the declared-delta checker
 	Phases []int
 }
 
-// Get returns the named pipeline.
+// Get returns the pipeline.
 //
-// The boundary tag differs so that one .cache/ can hold both without a
-// key collision, and so that a stray p3 in a whim build is obviously wrong
-// rather than plausibly right.
+// ONE PIPELINE, so this takes no name: the tools take no pipeline argument
+// either (tools/pipeline.sh).  The boundary tag stays q, so that a stray p3
+// from arbace/slim-vim's own pipeline is obviously wrong rather than plausibly
+// right.
 //
-// Whim's phase list is NOT written here, and that is measured rather than
-// tidy: tools/pipeline.sh is hashed into every stage's key and every edit's,
-// so a byte changed there re-keys the whole pipeline, and a list written there
-// would do that every time a phase was added.  It is the `phases` line of
+// The phase list is NOT written here, and that is measured rather than tidy:
+// tools/pipeline.sh is hashed into every stage's key and every edit's, so a
+// byte changed there re-keys the whole pipeline, and a list written there would
+// do that every time a phase was added.  It is the `phases` line of
 // phase/stages, which no key reads, and this reads it from there too.
-func Get(name string) (P, error) {
-	switch name {
-	case "", "slim":
-		return P{
-			Name: "slim", Tag: "p", Impl: "slim", Doc: "SLIM-GOAL.md",
-			Work: "upstream", Build: ".build-slim",
-			Phases: seq(0, 11),
-		}, nil
-	case "whim":
-		ph, err := manifestPhases("phase/stages")
-		if err != nil {
-			return P{}, err
-		}
-		return P{
-			Name: "whim", Tag: "q", Impl: "whim", Doc: "GOALS.md",
-			Work: "whim", Build: ".build", Source: "whim-vim.c",
-			Delta: "tools/whimdelta.sh", Phases: ph,
-		}, nil
+func Get() (P, error) {
+	ph, err := manifestPhases("phase/stages")
+	if err != nil {
+		return P{}, err
 	}
-	return P{}, fmt.Errorf("pipeline: no such pipeline: %s", name)
+	return P{
+		Tag: "q", Doc: "GOALS.md",
+		Work: ".tmp/whim-stage", Build: ".build", Source: "whim-vim.c",
+		Delta: "tools/whimdelta.sh", Phases: ph,
+	}, nil
 }
 
 func seq(a, b int) []int {

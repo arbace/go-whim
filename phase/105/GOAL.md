@@ -204,7 +204,7 @@ output it finds the same 129 sites in the same 92 / 7 / 30 shapes, 80,174 → 80
 lines.
 
 **`apart 104 105`, measured, and the first complaint is not the predicted one.**
-`tools/phaserun.sh whim 104-105` on q103 stops in phase 104's check with **``printf` has 4
+`tools/phaserun.sh 104-105` on q103 stops in phase 104's check with **``printf` has 4
 mentions, expected 10``** — phase 104's own documented counting trap read from the other
 end. None of the ten is a call; nine are `format(printf, …)` attributes, and **six of
 those nine sit on the wrapper prototypes this phase deletes**. The other three

@@ -145,7 +145,7 @@ block splits no more often than a narrower one.
 `nm -u` does not move, and the reason is stated rather than the number: the hash, the free
 list and the block numbers were **pure computation inside the file**, reaching the outside
 only through `alloc()` and `vim_free()`, which have been `host_alloc` and `host_free`
-since phase 118. `tools/zerodelta.sh --phase 126` reports *exactly as declared* — screen
+since phase 118. `tools/coredelta.sh --phase 126` reports *exactly as declared* — screen
 102/102, memline 16/16, `ref-excmds.txt` 111/111 and `ref-argv.txt` 30/30 — which is a
 different comparison from the check's own `diff -r` of two recordings: one asks whether
 the output matches its input, the other whether it matches whim. The synthetic input the

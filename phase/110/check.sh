@@ -49,7 +49,7 @@
 #                 THIS PHASE IS STRUCTURAL AND NOT A SYMBOL COUNT.
 #   BEHAVIOUR     the declared delta is NOTHING AT ALL.  Two full recordings, of the
 #                 binary this phase was handed and of its own, are BYTE-IDENTICAL.
-#                 tools/zerodelta.sh is run by tools/phaserun.sh after this check and
+#                 tools/coredelta.sh is run by tools/phaserun.sh after this check and
 #                 is the second opinion.
 #
 # THERE IS NO `cmp` HERE AND THERE CANNOT BE.  Phases 99, 106 and 107 could each say

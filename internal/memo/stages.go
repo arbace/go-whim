@@ -197,8 +197,7 @@ func CheckStages(p pipeline.P, w io.Writer) error {
 }
 
 func stageCoverageErr(p pipeline.P, w io.Writer) error {
-	fmt.Fprintf(w, "stages: phase/stages%s does not cover the %s phases exactly once, in order\n",
-		p.Impl, p.Name)
+	fmt.Fprintln(w, "stages: phase/stages does not cover the phases exactly once, in order")
 	return fmt.Errorf("stages: coverage")
 }
 
@@ -217,7 +216,7 @@ func UnitOf(p pipeline.P, n int) (string, error) {
 			return u, nil
 		}
 	}
-	return "", fmt.Errorf("stages: no %s unit contains phase %d", p.Name, n)
+	return "", fmt.Errorf("stages: no unit contains phase %d", n)
 }
 
 func atoi(s string) int {

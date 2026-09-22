@@ -15,7 +15,7 @@ package check
 // -- "pure formatting: the binary is byte-identical (cmp)" -- and a
 // byte-identical binary subsumes every screen case, every Ex-command row,
 // every command line and every pty scenario at once, because the program that
-// would be run is literally the same program.  tools/zerodelta.sh --phase 99
+// would be run is literally the same program.  tools/coredelta.sh --phase 99
 // still runs, from tools/phaserun.sh after this check, and it corroborates; it
 // is not the evidence.
 //
@@ -545,7 +545,7 @@ func Whim99(w io.Writer, args []string) error {
 		"verification table, and the whole of this phase's evidence.  A byte-identical "+
 		"binary subsumes every screen case, every Ex-command row, every command line "+
 		"and every pty scenario at once, because the program that would be run is the "+
-		"same program; tools/zerodelta.sh --phase 99 runs next and corroborates rather "+
+		"same program; tools/coredelta.sh --phase 99 runs next and corroborates rather "+
 		"than proves", newSt.Size())
 	return nil
 }

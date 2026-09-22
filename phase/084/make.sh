@@ -9,7 +9,7 @@
 # does.  This phase adds -fno-stack-protector to the CFLAGS of the boundary's
 # Makefile, and changes nothing else: whim-vim.c is not touched.
 #
-# The flag lives in the work tree's Makefile, the boundary, and not in tools/templates/zero.mk,
+# The flag lives in the work tree's Makefile, the boundary, and not in tools/templates/core.mk,
 # which phase 83 writes and which is in its key: editing the template would re-run
 # phase 83 and everything after it.  The root product rule states the same flags
 # once, as WHIMCFLAGS in whim.mk, and `make whim-pass` refuses when they disagree
@@ -25,7 +25,7 @@
 #   3. whim-vim.c is byte for byte what the phase was handed;
 #   4. it builds, still absolutely static: EXEC, no INTERP, no dynamic section,
 #      no relocation;
-#   5. tools/zerodelta.sh --phase 84: no behaviour case, Ex command or terminal
+#   5. tools/coredelta.sh --phase 84: no behaviour case, Ex command or terminal
 #      moved against whim-vim's baselines.
 set -eu
 
@@ -108,4 +108,4 @@ fi
 echo "  build        ok, $(stat -c%s "$bin") bytes: EXEC, no INTERP, no dynamic section, 0 relocations"
 
 # --- 5. behaviour ------------------------------------------------------------
-tools/zerodelta.sh "$bin" "$f" --phase 84
+tools/coredelta.sh "$bin" "$f" --phase 84

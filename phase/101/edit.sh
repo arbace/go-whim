@@ -24,7 +24,7 @@
 # tools/funcreach.py's `{'main'}` root -- and splitting the launcher into a second
 # translation unit is what breaks both.  Measured while `exit` was being reviewed:
 # ONE APPENDED LINE to tools/phasecheck.sh moves 118 implementation keys (12 whim
-# stages, 82 whim edits, 12 zero units, 12 Part II edits, and no slim key).  So every
+# stages, 82 whim edits, 12 Part II units, 12 Part II edits, and no slim key).  So every
 # demotion that CAN be done inside one file is done inside one file, and the split
 # happens once, late, when there is nothing left to do before it.
 #
@@ -64,7 +64,7 @@ state=${2:?usage: phase/101/edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (GOALS.md core rule 8).  The
+# second time: the core's compile line is the boundary's (GOALS.md core rule 8).  The
 # input binary is kept because the check probes the exit statuses of BOTH.
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")

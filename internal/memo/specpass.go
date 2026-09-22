@@ -34,7 +34,7 @@ func SpecPass(p pipeline.P, jobs int, w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	scratch, err := os.MkdirTemp("", "specpass-"+p.Name+".")
+	scratch, err := os.MkdirTemp("", "specpass.")
 	if err != nil {
 		return err
 	}
@@ -46,8 +46,8 @@ func SpecPass(p pipeline.P, jobs int, w io.Writer) error {
 		jobs = runtime.NumCPU()
 	}
 	start := time.Now()
-	fmt.Fprintf(w, "  %-12s %d units of %s speculated on the last pass's boundaries, %d at a time\n",
-		"specpass", len(units), p.Name, jobs)
+	fmt.Fprintf(w, "  %-12s %d units speculated on the last pass's boundaries, %d at a time\n",
+		"specpass", len(units), jobs)
 
 	results := make([]string, len(units))
 	sem := make(chan struct{}, jobs)
@@ -135,9 +135,9 @@ func specOne(p pipeline.P, u, root, scratch string) string {
 	if fileExists(filepath.Join(root, "slim-vim.c")) {
 		os.Symlink(filepath.Join(root, "slim-vim.c"), filepath.Join(d, "slim-vim.c"))
 	}
-	if fileExists(filepath.Join(root, ".reference", "zero-baselines")) {
-		os.Symlink(filepath.Join(root, ".reference", "zero-baselines"),
-			filepath.Join(d, ".reference", "zero-baselines"))
+	if fileExists(filepath.Join(root, ".reference", "core-baselines")) {
+		os.Symlink(filepath.Join(root, ".reference", "core-baselines"),
+			filepath.Join(d, ".reference", "core-baselines"))
 	}
 	// Phase 116's check builds q82's whim-vim.c from that boundary's tar.
 	if q82 := filepath.Join(root, ".build", "q82.tar"); fileExists(q82) {
@@ -164,7 +164,7 @@ func specOne(p pipeline.P, u, root, scratch string) string {
 	if err != nil {
 		return fmt.Sprintf("%s%s failed to open its log", p.Tag, u)
 	}
-	cmd := exec.Command("tools/phaserun.sh", p.Name, u, p.Work)
+	cmd := exec.Command("tools/phaserun.sh", u, p.Work)
 	cmd.Dir = d
 	cmd.Stdout, cmd.Stderr = logFile, logFile
 	runErr := cmd.Run()

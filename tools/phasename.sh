@@ -8,6 +8,6 @@
 # there rather than keeping a second list that can disagree with the first.
 set -eu
 
-phase=${1:?usage: phasename.sh <phase> [pipeline]}
-. tools/pipeline.sh "${2:-whim}"
+phase=${1:?usage: phasename.sh <phase>}
+. tools/pipeline.sh
 sed -En "1s/^# Phase $phase *[—-] *//p" "$(phasedir "$phase")/GOAL.md"

@@ -1,7 +1,7 @@
 #!/bin/sh
 # Check every recorded boundary of a pipeline at once, on as many CPUs as there are.
 #
-# Usage: tools/verifypass.sh slim|whim [unit...]      (run from the repository root)
+# Usage: tools/verifypass.sh [unit...]      (run from the repository root)
 #        JOBS=n to run fewer at once than there are CPUs
 #        KEEP=1 to keep every phase's work and log even when all reproduce
 #
@@ -43,10 +43,10 @@
 set -eu
 
 if [ "${1:-}" = "--one" ]; then
-    pipe=$2; u=$3; scratch=$4; root=$(pwd)
-    . tools/pipeline.sh "$pipe"
+    u=$2; scratch=$3; root=$(pwd)
+    . tools/pipeline.sh
     first=${u%-*}; n=${u#*-}
-    oracle=.reference/$PIPE-phases
+    oracle=$PORACLE
     want_of() {
         if [ -f "$oracle/$TAG$1.sha256" ]; then cat "$oracle/$TAG$1.sha256"
         elif [ -f "$oracle/$TAG$1.sha256.advisory" ]; then cat "$oracle/$TAG$1.sha256.advisory"
@@ -76,13 +76,13 @@ if [ "${1:-}" = "--one" ]; then
     for x in tools phase cmd internal go.mod go.sum; do ln -s "$scratch/.src/$x" "$d/$x"; done
     ln -s "$root/.reference/baselines" "$d/.reference/baselines"
     # The pipeline's declared input, which phase 0 compares the seed against by
-    # name.  Read-only, like everything else linked in.  The zero baselines are
+    # name.  Read-only, like everything else linked in.  The core baselines are
     # linked only where they exist: phase 83 compares a recording with them and
     # never writes over them, and records into the scratch root's own .reference/
     # when there are none.
     if [ -f "$root/slim-vim.c" ]; then ln -s "$root/slim-vim.c" "$d/slim-vim.c"; fi
-    if [ -d "$root/.reference/zero-baselines" ]; then ln -s "$root/.reference/zero-baselines" "$d/.reference/zero-baselines"; fi
-    # Phase 116's check builds q82's whim-vim.c -- the tree the zero baselines were
+    if [ -d "$root/.reference/core-baselines" ]; then ln -s "$root/.reference/core-baselines" "$d/.reference/core-baselines"; fi
+    # Phase 116's check builds q82's whim-vim.c -- the tree the core baselines were
     # recorded from -- and reads it out of that boundary's tar.
     if [ -f "$root/.build/q82.tar" ]; then mkdir -p "$d/.build"; ln -s "$root/.build/q82.tar" "$d/.build/q82.tar"; fi
     [ -n "$want" ] || { echo "$TAG$u UNRECORDED" > "$res"; exit 0; }
@@ -105,7 +105,7 @@ if [ "${1:-}" = "--one" ]; then
         # the one program directory -- and 1 is usually the check saying no.
         # A log that simply ends with nothing after it is the case this exists
         # for: without the number there is nothing to tell those apart.
-        if tools/phaserun.sh "$PIPE" "$u" "$PWORK" > log 2>&1; then
+        if tools/phaserun.sh "$u" "$PWORK" > log 2>&1; then
             rc=0
         else
             rc=$?
@@ -131,16 +131,15 @@ if [ "${1:-}" = "--one" ]; then
     exit 0
 fi
 
-pipe=${1:?usage: verifypass.sh whim [unit...]}
-shift
+if [ "${1:-}" = "--" ]; then shift; fi
 jobs=${JOBS:-$(nproc)}
-. tools/pipeline.sh "$pipe"
-# The units are the pipeline's stages (tools/stages.sh): a phase for slim, a run of
-# phases sharing one sweep for whim, whose recorded boundaries are its stage ends.
+. tools/pipeline.sh
+# The units are the pipeline's stages (tools/stages.sh): a run of phases sharing one
+# sweep, whose recorded boundaries are its stage ends.
 # Named units may be any run whose two ends are recorded.
-UNITS=$(tools/stages.sh "$PIPE")
+UNITS=$(tools/stages.sh)
 if [ $# -gt 0 ]; then UNITS=$*; fi
-scratch=$(mktemp -d "${TMPDIR:-/tmp}/verifypass-$PIPE.XXXXXX")
+scratch=$(mktemp -d "${TMPDIR:-/tmp}/verifypass.XXXXXX")
 # One snapshot of the code, taken before any unit starts, that every unit links
 # to instead of the live tree -- see the note beside those links above.  4 MB and
 # a fraction of a second against a run of minutes, and it makes the whole verify
@@ -153,9 +152,9 @@ mkdir -p "$scratch/.src"
 for x in tools phase cmd internal go.mod go.sum; do cp -a "$x" "$scratch/.src/$x"; done
 start=$(date +%s)
 n=0; for _p in $UNITS; do n=$((n + 1)); done
-printf '  %-12s %d units of %s, %d at a time, in %s\n' "verifypass" "$n" "$PIPE" "$jobs" "$scratch"
+printf '  %-12s %d units, %d at a time, in %s\n' "verifypass" "$n" "$jobs" "$scratch"
 
-printf '%s\n' $UNITS | xargs -P "$jobs" -I{} sh tools/verifypass.sh --one "$PIPE" {} "$scratch"
+printf '%s\n' $UNITS | xargs -P "$jobs" -I{} sh tools/verifypass.sh --one {} "$scratch"
 
 fail=0
 for p in $UNITS; do

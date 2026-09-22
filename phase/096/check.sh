@@ -68,7 +68,7 @@
 #    of the five.
 #
 # 5. AND THE ORDINARY SESSIONS, byte-identical either side, each required to be doing
-#    something.  The corpus itself is `tools/zerodelta.sh --phase 96`, which
+#    something.  The corpus itself is `tools/coredelta.sh --phase 96`, which
 #    tools/phaserun.sh runs after this check.
 
 # THE BODY IS GO: internal/check/whim96.go and internal/check/whim96evidence.go, run through tools/st.sh.

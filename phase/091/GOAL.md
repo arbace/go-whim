@@ -78,7 +78,7 @@ fewer than 100. **The failure is not the one the name suggests**: measured, it i
 `no command table found in either shape`, because `names()` tries both parsers with
 `check=False` and neither answer clears the bar. `tools/zexcmds.py` enumerates
 Part II's whole Ex sweep through it, so the old floor would have stopped the sweep,
-`tools/zerodelta.sh`, the recording and every later phase's check rather than giving
+`tools/coredelta.sh`, the recording and every later phase's check rather than giving
 a wrong answer. `GOALS.md` II.5 decision 8 is settled: **lowered to 80, deliberately,
 in the phase that crosses it, with the reason in the tool's own docstring.** The
 margin is 19 rows and the next row the plan removes is `:file`'s.
@@ -237,7 +237,7 @@ inside one package.
 
 **`need 91 swept`, measured.** The edit's anchor is `readfile` at exactly 5 mentions.
 On the text phase 90's *edit* leaves there are **seven**, `ex_read` still being there
-to make two of them, and the counted anchor refuses: `tools/phaserun.sh whim 90-91`
+to make two of them, and the counted anchor refuses: `tools/phaserun.sh 90-91`
 says `readfile has 7 mentions, expected 5`. The same run shows the edit's build of
 the input binary failing on phase 90's non-compiling intermediate, which is true of
 every Part II edit that builds one and is not declared for that reason.

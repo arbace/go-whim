@@ -6,7 +6,7 @@
 # NO SOURCE CHANGE AT ALL: q86's whim-vim.c is q85's, byte for byte, and this phase
 # asserts it.  What changes is how every later phase is measured.
 #
-# Zero's editor is on its way to having no file to write, no file to read and no
+# The core's editor is on its way to having no file to write, no file to read and no
 # stream to print on, so `tools/behaviour.py` -- which ends every case with
 # `+w! <file>` and reads the file back -- and `tools/exsweep.py` -- which runs a
 # command on a file and records the exit status -- stop being instruments the
@@ -29,8 +29,8 @@
 #      FAIL -- CLAUDE.md's canonical break -- must move EXACTLY the eleven cases
 #      that increment or decrement, and no others.  A corpus that cannot fail is
 #      not evidence;
-#   5. the declared delta holds: tools/zerodelta.sh --phase 86 against
-#      .reference/zero-baselines, which phase 83 records from whim-vim.  Those
+#   5. the declared delta holds: tools/coredelta.sh --phase 86 against
+#      .reference/core-baselines, which phase 83 records from whim-vim.  Those
 #      baselines are the INPUT's behaviour, so the delta is cumulative -- phase 85
 #      removed the two "not to a terminal" warnings, and `stderr-moved` is that,
 #      declared once and checked at every phase after it;
@@ -45,7 +45,7 @@
 #   tools/pipeline.sh
 #   tools/st.sh
 #   tools/whimdelta.sh
-#   tools/zerodelta.sh
+#   tools/coredelta.sh
 #   tools/zrecord.sh
 set -eu
 

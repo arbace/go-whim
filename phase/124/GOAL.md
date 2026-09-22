@@ -150,7 +150,7 @@ have sat below `musl_suspend()`'s brace since phase 118, and none of `malloc`, `
 
 **`apart 124 125` is measured and is not the mechanism the phase predicted.** It expected
 `apart 97 98`'s shape, an undefined-set equality against a stage's one snapshot. What
-actually fires is **this phase's own promise**: `tools/phaserun.sh whim 124-125` on q123
+actually fires is **this phase's own promise**: `tools/phaserun.sh 124-125` on q123
 stops with *the text above the first `#include` is not byte-identical in and out, and
 this phase is entirely below it*, and again on the directives' line numbers. **A phase
 that promises to touch no core line cannot share a stage with one that deletes 366 of

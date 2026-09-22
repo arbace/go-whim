@@ -119,7 +119,7 @@ licence being used deliberately.
 Phase 92's "none" was code that could not run. Phase 95's was code the instrument
 cannot see. **This phase removes no code and changes no behaviour**, and a recording
 that moved would mean a vendored function was wrong. `diff -rq` over two full
-recordings is empty and `tools/zerodelta.sh --phase 97` finds exactly the lines phases
+recordings is empty and `tools/coredelta.sh --phase 97` finds exactly the lines phases
 85 to 94 declared and nothing new — screen 102/102, `ref-excmds.txt` 111/111,
 `ref-argv.txt` 30/30.
 

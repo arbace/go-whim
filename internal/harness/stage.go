@@ -13,7 +13,7 @@ import (
 // destination, and a fork in another goroutine hands that child the same fd
 // until it execs.  execve refuses a file any process holds open for writing,
 // so the COPYING side's own exec dies with "Text file busy".  Measured in the
-// zero pipeline: 0 of 20 runs failed idle and 8 of 20 under a steady 64-way
+// Part II: 0 of 20 runs failed idle and 8 of 20 under a steady 64-way
 // load, and a whole verify under that load lost 15 of its 18 units, almost
 // every one of them this.
 //

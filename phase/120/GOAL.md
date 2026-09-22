@@ -105,7 +105,7 @@ earlier cuts, which is phase 96's kind, and only the sixth has a dialect argumen
 **It was for a while the one phase after the seed with no `uses` line at all**, and that
 looked defensible — its evidence is a `cmp` and not the recording, so it does not rest on
 phase 83's baselines the way every other empty declaration does. **It was still wrong.**
-`phase/120/check.sh` names `tools/zerodelta.sh` twice, the delta check runs at its stage
+`phase/120/check.sh` names `tools/coredelta.sh` twice, the delta check runs at its stage
 end like every other phase's, and the two **other** `cmp`-evidenced phases, 99 and 106, both
 declare the dependency — five `uses` lines and six respectively. So the line is written now,
 with the reason it was missing recorded in it. It was found by a documentation pass and not

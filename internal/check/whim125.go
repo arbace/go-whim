@@ -1012,7 +1012,7 @@ func Whim125(w io.Writer, args []string) error {
 		"the tree is a different shape and the screen is the same", len(CASES), clocks, 2*len(CASES))
 
 	// --- 9. what this phase declares ---------------------------------------------------
-	decl, _ := exec.Command("sh", "tools/zerodelta.sh", "--declared", "125").Output()
+	decl, _ := exec.Command("sh", "tools/coredelta.sh", "--declared", "125").Output()
 	if strings.Join(strings.Fields(string(decl)), "") != "" {
 		return die("phase/125/delta declares something for phase 125, and this phase declares nothing at all")
 	}

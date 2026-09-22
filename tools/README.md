@@ -14,14 +14,14 @@ through which every phase runs Go. Everything else is `cmd/whimtools` and
 | `oracle.sh` | compare a boundary with the recorded one in `.reference/whim-phases/` |
 | `verifypass.sh` | every unit at once on the recorded boundary before it (`make whim-verify`) |
 | `specpass.sh` | every unit at once on the previous pass's boundaries, into the cache (`make whim-specpass`) |
-| `pipeline.sh` | the pipeline's parameters: tag, work directory, source, delta checker, `ZERO_FROM` (the phase where the second baselines begin), `phasedir` (a phase's directory, `phase/NNN`), and the phase list, read from `phase/stages` |
+| `pipeline.sh` | the pipeline's parameters: tag, work directory, source, delta checker, `CORE_FROM` (the phase where the second baselines begin), `phasedir` (a phase's directory, `phase/NNN`), and the phase list, read from `phase/stages` |
 | `st.sh`, `sweep.sh`, `canon.sh` | the wrappers that run `whimtools`; they name `cmd/`, `internal/`, `go.mod` and `go.sum` so every Go file is in every key that runs Go |
 | `gobuild.sh` | builds `whimtools`, content-keyed, with the patched `modernc.org/cc/v4` (`patches/cc-v4-c23.patch`) |
 | `phasecheck.sh`, `phasebuild.sh`, `symbols.sh` | what every check runs: the sweep's silence, linkage, the libc surface, the build |
-| `whimdelta.sh`, `zerodelta.sh` | a stage's declared delta, every phase's `delta` read through `declared.sh`: against `.reference/baselines` for phases 0-82, and from `ZERO_FROM` on `whimdelta.sh` hands the phase to `zerodelta.sh`, against `.reference/zero-baselines` |
+| `whimdelta.sh`, `coredelta.sh` | a stage's declared delta, every phase's `delta` read through `declared.sh`: against `.reference/baselines` for phases 0-82, and from `CORE_FROM` on `whimdelta.sh` hands the phase to `coredelta.sh`, against `.reference/core-baselines` |
 | `declared.sh` | the declarations of a run of phases, from their `phase/NNN/delta` files, in the one grammar both checkers read |
 | `zrecord.sh` | the instrument from phase 86 on: six parts, 122 records |
 | `enumvals.sh` | every enumerator's value from DWARF, before and after |
 | `score.sh`, `residue.sh`, `phasename.sh` | reporting; `phasename.sh` reads a phase's name from the heading of its `GOAL.md`, and `residue.sh` reports phase patches, of which there are none here |
-| `templates/whim.mk`, `templates/zero.mk` | the makefile phase 0 starts from, and the one phase 83 writes over it |
+| `templates/whim.mk`, `templates/core.mk` | the makefile phase 0 starts from, and the one phase 83 writes over it |
 | `musl-case.txt`, `musl-ctype.txt`, `nolibm_check.c` | data and a probe a phase reads |

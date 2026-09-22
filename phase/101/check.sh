@@ -14,7 +14,7 @@
 # own assertion:
 #
 #   * the LINKAGE.  `vim_main` must be static, so `nm --extern-only --defined-only`
-#     still prints exactly `main` -- which tools/phasecheck.sh asserts for every zero
+#     still prints exactly `main` -- which tools/phasecheck.sh asserts for every Part II
 #     phase and which section 3 re-states here in the phase's own words.
 #   * the LIBC SURFACE.  A phase that frees nothing says so as an EQUALITY, the way
 #     phases 90, 91, 94, 95 and 99 do: the undefined set before and after is compared

@@ -181,7 +181,7 @@ message-level record is what can see this phase at all.
 **`apart 88 89` is measured rather than predicted.** Phase 88's check states that
 *it* frees no libc symbol, as a `cmp` against the stage's starting undefined
 set, and inside a stage every check compares with the **stage's** start. Run as
-one stage — `tools/phaserun.sh whim 88-89` — phase 88's check fails with *the libc
+one stage — `tools/phaserun.sh 88-89` — phase 88's check fails with *the libc
 surface moved, and this phase frees nothing* and names all six.
 
 **There is deliberately no `apart 85 89`.** Phase 85's check drives a pty with

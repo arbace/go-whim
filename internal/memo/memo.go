@@ -105,10 +105,10 @@ func Memo(p pipeline.P, unit, work, build string, w io.Writer) error {
 		prev := filepath.Join(build, fmt.Sprintf("%s%d.sha256", p.Tag, a-1))
 		inDigest, err = os.ReadFile(prev)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "memo: %s unit %s wants %s%d, which does not exist.\n",
-				p.Name, unit, p.Tag, a-1)
-			fmt.Fprintf(os.Stderr, "      Phases must be contiguous; %s's list has a gap before %d.\n",
-				p.Name, a)
+			fmt.Fprintf(os.Stderr, "memo: unit %s wants %s%d, which does not exist.\n",
+				unit, p.Tag, a-1)
+			fmt.Fprintf(os.Stderr, "      Phases must be contiguous; the phase list has a gap before %d.\n",
+				a)
 			return fmt.Errorf("memo: gap before %d", a)
 		}
 	}
@@ -196,7 +196,7 @@ func Memo(p pipeline.P, unit, work, build string, w io.Writer) error {
 
 	// --- tier 1: the agent ------------------------------------------------
 	if tier == "" {
-		cmd := exec.Command("tools/agentphase.sh", strconv.Itoa(phase), work, p.Name)
+		cmd := exec.Command("tools/agentphase.sh", strconv.Itoa(phase), work)
 		cmd.Stdout, cmd.Stderr = w, os.Stderr
 		if err := cmd.Run(); err != nil {
 			return err
@@ -235,7 +235,7 @@ func Memo(p pipeline.P, unit, work, build string, w io.Writer) error {
 	// leaves a program behind turns an expensive answer into a cheap one for
 	// ever.
 	if tier == "agent" {
-		cmd := exec.Command("tools/synth.sh", strconv.Itoa(phase), build, p.Name)
+		cmd := exec.Command("tools/synth.sh", strconv.Itoa(phase), build)
 		cmd.Stdout, cmd.Stderr = w, os.Stderr
 		return cmd.Run()
 	}

@@ -149,13 +149,13 @@ func Whim86(w io.Writer, args []string) error {
 	af.say("do_addsub() returning FAIL moves exactly 11 of %d cases, and nothing else", cases)
 
 	// --- 5. the declared delta --------------------------------------------
-	if err := run(w, "sh", "tools/zerodelta.sh", bin, f, "--phase", "86"); err != nil {
+	if err := run(w, "sh", "tools/coredelta.sh", bin, f, "--phase", "86"); err != nil {
 		return harness.ErrReported
 	}
 
 	// --- 6. the bridge to whim's baselines --------------------------------
 	br := &rep{tag: "bridge", w: w}
-	wl, err := exec.Command("sh", "-c", `. tools/pipeline.sh whim && echo "$((ZERO_FROM - 1))"`).Output()
+	wl, err := exec.Command("sh", "-c", `. tools/pipeline.sh && echo "$((CORE_FROM - 1))"`).Output()
 	if err != nil {
 		return harness.ErrReported
 	}

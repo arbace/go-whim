@@ -146,17 +146,17 @@ func PhaseRun(p pipeline.P, unit, work string, w io.Writer) error {
 		if !fileExists(fmt.Sprintf("phase/%03d/edit.sh", ph)) ||
 			!fileExists(fmt.Sprintf("phase/%03d/check.sh", ph)) {
 			fmt.Fprintf(os.Stderr,
-				"  phaserun     %s phase %d has no edit and check to run in stage %s\n",
-				p.Name, ph, unit)
+				"  phaserun     phase %d has no edit and check to run in stage %s\n",
+				ph, unit)
 			return fmt.Errorf("phaserun: phase %d is not split", ph)
 		}
 	}
 	if p.Source == "" {
 		fmt.Fprintf(os.Stderr,
-			"  phaserun     the %s pipeline names no single source a sweep can run on\n", p.Name)
+			"  phaserun     the pipeline names no single source a sweep can run on\n")
 		return fmt.Errorf("phaserun: no source")
 	}
-	if err := runShell(w, "tools/stages.sh", p.Name, "--check"); err != nil {
+	if err := runShell(w, "tools/stages.sh", "--check"); err != nil {
 		return err
 	}
 	f := filepath.Join(work, p.Source)

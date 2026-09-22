@@ -41,7 +41,7 @@
 #               binary this phase was handed and of its own, are BYTE-IDENTICAL -- and
 #               the recording is NOT blind to what moved: a control whose
 #               `musl_gettimeofday` writes the two fields the wrong way round moves six
-#               of the 102 screen cases.  tools/zerodelta.sh is run by
+#               of the 102 screen cases.  tools/coredelta.sh is run by
 #               tools/phaserun.sh after this check and is the second opinion.
 #
 # THE CONTROL IS SCREEN CASES AND NOT A WHOLE RECORDING, and that is a measurement

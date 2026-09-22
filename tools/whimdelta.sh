@@ -21,19 +21,19 @@
 #
 # "Six commands differ" is a check.  "Some commands differ" is not.
 #
-# FROM PHASE ZERO_FROM (83) ON, THE DELTA IS MEASURED AGAINST OTHER BASELINES,
-# and this tool hands the phase to tools/zerodelta.sh: the declarations from
-# ZERO_FROM on, against .reference/zero-baselines, which phase 83 records from the tree it is
+# FROM PHASE CORE_FROM (83) ON, THE DELTA IS MEASURED AGAINST OTHER BASELINES,
+# and this tool hands the phase to tools/coredelta.sh: the declarations from
+# CORE_FROM on, against .reference/core-baselines, which phase 83 records from the tree it is
 # handed.  Both forms that take a phase number do; the hand-stated form is whim's
 # alone.  tools/phaserun.sh runs this tool for every stage and never needs to know.
 set -eu
 
-. tools/pipeline.sh whim
-if [ "${1:-}" = "--declared" ] && [ "${2:-0}" -ge "$ZERO_FROM" ]; then
-    exec tools/zerodelta.sh "$@"
+. tools/pipeline.sh
+if [ "${1:-}" = "--declared" ] && [ "${2:-0}" -ge "$CORE_FROM" ]; then
+    exec tools/coredelta.sh "$@"
 fi
-if [ "${3:-}" = "--phase" ] && [ "${4:-0}" -ge "$ZERO_FROM" ]; then
-    exec tools/zerodelta.sh "$@"
+if [ "${3:-}" = "--phase" ] && [ "${4:-0}" -ge "$CORE_FROM" ]; then
+    exec tools/coredelta.sh "$@"
 fi
 
 delta_awk='

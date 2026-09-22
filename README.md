@@ -84,7 +84,7 @@ writes (`make whim-editor-check` asks just that).
 
 ```sh
 make                                                 # bin/whim
-tools/zerodelta.sh bin/whim whim-vim.c --phase N     # N: the last phase
+tools/coredelta.sh bin/whim whim-vim.c --phase N     # N: the last phase
 ```
 
 It is measured the way the C is: the Go build must record exactly the declared

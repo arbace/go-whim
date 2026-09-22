@@ -105,7 +105,7 @@ applied to data instead of to an option row. Three `uses`: `seed:83` and `harnes
 and `vendor:98`, because without phase 98 there is one case table already and no union
 to take.
 
-`apart 111 112` is measured with `tools/phaserun.sh whim 111-112` on q110: phase 111 states
+`apart 111 112` is measured with `tools/phaserun.sh 111-112` on q110: phase 111 states
 its arithmetic as a line count of **the core** and stops at *"the core is 77978 lines
 and was 78359, a difference of −381 where −16 was expected"* — its own −16 less this
 phase's 365. One direction only, measured too: phase 112's check was then run on the tree

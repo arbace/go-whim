@@ -21,7 +21,7 @@
 #
 # THE COMPILE LINE IS THE BOUNDARY'S.  Phase 0 starts from tools/templates/whim.mk,
 # gcc -O0 -static -s (a static-PIE); phase 83 replaces it with
-# tools/templates/zero.mk, -no-pie; phase 84 adds -fno-stack-protector.  A phase
+# tools/templates/core.mk, -no-pie; phase 84 adds -fno-stack-protector.  A phase
 # changes the flags by editing the work tree's Makefile (.tmp/whim-stage/Makefile),
 # never a template, which is the pipeline's input.  The product rule below cannot
 # read the work tree, which does not exist
@@ -38,16 +38,16 @@ WHIMLDFLAGS = -static -no-pie -s
 # The phase list is the `phases` line of phase/stages, read through
 # tools/pipeline.sh -- not written out here and not in tools/pipeline.sh, whose every
 # byte is in every stage's key.  One list, so it cannot disagree with itself.
-WHIMPHASES := $(shell . tools/pipeline.sh whim && echo $$PHASE_LIST)
+WHIMPHASES := $(shell . tools/pipeline.sh && echo $$PHASE_LIST)
 
 # --- the chain ------------------------------------------------------------
 # The chain is of STAGES, read from phase/stages by tools/stages.sh: a stage
 # is a run of phases whose edits share one sweep, and only a stage's end is a
 # boundary -- q41 is the boundary of stage 13-41, and nothing between q12 and q41
 # exists.  Each boundary depends on the one before it, as each phase's did.
-WHIMSTAGES := $(shell tools/stages.sh whim)
+WHIMSTAGES := $(shell tools/stages.sh)
 ifeq ($(WHIMSTAGES),)
-$(error phase/stages does not hold -- tools/stages.sh whim --check says why)
+$(error phase/stages does not hold -- tools/stages.sh --check says why)
 endif
 WHIMENDS   := $(foreach u,$(WHIMSTAGES),$(lastword $(subst -, ,$(u))))
 WHIMSTARTS := input.sha256 $(patsubst %,q%.sha256,$(filter-out $(lastword $(WHIMENDS)),$(WHIMENDS)))
@@ -57,8 +57,8 @@ $(foreach i,$(shell seq 1 $(words $(WHIMENDS))),$(eval \
 
 $(WHIMBUILD)/q%.sha256:
 	@tools/restore.sh $(patsubst %.sha256,%.tar,$<) $(WHIMWORK)
-	@tools/memo.sh $$(tools/stages.sh whim --of $*) $(WHIMWORK) $(WHIMBUILD) whim
-	@tools/oracle.sh $* $(WHIMBUILD) $(WHIMORACLE) whim | sed 's/^  /      /'
+	@tools/memo.sh $$(tools/stages.sh --of $*) $(WHIMWORK) $(WHIMBUILD)
+	@tools/oracle.sh $* $(WHIMBUILD) $(WHIMORACLE) | sed 's/^  /      /'
 
 # --- the input ------------------------------------------------------------
 # A directory holding one file and a makefile, so the boundary machinery -- a
@@ -124,7 +124,7 @@ whim-pass: $(WHIMBUILD)/q$(WHIMLAST).sha256
 # read has changed (tools/phaserun.sh).
 .PHONY: $(WHIMPHASES:%=whim-phase-%)
 $(WHIMPHASES:%=whim-phase-%): whim-phase-%:
-	@u=$$(tools/stages.sh whim --of $*) && last=$${u#*-} && \
+	@u=$$(tools/stages.sh --of $*) && last=$${u#*-} && \
 	 rm -f $(WHIMBUILD)/q$$last.sha256 && \
 	 $(MAKE) --no-print-directory $(WHIMBUILD)/q$$last.sha256 && \
 	 $(MAKE) --no-print-directory whim-baselines-check
@@ -133,7 +133,7 @@ $(WHIMPHASES:%=whim-phase-%): whim-phase-%:
 .PHONY: $(WHIMPHASES:%=whim-replay-%)
 $(WHIMPHASES:%=whim-replay-%): whim-replay-%:
 	@if [ ! -f $(WHIMBUILD)/q$*.tar ]; then \
-	     echo "  replay       q$* is not a boundary: phase $* is inside stage $$(tools/stages.sh whim --of $*)," \
+	     echo "  replay       q$* is not a boundary: phase $* is inside stage $$(tools/stages.sh --of $*)," \
 	          "and only a stage's end is kept"; exit 1; fi
 	@tools/restore.sh $(WHIMBUILD)/q$*.tar $(WHIMWORK)
 	@echo "  replay       $(WHIMWORK)/ is the tree after whim phase $*"
@@ -184,7 +184,7 @@ whim-repass:
 # cutil.py) -- those are in every phase's implhash, so everything re-runs then
 # anyway.
 #
-# Both whim-tip and whim-verify first run tools/packages.sh whim --check: a new
+# Both whim-tip and whim-verify first run tools/packages.sh --check: a new
 # phase must be placed in a package, and a `uses` line must still point backwards.
 # It is here and nowhere a phase runs -- whim.mk is in no implementation digest,
 # while phaserun.sh, memo.sh and stages.sh are -- and it reads only the manifest,
@@ -192,7 +192,7 @@ whim-repass:
 # a package mistake is a documentation mistake and must not stop a build.
 .PHONY: whim-tip
 whim-tip:
-	@tools/packages.sh whim --check && \
+	@tools/packages.sh --check && \
 	 $(MAKE) --no-print-directory whim-phase-$(WHIMLAST) && \
 	 $(MAKE) --no-print-directory whim-record | tail -1
 	@$(MAKE) --no-print-directory whim-product-check
@@ -202,7 +202,7 @@ whim-tip:
 # `whim-tip` records a boundary; `whim-pass` copies the product out of the last
 # boundary's tar into the repository root.  They are different targets and
 # running only the first leaves whim-vim.c behind -- measured, the product of the
-# old zero pipeline went TWO phases stale that way, and it was PUSHED.
+# old Part II pipeline went TWO phases stale that way, and it was PUSHED.
 #
 # Nothing else can catch it.  A boundary is a tar and a digest under .build,
 # and tools/verifypass.sh reproduces each one from the boundary before it in a
@@ -232,8 +232,8 @@ whim-product-check:
 # wall time of the slowest stage instead of the sum of them all.
 .PHONY: whim-verify
 whim-verify:
-	@tools/packages.sh whim --check && \
-	 tools/verifypass.sh whim
+	@tools/packages.sh --check && \
+	 tools/verifypass.sh
 	@$(MAKE) --no-print-directory whim-editor-check
 
 # A repass that waits only where it has to.  Every stage first runs at once on
@@ -246,7 +246,7 @@ whim-verify:
 # this target reads it before whim-repass removes it.
 .PHONY: whim-specpass
 whim-specpass:
-	@tools/specpass.sh whim
+	@tools/specpass.sh
 	@$(MAKE) --no-print-directory whim-repass
 
 .PHONY: whim-record
@@ -267,7 +267,7 @@ whim-clean:
 # of slim-residue; the scoreboard is the same question either side.
 .PHONY: whim-residue
 whim-residue:
-	@tools/residue.sh whim
+	@tools/residue.sh
 
 # --- editor.c, the upper part on its own ----------------------------------
 # What phases 83 onwards are for.  whim-vim.c is one translation unit with two parts:
@@ -353,9 +353,9 @@ whim-editor-check:
 	$(cut-editor)
 	@sh tx/gen.sh --check
 
-# There are two sets of baselines (tools/pipeline.sh, ZERO_FROM).  Phase 0 records
+# There are two sets of baselines (tools/pipeline.sh, CORE_FROM).  Phase 0 records
 # .reference/baselines from slim-vim.c, and every delta before phase 83 is measured
-# against them; phase 83 records .reference/zero-baselines from the tree it is
+# against them; phase 83 records .reference/core-baselines from the tree it is
 # handed, and every delta from it on is measured against those.  Each is a side
 # effect of running, so a tier 3 hit on either phase records nothing -- and a fresh
 # .reference/ beside a warm .cache/ would end a pass looking fine, with every later
@@ -378,7 +378,7 @@ whim-baselines-check:
 	    echo "                 rm -rf .reference/baselines .cache/q0 && make whim-phase-0"; \
 	    exit 1; \
 	done
-	@b=.reference/zero-baselines; \
+	@b=.reference/core-baselines; \
 	 if [ -d $$b/screen ] && [ -n "$$(ls -A $$b/screen 2>/dev/null)" ] \
 	    && [ -d $$b/memline ] && [ -n "$$(ls -A $$b/memline 2>/dev/null)" ] \
 	    && [ -s $$b/ref-excmds.txt ] && [ -s $$b/ref-argv.txt ] \
@@ -387,5 +387,5 @@ whim-baselines-check:
 	 echo "               ref-excmds.txt, ref-argv.txt, ref-pty.txt and ref-term.txt"; \
 	 echo "               (tools/zrecord.sh), so no delta from phase 83 on was checked in full."; \
 	 echo "               Phase 83 records them; a cached phase 83 records nothing:"; \
-	 echo "                 rm -rf .reference/zero-baselines .cache/q83 && make whim-phase-83"; \
+	 echo "                 rm -rf .reference/core-baselines .cache/q83 && make whim-phase-83"; \
 	 exit 1

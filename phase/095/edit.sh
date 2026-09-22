@@ -91,7 +91,7 @@
 # THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own makefile
 # flags, as every Part II edit since phase 85 does, and the source goes with it as
 # $state/old.c.  The check needs both, and needs them more than any phase so far:
-# THIS PHASE DECLARES NOTHING, because `:set` is the one thing zero's instrument
+# THIS PHASE DECLARES NOTHING, because `:set` is the one thing the core's instrument
 # cannot read, and the probes are the whole evidence.
 set -eu
 
@@ -100,7 +100,7 @@ state=${2:?usage: phase/095/edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (GOALS.md core rule 8).
+# second time: the core's compile line is the boundary's (GOALS.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"
@@ -131,6 +131,6 @@ tools/st.sh edit whim95rows "$f"
 
 # An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 wait $pid_old || { echo "  noopts       the input binary did not build with '$cflags' '$ldflags'"; exit 1; }
-echo "  noopts       the input is $state/old, $(stat -c%s "$state/old") bytes, beside the source it was built from: this phase declares nothing, because :set is the one thing zero's instrument cannot read, and the probes are the whole evidence"
+echo "  noopts       the input is $state/old, $(stat -c%s "$state/old") bytes, beside the source it was built from: this phase declares nothing, because :set is the one thing the core's instrument cannot read, and the probes are the whole evidence"
 
 # tools/phaserun.sh sweeps next, then runs phase/095/check.sh.

@@ -74,7 +74,7 @@ state=${2:?usage: phase/112/edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (GOALS.md core rule 8).  The check needs
+# time: the core's compile line is the boundary's (GOALS.md core rule 8).  The check needs
 # the binary this phase was HANDED, to run its twelve probes on both sides.
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")

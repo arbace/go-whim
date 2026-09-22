@@ -82,8 +82,8 @@
 # goes 104 -> 99 and create_cmdidxs's `names()` refused a table of fewer than 100 --
 # not with "too few rows" but with `no command table found in either shape`, because
 # names() tries both parsers with check=False and neither answer clears the bar.
-# `zexcmds` enumerates zero's whole Ex sweep through names(), so the old
-# floor would have stopped the sweep, tools/zerodelta.sh, the recording and every
+# `zexcmds` enumerates the core's whole Ex sweep through names(), so the old
+# floor would have stopped the sweep, tools/coredelta.sh, the recording and every
 # later phase's check rather than giving a wrong answer.  GOALS.md II decision 8:
 # lowered deliberately, to 80, in the phase that crosses it and in the same commit,
 # with the reason in the tool's own docstring.  The margin is 19 rows and the next
@@ -116,7 +116,7 @@ state=${2:?usage: phase/091/edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (GOALS.md core rule 8).
+# second time: the core's compile line is the boundary's (GOALS.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

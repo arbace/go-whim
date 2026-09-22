@@ -55,7 +55,7 @@
 #               Plus focus probes, because no corpus case reaches ui_focus_change at all.
 #   BEHAVIOUR   the declared delta is NOTHING AT ALL: two full recordings, of the binary
 #               this phase was handed and of its own, byte-identical across all 106
-#               records.  tools/zerodelta.sh is run by tools/phaserun.sh after this check
+#               records.  tools/coredelta.sh is run by tools/phaserun.sh after this check
 #               and is the second opinion.
 #
 # THE CORPUS CANNOT REACH ui_focus_change AND THE PHASE SAYS SO RATHER THAN HOPING.
@@ -98,10 +98,10 @@
 #
 # IT IS NOT THIS PHASE'S TO FIX AND NOT THIS PHASE'S TO PAPER OVER.  Every Part II phase
 # since 3 compares two full recordings and every one of them is exposed; so is
-# tools/zerodelta.sh, which compares against baselines recorded the same way.  Hashing
-# the SCRUBBED stream in tools/zrec.py would close it, and would re-key all 33 zero
-# phases and require .reference/zero-baselines to be recorded again.  A private exclusion
-# HERE would be a check narrowed to fit what it saw, would leave zerodelta failing on the
+# tools/coredelta.sh, which compares against baselines recorded the same way.  Hashing
+# the SCRUBBED stream in tools/zrec.py would close it, and would re-key all 33 Part II
+# phases and require .reference/core-baselines to be recorded again.  A private exclusion
+# HERE would be a check narrowed to fit what it saw, would leave coredelta failing on the
 # same load, and is refused: the comparison below stays an exact `diff -rq`.  The reading
 # that matters for THIS phase is that the exposure is unchanged by it -- the undo path
 # reads the clock the same number of times before and after, which is what the

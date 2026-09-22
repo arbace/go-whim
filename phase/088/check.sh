@@ -27,7 +27,7 @@
 #    1,327 of them and a wrong table index would not show up anywhere else.
 #
 # 3. THE PROBES, in two halves, run on BOTH binaries.  The declared delta
-#    (tools/zerodelta.sh) says exactly six of the 30 command lines moved and
+#    (tools/coredelta.sh) says exactly six of the 30 command lines moved and
 #    nothing else did, against baselines recorded from whim-vim -- but the
 #    baselines are one recording of one binary, so they cannot say "the old one
 #    opened the file".  These say it:
@@ -43,7 +43,7 @@
 # 4. THE INSTRUMENT SWAP, which this phase is the cause of.  termcheck is
 #    whim's, and it asks its question with a file argument.  From this boundary on
 #    that is an unknown option and all nineteen of its rows read `(none)` -- so
-#    zero's recording now uses `ztermcheck`, which is termcheck.py with its
+#    the core's recording now uses `ztermcheck`, which is termcheck.py with its
 #    ask() replaced and nothing else.  Both halves are measured here: the new tool
 #    records the baseline's nineteen rows byte for byte from the binary this phase
 #    was handed, and the old tool records nothing but `(none)` from the one it made.

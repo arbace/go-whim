@@ -5,7 +5,7 @@ in the pipeline that changes **no source at all** — phase 86 is the other — 
 there for the same reason: the pipeline was about to measure itself with a question
 that could not see the answer.
 
-**The nineteen rows of `.reference/zero-baselines/ref-term.txt` were content-free, and
+**The nineteen rows of `.reference/core-baselines/ref-term.txt` were content-free, and
 had been since phase 83.** Every one of them read
 
 ```
@@ -49,15 +49,15 @@ environment at all, so `termcheck.one` is overridden as well as `termcheck.ask`.
 comparison self-fulfilling*, and the mistake it names is a pipeline re-recording from
 its **own output**. `phase/083/make.sh` does the opposite and enforces it: the baselines
 come from `whim-vim.c`, the pipeline's immutable input, built with **whim's** compile
-line, recorded three times and required identical. Nothing zero produces is on the
+line, recorded three times and required identical. Nothing the core produces is on the
 recording side. The incantation is
 
 ```sh
-rm -rf .reference/zero-baselines .cache/r0 && make whim-phase-83
+rm -rf .reference/core-baselines .cache/r0 && make whim-phase-83
 ```
 
 and **both paths are needed**: measured, with only `.cache/r0` removed `phase/083/make.sh`
-refuses — *"baselines DIFFER from the recorded `.reference/zero-baselines` … a harness
+refuses — *"baselines DIFFER from the recorded `.reference/core-baselines` … a harness
 changed, or the frozen `whim-vim.c` did. Name which before removing it"* — and exits 1
 naming `ref-term.txt`. It is right to refuse. `whim.mk`'s `whim-baselines-check` said
 only `rm -rf .cache/r0`, which is correct for the MISSING case and wrong for the

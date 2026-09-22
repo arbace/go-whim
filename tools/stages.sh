@@ -1,10 +1,10 @@
 #!/bin/sh
 # The units a pipeline runs in: its stages, read from the manifest and checked.
 #
-# Usage: tools/stages.sh <pipeline>              every unit, in order, one per line
-#        tools/stages.sh <pipeline> --of <N>     the unit containing phase N
-#        tools/stages.sh <pipeline> --check      check the manifest; silent when it holds
-#        tools/stages.sh <pipeline> --mode <U>   how unit U runs: shared or each
+# Usage: tools/stages.sh                every unit, in order, one per line
+#        tools/stages.sh --of <N>       the unit containing phase N
+#        tools/stages.sh --check        check the manifest; silent when it holds
+#        tools/stages.sh --mode <U>     how unit U runs: shared or each
 #
 # A UNIT is what memo.sh keys, the cache stores, make sequences and verifypass.sh
 # runs: a phase number (`0`, `79`) or a range of phases (`13-41`), which is a STAGE
@@ -27,8 +27,8 @@
 #                     inside an each stage; what is shared is the wall time and the
 #                     boundary, which is the stage's end.
 #
-# A pipeline with no phase/stages runs every phase as a unit of its own,
-# which is slim, and which is exactly how both pipelines ran before stages existed.
+# With no phase/stages manifest every phase is a unit of its own, which is exactly
+# how the pipeline ran before stages existed.
 #
 # THE MANIFEST IS CHECKED, NOT TRUSTED, and this is where the part of it that can be
 # checked without running anything is: the stages cover the phase list exactly once
@@ -47,8 +47,8 @@
 # that is tools/oracle.sh at the end of every stage, and it is not optional.
 set -eu
 
-. tools/pipeline.sh "${1:?usage: stages.sh <pipeline> [--of N | --check]}"
-mode=${2:-}
+. tools/pipeline.sh
+mode=${1:-}
 manifest=phase/stages
 
 units() {
@@ -77,7 +77,7 @@ check() {
           done | tr '\n' ' ')
     want=$(printf '%s ' $PHASE_LIST)
     if [ "$got" != "$want" ]; then
-        echo "stages: $manifest does not cover the $PIPE phases exactly once, in order" >&2
+        echo "stages: $manifest does not cover the phases exactly once, in order" >&2
         return 1
     fi
     bad_mode=$(awk '$1 == "stage" && NF > 2 && $3 != "each" { print $2 " " $3 }' "$manifest")
@@ -88,7 +88,7 @@ check() {
     for u in $(units); do
         case $u in *-*) ;; *) continue ;; esac
         for p in $(seq "${u%-*}" "${u#*-}"); do
-            if [ "$(tools/phaserun.sh --parts "$PIPE" "$p" | wc -l)" != 2 ]; then
+            if [ "$(tools/phaserun.sh --parts "$p" | wc -l)" != 2 ]; then
                 echo "stages: phase $p is in stage $u but is not an edit and a check" >&2
                 return 1
             fi
@@ -99,7 +99,7 @@ check() {
     # tree, so for the requirements below each of its phases starts a stage of its
     # own and is apart from the others.
     awk '$1 == "stage" { print "stage", $2, $3 } $1 == "need" || $1 == "apart" { print $1, $2, $3 }' "$manifest" \
-    | awk -v impl="$IMPL" '
+    | awk '
         $1 == "stage" { split($2, r, "-"); a = r[1]; b = (2 in r) ? r[2] : r[1]
                         for (p = a; p <= b; p++) {
                             first[p] = (p == a || $3 == "each")
@@ -140,13 +140,13 @@ check() {
 case $mode in
     '')      check && units ;;
     --check) check ;;
-    --mode)  unit_mode "${3:?usage: stages.sh <pipeline> --mode U}" ;;
+    --mode)  unit_mode "${2:?usage: stages.sh --mode U}" ;;
     --of)
-        n=${3:?usage: stages.sh <pipeline> --of N}
+        n=${2:?usage: stages.sh --of N}
         for u in $(units); do
             if [ "$n" -ge "${u%-*}" ] && [ "$n" -le "${u#*-}" ]; then echo "$u"; exit 0; fi
         done
-        echo "stages: no $PIPE unit contains phase $n" >&2
+        echo "stages: no unit contains phase $n" >&2
         exit 1 ;;
-    *) echo "usage: stages.sh <pipeline> [--of N | --check | --mode U]" >&2; exit 2 ;;
+    *) echo "usage: stages.sh [--of N | --check | --mode U]" >&2; exit 2 ;;
 esac

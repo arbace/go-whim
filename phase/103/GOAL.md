@@ -328,7 +328,7 @@ musl_wait_for_input(long ms)
 
 `phase/103/delta` gets a comment block and no line. Two full recordings either side
 are **byte-identical** — 102 screen cases, `ref-excmds.txt`, `ref-argv.txt`,
-`ref-pty.txt`, `ref-term.txt` — and `tools/zerodelta.sh --phase 103` finds the corpus
+`ref-pty.txt`, `ref-term.txt` — and `tools/coredelta.sh --phase 103` finds the corpus
 unmoved: 102 of 102, 111 of 111, 30 of 30.
 
 But it is **phase 85's** kind and not phase 101's: the code runs and the instrument
@@ -413,7 +413,7 @@ unswept text phase 102's edit leaves gives the identical 80,447 → 80,181; ever
 is exact text at a counted occurrence.
 
 **`apart 102 103`, measured, and the first of its three messages is the one a reader
-would not predict.** `tools/phaserun.sh whim 102-103` on q101 stops in phase 102's check
+would not predict.** `tools/phaserun.sh 102-103` on q101 stops in phase 102's check
 with `` `deathtrap` as a whole word has 4 mentions, expected 3 `` — a phase about
 *removing* signal handling leaves one **more** mention of a handler, because the host
 installs the core's rather than replacing it. The other two are ordinary: `the file

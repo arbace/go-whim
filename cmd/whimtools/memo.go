@@ -12,8 +12,8 @@ import (
 
 // runImplhash is tools/implhash.sh.
 //
-//	whimtools implhash <unit> [pipeline]
-//	whimtools implhash --edit <phase> [pipeline]
+//	whimtools implhash <unit>
+//	whimtools implhash --edit <phase>
 func runImplhash(args []string) int {
 	editOnly := false
 	if len(args) > 0 && args[0] == "--edit" {
@@ -21,14 +21,10 @@ func runImplhash(args []string) int {
 		args = args[1:]
 	}
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools implhash [--edit] <unit> [pipeline]")
+		fmt.Fprintln(os.Stderr, "usage: whimtools implhash [--edit] <unit>")
 		return 1
 	}
-	name := "slim"
-	if len(args) > 1 {
-		name = args[1]
-	}
-	p, err := pipeline.Get(name)
+	p, err := pipeline.Get()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 		return 1
@@ -58,14 +54,10 @@ func runSymbols(args []string) int {
 // runOracle is tools/oracle.sh.
 func runOracle(args []string) int {
 	if len(args) < 3 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools oracle <phase> <build-dir> <oracle-dir> [pipeline]")
+		fmt.Fprintln(os.Stderr, "usage: whimtools oracle <phase> <build-dir> <oracle-dir>")
 		return 1
 	}
-	name := "slim"
-	if len(args) > 3 {
-		name = args[3]
-	}
-	p, err := pipeline.Get(name)
+	p, err := pipeline.Get()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 		return 1
@@ -109,20 +101,16 @@ func runNvidx(args []string) int {
 
 // runPhaserun is tools/phaserun.sh.
 func runPhaserun(args []string) int {
-	if len(args) == 2 && args[0] == "--parts" {
-		fmt.Fprintln(os.Stderr, "usage: whimtools phaserun <pipeline> <unit> <work-dir>")
+	if len(args) != 2 {
+		fmt.Fprintln(os.Stderr, "usage: whimtools phaserun <unit> <work-dir>")
 		return 1
 	}
-	if len(args) != 3 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools phaserun <pipeline> <unit> <work-dir>")
-		return 1
-	}
-	p, err := pipeline.Get(args[0])
+	p, err := pipeline.Get()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 		return 1
 	}
-	if err := memo.PhaseRun(p, args[1], args[2], os.Stdout); err != nil {
+	if err := memo.PhaseRun(p, args[0], args[1], os.Stdout); err != nil {
 		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 		return 1
 	}
@@ -148,14 +136,10 @@ func runTreedigest(args []string) int {
 // runPhasename is tools/phasename.sh.
 func runPhasename(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools phasename <phase> [pipeline]")
+		fmt.Fprintln(os.Stderr, "usage: whimtools phasename <phase>")
 		return 1
 	}
-	name := "slim"
-	if len(args) > 1 {
-		name = args[1]
-	}
-	p, err := pipeline.Get(name)
+	p, err := pipeline.Get()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 		return 1
@@ -184,22 +168,18 @@ func runRestore(args []string) int {
 
 // runStages is tools/stages.sh.
 //
-//	whimtools stages <pipeline>            the schedule, checked first
-//	whimtools stages <pipeline> --check    the check alone
-//	whimtools stages <pipeline> --of N     the unit containing phase N
+//	whimtools stages            the schedule, checked first
+//	whimtools stages --check    the check alone
+//	whimtools stages --of N     the unit containing phase N
 func runStages(args []string) int {
-	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools stages <pipeline> [--of N | --check]")
-		return 2
-	}
-	p, err := pipeline.Get(args[0])
+	p, err := pipeline.Get()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 		return 1
 	}
 	mode := ""
-	if len(args) > 1 {
-		mode = args[1]
+	if len(args) > 0 {
+		mode = args[0]
 	}
 	switch mode {
 	case "", "--check":
@@ -219,11 +199,11 @@ func runStages(args []string) int {
 		}
 		return 0
 	case "--of":
-		if len(args) < 3 {
-			fmt.Fprintln(os.Stderr, "usage: whimtools stages <pipeline> --of N")
+		if len(args) < 2 {
+			fmt.Fprintln(os.Stderr, "usage: whimtools stages --of N")
 			return 2
 		}
-		n, err := strconv.Atoi(args[2])
+		n, err := strconv.Atoi(args[1])
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 			return 1
@@ -236,21 +216,17 @@ func runStages(args []string) int {
 		fmt.Println(u)
 		return 0
 	}
-	fmt.Fprintln(os.Stderr, "usage: whimtools stages <pipeline> [--of N | --check]")
+	fmt.Fprintln(os.Stderr, "usage: whimtools stages [--of N | --check]")
 	return 2
 }
 
 // runMemo is tools/memo.sh: one unit, through the three tiers.
 func runMemo(args []string) int {
 	if len(args) < 3 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools memo <unit> <work-dir> <build-dir> [pipeline]")
+		fmt.Fprintln(os.Stderr, "usage: whimtools memo <unit> <work-dir> <build-dir>")
 		return 1
 	}
-	name := "slim"
-	if len(args) > 3 {
-		name = args[3]
-	}
-	p, err := pipeline.Get(name)
+	p, err := pipeline.Get()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 		return 1
@@ -266,14 +242,10 @@ func runMemo(args []string) int {
 // without running a phase, which is what makes it testable at all.
 func runMemokey(args []string) int {
 	if len(args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools memokey <unit> <build-dir> [pipeline]")
+		fmt.Fprintln(os.Stderr, "usage: whimtools memokey <unit> <build-dir>")
 		return 1
 	}
-	name := "slim"
-	if len(args) > 2 {
-		name = args[2]
-	}
-	p, err := pipeline.Get(name)
+	p, err := pipeline.Get()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 		return 1
@@ -289,16 +261,12 @@ func runMemokey(args []string) int {
 
 // runVerifypass is tools/verifypass.sh.
 func runVerifypass(args []string) int {
-	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools verifypass <pipeline> [unit...]")
-		return 1
-	}
-	p, err := pipeline.Get(args[0])
+	p, err := pipeline.Get()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 		return 1
 	}
-	units := args[1:]
+	units := args
 	if len(units) == 0 {
 		units, err = memo.Units(p)
 		if err != nil {
@@ -318,11 +286,7 @@ func runVerifypass(args []string) int {
 
 // runSpecpass is tools/specpass.sh.
 func runSpecpass(args []string) int {
-	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools specpass <pipeline>")
-		return 1
-	}
-	p, err := pipeline.Get(args[0])
+	p, err := pipeline.Get()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 		return 1
@@ -352,16 +316,16 @@ func runSnapshot(args []string) int {
 
 // runParts is tools/phaserun.sh --parts: the programs a unit runs, in order.
 func runParts(args []string) int {
-	if len(args) != 2 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools parts <pipeline> <unit>")
+	if len(args) != 1 {
+		fmt.Fprintln(os.Stderr, "usage: whimtools parts <unit>")
 		return 1
 	}
-	p, err := pipeline.Get(args[0])
+	p, err := pipeline.Get()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 		return 1
 	}
-	for _, s := range p.Parts(args[1]) {
+	for _, s := range p.Parts(args[0]) {
 		fmt.Println(s)
 	}
 	return 0

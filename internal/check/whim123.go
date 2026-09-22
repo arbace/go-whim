@@ -93,7 +93,7 @@ func Whim123(w io.Writer, args []string) error {
 	}
 	work := args[0]
 	f := filepath.Join(work, "whim-vim.c")
-	base := ".reference/zero-baselines"
+	base := ".reference/core-baselines"
 	tmp, err := os.MkdirTemp("", "whim123")
 	if err != nil {
 		return err
@@ -110,7 +110,7 @@ func Whim123(w io.Writer, args []string) error {
 			b.cont("records them, from whim-vim.c -- the pipeline's immutable")
 			b.cont("input -- and REFUSES to overwrite a set that differs, so")
 			b.cont("BOTH paths have to go:")
-			fmt.Fprintln(w, "                 rm -rf .reference/zero-baselines .cache/q83 && make whim-phase-83")
+			fmt.Fprintln(w, "                 rm -rf .reference/core-baselines .cache/q83 && make whim-phase-83")
 			return harness.ErrReported
 		}
 	}
@@ -241,7 +241,7 @@ func Whim123(w io.Writer, args []string) error {
 	}
 
 	// --- 7. the declared delta ----------------------------------------------
-	if run(w, "sh", "tools/zerodelta.sh", bin, f, "--phase", "123") != nil {
+	if run(w, "sh", "tools/coredelta.sh", bin, f, "--phase", "123") != nil {
 		return harness.ErrReported
 	}
 

@@ -231,7 +231,7 @@ family at phase 91, which is what makes `:file` the last and part D possible, an
 **`need 93 swept`, measured.** The edit's anchor is `b_ffname` at exactly 32
 mentions, with `b_sfname` at 26 and `b_fname` at 29. On the text phase 92's *edit*
 leaves there are **forty**, `readfile()` still being there to make eight of them, and
-the counted anchor refuses: `tools/phaserun.sh whim 92-93` says `b_ffname has 40
+the counted anchor refuses: `tools/phaserun.sh 92-93` says `b_ffname has 40
 mentions, expected 32`. Unlike 90, 91 and 92, the text before it **compiles** — phase
 92's edit left valid C — so the refusal is the counted anchor alone.
 

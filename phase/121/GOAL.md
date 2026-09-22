@@ -143,7 +143,7 @@ way to write an instrument into it.
 
 **`apart 120 121`, one direction and both halves measured.** Phase 120's check states its own
 size as a line count of the whole file and of the core, and this phase takes 118 more lines
-out of the same swept text: `tools/phaserun.sh whim 120-121` on q119 runs both edits and one
+out of the same swept text: `tools/phaserun.sh 120-121` on q119 runs both edits and one
 sweep and then stops in phase 120's check with *the file is 79668 lines and the input was
 79799* and *the boundary moved by 131 lines and the file by 13*. That is `apart 100 101`'s
 shape exactly. The other half was **run** and not reasoned: phase 121's check, given that
@@ -153,7 +153,7 @@ the measurement is reported as vacuous — phase 120's sweep removes nothing, so
 edit output is q120 byte for byte and there is no unswept text here that differs from a
 swept one.
 
-**`.reference/zero-baselines` is deliberately not re-recorded, and re-recording it would be
+**`.reference/core-baselines` is deliberately not re-recorded, and re-recording it would be
 wrong.** `term-moved` is cumulative like `2 stderr-moved`: declared here and inherited by
 every later phase, so `ref-term.txt` disagreeing with the baseline is exactly what the
 declaration says. Phase 116 needed a re-record because the **harness** changed shape; this

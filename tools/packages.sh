@@ -1,9 +1,9 @@
 #!/bin/sh
 # The packages of a pipeline: the same phases read by concept, checked.
 #
-# Usage: tools/packages.sh <pipeline>              every package, its phases and stages
-#        tools/packages.sh <pipeline> --of <N>     the package containing phase N
-#        tools/packages.sh <pipeline> --check      check the packages; silent when they hold
+# Usage: tools/packages.sh                every package, its phases and stages
+#        tools/packages.sh --of <N>       the package containing phase N
+#        tools/packages.sh --check        check the packages; silent when they hold
 #
 # A PACKAGE is a view over phase/stages and nothing runs it: no phase,
 # stage, boundary or cache key moves when a package does.  The manifest's
@@ -35,13 +35,13 @@
 # the phases' GOAL.md files, which every `uses` line is written from.
 set -eu
 
-. tools/pipeline.sh "${1:?usage: packages.sh <pipeline> [--of N | --check]}"
-mode=${2:-}
+. tools/pipeline.sh
+mode=${1:-}
 manifest=phase/stages
 
 check() {
     if [ ! -f "$manifest" ]; then
-        echo "packages: $PIPE has no $manifest, so no packages" >&2
+        echo "packages: there is no $manifest, so no packages" >&2
         return 1
     fi
     awk -v list="$PHASE_LIST" -v manifest="$manifest" '
@@ -100,13 +100,13 @@ check() {
                 seen[f[2] " " f[3]] = 1
             }
             exit failed
-        }' pipe="$PIPE" "$manifest"
+        }' "$manifest"
 }
 
 # Every package, in manifest order: its phases, the stages they fall in, and what
 # its phases rely on in other packages, with the kind of each.
 show() {
-    units=$(tools/stages.sh "$PIPE" | tr '\n' ' ')
+    units=$(tools/stages.sh | tr '\n' ' ')
     awk -v units="$units" '
         BEGIN {
             nu = split(units, us, " ")
@@ -137,10 +137,10 @@ case $mode in
     '')      check && show ;;
     --check) check ;;
     --of)
-        n=${3:?usage: packages.sh <pipeline> --of N}
+        n=${2:?usage: packages.sh --of N}
         check
         awk -v n="$n" '$1 == "package" { for (i = 3; i <= NF; i++) if ($i == n) { print $2; found = 1; exit } }
                        END { exit !found }' "$manifest" \
-        || { echo "packages: no $PIPE package contains phase $n" >&2; exit 1; } ;;
-    *) echo "usage: packages.sh <pipeline> [--of N | --check]" >&2; exit 2 ;;
+        || { echo "packages: no package contains phase $n" >&2; exit 1; } ;;
+    *) echo "usage: packages.sh [--of N | --check]" >&2; exit 2 ;;
 esac

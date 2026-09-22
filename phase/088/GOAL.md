@@ -112,7 +112,7 @@ isolation, the settle ladder and the output format stay in one place and cannot
 drift from whim's. Editing `termcheck.py` itself is what core rule 9 forbids — it is
 named by `tools/whimdelta.sh` and `tools/verify.sh`, so its bytes are in every whim
 stage's key. **The swap is proven, not asserted**, in three places: the new tool
-records `.reference/zero-baselines/ref-term.txt` byte for byte from the binary this
+records `.reference/core-baselines/ref-term.txt` byte for byte from the binary this
 phase was *handed* (which still accepts a file argument, so both forms work on it),
 the old tool records nineteen `(none)` rows from the one it *made*, and phase 83 —
 which records from `whim-vim.c` three times and compares with the baselines —
@@ -122,7 +122,7 @@ all 107 are identical to `main`'s.
 
 ## The probes, and why the delta is not enough
 
-The baselines are one recording of one binary, so `tools/zerodelta.sh` can say
+The baselines are one recording of one binary, so `tools/coredelta.sh` can say
 "exactly these six moved" and cannot say "the old binary opened the file". The
 check says it, by running both — the binary the phase was **handed**, built by the
 edit part from the boundary's own makefile flags, and the one it made. **22 probes,

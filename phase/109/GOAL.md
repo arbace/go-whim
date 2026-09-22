@@ -173,7 +173,7 @@ the tool would refuse; and `boundary:109 host:102 rationale`, because the two
 host block's — the split that makes that sentence meaningful is the launcher phases 101
 and 102 put at the bottom of the file.
 
-**`apart 108 109` is measured, not predicted.** `tools/phaserun.sh whim 108-109` on q107 runs
+**`apart 108 109` is measured, not predicted.** `tools/phaserun.sh 108-109` on q107 runs
 both edits, one sweep and then **phase 108's** check, which stops at *"the file is 80197
 lines and the input was 80178 (80178 recorded) — expected exactly five fewer"*: this
 phase adds twenty-four lines to the text before that check reads it. **`need 109 swept` is

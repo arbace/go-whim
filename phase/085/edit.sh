@@ -66,7 +66,7 @@ state=${2:?usage: phase/085/edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The input binary, for the check's before-and-after.  The flags are read out of the
-# boundary's makefile rather than written here a second time: zero's compile line is
+# boundary's makefile rather than written here a second time: the core's compile line is
 # the boundary's (GOALS.md core rule 8), and a copy of it in this file would be a
 # second statement of it that could drift.
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")

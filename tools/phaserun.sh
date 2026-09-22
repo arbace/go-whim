@@ -1,8 +1,8 @@
 #!/bin/sh
 # Run a unit of a pipeline's tier-2 program: a whole phase, or a STAGE.
 #
-# Usage: tools/phaserun.sh <pipeline> <unit> <work-dir>   (run from the root)
-#        tools/phaserun.sh --parts <pipeline> <unit>
+# Usage: tools/phaserun.sh <unit> <work-dir>   (run from the root)
+#        tools/phaserun.sh --parts <unit>
 #
 # A unit is a phase N or a stage A-B (tools/stages.sh).  The second form prints the
 # program files of every phase in it, one per line, and nothing for a phase that
@@ -60,8 +60,8 @@
 set -eu
 
 if [ "${1:-}" = "--parts" ]; then
-    . tools/pipeline.sh "${2:?usage: phaserun.sh --parts <pipeline> <unit>}"
-    u=${3:?usage: phaserun.sh --parts <pipeline> <unit>}
+    . tools/pipeline.sh
+    u=${2:?usage: phaserun.sh --parts <unit>}
     for phase in $(seq "${u%-*}" "${u#*-}"); do
         if [ -f "$(phasedir "$phase")/edit.sh" ] && [ -f "$(phasedir "$phase")/check.sh" ]; then
             echo "$(phasedir "$phase")/edit.sh"
@@ -73,9 +73,9 @@ if [ "${1:-}" = "--parts" ]; then
     exit 0
 fi
 
-. tools/pipeline.sh "${1:?usage: phaserun.sh <pipeline> <unit> <work-dir>}"
-unit=${2:?usage: phaserun.sh <pipeline> <unit> <work-dir>}
-work=${3:?usage: phaserun.sh <pipeline> <unit> <work-dir>}
+. tools/pipeline.sh
+unit=${1:?usage: phaserun.sh <unit> <work-dir>}
+work=${2:?usage: phaserun.sh <unit> <work-dir>}
 first=${unit%-*}
 last=${unit#*-}
 
@@ -88,15 +88,15 @@ fi
 phases=$(seq "$first" "$last")
 for p in $phases; do
     if [ ! -f "$(phasedir "$p")/edit.sh" ] || [ ! -f "$(phasedir "$p")/check.sh" ]; then
-        echo "  phaserun     $PIPE phase $p has no edit and check to run in stage $unit" >&2
+        echo "  phaserun     phase $p has no edit and check to run in stage $unit" >&2
         exit 2
     fi
 done
 if [ -z "$PSOURCE" ]; then
-    echo "  phaserun     the $PIPE pipeline names no single source a sweep can run on" >&2
+    echo "  phaserun     the pipeline names no single source a sweep can run on" >&2
     exit 2
 fi
-tools/stages.sh "$PIPE" --check
+tools/stages.sh --check
 f=$work/$PSOURCE
 
 # ---- an EACH stage (tools/stages.sh): its own sweep per edit, the checks at once ----
@@ -130,7 +130,7 @@ f=$work/$PSOURCE
 # digest of the tree the edit is handed and tools/implhash.sh --edit -- the edit
 # cache below, with `each` in the key since what it holds differs.  The checks are
 # not cached: they are the stage's evidence and always run.
-if [ "$(tools/stages.sh "$PIPE" --mode "$unit")" = each ]; then
+if [ "$(tools/stages.sh --mode "$unit")" = each ]; then
     here=$(pwd -P)
     jobs=${CHECK_JOBS:-8}
     each_digest() {
@@ -146,8 +146,8 @@ if [ "$(tools/stages.sh "$PIPE" --mode "$unit")" = each ]; then
         mkdir -p "$state"
         grep -c '' "$f" > "$state/input-lines"
         tools/symbols.sh "$f" "$state/symbols"
-        name=$(tools/phasename.sh "$p" "$PIPE" 2>/dev/null || true)
-        ekey=$(printf '%s\neach\n%s\n%s\n' "$p" "$(each_digest)" "$(tools/implhash.sh --edit "$p" "$PIPE")" \
+        name=$(tools/phasename.sh "$p" 2>/dev/null || true)
+        ekey=$(printf '%s\neach\n%s\n%s\n' "$p" "$(each_digest)" "$(tools/implhash.sh --edit "$p")" \
                | sha256sum | cut -c1-32)
         ecache=.cache/edit/$TAG$p/$ekey
         if [ -f "$ecache.tree.tar" ] && [ -f "$ecache.state.tar" ]; then
@@ -168,7 +168,7 @@ if [ "$(tools/stages.sh "$PIPE" --mode "$unit")" = each ]; then
         mkdir -p "$r/.cache/state" "$r/.reference" "$r/$PWORK"
         for x in tools phase cmd internal go.mod go.sum; do ln -s "$here/$x" "$r/$x"; done
         for x in .cache/gobin .cache/gofork; do [ -e "$here/$x" ] && ln -s "$here/$x" "$r/$x"; done
-        for b in baselines zero-baselines; do
+        for b in baselines core-baselines; do
             [ -e "$here/.reference/$b" ] && ln -s "$here/.reference/$b" "$r/.reference/$b"
         done
         [ -e "$here/slim-vim.c" ] && ln -s "$here/slim-vim.c" "$r/slim-vim.c"
@@ -180,16 +180,16 @@ if [ "$(tools/stages.sh "$PIPE" --mode "$unit")" = each ]; then
     # on the phase's own binary (delta_binary below).
     printf '%s\n' $phases | xargs -P "$jobs" -I{} sh -c '
         r=$1/$2
-        rm -f "$r/$4/$7"
-        ( cd "$r" && "phase/$(printf %03d "$2")/check.sh" "$4" ".cache/state/$5$2" \
-          && { [ -f "$4/$7" ] || make -C "$4" >/dev/null 2>&1 \
-               || { echo "  build        FAILED -- the binary the delta measures: make -C $4"; exit 1; }; } \
-          && "$6" "$4/$7" "$4/$8" --phase "$2" ) > "$r.log" 2>&1
-        echo $? > "$r.rc"' sh "$roots" {} "$IMPL" "$PWORK" "$TAG" "$PDELTA" "${PSOURCE%.c}" "$PSOURCE"
+        rm -f "$r/$3/$6"
+        ( cd "$r" && "phase/$(printf %03d "$2")/check.sh" "$3" ".cache/state/$4$2" \
+          && { [ -f "$3/$6" ] || make -C "$3" >/dev/null 2>&1 \
+               || { echo "  build        FAILED -- the binary the delta measures: make -C $3"; exit 1; }; } \
+          && "$5" "$3/$6" "$3/$7" --phase "$2" ) > "$r.log" 2>&1
+        echo $? > "$r.rc"' sh "$roots" {} "$PWORK" "$TAG" "$PDELTA" "${PSOURCE%.c}" "$PSOURCE"
 
     fail=
     for p in $phases; do
-        printf '  %-12s %s\n' "check $p" "$(tools/phasename.sh "$p" "$PIPE" 2>/dev/null || true)"
+        printf '  %-12s %s\n' "check $p" "$(tools/phasename.sh "$p" 2>/dev/null || true)"
         cat "$roots/$p.log"
         [ "$(cat "$roots/$p.rc" 2>/dev/null)" = 0 ] || fail="$fail $p"
     done
@@ -234,8 +234,8 @@ for p in $phases; do
     rm -rf "$state"
     mkdir -p "$state"
     grep -c '' "$f" > "$state/input-lines"
-    name=$(tools/phasename.sh "$p" "$PIPE" 2>/dev/null || true)
-    ekey=$(printf '%s\n%s\n%s\n' "$p" "$(tree_digest)" "$(tools/implhash.sh --edit "$p" "$PIPE")" \
+    name=$(tools/phasename.sh "$p" 2>/dev/null || true)
+    ekey=$(printf '%s\n%s\n%s\n' "$p" "$(tree_digest)" "$(tools/implhash.sh --edit "$p")" \
            | sha256sum | cut -c1-32)
     ecache=.cache/edit/$TAG$p/$ekey
     if [ -f "$ecache.tree.tar" ] && [ -f "$ecache.state.tar" ]; then
@@ -269,14 +269,14 @@ for p in $phases; do
     state=.cache/state/$TAG$p
     rm -rf "$state/symbols"
     cp -r "$stage_state/symbols" "$state/symbols"
-    [ "$first" = "$last" ] || printf '  %-12s %s\n' "check $p" "$(tools/phasename.sh "$p" "$PIPE" 2>/dev/null || true)"
+    [ "$first" = "$last" ] || printf '  %-12s %s\n' "check $p" "$(tools/phasename.sh "$p" 2>/dev/null || true)"
     "$(phasedir "$p")/check.sh" "$work" "$state"
 done
 
 # The declared delta, once: every phase's declaration up to the stage's last phase
 # is the whole difference from the pipeline's baselines there, and so holds every
 # earlier phase's.  The checker is the pipeline's (PDELTA in tools/pipeline.sh),
-# which reads the declarations and hands a phase from ZERO_FROM on to the checker of
+# which reads the declarations and hands a phase from CORE_FROM on to the checker of
 # the second baselines.  Never name that checker's path in this file: every edit's
 # key reads what this file names, so the name would put that tool in all of them.
 if [ -n "$PDELTA" ]; then

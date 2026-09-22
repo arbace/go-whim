@@ -14,7 +14,7 @@
 # asking about in `$TERM`, which is `termcheck`'s question and whim's.  But
 # phase 19 removed the `getenv("TERM")` from `termcapinit()` -- "the terminal is
 # what the build says" -- and left a compiled `"xterm-256color"` in its place.  So
-# every row of `.reference/zero-baselines/ref-term.txt` read
+# every row of `.reference/core-baselines/ref-term.txt` read
 #
 #     TERM='vt100'              -> term=xterm-256color t_Co=256
 #
@@ -41,14 +41,14 @@
 # from its OWN OUTPUT.  Phase 83 does the opposite and phase/083/make.sh enforces
 # it: the baselines come from `whim-vim.c`, the pipeline's immutable input, built
 # with WHIM's compile line, recorded three times and required identical.  Nothing
-# zero produces is on the recording side.  The same input, the same compile line,
+# the core produces is on the recording side.  The same input, the same compile line,
 # the same five harnesses; one of the five now asks its question a different way.
 # Section 4 below is the independent check that the answer is the same one
 # everywhere, which is the property a baseline must have and a self-fulfilling one
 # cannot be tested for.  `phase/083/make.sh` REFUSES a differing baseline set rather
 # than overwriting it, so the incantation is
 #
-#     rm -rf .reference/zero-baselines .cache/q83 && make whim-phase-83
+#     rm -rf .reference/core-baselines .cache/q83 && make whim-phase-83
 #
 # and `rm -rf .cache/r0` alone is not enough.  Measured: without the first path it
 # exits 1 naming ref-term.txt; with it, 31 s.
@@ -82,15 +82,15 @@
 #      that name's row, from resolving to refused -- and must move NOTHING AT ALL
 #      when the same names are asked the old way.  A corpus that cannot fail is not
 #      evidence, and that pair is the whole of this phase in one measurement;
-#   7. the declared delta holds -- NOTHING, and nothing new: tools/zerodelta.sh
-#      --phase 116 against the re-recorded .reference/zero-baselines.
+#   7. the declared delta holds -- NOTHING, and nothing new: tools/coredelta.sh
+#      --phase 116 against the re-recorded .reference/core-baselines.
 
 # THE BODY IS GO: internal/check/whim116.go, run through tools/st.sh.
 # The tools it runs, named as PATHS so tools/implhash.sh hashes them into
 # this phase's key -- a path the program does not name is a dependency no key
 # sees.  Do not delete these lines.
 #   tools/st.sh
-#   tools/zerodelta.sh
+#   tools/coredelta.sh
 #   tools/zrecord.sh
 set -eu
 

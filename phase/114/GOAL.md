@@ -94,7 +94,7 @@ keystroke file; `boundary:109`, the two prototypes it deletes being that phase's
 `boundary:110`, the check asserting that both definitions land **above** the first
 `#include`, which is the boundary only because of the move.
 
-**Both schedule declarations are measured, in one run.** `tools/phaserun.sh whim 113-114`
+**Both schedule declarations are measured, in one run.** `tools/phaserun.sh 113-114`
 on q112 runs both edits, one sweep and both checks and stops in phase 113's — *"the output
 is 79776 lines and the input was 79857, a difference of 81 where 91 was expected"* —
 because the ten lines this edit adds land in the same swept text. That is `apart 100 101`'s

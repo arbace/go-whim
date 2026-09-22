@@ -137,7 +137,7 @@ two prototypes join and the eight call sites and the control that reads back pha
 finding.
 
 **`apart 107 108` is measured, and its first complaint is one nobody would predict.**
-`tools/phaserun.sh whim 107-108` on q106 stops inside **phase 107's** check with *"a line
+`tools/phaserun.sh 107-108` on q106 stops inside **phase 107's** check with *"a line
 carrying a kept attribute is not the line it was, byte for byte: lines 847 852 3081
 3092"* — phase 107 records the six `format`/`format_arg` lines it keeps **by line
 number**, and this phase deletes the `vim_host_message` object with its blank line at

@@ -47,9 +47,9 @@
 # a session that reaches neither proves nothing, and that is checked.
 #
 # AND THE RECORDINGS ARE COMPARED DIRECTLY, old binary against new, rather than
-# only through .reference/zero-baselines: `diff -rq` over two full tools/zrecord.sh
+# only through .reference/core-baselines: `diff -rq` over two full tools/zrecord.sh
 # recordings, which is what "this phase declares nothing at all" means measured
-# between the two binaries themselves.  tools/zerodelta.sh runs afterwards and says
+# between the two binaries themselves.  tools/coredelta.sh runs afterwards and says
 # the same thing against whim-vim's frozen behaviour.
 #
 # SIX THINGS THE SOURCE MUST SAY, and the traps that make the obvious check wrong,

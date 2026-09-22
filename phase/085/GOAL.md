@@ -81,7 +81,7 @@ them the extra compile of the input binary its probes need. Its boundary is
 `74ca3e1ffeb8`, and `make whim-verify` recomputes all three.
 
 One `uses` line: `terminal:85 seed:83 mechanical`, for phase 84's reason —
-`tools/zerodelta.sh` refuses without the `.reference/zero-baselines` phase 83 records,
+`tools/coredelta.sh` refuses without the `.reference/core-baselines` phase 83 records,
 and "none" is checked against them.
 
 It does not run `tools/create_cmdidxs.py --check`, which every whim edit of the

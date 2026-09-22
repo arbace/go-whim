@@ -26,7 +26,7 @@ phases in each part.
 The two parts are one pipeline with one numbering and one product. What changes
 at phase 83 is what a phase is measured against: Part I's phases declare their
 deltas against slim-vim's behaviour, Part II's against q82's, with an instrument
-an editor with no file to write can still be measured by. `ZERO_FROM` in
+an editor with no file to write can still be measured by. `CORE_FROM` in
 `tools/pipeline.sh` is that line, stated once.
 
 # Part I — phases 0 to 82: an editor with no runtime
@@ -85,9 +85,9 @@ inside it. They are measured against slim-vim's own recorded baselines, never
 against the previous phase: each phase states the whole difference from slim, so a
 phase that quietly undid an earlier one shows up.
 
-From phase 83 (`ZERO_FROM`, `tools/pipeline.sh`) on, a phase is measured against
+From phase 83 (`CORE_FROM`, `tools/pipeline.sh`) on, a phase is measured against
 other baselines with another instrument, and `tools/whimdelta.sh` hands it to
-`tools/zerodelta.sh` (Part II, *What is measured from phase 83 on*). The list to 82
+`tools/coredelta.sh` (Part II, *What is measured from phase 83 on*). The list to 82
 is not retired there: phase 83 checks the whole of it once more against its
 `-no-pie` binary and slim-vim's baselines. `tools/implhash.sh` hashes the
 declarations up to a stage's last phase — the tokens, not the notes — so a token
@@ -196,7 +196,7 @@ parts. A phase is a directory, `phase/NNN/`, its number in three digits.
    find out.
    Then put N in the `package` line of its concept (or a new one), declare a `uses`
    line for each phase of another package it relies on, and run
-   `tools/packages.sh whim --check`, which refuses a phase in no package. Nothing
+   `tools/packages.sh --check`, which refuses a phase in no package. Nothing
    runs the packages, so this moves no key.
 4. `make whim-tip` runs the last stage and records its boundary; `make whim-verify`
    then proves every stage from the recorded one before it.
@@ -309,7 +309,7 @@ no cache key moved: the schedule is still `phase/stages`' `stage` lines, and a
 package's phases are spread across stages. The data is two more kinds of line in the
 same file — `package NAME P...`, and `uses A:P B:Q KIND why` for a phase that relies
 on a phase of another package having run — which `tools/stages.sh` ignores and
-`tools/packages.sh whim` prints. `tools/packages.sh whim --check` refuses a phase in
+`tools/packages.sh` prints. `tools/packages.sh --check` refuses a phase in
 no package or in two, an unknown phase or package, a `uses` inside one package and a
 `uses` whose dependency runs later. It is a tool of its own because
 `tools/phaserun.sh` names `tools/stages.sh`, which puts every byte of that script in
@@ -327,7 +327,7 @@ refuses to drop an option something still reads, a computed set comes out
 different, or what it removes as dead or constant would still be live. *Rationale*:
 the later phase would still run and cut the same thing, and the earlier one is the
 reason given that the cut costs nothing or is the right call. Of the 50, 37 are
-mechanical and 13 are rationale. `tools/packages.sh whim --check` refuses any other
+mechanical and 13 are rationale. `tools/packages.sh --check` refuses any other
 kind, and `make whim-verify` and `make whim-tip` run that check before they start.
 
 **A `uses` line is only written where a phase program or a section here says so**,
@@ -1098,7 +1098,7 @@ reaching the set the launcher, and not the core, supplies.
 ### The declared delta, phases 83 on
 
 Each phase from 83 declares what it changes in its own `phase/NNN/delta`, as Part
-I's phases do, and `tools/zerodelta.sh --phase N` reads every declaration from 83
+I's phases do, and `tools/coredelta.sh --phase N` reads every declaration from 83
 to N and checks the binary moved in exactly that way — and nothing else (core rule
 2). The tokens:
 
@@ -1120,7 +1120,7 @@ somewhere: a phase that declares `screen-moved` and draws the same screens fails
 the declared dimension is still checked record by record.
 
 **The difference is from q82, not from slim-vim.** The baselines are
-`.reference/zero-baselines`, which phase 83 records from the tree it is handed,
+`.reference/core-baselines`, which phase 83 records from the tree it is handed,
 built with the compile line that tree carries. So everything phases 0 to 82 removed
 is already in them, and the declarations start empty at 83: each phase from 83
 declares only what it changes relative to q82.
@@ -1136,12 +1136,12 @@ Cited as *core rule N*; Part I's rules still hold.
    list — an Ex command by name, `case:` for a screen case, `argv:` for a
    command line, `term-moved`, `pty-moved`, and the two dimensions `screen-moved`
    and `stderr-moved` — in Part I's grammar, and
-   `tools/zerodelta.sh --phase N` shows exactly that set moved and no more. "Some
+   `tools/coredelta.sh --phase N` shows exactly that set moved and no more. "Some
    cases differ" is not a check, and neither is a dimension declared that nothing
    touched: `tools/zcompare.py` refuses a `-moved` token whose dimension did not
    move.
 3. **The delta is from q82, not from slim-vim, and it is cumulative.** From phase 83
-   behaviour is compared with `.reference/zero-baselines`, which phase 83 records from
+   behaviour is compared with `.reference/core-baselines`, which phase 83 records from
    the tree it is handed — q82's `whim-vim.c` built with the compile line q82 carries.
    Everything phases 0 to 82 removed is therefore already in them, the declarations
    start empty at 83, and those up to phase N are the whole difference from q82 at
@@ -1163,7 +1163,7 @@ Cited as *core rule N*; Part I's rules still hold.
 6. **Stages and packages are declared and checked.** `phase/stages` holds the phase
    list (`phases`), the schedule (`stage`, `need`, `apart`, read by `tools/stages.sh`)
    and the concept view (`package`, `uses`, read by `tools/packages.sh`). `make
-   whim-verify` and `make whim-tip` run `tools/packages.sh whim --check` first.
+   whim-verify` and `make whim-tip` run `tools/packages.sh --check` first.
 7. **The product carries no comments.** Phase 82 removed the last, and no phase from 83
    on writes one.
 8. **The compile line from phase 84 on is `gcc -O0 -fno-stack-protector -static -no-pie
@@ -1172,13 +1172,13 @@ Cited as *core rule N*; Part I's rules still hold.
    says `EXEC`, with no `INTERP`, no dynamic section and no relocations — because a core
    with nothing left to relocate is one a host can place without a loader. Every further
    flag is **a phase of its own**, and a phase changes the flags by editing the
-   boundary's `Makefile` (in the work tree, `.tmp/whim-stage/`), never `tools/templates/zero.mk`, which phase 83 writes and
+   boundary's `Makefile` (in the work tree, `.tmp/whim-stage/`), never `tools/templates/core.mk`, which phase 83 writes and
    which is in its key. `-fno-stack-protector` is phase 84. `whim.mk` states the result
    once more as `WHIMCFLAGS` and `WHIMLDFLAGS`, and `whim-pass` refuses when they differ.
 9. **`tools/` is shared, and gated.** A change to a tool a phase names must leave `make
    whim-verify` (every stage boundary reproduces) passing, and moves the key of every
    unit that names it: `tools/implhash.sh` for every unit and every edit is the account
-   of what it moves. Prefer a tool only phases from 83 on name (`tools/zerodelta.sh`) or
+   of what it moves. Prefer a tool only phases from 83 on name (`tools/coredelta.sh`) or
    a value in `tools/pipeline.sh` to an edit of a tool every key reads, and **never write
    such a tool's path into `tools/phaserun.sh`**: every edit's key reads what that file
    names.
@@ -1782,7 +1782,7 @@ phases 97 and 98's, the code changing and the binary moving with nothing but con
 say a replacement does what the original did — eleven of them for 44 and twelve for 45,
 each with the three that must *not* move named with the reason each cannot be seen),
 checked
-by `tools/stages.sh whim` and `tools/packages.sh whim`. The last two
+by `tools/stages.sh` and `tools/packages.sh`. The last two
 `apart` lines are the same shape as `apart 88 89`: `apart 97 98`, because each of those
 two checks states that the undefined set moved by exactly *its* symbols and a stage
 takes one snapshot at its start, and `apart 98 99`, in both directions — phase 98's
@@ -1796,7 +1796,7 @@ lines, expected 9`), and `apart 101 102`, because phase 101's check builds its o
 by rewriting `mch_exit`'s `exit(r);` and phase 102 has replaced that line (`the control
 edit changed nothing`) — each in one direction only, the later phase's check passing on
 the shared stage either time. **`apart 102 103` is the first that is both directions**,
-and its measured message is the one a reader would not predict: `tools/phaserun.sh whim
+and its measured message is the one a reader would not predict: `tools/phaserun.sh
 102-103` on q101 stops in phase 102's check with ``deathtrap` as a whole word has 4
 mentions, expected 3` — a phase about *removing* signal handling leaves one MORE
 mention of a handler, because the host installs the core's `deathtrap` rather than
@@ -1824,7 +1824,7 @@ is the general form of it.
 
 **The last four continue the pattern, and one of them is the general form of a second
 dependency.** There is **no `apart 106 107` and no `need 107`** — measured in one run,
-where `tools/phaserun.sh whim 106-107` on q105 runs both edits, one sweep and both checks
+where `tools/phaserun.sh 106-107` on q105 runs both edits, one sweep and both checks
 and every part passes. `apart 107 108`'s first complaint is the one nobody would predict:
 **phase 107 records the six `format`/`format_arg` lines it keeps by LINE NUMBER**, and
 phase 108 deletes an object with its blank line at 495, so everything below moves up by
@@ -1921,7 +1921,7 @@ before any check runs — *phase 123 is in stage 122-123 but is not an edit and 
 which a whole-phase program has none of. **`apart 124 125` is measured and is not the
 mechanism the phase predicted**: it expected `apart 97 98`'s shape, an undefined-set
 equality against a stage's one snapshot, and what actually fires is phase 124's **own
-promise** — `tools/phaserun.sh whim 124-125` on q123 stops with *the text above the first
+promise** — `tools/phaserun.sh 124-125` on q123 stops with *the text above the first
 `#include` is not byte-identical in and out, and this phase is entirely below it*. **A
 phase that promises to touch no core line cannot share a stage with one that deletes 366
 of them.** **There is no `apart 125 126`, deliberately**, although phase 125's check quotes
@@ -1982,7 +1982,7 @@ and nothing else.
 run for.** That is what phase 116 found and fixed. `ztermcheck.py` still asked
 `$TERM`, and **phase 19 had removed the `getenv("TERM")` the editor read it with** —
 *the terminal is what the build says* — so all nineteen rows of
-`.reference/zero-baselines/ref-term.txt` said `term=xterm-256color t_Co=256`: nineteen
+`.reference/core-baselines/ref-term.txt` said `term=xterm-256color t_Co=256`: nineteen
 ways of recording that the environment does nothing. It was content-free and measurably
 so — **a prototype that deleted eight of the ten built-in terminal names and three of the
 nine capability tables, 118 lines of terminal description, passed `tools/zcompare.py`
@@ -2004,7 +2004,7 @@ whim's own line gives one digest across every one of them, so `term-moved` stays
 undeclared at every phase before it. The incantation, and **both halves are needed** —
 measured, with only
 `.cache/r0` removed `phase/083/make.sh` refuses and names `ref-term.txt`, which is right —
-is `rm -rf .reference/zero-baselines .cache/r0 && make whim-phase-83`.
+is `rm -rf .reference/core-baselines .cache/r0 && make whim-phase-83`.
 
 **That bound is a repair, and the rule behind it is general.** The loop globbed
 `.build/r*.tar` and required one terminal table across **all** boundaries, which was
@@ -2080,7 +2080,7 @@ between the two pipelines' recordings.
 **Three things differ from Part I, and each was decided rather than inherited:**
 
 - **The compile line is `gcc -O0 -fno-stack-protector -static -no-pie -s`.** The
-  seed adds `-no-pie` (`tools/templates/zero.mk`), which is why `readelf -h whim-vim`
+  seed adds `-no-pie` (`tools/templates/core.mk`), which is why `readelf -h whim-vim`
   says `EXEC` where phases 0 to 82 and slim-vim say `DYN`: see *The binary is standalone* in `CLAUDE.md`.
   Phase 84 adds `-fno-stack-protector` by editing the boundary's `Makefile` —
   never the template, which is the pipeline's input and in q83's digest. The product
@@ -2090,9 +2090,9 @@ between the two pipelines' recordings.
   `make score` passes both to `tools/score.sh`, so the symbol count is taken with
   the product's flags.
 - **Part II's behaviour is measured against its own baselines**,
-  `.reference/zero-baselines`, which phase 83 records from `whim-vim.c` built
+  `.reference/core-baselines`, which phase 83 records from `whim-vim.c` built
   with whim's compile line. So the declarations start empty at 83 and each Part II phase
-  declares only what it changes relative to whim, checked by `tools/zerodelta.sh`
+  declares only what it changes relative to whim, checked by `tools/coredelta.sh`
   — `whimdelta.sh`'s rule and grammar against those baselines. Phase 83 also runs
   the harnesses on the `-no-pie` binary and requires no difference at all, and
   runs `tools/whimdelta.sh --phase 82` on it against slim-vim's baselines, which
@@ -2112,8 +2112,8 @@ number in three digits.
    `phase/NNN/check.sh <work> <state>`, as Part I's *Adding a phase* describes,
    with the body in `internal/edit/whim<N>.go` and `internal/check/whim<N>.go`.
 2. **Declare its delta** in `phase/NNN/delta`, before running it: every phase from
-   83 on is measured against `.reference/zero-baselines` with `tools/zrecord.sh`, and
-   `tools/whimdelta.sh` hands it to `tools/zerodelta.sh`.
+   83 on is measured against `.reference/core-baselines` with `tools/zrecord.sh`, and
+   `tools/whimdelta.sh` hands it to `tools/coredelta.sh`.
 3. **Place it**: add N to the `phases` line of `phase/stages` — the phase list
    lives there and not in `tools/pipeline.sh`, so adding a phase moves no other key —
    then widen the last `each` stage to end at N (a split phase), or give it a
@@ -2121,8 +2121,8 @@ number in three digits.
    last stage's checks). Inside an each stage every edit is swept before the next
    and every check sees its own tree, so write its `need` and `apart` lines anyway,
    measured: they are what a shared stage would have to respect. Then put it in a
-   `package` with its `uses` lines. `tools/stages.sh whim
-   --check` and `tools/packages.sh whim --check` must be silent.
+   `package` with its `uses` lines. `tools/stages.sh
+   --check` and `tools/packages.sh --check` must be silent.
 4. Write its `phase/NNN/GOAL.md`, which opens `# Phase N — ...`, and add it to the
    index below.
 5. `make whim-tip` runs the last stage and records it; `make whim-verify` then proves
@@ -2237,7 +2237,7 @@ something you type at, on a screen, and nothing else.** It was written without
 touching a single pipeline file, tool or phase program — every number below was
 measured in this worktree and in a scratch directory (`/tmp/zpty`, `/tmp/zfs`; see
 the appendix), against the committed `zero-vim.c`, which is `whim-vim.c` byte for
-byte and builds with zero's phase-1 line into 869,512 bytes and 79 undefined
+byte and builds with phase 84's compile line into 869,512 bytes and 79 undefined
 symbols.
 
 **The fixed point.** `whim-vim.c` goes in. What comes out has no way to read or
@@ -2626,13 +2626,13 @@ versus the 80×24 fallback) and that raw mode is entered and restored
 `termcheck.py`'s and `ptycheck.py`'s territory and they already exist; what goes is
 the *behaviour* corpus's dependence on a pty.
 
-#### II.2k. What `.reference/zero-baselines` becomes
+#### II.2k. What `.reference/core-baselines` becomes
 
 Three recordings, replacing today's `behaviour/`, `ref-exsweep.txt` and
 `ref-term.txt`:
 
 ```
-.reference/zero-baselines/
+.reference/core-baselines/
     screen/            102 keystroke cases, one file each     (166 KB)
     ref-excmds.txt     111 Ex commands, by the message        (27 KB)
     ref-argv.txt       27 invocations                         (2 KB)
@@ -2655,10 +2655,10 @@ core rule 3, unchanged. Recording them from the pipeline's input is legitimate w
 recording them from its current output would not be.
 
 The programs are zero-only files, named by `phase/083/make.sh` and
-`tools/zerodelta.sh` and by nothing whim or slim runs — `tools/zscreen.py` (the
+`tools/coredelta.sh` and by nothing whim or slim runs — `tools/zscreen.py` (the
 emulator), `tools/zstream.py` (the driver), `tools/zcases.py` (the corpus),
 `tools/zexcmds.py` (the command sweep) and `tools/zargv.py` (the invocations) —
-which is `GOALS.md` core rule 9's requirement and the precedent `zerodelta.sh` set.
+which is `GOALS.md` core rule 9's requirement and the precedent `coredelta.sh` set.
 The shared `behaviour.py`, `exsweep.py` and `termcheck.py` are not touched, so no
 whim or slim key moves. (`termcheck.py` is still untouched, and from phase 88 it is
 no longer *run*: zero records the terminal table with `tools/ztermcheck.py`, which
@@ -2667,8 +2667,8 @@ imports it and replaces the one call that passes a file argument.)
 **This is a change to phase 83's program**, not a new phase: `phase/083/make.sh` is
 what records the baselines and what refuses when they differ. It moves phase 83's
 implementation digest, so phases 83 and 84 re-run (9 s and a build), and
-`.reference/zero-baselines` is rewritten once, with the difference named — which is
-what the existing refusal text already asks for. `tools/zerodelta.sh` reads the new
+`.reference/core-baselines` is rewritten once, with the difference named — which is
+what the existing refusal text already asks for. `tools/coredelta.sh` reads the new
 recordings, and the old file-based harnesses stay exactly where they are, untouched,
 for slim and whim (`GOALS.md` core rule 9: a zero tool is a new file, never an edit
 to a hashed one).
@@ -3074,7 +3074,7 @@ That is the change rule 2 exists to prevent. 23 of `'cpoptions'` 60 letters and 
 `'shortmess'` 23 are inert afterwards, and the phase makes exactly one more so,
 `'shortmess'`'s `r`. *(4)* **`tools/orphanopts.py` has a 100-row floor of its own that
 this phase crosses on its first drop** — 102 → 98 → 96 — which does not fail the phase
-but fails `tools/zerodelta.sh` for every later phase, the same shape as decision 8's
+but fails `tools/coredelta.sh` for every later phase, the same shape as decision 8's
 floor arriving from a different table. It was lowered to 80 in the phase's own commit,
 the same number and the same argument as `create_cmdidxs.py`'s.
 
@@ -3163,13 +3163,13 @@ uses  files:92     files:88      mechanical  b_ffname's largest readers are do_w
 uses  files:92     files:90      mechanical  and do_ecmd, which 7 removes
 uses  buffers:93  files:88      rationale   the protection has no remedy once nothing can be written
 uses  options:94  files:88      mechanical  dropoptions --strict refuses 'fsync'/'write'/'writeany' before 5
-uses  options:94  files:91      mechanical  'undoreload' is read by do_ecmd, removed by 8 (zero's
+uses  options:94  files:91      mechanical  'undoreload' is read by do_ecmd, removed by 8 (the core's
                                  numbering); asserted there at exactly 2 mentions with its row
 uses  tidy:95     terminal:85   rationale   ui_write's console is FALSE at its one call site either way
 ```
 
 The three `apart` lines are predictions, not measurements: whim's were found by
-running each check against each candidate boundary, and zero's must be found the
+running each check against each candidate boundary, and the core's must be found the
 same way once the programs exist.
 
 #### II.3d. The cumulative measurement
@@ -3212,7 +3212,7 @@ the result.
 **BUILT, ALL OF IT, AND THIS ESTIMATE IS WRONG THREE WAYS.** The thirteen phases are
 done and `zero-vim.c` is **79,603 lines**, not ≈ 80,300 — **7,011 lines, 8.1 %**, where
 this said 6.5 % plus about 700. **Seventeen symbols go, not nineteen, leaving 62** as
-`tools/symbols.sh` counts and **61** with zero's own `-fno-stack-protector`. Two of
+`tools/symbols.sh` counts and **61** with the core's own `-fno-stack-protector`. Two of
 the nineteen are wrong: **`isatty` does not go** — phase 87 removed one of its five
 call sites and three survive, all of them the terminal's — and **`fputs` does not go**,
 the source naming it nowhere while gcc lowers `fprintf(stderr, "…")` to it. The
@@ -3225,7 +3225,7 @@ and not row 9**, its only caller being `vim_fsync()`.
 estimate is about what *removal* frees. Phases 97 and 98 free 28 more symbols by
 **moving code in** rather than out — the strings and memory blocks, the character
 classes, the two `ato*`, `qsort` and `bsearch`, defined in `zero-vim.c` as `static`
-functions — so `nm -u` is **33** with zero's flags, 34 as `tools/symbols.sh` counts,
+functions — so `nm -u` is **33** with the core's flags, 34 as `tools/symbols.sh` counts,
 and the file is **80,413 lines**, longer than the 79,603 thirteen phases left. Forty-six
 of whim's 79 symbols have gone and the eighteen listed above are only the first of
 them. The 8.1 % this section was corrected to is 7.2 % now, and a line count is no
@@ -3296,7 +3296,7 @@ isatty(read_cmd_fd)` and `fill_input_buf`'s `!did_read_something &&
 !isatty(read_cmd_fd)` — so it belongs in the terminal row, making that row ten.
 **`fputs` is missing from "gcc's own"**: the source names it nowhere and `nm -u`
 still lists it. The predicted total of **60 is 61** (62 as `tools/symbols.sh`
-counts, which compiles plain `-O0` and so adds `__stack_chk_fail` that zero's
+counts, which compiles plain `-O0` and so adds `__stack_chk_fail` that the core's
 `-fno-stack-protector` removes). Every other row is confirmed symbol for symbol.
 Both corrections are in the table below.
 
@@ -3305,7 +3305,7 @@ dependencies* for the half of the charter that is pure computation: the four row
 struck through below — strings and memory blocks (17, `sprintf` among them),
 character classes (7), numbers (2), sorting and searching (2) — are **28 symbols that
 are now `static` definitions inside `zero-vim.c`**, and `sprintf` went onto the
-editor's own `vim_snprintf` rather than being copied. `nm -u` is **33** with zero's
+editor's own `vim_snprintf` rather than being copied. `nm -u` is **33** with the core's
 flags (34 as `tools/symbols.sh` counts). What is left is six rows and not one of them
 is a function of its arguments alone: every surviving symbol asks the operating system
 something, which is the line this table was always trying to draw.
@@ -3410,7 +3410,7 @@ and each was measured before the design was taken:
   `main` leaves; and `-Wunused-function` is blind to a dead *external* function, so
   none of `-flto`, `-fwhole-program` or a plain `cat` recovers it.
 - **No tool changes at all.** `PSOURCE`, `whim.mk`'s single `tar -xO`, `score.sh`,
-  `symbols.sh`, `sweep.sh`, `zerodelta.sh` and `zrecord.sh` all keep working on one
+  `symbols.sh`, `sweep.sh`, `coredelta.sh` and `zrecord.sh` all keep working on one
   file, and the eleven files a split would have had to teach about two products stay
   as they are. Two planned phases — a tooling phase and a join/split tool pair — drop
   out entirely.
@@ -3872,7 +3872,7 @@ per-phase order costs, which nothing has run yet.
 
 Everything ran in this worktree (`.claude/worktrees/zeroplan`, branch `zero-plan`)
 and in two scratch directories, and **no pipeline file, tool or phase program was
-touched**. The binary under test is the committed `zero-vim.c` compiled with zero's
+touched**. The binary under test is the committed `zero-vim.c` compiled with the core's
 phase-1 line, `gcc -O0 -fno-stack-protector -static -no-pie -s` — 869,512 bytes, 79
 undefined symbols, which is what `GOALS.md`'s Phase 84 records.
 

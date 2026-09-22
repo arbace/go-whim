@@ -371,7 +371,7 @@ func Whim106(w io.Writer, args []string) error {
 		}
 		return harness.ErrReported
 	}
-	r.say("THE BINARY IS BYTE-IDENTICAL, %d bytes either side -- tier 1 of CLAUDE.md's verification table, and the whole of this phase's evidence.  A byte-identical binary subsumes every screen case, every Ex-command row, every command line and every pty scenario at once, because the program that would be run is the same program; tools/zerodelta.sh --phase 106 runs next and corroborates rather than proves", newSize)
+	r.say("THE BINARY IS BYTE-IDENTICAL, %d bytes either side -- tier 1 of CLAUDE.md's verification table, and the whole of this phase's evidence.  A byte-identical binary subsumes every screen case, every Ex-command row, every command line and every pty scenario at once, because the program that would be run is the same program; tools/coredelta.sh --phase 106 runs next and corroborates rather than proves", newSize)
 
 	// --- 5. the controls -----------------------------------------------------
 	for _, c := range []string{"c1", "c2"} {

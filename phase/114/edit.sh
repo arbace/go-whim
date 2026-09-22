@@ -21,7 +21,7 @@
 #
 # WHAT IT DOES, in three parts:
 #
-#   the two prototypes    `long labs(long n);` and `int abs(int n);`, which zero
+#   the two prototypes    `long labs(long n);` and `int abs(int n);`, which
 #                         phase 109 wrote into the core's block of libc declarations
 #                         when the headers were still above it.  The block loses two
 #                         of its entries and nothing else changes in it.
@@ -69,7 +69,7 @@ state=${2:?usage: phase/114/edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a second
-# time: zero's compile line is the boundary's (GOALS.md core rule 8).
+# time: the core's compile line is the boundary's (GOALS.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

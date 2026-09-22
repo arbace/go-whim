@@ -57,7 +57,7 @@ func occurrences(pat string, src []byte) int {
 // --ttyfail.
 //
 // THE PROBES ARE THIS PHASE'S EVIDENCE and they are two-sided.  The three
-// harnesses tools/zerodelta.sh runs cannot see this cut at all -- behaviour and
+// harnesses tools/coredelta.sh runs cannot see this cut at all -- behaviour and
 // exsweep run the editor `-e -s`, where exmode_active takes check_tty()'s first
 // branch, and termcheck drives a real pty where neither stream is a file.  So
 // the declared delta is legitimately none, and a delta of none from a blind
@@ -130,7 +130,7 @@ func Whim85(w io.Writer, args []string) error {
 	// --- 4. the binary -------------------------------------------------------
 	// NOT tools/phasebuild.sh, which links the object the sweep compiled along
 	// the way: that object is `gcc -c -O0` with this machine's defaults, which
-	// since phase 84 are not zero's -- it carries the canaries
+	// since phase 84 are not the core's -- it carries the canaries
 	// -fno-stack-protector removes and PIE code where the link is -no-pie.
 	_ = exec.Command("make", "-C", work, "clean").Run()
 	if err := exec.Command("make", "-C", work).Run(); err != nil {

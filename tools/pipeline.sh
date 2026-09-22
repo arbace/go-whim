@@ -1,11 +1,12 @@
 # The pipeline, and the only place that states its parameters.
 #
-# Sourced, not run:  . tools/pipeline.sh [whim]
+# Sourced, not run:  . tools/pipeline.sh
 #
 #   whim-vim.c = G(slim-vim.c)       GOALS.md, work in .tmp/whim-stage/
 #
-# One pipeline, and the driver, the boundaries, the oracle and the synthesiser
-# still take it as an argument, so a second one would be added here.
+# ONE PIPELINE, and the tools take no pipeline argument: this file is where its
+# parameters are stated, and the only place.  They took one while a second
+# pipeline existed, whose phases are 83 onwards here.
 #
 # The boundary tag is q (arbace/slim-vim's own pipeline, which produces this one's
 # input, tags its boundaries p).
@@ -20,12 +21,12 @@
 #
 # PDELTA is the checker a stage's declared delta goes through: tools/phaserun.sh
 # runs it and tools/implhash.sh hashes it.  There are TWO SETS OF BASELINES, and
-# ZERO_FROM is the line between them.  Phases before it are measured against
+# CORE_FROM is the line between them.  Phases before it are measured against
 # .reference/baselines, recorded by phase 0 from slim-vim.c; phases from it on
-# against .reference/zero-baselines, recorded by phase ZERO_FROM from the tree it
+# against .reference/core-baselines, recorded by phase CORE_FROM from the tree it
 # is handed, with an instrument (tools/zrecord.sh) that an editor with no file to
 # write can still be measured by.  tools/whimdelta.sh hands a phase from
-# ZERO_FROM on to tools/zerodelta.sh.  Every phase declares its delta the same
+# CORE_FROM on to tools/coredelta.sh.  Every phase declares its delta the same
 # way, in its own directory; tools/declared.sh reads a run of them.
 #
 # THE PHASE LIST IS NOT WRITTEN HERE, and that is measured rather than tidy.  This
@@ -37,10 +38,11 @@
 
 phasedir() { printf 'phase/%03d' "$1"; }
 
-case ${1:-whim} in
-    whim) PIPE=whim; TAG=q; IMPL=whim
-          PWORK=.tmp/whim-stage; PBUILD=.build; PSOURCE=whim-vim.c; PDELTA=tools/whimdelta.sh
-          ZERO_FROM=83
-          PHASE_LIST=$(awk '$1 == "phases" { $1 = ""; sub(/^ +/, ""); print }' phase/stages) ;;
-    *)    echo "pipeline: no such pipeline: $1" >&2; return 1 2>/dev/null || exit 1 ;;
-esac
+TAG=q
+PWORK=.tmp/whim-stage
+PBUILD=.build
+PORACLE=.reference/whim-phases
+PSOURCE=whim-vim.c
+PDELTA=tools/whimdelta.sh
+CORE_FROM=83
+PHASE_LIST=$(awk '$1 == "phases" { $1 = ""; sub(/^ +/, ""); print }' phase/stages)

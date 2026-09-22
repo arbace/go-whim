@@ -182,7 +182,7 @@ file back with `:r out.txt` and would fail too; the source assertions come first
 anchor is `usefilter` at exactly 10 mentions — the field, the two writes anchor 3
 removes and seven reads. On the text phase 89's *edit* leaves there are **eleven**,
 `ex_write` still being there to read one, and the counted anchor refuses: measured
-with `tools/phaserun.sh whim 89-90`, which says `usefilter has 11 mentions, expected
+with `tools/phaserun.sh 89-90`, which says `usefilter has 11 mentions, expected
 10`. The same run shows the edit's build of the input binary failing on phase 89's
 non-compiling intermediate, which is true of every Part II edit that builds one and is
 not declared for that reason.

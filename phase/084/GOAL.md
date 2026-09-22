@@ -18,7 +18,7 @@ the number `GOALS.md` measures. Measured on this input: the undefined symbols of
 bytes**.
 
 **Where the flag lives.** In the boundary — the tree a phase transforms — and not in
-`tools/templates/zero.mk`, which is the pipeline's *input*: the input rule copies it
+`tools/templates/core.mk`, which is the pipeline's *input*: the input rule copies it
 into `zero/Makefile`, and editing it would move q83's input digest and invalidate
 phase 83's recording. The product rule in `whim.mk` cannot read `zero/`, which does
 not exist in a checkout that only builds the committed `whim-vim.c`, so it states the
@@ -36,11 +36,11 @@ it does not already carry the flag; the **old** flags do reference
 objects of the same source, so the check is one that can fail, and a compiler whose
 default changed is reported rather than silently passing; `whim-vim.c` is unchanged;
 the binary is still absolutely static (`EXEC`, no `INTERP`, no dynamic section, no
-relocation); and `tools/zerodelta.sh --phase 84` sees no behaviour case, no Ex command
+relocation); and `tools/coredelta.sh --phase 84` sees no behaviour case, no Ex command
 and no terminal-table row move against whim-vim's baselines. `phase/084/delta`
 declares nothing for it, because a canary is code around the locals and not
 behaviour.
 
 It is `stage 84` and `package build` in `phase/stages`, with one `uses`:
-`build:84 seed:83 mechanical`, because `zerodelta.sh` refuses without the
-`.reference/zero-baselines` phase 83 records. It runs in 9 seconds.
+`build:84 seed:83 mechanical`, because `coredelta.sh` refuses without the
+`.reference/core-baselines` phase 83 records. It runs in 9 seconds.

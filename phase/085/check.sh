@@ -10,7 +10,7 @@
 # binary this phase was HANDED, built from the boundary's own makefile flags.
 #
 # THE PROBES ARE THIS PHASE'S EVIDENCE, and they are two-sided for the reason phase
-# 84's symbol check is: the three harnesses tools/zerodelta.sh runs cannot see this
+# 84's symbol check is: the three harnesses tools/coredelta.sh runs cannot see this
 # cut at all -- behaviour.py and exsweep.py run the editor `-e -s`, where
 # exmode_active takes check_tty()'s first branch, and termcheck.py drives a real pty
 # where neither stream is a file.  So the declared delta is legitimately "none", and

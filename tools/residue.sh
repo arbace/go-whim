@@ -1,7 +1,7 @@
 #!/bin/sh
 # The scoreboard: how much of each phase is still a patch rather than a rule.
 #
-# Usage: tools/residue.sh [slim|whim]
+# Usage: tools/residue.sh
 #
 # Every phase has a tier-2 implementation somewhere on a line between two
 # extremes.  At one end it is a recorded diff -- correct, useless as an
@@ -13,15 +13,15 @@
 # its work, and it is the number to drive down.  Zero means the phase is
 # understood; a thousand lines means it is remembered.
 set -eu
-. tools/pipeline.sh "${1:-whim}"
+. tools/pipeline.sh
 
 printf '  %-6s %-10s %10s  %s\n' phase tier residue notes
 printf '  %-6s %-10s %10s  %s\n' ----- ---------- ---------- -----
 total=0
 for p in $PHASE_LIST; do
-    prog=$(tools/phaserun.sh --parts "$PIPE" "$p" | head -1)
-    res="tools/patches/$IMPL$p-residue.patch"
-    fixed="tools/patches/$IMPL$p.patch"
+    prog=$(tools/phaserun.sh --parts "$p" | head -1)
+    res="tools/patches/whim$p-residue.patch"
+    fixed="tools/patches/whim$p.patch"
 
     if [ -z "$prog" ]; then
         printf '  %-6s %-10s %10s  %s\n' "$p" "agent" "-" \

@@ -76,7 +76,7 @@
 # THERE IS NO usage() TO LEAVE ALONE.  The brief warns that the help text may still
 # advertise options that no longer exist; in this file it does not exist either --
 # `grep -i usage whim-vim.c` finds nothing, whim having removed it, and `--help` is
-# already `Unknown option argument: "--help"` in .reference/zero-baselines/
+# already `Unknown option argument: "--help"` in .reference/core-baselines/
 # ref-argv.txt.  Nothing here prints a list of options to keep true.
 #
 # THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own makefile
@@ -90,7 +90,7 @@ state=${2:?usage: phase/088/edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (GOALS.md core rule 8).
+# second time: the core's compile line is the boundary's (GOALS.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

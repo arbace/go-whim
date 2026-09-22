@@ -46,7 +46,7 @@
 # `create_cmdidxs`'s `names()` REFUSES a table of fewer than 100 -- a regex
 # that stops matching otherwise yields a plausible all-zero index, so the floor is
 # deliberate.  ``zexcmds`` enumerates the table through it, so crossing the
-# floor would stop zero's command sweep rather than give a wrong answer.  After this
+# floor would stop the core's command sweep rather than give a wrong answer.  After this
 # phase the margin is FIVE ROWS.  GOALS.md II.3a: the `:edit` phase is the one that
 # spends it, and it is the phase that must lower the floor.
 #
@@ -83,7 +83,7 @@ state=${2:?usage: phase/089/edit.sh <work-dir> <state-dir>}
 f="$work/whim-vim.c"
 
 # The flags are read out of the boundary's makefile rather than written here a
-# second time: zero's compile line is the boundary's (GOALS.md core rule 8).
+# second time: the core's compile line is the boundary's (GOALS.md core rule 8).
 cflags=$(sed -n 's/^CFLAGS  *= *//p' "$work/Makefile")
 ldflags=$(sed -n 's/^LDFLAGS  *= *//p' "$work/Makefile")
 cp "$f" "$state/old.c"

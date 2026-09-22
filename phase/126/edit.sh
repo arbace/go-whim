@@ -97,6 +97,6 @@ tools/st.sh edit whim126 "$f" "$state"
 #
 # An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 wait $pid_old || { echo "  refblocks    the input binary did not build with '$cflags' '$ldflags'"; exit 1; }
-echo "  refblocks    the input is $state/old, $(stat -c%s "$state/old") bytes, built with SOURCE_DATE_EPOCH=0 beside $state/old.c.  Every block in the tree is reached differently, so the binary is NOT byte-identical and this phase cannot use tier 1 of CLAUDE.md's verification table: the evidence is two whole recordings -- including the sixteen memline cases phase 123 added, which are the only part of any zero recording that asks the TREE a question -- an instrumented pair for the one message it changes, and controls that move what it must not"
+echo "  refblocks    the input is $state/old, $(stat -c%s "$state/old") bytes, built with SOURCE_DATE_EPOCH=0 beside $state/old.c.  Every block in the tree is reached differently, so the binary is NOT byte-identical and this phase cannot use tier 1 of CLAUDE.md's verification table: the evidence is two whole recordings -- including the sixteen memline cases phase 123 added, which are the only part of any core recording that asks the TREE a question -- an instrumented pair for the one message it changes, and controls that move what it must not"
 
 # tools/phaserun.sh sweeps next, then runs phase/126/check.sh.

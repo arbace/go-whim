@@ -61,10 +61,10 @@
 # WHY RE-RECORDING THE BASELINES IS LEGITIMATE is phase 116's argument and is
 # not repeated here: the baselines come from `whim-vim.c`, the pipeline's immutable
 # input, built with WHIM's compile line, recorded three times and required
-# identical, and nothing zero produces is on the recording side.  A new PART of a
+# identical, and nothing the core produces is on the recording side.  A new PART of a
 # recording is a new file in that set, so phase 83 must record it:
 #
-#     rm -rf .reference/zero-baselines .cache/q83 && make whim-phase-83
+#     rm -rf .reference/core-baselines .cache/q83 && make whim-phase-83
 #
 # and `rm -rf .cache/r0` alone is not enough -- `phase/083/make.sh` refuses a set that
 # differs rather than overwriting it.
@@ -96,15 +96,15 @@
 #      the core can read are replaced by counters that run away from the wall, and
 #      no memline record may move -- while some of the 102 must, which is what
 #      keeps that from being a control with no effect;
-#   7. the declared delta holds -- NOTHING, and nothing new: tools/zerodelta.sh
-#      --phase 123 against .reference/zero-baselines.
+#   7. the declared delta holds -- NOTHING, and nothing new: tools/coredelta.sh
+#      --phase 123 against .reference/core-baselines.
 
 # THE BODY IS GO: internal/check/whim123.go, run through tools/st.sh.
 # The tools it runs, named as PATHS so tools/implhash.sh hashes them into
 # this phase's key -- a path the program does not name is a dependency no key
 # sees.  Do not delete these lines.
 #   tools/st.sh
-#   tools/zerodelta.sh
+#   tools/coredelta.sh
 #   tools/zrecord.sh
 set -eu
 

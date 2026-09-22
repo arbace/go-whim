@@ -24,7 +24,7 @@
 #               check requires those PRESENT: moving code from the core to the host
 #               inside one translation unit frees nothing, and a check that asserted
 #               them gone would be asserting the file split had happened.
-#   BEHAVIOUR   the declared delta is NOTHING, so tools/zerodelta.sh proves the
+#   BEHAVIOUR   the declared delta is NOTHING, so tools/coredelta.sh proves the
 #               recording did not move -- and the recording cannot see any of this
 #               (no case sends a signal, resizes a window, types `gs` or reaches EOF
 #               with a terminal on fd 2), so the phase owes probes.  Fifteen of them,

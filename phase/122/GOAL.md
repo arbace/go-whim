@@ -141,7 +141,7 @@ the instrument again.
 
 **`apart 121 122`, one direction, both halves measured in the same run.** Phase 121's check
 builds its first control by finding the fallback in `set_termname()`, and phase 122 deletes
-the fallback outright, so `tools/phaserun.sh whim 121-122` on q120 stops in phase 121's check
+the fallback outright, so `tools/phaserun.sh 121-122` on q120 stops in phase 121's check
 at its **first act** with *set_termname() names 0 of the surviving rows and this check
 needs one — the fallback*. **That is a check depending on the code it repaired still being
 there**, which is the sharpest form of `apart 105 106`'s lesson: phase 121's repair is phase

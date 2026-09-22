@@ -87,7 +87,7 @@
 #    `musl_fmtptr` (nothing formats a pointer).  Their correctness rests on musl's
 #    source, not on the recording.
 #
-#    The corpus itself is tools/zerodelta.sh --phase 97, which tools/phaserun.sh runs
+#    The corpus itself is tools/coredelta.sh --phase 97, which tools/phaserun.sh runs
 #    after this check, and its declaration is NOTHING AT ALL.
 
 # THE BODY IS GO: internal/check/whim97.go and internal/check/whim97probes.go, run through tools/st.sh.

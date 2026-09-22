@@ -173,7 +173,7 @@ screen scrolled, the memfile closed — so what the editor *draws* on its way ou
 move, and the recording is of what the editor draws. **18 and 102 are the first two
 phases in this pipeline whose empty declaration means neither "nothing ran" nor "the
 instrument cannot see it": the code runs, the instrument sees it, and it does the same
-thing.** `tools/zerodelta.sh --phase 102` finds the corpus unmoved: 102 of 102 screen
+thing.** `tools/coredelta.sh --phase 102` finds the corpus unmoved: 102 of 102 screen
 cases, 111 of 111 Ex-command rows, 30 of 30 command lines.
 
 ## Measured

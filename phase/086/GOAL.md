@@ -65,7 +65,7 @@ declared dimension is still compared record by record.
 
 ## The baselines are the input's behaviour, and the delta is cumulative
 
-`.reference/zero-baselines` is recorded by **phase 83** from `whim-vim.c` built with
+`.reference/core-baselines` is recorded by **phase 83** from `whim-vim.c` built with
 whim's own compile line — three recordings that must be identical — and is compared,
 never silently overwritten. So the difference a phase declares is the difference
 from the **input**, and the lines up to phase N are the whole of it, exactly as
@@ -93,11 +93,11 @@ the pty scenarios and the terminal table are identical.
    returning `FAIL` — `CLAUDE.md`'s canonical break — moves **exactly 11 of the 102
    cases**, the ten that increment or decrement plus `mb_incr`, and nothing else.
    A corpus that cannot fail is not evidence;
-5. the declared delta holds (`tools/zerodelta.sh --phase 86`);
+5. the declared delta holds (`tools/coredelta.sh --phase 86`);
 6. **the bridge still stands**: `tools/whimdelta.sh` on the same binary against
    slim-vim's baselines gives whim's whole declared delta, 489 commands and 11
    cases. The file-based harnesses are kept untouched — they are whim's and slim's,
-   and they are the only recording the two pipelines share. Nothing zero does from
+   and they are the only recording the two pipelines share. Nothing the core does from
    here reads them.
 
 ## Measured
@@ -117,13 +117,13 @@ rationale`, because the delta it proves is phase 85's.
 
 **The old recording had to be removed once, by hand.** The two shapes have no file
 in common, so phase 83 names the old one rather than printing a diff of everything
-against everything: `rm -rf .reference/zero-baselines && rm -rf .cache/r0 && make
+against everything: `rm -rf .reference/core-baselines && rm -rf .cache/r0 && make
 zero-phase-0`. It refuses rather than overwriting, which is the property that makes
 the baselines a reference at all.
 
 **Removing it means removing it, and that was got wrong once.** The new recording
 was written *into* the old directory rather than in place of it, so
-`.reference/zero-baselines` kept `behaviour/` and `ref-exsweep.txt` beside
+`.reference/core-baselines` kept `behaviour/` and `ref-exsweep.txt` beside
 `screen/` — and phase 83's `diff -r` then reported two extras on every run and
 refused, while the "old shape" branch above did not fire, `screen/` being present.
 The two are the pre-phase-3 file-based recording and nothing records them now;

@@ -126,7 +126,7 @@ that **the binary is the same bytes** — the input's and the output's, both bui
 
 That is tier 1 of `CLAUDE.md`'s verification table, and it subsumes every screen case,
 every Ex-command row, every command line and every pty scenario at once, because the
-program that would be run is literally the same program. `tools/zerodelta.sh --phase 99`
+program that would be run is literally the same program. `tools/coredelta.sh --phase 99`
 runs and finds nothing moved, as it must; here it corroborates rather than proves.
 
 **`SOURCE_DATE_EPOCH` is required and the file name is not.** `version.c`'s

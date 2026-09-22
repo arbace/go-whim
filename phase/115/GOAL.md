@@ -111,7 +111,7 @@ the three whose screen carries `<ago>`, and in each exactly **one line** moves, 
 `--- stream` line, with all 24 screen lines byte-identical. One 33-way concurrent `make
 whim-verify` failed here on `undo_after_ins` alone. **It is not this phase's to fix** —
 hashing the scrubbed stream in `tools/zrec.py` would re-key all 33
-phases and require `.reference/zero-baselines` to be recorded again — **and not this
+phases and require `.reference/core-baselines` to be recorded again — **and not this
 phase's to paper over either**, a private exclusion being a check narrowed to fit what
 it saw. The comparison stays an exact `diff -rq` and the hazard is written into the
 check's header. What matters for this phase is that the exposure is **unchanged** by it,
@@ -149,7 +149,7 @@ both carry the nine-entry `PROTOS` list and now find **three** of the nine at 0 
 and `abs`, already phase 114's, and `time`, which is this phase's — and 110 and 111 both
 **write out** the boundary as thirteen names where this phase makes it fourteen, the
 symmetric difference being exactly `{host_time}`. The fourth was measured with
-`tools/phaserun.sh whim 114-115` on q113: `apart 114 115`, one direction only, where phase
+`tools/phaserun.sh 114-115` on q113: `apart 114 115`, one direction only, where phase
 114's check stops on three messages — the block losing `time` as well as `labs`/`abs`,
 the core at a difference of 3 where 10 was expected, and *"the host changed size, and
 this phase does not touch it"*. **No `need 115`**, measured in the same run.

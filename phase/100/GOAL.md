@@ -132,7 +132,7 @@ not run, **12** removed code that can run and that the instrument cannot see, **
 removed the possibility, **16** changed no code at all, and **14** and **15** replaced
 code with code that computes the same answers. **This one is 96's**: the ladder has never
 been reachable in any build of whim-vim, so a recording that *moved* would mean the cut
-was wrong. `tools/zerodelta.sh --phase 100` finds the corpus unmoved, as it must.
+was wrong. `tools/coredelta.sh --phase 100` finds the corpus unmoved, as it must.
 
 ## Measured
 
@@ -166,7 +166,7 @@ counted occurrence — the nine-line ladder, the six `exit` lines one by one, `s
 and `catch_signals()`'s deadly arm — and none of it is text any sweep has ever touched.
 
 **`apart 99 100`, measured.** Phase 99's check requires the file to have lost **exactly
-eight** lines and this phase takes nine more: `tools/phaserun.sh whim 99-100` reports *"the
+eight** lines and this phase takes nine more: `tools/phaserun.sh 99-100` reports *"the
 file lost 17 lines, expected 8"* and exits 1. Its libc check would fail as well — phase 99
 states as a `cmp` that it frees **nothing**, inside a stage every check compares with the
 *stage's* start, and this phase frees `_exit` — but the source assertions come first. It

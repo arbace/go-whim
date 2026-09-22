@@ -189,7 +189,7 @@ text phase 93's *edit* leaves that is **false**: `buflist_findlnum()` is still t
 make `return buflist_findfpos(buf)->lnum;`, a call from outside the island, and phase
 93's sweep is what takes it — so `buflist_findfpos` has four mentions where the anchor
 wants three. `SHM_FILEINFO` refuses first, at 3 where it wants 2, `ex_file()` still
-being there to read the `'shortmess'` `F` letter: `tools/phaserun.sh whim 93-94` says
+being there to read the `'shortmess'` `F` letter: `tools/phaserun.sh 93-94` says
 `SHM_FILEINFO has 3 mentions, expected 2`. Unlike 90, 91 and 92 the text before it
 **compiles** — phase 93's edit left valid C — so the refusal is the counted anchors
 alone.

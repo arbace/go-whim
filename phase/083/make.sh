@@ -11,16 +11,16 @@
 # establishes four things, in the order each depends on the one before:
 #
 #   1. the tree it is handed builds with whim's compile line (its own makefile), and
-#      that binary is the one the zero baselines are recorded from;
-#   2. the makefile becomes tools/templates/zero.mk -- gcc -O0 -static -no-pie -s --
+#      that binary is the one the core baselines are recorded from;
+#   2. the makefile becomes tools/templates/core.mk -- gcc -O0 -static -no-pie -s --
 #      and whim-vim.c, unchanged, builds with it into a binary that is absolutely
 #      static: readelf -h says EXEC, there is no INTERP, no dynamic section and not
 #      one relocation;
-#   3. the zero baselines, .reference/zero-baselines, are what the q82 binary does:
+#   3. the core baselines, .reference/core-baselines, are what the q82 binary does:
 #      one tools/zrecord.sh, three times, identical each time.  An existing set is
 #      compared, never overwritten;
 #   4. the -no-pie binary shows NO difference from those baselines
-#      (tools/zerodelta.sh --phase 83, phase/083/delta declaring nothing), and
+#      (tools/coredelta.sh --phase 83, phase/083/delta declaring nothing), and
 #      whim's own cumulative delta still holds of it against slim-vim's baselines
 #      (tools/whimdelta.sh --phase 82), unchanged.
 #
@@ -33,15 +33,15 @@
 # and this phase then REFUSES rather than overwrite it -- see step 3.
 #
 # A tier 3 hit on this phase records nothing, because the phase does not run.  A
-# checkout that has the cache and not .reference/zero-baselines gets them back with
+# checkout that has the cache and not .reference/core-baselines gets them back with
 # `rm -rf .cache/q83 && make whim-phase-83`.
 #
-# tools/templates/zero.mk is named here as a PATH so that tools/implhash.sh hashes it.
+# tools/templates/core.mk is named here as a PATH so that tools/implhash.sh hashes it.
 set -eu
 
 work=${1:?usage: phase/083/make.sh <work-dir>}
 f="$work/whim-vim.c"
-base=.reference/zero-baselines
+base=.reference/core-baselines
 
 # --- 1. the input's own binary, with the input's own compile line ----------
 tmp=$(mktemp -d)
@@ -57,7 +57,7 @@ wbin="$tmp/whim/whim-vim"
 echo "  whim-vim     $(stat -c%s "$wbin") bytes, $(readelf -h "$wbin" | awk -F: '$1 ~ /^ *Type$/ { split($2, t, " "); print t[1] }'), q82's binary, $(grep -c '' "$f") lines"
 
 # --- 2. the build, and what kind of file it is ------------------------------
-cp tools/templates/zero.mk "$work/Makefile"
+cp tools/templates/core.mk "$work/Makefile"
 make -C "$work" clean >/dev/null 2>&1 || true
 if ! make -C "$work" >/dev/null 2>&1; then
     echo "  build        FAILED -- rerun by hand: make -C $work"
@@ -70,7 +70,7 @@ dynamic=$(readelf -d "$bin" | grep -c '^There is no dynamic section in this file
 relocs=$(readelf -r "$bin" | grep -c '^There are no relocations in this file\.$' || true)
 if [ "$type" != EXEC ] || [ "$interp" != 0 ] || [ "$dynamic" != 1 ] || [ "$relocs" != 1 ]; then
     echo "  static       NOT absolutely static: type $type, INTERP $interp, no-dynamic $dynamic, no-relocations $relocs"
-    echo "               zero's compile line is gcc -O0 -static -no-pie -s (tools/templates/zero.mk)"
+    echo "               the core's compile line is gcc -O0 -static -no-pie -s (tools/templates/core.mk)"
     exit 1
 fi
 echo "  build        ok, $(stat -c%s "$bin") bytes: EXEC, no INTERP, no dynamic section, 0 relocations"
@@ -127,9 +127,9 @@ else
 fi
 
 # --- 4. whim-vim against them, and whim's delta against slim ----------------
-tools/zerodelta.sh "$bin" "$f" --phase 83
+tools/coredelta.sh "$bin" "$f" --phase 83
 
-whim_last=$(. tools/pipeline.sh whim && echo "$((ZERO_FROM - 1))")
+whim_last=$(. tools/pipeline.sh && echo "$((CORE_FROM - 1))")
 if [ -d .reference/baselines/behaviour ]; then
     # Its report names every one of whim's ~490 declared commands on one line, so
     # the line is counted here rather than printed; a failure is printed whole.

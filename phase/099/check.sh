@@ -14,7 +14,7 @@
 # BYTES.  That is tier 1 of CLAUDE.md's verification table -- "pure formatting: the
 # binary is byte-identical (cmp)" -- and a byte-identical binary subsumes every screen
 # case, every Ex-command row, every command line and every pty scenario at once, because
-# the program that would be run is literally the same program.  tools/zerodelta.sh
+# the program that would be run is literally the same program.  tools/coredelta.sh
 # --phase 99 still runs, from tools/phaserun.sh after this check, and it corroborates;
 # it is not the evidence.
 #
@@ -72,7 +72,7 @@
 # sees.  Do not delete these lines.
 #   tools/phasecheck.sh
 #   tools/st.sh
-#   tools/zerodelta.sh
+#   tools/coredelta.sh
 set -eu
 
 work=${1:?usage: phase/099/check.sh <work-dir> <state-dir>}

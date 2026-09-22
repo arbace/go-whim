@@ -161,7 +161,7 @@ func Whim88(w io.Writer, args []string) error {
 	}
 
 	// --- 8. the instrument this phase broke, and the one that replaced it ----
-	base := ".reference/zero-baselines/ref-term.txt"
+	base := ".reference/core-baselines/ref-term.txt"
 	termOld := filepath.Join(tmp, "term-old")
 	if err := exec.Command("sh", "tools/st.sh", "ztermcheck", old, termOld).Run(); err != nil {
 		return fmt.Errorf("ztermcheck refused")

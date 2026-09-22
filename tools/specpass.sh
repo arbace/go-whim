@@ -2,7 +2,7 @@
 # Speculate every phase of a pass at once, so the sequential pass only waits
 # where it has to.
 #
-# Usage: tools/specpass.sh slim|whim    (run from the repository root)
+# Usage: tools/specpass.sh    (run from the repository root)
 #        JOBS=n to run fewer at once than there are CPUs
 #        KEEP=1 to keep every job's work and log
 #
@@ -40,8 +40,8 @@
 set -eu
 
 if [ "${1:-}" = "--one" ]; then
-    pipe=$2; n=$3; scratch=$4; root=$(pwd)
-    . tools/pipeline.sh "$pipe"
+    n=$2; scratch=$3; root=$(pwd)
+    . tools/pipeline.sh
     first=${n%-*}
     res=$scratch/$TAG$n.result
     if [ "$first" = 0 ]; then in_tar=$PBUILD/input.tar; in_sha=$PBUILD/input.sha256
@@ -50,7 +50,7 @@ if [ "${1:-}" = "--one" ]; then
         echo "$TAG$n no-input" > "$res"; exit 0
     fi
     in_digest=$(cat "$in_sha")
-    impl=$(tools/implhash.sh "$n" "$PIPE")
+    impl=$(tools/implhash.sh "$n")
     if [ "$impl" = agent ]; then
         echo "$TAG$n agent" > "$res"; exit 0
     fi
@@ -66,8 +66,8 @@ if [ "${1:-}" = "--one" ]; then
     for x in tools phase cmd internal go.mod go.sum; do ln -s "$root/$x" "$d/$x"; done
     if [ -d "$root/.reference/baselines" ]; then ln -s "$root/.reference/baselines" "$d/.reference/baselines"; fi
     if [ -f "$root/slim-vim.c" ]; then ln -s "$root/slim-vim.c" "$d/slim-vim.c"; fi
-    if [ -d "$root/.reference/zero-baselines" ]; then ln -s "$root/.reference/zero-baselines" "$d/.reference/zero-baselines"; fi
-    # Phase 116's check builds q82's whim-vim.c -- the tree the zero baselines were
+    if [ -d "$root/.reference/core-baselines" ]; then ln -s "$root/.reference/core-baselines" "$d/.reference/core-baselines"; fi
+    # Phase 116's check builds q82's whim-vim.c -- the tree the core baselines were
     # recorded from -- and reads it out of that boundary's tar.
     if [ -f "$root/.build/q82.tar" ]; then mkdir -p "$d/.build"; ln -s "$root/.build/q82.tar" "$d/.build/q82.tar"; fi
     start=$(date +%s)
@@ -80,7 +80,7 @@ if [ "${1:-}" = "--one" ]; then
             exit 0
         fi
         rm -f in.tar
-        if ! tools/phaserun.sh "$PIPE" "$n" "$PWORK" > log 2>&1; then
+        if ! tools/phaserun.sh "$n" "$PWORK" > log 2>&1; then
             echo "$TAG$n failed $(( $(date +%s) - start ))s -- $d/log" > "$res"
             exit 0
         fi
@@ -98,7 +98,7 @@ if [ "${1:-}" = "--one" ]; then
         # takes that phase from the cache and records nothing -- so the set this
         # unit recorded is carried back, or it is lost with the scratch root.
         # Only when the root has none: an existing set is never replaced.
-        for b in baselines zero-baselines; do
+        for b in baselines core-baselines; do
             if [ -d ".reference/$b" ] && [ ! -L ".reference/$b" ] && [ ! -e "$root/.reference/$b" ]; then
                 mkdir -p "$root/.reference"
                 rm -rf "$root/.reference/$b.part.$$"
@@ -111,17 +111,16 @@ if [ "${1:-}" = "--one" ]; then
     exit 0
 fi
 
-pipe=${1:?usage: specpass.sh whim}
 jobs=${JOBS:-$(nproc)}
-. tools/pipeline.sh "$pipe"
-scratch=$(mktemp -d "${TMPDIR:-/tmp}/specpass-$PIPE.XXXXXX")
+. tools/pipeline.sh
+scratch=$(mktemp -d "${TMPDIR:-/tmp}/specpass.XXXXXX")
 start=$(date +%s)
-UNITS=$(tools/stages.sh "$PIPE")
+UNITS=$(tools/stages.sh)
 n=0; for _p in $UNITS; do n=$((n + 1)); done
-printf '  %-12s %d units of %s speculated on the last pass'"'"'s boundaries, %d at a time\n' \
-    "specpass" "$n" "$PIPE" "$jobs"
+printf '  %-12s %d units speculated on the last pass'"'"'s boundaries, %d at a time\n' \
+    "specpass" "$n" "$jobs"
 
-printf '%s\n' $UNITS | xargs -P "$jobs" -I{} sh tools/specpass.sh --one "$PIPE" {} "$scratch"
+printf '%s\n' $UNITS | xargs -P "$jobs" -I{} sh tools/specpass.sh --one {} "$scratch"
 
 ran=0; cached=0; other=0
 for p in $UNITS; do

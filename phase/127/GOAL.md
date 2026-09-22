@@ -169,7 +169,7 @@ that says the same thing about the **search** rather than about the representati
 `stage 127`, `package memline`, which phase 126 opened and whose comment says *phase 127
 replaces the leaf, so the package grows*.
 
-**`apart 126 127` is `apart 119 120` in its sharper form.** `tools/phaserun.sh whim 126-127` on
+**`apart 126 127` is `apart 119 120` in its sharper form.** `tools/phaserun.sh 126-127` on
 q125 runs both edits, one sweep and phase 126's check and stops with *the sweep: the names
 that leave are ['ML_APPEND_MARK', 'ML_DEL_NOPROP', 'data_moved', 'db_free', 'db_index',
 'db_txt_end', 'db_txt_start', 'e_didnt_get_block_nr_one', 'e_didnt_get_block_nr_zero',
@@ -186,7 +186,7 @@ refuse.** The same 126-127 stage hands this edit phase 126's **unswept** output,
 the one sweep leaves is byte-identical to the sequential run's, 78,859 lines either way.
 **The edit does not merely survive unswept text; it cannot tell the difference.**
 
-`tools/phaserun.sh whim 127` exits 0 in 70 s and `make whim-tip` records q127 as
+`tools/phaserun.sh 127` exits 0 in 70 s and `make whim-tip` records q127 as
 `5677d3f826f4`. The sweep finds exactly one thing in the whole phase, `ML_DEL_NOPROP`, and
 the check states that division: **`ML_APPEND_MARK` is reachable code that can never be
 true once the fallback goes**, so no sweep can see it and the edit takes it.

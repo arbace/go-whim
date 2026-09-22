@@ -171,7 +171,7 @@ lines — `vim_snprintf`'s prototype and the `typedef typeof(sizeof(0)) usize;` 
 compile — both of which read `usize` because of phase 106.
 
 **`apart 106 107` and `need 107` are both measured NOT to be required**, in one run:
-`tools/phaserun.sh whim 106-107` on q105 runs both edits, one sweep and both checks, and
+`tools/phaserun.sh 106-107` on q105 runs both edits, one sweep and both checks, and
 every part passes. This phase touches no `NULL`, no `size_t` and none of the helpers
 phase 106's controls quote, and phase 106 neither creates nor destroys an attribute; the
 edit asserts no count of its input that a sweep could move, what it asserts being a

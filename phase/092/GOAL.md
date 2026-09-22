@@ -104,7 +104,7 @@ not an adversary.
 **`diff -rq` over two full `tools/zrecord.sh` recordings — the binary the phase was
 handed against the one it made — is empty**: all 102 screen cases, all 111
 Ex-command rows, all 30 command lines, the four pty scenarios and the nineteen
-terminal rows. `tools/zerodelta.sh --phase 92` then finds the same against whim-vim's
+terminal rows. `tools/coredelta.sh --phase 92` then finds the same against whim-vim's
 frozen baselines, with the eight lines phases 85 to 91 declared and nothing new.
 
 The check also runs eight sessions directly between the two binaries and requires
@@ -194,7 +194,7 @@ recomputes all ten in 80 s of wall time over 448 s of phases.
 ## Its placement
 
 `stage 92`, `package files`, and two `uses` lines: `files:92 seed:83 mechanical`,
-because `tools/zerodelta.sh` compares the recording with the baselines phase 83
+because `tools/coredelta.sh` compares the recording with the baselines phase 83
 records and this phase's whole declaration is that nothing in them moved, and
 `files:92 streams:88 mechanical`, because the `read_stdin` *argument* anchor 4 removes
 is `FALSE` at all four call sites only since phase 88 took the bare `-` and
@@ -211,7 +211,7 @@ NULL, 0)`, which is what lets anchor 4 rewrite all four by text. On the text pha
 91's *edit* leaves there are **six**: `do_ecmd` is still there to make
 `(void)open_buffer(FALSE, eap, readfile_flags);`, the one call site the rewrite
 would **not** match and one the sweep would then delete, hiding the mistake.
-`tools/phaserun.sh whim 91-92` says `open_buffer has 6 mentions, expected 5`. The same
+`tools/phaserun.sh 91-92` says `open_buffer has 6 mentions, expected 5`. The same
 run shows the edit's build of the input binary failing on phase 91's non-compiling
 intermediate, which is true of every Part II edit that builds one and is not declared
 for that reason.

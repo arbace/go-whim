@@ -695,7 +695,7 @@ func Whim114(w io.Writer, args []string) error {
 	}
 	r.say("`nm -u` IS THE SAME SET, %d names, as a `comm` empty in BOTH directions, and `main` is still the "+
 		"only external symbol.  (That is tools/symbols.sh's count, which compiles plain -O0 and so adds "+
-		"`__stack_chk_fail`; zero's own compile line has -fno-stack-protector and gives 17.)  THIS PHASE "+
+		"`__stack_chk_fail`; the core's own compile line has -fno-stack-protector and gives 17.)  THIS PHASE "+
 		"FREES NOTHING AND IT CANNOT: `abs` and `labs` were in the undefined set ZERO times before it, "+
 		"because gcc lowers both to inline arithmetic -- measured, the INPUT's whole assembly mentions "+
 		"neither name, though the source calls them at three sites.  Nothing in the language promises "+
