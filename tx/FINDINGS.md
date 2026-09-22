@@ -142,9 +142,14 @@ around it. `tx/pre` runs `internal/ccx`'s partitions on an `editor.c`. On phase
 
 The phases that made them hold are 155 to 160. The partitions for casts,
 unions and `void *` are required by phases 157, 158 and 160 on every pass, and
-so is order, in phase 155's own terms. Each was shown able to fail by
-mutations of the core: a cast outside its class, a pun, a discriminant written
-before a read, a growarray used as two types.
+so is order, in phase 155's own terms. Each can fail, and was seen to:
+- casts and order refused phase 154's core (15 casts, 11 argument pairs);
+- unions refused phase 157's core (the font pun), and three mutations of the
+  core: a `ptr` read under `REG_MULTI`, a `t_colors` write before a read, and
+  a callback's row kind changed;
+- garrays refused two: `regstack` popped as `regstar_T`, and `exestack` handed
+  to `ga_append()`;
+- voids refused phase 159's core (the cookie).
 
 ## The transpilation, brought to phase 149
 
