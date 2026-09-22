@@ -74165,12 +74165,10 @@ init_longVersion(void)
         return;
     }
 
-    char *date_time = __DATE__ " " __TIME__;
-    char *msg = _("%s (%s, compiled %s)");
+    char *msg = _("%s (%s)");
     usize len = musl_strlen(msg)
         + sizeof(VIM_VERSION_LONG_ONLY) - 1
-        + sizeof(VIM_VERSION_DATE_ONLY) - 1
-        + musl_strlen(date_time);
+        + sizeof(VIM_VERSION_DATE_ONLY) - 1;
 
     longVersion = alloc(len);
     if (longVersion == nullptr)
@@ -74179,7 +74177,7 @@ init_longVersion(void)
     }
     else
     {
-        vim_snprintf(longVersion, len, msg, VIM_VERSION_LONG_ONLY, VIM_VERSION_DATE_ONLY, date_time);
+        vim_snprintf(longVersion, len, msg, VIM_VERSION_LONG_ONLY, VIM_VERSION_DATE_ONLY);
     }
 }
 

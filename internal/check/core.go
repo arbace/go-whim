@@ -108,9 +108,9 @@ func linesWith(text, name string) []string {
 	return r
 }
 
-// sameBinary: both sources built with the boundary's flags, SOURCE_DATE_EPOCH=0,
-// are the same bytes.  For a phase whose claim is that it changes no code.
-func (c *core) sameBinary() (bool, int, error) {
+// buildAt builds src with the boundary's CFLAGS and LDFLAGS and
+// SOURCE_DATE_EPOCH=epoch, and returns the binary's bytes.
+func (c *core) buildAt(src, epoch string) (string, error) {
 	mk := readFile(filepath.Join(c.work, "Makefile"))
 	flag := func(k string) []string {
 		m := regexp.MustCompile(`(?m)^` + k + `  *= *(.*)$`).FindStringSubmatch(mk)
@@ -119,25 +119,31 @@ func (c *core) sameBinary() (bool, int, error) {
 		}
 		return strings.Fields(m[1])
 	}
-	tmp, err := os.MkdirTemp("", "core-same-")
+	tmp, err := os.MkdirTemp("", "core-build-")
+	if err != nil {
+		return "", err
+	}
+	defer os.RemoveAll(tmp)
+	out := filepath.Join(tmp, "b")
+	cmd := exec.Command("gcc", append(append(flag("CFLAGS"), flag("LDFLAGS")...), "-o", out, src)...)
+	cmd.Env = append(os.Environ(), "SOURCE_DATE_EPOCH="+epoch)
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+	return readFile(out), nil
+}
+
+// sameBinary: both sources built with the boundary's flags, SOURCE_DATE_EPOCH=0,
+// are the same bytes.  For a phase whose claim is that it changes no code.
+func (c *core) sameBinary() (bool, int, error) {
+	a, err := c.buildAt(filepath.Join(c.state, "old.c"), "0")
 	if err != nil {
 		return false, 0, err
 	}
-	defer os.RemoveAll(tmp)
-	build := func(src, out string) error {
-		a := append(append(flag("CFLAGS"), flag("LDFLAGS")...), "-o", out, src)
-		cmd := exec.Command("gcc", a...)
-		cmd.Env = append(os.Environ(), "SOURCE_DATE_EPOCH=0")
-		return cmd.Run()
-	}
-	oa, ob := filepath.Join(tmp, "a"), filepath.Join(tmp, "b")
-	if err := build(filepath.Join(c.state, "old.c"), oa); err != nil {
+	b, err := c.buildAt(c.f, "0")
+	if err != nil {
 		return false, 0, err
 	}
-	if err := build(c.f, ob); err != nil {
-		return false, 0, err
-	}
-	a, b := readFile(oa), readFile(ob)
 	return a == b, len(b), nil
 }
 
