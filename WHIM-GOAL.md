@@ -15335,6 +15335,46 @@ requires the three names gone. Its probe runs a search, a single-line
 substitution with back-references and a multi-line one on both binaries;
 each control, a pattern matching nothing, must write different bytes.
 
+## Phase 137 — the changedtick is a number
+
+vim kept `b:changedtick` as a dictionary item inside `buf_T`, so a buffer's
+variables could hold it without a copy: `CHANGEDTICK(buf)` expanded to
+`((buf)->b_ct_di.di_tv.vval)`, the number inside a `typval_T` inside a
+`dictitem16_T`. Whim has no buffer variables, and that one field was what
+kept `typval_T` — and through it lists, dicts, `type_T` and `class_T` — in
+`buf_T`. The field becomes `varnumber_T b_changedtick`, its 18 reads and
+writes name it, and `init_changedtick()` sets it to 0 and no longer sets a
+type, a lock and flags that nothing reads.
+
+**Declared delta: nothing.** The check's partition: on the input every mention
+of `b_ct_di` is the field, `init_changedtick()`'s cast or a use of the
+number; on the output each use is the input's, rewritten in place by the
+same rule (`edit.W137Tick`). Every insert, undo and search in the recording
+reads the tick.
+
+## Phase 138 — no parameter carries an eval value
+
+Five functions still took an eval value that every call passed as `nullptr`:
+`vim_regsub_both()`'s `typval_T *expr` (substitute() with a funcref),
+`match_add()`'s `list_T *pos_list` (matchaddpos(), never even read),
+`cursor_pos_info()`'s `dict_T *dict` (wordcount()), the host formatter's
+`typval_T *tvs` (printf()'s argument list, also handed to
+`parse_fmt_types()`), and `find_ex_command()`'s Vim9 lookup and compile
+context, never read. Each goes with its `nullptr`, and each test of it
+becomes what it always was: `cursor_pos_info()` always gives its message, the
+formatter always clamps an overlong width. The unused `cfunc_T` and
+`cfunc_free_T` typedefs go too, since the sweep doesn't take a
+function-pointer typedef. Then nothing names the eval layer's value types,
+and the sweep takes all of them: `typval_T`, `list_T`, `dict_T`, their items
+and watchers, `type_T`, `class_T` and the rest. Phase 137 made this possible, and
+`vim_regsub_both()`'s second argument being always `nullptr` was the lead.
+
+**Declared delta: nothing.** The check's partition: in each function every
+line naming the parameter is its head, a test against `nullptr`, or its
+being handed on, and each function's one call passes `nullptr`; on the output
+none of the 16 eval types is named. Its probes cover the paths the tests sat
+on — `g CTRL-G`, a `\=` substitution and `:match` — and each control moves.
+
 # What comes next
 
 Not yet done, and each one only when it is asked for:

@@ -1357,10 +1357,6 @@ typedef struct growarray
     void    *ga_data;
 } garray_T;
 
-typedef signed char     int8_T;
-typedef struct typval_S         typval_T;
-typedef struct listvar_S        list_T;
-typedef struct dictvar_S        dict_T;
 typedef struct window_S         win_T;
 typedef struct wininfo_S        wininfo_T;
 typedef struct frame_S          frame_T;
@@ -1732,184 +1728,9 @@ typedef long_u hash_T;
   typedef long long             varnumber_T;
   typedef unsigned long long    uvarnumber_T;
 
-typedef struct type_S type_T;
-typedef struct ufunc_S ufunc_T;
-
-typedef struct cctx_S cctx_T;
-typedef struct class_S class_T;
-typedef enum
-{
-    VAR_UNKNOWN = 0,
-    VAR_NUMBER = 5} vartype_T;
-
-struct type_S {
-    vartype_T       tt_type;
-    int8_T          tt_argcount;
-    int8_T          tt_min_argcount;
-    short_u         tt_flags;
-    type_T          *tt_member;
-    class_T         *tt_class;
-    type_T          **tt_args;
-};
-
-typedef enum {
-    VIM_ACCESS_PRIVATE,
-    VIM_ACCESS_READ,
-    VIM_ACCESS_ALL
-} omacc_T;
-
-typedef enum {
-    CLASS_BUILTIN_MAX = 4
-} class_builtin_T;
-
-typedef struct {
-    string_T    ocm_name;
-    omacc_T     ocm_access;
-    type_T      *ocm_type;
-    int         ocm_flags;
-    char_u      *ocm_init;
-    sctx_T      ocm_init_sctx;
-} ocmember_T;
-
-typedef struct itf2class_S itf2class_T;
-struct itf2class_S {
-    itf2class_T *i2c_next;
-    class_T     *i2c_class;
-    int         i2c_is_method;
-};
-
-struct class_S
-{
-    string_T    class_name;
-    int         class_flags;
-
-    int         class_refcount;
-    int         class_copyID;
-    class_T     *class_next_used;
-    class_T     *class_prev_used;
-
-    class_T     *class_extends;
-
-    int         class_interface_count;
-    char_u      **class_interfaces;
-    class_T     **class_interfaces_cl;
-    itf2class_T *class_itf2class;
-
-    int         class_class_member_count;
-    ocmember_T  *class_class_members;
-    typval_T    *class_members_tv;
-
-    int         class_class_function_count;
-    int         class_class_function_count_child;
-    ufunc_T     **class_class_functions;
-
-    int         class_obj_member_count;
-    ocmember_T  *class_obj_members;
-
-    int         class_obj_method_count;
-    int         class_obj_method_count_child;
-    ufunc_T     **class_obj_methods;
-
-    int         class_builtin_methods[CLASS_BUILTIN_MAX];
-
-    garray_T    class_type_list;
-    type_T      class_type;
-    type_T      class_object_type;
-};
-
-struct typval_S
-{
-    vartype_T   v_type;
-    char        v_lock;
-    varnumber_T     vval;
-};
-
-enum { VAR_FIXED = 2 };
-
-typedef struct listitem_S listitem_T;
-
-struct listitem_S
-{
-    listitem_T  *li_next;
-    listitem_T  *li_prev;
-    typval_T    li_tv;
-};
-
-typedef struct listwatch_S listwatch_T;
-
-struct listwatch_S
-{
-    listitem_T          *lw_item;
-    listwatch_T         *lw_next;
-};
-
-struct listvar_S
-{
-    listitem_T  *lv_first;
-    listwatch_T *lv_watch;
-    union {
-        struct {
-            varnumber_T lv_start;
-            varnumber_T lv_end;
-            int         lv_stride;
-        } nonmat;
-        struct {
-            listitem_T  *lv_last;
-            listitem_T  *lv_idx_item;
-            int         lv_idx;
-        } mat;
-    } lv_u;
-    type_T      *lv_type;
-    list_T      *lv_copylist;
-    list_T      *lv_used_next;
-    list_T      *lv_used_prev;
-    int         lv_refcount;
-    int         lv_len;
-    int         lv_with_items;
-    int         lv_copyID;
-    char        lv_lock;
-};
-
-struct dictitem_S
-{
-    typval_T    di_tv;
-    char_u      di_flags;
-};
-typedef struct dictitem_S dictitem_T;
-
-struct dictitem16_S
-{
-    typval_T    di_tv;
-    char_u      di_flags;
-};
-typedef struct dictitem16_S dictitem16_T;
-
-enum { DI_FLAGS_RO = 0x01 };
-enum { DI_FLAGS_FIX = 0x04 };
-
-struct dictvar_S
-{
-    char        dv_lock;
-    char        dv_scope;
-    int         dv_refcount;
-    int         dv_copyID;
-    hashtab_T   dv_hashtab;
-    type_T      *dv_type;
-    dict_T      *dv_copydict;
-    dict_T      *dv_used_next;
-    dict_T      *dv_used_prev;
-};
-
-typedef int (*cfunc_T)(int argcount, typval_T *argvars, typval_T *rettv, void *state);
-typedef void (*cfunc_free_T)(void *state);
-
 typedef enum {
     GETLINE_CONCAT_CONT = 1} getline_opt_T;
 
-struct ufunc_S
-{
-    int     dummy;
-};
 typedef enum {
     ETYPE_TOP,
     ETYPE_ARGS = 6,
@@ -1942,7 +1763,7 @@ struct file_buffer
     int         b_fnum;
 
     int         b_changed;
-    dictitem16_T b_ct_di;
+    varnumber_T b_changedtick;
 
     varnumber_T b_last_changedtick;
     varnumber_T b_last_changedtick_pum;
@@ -2768,7 +2589,7 @@ static int parse_command_modifiers(exarg_T *eap, char **errormsg, cmdmod_T *cmod
 static void apply_cmdmod(cmdmod_T *cmod);
 static void undo_cmdmod(cmdmod_T *cmod);
 static int parse_cmd_address(exarg_T *eap, char **errormsg, int silent);
-static char_u *find_ex_command(exarg_T *eap, int *full, int (*lookup)(char_u *, usize, int cmd, cctx_T *), cctx_T *cctx);
+static char_u *find_ex_command(exarg_T *eap, int *full);
 static char_u *skip_range(char_u *cmd_start, int skip_star, int *ctx);
 static linenr_T get_address(exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, int skip, int silent, int to_other_file, int address_count);
 static void separate_nextcmd(exarg_T *eap, int keep_backslash);
@@ -3153,7 +2974,7 @@ static int do_join(long count, int insert_space, int save_undo, int use_formatop
 static void block_prep(oparg_T *oap, struct block_def *bdp, linenr_T lnum, int is_del);
 static void op_addsub(oparg_T *oap, linenr_T Prenum1, int g_cmd);
 static void clear_oparg(oparg_T *oap);
-static void cursor_pos_info(dict_T *dict);
+static void cursor_pos_info(void);
 static void do_pending_operator(cmdarg_T *cap, int old_col, int gui_yank);
 
 static void set_string_default(char *name, char_u *val);
@@ -4342,9 +4163,9 @@ open_buffer(void)
         unchanged(curbuf, FALSE, TRUE);
     }
 
-    curbuf->b_last_changedtick =  ((curbuf)->b_ct_di.di_tv.vval) ;
-    curbuf->b_last_changedtick_i =  ((curbuf)->b_ct_di.di_tv.vval) ;
-    curbuf->b_last_changedtick_pum =  ((curbuf)->b_ct_di.di_tv.vval) ;
+    curbuf->b_last_changedtick = curbuf->b_changedtick;
+    curbuf->b_last_changedtick_i = curbuf->b_changedtick;
+    curbuf->b_last_changedtick_pum = curbuf->b_changedtick;
 
     if (got_int)
     {
@@ -4545,13 +4366,7 @@ free_buffer(buf_T *buf)
     static void
 init_changedtick(buf_T *buf)
 {
-    dictitem_T *di = (dictitem_T *)&buf->b_ct_di;
-
-    di->di_flags = DI_FLAGS_FIX | DI_FLAGS_RO;
-    di->di_tv.v_type = VAR_NUMBER;
-    di->di_tv.v_lock = VAR_FIXED;
-    di->di_tv.vval = 0;
-
+    buf->b_changedtick = 0;
 }
 
     static void
@@ -4913,7 +4728,7 @@ changed(void)
 
         changed_internal();
     }
-    ++ ((curbuf)->b_ct_di.di_tv.vval) ;
+    ++curbuf->b_changedtick;
 
     highlight_match = FALSE;
 }
@@ -5185,11 +5000,11 @@ unchanged(buf_T *buf, int ff, int always_inc_changedtick)
         buf->b_changed = 0;
         check_status(buf);
         redraw_tabline = TRUE;
-        ++ ((buf)->b_ct_di.di_tv.vval) ;
+        ++buf->b_changedtick;
     }
     else if (always_inc_changedtick)
     {
-        ++ ((buf)->b_ct_di.di_tv.vval) ;
+        ++buf->b_changedtick;
     }
 }
 
@@ -11206,9 +11021,9 @@ doESCkey:
             {
                 did_cursorhold = FALSE;
 
-                if (!char_avail() && curbuf->b_last_changedtick_i ==  ((curbuf)->b_ct_di.di_tv.vval) )
+                if (!char_avail() && curbuf->b_last_changedtick_i == curbuf->b_changedtick)
                 {
-                    curbuf->b_last_changedtick =  ((curbuf)->b_ct_di.di_tv.vval) ;
+                    curbuf->b_last_changedtick = curbuf->b_changedtick;
                 }
                 return (c == Ctrl_O);
             }
@@ -11317,12 +11132,12 @@ doESCkey:
         case   (-((KS_EXTRA) + ((int)(KE_SCRIPT_COMMAND) << 8)))  :
             {
                 bufref_T    save_curbuf;
-                varnumber_T tick =  ((curbuf)->b_ct_di.di_tv.vval) ;
+                varnumber_T tick = curbuf->b_changedtick;
 
                 set_bufref(&save_curbuf, curbuf);
                 do_cmdkey_command(c, 0);
 
-                if (curbuf->b_u_synced || (bufref_valid(&save_curbuf) && curbuf == save_curbuf.br_buf && tick !=  ((curbuf)->b_ct_di.di_tv.vval) ))
+                if (curbuf->b_u_synced || (bufref_valid(&save_curbuf) && curbuf == save_curbuf.br_buf && tick != curbuf->b_changedtick))
                 {
                     ins_need_undo = TRUE;
                 }
@@ -16236,7 +16051,7 @@ do_one_cmd(char_u      **cmdlinep, int         flags, char_u      *(*fgetline)(i
 
     ea.cmd = skip_range(ea.cmd, TRUE, nullptr);
 
-    p = find_ex_command(&ea, nullptr, nullptr, nullptr);
+    p = find_ex_command(&ea, nullptr);
 
     ea.cmd = cmd;
 
@@ -16993,7 +16808,7 @@ one_letter_cmd(char_u *p, cmdidx_T *idx)
 }
 
     static char_u *
-find_ex_command(exarg_T *eap, int     *full, int     (*lookup)(char_u *, usize, int cmd, cctx_T *), cctx_T  *cctx)
+find_ex_command(exarg_T *eap, int     *full)
 {
     int         len;
     char_u      *p;
@@ -28975,7 +28790,7 @@ set_last_cursor(win_T *win)
 enum { SEARCH_HL_PRIORITY = 0 };
 
     static int
-match_add(win_T       *wp, char_u      *grp, char_u      *pat, int         prio, int         id, list_T      *pos_list, char_u      *conceal_char)
+match_add(win_T       *wp, char_u      *grp, char_u      *pat, int         prio, int         id, char_u      *conceal_char)
 {
     matchitem_T *cur;
     matchitem_T *prev;
@@ -29704,7 +29519,7 @@ ex_match(exarg_T *eap)
 
         c = *end;
         *end = NUL;
-        match_add(curwin, g, p + 1, 10, id, nullptr, nullptr);
+        match_add(curwin, g, p + 1, 10, id, nullptr);
         *end = c;
     }
     eap->nextcmd = find_nextcmd(end);
@@ -44605,7 +44420,7 @@ nv_g_cmd(cmdarg_T *cap)
         break;
 
     case Ctrl_G:
-        cursor_pos_info(nullptr);
+        cursor_pos_info();
         break;
 
     case 'i':
@@ -44736,7 +44551,7 @@ n_opencmd(cmdarg_T *cap)
         return;
     }
 
-    curbuf->b_last_changedtick_i =  ((curbuf)->b_ct_di.di_tv.vval) ;
+    curbuf->b_last_changedtick_i = curbuf->b_changedtick;
     if (u_save((linenr_T)(curwin->w_cursor.lnum - (cap->cmdchar == 'O' ? 1 : 0)), (linenr_T)(curwin->w_cursor.lnum + (cap->cmdchar == 'o' ? 1 : 0))) == OK && open_line(cap->cmdchar == 'O' ?  (-1)  : FORWARD, 0, 0, nullptr) == OK)
     {
         if (vim_strchr(p_cpo, CPO_HASH) != nullptr)
@@ -45337,7 +45152,7 @@ invoke_edit(cmdarg_T    *cap, int         repl, int         cmd, int         sta
 
     if (cap->cmdchar != 'O' && cap->cmdchar != 'o')
     {
-        curbuf->b_last_changedtick_i =  ((curbuf)->b_ct_di.di_tv.vval) ;
+        curbuf->b_last_changedtick_i = curbuf->b_changedtick;
     }
     if (edit(cmd, startln, cap->count1))
     {
@@ -48252,7 +48067,7 @@ line_count_info(char_u      *line, varnumber_T *wc, varnumber_T *cc, varnumber_T
 }
 
     static void
-cursor_pos_info(dict_T *dict)
+cursor_pos_info(void)
 {
     char_u      *p;
     char_u      buf1[50];
@@ -48274,11 +48089,8 @@ cursor_pos_info(dict_T *dict)
 
     if (curbuf->b_ml.ml_flags & ML_EMPTY)
     {
-        if (dict == nullptr)
-        {
-            msg(_((char *)no_lines_msg));
-            return;
-        }
+        msg(_((char *)no_lines_msg));
+        return;
     }
     else
     {
@@ -48381,54 +48193,48 @@ cursor_pos_info(dict_T *dict)
             byte_count += line_count_info(ml_get(lnum), &word_count, &char_count, (varnumber_T)MAXCOL, eol_size);
         }
 
-        if (dict == nullptr)
+        if (VIsual_active)
         {
-            if (VIsual_active)
+            if (VIsual_mode == Ctrl_V && curwin->w_curswant < MAXCOL)
             {
-                if (VIsual_mode == Ctrl_V && curwin->w_curswant < MAXCOL)
-                {
-                    getvcols(curwin, &min_pos, &max_pos, &min_pos.col, &max_pos.col, 0);
-                    vim_snprintf((char *)buf1, sizeof(buf1), _("%ld Cols; "), (long)(oparg.end_vcol - oparg.start_vcol + 1));
-                }
-                else
-                {
-                    buf1[0] = NUL;
-                }
-
-                if (char_count_cursor == byte_count_cursor && char_count == byte_count)
-                {
-                    vim_snprintf((char *)IObuff,  (1024+1) , _("Selected %s%ld of %ld Lines; %lld of %lld Words; %lld of %lld Bytes"), buf1, line_count_selected, (long)curbuf->b_ml.ml_line_count, word_count_cursor, word_count, byte_count_cursor, byte_count);
-                }
-                else
-                {
-                    vim_snprintf((char *)IObuff,  (1024+1) , _("Selected %s%ld of %ld Lines; %lld of %lld Words; %lld of %lld Chars; %lld of %lld Bytes"), buf1, line_count_selected, (long)curbuf->b_ml.ml_line_count, word_count_cursor, word_count, char_count_cursor, char_count, byte_count_cursor, byte_count);
-                }
+                getvcols(curwin, &min_pos, &max_pos, &min_pos.col, &max_pos.col, 0);
+                vim_snprintf((char *)buf1, sizeof(buf1), _("%ld Cols; "), (long)(oparg.end_vcol - oparg.start_vcol + 1));
             }
             else
             {
-                p = ml_get_curline();
-                validate_virtcol();
-                col_print(buf1, sizeof(buf1), (int)curwin->w_cursor.col + 1, (int)curwin->w_virtcol + 1);
-                col_print(buf2, sizeof(buf2), ml_get_curline_len(), linetabsize_str(p));
+                buf1[0] = NUL;
+            }
 
-                if (char_count_cursor == byte_count_cursor && char_count == byte_count)
-                {
-                    vim_snprintf((char *)IObuff,  (1024+1) , _("Col %s of %s; Line %ld of %ld; Word %lld of %lld; Byte %lld of %lld"), (char *)buf1, (char *)buf2, (long)curwin->w_cursor.lnum, (long)curbuf->b_ml.ml_line_count, word_count_cursor, word_count, byte_count_cursor, byte_count);
-                }
-                else
-                {
-                    vim_snprintf((char *)IObuff,  (1024+1) , _("Col %s of %s; Line %ld of %ld; Word %lld of %lld; Char %lld of %lld; Byte %lld of %lld"), (char *)buf1, (char *)buf2, (long)curwin->w_cursor.lnum, (long)curbuf->b_ml.ml_line_count, word_count_cursor, word_count, char_count_cursor, char_count, byte_count_cursor, byte_count);
-                }
+            if (char_count_cursor == byte_count_cursor && char_count == byte_count)
+            {
+                vim_snprintf((char *)IObuff,  (1024+1) , _("Selected %s%ld of %ld Lines; %lld of %lld Words; %lld of %lld Bytes"), buf1, line_count_selected, (long)curbuf->b_ml.ml_line_count, word_count_cursor, word_count, byte_count_cursor, byte_count);
+            }
+            else
+            {
+                vim_snprintf((char *)IObuff,  (1024+1) , _("Selected %s%ld of %ld Lines; %lld of %lld Words; %lld of %lld Chars; %lld of %lld Bytes"), buf1, line_count_selected, (long)curbuf->b_ml.ml_line_count, word_count_cursor, word_count, char_count_cursor, char_count, byte_count_cursor, byte_count);
+            }
+        }
+        else
+        {
+            p = ml_get_curline();
+            validate_virtcol();
+            col_print(buf1, sizeof(buf1), (int)curwin->w_cursor.col + 1, (int)curwin->w_virtcol + 1);
+            col_print(buf2, sizeof(buf2), ml_get_curline_len(), linetabsize_str(p));
+
+            if (char_count_cursor == byte_count_cursor && char_count == byte_count)
+            {
+                vim_snprintf((char *)IObuff,  (1024+1) , _("Col %s of %s; Line %ld of %ld; Word %lld of %lld; Byte %lld of %lld"), (char *)buf1, (char *)buf2, (long)curwin->w_cursor.lnum, (long)curbuf->b_ml.ml_line_count, word_count_cursor, word_count, byte_count_cursor, byte_count);
+            }
+            else
+            {
+                vim_snprintf((char *)IObuff,  (1024+1) , _("Col %s of %s; Line %ld of %ld; Word %lld of %lld; Char %lld of %lld; Byte %lld of %lld"), (char *)buf1, (char *)buf2, (long)curwin->w_cursor.lnum, (long)curbuf->b_ml.ml_line_count, word_count_cursor, word_count, char_count_cursor, char_count, byte_count_cursor, byte_count);
             }
         }
 
-        if (dict == nullptr)
-        {
-            p = p_shm;
-            p_shm = (char_u *)"";
-            msg((char *)IObuff);
-            p_shm = p;
-        }
+        p = p_shm;
+        p_shm = (char_u *)"";
+        msg((char *)IObuff);
+        p_shm = p;
     }
 }
 
@@ -48957,7 +48763,7 @@ do_pending_operator(cmdarg_T *cap, int old_col, int gui_yank)
                     restart_edit_save = 0;
                 }
                 restart_edit = 0;
-                curbuf->b_last_changedtick_i =  ((curbuf)->b_ct_di.di_tv.vval) ;
+                curbuf->b_last_changedtick_i = curbuf->b_changedtick;
 
                 if (op_change(oap))
                 {
@@ -49001,7 +48807,7 @@ do_pending_operator(cmdarg_T *cap, int old_col, int gui_yank)
             {
                 restart_edit_save = restart_edit;
                 restart_edit = 0;
-                curbuf->b_last_changedtick_i =  ((curbuf)->b_ct_di.di_tv.vval) ;
+                curbuf->b_last_changedtick_i = curbuf->b_changedtick;
 
                 op_insert(oap, cap->count1);
 
@@ -55313,7 +55119,7 @@ cstrchr(char_u *s, int c)
 
 typedef void (*fptr_T)(int *, int);
 
-static int vim_regsub_both(char_u *source, typval_T *expr, char_u *dest, int destlen, int flags);
+static int vim_regsub_both(char_u *source, char_u *dest, int destlen, int flags);
 
     static void
 do_upper(int *d, int c)
@@ -55452,7 +55258,7 @@ vim_regsub_multi(regmmatch_T *rmp, linenr_T    lnum, char_u      *source, char_u
     rex.reg_firstlnum = lnum;
     rex.reg_maxline = curbuf->b_ml.ml_line_count - lnum;
     rex.reg_line_lbr = FALSE;
-    result = vim_regsub_both(source, nullptr, dest, destlen, flags);
+    result = vim_regsub_both(source, dest, destlen, flags);
 
     rex_in_use = rex_in_use_save;
     if (rex_in_use)
@@ -55464,7 +55270,7 @@ vim_regsub_multi(regmmatch_T *rmp, linenr_T    lnum, char_u      *source, char_u
 }
 
     static int
-vim_regsub_both(char_u      *source, typval_T    *expr, char_u      *dest, int         destlen, int         flags)
+vim_regsub_both(char_u      *source, char_u      *dest, int         destlen, int         flags)
 {
     char_u      *src;
     char_u      *dst;
@@ -55478,7 +55284,7 @@ vim_regsub_both(char_u      *source, typval_T    *expr, char_u      *dest, int  
     int         len = 0;
     int         copy = flags & REGSUB_COPY;
 
-    if ((source == nullptr && expr == nullptr) || dest == nullptr)
+    if (source == nullptr || dest == nullptr)
     {
         iemsg(e_null_argument);
         return 0;
@@ -55490,7 +55296,7 @@ vim_regsub_both(char_u      *source, typval_T    *expr, char_u      *dest, int  
     src = source;
     dst = dest;
 
-    if (expr != nullptr || (source[0] == '\\' && source[1] == '='))
+    if (source[0] == '\\' && source[1] == '=')
     {
     }
     else
@@ -67631,7 +67437,7 @@ update_search_stat(int                 dirc, pos_T               *pos, pos_T    
 
     wraparound = ((dirc == '?' &&  (((lastpos).lnum != (p).lnum)               ? (lastpos).lnum < (p).lnum                   : (lastpos).col != (p).col                        ? (lastpos).col < (p).col                     : (lastpos).coladd < (p).coladd) ) || (dirc == '/' &&  (((p).lnum != (lastpos).lnum)               ? (p).lnum < (lastpos).lnum                   : (p).col != (lastpos).col                        ? (p).col < (lastpos).col                     : (p).coladd < (lastpos).coladd) ));
 
-    if (!(chgtick ==  ((curbuf)->b_ct_di.di_tv.vval)  && (lastpat != nullptr &&  musl_strncmp((char *)(lastpat), (char *)(spats[last_idx].pat), (lastpatlen))  == 0 && lastpatlen == spats[last_idx].patlen) &&  (((lastpos).lnum == (*cursor_pos).lnum) && ((lastpos).col == (*cursor_pos).col) && ((lastpos).coladd == (*cursor_pos).coladd))  && lbuf == curbuf) || wraparound || cur < 0 || (maxcount > 0 && cur > maxcount) || recompute)
+    if (!(chgtick == curbuf->b_changedtick && (lastpat != nullptr &&  musl_strncmp((char *)(lastpat), (char *)(spats[last_idx].pat), (lastpatlen))  == 0 && lastpatlen == spats[last_idx].patlen) &&  (((lastpos).lnum == (*cursor_pos).lnum) && ((lastpos).col == (*cursor_pos).col) && ((lastpos).coladd == (*cursor_pos).coladd))  && lbuf == curbuf) || wraparound || cur < 0 || (maxcount > 0 && cur > maxcount) || recompute)
     {
         cur = 0;
         cnt = 0;
@@ -67687,7 +67493,7 @@ update_search_stat(int                 dirc, pos_T               *pos, pos_T    
             {
                 lastpatlen = spats[last_idx].patlen;
             }
-            chgtick =  ((curbuf)->b_ct_di.di_tv.vval) ;
+            chgtick = curbuf->b_changedtick;
             lbuf = curbuf;
             lastpos = p;
         }
@@ -75964,14 +75770,14 @@ getout(int exitval)
         if (curwin->w_buffer != nullptr && buf_valid(curwin->w_buffer))
         {
             buf = curwin->w_buffer;
-            if ( ((buf)->b_ct_di.di_tv.vval)  != -1)
+            if (buf->b_changedtick != -1)
             {
                 bufref_T bufref;
 
                 set_bufref(&bufref, buf);
                 if (bufref_valid(&bufref))
                 {
-                     ((buf)->b_ct_di.di_tv.vval)  = -1;
+                    buf->b_changedtick = -1;
                 }
             }
         }
@@ -76211,7 +76017,6 @@ static char typename_pointer[]   =  "pointer"  ;
 static char typename_percent[]   =  "percent"  ;
 static char typename_char[]  = "char" ;
 static char typename_string[]    =  "string"  ;
-static char e_too_many_arguments_to_printf[]  =  "E767: Too many arguments for printf()"  ;
 static char e_cannot_mix_positional_and_non_positional_str[]  =  "E1500: Cannot mix positional and non-positional arguments: %s"  ;
 static char e_fmt_arg_nr_unused_str[]  =  "E1501: format argument %d unused in $-style format: %s"  ;
 static char e_positional_num_field_spec_reused_str_str[]  =  "E1502: Positional argument %d used as field width reused as different type: %s/%s"  ;
@@ -76221,7 +76026,7 @@ static char e_aptypes_is_null_nr_str[]  = "E1507: Internal error: ap_types or ap
 
 static int vim_vsnprintf(char *str, usize str_m, const char *fmt, va_list ap)
          __attribute__((format(printf, 3, 0))) ;
-static int vim_vsnprintf_typval(char *str, usize str_m, const char *fmt, va_list ap, typval_T *tvs)
+static int vim_vsnprintf_typval(char *str, usize str_m, const char *fmt, va_list ap)
          __attribute__((format(printf, 3, 0))) ;
 
     static void *
@@ -76333,7 +76138,7 @@ vim_snprintf(char *str, usize str_m, const char *fmt, ...)
     static int
 vim_vsnprintf(char        *str, usize      str_m, const char  *fmt, va_list     ap)
 {
-    return vim_vsnprintf_typval(str, str_m, fmt, ap, nullptr);
+    return vim_vsnprintf_typval(str, str_m, fmt, ap);
 }
 
     static int
@@ -76624,7 +76429,7 @@ get_unsigned_int(const char *pstart, const char **p, unsigned int *uj, int overf
 }
 
     static int
-parse_fmt_types(const char  ***ap_types, int         *num_posarg, const char  *fmt, typval_T    *tvs)
+parse_fmt_types(const char  ***ap_types, int         *num_posarg, const char  *fmt)
 {
     const char  *p = fmt;
     const char  *arg = nullptr;
@@ -76675,7 +76480,7 @@ parse_fmt_types(const char  ***ap_types, int         *num_posarg, const char  *f
 
                 unsigned int uj;
 
-                if (get_unsigned_int(pstart, &p, &uj, tvs != nullptr) == FAIL)
+                if (get_unsigned_int(pstart, &p, &uj, FALSE) == FAIL)
                 {
                     goto error;
                 }
@@ -76717,7 +76522,7 @@ parse_fmt_types(const char  ***ap_types, int         *num_posarg, const char  *f
                 {
                     unsigned int uj;
 
-                    if (get_unsigned_int(arg + 1, &p, &uj, tvs != nullptr) == FAIL)
+                    if (get_unsigned_int(arg + 1, &p, &uj, FALSE) == FAIL)
                     {
                         goto error;
                     }
@@ -76753,7 +76558,7 @@ parse_fmt_types(const char  ***ap_types, int         *num_posarg, const char  *f
                 const char *digstart = p;
                 unsigned int uj;
 
-                if (get_unsigned_int(digstart, &p, &uj, tvs != nullptr) == FAIL)
+                if (get_unsigned_int(digstart, &p, &uj, FALSE) == FAIL)
                 {
                     goto error;
                 }
@@ -76778,7 +76583,7 @@ parse_fmt_types(const char  ***ap_types, int         *num_posarg, const char  *f
                     {
                         unsigned int uj;
 
-                        if (get_unsigned_int(arg + 1, &p, &uj, tvs != nullptr) == FAIL)
+                        if (get_unsigned_int(arg + 1, &p, &uj, FALSE) == FAIL)
                         {
                             goto error;
                         }
@@ -76815,7 +76620,7 @@ parse_fmt_types(const char  ***ap_types, int         *num_posarg, const char  *f
                     const char *digstart = p;
                     unsigned int uj;
 
-                    if (get_unsigned_int(digstart, &p, &uj, tvs != nullptr) == FAIL)
+                    if (get_unsigned_int(digstart, &p, &uj, FALSE) == FAIL)
                     {
                         goto error;
                     }
@@ -77006,7 +76811,7 @@ skip_to_arg(const char  **ap_types, va_list     ap_start, va_list     *ap, int  
 }
 
     static int
-vim_vsnprintf_typval(char        *str, usize      str_m, const char  *fmt, va_list     ap_start, typval_T    *tvs)
+vim_vsnprintf_typval(char        *str, usize      str_m, const char  *fmt, va_list     ap_start)
 {
     usize      str_l = 0;
     const char  *p = fmt;
@@ -77016,7 +76821,7 @@ vim_vsnprintf_typval(char        *str, usize      str_m, const char  *fmt, va_li
     va_list     ap;
     const char  **ap_types = nullptr;
 
-    if (parse_fmt_types(&ap_types, &num_posarg, fmt, tvs) == FAIL)
+    if (parse_fmt_types(&ap_types, &num_posarg, fmt) == FAIL)
     {
         return 0;
     }
@@ -77090,7 +76895,7 @@ vim_vsnprintf_typval(char        *str, usize      str_m, const char  *fmt, va_li
                 const char *digstart = p;
                 unsigned int uj;
 
-                if (get_unsigned_int(digstart, &p, &uj, tvs != nullptr) == FAIL)
+                if (get_unsigned_int(digstart, &p, &uj, FALSE) == FAIL)
                 {
                     goto error;
                 }
@@ -77137,7 +76942,7 @@ vim_vsnprintf_typval(char        *str, usize      str_m, const char  *fmt, va_li
                 {
                     unsigned int uj;
 
-                    if (get_unsigned_int(digstart, &p, &uj, tvs != nullptr) == FAIL)
+                    if (get_unsigned_int(digstart, &p, &uj, FALSE) == FAIL)
                     {
                         goto error;
                     }
@@ -77152,15 +76957,7 @@ vim_vsnprintf_typval(char        *str, usize      str_m, const char  *fmt, va_li
 
                 if (j > MAX_ALLOWED_STRING_WIDTH)
                 {
-                    if (tvs != nullptr)
-                    {
-                        format_overflow_error(digstart);
-                        goto error;
-                    }
-                    else
-                    {
-                        j = MAX_ALLOWED_STRING_WIDTH;
-                    }
+                    j = MAX_ALLOWED_STRING_WIDTH;
                 }
 
                 if (j >= 0)
@@ -77178,7 +76975,7 @@ vim_vsnprintf_typval(char        *str, usize      str_m, const char  *fmt, va_li
                 const char *digstart = p;
                 unsigned int uj;
 
-                if (get_unsigned_int(digstart, &p, &uj, tvs != nullptr) == FAIL)
+                if (get_unsigned_int(digstart, &p, &uj, FALSE) == FAIL)
                 {
                     goto error;
                 }
@@ -77196,7 +76993,7 @@ vim_vsnprintf_typval(char        *str, usize      str_m, const char  *fmt, va_li
                     const char *digstart = p;
                     unsigned int uj;
 
-                    if (get_unsigned_int(digstart, &p, &uj, tvs != nullptr) == FAIL)
+                    if (get_unsigned_int(digstart, &p, &uj, FALSE) == FAIL)
                     {
                         goto error;
                     }
@@ -77214,7 +77011,7 @@ vim_vsnprintf_typval(char        *str, usize      str_m, const char  *fmt, va_li
                     {
                         unsigned int uj;
 
-                        if (get_unsigned_int(digstart, &p, &uj, tvs != nullptr) == FAIL)
+                        if (get_unsigned_int(digstart, &p, &uj, FALSE) == FAIL)
                         {
                             goto error;
                         }
@@ -77229,15 +77026,7 @@ vim_vsnprintf_typval(char        *str, usize      str_m, const char  *fmt, va_li
 
                     if (j > MAX_ALLOWED_STRING_WIDTH)
                     {
-                        if (tvs != nullptr)
-                        {
-                            format_overflow_error(digstart);
-                            goto error;
-                        }
-                        else
-                        {
-                            j = MAX_ALLOWED_STRING_WIDTH;
-                        }
+                        j = MAX_ALLOWED_STRING_WIDTH;
                     }
 
                     if (j >= 0)
@@ -77727,11 +77516,6 @@ vim_vsnprintf_typval(char        *str, usize      str_m, const char  *fmt, va_li
     if (str_m > 0)
     {
         str[str_l <= str_m - 1 ? str_l : str_m - 1] = '\0';
-    }
-
-    if (tvs != nullptr && tvs[num_posarg != 0 ? num_posarg : arg_idx - 1].v_type != VAR_UNKNOWN)
-    {
-        emsg(_(e_too_many_arguments_to_printf));
     }
 
 error:

@@ -1666,3 +1666,12 @@
 
 # 136 declares nothing: the four calls through bt_regengine call the functions
 # it always held; the check's search and substitution probes are the evidence.
+
+# 137 declares nothing: the changedtick was a number inside a dictionary item
+# inside buf_T; it is the number.  Every insert, undo and search the recording
+# drives reads it.
+
+# 138 declares nothing: five functions' eval-value parameters were nullptr at
+# every call and only ever tested for it.  They go, and with them every eval
+# value type; the check's g CTRL-G, \= substitution and :match probes are the
+# paths the tests sat on.

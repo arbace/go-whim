@@ -3,7 +3,7 @@
 One pipeline that takes vim apart on purpose, written in Go.
 
 ```
-slim-vim.c  ──────── 0-82 ────────▶  q82  ──────── 83-136 ────────▶  whim-vim.c
+slim-vim.c  ──────── 0-82 ────────▶  q82  ──────── 83-138 ────────▶  whim-vim.c
 (input)              an editor with no           an embeddable editor core:
                      runtime to install          no filesystem, no libc it did
                                                  not vendor, the text a tree
@@ -16,7 +16,7 @@ nothing about what the editor does. `make` asks that repository for its head,
 fetches `slim-vim.c` and vim's `LICENSE` at exactly that commit, and records the
 commit in `upstream.sha`.
 
-**whim** (`whim.mk`, 137 phases) removes capability on purpose, and every phase
+**whim** (`whim.mk`, 139 phases) removes capability on purpose, and every phase
 declares in advance what it changes and a harness proves it changed exactly that
 and nothing else. **Phases 0-82** remove the runtime files, the eval layer,
 windows beyond one, buffers beyond one, the command-line arguments and 489 Ex
@@ -26,7 +26,7 @@ cross to a host block at the bottom of the same file, the libc that is pure
 computation is vendored, the core names no libc function at all, and the memline
 stops being pages and becomes a tree; their deltas are `pipes/zero.delta`,
 against an instrument that reads the screen. Those were a second pipeline, zero,
-numbered from 0 — zero phase N is phase N+83. **Phases 129-136** take out of
+numbered from 0 — zero phase N is phase N+83. **Phases 129-138** take out of
 the core what transpiling it to Go (`editor/`, `tx/FINDINGS.md`) had to work
 around, and change nothing the editor does.
 
