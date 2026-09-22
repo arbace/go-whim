@@ -1,6 +1,6 @@
 package edit
 
-// Every block and every single line of C pipes/whim127-edit.sh writes into the
+// Every block and every single line of C phase/127/edit.sh writes into the
 // tree, in source order, EXTRACTED from the heredoc by an AST walk rather than
 // retyped.  Several are 200-column musl_memmove() calls written as adjacent
 // Python literals, where a changed byte would be invisible to the compile and

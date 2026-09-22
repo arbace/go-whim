@@ -129,7 +129,7 @@ func Whim116(w io.Writer, args []string) error {
 	// The input the zero baselines were recorded from is q82's whim-vim.c, the
 	// tree phase 83 was handed, and it is read out of that boundary's tar.
 	var whim chan error
-	if in, e := exec.Command("tar", "-xOf", ".build-whim/q82.tar", "./whim-vim.c").Output(); e == nil && len(in) > 0 {
+	if in, e := exec.Command("tar", "-xOf", ".build/q82.tar", "./whim-vim.c").Output(); e == nil && len(in) > 0 {
 		os.WriteFile(T("whim-vim.c"), in, 0o644)
 		whim = make(chan error, 1)
 		go func() { whim <- exec.Command("gcc", "-O0", "-static", "-s", "-o", T("whim-vim"), T("whim-vim.c")).Run() }()
@@ -206,15 +206,15 @@ func Whim116(w io.Writer, args []string) error {
 		sm.say("whim-vim, built -O0 -static -s, records the identical table: the baseline is this table and not a third thing")
 	} else {
 		whim = nil
-		sm.say("no .build-whim/q82.tar to build whim-vim from -- the input's own recording not rechecked")
+		sm.say("no .build/q82.tar to build whim-vim from -- the input's own recording not rechecked")
 	}
 	bd := &rep{tag: "boundaries", w: w}
-	if fi, e := os.Stat(".build-whim"); e == nil && fi.IsDir() {
+	if fi, e := os.Stat(".build"); e == nil && fi.IsDir() {
 		os.MkdirAll(T("bins"), 0o755)
 		os.MkdirAll(T("rows"), 0o755)
 		var names []string
 		for i := 83; i <= self; i++ {
-			t := fmt.Sprintf(".build-whim/q%d.tar", i)
+			t := fmt.Sprintf(".build/q%d.tar", i)
 			if _, e := os.Stat(t); e != nil {
 				continue
 			}
@@ -248,7 +248,7 @@ func Whim116(w io.Writer, args []string) error {
 			return harness.ErrReported
 		}
 		if len(names) == 0 {
-			bd.say(".build-whim holds no boundary binary from q83 on -- the table not rechecked across the pipeline")
+			bd.say(".build holds no boundary binary from q83 on -- the table not rechecked across the pipeline")
 		} else {
 			ents, _ := os.ReadDir(T("rows"))
 			var rs []string
@@ -271,7 +271,7 @@ func Whim116(w io.Writer, args []string) error {
 			bd.say("all %d recorded boundary binaries up to q%d record the SAME table as whim-vim and as this one, one digest across every one of them", len(names), self)
 		}
 	} else {
-		bd.say("no .build-whim here -- the pipeline-wide check runs where the tars are")
+		bd.say("no .build here -- the pipeline-wide check runs where the tars are")
 	}
 
 	// --- 5. the instrument is deterministic ------------------------------------

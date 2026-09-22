@@ -16,7 +16,7 @@
 #   make editor.c        the core, cut from whim-vim.c at its first #include
 #   make editor/editor.go  the core in Go, generated from editor.c
 #
-# whim.mk is the pipeline; tools/ and pipes/ are what it runs.
+# whim.mk is the pipeline; tools and the phases (phase/NNN) are what it runs.
 
 # Every temporary a recipe makes -- mktemp, Go's os.MkdirTemp, the harnesses'
 # scratch homes, verifypass's and specpass's scratch roots -- goes in .tmp/

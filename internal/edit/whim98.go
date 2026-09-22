@@ -128,13 +128,13 @@ func Whim98(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, p.die("%v", err)
 	}
 	block := string(blockB)
-	// THE BLOCK JOINS PHASE 14'S RATHER THAN STARTING A SECOND ONE, so the anchor
+	// THE BLOCK JOINS PHASE 97'S RATHER THAN STARTING A SECOND ONE, so the anchor
 	// is that JUNCTION -- the end of its last definition and the first enum --
 	// and not a line of its own.
 	const z15Tail = "    dest[18] = '\\0';\n    return 18;\n}\n"
 	const z15Wall = "\nenum { BH_DIRTY = 1 };\n"
 	if text, err = textEdit(text, z15Tail+z15Wall, z15Tail+block+z15Wall,
-		"the eighteen functions go at the END OF PHASE 14's BLOCK, before the "+
+		"the eighteen functions go at the END OF PHASE 97's BLOCK, before the "+
 			"enum wall -- one vendored block and not two -- defined before every "+
 			"use, so only the two dead tow* mentions need a prototype", 1); err != nil {
 		return nil, err

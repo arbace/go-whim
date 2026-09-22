@@ -8,19 +8,19 @@
 # tools/whimdelta.sh's rule against a different instrument, and whimdelta.sh hands
 # every phase from ZERO_FROM (tools/pipeline.sh) on to it.  --phase N records the
 # binary with tools/zrecord.sh and hands the recording, the baselines and
-# pipes/zero.delta to zcompare, which requires **exactly** the declared
+# the declarations from ZERO_FROM on (tools/declared.sh) to zcompare, which requires **exactly** the declared
 # difference: every record that moved is declared, every declaration moved
 # something, and nothing else differs at all.  --declared N prints what phase N
 # itself declares, for a phase program that wants to assert its own list.
 #
 # THE BASELINES ARE q82'S: .reference/zero-baselines, recorded by phase 83 from the
 # tree it is handed, built with the compile line that tree carries.  So the delta is
-# the difference from q82, not from slim; it is CUMULATIVE, as whim.delta is against
-# slim -- the lines up to phase N are the whole difference from q82 at N -- and it
-# starts empty at 83.  pipes/whim83.sh says why a recording of q82 is not the mistake
+# the difference from q82, not from slim; it is CUMULATIVE, as phases 0-82's are
+# against slim -- the declarations up to phase N are the whole difference from q82
+# at N -- and it starts empty at 83.  phase/083/make.sh says why a recording of q82 is not the mistake
 # CLAUDE.md warns about: nothing from 83 on can reach it.
 #
-# THE INSTRUMENT IS THE SCREEN (phase 86, WHIM-PLAN.md II.2): keystrokes in on stdin,
+# THE INSTRUMENT IS THE SCREEN (phase 86, GOALS.md II.2): keystrokes in on stdin,
 # escape sequences out on stdout, and a screen per redraw rebuilt from them.  The
 # file-based harnesses -- behaviour, exsweep -- are phases 0-82's and are untouched;
 # they cannot measure these, because the editor they measure is on its way to having
@@ -29,9 +29,14 @@
 # "Six commands differ" is a check.  "Some commands differ" is not.
 set -eu
 
+. tools/pipeline.sh whim
+
 if [ "${1:-}" = "--declared" ]; then
-    tools/st.sh zcompare --declared pipes/zero.delta \
-        "${2:?usage: zerodelta.sh --declared N}"
+    n=${2:?usage: zerodelta.sh --declared N}
+    d=$(mktemp)
+    tools/declared.sh "$ZERO_FROM" "$n" > "$d"
+    tools/st.sh zcompare --declared "$d" "$n"
+    rm -f "$d"
     exit 0
 fi
 
@@ -70,5 +75,6 @@ fi
 tools/zrecord.sh "$bin" "$src" "$tmp/now"
 orphans
 
-tools/st.sh zcompare "$base" "$tmp/now" pipes/zero.delta "$n" || fail=1
+tools/declared.sh "$ZERO_FROM" "$n" > "$tmp/declared"
+tools/st.sh zcompare "$base" "$tmp/now" "$tmp/declared" "$n" || fail=1
 exit $fail

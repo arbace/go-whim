@@ -5,7 +5,7 @@
 // strip_comments_only, collapse_ws, rmatch, delete_definition, drop_if,
 // fold_always, fold_never and their helpers -- is called by phase programs and
 // never by a sweep tool, and linear_pass and balanced have no caller anywhere
-// in tools/ or pipes/ at all.  They are left out until something needs them.
+// in tools or the phase programs at all.  They are left out until something needs them.
 package cutil
 
 import "bytes"

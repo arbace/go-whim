@@ -116,7 +116,7 @@ func Whim91(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.die("cmdnames[] has %d rows after the cut, expected %d", n, z8RowsAfter)
 	}
 	p.sayf("the five cmdnames[] rows; %d -> %d, which is under the floor create_cmdidxs "+
-		"names() had -- lowered to %d in this phase's own commit (WHIM-PLAN.md part II "+
+		"names() had -- lowered to %d in this phase's own commit (GOALS.md II.5 "+
 		"decision 8), so the margin is %d rows",
 		z8RowsBefore, z8RowsAfter, z8Floor, z8RowsAfter-z8Floor)
 

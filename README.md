@@ -20,13 +20,12 @@ commit in `upstream.sha`.
 declares in advance what it changes and a harness proves it changed exactly that
 and nothing else. **Phases 0-82** remove the runtime files, the eval layer,
 windows beyond one, buffers beyond one, the command-line arguments and 489 Ex
-commands; their deltas are `pipes/whim.delta`. **Phases 83-128** turn what is
+commands. **Phases 83-128** turn what is
 left into an embeddable core: the filesystem goes, the signals and the terminal
 cross to a host block at the bottom of the same file, the libc that is pure
 computation is vendored, the core names no libc function at all, and the memline
-stops being pages and becomes a tree; their deltas are `pipes/zero.delta`,
-against an instrument that reads the screen. Those were a second pipeline, zero,
-numbered from 0 — zero phase N is phase N+83. **Phases 129-162** take out of
+stops being pages and becomes a tree, measured with an instrument that reads the
+screen. **Phases 129-162** take out of
 the core what transpiling it to Go (`editor/`, `tx/FINDINGS.md`) had to work
 around; all but one change nothing the editor does, and 142 drops the build
 date from the version line.
@@ -40,16 +39,16 @@ its own and every check in a stage runs at once, because there the checks are.
 
 ## Documents
 
-- **`WHIM-GOAL.md`** — what the pipeline removes and why. **Part I** is phases
-  0-82, **Part II** phases 83 onwards with the core's own charter and rules; each
-  has a section per phase, and Part II's *Adding a phase* is the process for the
-  next one.
+- **`phase/NNN/`** — one directory per phase, numbered in three digits: its
+  program (`make.sh`, or `edit.sh` and `check.sh`), its **`GOAL.md`** — what it
+  removes, why, and what was measured — and its declared **`delta`**.
+- **`GOALS.md`** — what holds for every phase. **Part I** is phases 0-82, **Part
+  II** phases 83 onwards with the core's own charter and rules; each has an index
+  of its phases, Part II's *Adding a phase* is the process for the next one, and
+  its appendix is the plan phases 83 onwards were built from (sections II.1-II.6).
 - **`tx/FINDINGS.md`** — what transpiling the core to Go found, and which phase
   took each finding out of the C; `tx/CONVENTIONS.md` is how the C is written in
   Go.
-- **`WHIM-PLAN.md`** — the plans the phases were built from: **Part I** grouped
-  phases 0-82 into stages and packages, **Part II** (sections II.1-II.6) planned
-  phases 83 onwards.
 - **`CLAUDE.md`** — the working guide: how the memoize keys a phase, how a check is
   verified, and what to know before changing anything shared.
 
@@ -116,9 +115,8 @@ internal/        the cutters, the sweep, the canonicalisers, the harnesses,
                  one check per phase (internal/check/), and ccx: what the
                  core's C leaves a translation to decide -- pointer casts,
                  evaluation order -- partitioned
-pipes/           the phases: whimN.sh or whimN-edit.sh + whimN-check.sh;
-                 whim.stages is the schedule and the packages, whim.delta
-                 (phases 0-82) and zero.delta (83 on) the declared deltas
+phase/NNN/       a phase: make.sh, or edit.sh + check.sh; GOAL.md; delta
+phase/stages     the schedule: the phase list, the stages and the packages
 tools/           the memoize driver and the shell wrappers around whimtools
 editor/          the core transpiled into Go, with its runtime and host
 tx/              tx/skel (the skeleton generator and, with -bodies, the body

@@ -198,7 +198,7 @@ func Whim96(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	r.say("kept: may_sync_undo 3 and is_safe_now 3, both SURVIVING one conjunct shorter and still doing their work, free_typebuf 4 (closescript was its fifth mention), ui_write 3 with a TWO-parameter signature and mch_write() as its whole body")
-	r.cont("fputs, fputc, fwrite and putchar are named nowhere in the source and are gcc's own -- WHIM-PLAN.md II row 12 gives fputs to this phase and it does not go")
+	r.cont("fputs, fputc, fwrite and putchar are named nowhere in the source and are gcc's own -- GOALS.md II row 12 gives fputs to this phase and it does not go")
 	r.cont("and nothing that could open or name anything is called: open, creat, openat, fopen, fdopen, opendir, stat, access, fcntl, getcwd, strerror, fclose, getc, putc and fsync are absent from the source")
 
 	// --- 3. the compile, the linkage and the libc surface --------------------

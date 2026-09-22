@@ -524,7 +524,7 @@ func Whim120(w io.Writer, args []string) error {
 		"[-Wpedantic]` %d time on the input and %d on the output, and the rest of the pedantic diagnostic set "+
 		"does not move -- %d -> %d, a difference of exactly one.  A minimal probe confirms the construct is a "+
 		"HARD ERROR under -pedantic-errors and that the identical struct with a ONE-member union is silent, so "+
-		"the probe is proven able to pass in the same run.  WHIM-GOAL.md's core is meant to be read by "+
+		"the probe is proven able to pass in the same run.  GOALS.md's core is meant to be read by "+
 		"something that is not gcc, and a construct ISO C forbids is exactly the latent exotic that costs a "+
 		"reader later", po, pn, to, tn)
 
@@ -799,7 +799,7 @@ func Whim120(w io.Writer, args []string) error {
 		}
 		return stop("the recording moved in %d of %d records -- from two runs of the "+
 			"SAME BYTES, which means the instrument is not deterministic and every "+
-			"recording-based zero phase is in question: %s", len(moved), len(base), strings.Join(show, " "))
+			"recording-based Part II phase is in question: %s", len(moved), len(base), strings.Join(show, " "))
 	}
 	r.say("two full tools/zrecord.sh recordings, all %d records identical -- 102 "+
 		"screen cases, every Ex command typed at `:`, every command line the parser may "+

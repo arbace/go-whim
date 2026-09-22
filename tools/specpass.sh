@@ -63,13 +63,13 @@ if [ "${1:-}" = "--one" ]; then
     fi
     d=$scratch/$TAG$n
     mkdir -p "$d/.reference" "$d/.cache"
-    for x in tools pipes cmd internal go.mod go.sum; do ln -s "$root/$x" "$d/$x"; done
+    for x in tools phase cmd internal go.mod go.sum; do ln -s "$root/$x" "$d/$x"; done
     if [ -d "$root/.reference/baselines" ]; then ln -s "$root/.reference/baselines" "$d/.reference/baselines"; fi
     if [ -f "$root/slim-vim.c" ]; then ln -s "$root/slim-vim.c" "$d/slim-vim.c"; fi
     if [ -d "$root/.reference/zero-baselines" ]; then ln -s "$root/.reference/zero-baselines" "$d/.reference/zero-baselines"; fi
     # Phase 116's check builds q82's whim-vim.c -- the tree the zero baselines were
     # recorded from -- and reads it out of that boundary's tar.
-    if [ -f "$root/.build-whim/q82.tar" ]; then mkdir -p "$d/.build-whim"; ln -s "$root/.build-whim/q82.tar" "$d/.build-whim/q82.tar"; fi
+    if [ -f "$root/.build/q82.tar" ]; then mkdir -p "$d/.build"; ln -s "$root/.build/q82.tar" "$d/.build/q82.tar"; fi
     start=$(date +%s)
     (
         cd "$d"

@@ -125,7 +125,7 @@ func Whim95(w io.Writer, args []string) error {
 		fail = append(fail, "'modified' moved: its row must stay, p_mod at 2 and did_set_modified at 3 -- decision 5 keeps it, and it is now the only option row with no reader of its own global")
 	}
 	if !rowsNew["paste"] || count(newT, "p_paste") != 12 {
-		fail = append(fail, fmt.Sprintf("'paste' moved, and it is EXEMPT FOR EVER (WHIM-PLAN.md II.2d): p_paste has %d mentions, expected 12", count(newT, "p_paste")))
+		fail = append(fail, fmt.Sprintf("'paste' moved, and it is EXEMPT FOR EVER (GOALS.md II.2d): p_paste has %d mentions, expected 12", count(newT, "p_paste")))
 	}
 	for _, slot := range []string{"p_ai_nopaste", "p_et_nopaste", "p_sts_nopaste", "p_tw_nopaste", "p_wm_nopaste"} {
 		if count(newT, slot) != 4 || count(oldT, slot) != 4 {
@@ -196,7 +196,7 @@ func Whim95(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	r.say("rows: 114 -> 108 and 102 -> 96 distinct globals, the set that went being exactly fsync prompt readonly undoreload write writeany, none arriving and none left in modeline_whitelist[]")
-	r.cont("kept: 'modified' with p_mod 2 and did_set_modified 3 -- decision 5, and it is now the only row with no reader of its own global -- and 'paste' with p_paste 12 and its five save slots at four each, EXEMPT FOR EVER (WHIM-PLAN.md II.2d)")
+	r.cont("kept: 'modified' with p_mod 2 and did_set_modified 3 -- decision 5, and it is now the only row with no reader of its own global -- and 'paste' with p_paste 12 and its five save slots at four each, EXEMPT FOR EVER (GOALS.md II.2d)")
 	r.cont("the two validity lists are untouched character for character; 23 of 'cpoptions' 60 letters and 14 of 'shortmess' 23 are inert, and this phase makes exactly one more so -- 'shortmess''s `r`")
 	r.cont("the later phase's line: scriptin 8, redir_fd 6, vim_fsync 3; the table is 98 rows and untouched")
 
@@ -209,7 +209,7 @@ func Whim95(w io.Writer, args []string) error {
 	}
 	orphNew, errN := exec.Command("sh", "tools/st.sh", "orphanopts", f).CombinedOutput()
 	if errN != nil {
-		r.say("orphanopts refuses this source -- the row floor is no longer below 96, and that would fail the delta check of every zero phase after this one, not this one:")
+		r.say("orphanopts refuses this source -- the row floor is no longer below 96, and that would fail the delta check of every Part II phase after this one, not this one:")
 		for _, l := range strings.Split(strings.TrimRight(string(orphNew), "\n"), "\n") {
 			r.cont("  %s", l)
 		}

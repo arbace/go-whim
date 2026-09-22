@@ -39,7 +39,7 @@ func VerifyPass(p pipeline.P, units []string, jobs int, w io.Writer) error {
 	//
 	// `sh` reads a script BY BYTE OFFSET as it executes it, so rewriting one
 	// in place while a check runs makes the shell resume at a stale offset in
-	// new content -- and every unit used to symlink the one live pipes/, so a
+	// new content -- and every unit used to symlink the one live program directory, so a
 	// single edit could reach every running check at once.  The quiet case is
 	// why it matters: a tear mid-token gives a syntax error at a line that
 	// exists in neither version, but a tear at a command boundary in a shorter
@@ -54,7 +54,7 @@ func VerifyPass(p pipeline.P, units []string, jobs int, w io.Writer) error {
 	if err := os.MkdirAll(src, 0o755); err != nil {
 		return err
 	}
-	for _, d := range []string{"tools", "pipes"} {
+	for _, d := range []string{"tools", "phase"} {
 		if err := exec.Command("cp", "-a", d, filepath.Join(src, d)).Run(); err != nil {
 			return err
 		}
@@ -143,7 +143,7 @@ func verifyOne(p pipeline.P, u, root, scratch string) string {
 	os.MkdirAll(filepath.Join(d, ".reference"), 0o755)
 	os.MkdirAll(filepath.Join(d, ".cache"), 0o755)
 	os.Symlink(filepath.Join(scratch, ".src", "tools"), filepath.Join(d, "tools"))
-	os.Symlink(filepath.Join(scratch, ".src", "pipes"), filepath.Join(d, "pipes"))
+	os.Symlink(filepath.Join(scratch, ".src", "phase"), filepath.Join(d, "phase"))
 	os.Symlink(filepath.Join(root, ".reference", "baselines"),
 		filepath.Join(d, ".reference", "baselines"))
 	if fileExists(filepath.Join(root, "slim-vim.c")) {
@@ -154,9 +154,9 @@ func verifyOne(p pipeline.P, u, root, scratch string) string {
 			filepath.Join(d, ".reference", "zero-baselines"))
 	}
 	// Phase 116's check builds q82's whim-vim.c from that boundary's tar.
-	if q82 := filepath.Join(root, ".build-whim", "q82.tar"); fileExists(q82) {
-		os.MkdirAll(filepath.Join(d, ".build-whim"), 0o755)
-		os.Symlink(q82, filepath.Join(d, ".build-whim", "q82.tar"))
+	if q82 := filepath.Join(root, ".build", "q82.tar"); fileExists(q82) {
+		os.MkdirAll(filepath.Join(d, ".build"), 0o755)
+		os.Symlink(q82, filepath.Join(d, ".build", "q82.tar"))
 	}
 
 	start := time.Now()

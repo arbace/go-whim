@@ -165,7 +165,7 @@ func Whim97(w io.Writer, args []string) error {
 		}
 	}
 	if len(directives) != 18 || !allInclude {
-		fail = append(fail, fmt.Sprintf("the file has %d lines starting with #, and WHIM-GOAL.md says eighteen #includes and nothing else", len(directives)))
+		fail = append(fail, fmt.Sprintf("the file has %d lines starting with #, and GOALS.md says eighteen #includes and nothing else", len(directives)))
 	}
 	for _, p := range []struct{ tok, name string }{{"/*", "a block comment"}, {"\t", "a tab"}} {
 		if strings.Count(newT, p.tok) != strings.Count(oldT, p.tok) {

@@ -91,7 +91,7 @@ func Whim89(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.die("cmdnames[] has %d rows after the cut, expected %d", n, z6RowsAfter)
 	}
 	p.sayf("six cmdnames[] rows; %d -> %d, and create_cmdidxs.names() refuses under %d, "+
-		"so the margin is %d rows -- the :edit phase spends it (WHIM-PLAN.md II.3a)",
+		"so the margin is %d rows -- the :edit phase spends it (GOALS.md II.3a)",
 		z6RowsBefore, z6RowsAfter, z6Floor, z6RowsAfter-z6Floor)
 
 	// ---- 3. ZZ ----------------------------------------------------------------

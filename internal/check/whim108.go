@@ -709,7 +709,7 @@ func Whim108(w io.Writer, args []string) error {
 	r.say("THE RECORDING IS BYTE-IDENTICAL, all %d records -- 102 screen cases, every "+
 		"Ex command typed at `:`, every command line the parser may see, the four pty "+
 		"scenarios and the terminal table.  That is this phase's whole evidence, and it "+
-		"is the shape every zero phase before 23 used: the binary cannot be `cmp`-ed "+
+		"is the shape every phase before 106 used: the binary cannot be `cmp`-ed "+
 		"here, so what the editor DRAWS is what is compared", len(base))
 	r.cont("AND IT CAN FAIL, ONCE FOR EACH NAME THIS PHASE MAKES DIRECT.  host_exit "+
 		"with `host_code = r + 1;` moves %d of the %d -- every record but the terminal "+

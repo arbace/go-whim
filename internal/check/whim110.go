@@ -662,9 +662,9 @@ func Whim110(w io.Writer, args []string) error {
 			"(int)(~0u >> 1)` should become `0x7fffffff = ...` and the compiler should "+
 			"say `expected identifier before numeric constant`.  It did not, so the "+
 			"constraint that separates this phase from phase 109 is not what "+
-			"WHIM-PLAN.md II.4c says it is:", filepath.Join(tmp, "w.limits"), 6)
+			"GOALS.md II.4c says it is:", filepath.Join(tmp, "w.limits"), 6)
 	}
-	r.say("AND THE CONSTRAINT THAT MADE THIS PHASE AND PHASE 26 SEPARATE, MEASURED ON " +
+	r.say("AND THE CONSTRAINT THAT MADE THIS PHASE AND PHASE 109 SEPARATE, MEASURED ON " +
 		"THE PRODUCT: with `#include <limits.h>` put back at line 1 the twelve " +
 		"enumerators become their own values -- `enum : int { 0x7fffffff = ... };` -- " +
 		"and the build stops at that line with `expected identifier before numeric " +

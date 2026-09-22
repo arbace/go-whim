@@ -58,7 +58,7 @@ const z9Mark = "READFILE-ENTERED"
 
 // Whim92 is phase 92's check: the machinery under every way of naming a file.
 //
-// THIS IS THE ONE ZERO PHASE NO RECORDING CAN SEE, and it says so.  readfile()
+// THIS IS THE ONE PART II PHASE NO RECORDING CAN SEE, and it says so.  readfile()
 // was already unreachable when the phase ran -- phases 88 to 91 took every way to
 // name a file -- so the declared delta is nothing at all and two full
 // recordings are byte-identical.  The evidence is an INSTRUMENTED PAIR: the

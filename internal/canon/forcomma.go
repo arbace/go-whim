@@ -118,7 +118,7 @@ func hoist(line []byte) [][]byte {
 // Increment clauses are left alone -- they run on `continue` too.
 //
 // check suppresses the write, which is forcomma.py's --check.  Nothing in
-// tools/ or pipes/ passes it; it is kept so the CLI is a drop-in.
+// tools or the phase programs pass it; it is kept so the CLI is a drop-in.
 func ForComma(src []byte, check bool) (out []byte, found, hoisted, declined, nIn, nOut int) {
 	lines := split(src)
 	nIn = len(lines)

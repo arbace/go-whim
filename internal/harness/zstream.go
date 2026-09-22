@@ -27,7 +27,7 @@ var ErrBlocked = errors.New("zstream: the editor took the input over and did not
 //
 // The terminal is 80x24 BY CONSTRUCTION: the window-size ioctl fails on a
 // pipe so the editor's built-in fallback applies, and $LINES and $COLUMNS have
-// decided nothing since whim's phase 19.
+// decided nothing since phase 19.
 func ZSession(binary string, keys [][]byte, term string, args []string,
 	rows, cols int, timeout time.Duration) (*Screen, []byte, []byte, int, error) {
 

@@ -14,7 +14,7 @@ const whim101Head = "\n    int\nmain\n(int argc, char **argv)\n{\n"
 
 const whim101NewHead = "\n    static int\nvim_main(int argc, char **argv)\n{\n"
 
-// The launcher.  Five lines, and every one of them is what WHIM-PLAN.md II.4c
+// The launcher.  Five lines, and every one of them is what GOALS.md II.4c
 // says the host file will hold: it calls the editor and it does nothing else.
 //
 // No prototype is written for vim_main -- it is DEFINED above its only call,

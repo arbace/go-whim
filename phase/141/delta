@@ -1,0 +1,3 @@
+# 141 declares nothing: each character class sets the mask and testval it set,
+# in a switch instead of before a jump into another case, and runs the same
+# loop.  The check's probe substitutes with all eighteen classes.

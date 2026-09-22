@@ -5,15 +5,15 @@
 #        tools/whimdelta.sh <binary> <source> [--term-moved] [--cases c1,c2] [commands...]
 #        tools/whimdelta.sh --declared N
 #
-# --phase N checks the delta pipes/whim.delta declares up to phase N: every line
-# for a phase <= N, a command added by its name and taken out by drop:name, a case
+# --phase N checks the delta the phases declare up to phase N (phase/NNN/delta, read
+# through tools/declared.sh): every declaration for a phase <= N, a command added by its name and taken out by drop:name, a case
 # by case:name, the terminal table by term-moved.  tools/phaserun.sh calls it once
 # per stage, for the stage's last phase, because the list up to a phase is the
 # whole difference from slim at that phase and so contains every earlier phase's.
 # The second form states a list by hand.  --declared N prints the commands phase N
 # itself declares, one per line -- phase 80's edit reads its table cut from there.
 #
-# This is the rule that separates WHIM-GOAL.md from SLIM-GOAL.md.  There, any
+# This is the rule that separates GOALS.md from SLIM-GOAL.md.  There, any
 # behavioural change is a bug and the check is "nothing moved".  Here a change
 # is the point, so the check is "exactly this moved" -- the phase says which
 # behaviour it is removing, in advance, and the harness proves it removed that
@@ -21,9 +21,9 @@
 #
 # "Six commands differ" is a check.  "Some commands differ" is not.
 #
-# FROM PHASE ZERO_FROM (83) ON, THE DELTA IS ANOTHER FILE AGAINST OTHER BASELINES,
-# and this tool hands the phase to tools/zerodelta.sh: pipes/zero.delta, measured
-# against .reference/zero-baselines, which phase 83 records from the tree it is
+# FROM PHASE ZERO_FROM (83) ON, THE DELTA IS MEASURED AGAINST OTHER BASELINES,
+# and this tool hands the phase to tools/zerodelta.sh: the declarations from
+# ZERO_FROM on, against .reference/zero-baselines, which phase 83 records from the tree it is
 # handed.  Both forms that take a phase number do; the hand-stated form is whim's
 # alone.  tools/phaserun.sh runs this tool for every stage and never needs to know.
 set -eu
@@ -59,7 +59,7 @@ delta_awk='
         else if (WHAT == "own") for (k = 1; k <= nown; k++) print own[k]
     }'
 declared() {
-    awk -v N="$1" -v WHAT="$2" "$delta_awk" pipes/whim.delta
+    tools/declared.sh 0 "$1" | awk -v N="$1" -v WHAT="$2" "$delta_awk"
 }
 
 if [ "${1:-}" = "--declared" ]; then

@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-// ZDeclared reads pipes/zero.delta and returns every token up to phase, and
+// ZDeclared reads the declarations tools/declared.sh prints and returns every token up to phase, and
 // the ones phase itself declares.
 //
 // Zero's tokens are not whim's: a zero declaration names a screen case, a
@@ -161,7 +161,7 @@ func readDir(path string) map[string]string {
 	return out
 }
 
-// ZCompare is tools/zcompare.py: the declared delta of a zero phase, checked
+// ZCompare is tools/zcompare.py: the declared delta of a Part II phase, checked
 // against two recordings.
 func ZCompare(basedir, newdir, delta string, phase int, w io.Writer) error {
 	tokens, _, err := ZDeclared(delta, phase)

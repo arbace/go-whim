@@ -3,12 +3,11 @@
 #
 # Usage: tools/phasename.sh <phase>
 #
-# The goal documents' headings are the only place the phases are named, so the
-# progress log reads them from there rather than keeping a second list that can
-# disagree with the first.  From phase 83 on a heading also gives the number the
-# phase had in the zero pipeline: `## Phase 95 (zero 12) — ...`.
+# A phase's GOAL.md opens with its heading, `# Phase N — what it does`, and that
+# heading is the only place the phase is named, so the progress log reads it from
+# there rather than keeping a second list that can disagree with the first.
 set -eu
 
 phase=${1:?usage: phasename.sh <phase> [pipeline]}
 . tools/pipeline.sh "${2:-whim}"
-sed -En "s/^## Phase $phase( \([^)]*\))? *[—-] *//p" "$DOC" | head -1
+sed -En "1s/^# Phase $phase *[—-] *//p" "$(phasedir "$phase")/GOAL.md"

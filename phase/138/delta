@@ -1,0 +1,4 @@
+# 138 declares nothing: five functions' eval-value parameters were nullptr at
+# every call and only ever tested for it.  They go, and with them every eval
+# value type; the check's g CTRL-G, \= substitution and :match probes are the
+# paths the tests sat on.

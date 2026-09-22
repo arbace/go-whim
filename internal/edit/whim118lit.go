@@ -1,6 +1,6 @@
 package edit
 
-// pipes/whim118-edit.sh's own three literals, EXTRACTED by an AST walk rather
+// phase/118/edit.sh's own three literals, EXTRACTED by an AST walk rather
 // than retyped: the three declarations the phase takes out of the core's block,
 // the three prototypes it adds at the end of the core -> host run, and the three
 // definitions it puts above the launcher.

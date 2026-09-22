@@ -133,9 +133,9 @@ func PhaseRun(p pipeline.P, unit, work string, w io.Writer) error {
 	}
 
 	// A whole program is a unit of its own and runs as it always did.
-	whole := fmt.Sprintf("pipes/%s%d.sh", p.Impl, a)
-	edit0 := fmt.Sprintf("pipes/%s%d-edit.sh", p.Impl, a)
-	check0 := fmt.Sprintf("pipes/%s%d-check.sh", p.Impl, a)
+	whole := fmt.Sprintf("phase/%03d/make.sh", a)
+	edit0 := fmt.Sprintf("phase/%03d/edit.sh", a)
+	check0 := fmt.Sprintf("phase/%03d/check.sh", a)
 	if a == b && fileExists(whole) && !(fileExists(edit0) && fileExists(check0)) {
 		cmd := exec.Command(whole, work)
 		cmd.Stdout, cmd.Stderr = w, os.Stderr
@@ -143,8 +143,8 @@ func PhaseRun(p pipeline.P, unit, work string, w io.Writer) error {
 	}
 
 	for ph := a; ph <= b; ph++ {
-		if !fileExists(fmt.Sprintf("pipes/%s%d-edit.sh", p.Impl, ph)) ||
-			!fileExists(fmt.Sprintf("pipes/%s%d-check.sh", p.Impl, ph)) {
+		if !fileExists(fmt.Sprintf("phase/%03d/edit.sh", ph)) ||
+			!fileExists(fmt.Sprintf("phase/%03d/check.sh", ph)) {
 			fmt.Fprintf(os.Stderr,
 				"  phaserun     %s phase %d has no edit and check to run in stage %s\n",
 				p.Name, ph, unit)
@@ -222,7 +222,7 @@ func PhaseRun(p pipeline.P, unit, work string, w io.Writer) error {
 		if a != b {
 			fmt.Fprintf(w, "  %-12s %s\n", fmt.Sprintf("edit %d", ph), name)
 		}
-		if err := runShell(w, fmt.Sprintf("pipes/%s%d-edit.sh", p.Impl, ph), work, state); err != nil {
+		if err := runShell(w, fmt.Sprintf("phase/%03d/edit.sh", ph), work, state); err != nil {
 			return err
 		}
 		if err := os.MkdirAll(edir, 0o755); err != nil {
@@ -256,7 +256,7 @@ func PhaseRun(p pipeline.P, unit, work string, w io.Writer) error {
 		if a != b {
 			fmt.Fprintf(w, "  %-12s %s\n", fmt.Sprintf("check %d", ph), PhaseName(p, ph))
 		}
-		if err := runShell(w, fmt.Sprintf("pipes/%s%d-check.sh", p.Impl, ph), work, state); err != nil {
+		if err := runShell(w, fmt.Sprintf("phase/%03d/check.sh", ph), work, state); err != nil {
 			return err
 		}
 	}
@@ -264,7 +264,7 @@ func PhaseRun(p pipeline.P, unit, work string, w io.Writer) error {
 	// The declared delta, once: the lines up to the stage's last phase are the
 	// whole difference from the pipeline's baselines there, and so hold every
 	// earlier phase's.
-	if fileExists("pipes/" + p.Impl + ".delta") {
+	if p.Delta != "" {
 		if err := runShell(w, p.Delta,
 			filepath.Join(work, strings.TrimSuffix(p.Source, ".c")), f,
 			"--phase", strconv.Itoa(b)); err != nil {

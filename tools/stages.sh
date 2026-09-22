@@ -27,7 +27,7 @@
 #                     inside an each stage; what is shared is the wall time and the
 #                     boundary, which is the stage's end.
 #
-# A pipeline with no pipes/<pipeline>.stages runs every phase as a unit of its own,
+# A pipeline with no phase/stages runs every phase as a unit of its own,
 # which is slim, and which is exactly how both pipelines ran before stages existed.
 #
 # THE MANIFEST IS CHECKED, NOT TRUSTED, and this is where the part of it that can be
@@ -49,7 +49,7 @@ set -eu
 
 . tools/pipeline.sh "${1:?usage: stages.sh <pipeline> [--of N | --check]}"
 mode=${2:-}
-manifest=pipes/$IMPL.stages
+manifest=phase/stages
 
 units() {
     if [ ! -f "$manifest" ]; then
@@ -128,8 +128,8 @@ check() {
             exit bad
         }' > "${TMPDIR:-/tmp}/stages.$$" || { rm -f "${TMPDIR:-/tmp}/stages.$$"; return 1; }
     for k in $(cat "${TMPDIR:-/tmp}/stages.$$"); do
-        if ! grep -q 'tools/sweep\.sh' "pipes/$IMPL$k-edit.sh"; then
-            echo "stages: a later phase needs $k's inner sweep, and pipes/$IMPL$k-edit.sh no longer runs one" >&2
+        if ! grep -q 'tools/sweep\.sh' "$(phasedir "$k")/edit.sh"; then
+            echo "stages: a later phase needs $k's inner sweep, and $(phasedir "$k")/edit.sh no longer runs one" >&2
             rm -f "${TMPDIR:-/tmp}/stages.$$"
             return 1
         fi

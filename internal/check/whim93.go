@@ -178,7 +178,7 @@ func Whim93(w io.Writer, args []string) error {
 	if !z7QRow.MatchString(newT) {
 		fail = append(fail, "the 'Q' row is no longer nv_error's, and phase 87 put it there")
 	}
-	// THE EXEMPTION PHASE 8 KEPT, from the other side.
+	// THE EXEMPTION PHASE 91 KEPT, from the other side.
 	m := z8Lock.FindString(newT)
 	if m == "" {
 		fail = append(fail, "do_one_cmd's curbuf_locked() test went, and this phase removed one conjunct of it and not the test")

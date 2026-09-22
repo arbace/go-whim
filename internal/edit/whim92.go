@@ -24,7 +24,7 @@ var z9Assign = regexp.MustCompile(`\bretval\b\s*=[^=]`)
 // Whim92 takes the machinery under every way to name a file: readfile(),
 // read_buffer() and the message layer that reported what had been read.
 //
-// IT IS THE ONE ZERO PHASE NO RECORDING CAN SEE, and its declared delta is
+// IT IS THE ONE PART II PHASE NO RECORDING CAN SEE, and its declared delta is
 // nothing at all: readfile() was already unreachable when it ran, phases 88 to 91
 // having taken every way to name a file.
 func Whim92(text []byte, w io.Writer) ([]byte, error) {

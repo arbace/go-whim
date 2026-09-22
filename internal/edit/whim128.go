@@ -752,7 +752,7 @@ func Whim128(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// THE INPUT IS ASKED FIRST, and that is what `need 128 swept` is.
 	if z45BlankRun.MatchString(t0) {
 		return nil, die("the input already has a run of two blank lines, so this edit cannot say it " +
-			"left none: it needs swept text (pipes/whim.stages, `need 128 swept`)")
+			"left none: it needs swept text (phase/stages, `need 128 swept`)")
 	}
 	if z45BlankRun.MatchString(t) {
 		return nil, die("the edit left a run of two blank lines, which no verification tier can see")

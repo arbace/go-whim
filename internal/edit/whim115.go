@@ -89,7 +89,7 @@ func Whim115(text []byte, w io.Writer) ([]byte, error) {
 	// ---- 0. the file this edit was written against ----------------------
 	// ELEVEN DIRECTIVES, every one an `#include <...>`, CONTIGUOUS, and
 	// NOTHING ABOVE THEM.  Phase 110 made the first of them the boundary
-	// between the core and the host (WHIM-PLAN.md II.4c); this phase edits both
+	// between the core and the host (GOALS.md II.4c); this phase edits both
 	// sides of that line and must know where it is.
 	var directives []int
 	for i, l := range lines {

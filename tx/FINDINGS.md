@@ -84,7 +84,7 @@ the Go simpler and the patch smaller.
 
 ## Which findings are phases now
 
-Phases 129 to 162 (`WHIM-GOAL.md`, Part II) remove from the C what the
+Phases 129 to 162 (`GOALS.md`, Part II) remove from the C what the
 transpilation worked around. Each declares no behavioural delta; 142's change
 is to stderr, which the recording excludes, and its check measures it:
 

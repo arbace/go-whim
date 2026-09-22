@@ -33,7 +33,7 @@ type manifest struct {
 }
 
 func readManifest(p pipeline.P) (manifest, bool, error) {
-	path := "pipes/" + p.Impl + ".stages"
+	path := "phase/stages"
 	f, err := os.Open(path)
 	if err != nil {
 		return manifest{}, false, nil
@@ -184,7 +184,8 @@ func CheckStages(p pipeline.P, w io.Writer) error {
 
 	// A phase that a later one needs the inner sweep of must still run one.
 	for _, k := range innerNeeded {
-		path := fmt.Sprintf("pipes/%s%s-edit.sh", p.Impl, k)
+		kn, _ := strconv.Atoi(k)
+		path := fmt.Sprintf("phase/%03d/edit.sh", kn)
 		data, err := os.ReadFile(path)
 		if err != nil || !strings.Contains(string(data), "tools/sweep.sh") {
 			fmt.Fprintf(w, "stages: a later phase needs %s's inner sweep, and %s no longer runs one\n",
@@ -196,7 +197,7 @@ func CheckStages(p pipeline.P, w io.Writer) error {
 }
 
 func stageCoverageErr(p pipeline.P, w io.Writer) error {
-	fmt.Fprintf(w, "stages: pipes/%s.stages does not cover the %s phases exactly once, in order\n",
+	fmt.Fprintf(w, "stages: phase/stages%s does not cover the %s phases exactly once, in order\n",
 		p.Impl, p.Name)
 	return fmt.Errorf("stages: coverage")
 }

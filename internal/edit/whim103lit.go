@@ -1,6 +1,6 @@
 package edit
 
-// Every act pipes/whim103-edit.sh performs and every line it says, in SOURCE
+// Every act phase/103/edit.sh performs and every line it says, in SOURCE
 // ORDER, EXTRACTED by an AST walk rather than retyped.  The phase is 873 lines
 // and the great majority of it is blocks of C; the rule is about retyping and
 // not about newlines, so the one-line arguments are lifted too.
@@ -134,7 +134,7 @@ var z20Want = []struct {
 	{"musl_tty_keys", 3, "its prototype, its definition and get_tty_info()'s one call"},
 	{"host_catch", 11, "its definition, eight installations in musl_host_init() and two in musl_suspend()"},
 	{"ioctl", 2, "the #include and the host's one TIOCGWINSZ"},
-	{"select", 1, "the host's one select(); there is no #include for it -- it arrives transitively through <sys/param.h> (WHIM-PLAN.md II.4c)"},
+	{"select", 1, "the host's one select(); there is no #include for it -- it arrives transitively through <sys/param.h> (GOALS.md II.4c)"},
 }
 
 // z20RealWait is the three-line RealWaitForChar the phase splices in place of

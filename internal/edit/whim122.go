@@ -361,7 +361,7 @@ func Whim122(text []byte, w io.Writer) ([]byte, error) {
 		"enumerator and leave the row, and the rows are positional",
 		strings.Join(dead, " and "), strings.Join(droppedRows, " / "), rn)
 	p.sayf("main_errors[] keeps its last row, %s, which no enumerator named before this "+
-		"phase either -- whim's leftover, and pipes/whim88-edit.sh's sentence",
+		"phase either -- whim's leftover, and phase/088/edit.sh's sentence",
 		strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(string(rows[len(rows)-1])), ",")))
 
 	// ---- 2. termcapinit() takes no name ----------------------------------
@@ -416,7 +416,7 @@ func Whim122(text []byte, w io.Writer) ([]byte, error) {
 	}
 	p.sayf("termcapinit() takes no name -- nothing could assign the field it was handed -- "+
 		"and the compiled default it substituted when it was given none, %s, is its "+
-		"initialiser now.  That is pipes/whim96-edit.sh's ui_write(console) again",
+		"initialiser now.  That is phase/096/edit.sh's ui_write(console) again",
 		strings.TrimSpace(dflt))
 
 	// ---- 3. mparm_T loses the field nothing assigns ----------------------

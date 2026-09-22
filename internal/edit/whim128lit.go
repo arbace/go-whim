@@ -1,6 +1,6 @@
 package edit
 
-// Every block and every single line of C pipes/whim128-edit.sh writes into the
+// Every block and every single line of C phase/128/edit.sh writes into the
 // tree, in source order, EXTRACTED from the heredoc by an AST walk rather than
 // retyped.
 //

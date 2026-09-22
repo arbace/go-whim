@@ -162,18 +162,18 @@ func Whim95(text []byte, w io.Writer) ([]byte, error) {
 	p.say("seven of the 114 rows have no reader of their own global, computed with " +
 		"dropoptions --strict's own test: fsync modified prompt readonly undoreload " +
 		"write writeany")
-	p.say("and 'modified' is the one that STAYS -- WHIM-PLAN.md II decision 5: the state it " +
+	p.say("and 'modified' is the one that STAYS -- GOALS.md II decision 5: the state it " +
 		"reports lives in b_changed and not in p_mod, so the row is not a lie.  A " +
 		"computation that took \"no reader\" as the criterion would delete it")
 
 	// THE EXEMPTION, ASSERTED RATHER THAN ONLY WRITTEN DOWN.
 	if _, a := got["paste"]; a {
 		return nil, p.die("'paste' came out of the computation with no reader, and it is EXEMPT FOR " +
-			"EVER (WHIM-PLAN.md II.2d): nothing in this pipeline may drop it")
+			"EVER (GOALS.md II.2d): nothing in this pipeline may drop it")
 	}
 	if _, a := z12Want["paste"]; a {
 		return nil, p.die("'paste' came out of the computation with no reader, and it is EXEMPT FOR " +
-			"EVER (WHIM-PLAN.md II.2d): nothing in this pipeline may drop it")
+			"EVER (GOALS.md II.2d): nothing in this pipeline may drop it")
 	}
 	p.say("'paste' is exempt for ever and is not in the set: p_paste 12 mentions, and its " +
 		"five save slots p_ai_nopaste p_et_nopaste p_sts_nopaste p_tw_nopaste " +
@@ -194,7 +194,7 @@ func Whim95(text []byte, w io.Writer) ([]byte, error) {
 			"and a definition is all of it", k)
 	}
 	p.say("the W10 warning: six calls to change_warning() and the definition, which takes " +
-		"the static string w_readonly and the ui_delay(1002L, TRUE) with it -- WHIM-GOAL.md " +
+		"the static string w_readonly and the ui_delay(1002L, TRUE) with it -- GOALS.md " +
 		"phase 85 named that as one of the eight other pauses.  It has NO prototype, so a " +
 		"program that removed one would fail here")
 

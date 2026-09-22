@@ -167,7 +167,7 @@ func Whim105(w io.Writer, args []string) error {
 		want int
 		why  string
 	}{
-		{"va_list", 8, "the prototype and definition of `vim_vsnprintf`, the same of `vim_vsnprintf_typval` plus its local, `vim_snprintf`'s local and `skip_to_arg`'s two parameters -- FOUR functions, and WHIM-PLAN.md II.4c names three"},
+		{"va_list", 8, "the prototype and definition of `vim_vsnprintf`, the same of `vim_vsnprintf_typval` plus its local, `vim_snprintf`'s local and `skip_to_arg`'s two parameters -- FOUR functions, and GOALS.md II.4c names three"},
 		{"va_end", 3, "vim_snprintf's, vim_vsnprintf_typval's two"},
 		{"va_arg", 21, "UNCHANGED, all of them inside vim_vsnprintf_typval"},
 		{"va_copy", 2, "UNCHANGED, likewise"},
@@ -236,7 +236,7 @@ func Whim105(w io.Writer, args []string) error {
 		}
 		return harness.ErrReported
 	}
-	r.say("`va_start` 8 -> 1 AND THE ONE IS INSIDE `vim_snprintf`; `va_list` 15 -> 8, `va_end` 10 -> 3, `va_arg` and `va_copy` untouched at 21 and 2.  The eight surviving `va_list` mentions are in FOUR functions -- vim_snprintf, vim_vsnprintf, vim_vsnprintf_typval and skip_to_arg -- where WHIM-PLAN.md II.4c names three")
+	r.say("`va_start` 8 -> 1 AND THE ONE IS INSIDE `vim_snprintf`; `va_list` 15 -> 8, `va_end` 10 -> 3, `va_arg` and `va_copy` untouched at 21 and 2.  The eight surviving `va_list` mentions are in FOUR functions -- vim_snprintf, vim_vsnprintf, vim_vsnprintf_typval and skip_to_arg -- where GOALS.md II.4c names three")
 	r.cont("the seven wrappers are at 0 mentions; `vim_snprintf` %d -> %d, one redundant prototype away and one mention at each of the 129 sites; five helpers at 15, 106, 119, 13 and 3; the tails at msg 63, emsg 218, iemsg 45, msg_attr 21 and msg_attr_keep 6, every one of them a function that already existed", mentions(oldC, "vim_snprintf"), mentions(newC, "vim_snprintf"))
 	r.cont("cmdnames[] 98 unchanged, options[] 107 unchanged, eleven #includes unchanged -- <stdarg.h> stays for the one va_start and leaves at the SPLIT -- and no run of two blank lines")
 

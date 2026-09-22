@@ -162,7 +162,7 @@ func Whim104(text []byte, w io.Writer) ([]byte, error) {
 	// It runs from set_termname from termcapinit, which is the function that
 	// sets `full_screen = TRUE` afterwards -- so this message is emitted
 	// while there is no screen at all, which is the literal reading of
-	// WHIM-PLAN.md II.4c's "the messages that appear before there is a screen".
+	// GOALS.md II.4c's "the messages that appear before there is a screen".
 	if err := sub(`report_term_error(char *error_msg, char_u *term)
 {
      fprintf(stderr, "%s", ("\r\n")) ;
@@ -344,7 +344,7 @@ main(int argc, char **argv)
 	t = append(append([]byte(nil), t[:len(t)-len(old)]...), new...)
 
 	// ---- 9. the header the symbols came from -----------------------------
-	// WHIM-GOAL.md's charter: a phase may REMOVE a directive and may never add
+	// GOALS.md's charter: a phase may REMOVE a directive and may never add
 	// one.  This is the second removal in the pipeline; phase 99 was the
 	// first, and made the argument.
 	if err := sub("#include <stdio.h>\n", "", 1, "H1"); err != nil {

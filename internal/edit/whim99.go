@@ -59,7 +59,7 @@ func Whim99(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- 0. the file this edit was written against -----------------------
 	// EVERY DIRECTIVE IS AN #include OF A SYSTEM HEADER, they are the first
-	// lines of the file, and there are eighteen.  WHIM-GOAL.md's charter is
+	// lines of the file, and there are eighteen.  GOALS.md's charter is
 	// that sentence, and this is where it is checked rather than believed.
 	lines := bytes.Split(text, []byte{'\n'})
 	var dirIdx []int

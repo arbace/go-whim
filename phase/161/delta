@@ -1,0 +1,2 @@
+# 161 declares nothing: the tail a goto jumped into is a function both paths
+# call, statement for statement the same.

@@ -1,0 +1,4 @@
+# 152 declares nothing: every option reads and writes the variable it did, now
+# through a pointer of its own type; a window-local option's global value is
+# the same w_allbuf_opt field, found by name.  The check's probes set and read
+# options of every kind and scope.

@@ -770,7 +770,7 @@ func Whim117(w io.Writer, args []string) error {
 		"-- the rewrite WITHOUT `if (gap->ga_data != nullptr)` -- gives a byte-identical unit transcript and no "+
 		"sanitizer finding, because a null ga_data implies ga_maxlen == 0 implies old_len == 0, musl_memcpy's "+
 		"`for (; n; n--)` never dereferences and free(nullptr) is a no-op.  What the guard buys is on the PAGE, "+
-		"which is what WHIM-PLAN.md II.4c's transpilation rule asks for: the same driver with musl_memcpy "+
+		"which is what GOALS.md II.4c's transpilation rule asks for: the same driver with musl_memcpy "+
 		"announcing a null source reports %d from the output and %d from the unguarded control.  A null passed "+
 		"to a copy is not something the core may leave for a runtime to be lenient about", nwNew, nwNg)
 

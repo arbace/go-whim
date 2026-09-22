@@ -132,7 +132,7 @@ func Whim90(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.die("cmdnames[] has %d rows after the cut, expected %d", n, z7RowsAfter)
 	}
 	p.sayf("the cmdnames[] row; %d -> %d, and create_cmdidxs names() refuses under %d, so "+
-		"the margin is %d rows -- the :edit phase spends it (WHIM-PLAN.md II.3a)",
+		"the margin is %d rows -- the :edit phase spends it (GOALS.md II.3a)",
 		z7RowsBefore, z7RowsAfter, z7Floor, z7RowsAfter-z7Floor)
 
 	// ---- 3. do_one_cmd's `:r!` and `:r !cmd` parse -----------------------------

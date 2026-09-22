@@ -23,7 +23,7 @@ func init() { register("whim131", Whim131) }
 //
 // The recording is the behaviour check: typeahead is saved and restored
 // around every Insert-mode CTRL-O and command-line window in the corpus, and
-// pipes/zero.delta declares nothing.
+// phase/131/delta declares nothing.
 func Whim131(w io.Writer, args []string) error {
 	c, err := newCore(w, args, "whim131", "inputbuf")
 	if err != nil {

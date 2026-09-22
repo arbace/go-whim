@@ -9,14 +9,14 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-// ph is the driver every zero edit heredoc writes for itself at the top.
+// ph is the driver every Part II edit heredoc writes for itself at the top.
 //
 // IT IS THE SECOND DRIVER IN THIS PACKAGE, and that is a merge and not a plan.
 // driver.go's `E` grew alongside the whim ports in one session while this grew
 // alongside the zero ports in another; they collide in no name and differ in
 // shape -- `E` accumulates its error and halts, `ph` returns one -- so both are
 // here rather than one of the two being rewritten against the other's 40 call
-// sites.  A new zero phase may use either.  Whichever it uses, the rule that
+// sites.  A new Part II phase may use either.  Whichever it uses, the rule that
 // decides a port is tools/gocmp/editcmp.sh and not which driver it reads.
 //
 // Each of those blocks opens with the same six helpers -- die, say, and some

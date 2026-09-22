@@ -245,7 +245,7 @@ func Whim106(w io.Writer, args []string) error {
 		}
 	}
 	if !dirOK {
-		fail = append(fail, "the output does not have exactly the eleven `#include` directives phase 104 left, on its first eleven lines.  MOVING THEM IS PHASE 26")
+		fail = append(fail, "the output does not have exactly the eleven `#include` directives phase 104 left, on its first eleven lines.  MOVING THEM IS PHASE 110")
 	}
 	for k := 1; k < len(L); k++ {
 		if L[k] == "" && L[k-1] == "" {
@@ -262,7 +262,7 @@ func Whim106(w io.Writer, args []string) error {
 	r.say("`NULL` %d -> %d and `nullptr` 0 -> %d; `size_t` %d -> 0 and `usize` 0 -> %d, the extra one being its own typedef.  Every count is computed FROM THE INPUT, so this is a check on the phase and not on whatever it was handed", inNull, litNull, inNull-litNull, inSize, inSize+1)
 	r.cont("THE THREE LITERALS ARE UNCHANGED, and they are the whole of what a line-wise sed would have got wrong: %s", strings.Join(want, ", "))
 	r.cont("%d `(void *)NULL` became plain `nullptr` -- the cast existed for the variadic hazard of an untyped null constant, and there is not one `(void *)nullptr` left; eleven vendored signatures took `usize` with everything else, and they have been the core's own since phases 97 and 98, so no contract with anybody moved", nCast)
-	r.cont("eleven #includes still on the first eleven lines -- MOVING THEM IS PHASE 26 -- cmdnames[] 98, options[] 107, %d -> %d lines and no run of two blank lines", before, len(L)-1)
+	r.cont("eleven #includes still on the first eleven lines -- MOVING THEM IS PHASE 110 -- cmdnames[] 98, options[] 107, %d -> %d lines and no run of two blank lines", before, len(L)-1)
 
 	// --- 2. C23, and that `usize` IS `size_t` --------------------------------
 	line13 := ""

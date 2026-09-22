@@ -119,7 +119,7 @@ func Whim103(w io.Writer, args []string) error {
 		{"tcgetattr", 2, "host_tty_set() and musl_tty_keys()"},
 		{"tcsetattr", 1, "host_tty_set()"},
 		{"nanosleep", 1, "musl_delay()"},
-		{"select", 1, "musl_wait_for_input().  There is no #include for it: it arrives transitively through <sys/param.h> (WHIM-PLAN.md II.4c)"},
+		{"select", 1, "musl_wait_for_input().  There is no #include for it: it arrives transitively through <sys/param.h> (GOALS.md II.4c)"},
 		{"getpid", 2, "mch_get_pid()'s and vim_handle_signal()'s -- neither is this phase's, and getpid stays"},
 	} {
 		if n := mentions(newC, p.name); n != p.want {
@@ -190,7 +190,7 @@ func Whim103(w io.Writer, args []string) error {
 			r.say("%s is NOT undefined any more, and this phase does not", want)
 			r.cont("claim to free it -- the host block calls it from the same")
 			r.cont("translation unit.  If this is really gone, the claim in")
-			r.cont("pipes/whim103-edit.sh's header is wrong and needs rewriting")
+			r.cont("phase/103/edit.sh's header is wrong and needs rewriting")
 			return harness.ErrReported
 		}
 	}
@@ -202,7 +202,7 @@ func Whim103(w io.Writer, args []string) error {
 	}
 	r.say("symbols %s -> %s, the gone set is EXACTLY close dup isatty raise sigaddset sigismember sigprocmask and NOTHING arrives -- and sigaction sigemptyset kill ioctl tcgetattr tcsetattr nanosleep select are REQUIRED still present, because moving a call inside one translation unit frees nothing",
 		strings.TrimSpace(readFile(".cache/symbols/last/before")), strings.TrimSpace(readFile(".cache/symbols/last/after")))
-	r.say("WHIM-PLAN.md II.4b in its strongest form: with close and dup gone the core cannot open, close or duplicate ANY descriptor -- it is handed fds 0, 1 and 2 and that is the whole of it")
+	r.say("GOALS.md II.4b in its strongest form: with close and dup gone the core cannot open, close or duplicate ANY descriptor -- it is handed fds 0, 1 and 2 and that is the whole of it")
 
 	// --- 5. the binary -------------------------------------------------------
 	b := &rep{tag: "build", w: w}

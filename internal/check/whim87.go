@@ -49,7 +49,7 @@ const (
 // Whim87 is phase 87's check: Ex mode, silent mode and the four options.
 //
 // THE DECLARED DELTA IS NOT THE WHOLE EVIDENCE, for two reasons that pull in
-// opposite directions.  pipes/zero.delta says six records move and
+// opposite directions.  phase/087/delta says six records move and
 // tools/zerodelta.sh proves exactly those did.  What it cannot show is a
 // BEFORE: the baselines are one recording of one binary, so "the old one
 // entered Ex mode and the new one beeps" is not a sentence it can say.  The

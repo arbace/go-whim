@@ -57,7 +57,7 @@ func runNoglob(args []string) int {
 //
 // cutil.py has no CLI -- phase programs import it -- so this exists so the
 // three can be compared against the Python on the same input and the same
-// pattern.  A primitive that 142 call sites in pipes/ depend on should be
+// pattern.  A primitive that 142 call sites in the phase programs depend on should be
 // testable without running a phase.
 func runFold(args []string) int {
 	if len(args) != 4 {

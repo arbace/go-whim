@@ -127,7 +127,7 @@ func runBrace(args []string) int {
 }
 
 // runForcomma is the one canonicaliser with a second argument.  --check
-// suppresses the write; nothing in tools/ or pipes/ passes it, and it is here
+// suppresses the write; nothing in tools or the phase programs passes it, and it is here
 // so the CLI is a drop-in rather than nearly one.
 func runForcomma(args []string) int {
 	check := false

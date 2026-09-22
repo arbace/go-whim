@@ -1,0 +1,3 @@
+# 148 declares nothing: no allocation fails, before or after.  The one path that
+# changes is a request for zero bytes, an internal error no input reaches: it
+# says E341 as before and now gets a pointer to no bytes where it got NULL.

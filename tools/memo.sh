@@ -15,9 +15,9 @@
 #     This is what makes re-running a pass free, and what makes editing one
 #     phase re-run that phase and the ones after it, rather than all ten.
 #
-#   TIER 2, the CODE.  pipes/<pipeline><N>.sh, or its -edit.sh and -check.sh
-#     parts with the sweep between them (tools/phaserun.sh): a deterministic
-#     program.  Every whim and zero phase is one.
+#   TIER 2, the CODE.  A phase's make.sh, or its edit.sh and check.sh parts with
+#     the sweep between them (tools/phaserun.sh): a deterministic program.  Every
+#     phase is one.
 #
 # arbace/slim-vim, where this driver was written, has a TIER 1 below these: an
 # agent, `claude -p`, for a phase that has no program or whose program fails.

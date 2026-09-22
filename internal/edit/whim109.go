@@ -39,7 +39,7 @@ func Whim109(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// ---- 0. the file this edit was written against ----------------------
 	// ELEVEN DIRECTIVES, every one an `#include` of a system header, on the
-	// first eleven lines -- WHIM-GOAL.md's charter.  This phase adds no
+	// first eleven lines -- GOALS.md's charter.  This phase adds no
 	// directive and moves none: the move is phase 110's, and a phase that
 	// quietly did it here would make every cross-check below impossible
 	// rather than merely wrong.
@@ -304,7 +304,7 @@ musl_gettimeofday(long *sec, long *usec)
 		"zhostonly reads", nGt)
 
 	// ---- 9. offsetof -> __builtin_offsetof -------------------------------
-	// WHIM-PLAN.md II.4c settled this.  The plain-C alternative
+	// GOALS.md II.4c settled this.  The plain-C alternative
 	// `(usize)&(((T *)0)->m)` was measured to compile, to run, and to
 	// static_assert equal to libc's offsetof -- but `-Wpedantic` says it is
 	// not an integer constant expression, so it could never be an enumerator.

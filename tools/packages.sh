@@ -5,7 +5,7 @@
 #        tools/packages.sh <pipeline> --of <N>     the package containing phase N
 #        tools/packages.sh <pipeline> --check      check the packages; silent when they hold
 #
-# A PACKAGE is a view over pipes/<pipeline>.stages and nothing runs it: no phase,
+# A PACKAGE is a view over phase/stages and nothing runs it: no phase,
 # stage, boundary or cache key moves when a package does.  The manifest's
 # `package NAME P...` lines put every phase in one concept, and its
 # `uses A:P B:Q KIND why` lines record that phase P, in package A, relies on phase
@@ -32,12 +32,12 @@
 #   a `uses` whose KIND is not `mechanical` or `rationale`, or with no reason
 #
 # What it cannot check is that a reason is true: that is the phase programs and
-# WHIM-GOAL.md, which every `uses` line is written from.
+# the phases' GOAL.md files, which every `uses` line is written from.
 set -eu
 
 . tools/pipeline.sh "${1:?usage: packages.sh <pipeline> [--of N | --check]}"
 mode=${2:-}
-manifest=pipes/$IMPL.stages
+manifest=phase/stages
 
 check() {
     if [ ! -f "$manifest" ]; then

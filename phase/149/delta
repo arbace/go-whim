@@ -1,0 +1,2 @@
+# 149 declares nothing: the NULL tests it folds follow allocations that cannot
+# return NULL, so none was ever true (or, `!= nullptr`, ever false).

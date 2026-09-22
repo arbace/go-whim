@@ -772,14 +772,14 @@ func Whim125(w io.Writer, args []string) error {
 			"the phase is code that RUNS -- an instrument that does not see it running "+
 			"is not measuring what the check claims", b0h, nrec)
 	}
-	say("THE NEGATIVE-BLOCK HALF IS PHASE 9'S KIND -- CODE THAT COULD NOT RUN: "+
+	say("THE NEGATIVE-BLOCK HALF IS PHASE 92'S KIND -- CODE THAT COULD NOT RUN: "+
 		"the four markers on mf_new()'s negative branch, mf_trans_add() past its early "+
 		"return, mf_trans_del() past its own and ml_find_line()'s `bnum < 0` arm fired in "+
 		"0 of %d records -- %d screen, %d memline, %d from the two sweeps and %d stress "+
 		"sessions -- against a control of identical shape in ml_new_data() that fired "+
 		"in %d of them, %d times", nrec, len(files), len(mem), nrec-len(files)-len(mem)-8, 8,
 		hit["ctl_data"], tot["ctl_data"])
-	say("THE BLOCK-ZERO HALF IS PHASE 12'S KIND -- CODE THAT RUNS AND THE "+
+	say("THE BLOCK-ZERO HALF IS PHASE 95'S KIND -- CODE THAT RUNS AND THE "+
 		"INSTRUMENT CANNOT SEE: the three markers on the header writes fired in %s of %d "+
 		"records, %s times, and the two full recordings above are the same bytes.  An "+
 		"empty declaration is a different statement in each half, and only the second one "+
@@ -886,7 +886,7 @@ func Whim125(w io.Writer, args []string) error {
 	if mlIn <= mlOut {
 		return die("phase 123's corpus reaches the root split in %d cases on the input and %d on the output, and this phase can only make a pointer block hold MORE children, never fewer", mlIn, mlOut)
 	}
-	say("PHASE 40'S CORPUS SEES THIS PHASE, and it is the only recorded thing that does: the c_root control -- "+
+	say("PHASE 123'S CORPUS SEES THIS PHASE, and it is the only recorded thing that does: the c_root control -- "+
 		"ml_append_int()'s root test left at the old block number, which all 102 screen cases are blind to -- moves %s "+
 		"of its sixteen cases.  AND THIS PHASE NARROWS WHAT THAT CORPUS REACHES: %d of the sixteen split the root on "+
 		"the input and %d on the output, because phase 123 derived its buffer sizes from sizeof(PTR_EN) and "+
@@ -1014,8 +1014,8 @@ func Whim125(w io.Writer, args []string) error {
 	// --- 9. what this phase declares ---------------------------------------------------
 	decl, _ := exec.Command("sh", "tools/zerodelta.sh", "--declared", "125").Output()
 	if strings.Join(strings.Fields(string(decl)), "") != "" {
-		return die("pipes/zero.delta declares something for phase 125, and this phase declares nothing at all")
+		return die("phase/125/delta declares something for phase 125, and this phase declares nothing at all")
 	}
-	say("pipes/zero.delta declares NOTHING for this phase, and that is two statements and not one: the negative-block island could not run, and block zero ran everywhere and was never read")
+	say("phase/125/delta declares NOTHING for this phase, and that is two statements and not one: the negative-block island could not run, and block zero ran everywhere and was never read")
 	return nil
 }

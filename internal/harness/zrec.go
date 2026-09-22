@@ -9,7 +9,7 @@ import (
 //
 // Every zero harness writes the same sectioned text, so that one comparator
 // can be told to ignore a whole dimension of it -- which is what
-// pipes/zero.delta's `stderr-moved` and `screen-moved` tokens mean:
+// The declared `stderr-moved` and `screen-moved` tokens mean:
 //
 //	--- exit 0
 //	--- bells 1

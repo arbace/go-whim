@@ -32,8 +32,8 @@
 #
 # ISOLATION WITHOUT TOUCHING A PHASE PROGRAM.  The programs name every path
 # relative to the directory they run in -- .cache/compile, .cache/symbols,
-# .reference/baselines -- so each job gets a scratch root of its own: tools/, pipes/
-# and the baselines linked in read-only, a .cache/ nobody else writes, and its own
+# .reference/baselines -- so each job gets a scratch root of its own: tools, the
+# phase programs and the baselines linked in read-only, a .cache/ nobody else writes, and its own
 # work tree.  No memo, no tier 3 and no agent: the program is run directly,
 # because the question is what the PROGRAM produces.
 #
@@ -58,11 +58,11 @@ if [ "${1:-}" = "--one" ]; then
     d=$scratch/$TAG$u
     res=$scratch/$TAG$u.result
     mkdir -p "$d/.reference" "$d/.cache"
-    # tools/ and pipes/ are the code that RUNS, and they come from a snapshot the
+    # tools and the phase programs are the code that RUNS, and they come from a snapshot the
     # parent took once, never from the live tree.  `sh` reads a script by byte
     # offset as it executes it, so rewriting one IN PLACE while a check is running
     # makes the shell resume at a stale offset in new content -- and every unit
-    # used to symlink the one live pipes/, so a single edit could reach 36 running
+    # used to symlink the one live program directory, so a single edit could reach 36 running
     # checks at once.  Measured, and the quiet case is the reason this matters:
     # a tear landing mid-token gives `syntax error: unexpected "("` at a line that
     # exists in neither version, but a tear landing at a command boundary in a
@@ -73,7 +73,7 @@ if [ "${1:-}" = "--one" ]; then
     # atomic rename, so a running shell keeps its fd on the old inode and reads it
     # to the end (measured, both ways).  In-place writers are -- an editor saving
     # over a file, `sed -i` without a temp, a `cp` onto the original.
-    for x in tools pipes cmd internal go.mod go.sum; do ln -s "$scratch/.src/$x" "$d/$x"; done
+    for x in tools phase cmd internal go.mod go.sum; do ln -s "$scratch/.src/$x" "$d/$x"; done
     ln -s "$root/.reference/baselines" "$d/.reference/baselines"
     # The pipeline's declared input, which phase 0 compares the seed against by
     # name.  Read-only, like everything else linked in.  The zero baselines are
@@ -84,7 +84,7 @@ if [ "${1:-}" = "--one" ]; then
     if [ -d "$root/.reference/zero-baselines" ]; then ln -s "$root/.reference/zero-baselines" "$d/.reference/zero-baselines"; fi
     # Phase 116's check builds q82's whim-vim.c -- the tree the zero baselines were
     # recorded from -- and reads it out of that boundary's tar.
-    if [ -f "$root/.build-whim/q82.tar" ]; then mkdir -p "$d/.build-whim"; ln -s "$root/.build-whim/q82.tar" "$d/.build-whim/q82.tar"; fi
+    if [ -f "$root/.build/q82.tar" ]; then mkdir -p "$d/.build"; ln -s "$root/.build/q82.tar" "$d/.build/q82.tar"; fi
     [ -n "$want" ] || { echo "$TAG$u UNRECORDED" > "$res"; exit 0; }
     start=$(date +%s)
     (
@@ -102,7 +102,7 @@ if [ "${1:-}" = "--one" ]; then
         # `if ! ...` renders all three as the same word.  128+N is a signal
         # (137 SIGKILL, 141 SIGPIPE), 2 is a shell syntax error -- which here
         # means the check was rewritten while it ran, since every unit symlinks
-        # the one pipes/ directory -- and 1 is usually the check saying no.
+        # the one program directory -- and 1 is usually the check saying no.
         # A log that simply ends with nothing after it is the case this exists
         # for: without the number there is nothing to tell those apart.
         if tools/phaserun.sh "$PIPE" "$u" "$PWORK" > log 2>&1; then
@@ -147,9 +147,10 @@ scratch=$(mktemp -d "${TMPDIR:-/tmp}/verifypass-$PIPE.XXXXXX")
 # a function of the tree as it was when the run began rather than of whatever the
 # working tree happens to be while it executes.
 mkdir -p "$scratch/.src"
-# The Go module is part of the implementation as much as tools/ and pipes/ are:
+# The Go module is part of the implementation as much as tools and the phase
+# programs are:
 # every tool runs as whimtools, built from cmd/, internal/, go.mod and go.sum.
-for x in tools pipes cmd internal go.mod go.sum; do cp -a "$x" "$scratch/.src/$x"; done
+for x in tools phase cmd internal go.mod go.sum; do cp -a "$x" "$scratch/.src/$x"; done
 start=$(date +%s)
 n=0; for _p in $UNITS; do n=$((n + 1)); done
 printf '  %-12s %d units of %s, %d at a time, in %s\n' "verifypass" "$n" "$PIPE" "$jobs" "$scratch"

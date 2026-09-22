@@ -793,7 +793,7 @@ func Whim128(w io.Writer, args []string) error {
 			"zero -- which is a fact about this host and not a promise the core may rest on, and ml_open's error path does " +
 			"rest on it",
 		"nofree": "ml_free_tree() walking the tree and freeing NOTHING, so a closed buffer keeps every node it had: " +
-			"WHIM-GOAL.md's charter says host_free() returns without doing anything, so what a core gives back is " +
+			"GOALS.md's charter says host_free() returns without doing anything, so what a core gives back is " +
 			"unobservable by construction",
 	}
 	movedOf := func(base, cand string) (int, int, bool) {

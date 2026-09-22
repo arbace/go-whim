@@ -3,7 +3,7 @@
 #
 # Usage: tools/score.sh
 #
-# WHIM-GOAL.md measures phases against these two together, and the second is
+# GOALS.md measures phases against these two together, and the second is
 # the one that matters.  An embedded target is defined by what it must supply,
 # not by what it costs to store, so a phase that shrinks the binary while
 # adding a libc call has gone backwards -- and only a report that shows both

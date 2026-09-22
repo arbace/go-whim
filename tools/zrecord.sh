@@ -4,7 +4,7 @@
 # Usage: tools/zrecord.sh <binary> <source> <outdir>   (run from the repository root)
 #
 # The instrument zero has is the screen, so every part of this drives the editor
-# and keeps what it drew (WHIM-PLAN.md II.2):
+# and keeps what it drew (GOALS.md II.2):
 #
 #   screen/          zcases   102 keystroke cases, one record each
 #   memline/         zmemline 16 big-buffer cases, one record each (below)

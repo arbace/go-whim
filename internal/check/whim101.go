@@ -312,7 +312,7 @@ func z18Ways(r *rep, old, bin, off string) error {
 		}
 		return harness.ErrReported
 	}
-	r.say("every way the editor can end, the same on both binaries: %s -- ex_quit, ex_cquit, read_error_exit, mainerr and deathtrap twice, which is every route WHIM-PLAN.md part II maps that a phase can reach from outside", strings.Join(rows, "  "))
+	r.say("every way the editor can end, the same on both binaries: %s -- ex_quit, ex_cquit, read_error_exit, mainerr and deathtrap twice, which is every route the plan (GOALS.md II.3b) maps that a phase can reach from outside", strings.Join(rows, "  "))
 	r.cont("and the table is PROVEN able to fail: the output built a second time with mch_exit's `exit(r)` changed to `exit(r + 1)` -- one character -- moves ALL SIX (%s).  Six statuses that agree prove nothing unless a wrong one would have been caught", strings.Join(offRows, "  "))
 	return nil
 }

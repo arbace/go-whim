@@ -203,7 +203,7 @@ func Whim104(w io.Writer, args []string) error {
 	dn, dok := dirs(newC)
 	do, _ := dirs(oldC)
 	if do != 12 || dn != 11 || !dok {
-		fail = append(fail, fmt.Sprintf("the directive count is %d -> %d, expected 12 -> 11 with every survivor an #include of a system header.  WHIM-GOAL.md permits a phase to REMOVE one and forbids adding one; this is the second removal in the pipeline, and <stdio.h> is the header these seven symbols came from", do, dn))
+		fail = append(fail, fmt.Sprintf("the directive count is %d -> %d, expected 12 -> 11 with every survivor an #include of a system header.  GOALS.md permits a phase to REMOVE one and forbids adding one; this is the second removal in the pipeline, and <stdio.h> is the header these seven symbols came from", do, dn))
 	}
 	if strings.Contains(newC, "<stdio.h>") {
 		fail = append(fail, "<stdio.h> is still named somewhere in the output")
@@ -267,7 +267,7 @@ func Whim104(w io.Writer, args []string) error {
 	}
 	r.say("symbols %s -> %s, the gone set is EXACTLY fflush fputc fputs fwrite printf putchar stderr and NOTHING arrives -- four of the seven (fputc fputs fwrite putchar) are gcc's own, named nowhere in the source, predicted to leave with the construct and verified by building",
 		strings.TrimSpace(readFile(".cache/symbols/last/before")), strings.TrimSpace(readFile(".cache/symbols/last/after")))
-	r.say("write and read are REQUIRED still present -- the core still writes fd 1 through mch_write and the host writes fd 2 through host_message, which is what is left of WHIM-PLAN.md II.4c; __errno_location is required present too, and it is phase 103's")
+	r.say("write and read are REQUIRED still present -- the core still writes fd 1 through mch_write and the host writes fd 2 through host_message, which is what is left of GOALS.md II.4c; __errno_location is required present too, and it is phase 103's")
 
 	// --- 5. the binary -------------------------------------------------------
 	b := &rep{tag: "build", w: w}

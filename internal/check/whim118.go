@@ -1127,7 +1127,7 @@ func Whim118(w io.Writer, args []string) error {
 	r.cont("  host_alloc  refusing only the allocations above 200,000 bytes -- in "+
 		"this editor exactly ONE, the screen -- moves %d of 102, and the two that survive "+
 		"are ctrl_c_clean and ctrl_c_changed, which exit before a key is looked up "+
-		"(WHIM-PLAN.md II.2g)", len(mv["cbig"]))
+		"(GOALS.md II.2g)", len(mv["cbig"]))
 	r.cont("  host_free   doing NOTHING AT ALL moves 0 of 102.  A leak is invisible "+
 		"to a 106-record corpus, so the recording is NOT what says host_free is called; "+
 		"the instrument above is, at %d calls across the same 102 cases.  A control that "+

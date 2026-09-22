@@ -1,4 +1,4 @@
-// Package edit holds the per-phase edits that were Python heredocs in pipes/.
+// Package edit holds the per-phase edits that were Python heredocs in the phase programs.
 //
 // A cutter in internal/cut is a rule several phases share.  These are the other
 // kind: one phase's own transformation, written for one boundary and run

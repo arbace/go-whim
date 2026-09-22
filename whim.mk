@@ -9,10 +9,10 @@
 # removes files and preprocessor and changes nothing about the editor; this
 # pipeline removes capability on purpose, so every phase states its delta in
 # advance and the harness shows exactly that set and no more.  Phases 0-82
-# (WHIM-GOAL.md Part I) leave an editor with no runtime to install; phases 83-128
-# (WHIM-GOAL.md Part II; they were a pipeline of their own called zero, numbered
-# from 0) turn it into an embeddable core -- no filesystem, the host behind a line
-# in the file, no libc the core names, the text a tree.
+# (GOALS.md Part I) leave an editor with no runtime to install; phases 83 on
+# (GOALS.md Part II) turn it into an embeddable core -- no filesystem, the host
+# behind a line in the file, no libc the core names, the text a tree -- and then
+# remove from it what translating it to Go had to work around.
 #
 # The input is slim-vim.c, fetched by the root Makefile from arbace/slim-vim at
 # the commit in upstream.sha -- one file, not that repository's pipeline.  The
@@ -22,31 +22,32 @@
 # THE COMPILE LINE IS THE BOUNDARY'S.  Phase 0 starts from tools/templates/whim.mk,
 # gcc -O0 -static -s (a static-PIE); phase 83 replaces it with
 # tools/templates/zero.mk, -no-pie; phase 84 adds -fno-stack-protector.  A phase
-# changes the flags by editing whim/Makefile, never a template, which is the
-# pipeline's input.  The product rule below cannot read whim/, which does not exist
+# changes the flags by editing the work tree's Makefile (.tmp/whim-stage/Makefile),
+# never a template, which is the pipeline's input.  The product rule below cannot
+# read the work tree, which does not exist
 # in a checkout that only builds the committed whim-vim.c, so it states them once,
 # as WHIMCFLAGS and WHIMLDFLAGS, and whim-pass refuses to copy whim-vim.c out when
 # they differ from the last boundary's makefile.
 
-WHIMWORK   = whim
-WHIMBUILD  = .build-whim
+WHIMWORK   = .tmp/whim-stage
+WHIMBUILD  = .build
 WHIMORACLE = .reference/whim-phases
 WHIMCFLAGS  = -O0 -fno-stack-protector
 WHIMLDFLAGS = -static -no-pie -s
 
-# The phase list is the `phases` line of pipes/whim.stages, read through
+# The phase list is the `phases` line of phase/stages, read through
 # tools/pipeline.sh -- not written out here and not in tools/pipeline.sh, whose every
 # byte is in every stage's key.  One list, so it cannot disagree with itself.
 WHIMPHASES := $(shell . tools/pipeline.sh whim && echo $$PHASE_LIST)
 
 # --- the chain ------------------------------------------------------------
-# The chain is of STAGES, read from pipes/whim.stages by tools/stages.sh: a stage
+# The chain is of STAGES, read from phase/stages by tools/stages.sh: a stage
 # is a run of phases whose edits share one sweep, and only a stage's end is a
 # boundary -- q41 is the boundary of stage 13-41, and nothing between q12 and q41
 # exists.  Each boundary depends on the one before it, as each phase's did.
 WHIMSTAGES := $(shell tools/stages.sh whim)
 ifeq ($(WHIMSTAGES),)
-$(error pipes/whim.stages does not hold -- tools/stages.sh whim --check says why)
+$(error phase/stages does not hold -- tools/stages.sh whim --check says why)
 endif
 WHIMENDS   := $(foreach u,$(WHIMSTAGES),$(lastword $(subst -, ,$(u))))
 WHIMSTARTS := input.sha256 $(patsubst %,q%.sha256,$(filter-out $(lastword $(WHIMENDS)),$(WHIMENDS)))
@@ -162,14 +163,13 @@ whim-repass:
 # reads a phase's own program, the tools it names and the tools those name -- not
 # whim.mk, but tools/pipeline.sh, named by tools/phaserun.sh.  Measured, when the
 # phase list was written there: one byte moved all 12 split stage keys and all 82
-# edit keys, so the list is the `phases` line of pipes/whim.stages now, which no
+# edit keys, so the list is the `phases` line of phase/stages now, which no
 # key reads.
 #
-# So the loop while you are trying ideas out is: write pipes/whimN-edit.sh and
-# pipes/whimN-check.sh, declare its delta in pipes/zero.delta (pipes/whim.delta is
-# for phases before 83, tools/pipeline.sh's ZERO_FROM), add N to the `phases` line
-# of pipes/whim.stages and put it in the last stage or a new one and in a package
-# there (WHIM-GOAL.md, "Adding a phase"), and `make whim-tip`.  Only the last stage runs,
+# So the loop while you are trying ideas out is: make phase/NNN with edit.sh,
+# check.sh, GOAL.md and its declared delta, add N to the `phases` line of
+# phase/stages and put it in the last stage or a new one and in a package there
+# (GOALS.md, "Adding a phase"), and `make whim-tip`.  Only the last stage runs,
 # and its earlier edits come from the edit cache.
 #
 # WHAT THIS DOES NOT DO, and must not be mistaken for: falsify the boundaries
@@ -204,7 +204,7 @@ whim-tip:
 # running only the first leaves whim-vim.c behind -- measured, the product of the
 # old zero pipeline went TWO phases stale that way, and it was PUSHED.
 #
-# Nothing else can catch it.  A boundary is a tar and a digest under .build-whim,
+# Nothing else can catch it.  A boundary is a tar and a digest under .build,
 # and tools/verifypass.sh reproduces each one from the boundary before it in a
 # scratch root -- none of that reads the tracked product.  It is an OUTPUT of the
 # memoize and an input to nothing, so it can be arbitrarily wrong while `make
@@ -242,7 +242,7 @@ whim-verify:
 # runs, and is a cache hit wherever that guess about its input was right.  A
 # change to a tool rather than to what a phase produces costs the wall time of
 # the slowest phase; a change to phase K's output still runs K onwards in
-# sequence.  See tools/specpass.sh.  The previous .build-whim is its input, so
+# sequence.  See tools/specpass.sh.  The previous .build is its input, so
 # this target reads it before whim-repass removes it.
 .PHONY: whim-specpass
 whim-specpass:
@@ -273,7 +273,7 @@ whim-residue:
 # What phases 83 onwards are for.  whim-vim.c is one translation unit with two parts:
 # above, the core editor, with no preprocessor syntax at all; below, the host,
 # beginning with the #includes -- and that first directive IS the boundary, marked
-# by nothing else (WHIM-PLAN.md II.4c).  The product of the whole project is the upper
+# by nothing else (GOALS.md II.4c).  The product of the whole project is the upper
 # part, and this is the rule that takes it.
 #
 # The cut is `stop at the first #include`, which is one awk clause and no judgement.
@@ -366,7 +366,7 @@ whim-editor-check:
 # BOTH PATHS in the second fix, and the first is not redundant.  This target only
 # sees the MISSING case, but the other way to get here is a CHANGED recording --
 # a harness that asks something new, or a phase before 83 that changed what it
-# produces -- and pipes/whim83.sh REFUSES a set that differs rather than
+# produces -- and phase/083/make.sh REFUSES a set that differs rather than
 # overwriting it, naming the file that moved and exiting 1.  Which one it was must
 # be NAMED before the recording is thrown away.
 .PHONY: whim-baselines-check

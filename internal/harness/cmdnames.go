@@ -20,8 +20,8 @@ import (
 // against zero, and it is the same number and the same argument as
 // orphanopts' so the two stay one idea.
 //
-// It was lowered when zero's phase 8 took the table from 111 rows to 98, in
-// that phase's own commit and never silently.  Zero's table has stayed at 98
+// It was lowered when phase 91 took the table from 111 rows to 98, in
+// that phase's own commit and never silently.  The table has stayed at 98
 // since, which leaves 18 rows of margin.
 const NameFloor = 80
 

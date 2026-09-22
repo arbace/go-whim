@@ -17,7 +17,7 @@ import (
 
 // The whim checks that were plain shell, and what they need to stay that.
 //
-// Each check is a line-for-line transcription of its pipes/whim<N>-check.sh:
+// Each check is a line-for-line transcription of its phase/NNN/check.sh:
 // the same assertions in the same order, the same text on the same line, the
 // same first refusal ending the run.  These are the shell's primitives, and
 // the one that is easy to get wrong is the first: grep without -E is a BASIC

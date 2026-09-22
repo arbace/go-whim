@@ -11,19 +11,21 @@
 #
 # A phase program has one of two shapes:
 #
-#   pipes/<pipeline><N>.sh                     WHOLE: run with the work dir, as a
-#                                              unit of its own.  Every slim phase,
-#                                              whim phase 0, anything synth.sh writes.
-#   pipes/<pipeline><N>-edit.sh                SPLIT: the cut, and
-#   pipes/<pipeline><N>-check.sh               the proof.  The sweep between is HERE.
+#   phase/NNN/make.sh                          WHOLE: run with the work dir, as a
+#                                              unit of its own (phase 0, 83, 84, 86,
+#                                              116 and 123).
+#   phase/NNN/edit.sh                          SPLIT: the cut, and
+#   phase/NNN/check.sh                         the proof.  The sweep between is HERE.
+#
+# NNN is the phase number in three digits (phasedir, tools/pipeline.sh).
 #
 # A STAGE is a run of split phases: every edit in order, on text no sweep has
 # touched since the stage began; ONE tools/sweep.sh; every check in order, on the
 # one swept text and its one binary.  A single split phase is a stage of one.
 #
 # WHY.  70-90% of a whim phase was its final sweep, a fixed cost paid in full by a
-# phase that deletes one line (WHIM-PLAN.md, section 1).  Eighty-two sweeps became
-# twelve.  Which phases may share a sweep is pipes/<pipeline>.stages, which says
+# phase that deletes one line, measured when the stages were planned.  Eighty-two
+# sweeps became twelve.  Which phases may share a sweep is phase/stages, which says
 # what each edit needs of its input and which checks need a boundary before a later
 # phase; tools/stages.sh --check refuses a schedule that breaks it, and runs here.
 #
@@ -45,8 +47,8 @@
 #                        `total`, `keep` and `old/whim-vim.c`.  An edit that starts
 #                        a background job waits for it before it exits.
 #
-# THE DELTA IS THE STAGE'S, and no check part states one.  pipes/<pipeline>.delta
-# declares what each phase changes; the lines up to a phase are the whole difference
+# THE DELTA IS THE STAGE'S, and no check part states one.  phase/NNN/delta declares
+# what each phase changes; the declarations up to a phase are the whole difference
 # from the pipeline's baselines at that phase, so the stage's last phase's contains
 # every earlier one's, and this driver runs the pipeline's checker (PDELTA) with
 # --phase <last> once, after the checks.
@@ -61,11 +63,11 @@ if [ "${1:-}" = "--parts" ]; then
     . tools/pipeline.sh "${2:?usage: phaserun.sh --parts <pipeline> <unit>}"
     u=${3:?usage: phaserun.sh --parts <pipeline> <unit>}
     for phase in $(seq "${u%-*}" "${u#*-}"); do
-        if [ -f "pipes/$IMPL$phase-edit.sh" ] && [ -f "pipes/$IMPL$phase-check.sh" ]; then
-            echo "pipes/$IMPL$phase-edit.sh"
-            echo "pipes/$IMPL$phase-check.sh"
-        elif [ -f "pipes/$IMPL$phase.sh" ]; then
-            echo "pipes/$IMPL$phase.sh"
+        if [ -f "$(phasedir "$phase")/edit.sh" ] && [ -f "$(phasedir "$phase")/check.sh" ]; then
+            echo "$(phasedir "$phase")/edit.sh"
+            echo "$(phasedir "$phase")/check.sh"
+        elif [ -f "$(phasedir "$phase")/make.sh" ]; then
+            echo "$(phasedir "$phase")/make.sh"
         fi
     done
     exit 0
@@ -78,14 +80,14 @@ first=${unit%-*}
 last=${unit#*-}
 
 # A whole program is a unit of its own and runs as it always did.
-if [ "$first" = "$last" ] && [ -f "pipes/$IMPL$first.sh" ] \
-        && ! { [ -f "pipes/$IMPL$first-edit.sh" ] && [ -f "pipes/$IMPL$first-check.sh" ]; }; then
-    exec "pipes/$IMPL$first.sh" "$work"
+if [ "$first" = "$last" ] && [ -f "$(phasedir "$first")/make.sh" ] \
+        && ! { [ -f "$(phasedir "$first")/edit.sh" ] && [ -f "$(phasedir "$first")/check.sh" ]; }; then
+    exec "$(phasedir "$first")/make.sh" "$work"
 fi
 
 phases=$(seq "$first" "$last")
 for p in $phases; do
-    if [ ! -f "pipes/$IMPL$p-edit.sh" ] || [ ! -f "pipes/$IMPL$p-check.sh" ]; then
+    if [ ! -f "$(phasedir "$p")/edit.sh" ] || [ ! -f "$(phasedir "$p")/check.sh" ]; then
         echo "  phaserun     $PIPE phase $p has no edit and check to run in stage $unit" >&2
         exit 2
     fi
@@ -113,11 +115,12 @@ f=$work/$PSOURCE
 # A ROOT OF ITS OWN, because checks are not independent in the working directory:
 # tools/phasecheck.sh writes .cache/symbols/last and thirty checks read it back by
 # that path, and the sweep's object is reused from .cache/compile.  A root is a
-# directory with tools/, pipes/, cmd/, internal/, go.mod and go.sum linked from this
+# directory with the tools, the phase programs, cmd/, internal/, go.mod and go.sum
+# linked from this
 # one, the baselines linked read-only, the Go build cache linked so whimtools is not
 # rebuilt, and a .cache/ of its own -- tools/verifypass.sh's construct, one level
-# down.  The phase's tree is its whim/ and its state is .cache/state/<tag><N>, the
-# same relative paths the check is always given.
+# down.  The phase's tree is its .tmp/whim-stage/ and its state is
+# .cache/state/<tag><N>, the same relative paths the check is always given.
 #
 # THE REPORTS ARE PRINTED IN PHASE ORDER, each whole, after they have all finished:
 # order is output, and a report interleaved with another is not one.  A phase that
@@ -153,7 +156,7 @@ if [ "$(tools/stages.sh "$PIPE" --mode "$unit")" = each ]; then
             printf '  %-12s %s  (edit and sweep cached for this input)\n' "edit $p" "$name"
         else
             printf '  %-12s %s\n' "edit $p" "$name"
-            "pipes/$IMPL$p-edit.sh" "$work" "$state"
+            "$(phasedir "$p")/edit.sh" "$work" "$state"
             tools/sweep.sh "$f"
             mkdir -p ".cache/edit/$TAG$p"
             tar --create --file "$ecache.state.part" -C "$state" --exclude=./input-lines --exclude=./symbols .
@@ -163,7 +166,7 @@ if [ "$(tools/stages.sh "$PIPE" --mode "$unit")" = each ]; then
         fi
         r=$roots/$p
         mkdir -p "$r/.cache/state" "$r/.reference" "$r/$PWORK"
-        for x in tools pipes cmd internal go.mod go.sum; do ln -s "$here/$x" "$r/$x"; done
+        for x in tools phase cmd internal go.mod go.sum; do ln -s "$here/$x" "$r/$x"; done
         for x in .cache/gobin .cache/gofork; do [ -e "$here/$x" ] && ln -s "$here/$x" "$r/$x"; done
         for b in baselines zero-baselines; do
             [ -e "$here/.reference/$b" ] && ln -s "$here/.reference/$b" "$r/.reference/$b"
@@ -178,7 +181,7 @@ if [ "$(tools/stages.sh "$PIPE" --mode "$unit")" = each ]; then
     printf '%s\n' $phases | xargs -P "$jobs" -I{} sh -c '
         r=$1/$2
         rm -f "$r/$4/$7"
-        ( cd "$r" && "pipes/$3$2-check.sh" "$4" ".cache/state/$5$2" \
+        ( cd "$r" && "phase/$(printf %03d "$2")/check.sh" "$4" ".cache/state/$5$2" \
           && { [ -f "$4/$7" ] || make -C "$4" >/dev/null 2>&1 \
                || { echo "  build        FAILED -- the binary the delta measures: make -C $4"; exit 1; }; } \
           && "$6" "$4/$7" "$4/$8" --phase "$2" ) > "$r.log" 2>&1
@@ -242,7 +245,7 @@ for p in $phases; do
         continue
     fi
     [ "$first" = "$last" ] || printf '  %-12s %s\n' "edit $p" "$name"
-    "pipes/$IMPL$p-edit.sh" "$work" "$state"
+    "$(phasedir "$p")/edit.sh" "$work" "$state"
     mkdir -p ".cache/edit/$TAG$p"
     tar --create --file "$ecache.state.part" -C "$state" --exclude=./input-lines .
     tar --create --file "$ecache.tree.part" -C "$work" .
@@ -267,16 +270,16 @@ for p in $phases; do
     rm -rf "$state/symbols"
     cp -r "$stage_state/symbols" "$state/symbols"
     [ "$first" = "$last" ] || printf '  %-12s %s\n' "check $p" "$(tools/phasename.sh "$p" "$PIPE" 2>/dev/null || true)"
-    "pipes/$IMPL$p-check.sh" "$work" "$state"
+    "$(phasedir "$p")/check.sh" "$work" "$state"
 done
 
-# The declared delta, once: pipes/<pipeline>.delta up to the stage's last phase is
-# the whole difference from the pipeline's baselines there, and so holds every
-# earlier phase's.  The checker is the pipeline's (PDELTA in tools/pipeline.sh):
-# tools/whimdelta.sh against slim-vim's baselines, zero's own against whim-vim's.
-# Never name a zero tool's path in this file: every whim edit's key reads what
-# this file names, so the name would put that tool in all of them.
-if [ -f "pipes/$IMPL.delta" ]; then
+# The declared delta, once: every phase's declaration up to the stage's last phase
+# is the whole difference from the pipeline's baselines there, and so holds every
+# earlier phase's.  The checker is the pipeline's (PDELTA in tools/pipeline.sh),
+# which reads the declarations and hands a phase from ZERO_FROM on to the checker of
+# the second baselines.  Never name that checker's path in this file: every edit's
+# key reads what this file names, so the name would put that tool in all of them.
+if [ -n "$PDELTA" ]; then
     if [ ! -f "$work/${PSOURCE%.c}" ] && ! make -C "$work" >/dev/null 2>&1; then
         echo "  build        FAILED -- the binary the delta measures: make -C $work"
         exit 1

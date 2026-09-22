@@ -129,7 +129,7 @@ func specOne(p pipeline.P, u, root, scratch string) string {
 	os.MkdirAll(filepath.Join(d, ".reference"), 0o755)
 	os.MkdirAll(filepath.Join(d, ".cache"), 0o755)
 	os.Symlink(filepath.Join(root, "tools"), filepath.Join(d, "tools"))
-	os.Symlink(filepath.Join(root, "pipes"), filepath.Join(d, "pipes"))
+	os.Symlink(filepath.Join(root, "phase"), filepath.Join(d, "phase"))
 	os.Symlink(filepath.Join(root, ".reference", "baselines"),
 		filepath.Join(d, ".reference", "baselines"))
 	if fileExists(filepath.Join(root, "slim-vim.c")) {
@@ -140,9 +140,9 @@ func specOne(p pipeline.P, u, root, scratch string) string {
 			filepath.Join(d, ".reference", "zero-baselines"))
 	}
 	// Phase 116's check builds q82's whim-vim.c from that boundary's tar.
-	if q82 := filepath.Join(root, ".build-whim", "q82.tar"); fileExists(q82) {
-		os.MkdirAll(filepath.Join(d, ".build-whim"), 0o755)
-		os.Symlink(q82, filepath.Join(d, ".build-whim", "q82.tar"))
+	if q82 := filepath.Join(root, ".build", "q82.tar"); fileExists(q82) {
+		os.MkdirAll(filepath.Join(d, ".build"), 0o755)
+		os.Symlink(q82, filepath.Join(d, ".build", "q82.tar"))
 	}
 
 	startT := time.Now()

@@ -24,37 +24,40 @@ slim-vim.c  --whim-->  whim-vim.c
 - **whim** (`whim.mk`) removes capability on purpose, 163 phases from 180,870
   lines to 77,306, and every phase **declares its delta in advance**; the harness
   proves it changed that and nothing else. It is two arcs and a coda:
-  - **phases 0-82** (`WHIM-GOAL.md` Part I) leave an editor with no runtime to
-    install, 86,583 lines at q82; their delta is `pipes/whim.delta`, against
+  - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
+    install, 86,583 lines at q82; their deltas are measured against
     `.reference/baselines`;
-  - **phases 83-128** (`WHIM-GOAL.md` Part II) turn it into an embeddable core:
+  - **phases 83-128** (`GOALS.md` Part II) turn it into an embeddable core:
     no filesystem, the host behind a line in the file, no libc the core names, the
-    text a tree. Their delta is `pipes/zero.delta`, against
-    `.reference/zero-baselines`, with another instrument. They were a pipeline of
-    their own, **zero**, numbered from 0, and every document and program here now
-    numbers them as this one does: zero phase N is phase N+83, and a Part II
-    heading gives both. `WHIM-GOAL.md` Part II, *Phases 83 to 128 as they
-    stand*, is the phase-by-phase account and belongs there, not here;
-  - **phases 129-162** (the last sections of Part II) remove from the core what
-    transpiling it to Go (`editor/editor.go`, `tx/FINDINGS.md`) had to work
-    around. Each declares nothing in `pipes/zero.delta`, and its check carries
-    a probe or a byte-identical binary for what the recording cannot see.
-    All but 142 change nothing the editor does; 142 drops the build date from
-    the version line, which only stderr shows. `tx/FINDINGS.md` maps each
-    finding to its phase.
+    text a tree. Their deltas are measured against `.reference/zero-baselines`,
+    with another instrument. `GOALS.md` Part II, *Phases 83 to 128 as they
+    stand*, is the account read across and belongs there, not here;
+  - **phases 129-162** (Part II too) remove from the core what transpiling it to
+    Go (`editor/editor.go`, `tx/FINDINGS.md`) had to work around. Each declares
+    nothing, and its check carries a probe or a byte-identical binary for what
+    the recording cannot see. All but 142 change nothing the editor does; 142
+    drops the build date from the version line, which only stderr shows.
+    `tx/FINDINGS.md` maps each finding to its phase.
 
   `ZERO_FROM=83` in `tools/pipeline.sh` is the line between the two arcs, stated
   once.
 
-The two documents follow the two arcs. **`WHIM-GOAL.md`** is Part I (phases 0-82:
-charter, rules, the sweep, the concept index, one section per phase), **Part II**
-(phases 83-128: the core's charter, what is measured from 83 on, the core's rules
--- cited as *core rule N*, and holding beside Part I's -- *Phases 83 to 128 as they
-stand*, *Adding a phase*, one section per phase) and *What comes next*. Every
-phase's section is `## Phase N — …`, which is where `tools/phasename.sh` reads its
-name. **`WHIM-PLAN.md`** is Part I, the plan that grouped phases 0-82 into stages
-and packages, and Part II, the plan phases 83 onwards were built from, its
-sections numbered II.1-II.6 (cited `WHIM-PLAN.md II.4c`).
+**A phase is a directory, `phase/NNN/`**, its number in three digits so that they
+sort: its program -- `make.sh`, or `edit.sh` and `check.sh` -- its `GOAL.md`,
+which opens `# Phase N — …` (where `tools/phasename.sh` reads its name) and says
+what the phase removes, why and what was measured, and its `delta`, the tokens it
+declares with `#` notes, or `# declares nothing`. `tools/declared.sh` reads a run
+of deltas in the one grammar both delta checkers take. A phase number is a plain
+integer everywhere but the directory name (`phasedir`, `tools/pipeline.sh`):
+shell arithmetic reads a padded `010` as octal.
+
+**`GOALS.md`** is what holds for every phase: Part I (phases 0-82: the charter,
+what is measured and the declared delta, the rules, the sweep, the concept index,
+an index of the phases) and Part II (phases 83 on: the core's charter, what is
+measured from 83 on, the core's rules -- cited as *core rule N*, and holding beside
+Part I's -- *Phases 83 to 128 as they stand*, *Adding a phase*, an index of the
+phases, and an appendix: the plan phases 83 onwards were built from, its sections
+numbered II.1-II.6 and cited `GOALS.md II.4c`), then *What comes next*.
 
 `whim-vim.c` is **produced, not edited**. `slim.sha` records the digest of the
 `slim-vim.c` the committed `whim-vim.c` came from.
@@ -72,8 +75,9 @@ internal/          the Go: sweep, canon, dead, cut/cutil (the cutters), edit (th
                    (one check per phase), ccx (the core's pointer casts and
                    evaluation order, partitioned), memo and pipeline (dormant Go
                    ports of the shell driver -- the shell is what runs)
-pipes/             the phases, whimN.sh or whimN-edit.sh + whimN-check.sh;
-                   whim.stages the schedule, whim.delta and zero.delta the deltas
+phase/NNN/         a phase: make.sh, or edit.sh + check.sh; GOAL.md; delta
+phase/stages       the schedule: the phase list, the stages, need and apart, the
+                   packages
 tools/             the driver (memo, phaserun, stages, implhash, verifypass,
                    specpass, oracle, snapshot, restore) and the three wrappers
                    that run Go: st.sh, sweep.sh, canon.sh
@@ -108,7 +112,7 @@ make whim-vim        # the C product's binary
   `whim-editor-check`, which refuses a tracked file that is not what the
   program writes. `tx/gen.sh` writes only when the content differs and never
   runs make: through `whim-vim.c`'s rule a check could start a pass. The binary
-  is `bin/whim`; not `whim`, which is the work tree `whim/`.
+  is `bin/whim`.
 
 - **The compile line is the boundary's**, in the work tree's `Makefile`. Up to
   q82 it is `gcc -O0 -static -s` (a static-PIE); phase 83 writes
@@ -139,9 +143,12 @@ end; the tier-3 cache key is the input boundary's digest **and**
 `tools/implhash.sh` of the implementation together.
 
 - **`implhash.sh` finds a phase's dependencies by grepping its program for
-  paths** -- `tools/…`, `pipes/…`, `cmd/…`, `internal/…`, and the root `go.mod`
+  paths** -- `tools/…`, `phase/…`, `cmd/…`, `internal/…`, and the root `go.mod`
   and `go.sum` -- one level through what those name, and a bare directory
-  mention (`internal/`) expands to every file under it. So **a phase names a
+  mention (`internal/`) expands to every file under it. **No tool or Go file
+  names the phase directory bare**, or every `GOAL.md` would be in every key it
+  reaches and a sentence of prose would re-key the pipeline; a phase's declared
+  tokens are hashed through `tools/declared.sh`, its notes and `GOAL.md` never. So **a phase names a
   tool as a PATH**, in a comment if it must, or an edit to that tool moves no key
   and a warm pass replays a stale boundary. The three wrappers name `cmd/`,
   `internal/`, `go.mod` and `go.sum`, which is how every Go file is in every key
@@ -151,7 +158,7 @@ end; the tier-3 cache key is the input boundary's digest **and**
   whim-pass`**: the prerequisite is the previous boundary *file*. `make
   whim-phase-N` (runs the stage holding N) and `make whim-tip` force it; after
   editing a phase that is not in the last stage, `make whim-repass`.
-- **Stages** (`pipes/whim.stages`): a run of phases whose end is the only
+- **Stages** (`phase/stages`): a run of phases whose end is the only
   boundary, in one of two modes. A **shared** stage (`stage A-B`, phases 1-82)
   runs every edit, ONE sweep, every check on the one swept text -- a sweep was
   most of a whim phase. `need P swept` and `apart P K` are declared, measured
@@ -161,13 +168,13 @@ end; the tier-3 cache key is the input boundary's digest **and**
   under `.cache/state/` on exactly the tree, state and symbol snapshot it had as a
   stage of one -- there the checks are most of a phase, and each was written
   against its own boundary, so no `need` or `apart` can break inside one. A
-  single-file program (`whimN.sh`) is always a stage of its own. Edits are cached
+  single-file program (`make.sh`) is always a stage of its own. Edits are cached
   by their input (`.cache/edit/`); in an each stage, with their sweep. The mode is
   in `tools/implhash.sh`'s key.
 - **A tier-3 replay copies the recorded digest rather than recomputing it**, so a
   warm pass agrees with the oracle whatever the oracle says. Only a run that
   recomputes can falsify a boundary: **`make whim-verify`** runs every stage at once on the recorded boundary before it, in scratch roots
-  that snapshot `tools/`, `pipes/`, `cmd/`, `internal/`, `go.mod` and `go.sum`,
+  that snapshot the tools, the phase programs, `cmd/`, `internal/`, `go.mod` and `go.sum`,
   and requires each recorded boundary back. Run it before a push and whenever a
   shared tool changes.
 - **`make whim-specpass`** speculates every stage at once on the previous pass's
@@ -175,7 +182,7 @@ end; the tier-3 cache key is the input boundary's digest **and**
   guess was right.
 - **A phase list with a gap refuses** (`memo: whim unit 123 wants q122…`): the
   input half of a key must be a function of the input.
-- The phase list is the `phases` line of `pipes/whim.stages` and not
+- The phase list is the `phases` line of `phase/stages` and not
   `tools/pipeline.sh`, because `pipeline.sh` is in every key.
 
 ## Checks
@@ -184,7 +191,7 @@ Every split phase's check part is a **dispatcher**: the shell header -- which is
 where a check's argument lives -- then `exec tools/st.sh check <phase> "$work"
 "$state"`, whose body is `internal/check/`. The dispatcher names, in a comment,
 every `tools/` path its Go runs, for `implhash.sh`. The whole-phase programs
-`whim86.sh`, `whim116.sh` and `whim123.sh` dispatch the same way.
+`phase/086/make.sh`, `phase/116/make.sh` and `phase/123/make.sh` dispatch the same way.
 
 - A check reads nothing from its edit's shell: the state directory
   (`.cache/state/q<N>`) holds the input's line count, the stage's symbol snapshot
@@ -215,7 +222,7 @@ passes: every delta is measured against it.
   `ref-argv.txt`, `ref-pty.txt`, `ref-term.txt` (`tools/zrecord.sh`) -- is
   recorded by **phase 83 from q82**, the tree it is handed, built with the compile
   line that tree carries; `tools/whimdelta.sh` hands every phase from 83 on to
-  `tools/zerodelta.sh`, which checks `pipes/zero.delta` against it.
+  `tools/zerodelta.sh`, which checks the declarations from 83 on against it.
 - **Never regenerate a baseline from a binary a later phase can reach**, which
   would agree by construction. `slim-vim.c` is the pipeline's immutable input, and
   nothing from 83 on can reach q82. The cost of the second: a change to what
@@ -253,16 +260,15 @@ between the editor core and its host**, marked by nothing else. `make editor.c`
 cuts there: a complete translation unit with 0 preprocessor lines, 0 errors under
 `-fsyntax-only`, and an interface of exactly the names the host defines --
 computed, never listed. The core names no libc function at all, holds no file
-descriptor of its own, and uses no floating point. `WHIM-PLAN.md` §II.4 is the
+descriptor of its own, and uses no floating point. `GOALS.md` §II.4 is the
 design.
 
 ## Adding a phase
 
-`WHIM-GOAL.md` Part II, *Adding a phase*, has the process; the next phase is 163. In
-short: write `pipes/whimN-edit.sh` (it calls `tools/st.sh edit whimN`, whose body
-is `internal/edit/`) and `pipes/whimN-check.sh`, declare its delta in
-`pipes/zero.delta`, add N to the `phases` line, a stage and a package in
-`pipes/whim.stages`, and `make whim-tip`, then `make whim-pass` to copy the
+`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 163. In
+short: make `phase/NNN/` with `edit.sh` (it calls `tools/st.sh edit whimN`, whose
+body is `internal/edit/`), `check.sh`, `GOAL.md` and its declared `delta`, add N to
+the `phases` line, a stage and a package in `phase/stages`, and `make whim-tip`, then `make whim-pass` to copy the
 product out. A split phase joins the last `each` stage (its edit is swept on its
 own and its check sees its own tree, so no `need` or `apart` can bind there); a
 single-file program is a stage of its own.

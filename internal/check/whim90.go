@@ -155,7 +155,7 @@ func Whim90(w io.Writer, args []string) error {
 		r.say("the libc surface moved, and this phase frees nothing:")
 		r.cont("  gone: %s ", strings.Join(comm23(before, after), " "))
 		r.cont("  came: %s ", strings.Join(comm23(after, before), " "))
-		r.cont("  open, access and read are the byte-reader phase's (WHIM-PLAN.md part II P8)")
+		r.cont("  open, access and read are the byte-reader phase's (GOALS.md II.3b P8)")
 		return harness.ErrReported
 	}
 	for _, keep := range []string{"open", "read", "close", "stat"} {

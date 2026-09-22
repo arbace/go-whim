@@ -66,7 +66,7 @@ func Names() []string {
 // cannot borrow internal/edit's driver.
 //
 // A check does not stop at its first disagreement.  It COLLECTS -- `fail` in
-// every heredoc in pipes/ -- so that a phase that is wrong in four ways says
+// every heredoc in the phase programs -- so that a phase that is wrong in four ways says
 // so in one run rather than over four twenty-minute gates.  say() prints as it
 // goes because ORDER IS OUTPUT; bad() appends; and the error at the end is the
 // exit status.

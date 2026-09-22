@@ -260,7 +260,7 @@ func Whim124(w io.Writer, args []string) error {
 	}
 	r.say("eight variants written: ca host_alloc always nullptr, cnb the offset " +
 		"never advances, ctiny a 256 KiB arena, cstdlib the output without <stdlib.h>, cf " +
-		"PHASE 35'S OWN control on the INPUT (host_free does nothing), probe the output " +
+		"PHASE 118'S OWN control on the INPUT (host_free does nothing), probe the output " +
 		"with the arena reported from host_exit, and din/dout the positional-format driver " +
 		"built into both")
 	jobs := map[string]*job{}
@@ -827,7 +827,7 @@ func Whim124(w io.Writer, args []string) error {
 				len(cnb[c.part]), len(cases[c.part]), c.part)
 		}
 		if len(cf[c.part]) > 0 {
-			return stop("PHASE 35 MEASURED ITS `cf` CONTROL AT 0 OF 102 AND IT MOVES %d "+
+			return stop("PHASE 118 MEASURED ITS `cf` CONTROL AT 0 OF 102 AND IT MOVES %d "+
 				"OF THE %d %s CASES HERE.  That control -- host_free doing nothing, "+
 				"built from the INPUT -- is the whole reason this phase could be "+
 				"written; if it moves a case, freeing was never free and something has "+
@@ -842,7 +842,7 @@ func Whim124(w io.Writer, args []string) error {
 		"bookkeeping does nothing", len(cnb["screen"]), len(cases["screen"]), len(cnb["memline"]),
 		len(cases["memline"]))
 	r.cont("  host_free doing NOTHING AT ALL moves 0 of %d screen cases and 0 of %d "+
-		"memline cases, and that is PHASE 35'S OWN CONTROL re-run on this phase's input "+
+		"memline cases, and that is PHASE 118'S OWN CONTROL re-run on this phase's input "+
 		"rather than a new claim -- on a corpus phase 118 did not have.  A leak is invisible "+
 		"to this corpus too, so the byte-identical recording above is NOT what says the "+
 		"freeing changed; it says the ALLOCATION did not.  What says the freeing changed is "+
@@ -976,7 +976,7 @@ func Whim124(w io.Writer, args []string) error {
 	}
 	r.say("<stdlib.h> IS NOW DEAD AND IT STAYS, which is measured rather than argued: malloc, free and realloc were "+
 		"its only users, and the output built with the directive DELETED is BYTE-IDENTICAL, %d bytes either way.  "+
-		"WHIM-GOAL.md lets a phase remove a directive; phase 96 is the precedent for declining, having measured "+
+		"GOALS.md lets a phase remove a directive; phase 96 is the precedent for declining, having measured "+
 		"that removing three was free and written \"the count stays 18\" into its own program.  Eleven stays "+
 		"eleven: this phase's subject is the allocator, the removal is free for whoever asks for it, and a phase "+
 		"that changes two things cannot say which one a difference came from", sizeOf(T("new")))

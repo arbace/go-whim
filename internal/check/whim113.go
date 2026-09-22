@@ -737,7 +737,7 @@ func Whim113(w io.Writer, args []string) error {
 		return stop("cC moves [%s] of the four signal probes and was measured to move exactly hup_msg, "+
 			"term_msg and hup_dbg", sg)
 	}
-	r.say("MUST DIFFER -- cC: exit_scroll's printf arm folded to out_char('\\n').  IT IS ALIVE AND PHASE 21 "+
+	r.say("MUST DIFFER -- cC: exit_scroll's printf arm folded to out_char('\\n').  IT IS ALIVE AND PHASE 104 "+
 		"WAS WRONG TO NAME IT A FOLLOW-UP BESIDE msg_puts_printf.  With NO SIGNAL AT ALL it moves [%s] -- each "+
 		"`:set t_ti=X` or `-T debug`, a paged `:set all`, exit -- and with a signal it moves [%s].  What moves "+
 		"is two bytes from FD 2 TO FD 1: out_char('\\n') emits `\\r` first, so the bytes on the wire are the "+
@@ -821,7 +821,7 @@ func Whim113(w io.Writer, args []string) error {
 	r.say("AND msg_use_printf() IS STILL ALIVE AFTER THE FOLD, measured on this "+
 		"phase's OWN output: TRUE %d times, every one at msg_clr_eos_force() and every "+
 		"one in %s -- one per mainerr row -- with `full_screen` FALSE %d of %d, so the "+
-		"body it guards is a no-op.  THIS IS PHASE 12'S KIND OF DEAD AND NOT PHASE 9'S: "+
+		"body it guards is a no-op.  THIS IS PHASE 95'S KIND OF DEAD AND NOT PHASE 92'S: "+
 		"the branch CAN be taken and never is, so the evidence owed is an instrument at "+
 		"the site, a control, and probes -- not an argument that the code cannot run",
 		trN, strings.Join(tr, " "), trN-fsN, trN)

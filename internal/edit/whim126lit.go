@@ -1,6 +1,6 @@
 package edit
 
-// The arguments of every swap() and cut() pipes/whim126-edit.sh makes, in source
+// The arguments of every swap() and cut() phase/126/edit.sh makes, in source
 // order, EXTRACTED from the heredoc by an AST walk rather than retyped.  They
 // are blocks of C carrying blank lines and 200-column statements, and a changed
 // byte in one is invisible to the compile and to a filtered read alike -- which

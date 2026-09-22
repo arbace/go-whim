@@ -4,13 +4,12 @@
 package memo
 
 import (
-	"bufio"
-	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -22,7 +21,7 @@ import (
 
 // depPath is tools/implhash.sh's extraction rule, unchanged.
 //
-// It greps a program's TEXT for literal paths under tools/ and pipes/.  That
+// It greps a program's TEXT for literal paths under tools, phase, cmd and internal.  That
 // is exact enough and keeps the invalidation narrow -- editing resolve.py
 // should re-run phase 5, not all ten -- and it is a blind grep rather than a
 // parser, which is why a Python `import` names nothing it can see and why the
@@ -33,7 +32,7 @@ import (
 // invisible to the key, which is the trap a Go rewrite has to face: a .go file
 // or an extensionless binary would not be hashed at all, and edits to it would
 // move no key.
-var depPath = regexp.MustCompile(`(tools|pipes|cmd|internal)/[A-Za-z0-9_/-]+\.(sh|txt|mk|patch|go|mod|sum|c)`)
+var depPath = regexp.MustCompile(`(tools|phase|cmd|internal)/[A-Za-z0-9_/-]+\.(sh|txt|mk|patch|go|mod|sum|c)`)
 
 // depDir is the other half of that rule and it was MISSING HERE, which is the
 // defect this comment exists to keep from recurring.
@@ -54,7 +53,7 @@ var depPath = regexp.MustCompile(`(tools|pipes|cmd|internal)/[A-Za-z0-9_/-]+\.(s
 // It also means a BARE `tools/` mention expands nothing, because the pattern
 // needs a second slash -- measured, `see tools/ for more` yields no match
 // while `and tools/go/ here` yields `tools/go/`.
-var depDir = regexp.MustCompile(`(?m)(tools|pipes|cmd|internal)/[A-Za-z0-9_/-]*/([^A-Za-z0-9_/.-]|$)`)
+var depDir = regexp.MustCompile(`(?m)(tools|phase|cmd|internal)/[A-Za-z0-9_/-]*/([^A-Za-z0-9_/.$%-]|$)`)
 
 // deps returns the paths a program names: the direct matches, plus every file
 // under any directory it names.
@@ -223,48 +222,20 @@ func ImplHash(p pipeline.P, unit string, editOnly bool) (string, error) {
 	return hex.EncodeToString(h.Sum(nil))[:16], nil
 }
 
-// deltaLines selects the lines of pipes/<pipeline>.delta this unit owns.
-//
-// A line beginning with a digit starts a phase's block, and the block runs
-// until the next such line -- so a continuation belongs to the phase above it.
-// Comments and blank lines are skipped.
+// deltaLines is the declarations of the unit's phases and every phase before
+// them (editOnly: the phase's own), as tools/declared.sh prints them from each
+// phase's phase/NNN/delta -- the tokens and not the notes.
 func deltaLines(p pipeline.P, unit string, editOnly bool) ([]byte, error) {
-	path := "pipes/" + p.Impl + ".delta"
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
 	n := unit
 	if i := strings.Index(unit, "-"); i >= 0 {
 		n = unit[i+1:]
 	}
-	limit, err := strconv.Atoi(n)
-	if err != nil {
+	if _, err := strconv.Atoi(n); err != nil {
 		return nil, err
 	}
-
-	var out bytes.Buffer
-	cur := 0
-	s := bufio.NewScanner(f)
-	s.Buffer(make([]byte, 0, 64*1024), 4*1024*1024)
-	for s.Scan() {
-		line := s.Text()
-		t := strings.TrimLeft(line, " \t")
-		if strings.HasPrefix(t, "#") || strings.TrimSpace(line) == "" {
-			continue
-		}
-		if len(line) > 0 && line[0] >= '0' && line[0] <= '9' {
-			f := strings.Fields(line)
-			if v, err := strconv.Atoi(f[0]); err == nil {
-				cur = v
-			}
-		}
-		if cur <= limit && (!editOnly || cur == limit) {
-			out.WriteString(line)
-			out.WriteByte('\n')
-		}
+	from := "0"
+	if editOnly {
+		from = n
 	}
-	return out.Bytes(), s.Err()
+	return exec.Command("sh", "tools/declared.sh", from, n).Output()
 }
