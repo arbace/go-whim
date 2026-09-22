@@ -8,9 +8,9 @@
 // The types, globals and every signature were generated from editor.c by
 // tx/skel (modernc.org/cc/v4); the function bodies and initial values were
 // written by hand, to tx/CONVENTIONS.md.  It is the transpilation of phase
-// 152's core: the functions phases 129-152 changed were re-transpiled from
+// 153's core: the functions phases 129-153 changed were re-transpiled from
 // their new C, the rest carried over.  Measured: built with `go build
-// ./editor`, tools/zerodelta.sh --phase 152 accepts it -- 102 screen cases,
+// ./editor`, tools/zerodelta.sh --phase 153 accepts it -- 102 screen cases,
 // 111 Ex rows, 30 command lines, the pty scenarios, 19 terminals and the
 // memline corpus, exactly as declared.
 

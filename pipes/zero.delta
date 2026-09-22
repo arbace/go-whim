@@ -1738,3 +1738,6 @@
 # through a pointer of its own type; a window-local option's global value is
 # the same w_allbuf_opt field, found by name.  The check's probes set and read
 # options of every kind and scope.
+
+# 153 declares nothing: free_one_termoption() compares as it did -- equal only
+# when both pointers are NULL -- without casting an address to a string.

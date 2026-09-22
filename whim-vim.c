@@ -51532,7 +51532,7 @@ free_one_termoption(char_u *var)
 
     for (p = &options[0]; p->fullname != nullptr; p++)
     {
-        if ((char_u *)p->var.ov_str == var)
+        if (p->var.ov_str == nullptr && var == nullptr)
         {
             if (p->flags & P_ALLOCED)
             {

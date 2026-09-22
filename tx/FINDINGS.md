@@ -4,11 +4,11 @@
 functions are Go functions with the same names and control flow: 60,823 lines,
 plus `editor/crt.go` (the C runtime it is written against, 274 lines) and
 `editor/host.go` (the host, from the Go runtime, 1,704 lines). It follows
-phase 152's core; how it got there from the first pass, which followed phase
+phase 153's core; how it got there from the first pass, which followed phase
 128's, is the section *The transpilation, brought to phase 149*.
 
 **It works.** `go build ./editor` gives an editor that `tools/zerodelta.sh …
---phase 152` accepts as exactly phase 152's declared delta: 102 screen cases,
+--phase 153` accepts as exactly phase 153's declared delta: 102 screen cases,
 111 Ex rows, 30 command lines, the pty scenarios, 19 terminals and the memline
 corpus. The first pass was measured the same way against phase 128, and
 there, byte for byte against the C binary's 122 files. The control: the same
@@ -81,7 +81,7 @@ the Go simpler and the patch smaller.
 
 ## Which findings are phases now
 
-Phases 129 to 152 (`WHIM-GOAL.md`, Part II) remove from the C what the
+Phases 129 to 153 (`WHIM-GOAL.md`, Part II) remove from the C what the
 transpilation worked around. Each declares no behavioural delta; 142's change
 is to stderr, which the recording excludes, and its check measures it:
 
@@ -97,9 +97,17 @@ is to stderr, which the recording excludes, and its check measures it:
 | 5 and 8, the mixed-type regstack and its byte accounting | 150, the regexp stack is three typed stacks |
 | 7, `void *` walked (`qsort`, `bsearch`) | 139, the core sorts and searches typed arrays |
 | 11, `goto` into `switch` or a block | 141, `regrepeat()` does not jump into a case; 143, `regatom()`, 144, `edit()` and 145, `check_termcode()` have no goto |
+| a pointer cast the Go could not write (`free_one_termoption()`) | 153, `free_one_termoption()` compares without a cast |
 | 12, signals | 147, `deathtrap()` runs at the host's next wait, woken by a self-pipe |
 | 13, `__DATE__ " " __TIME__` | 142, the version names no build date or time |
 | the eval value types the transpilation carried (`typval_T`, lists, dicts, classes) | 137, the changedtick is a number; 138, no parameter carries an eval value |
+
+A latent bug of vim's, kept on purpose: `free_one_termoption()` finds the
+option whose variable is its argument, but its one caller passes a terminal
+string's value, not its address. So it matches only when both are NULL, a row
+with no variable and a NULL `t_Co`, and then writes through the NULL. Phase
+153 states the comparison without a cast and changes nothing; fixing it would
+be a declared behaviour change.
 
 Not yet phases:
 - 7's `ga_data`;
