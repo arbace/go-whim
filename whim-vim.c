@@ -1463,6 +1463,8 @@ typedef struct block_hdr    bhdr_T;
 struct block_hdr
 {
     short_u     bh_id;
+    struct pointer_block *bh_ptr;
+    struct data_block *bh_data;
 };
 
 typedef struct buffblock buffblock_T;
@@ -32075,7 +32077,6 @@ enum { PB_COUNT_MAX = 255 };
 
 struct pointer_block
 {
-    bhdr_T      pb_hdr;
     short_u     pb_count;
     PTR_EN      pb_pointer[PB_COUNT_MAX];
 };
@@ -32091,14 +32092,13 @@ struct data_line
 
 struct data_block
 {
-    bhdr_T      db_hdr;
     linenr_T    db_line_count;
     DATA_LN     db_line[DB_LINE_MAX];
 };
 
 static_assert(sizeof(PTR_EN) == 16, "a pointer entry is one node reference and one line count");
 static_assert(PB_COUNT_MAX == (4096 - 8) / sizeof(PTR_EN), "the fanout the 4096-byte page gave, kept when the page went");
-static_assert(sizeof(DATA_BL) == 16 + DB_LINE_MAX * sizeof(DATA_LN), "a leaf is its tag, its count and its records");
+static_assert(sizeof(DATA_BL) == 8 + DB_LINE_MAX * sizeof(DATA_LN), "a leaf is its count and its records");
 
 enum { STACK_INCR = 5 };
 
@@ -32128,7 +32128,7 @@ ml_free_tree(bhdr_T *hp)
     }
     if (hp->bh_id == (('p' << 8) + 't'))
     {
-        pp = (PTR_BL *)(hp);
+        pp = hp->bh_ptr;
         for (i = 0; i < (int)pp->pb_count; ++i)
         {
             ml_free_tree(pp->pb_pointer[i].pe_block);
@@ -32172,7 +32172,7 @@ ml_open(buf_T *buf)
         goto error;
     }
     buf->b_ml.ml_root = hp;
-    pp = (PTR_BL *)(hp);
+    pp = hp->bh_ptr;
     pp->pb_count = 1;
     pp->pb_pointer[0].pe_line_count = 1;
 
@@ -32180,9 +32180,9 @@ ml_open(buf_T *buf)
     {
         goto error;
     }
-    ((PTR_BL *)(buf->b_ml.ml_root))->pb_pointer[0].pe_block = hp;
+    buf->b_ml.ml_root->bh_ptr->pb_pointer[0].pe_block = hp;
 
-    dp = (DATA_BL *)(hp);
+    dp = hp->bh_data;
     dp->db_line[0].dl_text = ml_alloc_line((char_u *)"", 1);
     if (dp->db_line[0].dl_text == nullptr)
     {
@@ -32355,7 +32355,7 @@ errorret:
             goto errorret;
         }
 
-        dp = (DATA_BL *)(hp);
+        dp = hp->bh_data;
 
         idx = lnum - buf->b_ml.ml_locked_low;
 
@@ -32428,7 +32428,7 @@ ml_append_int(buf_T       *buf, linenr_T    lnum, char_u      *line_arg, colnr_T
     }
     line_count = buf->b_ml.ml_locked_high - buf->b_ml.ml_locked_low;
 
-    dp = (DATA_BL *)(hp);
+    dp = hp->bh_data;
 
     if (dp->db_line_count >= DB_LINE_MAX && db_idx == line_count - 1 && lnum < buf->b_ml.ml_line_count)
     {
@@ -32442,7 +32442,7 @@ ml_append_int(buf_T       *buf, linenr_T    lnum, char_u      *line_arg, colnr_T
         db_idx = -1;
         line_count = buf->b_ml.ml_locked_high - buf->b_ml.ml_locked_low;
 
-        dp = (DATA_BL *)(hp);
+        dp = hp->bh_data;
     }
 
     ++buf->b_ml.ml_line_count;
@@ -32509,8 +32509,8 @@ ml_append_int(buf_T       *buf, linenr_T    lnum, char_u      *line_arg, colnr_T
             line_count_left = line_count;
             line_count_right = 0;
         }
-        dp_right = (DATA_BL *)(hp_right);
-        dp_left = (DATA_BL *)(hp_left);
+        dp_right = hp_right->bh_data;
+        dp_left = hp_left->bh_data;
         bp_left = hp_left;
         bp_right = hp_right;
 
@@ -32548,7 +32548,7 @@ ml_append_int(buf_T       *buf, linenr_T    lnum, char_u      *line_arg, colnr_T
             ip = &(buf->b_ml.ml_stack[stack_idx]);
             pb_idx = ip->ip_index;
             hp = ip->ip_block;
-            pp = (PTR_BL *)(hp);
+            pp = hp->bh_ptr;
             if (hp->bh_id !=  (('p' << 8) + 't') )
             {
                 iemsg(e_pointer_block_id_wrong_three);
@@ -32586,7 +32586,7 @@ ml_append_int(buf_T       *buf, linenr_T    lnum, char_u      *line_arg, colnr_T
                 {
                     goto theend;
                 }
-                pp_new = (PTR_BL *)(hp_new);
+                pp_new = hp_new->bh_ptr;
 
                 if (hp != buf->b_ml.ml_root)
                 {
@@ -32779,7 +32779,7 @@ ml_delete_int(buf_T *buf, linenr_T lnum, int flags)
         return FAIL;
     }
 
-    dp = (DATA_BL *)(hp);
+    dp = hp->bh_data;
     count = (long)(buf->b_ml.ml_locked_high)
                                         - (long)(buf->b_ml.ml_locked_low) + 2;
     idx = lnum - buf->b_ml.ml_locked_low;
@@ -32796,7 +32796,7 @@ ml_delete_int(buf_T *buf, linenr_T lnum, int flags)
             ip = &(buf->b_ml.ml_stack[stack_idx]);
             idx = ip->ip_index;
             hp = ip->ip_block;
-            pp = (PTR_BL *)(hp);
+            pp = hp->bh_ptr;
             if (hp->bh_id !=  (('p' << 8) + 't') )
             {
                 iemsg(e_pointer_block_id_wrong_four);
@@ -32880,7 +32880,7 @@ ml_setmarked(linenr_T lnum)
         return;
     }
 
-    dp = (DATA_BL *)(hp);
+    dp = hp->bh_data;
     dp->db_line[lnum - curbuf->b_ml.ml_locked_low].dl_marked = TRUE;
 }
 
@@ -32904,7 +32904,7 @@ ml_firstmarked(void)
             return (linenr_T)0;
         }
 
-        dp = (DATA_BL *)(hp);
+        dp = hp->bh_data;
 
         for (i = lnum - curbuf->b_ml.ml_locked_low; lnum <= curbuf->b_ml.ml_locked_high; ++i, ++lnum)
         {
@@ -32940,7 +32940,7 @@ ml_clearmarked(void)
             return;
         }
 
-        dp = (DATA_BL *)(hp);
+        dp = hp->bh_data;
 
         for (i = lnum - curbuf->b_ml.ml_locked_low; lnum <= curbuf->b_ml.ml_locked_high; ++i, ++lnum)
         {
@@ -32988,7 +32988,7 @@ ml_flush_line(buf_T *buf)
         }
         else
         {
-            dp = (DATA_BL *)(hp);
+            dp = hp->bh_data;
             idx = lnum - buf->b_ml.ml_locked_low;
 
             dp->db_line[idx].dl_text = new_line;
@@ -33005,34 +33005,48 @@ ml_flush_line(buf_T *buf)
 ml_new_data(void)
 {
     DATA_BL     *dp;
+    bhdr_T      *hp;
 
     dp =  (DATA_BL *)alloc_clear(sizeof(DATA_BL)) ;
     if (dp == nullptr)
     {
         return nullptr;
     }
+    hp =  (bhdr_T *)alloc_clear(sizeof(bhdr_T)) ;
+    if (hp == nullptr)
+    {
+        return nullptr;
+    }
 
-    dp->db_hdr.bh_id = (('d' << 8) + 'a');
+    hp->bh_id = (('d' << 8) + 'a');
+    hp->bh_data = dp;
     dp->db_line_count = 0;
 
-    return (bhdr_T *)dp;
+    return hp;
 }
 
     static bhdr_T *
 ml_new_ptr(void)
 {
     PTR_BL      *pp;
+    bhdr_T      *hp;
 
     pp =  (PTR_BL *)alloc_clear(sizeof(PTR_BL)) ;
     if (pp == nullptr)
     {
         return nullptr;
     }
+    hp =  (bhdr_T *)alloc_clear(sizeof(bhdr_T)) ;
+    if (hp == nullptr)
+    {
+        return nullptr;
+    }
 
-    pp->pb_hdr.bh_id = (('p' << 8) + 't');
+    hp->bh_id = (('p' << 8) + 't');
+    hp->bh_ptr = pp;
     pp->pb_count = 0;
 
-    return (bhdr_T *)pp;
+    return hp;
 }
 
     static bhdr_T *
@@ -33128,7 +33142,7 @@ ml_find_line(buf_T *buf, linenr_T lnum, int action)
             return hp;
         }
 
-        pp = (PTR_BL *)(hp);
+        pp = hp->bh_ptr;
         if (hp->bh_id !=  (('p' << 8) + 't') )
         {
             iemsg(e_pointer_block_id_wrong);
@@ -33234,7 +33248,7 @@ ml_lineadd(buf_T *buf, int count)
     {
         ip = &(buf->b_ml.ml_stack[idx]);
         hp = ip->ip_block;
-        pp = (PTR_BL *)(hp);
+        pp = hp->bh_ptr;
         if (hp->bh_id !=  (('p' << 8) + 't') )
         {
             iemsg(e_pointer_block_id_wrong_two);

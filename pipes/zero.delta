@@ -1707,3 +1707,7 @@
 
 # 145 declares nothing: an OSC response arriving over several reads is handled
 # in the jump's own if, and the code the jump skipped is its else, byte for byte.
+
+# 146 declares nothing: a memline node is a header naming its block rather than
+# the block's first member, so no node is cast to a block.  The memline corpus
+# and the check's split-and-undo probe see the tree.

@@ -79,7 +79,7 @@ the Go simpler and the patch smaller.
 
 ## Which findings are phases now
 
-Phases 129 to 145 (`WHIM-GOAL.md`, Part II) remove from the C what the
+Phases 129 to 146 (`WHIM-GOAL.md`, Part II) remove from the C what the
 transpilation worked around. Each declares no behavioural delta; 142's change
 is to stderr, which the recording excludes, and its check measures it:
 
@@ -90,7 +90,7 @@ is to stderr, which the recording excludes, and its check measures it:
 | 6, the input buffer as `char_u *` | 131, it is a `garray_T *` |
 | 9, the frees | 132, nothing frees; 134, the blocks that held only a free fold |
 | 3, `container_of` | 133, one buffer needs no hash table; 140, highlight groups are found in their array |
-| 4, `regprog_T` / `bt_regprog_T` | 135, one program type; 136, the engine called directly |
+| 4, struct prefix inheritance | 135, one regexp program type; 136, the engine called directly; 146, a memline node names its block |
 | 7, `void *` walked (`qsort`, `bsearch`) | 139, the core sorts and searches typed arrays |
 | 11, `goto` into `switch` or a block | 141, `regrepeat()` does not jump into a case; 143, `regatom()`, 144, `edit()` and 145, `check_termcode()` have no goto |
 | 13, `__DATE__ " " __TIME__` | 142, the version names no build date or time |
@@ -98,13 +98,14 @@ is to stderr, which the recording excludes, and its check measures it:
 
 Not yet phases:
 - 2, option `varp`;
-- 4's memline header;
 - 5 and 8, the regstack and `sizeof` accounting;
 - 7's `ga_data`;
 - 9's allocation-failure branches. These are dead only where the size is not
   0: `host_alloc()` never returns NULL, but `lalloc(0)` does, after an
   internal error, so each branch needs its size proved non-zero;
-- 12, signals.
+- 12, signals. Deferring `deathtrap()` to the host's next wait, as the Go host
+  does, opens a race between the flag test and `select()`; closing it needs
+  `pselect()` or a self-pipe, which moves the libc surface.
 
 `editor/editor.go` is still the transpilation of phase 128's core.
 
