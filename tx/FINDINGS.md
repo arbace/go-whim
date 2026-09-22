@@ -125,6 +125,27 @@ Not yet a phase:
 - 9's `ga_grow()` failure, which only an overflowing size can take and which
   the tests after it still guard.
 
+## What an emitter can assume
+
+`editor.go` was written by hand. An emitter that writes it from `editor.c`
+needs every construct to have a rule it can apply without reading the code
+around it. `tx/pre` runs `internal/ccx`'s partitions on an `editor.c`. On phase
+160's core:
+
+| `tx/pre` | What it shows | Left |
+| --- | --- | --- |
+| `casts` | every pointer cast is an allocation, bytes, a growarray's data, a null or no change | 0 of 4,885 |
+| `order` | no two operands with effects are unsequenced | 4 binary pairs, which gcc calls left to right as Go does (phase 155's check measures it in the disassembly) |
+| `unions` | every union member is read where its discriminant says it holds, and nothing a reader calls writes the discriminant first | 0 of 209 |
+| `garrays` | every growarray object has one element type | 0 of 15 objects |
+| `voids` | every `void *` is a function of bytes, an allocator or `ga_data` | 0 of 21 |
+
+The phases that made them hold are 155 to 160. The partitions for casts,
+unions and `void *` are required by phases 157, 158 and 160 on every pass, and
+so is order, in phase 155's own terms. Each was shown able to fail by
+mutations of the core: a cast outside its class, a pun, a discriminant written
+before a read, a growarray used as two types.
+
 ## The transpilation, brought to phase 149
 
 `editor/editor.go` is now the transpilation of phase 149's core. The first
