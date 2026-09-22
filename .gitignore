@@ -9,18 +9,19 @@ slim-vim
 whim-vim
 /bin/
 
-# The core half of zero-vim.c, cut at the first #include by `make editor.c`.
+# The core half of whim-vim.c, cut at the first #include by `make editor.c`.
 editor.c
 
-# What a pass leaves behind: a tar and a content digest per boundary.
+# Boundaries an earlier pass left: a tar and a digest each.  Nothing produces
+# them any more; `tools/st.sh build --to N` writes a tree when one is wanted.
 .build/
 
-# The recorded baselines and boundary digests.  Data a pass produces, and the one
-# thing worth keeping across passes: every delta is measured against it.
+# The recorded baselines every delta is measured against (`make whim-baselines`),
+# which is the one produced thing worth keeping: nothing else can re-derive it.
 .reference/
 
-# The memoize's tier 3, the Go binary and the patched cc/v4 fork -- all
-# content-keyed, so deleting it costs only the time to recompute.
+# The Go binary and the patched cc/v4 fork, content-keyed, plus what a sweep
+# compiles: deleting it costs only the time to build again.
 .cache/
 
 # Every temporary goes here, not the shared /tmp: the Makefile exports

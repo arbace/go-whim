@@ -48,6 +48,12 @@ func Run(o Options) ([]byte, error) {
 		return nil, err
 	}
 	path := filepath.Join(work, "whim-vim.c")
+	mk := filepath.Join(work, "Makefile")
+	if o.From > 0 {
+		if err := MakefileFor(o.From, mk); err != nil {
+			return nil, err
+		}
+	}
 
 	var text []byte
 	if o.From > 0 {
@@ -71,6 +77,11 @@ func Run(o Options) ([]byte, error) {
 		if text == nil {
 			return nil, fmt.Errorf("build: phase %d runs before the input was seeded", p.N)
 		}
+		if p.Makefile != "" {
+			if err := ApplyMakefile(p.Makefile, mk); err != nil {
+				return nil, fmt.Errorf("phase %d: makefile: %w", p.N, err)
+			}
+		}
 		if p.NoSource {
 			continue
 		}
@@ -78,7 +89,7 @@ func Run(o Options) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		text, err = runPhase(p, text, scratch, o.W)
+		text, err = RunPhase(p, text, scratch, o.W)
 		os.RemoveAll(scratch)
 		if err != nil {
 			return nil, fmt.Errorf("phase %d (%s): %w", p.N, p.Name, err)
@@ -99,11 +110,19 @@ func Run(o Options) ([]byte, error) {
 				bytes.Count(text, []byte("\n")))
 		}
 	}
+	// The work tree is left as the pipeline leaves it: the source and the
+	// makefile it was produced with, which is what a phase program run by hand
+	// (the baseline recorders, phase 0 and phase 83) is handed.
+	if err := os.WriteFile(path, text, 0o644); err != nil {
+		return nil, err
+	}
 	return text, nil
 }
 
-// runPhase applies one phase's steps.
-func runPhase(p Phase, text []byte, scratch string, w io.Writer) ([]byte, error) {
+// RunPhase applies one phase's steps, with scratch as the directory its @state
+// arguments name.  internal/verify hands it the phase's real state directory,
+// which is how a check gets the files the phase's edit writes for it.
+func RunPhase(p Phase, text []byte, scratch string, w io.Writer) ([]byte, error) {
 	for _, s := range p.Steps {
 		if s.Op == "sweep" {
 			// A phase that sweeps in the middle of its own edit: the same

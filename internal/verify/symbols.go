@@ -1,4 +1,4 @@
-package memo
+package verify
 
 import (
 	"bytes"

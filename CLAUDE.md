@@ -73,16 +73,21 @@ cmd/whimtools/     one binary, every tool a subcommand: whimtools <subcommand>
 internal/          the Go: sweep, canon, dead, cut/cutil (the cutters), edit (the
                    phases' edit programs), steps (every transformation a phase
                    names, as one table), build (the plan: what each phase does to
-                   the source, and the driver that runs it), harness (every
-                   recorder), check (one check per phase), ccx (the core's pointer
-                   casts and evaluation order, partitioned), memo and pipeline
-                   (dormant Go ports of the shell driver -- the shell is what runs)
-phase/NNN/         a phase: make.sh, or edit.sh + check.sh; GOAL.md; delta
-phase/stages       the schedule: the phase list, the stages, need and apart, the
-                   packages
-tools/             the driver (memo, phaserun, stages, implhash, verifypass,
-                   specpass, oracle, snapshot, restore) and the three wrappers
-                   that run Go: st.sh, sweep.sh, canon.sh
+                   the source, and the driver that runs it), verify (the same plan
+                   with every check and delta), harness (every recorder), check
+                   (one check per phase), ccx (the core's pointer casts and
+                   evaluation order, partitioned)
+phase/NNN/         a phase: GOAL.md, delta, and the programs it was written as --
+                   make.sh, or edit.sh + check.sh.  THE PROGRAMS NO LONGER RUN:
+                   internal/build carries what they did and internal/verify runs
+                   their checks; they are kept for their implementation notes
+                   until those move into GOAL.md
+phase/stages       the record the plan was read from: the stages, need and apart,
+                   the packages.  Prose now, not a manifest a program reads
+tools/             the instruments a check or a delta runs -- whimdelta, coredelta,
+                   zrecord, phasecheck, phasebuild, enumvals, symbols, declared --
+                   and the three wrappers that find the Go binary: st.sh,
+                   sweep.sh, canon.sh
 tools/templates/   whim.mk, the makefile phase 0 starts from, and core.mk, the one
                    phase 83 writes over it
 tools/patches/     cc-v4-c23.patch, two C23 productions modernc.org/cc/v4 lacks
@@ -107,7 +112,9 @@ make                 # all: bin/whim, the editor (editor/ built), through whim-v
                      # (produced only when slim-vim.c moved) and editor/editor.go
 make whim-build      # the 163 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
+make whim-verify     # every phase's check and every declared delta (hours)
 make whim-vim        # the C product's binary
+make help            # every target, with a line each
 ```
 
 - **The build and the verification are two paths.** `make whim-build` is what a
@@ -115,17 +122,17 @@ make whim-vim        # the C product's binary
   (`internal/steps`) and the sweep where the schedule put one -- applied in one
   process, in memory, with no boundaries, digests or cache. Measured: 163
   phases, **1,220 s**, 77,306 lines. It checks nothing about the editor; the
-  checks, recordings and declared deltas are `make whim-pass` and `make
-  whim-verify`, which cost hours. What holds the plan to the phase programs is
+  checks, recordings and declared deltas are `make whim-verify`, which costs
+  hours. What holds the plan to the phase programs is
   the product: `whim-build-check` requires the committed `whim-vim.c` back, byte
   for byte, from the committed `slim-vim.c`.
 
 - **`editor/editor.go` is generated** (`tx/gen.sh`, `tx/skel` on the cut
-  `editor.c`) and tracked. `whim-pass` writes it after copying `whim-vim.c`
-  out; `make editor/editor.go` writes it on its own; `whim-verify` ends with
+  `editor.c`) and tracked. `whim-build` writes it after producing `whim-vim.c`;
+  `make editor/editor.go` writes it on its own; `whim-verify` ends with
   `whim-editor-check`, which refuses a tracked file that is not what the
   program writes. `tx/gen.sh` writes only when the content differs and never
-  runs make: through `whim-vim.c`'s rule a check could start a pass. The binary
+  runs make: through `whim-vim.c`'s rule a check could start a build. The binary
   is `bin/whim`.
 
 - **The compile line is the boundary's**, in the work tree's `Makefile`. Up to
@@ -133,8 +140,8 @@ make whim-vim        # the C product's binary
   `tools/templates/core.mk` over it, `-static -no-pie -s`, and phase 84 adds
   `-fno-stack-protector` (`EXEC`, no `INTERP`, no dynamic section, no relocation
   -- 83 and 84 require all four). `whim.mk` states the product's flags once more
-  as `WHIMCFLAGS`/`WHIMLDFLAGS` and `whim-pass` refuses to copy the product out
-  when they differ from the last boundary's makefile.
+  as `WHIMCFLAGS`/`WHIMLDFLAGS`, for a checkout that only compiles the committed
+  `whim-vim.c` and has no work tree to read.
 - **No `-g`**, so a formatting change leaves the binary byte-identical -- the
   cheapest verification there is. `SOURCE_DATE_EPOCH=0` pins `__DATE__`/`__TIME__`
   when two builds are compared.
@@ -145,71 +152,57 @@ make whim-vim        # the C product's binary
 
 Every temporary goes in `.tmp/` (gitignored), never the shared `/tmp`: the
 `Makefile` exports `TMPDIR` there, so `mktemp`, Go's `os.MkdirTemp`, the
-harnesses' scratch homes and the verify and specpass scratch roots all land in
-it. Worktrees go in `.tmp/worktrees/`. Outside `make`, run with
+harnesses' scratch homes and a verification's work trees and state directories
+all land in it. Worktrees go in `.tmp/worktrees/`. Outside `make`, run with
 `TMPDIR=$PWD/.tmp`.
 
-## The memoize
+## The two paths
 
-A phase is a function of the tree it is handed, so a pipeline is `p_N = f_N(p_{N-1})`
-memoized by content. A **boundary** is a tar and a content digest of a stage's
-end; the tier-3 cache key is the input boundary's digest **and**
-`tools/implhash.sh` of the implementation together.
+A phase is a function of the tree it is handed, so the pipeline is
+`p_N = f_N(p_{N-1})` -- 163 of them, in order. **There is no memoize.** Its key
+was the input boundary's digest and the implementation's together, so a moved
+`slim-vim.c` missed every entry by construction; it paid only while the phases
+were being written, and that is over.
 
-- **`implhash.sh` finds a phase's dependencies by grepping its program for
-  paths** -- `tools/…`, `phase/…`, `cmd/…`, `internal/…`, and the root `go.mod`
-  and `go.sum` -- one level through what those name, and a bare directory
-  mention (`internal/`) expands to every file under it. **No tool or Go file
-  names the phase directory bare**, or every `GOAL.md` would be in every key it
-  reaches and a sentence of prose would re-key the pipeline; a phase's declared
-  tokens are hashed through `tools/declared.sh`, its notes and `GOAL.md` never. So **a phase names a
-  tool as a PATH**, in a comment if it must, or an edit to that tool moves no key
-  and a warm pass replays a stale boundary. The three wrappers name `cmd/`,
-  `internal/`, `go.mod` and `go.sum`, which is how every Go file is in every key
-  that runs Go. The rule cannot tell *I depend on X* from *I mention X*; it
-  over-includes, which costs CPU and never a wrong boundary.
-- **Editing an existing phase's program does not re-run it under `make
-  whim-pass`**: the prerequisite is the previous boundary *file*. `make
-  whim-phase-N` (runs the stage holding N) and `make whim-tip` force it; after
-  editing a phase that is not in the last stage, `make whim-repass`.
-- **Stages** (`phase/stages`): a run of phases whose end is the only
-  boundary, in one of two modes. A **shared** stage (`stage A-B`, phases 1-82)
-  runs every edit, ONE sweep, every check on the one swept text -- a sweep was
-  most of a whim phase. `need P swept` and `apart P K` are declared, measured
-  facts, and `tools/stages.sh` refuses a schedule that breaks them. An **each**
-  stage (`stage A-B each`, phases 87-162) sweeps after every edit, then runs every
-  check and delta at once (`CHECK_JOBS`, default 8), each in a root of its own
-  under `.cache/state/` on exactly the tree, state and symbol snapshot it had as a
-  stage of one -- there the checks are most of a phase, and each was written
-  against its own boundary, so no `need` or `apart` can break inside one. A
-  single-file program (`make.sh`) is always a stage of its own. Edits are cached
-  by their input (`.cache/edit/`); in an each stage, with their sweep. The mode is
-  in `tools/implhash.sh`'s key.
-- **A tier-3 replay copies the recorded digest rather than recomputing it**, so a
-  warm pass agrees with the oracle whatever the oracle says. Only a run that
-  recomputes can falsify a boundary: **`make whim-verify`** runs every stage at once on the recorded boundary before it, in scratch roots
-  that snapshot the tools, the phase programs, `cmd/`, `internal/`, `go.mod` and `go.sum`,
-  and requires each recorded boundary back. Run it before a push and whenever a
-  shared tool changes.
-- **`make whim-specpass`** speculates every stage at once on the previous pass's
-  boundaries, then runs the sequential pass, which hits the cache wherever the
-  guess was right.
-- **A phase list with a gap refuses** (`memo: whim unit 123 wants q122…`): the
-  input half of a key must be a function of the input.
-- The phase list is the `phases` line of `phase/stages` and not
-  `tools/pipeline.sh`, because `pipeline.sh` is in every key.
+- **`make whim-build`** applies the plan (`internal/build`) in one process, in
+  memory: no work trees, tars, digests or cache. Measured: 163 phases, **1,220
+  s**, 77,306 lines. **`make whim-build-check`** requires the committed
+  `whim-vim.c` back, byte for byte, from the committed `slim-vim.c` -- that is
+  what holds the plan to the phase programs it was read from, and it is total: a
+  step in the wrong order, a dropped argument or a missing sweep moves the bytes.
+- **`make whim-verify`** applies the same plan and, at every phase, writes what
+  that phase's program wrote for its check -- the source it was handed, that
+  source compiled, its enumerator values -- then runs the check
+  (`internal/check`) and the stage's declared delta. It costs hours; nothing on
+  the build path waits for it.
+- **The stage is semantics, not scheduling.** A shared stage runs every edit, ONE
+  sweep, then every check on that one swept text, with the symbol snapshot of the
+  text its FIRST edit was handed; an `each` stage sweeps after every edit and
+  gives every check its own tree. A check in the middle of a shared stage was
+  written against what that arrangement hands it, so `internal/verify` keeps it.
+  `need P swept` and `apart P K` were the facts that shaped it (`phase/stages`).
+- **`tools/st.sh verify --from N --src BOUNDARY`** verifies from a boundary you
+  already have, and `--to N` stops after the stage holding N. `tools/st.sh build
+  --to N --work D` leaves that tree, its makefile included, for a phase program
+  run by hand.
+- **The compile line is the boundary's**, and the work tree's makefile carries
+  it: phase 0 starts from `tools/templates/whim.mk`, phase 83 writes
+  `tools/templates/core.mk` over it, phase 84 adds `-fno-stack-protector`
+  (`internal/build`'s `Makefile` field). A binary built with any other line is
+  not the binary a check or a delta means.
+
 
 ## Checks
 
-Every split phase's check part is a **dispatcher**: the shell header -- which is
-where a check's argument lives -- then `exec tools/st.sh check <phase> "$work"
-"$state"`, whose body is `internal/check/`. The dispatcher names, in a comment,
-every `tools/` path its Go runs, for `implhash.sh`. The whole-phase programs
-`phase/086/make.sh`, `phase/116/make.sh` and `phase/123/make.sh` dispatch the same way.
+A check is `internal/check/whim<N>.go`, one per phase, taking the work tree and
+a state directory. `internal/verify` looks it up and runs it; the `check.sh`
+files that used to dispatch to it are kept for their notes and are not run.
 
-- A check reads nothing from its edit's shell: the state directory
-  (`.cache/state/q<N>`) holds the input's line count, the stage's symbol snapshot
-  and whatever the edit names for it (`old.c`, `old`, `words`, `keep`).
+- A check reads nothing from an edit's shell: the state directory holds the
+  input's line count, the stage's symbol snapshot and whatever the phase leaves
+  for it (`old.c`, `old`, `enums-before`, `words`, `keep`). What writes those is
+  `internal/build`'s plan -- the `OldSource`, `OldBinary`, `EnumVals` and
+  `OldDir` fields are the whole of what a phase program built for its check.
 - **A recording that fails says why** (`internal/check/recjob.go`): which
   recording, its exit status, its last lines. And **a dead recording is not a
   moved one**: a control whose record set is short refuses as incomplete rather
@@ -242,10 +235,12 @@ passes: every delta is measured against it.
   nothing from 83 on can reach q82. The cost of the second: a change to what
   phases 0-82 produce moves it, and phase 83 **refuses** rather than overwrite it
   -- name what moved before removing the set.
-- A tier-3 hit on phase 0 or 83 records nothing, so every target that can end a
-  pass ends with `whim-baselines-check`, which names the fix:
-  `rm -rf .reference/baselines .cache/q0 && make whim-phase-0`, and
-  `rm -rf .reference/core-baselines .cache/q83 && make whim-phase-83`.
+- `make whim-verify` asks for both sets before it starts (`whim-baselines-check`)
+  and names the fix: **`make whim-baselines`**, which builds the tree each
+  recorder needs -- `slim-vim.c` for phase 0, q82 for phase 83 -- and runs
+  `phase/000/make.sh` and `phase/083/make.sh` on it. A set that DIFFERS is not
+  the missing case: phase 83 refuses rather than overwrite, and what moved must
+  be named before the recording is thrown away.
 
 ## Harness rules that were each learned the hard way
 
@@ -259,10 +254,10 @@ passes: every delta is measured against it.
   execs.
 - **`set -e` changes what `( … ) &` means**, and a bare `wait` with no argument
   returns 0 whatever it waited for.
-- Under heavy parallel load a pty scenario can stall; a unit that fails a verify
+- Under heavy parallel load a pty scenario can stall; a stage that fails a verify
   and passes alone in less time is the load. Re-run it by itself:
-  `sh tools/verifypass.sh --one whim <unit> <scratch>` after removing that unit's
-  directory and result.
+  `tools/st.sh verify --from <first phase of the stage> --to <it> --src <the
+  boundary before it>`.
 - `-e -s` never initialises the terminal; anything about terminals, mappings or
   `:set` reporting needs a real pty. And silent Ex mode exits 0 on almost
   anything: check what a run *did*, never its status.
@@ -279,13 +274,13 @@ design.
 
 ## Adding a phase
 
-`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 163. In
-short: make `phase/NNN/` with `edit.sh` (it calls `tools/st.sh edit whimN`, whose
-body is `internal/edit/`), `check.sh`, `GOAL.md` and its declared `delta`, add N to
-the `phases` line, a stage and a package in `phase/stages`, and `make whim-tip`, then `make whim-pass` to copy the
-product out. A split phase joins the last `each` stage (its edit is swept on its
-own and its check sees its own tree, so no `need` or `apart` can bind there); a
-single-file program is a stage of its own.
+`GOALS.md` Part II, *Adding a phase*, has the process as it was; the next phase
+is 163, and no more are expected -- the pipeline's goal is met. What a new one
+takes now: `phase/NNN/GOAL.md` and `delta`, its edit in `internal/edit/` and its
+check in `internal/check/`, and an entry at the end of `internal/build`'s `Plan`
+naming its steps, its stage and whether a sweep follows. Then `make
+whim-build-check` (the product moves, so the tracked `whim-vim.c` and
+`editor/editor.go` are rewritten by `make whim-build`) and `make whim-verify`.
 
 ## Commit style
 

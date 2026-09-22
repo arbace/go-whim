@@ -19,21 +19,8 @@
 # output, 79,380 lines: 15.675s became 8.353s and the output was identical.
 # What is left is gcc, which neither version can avoid.
 #
-# Named here so tools/implhash.sh hashes the implementation into every phase's
-# key -- implhash greps for paths and does not know what a comment is, the same
-# mechanism the Python `import` comments use.  THE DIRECTORY, NOT A LIST OF
-# FILES: a list is curated and drifts, and this one did -- it named 18 of 128
-# .go files, four of which the sweep reaches (cutil/body.go, cutil/definition.go,
-# cutil/split.go, canon/strings.go) were in no list, and `go` was not even in
-# implhash's extension alternation, so editing the sweep moved no key at all
-# while gobuild.sh built a different binary.  The patch is named too and must
-# be: implhash follows two levels, sweep.sh is level 1 and gobuild.sh level 2,
-# so the patch gobuild.sh names is level 3 and was never reached.
-#
-#   cmd/ internal/                   every .go -- the binary
-#   go.mod go.sum                    the module it is built as
-#   tools/patches/cc-v4-c23.patch    what the fork is built with
-
+# The three lines it names -- cmd/, internal/, go.mod and go.sum -- are what
+# tools/gobuild.sh builds the binary from; this file only finds it.
 set -eu
 
 f=${1:?usage: sweep.sh <file.c>}

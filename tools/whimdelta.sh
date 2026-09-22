@@ -28,7 +28,9 @@
 # alone.  tools/phaserun.sh runs this tool for every stage and never needs to know.
 set -eu
 
-. tools/pipeline.sh
+# The line between the two arcs, stated once in Go (internal/build.CoreFrom) and
+# once here, because this script is shell and has nowhere else to read it from.
+CORE_FROM=83
 if [ "${1:-}" = "--declared" ] && [ "${2:-0}" -ge "$CORE_FROM" ]; then
     exec tools/coredelta.sh "$@"
 fi

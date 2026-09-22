@@ -12,6 +12,9 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/internal/harness"
+	"strconv"
+
+	"github.com/arbace/go-whim/internal/build"
 )
 
 func init() { register("whim86", Whim86) }
@@ -155,11 +158,9 @@ func Whim86(w io.Writer, args []string) error {
 
 	// --- 6. the bridge to whim's baselines --------------------------------
 	br := &rep{tag: "bridge", w: w}
-	wl, err := exec.Command("sh", "-c", `. tools/pipeline.sh && echo "$((CORE_FROM - 1))"`).Output()
-	if err != nil {
-		return harness.ErrReported
-	}
-	whimLast := strings.TrimSpace(string(wl))
+	// The last phase measured against whim's own baselines: the phase before
+	// the core's line (internal/build.CoreFrom).
+	whimLast := strconv.Itoa(build.CoreFrom - 1)
 	if fi, e := os.Stat(".reference/baselines/behaviour"); e == nil && fi.IsDir() {
 		o, e := exec.Command("sh", "tools/whimdelta.sh", bin, f, "--phase", whimLast).CombinedOutput()
 		if e != nil {

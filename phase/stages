@@ -1,17 +1,22 @@
-# The whim pipeline's stage manifest, read by tools/stages.sh.
+# The whim pipeline's stage manifest: THE RECORD, not the program.
 #
-# A STAGE is a run of phases between two sweeps: every phase's edit part in order,
-# ONE tools/sweep.sh, then every phase's check part -- tools/phaserun.sh runs it,
-# memo.sh caches it, whim.mk sequences it, and its boundary is the boundary of its
-# last phase.  Only stage ends are boundaries.
+# What runs is internal/build/plan.go, which carries each phase's stage, whether
+# that stage sweeps after every edit, and where the sweeps fall.  This file is
+# where those facts were measured and why, and it is kept for the `need` and
+# `apart` lines and the packages, which are statements about the phases that no
+# program can re-derive.
+#
+# A STAGE is a run of phases between two sweeps: every phase's edit in order, ONE
+# sweep, then every phase's check on that one swept text (`each` reverses it: a
+# sweep after every edit, and every check on its own tree).  It is not a caching
+# arrangement -- it decides what text a check is handed, so it is semantics, and
+# internal/verify keeps it.
 #
 # Every edge below was measured, when the stages were first planned or against
-# the split programs themselves, and every stage ends on the recorded boundary of
-# its last phase.  The manifest is CHECKED, not trusted, twice over:
-# tools/stages.sh refuses a schedule that breaks a declared requirement, and a
-# stage whose end does not reproduce its recording is a failure (tools/oracle.sh).
-# The second is what caught the one silent case (54 after 53 without its inner
-# sweep), and it is why the comparison at a stage end is never optional.
+# the split programs themselves.  What checks it now is the product: a build that
+# sweeps anywhere else does not give the committed whim-vim.c back
+# (`make whim-build-check`).  The one silent case this caught was 54 after 53
+# without its inner sweep.
 #
 # It also carries a second view of the same 83 phases, which changes nothing about
 # how they run: PACKAGES (at the end).  `package NAME P...` puts phases in a concept,

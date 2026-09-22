@@ -88,10 +88,10 @@ fi
 # is exactly why the patch is tracked and hashed into the key above.
 # EVERY GENERATED FILE IS WRITTEN UNDER A PRIVATE NAME AND RENAMED, because
 # more than one of these runs at once.  tools/zrecord.sh starts six harnesses in
-# parallel and each calls tools/st.sh, which calls this; and tools/verifypass.sh
-# runs 64 units at a time.  Writing fork.mod and fork.sum at their final names
+# parallel and each calls tools/st.sh, which calls this, and a verification runs
+# its checks beside each other.  Writing fork.mod and fork.sum at their final names
 # meant one builder truncating with `cp` what another was already reading.  Two
-# units of one cold `make whim-verify` failed that way, 44 of 46 passing around
+# units of one cold verification failed that way, 44 of 46 passing around
 # them, and NEITHER MESSAGE NAMES CONCURRENCY -- which is why the two states
 # were reproduced by hand rather than guessed at, each giving its unit's message
 # byte for byte:

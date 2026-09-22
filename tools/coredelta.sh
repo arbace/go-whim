@@ -6,7 +6,7 @@
 #        tools/coredelta.sh --declared N
 #
 # tools/whimdelta.sh's rule against a different instrument, and whimdelta.sh hands
-# every phase from CORE_FROM (tools/pipeline.sh) on to it.  --phase N records the
+# every phase from CORE_FROM on to it.  --phase N records the
 # binary with tools/zrecord.sh and hands the recording, the baselines and
 # the declarations from CORE_FROM on (tools/declared.sh) to zcompare, which
 # requires **exactly** the declared difference: every record that moved is
@@ -29,7 +29,9 @@
 # "Six commands differ" is a check.  "Some commands differ" is not.
 set -eu
 
-. tools/pipeline.sh
+# The line between the two arcs, stated once in Go (internal/build.CoreFrom) and
+# once here, because this script is shell and has nowhere else to read it from.
+CORE_FROM=83
 
 if [ "${1:-}" = "--declared" ]; then
     n=${2:?usage: coredelta.sh --declared N}

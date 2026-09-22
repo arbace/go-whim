@@ -1,27 +1,23 @@
 # tools/
 
-The shell half of the pipeline: the memoize driver, and the three wrappers
-through which every phase runs Go. Everything else is `cmd/whimtools` and
-`internal/`.
+What a check or a delta runs, and the three wrappers that find the Go binary.
+**The driver is gone**: the pipeline is `internal/build` (the plan and the
+phases) and `internal/verify` (the same plan with every check and delta), both
+reached as `tools/st.sh build` and `tools/st.sh verify`, and there is no
+memoize, no boundary and no oracle between them.
 
 | file | what it is |
 | --- | --- |
-| `memo.sh` | one unit of the pipeline: tier 3 (the recorded result), else tier 2 (the program) |
-| `phaserun.sh` | one stage. **shared** (`stage A-B`): the symbol snapshot, every edit in order, one sweep, every check, the delta. **each** (`stage A-B each`): every edit followed by its own sweep, then every check and its delta at once, each in a root of its own on exactly the tree it had as a stage of one |
-| `stages.sh`, `packages.sh` | read and check `phase/stages`: the stages and their mode, `need` and `apart`; the packages and `uses` |
-| `implhash.sh` | the implementation half of a key: a phase's programs, every path they name, the declared delta and the stage's mode |
-| `snapshot.sh`, `restore.sh` | a boundary: a tar and a content digest of a tree |
-| `oracle.sh` | compare a boundary with the recorded one in `.reference/whim-phases/` |
-| `verifypass.sh` | every unit at once on the recorded boundary before it (`make whim-verify`) |
-| `specpass.sh` | every unit at once on the previous pass's boundaries, into the cache (`make whim-specpass`) |
-| `pipeline.sh` | the pipeline's parameters: tag, work directory, source, delta checker, `CORE_FROM` (the phase where the second baselines begin), `phasedir` (a phase's directory, `phase/NNN`), and the phase list, read from `phase/stages` |
-| `st.sh`, `sweep.sh`, `canon.sh` | the wrappers that run `whimtools`; they name `cmd/`, `internal/`, `go.mod` and `go.sum` so every Go file is in every key that runs Go |
+| `st.sh`, `sweep.sh`, `canon.sh` | run `whimtools`: they build it if they must (`gobuild.sh`) and exec it. A phase program, a check, a makefile rule and a person at a prompt all reach the toolset the same way |
 | `gobuild.sh` | builds `whimtools`, content-keyed, with the patched `modernc.org/cc/v4` (`patches/cc-v4-c23.patch`) |
-| `phasecheck.sh`, `phasebuild.sh`, `symbols.sh` | what every check runs: the sweep's silence, linkage, the libc surface, the build |
-| `whimdelta.sh`, `coredelta.sh` | a stage's declared delta, every phase's `delta` read through `declared.sh`: against `.reference/baselines` for phases 0-82, and from `CORE_FROM` on `whimdelta.sh` hands the phase to `coredelta.sh`, against `.reference/core-baselines` |
-| `declared.sh` | the declarations of a run of phases, from their `phase/NNN/delta` files, in the one grammar both checkers read |
+| `whimdelta.sh`, `coredelta.sh` | the declared delta at a phase, read from the `phase/NNN/delta` files through `declared.sh`: against `.reference/baselines` for phases 0-82, and from `CORE_FROM` (83) on `whimdelta.sh` hands the phase to `coredelta.sh`, against `.reference/core-baselines` |
+| `declared.sh` | the declarations of a run of phases, in the one grammar both checkers read |
 | `zrecord.sh` | the instrument from phase 86 on: six parts, 122 records |
+| `phasecheck.sh`, `phasebuild.sh`, `symbols.sh` | what a check runs: the sweep's silence, linkage, the libc surface, the build |
 | `enumvals.sh` | every enumerator's value from DWARF, before and after |
-| `score.sh`, `residue.sh`, `phasename.sh` | reporting; `phasename.sh` reads a phase's name from the heading of its `GOAL.md`, and `residue.sh` reports phase patches, of which there are none here |
+| `score.sh` | bytes to store and symbols to provide, the input beside the product |
 | `templates/whim.mk`, `templates/core.mk` | the makefile phase 0 starts from, and the one phase 83 writes over it |
 | `musl-case.txt`, `musl-ctype.txt`, `nolibm_check.c` | data and a probe a phase reads |
+
+Every one of them runs from the repository root and writes its temporaries in
+`.tmp/`.

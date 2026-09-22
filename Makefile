@@ -15,8 +15,7 @@
 #                        twenty minutes, no cache and no checks
 #   make whim-build-check  the same build, required to give the committed bytes back
 #   make whim-vim        the C product's binary
-#   make whim-pass       the pipeline with every check and delta: the verifying path
-#   make whim-verify     every boundary, reproduced at once, and editor.go current
+#   make whim-verify     every phase's check and every declared delta
 #   make editor.c        the core, cut from whim-vim.c at its first #include
 #   make editor/editor.go  the core in Go, generated from editor.c
 #
@@ -36,15 +35,30 @@ SLIMVIM_RAW    = https://raw.githubusercontent.com/arbace/slim-vim
 
 .DEFAULT_GOAL := all
 
+# ==== the product
 .PHONY: all
-all: bin/whim
+all: bin/whim  ## the editor: fetch if the upstream moved, then bin/whim
 
 include whim.mk
+
+# --- help -----------------------------------------------------------------
+# Every target worth asking for carries its own one-line description, as a `##`
+# after the colon, and this reads them back.  A target with no `##` is
+# machinery -- a file rule, a guard, a helper another target calls -- and is
+# deliberately not listed.
+.PHONY: help
+help:
+	@printf '\n  \033[1mgo-whim\033[0m -- whim-vim.c = G(slim-vim.c), and editor/ is that core in Go\n\n'
+	@awk 'BEGIN { FS = ":.*## " } \
+	     /^# ==== / { printf "\n  \033[1m%s\033[0m\n", substr($$0, 8); next } \
+	     /^[a-zA-Z0-9_.\/%-]+:.*## / { printf "    %-22s %s\n", $$1, $$2 }' \
+	    $(MAKEFILE_LIST)
+	@printf '\n    %-22s %s\n\n' "make -n <target>" "what a target would run, without running it"
 
 # The editor: editor/ built -- editor.go as tx/skel writes it from whim-vim.c,
 # crt.go and host.go.  Go's own build cache decides what compiles again, so the
 # rule runs every time and costs nothing when nothing moved.
-bin/whim: editor/editor.go force
+bin/whim: editor/editor.go force  ## the editor binary alone, from editor/
 	@mkdir -p bin
 	@go build -o $@ ./editor
 	@printf '  %-12s %s bytes, the core in Go (editor/)\n' "$@" \
@@ -55,7 +69,7 @@ bin/whim: editor/editor.go force
 # arbitrary order -- so the question asked is the remote's head against
 # upstream.sha.  An unreachable remote with a slim-vim.c on disk builds what is
 # there and says so; with none on disk there is nothing to build from.
-slim-vim.c: force
+slim-vim.c: force  ## fetch the input at arbace/slim-vim's head, if it moved
 	@set -e; \
 	live=`GIT_TERMINAL_PROMPT=0 timeout 60 git ls-remote $(SLIMVIM_URL) $(SLIMVIM_BRANCH) 2>/dev/null | cut -f1` || true; \
 	if [ -z "$$live" ]; then \
@@ -80,17 +94,18 @@ slim-vim.c: force
 # whim.mk decides by slim-vim.c's digest; it must see the fetched file.
 whim-vim.c: slim-vim.c
 
+# ==== housekeeping
 .PHONY: clean
-clean:
+clean:  ## remove the built binaries
 	rm -f slim-vim whim-vim bin/whim
 
 .PHONY: clean-cache
-clean-cache:
+clean-cache:  ## remove .cache/ (the Go build cache and the boundaries)
 	rm -rf .cache
 
 # Bytes to store and symbols to provide, the input and the product side by side.
 .PHONY: score
-score:
+score:  ## bytes to store and symbols to provide: the input beside the product
 	@WHIMCFLAGS='$(WHIMCFLAGS)' WHIMLDFLAGS='$(WHIMLDFLAGS)' tools/score.sh
 
 force: ;
