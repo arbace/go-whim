@@ -77,6 +77,26 @@ the Go simpler and the patch smaller.
 13. **`__DATE__ " " __TIME__`** in the version string became the constant the
     pinned build (`SOURCE_DATE_EPOCH=0`) produces.
 
+## Which findings are phases now
+
+Phases 129 to 136 (`WHIM-GOAL.md`, Part II) remove from the C what the
+transpilation worked around, each declaring no behavioural delta:
+
+| Finding | Phase |
+| --- | --- |
+| 1, `p_emoji` | 129, `p_emoji` is an `int` |
+| 10, `(pos_T *)-1` | 130, the tests go |
+| 6, the input buffer as `char_u *` | 131, it is a `garray_T *` |
+| 9, the frees | 132, nothing frees; 134, the blocks that held only a free fold |
+| 3, `container_of` (the buffer half) | 133, one buffer needs no hash table |
+| 4, `regprog_T` / `bt_regprog_T` | 135, one program type; 136, the engine called directly |
+
+Not yet phases: 2 (option `varp`), 3's highlight-name half, 4's memline
+header, 5 and 8 (the regstack and `sizeof` accounting), 7 (`void *` and
+`ga_data`), 9's allocation-failure branches, 11 (`goto` into `switch`), 12
+(signals) and 13 (`__DATE__`). `editor/editor.go` is still the transpilation
+of phase 128's core.
+
 ## Not done here
 
 The Go is faithful, not idiomatic: `Ptr[T]` everywhere a C pointer walked,

@@ -15184,6 +15184,157 @@ every keystroke reaches its text through the function it rewrites. And 127 and 1
 **weakest** kind, phases 97 and 98's: the code changes, the binary moves, and eleven and
 twelve controls carry each of them because nothing else can.
 
+## Phase 129 — `p_emoji` is an `int`
+
+The first phase that comes of transpiling `editor.c` to Go (`tx/FINDINGS.md`,
+finding 1). `'emoji'` is a boolean option, and the options table writes and
+reads every boolean option through an `int *` — `set_option_default()` stores
+`*(int *)varp`, as `do_set_option_bool()` and `set_bool_option()` do — but its
+variable was declared `char_u *`. The C got away with it: the static starts
+zeroed and the `int` lands in the pointer's low bytes, so
+`utf_char2cells()`'s `if (p_emoji && ...)` tests the right thing. The Go
+transpilation cannot say that, and its first run panicked in
+`set_option_default()`. The phase declares the variable what every writer and
+the one reader already take it to be; one line, no line added or removed.
+
+**Declared delta: nothing.** No recorded case types an emoji. The check's
+evidence is a partition and a probe:
+
+- **every `P_BOOL` row of `options[]` with a global variable names an `int`**
+  on the output; on the input exactly one did not, `'emoji'`. The check fails
+  if another appears or this one comes back.
+- `p_emoji` is its declaration, its row and its reader, and nothing else.
+- the libc surface is the set the stage was handed.
+- **the probe**: `iab<U+1F600>cd<Esc>:q!` is written in the same bytes by the
+  binary the phase was handed and the one it made; and **the control**,
+  `+set noemoji`, writes different bytes, so the probe sees the option at all.
+
+## Phase 130 — the `(pos_T *)-1` tests go
+
+`get_address()`, `nv_gomark()` and `nv_pcmark()` each compared a mark lookup
+with `(pos_T *)-1`, the value vim once returned for "a mark in another file".
+Nothing in this tree returns it: `getmark()` is `getmark_buf_fnum()`, which
+returns a pointer into the buffer or NULL, and `movechangelist()` returns NULL
+or an element of `b_changelist`. So each test was an `if` never taken, and
+`cutil.FoldNever` folds the three away, keeping the branch that runs. The Go
+transpilation had written each as `if false` (`tx/FINDINGS.md`, finding 10).
+
+**Declared delta: nothing.** The check proves the tests were dead from the
+input — every mention of `(pos_T *)-1` is one of the three tests, and no
+`return` of the four functions can produce it — and that the file lost
+exactly the tests, their bodies and their `else` lines, counted from the input.
+Its probe drives every way the three sites are reached, `'a`, `` `a ``, `:'a`
+and `g;`, on both binaries; each control (an unset mark, an empty change list)
+must write different bytes.
+
+## Phase 131 — the saved input buffer is a `garray_T *`
+
+`save_typeahead()` keeps what `inbuf[]` held in `tasave_T.save_inputbuf`,
+made by `get_input_buf()`: a `garray_T`, allocated and filled — then cast to
+`char_u *` to be stored, and cast back by `set_input_buf()`. Nothing read it
+as characters. The Go transpilation could not carry a growarray in a string
+pointer and registered it under a one-byte key (finding 6). The field, both
+prototypes, the definition and the return now say `garray_T *`, and
+`set_input_buf()` takes the growarray it always cast its argument to.
+
+**Declared delta: nothing.** The check's partition: every line naming the
+saved input buffer is one of seven, each saying `garray_T` where the input
+said `char_u`; the two casts are gone and no other appeared; and the silent
+compile is itself the proof that nothing passed a string where the growarray
+goes.
+
+## Phase 132 — nothing frees
+
+Since phase 124 `host_free()` has an empty body — the host's arena is a bump
+allocator, and a garbage collector is assumed — so `vim_free()`, a NULL test
+around it, does nothing observable, and neither does any call to either. The
+Go transpilation dropped every one (finding 9); this is the C catching up. All
+273 calls in the core go: a call whose argument has no side effect goes
+entirely, and the two whose argument decrements a counter
+(`termcodes[--tc_len].code`, `uep->ue_array[--n].ul_line`) become that
+decrement. `vim_free()` is then called by nothing and the sweep takes it; the
+host keeps `host_free()`, which its formatter still calls.
+
+A local whose only reader was a free is then only ever given values, which gcc
+calls *set but not used* and the sweep leaves: the statements that set it are,
+to gcc, its uses. So the phase also applies `edit.DeadStores`: a local declared
+alone on its line in a function body, every other mention of which is a
+statement `name = E;` with `E` only reading, goes with its stores. On q128 it
+finds nothing, on this phase's edit exactly one (`taep` in
+`clear_hl_tables()`) -- the same set gcc warns about, measured.
+
+**Declared delta: nothing.** The check proves the premise from the input —
+`host_free()`'s body is empty, `vim_free()` only calls it — and then **computes
+the whole output**: the input with every call replaced by the same rule
+(`edit.W132Rule`), and `vim_free()`'s definition and prototype removed, must be
+the output byte for byte, the dead stores taken by the same function. It also
+reports the blocks the calls leave empty,
+which a later phase can fold once each condition is shown to have no side
+effect.
+
+## Phase 133 — one buffer needs no hash table
+
+Whim has one buffer: `buflist_new()` is called once, at startup, and `curbuf`
+is that buffer or NULL. So `buf_hashtab` held one entry, and
+`buflist_findnr()` — its one reader, called only by `setmark_pos()` — found
+the buffer by subtracting the key's offset from the key inside it, the
+`container_of` the Go transpilation had to keep an owner registry for
+(finding 3). `buflist_findnr()` becomes "the current buffer, if its number is
+`nr`"; the table's init, add and remove go, and the sweep takes the two
+helpers, the table and `b_key`.
+
+**Declared delta: nothing.** The check proves from the input, as partitions
+of assignments, that `curbuf` is only ever `nullptr`, `curwin->w_buffer` or
+`buflist_new()`'s result and `w_buffer` only `nullptr` or `curbuf`, so the
+current buffer is the one buffer whenever a mark can be set. Its probe sets
+and jumps to the marks that go through `buflist_findnr()` (`m[`, `m]`,
+`m"`); the control jumps to a mark never set.
+
+## Phase 134 — the empty blocks fold
+
+Phase 132 left 33 blocks with nothing in them: `if (allocated) { vim_free(p); }`
+became `if (allocated) { }`; with those earlier phases left, 49 fold. An empty block guarded by a condition that only
+reads (no call, no assignment) does nothing, and goes; so does an empty
+`else`, and an empty `else if` that ends its chain. Loops are kept. A flag
+that only such a condition read is then only given values, and goes with its
+stores (`edit.DeadStores`, phase 132's): `did_intro`,
+`event_cmdlineleavepre_triggered`, `mustfree` and `free_str`. The two rules
+alternate until neither changes anything (`edit.W134Rule`).
+
+**Declared delta: nothing.** The check **computes the whole output**: the
+input's core with `edit.W134Rule` applied, run through the real sweep, must
+be the output byte for byte. It names what the sweep took beyond the blocks,
+and requires every empty block left to be one the rule must keep.
+
+## Phase 135 — one regexp program type
+
+vim had two regexp engines, and `regprog_T` was the header both programs
+began with: `bt_regprog_T` repeated its five fields and added its own, and
+the code cast between the two. Whim kept one engine, so every `regprog_T` is
+a `bt_regprog_T` and every cast is to itself; the Go transpilation, which
+cannot cast a struct to the larger one it heads, kept a registry
+(finding 4). `regprog_T` takes the backtracking fields, the casts go, and
+`bt_regprog_T` is not a name any more.
+
+**Declared delta: nothing**, and more: every field keeps its offset, so the
+check requires the input and the output, built with the boundary's flags and
+`SOURCE_DATE_EPOCH=0`, to be **the same bytes**.
+
+## Phase 136 — the engine is called directly
+
+With one engine, `bt_regengine`'s four function pointers always hold
+`bt_regcomp`, `bt_regfree`, `bt_regexec_nl` and `bt_regexec_multi`, and every
+program's `engine` points at it — `bt_regcomp()`, the only function that
+makes a program, sets it. So the four calls through the table call known
+functions. They name them, `bt_regcomp()` stops recording an engine, and the
+sweep takes the table, the field and `regengine_T`.
+
+**Declared delta: nothing.** The check proves the premise from the input —
+the table's initialiser in field order, one assignment of `->engine` — and
+requires the three names gone. Its probe runs a search, a single-line
+substitution with back-references and a multi-line one on both binaries;
+each control, a pattern matching nothing, must write different bytes.
+
 # What comes next
 
 Not yet done, and each one only when it is asked for:

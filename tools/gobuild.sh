@@ -42,10 +42,13 @@ patch=tools/patches/cc-v4-c23.patch
 
 # The key is every tracked input to the build.  find is sorted so the digest
 # does not depend on directory order.
+# -L: a verify root or an each stage's check root LINKS cmd/ and internal/, and
+# find does not follow a starting-point link without it -- so the key covered no
+# Go file there, and a root found whatever binary the empty key last named.
 key=$(
     {
         cat go.mod go.sum "$patch"
-        find cmd internal -name '*.go' -type f | LC_ALL=C sort | xargs cat
+        find -L cmd internal -name '*.go' -type f | LC_ALL=C sort | xargs cat
     } | sha256sum | cut -c1-16
 )
 

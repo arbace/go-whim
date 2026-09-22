@@ -88,12 +88,18 @@ deps() {
         grep -oE 'go\.(mod|sum)' | sort -u || true
     # A bare directory mention: `internal/` matches, and `tools/patches/x.patch`
     # does not, because the character after the slash must not continue a path.
+    # UNTIL THE PHASES FROM 129 ON WERE WRITTEN THE PATTERN COULD NOT MATCH IT:
+    # it demanded a second slash after the one it had consumed, so `internal/`
+    # expanded to nothing, and a change to Go no program named by path moved no
+    # key -- measured: a check of stage 13-41 edited, its key unmoved, and an
+    # edit served from the cache after its Go had changed.  find follows links
+    # (-L) because verify and check roots link these directories.
     # Files are emitted, never the directory, so the caller's `[ -f ]` guards
     # and its second level keep working unchanged.
-    grep -oE '(tools|pipes|cmd|internal)/[A-Za-z0-9_/-]*/([^A-Za-z0-9_/.-]|$)' "$1" 2>/dev/null |
+    grep -oE '(tools|pipes|cmd|internal)/([A-Za-z0-9_-]+/)*([^A-Za-z0-9_/.-]|$)' "$1" 2>/dev/null |
         sed 's#[^/]$##' | sort -u |
         while read -r d; do
-            [ -d "$d" ] && find "$d" -type f
+            [ -d "$d" ] && find -L "$d" -type f
         done | LC_ALL=C sort
     true
 }

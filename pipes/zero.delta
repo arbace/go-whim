@@ -1637,3 +1637,32 @@
 # DB_LINE_MAX records and a branch a fixed array of PB_COUNT_MAX entries, so a node is
 # sized for its worst case and not for what it holds.  That is a representation
 # question and not a paging one, and it is nobody's phase yet.
+
+# 129 declares nothing: p_emoji becomes the int every writer and its one reader
+# already take it to be, and no recorded case types an emoji.  The check's
+# probe and its noemoji control are the evidence the recording cannot give.
+
+# 130 declares nothing: the three tests for (pos_T *)-1 were never taken -- nothing
+# in this tree returns it -- and fold away keeping the branch that runs.  The
+# probe of every way the three sites are reached ('a, `a, :'a, g;) and its
+# unset-mark controls are the check's.
+
+# 131 declares nothing: the saved input buffer was always a garray_T cast to
+# char_u * and back; it is declared what it is.
+
+# 132 declares nothing: host_free() has had an empty body since phase 124, so no
+# call to it or to vim_free() did anything.  All 273 go; the check computes the
+# whole output from the input and compares it byte for byte.
+
+# 133 declares nothing: whim has one buffer, so buflist_findnr() answers "the
+# current buffer, if its number is nr" and the buffer hash table goes.  The
+# check's mark probes (m[ m] m" and their jumps) are what setmark_pos() reaches.
+
+# 134 declares nothing: the blocks phase 132 left empty, each guarded by a
+# condition that only reads, fold away; the check computes the whole output.
+
+# 135 declares nothing: regprog_T and bt_regprog_T become one type with the same
+# layout, and the input and the output build to the same bytes.
+
+# 136 declares nothing: the four calls through bt_regengine call the functions
+# it always held; the check's search and substitution probes are the evidence.
