@@ -15943,6 +15943,43 @@ without it. It requires `VoidPtrs` and `GrowArrays` to leave nothing. It probes
 a command typed at `:`, a `<Cmd>` mapping, `:append` and `:@`; each control
 moves.
 
+## Phase 161 — no goto jumps into a block
+
+`ml_get_buf()` answers a line it cannot give with `"???"`. That answer was the
+tail of its first `if` block, labelled `errorret`, and a `goto` further down
+jumped back into it when the memline could not find a line. Go's `goto` may
+not jump into a block. Of the core's 182 gotos, this was the only one that did
+(`internal/ccx`'s `Gotos`). Every other goto is legal Go once a function's
+locals are declared at its top.
+
+The tail becomes `ml_get_invalid()`, with the static buffer it returns, and
+both paths return what it returns.
+
+**Declared delta: nothing.** The check requires `Gotos` to leave exactly that
+goto on the input and nothing on the output. It requires the new function to
+be the old tail statement for statement. The error path is vim's internal
+error for a line the memline cannot give, and no key reaches it, so no probe
+can; the textual identity is the evidence for it. The probe draws, joins,
+moves through and deletes lines, and the control moves.
+
+## Phase 162 — no two function pointers are compared
+
+`do_cmdline()` asked `getline_equal(fgetline, getexline)` four times: whether
+its lines come from the command line typed at `:`. That was the one comparison
+of two function pointers in the core, and Go's func values compare only with
+`nil`. The two callers that pass `getexline`, `nv_colon()` and `ex_at()`, now
+say so with a new flag, `DOCMD_GETEXLINE`, and `do_cmdline()` tests the flag.
+`do_one_cmd()`, which is handed the flags, reads only `DOCMD_VERBOSE` of them.
+`getline_equal()` is left with no caller, and the sweep takes it.
+
+**Declared delta: nothing.** The check requires `internal/ccx`'s
+`FuncCompares` to leave exactly that comparison on the input and nothing on
+the output. It requires the flag to be set by exactly the calls that pass
+`getexline`, its bit to be no other `DOCMD` flag's, and `do_one_cmd()` to read
+only `DOCMD_VERBOSE`. It probes `@:` after a command typed at `:`, and after a
+`<Cmd>` mapping, which must not replace the last command line. Each control
+moves.
+
 # What comes next
 
 Not yet done, and each one only when it is asked for:

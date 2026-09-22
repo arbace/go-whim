@@ -320,7 +320,6 @@ func check_fname() int32
 func msg_verbose_cmd(lnum linenr_T, cmd Ptr[byte])
 func do_cmdline_cmd(cmd Ptr[byte]) int32
 func do_cmdline(cmdline Ptr[byte], fgetline func(int32, int32, getline_opt_T) Ptr[byte], flags int32) int32
-func getline_equal(fgetline func(int32, int32, getline_opt_T) Ptr[byte], func_ func(int32, int32, getline_opt_T) Ptr[byte]) int32
 func do_one_cmd(cmdlinep *Ptr[byte], flags int32, fgetline func(int32, int32, getline_opt_T) Ptr[byte]) Ptr[byte]
 func ex_errmsg(msg Ptr[byte], arg Ptr[byte]) Ptr[byte]
 func ex_range_without_command(eap *S_exarg) Ptr[byte]
@@ -709,6 +708,7 @@ func ml_get_pos_len(pos *pos_T) colnr_T
 func ml_get_curline_len() colnr_T
 func ml_get_cursor_len() colnr_T
 func ml_get_buf_len(buf *S_file_buffer, lnum linenr_T) colnr_T
+func ml_get_invalid(buf *S_file_buffer, lnum linenr_T) Ptr[byte]
 func ml_get_buf(buf *S_file_buffer, lnum linenr_T, will_change int32) Ptr[byte]
 func ml_line_alloced() int32
 func ml_append_int(buf *S_file_buffer, lnum linenr_T, line_arg Ptr[byte], len_arg colnr_T, flags int32) int32

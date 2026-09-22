@@ -1765,3 +1765,9 @@
 
 # 160 declares nothing: a parameter that was always nullptr and read by nothing
 # goes, and a typedef nothing named.
+
+# 161 declares nothing: the tail a goto jumped into is a function both paths
+# call, statement for statement the same.
+
+# 162 declares nothing: a flag is set exactly where a comparison of two
+# function pointers was true, and read where it was.

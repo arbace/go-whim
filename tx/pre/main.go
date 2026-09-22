@@ -6,6 +6,8 @@
 //	pre garrays <editor.c>   every growarray, by its element type
 //	pre unions <editor.c>    every union member access, by its discriminant
 //	pre voids <editor.c>     every declaration that names a void *
+//	pre gotos <editor.c>     every goto, by whether it jumps into a block
+//	pre funcs <editor.c>     every comparison of function pointers
 //	                         (CCX_GUARDS=1 prints what holds at each leftover)
 package main
 
@@ -18,7 +20,7 @@ import (
 
 func main() {
 	if len(os.Args) != 3 {
-		fmt.Fprintln(os.Stderr, "usage: pre casts|order|unions|garrays|voids <editor.c>")
+		fmt.Fprintln(os.Stderr, "usage: pre casts|order|unions|garrays|voids|gotos|funcs <editor.c>")
 		os.Exit(2)
 	}
 	ast, err := ccx.Parse(os.Args[2])
@@ -32,6 +34,10 @@ func main() {
 		r = ccx.Casts(ast)
 	case "order":
 		r = ccx.Order(ast)
+	case "funcs":
+		r = ccx.FuncCompares(ast)
+	case "gotos":
+		r = ccx.Gotos(ast)
 	case "voids":
 		r = ccx.VoidPtrs(ast)
 	case "garrays":

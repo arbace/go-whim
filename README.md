@@ -3,7 +3,7 @@
 One pipeline that takes vim apart on purpose, written in Go.
 
 ```
-slim-vim.c  ──────── 0-82 ────────▶  q82  ──────── 83-160 ────────▶  whim-vim.c
+slim-vim.c  ──────── 0-82 ────────▶  q82  ──────── 83-162 ────────▶  whim-vim.c
 (input)              an editor with no           an embeddable editor core:
                      runtime to install          no filesystem, no libc it did
                                                  not vendor, the text a tree
@@ -26,7 +26,7 @@ cross to a host block at the bottom of the same file, the libc that is pure
 computation is vendored, the core names no libc function at all, and the memline
 stops being pages and becomes a tree; their deltas are `pipes/zero.delta`,
 against an instrument that reads the screen. Those were a second pipeline, zero,
-numbered from 0 — zero phase N is phase N+83. **Phases 129-160** take out of
+numbered from 0 — zero phase N is phase N+83. **Phases 129-162** take out of
 the core what transpiling it to Go (`editor/`, `tx/FINDINGS.md`) had to work
 around; all but one change nothing the editor does, and 142 drops the build
 date from the version line.

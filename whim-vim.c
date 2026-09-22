@@ -896,6 +896,7 @@ enum { DOCMD_NOWAIT = 0x02 };
 enum { DOCMD_REPEAT = 0x04 };
 enum { DOCMD_KEYTYPED = 0x08 };
 enum { DOCMD_KEEPLINE = 0x20 };
+enum { DOCMD_GETEXLINE = 0x40 };
 enum { BL_WHITE = 1 };
 enum { BL_SOL = 2 };
 enum { BL_FIX = 4 };
@@ -2552,7 +2553,6 @@ static char_u *skip_vimgrep_pat_ext(char_u *p, char_u **s, int *flags, char_u **
 static int check_fname(void);
 static int do_cmdline_cmd(char_u *cmd);
 static int do_cmdline(char_u *cmdline, char_u *(*fgetline)(int, int, getline_opt_T), int flags);
-static int getline_equal(char_u *(*fgetline)(int, int, getline_opt_T), char_u *(*func)(int, int, getline_opt_T));
 static char *ex_errmsg(char *msg, char_u *arg);
 static char *ex_range_without_command(exarg_T *eap);
 static int parse_command_modifiers(exarg_T *eap, char **errormsg, cmdmod_T *cmod, int skip_only);
@@ -15800,7 +15800,7 @@ do_cmdline(char_u      *cmdline, char_u      *(*fgetline)(int, int, getline_opt_
 
     did_emsg = FALSE;
 
-    if (!(flags & DOCMD_KEYTYPED) && !getline_equal(fgetline, getexline))
+    if (!(flags & DOCMD_KEYTYPED) && !(flags & DOCMD_GETEXLINE))
     {
         KeyTyped = FALSE;
     }
@@ -15815,7 +15815,7 @@ do_cmdline(char_u      *cmdline, char_u      *(*fgetline)(int, int, getline_opt_
 
         if (next_cmdline == nullptr)
         {
-            if (count == 1 && getline_equal(fgetline, getexline))
+            if (count == 1 && (flags & DOCMD_GETEXLINE))
             {
                 msg_didout = TRUE;
             }
@@ -15876,7 +15876,7 @@ do_cmdline(char_u      *cmdline, char_u      *(*fgetline)(int, int, getline_opt_
         {
              (cmdline_copy) = nullptr;
 
-            if (getline_equal(fgetline, getexline) && new_last_cmdline != nullptr)
+            if ((flags & DOCMD_GETEXLINE) && new_last_cmdline != nullptr)
             {
                 last_cmdline = new_last_cmdline;
                 new_last_cmdline = nullptr;
@@ -15889,7 +15889,7 @@ do_cmdline(char_u      *cmdline, char_u      *(*fgetline)(int, int, getline_opt_
         }
 
     }
-    while (!((got_int)) && !(did_emsg && used_getline && getline_equal(fgetline, getexline)) && (next_cmdline != nullptr || (flags & DOCMD_REPEAT)))
+    while (!((got_int)) && !(did_emsg && used_getline && (flags & DOCMD_GETEXLINE)) && (next_cmdline != nullptr || (flags & DOCMD_REPEAT)))
         ;
 
     if (did_inc_RedrawingDisabled)
@@ -15915,12 +15915,6 @@ do_cmdline(char_u      *cmdline, char_u      *(*fgetline)(int, int, getline_opt_
 
     --call_depth;
     return retval;
-}
-
-    static int
-getline_equal(char_u      *(*fgetline)(int, int, getline_opt_T), char_u      *(*func)(int, int, getline_opt_T))
-{
-    return fgetline == func;
 }
 
     static char_u *
@@ -17805,7 +17799,7 @@ ex_at(exarg_T *eap)
 
     while (!stuff_empty() || typebuf.tb_len > prev_len)
     {
-        (void)do_cmdline(nullptr, getexline, DOCMD_NOWAIT|DOCMD_VERBOSE);
+        (void)do_cmdline(nullptr, getexline, DOCMD_NOWAIT|DOCMD_VERBOSE|DOCMD_GETEXLINE);
     }
 
     exec_from_reg = save_efr;
@@ -32116,13 +32110,24 @@ ml_get_buf_len(buf_T *buf, linenr_T lnum)
     return buf->b_ml.ml_line_textlen - 1;
 }
 
+    static char_u *
+ml_get_invalid(buf_T *buf, linenr_T lnum)
+{
+    static char_u questions[4];
+
+     musl_strcpy((char *)(questions), (char *)("???")) ;
+    buf->b_ml.ml_line_len = 4;
+    buf->b_ml.ml_line_textlen = buf->b_ml.ml_line_len;
+    buf->b_ml.ml_line_lnum = lnum;
+    return questions;
+}
+
     static char_u  *
 ml_get_buf(buf_T       *buf, linenr_T    lnum, int         will_change)
 {
     bhdr_T      *hp;
     DATA_BL     *dp;
     static int  recursive = 0;
-    static char_u questions[4];
 
     if (lnum > buf->b_ml.ml_line_count)
     {
@@ -32134,12 +32139,7 @@ ml_get_buf(buf_T       *buf, linenr_T    lnum, int         will_change)
             --recursive;
         }
         ml_flush_line(buf);
-errorret:
-         musl_strcpy((char *)(questions), (char *)("???")) ;
-        buf->b_ml.ml_line_len = 4;
-        buf->b_ml.ml_line_textlen = buf->b_ml.ml_line_len;
-        buf->b_ml.ml_line_lnum = lnum;
-        return questions;
+        return ml_get_invalid(buf, lnum);
     }
     if (lnum <= 0)
     {
@@ -32170,7 +32170,7 @@ errorret:
                 iemsg(iobuff_or(e_ml_get_cannot_find_line_nr_in_buffer_nr_str));
                 --recursive;
             }
-            goto errorret;
+            return ml_get_invalid(buf, lnum);
         }
 
         dp = hp->bh_data;
@@ -42044,7 +42044,7 @@ nv_colon(cmdarg_T *cap)
     }
     else
     {
-        cmd_result = do_cmdline(nullptr, getexline, flags);
+        cmd_result = do_cmdline(nullptr, getexline, flags | DOCMD_GETEXLINE);
     }
 
     if (p_im != old_p_im)

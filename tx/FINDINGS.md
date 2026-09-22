@@ -4,11 +4,11 @@
 functions are Go functions with the same names and control flow: 60,839 lines,
 plus `editor/crt.go` (the C runtime it is written against, 274 lines) and
 `editor/host.go` (the host, from the Go runtime, 1,704 lines). It follows
-phase 160's core; how it got there from the first pass, which followed phase
+phase 162's core; how it got there from the first pass, which followed phase
 128's, is the section *The transpilation, brought to phase 149*.
 
 **It works.** `go build ./editor` gives an editor that `tools/zerodelta.sh …
---phase 160` accepts as exactly phase 160's declared delta: 102 screen cases,
+--phase 162` accepts as exactly phase 162's declared delta: 102 screen cases,
 111 Ex rows, 30 command lines, the pty scenarios, 19 terminals and the memline
 corpus. The first pass was measured the same way against phase 128, and
 there, byte for byte against the C binary's 122 files. The control: the same
@@ -81,7 +81,7 @@ the Go simpler and the patch smaller.
 
 ## Which findings are phases now
 
-Phases 129 to 160 (`WHIM-GOAL.md`, Part II) remove from the C what the
+Phases 129 to 162 (`WHIM-GOAL.md`, Part II) remove from the C what the
 transpilation worked around. Each declares no behavioural delta; 142's change
 is to stderr, which the recording excludes, and its check measures it:
 
@@ -105,6 +105,8 @@ is to stderr, which the recording excludes, and its check measures it:
 | a union read through a member its discriminant does not say holds (the Go gives every member its own field) | 158, a highlight's terminal font is read only from a colour entry |
 | a struct's last member an array sized at allocation (`b_str`, `sb_text`, `program`) | 159, a struct's text is a pointer to an allocation of its own |
 | a `void *` that is not memory (`do_cmdline()`'s cookie, `find_func_t`) | 160, no line getter takes a cookie |
+| a `goto` into a block (`ml_get_buf()`'s `errorret`) | 161, no goto jumps into a block |
+| two function pointers compared (`getline_equal()`, which the Go did with `reflect`) | 162, no two function pointers are compared |
 | 13, `__DATE__ " " __TIME__` | 142, the version names no build date or time |
 | the eval value types the transpilation carried (`typval_T`, lists, dicts, classes) | 137, the changedtick is a number; 138, no parameter carries an eval value |
 
@@ -130,7 +132,7 @@ Not yet a phase:
 `editor.go` was written by hand. An emitter that writes it from `editor.c`
 needs every construct to have a rule it can apply without reading the code
 around it. `tx/pre` runs `internal/ccx`'s partitions on an `editor.c`. On phase
-160's core:
+162's core:
 
 | `tx/pre` | What it shows | Left |
 | --- | --- | --- |
@@ -139,17 +141,22 @@ around it. `tx/pre` runs `internal/ccx`'s partitions on an `editor.c`. On phase
 | `unions` | every union member is read where its discriminant says it holds, and nothing a reader calls writes the discriminant first | 0 of 209 |
 | `garrays` | every growarray object has one element type | 0 of 15 objects |
 | `voids` | every `void *` is a function of bytes, an allocator or `ga_data` | 0 of 21 |
+| `gotos` | no goto jumps into a block; the rest are legal Go once a function's locals are declared at its top | 0 of 181 |
+| `funcs` | every function pointer is compared only with a null | 0 of 11 |
 
-The phases that made them hold are 155 to 160. The partitions for casts,
-unions and `void *` are required by phases 157, 158 and 160 on every pass, and
-so is order, in phase 155's own terms. Each can fail, and was seen to:
+The phases that made them hold are 155 to 162. The partitions for casts,
+unions, `void *`, gotos and function comparisons are required by phases 157,
+158, 160, 161 and 162, each on the core it produces, on every pass; so is
+order, in phase 155's own terms. Each can fail, and was seen to:
 - casts and order refused phase 154's core (15 casts, 11 argument pairs);
 - unions refused phase 157's core (the font pun), and three mutations of the
   core: a `ptr` read under `REG_MULTI`, a `t_colors` write before a read, and
   a callback's row kind changed;
 - garrays refused two: `regstack` popped as `regstar_T`, and `exestack` handed
   to `ga_append()`;
-- voids refused phase 159's core (the cookie).
+- voids refused phase 159's core (the cookie);
+- gotos refused phase 160's core (`errorret`), and funcs refused phase 161's
+  (`getline_equal()`).
 
 ## The transpilation, brought to phase 149
 
