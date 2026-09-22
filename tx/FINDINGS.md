@@ -81,7 +81,7 @@ the Go simpler and the patch smaller.
 
 ## Which findings are phases now
 
-Phases 129 to 151 (`WHIM-GOAL.md`, Part II) remove from the C what the
+Phases 129 to 152 (`WHIM-GOAL.md`, Part II) remove from the C what the
 transpilation worked around. Each declares no behavioural delta; 142's change
 is to stderr, which the recording excludes, and its check measures it:
 
@@ -93,7 +93,7 @@ is to stderr, which the recording excludes, and its check measures it:
 | 9, the frees and the allocation failures | 132, nothing frees; 134, the blocks that held only a free fold; 148, allocation cannot fail; 149, the allocation-failure branches fold |
 | 3, `container_of` | 133, one buffer needs no hash table; 140, highlight groups are found in their array |
 | 4, struct prefix inheritance | 135, one regexp program type; 136, the engine called directly; 146, a memline node names its block |
-| 2, option `varp` (the defaults) | 151, the option table's defaults are typed |
+| 2, option `varp` | 151, the option table's defaults are typed; 152, the option variables are typed |
 | 5 and 8, the mixed-type regstack and its byte accounting | 150, the regexp stack is three typed stacks |
 | 7, `void *` walked (`qsort`, `bsearch`) | 139, the core sorts and searches typed arrays |
 | 11, `goto` into `switch` or a block | 141, `regrepeat()` does not jump into a case; 143, `regatom()`, 144, `edit()` and 145, `check_termcode()` have no goto |
@@ -102,8 +102,6 @@ is to stderr, which the recording excludes, and its check measures it:
 | the eval value types the transpilation carried (`typval_T`, lists, dicts, classes) | 137, the changedtick is a number; 138, no parameter carries an eval value |
 
 Not yet phases:
-- 2's variables: `vimoption_T.var`, `get_varp()` and every `varp` still hold
-  the address of an `int`, a `long` or a `char_u *` as a `char_u *`;
 - 7's `ga_data`;
 - 9's `ga_grow()` failure, which only an overflowing size can take and which
   the tests after it still guard.
