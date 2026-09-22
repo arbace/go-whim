@@ -415,56 +415,6 @@ musl_labs(long a)
     return a > 0 ? a : -a;
 }
 
-    static void *
-musl_bsearch(const void *key, const void *base, usize nel, usize width, int (*cmp)(const void *, const void *))
-{
-    void *tryp;
-    int sign;
-
-    while (nel > 0)
-    {
-        tryp = (char *)base + width * (nel / 2);
-        sign = cmp(key, tryp);
-        if (sign < 0)
-        {
-            nel /= 2;
-        }
-        else if (sign > 0)
-        {
-            base = (char *)tryp + width;
-            nel -= nel / 2 + 1;
-        }
-        else
-        {
-            return tryp;
-        }
-    }
-    return nullptr;
-}
-
-    static void
-musl_qsort(void *base, usize nel, usize width, int (*cmp)(const void *, const void *))
-{
-    char *a = (char *)base;
-    usize i;
-    usize j;
-    usize k;
-
-    for (i = 1; i < nel; ++i)
-    {
-        for (j = i; j > 0 && cmp(a + (j - 1) * width, a + j * width) > 0; --j)
-        {
-            for (k = 0; k < width; ++k)
-            {
-                char t = a[(j - 1) * width + k];
-
-                a[(j - 1) * width + k] = a[j * width + k];
-                a[j * width + k] = t;
-            }
-        }
-    }
-}
-
 static int musl_towupper(int a);
 static int musl_towlower(int a);
 
@@ -2862,9 +2812,10 @@ static int extract_modifiers(int key, int *modp, int simplify, int *did_simplify
 static int find_special_key_in_table(int c);
 static int get_special_key_code(char_u *name);
 static int get_real_state(void);
-static int cmp_keyvalue_value_n(const void *a, const void *b);
-static int cmp_keyvalue_value_i(const void *a, const void *b);
-static int cmp_keyvalue_value_ni(const void *a, const void *b);
+static int cmp_keyvalue_value_n(keyvalue_T *kv1, keyvalue_T *kv2);
+static int cmp_keyvalue_value_i(keyvalue_T *kv1, keyvalue_T *kv2);
+static int cmp_keyvalue_value_ni(keyvalue_T *kv1, keyvalue_T *kv2);
+static keyvalue_T *keyvalue_bsearch(keyvalue_T *key, keyvalue_T *base, usize nel, int (*cmp)(keyvalue_T *, keyvalue_T *));
 
 static int plines_correct_topline(win_T *wp, linenr_T lnum, int limit_winheight);
 static void set_valid_virtcol(win_T *wp, colnr_T vcol);
@@ -23983,7 +23934,7 @@ highlight_set_termgui_attr(int idx, char_u *key, char_u *arg, int init)
     while (arg[off] != NUL)
     {
         target.value.string = arg + off;
-        entry = (keyvalue_T *)musl_bsearch(&target, &highlight_tab,  (sizeof(highlight_tab) / sizeof((highlight_tab)[0])) , sizeof(highlight_tab[0]), cmp_keyvalue_value_ni);
+        entry = keyvalue_bsearch(&target, highlight_tab, sizeof(highlight_tab) / sizeof((highlight_tab)[0]), cmp_keyvalue_value_ni);
         if (entry == nullptr)
         {
             vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_illegal_value_str), arg);
@@ -24215,7 +24166,7 @@ highlight_set_cterm_color(int     idx, char_u  *key, char_u  *key_start, char_u 
         target.key = 0;
         target.value.string = arg;
         target.value.length = 0;
-        entry = (keyvalue_T *)musl_bsearch(&target, &color_name_tab,  (sizeof(color_name_tab) / sizeof((color_name_tab)[0])) , sizeof(color_name_tab[0]), cmp_keyvalue_value_i);
+        entry = keyvalue_bsearch(&target, color_name_tab, sizeof(color_name_tab) / sizeof((color_name_tab)[0]), cmp_keyvalue_value_i);
         if (entry == nullptr)
         {
             vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_color_name_or_number_not_recognized_str), key_start);
@@ -37925,10 +37876,10 @@ find_special_key_in_table(int c)
 }
 
     static int
-cmp_key_name_entry(const void *a, const void *b)
+cmp_key_name_entry(struct key_name_entry *a, struct key_name_entry *b)
 {
-    char_u  *p1 = ((struct key_name_entry *)a)->name.string;
-    char_u  *p2 = ((struct key_name_entry *)b)->name.string;
+    char_u  *p1 = a->name.string;
+    char_u  *p2 = b->name.string;
     int     result = 0;
 
     if (p1 == p2)
@@ -37964,6 +37915,33 @@ cmp_key_name_entry(const void *a, const void *b)
     return result;
 }
 
+    static struct key_name_entry *
+key_name_bsearch(struct key_name_entry *key, struct key_name_entry *base, usize nel, int (*cmp)(struct key_name_entry *, struct key_name_entry *))
+{
+    struct key_name_entry *tryp;
+    int         sign;
+
+    while (nel > 0)
+    {
+        tryp = base + nel / 2;
+        sign = cmp(key, tryp);
+        if (sign < 0)
+        {
+            nel /= 2;
+        }
+        else if (sign > 0)
+        {
+            base = tryp + 1;
+            nel -= nel / 2 + 1;
+        }
+        else
+        {
+            return tryp;
+        }
+    }
+    return nullptr;
+}
+
     static int
 get_special_key_code(char_u *name)
 {
@@ -37989,7 +37967,7 @@ get_special_key_code(char_u *name)
         target.name.string = name;
         target.name.length = 0;
 
-        entry = (struct key_name_entry *)musl_bsearch(&target, &key_names_table,  (sizeof(key_names_table) / sizeof((key_names_table)[0])) , sizeof(key_names_table[0]), cmp_key_name_entry);
+        entry = key_name_bsearch(&target, key_names_table, sizeof(key_names_table) / sizeof((key_names_table)[0]), cmp_key_name_entry);
         if (entry != nullptr && entry->enabled)
         {
             int key = entry->key;
@@ -38022,30 +38000,48 @@ get_real_state(void)
 }
 
     static int
-cmp_keyvalue_value_n(const void *a, const void *b)
+cmp_keyvalue_value_n(keyvalue_T *kv1, keyvalue_T *kv2)
 {
-    keyvalue_T *kv1 = (keyvalue_T *)a;
-    keyvalue_T *kv2 = (keyvalue_T *)b;
-
     return  musl_strncmp((char *)(kv1->value.string), (char *)(kv2->value.string), ((((kv1->value.length)>(kv2->value.length))?(kv1->value.length):(kv2->value.length)))) ;
 }
 
     static int
-cmp_keyvalue_value_i(const void *a, const void *b)
+cmp_keyvalue_value_i(keyvalue_T *kv1, keyvalue_T *kv2)
 {
-    keyvalue_T *kv1 = (keyvalue_T *)a;
-    keyvalue_T *kv2 = (keyvalue_T *)b;
-
     return  musl_strcasecmp((char *)(kv1->value.string), (char *)(kv2->value.string)) ;
 }
 
     static int
-cmp_keyvalue_value_ni(const void *a, const void *b)
+cmp_keyvalue_value_ni(keyvalue_T *kv1, keyvalue_T *kv2)
 {
-    keyvalue_T *kv1 = (keyvalue_T *)a;
-    keyvalue_T *kv2 = (keyvalue_T *)b;
-
     return vim_strnicmp_asc((char *)kv1->value.string, (char *)kv2->value.string, (((kv1->value.length)>(kv2->value.length))?(kv1->value.length):(kv2->value.length)));
+}
+
+    static keyvalue_T *
+keyvalue_bsearch(keyvalue_T *key, keyvalue_T *base, usize nel, int (*cmp)(keyvalue_T *, keyvalue_T *))
+{
+    keyvalue_T *tryp;
+    int         sign;
+
+    while (nel > 0)
+    {
+        tryp = base + nel / 2;
+        sign = cmp(key, tryp);
+        if (sign < 0)
+        {
+            nel /= 2;
+        }
+        else if (sign > 0)
+        {
+            base = tryp + 1;
+            nel -= nel / 2 + 1;
+        }
+        else
+        {
+            return tryp;
+        }
+    }
+    return nullptr;
 }
 
 static void redraw_for_cursorline(win_T *wp);
@@ -53916,7 +53912,7 @@ get_char_class(char_u **pp)
         }
         else
         {
-            entry = (keyvalue_T *)musl_bsearch(&target, &char_class_tab,  (sizeof(char_class_tab) / sizeof((char_class_tab)[0])) , sizeof(char_class_tab[0]), cmp_keyvalue_value_n);
+            entry = keyvalue_bsearch(&target, char_class_tab, sizeof(char_class_tab) / sizeof((char_class_tab)[0]), cmp_keyvalue_value_n);
         }
         if (entry != nullptr)
         {
@@ -67734,16 +67730,22 @@ vim_strbyte(char_u *string, int c)
     return (char_u *)musl_strchr((char *)string, c);
 }
 
-    static int
-sort_compare(const void *s1, const void *s2)
-{
-    return  musl_strcmp((char *)(*(char **)s1), (char *)(*(char **)s2)) ;
-}
-
     static void
 sort_strings(char_u      **files, int         count)
 {
-    musl_qsort((void *)files, (usize)count, sizeof(char_u *), sort_compare);
+    int         i;
+    int         j;
+    char_u      *s;
+
+    for (i = 1; i < count; ++i)
+    {
+        s = files[i];
+        for (j = i; j > 0 && musl_strcmp((char *)files[j - 1], (char *)s) > 0; --j)
+        {
+            files[j] = files[j - 1];
+        }
+        files[j] = s;
+    }
 }
 
     static char_u  *
