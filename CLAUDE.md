@@ -71,10 +71,12 @@ through to. arbace/slim-vim keeps both, for its own pipeline.
 ```
 cmd/whimtools/     one binary, every tool a subcommand: whimtools <subcommand>
 internal/          the Go: sweep, canon, dead, cut/cutil (the cutters), edit (the
-                   phases' edit programs), harness (every recorder), check
-                   (one check per phase), ccx (the core's pointer casts and
-                   evaluation order, partitioned), memo and pipeline (dormant Go
-                   ports of the shell driver -- the shell is what runs)
+                   phases' edit programs), steps (every transformation a phase
+                   names, as one table), build (the plan: what each phase does to
+                   the source, and the driver that runs it), harness (every
+                   recorder), check (one check per phase), ccx (the core's pointer
+                   casts and evaluation order, partitioned), memo and pipeline
+                   (dormant Go ports of the shell driver -- the shell is what runs)
 phase/NNN/         a phase: make.sh, or edit.sh + check.sh; GOAL.md; delta
 phase/stages       the schedule: the phase list, the stages, need and apart, the
                    packages
@@ -103,8 +105,20 @@ rather than vendoring it, because a patched `vendor/` fails `go mod verify`.
 ```sh
 make                 # all: bin/whim, the editor (editor/ built), through whim-vim.c
                      # (produced only when slim-vim.c moved) and editor/editor.go
+make whim-build      # the 163 phases in one process: slim-vim.c -> whim-vim.c
+make whim-build-check  # the same, required to give the committed bytes back
 make whim-vim        # the C product's binary
 ```
+
+- **The build and the verification are two paths.** `make whim-build` is what a
+  moved upstream runs: `internal/build`'s plan -- each phase's steps
+  (`internal/steps`) and the sweep where the schedule put one -- applied in one
+  process, in memory, with no boundaries, digests or cache. Measured: 163
+  phases, **1,220 s**, 77,306 lines. It checks nothing about the editor; the
+  checks, recordings and declared deltas are `make whim-pass` and `make
+  whim-verify`, which cost hours. What holds the plan to the phase programs is
+  the product: `whim-build-check` requires the committed `whim-vim.c` back, byte
+  for byte, from the committed `slim-vim.c`.
 
 - **`editor/editor.go` is generated** (`tx/gen.sh`, `tx/skel` on the cut
   `editor.c`) and tracked. `whim-pass` writes it after copying `whim-vim.c`

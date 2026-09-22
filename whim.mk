@@ -93,8 +93,30 @@ whim-vim.c: force
 	    exit 0; \
 	fi; \
 	printf '  %-12s %s -- whim-vim.c must be produced\n' "slim-vim.c" "`echo $$live | cut -c1-12`"; \
-	$(MAKE) --no-print-directory whim-pass; \
+	$(MAKE) --no-print-directory whim-build; \
 	echo "$$live" > slim.sha
+
+# --- the build: the pipeline in one process -------------------------------
+# 163 phases, in order, in memory -- internal/build's plan and internal/steps'
+# transformations, which are the phase programs' own (tools/st.sh, cmd/, internal/).
+# It produces whim-vim.c and nothing else: no boundaries, no digests, no cache.
+#
+# WHAT HOLDS IT TO THE PHASES IS THE PRODUCT.  `build --check` requires the
+# committed whim-vim.c back, byte for byte, from the committed slim-vim.c, which
+# a step in the wrong order or a missing sweep cannot survive.  Measured: 163
+# phases, 1,220 s, 77,306 lines.
+#
+# IT VERIFIES NOTHING ABOUT THE EDITOR, on purpose.  The checks, the recordings
+# and the declared deltas are `make whim-pass` and `make whim-verify`, and they
+# are separate because they cost hours and this costs twenty minutes.
+.PHONY: whim-build whim-build-check
+whim-build:
+	@printf '\n\033[1m  whim-vim\033[0m  from slim-vim.c: an editor with no runtime\n'
+	@tools/st.sh build --out whim-vim.c
+	@$(MAKE) --no-print-directory whim-editor
+
+whim-build-check:
+	@tools/st.sh build --check
 
 # --- what a whim pass is --------------------------------------------------
 .PHONY: whim-pass

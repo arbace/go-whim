@@ -11,7 +11,11 @@
 #
 #   make                 fetch if the upstream moved, then bin/whim: the editor, the
 #                        core in Go (editor/) built with its runtime and host
+#   make whim-build      the 163 phases in one process: slim-vim.c -> whim-vim.c,
+#                        twenty minutes, no cache and no checks
+#   make whim-build-check  the same build, required to give the committed bytes back
 #   make whim-vim        the C product's binary
+#   make whim-pass       the pipeline with every check and delta: the verifying path
 #   make whim-verify     every boundary, reproduced at once, and editor.go current
 #   make editor.c        the core, cut from whim-vim.c at its first #include
 #   make editor/editor.go  the core in Go, generated from editor.c
