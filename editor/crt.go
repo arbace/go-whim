@@ -11,7 +11,6 @@ package main
 
 import (
 	"reflect"
-	"sort"
 	"unsafe"
 )
 
@@ -165,9 +164,6 @@ func Realloc[T any](p Ptr[T], n int) Ptr[T] {
 	return q
 }
 
-// Free is vim_free: the collector owns every allocation, so it does nothing.
-func Free(any) {}
-
 // --- the void * libc functions, in elements and not in bytes ---------------
 
 // Memmove is memmove and memcpy: n elements from src to dst.
@@ -208,36 +204,6 @@ func Memcmp(a, b Ptr[byte], n int) int32 {
 		}
 	}
 	return 0
-}
-
-// Qsort is qsort: the comparator is handed `any` holding a *T, as a C one is
-// handed `const void *`.  Stable, as musl's qsort is not -- equal elements
-// keep their order, which only ever makes the result more deterministic.
-func Qsort[T any](base Ptr[T], n int, cmp func(a, b any) int32) {
-	if n <= 1 {
-		return
-	}
-	s := base.slice()[base.i : base.i+n]
-	sort.SliceStable(s, func(i, j int) bool { return cmp(&s[i], &s[j]) < 0 })
-}
-
-// Bsearch is bsearch: key is handed first, then a *T into base.
-func Bsearch[T any](key any, base Ptr[T], n int, cmp func(a, b any) int32) *T {
-	s := base.slice()[base.i : base.i+n]
-	lo, hi := 0, n
-	for lo < hi {
-		m := (lo + hi) / 2
-		c := cmp(key, &s[m])
-		switch {
-		case c == 0:
-			return &s[m]
-		case c < 0:
-			hi = m
-		default:
-			lo = m + 1
-		}
-	}
-	return nil
 }
 
 // --- the C conversions Go makes explicit ---------------------------------------
@@ -306,18 +272,3 @@ func (p Ptr[T]) GrowTo(n int) Ptr[T] {
 }
 
 // --- container_of: a key recovered as the struct it is inside -------------------
-
-var owners = map[*byte]any{}
-
-// SetOwner records that the NUL-terminated key at p lives inside owner, for
-// the hash tables whose C code recovers a struct from its key by subtracting
-// the key's offset (buflist_findnr, the highlight names).
-func SetOwner(p Ptr[byte], owner any) { owners[p.Ref(0)] = owner }
-
-// Owner is the struct SetOwner recorded for the key at p.
-func Owner[T any](p Ptr[byte]) *T {
-	if o, ok := owners[p.Ref(0)]; ok {
-		return o.(*T)
-	}
-	return nil
-}

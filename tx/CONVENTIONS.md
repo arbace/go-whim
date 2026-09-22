@@ -139,11 +139,11 @@ NULL` is `gap.ga_data = nil`.
 
 ## `container_of`
 
-C recovers a struct from a hash key that points into it
-(`(buf_T *)(hi->hi_key - (curbuf->b_key - (char_u *)curbuf))`,
-`((hlname_T *)(hi->hi_key - offsetof(hlname_T, hn_key)))`). Go cannot. Where
-the struct's key is set, call `SetOwner(key, x)`; where it is recovered,
-`Owner[T](hi.hi_key)`.
+The phase-128 C recovered a struct from a hash key that pointed into it, and
+the first pass kept an owner registry for it. Since phases 133 and 140 the C
+has no `container_of` and no hash table, and the registry is gone. If one
+reappears, it is a finding for a pipeline phase, not something to work around
+here.
 
 ## Option variables: `varp`
 

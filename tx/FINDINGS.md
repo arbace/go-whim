@@ -1,16 +1,18 @@
 # editor.c → editor.go: what the transpilation found
 
-`editor/editor.go` is `editor.c` transpiled by hand, faithfully: 1,705 C
-functions as 1,705 Go functions with the same names and control flow, 61,883
-lines, plus `editor/crt.go` (the C runtime it is written against, 323 lines)
-and `editor/host.go` (the host, from the Go runtime, 1,704 lines).
+`editor/editor.go` is `editor.c` transpiled by hand, faithfully. Its 1,687 C
+functions are Go functions with the same names and control flow: 60,889 lines,
+plus `editor/crt.go` (the C runtime it is written against, 274 lines) and
+`editor/host.go` (the host, from the Go runtime, 1,704 lines). It follows
+phase 149's core; how it got there from the first pass, which followed phase
+128's, is the section *The transpilation, brought to phase 149*.
 
-**It works.** `go build ./editor` gives an editor that records the same 122
-files as the C binary built from `whim-vim.c` — 102 screen cases, 111 Ex rows,
-30 command lines, the pty scenarios, 19 terminals, the memline corpus — byte
-for byte, and `tools/zerodelta.sh … --phase 128` accepts it as exactly phase
-128's declared delta. The control: the same Go build with one message word
-changed moves 95 of the 122 files and the delta check refuses it.
+**It works.** `go build ./editor` gives an editor that `tools/zerodelta.sh …
+--phase 149` accepts as exactly phase 149's declared delta: 102 screen cases,
+111 Ex rows, 30 command lines, the pty scenarios, 19 terminals and the memline
+corpus. The first pass was measured the same way against phase 128, and
+there, byte for byte against the C binary's 122 files. The control: the same
+Go build with one message word changed is refused.
 
 ## How it was made
 
@@ -104,7 +106,33 @@ Not yet phases:
 - 9's `ga_grow()` failure, which only an overflowing size can take and which
   the tests after it still guard.
 
-`editor/editor.go` is still the transpilation of phase 128's core.
+## The transpilation, brought to phase 149
+
+`editor/editor.go` is now the transpilation of phase 149's core. The first
+pass stays as it was wherever the C did not change. What changed:
+- **re-transpiled:** the 185 functions whose C phases 129-149 changed, and
+  the 5 they added, by ten agents in parallel. Each started from the old Go
+  and applied the C diff;
+- **deleted:** the 15 functions the phases removed;
+- **regenerated:** the types, globals and signatures (`tx/skel`,
+  `tx/sigs.txt`). Where a pointer decision flipped with them (the `xp_files`
+  arrays, `buflist_findnr()`'s result, the searched tables), the few callers
+  were adapted.
+
+What the phases took out of the Go with them:
+- the owner registry `SetOwner`/`Owner` (phases 133, 140);
+- the memline block registry `f07_blocks` (phase 146);
+- the regexp program registry `bt_regprog_of` and the engine table (phases
+  135, 136);
+- the flag-and-dispatch rewrites of five `goto`s (141, 143-145);
+- `Free`, `Qsort` and `Bsearch` from `crt.go` (phases 132, 139);
+- every allocation-failure test (148, 149).
+
+Measured: `go build ./editor` gives an editor that `tools/zerodelta.sh …
+--phase 149` accepts, exactly as declared. It is 60,889 lines, 1,711
+functions for the core's 1,687 plus its helpers, down from 61,883. The control,
+the same build with the ruler's `All` spelled `ALL`, is refused: the screen
+cases, the memline corpus and the Ex rows move.
 
 ## Not done here
 
