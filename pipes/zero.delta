@@ -1695,3 +1695,7 @@
 # stderr-moved excludes from every comparison, so no record can show it.  The
 # check reads the line from both binaries, and requires the output built at two
 # SOURCE_DATE_EPOCHs to be the same bytes where the input's differ.
+
+# 143 declares nothing: regatom() makes the same nodes without jumping into
+# other cases.  The check probes the delimiter atom (\%) \%t) \%f] \%> \_%)),
+# the collection reached by \_[ and `.` before a composing character.

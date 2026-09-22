@@ -55747,11 +55747,59 @@ seen_endbrace(int refnum)
 }
 
     static char_u *
+regatom_delim(int c, int delim_nl, int *flagp)
+{
+    char_u      *ret;
+
+    int     base = F_PCLOSE;
+    int     idx;
+
+    if (c == 'f' || c == 't')
+    {
+        if (c == 't')
+        {
+            base = T_PCLOSE;
+        }
+        c = no_Magic(getchr());
+    }
+    switch (c)
+    {
+        case ')':
+            idx = 0;
+            break;
+        case ']':
+            idx = 1;
+            break;
+        case '}':
+            idx = 2;
+            break;
+        case '>':
+            idx = 3;
+            break;
+        default:
+             return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_invalid_character_after_str)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_invalid_character_after_str))))), rc_did_emsg = TRUE, nullptr) ;
+    }
+    if (delim_nl)
+    {
+        idx += DELIM_NL;
+        *flagp |= HASNL;
+    }
+    ret = regnode(base + idx);
+
+    if (base == F_PCLOSE)
+    {
+        *flagp |= HASWIDTH;
+    }
+    return ret;
+}
+
+    static char_u *
 regatom(int *flagp)
 {
     char_u          *ret;
     int             flags;
     int             c;
+    int             sw;
     char_u          *p;
     int             extra = 0;
     int             delim_nl = FALSE;
@@ -55760,897 +55808,877 @@ regatom(int *flagp)
     *flagp = WORST;
 
     c = getchr();
-    switch (c)
+    sw = c;
+    for (;;)
     {
-      case  ((int)('^') - 256) :
-        ret = regnode(BOL);
-        break;
-
-      case  ((int)('$') - 256) :
-        ret = regnode(EOL);
-        break;
-
-      case  ((int)('<') - 256) :
-        ret = regnode(BOW);
-        break;
-
-      case  ((int)('>') - 256) :
-        ret = regnode(EOW);
-        break;
-
-      case  ((int)('_') - 256) :
-        c = no_Magic(getchr());
-        if (c == '%')
+        switch (sw)
         {
-            delim_nl = TRUE;
-            c = no_Magic(getchr());
-            if (c == ')' || c == ']' || c == '}' || c == '>' || c == 'f' || c == 't')
-            {
-                goto delimiter_atom;
-            }
-             return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_invalid_character_after_str)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_invalid_character_after_str))))), rc_did_emsg = TRUE, nullptr) ;
-        }
-        if (c == '^')
-        {
+          case  ((int)('^') - 256) :
             ret = regnode(BOL);
             break;
-        }
-        if (c == '$')
-        {
+
+          case  ((int)('$') - 256) :
             ret = regnode(EOL);
             break;
-        }
 
-        extra = ADD_NL;
-        *flagp |= HASNL;
-
-        if (c == '[')
-        {
-            goto collection;
-        }
-
-      [[fallthrough]];
-      case  ((int)('.') - 256) :
-      case  ((int)('i') - 256) :
-      case  ((int)('I') - 256) :
-      case  ((int)('k') - 256) :
-      case  ((int)('K') - 256) :
-      case  ((int)('f') - 256) :
-      case  ((int)('F') - 256) :
-      case  ((int)('p') - 256) :
-      case  ((int)('P') - 256) :
-      case  ((int)('s') - 256) :
-      case  ((int)('S') - 256) :
-      case  ((int)('d') - 256) :
-      case  ((int)('D') - 256) :
-      case  ((int)('x') - 256) :
-      case  ((int)('X') - 256) :
-      case  ((int)('o') - 256) :
-      case  ((int)('O') - 256) :
-      case  ((int)('w') - 256) :
-      case  ((int)('W') - 256) :
-      case  ((int)('h') - 256) :
-      case  ((int)('H') - 256) :
-      case  ((int)('a') - 256) :
-      case  ((int)('A') - 256) :
-      case  ((int)('l') - 256) :
-      case  ((int)('L') - 256) :
-      case  ((int)('u') - 256) :
-      case  ((int)('U') - 256) :
-        p = vim_strchr(classchars, no_Magic(c));
-        if (p == nullptr)
-        {
-             return (emsg((_(e_invalid_use_of_underscore))), rc_did_emsg = TRUE, nullptr) ;
-        }
-
-        if (c ==  ((int)('.') - 256) && utf_iscomposing(peekchr()))
-        {
-            c = getchr();
-            goto do_multibyte;
-        }
-        ret = regnode(classcodes[p - classchars] + extra);
-        *flagp |= HASWIDTH | SIMPLE;
-        break;
-
-      case  ((int)('n') - 256) :
-        if (reg_string)
-        {
-            ret = regnode(EXACTLY);
-            regc(NL);
-            regc(NUL);
-            *flagp |= HASWIDTH | SIMPLE;
-        }
-        else
-        {
-            ret = regnode(NEWL);
-            *flagp |= HASWIDTH | HASNL;
-        }
-        break;
-
-      case  ((int)('(') - 256) :
-        if (one_exactly)
-        {
-              return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_invalid_item_in_str_brackets)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_invalid_item_in_str_brackets))))), rc_did_emsg = TRUE, nullptr)  ;
-        }
-        ret = reg(REG_PAREN, &flags);
-        if (ret == nullptr)
-        {
-            return nullptr;
-        }
-        *flagp |= flags & (HASWIDTH | SPSTART | HASNL | HASLOOKBH);
-        break;
-
-      case NUL:
-      case  ((int)('|') - 256) :
-      case  ((int)('&') - 256) :
-      case  ((int)(')') - 256) :
-        if (one_exactly)
-        {
-              return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_invalid_item_in_str_brackets)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_invalid_item_in_str_brackets))))), rc_did_emsg = TRUE, nullptr)  ;
-        }
-         return (iemsg((e_internal_error_in_regexp)), rc_did_emsg = TRUE, nullptr) ;
-
-      case  ((int)('=') - 256) :
-      case  ((int)('?') - 256) :
-      case  ((int)('+') - 256) :
-      case  ((int)('@') - 256) :
-      case  ((int)('{') - 256) :
-      case  ((int)('*') - 256) :
-        c = no_Magic(c);
-         return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_str_chr_follows_nothing)), ((c == '*' ? reg_magic >= MAGIC_ON : reg_magic == MAGIC_ALL)) ? "" : "\\", (c)), emsg(iobuff_or((const char *)(_(e_str_chr_follows_nothing))))), rc_did_emsg = TRUE, nullptr) ;
-
-      case  ((int)('~') - 256) :
-            if (reg_prev_sub != nullptr)
-            {
-                char_u      *lp;
-
-                ret = regnode(EXACTLY);
-                lp = reg_prev_sub;
-                while (*lp != NUL)
-                {
-                    regc(*lp++);
-                }
-                regc(NUL);
-                if (*reg_prev_sub != NUL)
-                {
-                    *flagp |= HASWIDTH;
-                    if ((lp - reg_prev_sub) == 1)
-                    {
-                        *flagp |= SIMPLE;
-                    }
-                }
-            }
-            else
-            {
-                 return (emsg((_(e_no_previous_substitute_regular_expression))), rc_did_emsg = TRUE, nullptr) ;
-            }
+          case  ((int)('<') - 256) :
+            ret = regnode(BOW);
             break;
 
-      case  ((int)('1') - 256) :
-      case  ((int)('2') - 256) :
-      case  ((int)('3') - 256) :
-      case  ((int)('4') - 256) :
-      case  ((int)('5') - 256) :
-      case  ((int)('6') - 256) :
-      case  ((int)('7') - 256) :
-      case  ((int)('8') - 256) :
-      case  ((int)('9') - 256) :
-            {
-                int                 refnum;
-
-                refnum = c -  ((int)('0') - 256) ;
-                if (!seen_endbrace(refnum))
-                {
-                    return nullptr;
-                }
-                ret = regnode(BACKREF + refnum);
-            }
+          case  ((int)('>') - 256) :
+            ret = regnode(EOW);
             break;
 
-      case  ((int)('z') - 256) :
-        {
+          case  ((int)('_') - 256) :
             c = no_Magic(getchr());
-            switch (c)
+            if (c == '%')
             {
-                case 's':
-                    ret = regnode(MOPEN + 0);
-                          if (re_mult_next("\\zs") == FAIL)
-                          {
-                              return nullptr;
-                          }
-                          break;
-
-                case 'e':
-                    ret = regnode(MCLOSE + 0);
-                          if (re_mult_next("\\ze") == FAIL)
-                          {
-                              return nullptr;
-                          }
-                          break;
-
-                default:
-                     return (emsg((_(e_invalid_character_after_bsl_z))), rc_did_emsg = TRUE, nullptr) ;
-            }
-        }
-        break;
-
-      case  ((int)('%') - 256) :
-        {
-            c = no_Magic(getchr());
-            switch (c)
-            {
-                case '(':
-                    if (one_exactly)
-                    {
-                          return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_invalid_item_in_str_brackets)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_invalid_item_in_str_brackets))))), rc_did_emsg = TRUE, nullptr)  ;
-                    }
-                    ret = reg(REG_NPAREN, &flags);
+                delim_nl = TRUE;
+                c = no_Magic(getchr());
+                if (c == ')' || c == ']' || c == '}' || c == '>' || c == 'f' || c == 't')
+                {
+                    ret = regatom_delim(c, delim_nl, flagp);
                     if (ret == nullptr)
                     {
                         return nullptr;
                     }
-                    *flagp |= flags & (HASWIDTH | SPSTART | HASNL | HASLOOKBH);
                     break;
+                }
+                 return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_invalid_character_after_str)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_invalid_character_after_str))))), rc_did_emsg = TRUE, nullptr) ;
+            }
+            if (c == '^')
+            {
+                ret = regnode(BOL);
+                break;
+            }
+            if (c == '$')
+            {
+                ret = regnode(EOL);
+                break;
+            }
 
-                case '^':
-                    ret = regnode(RE_BOF);
-                    break;
+            extra = ADD_NL;
+            *flagp |= HASNL;
 
-                case '$':
-                    ret = regnode(RE_EOF);
-                    break;
+            if (c == '[')
+            {
+                sw = ((int)('[') - 256);
+                continue;
+            }
 
-                case '#':
-                    if (regparse[0] == '=' && regparse[1] >= 48 && regparse[1] <= 50)
+          [[fallthrough]];
+          case  ((int)('.') - 256) :
+          case  ((int)('i') - 256) :
+          case  ((int)('I') - 256) :
+          case  ((int)('k') - 256) :
+          case  ((int)('K') - 256) :
+          case  ((int)('f') - 256) :
+          case  ((int)('F') - 256) :
+          case  ((int)('p') - 256) :
+          case  ((int)('P') - 256) :
+          case  ((int)('s') - 256) :
+          case  ((int)('S') - 256) :
+          case  ((int)('d') - 256) :
+          case  ((int)('D') - 256) :
+          case  ((int)('x') - 256) :
+          case  ((int)('X') - 256) :
+          case  ((int)('o') - 256) :
+          case  ((int)('O') - 256) :
+          case  ((int)('w') - 256) :
+          case  ((int)('W') - 256) :
+          case  ((int)('h') - 256) :
+          case  ((int)('H') - 256) :
+          case  ((int)('a') - 256) :
+          case  ((int)('A') - 256) :
+          case  ((int)('l') - 256) :
+          case  ((int)('L') - 256) :
+          case  ((int)('u') - 256) :
+          case  ((int)('U') - 256) :
+            p = vim_strchr(classchars, no_Magic(c));
+            if (p == nullptr)
+            {
+                 return (emsg((_(e_invalid_use_of_underscore))), rc_did_emsg = TRUE, nullptr) ;
+            }
+
+            if (c ==  ((int)('.') - 256) && utf_iscomposing(peekchr()))
+            {
+                c = getchr();
+                ret = regnode(MULTIBYTECODE);
+                regmbc(c);
+                *flagp |= HASWIDTH | SIMPLE;
+                break;
+            }
+            ret = regnode(classcodes[p - classchars] + extra);
+            *flagp |= HASWIDTH | SIMPLE;
+            break;
+
+          case  ((int)('n') - 256) :
+            if (reg_string)
+            {
+                ret = regnode(EXACTLY);
+                regc(NL);
+                regc(NUL);
+                *flagp |= HASWIDTH | SIMPLE;
+            }
+            else
+            {
+                ret = regnode(NEWL);
+                *flagp |= HASWIDTH | HASNL;
+            }
+            break;
+
+          case  ((int)('(') - 256) :
+            if (one_exactly)
+            {
+                  return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_invalid_item_in_str_brackets)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_invalid_item_in_str_brackets))))), rc_did_emsg = TRUE, nullptr)  ;
+            }
+            ret = reg(REG_PAREN, &flags);
+            if (ret == nullptr)
+            {
+                return nullptr;
+            }
+            *flagp |= flags & (HASWIDTH | SPSTART | HASNL | HASLOOKBH);
+            break;
+
+          case NUL:
+          case  ((int)('|') - 256) :
+          case  ((int)('&') - 256) :
+          case  ((int)(')') - 256) :
+            if (one_exactly)
+            {
+                  return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_invalid_item_in_str_brackets)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_invalid_item_in_str_brackets))))), rc_did_emsg = TRUE, nullptr)  ;
+            }
+             return (iemsg((e_internal_error_in_regexp)), rc_did_emsg = TRUE, nullptr) ;
+
+          case  ((int)('=') - 256) :
+          case  ((int)('?') - 256) :
+          case  ((int)('+') - 256) :
+          case  ((int)('@') - 256) :
+          case  ((int)('{') - 256) :
+          case  ((int)('*') - 256) :
+            c = no_Magic(c);
+             return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_str_chr_follows_nothing)), ((c == '*' ? reg_magic >= MAGIC_ON : reg_magic == MAGIC_ALL)) ? "" : "\\", (c)), emsg(iobuff_or((const char *)(_(e_str_chr_follows_nothing))))), rc_did_emsg = TRUE, nullptr) ;
+
+          case  ((int)('~') - 256) :
+                if (reg_prev_sub != nullptr)
+                {
+                    char_u      *lp;
+
+                    ret = regnode(EXACTLY);
+                    lp = reg_prev_sub;
+                    while (*lp != NUL)
                     {
-                        vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_atom_engine_must_be_at_start_of_pattern), regparse[1]);
-                        emsg(iobuff_or(_(e_atom_engine_must_be_at_start_of_pattern)));
-                        return FAIL;
+                        regc(*lp++);
                     }
-                    ret = regnode(CURSOR);
-                    break;
+                    regc(NUL);
+                    if (*reg_prev_sub != NUL)
+                    {
+                        *flagp |= HASWIDTH;
+                        if ((lp - reg_prev_sub) == 1)
+                        {
+                            *flagp |= SIMPLE;
+                        }
+                    }
+                }
+                else
+                {
+                     return (emsg((_(e_no_previous_substitute_regular_expression))), rc_did_emsg = TRUE, nullptr) ;
+                }
+                break;
 
-                case 'V':
-                    ret = regnode(RE_VISUAL);
-                    break;
+          case  ((int)('1') - 256) :
+          case  ((int)('2') - 256) :
+          case  ((int)('3') - 256) :
+          case  ((int)('4') - 256) :
+          case  ((int)('5') - 256) :
+          case  ((int)('6') - 256) :
+          case  ((int)('7') - 256) :
+          case  ((int)('8') - 256) :
+          case  ((int)('9') - 256) :
+                {
+                    int                 refnum;
 
-                case 'C':
-                    ret = regnode(RE_COMPOSING);
-                    break;
+                    refnum = c -  ((int)('0') - 256) ;
+                    if (!seen_endbrace(refnum))
+                    {
+                        return nullptr;
+                    }
+                    ret = regnode(BACKREF + refnum);
+                }
+                break;
 
-                case '[':
-                          if (one_exactly)
-                          {
-                                return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_invalid_item_in_str_brackets)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_invalid_item_in_str_brackets))))), rc_did_emsg = TRUE, nullptr)  ;
-                          }
-                          {
-                              char_u    *lastbranch;
-                              char_u    *lastnode = nullptr;
-                              char_u    *br;
-
-                              ret = nullptr;
-                              while ((c = getchr()) != ']')
+          case  ((int)('z') - 256) :
+            {
+                c = no_Magic(getchr());
+                switch (c)
+                {
+                    case 's':
+                        ret = regnode(MOPEN + 0);
+                              if (re_mult_next("\\zs") == FAIL)
                               {
-                                  if (c == NUL)
+                                  return nullptr;
+                              }
+                              break;
+
+                    case 'e':
+                        ret = regnode(MCLOSE + 0);
+                              if (re_mult_next("\\ze") == FAIL)
+                              {
+                                  return nullptr;
+                              }
+                              break;
+
+                    default:
+                         return (emsg((_(e_invalid_character_after_bsl_z))), rc_did_emsg = TRUE, nullptr) ;
+                }
+            }
+            break;
+
+          case  ((int)('%') - 256) :
+            {
+                c = no_Magic(getchr());
+                switch (c)
+                {
+                    case '(':
+                        if (one_exactly)
+                        {
+                              return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_invalid_item_in_str_brackets)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_invalid_item_in_str_brackets))))), rc_did_emsg = TRUE, nullptr)  ;
+                        }
+                        ret = reg(REG_NPAREN, &flags);
+                        if (ret == nullptr)
+                        {
+                            return nullptr;
+                        }
+                        *flagp |= flags & (HASWIDTH | SPSTART | HASNL | HASLOOKBH);
+                        break;
+
+                    case '^':
+                        ret = regnode(RE_BOF);
+                        break;
+
+                    case '$':
+                        ret = regnode(RE_EOF);
+                        break;
+
+                    case '#':
+                        if (regparse[0] == '=' && regparse[1] >= 48 && regparse[1] <= 50)
+                        {
+                            vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_atom_engine_must_be_at_start_of_pattern), regparse[1]);
+                            emsg(iobuff_or(_(e_atom_engine_must_be_at_start_of_pattern)));
+                            return FAIL;
+                        }
+                        ret = regnode(CURSOR);
+                        break;
+
+                    case 'V':
+                        ret = regnode(RE_VISUAL);
+                        break;
+
+                    case 'C':
+                        ret = regnode(RE_COMPOSING);
+                        break;
+
+                    case '[':
+                              if (one_exactly)
+                              {
+                                    return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_invalid_item_in_str_brackets)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_invalid_item_in_str_brackets))))), rc_did_emsg = TRUE, nullptr)  ;
+                              }
+                              {
+                                  char_u    *lastbranch;
+                                  char_u    *lastnode = nullptr;
+                                  char_u    *br;
+
+                                  ret = nullptr;
+                                  while ((c = getchr()) != ']')
                                   {
-                                       return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_missing_sb_after_str)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_missing_sb_after_str))))), rc_did_emsg = TRUE, nullptr) ;
-                                  }
-                                  br = regnode(BRANCH);
-                                  if (ret == nullptr)
-                                  {
-                                      ret = br;
-                                  }
-                                  else
-                                  {
-                                      regtail(lastnode, br);
-                                      if (reg_toolong)
+                                      if (c == NUL)
                                       {
-                                          return nullptr;
+                                           return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_missing_sb_after_str)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_missing_sb_after_str))))), rc_did_emsg = TRUE, nullptr) ;
                                       }
-                                  }
-
-                                  ungetchr();
-                                  one_exactly = TRUE;
-                                  lastnode = regatom(flagp);
-                                  one_exactly = FALSE;
-                                  if (lastnode == nullptr)
-                                  {
-                                      return nullptr;
-                                  }
-                              }
-                              if (ret == nullptr)
-                              {
-                                   return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_empty_str_brackets)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_empty_str_brackets))))), rc_did_emsg = TRUE, nullptr) ;
-                              }
-                              lastbranch = regnode(BRANCH);
-                              br = regnode(NOTHING);
-                              if (ret !=  ((char_u *) -1) )
-                              {
-                                  regtail(lastnode, br);
-                                  regtail(lastbranch, br);
-                                  for (br = ret; br != lastnode; )
-                                  {
-                                      if ( ((int)*(br))  == BRANCH)
+                                      br = regnode(BRANCH);
+                                      if (ret == nullptr)
                                       {
-                                          regtail(br, lastbranch);
+                                          ret = br;
+                                      }
+                                      else
+                                      {
+                                          regtail(lastnode, br);
                                           if (reg_toolong)
                                           {
                                               return nullptr;
                                           }
-                                          br =  ((br) + 3) ;
+                                      }
+
+                                      ungetchr();
+                                      one_exactly = TRUE;
+                                      lastnode = regatom(flagp);
+                                      one_exactly = FALSE;
+                                      if (lastnode == nullptr)
+                                      {
+                                          return nullptr;
+                                      }
+                                  }
+                                  if (ret == nullptr)
+                                  {
+                                       return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_empty_str_brackets)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_empty_str_brackets))))), rc_did_emsg = TRUE, nullptr) ;
+                                  }
+                                  lastbranch = regnode(BRANCH);
+                                  br = regnode(NOTHING);
+                                  if (ret !=  ((char_u *) -1) )
+                                  {
+                                      regtail(lastnode, br);
+                                      regtail(lastbranch, br);
+                                      for (br = ret; br != lastnode; )
+                                      {
+                                          if ( ((int)*(br))  == BRANCH)
+                                          {
+                                              regtail(br, lastbranch);
+                                              if (reg_toolong)
+                                              {
+                                                  return nullptr;
+                                              }
+                                              br =  ((br) + 3) ;
+                                          }
+                                          else
+                                          {
+                                              br = regnext(br);
+                                          }
+                                      }
+                                  }
+                                  *flagp &= ~(HASWIDTH | SIMPLE);
+                                  break;
+                              }
+
+                    case 'd':
+                    case 'o':
+                    case 'x':
+                    case 'u':
+                    case 'U':
+                              {
+                                  vimlong_T i;
+
+                                  switch (c)
+                                  {
+                                      case 'd':
+                                          i = getdecchrs();
+                                          break;
+                                      case 'o':
+                                          i = getoctchrs();
+                                          break;
+                                      case 'x':
+                                          i = gethexchrs(2);
+                                          break;
+                                      case 'u':
+                                          i = gethexchrs(4);
+                                          break;
+                                      case 'U':
+                                          i = gethexchrs(8);
+                                          break;
+                                      default:
+                                          i = -1;
+                                          break;
+                                  }
+
+                                  if (i < 0 || i > INT_MAX)
+                                  {
+                                       return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_invalid_character_after_str_2)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_invalid_character_after_str_2))))), rc_did_emsg = TRUE, nullptr) ;
+                                  }
+                                  if (use_multibytecode(i))
+                                  {
+                                      ret = regnode(MULTIBYTECODE);
+                                  }
+                                  else
+                                  {
+                                      ret = regnode(EXACTLY);
+                                  }
+                                  if (i == 0)
+                                  {
+                                      regc(0x0a);
+                                  }
+                                  else
+                                  {
+                                      regmbc((int)i);
+                                  }
+                                  regc(NUL);
+                                  *flagp |= HASWIDTH;
+                                  break;
+                              }
+
+                    case ')':
+                    case ']':
+                    case '}':
+                    case 'f':
+                    case 't':
+                        ret = regatom_delim(c, delim_nl, flagp);
+                        if (ret == nullptr)
+                        {
+                            return nullptr;
+                        }
+                        break;
+
+                    case '>':
+                        if (! ((unsigned)(*regparse) - '0' < 10)  && *regparse != '\'' && *regparse != '.')
+                        {
+                            ret = regatom_delim(c, delim_nl, flagp);
+                            if (ret == nullptr)
+                            {
+                                return nullptr;
+                            }
+                            break;
+                        }
+                    [[fallthrough]];
+                    default:
+                              if ( ((unsigned)(c) - '0' < 10)  || c == '<' || c == '>' || c == '\'' || c == '.')
+                              {
+                                  long_u    n = 0;
+                                  int       cmp;
+                                  int       cur = FALSE;
+                                  int       got_digit = FALSE;
+
+                                  cmp = c;
+                                  if (cmp == '<' || cmp == '>')
+                                  {
+                                      c = getchr();
+                                  }
+                                  if (no_Magic(c) == '.')
+                                  {
+                                      cur = TRUE;
+                                      c = getchr();
+                                  }
+                                  while ( ((unsigned)(c) - '0' < 10) )
+                                  {
+                                      got_digit = TRUE;
+                                      n = n * 10 + (c - '0');
+                                      c = getchr();
+                                  }
+                                  if (no_Magic(c) == '\'' && n == 0)
+                                  {
+                                      c = getchr();
+                                      ret = regnode(RE_MARK);
+                                      if (ret ==  ((char_u *) -1) )
+                                      {
+                                          regsize += 2;
                                       }
                                       else
                                       {
-                                          br = regnext(br);
+                                          *regcode++ = c;
+                                          *regcode++ = cmp;
                                       }
+                                      break;
                                   }
-                              }
-                              *flagp &= ~(HASWIDTH | SIMPLE);
-                              break;
-                          }
-
-                case 'd':
-                case 'o':
-                case 'x':
-                case 'u':
-                case 'U':
-                          {
-                              vimlong_T i;
-
-                              switch (c)
-                              {
-                                  case 'd':
-                                      i = getdecchrs();
-                                      break;
-                                  case 'o':
-                                      i = getoctchrs();
-                                      break;
-                                  case 'x':
-                                      i = gethexchrs(2);
-                                      break;
-                                  case 'u':
-                                      i = gethexchrs(4);
-                                      break;
-                                  case 'U':
-                                      i = gethexchrs(8);
-                                      break;
-                                  default:
-                                      i = -1;
-                                      break;
-                              }
-
-                              if (i < 0 || i > INT_MAX)
-                              {
-                                   return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_invalid_character_after_str_2)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_invalid_character_after_str_2))))), rc_did_emsg = TRUE, nullptr) ;
-                              }
-                              if (use_multibytecode(i))
-                              {
-                                  ret = regnode(MULTIBYTECODE);
-                              }
-                              else
-                              {
-                                  ret = regnode(EXACTLY);
-                              }
-                              if (i == 0)
-                              {
-                                  regc(0x0a);
-                              }
-                              else
-                              {
-                                  regmbc((int)i);
-                              }
-                              regc(NUL);
-                              *flagp |= HASWIDTH;
-                              break;
-                          }
-
-                case ')':
-                case ']':
-                case '}':
-                case 'f':
-                case 't':
-delimiter_atom:
-                    {
-                        int     base = F_PCLOSE;
-                        int     idx;
-
-                        if (c == 'f' || c == 't')
-                        {
-                            if (c == 't')
-                            {
-                                base = T_PCLOSE;
-                            }
-                            c = no_Magic(getchr());
-                        }
-                        switch (c)
-                        {
-                            case ')':
-                                idx = 0;
-                                break;
-                            case ']':
-                                idx = 1;
-                                break;
-                            case '}':
-                                idx = 2;
-                                break;
-                            case '>':
-                                idx = 3;
-                                break;
-                            default:
-                                 return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_invalid_character_after_str)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_invalid_character_after_str))))), rc_did_emsg = TRUE, nullptr) ;
-                        }
-                        if (delim_nl)
-                        {
-                            idx += DELIM_NL;
-                            *flagp |= HASNL;
-                        }
-                        ret = regnode(base + idx);
-
-                        if (base == F_PCLOSE)
-                        {
-                            *flagp |= HASWIDTH;
-                        }
-                    }
-                    break;
-
-                case '>':
-                    if (! ((unsigned)(*regparse) - '0' < 10)  && *regparse != '\'' && *regparse != '.')
-                    {
-                        goto delimiter_atom;
-                    }
-                [[fallthrough]];
-                default:
-                          if ( ((unsigned)(c) - '0' < 10)  || c == '<' || c == '>' || c == '\'' || c == '.')
-                          {
-                              long_u    n = 0;
-                              int       cmp;
-                              int       cur = FALSE;
-                              int       got_digit = FALSE;
-
-                              cmp = c;
-                              if (cmp == '<' || cmp == '>')
-                              {
-                                  c = getchr();
-                              }
-                              if (no_Magic(c) == '.')
-                              {
-                                  cur = TRUE;
-                                  c = getchr();
-                              }
-                              while ( ((unsigned)(c) - '0' < 10) )
-                              {
-                                  got_digit = TRUE;
-                                  n = n * 10 + (c - '0');
-                                  c = getchr();
-                              }
-                              if (no_Magic(c) == '\'' && n == 0)
-                              {
-                                  c = getchr();
-                                  ret = regnode(RE_MARK);
-                                  if (ret ==  ((char_u *) -1) )
+                                  else if ((c == 'l' || c == 'c' || c == 'v') && (cur || got_digit))
                                   {
-                                      regsize += 2;
-                                  }
-                                  else
-                                  {
-                                      *regcode++ = c;
-                                      *regcode++ = cmp;
-                                  }
-                                  break;
-                              }
-                              else if ((c == 'l' || c == 'c' || c == 'v') && (cur || got_digit))
-                              {
-                                  if (cur && n)
-                                  {
-                                    vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_regexp_number_after_dot_pos_search_chr), no_Magic(c));
-                                    emsg(iobuff_or(_(e_regexp_number_after_dot_pos_search_chr)));
-                                    rc_did_emsg = TRUE;
-                                    return nullptr;
-                                  }
-                                  if (c == 'l')
-                                  {
-                                      if (cur)
+                                      if (cur && n)
                                       {
-                                          n = curwin->w_cursor.lnum;
+                                        vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_regexp_number_after_dot_pos_search_chr), no_Magic(c));
+                                        emsg(iobuff_or(_(e_regexp_number_after_dot_pos_search_chr)));
+                                        rc_did_emsg = TRUE;
+                                        return nullptr;
                                       }
-                                      ret = regnode(RE_LNUM);
-                                      if (save_prev_at_start)
+                                      if (c == 'l')
                                       {
-                                          at_start = TRUE;
+                                          if (cur)
+                                          {
+                                              n = curwin->w_cursor.lnum;
+                                          }
+                                          ret = regnode(RE_LNUM);
+                                          if (save_prev_at_start)
+                                          {
+                                              at_start = TRUE;
+                                          }
                                       }
-                                  }
-                                  else if (c == 'c')
-                                  {
-                                      if (cur)
+                                      else if (c == 'c')
                                       {
-                                          n = curwin->w_cursor.col;
-                                          n++;
+                                          if (cur)
+                                          {
+                                              n = curwin->w_cursor.col;
+                                              n++;
+                                          }
+                                          ret = regnode(RE_COL);
                                       }
-                                      ret = regnode(RE_COL);
-                                  }
-                                  else
-                                  {
-                                      if (cur)
+                                      else
                                       {
-                                          colnr_T vcol = 0;
+                                          if (cur)
+                                          {
+                                              colnr_T vcol = 0;
 
-                                          getvvcol(curwin, &curwin->w_cursor, nullptr, nullptr, &vcol, 0);
-                                          ++vcol;
-                                          n = vcol;
+                                              getvvcol(curwin, &curwin->w_cursor, nullptr, nullptr, &vcol, 0);
+                                              ++vcol;
+                                              n = vcol;
+                                          }
+                                          ret = regnode(RE_VCOL);
                                       }
-                                      ret = regnode(RE_VCOL);
+                                      if (ret ==  ((char_u *) -1) )
+                                      {
+                                          regsize += 5;
+                                      }
+                                      else
+                                      {
+                                          regcode = re_put_long(regcode, n);
+                                          *regcode++ = cmp;
+                                      }
+                                      break;
                                   }
-                                  if (ret ==  ((char_u *) -1) )
-                                  {
-                                      regsize += 5;
-                                  }
-                                  else
-                                  {
-                                      regcode = re_put_long(regcode, n);
-                                      *regcode++ = cmp;
-                                  }
-                                  break;
                               }
-                          }
 
-                           return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_invalid_character_after_str)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_invalid_character_after_str))))), rc_did_emsg = TRUE, nullptr) ;
+                               return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_invalid_character_after_str)), (reg_magic == MAGIC_ALL) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_invalid_character_after_str))))), rc_did_emsg = TRUE, nullptr) ;
+                }
             }
-        }
-        break;
+            break;
 
-      case  ((int)('[') - 256) :
-collection:
-        {
-            char_u      *lp;
-
-            lp = skip_anyof(regparse);
-            if (*lp == ']')
+          case  ((int)('[') - 256) :
             {
-                int     startc = -1;
-                int     endc;
+                char_u      *lp;
 
-                if (*regparse == '^')
+                lp = skip_anyof(regparse);
+                if (*lp == ']')
                 {
-                    ret = regnode(ANYBUT + extra);
-                    regparse++;
-                }
-                else
-                {
-                    ret = regnode(ANYOF + extra);
-                }
+                    int     startc = -1;
+                    int     endc;
 
-                if (*regparse == ']' || *regparse == '-')
-                {
-                    startc = *regparse;
-                    regc(*regparse++);
-                }
-
-                while (*regparse != NUL && *regparse != ']')
-                {
-                    if (*regparse == '-')
+                    if (*regparse == '^')
                     {
-                        ++regparse;
-                        if (*regparse == ']' || *regparse == NUL || startc == -1 || (regparse[0] == '\\' && regparse[1] == 'n'))
-                        {
-                            regc('-');
-                            startc = '-';
-                        }
-                        else
-                        {
-                            endc = 0;
-                            if (*regparse == '[')
-                            {
-                                endc = get_coll_element(&regparse);
-                            }
-                            if (endc == 0)
-                            {
-                                endc = mb_ptr2char_adv(&regparse);
-                            }
+                        ret = regnode(ANYBUT + extra);
+                        regparse++;
+                    }
+                    else
+                    {
+                        ret = regnode(ANYOF + extra);
+                    }
 
-                            if (endc == '\\' && !reg_cpo_lit && !reg_cpo_bsl)
-                            {
-                                endc = coll_get_char();
-                            }
+                    if (*regparse == ']' || *regparse == '-')
+                    {
+                        startc = *regparse;
+                        regc(*regparse++);
+                    }
 
-                            if (startc > endc)
+                    while (*regparse != NUL && *regparse != ']')
+                    {
+                        if (*regparse == '-')
+                        {
+                            ++regparse;
+                            if (*regparse == ']' || *regparse == NUL || startc == -1 || (regparse[0] == '\\' && regparse[1] == 'n'))
                             {
-                                 return (emsg((_(e_reverse_range_in_character_class))), rc_did_emsg = TRUE, nullptr) ;
+                                regc('-');
+                                startc = '-';
                             }
-                            if ((utf_char2len(startc) > 1 || utf_char2len(endc) > 1))
+                            else
                             {
-                                if (endc > startc + 256)
+                                endc = 0;
+                                if (*regparse == '[')
                                 {
-                                     return (emsg((_(e_range_too_large_in_character_class))), rc_did_emsg = TRUE, nullptr) ;
+                                    endc = get_coll_element(&regparse);
                                 }
-                                while (++startc <= endc)
+                                if (endc == 0)
+                                {
+                                    endc = mb_ptr2char_adv(&regparse);
+                                }
+
+                                if (endc == '\\' && !reg_cpo_lit && !reg_cpo_bsl)
+                                {
+                                    endc = coll_get_char();
+                                }
+
+                                if (startc > endc)
+                                {
+                                     return (emsg((_(e_reverse_range_in_character_class))), rc_did_emsg = TRUE, nullptr) ;
+                                }
+                                if ((utf_char2len(startc) > 1 || utf_char2len(endc) > 1))
+                                {
+                                    if (endc > startc + 256)
+                                    {
+                                         return (emsg((_(e_range_too_large_in_character_class))), rc_did_emsg = TRUE, nullptr) ;
+                                    }
+                                    while (++startc <= endc)
+                                    {
+                                        regmbc(startc);
+                                    }
+                                }
+                                else
+                                {
+                                    while (++startc <= endc)
+                                    {
+                                        regc(startc);
+                                    }
+                                }
+                                startc = -1;
+                            }
+                        }
+                        else if (*regparse == '\\' && !reg_cpo_bsl && (vim_strchr(REGEXP_INRANGE, regparse[1]) != nullptr || (!reg_cpo_lit && vim_strchr(REGEXP_ABBR, regparse[1]) != nullptr)))
+                        {
+                            regparse++;
+                            if (*regparse == 'n')
+                            {
+                                if (ret !=  ((char_u *) -1) )
+                                {
+                                    if (*ret == ANYOF)
+                                    {
+                                        *ret = ANYOF + ADD_NL;
+                                        *flagp |= HASNL;
+                                    }
+                                }
+                                regparse++;
+                                startc = -1;
+                            }
+                            else if (*regparse == 'd' || *regparse == 'o' || *regparse == 'x' || *regparse == 'u' || *regparse == 'U')
+                            {
+                                startc = coll_get_char();
+                                if (startc == INT_MAX)
+                                {
+                                     return (emsg((_(e_unicode_val_too_large))), rc_did_emsg = TRUE, nullptr) ;
+                                }
+                                if (startc == 0)
+                                {
+                                    regc(0x0a);
+                                }
+                                else
                                 {
                                     regmbc(startc);
                                 }
                             }
                             else
                             {
-                                while (++startc <= endc)
-                                {
-                                    regc(startc);
-                                }
+                                startc = backslash_trans(*regparse++);
+                                regc(startc);
                             }
-                            startc = -1;
                         }
-                    }
-                    else if (*regparse == '\\' && !reg_cpo_bsl && (vim_strchr(REGEXP_INRANGE, regparse[1]) != nullptr || (!reg_cpo_lit && vim_strchr(REGEXP_ABBR, regparse[1]) != nullptr)))
-                    {
-                        regparse++;
-                        if (*regparse == 'n')
+                        else if (*regparse == '[')
                         {
-                            if (ret !=  ((char_u *) -1) )
-                            {
-                                if (*ret == ANYOF)
-                                {
-                                    *ret = ANYOF + ADD_NL;
-                                    *flagp |= HASNL;
-                                }
-                            }
-                            regparse++;
+                            int c_class;
+                            int cu;
+
+                            c_class = get_char_class(&regparse);
                             startc = -1;
-                        }
-                        else if (*regparse == 'd' || *regparse == 'o' || *regparse == 'x' || *regparse == 'u' || *regparse == 'U')
-                        {
-                            startc = coll_get_char();
-                            if (startc == INT_MAX)
+                            switch (c_class)
                             {
-                                 return (emsg((_(e_unicode_val_too_large))), rc_did_emsg = TRUE, nullptr) ;
-                            }
-                            if (startc == 0)
-                            {
-                                regc(0x0a);
-                            }
-                            else
-                            {
-                                regmbc(startc);
+                                case CLASS_NONE:
+                                    if ((c_class = get_coll_element(&regparse)) != 0)
+                                    {
+                                        regmbc(c_class);
+                                    }
+                                    else
+                                    {
+                                        startc = *regparse++;
+                                        regc(startc);
+                                    }
+                                    break;
+                                case CLASS_ALNUM:
+                                    for (cu = 1; cu < 128; cu++)
+                                    {
+                                        if (musl_isalnum(cu))
+                                        {
+                                            regmbc(cu);
+                                        }
+                                    }
+                                    break;
+                                case CLASS_ALPHA:
+                                    for (cu = 1; cu < 128; cu++)
+                                    {
+                                        if (musl_isalpha(cu))
+                                        {
+                                            regmbc(cu);
+                                        }
+                                    }
+                                    break;
+                                case CLASS_BLANK:
+                                    regc(' ');
+                                    regc('\t');
+                                    break;
+                                case CLASS_CNTRL:
+                                    for (cu = 1; cu <= 127; cu++)
+                                    {
+                                        if (musl_iscntrl(cu))
+                                        {
+                                            regmbc(cu);
+                                        }
+                                    }
+                                    break;
+                                case CLASS_DIGIT:
+                                    for (cu = 1; cu <= 127; cu++)
+                                    {
+                                        if ( ((unsigned)(cu) - '0' < 10) )
+                                        {
+                                            regmbc(cu);
+                                        }
+                                    }
+                                    break;
+                                case CLASS_GRAPH:
+                                    for (cu = 1; cu <= 127; cu++)
+                                    {
+                                        if (musl_isgraph(cu))
+                                        {
+                                            regmbc(cu);
+                                        }
+                                    }
+                                    break;
+                                case CLASS_LOWER:
+                                    for (cu = 1; cu <= 255; cu++)
+                                    {
+                                        if ( vim_islower(cu)  && cu != 170 && cu != 186)
+                                        {
+                                            regmbc(cu);
+                                        }
+                                    }
+                                    break;
+                                case CLASS_PRINT:
+                                    for (cu = 1; cu <= 255; cu++)
+                                    {
+                                        if (vim_isprintc(cu))
+                                        {
+                                            regmbc(cu);
+                                        }
+                                    }
+                                    break;
+                                case CLASS_PUNCT:
+                                    for (cu = 1; cu < 128; cu++)
+                                    {
+                                        if (musl_ispunct(cu))
+                                        {
+                                            regmbc(cu);
+                                        }
+                                    }
+                                    break;
+                                case CLASS_SPACE:
+                                    for (cu = 9; cu <= 13; cu++)
+                                    {
+                                        regc(cu);
+                                    }
+                                    regc(' ');
+                                    break;
+                                case CLASS_UPPER:
+                                    for (cu = 1; cu <= 255; cu++)
+                                    {
+                                        if ( vim_isupper(cu) )
+                                        {
+                                            regmbc(cu);
+                                        }
+                                    }
+                                    break;
+                                case CLASS_XDIGIT:
+                                    for (cu = 1; cu <= 255; cu++)
+                                    {
+                                        if (vim_isxdigit(cu))
+                                        {
+                                            regmbc(cu);
+                                        }
+                                    }
+                                    break;
+                                case CLASS_TAB:
+                                    regc('\t');
+                                    break;
+                                case CLASS_RETURN:
+                                    regc('\r');
+                                    break;
+                                case CLASS_BACKSPACE:
+                                    regc('\b');
+                                    break;
+                                case CLASS_ESCAPE:
+                                    regc('\033');
+                                    break;
+                                case CLASS_IDENT:
+                                    for (cu = 1; cu <= 255; cu++)
+                                    {
+                                        if (vim_isIDc(cu))
+                                        {
+                                            regmbc(cu);
+                                        }
+                                    }
+                                    break;
+                                case CLASS_KEYWORD:
+                                    for (cu = 1; cu <= 255; cu++)
+                                    {
+                                        if (reg_iswordc(cu))
+                                        {
+                                            regmbc(cu);
+                                        }
+                                    }
+                                    break;
+                                case CLASS_FNAME:
+                                    for (cu = 1; cu <= 255; cu++)
+                                    {
+                                        if (vim_isfilec(cu))
+                                        {
+                                            regmbc(cu);
+                                        }
+                                    }
+                                    break;
                             }
                         }
                         else
                         {
-                            startc = backslash_trans(*regparse++);
-                            regc(startc);
+                            int len;
+
+                            startc = utf_ptr2char(regparse);
+                            len = utfc_ptr2len(regparse);
+                            if (utf_char2len(startc) != len)
+                            {
+                                startc = -1;
+                            }
+                            while (--len >= 0)
+                            {
+                                regc(*regparse++);
+                            }
                         }
                     }
-                    else if (*regparse == '[')
+                    regc(NUL);
+                    prevchr_len = 1;
+                    if (*regparse != ']')
                     {
-                        int c_class;
-                        int cu;
-
-                        c_class = get_char_class(&regparse);
-                        startc = -1;
-                        switch (c_class)
-                        {
-                            case CLASS_NONE:
-                                if ((c_class = get_coll_element(&regparse)) != 0)
-                                {
-                                    regmbc(c_class);
-                                }
-                                else
-                                {
-                                    startc = *regparse++;
-                                    regc(startc);
-                                }
-                                break;
-                            case CLASS_ALNUM:
-                                for (cu = 1; cu < 128; cu++)
-                                {
-                                    if (musl_isalnum(cu))
-                                    {
-                                        regmbc(cu);
-                                    }
-                                }
-                                break;
-                            case CLASS_ALPHA:
-                                for (cu = 1; cu < 128; cu++)
-                                {
-                                    if (musl_isalpha(cu))
-                                    {
-                                        regmbc(cu);
-                                    }
-                                }
-                                break;
-                            case CLASS_BLANK:
-                                regc(' ');
-                                regc('\t');
-                                break;
-                            case CLASS_CNTRL:
-                                for (cu = 1; cu <= 127; cu++)
-                                {
-                                    if (musl_iscntrl(cu))
-                                    {
-                                        regmbc(cu);
-                                    }
-                                }
-                                break;
-                            case CLASS_DIGIT:
-                                for (cu = 1; cu <= 127; cu++)
-                                {
-                                    if ( ((unsigned)(cu) - '0' < 10) )
-                                    {
-                                        regmbc(cu);
-                                    }
-                                }
-                                break;
-                            case CLASS_GRAPH:
-                                for (cu = 1; cu <= 127; cu++)
-                                {
-                                    if (musl_isgraph(cu))
-                                    {
-                                        regmbc(cu);
-                                    }
-                                }
-                                break;
-                            case CLASS_LOWER:
-                                for (cu = 1; cu <= 255; cu++)
-                                {
-                                    if ( vim_islower(cu)  && cu != 170 && cu != 186)
-                                    {
-                                        regmbc(cu);
-                                    }
-                                }
-                                break;
-                            case CLASS_PRINT:
-                                for (cu = 1; cu <= 255; cu++)
-                                {
-                                    if (vim_isprintc(cu))
-                                    {
-                                        regmbc(cu);
-                                    }
-                                }
-                                break;
-                            case CLASS_PUNCT:
-                                for (cu = 1; cu < 128; cu++)
-                                {
-                                    if (musl_ispunct(cu))
-                                    {
-                                        regmbc(cu);
-                                    }
-                                }
-                                break;
-                            case CLASS_SPACE:
-                                for (cu = 9; cu <= 13; cu++)
-                                {
-                                    regc(cu);
-                                }
-                                regc(' ');
-                                break;
-                            case CLASS_UPPER:
-                                for (cu = 1; cu <= 255; cu++)
-                                {
-                                    if ( vim_isupper(cu) )
-                                    {
-                                        regmbc(cu);
-                                    }
-                                }
-                                break;
-                            case CLASS_XDIGIT:
-                                for (cu = 1; cu <= 255; cu++)
-                                {
-                                    if (vim_isxdigit(cu))
-                                    {
-                                        regmbc(cu);
-                                    }
-                                }
-                                break;
-                            case CLASS_TAB:
-                                regc('\t');
-                                break;
-                            case CLASS_RETURN:
-                                regc('\r');
-                                break;
-                            case CLASS_BACKSPACE:
-                                regc('\b');
-                                break;
-                            case CLASS_ESCAPE:
-                                regc('\033');
-                                break;
-                            case CLASS_IDENT:
-                                for (cu = 1; cu <= 255; cu++)
-                                {
-                                    if (vim_isIDc(cu))
-                                    {
-                                        regmbc(cu);
-                                    }
-                                }
-                                break;
-                            case CLASS_KEYWORD:
-                                for (cu = 1; cu <= 255; cu++)
-                                {
-                                    if (reg_iswordc(cu))
-                                    {
-                                        regmbc(cu);
-                                    }
-                                }
-                                break;
-                            case CLASS_FNAME:
-                                for (cu = 1; cu <= 255; cu++)
-                                {
-                                    if (vim_isfilec(cu))
-                                    {
-                                        regmbc(cu);
-                                    }
-                                }
-                                break;
-                        }
+                         return (emsg((_(e_too_many_brackets))), rc_did_emsg = TRUE, nullptr) ;
                     }
-                    else
-                    {
-                        int len;
-
-                        startc = utf_ptr2char(regparse);
-                        len = utfc_ptr2len(regparse);
-                        if (utf_char2len(startc) != len)
-                        {
-                            startc = -1;
-                        }
-                        while (--len >= 0)
-                        {
-                            regc(*regparse++);
-                        }
-                    }
-                }
-                regc(NUL);
-                prevchr_len = 1;
-                if (*regparse != ']')
-                {
-                     return (emsg((_(e_too_many_brackets))), rc_did_emsg = TRUE, nullptr) ;
-                }
-                skipchr();
-                *flagp |= HASWIDTH | SIMPLE;
-                break;
-            }
-            else if (reg_strict)
-            {
-                 return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_missing_rsb_after_str_lsb)), (reg_magic > MAGIC_OFF) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_missing_rsb_after_str_lsb))))), rc_did_emsg = TRUE, nullptr) ;
-            }
-        }
-
-      [[fallthrough]];
-      default:
-        {
-            int         len;
-
-            if (use_multibytecode(c))
-            {
-do_multibyte:
-                ret = regnode(MULTIBYTECODE);
-                regmbc(c);
-                *flagp |= HASWIDTH | SIMPLE;
-                break;
-            }
-
-            ret = regnode(EXACTLY);
-
-            for (len = 0; c != NUL && (len == 0 || (re_multi_type(peekchr()) == NOT_MULTI && !one_exactly && ! ((c) < 0) )); ++len)
-            {
-                c = no_Magic(c);
-                regmbc(c);
-                int     l;
-
-                for (;;)
-                {
-                    l = utf_ptr2len(regparse);
-                    if (! utf_iscomposing(utf_ptr2char(regparse + l)) )
-                    {
-                        break;
-                    }
-                    regmbc(utf_ptr2char(regparse));
                     skipchr();
+                    *flagp |= HASWIDTH | SIMPLE;
+                    break;
                 }
-                c = getchr();
+                else if (reg_strict)
+                {
+                     return ((vim_snprintf((char *)IObuff, emsg_iobuff_room(), (const char *)(_(e_missing_rsb_after_str_lsb)), (reg_magic > MAGIC_OFF) ? "" : "\\"), emsg(iobuff_or((const char *)(_(e_missing_rsb_after_str_lsb))))), rc_did_emsg = TRUE, nullptr) ;
+                }
             }
-            ungetchr();
 
-            regc(NUL);
-            *flagp |= HASWIDTH;
-            if (len == 1)
+          [[fallthrough]];
+          default:
             {
-                *flagp |= SIMPLE;
+                int         len;
+
+                if (use_multibytecode(c))
+                {
+                    ret = regnode(MULTIBYTECODE);
+                    regmbc(c);
+                    *flagp |= HASWIDTH | SIMPLE;
+                    break;
+                }
+
+                ret = regnode(EXACTLY);
+
+                for (len = 0; c != NUL && (len == 0 || (re_multi_type(peekchr()) == NOT_MULTI && !one_exactly && ! ((c) < 0) )); ++len)
+                {
+                    c = no_Magic(c);
+                    regmbc(c);
+                    int     l;
+
+                    for (;;)
+                    {
+                        l = utf_ptr2len(regparse);
+                        if (! utf_iscomposing(utf_ptr2char(regparse + l)) )
+                        {
+                            break;
+                        }
+                        regmbc(utf_ptr2char(regparse));
+                        skipchr();
+                    }
+                    c = getchr();
+                }
+                ungetchr();
+
+                regc(NUL);
+                *flagp |= HASWIDTH;
+                if (len == 1)
+                {
+                    *flagp |= SIMPLE;
+                }
             }
+            break;
         }
         break;
     }
