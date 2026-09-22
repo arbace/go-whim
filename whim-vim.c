@@ -459,8 +459,6 @@ enum { STR2NR_QUOTE = 0x10 };
 typedef unsigned char   char_u;
 typedef unsigned short  short_u;
 typedef unsigned long           long_u;
-typedef          long           long_i;
-
 typedef char_u schar_T;
 typedef unsigned short sattr_T;
 enum { MAX_TYPENR = 65535 };
@@ -48286,7 +48284,8 @@ struct vimoption
 
     opt_expand_cb_T     opt_expand_cb;
 
-    char_u      *def_val[2];
+    char_u      *def_str[2];
+    long        def_num[2];
 };
 
 enum { VI_DEFAULT = 0 };
@@ -48296,447 +48295,431 @@ static struct vimoption options[] =
 {
     {"ambiwidth",  "ambw",  P_STRING|P_VI_DEF|P_RCLR,
                             (char_u *)&p_ambw, PV_NONE, did_set_ambiwidth, nullptr,
-                            {(char_u *)"single", (char_u *)0L}
+                            {(char_u *)"single", nullptr}, {0L, 0L}
                               },
     {"autoindent",  "ai",   P_BOOL|P_VI_DEF,
                             (char_u *)&p_ai,   (idopt_T)(PV_BUF + (int)(BV_AI))  , nullptr, nullptr,
-                            {(char_u *)TRUE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {TRUE, 0L}   },
     {"background",  "bg",   P_STRING|P_VI_DEF|P_RCLR|P_HLONLY,
                             (char_u *)&p_bg, PV_NONE, did_set_background, nullptr,
-                            {
-                            (char_u *)"light",
-                                            (char_u *)0L}   },
+                            {(char_u *)"light", nullptr}, {0L, 0L}   },
     {"backspace",   "bs",   P_STRING|P_VIM|P_ONECOMMA|P_NODUP,
                             (char_u *)&p_bs, PV_NONE, did_set_backspace, nullptr,
-                            {(char_u *)"", (char_u *)"indent,eol,start"}   },
+                            {(char_u *)"", (char_u *)"indent,eol,start"}, {0L, 0L}   },
     {"belloff",      "bo",  P_STRING|P_VI_DEF|P_COMMA|P_NODUP,
                             (char_u *)&p_bo, PV_NONE, did_set_belloff, nullptr,
-                            {(char_u *)"", (char_u *)0L}   },
+                            {(char_u *)"", nullptr}, {0L, 0L}   },
     {"casemap",     "cmp",   P_STRING|P_VI_DEF|P_ONECOMMA|P_NODUP,
                             (char_u *)&p_cmp, PV_NONE, did_set_casemap, nullptr,
-                            {(char_u *)"internal,keepascii", (char_u *)0L}
+                            {(char_u *)"internal,keepascii", nullptr}, {0L, 0L}
                               },
     {"cmdheight",   "ch",   P_NUM|P_VI_DEF|P_RALL,
                             (char_u *)&p_ch, PV_NONE, did_set_cmdheight, nullptr,
-                            {(char_u *)1L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {1L, 0L}   },
     {"columns",     "co",   P_NUM|P_NODEFAULT|P_NO_MKRC|P_VI_DEF|P_RCLR,
                             (char_u *)&Columns, PV_NONE, nullptr, nullptr,
-                            {(char_u *)80L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {80L, 0L}   },
     {"compatible",  "cp",   P_BOOL|P_RALL,
                             (char_u *)&p_cp, PV_NONE, did_set_compatible, nullptr,
-                            {(char_u *)FALSE, (char_u *)FALSE}   },
+                            {nullptr, nullptr}, {FALSE, FALSE}   },
     {"copyindent",  "ci",   P_BOOL|P_VI_DEF|P_VIM,
                             (char_u *)&p_ci,   (idopt_T)(PV_BUF + (int)(BV_CI))  , nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"cpoptions",   "cpo",  P_STRING|P_VIM|P_RALL|P_FLAGLIST,
                             (char_u *)&p_cpo, PV_NONE, did_set_cpoptions, nullptr,
-                            {(char_u *) "aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>;" , (char_u *) "aABceFsz" }
+                            {(char_u *) "aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>;", (char_u *) "aABceFsz"}, {0L, 0L}
                               },
     {"delcombine", "deco",  P_BOOL|P_VI_DEF|P_VIM,
                             (char_u *)&p_deco, PV_NONE, nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"display",     "dy",   P_STRING|P_VI_DEF|P_ONECOMMA|P_RALL|P_NODUP,
                             (char_u *)&p_dy, PV_NONE, did_set_display, nullptr,
-                            {(char_u *)"", (char_u *)0L}   },
+                            {(char_u *)"", nullptr}, {0L, 0L}   },
     {"edcompatible","ed",   P_BOOL|P_VI_DEF,
                             (char_u *)&p_ed, PV_NONE, nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"emoji",      "emo",   P_BOOL|P_VI_DEF|P_RCLR,
                             (char_u *)&p_emoji, PV_NONE, did_set_ambiwidth, nullptr,
-                            {(char_u *)TRUE, (char_u *)0L}
+                            {nullptr, nullptr}, {TRUE, 0L}
                               },
     {"errorbells",  "eb",   P_BOOL|P_VI_DEF,
                             (char_u *)&p_eb, PV_NONE, nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"esckeys",     "ek",   P_BOOL|P_VIM,
                             (char_u *)&p_ek, PV_NONE, nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)TRUE}   },
+                            {nullptr, nullptr}, {FALSE, TRUE}   },
     {"expandtab",   "et",   P_BOOL|P_VI_DEF|P_VIM,
                             (char_u *)&p_et,   (idopt_T)(PV_BUF + (int)(BV_ET))  , nullptr, nullptr,
-                            {(char_u *)TRUE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {TRUE, 0L}   },
     {"fillchars",   "fcs",  P_STRING|P_VI_DEF|P_RALL|P_ONECOMMA|P_NODUP|P_COLON,
                             (char_u *)&p_fcs,   (idopt_T)(PV_BOTH + (int)( (idopt_T)(PV_WIN + (int)(WV_FCS)) ))  , did_set_chars_option, nullptr,
-                            {(char_u *)"vert:|,fold:-,eob:~,lastline:@",
-                                                                  (char_u *)0L}
+                            {(char_u *)"vert:|,fold:-,eob:~,lastline:@", nullptr}, {0L, 0L}
                               },
     {"gdefault",    "gd",   P_BOOL|P_VI_DEF|P_VIM,
                             (char_u *)&p_gd, PV_NONE, nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
 
     {"highlight",   "hl",   P_STRING|P_VI_DEF|P_RCLR|P_ONECOMMA|P_NODUP|P_COLON,
                             (char_u *)&p_hl, PV_NONE, did_set_highlight, nullptr,
-                            {(char_u *) "8:SpecialKey,~:EndOfBuffer,@:NonText,d:Directory,e:ErrorMsg,i:IncSearch,l:Search,y:CurSearch,m:MoreMsg,M:ModeMsg,n:LineNr,a:LineNrAbove,b:LineNrBelow,N:CursorLineNr,G:CursorLineSign,O:CursorLineFold,r:Question,s:StatusLine,S:StatusLineNC,c:VertSplit,|:VertSplitNC,t:Title,v:Visual,V:VisualNOS,w:WarningMsg,W:WildMenu,f:Folded,F:FoldColumn,A:DiffAdd,C:DiffChange,D:DiffDelete,T:DiffText,E:DiffTextAdd,>:SignColumn,-:Conceal,B:SpellBad,P:SpellCap,R:SpellRare,L:SpellLocal,+:Pmenu,=:PmenuSel,k:PmenuMatch,<:PmenuMatchSel,[:PmenuKind,]:PmenuKindSel,{:PmenuExtra,}:PmenuExtraSel,x:PmenuSbar,X:PmenuThumb,j:PmenuBorder,H:PmenuShadow,p:Popup,J:PopupBorder,Q:PopupTitle,*:TabLine,#:TabLineSel,_:TabLineFill,!:CursorColumn,.:CursorLine,o:ColorColumn,q:QuickFixLine,z:StatusLineTerm,Z:StatusLineTermNC,g:MsgArea,h:ComplMatchIns,%:TabPanel,^:TabPanelSel,&:TabPanelFill,I:PreInsert" , (char_u *)0L}
+                            {(char_u *) "8:SpecialKey,~:EndOfBuffer,@:NonText,d:Directory,e:ErrorMsg,i:IncSearch,l:Search,y:CurSearch,m:MoreMsg,M:ModeMsg,n:LineNr,a:LineNrAbove,b:LineNrBelow,N:CursorLineNr,G:CursorLineSign,O:CursorLineFold,r:Question,s:StatusLine,S:StatusLineNC,c:VertSplit,|:VertSplitNC,t:Title,v:Visual,V:VisualNOS,w:WarningMsg,W:WildMenu,f:Folded,F:FoldColumn,A:DiffAdd,C:DiffChange,D:DiffDelete,T:DiffText,E:DiffTextAdd,>:SignColumn,-:Conceal,B:SpellBad,P:SpellCap,R:SpellRare,L:SpellLocal,+:Pmenu,=:PmenuSel,k:PmenuMatch,<:PmenuMatchSel,[:PmenuKind,]:PmenuKindSel,{:PmenuExtra,}:PmenuExtraSel,x:PmenuSbar,X:PmenuThumb,j:PmenuBorder,H:PmenuShadow,p:Popup,J:PopupBorder,Q:PopupTitle,*:TabLine,#:TabLineSel,_:TabLineFill,!:CursorColumn,.:CursorLine,o:ColorColumn,q:QuickFixLine,z:StatusLineTerm,Z:StatusLineTermNC,g:MsgArea,h:ComplMatchIns,%:TabPanel,^:TabPanelSel,&:TabPanelFill,I:PreInsert", nullptr}, {0L, 0L}
                               },
     {"history",     "hi",   P_NUM|P_VIM,
                             (char_u *)&p_hi, PV_NONE, nullptr, nullptr,
-                            {(char_u *)9999L, (char_u *)9999L}   },
+                            {nullptr, nullptr}, {9999L, 9999L}   },
     {"hlsearch",    "hls",  P_BOOL|P_VI_DEF|P_VIM|P_RALL|P_HLONLY,
                             (char_u *)&p_hls, PV_NONE, did_set_hlsearch, nullptr,
-                            {(char_u *)TRUE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {TRUE, 0L}   },
     {"ignorecase",  "ic",   P_BOOL|P_VI_DEF,
                             (char_u *)&p_ic, PV_NONE, did_set_ignorecase, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"incsearch",   "is",   P_BOOL|P_VI_DEF|P_VIM,
                             (char_u *)&p_is, PV_NONE, nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"insertmode",  "im",   P_BOOL|P_VI_DEF|P_VIM,
                             (char_u *)&p_im, PV_NONE, did_set_insertmode, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"isfname",     "isf",  P_STRING|P_VI_DEF|P_COMMA|P_NODUP,
                             (char_u *)&p_isf, PV_NONE, did_set_isopt, nullptr,
-                            {
-                            (char_u *)"@,48-57,/,.,-,_,+,,,#,$,%,~,=",
-                                (char_u *)0L}   },
+                            {(char_u *)"@,48-57,/,.,-,_,+,,,#,$,%,~,=", nullptr}, {0L, 0L}   },
     {"isident",     "isi",  P_STRING|P_VI_DEF|P_COMMA|P_NODUP,
                             (char_u *)&p_isi, PV_NONE, did_set_isopt, nullptr,
-                            {
-                            (char_u *)"@,48-57,_,192-255",
-                                (char_u *)0L}   },
+                            {(char_u *)"@,48-57,_,192-255", nullptr}, {0L, 0L}   },
     {"iskeyword",   "isk",  P_STRING|P_ALLOCED|P_VIM|P_COMMA|P_NODUP,
                             (char_u *)&p_isk,   (idopt_T)(PV_BUF + (int)(BV_ISK))  , did_set_iskeyword, nullptr,
-                            {
-                                (char_u *)"@,48-57,_",
-                                 (char_u *)"@,48-57,_,192-255" 
-                            }   },
+                            {(char_u *)"@,48-57,_", (char_u *)"@,48-57,_,192-255"}, {0L, 0L}   },
     {"isprint",     "isp",  P_STRING|P_VI_DEF|P_RALL|P_COMMA|P_NODUP,
                             (char_u *)&p_isp, PV_NONE, did_set_isopt, nullptr,
-                            {
-                             (char_u *)"@,161-255" ,
-                                (char_u *)0L}   },
+                            {(char_u *)"@,161-255", nullptr}, {0L, 0L}   },
     {"joinspaces",  "js",   P_BOOL|P_VI_DEF|P_VIM,
                             (char_u *)&p_js, PV_NONE, nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"keymodel",    "km",   P_STRING|P_VI_DEF|P_ONECOMMA|P_NODUP,
                             (char_u *)&p_km, PV_NONE, did_set_keymodel, nullptr,
-                            {(char_u *)"startsel", (char_u *)0L}   },
+                            {(char_u *)"startsel", nullptr}, {0L, 0L}   },
     {"keyprotocol", "kpc",  P_STRING|P_VI_DEF|P_ONECOMMA|P_NODUP|P_COLON,
                             (char_u *)&p_kpc, PV_NONE, did_set_keyprotocol, nullptr,
-                            {(char_u *)"kitty:kitty,foot:kitty,ghostty:kitty,wezterm:kitty,xterm:mok2", (char_u *)0L}
+                            {(char_u *)"kitty:kitty,foot:kitty,ghostty:kitty,wezterm:kitty,xterm:mok2", nullptr}, {0L, 0L}
                               },
     {"laststatus",  "ls",   P_NUM|P_VI_DEF|P_RALL,
                             (char_u *)&p_ls, PV_NONE, did_set_laststatus, nullptr,
-                            {(char_u *)1L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {1L, 0L}   },
     {"lazyredraw",  "lz",   P_BOOL|P_VI_DEF,
                             (char_u *)&p_lz, PV_NONE, nullptr, nullptr,
-                            {(char_u *)TRUE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {TRUE, 0L}   },
     {"lines",       nullptr,   P_NUM|P_NODEFAULT|P_NO_MKRC|P_VI_DEF|P_RCLR,
                             (char_u *)&Rows, PV_NONE, nullptr, nullptr,
-                            {
-                            (char_u *)24L,
-                                            (char_u *)0L}   },
+                            {nullptr, nullptr}, {24L, 0L}   },
     {"list",        nullptr,   P_BOOL|P_VI_DEF|P_RWIN,
                             (char_u *) ((char_u *)-1) ,   (idopt_T)(PV_WIN + (int)(WV_LIST))  , nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"listchars",   "lcs",  P_STRING|P_VI_DEF|P_RALL|P_ONECOMMA|P_NODUP|P_COLON,
                             (char_u *)&p_lcs,   (idopt_T)(PV_BOTH + (int)( (idopt_T)(PV_WIN + (int)(WV_LCS)) ))  , did_set_chars_option, nullptr,
-                            {(char_u *)"eol:$", (char_u *)0L}   },
+                            {(char_u *)"eol:$", nullptr}, {0L, 0L}   },
     {"magic",       nullptr,   P_BOOL|P_VI_DEF,
                             (char_u *)&p_magic, PV_NONE, nullptr, nullptr,
-                            {(char_u *)TRUE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {TRUE, 0L}   },
     {"matchpairs",  "mps",  P_STRING|P_ALLOCED|P_VI_DEF|P_ONECOMMA|P_NODUP,
                             (char_u *)&p_mps,   (idopt_T)(PV_BUF + (int)(BV_MPS))  , did_set_matchpairs, nullptr,
-                            {(char_u *)"(:),{:},[:]", (char_u *)0L}
+                            {(char_u *)"(:),{:},[:]", nullptr}, {0L, 0L}
                               },
     {"matchtime",   "mat",  P_NUM|P_VI_DEF,
                             (char_u *)&p_mat, PV_NONE, nullptr, nullptr,
-                            {(char_u *)5L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {5L, 0L}   },
     {"maxcombine",  "mco",  P_NUM|P_VI_DEF|P_CURSWANT,
                             (char_u *)&p_mco, PV_NONE, did_set_maxcombine, nullptr,
-                            {(char_u *)2, (char_u *)0L}   },
+                            {nullptr, nullptr}, {2, 0L}   },
     {"maxmapdepth", "mmd",  P_NUM|P_VI_DEF,
                             (char_u *)&p_mmd, PV_NONE, nullptr, nullptr,
-                            {(char_u *)1000L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {1000L, 0L}   },
     {"maxmempattern","mmp", P_NUM|P_VI_DEF,
                             (char_u *)&p_mmp, PV_NONE, nullptr, nullptr,
-                            {(char_u *)1000L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {1000L, 0L}   },
     {"maxsearchcount", "msc", P_NUM|P_VI_DEF,
                             (char_u *)&p_msc, PV_NONE, did_set_maxsearchcount, nullptr,
-                            {(char_u *)99L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {99L, 0L}   },
     {"messagesopt","mopt",  P_STRING|P_ALLOCED|P_VI_DEF|P_ONECOMMA|P_COLON|P_NODUP,
                             (char_u *)&p_mopt, PV_NONE, did_set_messagesopt, nullptr,
-                            {(char_u *)"hit-enter,history:500", (char_u *)nullptr}   },
+                            {(char_u *)"hit-enter,history:500", (char_u *)nullptr}, {0L, 0L}   },
     {"modifiable",  "ma",   P_BOOL|P_VI_DEF|P_NOGLOB,
                             (char_u *)&p_ma,   (idopt_T)(PV_BUF + (int)(BV_MA))  , did_set_modifiable, nullptr,
-                            {(char_u *)TRUE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {TRUE, 0L}   },
     {"modified",    "mod",  P_BOOL|P_NO_MKRC|P_VI_DEF|P_RSTAT,
                             (char_u *)&p_mod,   (idopt_T)(PV_BUF + (int)(BV_MOD))  , did_set_modified, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"more",        nullptr,   P_BOOL|P_VIM,
                             (char_u *)&p_more, PV_NONE, nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)TRUE}   },
+                            {nullptr, nullptr}, {FALSE, TRUE}   },
     {"nrformats",   "nf",   P_STRING|P_ALLOCED|P_VI_DEF|P_ONECOMMA|P_NODUP,
                             (char_u *)&p_nf,   (idopt_T)(PV_BUF + (int)(BV_NF))  , did_set_nrformats, nullptr,
-                            {(char_u *)"bin,octal,hex", (char_u *)0L}
+                            {(char_u *)"bin,octal,hex", nullptr}, {0L, 0L}
                               },
     {"number",      "nu",   P_BOOL|P_VI_DEF|P_RWIN,
                             (char_u *) ((char_u *)-1) ,   (idopt_T)(PV_WIN + (int)(WV_NU))  ,
                             did_set_number_relativenumber, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"osctimeoutlen", "ost", P_NUM|P_VI_DEF,
                             (char_u *)&p_ost, PV_NONE, did_set_osctimeoutlen, nullptr,
-                            {(char_u *)1000, (char_u *)0L}   },
+                            {nullptr, nullptr}, {1000, 0L}   },
     {"paste",       nullptr,   P_BOOL|P_VI_DEF|P_PRI_MKRC,
                             (char_u *)&p_paste, PV_NONE, did_set_paste, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"pastetoggle", "pt",   P_STRING|P_VI_DEF,
                             (char_u *)&p_pt, PV_NONE, did_set_pastetoggle, nullptr,
-                            {(char_u *)"", (char_u *)0L}   },
+                            {(char_u *)"", nullptr}, {0L, 0L}   },
     {"preserveindent", "pi", P_BOOL|P_VI_DEF|P_VIM,
                             (char_u *)&p_pi,   (idopt_T)(PV_BUF + (int)(BV_PI))  , nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"quoteescape", "qe",   P_STRING|P_ALLOCED|P_VI_DEF,
                             (char_u *)&p_qe,   (idopt_T)(PV_BUF + (int)(BV_QE))  , nullptr, nullptr,
-                            {(char_u *)"\\", (char_u *)0L}   },
+                            {(char_u *)"\\", nullptr}, {0L, 0L}   },
     {"relativenumber", "rnu", P_BOOL|P_VI_DEF|P_RWIN,
                             (char_u *) ((char_u *)-1) ,   (idopt_T)(PV_WIN + (int)(WV_RNU))  ,
                             did_set_number_relativenumber, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"remap",       nullptr,   P_BOOL|P_VI_DEF,
                             (char_u *)&p_remap, PV_NONE, nullptr, nullptr,
-                            {(char_u *)TRUE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {TRUE, 0L}   },
     {"report",      nullptr,   P_NUM|P_VI_DEF,
                             (char_u *)&p_report, PV_NONE, nullptr, nullptr,
-                            {(char_u *)2L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {2L, 0L}   },
     {"ruler",       "ru",   P_BOOL|P_VIM|P_RSTAT,
                             (char_u *)&p_ru, PV_NONE, nullptr, nullptr,
-                            {(char_u *)TRUE, (char_u *)TRUE}   },
+                            {nullptr, nullptr}, {TRUE, TRUE}   },
     {"scroll",      "scr",  P_NUM|P_NO_MKRC|P_VI_DEF,
                             (char_u *) ((char_u *)-1) ,   (idopt_T)(PV_WIN + (int)(WV_SCROLL))  , nullptr, nullptr,
-                            {(char_u *)0L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {0L, 0L}   },
     {"scrolljump",  "sj",   P_NUM|P_VI_DEF|P_VIM,
                             (char_u *)&p_sj, PV_NONE, nullptr, nullptr,
-                            {(char_u *)1L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {1L, 0L}   },
     {"scrolloff",   "so",   P_NUM|P_VI_DEF|P_VIM|P_RALL,
                             (char_u *)&p_so,   (idopt_T)(PV_BOTH + (int)( (idopt_T)(PV_WIN + (int)(WV_SO)) ))  , nullptr, nullptr,
-                            {(char_u *)1L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {1L, 0L}   },
     {"scrolloffpad", "sop", P_NUM|P_VI_DEF|P_VIM|P_RALL,
                                 (char_u *)&p_sop,   (idopt_T)(PV_BOTH + (int)( (idopt_T)(PV_WIN + (int)(WV_SOP)) ))  , nullptr, nullptr,
-                                {(char_u *)0L, (char_u *)0L}   },
+                                {nullptr, nullptr}, {0L, 0L}   },
     {"selection",   "sel",  P_STRING|P_VI_DEF,
                             (char_u *)&p_sel, PV_NONE, did_set_selection, nullptr,
-                            {(char_u *)"inclusive", (char_u *)0L}
+                            {(char_u *)"inclusive", nullptr}, {0L, 0L}
                               },
     {"selectmode",  "slm",  P_STRING|P_VI_DEF|P_ONECOMMA|P_NODUP,
                             (char_u *)&p_slm, PV_NONE, did_set_selectmode, nullptr,
-                            {(char_u *)"", (char_u *)0L}   },
+                            {(char_u *)"", nullptr}, {0L, 0L}   },
     {"shiftround",  "sr",   P_BOOL|P_VI_DEF|P_VIM,
                             (char_u *)&p_sr, PV_NONE, nullptr, nullptr,
-                            {(char_u *)TRUE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {TRUE, 0L}   },
     {"shiftwidth",  "sw",   P_NUM|P_VI_DEF,
                             (char_u *)&p_sw,   (idopt_T)(PV_BUF + (int)(BV_SW))  ,
                             did_set_shiftwidth_tabstop, nullptr,
-                            {(char_u *)4L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {4L, 0L}   },
     {"shortmess",   "shm",  P_STRING|P_VIM|P_FLAGLIST,
                             (char_u *)&p_shm, PV_NONE, did_set_shortmess, nullptr,
-                            {(char_u *)"S", (char_u *)"filnxtToOS"}
+                            {(char_u *)"S", (char_u *)"filnxtToOS"}, {0L, 0L}
                               },
     {"showcmd",     "sc",   P_BOOL|P_VIM,
                             (char_u *)&p_sc, PV_NONE, nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)TRUE}   },
+                            {nullptr, nullptr}, {FALSE, TRUE}   },
     {"showcmdloc",  "sloc", P_STRING|P_RSTAT,
                             (char_u *)&p_sloc, PV_NONE, did_set_showcmdloc, nullptr,
-                            {(char_u *)"last", (char_u *)"last"}   },
+                            {(char_u *)"last", (char_u *)"last"}, {0L, 0L}   },
     {"showmatch",   "sm",   P_BOOL|P_VI_DEF,
                             (char_u *)&p_sm, PV_NONE, nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"showmode",    "smd",  P_BOOL|P_VIM,
                             (char_u *)&p_smd, PV_NONE, nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)TRUE}   },
+                            {nullptr, nullptr}, {FALSE, TRUE}   },
     {"sidescroll",  "ss",   P_NUM|P_VI_DEF,
                             (char_u *)&p_ss, PV_NONE, nullptr, nullptr,
-                            {(char_u *)0L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {0L, 0L}   },
     {"sidescrolloff", "siso", P_NUM|P_VI_DEF|P_VIM|P_RBUF,
                             (char_u *)&p_siso,   (idopt_T)(PV_BOTH + (int)( (idopt_T)(PV_WIN + (int)(WV_SISO)) ))  , nullptr, nullptr,
-                            {(char_u *)0L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {0L, 0L}   },
     {"smartcase",   "scs",  P_BOOL|P_VI_DEF|P_VIM,
                             (char_u *)&p_scs, PV_NONE, nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"smartindent", "si",   P_BOOL|P_VI_DEF|P_VIM,
                             (char_u *)&p_si,   (idopt_T)(PV_BUF + (int)(BV_SI))  , nullptr, nullptr,
-                            {(char_u *)TRUE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {TRUE, 0L}   },
     {"smarttab",    "sta",  P_BOOL|P_VI_DEF|P_VIM,
                             (char_u *)&p_sta, PV_NONE, nullptr, nullptr,
-                            {(char_u *)TRUE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {TRUE, 0L}   },
     {"smoothscroll", "sms", P_BOOL|P_VI_DEF|P_RWIN,
                             (char_u *) ((char_u *)-1) ,   (idopt_T)(PV_WIN + (int)(WV_SMS))  , did_set_smoothscroll, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"softtabstop", "sts",  P_NUM|P_VI_DEF|P_VIM,
                             (char_u *)&p_sts,   (idopt_T)(PV_BUF + (int)(BV_STS))  , nullptr, nullptr,
-                            {(char_u *)4L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {4L, 0L}   },
     {"startofline", "sol",  P_BOOL|P_VI_DEF|P_VIM,
                             (char_u *)&p_sol, PV_NONE, nullptr, nullptr,
-                            {(char_u *)TRUE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {TRUE, 0L}   },
     {"statusline"  ,"stl",  P_STRING|P_VI_DEF|P_ALLOCED|P_RSTAT|P_MLE,
                             (char_u *)nullptr, PV_NONE, nullptr, nullptr,
-                            {(char_u *)"", (char_u *)0L}   },
+                            {(char_u *)"", nullptr}, {0L, 0L}   },
     {"statuslineopt"  ,"stlo",  P_STRING|P_VI_DEF|P_ALLOCED|P_RSTAT|P_MLE
                             |P_ONECOMMA|P_COLON|P_NODUP,
                             (char_u *)nullptr, PV_NONE, nullptr, nullptr,
-                            {(char_u *)"", (char_u *)0L}   },
+                            {(char_u *)"", nullptr}, {0L, 0L}   },
     {"tabstop",     "ts",   P_NUM|P_VI_DEF|P_RBUF,
                             (char_u *)&p_ts,   (idopt_T)(PV_BUF + (int)(BV_TS))  ,
                             did_set_shiftwidth_tabstop, nullptr,
-                            {(char_u *)4L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {4L, 0L}   },
     {"term",        nullptr,   P_STRING|P_EXPAND|P_NODEFAULT|P_NO_MKRC|P_VI_DEF|P_RALL,
                             (char_u *)& ( term_strings[(int)(KS_NAME)] ) , PV_NONE, did_set_term, nullptr,
-                            {(char_u *)"", (char_u *)0L}   },
+                            {(char_u *)"", nullptr}, {0L, 0L}   },
     {"termsync", "tsy",     P_BOOL|P_VI_DEF,
                             (char_u *)&p_tsy, PV_NONE, did_set_termsync, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"terse",       nullptr,   P_BOOL|P_VI_DEF,
                             (char_u *)&p_terse, PV_NONE, did_set_terse, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"textwidth",   "tw",   P_NUM|P_VI_DEF|P_VIM|P_RBUF|P_HLONLY,
                             (char_u *)&p_tw,   (idopt_T)(PV_BUF + (int)(BV_TW))  , did_set_textwidth, nullptr,
-                            {(char_u *)0L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {0L, 0L}   },
     {"tildeop",     "top",  P_BOOL|P_VI_DEF|P_VIM,
                             (char_u *)&p_to, PV_NONE, nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"timeout",     "to",   P_BOOL|P_VI_DEF,
                             (char_u *)&p_timeout, PV_NONE, nullptr, nullptr,
-                            {(char_u *)TRUE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {TRUE, 0L}   },
     {"timeoutlen",  "tm",   P_NUM|P_VI_DEF,
                             (char_u *)&p_tm, PV_NONE, nullptr, nullptr,
-                            {(char_u *)1000L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {1000L, 0L}   },
     {"ttimeout",    nullptr,   P_BOOL|P_VI_DEF|P_VIM,
                             (char_u *)&p_ttimeout, PV_NONE, nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"ttimeoutlen", "ttm",  P_NUM|P_VI_DEF,
                             (char_u *)&p_ttm, PV_NONE, nullptr, nullptr,
-                            {(char_u *)-1L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {-1L, 0L}   },
     {"ttyfast",     "tf",   P_BOOL|P_NO_MKRC|P_VI_DEF,
                             (char_u *)&p_tf, PV_NONE, nullptr, nullptr,
-                            {(char_u *)TRUE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {TRUE, 0L}   },
     {"ttyscroll",   "tsl",  P_NUM|P_VI_DEF,
                             (char_u *)&p_ttyscroll, PV_NONE, nullptr, nullptr,
-                            {(char_u *)999L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {999L, 0L}   },
     {"ttytype",     "tty",  P_STRING|P_EXPAND|P_NODEFAULT|P_NO_MKRC|P_VI_DEF|P_RALL,
                             (char_u *)& ( term_strings[(int)(KS_NAME)] ) , PV_NONE, did_set_term, nullptr,
-                            {(char_u *)"", (char_u *)0L}   },
+                            {(char_u *)"", nullptr}, {0L, 0L}   },
     {"undolevels",  "ul",   P_NUM|P_VI_DEF,
                             (char_u *)&p_ul,   (idopt_T)(PV_BOTH + (int)( (idopt_T)(PV_BUF + (int)(BV_UL)) ))  , did_set_undolevels, nullptr,
-                            {
-                            (char_u *)9999L,
-                                (char_u *)0L}   },
+                            {nullptr, nullptr}, {9999L, 0L}   },
     {"verbose",     "vbs",  P_NUM|P_VI_DEF,
                             (char_u *)&p_verbose, PV_NONE, nullptr, nullptr,
-                            {(char_u *)0L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {0L, 0L}   },
     {"virtualedit", "ve",   P_STRING|P_ONECOMMA|P_NODUP|P_VI_DEF
                                                             |P_VIM|P_CURSWANT,
                             (char_u *)&p_ve,   (idopt_T)(PV_BOTH + (int)( (idopt_T)(PV_WIN + (int)(WV_VE)) ))  , did_set_virtualedit, nullptr,
-                            {(char_u *)"", (char_u *)""}
+                            {(char_u *)"", (char_u *)""}, {0L, 0L}
                               },
     {"visualbell",  "vb",   P_BOOL|P_VI_DEF,
                             (char_u *)&p_vb, PV_NONE, nullptr, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"weirdinvert", "wiv",  P_BOOL|P_VI_DEF|P_RCLR,
                             (char_u *)&p_wiv, PV_NONE, did_set_weirdinvert, nullptr,
-                            {(char_u *)FALSE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {FALSE, 0L}   },
     {"whichwrap",   "ww",   P_STRING|P_VIM|P_ONECOMMA|P_FLAGLIST,
                             (char_u *)&p_ww, PV_NONE, did_set_whichwrap, nullptr,
-                            {(char_u *)"", (char_u *)"b,s"}   },
+                            {(char_u *)"", (char_u *)"b,s"}, {0L, 0L}   },
     {"wincolor", "wcr",     P_STRING|P_ALLOCED|P_VI_DEF|P_RWIN,
                             (char_u *) ((char_u *)-1) ,   (idopt_T)(PV_WIN + (int)(WV_WCR))  , did_set_wincolor, nullptr,
-                            {(char_u *)"", (char_u *)nullptr}
+                            {(char_u *)"", (char_u *)nullptr}, {0L, 0L}
                               },
     {"window",      "wi",   P_NUM|P_VI_DEF,
                             (char_u *)&p_window, PV_NONE, did_set_window, nullptr,
-                            {(char_u *)0L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {0L, 0L}   },
     {"winhighlight", "whl", P_STRING|P_VI_DEF|P_RALL|P_ONECOMMA|P_NODUP|P_COLON,
                             (char_u *) ((char_u *)-1) ,   (idopt_T)(PV_WIN + (int)(WV_WHL))  , did_set_winhighlight, nullptr,
-                            {(char_u *)"", (char_u *)nullptr}   },
+                            {(char_u *)"", (char_u *)nullptr}, {0L, 0L}   },
     {"wrap",        nullptr,   P_BOOL|P_VI_DEF|P_RWIN,
                             (char_u *) ((char_u *)-1) ,   (idopt_T)(PV_WIN + (int)(WV_WRAP))  , did_set_wrap, nullptr,
-                            {(char_u *)TRUE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {TRUE, 0L}   },
     {"wrapmargin",  "wm",   P_NUM|P_VI_DEF,
                             (char_u *)&p_wm,   (idopt_T)(PV_BUF + (int)(BV_WM))  , nullptr, nullptr,
-                            {(char_u *)0L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {0L, 0L}   },
     {"wrapscan",    "ws",   P_BOOL|P_VI_DEF,
                             (char_u *)&p_ws, PV_NONE, nullptr, nullptr,
-                            {(char_u *)TRUE, (char_u *)0L}   },
+                            {nullptr, nullptr}, {TRUE, 0L}   },
     {"writedelay",  "wd",   P_NUM|P_VI_DEF,
                             (char_u *)&p_wd, PV_NONE, nullptr, nullptr,
-                            {(char_u *)0L, (char_u *)0L}   },
+                            {nullptr, nullptr}, {0L, 0L}   },
 
-     {"t_AB", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CAB)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_AF", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CAF)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_AU", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CAU)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_AL", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CAL)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_al", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_AL)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_bc", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_BC)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_BE", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CBE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_BD", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CBD)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_cd", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CD)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_ce", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_Ce", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_UCE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_CF", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CF)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_cl", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CL)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_cm", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CM)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_Co", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CCO)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_CS", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CCS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_Cs", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_UCS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_cs", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_CV", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CSV)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_da", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_DA)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_db", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_DB)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_DL", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CDL)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_dl", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_DL)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_ds", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_DS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_Ds", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CDS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_fs", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_FS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_fd", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_FD)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_fe", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_FE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_IE", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CIE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_IS", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CIS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_ke", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_KE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_ks", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_KS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_le", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_LE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_mb", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_MB)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_md", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_MD)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_me", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_ME)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_mr", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_MR)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_ms", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_MS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_nd", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_ND)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_op", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_OP)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_RI", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CRI)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_Ri", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_SRI)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_RK", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CRK)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_RT", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CRT)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_RV", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CRV)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_Sb", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CSB)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_se", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_SE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_Sf", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CSF)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_Si", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_SSI)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_so", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_SO)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_sr", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_SR)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_ST", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CST)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_Te", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_STE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_te", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_TE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_TE", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CTE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_ti", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_TI)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_TI", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CTI)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_Ts", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_STS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_ts", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_TS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_ue", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_UE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_us", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_US)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_Us", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_USS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_ut", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_UT)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_vb", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_VB)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_ve", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_VE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_vi", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_VI)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_VS", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CVS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_vs", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_VS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_WS", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CWS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_xn", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_XN)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_xs", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_XS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_ZH", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CZH)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_ZR", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CZR)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_8u", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_8U)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_xo", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_XON)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_BS", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_BSU)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
-     {"t_ES", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_ESU)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", (char_u *)0L}   }, 
+     {"t_AB", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CAB)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_AF", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CAF)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_AU", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CAU)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_AL", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CAL)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_al", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_AL)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_bc", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_BC)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_BE", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CBE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_BD", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CBD)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_cd", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CD)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_ce", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_Ce", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_UCE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_CF", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CF)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_cl", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CL)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_cm", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CM)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_Co", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CCO)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_CS", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CCS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_Cs", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_UCS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_cs", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_CV", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CSV)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_da", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_DA)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_db", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_DB)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_DL", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CDL)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_dl", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_DL)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_ds", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_DS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_Ds", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CDS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_fs", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_FS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_fd", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_FD)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_fe", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_FE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_IE", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CIE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_IS", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CIS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_ke", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_KE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_ks", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_KS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_le", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_LE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_mb", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_MB)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_md", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_MD)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_me", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_ME)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_mr", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_MR)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_ms", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_MS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_nd", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_ND)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_op", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_OP)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_RI", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CRI)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_Ri", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_SRI)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_RK", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CRK)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_RT", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CRT)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_RV", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CRV)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_Sb", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CSB)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_se", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_SE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_Sf", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CSF)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_Si", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_SSI)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_so", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_SO)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_sr", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_SR)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_ST", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CST)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_Te", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_STE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_te", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_TE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_TE", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CTE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_ti", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_TI)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_TI", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CTI)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_Ts", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_STS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_ts", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_TS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_ue", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_UE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_us", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_US)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_Us", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_USS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_ut", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_UT)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_vb", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_VB)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_ve", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_VE)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_vi", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_VI)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_VS", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CVS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_vs", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_VS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_WS", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CWS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_xn", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_XN)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_xs", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_XS)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_ZH", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CZH)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_ZR", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_CZR)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_8u", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_8U)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_xo", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_XON)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_BS", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_BSU)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
+     {"t_ES", nullptr, P_STRING|P_VI_DEF|P_RALL|P_SECURE,                          (char_u *)& ( term_strings[(int)(KS_ESU)] ) , PV_NONE, did_set_term_option, nullptr,                             {(char_u *)"", nullptr}, {0L, 0L}   }, 
 
-    {nullptr, nullptr, 0, nullptr, PV_NONE, nullptr, nullptr, {nullptr, nullptr}   }
+    {nullptr, nullptr, 0, nullptr, PV_NONE, nullptr, nullptr, {nullptr, nullptr}, {0L, 0L}   }
 };
 
 static void set_options_default(int opt_flags);
@@ -48779,7 +48762,7 @@ set_init_expand_env(void)
         if (p != nullptr && (p = vim_strsave(p)) != nullptr)
         {
             *(char_u **)options[opt_idx].var = p;
-            options[opt_idx].def_val[VI_DEFAULT] = p;
+            options[opt_idx].def_str[VI_DEFAULT] = p;
             options[opt_idx].flags |= P_DEF_ALLOCED;
         }
     }
@@ -48829,7 +48812,7 @@ set_option_default(int         opt_idx, int         opt_flags, int         compa
         {
             if (options[opt_idx].indir != PV_NONE)
             {
-                set_string_option_direct(nullptr, opt_idx, options[opt_idx].def_val[dvi], opt_flags, 0);
+                set_string_option_direct(nullptr, opt_idx, options[opt_idx].def_str[dvi], opt_flags, 0);
             }
             else
             {
@@ -48837,7 +48820,7 @@ set_option_default(int         opt_idx, int         opt_flags, int         compa
                 {
                     free_string_option(*(char_u **)(varp));
                 }
-                *(char_u **)varp = options[opt_idx].def_val[dvi];
+                *(char_u **)varp = options[opt_idx].def_str[dvi];
                 options[opt_idx].flags &= ~P_ALLOCED;
             }
         }
@@ -48849,7 +48832,7 @@ set_option_default(int         opt_idx, int         opt_flags, int         compa
             }
             else
             {
-                long def_val = (long)(long_i)options[opt_idx].def_val[dvi];
+                long def_val = options[opt_idx].def_num[dvi];
 
                 if ((long *)varp == &curwin-> w_onebuf_opt.wo_so  || (long *)varp == &curwin-> w_onebuf_opt.wo_siso  || (long *)varp == &curwin-> w_onebuf_opt.wo_sop )
                 {
@@ -48868,7 +48851,7 @@ set_option_default(int         opt_idx, int         opt_flags, int         compa
         }
         else
         {
-            *(int *)varp = (int)(long)(long_i)options[opt_idx].def_val[dvi];
+            *(int *)varp = (int)options[opt_idx].def_num[dvi];
             if (both)
             {
                 *(int *)get_varp_scope(&(options[opt_idx]), OPT_GLOBAL) =
@@ -48930,7 +48913,7 @@ set_string_default_esc(char *name, char_u *val, int escape)
         return;
     }
 
-    options[opt_idx].def_val[VI_DEFAULT] = p;
+    options[opt_idx].def_str[VI_DEFAULT] = p;
     options[opt_idx].flags |= P_DEF_ALLOCED;
 }
 
@@ -48977,7 +48960,7 @@ set_number_default(char *name, long val)
     opt_idx = findoption((char_u *)name);
     if (opt_idx >= 0)
     {
-        options[opt_idx].def_val[VI_DEFAULT] = (char_u *)(long_i)val;
+        options[opt_idx].def_num[VI_DEFAULT] = val;
     }
 }
 
@@ -49165,7 +49148,7 @@ stropt_get_default_val(int         opt_idx, char_u      *varp, int         flags
 {
     char_u      *newval;
 
-    newval = options[opt_idx].def_val[((flags & P_VI_DEF) || cp_val) ? VI_DEFAULT : VIM_DEFAULT];
+    newval = options[opt_idx].def_str[((flags & P_VI_DEF) || cp_val) ? VI_DEFAULT : VIM_DEFAULT];
     if ((char_u **)varp == &p_bg)
     {
             newval = term_bg_default();
@@ -49792,7 +49775,7 @@ do_set_option_bool(int         opt_idx, int         opt_flags, set_prefix_T pref
     }
     else if (nextchar == '&')
     {
-        value = (int)(long)(long_i)options[opt_idx].def_val[((flags & P_VI_DEF) || cp_val) ? VI_DEFAULT : VIM_DEFAULT];
+        value = (int)options[opt_idx].def_num[((flags & P_VI_DEF) || cp_val) ? VI_DEFAULT : VIM_DEFAULT];
     }
     else
     {
@@ -49828,7 +49811,7 @@ do_set_option_numeric(int         opt_idx, int         opt_flags, char_u      **
     ++arg;
     if (nextchar == '&')
     {
-        value = (long)(long_i)options[opt_idx].def_val[((flags & P_VI_DEF) || cp_val) ? VI_DEFAULT : VIM_DEFAULT];
+        value = options[opt_idx].def_num[((flags & P_VI_DEF) || cp_val) ? VI_DEFAULT : VIM_DEFAULT];
     }
     else if (*arg == '-' ||  ((unsigned)(*arg) - '0' < 10) )
     {
@@ -51261,7 +51244,7 @@ get_highlight_default(void)
     i = findoption((char_u *)"hl");
     if (i >= 0)
     {
-        return options[i].def_val[VI_DEFAULT];
+        return options[i].def_str[VI_DEFAULT];
     }
     return (char_u *)nullptr;
 }
@@ -51422,13 +51405,13 @@ optval_default(struct vimoption *p, char_u *varp, int compatible)
     dvi = ((p->flags & P_VI_DEF) || compatible) ? VI_DEFAULT : VIM_DEFAULT;
     if (p->flags & P_NUM)
     {
-        return (*(long *)varp == (long)(long_i)p->def_val[dvi]);
+        return (*(long *)varp == p->def_num[dvi]);
     }
     if (p->flags & P_BOOL)
     {
-        return (*(int *)varp == (int)(long)(long_i)p->def_val[dvi]);
+        return (*(int *)varp == (int)p->def_num[dvi]);
     }
-    return ( musl_strcmp((char *)(*(char_u **)varp), (char *)(p->def_val[dvi]))  == 0);
+    return ( musl_strcmp((char *)(*(char_u **)varp), (char *)(p->def_str[dvi]))  == 0);
 }
 
     static void
@@ -51486,10 +51469,10 @@ free_termoptions(void)
             }
             if (p->flags & P_DEF_ALLOCED)
             {
-                free_string_option(p->def_val[VI_DEFAULT]);
+                free_string_option(p->def_str[VI_DEFAULT]);
             }
             *(char_u **)(p->var) = empty_option;
-            p->def_val[VI_DEFAULT] = empty_option;
+            p->def_str[VI_DEFAULT] = empty_option;
             p->flags &= ~(P_ALLOCED|P_DEF_ALLOCED);
         }
     }
@@ -51523,14 +51506,14 @@ set_term_defaults(void)
 
     for (p = &options[0]; p->fullname != nullptr; p++)
     {
-        if (istermoption(p) && p->def_val[VI_DEFAULT] != *(char_u **)(p->var))
+        if (istermoption(p) && p->def_str[VI_DEFAULT] != *(char_u **)(p->var))
         {
             if (p->flags & P_DEF_ALLOCED)
             {
-                free_string_option(p->def_val[VI_DEFAULT]);
+                free_string_option(p->def_str[VI_DEFAULT]);
                 p->flags &= ~P_DEF_ALLOCED;
             }
-            p->def_val[VI_DEFAULT] = *(char_u **)(p->var);
+            p->def_str[VI_DEFAULT] = *(char_u **)(p->var);
             if (p->flags & P_ALLOCED)
             {
                 p->flags |= P_DEF_ALLOCED;
