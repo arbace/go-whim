@@ -8,9 +8,9 @@
 // The types, globals and every signature were generated from editor.c by
 // tx/skel (modernc.org/cc/v4); the function bodies and initial values were
 // written by hand, to tx/CONVENTIONS.md.  It is the transpilation of phase
-// 153's core: the functions phases 129-153 changed were re-transpiled from
+// 154's core: the functions phases 129-154 changed were re-transpiled from
 // their new C, the rest carried over.  Measured: built with `go build
-// ./editor`, tools/zerodelta.sh --phase 153 accepts it -- 102 screen cases,
+// ./editor`, tools/zerodelta.sh --phase 154 accepts it -- 102 screen cases,
 // 111 Ex rows, 30 command lines, the pty scenarios, 19 terminals and the
 // memline corpus, exactly as declared.
 
@@ -42497,25 +42497,6 @@ func free_termoptions() {
 	clear_termcodes()
 }
 
-func free_one_termoption(var_ Ptr[byte]) {
-	var p Ptr[S_vimoption]
-
-	for p = options.Add(0); !p.P().fullname.Nil(); p = p.Add(1) {
-		// C: (char_u *)p->var.ov_str == var -- the address of the option's
-		// variable against a string value.  A Ptr[Ptr[byte]] and a Ptr[byte]
-		// are never the same object here, so they are equal only when both
-		// are NULL.
-		if p.P().var_.ov_str.Nil() && var_.Nil() {
-			if (p.P().flags & P_ALLOCED) != 0 {
-				free_string_option(p.P().var_.ov_str.Get())
-			}
-			p.P().var_.ov_str.Put(empty_option)
-			p.P().flags &^= P_ALLOCED
-			break
-		}
-	}
-}
-
 func set_term_defaults() {
 	var p Ptr[S_vimoption]
 
@@ -55346,10 +55327,6 @@ func ttest(pairs int32) {
 		if term_strings[KS_CAB].Get() == NUL || term_strings[KS_CAF].Get() == NUL {
 			term_strings[KS_CAB] = empty_option
 			term_strings[KS_CAF] = empty_option
-		}
-
-		if term_strings[KS_CSB].Get() == NUL && term_strings[KS_CAB].Get() == NUL {
-			free_one_termoption(term_strings[KS_CCO])
 		}
 
 		p_wiv = B2i(term_strings[KS_XS].Get() != NUL)

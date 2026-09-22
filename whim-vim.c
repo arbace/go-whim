@@ -51526,26 +51526,6 @@ free_termoptions(void)
 }
 
     static void
-free_one_termoption(char_u *var)
-{
-    struct vimoption   *p;
-
-    for (p = &options[0]; p->fullname != nullptr; p++)
-    {
-        if (p->var.ov_str == nullptr && var == nullptr)
-        {
-            if (p->flags & P_ALLOCED)
-            {
-                free_string_option(*p->var.ov_str);
-            }
-            *p->var.ov_str = empty_option;
-            p->flags &= ~P_ALLOCED;
-            break;
-        }
-    }
-}
-
-    static void
 set_term_defaults(void)
 {
     struct vimoption   *p;
@@ -68419,11 +68399,6 @@ ttest(int pairs)
         {
              ( term_strings[(int)(KS_CAB)] )  = empty_option;
              ( term_strings[(int)(KS_CAF)] )  = empty_option;
-        }
-
-        if (* ( term_strings[(int)(KS_CSB)] )  == NUL && * ( term_strings[(int)(KS_CAB)] )  == NUL)
-        {
-            free_one_termoption( ( term_strings[(int)(KS_CCO)] ) );
         }
 
         p_wiv = (* ( term_strings[(int)(KS_XS)] )  != NUL);
