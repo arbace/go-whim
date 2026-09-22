@@ -21,8 +21,8 @@ slim-vim.c  --whim-->  whim-vim.c
   that repository's `main` points to, and records the commit in `upstream.sha`.
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
-- **whim** (`whim.mk`) removes capability on purpose, 140 phases from 180,870
-  lines to 77,907, and every phase **declares its delta in advance**; the harness
+- **whim** (`whim.mk`) removes capability on purpose, 141 phases from 180,870
+  lines to 77,563, and every phase **declares its delta in advance**; the harness
   proves it changed that and nothing else. It is two arcs and a coda:
   - **phases 0-82** (`WHIM-GOAL.md` Part I) leave an editor with no runtime to
     install, 86,583 lines at q82; their delta is `pipes/whim.delta`, against
@@ -35,7 +35,7 @@ slim-vim.c  --whim-->  whim-vim.c
     numbers them as this one does: zero phase N is phase N+83, and a Part II
     heading gives both. `WHIM-GOAL.md` Part II, *Phases 83 to 128 as they
     stand*, is the phase-by-phase account and belongs there, not here;
-  - **phases 129-139** (the last sections of Part II) remove from the core what
+  - **phases 129-140** (the last sections of Part II) remove from the core what
     transpiling it to Go (`editor/editor.go`, `tx/FINDINGS.md`) had to work
     around, and change nothing the editor does: each declares nothing in
     `pipes/zero.delta`, and its check carries a probe or a byte-identical
@@ -138,7 +138,7 @@ end; the tier-3 cache key is the input boundary's digest **and**
   runs every edit, ONE sweep, every check on the one swept text -- a sweep was
   most of a whim phase. `need P swept` and `apart P K` are declared, measured
   facts, and `tools/stages.sh` refuses a schedule that breaks them. An **each**
-  stage (`stage A-B each`, phases 87-139) sweeps after every edit, then runs every
+  stage (`stage A-B each`, phases 87-140) sweeps after every edit, then runs every
   check and delta at once (`CHECK_JOBS`, default 8), each in a root of its own
   under `.cache/state/` on exactly the tree, state and symbol snapshot it had as a
   stage of one -- there the checks are most of a phase, and each was written
@@ -240,7 +240,7 @@ design.
 
 ## Adding a phase
 
-`WHIM-GOAL.md` Part II, *Adding a phase*, has the process; the next phase is 140. In
+`WHIM-GOAL.md` Part II, *Adding a phase*, has the process; the next phase is 141. In
 short: write `pipes/whimN-edit.sh` (it calls `tools/st.sh edit whimN`, whose body
 is `internal/edit/`) and `pipes/whimN-check.sh`, declare its delta in
 `pipes/zero.delta`, add N to the `phases` line, a stage and a package in

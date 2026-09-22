@@ -1650,29 +1650,6 @@ struct mapblock
     char        m_nowait;
 };
 
-typedef struct hashitem_S
-{
-    long_u      hi_hash;
-    char_u      *hi_key;
-} hashitem_T;
-
-enum { HT_INIT_SIZE = 16 };
-
-enum { HTFLAGS_ERROR = 0x01 };
-enum { HTFLAGS_FROZEN = 0x02 };
-
-typedef struct hashtable_S
-{
-    long_u      ht_mask;
-    long_u      ht_used;
-    long_u      ht_filled;
-    int         ht_changed;
-    int         ht_locked;
-    int         ht_flags;
-    hashitem_T  *ht_array;
-    hashitem_T  ht_smallarray[HT_INIT_SIZE];
-} hashtab_T;
-
 typedef long_u hash_T;
 
   typedef long long             varnumber_T;
@@ -2617,14 +2594,6 @@ static void vungetc(int c);
 static int fix_input_buffer(char_u *buf, int len);
 static int do_cmdkey_command(int key, int flags);
 
-static void hash_init(hashtab_T *ht);
-static hashitem_T *hash_find(hashtab_T *ht, char_u *key);
-static hashitem_T *hash_lookup(hashtab_T *ht, char_u *key, hash_T hash);
-static int hash_add(hashtab_T *ht, char_u *key, char *command);
-static int hash_add_item(hashtab_T *ht, hashitem_T *hi, char_u *key, hash_T hash);
-static int hash_remove(hashtab_T *ht, hashitem_T *hi, char *command);
-static hash_T hash_hash(char_u *key);
-
 static void do_highlight(char_u *line, int forceit, int init);
 static void restore_cterm_colors(void);
 static void clear_hl_tables(void);
@@ -3380,8 +3349,6 @@ static garray_T exestack  = {0, 0, sizeof(estack_T), 50, nullptr} ;
 
 static sctx_T   current_sctx  = {0} ;
 
-static char_u   hash_removed;
-
 static int      scroll_region  = FALSE ;
 static int      t_colors  = 0 ;
 
@@ -3797,7 +3764,6 @@ static char e_highlight_group_name_too_long[]  =  "E1249: Highlight group name t
 static char e_cmd_mapping_must_end_with_cr[]  =  "E1255: <Cmd> mapping must end with <CR>"  ;
 static char e_atom_engine_must_be_at_start_of_pattern[]  =  "E1281: Atom '\\%%#=%c' must be at the start of the pattern"  ;
 static char e_cannot_change_mappings_while_listing[]  =  "E1309: Cannot change mappings while listing"  ;
-static char e_not_allowed_to_add_or_remove_entries_str[]  =  "E1313: Not allowed to add or remove entries (%s)"  ;
 static char e_val_too_large[]  =  "E1510: Value too large: %s"  ;
 static char e_wrong_number_of_characters_for_field_str[]  =  "E1511: Wrong number of characters for field \"%s\""  ;
 static char e_wrong_character_width_for_field_str[]  =  "E1512: Wrong character width for field \"%s\""  ;
@@ -23192,288 +23158,6 @@ do_cmdkey_command(int key, int flags)
     return res;
 }
 
-enum { PERTURB_SHIFT = 5 };
-
-static int hash_may_resize(hashtab_T *ht, int minitems);
-
-    static void
-hash_init(hashtab_T *ht)
-{
-      musl_memset(((ht)), (0), (sizeof(*(ht))))  ;
-    ht->ht_array = ht->ht_smallarray;
-    ht->ht_mask = HT_INIT_SIZE - 1;
-}
-
-    static int
-check_hashtab_frozen(hashtab_T *ht, char *command)
-{
-    if ((ht->ht_flags & HTFLAGS_FROZEN) == 0)
-    {
-        return FALSE;
-    }
-
-    vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_not_allowed_to_add_or_remove_entries_str), command);
-    emsg(iobuff_or(_(e_not_allowed_to_add_or_remove_entries_str)));
-    return TRUE;
-}
-
-    static hashitem_T *
-hash_find(hashtab_T *ht, char_u *key)
-{
-    return hash_lookup(ht, key, hash_hash(key));
-}
-
-    static hashitem_T *
-hash_lookup(hashtab_T *ht, char_u *key, hash_T hash)
-{
-    hash_T      perturb;
-    hashitem_T  *freeitem;
-    hashitem_T  *hi;
-    unsigned    idx;
-
-    idx = (unsigned)(hash & ht->ht_mask);
-    hi = &ht->ht_array[idx];
-
-    if (hi->hi_key == nullptr)
-    {
-        return hi;
-    }
-    if (hi->hi_key ==  &hash_removed )
-    {
-        freeitem = hi;
-    }
-    else if (hi->hi_hash == hash &&  musl_strcmp((char *)(hi->hi_key), (char *)(key))  == 0)
-    {
-        return hi;
-    }
-    else
-    {
-        freeitem = nullptr;
-    }
-
-    for (perturb = hash; ; perturb >>= PERTURB_SHIFT)
-    {
-        idx = (unsigned)((idx << 2U) + idx + perturb + 1U);
-        hi = &ht->ht_array[idx & ht->ht_mask];
-        if (hi->hi_key == nullptr)
-        {
-            return freeitem == nullptr ? hi : freeitem;
-        }
-        if (hi->hi_hash == hash && hi->hi_key !=  &hash_removed  &&  musl_strcmp((char *)(hi->hi_key), (char *)(key))  == 0)
-        {
-            return hi;
-        }
-        if (hi->hi_key ==  &hash_removed  && freeitem == nullptr)
-        {
-            freeitem = hi;
-        }
-    }
-}
-
-    static int
-hash_add(hashtab_T *ht, char_u *key, char *command)
-{
-    hash_T      hash = hash_hash(key);
-    hashitem_T  *hi;
-
-    if (check_hashtab_frozen(ht, command))
-    {
-        return FAIL;
-    }
-    hi = hash_lookup(ht, key, hash);
-    if (! ((hi)->hi_key == nullptr || (hi)->hi_key == &hash_removed) )
-    {
-        internal_error("hash_add()");
-        return FAIL;
-    }
-    return hash_add_item(ht, hi, key, hash);
-}
-
-    static int
-hash_add_item(hashtab_T   *ht, hashitem_T  *hi, char_u      *key, hash_T      hash)
-{
-    if (ht->ht_flags & HTFLAGS_ERROR)
-    {
-        return FAIL;
-    }
-
-    ++ht->ht_used;
-    ++ht->ht_changed;
-    if (hi->hi_key == nullptr)
-    {
-        ++ht->ht_filled;
-    }
-    hi->hi_key = key;
-    hi->hi_hash = hash;
-
-    return hash_may_resize(ht, 0);
-}
-
-    static int
-hash_remove(hashtab_T *ht, hashitem_T *hi, char *command)
-{
-    if (check_hashtab_frozen(ht, command))
-    {
-        return FAIL;
-    }
-    --ht->ht_used;
-    ++ht->ht_changed;
-    hi->hi_key =  &hash_removed ;
-    hash_may_resize(ht, 0);
-    return OK;
-}
-
-    static int
-hash_may_resize(hashtab_T   *ht, int         minitems)
-{
-    hashitem_T  temparray[HT_INIT_SIZE];
-    hashitem_T *oldarray;
-    hashitem_T *newarray;
-    hashitem_T *olditem;
-    hashitem_T *newitem;
-    unsigned    newi;
-    int         todo;
-    long_u      newsize;
-    long_u      minsize;
-    long_u      newmask;
-    hash_T      perturb;
-
-    if (ht->ht_locked > 0)
-    {
-        return OK;
-    }
-
-    long_u oldsize = ht->ht_mask + 1;
-    if (minitems == 0)
-    {
-        if (ht->ht_filled < HT_INIT_SIZE - 1 && ht->ht_array == ht->ht_smallarray)
-        {
-            return OK;
-        }
-
-        if (ht->ht_filled * 3 < oldsize * 2 && ht->ht_used > oldsize / 5)
-        {
-            return OK;
-        }
-
-        if (ht->ht_used > 1000)
-        {
-            minsize = ht->ht_used * 2;
-        }
-        else
-        {
-            minsize = ht->ht_used * 4;
-        }
-    }
-    else
-    {
-        if ((long_u)minitems < ht->ht_used)
-        {
-            minitems = (int)ht->ht_used;
-        }
-        minsize = (minitems * 3 + 1) / 2;
-    }
-
-    newsize = HT_INIT_SIZE;
-    while (newsize < minsize)
-    {
-        newsize <<= 1;
-        if (newsize == 0)
-        {
-            return FAIL;
-        }
-    }
-
-    if (newsize == HT_INIT_SIZE)
-    {
-        newarray = ht->ht_smallarray;
-        if (ht->ht_array == newarray)
-        {
-             musl_memmove((char *)(temparray), (char *)(newarray), sizeof(temparray)) ;
-            oldarray = temparray;
-        }
-        else
-        {
-            oldarray = ht->ht_array;
-        }
-          musl_memset((&(ht->ht_smallarray)), (0), (sizeof(ht->ht_smallarray)))  ;
-    }
-
-    else if (newsize == oldsize && ht->ht_filled * 3 < oldsize * 2)
-    {
-        return OK;
-    }
-
-    else
-    {
-        newarray =  (hashitem_T *)alloc_clear(sizeof(hashitem_T) * (newsize)) ;
-        if (newarray == nullptr)
-        {
-            if (ht->ht_filled < ht->ht_mask)
-            {
-                return OK;
-            }
-            ht->ht_flags |= HTFLAGS_ERROR;
-            return FAIL;
-        }
-        oldarray = ht->ht_array;
-    }
-
-    newmask = newsize - 1;
-    todo = (int)ht->ht_used;
-    for (olditem = oldarray; todo > 0; ++olditem)
-    {
-        if (! ((olditem)->hi_key == nullptr || (olditem)->hi_key == &hash_removed) )
-        {
-            newi = (unsigned)(olditem->hi_hash & newmask);
-            newitem = &newarray[newi];
-
-            if (newitem->hi_key != nullptr)
-            {
-                for (perturb = olditem->hi_hash; ; perturb >>= PERTURB_SHIFT)
-                {
-                    newi = (unsigned)((newi << 2U) + newi + perturb + 1U);
-                    newitem = &newarray[newi & newmask];
-                    if (newitem->hi_key == nullptr)
-                    {
-                        break;
-                    }
-                }
-            }
-            *newitem = *olditem;
-            --todo;
-        }
-    }
-
-    ht->ht_array = newarray;
-    ht->ht_mask = newmask;
-    ht->ht_filled = ht->ht_used;
-    ++ht->ht_changed;
-    ht->ht_flags &= ~HTFLAGS_ERROR;
-
-    return OK;
-}
-
-    static hash_T
-hash_hash(char_u *key)
-{
-    hash_T      hash;
-    char_u      *p;
-
-    if ((hash = *key) == 0)
-    {
-        return (hash_T)0;
-    }
-    p = key + 1;
-
-    while (*p != NUL)
-    {
-        hash = hash * 101 + *p++;
-    }
-
-    return hash;
-}
-
 enum { SG_TERM = 1 };
 enum { SG_CTERM = 2 };
 enum { SG_GUI = 4 };
@@ -23617,14 +23301,6 @@ static int highlight_attr_raw[HLF_COUNT];
 static int hl_flags[HLF_COUNT] =  {'8', '~', '@', 'd', 'e', 'h', 'i', 'l', 'y', 'm', 'M',                  'n', 'a', 'b', 'N', 'G', 'O', 'r', 's', 'S', 'c', '|', 't', 'v', 'V',                   'w', 'W', 'f', 'F', 'A', 'C', 'D', 'T', 'E', '-', '>',                  'B', 'P', 'R', 'L',             '+', '=', 'k', '<','[', ']', '{', '}', 'x', 'X', 'j', 'H',              'p', 'J', 'Q',                  '*', '#', '_', '!', '.', 'o', 'q',              'z', 'Z', 'g',                  '%', '^', '&', 'I', '('} ;
 
 static garray_T highlight_ga;
-
-typedef struct {
-    int         hn_id;
-    char_u      hn_key[1];
-} hlname_T;
-
-static hashtab_T highlight_ht;
-static bool      highlight_ht_inited = false;
 
 static void syn_unadd_group(void);
 static void set_hl_attr(int idx);
@@ -25376,7 +25052,7 @@ syn_override(int id)
 syn_name2id_len(char_u *name, int len)
 {
     char_u      name_u[MAX_SYN_NAME + 1];
-    hashitem_T  *hi;
+    int         i;
 
     if (len > MAX_SYN_NAME)
     {
@@ -25385,16 +25061,14 @@ syn_name2id_len(char_u *name, int len)
      musl_memmove((char *)(name_u), (char *)(name), len) ;
     name_u[len] = NUL;
     vim_strup(name_u);
-    if (!highlight_ht_inited)
+    for (i = 0; i < highlight_ga.ga_len; ++i)
     {
-        return 0;
+        if (musl_strcmp((char *)(((hl_group_T *)(highlight_ga.ga_data))[i].sg_name_u), (char *)(name_u)) == 0)
+        {
+            return i + 1;
+        }
     }
-    hi = hash_find(&highlight_ht, name_u);
-    if ( ((hi)->hi_key == nullptr || (hi)->hi_key == &hash_removed) )
-    {
-        return 0;
-    }
-    return  ((hlname_T *)((hi)->hi_key -  __builtin_offsetof(hlname_T, hn_key) )) ->hn_id;
+    return 0;
 }
 
     static int
@@ -25452,8 +25126,6 @@ syn_add_group(char_u *name)
     {
         highlight_ga.ga_itemsize = sizeof(hl_group_T);
         highlight_ga.ga_growsize = 10;
-        hash_init(&highlight_ht);
-        highlight_ht_inited = true;
     }
 
     if (highlight_ga.ga_len >= MAX_HL_ID)
@@ -25467,25 +25139,16 @@ syn_add_group(char_u *name)
         return 0;
     }
 
+    name_up = vim_strsave(name);
+    if (name_up == nullptr)
     {
-        hlname_T    *hn;
-        int         len = (int) musl_strlen((char *)(name)) ;
-
-        hn = alloc(__builtin_offsetof(hlname_T, hn_key) + len + 1);
-        if (hn == nullptr)
-        {
-            return 0;
-        }
-        vim_strncpy(hn->hn_key, name, len);
-        vim_strup(hn->hn_key);
-        hn->hn_id = highlight_ga.ga_len + 1;
-        name_up = hn->hn_key;
+        return 0;
     }
+    vim_strup(name_up);
 
       musl_memset(((&( ((hl_group_T *)((highlight_ga.ga_data))) [highlight_ga.ga_len]))), (0), (sizeof(*(&( ((hl_group_T *)((highlight_ga.ga_data))) [highlight_ga.ga_len])))))  ;
      ((hl_group_T *)((highlight_ga.ga_data))) [highlight_ga.ga_len].sg_name = name;
      ((hl_group_T *)((highlight_ga.ga_data))) [highlight_ga.ga_len].sg_name_u = name_up;
-    hash_add(&highlight_ht, name_up, "highlight");
     ++highlight_ga.ga_len;
 
     return highlight_ga.ga_len;
@@ -25494,14 +25157,7 @@ syn_add_group(char_u *name)
     static void
 syn_unadd_group(void)
 {
-    hashitem_T *hi;
-
     --highlight_ga.ga_len;
-    hi = hash_find(&highlight_ht,  ((hl_group_T *)((highlight_ga.ga_data))) [highlight_ga.ga_len].sg_name_u);
-    if (! ((hi)->hi_key == nullptr || (hi)->hi_key == &hash_removed) )
-    {
-        hash_remove(&highlight_ht, hi, "highlight");
-    }
 }
 
     static int
