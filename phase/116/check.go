@@ -293,8 +293,18 @@ func Check(w io.Writer, args []string) error {
 		}
 		sm.Say("whim-vim, built -O0 -static -s, records the identical table: the baseline is this table and not a third thing")
 	} else {
+		// Nothing produces .build's tars any more (.gitignore says so), and
+		// without q82's the comparison has no left-hand side.  This arm used to
+		// say that and pass, which made it a sentence rather than evidence -- a
+		// check that cannot fail is not one.  It refuses instead, and names
+		// which of the two reasons applies.
+		if whim == nil {
+			sm.Say("no .build/q82.tar here -- q82's whim-vim.c is what the core baselines were recorded from, so without it this table cannot be held against the input's own recording")
+		} else {
+			sm.Say("q82's whim-vim.c did not build -- this table cannot be held against the input's own recording")
+		}
 		whim = nil
-		sm.Say("no .build/q82.tar to build whim-vim from -- the input's own recording not rechecked")
+		return harness.ErrReported
 	}
 	bd := &check.Rep{Tag: "boundaries", W: w}
 	if fi, e := os.Stat(".build"); e == nil && fi.IsDir() {
@@ -336,7 +346,8 @@ func Check(w io.Writer, args []string) error {
 			return harness.ErrReported
 		}
 		if len(names) == 0 {
-			bd.Say(".build holds no boundary binary from q83 on -- the table not rechecked across the pipeline")
+			bd.Say(".build holds no boundary binary from q83 on -- the table cannot be rechecked across the pipeline")
+			return harness.ErrReported
 		} else {
 			ents, _ := os.ReadDir(T("rows"))
 			var rs []string
@@ -359,7 +370,8 @@ func Check(w io.Writer, args []string) error {
 			bd.Say("all %d recorded boundary binaries up to q%d record the SAME table as whim-vim and as this one, one digest across every one of them", len(names), self)
 		}
 	} else {
-		bd.Say("no .build here -- the pipeline-wide check runs where the tars are")
+		bd.Say("no .build here -- this arm needs the boundary tars, and nothing produces them any more; keep the set this pass was run with")
+		return harness.ErrReported
 	}
 
 	// --- 5. the instrument is deterministic ------------------------------------
