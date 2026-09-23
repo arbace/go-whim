@@ -20,8 +20,8 @@ func init() { edit.Register("whim161", Edit) }
 // W161Tail is the error path ml_get_buf()'s goto jumped back into, and
 // W161Func the function it becomes.
 const (
-	W161Tail = `errorret:
-         musl_strcpy((char *)(questions), (char *)("???")) ;
+	W161Tail = `    errorret:
+        musl_strcpy((char *)(questions), (char *)("???"));
         buf->b_ml.ml_line_len = 4;
         buf->b_ml.ml_line_textlen = buf->b_ml.ml_line_len;
         buf->b_ml.ml_line_lnum = lnum;

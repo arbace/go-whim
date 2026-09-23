@@ -62,7 +62,7 @@ func Check(w io.Writer, args []string) error {
 	if norm(tail) != norm(Body) || !strings.Contains(c.New, W161Func) {
 		r.Bad("ml_get_invalid() is not the old tail, statement for statement")
 	}
-	if strings.Contains(c.New, "errorret") || !strings.Contains(c.Old, "    static char_u questions[4];\n\n    if (lnum > buf->b_ml.ml_line_count)\n") {
+	if strings.Contains(c.New, "errorret") || !strings.Contains(c.Old, "    static char_u questions[4];\n    if (lnum > buf->b_ml.ml_line_count)\n") {
 		r.Bad("the error path or its buffer is not where this check expects it")
 	}
 	if err := r.Done(); err != nil {

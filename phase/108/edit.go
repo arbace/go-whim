@@ -241,11 +241,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"    static int\n"+
 			"vim_main(int argc, char **argv, void (*exit_fn)(int), void (*message_fn)(const char *, int, int))\n"+
 			"{\n"+
-			"\n"+
 			"    vim_host_exit = exit_fn;\n"+
-			"    vim_host_message = message_fn;\n"+
-			"\n",
-		"    static int\nvim_main(int argc, char **argv)\n{\n\n",
+			"    vim_host_message = message_fn;\n",
+		"    static int\nvim_main(int argc, char **argv)\n{\n",
 		"vim_main()'s head and the two installations",
 		"the signature goes back to the one phase 101 wrote, and the two assignments and "+
 			"the blank line that followed them go with the parameters they read")
@@ -369,10 +367,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p.Sayf("the core -> host boundary is now ONE run of %d prototypes ending at line %d: "+
 		"phase 103's nine `musl_` and these two", nBoundary, block[0]+3)
 
-	if n := len(L) - 1; n != linesBefore-5 {
-		return nil, p.Die("the file is %d lines and the input was %d -- expected exactly 5 fewer: two "+
+	if n := len(L) - 1; n != linesBefore-4 {
+		return nil, p.Die("the file is %d lines and the input was %d -- expected exactly 4 fewer: two "+
 			"objects with their blank lines is four, two prototypes back is two, and the "+
-			"two assignments with their blank line is three", n, linesBefore)
+			"two assignments are two -- the canonical text writes no blank line inside a "+
+			"function, so there is none here to take with them", n, linesBefore)
 	}
 	if r := p.BlankRuns(text); r != runsBefore {
 		return nil, p.Die("the edit left %d runs of two blank lines where there were %d", r, runsBefore)

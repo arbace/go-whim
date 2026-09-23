@@ -43,11 +43,9 @@ const (
             {
                 o_lnum = curwin->w_cursor.lnum;
             }
-
             if (ins_esc(&count, cmdchar, nomove))
             {
                 did_cursorhold = FALSE;
-
                 if (!char_avail() && curbuf->b_last_changedtick_i == curbuf->b_changedtick)
                 {
                     curbuf->b_last_changedtick = curbuf->b_changedtick;
@@ -57,17 +55,14 @@ const (
             continue;
 `
 	w144Normal = `            ins_try_si(c);
-
             if (c == ' ')
             {
                 inserted_space = TRUE;
             }
-
             if (vim_iswordc(c) || c != Ctrl_RSB)
             {
                 insert_special(c, FALSE, FALSE);
             }
-
             break;
 `
 )
@@ -206,7 +201,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("edit is not defined")
 	}
 	s := string(text[a:z])
-	for _, need := range []string{"do_intr:\n" + w144Intr + "doESCkey:\n" + w144Esc, "normalchar:\n" + w144Normal} {
+	for _, need := range []string{"        do_intr:\n" + w144Intr + "        doESCkey:\n" + w144Esc, "        normalchar:\n" + w144Normal} {
 		if strings.Count(s, need) != 1 {
 			return nil, p.Die("a labelled block is not the one this phase was written against")
 		}
@@ -257,7 +252,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("the jumps are %v, and this phase was written against 9, 7 and 1, one inside a do-while", count)
 	}
 	// the do-while's flag, tested just after it
-	dw := regexp.MustCompile(`(?m)^( *)\} while \(.*\);\n`)
+	// The canonical text writes a do-while as `}` on its own line, `while (...)`
+	// on the next and a bare `;` on the one after, so the end of the loop is
+	// three lines and the indentation the insertion takes is the brace's.
+	dw := regexp.MustCompile(`(?m)^( *)\}\n *while \([^\n]*\)\n *;\n`)
 	wm := dw.FindStringSubmatchIndex(s[doSite:])
 	if wm == nil {
 		return nil, p.Die("the do-while around the jump has no end")
@@ -267,13 +265,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	s = s[:at] + ind + "if (esc_now)\n" + ind + "{\n" + ind + "    esc_now = FALSE;\n" +
 		strings.ReplaceAll(W144EscCall(ind+"    "), "\n", "\n") + ind + "}\n" + s[at:]
 	// the labelled blocks themselves
-	s = strings.Replace(s, "do_intr:\n"+w144Intr+"doESCkey:\n"+w144Esc, w144Intr+W144EscCall("            "), 1)
-	s = strings.Replace(s, "normalchar:\n"+w144Normal, W144NormalCall("            "), 1)
-	decl := "    int         c = 0;\n"
+	s = strings.Replace(s, "        do_intr:\n"+w144Intr+"        doESCkey:\n"+w144Esc, w144Intr+W144EscCall("            "), 1)
+	s = strings.Replace(s, "        normalchar:\n"+w144Normal, W144NormalCall("            "), 1)
+	decl := "    int c = 0;\n"
 	if strings.Count(s, decl) != 1 {
 		return nil, p.Die("edit()'s c is not declared where this phase expects")
 	}
-	s = strings.Replace(s, decl, decl+"    int         esc_now = FALSE;\n", 1)
+	s = strings.Replace(s, decl, decl+"    int esc_now = FALSE;\n", 1)
 	if strings.Contains(s, "goto ") || regexp.MustCompile(`(?m)^[a-zA-Z_]+:$`).MatchString(s) {
 		return nil, p.Die("edit() still jumps or has a label")
 	}

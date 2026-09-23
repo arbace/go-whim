@@ -465,7 +465,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, err
 	}
 	if _, err := only(func(l string) bool {
-		return l == "                if (hp-> bh_hashitem.mhi_key  != 1)"
+		return l == "                if (hp->bh_hashitem.mhi_key != 1)"
 	}, "ml_append_int()'s test for the root pointer block", loApp, hiApp, 1); err != nil {
 		return nil, err
 	}
@@ -563,8 +563,8 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		{"static int ml_append(linenr_T lnum, char_u *line, colnr_T len, int newfile);",
 			"static int ml_append(linenr_T lnum, char_u *line, colnr_T len);",
 			"ml_append()'s declaration", ""},
-		{"ml_append(linenr_T    lnum, char_u      *line, colnr_T     len, int         newfile)",
-			"ml_append(linenr_T    lnum, char_u      *line, colnr_T     len)",
+		{"ml_append(linenr_T lnum, char_u *line, colnr_T len, int newfile)",
+			"ml_append(linenr_T lnum, char_u *line, colnr_T len)",
 			"ml_append()'s signature", ""},
 		{"    return ml_append_flags(lnum, line, len, newfile ? ML_APPEND_NEW : 0);",
 			"    return ml_append_flags(lnum, line, len, 0);", "ml_append()'s body",
@@ -598,7 +598,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// ==== PART 3 -- THE DIRTY STATE MACHINE ====================================
 	cls, err = partition("bh_flags", []z42Class{
-		{"its declaration", regexp.MustCompile(`^    char        bh_flags;$`)},
+		{"its declaration", regexp.MustCompile(`^    char bh_flags;$`)},
 		{"a write", regexp.MustCompile(`bh_flags (\|)?= `)},
 		{"the one read", regexp.MustCompile(`^    flags = hp->bh_flags;$`)},
 	}, "`bh_flags`")
@@ -629,7 +629,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		total, len(cls["a write"]))
 
 	cls, err = partition("mf_dirty", []z42Class{
-		{"its declaration", regexp.MustCompile(`^    mfdirty_T   mf_dirty;$`)},
+		{"its declaration", regexp.MustCompile(`^    mfdirty_T mf_dirty;$`)},
 		{"a write", regexp.MustCompile(`mf_dirty = MF_DIRTY_`)},
 		{"a read", regexp.MustCompile(`mf_dirty (==|!=) MF_DIRTY_`)},
 	}, "`mf_dirty`")
@@ -796,7 +796,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, err
 	}
 	cls, err = partition("dirty", []z42Class{
-		{"its declaration", regexp.MustCompile(`^    int         dirty;$`)},
+		{"its declaration", regexp.MustCompile(`^    int dirty;$`)},
 		{"a write", regexp.MustCompile(`^\s*dirty = (TRUE|FALSE);$`)},
 	}, "ml_find_line()'s `dirty`")
 	if err != nil {
@@ -806,7 +806,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// ==== PART 4 -- pe_old_lnum ================================================
 	cls, err = partition("pe_old_lnum", []z42Class{
-		{"its declaration", regexp.MustCompile(`^    linenr_T    pe_old_lnum;$`)},
+		{"its declaration", regexp.MustCompile(`^    linenr_T pe_old_lnum;$`)},
 		{"a write", regexp.MustCompile(`^\s*(pp|pp_new)->pb_pointer\[[^]]*\]\.pe_old_lnum = \w+;$`)},
 	}, "`pe_old_lnum`")
 	if err != nil {
@@ -863,7 +863,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, err
 	}
 
-	declRe := regexp.MustCompile(`^static int      mf_dont_release  = FALSE ;$`)
+	declRe := regexp.MustCompile(`^static int mf_dont_release = FALSE;$`)
 	cls, err = partition("mf_dont_release", []z42Class{
 		{"its declaration, with its only value", declRe},
 		{"a read", regexp.MustCompile(`(\|\| mf_dont_release\)| && !mf_dont_release\))`)},
@@ -933,11 +933,16 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	for _, sig := range []string{"mf_new(memfile_T *mfp, int page_count)",
 		"ml_new_data(memfile_T *mfp, int page_count)",
-		"ml_append(linenr_T    lnum, char_u      *line, colnr_T     len)",
+		"ml_append(linenr_T lnum, char_u *line, colnr_T len)",
 		"mf_put(bhdr_T *hp)"} {
-		if strings.Count(t, sig) != 1 {
-			return nil, p.Die("`%s` is not in the output exactly once, so a signature this phase "+
-				"narrowed is not the one it meant", sig)
+		// The DEFINITION's head starts a line, which is what tells it from the
+		// declaration: the canonical text writes both with one space between a
+		// type and its declarator, so `ml_append(linenr_T lnum, char_u *line,
+		// colnr_T len)` is now the text of each and the alignment that used to
+		// tell them apart is gone.
+		if strings.Count(t, "\n"+sig+"\n") != 1 {
+			return nil, p.Die("`%s` is not a definition head in the output exactly once, so a "+
+				"signature this phase narrowed is not the one it meant", sig)
 		}
 	}
 

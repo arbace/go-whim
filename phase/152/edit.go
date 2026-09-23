@@ -227,7 +227,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// 2. the type, the fields, the prototypes
 	lit("    char_u *var;\n    idopt_T indir;\n", "    optvar_T    var;\n    idopt_T     indir;\n", "vimoption_T.var is an optvar_T", 1)
-	lit("typedef struct\n{\n    char_u      *os_varp;\n", W152Type+"typedef struct\n{\n    optvar_T    os_varp;\n", "and so is optset_T.os_varp, after the type and its helpers", 1)
+	lit("typedef struct\n{\n    char_u *os_varp;\n", W152Type+"typedef struct\n{\n    optvar_T    os_varp;\n", "and so is optset_T.os_varp, after the type and its helpers", 1)
 	lit("static char_u *get_varp_scope(struct vimoption *p, int scope);\n\nstatic char_u *get_varp(struct vimoption *);\n",
 		"static optvar_T get_varp_scope(struct vimoption *p, int scope);\nstatic optvar_T get_varp(struct vimoption *);\n", "get_varp() and get_varp_scope() return one", 1)
 	for _, f := range []string{"get_varp_scope", "get_option_varp_scope", "get_varp"} {
@@ -270,7 +270,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// 5. the two functions that reused varp for the string it held
 	lit("        varp = get_varp(&(options[opt_idx]));\n        if (varp != nullptr)\n        {\n            varp = *(char_u **)(varp);\n        }\n        return varp;\n",
 		"        varp = get_varp(&(options[opt_idx]));\n        if (!optvar_is_null(varp))\n        {\n            return *varp.ov_str;\n        }\n        return nullptr;\n", "get_term_code() returns the string without reusing varp for it", 1)
-	lit("        varp = *(char_u **)(varp);\n        if (varp == nullptr)\n        {\n            NameBuff[0] = NUL;\n        }\n        else if (opp->flags & P_EXPAND)\n        {\n            home_replace(nullptr, varp, NameBuff,  PATH_MAX , FALSE);\n        }\n        else if ((char_u **)opp->var == &p_pt)\n        {\n            str2specialbuf(p_pt, NameBuff,  PATH_MAX );\n        }\n        else\n        {\n            vim_strncpy(NameBuff, varp,  PATH_MAX  - 1);\n        }\n",
+	lit("        varp = *(char_u **)(varp);\n        if (varp == nullptr)\n        {\n            NameBuff[0] = NUL;\n        }\n        else if (opp->flags & P_EXPAND)\n        {\n            home_replace(nullptr, varp, NameBuff, PATH_MAX, FALSE);\n        }\n        else if ((char_u **)opp->var == &p_pt)\n        {\n            str2specialbuf(p_pt, NameBuff, PATH_MAX);\n        }\n        else\n        {\n            vim_strncpy(NameBuff, varp, PATH_MAX - 1);\n        }\n",
 		"        char_u      *s = *varp.ov_str;\n\n        if (s == nullptr)\n        {\n            NameBuff[0] = NUL;\n        }\n        else if (opp->flags & P_EXPAND)\n        {\n            home_replace(nullptr, s, NameBuff,  PATH_MAX , FALSE);\n        }\n        else if (opp->var.ov_str == &p_pt)\n        {\n            str2specialbuf(p_pt, NameBuff,  PATH_MAX );\n        }\n        else\n        {\n            vim_strncpy(NameBuff, s,  PATH_MAX  - 1);\n        }\n",
 		"nor does option_value2string()", 1)
 

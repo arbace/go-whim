@@ -117,7 +117,10 @@ var (
 	z39DashArm   = regexp.MustCompile(`(?m)^[ \t]*else if \(argv\[0\]\[0\] == '-'\)$`)
 	z39PlainElse = regexp.MustCompile(`\A\s*\n[ \t]*else\n`)
 	z39EnumPair  = regexp.MustCompile(`(?m)^enum \{ (ME_\w+) = (\d+) \};$`)
-	z39EnumRun   = regexp.MustCompile(`(?m)(?:^enum \{ ME_\w+ = \d+ \};\n)+`)
+	// The canonical text puts a blank line between two file-scope declarations,
+	// so the run of ME_* enumerators carries one between each pair.  The same
+	// sites, and the run is rewritten in the same shape below.
+	z39EnumRun   = regexp.MustCompile(`(?m)(?:^enum \{ ME_\w+ = \d+ \};\n\n?)+`)
 	z39Table     = regexp.MustCompile(`(?ms)^static char \*\(main_errors\[\]\) =\n\{\n(.*?)^\};\n`)
 	z39ArgProto  = regexp.MustCompile(`(?m)^static void mainerr_arg_missing\([^)]*\);\n`)
 	z39EmptyName = `^[ \t]*if \(term != nullptr && \*term == NUL\)$`
@@ -420,7 +423,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	var newEnum bytes.Buffer
 	for k, n := range keep {
-		fmt.Fprintf(&newEnum, "enum { %s = %d };\n", n, k)
+		fmt.Fprintf(&newEnum, "enum { %s = %d };\n\n", n, k)
 	}
 	var newRows bytes.Buffer
 	for k, r := range rows {

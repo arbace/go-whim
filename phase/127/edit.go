@@ -476,7 +476,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if lo, hi, err = fn("ml_append_int"); err != nil {
 		return nil, err
 	}
-	if a, err = one(lo, hi, `^    int         line_count;$`); err != nil {
+	if a, err = one(lo, hi, `^    int line_count;$`); err != nil {
 		return nil, err
 	}
 	lines = edit.Z44Splice(lines, a+1, a+1, z44b5)

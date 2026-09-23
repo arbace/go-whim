@@ -229,6 +229,7 @@ typedef struct {
     long        tv_sec;
     long        tv_usec;
 } elapsed_T;
+
 static long elapsed(elapsed_T *start_tv);
 `, "", "the tagless struct and the prototype, which phase 109 wrote")
 	if err != nil {
@@ -239,16 +240,14 @@ static long elapsed(elapsed_T *start_tv);
 elapsed(elapsed_T *start_tv)
 {
     elapsed_T       now_tv;
-
     musl_gettimeofday(&now_tv.tv_sec, &now_tv.tv_usec);
-    return (now_tv.tv_sec - start_tv->tv_sec) * 1000L
-         + (now_tv.tv_usec - start_tv->tv_usec) / 1000L;
+    return (now_tv.tv_sec - start_tv->tv_sec) * 1000L + (now_tv.tv_usec - start_tv->tv_usec) / 1000L;
 }
 `, "", "elapsed(), whose entire body is one clock read and one subtraction")
 	if err != nil {
 		return nil, err
 	}
-	p.Say("`elapsed_T` and `elapsed()` leave the core: 5 lines of declaration and 9 of " +
+	p.Say("`elapsed_T` and `elapsed()` leave the core: 6 lines of declaration and 7 of " +
 		"definition, with one blank line of each pair, so no run of two blank lines is left " +
 		"behind")
 
@@ -256,17 +255,17 @@ elapsed(elapsed_T *start_tv)
 	// The declarator column is kept: this file aligns a declaration block and
 	// `long` is five characters shorter than `elapsed_T`.
 	for _, s := range []struct{ Old, New, who string }{
-		{"    elapsed_T   start_tv;\n\n     musl_gettimeofday(&start_tv.tv_sec, " +
-			"&start_tv.tv_usec) ;\n\n    if (hide_cursor)",
-			"    long        start_tv;\n\n    start_tv = musl_now_ms();\n\n" +
+		{"    elapsed_T start_tv;\n    musl_gettimeofday(&start_tv.tv_sec, " +
+			"&start_tv.tv_usec);\n    if (hide_cursor)",
+			"    long start_tv;\n    start_tv = musl_now_ms();\n" +
 				"    if (hide_cursor)", "do_sleep"},
 		{"        static elapsed_T start_tv;",
 			"        static long             start_tv;", "vim_beep"},
 		{"    elapsed_T start_tv;\n} oscstate_T;",
 			"    long            start_tv;\n} oscstate_T;", "oscstate_T"},
-		{"    elapsed_T   start_tv;\n\n     musl_gettimeofday(&start_tv.tv_sec, " +
-			"&start_tv.tv_usec) ;\n\n    for (;;)",
-			"    long        start_tv;\n\n    start_tv = musl_now_ms();\n\n" +
+		{"    elapsed_T start_tv;\n    musl_gettimeofday(&start_tv.tv_sec, " +
+			"&start_tv.tv_usec);\n    for (;;)",
+			"    long start_tv;\n    start_tv = musl_now_ms();\n" +
 				"    for (;;)", "inchar_loop"},
 	} {
 		text, err = whim111Once(p, text, s.Old, s.New, "the clock object in "+s.who)
@@ -280,10 +279,10 @@ elapsed(elapsed_T *start_tv)
 	// The leading space and the space before the semicolon at these sites are
 	// what macro expansion left behind, three pipelines ago.
 	for _, s := range []struct{ Old, New, who string }{
-		{"             musl_gettimeofday(&start_tv.tv_sec, &start_tv.tv_usec) ;",
+		{"            musl_gettimeofday(&start_tv.tv_sec, &start_tv.tv_usec);",
 			"            start_tv = musl_now_ms();", "vim_beep's stamp"},
-		{"         musl_gettimeofday(&osc_state.start_tv.tv_sec, " +
-			"&osc_state.start_tv.tv_usec) ;",
+		{"        musl_gettimeofday(&osc_state.start_tv.tv_sec, " +
+			"&osc_state.start_tv.tv_usec);",
 			"        osc_state.start_tv = musl_now_ms();", "handle_osc's stamp"},
 		{"        done = elapsed(&(start_tv));",
 			"        done = musl_now_ms() - start_tv;", "do_sleep's reading"},
@@ -353,11 +352,12 @@ musl_now_ms(void)
 
 	// ---- 8. what the file is now -----------------------------------------
 	L := bytes.Split(text, []byte{'\n'})
-	const coreDelta = -6 - 10
+	const coreDelta = -7 - 8
 	const belowDelta = 4 + 2
 	if d := len(L) - len(lines); d != coreDelta+belowDelta {
-		return nil, p.Die("the file moved by %d lines where %d was expected: -6 for the typedef and the "+
-			"prototype with a blank, -10 for elapsed() with a blank, +4 for musl_now_ms's "+
+		return nil, p.Die("the file moved by %d lines where %d was expected: -7 for the typedef and the "+
+			"prototype with the blank between them and a blank, -8 for elapsed() with a "+
+			"blank -- its return is one line in the canonical text -- +4 for musl_now_ms's "+
 			"longer body and +2 for the host's two statics", d, coreDelta+belowDelta)
 	}
 	var ndir []int

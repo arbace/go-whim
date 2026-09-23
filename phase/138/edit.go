@@ -43,12 +43,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}{
 		// vim_regsub_both
 		{"static int vim_regsub_both(char_u *source, typval_T *expr, char_u *dest,", "static int vim_regsub_both(char_u *source, char_u *dest,", "vim_regsub_both() takes no expression: its prototype", 1},
-		{"vim_regsub_both(char_u      *source, typval_T    *expr, char_u      *dest,", "vim_regsub_both(char_u      *source, char_u      *dest,", "its definition", 1},
+		{"vim_regsub_both(char_u *source, typval_T *expr, char_u *dest,", "vim_regsub_both(char_u *source, char_u *dest,", "its definition", 1},
 		{"vim_regsub_both(source, nullptr, dest, destlen, flags)", "vim_regsub_both(source, dest, destlen, flags)", "its one call", 1},
 		{"if ((source == nullptr && expr == nullptr) || dest == nullptr)", "if (source == nullptr || dest == nullptr)", "a NULL source is refused whatever the expression was", 1},
 		{"if (expr != nullptr || (source[0] == '\\\\' && source[1] == '='))", "if (source[0] == '\\\\' && source[1] == '=')", "and only a \\= source is an expression", 1},
 		// match_add
-		{"int         id, list_T      *pos_list, char_u      *conceal_char)", "int         id, char_u      *conceal_char)", "match_add() takes no list of positions, which it never read", 1},
+		{"int id, list_T *pos_list, char_u *conceal_char)", "int id, char_u *conceal_char)", "match_add() takes no list of positions, which it never read", 1},
 		{"match_add(curwin, g, p + 1, 10, id, nullptr, nullptr);", "match_add(curwin, g, p + 1, 10, id, nullptr);", "its one call", 1},
 		// cursor_pos_info
 		{"static void cursor_pos_info(dict_T *dict);", "static void cursor_pos_info(void);", "cursor_pos_info() fills no dictionary: its prototype", 1},
@@ -56,14 +56,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{"cursor_pos_info(nullptr);", "cursor_pos_info();", "its one call", 1},
 		// the host's formatter
 		{"static int vim_vsnprintf_typval(char *str, usize str_m, const char *fmt, va_list ap, typval_T *tvs)", "static int vim_vsnprintf_typval(char *str, usize str_m, const char *fmt, va_list ap)", "the formatter takes no argument list: its prototype", 1},
-		{"va_list ap_start, typval_T *tvs)", "va_list     ap_start)", "its definition", 1},
+		{"va_list ap_start, typval_T *tvs)", "va_list ap_start)", "its definition", 1},
 		{"vim_vsnprintf_typval(str, str_m, fmt, ap, nullptr)", "vim_vsnprintf_typval(str, str_m, fmt, ap)", "its one call", 1},
-		{"const char  *fmt, typval_T    *tvs)", "const char *fmt)", "parse_fmt_types() takes none either", 1},
+		{"const char *fmt, typval_T *tvs)", "const char *fmt)", "parse_fmt_types() takes none either", 1},
 		{"parse_fmt_types(&ap_types, &num_posarg, fmt, tvs)", "parse_fmt_types(&ap_types, &num_posarg, fmt)", "its one call", 1},
 		{", tvs != nullptr) == FAIL)", ", FALSE) == FAIL)", "and no number in a format is read from a list", 10},
 		// find_ex_command, whose lookup and compile context were Vim9 script's
 		{"static char_u *find_ex_command(exarg_T *eap, int *full, int (*lookup)(char_u *, usize, int cmd, cctx_T *), cctx_T *cctx);", "static char_u *find_ex_command(exarg_T *eap, int *full);", "find_ex_command() takes no Vim9 lookup or context, which it never read: its prototype", 1},
-		{"find_ex_command(exarg_T *eap, int     *full, int     (*lookup)(char_u *, usize, int cmd, cctx_T *), cctx_T  *cctx)", "find_ex_command(exarg_T *eap, int     *full)", "its definition", 1},
+		{"find_ex_command(exarg_T *eap, int *full, int (*lookup)(char_u *, usize, int cmd, cctx_T *), cctx_T *cctx)", "find_ex_command(exarg_T *eap, int *full)", "its definition", 1},
 		{"find_ex_command(&ea, nullptr, nullptr, nullptr)", "find_ex_command(&ea, nullptr)", "its one call", 1},
 		// the builtin-function types, which name typval_T and nothing names
 		{"typedef int (*cfunc_T)(int argcount, typval_T *argvars, typval_T *rettv, void *state);\n", "", "the builtin function type goes", 1},

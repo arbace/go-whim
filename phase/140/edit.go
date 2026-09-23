@@ -72,9 +72,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}{
 		{"        hash_init(&highlight_ht);\n        highlight_ht_inited = true;\n", "", "syn_add_group() starts no table", 1},
 		{`    {
-        hlname_T    *hn;
-        int         len = (int) musl_strlen((char *)(name)) ;
-
+        hlname_T *hn;
+        int len = (int)musl_strlen((char *)(name));
         hn = alloc(__builtin_offsetof(hlname_T, hn_key) + len + 1);
         if (hn == nullptr)
         {

@@ -38,7 +38,7 @@ regstack_behind_top(void)
 `
 
 func w150Grow(ga string) string {
-	return "  __builtin_expect(((((&" + ga + ")->ga_maxlen - (&" + ga + ")->ga_len < ((int)sizeof("
+	return "__builtin_expect(((((&" + ga + ")->ga_maxlen - (&" + ga + ")->ga_len < ((int)sizeof("
 }
 
 // Whim150 splits the backtracking engine's stack into three typed stacks.
@@ -68,13 +68,17 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		s = strings.ReplaceAll(s, old, new)
 		p.Say(what)
 	}
-	lit("static garray_T regstack = {0, 0, 0, 0, nullptr};\n",
-		"static garray_T regstack = {0, 0, 0, 0, nullptr};\nstatic garray_T regstack_star = {0, 0, 0, 0, nullptr};\nstatic garray_T regstack_behind = {0, 0, 0, 0, nullptr};\nstatic int regstack_bytes = 0;\n",
+	// The canonical text writes an aggregate initialiser one element per line,
+	// with the brace under the `=` and a comma after the last element, so each
+	// of these declarations is eight lines and a blank line stands between two
+	// of them.
+	lit("static garray_T regstack =\n{\n    0,\n    0,\n    0,\n    0,\n    nullptr,\n};\n",
+		"static garray_T regstack =\n{\n    0,\n    0,\n    0,\n    0,\n    nullptr,\n};\n\nstatic garray_T regstack_star =\n{\n    0,\n    0,\n    0,\n    0,\n    nullptr,\n};\n\nstatic garray_T regstack_behind =\n{\n    0,\n    0,\n    0,\n    0,\n    nullptr,\n};\n\nstatic int regstack_bytes = 0;\n",
 		"the records, the stars and the look-behinds are three stacks, and the bytes they hold a count", 1)
 	lit("(long)((unsigned)regstack.ga_len >> 10) >= p_mmp", "(long)((unsigned)regstack_bytes >> 10) >= p_mmp",
 		"'maxmempattern' is measured against the count", 3)
 	// regstack_push and regstack_pop
-	lit("    if ("+w150Grow("regstack")+"regitem_T))) ? ga_grow_inner((&regstack), ((int)sizeof(regitem_T))) : OK) == FAIL), 0)  )\n    {\n        return nullptr;\n    }\n\n    rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len);\n    rp->rs_state = state;\n    rp->rs_scan = scan;\n\n    regstack.ga_len += sizeof(regitem_T);\n",
+	lit("    if ("+w150Grow("regstack")+"regitem_T))) ? ga_grow_inner((&regstack), ((int)sizeof(regitem_T))) : OK) == FAIL), 0))\n    {\n        return nullptr;\n    }\n    rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len);\n    rp->rs_state = state;\n    rp->rs_scan = scan;\n    regstack.ga_len += sizeof(regitem_T);\n",
 		"    if (ga_grow(&regstack, 1) == FAIL)\n    {\n        return nullptr;\n    }\n\n    rp = &((regitem_T *)regstack.ga_data)[regstack.ga_len];\n    rp->rs_state = state;\n    rp->rs_scan = scan;\n\n    ++regstack.ga_len;\n    regstack_bytes += sizeof(regitem_T);\n",
 		"regstack_push() pushes a record on the record stack", 1)
 	lit("    rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len) - 1;\n    *scan = rp->rs_scan;\n    regstack.ga_len -= sizeof(regitem_T);\n",
@@ -82,7 +86,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"regstack_pop() pops one", 1)
 	// the star and look-behind pushes
 	for _, k := range []struct{ t, ga, ind string }{{"regstar_T", "regstack_star", "                    "}, {"regbehind_T", "regstack_behind", "            "}} {
-		old := k.ind + "else if (" + w150Grow("regstack") + k.t + "))) ? ga_grow_inner((&regstack), ((int)sizeof(" + k.t + "))) : OK) == FAIL), 0)  )\n"
+		old := k.ind + "else if (" + w150Grow("regstack") + k.t + "))) ? ga_grow_inner((&regstack), ((int)sizeof(" + k.t + "))) : OK) == FAIL), 0))\n"
 		lit(old, k.ind+"else if (ga_grow(&"+k.ga+", 1) == FAIL)\n", "a "+k.t+" is pushed on its own stack", 1)
 		lit(k.ind+"    regstack.ga_len += sizeof("+k.t+");\n", k.ind+"    ++"+k.ga+".ga_len;\n"+k.ind+"    regstack_bytes += sizeof("+k.t+");\n", "counting the bytes it held", 1)
 	}

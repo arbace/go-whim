@@ -343,7 +343,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("%d `vim_time` were renamed where 9 were counted -- the prototype, the "+
 			"definition, five call sites and the two step one just made", nRen)
 	}
-	t, err = once(t, "static time_T host_time(void);\n", "",
+	// WITH THE BLANK LINE UNDER IT.  The canonical text puts one between two
+	// file-scope declarations, so taking the line alone would leave a run of
+	// two -- which no verification tier can see and which the arithmetic at the
+	// end refuses.
+	t, err = once(t, "static time_T host_time(void);\n\n", "",
 		"the core's own forward declaration, in the block of them")
 	if err != nil {
 		return nil, err
@@ -415,7 +419,7 @@ musl_delay(long ms, int interruptible)
 
 	// ---- 7. what the file is now -----------------------------------------
 	L := bytes.Split(t, []byte{'\n'})
-	const coreDelta = -1 + 1 - 6 - 1
+	const coreDelta = -2 + 1 - 6 - 1
 	const belowDelta = 6 + 1
 	if len(L)-len(lines) != coreDelta+belowDelta {
 		return nil, p.Die("the file moved by %d lines where %d was expected",

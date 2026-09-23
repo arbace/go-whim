@@ -397,7 +397,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			strings.Join(members, " "))
 	}
 	cut(a, b)
-	i := edit.Z44Index(lines, "typedef struct memfile memfile_T;")
+	// The alignment is phase 126's: this typedef is text THAT phase writes, not
+	// text phase 0 printed, so it is read here as phase 126 spells it.
+	i := edit.Z44Index(lines, "typedef struct memfile      memfile_T;")
 	lines = edit.Z44Splice(lines, i, i+1, nil)
 
 	// --- 3. memline_T loses its handle on one --------------------------------
@@ -413,8 +415,14 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if lines[i+2] != "static void mf_ins_used(memfile_T *, bhdr_T *);" {
 		return nil, die("the memfile block does not start where this edit expects")
 	}
+	// The run of prototypes has a blank line between each pair -- the canonical
+	// text writes one between two file-scope declarations -- so the walk steps
+	// over a blank as well as over a prototype, and stops on the first line that
+	// is neither.  That leaves the blank under the last prototype inside the
+	// cut, which is where it has to be: the enum above has one over it.
 	j := i + 2
-	for strings.HasPrefix(lines[j], "static ") && strings.Contains(lines[j], "mf_") {
+	for j < len(lines) && (lines[j] == "" ||
+		(strings.HasPrefix(lines[j], "static ") && strings.Contains(lines[j], "mf_"))) {
 		j++
 	}
 	cut(i, j-1)
@@ -634,10 +642,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if i, err = one(lo, hi, `^    mfp = buf->b_ml\.ml_mfp;$`); err != nil {
 		return nil, err
 	}
-	if strings.TrimSpace(lines[i+1]) != "" {
-		return nil, die("the memfile handle in ml_find_line is not followed by a blank line")
-	}
-	lines = edit.Z44Splice(lines, i, i+2, nil)
+	// The statement alone: the canonical text writes no blank line inside a
+	// function, so there is none under it to take.
+	lines = edit.Z44Splice(lines, i, i+1, nil)
 
 	// --- 11. everywhere else, ml_mfp was the question "is this buffer loaded"
 	for i, l := range lines {
@@ -718,7 +725,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	lines[i] = z45s11
 	// The root split copied the whole PAGE, which is how a node's contents moved
 	// while its header sat somewhere else.  The header is IN the node now.
-	if i, err = one(lo, hi, `^ *musl_memmove\(\(char \*\)\(pp_new\), \(char \*\)\(pp\), \(usize\)page_size\) ;$`); err != nil {
+	if i, err = one(lo, hi, `^ *musl_memmove\(\(char \*\)\(pp_new\), \(char \*\)\(pp\), \(usize\)page_size\);$`); err != nil {
 		return nil, err
 	}
 	lines = edit.Z44Splice(lines, i, i+1, z45b8)

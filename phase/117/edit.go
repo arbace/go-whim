@@ -112,7 +112,7 @@ var (
 // block that is still valid and still allocated, which is what `realloc`
 // guaranteed and what the caller relies on.
 const whim117OldGa = `    new_len = (usize)gap->ga_itemsize * (gap->ga_len + n);
-    pp =  realloc((gap->ga_data), (new_len)) ;
+    pp = realloc((gap->ga_data), (new_len));
     if (pp == nullptr)
     {
         return FAIL;
@@ -134,7 +134,7 @@ const whim117NewGa = `    new_len = (usize)gap->ga_itemsize * (gap->ga_len + n);
     }
 `
 
-const whim117Zero = "     musl_memset((pp + old_len), (0), (new_len - old_len)) ;\n"
+const whim117Zero = "    musl_memset((pp + old_len), (0), (new_len - old_len));\n"
 
 // get_keystroke: `t_buflen` is declared beside the `t_buf` the input already
 // keeps, so the two halves of what `realloc`'s interface does not carry -- the
@@ -146,19 +146,17 @@ const whim117Zero = "     musl_memset((pp + old_len), (0), (new_len - old_len)) 
 // success-path free goes in an `else`.  It is `free()` and not `vim_free()`
 // because `vim_free` declines while `really_exiting` and `realloc` freed
 // regardless.
-const whim117OldKs = `            char_u  *t_buf = buf;
-
+const whim117OldKs = `            char_u *t_buf = buf;
             buflen += 100;
-            buf =  realloc((buf), (buflen)) ;
+            buf = realloc((buf), (buflen));
             if (buf == nullptr)
             {
                 vim_free(t_buf);
             }
 `
 
-const whim117NewKs = `            char_u  *t_buf = buf;
-            int     t_buflen = buflen;
-
+const whim117NewKs = `            char_u *t_buf = buf;
+            int t_buflen = buflen;
             buflen += 100;
             buf = malloc(buflen);
             if (buf == nullptr)

@@ -86,7 +86,7 @@ func init() { check.Register("whim121", Check) }
 type z38R struct{ Name, tab, Text string }
 
 func z38Table(t string) (int, int, []z38R, bool) {
-	i := strings.Index(t, "static builtin_tcap_T builtin_terminals[] = {")
+	i := strings.Index(t, "static builtin_tcap_T builtin_terminals[] =\n{")
 	if i < 0 {
 		return 0, 0, nil, false
 	}
@@ -425,7 +425,7 @@ func Check(w io.Writer, args []string) error {
 	if _, _, ok := z38Lits(oldT); !ok {
 		return stop("a text has an odd number of string delimiters after blanking")
 	}
-	i := strings.Index(oldT, "static builtin_tcap_T builtin_terminals[] = {")
+	i := strings.Index(oldT, "static builtin_tcap_T builtin_terminals[] =\n{")
 	j := strings.Index(oldT[i:], "\n};") + i
 	type cls struct {
 		kind   string
