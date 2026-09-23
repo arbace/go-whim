@@ -130,7 +130,7 @@ func complkeysSub(text []byte, old, new, what string, count int) ([]byte, error)
 	return bytes.Replace(text, []byte(old), []byte(new), count), nil
 }
 
-const complkeysDisarm = `        if (c !=   (-((KS_EXTRA) + ((int)(KE_CURSORHOLD) << 8)))   && c !=   (-((KS_EXTRA) + ((int)(KE_COMPLETE_DELAY) << 8)))  )
+const complkeysDisarm = `        if (c != (-((KS_EXTRA) + ((int)(KE_CURSORHOLD) << 8))) && c != (-((KS_EXTRA) + ((int)(KE_COMPLETE_DELAY) << 8))))
         {
             ins_compl_clear_autocomplete_delay();
             ins_compl_disarm_autostart();
@@ -139,8 +139,7 @@ const complkeysDisarm = `        if (c !=   (-((KS_EXTRA) + ((int)(KE_CURSORHOLD
                 ins_compl_disable_autocomplete();
             }
         }
-
-`
+        `
 
 const complkeysDelayArm = `            ins_compl_clear_autocomplete_delay();
             if (!ins_compl_has_autocomplete() || char_avail() || curwin->w_cursor.col == 0)

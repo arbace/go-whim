@@ -96,7 +96,8 @@ func NoLocale(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  nolocale     the DBCS locale conversion in mb_init, and its local")
 
-	parts := strings.SplitN(string(text), `{"encoding"`, 2)
+	parts := strings.SplitN(string(text), `{
+        "encoding"`, 2)
 	if len(parts) > 1 {
 		head := parts[1]
 		if len(head) > 400 {

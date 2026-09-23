@@ -73,7 +73,7 @@ func init() { edit.Register("whim101", Edit) }
 // head is upstream's #ifdef'ed signature with the conditional gone: the name
 // sits on a line of its own because there was a directive between it and the
 // argument list, and slim's phase 5 took the conditional and left the break.
-const whim101Head = "\n    int\nmain\n(int argc, char **argv)\n{\n"
+const whim101Head = "\n    int\nmain(int argc, char **argv)\n{\n"
 
 const whim101NewHead = "\n    static int\nvim_main(int argc, char **argv)\n{\n"
 
@@ -168,7 +168,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"launcher's head and nothing else.  `vim_main` and `vim_main2` are different "+
 			"words", k)
 	}
-	if bytes.Contains(text, []byte("main\n(int argc")) {
+	if bytes.Contains(text, []byte("main(int argc")) {
 		return nil, p.Die("the three-line head survives somewhere")
 	}
 	if r := p.BlankRuns(text); r != runsBefore {

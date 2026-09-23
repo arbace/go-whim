@@ -10,18 +10,17 @@ import (
 )
 
 const (
-	eqCArm = `                        if (cindent_on())
-                        {
-                            indent =
-                                 get_c_indent();
-                        }
-                        else
-                        {
-                            indent = get_indent();
-                        }
+	eqCArm = `                            if (cindent_on())
+                            {
+                                indent = get_c_indent();
+                            }
+                            else
+                            {
+                                indent = get_indent();
+                            }
 `
 	eqCNew      = "                        indent = get_indent();\n"
-	preprocsOld = "        (curbuf->b_p_si && !curbuf->b_p_cin) ||\n" +
+	preprocsOld = " (curbuf->b_p_si && !curbuf->b_p_cin) || " +
 		"        (curbuf->b_p_cin && in_cinkeys('#', ' ', TRUE) && curbuf->b_ind_hash_comment == 0)\n" +
 		"        ;"
 	preprocsNew  = "        curbuf->b_p_si;"
@@ -44,7 +43,7 @@ const (
     {
         fixthisline(get_lisp_indent);
     }`
-	mayDoSiOld = "    return curbuf->b_p_si\n        && !curbuf->b_p_cin\n        && !p_paste;"
+	mayDoSiOld = "    return curbuf->b_p_si && !curbuf->b_p_cin && !p_paste;"
 	mayDoSiNew = "    return curbuf->b_p_si\n        && !p_paste;"
 )
 

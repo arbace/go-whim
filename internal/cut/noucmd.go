@@ -9,7 +9,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-const ucmdDispatch = `    if ( ((int)(ea.cmdidx) < 0) )
+const ucmdDispatch = `    if (((int)(ea.cmdidx) < 0))
     {
         do_ucmd(&ea);
     }

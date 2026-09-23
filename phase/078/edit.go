@@ -174,7 +174,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("redraw_after_callback", func(e *edit.E) {
 		e.Lines(`--redrawing_for_callback;`, 1, "and unmarking it")
 	})
-	e.Lines(`static int redrawing_for_callback  = 0 ;`, 1, "the mark nothing reads")
+	e.Lines(`static int redrawing_for_callback = 0;`, 1, "the mark nothing reads")
 	e.InFunction("win_enter_ext", func(e *edit.E) {
 		e.Lines(`prevwin = curwin;`, 1, "remembering the previous window")
 	})

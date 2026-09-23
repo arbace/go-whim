@@ -260,9 +260,9 @@ elapsed(elapsed_T *start_tv)
 			"&start_tv.tv_usec) ;\n\n    if (hide_cursor)",
 			"    long        start_tv;\n\n    start_tv = musl_now_ms();\n\n" +
 				"    if (hide_cursor)", "do_sleep"},
-		{"        static elapsed_T        start_tv;",
+		{"        static elapsed_T start_tv;",
 			"        static long             start_tv;", "vim_beep"},
-		{"    elapsed_T       start_tv;\n} oscstate_T;",
+		{"    elapsed_T start_tv;\n} oscstate_T;",
 			"    long            start_tv;\n} oscstate_T;", "oscstate_T"},
 		{"    elapsed_T   start_tv;\n\n     musl_gettimeofday(&start_tv.tv_sec, " +
 			"&start_tv.tv_usec) ;\n\n    for (;;)",
@@ -285,15 +285,15 @@ elapsed(elapsed_T *start_tv)
 		{"         musl_gettimeofday(&osc_state.start_tv.tv_sec, " +
 			"&osc_state.start_tv.tv_usec) ;",
 			"        osc_state.start_tv = musl_now_ms();", "handle_osc's stamp"},
-		{"        done =  elapsed(&(start_tv)) ;",
+		{"        done = elapsed(&(start_tv));",
 			"        done = musl_now_ms() - start_tv;", "do_sleep's reading"},
-		{"        if (!did_init ||  elapsed(&(start_tv))  > 500)",
+		{"        if (!did_init || elapsed(&(start_tv)) > 500)",
 			"        if (!did_init || musl_now_ms() - start_tv > 500)",
 			"vim_beep's 500 ms rate limit"},
-		{"    if ( elapsed(&(osc_state.start_tv))  >= p_ost)",
+		{"    if (elapsed(&(osc_state.start_tv)) >= p_ost)",
 			"    if (musl_now_ms() - osc_state.start_tv >= p_ost)",
 			"handle_osc's p_ost timeout"},
-		{"            elapsed_time =  elapsed(&(start_tv)) ;",
+		{"            elapsed_time = elapsed(&(start_tv));",
 			"            elapsed_time = musl_now_ms() - start_tv;",
 			"inchar_loop's deadline"},
 	} {

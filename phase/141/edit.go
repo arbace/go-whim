@@ -23,7 +23,7 @@ import (
 func init() { edit.Register("whim141", Edit) }
 
 var (
-	w141Head  = "      case RE_WHITE:\n      case RE_WHITE + ADD_NL:\n        testval = mask = RI_WHITE;\ndo_class:\n"
+	w141Head  = "    case RE_WHITE:\n    case RE_WHITE + ADD_NL:\n        testval = mask = RI_WHITE;\n    do_class:\n"
 	w141Class = regexp.MustCompile(`      case ([A-Z_]+):\n      case ([A-Z_]+) \+ ADD_NL:\n        ((?:testval = )?mask = RI_[A-Z]+;)\n        goto do_class;\n`)
 )
 

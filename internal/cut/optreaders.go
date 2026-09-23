@@ -11,19 +11,18 @@ import (
 
 const cleanPrescan = `    for (i = 1; i < argc; ++i)
     {
-        if ( strcasecmp((char *)(argv[i]), (char *)("--clean"))  == 0)
+        if (strcasecmp((char *)(argv[i]), (char *)("--clean")) == 0)
         {
             params.clean = TRUE;
             break;
         }
     }
-
-`
+    `
 
 // optreadersLiteral: each must occur exactly once.
 var optreadersLiteral = []struct{ what, old, new string }{
 	{"-nb: the scan that existed to refuse it",
-		"    early_arg_scan(paramp);\n\n", ""},
+		"    early_arg_scan(paramp);\n    ", ""},
 	{"--clean: the pre-scan of argv at the top of main", cleanPrescan, ""},
 	{"--clean: main passing set_init_1 what only --clean could set",
 		"set_init_1(paramp->clean);", "set_init_1();"},
@@ -38,7 +37,7 @@ var optreadersLiteral = []struct{ what, old, new string }{
 	{"-p: equalising the windows it did not make",
 		" && parmp->window_layout != WIN_TABS)", ")"},
 	{"-h: the pointer to it at the end of every usage error",
-		`     fprintf(stderr, "%s", (_("\nMore info with: \"vim -h\"\n"))) ;` + "\n", ""},
+		`    fprintf(stderr, "%s", (_("\nMore info with: \"vim -h\"\n")));` + "\n", ""},
 }
 
 var optreadersFolds = []struct {

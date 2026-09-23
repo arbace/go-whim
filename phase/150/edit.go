@@ -77,7 +77,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	lit("    if ("+w150Grow("regstack")+"regitem_T))) ? ga_grow_inner((&regstack), ((int)sizeof(regitem_T))) : OK) == FAIL), 0)  )\n    {\n        return nullptr;\n    }\n\n    rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len);\n    rp->rs_state = state;\n    rp->rs_scan = scan;\n\n    regstack.ga_len += sizeof(regitem_T);\n",
 		"    if (ga_grow(&regstack, 1) == FAIL)\n    {\n        return nullptr;\n    }\n\n    rp = &((regitem_T *)regstack.ga_data)[regstack.ga_len];\n    rp->rs_state = state;\n    rp->rs_scan = scan;\n\n    ++regstack.ga_len;\n    regstack_bytes += sizeof(regitem_T);\n",
 		"regstack_push() pushes a record on the record stack", 1)
-	lit("    rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len) - 1;\n    *scan = rp->rs_scan;\n\n    regstack.ga_len -= sizeof(regitem_T);\n",
+	lit("    rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len) - 1;\n    *scan = rp->rs_scan;\n    regstack.ga_len -= sizeof(regitem_T);\n",
 		"    rp = &((regitem_T *)regstack.ga_data)[regstack.ga_len - 1];\n    *scan = rp->rs_scan;\n\n    --regstack.ga_len;\n    regstack_bytes -= sizeof(regitem_T);\n",
 		"regstack_pop() pops one", 1)
 	// the star and look-behind pushes
@@ -87,7 +87,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		lit(k.ind+"    regstack.ga_len += sizeof("+k.t+");\n", k.ind+"    ++"+k.ga+".ga_len;\n"+k.ind+"    regstack_bytes += sizeof("+k.t+");\n", "counting the bytes it held", 1)
 	}
 	lit("*(((regstar_T *)rp) - 1) = rst;", "*regstack_star_top() = rst;", "the star's data is the top of the star stack", 1)
-	lit("regstar_T           *rst = ((regstar_T *)rp) - 1;", "regstar_T           *rst = regstack_star_top();", "and is found there", 1)
+	lit("regstar_T *rst = ((regstar_T *)rp) - 1;", "regstar_T           *rst = regstack_star_top();", "and is found there", 1)
 	lit("(((regbehind_T *)rp) - 1)->", "regstack_behind_top()->", "a look-behind's data is the top of its stack", 6)
 	lit("save_subexpr(((regbehind_T *)rp) - 1);", "save_subexpr(regstack_behind_top());", "saved into", 1)
 	lit("restore_subexpr(((regbehind_T *)rp) - 1);", "restore_subexpr(regstack_behind_top());", "and restored from", 3)
@@ -101,8 +101,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	lit("        rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len) - 1;\n", "        rp = &((regitem_T *)regstack.ga_data)[regstack.ga_len - 1];\n", "the loop reads the top record", 1)
-	lit("rp == (regitem_T *) ((char *)regstack.ga_data + regstack.ga_len) - 1)", "rp == &((regitem_T *)regstack.ga_data)[regstack.ga_len - 1])", "and asks whether it is still the top", 1)
-	lit("  regstack.ga_len = 0;\n  backpos.ga_len = 0;\n", "  regstack.ga_len = 0;\n  regstack_star.ga_len = 0;\n  regstack_behind.ga_len = 0;\n  regstack_bytes = 0;\n  backpos.ga_len = 0;\n", "a match starts with the three stacks and the count empty", 1)
+	lit("rp == (regitem_T *)((char *)regstack.ga_data + regstack.ga_len) - 1)", "rp == &((regitem_T *)regstack.ga_data)[regstack.ga_len - 1])", "and asks whether it is still the top", 1)
+	lit("    regstack.ga_len = 0;\n    backpos.ga_len = 0;\n", "  regstack.ga_len = 0;\n  regstack_star.ga_len = 0;\n  regstack_behind.ga_len = 0;\n  regstack_bytes = 0;\n  backpos.ga_len = 0;\n", "a match starts with the three stacks and the count empty", 1)
 	lit("        ga_init2(&regstack, 1, REGSTACK_INITIAL);\n        (void)ga_grow(&regstack, REGSTACK_INITIAL);\n        regstack.ga_growsize = REGSTACK_INITIAL * 8;\n",
 		"        ga_init2(&regstack, sizeof(regitem_T), REGSTACK_INITIAL / sizeof(regitem_T));\n        (void)ga_grow(&regstack, REGSTACK_INITIAL / sizeof(regitem_T));\n        regstack.ga_growsize = REGSTACK_INITIAL * 8 / sizeof(regitem_T);\n        ga_init2(&regstack_star, sizeof(regstar_T), 16);\n        ga_init2(&regstack_behind, sizeof(regbehind_T), 4);\n",
 		"the record stack starts at the same bytes, the other two small", 1)

@@ -294,7 +294,7 @@ int abs(int n);
 		"the tenth and is the one that cannot stay: its argument is a struct")
 
 	// ---- 5. time_t -> time_T, and the core owns the width ----------------
-	const td = "typedef time_t      time_T;"
+	const td = "typedef time_t time_T;"
 	if bytes.Count(t, []byte(td)) != 1 {
 		return nil, p.Die("`%s` is not in the file exactly once", td)
 	}
@@ -346,7 +346,7 @@ int abs(int n);
 		{"static long elapsed(struct timeval *start_tv);",
 			"static long elapsed(elapsed_T *start_tv);"},
 		{"elapsed(struct timeval *start_tv)\n{", "elapsed(elapsed_T *start_tv)\n{"},
-		{"    struct timeval  now_tv;", "    elapsed_T       now_tv;"},
+		{"    struct timeval now_tv;", "    elapsed_T       now_tv;"},
 	} {
 		if bytes.Count(t, []byte(x[0])) != 1 {
 			return nil, p.Die("`%s` is not in the file exactly once",

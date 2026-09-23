@@ -56,9 +56,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{"cursor_pos_info(nullptr);", "cursor_pos_info();", "its one call", 1},
 		// the host's formatter
 		{"static int vim_vsnprintf_typval(char *str, usize str_m, const char *fmt, va_list ap, typval_T *tvs)", "static int vim_vsnprintf_typval(char *str, usize str_m, const char *fmt, va_list ap)", "the formatter takes no argument list: its prototype", 1},
-		{"va_list     ap_start, typval_T    *tvs)", "va_list     ap_start)", "its definition", 1},
+		{"va_list ap_start, typval_T *tvs)", "va_list     ap_start)", "its definition", 1},
 		{"vim_vsnprintf_typval(str, str_m, fmt, ap, nullptr)", "vim_vsnprintf_typval(str, str_m, fmt, ap)", "its one call", 1},
-		{"const char  *fmt, typval_T    *tvs)", "const char  *fmt)", "parse_fmt_types() takes none either", 1},
+		{"const char  *fmt, typval_T    *tvs)", "const char *fmt)", "parse_fmt_types() takes none either", 1},
 		{"parse_fmt_types(&ap_types, &num_posarg, fmt, tvs)", "parse_fmt_types(&ap_types, &num_posarg, fmt)", "its one call", 1},
 		{", tvs != nullptr) == FAIL)", ", FALSE) == FAIL)", "and no number in a format is read from a list", 10},
 		// find_ex_command, whose lookup and compile context were Vim9 script's

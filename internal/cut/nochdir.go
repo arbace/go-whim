@@ -14,7 +14,7 @@ import (
 // Written as an interpreted string and not a raw one because it CONTAINS
 // BACKTICKS, in the comment it carries into the C.  Generated from the
 // Python's own constant rather than retyped, so the two cannot drift.
-const nochdirFullName = "    int         buflen = 0;\n" +
+const nochdirFullName = "    int buflen = 0;\n" +
 	"\n" +
 	"    // The dance that used to be here chdir'd into the leading directory of a\n" +
 	"    // relative name, asked getcwd() where that landed, and chdir'd back -- so\n" +
@@ -33,7 +33,7 @@ const nochdirFullName = "    int         buflen = 0;\n" +
 	"            *buf = NUL;\n" +
 	"            return FAIL;\n" +
 	"        }\n" +
-	"        buflen = (int) strlen((char *)(buf)) ;\n" +
+	"        buflen = (int)strlen((char *)(buf));\n" +
 	"        if (buflen >= len - 1)\n" +
 	"        {\n" +
 	"            return FAIL;\n" +
@@ -54,9 +54,9 @@ const nochdirFullName = "    int         buflen = 0;\n" +
 	"        return FAIL;\n" +
 	"    }\n" +
 	"\n" +
-	"    if ( strcmp((char *)(fname), (char *)(\".\"))  != 0)\n" +
+	"    if (strcmp((char *)(fname), (char *)(\".\")) != 0)\n" +
 	"    {\n" +
-	"         strcpy((char *)(buf + buflen), (char *)(fname)) ;\n" +
+	"        strcpy((char *)(buf + buflen), (char *)(fname));\n" +
 	"    }\n" +
 	"\n" +
 	"    return OK;"

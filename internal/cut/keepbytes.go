@@ -110,7 +110,7 @@ func KeepBytes(text []byte, w io.Writer) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		s, err = e.literal(s, " || (illegal_byte > 0 && bad_char_behavior !=  (-1) )", "",
+		s, err = e.literal(s, " || (illegal_byte > 0 && bad_char_behavior != (-1))", "",
 			"an illegal byte making the buffer read-only", 1)
 		if err != nil {
 			return nil, err
@@ -151,11 +151,11 @@ func KeepBytes(text []byte, w io.Writer) ([]byte, error) {
 	// REDUNDANT rather than unspellable: `_` is a word character, so a word
 	// boundary after "bad_char" already cannot occur inside
 	// "bad_char_behavior".  Measured on the whole corpus, the two agree.
-	if badCharWord.Match(bytes.ReplaceAll(text, []byte("int         bad_char;"), nil)) {
+	if badCharWord.Match(bytes.ReplaceAll(text, []byte("int bad_char;"), nil)) {
 		var live []string
 		for _, m := range badCharLine.FindAll(text, -1) {
 			line := string(m)
-			if strings.Contains(line, "int         bad_char;") ||
+			if strings.Contains(line, "int bad_char;") ||
 				strings.Contains(line, "get_bad_opt") {
 				continue
 			}

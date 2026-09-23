@@ -86,7 +86,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 	// prints as it succeeds.  Looping them emitted the same lines in a
 	// different order and 7 inputs differed.
 	for _, f := range []struct{ fn, old, new, what string }{
-		{"ex_next", "(       buf_hide(curbuf) || ", "(", ":next hiding the buffer"},
+		{"ex_next", "(buf_hide(curbuf) || ", "(", ":next hiding the buffer"},
 		{"set_curbuf", "!buf_hide(prevbuf) && ", "", "set_curbuf hiding the buffer"},
 	} {
 		f := f
@@ -200,7 +200,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 			"do_ecmd naming a refused file the alternate"); err != nil {
 			return nil, err
 		}
-		if s, err = e.literal(s, "        int prev_alt_fnum = curwin->w_alt_fnum;\n\n", "",
+		if s, err = e.literal(s, "        int prev_alt_fnum = curwin->w_alt_fnum;\n        ", "",
 			"do_ecmd remembering the alternate", 1); err != nil {
 			return nil, err
 		}

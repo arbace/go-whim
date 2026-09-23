@@ -211,7 +211,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, p.Die("a labelled block is not the one this phase was written against")
 		}
 	}
-	const main, sw = "for (;;)", "switch (c)"
+	const main, sw = "for (; ; )", "switch (c)"
 	// every jump, from the last so the offsets hold
 	jr := regexp.MustCompile(`(?m)^( *)goto (doESCkey|normalchar|do_intr);\n`)
 	ms := jr.FindAllStringSubmatchIndex(s, -1)

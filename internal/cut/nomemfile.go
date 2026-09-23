@@ -20,7 +20,7 @@ const mfOpenBody = "    memfile_T           *mfp;\n" +
 	"    // reader that passed a name went with the rest of recovery, above.  So\n" +
 	"    // there is no descriptor, no block is ever in a file, and the page size is\n" +
 	"    // ours to choose.\n" +
-	"    if ((mfp =  (memfile_T *)alloc(sizeof(memfile_T)) ) == NULL)\n" +
+	"    if ((mfp = (memfile_T *)alloc(sizeof(memfile_T))) == NULL)\n" +
 	"    {\n" +
 	"        return NULL;\n" +
 	"    }\n" +
@@ -163,7 +163,7 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nomemfile    mf_get stops trying to read a block back")
 
 	blanked = cutil.Blank(text)
-	k = bytes.Index(text, []byte("    for (;;)\n    {\n        if ((p = malloc(size)) != NULL)"))
+	k = bytes.Index(text, []byte("    for (; ; )\n    {\n        if ((p = malloc(size)) != NULL)"))
 	if k < 0 {
 		return nil, fmt.Errorf("nomemfile: lalloc's retry loop is not where this expects")
 	}
@@ -287,10 +287,10 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	// A STRUCT FIELD IS NOT A VARIABLE: no warning reports one that is never
 	// read, and the dead-code sweep cannot see it.
 	for _, field := range []string{`char_u      \*mf_fname;`, `char_u      \*mf_ffname;`,
-		`int         mf_fd;`, `int         mf_flags;`,
-		`int         mf_reopen;`, `unsigned    mf_used_count;`,
-		`unsigned    mf_used_count_max;`,
-		`blocknr_T   mf_infile_count;`} {
+		`int mf_fd;`, `int mf_flags;`,
+		`int mf_reopen;`, `unsigned mf_used_count;`,
+		`unsigned mf_used_count_max;`,
+		`blocknr_T mf_infile_count;`} {
 		// The Python takes field.split()[-1] of the PATTERN, so the name it
 		// reports keeps its regex backslash: "the \*mf_fname; field".  Kept as
 		// it is rather than tidied, because this text is only ever seen on a

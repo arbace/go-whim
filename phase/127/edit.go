@@ -367,7 +367,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"this edit rewrites", strings.Join(z44Gone, ", "), sum, before[z44Bit])
 
 	// --- 1. the typedef, the record and the block ----------------------------
-	i := edit.Z44Index(lines, "typedef struct data_block       DATA_BL;")
+	i := edit.Z44Index(lines, "typedef struct data_block DATA_BL;")
 	lines = append(lines[:i+1], append(append([]string{}, z44b0...), lines[i+1:]...)...)
 
 	a := edit.Z44Index(lines, "struct data_block")
@@ -381,7 +381,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			members = append(members, strings.TrimSpace(l))
 		}
 	}
-	if len(members) != 6 || members[len(members)-1] != "unsigned    db_index[1];" {
+	if len(members) != 6 || members[len(members)-1] != "unsigned db_index[1];" {
 		return nil, die("struct data_block is not the header-index-arena block this phase replaces: %s",
 			strings.Join(members, " "))
 	}
@@ -627,7 +627,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			left = append(left, i)
 		}
 	}
-	if len(left) != 1 || !strings.HasPrefix(lines[left[0]], "enum { ML_APPEND_MARK") {
+	if len(left) != 1 || !strings.HasPrefix(lines[left[0]], "enum\n{\n    ML_APPEND_MARK") {
 		return nil, die("ML_APPEND_MARK is still mentioned %d times and not only by its own "+
 			"enumerator, so the flag has a caller this edit did not see", len(left))
 	}

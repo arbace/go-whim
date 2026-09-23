@@ -153,7 +153,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	if k < 0 {
 		return nil, fmt.Errorf("nomouse: set_termname()'s mouse block is not where this expects")
 	}
-	pAt := k + bytes.Index(text[k:], []byte(`char_u  *p = (char_u *)"";`)) - 40
+	pAt := k + bytes.Index(text[k:], []byte(`char_u *p = (char_u *)"";`)) - 40
 	o := pAt + bytes.IndexByte(blanked[pAt:], '{')
 	c := cutil.Match(blanked, o)
 	if c < 0 {

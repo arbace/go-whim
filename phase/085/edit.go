@@ -137,7 +137,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	text, err = p.Literal(text, "    int         tty_fail;\n", "", "the mparm_T field it set", 1)
+	text, err = p.Literal(text, "    int tty_fail;\n", "", "the mparm_T field it set", 1)
 	if err != nil {
 		return nil, err
 	}

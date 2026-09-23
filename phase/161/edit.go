@@ -56,8 +56,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	steps := []struct{ Old, New, What string }{
 		{"        ml_flush_line(buf);\n" + W161Tail, "        ml_flush_line(buf);\n        return ml_get_invalid(buf, lnum);\n", "ml_get_buf() returns ml_get_invalid() for a line past the end"},
 		{"            goto errorret;\n", "            return ml_get_invalid(buf, lnum);\n", "and for a line it cannot find, with no goto"},
-		{"    static int  recursive = 0;\n    static char_u questions[4];\n\n    if (lnum > buf->b_ml.ml_line_count)\n", "    static int  recursive = 0;\n\n    if (lnum > buf->b_ml.ml_line_count)\n", "the \"???\" it returns is ml_get_invalid()'s"},
-		{"    static char_u  *\nml_get_buf(buf_T       *buf,", W161Func + "    static char_u  *\nml_get_buf(buf_T       *buf,", "ml_get_invalid() is the tail the goto jumped into"},
+		{"    static int recursive = 0;\n    static char_u questions[4];\n    if (lnum > buf->b_ml.ml_line_count)\n", "    static int  recursive = 0;\n\n    if (lnum > buf->b_ml.ml_line_count)\n", "the \"???\" it returns is ml_get_invalid()'s"},
+		{"    static char_u *\nml_get_buf(buf_T *buf,", W161Func + "    static char_u *\nml_get_buf(buf_T *buf,", "ml_get_invalid() is the tail the goto jumped into"},
 	}
 	for _, st := range steps {
 		if text, err = p.Literal(text, st.Old, st.New, st.What, 1); err != nil {

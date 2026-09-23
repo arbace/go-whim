@@ -48,7 +48,7 @@ import (
 // redo_VIsual, and a pattern for it would be longer than the block.
 const opFunctionCase = "        case OP_FUNCTION:\n" +
 	"            {\n" +
-	"                redo_VIsual_T   save_redo_VIsual = redo_VIsual;\n" +
+	"                redo_VIsual_T save_redo_VIsual = redo_VIsual;\n" +
 	"\n" +
 	"                op_function(oap);\n" +
 	"\n" +

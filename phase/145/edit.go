@@ -29,8 +29,7 @@ const (
             modifiers = 0;
             goto handle_osc;
         }
-
-`
+        `
 	w145Label = "handle_osc:\n"
 	w145Block = "        if (key_name[0] == NUL)\n        {\n"
 )

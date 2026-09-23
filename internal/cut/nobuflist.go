@@ -78,7 +78,7 @@ func NoBufList(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	text, err = e.inFunction(text, "do_buffer_ext", func(s []byte) ([]byte, error) {
-		s, err := e.literal(s, "    int         unload = (action == DOBUF_UNLOAD || "+
+		s, err := e.literal(s, "    int unload = (action == DOBUF_UNLOAD || "+
 			"action == DOBUF_DEL || action == DOBUF_WIPE || action == DOBUF_WIPE_REUSE);\n",
 			"", "do_buffer_ext deciding whether it unloads", 1)
 		if err != nil {

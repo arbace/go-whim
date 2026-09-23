@@ -50,7 +50,7 @@ func W151Pair(flags, a, b string) (str, num string) {
 // W151Rows is every row of options[] as (flags, default a, default b, the
 // span of the default pair's braces), in order.
 func W151Rows(text string) ([][4]string, [][2]int, error) {
-	head := "static struct vimoption options[] =\n{\n"
+	head := "static struct vimoption options[] = {\n"
 	i := strings.Index(text, head)
 	if i < 0 {
 		return nil, nil, fmt.Errorf("options[] is not where this phase expects it")
@@ -107,7 +107,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	p.Say(fmt.Sprintf("the %d rows of options[] give their defaults as a string pair and a number pair", len(rows)))
 	var o []byte
-	if o, err = p.Literal([]byte(s), "    char_u      *def_val[2];\n", "    char_u      *def_str[2];\n    long        def_num[2];\n", "a row holds its string defaults and its number defaults apart", 1); err != nil {
+	if o, err = p.Literal([]byte(s), "    char_u *def_val[2];\n", "    char_u      *def_str[2];\n    long        def_num[2];\n", "a row holds its string defaults and its number defaults apart", 1); err != nil {
 		return nil, err
 	}
 	s = string(o)

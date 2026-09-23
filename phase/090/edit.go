@@ -250,7 +250,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"eap->argt & EX_NOSPC", "and EX_NOSPC refuses a second file name whatever it said", 1); err != nil {
 		return nil, err
 	}
-	if text, err = withinStruct(text, "exarg", "    int         usefilter;\n", "",
+	if text, err = withinStruct(text, "exarg", "    int usefilter;\n", "",
 		"the exarg field itself, written by nothing since anchor 3", 1); err != nil {
 		return nil, err
 	}

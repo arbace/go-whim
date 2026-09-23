@@ -314,7 +314,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{` || curbuf->b_p_ro) ? " " : "");`, `) ? " " : "");`,
 			"and the trailing-space test's `|| curbuf->b_p_ro` disjunct"},
 		// ---- C3. the [RO] on the status line
-		{` || wp->w_buffer->b_p_ro) && plen <  PATH_MAX  - 1)`, `) && plen <  PATH_MAX  - 1)`,
+		{` || wp->w_buffer->b_p_ro) && plen < PATH_MAX - 1)`, `) && plen < PATH_MAX - 1)`,
 			"win_redr_status: the name-padding test's `|| b_p_ro` disjunct"},
 		{z12lit2, "", "and the block that appended [RO] to it -- nothing else reaches that " +
 			"indicator"},

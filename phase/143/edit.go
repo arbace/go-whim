@@ -146,7 +146,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	s = s[:hi] + "    c = getchr();\n    sw = c;\n    for (;;)\n    {\n        switch (sw)\n        {\n" +
-		strings.TrimSuffix(ib.String(), "\n") + "\n        }\n        break;\n    }\n\n    return ret;\n}" + s[ti+len(tail):]
+		strings.TrimSuffix(ib.String(), "\n") + "\n        }\n        break;\n    }\n    return ret;\n}" + s[ti+len(tail):]
 	decl := "    int             c;\n"
 	if strings.Count(s, decl) != 1 {
 		return nil, p.Die("regatom()'s c is not declared where this phase expects")

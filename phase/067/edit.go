@@ -85,7 +85,7 @@ var writeOnlyStatics = []struct {
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nomouse", text, w)
 
-	e.Literal(" || (is_mouse_key(n) && n !=   (-((KS_EXTRA) + ((int)(KE_LEFTMOUSE) << 8)))  )", "",
+	e.Literal(" || (is_mouse_key(n) && n != (-((KS_EXTRA) + ((int)(KE_LEFTMOUSE) << 8))))", "",
 		"the input loop asking whether a key is a mouse key")
 	e.Lines(`reset_dragwin\(\);`, 2, "the two calls that forgot the dragged window")
 	e.Lines(`reset_held_button\(\);`, 1, "the call that forgot the held button")
@@ -124,8 +124,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"the [MOUSE] entry of the terminal string table")
 
 	e.InFunction("check_termcode", func(e *edit.E) {
-		e.Lines(`int  mouse_index_found = -1;`, 1, "check_termcode remembering a deferred mouse match")
-		e.Lines(`int     looks_like_mouse_start = FALSE;`, 1, "check_termcode deferring an ESC [ match")
+		e.Lines(`int mouse_index_found = -1;`, 1, "check_termcode remembering a deferred mouse match")
+		e.Lines(`int looks_like_mouse_start = FALSE;`, 1, "check_termcode deferring an ESC [ match")
 		// The whole `slen == 2 && ESC [` block existed to set that flag, and its
 		// only other arm counted the semicolons of a DEC mouse report.
 		e.DropIf(`(?m)^[ \t]*if \(slen == 2 && len > 2 && termcodes\[idx\]\.code\[0\] == ESC && termcodes\[idx\]\.code\[1\] == '\['\)$`,

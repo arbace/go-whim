@@ -361,7 +361,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"and the note in add_time")
 
 	// ---- 3: find_ex_command ----------------------------------------------------
-	e.Lines(`int         vim9 = FALSE;`, 1, "the Vim9 flag nothing sets")
+	e.Lines(`int vim9 = FALSE;`, 1, "the Vim9 flag nothing sets")
 	e.FoldNever(`(?m)^[ \t]*if \(vim9 && eap->cmdidx != CMD_SIZE\)$`,
 		"the Vim9 whole-name check, the one reader of the name length")
 	e.Term("if (!vim9 && *eap->cmd == 'd' && ", "if (*eap->cmd == 'd' && ", 1,
@@ -395,7 +395,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, e.Refused("the index lookup head occurs %d times", k)
 	}
 	a := strings.Index(t, w80Head)
-	loop := strings.Index(t[a:], "        for ( ; (int)eap->cmdidx < (int)CMD_SIZE;")
+	loop := strings.Index(t[a:], "        for (; (int)eap->cmdidx < (int)CMD_SIZE;")
 	if loop < 0 {
 		return nil, e.Refused("the lookup span does not contain its for loop")
 	}
@@ -425,13 +425,13 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// ---- 4: do_one_cmd ---------------------------------------------------------
 	e.FoldNever(`(?m)^[ \t]*if \(ea\.cmdidx == CMD_wincmd && p != NULL\)$`, ":wincmd has no address type to find")
 	e.FoldAlwaysCount(`(?m)^[ \t]*if \(! \(\(int\)\(ea\.cmdidx\) < 0\) \)$`, 3, "a command index is never a user command")
-	e.Term("ea.cmd[0] == 78 && ! ((int)(ea.cmdidx) < 0) )", "ea.cmd[0] == 78)", 1, "nor in the Ni! test")
-	e.Term("ea.cmdidx != CMD_checktime && ea.cmdidx != CMD_edit && ea.cmdidx != CMD_file && ! ((int)(ea.cmdidx) < 0)  && curbuf_locked()",
+	e.Term("ea.cmd[0] == 78 && !((int)(ea.cmdidx) < 0))", "ea.cmd[0] == 78)", 1, "nor in the Ni! test")
+	e.Term("ea.cmdidx != CMD_checktime && ea.cmdidx != CMD_edit && ea.cmdidx != CMD_file && !((int)(ea.cmdidx) < 0) && curbuf_locked()",
 		"ea.cmdidx != CMD_edit && ea.cmdidx != CMD_file && curbuf_locked()", 1,
 		"nor in the locked-buffer exemptions, which lose :checktime")
-	e.Term("*ea.arg != NUL && (! ((int)(ea.cmdidx) < 0)  || *ea.arg != '=') && !((ea.argt",
+	e.Term("*ea.arg != NUL && (!((int)(ea.cmdidx) < 0) || *ea.arg != '=') && !((ea.argt",
 		"*ea.arg != NUL && !((ea.argt", 1, "nor in the register argument test")
-	e.Term("(! ((int)(ea.cmdidx) < 0)  && ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput)",
+	e.Term("(!((int)(ea.cmdidx) < 0) && ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput)",
 		"(ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput)", 1, "nor in which registers may be written")
 	e.FoldNever(`(?m)^[ \t]*if \( \(\(int\)\(eap->cmdidx\) < 0\) \)$`, "nor in a % range over windows")
 
@@ -453,7 +453,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"else if (ea.cmdidx == CMD_global", 1, "the commands that take the whole line are :g and :v")
 	e.Term("else if (*p == '\\n' && !(ea.argt & EX_EXPR_ARG))", "else if (*p == '\\n')", 1,
 		"and none takes an expression")
-	e.Term("  && (!(ea.argt & EX_BUFNAME) || *(p = skipdigits(ea.arg + 1)) == NUL ||  ((*p) == ' ' || (*p) == '\\t') ))",
+	e.Term(" && (!(ea.argt & EX_BUFNAME) || *(p = skipdigits(ea.arg + 1)) == NUL || ((*p) == ' ' || (*p) == '\\t')))",
 		")", 1, "a count is never a buffer name")
 	e.FoldNever(`(?m)^[ \t]*if \(ea\.cmdidx == CMD_try && cmdmod\.cmod_did_esilent > 0\)$`, ":try is not a command")
 	if e.Failed() {

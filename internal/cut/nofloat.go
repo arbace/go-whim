@@ -13,9 +13,7 @@ import (
 const nofloatRound = `                score = (fzy_score ==  INFINITY ) ? INT_MAX
                     : (int)(fzy_score * SCORE_SCALE + ((fzy_score < 0) ? -0.5 : 0.5));`
 
-const nofloatOldRound = `                score = (fzy_score ==  INFINITY ) ? INT_MAX
-                    : (fzy_score < 0) ? (int)ceil(fzy_score * SCORE_SCALE - 0.5)
-                    : (int)floor(fzy_score * SCORE_SCALE + 0.5);`
+const nofloatOldRound = `                score = (fzy_score == INFINITY) ? INT_MAX : (fzy_score < 0) ? (int)ceil(fzy_score * SCORE_SCALE - 0.5) : (int)floor(fzy_score * SCORE_SCALE + 0.5);`
 
 const floatLabels = "            case 'f':\n            case 'F':\n" +
 	"            case 'e':\n            case 'E':\n" +

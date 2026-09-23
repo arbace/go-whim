@@ -308,7 +308,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	peWr := regexp.MustCompile(`\bpe_page_count\s*=`)
 	var peReads []int
 	for i, l := range L {
-		if peRe.MatchString(l) && !peWr.MatchString(l) && !strings.Contains(l, "int         pe_page_count;") {
+		if peRe.MatchString(l) && !peWr.MatchString(l) && !strings.Contains(l, "int pe_page_count;") {
 			peReads = append(peReads, i)
 		}
 	}
@@ -325,7 +325,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	for i, l := range L {
 		if ulRe.MatchString(l) {
 			lastw = append(lastw, i)
-			if !ulWr.MatchString(l) && !strings.Contains(l, "bhdr_T      *mf_used_last;") {
+			if !ulWr.MatchString(l) && !strings.Contains(l, "bhdr_T *mf_used_last;") {
 				lastr = append(lastr, i)
 			}
 		}

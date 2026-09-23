@@ -82,7 +82,7 @@ func NoWinSizes(text []byte, w io.Writer) ([]byte, error) {
 		f := f
 		text, err = e.inFunction(text, f.name, func(s []byte) ([]byte, error) {
 			return e.literal(s,
-				"return frp->fr_win-> w_onebuf_opt.wo_wf"+f.h+" ;", "return FALSE;",
+				"return frp->fr_win->w_onebuf_opt.wo_wf"+f.h+" ;", "return FALSE;",
 				f.name+" of a window", 1)
 		})
 		if err != nil {

@@ -64,11 +64,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		Old, New, What string
 		n              int
 	}{
-		{"    void        *cookie;\n", "", "exarg_T holds none", 1},
+		{"    void *cookie;\n", "", "exarg_T holds none", 1},
 		{"eap->ea_getline(NUL, eap->cookie, indent, ", "eap->ea_getline(NUL, indent, ", ":append's reader passes none", 1},
 		{"getline_equal(fgetline, cookie, getexline)", "getline_equal(fgetline, getexline)", "getline_equal() is asked without one", 4},
 		{"fgetline(':', cookie, 0, ", "fgetline(':', 0, ", "do_cmdline() gets its next line without one", 1},
-		{"do_one_cmd(&cmdline_copy, flags,  fgetline ,  cookie );", "do_one_cmd(&cmdline_copy, flags,  fgetline );", "and runs a command without one", 1},
+		{"do_one_cmd(&cmdline_copy, flags, fgetline, cookie);", "do_one_cmd(&cmdline_copy, flags,  fgetline );", "and runs a command without one", 1},
 		{"    ea.cookie = cookie;\n", "", "do_one_cmd() keeps none", 1},
 	}
 	for _, st := range steps {

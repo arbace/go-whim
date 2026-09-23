@@ -148,10 +148,16 @@ func (e *emitter) external(n *cc.ExternalDeclaration) {
 		// printed `static void f(...)` on one line instead: 88 of the 163
 		// phases lost their function and said so -- "is not defined at file
 		// scope any more".
-		if specs := e.declSpecs(f.DeclarationSpecifiers); specs != "" {
-			e.w(Indent + specs + "\n")
+		// AND THE POINTER GOES WITH THE SPECIFIERS, for the same reason:
+		// vim writes `static char_u *` and then `ml_get_buf(...)` at column
+		// 0, and a `*` left at the head of the declarator would put the name
+		// at column 1 where `^name(` cannot see it.
+		specs := e.declSpecs(f.DeclarationSpecifiers)
+		ptr := e.pointer(f.Declarator.Pointer)
+		if head := joinNonEmpty(specs, ptr); head != "" {
+			e.w(Indent + head + "\n")
 		}
-		e.w(e.declarator(f.Declarator) + "\n")
+		e.w(e.directDeclarator(f.Declarator.DirectDeclarator) + "\n")
 		e.compound(f.CompoundStatement)
 	case cc.ExternalDeclarationAsmStmt:
 		e.line(strings.TrimSpace(cc.NodeSource(n.AsmStatement)))

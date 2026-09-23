@@ -38,7 +38,7 @@ const envCopy = `    char_u      *src;
     return (size_t)(dst - dst_start);`
 
 const localAdditions = "    fname = gettail(curbuf->b_fname);\n" +
-	`    if ( vim_fnamecmp((char_u *)(fname), (char_u *)("help.txt"))  == 0)`
+	`    if (vim_fnamecmp((char_u *)(fname), (char_u *)("help.txt")) == 0)`
 
 var envLeft = regexp.MustCompile(`\bgetenv\b|\bsetenv\b|\benviron\b`)
 
