@@ -13,7 +13,11 @@ whim-vim
 editor.c
 
 # Boundaries an earlier pass left: a tar and a digest each.  Nothing produces
-# them any more; `tools/st.sh build --to N` writes a tree when one is wanted.
+# them any more -- `tools/st.sh build --to N` writes a tree when one is wanted
+# -- but they are NOT spare: phase/116/check.go holds the terminal table it
+# records against the binary in every one of them, and REFUSES when they are
+# absent rather than saying so and passing.  What is here is what a previous
+# pass left, 30 from q83 on plus q82's, and deleting it costs that arm for good.
 .build/
 
 # The recorded baselines every delta is measured against (`make whim-baselines`),
