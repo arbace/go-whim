@@ -401,7 +401,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	lines = edit.Z44Splice(lines, i, i+1, nil)
 
 	// --- 3. memline_T loses its handle on one --------------------------------
-	i = edit.Z44Index(lines, "    memfile_T *ml_mfp;")
+	i = edit.Z44Index(lines, "    memfile_T   *ml_mfp;")
 	if lines[i+1] != "    bhdr_T      *ml_root;" {
 		return nil, die("ml_mfp is not the line above ml_root, so the memline is not the one this " +
 			"edit reads")

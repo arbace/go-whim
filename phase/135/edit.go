@@ -22,25 +22,26 @@ func init() { edit.Register("whim135", Edit) }
 
 const w135Two = `typedef struct regprog
 {
-    regengine_T *engine;
-    unsigned regflags;
-    unsigned re_engine;
-    unsigned re_flags;
-    int re_in_use;
+    regengine_T         *engine;
+    unsigned            regflags;
+    unsigned            re_engine;
+    unsigned            re_flags;
+    int                 re_in_use;
 } regprog_T;
 
 typedef struct
 {
-    regengine_T *engine;
-    unsigned regflags;
-    unsigned re_engine;
-    unsigned re_flags;
-    int re_in_use;
-    int regstart;
-    char_u reganch;
-    char_u *regmust;
-    int regmlen;
-    char_u program[1];
+    regengine_T         *engine;
+    unsigned            regflags;
+    unsigned            re_engine;
+    unsigned            re_flags;
+    int                 re_in_use;
+
+    int                 regstart;
+    char_u              reganch;
+    char_u              *regmust;
+    int                 regmlen;
+    char_u              program[1];
 } bt_regprog_T;
 `
 

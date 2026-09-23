@@ -30,12 +30,17 @@ func (e *emitter) stmt(n *cc.Statement) {
 	case cc.StatementCompound:
 		e.compound(n.CompoundStatement)
 	case cc.StatementExpr:
+		// AN ATTRIBUTE STATEMENT IS A STATEMENT.  `__attribute__((fallthrough));`
+		// is an expression statement with no expression and an attribute, and
+		// dropping the attribute -- 37 of them -- would turn the file's
+		// deliberate fallthroughs into ones the compiler warns about.
 		x := n.ExpressionStatement
+		a := join(e.declSpecs(x.Specifiers()), e.attrs(x.AttributeSpecifierList))
 		if x.ExpressionList == nil {
-			e.line(";")
+			e.line(a + ";")
 			return
 		}
-		e.line(e.expr(x.ExpressionList) + ";")
+		e.line(join(a, e.expr(x.ExpressionList)) + ";")
 	case cc.StatementSelection:
 		e.selection(n.SelectionStatement)
 	case cc.StatementIteration:

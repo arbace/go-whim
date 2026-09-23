@@ -95,7 +95,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		Old, New, What string
 		n              int
 	}{
-		{"(const void *a, const void *b);\n\nstatic int cmp_keyvalue_value_i(const void *a, const void *b);\n\nstatic int cmp_keyvalue_value_ni(const void *a, const void *b);\n",
+		{"(const void *a, const void *b);\nstatic int cmp_keyvalue_value_i(const void *a, const void *b);\nstatic int cmp_keyvalue_value_ni(const void *a, const void *b);\n",
 			"(keyvalue_T *kv1, keyvalue_T *kv2);\nstatic int cmp_keyvalue_value_i(keyvalue_T *kv1, keyvalue_T *kv2);\nstatic int cmp_keyvalue_value_ni(keyvalue_T *kv1, keyvalue_T *kv2);\nstatic keyvalue_T *keyvalue_bsearch(keyvalue_T *key, keyvalue_T *base, usize nel, int (*cmp)(keyvalue_T *, keyvalue_T *));\n",
 			"the keyvalue_T comparators take keyvalue_T: their prototypes, and the typed search's", 1},
 		{"(const void *a, const void *b)\n{\n" + kvCast, "(keyvalue_T *kv1, keyvalue_T *kv2)\n{\n", "their definitions, without the casts", 3},

@@ -33,7 +33,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "inputbuf", W: w}
 	var err error
 	steps := []struct{ Old, New, What string }{
-		{"    char_u *save_inputbuf;\n", "    garray_T            *save_inputbuf;\n",
+		{"    char_u              *save_inputbuf;\n", "    garray_T            *save_inputbuf;\n",
 			"tasave_T.save_inputbuf is a garray_T *"},
 		{"static char_u *get_input_buf(void);\n", "static garray_T *get_input_buf(void);\n",
 			"get_input_buf() is declared to return one"},

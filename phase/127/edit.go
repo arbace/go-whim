@@ -627,7 +627,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			left = append(left, i)
 		}
 	}
-	if len(left) != 1 || !strings.HasPrefix(lines[left[0]], "enum\n{\n    ML_APPEND_MARK") {
+	if len(left) != 1 || !strings.HasPrefix(lines[left[0]], "enum { ML_APPEND_MARK") {
 		return nil, die("ML_APPEND_MARK is still mentioned %d times and not only by its own "+
 			"enumerator, so the flag has a caller this edit did not see", len(left))
 	}

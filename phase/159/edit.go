@@ -43,7 +43,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{"        p = alloc(__builtin_offsetof(buffblock_T, b_str) + len + 1);\n", "        p = alloc(sizeof(buffblock_T));\n        p->b_str = alloc(len + 1);\n", "allocated apart from the block", 1},
 		{"    int sb_attr;\n    char_u sb_text[1];\n", "    int         sb_attr;\n    char_u      *sb_text;\n", "a msgchunk_T's text is a char_u *", 1},
 		{"        mp = alloc(__builtin_offsetof(msgchunk_T, sb_text) + (s - *sb_str) + 1);\n", "        mp = alloc(sizeof(msgchunk_T));\n        mp->sb_text = alloc((s - *sb_str) + 1);\n", "allocated apart from the chunk", 1},
-		{"    int regmlen;\n    char_u program[1];\n", "    int                 regmlen;\n    char_u              *program;\n", "a regprog_T's program is a char_u *", 1},
+		{"    int                 regmlen;\n    char_u              program[1];\n", "    int                 regmlen;\n    char_u              *program;\n", "a regprog_T's program is a char_u *", 1},
 		{"    r = alloc(__builtin_offsetof(regprog_T, program) + regsize);\n", "    r = alloc(sizeof(regprog_T));\n    r->program = alloc(regsize);\n", "allocated apart from the regprog_T", 1},
 	}
 	for _, st := range steps {

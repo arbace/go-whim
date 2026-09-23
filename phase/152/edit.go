@@ -227,7 +227,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// 2. the type, the fields, the prototypes
 	lit("    char_u *var;\n    idopt_T indir;\n", "    optvar_T    var;\n    idopt_T     indir;\n", "vimoption_T.var is an optvar_T", 1)
-	lit("typedef struct\n{\n    char_u *os_varp;\n", W152Type+"typedef struct\n{\n    optvar_T    os_varp;\n", "and so is optset_T.os_varp, after the type and its helpers", 1)
+	lit("typedef struct\n{\n    char_u      *os_varp;\n", W152Type+"typedef struct\n{\n    optvar_T    os_varp;\n", "and so is optset_T.os_varp, after the type and its helpers", 1)
 	lit("static char_u *get_varp_scope(struct vimoption *p, int scope);\n\nstatic char_u *get_varp(struct vimoption *);\n",
 		"static optvar_T get_varp_scope(struct vimoption *p, int scope);\nstatic optvar_T get_varp(struct vimoption *);\n", "get_varp() and get_varp_scope() return one", 1)
 	for _, f := range []string{"get_varp_scope", "get_option_varp_scope", "get_varp"} {

@@ -30,7 +30,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "register", W: w}
 	var err error
 	steps := []struct{ Old, New, What string }{
-		{"static void *get_register(int name, int copy);\n\nstatic void put_register(int name, void *reg);\n",
+		{"static void *get_register(int name, int copy);\nstatic void put_register(int name, void *reg);\n",
 			"static yankreg_T *get_register(int name, int copy);\nstatic void put_register(int name, yankreg_T *reg);\n", "get_register() returns a yankreg_T * and put_register() takes one: the prototypes"},
 		{"    static void *\nget_register(", "    static yankreg_T *\nget_register(", "get_register()'s definition"},
 		{"    return (void *)reg;\n", "    return reg;\n", "which returns the register without a cast"},

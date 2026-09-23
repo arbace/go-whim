@@ -216,7 +216,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.FoldNever(`(?m)^[ \t]*if \(!finish_op && has_textchanged\(\) && `, "and the change tick for TextChanged")
 	e.DropIfCount(`(?m)^[ \t]*if \(need_check_timestamps\)$`, 3, "three checks for a file changed outside the editor")
 	e.Lines(`need_check_timestamps = TRUE;`, 1, "asking for one")
-	e.Lines(`static int need_check_timestamps = FALSE;`, 1, "and the flag itself")
+	e.Lines(`static int      need_check_timestamps  = FALSE ;`, 1, "and the flag itself")
 	e.Lines(`need_redraw = check_timestamps\(FALSE\);`, 1, "the timestamp check on focus")
 	e.FoldNever(`(?m)^[ \t]*if \(need_redraw\)$`, "and the redraw it asked for")
 	e.Lines(`\(void\)append_arg_number\(curwin, \(char_u \*\)buffer \+ bufferlen,  \(1024\+1\)  - bufferlen, !shortmess\(SHM_FILE\)\);`, 1,
@@ -237,7 +237,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	e.Term(w79lit5, w79lit6, 1, "the minimum rows needed, without a tab line")
 	e.Lines(`total \+= tabline_height\(\);`, 1, "the tab line in the all-tabpages minimum")
-	e.Term("int row = tabline_height();", "int         row = 0;", 1, "window layout starting at the top row")
+	e.Term("int         row = tabline_height();", "int         row = 0;", 1, "window layout starting at the top row")
 	e.Term("(Rows - p_ch - tabline_height())", "(Rows - p_ch)", 5, "five window heights with no tab line to subtract")
 	e.Term("tabline_height() + topframe->fr_height", "topframe->fr_height", 1, "and the 'cmdheight' consistency check")
 	return e.Done()

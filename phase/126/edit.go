@@ -325,7 +325,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	for i, l := range L {
 		if ulRe.MatchString(l) {
 			lastw = append(lastw, i)
-			if !ulWr.MatchString(l) && !strings.Contains(l, "bhdr_T *mf_used_last;") {
+			if !ulWr.MatchString(l) && !strings.Contains(l, "bhdr_T      *mf_used_last;") {
 				lastr = append(lastr, i)
 			}
 		}
