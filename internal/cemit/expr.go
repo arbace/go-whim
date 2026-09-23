@@ -18,6 +18,10 @@ func (e *emitter) expr(n cc.ExpressionNode) string {
 	if n == nil {
 		return ""
 	}
+	if s, ok := e.fromMacro(n); ok {
+		return s
+	}
+	_ = n
 	switch x := n.(type) {
 	case *cc.PrimaryExpression:
 		switch x.Case {
@@ -43,10 +47,34 @@ func (e *emitter) expr(n cc.ExpressionNode) string {
 			return e.expr(x.PostfixExpression) + "[" + e.expr(x.ExpressionList) + "]"
 		case cc.PostfixExpressionCall:
 			return e.expr(x.PostfixExpression) + "(" + e.args(x.ArgumentExpressionList) + ")"
-		case cc.PostfixExpressionSelect:
-			return e.expr(x.PostfixExpression) + "." + tok(x.Token2)
-		case cc.PostfixExpressionPSelect:
-			return e.expr(x.PostfixExpression) + "->" + tok(x.Token2)
+		case cc.PostfixExpressionSelect, cc.PostfixExpressionPSelect:
+			// A MEMBER-DESIGNATOR MACRO STRADDLES TWO NODES.  glibc writes
+			// `#define st_mtime st_mtim.tv_sec`, so `st->st_mtime` arrives as
+			// two selections whose tokens are partly the source's and partly
+			// the expansion's, and neither node is wholly inside it.
+			//
+			// THE INNERMOST SELECTION PRINTS IT, which is why the operand is
+			// printed FIRST: it is the one that carries the source's own `->`,
+			// and letting the outer selection claim the expansion wrote
+			// `st.st_mtime` -- a `.` where the source had an arrow.
+			inner := e.expr(x.PostfixExpression)
+			sep := "."
+			if x.Case == cc.PostfixExpressionPSelect {
+				sep = "->"
+			}
+			off, isMacro := e.atExpansion(x.Token2)
+			if !isMacro {
+				return inner + sep + tok(x.Token2)
+			}
+			if e.emitted[off] {
+				return inner
+			}
+			text, ok := e.exp.text(off)
+			if !ok {
+				return inner + sep + tok(x.Token2)
+			}
+			e.emitted[off] = true
+			return inner + sep + text
 		case cc.PostfixExpressionInc:
 			return e.expr(x.PostfixExpression) + "++"
 		case cc.PostfixExpressionDec:

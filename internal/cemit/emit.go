@@ -31,6 +31,14 @@ type emitter struct {
 	b      strings.Builder
 	indent int
 	err    error
+
+	src    []byte      // the source, for macro-invocation recovery
+	lineAt []int       // the offset of each line of it
+	exp    *expansions // what the declaration being printed expanded
+
+	// emitted is the expansions already printed in this declaration, so that a
+	// macro whose replacement list spans more than one node is printed once.
+	emitted map[int]bool
 }
 
 // Indent is the canonical indent: four spaces per level, which is what the
@@ -75,7 +83,7 @@ func tok(t cc.Token) string { return t.SrcStr() }
 // the source as text and written back where they were: everything the source
 // declared above them, then the include lines verbatim, then the rest.
 func File(ast *cc.AST, mainFile string, src []byte) ([]byte, error) {
-	e := &emitter{}
+	e := &emitter{src: src, lineAt: lineIndex(src)}
 	incl, inclAt := includes(src)
 	written := false
 	first := true
@@ -110,6 +118,8 @@ func File(ast *cc.AST, mainFile string, src []byte) ([]byte, error) {
 			e.w("\n")
 		}
 		first = false
+		e.exp = e.scan(d)
+		e.emitted = map[int]bool{}
 		e.external(d)
 		if e.err != nil {
 			return nil, e.err

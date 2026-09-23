@@ -288,14 +288,12 @@ func (e *emitter) abstract(n *cc.AbstractDeclarator) string {
 	if n == nil {
 		return ""
 	}
-	switch n.Case {
-	case cc.AbstractDeclaratorPtr:
-		return e.pointer(n.Pointer)
-	case cc.AbstractDeclaratorDecl:
-		return e.pointer(n.Pointer) + e.directAbstract(n.DirectAbstractDeclarator)
-	}
-	e.fail(n, "abstract declarator %v", n.Case)
-	return ""
+	// BOTH CASES PRINT BOTH PARTS.  `AbstractDeclaratorPtr` is the grammar's
+	// pointer-only production, but the parser also builds it for the
+	// direct-abstract-declarator alone -- `(*)[N]` in a cast arrives with a nil
+	// Pointer and a DirectAbstractDeclarator.  Printing only the pointer turned
+	// `(score_t(*)[N])block` into `(score_t)block`, which gcc rejected.
+	return e.pointer(n.Pointer) + e.directAbstract(n.DirectAbstractDeclarator)
 }
 
 func (e *emitter) directAbstract(n *cc.DirectAbstractDeclarator) string {
@@ -375,6 +373,9 @@ func nonEmpty(in []string) []string {
 func (e *emitter) declLines(n *cc.Declaration) []string {
 	if n == nil {
 		return nil
+	}
+	if s, ok := e.fromMacro(n); ok {
+		return []string{s}
 	}
 	switch n.Case {
 	case cc.DeclarationDecl:

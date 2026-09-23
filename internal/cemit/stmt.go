@@ -16,6 +16,14 @@ func (e *emitter) stmt(n *cc.Statement) {
 	if n == nil {
 		return
 	}
+	if s, ok := e.stmtMacro(n); ok {
+		e.line(s)
+		return
+	}
+	if s, ok := e.fromMacro(n); ok {
+		e.line(s + ";")
+		return
+	}
 	switch n.Case {
 	case cc.StatementLabeled:
 		e.labeled(n.LabeledStatement)
