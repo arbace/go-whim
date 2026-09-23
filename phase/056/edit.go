@@ -103,7 +103,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 // boundary would have caught.
 func Whim56KP(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("noshellrtp", text, w)
-	e.Cut(`(?m)^[ \t]*case[^\n]*\bBV_KP\b[^\n]*\n[ \t]*return \*curbuf->b_p_kp != NUL\n[ \t]*\? \(char_u \*\)&curbuf->b_p_kp : p->var;\n`,
+	e.Cut(`(?m)^[ \t]*case[^\n]*\bBV_KP\b[^\n]*\n[ \t]*return \*curbuf->b_p_kp != NUL \? \(char_u \*\)&curbuf->b_p_kp : p->var;\n`,
 		1, "get_varp no longer resolves 'keywordprg' per buffer")
 	return e.Done()
 }

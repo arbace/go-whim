@@ -194,8 +194,9 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 	// removes is an error, not a warning.
 	if text, err = cutCounted(text,
 		`(?m)^static vim_acl_T mch_get_acl\(char_u \*fname\);\n`+
+			`\n`+
 			`static void mch_set_acl\(char_u \*fname, vim_acl_T aclent\);\n`+
-			`static void mch_free_acl\(vim_acl_T aclent\);\n`,
+			`\nstatic void mch_free_acl\(vim_acl_T aclent\);\n`,
 		"nobackup", "the three ACL declarations", 1); err != nil {
 		return nil, err
 	}

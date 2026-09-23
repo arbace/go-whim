@@ -338,7 +338,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.Lines(`pos_T[ \t]+cursor_start;`, 1, "the cursor gw returned to")
 
 	// the = operator, and what only the unreachable ! operator left behind
-	e.Sub(`(?m)^([ \t]*\{'=', )nv_operator(, 0, 0\} ,)$`, "${1}nv_error${2}", 1,
+	e.Sub(`(?m)^([ \t]*\{'=', )nv_operator(, 0, 0\},)$`, "${1}nv_error${2}", 1,
 		"= in Normal and Visual mode points at nv_error")
 	e.InFunction("do_pending_operator", func(e *edit.E) {
 		e.Literal(oldDispatch, newDispatch, "the filter and indent operators being dispatched")

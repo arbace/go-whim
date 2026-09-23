@@ -32,7 +32,7 @@ var (
 	terminfo     = regexp.MustCompile(`%[p{?;]|%t[^a-zA-Z]`)
 	looseFormat  = regexp.MustCompile(`vim_v?snprintf[_a-z]*\([^,]*,[^,]*, *[A-Za-z_][\w>.\-]*[,)]`)
 	libmCall     = regexp.MustCompile(`\b(?:ceil|floor|log10)\s*\(`)
-	typeFloatEnd = regexp.MustCompile(`,\n    TYPE_FLOAT\n\};`)
+	typeFloatEnd = regexp.MustCompile(`,\n    TYPE_FLOAT,\n\};`)
 )
 
 var nofloatCuts = []struct{ what, pat string }{
@@ -139,7 +139,7 @@ func NoFloat(text []byte, w io.Writer) ([]byte, error) {
 	// TYPE_FLOAT is the LAST enumerator, so removing it renumbers nothing --
 	// checked, because several enums in this file index a parallel table.
 	var hit bool
-	if text, hit = replaceFirst(typeFloatEnd, text, "\n};"); !hit {
+	if text, hit = replaceFirst(typeFloatEnd, text, ",\n};"); !hit {
 		return nil, fmt.Errorf("nofloat: TYPE_FLOAT is not the last enumerator any more")
 	}
 	fmt.Fprintln(w, "  nofloat      TYPE_FLOAT and its three arms")

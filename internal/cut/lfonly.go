@@ -340,15 +340,14 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 	}
 	if text, err = e.inFunction(text, "ml_open", func(s []byte) ([]byte, error) {
 		return e.subOnce(s,
-			`^[ \t]*b0p-> b0_fname\[B0_FNAME_SIZE_ORG - 2\]  = get_fileformat\(buf\) \+ 1;\n`,
+			`^[ \t]*b0p->b0_fname\[B0_FNAME_SIZE_ORG - 2\] = get_fileformat\(buf\) \+ 1;\n`,
 			"block 0 recording the format")
 	}); err != nil {
 		return nil, err
 	}
 	if text, err = e.inFunction(text, "ml_setflags", func(s []byte) ([]byte, error) {
 		return e.subOnce(s,
-			`^[ \t]*b0p-> b0_fname\[B0_FNAME_SIZE_ORG - 2\]  = \(b0p-> b0_fname\[B0_FNAME_SIZE_ORG - 2\]  & ~B0_FF_MASK\)\n`+
-				`[ \t]*\| \(get_fileformat\(buf\) \+ 1\);\n`,
+			`^[ \t]*b0p->b0_fname\[B0_FNAME_SIZE_ORG - 2\] = \(b0p->b0_fname\[B0_FNAME_SIZE_ORG - 2\] & ~B0_FF_MASK\) \| \(get_fileformat\(buf\) \+ 1\);\n`,
 			"block 0 updating the format")
 	}); err != nil {
 		return nil, err

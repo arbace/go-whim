@@ -148,12 +148,12 @@ func NoIdent(text []byte, w io.Writer) ([]byte, error) {
 	n, n2 := 0, 0
 	var hit bool
 	if text, hit = replaceFirst(regexp.MustCompile(
-		`(?m)^([ \t]*\{Ctrl_RSB, )nv_ident(, NV_NCW, 0\} ,\n)`),
+		`(?m)^([ \t]*\{Ctrl_RSB, )nv_ident(, NV_NCW, 0\},\n)`),
 		text, "${1}nv_error${2}"); hit {
 		n = 1
 	}
 	if text, hit = replaceFirst(regexp.MustCompile(
-		`(?m)^([ \t]*\{'K', )nv_ident(, 0, 0\} ,\n)`),
+		`(?m)^([ \t]*\{'K', )nv_ident(, 0, 0\},\n)`),
 		text, "${1}nv_error${2}"); hit {
 		n2 = 1
 	}

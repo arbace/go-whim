@@ -82,7 +82,7 @@ func (e *emitter) typeSpec(n *cc.TypeSpecifier) string {
 		cc.TypeSpecifierUnsigned, cc.TypeSpecifierBool, cc.TypeSpecifierComplex,
 		cc.TypeSpecifierImaginary, cc.TypeSpecifierTypeName, cc.TypeSpecifierFloat32,
 		cc.TypeSpecifierFloat64, cc.TypeSpecifierFloat32x, cc.TypeSpecifierFloat64x:
-		return tok(n.Token)
+		return e.specToken(n.Token)
 	case cc.TypeSpecifierStructOrUnion:
 		return e.structOrUnion(n.StructOrUnionSpecifier)
 	case cc.TypeSpecifierEnum:

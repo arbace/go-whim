@@ -282,7 +282,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 
 	// A ROW IS NEVER DELETED FROM nv_cmds[], IT IS POINTED AT nv_error.
 	if text, err = e.subCountRepl(text,
-		`(?m)^([ \t]*\{Ctrl_HAT, )nv_hat(, NV_NCW, 0\} ,)$`, "${1}nv_error${2}",
+		`(?m)^([ \t]*\{Ctrl_HAT, )nv_hat(, NV_NCW, 0\},)$`, "${1}nv_error${2}",
 		"CTRL-^'s row points at nv_error", 1); err != nil {
 		return nil, err
 	}

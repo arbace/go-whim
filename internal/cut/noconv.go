@@ -216,7 +216,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 		if bytes.Contains(s, []byte("goto retry")) {
 			return nil, fmt.Errorf("noconv: readfile still jumps to retry")
 		}
-		if s, err = e.subOnce(s, `^retry:\n\n`, "the retry label"); err != nil {
+		if s, err = e.subOnce(s, `^retry:\n`, "the retry label"); err != nil {
 			return nil, err
 		}
 		for _, f := range []struct{ pat, what string }{
@@ -272,7 +272,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 			"buf_write setting the empty encoding"); err != nil {
 			return nil, err
 		}
-		if s, err = e.subOnce(s, `^[ \t]*converted = need_conversion\(fenc\);\n\n`,
+		if s, err = e.subOnce(s, `^[ \t]*converted = need_conversion\(fenc\);\n`,
 			"buf_write asking whether to convert"); err != nil {
 			return nil, err
 		}
@@ -486,7 +486,9 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 	if text, err = e.inFunction(text, "get_argopt_name", func(s []byte) ([]byte, error) {
-		return e.subCount(s, `^[ \t]*"(?:fileformat=|encoding=|nobinary|bad=)",\n`,
+		// The list is one line now, so the four names go out of it and not
+		// out of four lines; the count that says which four is unchanged.
+		return e.subCount(s, `"(?:fileformat=|encoding=|nobinary|bad=)", `,
 			"the ++ff, ++enc, ++nobin and ++bad names", 4)
 	}); err != nil {
 		return nil, err

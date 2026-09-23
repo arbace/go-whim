@@ -200,9 +200,26 @@ const complkeysDoCompleteNew = `            if (p_im)
 `
 
 var (
+	// The macro left the whole inner body on one line, so this used to be able
+	// to say `\{[^\n]*\n`; on a text with one statement per line it spells the
+	// block out, which is the stronger anchor of the two.
 	complkeysBlob = regexp.MustCompile(
 		`(?m)[ \t]*if \(did_backspace\)\n[ \t]*\{\n` +
-			`[ \t]*if \(ins_compl_has_autocomplete\(\)[^\n]*\n[ \t]*\{[^\n]*\n` +
+			`[ \t]*if \(ins_compl_has_autocomplete\(\) && !char_avail\(\) && curwin->w_cursor\.col > 0\)\n` +
+			`[ \t]*\{\n` +
+			`[ \t]*\(c\) = char_before_cursor\(\);\n` +
+			`[ \t]*if \(vim_isprintc\(c\)\)\n` +
+			`[ \t]*\{\n` +
+			`[ \t]*update_screen\(UPD_VALID\);\n` +
+			`[ \t]*\}\n` +
+			`[ \t]*out_flush\(\);\n` +
+			`[ \t]*ins_compl_enable_autocomplete\(\);\n` +
+			`[ \t]*ins_compl_arm_autostart\(\);\n` +
+			`[ \t]*if \(!ins_compl_arm_autocomplete_delay\(\)\)\n` +
+			`[ \t]*\{\n` +
+			`[ \t]*goto docomplete;\n` +
+			`[ \t]*\}\n` +
+			`[ \t]*\}\n` +
 			`[ \t]*\}\n`)
 	complkeysPumArm = regexp.MustCompile(
 		`[ \t]*if \(pum_visible\(\)\)\n[ \t]*\{\n[ \t]*goto docomplete;\n[ \t]*\}\n\n?`)

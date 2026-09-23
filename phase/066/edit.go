@@ -52,7 +52,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{`\{`, "nv_findpar", "{ by paragraph"},
 		{`\}`, "nv_findpar", "} by paragraph"},
 	} {
-		e.Sub(fmt.Sprintf(`(?m)^([ \t]*\{'%s', )%s(, 0, [^}]*\} ,)$`, m.key, m.handler),
+		e.Sub(fmt.Sprintf(`(?m)^([ \t]*\{'%s', )%s(, 0, [^}]*\},)$`, m.key, m.handler),
 			"${1}nv_error${2}", 1, fmt.Sprintf("%s points at nv_error", m.What))
 	}
 	e.InFunction("nv_brackets", func(e *edit.E) {

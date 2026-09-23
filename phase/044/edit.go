@@ -27,7 +27,7 @@ import (
 // nv_error and never deleted: nv_cmd_idx[] is a sorted index computed once and
 // written into the C, so deleting a row leaves the index its old length and
 // every key past the hole resolving to another key's row.
-var bangRow = regexp.MustCompile(`(?m)^([ \t]*\{'!', )nv_operator(, 0, 0\} ,)$`)
+var bangRow = regexp.MustCompile(`(?m)^([ \t]*\{'!', )nv_operator(, 0, 0\},)$`)
 
 var retabCompletion = regexp.MustCompile(`(?m)^[ \t]*case CMD_retab:\n` +
 	`[ \t]*xp->xp_context = EXPAND_RETAB;\n[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n`)

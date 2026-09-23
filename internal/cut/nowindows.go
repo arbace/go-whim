@@ -90,7 +90,7 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// A ROW IS NEVER DELETED FROM nv_cmds[], IT IS POINTED AT nv_error.
-	if text, err = e.subCountRepl(text, `(?m)^([ \t]*\{Ctrl_W, )nv_window(, 0, 0\} ,)$`,
+	if text, err = e.subCountRepl(text, `(?m)^([ \t]*\{Ctrl_W, )nv_window(, 0, 0\},)$`,
 		"${1}nv_error${2}", "CTRL-W's row points at nv_error", 1); err != nil {
 		return nil, err
 	}
@@ -333,7 +333,7 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 		name := name
 		if text, err = e.inFunction(text, name, func(s []byte) ([]byte, error) {
 			return e.foldNever(s,
-				`^[ \t]*if \((?:!forceit && )?curwin-> w_onebuf_opt\.wo_wfb \)$`,
+				`^[ \t]*if \((?:!forceit && )?curwin->w_onebuf_opt\.wo_wfb\)$`,
 				name+"'s 'winfixbuf'")
 		}); err != nil {
 			return nil, err
@@ -419,7 +419,7 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = e.inFunction(text, "ex_listdo", func(s []byte) ([]byte, error) {
 		var err error
 		if s, err = e.foldNever(s,
-			`^[ \t]*if \(curwin-> w_onebuf_opt\.wo_wfb  && eap->cmdidx != CMD_windo\)$`,
+			`^[ \t]*if \(curwin->w_onebuf_opt\.wo_wfb && eap->cmdidx != CMD_windo\)$`,
 			"ex_listdo's 'winfixbuf'"); err != nil {
 			return nil, err
 		}

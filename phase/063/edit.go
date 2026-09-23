@@ -38,7 +38,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			c.Name, c.Name, c.Name, c.handler), "${1}ex_ni,", 1,
 			fmt.Sprintf(":%s points at ex_ni", c.Name))
 	}
-	e.Sub(`(?m)^([ \t]*\{Ctrl_I, )nv_pcmark(, 0, 0\} ,)`, "${1}nv_error${2}", 1,
+	e.Sub(`(?m)^([ \t]*\{Ctrl_I, )nv_pcmark(, 0, 0\},)`, "${1}nv_error${2}", 1,
 		"CTRL-I in Normal mode points at nv_error")
 
 	// The append is cut from its test to the last line of its Body.  It is

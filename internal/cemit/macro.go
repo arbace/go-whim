@@ -286,3 +286,38 @@ func identStart(src []byte, off int) bool {
 	c := src[off]
 	return c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
 }
+
+// specToken prints a type-specifier keyword AS THE SOURCE SPELLED IT.  With
+// <stdbool.h> the input writes `bool`, the preprocessor makes it `_Bool`, and
+// the token the parser hands back says `_Bool` at the column `bool` starts on:
+// 78 declarations came out with a spelling the input does not use.  The
+// recovery is the file's own, narrowed to the case where it cannot mean
+// anything else -- an expansion whose whole source text is one
+// identifier, which is what an object-like macro of a type name looks like.
+func (e *emitter) specToken(t cc.Token) string {
+	off, ok := e.atExpansion(t)
+	if !ok {
+		return tok(t)
+	}
+	s, ok := e.exp.text(off)
+	if !ok || !isIdent(s) {
+		return tok(t)
+	}
+	return s
+}
+
+func isIdent(s string) bool {
+	if s == "" {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch {
+		case c == '_' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'):
+		case c >= '0' && c <= '9' && i > 0:
+		default:
+			return false
+		}
+	}
+	return true
+}
