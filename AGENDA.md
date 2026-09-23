@@ -48,14 +48,6 @@ that nothing had moved. **A delta that could not fail.**
 
 ## Queued, measured, not started
 
-- **The enumerator values from the front end** -- committed on main (`566a6bd`)
-  and NOT yet proved end to end. Per-text agreement is measured: byte-identical
-  on `whim-vim.c` (1,155 both ways), 37 one-directional differences on
-  `slim-vim.c` (names the tree declares and DWARF omits, zero value
-  disagreements), and 1,141 on `editor.c`, which `tools/enumvals.sh` cannot
-  answer for at all. The gate is a build with each path required byte-identical.
-  Note `whim-build-check` on main already fails for a separate deliberate
-  reason: `c975619` changed the arena message without regenerating the product.
 - **The reachability closure as a REPORTER** -- `surveys/REACHABILITY.md`.
   `sweep \ closure = empty` over 1,059 removals on five texts; ships as an
   `internal/ccx`-shaped partition refusing on a leftover, with gcc as the control
