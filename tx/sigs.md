@@ -84,7 +84,6 @@ func can_unload_buffer(buf *S_file_buffer) int32
 func close_buffer(win *S_window_S, buf *S_file_buffer, action int32, abort_if_last int32, ignore_abort int32, set_context int32) int32
 func buf_clear_file(buf *S_file_buffer)
 func buf_freeall(buf *S_file_buffer, flags int32) int32
-func free_buffer(buf *S_file_buffer)
 func init_changedtick(buf *S_file_buffer)
 func clear_wininfo(buf *S_file_buffer)
 func free_buffer_stuff(buf *S_file_buffer, free_options int32)
