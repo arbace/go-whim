@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"modernc.org/cc/v4"
+	"github.com/arbace/go-whim/internal/cc"
 )
 
 // the names every function body sees besides its own: the runtime's and Go's

@@ -9,7 +9,7 @@ memoize, no boundary and no oracle between them.
 | file | what it is |
 | --- | --- |
 | `st.sh`, `sweep.sh`, `canon.sh` | run `whimtools`: they build it if they must (`gobuild.sh`) and exec it. A phase program, a check, a makefile rule and a person at a prompt all reach the toolset the same way |
-| `gobuild.sh` | builds `whimtools`, content-keyed, with the patched `modernc.org/cc/v4` (`patches/cc-v4-c23.patch`) |
+| `gobuild.sh` | builds `whimtools`, content-keyed on go.mod, go.sum and every .go under cmd/, internal/ and phase/ |
 | `whimdelta.sh`, `coredelta.sh` | the declared delta at a phase, read from the `phase/NNN/delta` files through `declared.sh`: against `.reference/baselines` for phases 0-82, and from `CORE_FROM` (83) on `whimdelta.sh` hands the phase to `coredelta.sh`, against `.reference/core-baselines` |
 | `declared.sh` | the declarations of a run of phases, in the one grammar both checkers read |
 | `zrecord.sh` | the instrument from phase 86 on: six parts, 122 records |
@@ -18,6 +18,7 @@ memoize, no boundary and no oracle between them.
 | `score.sh` | bytes to store and symbols to provide, the input beside the product |
 | `templates/whim.mk`, `templates/core.mk` | the makefile phase 0 starts from, and the one phase 83 writes over it |
 | `musl-case.txt`, `musl-ctype.txt`, `nolibm_check.c` | data and a probe a phase reads |
+| `patches/cc-v4-c23.patch` | the delta `internal/cc` carries from modernc.org/cc/v4 v4.29.7, kept as the record of it |
 
 Every one of them runs from the repository root and writes its temporaries in
 `.tmp/`.

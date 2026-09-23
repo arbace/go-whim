@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"modernc.org/cc/v4"
+	"github.com/arbace/go-whim/internal/cc"
 )
 
 // effects is what evaluating an expression does: the objects it writes and

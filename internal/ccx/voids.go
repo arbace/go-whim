@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"modernc.org/cc/v4"
+	"github.com/arbace/go-whim/internal/cc"
 )
 
 // A void * has no element type, and a translation into Go must give it one.

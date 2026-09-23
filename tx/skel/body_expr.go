@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"modernc.org/cc/v4"
+	"github.com/arbace/go-whim/internal/cc"
 )
 
 // capture runs fn with its output going to a buffer of its own, and returns

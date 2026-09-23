@@ -72,7 +72,8 @@ through to. arbace/slim-vim keeps both, for its own pipeline.
 
 ```
 cmd/whimtools/     one binary, every tool a subcommand: whimtools <subcommand>
-internal/          the Go: sweep, canon, dead, cut/cutil (the cutters), edit and
+internal/          the Go: cc (the forked C front end), sweep, canon, dead,
+                   cut/cutil (the cutters), edit and
                    check (what the phases' edits and checks are written against --
                    the drivers, the reporters, and in shared.go what more than one
                    phase uses), steps (every transformation a phase names, as one
@@ -90,7 +91,7 @@ tools/             the instruments a check or a delta runs -- whimdelta, coredel
                    sweep.sh, canon.sh
 tools/templates/   whim.mk, the makefile phase 0 starts from, and core.mk, the one
                    phase 83 writes over it
-tools/patches/     cc-v4-c23.patch, two C23 productions modernc.org/cc/v4 lacks
+tools/patches/     cc-v4-c23.patch, the delta internal/cc carries from upstream
 editor/            the core in Go: editor.go GENERATED (make editor/editor.go; never edit it),
                    its runtime crt.go and host host.go by hand; tools/coredelta.sh
                    measures a build of it
@@ -101,9 +102,14 @@ Makefile           fetches the input and includes whim.mk
 ```
 
 `tools/gobuild.sh` builds `cmd/whimtools` into `.cache/gobin/<key>/`, keyed on
-`go.mod`, `go.sum`, the patch and every `.go` under `cmd/` and `internal/`; it
-composes the pinned `modernc.org/cc/v4` with the patch under `.cache/gofork/`
-rather than vendoring it, because a patched `vendor/` fails `go mod verify`.
+`go.mod`, `go.sum` and every `.go` under `cmd/`, `internal/` and `phase/`.
+**The C front end is a fork**, `internal/cc`: modernc.org/cc/v4 v4.29.7 with
+`tools/patches/cc-v4-c23.patch` applied in place, tracked as ordinary source
+(`internal/cc/README.md`). It was composed at build time under `.cache/gofork/`
+before, because a patched `vendor/` fails `go mod verify`; a fork under its own
+import path has neither problem. Measured: with the patch reversed, `whimtools
+parse whim-vim.c` says *unexpected `<EOF>`, expected `}`*, and `tx/skel` writes
+the same `editor/editor.go` byte for byte either way.
 
 ## Build
 

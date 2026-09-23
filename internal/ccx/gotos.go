@@ -3,7 +3,7 @@ package ccx
 import (
 	"fmt"
 
-	"modernc.org/cc/v4"
+	"github.com/arbace/go-whim/internal/cc"
 )
 
 // Go's goto may not jump into a block, and may not jump over a variable's

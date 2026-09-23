@@ -1,7 +1,7 @@
 package ccx
 
 import (
-	"modernc.org/cc/v4"
+	"github.com/arbace/go-whim/internal/cc"
 )
 
 // pureFuncs computes the functions that change no state outside their own

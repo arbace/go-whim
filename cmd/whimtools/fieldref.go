@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"sort"
 
-	"modernc.org/cc/v4"
+	"github.com/arbace/go-whim/internal/cc"
 )
 
 // runFieldRef reports, for every struct member in a product, how many times it

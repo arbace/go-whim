@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"strings"
 
-	"modernc.org/cc/v4"
+	"github.com/arbace/go-whim/internal/cc"
 )
 
 // unsupported stops the function being written.

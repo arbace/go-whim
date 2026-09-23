@@ -7,7 +7,7 @@
 # Run through make, which cuts editor.c first: `make editor/editor.go`, and
 # `make whim-editor-check` for --check.  This script never runs make: a check
 # must not be able to start a pass.  tx/skel, built against the patched
-# modernc.org/cc/v4 that tools/gobuild.sh composes, writes the types, the
+# internal/cc, the forked C front end, writes the types, the
 # globals, their initial values and every function's body.  crt.go and host.go
 # are not generated: they are the runtime and the host.
 set -eu
@@ -15,14 +15,8 @@ cd "$(dirname "$0")/.."
 export TMPDIR="$PWD/.tmp"
 mkdir -p .tmp
 [ -f editor.c ] || { echo "tx/gen.sh: no editor.c; make cuts it from whim-vim.c: make editor/editor.go"; exit 1; }
-sh tools/gobuild.sh >/dev/null
-# the fork tools/gobuild.sh composed: named by the pinned version and the patch
-ccver=$(awk '{ for (i = 1; i <= NF; i++) if ($i == "modernc.org/cc/v4") { print $(i + 1); exit } }' go.mod)
-fork=.cache/gofork/cc-v4-$ccver-$(sha256sum tools/patches/cc-v4-c23.patch | cut -c1-12)
-[ -d "$fork" ] || { echo "tx/gen.sh: $fork is missing; tools/gobuild.sh composes it"; exit 1; }
-sed "\$a replace modernc.org/cc/v4 => ./$fork" go.mod > .tmp/gen-fork.mod
-cp go.sum .tmp/gen-fork.sum
-go build -trimpath -modfile=.tmp/gen-fork.mod -o .tmp/gen-skel ./tx/skel
+# The front end is internal/cc, a tracked fork, so this is an ordinary build.
+go build -trimpath -o .tmp/gen-skel ./tx/skel
 out=$(mktemp -d)
 .tmp/gen-skel editor.c "$out" -editor "$out/editor.go" 2>/dev/null
 if [ "${1:-}" = --check ]; then

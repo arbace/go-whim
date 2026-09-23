@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"modernc.org/cc/v4"
+	"github.com/arbace/go-whim/internal/cc"
 )
 
 func parse(path string) (*cc.AST, error) {

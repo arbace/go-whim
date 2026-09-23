@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"modernc.org/cc/v4"
+	"github.com/arbace/go-whim/internal/cc"
 )
 
 // initializers writes the initial values of every file-scope object and every

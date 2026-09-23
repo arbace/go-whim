@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"modernc.org/cc/v4"
+	"github.com/arbace/go-whim/internal/cc"
 )
 
 // gen writes the skeleton: types.go, globals.go and sigs.txt.

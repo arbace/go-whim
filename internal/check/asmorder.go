@@ -4,7 +4,7 @@ import (
 	"os"
 
 	"github.com/arbace/go-whim/internal/ccx"
-	"modernc.org/cc/v4"
+	"github.com/arbace/go-whim/internal/cc"
 	"os/exec"
 	"path/filepath"
 	"regexp"

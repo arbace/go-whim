@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"modernc.org/cc/v4"
+	"github.com/arbace/go-whim/internal/cc"
 )
 
 // A growarray's ga_data is a void *: C casts it to its element type where it

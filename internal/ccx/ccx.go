@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"sort"
 
-	"modernc.org/cc/v4"
+	"github.com/arbace/go-whim/internal/cc"
 )
 
 // Parse reads a C file the way tx/skel does.
