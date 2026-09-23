@@ -22,12 +22,14 @@ import (
 // plan was derived from the phase programs, so what holds it to them is that
 // the product comes back byte for byte.
 func runBuild(args []string) int {
-	o := build.Options{Src: "slim-vim.c", W: os.Stdout}
+	o := &build.Options{Src: "slim-vim.c", W: os.Stdout}
 	out, check := "whim-vim.c", false
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--check":
 			check = true
+		case "--keep-going":
+			o.KeepGoing = true
 		case "--from", "--to":
 			flag := args[i]
 			i++
@@ -72,6 +74,12 @@ func runBuild(args []string) int {
 		return 1
 	}
 	secs := int(time.Since(start).Seconds())
+	if len(o.Refused) > 0 {
+		fmt.Printf("  build        %d phases refused:\n", len(o.Refused))
+		for _, r := range o.Refused {
+			fmt.Printf("      %s\n", r)
+		}
+	}
 	if check {
 		want, err := os.ReadFile(out)
 		if err != nil {

@@ -224,10 +224,41 @@ func (e *emitter) initializer(n *cc.Initializer) string {
 	case cc.InitializerExpr:
 		return e.expr(n.AssignmentExpression)
 	case cc.InitializerInitList:
-		return "{" + e.initializerList(n.InitializerList) + "}"
+		return e.braced(n.InitializerList)
 	}
 	e.fail(n, "initializer %v", n.Case)
 	return ""
+}
+
+// braced prints a braced initializer.  ONE ELEMENT PER LINE WHEN THE ELEMENTS
+// ARE THEMSELVES BRACED, which is what makes a table a table: the input writes
+// one row of cmdnames[] or nv_cmds[] per line, every tool that reads those
+// tables reads them by the line, and a 600-row table on one line is a table no
+// text tool can see into.  A flat list stays on its line.
+func (e *emitter) braced(n *cc.InitializerList) string {
+	nested := false
+	for l := n; l != nil; l = l.InitializerList {
+		if l.Initializer != nil && l.Initializer.Case == cc.InitializerInitList {
+			nested = true
+			break
+		}
+	}
+	if !nested {
+		return "{" + e.initializerList(n) + "}"
+	}
+	var b strings.Builder
+	b.WriteString("{\n")
+	e.indent++
+	for l := n; l != nil; l = l.InitializerList {
+		s := e.initializer(l.Initializer)
+		if l.Designation != nil {
+			s = e.designation(l.Designation) + " = " + s
+		}
+		b.WriteString(e.pad() + s + ",\n")
+	}
+	e.indent--
+	b.WriteString(e.pad() + "}")
+	return b.String()
 }
 
 func (e *emitter) initializerList(n *cc.InitializerList) string {

@@ -88,7 +88,7 @@ func recordCore(w io.Writer) error {
 	defer os.RemoveAll(tmp)
 	work := filepath.Join(tmp, "q82")
 	fmt.Fprintf(w, "  q82          building the tree phase 83 is handed\n")
-	if _, err := build.Run(build.Options{Src: "slim-vim.c", To: 82, Work: work, W: io.Discard}); err != nil {
+	if _, err := build.Run(&build.Options{Src: "slim-vim.c", To: 82, Work: work, W: io.Discard}); err != nil {
 		return err
 	}
 	src := filepath.Join(work, "whim-vim.c")

@@ -106,11 +106,23 @@ func (e *emitter) expr(n cc.ExpressionNode) string {
 		case cc.UnaryExpressionNot:
 			return "!" + e.expr(x.CastExpression)
 		case cc.UnaryExpressionSizeofExpr:
-			return "sizeof " + e.expr(x.UnaryExpression)
+			// `sizeof("help")` and not `sizeof ("help")`: the operand of a
+			// sizeof is written against its parenthesis everywhere in the
+			// input, and a space there is a space every anchor would have to
+			// learn about.
+			if in := e.expr(x.UnaryExpression); strings.HasPrefix(in, "(") {
+				return "sizeof" + in
+			} else {
+				return "sizeof " + in
+			}
 		case cc.UnaryExpressionSizeofType:
 			return "sizeof(" + e.typeName(x.TypeName) + ")"
 		case cc.UnaryExpressionAlignofExpr:
-			return "alignof " + e.expr(x.UnaryExpression)
+			if in := e.expr(x.UnaryExpression); strings.HasPrefix(in, "(") {
+				return "alignof" + in
+			} else {
+				return "alignof " + in
+			}
 		case cc.UnaryExpressionAlignofType:
 			return "alignof(" + e.typeName(x.TypeName) + ")"
 		case cc.UnaryExpressionLabelAddr:

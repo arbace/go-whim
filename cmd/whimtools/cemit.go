@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/arbace/go-whim/internal/cc"
 	"github.com/arbace/go-whim/internal/cemit"
 )
 
@@ -24,7 +23,7 @@ func runCemit(args []string) int {
 		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 		return 1
 	}
-	out, err := canonical(path, src)
+	out, err := cemit.Canonical(path, src)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "  cemit        %v\n", err)
 		return 1
@@ -43,22 +42,6 @@ func runCemit(args []string) int {
 	}
 	fmt.Printf("  cemit        %s, %d lines from %d\n", path, lines(out), lines(src))
 	return 0
-}
-
-func canonical(path string, src []byte) ([]byte, error) {
-	cfg, err := cc.NewConfig("linux", "amd64")
-	if err != nil {
-		return nil, err
-	}
-	ast, err := cc.Translate(cfg, []cc.Source{
-		{Name: "<predefined>", Value: cfg.Predefined},
-		{Name: "<builtin>", Value: cc.Builtin},
-		{Name: path, Value: string(src)},
-	})
-	if err != nil {
-		return nil, err
-	}
-	return cemit.File(ast, path, src)
 }
 
 func lines(b []byte) int {

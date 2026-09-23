@@ -21,6 +21,13 @@ type Options struct {
 	To   int       // the last phase to run; 0 or less means all of them
 	W    io.Writer // the report
 	Work string    // a directory to sweep in; a temporary one when empty
+
+	// KeepGoing is for measuring, never for producing: a phase that refuses is
+	// recorded, its text change dropped, and the run carries on with the text
+	// as it was.  Everything after a dropped phase is answering a different
+	// question, so what this gives is a LIST and not a product.
+	KeepGoing bool
+	Refused   []string
 }
 
 // Run applies the plan to the input and returns the source it leaves.
@@ -29,7 +36,7 @@ type Options struct {
 // sweep needs a path: the sweep compiles the tree speculatively to answer the
 // enumerator question, which is the one thing in the pipeline that is not a
 // function of the bytes alone.
-func Run(o Options) ([]byte, error) {
+func Run(o *Options) ([]byte, error) {
 	if o.W == nil {
 		o.W = io.Discard
 	}
@@ -89,9 +96,15 @@ func Run(o Options) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		text, err = RunPhase(p, text, scratch, o.W)
+		out, err := RunPhase(p, text, scratch, o.W)
 		os.RemoveAll(scratch)
-		if err != nil {
+		switch {
+		case err == nil:
+			text = out
+		case o.KeepGoing:
+			fmt.Fprintf(o.W, "  REFUSED %-4d %v\n", p.N, err)
+			o.Refused = append(o.Refused, fmt.Sprintf("%d: %v", p.N, err))
+		default:
 			return nil, fmt.Errorf("phase %d (%s): %w", p.N, p.Name, err)
 		}
 		if p.Sweep {

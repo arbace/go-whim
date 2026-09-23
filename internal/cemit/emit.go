@@ -171,3 +171,21 @@ func includes(src []byte) ([]string, int) {
 	}
 	return out, at
 }
+
+// Canonical parses a translation unit and prints its canonical form.  The
+// front end needs a path because a diagnostic without one names nothing.
+func Canonical(path string, src []byte) ([]byte, error) {
+	cfg, err := cc.NewConfig("linux", "amd64")
+	if err != nil {
+		return nil, err
+	}
+	ast, err := cc.Translate(cfg, []cc.Source{
+		{Name: "<predefined>", Value: cfg.Predefined},
+		{Name: "<builtin>", Value: cc.Builtin},
+		{Name: path, Value: string(src)},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return File(ast, path, src)
+}
