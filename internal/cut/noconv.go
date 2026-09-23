@@ -161,7 +161,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 		if s, err = e.subOnce(s,
-			`^[ \t]*can_retry = \(\*fenc != NUL && !read_stdin && !read_fifo && !keep_dest_enc\);\n\n`,
+			`^[ \t]*can_retry = \(\*fenc != NUL && !read_stdin && !read_fifo && !keep_dest_enc\);\n`,
 			"readfile deciding it may retry"); err != nil {
 			return nil, err
 		}
@@ -468,7 +468,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 
 	if text, err = e.inFunction(text, "expand_argopt", func(s []byte) ([]byte, error) {
 		var err error
-		link := `^[ \t]*if \(name_end - xp->xp_line >= \d+ &&  strncmp\(\(char \*\)\(name_end - \d+\), \(char \*\)\("\w+"\), \(\d+\)\)  == 0\)$`
+		link := `^[ \t]*if \(name_end - xp->xp_line >= \d+ && strncmp\(\(char \*\)\(name_end - \d+\), \(char \*\)\("\w+"\), \(\d+\)\) == 0\)$`
 		for i := 0; i < 5; i++ {
 			if s, err = e.ncFold(s, link, "completion for an ++ argument value",
 				"never", 1); err != nil {
@@ -480,7 +480,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 		return e.dropIf(s,
-			`^[ \t]*if \(xp->xp_pattern_len == 2 &&  strncmp\(\(char \*\)\(xp->xp_pattern\), \(char \*\)\("ff"\), \(xp->xp_pattern_len\)\)  == 0\)$`,
+			`^[ \t]*if \(xp->xp_pattern_len == 2 && strncmp\(\(char \*\)\(xp->xp_pattern\), \(char \*\)\("ff"\), \(xp->xp_pattern_len\)\) == 0\)$`,
 			"completing ++ff to ++fileformat=")
 	}); err != nil {
 		return nil, err

@@ -36,16 +36,19 @@ var nofencEdits = []struct {
 	{"the BOM this build never has, in readfile's first-block test",
 		`(?m)!curbuf->b_p_bomb && tmpname == NULL`, "tmpname == NULL", 1},
 	{"save_file_ff remembering the BOM and the encoding",
-		`(?m)[ \t]*buf->b_start_bomb = buf->b_p_bomb;\n\n` +
-			`[ \t]*if \(buf->b_start_fenc == NULL \|\|  strcmp[^\n]*\n[ \t]*\{\n` +
+		`(?m)[ \t]*buf->b_start_bomb = buf->b_p_bomb;\n` +
+			`[ \t]*if \(buf->b_start_fenc == NULL \|\| strcmp[^\n]*\n` +
+			`[ \t]*\{\n` +
 			`[ \t]*vim_free\(buf->b_start_fenc\);\n` +
 			`[ \t]*buf->b_start_fenc = vim_strsave\(buf->b_p_fenc\);\n[ \t]*\}\n`, "", 1},
 	{"file_ff_differs comparing them",
 		`(?m)[ \t]*if \(!buf->b_p_bin && buf->b_start_bomb != buf->b_p_bomb\)\n` +
-			`[ \t]*\{\n[ \t]*return TRUE;\n[ \t]*\}\n` +
-			`[ \t]*if \(buf->b_start_fenc == NULL\)\n[ \t]*\{\n` +
-			`[ \t]*return \(\*buf->b_p_fenc != NUL\);\n[ \t]*\}\n` +
-			`[ \t]*return \( strcmp[^\n]*\n`, "    return FALSE;\n", 1},
+			`[ \t]*\{\n` +
+			`[ \t]*return TRUE;\n` +
+			`[ \t]*\}\n` +
+			`[ \t]*if \(buf->b_start_fenc == NULL\)\n` +
+			`[ \t]*\{\n` +
+			`[ \t]*return \(\*buf->b_p_fenc != NUL\);\n[ \t]*\}\n[ \t]*return \(strcmp[^\n]*\n`, "    return FALSE;\n", 1},
 	{"g8 converting to the buffer's 'fileencoding' to find an illegal byte",
 		`(?m)[ \t]*if \(enc_utf8 && \(enc_canon_props\(curbuf->b_p_fenc\) & ENC_8BIT\)\)\n` +
 			`[ \t]*\{\n[ \t]*convert_setup\(&vimconv, p_enc, curbuf->b_p_fenc\);\n[ \t]*\}\n`,
@@ -75,16 +78,19 @@ var nofencEdits = []struct {
 		`(?m)\n[ \t]*if \(set_options\)\n[ \t]*\{\n` +
 			`[ \t]*set_string_option_direct\(\(char_u \*\)"fenc",[^\n]*\n[ \t]*\}\n`, "\n", 1},
 	{"`:e ++enc=` forcing one",
-		`(?m)[ \t]*char_u \*fenc = enc_canonize\(eap->cmd \+ eap->force_enc\);\n\n` +
-			`[ \t]*if \(fenc != NULL\)\n[ \t]*\{\n` +
-			`[ \t]*set_string_option_direct\(\(char_u \*\)"fenc",[^\n]*\n[ \t]*\}\n` +
-			`[ \t]*vim_free\(fenc\);\n`, "", 1},
+		`(?m)[ \t]*char_u \*fenc = enc_canonize\(eap->cmd \+ eap->force_enc\);\n` +
+			`[ \t]*if \(fenc != NULL\)\n` +
+			`[ \t]*\{\n` +
+			`[ \t]*set_string_option_direct\(\(char_u \*\)"fenc",[^\n]*\n` +
+			`[ \t]*\}\n[ \t]*vim_free\(fenc\);\n`, "", 1},
 	{"reading one out of a recovered swap file's block zero",
-		`(?m)[ \t]*if \(b0p-> b0_fname\[B0_FNAME_SIZE_ORG - 2\]  & B0_HAS_FENC\)\n` +
-			`[ \t]*\{\n[ \t]*int fnsize = B0_FNAME_SIZE_NOCRYPT;\n\n` +
+		`(?m)[ \t]*if \(b0p->b0_fname\[B0_FNAME_SIZE_ORG - 2\] & B0_HAS_FENC\)\n` +
+			`[ \t]*\{\n` +
+			`[ \t]*int fnsize = B0_FNAME_SIZE_NOCRYPT;\n` +
 			`[ \t]*for \(p = b0p->b0_fname \+ fnsize; p > b0p->b0_fname && p\[-1\] != NUL; --p\)\n` +
-			`[ \t]*\{\n[ \t]*;\n[ \t]*\}\n` +
-			`[ \t]*b0_fenc = vim_strnsave\(p, b0p->b0_fname \+ fnsize - p\);\n[ \t]*\}\n\n?`,
+			`[ \t]*\{\n` +
+			`[ \t]*;\n` +
+			`[ \t]*\}\n[ \t]*b0_fenc = vim_strnsave\(p, b0p->b0_fname \+ fnsize - p\);\n[ \t]*\}\n?`,
 		"", 1},
 	{"the local it was read into", `(?m)^[ \t]*char_u[ \t]*\*b0_fenc = NULL;\n`, "", 1},
 	{"a recovered swap file restoring one",

@@ -13,7 +13,7 @@ import (
 // ke is a `case (-((KS_EXTRA) + ((int)(NAME) << 8))) :` label, as the macro
 // expander leaves it.
 func ke(name string) string {
-	return `[ \t]*case   \(-\(\(KS_EXTRA\) \+ \(\(int\)\(` + name + `\) << 8\)\)\)  :\n`
+	return `[ \t]*case \(-\(\(KS_EXTRA\) \+ \(\(int\)\(` + name + `\) << 8\)\)\):\n`
 }
 
 var insMouseKeys = []string{
@@ -115,7 +115,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	for _, c := range []struct{ pat, what string }{
 		{`[ \t]*\(void\)do_mouse\(cap->oap, cap->nchar, \(cap->cmdchar == '\]'\) \? FORWARD :  \(-1\) , cap->count1, PUT_FIXINDENT\);\n`,
 			"nv_brackets()'s ]<LeftMouse>"},
-		{`[ \t]*\(void\)do_mouse\(oap, cap->nchar,  \(-1\) , cap->count1, 0\);\n`,
+		{`[ \t]*\(void\)do_mouse\(oap, cap->nchar, \(-1\), cap->count1, 0\);\n`,
 			"nv_g_cmd()'s g<LeftMouse>"},
 	} {
 		if text, err = cutCounted(text, "(?m)"+c.pat, "nomouse", c.what, 1); err != nil {

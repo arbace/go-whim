@@ -316,7 +316,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 
 	text, err = e.inFunction(text, "alist_add_list", func(s []byte) ([]byte, error) {
 		s, err := e.subOnce(s,
-			`(?m)^[ \t]*int flags = BLN_LISTED \| \(will_edit \? BLN_CURBUF : 0\);\n\n`,
+			`(?m)^[ \t]*int flags = BLN_LISTED \| \(will_edit \? BLN_CURBUF : 0\);\n`,
 			"alist_add_list choosing buffer flags")
 		if err != nil {
 			return nil, err

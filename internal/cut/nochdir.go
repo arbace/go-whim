@@ -139,8 +139,8 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	for _, g := range []struct{ pat, what string }{
 		{`(?m)^[ \t]*aco->globaldir = globaldir;\n[ \t]*globaldir = NULL;\n`, "the save"},
 		{`(?m)^[ \t]*vim_free\(globaldir\);\n[ \t]*globaldir = aco->globaldir;\n`, "the restore"},
-		{`(?m)^[ \t]*char_u      \*globaldir;\n`, "the field"},
-		{`(?m)^static char_u   \*globaldir  = NULL ;\n`, "the global"},
+		{`(?m)^[ \t]*char_u \*globaldir;\n`, "the field"},
+		{`(?m)^static char_u \*globaldir = NULL;\n`, "the global"},
 	} {
 		if text, err = cutCounted(text, g.pat, "nochdir", "globaldir -- "+g.what, 1); err != nil {
 			return nil, err

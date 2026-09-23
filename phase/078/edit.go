@@ -178,7 +178,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("win_enter_ext", func(e *edit.E) {
 		e.Lines(`prevwin = curwin;`, 1, "remembering the previous window")
 	})
-	e.Lines(`static win_T[ \t]+\*prevwin  = NULL ;`, 1, "the window nothing looks back at")
+	e.Lines(`static win_T[ \t]+\*prevwin = NULL;`, 1, "the window nothing looks back at")
 	e.Lines(`int[ \t]+prechar;`, 1, "cmdarg_T.prechar")
 	return e.Done()
 }

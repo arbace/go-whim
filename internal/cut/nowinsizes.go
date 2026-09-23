@@ -21,7 +21,7 @@ var winsizeDefaults = []struct{ typ, name, value string }{
 
 // wfOpt is `-> w_onebuf_opt.wo_wfh ` / `...wfw `, the spelling the macro
 // expander leaves.
-func wfOpt(h string) string { return `-> w_onebuf_opt\.wo_wf` + h + ` ` }
+func wfOpt(h string) string { return `->w_onebuf_opt\.wo_wf` + h + ` ` }
 
 var woWf = regexp.MustCompile(`\bwo_wf[hw]\b`)
 
@@ -144,8 +144,8 @@ func NoWinSizes(text []byte, w io.Writer) ([]byte, error) {
 
 	for _, v := range []struct{ wv, fld string }{{"WFH", "wfh"}, {"WFW", "wfw"}} {
 		text, err = e.subOnce(text,
-			`^[ \t]*case   \(idopt_T\)\(PV_WIN \+ \(int\)\(WV_`+v.wv+`\)\)  :\n`+
-				`[ \t]*return \(char_u \*\)&\(curwin-> w_onebuf_opt\.wo_`+v.fld+` \);\n`,
+			`^[ \t]*case \(idopt_T\)\(PV_WIN \+ \(int\)\(WV_`+v.wv+`\)\):\n`+
+				`[ \t]*return \(char_u \*\)&\(curwin->w_onebuf_opt\.wo_`+v.fld+` \);\n`,
 			"get_varp for WV_"+v.wv)
 		if err != nil {
 			return nil, err

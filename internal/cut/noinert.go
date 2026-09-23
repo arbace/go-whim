@@ -27,7 +27,7 @@ func NoInert(text []byte, w io.Writer) ([]byte, error) {
 		e.say("the :browse modifier")
 		return e.subOnce(seg, `^[ \t]*case 'c':\n`+
 			`[ \t]*if \(!checkforcmd_opt\(&eap->cmd, "confirm", 4, TRUE\)\)\n`+
-			`[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n[ \t]*continue;\n\n`,
+			`[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n[ \t]*continue;\n`,
 			"the :confirm modifier")
 	})
 	if err != nil {
@@ -60,8 +60,8 @@ func NoInert(text []byte, w io.Writer) ([]byte, error) {
 				return nil, err
 			}
 		}
-		return e.subOnce(seg, `^[ \t]*case CMD_behave:\n[ \t]*xp->xp_context = EXPAND_BEHAVE;\n`+
-			`[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n\n`, "completion for :behave")
+		return e.subOnce(seg, `^[ \t]*case CMD_behave:\n`+
+			`[ \t]*xp->xp_context = EXPAND_BEHAVE;\n[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n`, "completion for :behave")
 	})
 	if err != nil {
 		return nil, err

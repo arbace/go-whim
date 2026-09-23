@@ -110,7 +110,7 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	if text, err = cutil.DropIf(text,
-		`(?m)^[ \t]*if \( \(char_u \*\)getenv\(\(char \*\)\(\(char_u \*\)"VIM_POSIX"\)\)  != NULL\)$`,
+		`(?m)^[ \t]*if \(\(char_u \*\)getenv\(\(char \*\)\(\(char_u \*\)"VIM_POSIX"\)\) != NULL\)$`,
 		1); err != nil {
 		return nil, err
 	}

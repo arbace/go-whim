@@ -60,7 +60,7 @@ import (
 // all.
 var (
 	mouseNameOneLine   = regexp.MustCompile(`(?m)^[ \t]*\{TRUE,[^\n]*\(char_u \*\)\("(\w*(?:Mouse|Drag|Release|Wheel)\w*)"\)[^\n]*\n`)
-	mouseNameThreeLine = regexp.MustCompile(`(?m)^[ \t]*\{\n[ \t]*FALSE,\n[ \t]*[^\n]*\(char_u \*\)\("(\w*Mouse\w*)"\)[^\n]*\n`)
+	mouseNameThreeLine = regexp.MustCompile(`(?m)^[ \t]*\{FALSE, [^\n]*\(char_u \*\)\("(\w*Mouse\w*)"\)[^\n]*\n`)
 )
 
 // writeOnlyStatics are file-scope variables that are written and never read,

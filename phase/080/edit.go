@@ -433,7 +433,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"*ea.arg != NUL && !((ea.argt", 1, "nor in the register argument test")
 	e.Term("(!((int)(ea.cmdidx) < 0) && ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput)",
 		"(ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput)", 1, "nor in which registers may be written")
-	e.FoldNever(`(?m)^[ \t]*if \( \(\(int\)\(eap->cmdidx\) < 0\) \)$`, "nor in a % range over windows")
+	e.FoldNever(`(?m)^[ \t]*if \(\(\(int\)\(eap->cmdidx\) < 0\)\)$`, "nor in a % range over windows")
 
 	e.Lines(`ni = \(! \(\(int\)\(ea\.cmdidx\) < 0\)  && \(cmdnames\[ea\.cmdidx\]\.cmd_func == ex_ni \|\| cmdnames\[ea\.cmdidx\]\.cmd_func == ex_script_ni\)\);`,
 		1, "the stub flag, which no row can raise")

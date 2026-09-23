@@ -53,11 +53,11 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 		var err error
 		for _, m := range []struct{ pat, repl, what string }{
 			{`^[ \t]*case 'a':\n[ \t]*if \(!checkforcmd_noparen\(&eap->cmd, "aboveleft", 3\)\)\n` + nwBreak +
-				`[ \t]*cmod->cmod_split \|= WSP_ABOVE;\n[ \t]*continue;\n\n`, "", ":aboveleft"},
+				`[ \t]*cmod->cmod_split \|= WSP_ABOVE;\n[ \t]*continue;\n`, "", ":aboveleft"},
 			{`^[ \t]*case 'b':\n[ \t]*if \(checkforcmd_noparen\(&eap->cmd, "belowright", 3\)\)\n` +
 				`[ \t]*\{\n[ \t]*cmod->cmod_split \|= WSP_BELOW;\n[ \t]*continue;\n[ \t]*\}\n` +
 				`[ \t]*if \(!checkforcmd_noparen\(&eap->cmd, "botright", 2\)\)\n` + nwBreak +
-				`[ \t]*cmod->cmod_split \|= WSP_BOT;\n[ \t]*continue;\n\n`, "",
+				`[ \t]*cmod->cmod_split \|= WSP_BOT;\n[ \t]*continue;\n`, "",
 				":belowright and :botright"},
 			{`^[ \t]*if \(checkforcmd_noparen\(&eap->cmd, "horizontal", 3\)\)\n` +
 				`[ \t]*\{\n[ \t]*cmod->cmod_split \|= WSP_HOR;\n[ \t]*continue;\n[ \t]*\}\n`, "",
@@ -67,7 +67,7 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 			{`^[ \t]*case 'r':\n[ \t]*if \(!checkforcmd_noparen\(&eap->cmd, "rightbelow", 6\)\)\n` + nwBreak +
 				`[ \t]*cmod->cmod_split \|= WSP_BELOW;\n[ \t]*continue;\n\n`, "", ":rightbelow"},
 			{`^[ \t]*case 't':\n[ \t]*if \(!checkforcmd_noparen\(&eap->cmd, "topleft", 2\)\)\n` + nwBreak +
-				`[ \t]*cmod->cmod_split \|= WSP_TOP;\n[ \t]*continue;\n\n`, "", ":topleft"},
+				`[ \t]*cmod->cmod_split \|= WSP_TOP;\n[ \t]*continue;\n`, "", ":topleft"},
 			{`^[ \t]*if \(checkforcmd_noparen\(&eap->cmd, "vertical", 4\)\)\n` +
 				`[ \t]*\{\n[ \t]*cmod->cmod_split \|= WSP_VERT;\n[ \t]*continue;\n[ \t]*\}\n`, "",
 				":vertical"},
@@ -122,8 +122,8 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 		for _, f := range []struct{ pat, what string }{
 			{`^[ \t]*if \(c == Ctrl_C && cmdwin_type != 0\)$`, "insert-mode CTRL-C closing it"},
 			{cmdwinPlain, "insert-mode Enter executing it"},
-			{`^[ \t]*if \(curwin-> w_onebuf_opt\.wo_scb \)$`, "insert mode's 'scrollbind'"},
-			{`^[ \t]*if \(curwin-> w_onebuf_opt\.wo_crb \)$`, "insert mode's 'cursorbind'"},
+			{`^[ \t]*if \(curwin->w_onebuf_opt\.wo_scb\)$`, "insert mode's 'scrollbind'"},
+			{`^[ \t]*if \(curwin->w_onebuf_opt\.wo_crb\)$`, "insert mode's 'cursorbind'"},
 		} {
 			if s, err = e.foldNever(s, f.pat, f.what); err != nil {
 				return nil, err
@@ -277,7 +277,7 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	if text, err = e.subCount(text,
-		`^[ \t]*\((?:curwin|wp)\)-> w_onebuf_opt\.wo_(?:scb|crb)  = FALSE;\n`,
+		`^[ \t]*\((?:curwin|wp)\)->w_onebuf_opt\.wo_(?:scb|crb) = FALSE;\n`,
 		"every assignment of 'scrollbind' and 'cursorbind'", 18); err != nil {
 		return nil, err
 	}
@@ -285,8 +285,8 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 		{"SCBIND", "scb"}, {"CRBIND", "crb"}, {"WFB", "wfb"},
 	} {
 		if text, err = e.subOnce(text,
-			`^[ \t]*case   \(idopt_T\)\(PV_WIN \+ \(int\)\(WV_`+v.wv+`\)\)  :\n`+
-				`[ \t]*return \(char_u \*\)&\(curwin-> w_onebuf_opt\.wo_`+v.fld+` \);\n`,
+			`^[ \t]*case \(idopt_T\)\(PV_WIN \+ \(int\)\(WV_`+v.wv+`\)\):\n`+
+				`[ \t]*return \(char_u \*\)&\(curwin->w_onebuf_opt\.wo_`+v.fld+` \);\n`,
 			"get_varp for WV_"+v.wv); err != nil {
 			return nil, err
 		}
@@ -302,23 +302,23 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if text, err = e.inFunction(text, "normal_cmd", func(s []byte) ([]byte, error) {
-		s, err := e.foldNever(s, `^[ \t]*if \(curwin-> w_onebuf_opt\.wo_scb  && toplevel\)$`,
+		s, err := e.foldNever(s, `^[ \t]*if \(curwin->w_onebuf_opt\.wo_scb && toplevel\)$`,
 			"normal mode's 'scrollbind'")
 		if err != nil {
 			return nil, err
 		}
-		return e.foldNever(s, `^[ \t]*if \(curwin-> w_onebuf_opt\.wo_crb  && toplevel\)$`,
+		return e.foldNever(s, `^[ \t]*if \(curwin->w_onebuf_opt\.wo_crb && toplevel\)$`,
 			"normal mode's 'cursorbind'")
 	}); err != nil {
 		return nil, err
 	}
 	if text, err = e.inFunction(text, "ex_substitute", func(s []byte) ([]byte, error) {
-		return e.foldNever(s, `^[ \t]*if \(curwin-> w_onebuf_opt\.wo_crb \)$`, ":s's 'cursorbind'")
+		return e.foldNever(s, `^[ \t]*if \(curwin->w_onebuf_opt\.wo_crb\)$`, ":s's 'cursorbind'")
 	}); err != nil {
 		return nil, err
 	}
 	if text, err = e.inFunction(text, "set_shellsize_inner", func(s []byte) ([]byte, error) {
-		return e.foldNever(s, `^[ \t]*if \(curwin-> w_onebuf_opt\.wo_scb \)$`,
+		return e.foldNever(s, `^[ \t]*if \(curwin->w_onebuf_opt\.wo_scb\)$`,
 			"a resize's 'scrollbind'")
 	}); err != nil {
 		return nil, err

@@ -53,7 +53,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.FoldNeverIn2("getmark_buf_fnum", `(?m)^[ \t]*else if `+markArm, "reading an uppercase or numbered mark", 1)
 	e.DropIfIn("setmark_pos", `(?m)^[ \t]*if `+markArm, "setting an uppercase or numbered mark", 1)
 	e.Body("clrallmarks", w74lit2, "clrallmarks initialising the file marks once")
-	e.DropBlocks("ex_marks", `(?m)^[ \t]*for \(i = 0; i <  \('z' - 'a' \+ 1\)  \+ EXTRA_MARKS; \+\+i\)$`, 1,
+	e.DropBlocks("ex_marks", `(?m)^[ \t]*for \(i = 0; i < \('z' - 'a' \+ 1\) \+ EXTRA_MARKS; \+\+i\)$`, 1,
 		":marks listing the file marks")
 	e.Body("ex_delmarks", w74lit3, ":delmarks clearing an uppercase or numbered mark")
 	for _, fn := range []string{"mark_adjust_internal", "mark_col_adjust"} {

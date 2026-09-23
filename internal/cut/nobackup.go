@@ -199,7 +199,7 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 		"nobackup", "the three ACL declarations", 1); err != nil {
 		return nil, err
 	}
-	if text, err = cutCounted(text, `(?m)^typedef void        \*vim_acl_T;\n`,
+	if text, err = cutCounted(text, `(?m)^typedef void \*vim_acl_T;\n`,
 		"nobackup", "the vim_acl_T type", 1); err != nil {
 		return nil, err
 	}
@@ -259,11 +259,11 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nobackup     the two `is this option a directory?` tests")
 
 	for _, c := range []struct{ pat, what string }{
-		{`(?m)^[ \t]*char_u          \*backup = NULL;\n`, "backup"},
-		{`(?m)^[ \t]*int             backup_copy = FALSE;\n`, "backup_copy"},
-		{`(?m)^[ \t]*int             dobackup;\n`, "dobackup"},
-		{`(?m)^[ \t]*char_u          \*backup_ext;\n`, "backup_ext"},
-		{`(?m)^[ \t]*unsigned int    bkc = get_bkc_flags\(buf\);\n`, "bkc"},
+		{`(?m)^[ \t]*char_u \*backup = NULL;\n`, "backup"},
+		{`(?m)^[ \t]*int backup_copy = FALSE;\n`, "backup_copy"},
+		{`(?m)^[ \t]*int dobackup;\n`, "dobackup"},
+		{`(?m)^[ \t]*char_u \*backup_ext;\n`, "backup_ext"},
+		{`(?m)^[ \t]*unsigned int bkc = get_bkc_flags\(buf\);\n`, "bkc"},
 		{`(?m)^[ \t]*dobackup = \(p_wb \|\| p_bk \|\| \*p_pm != NUL\);\n`, "its one assignment"},
 		{`(?m)^[ \t]*vim_free\(backup\);\n`, "the free of backup"},
 	} {

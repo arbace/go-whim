@@ -173,6 +173,14 @@ func (e *emitter) enum(n *cc.EnumSpecifier) string {
 		return join("enum"+under, tok(n.Token2))
 	case cc.EnumSpecifierDef:
 		head := join("enum"+under, tok(n.Token2))
+		// ONE ENUMERATOR IS ONE LINE.  `enum { EXTRA_MARKS = 10 };` is how this
+		// tree spells a constant -- arbace/slim-vim writes every `#define` of a
+		// number that way, 1,448 of them -- and the pipeline reads, rewrites and
+		// WRITES that line: `enum { %s = %d };` is emitted by two phases and
+		// matched by six checks.  A constant is a line here, as a table's row is.
+		if l := n.EnumeratorList; l != nil && l.EnumeratorList == nil {
+			return head + " { " + e.enumerator(l.Enumerator) + " }"
+		}
 		var b strings.Builder
 		b.WriteString(head + "\n" + e.pad() + "{\n")
 		e.indent++

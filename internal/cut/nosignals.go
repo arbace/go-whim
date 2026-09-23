@@ -39,7 +39,7 @@ var nosignalsCuts = []struct {
 	{`(?m)^[ \t]*init_signal_stack\(\);\n`, "its install", 1},
 	{`(?m)^static char \*signal_stack;\n`, "signal_stack", 1},
 	{`(?m)^static stack_t sigstk;\n`, "sigstk", 1},
-	{`(?m)^static volatile sig_atomic_t got_sigusr1  = FALSE ;\n`, "got_sigusr1", 1},
+	{`(?m)^static volatile sig_atomic_t got_sigusr1 = FALSE;\n`, "got_sigusr1", 1},
 }
 
 // cookTerminal is what prepare_to_exit's settmode line becomes.

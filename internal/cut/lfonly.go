@@ -134,7 +134,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 		// The Python spells that as a LOOKAHEAD; RE2 has none, and inlining it
 		// is exact here because Guarded uses only the match's START.
 		if s, err = e.foldNever(s,
-			`^[ \t]*if \(fileformat ==  \(-1\) \)\n[ \t]*\{\n[ \t]*if \(try_dos \|\| try_unix\)$`,
+			`^[ \t]*if \(fileformat == \(-1\)\)\n[ \t]*\{\n[ \t]*if \(try_dos \|\| try_unix\)$`,
 			"readfile detecting DOS and Mac line ends"); err != nil {
 			return nil, err
 		}
@@ -175,9 +175,10 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 	text, err = e.inFunction(text, "buf_write", func(s []byte) ([]byte, error) {
 		var err error
 		if s, err = e.subOnce(s,
-			`^[ \t]*if \(eap != NULL && eap->force_bin != 0\)\n[ \t]*\{\n`+
+			`^[ \t]*if \(eap != NULL && eap->force_bin != 0\)\n`+
+				`[ \t]*\{\n`+
 				`[ \t]*write_bin = \(eap->force_bin == FORCE_BIN\);\n`+
-				`[ \t]*\}\n[ \t]*else\n[ \t]*\{\n[ \t]*write_bin = buf->b_p_bin;\n[ \t]*\}\n\n`,
+				`[ \t]*\}\n[ \t]*else\n[ \t]*\{\n[ \t]*write_bin = buf->b_p_bin;\n[ \t]*\}\n`,
 			"buf_write choosing 'binary' or ++bin"); err != nil {
 			return nil, err
 		}
@@ -260,7 +261,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 	}
 	if text, err = e.inFunction(text, "get_varp", func(s []byte) ([]byte, error) {
 		return e.subCount(s,
-			`^[ \t]*case   \(idopt_T\)\(PV_BUF \+ \(int\)\(BV_EO[LF]\)\)  :\n`+
+			`^[ \t]*case \(idopt_T\)\(PV_BUF \+ \(int\)\(BV_EO[LF]\)\):\n`+
 				`[ \t]*return \(char_u \*\)&\(curbuf->b_p_eo[lf]\);\n`,
 			"get_varp handing out 'endofline' and 'endoffile'", 2)
 	}); err != nil {
@@ -354,7 +355,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 	}
 	if text, err = e.inFunction(text, "set_init_3", func(s []byte) ([]byte, error) {
 		return e.dropIf(s,
-			`^[ \t]*if \( \(curbuf->b_ml\.ml_line_count == 1 && \*ml_get\(\(linenr_T\)1\) == NUL\) \)$`,
+			`^[ \t]*if \(\(curbuf->b_ml\.ml_line_count == 1 && \*ml_get\(\(linenr_T\)1\) == NUL\)\)$`,
 			"startup applying 'fileformats' to an empty buffer")
 	}); err != nil {
 		return nil, err
@@ -363,12 +364,12 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = e.inFunction(text, "getargopt", func(s []byte) ([]byte, error) {
 		var err error
 		if s, err = e.dropIf(s,
-			`^[ \t]*if \( strncmp\(\(char \*\)\(arg\), \(char \*\)\("bin"\), \(3\)\)  == 0 \|\|  strncmp\(\(char \*\)\(arg\), \(char \*\)\("nobin"\), \(5\)\)  == 0\)$`,
+			`^[ \t]*if \(strncmp\(\(char \*\)\(arg\), \(char \*\)\("bin"\), \(3\)\) == 0 \|\| strncmp\(\(char \*\)\(arg\), \(char \*\)\("nobin"\), \(5\)\) == 0\)$`,
 			"++bin and ++nobin"); err != nil {
 			return nil, err
 		}
 		for _, f := range []struct{ pat, what string }{
-			{`^[ \t]*if \( strncmp\(\(char \*\)\(arg\), \(char \*\)\("ff"\), \(2\)\)  == 0\)$`, "++ff"},
+			{`^[ \t]*if \(strncmp\(\(char \*\)\(arg\), \(char \*\)\("ff"\), \(2\)\) == 0\)$`, "++ff"},
 			{`^[ \t]*if \( strncmp\(\(char \*\)\(arg\), \(char \*\)\("fileformat"\), \(10\)\)  == 0\)$`,
 				"++fileformat"},
 			{`^[ \t]*if \(pp == &eap->force_ff\)$`, "++ff checking its value"},

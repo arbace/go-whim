@@ -49,9 +49,8 @@ var atStartEdits = []struct{ pat, what string }{
 	// stays -- callers pass it and -Wno-unused-parameter means gcc will not
 	// say so -- but the length it was measured for is gone.
 	{`(?m)^[ \t]*int[ \t]*startstr_len = 0;\n`, "startstr_len's declaration"},
-	{`(?m)^[ \t]*if \(startstr != NULL\)\n[ \t]*\{\n` +
-		`[ \t]*startstr_len = \(int\) strlen\(\(char \*\)\(startstr\)\) ;\n` +
-		`[ \t]*\}\n\n?`, "startstr_len's one assignment"},
+	{`(?m)^[ \t]*if \(startstr != NULL\)\n` +
+		`[ \t]*\{\n[ \t]*startstr_len = \(int\)strlen\(\(char \*\)\(startstr\)\);\n[ \t]*\}\n\n?`, "startstr_len's one assignment"},
 }
 
 var (

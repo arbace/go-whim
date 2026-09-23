@@ -90,7 +90,7 @@ func NoUcmd(text []byte, w io.Writer) ([]byte, error) {
 		"noucmd", "the buffer's table", 1); err != nil {
 		return nil, err
 	}
-	if text, err = cutCounted(text, `(?m)^[ \t]*garray_T    b_ucmds;\n`,
+	if text, err = cutCounted(text, `(?m)^[ \t]*garray_T b_ucmds;\n`,
 		"noucmd", "the b_ucmds field", 1); err != nil {
 		return nil, err
 	}

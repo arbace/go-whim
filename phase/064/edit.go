@@ -89,7 +89,7 @@ var openLineDecls = []struct{ pattern, What string }{
 var internalFormatDecls = []struct{ pattern, What string }{
 	{`int[ \t]+fo_ins_blank = has_format_option\(FO_INS_BLANK\);`, "internal_format: int fo_ins_blank = has_format_option (FO_INS_BLANK );"},
 	{`int[ \t]+fo_multibyte = has_format_option\(FO_MBYTE_BREAK\);`, "internal_format: int fo_multibyte = has_format_option (FO_MBYTE_BREAK );"},
-	{`int[ \t]+fo_rigor_tw  = has_format_option\(FO_RIGOROUS_TW\);`, "internal_format: int fo_rigor_tw = has_format_option (FO_RIGOROUS_TW );"},
+	{`int[ \t]+fo_rigor_tw = has_format_option\(FO_RIGOROUS_TW\);`, "internal_format: int fo_rigor_tw = has_format_option (FO_RIGOROUS_TW );"},
 	{`int[ \t]+fo_white_par = has_format_option\(FO_WHITE_PAR\);`, "internal_format: int fo_white_par = has_format_option (FO_WHITE_PAR );"},
 	{`colnr_T[ \t]+leader_len;`, "internal_format: colnr_T leader_len;"},
 	{`int[ \t]+no_leader = FALSE;`, "internal_format: int no_leader = FALSE;"},
@@ -162,7 +162,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"the second-line indent no longer for a comment list")
 		e.Lines(`vim_free\(allocated\);`, 1, "freeing the leader")
 		// extra_len sized the leader's allocation and nothing else
-		e.Lines(`extra_len = \(int\) strlen\(\(char \*\)\(p_extra\)\) ;`, 1,
+		e.Lines(`extra_len = \(int\)strlen\(\(char \*\)\(p_extra\)\);`, 1,
 			"measuring the text after the cursor for the leader")
 		for _, d := range openLineDecls {
 			e.Lines(d.pattern, 1, d.What)
@@ -215,7 +215,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// J: 'j', 'M' and 'B' off
 	e.InFunction("do_join", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*int[ \t]+remove_comments = \(use_formatoptions == TRUE\)\n[ \t]*&& has_format_option\(FO_REMOVE_COMS\);\n`, 1,
+		e.Cut(`(?m)^[ \t]*int[ \t]+remove_comments = \(use_formatoptions == TRUE\) && has_format_option\(FO_REMOVE_COMS\);\n`, 1,
 			"J asking for 'j'")
 		e.Lines(`int[ \t]+\*comments = NULL;`, 1, "J declaring the leader offsets")
 		e.Lines(`int[ \t]+prev_was_comment;`, 1, "J declaring prev_was_comment")

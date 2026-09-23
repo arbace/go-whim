@@ -29,7 +29,8 @@ import (
 // every key past the hole resolving to another key's row.
 var bangRow = regexp.MustCompile(`(?m)^([ \t]*\{'!', )nv_operator(, 0, 0\} ,)$`)
 
-var retabCompletion = regexp.MustCompile(`(?m)^[ \t]*case CMD_retab:\n[ \t]*xp->xp_context = EXPAND_RETAB;\n[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n\n`)
+var retabCompletion = regexp.MustCompile(`(?m)^[ \t]*case CMD_retab:\n` +
+	`[ \t]*xp->xp_context = EXPAND_RETAB;\n[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n`)
 
 // Whim44 takes the filter operator and :retab's completion.
 func Edit(text []byte, w io.Writer) ([]byte, error) {

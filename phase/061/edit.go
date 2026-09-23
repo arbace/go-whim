@@ -23,7 +23,7 @@ var (
 	// titleWanted is the flag a change sets to ask for a title update.
 	titleWanted = `(?m)^[ \t]*if \(need_maketitle\)$`
 	// restoreTitle is the call that puts the terminal's title back.
-	restoreTitle = `(?m)^[ \t]*mch_restore_title\( \(SAVE_RESTORE_TITLE \| SAVE_RESTORE_ICON\) \);\n`
+	restoreTitle = `(?m)^[ \t]*mch_restore_title\(\(SAVE_RESTORE_TITLE \| SAVE_RESTORE_ICON\)\);\n`
 )
 
 // Whim61 takes the window title: the flag, the eleven callers that set or
@@ -64,11 +64,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	e.InFunction("mch_exit", func(e *edit.E) {
 		e.Cut(restoreTitle, 1, "exit restoring the title")
-		e.Cut(`(?m)^[ \t]*term_pop_title\( \(SAVE_RESTORE_TITLE \| SAVE_RESTORE_ICON\) \);\n`, 1,
+		e.Cut(`(?m)^[ \t]*term_pop_title\(\(SAVE_RESTORE_TITLE \| SAVE_RESTORE_ICON\)\);\n`, 1,
 			"exit popping the terminal's title stack")
 	})
 	e.InFunction("vim_main2", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*term_push_title\( \(SAVE_RESTORE_TITLE \| SAVE_RESTORE_ICON\) \);\n`, 1,
+		e.Cut(`(?m)^[ \t]*term_push_title\(\(SAVE_RESTORE_TITLE \| SAVE_RESTORE_ICON\)\);\n`, 1,
 			"startup pushing the terminal's title stack")
 	})
 	e.InFunction("clear_termoptions", func(e *edit.E) {

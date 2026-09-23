@@ -833,7 +833,7 @@ func (e *E) Term(frag, repl string, n int, what string) { e.LiteralN(frag, repl,
 
 // From phase 075.
 var (
-	AutopatDecl  = regexp.MustCompile(`(?m)^static AutoPat \*first_autopat\[NUM_EVENTS\] = \{ NULL \};$`)
+	AutopatDecl  = regexp.MustCompile(`(?m)^static AutoPat \*first_autopat\[NUM_EVENTS\] = \{NULL\};$`)
 	BareDispatch = regexp.MustCompile(`(?m)^[ \t]*(?:\(void\))?apply_autocmds\w*\([^\n]*\);[ \t]*\n`)
 	CmdTrigger   = regexp.MustCompile(`(?m)^[ \t]*trigger_cmd_autocmd\([^\n]*\);[ \t]*\n`)
 	BareDeclOnly = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*[ \t]+\*?[A-Za-z_][A-Za-z0-9_]*;$`)

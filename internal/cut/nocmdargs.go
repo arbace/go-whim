@@ -30,9 +30,10 @@ func pyList(items []string) string {
 var (
 	cCaseArm = regexp.MustCompile(`(?sm)^[ \t]*case 'c':\n[ \t]*if \(argv\[0\]\[argv_idx\] != NUL\)\n` +
 		`.*?^[ \t]*__attribute__\(\(fallthrough\)\);\n([ \t]*case 'T':\n)`)
-	mCaseArm = regexp.MustCompile(`(?m)^[ \t]*case 'M':\n[ \t]*reset_modifiable\(\);\n\n` +
+	mCaseArm = regexp.MustCompile(`(?m)^[ \t]*case 'M':\n` +
+		`[ \t]*reset_modifiable\(\);\n` +
 		`[ \t]*__attribute__\(\(fallthrough\)\);\n` +
-		`[ \t]*case 'm':\n[ \t]*p_write = FALSE;\n[ \t]*break;\n\n`)
+		`[ \t]*case 'm':\n[ \t]*p_write = FALSE;\n[ \t]*break;\n`)
 	preCommands = regexp.MustCompile(`(?m)^[ \t]*exe_pre_commands\(&params\);\n`)
 	leftCase    = regexp.MustCompile(`(?m)^[ \t]*case '[cRmMw]':$`)
 	leftCmd     = regexp.MustCompile(`\("cmd"\)`)
