@@ -154,14 +154,59 @@ func (e *emitter) selection(n *cc.SelectionStatement) {
 	case cc.SelectionStatementIfElse:
 		e.line("if (" + e.expr(n.ExpressionList) + ")")
 		e.block(n.Statement)
-		e.line("else")
-		e.block(n.Statement2)
+		e.otherwise(n.Statement2)
 	case cc.SelectionStatementSwitch:
 		e.line("switch (" + e.expr(n.ExpressionList) + ")")
 		e.block(n.Statement)
 	default:
 		e.fail(n, "selection statement %v", n.Case)
 	}
+}
+
+// clause is one of a for-statement's clauses after the first: a space and the
+// clause, or nothing at all when there is no clause.
+func clause(s string) string {
+	if s == "" {
+		return ""
+	}
+	return " " + s
+}
+
+// otherwise writes an `else`.  A CHAIN STAYS A CHAIN: when the else's own
+// statement IS an `if` -- not a block holding one -- it is written `else if`
+// on the `else`'s line, which is how C spells a ladder and what every reader
+// of one looks for (`^[ \t]*else if \(...\)$`).  Bracing it instead would
+// nest the twenty links of main()'s long-option ladder twenty levels deep and
+// leave no `else if` in the file at all.
+func (e *emitter) otherwise(n *cc.Statement) {
+	if s := chained(n); s != nil {
+		switch s.Case {
+		case cc.SelectionStatementIf:
+			e.line("else if (" + e.expr(s.ExpressionList) + ")")
+			e.block(s.Statement)
+			return
+		case cc.SelectionStatementIfElse:
+			e.line("else if (" + e.expr(s.ExpressionList) + ")")
+			e.block(s.Statement)
+			e.otherwise(s.Statement2)
+			return
+		}
+	}
+	e.line("else")
+	e.block(n)
+}
+
+// chained returns the `if` an else branch is, or nil when the branch is
+// anything else -- a block, a statement, or a `switch`.
+func chained(n *cc.Statement) *cc.SelectionStatement {
+	if n == nil || n.Case != cc.StatementSelection || n.SelectionStatement == nil {
+		return nil
+	}
+	s := n.SelectionStatement
+	if s.Case == cc.SelectionStatementIf || s.Case == cc.SelectionStatementIfElse {
+		return s
+	}
+	return nil
 }
 
 func (e *emitter) iteration(n *cc.IterationStatement) {
@@ -174,8 +219,10 @@ func (e *emitter) iteration(n *cc.IterationStatement) {
 		e.block(n.Statement)
 		e.line("while (" + e.expr(n.ExpressionList) + ");")
 	case cc.IterationStatementFor:
-		e.line("for (" + e.expr(n.ExpressionList) + "; " + e.expr(n.ExpressionList2) +
-			"; " + e.expr(n.ExpressionList3) + ")")
+		// A CLAUSE THAT IS NOT THERE TAKES NO SPACE: `for (;;)`, which the
+		// input says 135 times, and not `for (; ; )`.
+		e.line("for (" + e.expr(n.ExpressionList) + ";" + clause(e.expr(n.ExpressionList2)) +
+			";" + clause(e.expr(n.ExpressionList3)) + ")")
 		e.block(n.Statement)
 	case cc.IterationStatementForDecl:
 		// A for-declaration of more than one declarator is the one place the
@@ -188,7 +235,8 @@ func (e *emitter) iteration(n *cc.IterationStatement) {
 		if len(d) > 1 {
 			decl = strings.TrimSpace(cc.NodeSource(n.Declaration))
 		}
-		e.line("for (" + decl + " " + e.expr(n.ExpressionList) + "; " + e.expr(n.ExpressionList2) + ")")
+		e.line("for (" + decl + clause(e.expr(n.ExpressionList)) + ";" +
+			clause(e.expr(n.ExpressionList2)) + ")")
 		e.block(n.Statement)
 	default:
 		e.fail(n, "iteration statement %v", n.Case)

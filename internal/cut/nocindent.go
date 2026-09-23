@@ -10,14 +10,14 @@ import (
 )
 
 const (
-	eqCArm = `                            if (cindent_on())
-                            {
-                                indent = get_c_indent();
-                            }
-                            else
-                            {
-                                indent = get_indent();
-                            }
+	eqCArm = `                        if (cindent_on())
+                        {
+                            indent = get_c_indent();
+                        }
+                        else
+                        {
+                            indent = get_indent();
+                        }
 `
 	eqCNew      = "                        indent = get_indent();\n"
 	preprocsOld = " (curbuf->b_p_si && !curbuf->b_p_cin) || " +

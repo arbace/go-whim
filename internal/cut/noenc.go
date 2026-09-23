@@ -11,7 +11,7 @@ import (
 
 // The dispatch in mb_init(): everything from the first `else if` that sniffs a
 // prefix down to the enc_latin1like line, replaced by the one case left.
-const oldDispatchStart = `    else if ( strncmp((char *)(p_enc), (char *)("8bit-"), (5))  == 0`
+const oldDispatchStart = `    else if (strncmp((char *)(p_enc), (char *)("8bit-"), (5)) == 0`
 
 const newDispatch = `    if ( strcmp((char *)(p_enc), (char *)("utf-8"))  != 0)
     {

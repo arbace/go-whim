@@ -163,7 +163,7 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nomemfile    mf_get stops trying to read a block back")
 
 	blanked = cutil.Blank(text)
-	k = bytes.Index(text, []byte("    for (; ; )\n    {\n        if ((p = malloc(size)) != NULL)"))
+	k = bytes.Index(text, []byte("    for (;;)\n    {\n        if ((p = malloc(size)) != NULL)"))
 	if k < 0 {
 		return nil, fmt.Errorf("nomemfile: lalloc's retry loop is not where this expects")
 	}

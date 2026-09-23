@@ -245,7 +245,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal("if (!(flags & INSCHAR_FORMAT) && leader_len == 0 && !has_format_option(FO_WRAP))",
 			"if (!(flags & INSCHAR_FORMAT) && p_paste)", "wrapping only with 't', which 'paste' turns off")
 		e.Literal("while ((!fo_ins_blank && !has_format_option(FO_INS_VI)) || (flags & INSCHAR_FORMAT) || curwin->w_cursor.lnum != Insstart.lnum || curwin->w_cursor.col >= Insstart.col)",
-			"for (; ; )", "breaking only at blanks typed in this Insert ('v', 'b')")
+			"for (;;)", "breaking only at blanks typed in this Insert ('v', 'b')")
 		e.DropIf(`(?m)^[ \t]*if \(wcc < 2\)$`, "counting the blanks before a break")
 		e.DropIf(`(?m)^[ \t]*if \(has_format_option\(FO_PERIOD_ABBR\) && cc == '\.' && wcc < 2\)$`, "not breaking after a period ('p')")
 		e.FoldNever(`(?m)^[ \t]*else if \(\(cc >= 0x100 \|\| !utf_allow_break_before\(cc\)\) && fo_multibyte\)$`,

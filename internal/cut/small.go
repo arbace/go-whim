@@ -151,12 +151,12 @@ func NoWild(text []byte, w io.Writer) ([]byte, error) {
 	return text, nil
 }
 
-const equiOld = `                                c_class = get_equi_class(&regparse);
-                                if (c_class != 0)
-                                {
-                                    reg_equi_class(c_class);
-                                }
-                                else if ((c_class = get_coll_element(&regparse)) != 0)
+const equiOld = `                            c_class = get_equi_class(&regparse);
+                            if (c_class != 0)
+                            {
+                                reg_equi_class(c_class);
+                            }
+                            else if ((c_class = get_coll_element(&regparse)) != 0)
 `
 
 const equiNew = `                                if ((c_class = get_coll_element(&regparse)) != 0)
