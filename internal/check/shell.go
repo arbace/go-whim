@@ -15,7 +15,9 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-// The whim checks that were plain shell, and what they need to stay that.
+// The shell a whim check runs in: one check's work tree and state, and the
+// primitives -- grep, od, cat, cut and a headless vim -- its transcription
+// needs.
 //
 // Each check is a line-for-line transcription of its phase/NNN/check.sh:
 // the same assertions in the same order, the same text on the same line, the
