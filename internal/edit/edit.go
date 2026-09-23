@@ -90,6 +90,21 @@ func Once(text []byte, old, new string, what string) ([]byte, error) {
 	return replaceBytes(text, old, new), nil
 }
 
+// countBytes and replaceBytes are how every literal anchor in the pipeline is
+// matched: e.Literal, e.LiteralN and Once all come through here.  THE MATCH IS
+// EXACT, and the alternative was measured rather than argued about.
+//
+// internal/cutil.Normalize matches modulo whitespace, which is what an anchor
+// written against macro-expansion residue -- `( strcmp(...)  == 0)` -- needs if
+// the text is ever printed canonically.  Routed through here it did two things:
+// it moved the canonical build's refusals from 148 of 163 phases to 147, and it
+// changed the committed product in at least two places, because a widened match
+// picks a DIFFERENT site where two differ only in spacing.  `&p_rtp )` was one;
+// phase 71's wiped-fnum branch was another.
+//
+// So the machinery stays (internal/cutil/norm.go, with its own account) and the
+// pipeline does not use it: the anchors are exact, and what a canonical text
+// would cost is known.
 func countBytes(text []byte, s string) int {
 	n, b := 0, []byte(s)
 	for i := 0; i+len(b) <= len(text); {

@@ -28,7 +28,7 @@ package p055
 // three of them are now unknown.
 // No sweep here.  One stood here, and the lines after it were written for swept text,
 // but this phase and every stage it has run in reproduce their boundaries without
-// it (GOALS.md, *The inner sweeps*; phase/stages) -- the stage's one sweep does its work.
+// it (GOALS.md, *The inner sweeps*; phase/STAGES.md) -- the stage's one sweep does its work.
 
 import (
 	"fmt"

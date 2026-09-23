@@ -150,7 +150,7 @@ the text its edit was handed, the stage's symbol snapshot, and whatever file the
 edit names for it. Only a stage's end is a boundary.
 
 The schedule — 0 | 1-12 | 13-41 | 42-63 | 64-65 | 66-71 | 72 | 73-77 | 78 | 79 |
-80 | 81 | 82 — is in `internal/build/plan.go`, and `phase/stages` keeps the two
+80 | 81 | 82 — is in `internal/build/plan.go`, and `phase/STAGES.md` keeps the two
 kinds of fact that decided it, both measured:
 
 - **what an edit needs of its input** (`need P swept|silent|swept-inner:K`). **A
@@ -193,7 +193,7 @@ parts. A phase is a directory, `phase/NNN/`, its number in three digits.
    compile (`need N silent`). It must not share a stage with an earlier phase whose
    check it breaks (declare `apart P N`) — run the earlier checks on its result to
    find out.
-   Then record it in `phase/stages`: the `package` line of its concept (or a new
+   Then record it in `phase/STAGES.md`: the `package` line of its concept (or a new
    one), and a `uses` line for each phase of another package it relies on. Nothing
    runs that file; it is where these facts are kept.
 4. `make whim-build-check` says whether the product moved as the phase intends,
@@ -304,7 +304,7 @@ line of it points down into one of them.
 
 **A package is a view, and nothing runs it.** No phase moved and no schedule
 moved: a package's phases are spread across stages. The data is two more kinds of
-line in `phase/stages` — `package NAME P...`, and `uses A:P B:Q KIND why` for a
+line in `phase/STAGES.md` — `package NAME P...`, and `uses A:P B:Q KIND why` for a
 phase that relies on a phase of another package having run. They were checked by
 a tool of their own while one existed: no phase in no package or in two, no
 unknown phase or package, no `uses` inside one package and none whose dependency
@@ -997,7 +997,7 @@ that shrinking `PTR_EN` would silently take the root split out of the corpus, in
 Phases 129 to 162 then remove from the core what translating it to Go had to work
 around, `tx/FINDINGS.md` mapping each finding to its phase. Phases are added one at a
 time, each on the user's own request, and each is written into its own `phase/NNN/`
-and into `phase/stages` when it is added — never in advance.
+and into `phase/STAGES.md` when it is added — never in advance.
 
 ## The core's charter
 
@@ -1156,7 +1156,7 @@ Cited as *core rule N*; Part I's rules still hold.
    own tree.
 6. **Stages and packages are declared.** `internal/build/plan.go` holds what runs
    — the phase list, each phase's stage and where the sweeps fall — and
-   `phase/stages` keeps what measured it: `need`, `apart`, and the concept view
+   `phase/STAGES.md` keeps what measured it: `need`, `apart`, and the concept view
    (`package`, `uses`). What checks the schedule now is the product:
    `make whim-build-check`.
 7. **The product carries no comments.** Phase 82 removed the last, and no phase from 83
@@ -1698,7 +1698,7 @@ differences**: an AddressSanitizer driver built at run time from both sources, w
 of seven controls each produce their own named finding.
 
 Phases are added one at a time, on request, and these were born staged:
-`phase/stages` (a stage per phase and seventeen packages: `seed 83`, `build 84`,
+`phase/STAGES.md` (a stage per phase and seventeen packages: `seed 83`, `build 84`,
 `terminal 85 121 122`, `harness 86 116 123`, `streams 87 88`, `files 89 90 91 92 93`,
 `buffers 94`, `options 95`, `tidy 96 120 125`, `vendor 97 98 114`, `includes 99`,
 `host 100 101 102 103 104 113 115 118 119 124`,
@@ -2090,7 +2090,7 @@ between the two pipelines' recordings.
   the harnesses on the `-no-pie` binary and requires no difference at all, and
   runs `tools/whimdelta.sh --phase 82` on it against slim-vim's baselines, which
   still holds: 489 commands and 11 cases, exactly whim's declared delta.
-- **Zero's phase list is the `phases` line of `phase/stages`**, not a
+- **Zero's phase list is the `phases` line of `phase/STAGES.md`**, not a
   `PHASE_LIST` written into `tools/pipeline.sh`, because `pipeline.sh` is in every
   whim split key (above) and a Part II phase added there would re-key all of whim.
 
@@ -2113,7 +2113,7 @@ number in three digits, and this is how one would join now.
    (`OldSource`, `OldBinary`, `EnumVals`). A new phase joins the last `each`
    stage or takes a stage of its own; inside an each stage every edit is swept
    before the next and every check sees its own tree, so `need` and `apart`
-   cannot bind there — record them in `phase/stages` anyway, measured, because
+   cannot bind there — record them in `phase/STAGES.md` anyway, measured, because
    they are what a shared stage would have to respect.
 4. Write its `phase/NNN/GOAL.md`, which opens `# Phase N — ...`, and add it to
    the index below.

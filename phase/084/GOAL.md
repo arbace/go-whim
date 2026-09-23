@@ -41,6 +41,6 @@ and no terminal-table row move against whim-vim's baselines. `phase/084/delta`
 declares nothing for it, because a canary is code around the locals and not
 behaviour.
 
-It is `stage 84` and `package build` in `phase/stages`, with one `uses`:
+It is `stage 84` and `package build` in `phase/STAGES.md`, with one `uses`:
 `build:84 seed:83 mechanical`, because `coredelta.sh` refuses without the
 `.reference/core-baselines` phase 83 records. It runs in 9 seconds.

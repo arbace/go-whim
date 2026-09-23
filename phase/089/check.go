@@ -58,7 +58,7 @@ package p089
 // 5. A REAL TERMINAL.  `:wq` on a pty is how a person leaves this editor, and every
 // probe above went through a pipe.  The session is run on both binaries: the old
 // one writes the file and exits, the new one answers E492 and writes nothing.
-// phase/stages says why that needs no `apart 85 89`: it opens the file as an
+// phase/STAGES.md says why that needs no `apart 85 89`: it opens the file as an
 // ARGUMENT and phase 88 already made that an unknown option, so it never reaches
 // the `:wq` -- measured identically on a phase 88 and a phase 89 tree.
 //

@@ -28,6 +28,12 @@ type Options struct {
 	// question, so what this gives is a LIST and not a product.
 	KeepGoing bool
 	Refused   []string
+
+	// Canonical prints the input in the canonical form at phase 0
+	// (internal/cemit), without the plan having to say so, so that the
+	// question "what would that cost" can be asked of the same binary that
+	// builds the committed product.
+	Canonical bool
 }
 
 // Run applies the plan to the input and returns the source it leaves.
@@ -80,6 +86,13 @@ func Run(o *Options) ([]byte, error) {
 		fmt.Fprintf(o.W, "  phase %-6d %s\n", p.N, p.Name)
 		if p.Seed {
 			text = src
+			if o.Canonical {
+				out, err := steps.Lookup2("cemit")(text, nil, o.W)
+				if err != nil {
+					return nil, fmt.Errorf("phase %d: cemit: %w", p.N, err)
+				}
+				text = out
+			}
 		}
 		if text == nil {
 			return nil, fmt.Errorf("build: phase %d runs before the input was seeded", p.N)

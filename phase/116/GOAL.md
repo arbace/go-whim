@@ -139,5 +139,5 @@ slim phases, 13 whim stages, 82 whim edits, 33 Part II units, 30 Part II edits â
 copy of the tools and the phase programs, one change at a time: editing `tools/ztermcheck.py` moves
 **16, every one of them Part II's** (units 83, 86, 88, 92, 96, 104, 108, 109, 110, 111, 112, 113, 114,
 115 and edits 88 and 108), and **adding the phase moves 0 of 170** and adds one unit â€” which
-is what the phase list living in `phase/stages` rather than in
+is what the phase list living in `phase/STAGES.md` rather than in
 `tools/pipeline.sh` buys.

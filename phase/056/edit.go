@@ -17,7 +17,7 @@ package p056
 // THE DELTA: none the harnesses record.  The probes check the six are unknown.
 // No sweep here.  One stood here, and the lines after it were written for swept text,
 // but this phase and every stage it has run in reproduce their boundaries without
-// it (GOALS.md, *The inner sweeps*; phase/stages) -- the stage's one sweep does its work.
+// it (GOALS.md, *The inner sweeps*; phase/STAGES.md) -- the stage's one sweep does its work.
 // get_varp()'s "local if set" case for 'keywordprg' is written &curbuf->b_p_kp,
 // without the parentheses droplocal.py's pattern expects, so its two mentions
 // would read as readers.  It is plumbing, and goes by hand first.

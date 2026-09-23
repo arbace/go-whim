@@ -83,7 +83,7 @@ internal/          the Go: cc (the forked C front end), sweep, canon, dead,
                    recorder), ccx (the core's pointer casts and evaluation order)
 phase/NNN/         a phase, and a package: edit.go, check.go, GOAL.md, delta
 phase/registry.go  every phase package, blank-imported so they register
-phase/stages       the record the plan was read from: the stages, need and apart,
+phase/STAGES.md       the record the plan was read from: the stages, need and apart,
                    the packages.  Prose now, not a manifest a program reads
 tools/             the instruments a check or a delta runs -- whimdelta, coredelta,
                    zrecord, phasecheck, phasebuild, enumvals, symbols, declared --
@@ -186,7 +186,7 @@ were being written, and that is over.
   text its FIRST edit was handed; an `each` stage sweeps after every edit and
   gives every check its own tree. A check in the middle of a shared stage was
   written against what that arrangement hands it, so `internal/verify` keeps it.
-  `need P swept` and `apart P K` were the facts that shaped it (`phase/stages`).
+  `need P swept` and `apart P K` were the facts that shaped it (`phase/STAGES.md`).
 - **`tools/st.sh verify --from N --src BOUNDARY`** verifies from a boundary you
   already have, and `--to N` stops after the stage holding N. `tools/st.sh build
   --to N --work D` leaves that tree, its makefile included, for a phase program

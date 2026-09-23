@@ -516,7 +516,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, p.Die("%s still said: %s.  If they are `blocknr_T`, `mf_hashitem_T` and "+
 			"`mf_hashtab_T` at one mention each, the input is UNSWEPT: phase 125 leaves "+
 			"`mf_hash_free_all` standing for tools/sweep.sh and its forward declaration "+
-			"names all three (`need 126 swept` in phase/stages)",
+			"names all three (`need 126 swept` in phase/STAGES.md)",
 			lead, strings.Join(left, ", "))
 	}
 	p.Sayf("%d names are gone from the whole file: the two hash types and blocknr_T, their "+

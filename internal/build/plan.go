@@ -53,7 +53,7 @@ type Phase struct {
 	//	"core"  tools/templates/core.mk, the line phase 83 writes over it
 	//	"+flag" appended to CFLAGS (phase 84, -fno-stack-protector)
 
-	Stage string // the unit this phase was verified in, from phase/stages
+	Stage string // the unit this phase was verified in, from phase/STAGES.md
 	Each  bool   // its stage sweeps after every edit and checks each tree
 
 	OldSource bool   // state/old.c: the source the phase was handed

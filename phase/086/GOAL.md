@@ -110,7 +110,7 @@ the baseline write, and the whole four-phase pass cold in **1 m 45 s**;
 109 s of phases. The recording is 180 KB on disk. No whim or slim cache key moved:
 all 107 — 13 whim stages, 82 whim edits, 12 slim phases — are identical to `main`'s.
 
-It is `stage 86` and `package harness` in `phase/stages`, with two `uses`
+It is `stage 86` and `package harness` in `phase/STAGES.md`, with two `uses`
 lines: `harness:86 seed:83 mechanical`, because it is measured against the baselines
 phase 83 records *in the shape phase 83 now records them*, and `harness:86 terminal:85
 rationale`, because the delta it proves is phase 85's.

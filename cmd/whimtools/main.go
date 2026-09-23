@@ -155,7 +155,7 @@ var tools = map[string]tool{
 	"record":      {runRecord, "record"},
 	"cemit":       {runCemit, "cemit <file.c> [--check]"},
 	"verify":      {runVerify, "verify [--from N --src B] [--to N] [--root D]"},
-	"build":       {runBuild, "build [--check] [--from N] [--to N] [--src F] [--out F] [--work D]"},
+	"build":       {runBuild, "build [--check] [--canonical] [--keep-going] [--from N] [--to N] [--src F] [--out F] [--work D]"},
 	"parse":       {runParse, "parse <file.c>"},
 	"fieldref":    {runFieldRef, "fieldref <file.c>"},
 }

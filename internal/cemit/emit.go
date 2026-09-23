@@ -142,7 +142,16 @@ func (e *emitter) external(n *cc.ExternalDeclaration) {
 			e.fail(n, "an old-style parameter declaration list")
 			return
 		}
-		e.line(joinNonEmpty(e.declSpecs(f.DeclarationSpecifiers), e.declarator(f.Declarator)))
+		// THE NAME GOES AT COLUMN 0, under its specifiers, which is vim's own
+		// style and the only thing that makes a definition findable by text:
+		// every tool that locates one looks for `^name(`.  Measured, when this
+		// printed `static void f(...)` on one line instead: 88 of the 163
+		// phases lost their function and said so -- "is not defined at file
+		// scope any more".
+		if specs := e.declSpecs(f.DeclarationSpecifiers); specs != "" {
+			e.w(Indent + specs + "\n")
+		}
+		e.w(e.declarator(f.Declarator) + "\n")
 		e.compound(f.CompoundStatement)
 	case cc.ExternalDeclarationAsmStmt:
 		e.line(strings.TrimSpace(cc.NodeSource(n.AsmStatement)))

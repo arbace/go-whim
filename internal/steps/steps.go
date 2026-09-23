@@ -107,6 +107,17 @@ var ops = map[string]Step{
 	"query-dropoptions": queryDropOptions,
 }
 
+// Lookup2 returns the step of that name and panics when there is none: for a
+// caller that names a step this package defines, where a missing one is a
+// programming error and not a phase's mistake.
+func Lookup2(name string) Step {
+	s, ok := ops[name]
+	if !ok {
+		panic("steps: no step named " + name)
+	}
+	return s
+}
+
 // Lookup returns the step of that name, and whether there is one.
 func Lookup(name string) (Step, bool) {
 	s, ok := ops[name]

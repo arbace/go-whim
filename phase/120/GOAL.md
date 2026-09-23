@@ -109,7 +109,7 @@ phase 83's baselines the way every other empty declaration does. **It was still 
 end like every other phase's, and the two **other** `cmp`-evidenced phases, 99 and 106, both
 declare the dependency — five `uses` lines and six respectively. So the line is written now,
 with the reason it was missing recorded in it. It was found by a documentation pass and not
-by anything failing, which is the property of `phase/stages` worth saying plainly: the
+by anything failing, which is the property of `phase/STAGES.md` worth saying plainly: the
 file is read by `tools/stages.sh` and `tools/packages.sh` and **named by no phase program**,
 so `tools/implhash.sh` never hashes it. **A manifest edit is free, which is why package and
 `uses` data can be kept honest without paying for a repass — and it is also why a wrong one

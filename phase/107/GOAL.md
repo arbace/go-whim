@@ -179,7 +179,7 @@ partition and a shape.
 
 **This phase renumbered the three that follow it, and this document had the old numbers
 until now.** `GOALS.md` §II.4c's reorganisation steps 24, 25 and 26 are phases 108, 109
-and 110, which `phase/stages` states; *Phase 106 — `nullptr` and `usize`* above said
+and 110, which `phase/STAGES.md` states; *Phase 106 — `nullptr` and `usize`* above said
 *"26, the move itself"* and has been corrected to say 27. The phase *programs* are
 deliberately **not** corrected — `phase/106/*.sh` still says "phase 109" where it means
 the move — because every byte of a phase program is in its unit's implementation digest,

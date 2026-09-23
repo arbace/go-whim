@@ -3,8 +3,8 @@ package check
 import (
 	"os"
 
-	"github.com/arbace/go-whim/internal/ccx"
 	"github.com/arbace/go-whim/internal/cc"
+	"github.com/arbace/go-whim/internal/ccx"
 	"os/exec"
 	"path/filepath"
 	"regexp"
