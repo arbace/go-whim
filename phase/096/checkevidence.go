@@ -23,7 +23,7 @@ func z13Evidence(r *check.Rep, tmp, inst, old, bin string) error {
 		wg.Add(1)
 		go func(i int, n string) {
 			defer wg.Done()
-			errs[i] = check.RecCmd("sh", "tools/zrecord.sh", filepath.Join(inst, n),
+			errs[i] = check.RecZ(filepath.Join(inst, n),
 				filepath.Join(inst, n+".c"), filepath.Join(tmp, "REC."+n))
 		}(i, n)
 	}

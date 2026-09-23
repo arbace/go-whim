@@ -763,12 +763,12 @@ static_assert(__builtin_offsetof(bt_regprog_T, program) == offsetof(bt_regprog_T
 	wgR.Add(3)
 	go func() {
 		defer wgR.Done()
-		recErr[0] = check.RecCmd("sh", "tools/zrecord.sh", filepath.Join(state, "old"),
+		recErr[0] = check.RecZ(filepath.Join(state, "old"),
 			filepath.Join(state, "old.c"), filepath.Join(tmp, "REC.old"))
 	}()
 	go func() {
 		defer wgR.Done()
-		recErr[1] = check.RecCmd("sh", "tools/zrecord.sh", filepath.Join(tmp, "new"), f,
+		recErr[1] = check.RecZ(filepath.Join(tmp, "new"), f,
 			filepath.Join(tmp, "REC.new"))
 	}()
 	go func() {

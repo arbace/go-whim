@@ -121,7 +121,7 @@ too, because a session that draws nothing is not an adversary.
 it made — is **empty**: all 102 screen cases, all 111 Ex-command rows, all 30 command
 lines, the four pty scenarios and the nineteen terminal rows. `tools/coredelta.sh
 --phase 96` then finds the same against whim-vim's frozen baselines, with the nine
-lines phases 85 to 94 declared and nothing new. `phase/096/delta` gets a comment and
+lines phases 85 to 94 declared and nothing new. `phase/096/delta.md` gets a comment and
 no line. Nine ordinary sessions run directly between the two binaries and each is
 required to be identical **and** to be doing something.
 

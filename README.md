@@ -92,7 +92,7 @@ writes (`make whim-editor-check` asks just that).
 
 ```sh
 make                                                 # bin/whim
-tools/coredelta.sh bin/whim whim-vim.c --phase N     # N: the last phase
+tools/st.sh delta bin/whim whim-vim.c --phase N       # N: the last phase
 ```
 
 It is measured the way the C is: the Go build must record exactly the declared
@@ -108,9 +108,9 @@ same recording.
 Linux, **Go 1.27**, **gcc** that links a static binary against **musl** (the
 product is built `-static -no-pie`, and phases before 83 `-static`), `git`,
 `curl`, and binutils (`readelf`, `nm`, `objcopy`, `strings`). Measured on Alpine
-Linux with gcc 15.2 and musl. The first build downloads `modernc.org/cc/v4`,
-pinned in `go.mod` and patched by `tools/patches/cc-v4-c23.patch` for two C23
-productions; after that `make clean-cache` needs no network.
+Linux with gcc 15.2 and musl. The C front end is a fork of `modernc.org/cc/v4`
+carried as source in `internal/cc`, so nothing is downloaded to build it; `make`
+fetches `slim-vim.c`, and after that needs no network.
 
 There is no Python in this repository and no agent: every phase is a program,
 and a phase that refuses stops the pass with its own report.
@@ -123,13 +123,13 @@ internal/        the cutters, the sweep, the canonicalisers, the harnesses,
                  one check per phase (internal/check/), and ccx: what the
                  core's C leaves a translation to decide -- pointer casts,
                  evaluation order -- partitioned
-phase/NNN/       a phase, and a Go package: edit.go, check.go, GOAL.md, delta
+phase/NNN/       a phase, and a Go package: edit.go, check.go, GOAL.md, delta.md
 phase/STAGES.md     the record the stages were read from: need, apart, the packages
 tools/           the instruments a check runs, and the wrappers around whimtools
 editor/          the core transpiled into Go, with its runtime and host
 tx/              tx/skel (the skeleton generator and, with -bodies, the body
                  emitter), tx/splice (measures the emitted bodies in a copy of
-                 editor/), tx/pre (ccx's reports on an editor.c), sigs.txt,
+                 editor/), tx/pre (ccx's reports on an editor.c), sigs.md,
                  CONVENTIONS.md and FINDINGS.md
 whim.mk          the pipeline as make targets
 whim-vim.c       the product, tracked; make editor.c cuts the core out of it

@@ -238,7 +238,7 @@ whim-baselines-check:
 	    && [ -s $$b/ref-pty.txt ] && [ -s $$b/ref-term.txt ]; then exit 0; fi; \
 	 echo "  baselines    $$b is missing or of the old shape: it must hold screen/, memline/,"; \
 	 echo "               ref-excmds.txt, ref-argv.txt, ref-pty.txt and ref-term.txt"; \
-	 echo "               (tools/zrecord.sh), so no delta from phase 83 on can be checked in full."; \
+	 echo "               (whimtools zrecord), so no delta from phase 83 on can be checked in full."; \
 	 echo "               They are recorded from q82:  make whim-baselines"; \
 	 exit 1
 

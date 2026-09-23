@@ -58,6 +58,7 @@ import (
 
 	"github.com/arbace/go-whim/internal/check"
 	"github.com/arbace/go-whim/internal/harness"
+	"github.com/arbace/go-whim/internal/verify"
 )
 
 func init() { check.Register("whim126", Check) }
@@ -748,7 +749,7 @@ func Check(w io.Writer, args []string) error {
 		wgR.Add(1)
 		go func() {
 			defer wgR.Done()
-			recErr[k] = check.RecCmd("sh", "tools/zrecord.sh", x[1], x[2], T("rec-"+x[0]))
+			recErr[k] = check.RecZ(x[1], x[2], T("rec-"+x[0]))
 		}()
 	}
 	wgR.Wait()
@@ -981,8 +982,8 @@ func Check(w io.Writer, args []string) error {
 		"in mf_alloc_bhdr(), which is why removing the FIELD is safe", cp, len(SESSION))
 
 	// --- 9. E323 ------------------------------------------------------------------------
-	exec.Command("sh", "tools/zrecord.sh", B["m_e323"], oldC, T("rec-mark-e323")).Run()
-	exec.Command("sh", "tools/zrecord.sh", B["m_reach"], oldC, T("rec-mark-reach")).Run()
+	check.RunZ(w, B["m_e323"], oldC, T("rec-mark-e323"))
+	check.RunZ(w, B["m_reach"], oldC, T("rec-mark-reach"))
 	carry := func(root string) (int, int) {
 		hit, tot := 0, 0
 		for _, Rel := range check.WalkFiles(root) {
@@ -1042,11 +1043,11 @@ func Check(w io.Writer, args []string) error {
 		check.Z30BytesRepr(bytes.TrimSpace(z43E323Any.Find(smOld.Out))), check.Z30BytesRepr(bytes.TrimSpace(z43E323Any.Find(smNew.Out))))
 
 	// --- 10. what this phase declares ---------------------------------------------------
-	decl, _ := exec.Command("sh", "tools/coredelta.sh", "--declared", "126").Output()
-	if strings.Join(strings.Fields(string(decl)), "") != "" {
-		return die("phase/126/delta declares something for phase 126, and this phase declares nothing at all")
+	decl, _ := verify.PhaseDeclared(126)
+	if len(decl) != 0 {
+		return die("phase/126/delta.md declares something for phase 126, and this phase declares nothing at all")
 	}
-	say("phase/126/delta declares NOTHING for this phase: CLAUDE.md's sixth kind, the code runs and the instrument " +
+	say("phase/126/delta.md declares NOTHING for this phase: CLAUDE.md's sixth kind, the code runs and the instrument " +
 		"sees it do the same thing.  One statement inside it is the second kind -- E323's text, which can run and " +
 		"no recording reaches -- and section 9 is the probe it owes")
 	return nil

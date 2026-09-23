@@ -611,7 +611,7 @@ func Check(w io.Writer, args []string) error {
 		"verification table, and the whole of this phase's evidence.  A byte-identical "+
 		"binary subsumes every screen case, every Ex-command row, every command line "+
 		"and every pty scenario at once, because the program that would be run is the "+
-		"same program; tools/coredelta.sh --phase 99 runs next and corroborates rather "+
+		"same program; the core delta at phase 99 runs next and corroborates rather "+
 		"than proves", newSt.Size())
 	return nil
 }

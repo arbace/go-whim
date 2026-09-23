@@ -1,0 +1,2 @@
+158 declares nothing: the font test it guards read the top two bytes of a
+pointer on every term entry, which are 0, and so failed as it now does.

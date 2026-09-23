@@ -43,7 +43,7 @@ if [ -x "$bin" ]; then
 fi
 
 # EVERY GENERATED FILE IS WRITTEN UNDER A PRIVATE NAME AND RENAMED, because more
-# than one of these runs at once: tools/zrecord.sh starts six harnesses in
+# than one of these runs at once: a whole recording starts six harnesses in
 # parallel and each calls tools/st.sh, which calls this, and a verification runs
 # its checks beside each other.  A rename within one directory is atomic, so a
 # concurrent reader's `[ -x ]` and its exec see either the old binary or the new

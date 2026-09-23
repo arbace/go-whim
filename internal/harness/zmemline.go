@@ -20,7 +20,7 @@ const zmemTimeout = 180 * time.Second
 // that can see the text layer as a tree.
 //
 // Until it existed nothing in the pipeline could tell a working memline from a
-// broken one -- a zero-vim with pp->pb_pointer[idx].pe_line_count-- deleted
+// broken one -- a whim-vim with pp->pb_pointer[idx].pe_line_count-- deleted
 // from ml_find_line()'s descent recorded ALL 102 SCREEN CASES BYTE FOR BYTE,
 // because every one of them allocates exactly one data block, so idx is 0
 // every time and a pointer entry's line count never decides anything.

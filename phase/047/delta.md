@@ -1,0 +1,3 @@
+```
+startinsert startreplace startgreplace stopinsert
+```

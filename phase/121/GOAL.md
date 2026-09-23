@@ -19,7 +19,7 @@ the declaration is a real delta and not a harness artefact, which is the distinc
 2 and `CLAUDE.md`'s *A phase can break a harness rather than change behaviour* exist to
 keep apart, and this phase is on the other side of it from phase 88's.
 
-`phase/121/delta` states which **eight** of the nineteen rows move and to what, because
+`phase/121/delta.md` states which **eight** of the nineteen rows move and to what, because
 the token itself is whole-file: `xterm`, `screen`, `screen-256color`, `tmux`,
 `tmux-256color`, `vt100`, `ansi` and `dumb`, each from `term=<itself>` to `E522
 term=xterm-256color t_Co=256` — the answer the eight names that never had a row already

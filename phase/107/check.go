@@ -561,7 +561,7 @@ func Check(w io.Writer, args []string) error {
 		}
 		return harness.ErrReported
 	}
-	r.Say("THE BINARY IS BYTE-IDENTICAL, %d bytes either side -- tier 1 of CLAUDE.md's verification table, and the whole of this phase's evidence for the 133 it removed and respelled.  A byte-identical binary subsumes every screen case, every Ex-command row, every command line and every pty scenario at once, because the program that would be run is the same program; tools/coredelta.sh --phase 107 runs next and corroborates rather than proves", newSize)
+	r.Say("THE BINARY IS BYTE-IDENTICAL, %d bytes either side -- tier 1 of CLAUDE.md's verification table, and the whole of this phase's evidence for the 133 it removed and respelled.  A byte-identical binary subsumes every screen case, every Ex-command row, every command line and every pty scenario at once, because the program that would be run is the same program; the core delta at phase 107 runs next and corroborates rather than proves", newSize)
 	if jC4.wait().Err != nil {
 		r.Say("the control c4 did not build:")
 		for _, l := range check.Head(strings.Split(strings.TrimRight(jC4.Out, "\n"), "\n"), 5) {

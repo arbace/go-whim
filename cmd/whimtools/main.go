@@ -47,7 +47,7 @@ var order = []string{
 	"deadsweep", "deadprotos", "typereach", "funcreach", "deadfields", "deadenums",
 	"snapshot",
 	"symbols", "nvidx", "orphanopts", "exsweep", "cmdnames", "cmdidxs", "muslctype", "muslcase", "starcheck", "termrestore", "complcheck", "clicheck", "behaviour", "termcheck", "zscreen", "zhostonly", "zargv", "zexcmds", "zcases", "ztermcheck", "zpty", "zmemline", "zcompare", "zrecord", "dropoptions", "retire", "droplocal", "nointro", "noargv0", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "dropopts", "nostartup", "nohome", "nocmdargs", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "check", "query",
-	"build", "verify", "record", "cemit",
+	"build", "verify", "record", "delta", "cemit",
 	"parse", "fieldref",
 }
 
@@ -153,6 +153,7 @@ var tools = map[string]tool{
 	"utf8only":    {fileStep("utf8only"), "utf8only <file>"},
 	"fold":        {runFold, "fold <always|never|dropif> <file> <pattern> <count>"},
 	"record":      {runRecord, "record"},
+	"delta":       {runDelta, "delta <binary> <source> --phase N | --declared N | --list FROM TO"},
 	"cemit":       {runCemit, "cemit <file.c> [--check]"},
 	"verify":      {runVerify, "verify [--from N --src B] [--to N] [--root D]"},
 	"build":       {runBuild, "build [--check] [--canonical] [--keep-going] [--from N] [--to N] [--src F] [--out F] [--work D]"},

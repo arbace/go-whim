@@ -1,7 +1,7 @@
 #!/bin/sh
 # tx/gen.sh -- generate editor/editor.go from editor.c, the core of whim-vim.c.
 #
-# Usage: sh tx/gen.sh            write editor/editor.go and tx/sigs.txt
+# Usage: sh tx/gen.sh            write editor/editor.go and tx/sigs.md
 #        sh tx/gen.sh --check    refuse if they are not what the program writes
 #
 # Run through make, which cuts editor.c first: `make editor/editor.go`, and
@@ -22,7 +22,7 @@ out=$(mktemp -d)
 if [ "${1:-}" = --check ]; then
     fail=0
     cmp -s "$out/editor.go" editor/editor.go || { printf '  %-12s is NOT what tx/skel writes from whim-vim.c.  Run: make editor/editor.go\n' editor.go; fail=1; }
-    cmp -s "$out/sigs.txt" tx/sigs.txt || { printf '  %-12s is NOT what tx/skel writes.  Run: make editor/editor.go\n' sigs.txt; fail=1; }
+    cmp -s "$out/sigs.md" tx/sigs.md || { printf '  %-12s is NOT what tx/skel writes.  Run: make editor/editor.go\n' sigs.md; fail=1; }
     rm -rf "$out"
     [ $fail = 0 ] && printf '  %-12s is what tx/skel writes from whim-vim.c\n' editor.go
     exit $fail
@@ -31,7 +31,7 @@ fi
 # that depends on it does not run again
 changed=0
 cmp -s "$out/editor.go" editor/editor.go || { cp "$out/editor.go" editor/editor.go; changed=1; }
-cmp -s "$out/sigs.txt" tx/sigs.txt || { cp "$out/sigs.txt" tx/sigs.txt; changed=1; }
+cmp -s "$out/sigs.md" tx/sigs.md || { cp "$out/sigs.md" tx/sigs.md; changed=1; }
 rm -rf "$out"
 if [ $changed = 1 ]; then
     printf '  %-12s %s lines, generated from whim-vim.c\n' editor.go "$(grep -c '' editor/editor.go)"

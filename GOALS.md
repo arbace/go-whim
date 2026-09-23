@@ -19,7 +19,7 @@ has to say which and prove it removed nothing else.
 
 **A phase is a directory, `phase/NNN/`**, its number in three digits: its program
 (`make.sh`, or `edit.sh` and `check.sh`), its `GOAL.md` — what it removes and why,
-and what was measured — and its declared `delta`. This document is what holds for
+and what was measured — and its declared `delta.md`. This document is what holds for
 all of them: the charters, the rules, what is measured, and an index of the
 phases in each part.
 
@@ -64,10 +64,11 @@ the phase is wrong.**
 
 ### The declared delta, phases 0 to 82
 
-Each phase declares what it changes, in advance, in its own `phase/NNN/delta`: a
+Each phase declares what it changes, in advance, in its own `phase/NNN/delta.md`: a
 token per way the binary moves, and `#` notes saying why. A phase with no token
-declares nothing new. `tools/whimdelta.sh --phase N` reads every declaration up to
-phase N (through `tools/declared.sh`) and checks the binary moved in exactly that
+declares nothing new. `tools/st.sh delta BIN SRC --phase N` (`internal/verify`)
+reads every declaration up to
+phase N and checks the binary moved in exactly that
 way — these Ex commands, these behaviour cases, the terminal table or not — and
 nothing else (rule 2 below, the rule that separates this document from
 `SLIM-GOAL.md`). The tokens:
@@ -86,11 +87,12 @@ against the previous phase: each phase states the whole difference from slim, so
 phase that quietly undid an earlier one shows up.
 
 From phase 83 (`CoreFrom`, `internal/build`) on, a phase is measured against
-other baselines with another instrument, and `tools/whimdelta.sh` hands it to
-`tools/coredelta.sh` (Part II, *What is measured from phase 83 on*). The list to 82
+other baselines with another instrument, and `Delta` hands it to `CoreDelta`
+(Part II, *What is measured from phase 83 on*). The list to 82
 is not retired there: phase 83 checks the whole of it once more against its
 `-no-pie` binary and slim-vim's baselines. A phase's declaration is read from
-`phase/NNN/delta` through `tools/declared.sh` — the tokens, not the notes.
+`phase/NNN/delta.md` (`Declarations`; `tools/st.sh delta --list FROM TO` prints a
+run of them) — the tokens inside the fenced block, not the notes.
 
 ## The rules
 
@@ -169,8 +171,8 @@ check behind both: without it the silent under-cut would have shipped.
 Each phase's `delta` is its part of rule 2's list, **written once**: the Ex
 commands, behaviour cases (`case:`) and terminal table (`term-moved`) it changes,
 and `drop:` for a command that stops differing. The declarations up to a phase are
-the whole difference from slim at that phase; `tools/whimdelta.sh --phase N` checks a
-binary against exactly that, and a stage checks its last phase's.
+the whole difference from slim at that phase; `tools/st.sh delta BIN SRC --phase N`
+checks a binary against exactly that, and a stage checks its last phase's.
 
 ### Adding a phase
 
@@ -182,7 +184,7 @@ parts. A phase is a directory, `phase/NNN/`, its number in three digits.
    `phase/NNN/check.go` — `tools/phasecheck.sh`, `tools/phasebuild.sh` and
    the probes. Neither sweeps at its end and neither checks the delta; anything
    the check needs from the edit goes in the state directory by name.
-2. **Declare its delta** in `phase/NNN/delta`: its tokens — `command… case:name…` —
+2. **Declare its delta** in `phase/NNN/delta.md`: its tokens — `command… case:name…` —
    or `# declares nothing` if the harness sees nothing new, before running it, and
    write its `GOAL.md`, which opens `# Phase N — what it does`. (From phase 83 on
    the delta is measured against other baselines: Part II.)
@@ -682,7 +684,7 @@ Relied on by: 80 (`commands`).
 ## Phases 0 to 82
 
 Each phase is a directory, `phase/NNN/`, and a Go package: `edit.go` is its cut,
-`check.go` its evidence, `GOAL.md` what it removes and why, and `delta` what it
+`check.go` its evidence, `GOAL.md` what it removes and why, and `delta.md` what it
 declares.
 
 **THE ACCOUNTS BELOW NAME THE TOOLS THAT RAN AT THE TIME**, and a few of those
@@ -1102,9 +1104,9 @@ reaching the set the launcher, and not the core, supplies.
 
 ### The declared delta, phases 83 on
 
-Each phase from 83 declares what it changes in its own `phase/NNN/delta`, as Part
-I's phases do, and `tools/coredelta.sh --phase N` reads every declaration from 83
-to N and checks the binary moved in exactly that way — and nothing else (core rule
+Each phase from 83 declares what it changes in its own `phase/NNN/delta.md`, as Part
+I's phases do, and `tools/st.sh delta BIN SRC --phase N` reads every declaration
+from 83 to N and checks the binary moved in exactly that way — and nothing else (core rule
 2). The tokens:
 
 | token | means |
@@ -1141,7 +1143,7 @@ Cited as *core rule N*; Part I's rules still hold.
    list — an Ex command by name, `case:` for a screen case, `argv:` for a
    command line, `term-moved`, `pty-moved`, and the two dimensions `screen-moved`
    and `stderr-moved` — in Part I's grammar, and
-   `tools/coredelta.sh --phase N` shows exactly that set moved and no more. "Some
+   `tools/st.sh delta BIN SRC --phase N` shows exactly that set moved and no more. "Some
    cases differ" is not a check, and neither is a dimension declared that nothing
    touched: `tools/zcompare.py` refuses a `-moved` token whose dimension did not
    move.
@@ -1156,7 +1158,7 @@ Cited as *core rule N*; Part I's rules still hold.
    about, a pipeline re-recording from its own current binary and agreeing by
    construction: nothing from phase 83 on can reach q82, and phase 83 also proves the
    recording is q82's (see *Phase 83*). The instrument is another one because an editor
-   with no file to write cannot be measured by Part I's (`tools/zrecord.sh`, phase 86).
+   with no file to write cannot be measured by Part I's (`whimtools zrecord`, phase 86).
 4. **The product is `whim-vim.c`, produced from the committed `slim-vim.c`** by one pass
    of every phase, as Part I's rule 4 says.
 5. **Phases are programs, not agents.** A phase is an edit and a check,
@@ -2118,7 +2120,7 @@ number in three digits, and this is how one would join now.
 1. **Write it in Go**: `phase/NNN/` is a package of its own, `pNNN` -- `edit.go`
    is its cut and `check.go` its evidence, each registering itself in an
    `init()`, and `phase/registry.go` gains a line so they are linked in.
-2. **Declare its delta** in `phase/NNN/delta`, before running it: every phase
+2. **Declare its delta** in `phase/NNN/delta.md`, before running it: every phase
    from 83 on is measured against `.reference/core-baselines` with
    `tools/zrecord.sh`, and `tools/whimdelta.sh` hands it to
    `tools/coredelta.sh`.
@@ -2144,7 +2146,7 @@ requires the committed bytes back from the committed input.
 ## Phases 83 to 162
 
 Each phase is a directory, `phase/NNN/`: its program, its `GOAL.md` and its
-declared `delta`.
+declared `delta.md`.
 
 - [Phase 83 — the core's compile line, and the baselines it is measured against](phase/083/GOAL.md)
 - [Phase 84 — the stack protector goes](phase/084/GOAL.md)
@@ -3911,6 +3913,16 @@ Not yet done, and each one only when it is asked for:
 - **Whatever the host still provides** that the core could own, measured each
   time as the core's libc surface (`make score`) and its boundary (`make
   editor.c`), and never assumed.
+- **In-AST editing, revisited.** The phases locate and change constructs by text,
+  and a regex anchor can silently match the wrong thing — phase 54's missed two
+  `options[]` rows for the pipeline's whole life. Editing the tree instead was
+  surveyed and declined, for a reason worth re-reading before it is proposed
+  again: `internal/cemit` joins the AST to the source text by byte offset, so a
+  mutation that moves the tree leaves the text standing, and deleting a table row
+  yields BYTE-IDENTICAL output — an edit that did nothing, which the product gate
+  cannot see. `surveys/AST-EDITING.md` has the measurements and what would
+  unblock it. The cheap half of the idea stands: the AST as a LOCATOR, with the
+  text still doing the editing.
 
 When Part I ended at phase 82 this list also held the file-lookup layer, state
 on disk and the build-time dependencies. Phases 89 to 96 took every way the

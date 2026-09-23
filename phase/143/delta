@@ -1,3 +1,0 @@
-# 143 declares nothing: regatom() makes the same nodes without jumping into
-# other cases.  The check probes the delimiter atom (\%) \%t) \%f] \%> \_%)),
-# the collection reached by \_[ and `.` before a composing character.

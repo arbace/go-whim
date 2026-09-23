@@ -1,0 +1,2 @@
+84 declares nothing: -fno-stack-protector changes the code gcc emits around a
+function's locals, not what the editor does.

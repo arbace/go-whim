@@ -47,7 +47,7 @@ package p087
 // an option on its own.  `case 's'` set silent mode only `if (exmode_active)` and
 // called `mainerr(ME_UNKNOWN_OPTION)` otherwise, so `vim -s` already failed before
 // this phase and fails in the same way after it.  `-e`, `-E`, `-e -s` and `-v` do
-// move, and are declared in phase/087/delta.
+// move, and are declared in phase/087/delta.md.
 //
 // THREE FUNCTIONS ARE DELETED BY NAME rather than left to the sweep.  A function
 // whose address is taken is reachable as far as gcc is concerned: `getexmodeline`

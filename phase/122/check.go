@@ -582,9 +582,7 @@ func Check(w io.Writer, args []string) error {
 		wgR.Add(1)
 		go func() {
 			defer wgR.Done()
-			cmd := exec.Command("sh", "tools/zrecord.sh", x[0], x[1], T(x[2]))
-			cmd.Stderr = w
-			cmd.Run()
+			check.RunZ(w, x[0], x[1], T(x[2]))
 		}()
 	}
 	wgR.Wait()

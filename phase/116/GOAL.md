@@ -78,6 +78,17 @@ nineteen other Part II units keep their keys and would replay with a `ref-term.t
 under the old question, so section 4 re-derives, for every recorded boundary binary, the
 thing such a replay would carry over.
 
+**Section 4 now refuses when the tars are absent, where it used to say so and pass.**
+Nothing produces `.build` any more — `.gitignore` states that — so this arm's evidence
+rests on the set kept from the pass that recorded it, and a checkout without that set
+was getting `no .build here` followed by a pass. That is a check that cannot fail, which
+by this repository's rule is not evidence, so all three arms return instead: no
+`.build/q82.tar`, a q82 that will not build, and a `.build` holding no boundary binary
+from q83 on. Re-measured today rather than reasoned about: **30** tars from q83 on and
+`q82.tar` present, where the paragraph above was written against 33. The count is not
+asserted — the arm compares whatever boundaries are there and refuses only on none — but
+the shrinkage is recorded here because nothing can rebuild what goes missing.
+
 ## The instrument is proven able to fail, and the one it replaces proven not to be
 
 With **one** row deleted from `builtin_terminals[]` — the last named row, chosen by the

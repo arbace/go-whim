@@ -47,7 +47,7 @@ func z9Sessions() []struct {
 func z9Evidence(r *check.Rep, tmp, inst, state, f, old, bin string) error {
 	stop := func(format string, a ...any) error { r.Say(format, a...); return harness.ErrReported }
 	rec := func(binary, src, Out string) error {
-		return check.RecCmd("sh", "tools/zrecord.sh", binary, src, Out)
+		return check.RecZ(binary, src, Out)
 	}
 	var wg sync.WaitGroup
 	errs := make([]error, 4)

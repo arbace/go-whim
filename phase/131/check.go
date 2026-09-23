@@ -32,7 +32,7 @@ func init() { check.Register("whim131", Check) }
 //
 // The recording is the behaviour check: typeahead is saved and restored
 // around every Insert-mode CTRL-O and command-line window in the corpus, and
-// phase/131/delta declares nothing.
+// phase/131/delta.md declares nothing.
 func Check(w io.Writer, args []string) error {
 	c, err := check.NewCore(w, args, "whim131", "inputbuf")
 	if err != nil {

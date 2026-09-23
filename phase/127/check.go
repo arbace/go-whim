@@ -321,9 +321,7 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 5. two full recordings, and they are the input's ---------------------------
 	for _, x := range [][3]string{{newBin, f, "rec1"}, {newBin, f, "rec2"}, {oldBin, oldC, "rec0"}} {
-		c := exec.Command("sh", "tools/zrecord.sh", x[0], x[1], T(x[2]))
-		c.Stderr = w
-		if err := c.Run(); err != nil {
+		if err := check.RunZ(w, x[0], x[1], T(x[2])); err != nil {
 			return harness.ErrReported
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -219,4 +220,27 @@ func PyDict(m map[string]int64) string {
 		parts[i] = fmt.Sprintf("'%s': %d", n, m[n])
 	}
 	return "{" + strings.Join(parts, ", ") + "}"
+}
+
+// A WHOLE RECORDING IS harness.ZRecord AND NOT A SHELL, and these are the two
+// shapes a check asks for one in.  tools/zrecord.sh was a shell that started
+// six children; the six are goroutines in this process now, and a check that
+// wants a recording says so rather than naming a path.
+
+// RecZ is RecCmd for a whole recording: the same run, the output kept, and an
+// error that carries it so RecReport can tell which recording died.
+func RecZ(bin, src, out string) error {
+	j := NewRecFunc("the recording into "+recBase(out),
+		fmt.Sprintf("zrecord %s %s %s", bin, src, out),
+		func(w io.Writer) error { return harness.ZRecord(bin, src, out, w) }).Run()
+	if j.Failed() {
+		return &recError{j}
+	}
+	return nil
+}
+
+// RunZ is Run for a whole recording: its own refusal message is its output, so
+// nothing is added here.
+func RunZ(w io.Writer, bin, src, out string) error {
+	return harness.ZRecord(bin, src, out, w)
 }

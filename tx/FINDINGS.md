@@ -10,7 +10,7 @@ plus `editor/crt.go` (the C runtime it is written against, 274 lines) and
 phase 162's core; how it got there from the first pass, which followed phase
 128's, is the section *The transpilation, brought to phase 149*.
 
-**It works.** `go build ./editor` gives an editor that `tools/coredelta.sh …
+**It works.** `go build ./editor` gives an editor that `tools/st.sh delta …
 --phase 162` accepts as exactly phase 162's declared delta: 102 screen cases,
 111 Ex rows, 30 command lines, the pty scenarios, 19 terminals and the memline
 corpus. The first pass was measured the same way against phase 128, and
@@ -179,7 +179,7 @@ Measured on phase 162's core:
 - the build keeps all 1,693. 362 are the hand-written function exactly, after
   gofmt; the rest differ in form: hoisted locals, explicit conversions,
   temporaries;
-- **the copy with every body emitted passes `tools/coredelta.sh --phase 162`
+- **the copy with every body emitted passes `tools/st.sh delta … --phase 162`
   exactly as declared**: 102 screen cases, 16 memline cases, 111 Ex rows and
   30 command lines. The control is refused: the same copy with one message
   word changed.
@@ -189,7 +189,7 @@ initializer is not all zeros is assigned in one `init()`. That covers
 positional and designated initializers, character arrays copied into their
 storage, and a compound literal's own storage. With them, `tx/skel -editor`
 writes `editor.go` whole. It refuses if any function or initial value has no
-rule. The generated file builds as it is and passes `tools/coredelta.sh --phase
+rule. The generated file builds as it is and passes `tools/st.sh delta … --phase
 162` exactly as declared, and the one-word control is refused. It replaced the
 hand-written `editor.go`, and `tx/gen.sh --check` keeps it what the program
 writes. Only `crt.go` and `host.go`, the runtime and the host, are still
@@ -221,7 +221,7 @@ pass stays as it was wherever the C did not change. What changed:
   and applied the C diff;
 - **deleted:** the 15 functions the phases removed;
 - **regenerated:** the types, globals and signatures (`tx/skel`,
-  `tx/sigs.txt`). Where a pointer decision flipped with them (the `xp_files`
+  `tx/sigs.md`). Where a pointer decision flipped with them (the `xp_files`
   arrays, `buflist_findnr()`'s result, the searched tables), the few callers
   were adapted.
 
@@ -234,7 +234,7 @@ What the phases took out of the Go with them:
 - `Free`, `Qsort` and `Bsearch` from `crt.go` (phases 132, 139);
 - every allocation-failure test (148, 149).
 
-Measured: `go build ./editor` gives an editor that `tools/coredelta.sh …
+Measured: `go build ./editor` gives an editor that `tools/st.sh delta …
 --phase 149` accepts, exactly as declared. It is 60,889 lines, 1,711
 functions for the core's 1,687 plus its helpers, down from 61,883. The control,
 the same build with the ruler's `All` spelled `ALL`, is refused: the screen

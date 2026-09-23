@@ -72,7 +72,7 @@ func init() { check.Register("whim124", Check) }
 
 var (
 	z41Arena   = regexp.MustCompile(`ARENA used=(\d+) calls=(\d+)`)
-	z41Exhaust = regexp.MustCompile(`zero-vim: host arena exhausted: (\d+) bytes, (\d+) used, request (\d+)`)
+	z41Exhaust = regexp.MustCompile(`whim-vim: host arena exhausted: (\d+) bytes, (\d+) used, request (\d+)`)
 	z41Grows   = regexp.MustCompile(`grows=(\d+)`)
 	z41Type    = regexp.MustCompile(`(?m)^ *Type: *([A-Z]*)`)
 )
@@ -641,7 +641,7 @@ func Check(w io.Writer, args []string) error {
 		wgR.Add(1)
 		go func() {
 			defer wgR.Done()
-			recErr[k] = check.RecCmd("sh", "tools/zrecord.sh", x[1], x[2], T("REC-"+x[0]))
+			recErr[k] = check.RecZ(x[1], x[2], T("REC-"+x[0]))
 		}()
 	}
 	wgR.Wait()

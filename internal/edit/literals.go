@@ -5,7 +5,7 @@ import "bytes"
 // literalSpans is the string- and character-literal scanner several zero
 // heredocs define for themselves, and it is a SCANNER and not a regex.
 //
-// zero-vim.c has no preprocessor and no comments, so a literal is exactly a
+// whim-vim.c has no preprocessor and no comments, so a literal is exactly a
 // quote, the escaped bytes to the matching quote, and nothing crossing a
 // newline.  That last is asserted rather than assumed: a scanner that lost its
 // place would put every span after it in the wrong position, and a

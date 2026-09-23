@@ -23,7 +23,13 @@ import (
 // the product comes back byte for byte.
 func runBuild(args []string) int {
 	o := &build.Options{Src: "slim-vim.c", W: os.Stdout}
-	out, check := "whim-vim.c", false
+	// NOTHING IS WRITTEN WITHOUT --out.  This defaulted to `whim-vim.c`, so a
+	// measurement run -- `--canonical`, `--keep-going`, `--to N` -- overwrote
+	// the tracked product just by being run from the repository root.  It
+	// happened twice in one afternoon, to an agent that had been told to touch
+	// nothing but .tmp/.  A command whose job is to answer a question does not
+	// get to write the answer over the product.
+	out, check := "", false
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--check":
@@ -81,19 +87,25 @@ func runBuild(args []string) int {
 		}
 	}
 	if check {
-		want, err := os.ReadFile(out)
+		// --check reads the committed product and compares; it writes nothing.
+		want, err := os.ReadFile("whim-vim.c")
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 			return 1
 		}
 		if !bytes.Equal(text, want) {
 			fmt.Fprintf(os.Stderr,
-				"  build        DIFFERS from %s: built %d bytes, committed %d -- the plan and the phase programs disagree\n",
-				out, len(text), len(want))
+				"  build        DIFFERS from whim-vim.c: built %d bytes, committed %d -- the plan and the phase programs disagree\n",
+				len(text), len(want))
 			return 1
 		}
-		fmt.Printf("  build        %s byte for byte, %d lines, %ds\n",
-			out, bytes.Count(text, []byte("\n")), secs)
+		fmt.Printf("  build        whim-vim.c byte for byte, %d lines, %ds\n",
+			bytes.Count(text, []byte("\n")), secs)
+		return 0
+	}
+	if out == "" {
+		fmt.Printf("  build        %d lines, %ds -- not written anywhere (--out F to keep it)\n",
+			bytes.Count(text, []byte("\n")), secs)
 		return 0
 	}
 	if err := os.WriteFile(out, text, 0o644); err != nil {

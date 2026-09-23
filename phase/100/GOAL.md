@@ -126,7 +126,7 @@ settled` — and `funcreach.py` reports 1,755 of 1,755 definitions reachable eit
 
 ## The declared delta is nothing at all
 
-`phase/100/delta` gets a comment and no line, and the reason is the statement. Five
+`phase/100/delta.md` gets a comment and no line, and the reason is the statement. Five
 phases now declare nothing and each for a different reason: **9** removed code that could
 not run, **12** removed code that can run and that the instrument cannot see, **13**
 removed the possibility, **16** changed no code at all, and **14** and **15** replaced

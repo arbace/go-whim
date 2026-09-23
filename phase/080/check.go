@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -19,6 +18,7 @@ import (
 
 	"github.com/arbace/go-whim/internal/check"
 	"github.com/arbace/go-whim/internal/harness"
+	"github.com/arbace/go-whim/internal/verify"
 )
 
 func init() { check.Register("whim80", Check) }
@@ -43,7 +43,7 @@ func Check(w io.Writer, args []string) error {
 	r := &check.Rep{Tag: "cmdtable", W: w}
 	f := filepath.Join(work, "whim-vim.c")
 	beforeLines := strings.TrimSpace(check.ReadFile(filepath.Join(state, "input-lines")))
-	declared, err := exec.Command("sh", "tools/whimdelta.sh", "--declared", "80").Output()
+	declared, err := verify.PhaseDeclared(80)
 	if err != nil {
 		return harness.ErrReported
 	}
@@ -57,7 +57,7 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 	alnum := regexp.MustCompile(`^[A-Za-z0-9]*$`)
-	for _, c := range strings.Fields(string(declared)) {
+	for _, c := range declared {
 		if !alnum.MatchString(c) {
 			continue
 		}

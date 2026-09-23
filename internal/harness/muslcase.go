@@ -13,13 +13,13 @@ import (
 )
 
 // muslCase is tools/muslcase.py: musl's Unicode case mapping, as a table
-// zero-vim.c can carry itself.
+// whim-vim.c can carry itself.
 //
-// zero-vim.c called towupper()/towlower() from utf_toupper()/utf_tolower(),
+// whim-vim.c called towupper()/towlower() from utf_toupper()/utf_tolower(),
 // and phase 98 vendors them.  musl implements both with a two-level
 // base-6 packed table and forty lines of bit arithmetic, which is exactly what
 // this repository's "obvious, simple, idiomatic C" rule is not -- but the SAME
-// MAPPING fits the shape zero-vim.c already has: convertStruct rows of
+// MAPPING fits the shape whim-vim.c already has: convertStruct rows of
 // {rangeStart, rangeEnd, step, offset}, searched by utf_convert(), which is how
 // vim carries its own case tables.
 //

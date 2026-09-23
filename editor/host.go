@@ -1634,7 +1634,7 @@ const HOST_ARENA_BYTES = 1024 * 1024 * 1024
 var host_arena_used usize
 
 func host_arena_exhausted(n usize) {
-	m := "zero-vim: host arena exhausted: " + hostUtoa(HOST_ARENA_BYTES) + " bytes, " +
+	m := "whim-vim: host arena exhausted: " + hostUtoa(HOST_ARENA_BYTES) + " bytes, " +
 		hostUtoa(host_arena_used) + " used, request " + hostUtoa(n) + "\n"
 	b := Mk[byte](len(m) + 1)
 	copy(b.Slice(len(m)), m)

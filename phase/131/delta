@@ -1,2 +1,0 @@
-# 131 declares nothing: the saved input buffer was always a garray_T cast to
-# char_u * and back; it is declared what it is.

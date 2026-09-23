@@ -233,7 +233,7 @@ func Check(w io.Writer, args []string) error {
 	_ = exec.Command("sh", "tools/st.sh", "termcheck", bin, termFile).Run()
 	if !strings.Contains(check.ReadFile(termFile), "(none)") {
 		r.Say("termcheck still works on this binary -- then the file")
-		r.Cont("  argument was not removed, and zrecord.sh need not have changed")
+		r.Cont("  argument was not removed, and the recording need not have changed")
 		return harness.ErrReported
 	}
 	r.Say("terminal table: ztermcheck records the baseline's %d rows from the input binary; termcheck's file argument now gives %d empty ones",

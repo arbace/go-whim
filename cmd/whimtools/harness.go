@@ -208,7 +208,7 @@ func runZcompare(args []string) int {
 	return 0
 }
 
-// runZrecord is tools/zrecord.sh.
+// runZrecord is one whole recording: harness.ZRecord.
 func runZrecord(args []string) int {
 	if len(args) != 3 {
 		fmt.Fprintln(os.Stderr, "usage: whimtools zrecord <binary> <source> <outdir>")

@@ -7,7 +7,7 @@
 // values and every function's body to tx/CONVENTIONS.md.  crt.go is the C
 // runtime it is written against; host.go is the host the core calls.
 //
-// Regenerate with tx/gen.sh.  Measured: tools/coredelta.sh accepts a build of
+// Regenerate with tx/gen.sh.  Measured: the core delta accepts a build of
 // editor/ exactly as the phase it follows declares.
 
 package main

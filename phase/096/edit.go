@@ -3,7 +3,7 @@ package p096
 // Whim phase 96 -- no `FILE *` that is never opened.  See GOAL.md.
 //
 // Two `static FILE *` survive in this editor and NOTHING HAS EVER OPENED EITHER OF
-// THEM IN ANY BUILD OF zero-vim: `scriptin[NSCRIPT]`, which `-s {scriptfile}` filled
+// THEM IN ANY BUILD OF whim-vim: `scriptin[NSCRIPT]`, which `-s {scriptfile}` filled
 // and which whim removed the option for, and `redir_fd`, which `:redir > file` filled
 // and which whim removed the command for.  So this phase removes the POSSIBILITY
 // rather than a behaviour -- the same situation as phase 92, and the same answer:

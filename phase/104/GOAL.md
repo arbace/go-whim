@@ -120,7 +120,7 @@ eighteen extra bytes it emits after `Vim: Finished.`
 `mainerr`'s `str` and `report_term_error`'s `term` are both argv, so assembling into a
 1024-byte buffer caps a message that used to be unbounded. That is a real behaviour
 change and **no instrument in this pipeline can see it**, because nothing in the corpus
-comes within 800 characters of the bound and `phase/104/delta` is a list of records
+comes within 800 characters of the bound and `phase/104/delta.md` is a list of records
 that moved. So it is not declared; it is pinned as probes, in both directions and in
 both speakers, so it cannot drift:
 

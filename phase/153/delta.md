@@ -1,0 +1,2 @@
+153 declares nothing: free_one_termoption() compares as it did -- equal only
+when both pointers are NULL -- without casting an address to a string.

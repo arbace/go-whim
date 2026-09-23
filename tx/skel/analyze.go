@@ -27,7 +27,9 @@ type uf struct {
 	pun    map[string]string // root -> first reason it holds a non-char address
 }
 
-func newUF() *uf { return &uf{parent: map[string]string{}, flag: map[string]string{}, pun: map[string]string{}} }
+func newUF() *uf {
+	return &uf{parent: map[string]string{}, flag: map[string]string{}, pun: map[string]string{}}
+}
 
 func (u *uf) find(k string) string {
 	if _, ok := u.parent[k]; !ok {

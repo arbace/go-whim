@@ -9,7 +9,7 @@ package p087
 // built from the boundary's own makefile flags.
 //
 // THE DECLARED DELTA IS NOT THE WHOLE EVIDENCE HERE, for two reasons that pull in
-// opposite directions.  `phase/087/delta` says six records move -- `key_Q`,
+// opposite directions.  `phase/087/delta.md` says six records move -- `key_Q`,
 // `key_gQ` and the argv rows `-e`, `-E`, `-e -s`, `-v` -- and tools/coredelta.sh
 // proves that exactly those and nothing else did, against baselines recorded from
 // whim-vim.  What it cannot show is a BEFORE: the baselines are one recording of one
@@ -85,7 +85,7 @@ const (
 // Whim87 is phase 87's check: Ex mode, silent mode and the four options.
 //
 // THE DECLARED DELTA IS NOT THE WHOLE EVIDENCE, for two reasons that pull in
-// opposite directions.  phase/087/delta says six records move and
+// opposite directions.  phase/087/delta.md says six records move and
 // tools/coredelta.sh proves exactly those did.  What it cannot show is a
 // BEFORE: the baselines are one recording of one binary, so "the old one
 // entered Ex mode and the new one beeps" is not a sentence it can say.  The

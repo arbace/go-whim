@@ -58,7 +58,7 @@ package p080
 // no longer runs.  Probed below in both directions.
 // And every removed name leaves the command sweep, which dispatches the names in
 // the table: 489 rows, listed in REMOVED and required to be exactly the stub rows.
-// The rows to cut are the commands this phase declares in phase/080/delta: the
+// The rows to cut are the commands this phase declares in phase/080/delta.md: the
 // declared delta and the cut are one list, kept in one place.
 // The binary this phase is compared against, built from its input before a byte
 // of it moves.  In the background: the edits below do not wait for it, but this

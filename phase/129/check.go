@@ -9,7 +9,7 @@ package p129
 // is silent and the libc surface is the one the stage was handed; and a line
 // holding an emoji is written in the same bytes by both binaries while the
 // CONTROL, `+set noemoji`, writes different ones.  The recording sees none of
-// it -- no case types an emoji -- and moves nothing (phase/129/delta declares
+// it -- no case types an emoji -- and moves nothing (phase/129/delta.md declares
 // nothing for this phase).
 
 import (

@@ -64,7 +64,7 @@ union equals musl's table at every one of `128..255`, the two having disagreed b
 The corpus cannot see any of this — all 102 screen cases seed themselves by typing
 ASCII and none touches `'casemap'`, the Ex sweep reads the message a command prints, the
 argv records are command lines, the pty scenarios are the window size and raw mode. Two
-full recordings are byte-identical in all 106 records, so `phase/112/delta` gains no
+full recordings are byte-identical in all 106 records, so `phase/112/delta.md` gains no
 line. **That is phase 85's situation — a blind harness rather than a static phase — and a
 phase in it owes probes of its own.** Two controls, each computed from the two sources
 rather than spelled out: `vimonly` is the output with musl's contribution taken back

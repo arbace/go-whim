@@ -1,0 +1,34 @@
+91 removes every way to name something else to edit: the five Ex commands `:edit
+:enew :ex :visual :view` -- all one handler -- and the four Normal-mode keys that
+do the same thing from the buffer's own text, `gf gF [f ]f`.  TWO SCREEN CASES AND
+FIVE COMMAND ROWS MOVE, and the two kinds of movement are different:
+
+  `cmd_edit` types `:edit` WITH NO FILE NAME, so what the baselines hold is an
+  editor that got as far as check_changed() and refused, `E37: No write since last
+  change (add ! to override)`.  It is `E492: Not an editor command: edit` now.
+  `key_gf` presses `gf` on a word that names nothing, so what the baselines hold
+  is `E447: Can't find file "nosuchfile" in path` -- an editor that LOOKED.  The
+  key beeps from nv_g_cmd's `default: clearopbeep` now, where every other unused
+  `g` key does: the record loses one snapshot and keeps its ONE BELL either side,
+  so what moved is the screen and the snapshot count and not the bell.
+  the five ref-excmds.txt rows do not change message: they CEASE TO EXIST.
+  tools/zexcmds.py enumerates the table through create_cmdidxs' names(), which
+  reads 99 names where it read 104 -- and 99 is under the floor that tool had, so
+  this phase lowers it to 80 (GOALS.md II decision 8) in its own commit.
+
+Nothing else moves.  Measured with tools/zcompare.py: the other 100 screen cases,
+the other 94 command rows, all 30 command lines, the four pty scenarios and the
+terminal table are identical -- `:earlier`, `:vglobal`, `:vmap` and `:file` among
+them, which is the inheritance check five removed names ask for, and `:q` on a
+modified buffer (still E37: check_changed stays and is the `:q` phase's).
+
+THE CORPUS SEES TWO CASES AND NEITHER OPENS A FILE, which is why phase/091/check.sh
+runs both binaries: `:e! keys`, `:ex! keys`, `:visual! keys` and `:view! keys` all
+load a file on the input binary, `:view` alone making `:set ro?` answer `readonly`,
+and `:enew!` empties the buffer -- that is the whole of do_exedit, measured from
+outside, and it is the only evidence that what went was opening a file rather than
+two error messages.
+```
+case:cmd_edit case:key_gf
+edit enew ex view visual
+```

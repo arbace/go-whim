@@ -100,7 +100,7 @@ not an adversary.
 
 ## The declared delta is nothing at all, and it is measured twice
 
-`phase/092/delta` gets a comment for phase 92 and no line, as phases 83, 84 and 86 do.
+`phase/092/delta.md` gets a comment for phase 92 and no line, as phases 83, 84 and 86 do.
 **`diff -rq` over two full `tools/zrecord.sh` recordings — the binary the phase was
 handed against the one it made — is empty**: all 102 screen cases, all 111
 Ex-command rows, all 30 command lines, the four pty scenarios and the nineteen

@@ -113,8 +113,17 @@ func Run(o *Options) ([]byte, error) {
 		case err == nil:
 			text = out
 		case o.KeepGoing:
-			fmt.Fprintf(o.W, "  REFUSED %-4d %v\n", p.N, err)
-			o.Refused = append(o.Refused, fmt.Sprintf("%d: %v", p.N, err))
+			// A PHASE THAT HAS ALREADY SAID WHY RETURNS AN EMPTY ERROR.  Several
+			// edits print their refusal to the report and return `fmt.Errorf("")`,
+			// the same arrangement as harness.ErrReported -- so repeating `%v`
+			// here wrote `REFUSED 127` with nothing after it, and a reader of the
+			// log could not tell a silent refusal from a missing message.
+			why := err.Error()
+			if strings.TrimSpace(why) == "" {
+				why = "(it printed its reason above)"
+			}
+			fmt.Fprintf(o.W, "  REFUSED %-4d %s\n", p.N, why)
+			o.Refused = append(o.Refused, fmt.Sprintf("%d: %s", p.N, why))
 		default:
 			return nil, fmt.Errorf("phase %d (%s): %w", p.N, p.Name, err)
 		}
@@ -220,17 +229,22 @@ func resolve(p Phase, args []string, scratch string) ([]string, error) {
 	return out, nil
 }
 
-// declared is the phase's own declaration, as tools/declared.sh reads it: the
-// tokens of phase/NNN/delta with its notes left out.
+// declared is the phase's own declaration, as verify.Declarations reads it: the
+// tokens inside phase/NNN/delta.md's FENCED BLOCK, with the prose around it left
+// out.  A phase that declares nothing has no block, and yields nothing.
 func declared(n int) (string, error) {
-	b, err := os.ReadFile(fmt.Sprintf("phase/%03d/delta", n))
+	b, err := os.ReadFile(fmt.Sprintf("phase/%03d/delta.md", n))
 	if err != nil {
 		return "", err
 	}
 	var toks []string
+	fence := false
 	for _, ln := range strings.Split(string(b), "\n") {
-		ln = strings.TrimSpace(ln)
-		if ln == "" || strings.HasPrefix(ln, "#") {
+		if strings.HasPrefix(strings.TrimSpace(ln), "```") {
+			fence = !fence
+			continue
+		}
+		if !fence {
 			continue
 		}
 		toks = append(toks, strings.Fields(ln)...)

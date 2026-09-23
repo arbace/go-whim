@@ -1,0 +1,2 @@
+162 declares nothing: a flag is set exactly where a comparison of two
+function pointers was true, and read where it was.
