@@ -117,7 +117,7 @@ const whim100Install = "        if (signal_info[i].deadly)\n" +
 	"            sigaction(signal_info[i].sig, &sa, NULL);\n" +
 	"        }\n"
 
-const whim100Head = "deathtrap  (int sigarg  __attribute__((unused)) ) \n" +
+const whim100Head = "deathtrap(int sigarg __attribute__((unused)))\n" +
 	"{\n" +
 	"    static int entered = 0;\n"
 

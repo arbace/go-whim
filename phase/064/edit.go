@@ -318,7 +318,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	e.InFunction("comp_textwidth", func(e *edit.E) {
 		e.DropIf(`(?m)^[ \t]*if \(ff && textwidth == 0\)$`, "the width gq used when 'textwidth' is 0")
-		e.Literal("comp_textwidth(int         ff)", "comp_textwidth(void)", "comp_textwidth without its gq flag")
+		e.Literal("comp_textwidth(int ff)", "comp_textwidth(void)", "comp_textwidth without its gq flag")
 	})
 	e.Literal("static int comp_textwidth(int ff);", "static int comp_textwidth(void);", "comp_textwidth's prototype")
 	e.Literal("cols = comp_textwidth(FALSE);", "cols = comp_textwidth();", "the change list asking for the width")

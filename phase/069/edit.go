@@ -147,7 +147,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"the argument entry type")
 
 	// and the count message, which one file argument can never satisfy
-	e.Cut(`(?m)^[ \t]*if \( \(global_alist\.al_ga\.ga_len\)  > 1 && !silent_mode\)\n[ \t]*\{\n[ \t]*printf\(_\("%d files to edit\\n"\),  \(global_alist\.al_ga\.ga_len\) \);\n[ \t]*\}\n\n?`, 1,
+	e.Cut(`(?m)^[ \t]*if \(\(global_alist\.al_ga\.ga_len\) > 1 && !silent_mode\)\n[ \t]*\{\n[ \t]*printf\(_\("%d files to edit\\n"\), \(global_alist\.al_ga\.ga_len\)\);\n[ \t]*\}\n\n?`, 1,
 		"the \"N files to edit\" message at startup")
 	return e.Done()
 }

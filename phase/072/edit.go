@@ -114,7 +114,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// 1. the constant tests, before anything renames what they compare.
 	// ONE_WINDOW, expanded at three sites and missed by phase 68, which only
 	// folded the one_window()/last_window()/only_one_window() functions.
-	e.LiteralN("(firstwin == lastwin) ", "TRUE ", 3, "ONE_WINDOW, expanded in place")
+	e.LiteralN("(firstwin == lastwin)", "TRUE", 3, "ONE_WINDOW, expanded in place")
 	e.LiteralN("wp == firstwin", "TRUE", 2, "win_update asking whether this is the top window")
 	e.Literal("wp == lastwin", "wp == curwin", "win_redr_ruler asking for the bottom window")
 
