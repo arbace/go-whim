@@ -111,7 +111,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	text, err = e.inFunction(text, "can_abandon", func(s []byte) ([]byte, error) {
-		return e.literal(s, "(       buf_hide(buf) || ", "(", "can_abandon a hidden buffer", 1)
+		return e.literal(s, "(buf_hide(buf) || ", "(", "can_abandon a hidden buffer", 1)
 	})
 	if err != nil {
 		return nil, err
@@ -305,8 +305,8 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 
 	text, err = e.inFunction(text, "alist_add", func(s []byte) ([]byte, error) {
 		return e.subCountRepl(s,
-			`(?m)^([ \t]*)if \(set_fnum > 0\)\n[ \t]*\{\n([ \t]*\(\(aentry_T \*\)\(\(al\)->al_ga\.ga_data\)\) \[al->al_ga\.ga_len\]\.ae_fnum =)\n`+
-				`[ \t]*buflist_add\(fname, BLN_LISTED \| \(set_fnum == 2 \? BLN_CURBUF : 0\)\);\n[ \t]*\}\n`,
+			`(?m)^([ \t]*)if \(set_fnum > 0\)\n[ \t]*\{\n([ \t]*\(\(aentry_T \*\)\(\(al\)->al_ga\.ga_data\)\)\[al->al_ga\.ga_len\]\.ae_fnum =)`+
+				` buflist_add\(fname, BLN_LISTED \| \(set_fnum == 2 \? BLN_CURBUF : 0\)\);\n[ \t]*\}\n`,
 			"${2} 0;\n${1}if (set_fnum == 2 && curbuf_reusable())\n${1}{\n${2}\n${1}        buflist_add(fname, BLN_LISTED | BLN_CURBUF);\n${1}}\n",
 			"an argument naming a buffer only when it is the empty startup one", 1)
 	})

@@ -286,7 +286,7 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 	} {
 		if text, err = e.subOnce(text,
 			`^[ \t]*case \(idopt_T\)\(PV_WIN \+ \(int\)\(WV_`+v.wv+`\)\):\n`+
-				`[ \t]*return \(char_u \*\)&\(curwin->w_onebuf_opt\.wo_`+v.fld+` \);\n`,
+				`[ \t]*return \(char_u \*\)&\(curwin->w_onebuf_opt\.wo_`+v.fld+`\);\n`,
 			"get_varp for WV_"+v.wv); err != nil {
 			return nil, err
 		}
@@ -429,7 +429,7 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 		}
 		if s, err = e.subOnce(s,
 			`^[ \t]*wp = firstwin;\n[ \t]*switch \(eap->cmdidx\)\n[ \t]*\{\n[ \t]*case CMD_windo:\n`+
-				`[ \t]*for \( ; wp != NULL && i \+ 1 < eap->line1; wp = wp->w_next\)\n[ \t]*\{\n[ \t]*i\+\+;\n`+
+				`[ \t]*for \(; wp != NULL && i \+ 1 < eap->line1; wp = wp->w_next\)\n[ \t]*\{\n[ \t]*i\+\+;\n`+
 				`[ \t]*\}\n[ \t]*break;\n[ \t]*default:\n[ \t]*break;\n[ \t]*\}\n`,
 			":windo's starting window"); err != nil {
 			return nil, err
@@ -441,7 +441,7 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 		for _, l := range []struct{ old, what string }{
 			{"    int i;\n    win_T *wp;\n", "ex_listdo declaring its counters"},
 			{"        i = 0;\n", "ex_listdo starting the count"},
-			{"            ++i;\n\n", "ex_listdo counting"},
+			{"            ++i;\n", "ex_listdo counting"},
 		} {
 			if s, err = e.literal(s, l.old, "", l.what, 1); err != nil {
 				return nil, err

@@ -94,7 +94,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.FoldNever(`(?m)^[ \t]*else if \(mode & MODE_LANGMAP\)$`, "listing a mapping as 'l'")
 	})
 	e.InFunction("win_redr_status", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(\(NameBufflen = get_keymap_str\(wp, \(char_u \*\)"<%s>", NameBuff,  PATH_MAX \)\) > 0`,
+		e.DropIf(`(?m)^[ \t]*if \(\(NameBufflen = get_keymap_str\(wp, \(char_u \*\)"<%s>", NameBuff, PATH_MAX\)\) > 0`,
 			"the status line's <lang>")
 	})
 	return e.Done()

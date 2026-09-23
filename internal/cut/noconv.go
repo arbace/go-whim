@@ -460,7 +460,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 
 	if text, err = e.inFunction(text, "mb_tail_off", func(s []byte) ([]byte, error) {
 		return e.literal(s,
-			"    return i;\n\n    return 0;\n\n    return 1 - dbcs_head_off(base, p);\n",
+			"    return i;\n    return 0;\n    return 1 - dbcs_head_off(base, p);\n",
 			"    return i;\n", "mb_tail_off's dead DBCS returns", 1)
 	}); err != nil {
 		return nil, err
