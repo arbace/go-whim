@@ -363,7 +363,7 @@ The copy that every later phase is measured against. Stage `0`.
 
 | phase | title | stage |
 | --- | --- | --- |
-| 0 | seed, and prove the copy is a copy | `0` |
+| 0 | seed, in the one spelling every later phase reads | `0` |
 
 ### environment
 
@@ -696,7 +696,7 @@ shape is stated. A phase's account is a record of how it was measured, and it is
 left as it was measured -- rewriting the history to name today's tools would
 make it a worse record and no truer.
 
-- [Phase 0 — seed, and prove the copy is a copy](phase/000/GOAL.md)
+- [Phase 0 — seed, in the one spelling every later phase reads](phase/000/GOAL.md)
 - [Phase 1 — no `$VIMRUNTIME`](phase/001/GOAL.md)
 - [Phase 2 — the options for features that are not here](phase/002/GOAL.md)
 - [Phase 3 — no introduction, and the command line says only what the editor still decides](phase/003/GOAL.md)
