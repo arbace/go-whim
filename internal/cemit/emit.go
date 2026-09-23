@@ -290,12 +290,25 @@ func includes(src []byte) ([]string, int) {
 
 // Canonical parses a translation unit and prints its canonical form.  The
 // front end needs a path because a diagnostic without one names nothing.
+//
+// PARSE AND NOT TRANSLATE, because this printer reads SYNTAX and never a type:
+// nothing in this package asks the front end for a `.Type()`, a `.Value()` or a
+// resolved field, and `enum : long` survives because the printer takes it from
+// the EnumSpecifier rather than from what the enum resolves to.  Measured:
+// byte-identical output on whim-vim.c and on editor.c either way.
+//
+// The reason to do it is what it makes POSSIBLE, not what it saves.  The type
+// check refuses a text that is momentarily inconsistent -- a struct member
+// removed while a use of it survives in a function that is about to be swept --
+// which is exactly the shape of the text BETWEEN a phase's edit and its sweep.
+// Parsing prints that text and reaches a fixpoint on a second pass, so
+// canonicalisation is available there; translating refuses it.
 func Canonical(path string, src []byte) ([]byte, error) {
 	cfg, err := cc.NewConfig("linux", "amd64")
 	if err != nil {
 		return nil, err
 	}
-	ast, err := cc.Translate(cfg, []cc.Source{
+	ast, err := cc.Parse(cfg, []cc.Source{
 		{Name: "<predefined>", Value: cfg.Predefined},
 		{Name: "<builtin>", Value: cc.Builtin},
 		{Name: path, Value: string(src)},
