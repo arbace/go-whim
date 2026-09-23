@@ -115,8 +115,17 @@ func Run(o *Options) ([]byte, error) {
 		case err == nil:
 			text = out
 		case o.KeepGoing:
-			fmt.Fprintf(o.W, "  REFUSED %-4d %v\n", p.N, err)
-			o.Refused = append(o.Refused, fmt.Sprintf("%d: %v", p.N, err))
+			// A PHASE THAT HAS ALREADY SAID WHY RETURNS AN EMPTY ERROR.  Several
+			// edits print their refusal to the report and return `fmt.Errorf("")`,
+			// the same arrangement as harness.ErrReported -- so repeating `%v`
+			// here wrote `REFUSED 127` with nothing after it, and a reader of the
+			// log could not tell a silent refusal from a missing message.
+			why := err.Error()
+			if strings.TrimSpace(why) == "" {
+				why = "(it printed its reason above)"
+			}
+			fmt.Fprintf(o.W, "  REFUSED %-4d %s\n", p.N, why)
+			o.Refused = append(o.Refused, fmt.Sprintf("%d: %s", p.N, why))
 		default:
 			return nil, fmt.Errorf("phase %d (%s): %w", p.N, p.Name, err)
 		}
