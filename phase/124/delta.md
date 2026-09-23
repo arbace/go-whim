@@ -111,7 +111,7 @@ ALL moves 0 of 102 and 0 of 16, and that is PHASE 118'S OWN `cf` CONTROL re-run 
 phase's input rather than a new claim -- on a corpus phase 118 did not have.  A leak is
 invisible to this corpus too, so the byte-identical recording is NOT what says the
 freeing changed; `free` leaving nm -u is.  And the guard, which no recording can ever
-take: with a 256 KiB arena a bare session aborts with `zero-vim: host arena exhausted:
+take: with a 256 KiB arena a bare session aborts with `whim-vim: host arena exhausted:
 262144 bytes, 113024 used, request 319968` and exits 1 -- the request that did not fit
 being the screen, this editor's single largest allocation -- while the identical session
 on the 1 GiB output writes nothing to stderr and exits 0.

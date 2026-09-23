@@ -9,7 +9,7 @@
 // Bytes, not strings, throughout.  The Python reads and writes with
 // errors='surrogateescape', which is a way of carrying bytes that are not
 // valid UTF-8 through a str unchanged; operating on []byte is the same thing
-// without the round trip.  Measured: slim-vim.c, whim-vim.c and zero-vim.c
+// without the round trip.  Measured: slim-vim.c and whim-vim.c
 // contain no byte >= 0x80 and no tab at all, so the two agree here regardless.
 package canon
 

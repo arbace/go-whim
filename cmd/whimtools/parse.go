@@ -10,7 +10,7 @@ import (
 
 // runParse is the front end's smoke test: it parses a whole product and
 // reports how long that took.  It proves the PATCHED cc/v4 is the one linked
-// in, because whim-vim.c and zero-vim.c do not parse without the patch --
+// in, because whim-vim.c does not parse without the patch --
 // twenty '[[fallthrough]];' and two labels at the end of a compound
 // statement.  A build against pristine cc/v4 fails here, loudly, which is what
 // makes this a check rather than a demonstration.
