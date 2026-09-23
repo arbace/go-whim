@@ -185,7 +185,7 @@ tally, and this document **names** the kinds rather than counting them, because 
 written into a phase section is frozen on the day it is written while the list keeps
 growing: phase 101's section says *a sixth kind* over one merge of the list and phase 109's
 says *a sixth kind* over another, and both were true when written. **`CLAUDE.md` carries
-the one numbered list**, keyed to the order the kinds first appear in `phase/122/delta`,
+the one numbered list**, keyed to the order the kinds first appear in `phase/122/delta.md`,
 and where an ordinal here and an ordinal there disagree, that one is the current one. The
 kinds, by name:
 

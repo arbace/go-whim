@@ -216,7 +216,7 @@ build they move **and** stop showing the Greek capital.
 Two full recordings, the binary the phase was handed against the one it made, are
 byte-identical — all 102 screen cases, all 111 Ex-command rows, all 30 command lines,
 the four pty scenarios and the nineteen terminal rows — and `tools/coredelta.sh --phase
-98` finds the same against whim-vim's frozen baselines. `phase/098/delta` gets a
+98` finds the same against whim-vim's frozen baselines. `phase/098/delta.md` gets a
 comment and no line.
 
 ## Measured

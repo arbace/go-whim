@@ -103,7 +103,7 @@ deterministic over repeated runs.
 
 ## The declared delta is nothing at all
 
-`phase/101/delta` gets a comment and no line, and this is a **sixth** kind of empty
+`phase/101/delta.md` gets a comment and no line, and this is a **sixth** kind of empty
 declaration. The five before it each removed *something*: **9** code that could not run,
 **12** code that can run and that the instrument cannot see, **13** a possibility, **16**
 no code at all with the binary the same bytes, **14** and **15** code replaced by code

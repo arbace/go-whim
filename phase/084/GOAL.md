@@ -37,7 +37,7 @@ objects of the same source, so the check is one that can fail, and a compiler wh
 default changed is reported rather than silently passing; `whim-vim.c` is unchanged;
 the binary is still absolutely static (`EXEC`, no `INTERP`, no dynamic section, no
 relocation); and `tools/coredelta.sh --phase 84` sees no behaviour case, no Ex command
-and no terminal-table row move against whim-vim's baselines. `phase/084/delta`
+and no terminal-table row move against whim-vim's baselines. `phase/084/delta.md`
 declares nothing for it, because a canary is code around the locals and not
 behaviour.
 

@@ -1061,8 +1061,8 @@ func Check(w io.Writer, args []string) error {
 	// --- 9. what this phase declares ---------------------------------------------------
 	decl, _ := exec.Command("sh", "tools/coredelta.sh", "--declared", "125").Output()
 	if strings.Join(strings.Fields(string(decl)), "") != "" {
-		return die("phase/125/delta declares something for phase 125, and this phase declares nothing at all")
+		return die("phase/125/delta.md declares something for phase 125, and this phase declares nothing at all")
 	}
-	say("phase/125/delta declares NOTHING for this phase, and that is two statements and not one: the negative-block island could not run, and block zero ran everywhere and was never read")
+	say("phase/125/delta.md declares NOTHING for this phase, and that is two statements and not one: the negative-block island could not run, and block zero ran everywhere and was never read")
 	return nil
 }

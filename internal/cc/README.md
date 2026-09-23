@@ -1,8 +1,15 @@
 # internal/cc — the C front end, forked
 
-modernc.org/cc/v4 v4.29.7, the fifteen non-test files, with
-`tools/patches/cc-v4-c23.patch` applied in place. Upstream's BSD licence is
-beside this file and the copyright stays with The CC Authors.
+modernc.org/cc/v4 v4.29.7, the fifteen non-test files, with two C23 productions
+added. Upstream's BSD licence is beside this file and the copyright stays with
+The CC Authors.
+
+**The delta is the source here, and nowhere else.** It was a patch under
+`tools/patches/` while the fork was composed at build time; once the fork became
+tracked source the patch was a second copy of the same change, so it is gone.
+To see what this differs from upstream by:
+
+    diff -ru "$(go env GOMODCACHE)/modernc.org/cc/v4@v4.29.7" internal/cc
 
 **It is source here, not a composition.** It used to be assembled at build time:
 `tools/gobuild.sh` copied the module out of the cache into `.cache/gofork/`,
@@ -20,7 +27,8 @@ test that this fork, and not a pristine one, is what got linked: whim-vim.c does
 not parse without them.
 
 **Upstream is still named**, in go.mod's comment and here, so a later version can
-be diffed against this tree: copy the new release's non-test files over, apply
-the patch, and let the build and `whimtools parse` say whether it still holds.
+be diffed against this tree: take the delta above, copy the new release's
+non-test files over, apply it, and let the build and `whimtools parse` say
+whether it still holds.
 The test files are left behind deliberately -- they pull in modernc.org/ccorpus2,
 a corpus this repository has no use for.

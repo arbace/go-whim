@@ -148,7 +148,7 @@ and that the instrument cannot see**. Measured record by record:
 So a phase that did nothing and a phase that did everything have the same recording.
 `diff -rq` over two full recordings — the binary the phase was handed against the one
 it made — is **empty**, and `tools/coredelta.sh --phase 95` finds the nine lines phases
-85 to 94 declared and nothing new. `phase/095/delta` gets a comment and no line.
+85 to 94 declared and nothing new. `phase/095/delta.md` gets a comment and no line.
 
 ## The probes, which are not a supplement but the check
 

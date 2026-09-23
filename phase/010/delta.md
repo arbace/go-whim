@@ -1,0 +1,8 @@
+ONE row moves, not fifteen.  Retiring a command only shows up in the sweep if
+the command used to SUCCEED: :tag, :tjump and the rest already failed with no
+tags file to read, and ex_ni fails too, so their recorded exit is unchanged.
+:tags listed an empty tag stack and exited 0, and now reports instead.  The
+declared list is what moved, not what was cut.
+```
+tags
+```

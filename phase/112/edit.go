@@ -64,7 +64,7 @@ package p112
 // read musl's table and now read the union -- 96 upper and 96 lower codepoints gain a
 // mapping they never had, and the sharp s keeps the one it had.  On the DEFAULT arm,
 // which reads vim's table, the single row arrives.  Six probe sessions move and six do
-// not; `phase/112/delta` gains no line, because the recorded corpus cannot see any of
+// not; `phase/112/delta.md` gains no line, because the recorded corpus cannot see any of
 // it.
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).  The check needs

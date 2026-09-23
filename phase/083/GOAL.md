@@ -31,7 +31,7 @@ before:
    means a harness or the input changed, and has to be named. If it does not exist,
    it is written.
 4. **whim-vim does exactly what whim-vim does.** `tools/coredelta.sh zero/whim-vim
-   zero/whim-vim.c --phase 83`, with `phase/083/delta` empty, requires no behaviour
+   zero/whim-vim.c --phase 83`, with `phase/083/delta.md` empty, requires no behaviour
    case, no Ex command and not the terminal table to move — so `-no-pie` changed
    nothing a harness sees. And `tools/whimdelta.sh --phase 82` on the same binary,
    against slim-vim's baselines, shows whim's whole declared delta still holds: the

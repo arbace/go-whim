@@ -76,7 +76,7 @@ the probe proving it can pass, in the same run.
 
 ## The declared delta is nothing at all, and it is the strongest kind and not the weakest
 
-`phase/120/delta` gets a comment and no line. This is phase 99's and phase 106's kind — a
+`phase/120/delta.md` gets a comment and no line. This is phase 99's and phase 106's kind — a
 `cmp` of the binary — so the phase owes no probes, unlike 103 and 105, and asks nobody to
 believe a replacement does what an original did, unlike 97 and 98. Two full
 `tools/zrecord.sh` recordings are identical across all 106 records, and the check says in

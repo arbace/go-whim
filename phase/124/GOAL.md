@@ -56,7 +56,7 @@ which the arena does not change, and an untouched arena page costs nothing. Meas
 same source at 64 MiB and at 1 GiB gives a **byte-identical image**, 772,872 either way,
 because `.bss` is `NOBITS`. The size buys one thing, how far a runaway goes before it
 dies loudly, and costs one thing, address space. The wrong argument and the measurement
-that killed it are both in `phase/124/delta`, so the correction survives outside the git
+that killed it are both in `phase/124/delta.md`, so the correction survives outside the git
 log.
 
 ## And one measurement says why no number is safe

@@ -326,7 +326,7 @@ musl_wait_for_input(long ms)
 
 ## The declared delta is nothing at all, and it is phase 85's kind
 
-`phase/103/delta` gets a comment block and no line. Two full recordings either side
+`phase/103/delta.md` gets a comment block and no line. Two full recordings either side
 are **byte-identical** — 102 screen cases, `ref-excmds.txt`, `ref-argv.txt`,
 `ref-pty.txt`, `ref-term.txt` — and `tools/coredelta.sh --phase 103` finds the corpus
 unmoved: 102 of 102, 111 of 111, 30 of 30.

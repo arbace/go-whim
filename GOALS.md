@@ -19,7 +19,7 @@ has to say which and prove it removed nothing else.
 
 **A phase is a directory, `phase/NNN/`**, its number in three digits: its program
 (`make.sh`, or `edit.sh` and `check.sh`), its `GOAL.md` — what it removes and why,
-and what was measured — and its declared `delta`. This document is what holds for
+and what was measured — and its declared `delta.md`. This document is what holds for
 all of them: the charters, the rules, what is measured, and an index of the
 phases in each part.
 
@@ -64,7 +64,7 @@ the phase is wrong.**
 
 ### The declared delta, phases 0 to 82
 
-Each phase declares what it changes, in advance, in its own `phase/NNN/delta`: a
+Each phase declares what it changes, in advance, in its own `phase/NNN/delta.md`: a
 token per way the binary moves, and `#` notes saying why. A phase with no token
 declares nothing new. `tools/whimdelta.sh --phase N` reads every declaration up to
 phase N (through `tools/declared.sh`) and checks the binary moved in exactly that
@@ -90,7 +90,7 @@ other baselines with another instrument, and `tools/whimdelta.sh` hands it to
 `tools/coredelta.sh` (Part II, *What is measured from phase 83 on*). The list to 82
 is not retired there: phase 83 checks the whole of it once more against its
 `-no-pie` binary and slim-vim's baselines. A phase's declaration is read from
-`phase/NNN/delta` through `tools/declared.sh` — the tokens, not the notes.
+`phase/NNN/delta.md` through `tools/declared.sh` — the tokens, not the notes.
 
 ## The rules
 
@@ -182,7 +182,7 @@ parts. A phase is a directory, `phase/NNN/`, its number in three digits.
    `phase/NNN/check.go` — `tools/phasecheck.sh`, `tools/phasebuild.sh` and
    the probes. Neither sweeps at its end and neither checks the delta; anything
    the check needs from the edit goes in the state directory by name.
-2. **Declare its delta** in `phase/NNN/delta`: its tokens — `command… case:name…` —
+2. **Declare its delta** in `phase/NNN/delta.md`: its tokens — `command… case:name…` —
    or `# declares nothing` if the harness sees nothing new, before running it, and
    write its `GOAL.md`, which opens `# Phase N — what it does`. (From phase 83 on
    the delta is measured against other baselines: Part II.)
@@ -682,7 +682,7 @@ Relied on by: 80 (`commands`).
 ## Phases 0 to 82
 
 Each phase is a directory, `phase/NNN/`, and a Go package: `edit.go` is its cut,
-`check.go` its evidence, `GOAL.md` what it removes and why, and `delta` what it
+`check.go` its evidence, `GOAL.md` what it removes and why, and `delta.md` what it
 declares.
 
 **THE ACCOUNTS BELOW NAME THE TOOLS THAT RAN AT THE TIME**, and a few of those
@@ -1102,7 +1102,7 @@ reaching the set the launcher, and not the core, supplies.
 
 ### The declared delta, phases 83 on
 
-Each phase from 83 declares what it changes in its own `phase/NNN/delta`, as Part
+Each phase from 83 declares what it changes in its own `phase/NNN/delta.md`, as Part
 I's phases do, and `tools/coredelta.sh --phase N` reads every declaration from 83
 to N and checks the binary moved in exactly that way — and nothing else (core rule
 2). The tokens:
@@ -2118,7 +2118,7 @@ number in three digits, and this is how one would join now.
 1. **Write it in Go**: `phase/NNN/` is a package of its own, `pNNN` -- `edit.go`
    is its cut and `check.go` its evidence, each registering itself in an
    `init()`, and `phase/registry.go` gains a line so they are linked in.
-2. **Declare its delta** in `phase/NNN/delta`, before running it: every phase
+2. **Declare its delta** in `phase/NNN/delta.md`, before running it: every phase
    from 83 on is measured against `.reference/core-baselines` with
    `tools/zrecord.sh`, and `tools/whimdelta.sh` hands it to
    `tools/coredelta.sh`.
@@ -2144,7 +2144,7 @@ requires the committed bytes back from the committed input.
 ## Phases 83 to 162
 
 Each phase is a directory, `phase/NNN/`: its program, its `GOAL.md` and its
-declared `delta`.
+declared `delta.md`.
 
 - [Phase 83 — the core's compile line, and the baselines it is measured against](phase/083/GOAL.md)
 - [Phase 84 — the stack protector goes](phase/084/GOAL.md)

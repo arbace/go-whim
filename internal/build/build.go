@@ -232,16 +232,21 @@ func resolve(p Phase, args []string, scratch string) ([]string, error) {
 }
 
 // declared is the phase's own declaration, as tools/declared.sh reads it: the
-// tokens of phase/NNN/delta with its notes left out.
+// tokens inside phase/NNN/delta.md's FENCED BLOCK, with the prose around it left
+// out.  A phase that declares nothing has no block, and yields nothing.
 func declared(n int) (string, error) {
-	b, err := os.ReadFile(fmt.Sprintf("phase/%03d/delta", n))
+	b, err := os.ReadFile(fmt.Sprintf("phase/%03d/delta.md", n))
 	if err != nil {
 		return "", err
 	}
 	var toks []string
+	fence := false
 	for _, ln := range strings.Split(string(b), "\n") {
-		ln = strings.TrimSpace(ln)
-		if ln == "" || strings.HasPrefix(ln, "#") {
+		if strings.HasPrefix(strings.TrimSpace(ln), "```") {
+			fence = !fence
+			continue
+		}
+		if !fence {
 			continue
 		}
 		toks = append(toks, strings.Fields(ln)...)

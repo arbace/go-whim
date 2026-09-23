@@ -5,7 +5,7 @@
 #        tools/whimdelta.sh <binary> <source> [--term-moved] [--cases c1,c2] [commands...]
 #        tools/whimdelta.sh --declared N
 #
-# --phase N checks the delta the phases declare up to phase N (phase/NNN/delta, read
+# --phase N checks the delta the phases declare up to phase N (phase/NNN/delta.md, read
 # through tools/declared.sh): every declaration for a phase <= N, a command added by its name and taken out by drop:name, a case
 # by case:name, the terminal table by term-moved.  tools/phaserun.sh calls it once
 # per stage, for the stage's last phase, because the list up to a phase is the

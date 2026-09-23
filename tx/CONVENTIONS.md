@@ -7,7 +7,7 @@
 > `editor/editor.go` by hand. The per-file pieces it
 > names (`types.go`, `globals.go`, the chunk files) and its checking script
 > were folded into `editor/editor.go` afterwards; `tx/skel` regenerates the
-> generated part and `tx/sigs.txt` is the signature list the pass used.
+> generated part and `tx/sigs.md` is the signature list the pass used.
 
 `editor.c` (the core of `whim-vim.c`, cut at its first `#include`) is being
 transpiled **by hand** into the Go package `editor/` (`package main`),
@@ -28,7 +28,7 @@ exactly as the C does.
   initializers), and every **block-scope `static`** hoisted to a global named
   `<function>_<name>` (e.g. `static int entered` in `deathtrap` is
   `deathtrap_entered`).
-- `tx/sigs.txt` — **the Go signature of every function**. Copy yours
+- `tx/sigs.md` — **the Go signature of every function**. Copy yours
   verbatim; call everyone else's exactly as written there. A parameter's Go
   type was decided by a whole-file analysis you cannot redo from one chunk.
 
@@ -210,5 +210,5 @@ print `check: <name> compiles` before you are done.
 
 When your file compiles, end with a short report: what you could not
 translate faithfully and how you adapted it; every place `types.go`,
-`globals.go` or `sigs.txt` looked wrong; every union read through a member it
+`globals.go` or `sigs.md` looked wrong; every union read through a member it
 was not written through; anything you are unsure behaves as the C does.

@@ -59,7 +59,7 @@ package p112
 // table at every one of 128..255, the two having disagreed below U+0100 at U+00DF alone
 // and the union taking musl's answer there.
 //
-// AND THE RECORDED CORPUS CANNOT SEE ANY OF IT, so `phase/112/delta` gains no line.
+// AND THE RECORDED CORPUS CANNOT SEE ANY OF IT, so `phase/112/delta.md` gains no line.
 // All 102 screen cases seed themselves by typing ASCII and none of them touches
 // `'casemap'`; two full recordings are byte-identical.  That is phase 85's
 // situation -- a blind harness rather than a static phase -- and a phase in it owes

@@ -23,7 +23,7 @@ import (
 // Phases 129 onwards turn tx/FINDINGS.md into pipeline phases: each removes
 // from the C a construct the Go transpilation (editor/editor.go) had to work
 // around, and changes nothing the editor does.  So every one of them declares
-// NOTHING in its phase/NNN/delta, and the stage's delta check is the recording
+// NOTHING in its phase/NNN/delta.md, and the stage's delta check is the recording
 // staying byte for byte what it was; the probes here are for what the
 // recording cannot see.
 type core struct {

@@ -221,7 +221,7 @@ pass stays as it was wherever the C did not change. What changed:
   and applied the C diff;
 - **deleted:** the 15 functions the phases removed;
 - **regenerated:** the types, globals and signatures (`tx/skel`,
-  `tx/sigs.txt`). Where a pointer decision flipped with them (the `xp_files`
+  `tx/sigs.md`). Where a pointer decision flipped with them (the `xp_files`
   arrays, `buflist_findnr()`'s result, the searched tables), the few callers
   were adapted.
 

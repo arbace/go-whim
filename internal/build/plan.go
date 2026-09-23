@@ -23,7 +23,7 @@
 //	@minmax    the host's MIN and MAX, asked of the preprocessor
 //	           (steps.MinMax) exactly as phase 109's program asked.
 //	Declared   phase 80 alone: its edit wants the rows it must find as stubs,
-//	           which is what the phase declares in phase/080/delta.
+//	           which is what the phase declares in phase/080/delta.md.
 package build
 
 // A Step is one call: an op in internal/steps and its arguments.

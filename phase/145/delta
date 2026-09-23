@@ -1,2 +1,0 @@
-# 145 declares nothing: an OSC response arriving over several reads is handled
-# in the jump's own if, and the code the jump skipped is its else, byte for byte.

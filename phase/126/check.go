@@ -1044,9 +1044,9 @@ func Check(w io.Writer, args []string) error {
 	// --- 10. what this phase declares ---------------------------------------------------
 	decl, _ := exec.Command("sh", "tools/coredelta.sh", "--declared", "126").Output()
 	if strings.Join(strings.Fields(string(decl)), "") != "" {
-		return die("phase/126/delta declares something for phase 126, and this phase declares nothing at all")
+		return die("phase/126/delta.md declares something for phase 126, and this phase declares nothing at all")
 	}
-	say("phase/126/delta declares NOTHING for this phase: CLAUDE.md's sixth kind, the code runs and the instrument " +
+	say("phase/126/delta.md declares NOTHING for this phase: CLAUDE.md's sixth kind, the code runs and the instrument " +
 		"sees it do the same thing.  One statement inside it is the second kind -- E323's text, which can run and " +
 		"no recording reaches -- and section 9 is the probe it owes")
 	return nil

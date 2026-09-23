@@ -167,7 +167,7 @@ and every spelling of a jump must be **absent**.
 
 ## The declared delta is nothing at all
 
-`phase/102/delta` gets a comment and no line, and it is phase 101's kind. Everything
+`phase/102/delta.md` gets a comment and no line, and it is phase 101's kind. Everything
 `mch_exit` does before the changed line is untouched — the terminal restored, the
 screen scrolled, the memfile closed — so what the editor *draws* on its way out cannot
 move, and the recording is of what the editor draws. **18 and 102 are the first two

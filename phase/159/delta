@@ -1,2 +1,0 @@
-# 159 declares nothing: an array inside its struct or behind a pointer holds the
-# same bytes; nothing copied, sized or declared the three structs but the heads.
