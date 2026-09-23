@@ -90,7 +90,7 @@ var w139Site = regexp.MustCompile(`\((keyvalue_T|struct key_name_entry) \*\)musl
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "typed", W: w}
 	var err error
-	kvCast := "    keyvalue_T *kv1 = (keyvalue_T *)a;\n    keyvalue_T *kv2 = (keyvalue_T *)b;\n    "
+	kvCast := "    keyvalue_T *kv1 = (keyvalue_T *)a;\n    keyvalue_T *kv2 = (keyvalue_T *)b;\n"
 	steps := []struct {
 		Old, New, What string
 		n              int

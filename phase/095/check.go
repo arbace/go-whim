@@ -121,8 +121,8 @@ var z12Kept = map[string]int{
 }
 
 const (
-	z12CPO     = `return did_set_option_listflag(*varp, (char_u *) "aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>#{|&/\\.;~" , args->os_errbuf, args->os_errbuflen);`
-	z12SHM     = `return did_set_option_listflag(*varp, (char_u *) "rmfixlnwaWtToOsAIcCqFSu" , args->os_errbuf, args->os_errbuflen);`
+	z12CPO     = `return did_set_option_listflag(*varp, (char_u *)"aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>#{|&/\\.;~", args->os_errbuf, args->os_errbuflen);`
+	z12SHM     = `return did_set_option_listflag(*varp, (char_u *)"rmfixlnwaWtToOsAIcCqFSu", args->os_errbuf, args->os_errbuflen);`
 	z12CPOList = `aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>#{|&/\.;~`
 	z12SHMList = "rmfixlnwaWtToOsAIcCqFSu"
 )

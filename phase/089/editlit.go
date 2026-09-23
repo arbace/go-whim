@@ -6,5 +6,5 @@ package p089
 // literal that is 90%% right matches nothing.  See that tool for the
 // measurement.
 const (
-	z6lit1 = "    if (ea.cmdidx == CMD_write || ea.cmdidx == CMD_update)\n    {\n        if (*ea.arg == '>')\n        {\n            if (*++ea.arg != '>')\n            {\n                errormsg = _(e_use_w_or_w_gt_gt);\n                goto doend;\n            }\n            ea.arg = skipwhite(ea.arg + 1);\n            ea.append = TRUE;\n        }\n        else if (*ea.arg == '!' && ea.cmdidx == CMD_write)\n        {\n            ++ea.arg;\n            ea.usefilter = TRUE;\n        }\n    }\n\n"
+	z6lit1 = "    if (ea.cmdidx == CMD_write || ea.cmdidx == CMD_update)\n    {\n        if (*ea.arg == '>')\n        {\n            if (*++ea.arg != '>')\n            {\n                errormsg = _(e_use_w_or_w_gt_gt);\n                goto doend;\n            }\n            ea.arg = skipwhite(ea.arg + 1);\n            ea.append = TRUE;\n        }\n        else if (*ea.arg == '!' && ea.cmdidx == CMD_write)\n        {\n            ++ea.arg;\n            ea.usefilter = TRUE;\n        }\n    }\n"
 )

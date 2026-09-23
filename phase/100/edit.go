@@ -99,18 +99,17 @@ var whim100Space = regexp.MustCompile(`\s+`)
 
 const whim100Table = "} signal_info[] =\n" +
 	"{\n" +
-	"    {SIGHUP, \"HUP\", TRUE},\n" +
-	"    {SIGTERM, \"TERM\", TRUE},\n" +
-	"    {SIGINT, \"INT\", FALSE},\n" +
-	"    {SIGWINCH, \"WINCH\", FALSE},\n" +
-	"    {SIGTSTP, \"TSTP\", FALSE},\n" +
+	"    {SIGHUP,        \"HUP\",      TRUE},\n" +
+	"    {SIGTERM,       \"TERM\",     TRUE},\n" +
+	"    {SIGINT,        \"INT\",      FALSE},\n" +
+	"    {SIGWINCH,      \"WINCH\",    FALSE},\n" +
+	"    {SIGTSTP,       \"TSTP\",     FALSE},\n" +
 	"    {-1,            \"Unknown!\", FALSE}\n" +
 	"};\n"
 
 const whim100Install = "        if (signal_info[i].deadly)\n" +
 	"        {\n" +
 	"            struct sigaction sa;\n" +
-	"\n" +
 	"            sa.sa_handler = func_deadly;\n" +
 	"            sigemptyset(&sa.sa_mask);\n" +
 	"            sa.sa_flags = 0;\n" +

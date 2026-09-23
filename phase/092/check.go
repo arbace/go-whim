@@ -243,7 +243,7 @@ func Check(w io.Writer, args []string) error {
 	// inside filemess() and readfile(), and one reader.  After this phase it is
 	// FALSE for ever with the reader still testing it, and NOTHING SEES THAT.
 	writes := regexp.MustCompile(`\bmsg_scrolled_ign\b\s*=`).FindAllString(newT, -1)
-	if len(writes) != 1 || !strings.Contains(newT, "static int      msg_scrolled_ign  = FALSE ;") {
+	if len(writes) != 1 || !strings.Contains(newT, "static int msg_scrolled_ign = FALSE;") {
 		fail = append(fail, fmt.Sprintf("msg_scrolled_ign is assigned %d times: after this phase the only one left must be its initialiser, FALSE", len(writes)))
 	}
 	if a, z, ok := cutil.FindDefinition(src, cutil.Blank(src), "msg_puts_attr_len"); !ok || !strings.Contains(newT[a:z], "msg_scrolled_ign") {

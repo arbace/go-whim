@@ -200,7 +200,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 			"do_ecmd naming a refused file the alternate"); err != nil {
 			return nil, err
 		}
-		if s, err = e.literal(s, "        int prev_alt_fnum = curwin->w_alt_fnum;\n        ", "",
+		if s, err = e.literal(s, "        int prev_alt_fnum = curwin->w_alt_fnum;\n", "",
 			"do_ecmd remembering the alternate", 1); err != nil {
 			return nil, err
 		}

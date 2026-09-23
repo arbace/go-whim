@@ -48,7 +48,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	p.Say("buflist_findnr() is the current buffer, if its number is nr")
 	steps := []struct{ Old, New, What string }{
-		{"    if (top_file_num == 1)\n    {\n        hash_init(&buf_hashtab);\n    }\n    ", "",
+		{"    if (top_file_num == 1)\n    {\n        hash_init(&buf_hashtab);\n    }\n", "",
 			"buflist_new() initialises no table"},
 		{"        buf_hashtab_add(buf);\n", "", "and adds the buffer to none"},
 		{"\n    buf_hashtab_remove(buf);\n", "\n", "free_buffer() removes it from none"},

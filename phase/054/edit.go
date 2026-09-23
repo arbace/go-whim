@@ -7,13 +7,22 @@ package p054
 // set is COMPUTED from options[] rather than listed, so a row a later upstream
 // adds without a variable goes too.
 //
+// 174 OF THEM, AND IT WAS 172 BEFORE THE TEXT BECAME CANONICAL.  'statusline'
+// and 'statuslineopt' are no-variable rows like the rest, and the anchor missed
+// them because vim writes those two rows with spaces before the comma --
+// {"statusline"  ,"stl", -- which is upstream's own text.  Phase 0 prints one
+// shape per construct, so the computation sees all of them.  Nothing here
+// excludes a name and nothing lists one: that is the point of computing the set.
+//
 // THE DELTA: none the harnesses record -- no case sets an option without a
-// variable.  The probes check four of them are now unknown.
+// variable, and the Ex sweep runs command names, not option names, so the two
+// that arrived are a change the corpus cannot see.  The probes check four of
+// them are now unknown.
 // The variable field, not the row: a string default is often (char_u *)NULL too.
-// And the spacing varies -- 'termguicolors' is (char_u*)NULL.
-// And a row's flags can wrap onto a second line -- 'diffopt', 'foldmarker',
-// 'guifont', 'guifontwide', 'breakindentopt' and 'undodir' -- so the flag list
-// allows whitespace; a first version without it left those six behind.
+// The other two traps were spelling and the canonical text retired them: the
+// spacing varied -- 'termguicolors' was (char_u*)NULL -- and a row's flags could
+// wrap onto a second line ('diffopt', 'foldmarker', 'guifont', 'guifontwide',
+// 'breakindentopt', 'undodir').  The pattern still tolerates both.
 
 import (
 	"io"

@@ -40,8 +40,8 @@ package p101
 // two mentions and require `vim_main` to have had NONE before this phase, both as
 // whole words, so the two cannot be confused by a substring grep either.
 //
-// THE HEAD IS A FOSSIL AND THIS PHASE RETIRES IT.  main()'s head is spelled over THREE
-// lines here --
+// THE HEAD WAS A FOSSIL AND PHASE 0 RETIRED IT.  main()'s head used to be spelled over
+// THREE lines --
 //
 // int
 // main
@@ -49,13 +49,13 @@ package p101
 //
 // -- which is upstream's, where the name and the argument list were separated by an
 // `#ifdef` that gave MS-Windows a different signature.  The conditional went with the
-// preprocessor in slim's phase 5 and the line break stayed.  Every other function in
-// this file spells its head over two lines, so `vim_main` gets the ordinary shape and
-// the new `main` gets it too.  That is a real consequence, measured and not cosmetic:
-// tools/funcreach.py's definition finder never matched the three-line head, so `main`
-// has never been one of the definitions it counts -- its `{'main'}` root was a name
-// added by hand to a set that did not contain it.  1,755 definitions become 1,757 for
-// ONE new function, and the second is `main` itself, seen for the first time.
+// preprocessor in slim's phase 5 and the line break stayed.  The canonical text phase 0
+// prints has one shape per construct, so the break is gone before this phase is
+// handed anything: the head arrives in the ordinary two-line shape every other
+// function here has, `vim_main` keeps it and the new `main` gets it too.  What was a
+// real consequence of the fossil is now simply true of the file -- tools/funcreach.py's
+// definition finder matches every head, `main` among them, so this phase adds TWO
+// definitions to what it counts and one of them is `main` itself.
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).  The
 // input binary is kept because the check probes the exit statuses of BOTH.
@@ -118,9 +118,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"touch.  They are different identifiers and C has no prefix collision")
 
 	// ---- 2. main() is where and what this phase was written against ------
-	if err := p.AssertOnce(text, whim101Head, "main()'s three-line head",
-		"the name sits on a line of its own because upstream had an #ifdef between it "+
-			"and the argument list; slim's phase 5 took the conditional and left the break"); err != nil {
+	if err := p.AssertOnce(text, whim101Head, "main()'s head",
+		"two lines, the shape every other function here has: the fossil break between "+
+			"the name and the argument list, which upstream put an #ifdef in, is one of "+
+			"the things the canonical text no longer writes"); err != nil {
 		return nil, err
 	}
 	if k := p.Mentions(text, "main"); k != 1 {
@@ -134,9 +135,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"brace -- CLAUDE.md states that as the shape of this file, and this phase " +
 			"appends after it")
 	}
-	p.Say("main() is the last function in the file, its head spelled over THREE lines, and " +
-		"`main` as a whole word occurs ONCE in 80,000 lines -- that one line, the name on " +
-		"its own.  `main_loop` and `main_errors` are different words")
+	p.Say("main() is the last function in the file, its head spelled over two lines, and " +
+		"`main` as a whole word occurs ONCE in 80,000 lines -- that one head.  " +
+		"`main_loop` and `main_errors` are different words")
 
 	// ---- 3. the demotion: one head rewritten, one function appended ------
 	text = bytes.Replace(text, []byte(whim101Head), []byte(whim101NewHead), 1)
@@ -168,18 +169,25 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"launcher's head and nothing else.  `vim_main` and `vim_main2` are different "+
 			"words", k)
 	}
-	if bytes.Contains(text, []byte("main(int argc")) {
-		return nil, p.Die("the three-line head survives somewhere")
+	// The old head was rewritten, not copied: `main(int argc` is the launcher's
+	// head and nothing else.  It replaces the assertion that the fossil head is
+	// gone, which the canonical text makes true before this phase begins and so
+	// could no longer fail.
+	if k := bytes.Count(text, []byte("\nmain(int argc")); k != 1 {
+		return nil, p.Die("a head beginning `main(int argc` occurs %d times, expected 1 -- the "+
+			"launcher's.  The newline is what tells it from `vim_main(int argc`, which is "+
+			"the definition this phase just renamed", k)
 	}
 	if r := p.BlankRuns(text); r != runsBefore {
 		return nil, p.Die("the demotion left %d runs of two blank lines where there were %d", r, runsBefore)
 	}
-	if n := p.Lines(text); n != linesBefore+5 {
-		return nil, p.Die("the file gained %d lines, expected 5 -- the three-line head became two (-1) "+
-			"and the launcher is six (+6)", n-linesBefore)
+	if n := p.Lines(text); n != linesBefore+6 {
+		return nil, p.Die("the file gained %d lines, expected 6 -- the head keeps its two lines "+
+			"and the launcher is six", n-linesBefore)
 	}
 	p.Say("main() is now `static int vim_main(int argc, char **argv)` with the same body, and " +
 		"the last six lines of the file are a launcher whose whole content is `return " +
-		"vim_main(argc, argv);`.  +5 lines: the fossil head lost one, the launcher added six")
+		"vim_main(argc, argv);`.  +6 lines: the head is the shape it already had, the " +
+		"launcher added six")
 	return text, nil
 }

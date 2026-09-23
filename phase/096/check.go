@@ -143,7 +143,7 @@ func Check(w io.Writer, args []string) error {
 		probe = strings.Replace(probe, s.Text, s.Text+mark, 1)
 	}
 	os.WriteFile(filepath.Join(inst, "probe.c"), []byte(probe), 0o644)
-	const ctlHead = "ui_write(char_u *s, int len, int console  __attribute__((unused)) )\n{\n"
+	const ctlHead = "ui_write(char_u *s, int len, int console __attribute__((unused)))\n{\n"
 	if strings.Count(oldC, ctlHead) != 1 {
 		return stop("ui_write does not open exactly once in the input source")
 	}

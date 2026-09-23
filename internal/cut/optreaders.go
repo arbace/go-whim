@@ -22,7 +22,7 @@ const cleanPrescan = `    for (i = 1; i < argc; ++i)
 // optreadersLiteral: each must occur exactly once.
 var optreadersLiteral = []struct{ what, old, new string }{
 	{"-nb: the scan that existed to refuse it",
-		"    early_arg_scan(paramp);\n    ", ""},
+		"    early_arg_scan(paramp);\n", ""},
 	{"--clean: the pre-scan of argv at the top of main", cleanPrescan, ""},
 	{"--clean: main passing set_init_1 what only --clean could set",
 		"set_init_1(paramp->clean);", "set_init_1();"},
