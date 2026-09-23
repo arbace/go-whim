@@ -3913,6 +3913,16 @@ Not yet done, and each one only when it is asked for:
 - **Whatever the host still provides** that the core could own, measured each
   time as the core's libc surface (`make score`) and its boundary (`make
   editor.c`), and never assumed.
+- **In-AST editing, revisited.** The phases locate and change constructs by text,
+  and a regex anchor can silently match the wrong thing — phase 54's missed two
+  `options[]` rows for the pipeline's whole life. Editing the tree instead was
+  surveyed and declined, for a reason worth re-reading before it is proposed
+  again: `internal/cemit` joins the AST to the source text by byte offset, so a
+  mutation that moves the tree leaves the text standing, and deleting a table row
+  yields BYTE-IDENTICAL output — an edit that did nothing, which the product gate
+  cannot see. `surveys/AST-EDITING.md` has the measurements and what would
+  unblock it. The cheap half of the idea stands: the AST as a LOCATOR, with the
+  text still doing the editing.
 
 When Part I ended at phase 82 this list also held the file-lookup layer, state
 on disk and the build-time dependencies. Phases 89 to 96 took every way the
