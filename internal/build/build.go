@@ -28,12 +28,6 @@ type Options struct {
 	// question, so what this gives is a LIST and not a product.
 	KeepGoing bool
 	Refused   []string
-
-	// Canonical prints the input in the canonical form at phase 0
-	// (internal/cemit), without the plan having to say so, so that the
-	// question "what would that cost" can be asked of the same binary that
-	// builds the committed product.
-	Canonical bool
 }
 
 // Run applies the plan to the input and returns the source it leaves.
@@ -85,14 +79,18 @@ func Run(o *Options) ([]byte, error) {
 		start := time.Now()
 		fmt.Fprintf(o.W, "  phase %-6d %s\n", p.N, p.Name)
 		if p.Seed {
+			// Phase 0 seeds the input IN CANONICAL FORM, and every later phase
+			// reads that form: one C23 spelling per construct, so an anchor
+			// matches what it means rather than what the input happened to
+			// write.  It was a --canonical flag while the 163 phases' anchors
+			// were migrated to it; it is the pipeline now, and there is no
+			// second spelling to fall back to.
 			text = src
-			if o.Canonical {
-				out, err := steps.Lookup2("cemit")(text, nil, o.W)
-				if err != nil {
-					return nil, fmt.Errorf("phase %d: cemit: %w", p.N, err)
-				}
-				text = out
+			out, err := steps.Lookup2("cemit")(text, nil, o.W)
+			if err != nil {
+				return nil, fmt.Errorf("phase %d: cemit: %w", p.N, err)
 			}
+			text = out
 		}
 		if text == nil {
 			return nil, fmt.Errorf("build: phase %d runs before the input was seeded", p.N)

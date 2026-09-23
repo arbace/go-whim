@@ -30,8 +30,6 @@ func runBuild(args []string) int {
 			check = true
 		case "--keep-going":
 			o.KeepGoing = true
-		case "--canonical":
-			o.Canonical = true
 		case "--from", "--to":
 			flag := args[i]
 			i++
