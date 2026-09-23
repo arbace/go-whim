@@ -681,8 +681,18 @@ Relied on by: 80 (`commands`).
 
 ## Phases 0 to 82
 
-Each phase is a directory, `phase/NNN/`: its program, its `GOAL.md` and its
-declared `delta`.
+Each phase is a directory, `phase/NNN/`, and a Go package: `edit.go` is its cut,
+`check.go` its evidence, `GOAL.md` what it removes and why, and `delta` what it
+declares.
+
+**THE ACCOUNTS BELOW NAME THE TOOLS THAT RAN AT THE TIME**, and a few of those
+are gone: `tools/phaserun.sh` running a stage, `tools/memo.sh` keying it,
+`tools/implhash.sh` deciding what a change re-keyed, `make whim-tip` and `make
+whim-pass`. What runs now is `internal/build` (the plan, and `make whim-build`)
+and `internal/verify` (`make whim-verify`); `CLAUDE.md` is where the current
+shape is stated. A phase's account is a record of how it was measured, and it is
+left as it was measured -- rewriting the history to name today's tools would
+make it a worse record and no truer.
 
 - [Phase 0 — seed, and prove the copy is a copy](phase/000/GOAL.md)
 - [Phase 1 — no `$VIMRUNTIME`](phase/001/GOAL.md)
@@ -1180,7 +1190,9 @@ Cited as *core rule N*; Part I's rules still hold.
 
 **This section is the whole of phases 83 to 128 read across, and it lives here
 rather than in `CLAUDE.md` because it is 910 lines of one pipeline's history in a
-file that is loaded into every session.** What `CLAUDE.md` keeps is the summary
+file that is loaded into every session.** As in Part I, it names the tools that
+ran when each phase was built -- `tools/phaserun.sh`, the memoize, `make
+whim-tip` -- and those are gone; `CLAUDE.md` has what runs now. What `CLAUDE.md` keeps is the summary
 and a pointer to this heading; what is here is the phase-by-phase account, the
 symbol accounting, the declared-delta taxonomy, the `apart` and `need`
 derivations and the instrument's own history. Every sentence is as it stood in
@@ -2090,9 +2102,11 @@ between the two pipelines' recordings.
   the harnesses on the `-no-pie` binary and requires no difference at all, and
   runs `tools/whimdelta.sh --phase 82` on it against slim-vim's baselines, which
   still holds: 489 commands and 11 cases, exactly whim's declared delta.
-- **Zero's phase list is the `phases` line of `phase/STAGES.md`**, not a
-  `PHASE_LIST` written into `tools/pipeline.sh`, because `pipeline.sh` is in every
-  whim split key (above) and a Part II phase added there would re-key all of whim.
+- **The phase list was the `phases` line of `phase/STAGES.md`**, and not a
+  `PHASE_LIST` written into a tool, because a tool was in every key and a phase
+  added there would have re-keyed the whole pipeline. There are no keys now:
+  `internal/build`'s plan is the list, and `phase/STAGES.md` is the record of
+  how the stages around it were decided.
 
 
 ## Adding a phase
