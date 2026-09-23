@@ -35,7 +35,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 		s, err := e.subOnce(s,
 			`^[ \t]*case 'h':\n[ \t]*if \(p != eap->cmd \|\| !checkforcmd_noparen\(&p, "hide", 3\) \|\| \*p == NUL \|\| ends_excmd\(\*p\)\)\n`+
 				`[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n[ \t]*eap->cmd = p;\n`+
-				`[ \t]*cmod->cmod_flags \|= CMOD_HIDE;\n[ \t]*continue;\n\n`,
+				`[ \t]*cmod->cmod_flags \|= CMOD_HIDE;\n[ \t]*continue;\n`,
 			"the :hide modifier")
 		if err != nil {
 			return nil, err

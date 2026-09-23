@@ -380,7 +380,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	e.FoldNever(`(?m)^[ \t]*if \(eap->cmd\[0\] == 'p' && eap->cmd\[1\] == 'y'\)$`,
 		"no command left is spelled with a digit: not :py3")
-	e.FoldNever(`(?m)^[ \t]*if \(\*p == '9' &&  strncmp\(\(char \*\)\("vim9"\), \(char \*\)\(eap->cmd\), \(4\)\)  == 0\)$`,
+	e.FoldNever(`(?m)^[ \t]*if \(\*p == '9' && strncmp\(\(char \*\)\("vim9"\), \(char \*\)\(eap->cmd\), \(4\)\) == 0\)$`,
 		"and not :vim9cmd")
 	if e.Failed() {
 		return e.Done()

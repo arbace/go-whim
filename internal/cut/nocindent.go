@@ -20,10 +20,9 @@ const (
                         }
 `
 	eqCNew      = "                        indent = get_indent();\n"
-	preprocsOld = " (curbuf->b_p_si && !curbuf->b_p_cin) || " +
-		"        (curbuf->b_p_cin && in_cinkeys('#', ' ', TRUE) && curbuf->b_ind_hash_comment == 0)\n" +
-		"        ;"
-	preprocsNew  = "        curbuf->b_p_si;"
+	preprocsOld = "(curbuf->b_p_si && !curbuf->b_p_cin) || " +
+		"(curbuf->b_p_cin && in_cinkeys('#', ' ', TRUE) && curbuf->b_ind_hash_comment == 0);"
+	preprocsNew  = "curbuf->b_p_si;"
 	fixIndentOld = `    if (curbuf->b_p_lisp && curbuf->b_p_ai)
     {
         if (use_indentexpr_for_lisp())

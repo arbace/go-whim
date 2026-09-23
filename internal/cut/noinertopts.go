@@ -22,7 +22,7 @@ import (
 var noinertoptsEdits = []struct{ what, pat, repl string }{
 	{"ex_drop saving and restoring 'autoread' across nothing",
 		`(?m)[ \t]*if \(!bufIsChanged\(curbuf\)\)\n[ \t]*\{\n` +
-			`[ \t]*int save_ar = curbuf->b_p_ar;\n\n` +
+			`[ \t]*int save_ar = curbuf->b_p_ar;\n` +
 			`[ \t]*curbuf->b_p_ar = TRUE;\n` +
 			`[ \t]*curbuf->b_p_ar = save_ar;\n[ \t]*\}\n`, ""},
 	{`` + "`:setlocal autoread` meaning \"follow the global\"",

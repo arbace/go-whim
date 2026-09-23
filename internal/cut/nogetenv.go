@@ -120,7 +120,8 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	// cannot contribute now, so the table goes and the loop runs its one pass;
 	// `i` is left for the sweep.
 	if text, err = cutCounted(text,
-		`(?m)^[ \t]*static char \*\(names\[4\]\) = \{"", "TMPDIR", "TEMP", "TMP"\};\n`,
+		`(?m)^[ \t]*static char \*\(names\[4\]\) =\n[ \t]*\{\n[ \t]*"",\n[ \t]*"TMPDIR",\n`+
+			`[ \t]*"TEMP",\n[ \t]*"TMP",\n[ \t]*\};\n`,
 		"nogetenv", "backupskip's table of environment names", 1); err != nil {
 		return nil, err
 	}

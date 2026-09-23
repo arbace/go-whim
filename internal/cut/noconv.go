@@ -122,7 +122,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 
 	text, err = e.inFunction(text, "getargopt", func(s []byte) ([]byte, error) {
 		s, err := e.dropIf(s,
-			`^[ \t]*if \( strncmp\(\(char \*\)\(arg\), \(char \*\)\("enc"\), \(3\)\)  == 0\)$`,
+			`^[ \t]*if \(strncmp\(\(char \*\)\(arg\), \(char \*\)\("enc"\), \(3\)\) == 0\)$`,
 			"++enc and ++encoding")
 		if err != nil {
 			return nil, err
@@ -402,7 +402,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 		for _, c := range []struct{ pat, what string }{
 			{`^[ \t]*vimconv_T[ \t]+vimconv;\n`, "utf_find_illegal's conversion"},
 			{`^[ \t]*char_u[ \t]+\*tofree = NULL;\n`, "utf_find_illegal's converted copy"},
-			{`^[ \t]*vimconv\.vc_type = CONV_NONE;\n\n`, "utf_find_illegal clearing a conversion"},
+			{`^[ \t]*vimconv\.vc_type = CONV_NONE;\n`, "utf_find_illegal clearing a conversion"},
 			{`^[ \t]*vim_free\(tofree\);\n`, "utf_find_illegal freeing a converted copy"},
 			{`^[ \t]*convert_setup\(&vimconv, NULL, NULL\);\n`, "utf_find_illegal ending no conversion"},
 		} {

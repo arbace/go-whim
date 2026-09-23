@@ -27,8 +27,8 @@ func DropLocal(text []byte, bvar string) (out []byte, n int, err error) {
 		`(?m)^[ \t]*curbuf->` + q + ` = -1;\n`,
 		`(?m)^[ \t]*(?:check|clear)_string_option\(&buf->` + q + `\);\n`,
 		`(?m)^[ \t]*case[^\n]*\n[ \t]*return \(char_u \*\)&\(curbuf->` + q + `\);\n`,
-		`(?m)^[ \t]*case[^\n]*\n[ \t]*return [^\n]*curbuf->` + q + `[^\n]*\n` +
-			`[ \t]*\? \(char_u \*\)&\(curbuf->` + q + `\) : p->var;\n`,
+		`(?m)^[ \t]*case[^\n]*\n[ \t]*return [^\n]*curbuf->` + q +
+			`[^\n]*\? \(char_u \*\)&\(curbuf->` + q + `\) : p->var;\n`,
 	}
 	for _, p := range pats {
 		re := regexp.MustCompile(p)

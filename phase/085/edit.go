@@ -132,7 +132,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// keeps what it chose between: the else branch, where an unrecognised
 	// word after `--` is ME_UNKNOWN_OPTION and a bare `--` sets had_minmin.
 	text, err = p.FoldNever(text, "command_line_scan",
-		`^[ \t]*if \( strncasecmp\(\(char \*\)\(argv\[0\] \+ argv_idx\), \(char \*\)\("ttyfail"\), \(7\)\)  == 0\)$`,
+		`^[ \t]*if \(strncasecmp\(\(char \*\)\(argv\[0\] \+ argv_idx\), \(char \*\)\("ttyfail"\), \(7\)\) == 0\)$`,
 		"--ttyfail, which is now an unknown option like any other", 1)
 	if err != nil {
 		return nil, err

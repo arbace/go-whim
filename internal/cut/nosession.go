@@ -44,7 +44,7 @@ var nosessionDrops = []struct{ what, pat string }{
 }
 
 var nosessionLiteral = []struct{ what, old, new string }{
-	{"the window's 'eventignorewin' field", "    char_u      *wo_eiw;\n", ""},
+	{"the window's 'eventignorewin' field", "    char_u *wo_eiw;\n", ""},
 	{"get_varp() handing out 'eventignorewin'", "    case (idopt_T)(PV_WIN + (int)(WV_EIW)):\n        return (char_u *)&(curwin->w_onebuf_opt.wo_eiw);\n", ""},
 	{"copy_winopt() copying 'eventignorewin'", "    to->wo_eiw = copy_option_val(from->wo_eiw);\n", ""},
 	{"check_winopt() checking 'eventignorewin'", "    check_string_option(&wop->wo_eiw);\n", ""},

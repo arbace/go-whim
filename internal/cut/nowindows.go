@@ -65,7 +65,7 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 			{`^([ \t]*)if \(!checkforcmd_noparen\(&eap->cmd, "leftabove", 5\)\)\n` + nwBreak +
 				`[ \t]*cmod->cmod_split \|= WSP_ABOVE;\n[ \t]*continue;\n`, "${1}break;\n", ":leftabove"},
 			{`^[ \t]*case 'r':\n[ \t]*if \(!checkforcmd_noparen\(&eap->cmd, "rightbelow", 6\)\)\n` + nwBreak +
-				`[ \t]*cmod->cmod_split \|= WSP_BELOW;\n[ \t]*continue;\n\n`, "", ":rightbelow"},
+				`[ \t]*cmod->cmod_split \|= WSP_BELOW;\n[ \t]*continue;\n`, "", ":rightbelow"},
 			{`^[ \t]*case 't':\n[ \t]*if \(!checkforcmd_noparen\(&eap->cmd, "topleft", 2\)\)\n` + nwBreak +
 				`[ \t]*cmod->cmod_split \|= WSP_TOP;\n[ \t]*continue;\n`, "", ":topleft"},
 			{`^[ \t]*if \(checkforcmd_noparen\(&eap->cmd, "vertical", 4\)\)\n` +
@@ -185,14 +185,14 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 	}
 	if text, err = e.inFunction(text, "do_ecmd", func(s []byte) ([]byte, error) {
 		s, err := e.literal(s, "            int save_cmdwin_type = cmdwin_type;\n"+
-			"            win_T *save_cmdwin_win = cmdwin_win;\n            "+
+			"            win_T *save_cmdwin_win = cmdwin_win;\n"+
 			"            cmdwin_type = 0;\n            cmdwin_win = NULL;\n", "",
 			"do_ecmd hiding it", 1)
 		if err != nil {
 			return nil, err
 		}
 		return e.literal(s, "            cmdwin_type = save_cmdwin_type;\n"+
-			"            cmdwin_win = save_cmdwin_win;\n            ", "", "do_ecmd restoring it", 1)
+			"            cmdwin_win = save_cmdwin_win;\n", "", "do_ecmd restoring it", 1)
 	}); err != nil {
 		return nil, err
 	}

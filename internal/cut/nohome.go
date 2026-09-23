@@ -55,7 +55,7 @@ var atStartEdits = []struct{ pat, what string }{
 
 var (
 	initHomedir  = regexp.MustCompile(`(?m)^[ \t]*init_homedir\(\);\n`)
-	tildeArm2    = regexp.MustCompile(`^\n[ \t]*else if \(  src\[1\] == NUL`)
+	tildeArm2    = regexp.MustCompile(`^\n[ \t]*else if \(src\[1\] == NUL`)
 	tildeArm3    = regexp.MustCompile(`^\n[ \t]*else\n`)
 	dollarTilde  = regexp.MustCompile(`\(\*src == '\$'\) \|\| \(\*src == '~' && at_start\)`)
 	expandUser   = regexp.MustCompile(`[ \t]*\{EXPAND_USER, get_users, TRUE, FALSE\},\n`)

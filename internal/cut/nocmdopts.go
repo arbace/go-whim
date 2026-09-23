@@ -19,7 +19,7 @@ import (
 // command_line_scan()'s body alone.
 var nocmdoptsInParser = []struct{ what, pat, repl string }{
 	{"-t, which ran a :tag that is not implemented",
-		`(?m)[ \t]*case 't':\n(?:[^\n]*\n)*?[ \t]*break;\n\n`, ""},
+		`(?m)[ \t]*case 't':\n(?:[^\n]*\n)*?[ \t]*break;\n`, ""},
 	{"-t's argument",
 		`(?m)[ \t]*case 't':\n[ \t]*parmp->tagname = \(char_u \*\)argv\[0\];\n[ \t]*break;\n`, ""},
 	{"-i's argument, which set an option wired to NULL",

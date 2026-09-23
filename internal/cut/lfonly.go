@@ -88,7 +88,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 		if s, err = e.subOnce(s,
 			`^[ \t]*if \(set_options\)\n[ \t]*\{\n[ \t]*if \(!read_buffer\)\n[ \t]*\{\n`+
 				`[ \t]*curbuf->b_p_eof = FALSE;\n[ \t]*curbuf->b_start_eof = FALSE;\n`+
-				`[ \t]*curbuf->b_p_eol = TRUE;\n[ \t]*curbuf->b_start_eol = TRUE;\n[ \t]*\}\n[ \t]*\}\n\n`,
+				`[ \t]*curbuf->b_p_eol = TRUE;\n[ \t]*curbuf->b_start_eol = TRUE;\n[ \t]*\}\n[ \t]*\}\n`,
 			"readfile resetting 'endofline' and 'endoffile'"); err != nil {
 			return nil, err
 		}
@@ -111,7 +111,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 		}
 		if s, err = e.subOnce(s,
 			`^[ \t]*if \(\*p_ffs == NUL\)\n[ \t]*\{\n[ \t]*fileformat = get_fileformat\(curbuf\);\n[ \t]*\}\n`+
-				`[ \t]*else\n[ \t]*\{\n[ \t]*fileformat =  \(-1\) ;\n[ \t]*\}\n`,
+				`[ \t]*else\n[ \t]*\{\n[ \t]*fileformat = \(-1\);\n[ \t]*\}\n`,
 			"readfile choosing between 'fileformat' and detection"); err != nil {
 			return nil, err
 		}
@@ -272,7 +272,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 	if text, err = e.inFunction(text, "set_init_1", func(s []byte) ([]byte, error) {
-		return e.literal(s, "    save_file_ff(curbuf);\n\n", "",
+		return e.literal(s, "    save_file_ff(curbuf);\n", "",
 			"startup saving the format of the first buffer", 1)
 	}); err != nil {
 		return nil, err
@@ -369,7 +369,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 		}
 		for _, f := range []struct{ pat, what string }{
 			{`^[ \t]*if \(strncmp\(\(char \*\)\(arg\), \(char \*\)\("ff"\), \(2\)\) == 0\)$`, "++ff"},
-			{`^[ \t]*if \( strncmp\(\(char \*\)\(arg\), \(char \*\)\("fileformat"\), \(10\)\)  == 0\)$`,
+			{`^[ \t]*if \(strncmp\(\(char \*\)\(arg\), \(char \*\)\("fileformat"\), \(10\)\) == 0\)$`,
 				"++fileformat"},
 			{`^[ \t]*if \(pp == &eap->force_ff\)$`, "++ff checking its value"},
 		} {

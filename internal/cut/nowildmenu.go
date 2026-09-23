@@ -295,8 +295,8 @@ func NoWildMenu(text []byte, w io.Writer) ([]byte, error) {
 		// still accepted and now does nothing is the thing Phase 3 exists to
 		// prevent.
 		func() error {
-			return c.sub(`\{"fuzzy", "tagfile", "pum", "exacttext", NULL\}`,
-				`{"fuzzy", "tagfile", "exacttext", NULL}`, 1,
+			return c.sub(`\{\n    "fuzzy",\n    "tagfile",\n    "pum",\n    "exacttext",\n    NULL,\n\}`,
+				"{\n    \"fuzzy\",\n    \"tagfile\",\n    \"exacttext\",\n    NULL,\n}", 1,
 				"the `pum` value of 'wildoptions'")
 		},
 	}

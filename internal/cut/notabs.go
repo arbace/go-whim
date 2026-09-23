@@ -201,7 +201,7 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 				"if (eap->cmdidx == CMD_windo)", ":tabdo counting its range"},
 			// The tab-page cursor only :tabdo read.  Set and never read is a
 			// warning the sweep does not act on, so it goes here.
-			{"    tabpage_T   *tp;\n", "", ":tabdo's tab-page cursor"},
+			{"    tabpage_T *tp;\n", "", ":tabdo's tab-page cursor"},
 			{"        tp = first_tabpage;\n", "", ":tabdo starting at the first tab page"},
 		} {
 			if s, err = e.literal(s, l.old, l.new, l.what, 1); err != nil {
@@ -310,34 +310,34 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 
 		var err error
 		for _, l := range []struct{ old, new, what string }{
-			{`                    case 'f':
-                    case 'F':
-                        cmdmod.cmod_tab = tabpage_index(curtab) + 1;
-                        nchar = xchar;
-                        goto wingotofile;
-`, `                    case 'f':
-                    case 'F':
-                        beep_flush();
-                        break;
+			{`        case 'f':
+        case 'F':
+            cmdmod.cmod_tab = tabpage_index(curtab) + 1;
+            nchar = xchar;
+            goto wingotofile;
+`, `        case 'f':
+        case 'F':
+            beep_flush();
+            break;
 `, "CTRL-W gf and gF: editing a file in a new tab page"},
 			// CTRL-W gf was the only goto to it; CTRL-W f falls into the code
 			// directly.
-			{"wingotofile:\n", "", "the label only CTRL-W gf jumped to"},
-			{`                    case 't':
-                        goto_tabpage((int)Prenum);
-                        break;
-`, `                    case 't':
-                        if (Prenum > 1)
-                        {
-                            beep_flush();
-                        }
-                        break;
+			{"    wingotofile:\n", "", "the label only CTRL-W gf jumped to"},
+			{`        case 't':
+            goto_tabpage((int)Prenum);
+            break;
+`, `        case 't':
+            if (Prenum > 1)
+            {
+                beep_flush();
+            }
+            break;
 `, "CTRL-W gt: the one-tab-page answer"},
-			{`                    case 'T':
-                        goto_tabpage(-(int)Prenum1);
-                        break;
-`, `                    case 'T':
-                        break;
+			{`        case 'T':
+            goto_tabpage(-(int)Prenum1);
+            break;
+`, `        case 'T':
+            break;
 `, "CTRL-W gT: the one-tab-page answer"},
 		} {
 			if s, err = e.literal(s, l.old, l.new, l.what, 1); err != nil {
@@ -359,10 +359,10 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		return e.literal(s, `    forward = curtab->tp_next != NULL &&
-            ((tcl_flags & TCL_LEFT) == 0 || curtab == first_tabpage);
-`, `    forward = curtab->tp_next != NULL;
-`, "alt_tabpage: 'tabclose' asking to go left", 1)
+		return e.literal(s,
+			"    forward = curtab->tp_next != NULL && ((tcl_flags & TCL_LEFT) == 0 || curtab == first_tabpage);\n",
+			"    forward = curtab->tp_next != NULL;\n",
+			"alt_tabpage: 'tabclose' asking to go left", 1)
 	}); err != nil {
 		return nil, err
 	}
