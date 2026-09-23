@@ -93,6 +93,7 @@ import (
 
 	"github.com/arbace/go-whim/internal/check"
 	"github.com/arbace/go-whim/internal/harness"
+	"github.com/arbace/go-whim/internal/verify"
 )
 
 func init() { check.Register("whim104", Check) }
@@ -379,7 +380,7 @@ func Check(w io.Writer, args []string) error {
 		wg.Add(1)
 		go func(i int, v [3]string) {
 			defer wg.Done()
-			errs[i] = check.RecCmd("sh", "tools/zrecord.sh", v[1], v[2], filepath.Join(tmp, "REC-"+v[0]))
+			errs[i] = check.RecZ(v[1], v[2], filepath.Join(tmp, "REC-"+v[0]))
 		}(i, v)
 	}
 	wg.Wait()
@@ -393,7 +394,9 @@ func Check(w io.Writer, args []string) error {
 	}
 
 	// --- 8. the second opinion, on the control -------------------------------
-	zd, zerr := exec.Command("sh", "tools/coredelta.sh", filepath.Join(tmp, "ctl"), filepath.Join(tmp, "ctl.c"), "--phase", "104").CombinedOutput()
+	var zb bytes.Buffer
+	zerr := verify.CoreDelta(filepath.Join(tmp, "ctl"), filepath.Join(tmp, "ctl.c"), 104, &zb)
+	zd := zb.Bytes()
 	tail5 := func() {
 		ls := strings.Split(string(zd), "\n")
 		if len(ls) > 0 && ls[len(ls)-1] == "" {
@@ -407,7 +410,7 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 	if zerr == nil {
-		r.Say("tools/coredelta.sh ACCEPTED the control, which sends every")
+		r.Say("the core delta ACCEPTED the control, which sends every")
 		r.Cont("message to stdout instead of stderr.  It must refuse.")
 		tail5()
 		return harness.ErrReported
@@ -424,11 +427,11 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 	if named < 1 {
-		r.Say("tools/coredelta.sh refused the control for some other reason:")
+		r.Say("the core delta refused the control for some other reason:")
 		tail5()
 		return harness.ErrReported
 	}
-	r.Say("the second opinion: tools/coredelta.sh REFUSES the control and names %d argv rows, against the 24 records diff -r sees.  That gap is exactly why diff -r is the first check and this is the second: ten of the 24 are rows phases 87 and 88 already declared, and tools/zcompare.py no longer compares them", named)
+	r.Say("the second opinion: the core delta REFUSES the control and names %d argv rows, against the 24 records diff -r sees.  That gap is exactly why diff -r is the first check and this is the second: ten of the 24 are rows phases 87 and 88 already declared, and tools/zcompare.py no longer compares them", named)
 	return nil
 }
 
@@ -655,7 +658,7 @@ func z21Probes(r *check.Rep, old, bin, tmp string) error {
 		return harness.ErrReported
 	}
 	sq := func(k string) seq { return g[k].(seq) }
-	r.Say("MUST NOT DIFFER: the whole recording, `diff -r`, %d lines -- 102 screen cases, ref-excmds.txt, ref-argv.txt, ref-pty.txt and ref-term.txt.  THAT is the check and not tools/coredelta.sh, which accepts further movement in the ten argv rows phases 87 and 88 already declared", dNew)
+	r.Say("MUST NOT DIFFER: the whole recording, `diff -r`, %d lines -- 102 screen cases, ref-excmds.txt, ref-argv.txt, ref-pty.txt and ref-term.txt.  THAT is the check and not the core delta, which accepts further movement in the ten argv rows phases 87 and 88 already declared", dNew)
 	r.Cont("MUST DIFFER, the control: this phase's own output with `err ? 2 : 1` made `err ? 1 : 1`, one character, moves %d lines of `diff -r`.  The table can fail", dCtl)
 	r.Cont("MUST DIFFER, the write boundaries, with a SOCK_SEQPACKET fd 2: `-Q` is %d writes of %d bytes on the input and %d of %d here; `-T no-such-term-9x` is %d of %d and %d of %d.  The same bytes, one syscall -- and the latent hazard goes with them, stdout's buffered printf arm arriving after everything the editor drew",
 		sq("seq_Q_old").n, len(sq("seq_Q_old").b), sq("seq_Q_new").n, len(sq("seq_Q_new").b),

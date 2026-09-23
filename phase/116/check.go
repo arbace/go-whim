@@ -98,6 +98,7 @@ import (
 
 	"github.com/arbace/go-whim/internal/check"
 	"github.com/arbace/go-whim/internal/harness"
+	"github.com/arbace/go-whim/internal/verify"
 )
 
 func init() { check.Register("whim116", Check) }
@@ -456,7 +457,7 @@ func Check(w io.Writer, args []string) error {
 	af.Say("%s, and 0 of %d under the question this replaces -- whose %d rows carry %d distinct answer between them", moved, len(oldRows), len(oldRows), len(ans))
 
 	// --- 7. the declared delta ------------------------------------------------
-	if err := check.Run(w, "sh", "tools/coredelta.sh", bin, f, "--phase", "116"); err != nil {
+	if err := verify.CoreDelta(bin, f, 116, w); err != nil {
 		return harness.ErrReported
 	}
 

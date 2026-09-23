@@ -833,11 +833,11 @@ func Check(w io.Writer, args []string) error {
 	wgR.Add(2)
 	go func() {
 		defer wgR.Done()
-		errRO = check.RecCmd("sh", "tools/zrecord.sh", oldBin, oldC, T("REC-old"))
+		errRO = check.RecZ(oldBin, oldC, T("REC-old"))
 	}()
 	go func() {
 		defer wgR.Done()
-		errRN = check.RecCmd("sh", "tools/zrecord.sh", T("new"), f, T("REC-new"))
+		errRN = check.RecZ(T("new"), f, T("REC-new"))
 	}()
 	wgR.Wait()
 	if check.RecReport(w, errRO, errRN) {
@@ -867,7 +867,7 @@ func Check(w io.Writer, args []string) error {
 			"SAME BYTES, which means the instrument is not deterministic and every "+
 			"recording-based Part II phase is in question: %s", len(moved), len(base), strings.Join(show, " "))
 	}
-	r.Say("two full tools/zrecord.sh recordings, all %d records identical -- 102 "+
+	r.Say("two full zrecord recordings, all %d records identical -- 102 "+
 		"screen cases, every Ex command typed at `:`, every command line the parser may "+
 		"see, the four pty scenarios and the terminal table.  THIS IS A CHECK ON THE "+
 		"HARNESS AND NOT ON THE PHASE: the two binaries are the same bytes, so what it "+

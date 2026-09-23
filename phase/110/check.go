@@ -917,12 +917,12 @@ func Check(w io.Writer, args []string) error {
 	wgR.Add(2)
 	go func() {
 		defer wgR.Done()
-		recErr[0] = check.RecCmd("sh", "tools/zrecord.sh", filepath.Join(state, "old"),
+		recErr[0] = check.RecZ(filepath.Join(state, "old"),
 			filepath.Join(state, "old.c"), filepath.Join(tmp, "REC.old"))
 	}()
 	go func() {
 		defer wgR.Done()
-		recErr[1] = check.RecCmd("sh", "tools/zrecord.sh", filepath.Join(tmp, "new"), f,
+		recErr[1] = check.RecZ(filepath.Join(tmp, "new"), f,
 			filepath.Join(tmp, "REC.new"))
 	}()
 	wgR.Wait()

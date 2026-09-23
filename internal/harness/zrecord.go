@@ -8,7 +8,7 @@ import (
 	"sync"
 )
 
-// ZRecord is tools/zrecord.sh: one recording of a zero binary, six parts.
+// ZRecord is one recording of a zero binary, six parts.
 //
 // The parts are independent and run at once.  Their shape is checked
 // afterwards rather than assumed: a harness that wrote nothing would turn

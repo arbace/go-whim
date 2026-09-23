@@ -64,6 +64,7 @@ import (
 
 	"github.com/arbace/go-whim/internal/check"
 	"github.com/arbace/go-whim/internal/harness"
+	"github.com/arbace/go-whim/internal/verify"
 )
 
 func init() { check.Register("whim125", Check) }
@@ -633,15 +634,11 @@ func Check(w io.Writer, args []string) error {
 	wgR.Add(2)
 	go func() {
 		defer wgR.Done()
-		c := exec.Command("sh", "tools/zrecord.sh", oldBin, oldC, T("REC-old"))
-		c.Stderr = w
-		errRO = c.Run()
+		errRO = check.RunZ(w, oldBin, oldC, T("REC-old"))
 	}()
 	go func() {
 		defer wgR.Done()
-		c := exec.Command("sh", "tools/zrecord.sh", T("new"), T("new.c"), T("REC-new"))
-		c.Stderr = w
-		errRN = c.Run()
+		errRN = check.RunZ(w, T("new"), T("new.c"), T("REC-new"))
 	}()
 	wgR.Wait()
 	if errRO != nil {
@@ -904,7 +901,7 @@ func Check(w io.Writer, args []string) error {
 		return die("section 5 left no instrumented memline record")
 	}
 	if fi, e := os.Stat(filepath.Join(T("REC-new"), "memline")); e != nil || !fi.IsDir() {
-		return die("tools/zrecord.sh recorded no memline/, so phase 123's corpus is not in the recording this check compares")
+		return die("the recording holds no memline/, so phase 123's corpus is not in the recording this check compares")
 	}
 	var mv []string
 	for _, l := range check.DiffRQ(filepath.Join(T("REC-new"), "memline"), T("ML-croot")) {
@@ -1059,8 +1056,8 @@ func Check(w io.Writer, args []string) error {
 		"the tree is a different shape and the screen is the same", len(CASES), clocks, 2*len(CASES))
 
 	// --- 9. what this phase declares ---------------------------------------------------
-	decl, _ := exec.Command("sh", "tools/coredelta.sh", "--declared", "125").Output()
-	if strings.Join(strings.Fields(string(decl)), "") != "" {
+	decl, _ := verify.PhaseDeclared(125)
+	if len(decl) != 0 {
 		return die("phase/125/delta.md declares something for phase 125, and this phase declares nothing at all")
 	}
 	say("phase/125/delta.md declares NOTHING for this phase, and that is two statements and not one: the negative-block island could not run, and block zero ran everywhere and was never read")

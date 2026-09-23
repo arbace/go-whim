@@ -11,8 +11,9 @@ import (
 	"strings"
 )
 
-// ZDeclared reads the declarations tools/declared.sh prints and returns every token up to phase, and
-// the ones phase itself declares.
+// ZDeclared reads a file of declarations in the grammar verify.Declarations
+// writes and returns every token up to phase, and the ones phase itself
+// declares.
 //
 // Zero's tokens are not whim's: a zero declaration names a screen case, a
 // memline case, an argv row, an Ex command, or a whole DIMENSION of the
@@ -23,10 +24,20 @@ func ZDeclared(path string, phase int) (map[string]bool, []string, error) {
 		return nil, nil, err
 	}
 	defer f.Close()
+	return zDeclared(f, phase)
+}
+
+// ZDeclaredText is ZDeclared on declarations already in hand, which is what a
+// caller that just read them from phase/NNN/delta.md has.
+func ZDeclaredText(text string, phase int) (map[string]bool, []string, error) {
+	return zDeclared(strings.NewReader(text), phase)
+}
+
+func zDeclared(r io.Reader, phase int) (map[string]bool, []string, error) {
 	tokens := map[string]bool{}
 	var own []string
 	cur := -1
-	s := bufio.NewScanner(f)
+	s := bufio.NewScanner(r)
 	s.Buffer(make([]byte, 0, 64*1024), 4*1024*1024)
 	for s.Scan() {
 		line := s.Text()

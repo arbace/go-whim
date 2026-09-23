@@ -112,6 +112,7 @@ import (
 
 	"github.com/arbace/go-whim/internal/check"
 	"github.com/arbace/go-whim/internal/harness"
+	"github.com/arbace/go-whim/internal/verify"
 )
 
 func init() { check.Register("whim123", Check) }
@@ -205,7 +206,7 @@ func Check(w io.Writer, args []string) error {
 		if _, e := os.Stat(base + "/memline"); e != nil {
 			b := &check.Rep{Tag: "baselines", W: w}
 			b.Say("%s has no memline/ -- it is the recording of five parts", base)
-			b.Cont("and a recording is six now (tools/zrecord.sh).  Phase 83")
+			b.Cont("and a recording is six now (whimtools zrecord).  Phase 83")
 			b.Cont("records them, from whim-vim.c -- the pipeline's immutable")
 			b.Cont("input -- and REFUSES to overwrite a set that differs, so")
 			b.Cont("BOTH paths have to go:")
@@ -340,7 +341,7 @@ func Check(w io.Writer, args []string) error {
 	}
 
 	// --- 7. the declared delta ----------------------------------------------
-	if check.Run(w, "sh", "tools/coredelta.sh", bin, f, "--phase", "123") != nil {
+	if verify.CoreDelta(bin, f, 123, w) != nil {
 		return harness.ErrReported
 	}
 

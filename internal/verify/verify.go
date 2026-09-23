@@ -214,8 +214,8 @@ func runCheck(p build.Phase, work, state string, w io.Writer) error {
 }
 
 // delta is the declared delta at a phase, measured on the binary its tree
-// builds -- tools/whimdelta.sh, which hands a phase from CORE_FROM on to the
-// core's checker.
+// builds -- Delta, which hands a phase from build.CoreFrom on to the core's
+// checker.
 func delta(n int, work, src, mk string, w io.Writer) error {
 	bin := filepath.Join(work, "whim-vim")
 	if _, err := os.Stat(bin); err != nil {
@@ -223,9 +223,7 @@ func delta(n int, work, src, mk string, w io.Writer) error {
 			return err
 		}
 	}
-	cmd := exec.Command("sh", "tools/whimdelta.sh", bin, src, "--phase", fmt.Sprint(n))
-	cmd.Stdout, cmd.Stderr = w, w
-	if err := cmd.Run(); err != nil {
+	if err := Delta(bin, src, n, w); err != nil {
 		return fmt.Errorf("phase %d delta: %w", n, err)
 	}
 	return nil

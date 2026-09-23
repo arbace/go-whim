@@ -641,7 +641,7 @@ func Check(w io.Writer, args []string) error {
 		wgR.Add(1)
 		go func() {
 			defer wgR.Done()
-			recErr[k] = check.RecCmd("sh", "tools/zrecord.sh", x[1], x[2], T("REC-"+x[0]))
+			recErr[k] = check.RecZ(x[1], x[2], T("REC-"+x[0]))
 		}()
 	}
 	wgR.Wait()

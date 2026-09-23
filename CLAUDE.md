@@ -48,7 +48,7 @@ slim-vim.c  --whim-->  whim-vim.c
 mix freely in one directory: `phase/099/` holds `edit.go`, `check.go`,
 `GOAL.md` and `delta.md`. A data file in Markdown puts its data in a FENCED
 BLOCK and its notes around it, and the reader takes the fence and ignores the
-rest -- `tools/declared.sh` and `internal/build`'s `declared()` read
+rest -- `internal/verify`'s `Declarations` and `internal/build`'s `declared()` read
 `phase/NNN/delta.md` that way, and a phase that declares nothing simply has no
 block. What is left outside the rule is what Markdown would only obscure:
 `slim.sha` and `upstream.sha` (one digest each, read by `make`), and the C that
@@ -63,8 +63,8 @@ declares with `#` notes, or `# declares nothing`. A phase with more to say
 splits it: `editlit.go`, `checkprobes.go`, `checkevidence.go`. Each registers
 itself with `internal/edit` and `internal/check` in an `init()`, and
 `phase/registry.go` is what links them in -- `cmd/whimtools` imports it blank.
-`tools/declared.sh` reads a run of deltas in the one grammar both delta checkers
-take.
+`internal/verify`'s `Declarations` reads a run of deltas in the one grammar both
+delta checkers take, and `tools/st.sh delta --list FROM TO` prints it.
 
 **`GOALS.md`** is what holds for every phase: Part I (phases 0-82: the charter,
 what is measured and the declared delta, the rules, the sweep, the concept index,
@@ -98,15 +98,17 @@ phase/NNN/         a phase, and a package: edit.go, check.go, GOAL.md, delta.md
 phase/registry.go  every phase package, blank-imported so they register
 phase/STAGES.md       the record the plan was read from: the stages, need and apart,
                    the packages.  Prose now, not a manifest a program reads
-tools/             the instruments a check or a delta runs -- whimdelta, coredelta,
-                   zrecord, phasecheck, phasebuild, enumvals, symbols, declared --
-                   and the three wrappers that find the Go binary: st.sh,
-                   sweep.sh, canon.sh
+tools/             what a check still shells out to -- phasecheck, phasebuild,
+                   enumvals, symbols, score -- and the three wrappers that find
+                   the Go binary: st.sh, sweep.sh, canon.sh.  The delta, the
+                   declarations and a recording are internal/verify and
+                   internal/harness, reached as `tools/st.sh delta` and
+                   `tools/st.sh zrecord`
 tools/templates/   whim.mk, the makefile phase 0 starts from, and core.mk, the one
                    phase 83 writes over it
 editor/            the core in Go: editor.go GENERATED (make editor/editor.go; never edit it),
-                   its runtime crt.go and host host.go by hand; tools/coredelta.sh
-                   measures a build of it
+                   its runtime crt.go and host host.go by hand; `tools/st.sh
+                   delta` measures a build of it
 tx/                skel (types, globals, signatures and, with -bodies, the bodies),
                    splice (emitted bodies measured in a copy of editor/), pre
                    (internal/ccx's partitions on an editor.c), and the conventions
@@ -245,12 +247,12 @@ passes: every delta is measured against it.
   identical, an existing set compared and never overwritten. Measured when it
   moved here: the Go harnesses on `slim-vim.c`'s binary reproduce arbace/slim-vim's
   own baselines byte for byte (67 behaviour cases, 19 terminals, 600 Ex
-  commands). `tools/whimdelta.sh` checks whim's declared delta against them.
+  commands). `internal/verify`'s `Delta` checks whim's declared delta against them.
 - **`.reference/core-baselines/`** -- `screen/`, `memline/`, `ref-excmds.txt`,
-  `ref-argv.txt`, `ref-pty.txt`, `ref-term.txt` (`tools/zrecord.sh`) -- is
+  `ref-argv.txt`, `ref-pty.txt`, `ref-term.txt` (`harness.ZRecord`) -- is
   recorded by **phase 83 from q82**, the tree it is handed, built with the compile
-  line that tree carries; `tools/whimdelta.sh` hands every phase from 83 on to
-  `tools/coredelta.sh`, which checks the declarations from 83 on against it.
+  line that tree carries; `Delta` hands every phase from 83 on to `CoreDelta`,
+  which checks the declarations from 83 on against it.
 - **Never regenerate a baseline from a binary a later phase can reach**, which
   would agree by construction. `slim-vim.c` is the pipeline's immutable input, and
   nothing from 83 on can reach q82. The cost of the second: a change to what

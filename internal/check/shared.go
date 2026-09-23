@@ -85,12 +85,12 @@ func CountHeaders(p string) int {
 }
 
 // From phase 86.
-// recordThrice is `tools/zrecord.sh` three times over one binary, each run
+// recordThrice is a whole recording three times over one binary, each run
 // compared with the first as `diff -r` would.
 func RecordThrice(w io.Writer, bin, f, tmp string) bool {
 	for i := 1; i <= 3; i++ {
 		Out := filepath.Join(tmp, fmt.Sprintf("run%d", i))
-		if err := Run(w, "sh", "tools/zrecord.sh", bin, f, Out); err != nil {
+		if err := RunZ(w, bin, f, Out); err != nil {
 			return false
 		}
 		if i != 1 {

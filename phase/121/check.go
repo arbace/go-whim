@@ -580,9 +580,7 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 4. THE FALLBACK'S CONTROL: the repair left Out ---------------------------------
 	rec := func(bin, src, Out string) error {
-		c := exec.Command("sh", "tools/zrecord.sh", bin, src, T(Out))
-		c.Stderr = w
-		return c.Run()
+		return check.RunZ(w, bin, src, T(Out))
 	}
 	if err := rec(newBin, f, "rec-new"); err != nil {
 		return harness.ErrReported

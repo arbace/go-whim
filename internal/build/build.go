@@ -231,7 +231,7 @@ func resolve(p Phase, args []string, scratch string) ([]string, error) {
 	return out, nil
 }
 
-// declared is the phase's own declaration, as tools/declared.sh reads it: the
+// declared is the phase's own declaration, as verify.Declarations reads it: the
 // tokens inside phase/NNN/delta.md's FENCED BLOCK, with the prose around it left
 // out.  A phase that declares nothing has no block, and yields nothing.
 func declared(n int) (string, error) {

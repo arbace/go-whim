@@ -766,11 +766,11 @@ func Check(w io.Writer, args []string) error {
 	wgR.Add(2)
 	go func() {
 		defer wgR.Done()
-		errRO = check.RecCmd("sh", "tools/zrecord.sh", oldBin, oldC, filepath.Join(tmp, "REC.old"))
+		errRO = check.RecZ(oldBin, oldC, filepath.Join(tmp, "REC.old"))
 	}()
 	go func() {
 		defer wgR.Done()
-		errRN = check.RecCmd("sh", "tools/zrecord.sh", bin, f, filepath.Join(tmp, "REC.new"))
+		errRN = check.RecZ(bin, f, filepath.Join(tmp, "REC.new"))
 	}()
 	wgR.Wait()
 	if check.RecReport(w, errRO, errRN) {

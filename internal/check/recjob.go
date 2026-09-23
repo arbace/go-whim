@@ -27,15 +27,28 @@ import (
 type RecJob struct {
 	What string // how the report names it: "the recording of the input"
 	argv []string
+	how  string                // what the report calls the command, when there is no argv
+	fn   func(io.Writer) error // a recorder in this process rather than a child
 	Out  bytes.Buffer
 	Err  error
 }
 
-// newRec is one recorder, not yet run: `sh tools/zrecord.sh BIN SRC DIR` or
-// `sh tools/st.sh zcases|zmemline|ztermcheck BIN DIR`.
+// NewRec is one recorder, not yet run, as a child: `sh tools/st.sh
+// zcases|zmemline|ztermcheck BIN DIR`.
 func NewRec(what string, argv ...string) *RecJob { return &RecJob{What: what, argv: argv} }
 
+// NewRecFunc is one recorder, not yet run, IN THIS PROCESS -- a whole
+// recording is harness.ZRecord and not a shell that starts six children -- with
+// how naming it the way an argv would.
+func NewRecFunc(what, how string, fn func(io.Writer) error) *RecJob {
+	return &RecJob{What: what, how: how, fn: fn}
+}
+
 func (j *RecJob) Run() *RecJob {
+	if j.fn != nil {
+		j.Err = j.fn(&j.Out)
+		return j
+	}
 	c := exec.Command(j.argv[0], j.argv[1:]...)
 	c.Stdout, c.Stderr = &j.Out, &j.Out
 	j.Err = c.Run()
@@ -60,7 +73,13 @@ func (j *RecJob) Tell(w io.Writer) {
 	if _, ok := j.Err.(*exec.ExitError); ok {
 		how = fmt.Sprintf("exited %d", ExitCode(j.Err))
 	}
-	fmt.Fprintf(w, "  %-12s %s did not finish -- `%s` %s.  It said:\n", "record", j.What, strings.Join(j.argv[1:], " "), how)
+	what := j.how
+	if what == "" {
+		what = strings.Join(j.argv[1:], " ")
+	} else {
+		how = "failed: " + fmt.Sprint(j.Err)
+	}
+	fmt.Fprintf(w, "  %-12s %s did not finish -- `%s` %s.  It said:\n", "record", j.What, what, how)
 	ls := Lines(strings.TrimRight(j.Out.String(), "\n"))
 	if len(ls) == 0 {
 		fmt.Fprintf(w, "               (nothing at all)\n")

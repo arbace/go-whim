@@ -38,6 +38,7 @@ package p086
 // the two pipelines' recordings and is kept for exactly that.
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -45,12 +46,12 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/arbace/go-whim/internal/build"
 	"github.com/arbace/go-whim/internal/check"
 	"github.com/arbace/go-whim/internal/harness"
+	"github.com/arbace/go-whim/internal/verify"
 )
 
 func init() { check.Register("whim86", Check) }
@@ -134,7 +135,7 @@ func Check(w io.Writer, args []string) error {
 	af.Say("do_addsub() returning FAIL moves exactly 11 of %d cases, and nothing else", cases)
 
 	// --- 5. the declared delta --------------------------------------------
-	if err := check.Run(w, "sh", "tools/coredelta.sh", bin, f, "--phase", "86"); err != nil {
+	if err := verify.CoreDelta(bin, f, 86, w); err != nil {
 		return harness.ErrReported
 	}
 
@@ -142,12 +143,14 @@ func Check(w io.Writer, args []string) error {
 	br := &check.Rep{Tag: "bridge", W: w}
 	// The last phase measured against whim's own baselines: the phase before
 	// the core's line (internal/build.CoreFrom).
-	whimLast := strconv.Itoa(build.CoreFrom - 1)
+	whimLast := build.CoreFrom - 1
 	if fi, e := os.Stat(".reference/baselines/behaviour"); e == nil && fi.IsDir() {
-		o, e := exec.Command("sh", "tools/whimdelta.sh", bin, f, "--phase", whimLast).CombinedOutput()
+		var ob bytes.Buffer
+		e := verify.Delta(bin, f, whimLast, &ob)
+		o := ob.Bytes()
 		if e != nil {
 			w.Write(o)
-			br.Say("whim-vim does NOT show whim's declared delta to phase %s", whimLast)
+			br.Say("whim-vim does NOT show whim's declared delta to phase %d", whimLast)
 			return harness.ErrReported
 		}
 		held := ""
@@ -165,7 +168,7 @@ func Check(w io.Writer, args []string) error {
 		if k := strings.Index(held, "cases:"); k >= 0 {
 			cs = held[k+len("cases:"):]
 		}
-		br.Say("%d commands and %d cases against slim-vim's baselines, exactly whim's declared delta to phase %s", len(strings.Fields(cmds)), len(strings.Fields(cs)), whimLast)
+		br.Say("%d commands and %d cases against slim-vim's baselines, exactly whim's declared delta to phase %d", len(strings.Fields(cmds)), len(strings.Fields(cs)), whimLast)
 	} else {
 		br.Say("no slim baselines at .reference/baselines -- whim's delta not rechecked")
 	}

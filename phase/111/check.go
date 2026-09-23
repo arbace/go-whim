@@ -698,7 +698,7 @@ func Check(w io.Writer, args []string) error {
 		wgR.Add(1)
 		go func() {
 			defer wgR.Done()
-			recErr[k] = check.RecCmd("sh", "tools/zrecord.sh", x.bin, x.src, filepath.Join(tmp, x.Out))
+			recErr[k] = check.RecZ(x.bin, x.src, filepath.Join(tmp, x.Out))
 		}()
 	}
 
