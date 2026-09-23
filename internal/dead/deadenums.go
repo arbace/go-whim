@@ -3,7 +3,6 @@ package dead
 import (
 	"bytes"
 	"os"
-	"os/exec"
 	"regexp"
 	"sort"
 	"strings"
@@ -27,8 +26,8 @@ type EnumStats struct {
 	Unpinnable int
 }
 
-// LoadVals reads tools/enumvals.sh's output: NAME = VALUE per line.  A missing
-// file is not an error -- it means the values have not been needed yet.
+// LoadVals reads DumpVals's output: NAME = VALUE per line.  A missing file is
+// not an error -- it means the values have not been needed yet.
 func LoadVals(path string) map[string]string {
 	vals := map[string]string{}
 	data, err := os.ReadFile(path)
@@ -43,12 +42,19 @@ func LoadVals(path string) map[string]string {
 	return vals
 }
 
-// DumpVals runs tools/enumvals.sh, which compiles with -g and reads the
-// enumerator values out of DWARF.  The compiler has already done the
-// arithmetic, which is why the values are read rather than evaluated: several
-// are `1 << 3`, `0x80000000L`, or defined in terms of another.
+// DumpVals writes the enumerator values of src, as EnumVals does: from the
+// front end, which has already folded the arithmetic that made these worth
+// reading rather than evaluating -- several are `1 << 3`, `0x80000000L`, or
+// defined in terms of another enumerator.
+//
+// It read them out of DWARF before, by compiling src with -g and dumping the
+// binary with readelf.  That cost a whole build per dump (19 of them in a
+// measured pass, about 100 s) and could not answer at all for a text that does
+// not LINK -- editor.c, whose host_message the core does not define.  It also
+// asked the wrong question: gcc emits DWARF only for enum types something
+// uses, so the answer was a function of the uses, not of the declarations.
 func DumpVals(src, out string) error {
-	return exec.Command("sh", "tools/enumvals.sh", src, out).Run()
+	return EnumVals(src, out)
 }
 
 // AnalyseEnums finds enumerators nothing mentions and the edits that remove
@@ -60,11 +66,17 @@ func DumpVals(src, out string) error {
 // later entry.  So the first survivor after each deleted run is pinned to the
 // value it had, and everything after it follows implicitly as before.
 //
-// A survivor DWARF has no value for cannot be pinned, and the run before it
-// stays.  gcc does not emit every enum, and an unpinned survivor is silently
-// renumbered -- which the before-and-after comparison cannot see either,
-// because the name is in neither dump.  Keeping the run is the only answer
-// known to be right.
+// A survivor with no value cannot be pinned, and the run before it stays: an
+// unpinned survivor is silently renumbered, which the before-and-after
+// comparison cannot see either when the name is in neither dump.  Keeping the
+// run is the only answer known to be right.
+//
+// That branch was written for a hole DWARF had and the front end does not: gcc
+// emitted debug information only for enum types something USED, so a declared
+// name could be missing from the dump -- 59 of them on the committed product.
+// The values now come from the declarations, so every survivor has one.  The
+// branch stays because it is the honest answer if one ever does not, and
+// because it is measured: it fired 0 times in 200 rounds of a full pass.
 func AnalyseEnums(text []byte, vals map[string]string) ([]Edit, EnumStats) {
 	b := cutil.Blank(text)
 	defs := Definitions(text, b)
@@ -192,8 +204,8 @@ func ApplyEnumEdits(text []byte, edits []Edit) []byte {
 	return text
 }
 
-// VerifyEnums dumps DWARF again and requires every name present in both dumps
-// to have the value it started with.  That is stronger than the build, which
+// VerifyEnums dumps the values again and requires every name present in both
+// dumps to have the value it started with.  That is stronger than the build, which
 // compiles a silently renumbered table without complaint.
 func VerifyEnums(src, before string) (moved []string, gone int, err error) {
 	f, err := os.CreateTemp("", "enumvals.")
