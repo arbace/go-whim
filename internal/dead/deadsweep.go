@@ -67,8 +67,16 @@ func GccWarnings(path, keep string) ([]Warning, error) {
 		"-Wall", "-Wextra", "-Wno-unused-parameter", "-o", "/dev/null", path)
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
-	_ = cmd.Run() // gcc's status is not consulted: a file that fails to compile
-	// yields no warning lines, and the tool is then a no-op.
+	_ = cmd.Run()
+	// GCC'S STATUS IS NOT CONSULTED, and the reason written here was wrong: it
+	// said a file that fails to compile yields no warning lines and the tool is
+	// then a no-op.  Measured on the text phase 35 leaves -- `winopt_T has no
+	// member named wo_eiw`, two uses surviving in a dead function -- gcc exits
+	// 1 AND still names 71 unused functions and 12 unused variables, and this
+	// tool removes 1,041 lines, after which the text parses again.  So the
+	// status is ignored because gcc answers ANYWAY, which is also the thing a
+	// tree-based implementation could not do: the front end has nothing to say
+	// about text it cannot parse.
 
 	if keep != "" {
 		if err := os.WriteFile(filepath.Join(keep, "last.txt"), stderr.Bytes(), 0o644); err != nil {
