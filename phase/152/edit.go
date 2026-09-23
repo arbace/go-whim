@@ -259,8 +259,20 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// 4. the window-local global value
 	var cases strings.Builder
-	for _, m := range regexp.MustCompile(`(?m)^        case   \(idopt_T\)\(PV_WIN \+ \(int\)\((WV_\w+)\)\)  :\n            return (optvar_\w+)\(&\(curwin-> w_onebuf_opt\.(\w+) \)\);\n`).FindAllStringSubmatch(s, -1) {
-		fmt.Fprintf(&cases, "        case   (idopt_T)(PV_WIN + (int)(%s))  :\n            return %s(&(curwin-> w_allbuf_opt.%s ));\n", m[1], m[2], m[3])
+	w152Case := regexp.MustCompile(`(?m)^    case \(idopt_T\)\(PV_WIN \+ \(int\)\((WV_\w+)\)\):\n        return (optvar_\w+)\(&\(curwin->w_onebuf_opt\.(\w+)\)\);\n`)
+	for _, m := range w152Case.FindAllStringSubmatch(s, -1) {
+		fmt.Fprintf(&cases, "    case (idopt_T)(PV_WIN + (int)(%s)):\n        return %s(&(curwin->w_allbuf_opt.%s));\n", m[1], m[2], m[3])
+	}
+	// EVERY WINDOW-LOCAL CASE, AND THAT IS ASSERTED.  The generator writes what
+	// it finds and would write an EMPTY switch if it found nothing -- a
+	// get_varp_allbuf() that answers optvar_none() for every option, which
+	// compiles, sweeps and passes every count in this phase.  The switch it
+	// reads is the one get_varp() has, so the two counts are the same number.
+	nwin := strings.Count(s, "case (idopt_T)(PV_WIN + (int)(")
+	if k := len(w152Case.FindAllString(s, -1)); k != nwin || k == 0 {
+		return nil, p.Die("get_varp() has %d window-local cases and this phase read %d of them -- "+
+			"get_varp_allbuf() is written from what is read, so a case it misses is an "+
+			"option whose global value silently becomes none", nwin, k)
 	}
 	lit("        if (p->var == ((char_u *)-1))\n        {\n            return (char_u *)((char *)(get_varp(p)) + sizeof(winopt_T));\n        }\n",
 		"        if (p->var.ov_win)\n        {\n            return get_varp_allbuf(p);\n        }\n", "a window-local option's global value is get_varp_allbuf()", 1)

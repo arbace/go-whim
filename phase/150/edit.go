@@ -96,7 +96,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	lit("save_subexpr(((regbehind_T *)rp) - 1);", "save_subexpr(regstack_behind_top());", "saved into", 1)
 	lit("restore_subexpr(((regbehind_T *)rp) - 1);", "restore_subexpr(regstack_behind_top());", "and restored from", 3)
 	for _, k := range []struct{ t, ga string }{{"regbehind_T", "regstack_behind"}, {"regstar_T", "regstack_star"}} {
-		for _, ind := range []string{"                ", "                    "} {
+		for _, ind := range []string{"                ", "                    ", "                        "} {
 			old := "\n" + ind + "regstack.ga_len -= sizeof(" + k.t + ");\n"
 			n := strings.Count(s, old)
 			if n > 0 {
@@ -114,6 +114,22 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	// EVERY TYPED POP, AND THAT IS ASSERTED RATHER THAN COUNTED.  The loop above
+	// rewrites the depths it finds and says nothing about a depth it does not,
+	// so a site at an indentation not in the list would be left popping the
+	// BYTE stack by the size of a record it never held.  Three were, when the
+	// canonical text reindented them; the sweep cannot see it and neither can
+	// the compiler.  What can is this: no typed pop may survive.
+	for _, t := range []string{"regbehind_T", "regstar_T"} {
+		if k := strings.Count(s, "regstack.ga_len -= sizeof("+t+")"); k != 0 {
+			return nil, p.Die("%d pops of a %s still take it off the record stack -- the loop above "+
+				"did not reach them, and the indentation it walks is the only reason", k, t)
+		}
+		if k := strings.Count(s, "regstack.ga_len += sizeof("+t+")"); k != 0 {
+			return nil, p.Die("%d pushes of a %s still put it on the record stack", k, t)
+		}
+	}
+
 	// the accessors, before regstack_push()
 	head := "    static regitem_T *\nregstack_push("
 	if strings.Count(s, head) != 1 {

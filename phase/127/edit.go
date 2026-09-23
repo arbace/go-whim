@@ -617,7 +617,15 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if a, err = one(lo, hi, `^        vim_free\(new_line\);$`); err != nil {
 		return nil, err
 	}
-	lines = edit.Z44Splice(lines, a, a+2, nil)
+	// THE FREE AND NOTHING ELSE.  The residue wrote a blank line under it and
+	// this took the pair; the canonical text writes none, and the line under it
+	// is `entered = FALSE;` -- the re-entrancy guard's only clear.  Taking that
+	// would leave ml_flush_line returning early for the rest of the process,
+	// which compiles, sweeps and records the same corpus.
+	if strings.TrimSpace(lines[a+1]) == "" {
+		return nil, die("a blank line under vim_free(new_line) -- this edit takes the free alone")
+	}
+	lines = edit.Z44Splice(lines, a, a+1, nil)
 
 	// --- 10. ML_APPEND_MARK has no caller left -------------------------------
 	markRe := regexp.MustCompile(`\bML_APPEND_MARK\b`)
