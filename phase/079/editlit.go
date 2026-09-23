@@ -8,9 +8,9 @@ package p079
 const (
 	w79lit1 = "    if (!eap->skip)\n    {\n        ex_ni(eap);\n    }\n    else\n    {\n        vim_free(script_get(eap, eap->arg));\n    }\n"
 	w79lit2 = "    if (!eap->skip)\n    {\n        ex_ni(eap);\n    }\n"
-	w79lit3 = "                            eap->line2 = eap->addr_type == ADDR_WINDOWS\n                                                  ?  current_win_nr(NULL)  :  current_tab_nr(NULL) ;\n"
-	w79lit4 = "                            eap->line2 = 1;\n"
-	w79lit5 = "    return frame_minheight(curtab->tp_topframe, NULL) + tabline_height()\n        + MIN_CMDHEIGHT;\n"
+	w79lit3 = "                        eap->line2 = eap->addr_type == ADDR_WINDOWS ? current_win_nr(NULL) : current_tab_nr(NULL);\n"
+	w79lit4 = "                        eap->line2 = 1;\n"
+	w79lit5 = "    return frame_minheight(curtab->tp_topframe, NULL) + tabline_height() + MIN_CMDHEIGHT;\n"
 	w79lit6 = "    return frame_minheight(curtab->tp_topframe, NULL) + MIN_CMDHEIGHT;\n"
 	w79lit7 = "{\n"
 )

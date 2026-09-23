@@ -163,7 +163,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	e.Lines(`static buf_T[ \t]+\*firstbuf[ \t]*=[ \t]*NULL[ \t]*;`, 1, "firstbuf")
 	e.Lines(`static buf_T[ \t]+\*lastbuf[ \t]*=[ \t]*NULL[ \t]*;`, 1, "lastbuf")
-	e.Lines(`static garray_T buf_reuse[ \t]*=[ \t]*\{0, 0, 0, 0, NULL\}[ \t]*;`, 1, "the wiped-fnum pool")
+	// The canonical text writes an aggregate initialiser one element per line,
+	// with the brace under the `=` and a comma after the last element, so the
+	// pool's declaration is nine lines rather than one.  Still one site.
+	e.Lines(`static garray_T buf_reuse[ \t]*=\n\{\n[ \t]*0,\n[ \t]*0,\n[ \t]*0,\n[ \t]*0,\n[ \t]*NULL,\n\}[ \t]*;`, 1, "the wiped-fnum pool")
 	e.Literal(w71lit12, "", "the buffer list pointers in buf_T")
 	return e.Done()
 }

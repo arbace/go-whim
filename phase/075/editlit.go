@@ -17,7 +17,7 @@ const (
 	w75lit7  = "    if (bufref_valid(&old_curbuf) && old_curbuf.br_buf->b_ml.ml_mfp != NULL)\n    {\n        curbuf->b_flags &= ~(BF_CHECK_RO | BF_NEVERLOADED);\n    }\n"
 	w75lit8  = "    if (quitmore && !getline_equal(fgetline, cookie, getnextac))\n"
 	w75lit9  = "    if (quitmore)\n"
-	w75lit10 = "        aucmd_prepbuf(&aco, buf);\n        if (curbuf != buf)\n        {\n            return FAIL;\n        }\n\n        set_bufref(&bufref, buf);\n\n        if (append)\n        {\n        }\n        else if (filtering)\n        {\n        }\n        else if (reset_changed && whole)\n        {\n        }\n        else\n        {\n        }\n\n        aucmd_restbuf(&aco);\n\n        if (!bufref_valid(&bufref))\n        {\n            buf = NULL;\n        }\n"
+	w75lit10 = "        aucmd_prepbuf(&aco, buf);\n        if (curbuf != buf)\n        {\n            return FAIL;\n        }\n        set_bufref(&bufref, buf);\n        if (append)\n        {\n        }\n        else if (filtering)\n        {\n        }\n        else if (reset_changed && whole)\n        {\n        }\n        else\n        {\n        }\n        aucmd_restbuf(&aco);\n        if (!bufref_valid(&bufref))\n        {\n            buf = NULL;\n        }\n"
 	w75lit11 = "        if (buf == NULL || (buf->b_ml.ml_mfp == NULL && !empty_memline) || did_cmd)\n"
 	w75lit12 = "        if (buf == NULL || (buf->b_ml.ml_mfp == NULL && !empty_memline))\n"
 	w75lit13 = "\n"

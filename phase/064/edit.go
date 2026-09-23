@@ -111,17 +111,14 @@ const oldDispatch = `        case OP_FILTER:
             {
                 bangredo = TRUE;
             }
-
-        __attribute__((fallthrough));
+            __attribute__((fallthrough));
         case OP_INDENT:
         case OP_COLON:
-
             if (oap->op_type == OP_INDENT)
             {
                 op_reindent(oap, get_indent);
                 break;
             }
-
             op_colon(oap);
             break;
 `

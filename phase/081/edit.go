@@ -91,10 +91,17 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"if (!(ea.argt & EX_EXTRA) && *ea.arg != NUL)", 1, "a bar or a quote after a command is trailing characters")
 	e.Term("if (*ea.cmd == NUL || comment_start(ea.cmd, starts_with_colon) || (ea.nextcmd = check_nextcmd(ea.cmd)) != NULL)",
 		"if (*ea.cmd == NUL || (ea.nextcmd = check_nextcmd(ea.cmd)) != NULL)", 1, "a line that is a comment is not empty")
-	e.Lines(`int         starts_with_colon = FALSE;`, 1, "do_one_cmd no longer asks where the colon was")
+	// do_one_cmd's declaration and parse_command_modifiers' were told apart by the
+	// padding that aligned them; the canonical text writes one space, so each is
+	// named by the function it is in and the count stays 1.
+	e.InFunction("do_one_cmd", func(e *edit.E) {
+		e.Lines(`int starts_with_colon = FALSE;`, 1, "do_one_cmd no longer asks where the colon was")
+	})
 	e.DropIf(`(?m)^[ \t]*if \(comment_start\(eap->cmd, starts_with_colon\)\)$`, "the modifier parser skips no comment")
 	e.DropIf(`(?m)^[ \t]*if \(\*eap->cmd == ':'\)$`, "and records no colon")
-	e.Lines(`int     starts_with_colon = FALSE;`, 1, "nor keeps the flag")
+	e.InFunction("parse_command_modifiers", func(e *edit.E) {
+		e.Lines(`int starts_with_colon = FALSE;`, 1, "nor keeps the flag")
+	})
 	e.Term("if ((*eap->cmd == '|' || (exmode_active && eap->cmd != (char_u *)exmode_plus + 1)))",
 		"if (exmode_active && eap->cmd != (char_u *)exmode_plus + 1)", 1, "`:|` no longer prints the line")
 	e.Term(w81lit7, w81lit8, 1, ":substitute takes no trailing comment")

@@ -413,8 +413,12 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			return nil, e.Refused("the lookup span does not contain %s -- it is not the block it was", need)
 		}
 	}
-	if k := strings.Count(oldSpan, "\n"); k != 33 {
-		return nil, e.Refused("the lookup span is %d lines, expected 33", k)
+	// Thirty lines, re-measured on the canonical text: the span's ends are the
+	// head and its for loop's matching brace, and the six words above say it is
+	// the block it was.  The count is the tree's, and the canonical form writes
+	// the same block without the three blank lines the residue had.
+	if k := strings.Count(oldSpan, "\n"); k != 30 {
+		return nil, e.Refused("the lookup span is %d lines, expected 30", k)
 	}
 	e.Set([]byte(t[:a] + w80lit9 + t[z:]))
 	e.Say(fmt.Sprintf("the lookup: a prefix at least as long as the row says, over %d rows", len(minlen)))
@@ -437,7 +441,13 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	e.Lines(`ni = \(!\(\(int\)\(ea\.cmdidx\) < 0\) && \(cmdnames\[ea\.cmdidx\]\.cmd_func == ex_ni \|\| cmdnames\[ea\.cmdidx\]\.cmd_func == ex_script_ni\)\);`,
 		1, "the stub flag, which no row can raise")
-	e.Lines(`int         ni;`, 1, "and its declaration")
+	// `int ni;` is do_one_cmd's; readfile has one too, and the residue told them
+	// apart by the padding that aligned the declaration.  The canonical text
+	// writes one space, so the function is the discriminator, and the count
+	// stays 1.
+	e.InFunction("do_one_cmd", func(e *edit.E) {
+		e.Lines(`int ni;`, 1, "and its declaration")
+	})
 	e.Term("(!ni && ", "(", 4, "range, bang, extra-argument and required-argument checks apply to every command")
 	e.Term("&& !ni && ", "&& ", 2, "and the range and count checks")
 	e.Term("getargopt(&ea) == FAIL && !ni)", "getargopt(&ea) == FAIL)", 1, "and ++opt parsing")
@@ -521,23 +531,28 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if e.Failed() {
 		return e.Done()
 	}
-	// THE INDEX IS THE ONE THE FILE HAD BEFORE THE ENUM SHRANK, deliberately: the
-	// Python holds tab_start from step 1 and every act since has moved the text
-	// under it.  A port that recomputed it would assert something else.
+	// THE TABLE IS FOUND AGAIN, on the text as it now stands.  The Python held
+	// tab_start from step 1 and every act since had moved the text under it, so
+	// what it scanned was whatever that stale offset happened to land on -- on
+	// the canonical text it lands below the table, on rows of another kind that
+	// still say ADDR_BUFFERS, and the assertion fires for a reason that has
+	// nothing to do with cmdnames[].  What the assertion is FOR is that no
+	// SURVIVING ROW carries one of the seven address types this phase removes,
+	// and that is what it asks now: the table as it is, found by its own header.
 	t = string(e.Text())
-	if tabStart < len(t) {
-		if end := strings.Index(t[tabStart:], w80lit12); end >= 0 {
-			var bad []string
-			for _, a := range regexp.MustCompile(`ADDR_\w+`).FindAllString(t[tabStart:tabStart+end], -1) {
-				if w80DeadAddr[a] && !edit.Contains(bad, a) {
-					bad = append(bad, a)
-				}
-			}
-			if len(bad) > 0 {
-				sort.Strings(bad)
-				return nil, e.Refused("a live row has one of the address types being removed: %v", bad)
-			}
+	mt2 := edit.W80Table.FindStringSubmatchIndex(t)
+	if mt2 == nil {
+		return nil, e.Refused("cmdnames[] is gone before its address types were checked")
+	}
+	var bad []string
+	for _, a := range regexp.MustCompile(`ADDR_\w+`).FindAllString(t[mt2[2]:mt2[3]], -1) {
+		if w80DeadAddr[a] && !edit.Contains(bad, a) {
+			bad = append(bad, a)
 		}
+	}
+	if len(bad) > 0 {
+		sort.Strings(bad)
+		return nil, e.Refused("a live row has one of the address types being removed: %v", bad)
 	}
 	L := strings.Split(t, "\n")
 	var Out []string
