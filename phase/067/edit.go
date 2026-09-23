@@ -120,7 +120,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			e.Cut(mouseNameThreeLine.String(), 5, "the terminal-specific mouse names: "+strings.Join(three, " "))
 		}
 	}
-	e.Cut(`(?m)^[ \t]*\{  \(-\(\(KS_MOUSE\) \+ \(\(int\)\( \('X'\) \) << 8\)\)\)  ,[^\n]*"\[MOUSE\]"\},\n`, 1,
+	e.Cut(`(?m)^[ \t]*\{\(-\(\(KS_MOUSE\) \+ \(\(int\)\(\('X'\)\) << 8\)\)\),[^\n]*"\[MOUSE\]"\},\n`, 1,
 		"the [MOUSE] entry of the terminal string table")
 
 	e.InFunction("check_termcode", func(e *edit.E) {
@@ -143,7 +143,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.Literal("win_line(wp, lnum, srow, wp->w_height, 0, &spv)", "win_line(wp, lnum, srow, wp->w_height, 0)", "the first win_line call")
 	e.Literal("win_line(wp, lnum, srow, wp->w_height, wp->w_lines[idx].wl_size, &spv)",
 		"win_line(wp, lnum, srow, wp->w_height, wp->w_lines[idx].wl_size)", "the second win_line call")
-	e.Cut(`(?m)^typedef struct \{\n[ \t]*int[ \t]+spv_has_spell;\n\} spellvars_T;\n\n?`, 1, "spellvars_T itself")
+	e.Cut(`(?m)^typedef struct\n\{\n[ \t]*int[ \t]+spv_has_spell;\n\} spellvars_T;\n\n?`, 1, "spellvars_T itself")
 
 	// the write-only statics
 	for _, s := range writeOnlyStatics {

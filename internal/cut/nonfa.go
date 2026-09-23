@@ -28,8 +28,13 @@ const nfaNewCompile = "    rex.reg_buf = curbuf;\n" +
 	"}\n" +
 	""
 
-const nfaIsland = "static regengine_T nfa_regengine = " +
-	"{nfa_regcomp, nfa_regfree, nfa_regexec_nl, nfa_regexec_multi};\n" +
+const nfaIsland = "static regengine_T nfa_regengine =\n" +
+	"{\n" +
+	"    nfa_regcomp,\n" +
+	"    nfa_regfree,\n" +
+	"    nfa_regexec_nl,\n" +
+	"    nfa_regexec_multi,\n" +
+	"};\n" +
 	"\n" +
 	""
 

@@ -97,7 +97,7 @@ var whim100Entered = regexp.MustCompile(`\+\+entered|entered\+\+|--entered|enter
 
 var whim100Space = regexp.MustCompile(`\s+`)
 
-const whim100Table = "} signal_info[] = " +
+const whim100Table = "} signal_info[] =\n" +
 	"{\n" +
 	"    {SIGHUP, \"HUP\", TRUE},\n" +
 	"    {SIGTERM, \"TERM\", TRUE},\n" +

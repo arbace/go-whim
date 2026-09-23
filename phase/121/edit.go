@@ -160,7 +160,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- 0. the table, and the two rows that stay ------------------------
-	i := bytes.Index(text, []byte("static builtin_tcap_T builtin_terminals[] = {"))
+	i := bytes.Index(text, []byte("static builtin_tcap_T builtin_terminals[] =\n{"))
 	if i < 0 {
 		return nil, p.Die("builtin_terminals[] is not in this file")
 	}

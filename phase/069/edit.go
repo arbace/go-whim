@@ -106,9 +106,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// main() takes the first entry's name into params.fname and never reads it:
 	// the WHOLE guarded assignment goes, not just the line, or alist_name
 	// outlives the list.
-	e.Cut(`(?m)^[ \t]*if \( \(global_alist\.al_ga\.ga_len\)  > 0\)\n[ \t]*\{\n[ \t]*params\.fname = alist_name\(& \(\(aentry_T \*\)global_alist\.al_ga\.ga_data\) \[0\]\);\n[ \t]*\}\n`, 1,
+	e.Cut(`(?m)^[ \t]*if \(\(global_alist\.al_ga\.ga_len\) > 0\)\n[ \t]*\{\n[ \t]*params\.fname = alist_name\(&\(\(aentry_T \*\)global_alist\.al_ga\.ga_data\)\[0\]\);\n[ \t]*\}\n`, 1,
 		"main taking the first argument as the file name")
-	e.Cut(`(?m)^[ \t]*char_u[ \t]+\*fname;\n\n`, 1, "mparm_T's unread fname")
+	// mparm_T's field, and no other `char_u *fname;`: the blank line that used
+	// to tell them apart is not in a canonical text, so the field above it is.
+	e.Sub(`(?m)^([ \t]*char \*\*argv;\n)[ \t]*char_u[ \t]+\*fname;\n`, "${1}", 1,
+		"mparm_T's unread fname")
 
 	// The list itself: initialised at startup and pointed at by the one window.
 	// These are the last two mentions, and without them alist_init,

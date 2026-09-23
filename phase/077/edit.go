@@ -46,7 +46,7 @@ import (
 
 var (
 	bufnameRows = regexp.MustCompile(`\[CMD_[a-zA-Z]+\] = \{\(char_u \*\)"([a-zA-Z]+)", [^,]+, *([a-z_]+)[^}]*EX_BUFNAME`)
-	niComputed  = regexp.MustCompile(`(?m)^[ \t]*ni = \(! \(\(int\)\(ea\.cmdidx\) < 0\)  && \(cmdnames\[ea\.cmdidx\]\.cmd_func == ex_ni`)
+	niComputed  = regexp.MustCompile(`(?m)^[ \t]*ni = \(!\(\(int\)\(ea\.cmdidx\) < 0\) && \(cmdnames\[ea\.cmdidx\]\.cmd_func == ex_ni`)
 )
 
 // Whim77 stops a command naming a buffer by pattern, having first proved that
@@ -78,7 +78,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return e.Done()
 	}
 	e.FoldNeverIn2("do_one_cmd",
-		`(?m)^[ \t]*if \(\(ea\.argt & EX_BUFNAME\) && \*ea\.arg != NUL && ea\.addr_count == 0 && ! \(\(int\)\(ea\.cmdidx\) < 0\) \)$`,
+		`(?m)^[ \t]*if \(\(ea\.argt & EX_BUFNAME\) && \*ea\.arg != NUL && ea\.addr_count == 0 && !\(\(int\)\(ea\.cmdidx\) < 0\)\)$`,
 		"naming a buffer by pattern for commands that cannot run", 1)
 	return e.Done()
 }

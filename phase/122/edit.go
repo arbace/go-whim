@@ -590,7 +590,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"two -- termcapinit(), before there is a screen, and did_set_term(), at run "+
 			"time", j)
 	}
-	tabStart := bytes.Index(t, []byte("static builtin_tcap_T builtin_terminals[] = {"))
+	tabStart := bytes.Index(t, []byte("static builtin_tcap_T builtin_terminals[] =\n{"))
 	tabEnd := tabStart + bytes.Index(t[tabStart:], []byte("\n};"))
 	var tabRows []string
 	for _, m := range z39Row.FindAllSubmatch(t[tabStart:tabEnd], -1) {

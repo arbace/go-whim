@@ -269,9 +269,8 @@ func (e *emitter) jump(n *cc.JumpStatement) {
 	}
 }
 
-// initializer prints an initializer.  A braced list is printed on one line when
-// it is short and one element per line when it is not, which is the only place
-// this printer looks at length rather than at structure.
+// initializer prints a declaration's initializer: its outermost braced list one
+// element per line, everything inside it on one.
 func (e *emitter) initializer(n *cc.Initializer) string {
 	switch n.Case {
 	case cc.InitializerExpr:
@@ -283,30 +282,23 @@ func (e *emitter) initializer(n *cc.Initializer) string {
 	return ""
 }
 
-// braced prints a braced initializer.  ONE ELEMENT PER LINE WHEN THE ELEMENTS
-// ARE THEMSELVES BRACED, which is what makes a table a table: the input writes
-// one row of cmdnames[] or nv_cmds[] per line, every tool that reads those
-// tables reads them by the line, and a 600-row table on one line is a table no
-// text tool can see into.  A flat list stays on its line.
+// braced prints a declaration's outermost braced initializer, ONE ELEMENT PER
+// LINE.  That is what makes a table a table: the input writes one row of
+// cmdnames[], one row of options[], one name of main_errors[] and one number of
+// included_patches[] per line, every tool that reads those tables reads them BY
+// THE LINE -- `^    \[CMD_\w+\] = \{`, `^static char \*\(main_errors\[\]\) =\n\{`
+// -- and a table on one line is a table no text tool can see into.
 //
-// IT BREAKS ONCE, AT THE TOP.  A row of options[] ends in a braced default
-// pair, so exploding recursively would put the row's own fields one per line
-// too and there would be no such thing as the line a row is on -- which is the
-// line `{"spell",` that every reader of that table looks for.  A row is one
+// AND THE BREAK IS AT THE TOP ONLY.  A row of options[] ends in a braced pair of
+// defaults, so exploding all the way down would put the row's own fields one per
+// line too and there would be no such thing as the line a row is on -- which is
+// the line `{"spell",` that every reader of that table looks for.  A row is one
 // line however deep it goes.
+// The brace is on its own line, under the `=`, which is the shape the input has
+// and the shape the checks read (`^static char \*\(main_errors\[\]\) =\n\{\n`).
 func (e *emitter) braced(n *cc.InitializerList) string {
-	nested := false
-	for l := n; l != nil; l = l.InitializerList {
-		if l.Initializer != nil && l.Initializer.Case == cc.InitializerInitList {
-			nested = true
-			break
-		}
-	}
-	if !nested {
-		return "{" + e.initializerList(n) + "}"
-	}
 	var b strings.Builder
-	b.WriteString("{\n")
+	b.WriteString("\n" + e.pad() + "{\n")
 	e.indent++
 	for l := n; l != nil; l = l.InitializerList {
 		s := e.inlineInitializer(l.Initializer)

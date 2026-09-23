@@ -164,7 +164,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.FoldNever(`(?m)^[ \t]*if \(!may_have_range\)$`, "the default address for a range that cannot be absent")
 	e.Lines(`may_have_range = TRUE;`, 1, "the flag nothing decides any more")
 	e.Lines(`int may_have_range;`, 1, "and its declaration")
-	e.FoldNever(`(?m)^[ \t]*if \(in_vim9script\(\) && \*p == '\\'' &&  \(\(unsigned\)\(p\[1\]\) - '0' < 10\) \)$`,
+	e.FoldNever(`(?m)^[ \t]*if \(in_vim9script\(\) && \*p == '\\'' && \(\(unsigned\)\(p\[1\]\) - '0' < 10\)\)$`,
 		"a digit separator in a Vim9 number literal")
 	e.FoldNever(`(?m)^[ \t]*if \(in_vim9script\(\) && \*p == '#'\)$`, "a hash comment ending a Vim9 command")
 	e.FoldNever(`(?m)^[ \t]*if \(in_vim9script\(\) && arg > arg_start && vim_strchr\(\(char_u \*\)"!&<", \*arg\) != NULL\)$`,
@@ -212,14 +212,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.Term(" && !bt_terminal(wp->w_buffer)", "", 1, "the [+] flag suppressed for a terminal buffer")
 	e.Term(" && !bt_quickfix(curbuf)", "", 1, "a quickfix buffer never being reusable")
 	e.Term(" && !has_insertcharpre()", "", 1, "the InsertCharPre fast path")
-	e.FoldNever(`(?m)^[ \t]*if \(!finish_op && \(has_cursormoved\(\)\) && ! `, "tracking the cursor for CursorMoved")
+	e.FoldNever(`(?m)^[ \t]*if \(!finish_op && \(has_cursormoved\(\)\) && !\(`, "tracking the cursor for CursorMoved")
 	e.FoldNever(`(?m)^[ \t]*if \(!finish_op && has_textchanged\(\) && `, "and the change tick for TextChanged")
 	e.DropIfCount(`(?m)^[ \t]*if \(need_check_timestamps\)$`, 3, "three checks for a file changed outside the editor")
 	e.Lines(`need_check_timestamps = TRUE;`, 1, "asking for one")
 	e.Lines(`static int      need_check_timestamps  = FALSE ;`, 1, "and the flag itself")
 	e.Lines(`need_redraw = check_timestamps\(FALSE\);`, 1, "the timestamp check on focus")
 	e.FoldNever(`(?m)^[ \t]*if \(need_redraw\)$`, "and the redraw it asked for")
-	e.Lines(`\(void\)append_arg_number\(curwin, \(char_u \*\)buffer \+ bufferlen,  \(1024\+1\)  - bufferlen, !shortmess\(SHM_FILE\)\);`, 1,
+	e.Lines(`\(void\)append_arg_number\(curwin, \(char_u \*\)buffer \+ bufferlen, \(1024 \+ 1\) - bufferlen, !shortmess\(SHM_FILE\)\);`, 1,
 		"appending the argument-list position to the file message")
 	e.Term(w79lit1, w79lit2, 1, "reading a here-document for a command that cannot run")
 	e.Lines(`bom_count = bomb_size\(\);`, 1, "counting the byte order mark")

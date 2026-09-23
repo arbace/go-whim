@@ -156,7 +156,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Lines(`end_comment_pending = NUL;`, 2, "a new line clearing the pending comment end")
 		e.Literal("if (trunc_line && !(flags & OPENLINE_KEEPTRAIL))", "if (trunc_line)",
 			"a broken line always losing its trailing blanks ('w')")
-		e.DropIf(`(?m)^[ \t]*if \( \(\(\(State\) & REPLACE_FLAG\) && !\(\(State\) & VREPLACE_FLAG\)\) \)$\n[ \t]*\{\n[ \t]*while \(lead_len-- > 0\)`,
+		e.DropIf(`(?m)^[ \t]*if \(\(\(\(State\) & REPLACE_FLAG\) && !\(\(State\) & VREPLACE_FLAG\)\)\)$\n[ \t]*\{\n[ \t]*while \(lead_len-- > 0\)`,
 			"Replace mode pushing a NUL per leader byte")
 		e.Literal("if (newindent == 0 && !(flags & OPENLINE_COM_LIST))", "if (newindent == 0)",
 			"the second-line indent no longer for a comment list")

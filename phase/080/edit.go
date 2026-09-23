@@ -424,7 +424,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// ---- 4: do_one_cmd ---------------------------------------------------------
 	e.FoldNever(`(?m)^[ \t]*if \(ea\.cmdidx == CMD_wincmd && p != NULL\)$`, ":wincmd has no address type to find")
-	e.FoldAlwaysCount(`(?m)^[ \t]*if \(! \(\(int\)\(ea\.cmdidx\) < 0\) \)$`, 3, "a command index is never a user command")
+	e.FoldAlwaysCount(`(?m)^[ \t]*if \(!\(\(int\)\(ea\.cmdidx\) < 0\)\)$`, 3, "a command index is never a user command")
 	e.Term("ea.cmd[0] == 78 && !((int)(ea.cmdidx) < 0))", "ea.cmd[0] == 78)", 1, "nor in the Ni! test")
 	e.Term("ea.cmdidx != CMD_checktime && ea.cmdidx != CMD_edit && ea.cmdidx != CMD_file && !((int)(ea.cmdidx) < 0) && curbuf_locked()",
 		"ea.cmdidx != CMD_edit && ea.cmdidx != CMD_file && curbuf_locked()", 1,
@@ -435,7 +435,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"(ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput)", 1, "nor in which registers may be written")
 	e.FoldNever(`(?m)^[ \t]*if \(\(\(int\)\(eap->cmdidx\) < 0\)\)$`, "nor in a % range over windows")
 
-	e.Lines(`ni = \(! \(\(int\)\(ea\.cmdidx\) < 0\)  && \(cmdnames\[ea\.cmdidx\]\.cmd_func == ex_ni \|\| cmdnames\[ea\.cmdidx\]\.cmd_func == ex_script_ni\)\);`,
+	e.Lines(`ni = \(!\(\(int\)\(ea\.cmdidx\) < 0\) && \(cmdnames\[ea\.cmdidx\]\.cmd_func == ex_ni \|\| cmdnames\[ea\.cmdidx\]\.cmd_func == ex_script_ni\)\);`,
 		1, "the stub flag, which no row can raise")
 	e.Lines(`int         ni;`, 1, "and its declaration")
 	e.Term("(!ni && ", "(", 4, "range, bang, extra-argument and required-argument checks apply to every command")

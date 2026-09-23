@@ -154,7 +154,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// 1. the table's rows
-	head := "static struct vimoption options[] = {\n"
+	head := "static struct vimoption options[] =\n{\n"
 	ti := strings.Index(s, head)
 	if ti < 0 {
 		return nil, p.Die("options[] is not where this phase expects it")

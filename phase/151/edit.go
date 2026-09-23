@@ -50,7 +50,7 @@ func W151Pair(flags, a, b string) (str, num string) {
 // W151Rows is every row of options[] as (flags, default a, default b, the
 // span of the default pair's braces), in order.
 func W151Rows(text string) ([][4]string, [][2]int, error) {
-	head := "static struct vimoption options[] = {\n"
+	head := "static struct vimoption options[] =\n{\n"
 	i := strings.Index(text, head)
 	if i < 0 {
 		return nil, nil, fmt.Errorf("options[] is not where this phase expects it")

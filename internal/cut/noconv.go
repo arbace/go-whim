@@ -486,9 +486,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 	if text, err = e.inFunction(text, "get_argopt_name", func(s []byte) ([]byte, error) {
-		// The list is one line now, so the four names go out of it and not
-		// out of four lines; the count that says which four is unchanged.
-		return e.subCount(s, `"(?:fileformat=|encoding=|nobinary|bad=)", `,
+		return e.subCount(s, `^[ \t]*"(?:fileformat=|encoding=|nobinary|bad=)",\n`,
 			"the ++ff, ++enc, ++nobin and ++bad names", 4)
 	}); err != nil {
 		return nil, err

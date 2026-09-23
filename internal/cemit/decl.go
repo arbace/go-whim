@@ -411,7 +411,7 @@ func (e *emitter) declLines(n *cc.Declaration) []string {
 			switch d.Case {
 			case cc.InitDeclaratorDecl:
 			case cc.InitDeclaratorInit:
-				s += " = " + e.initializer(d.Initializer)
+				s += " " + e.assign(d.Initializer)
 			default:
 				e.fail(d, "init declarator %v", d.Case)
 			}
@@ -422,8 +422,18 @@ func (e *emitter) declLines(n *cc.Declaration) []string {
 		return []string{e.staticAssert(n.StaticAssertDeclaration)}
 	case cc.DeclarationAuto:
 		return []string{join(e.declSpecs(n.DeclarationSpecifiers), e.declarator(n.Declarator)) +
-			" = " + e.initializer(n.Initializer) + ";"}
+			" " + e.assign(n.Initializer) + ";"}
 	}
 	e.fail(n, "declaration %v", n.Case)
 	return nil
+}
+
+// assign writes `= <initializer>`, with no space before a braced list that
+// begins on the next line.
+func (e *emitter) assign(n *cc.Initializer) string {
+	s := e.initializer(n)
+	if strings.HasPrefix(s, "\n") {
+		return "=" + s
+	}
+	return "= " + s
 }
