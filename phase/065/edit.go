@@ -49,13 +49,10 @@ import (
 const opFunctionCase = "        case OP_FUNCTION:\n" +
 	"            {\n" +
 	"                redo_VIsual_T save_redo_VIsual = redo_VIsual;\n" +
-	"\n" +
 	"                op_function(oap);\n" +
-	"\n" +
 	"                redo_VIsual = save_redo_VIsual;\n" +
 	"                break;\n" +
-	"            }\n" +
-	"\n"
+	"            }\n"
 
 // Whim65 takes g? and g@ -- rot13 and the operator function -- and an empty
 // call left behind by completion.

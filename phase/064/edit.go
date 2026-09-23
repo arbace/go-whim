@@ -309,8 +309,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("insertchar", func(e *edit.E) {
 		e.Lines(`int[ \t]+force_format = flags & INSCHAR_FORMAT;`, 1, "insertchar asking whether this is a whole-line format")
 		e.Literal("textwidth = comp_textwidth(force_format);", "textwidth = comp_textwidth();", "the width to wrap at")
-		e.Literal("if (textwidth > 0 && (force_format || (! ((c) == ' ' || (c) == '\\t')  && !((State & REPLACE_FLAG) && !(State & VREPLACE_FLAG) && *ml_get_cursor() != NUL))))",
-			"if (textwidth > 0 && ! ((c) == ' ' || (c) == '\\t')  && !((State & REPLACE_FLAG) && !(State & VREPLACE_FLAG) && *ml_get_cursor() != NUL))",
+		e.Literal("if (textwidth > 0 && (force_format || (!((c) == ' ' || (c) == '\\t') && !((State & REPLACE_FLAG) && !(State & VREPLACE_FLAG) && *ml_get_cursor() != NUL))))",
+			"if (textwidth > 0 && !((c) == ' ' || (c) == '\\t') && !((State & REPLACE_FLAG) && !(State & VREPLACE_FLAG) && *ml_get_cursor() != NUL))",
 			"wrapping only a character that was typed")
 		e.Literal("internal_format(textwidth, second_indent, flags, c == NUL, c);",
 			"internal_format(textwidth, second_indent, flags, FALSE, c);", "the wrap never being a whole-line format")

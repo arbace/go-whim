@@ -278,10 +278,16 @@ func (e *emitter) params(n *cc.ParameterTypeList) string {
 	for l := n.ParameterList; l != nil; l = l.ParameterList {
 		p := l.ParameterDeclaration
 		switch p.Case {
+		// A PARAMETER'S ATTRIBUTE IS PART OF IT.  The input says
+		// `spellvars_T *spv __attribute__((unused))` 303 times, which is how it
+		// keeps -Wunused-parameter quiet where a parameter is deliberately
+		// ignored; dropping them printed 316 attributes as 13.
 		case cc.ParameterDeclarationDecl:
-			parts = append(parts, join(e.declSpecs(p.DeclarationSpecifiers), e.declarator(p.Declarator)))
+			parts = append(parts, join(e.declSpecs(p.DeclarationSpecifiers),
+				e.declarator(p.Declarator), e.attrs(p.AttributeSpecifierList)))
 		case cc.ParameterDeclarationAbstract:
-			parts = append(parts, join(e.declSpecs(p.DeclarationSpecifiers), e.abstract(p.AbstractDeclarator)))
+			parts = append(parts, join(e.declSpecs(p.DeclarationSpecifiers),
+				e.abstract(p.AbstractDeclarator), e.attrs(p.AttributeSpecifierList)))
 		default:
 			e.fail(p, "parameter declaration %v", p.Case)
 		}
