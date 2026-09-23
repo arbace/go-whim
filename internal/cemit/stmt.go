@@ -235,6 +235,12 @@ func (e *emitter) initializer(n *cc.Initializer) string {
 // one row of cmdnames[] or nv_cmds[] per line, every tool that reads those
 // tables reads them by the line, and a 600-row table on one line is a table no
 // text tool can see into.  A flat list stays on its line.
+//
+// IT BREAKS ONCE, AT THE TOP.  A row of options[] ends in a braced default
+// pair, so exploding recursively would put the row's own fields one per line
+// too and there would be no such thing as the line a row is on -- which is the
+// line `{"spell",` that every reader of that table looks for.  A row is one
+// line however deep it goes.
 func (e *emitter) braced(n *cc.InitializerList) string {
 	nested := false
 	for l := n; l != nil; l = l.InitializerList {
@@ -250,7 +256,7 @@ func (e *emitter) braced(n *cc.InitializerList) string {
 	b.WriteString("{\n")
 	e.indent++
 	for l := n; l != nil; l = l.InitializerList {
-		s := e.initializer(l.Initializer)
+		s := e.inlineInitializer(l.Initializer)
 		if l.Designation != nil {
 			s = e.designation(l.Designation) + " = " + s
 		}
@@ -261,10 +267,23 @@ func (e *emitter) braced(n *cc.InitializerList) string {
 	return b.String()
 }
 
+// inlineInitializer prints an initializer without ever breaking a line: it is
+// what a row of a table is printed with.
+func (e *emitter) inlineInitializer(n *cc.Initializer) string {
+	switch n.Case {
+	case cc.InitializerExpr:
+		return e.expr(n.AssignmentExpression)
+	case cc.InitializerInitList:
+		return "{" + e.initializerList(n.InitializerList) + "}"
+	}
+	e.fail(n, "initializer %v", n.Case)
+	return ""
+}
+
 func (e *emitter) initializerList(n *cc.InitializerList) string {
 	var parts []string
 	for l := n; l != nil; l = l.InitializerList {
-		s := e.initializer(l.Initializer)
+		s := e.inlineInitializer(l.Initializer)
 		if l.Designation != nil {
 			s = e.designation(l.Designation) + " = " + s
 		}
