@@ -28,6 +28,8 @@ import (
 //
 //   - a member the closure classes as initialised by position (Moves > 0) is
 //     never deleted, nor a type holding one;
+//   - a member of a struct or union punned through a pointer cast is held by
+//     the closure itself (reach.ClassCast), and counted in deadfields' line;
 //   - no member is deleted while ml_recover is defined, deadfields' rule;
 //   - a name the instrument could not place (a designator, an unjoined member
 //     access, a reference charged to no entity) is never deleted;
@@ -141,6 +143,7 @@ const (
 	refSharedDecl = "sharing a declaration with a kept member"
 	refEmpty      = "would empty their struct"
 	refDeferred   = "deferred: something still in the text refers to them"
+	refCast       = "members held: their struct is punned through a pointer cast"
 )
 
 func byStart(c *reach.Closure) []*reach.Entity {
@@ -320,6 +323,11 @@ func (r *closureRound) deadfields(cur []byte) ([]byte, string, error) {
 	ents := byStart(c)
 	unres := c.Unresolved()
 	ref := refusals{}
+	// The closure holds them (reach.ClassCast), so they are reached and never
+	// candidates; counted here so that the line says so.
+	if n := len(c.Pun.Held); n > 0 {
+		ref[refCast] = n
+	}
 	type decl struct{ a, b, la, lb int }
 	cand := map[string]bool{}
 	declOf := map[string]decl{}
