@@ -20,15 +20,20 @@ belong with the inserted-text item.
 
 ## Queued, measured, not started
 
-- **The reachability closure as a REPORTER** -- `surveys/REACHABILITY.md`.
-  `sweep \ closure = empty` over 1,059 removals on five texts; ships as an
-  `internal/ccx`-shaped partition refusing on a leftover, with gcc as the control
-  that lets it fail. It already answers *what is still dead in the product*: 16
-  things, named. Costs nothing and moves no bytes.
-- **The closure replacing typereach/deadfields/deadenums' analysis** -- not until
-  the reporter has run against the boundary tars. It moves the product (119
-  entities at q82), and one of its 16 findings is WRONG in a way gcc reports as a
-  warning with exit 0.
+- **The closure replacing typereach/deadfields/deadenums' analysis** --
+  `internal/reach` is the analysis, as a reporter (`tools/st.sh reach FILE`).
+  Run on all 44 texts in `.build/` (the input, every boundary tar; residue-era,
+  from before canonicalisation): it parses every one, gcc's unused set and the
+  planted copy agree with it on every one (the positional trial declines one
+  member at q12 and q41, whose struct is written on one line), and it reproduces the survey's 119 at q82 and 192 at q41. It moves
+  the product (119 entities at q82), and TWO of its 16 findings on the product
+  are wrong in a way gcc reports as a warning with exit 0, not one:
+  `termrequest_T.tr_start` and `vimoption.opt_expand_cb`, whose `options[]`
+  table places 555 elements by position -- deleting it gives 185 `excess
+  elements in scalar initializer` and exit 0. The reporter carries both as
+  findings of their own class. `sweep ∖ closure` over the tars, which is what
+  the survey measured on five texts, was not measured: that needs a sweep of
+  each, and two pipelines cannot share `.cache`.
 
 ## Known stale, not yet scoped
 

@@ -48,7 +48,7 @@ var order = []string{
 	"snapshot",
 	"symbols", "nvidx", "orphanopts", "exsweep", "cmdnames", "cmdidxs", "muslctype", "muslcase", "starcheck", "termrestore", "complcheck", "clicheck", "behaviour", "termcheck", "zscreen", "zhostonly", "zargv", "zexcmds", "zcases", "ztermcheck", "zpty", "zmemline", "zcompare", "zrecord", "dropoptions", "retire", "droplocal", "nointro", "noargv0", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "dropopts", "nostartup", "nohome", "nocmdargs", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "check", "query",
 	"build", "verify", "record", "delta", "cemit",
-	"parse", "fieldref",
+	"parse", "fieldref", "reach",
 }
 
 var tools = map[string]tool{
@@ -159,6 +159,7 @@ var tools = map[string]tool{
 	"build":       {runBuild, "build [--check] [--canonical] [--keep-going] [--from N] [--to N] [--src F] [--out F] [--work D]"},
 	"parse":       {runParse, "parse <file.c>"},
 	"fieldref":    {runFieldRef, "fieldref <file.c>"},
+	"reach":       {runReach, "reach <file.c> [--no-control]"},
 }
 
 func main() {

@@ -93,7 +93,10 @@ internal/          the Go: cc (the forked C front end), sweep, canon, dead,
                    table), build (the plan: what each phase does to the source,
                    and the driver that runs it), verify (the same plan with every
                    check and delta, and the baseline recorder), harness (every
-                   recorder), ccx (the core's pointer casts and evaluation order)
+                   recorder), ccx (the core's pointer casts and evaluation order),
+                   reach (what nothing reaches, as a partition with gcc as its
+                   control -- a reporter, `tools/st.sh reach FILE`; it deletes
+                   nothing)
 phase/NNN/         a phase, and a package: edit.go, check.go, GOAL.md, delta.md
 phase/registry.go  every phase package, blank-imported so they register
 phase/STAGES.md       the record the plan was read from: the stages, need and apart,
