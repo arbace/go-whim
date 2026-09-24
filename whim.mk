@@ -33,6 +33,11 @@ WHIMWORK    = .tmp/whim-stage
 WHIMCFLAGS  = -O0 -fno-stack-protector
 WHIMLDFLAGS = -static -no-pie -s
 
+# The input's own line, the one phase 0 starts from (tools/templates/whim.mk)
+# and `score` builds slim-vim with: a static-PIE.
+SLIMCFLAGS  = -O0
+SLIMLDFLAGS = -static -s
+
 # ==== the product
 # The same content-keyed dependency the other pipeline uses, for the same
 # reason: whim-vim.c and slim-vim.c are both tracked, and a fresh clone writes
@@ -43,6 +48,13 @@ whim-vim: whim-vim.c  ## the C product, compiled with the boundary's own flags
 	@printf '  %-12s %s\n' "compiling" "$(CC) $(WHIMCFLAGS) $(WHIMLDFLAGS) -o $@ $<"
 	@t0=`date +%s`; $(CC) $(WHIMCFLAGS) $(WHIMLDFLAGS) -o $@ $<; \
 	 printf '  %-12s %s bytes, static, not PIE, %ss\n' "$@" \
+	     "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
+	     "$$((`date +%s` - t0))"
+
+slim-vim: slim-vim.c  ## the input's binary, compiled with the line phase 0 starts from
+	@printf '  %-12s %s\n' "compiling" "$(CC) $(SLIMCFLAGS) $(SLIMLDFLAGS) -o $@ $<"
+	@t0=`date +%s`; $(CC) $(SLIMCFLAGS) $(SLIMLDFLAGS) -o $@ $<; \
+	 printf '  %-12s %s bytes, static-PIE, %ss\n' "$@" \
 	     "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
 	     "$$((`date +%s` - t0))"
 

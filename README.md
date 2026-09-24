@@ -61,6 +61,7 @@ phase is swept on its own.
 ```sh
 make                 # fetch slim-vim.c if upstream moved, then bin/whim, the editor
 make whim-vim        # the C product's binary
+make slim-vim        # the input's binary, gcc -O0 -static -s (a static-PIE)
 make whim-build      # the 164 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same build, required to give the committed bytes back
 make whim-verify     # every phase's check and every declared delta, and refuse

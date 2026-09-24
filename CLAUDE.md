@@ -144,6 +144,7 @@ make whim-build      # the 164 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-verify     # every phase's check and every declared delta (hours)
 make whim-vim        # the C product's binary
+make slim-vim        # the input's binary, gcc -O0 -static -s (a static-PIE)
 make help            # every target, with a line each
 ```
 

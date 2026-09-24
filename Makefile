@@ -15,6 +15,7 @@
 #                        twenty minutes, no cache and no checks
 #   make whim-build-check  the same build, required to give the committed bytes back
 #   make whim-vim        the C product's binary
+#   make slim-vim        the input's binary, with the line phase 0 starts from
 #   make whim-verify     every phase's check and every declared delta
 #   make editor.c        the core, cut from whim-vim.c at its first #include
 #   make editor/editor.go  the core in Go, generated from editor.c
