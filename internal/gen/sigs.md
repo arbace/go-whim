@@ -398,7 +398,7 @@ func may_do_incsearch_highlighting(firstc int32, count int64, is_state *incsearc
 func may_adjust_incsearch_highlighting(firstc int32, count int64, is_state *incsearch_state_T, c int32) int32
 func may_add_char_to_search(firstc int32, c *int32, is_state *incsearch_state_T) int32
 func cmdline_init()
-func cmdline_handle_ctrl_bsl(c int32, gotesc *int32) int32
+func cmdline_handle_ctrl_bsl(gotesc *int32) int32
 func cmdline_erase_chars(c int32, indent int32, isp *incsearch_state_T) int32
 func cmdline_insert_reg(gotesc *int32) int32
 func cmdline_browse_history(c int32, firstc int32, curcmdstr *Ptr[byte], curcmdstrlen *usize, histype int32, hiscnt_p *int32, xp *S_expand) int32

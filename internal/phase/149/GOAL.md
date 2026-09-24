@@ -12,7 +12,10 @@ failure way:
 That covers both `v = f(...); if (v == nullptr)` and
 `if ((v = f(...)) == nullptr)`. Folding one test can make another function
 never-NULL, so the rule recomputes the set and goes on until nothing changes:
-134 tests fold. Labels that only the folded branches jumped to go too, and
+152 tests fold. (134 until the rule also took `T *v = f(...);`, a declaration,
+and a test with one store of v in between, `wp->w_frame = frp;`. Those were
+the shapes it missed, and the Go showed them as nil checks of a new() that
+staticcheck calls never true.) Labels that only the folded branches jumped to go too, and
 the sweep takes what only those branches used. The Go transpilation never had
 these branches.
 

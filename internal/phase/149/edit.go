@@ -167,8 +167,13 @@ func W149Rule(core []byte) ([]byte, map[string]bool, int, []string) {
 		}
 		sort.Strings(names)
 		alt := strings.Join(names, "|")
-		// `v = f(...) ;` then `if (v OP nullptr)` on the next line, same indentation
-		r1 := regexp.MustCompile(`(?m)^( *)([\w.>\[\]-]+) = +` + w149Cast + `(?:` + alt + `)\([^;\n]*\) ?;\n( *)if \(([\w.>\[\]-]+) (==|!=) nullptr\)\n`)
+		// `v = f(...) ;` -- or `T *v = f(...);`, a declaration -- then `if (v OP
+		// nullptr)` at the same indentation: on the next line, or after one line
+		// that only stores v somewhere (`wp->w_frame = frp;`), which cannot
+		// change it.  (The declaration and the store were the two shapes this
+		// rule missed: map_add's and new_frame's tests, which the Go printed
+		// as nil checks of a new() that staticcheck calls never true.)
+		r1 := regexp.MustCompile(`(?m)^( *)(?:[A-Za-z_][\w ]*?\*+ *)?([\w.>\[\]-]+) = +` + w149Cast + `(?:` + alt + `)\([^;\n]*\) ?;\n(?:( *)[\w.>\[\]-]+ = ([\w.>\[\]-]+);\n)?( *)if \(([\w.>\[\]-]+) (==|!=) nullptr\)\n`)
 		// `if ((v = f(...)) == nullptr)`
 		r2 := regexp.MustCompile(`(?m)^( *)if \(\(([\w.>\[\]-]+) = (` + w149Cast + `(?:` + alt + `)\([^;\n]*\))\) == nullptr\)\n`)
 		changed := false
@@ -201,11 +206,18 @@ func W149Rule(core []byte) ([]byte, map[string]bool, int, []string) {
 				break
 			}
 			for k := range m {
-				m[k] += from
+				if m[k] >= 0 { // an optional group that did not match stays -1
+					m[k] += from
+				}
 			}
 			from = m[1]
-			if string(core[m[2]:m[3]]) != string(core[m[6]:m[7]]) || string(core[m[4]:m[5]]) != string(core[m[8]:m[9]]) {
+			// groups: 1 indent, 2 v, 3-4 the optional store (indent, what it
+			// stores), 5 the if's indent, 6 its variable, 7 its operator
+			if string(core[m[2]:m[3]]) != string(core[m[10]:m[11]]) || string(core[m[4]:m[5]]) != string(core[m[12]:m[13]]) {
 				continue
+			}
+			if m[6] >= 0 && (string(core[m[6]:m[7]]) != string(core[m[2]:m[3]]) || string(core[m[8]:m[9]]) != string(core[m[4]:m[5]])) {
+				continue // the line between is not a store of v at the same depth
 			}
 			line := core[m[0]:m[1]]
 			nl := bytes.IndexByte(line, '\n')
@@ -214,9 +226,9 @@ func W149Rule(core []byte) ([]byte, map[string]bool, int, []string) {
 			if !w149IsNN(call, nn) {
 				continue
 			}
-			ifAt := m[0] + nl + 1
-			op := string(core[m[10]:m[11]])
-			marked := append(append(append([]byte{}, core[:ifAt]...), []byte(string(core[m[6]:m[7]])+"if (__w149__)\n")...), core[m[1]:]...)
+			ifAt := m[10]
+			op := string(core[m[14]:m[15]])
+			marked := append(append(append([]byte{}, core[:ifAt]...), []byte(string(core[m[10]:m[11]])+"if (__w149__)\n")...), core[m[1]:]...)
 			var Out []byte
 			var err error
 			if op == "==" {
@@ -225,7 +237,7 @@ func W149Rule(core []byte) ([]byte, map[string]bool, int, []string) {
 				Out, err = cutil.FoldAlways(marked, `if \(__w149__\)`, 1)
 			}
 			if err != nil {
-				key := fmt.Sprintf("%s %s nullptr after %s", string(core[m[8]:m[9]]), op, call)
+				key := fmt.Sprintf("%s %s nullptr after %s", string(core[m[12]:m[13]]), op, call)
 				if !seenLeft[key] {
 					seenLeft[key] = true
 					left = append(left, key+": "+err.Error())

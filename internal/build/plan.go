@@ -817,4 +817,12 @@ var Plan = []Phase{
 			{Op: "edit", Args: []string{"whim162"}},
 		}},
 	{N: 163, Name: "the product is in the one canonical spelling", NoSource: true},
+	{N: 164, Name: "no statement follows a jump",
+		Steps: []Step{
+			{Op: "edit", Args: []string{"whim164"}},
+		}},
+	{N: 165, Name: "no store nothing reads",
+		Steps: []Step{
+			{Op: "edit", Args: []string{"whim165"}},
+		}},
 }

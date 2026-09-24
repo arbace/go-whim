@@ -5381,10 +5381,7 @@ do_outofmem_msg(usize size)
 vim_memsave(char_u *p, usize len)
 {
     char_u *ret = alloc(len);
-    if (ret != nullptr)
-    {
-        musl_memmove((char *)(ret), (char *)(p), len);
-    }
+    musl_memmove((char *)(ret), (char *)(p), len);
     return ret;
 }
 
@@ -6474,7 +6471,6 @@ del_char(int fixpos)
         return FAIL;
     }
     return del_chars(1L, fixpos);
-    return del_bytes(1L, fixpos, TRUE);
 }
 
     static int
@@ -6699,7 +6695,6 @@ open_line(int dir, int flags, int second_line_indent, int *did_do_comment)
                     {
                         curwin->w_cursor.lnum = pos->lnum;
                         newindent = get_indent();
-                        ptr = ml_get_curline();
                     }
                 }
                 if (last_char == '{')
@@ -7490,7 +7485,6 @@ vim_iswordc_buf(int c, buf_T *buf)
     if (c >= 0x100)
     {
         return utf_class_buf(c, buf) >= 2;
-        return FALSE;
     }
     return (c > 0 && ((buf)->b_chartab[(unsigned)(c) >> 3] & (1 << ((c) & 0x7))) != 0);
 }
@@ -7922,16 +7916,6 @@ vim_isodigit(int c)
     return (c >= '0' && c <= '7');
 }
 
-enum { LATIN1LOWER = 'l' };
-
-enum { LATIN1UPPER = 'U' };
-
-static char_u latin1flags[257] = "                                                                 UUUUUUUUUUUUUUUUUUUUUUUUUU      llllllllllllllllllllllllll                                                                     UUUUUUUUUUUUUUUUUUUUUUU UUUUUUUllllllllllllllllllllllll llllllll";
-
-static char_u latin1upper[257] = "                                 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`ABCDEFGHIJKLMNOPQRSTUVWXYZ{|}~\x7f\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf\xb0\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xf7\xd8\xd9\xda\xdb\xdc\xdd\xde\xff";
-
-static char_u latin1lower[257] = "                                 !\"#$%&'()*+,-./0123456789:;<=>?@abcdefghijklmnopqrstuvwxyz[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7f\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf\xb0\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xd7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xdf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff";
-
     static int
 vim_islower(int c)
 {
@@ -7942,11 +7926,6 @@ vim_islower(int c)
     if (c >= 0x80)
     {
         return utf_islower(c);
-        if (c >= 0x100)
-        {
-            return FALSE;
-        }
-        return (latin1flags[c] & LATIN1LOWER) == LATIN1LOWER;
     }
     return (musl_islower((unsigned char)(c)));
 }
@@ -7961,11 +7940,6 @@ vim_isupper(int c)
     if (c >= 0x80)
     {
         return utf_isupper(c);
-        if (c >= 0x100)
-        {
-            return FALSE;
-        }
-        return (latin1flags[c] & LATIN1UPPER) == LATIN1UPPER;
     }
     return (musl_isupper((unsigned char)(c)));
 }
@@ -7980,12 +7954,6 @@ vim_toupper(int c)
     if (c >= 0x80 || !(cmp_flags & CMP_KEEPASCII))
     {
         return utf_toupper(c);
-        if (c >= 0x100)
-        {
-            return musl_towupper(c);
-            return c;
-        }
-        return latin1upper[c];
     }
     if (c < 0x80 && (cmp_flags & CMP_KEEPASCII))
     {
@@ -8004,12 +7972,6 @@ vim_tolower(int c)
     if (c >= 0x80 || !(cmp_flags & CMP_KEEPASCII))
     {
         return utf_tolower(c);
-        if (c >= 0x100)
-        {
-            return musl_towlower(c);
-            return c;
-        }
-        return latin1lower[c];
     }
     if (c < 0x80 && (cmp_flags & CMP_KEEPASCII))
     {
@@ -11780,7 +11742,7 @@ edit(int cmdchar, int startln, long count)
     i = 0;
     if (p_smd && msg_silent == 0)
     {
-        i = showmode();
+        showmode();
     }
     string_T inserted = get_inserted();
     new_insert_skip = (int)inserted.length;
@@ -17087,7 +17049,6 @@ parse_cmd_address(exarg_T *eap, char **errormsg, int silent)
                 case ADDR_WINDOWS:
                     *errormsg = _(e_invalid_range);
                     goto theend;
-                    break;
                 case ADDR_UNSIGNED:
                     *errormsg = _(e_invalid_range);
                     goto theend;
@@ -17428,7 +17389,6 @@ get_address(exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, int skip, int sile
                 addr_error(addr_type);
                 cmd = nullptr;
                 goto error;
-                break;
             }
             break;
         case '$':
@@ -17447,7 +17407,6 @@ get_address(exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, int skip, int sile
                 addr_error(addr_type);
                 cmd = nullptr;
                 goto error;
-                break;
             }
             break;
         case '\'':
@@ -19196,8 +19155,9 @@ cmdline_init(void)
 }
 
     static int
-cmdline_handle_ctrl_bsl(int c, int *gotesc)
+cmdline_handle_ctrl_bsl(int *gotesc)
 {
+    int c;
     ++no_mapping;
     ++allow_keys;
     c = plain_vgetc();
@@ -19627,7 +19587,7 @@ getcmdline_int(int firstc, long count, int indent, int clear_ccline)
         }
         if (c == Ctrl_BSL)
         {
-            res = cmdline_handle_ctrl_bsl(c, &gotesc);
+            res = cmdline_handle_ctrl_bsl(&gotesc);
             if (res == CMDLINE_CHANGED)
             {
                 goto cmdline_changed;
@@ -26569,10 +26529,6 @@ theend:
 map_add(mapblock_T **map_table, mapblock_T **abbr_table, char_u *keys, char_u *rhs, char_u *orig_rhs, int noremap, int nowait, int silent, int mode, int is_abbr, int simplified)
 {
     mapblock_T *mp = (mapblock_T *)alloc_clear(sizeof(mapblock_T));
-    if (mp == nullptr)
-    {
-        return nullptr;
-    }
     if (*keys == Ctrl_C)
     {
         if (map_table == curbuf->b_maphash)
@@ -27054,11 +27010,6 @@ do_map(int maptype, char_u *arg, int mode, int abbrev)
                                 if (mp->m_mode == 0 && !did_it)
                                 {
                                     char_u *newstr = vim_strsave(rhs);
-                                    if (newstr == nullptr)
-                                    {
-                                        retval = 4;
-                                        goto theend;
-                                    }
                                     if (mp->m_alt != nullptr)
                                     {
                                         mp->m_alt = mp->m_alt->m_alt = nullptr;
@@ -28754,8 +28705,6 @@ match_add(win_T *wp, char_u *grp, char_u *pat, int prio, int id, char_u *conceal
     m->mit_next = cur;
     redraw_win_later(wp, rtype);
     return id;
-    vim_regfree(regprog);
-    return -1;
 }
 
     static int
@@ -28921,7 +28870,6 @@ next_search_hl(win_T *win, match_T *search_hl, match_T *shl, linenr_T lnum, coln
             ml = ml_get_buf(shl->buf, lnum, FALSE) + matchcol;
             if (*ml == NUL)
             {
-                ++matchcol;
                 shl->lnum = 0;
                 break;
             }
@@ -29919,7 +29867,6 @@ mb_get_class_buf(char_u *p, buf_T *buf)
         return 1;
     }
     return utf_class_buf(utf_ptr2char(p), buf);
-    return 0;
 }
 
 struct interval
@@ -32341,7 +32288,6 @@ mb_strnicmp2(char_u *s1, char_u *s2, usize n1, usize n2)
 mb_strnicmp(char_u *s1, char_u *s2, usize nn)
 {
     return utf_strnicmp(s1, s2, nn, nn);
-    return 0;
 }
 
     static void
@@ -32712,9 +32658,6 @@ ml_open(buf_T *buf)
     dp->db_line[0].dl_len = 1;
     dp->db_line_count = 1;
     return OK;
-    ml_free_tree(buf->b_ml.ml_root);
-    buf->b_ml.ml_root = nullptr;
-    return FAIL;
 }
 
     static void
@@ -36020,14 +35963,12 @@ gchar_pos(pos_T *pos)
         return NUL;
     }
     return utf_ptr2char(ptr);
-    return (int)*ptr;
 }
 
     static int
 gchar_cursor(void)
 {
     return utf_ptr2char(ml_get_cursor());
-    return (int)*ml_get_cursor();
 }
 
     static void
@@ -36642,9 +36583,6 @@ inc(pos_T *lp)
             int l = utfc_ptr2len(p);
             lp->col += l;
             return ((p[l] != NUL) ? 0 : 2);
-            lp->col++;
-            lp->coladd = 0;
-            return ((p[1] != NUL) ? 0 : 2);
         }
     }
     if (lp->lnum != curbuf->b_ml.ml_line_count)
@@ -39378,7 +39316,6 @@ adjust_skipcol(void)
     if (col > width2)
     {
         row += col / width2;
-        col = col % width2;
     }
     if (row >= curwin->w_height)
     {
@@ -49085,10 +49022,6 @@ stropt_handle_keymatch(char_u *origval, char_u *newval, set_op_T op, int flags)
         return false;
     }
     char_u *newval_copy = vim_strsave(newval);
-    if (newval_copy == nullptr)
-    {
-        return false;
-    }
     musl_strcpy((char *)(newval), (char *)(origval));
     item_start = newval_copy;
     for (;;)
@@ -60086,10 +60019,6 @@ do_put(int regname, char_u *expr_result, int dir, long count, int flags)
                     }
                 }
                 while (VIsual_active && lnum <= end_lnum);
-                if (VIsual_active)
-                {
-                    lnum--;
-                }
             }
             curbuf->b_op_end = curwin->w_cursor;
             curbuf->b_op_end.col -= first_byte_off;
@@ -65824,15 +65753,6 @@ vim_strchr(char_u *string, int c)
         p += utfc_ptr2len(p);
     }
     return nullptr;
-    while ((b = *p) != NUL)
-    {
-        if (b == c)
-        {
-            return p;
-        }
-        ++p;
-    }
-    return nullptr;
 }
 
     static char_u *
@@ -66504,10 +66424,6 @@ match_keyprotocol(char_u *term)
 {
     int len = (int)musl_strlen((char *)(p_kpc)) + 1;
     char_u *buf = alloc(len);
-    if (buf == nullptr)
-    {
-        return KEYPROTOCOL_FAIL;
-    }
     keyprot_T ret = KEYPROTOCOL_FAIL;
     char_u *p = p_kpc;
     while (*p != NUL)
@@ -67628,14 +67544,11 @@ accept_modifiers_for_function_keys(void)
         {
             usize len = musl_strlen((char *)(s));
             char_u *ns = alloc(len + 3);
-            if (ns != nullptr)
-            {
-                musl_memmove((char *)(ns), (char *)(s), len - 1);
-                musl_memmove((char *)(ns + len - 1), (char *)(";*~"), 4);
-                termcodes[i].code = ns;
-                termcodes[i].len += 2;
-                adjust_modlen(i);
-            }
+            musl_memmove((char *)(ns), (char *)(s), len - 1);
+            musl_memmove((char *)(ns + len - 1), (char *)(";*~"), 4);
+            termcodes[i].code = ns;
+            termcodes[i].len += 2;
+            adjust_modlen(i);
         }
     }
     vim_regfree(regmatch.regprog);
@@ -69353,15 +69266,6 @@ cls(void)
         return 1;
     }
     return c;
-    if (cls_bigword)
-    {
-        return 1;
-    }
-    if (vim_iswordc(c))
-    {
-        return 2;
-    }
-    return 1;
 }
 
     static int
@@ -72360,10 +72264,6 @@ new_frame(win_T *wp)
 {
     frame_T *frp = (frame_T *)alloc_clear(sizeof(frame_T));
     wp->w_frame = frp;
-    if (frp == nullptr)
-    {
-        return;
-    }
     frp->fr_layout = FR_LEAF;
     frp->fr_win = wp;
 }
@@ -73166,12 +73066,9 @@ main_loop(int cmdwin)
             if (keep_msg != nullptr)
             {
                 char_u *p = vim_strsave(keep_msg);
-                if (p != nullptr)
-                {
-                    msg_hist_off = TRUE;
-                    msg_attr((char *)p, keep_msg_attr);
-                    msg_hist_off = FALSE;
-                }
+                msg_hist_off = TRUE;
+                msg_attr((char *)p, keep_msg_attr);
+                msg_hist_off = FALSE;
             }
             if (need_fileinfo)
             {

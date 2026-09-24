@@ -2222,6 +2222,8 @@ declared `delta.md`.
 - [Phase 161 — no goto jumps into a block](../internal/phase/161/GOAL.md)
 - [Phase 162 — no two function pointers are compared](../internal/phase/162/GOAL.md)
 - [Phase 163 — the product is in the one canonical spelling](../internal/phase/163/GOAL.md)
+- [Phase 164 — no statement follows a jump](../internal/phase/164/GOAL.md)
+- [Phase 165 — no store nothing reads](../internal/phase/165/GOAL.md)
 
 ## Appendix to Part II — the plan phases 83 onwards were built from
 

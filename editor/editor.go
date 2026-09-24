@@ -2005,8 +2005,6 @@ const (
 	CT_PRINT_CHAR            = 16
 	CT_ID_CHAR               = 32
 	CT_FNAME_CHAR            = 64
-	LATIN1LOWER              = 108
-	LATIN1UPPER              = 85
 	WL_START                 = 0
 	BACKSPACE_CHAR           = 1
 	BACKSPACE_WORD           = 2
@@ -2802,9 +2800,6 @@ var VIM_VERSION_LONG_ONLY [22]byte
 var chartab_initialized int32
 var g_chartab [256]byte
 var transchar_charbuf = Mk[byte](7) // C: array of 7 char_u
-var latin1flags = Mk[byte](257)     // C: array of 257 char_u
-var latin1upper = Mk[byte](257)     // C: array of 257 char_u
-var latin1lower = Mk[byte](257)     // C: array of 257 char_u
 var cmdline_orig string_T
 var history [5]Ptr[S_hist_entry]
 var hisidx [5]int32
@@ -3327,9 +3322,6 @@ func init() {
 	top_file_num = 1
 	copy(VIM_VERSION_DATE_ONLY.Slice(11), "2026 Feb 14")
 	VIM_VERSION_LONG_ONLY = [22]byte{'V', 'I', 'M', ' ', '-', ' ', 'V', 'i', ' ', 'I', 'M', 'p', 'r', 'o', 'v', 'e', 'd', ' ', '0' + VIM_VERSION_MAJOR, '.', '0' + VIM_VERSION_MINOR, NUL}
-	copy(latin1flags.Slice(256), "                                                                 UUUUUUUUUUUUUUUUUUUUUUUUUU      llllllllllllllllllllllllll                                                                     UUUUUUUUUUUUUUUUUUUUUUU UUUUUUUllllllllllllllllllllllll llllllll")
-	copy(latin1upper.Slice(256), "                                 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`ABCDEFGHIJKLMNOPQRSTUVWXYZ{|}~\x7f\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf\xb0\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xf7\xd8\xd9\xda\xdb\xdc\xdd\xde\xff")
-	copy(latin1lower.Slice(256), "                                 !\"#$%&'()*+,-./0123456789:;<=>?@abcdefghijklmnopqrstuvwxyz[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7f\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf\xb0\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xd7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xdf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff")
 	hisidx = [5]int32{-1, -1, -1, -1, -1}
 	history_names = [5]Ptr[byte]{
 		S("cmd"),
@@ -6920,9 +6912,7 @@ func vim_memsave(p Ptr[byte], len_ usize) Ptr[byte] {
 	var ret Ptr[byte]
 
 	ret = Alloc(int(len_))
-	if !ret.Nil() {
-		Memmove(ret, p, int(len_))
-	}
+	Memmove(ret, p, int(len_))
 	return ret
 }
 
@@ -7837,7 +7827,6 @@ func del_char(fixpos int32) int32 {
 		return FAIL
 	}
 	return del_chars(1, fixpos)
-	return del_bytes(1, fixpos, TRUE)
 }
 
 func del_chars(count int64, fixpos int32) int32 {
@@ -8045,7 +8034,6 @@ func open_line(dir int32, flags int32, second_line_indent int32, did_do_comment 
 					if pos != nil {
 						curwin.w_cursor.lnum = pos.lnum
 						newindent = get_indent()
-						ptr = ml_get_curline()
 					}
 				}
 				if int32(last_char) == '{' {
@@ -8708,7 +8696,6 @@ func vim_iswordc(c int32) int32 {
 func vim_iswordc_buf(c int32, buf *S_file_buffer) int32 {
 	if c >= 0x100 {
 		return B2i(utf_class_buf(c, buf) >= 2)
-		return FALSE
 	}
 	return B2i(((c > 0) && ((int32(buf.b_chartab[int(uint32(c)>>3)]) & (1 << (c & 0x7))) != 0)))
 }
@@ -9101,10 +9088,6 @@ func vim_islower(c int32) int32 {
 	}
 	if c >= 0x80 {
 		return utf_islower(c)
-		if c >= 0x100 {
-			return FALSE
-		}
-		return B2i((int32(latin1flags.At(int(c))) & LATIN1LOWER) == LATIN1LOWER)
 	}
 	return musl_islower(int32(byte(c)))
 }
@@ -9115,10 +9098,6 @@ func vim_isupper(c int32) int32 {
 	}
 	if c >= 0x80 {
 		return utf_isupper(c)
-		if c >= 0x100 {
-			return FALSE
-		}
-		return B2i((int32(latin1flags.At(int(c))) & LATIN1UPPER) == LATIN1UPPER)
 	}
 	return musl_isupper(int32(byte(c)))
 }
@@ -9131,11 +9110,6 @@ func vim_toupper(c int32) int32 {
 	}
 	if (c >= 0x80) || ((cmp_flags & CMP_KEEPASCII) == 0) {
 		return utf_toupper(c)
-		if c >= 0x100 {
-			return musl_towupper(c)
-			return c
-		}
-		return int32(latin1upper.At(int(c)))
 	}
 	if (c < 0x80) && ((cmp_flags & CMP_KEEPASCII) != 0) {
 		if (c < 'a') || (c > 'z') {
@@ -9156,11 +9130,6 @@ func vim_tolower(c int32) int32 {
 	}
 	if (c >= 0x80) || ((cmp_flags & CMP_KEEPASCII) == 0) {
 		return utf_tolower(c)
-		if c >= 0x100 {
-			return musl_towlower(c)
-			return c
-		}
-		return int32(latin1lower.At(int(c)))
 	}
 	if (c < 0x80) && ((cmp_flags & CMP_KEEPASCII) != 0) {
 		if (c < 'A') || (c > 'Z') {
@@ -12256,7 +12225,7 @@ func edit(cmdchar int32, startln int32, count int64) int32 {
 	where_paste_started.lnum = 0
 	i = 0
 	if (p_smd != 0) && (msg_silent == 0) {
-		i = showmode()
+		showmode()
 	}
 	inserted = get_inserted()
 	new_insert_skip = int32(inserted.length)
@@ -18586,7 +18555,9 @@ func cmdline_init() {
 	ccline = cmdline_info_T{}
 }
 
-func cmdline_handle_ctrl_bsl(c int32, gotesc *int32) int32 {
+func cmdline_handle_ctrl_bsl(gotesc *int32) int32 {
+	var c int32
+
 	no_mapping++
 	allow_keys++
 	c = plain_vgetc()
@@ -18993,7 +18964,7 @@ func getcmdline_int(firstc int32, count int64, indent int32, clear_ccline int32)
 			lookforlen = 0
 		}
 		if c == Ctrl_BSL {
-			res = cmdline_handle_ctrl_bsl(c, &gotesc)
+			res = cmdline_handle_ctrl_bsl(&gotesc)
 			if res == CMDLINE_CHANGED {
 				goto cmdline_changed
 			} else if res == CMDLINE_NOT_CHANGED {
@@ -24458,9 +24429,6 @@ func map_add(map_table Ptr[*S_mapblock], abbr_table Ptr[*S_mapblock], keys Ptr[b
 	var t1 int32
 
 	mp = new(S_mapblock)
-	if mp == nil {
-		return nil
-	}
 	if int32(keys.Get()) == Ctrl_C {
 		if map_table == View(curbuf.b_maphash[:]) {
 			curbuf.b_mapped_ctrl_c |= mode
@@ -24889,10 +24857,6 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev int32) int32 {
 								mp.m_mode &= ^mode
 								if (mp.m_mode == 0) && (did_it == 0) {
 									newstr = vim_strsave(rhs)
-									if newstr.Nil() {
-										retval = 4
-										goto theend
-									}
 									if mp.m_alt != nil {
 										mp.m_alt.m_alt = nil
 										mp.m_alt = mp.m_alt.m_alt
@@ -26273,8 +26237,6 @@ func match_add(wp *S_window_S, grp Ptr[byte], pat Ptr[byte], prio int32, id int3
 	m.mit_next = cur
 	redraw_win_later(wp, rtype)
 	return id
-	vim_regfree(regprog)
-	return -1
 }
 
 func match_delete(wp *S_window_S, id int32, perr int32) int32 {
@@ -26428,7 +26390,6 @@ func next_search_hl(win *S_window_S, search_hl *match_T, shl *match_T, lnum line
 			matchcol = shl.rm.startpos[0].col
 			ml = ml_get_buf(shl.buf, lnum, FALSE).Add(int(matchcol))
 			if int32(ml.Get()) == NUL {
-				matchcol++
 				shl.lnum = 0
 				break
 			}
@@ -26827,7 +26788,6 @@ func mb_get_class_buf(p Ptr[byte], buf *S_file_buffer) int32 {
 		return 1
 	}
 	return utf_class_buf(utf_ptr2char(p), buf)
-	return 0
 }
 
 func intable(table Ptr[S_interval], size usize, c int32) int32 {
@@ -27558,7 +27518,6 @@ func mb_strnicmp2(s1 Ptr[byte], s2 Ptr[byte], n1 usize, n2 usize) int32 {
 
 func mb_strnicmp(s1 Ptr[byte], s2 Ptr[byte], nn usize) int32 {
 	return utf_strnicmp(s1, s2, nn, nn)
-	return 0
 }
 
 func show_utf8() {
@@ -27831,9 +27790,6 @@ func ml_open(buf *S_file_buffer) int32 {
 	dp.db_line[0].dl_len = 1
 	dp.db_line_count = 1
 	return OK
-	ml_free_tree(buf.b_ml.ml_root)
-	buf.b_ml.ml_root = nil
-	return FAIL
 }
 
 func ml_close(buf *S_file_buffer, del_file int32) {
@@ -30553,12 +30509,10 @@ func gchar_pos(pos *pos_T) int32 {
 		return NUL
 	}
 	return utf_ptr2char(ptr)
-	return int32(ptr.Get())
 }
 
 func gchar_cursor() int32 {
 	return utf_ptr2char(ml_get_cursor())
-	return int32(ml_get_cursor().Get())
 }
 
 func pchar_cursor(c int32) {
@@ -31122,7 +31076,6 @@ func inc(lp *pos_T) int32 {
 	var p Ptr[byte]
 	var l int32
 	var t1 int32
-	var t2 int32
 
 	if lp.col != MAXCOL {
 		p = ml_get_pos(lp)
@@ -31135,14 +31088,6 @@ func inc(lp *pos_T) int32 {
 				t1 = 2
 			}
 			return t1
-			lp.col++
-			lp.coladd = 0
-			if int32(p.At(1)) != NUL {
-				t2 = 0
-			} else {
-				t2 = 2
-			}
-			return t2
 		}
 	}
 	if lp.lnum != curbuf.b_ml.ml_line_count {
@@ -33078,7 +33023,6 @@ func adjust_skipcol() {
 	}
 	if col > width2 {
 		row += col / width2
-		col = col % width2
 	}
 	if row >= curwin.w_height {
 		if curwin.w_skipcol == 0 {
@@ -40649,9 +40593,6 @@ func stropt_handle_keymatch(origval Ptr[byte], newval Ptr[byte], op set_op_T, fl
 		return false
 	}
 	newval_copy = vim_strsave(newval)
-	if newval_copy.Nil() {
-		return false
-	}
 	musl_strcpy(newval, origval)
 	item_start = newval_copy
 	for {
@@ -49149,9 +49090,6 @@ func do_put(regname int32, expr_result Ptr[byte], dir int32, count int64, flags 
 						break
 					}
 				}
-				if VIsual_active != 0 {
-					lnum--
-				}
 			}
 			curbuf.b_op_end = curwin.w_cursor
 			curbuf.b_op_end.col -= first_byte_off
@@ -54199,17 +54137,6 @@ func vim_strchr(string_ Ptr[byte], c int32) Ptr[byte] {
 		p = p.Add(int(utfc_ptr2len(p)))
 	}
 	return Ptr[byte]{}
-	for {
-		b = int32(p.Get())
-		if !(b != NUL) {
-			break
-		}
-		if b == c {
-			return p
-		}
-		p = p.Add(1)
-	}
-	return Ptr[byte]{}
 }
 
 func vim_strbyte(string_ Ptr[byte], c int32) Ptr[byte] {
@@ -54428,9 +54355,6 @@ func match_keyprotocol(term Ptr[byte]) keyprot_T {
 
 	len_ = int32(musl_strlen(p_kpc)) + 1
 	buf = Alloc(int(len_))
-	if buf.Nil() {
-		return KEYPROTOCOL_FAIL
-	}
 	ret = KEYPROTOCOL_FAIL
 	p = p_kpc
 	for int32(p.Get()) != NUL {
@@ -55377,13 +55301,11 @@ func accept_modifiers_for_function_keys() {
 		if !s.Nil() && (vim_regexec(&regmatch, s, 0) != 0) {
 			len_ = musl_strlen(s)
 			ns = Alloc(int(len_ + 3))
-			if !ns.Nil() {
-				Memmove(ns, s, int(len_-1))
-				Memmove(ns.Add(int(len_)).Add(-1), S(";*~"), 4)
-				termcodes.Ref(int(i)).code = ns
-				termcodes.Ref(int(i)).len_ += 2
-				adjust_modlen(i)
-			}
+			Memmove(ns, s, int(len_-1))
+			Memmove(ns.Add(int(len_)).Add(-1), S(";*~"), 4)
+			termcodes.Ref(int(i)).code = ns
+			termcodes.Ref(int(i)).len_ += 2
+			adjust_modlen(i)
 		}
 	}
 	vim_regfree(regmatch.regprog)
@@ -57004,13 +56926,6 @@ func cls() int32 {
 		return 1
 	}
 	return c
-	if cls_bigword != 0 {
-		return 1
-	}
-	if vim_iswordc(c) != 0 {
-		return 2
-	}
-	return 1
 }
 
 func fwd_word(count int64, bigword int32, eol int32) int32 {
@@ -59504,9 +59419,6 @@ func new_frame(wp *S_window_S) {
 
 	frp = new(S_frame_S)
 	wp.w_frame = frp
-	if frp == nil {
-		return
-	}
 	frp.fr_layout = FR_LEAF
 	frp.fr_win = wp
 }
@@ -60193,11 +60105,9 @@ func main_loop(cmdwin int32) {
 			redraw_statuslines()
 			if !keep_msg.Nil() {
 				p = vim_strsave(keep_msg)
-				if !p.Nil() {
-					msg_hist_off = TRUE
-					msg_attr(p, keep_msg_attr)
-					msg_hist_off = FALSE
-				}
+				msg_hist_off = TRUE
+				msg_attr(p, keep_msg_attr)
+				msg_hist_off = FALSE
 			}
 			if need_fileinfo != 0 {
 				fileinfo(FALSE, TRUE, FALSE)

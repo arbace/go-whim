@@ -46,18 +46,18 @@ type local struct {
 }
 
 type fnEmit struct {
-	g      *gen
-	name   string
-	ft     *cc.FunctionType
-	out    *strings.Builder
-	indent int
-	locals []*local
-	byDecl map[*cc.Declarator]*local
-	taken  map[string]bool // Go names in use in this function
-	tmp    int
-	gotos  map[string]bool // labels some goto names
-	cont   []string        // the label a continue goes to, per loop; "" is Go's continue
-	brk    []bool          // whether the innermost breakable is a loop
+	g       *gen
+	name    string
+	ft      *cc.FunctionType
+	out     *strings.Builder
+	indent  int
+	locals  []*local
+	byDecl  map[*cc.Declarator]*local
+	taken   map[string]bool // Go names in use in this function
+	tmp     int
+	gotos   map[string]bool            // labels some goto names
+	cont    []string                   // the label a continue goes to, per loop; "" is Go's continue
+	brk     []bool                     // whether the innermost breakable is a loop
 	deadBrk map[*cc.JumpStatement]bool // breaks that end a case already ending in one
 }
 

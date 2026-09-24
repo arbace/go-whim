@@ -2,7 +2,11 @@
 
 **Since written:** its first recommendation is done -- `make whim-test` now runs
 the 44 cases on the Go editor against the C product, with the control, on every
-run (the finding below that it never did is the state it was written in). The
+run (the finding below that it never did is the state it was written in). Its
+second is done too: items 1 and 2 (lint) are 0 on vet, staticcheck and `gofmt
+-s`, by generator rules and phases 164-165. Chasing them found a generator bug the
+survey did not: a comma expression whose value is a constant lost its effects,
+which silenced 28 of the regexp compiler's error exits in the Go. The
 throwaway instruments it names under `.tmp/idiom/` were not kept.
 
 2026-09-24. A read-only survey: no tracked file changed, nothing committed, and

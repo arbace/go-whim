@@ -1151,18 +1151,22 @@ func formatValue(v int64) string {
 
 // span is a node's byte range in the file: its first in-file token to the end
 // of its last.
-func (a *analysis) span(n cc.Node) (int, int) {
+func (a *analysis) span(n cc.Node) (int, int) { return Span(n, a.path, a.src) }
+
+// Span is n's byte range in src, the file parsed as path: its first token in
+// that file to the end of its last.  0, 0 when it has none there.
+func Span(n cc.Node, path string, src []byte) (int, int) {
 	lo, hi := 1<<62, -1
 	walkTok(n, func(t cc.Token) {
 		p := t.Position()
-		if p.Filename != a.path {
+		if p.Filename != path {
 			return
 		}
 		// The parser writes a synthetic `static const char __func__[] = "name";`
 		// into every body, at the position of its `{`: a token there that is
 		// not the brace is not in the file.  (Comparing every token with the text
 		// is wrong: `bool` is spelled `_Bool` by the front end.)
-		if p.Offset < len(a.src) && a.src[p.Offset] == '{' && t.SrcStr() != "{" {
+		if p.Offset < len(src) && src[p.Offset] == '{' && t.SrcStr() != "{" {
 			return
 		}
 		if p.Offset < lo {
@@ -1317,3 +1321,7 @@ func declName(d *cc.Declarator) (cc.Token, bool) {
 	}
 	return cc.Token{}, false
 }
+
+// Walk calls f on every node under n, n included, in source order, and does
+// not descend below a node f returns false for.
+func Walk(n cc.Node, f func(cc.Node) bool) { walk(n, f) }

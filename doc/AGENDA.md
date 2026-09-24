@@ -14,11 +14,10 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   one can be read from. It checks the Go editor against the C on the same
   cases, so a wider corpus widens both.
 - **The Go editor, idiomatic.** `doc/GO-IDIOMS.md` measured it and ranked the
-  work: first the output lint-clean (`true`/`false` for `(1 != 0)`, no `*&`, the
-  32 unreachable statements, `gofmt -s`: generator rules, and a C phase for the
-  dead statements), then truth values typed `bool` (198 predicate and OK/FAIL
-  functions, as a C phase the generator already follows). Each is checked by
-  `make whim-test`, which now runs the Go editor.
+  work. Lint-clean is done (vet, staticcheck, `gofmt -s` all 0: generator rules,
+  phases 164-165). Next, truth values typed `bool` (198 predicate and OK/FAIL
+  functions, as a C phase the generator already follows). Each step is checked
+  by `make whim-test`, which runs the Go editor against the C.
 
 ## Known stale, not yet scoped
 

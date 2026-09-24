@@ -1667,10 +1667,6 @@ func host_alloc(n usize) any {
 	return Alloc(int(n))
 }
 
-func host_free(p any) {
-	_ = p
-}
-
 func host_write(s Ptr[byte], len_ int32) int32 {
 	if len_ < 0 {
 		return -1
