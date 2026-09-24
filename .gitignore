@@ -12,9 +12,6 @@ whim-vim
 # The core half of whim-vim.c, cut at the first #include by `make editor.c`.
 editor.c
 
-# Boundaries the memoize left, a tar each.  Nothing reads them any more.
-.build/
-
 # The baselines the removed test suite recorded (448e9a8 and before).  Nothing
 # reads them any more.
 .reference/

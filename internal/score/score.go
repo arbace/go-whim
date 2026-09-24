@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/arbace/go-whim/internal/build"
 )
 
 // Score prints what each product costs a target: bytes to store, and symbols
@@ -19,21 +21,14 @@ import (
 // by what it costs to store, so a phase that shrinks the binary while adding a
 // libc call has gone backwards -- and only a report that shows both can say so.
 //
-// whim-vim's compile line is the last boundary's: -no-pie from phase 83,
-// -fno-stack-protector from phase 84.  whim.mk states it once, as WHIMCFLAGS
-// and WHIMLDFLAGS, and `make score` passes both in the environment; an empty
-// one takes the default here, for a run by hand.  The flags are applied to the
+// Both are built with the one compile line (build.FlagsFor), applied to the
 // object as well as the binary, because __stack_chk_fail is a symbol the
 // default CFLAGS put there.
-func Score(w io.Writer, whimCFLAGS, whimLDFLAGS string) {
-	if whimCFLAGS == "" {
-		whimCFLAGS = "-O0 -fno-stack-protector"
-	}
-	if whimLDFLAGS == "" {
-		whimLDFLAGS = "-static -no-pie -s"
-	}
-	scoreRow(w, "slim-vim", "slim-vim.c", "slim-vim", "-static -s", "-O0")
-	scoreRow(w, "whim-vim", "whim-vim.c", "whim-vim", whimLDFLAGS, whimCFLAGS)
+func Score(w io.Writer) {
+	c, l, _ := build.FlagsFor(0)
+	cflags, ldflags := strings.Join(c, " "), strings.Join(l, " ")
+	scoreRow(w, "slim-vim", "slim-vim.c", "slim-vim", ldflags, cflags)
+	scoreRow(w, "whim-vim", "whim-vim.c", "whim-vim", ldflags, cflags)
 }
 
 func scoreRow(w io.Writer, name, src, bin, ldflags, cflags string) {

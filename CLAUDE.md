@@ -21,7 +21,7 @@ slim-vim.c  --whim-->  whim-vim.c
   that repository's `main` points to, and records the commit in `upstream.sha`.
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
-- **whim** (`whim.mk`) removes capability on purpose, 164 phases from 180,870
+- **whim** (the `Makefile`) removes capability on purpose, 164 phases from 180,870
   lines to 75,225. It is two arcs, a coda and a last print:
   - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
     install, 84,111 lines at q82;
@@ -112,7 +112,8 @@ editor/            the core in Go: editor.go GENERATED (make editor/editor.go; n
 tx/                skel (types, globals, signatures and, with -bodies, the bodies),
                    splice (emitted bodies measured in a copy of editor/), pre
                    (internal/ccx's partitions on an editor.c), and the conventions
-Makefile           fetches the input and includes whim.mk
+Makefile           the whole build: fetches the input, runs the pipeline, builds the
+                   binaries and the editor
 ```
 
 `tools/gobuild.sh` builds `cmd/whimtools` into `.cache/gobin/<key>/`, keyed on
@@ -134,7 +135,7 @@ make whim-build      # the 164 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go that is not what tx/skel writes
 make whim-vim        # the C product's binary
-make slim-vim        # the input's binary, gcc -O0 -static -s (a static-PIE)
+make slim-vim        # the input's binary, with the same one line
 make score           # bytes to store and symbols to provide, input beside product
 make help            # every target, with a line each
 ```
@@ -155,11 +156,13 @@ make help            # every target, with a line each
   when the content differs and never runs make: through `whim-vim.c`'s rule it
   could start a build. The binary is `bin/whim`.
 
-- **The compile line is the boundary's** (`internal/build/compile.go`'s
-  `FlagsFor(n)`, from each phase's `Line` in the plan). Up to q82 it is `gcc -O0
-  -static -s` (a static-PIE); phase 83 makes it `-static -no-pie -s`, and phase 84
-  adds `-fno-stack-protector`. `whim.mk` states the product's flags once more as
-  `WHIMCFLAGS`/`WHIMLDFLAGS`, and the input's as `SLIMCFLAGS`/`SLIMLDFLAGS`.
+- **The compile line is one line**, `gcc -O0 -fno-stack-protector -static -no-pie
+  -s`, for the input, the product and every boundary: an ordinary static
+  executable, no stack protector. `internal/build/compile.go` states it for the
+  tools (`FlagsFor`, `score`, `measure`), and the `Makefile` as `CFLAGS`/`LDFLAGS`
+  for its two binary rules. It moved at phases 83 (`-no-pie`) and 84
+  (`-fno-stack-protector`) until those became the line for all; the two phases
+  change nothing now.
 - **No `-g`**, so a formatting change leaves the binary byte-identical -- the
   cheapest comparison there is. `SOURCE_DATE_EPOCH=0` pins `__DATE__`/`__TIME__`
   when two builds are compared.
@@ -190,6 +193,11 @@ was the input boundary's digest and the implementation's together, so a moved
 - `tools/st.sh build --to N --work D` leaves the tree after phase N, its
   makefile included; `--keep D` writes every boundary, and `tools/st.sh measure
   D` counts them (`phase/boundaries.md`).
+- **A binary is only ever the build of its source as it stands.** `slim-vim` and
+  `whim-vim` stamp the digest of the `.c` they were built from
+  (`.cache/stamps/`); as make starts, and whenever a rule rewrites a source, a
+  binary whose source no longer matches its stamp is deleted and not rebuilt --
+  `make slim-vim` or `make whim-vim` builds it again.
 - **Two builds cannot run at once in one checkout.** `.cache/compile` and
   `.cache/symbols` are shared state keyed on the text, so two side by side race
   over them; a second one goes in a worktree.

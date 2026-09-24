@@ -85,8 +85,7 @@ func measureOne(path string, compile bool) string {
 }
 
 // binaryOf builds the boundary with the compile line its phase leaves
-// (build.FlagsFor -- the input's line to 82, -no-pie from 83, the stack
-// protector gone from 84) and SOURCE_DATE_EPOCH=0, and returns the binary's size and
+// (build.FlagsFor, the one line for every boundary) and SOURCE_DATE_EPOCH=0, and returns the binary's size and
 // the count of undefined symbols the gate counts (score.Symbols), or why not.
 func binaryOf(path, phase string) (string, string) {
 	n, _ := strconv.Atoi(phase)

@@ -44,3 +44,10 @@ behaviour.
 It is `stage 84` and `package build` in `phase/STAGES.md`, with one `uses`:
 `build:84 seed:83 mechanical`, because `coredelta.sh` refused without the
 `.reference/core-baselines` phase 83 records. It runs in 9 seconds.
+
+## The one compile line
+
+This phase changed the compile line, and that change is now the line for every
+boundary, the input and the product: `gcc -O0 -fno-stack-protector -static
+-no-pie -s` (`internal/build/compile.go`). So the phase changes nothing today;
+it is kept in the plan, empty, so the numbering does not move.

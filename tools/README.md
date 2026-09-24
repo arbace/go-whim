@@ -17,7 +17,7 @@ Everything is reached the same way, as a subcommand of the one binary:
 | `tools/st.sh parse` | the front end's smoke test, and the proof that the PATCHED `internal/cc` is what got linked |
 | `tools/st.sh reach` | what nothing reaches in a text, as a partition with gcc as its control (`internal/reach`); it deletes nothing |
 | `tools/st.sh measure` | one row per boundary a `build --keep D` left: lines, entity counts, binary, undefined symbols (`phase/boundaries.md`) |
-| `tools/st.sh score` | bytes to store and symbols to provide, slim-vim beside whim-vim; `make score` passes `WHIMCFLAGS` and `WHIMLDFLAGS` (`internal/score`) |
+| `tools/st.sh score` | bytes to store and symbols to provide, slim-vim beside whim-vim; both built with the one line (`internal/score`) |
 | `tools/st.sh cmdidxs`, `cmdnames` | the Ex command table: its names, and the ex_cmdidxs block derived from them (`internal/cmdtab`) |
 
 `whimtools` with no argument lists the rest: the dead-code tools one at a time

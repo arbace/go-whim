@@ -41,16 +41,11 @@ type Phase struct {
 	NoSource bool // the phase changes no source at all (83, 86, 116, 123)
 	Steps    []Step
 	Sweep    bool // a sweep follows this phase's steps
-
-	Line string // what this phase does to the compile line (compile.go):
-	//	"whim"  the input's own line, which phase 0 starts from
-	//	"core"  the core's, which phase 83 sets
-	//	"+flag" appended to CFLAGS (phase 84, -fno-stack-protector)
 }
 
 // Plan is the pipeline, phase by phase.
 var Plan = []Phase{
-	{N: 0, Name: "seed, in the one spelling every later phase reads", Seed: true, NoSource: true, Line: "whim"},
+	{N: 0, Name: "seed, in the one spelling every later phase reads", Seed: true, NoSource: true},
 	{N: 1, Name: "no `$VIMRUNTIME`",
 		Steps: []Step{
 			{Op: "noruntime"},
@@ -509,8 +504,8 @@ var Plan = []Phase{
 			{Op: "includes", Args: []string{"@state"}},
 			{Op: "edit", Args: []string{"whim82"}},
 		}, Sweep: true},
-	{N: 83, Name: "the core's compile line, and the baselines it is measured against", NoSource: true, Line: "core"},
-	{N: 84, Name: "the stack protector goes", NoSource: true, Line: "+-fno-stack-protector"},
+	{N: 83, Name: "the core's compile line, and the baselines it is measured against", NoSource: true},
+	{N: 84, Name: "the stack protector goes", NoSource: true},
 	{N: 85, Name: "the core stops diagnosing its own terminal",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim85"}},

@@ -14,6 +14,6 @@ func runScore(args []string) int {
 		fmt.Fprintln(os.Stderr, "usage: whimtools score")
 		return 2
 	}
-	score.Score(os.Stdout, os.Getenv("WHIMCFLAGS"), os.Getenv("WHIMLDFLAGS"))
+	score.Score(os.Stdout)
 	return 0
 }

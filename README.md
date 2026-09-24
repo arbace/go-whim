@@ -16,7 +16,7 @@ nothing about what the editor does. `make` asks that repository for its head,
 fetches `slim-vim.c` and vim's `LICENSE` at exactly that commit, and records the
 commit in `upstream.sha`.
 
-**whim** (`whim.mk`, 164 phases) removes capability on purpose. **Phases 0-82** remove the runtime files, the eval layer,
+**whim** (the `Makefile`, 164 phases) removes capability on purpose. **Phases 0-82** remove the runtime files, the eval layer,
 windows beyond one, buffers beyond one, the command-line arguments and 489 Ex
 commands. **Phases 83-128** turn what is
 left into an embeddable core: the filesystem goes, the signals and the terminal
@@ -59,7 +59,7 @@ to be derived from upstream.
 ```sh
 make                 # fetch slim-vim.c if upstream moved, then bin/whim, the editor
 make whim-vim        # the C product's binary
-make slim-vim        # the input's binary, gcc -O0 -static -s (a static-PIE)
+make slim-vim        # the input's binary, with the same one line
 make whim-build      # the 164 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same build, required to give the committed bytes back
 make whim-editor-check # refuse an editor/editor.go that is not what tx/skel writes
@@ -93,8 +93,8 @@ test suite still to be derived from upstream.
 
 ## Requirements
 
-Linux, **Go 1.27**, **gcc** that links a static binary against **musl** (the
-product is built `-static -no-pie`, and phases before 83 `-static`), `git`,
+Linux, **Go 1.27**, **gcc** that links a static binary against **musl** (every
+binary is built `-O0 -fno-stack-protector -static -no-pie -s`), `git`,
 `curl`, and binutils (`readelf`, `nm`, `objcopy`, `strings`). Measured on Alpine
 Linux with gcc 15.2 and musl. The C front end is a fork of `modernc.org/cc/v4`
 carried as source in `internal/cc`, so nothing is downloaded to build it; `make`
@@ -118,7 +118,7 @@ tx/              tx/skel (the skeleton generator and, with -bodies, the body
                  emitter), tx/splice (measures the emitted bodies in a copy of
                  editor/), tx/pre (ccx's reports on an editor.c), sigs.md,
                  CONVENTIONS.md and FINDINGS.md
-whim.mk          the pipeline as make targets
+Makefile         the whole build: the input, the pipeline, the binaries, the editor
 whim-vim.c       the product, tracked; make editor.c cuts the core out of it
 upstream.sha     the arbace/slim-vim commit slim-vim.c was fetched from
 slim.sha         slim-vim.c's digest, from which whim-vim.c was produced

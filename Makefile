@@ -1,4 +1,4 @@
-# go-whim: whim-vim.c = G(slim-vim.c).
+# go-whim: whim-vim.c = G(slim-vim.c), and editor/ is that core in Go.
 #
 # The input is ONE FILE, slim-vim.c, from github.com/arbace/slim-vim -- vim 9.2 as
 # a single translation unit, produced there by its own pipeline.  This makefile
@@ -9,21 +9,29 @@
 # So a slim-vim commit that does not change slim-vim.c costs a fetch and nothing
 # else.
 #
+# The pipeline is 164 phases that remove capability on purpose: phases 0-82
+# (GOALS.md Part I) leave an editor with no runtime to install; phases 83 on
+# (Part II) turn it into an embeddable core -- no filesystem, the host behind a
+# line in the file, no libc the core names, the text a tree -- and then remove
+# from it what translating it to Go had to work around.  ONE PATH: whim-build
+# applies them in one process, in memory (internal/build).  There is no test
+# suite and no memoize; what answers for the product is that it is TRACKED, and
+# whim-build-check requires the committed whim-vim.c back, byte for byte, from
+# the committed slim-vim.c.  448e9a8 is the last commit with the old suite.
+#
 #   make                 fetch if the upstream moved, then bin/whim: the editor, the
 #                        core in Go (editor/) built with its runtime and host
 #   make whim-build      the 164 phases in one process: slim-vim.c -> whim-vim.c,
 #                        about eighteen minutes, no cache and no checks
 #   make whim-build-check  the same build, required to give the committed bytes back
 #   make whim-vim        the C product's binary
-#   make slim-vim        the input's binary, with the line phase 0 starts from
+#   make slim-vim        the input's binary
 #   make editor.c        the core, cut from whim-vim.c at its first #include
 #   make editor/editor.go  the core in Go, generated from editor.c
-#
-# whim.mk is the pipeline; tools and the phases (phase/NNN) are what it runs.
+#   make help            every target, with a line each
 
-# Every temporary a recipe makes
-# -- mktemp, Go's os.MkdirTemp, a build's work tree -- goes in .tmp/
-# here, not the shared /tmp.  Gitignored.
+# Every temporary a recipe makes -- mktemp, Go's os.MkdirTemp, a build's work
+# tree -- goes in .tmp/ here, not the shared /tmp.  Gitignored.
 export TMPDIR := $(CURDIR)/.tmp
 $(shell mkdir -p $(TMPDIR))
 
@@ -33,13 +41,17 @@ SLIMVIM_URL    = https://github.com/arbace/slim-vim
 SLIMVIM_BRANCH = main
 SLIMVIM_RAW    = https://raw.githubusercontent.com/arbace/slim-vim
 
+# THE COMPILE LINE IS ONE LINE, for the input, the product and every boundary:
+# an ordinary static executable (EXEC, no dynamic section, no relocation), no
+# stack protector, no -g.  internal/build/compile.go states it for the tools;
+# this states it for the two binary rules.
+CFLAGS  = -O0 -fno-stack-protector
+LDFLAGS = -static -no-pie -s
+
 .DEFAULT_GOAL := all
 
-# ==== the product
 .PHONY: all
 all: bin/whim  ## the editor: fetch if the upstream moved, then bin/whim
-
-include whim.mk
 
 # --- help -----------------------------------------------------------------
 # Every target worth asking for carries its own one-line description, as a `##`
@@ -55,16 +67,31 @@ help:
 	    $(MAKEFILE_LIST)
 	@printf '\n    %-22s %s\n\n' "make -n <target>" "what a target would run, without running it"
 
-# The editor: editor/ built -- editor.go as tx/skel writes it from whim-vim.c,
-# crt.go and host.go.  Go's own build cache decides what compiles again, so the
-# rule runs every time and costs nothing when nothing moved.
-bin/whim: editor/editor.go force  ## the editor binary alone, from editor/
-	@mkdir -p bin
-	@go build -o $@ ./editor
-	@printf '  %-12s %s bytes, the core in Go (editor/)\n' "$@" \
-	    "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
+# --- a binary is only ever the build of its source as it stands ----------
+# slim-vim and whim-vim each record, when built, the digest of the .c they were
+# built from (.cache/stamps/<binary>.sha).  A binary whose source no longer has
+# that digest -- fetched, produced again, checked out, edited by hand -- is
+# DELETED, and never rebuilt behind anyone's back: `make slim-vim` or `make
+# whim-vim` builds it again when it is wanted.  A binary with no stamp was built
+# from nobody knows what, and goes the same way.
+#
+# Checked twice: as make reads this file, which catches every change made
+# outside make, and by the two rules that rewrite a source during the run
+# (slim-vim.c's fetch, whim-build), since by then the first check has happened.
+STAMPS = .cache/stamps
 
-# --- the input ------------------------------------------------------------
+# $(call drop-stale,BINARY), a shell command: remove BINARY when BINARY.c is not
+# what its stamp says it was built from, and say so.
+drop-stale = if [ -e $(1) ] && [ "`sha256sum $(1).c 2>/dev/null | cut -c1-64`" != "`cat $(STAMPS)/$(1).sha 2>/dev/null`" ]; then rm -f $(1); printf '  %-12s %s\n' "stale" "$(1).c is not what $(1) was built from -- removed; make $(1) builds it again"; fi
+
+# $(call stamp,BINARY), a shell command: record the digest of BINARY.c, which
+# BINARY was just built from.
+stamp = mkdir -p $(STAMPS) && sha256sum $(1).c | cut -c1-64 > $(STAMPS)/$(1).sha
+
+empty :=
+$(foreach b,slim-vim whim-vim,$(eval _stale := $(shell $(call drop-stale,$(b))))$(if $(_stale),$(info $(empty)  $(_stale))))
+
+# ==== the input
 # It cannot be a timestamp -- a clone writes every file at checkout time in
 # arbitrary order -- so the question asked is the remote's head against
 # upstream.sha.  An unreachable remote with a slim-vim.c on disk builds what is
@@ -89,24 +116,126 @@ slim-vim.c: force  ## fetch the input at arbace/slim-vim's head, if it moved
 	mv -f "$$tmp/LICENSE" LICENSE; \
 	rm -rf "$$tmp"; \
 	echo "$$live" > upstream.sha; \
-	printf '  %-12s %s lines, sha256 %s\n' "slim-vim.c" "`grep -c '' $@`" "`sha256sum $@ | cut -c1-12`"
+	printf '  %-12s %s lines, sha256 %s\n' "slim-vim.c" "`grep -c '' $@`" "`sha256sum $@ | cut -c1-12`"; \
+	$(call drop-stale,slim-vim)
 
-# whim.mk decides by slim-vim.c's digest; it must see the fetched file.
-whim-vim.c: slim-vim.c
+slim-vim: slim-vim.c  ## the input's binary, compiled with the one line
+	@printf '  %-12s %s\n' "compiling" "$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<"
+	@t0=`date +%s`; $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< && $(call stamp,$@); \
+	 printf '  %-12s %s bytes, static, not PIE, %ss\n' "$@" \
+	     "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
+	     "$$((`date +%s` - t0))"
+
+# ==== the product
+# whim-vim.c is keyed on slim-vim.c's content, not on mtimes: both are tracked,
+# and a fresh clone writes them at checkout time in arbitrary order, so an mtime
+# dependency would run a pass on a tree that is exactly right.  slim.sha records
+# the slim-vim.c the committed whim-vim.c was produced from.
+whim-vim.c: slim-vim.c force
+	@set -e; \
+	live=`sha256sum slim-vim.c | cut -c1-64`; \
+	if [ -f $@ ] && [ "$$live" = "`cat slim.sha 2>/dev/null`" ]; then \
+	    printf '  %-12s %s unchanged -- whim-vim.c is current\n' "slim-vim.c" "`echo $$live | cut -c1-12`"; \
+	    exit 0; \
+	fi; \
+	printf '  %-12s %s -- whim-vim.c must be produced\n' "slim-vim.c" "`echo $$live | cut -c1-12`"; \
+	$(MAKE) --no-print-directory whim-build; \
+	echo "$$live" > slim.sha
+
+# The pipeline in one process: 164 phases, in order, in memory -- internal/build's
+# plan and internal/steps' transformations.  It writes whim-vim.c (and editor.go
+# after it) and nothing else.  It proves the text, not the behaviour: a step in
+# the wrong order or a missing sweep moves the bytes, and whim-build-check sees
+# that.  Measured: 164 phases, 1,070 s, 75,225 lines.
+.PHONY: whim-build whim-build-check
+whim-build:  ## the 164 phases in one process: slim-vim.c -> whim-vim.c
+	@printf '\n\033[1m  whim-vim\033[0m  from slim-vim.c: an editor with no runtime\n'
+	@tools/st.sh build --out whim-vim.c
+	@$(call drop-stale,whim-vim)
+	@$(MAKE) --no-print-directory whim-editor
+
+whim-build-check:  ## the same build, required to give the committed bytes back
+	@tools/st.sh build --check
+
+whim-vim: whim-vim.c  ## the C product, compiled with the one line
+	@printf '  %-12s %s\n' "compiling" "$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<"
+	@t0=`date +%s`; $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< && $(call stamp,$@); \
+	 printf '  %-12s %s bytes, static, not PIE, %ss\n' "$@" \
+	     "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
+	     "$$((`date +%s` - t0))"
+
+# ==== the editor
+# whim-vim.c is one translation unit with two parts: above, the core editor, with
+# no preprocessor syntax at all; below, the host, beginning with the #includes --
+# and that first directive IS the boundary, marked by nothing else (GOALS.md
+# II.4c).  The cut stops at the first `^ *# *include ` (whitespace after `#` is
+# insignificant to C) and drops trailing blank lines, and it REFUSES a result that
+# holds a directive: the defining property of the upper part is that it has none,
+# so a cut that produced one found the wrong line.  editor.c does not compile on
+# its own -- the core calls the musl_ functions the host defines below -- and is
+# not meant to; it must parse.
+#
+# A canned recipe: editor.c's rule runs it after whim-vim.c is current, and
+# whim-editor and whim-editor-check run it on whim-vim.c as it stands -- through
+# whim-vim.c's own rule they would start a build.
+define cut-editor
+	@awk '/^ *# *include / { exit } { a[NR] = $$0; if (NF) last = NR } \
+	      END { for (i = 1; i <= last; i++) print a[i] }' whim-vim.c > editor.c
+	@if grep -q '^ *#' editor.c; then \
+	    echo "  editor.c     REFUSED -- the cut holds a directive, so it found the wrong line:"; \
+	    grep -n '^ *#' editor.c | head -3 | sed 's/^/               /'; \
+	    rm -f editor.c; exit 1; \
+	 fi
+	@printf '  %-12s %s lines, cut at the first #include of %s\n' editor.c \
+	    "`grep -c '' editor.c | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
+	    "`grep -c '' whim-vim.c | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
+endef
+
+.PHONY: editor.c
+editor.c: whim-vim.c  ## the core, cut from whim-vim.c at its first #include
+	$(cut-editor)
+
+# editor/editor.go is GENERATED: tx/skel writes it whole from editor.c
+# (tx/gen.sh), and it is tracked, so it must be what the program writes from the
+# tracked whim-vim.c.  tx/gen.sh writes it only when that differs, so a current
+# file keeps its mtime.  whim-build writes it after producing whim-vim.c;
+# whim-editor-check refuses a stale one.
+.PHONY: editor/editor.go
+editor/editor.go: editor.c  ## the core in Go, generated whole from editor.c
+	@sh tx/gen.sh
+
+.PHONY: whim-editor
+whim-editor:
+	$(cut-editor)
+	@sh tx/gen.sh
+
+.PHONY: whim-editor-check
+whim-editor-check:  ## refuse if the tracked editor.go is not what tx/skel writes
+	$(cut-editor)
+	@sh tx/gen.sh --check
+
+# The editor: editor/ built -- editor.go as tx/skel writes it from whim-vim.c,
+# crt.go and host.go.  Go's own build cache decides what compiles again, so the
+# rule runs every time and costs nothing when nothing moved.
+bin/whim: editor/editor.go force  ## the editor binary alone, from editor/
+	@mkdir -p bin
+	@go build -o $@ ./editor
+	@printf '  %-12s %s bytes, the core in Go (editor/)\n' "$@" \
+	    "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
 
 # ==== housekeeping
 .PHONY: clean
-clean:  ## remove the built binaries
-	rm -f slim-vim whim-vim bin/whim
+clean:  ## remove the built binaries and editor.c
+	rm -f slim-vim whim-vim bin/whim editor.c
 
 .PHONY: clean-cache
-clean-cache:  ## remove .cache/ (the Go build cache and the boundaries)
+clean-cache:  ## remove .cache/ (the Go build cache, the sweep's compiles, the stamps)
 	rm -rf .cache
 
 # Bytes to store and symbols to provide, the input and the product side by side.
 .PHONY: score
 score:  ## bytes to store and symbols to provide: the input beside the product
-	@WHIMCFLAGS='$(WHIMCFLAGS)' WHIMLDFLAGS='$(WHIMLDFLAGS)' tools/st.sh score
+	@tools/st.sh score
 
 force: ;
 

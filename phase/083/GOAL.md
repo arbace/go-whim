@@ -44,3 +44,10 @@ A tier-3 hit on this phase records nothing, because the phase does not run. So
 `.reference/core-baselines` holds a non-empty `behaviour/`, `ref-exsweep.txt` and
 `ref-term.txt`, naming the fix: `rm -rf .cache/r0 && make whim-phase-83`. The check
 lives in `whim.mk`, which no implementation digest reads, so it moves no key.
+
+## The one compile line
+
+This phase changed the compile line, and that change is now the line for every
+boundary, the input and the product: `gcc -O0 -fno-stack-protector -static
+-no-pie -s` (`internal/build/compile.go`). So the phase changes nothing today;
+it is kept in the plan, empty, so the numbering does not move.

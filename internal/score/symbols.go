@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/arbace/go-whim/internal/build"
 )
 
 // SymbolCache is where the libc surface is kept, keyed by the source's own
@@ -36,7 +38,10 @@ func Symbols(src, out string) error {
 	if err != nil {
 		return err
 	}
-	sum := sha256.Sum256(data)
+	// The object is compiled with the one line's CFLAGS, and they are part of
+	// the key: an answer cached under other flags is another answer.
+	cflags, _, _ := build.FlagsFor(0)
+	sum := sha256.Sum256(append(append([]byte(strings.Join(cflags, " ")), 0), data...))
 	sha := hex.EncodeToString(sum[:])[:32]
 	if err := os.MkdirAll(SymbolCache, 0o755); err != nil {
 		return err
@@ -51,8 +56,9 @@ func Symbols(src, out string) error {
 	}
 
 	obj := filepath.Join(out, ".symbols.o")
-	if err := exec.Command("gcc", "-c", "-O0", "-o", obj, src).Run(); err != nil {
-		return fmt.Errorf("gcc -c -O0 %s: %w", src, err)
+	args := append(append([]string{"-c"}, cflags...), "-o", obj, src)
+	if err := exec.Command("gcc", args...).Run(); err != nil {
+		return fmt.Errorf("gcc %s: %w", strings.Join(args, " "), err)
 	}
 	undef, ext := surface(os.Stderr, obj)
 	os.Remove(obj)
