@@ -1,6 +1,6 @@
 package check
 
-// The standard check -- tools/phasecheck.sh then tools/phasebuild.sh and
+// The standard check -- phasecheck then phasebuild and
 // nothing else -- and the eleven phases whose whole Body it is: every one of
 // them rests its claim on the sweep and the symbol count, and says so in the
 // header of its shell.

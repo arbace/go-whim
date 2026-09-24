@@ -35,9 +35,6 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 
 ## Small
 
-- `tools/` shell still to become Go: `phasecheck`, `phasebuild`, `symbols`,
-  `enumvals`, `score`. (`enumvals.sh` STAYS while twelve phase checks use it as
-  the independent DWARF control.)
 - `internal/check/phases0NN.go` naming -- needs code moved into the phase
   packages, so not mechanical.
 - The `z*` identifier family (`zmemline`, `ztc`, `z33Rule`, `z41*`).

@@ -563,9 +563,7 @@ func Check(w io.Writer, args []string) error {
 		"what phase 104 said when it took the four stdio symbols with the CALLS and left the function", len(uNew))
 	r.Say("the binary is %d bytes against the input's %d", check.SizeOf(filepath.Join(tmp, "new")),
 		check.SizeOf(filepath.Join(state, "old")))
-	pc := exec.Command("sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols"))
-	pc.Stdout, pc.Stderr = w, w
-	if err := pc.Run(); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 

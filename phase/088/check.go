@@ -169,7 +169,7 @@ func Check(w io.Writer, args []string) error {
 	// NOTHING IS FREED HERE, stated as an equality so that a symbol ARRIVING --
 	// which a fold can do -- fails.
 	before := check.ReadFile(filepath.Join(state, "symbols", "undefined"))
-	if err := check.Run(w, "sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols")); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 	after := check.ReadFile(".cache/symbols/last/undefined")

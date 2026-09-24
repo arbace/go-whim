@@ -133,12 +133,12 @@ func Check(w io.Writer, args []string) error {
 	r.Say("kept: the exmode branch, mch_input_isatty, stdout_isatty's reader, mch_check_win, all 5 isatty calls")
 
 	// --- 3. the compile, the linkage and the libc surface --------------------
-	if err := check.Run(w, "sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols")); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 
 	// --- 4. the binary -------------------------------------------------------
-	// NOT tools/phasebuild.sh, which links the object the sweep compiled along
+	// NOT phasebuild, which links the object the sweep compiled along
 	// the way: that object is `gcc -c -O0` with this machine's defaults, which
 	// since phase 84 are not the core's -- it carries the canaries
 	// -fno-stack-protector removes and PIE code where the link is -no-pie.

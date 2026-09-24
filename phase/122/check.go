@@ -53,7 +53,7 @@ package p122
 // THE CUT (2)  whim.mk's own rule on the INPUT and the OUTPUT: eleven directives,
 // none above them, 0 errors under -fsyntax-only either side, and the
 // boundary's warning set -- computed here and never written down --
-// UNCHANGED.  Then `zhostonly` and tools/phasecheck.sh.
+// UNCHANGED.  Then `zhostonly` and phasecheck.
 
 import (
 	"fmt"
@@ -1087,9 +1087,7 @@ func Check(w io.Writer, args []string) error {
 	if err := zh.Run(); err != nil {
 		return harness.ErrReported
 	}
-	pc := exec.Command("sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols"))
-	pc.Stdout, pc.Stderr = w, w
-	if err := pc.Run(); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 	return nil

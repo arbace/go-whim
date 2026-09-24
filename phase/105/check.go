@@ -23,7 +23,7 @@ package p105
 // argument list came out right.
 // SYMBOLS     `nm -u` is THE SAME SET, asserted as a `comm` that is empty in BOTH
 // directions.  It is 18 names here and 17 in the boundary's own binary,
-// because tools/phasecheck.sh compiles plain -O0 and so adds
+// because phasecheck compiles plain -O0 and so adds
 // __stack_chk_fail, which the -fno-stack-protector build does not have --
 // and that is why the assertion is the equality and not the number.  A
 // reader meeting a 129-site phase expects a symbol to fall and none can:
@@ -365,7 +365,7 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 4. the compile, the linkage and the libc surface --------------------
 	beforeU := strings.Fields(check.ReadFile(filepath.Join(state, "symbols", "undefined")))
-	if err := check.Run(w, "sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols")); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 	after := strings.Fields(check.ReadFile(".cache/symbols/last/undefined"))

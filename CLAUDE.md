@@ -103,12 +103,13 @@ phase/NNN/         a phase, and a package: edit.go, check.go, GOAL.md, delta.md
 phase/registry.go  every phase package, blank-imported so they register
 phase/STAGES.md       the record the plan was read from: the stages, need and apart,
                    the packages.  Prose now, not a manifest a program reads
-tools/             what a check still shells out to -- phasecheck, phasebuild,
-                   enumvals, symbols, score -- and the three wrappers that find
-                   the Go binary: st.sh, sweep.sh, canon.sh.  The delta, the
-                   declarations and a recording are internal/verify and
-                   internal/harness, reached as `tools/st.sh delta` and
-                   `tools/st.sh zrecord`
+tools/             what a check still shells out to -- enumvals, the DWARF
+                   control kept as shell on purpose -- and the three wrappers
+                   that find the Go binary: st.sh, sweep.sh, canon.sh.  The
+                   gate (phasecheck, phasebuild, symbols) is internal/check, the
+                   delta, the declarations and score are internal/verify, a
+                   recording is internal/harness: each is `tools/st.sh <name>`
+                   at a prompt, and a check calls the Go in process
 tools/templates/   whim.mk, the makefile phase 0 starts from, and core.mk, the one
                    phase 83 writes over it
 editor/            the core in Go: editor.go GENERATED (make editor/editor.go; never edit it),

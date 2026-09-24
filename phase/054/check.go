@@ -65,10 +65,10 @@ func Check(w io.Writer, args []string) error {
 	}
 	r.Say("every option row has a variable")
 
-	if err := check.Run(w, "sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols")); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
-	if err := check.Run(w, "sh", "tools/phasebuild.sh", work, strings.TrimSpace(string(beforeLines))); err != nil {
+	if err := check.PhaseBuild(w, work, strings.TrimSpace(string(beforeLines))); err != nil {
 		return harness.ErrReported
 	}
 

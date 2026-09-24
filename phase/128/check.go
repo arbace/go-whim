@@ -1036,9 +1036,7 @@ func Check(w io.Writer, args []string) error {
 	if err := zh.Run(); err != nil {
 		return harness.ErrReported
 	}
-	pc := exec.Command("sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols"))
-	pc.Stdout, pc.Stderr = w, w
-	if err := pc.Run(); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 	return nil

@@ -106,7 +106,7 @@ clean-cache:  ## remove .cache/ (the Go build cache and the boundaries)
 # Bytes to store and symbols to provide, the input and the product side by side.
 .PHONY: score
 score:  ## bytes to store and symbols to provide: the input beside the product
-	@WHIMCFLAGS='$(WHIMCFLAGS)' WHIMLDFLAGS='$(WHIMLDFLAGS)' tools/score.sh
+	@WHIMCFLAGS='$(WHIMCFLAGS)' WHIMLDFLAGS='$(WHIMLDFLAGS)' tools/st.sh score
 
 force: ;
 

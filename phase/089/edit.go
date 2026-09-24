@@ -36,7 +36,7 @@ package p089
 // `CMD_saveas` five times and `CMD_wq` once -- every one of them inside `ex_write`,
 // `do_write` or `ex_exit`, which are exactly the functions whose only reference was
 // the row that just went.  `funcreach.py` deletes them in the sweep's first round,
-// and `tools/phasecheck.sh` in phase/089/check.go is where "it compiles" is
+// and `phasecheck` in phase/089/check.go is where "it compiles" is
 // asserted.  The invariant below is the honest form of that: every surviving mention
 // is inside a function definition, and no surviving `cmdnames[]` row names that
 // function.
@@ -196,6 +196,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	p.Sayf("%d mentions of the six are left, all inside %s, and no surviving row names "+
 		"any of them: the text does not compile until the sweep has run, and "+
-		"tools/phasecheck.sh is where that is asserted", left, strings.Join(holders, ", "))
+		"phasecheck is where that is asserted", left, strings.Join(holders, ", "))
 	return text, nil
 }

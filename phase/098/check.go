@@ -78,7 +78,7 @@ package p098
 // "0 seconds ago", which is the one nondeterminism the corpus scrubs.
 // tools/musl-case.txt
 // tools/musl-ctype.txt
-// tools/phasecheck.sh
+// phasecheck
 // tools/st.sh
 // tools/st.sh zrecord
 
@@ -312,7 +312,7 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 4. the compile, the linkage and the libc surface --------------------
 	before := strings.Fields(check.ReadFile(filepath.Join(state, "symbols", "undefined")))
-	if err := check.Run(w, "sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols")); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 	after := strings.Fields(check.ReadFile(".cache/symbols/last/undefined"))
