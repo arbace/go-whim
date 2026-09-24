@@ -39,6 +39,7 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   adjust by reasoning: `CLAUDE.md` says the numbers are measurements.
 - **Inserted text is not canonical.** Phases write residue-spelled blocks into the
   tree, so the product carries them.
+
 ## Small
 
 - `tools/` shell still to become Go: `phasecheck`, `phasebuild`, `symbols`,
