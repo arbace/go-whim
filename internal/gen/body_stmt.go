@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -86,6 +87,26 @@ func (f *fnEmit) declaration(d *cc.Declaration) {
 		key := f.g.a.declKey(dd)
 		typ := f.objType(t, key)
 		lc := f.declare(dd, typ)
+		// WHERE C DECLARES IT, in a function with no goto, unless it is a case's
+		// own local (C's case is no scope and Go's is) or an uninitialised
+		// local in a loop: C at -O0 keeps its value from one iteration to the
+		// next, and a Go declaration in the body would zero it each time.
+		if !f.hoistAll && !f.inCase && (id.Initializer != nil || !f.inLoop()) {
+			lc.scoped = true
+			if id.Initializer != nil && id.Initializer.Case == cc.InitializerExpr && t.Kind() != cc.Array {
+				// `x := e` when e is of x's Go type and not an untyped
+				// constant; `var x T = e` when it is not.
+				v := f.exprTo(id.Initializer.AssignmentExpression, typ)
+				s := f.conv(v, typ)
+				if !v.konst && !v.null && v.t == typ && s == v.s {
+					f.line("%s := %s\x01%s", lc.name, s, lc.name)
+				} else {
+					f.line("var %s %s = %s\x01%s", lc.name, typ, s, lc.name)
+				}
+				continue
+			}
+			f.line("var %s %s\x01%s", lc.name, typ, lc.name)
+		}
 		if at, ok := t.(*cc.ArrayType); ok && strings.HasPrefix(typ, "Ptr[") {
 			f.line("%s = Mk[%s](%d)", lc.name, elemOfGo(typ), at.Len())
 		}
@@ -102,7 +123,7 @@ func (f *fnEmit) declaration(d *cc.Declaration) {
 		case cc.InitializerInitList:
 			switch {
 			case zeroInit(id.Initializer):
-				if !strings.HasPrefix(typ, "Ptr[") {
+				if !strings.HasPrefix(typ, "Ptr[") && !lc.scoped { // a scoped var is zero already
 					f.line("%s = %s{}", lc.name, typ)
 				}
 			case strings.HasPrefix(typ, "Ptr["):
@@ -376,7 +397,9 @@ func (f *fnEmit) switchStmt(s *cc.SelectionStatement) {
 		for _, it := range stmts {
 			switch it.Case {
 			case cc.BlockItemDecl:
+				f.inCase = true
 				f.declaration(it.Declaration)
+				f.inCase = false
 			case cc.BlockItemStmt:
 				f.stmt(it.Statement)
 			default:
@@ -686,6 +709,7 @@ func (g *gen) emitFunction(fd *cc.FunctionDefinition) (src string, why string) {
 	for l := range f.gotos {
 		f.taken[l] = true
 	}
+	f.hoistAll = len(f.gotos) > 0
 	var body strings.Builder
 	f.out = &body
 	f.indent = 1
@@ -697,19 +721,24 @@ func (g *gen) emitFunction(fd *cc.FunctionDefinition) (src string, why string) {
 		b.WriteString(" " + rt)
 	}
 	b.WriteString(" {\n")
+	hoisted := 0
 	for _, l := range f.locals {
-		fmt.Fprintf(&b, "\tvar %s %s\n", l.name, l.typ)
+		if !l.scoped {
+			fmt.Fprintf(&b, "\tvar %s %s\n", l.name, l.typ)
+			hoisted++
+		}
 	}
 	for _, l := range f.locals {
-		if !l.read {
+		if !l.read && !l.scoped {
 			fmt.Fprintf(&b, "\t_ = %s\n", l.name)
 		}
 	}
-	if len(f.locals) > 0 {
+	if hoisted > 0 {
 		b.WriteString("\n")
 	}
-	b.WriteString(body.String())
-	if rt != "" && !terminates(strings.Split(body.String(), "\n")) && !goTerminates(body.String()) {
+	bodyText := scopedDecls(body.String(), f.locals)
+	b.WriteString(bodyText)
+	if rt != "" && !terminates(strings.Split(bodyText, "\n")) && !goTerminates(bodyText) {
 		b.WriteString("\tpanic(\"not reached\")\n")
 	}
 	b.WriteString("}\n")
@@ -840,4 +869,48 @@ func (f *fnEmit) blockBreak(s *cc.Statement) {
 		}
 		f.deadBrk[s.JumpStatement] = true
 	}
+}
+
+// inLoop says emission is inside a loop body.
+func (f *fnEmit) inLoop() bool {
+	for _, loop := range f.brk {
+		if loop {
+			return true
+		}
+	}
+	return false
+}
+
+// declMerge is a scoped `var x T` followed by x's first assignment.
+var declMerge = regexp.MustCompile(`(?m)^(\s*)var (\w+) ([^\n=]+)\n\s*(\w+) = `)
+
+// scopedDecls finishes the declarations emitted where C declares them: a
+// local nothing reads gets `_ = x` after its declaration (Go refuses an
+// unused variable), and a declaration followed by the local's first
+// assignment becomes one statement, `var x T = e`.
+func scopedDecls(body string, locals []*local) string {
+	for _, l := range locals {
+		if !l.scoped {
+			continue
+		}
+		mark := "\x01" + l.name
+		if l.read {
+			body = strings.Replace(body, mark, "", 1)
+		} else {
+			i := strings.Index(body, mark)
+			if i < 0 {
+				continue
+			}
+			ls := strings.LastIndex(body[:i], "\n") + 1
+			ind := body[ls : ls+len(body[ls:])-len(strings.TrimLeft(body[ls:], "\t"))]
+			body = body[:i] + "\n" + ind + "_ = " + l.name + body[i+len(mark):]
+		}
+	}
+	return declMerge.ReplaceAllStringFunc(body, func(m string) string {
+		s := declMerge.FindStringSubmatch(m)
+		if s[2] != s[4] {
+			return m
+		}
+		return s[1] + "var " + s[2] + " " + s[3] + " = "
+	})
 }

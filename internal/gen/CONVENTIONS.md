@@ -174,10 +174,17 @@ construction, so that the pointers are equal where C's are.
   case with `fallthrough`. A C `[[fallthrough]];` is exactly that. `break`
   inside a `switch` leaves the `switch` in both languages; a `break` meant for
   an enclosing loop needs a label in Go.
-- **`goto`**: keep it. Go forbids jumping over a variable declaration and into
-  a block: declare the function's locals at its top (`var x int32`) as C89
-  would, which makes most C `goto`s legal Go as they stand; restructure the
-  rest with labeled loops and flags, preserving behaviour exactly.
+- **Locals are declared where C declares them**: `x := e` when e has x's Go
+  type, `var x T = e` when it may not (an untyped constant), `var x T` with no
+  initializer. Three kinds stay at the function's top instead: every local of a
+  function with a `goto`, since Go forbids jumping over a declaration; a
+  local declared directly in a `switch` case, since C's case is no scope and
+  Go's is; and a local without an initializer inside a loop, since C at `-O0`
+  keeps its value from one iteration to the next and a Go declaration in the
+  body would zero it.
+- **`goto`**: keep it. With its function's locals at the top, most C `goto`s are
+  legal Go as they stand; restructure the rest with labeled loops and flags,
+  preserving behaviour exactly.
 - **`for (;;)`** is `for {`. A C `for` with a comma in it becomes its
   statements.
 - **Unused**: Go rejects unused locals and imports; C does not. Delete the
