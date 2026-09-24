@@ -4,19 +4,15 @@ What is not done, in the order it has to happen, with what was measured rather
 than what is hoped. Written 2026-09-23. **When an item lands, delete it** --
 this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 
-## Landed: canonicalisation at phase 0
+## Committed, awaiting this batch's verification
 
-Merged 2026-09-24 (`d8365fb`). Kept here only as the pointer a later reader will
-want: the account is in that merge commit, and the two migrations behind it are
-in the branch's 22.
-
-What it left behind for this file: the stale `Measured` tables below, and the
-two "literals that
-ate an indent" still in the product -- a `return;` at 30 spaces
-(`phase/074/editlit.go`, `whim-vim.c:28014`) and a `got_int = TRUE;` at 29
-(`internal/cut/nosignals.go`, `whim-vim.c:52439`). Neither fails a check. They
-are the same class as the phase 145 and 104 defects the merge names, and they
-belong with the inserted-text item.
+- `61ffa8d` (the two literals that ate an indent) and `e3bac07` (the notes of
+  phases 21, 22 and 26 moved above the functions they explain) move text a
+  phase inserts.  `whim-build` on `61ffa8d` moved `whim-vim.c` in exactly the two
+  lines; `whim-build-check` on the batch, a `whim-verify` over stages 13-41 to 82,
+  and canonicalising the phase-35 intermediate that refused at *line 9190* are
+  what land them.  The agenda counted 44 in-brace comment lines; 37 were found
+  in the four cuts, and the intermediate is where the other 7 are looked for.
 
 ## Queued, measured, not started
 
@@ -43,21 +39,6 @@ belong with the inserted-text item.
   adjust by reasoning: `CLAUDE.md` says the numbers are measurements.
 - **Inserted text is not canonical.** Phases write residue-spelled blocks into the
   tree, so the product carries them.
-- **44 whole-line comments inside braces, from four phases**, are what now stop an
-  intermediate text canonicalising. The fix is where those phases put their
-  comments, not the printer -- the finished product has zero.
-- **Retired tools in the prose: what is left.** The prose names 93 scripts not on
-  disk, about 900 times, nearly all as records of what was run; those keep their
-  names, and `tools/README.md`'s *Retired* table says what each became. The
-  present-tense claims and instructions were corrected. Left: `CLAUDE.md`'s
-  `CORE_FROM=83` in `tools/pipeline.sh` (it is `internal/build`'s `CoreFrom`),
-  and Go comments that still describe the old machinery as current --
-  `phase/{033,054,080,081,085}/check.go` "as tools/phaserun.sh describes",
-  `phase/{096,097,099,106}/check.go` on `coredelta.sh` and `phaserun.sh`.
-- **`zero-vim` in prose**: 20 in `GOALS.md`, 7 in `phase/STAGES.md`, 6 across five
-  `delta.md`. `GOALS.md`'s appendix is the plan AS WRITTEN, so renaming inside it
-  falsifies a record -- a judgement, not a sweep.
-
 ## Small
 
 - `tools/` shell still to become Go: `phasecheck`, `phasebuild`, `symbols`,
