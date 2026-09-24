@@ -148,6 +148,7 @@ make                 # all: bin/whim, the editor (editor/ built), through whim-v
 make whim-build      # the 164 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go that is not what internal/gen writes
+make whim-test        # the editor on 44 key sessions, required to behave as HEAD's does
 make whim-vim        # the C product's binary
 make slim-vim        # the input's binary, with the same one line
 make score           # bytes to store and symbols to provide, input beside product
@@ -173,7 +174,7 @@ make help            # every target, with a line each
   the induction a run in order walks, so it proves the same thing; a phase whose
   program changed breaks its own link and is named. With no snapshots of this
   input it runs the pipeline in order, which writes them. It proves the text,
-  not the editor; nothing checks behaviour any more (see *What this is*).
+  not the editor; `make whim-test` is what sees the editor (see *What this is*).
 
 - **`editor/editor.go` is generated** (`go tool whim gen`, `internal/gen` on the cut
   `editor.c`) and tracked. `whim-build` writes it after producing `whim-vim.c`;
@@ -250,8 +251,9 @@ and no more are expected -- the pipeline's goal is met. What a new one takes:
 itself if its cut is a program (a line in `internal/phase/registry.go`); and an entry at
 the end of `internal/build`'s `Plan` naming its steps and whether a sweep
 follows. Then `make whim-build` (the product moves, so the tracked `whim-vim.c`
-and `editor/editor.go` are rewritten) and, since there is no suite, whatever
-evidence the phase needs, stated in its `GOAL.md`.
+and `editor/editor.go` are rewritten), `make whim-test` against the commit
+before it (a phase that removes capability moves cases on purpose: name them),
+and whatever further evidence the phase needs, stated in its `GOAL.md`.
 
 ## Commit style
 
