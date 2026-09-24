@@ -105,19 +105,20 @@ func runDeadfields(cur []byte) ([]byte, string, error) {
 	return dead.DeleteFields(cur, cands), line, nil
 }
 
-func runDeadenums(path string, cur []byte, vals string) ([]byte, string, error) {
+func runDeadenums(path string, cur []byte, vals string,
+	analyse func([]byte, map[string]string) ([]dead.Edit, dead.EnumStats)) ([]byte, string, error) {
 	if err := os.WriteFile(path, cur, 0o644); err != nil {
 		return cur, "", err
 	}
 	v := dead.LoadVals(vals)
-	edits, st := dead.AnalyseEnums(cur, v)
+	edits, st := analyse(cur, v)
 	if _, err := os.Stat(vals); err != nil && (st.DeadTotal > 0 || st.Unpinnable > 0) {
 		// First need: the values of THIS text, before anything is deleted.
 		if err := dead.DumpVals(path, vals); err != nil {
 			return cur, "", err
 		}
 		v = dead.LoadVals(vals)
-		edits, st = dead.AnalyseEnums(cur, v)
+		edits, st = analyse(cur, v)
 	}
 	stuck, unpin := "", ""
 	if st.Stuck > 0 {

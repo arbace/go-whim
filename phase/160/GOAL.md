@@ -26,3 +26,10 @@ input to have been `nullptr`. That nothing read it is the output compiling
 without it. It requires `VoidPtrs` and `GrowArrays` to leave nothing. It probes
 a command typed at `:`, a `<Cmd>` mapping, `:append` and `:@`; each control
 moves.
+
+**Already gone is a class of its own.** The cut of `find_func_t` is a partition, not a
+count: the typedef is here and this phase removes it, or nothing at all names
+it and the phase says so and cuts nothing (`edit.Ph.LiteralOrGone`). The
+second class exists for the closure swap (`WHIM_CLOSURE=1`,
+`internal/sweep/closure.go`), whose closure takes a typedef nothing names in
+an earlier sweep. Anything else refuses as it always did.

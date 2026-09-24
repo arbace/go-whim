@@ -65,14 +65,19 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{"static char_u *find_ex_command(exarg_T *eap, int *full, int (*lookup)(char_u *, usize, int cmd, cctx_T *), cctx_T *cctx);", "static char_u *find_ex_command(exarg_T *eap, int *full);", "find_ex_command() takes no Vim9 lookup or context, which it never read: its prototype", 1},
 		{"find_ex_command(exarg_T *eap, int *full, int (*lookup)(char_u *, usize, int cmd, cctx_T *), cctx_T *cctx)", "find_ex_command(exarg_T *eap, int *full)", "its definition", 1},
 		{"find_ex_command(&ea, nullptr, nullptr, nullptr)", "find_ex_command(&ea, nullptr)", "its one call", 1},
-		// the builtin-function types, which name typval_T and nothing names
-		{"typedef int (*cfunc_T)(int argcount, typval_T *argvars, typval_T *rettv, void *state);\n", "", "the builtin function type goes", 1},
-		{"typedef void (*cfunc_free_T)(void *state);\n", "", "and its state's destructor", 1},
 	}
 	for _, s := range steps {
 		if text, err = p.Literal(text, s.Old, s.New, s.What, s.n); err != nil {
 			return nil, err
 		}
+	}
+	// the builtin-function types, which name typval_T and nothing names.  A
+	// partition: here and cut, or already taken by the sweep's closure.
+	if text, err = p.LiteralOrGone(text, "typedef int (*cfunc_T)(int argcount, typval_T *argvars, typval_T *rettv, void *state);\n", "", "the builtin function type goes", 1, "cfunc_T"); err != nil {
+		return nil, err
+	}
+	if text, err = p.LiteralOrGone(text, "typedef void (*cfunc_free_T)(void *state);\n", "", "and its state's destructor", 1, "cfunc_free_T"); err != nil {
+		return nil, err
 	}
 	if text, err = p.FoldAlways(text, "cursor_pos_info", `if \(dict == nullptr\)`, "cursor_pos_info() always gives its message", 3); err != nil {
 		return nil, err
