@@ -9,12 +9,6 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 
 ## Known stale, not yet scoped
 
-- **Stage 116 cannot pass under `whim-verify`.** Its check wants the
-  per-boundary tars in `.build/` (`q82.tar`, and a boundary binary from q83 on)
-  that the memoize produced and the current build path does not; it fails the
-  same way on 22c80d6, before any of this session's Go moved. Found by the
-  cleanup branch's Part II verify. A full `make whim-verify` therefore stops
-  there until the check is given what it needs from `internal/build` instead.
 - **Inserted text is not canonical at the boundaries.** Phase 163 prints the
   PRODUCT canonically (1,080 lines moved at q162, 226 beyond whitespace), so
   the product is held to the form; every intermediate still carries what the
