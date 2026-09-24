@@ -35,6 +35,12 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   through a common initial sequence (`internal/ccx`'s casts are the start);
   (2) phases 78 (`cmdarg_T.prechar`) and 99 (`stat_T`) assert counts the
   closure changes, and 99's refusal cascades through every phase after it.
+  **(1) is done** (`3873ec0`, the reporter's `ClassCast`: every member of both
+  sides of a cast between two struct pointer types is held; 7 punned pairs at
+  q82, 3 of its 119 held, 0 on the product). With it, the switch-on q82 records
+  IDENTICAL to the core baselines. What is left is (2): 44 phases still refuse,
+  all from 78 and 99 -- decide whether those phases change or the closure
+  leaves alone what a later edit expects to find.
 
 ## Known stale, not yet scoped
 
