@@ -79,12 +79,20 @@ func DumpVals(src, out string) error {
 // because it is measured: it fired 0 times in 200 rounds of a full pass.
 func AnalyseEnums(text []byte, vals map[string]string) ([]Edit, EnumStats) {
 	b := cutil.Blank(text)
-	defs := Definitions(text, b)
-
 	counts := map[string]int{}
 	for _, m := range identRe.FindAll(b, -1) {
 		counts[string(m)]++
 	}
+	return AnalyseEnumsWith(text, vals, func(nm string) bool { return counts[nm] == 1 })
+}
+
+// AnalyseEnumsWith is AnalyseEnums with the question of which enumerators are
+// dead asked of isDead rather than of the text: the edits, the pinning and the
+// kept runs are the same code.  internal/sweep's closure switch is the one
+// caller that asks it of something else.
+func AnalyseEnumsWith(text []byte, vals map[string]string, isDead func(string) bool) ([]Edit, EnumStats) {
+	b := cutil.Blank(text)
+	defs := Definitions(text, b)
 
 	var edits []Edit
 	var st EnumStats
@@ -114,7 +122,7 @@ func AnalyseEnums(text []byte, vals map[string]string) ([]Edit, EnumStats) {
 				nm = string(m)
 			}
 			ent = append(ent, entry{nm, p})
-			if nm != "" && counts[nm] == 1 {
+			if nm != "" && isDead(nm) {
 				anyDead = true
 			}
 		}
@@ -126,7 +134,7 @@ func AnalyseEnums(text []byte, vals map[string]string) ([]Edit, EnumStats) {
 		var run [][]byte
 		deleted, keptBack := 0, 0
 		for _, e := range ent {
-			if e.name != "" && counts[e.name] == 1 {
+			if e.name != "" && isDead(e.name) {
 				run = append(run, e.raw)
 				continue
 			}

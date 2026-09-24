@@ -74,6 +74,13 @@ func Sweep(path string, w interface{ Write([]byte) (int, error) }) (rounds int, 
 	// changing the fixpoint.
 	passed := map[string]string{}
 
+	maxRounds := MaxRounds
+	var tally *closureTally
+	if closureOn {
+		maxRounds = closureRounds
+		tally = newTally()
+	}
+
 	for {
 		rounds++
 		src, err := os.ReadFile(path)
@@ -93,6 +100,15 @@ func Sweep(path string, w interface{ Write([]byte) (int, error) }) (rounds int, 
 		clearSpec()
 		spec = startSpec(path, rounds, was)
 
+		typereach := runTypereach
+		deadfields := runDeadfields
+		deadenums := func(b []byte) ([]byte, string, error) { return runDeadenums(path, b, vals, dead.AnalyseEnums) }
+		if closureOn {
+			cr := &closureRound{path: path, tally: tally}
+			typereach, deadfields = cr.typereach, cr.deadfields
+			deadenums = func(b []byte) ([]byte, string, error) { return cr.deadenums(b, vals) }
+		}
+
 		said := make([]string, 7)
 		order := []struct {
 			name string
@@ -100,10 +116,10 @@ func Sweep(path string, w interface{ Write([]byte) (int, error) }) (rounds int, 
 		}{
 			{"deadsweep", func(b []byte) ([]byte, string, error) { return runDeadsweep(path, b) }},
 			{"deadprotos", runDeadprotos},
-			{"typereach", runTypereach},
+			{"typereach", typereach},
 			{"funcreach", runFuncreach},
-			{"deadfields", runDeadfields},
-			{"deadenums", func(b []byte) ([]byte, string, error) { return runDeadenums(path, b, vals) }},
+			{"deadfields", deadfields},
+			{"deadenums", deadenums},
 			{"canon", runCanon},
 		}
 
@@ -145,10 +161,14 @@ func Sweep(path string, w interface{ Write([]byte) (int, error) }) (rounds int, 
 		if digest(cur) == was {
 			break
 		}
-		if rounds >= MaxRounds {
+		if rounds >= maxRounds {
 			fmt.Fprintln(w, "  sweep        not converging")
 			return rounds, fmt.Errorf("sweep: not converging after %d rounds", rounds)
 		}
+	}
+
+	if tally != nil {
+		fmt.Fprintln(w, tally.line())
 	}
 
 	// The values file exists only if some round actually dumped DWARF.  This
