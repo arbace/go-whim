@@ -145,8 +145,8 @@ make help            # every target, with a line each
 - **The build and the verification are two paths.** `make whim-build` is what a
   moved upstream runs: `internal/build`'s plan -- each phase's steps
   (`internal/steps`) and the sweep where the schedule put one -- applied in one
-  process, in memory, with no boundaries, digests or cache. Measured: 163
-  phases, **1,219 s**, 75,273 lines. It checks nothing about the editor; the
+  process, in memory, with no boundaries, digests or cache. Measured: 164
+  phases, **1,044 s**, 75,225 lines. It checks nothing about the editor; the
   checks, recordings and declared deltas are `make whim-verify`, which costs
   hours. What holds the plan to the phase programs is
   the product: `whim-build-check` requires the committed `whim-vim.c` back, byte
@@ -193,8 +193,8 @@ was the input boundary's digest and the implementation's together, so a moved
 were being written, and that is over.
 
 - **`make whim-build`** applies the plan (`internal/build`) in one process, in
-  memory: no work trees, tars, digests or cache. Measured: 163 phases, **1,219
-  s**, 75,273 lines. **`make whim-build-check`** requires the committed
+  memory: no work trees, tars, digests or cache. Measured: 164 phases, **1,044
+  s**, 75,225 lines. **`make whim-build-check`** requires the committed
   `whim-vim.c` back, byte for byte, from the committed `slim-vim.c` -- that is
   what holds the plan to the phase programs it was read from, and it is total: a
   step in the wrong order, a dropped argument or a missing sweep moves the bytes.
