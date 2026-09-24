@@ -73,7 +73,7 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 	for _, l := range []struct{ old, new, what string }{
 		{"is_split_cmd || cmdmod.cmod_tab != 0", "is_split_cmd",
 			":argedit and friends testing for :tab"},
-		{"            || cmod->cmod_tab != 0\n", "", "has_cmdmod counting :tab"},
+		{" || cmod->cmod_tab != 0 ", "", "has_cmdmod counting :tab"},
 		{" && cmdmod.cmod_tab == 0)", ")", "CTRL-W's 'switchbuf' test for :tab"},
 		{"    cmdmod.cmod_tab = 0;\n    cmdmod.cmod_flags |= CMOD_NOSWAPFILE;\n",
 			"    cmdmod.cmod_flags |= CMOD_NOSWAPFILE;\n",
@@ -118,7 +118,7 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 			":ball's 'tabpagemax'"); err != nil {
 			return nil, err
 		}
-		return e.literal(s, "    int         had_tab = cmdmod.cmod_tab;\n", "",
+		return e.literal(s, "    int had_tab = cmdmod.cmod_tab;\n", "",
 			":ball remembering :tab", 1)
 	}); err != nil {
 		return nil, err
@@ -152,9 +152,7 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	if text, err = e.inFunction(text, "ex_splitview", func(s []byte) ([]byte, error) {
-		s, err := e.literal(s, `    int         use_tab = eap->cmdidx == CMD_tabedit
-                       || eap->cmdidx == CMD_tabfind
-                       || eap->cmdidx == CMD_tabnew;
+		s, err := e.literal(s, `    int use_tab = eap->cmdidx == CMD_tabedit || eap->cmdidx == CMD_tabfind || eap->cmdidx == CMD_tabnew;
 `, "", "ex_splitview asking whether this is a tab command", 1)
 		if err != nil {
 			return nil, err
@@ -182,12 +180,12 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 				"eap->cmdidx != CMD_windo)", ":tabdo in 'winfixbuf'"},
 			{"eap->cmdidx == CMD_windo || eap->cmdidx == CMD_tabdo || buf_hide",
 				"eap->cmdidx == CMD_windo || buf_hide", ":tabdo needing no write"},
-			{`            case CMD_tabdo:
-                for ( ; tp != NULL && i + 1 < eap->line1; tp = tp->tp_next)
-                {
-                    i++;
-                }
-                break;
+			{`        case CMD_tabdo:
+            for (; tp != NULL && i + 1 < eap->line1; tp = tp->tp_next)
+            {
+                i++;
+            }
+            break;
 `, "", ":tabdo finding its first tab page"},
 		} {
 			if s, err = e.literal(s, l.old, l.new, l.what, 1); err != nil {
@@ -203,7 +201,7 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 				"if (eap->cmdidx == CMD_windo)", ":tabdo counting its range"},
 			// The tab-page cursor only :tabdo read.  Set and never read is a
 			// warning the sweep does not act on, so it goes here.
-			{"    tabpage_T   *tp;\n", "", ":tabdo's tab-page cursor"},
+			{"    tabpage_T *tp;\n", "", ":tabdo's tab-page cursor"},
 			{"        tp = first_tabpage;\n", "", ":tabdo starting at the first tab page"},
 		} {
 			if s, err = e.literal(s, l.old, l.new, l.what, 1); err != nil {
@@ -264,7 +262,7 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 	if text, err = e.inFunction(text, "nv_page", func(s []byte) ([]byte, error) {
-		return e.literal(s, `        if (cap->arg ==  (-1) )
+		return e.literal(s, `        if (cap->arg == (-1))
         {
             goto_tabpage(-(int)cap->count1);
         }
@@ -312,34 +310,34 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 
 		var err error
 		for _, l := range []struct{ old, new, what string }{
-			{`                    case 'f':
-                    case 'F':
-                        cmdmod.cmod_tab = tabpage_index(curtab) + 1;
-                        nchar = xchar;
-                        goto wingotofile;
-`, `                    case 'f':
-                    case 'F':
-                        beep_flush();
-                        break;
+			{`        case 'f':
+        case 'F':
+            cmdmod.cmod_tab = tabpage_index(curtab) + 1;
+            nchar = xchar;
+            goto wingotofile;
+`, `        case 'f':
+        case 'F':
+            beep_flush();
+            break;
 `, "CTRL-W gf and gF: editing a file in a new tab page"},
 			// CTRL-W gf was the only goto to it; CTRL-W f falls into the code
 			// directly.
-			{"wingotofile:\n", "", "the label only CTRL-W gf jumped to"},
-			{`                    case 't':
-                        goto_tabpage((int)Prenum);
-                        break;
-`, `                    case 't':
-                        if (Prenum > 1)
-                        {
-                            beep_flush();
-                        }
-                        break;
+			{"    wingotofile:\n", "", "the label only CTRL-W gf jumped to"},
+			{`        case 't':
+            goto_tabpage((int)Prenum);
+            break;
+`, `        case 't':
+            if (Prenum > 1)
+            {
+                beep_flush();
+            }
+            break;
 `, "CTRL-W gt: the one-tab-page answer"},
-			{`                    case 'T':
-                        goto_tabpage(-(int)Prenum1);
-                        break;
-`, `                    case 'T':
-                        break;
+			{`        case 'T':
+            goto_tabpage(-(int)Prenum1);
+            break;
+`, `        case 'T':
+            break;
 `, "CTRL-W gT: the one-tab-page answer"},
 		} {
 			if s, err = e.literal(s, l.old, l.new, l.what, 1); err != nil {
@@ -361,10 +359,10 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		return e.literal(s, `    forward = curtab->tp_next != NULL &&
-            ((tcl_flags & TCL_LEFT) == 0 || curtab == first_tabpage);
-`, `    forward = curtab->tp_next != NULL;
-`, "alt_tabpage: 'tabclose' asking to go left", 1)
+		return e.literal(s,
+			"    forward = curtab->tp_next != NULL && ((tcl_flags & TCL_LEFT) == 0 || curtab == first_tabpage);\n",
+			"    forward = curtab->tp_next != NULL;\n",
+			"alt_tabpage: 'tabclose' asking to go left", 1)
 	}); err != nil {
 		return nil, err
 	}

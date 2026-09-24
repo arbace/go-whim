@@ -1,6 +1,9 @@
 package harness
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,6 +23,16 @@ import (
 // Go's os/exec does not fork a shell per command the way a thread pool does,
 // but it does fork, and the window is the same.  One copy per binary, under a
 // lock, before anything is started.
+//
+// THE KEY IS THE BINARY AND NOT ITS PATH.  It was the absolute path, and in a
+// whole-pipeline verification every stage builds its binary at the same path,
+// <root>/work/whim-vim.  So the first delta staged the tree at phase 0 -- which
+// is slim-vim's own binary, byte for byte -- and every delta after it asked to
+// stage that path again and was handed the phase 0 copy.  Each one then measured
+// slim against slim's baselines and reported that NOTHING had moved, so a run
+// from the input said `got (none), expected bomb_on filter read_cmd` at the
+// first stage that declares anything, while the same stage verified on its own
+// passed.  A digest cannot be wrong about which binary this is.
 var (
 	stageLock sync.Mutex
 	staged    = map[string]string{}
@@ -40,9 +53,13 @@ func Stage(bin string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	sum, err := digest(abs)
+	if err != nil {
+		return "", err
+	}
 	stageLock.Lock()
 	defer stageLock.Unlock()
-	if p, ok := staged[abs]; ok {
+	if p, ok := staged[sum]; ok {
 		return p, nil
 	}
 	dir, err := os.MkdirTemp("", "harness-bin-")
@@ -63,8 +80,22 @@ func Stage(bin string) (string, error) {
 	if err := os.Chmod(dst, 0o755); err != nil {
 		return "", err
 	}
-	staged[abs] = dst
+	staged[sum] = dst
 	return dst, nil
+}
+
+// digest is what a staged copy is keyed on: the bytes, read once.
+func digest(path string) (string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(h.Sum(nil)), nil
 }
 
 // Env is the isolation every harness runs under.

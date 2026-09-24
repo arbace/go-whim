@@ -105,9 +105,9 @@ ev_num(long v)
 
 var z43Anch = [][3]string{
 	{"ev_data", "        dp_right = (DATA_BL *)(hp_right->bh_data);", "the data-block split"},
-	{"ev_root", "                 musl_memmove((char *)(pp_new), (char *)(pp), (usize)page_size) ;", "the root-preserving branch of ml_append_int()"},
+	{"ev_root", "                musl_memmove((char *)(pp_new), (char *)(pp), (usize)page_size);", "the root-preserving branch of ml_append_int()"},
 	{"ev_ptr", "            total_moved = pp->pb_count - pb_idx - 1;", "the pointer-block split"},
-	{"ev_blocks", "    dp->db_id =  (('d' << 8) + 'a') ;", "a new data block"},
+	{"ev_blocks", "    dp->db_id = (('d' << 8) + 'a');", "a new data block"},
 }
 
 const z43Depth = "        ip->ip_low = low;\n        ip->ip_high = high;\n        ip->ip_index = -1;"

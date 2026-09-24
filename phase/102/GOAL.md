@@ -180,7 +180,7 @@ cases, 111 of 111 Ex-command rows, 30 of 30 command lines.
 
 | | input | after |
 | --- | --- | --- |
-| lines | 80,428 | **80,446** (+18) |
+| lines | 78,291 | **78,308** (+17) |
 | functions | 1,757 | **1,758** (`host_exit`) |
 | type definitions | 907 | 907 |
 | `nm -u`, as `phasecheck.sh` counts it | 33 | **32**, gone set exactly `{exit}` |
@@ -190,6 +190,12 @@ cases, 111 of 111 Ex-command rows, 30 of 30 command lines.
 | binary | 805,544 | **805,544 — the same size, different bytes** |
 | sweep | | **1 round, a complete no-op** |
 | phase | | **24 s** |
+
+The line row is re-measured on the canonical text and the rest of the table is not:
+the gain is **17** and was 18, because the canonical text writes no blank line inside
+a function, so the one statement this phase inserts into `vim_main()` costs one line
+and not two. Two for the pointer and its blank line, one for the installation, and
+fourteen for the launcher growing from six lines to twenty.
 
 ## Its placement
 

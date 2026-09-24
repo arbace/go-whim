@@ -120,7 +120,7 @@ that was deferred the screen says `Caught deadly signal HUP` (47 bytes), which s
 
 | | input | after |
 | --- | --- | --- |
-| lines | 79,804 | **79,799 (−5)** |
+| lines | 77,730 | **77,724 (−6)** — re-measured on the canonical text; the rest of this table is not |
 | the core's plain libc prototype block | 2 lines | **0 — the block is gone** |
 | `nm -u` of the **cut**, compiled to an object | 19, two of them libc | **18, every one defined below the boundary** |
 | `make editor.c` | 77,899 | **77,888**, 0 directives, 0 errors |

@@ -13,7 +13,7 @@ import (
 // ke is a `case (-((KS_EXTRA) + ((int)(NAME) << 8))) :` label, as the macro
 // expander leaves it.
 func ke(name string) string {
-	return `[ \t]*case   \(-\(\(KS_EXTRA\) \+ \(\(int\)\(` + name + `\) << 8\)\)\)  :\n`
+	return `[ \t]*case \(-\(\(KS_EXTRA\) \+ \(\(int\)\(` + name + `\) << 8\)\)\):\n`
 }
 
 var insMouseKeys = []string{
@@ -29,13 +29,13 @@ const mouseKeyNames = `LeftDrag|LeftMouse|LeftRelease|LeftReleaseNM|MiddleMouse|
 	`ScrollWheelRight|ScrollWheelUp|X1Mouse|X2Mouse|Mouse`
 
 var (
-	mouseRow      = regexp.MustCompile(`(?m)^([ \t]*\{[^\n]*, )nv_mouse(?:scroll)?(, [^\n]*\} ,)$`)
+	mouseRow      = regexp.MustCompile(`(?m)^([ \t]*\{[^\n]*, )nv_mouse(?:scroll)?(, [^\n]*\},)$`)
 	mchSetmouse   = regexp.MustCompile(`(?m)^[ \t]*mch_setmouse\((?:TRUE|FALSE)\);\n`)
 	mchSetmouseW  = regexp.MustCompile(`\bmch_setmouse\b`)
 	setmouseCall  = regexp.MustCompile(`(?m)^[ \t]*setmouse\(\);\n`)
 	anyMouse      = regexp.MustCompile(`(?i)mouse`)
 	insScrollCase = regexp.MustCompile(
-		`(?m)[ \t]*case   \(-\(\(KS_EXTRA\) \+ \(\(int\)\(KE_MOUSE(?:DOWN|UP|LEFT|RIGHT)\) << 8\)\)\)  :\n` +
+		`(?m)[ \t]*case \(-\(\(KS_EXTRA\) \+ \(\(int\)\(KE_MOUSE(?:DOWN|UP|LEFT|RIGHT)\) << 8\)\)\):\n` +
 			`[ \t]*ins_mousescroll\([^;]*\);\n[ \t]*break;\n\n?`)
 )
 
@@ -113,9 +113,9 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nomouse      getcmdline_int()'s six mouse case runs")
 
 	for _, c := range []struct{ pat, what string }{
-		{`[ \t]*\(void\)do_mouse\(cap->oap, cap->nchar, \(cap->cmdchar == '\]'\) \? FORWARD :  \(-1\) , cap->count1, PUT_FIXINDENT\);\n`,
+		{`[ \t]*\(void\)do_mouse\(cap->oap, cap->nchar, \(cap->cmdchar == '\]'\) \? FORWARD : \(-1\), cap->count1, PUT_FIXINDENT\);\n`,
 			"nv_brackets()'s ]<LeftMouse>"},
-		{`[ \t]*\(void\)do_mouse\(oap, cap->nchar,  \(-1\) , cap->count1, 0\);\n`,
+		{`[ \t]*\(void\)do_mouse\(oap, cap->nchar, \(-1\), cap->count1, 0\);\n`,
 			"nv_g_cmd()'s g<LeftMouse>"},
 	} {
 		if text, err = cutCounted(text, "(?m)"+c.pat, "nomouse", c.what, 1); err != nil {
@@ -132,7 +132,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	// No (?m): the Python passes flags=0 for this one.
 	if text, err = cutCounted(text,
 		` \|\| \(!mouse_has\(MOUSE_RETURN\) && mouse_row < msg_row && `+
-			`\(c ==[^;]*KE_X2MOUSE\) << 8\)\)\)  \)\)`,
+			`\(c ==[^;]*KE_X2MOUSE\) << 8\)\)\)\)\)`,
 		"nomouse", "wait_return()'s mouse_has term", 1); err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	if k < 0 {
 		return nil, fmt.Errorf("nomouse: set_termname()'s mouse block is not where this expects")
 	}
-	pAt := k + bytes.Index(text[k:], []byte(`char_u  *p = (char_u *)"";`)) - 40
+	pAt := k + bytes.Index(text[k:], []byte(`char_u *p = (char_u *)"";`)) - 40
 	o := pAt + bytes.IndexByte(blanked[pAt:], '{')
 	c := cutil.Match(blanked, o)
 	if c < 0 {

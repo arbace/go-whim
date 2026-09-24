@@ -6,7 +6,7 @@ package p081
 // literal that is 90%% right matches nothing.  See that tool for the
 // measurement.
 const (
-	w81lit1 = "    int comment_char = '\"';\n\n    return (c == NUL || c == '|' || c == comment_char || c == '\\n');"
+	w81lit1 = "    int comment_char = '\"';\n    return (c == NUL || c == '|' || c == comment_char || c == '\\n');"
 	w81lit2 = "    if (c == NUL || c == '|' || c == '\\n')\n    {\n        return TRUE;\n    }\n    return c == '\"';"
 	w81lit3 = "    while (*p != '|' && *p != '\\n')\n"
 	w81lit4 = "    while (*p != '\\n')\n"

@@ -10,7 +10,7 @@ package p113
 //
 // WHAT IS CLAIMED, in seven parts:
 //
-// ARITHMETIC  computed FROM THE INPUT: the fold is +1 line and the sweep takes 91,
+// ARITHMETIC  computed FROM THE INPUT: the fold is +1 line and the sweep takes 87,
 // `msg_puts_printf` and `vim_strlen_maxlen` go 3 -> 0, TWO function
 // definitions leave, `msg_use_printf` STAYS at 6 -- the test is alive
 // and only the arm went -- the eleven directives are where they were,
@@ -310,8 +310,7 @@ func Check(w io.Writer, args []string) error {
 	// i_pp, i_ctl -- THE INSTRUMENTED PAIR, on the source this phase was HANDED.
 	const MARK = "    write(2, \"PP-ENTERED\\n\", 11);\n"
 	const P = "msg_puts_printf(char_u *str, int maxlen)\n{\n"
-	const D = "msg_puts_display(char_u      *str, int         maxlen, int         attr, " +
-		"int         recurse)\n{\n"
+	const D = "msg_puts_display(char_u *str, int maxlen, int attr, int recurse)\n{\n"
 	for _, x := range []struct{ Tag, head string }{{"i_pp", P}, {"i_ctl", D}} {
 		if strings.Count(oldT, x.head) != 1 {
 			return stop("%s's definition is not in the INPUT exactly once, so the instrumented "+
@@ -369,12 +368,20 @@ func Check(w io.Writer, args []string) error {
 		r.Bad("the state directory says the edit was handed %d lines and old.c has "+
 			"%d", beforeLines, len(O)-1)
 	}
-	const CUT = 92
+	// EIGHTY-SEVEN, and it was 92, hunk by hunk on the canonical text: 69 for
+	// msg_puts_printf's definition and its blank line, 14 for
+	// vim_strlen_maxlen's and its blank, and 2 for each prototype WITH ITS OWN
+	// blank line -- the canonical text separates forward declarations by a
+	// blank line where the residue wrote them consecutively.  The definition
+	// itself is 68 lines and the residue spelled it in 75.  Measured: 77,779 ->
+	// 77,693, and the edit adds 1.
+	const CUT = 87
 	if len(O)-len(N) != CUT-1 {
 		r.Bad("the output is %d lines and the input was %d, a difference of %d where "+
-			"%d was expected -- the edit adds 1 and the sweep takes %d: 75 for "+
+			"%d was expected -- the edit adds 1 and the sweep takes %d: 68 for "+
 			"msg_puts_printf and 1 blank, 13 for vim_strlen_maxlen and 1 blank, and "+
-			"the two prototypes", len(N)-1, len(O)-1, len(O)-len(N), CUT-1, CUT)
+			"the two prototypes with their blank lines",
+			len(N)-1, len(O)-1, len(O)-len(N), CUT-1, CUT)
 	}
 	for _, x := range []struct {
 		Name         string
@@ -463,9 +470,9 @@ func Check(w io.Writer, args []string) error {
 		return err
 	}
 	r.Say("%d lines -> %d: the edit adds ONE and the sweep takes %d -- "+
-		"msg_puts_printf's 75 and its blank, vim_strlen_maxlen's 13 and its blank, and "+
-		"the two prototypes.  TWO functions, not one: vim_strlen_maxlen's only call was "+
-		"inside msg_puts_printf", len(O)-1, len(N)-1, CUT)
+		"msg_puts_printf's 68 and its blank, vim_strlen_maxlen's 13 and its blank, and "+
+		"the two prototypes with their blank lines.  TWO functions, not one: "+
+		"vim_strlen_maxlen's only call was inside msg_puts_printf", len(O)-1, len(N)-1, CUT)
 	r.Say("msg_puts_printf 3 -> 0 and vim_strlen_maxlen 3 -> 0, while " +
 		"msg_use_printf STAYS AT 6 and msg_clr_eos_force, exit_scroll and " +
 		"hit_return_msg's `!msg_use_printf()` are each still exactly one site.  The " +

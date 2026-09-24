@@ -20,7 +20,7 @@ import (
 func init() { edit.Register("whim156", Edit) }
 
 // W156Sentinel is the size pass's sentinel as the input spells it.
-const W156Sentinel = "((char_u *) -1)"
+const W156Sentinel = "((char_u *)-1)"
 
 // Whim156 gives the regexp compiler's size pass a real node.
 //
@@ -39,7 +39,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("the size pass's sentinel is written %d times, and this phase was written against 14", n)
 	}
 	s = strings.ReplaceAll(s, W156Sentinel, "reg_calc_size_node")
-	o, err := p.Literal([]byte(s), "static char_u   *regcode;\n", "static char_u   *regcode;\nstatic char_u   reg_calc_size_node[1];\n",
+	o, err := p.Literal([]byte(s), "static char_u *regcode;\n", "static char_u *regcode;\nstatic char_u reg_calc_size_node[1];\n",
 		"the size pass's node is a static byte, compared by address and never read", 1)
 	if err != nil {
 		return nil, err

@@ -38,7 +38,7 @@ regstack_behind_top(void)
 `
 
 func w150Grow(ga string) string {
-	return "  __builtin_expect(((((&" + ga + ")->ga_maxlen - (&" + ga + ")->ga_len < ((int)sizeof("
+	return "__builtin_expect(((((&" + ga + ")->ga_maxlen - (&" + ga + ")->ga_len < ((int)sizeof("
 }
 
 // Whim150 splits the backtracking engine's stack into three typed stacks.
@@ -68,31 +68,35 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		s = strings.ReplaceAll(s, old, new)
 		p.Say(what)
 	}
-	lit("static garray_T regstack = {0, 0, 0, 0, nullptr};\n",
-		"static garray_T regstack = {0, 0, 0, 0, nullptr};\nstatic garray_T regstack_star = {0, 0, 0, 0, nullptr};\nstatic garray_T regstack_behind = {0, 0, 0, 0, nullptr};\nstatic int regstack_bytes = 0;\n",
+	// The canonical text writes an aggregate initialiser one element per line,
+	// with the brace under the `=` and a comma after the last element, so each
+	// of these declarations is eight lines and a blank line stands between two
+	// of them.
+	lit("static garray_T regstack =\n{\n    0,\n    0,\n    0,\n    0,\n    nullptr,\n};\n",
+		"static garray_T regstack =\n{\n    0,\n    0,\n    0,\n    0,\n    nullptr,\n};\n\nstatic garray_T regstack_star =\n{\n    0,\n    0,\n    0,\n    0,\n    nullptr,\n};\n\nstatic garray_T regstack_behind =\n{\n    0,\n    0,\n    0,\n    0,\n    nullptr,\n};\n\nstatic int regstack_bytes = 0;\n",
 		"the records, the stars and the look-behinds are three stacks, and the bytes they hold a count", 1)
 	lit("(long)((unsigned)regstack.ga_len >> 10) >= p_mmp", "(long)((unsigned)regstack_bytes >> 10) >= p_mmp",
 		"'maxmempattern' is measured against the count", 3)
 	// regstack_push and regstack_pop
-	lit("    if ("+w150Grow("regstack")+"regitem_T))) ? ga_grow_inner((&regstack), ((int)sizeof(regitem_T))) : OK) == FAIL), 0)  )\n    {\n        return nullptr;\n    }\n\n    rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len);\n    rp->rs_state = state;\n    rp->rs_scan = scan;\n\n    regstack.ga_len += sizeof(regitem_T);\n",
+	lit("    if ("+w150Grow("regstack")+"regitem_T))) ? ga_grow_inner((&regstack), ((int)sizeof(regitem_T))) : OK) == FAIL), 0))\n    {\n        return nullptr;\n    }\n    rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len);\n    rp->rs_state = state;\n    rp->rs_scan = scan;\n    regstack.ga_len += sizeof(regitem_T);\n",
 		"    if (ga_grow(&regstack, 1) == FAIL)\n    {\n        return nullptr;\n    }\n\n    rp = &((regitem_T *)regstack.ga_data)[regstack.ga_len];\n    rp->rs_state = state;\n    rp->rs_scan = scan;\n\n    ++regstack.ga_len;\n    regstack_bytes += sizeof(regitem_T);\n",
 		"regstack_push() pushes a record on the record stack", 1)
-	lit("    rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len) - 1;\n    *scan = rp->rs_scan;\n\n    regstack.ga_len -= sizeof(regitem_T);\n",
+	lit("    rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len) - 1;\n    *scan = rp->rs_scan;\n    regstack.ga_len -= sizeof(regitem_T);\n",
 		"    rp = &((regitem_T *)regstack.ga_data)[regstack.ga_len - 1];\n    *scan = rp->rs_scan;\n\n    --regstack.ga_len;\n    regstack_bytes -= sizeof(regitem_T);\n",
 		"regstack_pop() pops one", 1)
 	// the star and look-behind pushes
 	for _, k := range []struct{ t, ga, ind string }{{"regstar_T", "regstack_star", "                    "}, {"regbehind_T", "regstack_behind", "            "}} {
-		old := k.ind + "else if (" + w150Grow("regstack") + k.t + "))) ? ga_grow_inner((&regstack), ((int)sizeof(" + k.t + "))) : OK) == FAIL), 0)  )\n"
+		old := k.ind + "else if (" + w150Grow("regstack") + k.t + "))) ? ga_grow_inner((&regstack), ((int)sizeof(" + k.t + "))) : OK) == FAIL), 0))\n"
 		lit(old, k.ind+"else if (ga_grow(&"+k.ga+", 1) == FAIL)\n", "a "+k.t+" is pushed on its own stack", 1)
 		lit(k.ind+"    regstack.ga_len += sizeof("+k.t+");\n", k.ind+"    ++"+k.ga+".ga_len;\n"+k.ind+"    regstack_bytes += sizeof("+k.t+");\n", "counting the bytes it held", 1)
 	}
 	lit("*(((regstar_T *)rp) - 1) = rst;", "*regstack_star_top() = rst;", "the star's data is the top of the star stack", 1)
-	lit("regstar_T           *rst = ((regstar_T *)rp) - 1;", "regstar_T           *rst = regstack_star_top();", "and is found there", 1)
+	lit("regstar_T *rst = ((regstar_T *)rp) - 1;", "regstar_T           *rst = regstack_star_top();", "and is found there", 1)
 	lit("(((regbehind_T *)rp) - 1)->", "regstack_behind_top()->", "a look-behind's data is the top of its stack", 6)
 	lit("save_subexpr(((regbehind_T *)rp) - 1);", "save_subexpr(regstack_behind_top());", "saved into", 1)
 	lit("restore_subexpr(((regbehind_T *)rp) - 1);", "restore_subexpr(regstack_behind_top());", "and restored from", 3)
 	for _, k := range []struct{ t, ga string }{{"regbehind_T", "regstack_behind"}, {"regstar_T", "regstack_star"}} {
-		for _, ind := range []string{"                ", "                    "} {
+		for _, ind := range []string{"                ", "                    ", "                        "} {
 			old := "\n" + ind + "regstack.ga_len -= sizeof(" + k.t + ");\n"
 			n := strings.Count(s, old)
 			if n > 0 {
@@ -101,8 +105,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	lit("        rp = (regitem_T *)((char *)regstack.ga_data + regstack.ga_len) - 1;\n", "        rp = &((regitem_T *)regstack.ga_data)[regstack.ga_len - 1];\n", "the loop reads the top record", 1)
-	lit("rp == (regitem_T *) ((char *)regstack.ga_data + regstack.ga_len) - 1)", "rp == &((regitem_T *)regstack.ga_data)[regstack.ga_len - 1])", "and asks whether it is still the top", 1)
-	lit("  regstack.ga_len = 0;\n  backpos.ga_len = 0;\n", "  regstack.ga_len = 0;\n  regstack_star.ga_len = 0;\n  regstack_behind.ga_len = 0;\n  regstack_bytes = 0;\n  backpos.ga_len = 0;\n", "a match starts with the three stacks and the count empty", 1)
+	lit("rp == (regitem_T *)((char *)regstack.ga_data + regstack.ga_len) - 1)", "rp == &((regitem_T *)regstack.ga_data)[regstack.ga_len - 1])", "and asks whether it is still the top", 1)
+	lit("    regstack.ga_len = 0;\n    backpos.ga_len = 0;\n", "  regstack.ga_len = 0;\n  regstack_star.ga_len = 0;\n  regstack_behind.ga_len = 0;\n  regstack_bytes = 0;\n  backpos.ga_len = 0;\n", "a match starts with the three stacks and the count empty", 1)
 	lit("        ga_init2(&regstack, 1, REGSTACK_INITIAL);\n        (void)ga_grow(&regstack, REGSTACK_INITIAL);\n        regstack.ga_growsize = REGSTACK_INITIAL * 8;\n",
 		"        ga_init2(&regstack, sizeof(regitem_T), REGSTACK_INITIAL / sizeof(regitem_T));\n        (void)ga_grow(&regstack, REGSTACK_INITIAL / sizeof(regitem_T));\n        regstack.ga_growsize = REGSTACK_INITIAL * 8 / sizeof(regitem_T);\n        ga_init2(&regstack_star, sizeof(regstar_T), 16);\n        ga_init2(&regstack_behind, sizeof(regbehind_T), 4);\n",
 		"the record stack starts at the same bytes, the other two small", 1)
@@ -110,6 +114,22 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	// EVERY TYPED POP, AND THAT IS ASSERTED RATHER THAN COUNTED.  The loop above
+	// rewrites the depths it finds and says nothing about a depth it does not,
+	// so a site at an indentation not in the list would be left popping the
+	// BYTE stack by the size of a record it never held.  Three were, when the
+	// canonical text reindented them; the sweep cannot see it and neither can
+	// the compiler.  What can is this: no typed pop may survive.
+	for _, t := range []string{"regbehind_T", "regstar_T"} {
+		if k := strings.Count(s, "regstack.ga_len -= sizeof("+t+")"); k != 0 {
+			return nil, p.Die("%d pops of a %s still take it off the record stack -- the loop above "+
+				"did not reach them, and the indentation it walks is the only reason", k, t)
+		}
+		if k := strings.Count(s, "regstack.ga_len += sizeof("+t+")"); k != 0 {
+			return nil, p.Die("%d pushes of a %s still put it on the record stack", k, t)
+		}
+	}
+
 	// the accessors, before regstack_push()
 	head := "    static regitem_T *\nregstack_push("
 	if strings.Count(s, head) != 1 {

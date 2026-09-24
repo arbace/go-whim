@@ -82,6 +82,14 @@ import (
 
 func init() { check.Register("whim107", Check) }
 
+// FMT is vim_snprintf's format attribute as the canonical text spells it: at
+// the END of the declarator, one space before it, where the residue wrote it in
+// the middle of the declaration with a space either side.  It is ONE site --
+// the two vsnprintf prototypes carry `format(printf, 3, 0)` -- and it is read
+// twice below, once for control c1 and once for the two-line probe, so it is a
+// package constant and not two literals that could drift apart.
+const FMT = " __attribute__((format(printf, 3, 4)))"
+
 // wformat reads a -Wformat=2 run's stderr: the -Wformat-nonliteral count and
 // every function heading, in order.  gcc quotes an identifier with ‘x’ or 'x'
 // depending on the locale, so both are matched.
@@ -106,9 +114,15 @@ func distinct(s []string) map[string]bool {
 	return m
 }
 
-// z24StripUnused is re.Sub(r'(?<=\S)  __attribute__\(\(unused\)\) (?=[,)])', ”, l).
+// z24StripUnused is re.Sub(r'(?<=\S) __attribute__\(\(unused\)\)(?=[,)])', ”, l).
+//
+// The canonical text writes a parameter's attribute with ONE space before it
+// and none after -- `int added __attribute__((unused))` -- where the residue
+// wrote two either side and left them behind when the attribute went.  The
+// conditions are the ones they always were: a non-space before, a `,` or a `)`
+// after.  Measured on q106: 111 attributes and every one in this shape.
 func z24StripUnused(l string) string {
-	const a = "  __attribute__((unused)) "
+	const a = " __attribute__((unused))"
 	var b strings.Builder
 	i := 0
 	for {
@@ -197,16 +211,18 @@ func Check(w io.Writer, args []string) error {
 	jNew := link(T("new"), f)
 
 	// the four controls
-	const FMT = "  __attribute__((format(printf, 3, 4))) "
 	if strings.Count(newC, FMT) != 1 {
 		return stop("vim_snprintf's `%s` is not in the output exactly once, so c1 would not be a control", strings.TrimSpace(FMT))
 	}
-	c1 := strings.Replace(newC, FMT, " ", 1)
-	const ARG = "static inline __attribute__((format_arg(1))) char *_(const char *x)"
+	c1 := strings.Replace(newC, FMT, "", 1)
+	// The canonical text puts a definition's specifiers on the line above the
+	// name, so this anchor reads the way the file reads.  It is still ONE site:
+	// NGETTEXT's head carries format_arg(2) as well and does not match.
+	const ARG = "static inline __attribute__((format_arg(1))) char *\n_(const char *x)"
 	if strings.Count(newC, ARG) != 1 {
 		return stop("`%s` is not in the output exactly once, so c2 would not be a control", ARG)
 	}
-	c2 := strings.Replace(newC, ARG, "static inline char *_(const char *x)", 1)
+	c2 := strings.Replace(newC, ARG, "static inline char *\n_(const char *x)", 1)
 	const FT = "[[fallthrough]];"
 	n3 := strings.Count(newC, FT)
 	if n3 == 0 {
@@ -869,7 +885,7 @@ func z24Buys(w io.Writer, r *check.Rep, NL []string, tmp string) error {
 	fm := tdef + "\n" + proto + "\n" + "int probe(char *b, const char *s) { return vim_snprintf(b, 10, \"%d\", s); }\n"
 	var nf []string
 	for _, l := range strings.Split(fm, "\n") {
-		nf = append(nf, strings.Replace(l, "  __attribute__((format(printf, 3, 4))) ", " ", 1))
+		nf = append(nf, strings.Replace(l, FMT, "", 1))
 	}
 	nofm := strings.Join(nf, "\n")
 	if fm == nofm {

@@ -74,7 +74,7 @@ const W139SortBody = `    int         i;
         files[j] = s;
     }`
 
-var w139Site = regexp.MustCompile(`\((keyvalue_T|struct key_name_entry) \*\)musl_bsearch\(&target, &(\w+),  \((sizeof\(\w+\) / sizeof\(\(\w+\)\[0\]\))\) , sizeof\(\w+\[0\]\), (\w+)\)`)
+var w139Site = regexp.MustCompile(`\((keyvalue_T|struct key_name_entry) \*\)musl_bsearch\(&target, &(\w+), \((sizeof\(\w+\) / sizeof\(\(\w+\)\[0\]\))\), sizeof\(\w+\[0\]\), (\w+)\)`)
 
 // Whim139 sorts and searches typed arrays.
 //
@@ -90,13 +90,13 @@ var w139Site = regexp.MustCompile(`\((keyvalue_T|struct key_name_entry) \*\)musl
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "typed", W: w}
 	var err error
-	kvCast := "    keyvalue_T *kv1 = (keyvalue_T *)a;\n    keyvalue_T *kv2 = (keyvalue_T *)b;\n\n"
+	kvCast := "    keyvalue_T *kv1 = (keyvalue_T *)a;\n    keyvalue_T *kv2 = (keyvalue_T *)b;\n"
 	steps := []struct {
 		Old, New, What string
 		n              int
 	}{
-		{"(const void *a, const void *b);\nstatic int cmp_keyvalue_value_i(const void *a, const void *b);\nstatic int cmp_keyvalue_value_ni(const void *a, const void *b);\n",
-			"(keyvalue_T *kv1, keyvalue_T *kv2);\nstatic int cmp_keyvalue_value_i(keyvalue_T *kv1, keyvalue_T *kv2);\nstatic int cmp_keyvalue_value_ni(keyvalue_T *kv1, keyvalue_T *kv2);\nstatic keyvalue_T *keyvalue_bsearch(keyvalue_T *key, keyvalue_T *base, usize nel, int (*cmp)(keyvalue_T *, keyvalue_T *));\n",
+		{"(const void *a, const void *b);\n\nstatic int cmp_keyvalue_value_i(const void *a, const void *b);\n\nstatic int cmp_keyvalue_value_ni(const void *a, const void *b);\n",
+			"(keyvalue_T *kv1, keyvalue_T *kv2);\n\nstatic int cmp_keyvalue_value_i(keyvalue_T *kv1, keyvalue_T *kv2);\n\nstatic int cmp_keyvalue_value_ni(keyvalue_T *kv1, keyvalue_T *kv2);\n\nstatic keyvalue_T *keyvalue_bsearch(keyvalue_T *key, keyvalue_T *base, usize nel, int (*cmp)(keyvalue_T *, keyvalue_T *));\n",
 			"the keyvalue_T comparators take keyvalue_T: their prototypes, and the typed search's", 1},
 		{"(const void *a, const void *b)\n{\n" + kvCast, "(keyvalue_T *kv1, keyvalue_T *kv2)\n{\n", "their definitions, without the casts", 3},
 		{"cmp_key_name_entry(const void *a, const void *b)\n", "cmp_key_name_entry(struct key_name_entry *a, struct key_name_entry *b)\n", "the key name comparator takes a key_name_entry", 1},

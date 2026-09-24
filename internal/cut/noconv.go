@@ -122,7 +122,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 
 	text, err = e.inFunction(text, "getargopt", func(s []byte) ([]byte, error) {
 		s, err := e.dropIf(s,
-			`^[ \t]*if \( strncmp\(\(char \*\)\(arg\), \(char \*\)\("enc"\), \(3\)\)  == 0\)$`,
+			`^[ \t]*if \(strncmp\(\(char \*\)\(arg\), \(char \*\)\("enc"\), \(3\)\) == 0\)$`,
 			"++enc and ++encoding")
 		if err != nil {
 			return nil, err
@@ -161,7 +161,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 		if s, err = e.subOnce(s,
-			`^[ \t]*can_retry = \(\*fenc != NUL && !read_stdin && !read_fifo && !keep_dest_enc\);\n\n`,
+			`^[ \t]*can_retry = \(\*fenc != NUL && !read_stdin && !read_fifo && !keep_dest_enc\);\n`,
 			"readfile deciding it may retry"); err != nil {
 			return nil, err
 		}
@@ -216,7 +216,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 		if bytes.Contains(s, []byte("goto retry")) {
 			return nil, fmt.Errorf("noconv: readfile still jumps to retry")
 		}
-		if s, err = e.subOnce(s, `^retry:\n\n`, "the retry label"); err != nil {
+		if s, err = e.subOnce(s, `^retry:\n`, "the retry label"); err != nil {
 			return nil, err
 		}
 		for _, f := range []struct{ pat, what string }{
@@ -272,7 +272,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 			"buf_write setting the empty encoding"); err != nil {
 			return nil, err
 		}
-		if s, err = e.subOnce(s, `^[ \t]*converted = need_conversion\(fenc\);\n\n`,
+		if s, err = e.subOnce(s, `^[ \t]*converted = need_conversion\(fenc\);\n`,
 			"buf_write asking whether to convert"); err != nil {
 			return nil, err
 		}
@@ -402,7 +402,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 		for _, c := range []struct{ pat, what string }{
 			{`^[ \t]*vimconv_T[ \t]+vimconv;\n`, "utf_find_illegal's conversion"},
 			{`^[ \t]*char_u[ \t]+\*tofree = NULL;\n`, "utf_find_illegal's converted copy"},
-			{`^[ \t]*vimconv\.vc_type = CONV_NONE;\n\n`, "utf_find_illegal clearing a conversion"},
+			{`^[ \t]*vimconv\.vc_type = CONV_NONE;\n`, "utf_find_illegal clearing a conversion"},
 			{`^[ \t]*vim_free\(tofree\);\n`, "utf_find_illegal freeing a converted copy"},
 			{`^[ \t]*convert_setup\(&vimconv, NULL, NULL\);\n`, "utf_find_illegal ending no conversion"},
 		} {
@@ -460,7 +460,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 
 	if text, err = e.inFunction(text, "mb_tail_off", func(s []byte) ([]byte, error) {
 		return e.literal(s,
-			"    return i;\n\n    return 0;\n\n    return 1 - dbcs_head_off(base, p);\n",
+			"    return i;\n    return 0;\n    return 1 - dbcs_head_off(base, p);\n",
 			"    return i;\n", "mb_tail_off's dead DBCS returns", 1)
 	}); err != nil {
 		return nil, err
@@ -468,7 +468,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 
 	if text, err = e.inFunction(text, "expand_argopt", func(s []byte) ([]byte, error) {
 		var err error
-		link := `^[ \t]*if \(name_end - xp->xp_line >= \d+ &&  strncmp\(\(char \*\)\(name_end - \d+\), \(char \*\)\("\w+"\), \(\d+\)\)  == 0\)$`
+		link := `^[ \t]*if \(name_end - xp->xp_line >= \d+ && strncmp\(\(char \*\)\(name_end - \d+\), \(char \*\)\("\w+"\), \(\d+\)\) == 0\)$`
 		for i := 0; i < 5; i++ {
 			if s, err = e.ncFold(s, link, "completion for an ++ argument value",
 				"never", 1); err != nil {
@@ -480,7 +480,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 		return e.dropIf(s,
-			`^[ \t]*if \(xp->xp_pattern_len == 2 &&  strncmp\(\(char \*\)\(xp->xp_pattern\), \(char \*\)\("ff"\), \(xp->xp_pattern_len\)\)  == 0\)$`,
+			`^[ \t]*if \(xp->xp_pattern_len == 2 && strncmp\(\(char \*\)\(xp->xp_pattern\), \(char \*\)\("ff"\), \(xp->xp_pattern_len\)\) == 0\)$`,
 			"completing ++ff to ++fileformat=")
 	}); err != nil {
 		return nil, err

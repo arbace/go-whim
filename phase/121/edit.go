@@ -160,7 +160,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- 0. the table, and the two rows that stay ------------------------
-	i := bytes.Index(text, []byte("static builtin_tcap_T builtin_terminals[] = {"))
+	i := bytes.Index(text, []byte("static builtin_tcap_T builtin_terminals[] =\n{"))
 	if i < 0 {
 		return nil, p.Die("builtin_terminals[] is not in this file")
 	}
@@ -482,7 +482,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"this cut orphans nothing and the sweep has nothing to find")
 	}
 	for _, x := range dead {
-		if !regexp.MustCompile(`(?m)^static \w+ ` + regexp.QuoteMeta(x) + `\[\] = \{`).Match(text) {
+		if !regexp.MustCompile(`(?m)^static \w+ ` + regexp.QuoteMeta(x) + `\[\] =\n\{`).Match(text) {
 			return nil, p.Die("%s has one mention left and it is not its own definition", x)
 		}
 	}

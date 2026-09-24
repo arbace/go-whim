@@ -225,7 +225,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if err != nil {
 		return nil, p.Die("%v", err)
 	}
-	const z15ToUpperEnd = "        {0x1e922,0x1e943,1,-34}\n};\n"
+	const z15ToUpperEnd = "    {0x1e922, 0x1e943, 1, -34},\n};\n"
 	if text, err = textEdit(text, z15ToUpperEnd, z15ToUpperEnd+string(caseB),
 		"musl's case mapping as 187 + 171 convertStruct rows, after vim's own "+
 			"toUpper[] -- the same shape, the same size, and read by the "+

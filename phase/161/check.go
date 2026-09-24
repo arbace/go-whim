@@ -57,12 +57,16 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 	norm := func(s string) string { return strings.Join(strings.Fields(s), " ") }
-	tail := strings.TrimPrefix(W161Tail, "errorret:\n")
+	// The label carries its indentation in the canonical text -- `    errorret:`
+	// -- so the prefix taken off here is the whole of its line.  Trimming the
+	// bare name left the label in the tail and made the comparison below fail
+	// on a phase that is right.
+	tail := strings.TrimPrefix(W161Tail, "    errorret:\n")
 	Body := W161Func[strings.Index(W161Func, "questions[4];\n")+len("questions[4];\n") : strings.LastIndex(W161Func, "}")]
 	if norm(tail) != norm(Body) || !strings.Contains(c.New, W161Func) {
 		r.Bad("ml_get_invalid() is not the old tail, statement for statement")
 	}
-	if strings.Contains(c.New, "errorret") || !strings.Contains(c.Old, "    static char_u questions[4];\n\n    if (lnum > buf->b_ml.ml_line_count)\n") {
+	if strings.Contains(c.New, "errorret") || !strings.Contains(c.Old, "    static char_u questions[4];\n    if (lnum > buf->b_ml.ml_line_count)\n") {
 		r.Bad("the error path or its buffer is not where this check expects it")
 	}
 	if err := r.Done(); err != nil {

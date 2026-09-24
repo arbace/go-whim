@@ -127,7 +127,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 // the report is compared and not only the tree.
 func Whim60EP(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nosixopts", text, w)
-	e.Cut(`(?m)^[ \t]*case[^\n]*\bBV_EP\b[^\n]*\n[ \t]*return \*curbuf->b_p_ep != NUL\n[ \t]*\? \(char_u \*\)&curbuf->b_p_ep : p->var;\n`,
+	e.Cut(`(?m)^[ \t]*case[^\n]*\bBV_EP\b[^\n]*\n[ \t]*return \*curbuf->b_p_ep != NUL \? \(char_u \*\)&curbuf->b_p_ep : p->var;\n`,
 		1, "get_varp no longer resolves 'equalprg' per buffer")
 	return e.Done()
 }

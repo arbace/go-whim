@@ -34,8 +34,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		Old, New, What string
 		n              int
 	}{
-		{"enum { DOCMD_KEEPLINE = 0x20 };\n", "enum { DOCMD_KEEPLINE = 0x20 };\nenum { DOCMD_GETEXLINE = 0x40 };\n", "a flag says the lines come from getexline()", 1},
-		{"do_cmdline(nullptr, getexline, DOCMD_NOWAIT|DOCMD_VERBOSE);", "do_cmdline(nullptr, getexline, DOCMD_NOWAIT|DOCMD_VERBOSE|DOCMD_GETEXLINE);", "ex_at() sets it", 1},
+		{"enum { DOCMD_KEEPLINE = 0x20 };\n", "enum { DOCMD_KEEPLINE = 0x20 };\n\nenum { DOCMD_GETEXLINE = 0x40 };\n", "a flag says the lines come from getexline()", 1},
+		{"do_cmdline(nullptr, getexline, DOCMD_NOWAIT | DOCMD_VERBOSE);", "do_cmdline(nullptr, getexline, DOCMD_NOWAIT | DOCMD_VERBOSE | DOCMD_GETEXLINE);", "ex_at() sets it", 1},
 		{"do_cmdline(nullptr, getexline, flags);", "do_cmdline(nullptr, getexline, flags | DOCMD_GETEXLINE);", "nv_colon() sets it", 1},
 		{"getline_equal(fgetline, getexline)", "(flags & DOCMD_GETEXLINE)", "do_cmdline() tests it where it compared its getter with getexline", 4},
 	}

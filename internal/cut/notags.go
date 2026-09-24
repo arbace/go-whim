@@ -36,7 +36,7 @@ var notagsEdits = []struct {
 			`[ \t]*\{\n[^\n]*\n[ \t]*\}\n[ \t]*else\n[ \t]*\{\n[^\n]*\n[ \t]*\}\n` +
 			`[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n`, "", 1},
 	{"CTRL-X CTRL-] tag completion in insert mode",
-		`(?m)[ \t]*case  \(5 \+ CTRL_X_WANT_IDENT\) :\n` +
+		`(?m)[ \t]*case \(5 \+ CTRL_X_WANT_IDENT\):\n` +
 			`[ \t]*get_next_tag_completion\(\);\n[ \t]*break;\n\n?`, "", 1},
 	{"-complete=tag as a name :command accepts",
 		`(?m)[ \t]*\{\(EXPAND_TAGS\), \{\(\(char_u \*\)"tag"\),[^\n]*\n`, "", 1},

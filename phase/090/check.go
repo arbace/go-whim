@@ -25,9 +25,10 @@ package p090
 // ELEVEN mentions, because `secure` is the vimrc/tag-search flag and half the
 // editor tests it.  Only the two inside check_secure() went.
 // * THE BARE WORD `read` SURVIVES three times -- two `read(fd, ...)` calls and
-// an E222 string -- and `readfile`, `read_buffer`, `read_edit`, `readonly`,
-// `shell` and `filter` all survive at their own counts.  This phase removes
-// `:read`, not reading.
+// an E222 string -- and `readfile`, `read_buffer`, `read_edit`, `readonly`
+// and `filter` all survive at their own counts.  This phase removes
+// `:read`, not reading.  (`shell` was in that list until the canonical text
+// let a Part I phase finish emptying p_bo_values[]; see z7Kept.)
 // * `E32: No file name` SURVIVES, still reachable through check_fname() from
 // do_ecmd(); `E484: Can't open file` does NOT -- ex_read was its last
 // speaker, and after this phase nothing in the file says it.  Both are
@@ -112,9 +113,20 @@ var z7GoneStrings = []string{`"read"`, "E484: Can't open file", "E319: Sorry",
 
 // z7Kept is the BARE WORDS, each with the reason it is not this phase's.  A loop
 // that wanted zero for any of these would fail on a correct phase.
+//
+// `shell` was one of them and is not any more, and the reason is a measurement
+// rather than a relaxation: its single mention here was `"shell"` in
+// p_bo_values[], the list of things 'belloff' may name.  In the
+// residue text that list was packed several values to a line, so the Part I
+// phases that drop the values whose feature is gone could only reach the ones
+// that stood alone; the canonical text writes one value per line and the same
+// edits now reach the rest -- `"complete"` between q12 and q41, `"shell"` and
+// `"wildmode"` between q41 and q63.  Measured on this branch: `grep -cw shell`
+// is 0 in q82, q86, q88 and q89 -- the word is gone from the file before this
+// phase is handed anything, so there is no site left here to pin.
 var z7Kept = map[string]int{
 	"secure": 11, "read": 3, "readfile": 5, "read_buffer": 17, "open_buffer": 6,
-	"read_edit": 2, "readonly": 4, "shell": 1, "filter": 2, "check_fname": 4,
+	"read_edit": 2, "readonly": 4, "filter": 2, "check_fname": 4,
 }
 
 var z7Later = []string{"check_changed", "do_ecmd", "setfname", "otherfile", "fix_fname",

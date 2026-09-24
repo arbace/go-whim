@@ -116,7 +116,7 @@ var (
 	z24Fmt     = regexp.MustCompile(`format(_arg)?\(`)
 	z24Pad     = regexp.MustCompile(`  [,)]`)
 	z24Unused  = regexp.MustCompile(`__attribute__\(\(unused\)\)`)
-	z24NeedleS = "  __attribute__((unused)) "
+	z24NeedleS = " __attribute__((unused))"
 )
 
 // z24Kinds are the four kinds of attribute this phase has a decision for.  A
@@ -229,9 +229,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- 3. the 113: on a parameter, every one, computed ----------------------
 	// THE SHAPE IS EXACT AND IT IS THE TRAP.  Each is written `<declarator>
-	// __attribute__((unused)) ` -- TWO spaces before and ONE after -- and is
+	// __attribute__((unused))` -- ONE space before and none after -- and is
 	// followed by the `,` or `)` of the parameter list.  Deleting the attribute
-	// alone would leave a doubled space, or a space before a `)`, and canon.sh
+	// without its space would leave a space before a `,` or a `)`, and canon.sh
 	// takes neither.  RE2 has no lookaround, so the Python's `(?<=\S)` and
 	// `(?=[,)])` are the byte either side, tested.
 	var unusedSpans [][2]int
@@ -356,8 +356,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			a, b, nUnused, nFall)
 	}
 	text = []byte(s)
-	p.Sayf("%d `__attribute__((unused))` deleted with the two spaces before them and the one "+
-		"after, and %d `__attribute__((fallthrough));` respelled `[[fallthrough]];`", a, b)
+	p.Sayf("%d `__attribute__((unused))` deleted with the space before them, and %d "+
+		"`__attribute__((fallthrough));` respelled `[[fallthrough]];`", a, b)
 
 	// ---- 7. what the file is now ----------------------------------------------
 	L := strings.Split(s, "\n")

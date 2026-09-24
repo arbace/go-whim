@@ -38,7 +38,7 @@ const envCopy = `    char_u      *src;
     return (size_t)(dst - dst_start);`
 
 const localAdditions = "    fname = gettail(curbuf->b_fname);\n" +
-	`    if ( vim_fnamecmp((char_u *)(fname), (char_u *)("help.txt"))  == 0)`
+	`    if (vim_fnamecmp((char_u *)(fname), (char_u *)("help.txt")) == 0)`
 
 var envLeft = regexp.MustCompile(`\bgetenv\b|\bsetenv\b|\benviron\b`)
 
@@ -110,7 +110,7 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	if text, err = cutil.DropIf(text,
-		`(?m)^[ \t]*if \( \(char_u \*\)getenv\(\(char \*\)\(\(char_u \*\)"VIM_POSIX"\)\)  != NULL\)$`,
+		`(?m)^[ \t]*if \(\(char_u \*\)getenv\(\(char \*\)\(\(char_u \*\)"VIM_POSIX"\)\) != NULL\)$`,
 		1); err != nil {
 		return nil, err
 	}
@@ -120,7 +120,8 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	// cannot contribute now, so the table goes and the loop runs its one pass;
 	// `i` is left for the sweep.
 	if text, err = cutCounted(text,
-		`(?m)^[ \t]*static char \*\(names\[4\]\) = \{"", "TMPDIR", "TEMP", "TMP"\};\n`,
+		`(?m)^[ \t]*static char \*\(names\[4\]\) =\n[ \t]*\{\n[ \t]*"",\n[ \t]*"TMPDIR",\n`+
+			`[ \t]*"TEMP",\n[ \t]*"TMP",\n[ \t]*\};\n`,
 		"nogetenv", "backupskip's table of environment names", 1); err != nil {
 		return nil, err
 	}
@@ -128,10 +129,10 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	// the tail of the body still frees: the substitution keeps those two
 	// groups rather than deleting the whole match.
 	loop := regexp.MustCompile(
-		`(?m)[ \t]*for \(i = 0; i < \(int\) \(sizeof\(names\) / sizeof\(\(names\)\[0\]\)\) ; \+\+i\)\n` +
+		`(?m)[ \t]*for \(i = 0; i < \(int\)\(sizeof\(names\) / sizeof\(\(names\)\[0\]\)\); \+\+i\)\n` +
 			`([ \t]*\{\n[ \t]*int[ \t]+mustfree = FALSE;\n)` +
 			`[ \t]*if \(\*names\[i\] == NUL\)\n[ \t]*\{\n` +
-			`([ \t]*p = \(char_u \*\)"/tmp";\n[ \t]*plen = \(int\) \(sizeof\("/tmp" ""\) - 1\) ;\n)` +
+			`([ \t]*p = \(char_u \*\)"/tmp";\n[ \t]*plen = \(int\)\(sizeof\("/tmp"\) - 1\);\n)` +
 			`[ \t]*\}\n[ \t]*else\n[ \t]*\{\n` +
 			`[ \t]*p = vim_getenv\(\(char_u \*\)names\[i\], &mustfree\);\n` +
 			`[ \t]*plen = 0;\n[ \t]*\}\n`)
@@ -179,7 +180,7 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 
 	// No (?m) here: the Python passes flags=0 for this one.
 	if text, err = cutCounted(text,
-		` \|\| \(\(p =  \(char_u \*\)getenv\(\(char \*\)\(\(char_u \*\)"COLORFGBG"\)\) \) != NULL`+
+		` \|\| \(\(p = \(char_u \*\)getenv\(\(char \*\)\(\(char_u \*\)"COLORFGBG"\)\)\) != NULL`+
 			` && \(p = vim_strrchr\(p, ';'\)\) != NULL`+
 			` && \(\(p\[1\] >= '0' && p\[1\] <= '6'\) \|\| p\[1\] == '8'\) && p\[2\] == NUL\)`,
 		"nogetenv", "$COLORFGBG in term_bg_default", 1); err != nil {

@@ -60,7 +60,7 @@ import (
 // all.
 var (
 	mouseNameOneLine   = regexp.MustCompile(`(?m)^[ \t]*\{TRUE,[^\n]*\(char_u \*\)\("(\w*(?:Mouse|Drag|Release|Wheel)\w*)"\)[^\n]*\n`)
-	mouseNameThreeLine = regexp.MustCompile(`(?m)^[ \t]*\{\n[ \t]*FALSE,\n[ \t]*[^\n]*\(char_u \*\)\("(\w*Mouse\w*)"\)[^\n]*\n`)
+	mouseNameThreeLine = regexp.MustCompile(`(?m)^[ \t]*\{FALSE, [^\n]*\(char_u \*\)\("(\w*Mouse\w*)"\)[^\n]*\n`)
 )
 
 // writeOnlyStatics are file-scope variables that are written and never read,
@@ -85,7 +85,7 @@ var writeOnlyStatics = []struct {
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nomouse", text, w)
 
-	e.Literal(" || (is_mouse_key(n) && n !=   (-((KS_EXTRA) + ((int)(KE_LEFTMOUSE) << 8)))  )", "",
+	e.Literal(" || (is_mouse_key(n) && n != (-((KS_EXTRA) + ((int)(KE_LEFTMOUSE) << 8))))", "",
 		"the input loop asking whether a key is a mouse key")
 	e.Lines(`reset_dragwin\(\);`, 2, "the two calls that forgot the dragged window")
 	e.Lines(`reset_held_button\(\);`, 1, "the call that forgot the held button")
@@ -120,12 +120,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			e.Cut(mouseNameThreeLine.String(), 5, "the terminal-specific mouse names: "+strings.Join(three, " "))
 		}
 	}
-	e.Cut(`(?m)^[ \t]*\{  \(-\(\(KS_MOUSE\) \+ \(\(int\)\( \('X'\) \) << 8\)\)\)  ,[^\n]*"\[MOUSE\]"\},\n`, 1,
+	e.Cut(`(?m)^[ \t]*\{\(-\(\(KS_MOUSE\) \+ \(\(int\)\(\('X'\)\) << 8\)\)\),[^\n]*"\[MOUSE\]"\},\n`, 1,
 		"the [MOUSE] entry of the terminal string table")
 
 	e.InFunction("check_termcode", func(e *edit.E) {
-		e.Lines(`int  mouse_index_found = -1;`, 1, "check_termcode remembering a deferred mouse match")
-		e.Lines(`int     looks_like_mouse_start = FALSE;`, 1, "check_termcode deferring an ESC [ match")
+		e.Lines(`int mouse_index_found = -1;`, 1, "check_termcode remembering a deferred mouse match")
+		e.Lines(`int looks_like_mouse_start = FALSE;`, 1, "check_termcode deferring an ESC [ match")
 		// The whole `slen == 2 && ESC [` block existed to set that flag, and its
 		// only other arm counted the semicolons of a DEC mouse report.
 		e.DropIf(`(?m)^[ \t]*if \(slen == 2 && len > 2 && termcodes\[idx\]\.code\[0\] == ESC && termcodes\[idx\]\.code\[1\] == '\['\)$`,
@@ -138,12 +138,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 
 	// the spell plumbing
-	e.Literal(", spellvars_T *spv  __attribute__((unused)) )", ")", "win_line's unused spell parameter")
+	e.Literal(", spellvars_T *spv __attribute__((unused)))", ")", "win_line's unused spell parameter")
 	e.Lines(`spellvars_T spv;`, 1, "the spell variables win_update kept on the stack")
 	e.Literal("win_line(wp, lnum, srow, wp->w_height, 0, &spv)", "win_line(wp, lnum, srow, wp->w_height, 0)", "the first win_line call")
 	e.Literal("win_line(wp, lnum, srow, wp->w_height, wp->w_lines[idx].wl_size, &spv)",
 		"win_line(wp, lnum, srow, wp->w_height, wp->w_lines[idx].wl_size)", "the second win_line call")
-	e.Cut(`(?m)^typedef struct \{\n[ \t]*int[ \t]+spv_has_spell;\n\} spellvars_T;\n\n?`, 1, "spellvars_T itself")
+	e.Cut(`(?m)^typedef struct\n\{\n[ \t]*int[ \t]+spv_has_spell;\n\} spellvars_T;\n\n?`, 1, "spellvars_T itself")
 
 	// the write-only statics
 	for _, s := range writeOnlyStatics {

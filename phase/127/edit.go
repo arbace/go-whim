@@ -367,7 +367,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"this edit rewrites", strings.Join(z44Gone, ", "), sum, before[z44Bit])
 
 	// --- 1. the typedef, the record and the block ----------------------------
-	i := edit.Z44Index(lines, "typedef struct data_block       DATA_BL;")
+	i := edit.Z44Index(lines, "typedef struct data_block DATA_BL;")
 	lines = append(lines[:i+1], append(append([]string{}, z44b0...), lines[i+1:]...)...)
 
 	a := edit.Z44Index(lines, "struct data_block")
@@ -381,7 +381,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			members = append(members, strings.TrimSpace(l))
 		}
 	}
-	if len(members) != 6 || members[len(members)-1] != "unsigned    db_index[1];" {
+	if len(members) != 6 || members[len(members)-1] != "unsigned db_index[1];" {
 		return nil, die("struct data_block is not the header-index-arena block this phase replaces: %s",
 			strings.Join(members, " "))
 	}
@@ -476,7 +476,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if lo, hi, err = fn("ml_append_int"); err != nil {
 		return nil, err
 	}
-	if a, err = one(lo, hi, `^    int         line_count;$`); err != nil {
+	if a, err = one(lo, hi, `^    int line_count;$`); err != nil {
 		return nil, err
 	}
 	lines = edit.Z44Splice(lines, a+1, a+1, z44b5)
@@ -617,7 +617,15 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if a, err = one(lo, hi, `^        vim_free\(new_line\);$`); err != nil {
 		return nil, err
 	}
-	lines = edit.Z44Splice(lines, a, a+2, nil)
+	// THE FREE AND NOTHING ELSE.  The residue wrote a blank line under it and
+	// this took the pair; the canonical text writes none, and the line under it
+	// is `entered = FALSE;` -- the re-entrancy guard's only clear.  Taking that
+	// would leave ml_flush_line returning early for the rest of the process,
+	// which compiles, sweeps and records the same corpus.
+	if strings.TrimSpace(lines[a+1]) == "" {
+		return nil, die("a blank line under vim_free(new_line) -- this edit takes the free alone")
+	}
+	lines = edit.Z44Splice(lines, a, a+1, nil)
 
 	// --- 10. ML_APPEND_MARK has no caller left -------------------------------
 	markRe := regexp.MustCompile(`\bML_APPEND_MARK\b`)

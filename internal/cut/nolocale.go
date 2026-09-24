@@ -26,11 +26,11 @@ var nolocaleEdits = []struct {
 	{"deriving 'encoding' from the locale, keeping the mbyte init it also did",
 		`(?m)^([ \t]*)set_init_default_encoding\(\);$`, "${1}(void)mb_init();", 1},
 	{"'encoding' defaults to utf-8 instead of latin1",
-		`(?m)(\{"encoding",[^\n]*\n[^\n]*\n[ \t]*\{\(char_u \*\) )"latin1"`, `${1}"utf-8"`, 1},
+		`(?m)(\{"encoding",[^\n]* \{\(char_u \*\))"latin1"`, `${1}"utf-8"`, 1},
 	{"locale-aware collation in :sort",
 		`(?m)[ \t]*if \(sort_lc\)\n[ \t]*\{\n[ \t]*return strcoll\([^\n]*\n[ \t]*\}\n\n?`, "", 1},
 	{"the $LANG-gated maintainer line in :messages",
-		`(?m)[ \t]*s =  \(char_u \*\)getenv\(\(char \*\)\(\(char_u \*\)"LANG"\)\) ;\n` +
+		`(?m)[ \t]*s = \(char_u \*\)getenv\(\(char \*\)\(\(char_u \*\)"LANG"\)\);\n` +
 			`[ \t]*if \(s != NULL && \*s != NUL\)\n[ \t]*\{\n[ \t]*msg_attr\([^\n]*\n[ \t]*\}\n`, "", 1},
 	{"the :language completion case",
 		`(?m)[ \t]*case CMD_language:\n[ \t]*return set_context_in_lang_cmd\(xp, arg\);\n`, "", 1},

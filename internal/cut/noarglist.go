@@ -63,9 +63,10 @@ func NoArgList(text []byte, w io.Writer) ([]byte, error) {
 		}
 		return e.subOnce(seg, `^[ \t]*case CMD_argdelete:\n`+
 			`[ \t]*while \(\(xp->xp_pattern = vim_strchr\(arg, ' '\)\) != NULL\)\n`+
-			`[ \t]*\{\n[ \t]*arg = xp->xp_pattern \+ 1;\n[ \t]*\}\n`+
-			`[ \t]*xp->xp_context = EXPAND_ARGLIST;\n[ \t]*xp->xp_pattern = arg;\n`+
-			`[ \t]*break;\n\n`, "completion for :argdelete")
+			`[ \t]*\{\n`+
+			`[ \t]*arg = xp->xp_pattern \+ 1;\n`+
+			`[ \t]*\}\n`+
+			`[ \t]*xp->xp_context = EXPAND_ARGLIST;\n[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n`, "completion for :argdelete")
 	})
 	if err != nil {
 		return nil, err

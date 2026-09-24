@@ -66,30 +66,27 @@ func GenerateCmdIdxs(names []string) string {
 		}
 	}
 
+	// THE SHAPE IS THE PRINTER'S.  The block sits in a canonically printed
+	// file, so it is written the way internal/cemit writes a table: a blank
+	// line under the banner and between the three declarations, the brace on
+	// its own line under the `=`, one element per line, a trailing comma on
+	// every element including the last, and a row on one line with no padding.
 	var o bytes.Buffer
-	o.WriteString("static const unsigned short cmdidxs1[26] =\n{\n")
+	o.WriteString("\nstatic const unsigned short cmdidxs1[26] =\n{\n")
 	for i := 0; i < 26; i++ {
-		o.WriteString(fmt.Sprintf("    %d%s\n", idx1[i], comma(i)))
+		fmt.Fprintf(&o, "    %d,\n", idx1[i])
 	}
-	o.WriteString("};\n\n")
-	o.WriteString("static const unsigned char cmdidxs2[26][26] =\n{\n")
+	o.WriteString("};\n\nstatic const unsigned char cmdidxs2[26][26] =\n{\n")
 	for i := 0; i < 26; i++ {
 		var row []string
 		for j := 0; j < 26; j++ {
-			row = append(row, fmt.Sprintf("%2d", idx2[i][j]))
+			row = append(row, fmt.Sprintf("%d", idx2[i][j]))
 		}
-		o.WriteString(fmt.Sprintf("    { %s }%s\n", strings.Join(row, ", "), comma(i)))
+		fmt.Fprintf(&o, "    {%s},\n", strings.Join(row, ", "))
 	}
 	o.WriteString("};\n\n")
-	o.WriteString(fmt.Sprintf("static const int command_count = %d;\n", len(names)))
+	fmt.Fprintf(&o, "static const int command_count = %d;\n\n", len(names))
 	return o.String()
-}
-
-func comma(i int) string {
-	if i < 25 {
-		return ","
-	}
-	return ""
 }
 
 // cmdIdxsBlock returns the generated block as it currently stands in the file,

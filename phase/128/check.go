@@ -110,7 +110,7 @@ func z45Instrument(src, dst string, Out bool) (string, string) {
 		{Name: "MLSPLITPTR", Pat: pick(`(?m)^                hp_new = ml_new_ptr\(\);$`,
 			`(?m)^                hp_new = ml_new_ptr\(mfp\);$`), Where: "before", Cond: ""},
 		{Name: "MLSPLITROOT", Pat: pick(`(?m)^                pp_new->pb_count = pp->pb_count;$`,
-			`(?m)^ *musl_memmove\(\(char \*\)\(pp_new\), \(char \*\)\(pp\), \(usize\)page_size\) ;$`), Where: "before", Cond: ""},
+			`(?m)^ *musl_memmove\(\(char \*\)\(pp_new\), \(char \*\)\(pp\), \(usize\)page_size\);$`), Where: "before", Cond: ""},
 		{Name: "MLIDXNZ", Pat: `(?m)^                ip->ip_index = idx;$`, Where: "after", Cond: "idx > 0"},
 		{Name: "MLDEEP", Pat: `(?m)^        if \(\(top = ml_add_stack\(buf\)\) < 0\)$`, Where: "before", Cond: "++zprobe_lvl >= 2"}}
 	t := check.ReadFile(src)
@@ -695,7 +695,7 @@ func Check(w io.Writer, args []string) error {
 	MUST := []ctlT{
 		{"newdata_tag", `(?m)^(    dp->db_hdr\.bh_id = )(.*);$`, REW},
 		{"newptr_tag", `(?m)^(    pp->pb_hdr\.bh_id = )(.*);$`, REW},
-		{"leaftest", `(?m)^        if \(hp->bh_id ==  \(\(.d. << 8\) \+ .a.\) \)$`, REW},
+		{"leaftest", `(?m)^        if \(hp->bh_id == \(\(.d. << 8\) \+ .a.\)\)$`, REW},
 		{"rootcount", `(?m)^                pp_new->pb_count = pp->pb_count;\n`, ""},
 		{"rootcopy", `(?m)^ *musl_memmove\(\(char \*\)\(&pp_new->pb_pointer\[0\]\), \(char \*\)\(&pp->pb_pointer\[0\]\)[^\n]*\n`, ""},
 		{"ptrcap", `if \(pp->pb_count < PB_COUNT_MAX\)`, REW},

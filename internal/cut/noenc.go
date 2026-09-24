@@ -11,7 +11,7 @@ import (
 
 // The dispatch in mb_init(): everything from the first `else if` that sniffs a
 // prefix down to the enc_latin1like line, replaced by the one case left.
-const oldDispatchStart = `    else if ( strncmp((char *)(p_enc), (char *)("8bit-"), (5))  == 0`
+const oldDispatchStart = `    else if (strncmp((char *)(p_enc), (char *)("8bit-"), (5)) == 0`
 
 const newDispatch = `    if ( strcmp((char *)(p_enc), (char *)("utf-8"))  != 0)
     {
@@ -31,7 +31,7 @@ const newDispatch = `    if ( strcmp((char *)(p_enc), (char *)("utf-8"))  != 0)
 // set_string_option_direct("fencs", ...) -- so dropping the row turns it into
 // E685 and then a segfault before the first keystroke.
 const dropFencs = "    if (enc_utf8 && !option_was_set((char_u *)\"fencs\"))\n" +
-	"    {\n        set_fencs_unicode();\n    }\n\n"
+	"    {\n        set_fencs_unicode();\n    }\n"
 
 // And a second caller, which the first sweep does not remove because it is not
 // dead: set_option_default() special-cases 'fileencodings' so that RESETTING
@@ -91,7 +91,7 @@ var noencIconvBlocks = []struct{ pat, what string }{
 }
 
 var fencsRow = regexp.MustCompile(
-	`(\{"fileencodings","fencs",[^\n]*\n[^\n]*\n[ \t]*\{\(char_u \*\))"[^"]*"`)
+	`(\{"fileencodings", "fencs",[^\n]*\{\(char_u \*\))"[^"]*"`)
 
 // noencDropIfBlock deletes an `if (...)` and the block it guards, by matching
 // braces.

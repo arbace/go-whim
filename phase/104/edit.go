@@ -218,11 +218,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// `info_message` at 9 mentions, which is the anchor that says so.
 	if err := sub(`                if (info_message)
                 {
-                     printf("%s", ((char *)buf)) ;
+                    printf("%s", ((char *)buf));
                 }
                 else
                 {
-                     fprintf(stderr, "%s", ((char *)buf)) ;
+                    fprintf(stderr, "%s", ((char *)buf));
                 }
 `, `                if (info_message)
                 {
@@ -237,11 +237,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	if err := sub(`            if (info_message)
             {
-                 printf("%s", ((char *)p)) ;
+                printf("%s", ((char *)p));
             }
             else
             {
-                 fprintf(stderr, "%s", ((char *)p)) ;
+                fprintf(stderr, "%s", ((char *)p));
             }
 `, `            if (info_message)
             {
@@ -258,11 +258,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// ---- 3. exit_scroll, two sites, one for one --------------------------
 	if err := sub(`            if (info_message)
             {
-                 printf("%s", ("\n")) ;
+                printf("%s", ("\n"));
             }
             else
             {
-                 fprintf(stderr, "%s", ("\r\n")) ;
+                fprintf(stderr, "%s", ("\r\n"));
             }
 `, `            if (info_message)
             {
@@ -283,16 +283,16 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// GOALS.md II.4c's "the messages that appear before there is a screen".
 	if err := sub(`report_term_error(char *error_msg, char_u *term)
 {
-     fprintf(stderr, "%s", ("\r\n")) ;
+    fprintf(stderr, "%s", ("\r\n"));
     if (error_msg != NULL)
     {
-         fprintf(stderr, "%s", (error_msg)) ;
-         fprintf(stderr, "%s", ("\r\n")) ;
+        fprintf(stderr, "%s", (error_msg));
+        fprintf(stderr, "%s", ("\r\n"));
     }
-     fprintf(stderr, "%s", ("'")) ;
-     fprintf(stderr, "%s", ((char *)term)) ;
-     fprintf(stderr, "%s", (_("' not known, defaulting to 'xterm'"))) ;
-     fprintf(stderr, "%s", ("\r\n")) ;
+    fprintf(stderr, "%s", ("'"));
+    fprintf(stderr, "%s", ((char *)term));
+    fprintf(stderr, "%s", (_("' not known, defaulting to 'xterm'")));
+    fprintf(stderr, "%s", ("\r\n"));
 }
 `, `report_term_error(char *error_msg, char_u *term)
 {
@@ -318,9 +318,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// "seven fprintf and one fflush in report_term_error" would edit the
 	// wrong function; it is anchored on its neighbour above so that it cannot
 	// be taken from anywhere else.
-	if err := sub(`                set_string_option_direct((char_u *)"term", -1, term, OPT_FREE, 0);
-                 fflush(stderr) ;
-`, `                set_string_option_direct((char_u *)"term", -1, term, OPT_FREE, 0);
+	if err := sub(`            set_string_option_direct((char_u *)"term", -1, term, OPT_FREE, 0);
+            fflush(stderr);
+`, `            set_string_option_direct((char_u *)"term", -1, term, OPT_FREE, 0);
 `, 1, "F1"); err != nil {
 		return nil, err
 	}
@@ -331,20 +331,18 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// phase's business.  The blank line after the opening brace becomes the
 	// declaration, which is what CLAUDE.md's "no blank line after an opening
 	// brace" wanted anyway.
-	if err := sub(`mainerr(int         n, char_u      *str)
+	if err := sub(`mainerr(int n, char_u *str)
 {
-
     init_longVersion();
-     fprintf(stderr, "%s", (longVersion)) ;
-     fprintf(stderr, "%s", ("\n")) ;
-     fprintf(stderr, "%s", (_(main_errors[n]))) ;
+    fprintf(stderr, "%s", (longVersion));
+    fprintf(stderr, "%s", ("\n"));
+    fprintf(stderr, "%s", (_(main_errors[n])));
     if (str != NULL)
     {
-         fprintf(stderr, "%s", (": \"")) ;
-         fprintf(stderr, "%s", ((char *)str)) ;
-         fprintf(stderr, "%s", ("\"")) ;
+        fprintf(stderr, "%s", (": \""));
+        fprintf(stderr, "%s", ((char *)str));
+        fprintf(stderr, "%s", ("\""));
     }
-
     mch_exit(1);
 }
 `, `mainerr(int         n, char_u      *str)
@@ -372,12 +370,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if err := sub(`    static int
 vim_main(int argc, char **argv, void (*exit_fn)(int))
 {
-
     vim_host_exit = exit_fn;
 `, `    static int
 vim_main(int argc, char **argv, void (*exit_fn)(int), void (*message_fn)(const char *, int, int))
 {
-
     vim_host_exit = exit_fn;
     vim_host_message = message_fn;
 `, 1, "V1"); err != nil {

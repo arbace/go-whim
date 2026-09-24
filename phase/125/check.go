@@ -71,7 +71,7 @@ func init() { check.Register("whim125", Check) }
 
 var (
 	z42Ident    = regexp.MustCompile(`[A-Za-z_]\w*`)
-	z42Test     = regexp.MustCompile(`(?m)^( *)if \(hp-> bh_hashitem\.mhi_key  != (\d)\)$`)
+	z42Test     = regexp.MustCompile(`(?m)^( *)if \(hp->bh_hashitem\.mhi_key != (\d)\)$`)
 	z42IfaceWrn = regexp.MustCompile(`warning: '([A-Za-z_0-9]*)' used but never defined`)
 	z42MemName  = regexp.MustCompile(`^.*memline/([a-z_]*) .*$`)
 	z42RootProb = regexp.MustCompile(`ROOTPROBE pres=(\d+) over=(\d+)`)
@@ -123,10 +123,10 @@ probe_dump(void)
 type z42Mark struct{ Name, anchor, marked, What string }
 
 var z42Marks = []z42Mark{
-	{"neg_new", "        if (negative)\n        {\n            hp-> bh_hashitem.mhi_key  = mfp->mf_blocknr_min--;",
+	{"neg_new", "        if (negative)\n        {\n            hp->bh_hashitem.mhi_key = mfp->mf_blocknr_min--;",
 		"        if (negative)\n        {\n            probe_neg_new++;\n            hp-> bh_hashitem.mhi_key  = mfp->mf_blocknr_min--;",
 		"mf_new()'s negative branch"},
-	{"neg_add", "    if (hp-> bh_hashitem.mhi_key  >= 0)\n    {\n        return OK;\n    }\n",
+	{"neg_add", "    if (hp->bh_hashitem.mhi_key >= 0)\n    {\n        return OK;\n    }\n",
 		"    if (hp-> bh_hashitem.mhi_key  >= 0)\n    {\n        return OK;\n    }\n    probe_neg_add++;\n",
 		"mf_trans_add() past its early return"},
 	{"neg_del", "    if (np == nullptr)\n    {\n        return old_nr;\n    }\n",
@@ -139,14 +139,14 @@ var z42Marks = []z42Mark{
 		"ml_new_data(memfile_T *mfp, int negative, int page_count)\n{\n    probe_ctl_data++;", "ml_new_data()"},
 	{"b0_open", "    b0p->b0_id[0] = BLOCK0_ID0;", "    probe_b0_open++;\n    b0p->b0_id[0] = BLOCK0_ID0;",
 		"ml_open()'s first header write"},
-	{"b0_flags", "            b0p = (ZERO_BL *)(hp->bh_data);\n            b0p-> b0_fname[B0_FNAME_SIZE_ORG - 1]  = buf->b_changed ? B0_DIRTY : 0;",
+	{"b0_flags", "            b0p = (ZERO_BL *)(hp->bh_data);\n            b0p->b0_fname[B0_FNAME_SIZE_ORG - 1] = buf->b_changed ? B0_DIRTY : 0;",
 		"            b0p = (ZERO_BL *)(hp->bh_data);\n            probe_b0_flags++;\n            b0p-> b0_fname[B0_FNAME_SIZE_ORG - 1]  = buf->b_changed ? B0_DIRTY : 0;",
 		"ml_setflags()'s header write"},
 	{"b0_fname", "set_b0_fname(ZERO_BL *b0p, buf_T *buf)\n{\n", "set_b0_fname(ZERO_BL *b0p, buf_T *buf)\n{\n    probe_b0_fname++;\n",
 		"set_b0_fname()"},
 	{"split_seen", "                hp_new = ml_new_ptr(mfp);", "                probe_split_seen++;\n                hp_new = ml_new_ptr(mfp);",
 		"ml_append_int()'s split loop"},
-	{"split_root", "                 musl_memmove((char *)(pp_new), (char *)(pp), (usize)page_size) ;\n                pp->pb_count = 1;",
+	{"split_root", "                musl_memmove((char *)(pp_new), (char *)(pp), (usize)page_size);\n                pp->pb_count = 1;",
 		"                probe_split_root++;\n                 musl_memmove((char *)(pp_new), (char *)(pp), (usize)page_size) ;\n                pp->pb_count = 1;",
 		"ml_append_int()'s root-preserving branch"},
 	{"find_ptr", "        if ((top = ml_add_stack(buf)) < 0)", "        probe_find_ptr++;\n        if ((top = ml_add_stack(buf)) < 0)",
@@ -283,7 +283,7 @@ func Check(w io.Writer, args []string) error {
 	ctl := map[string]string{
 		"c_open": strings.Replace(oldT, "    b0p->b0_id[0] = BLOCK0_ID0;", "    return FAIL;\n    b0p->b0_id[0] = BLOCK0_ID0;", 1),
 		"c_bnum": strings.Replace(newT, "    pp->pb_pointer[0].pe_bnum = 1;", "    pp->pb_pointer[0].pe_bnum = 2;", 1),
-		"c_root": strings.Replace(newT, "                if (hp-> bh_hashitem.mhi_key  != 0)\n", "                if (hp-> bh_hashitem.mhi_key  != 1)\n", 1),
+		"c_root": strings.Replace(newT, "                if (hp->bh_hashitem.mhi_key != 0)\n", "                if (hp->bh_hashitem.mhi_key != 1)\n", 1),
 	}
 	for _, k := range []string{"c_bnum", "c_open", "c_root"} {
 		base := newT
@@ -299,7 +299,7 @@ func Check(w io.Writer, args []string) error {
 	DBODY := strings.SplitN(strings.ReplaceAll(BODY, "probe_num", "pr_num"), "    static void\nprobe_dump", 2)[0]
 	for _, x := range [][2]string{{"wkp", newT}, {"rootp", ctl["c_root"]}} {
 		q := strings.Replace(x[1], MFNEW, DEP+MFNEW, 1)
-		q = strings.Replace(q, "                 musl_memmove((char *)(pp_new), (char *)(pp), (usize)page_size) ;\n                pp->pb_count = 1;",
+		q = strings.Replace(q, "                musl_memmove((char *)(pp_new), (char *)(pp), (usize)page_size);\n                pp->pb_count = 1;",
 			"                pr_pres++;\n                 musl_memmove((char *)(pp_new), (char *)(pp), (usize)page_size) ;\n                pp->pb_count = 1;", 1)
 		q = strings.Replace(q, "            iemsg(e_updated_too_many_blocks);", "            pr_over++;\n            iemsg(e_updated_too_many_blocks);", 1)
 		q = strings.Replace(q, EXIT, DBODY+EXIT+"    write(2, \"ROOTPROBE pres=\", 15);\n"+
@@ -443,14 +443,22 @@ func Check(w io.Writer, args []string) error {
 		"four write-only fields, a write-only state machine, two unreachable functions, four "+
 		"parameters and four locals; the sweep's is what those left behind, %d of them "+
 		"enumerators and %d functions with no caller", len(goneEdit), len(goneSweep), nEnum, nFunc)
+	// EACH ANCHOR IS THE DEFINITION'S HEAD, and the newlines are what say so.
+	// The canonical text writes a definition's name at column 0 with its
+	// specifiers on the line above, and it spells a prototype's parameter list
+	// the same way -- the residue padded the definition's columns and did not
+	// pad the prototype's, so the bare signature used to be the definition's
+	// alone and now names both.  Anchored `\n...\n` each is one site again, and
+	// it is the site that matters: a prototype that disagreed with its
+	// definition would not compile.
 	for _, x := range [][2]string{
-		{"mf_new(memfile_T *mfp, int page_count)", "mf_new() takes no `negative`"},
-		{"mf_put(bhdr_T *hp)", "mf_put() takes neither a memfile nor a state"},
-		{"ml_new_data(memfile_T *mfp, int page_count)", "ml_new_data() takes no `negative`"},
-		{"ml_append(linenr_T    lnum, char_u      *line, colnr_T     len)", "ml_append() takes no `newfile`"},
+		{"\nmf_new(memfile_T *mfp, int page_count)\n", "mf_new() takes no `negative`"},
+		{"\nmf_put(bhdr_T *hp)\n", "mf_put() takes neither a memfile nor a state"},
+		{"\nml_new_data(memfile_T *mfp, int page_count)\n", "ml_new_data() takes no `negative`"},
+		{"\nml_append(linenr_T lnum, char_u *line, colnr_T len)\n", "ml_append() takes no `newfile`"},
 	} {
 		if c := strings.Count(newT, x[0]); c != 1 {
-			return die("%s -- `%s` is in the output %d times", x[1], x[0], c)
+			return die("%s -- `%s` is in the output %d times", x[1], strings.TrimSpace(x[0]), c)
 		}
 	}
 	say("the four signatures this phase narrows are each in the output exactly once: " +

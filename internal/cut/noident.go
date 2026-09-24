@@ -14,13 +14,13 @@ import (
 // triple-quoted string full of backslashes.
 const identBody = "    char_u      *ptr = NULL;\n" +
 	"    char_u      *buf;\n" +
-	"    size_t      bufsize;\n" +
+	"    size_t bufsize;\n" +
 	"    size_t      buflen;\n" +
 	"    char_u      *p;\n" +
 	"    int         n = 0;\n" +
-	"    int         cmdchar;\n" +
-	"    int         g_cmd;\n" +
-	"    char_u      *aux_ptr;\n" +
+	"    int cmdchar;\n" +
+	"    int g_cmd;\n" +
+	"    char_u *aux_ptr;\n" +
 	"\n" +
 	"    if (cap->cmdchar == 'g')\n" +
 	"    {\n" +
@@ -38,7 +38,7 @@ const identBody = "    char_u      *ptr = NULL;\n" +
 	"        cmdchar = '#';\n" +
 	"    }\n" +
 	"\n" +
-	"    if (ptr == NULL && (n = find_ident_under_cursor(&ptr, (cmdchar == '*' || cmdchar == '#') ? FIND_IDENT|FIND_STRING : FIND_IDENT)) == 0)\n" +
+	"    if (ptr == NULL && (n = find_ident_under_cursor(&ptr, (cmdchar == '*' || cmdchar == '#') ? FIND_IDENT | FIND_STRING : FIND_IDENT)) == 0)\n" +
 	"    {\n" +
 	"        clearop(cap->oap);\n" +
 	"        return;\n" +
@@ -54,11 +54,11 @@ const identBody = "    char_u      *ptr = NULL;\n" +
 	"    buflen = 0;\n" +
 	"\n" +
 	"    setpcmark();\n" +
-	"    curwin->w_cursor.col = (colnr_T) (ptr - ml_get_curline());\n" +
+	"        curwin->w_cursor.col = (colnr_T)(ptr - ml_get_curline());\n" +
 	"\n" +
 	"    if (!g_cmd && vim_iswordp(ptr))\n" +
 	"    {\n" +
-	"         strcpy((char *)(buf), (char *)(\"\\\\<\")) ;\n" +
+	"            strcpy((char *)(buf), (char *)(\"\\\\<\"));\n" +
 	"        buflen =  (sizeof(\"\\\\<\" \"\") - 1) ;\n" +
 	"    }\n" +
 	"    no_smartcase = TRUE;\n" +
@@ -97,7 +97,7 @@ const identBody = "    char_u      *ptr = NULL;\n" +
 	"\n" +
 	"    if (!g_cmd && (has_mbyte ? vim_iswordp(mb_prevptr(ml_get_curline(), ptr)) : vim_iswordc(ptr[-1])))\n" +
 	"    {\n" +
-	"         strcpy((char *)(buf + buflen), (char *)(\"\\\\>\")) ;\n" +
+	"            strcpy((char *)(buf + buflen), (char *)(\"\\\\>\"));\n" +
 	"        buflen +=  (sizeof(\"\\\\>\" \"\") - 1) ;\n" +
 	"    }\n" +
 	"\n" +
@@ -148,12 +148,12 @@ func NoIdent(text []byte, w io.Writer) ([]byte, error) {
 	n, n2 := 0, 0
 	var hit bool
 	if text, hit = replaceFirst(regexp.MustCompile(
-		`(?m)^([ \t]*\{Ctrl_RSB, )nv_ident(, NV_NCW, 0\} ,\n)`),
+		`(?m)^([ \t]*\{Ctrl_RSB, )nv_ident(, NV_NCW, 0\},\n)`),
 		text, "${1}nv_error${2}"); hit {
 		n = 1
 	}
 	if text, hit = replaceFirst(regexp.MustCompile(
-		`(?m)^([ \t]*\{'K', )nv_ident(, 0, 0\} ,\n)`),
+		`(?m)^([ \t]*\{'K', )nv_ident(, 0, 0\},\n)`),
 		text, "${1}nv_error${2}"); hit {
 		n2 = 1
 	}

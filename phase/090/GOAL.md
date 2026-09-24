@@ -49,9 +49,21 @@ is asserted. It is phase 89's shape exactly, one name instead of six.
   fails on a correct phase.
 - **The bare word `read` survives three times** — two `read(fd, …)` calls and an
   E222 string — and `readfile` 5, `read_buffer` 17, `open_buffer` 6, `read_edit` 2,
-  `readonly` 4, `shell` 1 and `filter` 2. The eight names that genuinely reach zero
+  `readonly` 4 and `filter` 2. The eight names that genuinely reach zero
   are `ex_read do_bang do_shell do_filter check_secure prevcmd_is_set prevcmd
   CMD_read`.
+  **`shell` was a ninth survivor at 1 and is now 0 before this phase begins.**
+  That mention was `"shell"` in `p_bo_values[]`, one of `'belloff'`'s values, and
+  it used to survive the whole pipeline — the pre-canonical `whim-vim.c` has
+  exactly one `\bshell\b` and it is that string. The residue text packed the
+  array several values to a line, so the Part I phases that drop the values whose
+  feature is gone reached only the ones standing alone. The canonical text writes
+  one value per line and the same edits now reach the rest: measured on this
+  branch, `"complete"` goes between q12 and q41 and `"shell"` and `"wildmode"`
+  between q41 and q63, leaving `p_bo_values[]` at sixteen values where the
+  pre-canonical product had twenty. So `grep -cw shell` is 0 at q82, q86, q88 and
+  q89, and the check no longer pins a word that is not in the file. Part I's own
+  verification covers the removal: 13 of 13 Part I stages pass.
 - **`E32: No file name` survives and `E484: Can't open file` does not.** E32 is
   still reachable through `check_fname()` from `do_ecmd()`; `ex_read` was E484's
   last speaker, and after this phase nothing in the file says it. Both are asserted,

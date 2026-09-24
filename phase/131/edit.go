@@ -33,7 +33,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "inputbuf", W: w}
 	var err error
 	steps := []struct{ Old, New, What string }{
-		{"    char_u              *save_inputbuf;\n", "    garray_T            *save_inputbuf;\n",
+		{"    char_u *save_inputbuf;\n", "    garray_T *save_inputbuf;\n",
 			"tasave_T.save_inputbuf is a garray_T *"},
 		{"static char_u *get_input_buf(void);\n", "static garray_T *get_input_buf(void);\n",
 			"get_input_buf() is declared to return one"},
@@ -43,7 +43,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"get_input_buf() is defined to return one"},
 		{"    trash_input_buf();\n    return (char_u *)gap;\n}\n", "    trash_input_buf();\n    return gap;\n}\n",
 			"and returns it without the cast"},
-		{"set_input_buf(char_u *p, int overwrite)\n{\n    garray_T    *gap = (garray_T *)p;\n\n", "set_input_buf(garray_T *gap, int overwrite)\n{\n",
+		{"set_input_buf(char_u *p, int overwrite)\n{\n    garray_T *gap = (garray_T *)p;\n", "set_input_buf(garray_T *gap, int overwrite)\n{\n",
 			"set_input_buf() takes the garray_T it used to cast its argument to"},
 	}
 	for _, s := range steps {

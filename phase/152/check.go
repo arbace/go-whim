@@ -12,10 +12,26 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/internal/check"
+	"github.com/arbace/go-whim/internal/cutil"
 	"github.com/arbace/go-whim/internal/harness"
 )
 
 func init() { check.Register("whim152", Check) }
+
+// w152Table is options[]'s own text, head to matching brace: the span the
+// punning patterns that are about an OPTION VARIABLE are read in.
+func w152Table(text string) string {
+	const head = "static struct vimoption options[] =\n{\n"
+	i := strings.Index(text, head)
+	if i < 0 {
+		return ""
+	}
+	end := cutil.Match(cutil.Blank([]byte(text)), i+len(head)-2)
+	if end < 0 {
+		return ""
+	}
+	return text[i : end+1]
+}
 
 // Whim152 is phase 152's check: the option variables are typed.
 //
@@ -68,10 +84,23 @@ func Check(w io.Writer, args []string) error {
 			break
 		}
 	}
-	for _, re := range []string{`\(char_u \*\)&\s*\(?\s*(p_|curwin|curbuf|term_strings)`, `\(char_u \*\)-1`, `\((int|long) \*\)\s*\(?\s*varp`, `\(char_u \*\*\)\s*\(?\s*varp\b`, `sizeof\(winopt_T\)`, `\(char_u \*\*\)\s*\(?\s*(p|opp)->var`, `options\[[^\]]+\]\.var\s*==\s*\(char_u`} {
+	for _, re := range []string{`\(char_u \*\)&\s*\(?\s*(p_|curwin|curbuf|term_strings)`, `\((int|long) \*\)\s*\(?\s*varp`, `\(char_u \*\*\)\s*\(?\s*varp\b`, `sizeof\(winopt_T\)`, `\(char_u \*\*\)\s*\(?\s*(p|opp)->var`, `options\[[^\]]+\]\.var\s*==\s*\(char_u`} {
 		if m := regexp.MustCompile(re).FindString(c.New); m != "" {
 			r.Bad("an option variable is still punned: %q", m)
 		}
+	}
+	// `(char_u *)-1` IS A PUN INSIDE options[] AND A SENTINEL OUTSIDE IT, so it
+	// is read inside the table and not over the file.  The regex size pass
+	// writes `regcode == ((char_u *)-1)` fourteen times and it is phase 156's,
+	// not this one's; the residue spelled that one `(char_u *) -1`, with the
+	// space macro expansion left, so a file-wide pattern told the two apart by
+	// accident.  The canonical text spells both the same way, and the table is
+	// where the claim was always about.
+	tbl := w152Table(c.New)
+	if tbl == "" {
+		r.Bad("options[] is not in the output in the shape this check reads it")
+	} else if m := regexp.MustCompile(`\(char_u \*\)\s*-1`).FindString(tbl); m != "" {
+		r.Bad("an option variable is still punned: %q", m)
 	}
 	if !strings.Contains(c.New, W152Type) {
 		r.Bad("optvar_T and its helpers are not the ones this phase writes")

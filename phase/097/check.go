@@ -216,13 +216,13 @@ func Check(w io.Writer, args []string) error {
 			fail = append(fail, fmt.Sprintf("%s has %d mentions, expected %d", name, k, want))
 		}
 	}
-	if !regexp.MustCompile(`(?m)^highlight_arg_to_string\(int .*char_u      \*buf\)$`).MatchString(newT) {
+	if !regexp.MustCompile(`(?m)^highlight_arg_to_string\(int .*char_u \*buf\)$`).MatchString(newT) {
 		fail = append(fail, "highlight_arg_to_string is not defined with a char_u *buf parameter")
 	}
 	if strings.Count(newT, "    ts = highlight_arg_to_string(type, iarg, sarg, buf);\n") != 1 {
 		fail = append(fail, "highlight_arg_to_string is not called exactly once from highlight_list_arg, and MAX_ATTR_LEN is only its size while that is true -- a second caller with a smaller buffer would make the bound wrong and nothing else here would see it")
 	}
-	if strings.Count(newT, "    char_u      buf[MAX_ATTR_LEN];\n") != 1 {
+	if strings.Count(newT, "    char_u buf[MAX_ATTR_LEN];\n") != 1 {
 		fail = append(fail, "highlight_list_arg's `char_u buf[MAX_ATTR_LEN];` is gone, and it is where site 25443's bound comes from")
 	}
 	if !strings.Contains(newT, `vim_snprintf((char *)buf, MAX_ATTR_LEN, "%d", iarg - 1);`) {

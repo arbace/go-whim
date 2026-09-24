@@ -18,8 +18,13 @@ five plus the two that bypassed the wrapper) and 1 below. The libc prototype blo
 **7 entries to 6**, losing `time` and nothing else — `malloc realloc free getpid kill
 write` — phase 114 having vendored `abs` and `labs` out of it immediately before. The
 block is found by its **shape**, a run of non-blank lines around a line already required
-to be unique, so phase 114 landing under this phase cost it no edit at all. The file is
-**79,776 lines either side**: the core loses 7 and the host gains exactly 7.
+to be unique, so phase 114 landing under this phase cost it no edit at all. The file loses
+**one line**: the core loses 8 and the host gains 7, measured 77,703 → 77,702. The two
+halves used to cancel exactly. What moved is the forward declaration `static time_T
+vim_time(void);`, which now costs TWO lines and not one — the canonical text writes a
+blank line between forward declarations where the residue wrote them consecutively, so the
+one that goes takes its blank with it, and the declaration that arrives joins the host
+block, which already had its own separators.
 
 ## The prototype never pinned `time_T`, and that corrects something written down twice
 
@@ -88,7 +93,7 @@ load-bearing.
 
 | | input | after |
 | --- | --- | --- |
-| lines | 79,776 | **79,776** — the core loses 7 and the host gains 7 |
+| lines | 77,703 | **77,702** — the core loses 8 and the host gains 7. Re-measured on the canonical text; the rest of this table is not |
 | `time` named in the core | 4 | **0**, on the literal-stripped text |
 | the libc prototype block | 7 entries | **6** |
 | `make editor.c` | 77,896 | **77,889**, 0 directives, 0 errors |

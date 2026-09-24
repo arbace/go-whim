@@ -38,11 +38,14 @@ func Check(w io.Writer, args []string) error {
 		return err
 	}
 	r := c.R
-	init := regexp.MustCompile(`static regengine_T bt_regengine =\s*\{\s*bt_regcomp,\s*bt_regfree,\s*bt_regexec_nl,\s*bt_regexec_multi\s*\};`)
+	// The canonical text writes an initialiser one element per line with a
+	// trailing comma after the LAST one, so the `,?` is what the printer put
+	// there and not a loosening: with or without it this is one site.
+	init := regexp.MustCompile(`static regengine_T bt_regengine =\s*\{\s*bt_regcomp,\s*bt_regfree,\s*bt_regexec_nl,\s*bt_regexec_multi,?\s*\};`)
 	if !init.MatchString(c.Old) {
 		r.Bad("bt_regengine is not initialised with the four backtracking functions in order")
 	}
-	if !strings.Contains(c.Old, "regprog_T   *(*regcomp)(char_u*, int);\n    void        (*regfree)(regprog_T *);\n    int         (*regexec_nl)(") {
+	if !strings.Contains(c.Old, "regprog_T *(*regcomp)(char_u *, int);\n    void (*regfree)(regprog_T *);\n    int (*regexec_nl)(") {
 		r.Bad("regengine_T's fields are not regcomp, regfree, regexec_nl, regexec_multi in that order")
 	}
 	if as := regexp.MustCompile(`->engine\s*=[^=]`).FindAllStringIndex(c.Old, -1); len(as) != 1 || !strings.Contains(c.Old, "r->engine = &bt_regengine;") {

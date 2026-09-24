@@ -107,7 +107,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	p.Say(fmt.Sprintf("the %d rows of options[] give their defaults as a string pair and a number pair", len(rows)))
 	var o []byte
-	if o, err = p.Literal([]byte(s), "    char_u      *def_val[2];\n", "    char_u      *def_str[2];\n    long        def_num[2];\n", "a row holds its string defaults and its number defaults apart", 1); err != nil {
+	if o, err = p.Literal([]byte(s), "    char_u *def_val[2];\n", "    char_u      *def_str[2];\n    long        def_num[2];\n", "a row holds its string defaults and its number defaults apart", 1); err != nil {
 		return nil, err
 	}
 	s = string(o)

@@ -72,8 +72,7 @@ func NoOwner(text []byte, w io.Writer) ([]byte, error) {
 
 	var err error
 	text, err = cutil.DropIf(text,
-		`(?m)^[ \t]*if \(options\[opt_idx\]\.indir ==   \(idopt_T\)\(PV_BUF \+ \(int\)\(BV_ML\)\)   `+
-			`&& getuid\(\) == ROOT_UID\)$`, 1)
+		`(?m)^[ \t]*if \(options\[opt_idx\]\.indir == \(idopt_T\)\(PV_BUF \+ \(int\)\(BV_ML\)\) && getuid\(\) == ROOT_UID\)$`, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +127,7 @@ func NoOwner(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("noowner: set_b0_fname's home_replace is not where this expects")
 	}
 	text = bytes.Replace(text, []byte(flenOld), []byte(flenNew), 1)
-	if text, err = cutCounted(text, `(?m)^[ \t]*size_t  flen;\n`, "noowner",
+	if text, err = cutCounted(text, `(?m)^[ \t]*size_t flen;\n`, "noowner",
 		"set_b0_fname's flen", 1); err != nil {
 		return nil, err
 	}
@@ -137,7 +136,7 @@ func NoOwner(text []byte, w io.Writer) ([]byte, error) {
 	// warning names one that nothing reads, and the dead-code sweep cannot see
 	// it.  The layout of block zero does not matter -- nothing writes it to a
 	// disk and nothing reads one back -- and there is no assertion on its size.
-	if text, err = cutCounted(text, `(?m)^[ \t]*char_u      b0_uname\[B0_UNAME_SIZE\];\n`,
+	if text, err = cutCounted(text, `(?m)^[ \t]*char_u b0_uname\[B0_UNAME_SIZE\];\n`,
 		"noowner", "block zero's b0_uname field", 1); err != nil {
 		return nil, err
 	}

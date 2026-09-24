@@ -16,9 +16,14 @@ import (
 // Options is what a build needs: where the input is, how far to go, and where
 // the report goes.
 type Options struct {
-	Src  string    // the pipeline's input, slim-vim.c -- or, with From, a boundary
-	From int       // the first phase to run; its input is Src as it stands
-	To   int       // the last phase to run; 0 or less means all of them
+	Src  string // the pipeline's input, slim-vim.c -- or, with From, a boundary
+	From int    // the first phase to run; its input is Src as it stands
+	// To is the last phase to run, and a NEGATIVE value means all of them.
+	// It was `0 or less`, which made `--to 0` -- seed and stop -- run the whole
+	// pipeline instead, and a caller measuring the seed got the product back
+	// with no sign anything was wrong.  internal/verify's Options says the same
+	// thing this way already.
+	To   int
 	W    io.Writer // the report
 	Work string    // a directory to sweep in; a temporary one when empty
 
@@ -28,12 +33,28 @@ type Options struct {
 	// question, so what this gives is a LIST and not a product.
 	KeepGoing bool
 	Refused   []string
+}
 
-	// Canonical prints the input in the canonical form at phase 0
-	// (internal/cemit), without the plan having to say so, so that the
-	// question "what would that cost" can be asked of the same binary that
-	// builds the committed product.
-	Canonical bool
+// Seed is what phase 0 hands the pipeline: the input IN CANONICAL FORM.  Every
+// later phase reads that form -- one C23 spelling per construct, so an anchor
+// matches what it means rather than what the input happened to write.  It was a
+// --canonical flag while the 163 phases' anchors were migrated to it; it is the
+// pipeline now, and there is no second spelling to fall back to.
+//
+// IT IS A FUNCTION SO THAT THERE IS ONE OF IT.  internal/verify seeds its own
+// run, and when it seeded by reading the file it handed every phase after 0 the
+// residue spelling -- so `whimtools verify` measured a pipeline that `whimtools
+// build` does not run, and the first migrated edit refused on text no phase
+// produces.
+func Seed(src []byte, w io.Writer) ([]byte, error) {
+	if w == nil {
+		w = io.Discard
+	}
+	out, err := steps.Lookup2("cemit")(src, nil, w)
+	if err != nil {
+		return nil, fmt.Errorf("cemit: %w", err)
+	}
+	return out, nil
 }
 
 // Run applies the plan to the input and returns the source it leaves.
@@ -76,7 +97,7 @@ func Run(o *Options) ([]byte, error) {
 		text = src
 	}
 	for _, p := range Plan {
-		if o.To > 0 && p.N > o.To {
+		if o.To >= 0 && p.N > o.To {
 			break
 		}
 		if p.N < o.From {
@@ -85,14 +106,11 @@ func Run(o *Options) ([]byte, error) {
 		start := time.Now()
 		fmt.Fprintf(o.W, "  phase %-6d %s\n", p.N, p.Name)
 		if p.Seed {
-			text = src
-			if o.Canonical {
-				out, err := steps.Lookup2("cemit")(text, nil, o.W)
-				if err != nil {
-					return nil, fmt.Errorf("phase %d: cemit: %w", p.N, err)
-				}
-				text = out
+			out, err := Seed(src, o.W)
+			if err != nil {
+				return nil, fmt.Errorf("phase %d: %w", p.N, err)
 			}
+			text = out
 		}
 		if text == nil {
 			return nil, fmt.Errorf("build: phase %d runs before the input was seeded", p.N)

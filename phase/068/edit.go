@@ -99,7 +99,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"    wp = curwin;\n", 1, ":quit with a window count, of which there is one")
 	})
 	e.InFunction("ex_quit", func(e *edit.E) {
-		e.FoldAlways(`(?m)^[ \t]*if \(only_one_window\(\) && \( \(firstwin == lastwin\)  \|\| eap->addr_count == 0\)\)$`,
+		e.FoldAlways(`(?m)^[ \t]*if \(only_one_window\(\) && \(\(firstwin == lastwin\) \|\| eap->addr_count == 0\)\)$`,
 			":quit leaving the editor")
 	})
 	e.InFunction("ex_quit", func(e *edit.E) {

@@ -35,7 +35,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 		s, err := e.subOnce(s,
 			`^[ \t]*case 'h':\n[ \t]*if \(p != eap->cmd \|\| !checkforcmd_noparen\(&p, "hide", 3\) \|\| \*p == NUL \|\| ends_excmd\(\*p\)\)\n`+
 				`[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n[ \t]*eap->cmd = p;\n`+
-				`[ \t]*cmod->cmod_flags \|= CMOD_HIDE;\n[ \t]*continue;\n\n`,
+				`[ \t]*cmod->cmod_flags \|= CMOD_HIDE;\n[ \t]*continue;\n`,
 			"the :hide modifier")
 		if err != nil {
 			return nil, err
@@ -86,7 +86,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 	// prints as it succeeds.  Looping them emitted the same lines in a
 	// different order and 7 inputs differed.
 	for _, f := range []struct{ fn, old, new, what string }{
-		{"ex_next", "(       buf_hide(curbuf) || ", "(", ":next hiding the buffer"},
+		{"ex_next", "(buf_hide(curbuf) || ", "(", ":next hiding the buffer"},
 		{"set_curbuf", "!buf_hide(prevbuf) && ", "", "set_curbuf hiding the buffer"},
 	} {
 		f := f
@@ -111,7 +111,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	text, err = e.inFunction(text, "can_abandon", func(s []byte) ([]byte, error) {
-		return e.literal(s, "(       buf_hide(buf) || ", "(", "can_abandon a hidden buffer", 1)
+		return e.literal(s, "(buf_hide(buf) || ", "(", "can_abandon a hidden buffer", 1)
 	})
 	if err != nil {
 		return nil, err
@@ -200,7 +200,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 			"do_ecmd naming a refused file the alternate"); err != nil {
 			return nil, err
 		}
-		if s, err = e.literal(s, "        int prev_alt_fnum = curwin->w_alt_fnum;\n\n", "",
+		if s, err = e.literal(s, "        int prev_alt_fnum = curwin->w_alt_fnum;\n", "",
 			"do_ecmd remembering the alternate", 1); err != nil {
 			return nil, err
 		}
@@ -282,7 +282,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 
 	// A ROW IS NEVER DELETED FROM nv_cmds[], IT IS POINTED AT nv_error.
 	if text, err = e.subCountRepl(text,
-		`(?m)^([ \t]*\{Ctrl_HAT, )nv_hat(, NV_NCW, 0\} ,)$`, "${1}nv_error${2}",
+		`(?m)^([ \t]*\{Ctrl_HAT, )nv_hat(, NV_NCW, 0\},)$`, "${1}nv_error${2}",
 		"CTRL-^'s row points at nv_error", 1); err != nil {
 		return nil, err
 	}
@@ -305,8 +305,8 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 
 	text, err = e.inFunction(text, "alist_add", func(s []byte) ([]byte, error) {
 		return e.subCountRepl(s,
-			`(?m)^([ \t]*)if \(set_fnum > 0\)\n[ \t]*\{\n([ \t]*\(\(aentry_T \*\)\(\(al\)->al_ga\.ga_data\)\) \[al->al_ga\.ga_len\]\.ae_fnum =)\n`+
-				`[ \t]*buflist_add\(fname, BLN_LISTED \| \(set_fnum == 2 \? BLN_CURBUF : 0\)\);\n[ \t]*\}\n`,
+			`(?m)^([ \t]*)if \(set_fnum > 0\)\n[ \t]*\{\n([ \t]*\(\(aentry_T \*\)\(\(al\)->al_ga\.ga_data\)\)\[al->al_ga\.ga_len\]\.ae_fnum =)`+
+				` buflist_add\(fname, BLN_LISTED \| \(set_fnum == 2 \? BLN_CURBUF : 0\)\);\n[ \t]*\}\n`,
 			"${2} 0;\n${1}if (set_fnum == 2 && curbuf_reusable())\n${1}{\n${2}\n${1}        buflist_add(fname, BLN_LISTED | BLN_CURBUF);\n${1}}\n",
 			"an argument naming a buffer only when it is the empty startup one", 1)
 	})
@@ -316,7 +316,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 
 	text, err = e.inFunction(text, "alist_add_list", func(s []byte) ([]byte, error) {
 		s, err := e.subOnce(s,
-			`(?m)^[ \t]*int flags = BLN_LISTED \| \(will_edit \? BLN_CURBUF : 0\);\n\n`,
+			`(?m)^[ \t]*int flags = BLN_LISTED \| \(will_edit \? BLN_CURBUF : 0\);\n`,
 			"alist_add_list choosing buffer flags")
 		if err != nil {
 			return nil, err

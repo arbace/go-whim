@@ -106,7 +106,7 @@ to see both names change.
 
 | | input | after |
 | --- | --- | --- |
-| lines | 80,178 | **80,173 (−5)** |
+| lines | 78,116 | **78,112 (−4)** — re-measured on the canonical text; the rest of this table is not |
 | `vim_host_exit` / `vim_host_message` | 3 / 10 | **0 / 0** |
 | `host_exit` / `host_message` | 2 / 2 | **3 / 10** |
 | `exit_fn` / `message_fn` | 2 / 2 | **0 / 0** |

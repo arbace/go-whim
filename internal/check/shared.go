@@ -590,7 +590,6 @@ func Z29RowCount(text string) int {
 
 // From phase 112.
 var (
-	Z29Row     = regexp.MustCompile(`(?m)^        \{(0x[0-9a-f]+),(0x[0-9a-f]+),(-?\d+),(-?\d+)\},?$`)
 	Z29CFlags  = regexp.MustCompile(`(?m)^CFLAGS  *= *(.*)$`)
 	Z29LDFlags = regexp.MustCompile(`(?m)^LDFLAGS  *= *(.*)$`)
 	Z29Inc     = regexp.MustCompile(`^ *# *include `)

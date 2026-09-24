@@ -82,7 +82,7 @@ func Check(w io.Writer, args []string) error {
 	if n := strings.Count(c.Old, "bh_curr = &("); n != len(made) || n == 0 {
 		r.Bad("%d heads are made current, %d of them with bh_create_newblock set", n, len(made))
 	}
-	cleared := "        buf->bh_create_newblock = FALSE;\n\n        p->b_next = buf->bh_curr->b_next;\n        buf->bh_curr->b_next = p;\n        buf->bh_curr = p;\n"
+	cleared := "        buf->bh_create_newblock = FALSE;\n        p->b_next = buf->bh_curr->b_next;\n        buf->bh_curr->b_next = p;\n        buf->bh_curr = p;\n"
 	if n := strings.Count(c.Old, "bh_create_newblock = FALSE"); n != 1 || strings.Count(c.Old, cleared) != 1 {
 		r.Bad("bh_create_newblock is cleared %d times, not only as a new block becomes current", n)
 	}

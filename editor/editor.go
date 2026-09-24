@@ -1685,7 +1685,6 @@ const (
 	P_CURSWANT               = 67108864
 	P_NDNAME                 = 134217728
 	P_HLONLY                 = 268435456
-	P_MLE                    = 536870912
 	P_COLON                  = 2147483648
 	CPO_BAR                  = 98
 	CPO_BSLASH               = 66
@@ -2919,19 +2918,19 @@ var p_et_nopaste int32
 var p_sts_nopaste int64
 var p_tw_nopaste int64
 var p_wm_nopaste int64
-var options = Mk[S_vimoption](187)   // C: array of 187 struct vimoption
+var options = Mk[S_vimoption](185)   // C: array of 185 struct vimoption
 var p_ambw_values = Mk[Ptr[byte]](3) // C: array of 3 pointer to char
 var p_bg_values = Mk[Ptr[byte]](3)   // C: array of 3 pointer to char
-var p_bo_values = Mk[Ptr[byte]](21)  // C: array of 21 pointer to char
+var p_bo_values = Mk[Ptr[byte]](17)  // C: array of 17 pointer to char
 var p_nf_values = Mk[Ptr[byte]](7)   // C: array of 7 pointer to char
 var p_cmp_values = Mk[Ptr[byte]](3)  // C: array of 3 pointer to char
 var p_dy_values = Mk[Ptr[byte]](4)   // C: array of 4 pointer to char
 var p_ve_values = Mk[Ptr[byte]](7)   // C: array of 7 pointer to char
 var p_sel_values = Mk[Ptr[byte]](4)  // C: array of 4 pointer to char
-var p_slm_values = Mk[Ptr[byte]](4)  // C: array of 4 pointer to char
+var p_slm_values = Mk[Ptr[byte]](2)  // C: array of 2 pointer to char
 var p_km_values = Mk[Ptr[byte]](3)   // C: array of 3 pointer to char
 var p_bs_values = Mk[Ptr[byte]](5)   // C: array of 5 pointer to char
-var p_sloc_values = Mk[Ptr[byte]](4) // C: array of 4 pointer to char
+var p_sloc_values = Mk[Ptr[byte]](2) // C: array of 2 pointer to char
 var signal_info [3]S_signalinfo
 var reg_prev_sub Ptr[byte]
 var reg_prev_sublen usize
@@ -4587,111 +4586,109 @@ func init() {
 	options.Set(78, S_vimoption{fullname: S("smoothscroll"), shortname: S("sms"), flags: (P_BOOL | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8203, opt_did_set_cb: did_set_smoothscroll, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
 	options.Set(79, S_vimoption{fullname: S("softtabstop"), shortname: S("sts"), flags: (P_NUM | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: nil, ov_long: &p_sts, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16439, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{4, 0}})
 	options.Set(80, S_vimoption{fullname: S("startofline"), shortname: S("sol"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_sol, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(81, S_vimoption{fullname: S("statusline"), shortname: S("stl"), flags: (((P_STRING | P_VI_DEF) | P_ALLOCED) | P_RSTAT) | P_MLE, var_: optvar_T{}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(82, S_vimoption{fullname: S("statuslineopt"), shortname: S("stlo"), flags: ((((((P_STRING | P_VI_DEF) | P_ALLOCED) | P_RSTAT) | P_MLE) | P_ONECOMMA) | P_COLON) | P_NODUP, var_: optvar_T{}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(83, S_vimoption{fullname: S("tabstop"), shortname: S("ts"), flags: (P_NUM | P_VI_DEF) | P_RBUF, var_: optvar_T{ov_int: nil, ov_long: &p_ts, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16445, opt_did_set_cb: did_set_shiftwidth_tabstop, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{4, 0}})
-	options.Set(84, S_vimoption{fullname: S("term"), shortname: Ptr[byte]{}, flags: ((((P_STRING | P_EXPAND) | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(85, S_vimoption{fullname: S("termsync"), shortname: S("tsy"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_tsy, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_termsync, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(86, S_vimoption{fullname: S("terse"), shortname: Ptr[byte]{}, flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_terse, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_terse, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(87, S_vimoption{fullname: S("textwidth"), shortname: S("tw"), flags: (((P_NUM | P_VI_DEF) | P_VIM) | P_RBUF) | P_HLONLY, var_: optvar_T{ov_int: nil, ov_long: &p_tw, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16446, opt_did_set_cb: did_set_textwidth, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(88, S_vimoption{fullname: S("tildeop"), shortname: S("top"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_to, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(89, S_vimoption{fullname: S("timeout"), shortname: S("to"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_timeout, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(90, S_vimoption{fullname: S("timeoutlen"), shortname: S("tm"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_tm, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1000, 0}})
-	options.Set(91, S_vimoption{fullname: S("ttimeout"), shortname: Ptr[byte]{}, flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_ttimeout, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(92, S_vimoption{fullname: S("ttimeoutlen"), shortname: S("ttm"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ttm, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{-1, 0}})
-	options.Set(93, S_vimoption{fullname: S("ttyfast"), shortname: S("tf"), flags: (P_BOOL | P_NO_MKRC) | P_VI_DEF, var_: optvar_T{ov_int: &p_tf, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(94, S_vimoption{fullname: S("ttyscroll"), shortname: S("tsl"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ttyscroll, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{999, 0}})
-	options.Set(95, S_vimoption{fullname: S("ttytype"), shortname: S("tty"), flags: ((((P_STRING | P_EXPAND) | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(96, S_vimoption{fullname: S("undolevels"), shortname: S("ul"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ul, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 20545, opt_did_set_cb: did_set_undolevels, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{9999, 0}})
-	options.Set(97, S_vimoption{fullname: S("verbose"), shortname: S("vbs"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_verbose, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(98, S_vimoption{fullname: S("virtualedit"), shortname: S("ve"), flags: ((((P_STRING | P_ONECOMMA) | P_NODUP) | P_VI_DEF) | P_VIM) | P_CURSWANT, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_ve), ov_win: 0}, indir: 12296, opt_did_set_cb: did_set_virtualedit, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), S("")}, def_num: [2]int64{}})
-	options.Set(99, S_vimoption{fullname: S("visualbell"), shortname: S("vb"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_vb, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(100, S_vimoption{fullname: S("weirdinvert"), shortname: S("wiv"), flags: (P_BOOL | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: &p_wiv, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_weirdinvert, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(101, S_vimoption{fullname: S("whichwrap"), shortname: S("ww"), flags: ((P_STRING | P_VIM) | P_ONECOMMA) | P_FLAGLIST, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_ww), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_whichwrap, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), S("b,s")}, def_num: [2]int64{}})
-	options.Set(102, S_vimoption{fullname: S("wincolor"), shortname: S("wcr"), flags: ((P_STRING | P_ALLOCED) | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8196, opt_did_set_cb: did_set_wincolor, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(103, S_vimoption{fullname: S("window"), shortname: S("wi"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_window, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_window, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(104, S_vimoption{fullname: S("winhighlight"), shortname: S("whl"), flags: ((((P_STRING | P_VI_DEF) | P_RALL) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8210, opt_did_set_cb: did_set_winhighlight, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(105, S_vimoption{fullname: S("wrap"), shortname: Ptr[byte]{}, flags: (P_BOOL | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8211, opt_did_set_cb: did_set_wrap, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(106, S_vimoption{fullname: S("wrapmargin"), shortname: S("wm"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_wm, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16450, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(107, S_vimoption{fullname: S("wrapscan"), shortname: S("ws"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_ws, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(108, S_vimoption{fullname: S("writedelay"), shortname: S("wd"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_wd, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(109, S_vimoption{fullname: S("t_AB"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(56), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(110, S_vimoption{fullname: S("t_AF"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(55), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(111, S_vimoption{fullname: S("t_AU"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(57), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(112, S_vimoption{fullname: S("t_AL"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(3), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(113, S_vimoption{fullname: S("t_al"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(2), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(114, S_vimoption{fullname: S("t_bc"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(47), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(115, S_vimoption{fullname: S("t_BE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(82), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(116, S_vimoption{fullname: S("t_BD"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(83), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(117, S_vimoption{fullname: S("t_cd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(8), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(118, S_vimoption{fullname: S("t_ce"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(1), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(119, S_vimoption{fullname: S("t_Ce"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(28), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(120, S_vimoption{fullname: S("t_CF"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(90), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(121, S_vimoption{fullname: S("t_cl"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(7), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(122, S_vimoption{fullname: S("t_cm"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(36), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(123, S_vimoption{fullname: S("t_Co"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(49), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(124, S_vimoption{fullname: S("t_CS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(48), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(125, S_vimoption{fullname: S("t_Cs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(29), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(126, S_vimoption{fullname: S("t_cs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(6), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(127, S_vimoption{fullname: S("t_CV"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(76), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(128, S_vimoption{fullname: S("t_da"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(10), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(129, S_vimoption{fullname: S("t_db"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(11), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(130, S_vimoption{fullname: S("t_DL"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(5), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(131, S_vimoption{fullname: S("t_dl"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(4), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(132, S_vimoption{fullname: S("t_ds"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(31), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(133, S_vimoption{fullname: S("t_Ds"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(32), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(134, S_vimoption{fullname: S("t_fs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(65), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(135, S_vimoption{fullname: S("t_fd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(88), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(136, S_vimoption{fullname: S("t_fe"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(89), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(137, S_vimoption{fullname: S("t_IE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(61), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(138, S_vimoption{fullname: S("t_IS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(60), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(139, S_vimoption{fullname: S("t_ke"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(41), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(140, S_vimoption{fullname: S("t_ks"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(40), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(141, S_vimoption{fullname: S("t_le"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(58), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(142, S_vimoption{fullname: S("t_mb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(54), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(143, S_vimoption{fullname: S("t_md"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(21), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(144, S_vimoption{fullname: S("t_me"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(19), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(145, S_vimoption{fullname: S("t_mr"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(20), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(146, S_vimoption{fullname: S("t_ms"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(35), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(147, S_vimoption{fullname: S("t_nd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(59), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(148, S_vimoption{fullname: S("t_op"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(77), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(149, S_vimoption{fullname: S("t_RI"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(38), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(150, S_vimoption{fullname: S("t_Ri"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(87), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(151, S_vimoption{fullname: S("t_RK"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(44), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(152, S_vimoption{fullname: S("t_RT"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(85), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(153, S_vimoption{fullname: S("t_RV"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(69), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(154, S_vimoption{fullname: S("t_Sb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(51), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(155, S_vimoption{fullname: S("t_se"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(22), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(156, S_vimoption{fullname: S("t_Sf"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(50), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(157, S_vimoption{fullname: S("t_Si"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(86), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(158, S_vimoption{fullname: S("t_so"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(23), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(159, S_vimoption{fullname: S("t_sr"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(37), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(160, S_vimoption{fullname: S("t_ST"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(84), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(161, S_vimoption{fullname: S("t_Te"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(33), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(162, S_vimoption{fullname: S("t_te"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(45), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(163, S_vimoption{fullname: S("t_TE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(46), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(164, S_vimoption{fullname: S("t_ti"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(42), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(165, S_vimoption{fullname: S("t_TI"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(43), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(166, S_vimoption{fullname: S("t_Ts"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(34), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(167, S_vimoption{fullname: S("t_ts"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(64), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(168, S_vimoption{fullname: S("t_ue"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(26), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(169, S_vimoption{fullname: S("t_us"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(27), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(170, S_vimoption{fullname: S("t_Us"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(30), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(171, S_vimoption{fullname: S("t_ut"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(9), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(172, S_vimoption{fullname: S("t_vb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(39), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(173, S_vimoption{fullname: S("t_ve"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(13), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(174, S_vimoption{fullname: S("t_vi"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(12), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(175, S_vimoption{fullname: S("t_VS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(15), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(176, S_vimoption{fullname: S("t_vs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(14), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(177, S_vimoption{fullname: S("t_WS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(68), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(178, S_vimoption{fullname: S("t_xn"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(53), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(179, S_vimoption{fullname: S("t_xs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(52), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(180, S_vimoption{fullname: S("t_ZH"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(24), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(181, S_vimoption{fullname: S("t_ZR"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(25), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(182, S_vimoption{fullname: S("t_8u"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(81), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(183, S_vimoption{fullname: S("t_xo"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(91), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(184, S_vimoption{fullname: S("t_BS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(92), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(185, S_vimoption{fullname: S("t_ES"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(93), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(81, S_vimoption{fullname: S("tabstop"), shortname: S("ts"), flags: (P_NUM | P_VI_DEF) | P_RBUF, var_: optvar_T{ov_int: nil, ov_long: &p_ts, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16445, opt_did_set_cb: did_set_shiftwidth_tabstop, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{4, 0}})
+	options.Set(82, S_vimoption{fullname: S("term"), shortname: Ptr[byte]{}, flags: ((((P_STRING | P_EXPAND) | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(83, S_vimoption{fullname: S("termsync"), shortname: S("tsy"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_tsy, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_termsync, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(84, S_vimoption{fullname: S("terse"), shortname: Ptr[byte]{}, flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_terse, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_terse, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(85, S_vimoption{fullname: S("textwidth"), shortname: S("tw"), flags: (((P_NUM | P_VI_DEF) | P_VIM) | P_RBUF) | P_HLONLY, var_: optvar_T{ov_int: nil, ov_long: &p_tw, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16446, opt_did_set_cb: did_set_textwidth, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(86, S_vimoption{fullname: S("tildeop"), shortname: S("top"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_to, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(87, S_vimoption{fullname: S("timeout"), shortname: S("to"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_timeout, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(88, S_vimoption{fullname: S("timeoutlen"), shortname: S("tm"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_tm, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1000, 0}})
+	options.Set(89, S_vimoption{fullname: S("ttimeout"), shortname: Ptr[byte]{}, flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_ttimeout, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(90, S_vimoption{fullname: S("ttimeoutlen"), shortname: S("ttm"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ttm, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{-1, 0}})
+	options.Set(91, S_vimoption{fullname: S("ttyfast"), shortname: S("tf"), flags: (P_BOOL | P_NO_MKRC) | P_VI_DEF, var_: optvar_T{ov_int: &p_tf, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(92, S_vimoption{fullname: S("ttyscroll"), shortname: S("tsl"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ttyscroll, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{999, 0}})
+	options.Set(93, S_vimoption{fullname: S("ttytype"), shortname: S("tty"), flags: ((((P_STRING | P_EXPAND) | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(94, S_vimoption{fullname: S("undolevels"), shortname: S("ul"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ul, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 20545, opt_did_set_cb: did_set_undolevels, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{9999, 0}})
+	options.Set(95, S_vimoption{fullname: S("verbose"), shortname: S("vbs"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_verbose, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(96, S_vimoption{fullname: S("virtualedit"), shortname: S("ve"), flags: ((((P_STRING | P_ONECOMMA) | P_NODUP) | P_VI_DEF) | P_VIM) | P_CURSWANT, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_ve), ov_win: 0}, indir: 12296, opt_did_set_cb: did_set_virtualedit, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), S("")}, def_num: [2]int64{}})
+	options.Set(97, S_vimoption{fullname: S("visualbell"), shortname: S("vb"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_vb, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(98, S_vimoption{fullname: S("weirdinvert"), shortname: S("wiv"), flags: (P_BOOL | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: &p_wiv, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_weirdinvert, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(99, S_vimoption{fullname: S("whichwrap"), shortname: S("ww"), flags: ((P_STRING | P_VIM) | P_ONECOMMA) | P_FLAGLIST, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_ww), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_whichwrap, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), S("b,s")}, def_num: [2]int64{}})
+	options.Set(100, S_vimoption{fullname: S("wincolor"), shortname: S("wcr"), flags: ((P_STRING | P_ALLOCED) | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8196, opt_did_set_cb: did_set_wincolor, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(101, S_vimoption{fullname: S("window"), shortname: S("wi"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_window, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_window, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(102, S_vimoption{fullname: S("winhighlight"), shortname: S("whl"), flags: ((((P_STRING | P_VI_DEF) | P_RALL) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8210, opt_did_set_cb: did_set_winhighlight, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(103, S_vimoption{fullname: S("wrap"), shortname: Ptr[byte]{}, flags: (P_BOOL | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8211, opt_did_set_cb: did_set_wrap, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(104, S_vimoption{fullname: S("wrapmargin"), shortname: S("wm"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_wm, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16450, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(105, S_vimoption{fullname: S("wrapscan"), shortname: S("ws"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_ws, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(106, S_vimoption{fullname: S("writedelay"), shortname: S("wd"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_wd, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(107, S_vimoption{fullname: S("t_AB"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(56), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(108, S_vimoption{fullname: S("t_AF"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(55), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(109, S_vimoption{fullname: S("t_AU"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(57), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(110, S_vimoption{fullname: S("t_AL"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(3), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(111, S_vimoption{fullname: S("t_al"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(2), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(112, S_vimoption{fullname: S("t_bc"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(47), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(113, S_vimoption{fullname: S("t_BE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(82), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(114, S_vimoption{fullname: S("t_BD"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(83), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(115, S_vimoption{fullname: S("t_cd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(8), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(116, S_vimoption{fullname: S("t_ce"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(1), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(117, S_vimoption{fullname: S("t_Ce"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(28), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(118, S_vimoption{fullname: S("t_CF"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(90), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(119, S_vimoption{fullname: S("t_cl"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(7), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(120, S_vimoption{fullname: S("t_cm"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(36), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(121, S_vimoption{fullname: S("t_Co"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(49), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(122, S_vimoption{fullname: S("t_CS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(48), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(123, S_vimoption{fullname: S("t_Cs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(29), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(124, S_vimoption{fullname: S("t_cs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(6), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(125, S_vimoption{fullname: S("t_CV"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(76), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(126, S_vimoption{fullname: S("t_da"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(10), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(127, S_vimoption{fullname: S("t_db"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(11), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(128, S_vimoption{fullname: S("t_DL"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(5), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(129, S_vimoption{fullname: S("t_dl"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(4), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(130, S_vimoption{fullname: S("t_ds"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(31), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(131, S_vimoption{fullname: S("t_Ds"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(32), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(132, S_vimoption{fullname: S("t_fs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(65), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(133, S_vimoption{fullname: S("t_fd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(88), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(134, S_vimoption{fullname: S("t_fe"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(89), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(135, S_vimoption{fullname: S("t_IE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(61), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(136, S_vimoption{fullname: S("t_IS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(60), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(137, S_vimoption{fullname: S("t_ke"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(41), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(138, S_vimoption{fullname: S("t_ks"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(40), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(139, S_vimoption{fullname: S("t_le"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(58), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(140, S_vimoption{fullname: S("t_mb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(54), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(141, S_vimoption{fullname: S("t_md"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(21), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(142, S_vimoption{fullname: S("t_me"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(19), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(143, S_vimoption{fullname: S("t_mr"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(20), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(144, S_vimoption{fullname: S("t_ms"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(35), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(145, S_vimoption{fullname: S("t_nd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(59), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(146, S_vimoption{fullname: S("t_op"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(77), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(147, S_vimoption{fullname: S("t_RI"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(38), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(148, S_vimoption{fullname: S("t_Ri"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(87), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(149, S_vimoption{fullname: S("t_RK"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(44), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(150, S_vimoption{fullname: S("t_RT"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(85), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(151, S_vimoption{fullname: S("t_RV"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(69), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(152, S_vimoption{fullname: S("t_Sb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(51), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(153, S_vimoption{fullname: S("t_se"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(22), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(154, S_vimoption{fullname: S("t_Sf"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(50), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(155, S_vimoption{fullname: S("t_Si"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(86), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(156, S_vimoption{fullname: S("t_so"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(23), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(157, S_vimoption{fullname: S("t_sr"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(37), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(158, S_vimoption{fullname: S("t_ST"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(84), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(159, S_vimoption{fullname: S("t_Te"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(33), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(160, S_vimoption{fullname: S("t_te"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(45), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(161, S_vimoption{fullname: S("t_TE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(46), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(162, S_vimoption{fullname: S("t_ti"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(42), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(163, S_vimoption{fullname: S("t_TI"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(43), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(164, S_vimoption{fullname: S("t_Ts"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(34), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(165, S_vimoption{fullname: S("t_ts"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(64), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(166, S_vimoption{fullname: S("t_ue"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(26), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(167, S_vimoption{fullname: S("t_us"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(27), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(168, S_vimoption{fullname: S("t_Us"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(30), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(169, S_vimoption{fullname: S("t_ut"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(9), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(170, S_vimoption{fullname: S("t_vb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(39), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(171, S_vimoption{fullname: S("t_ve"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(13), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(172, S_vimoption{fullname: S("t_vi"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(12), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(173, S_vimoption{fullname: S("t_VS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(15), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(174, S_vimoption{fullname: S("t_vs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(14), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(175, S_vimoption{fullname: S("t_WS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(68), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(176, S_vimoption{fullname: S("t_xn"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(53), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(177, S_vimoption{fullname: S("t_xs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(52), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(178, S_vimoption{fullname: S("t_ZH"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(24), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(179, S_vimoption{fullname: S("t_ZR"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(25), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(180, S_vimoption{fullname: S("t_8u"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(81), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(181, S_vimoption{fullname: S("t_xo"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(91), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(182, S_vimoption{fullname: S("t_BS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(92), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(183, S_vimoption{fullname: S("t_ES"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(93), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
 	p_ambw_values.Set(0, S("single"))
 	p_ambw_values.Set(1, S("double"))
 	p_bg_values.Set(0, S("light"))
@@ -4699,23 +4696,19 @@ func init() {
 	p_bo_values.Set(0, S("all"))
 	p_bo_values.Set(1, S("backspace"))
 	p_bo_values.Set(2, S("cursor"))
-	p_bo_values.Set(3, S("complete"))
-	p_bo_values.Set(4, S("copy"))
-	p_bo_values.Set(5, S("ctrlg"))
-	p_bo_values.Set(6, S("error"))
-	p_bo_values.Set(7, S("esc"))
-	p_bo_values.Set(8, S("ex"))
-	p_bo_values.Set(9, S("hangul"))
-	p_bo_values.Set(10, S("insertmode"))
-	p_bo_values.Set(11, S("lang"))
-	p_bo_values.Set(12, S("mess"))
-	p_bo_values.Set(13, S("showmatch"))
-	p_bo_values.Set(14, S("operator"))
-	p_bo_values.Set(15, S("register"))
-	p_bo_values.Set(16, S("shell"))
-	p_bo_values.Set(17, S("spell"))
-	p_bo_values.Set(18, S("term"))
-	p_bo_values.Set(19, S("wildmode"))
+	p_bo_values.Set(3, S("copy"))
+	p_bo_values.Set(4, S("ctrlg"))
+	p_bo_values.Set(5, S("error"))
+	p_bo_values.Set(6, S("esc"))
+	p_bo_values.Set(7, S("ex"))
+	p_bo_values.Set(8, S("hangul"))
+	p_bo_values.Set(9, S("insertmode"))
+	p_bo_values.Set(10, S("lang"))
+	p_bo_values.Set(11, S("mess"))
+	p_bo_values.Set(12, S("showmatch"))
+	p_bo_values.Set(13, S("operator"))
+	p_bo_values.Set(14, S("register"))
+	p_bo_values.Set(15, S("term"))
 	p_nf_values.Set(0, S("bin"))
 	p_nf_values.Set(1, S("octal"))
 	p_nf_values.Set(2, S("hex"))
@@ -4736,9 +4729,7 @@ func init() {
 	p_sel_values.Set(0, S("inclusive"))
 	p_sel_values.Set(1, S("exclusive"))
 	p_sel_values.Set(2, S("old"))
-	p_slm_values.Set(0, S("mouse"))
-	p_slm_values.Set(1, S("key"))
-	p_slm_values.Set(2, S("cmd"))
+	p_slm_values.Set(0, S("cmd"))
 	p_km_values.Set(0, S("startsel"))
 	p_km_values.Set(1, S("stopsel"))
 	p_bs_values.Set(0, S("indent"))
@@ -4746,8 +4737,6 @@ func init() {
 	p_bs_values.Set(2, S("start"))
 	p_bs_values.Set(3, S("nostop"))
 	p_sloc_values.Set(0, S("last"))
-	p_sloc_values.Set(1, S("statusline"))
-	p_sloc_values.Set(2, S("tabline"))
 	signal_info = [3]S_signalinfo{S_signalinfo{sig: SIGHUP, name: S("HUP")}, S_signalinfo{sig: SIGTERM, name: S("TERM")}, S_signalinfo{sig: -1, name: S("Unknown!")}}
 	copy(REGEXP_INRANGE.Slice(5), "]^-n\\")
 	copy(REGEXP_ABBR.Slice(10), "nrtebdoxuU")
@@ -6442,14 +6431,6 @@ func buf_freeall(buf *S_file_buffer, flags int32) int32 {
 	return TRUE
 }
 
-func free_buffer(buf *S_file_buffer) {
-	buf_free_count++
-	free_buffer_stuff(buf, TRUE)
-	if curbuf == buf {
-		curbuf = nil
-	}
-}
-
 func init_changedtick(buf *S_file_buffer) {
 	buf.b_changedtick = 0
 }
@@ -6504,12 +6485,6 @@ func buflist_new(lnum linenr_T, flags int32) *S_file_buffer {
 	}
 	clear_wininfo(buf)
 	buf.b_wininfo = new(S_wininfo_S)
-	if buf.b_wininfo == nil {
-		if buf != curbuf {
-			free_buffer(buf)
-		}
-		return nil
-	}
 	if buf == curbuf {
 		free_buffer_stuff(buf, FALSE)
 		buf.b_p_initialized = (0 != 0)
@@ -14725,9 +14700,6 @@ func ex_substitute(eap *S_exarg) {
 				if sub_firstline.string_.Nil() {
 					sub_firstline.length = usize(ml_get_len(sub_firstlnum))
 					sub_firstline.string_ = vim_strnsave(ml_get(sub_firstlnum), sub_firstline.length)
-					if sub_firstline.string_.Nil() {
-						goto outofmem
-					}
 				}
 				curwin.w_cursor.lnum = lnum
 				do_again = FALSE
@@ -14919,9 +14891,6 @@ func ex_substitute(eap *S_exarg) {
 					sub_firstlnum += nmatch - 1
 					sub_firstline.length = usize(ml_get_len(sub_firstlnum))
 					sub_firstline.string_ = vim_strnsave(ml_get(sub_firstlnum), sub_firstline.length)
-					if sub_firstline.string_.Nil() {
-						goto outofmem
-					}
 					if sub_firstlnum <= line2 {
 						do_again = TRUE
 					} else {
@@ -15049,7 +15018,6 @@ func ex_substitute(eap *S_exarg) {
 		i = curbuf.b_ml.ml_line_count - old_line_count
 		changed_lines(first_line, 0, last_line-i, i)
 	}
-outofmem:
 	if ex_substitute_subflags.do_count != 0 {
 		curwin.w_cursor = old_cursor
 	}
@@ -27490,9 +27458,6 @@ func ml_replace_len(lnum linenr_T, line_arg Ptr[byte], len_arg colnr_T, has_prop
 	}
 	if copy_ != 0 {
 		line = vim_strnsave(line, usize(len_-1))
-		if line.Nil() {
-			return FAIL
-		}
 	}
 	if curbuf.b_ml.ml_line_lnum != lnum {
 		ml_flush_line(curbuf)
@@ -34955,6 +34920,7 @@ func nv_brackets(cap_ *S_cmdarg_S) {
 			pos = Addr(&prev_pos)
 		}
 		nv_cursormark(cap_, B2i(cap_.nchar == 39), pos)
+	} else if (cap_.nchar >= -(KS_EXTRA + (52 << 8))) && (cap_.nchar <= -(KS_EXTRA + (44 << 8))) {
 	} else {
 		clearopbeep(cap_.oap)
 	}
@@ -41293,10 +41259,7 @@ func showoptions(all int32, opt_flags int32) {
 	var len_ int32
 	var t1 int32
 
-	items = Mk[Ptr[S_vimoption]](187)
-	if items.Nil() {
-		return
-	}
+	items = Mk[Ptr[S_vimoption]](185)
 	if all == 2 {
 		msg_puts_title(gettext_(S("\n--- Terminal codes ---")))
 	} else if opt_flags&OPT_GLOBAL != 0 {
@@ -47222,9 +47185,6 @@ func stuff_yank(regname int32, p Ptr[byte]) int32 {
 	} else {
 		free_yank_all()
 		y_current.P().y_array = Mk[string_T](1)
-		if y_current.P().y_array.Nil() {
-			return FAIL
-		}
 		y_current.P().y_array.Ref(0).string_ = p
 		y_current.P().y_array.Ref(0).length = plen
 		y_current.P().y_size = 1
@@ -50805,9 +50765,7 @@ func set_chars_option(wp *S_window_S, value Ptr[byte], is_listchars int32, apply
 				}
 				if lead_multispace_len > 0 {
 					lcs_chars.leadmultispace = Mk[int32](int((lead_multispace_len + 1)))
-					if !lcs_chars.leadmultispace.Nil() {
-						lcs_chars.leadmultispace.Set(int(lead_multispace_len), NUL)
-					}
+					lcs_chars.leadmultispace.Set(int(lead_multispace_len), NUL)
 				} else {
 					lcs_chars.leadmultispace = Ptr[int32]{}
 				}
@@ -54408,9 +54366,6 @@ func add_termcode(name Ptr[byte], string_ Ptr[byte], flags int32) {
 		return
 	}
 	s = vim_strsave(string_)
-	if s.Nil() {
-		return
-	}
 	if ((flags != 0) && (flags != ATC_FROM_TERM)) && (term_7to8bit(string_) != 0) {
 		Memmove(s, s.Add(1), int(musl_strlen(s.Add(1))+1))
 		s.Set(0, byte(term_7to8bit(string_)))
@@ -57445,10 +57400,6 @@ func u_savecommon(top linenr_T, bot linenr_T, newbot linenr_T, reload int32) int
 	}
 	if size > 0 {
 		uep.ue_array = Mk[undoline_T](int(size))
-		if uep.ue_array.Nil() {
-			u_freeentry(uep, 0)
-			goto nomem
-		}
 		i = 0
 		lnum = top + 1
 		for ; i < size; i++ {
@@ -57934,15 +57885,6 @@ func u_undoredo(undo int32) {
 		empty_buffer = FALSE
 		if oldsize > 0 {
 			newarray = Mk[undoline_T](int(oldsize))
-			if newarray.Nil() {
-				do_outofmem_msg((24 * uint64(oldsize)))
-				for uep != nil {
-					nuep = uep.ue_next
-					u_freeentry(uep, uep.ue_size)
-					uep = nuep
-				}
-				break
-			}
 			lnum = bot - 1
 			i = oldsize
 			for {
@@ -59361,8 +59303,6 @@ func getout(exitval int32) {
 		if curbuf.b_ml.ml_root != nil {
 			set_bufref(&bufref_2, curbuf)
 		}
-	}
-	if v_dying <= 1 {
 	}
 	if did_emsg != 0 {
 		no_wait_return = FALSE

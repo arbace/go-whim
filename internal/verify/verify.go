@@ -23,6 +23,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/arbace/go-whim/internal/build"
@@ -101,6 +102,17 @@ func Run(o Options) error {
 		} else {
 			fmt.Fprintf(o.W, "  stage %-6s ok, %ds\n", p.Stage, int(time.Since(start).Seconds()))
 		}
+		// A STAGE THAT REFUSED MAY STILL HAVE A TREE.  A check does not produce
+		// the text; an edit does.  So runStage gives its text back whenever the
+		// edits and sweeps ran, and only an edit, a sweep or the harness itself
+		// leaves nothing -- and then there is no input for the stage after this
+		// one and the run stops.  Assigning `out` unconditionally is what turned
+		// one refusal at phase 79 into three more at 80, 81 and 82, each of them
+		// `the input binary did not build: undefined reference to main` from a
+		// state file that was the empty string.
+		if out == nil {
+			return fmt.Errorf("verify: stage %s left no tree, so the stages after it have no input: %w", p.Stage, err)
+		}
 		text = out
 	}
 	if len(failed) > 0 {
@@ -111,10 +123,18 @@ func Run(o Options) error {
 
 // runStage runs one stage: its edits, its sweep or sweeps, its checks and its
 // delta, and returns the text it leaves.
+//
+// IT RETURNS THE TEXT EVEN WHEN IT REFUSES, unless there is none.  A check and a
+// delta read the tree and do not make it, so one that refuses is a fact about
+// the stage and not a reason for the stage after it to be verified against
+// nothing; they are collected here and reported together, which is the same
+// habit a check has about its own assertions.  An edit, a sweep or the harness
+// failing is the other case: there is no tree, nil comes back, and Run stops.
 func runStage(stage []build.Phase, text []byte, work, src, mk, root, input string, w io.Writer) ([]byte, error) {
 	each := stage[0].Each
 	states := make([]string, len(stage))
 	var stageSymbols string
+	var refused []string
 
 	for k, p := range stage {
 		state := filepath.Join(root, "state", fmt.Sprintf("q%d", p.N))
@@ -124,7 +144,14 @@ func runStage(stage []build.Phase, text []byte, work, src, mk, root, input strin
 			return nil, err
 		}
 		if p.Seed {
-			text = mustRead(input)
+			// build.Seed, and not a read of the file: phase 0 canonicalises,
+			// and a verification that skipped that would run every phase after
+			// it on a spelling the pipeline never produces.
+			out, err := build.Seed(mustRead(input), w)
+			if err != nil {
+				return nil, fmt.Errorf("phase %d: %w", p.N, err)
+			}
+			text = out
 		}
 		if p.Makefile != "" {
 			if err := build.ApplyMakefile(p.Makefile, mk); err != nil {
@@ -174,15 +201,15 @@ func runStage(stage []build.Phase, text []byte, work, src, mk, root, input strin
 				return nil, err
 			}
 			if err := runCheck(p, work, state, w); err != nil {
-				return nil, err
+				refused = append(refused, err.Error())
 			}
 			if err := delta(p.N, work, src, mk, w); err != nil {
-				return nil, err
+				refused = append(refused, err.Error())
 			}
 		}
 	}
 	if each {
-		return text, nil
+		return text, joined(refused)
 	}
 	// A shared stage: one swept text, every check on it, one delta at the end.
 	if err := os.WriteFile(src, text, 0o644); err != nil {
@@ -190,10 +217,21 @@ func runStage(stage []build.Phase, text []byte, work, src, mk, root, input strin
 	}
 	for k, p := range stage {
 		if err := runCheck(p, work, states[k], w); err != nil {
-			return nil, err
+			refused = append(refused, err.Error())
 		}
 	}
-	return text, delta(stage[len(stage)-1].N, work, src, mk, w)
+	if err := delta(stage[len(stage)-1].N, work, src, mk, w); err != nil {
+		refused = append(refused, err.Error())
+	}
+	return text, joined(refused)
+}
+
+// joined is the stage's refusals as one error, or nil when there were none.
+func joined(refused []string) error {
+	if len(refused) == 0 {
+		return nil
+	}
+	return fmt.Errorf("%s", strings.Join(refused, "; "))
 }
 
 // runCheck runs the phase's check, which is internal/check's -- the same

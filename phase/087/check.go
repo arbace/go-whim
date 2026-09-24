@@ -77,7 +77,7 @@ var z4Kept = []string{
 }
 
 const (
-	z4QRow  = `     {'Q', nv_error, NV_NCW, 0} ,`
+	z4QRow  = `    {'Q', nv_error, NV_NCW, 0},`
 	z4Enter = "Entering Ex mode"
 	z4Unk   = "Unknown option argument"
 )

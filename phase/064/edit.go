@@ -89,7 +89,7 @@ var openLineDecls = []struct{ pattern, What string }{
 var internalFormatDecls = []struct{ pattern, What string }{
 	{`int[ \t]+fo_ins_blank = has_format_option\(FO_INS_BLANK\);`, "internal_format: int fo_ins_blank = has_format_option (FO_INS_BLANK );"},
 	{`int[ \t]+fo_multibyte = has_format_option\(FO_MBYTE_BREAK\);`, "internal_format: int fo_multibyte = has_format_option (FO_MBYTE_BREAK );"},
-	{`int[ \t]+fo_rigor_tw  = has_format_option\(FO_RIGOROUS_TW\);`, "internal_format: int fo_rigor_tw = has_format_option (FO_RIGOROUS_TW );"},
+	{`int[ \t]+fo_rigor_tw = has_format_option\(FO_RIGOROUS_TW\);`, "internal_format: int fo_rigor_tw = has_format_option (FO_RIGOROUS_TW );"},
 	{`int[ \t]+fo_white_par = has_format_option\(FO_WHITE_PAR\);`, "internal_format: int fo_white_par = has_format_option (FO_WHITE_PAR );"},
 	{`colnr_T[ \t]+leader_len;`, "internal_format: colnr_T leader_len;"},
 	{`int[ \t]+no_leader = FALSE;`, "internal_format: int no_leader = FALSE;"},
@@ -111,17 +111,14 @@ const oldDispatch = `        case OP_FILTER:
             {
                 bangredo = TRUE;
             }
-
-        __attribute__((fallthrough));
+            __attribute__((fallthrough));
         case OP_INDENT:
         case OP_COLON:
-
             if (oap->op_type == OP_INDENT)
             {
                 op_reindent(oap, get_indent);
                 break;
             }
-
             op_colon(oap);
             break;
 `
@@ -156,13 +153,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Lines(`end_comment_pending = NUL;`, 2, "a new line clearing the pending comment end")
 		e.Literal("if (trunc_line && !(flags & OPENLINE_KEEPTRAIL))", "if (trunc_line)",
 			"a broken line always losing its trailing blanks ('w')")
-		e.DropIf(`(?m)^[ \t]*if \( \(\(\(State\) & REPLACE_FLAG\) && !\(\(State\) & VREPLACE_FLAG\)\) \)$\n[ \t]*\{\n[ \t]*while \(lead_len-- > 0\)`,
+		e.DropIf(`(?m)^[ \t]*if \(\(\(\(State\) & REPLACE_FLAG\) && !\(\(State\) & VREPLACE_FLAG\)\)\)$\n[ \t]*\{\n[ \t]*while \(lead_len-- > 0\)`,
 			"Replace mode pushing a NUL per leader byte")
 		e.Literal("if (newindent == 0 && !(flags & OPENLINE_COM_LIST))", "if (newindent == 0)",
 			"the second-line indent no longer for a comment list")
 		e.Lines(`vim_free\(allocated\);`, 1, "freeing the leader")
 		// extra_len sized the leader's allocation and nothing else
-		e.Lines(`extra_len = \(int\) strlen\(\(char \*\)\(p_extra\)\) ;`, 1,
+		e.Lines(`extra_len = \(int\)strlen\(\(char \*\)\(p_extra\)\);`, 1,
 			"measuring the text after the cursor for the leader")
 		for _, d := range openLineDecls {
 			e.Lines(d.pattern, 1, d.What)
@@ -215,7 +212,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// J: 'j', 'M' and 'B' off
 	e.InFunction("do_join", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*int[ \t]+remove_comments = \(use_formatoptions == TRUE\)\n[ \t]*&& has_format_option\(FO_REMOVE_COMS\);\n`, 1,
+		e.Cut(`(?m)^[ \t]*int[ \t]+remove_comments = \(use_formatoptions == TRUE\) && has_format_option\(FO_REMOVE_COMS\);\n`, 1,
 			"J asking for 'j'")
 		e.Lines(`int[ \t]+\*comments = NULL;`, 1, "J declaring the leader offsets")
 		e.Lines(`int[ \t]+prev_was_comment;`, 1, "J declaring prev_was_comment")
@@ -309,8 +306,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("insertchar", func(e *edit.E) {
 		e.Lines(`int[ \t]+force_format = flags & INSCHAR_FORMAT;`, 1, "insertchar asking whether this is a whole-line format")
 		e.Literal("textwidth = comp_textwidth(force_format);", "textwidth = comp_textwidth();", "the width to wrap at")
-		e.Literal("if (textwidth > 0 && (force_format || (! ((c) == ' ' || (c) == '\\t')  && !((State & REPLACE_FLAG) && !(State & VREPLACE_FLAG) && *ml_get_cursor() != NUL))))",
-			"if (textwidth > 0 && ! ((c) == ' ' || (c) == '\\t')  && !((State & REPLACE_FLAG) && !(State & VREPLACE_FLAG) && *ml_get_cursor() != NUL))",
+		e.Literal("if (textwidth > 0 && (force_format || (!((c) == ' ' || (c) == '\\t') && !((State & REPLACE_FLAG) && !(State & VREPLACE_FLAG) && *ml_get_cursor() != NUL))))",
+			"if (textwidth > 0 && !((c) == ' ' || (c) == '\\t') && !((State & REPLACE_FLAG) && !(State & VREPLACE_FLAG) && *ml_get_cursor() != NUL))",
 			"wrapping only a character that was typed")
 		e.Literal("internal_format(textwidth, second_indent, flags, c == NUL, c);",
 			"internal_format(textwidth, second_indent, flags, FALSE, c);", "the wrap never being a whole-line format")
@@ -318,7 +315,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	e.InFunction("comp_textwidth", func(e *edit.E) {
 		e.DropIf(`(?m)^[ \t]*if \(ff && textwidth == 0\)$`, "the width gq used when 'textwidth' is 0")
-		e.Literal("comp_textwidth(int         ff)", "comp_textwidth(void)", "comp_textwidth without its gq flag")
+		e.Literal("comp_textwidth(int ff)", "comp_textwidth(void)", "comp_textwidth without its gq flag")
 	})
 	e.Literal("static int comp_textwidth(int ff);", "static int comp_textwidth(void);", "comp_textwidth's prototype")
 	e.Literal("cols = comp_textwidth(FALSE);", "cols = comp_textwidth();", "the change list asking for the width")
@@ -338,7 +335,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.Lines(`pos_T[ \t]+cursor_start;`, 1, "the cursor gw returned to")
 
 	// the = operator, and what only the unreachable ! operator left behind
-	e.Sub(`(?m)^([ \t]*\{'=', )nv_operator(, 0, 0\} ,)$`, "${1}nv_error${2}", 1,
+	e.Sub(`(?m)^([ \t]*\{'=', )nv_operator(, 0, 0\},)$`, "${1}nv_error${2}", 1,
 		"= in Normal and Visual mode points at nv_error")
 	e.InFunction("do_pending_operator", func(e *edit.E) {
 		e.Literal(oldDispatch, newDispatch, "the filter and indent operators being dispatched")

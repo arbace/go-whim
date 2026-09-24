@@ -54,7 +54,7 @@ import (
 func init() { check.Register("whim101", Check) }
 
 const (
-	z18Head   = "\n    int\nmain\n(int argc, char **argv)\n{\n"
+	z18Head   = "\n    int\nmain(int argc, char **argv)\n{\n"
 	z18Launch = "\n    int\nmain(int argc, char **argv)\n{\n    return vim_main(argc, argv);\n}\n"
 )
 
@@ -112,7 +112,7 @@ func Check(w io.Writer, args []string) error {
 		return n
 	}
 	if strings.Count(oldC, z18Head) != 1 {
-		fail = append(fail, "the input did not hold exactly one three-line main() head, so this is not the file the phase was written against")
+		fail = append(fail, "the input did not hold exactly one two-line main() head, so this is not the file the phase was written against")
 	}
 	if mentions(oldC, "vim_main") > 0 {
 		fail = append(fail, "`vim_main` was already a word in the input, and this phase introduces it")
@@ -120,8 +120,16 @@ func Check(w io.Writer, args []string) error {
 	if strings.Count(newC, "    static int\nvim_main(int argc, char **argv)\n{\n") != 1 {
 		fail = append(fail, "the output does not define `static int vim_main(int argc, char **argv)` exactly once.  It must be STATIC: nothing outside this file calls it, and a non-static one would be the first external symbol zero has ever added")
 	}
-	if strings.Contains(newC, z18Head) {
-		fail = append(fail, "main()'s three-line head survives in the output")
+	// THE OLD HEAD WAS REWRITTEN AND NOT COPIED.  Asserting that the input's
+	// head is absent from the output stopped being an assertion when phase 0
+	// began canonicalising: the fossil break between `main` and its argument
+	// list is gone before this phase is handed anything, so the input's head
+	// and the launcher's are the same four lines and the launcher would always
+	// answer for it.  What still distinguishes a rewrite from a copy is the
+	// COUNT, and it is the edit's own: `\nmain(int argc` is the launcher and
+	// nothing else -- the newline is what tells it from `vim_main(int argc`.
+	if n := strings.Count(newC, "\nmain(int argc"); n != 1 {
+		fail = append(fail, fmt.Sprintf("a head beginning `main(int argc` occurs %d times, expected 1 -- the launcher's.  The old head was rewritten into `vim_main`, not copied", n))
 	}
 	if !strings.HasSuffix(newC, z18Launch) {
 		fail = append(fail, "whim-vim.c does not end with the six-line launcher.  CLAUDE.md states that main() is literally the last thing in this file and its closing brace the final line, and that stays true")
@@ -148,8 +156,8 @@ func Check(w io.Writer, args []string) error {
 	if !regexp.MustCompile(`\n    return vim_main2\(\);\n\}\n\n    int\nmain`).MatchString(newC) {
 		fail = append(fail, "vim_main() does not end in `return vim_main2();` immediately above the launcher -- the body is meant to be untouched and the launcher appended after it")
 	}
-	if d := len(strings.Split(newC, "\n")) - len(strings.Split(oldC, "\n")); d != 5 {
-		fail = append(fail, fmt.Sprintf("the file gained %d lines, expected 5 -- the fossil head lost one and the launcher added six", d))
+	if d := len(strings.Split(newC, "\n")) - len(strings.Split(oldC, "\n")); d != 6 {
+		fail = append(fail, fmt.Sprintf("the file gained %d lines, expected 6 -- the head keeps its two lines and the launcher added six", d))
 	}
 	if runs(newC) != runs(oldC) {
 		fail = append(fail, fmt.Sprintf("runs of two blank lines: %d in the output against %d in the input", runs(newC), runs(oldC)))
@@ -200,7 +208,7 @@ func Check(w io.Writer, args []string) error {
 		}
 		return harness.ErrReported
 	}
-	r.Say("main() is now `static int vim_main(int argc, char **argv)` with its body unchanged BYTE FOR BYTE, and the last six lines of the file are a launcher whose whole content is `return vim_main(argc, argv);`.  +5 lines and two hunks")
+	r.Say("main() is now `static int vim_main(int argc, char **argv)` with its body unchanged BYTE FOR BYTE, and the last six lines of the file are a launcher whose whole content is `return vim_main(argc, argv);`.  +6 lines and two hunks")
 	r.Cont("the three words one by one, because a substring grep confuses them: `main` 1 -- the launcher, and the only bare `main` in the file -- `vim_main` 2, its definition and the one call, and `vim_main2` 2, which is upstream's and does not move.  No prototype for vim_main: it is defined above its only call")
 	r.Cont("and `exit(` is still at exactly one statement, mch_exit's `exit(r);` -- this phase does not touch it, and the twelve #includes are phase 99's")
 

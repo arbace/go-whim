@@ -42,7 +42,7 @@ func w141Table(fn string) map[string]string {
 // w141Loop is the class loop: from its `while (count < maxcount)` to the
 // `break;` that ends the case.
 func w141Loop(fn string) string {
-	a := strings.Index(fn, "        while (count < maxcount)\n        {\n            int         l;\n")
+	a := strings.Index(fn, "        while (count < maxcount)\n        {\n            int l;\n")
 	if a < 0 {
 		return ""
 	}

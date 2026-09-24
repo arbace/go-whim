@@ -281,7 +281,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{"e", z4lit6}, {"E", z4lit7}, {"s", z4lit8}, {"v", z4lit9},
 	} {
 		if text, err = literal(text,
-			fmt.Sprintf("            case '%s':\n%s                break;\n\n", o.opt, o.Body), "",
+			fmt.Sprintf("            case '%s':\n%s                break;\n", o.opt, o.Body), "",
 			fmt.Sprintf("-%s is an unknown option", o.opt), 1); err != nil {
 			return nil, err
 		}
@@ -345,7 +345,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			What: "msg_puts_display scrolls the command row"},
 		{fn: "msg_puts_display", Old: " && !msg_no_more && !exmode_active)", New: " && !msg_no_more)", n: 1,
 			What: "and the more-prompt is offered whenever the screen is full"},
-		{fn: "screen_puts_len", Old: z4lit12, New: "\n", n: 1,
+		{fn: "screen_puts_len", Old: z4lit12, New: "", n: 1,
 			What: "a character is redrawn when it changed, and not otherwise"},
 		{fn: "set_shellsize_inner", Old: " || State == MODE_CONFIRM || exmode_active)",
 			New: " || State == MODE_CONFIRM)", n: 1,

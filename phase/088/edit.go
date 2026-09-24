@@ -106,7 +106,10 @@ import (
 func init() { edit.Register("whim88", Edit) }
 
 var (
-	z5EnumRun  = regexp.MustCompile(`(?m)(?:^enum \{ ME_\w+ = \d+ \};\n)+`)
+	// The canonical text puts a blank line between two file-scope declarations,
+	// so the run of ME_* enumerators is five lines with four blanks among them.
+	// The same five sites, and the run is rewritten in the same shape below.
+	z5EnumRun  = regexp.MustCompile(`(?m)(?:^enum \{ ME_\w+ = \d+ \};\n\n?)+`)
 	z5EnumLine = regexp.MustCompile(`(?m)^enum \{ (ME_\w+) = (\d+) \};$`)
 	z5Table    = regexp.MustCompile(`(?ms)^static char \*\(main_errors\[\]\) =\n\{\n(.*?)^\};\n`)
 )
@@ -273,7 +276,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	var newEnums, newRows strings.Builder
 	for k, n := range kept {
-		fmt.Fprintf(&newEnums, "enum { %s = %d };\n", n, k)
+		fmt.Fprintf(&newEnums, "enum { %s = %d };\n\n", n, k)
 	}
 	for k, r := range rows {
 		if k != i {

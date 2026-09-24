@@ -12,8 +12,7 @@ import (
 const (
 	eqCArm = `                        if (cindent_on())
                         {
-                            indent =
-                                 get_c_indent();
+                            indent = get_c_indent();
                         }
                         else
                         {
@@ -21,10 +20,9 @@ const (
                         }
 `
 	eqCNew      = "                        indent = get_indent();\n"
-	preprocsOld = "        (curbuf->b_p_si && !curbuf->b_p_cin) ||\n" +
-		"        (curbuf->b_p_cin && in_cinkeys('#', ' ', TRUE) && curbuf->b_ind_hash_comment == 0)\n" +
-		"        ;"
-	preprocsNew  = "        curbuf->b_p_si;"
+	preprocsOld = "(curbuf->b_p_si && !curbuf->b_p_cin) || " +
+		"(curbuf->b_p_cin && in_cinkeys('#', ' ', TRUE) && curbuf->b_ind_hash_comment == 0);"
+	preprocsNew  = "curbuf->b_p_si;"
 	fixIndentOld = `    if (curbuf->b_p_lisp && curbuf->b_p_ai)
     {
         if (use_indentexpr_for_lisp())
@@ -44,7 +42,7 @@ const (
     {
         fixthisline(get_lisp_indent);
     }`
-	mayDoSiOld = "    return curbuf->b_p_si\n        && !curbuf->b_p_cin\n        && !p_paste;"
+	mayDoSiOld = "    return curbuf->b_p_si && !curbuf->b_p_cin && !p_paste;"
 	mayDoSiNew = "    return curbuf->b_p_si\n        && !p_paste;"
 )
 
@@ -67,12 +65,11 @@ func NoCindent(text []byte, w io.Writer) ([]byte, error) {
 
 	var hit bool
 	if text, hit = replaceFirst(regexp.MustCompile(
-		`(?m)[ \t]*do_cindent = !p_paste && \(curbuf->b_p_cin\)\n`+
-			`[ \t]*&& in_cinkeys\([^\n]*\n[ \t]*&& !\(flags & OPENLINE_FORCE_INDENT\);\n`),
+		`(?m)[ \t]*do_cindent = !p_paste && \(curbuf->b_p_cin\) && in_cinkeys\([^\n]* && !\(flags & OPENLINE_FORCE_INDENT\);\n`),
 		text, ""); !hit {
 		return nil, fmt.Errorf("nocindent: open_line's do_cindent is not where this expects")
 	}
-	if text, err = cutCounted(text, `(?m)^[ \t]*int         do_cindent;\n`,
+	if text, err = cutCounted(text, `(?m)^[ \t]*int do_cindent;\n`,
 		"nocindent", "do_cindent's declaration", 1); err != nil {
 		return nil, err
 	}

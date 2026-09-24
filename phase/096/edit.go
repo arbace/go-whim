@@ -187,7 +187,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			len(sw), strings.Join(Out, " | "))
 	}
 	rw := z13RedirWrite.FindAllString(string(text), -1)
-	if len(rw) != 1 || rw[0] != "static FILE *redir_fd  = NULL ;" {
+	if len(rw) != 1 || rw[0] != "static FILE *redir_fd = NULL;" {
 		return nil, p.Die("redir_fd is assigned %d times and not once by its declaration alone: %s",
 			len(rw), joined(rw, 60))
 	}

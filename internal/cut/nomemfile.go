@@ -20,7 +20,7 @@ const mfOpenBody = "    memfile_T           *mfp;\n" +
 	"    // reader that passed a name went with the rest of recovery, above.  So\n" +
 	"    // there is no descriptor, no block is ever in a file, and the page size is\n" +
 	"    // ours to choose.\n" +
-	"    if ((mfp =  (memfile_T *)alloc(sizeof(memfile_T)) ) == NULL)\n" +
+	"    if ((mfp = (memfile_T *)alloc(sizeof(memfile_T))) == NULL)\n" +
 	"    {\n" +
 	"        return NULL;\n" +
 	"    }\n" +
@@ -107,12 +107,15 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 
 	for _, c := range []struct{ pat, what string }{
 		{`(?m)^[ \t]*mf_fullname\(buf->b_ml\.ml_mfp\);\n`, "mf_fullname's caller"},
-		{`(?m)^[ \t]*if \(mfp->mf_fd >= 0\)\n[ \t]*\{\n` +
-			`[ \t]*if \(close\(mfp->mf_fd\) < 0\)\n[ \t]*\{\n` +
+		{`(?m)^[ \t]*if \(mfp->mf_fd >= 0\)\n` +
+			`[ \t]*\{\n` +
+			`[ \t]*if \(close\(mfp->mf_fd\) < 0\)\n` +
+			`[ \t]*\{\n` +
 			`[ \t]*emsg\(_\(e_close_error_on_swap_file\)\);\n` +
-			`[ \t]*\}\n[ \t]*\}\n` +
-			`[ \t]*if \(del_file && mfp->mf_fname != NULL\)\n[ \t]*\{\n` +
-			`[ \t]* unlink\(\(char \*\)\(mfp->mf_fname\)\) ;\n[ \t]*\}\n`,
+			`[ \t]*\}\n` +
+			`[ \t]*\}\n` +
+			`[ \t]*if \(del_file && mfp->mf_fname != NULL\)\n` +
+			`[ \t]*\{\n[ \t]* unlink\(\(char \*\)\(mfp->mf_fname\)\);\n[ \t]*\}\n`,
 			"mf_close's descriptor and unlink"},
 		{`(?m)^[ \t]*vim_free\(mfp->mf_fname\);\n[ \t]*vim_free\(mfp->mf_ffname\);\n`,
 			"mf_close's two names"},
@@ -199,7 +202,7 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 			"mf_rem_used's accounting"},
 		{`(?m)^[ \t]*total_mem_used -= \(long_u\)hp->bh_page_count \* mfp->mf_page_size;\n`,
 			"mf_close's accounting"},
-		{`(?m)^static long_u   total_mem_used = 0;\n`, "total_mem_used"},
+		{`(?m)^static long_u total_mem_used = 0;\n`, "total_mem_used"},
 	} {
 		if text, err = cutCounted(text, c.pat, "nomemfile", c.what, 1); err != nil {
 			return nil, err
@@ -286,11 +289,11 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 
 	// A STRUCT FIELD IS NOT A VARIABLE: no warning reports one that is never
 	// read, and the dead-code sweep cannot see it.
-	for _, field := range []string{`char_u      \*mf_fname;`, `char_u      \*mf_ffname;`,
-		`int         mf_fd;`, `int         mf_flags;`,
-		`int         mf_reopen;`, `unsigned    mf_used_count;`,
-		`unsigned    mf_used_count_max;`,
-		`blocknr_T   mf_infile_count;`} {
+	for _, field := range []string{`char_u \*mf_fname;`, `char_u \*mf_ffname;`,
+		`int mf_fd;`, `int mf_flags;`,
+		`int mf_reopen;`, `unsigned mf_used_count;`,
+		`unsigned mf_used_count_max;`,
+		`blocknr_T mf_infile_count;`} {
 		// The Python takes field.split()[-1] of the PATTERN, so the name it
 		// reports keeps its regex backslash: "the \*mf_fname; field".  Kept as
 		// it is rather than tidied, because this text is only ever seen on a

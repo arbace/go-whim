@@ -184,9 +184,9 @@ func NoWildMenu(text []byte, w io.Writer) ([]byte, error) {
 				"showmatches loses its wildmenu and wim_flags arguments")
 		},
 		func() error {
-			return c.sub(`^[ \t]*int         noselect = \(wim_flags_arg & WIM_NOSELECT\);\n`+
-				`[ \t]*int         noinsert = \(wim_flags_arg & WIM_NOINSERT\);\n`+
-				`[ \t]*int         cmdline_unchanged = noselect \|\| noinsert;\n`, "", 1,
+			return c.sub(`^[ \t]*int noselect = \(wim_flags_arg & WIM_NOSELECT\);\n`+
+				`[ \t]*int noinsert = \(wim_flags_arg & WIM_NOINSERT\);\n`+
+				`[ \t]*int cmdline_unchanged = noselect \|\| noinsert;\n`, "", 1,
 				"showmatches drops the three locals only the menu read")
 		},
 		func() error {
@@ -206,8 +206,7 @@ func NoWildMenu(text []byte, w io.Writer) ([]byte, error) {
 				"the status-line menu arm of showmatches")
 		},
 		func() error {
-			return c.sub(`^[ \t]*int         wim_noselect = p_wmnu[^\n]*\n`+
-				`[ \t]*int         wim_noinsert = p_wmnu[^\n]*\n`, "", 1,
+			return c.sub(`^[ \t]*int wim_noselect = p_wmnu[^\n]*\n[ \t]*int wim_noinsert = p_wmnu[^\n]*\n`, "", 1,
 				"the two menu-only locals")
 		},
 		func() error {
@@ -281,12 +280,11 @@ func NoWildMenu(text []byte, w io.Writer) ([]byte, error) {
 				1, "the popup teardown on any other key")
 		},
 		func() error {
-			return c.sub(`^[ \t]*int     skip_pum_redraw = FALSE;\n\n?`, "", 1,
+			return c.sub(`^[ \t]*int skip_pum_redraw = FALSE;\n\n?`, "", 1,
 				"the popup redraw flag")
 		},
 		func() error {
-			return c.dropIf(`^[ \t]*if \(c ==   \(-\(\(KS_EXTRA\) \+ \(\(int\)\(KE_WILD\) << 8\)\)\)   `+
-				`&& firstc != .@.\)[ \t]*$`, 1, "the one place that set it")
+			return c.dropIf(`^[ \t]*if \(c == \(-\(\(KS_EXTRA\) \+ \(\(int\)\(KE_WILD\) << 8\)\)\) && firstc != .@.\)[ \t]*$`, 1, "the one place that set it")
 		},
 		func() error {
 			return c.keepElse(`^[ \t]*if \(cmdline_pum_active\(\) && \(c == `,
@@ -297,8 +295,8 @@ func NoWildMenu(text []byte, w io.Writer) ([]byte, error) {
 		// still accepted and now does nothing is the thing Phase 3 exists to
 		// prevent.
 		func() error {
-			return c.sub(`\{"fuzzy", "tagfile", "pum", "exacttext", NULL\}`,
-				`{"fuzzy", "tagfile", "exacttext", NULL}`, 1,
+			return c.sub(`\{\n    "fuzzy",\n    "tagfile",\n    "pum",\n    "exacttext",\n    NULL,\n\}`,
+				"{\n    \"fuzzy\",\n    \"tagfile\",\n    \"exacttext\",\n    NULL,\n}", 1,
 				"the `pum` value of 'wildoptions'")
 		},
 	}

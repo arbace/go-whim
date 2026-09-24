@@ -11,8 +11,7 @@ import (
 // in the source is `\\%#=` in the value and a regex over the text would carry
 // the wrong one into the C.
 const nfaOldCompile = "    regexp_engine = p_re;\n" +
-	"\n" +
-	"    if ( strncmp((char *)(expr), (char *)(\"\\\\%#=\"), (4))  == 0)\n" +
+	"    if (strncmp((char *)(expr), (char *)(\"\\\\%#=\"), (4)) == 0)\n" +
 	""
 
 const nfaNewCompile = "    rex.reg_buf = curbuf;\n" +
@@ -22,7 +21,7 @@ const nfaNewCompile = "    rex.reg_buf = curbuf;\n" +
 	"    if (prog != NULL)\n" +
 	"    {\n" +
 	"        prog->re_engine = BACKTRACKING_ENGINE;\n" +
-	"        prog->re_flags  = re_flags;\n" +
+	"        prog->re_flags = re_flags;\n" +
 	"    }\n" +
 	"\n" +
 	"    return prog;\n" +
@@ -34,7 +33,7 @@ const nfaIsland = "static regengine_T nfa_regengine =\n" +
 	"    nfa_regcomp,\n" +
 	"    nfa_regfree,\n" +
 	"    nfa_regexec_nl,\n" +
-	"    nfa_regexec_multi\n" +
+	"    nfa_regexec_multi,\n" +
 	"};\n" +
 	"\n" +
 	""
@@ -46,7 +45,6 @@ const nfaMagic = "    if (prog->engine == &nfa_regengine)\n" +
 	"    {\n" +
 	"        return FALSE;\n" +
 	"    }\n" +
-	"\n" +
 	""
 
 const nfaTail = "\n    return prog;\n}\n"

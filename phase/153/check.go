@@ -47,7 +47,7 @@ func Check(w io.Writer, args []string) error {
 			r.Bad("a row's variable is not nullptr or the address of a variable: %s", v[1])
 		}
 	}
-	if n := len(regexp.MustCompile(`\bfree_one_termoption\(`).FindAllString(c.Old, -1)); n != 2 || !strings.Contains(c.Old, "free_one_termoption( ( term_strings[(int)(KS_CCO)] ) );") {
+	if n := len(regexp.MustCompile(`\bfree_one_termoption\(`).FindAllString(c.Old, -1)); n != 2 || !strings.Contains(c.Old, "free_one_termoption((term_strings[(int)(KS_CCO)]));") {
 		r.Bad("free_one_termoption() is not its definition and one call with term_strings[KS_CCO]")
 	}
 	if regexp.MustCompile(`\(char_u \*\*?\)\s*&\s*\(?\s*term_strings|=\s*\(char_u \*\)\s*&\s*\(?\s*term_strings`).MatchString(c.Old) {

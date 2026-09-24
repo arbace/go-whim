@@ -87,7 +87,7 @@ func OneOptSet(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	text, err = e.inFunction(text, "do_ecmd", func(s []byte) ([]byte, error) {
-		return e.literal(s, "            do_modelines(OPT_WINONLY);\n\n", "",
+		return e.literal(s, "            do_modelines(OPT_WINONLY);\n", "",
 			"editing a file applying its window modelines", 1)
 	})
 	if err != nil {

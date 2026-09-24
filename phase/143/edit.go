@@ -23,8 +23,8 @@ import (
 func init() { edit.Register("whim143", Edit) }
 
 const (
-	w143DelimHead = "                case 't':\ndelimiter_atom:\n"
-	w143Tail      = "\n                    break;\n"
+	w143DelimHead = "            case 't':\n            delimiter_atom:\n"
+	w143Tail      = "\n                break;\n"
 	w143Magic     = "((int)('[') - 256)"
 )
 
@@ -50,7 +50,10 @@ func W143Helper(block string) string {
 			b.WriteString("\n")
 			continue
 		}
-		b.WriteString(strings.TrimPrefix(l, strings.Repeat(" ", 20)) + "\n")
+		// Sixteen, not twenty: the canonical text writes the block's statements
+		// at twenty columns inside a case at twelve, and the helper's body sits
+		// at four.
+		b.WriteString(strings.TrimPrefix(l, strings.Repeat(" ", 16)) + "\n")
 	}
 	b.WriteString("    return ret;\n}\n\n")
 	return b.String()
@@ -86,7 +89,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("the delimiter_atom label is not where this phase expects it")
 	}
 	bo := h + len(w143DelimHead)
-	if !strings.HasPrefix(s[bo:], "                    {\n") {
+	if !strings.HasPrefix(s[bo:], "                {\n") {
 		return nil, p.Die("delimiter_atom does not label a block")
 	}
 	bs := cutil.Blank([]byte(s))
@@ -94,12 +97,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if bc < 0 || !strings.HasPrefix(s[bc+1:], w143Tail) {
 		return nil, p.Die("the delimiter block does not end in a break")
 	}
-	Inner := s[bo+len("                    {\n") : bc]
-	Inner = strings.TrimSuffix(Inner, "                    ")
+	Inner := s[bo+len("                {\n") : bc]
+	Inner = strings.TrimSuffix(Inner, "                ")
 	helper := W143Helper(Inner)
-	s = s[:h] + "                case 't':\n" + W143Call("                    ") + s[bc+1+len(w143Tail):]
+	s = s[:h] + "            case 't':\n" + W143Call("                ") + s[bc+1+len(w143Tail):]
 	n := 0
-	for _, ind := range []string{"                ", "                        "} {
+	for _, ind := range []string{"                ", "                    "} {
 		g := "\n" + ind + "goto delimiter_atom;\n"
 		if strings.Count(s, g) == 1 {
 			s = strings.Replace(s, g, "\n"+W143Call(ind), 1)
@@ -113,24 +116,24 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// 2. the multibyte node
 	mbGoto := "            c = getchr();\n            goto do_multibyte;\n"
-	mbLabel := "do_multibyte:\n                ret = regnode(MULTIBYTECODE);\n                regmbc(c);\n                *flagp |= HASWIDTH | SIMPLE;\n                break;\n"
+	mbLabel := "            do_multibyte:\n                ret = regnode(MULTIBYTECODE);\n                regmbc(c);\n                *flagp |= HASWIDTH | SIMPLE;\n                break;\n"
 	if strings.Count(s, mbGoto) != 1 || strings.Count(s, mbLabel) != 1 {
 		return nil, p.Die("the do_multibyte jump or label is not what this phase expects")
 	}
 	s = strings.Replace(s, mbGoto, "            c = getchr();\n            ret = regnode(MULTIBYTECODE);\n            regmbc(c);\n            *flagp |= HASWIDTH | SIMPLE;\n            break;\n", 1)
-	s = strings.Replace(s, mbLabel, strings.TrimPrefix(mbLabel, "do_multibyte:\n"), 1)
+	s = strings.Replace(s, mbLabel, strings.TrimPrefix(mbLabel, "            do_multibyte:\n"), 1)
 	p.Say("`.` with a composing character makes its multibyte node where it was")
 
 	// 3. the collection
 	colGoto := "            goto collection;\n"
-	colLabel := "      case  " + w143Magic + " :\ncollection:\n"
+	colLabel := "    case " + w143Magic + ":\n    collection:\n"
 	if strings.Count(s, colGoto) != 1 || strings.Count(s, colLabel) != 1 {
 		return nil, p.Die("the collection jump or label is not what this phase expects")
 	}
 	s = strings.Replace(s, colGoto, "            sw = "+w143Magic+";\n            continue;\n", 1)
-	s = strings.Replace(s, colLabel, "      case  "+w143Magic+" :\n", 1)
+	s = strings.Replace(s, colLabel, "    case "+w143Magic+":\n", 1)
 	head := "    c = getchr();\n    switch (c)\n    {\n"
-	tail := "\n    }\n\n    return ret;\n}"
+	tail := "\n    }\n    return ret;\n}"
 	hi := strings.Index(s, head)
 	if hi < 0 || !strings.HasSuffix(strings.TrimRight(s, "\n"), strings.TrimPrefix(tail, "\n")) {
 		return nil, p.Die("regatom()'s switch is not where this phase expects it")
@@ -146,12 +149,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	s = s[:hi] + "    c = getchr();\n    sw = c;\n    for (;;)\n    {\n        switch (sw)\n        {\n" +
-		strings.TrimSuffix(ib.String(), "\n") + "\n        }\n        break;\n    }\n\n    return ret;\n}" + s[ti+len(tail):]
-	decl := "    int             c;\n"
+		strings.TrimSuffix(ib.String(), "\n") + "\n        }\n        break;\n    }\n    return ret;\n}" + s[ti+len(tail):]
+	decl := "    int c;\n"
 	if strings.Count(s, decl) != 1 {
 		return nil, p.Die("regatom()'s c is not declared where this phase expects")
 	}
-	s = strings.Replace(s, decl, decl+"    int             sw;\n", 1)
+	s = strings.Replace(s, decl, decl+"    int sw;\n", 1)
 	if strings.Contains(s, "goto ") || strings.Contains(s, "collection:") {
 		return nil, p.Die("regatom() still jumps")
 	}

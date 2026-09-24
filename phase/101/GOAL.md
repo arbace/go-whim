@@ -52,19 +52,20 @@ prototype, and a function defined above its only call needs none), `vim_main2` 2
 (untouched). `\b` does not match inside `main_loop`, `main_errors` or `vim_main2`, and a
 substring grep does.
 
-## A fossil goes with it, and it turns out not to be cosmetic
+## A fossil went before this phase, and it turns out not to have been cosmetic
 
-`main()`'s head was spelled over **three** lines because upstream had an `#ifdef`
+`main()`'s head used to be spelled over **three** lines because upstream had an `#ifdef`
 between the name and the argument list, giving MS-Windows a different signature; slim's
-phase 5 took the conditional and left the line break. Every other function in this file
-spells its head over two, so `vim_main` gets the ordinary shape and the new `main` gets
-it too.
+phase 5 took the conditional and left the line break. **Phase 0's canonical text writes
+one shape per construct**, so the break is gone before this phase is handed anything:
+the head arrives in the two-line shape every other function here has, `vim_main` keeps
+it and the new `main` gets it too.
 
-**Measured: `tools/funcreach.py`'s definition finder never matched the three-line head.**
-`main` had never been one of the definitions it counts — its `{'main'}` root was a name
-added by hand to a set that did not contain it. So 1,755 definitions become **1,757**
-for one new function, and the second is `main` itself, seen for the first time. All
-1,757 are reachable.
+What the fossil cost is now simply absent. `tools/funcreach.py`'s definition finder
+never matched a three-line head, so `main` was never one of the definitions it counted —
+its `{'main'}` root was a name added by hand to a set that did not contain it. It
+matches every head in the canonical text, so this phase adds **two** definitions to what
+it counts and one of them is `main` itself, seen for the first time. All are reachable.
 
 ## The evidence is every way the editor can end
 
@@ -116,7 +117,7 @@ Ex-command rows, 30 of 30 command lines.
 
 | | input | after |
 | --- | --- | --- |
-| lines | 80,423 | **80,428** (+5) |
+| lines | (the canonical text's) | **+6** — the launcher, the head being the shape it already had |
 | functions `funcreach` counts | 1,755 | **1,757** — one new, and `main` seen at last |
 | type definitions | 907 | 907 |
 | `nm -u`, as `phasecheck.sh` counts it | 33 | **33, identical as a `cmp`** |
@@ -134,14 +135,13 @@ Ex-command rows, 30 of 30 command lines.
 owes.
 
 **`need 101 swept` is not required.** Both anchors are exact text at a counted
-occurrence — the three-line head, and the file's last two lines — and neither is text a
+occurrence — `main()`'s head, and the file's last two lines — and neither is text a
 sweep has ever touched.
 
 **`apart 100 101`, measured.** Phase 100's check requires the file to have lost **exactly
-nine** lines and this phase adds five, so on a shared stage the one swept text 17's
-check is handed is four lines shorter than its input rather than nine:
-`tools/phaserun.sh 100-101` on q99 reports *"the file lost 4 lines, expected 9"* and
-exits 1. It is `apart 99 100`'s shape in **one** direction only — phase 101's own check
+nine** lines and this phase adds six, so on a shared stage the one swept text 17's
+check is handed is shorter by the difference rather than by nine, and the check refuses
+with *"the file lost N lines, expected 9"*. It is `apart 99 100`'s shape in **one** direction only — phase 101's own check
 compares against the text *its* edit was handed, which is 100's output either way, so it
 passes on a 100-101 stage.
 

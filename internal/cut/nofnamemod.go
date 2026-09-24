@@ -30,9 +30,9 @@ var fnameModFeeders = []struct {
 	pat, what string
 	n         int
 }{
-	{`(?m)^[ \t]*int         tilde_file = FALSE;\n`, "tilde_file's declaration", 1},
-	{`(?m)^[ \t]*int         skip_mod = FALSE;\n`, "skip_mod's declaration", 1},
-	{`(?m)^[ \t]*tilde_file =  strcmp\(\(char \*\)\(result\), \(char \*\)\("~"\)\)  == 0;\n`,
+	{`(?m)^[ \t]*int tilde_file = FALSE;\n`, "tilde_file's declaration", 1},
+	{`(?m)^[ \t]*int skip_mod = FALSE;\n`, "skip_mod's declaration", 1},
+	{`(?m)^[ \t]*tilde_file = strcmp\(\(char \*\)\(result\), \(char \*\)\("~"\)\) == 0;\n`,
 		"a tilde_file assignment", 2},
 	{`(?m)^[ \t]*skip_mod = TRUE;\n`, "skip_mod's assignment", 1},
 }

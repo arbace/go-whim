@@ -361,7 +361,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"and the note in add_time")
 
 	// ---- 3: find_ex_command ----------------------------------------------------
-	e.Lines(`int         vim9 = FALSE;`, 1, "the Vim9 flag nothing sets")
+	e.Lines(`int vim9 = FALSE;`, 1, "the Vim9 flag nothing sets")
 	e.FoldNever(`(?m)^[ \t]*if \(vim9 && eap->cmdidx != CMD_SIZE\)$`,
 		"the Vim9 whole-name check, the one reader of the name length")
 	e.Term("if (!vim9 && *eap->cmd == 'd' && ", "if (*eap->cmd == 'd' && ", 1,
@@ -380,7 +380,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	e.FoldNever(`(?m)^[ \t]*if \(eap->cmd\[0\] == 'p' && eap->cmd\[1\] == 'y'\)$`,
 		"no command left is spelled with a digit: not :py3")
-	e.FoldNever(`(?m)^[ \t]*if \(\*p == '9' &&  strncmp\(\(char \*\)\("vim9"\), \(char \*\)\(eap->cmd\), \(4\)\)  == 0\)$`,
+	e.FoldNever(`(?m)^[ \t]*if \(\*p == '9' && strncmp\(\(char \*\)\("vim9"\), \(char \*\)\(eap->cmd\), \(4\)\) == 0\)$`,
 		"and not :vim9cmd")
 	if e.Failed() {
 		return e.Done()
@@ -395,7 +395,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, e.Refused("the index lookup head occurs %d times", k)
 	}
 	a := strings.Index(t, w80Head)
-	loop := strings.Index(t[a:], "        for ( ; (int)eap->cmdidx < (int)CMD_SIZE;")
+	loop := strings.Index(t[a:], "        for (; (int)eap->cmdidx < (int)CMD_SIZE;")
 	if loop < 0 {
 		return nil, e.Refused("the lookup span does not contain its for loop")
 	}
@@ -413,8 +413,12 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			return nil, e.Refused("the lookup span does not contain %s -- it is not the block it was", need)
 		}
 	}
-	if k := strings.Count(oldSpan, "\n"); k != 33 {
-		return nil, e.Refused("the lookup span is %d lines, expected 33", k)
+	// Thirty lines, re-measured on the canonical text: the span's ends are the
+	// head and its for loop's matching brace, and the six words above say it is
+	// the block it was.  The count is the tree's, and the canonical form writes
+	// the same block without the three blank lines the residue had.
+	if k := strings.Count(oldSpan, "\n"); k != 30 {
+		return nil, e.Refused("the lookup span is %d lines, expected 30", k)
 	}
 	e.Set([]byte(t[:a] + w80lit9 + t[z:]))
 	e.Say(fmt.Sprintf("the lookup: a prefix at least as long as the row says, over %d rows", len(minlen)))
@@ -424,20 +428,26 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// ---- 4: do_one_cmd ---------------------------------------------------------
 	e.FoldNever(`(?m)^[ \t]*if \(ea\.cmdidx == CMD_wincmd && p != NULL\)$`, ":wincmd has no address type to find")
-	e.FoldAlwaysCount(`(?m)^[ \t]*if \(! \(\(int\)\(ea\.cmdidx\) < 0\) \)$`, 3, "a command index is never a user command")
-	e.Term("ea.cmd[0] == 78 && ! ((int)(ea.cmdidx) < 0) )", "ea.cmd[0] == 78)", 1, "nor in the Ni! test")
-	e.Term("ea.cmdidx != CMD_checktime && ea.cmdidx != CMD_edit && ea.cmdidx != CMD_file && ! ((int)(ea.cmdidx) < 0)  && curbuf_locked()",
+	e.FoldAlwaysCount(`(?m)^[ \t]*if \(!\(\(int\)\(ea\.cmdidx\) < 0\)\)$`, 3, "a command index is never a user command")
+	e.Term("ea.cmd[0] == 78 && !((int)(ea.cmdidx) < 0))", "ea.cmd[0] == 78)", 1, "nor in the Ni! test")
+	e.Term("ea.cmdidx != CMD_checktime && ea.cmdidx != CMD_edit && ea.cmdidx != CMD_file && !((int)(ea.cmdidx) < 0) && curbuf_locked()",
 		"ea.cmdidx != CMD_edit && ea.cmdidx != CMD_file && curbuf_locked()", 1,
 		"nor in the locked-buffer exemptions, which lose :checktime")
-	e.Term("*ea.arg != NUL && (! ((int)(ea.cmdidx) < 0)  || *ea.arg != '=') && !((ea.argt",
+	e.Term("*ea.arg != NUL && (!((int)(ea.cmdidx) < 0) || *ea.arg != '=') && !((ea.argt",
 		"*ea.arg != NUL && !((ea.argt", 1, "nor in the register argument test")
-	e.Term("(! ((int)(ea.cmdidx) < 0)  && ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput)",
+	e.Term("(!((int)(ea.cmdidx) < 0) && ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput)",
 		"(ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput)", 1, "nor in which registers may be written")
-	e.FoldNever(`(?m)^[ \t]*if \( \(\(int\)\(eap->cmdidx\) < 0\) \)$`, "nor in a % range over windows")
+	e.FoldNever(`(?m)^[ \t]*if \(\(\(int\)\(eap->cmdidx\) < 0\)\)$`, "nor in a % range over windows")
 
-	e.Lines(`ni = \(! \(\(int\)\(ea\.cmdidx\) < 0\)  && \(cmdnames\[ea\.cmdidx\]\.cmd_func == ex_ni \|\| cmdnames\[ea\.cmdidx\]\.cmd_func == ex_script_ni\)\);`,
+	e.Lines(`ni = \(!\(\(int\)\(ea\.cmdidx\) < 0\) && \(cmdnames\[ea\.cmdidx\]\.cmd_func == ex_ni \|\| cmdnames\[ea\.cmdidx\]\.cmd_func == ex_script_ni\)\);`,
 		1, "the stub flag, which no row can raise")
-	e.Lines(`int         ni;`, 1, "and its declaration")
+	// `int ni;` is do_one_cmd's; readfile has one too, and the residue told them
+	// apart by the padding that aligned the declaration.  The canonical text
+	// writes one space, so the function is the discriminator, and the count
+	// stays 1.
+	e.InFunction("do_one_cmd", func(e *edit.E) {
+		e.Lines(`int ni;`, 1, "and its declaration")
+	})
 	e.Term("(!ni && ", "(", 4, "range, bang, extra-argument and required-argument checks apply to every command")
 	e.Term("&& !ni && ", "&& ", 2, "and the range and count checks")
 	e.Term("getargopt(&ea) == FAIL && !ni)", "getargopt(&ea) == FAIL)", 1, "and ++opt parsing")
@@ -453,7 +463,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"else if (ea.cmdidx == CMD_global", 1, "the commands that take the whole line are :g and :v")
 	e.Term("else if (*p == '\\n' && !(ea.argt & EX_EXPR_ARG))", "else if (*p == '\\n')", 1,
 		"and none takes an expression")
-	e.Term("  && (!(ea.argt & EX_BUFNAME) || *(p = skipdigits(ea.arg + 1)) == NUL ||  ((*p) == ' ' || (*p) == '\\t') ))",
+	e.Term(" && (!(ea.argt & EX_BUFNAME) || *(p = skipdigits(ea.arg + 1)) == NUL || ((*p) == ' ' || (*p) == '\\t')))",
 		")", 1, "a count is never a buffer name")
 	e.FoldNever(`(?m)^[ \t]*if \(ea\.cmdidx == CMD_try && cmdmod\.cmod_did_esilent > 0\)$`, ":try is not a command")
 	if e.Failed() {
@@ -521,23 +531,28 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if e.Failed() {
 		return e.Done()
 	}
-	// THE INDEX IS THE ONE THE FILE HAD BEFORE THE ENUM SHRANK, deliberately: the
-	// Python holds tab_start from step 1 and every act since has moved the text
-	// under it.  A port that recomputed it would assert something else.
+	// THE TABLE IS FOUND AGAIN, on the text as it now stands.  The Python held
+	// tab_start from step 1 and every act since had moved the text under it, so
+	// what it scanned was whatever that stale offset happened to land on -- on
+	// the canonical text it lands below the table, on rows of another kind that
+	// still say ADDR_BUFFERS, and the assertion fires for a reason that has
+	// nothing to do with cmdnames[].  What the assertion is FOR is that no
+	// SURVIVING ROW carries one of the seven address types this phase removes,
+	// and that is what it asks now: the table as it is, found by its own header.
 	t = string(e.Text())
-	if tabStart < len(t) {
-		if end := strings.Index(t[tabStart:], w80lit12); end >= 0 {
-			var bad []string
-			for _, a := range regexp.MustCompile(`ADDR_\w+`).FindAllString(t[tabStart:tabStart+end], -1) {
-				if w80DeadAddr[a] && !edit.Contains(bad, a) {
-					bad = append(bad, a)
-				}
-			}
-			if len(bad) > 0 {
-				sort.Strings(bad)
-				return nil, e.Refused("a live row has one of the address types being removed: %v", bad)
-			}
+	mt2 := edit.W80Table.FindStringSubmatchIndex(t)
+	if mt2 == nil {
+		return nil, e.Refused("cmdnames[] is gone before its address types were checked")
+	}
+	var bad []string
+	for _, a := range regexp.MustCompile(`ADDR_\w+`).FindAllString(t[mt2[2]:mt2[3]], -1) {
+		if w80DeadAddr[a] && !edit.Contains(bad, a) {
+			bad = append(bad, a)
 		}
+	}
+	if len(bad) > 0 {
+		sort.Strings(bad)
+		return nil, e.Refused("a live row has one of the address types being removed: %v", bad)
 	}
 	L := strings.Split(t, "\n")
 	var Out []string

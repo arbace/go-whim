@@ -88,7 +88,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 		if s, err = e.subOnce(s,
 			`^[ \t]*if \(set_options\)\n[ \t]*\{\n[ \t]*if \(!read_buffer\)\n[ \t]*\{\n`+
 				`[ \t]*curbuf->b_p_eof = FALSE;\n[ \t]*curbuf->b_start_eof = FALSE;\n`+
-				`[ \t]*curbuf->b_p_eol = TRUE;\n[ \t]*curbuf->b_start_eol = TRUE;\n[ \t]*\}\n[ \t]*\}\n\n`,
+				`[ \t]*curbuf->b_p_eol = TRUE;\n[ \t]*curbuf->b_start_eol = TRUE;\n[ \t]*\}\n[ \t]*\}\n`,
 			"readfile resetting 'endofline' and 'endoffile'"); err != nil {
 			return nil, err
 		}
@@ -111,7 +111,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 		}
 		if s, err = e.subOnce(s,
 			`^[ \t]*if \(\*p_ffs == NUL\)\n[ \t]*\{\n[ \t]*fileformat = get_fileformat\(curbuf\);\n[ \t]*\}\n`+
-				`[ \t]*else\n[ \t]*\{\n[ \t]*fileformat =  \(-1\) ;\n[ \t]*\}\n`,
+				`[ \t]*else\n[ \t]*\{\n[ \t]*fileformat = \(-1\);\n[ \t]*\}\n`,
 			"readfile choosing between 'fileformat' and detection"); err != nil {
 			return nil, err
 		}
@@ -134,7 +134,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 		// The Python spells that as a LOOKAHEAD; RE2 has none, and inlining it
 		// is exact here because Guarded uses only the match's START.
 		if s, err = e.foldNever(s,
-			`^[ \t]*if \(fileformat ==  \(-1\) \)\n[ \t]*\{\n[ \t]*if \(try_dos \|\| try_unix\)$`,
+			`^[ \t]*if \(fileformat == \(-1\)\)\n[ \t]*\{\n[ \t]*if \(try_dos \|\| try_unix\)$`,
 			"readfile detecting DOS and Mac line ends"); err != nil {
 			return nil, err
 		}
@@ -175,9 +175,10 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 	text, err = e.inFunction(text, "buf_write", func(s []byte) ([]byte, error) {
 		var err error
 		if s, err = e.subOnce(s,
-			`^[ \t]*if \(eap != NULL && eap->force_bin != 0\)\n[ \t]*\{\n`+
+			`^[ \t]*if \(eap != NULL && eap->force_bin != 0\)\n`+
+				`[ \t]*\{\n`+
 				`[ \t]*write_bin = \(eap->force_bin == FORCE_BIN\);\n`+
-				`[ \t]*\}\n[ \t]*else\n[ \t]*\{\n[ \t]*write_bin = buf->b_p_bin;\n[ \t]*\}\n\n`,
+				`[ \t]*\}\n[ \t]*else\n[ \t]*\{\n[ \t]*write_bin = buf->b_p_bin;\n[ \t]*\}\n`,
 			"buf_write choosing 'binary' or ++bin"); err != nil {
 			return nil, err
 		}
@@ -260,7 +261,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 	}
 	if text, err = e.inFunction(text, "get_varp", func(s []byte) ([]byte, error) {
 		return e.subCount(s,
-			`^[ \t]*case   \(idopt_T\)\(PV_BUF \+ \(int\)\(BV_EO[LF]\)\)  :\n`+
+			`^[ \t]*case \(idopt_T\)\(PV_BUF \+ \(int\)\(BV_EO[LF]\)\):\n`+
 				`[ \t]*return \(char_u \*\)&\(curbuf->b_p_eo[lf]\);\n`,
 			"get_varp handing out 'endofline' and 'endoffile'", 2)
 	}); err != nil {
@@ -271,7 +272,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 	if text, err = e.inFunction(text, "set_init_1", func(s []byte) ([]byte, error) {
-		return e.literal(s, "    save_file_ff(curbuf);\n\n", "",
+		return e.literal(s, "    save_file_ff(curbuf);\n", "",
 			"startup saving the format of the first buffer", 1)
 	}); err != nil {
 		return nil, err
@@ -339,22 +340,21 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 	}
 	if text, err = e.inFunction(text, "ml_open", func(s []byte) ([]byte, error) {
 		return e.subOnce(s,
-			`^[ \t]*b0p-> b0_fname\[B0_FNAME_SIZE_ORG - 2\]  = get_fileformat\(buf\) \+ 1;\n`,
+			`^[ \t]*b0p->b0_fname\[B0_FNAME_SIZE_ORG - 2\] = get_fileformat\(buf\) \+ 1;\n`,
 			"block 0 recording the format")
 	}); err != nil {
 		return nil, err
 	}
 	if text, err = e.inFunction(text, "ml_setflags", func(s []byte) ([]byte, error) {
 		return e.subOnce(s,
-			`^[ \t]*b0p-> b0_fname\[B0_FNAME_SIZE_ORG - 2\]  = \(b0p-> b0_fname\[B0_FNAME_SIZE_ORG - 2\]  & ~B0_FF_MASK\)\n`+
-				`[ \t]*\| \(get_fileformat\(buf\) \+ 1\);\n`,
+			`^[ \t]*b0p->b0_fname\[B0_FNAME_SIZE_ORG - 2\] = \(b0p->b0_fname\[B0_FNAME_SIZE_ORG - 2\] & ~B0_FF_MASK\) \| \(get_fileformat\(buf\) \+ 1\);\n`,
 			"block 0 updating the format")
 	}); err != nil {
 		return nil, err
 	}
 	if text, err = e.inFunction(text, "set_init_3", func(s []byte) ([]byte, error) {
 		return e.dropIf(s,
-			`^[ \t]*if \( \(curbuf->b_ml\.ml_line_count == 1 && \*ml_get\(\(linenr_T\)1\) == NUL\) \)$`,
+			`^[ \t]*if \(\(curbuf->b_ml\.ml_line_count == 1 && \*ml_get\(\(linenr_T\)1\) == NUL\)\)$`,
 			"startup applying 'fileformats' to an empty buffer")
 	}); err != nil {
 		return nil, err
@@ -363,13 +363,13 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = e.inFunction(text, "getargopt", func(s []byte) ([]byte, error) {
 		var err error
 		if s, err = e.dropIf(s,
-			`^[ \t]*if \( strncmp\(\(char \*\)\(arg\), \(char \*\)\("bin"\), \(3\)\)  == 0 \|\|  strncmp\(\(char \*\)\(arg\), \(char \*\)\("nobin"\), \(5\)\)  == 0\)$`,
+			`^[ \t]*if \(strncmp\(\(char \*\)\(arg\), \(char \*\)\("bin"\), \(3\)\) == 0 \|\| strncmp\(\(char \*\)\(arg\), \(char \*\)\("nobin"\), \(5\)\) == 0\)$`,
 			"++bin and ++nobin"); err != nil {
 			return nil, err
 		}
 		for _, f := range []struct{ pat, what string }{
-			{`^[ \t]*if \( strncmp\(\(char \*\)\(arg\), \(char \*\)\("ff"\), \(2\)\)  == 0\)$`, "++ff"},
-			{`^[ \t]*if \( strncmp\(\(char \*\)\(arg\), \(char \*\)\("fileformat"\), \(10\)\)  == 0\)$`,
+			{`^[ \t]*if \(strncmp\(\(char \*\)\(arg\), \(char \*\)\("ff"\), \(2\)\) == 0\)$`, "++ff"},
+			{`^[ \t]*if \(strncmp\(\(char \*\)\(arg\), \(char \*\)\("fileformat"\), \(10\)\) == 0\)$`,
 				"++fileformat"},
 			{`^[ \t]*if \(pp == &eap->force_ff\)$`, "++ff checking its value"},
 		} {

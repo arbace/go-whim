@@ -85,7 +85,7 @@ func init() { check.Register("whim100", Check) }
 // The instrument's anchors.  Each must occur exactly once or the zero it
 // measures is a probe that cannot fail.
 const (
-	z17Enter = "    ++entered;\n\n    block_autocmds();\n"
+	z17Enter = "    ++entered;\n    block_autocmds();\n"
 	z17Mark  = "    ++entered;\n" +
 		"\n" +
 		"    {\n" +
@@ -100,9 +100,9 @@ const (
 		"    block_autocmds();\n"
 	z17Ladder      = "    if (entered >= 3)\n    {\n        reset_signals();\n"
 	z17LadderMark  = "    if (entered >= 3)\n    {\n        (void)write(2, \"DTLADDER\\n\", 9);\n        reset_signals();\n"
-	z17Preserve    = "preserve_exit(void)\n{\n\n    prepare_to_exit();\n"
+	z17Preserve    = "preserve_exit(void)\n{\n    prepare_to_exit();\n"
 	z17PreserveR   = "preserve_exit(void)\n{\n\n    raise(SIGHUP);\n\n    prepare_to_exit();\n"
-	z17Double      = "    if (entered == 2)\n    {\n         out_str((char_u *)(\"Vim: Double signal, exiting\\n\")) ;\n"
+	z17Double      = "    if (entered == 2)\n    {\n        out_str((char_u *)(\"Vim: Double signal, exiting\\n\"));\n"
 	z17DoubleR     = "    if (entered == 2)\n    {\n        raise(SIGTERM);\n         out_str((char_u *)(\"Vim: Double signal, exiting\\n\")) ;\n"
 	z17Flags       = "            sa.sa_flags = 0;\n"
 	z17FlagsNodef  = "            sa.sa_flags = SA_NODEFER;\n"
@@ -110,7 +110,7 @@ const (
 	z17BeforeLR    = "    full_screen = FALSE;\n    if (entered == 3)\n    {\n        raise(SIGHUP);\n    }\n    if (entered >= 3)\n"
 	z17LadderWhole = "    if (entered >= 3)\n    {\n        reset_signals();\n        if (entered >= 4)\n        {\n            _exit(8);\n        }\n        exit(7);\n    }\n"
 	z17Table       = "} signal_info[] =\n{\n    {SIGHUP,        \"HUP\",      TRUE},\n    {SIGTERM,       \"TERM\",     TRUE},\n    {SIGINT,        \"INT\",      FALSE},\n    {SIGWINCH,      \"WINCH\",    FALSE},\n    {SIGTSTP,       \"TSTP\",     FALSE},\n    {-1,            \"Unknown!\", FALSE}\n};\n"
-	z17Install     = "        if (signal_info[i].deadly)\n        {\n            struct sigaction sa;\n\n            sa.sa_handler = func_deadly;\n            sigemptyset(&sa.sa_mask);\n            sa.sa_flags = 0;\n            sigaction(signal_info[i].sig, &sa, NULL);\n        }\n"
+	z17Install     = "        if (signal_info[i].deadly)\n        {\n            struct sigaction sa;\n            sa.sa_handler = func_deadly;\n            sigemptyset(&sa.sa_mask);\n            sa.sa_flags = 0;\n            sigaction(signal_info[i].sig, &sa, NULL);\n        }\n"
 )
 
 var z17Builds = []string{"in_mark", "in_forced", "in_nodefer3", "in_nodefer4", "out_forced"}

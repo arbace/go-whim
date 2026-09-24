@@ -83,8 +83,20 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	arm("parse_cmd_address", w69lit3, w69lit4, "an argument range in a command line", 1)
 	arm("address_default_all", w69lit5, w69lit6, "an argument range with no range given", 1)
 	arm("default_address", w69lit7, w69lit8, "the default line for an argument range", 1)
-	arm("get_address", w69lit9, w69lit10, "an argument range parsed from an address", 2)
-	arm("get_address", w69lit11, w69lit10, "the last line of an argument range", 1)
+	// THE TWO ARMS IN get_address ARE AT TWO DEPTHS.  The macro expander used
+	// to leave both at the same column, so one literal matched them; on a text
+	// that indents by structure they differ, and the arm is written with its
+	// own indentation carried through.  Both counts are what they were.
+	argArm := func(body, what string, n int) {
+		e.InFunction("get_address", func(e *edit.E) {
+			e.Sub(`(?m)^([ \t]*)case ADDR_ARGUMENTS:\n`+body,
+				"${1}case ADDR_ARGUMENTS:\n${1}    lnum = 0;\n${1}    break;\n", n, what)
+		})
+	}
+	argArm(`[ \t]*lnum = curwin->w_arg_idx \+ 1;\n[ \t]*break;\n`,
+		"an argument range parsed from an address", 2)
+	argArm(`[ \t]*lnum = \(\(curwin\)->w_alist->al_ga\.ga_len\);\n[ \t]*break;\n`,
+		"the last line of an argument range", 1)
 	arm("invalid_range", w69lit12, w69lit13, "an argument range checked for validity", 1)
 
 	// 3b. the readers with live callers.  check_arg_idx() is called from six
@@ -106,9 +118,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// main() takes the first entry's name into params.fname and never reads it:
 	// the WHOLE guarded assignment goes, not just the line, or alist_name
 	// outlives the list.
-	e.Cut(`(?m)^[ \t]*if \( \(global_alist\.al_ga\.ga_len\)  > 0\)\n[ \t]*\{\n[ \t]*params\.fname = alist_name\(& \(\(aentry_T \*\)global_alist\.al_ga\.ga_data\) \[0\]\);\n[ \t]*\}\n`, 1,
+	e.Cut(`(?m)^[ \t]*if \(\(global_alist\.al_ga\.ga_len\) > 0\)\n[ \t]*\{\n[ \t]*params\.fname = alist_name\(&\(\(aentry_T \*\)global_alist\.al_ga\.ga_data\)\[0\]\);\n[ \t]*\}\n`, 1,
 		"main taking the first argument as the file name")
-	e.Cut(`(?m)^[ \t]*char_u[ \t]+\*fname;\n\n`, 1, "mparm_T's unread fname")
+	// mparm_T's field, and no other `char_u *fname;`: the blank line that used
+	// to tell them apart is not in a canonical text, so the field above it is.
+	e.Sub(`(?m)^([ \t]*char \*\*argv;\n)[ \t]*char_u[ \t]+\*fname;\n`, "${1}", 1,
+		"mparm_T's unread fname")
 
 	// The list itself: initialised at startup and pointed at by the one window.
 	// These are the last two mentions, and without them alist_init,
@@ -132,7 +147,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"the argument entry type")
 
 	// and the count message, which one file argument can never satisfy
-	e.Cut(`(?m)^[ \t]*if \( \(global_alist\.al_ga\.ga_len\)  > 1 && !silent_mode\)\n[ \t]*\{\n[ \t]*printf\(_\("%d files to edit\\n"\),  \(global_alist\.al_ga\.ga_len\) \);\n[ \t]*\}\n\n?`, 1,
+	e.Cut(`(?m)^[ \t]*if \(\(global_alist\.al_ga\.ga_len\) > 1 && !silent_mode\)\n[ \t]*\{\n[ \t]*printf\(_\("%d files to edit\\n"\), \(global_alist\.al_ga\.ga_len\)\);\n[ \t]*\}\n\n?`, 1,
 		"the \"N files to edit\" message at startup")
 	return e.Done()
 }

@@ -458,9 +458,9 @@ func Check(w io.Writer, args []string) error {
 	}
 
 	// THE MOVE IS A MOVE.  Every line of the output is a line of the input
-	// except the 32 this phase writes, and not one line of the input is
-	// missing.  A phase that moved code and altered a character of it on the
-	// way could not state this.
+	// except the 32 this phase writes, and no line of the input is missing
+	// except the blank ones an emptied paragraph left doubled.  A phase that
+	// moved code and altered a character of it on the way could not state this.
 	cn, co := z27Count(N), z27Count(O)
 	gone := z27Sub(co, cn)
 	came := z27Sub(cn, co)
@@ -475,9 +475,19 @@ func Check(w io.Writer, args []string) error {
 	}
 	blanks := came[""]
 	delete(came, "")
+	// THE ONE LINE A MOVE MAY LOSE IS A BLANK ONE.  Moving a paragraph out
+	// leaves the blank line above it meeting the blank line below, and the edit
+	// collapses the pair -- it reports the count, and CLAUDE.md allows no run of
+	// two.  So the blank lines are counted here and carried into the arithmetic
+	// below, and EVERY OTHER line of the input must still be in the output: a
+	// phase that moved code and altered a character of it on the way would show
+	// up here, which is what this assertion is for.  Measured on the canonical
+	// text: 15 blank lines and not one other line, where the residue lost none.
+	lost := gone[""]
+	delete(gone, "")
 	if len(gone) > 0 {
-		r.Bad("%d line(s) of the input are not in the output at all, so this is not a "+
-			"move: %s", z27Total(gone), z27Show(gone, 3))
+		r.Bad("%d non-blank line(s) of the input are not in the output at all, so this is "+
+			"not a move: %s", z27Total(gone), z27Show(gone, 3))
 	}
 	unexpected := z27Counter{}
 	for k, v := range came {
@@ -513,10 +523,11 @@ func Check(w io.Writer, args []string) error {
 			beforeLines, len(O)-1)
 	}
 	added := z27Total(written)
-	if len(N)-len(O) != added+blanks {
+	if len(N)-len(O) != added+blanks-lost {
 		r.Bad("the output is %d lines and the input was %d, a difference of %d where %d "+
-			"was expected -- %d written lines and %d blank",
-			len(N)-1, len(O)-1, len(N)-len(O), added+blanks, added, blanks)
+			"was expected -- %d written lines, %d blank and %d blank lines collapsed "+
+			"where an emptied paragraph left two",
+			len(N)-1, len(O)-1, len(N)-len(O), added+blanks-lost, added, blanks, lost)
 	}
 	if rN, rO := check.Z27Runs(N), check.Z27Runs(O); rN != 0 || rO != 0 {
 		r.Bad("runs of two blank lines: %d in the input and %d in the output, and "+

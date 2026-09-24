@@ -298,3 +298,15 @@ func (e *Enumerator) compatibleRedeclaration(f *Enumerator) bool {
 
 	return e.Value() != nil && e.Value() == f.Value()
 }
+
+// Specifiers returns the declaration specifiers an expression statement
+// carries.  `__attribute__((fallthrough));` parses as an expression statement
+// with no expression whose attribute is held here and not in
+// AttributeSpecifierList, and a printer that could not reach it would drop the
+// attribute.
+func (n *ExpressionStatement) Specifiers() *DeclarationSpecifiers {
+	if n == nil {
+		return nil
+	}
+	return n.declarationSpecifiers
+}

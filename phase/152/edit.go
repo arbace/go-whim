@@ -226,9 +226,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p.Say(fmt.Sprintf("the %d rows of options[] name their variable by kind", rows))
 
 	// 2. the type, the fields, the prototypes
-	lit("    char_u      *var;\n    idopt_T     indir;\n", "    optvar_T    var;\n    idopt_T     indir;\n", "vimoption_T.var is an optvar_T", 1)
-	lit("typedef struct\n{\n    char_u      *os_varp;\n", W152Type+"typedef struct\n{\n    optvar_T    os_varp;\n", "and so is optset_T.os_varp, after the type and its helpers", 1)
-	lit("static char_u *get_varp_scope(struct vimoption *p, int scope);\nstatic char_u *get_varp(struct vimoption *);\n",
+	lit("    char_u *var;\n    idopt_T indir;\n", "    optvar_T    var;\n    idopt_T     indir;\n", "vimoption_T.var is an optvar_T", 1)
+	lit("typedef struct\n{\n    char_u *os_varp;\n", W152Type+"typedef struct\n{\n    optvar_T    os_varp;\n", "and so is optset_T.os_varp, after the type and its helpers", 1)
+	lit("static char_u *get_varp_scope(struct vimoption *p, int scope);\n\nstatic char_u *get_varp(struct vimoption *);\n",
 		"static optvar_T get_varp_scope(struct vimoption *p, int scope);\nstatic optvar_T get_varp(struct vimoption *);\n", "get_varp() and get_varp_scope() return one", 1)
 	for _, f := range []string{"get_varp_scope", "get_option_varp_scope", "get_varp"} {
 		lit("    static char_u *\n"+f+"(", "    static optvar_T\n"+f+"(", "", 1)
@@ -259,18 +259,30 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// 4. the window-local global value
 	var cases strings.Builder
-	for _, m := range regexp.MustCompile(`(?m)^        case   \(idopt_T\)\(PV_WIN \+ \(int\)\((WV_\w+)\)\)  :\n            return (optvar_\w+)\(&\(curwin-> w_onebuf_opt\.(\w+) \)\);\n`).FindAllStringSubmatch(s, -1) {
-		fmt.Fprintf(&cases, "        case   (idopt_T)(PV_WIN + (int)(%s))  :\n            return %s(&(curwin-> w_allbuf_opt.%s ));\n", m[1], m[2], m[3])
+	w152Case := regexp.MustCompile(`(?m)^    case \(idopt_T\)\(PV_WIN \+ \(int\)\((WV_\w+)\)\):\n        return (optvar_\w+)\(&\(curwin->w_onebuf_opt\.(\w+)\)\);\n`)
+	for _, m := range w152Case.FindAllStringSubmatch(s, -1) {
+		fmt.Fprintf(&cases, "    case (idopt_T)(PV_WIN + (int)(%s)):\n        return %s(&(curwin->w_allbuf_opt.%s));\n", m[1], m[2], m[3])
 	}
-	lit("        if (p->var ==  ((char_u *)-1) )\n        {\n            return (char_u *) ((char *)(get_varp(p)) + sizeof(winopt_T)) ;\n        }\n",
+	// EVERY WINDOW-LOCAL CASE, AND THAT IS ASSERTED.  The generator writes what
+	// it finds and would write an EMPTY switch if it found nothing -- a
+	// get_varp_allbuf() that answers optvar_none() for every option, which
+	// compiles, sweeps and passes every count in this phase.  The switch it
+	// reads is the one get_varp() has, so the two counts are the same number.
+	nwin := strings.Count(s, "case (idopt_T)(PV_WIN + (int)(")
+	if k := len(w152Case.FindAllString(s, -1)); k != nwin || k == 0 {
+		return nil, p.Die("get_varp() has %d window-local cases and this phase read %d of them -- "+
+			"get_varp_allbuf() is written from what is read, so a case it misses is an "+
+			"option whose global value silently becomes none", nwin, k)
+	}
+	lit("        if (p->var == ((char_u *)-1))\n        {\n            return (char_u *)((char *)(get_varp(p)) + sizeof(winopt_T));\n        }\n",
 		"        if (p->var.ov_win)\n        {\n            return get_varp_allbuf(p);\n        }\n", "a window-local option's global value is get_varp_allbuf()", 1)
 	lit("    static optvar_T\nget_varp_scope(", fmt.Sprintf(W152Allbuf, cases.String())+"    static optvar_T\nget_varp_scope(", "", 1)
-	lit("    return options[opt_idx].var ==  ((char_u *)-1) ;", "    return options[opt_idx].var.ov_win;", "and the sentinel is the flag", 1)
+	lit("    return options[opt_idx].var == ((char_u *)-1);", "    return options[opt_idx].var.ov_win;", "and the sentinel is the flag", 1)
 
 	// 5. the two functions that reused varp for the string it held
 	lit("        varp = get_varp(&(options[opt_idx]));\n        if (varp != nullptr)\n        {\n            varp = *(char_u **)(varp);\n        }\n        return varp;\n",
 		"        varp = get_varp(&(options[opt_idx]));\n        if (!optvar_is_null(varp))\n        {\n            return *varp.ov_str;\n        }\n        return nullptr;\n", "get_term_code() returns the string without reusing varp for it", 1)
-	lit("        varp = *(char_u **)(varp);\n        if (varp == nullptr)\n        {\n            NameBuff[0] = NUL;\n        }\n        else if (opp->flags & P_EXPAND)\n        {\n            home_replace(nullptr, varp, NameBuff,  PATH_MAX , FALSE);\n        }\n        else if ((char_u **)opp->var == &p_pt)\n        {\n            str2specialbuf(p_pt, NameBuff,  PATH_MAX );\n        }\n        else\n        {\n            vim_strncpy(NameBuff, varp,  PATH_MAX  - 1);\n        }\n",
+	lit("        varp = *(char_u **)(varp);\n        if (varp == nullptr)\n        {\n            NameBuff[0] = NUL;\n        }\n        else if (opp->flags & P_EXPAND)\n        {\n            home_replace(nullptr, varp, NameBuff, PATH_MAX, FALSE);\n        }\n        else if ((char_u **)opp->var == &p_pt)\n        {\n            str2specialbuf(p_pt, NameBuff, PATH_MAX);\n        }\n        else\n        {\n            vim_strncpy(NameBuff, varp, PATH_MAX - 1);\n        }\n",
 		"        char_u      *s = *varp.ov_str;\n\n        if (s == nullptr)\n        {\n            NameBuff[0] = NUL;\n        }\n        else if (opp->flags & P_EXPAND)\n        {\n            home_replace(nullptr, s, NameBuff,  PATH_MAX , FALSE);\n        }\n        else if (opp->var.ov_str == &p_pt)\n        {\n            str2specialbuf(p_pt, NameBuff,  PATH_MAX );\n        }\n        else\n        {\n            vim_strncpy(NameBuff, s,  PATH_MAX  - 1);\n        }\n",
 		"nor does option_value2string()", 1)
 
@@ -319,7 +331,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	s = gs.ReplaceAllString(s, "get_option_varp_scope($1).ov_str;")
 	lit("            char_u *p = get_option_varp_scope(opt_idx, OPT_LOCAL);\n            free_string_option(*(char_u **)p);\n            *(char_u **)p = empty_option;\n",
 		"            char_u **p = get_option_varp_scope(opt_idx, OPT_LOCAL).ov_str;\n            free_string_option(*p);\n            *p = empty_option;\n", "the callers of get_option_varp_scope() take the string variable", 1)
-	lit("        p = (char_u **) ((char *)(varp) + sizeof(winopt_T)) ;\n", "        p = get_varp_allbuf(&(options[opt_idx])).ov_str;\n",
+	lit("        p = (char_u **)((char *)(varp) + sizeof(winopt_T));\n", "        p = get_varp_allbuf(&(options[opt_idx])).ov_str;\n",
 		"set_string_option_global() finds a window-local option's global value by name, not by byte offset", 1)
 	n = len(w152Win.FindAllString(s, -1))
 	s = w152Win.ReplaceAllStringFunc(s, func(m string) string {

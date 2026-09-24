@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	noswapModifier = regexp.MustCompile(`(?m)^[ \t]*case 'n':\n[ \t]*if \(!checkforcmd_noparen\(&eap->cmd, "noswapfile", 3\)\)\n[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n[ \t]*cmod->cmod_flags \|= CMOD_NOSWAPFILE;\n[ \t]*continue;\n\n`)
+	noswapModifier = regexp.MustCompile(`(?m)^[ \t]*case 'n':\n[ \t]*if \(!checkforcmd_noparen\(&eap->cmd, "noswapfile", 3\)\)\n[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n[ \t]*cmod->cmod_flags \|= CMOD_NOSWAPFILE;\n[ \t]*continue;\n`)
 	noswapComplete = regexp.MustCompile(`(?m)^[ \t]*case CMD_noswapfile:\n`)
 	noswapTest     = `(?m)^[ \t]*if \(cmdmod\.cmod_flags & CMOD_NOSWAPFILE\)$`
 	cmodNoSwapFile = regexp.MustCompile(`\bCMOD_NOSWAPFILE\b`)

@@ -18,7 +18,7 @@ import (
 )
 
 // W154Call is the call this phase takes Out, with the if around it.
-const W154Call = "\n        if (* ( term_strings[(int)(KS_CSB)] )  == NUL && * ( term_strings[(int)(KS_CAB)] )  == NUL)\n        {\n            free_one_termoption( ( term_strings[(int)(KS_CCO)] ) );\n        }\n"
+const W154Call = "\n        if (*(term_strings[(int)(KS_CSB)]) == NUL && *(term_strings[(int)(KS_CAB)]) == NUL)\n        {\n            free_one_termoption((term_strings[(int)(KS_CCO)]));\n        }\n"
 
 func init() { edit.Register("whim154", Edit) }
 

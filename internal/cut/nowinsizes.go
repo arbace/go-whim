@@ -19,9 +19,8 @@ var winsizeDefaults = []struct{ typ, name, value string }{
 	{"long", "p_wmw", "1L"},
 }
 
-// wfOpt is `-> w_onebuf_opt.wo_wfh ` / `...wfw `, the spelling the macro
-// expander leaves.
-func wfOpt(h string) string { return `-> w_onebuf_opt\.wo_wf` + h + ` ` }
+// wfOpt is `->w_onebuf_opt.wo_wfh` / `...wfw`, the field the macro stood for.
+func wfOpt(h string) string { return `->w_onebuf_opt\.wo_wf` + h }
 
 var woWf = regexp.MustCompile(`\bwo_wf[hw]\b`)
 
@@ -82,7 +81,7 @@ func NoWinSizes(text []byte, w io.Writer) ([]byte, error) {
 		f := f
 		text, err = e.inFunction(text, f.name, func(s []byte) ([]byte, error) {
 			return e.literal(s,
-				"return frp->fr_win-> w_onebuf_opt.wo_wf"+f.h+" ;", "return FALSE;",
+				"return frp->fr_win->w_onebuf_opt.wo_wf"+f.h+";", "return FALSE;",
 				f.name+" of a window", 1)
 		})
 		if err != nil {
@@ -113,7 +112,7 @@ func NoWinSizes(text []byte, w io.Writer) ([]byte, error) {
 	text, err = e.inFunction(text, "command_height", func(s []byte) ([]byte, error) {
 		return e.subOnce(s,
 			`^[ \t]*while \(frp->fr_prev != NULL && frp->fr_layout == FR_LEAF && frp->fr_win`+
-				wfOpt("h")+`\)\n[ \t]*\{\n[ \t]*frp = frp->fr_prev;\n[ \t]*\}\n\n`,
+				wfOpt("h")+`\)\n[ \t]*\{\n[ \t]*frp = frp->fr_prev;\n[ \t]*\}\n`,
 			"command_height stepping over fixed heights")
 	})
 	if err != nil {
@@ -121,12 +120,12 @@ func NoWinSizes(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	text, err = e.inFunction(text, "win_enter_ext", func(s []byte) ([]byte, error) {
-		s, err := e.literal(s, " && !curwin-> w_onebuf_opt.wo_wfh ", "",
+		s, err := e.literal(s, " && !curwin->w_onebuf_opt.wo_wfh", "",
 			"win_enter_ext sparing a fixed height", 1)
 		if err != nil {
 			return nil, err
 		}
-		return e.literal(s, " && !curwin-> w_onebuf_opt.wo_wfw ", "",
+		return e.literal(s, " && !curwin->w_onebuf_opt.wo_wfw", "",
 			"win_enter_ext sparing a fixed width", 1)
 	})
 	if err != nil {
@@ -144,8 +143,8 @@ func NoWinSizes(text []byte, w io.Writer) ([]byte, error) {
 
 	for _, v := range []struct{ wv, fld string }{{"WFH", "wfh"}, {"WFW", "wfw"}} {
 		text, err = e.subOnce(text,
-			`^[ \t]*case   \(idopt_T\)\(PV_WIN \+ \(int\)\(WV_`+v.wv+`\)\)  :\n`+
-				`[ \t]*return \(char_u \*\)&\(curwin-> w_onebuf_opt\.wo_`+v.fld+` \);\n`,
+			`^[ \t]*case \(idopt_T\)\(PV_WIN \+ \(int\)\(WV_`+v.wv+`\)\):\n`+
+				`[ \t]*return \(char_u \*\)&\(curwin->w_onebuf_opt\.wo_`+v.fld+`\);\n`,
 			"get_varp for WV_"+v.wv)
 		if err != nil {
 			return nil, err

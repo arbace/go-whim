@@ -85,7 +85,32 @@ import (
 
 func init() { edit.Register("whim112", Edit) }
 
-var z29Row = regexp.MustCompile(`^        \{(0x[0-9a-f]+),(0x[0-9a-f]+),(-?\d+),(-?\d+)\},?$`)
+// A convertStruct row is written one of TWO ways in this file, and which one a
+// table uses is a fact about that table rather than a spelling to be tolerated:
+// vim's own toUpper[] and toLower[] are canonical text -- four spaces of indent
+// and a space after each comma -- and the musl_to*[] phase 98 vendored are that
+// phase's inserted text, written tight at eight.  Both are read, each table is
+// required to be written ONE way throughout, and the merged table is re-emitted
+// the way the table it replaces was written.
+var (
+	z29RowCanon = regexp.MustCompile(`^    \{(0x[0-9a-f]+), (0x[0-9a-f]+), (-?\d+), (-?\d+)\},?$`)
+	z29RowTight = regexp.MustCompile(`^        \{(0x[0-9a-f]+),(0x[0-9a-f]+),(-?\d+),(-?\d+)\},?$`)
+)
+
+// z29Shape is how one table writes a row, and the two formats that spell it.
+type z29Shape int
+
+const (
+	z29Canon z29Shape = iota
+	z29Tight
+)
+
+func (s z29Shape) format() string {
+	if s == z29Canon {
+		return "    {0x%x, 0x%x, %d, %d}"
+	}
+	return "        {0x%x,0x%x,%d,%d}"
+}
 
 // z29Names are the four convertStruct tables this phase merges into two.
 var z29Names = []string{"toUpper", "toLower", "musl_toUpper", "musl_toLower"}
@@ -113,12 +138,22 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		return m, nil
 	}
+	shapes := map[string]z29Shape{}
 	parse := func(name, Body string) ([]z29Rec, error) {
 		var rows []z29Rec
-		for _, line := range strings.Split(Body, "\n") {
-			m := z29Row.FindStringSubmatch(line)
+		for i, line := range strings.Split(Body, "\n") {
+			shape := z29Canon
+			m := z29RowCanon.FindStringSubmatch(line)
+			if m == nil {
+				shape, m = z29Tight, z29RowTight.FindStringSubmatch(line)
+			}
 			if m == nil {
 				return nil, p.Die("%s has a row this phase cannot read: %s", name, cutil.PyRepr(line))
+			}
+			if i == 0 {
+				shapes[name] = shape
+			} else if shapes[name] != shape {
+				return nil, p.Die("%s is not written one way throughout: %s", name, cutil.PyRepr(line))
 			}
 			lo, _ := strconv.ParseInt(m[1][2:], 16, 64)
 			hi, _ := strconv.ParseInt(m[2][2:], 16, 64)
@@ -128,12 +163,20 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		return rows, nil
 	}
-	emit := func(rows []z29Rec) string {
+	// The canonical text ends every row of a table with a comma, the last one
+	// included; the vendored block ends the last row without one.  The shape
+	// carries that too, so a table re-emits as the text it came from.
+	emit := func(rows []z29Rec, shape z29Shape) string {
 		Out := make([]string, len(rows))
+		f := shape.format()
 		for i, r := range rows {
-			Out[i] = fmt.Sprintf("        {0x%x,0x%x,%d,%d}", r.lo, r.hi, r.step, r.off)
+			Out[i] = fmt.Sprintf(f, r.lo, r.hi, r.step, r.off)
 		}
-		return strings.Join(Out, ",\n")
+		s := strings.Join(Out, ",\n")
+		if shape == z29Canon {
+			s += ","
+		}
+		return s
 	}
 	// expand is {codepoint: target}, EXACTLY as utf_convert() reads the row.  A
 	// row with `step < 0` is how this file spells a single codepoint, and it
@@ -182,7 +225,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 		rows[n] = r
-		if emit(r) != t[m[2]:m[3]] {
+		if emit(r, shapes[n]) != t[m[2]:m[3]] {
 			return nil, p.Die("%s does not re-emit as the text it came from, so the rows this phase "+
 				"writes would not be in the file's own shape", n)
 		}
@@ -297,7 +340,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, p.Die("%s[] is not in the file exactly once", n)
 		}
 		t = strings.Replace(t, oldText,
-			fmt.Sprintf("static convertStruct %s[] =\n{\n%s\n};\n", n, emit(merged[n])), 1)
+			fmt.Sprintf("static convertStruct %s[] =\n{\n%s\n};\n", n, emit(merged[n], shapes[n])), 1)
 	}
 
 	// ---- B. musl's two tables, deleted with the blank line above each ---------

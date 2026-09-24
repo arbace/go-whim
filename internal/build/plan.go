@@ -43,7 +43,7 @@ type Step struct {
 type Phase struct {
 	N        int
 	Name     string
-	Seed     bool // phase 0: the tree is the input, copied
+	Seed     bool // phase 0: the tree is the input, printed canonically
 	NoSource bool // the phase changes no source at all (83, 86, 116, 123)
 	Steps    []Step
 	Sweep    bool // a sweep follows this phase's steps
@@ -68,7 +68,7 @@ const CoreFrom = 83
 
 // Plan is the pipeline, phase by phase.
 var Plan = []Phase{
-	{N: 0, Name: "seed, and prove the copy is a copy", Seed: true, NoSource: true, Makefile: "whim", Stage: "0"},
+	{N: 0, Name: "seed, in the one spelling every later phase reads", Seed: true, NoSource: true, Makefile: "whim", Stage: "0"},
 	{N: 1, Name: "no `$VIMRUNTIME`",
 		Steps: []Step{
 			{Op: "noruntime"},

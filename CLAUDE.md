@@ -22,10 +22,10 @@ slim-vim.c  --whim-->  whim-vim.c
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
 - **whim** (`whim.mk`) removes capability on purpose, 163 phases from 180,870
-  lines to 77,306, and every phase **declares its delta in advance**; the harness
+  lines to 75,273, and every phase **declares its delta in advance**; the harness
   proves it changed that and nothing else. It is two arcs and a coda:
   - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
-    install, 86,583 lines at q82; their deltas are measured against
+    install, 84,111 lines at q82; their deltas are measured against
     `.reference/baselines`;
   - **phases 83-128** (`GOALS.md` Part II) turn it into an embeddable core:
     no filesystem, the host behind a line in the file, no libc the core names, the
@@ -141,7 +141,7 @@ make help            # every target, with a line each
   moved upstream runs: `internal/build`'s plan -- each phase's steps
   (`internal/steps`) and the sweep where the schedule put one -- applied in one
   process, in memory, with no boundaries, digests or cache. Measured: 163
-  phases, **1,220 s**, 77,306 lines. It checks nothing about the editor; the
+  phases, **1,219 s**, 75,273 lines. It checks nothing about the editor; the
   checks, recordings and declared deltas are `make whim-verify`, which costs
   hours. What holds the plan to the phase programs is
   the product: `whim-build-check` requires the committed `whim-vim.c` back, byte
@@ -188,8 +188,8 @@ was the input boundary's digest and the implementation's together, so a moved
 were being written, and that is over.
 
 - **`make whim-build`** applies the plan (`internal/build`) in one process, in
-  memory: no work trees, tars, digests or cache. Measured: 163 phases, **1,220
-  s**, 77,306 lines. **`make whim-build-check`** requires the committed
+  memory: no work trees, tars, digests or cache. Measured: 163 phases, **1,219
+  s**, 75,273 lines. **`make whim-build-check`** requires the committed
   `whim-vim.c` back, byte for byte, from the committed `slim-vim.c` -- that is
   what holds the plan to the phase programs it was read from, and it is total: a
   step in the wrong order, a dropped argument or a missing sweep moves the bytes.
@@ -197,7 +197,12 @@ were being written, and that is over.
   that phase's program wrote for its check -- the source it was handed, that
   source compiled, its enumerator values -- then runs the check
   (`internal/check`) and the stage's declared delta. It costs hours; nothing on
-  the build path waits for it.
+  the build path waits for it. It seeds through `internal/build`'s `Seed`, the
+  same function the build path seeds with, so both run the canonical spelling.
+  **A check that refuses does not cost the stages after it their input**: an
+  edit makes the text and a check only reads it, so the stage hands its tree on
+  and every refusal in a run is reported. Only an edit or a sweep failing leaves
+  no tree, and then the run stops there.
 - **The stage is semantics, not scheduling.** A shared stage runs every edit, ONE
   sweep, then every check on that one swept text, with the symbol snapshot of the
   text its FIRST edit was handed; an `each` stage sweeps after every edit and
@@ -272,7 +277,14 @@ passes: every delta is measured against it.
   `argv[0]`: a leading `r` is restricted mode). Every harness stages the binary
   under test as `vim`, once per binary, under a lock, in a child process -- a
   `fork` in another thread otherwise inherits the copy's write fd and the exec
-  dies with `Text file busy`.
+  dies with `Text file busy`. **Once per binary means once per DIGEST**, not per
+  path: a whole-pipeline verification builds every stage's binary at the same
+  `work/whim-vim`, so a path key handed every delta after the first the phase 0
+  copy -- which is `slim-vim.c`'s own binary -- and each of them then measured
+  slim against slim's baselines and reported that nothing had moved.
+- **Two pipelines cannot run at once in one checkout.** `.cache/compile` and
+  `.cache/symbols` are shared state keyed on the text, so a `build` and a
+  `verify` side by side race over them. Run one at a time.
 - **A pty harness waits on content, never on a clock**: for the next `\x1b[?25h`,
   where a redraw ends. The window size is set on the slave before the child
   execs.

@@ -19,13 +19,13 @@ import (
 // command_line_scan()'s body alone.
 var nocmdoptsInParser = []struct{ what, pat, repl string }{
 	{"-t, which ran a :tag that is not implemented",
-		`(?m)[ \t]*case 't':\n(?:[^\n]*\n)*?[ \t]*break;\n\n`, ""},
+		`(?m)[ \t]*case 't':\n(?:[^\n]*\n)*?[ \t]*break;\n`, ""},
 	{"-t's argument",
-		`(?m)[ \t]*case 't':\n[ \t]*parmp->tagname = \(char_u \*\)argv\[0\];\n[ \t]*break;\n\n`, ""},
+		`(?m)[ \t]*case 't':\n[ \t]*parmp->tagname = \(char_u \*\)argv\[0\];\n[ \t]*break;\n`, ""},
 	{"-i's argument, which set an option wired to NULL",
 		`(?m)[ \t]*case 'i':\n` +
 			`[ \t]*set_option_value_give_err\(\(char_u \*\)"vif", 0L, \(char_u \*\)argv\[0\], 0\);\n` +
-			`[ \t]*break;\n\n`, ""},
+			`[ \t]*break;\n`, ""},
 	// Phase 3 already took `case 'd':` out of this group, with -d itself.
 	{"-i from the list of options that take one",
 		`(?m)([ \t]*case 'S':\n)[ \t]*case 'i':\n`, "${1}"},
@@ -58,7 +58,7 @@ var nocmdoptsElsewhere = []struct {
 	// And the flag itself, out of the twenty-four rows that carry it.  With
 	// the gate gone it is a bit nothing reads; leaving it is leaving a concept
 	// in the table that the code no longer has.
-	{"EX_RESTRICT out of the command table", `(?m)\|EX_RESTRICT\)`, ")", 24},
+	{"EX_RESTRICT out of the command table", `(?m) \| EX_RESTRICT\)`, ")", 24},
 	// The other way in, and a small find of its own: set_init_restricted_mode()
 	// reads $SHELL at startup and turns the mode on when it is nologin or
 	// false.  An environment read, deciding a mode that now restricts nothing.

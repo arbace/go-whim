@@ -82,7 +82,7 @@ func (e *emitter) typeSpec(n *cc.TypeSpecifier) string {
 		cc.TypeSpecifierUnsigned, cc.TypeSpecifierBool, cc.TypeSpecifierComplex,
 		cc.TypeSpecifierImaginary, cc.TypeSpecifierTypeName, cc.TypeSpecifierFloat32,
 		cc.TypeSpecifierFloat64, cc.TypeSpecifierFloat32x, cc.TypeSpecifierFloat64x:
-		return tok(n.Token)
+		return e.specToken(n.Token)
 	case cc.TypeSpecifierStructOrUnion:
 		return e.structOrUnion(n.StructOrUnionSpecifier)
 	case cc.TypeSpecifierEnum:
@@ -173,6 +173,14 @@ func (e *emitter) enum(n *cc.EnumSpecifier) string {
 		return join("enum"+under, tok(n.Token2))
 	case cc.EnumSpecifierDef:
 		head := join("enum"+under, tok(n.Token2))
+		// ONE ENUMERATOR IS ONE LINE.  `enum { EXTRA_MARKS = 10 };` is how this
+		// tree spells a constant -- arbace/slim-vim writes every `#define` of a
+		// number that way, 1,448 of them -- and the pipeline reads, rewrites and
+		// WRITES that line: `enum { %s = %d };` is emitted by two phases and
+		// matched by six checks.  A constant is a line here, as a table's row is.
+		if l := n.EnumeratorList; l != nil && l.EnumeratorList == nil {
+			return head + " { " + e.enumerator(l.Enumerator) + " }"
+		}
 		var b strings.Builder
 		b.WriteString(head + "\n" + e.pad() + "{\n")
 		e.indent++
@@ -270,10 +278,16 @@ func (e *emitter) params(n *cc.ParameterTypeList) string {
 	for l := n.ParameterList; l != nil; l = l.ParameterList {
 		p := l.ParameterDeclaration
 		switch p.Case {
+		// A PARAMETER'S ATTRIBUTE IS PART OF IT.  The input says
+		// `spellvars_T *spv __attribute__((unused))` 303 times, which is how it
+		// keeps -Wunused-parameter quiet where a parameter is deliberately
+		// ignored; dropping them printed 316 attributes as 13.
 		case cc.ParameterDeclarationDecl:
-			parts = append(parts, join(e.declSpecs(p.DeclarationSpecifiers), e.declarator(p.Declarator)))
+			parts = append(parts, join(e.declSpecs(p.DeclarationSpecifiers),
+				e.declarator(p.Declarator), e.attrs(p.AttributeSpecifierList)))
 		case cc.ParameterDeclarationAbstract:
-			parts = append(parts, join(e.declSpecs(p.DeclarationSpecifiers), e.abstract(p.AbstractDeclarator)))
+			parts = append(parts, join(e.declSpecs(p.DeclarationSpecifiers),
+				e.abstract(p.AbstractDeclarator), e.attrs(p.AttributeSpecifierList)))
 		default:
 			e.fail(p, "parameter declaration %v", p.Case)
 		}
@@ -403,7 +417,7 @@ func (e *emitter) declLines(n *cc.Declaration) []string {
 			switch d.Case {
 			case cc.InitDeclaratorDecl:
 			case cc.InitDeclaratorInit:
-				s += " = " + e.initializer(d.Initializer)
+				s += " " + e.assign(d.Initializer)
 			default:
 				e.fail(d, "init declarator %v", d.Case)
 			}
@@ -414,8 +428,18 @@ func (e *emitter) declLines(n *cc.Declaration) []string {
 		return []string{e.staticAssert(n.StaticAssertDeclaration)}
 	case cc.DeclarationAuto:
 		return []string{join(e.declSpecs(n.DeclarationSpecifiers), e.declarator(n.Declarator)) +
-			" = " + e.initializer(n.Initializer) + ";"}
+			" " + e.assign(n.Initializer) + ";"}
 	}
 	e.fail(n, "declaration %v", n.Case)
 	return nil
+}
+
+// assign writes `= <initializer>`, with no space before a braced list that
+// begins on the next line.
+func (e *emitter) assign(n *cc.Initializer) string {
+	s := e.initializer(n)
+	if strings.HasPrefix(s, "\n") {
+		return "=" + s
+	}
+	return "= " + s
 }

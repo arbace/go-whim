@@ -195,8 +195,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- 3. the one line -------------------------------------------------
 	text, err = p.SwapOnce(text,
-		"    ml_close_all(TRUE);\n\n    exit(r);\n}\n",
-		"    ml_close_all(TRUE);\n\n    vim_host_exit(r);\n}\n",
+		"    ml_close_all(TRUE);\n    exit(r);\n}\n",
+		"    ml_close_all(TRUE);\n    vim_host_exit(r);\n}\n",
 		"mch_exit()'s tail",
 		"everything mch_exit does before it is unchanged -- the terminal is restored, the "+
 			"screen scrolled, the memfile closed -- and only the last statement moves")
@@ -206,9 +206,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- 4. the host installs it, through a parameter and not a global ---
 	text, err = p.SwapOnce(text,
-		"    static int\nvim_main(int argc, char **argv)\n{\n\n",
-		"    static int\nvim_main(int argc, char **argv, void (*exit_fn)(int))\n{\n\n"+
-			"    vim_host_exit = exit_fn;\n\n",
+		"    static int\nvim_main(int argc, char **argv)\n{\n",
+		"    static int\nvim_main(int argc, char **argv, void (*exit_fn)(int))\n{\n"+
+			"    vim_host_exit = exit_fn;\n",
 		"vim_main()'s head, which phase 101 made",
 		"the pointer is installed by the caller and is not a global the host assigns, "+
 			"because \"nothing is global but main()\" is still the invariant")
@@ -265,10 +265,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if r := p.BlankRuns(text); r != runsBefore {
 		return nil, p.Die("the edit left %d runs of two blank lines where there were %d", r, runsBefore)
 	}
-	if n := p.Lines(text); n != linesBefore+18 {
-		return nil, p.Die("the file gained %d lines, expected 18 -- two for the pointer and its blank "+
-			"line, two for the installation and its blank line, and fourteen for the "+
-			"launcher growing from six lines to twenty", n-linesBefore)
+	if n := p.Lines(text); n != linesBefore+17 {
+		return nil, p.Die("the file gained %d lines, expected 17 -- two for the pointer and its blank "+
+			"line, one for the installation -- the canonical text writes no blank line "+
+			"inside a function, so the host's inserted statements write none either -- "+
+			"and fourteen for the launcher growing from six lines to twenty", n-linesBefore)
 	}
 	n := 0
 	for _, l := range bytes.Split(text, []byte{'\n'}) {

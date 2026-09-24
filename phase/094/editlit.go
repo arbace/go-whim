@@ -8,8 +8,8 @@ package p094
 const (
 	z11lit1 = "    int save_exiting = exiting;\n    exiting = TRUE;\n    getout(0);\n    not_exiting(save_exiting);\n"
 	z11lit2 = "    getout(0);\n"
-	z11lit3 = "    bool        w_topline_was_set;\n"
+	z11lit3 = "    bool w_topline_was_set;\n"
 	z11lit4 = "    wp->w_topline_was_set = true;\n"
-	z11lit5 = "    int         wi_changelistidx;\n"
+	z11lit5 = "    int wi_changelistidx;\n"
 	z11lit6 = "        wip->wi_changelistidx = win->w_changelistidx;\n"
 )

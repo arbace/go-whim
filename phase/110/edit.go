@@ -390,9 +390,13 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			p0s = append(p0s, i)
 		}
 	}
-	if len(p0s) != 1 || !strings.HasSuffix(strings.TrimSpace(base[p0s[0]+3]), ";") ||
-		base[p0s[0]-1] != "" || base[p0s[0]+4] != "" {
-		return nil, p.Die("the two `va_list` prototypes are not the four-line block between blank " +
+	// The two prototypes are a line each in the canonical text, with the blank
+	// line between file-scope declarations that it writes, so the block is three
+	// lines between blank lines and not four.  It is still ONE block and it is
+	// still lifted whole.
+	if len(p0s) != 1 || !strings.HasSuffix(strings.TrimSpace(base[p0s[0]+2]), ";") ||
+		base[p0s[0]-1] != "" || base[p0s[0]+1] != "" || base[p0s[0]+3] != "" {
+		return nil, p.Die("the two `va_list` prototypes are not the three-line block between blank " +
 			"lines this edit lifts")
 	}
 	p0 := p0s[0]
@@ -404,7 +408,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		for i := 0; i < 12; i++ {
 			drop[i] = true
 		}
-		for i := p0 - 1; i < p0+4; i++ {
+		for i := p0 - 1; i < p0+3; i++ {
 			drop[i] = true
 		}
 		var items []z27Item
@@ -462,7 +466,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 				low = append(low, "")
 			}
 		}
-		low = append(low, base[p0:p0+4]...)
+		low = append(low, base[p0:p0+3]...)
 		low = append(low, "")
 		for _, it := range items {
 			if it.kind == "f" {

@@ -22,7 +22,7 @@ var runtimePaths = []string{
 		`~/.config/vim/after"`,
 }
 
-const getenvTest = `vimruntime = ( strcmp((char *)(name), (char *)("VIMRUNTIME"))  == 0);`
+const getenvTest = `vimruntime = (strcmp((char *)(name), (char *)("VIMRUNTIME")) == 0);`
 
 // NoRuntime takes away the runtime directory: the commands that read it, the
 // paths that name it, and the derivation that invented one.

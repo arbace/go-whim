@@ -280,7 +280,7 @@ func Check(w io.Writer, args []string) error {
 	p = strings.Replace(p, "static usize host_arena_used;\n", "static usize host_arena_used;\nstatic long host_arena_calls;\n", 1)
 	p = strings.Replace(p, RET, "    host_arena_calls++;\n"+RET, 1)
 	ctl["probe"] = p
-	const GROWOLD = "            new_types =  realloc(((char **)*ap_types), (arg * sizeof(const char *))) ;\n"
+	const GROWOLD = "            new_types = realloc(((char **)*ap_types), (arg * sizeof(const char *)));\n"
 	const GROWNEW = "            new_types = (const char **)host_alloc(arg * sizeof(const char *));\n"
 	for _, x := range []struct{ Tag, src, grow string }{{"din", oldT, GROWOLD}, {"dout", t, GROWNEW}} {
 		h, e := one(x.src, "\nmain(int argc, char **argv)\n{\n", "the launcher's head")

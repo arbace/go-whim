@@ -387,7 +387,7 @@ func Check(w io.Writer, args []string) error {
 	// --- 6. the instrument can fail, and the one it replaces cannot ---------
 	af := &check.Rep{Tag: "ablefail", W: w}
 	t := check.ReadFile(f)
-	i := strings.Index(t, "builtin_terminals[] = {")
+	i := strings.Index(t, "builtin_terminals[] =\n{")
 	if i < 0 {
 		return fmt.Errorf("builtin_terminals[] is not in %s", f)
 	}
@@ -487,7 +487,7 @@ func Check(w io.Writer, args []string) error {
 // printed, or the message it exited with, and whether it passed.
 func z33Rule(src, rec, bin string, env []string) (string, bool) {
 	text := check.ReadFile(src)
-	i := strings.Index(text, "builtin_terminals[] = {")
+	i := strings.Index(text, "builtin_terminals[] =\n{")
 	if i < 0 {
 		return "builtin_terminals[] is not in the source: nothing to check the table against", false
 	}

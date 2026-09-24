@@ -98,6 +98,32 @@ func complkeysDropUnique(text []byte, cond, what string) ([]byte, error) {
 	return cutil.DropIf(text, `(?m)^[ \t]*`+regexp.QuoteMeta(cond), 1)
 }
 
+// complkeysDropUniqueAfter is complkeysDropUnique where the condition is NOT
+// unique on its own and the line above it is what tells the copies apart.
+//
+// The autocomplete arm is written four times in edit(): once after
+// `ins_just_started = FALSE;` and three times inside a `if (did_backspace)`
+// blob this phase removes further down.  The macro expander used to leave the
+// three spelled differently, so the condition read as unique; on a text with
+// one form per construct it does not, and the unique thing is the pair of
+// lines.  The cut is the same cut.
+func complkeysDropUniqueAfter(text []byte, lead, cond, what string) ([]byte, error) {
+	pair := regexp.MustCompile(`(?m)^[ \t]*` + regexp.QuoteMeta(lead) + `\n[ \t]*` +
+		regexp.QuoteMeta(cond) + `$`)
+	ms := pair.FindAllIndex(text, -1)
+	if len(ms) != 1 {
+		return nil, fmt.Errorf("nocomplkeys: %s -- the condition occurs %d times, not once",
+			what, len(ms))
+	}
+	at := ms[0][0] + bytes.Index(text[ms[0][0]:ms[0][1]], []byte(cond))
+	at = bytes.LastIndexByte(text[:at], '\n') + 1
+	out, err := cutil.DropIf(text[at:], `(?m)^[ \t]*`+regexp.QuoteMeta(cond), 1)
+	if err != nil {
+		return nil, err
+	}
+	return append(append([]byte{}, text[:at]...), out...), nil
+}
+
 // complkeysDropIn is DropIf restricted to one function.
 //
 // The pattern that names do_put's cleanup also matches four copies inside the
@@ -130,7 +156,7 @@ func complkeysSub(text []byte, old, new, what string, count int) ([]byte, error)
 	return bytes.Replace(text, []byte(old), []byte(new), count), nil
 }
 
-const complkeysDisarm = `        if (c !=   (-((KS_EXTRA) + ((int)(KE_CURSORHOLD) << 8)))   && c !=   (-((KS_EXTRA) + ((int)(KE_COMPLETE_DELAY) << 8)))  )
+const complkeysDisarm = `        if (c != (-((KS_EXTRA) + ((int)(KE_CURSORHOLD) << 8))) && c != (-((KS_EXTRA) + ((int)(KE_COMPLETE_DELAY) << 8))))
         {
             ins_compl_clear_autocomplete_delay();
             ins_compl_disarm_autostart();
@@ -139,8 +165,7 @@ const complkeysDisarm = `        if (c !=   (-((KS_EXTRA) + ((int)(KE_CURSORHOLD
                 ins_compl_disable_autocomplete();
             }
         }
-
-`
+        `
 
 const complkeysDelayArm = `            ins_compl_clear_autocomplete_delay();
             if (!ins_compl_has_autocomplete() || char_avail() || curwin->w_cursor.col == 0)
@@ -169,11 +194,10 @@ const complkeysDoCompleteOld = `            if (!ctrl_x_mode_whole_line())
                 }
                 goto normalchar;
             }
-
-        __attribute__((fallthrough));
+            __attribute__((fallthrough));
         case Ctrl_P:
         case Ctrl_N:
-docomplete:
+        docomplete:
             ins_compl_clear_autocomplete_delay();
             compl_busy = TRUE;
             if (ins_complete(c, TRUE) == FAIL)
@@ -194,16 +218,32 @@ const complkeysDoCompleteNew = `            if (p_im)
                 goto doESCkey;
             }
             goto normalchar;
-
         case Ctrl_P:
         case Ctrl_N:
             break;
 `
 
 var (
+	// The macro left the whole inner body on one line, so this used to be able
+	// to say `\{[^\n]*\n`; on a text with one statement per line it spells the
+	// block out, which is the stronger anchor of the two.
 	complkeysBlob = regexp.MustCompile(
 		`(?m)[ \t]*if \(did_backspace\)\n[ \t]*\{\n` +
-			`[ \t]*if \(ins_compl_has_autocomplete\(\)[^\n]*\n[ \t]*\{[^\n]*\n` +
+			`[ \t]*if \(ins_compl_has_autocomplete\(\) && !char_avail\(\) && curwin->w_cursor\.col > 0\)\n` +
+			`[ \t]*\{\n` +
+			`[ \t]*\(c\) = char_before_cursor\(\);\n` +
+			`[ \t]*if \(vim_isprintc\(c\)\)\n` +
+			`[ \t]*\{\n` +
+			`[ \t]*update_screen\(UPD_VALID\);\n` +
+			`[ \t]*\}\n` +
+			`[ \t]*out_flush\(\);\n` +
+			`[ \t]*ins_compl_enable_autocomplete\(\);\n` +
+			`[ \t]*ins_compl_arm_autostart\(\);\n` +
+			`[ \t]*if \(!ins_compl_arm_autocomplete_delay\(\)\)\n` +
+			`[ \t]*\{\n` +
+			`[ \t]*goto docomplete;\n` +
+			`[ \t]*\}\n` +
+			`[ \t]*\}\n` +
 			`[ \t]*\}\n`)
 	complkeysPumArm = regexp.MustCompile(
 		`[ \t]*if \(pum_visible\(\)\)\n[ \t]*\{\n[ \t]*goto docomplete;\n[ \t]*\}\n\n?`)
@@ -229,7 +269,7 @@ func NoComplKeys(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 
-	if text, err = complkeysDropUnique(text,
+	if text, err = complkeysDropUniqueAfter(text, "ins_just_started = FALSE;",
 		"if (ins_compl_has_autocomplete() && !char_avail() && curwin->w_cursor.col > 0)",
 		"the ins_just_started autocomplete arm"); err != nil {
 		return nil, err

@@ -54,7 +54,7 @@ func Check(w io.Writer, args []string) error {
 		return ls
 	}
 	want := []string{
-		"garray_T            *save_inputbuf;",
+		"garray_T *save_inputbuf;",
 		"static garray_T *get_input_buf(void);",
 		"static void set_input_buf(garray_T *gap, int overwrite);",
 		"get_input_buf(void)",
@@ -79,12 +79,17 @@ func Check(w io.Writer, args []string) error {
 	if a, b := strings.Count(c.Old, "(garray_T *)"), strings.Count(c.New, "(garray_T *)"); b != a-1 {
 		r.Bad("casts to garray_T * went %d -> %d, expected one fewer (set_input_buf's)", a, b)
 	}
-	if n := check.CountLines([]byte(c.Old)) - check.CountLines([]byte(c.New)); n != 2 {
-		r.Bad("the file lost %d lines; set_input_buf()'s local and its blank line are 2", n)
+	// ONE line, and it was two.  What goes is set_input_buf()'s local,
+	// `garray_T *gap = (garray_T *)p;`, and nothing else: the canonical text
+	// writes no blank line between a function's declarations and its first
+	// statement, so the blank line that used to go with the local is not there
+	// to lose.  Measured: 76,600 -> 76,599.
+	if n := check.CountLines([]byte(c.Old)) - check.CountLines([]byte(c.New)); n != 1 {
+		r.Bad("the file lost %d lines; set_input_buf()'s local is 1", n)
 	}
 	if err := r.Done(); err != nil {
 		return err
 	}
-	r.Say("the field, both prototypes, both definitions and both uses say garray_T; the two casts are gone and set_input_buf() takes the growarray directly (2 lines fewer)")
+	r.Say("the field, both prototypes, both definitions and both uses say garray_T; the two casts are gone and set_input_buf() takes the growarray directly (1 line fewer)")
 	return c.Gate(true)
 }

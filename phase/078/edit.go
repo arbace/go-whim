@@ -166,19 +166,19 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			e.Lines(`--`+v+`;`, 1, "and restoring it")
 		})
 	}
-	e.Lines(`static int[ \t]+autocmd_no_enter  = FALSE ;`, 1, "the enter flag")
-	e.Lines(`static int[ \t]+autocmd_no_leave  = FALSE ;`, 1, "the leave flag")
+	e.Lines(`static int[ \t]+autocmd_no_enter = FALSE;`, 1, "the enter flag")
+	e.Lines(`static int[ \t]+autocmd_no_leave = FALSE;`, 1, "the leave flag")
 	e.InFunction("redraw_after_callback", func(e *edit.E) {
 		e.Lines(`\+\+redrawing_for_callback;`, 1, "marking a callback redraw")
 	})
 	e.InFunction("redraw_after_callback", func(e *edit.E) {
 		e.Lines(`--redrawing_for_callback;`, 1, "and unmarking it")
 	})
-	e.Lines(`static int redrawing_for_callback  = 0 ;`, 1, "the mark nothing reads")
+	e.Lines(`static int redrawing_for_callback = 0;`, 1, "the mark nothing reads")
 	e.InFunction("win_enter_ext", func(e *edit.E) {
 		e.Lines(`prevwin = curwin;`, 1, "remembering the previous window")
 	})
-	e.Lines(`static win_T[ \t]+\*prevwin  = NULL ;`, 1, "the window nothing looks back at")
+	e.Lines(`static win_T[ \t]+\*prevwin = NULL;`, 1, "the window nothing looks back at")
 	e.Lines(`int[ \t]+prechar;`, 1, "cmdarg_T.prechar")
 	return e.Done()
 }

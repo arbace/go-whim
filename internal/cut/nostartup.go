@@ -9,7 +9,7 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-const vimrcNoneTest = `^[ \t]*if \(params\.use_vimrc != NULL && \( strcmp\(\(char \*\)\(params\.use_vimrc\), \(char \*\)\("NONE"\)\)  == 0`
+const vimrcNoneTest = `^[ \t]*if \(params\.use_vimrc != NULL && \(strcmp\(\(char \*\)\(params\.use_vimrc\), \(char \*\)\("NONE"\)\) == 0`
 
 var (
 	startupCall = regexp.MustCompile(`(?m)^[ \t]*source_startup_scripts\(&params\);\n`)

@@ -833,7 +833,8 @@ func (e *E) Term(frag, repl string, n int, what string) { e.LiteralN(frag, repl,
 
 // From phase 075.
 var (
-	AutopatDecl  = regexp.MustCompile(`(?m)^static AutoPat \*first_autopat\[NUM_EVENTS\] = \{ NULL \};$`)
+	AutopatDecl = regexp.MustCompile(
+		`(?m)^static AutoPat \*first_autopat\[NUM_EVENTS\] =\n\{\n[ \t]*NULL,\n\};$`)
 	BareDispatch = regexp.MustCompile(`(?m)^[ \t]*(?:\(void\))?apply_autocmds\w*\([^\n]*\);[ \t]*\n`)
 	CmdTrigger   = regexp.MustCompile(`(?m)^[ \t]*trigger_cmd_autocmd\([^\n]*\);[ \t]*\n`)
 	BareDeclOnly = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*[ \t]+\*?[A-Za-z_][A-Za-z0-9_]*;$`)
@@ -849,7 +850,7 @@ func pyRepr(s string) string { return "'" + s + "'" }
 var (
 	W80Table  = regexp.MustCompile(`(?ms)^static struct cmdname cmdnames\[\] =\n\{\n(.*?)^\};\n`)
 	W80RowRe  = regexp.MustCompile(`^    \[CMD_(\w+)\] = \{\(char_u \*\)"([^"]*)", sizeof\("([^"]*)"\) - 1, *(\w+) *, \(long_u\)\(.*\), ADDR_\w+\},$`)
-	W80EnumRe = regexp.MustCompile(`(?ms)^enum CMD_index\n\{\n(.*?)^    CMD_SIZE\};\n`)
+	W80EnumRe = regexp.MustCompile(`(?ms)^enum CMD_index\n\{\n(.*?)^    CMD_SIZE,\n\};\n`)
 	W80IdRe   = regexp.MustCompile(`(?m)^    CMD_(\w+),$`)
 	W80Idx1   = regexp.MustCompile(`(?s)static const unsigned short cmdidxs1\[26\] =\n\{\n(.*?)\};`)
 	W80Idx2   = regexp.MustCompile(`(?s)static const unsigned char cmdidxs2\[26\]\[26\] =\n\{\n(.*?)\n\};`)

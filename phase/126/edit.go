@@ -308,7 +308,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	peWr := regexp.MustCompile(`\bpe_page_count\s*=`)
 	var peReads []int
 	for i, l := range L {
-		if peRe.MatchString(l) && !peWr.MatchString(l) && !strings.Contains(l, "int         pe_page_count;") {
+		if peRe.MatchString(l) && !peWr.MatchString(l) && !strings.Contains(l, "int pe_page_count;") {
 			peReads = append(peReads, i)
 		}
 	}
@@ -325,7 +325,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	for i, l := range L {
 		if ulRe.MatchString(l) {
 			lastw = append(lastw, i)
-			if !ulWr.MatchString(l) && !strings.Contains(l, "bhdr_T      *mf_used_last;") {
+			if !ulWr.MatchString(l) && !strings.Contains(l, "bhdr_T *mf_used_last;") {
 				lastr = append(lastr, i)
 			}
 		}
@@ -400,7 +400,11 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// leave a file that does not compile for the sweep to ask gcc about.
 	all := append(append(append([]string{}, z43HashWrap...), z43FreeList...), z43HashImpl...)
 	for _, name := range all {
-		re := regexp.MustCompile(`(?m)^static [\w *]*` + name + `\([^\n]*\);\n`)
+		// WITH THE BLANK LINE UNDER IT.  The canonical text puts one between two
+		// file-scope declarations, so taking the line alone would leave the
+		// blank behind and the paragraph check below would refuse -- eleven
+		// times over, in two runs.
+		re := regexp.MustCompile(`(?m)^static [\w *]*` + name + `\([^\n]*\);\n\n`)
 		m := re.FindStringIndex(t)
 		if m == nil {
 			return nil, p.Die("`%s` has no forward declaration in the one shape this tree writes them", name)
@@ -554,8 +558,15 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// ---- 6. the shape of what is written Out ----------------------------------
 	if r := blankRuns(t); r > 0 {
-		return nil, p.Die("%d runs of two blank lines -- no verification tier can see paragraphing "+
-			"(CLAUDE.md, *Verification tiers*)", r)
+		var at []string
+		L := strings.Split(t, "\n")
+		for i := 1; i < len(L) && len(at) < 20; i++ {
+			if L[i] == "" && L[i-1] == "" {
+				at = append(at, fmt.Sprintf("%d", i+1))
+			}
+		}
+		return nil, p.Die("%d runs of two blank lines at %s -- no verification tier can see "+
+			"paragraphing (CLAUDE.md, *Verification tiers*)", r, strings.Join(at, " "))
 	}
 	var incs2, dirs2 []int
 	for i, l := range lines() {

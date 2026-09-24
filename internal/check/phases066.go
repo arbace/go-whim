@@ -6,10 +6,17 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/arbace/go-whim/internal/harness"
 )
+
+// termrequestInit is phase 78's `{STATUS_GET, -1}` initialiser as the printer
+// writes it: the brace under the `=`, one element per line, a comma after the
+// last.  It spans lines, so it cannot go through grepC.
+var termrequestInit = regexp.MustCompile(
+	`(?m)^static termrequest_T [a-z0-9_]+_status =\n\{\n    STATUS_GET,\n    -1,\n\};$`)
 
 func init() {
 	Register("whim66", Whim66)
@@ -769,7 +776,10 @@ func Whim77(w io.Writer, args []string) error {
 		s.echo("  nobufpat     EX_BUFNAME went -- the rows and the count check still name it")
 		return harness.ErrReported
 	}
-	if !grepQ(s.src(), `^[ \t]*ni = \(! \(\(int\)\(ea\.cmdidx\) < 0\)`, gERE) {
+	// `ni = (!((int)(ea.cmdidx) < 0) && …` -- the printer closed up the space
+	// the residue had after the `!`.  Measured: the residue spelling occurs
+	// once in slim-vim.c and this one occurs once here, at the same site.
+	if !grepQ(s.src(), `^[ \t]*ni = \(!\(\(int\)\(ea\.cmdidx\) < 0\)`, gERE) {
 		s.echo("  nobufpat     do_one_cmd no longer computes ni")
 		return harness.ErrReported
 	}
@@ -841,7 +851,13 @@ func Whim78(w io.Writer, args []string) error {
 		s.echo("  nostubs      tr_start went -- three {STATUS_GET, -1} initialisers supply it")
 		return harness.ErrReported
 	}
-	if n := grepC(s.src(), `termrequest_T [a-z0-9_]+_status =  \{STATUS_GET, -1\} ;`, gERE); n != 3 {
+	// THREE OF THEM, AND THE SHAPE IS NOW A TABLE.  The residue wrote each on
+	// one line, `termrequest_T crv_status =  {STATUS_GET, -1} ;`; the printer
+	// puts the brace under the `=`, one element per line, with a comma after
+	// the last -- so this is the only anchor in the file that cannot be a line
+	// grep.  Measured: the residue spelling occurs three times in slim-vim.c
+	// and this one occurs three times here, at the same three sites.
+	if n := len(termrequestInit.FindAllString(s.src(), -1)); n != 3 {
 		s.echo("  nostubs      the termrequest_T initialisers changed shape (%d, expected 3)", n)
 		return harness.ErrReported
 	}
@@ -936,7 +952,11 @@ func Whim79(w io.Writer, args []string) error {
 	if !s.keptE(p, " went -- it returns a variable and must stay", "get_hislen", "is_maphash_valid", "get_search_pat", "get_text_locked_msg") {
 		return harness.ErrReported
 	}
-	if n := grepC(s.src(), `^[ \t]*did_set_number_relativenumber, NULL,$`, gERE); n != 2 {
+	// THE TWO ROWS THAT SHARE THE FUNCTION, 'number' and 'relativenumber'.  A
+	// row of options[] was several lines in the residue and is one line now, so
+	// the function and the NULL beside it are read inside the row rather than
+	// as a line of their own.  Measured: two rows either way, the same two.
+	if n := grepC(s.src(), `^[ \t]*\{"(number|relativenumber)",.*did_set_number_relativenumber, NULL,`, gERE); n != 2 {
 		s.echo("  noconstfn    the two did_set_number_relativenumber option rows are %d, expected 2", n)
 		return harness.ErrReported
 	}

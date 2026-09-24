@@ -202,7 +202,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.FoldNever(`(?m)^[ \t]*else if \(varp == &\(curbuf->b_p_ft\)\)$`, ":set ft= firing FileType")
 	})
 	e.InFunction("fix_help_buffer", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \( strcmp\(\(char \*\)\(curbuf->b_p_ft\), \(char \*\)\("help"\)\)  != 0\)$`, "a help buffer setting 'filetype' to help")
+		e.DropIf(`(?m)^[ \t]*if \(strcmp\(\(char \*\)\(curbuf->b_p_ft\), \(char \*\)\("help"\)\) != 0\)$`, "a help buffer setting 'filetype' to help")
 	})
 	return e.Done()
 }
