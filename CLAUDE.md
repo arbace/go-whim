@@ -39,8 +39,8 @@ slim-vim.c  --whim-->  whim-vim.c
     drops the build date from the version line, which only stderr shows.
     `tx/FINDINGS.md` maps each finding to its phase.
 
-  `CORE_FROM=83` in `tools/pipeline.sh` is the line between the two arcs, stated
-  once.
+  `CoreFrom = 83` in `internal/build/plan.go` is the line between the two arcs,
+  stated once.
 
 ## What a file is called
 
