@@ -69,7 +69,7 @@ make editor/editor.go  # the core in Go, generated from editor.c
 make score           # bytes to store and libc symbols to provide, input and product
 ```
 
-`tools/st.sh build --to N --work D` leaves the tree after phase N for a phase
+`go tool whim build --to N --work D` leaves the tree after phase N for a phase
 program run by hand, and `--keep D` every boundary.
 
 ## The Go editor
@@ -106,13 +106,13 @@ and a phase that refuses stops the pass with its own report.
 ## Layout
 
 ```
-cmd/whimtools/   the one binary every tool runs as: whimtools <subcommand>
+cmd/whim/       the toolset, every tool a subcommand: go tool whim <subcommand>
 internal/        the cutters, the sweep, the canonicalisers, the plan and its
                  driver (internal/build), the dead-code reporter (reach), and ccx: what the core's C leaves a translation to decide --
                  pointer casts, evaluation order -- partitioned
 phase/NNN/       a phase: GOAL.md, and edit.go where its cut is a program
 phase/STAGES.md     the record the stages were read from: need, apart, the packages
-tools/           st.sh, the wrapper around whimtools, and the musl data
+tools/           the musl data, and the toolset's README
 editor/          the core transpiled into Go, with its runtime and host
 tx/              tx/skel (the skeleton generator and, with -bodies, the body
                  emitter), tx/splice (measures the emitted bodies in a copy of

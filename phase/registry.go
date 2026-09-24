@@ -4,7 +4,7 @@
 // where the phase has one, is its program.  It registers itself with
 // internal/edit, which is what internal/build looks it up in -- so SOMETHING HAS
 // TO IMPORT IT, and this is that file: every phase directory that holds Go.
-// cmd/whimtools imports it blank; nothing else needs to.
+// cmd/whim imports it blank; nothing else needs to.
 package phase
 
 import (

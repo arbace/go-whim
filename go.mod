@@ -15,3 +15,5 @@ require (
 )
 
 require github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
+
+tool github.com/arbace/go-whim/cmd/whim

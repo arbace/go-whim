@@ -1,9 +1,9 @@
 # Every boundary, measured
 
-The text after every phase, from one `tools/st.sh build --keep D` of the
+The text after every phase, from one `go tool whim build --keep D` of the
 committed `slim-vim.c` at `3873ec0` -- the build's product was `whim-vim.c` byte
 for byte, and so was `q163`, and the product has not moved since -- counted by
-`tools/st.sh measure D`.
+`go tool whim measure D`.
 
 A row is the boundary AFTER that phase: after its sweep where the schedule puts
 one (`internal/build/plan.go`), so a phase that shares a sweep with the ones after

@@ -23,24 +23,24 @@ func runReach(args []string) int {
 		case a == "--no-control":
 			control = false
 		case strings.HasPrefix(a, "-") || path != "":
-			fmt.Fprintln(os.Stderr, "usage: whimtools reach <file.c> [--no-control]")
+			fmt.Fprintln(os.Stderr, "usage: whim reach <file.c> [--no-control]")
 			return 2
 		default:
 			path = a
 		}
 	}
 	if path == "" {
-		fmt.Fprintln(os.Stderr, "usage: whimtools reach <file.c> [--no-control]")
+		fmt.Fprintln(os.Stderr, "usage: whim reach <file.c> [--no-control]")
 		return 2
 	}
 	src, err := os.ReadFile(path)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools reach: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim reach: %v\n", err)
 		return 1
 	}
 	ast, err := ccx.Parse(path)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools reach: %s does not parse, and a closure has nothing to say about it: %v\n", path, err)
+		fmt.Fprintf(os.Stderr, "whim reach: %s does not parse, and a closure has nothing to say about it: %v\n", path, err)
 		return 1
 	}
 	c := reach.Analyze(ast, path, src)
@@ -83,25 +83,25 @@ func runReach(args []string) int {
 	}
 	dir, err := os.MkdirTemp("", "reach-")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools reach: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim reach: %v\n", err)
 		return 1
 	}
 	defer os.RemoveAll(dir)
 	agree, unused, err := reach.Agreement(c, ast, path)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools reach: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim reach: %v\n", err)
 		return 1
 	}
 	ok = agree.Print(os.Stdout) && ok
 	planted, err := reach.Planted(c, src, unused, dir)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools reach: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim reach: %v\n", err)
 		return 1
 	}
 	ok = planted.Print(os.Stdout) && ok
 	pos, err := reach.Positional(c, src, dir)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools reach: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim reach: %v\n", err)
 		return 1
 	}
 	ok = pos.Print(os.Stdout) && ok

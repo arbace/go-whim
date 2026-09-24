@@ -13,12 +13,12 @@ import (
 // do its work REFUSES rather than reporting a job it did not do.
 func oneFile(args []string, name string, f func([]byte, *os.File) ([]byte, error)) int {
 	if len(args) != 1 {
-		fmt.Fprintf(os.Stderr, "usage: whimtools %s <file>\n", name)
+		fmt.Fprintf(os.Stderr, "usage: whim %s <file>\n", name)
 		return 1
 	}
 	text, err := os.ReadFile(args[0])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	out, err := f(text, os.Stdout)
@@ -27,7 +27,7 @@ func oneFile(args []string, name string, f func([]byte, *os.File) ([]byte, error
 		return 1
 	}
 	if err := writeFile(args[0], out); err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	return 0
@@ -41,18 +41,18 @@ func oneFile(args []string, name string, f func([]byte, *os.File) ([]byte, error
 // testable without running a phase.
 func runFold(args []string) int {
 	if len(args) != 4 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools fold <always|never|dropif> <file> <pattern> <count>")
+		fmt.Fprintln(os.Stderr, "usage: whim fold <always|never|dropif> <file> <pattern> <count>")
 		return 2
 	}
 	kind, path, pattern := args[0], args[1], args[2]
 	count, err := strconv.Atoi(args[3])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 2
 	}
 	text, err := os.ReadFile(path)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	var out []byte
@@ -64,7 +64,7 @@ func runFold(args []string) int {
 	case "dropif":
 		out, err = cutil.DropIf(text, pattern, count)
 	default:
-		fmt.Fprintln(os.Stderr, "usage: whimtools fold <always|never|dropif> <file> <pattern> <count>")
+		fmt.Fprintln(os.Stderr, "usage: whim fold <always|never|dropif> <file> <pattern> <count>")
 		return 2
 	}
 	if err != nil {
@@ -72,7 +72,7 @@ func runFold(args []string) int {
 		return 1
 	}
 	if err := writeFile(path, out); err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	return 0

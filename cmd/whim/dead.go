@@ -24,18 +24,18 @@ import (
 // sys.exit(__doc__).
 func runDeadprotos(args []string) int {
 	if len(args) != 1 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools deadprotos <file>")
+		fmt.Fprintln(os.Stderr, "usage: whim deadprotos <file>")
 		return 1
 	}
 	src, err := os.ReadFile(args[0])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	out, dropped := dead.DeadProtos(src)
 	if len(dropped) > 0 {
 		if err := writeFile(args[0], out); err != nil {
-			fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+			fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 			return 1
 		}
 	}
@@ -59,12 +59,12 @@ func runTypereach(args []string) int {
 		files = append(files, a)
 	}
 	if len(files) != 1 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools typereach <file> [--delete]")
+		fmt.Fprintln(os.Stderr, "usage: whim typereach <file> [--delete]")
 		return 1
 	}
 	text, err := os.ReadFile(files[0])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	defs, deadIdx := dead.TypeReach(text)
@@ -88,7 +88,7 @@ func runTypereach(args []string) int {
 	}
 	if del && len(deadIdx) > 0 {
 		if err := writeFile(files[0], dead.DeleteDefs(text, defs, deadIdx)); err != nil {
-			fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+			fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 			return 1
 		}
 		fmt.Printf("deleted %d definitions\n", len(deadIdx))
@@ -115,12 +115,12 @@ func runFuncreach(args []string) int {
 		files = append(files, a)
 	}
 	if len(files) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools funcreach <file> [--delete]")
+		fmt.Fprintln(os.Stderr, "usage: whim funcreach <file> [--delete]")
 		return 1
 	}
 	text, err := os.ReadFile(files[0])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	defs, reachable, deadNames, deadLines := dead.FuncReach(text)
@@ -134,7 +134,7 @@ func runFuncreach(args []string) int {
 		len(defs), reachable, len(deadNames), deadLines)
 	if len(deadNames) > 0 && del {
 		if err := writeFile(files[0], dead.DeleteFuncs(text, defs, deadNames)); err != nil {
-			fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+			fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 			return 1
 		}
 		n := len(deadNames)
@@ -167,12 +167,12 @@ func runDeadfields(args []string) int {
 		files = append(files, a)
 	}
 	if len(files) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools deadfields <file> [--delete]")
+		fmt.Fprintln(os.Stderr, "usage: whim deadfields <file> [--delete]")
 		return 1
 	}
 	text, err := os.ReadFile(files[0])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	cands, refused := dead.DeadFields(text)
@@ -183,7 +183,7 @@ func runDeadfields(args []string) int {
 	}
 	if del && len(cands) > 0 {
 		if err := writeFile(files[0], dead.DeleteFields(text, cands)); err != nil {
-			fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+			fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 			return 1
 		}
 	}
@@ -217,7 +217,7 @@ func runDeadenums(args []string) int {
 		}
 	}
 	if len(files) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools deadenums <file> <enumvals.txt> [--delete|--verify]")
+		fmt.Fprintln(os.Stderr, "usage: whim deadenums <file> <enumvals.txt> [--delete|--verify]")
 		return 1
 	}
 	path, valpath := files[0], files[1]
@@ -225,7 +225,7 @@ func runDeadenums(args []string) int {
 	if ver {
 		moved, gone, err := dead.VerifyEnums(path, valpath)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+			fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 			return 1
 		}
 		if len(moved) > 0 {
@@ -243,7 +243,7 @@ func runDeadenums(args []string) int {
 
 	text, err := os.ReadFile(path)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	vals := dead.LoadVals(valpath)
@@ -252,7 +252,7 @@ func runDeadenums(args []string) int {
 	if del && !fileExists(valpath) && (st.DeadTotal > 0 || st.Unpinnable > 0) {
 		// First need: the values of THIS text, before anything is deleted.
 		if err := dead.DumpVals(path, valpath); err != nil {
-			fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+			fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 			return 1
 		}
 		vals = dead.LoadVals(valpath)
@@ -261,7 +261,7 @@ func runDeadenums(args []string) int {
 
 	if del && len(edits) > 0 {
 		if err := writeFile(path, dead.ApplyEnumEdits(text, edits)); err != nil {
-			fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+			fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 			return 1
 		}
 	}
@@ -302,16 +302,16 @@ func runDeadsweep(args []string) int {
 		files = append(files, args[i])
 	}
 	if len(files) != 1 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools deadsweep <file> [--keep <dir>]")
+		fmt.Fprintln(os.Stderr, "usage: whim deadsweep <file> [--keep <dir>]")
 		return 1
 	}
 	out, c, err := dead.DeadSweep(files[0], keep)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	if err := writeFile(files[0], out); err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	fmt.Printf("prototypes %d, functions %d, variables %d, left alone %d -- %d lines removed\n",

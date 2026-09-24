@@ -17,7 +17,7 @@ import (
 	"github.com/arbace/go-whim/internal/score"
 )
 
-// runMeasure counts every boundary a `whimtools build --keep D` left in D, one
+// runMeasure counts every boundary a `whim build --keep D` left in D, one
 // row per qNNN.c: its lines, and the front end's count of each kind of thing
 // the sweep deletes (internal/reach's entities, so "a function" means one
 // definition at file scope, its prototypes merged in, on every row alike).
@@ -32,12 +32,12 @@ func runMeasure(args []string) int {
 		compile, args = false, args[:1]
 	}
 	if len(args) != 1 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools measure <dir of qNNN.c> [--no-build]")
+		fmt.Fprintln(os.Stderr, "usage: whim measure <dir of qNNN.c> [--no-build]")
 		return 2
 	}
 	files, _ := filepath.Glob(filepath.Join(args[0], "q[0-9][0-9][0-9].c"))
 	if len(files) == 0 {
-		fmt.Fprintf(os.Stderr, "whimtools measure: no qNNN.c in %s -- run `whimtools build --keep %s` first\n", args[0], args[0])
+		fmt.Fprintf(os.Stderr, "whim measure: no qNNN.c in %s -- run `whim build --keep %s` first\n", args[0], args[0])
 		return 1
 	}
 	sort.Strings(files)

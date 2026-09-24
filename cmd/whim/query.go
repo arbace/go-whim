@@ -10,19 +10,19 @@ import (
 
 func runQuery(args []string) int {
 	if len(args) != 2 {
-		fmt.Fprintf(os.Stderr, "usage: whimtools query <phase> <file>\n  queries: %s\n",
+		fmt.Fprintf(os.Stderr, "usage: whim query <phase> <file>\n  queries: %s\n",
 			strings.Join(edit.QueryNames(), " "))
 		return 1
 	}
 	f, ok := edit.LookupQuery(args[0])
 	if !ok {
-		fmt.Fprintf(os.Stderr, "whimtools query: no query for phase %q\n  queries: %s\n",
+		fmt.Fprintf(os.Stderr, "whim query: no query for phase %q\n  queries: %s\n",
 			args[0], strings.Join(edit.QueryNames(), " "))
 		return 1
 	}
 	text, err := os.ReadFile(args[1])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	if err := f(text, os.Stdout); err != nil {

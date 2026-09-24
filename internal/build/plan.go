@@ -11,7 +11,7 @@
 // under, and it is held to them by the only gate that matters: the product.  A
 // build from the committed slim-vim.c must be the committed whim-vim.c, byte
 // for byte.  A step in the wrong order, a missing sweep or a dropped argument
-// moves those bytes, so the table is checked by `whimtools build --check` and
+// moves those bytes, so the table is checked by `whim build --check` and
 // not by reading it.
 //
 // THREE ARGUMENTS ARE NOT LITERAL, because three phases need something the

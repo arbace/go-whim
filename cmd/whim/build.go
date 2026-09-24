@@ -12,12 +12,12 @@ import (
 
 // runBuild is the pipeline in one process: slim-vim.c in, whim-vim.c out.
 //
-//	whimtools build                 write whim-vim.c
-//	whimtools build --check         build and require the committed bytes back
-//	whimtools build --to N          stop after phase N
-//	whimtools build --from N --src B   start at phase N, from boundary B
-//	whimtools build --src F --out F the input and the output
-//	whimtools build --keep D        every boundary as D/qNNN.c, for measuring
+//	whim build                 write whim-vim.c
+//	whim build --check         build and require the committed bytes back
+//	whim build --to N          stop after phase N
+//	whim build --from N --src B   start at phase N, from boundary B
+//	whim build --src F --out F the input and the output
+//	whim build --keep D        every boundary as D/qNNN.c, for measuring
 //
 // --check is the gate on internal/build's plan, and the only one there is: the
 // plan was derived from the phase programs, so what holds it to them is that
@@ -41,12 +41,12 @@ func runBuild(args []string) int {
 			flag := args[i]
 			i++
 			if i >= len(args) {
-				fmt.Fprintln(os.Stderr, "usage: whimtools build [--check] [--to N] [--src F] [--out F] [--work D] [--keep D]")
+				fmt.Fprintln(os.Stderr, "usage: whim build [--check] [--to N] [--src F] [--out F] [--work D] [--keep D]")
 				return 2
 			}
 			n, err := strconv.Atoi(args[i])
 			if err != nil {
-				fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+				fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 				return 2
 			}
 			if flag == "--from" {
@@ -58,7 +58,7 @@ func runBuild(args []string) int {
 			flag := args[i]
 			i++
 			if i >= len(args) {
-				fmt.Fprintln(os.Stderr, "usage: whimtools build [--check] [--to N] [--src F] [--out F] [--work D] [--keep D]")
+				fmt.Fprintln(os.Stderr, "usage: whim build [--check] [--to N] [--src F] [--out F] [--work D] [--keep D]")
 				return 2
 			}
 			switch flag {
@@ -72,7 +72,7 @@ func runBuild(args []string) int {
 				o.Keep = args[i]
 			}
 		default:
-			fmt.Fprintf(os.Stderr, "whimtools build: unknown argument %q\n", args[i])
+			fmt.Fprintf(os.Stderr, "whim build: unknown argument %q\n", args[i])
 			return 2
 		}
 	}
@@ -93,7 +93,7 @@ func runBuild(args []string) int {
 		// --check reads the committed product and compares; it writes nothing.
 		want, err := os.ReadFile("whim-vim.c")
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+			fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 			return 1
 		}
 		if !bytes.Equal(text, want) {
@@ -112,7 +112,7 @@ func runBuild(args []string) int {
 		return 0
 	}
 	if err := os.WriteFile(out, text, 0o644); err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	fmt.Printf("  build        %s, %d lines, %ds\n", out, bytes.Count(text, []byte("\n")), secs)

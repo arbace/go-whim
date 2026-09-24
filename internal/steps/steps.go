@@ -4,7 +4,7 @@
 // The phase programs called these through tools/st.sh, one process per call,
 // which re-read and re-wrote a two-megabyte file 277 times a pass.  They are
 // the same functions; what is new is that a caller can run them in memory and
-// in order.  cmd/whimtools' subcommands and cmd/whimtools' build both dispatch
+// in order.  cmd/whim' subcommands and cmd/whim' build both dispatch
 // through this table, so there is one definition of what `dropoptions` means.
 //
 // A step reports on w as it goes -- ORDER IS OUTPUT, the phase programs' rule --

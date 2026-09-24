@@ -1,4 +1,4 @@
-// Package canon holds the canonicalisers `tools/st.sh canon` runs (Run), in their order.
+// Package canon holds the canonicalisers `go tool whim canon` runs (Run), in their order.
 //
 // Every one of them is a pure text transform over bytes.  That is not a
 // simplification of the Python, it is what the Python is: canon runs as the

@@ -13,7 +13,7 @@ import (
 // running the editor six hundred times.
 func runCmdnames(args []string) int {
 	if len(args) != 1 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools cmdnames <file>")
+		fmt.Fprintln(os.Stderr, "usage: whim cmdnames <file>")
 		return 1
 	}
 	names, err := cmdtab.CommandNames(args[0])
@@ -39,7 +39,7 @@ func runCmdidxs(args []string) int {
 		}
 	}
 	if path == "" {
-		fmt.Fprintln(os.Stderr, "usage: whimtools cmdidxs <file> [--check|--update]")
+		fmt.Fprintln(os.Stderr, "usage: whim cmdidxs <file> [--check|--update]")
 		return 1
 	}
 	switch mode {

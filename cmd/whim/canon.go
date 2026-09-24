@@ -7,7 +7,7 @@ import (
 	"github.com/arbace/go-whim/internal/canon"
 )
 
-// The canonicalisers `tools/st.sh canon` runs.  Each is a drop-in for its Python
+// The canonicalisers `go tool whim canon` runs.  Each is a drop-in for its Python
 // original: same argv, same rewrite-in-place, same single line of stdout.
 //
 // All of them rewrite UNCONDITIONALLY, which the Python does too and which
@@ -54,7 +54,7 @@ func runOnedecl(args []string) int {
 	})
 }
 
-// runCanon is canon.Run at a prompt -- `tools/st.sh canon FILE [--once]`: the
+// runCanon is canon.Run at a prompt -- `go tool whim canon FILE [--once]`: the
 // seven passes, in their order, once or to a fixpoint.
 func runCanon(args []string) int {
 	once := false
@@ -67,7 +67,7 @@ func runCanon(args []string) int {
 		files = append(files, a)
 	}
 	if len(files) != 1 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools canon <file> [--once]")
+		fmt.Fprintln(os.Stderr, "usage: whim canon <file> [--once]")
 		return 1
 	}
 	if canon.Run(os.Stdout, os.Stderr, files[0], once) != nil {
@@ -81,18 +81,18 @@ func runCanon(args []string) int {
 // what a program writes and not only what its caller happens to read.
 func runBrace(args []string) int {
 	if len(args) != 1 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools brace <file>")
+		fmt.Fprintln(os.Stderr, "usage: whim brace <file>")
 		return 1
 	}
 	src, err := os.ReadFile(args[0])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	out, doTerms, braced, nIn, nOut := canon.Brace(src)
 	fmt.Printf("%d do-terminating while lines identified\n", doTerms)
 	if err := writeFile(args[0], out); err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	fmt.Printf("%d bodies braced; %d lines -> %d\n", braced, nIn, nOut)
@@ -113,18 +113,18 @@ func runForcomma(args []string) int {
 		files = append(files, a)
 	}
 	if len(files) != 1 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools forcomma <file> [--check]")
+		fmt.Fprintln(os.Stderr, "usage: whim forcomma <file> [--check]")
 		return 1
 	}
 	src, err := os.ReadFile(files[0])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	out, found, hoisted, declined, nIn, nOut := canon.ForComma(src, check)
 	if !check {
 		if err := writeFile(files[0], out); err != nil {
-			fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+			fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 			return 1
 		}
 	}
@@ -137,18 +137,18 @@ func runForcomma(args []string) int {
 // whole, transform it, write it back, print one line.
 func rewrite(args []string, name string, f func([]byte) ([]byte, string)) int {
 	if len(args) != 1 {
-		fmt.Fprintf(os.Stderr, "usage: whimtools %s <file>\n", name)
+		fmt.Fprintf(os.Stderr, "usage: whim %s <file>\n", name)
 		return 1
 	}
 	path := args[0]
 	src, err := os.ReadFile(path)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	out, report := f(src)
 	if err := writeFile(path, out); err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	fmt.Println(report)

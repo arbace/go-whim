@@ -11,7 +11,7 @@ import (
 var ErrFailed = errors.New("canon failed")
 
 // Run is the canonicalisers on a file, in place, once or to a fixpoint:
-// `tools/st.sh canon FILE [--once]` at a prompt, and what a phase check calls in
+// `go tool whim canon FILE [--once]` at a prompt, and what a phase check calls in
 // process to require that canon is a no-op on its output.  It was tools/canon.sh,
 // a wrapper that found the binary and ran this; the check that ran the wrapper
 // read its combined output, and a caller that wants that passes one writer for
@@ -28,12 +28,12 @@ var ErrFailed = errors.New("canon failed")
 func Run(stdout, stderr io.Writer, file string, once bool) error {
 	src, err := os.ReadFile(file)
 	if err != nil {
-		fmt.Fprintf(stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(stderr, "whim: %v\n", err)
 		return ErrFailed
 	}
 	out, rounds, changed, converged := Fixpoint(src, once)
 	if err := WriteFile(file, out); err != nil {
-		fmt.Fprintf(stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(stderr, "whim: %v\n", err)
 		return ErrFailed
 	}
 	if !converged {

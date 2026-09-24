@@ -65,7 +65,7 @@ why and what was measured, and -- for the 108 phases whose cut is a program of
 its own -- `edit.go`, which makes that directory **a Go package**, `pNNN`
 (`editlit.go` beside it where the literals are long). The other phases are plan
 steps only (`internal/steps`). An edit registers itself with `internal/edit` in
-an `init()`, and `phase/registry.go` is what links them in -- `cmd/whimtools`
+an `init()`, and `phase/registry.go` is what links them in -- `cmd/whim`
 imports it blank.
 
 **`GOALS.md`** is what holds for every phase: Part I (phases 0-82: the charter,
@@ -86,7 +86,7 @@ through to. arbace/slim-vim keeps both, for its own pipeline.
 ## Layout
 
 ```
-cmd/whimtools/     one binary, every tool a subcommand: whimtools <subcommand>
+cmd/whim/         the toolset, every tool a subcommand: go tool whim <subcommand>
 internal/          the Go: cc (the forked C front end), sweep, canon, dead,
                    cut/cutil (the cutters), edit (what the phases' edits are
                    written against: the driver, and in shared.go what more than
@@ -96,17 +96,16 @@ internal/          the Go: cc (the forked C front end), sweep, canon, dead,
                    table: its names and the ex_cmdidxs block), score (bytes and
                    symbols, the input beside the product), ccx (the core's pointer casts and evaluation order),
                    reach (what nothing reaches, as a partition with gcc as its
-                   control -- a reporter, `tools/st.sh reach FILE`; it deletes
+                   control -- a reporter, `go tool whim reach FILE`; it deletes
                    nothing)
 phase/NNN/         a phase: GOAL.md, and edit.go where its cut is a program
 phase/registry.go  every phase with an edit.go, blank-imported so it registers
 phase/STAGES.md       the record the plan was read from: the stages, need and apart,
                    the packages.  Prose now, not a manifest a program reads
 phase/boundaries.md every boundary's lines, entity counts, binary and nm -u, as
-                   `tools/st.sh build --keep D` and `measure D` give them
-tools/             st.sh, which finds the Go binary (gobuild.sh builds it):
-                   every tool is `tools/st.sh <name>` at a prompt; and the
-                   musl data phase 98 splices in
+                   `go tool whim build --keep D` and `measure D` give them
+tools/             the musl data phase 98 splices in, and README.md: the toolset
+                   (`go tool whim <name>`) and what each retired script became
 editor/            the core in Go: editor.go GENERATED (make editor/editor.go; never edit it),
                    its runtime crt.go and host host.go by hand
 tx/                skel (types, globals, signatures and, with -bodies, the bodies),
@@ -116,13 +115,14 @@ Makefile           the whole build: fetches the input, runs the pipeline, builds
                    binaries and the editor
 ```
 
-`tools/gobuild.sh` builds `cmd/whimtools` into `.cache/gobin/<key>/`, keyed on
-`go.mod`, `go.sum` and every `.go` under `cmd/`, `internal/` and `phase/`.
+**The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
+builds it, caches it and rebuilds it when any `.go` moves; every tool is a
+subcommand, `go tool whim <name>`, and the `Makefile` calls it the same way.
 **The C front end is a fork**, `internal/cc`: modernc.org/cc/v4 v4.29.7 with two
 C23 productions added, tracked as ordinary source (`internal/cc/README.md`,
 which says how to diff it against upstream). It was composed at build time under `.cache/gofork/`
 before, because a patched `vendor/` fails `go mod verify`; a fork under its own
-import path has neither problem. Measured: with the patch reversed, `whimtools
+import path has neither problem. Measured: with the patch reversed, `whim
 parse whim-vim.c` says *unexpected `<EOF>`, expected `}`*, and `tx/skel` writes
 the same `editor/editor.go` byte for byte either way.
 
@@ -190,8 +190,7 @@ was the input boundary's digest and the implementation's together, so a moved
   placed them -- `need P swept` (an edit that computes its cut from the text
   must see it swept) and `apart P K` -- and a sweep moved anywhere else moves
   the product, which `whim-build-check` sees.
-- `tools/st.sh build --to N --work D` leaves the tree after phase N, its
-  makefile included; `--keep D` writes every boundary, and `tools/st.sh measure
+- `go tool whim build --to N --work D` leaves the tree after phase N; `--keep D` writes every boundary, and `go tool whim measure
   D` counts them (`phase/boundaries.md`).
 - **A binary is only ever the build of its source as it stands.** `slim-vim` and
   `whim-vim` stamp the digest of the `.c` they were built from
@@ -201,7 +200,7 @@ was the input boundary's digest and the implementation's together, so a moved
 - **Two builds cannot run at once in one checkout.** `.cache/compile` and
   `.cache/symbols` are shared state keyed on the text, so two side by side race
   over them; a second one goes in a worktree.
-- **The analysis tools report, they do not cut**: `tools/st.sh reach FILE` is
+- **The analysis tools report, they do not cut**: `go tool whim reach FILE` is
   what nothing reaches in a text, with gcc as its control and struct casts held;
   `WHIM_CLOSURE=1` makes the sweep delete by it, and is off (`AGENDA.md`,
   *Declined*).

@@ -28,12 +28,12 @@ import (
 // in: a verifier first, and an edit that trusts it afterwards.
 func runFieldRef(args []string) int {
 	if len(args) != 1 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools fieldref <file.c>")
+		fmt.Fprintln(os.Stderr, "usage: whim fieldref <file.c>")
 		return 1
 	}
 	ast, err := parseProduct(args[0])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 

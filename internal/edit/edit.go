@@ -17,7 +17,7 @@
 // lines a port prints must be the lines the heredoc printed, in the order it
 // printed them.
 //
-// They are reached as `whimtools edit <phase> <file>` through one registry
+// They are reached as `whim edit <phase> <file>` through one registry
 // rather than as 76 subcommands, so the table below is the whole of what a new
 // phase has to join.
 package edit

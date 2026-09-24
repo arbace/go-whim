@@ -35,7 +35,7 @@ type Options struct {
 	// Keep, when set, is a directory the text after every phase is written into
 	// as qNNN.c -- after the phase's sweep where the schedule put one, so each
 	// file is the boundary that phase hands on.  For measuring every boundary
-	// from one run (whimtools measure); it writes nothing else.
+	// from one run (whim measure); it writes nothing else.
 	Keep    string
 	Refused []string
 }

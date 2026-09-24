@@ -16,9 +16,13 @@ editor.c
 # reads them any more.
 .reference/
 
-# The Go binary and the patched cc/v4 fork, content-keyed, plus what a sweep
-# compiles: deleting it costs only the time to build again.
+# What a sweep compiles, the symbol cache and the binaries' stamps: deleting
+# it costs only the time to build again.  (The toolset itself is `go tool
+# whim`, cached by Go.)
 .cache/
+
+# What a bare `go build ./cmd/whim` would leave at the root.
+/whim
 
 # Every temporary goes here, not the shared /tmp: the Makefile exports
 # TMPDIR to it, and worktrees go in .tmp/worktrees/.

@@ -1,4 +1,4 @@
-// Command whimtools is every tool the pipeline run.
+// Command whim is every tool the pipeline run.
 //
 // It is one binary with subcommands rather than one binary per tool, because
 // every subcommand works on the same multi-megabyte file and the sweep runs
@@ -159,7 +159,7 @@ func main() {
 // front of the reader.  Nothing a subcommand leaves for its caller lives
 // under TMPDIR: outputs go to paths the caller names.
 func scoped(run func() int) int {
-	dir, err := os.MkdirTemp("", "whimtools-")
+	dir, err := os.MkdirTemp("", "whim-")
 	if err != nil {
 		return run()
 	}
@@ -176,7 +176,7 @@ func scoped(run func() int) int {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: whimtools <subcommand> [args]")
+	fmt.Fprintln(os.Stderr, "usage: whim <subcommand> [args]")
 	for _, name := range order {
 		fmt.Fprintf(os.Stderr, "    %s\n", tools[name].usage)
 	}

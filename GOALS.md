@@ -147,7 +147,7 @@ phase:**
 | struct fields | `deadfields` | no — a mention outside every type definition |
 | enumerators | `deadenums` | no — a mention anywhere |
 
-Each is `internal/dead`, and a `whimtools` subcommand of the same name; the
+Each is `internal/dead`, and a `go tool whim` subcommand of the same name; the
 phase accounts call them by the Python they were ported from (`tools/README.md`).
 
 **The sweep is not written into a phase program; the plan runs it, once per

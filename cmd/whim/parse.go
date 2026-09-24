@@ -19,13 +19,13 @@ import (
 // whose input is a boundary that compiled.
 func runParse(args []string) int {
 	if len(args) != 1 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools parse <file.c>")
+		fmt.Fprintln(os.Stderr, "usage: whim parse <file.c>")
 		return 1
 	}
 	path := args[0]
 	cfg, err := cc.NewConfig("linux", "amd64")
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: config: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: config: %v\n", err)
 		return 1
 	}
 	src := []cc.Source{
@@ -37,11 +37,11 @@ func runParse(args []string) int {
 	ast, err := cc.Translate(cfg, src)
 	elapsed := time.Since(t0)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
 	if ast == nil {
-		fmt.Fprintln(os.Stderr, "whimtools: no AST and no error")
+		fmt.Fprintln(os.Stderr, "whim: no AST and no error")
 		return 1
 	}
 	fmt.Printf("parsed %s in %v\n", path, elapsed.Round(time.Millisecond))

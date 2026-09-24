@@ -1,36 +1,31 @@
 # tools/
 
-The wrapper that finds the Go binary, and the data the phases splice in. The
-pipeline is `internal/build` (the plan and the phases), with no memoize, no
-boundary and no oracle. There is no test suite: the checks, the deltas, the
-recorders and the baselines were removed after `448e9a8`, the last commit that
-has them.
-
-Everything is reached the same way, as a subcommand of the one binary:
+The toolset is `cmd/whim`, declared as a tool in `go.mod`, so it runs as
+`go tool whim <subcommand>`: Go builds it, caches it, and rebuilds it when any
+`.go` moves. The `Makefile` calls it the same way. This directory holds only
+the data phase 98 splices into the tree, and this file. There is no test suite:
+the checks, the deltas, the recorders and the baselines were removed after
+`448e9a8`, the last commit that has them.
 
 | | |
 | --- | --- |
-| `tools/st.sh build` | the 164 phases in one process; `--check` requires the committed product back, `--canonical` prints the input in canonical form at phase 0 first, `--keep-going` records a phase that refuses instead of stopping |
-| `tools/st.sh sweep` | the dead-code sweep on one file, to a fixpoint (`internal/sweep`) |
-| `tools/st.sh canon` | the canonicalisers on one file, `FILE [--once]` (`internal/canon`) |
-| `tools/st.sh cemit` | one file in the canonical C23 form (`internal/cemit`), `--check` to ask whether it already is |
-| `tools/st.sh parse` | the front end's smoke test, and the proof that the PATCHED `internal/cc` is what got linked |
-| `tools/st.sh reach` | what nothing reaches in a text, as a partition with gcc as its control (`internal/reach`); it deletes nothing |
-| `tools/st.sh measure` | one row per boundary a `build --keep D` left: lines, entity counts, binary, undefined symbols (`phase/boundaries.md`) |
-| `tools/st.sh score` | bytes to store and symbols to provide, slim-vim beside whim-vim; both built with the one line (`internal/score`) |
-| `tools/st.sh cmdidxs`, `cmdnames` | the Ex command table: its names, and the ex_cmdidxs block derived from them (`internal/cmdtab`) |
+| `go tool whim build` | the 164 phases in one process; `--check` requires the committed product back, `--canonical` prints the input in canonical form at phase 0 first, `--keep-going` records a phase that refuses instead of stopping |
+| `go tool whim sweep` | the dead-code sweep on one file, to a fixpoint (`internal/sweep`) |
+| `go tool whim canon` | the canonicalisers on one file, `FILE [--once]` (`internal/canon`) |
+| `go tool whim cemit` | one file in the canonical C23 form (`internal/cemit`), `--check` to ask whether it already is |
+| `go tool whim parse` | the front end's smoke test, and the proof that the PATCHED `internal/cc` is what got linked |
+| `go tool whim reach` | what nothing reaches in a text, as a partition with gcc as its control (`internal/reach`); it deletes nothing |
+| `go tool whim measure` | one row per boundary a `build --keep D` left: lines, entity counts, binary, undefined symbols (`phase/boundaries.md`) |
+| `go tool whim score` | bytes to store and symbols to provide, slim-vim beside whim-vim, both built with the one line (`internal/score`) |
+| `go tool whim cmdidxs`, `cmdnames` | the Ex command table: its names, and the ex_cmdidxs block derived from them (`internal/cmdtab`) |
 
-`whimtools` with no argument lists the rest: the dead-code tools one at a time
-and every cutter a phase names, each runnable on a file by hand.
+`go tool whim` with no argument lists the rest: the dead-code tools one at a
+time and every cutter a phase names, each runnable on a file by hand. Every one
+runs from the repository root and writes its temporaries in `.tmp/`.
 
 | file | what it is |
 | --- | --- |
-| `st.sh` | runs `whimtools`: builds it if it must (`gobuild.sh`) and execs it. A makefile rule and a person at a prompt reach the toolset the same way |
-| `gobuild.sh` | builds `whimtools`, content-keyed on go.mod, go.sum and every .go under cmd/, internal/ and phase/ |
 | `musl-case.txt`, `musl-ctype.txt` | the musl definitions phase 98 splices into the tree |
-
-Every one of them runs from the repository root and writes its temporaries in
-`.tmp/`.
 
 ## Retired, and what became of them
 
@@ -68,3 +63,4 @@ too, with the test suite; `448e9a8` is the last commit that has it.
 | `arrowcheck.py`, `coverage.sh` | not ported; nothing runs them, and the text naming them is the record of what they measured | before the split |
 | `graph.py`, `sim.py`, `corpus.py`, `run2.py`, `argvcheck.py`, `allstatic.py`, `exsweep_stream.py`, `.tmp/…/seq.sh` and the like | throwaway probes under `/tmp` or `.tmp/`, never tracked; the text naming them says what they measured | -- |
 | `enumvals.sh`, `sweep.sh`, `nolibm_check.c`; the `whimtools` subcommands `verify`, `record`, `delta`, `check`, `phasecheck`, `phasebuild`, `symbols`, `nvidx`, `orphanopts`, `behaviour`, `termcheck`, `exsweep`, `starcheck`, `termrestore`, `complcheck`, `clicheck`, `muslctype`, `muslcase` and the ten `z*` | nothing: they were the test suite (the DWARF control, the checks' sweep, a phase-23 probe, the verifier, the recorders) | with the test suite, after `448e9a8` |
+| `st.sh`, `gobuild.sh` | `go tool whim <subcommand>`: `go.mod` declares `cmd/whim` (renamed from `cmd/whimtools`) as a tool, and Go builds and caches it | the commit that made the toolset a go tool |

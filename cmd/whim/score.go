@@ -11,7 +11,7 @@ import (
 // beside the product (internal/score).
 func runScore(args []string) int {
 	if len(args) != 0 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools score")
+		fmt.Fprintln(os.Stderr, "usage: whim score")
 		return 2
 	}
 	score.Score(os.Stdout)

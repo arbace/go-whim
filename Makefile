@@ -150,12 +150,12 @@ whim-vim.c: slim-vim.c force
 .PHONY: whim-build whim-build-check
 whim-build:  ## the 164 phases in one process: slim-vim.c -> whim-vim.c
 	@printf '\n\033[1m  whim-vim\033[0m  from slim-vim.c: an editor with no runtime\n'
-	@tools/st.sh build --out whim-vim.c
+	@go tool whim build --out whim-vim.c
 	@$(call drop-stale,whim-vim)
 	@$(MAKE) --no-print-directory whim-editor
 
 whim-build-check:  ## the same build, required to give the committed bytes back
-	@tools/st.sh build --check
+	@go tool whim build --check
 
 whim-vim: whim-vim.c  ## the C product, compiled with the one line
 	@printf '  %-12s %s\n' "compiling" "$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<"
@@ -235,7 +235,7 @@ clean-cache:  ## remove .cache/ (the Go build cache, the sweep's compiles, the s
 # Bytes to store and symbols to provide, the input and the product side by side.
 .PHONY: score
 score:  ## bytes to store and symbols to provide: the input beside the product
-	@tools/st.sh score
+	@go tool whim score
 
 force: ;
 
