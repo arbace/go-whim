@@ -218,11 +218,24 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// undeclared struct tag compiles cleanly -- it declares a new, incomplete
 	// type -- so removing <sys/stat.h> alone would leave a lie that only
 	// `sizeof(stat_T)` could expose.
-	if k := p.Mentions(Body, "stat_T"); k != 1 {
-		return nil, p.Die("stat_T has %d mentions, expected 1 -- its own typedef and no user", k)
-	}
-	if k := len(whim99StructStat.FindAll(Body, -1)); k != 1 {
-		return nil, p.Die("`struct stat` occurs %d times, expected 1 -- the typedef", k)
+	//
+	// A PARTITION, not a count: the typedef is here and this phase removes
+	// it, or it is already gone -- accepted only when neither `stat_T` nor
+	// `struct stat` is left at all, the one way the sweep's closure
+	// (WHIM_CLOSURE=1, internal/sweep/closure.go) leaves it: it reads the
+	// typedef as the type definition nothing names, which typereach could
+	// not.  Anything else refuses with the messages it always had.
+	statGone := p.Mentions(Body, "stat_T") == 0 && len(whim99StructStat.FindAll(Body, -1)) == 0
+	if statGone {
+		p.Say("stat_T: already gone -- neither stat_T nor `struct stat` is left, so the sweep's " +
+			"closure took the typedef")
+	} else {
+		if k := p.Mentions(Body, "stat_T"); k != 1 {
+			return nil, p.Die("stat_T has %d mentions, expected 1 -- its own typedef and no user", k)
+		}
+		if k := len(whim99StructStat.FindAll(Body, -1)); k != 1 {
+			return nil, p.Die("`struct stat` occurs %d times, expected 1 -- the typedef", k)
+		}
 	}
 
 	// ---- 2. the twelve that stay, and the one that must not be touched ---
@@ -279,15 +292,19 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// not have.  canon.sh in the sweep would collapse it; doing it here means
 	// the text the sweep is handed is right.
 	const old = "\ntypedef struct stat stat_T;\n\n"
-	if k := bytes.Count(text, []byte(old)); k != 1 {
+	if statGone {
+		// Nothing to cut: section 1 said which class fired.
+	} else if k := bytes.Count(text, []byte(old)); k != 1 {
 		return nil, p.Die("the stat_T typedef is not one line between two blank lines, so the blank "+
 			"that goes with it cannot be identified: %d matches", k)
 	}
-	text = bytes.Replace(text, []byte(old), []byte("\n"), 1)
-	p.Say("and `typedef struct stat stat_T;` with one of its two blank lines -- the sweep " +
-		"has never been able to take it, because typereach.py reads the token `stat` in " +
-		"the `#include <sys/stat.h>` line itself, and in update_search_stat()'s local " +
-		"variable, as roots")
+	if !statGone {
+		text = bytes.Replace(text, []byte(old), []byte("\n"), 1)
+		p.Say("and `typedef struct stat stat_T;` with one of its two blank lines -- the sweep " +
+			"has never been able to take it, because typereach.py reads the token `stat` in " +
+			"the `#include <sys/stat.h>` line itself, and in update_search_stat()'s local " +
+			"variable, as roots")
+	}
 
 	// ---- 4. what the file is now -----------------------------------------
 	lines = bytes.Split(text, []byte{'\n'})

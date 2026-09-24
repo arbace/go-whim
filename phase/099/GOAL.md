@@ -256,3 +256,11 @@ from lines to a tree. **Its §4c expected strings, memory and arithmetic to be w
 left in the core after that move; they are already gone.** Phases 101 and 102 are the
 demotion itself: the launcher exists, at the bottom of the same file, and the core
 asks it to end the process rather than ending it.
+
+**Already gone is a class of its own.** The anchor on `stat_T` is a partition,
+not a count: the typedef is here, named once, and this phase removes it, or
+neither `stat_T` nor `struct stat` is left at all and the phase says so and
+cuts nothing. The second class exists for the closure swap (`WHIM_CLOSURE=1`,
+`internal/sweep/closure.go`): the closure reads the typedef as a definition
+nothing names, which typereach could not because of the token `stat` in
+the `#include` line. Any other count refuses as it always did.
