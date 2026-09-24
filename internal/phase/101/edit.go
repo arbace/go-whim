@@ -93,7 +93,6 @@ const whim101Launch = "\n" +
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "demote", W: w}
 	linesBefore := p.Lines(text)
-	runsBefore := p.BlankRuns(text)
 
 	// ---- 1. the name is free, and `vim_main2` is not it ------------------
 	// C has no prefix collisions, but a reader greps, and so does this file's
@@ -176,9 +175,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("a head beginning `main(int argc` occurs %d times, expected 1 -- the "+
 			"launcher's.  The newline is what tells it from `vim_main(int argc`, which is "+
 			"the definition this phase just renamed", k)
-	}
-	if r := p.BlankRuns(text); r != runsBefore {
-		return nil, p.Die("the demotion left %d runs of two blank lines where there were %d", r, runsBefore)
 	}
 	if n := p.Lines(text); n != linesBefore+6 {
 		return nil, p.Die("the file gained %d lines, expected 6 -- the head keeps its two lines "+

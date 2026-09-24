@@ -49,11 +49,11 @@ func nobackupBlock(text []byte, anchor, what string, keepBody bool) ([]byte, int
 
 // nobackupSub replaces exact text, counted.
 func nobackupSub(text []byte, old, new, what string, count int) ([]byte, error) {
-	n := bytes.Count(text, []byte(old))
+	n := cutil.CountAnchorB(text, old)
 	if n != count {
 		return nil, fmt.Errorf("nobackup: %s -- expected %d, matched %d", what, count, n)
 	}
-	return bytes.ReplaceAll(text, []byte(old), []byte(new)), nil
+	return cutil.ReplaceAnchorB(text, old, []byte(new), -1), nil
 }
 
 // pointRowsAtNull replaces a handler name with NULL wherever it appears

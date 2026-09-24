@@ -214,13 +214,12 @@ func (e *E) LiteralN(old, new string, n int, what string) {
 	if e.Err != nil {
 		return
 	}
-	if k := countBytes(e.buf, old); k != n {
+	k, norm := matchCount(e.buf, old)
+	if k != n {
 		e.Die("%s -- occurs %d times, expected %d", what, k, n)
 		return
 	}
-	for i := 0; i < n; i++ {
-		e.buf = replaceBytes(e.buf, old, new)
-	}
+	e.buf = replaceMatched(e.buf, old, new, n, norm)
 	e.Say(what)
 }
 

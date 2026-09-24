@@ -202,6 +202,7 @@ package p105
 
 import (
 	"fmt"
+	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"regexp"
 	"strings"
@@ -244,12 +245,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return len(regexp.MustCompile(`\b`+name+`\b`).FindAllString(s, -1))
 	}
 	sub := func(old, new string, n int, tag string) error {
-		c := strings.Count(t, old)
+		c := cutil.CountAnchor(t, old)
 		if c != n {
 			return p.Die("%s: `%s` occurs %d times, expected %d",
 				tag, edit.CoreHead(strings.Split(strings.TrimSpace(old), "\n")[0], 70), c, n)
 		}
-		t = strings.ReplaceAll(t, old, new)
+		t = cutil.ReplaceAnchor(t, old, new, -1)
 		return nil
 	}
 	// delfunc deletes a whole definition by brace matching from its name line.

@@ -133,11 +133,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if err != nil {
 			return
 		}
-		if k := strings.Count(s, old); k != n {
+		if k := cutil.CountAnchor(s, old); k != n {
 			err = p.Die("%s (%.60q) -- occurs %d times, expected %d", what, old, k, n)
 			return
 		}
-		s = strings.ReplaceAll(s, old, new)
+		s = cutil.ReplaceAnchor(s, old, new, -1)
 		if what != "" {
 			p.Say(what)
 		}

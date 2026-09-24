@@ -82,19 +82,13 @@ func tok(t cc.Token) string { return t.SrcStr() }
 // line that separates this pipeline's core from its host.  They are read from
 // the source as text and written back where they were: everything the source
 // declared above them, then the include lines verbatim, then the rest.
-// AND NEITHER ARE THE COMMENTS.  The front end throws them away, and
-// slim-vim.c's 272 whole-line comments are its map -- `// ==== alloc.c ====`,
-// and the two banners that delimit the generated ex_cmdidxs.h block, which a
-// phase reads and then removes.  They are read from the source as text too, and
-// written back between the declarations they stood between.
+// THE CANONICAL FORM HAS NO COMMENTS.  Canonical strips every one before the
+// parse (stripComments), so neither the tree nor a recovered macro span ever
+// holds one: whole-line, trailing, block, inside a brace or inside a macro
+// invocation, they all go.
 func File(ast *cc.AST, mainFile string, src []byte) ([]byte, error) {
 	e := &emitter{src: src, lineAt: lineIndex(src)}
 	incl, inclAt := includes(src)
-	runs, err := commentRuns(src)
-	if err != nil {
-		return nil, err
-	}
-	ri := 0
 	written := false
 	first := true
 
@@ -104,22 +98,11 @@ func File(ast *cc.AST, mainFile string, src []byte) ([]byte, error) {
 		}
 		first = false
 	}
-	// comments before a line: every run that stood above it in the source.
-	comments := func(before int) {
-		for ri < len(runs) && runs[ri].line < before {
-			sep()
-			for _, s := range runs[ri].text {
-				e.w(s + "\n")
-			}
-			ri++
-		}
-	}
 	flushIncludes := func() {
 		if written || len(incl) == 0 {
 			return
 		}
 		written = true
-		comments(inclAt)
 		sep()
 		for _, s := range incl {
 			e.w(s + "\n")
@@ -128,7 +111,7 @@ func File(ast *cc.AST, mainFile string, src []byte) ([]byte, error) {
 
 	for l := ast.TranslationUnit; l != nil; l = l.TranslationUnit {
 		d := l.ExternalDeclaration
-		if d == nil {
+		if d == nil || d.Case == cc.ExternalDeclarationEmpty {
 			continue
 		}
 		pos := d.Position()
@@ -138,96 +121,76 @@ func File(ast *cc.AST, mainFile string, src []byte) ([]byte, error) {
 		if pos.Line > inclAt {
 			flushIncludes()
 		}
-		comments(pos.Line)
-		sep()
 		e.exp = e.scan(d)
 		e.emitted = map[int]bool{}
+		// A DECLARATION THAT PRINTS NOTHING GETS NO SEPARATOR.  The front end
+		// follows a file-scope `static_assert(...);` with a second declaration
+		// of its own, empty, which wrote a second blank line after every one.
+		if d.Case == cc.ExternalDeclarationDecl && len(e.declLines(d.Declaration)) == 0 {
+			continue
+		}
+		sep()
 		e.external(d)
 		if e.err != nil {
 			return nil, e.err
 		}
 	}
 	flushIncludes()
-	comments(1 << 30)
 	return []byte(e.b.String()), nil
 }
 
-// A run is consecutive whole-line comments and the line the first of them is on.
-type run struct {
-	line int
-	text []string
-}
-
-// commentRuns finds the source's whole-line comments, OUTSIDE ANY BRACE: a
-// comment inside a function body has no declaration to be written above, and
-// this refuses rather than move it.  Measured on slim-vim.c: 272 comments, all
-// of them at column 0 and at depth 0, and no `/* */` at all.
-func commentRuns(src []byte) ([]run, error) {
-	depth := 0
-	line := 1
-	atLineStart := true
-	var runs []run
-	last := -2 // the line number of the last comment taken
-	for i := 0; i < len(src); {
-		c := src[i]
-		switch {
-		case c == '\n':
-			line++
-			atLineStart = true
-			i++
-			continue
-		case c == ' ' || c == '\t':
-			i++
-			continue // indentation does not end the start of a line
+// stripComments blanks every comment in src -- `//` to the end of the line,
+// `/* ... */` wherever it is -- outside string and character literals, and
+// keeps every newline, so each token keeps its line and column and a recovered
+// macro span keeps its extent (collapse folds the blanks).  A `//` that ends in
+// a backslash continues onto the next line, as the preprocessor reads it.
+func stripComments(src []byte) []byte {
+	out := make([]byte, len(src))
+	copy(out, src)
+	blank := func(i int) {
+		if out[i] != '\n' {
+			out[i] = ' '
+		}
+	}
+	for i := 0; i < len(out); {
+		switch c := out[i]; {
 		case c == '"' || c == '\'':
-			q := c
 			i++
-			for i < len(src) && src[i] != q {
-				if src[i] == '\\' {
+			for i < len(out) && out[i] != c && out[i] != '\n' {
+				if out[i] == '\\' {
 					i++
-				}
-				if i < len(src) && src[i] == '\n' {
-					line++
 				}
 				i++
 			}
 			i++
-		case c == '/' && i+1 < len(src) && src[i+1] == '/':
-			j := i
-			for j < len(src) && src[j] != '\n' {
-				j++
+		case c == '/' && i+1 < len(out) && out[i+1] == '/':
+			for i < len(out) && out[i] != '\n' {
+				if out[i] == '\\' && i+1 < len(out) && out[i+1] == '\n' {
+					blank(i)
+					i += 2
+					continue
+				}
+				blank(i)
+				i++
 			}
-			if !atLineStart {
-				return nil, fmt.Errorf("cemit: line %d: a comment that is not a whole line", line)
+		case c == '/' && i+1 < len(out) && out[i+1] == '*':
+			blank(i)
+			blank(i + 1)
+			i += 2
+			for i < len(out) && !(out[i] == '*' && i+1 < len(out) && out[i+1] == '/') {
+				blank(i)
+				i++
 			}
-			if depth != 0 {
-				return nil, fmt.Errorf("cemit: line %d: a whole-line comment inside a brace", line)
+			if i < len(out) {
+				blank(i)
+				blank(i + 1)
+				i += 2
 			}
-			text := strings.TrimRight(string(src[i:j]), " \t")
-			if line == last+1 {
-				runs[len(runs)-1].text = append(runs[len(runs)-1].text, text)
-			} else {
-				runs = append(runs, run{line: line, text: []string{text}})
-			}
-			last = line
-			i = j
-			continue
-		case c == '/' && i+1 < len(src) && src[i+1] == '*':
-			return nil, fmt.Errorf("cemit: line %d: a block comment", line)
-		case c == '{':
-			depth++
-			i++
-		case c == '}':
-			depth--
-			i++
 		default:
 			i++
 		}
-		if c != '\n' {
-			atLineStart = false
-		}
 	}
-	return runs, nil
+	return out
 }
 
 // external writes one external declaration.
@@ -279,7 +242,7 @@ func includes(src []byte) ([]string, int) {
 	at := 1 << 30
 	for i, line := range strings.Split(string(src), "\n") {
 		if strings.HasPrefix(line, "#include") {
-			out = append(out, line)
+			out = append(out, strings.TrimRight(line, " \t"))
 			if at == 1<<30 {
 				at = i + 1
 			}
@@ -304,6 +267,7 @@ func includes(src []byte) ([]string, int) {
 // Parsing prints that text and reaches a fixpoint on a second pass, so
 // canonicalisation is available there; translating refuses it.
 func Canonical(path string, src []byte) ([]byte, error) {
+	src = stripComments(src)
 	cfg, err := cc.NewConfig("linux", "amd64")
 	if err != nil {
 		return nil, err

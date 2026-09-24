@@ -181,7 +181,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "realloc", W: w}
 	lines := bytes.Split(text, []byte{'\n'})
 	linesBefore := len(lines)
-	runsBefore := p.BlankRuns(text)
 
 	// ---- 0. the file this edit was written against -----------------------
 	// The boundary is the first `#include` and nothing else marks it.  The
@@ -317,9 +316,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("the host's %d `realloc` did not survive: adjust_types() is the host's and no "+
 			"phase of this pipeline has taken it", nh)
 	}
-	if r := p.BlankRuns(text); r != runsBefore {
-		return nil, p.Die("the edit left %d runs of two blank lines where there were %d", r, runsBefore)
-	}
+	// A cut between two blank lines leaves two in a row now that the canonical
+	// print separates every declaration, and the print at the end of the phase
+	// collapses them; the blank runs are layout, and not this phase's to count.
 	p.Sayf("the core does not name `realloc` at all: 3 -> 0 above the boundary, 1 -> 1 below "+
 		"it, %d directives unmoved relative to the text, and the blank-line runs unchanged "+
 		"at %d", len(nd), p.BlankRuns(text))

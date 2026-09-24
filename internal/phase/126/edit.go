@@ -82,6 +82,7 @@ package p126
 
 import (
 	"fmt"
+	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"os"
 	"regexp"
@@ -140,11 +141,11 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return n
 	}
 	swap := func(old, new, what, why string) error {
-		c := strings.Count(t, old)
+		c := cutil.CountAnchor(t, old)
 		if c != 1 {
 			return p.Die("%s occurs %d times, expected %d -- %s", what, c, 1, why)
 		}
-		t = strings.ReplaceAll(t, old, new)
+		t = cutil.ReplaceAnchor(t, old, new, -1)
 		return nil
 	}
 	// heads: every definition in this tree's ONE shape -- a name at column 0 with
@@ -484,7 +485,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		p.Sayf("%d stores of the %s label", c, e.side)
 	}
 	for _, old := range []string{w126pc1, w126pc2, w126pc3} {
-		if strings.Count(t, old) < 1 {
+		if cutil.CountAnchor(t, old) < 1 {
 			return nil, p.Die("a page-count store this phase accounts for is not there: %s",
 				edit.W126PyRepr(old))
 		}

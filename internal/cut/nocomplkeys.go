@@ -149,11 +149,11 @@ func complkeysDropIn(text []byte, fn, pattern, what string) ([]byte, error) {
 }
 
 func complkeysSub(text []byte, old, new, what string, count int) ([]byte, error) {
-	n := bytes.Count(text, []byte(old))
+	n := cutil.CountAnchorB(text, old)
 	if n != count {
 		return nil, fmt.Errorf("nocomplkeys: %s -- expected %d, found %d", what, count, n)
 	}
-	return bytes.Replace(text, []byte(old), []byte(new), count), nil
+	return cutil.ReplaceAnchorB(text, old, []byte(new), count), nil
 }
 
 const complkeysDisarm = `        if (c != (-((KS_EXTRA) + ((int)(KE_CURSORHOLD) << 8))) && c != (-((KS_EXTRA) + ((int)(KE_COMPLETE_DELAY) << 8))))

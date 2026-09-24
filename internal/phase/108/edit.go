@@ -97,7 +97,6 @@ var (
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "hostcall", W: w}
 	linesBefore := bytes.Count(text, []byte{'\n'})
-	runsBefore := p.BlankRuns(text)
 	var err error
 
 	// ---- 0. the file this edit was written against -----------------------
@@ -371,9 +370,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"objects with their blank lines is four, two prototypes back is two, and the "+
 			"two assignments are two -- the canonical text writes no blank line inside a "+
 			"function, so there is none here to take with them", n, linesBefore)
-	}
-	if r := p.BlankRuns(text); r != runsBefore {
-		return nil, p.Die("the edit left %d runs of two blank lines where there were %d", r, runsBefore)
 	}
 	var d [][]byte
 	for _, l := range L {

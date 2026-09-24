@@ -119,12 +119,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// textEdit does NOT report: sections A and B each make many edits and then
 	// say one line about all of them.
 	textEdit := func(old, new, what string, n int) error {
-		k := strings.Count(t, old)
+		k := cutil.CountAnchor(t, old)
 		if k != n {
 			return p.Die("%s -- the text occurs %d times, expected %d: %s",
 				what, k, n, cutil.PyRepr(edit.CoreHead(old, 70)))
 		}
-		t = strings.ReplaceAll(t, old, new)
+		t = cutil.ReplaceAnchor(t, old, new, -1)
 		return nil
 	}
 

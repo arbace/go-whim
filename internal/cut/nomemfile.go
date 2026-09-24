@@ -14,6 +14,8 @@ import (
 // constants: LALLOC's comment contains BACKTICKS, so a Go raw string cannot
 // hold it and hand-escaping is the kind of transcription this port keeps
 // avoiding.
+// Not written into the C any more -- the canonical form has no comments --
+// and kept as the account of this cut, for whoever reads the program.
 const mfOpenNote = "// No caller can name a file: ml_open() passes nothing, and the recovery\n" +
 	"// reader that passed a name went with the rest of recovery, above.  So\n" +
 	"// there is no descriptor, no block is ever in a file, and the page size is\n" +
@@ -39,17 +41,23 @@ const mfOpenBody = "    memfile_T           *mfp;\n" +
 	"\n" +
 	"    return mfp;"
 
+// Not written into the C any more -- the canonical form has no comments --
+// and kept as the account of this cut, for whoever reads the program.
 const mfSyncNote = "// Nothing to sync to.  Reporting the buffer clean is what the fd-less arm\n" +
 	"// of this always did; it is now the whole function.\n"
 
 const mfSyncBody = "    mfp->mf_dirty = MF_DIRTY_NO;\n" +
 	"    return FAIL;"
 
+// Not written into the C any more -- the canonical form has no comments --
+// and kept as the account of this cut, for whoever reads the program.
 const mfGetMissNote = "// A block that is not in the hash is not anywhere: it could only\n" +
 	"// ever have come back from the file, and there is no file.\n"
 
 const mfGetMissBody = "            return NULL;"
 
+// Not written into the C any more -- the canonical form has no comments --
+// and kept as the account of this cut, for whoever reads the program.
 const lallocNote = "// The scrollback is the only memory left to reclaim.  This used to be\n" +
 	"// a retry loop, because mf_release_all() could page buffer blocks out\n" +
 	"// to the swap file and free them; it cannot, so there is nothing to\n" +
@@ -310,16 +318,6 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	fmt.Fprintln(w, "  nomemfile    eight fields of memfile_T that nothing reads")
-
-	// The notes go last: two of the edits above find their site by offset.
-	for _, n := range []struct{ name, note string }{
-		{"mf_open", mfOpenNote}, {"mf_sync", mfSyncNote},
-		{"mf_get", mfGetMissNote}, {"lalloc", lallocNote},
-	} {
-		if text, err = commentAbove(text, n.name, n.note, "nomemfile"); err != nil {
-			return nil, err
-		}
-	}
 
 	for _, g := range []string{"mf_fd", "total_mem_used", "p_mmt"} {
 		fmt.Fprintf(w, "  nomemfile    %-14s %d mentions left for the sweep\n",

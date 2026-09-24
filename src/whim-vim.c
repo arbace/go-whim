@@ -32636,12 +32636,9 @@ struct data_block
 
 static_assert(sizeof(PTR_EN) == 16, "a pointer entry is one node reference and one line count");
 
-
 static_assert(PB_COUNT_MAX == (4096 - 8) / sizeof(PTR_EN), "the fanout the 4096-byte page gave, kept when the page went");
 
-
 static_assert(sizeof(DATA_BL) == 8 + DB_LINE_MAX * sizeof(DATA_LN), "a leaf is its count and its records");
-
 
 enum { STACK_INCR = 5 };
 
@@ -72172,7 +72169,6 @@ static struct cmdname cmdnames[] =
 
 static_assert(sizeof(cmdnames) / sizeof(cmdnames[0]) == CMD_SIZE, "cmdnames[] and enum CMD_index have drifted apart");
 
-
 static void frame_comp_pos(frame_T *topfrp, int *row, int *col);
 
 static void frame_setheight(frame_T *curfrp, int height);
@@ -73387,42 +73383,29 @@ vim_main(int argc, char **argv)
 
 static_assert((int)(~0u >> 1) == INT_MAX, "INT_MAX");
 
-
 static_assert(-(int)(~0u >> 1) - 1 == INT_MIN, "INT_MIN");
-
 
 static_assert((long)(~0ul >> 1) == LONG_MAX, "LONG_MAX");
 
-
 static_assert(-(long)(~0ul >> 1) - 1 == LONG_MIN, "LONG_MIN");
-
 
 static_assert((long long)(~0ull >> 1) == LLONG_MAX, "LLONG_MAX");
 
-
 static_assert(-(long long)(~0ull >> 1) - 1 == LLONG_MIN, "LLONG_MIN");
-
 
 static_assert(~0ull == ULLONG_MAX, "ULLONG_MAX");
 
-
 static_assert((usize)-1 == SIZE_MAX, "SIZE_MAX");
-
 
 static_assert(4096 == PATH_MAX, "PATH_MAX");
 
-
 static_assert(1 == EXIT_FAILURE, "EXIT_FAILURE");
-
 
 static_assert(1 == SIGHUP, "SIGHUP");
 
-
 static_assert(15 == SIGTERM, "SIGTERM");
 
-
 static_assert(_Generic((time_T)0, time_t: 1, default: 0), "time_T is time_t");
-
 
 enum { TMP_LEN = 350 };
 

@@ -9,6 +9,8 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
+// Not written into the C any more -- the canonical form has no comments --
+// and kept as the account of this cut, for whoever reads the program.
 const relativeTimeNote = `// How long ago, not when.  Phase 20 took away every way this editor could
 // be told what zone the clock is in, and undo history does not outlive the
 // process -- :wundo and :rundo are ex_ni -- so every time this formats is
@@ -154,9 +156,6 @@ func NoRecover(text []byte, w io.Writer) ([]byte, error) {
 	buf = append(buf, relativeTime...)
 	buf = append(buf, "\n}"...)
 	text = append(buf, text[c+1:]...)
-	if text, err = commentAbove(text, "add_time", relativeTimeNote, "norecover"); err != nil {
-		return nil, err
-	}
 	fmt.Fprintln(w, "  norecover    add_time says how long ago, not when; localtime_r and "+
 		"strftime go with it")
 

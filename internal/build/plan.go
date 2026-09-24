@@ -815,8 +815,5 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim162"}},
 		}, Sweep: true},
-	{N: 163, Name: "the product is in the one canonical spelling",
-		Steps: []Step{
-			{Op: "cemit"},
-		}},
+	{N: 163, Name: "the product is in the one canonical spelling", NoSource: true},
 }

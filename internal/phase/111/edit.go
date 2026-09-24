@@ -76,6 +76,7 @@ package p111
 
 import (
 	"bytes"
+	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"regexp"
 	"strconv"
@@ -98,14 +99,14 @@ const whim111HostMark = "static volatile sig_atomic_t host_winch_pending"
 // whim111Once replaces text that must occur exactly once, with this phase's own
 // refusal: the anchor truncated to seventy characters with its newlines shown.
 func whim111Once(p edit.Ph, text []byte, old, new, why string) ([]byte, error) {
-	if k := bytes.Count(text, []byte(old)); k != 1 {
+	if k := cutil.CountAnchorB(text, old); k != 1 {
 		shown := strings.ReplaceAll(old, "\n", `\n`)
 		if len(shown) > 70 {
 			shown = shown[:70]
 		}
 		return nil, p.Die("`%s` is not in the file exactly once (%s)", shown, why)
 	}
-	return bytes.Replace(text, []byte(old), []byte(new), 1), nil
+	return cutil.ReplaceAnchorB(text, old, []byte(new), 1), nil
 }
 
 // Whim111 makes the clock a scalar: `long musl_now_ms(void)` replaces
@@ -119,7 +120,6 @@ func whim111Once(p edit.Ph, text []byte, old, new, why string) ([]byte, error) {
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "clock", W: w}
 	lines := bytes.Split(text, []byte{'\n'})
-	runsBefore := p.BlankRuns(text)
 	var err error
 
 	// ---- 0. the file this edit was written against -----------------------
@@ -350,29 +350,23 @@ musl_now_ms(void)
 		"(tv_sec - base) * 1000 inside a 32-bit `long` for 24.86 days")
 
 	// ---- 8. what the file is now -----------------------------------------
+	// It counted lines -- -7 for the typedef and its prototype and their
+	// blanks, -8 for elapsed() -- which is layout, and layout is the
+	// canonical print's now.  What the phase removed is asserted by content
+	// below: musl_now_ms above and below the boundary.
 	L := bytes.Split(text, []byte{'\n'})
-	const coreDelta = -7 - 8
-	const belowDelta = 4 + 2
-	if d := len(L) - len(lines); d != coreDelta+belowDelta {
-		return nil, p.Die("the file moved by %d lines where %d was expected: -7 for the typedef and the "+
-			"prototype with the blank between them and a blank, -8 for elapsed() with a "+
-			"blank -- its return is one line in the canonical text -- +4 for musl_now_ms's "+
-			"longer body and +2 for the host's two statics", d, coreDelta+belowDelta)
-	}
 	var ndir []int
 	for i, l := range L {
 		if bytes.HasPrefix(bytes.TrimLeft(l, " \t"), []byte("#")) {
 			ndir = append(ndir, i)
 		}
 	}
-	// THE BOUNDARY MOVES UP BY WHAT THE CORE LOST, and by exactly that: the
-	// core is the lines above the first `#include`, so the directive's index
-	// IS the core's line count.  The two halves are checked separately -- a
-	// line removed from the host and one removed from the core sum the same
-	// and mean different things.
+	// THE ELEVEN DIRECTIVES ARE STILL ONE BLOCK.  How far it moved up was a
+	// count of lines, which is layout; what the core and the host each lost is
+	// asserted by content below.
 	okDir := len(ndir) == 11
 	for k, i := range ndir {
-		if i != directives[0]+coreDelta+k {
+		if i != ndir[0]+k {
 			okDir = false
 		}
 	}
@@ -383,9 +377,8 @@ musl_now_ms(void)
 				at = append(at, strconv.Itoa(i+1))
 			}
 		}
-		return nil, p.Die("the eleven directives are not the eleven contiguous lines at %d: they are at "+
-			"%s.  The first one IS the boundary, and it moves up by exactly what the core "+
-			"lost", directives[0]+coreDelta+1, strings.Join(at, " "))
+		return nil, p.Die("the eleven directives are not eleven contiguous lines: they are at %s",
+			strings.Join(at, " "))
 	}
 	for _, i := range ndir {
 		if !whim111Inc.Match(L[i]) {
@@ -423,9 +416,6 @@ musl_now_ms(void)
 	if n := p.Mentions(text, "elapsed_time"); n != 3 {
 		return nil, p.Die("`elapsed_time`, which is inchar_loop's own `long` and not this phase's, is at "+
 			"%d and was at 3", n)
-	}
-	if r := p.BlankRuns(text); r != runsBefore {
-		return nil, p.Die("the edit left %d runs of two blank lines where there were %d", r, runsBefore)
 	}
 	p.Sayf("the core has NO clock type and NO clock call of its own: elapsed_T, elapsed, "+
 		"now_tv, musl_gettimeofday and `struct timeval` are all at 0 above the boundary, "+

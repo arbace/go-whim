@@ -98,12 +98,12 @@ var whim100Space = regexp.MustCompile(`\s+`)
 
 const whim100Table = "} signal_info[] =\n" +
 	"{\n" +
-	"    {SIGHUP,        \"HUP\",      TRUE},\n" +
-	"    {SIGTERM,       \"TERM\",     TRUE},\n" +
-	"    {SIGINT,        \"INT\",      FALSE},\n" +
-	"    {SIGWINCH,      \"WINCH\",    FALSE},\n" +
-	"    {SIGTSTP,       \"TSTP\",     FALSE},\n" +
-	"    {-1,            \"Unknown!\", FALSE}\n" +
+	"    {SIGHUP, \"HUP\", TRUE},\n" +
+	"    {SIGTERM, \"TERM\", TRUE},\n" +
+	"    {SIGINT, \"INT\", FALSE},\n" +
+	"    {SIGWINCH, \"WINCH\", FALSE},\n" +
+	"    {SIGTSTP, \"TSTP\", FALSE},\n" +
+	"    {-1, \"Unknown!\", FALSE},\n" +
 	"};\n"
 
 const whim100Install = "        if (signal_info[i].deadly)\n" +
@@ -266,7 +266,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"mch_exit 8 -- none of which this phase touches")
 
 	// ---- 6. the cut: nine lines, and nothing else ------------------------
-	runsBefore := p.BlankRuns(text)
 	linesBefore := p.Lines(text)
 	if err := p.AssertOnce(text, whim100Ladder, "the ladder",
 		"it is deleted as exact text and there is one of it"); err != nil {
@@ -306,9 +305,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if err := p.AssertOnce(text, "    reset_signals();\n", "the one remaining `reset_signals();` call",
 		"it is mainerr's, and it is why the function is NOT orphaned by this cut"); err != nil {
 		return nil, err
-	}
-	if r := p.BlankRuns(text); r != runsBefore {
-		return nil, p.Die("the cut left %d runs of two blank lines where there were %d", r, runsBefore)
 	}
 	if n := p.Lines(text); n != linesBefore-9 {
 		return nil, p.Die("the file lost %d lines, expected 9", linesBefore-n)

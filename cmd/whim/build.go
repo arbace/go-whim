@@ -13,7 +13,9 @@ import (
 // runBuild is the pipeline in one process: slim-vim.c in, whim-vim.c out.
 //
 //	whim build                 write whim-vim.c
-//	whim build --check         build and require the committed bytes back
+//	whim build --check         require the committed product back: phase by phase from
+//	                           .cache/boundaries in parallel (--jobs N), or in order
+//	                           when there are no snapshots of this input
 //	whim build --to N          stop after phase N
 //	whim build --from N --src B   start at phase N, from boundary B
 //	whim build --src F --out F the input and the output
@@ -30,13 +32,21 @@ func runBuild(args []string) int {
 	// happened twice in one afternoon, to an agent that had been told to touch
 	// nothing but .tmp/.  A command whose job is to answer a question does not
 	// get to write the answer over the product.
-	out, check := "", false
+	out, check, jobs := "", false, 0
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--check":
 			check = true
 		case "--keep-going":
 			o.KeepGoing = true
+		case "--jobs":
+			i++
+			n, err := strconv.Atoi(args[min(i, len(args)-1)])
+			if i >= len(args) || err != nil || n < 1 {
+				fmt.Fprintln(os.Stderr, "usage: whim build --check [--jobs N]")
+				return 2
+			}
+			jobs = n
 		case "--from", "--to":
 			flag := args[i]
 			i++
@@ -77,7 +87,13 @@ func runBuild(args []string) int {
 		}
 	}
 	start := time.Now()
-	text, err := build.Run(o)
+	var text []byte
+	var err error
+	if check && o.From == 0 && o.To < 0 && !o.KeepGoing {
+		text, err = build.Check(o, jobs)
+	} else {
+		text, err = build.Run(o)
+	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "  build        %v\n", err)
 		return 1

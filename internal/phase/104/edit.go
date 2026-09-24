@@ -117,6 +117,7 @@ package p104
 
 import (
 	"bytes"
+	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"regexp"
 	"strings"
@@ -143,7 +144,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// line stripped and truncated at 70 -- which is what makes a refusal
 	// readable when the needle is a fifteen-line function Body.
 	sub := func(old, new string, n int, tag string) error {
-		c := bytes.Count(t, []byte(old))
+		c := cutil.CountAnchorB(t, old)
 		if c != n {
 			head := strings.SplitN(strings.TrimSpace(old), "\n", 2)[0]
 			if len(head) > 70 {
@@ -151,12 +152,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			}
 			return p.Die("%s: `%s` occurs %d times, expected %d", tag, head, c, n)
 		}
-		t = bytes.ReplaceAll(t, []byte(old), []byte(new))
+		t = cutil.ReplaceAnchorB(t, old, []byte(new), -1)
 		return nil
 	}
 
 	linesBefore := p.Lines(t)
-	runsBefore := p.BlankRuns(t)
 
 	// ---- 0. this is the file the phase was written against ---------------
 	// Counted on the INPUT, so a later phase that moved one of these fails
@@ -389,6 +389,7 @@ vim_main(int argc, char **argv, void (*exit_fn)(int), void (*message_fn)(const c
 	// musl_strlen: it is in the same translation unit, it is the host's own
 	// code, and at the split it goes into the host file with it.
 	const old = `static void *host_jump[5];
+
 static int host_code;
 
     static void
@@ -524,10 +525,6 @@ main(int argc, char **argv)
 	if !okInc {
 		return nil, p.Die("the output does not have exactly ELEVEN #include directives and nothing " +
 			"else -- this phase removes <stdio.h> and adds none")
-	}
-	if k := p.BlankRuns(t); k != runsBefore {
-		return nil, p.Die("the edit left %d runs of two blank lines where there were %d",
-			k, runsBefore)
 	}
 	p.Sayf("%d -> %d lines.  Every byte that leaves this editor other than the screen "+
 		"goes through one `vim_host_message(msg, len, err)` the launcher installs; "+

@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/canon"
 	"github.com/arbace/go-whim/internal/dead"
 )
 
@@ -23,7 +22,7 @@ func runDeadsweep(path string, cur []byte) ([]byte, string, error) {
 	if err := os.WriteFile(path, cur, 0o644); err != nil {
 		return cur, "", err
 	}
-	out, c, err := dead.DeadSweep(path, CompileDir)
+	out, c, err := dead.DeadSweep(path, "")
 	if err != nil {
 		return cur, "", err
 	}
@@ -134,12 +133,4 @@ func runDeadenums(path string, cur []byte, vals string,
 		return cur, line, nil
 	}
 	return dead.ApplyEnumEdits(cur, edits), line, nil
-}
-
-func runCanon(cur []byte) ([]byte, string, error) {
-	out, _, changed, _ := canon.Fixpoint(cur, true)
-	if changed {
-		return out, "canon changed it", nil
-	}
-	return out, "canon settled", nil
 }

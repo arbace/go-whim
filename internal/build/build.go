@@ -38,6 +38,8 @@ type Options struct {
 	// from one run (whim measure); it writes nothing else.
 	Keep    string
 	Refused []string
+
+	snap bool // a whole ordinary run from phase 0: write .cache/boundaries
 }
 
 // Seed is what phase 0 hands the pipeline: the input IN CANONICAL FORM.  Every
@@ -85,6 +87,16 @@ func Run(o *Options) ([]byte, error) {
 		return nil, err
 	}
 	path := filepath.Join(work, "whim-vim.c")
+	// Only a whole, ordinary run from phase 0 writes the snapshots, and it
+	// unseals the set first and seals it last, so a run that stops part way
+	// leaves no set that claims to be whole.
+	o.snap = o.From == 0 && o.To < 0 && !o.KeepGoing
+	if o.snap {
+		if err := os.MkdirAll(SnapDir, 0o755); err != nil {
+			return nil, err
+		}
+		os.Remove(filepath.Join(SnapDir, "manifest"))
+	}
 
 	var text []byte
 	if o.From > 0 {
@@ -123,7 +135,6 @@ func Run(o *Options) ([]byte, error) {
 			return nil, err
 		}
 		out, err := RunPhase(p, text, scratch, o.W)
-		os.RemoveAll(scratch)
 		switch {
 		case err == nil:
 			text = out
@@ -140,18 +151,21 @@ func Run(o *Options) ([]byte, error) {
 			fmt.Fprintf(o.W, "  REFUSED %-4d %s\n", p.N, why)
 			o.Refused = append(o.Refused, fmt.Sprintf("%d: %s", p.N, why))
 		default:
+			os.RemoveAll(scratch)
 			return nil, fmt.Errorf("phase %d (%s): %w", p.N, p.Name, err)
 		}
-		if p.Sweep {
-			if err := os.WriteFile(path, text, 0o644); err != nil {
-				return nil, err
-			}
-			if _, err := sweep.Sweep(path, o.W); err != nil {
-				return nil, fmt.Errorf("phase %d (%s): sweep: %w", p.N, p.Name, err)
-			}
-			if text, err = os.ReadFile(path); err != nil {
-				return nil, err
-			}
+		// The sweep, if the schedule puts one here, and the canonical print --
+		// also after a refusal, so the text handed on is canonical either way.
+		finished, err := finish(p, text, scratch, o.W)
+		os.RemoveAll(scratch)
+		switch {
+		case err == nil:
+			text = finished
+		case o.KeepGoing:
+			fmt.Fprintf(o.W, "  REFUSED %-4d %v\n", p.N, err)
+			o.Refused = append(o.Refused, fmt.Sprintf("%d: %v", p.N, err))
+		default:
+			return nil, fmt.Errorf("phase %d (%s): %w", p.N, p.Name, err)
 		}
 		if err := o.keep(p.N, text); err != nil {
 			return nil, err
@@ -165,6 +179,11 @@ func Run(o *Options) ([]byte, error) {
 	// line is FlagsFor the last phase run.
 	if err := os.WriteFile(path, text, 0o644); err != nil {
 		return nil, err
+	}
+	if o.snap {
+		if err := os.WriteFile(filepath.Join(SnapDir, "manifest"), []byte(digestOf(src)+"\n"), 0o644); err != nil {
+			return nil, err
+		}
 	}
 	return text, nil
 }
@@ -271,6 +290,11 @@ func declared(n int) (string, error) {
 
 // keep writes the boundary after phase n into o.Keep, when it is set.
 func (o *Options) keep(n int, text []byte) error {
+	if o.snap {
+		if err := os.WriteFile(snapPath(n), text, 0o644); err != nil {
+			return err
+		}
+	}
 	if o.Keep == "" {
 		return nil
 	}

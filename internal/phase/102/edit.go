@@ -138,7 +138,6 @@ const whim102New = "\nstatic void *host_jump[5];\n" +
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "hostexit", W: w}
 	linesBefore := p.Lines(text)
-	runsBefore := p.BlankRuns(text)
 	var err error
 
 	// ---- 1. there is exactly one way Out, and phase 100 is why ------------
@@ -260,9 +259,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	if !bytes.HasSuffix(text, []byte(whim102New)) {
 		return nil, p.Die("the launcher is not the last thing in the file")
-	}
-	if r := p.BlankRuns(text); r != runsBefore {
-		return nil, p.Die("the edit left %d runs of two blank lines where there were %d", r, runsBefore)
 	}
 	if n := p.Lines(text); n != linesBefore+17 {
 		return nil, p.Die("the file gained %d lines, expected 17 -- two for the pointer and its blank "+

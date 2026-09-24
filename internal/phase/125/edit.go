@@ -156,11 +156,11 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	lines := func() []string { return strings.Split(t, "\n") }
 	swap := func(old, new, what, why string, n int) error {
-		c := strings.Count(t, old)
+		c := cutil.CountAnchor(t, old)
 		if c != n {
 			return p.Die("%s occurs %d times, expected %d -- %s", what, c, n, why)
 		}
-		t = strings.ReplaceAll(t, old, new)
+		t = cutil.ReplaceAnchor(t, old, new, -1)
 		return nil
 	}
 	drop := func(old, what, why string, n int) error { return swap(old, "", what, why, n) }

@@ -3,6 +3,7 @@ package cut
 import (
 	"bytes"
 	"fmt"
+	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"regexp"
 )
@@ -51,13 +52,13 @@ func NoRuntime(text []byte, w io.Writer) ([]byte, error) {
 
 	nPath := 0
 	for _, s := range runtimePaths {
-		c := bytes.Count(text, []byte(s))
+		c := cutil.CountAnchorB(text, s)
 		if c == 0 {
 			return nil, fmt.Errorf("noruntime: this runtime path is not here any more, so "+
 				"the file has moved under this phase: %s", s)
 		}
 		nPath += c
-		text = bytes.ReplaceAll(text, []byte(s), []byte(`""`))
+		text = cutil.ReplaceAnchorB(text, s, []byte(`""`), -1)
 	}
 
 	if !bytes.Contains(text, []byte(getenvTest)) {

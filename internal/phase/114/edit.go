@@ -111,16 +111,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	mentions := func(t []byte, name string) int {
 		return len(regexp.MustCompile(`\b`+name+`\b`).FindAll(t, -1))
 	}
-	blankRuns := func(t []byte) int {
-		L := strings.Split(string(t), "\n")
-		n := 0
-		for i := 1; i < len(L); i++ {
-			if L[i] == "" && L[i-1] == "" {
-				n++
-			}
-		}
-		return n
-	}
 	directives := func(t []byte) ([]int, []string) {
 		lines := strings.Split(string(t), "\n")
 		var d []int
@@ -131,10 +121,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		return d, lines
 	}
-	contiguous := func(d []int) bool {
-		for i := range d {
-			if d[i] != d[0]+i {
-				return false
+	// contiguous: one block, with nothing but blank lines between its lines --
+	// the canonical print puts a blank line between two declarations.
+	contiguous := func(ls []string, d []int) bool {
+		for i := 1; i < len(d); i++ {
+			for j := d[i-1] + 1; j < d[i]; j++ {
+				if strings.TrimSpace(ls[j]) != "" {
+					return false
+				}
 			}
 		}
 		return len(d) > 0
@@ -148,7 +142,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	beforeLines := strings.Count(string(text), "\n")
-	runsBefore := blankRuns(text)
 
 	// ---- 0. the file this edit was written against ----------------------------
 	// ELEVEN DIRECTIVES, contiguous, every one an `#include` of a system header --
@@ -156,7 +149,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// boundary between the core and the host, so everything this phase writes
 	// must land ABOVE it.
 	d, lines := directives(text)
-	if len(d) != 11 || !contiguous(d) {
+	if len(d) != 11 || !contiguous(lines, d) {
 		return nil, p.Die("the file does not have exactly eleven contiguous preprocessor directives: "+
 			"%d at %s", len(d), at(d, 4))
 	}
@@ -200,7 +193,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		proto = append(proto, i)
 	}
-	if len(proto) == 0 || !contiguous(proto) {
+	if len(proto) == 0 || !contiguous(lines, proto) {
 		return nil, p.Die("the core's libc declarations are not one contiguous block above the first "+
 			"`static`: %d lines at %s", len(proto), at(proto, 4))
 	}
@@ -289,7 +282,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- 4. what the file is now ----------------------------------------------
 	d, lines = directives(text)
-	if len(d) != 11 || !contiguous(d) {
+	if len(d) != 11 || !contiguous(lines, d) {
 		return nil, p.Die("the eleven directives are no longer eleven contiguous lines")
 	}
 	for _, nw := range []struct {
@@ -320,9 +313,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("the file is %d lines and the input was %d -- expected exactly ten more, the "+
 			"two five-line definitions and their two blank lines less the two prototypes",
 			n, beforeLines)
-	}
-	if r := blankRuns(text); r != runsBefore {
-		return nil, p.Die("the edit left %d runs of two blank lines where there were %d", r, runsBefore)
 	}
 	p.Sayf("`abs` and `labs` are at 0 mentions in the whole file, `musl_abs` at 2 and "+
 		"`musl_labs` at 3 -- a definition and its calls -- both defined at column 0 above "+

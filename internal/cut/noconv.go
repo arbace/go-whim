@@ -343,7 +343,7 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 		var err error
 		for _, f := range []struct{ pat, what string }{
 			{`^[ \t]*if \(p_enc == NULL\)$`, "mb_init without an encoding"},
-			{`^[ \t]*if \( strcmp\(\(char \*\)\(p_enc\), \(char \*\)\("utf-8"\)\)  != 0\)$`,
+			{`^[ \t]*if \(strcmp\(\(char \*\)\(p_enc\), \(char \*\)\("utf-8"\)\) != 0\)$`,
 				"mb_init refusing another encoding"},
 		} {
 			if s, err = e.ncFold(s, f.pat, f.what, "never", -1); err != nil {
@@ -363,8 +363,9 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 				return nil, err
 			}
 		}
-		return e.subCountRepl(s, `(?m)^for \(i = 0; i < 256; \+\+i\)$`,
-			"    for (i = 0; i < 256; ++i)", "mb_init's byte-length loop, indented", 1)
+		// The fold above leaves the byte-length loop at the wrong indent; the
+		// canonical print at the end of the phase puts it right.
+		return s, nil
 	}); err != nil {
 		return nil, err
 	}

@@ -24,6 +24,7 @@ package edit
 
 import (
 	"fmt"
+	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"sort"
 )
@@ -83,11 +84,11 @@ func Names() []string {
 // the text allows it; a single literal occurrence IS that partition when the
 // literal is unique, and the count is how it is stated.
 func Once(text []byte, old, new string, what string) ([]byte, error) {
-	n := countBytes(text, old)
+	n, norm := matchCount(text, old)
 	if n != 1 {
 		return nil, fmt.Errorf("  %s occurs %d times, expected 1", what, n)
 	}
-	return replaceBytes(text, old, new), nil
+	return replaceMatched(text, old, new, 1, norm), nil
 }
 
 // countBytes and replaceBytes are how every literal anchor in the pipeline is
@@ -102,9 +103,11 @@ func Once(text []byte, old, new string, what string) ([]byte, error) {
 // picks a DIFFERENT site where two differ only in spacing.  `&p_rtp )` was one;
 // phase 71's wiped-fnum branch was another.
 //
-// So the machinery stays (internal/cutil/norm.go, with its own account) and the
-// pipeline does not use it: the anchors are exact, and what a canonical text
-// would cost is known.
+// So the match is EXACT FIRST.  Only when the exact literal occurs nowhere --
+// an anchor copied from text an earlier phase wrote with aligned columns, now
+// that every boundary is printed canonically -- does it fall back to matching
+// modulo whitespace (matchCount, below, and internal/cutil's CountAnchor for
+// the phases' own closures).  Where the exact literal matches, nothing moved.
 func countBytes(text []byte, s string) int {
 	n, b := 0, []byte(s)
 	for i := 0; i+len(b) <= len(text); {
@@ -141,4 +144,35 @@ func IndexFrom(text, needle []byte, from int) int {
 		}
 	}
 	return -1
+}
+
+// THE CANONICAL FALLBACK.  Every boundary is printed canonically now, so an
+// anchor copied from a text an earlier phase wrote with alignment --
+// `{SIGWINCH,      "WINCH",    FALSE},` -- occurs nowhere, although the text it
+// means is there.  matchCount keeps the exact match wherever the exact literal
+// occurs at all, so nothing that matched before can move (the wider match picked
+// a different site twice when it was tried first, above); ONLY when the exact
+// literal occurs nowhere does it count modulo whitespace (internal/cutil/norm.go).
+// The count is still the assertion either way.
+func matchCount(text []byte, s string) (n int, norm bool) {
+	if n = countBytes(text, s); n > 0 {
+		return n, false
+	}
+	if k := cutil.Count(text, []byte(s)); k > 0 {
+		return k, true
+	}
+	return 0, false
+}
+
+// replaceMatched rewrites the first n occurrences of old, the way matchCount
+// found them.
+func replaceMatched(text []byte, old, new string, n int, norm bool) []byte {
+	for i := 0; i < n; i++ {
+		if norm {
+			text = cutil.ReplaceFirst(text, []byte(old), []byte(new))
+		} else {
+			text = replaceBytes(text, old, new)
+		}
+	}
+	return text
 }

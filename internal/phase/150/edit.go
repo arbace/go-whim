@@ -13,6 +13,7 @@ package p150
 
 import (
 	"fmt"
+	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"strings"
 
@@ -61,11 +62,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if err != nil {
 			return
 		}
-		if k := strings.Count(s, old); k != n {
+		if k := cutil.CountAnchor(s, old); k != n {
 			err = p.Die("%s -- occurs %d times, expected %d", what, k, n)
 			return
 		}
-		s = strings.ReplaceAll(s, old, new)
+		s = cutil.ReplaceAnchor(s, old, new, -1)
 		p.Say(what)
 	}
 	// The canonical text writes an aggregate initialiser one element per line,
@@ -98,7 +99,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	for _, k := range []struct{ t, ga string }{{"regbehind_T", "regstack_behind"}, {"regstar_T", "regstack_star"}} {
 		for _, ind := range []string{"                ", "                    ", "                        "} {
 			old := "\n" + ind + "regstack.ga_len -= sizeof(" + k.t + ");\n"
-			n := strings.Count(s, old)
+			n := cutil.CountAnchor(s, old)
 			if n > 0 {
 				lit(old, "\n"+ind+"--"+k.ga+".ga_len;\n"+ind+"regstack_bytes -= sizeof("+k.t+");\n", fmt.Sprintf("popping a %s pops its stack (%d at this depth)", k.t, n), n)
 			}

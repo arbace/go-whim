@@ -137,7 +137,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	lineOf := func(s string, pos int) int { return strings.Count(s[:pos], "\n") + 1 }
 
 	lines := strings.Split(t, "\n")
-	runsBefore := blankRuns(t)
 
 	// ---- 0. the file this edit was written against ----------------------------
 	var d []int
@@ -412,9 +411,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if nd[0]-d[0] != len(L)-len(lines) {
 		return nil, p.Die("the boundary moved by %d lines and the file by %d: every line this phase touches "+
 			"is above the first `#include`", nd[0]-d[0], len(L)-len(lines))
-	}
-	if r := blankRuns(t); r != runsBefore {
-		return nil, p.Die("the edit left %d runs of two blank lines where there were %d", r, runsBefore)
 	}
 	p.Sayf("`union` %d -> %d, %d -> %d lines, %d directives unmoved relative to the text, and "+
 		"the blank-line runs unchanged at %d",

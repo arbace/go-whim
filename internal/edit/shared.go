@@ -314,6 +314,15 @@ func W127Index(lines []string, s string) int {
 			return i
 		}
 	}
+	// Exact first; only when no line is exactly s, a line that differs from it
+	// in spacing alone -- every boundary is printed canonically, so a line an
+	// earlier phase wrote with aligned columns is spelled with single spaces.
+	want := strings.Join(strings.Fields(s), " ")
+	for i, l := range lines {
+		if strings.Join(strings.Fields(l), " ") == want {
+			return i
+		}
+	}
 	return -1
 }
 
@@ -856,7 +865,7 @@ var (
 	W80Idx2   = regexp.MustCompile(`(?s)static const unsigned char cmdidxs2\[26\]\[26\] =\n\{\n(.*?)\n\};`)
 	W80Count  = regexp.MustCompile(`static const int command_count = (\d+);`)
 	W80Chars  = regexp.MustCompile(`vim_strchr\(\(char_u \*\)"([^"]*)", \*p\) != NULL\)\n`)
-	W80Banner = regexp.MustCompile(`(?ms)^// -+ begin ex_cmdidxs\.h -+\n.*?^// -+ end ex_cmdidxs\.h -+\n`)
+	W80Banner = regexp.MustCompile(`(?ms)^static const unsigned short cmdidxs1\[26\] =\n.*?^static const int command_count = \d+;\n`)
 	W80Num    = regexp.MustCompile(`\d+`)
 	W80Blanks = regexp.MustCompile(`\n\n+`)
 	W80Label  = regexp.MustCompile(`^([ \t]*)(case \w+:|default:)$`)

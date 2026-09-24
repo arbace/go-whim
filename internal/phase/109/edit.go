@@ -133,7 +133,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	t := text
 
 	lines := bytes.Split(t, []byte{'\n'})
-	runsBefore := p.BlankRuns(t)
 
 	// ---- 0. the file this edit was written against ----------------------
 	// ELEVEN DIRECTIVES, every one an `#include` of a system header, on the
@@ -282,12 +281,12 @@ long write(int fd, const void *buf, usize n);
 long labs(long n);
 int abs(int n);
 `
-	if bytes.Count(t, []byte(anchor)) != 1 {
+	if cutil.CountAnchorB(t, anchor) != 1 {
 		return nil, p.Die("`%s` is not in the file exactly once -- phase 106 put it directly below "+
 			"the last `#include` and this phase declares the libc calls beneath it",
 			strings.TrimSpace(anchor))
 	}
-	t = bytes.Replace(t, []byte(anchor), []byte(anchor+block), 1)
+	t = cutil.ReplaceAnchorB(t, anchor, []byte(anchor+block), 1)
 	p.Say("nine plain prototypes below the usize typedef -- malloc realloc free time " +
 		"getpid kill write labs abs -- and NOT ONE of them `static`.  gettimeofday is " +
 		"the tenth and is the one that cannot stay: its argument is a struct")
@@ -566,10 +565,6 @@ musl_gettimeofday(long *sec, long *usec)
 	}
 	if nd != 11 {
 		return nil, p.Die("the file no longer has exactly eleven directives")
-	}
-	if k := p.BlankRuns(t); k != runsBefore {
-		return nil, p.Die("the edit left %d runs of two blank lines where there were %d",
-			k, runsBefore)
 	}
 	p.Say("the core is clean: size_t, time_t, sig_atomic_t, uintptr_t, struct timeval, " +
 		"MIN, MAX and offsetof are ALL at 0 above the host block, the eleven directives " +

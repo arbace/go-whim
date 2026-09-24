@@ -348,17 +348,13 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	e.Term(w80lit3, w80lit4, 1, "the row field that held the name length holds the shortest abbreviation")
 	if loc := edit.W80Banner.FindIndex(e.Text()); loc == nil {
-		return nil, e.Refused("the ex_cmdidxs banners are gone")
+		return nil, e.Refused("the ex_cmdidxs block is gone")
 	} else {
 		e.Set(append(append([]byte{}, e.Text()[:loc[0]]...), e.Text()[loc[1]:]...))
 	}
-	e.Say("the prefix index, its banners and its count")
-	e.Term("zeroed hole, which the 600-command sweep catches.",
-		"zeroed hole, which the command sweep catches.", 1, "the note on the two lists")
-	e.Term("// ex_ni, :! does not fork,", "// not commands, :! does not fork,", 1,
-		"the note in mch_dirname, which named the stub")
-	e.Term(":wundo and :rundo are ex_ni --", ":wundo and :rundo are not commands --", 1,
-		"and the note in add_time")
+	e.Say("the prefix index and its count")
+	// Three notes this used to reword (on the two lists, in mch_dirname and in
+	// add_time) were comments, and the canonical form has none.
 
 	// ---- 3: find_ex_command ----------------------------------------------------
 	e.Lines(`int vim9 = FALSE;`, 1, "the Vim9 flag nothing sets")

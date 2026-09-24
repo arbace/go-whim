@@ -124,7 +124,6 @@ const whim113New = `    if (msg_use_printf())
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "msgfold", W: w}
 	linesBefore := p.Lines(text)
-	runsBefore := p.BlankRuns(text)
 
 	// ---- 0. the file this edit was written against -----------------------
 	// ELEVEN DIRECTIVES AND NONE ABOVE THE BOUNDARY.  Phase 110 made the first
@@ -256,9 +255,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, p.Die("the %s site moved, and this edit touches exactly one site", k.who)
 		}
 	}
-	if r := p.BlankRuns(text); r != runsBefore {
-		return nil, p.Die("the edit left %d runs of two blank lines where there were %d", r, runsBefore)
-	}
 	n := 0
 	for _, l := range bytes.Split(text, []byte{'\n'}) {
 		if whim113Directive.Match(l) {
@@ -271,6 +267,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p.Sayf("one line added, msg_use_printf still 6, msg_puts_printf down to 2 -- the "+
 		"prototype and the definition, which are the SWEEP's to take along with "+
 		"vim_strlen_maxlen and its prototype; eleven directives unmoved and the "+
-		"blank-line runs at %d", runsBefore)
+		"blank-line runs at %d", p.BlankRuns(text))
 	return text, nil
 }

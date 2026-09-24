@@ -32,3 +32,10 @@ Measured, `tools/st.sh verify --from 163 --src` the committed q162: 75,273 →
 side**, the control different, the declared delta exactly as declared, 32 s.
 `editor/editor.go` does not move: `internal/gen` reads the AST, and the
 AST is the same.
+
+## Empty now
+
+Every boundary is printed canonically since the build did it at the end of
+every phase (`internal/build`'s `finish`), so the text this phase is handed is
+already its own canonical form and the `cemit` step had nothing to do. The
+phase is kept, empty, so the numbering does not move.

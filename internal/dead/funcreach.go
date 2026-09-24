@@ -48,12 +48,21 @@ func FuncDefinitions(text, blanked []byte) FuncDefs {
 		if end < 0 {
 			continue
 		}
-		// The return type sits on the line above; take it with the function.
-		start := bytes.LastIndexByte(text[:m[0]], '\n')
-		if start > 0 {
-			start = bytes.LastIndexByte(text[:start], '\n') + 1
-		} else {
-			start = 0
+		// The return type sits on the line above; take it with the function --
+		// but only when that line CAN be one.  A definition that follows the
+		// previous one's `}` with no blank line between (the sweep no longer
+		// tidies the text between rounds) would otherwise take that `}` and
+		// overlap it, and FuncReach's outside-every-body slice then runs
+		// backwards.
+		nameLine := bytes.LastIndexByte(text[:m[0]], '\n') + 1
+		start := nameLine
+		if nameLine > 0 {
+			prev := bytes.LastIndexByte(text[:nameLine-1], '\n') + 1
+			l := bytes.TrimSpace(text[prev : nameLine-1])
+			if len(l) > 0 && !bytes.HasSuffix(l, []byte("}")) && !bytes.HasSuffix(l, []byte(";")) &&
+				!bytes.HasSuffix(l, []byte("{")) && l[0] != '#' {
+				start = prev
+			}
 		}
 		out[string(blanked[m[2]:m[3]])] = [2]int{start, end + 1}
 	}
@@ -98,8 +107,12 @@ func FuncReach(text []byte) (defs FuncDefs, reachable int, deadNames []string, d
 	var outside [][]byte
 	prev := 0
 	for _, s := range spans {
-		outside = append(outside, text[prev:s[0]])
-		prev = s[1]
+		if s[0] > prev {
+			outside = append(outside, text[prev:s[0]])
+		}
+		if s[1] > prev {
+			prev = s[1]
+		}
 	}
 	outside = append(outside, text[prev:])
 

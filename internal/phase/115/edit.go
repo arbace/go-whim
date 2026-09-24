@@ -68,6 +68,7 @@ package p115
 import (
 	"bytes"
 	"fmt"
+	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"regexp"
 	"strings"
@@ -140,18 +141,17 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	t := text
 
 	once := func(text []byte, old, new, why string) ([]byte, error) {
-		if k := bytes.Count(text, []byte(old)); k != 1 {
+		if k := cutil.CountAnchorB(text, old); k != 1 {
 			shown := strings.ReplaceAll(old, "\n", "\\n")
 			if len(shown) > 70 {
 				shown = shown[:70]
 			}
 			return nil, p.Die("`%s` is not in the file exactly once (%s)", shown, why)
 		}
-		return bytes.Replace(text, []byte(old), []byte(new), 1), nil
+		return cutil.ReplaceAnchorB(text, old, []byte(new), 1), nil
 	}
 
 	lines := bytes.Split(t, []byte{'\n'})
-	runsBefore := p.BlankRuns(t)
 
 	// ---- 0. the file this edit was written against ----------------------
 	// ELEVEN DIRECTIVES, every one an `#include <...>`, CONTIGUOUS, and
@@ -487,14 +487,10 @@ musl_delay(long ms, int interruptible)
 			"the input had 10 and the two that go are the prototype's and the "+
 			"definition's", k)
 	}
-	if !bytes.Contains(ncore, []byte("typedef long        time_T;")) {
-		return nil, p.Die("`typedef long        time_T;` is not in the core.  host_time returns " +
+	if !bytes.Contains(ncore, []byte("typedef long time_T;")) {
+		return nil, p.Die("`typedef long time_T;` is not in the core.  host_time returns " +
 			"`long`, so the core's clock type being `long` is what makes every call site " +
 			"an assignment and not a conversion")
-	}
-	if k := p.BlankRuns(t); k != runsBefore {
-		return nil, p.Die("the edit left %d runs of two blank lines where there were %d",
-			k, runsBefore)
 	}
 	p.Sayf("THE CORE DOES NOT NAME `time` AT ALL -- four mentions to none -- `host_time` "+
 		"is 8 above the boundary and 1 below, `time_t` is named once in the whole file "+

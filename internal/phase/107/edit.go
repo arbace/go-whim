@@ -127,16 +127,6 @@ var w107Kinds = []string{"unused", "fallthrough", "format", "format_arg"}
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "attrs", W: w}
 
-	blankRuns := func(t []byte) int {
-		L := strings.Split(string(t), "\n")
-		n := 0
-		for i := 1; i < len(L); i++ {
-			if L[i] == "" && L[i-1] == "" {
-				n++
-			}
-		}
-		return n
-	}
 
 	// ---- 0. the file this edit was written against ----------------------------
 	// `[[fallthrough]]` is a STATEMENT and not a directive, so this phase must
@@ -335,7 +325,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"`-Wformat=2` goes from 115 warnings to ZERO", nKeep, len(keep))
 
 	// ---- 6. the two substitutions ---------------------------------------------
-	runsBefore := blankRuns(text)
 	padBefore := len(w107Pad.FindAllString(s, -1))
 	var Out strings.Builder
 	prev := 0
@@ -401,9 +390,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("the edit left %d doubled spaces before a `,` or `)` where there were %d -- "+
 			"deleting the attribute without its own two spaces is exactly the mistake this "+
 			"phase can make, and canon.sh does not take it", k, padBefore)
-	}
-	if r := blankRuns(text); r != runsBefore {
-		return nil, p.Die("the edit left %d runs of two blank lines where there were %d", r, runsBefore)
 	}
 	changed := 0
 	for i := range L {

@@ -1,13 +1,12 @@
-// Package sweep is tools/sweep.sh: delete what a cut left unreachable, to a
-// fixpoint, all six kinds, with the canonicalisers as the seventh member of
-// each round.
+// Package sweep deletes what a cut left unreachable, to a fixpoint, all six
+// kinds.
 //
 // The six feed each other -- deleting a function orphans a type, deleting a
 // type orphans a prototype, deleting a field orphans an enumerator -- so none
-// is finished until all are.  canon runs at the END of each round and not
-// before the loop: the sweep DELETES, and deletion leaves blank runs that only
-// canon removes.  Moving it before the loop was measured to commute on one
-// phase and then moved 27 of 32 boundaries when the whole pass ran.
+// is finished until all are.  The canonicalisers were a seventh member of each
+// round, to tidy what deletion leaves; they are not any more, because every
+// phase ends with the canonical print (internal/build's finish), which does
+// that and more, once, after the sweep.
 package sweep
 
 import (
@@ -16,19 +15,12 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
-	"os/exec"
-	"path/filepath"
 
 	"github.com/arbace/go-whim/internal/dead"
 )
 
 // MaxRounds is sweep.sh's ceiling.  Exceeding it is a hard failure.
 const MaxRounds = 15
-
-// CompileDir is where the speculative object and the kept warnings go.  It is
-// in .cache/ and NOT in the work tree: a file left in the work tree is a file
-// the boundary digest counts.
-const CompileDir = ".cache/compile"
 
 func digest(b []byte) string {
 	s := sha256.Sum256(b)
@@ -53,20 +45,6 @@ func Sweep(path string, w interface{ Write([]byte) (int, error) }) (rounds int, 
 	os.Remove(vals)
 	defer os.Remove(vals)
 
-	if err := os.MkdirAll(CompileDir, 0o755); err != nil {
-		return 0, err
-	}
-	os.Remove(filepath.Join(CompileDir, "build.o"))
-	os.Remove(filepath.Join(CompileDir, "build.sha"))
-
-	var spec *specBuild
-	defer func() {
-		if spec != nil {
-			spec.stop()
-		}
-		clearSpec()
-	}()
-
 	// A TOOL IS NOT RUN AGAIN ON TEXT IT HAS ALREADY PASSED.  Every one is a
 	// pure function of the bytes, so a tool that ran and changed nothing on
 	// text X cannot change it the next time the file is exactly X.  Clearing
@@ -89,17 +67,6 @@ func Sweep(path string, w interface{ Write([]byte) (int, error) }) (rounds int, 
 		}
 		was := digest(src)
 
-		// The build rides along: a plain -O0 object of the text this round
-		// starts from, compiled on a core that was idle anyway.  It cannot be
-		// the warning compile's object -- -Wall -Wextra move the code by 64
-		// bytes of .text -- and the round that changes nothing started from
-		// the final text, so its object is the one phasebuild links.
-		if spec != nil {
-			spec.stop()
-		}
-		clearSpec()
-		spec = startSpec(path, rounds, was)
-
 		typereach := runTypereach
 		deadfields := runDeadfields
 		deadenums := func(b []byte) ([]byte, string, error) { return runDeadenums(path, b, vals, dead.AnalyseEnums) }
@@ -109,7 +76,7 @@ func Sweep(path string, w interface{ Write([]byte) (int, error) }) (rounds int, 
 			deadenums = func(b []byte) ([]byte, string, error) { return cr.deadenums(b, vals) }
 		}
 
-		said := make([]string, 7)
+		said := make([]string, 6)
 		order := []struct {
 			name string
 			run  func([]byte) ([]byte, string, error)
@@ -120,7 +87,6 @@ func Sweep(path string, w interface{ Write([]byte) (int, error) }) (rounds int, 
 			{"funcreach", runFuncreach},
 			{"deadfields", deadfields},
 			{"deadenums", deadenums},
-			{"canon", runCanon},
 		}
 
 		cur := src
@@ -155,8 +121,8 @@ func Sweep(path string, w interface{ Write([]byte) (int, error) }) (rounds int, 
 			}
 		}
 
-		fmt.Fprintf(w, "  sweep %d      %s; %s; %s; %s; %s; %s;   %s\n",
-			rounds, said[0], said[1], said[2], said[3], said[4], said[5], said[6])
+		fmt.Fprintf(w, "  sweep %d      %s; %s; %s; %s; %s; %s\n",
+			rounds, said[0], said[1], said[2], said[3], said[4], said[5])
 
 		if digest(cur) == was {
 			break
@@ -190,67 +156,5 @@ func Sweep(path string, w interface{ Write([]byte) (int, error) }) (rounds int, 
 		fmt.Fprintf(w, "  enumvals     %d enumerators gone, and not one survivor moved\n", gone)
 	}
 
-	// Promote the speculative object, but only when its compile succeeded AND
-	// the text it compiled is the text the sweep ended on.
-	if spec != nil {
-		if spec.wait() == nil {
-			final, err := os.ReadFile(path)
-			if err == nil && digest(final) == spec.sha {
-				os.Rename(spec.obj, filepath.Join(CompileDir, "build.o"))
-				os.WriteFile(filepath.Join(CompileDir, "build.sha"),
-					[]byte(spec.sha+"\n"), 0o644)
-			}
-		}
-		spec = nil
-	}
 	return rounds, nil
-}
-
-type specBuild struct {
-	cmd  *exec.Cmd
-	obj  string
-	sha  string
-	done chan error
-}
-
-func clearSpec() {
-	matches, _ := filepath.Glob(filepath.Join(CompileDir, "spec.*"))
-	for _, m := range matches {
-		os.Remove(m)
-	}
-}
-
-func startSpec(path string, round int, sha string) *specBuild {
-	src, err := os.ReadFile(path)
-	if err != nil {
-		return nil
-	}
-	c := filepath.Join(CompileDir, fmt.Sprintf("spec.%d.c", round))
-	if err := os.WriteFile(c, src, 0o644); err != nil {
-		return nil
-	}
-	obj := filepath.Join(CompileDir, fmt.Sprintf("spec.%d.o", round))
-	cmd := exec.Command("gcc", "-c", "-O0", "-o", obj, c)
-	cmd.Stderr = nil
-	if err := cmd.Start(); err != nil {
-		return nil
-	}
-	s := &specBuild{cmd: cmd, obj: obj, sha: sha, done: make(chan error, 1)}
-	go func() { s.done <- cmd.Wait() }()
-	return s
-}
-
-func (s *specBuild) wait() error {
-	if s == nil {
-		return nil
-	}
-	return <-s.done
-}
-
-func (s *specBuild) stop() {
-	if s == nil || s.cmd.Process == nil {
-		return
-	}
-	s.cmd.Process.Kill()
-	<-s.done
 }

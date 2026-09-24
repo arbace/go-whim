@@ -14,6 +14,8 @@ import (
 // Written as an interpreted string and not a raw one because it CONTAINS
 // BACKTICKS, in the comment it carries into the C.  Generated from the
 // Python's own constant rather than retyped, so the two cannot drift.
+// Not written into the C any more -- the canonical form has no comments --
+// and kept as the account of this cut, for whoever reads the program.
 const nochdirFullNameNote = "// The dance that used to be here chdir'd into the leading directory of a\n" +
 	"// relative name, asked getcwd() where that landed, and chdir'd back -- so\n" +
 	"// that `..` and a symlinked directory were resolved on the way.  Nothing\n" +
@@ -64,6 +66,8 @@ const nochdirFullName = "    int buflen = 0;\n" +
 	"    return OK;"
 
 // nochdirDirname is mch_dirname, asked once.
+// Not written into the C any more -- the canonical form has no comments --
+// and kept as the account of this cut, for whoever reads the program.
 const nochdirDirnameNote = "// Asked once.  Nothing can move this process -- :cd, :lcd and :tcd are\n" +
 	"// ex_ni, :! does not fork, and mch_FullName() no longer chdirs -- so every\n" +
 	"// later call is asking the kernel a question whose answer cannot have\n" +
@@ -115,12 +119,6 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	text, err = nochdirBody(text, "mch_dirname", nochdirDirname,
 		"the answer cannot change", w)
 	if err != nil {
-		return nil, err
-	}
-	if text, err = commentAbove(text, "mch_FullName", nochdirFullNameNote, "nochdir"); err != nil {
-		return nil, err
-	}
-	if text, err = commentAbove(text, "mch_dirname", nochdirDirnameNote, "nochdir"); err != nil {
 		return nil, err
 	}
 

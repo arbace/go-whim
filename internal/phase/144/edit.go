@@ -252,10 +252,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("the jumps are %v, and this phase was written against 9, 7 and 1, one inside a do-while", count)
 	}
 	// the do-while's flag, tested just after it
-	// The canonical text writes a do-while as `}` on its own line, `while (...)`
-	// on the next and a bare `;` on the one after, so the end of the loop is
-	// three lines and the indentation the insertion takes is the brace's.
-	dw := regexp.MustCompile(`(?m)^( *)\}\n *while \([^\n]*\)\n *;\n`)
+	// The canonical text writes a do-while's end as `}` on its own line and
+	// `while (...);` on the next (the sweep's old canonicalisers put the `;` on a
+	// third), and the indentation the insertion takes is the brace's.
+	dw := regexp.MustCompile(`(?m)^( *)\}\n *while \([^\n]*\)(?:\n *)?;\n`)
 	wm := dw.FindStringSubmatchIndex(s[doSite:])
 	if wm == nil {
 		return nil, p.Die("the do-while around the jump has no end")

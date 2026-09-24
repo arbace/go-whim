@@ -22,7 +22,7 @@ slim-vim.c  --whim-->  whim-vim.c
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
 - **whim** (the `Makefile`) removes capability on purpose, 164 phases from 180,870
-  lines to 75,225. It is two arcs, a coda and a last print:
+  lines to 75,208. It is two arcs, a coda and an empty last phase:
   - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
     install, 84,111 lines at q82;
   - **phases 83-128** (`GOALS.md` Part II) turn it into an embeddable core:
@@ -34,8 +34,8 @@ slim-vim.c  --whim-->  whim-vim.c
     were meant to change nothing the editor does; 142 drops the build date from
     the version line.
     `internal/gen/FINDINGS.md` maps each finding to its phase.
-  - **phase 163** prints the product in the one canonical spelling phase 0
-    seeded with, and the binary is byte-identical.
+  - **phase 163** printed the product in the one canonical spelling phase 0
+    seeds with; it is empty now that every boundary is printed that way.
 
   Phase 83 is the line between the two arcs.
 
@@ -149,13 +149,25 @@ make help            # every target, with a line each
 ```
 
 - **One path.** `make whim-build` is what a moved upstream runs:
-  `internal/build`'s plan -- each phase's steps (`internal/steps`) and the sweep
-  where the schedule put one -- applied in one process, in memory, with no
-  boundaries, digests or cache. Measured: 164 phases, **1,044 s**, 75,225 lines.
-  It proves the text, not the editor: `whim-build-check` requires the committed
-  `whim-vim.c` back, byte for byte, from the committed `slim-vim.c`, which a
-  step in the wrong order, a dropped argument or a missing sweep cannot survive.
-  Nothing checks behaviour any more (see *What this is*).
+  `internal/build`'s plan -- each phase's steps (`internal/steps`), the sweep
+  where the schedule put one, and **the canonical print of what is left**
+  (`internal/cemit`: one spelling per construct, and NO COMMENTS, of any kind),
+  so every boundary that is C is in the one spelling phase 0 seeds with -- applied
+  in one process, in memory. Measured: 164 phases, **1,192 s**, 75,208 lines. A
+  whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
+  set with the input's digest (`manifest`). The sweep is the six deleters; the
+  Python-era canonicalisers it ran every round are gone from it.
+- **`whim-build-check` runs phase by phase, in parallel.** With a sealed set of
+  snapshots for the input on disk, it checks that phase 0 seeds the input into
+  q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
+  `--jobs N` at a time (default: every core) -- and that the last snapshot is the
+  committed `whim-vim.c`. Measured: **77 s** on 64 cores, 14 GB at the peak,
+  against 1,192 s in order; and a phase whose program was changed on purpose
+  (a control) is named and fails the check. That is
+  the induction a run in order walks, so it proves the same thing; a phase whose
+  program changed breaks its own link and is named. With no snapshots of this
+  input it runs the pipeline in order, which writes them. It proves the text,
+  not the editor; nothing checks behaviour any more (see *What this is*).
 
 - **`editor/editor.go` is generated** (`go tool whim gen`, `internal/gen` on the cut
   `editor.c`) and tracked. `whim-build` writes it after producing `whim-vim.c`;
@@ -205,9 +217,10 @@ was the input boundary's digest and the implementation's together, so a moved
   (`.cache/stamps/`); as make starts, and whenever a rule rewrites a source, a
   binary whose source no longer matches its stamp is deleted and not rebuilt --
   `make slim-vim` or `make whim-vim` builds it again.
-- **Two builds cannot run at once in one checkout.** `.cache/compile` and
-  `.cache/symbols` are shared state keyed on the text, so two side by side race
-  over them; a second one goes in a worktree.
+- **A phase touches no shared state**: its scratch and its sweep's file are
+  temporary directories of its own, which is what lets the check run phases side
+  by side. Two WHOLE builds in one checkout would still both write
+  `.cache/boundaries/`; a second one goes in a worktree.
 - **The analysis tools report, they do not cut**: `go tool whim reach FILE` is
   what nothing reaches in a text, with gcc as its control and struct casts held;
   `WHIM_CLOSURE=1` makes the sweep delete by it, and is off (`doc/AGENDA.md`,

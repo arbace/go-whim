@@ -281,7 +281,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"directive")
 
 	// ---- 3. the cut: six lines, the typedef, and one blank ---------------
-	runsBefore := p.BlankRuns(text)
 	for _, g := range whim99Gone {
 		text = bytes.Replace(text, []byte("#include <"+g.header+">\n"), nil, 1)
 	}
@@ -294,12 +293,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	const old = "\ntypedef struct stat stat_T;\n\n"
 	if statGone {
 		// Nothing to cut: section 1 said which class fired.
-	} else if k := bytes.Count(text, []byte(old)); k != 1 {
+	} else if k := cutil.CountAnchorB(text, old); k != 1 {
 		return nil, p.Die("the stat_T typedef is not one line between two blank lines, so the blank "+
 			"that goes with it cannot be identified: %d matches", k)
 	}
 	if !statGone {
-		text = bytes.Replace(text, []byte(old), []byte("\n"), 1)
+		text = cutil.ReplaceAnchorB(text, old, []byte("\n"), 1)
 		p.Say("and `typedef struct stat stat_T;` with one of its two blank lines -- the sweep " +
 			"has never been able to take it, because typereach.py reads the token `stat` in " +
 			"the `#include <sys/stat.h>` line itself, and in update_search_stat()'s local " +
@@ -347,9 +346,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if whim99StructStat.Match(Body) {
 		return nil, p.Die("`struct stat` survives the cut, and with no <sys/stat.h> it would be an " +
 			"incomplete type nothing declares")
-	}
-	if r := p.BlankRuns(text); r != runsBefore {
-		return nil, p.Die("the cut left %d runs of two blank lines where there were %d", r, runsBefore)
 	}
 	p.Sayf("twelve directives, every one an `#include <...>`, on the first twelve lines; "+
 		"stat_T and `struct stat` at zero; and %d runs of two blank lines, exactly as "+

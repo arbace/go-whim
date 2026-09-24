@@ -13,12 +13,12 @@ import (
 )
 
 const signalTable = `{
-    {SIGHUP,        "HUP",      TRUE},
-    {SIGTERM,       "TERM",     TRUE},
-    {SIGINT,        "INT",      FALSE},
-    {SIGWINCH,      "WINCH",    FALSE},
-    {SIGTSTP,       "TSTP",     FALSE},
-    {-1,            "Unknown!", FALSE}
+    {SIGHUP, "HUP", TRUE},
+    {SIGTERM, "TERM", TRUE},
+    {SIGINT, "INT", FALSE},
+    {SIGWINCH, "WINCH", FALSE},
+    {SIGTSTP, "TSTP", FALSE},
+    {-1, "Unknown!", FALSE},
 }`
 
 var signalsKeep = []string{"SIGHUP", "SIGTERM", "SIGINT", "SIGWINCH", "SIGTSTP"}
@@ -52,6 +52,8 @@ var nosignalsCuts = []struct {
 // terminal with ICANON and ECHO off.  Measured on the slave side of a pty,
 // before and after this phase: identical, and wrong both times.  Upstream has
 // the same hole.
+// Not written into the C any more -- the canonical form has no comments --
+// and kept as the account of this cut, for whoever reads the program.
 const cookTerminalNote = `// settmode() returns at once when !full_screen, and deathtrap()
 // clears it before this runs -- so on the way out from a signal
 // the one thing this function exists for never happened: the
@@ -161,9 +163,6 @@ func NoSignals(text []byte, w io.Writer) ([]byte, error) {
 	rebuilt = append(rebuilt, text[:span[0]]...)
 	rebuilt = append(rebuilt, body...)
 	text = append(rebuilt, text[span[1]:]...)
-	if text, err = commentAbove(text, "prepare_to_exit", cookTerminalNote, "nosignals"); err != nil {
-		return nil, err
-	}
 	fmt.Fprintln(w, "  nosignals    a killed editor puts the terminal back, which is what "+
 		"SIGHUP and SIGTERM are kept for")
 

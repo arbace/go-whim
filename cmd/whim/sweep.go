@@ -7,15 +7,11 @@ import (
 	"github.com/arbace/go-whim/internal/sweep"
 )
 
-// runSweep is tools/sweep.sh.  It must be run from the repository root, as the
-// shell one must: .cache/compile is a relative path.
+// runSweep is the dead-code sweep on one file, to a fixpoint (internal/sweep).
+// It needs no particular directory: the sweep's files are temporary ones.
 func runSweep(args []string) int {
 	if len(args) != 1 {
 		fmt.Fprintln(os.Stderr, "usage: whim sweep <file.c>")
-		return 1
-	}
-	if _, err := os.Stat("tools"); err != nil {
-		fmt.Fprintln(os.Stderr, "whim: run me from the repository root")
 		return 1
 	}
 	if _, err := sweep.Sweep(args[0], os.Stdout); err != nil {

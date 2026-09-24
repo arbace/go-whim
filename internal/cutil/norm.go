@@ -160,6 +160,14 @@ func ReplaceFirst(src, old, new []byte) []byte {
 		return src
 	}
 	a, b := spans[0][0], spans[0][1]
+	// A span is the matched TOKENS: the whitespace around them is the text's,
+	// and replacing it too would take the blank line after a block with it.
+	for a < b && isSpace(src[a]) {
+		a++
+	}
+	for b > a && isSpace(src[b-1]) {
+		b--
+	}
 	out := make([]byte, 0, len(src)-(b-a)+len(new))
 	out = append(out, src[:a]...)
 	out = append(out, new...)
@@ -212,3 +220,44 @@ func ReplaceN(src, old, new []byte, n int) []byte {
 
 // ReplaceAll rewrites every occurrence, modulo whitespace.
 func ReplaceAll(src, old, new []byte) []byte { return ReplaceN(src, old, new, -1) }
+
+// ANCHORS, EXACT FIRST.  Every boundary is printed canonically, so an anchor
+// copied from text an earlier phase wrote in another layout -- aligned columns,
+// two declarations with no blank line between -- occurs nowhere, although the
+// text it means is there.  These count and replace EXACTLY wherever the exact
+// literal occurs at all, so nothing that matched before can move, and only when
+// it occurs nowhere do they fall back to matching modulo whitespace.  The
+// caller's count is still the assertion.
+
+// CountAnchor is how many times old occurs in text: exactly, or else modulo
+// whitespace.
+func CountAnchor(text, old string) int { return CountAnchorB([]byte(text), old) }
+
+// CountAnchorB is CountAnchor on bytes.
+func CountAnchorB(text []byte, old string) int {
+	if n := bytes.Count(text, []byte(old)); n > 0 {
+		return n
+	}
+	return Count(text, []byte(old))
+}
+
+// ReplaceAnchor replaces the first n occurrences of old (all of them when n is
+// negative), found the way CountAnchor finds them.
+func ReplaceAnchor(text, old, new string, n int) string {
+	return string(ReplaceAnchorB([]byte(text), old, []byte(new), n))
+}
+
+// ReplaceAnchorB is ReplaceAnchor on bytes.
+func ReplaceAnchorB(text []byte, old string, new []byte, n int) []byte {
+	if bytes.Contains(text, []byte(old)) {
+		return bytes.Replace(text, []byte(old), new, n)
+	}
+	k := Count(text, []byte(old))
+	if n < 0 || n > k {
+		n = k
+	}
+	for i := 0; i < n; i++ {
+		text = ReplaceFirst(text, []byte(old), new)
+	}
+	return text
+}

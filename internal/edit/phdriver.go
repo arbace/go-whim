@@ -63,12 +63,12 @@ func (p Ph) Die(format string, a ...any) error {
 // to cut something other than what it was written to cut -- which is worth a
 // refusal rather than a silent smaller cut.
 func (p Ph) Literal(text []byte, old, new, what string, n int) ([]byte, error) {
-	k := bytes.Count(text, []byte(old))
+	k, norm := matchCount(text, old)
 	if k != n {
 		return nil, p.Die("%s -- occurs %d times, expected %d", what, k, n)
 	}
 	p.Say(what)
-	return bytes.ReplaceAll(text, []byte(old), []byte(new)), nil
+	return replaceMatched(text, old, new, k, norm), nil
 }
 
 // inFunction applies an edit to ONE function's text and splices it back, so a
@@ -174,7 +174,7 @@ func (p Ph) BlankRuns(text []byte) int {
 // The heredocs use it to pin an anchor before cutting and again afterwards, so
 // it carries the phase's reason as well as its count.
 func (p Ph) AssertOnce(text []byte, s, what, why string) error {
-	k := bytes.Count(text, []byte(s))
+	k, _ := matchCount(text, s)
 	if k != 1 {
 		return p.Die("%s occurs %d times, expected 1 -- %s", what, k, why)
 	}
@@ -209,7 +209,7 @@ func (p Ph) SwapOnce(text []byte, old, new, what, why string) ([]byte, error) {
 // internal/sweep/closure.go) leaves a definition nothing names.  Anything
 // else refuses with Literal's message.  It says which class fired.
 func (p Ph) LiteralOrGone(text []byte, old, new, what string, n int, name string) ([]byte, error) {
-	if !bytes.Contains(text, []byte(old)) && p.Mentions(text, name) == 0 {
+	if k, _ := matchCount(text, old); k == 0 && p.Mentions(text, name) == 0 {
 		p.Say(what + ": already gone -- nothing names " + name + ", so the sweep's closure took it")
 		return text, nil
 	}

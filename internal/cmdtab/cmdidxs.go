@@ -20,8 +20,8 @@ import (
 // a table parsed too thin never reaches this file.
 
 const (
-	cmdIdxsBegin = "// ---------------- begin ex_cmdidxs.h ----------------"
-	cmdIdxsEnd   = "// ---------------- end ex_cmdidxs.h ----------------"
+	cmdIdxsFirst = "static const unsigned short cmdidxs1[26] ="
+	cmdIdxsLast  = "static const int command_count = "
 )
 
 const letters = "abcdefghijklmnopqrstuvwxyz"
@@ -90,7 +90,9 @@ func GenerateCmdIdxs(names []string) string {
 }
 
 // cmdIdxsBlock returns the generated block as it currently stands in the file,
-// and the line indices of its two banners.
+// and the line indices of its first and last lines: from the cmdidxs1 table to
+// command_count.  It was delimited by two comment banners; the canonical form
+// has no comments, so it is found by its own code.
 func cmdIdxsBlock(path string) (block string, lines []string, i, j int, err error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -99,17 +101,17 @@ func cmdIdxsBlock(path string) (block string, lines []string, i, j int, err erro
 	lines = strings.Split(string(data), "\n")
 	i, j = -1, -1
 	for n, l := range lines {
-		switch l {
-		case cmdIdxsBegin:
+		switch {
+		case l == cmdIdxsFirst && i < 0:
 			i = n
-		case cmdIdxsEnd:
+		case strings.HasPrefix(l, cmdIdxsLast) && i >= 0 && j < 0:
 			j = n
 		}
 	}
 	if i < 0 || j < 0 {
-		return "", nil, 0, 0, fmt.Errorf("%s: no ex_cmdidxs.h banners", path)
+		return "", nil, 0, 0, fmt.Errorf("%s: no ex_cmdidxs block (cmdidxs1 to command_count)", path)
 	}
-	return strings.Join(lines[i+1:j], "\n") + "\n", lines, i, j, nil
+	return strings.Join(lines[i:j+1], "\n") + "\n", lines, i, j, nil
 }
 
 // CheckCmdIdxs requires the block in the file to be what the table generates.
@@ -122,7 +124,7 @@ func CheckCmdIdxs(path string) error {
 	if err != nil {
 		return err
 	}
-	if want := GenerateCmdIdxs(names); want != got {
+	if want := GenerateCmdIdxs(names); strings.Trim(want, "\n") != strings.Trim(got, "\n") {
 		return fmt.Errorf("%s: the generated table does not match the source", path)
 	}
 	return nil
@@ -141,11 +143,10 @@ func UpdateCmdIdxs(path string) error {
 	// The generated text ends in a newline, so splitting it leaves a trailing
 	// empty field that is not a line; drop it, exactly as the Python's
 	// `.split('\n')[:-1]` does.
-	gen := strings.Split(GenerateCmdIdxs(names), "\n")
-	gen = gen[:len(gen)-1]
+	gen := strings.Split(strings.Trim(GenerateCmdIdxs(names), "\n"), "\n")
 
-	out := append([]string{}, lines[:i+1]...)
+	out := append([]string{}, lines[:i]...)
 	out = append(out, gen...)
-	out = append(out, lines[j:]...)
+	out = append(out, lines[j+1:]...)
 	return os.WriteFile(path, []byte(strings.Join(out, "\n")), 0644)
 }

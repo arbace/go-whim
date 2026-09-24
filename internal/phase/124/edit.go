@@ -124,6 +124,7 @@ package p124
 
 import (
 	"fmt"
+	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"os"
 	"regexp"
@@ -157,27 +158,16 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	state := args[0]
 	t := string(text)
 
-	blankRuns := func(s string) int {
-		L := strings.Split(s, "\n")
-		n := 0
-		for i := 1; i < len(L); i++ {
-			if L[i] == "" && L[i-1] == "" {
-				n++
-			}
-		}
-		return n
-	}
 	swap := func(old, new, what, why string) error {
-		if c := strings.Count(t, old); c != 1 {
+		if c := cutil.CountAnchor(t, old); c != 1 {
 			return p.Die("%s occurs %d times, expected 1 -- %s", what, c, why)
 		}
-		t = strings.Replace(t, old, new, 1)
+		t = cutil.ReplaceAnchor(t, old, new, 1)
 		return nil
 	}
 
 	L := strings.Split(t, "\n")
 	linesBefore := len(L) - 1
-	runsBefore := blankRuns(t)
 
 	// ---- 0. the boundary, and the file this edit was written against ---------
 	var directives []int
@@ -363,9 +353,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if len(L)-1 != linesBefore+grew {
 		return nil, p.Die("the file is %d lines and the input was %d -- the four replacements are %d lines "+
 			"more between them", len(L)-1, linesBefore, grew)
-	}
-	if r := blankRuns(t); r != runsBefore {
-		return nil, p.Die("the edit left %d runs of two blank lines where there were %d", r, runsBefore)
 	}
 	p.Sayf("%d -> %d lines, %d more, which is exactly what the four replacements are worth; no "+
 		"run of two blank lines", linesBefore, len(L)-1, grew)

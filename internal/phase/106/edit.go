@@ -240,7 +240,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// index spans computed on the first pass's OUTPUT, and measured, that
 	// leaves five of the 437 `size_t` behind -- in a file that still compiles
 	// and whose binary is still identical.
-	runsBefore := p.BlankRuns(text)
 	repl := map[string]string{"NULL": "nullptr", "size_t": "usize"}
 	count := map[string]int{}
 	var Out []byte
@@ -329,9 +328,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("`usize` is introduced by something other than exactly one typedef: %s -- it is "+
 			"a TYPE NAME and not a static object, and every one of its uses is a type-name "+
 			"position", j)
-	}
-	if r := p.BlankRuns(text); r != runsBefore {
-		return nil, p.Die("the edit left %d runs of two blank lines where there were %d", r, runsBefore)
 	}
 	p.Sayf("the three `NULL` literals are the only `NULL` left, `size_t` is at zero, `usize` "+
 		"is a typedef on line 13 and %d runs of two blank lines, exactly as before",

@@ -147,10 +147,11 @@ src/whim-vim.c: src/slim-vim.c force
 	echo "$$live" > src/slim.sha
 
 # The pipeline in one process: 164 phases, in order, in memory -- internal/build's
-# plan and internal/steps' transformations.  It writes whim-vim.c (and editor.go
-# after it) and nothing else.  It proves the text, not the behaviour: a step in
-# the wrong order or a missing sweep moves the bytes, and whim-build-check sees
-# that.  Measured: 164 phases, 1,070 s, 75,225 lines.
+# plan and internal/steps' transformations, every boundary printed canonically.  It
+# writes whim-vim.c (and editor.go after it), and keeps every boundary in
+# .cache/boundaries/.  It proves the text, not the behaviour.  Measured: 164
+# phases, 1,192 s, 75,208 lines.  whim-build-check, given those snapshots,
+# proves every phase from its own snapshot at once: 77 s on 64 cores.
 .PHONY: whim-build whim-build-check
 whim-build:  ## the 164 phases in one process: slim-vim.c -> whim-vim.c
 	@printf '\n\033[1m  whim-vim\033[0m  from slim-vim.c: an editor with no runtime\n'

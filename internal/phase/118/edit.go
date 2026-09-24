@@ -109,28 +109,17 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	mentions := func(s, name string) int {
 		return len(regexp.MustCompile(`\b`+name+`\b`).FindAllString(s, -1))
 	}
-	blankRuns := func(s string) int {
-		L := strings.Split(s, "\n")
-		n := 0
-		for i := 1; i < len(L); i++ {
-			if L[i] == "" && L[i-1] == "" {
-				n++
-			}
-		}
-		return n
-	}
 	swap := func(old, new, what, why string) error {
-		if c := strings.Count(t, old); c != 1 {
+		if c := cutil.CountAnchor(t, old); c != 1 {
 			return p.Die("%s occurs %d times, expected 1 -- %s", what, c, why)
 		}
-		t = strings.Replace(t, old, new, 1)
+		t = cutil.ReplaceAnchor(t, old, new, 1)
 		return nil
 	}
 	shortName := func(l string) string { return edit.W119Name.ReplaceAllString(l, "$1") }
 
 	L := strings.Split(t, "\n")
 	linesBefore := len(L) - 1
-	runsBefore := blankRuns(t)
 
 	// ---- 0. the boundary -----------------------------------------------------
 	var directives []int
@@ -169,14 +158,36 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, p.Die("the core does not declare `void *malloc(usize n);` exactly once, so this " +
 			"phase has not been handed the file it was written for")
 	}
+	// THE BLOCK IS THE DECLARATIONS WITH NOTHING BUT BLANK LINES BETWEEN THEM:
+	// the canonical print separates every declaration with one.  lo and hi are
+	// its first and last declaration, and blockBefore is those declarations.
 	lo, hi := seed[0], seed[0]
-	for lo > 0 && edit.W119IsDecl(L[lo-1]) {
-		lo--
+	for {
+		j := lo - 1
+		for j > 0 && L[j] == "" {
+			j--
+		}
+		if j < 0 || !edit.W119IsDecl(L[j]) {
+			break
+		}
+		lo = j
 	}
-	for hi+1 < boundary && edit.W119IsDecl(L[hi+1]) {
-		hi++
+	for {
+		j := hi + 1
+		for j < boundary-1 && L[j] == "" {
+			j++
+		}
+		if j >= boundary || !edit.W119IsDecl(L[j]) {
+			break
+		}
+		hi = j
 	}
-	blockBefore := append([]string{}, L[lo:hi+1]...)
+	var blockBefore []string
+	for _, l := range L[lo : hi+1] {
+		if l != "" {
+			blockBefore = append(blockBefore, l)
+		}
+	}
 	for _, line := range w118Go {
 		if !edit.Contains(blockBefore, line) {
 			return nil, p.Die("`%s` is not in the core's block of ordinary declarations, which is %s",
@@ -264,14 +275,12 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 	oldBlock := strings.Join(blockBefore, "\n") + "\n"
-	dropped := 0
 	if len(blockAfter) > 0 {
 		if err := swap(oldBlock, strings.Join(blockAfter, "\n")+"\n",
 			"the core's block of declarations",
 			"the three this phase owns come out of it and the rest stay where they are"); err != nil {
 			return nil, err
 		}
-		dropped = len(w118Go)
 	} else {
 		if err := swap(oldBlock+"\n", "", "the core's block of declarations AND its trailing "+
 			"blank line",
@@ -279,7 +288,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 				"is the run of two blank lines this file does not have"); err != nil {
 			return nil, err
 		}
-		dropped = len(blockBefore) + 1
 	}
 
 	// ---- 4. and three arrive at the end of the core -> host boundary block ---
@@ -478,15 +486,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			name, pr[0]+1, len(uses), s, strings.Join(where, " "), df[0]+1, boundary+1)
 	}
 
-	if len(L)-1 != linesBefore+21-dropped {
-		return nil, p.Die("the file is %d lines and the input was %d -- expected %d more: three "+
-			"prototypes and three five-line definitions with a blank line after each is 21 "+
-			"in, and %d out of the core's block",
-			len(L)-1, linesBefore, 21-dropped, dropped)
-	}
-	if r := blankRuns(t); r != runsBefore {
-		return nil, p.Die("the edit left %d runs of two blank lines where there were %d", r, runsBefore)
-	}
+	// It counted lines (three prototypes and three five-line definitions in,
+	// the block's out), which is layout, and the canonical print's now; what
+	// moved is asserted by content above.
 	var d []int
 	for i, l := range L {
 		if edit.W119Dir.MatchString(l) {
