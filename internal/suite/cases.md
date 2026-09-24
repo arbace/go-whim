@@ -57,6 +57,7 @@ counts	i1\e5.3x:q!\r
 marks	i1\r2\r3\r4\eggmaGd'a:q!\r
 ex_range	i1\r2\r3\r4\r5\e:2,4d\r:q!\r
 ex_errors	:nosuchcommand\r:s/x/y/\r:q!\r
+regex_errors	/\\%[\r/\\zx\r/a\\@\r/\\(\\(\\(\\(\\(\\(\\(\\(\\(\\(\r:q!\r
 removed	:let x = 1\r:echo 1 + 1\r:q!\r
 version	:version\r\r:q!\r
 ```

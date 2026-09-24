@@ -52,6 +52,9 @@ func stripCasts(e cc.ExpressionNode) cc.ExpressionNode {
 
 func isNullConst(e cc.ExpressionNode) bool {
 	e = unparenE(e)
+	if hasEffect(e) {
+		return false
+	}
 	if p, ok := e.(*cc.PostfixExpression); ok && p.Case == cc.PostfixExpressionComplit {
 		return false // storage of its own, whatever cc makes its value
 	}
@@ -946,7 +949,7 @@ func (f *fnEmit) sizeCount(n cc.ExpressionNode, elem cc.Type) string {
 	}
 	es := elem.Size()
 	b, known := int64(0), false
-	switch x := n.Value().(type) {
+	switch x := constValue(n).(type) {
 	case cc.Int64Value:
 		b, known = int64(x), true
 	case cc.UInt64Value:
@@ -1200,6 +1203,9 @@ func (f *fnEmit) exprStmt(e cc.ExpressionNode) {
 }
 
 func isZeroConst(e cc.ExpressionNode) bool {
+	if hasEffect(e) {
+		return false
+	}
 	if p, ok := unparenE(e).(*cc.PostfixExpression); ok && p.Case == cc.PostfixExpressionComplit {
 		return false // storage of its own, whatever cc makes its value
 	}
@@ -1335,4 +1341,53 @@ func calleeNameOf(p *cc.PrimaryExpression) string {
 		return p.Token.SrcStr()
 	}
 	return ""
+}
+
+// hasEffect says evaluating e does something: a call, an assignment, an
+// increment or decrement, or a comma, whose operands before the last are
+// evaluated for what they do.  The front end folds `(emsg(...), NULL)` to the
+// value of its last operand, so asking only for e's value -- is it a null
+// pointer, a zero, a true constant -- dropped the error message (regatom's
+// E64, `return (..., rc_did_emsg = TRUE, nullptr)`, went out as `return nil`).
+func hasEffect(e cc.Node) bool {
+	found := false
+	var rec func(cc.Node)
+	rec = func(n cc.Node) {
+		if n == nil || found {
+			return
+		}
+		switch x := n.(type) {
+		case *cc.PostfixExpression:
+			if x.Case == cc.PostfixExpressionCall || x.Case == cc.PostfixExpressionInc || x.Case == cc.PostfixExpressionDec {
+				found = true
+				return
+			}
+		case *cc.UnaryExpression:
+			if x.Case == cc.UnaryExpressionInc || x.Case == cc.UnaryExpressionDec {
+				found = true
+				return
+			}
+		case *cc.AssignmentExpression:
+			if x.Case != cc.AssignmentExpressionCond {
+				found = true
+				return
+			}
+		case *cc.ExpressionList:
+			if x.ExpressionList != nil {
+				found = true
+				return
+			}
+		}
+		walkChildrenFn(n, rec)
+	}
+	rec(e)
+	return found
+}
+
+// constValue is e's value when evaluating e does nothing else; nil otherwise.
+func constValue(e cc.ExpressionNode) cc.Value {
+	if hasEffect(e) {
+		return nil
+	}
+	return e.Value()
 }

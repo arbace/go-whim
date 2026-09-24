@@ -24894,7 +24894,8 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev int32) int32 {
 										goto theend
 									}
 									if mp.m_alt != nil {
-										mp.m_alt = nil
+										mp.m_alt.m_alt = nil
+										mp.m_alt = mp.m_alt.m_alt
 									}
 									mp.m_str = newstr
 									mp.m_orig_str = vim_strsave(orig_rhs)
@@ -44511,7 +44512,8 @@ func vim_regsub_both(source Ptr[byte], dest Ptr[byte], destlen int32, flags int3
 						func_all = do_lower
 						continue
 					case 'e', 'E':
-						func_one = nil
+						func_all = nil
+						func_one = func_all
 						continue
 					}
 				}
@@ -44980,6 +44982,7 @@ func regatom_delim(c int32, delim_nl int32, flagp *int32) Ptr[byte] {
 	var ret Ptr[byte]
 	var base int32
 	var idx int32
+	var t1 Ptr[byte]
 
 	base = F_PCLOSE
 	if (c == 'f') || (c == 't') {
@@ -44998,6 +45001,14 @@ func regatom_delim(c int32, delim_nl int32, flagp *int32) Ptr[byte] {
 	case '>':
 		idx = 3
 	default:
+		if reg_magic == MAGIC_ALL {
+			t1 = S("")
+		} else {
+			t1 = S("\\")
+		}
+		vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_invalid_character_after_str), t1)
+		emsg(iobuff_or(gettext_(e_invalid_character_after_str)))
+		rc_did_emsg = TRUE
 		return Ptr[byte]{}
 	}
 	if delim_nl != 0 {
@@ -45020,31 +45031,43 @@ func regatom(flagp *int32) Ptr[byte] {
 	var extra int32
 	var delim_nl int32
 	var save_prev_at_start int32
-	var lp Ptr[byte]
 	var t1 Ptr[byte]
+	var t2 Ptr[byte]
+	var t3 Ptr[byte]
+	var t4 bool
+	var t5 Ptr[byte]
+	var lp Ptr[byte]
+	var t6 Ptr[byte]
 	var refnum int32
+	var t7 Ptr[byte]
+	var t8 Ptr[byte]
 	var lastbranch Ptr[byte]
 	var lastnode Ptr[byte]
 	var br Ptr[byte]
+	var t9 Ptr[byte]
+	var t10 Ptr[byte]
 	var i vimlong_T
+	var t11 Ptr[byte]
 	var n long_u
 	var cmp int32
 	var cur int32
 	var got_digit int32
-	var t2 Ptr[byte]
-	var t3 Ptr[byte]
+	var t12 Ptr[byte]
+	var t13 Ptr[byte]
 	var vcol colnr_T
-	var t4 Ptr[byte]
+	var t14 Ptr[byte]
+	var t15 Ptr[byte]
 	var lp_2 Ptr[byte]
 	var startc int32
 	var endc int32
-	var t5 Ptr[byte]
-	var t6 Ptr[byte]
+	var t16 Ptr[byte]
+	var t17 Ptr[byte]
 	var c_class int32
 	var cu int32
-	var t7 Ptr[byte]
+	var t18 Ptr[byte]
 	var len_ int32
-	var t8 Ptr[byte]
+	var t19 Ptr[byte]
+	var t20 Ptr[byte]
 	var len__2 int32
 	var l int32
 
@@ -45076,6 +45099,14 @@ func regatom(flagp *int32) Ptr[byte] {
 					}
 					break
 				}
+				if reg_magic == MAGIC_ALL {
+					t1 = S("")
+				} else {
+					t1 = S("\\")
+				}
+				vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_invalid_character_after_str), t1)
+				emsg(iobuff_or(gettext_(e_invalid_character_after_str)))
+				rc_did_emsg = TRUE
 				return Ptr[byte]{}
 			}
 			if c == '^' {
@@ -45096,6 +45127,8 @@ func regatom(flagp *int32) Ptr[byte] {
 		case -210, -151, -183, -149, -181, -154, -186, -144, -176, -141, -173, -156, -188, -136, -168, -145, -177, -137, -169, -152, -184, -159, -191, -148, -180, -139, -171:
 			p = vim_strchr(classchars, no_Magic(c))
 			if p.Nil() {
+				emsg(gettext_(e_invalid_use_of_underscore))
+				rc_did_emsg = TRUE
 				return Ptr[byte]{}
 			}
 			if (c == -210) && (utf_iscomposing(peekchr()) != 0) {
@@ -45119,6 +45152,14 @@ func regatom(flagp *int32) Ptr[byte] {
 			}
 		case -216:
 			if one_exactly != 0 {
+				if reg_magic == MAGIC_ALL {
+					t2 = S("")
+				} else {
+					t2 = S("\\")
+				}
+				vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_invalid_item_in_str_brackets), t2)
+				emsg(iobuff_or(gettext_(e_invalid_item_in_str_brackets)))
+				rc_did_emsg = TRUE
 				return Ptr[byte]{}
 			}
 			ret = reg(REG_PAREN, &flags)
@@ -45128,20 +45169,43 @@ func regatom(flagp *int32) Ptr[byte] {
 			(*flagp) |= flags & (((HASWIDTH | SPSTART) | HASNL) | HASLOOKBH)
 		case NUL, -132, -218, -215:
 			if one_exactly != 0 {
+				if reg_magic == MAGIC_ALL {
+					t3 = S("")
+				} else {
+					t3 = S("\\")
+				}
+				vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_invalid_item_in_str_brackets), t3)
+				emsg(iobuff_or(gettext_(e_invalid_item_in_str_brackets)))
+				rc_did_emsg = TRUE
 				return Ptr[byte]{}
 			}
+			iemsg(e_internal_error_in_regexp)
+			rc_did_emsg = TRUE
 			return Ptr[byte]{}
 		case -195, -193, -213, -192, -133, -214:
 			c = no_Magic(c)
+			if c == '*' {
+				t4 = reg_magic >= MAGIC_ON
+			} else {
+				t4 = reg_magic == MAGIC_ALL
+			}
+			if t4 {
+				t5 = S("")
+			} else {
+				t5 = S("\\")
+			}
+			vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_str_chr_follows_nothing), t5, c)
+			emsg(iobuff_or(gettext_(e_str_chr_follows_nothing)))
+			rc_did_emsg = TRUE
 			return Ptr[byte]{}
 		case -130:
 			if !reg_prev_sub.Nil() {
 				ret = regnode(EXACTLY)
 				lp = reg_prev_sub
 				for int32(lp.Get()) != NUL {
-					t1 = lp
+					t6 = lp
 					lp = lp.Add(1)
-					regc(int32(t1.Get()))
+					regc(int32(t6.Get()))
 				}
 				regc(NUL)
 				if int32(reg_prev_sub.Get()) != NUL {
@@ -45151,6 +45215,8 @@ func regatom(flagp *int32) Ptr[byte] {
 					}
 				}
 			} else {
+				emsg(gettext_(e_no_previous_substitute_regular_expression))
+				rc_did_emsg = TRUE
 				return Ptr[byte]{}
 			}
 		case -207, -206, -205, -204, -203, -202, -201, -200, -199:
@@ -45173,6 +45239,8 @@ func regatom(flagp *int32) Ptr[byte] {
 					return Ptr[byte]{}
 				}
 			default:
+				emsg(gettext_(e_invalid_character_after_bsl_z))
+				rc_did_emsg = TRUE
 				return Ptr[byte]{}
 			}
 		case -219:
@@ -45180,6 +45248,14 @@ func regatom(flagp *int32) Ptr[byte] {
 			switch c {
 			case '(':
 				if one_exactly != 0 {
+					if reg_magic == MAGIC_ALL {
+						t7 = S("")
+					} else {
+						t7 = S("\\")
+					}
+					vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_invalid_item_in_str_brackets), t7)
+					emsg(iobuff_or(gettext_(e_invalid_item_in_str_brackets)))
+					rc_did_emsg = TRUE
 					return Ptr[byte]{}
 				}
 				ret = reg(REG_NPAREN, &flags)
@@ -45204,6 +45280,14 @@ func regatom(flagp *int32) Ptr[byte] {
 				ret = regnode(RE_COMPOSING)
 			case '[':
 				if one_exactly != 0 {
+					if reg_magic == MAGIC_ALL {
+						t8 = S("")
+					} else {
+						t8 = S("\\")
+					}
+					vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_invalid_item_in_str_brackets), t8)
+					emsg(iobuff_or(gettext_(e_invalid_item_in_str_brackets)))
+					rc_did_emsg = TRUE
 					return Ptr[byte]{}
 				}
 				lastnode = Ptr[byte]{}
@@ -45214,6 +45298,14 @@ func regatom(flagp *int32) Ptr[byte] {
 						break
 					}
 					if c == NUL {
+						if reg_magic == MAGIC_ALL {
+							t9 = S("")
+						} else {
+							t9 = S("\\")
+						}
+						vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_missing_sb_after_str), t9)
+						emsg(iobuff_or(gettext_(e_missing_sb_after_str)))
+						rc_did_emsg = TRUE
 						return Ptr[byte]{}
 					}
 					br = regnode(BRANCH)
@@ -45234,6 +45326,14 @@ func regatom(flagp *int32) Ptr[byte] {
 					}
 				}
 				if ret.Nil() {
+					if reg_magic == MAGIC_ALL {
+						t10 = S("")
+					} else {
+						t10 = S("\\")
+					}
+					vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_empty_str_brackets), t10)
+					emsg(iobuff_or(gettext_(e_empty_str_brackets)))
+					rc_did_emsg = TRUE
 					return Ptr[byte]{}
 				}
 				lastbranch = regnode(BRANCH)
@@ -45271,6 +45371,14 @@ func regatom(flagp *int32) Ptr[byte] {
 					i = -1
 				}
 				if (i < 0) || (i > INT_MAX) {
+					if reg_magic == MAGIC_ALL {
+						t11 = S("")
+					} else {
+						t11 = S("\\")
+					}
+					vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_invalid_character_after_str_2), t11)
+					emsg(iobuff_or(gettext_(e_invalid_character_after_str_2)))
+					rc_did_emsg = TRUE
 					return Ptr[byte]{}
 				}
 				if use_multibytecode(int32(i)) != 0 {
@@ -45323,12 +45431,12 @@ func regatom(flagp *int32) Ptr[byte] {
 						if ret == reg_calc_size_node {
 							regsize += 2
 						} else {
-							t2 = regcode
+							t12 = regcode
 							regcode = regcode.Add(1)
-							t2.Put(byte(c))
-							t3 = regcode
+							t12.Put(byte(c))
+							t13 = regcode
 							regcode = regcode.Add(1)
-							t3.Put(byte(cmp))
+							t13.Put(byte(cmp))
 						}
 						break
 					} else if (((c == 'l') || (c == 'c')) || (c == 'v')) && ((cur != 0) || (got_digit != 0)) {
@@ -45365,13 +45473,21 @@ func regatom(flagp *int32) Ptr[byte] {
 							regsize += 5
 						} else {
 							regcode = re_put_long(regcode, n)
-							t4 = regcode
+							t14 = regcode
 							regcode = regcode.Add(1)
-							t4.Put(byte(cmp))
+							t14.Put(byte(cmp))
 						}
 						break
 					}
 				}
+				if reg_magic == MAGIC_ALL {
+					t15 = S("")
+				} else {
+					t15 = S("\\")
+				}
+				vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_invalid_character_after_str), t15)
+				emsg(iobuff_or(gettext_(e_invalid_character_after_str)))
+				rc_did_emsg = TRUE
 				return Ptr[byte]{}
 			}
 		case -165:
@@ -45386,9 +45502,9 @@ func regatom(flagp *int32) Ptr[byte] {
 				}
 				if (int32(regparse.Get()) == ']') || (int32(regparse.Get()) == '-') {
 					startc = int32(regparse.Get())
-					t5 = regparse
+					t16 = regparse
 					regparse = regparse.Add(1)
-					regc(int32(t5.Get()))
+					regc(int32(t16.Get()))
 				}
 				for (int32(regparse.Get()) != NUL) && (int32(regparse.Get()) != ']') {
 					if int32(regparse.Get()) == '-' {
@@ -45408,10 +45524,14 @@ func regatom(flagp *int32) Ptr[byte] {
 								endc = coll_get_char()
 							}
 							if startc > endc {
+								emsg(gettext_(e_reverse_range_in_character_class))
+								rc_did_emsg = TRUE
 								return Ptr[byte]{}
 							}
 							if (utf_char2len(startc) > 1) || (utf_char2len(endc) > 1) {
 								if endc > (startc + 256) {
+									emsg(gettext_(e_range_too_large_in_character_class))
+									rc_did_emsg = TRUE
 									return Ptr[byte]{}
 								}
 								for {
@@ -45446,6 +45566,8 @@ func regatom(flagp *int32) Ptr[byte] {
 						} else if ((((int32(regparse.Get()) == 'd') || (int32(regparse.Get()) == 'o')) || (int32(regparse.Get()) == 'x')) || (int32(regparse.Get()) == 'u')) || (int32(regparse.Get()) == 'U') {
 							startc = coll_get_char()
 							if startc == INT_MAX {
+								emsg(gettext_(e_unicode_val_too_large))
+								rc_did_emsg = TRUE
 								return Ptr[byte]{}
 							}
 							if startc == 0 {
@@ -45454,9 +45576,9 @@ func regatom(flagp *int32) Ptr[byte] {
 								regmbc(startc)
 							}
 						} else {
-							t6 = regparse
+							t17 = regparse
 							regparse = regparse.Add(1)
-							startc = backslash_trans(int32(t6.Get()))
+							startc = backslash_trans(int32(t17.Get()))
 							regc(startc)
 						}
 					} else if int32(regparse.Get()) == '[' {
@@ -45468,9 +45590,9 @@ func regatom(flagp *int32) Ptr[byte] {
 							if c_class != 0 {
 								regmbc(c_class)
 							} else {
-								t7 = regparse
+								t18 = regparse
 								regparse = regparse.Add(1)
-								startc = int32(t7.Get())
+								startc = int32(t18.Get())
 								regc(startc)
 							}
 						case CLASS_ALNUM:
@@ -45593,21 +45715,31 @@ func regatom(flagp *int32) Ptr[byte] {
 							if !(len_ >= 0) {
 								break
 							}
-							t8 = regparse
+							t19 = regparse
 							regparse = regparse.Add(1)
-							regc(int32(t8.Get()))
+							regc(int32(t19.Get()))
 						}
 					}
 				}
 				regc(NUL)
 				prevchr_len = 1
 				if int32(regparse.Get()) != ']' {
+					emsg(gettext_(e_too_many_brackets))
+					rc_did_emsg = TRUE
 					return Ptr[byte]{}
 				}
 				skipchr()
 				(*flagp) |= HASWIDTH | SIMPLE
 				break
 			} else if reg_strict != 0 {
+				if reg_magic > MAGIC_OFF {
+					t20 = S("")
+				} else {
+					t20 = S("\\")
+				}
+				vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_missing_rsb_after_str_lsb), t20)
+				emsg(iobuff_or(gettext_(e_missing_rsb_after_str_lsb)))
+				rc_did_emsg = TRUE
 				return Ptr[byte]{}
 			}
 			fallthrough
@@ -45654,6 +45786,10 @@ func regpiece(flagp *int32) Ptr[byte] {
 	var maxval int64
 	var lop int32
 	var nr int64
+	var t1 Ptr[byte]
+	var t2 Ptr[byte]
+	var t3 Ptr[byte]
+	var t4 Ptr[byte]
 
 	ret = regatom(&flags)
 	if ret.Nil() {
@@ -45707,6 +45843,14 @@ func regpiece(flagp *int32) Ptr[byte] {
 			}
 		}
 		if lop == END {
+			if reg_magic == MAGIC_ALL {
+				t1 = S("")
+			} else {
+				t1 = S("\\")
+			}
+			vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_invalid_character_after_str_at), t1)
+			emsg(iobuff_or(gettext_(e_invalid_character_after_str_at)))
+			rc_did_emsg = TRUE
 			return Ptr[byte]{}
 		}
 		if (lop == BEHIND) || (lop == NOBEHIND) {
@@ -45737,6 +45881,14 @@ func regpiece(flagp *int32) Ptr[byte] {
 			reginsert_limits(BRACE_LIMITS, minval, maxval, ret)
 		} else {
 			if num_complex_braces >= 10 {
+				if reg_magic == MAGIC_ALL {
+					t2 = S("")
+				} else {
+					t2 = S("\\")
+				}
+				vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_too_many_complex_str_curly), t2)
+				emsg(iobuff_or(gettext_(e_too_many_complex_str_curly)))
+				rc_did_emsg = TRUE
 				return Ptr[byte]{}
 			}
 			reginsert(BRACE_COMPLEX+num_complex_braces, ret)
@@ -45751,8 +45903,24 @@ func regpiece(flagp *int32) Ptr[byte] {
 	}
 	if re_multi_type(peekchr()) != NOT_MULTI {
 		if peekchr() == -214 {
+			if reg_magic >= MAGIC_ON {
+				t3 = S("")
+			} else {
+				t3 = S("\\")
+			}
+			vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_nested_str), t3)
+			emsg(iobuff_or(gettext_(e_nested_str)))
+			rc_did_emsg = TRUE
 			return Ptr[byte]{}
 		}
+		if reg_magic == MAGIC_ALL {
+			t4 = S("")
+		} else {
+			t4 = S("\\")
+		}
+		vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_nested_str_chr), t4, no_Magic(peekchr()))
+		emsg(iobuff_or(gettext_(e_nested_str_chr)))
+		rc_did_emsg = TRUE
 		return Ptr[byte]{}
 	}
 	return ret
@@ -45860,16 +46028,25 @@ func reg(paren int32, flagp *int32) Ptr[byte] {
 	var ender Ptr[byte]
 	var parno int32
 	var flags int32
-	var t1 int32
+	var t1 Ptr[byte]
 	var t2 int32
-	var t3 Ptr[byte]
+	var t3 int32
 	var t4 Ptr[byte]
 	var t5 Ptr[byte]
+	var t6 Ptr[byte]
 
 	parno = 0
 	*flagp = HASWIDTH
 	if paren == REG_PAREN {
 		if regnpar >= NSUBEXP {
+			if reg_magic == MAGIC_ALL {
+				t1 = S("")
+			} else {
+				t1 = S("\\")
+			}
+			vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_too_many_str_open), t1)
+			emsg(iobuff_or(gettext_(e_too_many_str_open)))
+			rc_did_emsg = TRUE
 			return Ptr[byte]{}
 		}
 		parno = regnpar
@@ -45881,6 +46058,8 @@ func reg(paren int32, flagp *int32) Ptr[byte] {
 		ret = Ptr[byte]{}
 	}
 	if bt_reg_parse_depth >= REG_MAX_PAREN_DEPTH {
+		emsg(gettext_(e_command_too_complex))
+		rc_did_emsg = TRUE
 		return Ptr[byte]{}
 	}
 	bt_reg_parse_depth++
@@ -45912,16 +46091,16 @@ func reg(paren int32, flagp *int32) Ptr[byte] {
 		(*flagp) |= flags & ((SPSTART | HASNL) | HASLOOKBH)
 	}
 	if paren == REG_PAREN {
-		t2 = MCLOSE + parno
+		t3 = MCLOSE + parno
 	} else {
 		if paren == REG_NPAREN {
-			t1 = NCLOSE
+			t2 = NCLOSE
 		} else {
-			t1 = END
+			t2 = END
 		}
-		t2 = t1
+		t3 = t2
 	}
-	ender = regnode(t2)
+	ender = regnode(t3)
 	regtail(ret, ender)
 	br = ret
 	for ; !br.Nil(); br = regnext(br) {
@@ -45930,22 +46109,22 @@ func reg(paren int32, flagp *int32) Ptr[byte] {
 	if (paren != REG_NOPAREN) && (getchr() != -215) {
 		if paren == REG_NPAREN {
 			if reg_magic == MAGIC_ALL {
-				t3 = S("")
+				t4 = S("")
 			} else {
-				t3 = S("\\")
+				t4 = S("\\")
 			}
-			vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_unmatched_str_percent_open), t3)
+			vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_unmatched_str_percent_open), t4)
 			emsg(iobuff_or(gettext_(e_unmatched_str_percent_open)))
 			rc_did_emsg = TRUE
 			ret = Ptr[byte]{}
 			goto theend
 		} else {
 			if reg_magic == MAGIC_ALL {
-				t4 = S("")
+				t5 = S("")
 			} else {
-				t4 = S("\\")
+				t5 = S("\\")
 			}
-			vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_unmatched_str_open), t4)
+			vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_unmatched_str_open), t5)
 			emsg(iobuff_or(gettext_(e_unmatched_str_open)))
 			rc_did_emsg = TRUE
 			ret = Ptr[byte]{}
@@ -45954,11 +46133,11 @@ func reg(paren int32, flagp *int32) Ptr[byte] {
 	} else if (paren == REG_NOPAREN) && (peekchr() != NUL) {
 		if curchr == -215 {
 			if reg_magic == MAGIC_ALL {
-				t5 = S("")
+				t6 = S("")
 			} else {
-				t5 = S("\\")
+				t6 = S("\\")
 			}
-			vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_unmatched_str_close), t5)
+			vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_unmatched_str_close), t6)
 			emsg(iobuff_or(gettext_(e_unmatched_str_close)))
 			rc_did_emsg = TRUE
 			ret = Ptr[byte]{}
@@ -45987,6 +46166,8 @@ func bt_regcomp(expr Ptr[byte], re_flags int32) *S_regprog {
 	var scanlen usize
 
 	if expr.Nil() {
+		iemsg(e_null_argument)
+		rc_did_emsg = TRUE
 		return nil
 	}
 	init_class_tab()
@@ -46004,6 +46185,8 @@ func bt_regcomp(expr Ptr[byte], re_flags int32) *S_regprog {
 	regc(REGMAGIC)
 	if reg(REG_NOPAREN, &flags).Nil() || (reg_toolong != 0) {
 		if reg_toolong != 0 {
+			emsg(gettext_(e_pattern_too_long))
+			rc_did_emsg = TRUE
 			return nil
 		}
 		return nil
@@ -59058,7 +59241,9 @@ func u_freeentry(uep *S_u_entry, n int64) {
 }
 
 func u_clearall(buf *S_file_buffer) {
-	buf.b_u_newhead = nil
+	buf.b_u_curhead = nil
+	buf.b_u_oldhead = buf.b_u_curhead
+	buf.b_u_newhead = buf.b_u_oldhead
 	buf.b_u_synced = true
 	buf.b_u_numhead = 0
 	buf.b_u_line_ptr.ul_line = Ptr[byte]{}

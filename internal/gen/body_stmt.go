@@ -462,6 +462,9 @@ func isConstTrue(e cc.ExpressionNode) bool {
 	if e == nil {
 		return true
 	}
+	if hasEffect(e) {
+		return false
+	}
 	switch v := e.Value().(type) {
 	case cc.Int64Value:
 		return v != 0
