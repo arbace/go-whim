@@ -14,7 +14,7 @@ the checks, the deltas, the recorders and the baselines were removed after
 | `go tool whim cemit` | one file in the canonical C23 form (`internal/cemit`), `--check` to ask whether it already is |
 | `go tool whim parse` | the front end's smoke test, and the proof that the PATCHED `internal/cc` is what got linked |
 | `go tool whim reach` | what nothing reaches in a text, as a partition with gcc as its control (`internal/reach`); it deletes nothing |
-| `go tool whim measure` | one row per boundary a `build --keep D` left: lines, entity counts, binary, undefined symbols (`phase/boundaries.md`) |
+| `go tool whim measure` | one row per boundary a `build --keep D` left: lines, entity counts, binary, undefined symbols (`internal/phase/boundaries.md`) |
 | `go tool whim score` | bytes to store and symbols to provide, slim-vim beside whim-vim, both built with the one line (`internal/score`) |
 | `go tool whim cmdidxs`, `cmdnames` | the Ex command table: its names, and the ex_cmdidxs block derived from them (`internal/cmdtab`) |
 
@@ -40,7 +40,7 @@ too, with the test suite; `448e9a8` is the last commit that has it.
 | retired | what it is now | gone in |
 | --- | --- | --- |
 | `phaserun.sh` (a stage from its boundary), `verifypass.sh` | `tools/st.sh verify --from N --to M --src BOUNDARY` (`internal/verify`) | `4496964` |
-| `stages.sh`, `packages.sh` | the stages are `internal/build/plan.go`; `need`, `apart`, `package` and `uses` are prose in `phase/STAGES.md`, and nothing checks them | `4496964` |
+| `stages.sh`, `packages.sh` | the stages are `internal/build/plan.go`; `need`, `apart`, `package` and `uses` are prose in `internal/phase/STAGES.md`, and nothing checks them | `4496964` |
 | `pipeline.sh` (`PHASE_LIST`, `CORE_FROM`) | `internal/build`'s `Plan` and `CoreFrom` | `4496964` |
 | `memo.sh`, `implhash.sh`, `oracle.sh`, `snapshot.sh`, `restore.sh`, `specpass.sh`, `residue.sh`, `phasename.sh` | nothing: the memoize and its keys went, and the tracked product is what answers for the pipeline (`make whim-build-check`) | `4496964` |
 | `whimdelta.sh`, `coredelta.sh` (earlier `zerodelta.sh`), `declared.sh` | `tools/st.sh delta BIN SRC --phase N`, `--declared N`, `--list FROM TO` (`internal/verify`'s `Delta`, `CoreDelta`, `Declarations`) | `d8b3c29` (`zerodelta.sh` renamed in `d3ac925`) |
@@ -48,7 +48,7 @@ too, with the test suite; `448e9a8` is the last commit that has it.
 | `phasecheck.sh`, `phasebuild.sh`, `symbols.sh` | `tools/st.sh phasecheck`, `phasebuild`, `symbols` (`internal/check`'s `PhaseCheck`, `PhaseBuild`, `Symbols`, the first two called in process by every check, the third by the verification for each stage's snapshot) | `016ce45` |
 | `score.sh` | `tools/st.sh score` (`internal/verify`'s `Score`), which `make score` runs | `016ce45` |
 | `canon.sh` | `tools/st.sh canon FILE [--once]` (`internal/canon`'s `Run`; `check.Canon` from a check) | `942db23` |
-| `phase/NNN/make.sh`, `edit.sh`, `check.sh` | `phase/NNN/edit.go` and `check.go`, package `pNNN` | `f0a58b9` |
+| `internal/phase/NNN/make.sh`, `edit.sh`, `check.sh` | `internal/phase/NNN/edit.go` and `check.go`, package `pNNN` | `f0a58b9` |
 | `deadsweep.py`, `deadprotos.py`, `typereach.py`, `funcreach.py`, `deadfields.py`, `deadenums.py`, `orphanopts.py`, `nvidxcheck.py` | `whimtools` of the same name (`nvidx` for the last), in `internal/dead` | before the split |
 | `canon.py`, `cutil.py` and the canonicaliser's pieces (`brace.py`, `onestmt.py`, `onedecl.py`, `forcomma.py`) | `internal/canon`, `internal/cutil` | before the split |
 | `behaviour.py`, `exsweep.py`, `termcheck.py`, `clicheck.py`, `starcheck.py`, `complcheck.py`, `termrestore.py`, `muslcase.py`, `muslctype.py`, `create_cmdidxs.py` | `whimtools` of the same name (`cmdidxs` for the last), in `internal/harness` | before the split |
@@ -59,4 +59,4 @@ too, with the test suite; `448e9a8` is the last commit that has it.
 | `graph.py`, `sim.py`, `corpus.py`, `run2.py`, `argvcheck.py`, `allstatic.py`, `exsweep_stream.py`, `.tmp/…/seq.sh` and the like | throwaway probes under `/tmp` or `.tmp/`, never tracked; the text naming them says what they measured | -- |
 | `enumvals.sh`, `sweep.sh`, `nolibm_check.c`; the `whimtools` subcommands `verify`, `record`, `delta`, `check`, `phasecheck`, `phasebuild`, `symbols`, `nvidx`, `orphanopts`, `behaviour`, `termcheck`, `exsweep`, `starcheck`, `termrestore`, `complcheck`, `clicheck`, `muslctype`, `muslcase` and the ten `z*` | nothing: they were the test suite (the DWARF control, the checks' sweep, a phase-23 probe, the verifier, the recorders) | with the test suite, after `448e9a8` |
 | `st.sh`, `gobuild.sh` | `go tool whim <subcommand>`: `go.mod` declares `cmd/whim` (renamed from `cmd/whimtools`) as a tool, and Go builds and caches it | the commit that made the toolset a go tool |
-| `tools/musl-ctype.txt`, `tools/musl-case.txt`, and `tools/` itself | `phase/098/musl-ctype.md` and `musl-case.md`, embedded in phase 98's edit (the fenced block, byte for byte); this file moved to `cmd/whim/README.md` | the commit that embedded them |
+| `tools/musl-ctype.txt`, `tools/musl-case.txt`, and `tools/` itself | `internal/phase/098/musl-ctype.md` and `musl-case.md`, embedded in phase 98's edit (the fenced block, byte for byte); this file moved to `cmd/whim/README.md` | the commit that embedded them |

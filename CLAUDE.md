@@ -50,22 +50,22 @@ slim-vim.c  --whim-->  whim-vim.c
 ## What a file is called
 
 **Code is `.go`, data is `lowercase.md`, prose is `UPPERCASE.md`**, and the three
-mix freely in one directory: `phase/099/` holds `edit.go` and `GOAL.md`. A
+mix freely in one directory: `internal/phase/099/` holds `edit.go` and `GOAL.md`. A
 data file in Markdown puts its data in a FENCED BLOCK and its notes around it,
 and the reader takes the fence and ignores the rest -- `internal/build`'s
-`declared()` reads `phase/080/delta.md` that way (the command rows phase 80's
-edit cuts), and phase 98's edit embeds `phase/098/musl-ctype.md` and
+`declared()` reads `internal/phase/080/delta.md` that way (the command rows phase 80's
+edit cuts), and phase 98's edit embeds `internal/phase/098/musl-ctype.md` and
 `musl-case.md` and splices their fenced C in byte for byte. What is left outside
 the rule is what Markdown would only obscure: `slim.sha` and `upstream.sha`, one
 digest each, read by `make`.
 
-**A phase is a directory, `phase/NNN/`**, its number in three digits so that they
+**A phase is a directory, `internal/phase/NNN/`**, its number in three digits so that they
 sort: `GOAL.md`, which opens `# Phase N — …` and says what the phase removes,
 why and what was measured, and -- for the 108 phases whose cut is a program of
 its own -- `edit.go`, which makes that directory **a Go package**, `pNNN`
 (`editlit.go` beside it where the literals are long). The other phases are plan
 steps only (`internal/steps`). An edit registers itself with `internal/edit` in
-an `init()`, and `phase/registry.go` is what links them in -- `cmd/whim`
+an `init()`, and `internal/phase/registry.go` is what links them in -- `cmd/whim`
 imports it blank.
 
 **`GOALS.md`** is what holds for every phase: Part I (phases 0-82: the charter,
@@ -99,12 +99,13 @@ internal/          the Go: cc (the forked C front end), sweep, canon, dead,
                    reach (what nothing reaches, as a partition with gcc as its
                    control -- a reporter, `go tool whim reach FILE`; it deletes
                    nothing)
-phase/NNN/         a phase: GOAL.md, and edit.go where its cut is a program
-phase/registry.go  every phase with an edit.go, blank-imported so it registers
-phase/STAGES.md       the record the plan was read from: the stages, need and apart,
-                   the packages.  Prose now, not a manifest a program reads
-phase/boundaries.md every boundary's lines, entity counts, binary and nm -u, as
-                   `go tool whim build --keep D` and `measure D` give them
+internal/phase/    the phases: NNN/ (GOAL.md, and edit.go where its cut is a
+                   program), registry.go (every phase with an edit.go,
+                   blank-imported so it registers), STAGES.md (the record the
+                   plan was read from: the stages, need and apart, the packages --
+                   prose, not a manifest a program reads) and boundaries.md
+                   (every boundary's lines, entity counts, binary and nm -u, as
+                   `go tool whim build --keep D` and `measure D` give them)
 editor/            the core in Go: editor.go GENERATED (make editor/editor.go; never edit it),
                    its runtime crt.go and host host.go by hand
 tx/                skel (types, globals, signatures and, with -bodies, the bodies),
@@ -185,12 +186,12 @@ was the input boundary's digest and the implementation's together, so a moved
 `slim-vim.c` missed every entry by construction.
 
 - **Where the sweeps fall is the schedule** (`internal/build/plan.go`'s `Sweep`
-  field, and the inner `sweep` steps). `phase/STAGES.md` records the facts that
+  field, and the inner `sweep` steps). `internal/phase/STAGES.md` records the facts that
   placed them -- `need P swept` (an edit that computes its cut from the text
   must see it swept) and `apart P K` -- and a sweep moved anywhere else moves
   the product, which `whim-build-check` sees.
 - `go tool whim build --to N --work D` leaves the tree after phase N; `--keep D` writes every boundary, and `go tool whim measure
-  D` counts them (`phase/boundaries.md`).
+  D` counts them (`internal/phase/boundaries.md`).
 - **A binary is only ever the build of its source as it stands.** `slim-vim` and
   `whim-vim` stamp the digest of the `.c` they were built from
   (`.cache/stamps/`); as make starts, and whenever a rule rewrites a source, a
@@ -218,8 +219,8 @@ design.
 
 `GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 164,
 and no more are expected -- the pipeline's goal is met. What a new one takes:
-`phase/NNN/` with `GOAL.md`, and `edit.go` in package `pNNN` registering
-itself if its cut is a program (a line in `phase/registry.go`); and an entry at
+`internal/phase/NNN/` with `GOAL.md`, and `edit.go` in package `pNNN` registering
+itself if its cut is a program (a line in `internal/phase/registry.go`); and an entry at
 the end of `internal/build`'s `Plan` naming its steps and whether a sweep
 follows. Then `make whim-build` (the product moves, so the tracked `whim-vim.c`
 and `editor/editor.go` are rewritten) and, since there is no suite, whatever

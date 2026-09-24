@@ -1,0 +1,1745 @@
+# The stages: the record, not the program
+
+What runs is internal/build/plan.go, which carries each phase's stage, whether
+that stage sweeps after every edit, and where the sweeps fall.  This file is
+where those facts were measured and why, and it is kept for the `need` and
+`apart` lines and the packages, which are statements about the phases that no
+program can re-derive.
+
+A STAGE is a run of phases between two sweeps: every phase's edit in order, ONE
+sweep, then every phase's check on that one swept text (`each` reverses it: a
+sweep after every edit, and every check on its own tree).  It is not a caching
+arrangement -- it decides what text a check is handed, so it is semantics, and
+internal/verify keeps it.
+
+Every edge below was measured, when the stages were first planned or against
+the split programs themselves.  What checks it now is the product: a build that
+sweeps anywhere else does not give the committed whim-vim.c back
+(`make whim-build-check`).  The one silent case this caught was 54 after 53
+without its inner sweep.
+
+It also carries a second view of the same 83 phases, which changes nothing about
+how they run: PACKAGES (at the end).  `package NAME P...` puts phases in a concept,
+and `uses A:P B:Q KIND why` says phase P of package A relies on phase Q of package
+B having run, mechanically or as the stated rationale.  Nothing reads this file
+now.  tools/stages.sh and tools/packages.sh did, and packages.sh --check refused a
+phase in no package or in two; both went with the memoize (4496964), and the
+refusals the text below attributes to them are records of what they printed.
+tools/README.md says what each retired tool became.
+
+The phase list, which tools/pipeline.sh read as PHASE_LIST; internal/build's
+Plan is the list now.
+```
+phases      0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162
+```
+
+## The schedule
+
+The lab's fastest schedule was seven stages -- 1-12 13-41 42-71 72-78 79 80-81 82
+(e12), with the nine inner sweeps of section 2c removed (12 15 17 25 35 36 39 55
+56; 53's stays).  That measured edits and sweeps only.  Running every CHECK at the
+end of its stage then failed in six places (the `apart` lines below), each a
+check that asserts something a later phase in the same stage removes on purpose;
+each forces a boundary between the two, which splits 42-71 in three, 72-78 in
+three and 80-81 in two.  Phase 0 is one whole program and a unit of its own.
+
+  stage   phases
+```
+stage       0
+stage       1-12
+stage       13-41
+stage       42-63
+stage       64-65
+stage       66-71
+stage       72
+stage       73-77
+stage       78
+stage       79
+stage       80
+stage       81
+stage       82
+```
+
+## Checks that must see a boundary before a later phase
+
+  apart P K   P's check fails once K has run, so P and K are in different stages.
+
+Measured by running every check on the recorded boundary at the end of each
+candidate stage (and at each boundary in between, to find K): these six fail,
+every other check of every stage passes.  Each asserts something that is true
+after P and deliberately untrue after K, so it cannot be rewritten to hold at
+both without ceasing to say what it says.  Two more failed for a reason that
+could be fixed and were: 42 and 43 drove their probes with -c and :qall, which 43
+and 46 remove -- they use +{command} and :q! now, which hold before and after.
+
+  P    K      what P's check asserts, and what K does to it
+```
+apart 42  70    a mark does not survive :e to another file and back; 70 makes :e reload
+```
+              in place, so after it the mark survives.  (With -c, which 43 removes,
+              this probe used to pass vacuously on any later binary: -c was refused
+              and the file untouched.  With +{command} it fails loudly instead.)
+```
+apart 60  64    gqq with 'textwidth' 4 still formats; 64 removes formatting (format_gq)
+apart 64  66    startPS and findpar are not the formatter's and stay; 66 removes them
+apart 72  73    the frame layer (topframe, fr_next, ...) stays; 73 is one frame
+apart 75  78    autocmd_blocked survives, write-only, with exactly 3 mentions; 78
+```
+              removes write-only counters
+```
+apart 80  81    old and new binaries agree on every command line but four; 81 makes a
+```
+              bar argument text, so '|' lines differ after it
+
+## What a phase needs of its input
+
+  swept     the edit counts anchors against, or computes its cut from, swept
+            text: it must start a stage, or follow an inner sweep.  A counted
+            anchor refuses loudly on unswept text; a COMPUTED set shrinks
+            silently -- which is why this is declared, not discovered.
+  compiles  the edit compiles its input (the old binary a before/after probe
+            runs): the text before it must be valid C, swept or not.
+  silent    the edit requires its input to compile with no warning at all,
+            which only a sweep provides: it must start a stage.
+  swept-inner:K  as swept, or phase K runs just before it and K's edit keeps its
+            inner sweep.
+  -         none known.  Every phase listed '-' has run inside a stage, on
+            unswept text, and the stage reproduced its boundary.  That is a
+            measurement of this input, not a guarantee for the next one.
+
+The symbol snapshot is not a requirement any more.  Every phase program used to
+start by compiling its input for it, which made five edges (29|30, 68|69, 69|70,
+72|73, 74|75) look like requirements; tools/phaserun.sh now takes it at the
+start of the stage, where the text always compiles.
+
+  phase   needs              why
+```
+need  13    swept              anchor: one buf_check_timestamp call in enter_buffer; 2 until 12 is
+```
+                             swept -- satisfied by 12's inner sweep while it stays (e8), a stage
+                             boundary once it goes (e12)
+```
+need  42    swept              anchor: buf_hide has exactly two mentions; 41's dead callers hold a third
+need  54    swept-inner:53     COMPUTED: the rows to cut come from the option table as found; without
+```
+                             53's inner sweep it found one row fewer, 'arabic' survived, and it did
+                             not refuse (e10, e11).  53's inner sweep must stay.
+```
+need  72    swept              anchor: ONE_WINDOW expanded in place occurs 3 times; 9 until 68-71 are swept
+need  79    swept              anchor: 'five window heights with no tab line' occurs 5 times; 7 until
+```
+                             72-78 are swept
+```
+need  80    swept              anchor: refuses while a live row still uses ADDR_BUFFERS (79's dead rows)
+need  80    compiles           the edit builds the old binary from its input for the prefix probe
+need  81    compiles           the same; 80's unswept output compiles (measured) -- but 80 and 81 are
+```
+                             apart for their checks, below, so 81 starts a stage anyway
+```
+need  82    silent             the edit refuses input that does not compile silently; 80-81 unswept
+```
+                             does not (measured)
+
+## Packages: the same phases, by concept
+
+  package NAME P...   the phases, in pipeline order, that remove one concept.  Every
+                      phase is in exactly one package.
+  uses A:P B:Q KIND why
+                      phase P (package A) relies on phase Q (package B) having run.
+                      Only dependencies ACROSS packages are listed, only with a
+                      reason a phase program or GOALS.md states, and Q always
+                      runs before P.  KIND is one of two words:
+    mechanical        without Q, P fails or cuts wrongly: an anchor or assertion
+                      refuses, a tool refuses to drop a row something still reads,
+                      a computed set comes out different, or what P removes as dead
+                      or constant would still be live.
+    rationale         without Q, P would still run and cut what it cuts; the program
+                      or section gives Q as the reason the cut costs nothing or is
+                      the right call -- a capability already refusing, a source
+                      already gone, a decision Q's removal made true.
+
+A package is a VIEW: it moves no phase and no boundary.  The order is still the
+order the work was done in, and a package's phases are
+spread across stages.  Assigned from what each phase's program does, not from its
+title; the ones that do two things are in the package of the larger cut.
+tools/packages.sh whim --check refuses a phase in no package or in two, an unknown
+phase or package, a `uses` inside one package, a `uses` whose dependency runs after
+its dependent, and a `uses` whose KIND is not mechanical or rationale.
+
+       name         phases
+```
+package  seed         0 83
+package  environment  1 9 20 23 26
+package  options      2 16 49 54 55 56 60 62 95
+package  startup      3 4 18 43
+package  regexp       5 27 76
+package  files        6 7 8 13 14 22 25 31 89 90 91 92 93
+package  tags         10 30 63 74
+package  swap         11 21 48
+package  encodings    12 15 17 50 51 52 53
+package  terminal     19 24 61 67 85 121 122
+package  text         28 44 57 64 65 66
+package  scripts      29 35 75
+package  completion   32 59
+package  commands     33 37 47 80 81
+package  mappings     34 58
+package  windows      36 39 40 68 72 73
+package  buffers      38 41 42 45 46 69 70 71 77 94
+package  tidy         78 79 82 96 120 125
+```
+
+    dependent       dependency      kind        why
+```
+uses  encodings:12    environment:9   mechanical  mb_init() refuses all but utf-8; the compiled default is utf-8 only since 9
+uses  options:16      tags:10         mechanical  'tags' and 'tagcase' have decided nothing since the tag stack went
+uses  options:16      swap:11         mechanical  'swapfile': ml_open() says no swap file whatever it is set to, since 11
+uses  options:16      files:13        mechanical  'autoread': ex_drop() saved and restored it around a check 13 removed
+uses  options:16      files:14        mechanical  'path' and 'suffixesadd' have decided nothing since the file finder went
+uses  encodings:17    swap:11         mechanical  add_b0_fenc() wrote into a swap file's block zero, and 11 left none
+uses  environment:20  startup:18      mechanical  vimrc_found()'s callers are dead: every do_source() passes DOSO_NONE since 18
+uses  swap:21         environment:20  rationale   :undolist's clock time goes because 20 took every way of being told the zone
+uses  files:25        environment:20  mechanical  get_user_name() is `return FAIL;` since 20, so its caller's test folds
+uses  environment:26  swap:11         rationale   SIGPWR's handler called ml_sync_all(), empty since 11 (tools/noswap.py)
+uses  environment:26  swap:21         rationale   deathtrap() cannot preserve: 21 removed preserve_exit()'s loop (tools/nomemfile.py)
+uses  tags:30         files:8         rationale   K ran 'keywordprg' through :!, which has had no process since 8
+uses  files:31        environment:20  rationale   :~ shortened a name under $HOME, a notion 20 removed
+uses  completion:32   tags:10         rationale   the tag source of CTRL-X completion was already gone
+uses  completion:32   files:7         rationale   file-name completion went through the globbing 7 removed
+uses  commands:33     files:8         rationale   :shell's row goes because it has answered E319 since 8
+uses  scripts:35      startup:18      rationale   a script has nowhere to come from: nothing is read at startup since 18
+uses  text:44         files:8         rationale   :r !cmd and :w !cmd keep reaching do_bang() for 8's refusal
+uses  buffers:45      windows:39      rationale   with one window :drop was :args plus :first
+uses  buffers:46      windows:39      mechanical  with one window :qall is :q, which is what exsweep.py falls back to
+uses  options:54      encodings:53    mechanical  its row set is COMPUTED, and holds 'arabic' only once 53's second cut is swept
+uses  options:56      files:8         mechanical  'shell', 'shellquote', 'shellredir': no shell is run since 8
+uses  options:56      tags:30         mechanical  'keywordprg': K went in 30
+uses  options:60      files:7         mechanical  'suffixes' ordered wildcard matches, and nothing has expanded since 7
+uses  options:60      text:44         mechanical  'formatprg', 'equalprg' only built a :{range}! line, ex_ni since 44
+uses  options:62      swap:11         mechanical  'updatetime': the idle sync reached ml_sync_all(), empty since 11
+uses  options:62      scripts:35      mechanical  'buflisted', 'filetype': their readers chose events, and 35 made dispatch FALSE
+uses  text:64         options:60      mechanical  = only re-applied the existing indent once 'equalprg' went in 60
+uses  text:65         options:55      rationale   g@ had no 'operatorfunc' to call after 55
+uses  text:65         completion:32   mechanical  ins_ctrl_x() is empty since 32 (tools/nocomplkeys.py), so its call goes
+uses  windows:68      scripts:35      mechanical  the autocommand window ran autocommands, and dispatch is FALSE since 35
+uses  buffers:70      swap:11         mechanical  ml_open_file() is only `b_may_swap = FALSE` since 11
+uses  buffers:70      swap:21         mechanical  findswapname, swapfile_info and ml_recover went with recovery in 21
+uses  tags:74         buffers:70      rationale   fname2fnum() is an empty body since 70, left for the file-mark cut
+uses  buffers:77      swap:11         mechanical  it asserts every EX_BUFNAME row is ex_ni; :checktime went in 11
+uses  buffers:77      windows:39      mechanical  the same assertion; :sbuffer went in 39
+uses  tidy:78         scripts:75      mechanical  autocmd_blocked and prevwin lost their last readers in 75
+uses  tidy:78         windows:68      mechanical  w_id is a constant only because 68 left one window
+uses  tidy:79         files:13        mechanical  asserts check_timestamps() is `return 0;`, which 13 made it
+uses  tidy:79         encodings:17    mechanical  asserts bomb_size() is `return 0;`, which 17 made it
+uses  tidy:79         completion:32   mechanical  asserts pum_visible(), ins_compl_active() and five more are constant (32)
+uses  tidy:79         scripts:35      mechanical  asserts in_vim9script() and the has_*() event tests are FALSE (35)
+uses  tidy:79         completion:59   mechanical  asserts wc_use_keyname() is `return FALSE;`, which 59 made it
+uses  tidy:79         windows:36      mechanical  asserts tabline_height() is `return 0;`, which 36 made it
+uses  tidy:79         windows:39      mechanical  asserts check_can_set_curbuf_forceit/_disabled() are TRUE (39)
+uses  tidy:79         windows:68      mechanical  asserts only_one_window() is `return TRUE;`, which 68 made it
+uses  tidy:79         windows:72      mechanical  asserts current_win_nr() and current_tab_nr() are `return 1;` (72)
+uses  tidy:79         windows:73      mechanical  asserts stl_connected() is `return FALSE;`, which 73 made it
+uses  tidy:79         buffers:69      mechanical  asserts check_more() is OK and append_arg_number() is 0 (69)
+uses  commands:80     tidy:79         mechanical  the length field's one reader, the Vim9 whole-name check, is dead since 79
+```
+
+==========================================================================
+PHASES 83 TO 128
+
+A quoted boundary is qN, as every boundary is.  Where a package of these phases
+has the same name as one above (seed, terminal, files, buffers, options, tidy),
+its phases are in that package, and a comment marks where its line was.
+==========================================================================
+
+## The schedule, 83 to 128
+
+These phases first ran each as a stage of one, and the `apart` and `need` lines below are
+why no SHARED stage (one sweep for all the edits) could hold two neighbours: almost
+every zero check states its own line arithmetic, pins what a later phase takes,
+quotes C a later phase respells, or compares its libc surface with its own input's
+-- each true after its phase and deliberately untrue after the next, which is the
+rule this manifest's first half states for its six `apart` lines.  And almost every
+zero edit builds the binary it is handed, which unswept text often is not.
+
+So these phases run in EACH stages (tools/stages.sh): every edit followed by its
+own sweep, then every check and every delta at once, each in a root of its own on
+exactly the tree, state and symbol snapshot it had as a stage of one.  No `need` or
+`apart` can be broken inside one, and none of those lines is removed: they are what
+a SHARED stage of these phases would have to respect, measured.  Measured before
+this schedule, with tools/phaserun.sh on each phase's recorded input, a phase here
+is 3-11 s of edit, 3-18 s of sweep, 5-6 s of delta and 4-176 s of check (28 of the
+43 split phases over 20 s), so the check is what an each stage runs at once and
+what makes it fast; and `stage 87-89 each` on q86 reproduced the recorded q89 in
+84 s where the three stages of one took 133.
+
+Five phases are ONE program each and cannot be in a stage with anything, because a
+stage of more than one phase is made of edits and checks (tools/stages.sh refuses
+it before a check runs): 83 records the zero baselines, 84 is a makefile flag, 86
+and 116 replace an instrument, and 123 re-records one.  Each is a stage of its own,
+and the split phases between them are the each stages.  116 has no `apart` and
+needs none, for that reason.
+
+  stage   phases
+```
+stage       83
+stage       84
+stage       85
+stage       86
+stage       87-115 each
+stage       116
+stage       117-122 each
+stage       123
+stage       124-128 each
+```
+Phases 129 onwards come of transpiling editor.c to Go (tx/FINDINGS.md): each
+removes from the C a construct the transpilation had to work around, and
+changes nothing the editor does.
+```
+stage       129-149 each
+```
+150 onwards: the findings whose phases change the engine or the options, each
+a stage of its own so a change to one reruns only it.
+```
+stage       150-162 each
+```
+
+`apart 126 127` IS THE NAME-PARTITION FORM OF `apart 119 120`, AND IT IS SHARPER.
+tools/phaserun.sh whim 126-127 on q125 runs both edits, one sweep and phase 126's check,
+and stops there with
+
+  the sweep: the names that leave are ['ML_APPEND_MARK', 'ML_DEL_NOPROP',
+  'data_moved', 'db_free', 'db_index', 'db_txt_end', 'db_txt_start',
+  'e_didnt_get_block_nr_one', 'e_didnt_get_block_nr_zero', 'line_start',
+  'space_needed', 'text_start'] and this phase accounts for
+  ['e_didnt_get_block_nr_one', 'e_didnt_get_block_nr_zero']
+
+Phase 126 states the division between its EDIT and its SWEEP as a partition over the
+names that leave in each -- which is the strongest form this pipeline has -- and a
+stage sweeps ONCE, AT THE END, so the ten names phase 127's edit orphans arrive inside
+phase 126's sweep set.  `apart 119 120` was this lesson in a line count; this is the same
+lesson in a set, and the set is what a later phase is more likely to state.  ONE
+DIRECTION ONLY: phase 127's own check was then run on exactly the tree the shared stage
+produced and every part of it passes.
+
+THERE IS NO `need 127`, AND IT IS MEASURED AS AN EQUALITY RATHER THAN AS A RUN THAT DID
+NOT REFUSE.  The same 43-44 stage hands phase 127's edit phase 126's UNSWEPT output, and
+the file that comes out of the one sweep afterwards is BYTE-IDENTICAL to the one the
+sequential run produces from swept q126 -- 78,859 lines either way.  So the edit does
+not merely survive unswept text; it cannot tell the difference.
+
+What the schedule must respect (internal/phase/STAGES.md defines the two words).
+  apart 85 87   phase 85's check runs the binary it was handed AND the one it made
+              with `-e -s` and requires both to exit 0 -- which is how it proves
+              `--`, `+cmd` and `-T` still work.  Phase 87 removes `-e`, so that
+              check cannot run on a tree phase 87 has touched.  No each stage can
+              break it (see the schedule), so this is a statement rather than a
+              constraint; it becomes one the moment two of them share a sweep.
+```
+apart       85 87
+```
+Phase 87's check names EDIT_STDIN, read_cmd_fd = 2, had_minmin, buflist_add and
+ME_TOO_MANY_ARGS one by one and requires each to be THERE -- "it is the argv
+phase's to take" -- and phase 88 takes all five.  Measured on a phase 88 tree:
+`'EDIT_STDIN' went, and it is the argv phase's to take`, exit 1.  Phase 85's check
+would fail on a phase 88 tree too (it asserts `had_minmin = TRUE;` once, and runs
+both its binaries on `./vim f.txt`), but a stage holding 85 and 88 holds 87, so
+`apart 85 87` already forbids it; it fails on a phase 87 tree first, which is what
+that line records.
+```
+apart       87 88
+```
+NO `apart 85 89`, AND THE MEASUREMENT IS WHY.  Phase 85's check drives a pty with
+`GA-typed<Esc>:set term?<CR>:wq<CR>` and reads the file back, requiring
+`alpha one\nbeta two-typed\n` -- so `:wq` not writing would break it.  Measured on
+a phase 89 tree: it fails, and it fails IDENTICALLY on a phase 88 tree (status 256,
+the file unchanged), because the session opens `f.txt` as a file ARGUMENT and
+phase 88 made that an unknown option.  The editor never reaches the `:wq`.  So the
+failure at 89 is phase 88's, a stage holding 85 and 89 holds 87, and `apart 85 87`
+forbids it already -- exactly as for `apart 85 88` above.
+Phase 88's check states that this phase frees no libc symbol -- `cmp` of the
+stage's starting undefined set against the one it made, "nothing this cut removed
+was libc's last caller".  Phase 89 removes six.  Measured by running the two as one
+stage, `tools/phaserun.sh whim 88-89`: phase 88's check fails with `the libc surface
+moved, and this phase frees nothing` and names chmod, fchmod, fstat, ftruncate,
+lstat and unlink.  Inside a stage every check compares with the STAGE's start, so
+the two cannot share a sweep.  Phase 87's check fails on a phase 89 tree too, but
+only for the reasons `apart 87 88` already records -- it names EDIT_STDIN and four
+others as the argv phase's, and phase 88 took them.
+```
+apart       88 89
+```
+Phase 89's check names `do_bang` as one of the things a later phase takes -- "it is
+a later phase's" -- and requires cmdnames[] to hold 105 rows.  This phase takes
+do_bang and the 105th row.  Measured by running phase 89's check on the tree phase
+90 leaves: `do_bang went, and it is a later phase's`, `cmdnames[] has 104 rows and
+names() reads 104; both must be 105`, exit 1.  Its `write_roundtrip` probe reads
+the file back with `:r out.txt` and would fail too, but the source assertions come
+first.
+```
+apart       89 90
+```
+Phase 90's check requires `check_fname` at 4 mentions, `open_buffer` at 6 and
+`read_edit` at 2, names `do_ecmd` and `otherfile` as a later phase's, and requires
+cmdnames[] to hold 104 rows with `:edit` among them.  This phase takes all of it.
+Measured by running phase 90's check on the tree phase 91 leaves: seven complaints,
+`:edit went, and it is not this phase's` and `do_ecmd went, and it is a later
+phase's` among them, exit 1.
+
+THERE IS DELIBERATELY NO `apart 89 91`, and it is the shape of the missing
+`apart 85 89` above.  Phase 89's check DOES fail on a phase 91 tree -- measured:
+`do_bang went`, `otherfile went`, `cmdnames[] has 99 rows ... both must be 105`,
+exit 1 -- but a stage holding 89 and 91 holds 90, and `apart 89 90` forbids that
+already.
+```
+apart       90 91
+```
+Phase 91's check requires `readfile` at 5 mentions, `read_buffer` at 17,
+`readonlymode` at 5, `b_ffname` at 43 and `b_fname` at 37 -- the line it draws
+against the byte-reader phase, stated as counts so that reaching into the read
+path would fail rather than widen quietly.  This phase takes all of it: measured
+by running internal/phase/091/check.go on the tree phase 92 leaves, which gives five
+complaints -- `readfile has 0 mentions, expected 5`, `read_buffer has 0 mentions,
+expected 17`, `readonlymode has 3 mentions, expected 5` and the two name counts --
+and exits 1.  Its symbol check would fail too, being a `cmp` of the whole
+undefined set against a phase that frees three, but the source assertions come
+first.
+```
+apart       91 92
+```
+Phase 92's check draws its line against THIS phase as counts -- b_ffname 32,
+b_sfname 26, b_fname 29, setfname 2, readonlymode 3, eval_vars 4, mch_dirname 5,
+expand_filename 3, fix_fname 3, vim_FullName 3, mch_FullName 3, buf_store_time 3
+and the four write-only fields b_mtime_read, b_mtime_read_ns, b_orig_size and
+b_orig_mode at 3 each -- and it names the four as things this phase takes.  This
+phase takes every one of them to 0.  Measured by running internal/phase/092/check.go on
+the tree phase 93 leaves: eighteen count complaints, `b_ffname has 0 mentions,
+expected 32` among them, plus `b_mtime_read is no longer a field of buf_T`, and it
+exits 1.  Its symbol check would fail too, being a cmp of the whole undefined set
+against a phase that frees three, but the source assertions come first.
+
+THERE IS DELIBERATELY NO `apart 91 93`, although phase 91's check DOES fail on a
+phase 93 tree -- it requires `E447: Can't find file` to SURVIVE, and part G takes
+the only arm that could say it.  A stage holding 91 and 93 holds 92, and `apart 91 92`
+forbids that already.  It is the shape of the missing `apart 85 89` and `apart 89 91`.
+```
+apart       92 93
+```
+Phases 89, 90, 91, 92 AND 10 all assert `E37: No write since last change` in the new
+record of their `quit_modified` probe, and all five name `check_changed` as a thing
+the `:q` phase takes -- internal/phase/089/check.go:158 and :422-424 are the first of them.
+This phase takes it.  Measured by running internal/phase/093/check.go on the tree phase 94
+leaves: five complaints -- `check_changed has 0 mentions, expected 4`,
+`no_write_message has 0 mentions, expected 3`, `buf_spname has 4 mentions, expected
+5`, `open_buffer has 4 mentions, expected 5` and `E37 went, and check_changed() is
+the :q phase's` -- and exit 1.  Its `quit_modified` probe would fail too, requiring
+E37 in the new record, but the source assertions come first.
+
+ONLY `apart 93 94` IS WRITTEN, and the four before it are implied: a stage holding
+89 and 94 holds 93, so the line below forbids it already.  It is the shape of the
+missing `apart 85 89`, `apart 89 91` and `apart 91 93`.
+```
+apart       93 94
+```
+Phase 94's check pins `p_ro` and `p_ur` at 2 mentions WITH their option rows and
+says in as many words that removing one is the options phase's.  This phase removes
+both rows.  Measured by running internal/phase/094/check.go on the tree phase 95 leaves:
+six complaints -- `p_ro has 0 mentions, expected 2`, `p_ur has 0 mentions, expected
+2`, `'undoreload' lost its option row, and that is the options phase's`, the same
+for `'readonly'`, `curbufIsChanged has 6 mentions, expected 7` (change_warning's
+early return read it) and `the function count went 1742 -> 1724, expected 1742 ->
+1726` -- and exit 1.  Phase 93's check pins the same two option rows and would fail
+as well, but a stage holding 93 and 95 holds 94, and `apart 93 94` forbids that
+already.
+```
+apart       94 95
+```
+Phase 95's check pins `scriptin` at 8 mentions, `redir_fd` at 6 and `vim_fsync` at
+3, and names all three as the FILE* phase's; it also requires `fclose`, `getc`,
+`putc` and `fsync` to be STILL undefined.  This phase takes every one of them to 0
+and frees all four symbols.  Measured by running internal/phase/095/check.go on the tree
+phase 96 leaves: three complaints -- `redir_fd has 0 mentions, expected 6`,
+`scriptin has 0 mentions, expected 8` and `vim_fsync has 0 mentions, expected 3` --
+and exit 1.  Its symbol check would fail as well, being a cmp of the whole undefined
+set against a phase that frees four, but the source assertions come first.  Phase
+94's check pins the same three and would fail too, but a stage holding 94 and 96
+holds 95, and `apart 94 95` forbids that already.
+```
+apart       95 96
+```
+  apart 97 98 both checks state that the undefined set moved by exactly THEIR
+              symbols -- phase 97's seventeen strings, phase 98's eleven -- and a
+              stage holding both takes one symbol snapshot at the stage's start, so
+              each would see the other's eleven or seventeen as symbols it did not
+              remove and both statements would be false.  Measured: phase 98's
+              check on a tree where both edits have run reports the set as neither
+              phase's.  Phase 97's check fails the other way for a reason of its
+              own: it pins `tolower` at 2 mentions with `\btolower\b` and names it
+              as the character-class phase's, and on the tree phase 98 leaves it is
+              0.  MEASURED on the recorded boundaries, q97 2 and q98 0.
+```
+apart       97 98
+```
+  apart 98 99 phase 98's check requires `#include <ctype.h>` and `#include
+              <wctype.h>` to be STILL PRESENT -- it is the includes phase's to take,
+              and asserting them present is what keeps that phase from widening
+              quietly -- and this phase removes both.  And the constraint runs the
+              other way too, which is the direction measured here: phase 99's check
+              states that it frees NOTHING, as a `cmp` of the stage's starting
+              undefined set against the one it made, and inside a stage every check
+              compares with the STAGE's start (tools/phaserun.sh).  Phase 98 frees
+              eleven symbols, so in a shared stage phase 99 says `the libc surface
+              moved, and REMOVING AN #include CANNOT MOVE IT` and names them.  It is
+              `apart 88 89`'s shape exactly, in both directions.
+```
+apart       98 99
+```
+  apart 99 100 phase 99's check requires the file to have lost EXACTLY EIGHT lines --
+              six `#include`s, the stat_T typedef and one of its two blanks -- and
+              this phase takes nine more.  MEASURED with `tools/phaserun.sh zero
+              16-17`: `the file lost 17 lines, expected 8`, exit 1.  Its libc check
+              would fail as well, being a `cmp` of the stage's starting undefined set
+              against the one it made -- phase 99 states that it frees NOTHING and
+              this phase frees `_exit`, and inside a stage every check compares with
+              the STAGE's start (tools/phaserun.sh) -- but the source assertions come
+              first.  It is `apart 98 99`'s shape in one direction only: phase 100's
+              own check PASSES on a 16-17 stage, phase 99 having freed nothing for it
+              to be blamed for.
+              NO `apart 98 100` is written, although phase 98's check DOES require
+              `_exit` to be still undefined -- "it is not this phase's" -- and this
+              phase takes it: a stage holding 98 and 100 holds 99, and `apart 98 99`
+              forbids that already.  It is the shape of the missing `apart 85 89`.
+```
+apart       99 100
+```
+Phase 100's check requires the file to have lost EXACTLY NINE lines -- the ladder --
+and this phase ADDS five, so on a shared stage the one swept text 17's check is
+handed is four lines shorter than 17's input rather than nine.  Measured with
+`tools/phaserun.sh whim 100-101` on q99: `the file lost 4 lines, expected 9`, exit 1.
+It is `apart 99 100`'s shape in ONE direction only: phase 101's own check compares
+against the text ITS edit was handed, which is 17's output either way, so it passes
+on a 17-18 stage.
+```
+apart       100 101
+```
+Phase 101's check fails at its FIRST act, before any of the four reasons a reader
+would predict.  It builds its own control by rewriting mch_exit's `exit(r);` to
+`exit(r + 1);` with sed, and refuses when that changes nothing -- and phase 102 has
+replaced that line with `vim_host_exit(r);`.  Measured with
+`tools/phaserun.sh whim 101-102` on q100: `the control edit changed nothing -- mch_exit's
+exit(r); is not where this phase expects it`, exit 1.  Three more of its assertions
+would fail after it: it states as a `cmp` that the undefined set did not move at all
+and a stage takes ONE symbol snapshot at its start, so on a shared stage it is handed
+the set after 102 has freed `exit`; it requires the file to have gained exactly five
+lines where 101 and 102 together gain 23; and it requires the file to END with its own
+six-line launcher, which 102 replaces with twenty.  ONE DIRECTION ONLY: phase 102's own
+check compares against the text ITS edit was handed and its gone set from q100 is still
+exactly `exit`, 18 having freed nothing, so it passes on a 18-19 stage.
+```
+apart       101 102
+```
+Phase 102's check fails on a shared stage with 20, and it was MEASURED rather than
+predicted: `tools/phaserun.sh whim 102-103` on q101 stops in 19's check with three
+messages, and the FIRST is the one a reader would not predict -- ``deathtrap` as a
+whole word has 4 mentions, expected 3``.  A phase about removing signal handling
+leaves one MORE mention of a handler, because the host installs the core's `deathtrap`
+rather than replacing it, which is what keeps the terminal restored when the editor is
+killed.  The other two are ordinary: `the file gained -280 lines, expected 18` and
+`options[] is not the 108 rows phase 95 left`, 'termresize' being the row 103 takes.
+THIS ONE IS BOTH DIRECTIONS, unlike 16-17, 17-18 and 18-19.  Phase 103's own check
+states its gone set as one `comm` against the stage's symbol snapshot, and a stage
+takes ONE snapshot at its start -- so on a 19-20 stage it is handed q101's set and the
+gone set is its seven PLUS `exit`, which phase 102 freed.  That is `apart 97 98`'s
+shape exactly, and it is reasoning from those two programs rather than a second run,
+because 19's check refuses first and there is nothing after it to observe.
+```
+apart       102 103
+```
+Phase 103's check fails on a shared stage with 21, MEASURED rather than predicted with
+`tools/phaserun.sh whim 103-104` on q102: both edits run, the sweep runs twice, and 20's
+check stops on ONE message -- `the output does not have exactly the twelve #include
+directives phase 99 left`.  Phase 104 removes <stdio.h> and takes the count to eleven,
+and phase 103's check states the twelve as a property it preserves.  There is a second
+reason the run never reaches, and it is `apart 97 98`'s and `apart 102 103`'s shape:
+phase 103 states its gone set as one `comm` against the stage's symbol snapshot, a stage
+takes ONE snapshot at its start, so on a 20-21 stage the gone set would be its seven
+PLUS the seven phase 104 frees.  ONE DIRECTION ONLY, and that is measured too: the same
+run shows phase 104's edit succeeding on phase 103's UNSWEPT output, 80,181 -> 80,206
+lines, every anchor holding.
+```
+apart       103 104
+```
+MEASURED rather than predicted, with `tools/phaserun.sh whim 104-105` on q103: phase
+104's check stops with FOUR complaints, and the FIRST is the one a reader would not
+predict -- ``printf` has 4 mentions, expected 10`.  That is phase 104's own documented
+counting trap read from the other end: none of the ten is a call, nine are
+`__attribute__((format(printf, ...)))` and one is the string "E767: Too many arguments
+for printf()" -- and SIX of the nine sit on the wrapper prototypes this phase deletes.
+The other three are ordinary: ``vim_snprintf` has 201 mentions, expected 73`, which is
+one at each of the 129 expanded sites less the redundant second prototype;
+``musl_strlen` has 135 mentions, expected 134`, which is `append_room()`'s; and `the
+file is 80176 lines and the input was 80148 -- expected exactly 25 more`.
+ONE DIRECTION ONLY, and it is not observable in that run because 21's check refuses
+first: what the run DOES show is phase 105's edit applying unchanged to phase 104's
+UNSWEPT output, 129 sites in the same 92/7/30 shapes and the same 80174 -> 80182
+lines as on the swept text.  That is also the measurement behind there being no
+`need 105 swept`: this edit finds its sites by word boundary and balanced parens over
+the whole file and asserts no counted anchor a sweep can move.
+```
+apart       104 105
+```
+MEASURED rather than predicted, with `tools/phaserun.sh whim 105-106` on q104: both edits
+run, the sweep runs twice, and phase 105's check stops at its FIRST act -- ``iobuff_room``
+is not in the output exactly once, so the controls below would not be controls``.  It
+writes its four controls by matching the helpers' text VERBATIM, and two of the three
+hold `if (IObuff == NULL)`, which this phase spells `nullptr`.  Behind that refusal sit
+every other literal text it names -- `safelen_result`'s clamp is `((size_t)str_l >=
+str_m) ? ...` and all six declarations it requires are `static size_t ...` -- so a
+phase that renames two type names breaks a check that quotes C at a phase that renamed
+nothing.  ONE DIRECTION OBSERVED, because 22's check refuses first and there is nothing
+after it to watch: what the run DOES show is phase 106's edit applying unchanged to
+phase 105's UNSWEPT output -- 2,552 `NULL`, 437 `size_t`, 30 casts, the three literals,
+80,181 -> 80,183 lines, and its own input binary building to the same 788,488 bytes.
+```
+apart       105 106
+```
+MEASURED rather than predicted, with `tools/phaserun.sh whim 107-108` on q106: both edits
+run, the sweep runs once and is a complete no-op, and phase 107's check stops with THREE
+complaints -- the FIRST of which a reader would not predict, because it is not about an
+attribute at all.  ``a line carrying a kept attribute is not the line it was, byte for
+byte: lines 847 852 3081 3092``.  Phase 107 records the six `format`/`format_arg` lines
+it KEEPS by LINE NUMBER and requires them back byte for byte; this phase deletes the
+`vim_host_message` object at line 495 with its blank line, so every line below it moves
+up by two and four of those six indices land on other text.  The other two are
+ordinary: the same four lines again as `the 6 kept attributes are not all on the 5 lines
+this phase named`, and `the file is 80173 lines and the input was 80178 (80178
+recorded)`, phase 107 adding and removing no line.  Its `cmp` of the two binaries would
+fail as well -- 24's evidence is a byte-identical binary and this phase's is not -- but
+the source assertions come first.
+ONE DIRECTION ONLY, and THAT was measured too rather than reasoned: phase 108's own check
+was run on the tree that stage leaves, with the stage's own q106 symbol snapshot, and
+every part of it passed -- 18 -> 18 symbols as a cmp, `main` the only external symbol,
+the binary the same 788,488 bytes with 347,279 differing, and the recording
+byte-identical in all 106 records.  Phase 107 frees nothing for phase 108 to be blamed
+for, and phase 108's arithmetic is stated against the text ITS edit was handed.
+```
+apart       107 108
+```
+Phase 108's check states its arithmetic as a line count -- "the file is N lines and the
+input was N+5", phase 108 being a net removal of five -- and phase 109 adds twenty-four to
+the text before that check reads it.  Measured: `tools/phaserun.sh whim 108-109` on q107
+runs both edits, one sweep and then phase 108's check, which stops at `the file is 80197
+lines and the input was 80178 (80178 recorded) -- expected exactly five fewer`.  Its
+`cmp` of the two binaries would fail too -- phase 108's evidence is a byte-identical
+recording and a moved binary, and phase 109 moves the binary again -- but the source
+assertion comes first.  ONE DIRECTION ONLY, and the other is not claimed rather than
+claimed and unmeasured: phase 108's check refuses before phase 109's ever runs, so there
+is nothing after it to observe.  That is `apart 102 103`'s shape.
+```
+apart       108 109
+```
+MEASURED rather than predicted, by running internal/phase/109/check.go on the tree phase 110
+leaves -- q108 restored, 26's edit, 27's edit, one sweep, then 26's check.  It stops
+with TWO complaints, and behind them a third that never gets a chance to speak.  `the
+output is 80232 lines and the input was 80173, a difference of 59 where 24 was
+expected`, phase 110 adding 35 more; and `the output does not have exactly eleven
+directives on its first eleven lines: 11 at 78359 78360 ...`, which is phase 109's
+check stating as a property the very thing phase 110 exists to make false.  The third
+is the whole of phase 109's argument: SIXTEEN static_asserts and four mismatched
+declarations, every one of which needs the headers ABOVE the core, and its `q83`
+control puts `struct timeval` back into what is now the upper part -- `storage size
+of 'start_tv' isn't known`, six errors before it has compiled anything.  That is not
+an accident of two programs meeting; it is the ordering GOALS.md II.4c requires,
+read from the far side.
+ONE DIRECTION ONLY, and it was measured rather than reasoned: phase 110's own check was
+run on the tree that stage leaves and every part of it passed -- it compares against
+the text and binary ITS OWN edit was handed, which is 26's output either way, and it
+takes no symbol snapshot from the stage.
+```
+apart       109 110
+```
+MEASURED rather than predicted, by running internal/phase/110/check.go on the tree phase 111
+leaves.  It stops at its first act, before it has compiled anything: ``elapsed` is not
+defined exactly once above the boundary, so the control that moves one core function
+below it would not be a control`, exit 1.  Phase 110's whole argument for the boundary
+is a break the ordinary build cannot see -- ONE core function moved below the cut,
+which must change the thirteen warning names by exactly its name -- and the function it
+picked to move is `elapsed()`, which is the one this phase deletes.  Behind that
+complaint there is a second it never reaches: phase 110's DECLARED boundary set names
+`musl_gettimeofday`, and this phase replaces it with `musl_now_ms`.
+ONE DIRECTION ONLY.  Phase 111's own check reads nothing of phase 110's: its `old.c` is
+whatever its own edit was handed, it takes no symbol snapshot from the stage, and its
+thirteen-name set is computed from its own output.  It is the shape of `apart 109 110`
+directly above, and of `apart 99 100` before that.
+```
+apart       110 111
+```
+  apart 113 114  MEASURED, and in one direction only.  `tools/phaserun.sh whim 113-114` on
+               q112 runs both edits, one sweep and both checks, and stops in phase 113's:
+               "the output is 79776 lines and the input was 79857, a difference of 81
+               where 91 was expected -- the edit adds 1 and the sweep takes 92".  The
+               ten lines phase 114's edit adds land in the same swept text, so 30's line
+               arithmetic reads 81 where it wants 91.  It is `apart 100 101`'s shape
+               exactly.  The other direction passes: phase 114's own check ran on that
+               shared stage and every part of it held -- which is also where
+               `need 114 swept` was measured NOT to be required, 31's edit applying
+               unchanged to phase 113's UNSWEPT output with all five anchors holding.
+```
+apart       113 114
+```
+MEASURED rather than predicted, with `tools/phaserun.sh whim 111-112` on q110: both edits
+run, the sweep runs once and is a complete no-op, and phase 111's check stops on ONE
+message -- `the core is 77978 lines and was 78359, a difference of -381 where -16 was
+expected: -6 for the typedef and the prototype with a blank and -10 for elapsed() with
+a blank`.  Phase 111 states its arithmetic as a line count of THE CORE -- the cut above
+the first `#include`, which is where its typedef, its prototype and `elapsed()` all
+lived -- and this phase takes 365 more lines off that same cut, 366 deleted and one
+row written.  -16 - 365 = -381, which is the number it reports.
+ONE DIRECTION ONLY, AND THAT WAS MEASURED TOO rather than reasoned: phase 112's own
+check was then run on the tree that stage leaves, with the stage's own state
+directory, and every part of it passed -- the union over all 1,114,112 codepoints in
+all three directions, 17 symbols as a `comm` empty both ways, 1,189 enumerators
+unmoved, the same thirteen boundary names, the six probes moving and the six not, both
+controls failing as they must, and two byte-identical recordings.  It compares against the text and the binary ITS OWN edit was handed and
+takes nothing from the stage's symbol snapshot that 111 moves -- 28 frees nothing for
+this phase to be blamed for.
+```
+apart       111 112
+```
+
+NO `apart 106 107`, AND IT WAS MEASURED RATHER THAN PREDICTED.  `tools/phaserun.sh zero
+23-24` on q105 runs both edits, one sweep and BOTH CHECKS, and every one of them passes:
+phase 106's check still finds its four control texts verbatim -- this phase touches no
+`NULL`, no `size_t` and none of the helpers 23 quotes -- and phase 107's check reads
+only attributes, which 23 neither creates nor destroys.  The two phases are in separate
+stages because zero ran every phase in one, not because they may not share one.  The one
+thing a shared stage DOES change is visible in that run and is not a constraint: the
+stage's symbol snapshot is q105's, and both phases state their libc surface as a `cmp`
+against it, which both still satisfy, neither freeing anything.
+
+NO `apart 96 97`.  Phase 96's check asserts that the libc surface moves by exactly
+`fclose fsync getc putc` and that `fputs fputc fwrite putchar` are STILL undefined,
+and phase 97 moves seventeen more -- so phase 96's check does fail on a phase 97
+tree, and a stage holding both would be wrong.  It is not written because every
+zero phase was its own stage and because it is the same shape as the missing
+`apart 85 89`: nothing can hold 96 and 97 without holding them adjacent, and the
+constraint would become real only if a later phase joined them.  THE ONE THAT WILL
+MATTER is `apart 97 98`, which the character-class phase owns: this phase's check
+pins `tolower` and `toupper` at their current mentions and requires both STILL
+undefined, and that phase takes them.
+
+What phase 90's edit needs of the text it is handed (internal/phase/STAGES.md defines the
+word).  An each stage sweeps before every edit, so this is a statement rather
+than a constraint there; it becomes one the moment two of them share a sweep.
+  need 90 swept   anchor: `usefilter` has exactly 10 mentions -- the field, the two
+                 writes anchor 3 removes and seven reads.  On the text phase 89's
+                 edit leaves it has ELEVEN, ex_write still being there to read it,
+                 and the counted anchor refuses: measured with
+                 `tools/phaserun.sh whim 89-90`, which says `usefilter has 11
+                 mentions, expected 10`.  The same run shows the edit's build of
+                 the input binary failing on phase 89's non-compiling intermediate,
+                 which is true of every zero edit that builds one and is not
+                 declared here for that reason.
+```
+need        90 swept
+```
+  need 91 swept   anchor: `readfile` has exactly 5 mentions -- its prototype, its
+                 definition and the three calls in read_buffer() and open_buffer().
+                 On the text phase 90's edit leaves it has SEVEN, ex_read still
+                 being there to make two of them, and the counted anchor refuses:
+                 measured with `tools/phaserun.sh whim 90-91`, which says `readfile
+                 has 7 mentions, expected 5`.  The same run shows the edit's build
+                 of the input binary failing on phase 90's non-compiling
+                 intermediate, which is true of every zero edit that builds one and
+                 is not declared here for that reason.
+```
+need        91 swept
+```
+  need 92 swept   anchor: `open_buffer` has exactly 5 mentions -- the definition and
+                 four callers, every one of them `open_buffer(FALSE, NULL, 0)`, which
+                 is what lets the signature fold rewrite all four by text.  On the
+                 text phase 91's edit leaves it has SIX, do_ecmd still being there to
+                 make `(void)open_buffer(FALSE, eap, readfile_flags);` -- the one call
+                 site the rewrite would NOT match, and one the sweep would then
+                 delete, hiding the mistake.  The counted anchor refuses: measured
+                 with `tools/phaserun.sh whim 91-92`, which says `open_buffer has 6
+                 mentions, expected 5`.  The same run shows the edit's build of the
+                 input binary failing on phase 91's non-compiling intermediate, which
+                 is true of every zero edit that builds one and is not declared here
+                 for that reason.
+```
+need        92 swept
+```
+  need 93 swept  anchor: `b_ffname` has exactly 32 mentions, and the other two name
+                 fields 26 and 29.  On the text phase 92's edit leaves there are
+                 FORTY, readfile() still being there to make eight of them, and the
+                 counted anchor refuses: measured with `tools/phaserun.sh zero
+                 9-10`, which says `b_ffname has 40 mentions, expected 32 -- the
+                 anchors below were counted against a different file`.  Unlike 90, 91
+                 and 92, the text before it COMPILES -- phase 92's edit left valid C --
+                 so the refusal is the counted anchor alone and nothing else.
+```
+need        93 swept
+```
+  need 94 swept  anchor: `buflist_findfpos` has exactly 3 mentions -- its prototype,
+                 its definition and the one call inside `buflist_getfpos`, which is
+                 itself one of the eleven functions of the switch-buffer island.
+                 THE INVARIANT THE WHOLE PHASE RESTS ON is that every call to any of
+                 the eleven is inside check_changed_any() or inside another of the
+                 eleven, so that the island hangs off that one tail and off nothing
+                 else.  On the text phase 93's edit leaves there are FOUR:
+                 `buflist_findlnum()` is still there to make `return
+                 buflist_findfpos(buf)->lnum;`, a call from OUTSIDE the island, and
+                 phase 93's sweep is what takes it.  The invariant is false on that
+                 text and the edit refuses.  `SHM_FILEINFO` refuses first, at 3
+                 mentions where it wants 2, `ex_file()` still being there to read
+                 the 'shortmess' F letter -- measured with `tools/phaserun.sh zero
+                 10-11`, which says `SHM_FILEINFO has 3 mentions, expected 2`.
+                 Unlike 90, 91 and 92 the text before it COMPILES -- phase 93's edit
+                 left valid C -- so the refusal is the counted anchors alone.
+```
+need        94 swept
+```
+  NO `need 95` AND NO `need 96`, and both were MEASURED rather than assumed.
+                 `tools/phaserun.sh whim 94-95` runs phase 95's edit on the unswept
+                 text phase 94's edit leaves and every counted anchor matches -- the
+                 same seven rows come back from the computation and the cut ends at
+                 the same 108 rows and 96 globals.  Phase 96's edit likewise applies
+                 unchanged to the text phase 95's edit leaves.  In both runs the only
+                 failure is the edit's build of its own input binary, which is true
+                 of every zero edit that builds one and is not declared for that
+                 reason.
+  NO `need 99`, AND IT WAS MEASURED RATHER THAN ASSUMED.  Phase 99's anchors are six
+                 exact `#include <...>` lines at one occurrence each and one exact
+                 typedef line -- text no sweep has ever touched -- and its computed
+                 part is a COMPILE and not a count, so it cannot shrink silently on
+                 unswept text the way a counted cut can.  Measured: the edit applies
+                 unchanged to the unswept text phase 98's edit leaves, and the sweep
+                 that follows it is a complete no-op -- one round, 0 prototypes, 0
+                 functions, 0 variables, 0 types, 0 fields, 0 enumerators, canon
+                 settled, the file not one line shorter than the edit left it.
+                 Removing a header is not removing code.
+  NO `need 104`, AND IT WAS MEASURED RATHER THAN ASSUMED, in the same run that
+                 measured `apart 103 104`.  `tools/phaserun.sh whim 103-104` on q102 runs
+                 phase 104's edit on the UNSWEPT text phase 103's edit leaves and every
+                 one of its anchors holds -- the twelve input counts, the twenty
+                 statements, the eleven output counts and the whole launcher tail --
+                 80,181 -> 80,206 lines, the same 25 it adds to swept text.  Its cuts
+                 are exact text in functions no sweep touches and its computed parts
+                 are counts of words the sweep cannot create, so there is nothing that
+                 could shrink silently.
+  NO `need 106`, AND IT WAS MEASURED RATHER THAN ASSUMED, in the same run that measured
+                 `apart 105 106`.  Phase 106's edit asserts NO count of its input: the
+                 substitution is one rule applied to every occurrence and is correct
+                 for any number of them, so there is no counted anchor to shrink
+                 silently.  What it does assert is structural -- eleven directives on
+                 the first eleven lines, `usize` and `nullptr` at zero, the three
+                 literals holding `NULL`, and a PARTITION of every `size_t` into casts
+                 and declarations with nothing left over -- and every one of those held
+                 on the unswept text phase 105's edit leaves, giving the same 2,552,
+                 437 and 30.  The one number that differs is the blank-line runs it
+                 preserves, 5 on unswept text against 0 on swept, and it preserves
+                 whatever it is handed rather than requiring a value.
+  NO `need 107`, AND IT WAS MEASURED RATHER THAN ASSUMED, in the same run that measured
+                 the missing `apart 106 107`.  `tools/phaserun.sh whim 106-107` on q105 runs
+                 phase 107's edit on the UNSWEPT text phase 106's edit leaves and every
+                 one of its assertions holds -- 139 attributes partitioning 113/20/3/3,
+                 all 113 in the parameter list of a function DEFINITION, all 20 a whole
+                 line, the same 117 lines changed, the doubled-space count unmoved at
+                 639 -- and the boundary that comes out is the recorded one.  Like phase
+                 106's, this edit asserts NO count of its input that a sweep could move:
+                 what it asserts is a PARTITION and a SHAPE, and a sweep that deleted a
+                 dead function would take its attributes with it and leave both true.
+  NO `need 108`, AND IT WAS MEASURED RATHER THAN ASSUMED, in the same run that measured
+                 `apart 107 108`.  `tools/phaserun.sh whim 107-108` on q106 runs phase 108's
+                 edit on the UNSWEPT text phase 107's edit leaves and every one of its
+                 anchors holds -- `vim_host_exit` at 3 mentions and `vim_host_message`
+                 at 10, one call and eight, the five exact texts it swaps, the same
+                 80,178 -> 80,173 lines and the same prototype, call and definition
+                 lines (3533/3534, 55872, 37649..79847, 80137/80144) as on swept text.
+                 Phase 107's edit changes no line count and touches no line this phase
+                 reads, and the sweep between them is a complete no-op at this point in
+                 the pipeline: one round, 0 of all six kinds, canon settled.
+  NO `need 110`, AND IT WAS MEASURED RATHER THAN ASSUMED, in the same run that measured
+                 `apart 109 110`.  Phase 110's edit was run on the UNSWEPT text phase 109's
+                 edit leaves and the output is `cmp`-IDENTICAL to the one the swept
+                 path gives: the same 80,197 -> 80,232 lines, the same five fixpoint
+                 rounds naming the same 15 functions, 18 objects and 3 enum blocks, the
+                 same 78,358-line cut and the same thirteen boundary names.  It could
+                 hardly be otherwise: this edit asserts no count of its input at all.
+                 What it asserts is STRUCTURAL -- eleven directives on the first eleven
+                 lines, the host block beginning once, no run of two blank lines -- and
+                 every set it acts on is COMPUTED BY COMPILING, which cannot shrink
+                 silently the way a counted cut can.  The sweep between the two is a
+                 complete no-op at this point in the pipeline.
+  NO `need 112 swept`, AND IT WAS MEASURED RATHER THAN ASSUMED, in the same run that
+                 measured `apart 111 112`.  Phase 112's edit came from the EDIT CACHE
+                 there, and that is the measurement rather than a shortcut past it:
+                 the cache is keyed on the DIGEST of the tree the edit is handed, so a
+                 hit says the unswept text phase 111's edit leaves IS the tree this
+                 edit was handed on the real pass, byte for byte -- the sweep between
+                 them being a complete no-op, one round and 0 of all six kinds.  It is
+                 `NO need 109`'s measurement exactly.  The edit could hardly need a
+                 sweep in any case, because it asserts NO count of its input that one
+                 could move: its anchors are the four tables' EXACT ROW TEXT, which it
+                 proves by re-emitting them byte for byte before it changes anything,
+                 and every number it states is COMPUTED from the tables it just read.
+  NO `need 109`, AND IT WAS MEASURED RATHER THAN ASSUMED, in the same run that measured
+                 `apart 108 109`.  Both edits came from the edit cache, which is keyed on
+                 the DIGEST of the tree each is handed -- so the unswept text phase 108's
+                 edit leaves IS the tree phase 109's edit was handed on the real pass, and
+                 a direct `cmp` says the same thing: phase 108's edit applied to q107 gives
+                 a `zero-vim.c` byte-identical to q108's.  The sweep between them is a
+                 complete no-op.  Phase 109's edit would not need it in any case: every
+                 anchor it has is an exact text or a count of a name the sweep cannot
+                 create, and its one computed part -- the MIN/MAX expansion -- is driven
+                 by the preprocessor rather than by a number, so there is nothing that
+                 could shrink silently.
+  NO `need 111`, AND IT WAS MEASURED RATHER THAN ASSUMED.  Phase 110's edit output was
+                 taken from the edit cache -- the UNSWEPT tree, keyed on the digest of
+                 what that edit was handed -- and phase 111's edit run on it gives a
+                 `zero-vim.c` `cmp`-IDENTICAL to the one the swept path gives: the same
+                 80,232 -> 80,222 lines, the same four stamps and four readings.  It
+                 could hardly be otherwise.  Every anchor this edit has is an EXACT
+                 TEXT quoted from phase 109 -- the tagless struct, elapsed()'s nine
+                 lines, the five call sites with the spacing macro expansion left on
+                 them -- and its counted part is a count of names (elapsed_T 8,
+                 elapsed 6, musl_gettimeofday 6+1) that a sweep can only reduce to
+                 zero, not shrink by one.  And the sweep between the two is a complete
+                 no-op at this point in the pipeline: one round, 0 prototypes, 0
+                 functions, 0 variables, 0 types, 0 fields, 0 enumerators, canon
+                 settled, the file not one line shorter than the edit left it.
+internal/phase/104/check.go pins `msg_puts_printf` at 3 mentions -- "a prototype, a
+definition and one call -- all 75 lines stay and only what they call changes" -- and
+this phase takes it to 0.  MEASURED by applying phase 104's whole thirteen-name pin
+table to the tree this phase was handed and to the tree it leaves: SEVEN of the
+thirteen are already broken by phases 105-112 (`vim_host_message` 10 -> 0,
+`vim_snprintf` 73 -> 201, `host_message` 2 -> 10 and four more), four are untouched by
+this phase, and exactly TWO move here -- `msg_puts_printf` 3 -> 0 and `info_message`
+9 -> 7.  `msg_use_printf` stays at 6, which is the OTHER half of phase 104's assertion
+and survives intact; that is what makes this a narrow requirement rather than a wide
+one.  The whole of phase 104's check cannot be run on this tree to watch it fail,
+because its state directory is written by ITS edit and phases 105-112 sit between -- so
+the measurement is the pin table, applied directly.  An each stage
+keeps the two apart anyway; this line is what would stop a SHARED stage holding both
+the day one is built, exactly as `apart 85 87` is.
+```
+apart       104 113
+```
+FOUR `apart` LINES FOR PHASE 32, and three of them are one fact measured three ways:
+the core's libc prototype block held `long time(long *tp);` and this phase takes it
+out, because the core stops calling `time()` at all.  MEASURED by applying each check's
+own assertion directly to the tree this phase leaves -- the whole of those checks
+cannot be re-run here, their state directories being written by THEIR edits with phases
+in between, which is `apart 104 113`'s situation exactly.
+
+  109 and 110 both carry the same nine-entry PROTOS list and require every one of them
+  `\n<prototype>\n` exactly once.  On this phase's output SIX are at 1 and THREE are at
+  0: `long labs(long n);` and `int abs(int n);`, which phase 114 vendored, and
+  `long time(long *tp);`, which is this phase's.  So each stops there -- already true
+  of 31, and this phase adds the third name.
+  110 and 111 both WRITE OUT the boundary as a list of thirteen names and require the
+  `make editor.c` cut's warning set to be exactly it.  This phase makes it FOURTEEN,
+  `host_time` arriving, so 28's `seen != want` and 27's `PART 4` both fire -- measured,
+  the symmetric difference of the two sets is exactly {host_time}.  (27's list still
+  says `musl_gettimeofday`, which is why `apart 110 111` is already there.)
+
+  apart 114 115  MEASURED, and in ONE DIRECTION only, with
+               `tools/phaserun.sh whim 114-115` on q113: both edits run, the sweep runs
+               once and is a complete no-op, and phase 114's check stops on THREE
+               messages -- `the core's libc declaration block went from 9 entries to 6
+               and lost long time(long *tp); / long labs(long n); / int abs(int n); --
+               it must lose exactly labs and abs`, `the core is 77890 lines and was
+               77887, a difference of 3 where 10 was expected` (31's +10 less this
+               phase's -7), and `the host changed size, and this phase does not touch
+               it` (this phase's +7).  It is `apart 100 101`'s shape.  The other
+               direction passes: phase 115's own check was then run on the tree that
+               stage leaves and EVERY part of it held, the boundary included -- which
+               is also where `need 115` was confirmed unnecessary, 32's edit applying
+               unchanged to phase 114's UNSWEPT output with every anchor at its count.
+
+An each stage keeps all five apart anyway; these lines are what would stop a
+SHARED stage holding any of the pairs the day one is built.
+```
+apart       109 115
+apart       110 115
+apart       111 115
+apart       114 115
+apart       109 117
+apart       110 117
+apart       113 117
+```
+  NO `need 115`, AND IT WAS CHECKED RATHER THAN ASSUMED.  Every anchor in the edit is a
+                 block of exact text asserted at count 1 -- the two-read block in
+                 ui_focus_change, the wrapper's definition, its prototype, the host
+                 block's last declaration, musl_delay's definition head, the libc
+                 prototype and the last of the twelve static_asserts -- and the one
+                 COMPUTED thing, the libc prototype block's extent, is a run of
+                 non-blank lines around a line the edit has already required to be
+                 unique.  None is a count a sweep can move, and the input to this phase
+                 is a swept boundary in any case, its stage being a stage of one.
+                 MEASURED on unswept text as well, in the `apart 114 115` run above: the
+                 edit ran on phase 114's UNSWEPT output and every anchor held, the
+                 prototype block coming out at 7 entries there as it does on q114.
+FIVE `apart` LINES FOR PHASE 35, and the set is phase 115's four plus this phase's own
+predecessor.  The core's block of ordinary declarations held `void *malloc(usize n);`,
+`void free(void *p);` and `long write(int fd, const void *buf, usize n);`, and this
+phase takes all three out because the core stops calling malloc, free and write at all.
+109, 110 and 111 are MEASURED by applying each check's own assertion directly to the tree
+this phase leaves, which is `apart 104 113`'s situation: the whole of those checks cannot
+be re-run here, their state directories being written by THEIR edits with phases
+between.
+
+  109 and 110 both carry the same nine-entry PROTOS list and require every one
+  `\n<prototype>\n` exactly once.  On this phase's output TWO are at 1 -- getpid and
+  kill -- and SEVEN at 0: `long time(long *tp);`, `long labs(long n);` and
+  `int abs(int n);`, which phases 114 and 115 took, `void *realloc(void *p, usize n);`,
+  which phase 117 took, and this phase's three.  So each stops there, already true of
+  114, 115 and 117, and this phase takes the count from four missing to seven.  110 has a
+  second reason of its own: it builds a control by putting `static ` in front of the
+  malloc prototype and requiring `'malloc' used but never defined`, and on this output
+  there is no malloc prototype to put it in front of.
+  110 and 111 both WRITE OUT the boundary as a list of names and require the
+  `make editor.c` cut's warning set to be exactly it.  This phase makes it SEVENTEEN
+  where phase 115 made it fourteen -- host_alloc, host_free and host_write arriving --
+  so 28's `seen != want` and 27's PART 4 both fire, the symmetric difference of the two
+  sets being exactly those three.
+
+  apart 117 118  MEASURED as a real shared stage, q116 restored and both edits run with
+               one sweep between them and the checks after.  Phase 117's check stops
+               FOUR ways, and the first two are the interesting ones: `the core's plain
+               libc prototype block is 2 lines and the input's was 6, a difference of 4
+               where 1 was expected` and `the prototype block lost [long write(...) /
+               void *malloc(...) / void *realloc(...) / void free(...)] and not
+               realloc's line alone`.  Then TWICE MORE, and this is `apart 105 106`'s
+               lesson landing on the phase that had just learned it from the other
+               side: `ga_grow_inner's rewrite is not in the output exactly once` and
+               the same for `get_keystroke's`, because phase 117's check matches the
+               code it wrote VERBATIM -- `pp = malloc(new_len);`, `free(gap->ga_data);`
+               -- and this phase renames exactly those calls to `host_alloc` and
+               `host_free`.  A check that QUOTES C is a dependency on the spelling, and
+               here the quoting phase and the respelling phase are adjacent.
+
+AND ONE THAT IS NOT IN PHASE 32'S SET, measured on q112 when this phase was numbered 37
+and kept because it is the clearest instance of a rule this pipeline keeps re-learning:
+phase 113's check writes `write(2, "T-cleos\n", 8);` INTO THE CORE to build an
+instrumented control, and relied on the core's own `long write(int, const void *,
+usize);`.  Run as a pair it does not compile at all -- `implicit declaration of
+function 'write'` and then `conflicting types for 'write'` -- before its line count
+(73 where 91 was expected) is even reached.  A check that CALLS libc from above the
+boundary is a dependency on the core still declaring it.  An each stage
+keeps all six apart anyway; these lines are what would stop a SHARED stage holding
+any of the pairs the day one is built.
+```
+apart       109 118
+apart       110 118
+apart       111 118
+apart       113 118
+apart       115 118
+apart       117 118
+```
+
+  apart 118 119  MEASURED as a real shared stage, q117 restored and both edits run with
+               one sweep between them and both checks after.  Phase 118's check stops
+               THREE ways, and the first is the block it exists to shrink: it finds the
+               input's run of ordinary declarations, subtracts its own three lines and
+               requires the OUTPUT to hold exactly what is left -- which is `int
+               getpid(void);` and `int kill(int pid, int sig);`, the two lines phase 119
+               takes.  `the ordinary declarations above the boundary are none and the
+               input's block minus the three is int getpid(void); / int kill(int pid,
+               int sig);`.  Then `the file is 79799 lines and the input was 79786 --
+               expected 18 more`, phase 118's arithmetic meeting phase 119's net of -5,
+               and `the boundary moved from line 77901 to line 77890, and it must not`,
+               which is phase 118's own statement that IT moves no line above the first
+               `#include` -- true of 35 and not of a stage holding 36.  ONE DIRECTION
+               ONLY: phase 119's check was then run on that same tree and every part of
+               it held, and the tree itself is BYTE-IDENTICAL to the one the two phases
+               produce in sequence.
+
+AND SIX LINES THAT ARE NOT WRITTEN, WITH THE REASON, because a redundant `apart` that
+nobody measured is worse than none.  Phases 109, 110, 111, 113, 115 and 117 all have checks
+that phase 119's output breaks -- 109's and 110's nine-entry PROTOS list reaches ZERO of
+nine on it, which is this arc read from the losing side, and 110's and 111's written-out
+boundary sets are thirteen and fourteen names against eighteen.  But every one of them
+was ALREADY broken by phase 118 and is recorded against it above, and any stage holding
+36 and one of the six would have to hold 35 as well, so the six lines above already
+forbid it.  What phase 119 newly breaks is phase 118's check, and that is the line that
+is written.
+```
+apart       118 119
+```
+  NO `need 119`, MEASURED IN THE SAME RUN that measured `apart 118 119`: phase 119's edit
+                 was handed phase 118's UNSWEPT output -- the prototype of the function
+                 its own edit is about to delete still there, `b0_pid` still a field --
+                 and every part of it held, because it asserts no count a sweep can
+                 move.  The block is found by walking out from a line; `getpid` and
+                 `kill` are PARTITIONED above the boundary into a declaration and the
+                 call sites, and how many there are is read off the text; and the two
+                 lines the sweep does take, mch_get_pid()'s forward declaration and the
+                 `b0_pid` member, are left FOR the sweep rather than counted before it.
+  NO `need 118`, AND IT WAS MEASURED THREE TIMES, once on each base this phase was
+                 built against: phase 113's UNSWEPT output, phase 115's, and phase 117's
+                 in the run that measured `apart 117 118` above.  The partition held
+                 identically every time -- on q117's text, `malloc` is its declaration
+                 and 3 calls, `free` its declaration and 4, `write` its declaration and
+                 1, swept or not.  It asserts NO count a sweep could move: the block is
+                 found by walking out from a line, and how many call sites each name
+                 has is read off the text rather than written down, which is also why
+                 phase 117 adding two of them cost this phase nothing but a re-run.
+38 CANNOT SHARE A STAGE WITH 33, for the reason written against 34 above:
+internal/phase/116/check.go is ONE file and a stage of more than one phase is made of split
+programs, so tools/stages.sh refuses any stage containing 33 before a check runs.  BUT
+PHASE 33'S CHECK REALLY DOES BREAK ON THIS PHASE'S OUTPUT, AND NOT THROUGH A STAGE,
+which no `apart` line can say: its section 4 extracts ./zero-vim from EVERY
+.build/r*.tar it can find and requires one terminal table across all of them.
+MEASURED, by putting this phase's own tar in .build and running internal/phase/116/check.go
+on q116: it gets as far as `same` and then stops with `boundaries   q121 records a
+different table:` and the eight rows, exit 1.  So once an q121 tar exists,
+`make whim-phase-116` in the repository root fails -- a scratch root has no .build
+and is unaffected, so `make whim-verify` does not.  That is a claim phase 116 made about
+the boundaries that existed WHEN IT RAN, and this is the first phase in the pipeline
+to move the table it was measuring.  It is left as a note and not repaired, because
+repairing it means editing another phase's program.
+  NO `need 121`, AND WHAT WAS MEASURED IS WEAKER THAN USUAL, WHICH IS WHY IT IS WRITTEN
+                 OUT.  The edit's assertions are a partition over STRING LITERALS, a
+                 set difference over the rows of builtin_terminals[], and four function
+                 extents found by tools/cutil.py -- not one of them is a count a sweep
+                 could shrink silently, which is the hazard `need` exists for.  The
+                 direct measurement is vacuous on this base and is reported as such:
+                 phase 120's sweep removes nothing, so its unswept edit output IS q120
+                 byte for byte -- cmp of .cache/edit/r37's tree against the boundary --
+                 and there is no unswept text here that differs from a swept one.
+  NO `need 113`, AND IT WAS CHECKED RATHER THAN ASSUMED.  The edit has ONE anchor, a
+                 four-line block of exact text whose count is 1, and three further
+                 blocks of exact text it asserts present and does not touch.  None of
+                 the four is a count a sweep can move, and the fold is not computed, so
+                 there is nothing that could shrink silently.  MEASURED on the unswept
+                 text as well: the block is there exactly once either way, and the
+                 input to this phase is always a swept boundary.
+  apart 119 120  MEASURED as a real shared stage, q118 restored and both edits run with
+               one sweep between them and both checks after -- which 119 and 120 make
+               possible, both being split phases, where the 33-34 pair could not be
+               measured that way at all.  IT IS BOTH DIRECTIONS, and the driver only
+               ever sees the first.  Phase 119's check stops with `the file is 79786
+               lines and the input was 79804 (79804 recorded) -- expected 79799: 1 in
+               above the boundary and 6 below, 12 out above it`, and then `the boundary
+               moved from line 77901 to line 77877`: phase 119 states its own arithmetic
+               as a line count and phase 120 takes 13 more lines out of the core.  That
+               is `apart 100 101`'s shape and `apart 113 114`'s.
+
+               THE OTHER DIRECTION WAS OBSERVED AND NOT REASONED, by running phase 120's
+               check on exactly the tree and the state directory the driver would have
+               handed it next: `the file is 79786 lines and the input was 79801 -- the
+               six declarations are 13 lines shorter between them`, then `the boundary
+               moved by 15 lines and the file by 13`.  THE TWO EXTRA LINES ARE PHASE
+               36'S RESIDUE -- `static long mch_get_pid(void);` and the `b0_pid` member,
+               which 36 deliberately leaves FOR the sweep -- arriving inside phase 120's
+               arithmetic because a stage sweeps ONCE, at the end.  A phase that states
+               its line count against its own edit cannot share a sweep with a phase
+               that leaves work for it.
+```
+apart       119 120
+```
+  NO `need 120`, MEASURED IN THE SAME RUN.  Phase 120's edit was handed phase 119's
+                 UNSWEPT output -- `mch_get_pid()`'s forward declaration still there,
+                 `b0_pid` still a field -- and every part of it held, at exactly the
+                 counts it gets on swept text: uh_next 1 + 27, uh_prev 1 + 23,
+                 uh_alt_next 1 + 28, uh_alt_prev 1 + 26, vval 1 + 19, es_info 1 + 0.
+                 It asserts no count a sweep can move: which unions are degenerate is
+                 COMPUTED by matching braces and counting members, and each name's
+                 mentions are PARTITIONED into its declaration and its `.member`
+                 accesses, with how many of each read off the text.  The two lines the
+                 sweep does take are phase 119's and touch nothing of this phase's.
+
+apart 120 121.  ONE DIRECTION ONLY, AND BOTH HALVES MEASURED.  Phase 120's check states
+its own size as a line count of the whole file and of the CORE, and this phase takes
+118 more lines out of the same swept text -- so `tools/phaserun.sh whim 120-121` on q119
+runs both edits, one sweep and then stops in phase 120's check with `the file is 79668
+lines and the input was 79799 -- the six declarations are 13 lines shorter between
+them` and `the boundary moved by 131 lines and the file by 13`, exit 1.  That is
+`apart 100 101`'s shape exactly.  The other half was RUN rather than reasoned: phase
+121's check, given that stage's swept tree and its own state directory, passes every
+part -- its assertions are all against $state/old.c, which its own EDIT writes, so a
+shared stage moves nothing it reads.
+```
+apart       120 121
+```
+
+apart 121 122.  ONE DIRECTION ONLY, AND BOTH HALVES MEASURED IN THE SAME RUN.  Phase
+121's check builds its first control by finding the fallback in set_termname() --
+`set_termname() names %d of the surviving rows and this check needs one` -- and phase
+122 deletes the fallback outright, so `tools/phaserun.sh whim 121-122` on q120 runs both
+edits and one sweep and then stops in phase 121's check at its FIRST act with
+`set_termname() names 0 of the surviving rows and this check needs one -- the
+fallback`, exit 1.  That is a check depending on the code it repaired still being
+there, which is the sharpest form of `apart 105 106`'s lesson: phase 121's repair is
+phase 122's dead code.  The other direction was RUN rather than reasoned -- phase 122's
+check, given that stage's swept tree and its own state directory, passes every part,
+and the tree the pair produces is BYTE-IDENTICAL to the one the two phases produce in
+sequence.
+```
+apart       121 122
+apart       126 127
+apart       124 125
+```
+`apart 127 128` IS PHASE 44'S OWN SCOPE STATEMENT READ FROM THE OTHER END, and it needed
+no reasoning: that phase wrote "ml_new_ptr()'s `offsetof(PTR_BL, pb_pointer)` measures
+a POINTER block, which is still a page of entries and is not the leaf.  De-paging the
+branch is a phase of its own ... this one leaves it alone and says so", and its check
+says it as `new.count('offsetof(PTR_BL') != 1`.  This is that phase.  MEASURED by
+running internal/phase/127/check.go on the q128 tree with phase 127's own state directory:
+
+  partition    ml_new_ptr's offsetof moved, and a POINTER block is still a page and
+               is not this phase's
+
+ONE DIRECTION ONLY, and there is nothing to observe in the other because the stage
+cannot run at all -- `need 128 swept` below forbids it before any check is reached.
+```
+apart       127 128
+```
+  NO `apart 122 123` AND NO `need 123`, AND NEITHER IS AN OMISSION.  Phase 123 is a
+                 WHOLE-PHASE program, internal/phase/123/check.go -- phase 86's shape and
+                 phase 116's -- so it cannot share a stage with anything at all,
+                 and that is enforced rather than agreed: `tools/stages.sh zero` with
+                 `stage 122-123` in this file refuses before any check runs, with
+                 `phase 123 is in stage 122-123 but is not an edit and a check`, and
+                 `tools/phaserun.sh whim 122-123` answers `phase 123 has no edit and
+                 check to run in stage 122-123`.  Both measured.  `need` is a statement about what a
+                 phase's EDIT part needs of its input and phase 123 has no edit part;
+                 it changes no source, so there is nothing for a sweep to have done.
+  NO `need 122`, MEASURED IN THE SAME RUN.  Phase 122's edit was handed phase 121's
+                 UNSWEPT output -- `builtin_ansi`, `builtin_vt100` and `builtin_dumb`
+                 still defined, report_default_term() still called -- and every part
+                 of it held, printing the same lines as on swept text.  It asserts no
+                 count a sweep can move: the option letters are READ OUT of the
+                 switch, which ME_* enumerators die is COMPUTED as those whose only
+                 mention left is their own `enum` line, the fallback is found by
+                 walking out from the `if (termp == nullptr)` arm, and the one thing
+                 the sweep does take -- report_default_term()'s definition -- is left
+                 FOR the sweep and asserted at one mention rather than zero.
+
+THERE IS NO `apart` AND NO `need` FOR 41, AND BOTH ARE STATEMENTS ABOUT A STAGE OF ONE
+RATHER THAN THINGS NOBODY LOOKED AT.
+  NO `need 124`.  A `need` is a claim about text a stage's EARLIER edits have left
+                 unswept, and 41 begins its stage, so the text it is handed is a
+                 recorded boundary and is swept by construction.  Nothing in the edit
+                 could care either way: its four anchors are exact runs of text --
+                 host_alloc's body, host_free's body, format_overflow_error's free of
+                 argcopy and adjust_types's realloc with the failure test below it --
+                 and it asserts a PARTITION of the mentions of three libc names rather
+                 than a count of anything, so a sweep that removed a function has
+                 nothing to move.  The one number it computes, the line delta, is
+                 computed from its own four replacements.
+  NO `apart`.    Zero ran every phase as its own stage, so an `apart` line here would be a
+                 statement and not a constraint (see `apart 85 87`).  The statement worth
+                 writing is the SHAPE it would have, because the next phase that thinks
+                 of sharing a sweep needs it: 41's check states its gone set as EXACTLY
+                 `free malloc realloc` and requires the rest of `nm -u` to be unmoved,
+                 as a `comm` in both directions against the stage's ONE snapshot -- so
+                 it is `apart 88 89`'s shape, and it cannot share a stage with any phase
+                 that frees or adds a libc symbol.  It also states the editor.c cut as
+                 a `cmp` against the input's, so it cannot share one with any phase
+                 that changes a core line at all, which is most of them.
+                 AND WITH ITS ACTUAL PREDECESSOR IT COULD NOT SHARE ONE ANYWAY, for
+                 phase 117's reason rather than for any of its own: internal/phase/123/check.go is
+                 ONE file, so a stage holding 123 and 124 is refused by tools/stages.sh
+                 before a check runs -- `phase 123 is in stage 123-124 but is not an edit
+                 and a check`.  An `apart 123 124` would be unreachable as well as
+                 unnecessary, which is what the `stage 116` and `stage 117` notes above
+                 say in their own words.
+Phase 126's edit needs swept input, and what breaks without it is not the anchor a
+reader would guess.  MEASURED, on exactly the text phase 125's edit leaves: the edit
+runs to its last act and refuses there, with
+
+  names this phase removes are still said: blocknr_T 1, mf_hashitem_T 1, mf_hashtab_T 1
+
+-- phase 125 leaves `mf_hash_free_all` standing for tools/sweep.sh, and its FORWARD
+DECLARATION names all three of the types phase 126 deletes.  So the partition refuses,
+which is what a partition is for: the cut itself applied cleanly and the file would
+not have compiled.  The definition is inside the region phase 126 cuts out, which is
+why the count is one apiece and not two.
+
+AND THERE IS NO `apart 125 126`, deliberately -- but phase 125 is right that this phase
+would break its check, and both halves of that are measured here rather than left as
+two opinions.
+
+  THE STAGE CANNOT BE SCHEDULED AT ALL.  The only one that could hold both is 42-43,
+  and `need 126 swept` already forbids it: with `stage 125-126` in this file
+  tools/stages.sh answers `stages: 126 needs swept input and does not start a stage
+  (125-126)` and exits 1, BEFORE any check runs.  An `apart` line would enforce a
+  constraint that is already enforced, which is phase 119's rule -- a redundant `apart`
+  nobody measured is worse than none.
+
+  AND PHASE 42'S OWN NOTE IS CORRECT, WHICH IS WHY IT IS ANSWERED AND NOT IGNORED.
+  *A NOTE FOR THE PHASE AFTER 42* above says its check builds two controls by matching
+  the output's text VERBATIM, and names them; this is that phase, and it rewrites both.
+  Counted on the two trees: `pp->pb_pointer[0].pe_bnum = 1;` is 1 in q125 and 0 here,
+  and `if (hp-> bh_hashitem.mhi_key  != 0)` is 2 in q125 and 0 here.  So phase 125's
+  check WOULD stop at `... is not in that source exactly once, so a control built from
+  it would not be one`.  That is the refusal doing its job, it costs nothing because
+  the stage is unreachable, and it is written down so the next reader knows it was
+  checked rather than assumed.
+```
+need        126 swept
+```
+`need 128 swept` IS THE FIRST ONE IN THIS PIPELINE THAT IS ABOUT BLANK LINES, and it is
+the CLAUDE.md rule "blank lines, indentation and paragraphing ... a pass that touches
+those needs a count of them as its own check" meeting a shared sweep.  Phase 128's edit
+deletes whole functions and single statements out of the middle of others, so it
+asserts that it leaves no run of two blank lines anywhere in the file -- and that is a
+statement about THIS edit only if the text it was handed had none.  It had one:
+measured, phase 127's edit leaves a run of two at line 33,815 of its own UNSWEPT output
+and tools/canon.py removes it in phase 127's sweep.  So the edit asks the INPUT first
+and refuses there, which is what `tools/phaserun.sh whim 127-128 work` on q126 prints:
+
+  node   the input already has a run of two blank lines, so this edit cannot say it
+         left none: it needs swept text (internal/phase/STAGES.md, `need 128 swept`)
+
+The order of those two tests is the whole of it: asked the other way round the message
+would have been `the edit left a run of two blank lines` and would have blamed this
+phase for the previous one's residue.
+```
+need        128 swept
+```
+
+       name         phases
+       (zero's `seed`, phases 83 here, is in whim's package seed above)
+```
+package  build        84
+```
+38 IS IN `terminal` AND THE CLAIM WAS ARGUED, NOT ASSUMED.  This package is what the
+core still assumes about the terminal it is attached to.  Phase 85 removed the
+QUESTION -- the two "not to a terminal" warnings, the pause and --ttyfail, the last
+thing the core said about a terminal it had not been told about.  Phase 121 removes the
+VOCABULARY: eight of the ten terminals it could describe, and with them three
+capability tables and the xterm-family special case, leaving `xterm-256color` -- which
+is already the compiled default -- and `debug`.  The three packages it is NOT in each
+say something.  It is not `harness`: that package changes no source, and this one
+changes what the editor does and declares `term-moved` for it -- the first zero phase
+to use that token, and it is the token phase 116 made meaningful.  It is not `host`:
+nothing crosses the boundary, and the editor.c cut's warning set is unchanged either
+side.  And it is not `tidy`: the rows removed are live code that a `:set term=` still
+reaches, which is exactly why this phase declares a delta where phase 96 declared
+nothing.
+39 IS IN `terminal` TOO, AND `streams` HAS A REAL CLAIM ON IT THAT IS ANSWERED HERE.
+The phase removes `-T {term}`, so the obvious home is the package that shaped the
+command line: phase 88 left argv as exactly `+{command}` and `-T {term}` and this
+removes the half it kept, in the same parser, with the same
+`mainerr(ME_UNKNOWN_OPTION)` answering what is left.  It is in `terminal` instead
+because of what the six cuts ARE: one is that parser arm and the other five are all
+terminal code -- termcapinit() losing the name it can no longer be given,
+set_termname()'s no-screen fallback, report_default_term(), the message that promised
+a default, and the `requested` that existed only because the fallback reassigned
+`term`.  And the sentence the package is making reads straight on: phase 85 removed
+the QUESTION the core asked about the terminal, 38 removed the VOCABULARY it could
+describe one with, and 122 removes the TELLING -- after it nothing outside the process
+can say what terminal this is, and `+set term=` inside the editor is the only way.
+It is not `streams`: what goes is not a stream and not a file descriptor, and the
+`uses` line below records the dependency on phase 88 rather than hiding it in a
+package. It is not `tidy`: four command lines change what they do.
+       (zero's `terminal`, phases 85 121 122 here, is in whim's package terminal above)
+`harness` is the package that changes no source at all: both its phases replace an
+instrument, and both exist because the pipeline was about to measure itself with a
+question that could not see the answer.  3 replaced the file-based harnesses with
+the screen; 33 replaced the one part of that recording still asking the ENVIRONMENT
+about the terminal, which whim phase 19 stopped reading.
+```
+package  harness      86 116 123
+package  streams      87 88
+```
+       (zero's `files`, phases 89 90 91 92 93 here, is in whim's package files above)
+       (zero's `buffers`, phases 94 here, is in whim's package buffers above)
+       (zero's `options`, phases 95 here, is in whim's package options above)
+37 IS `tidy` AND NOT `dialect`.  Five of the six unions it removes are LEFTOVERS of
+cuts this pipeline and whim's already made -- u_header's four link fields lost their
+swapfile arm, typval_S.vval lost eight of its nine -- so the phase is 13's kind: a
+thing that is still there only because nothing came back for it.  Only the sixth, the
+EMPTY union, has a dialect argument (ISO C forbids it; gcc takes it as an extension),
+and one of six does not name the package.  `dialect` is 24, which changes how the core
+SPELLS things it still does; this phase removes things it no longer does.
+       (zero's `tidy`, phases 96 120 125 here, is in whim's package tidy above)
+```
+package  vendor       97 98 114
+package  includes     99
+```
+30 IS PHASE 21'S OWN FOLLOW-UP, WHICH IS WHY IT IS IN THIS PACKAGE AND NOT IN `tidy`:
+the four statements msg_puts_printf() is made of are phase 104's -- it rewrote two
+printf and two fprintf into four host_message() calls and then KEPT the function,
+naming its removal as a later phase's and measuring 0 of 106 records.  This is that
+phase; the replacement at msg_puts_attr_len() is phase 104's host_message(); and phase
+104 is also why `nm -u` cannot move here, because it took printf, fprintf, fflush and
+stderr with the CALLS and not with the function.  Being one package is the statement,
+and `uses` records only a dependency ACROSS packages, so there is no `uses host:113
+host:104` line -- tools/packages.sh --check refuses one.
+32 IS PHASE 21'S AND 30'S PACKAGE FOR THE SAME REASON THEY ARE: a thing the core did
+for itself becomes a thing it asks the host to do, declared in the one host block and
+defined below the boundary.  host_exit (19), host_message (21) and now host_time -- the
+core does not end the process, does not write a message and does not read the wall
+clock.  It is NOT `boundary`: that package DRAWS the line (106, 108, 109, 110, 111), and this
+phase moves one function across a line that is already drawn.  Being one package with
+104 and 113 is the statement, and `uses` records only a dependency ACROSS packages, so
+there is no `uses host:115 host:104` line -- tools/packages.sh --check refuses one.
+35 IS IN THIS PACKAGE FOR THE REASON 30 AND 32 ARE: three more things the core did
+for itself become three it asks the host to do.  After host_exit (19), host_message
+(21) and host_time (32), host_alloc, host_free and host_write -- the core does not end
+the process, does not write a message, does not read the clock, and now does not
+allocate, free or write a byte.  It is NOT `boundary`: nothing about WHERE the line
+falls changes, and 106, 108, 109, 110 and 111 drew it; and it is not `tidy`, because three
+libc calls go on being made, by the other side of a line that already existed.
+41 IS IN THIS PACKAGE, AND THE CLAIM HAS TO BE ARGUED BECAUSE THE OBVIOUS READING IS
+THE WRONG ONE.  Every other phase here MOVES something across the boundary -- host_exit
+(19), host_message (21), host_time (32), host_alloc/host_free/host_write (35),
+host_raise (36) -- and this phase moves nothing at all: the line was drawn, the three
+calls crossed it at 35, and what changes now is what is on the far side.  It is in
+`host` all the same, because this package is not "phases that move a call", it is THE
+HOST: what the core asks for, and what answers.  Phase 118 wrote the answer as a
+forwarding wrapper and said so; this is the phase where the answer stops being libc's.
+It is NOT `boundary` -- 106, 108, 109, 110 and 111 drew the line and this phase does not
+touch it, which the check states as a `cmp` of the editor.c cut.  It is NOT `vendor`:
+97, 98 and 114 brought libc implementations INTO the file to be called as before, and a
+bump allocator is not an implementation of malloc, it is a different contract -- nothing
+is ever given back.  And it is not `tidy`: nothing dead is removed, a living thing is
+replaced.  Being one package with 118 is the statement, and `uses` records only a
+dependency ACROSS packages, so there is no `uses host:124 host:118` line --
+tools/packages.sh --check refuses one.
+```
+package  host         100 101 102 103 104 113 115 118 119 124
+```
+`format` is a new package, and it is not `vendor`: nothing is brought in.  A layer
+is FLATTENED -- seven wrappers over one formatter become 129 call sites and five
+helpers, so that `va_start` appears once and the formatter becomes movable.
+```
+package  format       105
+```
+`boundary` is the concept GOALS.md II.4c states: THE FIRST `#include` IS THE
+BOUNDARY between the core and the host, and four phases draw it -- 23, the two names
+the LANGUAGE supplies instead of a header; 25, the two host calls that become plain
+ones; then the header types and macros the core can own, and the move itself.  It is
+not called `language`, although that is what the first and third of those do: the
+other two would then be in no package that describes them, and the four are one idea
+and not two.  THOSE THREE WERE GOING TO BE 107, 108 AND 26 AND ARE NOW 108, 109 AND 27,
+phase 107 having gone to `dialect` below.  internal/phase/106/edit.go and
+internal/phase/106/check.go still say "phase 109" where they mean the move, and they are
+NOT corrected: every byte of a phase program is in its unit's implementation digest,
+so editing a comment there would re-key q106 and cost a boundary to say nothing new.
+
+PHASE 25 IS `boundary` AND NOT `dialect`, AND THE TWO WERE WEIGHED.  It writes no C23
+and removes no GNU extension; what it changes is WHERE THE LINE BETWEEN CORE AND HOST
+FALLS and how the core names what is on the other side of it -- two function pointers
+installed through parameters become two forward declarations and nine direct calls,
+which is the boundary spelled as a declaration rather than as an object.  That is this
+package's idea exactly, and phase 107's was the other one.
+
+PHASE 26 IS `boundary` FOR THE SAME REASON PHASE 23 IS.  Both are the core learning to
+say for itself what a header says for it today: 106 took `NULL` and `size_t`, which the
+LANGUAGE supplies, and 109 takes the six types and macros the core can OWN -- time_T,
+`volatile int`, usize, a TAGLESS elapsed_T, MIN/MAX expanded and __builtin_offsetof --
+and gives the nine libc calls left in the core their own prototypes.  What is NOT in it
+is the twelve derived constants, because `enum : int { INT_MAX = ... };` placed after
+`#include <limits.h>` is `enum : int { 0x7fffffff = ... };`, a syntax error: they can
+only be written once the includes have moved, so they are phase 110's, with the move.
+
+AND ONE THING PHASE 26 LEAVES FOR A LATER PHASE, recorded here because nothing hashes
+this file and the argument would otherwise be lost.  Every core use of the clock is
+"stamp now, then ask how many milliseconds have passed": `elapsed()` is one
+`gettimeofday` and a subtraction to milliseconds, and its callers -- do_sleep, vim_beep,
+handle_osc through osc_state.start_tv, and inchar_loop -- all compare the answer against
+a millisecond count.  So the core never needs the LAYOUT, only a scalar, and a
+`long musl_now_ms(void)` would take `struct timeval`, `gettimeofday` and the whole
+tagless-struct question out of the core together.  The tagless struct is an INTERIM
+shape: it is what the survey specified and what phase 109's evidence was measured
+against, and the scalar clock is a phase of its own.
+
+PHASE 27 IS THE MOVE, AND IT IS WHAT THE OTHER THREE WERE CLEARING THE GROUND FOR.
+The eleven `#include`s go down to just above the host block, and the FIRST OF THEM IS
+THE BOUNDARY -- no marker, no sentinel, no data file naming anything, because a
+directive that has to be there anyway is the line.  With them go the four functions
+that hold a `va_list` -- `va_list` is <stdarg.h>'s and the core cannot declare it --
+and, computed to a fixpoint by compiling the cut and moving whatever gcc calls unused,
+the formatter's whole private island: 15 functions, 18 objects and 3 enum blocks in
+five rounds, where the brief's single round predicted five functions and two objects.
+Up go the twelve constants, in the only phase where they CAN go up.  What comes out is
+a product: `make editor.c` is one `awk` clause with no judgement in it and writes the
+78,358-line core, where until this phase it wrote an empty file.
+
+AND THE CHECK THAT FALLS OUT OF THE POSITION IS THE POINT OF THE PACKAGE.  Cut the
+file at the first `#include` and compile the prefix alone: 0 errors, and a warning set
+that IS the core -> host interface, thirteen names every one `used but never defined`.
+Three mistakes the ordinary build cannot see are caught by nothing else -- a `#define`
+above the cut, an `#include` back at line 1, and one core function quietly moved below
+the boundary, which changes that set by exactly its name.
+
+WHAT IT OWES THE OTHER THREE IS INSIDE THE PACKAGE, so it is here and not in a `uses`
+line.  Phase 109 left the twelve constants and NOTHING ELSE header-supplied above the
+host block, and phase 110's edit proves that by asking the compiler rather than by
+remembering: the move alone leaves the cut with 23 errors naming exactly those twelve,
+and a thirteenth would mean phase 109 did not finish.  The constants go directly below
+`typedef typeof(sizeof(0)) usize;`, which is phase 106's line, and `enum : usize
+{ SIZE_MAX = (usize)-1 };` is spelled in its name.  And `host_exit` and `host_message`
+are two of the thirteen names the cut enumerates -- they are NAMES at all because
+phase 108 turned two function pointers into forward-declared calls, and a boundary
+spelled as a declaration is one a compiler can list.
+```
+package  boundary     106 108 109 110 111 117
+```
+Phase 111 is `boundary` and NOT `host`, and the distinction is the one `dialect` draws
+below in the other direction.  `boundary` is not only WHERE the line falls: 23 taught
+the core to say `nullptr` and `usize` for itself, 25 turned two function pointers into
+declared calls, 26 gave it its own spelling for six header types.  Every one of those
+is about WHAT THE CORE MAY NAME at the line, and so is this.  It is phase 109's own
+clock item finished: 109 had to keep `struct timeval` out of a SIGNATURE and paid for it
+with a core-owned tagless struct and an out-parameter pair; 111 takes the layout out of
+the core altogether and the pair with it, so nothing crosses but a `long`.  `host`
+would be wrong for a plainer reason -- 100 to 104 MOVE CODE into the launcher, and this
+phase moves none: musl_now_ms is defined exactly where musl_gettimeofday was.
+Two of its dependencies are INSIDE this package and so are not `uses` lines, which
+record cross-package edges only.  EVERY anchor phase 111's edit has is phase 109's text
+quoted verbatim -- the tagless struct, elapsed()'s nine lines, the five call sites with
+the spacing macro expansion left on them.  And the strongest thing its check says
+depends on phase 110: it cuts the file at the first `#include` and requires the prefix
+to compile ALONE with a warning set of exactly thirteen names, which is a translation
+unit at all only because 27 moved the includes below the core.
+`dialect` is phase 107's, and it is NOT `boundary`: the boundary is where the line
+between core and host falls, and this phase moves no line.  It is about the LANGUAGE
+THE CORE IS WRITTEN IN -- 113 GNU `__attribute__((unused))` deleted because the flags
+the sweep already uses make them say nothing, 20 GNU `__attribute__((fallthrough))`
+respelled as the C23 `[[fallthrough]]`, and 6 `format`/`format_arg` KEPT because they
+are the only ones doing work nothing else does.  A phase that asked "which dialect of
+C is this, and which of its extensions are we still paying for" rather than "what goes
+above the first #include".  THE REORGANISATION PHASES GOALS.md II.4c NUMBERS 107, 108
+AND 26 -- the two host calls, the header types and macros the core can own, and the
+move itself -- ARE NOW 108, 109 AND 27; the section's numbering is the plan's and this
+is the tree's.
+`casemap` is a package of one and it is NOT `vendor`, although the data it deletes is
+phase 98's.  `vendor` is "nothing is brought in": the libc that is pure computation
+becomes the core's own static definitions.  This phase brings nothing in and takes
+nothing out of the libc surface -- what it decides is WHAT THE CORE'S CASE MAP IS.
+`zero-vim.c` carried two complete Unicode simple-case maps, vim's own and musl's, and
+'casemap' chose between them; a core with no C library has nothing to choose between,
+so the two become one and the one is the UNION.  That is `options` phase 95's argument
+and whim Phase 18's -- a concept the table has and the code does not -- applied to
+data rather than to an option row, and it is not what `vendor` means.
+```
+package  casemap      112
+package  dialect      107
+```
+THE SIXTEENTH PACKAGE, AND THE ONE GOALS.md's CHARTER NAMES AS THE END OF THE
+ROAD: "the text later held as a tree".  126 is its first phase.  It is not `buffers`,
+which is phase 94 and is about an Ex-level refusal to quit, and it is not `tidy`, which
+is 96, 120 and 125 and is about leftovers of cuts already made -- this is the STORAGE
+under ml_get(), and what it changes is how the editor reaches a block rather than
+whether it still needs to.  Phase 127 replaces the leaf, so the package grows, and
+phase 128 folds the node types and takes the memfile with them, which is the same
+subject read from the allocator's end: 126 took the block NUMBER, 127 took the leaf's
+PAGE, and 128 takes the page itself, the header that hung off it and the memfile that
+owned the list of them.  After it a node is one allocation of its own size and the
+tree is the only structure left.  THE 45-ON-44 DEPENDENCY IS THE STRONGEST IN THE ARC
+AND IT IS NOT A `uses` LINE, because both phases are in this package: 128 is 44's own
+named next step, quoted in its program -- "Allocating a block at its own size means
+giving memfile a byte size where it has a page count ... it would take the leaf from
+112 bytes a line to 64, and it would MAKE AN OFF-BY-ONE IN THE CAPACITY BOUND VISIBLE,
+which today it is not."  Both halves are measured in 45's check rather than repeated:
+phase 127's own `cap` control moves 0 of 118 records on 45's input and 4 of 118 on its
+output, built and recorded in the same run.
+```
+package  memline      126 127 128
+package  portable     129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162
+```
+
+Phase 109 is `boundary` and phase 106 is too: both are the core learning to say for
+itself what a header says for it today.  106 took `NULL` and `size_t`, which the
+LANGUAGE supplies; 109 takes the six types and macros the core can OWN -- time_T,
+volatile int, usize, a tagless elapsed_T, MIN/MAX expanded and __builtin_offsetof --
+and gives the nine libc calls left in the core their own prototypes.  What is NOT here
+is the twelve derived constants, because `enum : int { INT_MAX = ... };` after
+`#include <limits.h>` is `enum : int { 0x7fffffff = ... };`: they can only be written
+once the includes have moved, so they are phase 110's, with the move.
+
+    phase       needs    kind        why
+```
+uses  build:84     seed:83   mechanical  tools/zerodelta.sh refuses without .reference/zero-baselines, which phase 83 records
+uses  terminal:85  seed:83   mechanical  the same: its declared delta is checked against those baselines
+uses  harness:86   seed:83   mechanical  it is measured against the baselines phase 83 records, in the shape phase 83 now records them
+uses  harness:86   terminal:85  rationale   the delta it proves is phase 85's: the warnings it removed are what the new instrument sees
+uses  streams:87   seed:83   mechanical  tools/zerodelta.sh compares its six declared records with the baselines phase 83 records
+uses  streams:87   terminal:85  mechanical  check_tty() has nothing left to ask only because phase 85 took its other branch, so isatty goes from five calls to four here
+uses  streams:88   seed:83   mechanical  tools/zerodelta.sh compares its six declared command lines with the baselines phase 83 records
+uses  streams:88   harness:86  mechanical  the six records that move are tools/zargv.py's, and phase 86 is what put an argv record in a zero recording at all
+uses  files:89     seed:83   mechanical  tools/zerodelta.sh compares its two screen cases and six command rows with the baselines phase 83 records
+uses  files:89     harness:86  mechanical  the old file-based sweep recorded an exit status, and :write went from E32 to E492 without changing it; phase 86's message-level record is what can see this phase at all
+uses  files:90     seed:83   mechanical  tools/zerodelta.sh compares its two screen cases and one command row with the baselines phase 83 records
+uses  files:90     harness:86  mechanical  the old file-based sweep recorded an exit status, and :read goes from E32 to E492 without changing it; phase 86's message-level record is what can see this phase at all
+uses  files:91     seed:83   mechanical  tools/zerodelta.sh compares its two screen cases and five command rows with the baselines phase 83 records
+uses  files:91     harness:86  mechanical  the old file-based sweep recorded an exit status, and :edit went from E37 to E492 without changing it; phase 86's message-level record is what can see this phase at all
+uses  files:92     seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  files:92     streams:88  mechanical  read_stdin() the function was argv's, and the `read_stdin` ARGUMENT open_buffer's signature fold removes is FALSE at all four call sites only because phase 88 took the bare `-` and EDIT_STDIN with it
+uses  files:93    seed:83     mechanical  tools/zerodelta.sh compares its one screen case and one command row with the baselines phase 83 records
+uses  files:93    harness:86  mechanical  :file went from the CTRL-G line to E492 with the SAME exit status; the old file-based sweep recorded an exit status, so phase 86's message-level record is what can see this phase at all
+uses  buffers:94  seed:83     mechanical  tools/zerodelta.sh compares its one screen case and one command row with the baselines phase 83 records
+uses  buffers:94  files:89    rationale   the refusal has no remedy once nothing can be written: phase 89 took every :write, so E37 asked for a save that the editor no longer had any way to perform
+uses  options:95  seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  options:95  files:89    mechanical  'write', 'writeany' and 'fsync' were do_write's, not_writing's, check_overwrite's and buf_write's, and 'readonly' reached its last setter when phase 89 left :set ro as the only thing that could mark a buffer read only
+uses  options:95  files:91    mechanical  'undoreload' was read by do_ecmd, which went with the :edit family
+uses  options:95  streams:87  mechanical  'prompt' was read by getexmodeline()'s `if (p_prompt) msg_putchar(':');` and by nothing else, so it is phase 87's orphan and is collected here
+uses  tidy:96     seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  vendor:97   seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  vendor:97   harness:86  mechanical  its one MUST-DIFFER probe is a screen record of a binary that SEGFAULTS on t_CF, and a recording of what the editor DRAWS is what phase 86 gave the pipeline: the file-based sweep recorded an exit status and could not tell a crash from a quit
+uses  tidy:96     terminal:85 rationale   ui_write()'s `console` argument is FALSE at its one call site either way, and phase 85 is where the terminal stopped being asked anything -- so dropping the parameter rather than leaving __attribute__((unused)) on it is that phase's argument for check_tty(void)
+uses  vendor:98   seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  vendor:98   harness:86  mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one
+uses  includes:99 seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  includes:99 tidy:96    rationale   internal/phase/096/edit.go names <sys/stat.h> and <fcntl.h>, measures that removing them is free, and DECLINES -- "the count stays 18" -- because the charter stated the directive count as a property of the pipeline.  This phase is that decision reversed, and it finds a third header phase 96 did not: <iconv.h>, whose only occurrence in zero-vim.c was its own #include line
+uses  includes:99 vendor:97  mechanical  <string.h> is unused only because phase 97 moved all sixteen mem*/str* functions inside the file as static definitions
+uses  includes:99 vendor:98  mechanical  <ctype.h> and <wctype.h> likewise -- and <wctype.h> needed `iswupper` handled as well, a NAME with no libc symbol, sitting on a line gcc never emitted, which phase 98 deleted rather than vendoring a function nothing calls
+uses  host:100     seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  host:100     harness:86  mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one
+uses  host:101     seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  host:101     harness:86  mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one
+uses  host:102     seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  host:102     harness:86  mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one
+uses  host:103     seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  host:103     harness:86  mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one
+uses  host:103     terminal:85 rationale   the two "not to a terminal" warnings phase 85 removed were the last thing the core said about a terminal it had not been told about, and GOALS.md II.1's decision 7 -- "do not ask whether stdin or stdout is a terminal, the check goes entirely" -- was only two thirds kept there.  This phase takes all three surviving isatty() calls and finishes it
+uses  host:104     seed:83   mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  host:104     harness:86  mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one
+uses  host:104     vendor:97  mechanical  report_term_error and mainerr assemble their message with vim_snprintf, which is the only formatter left in the file because phase 97 put sprintf onto it rather than vendoring one
+uses  host:104     includes:99 rationale   <stdio.h> goes with the seven symbols, and a phase may remove a directive only because phase 99 is where the charter's old reading -- a count the pipeline preserves -- was replaced by the rule it states now
+uses  format:105   seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  format:105   harness:86  mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one
+uses  format:105   vendor:97  rationale   musl_strlen is what append_room() measures the appended string with, and phase 97 is where the core got its own string functions to measure with
+uses  format:105   host:104    mechanical  phase 104 routed mainerr and report_term_error through vim_snprintf, so the mention count this phase's arithmetic starts from is phase 104's and the check asserts only the count AFTER
+uses  boundary:106 seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  boundary:106 vendor:97  rationale   nine of the eleven vendored signatures that carry the renamed type are phase 97's -- musl_memcpy, musl_memmove, musl_memset, musl_memcmp, musl_memchr, musl_strncpy, musl_strncmp, musl_strncasecmp and musl_strlen's return -- and the rename is not an interface change only because they are the core's own static definitions, which is what phase 97 made them
+uses  boundary:106 vendor:98  rationale   the other two are phase 98's, musl_bsearch and musl_qsort, each with two usize parameters
+uses  boundary:106 host:104    mechanical  this edit puts the typedef directly below the LAST `#include` and asserts eleven directives on the first eleven lines; the eleventh and the count are phase 104's, which took <stdio.h> with the seven symbols it freed
+uses  dialect:107  seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  dialect:107  tidy:96    rationale   phase 96 dropped ui_write()'s `console` parameter rather than leaving `__attribute__((unused))` on it, and said so in as many words.  That was this phase's judgement one phase at a time; this is it applied to all 113 at once
+uses  dialect:107  format:105  mechanical  phase 105 expanded seven wrappers into 129 direct calls, so vim_snprintf's single `format(printf, 3, 4)` is now what type-checks 201 mentions' arguments -- which is why removing that ONE attribute takes -Wformat-nonliteral from 115 to 0, and why the six are kept
+uses  dialect:107  boundary:106  mechanical  the %d probe is built from the output's own lines -- vim_snprintf's prototype and the `typedef typeof(sizeof(0)) usize;` it needs to compile -- and both read `usize` rather than `size_t` because of phase 106
+uses  boundary:108 seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  boundary:108 harness:86  mechanical  its evidence is a RECORDING and not a cmp -- an indirect call and a direct one are different instructions at -O0 -- and a zero recording is what phase 86 made one
+uses  boundary:108 host:101    rationale   `vim_main(int argc, char **argv)` is the signature phase 101 wrote when it demoted main(), and this phase gives it back exactly: the two parameters it loses are the two phases 102 and 104 added to it
+uses  boundary:108 host:102    mechanical  `vim_host_exit`, its parameter, its assignment and its one call site are phase 102's, and so is the reason they were a POINTER -- "a pointer the launcher installs through a parameter adds no external symbol", which was true of a design with two translation units.  This phase also depends on 19's launcher being untouched: `exit` stays out of nm -u because host_exit() still records a status and jumps
+uses  boundary:108 host:103    mechanical  the two prototypes are added at the end of the nine `musl_` prototypes phase 103 left, so the core -> host boundary is ONE block of eleven; and tools/zhostonly.py, which this check runs, is phase 103's structural check
+uses  boundary:108 host:104    mechanical  `vim_host_message`, its parameter, its assignment and its EIGHT call sites are phase 104's, and `host_message()` is the function phase 104 defined in the launcher.  Its control here -- the two streams swapped moving ref-argv.txt and nothing else -- is phase 104's own finding, that everything reaching that function is printed before there is a screen
+uses  boundary:109 seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  boundary:109 harness:86  mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one
+uses  boundary:109 host:103    mechanical  musl_gettimeofday is DEFINED inside the host block phase 103 created, immediately above musl_delay -- tools/zhostonly.py reads the host region as the lines from host_winch_pending to musl_suspend's last brace, so a definition below musl_suspend would put a `struct timeval` outside it and the tool would refuse
+uses  boundary:110 seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  boundary:110 harness:86   mechanical  its evidence is a RECORDING and not a cmp -- 1,800 lines of definitions move past the rest, so every address below the first of them moves -- and a zero recording is what phase 86 made one
+uses  boundary:110 format:105   mechanical  what moves below the includes is four functions and not eleven because phase 105 collapsed the seven `va_list` wrappers into their call sites; `skip_to_arg` is the fourth, which GOALS.md II.4c missed and phase 105 counted
+uses  boundary:110 host:103     mechanical  the includes land immediately above `host_winch_pending`, the first line of the block phase 103 created, and tools/zhostonly.py -- phase 103's structural check, which this check runs -- reads the host region from there
+uses  boundary:110 host:104     mechanical  the eleven directives on the first eleven lines are what phase 104 left when <stdio.h> went with the seven symbols it freed, and this edit asserts that shape before lifting the block
+uses  boundary:109 host:102    rationale   the two `sig_atomic_t` this phase respells are the core's, and the THREE it leaves alone are the host block's -- the split that makes that sentence meaningful is the launcher phases 101 and 102 put at the bottom of the file
+uses  boundary:111 seed:83      mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  boundary:111 harness:86   mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one -- though here it is the WEAKEST part of the evidence and the check says so: no screen case rings the bell twice, so vim_beep's 500 ms limit is never asked to suppress anything and the corpus cannot see a clock at all
+uses  boundary:111 host:103     mechanical  musl_now_ms is DEFINED where musl_gettimeofday was, above musl_delay, inside the block phase 103 created -- tools/zhostonly.py reads the host region as the lines from host_winch_pending to musl_suspend's last brace, and the function names `struct timeval`, so a definition outside it would make the tool refuse
+uses  boundary:111 host:101     mechanical  the phase's own probes are the evidence the corpus cannot give, and they rest on the editor being an ordinary program a keystroke file can drive to exit -- `gs` is do_sleep(count * 1000) and `1gs` is measured against the wall clock.  That the process ends with a status at all is phase 101's launcher and phase 102's host_exit
+uses  casemap:112 seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase declares that nothing in them moved -- although both arms of 'casemap' really did
+uses  casemap:112 harness:86  mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one -- and here that statement is about the HARNESS and not the phase, which is why the check owes twelve probes of its own
+uses  casemap:112 vendor:98  mechanical  musl_toUpper[], musl_toLower[] and the two three-line wrappers that read them are phase 98's, range-compressed into the convertStruct shape this phase merges them out of; without that phase there is one case table already and no union to take
+uses  host:113     seed:83       mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  host:113     harness:86    mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one -- and the instrument this phase owes is phase 86's shape too: an instrumented pair over 106 records with a control that marks 103 of them
+uses  host:113     boundary:108  mechanical  host_message() is a forward-declared call and one of the names the editor.c cut enumerates because phase 108 turned the function pointer into a declaration -- so the fold widens no core -> host interface, and the check can say so by comparing the cut's warning set with the input's
+uses  vendor:114    seed:83     mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  vendor:114    harness:86  mechanical  the corpus reaches NONE of the three call sites -- measured, an instrumented build enters none of them in 106 records -- so the phase owes three probes of its own, and a probe here is a screen recorded from a keystroke file, which is what phase 86 made one
+uses  vendor:114    boundary:109  mechanical  the two prototypes this phase deletes are phase 109's, written into the core's libc declaration block while the headers were still above them; the block is found by its shape and not by line number, but it exists because of 26
+uses  vendor:114    boundary:110  mechanical  the check asserts that both definitions land ABOVE the first `#include`, and the first `#include` is the boundary only because phase 110 moved the eleven of them to the bottom
+uses  host:115     seed:83       mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  host:115     harness:86    mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one -- and here the recording is the WEAKEST part of the evidence and the check says so: no screen case reaches ui_focus_change, so the phase owes focus probes and an instrumented pair, which are phase 86's shape too
+uses  host:115     boundary:109  mechanical  `long time(long *tp);` is phase 109's, and so is `typedef long time_T;` -- that phase chose the width BECAUSE the prototype was cross-checked against <time.h> below it.  This phase removes the prototype, so it owes the guarantee back, and it pays it as a static_assert.  MEASURED that the prototype really was the check (26's own m1 control, re-run on the input here) and that what replaces it is stronger: the prototype pinned `long == time_t` and never `time_T == long`
+uses  host:115     boundary:110  mechanical  the static_assert can only be written BELOW the includes, and the includes are below the core only because of phase 110 -- it joins the twelve constants that phase put there, which are the only place in the file where a core name and a header name are both in scope
+uses  host:115     boundary:111  rationale   musl_now_ms is the other half of the clock and it crossed at phase 111; host_time is defined immediately below it and returns `long` for that phase's reason -- the definition is below the boundary, so it cannot name a core typedef once the file is cut, and every core -> host signature takes scalars only.  Phase 111's sentence about `gettimeofday` not leaving `nm -u` is also this phase's about `time`
+uses  harness:116  seed:83       mechanical  the nineteen rows it re-records are phase 83's, taken from whim-vim.c with whim's own compile line -- and phase 83 REFUSES to overwrite a set that differs, so the changed harness is why the incantation names .reference/zero-baselines as well as .cache/r0
+uses  harness:116  streams:88    mechanical  the question is `+set term={name}` on a command line with NO FILE on it, because phase 88 made a file argument an unknown option -- which is also what made the old question ask $TERM with an empty buffer, and left it asking something whim phase 19 had already stopped reading
+uses  boundary:117 seed:83       mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  boundary:117 harness:86    mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one -- and here, unlike most phases that declare nothing, the recording really can see the phase: the control that keeps the rewrite and copies nothing moves 102 of the 102 screen cases
+uses  boundary:117 vendor:97    mechanical  the copy both rewrites make is musl_memcpy, phase 97's static definition, and it is also why the null guard buys nothing measurable here: that function is a plain `for (; n; n--)` loop and never dereferences a null source at length zero
+uses  host:118     seed:83       mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  host:118     harness:86    mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one -- and lalloc(), vim_free() and mch_write() are what every one of the 102 screen cases is carried by, which is why an empty diff -r is strong evidence here rather than weak
+uses  host:118     boundary:108  mechanical  a `static` forward declaration above and a `static` definition below is all a direct call to the host needs, and it adds no external symbol -- which is phase 108's finding and the shape these three prototypes take.  They go at the END of the ONE block phase 108 made of eleven, so the core -> host boundary stays one run of declarations and not a block plus three
+uses  host:118     boundary:110  mechanical  `above the boundary` and `below it` are a LINE NUMBER in this check -- the first `#include` -- and phase 110 is what moved the eleven directives down to make that line the split.  Before it the whole file was above the includes and `malloc` 2 -> 0 could not have been stated as a place
+uses  host:118     boundary:106  rationale   `host_alloc(usize n)` and `host_write(const char *s, int len)` are spelled in the core's own type names, and `usize` is phase 106's -- a signature in `size_t` would name something no header above the boundary declares
+uses  host:119     seed:83       mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  host:119     harness:86    mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one -- and here it is the WEAKEST part of the evidence and the check says so: the corpus executes the b0_pid write in all 102 screen cases and cannot see it, and reaches the re-raise in NONE, so the phase owes probes of its own
+uses  host:119     boundary:108  mechanical  the one prototype goes at the END of the single run of core -> host declarations phase 108 made of eleven, so the boundary stays ONE block; and a `static` forward declaration above with a `static` definition below is all a direct call to the host needs, which is phase 108's finding
+uses  host:119     boundary:110  mechanical  the whole claim is stated as a property of the CUT -- `nm -u` on an object of the lines above the first `#include` -- and the first `#include` is the line between the core and the host only because phase 110 moved the eleven directives below the core
+uses  tidy:120      seed:83       mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase, like every other, is held to them -- its check names the tool twice.  The line was MISSING until it was noticed that 120 was the only phase after the seed with no dependency at all; the omission was defensible-looking, because what CARRIES this phase is a `cmp` of the binary and not the recording, but the delta check still runs at its stage end and the other two cmp-evidenced phases, 99 and 106, both declare it
+uses  terminal:121  seed:83       mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and `term-moved` is a difference FROM those nineteen rows
+uses  terminal:121  harness:116   mechanical  the terminal table says something real only because phase 116 changed the question from $TERM to `+set term={name}` -- and phase 116's own reason for existing was a prototype of THIS cut, which deleted eight names and three tables and passed tools/zcompare.py declaring nothing at all
+uses  terminal:121  streams:88    mechanical  the no-screen fallback this phase retargets is reachable only through `-T {term}`, which phase 88 kept; without it termcapinit() can only ever be handed nothing, the compiled default always resolves, and there would be no dangling name to repair
+uses  terminal:121  host:104      mechanical  the marker that proves the xterm-family clause dead is written with host_message(), which is phase 104's and the core's only declared way to reach stderr -- the core has had no write() of its own outside mch_write since phase 118, so the instrument adds no name the file does not already have
+uses  terminal:122  seed:83       mechanical  tools/zerodelta.sh compares its four declared command lines with the baselines phase 83 records
+uses  terminal:122  harness:86    mechanical  the four records that move are tools/zargv.py's, and phase 86 is what put an argv record in a zero recording at all
+uses  terminal:122  streams:88    mechanical  `-T {term}` is the one option phase 88 kept when it made every other word ME_UNKNOWN_OPTION, so this phase's whole subject is that phase's leftover -- and the ME_* enumerators it removes with their main_errors[] rows are the table phase 88 renumbered, checked here against DWARF in phase 88's own shape
+uses  terminal:122  host:104      mechanical  the marker that proves the fallback dead is written with host_message(), which is phase 104's and the core's only declared way to reach stderr -- the same instrument phase 121 used, for the same reason
+uses  harness:123  seed:83       mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and the memline/ part is in them only because phase 83 records whatever tools/zrecord.sh produces -- which is why a new PART of a recording needs .reference/zero-baselines removed as well as .cache/r0
+uses  harness:123  files:91      mechanical  a case types its own text because there is nothing else left: phase 90 took :read and phase 91 took the whole :edit family, so the only way to a 25,000-line buffer is one line under 'paste' and a macro replayed with a count
+uses  harness:123  streams:88    mechanical  every buffer is built IN THE EDITOR, by typing one line and replaying a macro with a count, because phase 88 made a file argument ME_UNKNOWN_OPTION -- there is no file to open, and phases 90 and 91 took :read and :edit as well, so a corpus of 25,000 lines has no other way in
+uses  harness:123  host:104      mechanical  the seven markers of the instrumented pair are written with host_message(), phase 104's and the core's only declared way to reach stderr -- the same instrument phases 121 and 122 used, for the same reason: it adds no name the file does not already have
+uses  host:124     seed:83       mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  host:124     harness:86    mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one -- and here it is strong rather than weak, because every one of the 122 records runs on the arena from its first allocation: this is not a subject the corpus has to be steered towards
+uses  host:124     harness:123   mechanical  THE ARENA IS SIZED FROM PHASE 40'S CORPUS AND COULD NOT HAVE BEEN SIZED WITHOUT IT.  Measured on the input: the heaviest of the 102 screen cases asks host_alloc for 1,722,512 bytes and the heaviest of the 16 memline cases for 200,458,672 -- 115 times more -- so an arena sized from the 102 alone would have been sized from a corpus that cannot reach the text layer, which is the defect phase 123 exists to have ended.  The instrument and both moving controls run over both corpora here
+uses  host:124     boundary:110  mechanical  the whole claim is `make editor.c`'s cut being BYTE-IDENTICAL in and out, and the cut is the lines above the first `#include` only because phase 110 moved the eleven directives below the core.  The same phase is why the arena may name `max_align_t` and `alignof` at all: everything in the launcher region is below <stddef.h>
+uses  host:124     boundary:117  mechanical  adjust_types()'s realloc is rewritten by phase 117's own pattern -- allocate, copy, free -- with phase 117's three traps read off this site; and it is here at all because phase 117 named this one call "the host's and not this phase's" while host_alloc still WAS malloc
+uses  host:124     format:105    mechanical  the two sites below the boundary this phase must also rewrite are in the formatter's private island, and that island is four functions rather than eleven because phase 105 collapsed the seven va_list wrappers into their call sites
+uses  host:124     vendor:97    mechanical  the copy in the realloc rewrite is musl_memcpy and the exhaustion message is built with musl_strlen, both phase 97's static definitions -- the host formats its own dying words rather than calling the editor's vim_snprintf, which would call alloc_clear() from the failure path of the allocator
+uses  tidy:125      seed:83       mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  tidy:125      harness:86    mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one -- and here the recording is the weakest part of the evidence and the check says so: the corpus executes the block-zero writes in almost every record and cannot see them, reaches the negative-block island in NONE, and reaches ml_append_int()'s root split in none either, so the phase owes an instrumented pair and a stress corpus of its own
+uses  tidy:125      files:89      rationale   the swap file this machinery kept the bookkeeping of stopped being writable when phase 89 took every :write, and the header block it filled has had nowhere to go since.  This is that cut's residue collected, three phases of the filesystem later
+uses  tidy:125      files:93     rationale   set_b0_fname() writes the buffer's name into the header, and it has written `b0_fname[0] = NUL` and nothing else since phase 93 took b_ffname, b_sfname and b_fname.  A function that stores a name for a file nobody can name is what phase 93 left here
+uses  tidy:125      host:119      mechanical  `struct block0` has EIGHT fields and not nine because phase 119 already took `b0_pid` -- so this edit reads the field list out of the struct rather than from a list typed into it, which is the same lesson phase 119 taught about counting before cutting
+uses  tidy:125      boundary:110  mechanical  the check states that every line this phase removes is ABOVE the boundary and that the core -> host interface is unchanged, and `above the boundary` is a LINE NUMBER -- the first `#include` -- only because phase 110 moved the eleven directives below the core
+uses  tidy:125      harness:123   mechanical  this is the FIRST memline change since phase 123 gave the pipeline a corpus that can see one, and that corpus is the only recorded thing that sees the one line the 102 screen cases cannot: a binary with ml_append_int()'s root test left at the OLD block number draws all 102 screen cases identically and moves mem_deep_jumps.  It also NARROWS what phase 123 reaches, measured 3 cases to 1 -- mem_root_split and mem_split_root_mid split the root on the input and no longer do on the output -- because phase 123 derived its buffer sizes from sizeof(PTR_EN) and pe_old_lnum has left PTR_EN.  A case named for the root split is a case sized for a fanout
+uses  tidy:125      host:124      mechanical  `apart 124 125`, MEASURED and not the mechanism that was predicted.  The prediction was `apart 97 98`'s shape -- phase 125's check states the undefined set as an equality and phase 124 frees `free malloc realloc`.  What actually happens is that phase 124's check refuses FIRST, and for its own reason: it asserts that the text above the first `#include` is BYTE-IDENTICAL in and out, because phase 124 is entirely below the boundary.  `tools/phaserun.sh whim 124-125` on q123 stops with `the text above the first #include is not byte-identical in and out, and this phase is entirely below it`, and again with `the eleven #include directives are not on the same eleven lines`.  Phase 125 deletes 366 lines of core, so a phase that promises to touch none cannot share its stage.  One direction only: phase 125's own check compares the undefined set of the text ITS edit was handed with its output, and phase 124's edit has already taken the three symbols by then, so it would pass
+```
+
+A NOTE FOR THE PHASE AFTER 42, because a check that quotes C is a dependency on
+spelling (internal/phase/STAGES.md, and zero's own `apart 105 106`).  internal/phase/125/check.go
+builds two of its controls by matching the OUTPUT's text verbatim --
+`pp->pb_pointer[0].pe_bnum = 1;` and ml_append_int()'s
+`if (hp-> bh_hashitem.mhi_key  != 0)` -- because those are the two block numbers phase
+125 moves and a control has to change the thing the phase changed.  Any later phase that
+rewrites either line will stop phase 125's check at `... is not in that source exactly
+once, so a control built from it would not be one`, which is the refusal doing its job
+and not a breakage.  It costs nothing while 125 is the tip; it costs an `apart` the
+moment it is not.
+
+THERE IS NO `need 125`, AND THE REASON IS STRONGER THAN A MEASUREMENT OF ONE STAGE.
+Phase 124's SWEEP IS A NO-OP -- its edit's output on q123 is byte-identical to q124 -- so
+there is no unswept text for phase 125 to be handed in a 41-42 stage at all, and the run
+above confirms it end to end: the stage's one sweep leaves a zero-vim.c byte-identical
+to q125's.  Phase 125's anchors are counted rather than computed in any case, so an
+unswept input would refuse loudly rather than cut one row too few, which is the hazard
+`need` exists for (internal/phase/STAGES.md, phase 54 after 53).
+```
+uses  memline:126 seed:83       mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  memline:126 harness:123   mechanical  THIS PHASE IS UNCHECKABLE WITHOUT PHASE 40 AND THAT IS NOT AN OVERSTATEMENT.  It changes how ml_find_line() reaches EVERY block, and before phase 123 a zero recording was 102 screen cases that allocate exactly ONE data block each -- measured there, a binary with one line deleted from ml_find_line()'s pointer bookkeeping records all 102 byte for byte.  The sixteen memline cases are the only recorded thing that asks the tree a question: 16 of them reach a data-block split and one reaches a ROOT split, and this phase's check measures every case's tree events on both binaries rather than asserting they agree
+uses  memline:126 tidy:125      mechanical  the root test this phase rewrites is `hp->bh_hashitem.mhi_key != 0`, and it means the ROOT only because phase 125 took block zero -- before it block 0 was the swap file's header and the root was block 1, so the same test against the same constant would have named a different block.  Phase 125 also leaves `mf_used_last` write-only by taking ml_setflags(), which is why that field goes here with its writes; and it takes pe_old_lnum out of PTR_EN, which is the first of the two shrinks that make a pointer block wider
+uses  memline:126 host:124      rationale   mf_free() kept a released block on a free list under its old number for mf_new() to split or adopt, and with no number to key it by a released block is simply released.  That costs an allocation where there was a reuse -- and phase 124 is why it costs nothing to say so, freeing being free from there on.  MEASURED, not reasoned: every one of the sixteen memline cases asks host_alloc for LESS after this phase than before it, by 688 to 10,928 bytes, because the two structs that shrink more than pay for the reuse that goes
+uses  memline:126 files:92      rationale   the hash could not miss, and this is the phase that says why: nothing has been written to a disk since phase 89 and nothing could be read from one since phase 92, so every block the tree names has been in memory and in the hash for thirty-four phases.  A lookup that cannot fail is a pointer with extra steps
+uses  memline:126 boundary:110  mechanical  the check states that the core is still plain C above the boundary and that its interface to the host is the same eighteen names, and `above the boundary` is a LINE NUMBER -- the first `#include` -- only because phase 110 moved the eleven directives below the core
+uses  memline:126 host:104      mechanical  the two markers of the instrumented pair are written with host_message(), phase 104's and the core's only declared way to reach stderr -- and since phase 119 the core names no libc function at all, so a `write(2, ...)` planted above the boundary does not even compile, which is how this was found rather than remembered
+uses  memline:127  seed:83       mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  memline:127  harness:86    mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one
+uses  memline:127  harness:123   mechanical  THE PHASE IS NOT CHECKABLE WITHOUT IT.  Every one of phase 86's 102 screen cases allocates exactly ONE data block, so a zero-vim with a corrupted text layer records all of them byte for byte -- measured by phase 123 with one line deleted from ml_find_line's descent.  This phase rewrites that block, and of its eight must-move controls one -- the split moving a record too few -- moves 0 of the 102 screen cases and 4 of the 16 memline cases
+uses  memline:127  host:104      mechanical  the five markers of the instrumented pair are written with host_message(), phase 104's and the core's only declared way to reach stderr -- the same instrument phases 121, 122 and 123 used, for the same reason: it adds no name the file does not already have
+uses  memline:127  vendor:97    mechanical  a record move is musl_memmove, phase 97's static definition, and so is the copy that gives a line its own text: the leaf shifts records where it used to shift bytes, and both spellings are that function
+uses  memline:127  host:118      mechanical  a line's text is now its own allocation, so every append asks alloc() -> lalloc() -> host_alloc(), which is phase 118's name for what used to be malloc -- and the check states as a `comm` empty both ways that this adds no undefined symbol, because the call already went to the host
+uses  memline:128  seed:83       mechanical  tools/zerodelta.sh compares its recording with the baselines phase 83 records, and this phase's whole declaration is that nothing in them moved
+uses  memline:128  harness:86    mechanical  "nothing moved" is a statement about a zero recording, and a zero recording is what phase 86 made one
+uses  memline:128  harness:123   mechanical  THE PHASE IS NOT CHECKABLE WITHOUT IT, AND IT IS ALSO THE PHASE THAT COULD HAVE DESTROYED IT.  pb_count_max is (4096 - 8) / sizeof(PTR_EN) = 255 and it is the tree's fanout; mem_deep_jumps builds 391 data blocks and is the ONE case of sixteen that reaches a root split, which no screen case reaches at all.  This phase fixes the fanout at 255 as an enumerator and asserts sizeof(PTR_EN) == 16 against both cuts, and its `fanout` control -- PB_COUNT_MAX = 511, which an 8-byte entry would give -- moves 0 of 118 records and takes MLSPLITPTR, MLSPLITROOT and MLDEEP from 1 to 0
+uses  memline:128  host:104      mechanical  the five markers of the instrumented pair are written with host_message(), phase 104's and the core's only declared way to reach stderr -- the same instrument phases 121, 122, 123, 126 and 127 used, for the same reason: it adds no name the file does not already have
+uses  memline:128  host:118      mechanical  a node is now one alloc_clear() of its own size, which is alloc() -> lalloc() -> host_alloc(), phase 118's name for what used to be malloc -- and the check states as a `comm` empty both ways that this frees and adds no undefined symbol, because both allocations already went to the host
+uses  memline:128  host:124      rationale   mf_close() walked a used list to free every block and ml_free_tree() walks the TREE to free the same set, which is only cheap to say because phase 124 made host_free() a return: a `nofree` control measures that removing the whole teardown moves 0 of 118 records, so what the core gives back is unobservable by construction
+uses  memline:128  vendor:97    mechanical  the root split stops copying a whole 4,096-byte page and copies the count and the entries in use with musl_memmove, phase 97's static definition
+uses  memline:128  boundary:110  mechanical  sizeof(PTR_EN) == 16 is compiled AGAINST THE CUT -- the lines above the first #include -- on both sides, and that line is the boundary between the core and the host only because phase 110 moved the eleven directives below the core
+```
+
+## Phase 163
+
+`stage 163`, a stage of its own and not `each`: one step, `cemit`, and no sweep,
+because a change of layout orphans nothing.  No `need` and no `apart`: its
+input is whatever the last phase left, and it asserts nothing a later phase
+takes.  `package canonical 163`, and one `uses` line in prose rather than in
+the block above, since nothing reads either now: it relies on phase 0's seed
+being the same printer (`internal/build`'s Seed and the plan's `cemit` step are
+one function), which is why its output is the form every phase read.

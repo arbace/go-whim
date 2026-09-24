@@ -13,7 +13,7 @@ import (
 // What more than one phase uses.
 //
 // EVERY DECLARATION HERE WAS ONE PHASE'S, and is here because another phase
-// reached it: when each phase became a package of its own (phase/NNN), a helper
+// reached it: when each phase became a package of its own (internal/phase/NNN), a helper
 // two phases share stopped being either one's.  The phase it was written for is
 // named above each.
 

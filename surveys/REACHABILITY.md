@@ -478,7 +478,7 @@ includes     removed: limits.h sys/types.h dirent.h sys/time.h pwd.h sys/file.h
              stropts.h sys/utsname.h dlfcn.h sys/resource.h
 ```
 
-— byte for byte what `phase/082/GOAL.md` records. It costs **41 + 1 + up to 28**
+— byte for byte what `internal/phase/082/GOAL.md` records. It costs **41 + 1 + up to 28**
 compiles.
 
 **The tree answer.** `.tmp/hdr` parses `q81` (87,076 lines, all 41 includes) and
@@ -512,7 +512,7 @@ definer, and the question is whether there is another.**
   charges the expansion to whichever `#define` won; the file-set model then
   believes only `wchar.h` can supply it, pins it — and because musl's `wchar.h`
   includes `stdlib.h` and `string.h`, those two become redundant. That is
-  precisely the failure `phase/082/GOAL.md` records for its own first dry run:
+  precisely the failure `internal/phase/082/GOAL.md` records for its own first dry run:
   *"Walked top down, it dropped `<string.h>` and `<stdlib.h>`, whose declarations
   happen to arrive through headers further down, and kept `<wchar.h>`."* The tree
   model reproduces the bug phase 82's bottom-up order was written to avoid.

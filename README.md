@@ -41,7 +41,7 @@ to be derived from upstream.
 
 ## Documents
 
-- **`phase/NNN/`** — one directory per phase, numbered in three digits:
+- **`internal/phase/NNN/`** — one directory per phase, numbered in three digits:
   **`GOAL.md`** — what it removes, why, and what was measured — and, where the
   cut is a program, **`edit.go`**, which makes it a Go package of its own.
 - **`GOALS.md`** — what holds for every phase. **Part I** is phases 0-82, **Part
@@ -106,12 +106,14 @@ and a phase that refuses stops the pass with its own report.
 ## Layout
 
 ```
-cmd/whim/       the toolset, every tool a subcommand: go tool whim <subcommand>
+cmd/whim/        the toolset, every tool a subcommand: go tool whim <subcommand>
 internal/        the cutters, the sweep, the canonicalisers, the plan and its
-                 driver (internal/build), the dead-code reporter (reach), and ccx: what the core's C leaves a translation to decide --
-                 pointer casts, evaluation order -- partitioned
-phase/NNN/       a phase: GOAL.md, and edit.go where its cut is a program
-phase/STAGES.md     the record the stages were read from: need, apart, the packages
+                 driver (internal/build), the dead-code reporter (reach), ccx:
+                 what the core's C leaves a translation to decide -- pointer
+                 casts, evaluation order -- partitioned, and the phases:
+                 internal/phase/NNN/ (GOAL.md, and edit.go where its cut is a
+                 program) and internal/phase/STAGES.md, the record the stages
+                 were read from
 editor/          the core transpiled into Go, with its runtime and host
 tx/              tx/skel (the skeleton generator and, with -bodies, the body
                  emitter), tx/splice (measures the emitted bodies in a copy of

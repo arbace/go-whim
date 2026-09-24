@@ -353,10 +353,10 @@ that was being asked.
 ## 3. THE CENSUS: what the edits actually do
 
 Two subagents measured this in parallel; I spot-checked the load-bearing counts
-myself (`ls phase/*/edit*.go | wc -l` → 141; `ls -d phase/*/ | wc -l` → 163; 108
-directories with an `edit*.go`; `cat phase/*/edit*.go | wc -l` → 27,915;
+myself (`ls internal/phase/*/edit*.go | wc -l` → 141; `ls -d internal/phase/*/ | wc -l` → 163; 108
+directories with an `edit*.go`; `cat internal/phase/*/edit*.go | wc -l` → 27,915;
 `grep -oE '\{Op: "[a-zA-Z0-9-]+"' internal/build/plan.go | wc -l` → 293;
-`grep -ho regexp.MustCompile phase/*/edit*.go | wc -l` → 362, and 190 in
+`grep -ho regexp.MustCompile internal/phase/*/edit*.go | wc -l` → 362, and 190 in
 `internal/cut`; `grep -c 'Sweep: *true' internal/build/plan.go` → 87).
 
 ### 3.1 The shape of the pipeline
@@ -398,10 +398,10 @@ plus 300 lines through `{old, new}` pair tables in 5 phases, plus 173 lines in
 `[]string` blocks in phases 127 and 128, plus the **606** lines phase 98 splices
 from `tools/musl-case.txt` and `tools/musl-ctype.txt`, plus 24 lines phase 110
 generates from a table. The largest single insertions are
-`phase/097/editlit.go`'s 301-line `z14Defs` (whole `musl_*` definitions) and
-`phase/103/editlit.go`'s 229-line `z20Host` (the entire host block).
+`internal/phase/097/editlit.go`'s 301-line `z14Defs` (whole `musl_*` definitions) and
+`internal/phase/103/editlit.go`'s 229-line `z20Host` (the entire host block).
 
-Not every one of those is a valid fragment: `phase/118/edit.go:358` writes
+Not every one of those is a valid fragment: `internal/phase/118/edit.go:358` writes
 `"    int\nmain(int argc, char **argv)\n{\n"` — an opening brace with no body,
 spliced against a following anchor. `e.Splice(from, to, with)` replaces
 everything between two byte anchors, a span that need not be a node.
@@ -549,7 +549,7 @@ How much of that is there?
   `whim-vim.c`.** Two of them are at the start of a braced row
   (`^\s*\{"[a-z]+"[ \t]+,`), which is the measured pair.
 - **585 `regexp.MustCompile` patterns** across `internal/cut`, `internal/dead`,
-  `internal/edit` and `phase/*/edit*.go`. **211 pin C punctuation** (an
+  `internal/edit` and `internal/phase/*/edit*.go`. **211 pin C punctuation** (an
   unescaped-meta-excluded `,` `;` `=` or an escaped brace or paren). Of those,
   **23 allow whitespace before at least one such punctuation and 188 do not** —
   across 62 files, **35 of them phase edit files**.

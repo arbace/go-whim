@@ -122,7 +122,7 @@ Measured, this is one enum for nearly the whole pipeline. `.tmp/de/stuck.bin`
 `omacc_T` survives because `omacc_T ocm_access;` is a field
 (`.tmp/de/src/q82.c:1540`). Across a whole build (`.tmp/build-full3.log`, 200
 sweep rounds) the clause appears in **150** rounds, and in **122** of them the
-number is 3 — those three `VIM_ACCESS_*`. `phase/070/GOAL.md` calls them "the
+number is 3 — those three `VIM_ACCESS_*`. `internal/phase/070/GOAL.md` calls them "the
 three enums"; measured, it is one enum with three constants. (Reported, not
 edited — this survey touches no tracked file.)
 
@@ -643,7 +643,7 @@ as a refactor.
    whose textual form differs, and the measurement above (every implicit
    enumerator ≤ 600, `readelf` decimal below 65,536) says it cannot — assert it
    and let the assertion fail loudly if a future tree breaks it.
-   *Deliberately not included*: the twelve `phase/*/check.go` that call
+   *Deliberately not included*: the twelve `internal/phase/*/check.go` that call
    `tools/enumvals.sh` directly (088, 091–098, 105, 112, 122). They compare a
    before-dump with an after-dump and would see the extra names the tree has;
    leaving them on DWARF keeps them as an independent control, which is the
