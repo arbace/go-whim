@@ -118,7 +118,7 @@ func whim111Once(p edit.Ph, text []byte, old, new, why string) ([]byte, error) {
 // to invent a tagless `struct timeval` mirror for the core to hold; this
 // deletes it.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 166 drops the unused)
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 167 drops the unused)
 	p := edit.Ph{Tag: "clock", W: w}
 	lines := bytes.Split(text, []byte{'\n'})
 	var err error

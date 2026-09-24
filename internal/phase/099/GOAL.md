@@ -1,6 +1,6 @@
 # Phase 99 — the includes nothing names
 
-**Since phase 166:** the six headers are shown unused here and dropped there,
+**Since phase 167:** the six headers are shown unused here and dropped there,
 with every other unused header, last and at once. This phase still removes the
 `stat_T` typedef, and still refuses when anything names what the six supply. What
 follows is the record of when the six went here.

@@ -1,6 +1,6 @@
 # Phase 82 — every comment
 
-**Since phase 166:** the headers half of this phase is phase 166's now, which
+**Since phase 167:** the headers half of this phase is phase 167's now, which
 drops every unused header last and at once. What follows is the record of when it
 ran here: the measurement, the method, and the 23 it took. This phase keeps the
 comments.

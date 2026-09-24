@@ -142,7 +142,7 @@ var whim99Gone = []struct{ header, why, ids string }{
 var whim99Keep = []string{"stdio.h", "stdlib.h", "unistd.h", "sys/param.h", "time.h",
 	"signal.h", "errno.h", "stdint.h", "stdarg.h", "stddef.h", "sys/ioctl.h", "termios.h"}
 
-// Whim99 shows six `#include`s nothing names -- phase 166 drops them, with every
+// Whim99 shows six `#include`s nothing names -- phase 167 drops them, with every
 // other unused header -- and removes the stat_T typedef no sweep could take.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "includes", W: w}
@@ -286,7 +286,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"directive")
 
 	// ---- 3. the cut: the typedef, and one blank -------------------------
-	// The six `#include` lines stay for phase 166, which drops every header
+	// The six `#include` lines stay for phase 167, which drops every header
 	// the file does not need, together and last.
 
 	// The typedef AND one of its two blank lines: deleting the line alone

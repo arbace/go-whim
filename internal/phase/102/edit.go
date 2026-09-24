@@ -136,7 +136,7 @@ const whim102New = "\nstatic void *host_jump[5];\n" +
 // __builtin_setjmp rather than <setjmp.h> because this phase adds no header,
 // and the directive count is asserted at the end to say so.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 166 drops the unused)
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 167 drops the unused)
 	p := edit.Ph{Tag: "hostexit", W: w}
 	linesBefore := p.Lines(text)
 	var err error

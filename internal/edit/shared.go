@@ -883,7 +883,7 @@ var (
 // IncludeCount is how many `#include` lines text has: the system headers a
 // phase is handed.  Phases 97-126 once asserted a number -- eighteen, twelve,
 // eleven -- because phases 82, 99 and 104 dropped the unused ones as they
-// went; one last phase (166) drops them all now, so a phase asserts the count
+// went; one last phase (167) drops them all now, so a phase asserts the count
 // it was HANDED, and that it adds and removes none.
 func IncludeCount(text []byte) int {
 	n := 0
@@ -898,7 +898,7 @@ func IncludeCount(text []byte) int {
 // MentionCount counts whole-word occurrences of name in text, outside
 // `#include` lines: a directive names a HEADER, not an identifier.  Every
 // phase's mention counter goes through it, so a count means the same thing
-// whichever headers phase 166 has yet to drop.  (Until the headers were
+// whichever headers phase 167 has yet to drop.  (Until the headers were
 // dropped last, a count before 166 included the lines of the headers still
 // there -- `ioctl` was "the #include and the host's one call" -- and changed
 // with every header a phase took.)

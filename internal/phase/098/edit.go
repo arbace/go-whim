@@ -178,7 +178,7 @@ var w98Dead = regexp.MustCompile(`(?m)^ *return utf_is(?:upper|lower)\(c\);\n *i
 
 // Whim98 vendors the character classes, the two ato*, qsort and bsearch.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 166 drops the unused)
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 167 drops the unused)
 	p := edit.Ph{Tag: "vendor", W: w}
 	var err error
 	textEdit := func(t []byte, old, new, what string, n int) ([]byte, error) {

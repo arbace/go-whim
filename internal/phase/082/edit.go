@@ -1,7 +1,7 @@
 package p082
 
 // Whim phase 82 -- every comment.  See GOAL.md.  (The system headers nothing
-// needs were this phase's too; phase 166 drops them now, last and together.)
+// needs were this phase's too; phase 167 drops them now, last and together.)
 //
 // EVERY COMMENT GOES: the former-file banners, the notes, and the lines earlier
 // phases wrote to explain themselves.  Reasoning lives in the phase programs,

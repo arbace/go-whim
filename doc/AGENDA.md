@@ -15,8 +15,9 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   cases, so a wider corpus widens both.
 - **The Go editor, idiomatic.** `doc/GO-IDIOMS.md` measured it and ranked the
   work. Lint-clean is done (vet, staticcheck, `gofmt -s` all 0: generator rules,
-  phases 164-165). Next, truth values typed `bool` (198 predicate and OK/FAIL
-  functions, as a C phase the generator already follows). Each step is checked
+  phases 164-165), and so are the yes/no functions typed `bool` (phase 166, 151
+  functions). Next: the 65 that return OK/FAIL, then locals declared where the C
+  declares them rather than hoisted (4,632 of them). Each step is checked
   by `make whim-test`, which runs the Go editor against the C.
 
 ## Known stale, not yet scoped
