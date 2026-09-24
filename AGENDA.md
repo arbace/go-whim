@@ -4,16 +4,6 @@ What is not done, in the order it has to happen, with what was measured rather
 than what is hoped. Written 2026-09-23. **When an item lands, delete it** --
 this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 
-## Committed, one measurement short
-
-- **The in-brace comments** (`e3bac07`, `b42ea0e`): 44 whole-line comments
-  inside braces, measured at q35 before the move -- 38 in the notes of phases
-  21, 22 and 26 and 6 in phase 20's -- are 0 at q35 and at q81, and both
-  intermediates canonicalise. `whim-build-check` gives the product back byte for
-  byte, so no line count or anchor on the build path moved. Not yet run: the
-  checks of phases 20 to 81 on the moved text, `tools/st.sh verify --from 13
-  --to 82 --src` a q12, which is what lands it.
-
 ## Queued, measured, not started
 
 - **The closure replacing typereach/deadfields/deadenums' analysis** --
