@@ -355,7 +355,7 @@ func Check(w io.Writer, args []string) error {
 	wgCanon.Add(1)
 	go func() {
 		defer wgCanon.Done()
-		canonLog, errCanon = exec.Command("sh", "tools/canon.sh", canonC).CombinedOutput()
+		canonLog, errCanon = check.Canon(canonC)
 	}()
 
 	// --- 1. the source, as arithmetic on the input ------------------------------

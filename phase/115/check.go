@@ -344,7 +344,7 @@ func Check(w io.Writer, args []string) error {
 	wgCanon.Add(1)
 	go func() {
 		defer wgCanon.Done()
-		canonLog, errCanon = exec.Command("sh", "tools/canon.sh", T("canon.c")).CombinedOutput()
+		canonLog, errCanon = check.Canon(T("canon.c"))
 	}()
 	defer func() { wgNew.Wait(); wgT.Wait(); wgSyn.Wait(); wgCanon.Wait() }()
 

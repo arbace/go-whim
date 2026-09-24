@@ -385,7 +385,7 @@ func Check(w io.Writer, args []string) error {
 		}},
 		{&wCanon, func() {
 			os.WriteFile(T("canon.c"), []byte(t), 0o644)
-			canonLog, errCanon = exec.Command("sh", "tools/canon.sh", T("canon.c")).CombinedOutput()
+			canonLog, errCanon = check.Canon(T("canon.c"))
 		}},
 	} {
 		x := x

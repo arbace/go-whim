@@ -176,7 +176,7 @@ func Check(w io.Writer, args []string) error {
 	go func() {
 		defer wgAll.Done()
 		defer wgCanon.Done()
-		canonLog, errCanon = exec.Command("sh", "tools/canon.sh", T("canon.c")).CombinedOutput()
+		canonLog, errCanon = check.Canon(T("canon.c"))
 	}()
 
 	// --- 1. the source: the edit and the sweep, kept apart -------------------------

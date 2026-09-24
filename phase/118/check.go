@@ -327,7 +327,7 @@ func Check(w io.Writer, args []string) error {
 	var canonLog []byte
 	jCanon := start(func() error {
 		var e error
-		canonLog, e = exec.Command("sh", "tools/canon.sh", T("canon.c")).CombinedOutput()
+		canonLog, e = check.Canon(T("canon.c"))
 		return e
 	})
 

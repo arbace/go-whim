@@ -280,8 +280,7 @@ func Check(w io.Writer, args []string) error {
 	wgCanon.Add(1)
 	go func() {
 		defer wgCanon.Done()
-		c := exec.Command("sh", "tools/canon.sh", canonC)
-		b, _ := c.CombinedOutput()
+		b, _ := check.Canon(canonC)
 		os.WriteFile(filepath.Join(tmp, "canon.log"), b, 0o644)
 	}()
 

@@ -1,6 +1,6 @@
 # tools/
 
-What a check or a delta runs, and the three wrappers that find the Go binary.
+What a check or a delta runs, and the two wrappers that find the Go binary.
 **The driver is gone**: the pipeline is `internal/build` (the plan and the
 phases) and `internal/verify` (the same plan with every check and delta), and
 there is no memoize, no boundary and no oracle between them.
@@ -23,7 +23,7 @@ Everything is reached the same way, as a subcommand of the one binary:
 
 | file | what it is |
 | --- | --- |
-| `st.sh`, `sweep.sh`, `canon.sh` | run `whimtools`: they build it if they must (`gobuild.sh`) and exec it. A phase program, a check, a makefile rule and a person at a prompt all reach the toolset the same way |
+| `st.sh`, `sweep.sh` | run `whimtools`: they build it if they must (`gobuild.sh`) and exec it. A phase program, a check, a makefile rule and a person at a prompt all reach the toolset the same way |
 | `gobuild.sh` | builds `whimtools`, content-keyed on go.mod, go.sum and every .go under cmd/, internal/ and phase/ |
 | `enumvals.sh` | every enumerator's value from DWARF, before and after -- kept as shell on purpose: twelve phase checks use it as the control that is independent of the Go |
 | `templates/whim.mk`, `templates/core.mk` | the makefile phase 0 starts from, and the one phase 83 writes over it |

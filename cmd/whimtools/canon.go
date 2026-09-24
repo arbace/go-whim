@@ -7,7 +7,7 @@ import (
 	"github.com/arbace/go-whim/internal/canon"
 )
 
-// The canonicalisers tools/canon.sh runs.  Each is a drop-in for its Python
+// The canonicalisers `tools/st.sh canon` runs.  Each is a drop-in for its Python
 // original: same argv, same rewrite-in-place, same single line of stdout.
 //
 // All of them rewrite UNCONDITIONALLY, which the Python does too and which
@@ -54,9 +54,8 @@ func runOnedecl(args []string) int {
 	})
 }
 
-// runCanon is tools/canon.sh: the seven passes, in its order, once or to a
-// fixpoint.  Its output lines are matched exactly, including the plural on
-// "round".
+// runCanon is canon.Run at a prompt -- `tools/st.sh canon FILE [--once]`: the
+// seven passes, in their order, once or to a fixpoint.
 func runCanon(args []string) int {
 	once := false
 	var files []string
@@ -71,35 +70,9 @@ func runCanon(args []string) int {
 		fmt.Fprintln(os.Stderr, "usage: whimtools canon <file> [--once]")
 		return 1
 	}
-	src, err := os.ReadFile(files[0])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
+	if canon.Run(os.Stdout, os.Stderr, files[0], once) != nil {
 		return 1
 	}
-	out, rounds, changed, converged := canon.Fixpoint(src, once)
-	if err := writeFile(files[0], out); err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
-		return 1
-	}
-	if !converged {
-		fmt.Printf("  canon        NOT CONVERGING after %d rounds -- two passes are\n", rounds)
-		fmt.Println("               undoing each other; that is a bug in one of them,")
-		fmt.Println("               not a reason to raise the limit.")
-		return 1
-	}
-	if once {
-		if changed {
-			fmt.Println("canon changed it")
-		} else {
-			fmt.Println("canon settled")
-		}
-		return 0
-	}
-	s := "s"
-	if rounds == 1 {
-		s = ""
-	}
-	fmt.Printf("  canon        fixpoint after %d round%s\n", rounds, s)
 	return 0
 }
 
@@ -186,11 +159,4 @@ func rewrite(args []string, name string, f func([]byte) ([]byte, string)) int {
 // with 'w', which truncates in place and keeps the inode; nothing in the sweep
 // holds a descriptor across a tool, so either that or a rename would do, but
 // in place is what is being replaced.
-func writeFile(path string, data []byte) error {
-	fi, err := os.Stat(path)
-	mode := os.FileMode(0o644)
-	if err == nil {
-		mode = fi.Mode().Perm()
-	}
-	return os.WriteFile(path, data, mode)
-}
+func writeFile(path string, data []byte) error { return canon.WriteFile(path, data) }

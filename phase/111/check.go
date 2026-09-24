@@ -322,7 +322,7 @@ func Check(w io.Writer, args []string) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		b, e := exec.Command("sh", "tools/canon.sh", canonC).CombinedOutput()
+		b, e := check.Canon(canonC)
 		errCanon = e
 		os.WriteFile(filepath.Join(tmp, "canon.log"), b, 0o644)
 	}()

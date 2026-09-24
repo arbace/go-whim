@@ -254,7 +254,7 @@ func Check(w io.Writer, args []string) error {
 	jobs = append(jobs, jCanon)
 	go func() {
 		defer close(jCanon.done)
-		o, e := exec.Command("tools/canon.sh", T("canon.c")).CombinedOutput()
+		o, e := check.Canon(T("canon.c"))
 		jCanon.Out, jCanon.Err = string(o), e
 	}()
 

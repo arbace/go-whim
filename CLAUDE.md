@@ -107,12 +107,13 @@ phase/STAGES.md       the record the plan was read from: the stages, need and ap
 phase/boundaries.md every boundary's lines, entity counts, binary and nm -u, as
                    `tools/st.sh build --keep D` and `measure D` give them
 tools/             what a check still shells out to -- enumvals, the DWARF
-                   control kept as shell on purpose -- and the three wrappers
-                   that find the Go binary: st.sh, sweep.sh, canon.sh.  The
-                   gate (phasecheck, phasebuild, symbols) is internal/check, the
-                   delta, the declarations and score are internal/verify, a
-                   recording is internal/harness: each is `tools/st.sh <name>`
-                   at a prompt, and a check calls the Go in process
+                   control kept as shell on purpose -- and the two wrappers
+                   that find the Go binary: st.sh and sweep.sh.  The gate
+                   (phasecheck, phasebuild, symbols) is internal/check, canon
+                   is internal/canon, the delta, the declarations and score are
+                   internal/verify, a recording is internal/harness: each is
+                   `tools/st.sh <name>` at a prompt, and a check calls the Go
+                   in process
 tools/templates/   whim.mk, the makefile phase 0 starts from, and core.mk, the one
                    phase 83 writes over it
 editor/            the core in Go: editor.go GENERATED (make editor/editor.go; never edit it),
