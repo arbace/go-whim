@@ -1,6 +1,6 @@
 # tools/
 
-What a check or a delta runs, and the three wrappers that find the Go binary.
+What a check or a delta runs, and the two wrappers that find the Go binary.
 **The driver is gone**: the pipeline is `internal/build` (the plan and the
 phases) and `internal/verify` (the same plan with every check and delta), and
 there is no memoize, no boundary and no oracle between them.
@@ -23,7 +23,7 @@ Everything is reached the same way, as a subcommand of the one binary:
 
 | file | what it is |
 | --- | --- |
-| `st.sh`, `sweep.sh`, `canon.sh` | run `whimtools`: they build it if they must (`gobuild.sh`) and exec it. A phase program, a check, a makefile rule and a person at a prompt all reach the toolset the same way |
+| `st.sh`, `sweep.sh` | run `whimtools`: they build it if they must (`gobuild.sh`) and exec it. A phase program, a check, a makefile rule and a person at a prompt all reach the toolset the same way |
 | `gobuild.sh` | builds `whimtools`, content-keyed on go.mod, go.sum and every .go under cmd/, internal/ and phase/ |
 | `enumvals.sh` | every enumerator's value from DWARF, before and after -- kept as shell on purpose: twelve phase checks use it as the control that is independent of the Go |
 | `templates/whim.mk`, `templates/core.mk` | the makefile phase 0 starts from, and the one phase 83 writes over it |
@@ -49,9 +49,10 @@ subcommand per script.
 | `pipeline.sh` (`PHASE_LIST`, `CORE_FROM`) | `internal/build`'s `Plan` and `CoreFrom` | `4496964` |
 | `memo.sh`, `implhash.sh`, `oracle.sh`, `snapshot.sh`, `restore.sh`, `specpass.sh`, `residue.sh`, `phasename.sh` | nothing: the memoize and its keys went, and the tracked product is what answers for the pipeline (`make whim-build-check`) | `4496964` |
 | `whimdelta.sh`, `coredelta.sh` (earlier `zerodelta.sh`), `declared.sh` | `tools/st.sh delta BIN SRC --phase N`, `--declared N`, `--list FROM TO` (`internal/verify`'s `Delta`, `CoreDelta`, `Declarations`) | `d8b3c29` (`zerodelta.sh` renamed in `d3ac925`) |
-| `zrecord.sh` | `tools/st.sh zrecord` (`internal/harness`'s `ZRecord`; `check.RecZ` from a check) | `d8b3c29` |
+| `zrecord.sh` | `tools/st.sh zrecord` (`internal/harness`'s `CoreRecord`; `check.RecCore` from a check) | `d8b3c29` |
 | `phasecheck.sh`, `phasebuild.sh`, `symbols.sh` | `tools/st.sh phasecheck`, `phasebuild`, `symbols` (`internal/check`'s `PhaseCheck`, `PhaseBuild`, `Symbols`, the first two called in process by every check, the third by the verification for each stage's snapshot) | `016ce45` |
 | `score.sh` | `tools/st.sh score` (`internal/verify`'s `Score`), which `make score` runs | `016ce45` |
+| `canon.sh` | `tools/st.sh canon FILE [--once]` (`internal/canon`'s `Run`; `check.Canon` from a check) | `942db23` |
 | `phase/NNN/make.sh`, `edit.sh`, `check.sh` | `phase/NNN/edit.go` and `check.go`, package `pNNN` | `f0a58b9` |
 | `deadsweep.py`, `deadprotos.py`, `typereach.py`, `funcreach.py`, `deadfields.py`, `deadenums.py`, `orphanopts.py`, `nvidxcheck.py` | `whimtools` of the same name (`nvidx` for the last), in `internal/dead` | before the split |
 | `canon.py`, `cutil.py` and the canonicaliser's pieces (`brace.py`, `onestmt.py`, `onedecl.py`, `forcomma.py`) | `internal/canon`, `internal/cutil` | before the split |

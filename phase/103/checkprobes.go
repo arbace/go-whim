@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func z20Env(home string) []string {
+func w103Env(home string) []string {
 	var env []string
 	for _, kv := range os.Environ() {
 		k := kv[:strings.IndexByte(kv, '=')]
@@ -29,11 +29,11 @@ func z20Env(home string) []string {
 		"VIMRUNTIME="+home+"/nv", "XDG_CONFIG_HOME="+home+"/xdg")
 }
 
-// z20Term is the heredoc's Term: a real pty whose child sets its own window
+// w103Term is the heredoc's Term: a real pty whose child sets its own window
 // size before exec, with stdin optionally at /dev/null and stdout and stderr
 // optionally a pipe.  Output is read continuously into Out, so a pump is a
 // wait and nothing the editor writes is ever left unread.
-type z20Term struct {
+type w103Term struct {
 	cmd  *exec.Cmd
 	pid  int
 	m    *os.File
@@ -46,7 +46,7 @@ type z20Term struct {
 	eof  chan struct{}
 }
 
-func newZ20Term(binary string, args []string, rows, cols int, stdinDevnull, stdoutPipe bool) (*z20Term, error) {
+func newW103Term(binary string, args []string, rows, cols int, stdinDevnull, stdoutPipe bool) (*w103Term, error) {
 	vim, err := harness.Stage(binary)
 	if err != nil {
 		return nil, err
@@ -62,10 +62,10 @@ func newZ20Term(binary string, args []string, rows, cols int, stdinDevnull, stdo
 	}
 	defer slave.Close()
 	harness.SetWinsize(slave, rows, cols)
-	t := &z20Term{m: m, done: make(chan *os.ProcessState, 1)}
+	t := &w103Term{m: m, done: make(chan *os.ProcessState, 1)}
 	t.home, _ = os.MkdirTemp("", "whim103-")
 	c := exec.Command(vim, args...)
-	c.Env = z20Env(t.home)
+	c.Env = w103Env(t.home)
 	c.Stdin, c.Stdout, c.Stderr = slave, slave, slave
 	ctty := 0
 	var pw *os.File
@@ -119,22 +119,22 @@ func newZ20Term(binary string, args []string, rows, cols int, stdinDevnull, stdo
 // pump waits secs, or less once every descriptor it reads has reached end of
 // file -- the heredoc's pump returns as soon as its select set is empty, and
 // gs_interrupt's timing is only comparable if this one does too.
-func (t *z20Term) pump(secs float64) {
+func (t *w103Term) pump(secs float64) {
 	select {
 	case <-time.After(time.Duration(secs * float64(time.Second))):
 	case <-t.eof:
 	}
 }
 
-func (t *z20Term) Keys(k string) { t.m.Write([]byte(k)) }
+func (t *w103Term) Keys(k string) { t.m.Write([]byte(k)) }
 
-func (t *z20Term) n() int {
+func (t *w103Term) n() int {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	return len(t.Out)
 }
 
-func (t *z20Term) mode() string {
+func (t *w103Term) mode() string {
 	a, err := harness.Termios(t.m)
 	if err != nil {
 		return "TCGETS " + err.Error()
@@ -150,7 +150,7 @@ func (t *z20Term) mode() string {
 		b(a.Oflag, syscall.ONLCR), b(a.Iflag, syscall.ICRNL))
 }
 
-func (t *z20Term) exited() bool {
+func (t *w103Term) exited() bool {
 	if t.st != nil {
 		return true
 	}
@@ -162,7 +162,7 @@ func (t *z20Term) exited() bool {
 	}
 }
 
-func (t *z20Term) reap(secs float64) string {
+func (t *w103Term) reap(secs float64) string {
 	end := time.Now().Add(time.Duration(secs * float64(time.Second)))
 	for time.Now().Before(end) {
 		if t.exited() {
@@ -181,15 +181,15 @@ func (t *z20Term) reap(secs float64) string {
 	return "STILL RUNNING"
 }
 
-var z20CSI = regexp.MustCompile(`\x1b\[[0-9;?]*[A-Za-z]`)
+var w103CSI = regexp.MustCompile(`\x1b\[[0-9;?]*[A-Za-z]`)
 
-func (t *z20Term) Text() []byte {
+func (t *w103Term) Text() []byte {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	return z20CSI.ReplaceAll(append([]byte{}, t.Out...), nil)
+	return w103CSI.ReplaceAll(append([]byte{}, t.Out...), nil)
 }
 
-func (t *z20Term) close() {
+func (t *w103Term) close() {
 	t.m.Close()
 	if t.pr != nil {
 		t.pr.Close()
@@ -197,7 +197,7 @@ func (t *z20Term) close() {
 	os.RemoveAll(t.home)
 }
 
-func (t *z20Term) stopped() bool {
+func (t *w103Term) stopped() bool {
 	s, err := os.ReadFile(fmt.Sprintf("/proc/%d/stat", t.pid))
 	if err != nil {
 		return false
@@ -210,20 +210,20 @@ func (t *z20Term) stopped() bool {
 	return len(f) > 0 && f[0] == "T"
 }
 
-type z20Pipe struct {
+type w103Pipe struct {
 	Text string
 	n    int
 	Rc   int
 }
 
-func z20PipeRun(binary string, keys []string, rows, cols, snap int) z20Pipe {
+func w103PipeRun(binary string, keys []string, rows, cols, snap int) w103Pipe {
 	var kb [][]byte
 	for _, k := range keys {
 		kb = append(kb, []byte(k))
 	}
-	scr, Out, _, rc, err := harness.ZSession(binary, kb, "xterm", nil, rows, cols, 20*time.Second)
+	scr, Out, _, rc, err := harness.CoreSession(binary, kb, "xterm", nil, rows, cols, 20*time.Second)
 	if err != nil || scr == nil || len(scr.Snaps) == 0 {
-		return z20Pipe{"<no snapshot>", len(Out), rc}
+		return w103Pipe{"<no snapshot>", len(Out), rc}
 	}
 	k := len(scr.Snaps) + snap
 	if len(scr.Snaps) < -snap {
@@ -240,42 +240,42 @@ func z20PipeRun(binary string, keys []string, rows, cols, snap int) z20Pipe {
 	if len(j) > 110 {
 		j = j[:110]
 	}
-	return z20Pipe{string(j), len(Out), rc}
+	return w103Pipe{string(j), len(Out), rc}
 }
 
-type z20Deadly struct {
+type w103Deadly struct {
 	st, during, after string
 	caught, finished  bool
 	n                 int
 }
 
-type z20Surv struct {
+type w103Surv struct {
 	st       string
 	n        int
 	aaa, bbb bool
 }
 
-type z20Stop struct {
+type w103Stop struct {
 	st    string
 	drawn int
 	ok    bool
 }
 
-type z20EOF struct {
+type w103EOF struct {
 	st  string
 	n   int
 	fin bool
 }
 
-type z20Redir struct {
+type w103Redir struct {
 	st         string
 	e492, pmsg bool
 }
 
-func z20Deadly1(b string, sig syscall.Signal) any {
-	t, err := newZ20Term(b, []string{"+set paste"}, 24, 80, false, false)
+func w103Deadly1(b string, sig syscall.Signal) any {
+	t, err := newW103Term(b, []string{"+set paste"}, 24, 80, false, false)
 	if err != nil {
-		return z20Deadly{st: "START"}
+		return w103Deadly{st: "START"}
 	}
 	t.pump(1.0)
 	t.Keys("ihello\x1b")
@@ -288,13 +288,13 @@ func z20Deadly1(b string, sig syscall.Signal) any {
 	txt := t.Text()
 	n := t.n()
 	t.close()
-	return z20Deadly{st, during, after, bytes.Contains(txt, []byte("Caught deadly signal")), bytes.Contains(txt, []byte("Finished")), n}
+	return w103Deadly{st, during, after, bytes.Contains(txt, []byte("Caught deadly signal")), bytes.Contains(txt, []byte("Finished")), n}
 }
 
-func z20Survives(b string, how func(*z20Term)) any {
-	t, err := newZ20Term(b, []string{"+set paste"}, 24, 80, false, false)
+func w103Survives(b string, how func(*w103Term)) any {
+	t, err := newW103Term(b, []string{"+set paste"}, 24, 80, false, false)
 	if err != nil {
-		return z20Surv{st: "START"}
+		return w103Surv{st: "START"}
 	}
 	t.pump(1.0)
 	t.Keys("iAAA\x1b")
@@ -311,13 +311,13 @@ func z20Survives(b string, how func(*z20Term)) any {
 	txt := t.Text()
 	n := t.n()
 	t.close()
-	return z20Surv{st, n, bytes.Contains(txt, []byte("AAA")), bytes.Contains(txt, []byte("BBB"))}
+	return w103Surv{st, n, bytes.Contains(txt, []byte("AAA")), bytes.Contains(txt, []byte("BBB"))}
 }
 
-func z20StopCont(b string) any {
-	t, err := newZ20Term(b, []string{"+set paste"}, 24, 80, false, false)
+func w103StopCont(b string) any {
+	t, err := newW103Term(b, []string{"+set paste"}, 24, 80, false, false)
 	if err != nil {
-		return z20Stop{st: "START"}
+		return w103Stop{st: "START"}
 	}
 	t.pump(1.0)
 	t.Keys("iAAA\x1b")
@@ -333,13 +333,13 @@ func z20StopCont(b string) any {
 	st := t.reap(3.0)
 	ok := bytes.Contains(t.Text(), []byte("BBB"))
 	t.close()
-	return z20Stop{st, drawn, ok}
+	return w103Stop{st, drawn, ok}
 }
 
-var z20LinesCols = regexp.MustCompile(`lines=\d+\s+columns=\d+`)
+var w103LinesCols = regexp.MustCompile(`lines=\d+\s+columns=\d+`)
 
-func z20PtyResize(b string) any {
-	t, err := newZ20Term(b, []string{"+set paste"}, 24, 80, false, false)
+func w103PtyResize(b string) any {
+	t, err := newW103Term(b, []string{"+set paste"}, 24, 80, false, false)
 	if err != nil {
 		return []string{"START"}
 	}
@@ -354,29 +354,29 @@ func z20PtyResize(b string) any {
 	t.pump(0.6)
 	t.reap(3.0)
 	got := []string{}
-	for _, m := range z20LinesCols.FindAll(t.Text(), -1) {
+	for _, m := range w103LinesCols.FindAll(t.Text(), -1) {
 		got = append(got, strings.Join(strings.Fields(string(m)), " "))
 	}
 	t.close()
 	return got
 }
 
-func z20EOFTty2(b string) any {
-	t, err := newZ20Term(b, []string{"+set paste"}, 24, 80, true, false)
+func w103EOFTty2(b string) any {
+	t, err := newW103Term(b, []string{"+set paste"}, 24, 80, true, false)
 	if err != nil {
-		return z20EOF{st: "START"}
+		return w103EOF{st: "START"}
 	}
 	t.pump(2.5)
 	st := t.reap(2.0)
-	r := z20EOF{st, t.n(), bytes.Contains(t.Text(), []byte("Finished"))}
+	r := w103EOF{st, t.n(), bytes.Contains(t.Text(), []byte("Finished"))}
 	t.close()
 	return r
 }
 
-func z20CtrlCRedir(b string) any {
-	t, err := newZ20Term(b, []string{"+set paste"}, 24, 80, false, true)
+func w103CtrlCRedir(b string) any {
+	t, err := newW103Term(b, []string{"+set paste"}, 24, 80, false, true)
 	if err != nil {
-		return z20Redir{st: "START"}
+		return w103Redir{st: "START"}
 	}
 	t.pump(1.0)
 	t.Keys("\x03")
@@ -385,13 +385,13 @@ func z20CtrlCRedir(b string) any {
 	t.pump(0.8)
 	st := t.reap(3.0)
 	txt := t.Text()
-	r := z20Redir{st, bytes.Contains(txt, []byte("E492")), bytes.Contains(txt, []byte("press <Enter> to exit Vim"))}
+	r := w103Redir{st, bytes.Contains(txt, []byte("E492")), bytes.Contains(txt, []byte("press <Enter> to exit Vim"))}
 	t.close()
 	return r
 }
 
-func z20RawMode(b string) any {
-	t, err := newZ20Term(b, []string{"+set paste"}, 24, 80, false, false)
+func w103RawMode(b string) any {
+	t, err := newW103Term(b, []string{"+set paste"}, 24, 80, false, false)
 	if err != nil {
 		return "START"
 	}
@@ -406,8 +406,8 @@ func z20RawMode(b string) any {
 	return m
 }
 
-func z20GsInterrupt(b string) any {
-	t, err := newZ20Term(b, []string{"+set paste"}, 24, 80, false, false)
+func w103GsInterrupt(b string) any {
+	t, err := newW103Term(b, []string{"+set paste"}, 24, 80, false, false)
 	if err != nil {
 		return 99.0
 	}
@@ -447,7 +447,7 @@ func pyBool(b bool) string {
 	return "False"
 }
 
-func z20Probes(r *check.Rep, old, bin, nosleep string) error {
+func w103Probes(r *check.Rep, old, bin, nosleep string) error {
 	esc := "\x1b"
 	type job struct {
 		Tag string
@@ -455,24 +455,24 @@ func z20Probes(r *check.Rep, old, bin, nosleep string) error {
 	}
 	jobs := []job{
 		{"resize_inband", func(b string) any {
-			return z20PipeRun(b, []string{esc + "[48;30;100t", ":set columns?\r", esc + ":q!\r"}, 40, 200, -2)
+			return w103PipeRun(b, []string{esc + "[48;30;100t", ":set columns?\r", esc + ":q!\r"}, 40, 200, -2)
 		}},
-		{"trz_query", func(b string) any { return z20PipeRun(b, []string{":set trz?\r", esc + ":q!\r"}, 40, 200, -2) }},
-		{"trz_set", func(b string) any { return z20PipeRun(b, []string{":set trz=sigwinch\r", esc + ":q!\r"}, 40, 200, -2) }},
-		{"inband_stop", func(b string) any { return z20PipeRun(b, []string{esc + "[?1z", ":q!\r"}, 24, 80, -1) }},
-		{"sigterm", func(b string) any { return z20Deadly1(b, syscall.SIGTERM) }},
-		{"sighup", func(b string) any { return z20Deadly1(b, syscall.SIGHUP) }},
+		{"trz_query", func(b string) any { return w103PipeRun(b, []string{":set trz?\r", esc + ":q!\r"}, 40, 200, -2) }},
+		{"trz_set", func(b string) any { return w103PipeRun(b, []string{":set trz=sigwinch\r", esc + ":q!\r"}, 40, 200, -2) }},
+		{"inband_stop", func(b string) any { return w103PipeRun(b, []string{esc + "[?1z", ":q!\r"}, 24, 80, -1) }},
+		{"sigterm", func(b string) any { return w103Deadly1(b, syscall.SIGTERM) }},
+		{"sighup", func(b string) any { return w103Deadly1(b, syscall.SIGHUP) }},
 		{"sigint_external", func(b string) any {
-			return z20Survives(b, func(t *z20Term) { syscall.Kill(t.pid, syscall.SIGINT) })
+			return w103Survives(b, func(t *w103Term) { syscall.Kill(t.pid, syscall.SIGINT) })
 		}},
 		{"tstp_external", func(b string) any {
-			return z20Survives(b, func(t *z20Term) { syscall.Kill(t.pid, syscall.SIGTSTP) })
+			return w103Survives(b, func(t *w103Term) { syscall.Kill(t.pid, syscall.SIGTSTP) })
 		}},
-		{"ctrl_z_key", func(b string) any { return z20Survives(b, func(t *z20Term) { t.Keys("\x1a") }) }},
-		{"stop_cmd", func(b string) any { return z20Survives(b, func(t *z20Term) { t.Keys(":stop\r") }) }},
-		{"stopcont", z20StopCont}, {"pty_resize", z20PtyResize},
-		{"eof_on_tty2", z20EOFTty2}, {"ctrl_c_redir", z20CtrlCRedir},
-		{"raw_mode_live", z20RawMode}, {"gs_interrupt", z20GsInterrupt},
+		{"ctrl_z_key", func(b string) any { return w103Survives(b, func(t *w103Term) { t.Keys("\x1a") }) }},
+		{"stop_cmd", func(b string) any { return w103Survives(b, func(t *w103Term) { t.Keys(":stop\r") }) }},
+		{"stopcont", w103StopCont}, {"pty_resize", w103PtyResize},
+		{"eof_on_tty2", w103EOFTty2}, {"ctrl_c_redir", w103CtrlCRedir},
+		{"raw_mode_live", w103RawMode}, {"gs_interrupt", w103GsInterrupt},
 	}
 	res := map[[2]string]any{}
 	var mu sync.Mutex
@@ -491,10 +491,10 @@ func z20Probes(r *check.Rep, old, bin, nosleep string) error {
 		launch(j.Tag, "old", old, j.fn)
 		launch(j.Tag, "new", bin, j.fn)
 	}
-	launch("gs_interrupt", "nosleep", nosleep, z20GsInterrupt)
+	launch("gs_interrupt", "nosleep", nosleep, w103GsInterrupt)
 	wg.Wait()
 	g := func(tag, side string) any { return res[[2]string{tag, side}] }
-	gp := func(tag, side string) z20Pipe { return g(tag, side).(z20Pipe) }
+	gp := func(tag, side string) w103Pipe { return g(tag, side).(w103Pipe) }
 	var fail []string
 
 	// ---- MUST DIFFER ----
@@ -511,23 +511,23 @@ func z20Probes(r *check.Rep, old, bin, nosleep string) error {
 	if gp("inband_stop", "old").Rc == 0 || gp("inband_stop", "new").Rc != 0 {
 		fail = append(fail, fmt.Sprintf("inband_stop: `ESC [ ? 1 z` is the private sequence the host sends for an external kill -TSTP.  On the input it is not a command and the session ends at end of input (rc 1); on the output it runs `:stop`, comes back and the following `:q!` quits cleanly (rc 0).  old rc=%d new rc=%d", gp("inband_stop", "old").Rc, gp("inband_stop", "new").Rc))
 	}
-	eo, en := g("eof_on_tty2", "old").(z20EOF), g("eof_on_tty2", "new").(z20EOF)
-	eofRepr := func(e z20EOF) string { return fmt.Sprintf("('%s', %d, %s)", e.st, e.n, pyBool(e.fin)) }
+	eo, en := g("eof_on_tty2", "old").(w103EOF), g("eof_on_tty2", "new").(w103EOF)
+	eofRepr := func(e w103EOF) string { return fmt.Sprintf("('%s', %d, %s)", e.st, e.n, pyBool(e.fin)) }
 	if eo.st != "STILL RUNNING" || eo.fin || en.st != "exit 1" || !en.fin {
 		fail = append(fail, fmt.Sprintf("eof_on_tty2: with stdin at EOF and a TERMINAL on fd 2, the input reopens fd 0 from fd 2 and carries on editing, and the output prints `Vim: Finished.` and exits 1.  This is the ONE behaviour this phase changes.  old=%s new=%s", eofRepr(eo), eofRepr(en)))
 	}
-	co, cn := g("ctrl_c_redir", "old").(z20Redir), g("ctrl_c_redir", "new").(z20Redir)
-	redRepr := func(e z20Redir) string { return fmt.Sprintf("('%s', %s, %s)", e.st, pyBool(e.e492), pyBool(e.pmsg)) }
+	co, cn := g("ctrl_c_redir", "old").(w103Redir), g("ctrl_c_redir", "new").(w103Redir)
+	redRepr := func(e w103Redir) string { return fmt.Sprintf("('%s', %s, %s)", e.st, pyBool(e.e492), pyBool(e.pmsg)) }
 	if !co.e492 || co.pmsg || cn.e492 || !cn.pmsg {
 		fail = append(fail, fmt.Sprintf("ctrl_c_redir: CTRL-C in Normal mode with stdout a pipe ran `do_cmdline_cmd(\"qa\")` on the input (E492, whim having removed :qa) and draws the message on the output, because stdout_isatty is folded to TRUE.  old=%s new=%s", redRepr(co), redRepr(cn)))
 	}
-	survRepr := func(s z20Surv) string {
+	survRepr := func(s w103Surv) string {
 		return fmt.Sprintf("('%s', %d, %s, %s)", s.st, s.n, pyBool(s.aaa), pyBool(s.bbb))
 	}
-	to, tn := g("tstp_external", "old").(z20Surv), g("tstp_external", "new").(z20Surv)
+	to, tn := g("tstp_external", "old").(w103Surv), g("tstp_external", "new").(w103Surv)
 	for _, p := range []struct {
 		side string
-		s    z20Surv
+		s    w103Surv
 	}{{"old", to}, {"new", tn}} {
 		if p.s.st != "exit 0" || !p.s.aaa || !p.s.bbb {
 			fail = append(fail, fmt.Sprintf("tstp_external (%s): the editor must survive kill -TSTP and still be editing afterwards -- %s", p.side, survRepr(p.s)))
@@ -539,10 +539,10 @@ func z20Probes(r *check.Rep, old, bin, nosleep string) error {
 
 	// ---- MUST NOT DIFFER ----
 	for _, p := range [][2]string{{"sigterm", "TERM"}, {"sighup", "HUP"}} {
-		o, n := g(p[0], "old").(z20Deadly), g(p[0], "new").(z20Deadly)
+		o, n := g(p[0], "old").(w103Deadly), g(p[0], "new").(w103Deadly)
 		for _, sr := range []struct {
 			side string
-			d    z20Deadly
+			d    w103Deadly
 		}{{"old", o}, {"new", n}} {
 			d := sr.d
 			if d.st != "exit 1" {
@@ -564,7 +564,7 @@ func z20Probes(r *check.Rep, old, bin, nosleep string) error {
 	}
 	for _, tag := range []string{"sigint_external", "ctrl_z_key", "stop_cmd"} {
 		for _, side := range []string{"old", "new"} {
-			s := g(tag, side).(z20Surv)
+			s := g(tag, side).(w103Surv)
 			if s.st != "exit 0" || !s.aaa || !s.bbb {
 				fail = append(fail, fmt.Sprintf("%s (%s): the editor must survive and still be editing afterwards -- %s", tag, side, survRepr(s)))
 			}
@@ -585,7 +585,7 @@ func z20Probes(r *check.Rep, old, bin, nosleep string) error {
 		}
 	}
 	for _, side := range []string{"old", "new"} {
-		s := g("stopcont", side).(z20Stop)
+		s := g("stopcont", side).(w103Stop)
 		if s.st != "exit 0" || !s.ok || s.drawn < 1000 {
 			fail = append(fail, fmt.Sprintf("stopcont (%s): after kill -STOP; kill -CONT the editor must redraw its screen and still be editing -- got %s, %d bytes drawn, BBB=%s.  On the output that redraw is the host catching SIGCONT with the same handler as SIGWINCH, which is why the CSI 48 arm lost its `height != Rows` guard", side, s.st, s.drawn, pyBool(s.ok)))
 		}
@@ -607,10 +607,10 @@ func z20Probes(r *check.Rep, old, bin, nosleep string) error {
 	}
 	r.Say("MUST DIFFER (7): resize_inband -- `ESC[48;30;100t` is buffer text on the input and `columns=100` here; trz_query and trz_set -- `:set trz?` and `:set trz=sigwinch` are accepted on the input and E518 here; inband_stop -- `ESC[?1z` is nothing on the input and runs `:stop` here (rc %d -> %d); eof_on_tty2 -- with a terminal on fd 2 the input reopens fd 0 and keeps editing (%d B) where this prints `Vim: Finished.` and exits 1 (%d B); ctrl_c_redir -- CTRL-C with stdout a pipe was E492 and is the message; tstp_external -- %d B against %d B, the in-band path",
 		gp("inband_stop", "old").Rc, gp("inband_stop", "new").Rc, eo.n, en.n, to.n, tn.n)
-	dt, dh := g("sigterm", "new").(z20Deadly), g("sighup", "new").(z20Deadly)
+	dt, dh := g("sigterm", "new").(w103Deadly), g("sighup", "new").(w103Deadly)
 	r.Cont("MUST NOT DIFFER, and these are the ones the merge was for: kill -TERM and kill -HUP both exit 1, both restore the terminal to %s, both draw `Vim: Caught deadly signal` and `Vim: Finished.`, and both streams are the same length (%d and %d bytes)", dt.after, dt.n, dh.n)
 	r.Cont("and: kill -INT survives on both (the host hands the core a 0x03 byte, where SIG_DFL would KILL it); keyboard CTRL-Z and `:stop` both come back editing; the terminal is raw while editing on both (%s); a 24x80 pty resized to 30x100 is seen by both; kill -STOP/-CONT redraws %d bytes on the input and %d here",
-		rn, g("stopcont", "old").(z20Stop).drawn, g("stopcont", "new").(z20Stop).drawn)
+		rn, g("stopcont", "old").(w103Stop).drawn, g("stopcont", "new").(w103Stop).drawn)
 	r.Cont("gs_interrupt, WITH ITS CONTROL: `10gs` then CTRL-C comes back at %.2f s on the input and %.2f s here -- and at %.2f s on this phase's own output with musl_delay()'s two host_tty_set() calls deleted.  That is what says the sleep mode is real: TMODE_SLEEP is not \"discard input\", it is the saved termios with ICANON and ECHO cleared and ISIG LEFT ON, so the interrupt character is a signal for the duration of the sleep",
 		gs("old"), gs("new"), gs("nosleep"))
 	return nil

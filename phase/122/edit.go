@@ -105,47 +105,47 @@ import (
 func init() { edit.Register("whim122", Edit) }
 
 var (
-	z39SwitchC   = regexp.MustCompile(`\bswitch \(c\)`)
-	z39Label     = regexp.MustCompile(`(?m)^[ \t]*(case .*?|default):$`)
-	z39WantArg   = regexp.MustCompile(`(?m)^[ \t]*if \(want_argument\)$`)
-	z39DeclWant  = regexp.MustCompile(`\n[ \t]*int +want_argument;\n`)
-	z39SetWant   = regexp.MustCompile(`\n[ \t]*want_argument = FALSE;\n`)
-	z39OneDflt   = regexp.MustCompile(`(?s)\A\s*\n[ \t]*default:\n(.*)\z`)
-	z39ReadC     = regexp.MustCompile(`\n[ \t]*c = argv\[0\]\[argv_idx\+\+\];\n`)
-	z39DeclC     = regexp.MustCompile(`\n[ \t]*int +c;\n`)
-	z39DashArm   = regexp.MustCompile(`(?m)^[ \t]*else if \(argv\[0\]\[0\] == '-'\)$`)
-	z39PlainElse = regexp.MustCompile(`\A\s*\n[ \t]*else\n`)
-	z39EnumPair  = regexp.MustCompile(`(?m)^enum \{ (ME_\w+) = (\d+) \};$`)
+	w122SwitchC   = regexp.MustCompile(`\bswitch \(c\)`)
+	w122Label     = regexp.MustCompile(`(?m)^[ \t]*(case .*?|default):$`)
+	w122WantArg   = regexp.MustCompile(`(?m)^[ \t]*if \(want_argument\)$`)
+	w122DeclWant  = regexp.MustCompile(`\n[ \t]*int +want_argument;\n`)
+	w122SetWant   = regexp.MustCompile(`\n[ \t]*want_argument = FALSE;\n`)
+	w122OneDflt   = regexp.MustCompile(`(?s)\A\s*\n[ \t]*default:\n(.*)\z`)
+	w122ReadC     = regexp.MustCompile(`\n[ \t]*c = argv\[0\]\[argv_idx\+\+\];\n`)
+	w122DeclC     = regexp.MustCompile(`\n[ \t]*int +c;\n`)
+	w122DashArm   = regexp.MustCompile(`(?m)^[ \t]*else if \(argv\[0\]\[0\] == '-'\)$`)
+	w122PlainElse = regexp.MustCompile(`\A\s*\n[ \t]*else\n`)
+	w122EnumPair  = regexp.MustCompile(`(?m)^enum \{ (ME_\w+) = (\d+) \};$`)
 	// The canonical text puts a blank line between two file-scope declarations,
 	// so the run of ME_* enumerators carries one between each pair.  The same
 	// sites, and the run is rewritten in the same shape below.
-	z39EnumRun   = regexp.MustCompile(`(?m)(?:^enum \{ ME_\w+ = \d+ \};\n\n?)+`)
-	z39Table     = regexp.MustCompile(`(?ms)^static char \*\(main_errors\[\]\) =\n\{\n(.*?)^\};\n`)
-	z39ArgProto  = regexp.MustCompile(`(?m)^static void mainerr_arg_missing\([^)]*\);\n`)
-	z39EmptyName = `^[ \t]*if \(term != nullptr && \*term == NUL\)$`
-	z39GivenNone = regexp.MustCompile(`(?m)^[ \t]*if \(term == nullptr \|\| \*term == NUL\)$`)
-	z39Assign    = regexp.MustCompile(`(?s)\A\s*\n[ \t]*term = (.*?);\n[ \t]*\z`)
-	z39TermDecl  = regexp.MustCompile(`(?m)^([ \t]*char_u +\*term) = name;$`)
-	z39TciProto  = regexp.MustCompile(`(?m)^static void termcapinit\([^)]*\);$`)
-	z39Member    = regexp.MustCompile(`(?m)^[ \t]*char_u +\*term;\n`)
-	z39Owner     = regexp.MustCompile(`(\w+)\s*(?:\.|->)\s*term\b`)
-	z39DotTerm   = regexp.MustCompile(`(?:\.|->)\s*term\b`)
-	z39SetTerm   = regexp.MustCompile(`\bset_termname\s*\(`)
-	z39FnName    = regexp.MustCompile(`\n[a-zA-Z_]\w*`)
-	z39Row       = regexp.MustCompile(`(?m)^[ \t]*\{\s*"([^"]*)"\s*,\s*\w+\s*\},$`)
-	z39Starting  = regexp.MustCompile(`(?m)^[ \t]*starting = ([^;]+);$`)
-	z39TermpNull = regexp.MustCompile(`(?m)^[ \t]*if \(termp == nullptr\)$`)
-	z39NoScreen  = `^[ \t]*if \(starting != NO_SCREEN\)$`
-	z39FirstLit  = regexp.MustCompile(`"([^"]*)"`)
-	z39Requested = regexp.MustCompile(`\brequested\b`)
-	z39TermRewr  = regexp.MustCompile(`(?m)^[ \t]*term (\+?=[^;]*);$`)
-	z39Prefix    = regexp.MustCompile(`musl_strncmp\(\(char \*\)\(name\), \(char \*\)\("([^"]*)"\), \(\(usize\)(\d+)\)\)`)
-	z39Needle    = regexp.MustCompile(`musl_strstr\(\(char \*\)requested, "([^"]*)"\)`)
-	z39ReqDecl   = regexp.MustCompile(`\n[ \t]*char_u +\*requested = term;\n`)
+	w122EnumRun   = regexp.MustCompile(`(?m)(?:^enum \{ ME_\w+ = \d+ \};\n\n?)+`)
+	w122Table     = regexp.MustCompile(`(?ms)^static char \*\(main_errors\[\]\) =\n\{\n(.*?)^\};\n`)
+	w122ArgProto  = regexp.MustCompile(`(?m)^static void mainerr_arg_missing\([^)]*\);\n`)
+	w122EmptyName = `^[ \t]*if \(term != nullptr && \*term == NUL\)$`
+	w122GivenNone = regexp.MustCompile(`(?m)^[ \t]*if \(term == nullptr \|\| \*term == NUL\)$`)
+	w122Assign    = regexp.MustCompile(`(?s)\A\s*\n[ \t]*term = (.*?);\n[ \t]*\z`)
+	w122TermDecl  = regexp.MustCompile(`(?m)^([ \t]*char_u +\*term) = name;$`)
+	w122TciProto  = regexp.MustCompile(`(?m)^static void termcapinit\([^)]*\);$`)
+	w122Member    = regexp.MustCompile(`(?m)^[ \t]*char_u +\*term;\n`)
+	w122Owner     = regexp.MustCompile(`(\w+)\s*(?:\.|->)\s*term\b`)
+	w122DotTerm   = regexp.MustCompile(`(?:\.|->)\s*term\b`)
+	w122SetTerm   = regexp.MustCompile(`\bset_termname\s*\(`)
+	w122FnName    = regexp.MustCompile(`\n[a-zA-Z_]\w*`)
+	w122Row       = regexp.MustCompile(`(?m)^[ \t]*\{\s*"([^"]*)"\s*,\s*\w+\s*\},$`)
+	w122Starting  = regexp.MustCompile(`(?m)^[ \t]*starting = ([^;]+);$`)
+	w122TermpNull = regexp.MustCompile(`(?m)^[ \t]*if \(termp == nullptr\)$`)
+	w122NoScreen  = `^[ \t]*if \(starting != NO_SCREEN\)$`
+	w122FirstLit  = regexp.MustCompile(`"([^"]*)"`)
+	w122Requested = regexp.MustCompile(`\brequested\b`)
+	w122TermRewr  = regexp.MustCompile(`(?m)^[ \t]*term (\+?=[^;]*);$`)
+	w122Prefix    = regexp.MustCompile(`musl_strncmp\(\(char \*\)\(name\), \(char \*\)\("([^"]*)"\), \(\(usize\)(\d+)\)\)`)
+	w122Needle    = regexp.MustCompile(`musl_strstr\(\(char \*\)requested, "([^"]*)"\)`)
+	w122ReqDecl   = regexp.MustCompile(`\n[ \t]*char_u +\*requested = term;\n`)
 )
 
-// z39Mentions counts an IDENTIFIER with string literals excluded.
-func z39Mentions(text []byte, name string) int {
+// w122Mentions counts an IDENTIFIER with string literals excluded.
+func w122Mentions(text []byte, name string) int {
 	return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).
 		FindAll(cutil.Blank(text), -1))
 }
@@ -185,7 +185,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// what is left is the `default:` that was always there.
 	parser := func(s []byte) ([]byte, error) {
 		b := cutil.Blank(s)
-		sw := z39SwitchC.FindAllIndex(s, -1)
+		sw := w122SwitchC.FindAllIndex(s, -1)
 		if len(sw) != 2 {
 			return nil, p.Die("command_line_scan() holds %d `switch (c)`, and this phase is written "+
 				"against the two phase 88 left -- the letter and its argument", len(sw))
@@ -197,7 +197,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		Body := append([]byte(nil), s[o+1:c]...)
 		var labels []string
-		for _, m := range z39Label.FindAllSubmatch(Body, -1) {
+		for _, m := range w122Label.FindAllSubmatch(Body, -1) {
 			labels = append(labels, string(m[1]))
 		}
 		var letters []string
@@ -240,7 +240,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 		// want_argument can no longer be TRUE, so its block cannot run.
 		// What is in it is stated as a partition of the block's own text.
-		m := z39WantArg.FindIndex(s)
+		m := w122WantArg.FindIndex(s)
 		if m == nil {
 			return nil, p.Die("command_line_scan() has no `if (want_argument)` to fold")
 		}
@@ -258,14 +258,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, p.Die("the want_argument block does not hold the argument switch, so this " +
 				"phase has misread what it is deleting")
 		}
-		folded, err := cutil.FoldNever(s, "(?m)"+z39WantArg.String(), 1)
+		folded, err := cutil.FoldNever(s, "(?m)"+w122WantArg.String(), 1)
 		if err != nil {
 			return nil, p.Die("the want_argument block would not fold -- %v", err)
 		}
 		s = folded
-		s = z39DeclWant.ReplaceAll(s, []byte("\n"))
-		s = z39SetWant.ReplaceAll(s, []byte("\n"))
-		if z39Mentions(s, "want_argument") > 0 {
+		s = w122DeclWant.ReplaceAll(s, []byte("\n"))
+		s = w122SetWant.ReplaceAll(s, []byte("\n"))
+		if w122Mentions(s, "want_argument") > 0 {
 			return nil, p.Die("want_argument survives the fold")
 		}
 		p.Say("want_argument is FALSE for ever, so the block it guarded goes: the " +
@@ -278,7 +278,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		i := bytes.Index(s, []byte("switch (c)"))
 		o = i + bytes.IndexByte(bb[i:], '{')
 		c = cutil.Match(bb, o)
-		mm := z39OneDflt.FindSubmatchIndex(s[o+1 : c])
+		mm := w122OneDflt.FindSubmatchIndex(s[o+1 : c])
 		if mm == nil {
 			return nil, p.Die("the option switch did not reduce to one default label: %s",
 				cutil.PyRepr(string(s[o+1:c])))
@@ -291,9 +291,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		Out = append(Out, ded...)
 		Out = append(Out, s[end:]...)
 		s = Out
-		s = z39ReadC.ReplaceAll(s, []byte("\n"))
-		s = z39DeclC.ReplaceAll(s, []byte("\n"))
-		if z39Mentions(s, "c") > 0 {
+		s = w122ReadC.ReplaceAll(s, []byte("\n"))
+		s = w122DeclC.ReplaceAll(s, []byte("\n"))
+		if w122Mentions(s, "c") > 0 {
 			return nil, p.Die("`c` survives in command_line_scan()")
 		}
 		return s, nil
@@ -302,14 +302,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// collapse: the two arms do the same thing now, so the chain is one else.
 	collapse := func(s []byte) ([]byte, error) {
 		b := cutil.Blank(s)
-		m := z39DashArm.FindIndex(s)
+		m := w122DashArm.FindIndex(s)
 		if m == nil {
 			return nil, p.Die("command_line_scan() has no `-` arm left to collapse")
 		}
 		k := bytes.LastIndexByte(s[:m[0]], '\n') + 1
 		o1 := m[1] + bytes.IndexByte(b[m[1]:], '{')
 		c1 := cutil.Match(b, o1)
-		nxt := z39PlainElse.FindIndex(s[c1+1:])
+		nxt := w122PlainElse.FindIndex(s[c1+1:])
 		if nxt == nil {
 			return nil, p.Die("the `-` arm is not followed by a plain else, so collapsing it would " +
 				"change which branch runs")
@@ -350,7 +350,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- 1. the two enumerators and the two rows -------------------------
-	if k := z39Mentions(t, "mainerr_arg_missing"); k != 2 {
+	if k := w122Mentions(t, "mainerr_arg_missing"); k != 2 {
 		return nil, p.Die("mainerr_arg_missing has %d mentions after the fold, expected its "+
 			"definition and its prototype", k)
 	}
@@ -358,12 +358,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if !dropped {
 		return nil, p.Die("mainerr_arg_missing() is not defined in this file")
 	}
-	t = z39ArgProto.ReplaceAll(t2, nil)
-	if z39Mentions(t, "mainerr_arg_missing") > 0 {
+	t = w122ArgProto.ReplaceAll(t2, nil)
+	if w122Mentions(t, "mainerr_arg_missing") > 0 {
 		return nil, p.Die("mainerr_arg_missing survives its own deletion")
 	}
 
-	pairs := z39EnumPair.FindAllSubmatch(t, -1)
+	pairs := w122EnumPair.FindAllSubmatch(t, -1)
 	okOrder := len(pairs) > 0
 	for k, m := range pairs {
 		if v, _ := strconv.Atoi(string(m[2])); v != k {
@@ -384,7 +384,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	var dead []string
 	for _, n := range enumNames {
-		if z39Mentions(t, n) == 1 {
+		if w122Mentions(t, n) == 1 {
 			dead = append(dead, n)
 		}
 	}
@@ -392,8 +392,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("no ME_* enumerator lost its last use, so this phase removed nothing the " +
 			"table is indexed by and the renumbering below would be vacuous")
 	}
-	enumsLoc := z39EnumRun.FindIndex(t)
-	tableLoc := z39Table.FindSubmatchIndex(t)
+	enumsLoc := w122EnumRun.FindIndex(t)
+	tableLoc := w122Table.FindSubmatchIndex(t)
 	if tableLoc == nil {
 		return nil, p.Die("main_errors[] is not where it was")
 	}
@@ -431,7 +431,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	t = bytes.Replace(t, t[enumsLoc[0]:enumsLoc[1]], newEnum.Bytes(), 1)
-	tableLoc = z39Table.FindSubmatchIndex(t)
+	tableLoc = w122Table.FindSubmatchIndex(t)
 	t = bytes.Replace(t, t[tableLoc[0]:tableLoc[1]],
 		[]byte("static char *(main_errors[]) =\n{\n"+newRows.String()+"};\n"), 1)
 
@@ -460,12 +460,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// ---- 2. termcapinit() takes no name ----------------------------------
 	var dflt string
 	tci := func(s []byte) ([]byte, error) {
-		folded, err := cutil.FoldNever(s, "(?m)"+z39EmptyName, 1)
+		folded, err := cutil.FoldNever(s, "(?m)"+w122EmptyName, 1)
 		if err != nil {
 			return nil, p.Die("termcapinit()'s empty-name test would not fold -- %v", err)
 		}
 		s = folded
-		d := z39GivenNone.FindIndex(s)
+		d := w122GivenNone.FindIndex(s)
 		if d == nil {
 			return nil, p.Die("termcapinit() has no `given none` test, so the compiled default cannot " +
 				"be read out of it")
@@ -473,7 +473,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		b := cutil.Blank(s)
 		o := d[1] + bytes.IndexByte(b[d[1]:], '{')
 		c := cutil.Match(b, o)
-		ass := z39Assign.FindSubmatch(s[o+1 : c])
+		ass := w122Assign.FindSubmatch(s[o+1 : c])
 		if ass == nil {
 			return nil, p.Die("the compiled default is not one assignment: %s",
 				cutil.PyRepr(string(s[o+1:c])))
@@ -484,7 +484,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		Out := append([]byte(nil), s[:k]...)
 		s = append(Out, s[end:]...)
 
-		loc := z39TermDecl.FindSubmatchIndex(s)
+		loc := w122TermDecl.FindSubmatchIndex(s)
 		if loc == nil {
 			return nil, p.Die("termcapinit() does not open with `char_u *term = name;`")
 		}
@@ -499,12 +499,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	t = z39TciProto.ReplaceAll(t, []byte("static void termcapinit(void);"))
+	t = w122TciProto.ReplaceAll(t, []byte("static void termcapinit(void);"))
 	if bytes.Count(t, []byte("termcapinit(params.term);")) != 1 {
 		return nil, p.Die("termcapinit() is not called with the field this phase just removed")
 	}
 	t = bytes.ReplaceAll(t, []byte("termcapinit(params.term);"), []byte("termcapinit();"))
-	if z39Mentions(t, "name") > 0 && bytes.Contains(t, []byte("termcapinit(char_u")) {
+	if w122Mentions(t, "name") > 0 && bytes.Contains(t, []byte("termcapinit(char_u")) {
 		return nil, p.Die("termcapinit() still takes a name")
 	}
 	p.Sayf("termcapinit() takes no name -- nothing could assign the field it was handed -- "+
@@ -525,14 +525,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if oM < 0 {
 		return nil, p.Die("mparm_T's definition is not balanced")
 	}
-	mem := z39Member.FindIndex(t[oM:iM])
+	mem := w122Member.FindIndex(t[oM:iM])
 	if mem == nil {
 		return nil, p.Die("mparm_T has no `char_u *term;` member to remove")
 	}
 	Out := append([]byte(nil), t[:oM+mem[0]]...)
 	t = append(Out, t[oM+mem[1]:]...)
 	var owners []string
-	for _, m := range z39Owner.FindAllSubmatch(cutil.Blank(t), -1) {
+	for _, m := range w122Owner.FindAllSubmatch(cutil.Blank(t), -1) {
 		if !edit.ContainsStr(owners, string(m[1])) {
 			owners = append(owners, string(m[1]))
 		}
@@ -554,7 +554,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p.Sayf("mparm_T loses its `term` member, in the EDIT: every one of the %d `.term` "+
 		"mentions left belongs to another struct (%s), and deadfields.py matches by "+
 		"NAME, so that tool could never see this one dead",
-		len(z39DotTerm.FindAll(cutil.Blank(t), -1)), strings.Join(owners, " "))
+		len(w122DotTerm.FindAll(cutil.Blank(t), -1)), strings.Join(owners, " "))
 
 	// ---- 4. set_termname()'s no-screen arm cannot run --------------------
 	// THE ARGUMENT, computed in three parts before a line is cut.
@@ -563,7 +563,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 	var sites []string
-	for _, m := range z39SetTerm.FindAllIndex(cutil.Blank(t), -1) {
+	for _, m := range w122SetTerm.FindAllIndex(cutil.Blank(t), -1) {
 		at := m[0]
 		if dA <= at && at < dZ {
 			continue
@@ -574,7 +574,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		lo := bytes.LastIndex(t[:at], []byte("\n    static "))
 		who := "?"
 		if lo >= 0 {
-			if f := z39FnName.Find(t[lo:at]); f != nil {
+			if f := w122FnName.Find(t[lo:at]); f != nil {
 				who = strings.TrimSpace(string(f))
 			}
 		}
@@ -595,10 +595,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	tabStart := bytes.Index(t, []byte("static builtin_tcap_T builtin_terminals[] =\n{"))
 	tabEnd := tabStart + bytes.Index(t[tabStart:], []byte("\n};"))
 	var tabRows []string
-	for _, m := range z39Row.FindAllSubmatch(t[tabStart:tabEnd], -1) {
+	for _, m := range w122Row.FindAllSubmatch(t[tabStart:tabEnd], -1) {
 		tabRows = append(tabRows, string(m[1]))
 	}
-	dn := z39FirstLit.FindStringSubmatch(dflt)
+	dn := w122FirstLit.FindStringSubmatch(dflt)
 	if dn == nil || !edit.ContainsStr(tabRows, dn[1]) {
 		name := ""
 		if dn != nil {
@@ -609,7 +609,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	defaultName := dn[1]
 	var assigns []string
-	for _, m := range z39Starting.FindAllSubmatch(t, -1) {
+	for _, m := range w122Starting.FindAllSubmatch(t, -1) {
 		v := strings.TrimSpace(string(m[1]))
 		if !edit.ContainsStr(assigns, v) {
 			assigns = append(assigns, v)
@@ -629,7 +629,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	var tail string
 	stn := func(s []byte) ([]byte, error) {
 		b := cutil.Blank(s)
-		m := z39TermpNull.FindIndex(s)
+		m := w122TermpNull.FindIndex(s)
 		if m == nil {
 			return nil, p.Die("set_termname() has no `termp == nullptr` arm")
 		}
@@ -639,7 +639,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, p.Die("the refusal arm is not balanced")
 		}
 		pad := s[bytes.LastIndexByte(s[:c], '\n')+1 : c]
-		Inner, err := cutil.FoldAlways(s[o+1:c], "(?m)"+z39NoScreen, 1)
+		Inner, err := cutil.FoldAlways(s[o+1:c], "(?m)"+w122NoScreen, 1)
 		if err != nil {
 			return nil, p.Die("the no-screen test would not fold -- %v", err)
 		}
@@ -669,7 +669,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"and goes: %s", strings.Join(strings.Fields(tail), " "))
 
 	// The name the fallback promised, read Out of the text just deleted.
-	nm := z39FirstLit.FindStringSubmatch(tail)
+	nm := w122FirstLit.FindStringSubmatch(tail)
 	if nm == nil || !edit.ContainsStr(tabRows, nm[1]) {
 		return nil, p.Die("the deleted fallback does not name a row of builtin_terminals[], so the " +
 			"message below cannot be kept in step with it")
@@ -708,12 +708,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- 5. `requested` is `term` for the one test that reads it ---------
 	requested := func(s []byte) ([]byte, error) {
-		if k := len(z39Requested.FindAll(cutil.Blank(s), -1)); k != 2 {
+		if k := len(w122Requested.FindAll(cutil.Blank(s), -1)); k != 2 {
 			return nil, p.Die("`requested` has %d mentions in set_termname(), and this phase is "+
 				"written against two -- its declaration and the 256-colour test", k)
 		}
 		var rew []string
-		for _, m := range z39TermRewr.FindAllSubmatch(s, -1) {
+		for _, m := range w122TermRewr.FindAllSubmatch(s, -1) {
 			v := strings.TrimSpace(string(m[1]))
 			if !edit.ContainsStr(rew, v) {
 				rew = append(rew, v)
@@ -732,7 +732,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		pre := z39Prefix.FindSubmatch(t[bA:bZ])
+		pre := w122Prefix.FindSubmatch(t[bA:bZ])
 		if pre == nil {
 			return nil, p.Die("term_is_builtin() does not strip a counted literal prefix, so what " +
 				"`term += 8` skips cannot be read off the file")
@@ -741,7 +741,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, p.Die("term_is_builtin() does not strip a counted literal prefix, so what " +
 				"`term += 8` skips cannot be read off the file")
 		}
-		nd := z39Needle.FindSubmatch(s)
+		nd := w122Needle.FindSubmatch(s)
 		if nd == nil {
 			return nil, p.Die("the 256-colour test is not a musl_strstr on `requested`")
 		}
@@ -754,7 +754,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			[]byte(`musl_strstr((char *)requested, "`+string(nd[1])+`")`),
 			[]byte(`musl_strstr((char *)term, "`+string(nd[1])+`")`))
 		before := len(s)
-		s = z39ReqDecl.ReplaceAll(s, []byte("\n"))
+		s = w122ReqDecl.ReplaceAll(s, []byte("\n"))
 		if len(s) == before {
 			return nil, p.Die("`requested` is not declared as `= term`")
 		}
@@ -780,17 +780,17 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	goneNames := []string{"want_argument", "mainerr_arg_missing", "ME_GARBAGE",
 		"ME_ARG_MISSING", "requested"}
 	for _, name := range goneNames {
-		if k := z39Mentions(t, name); k != 0 {
+		if k := w122Mentions(t, name); k != 0 {
 			return nil, p.Die("%s still has %d mentions", name, k)
 		}
 	}
 	for _, name := range []string{"ME_UNKNOWN_OPTION", "ME_EXTRA_CMD", "MAX_ARG_CMDS",
 		"exe_commands", "p_paste", "did_set_term", "report_term_error"} {
-		if z39Mentions(t, name) == 0 {
+		if w122Mentions(t, name) == 0 {
 			return nil, p.Die("%s went, and it is not this phase's", name)
 		}
 	}
-	if k := z39Mentions(t, "report_default_term"); k != 1 {
+	if k := w122Mentions(t, "report_default_term"); k != 1 {
 		return nil, p.Die("report_default_term has %d mentions, and this phase leaves it at one -- "+
 			"its own definition, which is what the sweep takes", k)
 	}

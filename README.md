@@ -120,9 +120,9 @@ and a phase that refuses stops the pass with its own report.
 ```
 cmd/whimtools/   the one binary every tool runs as: whimtools <subcommand>
 internal/        the cutters, the sweep, the canonicalisers, the harnesses,
-                 one check per phase (internal/check/), and ccx: what the
-                 core's C leaves a translation to decide -- pointer casts,
-                 evaluation order -- partitioned
+                 what every phase check is written against (internal/check/),
+                 and ccx: what the core's C leaves a translation to decide --
+                 pointer casts, evaluation order -- partitioned
 phase/NNN/       a phase, and a Go package: edit.go, check.go, GOAL.md, delta.md
 phase/STAGES.md     the record the stages were read from: need, apart, the packages
 tools/           the instruments a check runs, and the wrappers around whimtools

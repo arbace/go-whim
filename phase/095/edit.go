@@ -126,14 +126,14 @@ func init() {
 }
 
 var (
-	z12OptRow = regexp.MustCompile(`(?m)^[ \t]*\{"([a-z]+)",`)
-	z12Var    = regexp.MustCompile(`\(char_u \*\)&(\w+)`)
-	z12PV     = regexp.MustCompile(`PV_\w+`)
-	z12Call   = regexp.MustCompile(`(?m)^[ \t]*change_warning\([^;]*\);\n`)
-	z12Glob   = regexp.MustCompile(`&(p_[a-z0-9_]+)\b`)
+	w95OptRow = regexp.MustCompile(`(?m)^[ \t]*\{"([a-z]+)",`)
+	w95Var    = regexp.MustCompile(`\(char_u \*\)&(\w+)`)
+	w95PV     = regexp.MustCompile(`PV_\w+`)
+	w95Call   = regexp.MustCompile(`(?m)^[ \t]*change_warning\([^;]*\);\n`)
+	w95Glob   = regexp.MustCompile(`&(p_[a-z0-9_]+)\b`)
 )
 
-var z12Before = map[string]int{
+var w95Before = map[string]int{
 	"change_warning": 7, "did_set_readonly": 3,
 	"b_p_ro": 10, "b_p_fs": 7, "b_did_warn": 4,
 	"p_ro": 2, "p_fs": 2, "p_ur": 2, "p_write": 2, "p_wa": 2, "p_prompt": 2,
@@ -143,29 +143,29 @@ var z12Before = map[string]int{
 	"vim_fsync": 3, "scriptin": 8, "redir_fd": 6,
 }
 
-var z12After = map[string]int{
+var w95After = map[string]int{
 	"b_p_ro": 0, "b_p_fs": 0, "change_warning": 0, "did_set_readonly": 0,
 	"p_ro": 1, "p_fs": 1, "p_ur": 1, "p_write": 1, "p_wa": 1, "p_prompt": 1,
 	"b_did_warn": 1, "p_mod": 2, "did_set_modified": 3, "p_paste": 12,
 	"read_cmd_fd": 12, "vim_fsync": 3, "scriptin": 8, "redir_fd": 6,
 }
 
-// z12Want is the set of rows with no reader of their own global, and the six
+// w95Want is the set of rows with no reader of their own global, and the six
 // this phase drops are a CHOSEN SUBSET of it: 'modified' stays, because the
 // state it reports lives in b_changed and not in p_mod.
-var z12Want = map[string]string{
+var w95Want = map[string]string{
 	"fsync": "PV_BOTH", "modified": "PV_BUF", "prompt": "PV_NONE",
 	"readonly": "PV_BUF", "undoreload": "PV_NONE", "write": "PV_NONE",
 	"writeany": "PV_NONE",
 }
 
-var z12Nopaste = []string{"p_ai_nopaste", "p_et_nopaste", "p_sts_nopaste",
+var w95Nopaste = []string{"p_ai_nopaste", "p_et_nopaste", "p_sts_nopaste",
 	"p_tw_nopaste", "p_wm_nopaste"}
 
 func init() {
-	for _, n := range z12Nopaste {
-		z12Before[n] = 4
-		z12After[n] = 4
+	for _, n := range w95Nopaste {
+		w95Before[n] = 4
+		w95After[n] = 4
 	}
 }
 
@@ -181,17 +181,17 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		k := strings.Count(string(t), old)
 		if k != n {
 			return nil, p.Die("%s -- the text occurs %d times, expected %d: %s",
-				what, k, n, cutil.PyRepr(edit.ZHead(old, 70)))
+				what, k, n, cutil.PyRepr(edit.CoreHead(old, 70)))
 		}
 		p.Say(what)
 		return []byte(strings.ReplaceAll(string(t), old, new)), nil
 	}
 
 	// ---- 0. the shape every anchor below was counted against ------------------
-	for _, name := range edit.SortedKeys(z12Before) {
-		if k := mentions(text, name); k != z12Before[name] {
+	for _, name := range edit.SortedKeys(w95Before) {
+		if k := mentions(text, name); k != w95Before[name] {
 			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
-				"against a different file", name, k, z12Before[name])
+				"against a different file", name, k, w95Before[name])
 		}
 	}
 	p.Say("change_warning 7 (a definition and six calls, and no prototype), " +
@@ -213,7 +213,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		start, end int
 	}
 	var rows []row
-	for _, m := range z12OptRow.FindAllStringSubmatchIndex(t[i:j], -1) {
+	for _, m := range w95OptRow.FindAllStringSubmatchIndex(t[i:j], -1) {
 		start := i + m[0]
 		end := cutil.Match(b, strings.Index(t[start:], "{")+start)
 		if end < 0 {
@@ -227,7 +227,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	got := map[string]string{}
 	for _, r := range rows {
-		vm := z12Var.FindStringSubmatch(t[r.start:r.end])
+		vm := w95Var.FindStringSubmatch(t[r.start:r.end])
 		if vm == nil {
 			continue // a row with no global of its own
 		}
@@ -242,7 +242,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				continue
 			}
 			line := t[strings.LastIndex(t[:o], "\n")+1 : strings.Index(t[o:], "\n")+o]
-			if z12IsRow(line) || z12IsAmp(line) || selfDecl.MatchString(line) {
+			if w95IsRow(line) || w95IsAmp(line) || selfDecl.MatchString(line) {
 				continue
 			}
 			if !word.MatchString(amp.ReplaceAllString(line, "")) {
@@ -253,16 +253,16 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		if !read {
 			pv := "PV_NONE"
-			if m := z12PV.FindString(t[r.start:r.end]); m != "" {
+			if m := w95PV.FindString(t[r.start:r.end]); m != "" {
 				pv = m
 			}
 			got[r.Name] = pv
 		}
 	}
-	if !z12SameMap(got, z12Want) {
+	if !w95SameMap(got, w95Want) {
 		return nil, p.Die("the rows with no reader are %s, expected exactly %s -- the six this phase "+
 			"drops are a chosen subset of that computed set, so a different set means "+
-			"the choice was made against a different file", z12Fmt(got), z12Fmt(z12Want))
+			"the choice was made against a different file", w95Fmt(got), w95Fmt(w95Want))
 	}
 	p.Say("seven of the 114 rows have no reader of their own global, computed with " +
 		"dropoptions --strict's own test: fsync modified prompt readonly undoreload " +
@@ -276,7 +276,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("'paste' came out of the computation with no reader, and it is EXEMPT FOR " +
 			"EVER (GOALS.md II.2d): nothing in this pipeline may drop it")
 	}
-	if _, a := z12Want["paste"]; a {
+	if _, a := w95Want["paste"]; a {
 		return nil, p.Die("'paste' came out of the computation with no reader, and it is EXEMPT FOR " +
 			"EVER (GOALS.md II.2d): nothing in this pipeline may drop it")
 	}
@@ -286,10 +286,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"here and afterwards, identically")
 
 	// ---- C1. the W10 warning --------------------------------------------------
-	if k := len(z12Call.FindAllString(t, -1)); k != 6 {
+	if k := len(w95Call.FindAllString(t, -1)); k != 6 {
 		return nil, p.Die("change_warning has %d call sites, expected 6", k)
 	}
-	text = z12Call.ReplaceAll([]byte(t), nil)
+	text = w95Call.ReplaceAll([]byte(t), nil)
 	var removed bool
 	if text, removed = cutil.DeleteDefinition(text, "change_warning"); !removed {
 		return nil, p.Die("change_warning has no definition to remove")
@@ -315,10 +315,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		// ---- C3. the [RO] on the status line
 		{` || wp->w_buffer->b_p_ro) && plen < PATH_MAX - 1)`, `) && plen < PATH_MAX - 1)`,
 			"win_redr_status: the name-padding test's `|| b_p_ro` disjunct"},
-		{z12lit2, "", "and the block that appended [RO] to it -- nothing else reaches that " +
+		{w95lit2, "", "and the block that appended [RO] to it -- nothing else reaches that " +
 			"indicator"},
 		// ---- C4. did_set_readonly, by name and with the reason
-		{z12lit3, "", "did_set_readonly's prototype"},
+		{w95lit3, "", "did_set_readonly's prototype"},
 	} {
 		if text, err = textEdit(text, e.Old, e.New, e.What, 1); err != nil {
 			return nil, err
@@ -350,20 +350,20 @@ func Whim95Rows(text []byte, w io.Writer) ([]byte, error) {
 	mentions := func(name string) int {
 		return len(regexp.MustCompile(`\b`+name+`\b`).FindAll(text, -1))
 	}
-	for _, name := range edit.SortedKeys(z12After) {
-		if k := mentions(name); k != z12After[name] {
-			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, z12After[name])
+	for _, name := range edit.SortedKeys(w95After) {
+		if k := mentions(name); k != w95After[name] {
+			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, w95After[name])
 		}
 	}
 	t := string(text)
 	i := strings.Index(t, "static struct vimoption options[]")
 	j := strings.Index(t[i:], "\n};") + i
 	var rows []string
-	for _, m := range z12OptRow.FindAllStringSubmatch(t[i:j], -1) {
+	for _, m := range w95OptRow.FindAllStringSubmatch(t[i:j], -1) {
 		rows = append(rows, m[1])
 	}
 	globals := map[string]bool{}
-	for _, m := range z12Glob.FindAllStringSubmatch(t[i:j], -1) {
+	for _, m := range w95Glob.FindAllStringSubmatch(t[i:j], -1) {
 		globals[m[1]] = true
 	}
 	if len(rows) != 108 || len(globals) != 96 {
@@ -386,14 +386,14 @@ func Whim95Rows(text []byte, w io.Writer) ([]byte, error) {
 }
 
 var (
-	z12RowHead = regexp.MustCompile(`^[ \t]*\{"`)
-	z12AmpHead = regexp.MustCompile(`^[ \t]*\(char_u \*\)&`)
+	w95RowHead = regexp.MustCompile(`^[ \t]*\{"`)
+	w95AmpHead = regexp.MustCompile(`^[ \t]*\(char_u \*\)&`)
 )
 
-func z12IsRow(line string) bool { return z12RowHead.MatchString(line) }
-func z12IsAmp(line string) bool { return z12AmpHead.MatchString(line) }
+func w95IsRow(line string) bool { return w95RowHead.MatchString(line) }
+func w95IsAmp(line string) bool { return w95AmpHead.MatchString(line) }
 
-func z12SameMap(a, b map[string]string) bool {
+func w95SameMap(a, b map[string]string) bool {
 	if len(a) != len(b) {
 		return false
 	}
@@ -405,8 +405,8 @@ func z12SameMap(a, b map[string]string) bool {
 	return true
 }
 
-// z12Fmt is Python's `' '.join('%s(%s)' % kv for kv in sorted(d.items()))`.
-func z12Fmt(m map[string]string) string {
+// w95Fmt is Python's `' '.join('%s(%s)' % kv for kv in sorted(d.items()))`.
+func w95Fmt(m map[string]string) string {
 	keys := make([]string, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)

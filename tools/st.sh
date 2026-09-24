@@ -10,8 +10,8 @@
 #
 # It costs nothing: the builder warm is 16 ms.
 #
-# The two wrappers beside it, tools/sweep.sh and tools/canon.sh, are the same
-# thing for the two subcommands run most often.
+# Its sibling tools/sweep.sh is the same thing for the subcommand run most
+# often.  The canonicalisers are `tools/st.sh canon FILE [--once]`.
 set -eu
 
 [ $# -gt 0 ] || { echo "usage: tools/st.sh <subcommand> [args]" >&2; exit 2; }

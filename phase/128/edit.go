@@ -120,29 +120,29 @@ import (
 
 func init() { edit.RegisterArgs("whim128", Edit) }
 
-// z45Fanout is the fanout, and it is a LITERAL rather than a computation: the
+// w128Fanout is the fanout, and it is a LITERAL rather than a computation: the
 // corpus's root-split coverage is measured against the number the input gives,
 // and a later phase that narrowed PTR_EN would take the root split Out of the
 // corpus without moving one record.  The input computes it and the output
 // asserts it -- and the file gains a static_assert that fails to COMPILE.
-const z45Fanout = 255
+const w128Fanout = 255
 
-// z45Gone are the names the fold removes; z45ForSweep the two the EDIT leaves at
+// w128Gone are the names the fold removes; w128ForSweep the two the EDIT leaves at
 // exactly one mention -- their own definition -- for the SWEEP to take, stated
 // here so that a sweep which took something else, or nothing, fails in the check.
-var z45Gone = []string{"bh_next", "bh_prev", "bh_data", "bh_flags",
+var w128Gone = []string{"bh_next", "bh_prev", "bh_data", "bh_flags",
 	"mf_used_first", "mf_page_size", "memfile", "memfile_T", "ml_mfp",
 	"pb_id", "db_id", "pb_count_max", "MEMFILE_PAGE_SIZE",
 	"mf_open", "mf_close", "mf_new", "mf_get", "mf_put", "mf_free",
 	"mf_ins_used", "mf_rem_used", "mf_alloc_bhdr", "mf_free_bhdr",
 	"mfp", "page_count", "page_size"}
 
-var z45ForSweep = []string{"BH_LOCKED", "e_block_was_not_locked"}
+var w128ForSweep = []string{"BH_LOCKED", "e_block_was_not_locked"}
 
-// z45Homes: the ten mf_* functions and the eleven memline ones are this phase's
+// w128Homes: the ten mf_* functions and the eleven memline ones are this phase's
 // whole subject; the seven others are the places that ask whether a buffer has a
 // memline at all, which is the one question ml_mfp answered for anybody else.
-var z45Homes = []string{"<file scope>",
+var w128Homes = []string{"<file scope>",
 	"mf_open", "mf_close", "mf_new", "mf_get", "mf_put", "mf_free",
 	"mf_ins_used", "mf_rem_used", "mf_alloc_bhdr", "mf_free_bhdr",
 	"ml_open", "ml_close", "ml_get_buf", "ml_append_int", "ml_delete_int",
@@ -153,13 +153,13 @@ var z45Homes = []string{"<file scope>",
 	"get_nolist_virtcol", "getout", "open_buffer"}
 
 var (
-	z45PageSize = regexp.MustCompile(`enum \{ MEMFILE_PAGE_SIZE = (\d+) \};`)
-	z45MfGet    = regexp.MustCompile(`^(\s*)if \(\(hp = mf_get\(mfp, ([a-z>_.\[\]-]+)\)\) == nullptr\)$`)
-	z45BhData   = regexp.MustCompile(`\(([A-Za-z_][A-Za-z0-9_]*) \*\)\(([A-Za-z_][A-Za-z0-9_]*)->bh_data\)`)
-	z45Ids      = regexp.MustCompile(`\b(pb_id|db_id)\b`)
-	z45IdRef    = regexp.MustCompile(`\b[A-Za-z_][A-Za-z0-9_]*->(?:pb_id|db_id)\b`)
-	z45MlMfp    = regexp.MustCompile(`\bml_mfp\b`)
-	z45BlankRun = regexp.MustCompile(`\n\n\n`)
+	w128PageSize = regexp.MustCompile(`enum \{ MEMFILE_PAGE_SIZE = (\d+) \};`)
+	w128MfGet    = regexp.MustCompile(`^(\s*)if \(\(hp = mf_get\(mfp, ([a-z>_.\[\]-]+)\)\) == nullptr\)$`)
+	w128BhData   = regexp.MustCompile(`\(([A-Za-z_][A-Za-z0-9_]*) \*\)\(([A-Za-z_][A-Za-z0-9_]*)->bh_data\)`)
+	w128Ids      = regexp.MustCompile(`\b(pb_id|db_id)\b`)
+	w128IdRef    = regexp.MustCompile(`\b[A-Za-z_][A-Za-z0-9_]*->(?:pb_id|db_id)\b`)
+	w128MlMfp    = regexp.MustCompile(`\bml_mfp\b`)
+	w128BlankRun = regexp.MustCompile(`\n\n\n`)
 )
 
 // Whim128 folds the node types: `bhdr_T` becomes `struct block_hdr { short_u
@@ -225,7 +225,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 		if len(hits) != 1 {
 			return 0, die("%s matches %d lines where this edit needs exactly one",
-				edit.Z43PyRepr(pat), len(hits))
+				edit.W126PyRepr(pat), len(hits))
 		}
 		return hits[0], nil
 	}
@@ -267,7 +267,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			if ls[j] == "}" {
 				return "<file scope>"
 			}
-			m := edit.Z44FnHead.FindStringSubmatch(ls[j])
+			m := edit.W127FnHead.FindStringSubmatch(ls[j])
 			if m != nil && j > 0 && strings.HasPrefix(strings.TrimLeft(ls[j-1], " \t"), "static") {
 				return m[1]
 			}
@@ -294,7 +294,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 	structOf := func(name string) (int, int, []string) {
-		a := edit.Z44Index(lines, "struct "+name)
+		a := edit.W127Index(lines, "struct "+name)
 		b := a
 		for lines[b] != "};" {
 			b++
@@ -312,17 +312,17 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		if b+1 < len(lines) && strings.TrimSpace(lines[b+1]) == "" {
 			b++
 		}
-		lines = edit.Z44Splice(lines, a, b+1, nil)
+		lines = edit.W127Splice(lines, a, b+1, nil)
 		if a > 0 && a < len(lines) && strings.TrimSpace(lines[a-1]) == "" &&
 			strings.TrimSpace(lines[a]) == "" {
-			lines = edit.Z44Splice(lines, a, a+1, nil)
+			lines = edit.W127Splice(lines, a, a+1, nil)
 		}
 	}
 
 	// --- the partition, before anything is changed ---------------------------
 	before := map[string]int{}
 	var strays []string
-	for _, name := range append(append([]string{}, z45Gone...), z45ForSweep...) {
+	for _, name := range append(append([]string{}, w128Gone...), w128ForSweep...) {
 		re := regexp.MustCompile(`\b` + name + `\b`)
 		var hits []int
 		for i, l := range lines {
@@ -338,7 +338,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		// two mentions on one line, and the check re-reads the count the same way.
 		before[name] = mentions(t0, name)
 		for _, i := range hits {
-			if !edit.Contains(z45Homes, enclosing(i)) {
+			if !edit.Contains(w128Homes, enclosing(i)) {
 				strays = append(strays, fmt.Sprintf("%s in %s (line %d)", name, enclosing(i), i+1))
 			}
 		}
@@ -348,16 +348,16 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			strings.Join(edit.First(strays, 5), "; "))
 	}
 	sum := 0
-	for _, n := range z45Gone {
+	for _, n := range w128Gone {
 		sum += before[n]
 	}
 	say("the input mentions %s -- %d times between them -- and every mention is in file "+
 		"scope, in one of the ten mf_* functions, in one of the eleven memline functions, "+
 		"or in one of the seven that ask whether a buffer has a memline",
-		strings.Join(z45Gone, ", "), sum)
+		strings.Join(w128Gone, ", "), sum)
 
 	// The fanout, read off the INPUT rather than written here.
-	pm := z45PageSize.FindStringSubmatch(t0)
+	pm := w128PageSize.FindStringSubmatch(t0)
 	if pm == nil {
 		return nil, die("the input has no MEMFILE_PAGE_SIZE enumerator")
 	}
@@ -372,13 +372,13 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, die("struct pointer_block is not the page of entries this phase counts: %s",
 			strings.Join(pbm, " "))
 	}
-	if (page-8)/16 != z45Fanout {
+	if (page-8)/16 != w128Fanout {
 		return nil, die("the input computes a fanout of %d and this phase fixes it at %d; the corpus's "+
-			"root-split coverage is measured against the first number", (page-8)/16, z45Fanout)
+			"root-split coverage is measured against the first number", (page-8)/16, w128Fanout)
 	}
 	say("the input's fanout is (%d - 8) / 16 = %d, and that is the number this phase "+
 		"fixes: phase 123 reaches a ROOT SPLIT in one of sixteen cases because that "+
-		"case builds more data blocks than this", page, z45Fanout)
+		"case builds more data blocks than this", page, w128Fanout)
 
 	// --- 1. struct block_hdr becomes the node's tag, and nothing else --------
 	a, b, members := structOf("block_hdr")
@@ -387,7 +387,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, die("struct block_hdr is not the four-member page header this phase folds: %s",
 			strings.Join(members, " "))
 	}
-	lines = edit.Z44Splice(lines, a, b+1, z45b0)
+	lines = edit.W127Splice(lines, a, b+1, w128b0)
 
 	// --- 2. struct memfile has nothing left to hold --------------------------
 	a, b, members = structOf("memfile")
@@ -398,19 +398,19 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	cut(a, b)
 	// The alignment is phase 126's: this typedef is text THAT phase writes, not
 	// text phase 0 printed, so it is read here as phase 126 spells it.
-	i := edit.Z44Index(lines, "typedef struct memfile      memfile_T;")
-	lines = edit.Z44Splice(lines, i, i+1, nil)
+	i := edit.W127Index(lines, "typedef struct memfile      memfile_T;")
+	lines = edit.W127Splice(lines, i, i+1, nil)
 
 	// --- 3. memline_T loses its handle on one --------------------------------
-	i = edit.Z44Index(lines, "    memfile_T   *ml_mfp;")
+	i = edit.W127Index(lines, "    memfile_T   *ml_mfp;")
 	if lines[i+1] != "    bhdr_T      *ml_root;" {
 		return nil, die("ml_mfp is not the line above ml_root, so the memline is not the one this " +
 			"edit reads")
 	}
-	lines = edit.Z44Splice(lines, i, i+1, nil)
+	lines = edit.W127Splice(lines, i, i+1, nil)
 
 	// --- 4. the memfile layer itself -----------------------------------------
-	i = edit.Z44Index(lines, fmt.Sprintf("enum { MEMFILE_PAGE_SIZE = %d };", page))
+	i = edit.W127Index(lines, fmt.Sprintf("enum { MEMFILE_PAGE_SIZE = %d };", page))
 	if lines[i+2] != "static void mf_ins_used(memfile_T *, bhdr_T *);" {
 		return nil, die("the memfile block does not start where this edit expects")
 	}
@@ -447,7 +447,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// --- 5. a branch is a counted array of entries and not a page ------------
 	a, b, _ = structOf("pointer_block")
-	lines = edit.Z44Splice(lines, a, b+1, z45b1)
+	lines = edit.W127Splice(lines, a, b+1, w128b1)
 
 	a, b, members = structOf("data_block")
 	tails = nil
@@ -459,15 +459,15 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, die("struct data_block is not the leaf phase 127 left: %s",
 			strings.Join(members, " "))
 	}
-	lines[a+2] = z45s0
+	lines[a+2] = w128s0
 
 	i, err := one(0, len(lines)-1, `^static_assert\(sizeof\(DATA_BL\) <= MEMFILE_PAGE_SIZE,`)
 	if err != nil {
 		return nil, err
 	}
-	asserts := append([]string{}, z45b2...)
+	asserts := append([]string{}, w128b2...)
 	asserts[1] = fmt.Sprintf(asserts[1], page)
-	lines = edit.Z44Splice(lines, i, i+1, asserts)
+	lines = edit.W127Splice(lines, i, i+1, asserts)
 
 	// --- 6. the two constructors allocate a node at its own size -------------
 	// The id constants are CARRIED Out of the definitions being replaced and
@@ -494,7 +494,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	if !strings.Contains(da, "<< 8") || !strings.Contains(pt, "<< 8") || da == pt {
 		return nil, die("the two block ids are not the two distinct constants this edit carries: "+
-			"%s and %s", edit.Z43PyRepr(da), edit.Z43PyRepr(pt))
+			"%s and %s", edit.W126PyRepr(da), edit.W126PyRepr(pt))
 	}
 	fill := func(rows []string) []string {
 		Out := make([]string, len(rows))
@@ -508,27 +508,27 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return Out
 	}
 
-	i = edit.Z44Index(lines, "static bhdr_T *ml_new_data(memfile_T *);")
-	lines[i] = z45s1
-	i = edit.Z44Index(lines, "static bhdr_T *ml_new_ptr(memfile_T *);")
-	lines[i] = z45s2
+	i = edit.W127Index(lines, "static bhdr_T *ml_new_data(memfile_T *);")
+	lines[i] = w128s1
+	i = edit.W127Index(lines, "static bhdr_T *ml_new_ptr(memfile_T *);")
+	lines[i] = w128s2
 
 	aa, bb, err := defn(`^ml_new_data\(memfile_T \*mfp\)$`)
 	if err != nil {
 		return nil, err
 	}
-	lines = edit.Z44Splice(lines, aa, bb+1, fill(z45b3))
+	lines = edit.W127Splice(lines, aa, bb+1, fill(w128b3))
 	if aa, bb, err = defn(`^ml_new_ptr\(memfile_T \*mfp\)$`); err != nil {
 		return nil, err
 	}
-	lines = edit.Z44Splice(lines, aa, bb+1, fill(z45b4))
+	lines = edit.W127Splice(lines, aa, bb+1, fill(w128b4))
 
 	// --- 7. a closed buffer gives its nodes back by walking the tree ---------
 	lo, _, err := fn("ml_alloc_line")
 	if err != nil {
 		return nil, err
 	}
-	lines = edit.Z44Splice(lines, lo, lo, fill(z45b5))
+	lines = edit.W127Splice(lines, lo, lo, fill(w128b5))
 
 	// --- 8. ml_open opens nothing --------------------------------------------
 	lo, hi, err := fn("ml_open")
@@ -546,7 +546,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if lines[c] != "    buf->b_ml.ml_mfp = mfp;" {
 		return nil, die("mf_open is not followed by its failure arm and the assignment to ml_mfp")
 	}
-	lines = edit.Z44Splice(lines, a, c+1, nil)
+	lines = edit.W127Splice(lines, a, c+1, nil)
 
 	if lo, hi, err = fn("ml_open"); err != nil {
 		return nil, err
@@ -554,15 +554,15 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if i, err = one(lo, hi, `^    if \(\(hp = ml_new_ptr\(mfp\)\) == nullptr\)$`); err != nil {
 		return nil, err
 	}
-	lines[i] = z45s3
+	lines[i] = w128s3
 	if i, err = one(lo, hi, `^    pp = \(PTR_BL \*\)\(hp->bh_data\);$`); err != nil {
 		return nil, err
 	}
-	lines[i] = z45s4
+	lines[i] = w128s4
 	if i, err = one(lo, hi, `^    mf_put\(hp\);$`); err != nil {
 		return nil, err
 	}
-	lines = edit.Z44Splice(lines, i, i+1, nil)
+	lines = edit.W127Splice(lines, i, i+1, nil)
 
 	if lo, hi, err = fn("ml_open"); err != nil {
 		return nil, err
@@ -570,7 +570,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if i, err = one(lo, hi, `^    if \(\(hp = ml_new_data\(mfp\)\) == nullptr\)$`); err != nil {
 		return nil, err
 	}
-	lines[i] = z45s5
+	lines[i] = w128s5
 	if i, err = one(lo, hi, `->pb_pointer\[0\]\.pe_block = hp;$`); err != nil {
 		return nil, err
 	}
@@ -578,7 +578,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if i, err = one(lo, hi, `^    dp = \(DATA_BL \*\)\(hp->bh_data\);$`); err != nil {
 		return nil, err
 	}
-	lines[i] = z45s6
+	lines[i] = w128s6
 
 	if lo, hi, err = fn("ml_open"); err != nil {
 		return nil, err
@@ -589,7 +589,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if b, err = one(lo, hi, `^    buf->b_ml\.ml_mfp = nullptr;$`); err != nil {
 		return nil, err
 	}
-	lines = edit.Z44Splice(lines, a, b+1, z45b6)
+	lines = edit.W127Splice(lines, a, b+1, w128b6)
 
 	// --- 9. ml_close frees the tree it has ------------------------------------
 	if lo, hi, err = fn("ml_close"); err != nil {
@@ -598,15 +598,15 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if i, err = one(lo, hi, `^    if \(buf->b_ml\.ml_mfp == nullptr\)$`); err != nil {
 		return nil, err
 	}
-	lines[i] = z45s7
+	lines[i] = w128s7
 	if i, err = one(lo, hi, `^    mf_close\(buf->b_ml\.ml_mfp, del_file\);$`); err != nil {
 		return nil, err
 	}
-	lines[i] = z45s8
+	lines[i] = w128s8
 	if i, err = one(lo, hi, `^    buf->b_ml\.ml_mfp = nullptr;$`); err != nil {
 		return nil, err
 	}
-	lines[i] = z45s9
+	lines[i] = w128s9
 
 	// --- 10. the three functions that took a handle on the memfile -----------
 	if lo, hi, err = fn("ml_append_int"); err != nil {
@@ -618,9 +618,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if !regexp.MustCompile(`^    page_size = mfp->mf_page_size;$`).MatchString(lines[i+1]) {
 		return nil, die("the page size is not read where this edit expects")
 	}
-	lines = edit.Z44Splice(lines, i, i+2, nil)
+	lines = edit.W127Splice(lines, i, i+2, nil)
 	if strings.TrimSpace(lines[i-1]) == "" && strings.TrimSpace(lines[i]) == "" {
-		lines = edit.Z44Splice(lines, i, i+1, nil)
+		lines = edit.W127Splice(lines, i, i+1, nil)
 	}
 
 	if lo, hi, err = fn("ml_delete_int"); err != nil {
@@ -633,7 +633,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if !strings.Contains(strings.Join(lines[i:b+1], "\n"), "return FAIL") {
 		return nil, die("the memfile null test in ml_delete_int is not the arm this edit rewrites")
 	}
-	lines = edit.Z44Splice(lines, i, b+1, z45b7)
+	lines = edit.W127Splice(lines, i, b+1, w128b7)
 
 	if lo, hi, err = fn("ml_find_line"); err != nil {
 		return nil, err
@@ -643,26 +643,26 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	// The statement alone: the canonical text writes no blank line inside a
 	// function, so there is none under it to take.
-	lines = edit.Z44Splice(lines, i, i+1, nil)
+	lines = edit.W127Splice(lines, i, i+1, nil)
 
 	// --- 11. everywhere else, ml_mfp was the question "is this buffer loaded"
 	for i, l := range lines {
-		if z45MlMfp.MatchString(l) {
-			lines[i] = z45MlMfp.ReplaceAllString(l, "ml_root")
+		if w128MlMfp.MatchString(l) {
+			lines[i] = w128MlMfp.ReplaceAllString(l, "ml_root")
 		}
 	}
 
 	// --- 12. a node is reached without its header ----------------------------
 	for i, l := range lines {
 		if strings.Contains(l, "->bh_data") {
-			lines[i] = z45BhData.ReplaceAllString(l, "($1 *)($2)")
+			lines[i] = w128BhData.ReplaceAllString(l, "($1 *)($2)")
 		}
 	}
 
 	// --- 13. one tag, in the node --------------------------------------------
 	for i, l := range lines {
-		if z45Ids.MatchString(l) {
-			lines[i] = z45IdRef.ReplaceAllString(l, "hp->bh_id")
+		if w128Ids.MatchString(l) {
+			lines[i] = w128IdRef.ReplaceAllString(l, "hp->bh_id")
 		}
 	}
 
@@ -678,10 +678,10 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 				break
 			}
 			i = hits[0]
-			lines = edit.Z44Splice(lines, i, i+1, nil)
+			lines = edit.W127Splice(lines, i, i+1, nil)
 			if i > 0 && i < len(lines) && strings.TrimSpace(lines[i-1]) == "" &&
 				strings.TrimSpace(lines[i]) == "" {
-				lines = edit.Z44Splice(lines, i, i+1, nil)
+				lines = edit.W127Splice(lines, i, i+1, nil)
 			}
 		}
 	}
@@ -699,11 +699,11 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			break
 		}
 		i = hits[0]
-		m := z45MfGet.FindStringSubmatch(lines[i])
+		m := w128MfGet.FindStringSubmatch(lines[i])
 		if m == nil {
 			return nil, die("an mf_get is not the guarded assignment this edit rewrites: %s", lines[i])
 		}
-		lines = edit.Z44Splice(lines, i, stmtEnd(i)+1, []string{m[1] + "hp = " + m[2] + ";"})
+		lines = edit.W127Splice(lines, i, stmtEnd(i)+1, []string{m[1] + "hp = " + m[2] + ";"})
 	}
 
 	// --- 16. ml_append_int ----------------------------------------------------
@@ -713,7 +713,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if i, err = one(lo, hi, `^        if \(\(hp_new = ml_new_data\(mfp\)\) == nullptr\)$`); err != nil {
 		return nil, err
 	}
-	lines[i] = z45s10
+	lines[i] = w128s10
 	if i, err = one(lo, hi, `if \(pp->pb_count < pp->pb_count_max\)$`); err != nil {
 		return nil, err
 	}
@@ -721,13 +721,13 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if i, err = one(lo, hi, `^                hp_new = ml_new_ptr\(mfp\);$`); err != nil {
 		return nil, err
 	}
-	lines[i] = z45s11
+	lines[i] = w128s11
 	// The root split copied the whole PAGE, which is how a node's contents moved
 	// while its header sat somewhere else.  The header is IN the node now.
 	if i, err = one(lo, hi, `^ *musl_memmove\(\(char \*\)\(pp_new\), \(char \*\)\(pp\), \(usize\)page_size\);$`); err != nil {
 		return nil, err
 	}
-	lines = edit.Z44Splice(lines, i, i+1, z45b8)
+	lines = edit.W127Splice(lines, i, i+1, w128b8)
 
 	// --- 17. ml_delete_int releases a node by freeing it ---------------------
 	if lo, hi, err = fn("ml_delete_int"); err != nil {
@@ -751,7 +751,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if !regexp.MustCompile(`if \(hp->bh_id ==\s`).MatchString(lines[a+1]) {
 		return nil, die("the leaf test does not follow the cast it replaces: %s", lines[a+1])
 	}
-	lines = edit.Z44Splice(lines, a, a+1, nil)
+	lines = edit.W127Splice(lines, a, a+1, nil)
 	if lo, hi, err = fn("ml_find_line"); err != nil {
 		return nil, err
 	}
@@ -768,7 +768,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if lines[a+1] != "error_noblock:" {
 		return nil, die("error_block and error_noblock are not adjacent once the lock has gone")
 	}
-	lines = edit.Z44Splice(lines, a+1, a+2, nil)
+	lines = edit.W127Splice(lines, a+1, a+2, nil)
 
 	// --- 19. the locals the fold stopped using -------------------------------
 	var dropped []string
@@ -783,16 +783,16 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			Body := strings.Join(lines[lo:hi+1], "\n")
 			found := false
 			for i := lo; i <= hi; i++ {
-				m := edit.Z44Decl.FindStringSubmatch(lines[i])
+				m := edit.W127Decl.FindStringSubmatch(lines[i])
 				if m == nil {
 					continue
 				}
-				if edit.Contains(edit.Z44NotDecl, strings.Fields(lines[i])[0]) {
+				if edit.Contains(edit.W127NotDecl, strings.Fields(lines[i])[0]) {
 					continue
 				}
 				if mentions(Body, m[1]) == 1 {
 					dropped = append(dropped, name+":"+m[1])
-					lines = edit.Z44Splice(lines, i, i+1, nil)
+					lines = edit.W127Splice(lines, i, i+1, nil)
 					found = true
 					break
 				}
@@ -807,12 +807,12 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// --- the partition again, on the output ----------------------------------
 	t := strings.Join(lines, "\n")
-	for _, name := range z45Gone {
+	for _, name := range w128Gone {
 		if k := mentions(t, name); k != 0 {
 			return nil, die("%s survives the edit with %d mentions", name, k)
 		}
 	}
-	for _, name := range z45ForSweep {
+	for _, name := range w128ForSweep {
 		if k := mentions(t, name); k != 1 {
 			return nil, die("%s is left at %d mentions and the edit leaves exactly one -- its own "+
 				"definition -- for the sweep to take", name, k)
@@ -858,32 +858,32 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if strings.Join(want, "\x00") != strings.Join(now, "\x00") {
 		return nil, die("the \"is this buffer's memline open\" question is asked in %s and it was asked "+
 			"in %s; the only one this edit adds is ml_delete_int, which asked it through a "+
-			"local copy of the handle", edit.Z43PyList(now), edit.Z43PyList(was))
+			"local copy of the handle", edit.W126PyList(now), edit.W126PyList(was))
 	}
 	say("the question \"does this buffer have a memline\" moved from ml_mfp to ml_root in "+
 		"all %d functions that asked it, plus ml_delete_int, which asked it through its own "+
 		"copy of the handle -- and ml_root was compared with nullptr in none of them before",
 		len(was))
 	// THE INPUT IS ASKED FIRST, and that is what `need 128 swept` is.
-	if z45BlankRun.MatchString(t0) {
+	if w128BlankRun.MatchString(t0) {
 		return nil, die("the input already has a run of two blank lines, so this edit cannot say it " +
 			"left none: it needs swept text (phase/STAGES.md, `need 128 swept`)")
 	}
-	if z45BlankRun.MatchString(t) {
+	if w128BlankRun.MatchString(t) {
 		return nil, die("the edit left a run of two blank lines, which no verification tier can see")
 	}
 
 	var gone strings.Builder
-	for _, n := range z45Gone {
+	for _, n := range w128Gone {
 		fmt.Fprintf(&gone, "%s\t%d\n", n, before[n])
 	}
 	if err := os.WriteFile(state+"/gone", []byte(gone.String()), 0o644); err != nil {
 		return nil, die("%v", err)
 	}
-	if err := os.WriteFile(state+"/forsweep", []byte(strings.Join(z45ForSweep, "\n")+"\n"), 0o644); err != nil {
+	if err := os.WriteFile(state+"/forsweep", []byte(strings.Join(w128ForSweep, "\n")+"\n"), 0o644); err != nil {
 		return nil, die("%v", err)
 	}
-	if err := os.WriteFile(state+"/fanout", []byte(fmt.Sprintf("%d\n", z45Fanout)), 0o644); err != nil {
+	if err := os.WriteFile(state+"/fanout", []byte(fmt.Sprintf("%d\n", w128Fanout)), 0o644); err != nil {
 		return nil, die("%v", err)
 	}
 	say("%d -> %d lines: a node is ONE allocation at its own size, `bhdr_T` is its tag and "+

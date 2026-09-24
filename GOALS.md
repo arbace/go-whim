@@ -1155,7 +1155,7 @@ Cited as *core rule N*; Part I's rules still hold.
    and `stderr-moved` — in Part I's grammar, and
    `tools/st.sh delta BIN SRC --phase N` shows exactly that set moved and no more. "Some
    cases differ" is not a check, and neither is a dimension declared that nothing
-   touched: `internal/harness`'s `ZCompare` refuses a `-moved` token whose
+   touched: `internal/harness`'s `CoreCompare` refuses a `-moved` token whose
    dimension did not move.
 3. **The delta is from q82, not from slim-vim, and it is cumulative.** From phase 83
    behaviour is compared with `.reference/core-baselines`, which phase 83 records from

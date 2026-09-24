@@ -107,16 +107,16 @@ import (
 
 func init() { check.Register("whim97", Check) }
 
-var z14Seventeen = []string{"memmove", "strlen", "memset", "strncmp", "strcmp", "strcpy", "sprintf",
+var w97Seventeen = []string{"memmove", "strlen", "memset", "strncmp", "strcmp", "strcpy", "sprintf",
 	"memcpy", "strncasecmp", "strcat", "strcasecmp", "strncpy", "strstr",
 	"strchr", "memcmp", "memchr", "strpbrk"}
 
-var z14Input = map[string]int{"memmove": 159, "strlen": 127, "memset": 79, "strncmp": 82, "strcmp": 62,
+var w97Input = map[string]int{"memmove": 159, "strlen": 127, "memset": 79, "strncmp": 82, "strcmp": 62,
 	"strcpy": 51, "sprintf": 22, "memcpy": 7, "strncasecmp": 13, "strcat": 6,
 	"strcasecmp": 6, "strncpy": 4, "strstr": 3, "strchr": 2, "memcmp": 2,
 	"memchr": 1, "strpbrk": 2, "vim_snprintf": 55, "tolower": 2}
 
-var z14AfterC = map[string]int{"musl_memmove": 160, "musl_strlen": 133, "musl_memset": 80,
+var w97AfterC = map[string]int{"musl_memmove": 160, "musl_strlen": 133, "musl_memset": 80,
 	"musl_strncmp": 83, "musl_strcmp": 63, "musl_strcpy": 53, "musl_memcpy": 8,
 	"musl_strncasecmp": 14, "musl_strcat": 7, "musl_strcasecmp": 7,
 	"musl_strncpy": 5, "musl_strstr": 4, "musl_strchr": 3, "musl_memcmp": 3,
@@ -125,10 +125,10 @@ var z14AfterC = map[string]int{"musl_memmove": 160, "musl_strlen": 133, "musl_me
 	"vim_snprintf": 68, "vim_vsnprintf_typval": 4, "f_l": 0, "tolower": 2,
 	"highlight_arg_to_string": 2, "highlight_list_arg": 11, "MAX_ATTR_LEN": 3}
 
-// z14Sized are the twelve sites whose vim_snprintf must carry the size its
+// w97Sized are the twelve sites whose vim_snprintf must carry the size its
 // destination really has -- a sprintf becoming a snprintf with the WRONG bound
 // compiles, runs and truncates somewhere nobody looks.
-var z14Sized = []struct{ What, needle string }{
+var w97Sized = []struct{ What, needle string }{
 	{"update_wincolor", `vim_snprintf((char *)str, sizeof("!(:") +  musl_strlen((char *)(opt)) ,`},
 	{"show_one_mark", `vim_snprintf((char *)IObuff,  (1024+1) , " %c %6ld %4d ",`},
 	{"ex_changes", `vim_snprintf((char *)IObuff,  (1024+1) , "%c %3d %5ld %4d ",`},
@@ -143,16 +143,16 @@ var z14Sized = []struct{ What, needle string }{
 	{"term_color", `vim_snprintf(buf, sizeof(buf), format, lead, tail);`},
 }
 
-var z14Keep = []string{"read", "write", "close", "dup", "ioctl", "select", "tcgetattr", "tcsetattr",
+var w97Keep = []string{"read", "write", "close", "dup", "ioctl", "select", "tcgetattr", "tcsetattr",
 	"nanosleep", "isatty", "printf", "fflush", "stderr", "fputs", "fputc", "fwrite", "putchar",
 	"__errno_location", "malloc", "free", "realloc", "tolower", "toupper", "towlower", "towupper",
 	"qsort", "bsearch"}
 
-var z14Absent = []string{"open", "creat", "openat", "stat", "access", "fcntl", "getcwd", "strerror",
+var w97Absent = []string{"open", "creat", "openat", "stat", "access", "fcntl", "getcwd", "strerror",
 	"fopen", "fdopen", "opendir", "chmod", "fchmod", "fstat", "lstat", "unlink", "ftruncate",
 	"fclose", "getc", "putc", "fsync"}
 
-var z14CallRe = regexp.MustCompile(`call[[:space:]]+(memcpy|memset|memmove|strlen|sprintf|strcpy|strcat|strcmp|strncmp|strchr|strstr|memchr|memcmp|strncpy|strcasecmp|strncasecmp|strpbrk)\b`)
+var w97CallRe = regexp.MustCompile(`call[[:space:]]+(memcpy|memset|memmove|strlen|sprintf|strcpy|strcat|strcmp|strncmp|strchr|strstr|memchr|memcmp|strncpy|strcasecmp|strncasecmp|strpbrk)\b`)
 
 // Whim97 is phase 97's check: the libc that is pure computation, defined in
 // the file as `static musl_*`.
@@ -191,7 +191,7 @@ func Check(w io.Writer, args []string) error {
 		sort.Strings(k)
 		return k
 	}
-	// The input's counts are READ, not remembered: z14Input is the input these
+	// The input's counts are READ, not remembered: w97Input is the input these
 	// were first written against, and only sprintf's 22 is a fact the phase
 	// depends on -- thirteen external sites and nine inside the formatter.
 	if k := count(oldT, "sprintf"); k != 22 {
@@ -199,18 +199,18 @@ func Check(w io.Writer, args []string) error {
 	}
 	// `(?<!_)\b` in the Python is `\b` alone: `_` is a word character, so a
 	// word boundary already refuses a match inside musl_memmove.
-	for _, name := range z14Seventeen {
+	for _, name := range w97Seventeen {
 		if k := count(newT, name); k > 0 {
 			fail = append(fail, fmt.Sprintf("%s survives as a bare libc name %d times", name, k))
 		}
 	}
-	// What the phase ADDS per name is fixed (z14After less z14Input); the base
+	// What the phase ADDS per name is fixed (w97After less w97Input); the base
 	// is the input's own count.
-	for _, name := range sortedKeys(z14AfterC) {
-		want := z14AfterC[name]
+	for _, name := range sortedKeys(w97AfterC) {
+		want := w97AfterC[name]
 		base := strings.TrimPrefix(name, "musl_")
-		if b, ok := z14Input[base]; ok {
-			want = count(oldT, base) + (z14AfterC[name] - b)
+		if b, ok := w97Input[base]; ok {
+			want = count(oldT, base) + (w97AfterC[name] - b)
 		}
 		if k := count(newT, name); k != want {
 			fail = append(fail, fmt.Sprintf("%s has %d mentions, expected %d", name, k, want))
@@ -228,7 +228,7 @@ func Check(w io.Writer, args []string) error {
 	if !strings.Contains(newT, `vim_snprintf((char *)buf, MAX_ATTR_LEN, "%d", iarg - 1);`) {
 		fail = append(fail, "site 25443 does not use MAX_ATTR_LEN as its bound")
 	}
-	for _, s := range z14Sized {
+	for _, s := range w97Sized {
 		if strings.Count(newT, s.needle) != 1 {
 			fail = append(fail, fmt.Sprintf("%s does not call vim_snprintf with the size its destination really has", s.What))
 		}
@@ -265,14 +265,14 @@ func Check(w io.Writer, args []string) error {
 	if strings.Count(newT, "//") != strings.Count(oldT, "//") {
 		fail = append(fail, fmt.Sprintf("`//` count moved %d -> %d", strings.Count(oldT, "//"), strings.Count(newT, "//")))
 	}
-	rows := check.Z6RowRe.FindAllString(newT, -1)
+	rows := check.W89RowRe.FindAllString(newT, -1)
 	got, _ := harness.CommandNamesIn(src, "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
 		fail = append(fail, fmt.Sprintf("cmdnames[] has %d rows and names() reads %d; both must be 98", len(rows), len(got)))
 	}
 	if i := strings.Index(newT, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newT[i:], "\n};")
-		if len(check.Z12RowRe.FindAllString(newT[i:i+j], -1)) != 108 {
+		if len(check.W95RowRe.FindAllString(newT[i:i+j], -1)) != 108 {
 			fail = append(fail, "options[] is not the 108 rows phase 95 left")
 		}
 	}
@@ -301,7 +301,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	after := strings.Fields(check.ReadFile(".cache/symbols/last/undefined"))
 	goneU, cameU := check.Comm23(before, after), check.Comm23(after, before)
-	want := append([]string{}, z14Seventeen...)
+	want := append([]string{}, w97Seventeen...)
 	sort.Strings(want)
 	if strings.Join(goneU, "\n") != strings.Join(want, "\n") || len(cameU) > 0 {
 		r.Say("the libc surface did not move by exactly the seventeen string and memory symbols:")
@@ -315,7 +315,7 @@ func Check(w io.Writer, args []string) error {
 	if err := exec.Command("gcc", "-S", "-O0", "-fno-stack-protector", "-o", asm, f).Run(); err != nil {
 		return fmt.Errorf("gcc -S refused")
 	}
-	if calls := z14CallRe.FindAllStringSubmatch(check.ReadFile(asm), -1); len(calls) > 0 {
+	if calls := w97CallRe.FindAllStringSubmatch(check.ReadFile(asm), -1); len(calls) > 0 {
 		r.Say("gcc emitted a call to one of the seventeen that no source line writes:")
 		counts := map[string]int{}
 		var order []string
@@ -334,12 +334,12 @@ func Check(w io.Writer, args []string) error {
 		r.Cont("over gcc's -O0 threshold, which is between 8 KiB and 16 KiB.")
 		return harness.ErrReported
 	}
-	for _, keep := range z14Keep {
+	for _, keep := range w97Keep {
 		if !check.Contains(after, keep) {
 			return stop("%s went, and it is not this phase's: this phase is string and memory work and takes nothing else", keep)
 		}
 	}
-	for _, absent := range z14Absent {
+	for _, absent := range w97Absent {
 		if check.Contains(after, absent) {
 			return stop("%s is undefined, and the core has neither a way to open a file nor a stdio stream since phase 96", absent)
 		}
@@ -358,7 +358,7 @@ func Check(w io.Writer, args []string) error {
 	}()
 	exec.Command("sh", "tools/enumvals.sh", f, evNew).Run()
 	ewg.Wait()
-	if err := z14Enums(r, check.ReadFile(evOld), check.ReadFile(evNew)); err != nil {
+	if err := w97Enums(r, check.ReadFile(evOld), check.ReadFile(evNew)); err != nil {
 		return err
 	}
 
@@ -373,10 +373,10 @@ func Check(w io.Writer, args []string) error {
 	now, _ := os.ReadFile(f)
 	(&check.Rep{Tag: "build", W: w}).Say("ok, %s -> %d lines, %d bytes", beforeLines, check.CountLines(now), check.SizeOf(bin))
 
-	return z14Probes(r, old, bin)
+	return w97Probes(r, old, bin)
 }
 
-func z14Enums(r *check.Rep, oldTxt, newTxt string) error {
+func w97Enums(r *check.Rep, oldTxt, newTxt string) error {
 	load := func(s string) map[string]string {
 		m := map[string]string{}
 		for _, l := range strings.Split(s, "\n") {

@@ -16,7 +16,7 @@ import (
 // is a RECORDING, not a crash, so the timeout is part of the instrument.
 var ErrBlocked = errors.New("zstream: the editor took the input over and did not return")
 
-// ZSession drives the editor with a keystroke FILE on stdin and keeps what it
+// CoreSession drives the editor with a keystroke FILE on stdin and keeps what it
 // drew.
 //
 // Keystrokes in, screen out, and NO PTY: stdin is a file of keys, stdout a
@@ -28,7 +28,7 @@ var ErrBlocked = errors.New("zstream: the editor took the input over and did not
 // The terminal is 80x24 BY CONSTRUCTION: the window-size ioctl fails on a
 // pipe so the editor's built-in fallback applies, and $LINES and $COLUMNS have
 // decided nothing since phase 19.
-func ZSession(binary string, keys [][]byte, term string, args []string,
+func CoreSession(binary string, keys [][]byte, term string, args []string,
 	rows, cols int, timeout time.Duration) (*Screen, []byte, []byte, int, error) {
 
 	vim, err := Stage(binary)

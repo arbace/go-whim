@@ -89,7 +89,7 @@ import (
 
 func init() { edit.Register("whim96", Edit) }
 
-var z13Before = map[string]int{
+var w96Before = map[string]int{
 	"scriptin": 8, "curscript": 11, "NSCRIPT": 3, "saved_typebuf": 2,
 	"closescript": 3, "using_script": 3, "script_char": 6, "retesc": 3,
 	"redir_fd": 6, "redir_off": 7, "redir_write": 7, "redirecting": 4,
@@ -99,7 +99,7 @@ var z13Before = map[string]int{
 	"read_cmd_fd": 12,
 }
 
-var z13After = map[string]int{
+var w96After = map[string]int{
 	"redirecting": 2, "closescript": 2, "vim_fsync": 2, "using_script": 1,
 	"redir_write": 0, "redir_off": 0, "did_return": 0, "retesc": 0, "script_char": 0,
 	"scriptin": 4, "curscript": 7,
@@ -108,10 +108,10 @@ var z13After = map[string]int{
 }
 
 var (
-	z13ScriptWrite = regexp.MustCompile(`\bscriptin\s*\[[^\]]*\]\s*=[^=][^;\n]*;`)
-	z13RedirWrite  = regexp.MustCompile(`(?m)^[ \t]*(?:static\s+FILE\s*\*\s*)?redir_fd\s*=[^=][^;]*;$`)
-	z13UiCall      = regexp.MustCompile(`(?m)^[ \t]*ui_write\([^;\n]*\);$`)
-	z13RedirOff    = regexp.MustCompile(`(?m)^[ \t]*redir_off = (?:TRUE|FALSE);\n`)
+	w96ScriptWrite = regexp.MustCompile(`\bscriptin\s*\[[^\]]*\]\s*=[^=][^;\n]*;`)
+	w96RedirWrite  = regexp.MustCompile(`(?m)^[ \t]*(?:static\s+FILE\s*\*\s*)?redir_fd\s*=[^=][^;]*;$`)
+	w96UiCall      = regexp.MustCompile(`(?m)^[ \t]*ui_write\([^;\n]*\);$`)
+	w96RedirOff    = regexp.MustCompile(`(?m)^[ \t]*redir_off = (?:TRUE|FALSE);\n`)
 )
 
 // Whim96 removes the two `static FILE *` that nothing has ever opened in any
@@ -133,7 +133,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		k := strings.Count(string(t), old)
 		if k != n {
 			return nil, p.Die("%s -- the text occurs %d times, expected %d: %s",
-				what, k, n, cutil.PyRepr(edit.ZHead(old, 70)))
+				what, k, n, cutil.PyRepr(edit.CoreHead(old, 70)))
 		}
 		p.Say(what)
 		return []byte(strings.ReplaceAll(string(t), old, new)), nil
@@ -160,37 +160,37 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	joined := func(ms []string, n int) string {
 		Out := make([]string, len(ms))
 		for i, m := range ms {
-			Out[i] = edit.ZHead(strings.TrimSpace(m), n)
+			Out[i] = edit.CoreHead(strings.TrimSpace(m), n)
 		}
 		return strings.Join(Out, " | ")
 	}
 
 	// ---- 0. the shape every anchor below was counted against ------------------
-	for _, name := range edit.SortedKeys(z13Before) {
-		if k := mentions(text, name); k != z13Before[name] {
+	for _, name := range edit.SortedKeys(w96Before) {
+		if k := mentions(text, name); k != w96Before[name] {
 			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
-				"against a different file", name, k, z13Before[name])
+				"against a different file", name, k, w96Before[name])
 		}
 	}
 	p.Say("scriptin 8, redir_fd 6, redirecting 4, ui_write 3, FILE 2 -- the file the six " +
 		"anchors were counted against")
 
 	// ---- THE INVARIANT, COMPUTED BEFORE ANYTHING IS FOLDED --------------------
-	sw := z13ScriptWrite.FindAllString(string(text), -1)
+	sw := w96ScriptWrite.FindAllString(string(text), -1)
 	if len(sw) != 1 || sw[0] != "scriptin[curscript] = NULL;" {
 		Out := make([]string, len(sw))
 		for i, m := range sw {
-			Out[i] = edit.ZHead(m, 60)
+			Out[i] = edit.CoreHead(m, 60)
 		}
 		return nil, p.Die("scriptin[] is assigned %d times and not once to NULL alone: %s",
 			len(sw), strings.Join(Out, " | "))
 	}
-	rw := z13RedirWrite.FindAllString(string(text), -1)
+	rw := w96RedirWrite.FindAllString(string(text), -1)
 	if len(rw) != 1 || rw[0] != "static FILE *redir_fd = NULL;" {
 		return nil, p.Die("redir_fd is assigned %d times and not once by its declaration alone: %s",
 			len(rw), joined(rw, 60))
 	}
-	calls := z13UiCall.FindAllString(string(text), -1)
+	calls := w96UiCall.FindAllString(string(text), -1)
 	if len(calls) != 1 || calls[0] != "    ui_write(out_buf, len, FALSE);" {
 		return nil, p.Die("ui_write has %d call sites and not the one that passes FALSE: %s",
 			len(calls), joined(calls, 60))
@@ -206,14 +206,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		Old, New, What string
 		n              int
 	}{
-		{z13lit1, z13lit2, "may_sync_undo: `scriptin[curscript] == NULL` is TRUE, so the conjunct " +
+		{w96lit1, w96lit2, "may_sync_undo: `scriptin[curscript] == NULL` is TRUE, so the conjunct " +
 			"goes -- the function SURVIVES and u_sync() still runs on the rest", 1},
-		{z13lit3, "", "is_safe_now: the same conjunct, and the same survival -- " +
+		{w96lit3, "", "is_safe_now: the same conjunct, and the same survival -- " +
 			"stuff_empty() && typebuf.tb_len == 0 && !global_busy is what is left", 1},
 		{" && !using_script()", "", "nv_visual: `!using_script()` is TRUE, so the conjunct goes", 1},
 		{" || using_script()", "", "skip_showmode: `using_script()` is FALSE, so the disjunct goes -- and " +
 			"that was its last caller", 1},
-		{z13lit4, "", "inchar()'s script reader: the loop needs `scriptin[curscript] != NULL`, " +
+		{w96lit4, "", "inchar()'s script reader: the loop needs `scriptin[curscript] != NULL`, " +
 			"which is FALSE, so it never ran -- and it was closescript()'s only " +
 			"caller and getc()'s", 1},
 	} {
@@ -228,11 +228,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"and its one read", k)
 	}
 	for _, e := range []struct{ Old, New, What string }{
-		{z13lit5, z13lit6, "inchar: `retesc` is read and never written now -- no warning covers " +
+		{w96lit5, w96lit6, "inchar: `retesc` is read and never written now -- no warning covers " +
 			"that, and the value it would return is uninitialised, so the read " +
 			"becomes the FALSE it was initialised to"},
-		{z13lit7, "", "and its declaration goes with it"},
-		{z13lit8, "", "and the script_char local itself, which nothing writes now"},
+		{w96lit7, "", "and its declaration goes with it"},
+		{w96lit8, "", "and the script_char local itself, which nothing writes now"},
 	} {
 		if text, err = textEdit(text, e.Old, e.New, e.What, 1); err != nil {
 			return nil, err
@@ -279,10 +279,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		Old, What string
 		n         int
 	}{
-		{z13lit9, "emsg_core's two calls that echoed the error's source line", 2},
-		{z13lit10, "emsg_core's call that echoed the message itself", 1},
-		{z13lit11, "msg_puts_attr_len's call, which was every message the editor prints", 1},
-		{z13lit12, "redir_write's prototype", 1},
+		{w96lit9, "emsg_core's two calls that echoed the error's source line", 2},
+		{w96lit10, "emsg_core's call that echoed the message itself", 1},
+		{w96lit11, "msg_puts_attr_len's call, which was every message the editor prints", 1},
+		{w96lit12, "redir_write's prototype", 1},
 	} {
 		if text, err = textEdit(text, e.Old, "", e.What, e.n); err != nil {
 			return nil, err
@@ -302,19 +302,19 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// FILE-SCOPE static draws NOTHING AT ALL -- phase 93's `readonlymode` in this
 	// phase's shape -- so both go here rather than being left to a tool.
 	for _, e := range []struct{ Old, What string }{
-		{z13lit13, "msg_end's `did_return`, written once and read never now"},
-		{z13lit14, "and its one write"},
+		{w96lit13, "msg_end's `did_return`, written once and read never now"},
+		{w96lit14, "and its one write"},
 	} {
 		if text, err = textEdit(text, e.Old, "", e.What, 1); err != nil {
 			return nil, err
 		}
 	}
-	if k := len(z13RedirOff.FindAll(text, -1)); k != 5 {
+	if k := len(w96RedirOff.FindAll(text, -1)); k != 5 {
 		return nil, p.Die("redir_off has %d writes, expected 5 -- a phase written from a description "+
 			"of four would leave one behind", k)
 	}
-	text = z13RedirOff.ReplaceAll(text, nil)
-	if text, err = textEdit(text, z13lit15, "",
+	text = w96RedirOff.ReplaceAll(text, nil)
+	if text, err = textEdit(text, w96lit15, "",
 		"and redir_off: FIVE writes, not four, and no reader at all -- a "+
 			"file-scope static that is assigned and never read draws no warning, "+
 			"and tools/deadsweep.py acts on warnings", 1); err != nil {
@@ -326,11 +326,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- C. ui_write's console ------------------------------------------------
 	for _, e := range []struct{ Old, New, What string }{
-		{z13lit16, z13lit17, "ui_write's prototype loses the console parameter"},
-		{z13lit18, z13lit19, "and the definition: `console` is FALSE at the one call site, so the " +
+		{w96lit16, w96lit17, "ui_write's prototype loses the console parameter"},
+		{w96lit18, w96lit19, "and the definition: `console` is FALSE at the one call site, so the " +
 			"vim_fsync(1) it guarded can never be entered, and ui_write is " +
 			"mch_write now -- which is what takes vim_fsync() and fsync()"},
-		{z13lit20, z13lit21, "and its one call site, which already passed FALSE"},
+		{w96lit20, w96lit21, "and its one call site, which already passed FALSE"},
 	} {
 		if text, err = textEdit(text, e.Old, e.New, e.What, 1); err != nil {
 			return nil, err
@@ -338,9 +338,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- what the sweep is handed, as a count rather than as trust ------------
-	for _, name := range edit.SortedKeys(z13After) {
-		if k := mentions(text, name); k != z13After[name] {
-			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, z13After[name])
+	for _, name := range edit.SortedKeys(w96After) {
+		if k := mentions(text, name); k != w96After[name] {
+			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, w96After[name])
 		}
 	}
 	p.Say("the cut is done: redirecting, closescript and vim_fsync at two mentions each " +

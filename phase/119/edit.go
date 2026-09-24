@@ -149,13 +149,13 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		if end >= len(L) {
 			return 0, 0, p.Die("`%s` does not close at column 0", name)
 		}
-		if !edit.Z36RetType.MatchString(L[heads[0]-1]) {
+		if !edit.W119RetType.MatchString(L[heads[0]-1]) {
 			return 0, 0, p.Die("the line above `%s`'s head is %s and every definition in this tree carries "+
 				"its return type there, indented", name, cutil.PyRepr(L[heads[0]-1]))
 		}
 		return heads[0] - 1, end + 1, nil
 	}
-	shortName := func(l string) string { return edit.Z36Name.ReplaceAllString(l, "$1") }
+	shortName := func(l string) string { return edit.W119Name.ReplaceAllString(l, "$1") }
 
 	L := strings.Split(t, "\n")
 	linesBefore := len(L) - 1
@@ -164,7 +164,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// ---- 0. the boundary, and the file this edit was written against ---------
 	var directives []int
 	for i, l := range L {
-		if edit.Z36Dir.MatchString(l) {
+		if edit.W119Dir.MatchString(l) {
 			directives = append(directives, i)
 		}
 	}
@@ -178,7 +178,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 	for _, i := range directives {
-		if !edit.Z36Inc.MatchString(L[i]) {
+		if !edit.W119Inc.MatchString(L[i]) {
 			return nil, p.Die("a directive is not an `#include <...>` of a system header, and no phase may " +
 				"add one")
 		}
@@ -190,23 +190,23 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// ---- 1. the core's block of ordinary declarations, FOUND rather than assumed
 	var seed []int
 	for i, l := range L[:boundary] {
-		if l == z36Go[0] {
+		if l == w119Go[0] {
 			seed = append(seed, i)
 		}
 	}
 	if len(seed) != 1 {
 		return nil, p.Die("the core does not declare `%s` exactly once, so this phase has not been handed "+
-			"the file it was written for", z36Go[0])
+			"the file it was written for", w119Go[0])
 	}
 	lo, hi := seed[0], seed[0]
-	for lo > 0 && edit.Z36IsDecl(L[lo-1]) {
+	for lo > 0 && edit.W119IsDecl(L[lo-1]) {
 		lo--
 	}
-	for hi+1 < boundary && edit.Z36IsDecl(L[hi+1]) {
+	for hi+1 < boundary && edit.W119IsDecl(L[hi+1]) {
 		hi++
 	}
 	blockBefore := append([]string{}, L[lo:hi+1]...)
-	for _, line := range z36Go {
+	for _, line := range w119Go {
 		if !edit.Contains(blockBefore, line) {
 			return nil, p.Die("`%s` is not in the core's block of ordinary declarations, which is %s",
 				line, strings.Join(blockBefore, " / "))
@@ -218,7 +218,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	var blockAfter []string
 	for _, l := range blockBefore {
-		if !edit.Contains(z36Go, l) {
+		if !edit.Contains(w119Go, l) {
 			blockAfter = append(blockAfter, l)
 		}
 	}
@@ -242,7 +242,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	var raiseLines []int
 	for i := 0; i < boundary; i++ {
-		if edit.Z36Reraise.MatchString(L[i]) {
+		if edit.W119Reraise.MatchString(L[i]) {
 			raiseLines = append(raiseLines, i)
 		}
 	}
@@ -251,7 +251,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			"exactly one, the deferred deadly signal vim_handle_signal() re-raises", len(raiseLines))
 	}
 	rl := raiseLines[0]
-	m := edit.Z36Reraise.FindStringSubmatch(L[rl])
+	m := edit.W119Reraise.FindStringSubmatch(L[rl])
 	indent, deferred := m[1], m[2]
 	gpRange := make([]int, 0, gpHi-gpLo)
 	for i := gpLo; i < gpHi; i++ {
@@ -266,12 +266,12 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		cls  []class
 	}{
 		{"getpid", []class{
-			{"declaration", []int{lo + edit.IndexOf(blockBefore, z36Go[0])}},
+			{"declaration", []int{lo + edit.IndexOf(blockBefore, w119Go[0])}},
 			{"mch_get_pid()", gpRange},
 			{"the re-raise", []int{rl}},
 		}},
 		{"kill", []class{
-			{"declaration", []int{lo + edit.IndexOf(blockBefore, z36Go[1])}},
+			{"declaration", []int{lo + edit.IndexOf(blockBefore, w119Go[1])}},
 			{"the re-raise", []int{rl}},
 		}},
 	}
@@ -348,7 +348,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// ---- 3. getpid is AVOIDED -------------------------------------------------
 	var protoGP, callers []int
 	for i, l := range L {
-		if edit.Z36ProtoGP.MatchString(l) {
+		if edit.W119ProtoGP.MatchString(l) {
 			protoGP = append(protoGP, i)
 		}
 	}
@@ -363,7 +363,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			"definition, and this phase needs one of each -- the prototype tools/deadprotos.py "+
 			"takes, and ml_open()'s write of b0_pid", len(protoGP), len(callers))
 	}
-	if !edit.Z36Write.MatchString(L[callers[0]]) {
+	if !edit.W119Write.MatchString(L[callers[0]]) {
 		return nil, p.Die("mch_get_pid()'s one call site is %s, and this phase was written against "+
 			"ml_open()'s `long_to_char(mch_get_pid(), b0p->b0_pid);`", cutil.PyRepr(L[callers[0]]))
 	}
@@ -372,7 +372,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	for i, l := range L {
 		if b0Re.MatchString(l) {
 			b0 = append(b0, i)
-			if edit.Z36Field.MatchString(l) {
+			if edit.W119Field.MatchString(l) {
 				field = append(field, i)
 			}
 		}
@@ -423,7 +423,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			"the two this phase owns come out of it and the rest stay where they are"); err != nil {
 			return nil, err
 		}
-		dropped = len(z36Go)
+		dropped = len(w119Go)
 	} else {
 		if err := swap(oldBlock+"\n", "", "the core's block of declarations AND its trailing "+
 			"blank line",
@@ -436,7 +436,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// ---- 6. one prototype at the end of the core -> host block ---------------
 	if err := swap("static long host_time(void);\n",
-		"static long host_time(void);\n"+z36Proto+"\n",
+		"static long host_time(void);\n"+w119Proto+"\n",
 		"the last of the core -> host prototypes",
 		"the boundary is ONE block, and this belongs at the end of it rather than wherever "+
 			"a declaration happened to fit"); err != nil {
@@ -445,7 +445,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// ---- 7. and the host defines it, INSIDE the host block -------------------
 	if err := swap("    static void\nmusl_suspend(void)\n{\n",
-		z36Def+"    static void\nmusl_suspend(void)\n{\n",
+		w119Def+"    static void\nmusl_suspend(void)\n{\n",
 		"musl_suspend()'s head, the last function of the host region",
 		"the definition goes immediately above it, so that it is INSIDE the region "+
 			"zhostonly reads and its two host words are where every other one is"); err != nil {
@@ -456,7 +456,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	L = strings.Split(t, "\n")
 	boundary = -1
 	for i, l := range L {
-		if edit.Z36Dir.MatchString(l) {
+		if edit.W119Dir.MatchString(l) {
 			boundary = i
 			break
 		}
@@ -482,14 +482,14 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	have := append([]string{}, L[lo:lo+len(blockAfter)]...)
 	if strings.Join(have, "\x00") != strings.Join(blockAfter, "\x00") {
 		return nil, p.Die("the ordinary declarations left above the boundary are %s and the input's "+
-			"block minus the two is %s", edit.Z36Or(have), edit.Z36Or(blockAfter))
+			"block minus the two is %s", edit.W119Or(have), edit.W119Or(blockAfter))
 	}
 	if len(blockAfter) > 0 && (L[lo-1] != "" || L[lo+len(blockAfter)] != "") {
 		return nil, p.Die("what is left of the block is not a paragraph of its own")
 	}
 	var stray []string
 	for i := 0; i < boundary; i++ {
-		if edit.Z36IsDecl(L[i]) && (L[i-1] == "" || edit.Z36IsDecl(L[i-1])) &&
+		if edit.W119IsDecl(L[i]) && (L[i-1] == "" || edit.W119IsDecl(L[i-1])) &&
 			!(lo <= i && i < lo+len(blockAfter)) {
 			stray = append(stray, fmt.Sprintf("%d:%s", i+1, L[i]))
 		}
@@ -527,7 +527,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// DECLARATION BEFORE USE, COMPUTED, and the definition INSIDE the host region.
 	var pr, df, uses []int
 	for i, l := range L {
-		if l == z36Proto {
+		if l == w119Proto {
 			pr = append(pr, i)
 		}
 		if strings.HasPrefix(l, "host_raise(") && i+1 < len(L) && L[i+1] == "{" {
@@ -576,7 +576,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"zhostonly reads", pr[0]+1, uses[0]+1, df[0]+1, boundary+1, end+1-hb[0])
 
 	// ---- 9. the arithmetic, every term computed from what was found ----------
-	added := 1 + len(strings.Split(z36Def, "\n")) - 1
+	added := 1 + len(strings.Split(w119Def, "\n")) - 1
 	removed := 1 + (gpHi - gpLo) + 1 + dropped
 	if len(L)-1 != linesBefore+added-removed {
 		return nil, p.Die("the file is %d lines and the input was %d -- expected %d: one prototype and a "+
@@ -589,7 +589,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	var d2 []int
 	for i, l := range L {
-		if edit.Z36Dir.MatchString(l) {
+		if edit.W119Dir.MatchString(l) {
 			d2 = append(d2, i)
 		}
 	}

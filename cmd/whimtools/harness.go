@@ -48,10 +48,10 @@ func runTermcheck(args []string) int {
 	return 0
 }
 
-// runZscreen rebuilds a screen from a captured escape stream and prints every
+// runCoreScreen rebuilds a screen from a captured escape stream and prints every
 // redraw.  tools/zscreen.py is a library with no CLI; this exists so the two
 // can be compared on the same bytes without running the editor.
-func runZscreen(args []string) int {
+func runCoreScreen(args []string) int {
 	if len(args) != 1 {
 		fmt.Fprintln(os.Stderr, "usage: whimtools zscreen <streamfile>")
 		return 1
@@ -71,8 +71,8 @@ func runZscreen(args []string) int {
 	return 0
 }
 
-// runZhostonly is tools/zhostonly.py.
-func runZhostonly(args []string) int {
+// runCoreHostonly is tools/zhostonly.py.
+func runCoreHostonly(args []string) int {
 	quiet := false
 	var files []string
 	for _, a := range args {
@@ -86,7 +86,7 @@ func runZhostonly(args []string) int {
 		fmt.Fprintln(os.Stderr, "usage: whimtools zhostonly <file> [--quiet]")
 		return 1
 	}
-	if err := harness.ZHostOnly(files[0], quiet, os.Stdout); err != nil {
+	if err := harness.CoreHostOnly(files[0], quiet, os.Stdout); err != nil {
 		// The findings go to stdout, as the Python's print does; only the
 		// three refusals that cannot proceed are an error message.
 		if strings.HasPrefix(err.Error(), "zhostonly: the host block") ||
@@ -98,91 +98,91 @@ func runZhostonly(args []string) int {
 	return 0
 }
 
-// runZargv is tools/zargv.py.
-func runZargv(args []string) int {
+// runCoreArgv is tools/zargv.py.
+func runCoreArgv(args []string) int {
 	if len(args) != 2 {
 		fmt.Fprintln(os.Stderr, "usage: whimtools zargv <vim-binary> <outfile>")
 		return 1
 	}
-	if err := harness.ZArgv(args[0], args[1], os.Stdout); err != nil {
+	if err := harness.CoreArgv(args[0], args[1], os.Stdout); err != nil {
 		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 		return 1
 	}
 	return 0
 }
 
-// runZexcmds is tools/zexcmds.py.
-func runZexcmds(args []string) int {
+// runCoreExcmds is tools/zexcmds.py.
+func runCoreExcmds(args []string) int {
 	if len(args) != 3 {
 		fmt.Fprintln(os.Stderr, "usage: whimtools zexcmds <vim-binary> <table> <outfile>")
 		return 1
 	}
-	if err := harness.ZExCmds(args[0], args[1], args[2], os.Stdout); err != nil {
+	if err := harness.CoreExCmds(args[0], args[1], args[2], os.Stdout); err != nil {
 		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 		return 1
 	}
 	return 0
 }
 
-// runZcases is tools/zcases.py.
-func runZcases(args []string) int {
+// runCoreCases is tools/zcases.py.
+func runCoreCases(args []string) int {
 	if len(args) != 2 {
 		fmt.Fprintln(os.Stderr, "usage: whimtools zcases <vim-binary> <outdir>")
 		return 1
 	}
-	if err := harness.ZCases(args[0], args[1], os.Stdout); err != nil {
+	if err := harness.CoreCases(args[0], args[1], os.Stdout); err != nil {
 		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 		return 1
 	}
 	return 0
 }
 
-// runZtermcheck is tools/ztermcheck.py.
-func runZtermcheck(args []string) int {
+// runCoreTermcheck is tools/ztermcheck.py.
+func runCoreTermcheck(args []string) int {
 	if len(args) != 2 {
 		fmt.Fprintln(os.Stderr, "usage: whimtools ztermcheck <vim-binary> <outfile>")
 		return 1
 	}
-	if err := harness.ZTermCheck(args[0], args[1], os.Stdout); err != nil {
+	if err := harness.CoreTermCheck(args[0], args[1], os.Stdout); err != nil {
 		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 		return 1
 	}
 	return 0
 }
 
-// runZpty is tools/zpty.py.
-func runZpty(args []string) int {
+// runCorePty is tools/zpty.py.
+func runCorePty(args []string) int {
 	if len(args) != 2 {
 		fmt.Fprintln(os.Stderr, "usage: whimtools zpty <vim-binary> <outfile>")
 		return 1
 	}
-	if err := harness.ZPty(args[0], args[1], os.Stdout); err != nil {
+	if err := harness.CorePty(args[0], args[1], os.Stdout); err != nil {
 		return 1
 	}
 	return 0
 }
 
-// runZmemline is tools/zmemline.py.
-func runZmemline(args []string) int {
+// runCoreMemline is tools/zmemline.py.
+func runCoreMemline(args []string) int {
 	if len(args) != 2 {
 		fmt.Fprintln(os.Stderr, "usage: whimtools zmemline <vim-binary> <outdir>")
 		return 1
 	}
-	if err := harness.ZMemline(args[0], args[1], os.Stdout); err != nil {
+	if err := harness.CoreMemline(args[0], args[1], os.Stdout); err != nil {
 		return 1
 	}
 	return 0
 }
 
-// runZcompare is tools/zcompare.py.
-func runZcompare(args []string) int {
+// runCoreCompare is tools/zcompare.py.
+func runCoreCompare(args []string) int {
 	if len(args) == 3 && args[0] == "--declared" {
 		n, err := strconv.Atoi(args[2])
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "usage: whimtools zcompare --declared <delta> <phase>")
 			return 1
 		}
-		_, own, err := harness.ZDeclared(args[1], n)
+		_, own, err := harness.CoreDeclared(args[1], n)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 			return 1
@@ -202,19 +202,19 @@ func runZcompare(args []string) int {
 		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
 		return 1
 	}
-	if err := harness.ZCompare(args[0], args[1], args[2], n, os.Stdout); err != nil {
+	if err := harness.CoreCompare(args[0], args[1], args[2], n, os.Stdout); err != nil {
 		return 1
 	}
 	return 0
 }
 
-// runZrecord is one whole recording: harness.ZRecord.
-func runZrecord(args []string) int {
+// runCoreRecord is one whole recording: harness.CoreRecord.
+func runCoreRecord(args []string) int {
 	if len(args) != 3 {
 		fmt.Fprintln(os.Stderr, "usage: whimtools zrecord <binary> <source> <outdir>")
 		return 1
 	}
-	if err := harness.ZRecord(args[0], args[1], args[2], os.Stdout); err != nil {
+	if err := harness.CoreRecord(args[0], args[1], args[2], os.Stdout); err != nil {
 		return 1
 	}
 	return 0

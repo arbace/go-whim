@@ -10,10 +10,10 @@ package p127
 // DB_LINE_MAX` -- and the generator evaluates it with the phase's own 64, so
 // the constant is still stated once.
 var (
-	z44b0 = []string{
+	w127b0 = []string{
 		"typedef struct data_line        DATA_LN;",
 	}
-	z44b1 = []string{
+	w127b1 = []string{
 		"enum { DB_LINE_MAX = 64 };",
 		"",
 		"struct data_line",
@@ -32,7 +32,7 @@ var (
 		"",
 		"static_assert(sizeof(DATA_BL) <= MEMFILE_PAGE_SIZE, \"a leaf is one memfile page\");",
 	}
-	z44b2 = []string{
+	w127b2 = []string{
 		"    static char_u *",
 		"ml_alloc_line(char_u *line, colnr_T len)",
 		"{",
@@ -48,7 +48,7 @@ var (
 		"}",
 		"",
 	}
-	z44b3 = []string{
+	w127b3 = []string{
 		"    dp->db_line[0].dl_text = ml_alloc_line((char_u *)\"\", 1);",
 		"    if (dp->db_line[0].dl_text == nullptr)",
 		"    {",
@@ -57,23 +57,23 @@ var (
 		"    dp->db_line[0].dl_len = 1;",
 		"    dp->db_line_count = 1;",
 	}
-	z44b4 = []string{
+	w127b4 = []string{
 		"        idx = lnum - buf->b_ml.ml_locked_low;",
 		"",
 		"        buf->b_ml.ml_line_ptr = dp->db_line[idx].dl_text;",
 		"        buf->b_ml.ml_line_len = dp->db_line[idx].dl_len;",
 	}
-	z44b5 = []string{
+	w127b5 = []string{
 		"    char_u      *text;",
 	}
-	z44b6 = []string{
+	w127b6 = []string{
 		"    text = ml_alloc_line(line, len);",
 		"    if (text == nullptr)",
 		"    {",
 		"        goto theend;",
 		"    }",
 	}
-	z44b7 = []string{
+	w127b7 = []string{
 		"    if (dp->db_line_count < DB_LINE_MAX)",
 		"    {",
 		"        if (line_count > db_idx + 1)",
@@ -85,13 +85,13 @@ var (
 		"        dp->db_line[db_idx + 1].dl_marked = FALSE;",
 		"        ++(dp->db_line_count);",
 	}
-	z44b8 = []string{
+	w127b8 = []string{
 		"            lines_moved = line_count - db_idx - 1;",
 		"            in_left = (lines_moved != 0);",
 		"        }",
 		"",
 	}
-	z44b9 = []string{
+	w127b9 = []string{
 		"        if (!in_left)",
 		"        {",
 		"            dp_right->db_line[0].dl_text = text;",
@@ -114,19 +114,19 @@ var (
 		"            ++line_count_left;",
 		"        }",
 	}
-	z44b10 = []string{
+	w127b10 = []string{
 		"        if (idx < count - 1)",
 		"        {",
 		"             musl_memmove((char *)(&dp->db_line[idx]), (char *)(&dp->db_line[idx + 1]), (usize)(count - idx - 1) * sizeof(DATA_LN)) ;",
 		"        }",
 		"        --(dp->db_line_count);",
 	}
-	z44b11 = []string{
+	w127b11 = []string{
 		"            if (dp->db_line[i].dl_marked)",
 		"            {",
 		"                dp->db_line[i].dl_marked = FALSE;",
 	}
-	z44b12 = []string{
+	w127b12 = []string{
 		"            idx = lnum - buf->b_ml.ml_locked_low;",
 		"",
 		"            dp->db_line[idx].dl_text = new_line;",
@@ -135,6 +135,6 @@ var (
 )
 
 const (
-	z44s0 = "    if (dp->db_line_count >= DB_LINE_MAX && db_idx == line_count - 1 && lnum < buf->b_ml.ml_line_count)"
-	z44s1 = "    dp->db_line[lnum - curbuf->b_ml.ml_locked_low].dl_marked = TRUE;"
+	w127s0 = "    if (dp->db_line_count >= DB_LINE_MAX && db_idx == line_count - 1 && lnum < buf->b_ml.ml_line_count)"
+	w127s1 = "    dp->db_line[lnum - curbuf->b_ml.ml_locked_low].dl_marked = TRUE;"
 )

@@ -90,8 +90,9 @@ cmd/whimtools/     one binary, every tool a subcommand: whimtools <subcommand>
 internal/          the Go: cc (the forked C front end), sweep, canon, dead,
                    cut/cutil (the cutters), edit and
                    check (what the phases' edits and checks are written against --
-                   the drivers, the reporters, and in shared.go what more than one
-                   phase uses), steps (every transformation a phase names, as one
+                   the drivers, the reporters, in shared.go what more than one
+                   phase uses, and for Part I's checks shell.go's Wsh and
+                   partone.go), steps (every transformation a phase names, as one
                    table), build (the plan: what each phase does to the source,
                    and the driver that runs it), verify (the same plan with every
                    check and delta, and the baseline recorder), harness (every
@@ -106,12 +107,13 @@ phase/STAGES.md       the record the plan was read from: the stages, need and ap
 phase/boundaries.md every boundary's lines, entity counts, binary and nm -u, as
                    `tools/st.sh build --keep D` and `measure D` give them
 tools/             what a check still shells out to -- enumvals, the DWARF
-                   control kept as shell on purpose -- and the three wrappers
-                   that find the Go binary: st.sh, sweep.sh, canon.sh.  The
-                   gate (phasecheck, phasebuild, symbols) is internal/check, the
-                   delta, the declarations and score are internal/verify, a
-                   recording is internal/harness: each is `tools/st.sh <name>`
-                   at a prompt, and a check calls the Go in process
+                   control kept as shell on purpose -- and the two wrappers
+                   that find the Go binary: st.sh and sweep.sh.  The gate
+                   (phasecheck, phasebuild, symbols) is internal/check, canon
+                   is internal/canon, the delta, the declarations and score are
+                   internal/verify, a recording is internal/harness: each is
+                   `tools/st.sh <name>` at a prompt, and a check calls the Go
+                   in process
 tools/templates/   whim.mk, the makefile phase 0 starts from, and core.mk, the one
                    phase 83 writes over it
 editor/            the core in Go: editor.go GENERATED (make editor/editor.go; never edit it),
@@ -262,7 +264,7 @@ passes: every delta is measured against it.
   own baselines byte for byte (67 behaviour cases, 19 terminals, 600 Ex
   commands). `internal/verify`'s `Delta` checks whim's declared delta against them.
 - **`.reference/core-baselines/`** -- `screen/`, `memline/`, `ref-excmds.txt`,
-  `ref-argv.txt`, `ref-pty.txt`, `ref-term.txt` (`harness.ZRecord`) -- is
+  `ref-argv.txt`, `ref-pty.txt`, `ref-term.txt` (`harness.CoreRecord`) -- is
   recorded by **phase 83 from q82**, the tree it is handed, built with the compile
   line that tree carries; `Delta` hands every phase from 83 on to `CoreDelta`,
   which checks the declarations from 83 on against it.

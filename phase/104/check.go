@@ -98,10 +98,10 @@ import (
 
 func init() { check.Register("whim104", Check) }
 
-var z21PrintfStmt = regexp.MustCompile(`^\s*(printf|fprintf)\(`)
+var w104PrintfStmt = regexp.MustCompile(`^\s*(printf|fprintf)\(`)
 
-// z21BareWrite is `(?<![_A-Za-z])write\(` on one line, which RE2 cannot say.
-func z21BareWrite(l string) bool {
+// w104BareWrite is `(?<![_A-Za-z])write\(` on one line, which RE2 cannot say.
+func w104BareWrite(l string) bool {
 	for i := 0; ; {
 		k := strings.Index(l[i:], "write(")
 		if k < 0 {
@@ -135,7 +135,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	defer os.RemoveAll(tmp)
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
-	cflags, ldflags := strings.Fields(check.Z9Flag(mk, "CFLAGS")), strings.Fields(check.Z9Flag(mk, "LDFLAGS"))
+	cflags, ldflags := strings.Fields(check.W92Flag(mk, "CFLAGS")), strings.Fields(check.W92Flag(mk, "LDFLAGS"))
 	newC, oldC := check.ReadFile(f), check.ReadFile(filepath.Join(state, "old.c"))
 	stop := func(format string, a ...any) error { r.Say(format, a...); return harness.ErrReported }
 
@@ -149,7 +149,7 @@ func Check(w io.Writer, args []string) error {
 	var Out []string
 	n := 0
 	for _, l := range strings.Split(oldC, "\n") {
-		if z21PrintfStmt.MatchString(l) {
+		if w104PrintfStmt.MatchString(l) {
 			Out = append(Out, mark)
 			n++
 		}
@@ -235,7 +235,7 @@ func Check(w io.Writer, args []string) error {
 	var ws []wl
 	L := strings.Split(newC, "\n")
 	for i, l := range L {
-		if z21BareWrite(l) {
+		if w104BareWrite(l) {
 			ws = append(ws, wl{i + 1, strings.TrimSpace(l)})
 		}
 	}
@@ -257,14 +257,14 @@ func Check(w io.Writer, args []string) error {
 	if mentions(oldC, "write")-mentions(newC, "write") != -1 {
 		fail = append(fail, fmt.Sprintf("`write` moved by %d mentions, expected exactly +1 -- host_message's", mentions(newC, "write")-mentions(oldC, "write")))
 	}
-	rows := check.Z6RowRe.FindAllString(newC, -1)
+	rows := check.W89RowRe.FindAllString(newC, -1)
 	got, _ := harness.CommandNamesIn([]byte(newC), "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
 		fail = append(fail, "cmdnames[] is not the 98 rows phase 93 left -- this phase touches no Ex command")
 	}
 	if i := strings.Index(newC, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newC[i:], "\n};")
-		if m := len(check.Z12RowRe.FindAllString(newC[i:i+j], -1)); m != 107 {
+		if m := len(check.W95RowRe.FindAllString(newC[i:i+j], -1)); m != 107 {
 			fail = append(fail, fmt.Sprintf("options[] has %d rows, expected the 107 phase 103 left -- this phase touches no option", m))
 		}
 	}
@@ -391,7 +391,7 @@ func Check(w io.Writer, args []string) error {
 		wg.Add(1)
 		go func(i int, v [3]string) {
 			defer wg.Done()
-			errs[i] = check.RecZ(v[1], v[2], filepath.Join(tmp, "REC-"+v[0]))
+			errs[i] = check.RecCore(v[1], v[2], filepath.Join(tmp, "REC-"+v[0]))
 		}(i, v)
 	}
 	wg.Wait()
@@ -400,16 +400,16 @@ func Check(w io.Writer, args []string) error {
 	}
 
 	// --- 7. the probes -------------------------------------------------------
-	if err := z21Probes(r, old, bin, tmp); err != nil {
+	if err := w104Probes(r, old, bin, tmp); err != nil {
 		return err
 	}
 
 	// --- 8. the second opinion, on the control -------------------------------
-	var zb bytes.Buffer
-	zerr := verify.CoreDelta(filepath.Join(tmp, "ctl"), filepath.Join(tmp, "ctl.c"), 104, &zb)
-	zd := zb.Bytes()
+	var coreBuf bytes.Buffer
+	coreErr := verify.CoreDelta(filepath.Join(tmp, "ctl"), filepath.Join(tmp, "ctl.c"), 104, &coreBuf)
+	coreOut := coreBuf.Bytes()
 	tail5 := func() {
-		ls := strings.Split(string(zd), "\n")
+		ls := strings.Split(string(coreOut), "\n")
 		if len(ls) > 0 && ls[len(ls)-1] == "" {
 			ls = ls[:len(ls)-1]
 		}
@@ -420,7 +420,7 @@ func Check(w io.Writer, args []string) error {
 			fmt.Fprintln(w, l)
 		}
 	}
-	if zerr == nil {
+	if coreErr == nil {
 		r.Say("the core delta ACCEPTED the control, which sends every")
 		r.Cont("message to stdout instead of stderr.  It must refuse.")
 		tail5()
@@ -428,7 +428,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	named := 0
 	const phrase = "ref-argv.txt moved and was not declared: "
-	for _, l := range strings.Split(string(zd), "\n") {
+	for _, l := range strings.Split(string(coreOut), "\n") {
 		if k := strings.Index(l, phrase); k >= 0 {
 			for _, tok := range strings.Split(l[k+len(phrase):], " ") {
 				if strings.Contains(tok, "argv:") {
@@ -446,7 +446,7 @@ func Check(w io.Writer, args []string) error {
 	return nil
 }
 
-func z21Env(tmp string) []string {
+func w104Env(tmp string) []string {
 	var env []string
 	for _, kv := range os.Environ() {
 		k := kv[:strings.IndexByte(kv, '=')]
@@ -460,9 +460,9 @@ func z21Env(tmp string) []string {
 		"VIMRUNTIME="+tmp+"/h/nv", "XDG_CONFIG_HOME="+tmp+"/h/xdg")
 }
 
-// z21Seq runs the editor with fd 2 a SOCK_SEQPACKET socket, which keeps one
+// w104Seq runs the editor with fd 2 a SOCK_SEQPACKET socket, which keeps one
 // message per write(): (number of writes, the bytes).
-func z21Seq(binary, tmp string, args []string) (int, []byte) {
+func w104Seq(binary, tmp string, args []string) (int, []byte) {
 	vim, err := harness.Stage(binary)
 	if err != nil {
 		return -1, nil
@@ -474,7 +474,7 @@ func z21Seq(binary, tmp string, args []string) (int, []byte) {
 	a, bf := fds[0], os.NewFile(uintptr(fds[1]), "seq")
 	dn, _ := os.OpenFile(os.DevNull, os.O_RDWR, 0)
 	c := exec.Command(vim, args...)
-	c.Env = z21Env(tmp)
+	c.Env = w104Env(tmp)
 	c.Stdin, c.Stdout, c.Stderr = dn, dn, bf
 	e := c.Start()
 	bf.Close()
@@ -495,31 +495,31 @@ func z21Seq(binary, tmp string, args []string) (int, []byte) {
 	return len(msgs), bytes.Join(msgs, nil)
 }
 
-func z21Stderr(binary, tmp string, args []string) []byte {
+func w104Stderr(binary, tmp string, args []string) []byte {
 	vim, err := harness.Stage(binary)
 	if err != nil {
 		return nil
 	}
 	c := exec.Command(vim, args...)
-	c.Env = z21Env(tmp)
+	c.Env = w104Env(tmp)
 	var so, se bytes.Buffer
 	c.Stdout, c.Stderr = &so, &se
 	c.Run()
 	return se.Bytes()
 }
 
-var z21Compiled = regexp.MustCompile(`compiled [^)]*`)
+var w104Compiled = regexp.MustCompile(`compiled [^)]*`)
 
-func z21Scrub(b []byte) []byte { return z21Compiled.ReplaceAll(b, []byte("<compiled>")) }
+func w104Scrub(b []byte) []byte { return w104Compiled.ReplaceAll(b, []byte("<compiled>")) }
 
-type z21Marks struct {
+type w104Marks struct {
 	hit   []string
 	total int
 }
 
-func z21Marked(d string) map[string]z21Marks {
+func w104Marked(d string) map[string]w104Marks {
 	const M = "MESSAGE-OUT"
-	Out := map[string]z21Marks{}
+	Out := map[string]w104Marks{}
 	sd := filepath.Join(d, "screen")
 	ents, _ := os.ReadDir(sd)
 	var names []string
@@ -533,7 +533,7 @@ func z21Marked(d string) map[string]z21Marks {
 			hit = append(hit, n)
 		}
 	}
-	Out["screen"] = z21Marks{hit, len(names)}
+	Out["screen"] = w104Marks{hit, len(names)}
 	for _, name := range []string{"ref-argv.txt", "ref-excmds.txt", "ref-pty.txt", "ref-term.txt"} {
 		txt := check.ReadFile(filepath.Join(d, name))
 		// re.split(r'(?m)^(?==== )') -- a cut before every line that begins
@@ -560,12 +560,12 @@ func z21Marked(d string) map[string]z21Marks {
 				h = append(h, strings.SplitN(blk, "\n", 2)[0])
 			}
 		}
-		Out[name] = z21Marks{h, total}
+		Out[name] = w104Marks{h, total}
 	}
 	return Out
 }
 
-func z21DiffCount(a, b string) int {
+func w104DiffCount(a, b string) int {
 	o, _ := exec.Command("diff", "-r", a, b).Output()
 	s := string(o)
 	if s == "" {
@@ -574,7 +574,7 @@ func z21DiffCount(a, b string) int {
 	return len(strings.Split(strings.TrimSuffix(s, "\n"), "\n"))
 }
 
-func z21Probes(r *check.Rep, old, bin, tmp string) error {
+func w104Probes(r *check.Rep, old, bin, tmp string) error {
 	g := map[string]any{}
 	type seq struct {
 		n int
@@ -585,21 +585,21 @@ func z21Probes(r *check.Rep, old, bin, tmp string) error {
 		a    []string
 	}{{"seq_Q_old", old, []string{"-Q"}}, {"seq_Q_new", bin, []string{"-Q"}},
 		{"seq_T_old", old, []string{"-T", "no-such-term-9x"}}, {"seq_T_new", bin, []string{"-T", "no-such-term-9x"}}} {
-		n, b := z21Seq(p.b, tmp, p.a)
+		n, b := w104Seq(p.b, tmp, p.a)
 		g[p.k] = seq{n, b}
 	}
 	x9, x2, z2 := "-"+strings.Repeat("x", 900), "-"+strings.Repeat("x", 2000), strings.Repeat("z", 2000)
 	jobs := map[string]func() any{
-		"long900_old":  func() any { return z21Stderr(old, tmp, []string{x9}) },
-		"long900_new":  func() any { return z21Stderr(bin, tmp, []string{x9}) },
-		"long2k_old":   func() any { return z21Stderr(old, tmp, []string{x2}) },
-		"long2k_new":   func() any { return z21Stderr(bin, tmp, []string{x2}) },
-		"termlong_old": func() any { return z21Stderr(old, tmp, []string{"-T", z2}) },
-		"termlong_new": func() any { return z21Stderr(bin, tmp, []string{"-T", z2}) },
-		"diff_new":     func() any { return z21DiffCount(tmp+"/REC-old", tmp+"/REC-new") },
-		"diff_ctl":     func() any { return z21DiffCount(tmp+"/REC-old", tmp+"/REC-ctl") },
-		"mark_IN":      func() any { return z21Marked(tmp + "/REC-IN") },
-		"mark_OUT":     func() any { return z21Marked(tmp + "/REC-OUT") },
+		"long900_old":  func() any { return w104Stderr(old, tmp, []string{x9}) },
+		"long900_new":  func() any { return w104Stderr(bin, tmp, []string{x9}) },
+		"long2k_old":   func() any { return w104Stderr(old, tmp, []string{x2}) },
+		"long2k_new":   func() any { return w104Stderr(bin, tmp, []string{x2}) },
+		"termlong_old": func() any { return w104Stderr(old, tmp, []string{"-T", z2}) },
+		"termlong_new": func() any { return w104Stderr(bin, tmp, []string{"-T", z2}) },
+		"diff_new":     func() any { return w104DiffCount(tmp+"/REC-old", tmp+"/REC-new") },
+		"diff_ctl":     func() any { return w104DiffCount(tmp+"/REC-old", tmp+"/REC-ctl") },
+		"mark_IN":      func() any { return w104Marked(tmp + "/REC-IN") },
+		"mark_OUT":     func() any { return w104Marked(tmp + "/REC-OUT") },
 	}
 	var mu sync.Mutex
 	var wg sync.WaitGroup
@@ -634,11 +634,11 @@ func z21Probes(r *check.Rep, old, bin, tmp string) error {
 		if len(o.b) != p.nbytes || len(n.b) != p.nbytes {
 			fail = append(fail, fmt.Sprintf("seq_%s: %d bytes on the input and %d here, expected %d on both -- the SYSCALLS collapse and the BYTES do not", p.Tag, len(o.b), len(n.b), p.nbytes))
 		}
-		if !bytes.Equal(z21Scrub(o.b), z21Scrub(n.b)) {
+		if !bytes.Equal(w104Scrub(o.b), w104Scrub(n.b)) {
 			fail = append(fail, fmt.Sprintf("seq_%s: the byte stream on fd 2 differs.  old=%q new=%q", p.Tag, o.b, n.b))
 		}
 	}
-	if !bytes.Equal(z21Scrub(by("long900_old")), z21Scrub(by("long900_new"))) || len(by("long900_old")) != 995 {
+	if !bytes.Equal(w104Scrub(by("long900_old")), w104Scrub(by("long900_new"))) || len(by("long900_old")) != 995 {
 		fail = append(fail, fmt.Sprintf("an unknown option of 900 characters is not the same 995 bytes on both binaries (%d and %d) -- the 1024-byte assembly buffer is biting earlier than measured, or the message moved", len(by("long900_old")), len(by("long900_new"))))
 	}
 	if len(by("long2k_old")) != 2095 || len(by("long2k_new")) != 1023 {
@@ -647,7 +647,7 @@ func z21Probes(r *check.Rep, old, bin, tmp string) error {
 	if len(by("termlong_old")) != 2039 || len(by("termlong_new")) != 1023 {
 		fail = append(fail, fmt.Sprintf("a -T of 2,000 characters gives %d bytes on the input and %d here, expected 2,039 and exactly 1,023 -- the same cap reached by the other speaker, which has no version banner in front of it", len(by("termlong_old")), len(by("termlong_new"))))
 	}
-	a, b := g["mark_IN"].(map[string]z21Marks), g["mark_OUT"].(map[string]z21Marks)
+	a, b := g["mark_IN"].(map[string]w104Marks), g["mark_OUT"].(map[string]w104Marks)
 	for _, k := range []string{"screen", "ref-argv.txt", "ref-excmds.txt", "ref-pty.txt", "ref-term.txt"} {
 		if strings.Join(a[k].hit, "\x00") != strings.Join(b[k].hit, "\x00") {
 			fail = append(fail, fmt.Sprintf("the instrumented pair disagrees on %s: the input marks %d record(s) and the output %d.  Same places, same times, different primitive -- and that is the whole evidence that an empty declaration is empty for the right reason", k, len(a[k].hit), len(b[k].hit)))

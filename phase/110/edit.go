@@ -119,9 +119,9 @@ func init() { edit.RegisterArgs("whim110", Edit) }
 // static_assert below it -- and it is written here ONCE, so the derivation and
 // the thing that checks it cannot drift apart.  The check reads both back Out
 // of the output and requires them equal.
-type z27Const struct{ ty, Name, val string }
+type w110Const struct{ ty, Name, val string }
 
-var z27Consts = []z27Const{
+var w110Consts = []w110Const{
 	{"int", "INT_MAX", "(int)(~0u >> 1)"},
 	{"int", "INT_MIN", "-(int)(~0u >> 1) - 1"},
 	{"long", "LONG_MAX", "(long)(~0ul >> 1)"},
@@ -137,48 +137,48 @@ var z27Consts = []z27Const{
 }
 
 const (
-	z27Host    = "static volatile sig_atomic_t host_winch_pending"
-	z27Typedef = "typedef typeof(sizeof(0)) usize;"
-	z27VProto  = "static int vim_vsnprintf("
+	w110Host    = "static volatile sig_atomic_t host_winch_pending"
+	w110Typedef = "typedef typeof(sizeof(0)) usize;"
+	w110VProto  = "static int vim_vsnprintf("
 )
 
 // The four that hold a `va_list`.  They are named because `va_list` is
 // <stdarg.h>'s and the core cannot declare it; EVERYTHING ELSE that moves is
 // computed from them.
-var z27Variadic = []string{"vim_snprintf", "vim_vsnprintf", "skip_to_arg", "vim_vsnprintf_typval"}
+var w110Variadic = []string{"vim_snprintf", "vim_vsnprintf", "skip_to_arg", "vim_vsnprintf_typval"}
 
 // The other direction of the boundary: the host calls these, so they are
 // unused ABOVE the cut by construction and stay there.  They are the stopping
 // rule of the fixpoint.
-var z27Keep = map[string]bool{"vim_main": true, "deathtrap": true}
+var w110Keep = map[string]bool{"vim_main": true, "deathtrap": true}
 
 var (
-	z27Inc      = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
-	z27Word     = regexp.MustCompile(`\b[A-Za-z_]\w*\b`)
-	z27EnumHead = regexp.MustCompile(`^enum\b`)
-	z27Ident    = regexp.MustCompile(`^\s*([A-Za-z_]\w*)`)
-	z27Hash     = regexp.MustCompile(`^ *#`)
-	z27HashInc  = regexp.MustCompile(`^ *# *include `)
+	w110Inc      = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
+	w110Word     = regexp.MustCompile(`\b[A-Za-z_]\w*\b`)
+	w110EnumHead = regexp.MustCompile(`^enum\b`)
+	w110Ident    = regexp.MustCompile(`^\s*([A-Za-z_]\w*)`)
+	w110Hash     = regexp.MustCompile(`^ *#`)
+	w110HashInc  = regexp.MustCompile(`^ *# *include `)
 	// gcc echoes the offending source line, and this file is full of strings
 	// like "E685: Internal error: %s" -- so an error is recognised by its
 	// POSITION in the diagnostic and never by the word.  Reading it the other
 	// way makes every compile of this particular file look like a failure.
-	z27Err     = regexp.MustCompile(`(?m)^[^ ].*:\d+:\d+: error:.*$`)
-	z27Undecl  = regexp.MustCompile(`'(\w+)' undeclared`)
-	z27Unknown = regexp.MustCompile(`unknown type name '(\w+)'`)
-	z27DeadFn  = regexp.MustCompile(`'(\w+)' defined but not used \[-Wunused-function\]`)
-	z27DeadVar = regexp.MustCompile(`'(\w+)' defined but not used \[-Wunused-variable\]`)
-	z27Dead    = regexp.MustCompile(`'(\w+)' defined but not used`)
-	z27Used    = regexp.MustCompile(`'(\w+)' used but never defined`)
+	w110Err     = regexp.MustCompile(`(?m)^[^ ].*:\d+:\d+: error:.*$`)
+	w110Undecl  = regexp.MustCompile(`'(\w+)' undeclared`)
+	w110Unknown = regexp.MustCompile(`unknown type name '(\w+)'`)
+	w110DeadFn  = regexp.MustCompile(`'(\w+)' defined but not used \[-Wunused-function\]`)
+	w110DeadVar = regexp.MustCompile(`'(\w+)' defined but not used \[-Wunused-variable\]`)
+	w110Dead    = regexp.MustCompile(`'(\w+)' defined but not used`)
+	w110Used    = regexp.MustCompile(`'(\w+)' used but never defined`)
 )
 
-type z27Item struct {
+type w110Item struct {
 	kind string
 	at   int
 	Body []string
 }
 
-type z27Enum struct {
+type w110Enum struct {
 	s, e  int
 	names []string
 	own   map[string]int
@@ -234,7 +234,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	var incNames []string
 	for _, l := range dLine {
-		m := z27Inc.FindStringSubmatch(l)
+		m := w110Inc.FindStringSubmatch(l)
 		if m == nil {
 			return nil, p.Die("a directive is not an `#include <...>` of a system header")
 		}
@@ -246,24 +246,24 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	var hb []int
 	for i, l := range base {
-		if strings.HasPrefix(l, z27Host) {
+		if strings.HasPrefix(l, w110Host) {
 			hb = append(hb, i)
 		}
 	}
 	if len(hb) != 1 {
 		return nil, p.Die("the host block does not begin exactly once with %s -- found %d.  It is "+
 			"where the includes are going and there is nowhere else to put them",
-			cutil.PyRepr(z27Host), len(hb))
+			cutil.PyRepr(w110Host), len(hb))
 	}
 	nTypedef := 0
 	for _, l := range base {
-		if l == z27Typedef {
+		if l == w110Typedef {
 			nTypedef++
 		}
 	}
 	if nTypedef != 1 {
 		return nil, p.Die("`%s` is not in the input exactly once -- phase 106 put it below the last "+
-			"`#include` and the constants go beneath it", z27Typedef)
+			"`#include` and the constants go beneath it", w110Typedef)
 	}
 	if k := blankRuns(base); k != 0 {
 		return nil, p.Die("the input already holds %d runs of two blank lines, and this edit "+
@@ -334,7 +334,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		Body = Body[strings.Index(Body, "{")+1 : strings.LastIndex(Body, "}")]
 		var Out []string
 		for _, part := range strings.Split(Body, ",") {
-			if m := z27Ident.FindStringSubmatch(part); m != nil {
+			if m := w110Ident.FindStringSubmatch(part); m != nil {
 				Out = append(Out, m[1])
 			}
 		}
@@ -343,7 +343,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	countWords := func(s string) map[string]int {
 		c := map[string]int{}
-		for _, m := range z27Word.FindAllString(s, -1) {
+		for _, m := range w110Word.FindAllString(s, -1) {
 			c[m]++
 		}
 		return c
@@ -355,14 +355,14 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// be found by counting rather than by compiling -- and the counting is
 	// done with one word histogram per round, not one regex per name, because
 	// there are seven hundred blocks and two megabytes of text.
-	var enums []z27Enum
+	var enums []w110Enum
 	for i := 12; i < hb[0]; {
-		if z27EnumHead.MatchString(base[i]) {
+		if w110EnumHead.MatchString(base[i]) {
 			s, e, err := espan(i)
 			if err != nil {
 				return nil, err
 			}
-			enums = append(enums, z27Enum{s, e, enumNames(s, e),
+			enums = append(enums, w110Enum{s, e, enumNames(s, e),
 				countWords(strings.Join(base[s:e+1], "\n"))})
 			i = e + 1
 		} else {
@@ -385,7 +385,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	var p0s []int
 	for i, l := range base {
-		if strings.HasPrefix(l, z27VProto) {
+		if strings.HasPrefix(l, w110VProto) {
 			p0s = append(p0s, i)
 		}
 	}
@@ -410,7 +410,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		for i := p0 - 1; i < p0+3; i++ {
 			drop[i] = true
 		}
-		var items []z27Item
+		var items []w110Item
 		for _, n := range funcs {
 			s, e, err := fspan(n)
 			if err != nil {
@@ -419,7 +419,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			for i := s; i < e+2; i++ {
 				drop[i] = true
 			}
-			items = append(items, z27Item{"f", s, base[s : e+1]})
+			items = append(items, w110Item{"f", s, base[s : e+1]})
 		}
 		for _, n := range objs {
 			s, e, err := ospan(n)
@@ -427,7 +427,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 				return nil, 0, nil, err
 			}
 			drop[s] = true
-			items = append(items, z27Item{"o", s, base[s : e+1]})
+			items = append(items, w110Item{"o", s, base[s : e+1]})
 		}
 		for _, st := range moveEnums {
 			s, e, err := espan(st)
@@ -437,14 +437,14 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			for i := s; i <= e; i++ {
 				drop[i] = true
 			}
-			items = append(items, z27Item{"e", s, base[s : e+1]})
+			items = append(items, w110Item{"e", s, base[s : e+1]})
 		}
 		sort.SliceStable(items, func(i, j int) bool { return items[i].at < items[j].at })
 
 		low := append([]string{}, base[0:11]...)
 		low = append(low, "")
 		if consts {
-			for _, c := range z27Consts {
+			for _, c := range w110Consts {
 				low = append(low, fmt.Sprintf("static_assert(%s == %s, \"%s\");", c.val, c.Name, c.Name))
 			}
 			low = append(low, "")
@@ -476,7 +476,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 		var up []string
 		if consts {
-			for _, c := range z27Consts {
+			for _, c := range w110Consts {
 				if c.ty == "" {
 					up = append(up, fmt.Sprintf("enum { %s = %s };", c.Name, c.val))
 				} else {
@@ -495,7 +495,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 				continue
 			}
 			o = append(o, l)
-			if consts && l == z27Typedef {
+			if consts && l == w110Typedef {
 				o = append(o, "")
 				o = append(o, up...)
 			}
@@ -518,7 +518,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	cut := func(L []string) string {
 		var o []string
 		for _, l := range L {
-			if z27HashInc.MatchString(l) {
+			if w110HashInc.MatchString(l) {
 				break
 			}
 			o = append(o, l)
@@ -549,7 +549,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// declares: a thirteenth would mean the core still takes something from a
 	// header and phase 109 did not finish, and a missing one would mean this
 	// program declares something nobody needs.
-	l0, _, _, err := build(z27Variadic, nil, nil, false)
+	l0, _, _, err := build(w110Variadic, nil, nil, false)
 	if err != nil {
 		return nil, err
 	}
@@ -558,15 +558,15 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, err
 	}
 	askedSet := map[string]bool{}
-	for _, m := range z27Undecl.FindAllStringSubmatch(w0, -1) {
+	for _, m := range w110Undecl.FindAllStringSubmatch(w0, -1) {
 		askedSet[m[1]] = true
 	}
-	for _, m := range z27Unknown.FindAllStringSubmatch(w0, -1) {
+	for _, m := range w110Unknown.FindAllStringSubmatch(w0, -1) {
 		askedSet[m[1]] = true
 	}
 	asked := edit.SortedKeys(askedSet)
 	var want []string
-	for _, c := range z27Consts {
+	for _, c := range w110Consts {
 		want = append(want, c.Name)
 	}
 	sort.Strings(want)
@@ -583,13 +583,13 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	core0 := strings.Join(base[11:hb[0]], "\n")
 	counts := map[string]int{}
-	for _, c := range z27Consts {
+	for _, c := range w110Consts {
 		counts[c.Name] = len(regexp.MustCompile(`\b`+c.Name+`\b`).FindAllString(core0, -1))
 	}
 	// Iterated in CONST order and not over the map: Python's dict keeps its
 	// insertion order and a Go map would reorder this line every run.
 	var missing []string
-	for _, c := range z27Consts {
+	for _, c := range w110Consts {
 		if counts[c.Name] < 1 {
 			missing = append(missing, c.Name)
 		}
@@ -599,16 +599,16 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			"all: %s", strings.Join(missing, " "))
 	}
 	p.Sayf("the move alone leaves the cut with %d errors naming EXACTLY the twelve "+
-		"constants this phase declares and nothing else", len(z27Err.FindAllString(w0, -1)))
+		"constants this phase declares and nothing else", len(w110Err.FindAllString(w0, -1)))
 	var shownCounts []string
-	for _, c := range z27Consts {
+	for _, c := range w110Consts {
 		shownCounts = append(shownCounts, fmt.Sprintf("%s %d", c.Name, counts[c.Name]))
 	}
 	p.Sayf("their counts above the host block, re-measured here: %s",
 		strings.Join(shownCounts, "  "))
 
 	// ---- 3. the fixpoint: whatever only the moved code uses --------------
-	funcs := append([]string{}, z27Variadic...)
+	funcs := append([]string{}, w110Variadic...)
 	var objs []string
 	var moveEnums []int
 	type round struct {
@@ -628,15 +628,15 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		if e := z27Err.FindAllString(wr, -1); len(e) > 0 {
+		if e := w110Err.FindAllString(wr, -1); len(e) > 0 {
 			if len(e) > 4 {
 				e = e[:4]
 			}
 			return nil, p.Die("the cut does not compile once the constants are in place:\n    %s",
 				strings.Join(e, "\n    "))
 		}
-		nf := sortedMinus(z27DeadFn.FindAllStringSubmatch(wr, -1), z27Keep)
-		nv := sortedMinus(z27DeadVar.FindAllStringSubmatch(wr, -1), z27Keep)
+		nf := sortedMinus(w110DeadFn.FindAllStringSubmatch(wr, -1), w110Keep)
+		nv := sortedMinus(w110DeadVar.FindAllStringSubmatch(wr, -1), w110Keep)
 		// The enum blocks, counted on the text the cut actually is: a block
 		// none of whose names occurs above the boundary outside its own Body
 		// belongs below it, exactly as a dead function does, and no warning
@@ -690,24 +690,24 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if e := z27Err.FindAllString(wf, -1); len(e) > 0 {
+	if e := w110Err.FindAllString(wf, -1); len(e) > 0 {
 		if len(e) > 4 {
 			e = e[:4]
 		}
 		return nil, p.Die("the finished cut does not compile:\n    %s", strings.Join(e, "\n    "))
 	}
 	bset := map[string]bool{}
-	for _, m := range z27Used.FindAllStringSubmatch(wf, -1) {
+	for _, m := range w110Used.FindAllStringSubmatch(wf, -1) {
 		bset[m[1]] = true
 	}
 	boundary := edit.SortedKeys(bset)
-	left := sortedMinus(z27Dead.FindAllStringSubmatch(wf, -1), z27Keep)
+	left := sortedMinus(w110Dead.FindAllStringSubmatch(wf, -1), w110Keep)
 	if len(left) > 0 {
 		return nil, p.Die("the fixpoint left %s unused above the boundary", strings.Join(left, " "))
 	}
 	var hashes []int
 	for i, l := range strings.Split(cut(L), "\n") {
-		if z27Hash.MatchString(l) {
+		if w110Hash.MatchString(l) {
 			hashes = append(hashes, i)
 		}
 	}

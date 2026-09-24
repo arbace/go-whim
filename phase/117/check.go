@@ -83,15 +83,15 @@ import (
 func init() { check.Register("whim117", Check) }
 
 var (
-	z34Realloc = regexp.MustCompile(`\brealloc\b`)
-	z34Proto   = regexp.MustCompile(`^(?:void \*|void |long |int )[a-z_]+\(`)
-	z34Pid     = regexp.MustCompile(`==[0-9]+==`)
-	z34Addr    = regexp.MustCompile(`0x[0-9a-f]+`)
-	z34DrvPath = regexp.MustCompile(`/[^ \n]*/d\.[a-z_]+\.c`)
-	z34LC      = regexp.MustCompile(`:[0-9]+:[0-9]+`)
+	w117Realloc = regexp.MustCompile(`\brealloc\b`)
+	w117Proto   = regexp.MustCompile(`^(?:void \*|void |long |int )[a-z_]+\(`)
+	w117Pid     = regexp.MustCompile(`==[0-9]+==`)
+	w117Addr    = regexp.MustCompile(`0x[0-9a-f]+`)
+	w117DrvPath = regexp.MustCompile(`/[^ \n]*/d\.[a-z_]+\.c`)
+	w117LC      = regexp.MustCompile(`:[0-9]+:[0-9]+`)
 )
 
-const z34GA = `    new_len = (usize)gap->ga_itemsize * (gap->ga_len + n);
+const w117GA = `    new_len = (usize)gap->ga_itemsize * (gap->ga_len + n);
     old_len = (usize)gap->ga_itemsize * gap->ga_maxlen;
     pp = malloc(new_len);
     if (pp == nullptr)
@@ -106,7 +106,7 @@ const z34GA = `    new_len = (usize)gap->ga_itemsize * (gap->ga_len + n);
     musl_memset((pp + old_len), (0), (new_len - old_len));
 `
 
-const z34KS = `            char_u *t_buf = buf;
+const w117KS = `            char_u *t_buf = buf;
             int t_buflen = buflen;
             buflen += 100;
             buf = malloc(buflen);
@@ -121,7 +121,7 @@ const z34KS = `            char_u *t_buf = buf;
             }
 `
 
-const z34Head = `
+const w117Head = `
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -137,7 +137,7 @@ static int n_vim_free = 0;
 static void vim_free(void *x) { if (x != nullptr) { ++n_vim_free; free(x); } }
 `
 
-const z34Tail = `
+const w117Tail = `
 static void hexline(const char *tag, const unsigned char *p, int n)
 {
     int i;
@@ -274,9 +274,9 @@ int main(void)
 }
 `
 
-// z34Fn is mkdriver.py's fn(): the definition whose head line is `head`,
+// w117Fn is mkdriver.py's fn(): the definition whose head line is `head`,
 // brace-matched, with its return-type line put back in front.
-func z34Fn(t, head, rtype string) (string, error) {
+func w117Fn(t, head, rtype string) (string, error) {
 	i := strings.Index(t, "\n"+head)
 	if i < 0 {
 		return "", fmt.Errorf("%s is not in the source", head)
@@ -304,9 +304,9 @@ func z34Fn(t, head, rtype string) (string, error) {
 	return rtype + "\n" + t[i+1:end], nil
 }
 
-// z34Block is mkdriver.py's block(): from `head` to the brace that closes
+// w117Block is mkdriver.py's block(): from `head` to the brace that closes
 // the first one after it.
-func z34Block(t, head, need string) (string, error) {
+func w117Block(t, head, need string) (string, error) {
 	i := strings.Index(t, head)
 	if i < 0 {
 		return "", fmt.Errorf("%s is not in the source", head)
@@ -334,23 +334,23 @@ func z34Block(t, head, need string) (string, error) {
 	return b, nil
 }
 
-// z34Driver is mkdriver.py: the two rewritten sites extracted at run time
+// w117Driver is mkdriver.py: the two rewritten sites extracted at run time
 // from a source and dropped into one AddressSanitizer driver.
-func z34Driver(src, Out string, nullwatch bool) error {
+func w117Driver(src, Out string, nullwatch bool) error {
 	t := check.ReadFile(src)
-	ga, err := z34Fn(t, "ga_grow_inner(garray_T *gap, int n)", "    static int")
+	ga, err := w117Fn(t, "ga_grow_inner(garray_T *gap, int n)", "    static int")
 	if err != nil {
 		return err
 	}
-	mcpy, err := z34Fn(t, "musl_memcpy(void *dest, const void *src, usize n)", "    static void *")
+	mcpy, err := w117Fn(t, "musl_memcpy(void *dest, const void *src, usize n)", "    static void *")
 	if err != nil {
 		return err
 	}
-	mset, err := z34Fn(t, "musl_memset(void *dest, int c, usize n)", "    static void *")
+	mset, err := w117Fn(t, "musl_memset(void *dest, int c, usize n)", "    static void *")
 	if err != nil {
 		return err
 	}
-	ks, err := z34Block(t, "        else if (maxlen < 10)", "buflen += 100;")
+	ks, err := w117Block(t, "        else if (maxlen < 10)", "buflen += 100;")
 	if err != nil {
 		return err
 	}
@@ -369,7 +369,7 @@ func z34Driver(src, Out string, nullwatch bool) error {
 		mcpy = strings.Replace(mcpy, anchor,
 			anchor+"    if (src == nullptr) { printf(\"MEMCPY-NULL n=%d\\n\", (int)n); }\n", 1)
 	}
-	Body := gt + z34Head + "\n" + ga + "\n" + mcpy + "\n" + mset + "\n" + strings.ReplaceAll(z34Tail, "KSBLOCK", ks)
+	Body := gt + w117Head + "\n" + ga + "\n" + mcpy + "\n" + mset + "\n" + strings.ReplaceAll(w117Tail, "KSBLOCK", ks)
 	return os.WriteFile(Out, []byte(Body), 0o644)
 }
 
@@ -419,10 +419,10 @@ func Check(w io.Writer, args []string) error {
 	T := func(n string) string { return filepath.Join(tmp, n) }
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
 	cflagsS, ldflagsS := "", ""
-	if m := check.Z29CFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112CFlags.FindStringSubmatch(mk); m != nil {
 		cflagsS = m[1]
 	}
-	if m := check.Z29LDFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112LDFlags.FindStringSubmatch(mk); m != nil {
 		ldflagsS = m[1]
 	}
 	link := func(src, Out string) error {
@@ -442,7 +442,7 @@ func Check(w io.Writer, args []string) error {
 	wgCanon.Add(1)
 	go func() {
 		defer wgCanon.Done()
-		canonLog, errCanon = exec.Command("sh", "tools/canon.sh", T("canon.c")).CombinedOutput()
+		canonLog, errCanon = check.Canon(T("canon.c"))
 	}()
 	defer func() { wgNew.Wait(); wgCanon.Wait() }()
 
@@ -456,7 +456,7 @@ func Check(w io.Writer, args []string) error {
 	split := func(L []string) ([]int, string, string, error) {
 		var d []int
 		for i, l := range L {
-			if check.Z30Dir.MatchString(l) {
+			if check.W113Dir.MatchString(l) {
 				d = append(d, i)
 			}
 		}
@@ -480,7 +480,7 @@ func Check(w io.Writer, args []string) error {
 	if e != nil {
 		return e
 	}
-	cnt := func(s string) int { return len(z34Realloc.FindAllStringIndex(s, -1)) }
+	cnt := func(s string) int { return len(w117Realloc.FindAllStringIndex(s, -1)) }
 	oc, oh, nc, nh := cnt(ocore), cnt(ohost), cnt(ncore), cnt(nhost)
 	if oc != 3 || oh != 1 {
 		r.Bad("the input has %d `realloc` in the core and %d in the host, where 3 and "+
@@ -501,7 +501,7 @@ func Check(w io.Writer, args []string) error {
 	protos := func(text string) []string {
 		var Out []string
 		for _, l := range strings.Split(text, "\n") {
-			if z34Proto.MatchString(l) && strings.HasSuffix(l, ";") && !strings.HasPrefix(l, "static") {
+			if w117Proto.MatchString(l) && strings.HasSuffix(l, ";") && !strings.HasPrefix(l, "static") {
 				Out = append(Out, l)
 			}
 		}
@@ -538,13 +538,13 @@ func Check(w io.Writer, args []string) error {
 	if gained := setMinus(np, op); len(gained) > 0 {
 		r.Bad("the prototype block GAINED %s", strings.Join(gained, " / "))
 	}
-	if strings.Count(newT, z34GA) != 1 {
+	if strings.Count(newT, w117GA) != 1 {
 		r.Bad("ga_grow_inner's rewrite is not in the output exactly once, with the " +
 			"copy and the free guarded by `ga_data != nullptr` (trap 1), the " +
 			"`return FAIL` above anything being freed (trap 2) and the tail-zeroing " +
 			"statement unmoved below the copy (trap 3)")
 	}
-	if strings.Count(newT, z34KS) != 1 {
+	if strings.Count(newT, w117KS) != 1 {
 		r.Bad("get_keystroke's rewrite is not in the output exactly once, with the " +
 			"old size saved as `t_buflen` beside `t_buf`, `vim_free(t_buf)` left " +
 			"exactly where the input had it, and the success-path free being " +
@@ -576,9 +576,9 @@ func Check(w io.Writer, args []string) error {
 				"phase touches is above the first `#include`", nd[0]-od[0], len(N)-len(O))
 		}
 	}
-	if check.Z27Runs(N) != check.Z27Runs(O) {
+	if check.W110Runs(N) != check.W110Runs(O) {
 		r.Bad("the edit and the sweep left %d runs of two blank lines where there "+
-			"were %d", check.Z27Runs(N), check.Z27Runs(O))
+			"were %d", check.W110Runs(N), check.W110Runs(O))
 	}
 	if err := r.Done(); err != nil {
 		return err
@@ -596,7 +596,7 @@ func Check(w io.Writer, args []string) error {
 		"`vim_free(t_buf)` failure path untouched, and `free()` on the success path")
 	r.Say("%d lines -> %d, exactly the %d this phase adds, the %d directives are the "+
 		"input's own and the boundary moved by exactly the lines the file gained.  "+
-		"Blank-line runs unmoved at %d", len(O)-1, len(N)-1, added, len(nd), check.Z27Runs(N))
+		"Blank-line runs unmoved at %d", len(O)-1, len(N)-1, added, len(nd), check.W110Runs(N))
 
 	// --- 2. canon.sh -----------------------------------------------------------------
 	wgCanon.Wait()
@@ -605,10 +605,10 @@ func Check(w io.Writer, args []string) error {
 		head(strings.Split(string(canonLog), "\n"), 10)
 		return harness.ErrReported
 	}
-	if !check.Z30Same(f, T("canon.c")) {
+	if !check.W113Same(f, T("canon.c")) {
 		r.Say("tools/canon.sh is not a no-op on the output -- the new lines are not written the way this " +
 			"file writes everything else:")
-		head(check.Z30Diff(f, T("canon.c")), 12)
+		head(check.W113Diff(f, T("canon.c")), 12)
 		return harness.ErrReported
 	}
 	r.Say("tools/canon.sh is a NO-OP on the output: the eleven new lines are written the way this file " +
@@ -694,7 +694,7 @@ func Check(w io.Writer, args []string) error {
 		case "new":
 			src = f
 		}
-		if err := z34Driver(src, T("d."+v+".c"), false); err != nil {
+		if err := w117Driver(src, T("d."+v+".c"), false); err != nil {
 			wgD.Wait()
 			fmt.Fprintln(w, err.Error())
 			return harness.ErrReported
@@ -702,7 +702,7 @@ func Check(w io.Writer, args []string) error {
 		build(v)
 	}
 	for _, x := range []struct{ v, src string }{{"nw_new", f}, {"nw_noguard", T("c_noguard.c")}} {
-		if err := z34Driver(x.src, T("d."+x.v+".c"), true); err != nil {
+		if err := w117Driver(x.src, T("d."+x.v+".c"), true); err != nil {
 			wgD.Wait()
 			fmt.Fprintln(w, err.Error())
 			return harness.ErrReported
@@ -727,10 +727,10 @@ func Check(w io.Writer, args []string) error {
 		c.Run()
 		raw.Close()
 		s := check.ReadFile(T("raw." + v))
-		s = z34Pid.ReplaceAllString(s, "==PID==")
-		s = z34Addr.ReplaceAllString(s, "0xADDR")
-		s = z34DrvPath.ReplaceAllString(s, "DRIVER.c")
-		s = z34LC.ReplaceAllString(s, ":L:C")
+		s = w117Pid.ReplaceAllString(s, "==PID==")
+		s = w117Addr.ReplaceAllString(s, "0xADDR")
+		s = w117DrvPath.ReplaceAllString(s, "DRIVER.c")
+		s = w117LC.ReplaceAllString(s, ":L:C")
 		os.WriteFile(T("run."+v), []byte(s), 0o644)
 	}
 	for _, v := range all {
@@ -740,9 +740,9 @@ func Check(w io.Writer, args []string) error {
 	runDriver("new")
 	os.WriteFile(T("run.new2"), []byte(check.ReadFile(T("run.new"))), 0o644)
 	runDriver("new")
-	if !check.Z30Same(T("run.new"), T("run.new2")) {
+	if !check.W113Same(T("run.new"), T("run.new2")) {
 		r.Say("two runs of the output's unit driver differ, so the comparison below is not one:")
-		head(check.Z30Diff(T("run.new2"), T("run.new")), 8)
+		head(check.W113Diff(T("run.new2"), T("run.new")), 8)
 		return harness.ErrReported
 	}
 	isFinding := func(l string) bool { return strings.Contains(l, "ERROR: ") || strings.Contains(l, "SUMMARY: ") }
@@ -753,10 +753,10 @@ func Check(w io.Writer, args []string) error {
 			return harness.ErrReported
 		}
 	}
-	if !check.Z30Same(T("run.old"), T("run.new")) {
+	if !check.W113Same(T("run.old"), T("run.new")) {
 		r.Say("THE REWRITE IS NOT THE SAME FUNCTION: the input's ga_grow_inner and get_keystroke block and " +
 			"the output's give different transcripts:")
-		head(check.Z30Diff(T("run.old"), T("run.new")), 14)
+		head(check.W113Diff(T("run.old"), T("run.new")), 14)
 		return harness.ErrReported
 	}
 	runNew := fileLines(T("run.new"))
@@ -787,7 +787,7 @@ func Check(w io.Writer, args []string) error {
 		{"c_keycopy", "heap-buffer-overflow"}, {"c_keynofree", "detected"},
 		{"c_keyfreeboth", "heap-use-after-free"},
 	} {
-		if check.Z30Same(T("run.new"), T("run."+x.Name)) {
+		if check.W113Same(T("run.new"), T("run."+x.Name)) {
 			return stop("the control %s changes nothing in the unit harness, so the harness is not testing what "+
 				"this phase claims", x.Name)
 		}
@@ -801,7 +801,7 @@ func Check(w io.Writer, args []string) error {
 			return harness.ErrReported
 		}
 	}
-	if check.Z30Same(T("run.new"), T("run.c_nocopy")) {
+	if check.W113Same(T("run.new"), T("run.c_nocopy")) {
 		return stop("c_nocopy, which copies nothing at all, gives the same transcript as the output")
 	}
 	lostN := len(grepLines(T("run.c_nocopy"), func(l string) bool { return strings.Contains(l, "LOST at ") }))
@@ -815,11 +815,11 @@ func Check(w io.Writer, args []string) error {
 		"LeakSanitizer report; c_keyfreeboth heap-use-after-free.  c_nocopy gives no sanitizer finding at all "+
 		"and is caught by the transcript instead, %d bytes lost", lostN)
 
-	if !check.Z30Same(T("run.new"), T("run.c_noguard")) {
+	if !check.W113Same(T("run.new"), T("run.c_noguard")) {
 		r.Say("c_noguard was measured to change NOTHING in this harness and now changes something, which is a " +
 			"better result than the one this check was written against -- read the diff and rewrite this " +
 			"paragraph:")
-		head(check.Z30Diff(T("run.new"), T("run.c_noguard")), 10)
+		head(check.W113Diff(T("run.new"), T("run.c_noguard")), 10)
 		return harness.ErrReported
 	}
 	nullN := func(v string) int {
@@ -854,7 +854,7 @@ func Check(w io.Writer, args []string) error {
 	if g, c := check.Minus26(uOld, uNew), check.Minus26(uNew, uOld); len(g)+len(c) > 0 {
 		return stop("`nm -u` moved: gone [%s] arrived [%s].  THIS IS AN EQUALITY AND THE PHASE PREDICTS IT: "+
 			"the core stops calling realloc and adjust_types(), below the boundary, does not, so the symbol stays",
-			check.Z31Words(g), check.Z31Words(c))
+			check.W114Words(g), check.W114Words(c))
 	}
 	if !check.Contains(uNew, "realloc") {
 		return stop("`realloc` is NOT undefined any more, and this phase does not claim to free it: " +
@@ -864,7 +864,7 @@ func Check(w io.Writer, args []string) error {
 		return stop("`malloc` or `free` left, and the rewrite is written over both")
 	}
 	ext := check.NmField26(T("new.o"), []string{"--extern-only", "--defined-only"}, 2)
-	if s := check.Z31Words(ext); s != "main " {
+	if s := check.W114Words(ext); s != "main " {
 		return stop("the output defines external symbols other than main: %s", s)
 	}
 	r.Say("`nm -u` is THE SAME SET, %d names, as a `comm` empty in BOTH directions, and `main` is still the "+
@@ -882,10 +882,10 @@ func Check(w io.Writer, args []string) error {
 	bset := map[string][]string{}
 	cutN := map[string]int{}
 	for _, x := range []struct{ side, src string }{{"old", oldC}, {"new", f}} {
-		lines := check.Z28Cut(check.ReadFile(x.src))
+		lines := check.W111Cut(check.ReadFile(x.src))
 		var dl []string
 		for i, l := range lines {
-			if check.Z30Dir.MatchString(l) {
+			if check.W113Dir.MatchString(l) {
 				dl = append(dl, fmt.Sprintf("%d:%s", i+1, l))
 			}
 		}
@@ -920,10 +920,10 @@ func Check(w io.Writer, args []string) error {
 			return harness.ErrReported
 		}
 		set := map[string]bool{}
-		for _, m := range check.Z30Undef.FindAllStringSubmatch(eb.String(), -1) {
+		for _, m := range check.W113Undef.FindAllStringSubmatch(eb.String(), -1) {
 			set[m[1]] = true
 		}
-		bset[x.side] = check.Z27Keys(set)
+		bset[x.side] = check.W110Keys(set)
 		if len(warns) > 0 {
 			r.Say("the %s cut has a warning that is not a boundary name:", x.side)
 			head(warns, 3)
@@ -934,7 +934,7 @@ func Check(w io.Writer, args []string) error {
 	if strings.Join(bset["old"], " ") != strings.Join(bset["new"], " ") {
 		return stop("the core -> host boundary moved: gone [%s] arrived [%s].  malloc and free are declared "+
 			"non-static and are not in this set, and dropping realloc's prototype removes nothing from it",
-			check.Z31Words(check.Minus26(bset["old"], bset["new"])), check.Z31Words(check.Minus26(bset["new"], bset["old"])))
+			check.W114Words(check.Minus26(bset["old"], bset["new"])), check.W114Words(check.Minus26(bset["new"], bset["old"])))
 	}
 	r.Say("the `make editor.c` cut: %d lines -> %d, 0 directives, 0 errors under `-fsyntax-only`, and the "+
 		"WHOLE warning set is the core -> host boundary -- %d names, IDENTICAL to the input's, compared name "+
@@ -978,7 +978,7 @@ func Check(w io.Writer, args []string) error {
 		wgR.Add(1)
 		go func() {
 			defer wgR.Done()
-			recErr[k] = check.RecZ(x.bin, x.src, T(x.Out))
+			recErr[k] = check.RecCore(x.bin, x.src, T(x.Out))
 		}()
 	}
 	var ncErr error

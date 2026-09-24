@@ -84,20 +84,20 @@ import (
 
 func init() { check.Register("whim89", Check) }
 
-var z6GoneFuncs = []string{
+var w89GoneFuncs = []string{
 	"ex_write", "ex_update", "ex_exit", "do_write", "check_writable", "check_overwrite",
 	"not_writing", "check_file_readonly", "buf_write", "buf_write_bytes", "check_mtime",
 	"time_differs", "write_eintr", "vim_fexists", "mch_setperm", "mch_fsetperm",
 	"mch_nodetype", "u_update_save_nr",
 }
 
-var z6GoneEnums = []string{"CMD_write", "CMD_wq", "CMD_xit", "CMD_exit", "CMD_update", "CMD_saveas"}
+var w89GoneEnums = []string{"CMD_write", "CMD_wq", "CMD_xit", "CMD_exit", "CMD_update", "CMD_saveas"}
 
-// z6GoneNames are the command NAMES as strings.  `"write"` is NOT among them:
+// w89GoneNames are the command NAMES as strings.  `"write"` is NOT among them:
 // it is the 'write' option's name and it stays.
-var z6GoneNames = []string{`"wq"`, `"xit"`, `"exit"`, `"update"`, `"saveas"`}
+var w89GoneNames = []string{`"wq"`, `"xit"`, `"exit"`, `"update"`, `"saveas"`}
 
-var z6Later = []string{"check_changed", "no_write_message", "do_bang", "check_fname",
+var w89Later = []string{"check_changed", "no_write_message", "do_bang", "check_fname",
 	"setfname", "otherfile", "fix_fname", "readfile", "b_ffname"}
 
 // Whim89 is phase 89's check: every way to write a file.
@@ -130,12 +130,12 @@ func Check(w io.Writer, args []string) error {
 	defer os.RemoveAll(tmp)
 
 	// --- 1. what the sweep took ----------------------------------------------
-	for _, g := range append(append([]string{}, z6GoneFuncs...), z6GoneEnums...) {
+	for _, g := range append(append([]string{}, w89GoneFuncs...), w89GoneEnums...) {
 		if n := check.CountWord(src, g); n != 0 {
 			return stop("'%s' still has %d mentions", g, n)
 		}
 	}
-	for _, g := range z6GoneNames {
+	for _, g := range w89GoneNames {
 		if n := check.CountLinesWith(src, g); n != 0 {
 			return stop("the string %s still has %d mentions", g, n)
 		}
@@ -186,12 +186,12 @@ func Check(w io.Writer, args []string) error {
 	if count(newT, "append") != 1 || !strings.Contains(newT, "[CMD_append]") {
 		fail = append(fail, fmt.Sprintf("exarg_T.append is not the only `append` left (%d), or the :append row went", count(newT, "append")))
 	}
-	for _, kept := range z6Later {
+	for _, kept := range w89Later {
 		if count(newT, kept) == 0 {
 			fail = append(fail, fmt.Sprintf("%s went, and it is a later phase's", kept))
 		}
 	}
-	rows := check.Z6RowRe.FindAllString(newT, -1)
+	rows := check.W89RowRe.FindAllString(newT, -1)
 	got, _ := harness.CommandNamesIn(src, "whim-vim.c")
 	if len(rows) != 105 || len(got) != 105 {
 		fail = append(fail, fmt.Sprintf("cmdnames[] has %d rows and names() reads %d; both must be 105", len(rows), len(got)))
@@ -265,9 +265,9 @@ func Check(w io.Writer, args []string) error {
 	(&check.Rep{Tag: "build", W: w}).Say("ok, %s -> %d lines, %d bytes", beforeLines, check.CountLines(now), check.SizeOf(bin))
 
 	// --- 5. the probes, in a directory they keep -----------------------------
-	if err := z6Probes(r, old, bin); err != nil {
+	if err := w89Probes(r, old, bin); err != nil {
 		return err
 	}
 	// --- 6. a real terminal --------------------------------------------------
-	return z6Pty(r, old, bin)
+	return w89Pty(r, old, bin)
 }

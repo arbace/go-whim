@@ -138,19 +138,19 @@ import (
 func init() { check.Register("whim115", Check) }
 
 var (
-	z32Time     = regexp.MustCompile(`\btime\b`)
-	z32VimTimeC = regexp.MustCompile(`\bvim_time\b`)
-	z32Host     = regexp.MustCompile(`\bhost_time\b`)
-	z32HostC    = regexp.MustCompile(`\bhost_time\(\)`)
-	z32VimC     = regexp.MustCompile(`\bvim_time\(\)`)
-	z32Null     = regexp.MustCompile(`\btime\(nullptr\)`)
-	z32TimeTC   = regexp.MustCompile(`\btime_t\b`)
-	z32TimeTTC  = regexp.MustCompile(`\btime_T\b`)
+	w115Time     = regexp.MustCompile(`\btime\b`)
+	w115VimTimeC = regexp.MustCompile(`\bvim_time\b`)
+	w115Host     = regexp.MustCompile(`\bhost_time\b`)
+	w115HostC    = regexp.MustCompile(`\bhost_time\(\)`)
+	w115VimC     = regexp.MustCompile(`\bvim_time\(\)`)
+	w115Null     = regexp.MustCompile(`\btime\(nullptr\)`)
+	w115TimeTC   = regexp.MustCompile(`\btime_t\b`)
+	w115TimeTTC  = regexp.MustCompile(`\btime_T\b`)
 )
 
-// z32Strip is zhostonly's strip_strings: every string and character literal
+// w115Strip is zhostonly's strip_strings: every string and character literal
 // becomes one space, so English in an NGETTEXT is not counted as code.
-func z32StripC(line string) string {
+func w115StripC(line string) string {
 	var Out strings.Builder
 	i, n := 0, len(line)
 	for i < n {
@@ -178,12 +178,12 @@ func z32StripC(line string) string {
 	return Out.String()
 }
 
-type z32Res struct {
+type w115Res struct {
 	ok      bool
 	got, Rc int
 }
 
-func (r z32Res) Show() string {
+func (r w115Res) Show() string {
 	if !r.ok {
 		return "None"
 	}
@@ -227,10 +227,10 @@ func Check(w io.Writer, args []string) error {
 	T := func(n string) string { return filepath.Join(tmp, n) }
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
 	cflagsS, ldflagsS := "", ""
-	if m := check.Z29CFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112CFlags.FindStringSubmatch(mk); m != nil {
 		cflagsS = m[1]
 	}
-	if m := check.Z29LDFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112LDFlags.FindStringSubmatch(mk); m != nil {
 		ldflagsS = m[1]
 	}
 	link := func(src, Out string) error {
@@ -344,7 +344,7 @@ func Check(w io.Writer, args []string) error {
 	wgCanon.Add(1)
 	go func() {
 		defer wgCanon.Done()
-		canonLog, errCanon = exec.Command("sh", "tools/canon.sh", T("canon.c")).CombinedOutput()
+		canonLog, errCanon = check.Canon(T("canon.c"))
 	}()
 	defer func() { wgNew.Wait(); wgT.Wait(); wgSyn.Wait(); wgCanon.Wait() }()
 
@@ -378,10 +378,10 @@ func Check(w io.Writer, args []string) error {
 		}
 		var c, b []string
 		for _, l := range lines[:d[0]] {
-			c = append(c, z32StripC(l))
+			c = append(c, w115StripC(l))
 		}
 		for _, l := range lines[d[0]:] {
-			b = append(b, z32StripC(l))
+			b = append(b, w115StripC(l))
 		}
 		return strings.Join(c, "\n"), strings.Join(b, "\n"), lines, d[0], nil
 	}
@@ -397,7 +397,7 @@ func Check(w io.Writer, args []string) error {
 	if len(olines)-1 != beforeLines {
 		r.Bad("the state directory says the edit was handed %d lines and old.c has %d", beforeLines, len(olines)-1)
 	}
-	was, now := cnt(z32Time, ocore), cnt(z32Time, ncore)
+	was, now := cnt(w115Time, ocore), cnt(w115Time, ncore)
 	if was != 4 {
 		r.Bad("the INPUT's core names `time` %d times and this phase was written "+
 			"against 4 -- the libc prototype, the wrapper's call and "+
@@ -407,7 +407,7 @@ func Check(w io.Writer, args []string) error {
 		r.Bad("the output's core still names `time` %d times, and the whole product "+
 			"of this phase is that it names it none", now)
 	}
-	if n := cnt(z32VimTimeC, newT); n > 0 {
+	if n := cnt(w115VimTimeC, newT); n > 0 {
 		r.Bad("`vim_time` survives in the output, %d times", n)
 	}
 	for _, x := range []struct {
@@ -418,13 +418,13 @@ func Check(w io.Writer, args []string) error {
 		{"above the boundary", ncore, 8, "the declaration and seven call sites"},
 		{"below the boundary", nbelow, 1, "its definition"},
 	} {
-		if n := cnt(z32Host, x.Text); n != x.want {
+		if n := cnt(w115Host, x.Text); n != x.want {
 			r.Bad("`host_time` occurs %d times %s where %d were expected -- %s", n, x.Where, x.want, x.why)
 		}
 	}
-	calls := cnt(z32HostC, ncore)
-	owrap := cnt(z32VimC, ocore)
-	obypass := cnt(z32Null, ocore) - 1
+	calls := cnt(w115HostC, ncore)
+	owrap := cnt(w115VimC, ocore)
+	obypass := cnt(w115Null, ocore) - 1
 	if calls != owrap+obypass {
 		r.Bad("the core makes %d calls to host_time() and the input made %d to "+
 			"vim_time() and %d directly to time(nullptr) outside the wrapper", calls, owrap, obypass)
@@ -433,20 +433,20 @@ func Check(w io.Writer, args []string) error {
 		r.Bad("the input had %d wrapper calls and %d bypassing ones, where 5 and 2 "+
 			"were counted", owrap, obypass)
 	}
-	if cnt(z32Time, nbelow) != cnt(z32Time, obelow)+1 {
+	if cnt(w115Time, nbelow) != cnt(w115Time, obelow)+1 {
 		r.Bad("`time` is %d below the boundary and the input had %d there: host_time "+
 			"brings exactly one call with it, beside the `#include <time.h>`",
-			cnt(z32Time, nbelow), cnt(z32Time, obelow))
+			cnt(w115Time, nbelow), cnt(w115Time, obelow))
 	}
-	if n := cnt(z32TimeTC, ncore+nbelow); n != 1 {
+	if n := cnt(w115TimeTC, ncore+nbelow); n != 1 {
 		r.Bad("`time_t` is named %d times in the file's CODE and must be named once "+
 			"-- the static_assert, which is the only place a core name and a header "+
 			"name are both in scope.  The assert's own message says the name again "+
 			"and is a literal", n)
 	}
-	if cnt(z32TimeTTC, ncore) != cnt(z32TimeTTC, ocore)-2 {
+	if cnt(w115TimeTTC, ncore) != cnt(w115TimeTTC, ocore)-2 {
 		r.Bad("`time_T` is %d in the core and the input had %d: the two that go are "+
-			"the wrapper's prototype and its definition head", cnt(z32TimeTTC, ncore), cnt(z32TimeTTC, ocore))
+			"the wrapper's prototype and its definition head", cnt(w115TimeTTC, ncore), cnt(w115TimeTTC, ocore))
 	}
 	const DECL = "static void host_message(const char *msg, int len, int err);\nstatic long host_time(void);\n"
 	if !strings.Contains(newT, DECL) {
@@ -540,8 +540,8 @@ func Check(w io.Writer, args []string) error {
 			"go -- the blank line above the forward declaration, which the core loses "+
 			"and the host does not gain", len(nlines)-1, len(olines)-1)
 	}
-	if check.Z27Runs(nlines) != check.Z27Runs(olines) {
-		r.Bad("the edit left %d runs of two blank lines where there were %d", check.Z27Runs(nlines), check.Z27Runs(olines))
+	if check.W110Runs(nlines) != check.W110Runs(olines) {
+		r.Bad("the edit left %d runs of two blank lines where there were %d", check.W110Runs(nlines), check.W110Runs(olines))
 	}
 	if err := r.Done(); err != nil {
 		return err
@@ -618,10 +618,10 @@ func Check(w io.Writer, args []string) error {
 	bset := map[string][]string{}
 	cutN := map[string]int{}
 	for _, x := range []struct{ side, src string }{{"old", oldC}, {"new", f}} {
-		lines := check.Z28Cut(check.ReadFile(x.src))
+		lines := check.W111Cut(check.ReadFile(x.src))
 		var dl []string
 		for i, l := range lines {
-			if check.Z30Dir.MatchString(l) {
+			if check.W113Dir.MatchString(l) {
 				dl = append(dl, fmt.Sprintf("%d:%s", i+1, l))
 			}
 		}
@@ -656,10 +656,10 @@ func Check(w io.Writer, args []string) error {
 			return harness.ErrReported
 		}
 		set := map[string]bool{}
-		for _, m := range check.Z30Undef.FindAllStringSubmatch(eb.String(), -1) {
+		for _, m := range check.W113Undef.FindAllStringSubmatch(eb.String(), -1) {
 			set[m[1]] = true
 		}
-		bset[x.side] = check.Z27Keys(set)
+		bset[x.side] = check.W110Keys(set)
 		if len(warns) > 0 {
 			r.Say("the %s cut has a warning that is not a boundary name:", x.side)
 			head(warns, 3, "")
@@ -667,8 +667,8 @@ func Check(w io.Writer, args []string) error {
 		}
 		cutN[x.side] = len(lines)
 	}
-	gone := check.Z31Words(check.Minus26(bset["old"], bset["new"]))
-	came := check.Z31Words(check.Minus26(bset["new"], bset["old"]))
+	gone := check.W114Words(check.Minus26(bset["old"], bset["new"]))
+	came := check.W114Words(check.Minus26(bset["new"], bset["old"]))
 	if gone != "" || came != "host_time " {
 		return stop("the core -> host boundary moved by something other than host_time arriving: gone [%s] "+
 			"arrived [%s].  This phase adds exactly one name to it and takes none away", gone, came)
@@ -685,19 +685,19 @@ func Check(w io.Writer, args []string) error {
 		head(strings.Split(string(canonLog), "\n"), 10, "")
 		return harness.ErrReported
 	}
-	if !check.Z30Same(f, T("canon.c")) {
+	if !check.W113Same(f, T("canon.c")) {
 		r.Say("tools/canon.sh is not a no-op on the output -- the new text is not written the way this file " +
 			"writes everything else:")
-		head(check.Z30Diff(f, T("canon.c")), 12, "")
+		head(check.W113Diff(f, T("canon.c")), 12, "")
 		return harness.ErrReported
 	}
 	r.Say("tools/canon.sh is a NO-OP on the output: host_time's declaration, its definition and the " +
 		"static_assert are written the way this file writes everything else")
 
 	// --- 5. the host's vocabulary is still the host's ------------------------------
-	zh := exec.Command("sh", "tools/st.sh", "zhostonly", f)
-	zh.Stdout, zh.Stderr = w, w
-	if err := zh.Run(); err != nil {
+	hostOnly := exec.Command("sh", "tools/st.sh", "zhostonly", f)
+	hostOnly.Stdout, hostOnly.Stderr = w, w
+	if err := hostOnly.Run(); err != nil {
 		return harness.ErrReported
 	}
 
@@ -716,17 +716,17 @@ func Check(w io.Writer, args []string) error {
 	uNew := check.NmField26(T("new.o"), []string{"-u"}, 1)
 	if g, c := check.Minus26(uOld, uNew), check.Minus26(uNew, uOld); len(g)+len(c) > 0 {
 		return stop("`nm -u` moved: gone [%s] arrived [%s].  MOVING A CALL FROM THE CORE INTO THE HOST INSIDE "+
-			"ONE TRANSLATION UNIT FREES NOTHING AND NEEDS NOTHING", check.Z31Words(g), check.Z31Words(c))
+			"ONE TRANSLATION UNIT FREES NOTHING AND NEEDS NOTHING", check.W114Words(g), check.W114Words(c))
 	}
 	if !check.Contains(uNew, "time") {
 		return stop("`time` is NOT in the undefined set, and it must be: the host still calls it to implement " +
 			"host_time()")
 	}
 	ext := check.NmField26(T("new.o"), []string{"--extern-only", "--defined-only"}, 2)
-	if s := check.Z31Words(ext); s != "main " {
+	if s := check.W114Words(ext); s != "main " {
 		return stop("the output defines external symbols other than main: %s", s)
 	}
-	if check.Z30Same(T("new"), filepath.Join(state, "old")) {
+	if check.W113Same(T("new"), filepath.Join(state, "old")) {
 		return stop("the output binary is byte-identical to the input's, which cannot be: a call replaces an " +
 			"inlined read at two sites and five lines of definition move past two thousand")
 	}
@@ -755,7 +755,7 @@ func Check(w io.Writer, args []string) error {
 		wgR.Add(1)
 		go func() {
 			defer wgR.Done()
-			recErr[k] = check.RecZ(x.bin, x.src, T(x.Out))
+			recErr[k] = check.RecCore(x.bin, x.src, T(x.Out))
 		}()
 	}
 	for k, x := range []struct{ bin, Out string }{{T("t_old"), "SC.told"}, {T("t_new"), "SC.tnew"}} {
@@ -781,16 +781,16 @@ func Check(w io.Writer, args []string) error {
 		{"undo", "ihi\x1bu:q!\r", 3},
 		{"plainq", ":q!\r", 1},
 	}
-	res := map[string]map[string]z32Res{}
+	res := map[string]map[string]w115Res{}
 	for _, who := range []string{"t_old", "t_new", "hoist"} {
-		res[who] = map[string]z32Res{}
+		res[who] = map[string]w115Res{}
 		for _, p := range probes {
-			_, _, se, rc, err := harness.ZSession(T(who), [][]byte{[]byte(p.Keys)}, "xterm", nil, 24, 80, 8*time.Second)
+			_, _, se, rc, err := harness.CoreSession(T(who), [][]byte{[]byte(p.Keys)}, "xterm", nil, 24, 80, 8*time.Second)
 			if err != nil {
-				res[who][p.Name] = z32Res{}
+				res[who][p.Name] = w115Res{}
 				continue
 			}
-			res[who][p.Name] = z32Res{true, bytes.Count(se, []byte("TICK")), rc}
+			res[who][p.Name] = w115Res{true, bytes.Count(se, []byte("TICK")), rc}
 		}
 	}
 	r7 := &check.Rep{Tag: "wallclock", W: w}

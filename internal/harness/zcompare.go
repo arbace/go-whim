@@ -11,29 +11,29 @@ import (
 	"strings"
 )
 
-// ZDeclared reads a file of declarations in the grammar verify.Declarations
+// CoreDeclared reads a file of declarations in the grammar verify.Declarations
 // writes and returns every token up to phase, and the ones phase itself
 // declares.
 //
 // Zero's tokens are not whim's: a zero declaration names a screen case, a
 // memline case, an argv row, an Ex command, or a whole DIMENSION of the
 // recording -- screen-moved, stderr-moved, term-moved, pty-moved.
-func ZDeclared(path string, phase int) (map[string]bool, []string, error) {
+func CoreDeclared(path string, phase int) (map[string]bool, []string, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, nil, err
 	}
 	defer f.Close()
-	return zDeclared(f, phase)
+	return coreDeclared(f, phase)
 }
 
-// ZDeclaredText is ZDeclared on declarations already in hand, which is what a
+// CoreDeclaredText is CoreDeclared on declarations already in hand, which is what a
 // caller that just read them from phase/NNN/delta.md has.
-func ZDeclaredText(text string, phase int) (map[string]bool, []string, error) {
-	return zDeclared(strings.NewReader(text), phase)
+func CoreDeclaredText(text string, phase int) (map[string]bool, []string, error) {
+	return coreDeclared(strings.NewReader(text), phase)
 }
 
-func zDeclared(r io.Reader, phase int) (map[string]bool, []string, error) {
+func coreDeclared(r io.Reader, phase int) (map[string]bool, []string, error) {
 	tokens := map[string]bool{}
 	var own []string
 	cur := -1
@@ -82,7 +82,7 @@ func isDigits(s string) bool {
 	return true
 }
 
-func zDimensions(tokens map[string]bool) map[string]bool {
+func coreDimensions(tokens map[string]bool) map[string]bool {
 	d := map[string]bool{}
 	if tokens["screen-moved"] {
 		d["screen"] = true
@@ -172,14 +172,14 @@ func readDir(path string) map[string]string {
 	return out
 }
 
-// ZCompare is tools/zcompare.py: the declared delta of a Part II phase, checked
+// CoreCompare is tools/zcompare.py: the declared delta of a Part II phase, checked
 // against two recordings.
-func ZCompare(basedir, newdir, delta string, phase int, w io.Writer) error {
-	tokens, _, err := ZDeclared(delta, phase)
+func CoreCompare(basedir, newdir, delta string, phase int, w io.Writer) error {
+	tokens, _, err := CoreDeclared(delta, phase)
 	if err != nil {
 		return err
 	}
-	dims := zDimensions(tokens)
+	dims := coreDimensions(tokens)
 	movedDim := map[string]bool{}
 	var fail, report []string
 

@@ -8,7 +8,7 @@ type Pass struct {
 	Run  func([]byte) []byte
 }
 
-// Passes are the seven tools/canon.sh runs, in its order, which is load-
+// Passes are the seven Run runs, in this order, which is load-
 // bearing and not alphabetical:
 //
 //	brace runs after joinparens and splitheads, so a head is a whole line
@@ -31,7 +31,7 @@ var Passes = []Pass{
 	{"forcomma", func(b []byte) []byte { out, _, _, _, _, _ := ForComma(b, false); return out }},
 }
 
-// MaxRounds is canon.sh's ceiling.  Exceeding it is a hard failure and not a
+// MaxRounds is the fixpoint's ceiling.  Exceeding it is a hard failure and not a
 // number to raise: two passes undoing each other is a bug in one of them.
 const MaxRounds = 20
 
@@ -39,7 +39,7 @@ const MaxRounds = 20
 //
 // The Python writes the file after every pass and the next one reads it back.
 // Chaining in memory is the same computation -- each pass is a pure function
-// of the bytes -- and nothing observes the intermediate states: canon.sh sends
+// of the bytes -- and nothing observes the intermediate states: canon.sh sent
 // every pass's stdout to /dev/null and no other process holds the file during
 // a round.  What it saves is seven process starts and seven read-write cycles
 // over a multi-megabyte file, per round.

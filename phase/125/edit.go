@@ -104,16 +104,16 @@ import (
 
 func init() { edit.RegisterArgs("whim125", Edit) }
 
-type z42Class struct {
+type w125Class struct {
 	label string
 	Pat   *regexp.Regexp
 }
 
-// z42Left are the names this edit leaves STANDING for tools/sweep.sh, each a kind
+// w125Left are the names this edit leaves STANDING for tools/sweep.sh, each a kind
 // sweep finds.  Nothing that is WRITTEN is among them: that is the whole division
 // of labour, and a write-only field or a set-and-never-tested bit is the edit's
 // because no tool in tools/ can see one.
-var z42Left = map[string]string{
+var w125Left = map[string]string{
 	"set_b0_fname":             "a static function with no caller left",
 	"long_to_char":             "a static function with no caller left",
 	"mf_hash_free_all":         "a static function with no caller left",
@@ -166,7 +166,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	drop := func(old, what, why string, n int) error { return swap(old, "", what, why, n) }
 	// partition: every line that says `name` falls in exactly one class, and a
 	// leftover refuses.
-	partition := func(name string, classes []z42Class, what string) (map[string][]int, error) {
+	partition := func(name string, classes []w125Class, what string) (map[string][]int, error) {
 		L := lines()
 		word := regexp.MustCompile(`\b(?:` + name + `)\b`)
 		var seen []int
@@ -350,7 +350,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p.Sayf("`struct block0` is the swap file's header block and has %d fields: %s",
 		len(fields), strings.Join(fields, " "))
 	any := strings.Join(fields, "|")
-	cls, err := partition(any, []z42Class{
+	cls, err := partition(any, []w125Class{
 		{"its declaration", regexp.MustCompile(`^    (char_u|long|int|short) +(` + any + `) *(\[[^]]*\])?;$`)},
 		{"assigned", regexp.MustCompile(`^\s*b0p-> *(` + any + `)\b *(\[[^]]*\])? *=[^=]`)},
 		{"copied into", regexp.MustCompile(`^\s*musl_(memmove|strncpy)\(\(char \*\)\((b0p->(` + any + `))\b|` +
@@ -433,11 +433,11 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// THE TWO SURVIVING BLOCKS MOVE DOWN BY ONE.
 	for _, e := range []struct{ Old, New, What, why string }{
-		{z42lit4, z42lit5, "ml_open()'s test that the pointer block is block nr 1",
+		{w125lit4, w125lit5, "ml_open()'s test that the pointer block is block nr 1",
 			"the pointer block is the first block allocated now, so it is block nr 0"},
-		{z42lit6, z42lit7, "ml_open()'s pointer to the first data block",
+		{w125lit6, w125lit7, "ml_open()'s pointer to the first data block",
 			"the data block is the second block allocated now, so it is block nr 1"},
-		{z42lit8, z42lit4, "ml_open()'s test that the data block is block nr 2",
+		{w125lit8, w125lit4, "ml_open()'s test that the data block is block nr 2",
 			"the data block is the second block allocated now, so it is block nr 1"},
 	} {
 		if err := swap(e.Old, e.New, e.What, e.why, 1); err != nil {
@@ -455,7 +455,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"ml_find_line()'s root block", loFind, hiFind, 1); err != nil {
 		return nil, err
 	}
-	if err := swap(z42lit9, z42lit10, "ml_find_line()'s root block number",
+	if err := swap(w125lit9, w125lit10, "ml_find_line()'s root block number",
 		"the tree is rooted at the pointer block, which is block nr 0 now", 1); err != nil {
 		return nil, err
 	}
@@ -468,7 +468,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}, "ml_append_int()'s test for the root pointer block", loApp, hiApp, 1); err != nil {
 		return nil, err
 	}
-	if err := swap(z42lit11, z42lit12, "ml_append_int()'s test for the root pointer block",
+	if err := swap(w125lit11, w125lit12, "ml_append_int()'s test for the root pointer block",
 		"a split that reaches the root must keep the root where the reader starts, and "+
 			"that is block nr 0 now", 1); err != nil {
 		return nil, err
@@ -477,7 +477,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"the data block block nr 1, in ml_open()'s three tests, ml_find_line()'s root and " +
 		"ml_append_int()'s root split")
 
-	cls, err = partition("ml_setflags", []z42Class{
+	cls, err = partition("ml_setflags", []w125Class{
 		{"its forward declaration", regexp.MustCompile(`^static void ml_setflags\(buf_T \*buf\);$`)},
 		{"its definition", regexp.MustCompile(`^ml_setflags\(buf_T \*buf\)$`)},
 		{"a call site", regexp.MustCompile(`^\s*ml_setflags\((curbuf|buf)\);$`)},
@@ -544,7 +544,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		{"    if (!negative && freep != nullptr && freep->bh_page_count >= page_count)",
 			"    if (freep != nullptr && freep->bh_page_count >= page_count)",
 			"mf_new()'s test of the free list", "`negative` is FALSE"},
-		{z42lit13, z42lit14, "mf_new()'s negative branch", "the only arm that ever ran is the positive one"},
+		{w125lit13, w125lit14, "mf_new()'s negative branch", "the only arm that ever ran is the positive one"},
 		{"static bhdr_T *ml_new_data(memfile_T *, int, int);",
 			"static bhdr_T *ml_new_data(memfile_T *, int);", "ml_new_data()'s declaration", ""},
 		{"ml_new_data(memfile_T *mfp, int negative, int page_count)",
@@ -574,7 +574,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 	var n int
-	t, n = z42SubNotWord(t, `ml_append\(((?:[^()]|\([^()]*\))*), *FALSE\)`, func(m []string) string {
+	t, n = w125SubNotWord(t, `ml_append\(((?:[^()]|\([^()]*\))*), *FALSE\)`, func(m []string) string {
 		return "ml_append(" + m[1] + ")"
 	})
 	if n != len(mlAppCalls) {
@@ -585,9 +585,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"ML_APPEND_NEW", n)
 
 	for _, e := range []struct{ Old, What, why string }{
-		{z42lit15, "ml_append_int()'s in-place ML_LOCKED_DIRTY and ML_LOCKED_POS",
+		{w125lit15, "ml_append_int()'s in-place ML_LOCKED_DIRTY and ML_LOCKED_POS",
 			"both bits are written and neither is ever tested"},
-		{z42lit16, "ml_append_int()'s split-block ML_LOCKED_DIRTY and ML_LOCKED_POS",
+		{w125lit16, "ml_append_int()'s split-block ML_LOCKED_DIRTY and ML_LOCKED_POS",
 			"both bits are written and neither is ever tested"},
 	} {
 		if err := drop(e.Old, e.What, e.why, 1); err != nil {
@@ -596,7 +596,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 
 	// ==== PART 3 -- THE DIRTY STATE MACHINE ====================================
-	cls, err = partition("bh_flags", []z42Class{
+	cls, err = partition("bh_flags", []w125Class{
 		{"its declaration", regexp.MustCompile(`^    char bh_flags;$`)},
 		{"a write", regexp.MustCompile(`bh_flags (\|)?= `)},
 		{"the one read", regexp.MustCompile(`^    flags = hp->bh_flags;$`)},
@@ -627,7 +627,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"writes and ONE read, and that read tests BH_LOCKED and nothing else",
 		total, len(cls["a write"]))
 
-	cls, err = partition("mf_dirty", []z42Class{
+	cls, err = partition("mf_dirty", []w125Class{
 		{"its declaration", regexp.MustCompile(`^    mfdirty_T mf_dirty;$`)},
 		{"a write", regexp.MustCompile(`mf_dirty = MF_DIRTY_`)},
 		{"a read", regexp.MustCompile(`mf_dirty (==|!=) MF_DIRTY_`)},
@@ -660,7 +660,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"`mf_dirty` again -- so nothing outside the field ever learns its value",
 		len(cls["a write"]), len(cls["a read"]))
 
-	cls, err = partition("ML_LOCKED_DIRTY|ML_LOCKED_POS", []z42Class{
+	cls, err = partition("ML_LOCKED_DIRTY|ML_LOCKED_POS", []w125Class{
 		{"its enumerator", regexp.MustCompile(`^enum \{ ML_LOCKED_(DIRTY|POS) = 0x0[48] \};$`)},
 		{"set", regexp.MustCompile(`ml_flags \|= `)},
 		{"cleared", regexp.MustCompile(`ml_flags &= ~\(ML_LOCKED_DIRTY \| ML_LOCKED_POS\);$`)},
@@ -670,14 +670,14 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, err
 	}
 	cutAt(append(append([]int{}, cls["set"]...), cls["cleared"]...))
-	if err := swap(z42lit17, z42lit18, "ml_find_line()'s release of the locked block",
+	if err := swap(w125lit17, w125lit18, "ml_find_line()'s release of the locked block",
 		"the two bits it passed chose between marking a block dirty, which nothing tests, "+
 			"and calling mf_trans_add(), which returns at once", 1); err != nil {
 		return nil, err
 	}
 
 	// ==== PART 2b -- mf_put() loses both of its state arguments ================
-	if err := swap(z42lit19, z42lit20, "mf_put()'s definition",
+	if err := swap(w125lit19, w125lit20, "mf_put()'s definition",
 		"what is left of it is the one thing it did that anything reads: clearing BH_LOCKED", 1); err != nil {
 		return nil, err
 	}
@@ -691,7 +691,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			}
 		}
 	}
-	t, n = z42SubNotWord(t, `mf_put\(mfp, ([\w>.\[\]+ -]+?), \w+, (TRUE|FALSE)\);`, func(m []string) string {
+	t, n = w125SubNotWord(t, `mf_put\(mfp, ([\w>.\[\]+ -]+?), \w+, (TRUE|FALSE)\);`, func(m []string) string {
 		return "mf_put(" + m[1] + ");"
 	})
 	if n != len(putCalls) {
@@ -706,14 +706,14 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"anything tests, and its %d call sites lose the two arguments that chose between "+
 		"writing BH_DIRTY and calling mf_trans_add()", n)
 
-	if err := drop(z42lit21, "ml_find_line()'s translation of a negative block number",
+	if err := drop(w125lit21, "ml_find_line()'s translation of a negative block number",
 		"no block number in any build of whim-vim is ever negative", 1); err != nil {
 		return nil, err
 	}
-	if err := drop(z42lit22, "ml_find_line()'s `bnum2`", "its one use has gone", 1); err != nil {
+	if err := drop(w125lit22, "ml_find_line()'s `bnum2`", "its one use has gone", 1); err != nil {
 		return nil, err
 	}
-	if err := drop(z42lit23, "mf_trans_add()'s declaration", "", 1); err != nil {
+	if err := drop(w125lit23, "mf_trans_add()'s declaration", "", 1); err != nil {
 		return nil, err
 	}
 	ntrans, err := cutDefn("mf_trans_add", "it returned OK before doing anything unless a block "+
@@ -738,18 +738,18 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			"mf_new() ever moved it, so `nr <= -1` is `nr < 0`", 1); err != nil {
 		return nil, err
 	}
-	if err := swap(z42lit24, z42lit25, "mf_free()'s negative-block arm",
+	if err := swap(w125lit24, w125lit25, "mf_free()'s negative-block arm",
 		"no block number is ever negative", 1); err != nil {
 		return nil, err
 	}
 	for _, e := range []struct{ Old, What string }{
-		{z42lit26, "mf_open()'s initialisation of mf_trans"},
-		{z42lit27, "mf_open()'s initialisation of mf_blocknr_min"},
-		{z42lit28, "mf_open()'s initialisation of mf_neg_count"},
-		{z42lit29, "mf_close()'s free of mf_trans"},
-		{z42lit30, "the `mf_trans` field"},
-		{z42lit31, "the `mf_blocknr_min` field"},
-		{z42lit32, "the `mf_neg_count` field"},
+		{w125lit26, "mf_open()'s initialisation of mf_trans"},
+		{w125lit27, "mf_open()'s initialisation of mf_blocknr_min"},
+		{w125lit28, "mf_open()'s initialisation of mf_neg_count"},
+		{w125lit29, "mf_close()'s free of mf_trans"},
+		{w125lit30, "the `mf_trans` field"},
+		{w125lit31, "the `mf_blocknr_min` field"},
+		{w125lit32, "the `mf_neg_count` field"},
 	} {
 		if err := drop(e.Old, e.What, "", 1); err != nil {
 			return nil, err
@@ -759,25 +759,25 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"the three memfile fields that served them, mf_get()'s lower bound and mf_free()'s "+
 		"negative arm", ntrans)
 
-	if err := drop(z42lit33, "the MF_DIRTY_YES_NOSYNC that is set around a buffer reload",
+	if err := drop(w125lit33, "the MF_DIRTY_YES_NOSYNC that is set around a buffer reload",
 		"nothing reads it but the line that puts it back", 1); err != nil {
 		return nil, err
 	}
-	if err := drop(z42lit34, "the MF_DIRTY_YES_NOSYNC that is read back",
+	if err := drop(w125lit34, "the MF_DIRTY_YES_NOSYNC that is read back",
 		"its setter has just gone", 1); err != nil {
 		return nil, err
 	}
-	if err := swap(z42lit35, z42lit36, "mf_open()'s initialisation of mf_dirty", "", 1); err != nil {
+	if err := swap(w125lit35, w125lit36, "mf_open()'s initialisation of mf_dirty", "", 1); err != nil {
 		return nil, err
 	}
-	if err := swap(z42lit37, z42lit38, "mf_new()'s two dirty marks",
+	if err := swap(w125lit37, w125lit38, "mf_new()'s two dirty marks",
 		"neither is ever tested", 1); err != nil {
 		return nil, err
 	}
-	if err := drop(z42lit39, "the `mf_dirty` field", "it is write-only", 1); err != nil {
+	if err := drop(w125lit39, "the `mf_dirty` field", "it is write-only", 1); err != nil {
 		return nil, err
 	}
-	if err := drop(z42lit40, "`mfdirty_T`", "the one field of that type has gone", 1); err != nil {
+	if err := drop(w125lit40, "`mfdirty_T`", "the one field of that type has gone", 1); err != nil {
 		return nil, err
 	}
 
@@ -794,7 +794,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if _, _, err := Body("ml_find_line"); err != nil {
 		return nil, err
 	}
-	cls, err = partition("dirty", []z42Class{
+	cls, err = partition("dirty", []w125Class{
 		{"its declaration", regexp.MustCompile(`^    int dirty;$`)},
 		{"a write", regexp.MustCompile(`^\s*dirty = (TRUE|FALSE);$`)},
 	}, "ml_find_line()'s `dirty`")
@@ -804,7 +804,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	cutAt(append(append([]int{}, cls["its declaration"]...), cls["a write"]...))
 
 	// ==== PART 4 -- pe_old_lnum ================================================
-	cls, err = partition("pe_old_lnum", []z42Class{
+	cls, err = partition("pe_old_lnum", []w125Class{
 		{"its declaration", regexp.MustCompile(`^    linenr_T pe_old_lnum;$`)},
 		{"a write", regexp.MustCompile(`^\s*(pp|pp_new)->pb_pointer\[[^]]*\]\.pe_old_lnum = \w+;$`)},
 	}, "`pe_old_lnum`")
@@ -815,7 +815,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"cannot see it -- that tool takes a field named nowhere outside its own type -- so "+
 		"the field goes in the EDIT, with its writes", len(cls["a write"]))
 	cutAt(cls["a write"])
-	if err := drop(z42lit41, "the `pe_old_lnum` field", "", 1); err != nil {
+	if err := drop(w125lit41, "the `pe_old_lnum` field", "", 1); err != nil {
 		return nil, err
 	}
 	L = lines()
@@ -836,13 +836,13 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		flat = append(flat, i, i+1, i+2)
 	}
 	cutAt(flat)
-	if _, err := partition("lnum_left|lnum_right", []z42Class{
+	if _, err := partition("lnum_left|lnum_right", []w125Class{
 		{"its declaration", regexp.MustCompile(`^        linenr_T lnum_(left|right);$`)},
 		{"a write", regexp.MustCompile(`^\s*lnum_(left|right) = (lnum \+ [12]|0);$`)},
 	}, "ml_append_int()'s `lnum_left` and `lnum_right`"); err != nil {
 		return nil, err
 	}
-	if err := drop(z42lit42, "the branch that computed lnum_left and lnum_right",
+	if err := drop(w125lit42, "the branch that computed lnum_left and lnum_right",
 		"both are written and never read once `pe_old_lnum` has gone, and that is a "+
 			"warning tools/deadsweep.py does not act on", 1); err != nil {
 		return nil, err
@@ -852,18 +852,18 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			"just taken should leave each with its declaration and its one reset",
 			mentions("lnum_left"), mentions("lnum_right"))
 	}
-	if err := drop(z42lit43, "the `lnum_left` declaration", "", 1); err != nil {
+	if err := drop(w125lit43, "the `lnum_left` declaration", "", 1); err != nil {
 		return nil, err
 	}
-	if err := drop(z42lit44, "the `lnum_right` declaration", "", 1); err != nil {
+	if err := drop(w125lit44, "the `lnum_right` declaration", "", 1); err != nil {
 		return nil, err
 	}
-	if err := drop(z42lit45, "the reset of lnum_left and lnum_right", "", 1); err != nil {
+	if err := drop(w125lit45, "the reset of lnum_left and lnum_right", "", 1); err != nil {
 		return nil, err
 	}
 
 	declRe := regexp.MustCompile(`^static int mf_dont_release = FALSE;$`)
-	cls, err = partition("mf_dont_release", []z42Class{
+	cls, err = partition("mf_dont_release", []w125Class{
 		{"its declaration, with its only value", declRe},
 		{"a read", regexp.MustCompile(`(\|\| mf_dont_release\)| && !mf_dont_release\))`)},
 	}, "`mf_dont_release`")
@@ -897,26 +897,26 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"it is FALSE for ever, so the conjunct is the other operands", 1); err != nil {
 		return nil, err
 	}
-	if err := drop(z42lit46, "the `mf_dont_release` declaration",
+	if err := drop(w125lit46, "the `mf_dont_release` declaration",
 		"both of its readers have gone", 1); err != nil {
 		return nil, err
 	}
 
 	// ---- WHAT IS LEFT FOR THE SWEEP -------------------------------------------
 	var leftNames []string
-	for name := range z42Left {
+	for name := range w125Left {
 		leftNames = append(leftNames, name)
 	}
 	sort.Strings(leftNames)
 	for _, name := range leftNames {
 		if mentions(name) == 0 {
 			return nil, p.Die("the edit has already taken `%s`, which it leaves for the sweep (%s) -- so "+
-				"the two halves of this phase no longer divide as its check states", name, z42Left[name])
+				"the two halves of this phase no longer divide as its check states", name, w125Left[name])
 		}
 	}
 	p.Sayf("%d names are left standing for tools/sweep.sh: %s.  Each is a kind that sweep "+
 		"finds; nothing that is WRITTEN is among them, because no tool in tools/ can see a "+
-		"write", len(z42Left), strings.Join(leftNames, ", "))
+		"write", len(w125Left), strings.Join(leftNames, ", "))
 
 	for _, name := range []string{"mf_dirty", "mfdirty_T", "MF_DIRTY_NO", "MF_DIRTY_YES",
 		"MF_DIRTY_YES_NOSYNC", "mf_sync", "mf_trans", "mf_trans_add", "mf_trans_del",
@@ -991,10 +991,10 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	return []byte(t), nil
 }
 
-// z42SubNotWord is Python's `re.subn(r'(?<!\w)<pat>', repl, t)`: every match
+// w125SubNotWord is Python's `re.subn(r'(?<!\w)<pat>', repl, t)`: every match
 // whose preceding byte is not a word character, rewritten in ONE pass over the
 // original text.
-func z42SubNotWord(t, pat string, repl func([]string) string) (string, int) {
+func w125SubNotWord(t, pat string, repl func([]string) string) (string, int) {
 	re := regexp.MustCompile(pat)
 	var Out strings.Builder
 	last, n := 0, 0

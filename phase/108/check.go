@@ -71,27 +71,27 @@ import (
 func init() { check.Register("whim108", Check) }
 
 var (
-	z25ProtoLn = regexp.MustCompile(`^static \w+ host_(exit|message)\(.*\);$`)
-	z25CmdRow  = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
-	z25OptRow  = regexp.MustCompile(`(?m)^[ \t]*\{"([a-z]+)",`)
-	z25ErrWord = regexp.MustCompile(`\berror\b`)
-	z25ErrLine = regexp.MustCompile(`error:`)
-	z25CFlags  = regexp.MustCompile(`(?m)^CFLAGS  *= *(.*)$`)
-	z25LDFlags = regexp.MustCompile(`(?m)^LDFLAGS  *= *(.*)$`)
-	z25CanonN  = regexp.MustCompile(`(?s).*canon *`)
+	w108ProtoLn = regexp.MustCompile(`^static \w+ host_(exit|message)\(.*\);$`)
+	w108CmdRow  = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
+	w108OptRow  = regexp.MustCompile(`(?m)^[ \t]*\{"([a-z]+)",`)
+	w108ErrWord = regexp.MustCompile(`\berror\b`)
+	w108ErrLine = regexp.MustCompile(`error:`)
+	w108CFlags  = regexp.MustCompile(`(?m)^CFLAGS  *= *(.*)$`)
+	w108LDFlags = regexp.MustCompile(`(?m)^LDFLAGS  *= *(.*)$`)
+	w108CanonN  = regexp.MustCompile(`(?s).*canon *`)
 )
 
-// z25Mentions is `\bname\b` over the whole text, which is what the heredoc's
+// w108Mentions is `\bname\b` over the whole text, which is what the heredoc's
 // own `mentions` does.  It is NOT blanked: these are identifiers the phase
 // counts, and the file's string literals hold none of them.
-func z25Mentions(text, name string) int {
+func w108Mentions(text, name string) int {
 	return len(regexp.MustCompile(`\b`+name+`\b`).FindAllString(text, -1))
 }
 
-// z25Calls is `(?<!\w)name\(` -- a call of name and not the tail of a longer
+// w108Calls is `(?<!\w)name\(` -- a call of name and not the tail of a longer
 // identifier.  RE2 has no lookbehind, so the preceding byte is tested, which
 // is exact because the excluded character is consumed by nothing.
-func z25Calls(line, name string) bool {
+func w108Calls(line, name string) bool {
 	re := regexp.MustCompile(regexp.QuoteMeta(name) + `\(`)
 	for _, loc := range re.FindAllStringIndex(line, -1) {
 		if loc[0] > 0 && isWordByteC(line[loc[0]-1]) {
@@ -145,8 +145,8 @@ func Check(w io.Writer, args []string) error {
 	defer os.RemoveAll(tmp)
 
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
-	cflags := strings.Fields(z25CFlags.FindStringSubmatch(mk)[1])
-	ldflags := strings.Fields(z25LDFlags.FindStringSubmatch(mk)[1])
+	cflags := strings.Fields(w108CFlags.FindStringSubmatch(mk)[1])
+	ldflags := strings.Fields(w108LDFlags.FindStringSubmatch(mk)[1])
 	build := func(src, Out string) *exec.Cmd {
 		a := append(append([]string{}, cflags...), ldflags...)
 		a = append(a, "-o", Out, src)
@@ -169,7 +169,7 @@ func Check(w io.Writer, args []string) error {
 	// ---- the five controls ----------------------------------------------
 	var protos []string
 	for _, l := range NL {
-		if z25ProtoLn.MatchString(l) {
+		if w108ProtoLn.MatchString(l) {
 			protos = append(protos, l)
 		}
 	}
@@ -280,8 +280,7 @@ func Check(w io.Writer, args []string) error {
 	wgCanon.Add(1)
 	go func() {
 		defer wgCanon.Done()
-		c := exec.Command("sh", "tools/canon.sh", canonC)
-		b, _ := c.CombinedOutput()
+		b, _ := check.Canon(canonC)
 		os.WriteFile(filepath.Join(tmp, "canon.log"), b, 0o644)
 	}()
 
@@ -304,10 +303,10 @@ func Check(w io.Writer, args []string) error {
 		{"vim_main", 2, 2, "its definition and the one call from the launcher"},
 		{"main", 1, 1, "still the only bare `main` in the file"},
 	} {
-		if got := z25Mentions(oldS, x.Name); got != x.wantOld {
+		if got := w108Mentions(oldS, x.Name); got != x.wantOld {
 			r.Bad("the INPUT has %d mentions of `%s` and this phase was written against "+
 				"%d -- %s", got, x.Name, x.wantOld, x.why)
-		} else if got := z25Mentions(newS, x.Name); got != x.wantNew {
+		} else if got := w108Mentions(newS, x.Name); got != x.wantNew {
 			r.Bad("`%s` has %d mentions in the output, expected %d -- %s",
 				x.Name, got, x.wantNew, x.why)
 		}
@@ -331,7 +330,7 @@ func Check(w io.Writer, args []string) error {
 	if len(built) == 2 {
 		var have []string
 		for _, l := range NL {
-			if z25ProtoLn.MatchString(l) {
+			if w108ProtoLn.MatchString(l) {
 				have = append(have, l)
 			}
 		}
@@ -396,7 +395,7 @@ func Check(w io.Writer, args []string) error {
 	// directive, and the check says so rather than assuming it.
 	// tools/create_cmdidxs.py -- named as a PATH so tools/implhash.sh hashes
 	// it into this phase's key.  Do not delete it.
-	rows := z25CmdRow.FindAllString(newS, -1)
+	rows := w108CmdRow.FindAllString(newS, -1)
 	names, nerr := harness.CommandNames(f)
 	if len(rows) != 98 || nerr != nil || len(names) != 98 {
 		r.Bad("cmdnames[] is not the 98 rows phase 93 left -- this phase touches no Ex " +
@@ -404,7 +403,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	i := strings.Index(newS, "static struct vimoption options[]")
 	j := strings.Index(newS[i:], "\n};") + i
-	if nOpt := len(z25OptRow.FindAllString(newS[i:j], -1)); nOpt != 107 {
+	if nOpt := len(w108OptRow.FindAllString(newS[i:j], -1)); nOpt != 107 {
 		r.Bad("options[] has %d rows, expected the 107 phase 103 left -- this phase "+
 			"removes no option", nOpt)
 	}
@@ -465,7 +464,7 @@ func Check(w io.Writer, args []string) error {
 			}
 		}
 		for i, l := range NL {
-			if z25Calls(l, name) && !containsInt25(proto, i) && !containsInt25(defn, i) {
+			if w108Calls(l, name) && !containsInt25(proto, i) && !containsInt25(defn, i) {
 				uses = append(uses, i)
 			}
 		}
@@ -482,7 +481,7 @@ func Check(w io.Writer, args []string) error {
 		}
 		Out = append(Out, placed{name, proto[0] + 1, lo + 1, hi + 1, defn[0] + 1, len(uses)})
 	}
-	if !z25ErrWord.MatchString(errC1) {
+	if !w108ErrWord.MatchString(errC1) {
 		return stop("THE CONTROL c1 DID NOT SHOW: with the two prototype lines DELETED " +
 			"the file still compiles, so the declarations this phase adds are not what " +
 			"lets the core name the host and the ordering above proves nothing")
@@ -493,7 +492,7 @@ func Check(w io.Writer, args []string) error {
 				"control it claims to be", name)
 		}
 	}
-	nErr := len(z25ErrLine.FindAllString(errC1, -1))
+	nErr := len(w108ErrLine.FindAllString(errC1, -1))
 	first := true
 	for _, p := range Out {
 		plural, span := "", ""
@@ -592,7 +591,7 @@ func Check(w io.Writer, args []string) error {
 	canonLine := ""
 	for _, l := range strings.Split(check.ReadFile(filepath.Join(tmp, "canon.log")), "\n") {
 		if strings.Contains(l, "canon") {
-			canonLine = z25CanonN.ReplaceAllString(l, "")
+			canonLine = w108CanonN.ReplaceAllString(l, "")
 			break
 		}
 	}
@@ -676,7 +675,7 @@ func Check(w io.Writer, args []string) error {
 		wgR.Add(1)
 		go func(k int, name, b, s string) {
 			defer wgR.Done()
-			recErr[k] = check.RecZ(b, s, filepath.Join(tmp, "REC-"+name))
+			recErr[k] = check.RecCore(b, s, filepath.Join(tmp, "REC-"+name))
 		}(k, x.Name, x.bin, x.src)
 	}
 	wgR.Wait()
@@ -775,9 +774,9 @@ func Check(w io.Writer, args []string) error {
 
 	// ---- 7. phase 103's structural check, which a phase that renames host
 	// calls owes.
-	zh := exec.Command("sh", "tools/st.sh", "zhostonly", f)
-	zh.Stdout, zh.Stderr = w, w
-	if err := zh.Run(); err != nil {
+	hostOnly := exec.Command("sh", "tools/st.sh", "zhostonly", f)
+	hostOnly.Stdout, hostOnly.Stderr = w, w
+	if err := hostOnly.Run(); err != nil {
 		return harness.ErrReported
 	}
 	r.Say("and that is phase 103's check, undisturbed: its vocabulary is libc's " +

@@ -10,12 +10,12 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-// z9Sessions are the eight adversarial ways back into readfile() there were.
+// w92Sessions are the eight adversarial ways back into readfile() there were.
 // NAMING A BUFFER AFTER A FILE THAT EXISTS is the shape of all of them: `:file`
 // sets b_ffname, and open_buffer()'s outer arm was `if (curbuf->b_ffname !=
 // NULL)`.  So each gives the buffer a real name and then asks the editor for
 // something that used to load it.
-func z9Sessions() []struct {
+func w92Sessions() []struct {
 	Name string
 	Keys [][]byte
 } {
@@ -42,12 +42,12 @@ func z9Sessions() []struct {
 	}
 }
 
-// z9Evidence is sections 6, 7 and 8: the instrumented pair, the two recordings
+// w92Evidence is sections 6, 7 and 8: the instrumented pair, the two recordings
 // compared directly, and the cases that must not move being shown to work.
-func z9Evidence(r *check.Rep, tmp, inst, state, f, old, bin string) error {
+func w92Evidence(r *check.Rep, tmp, inst, state, f, old, bin string) error {
 	stop := func(format string, a ...any) error { r.Say(format, a...); return harness.ErrReported }
 	rec := func(binary, src, Out string) error {
-		return check.RecZ(binary, src, Out)
+		return check.RecCore(binary, src, Out)
 	}
 	var wg sync.WaitGroup
 	errs := make([]error, 4)
@@ -69,9 +69,9 @@ func z9Evidence(r *check.Rep, tmp, inst, state, f, old, bin string) error {
 		return stop("a harness failed on one of the four recordings")
 	}
 
-	probeWith, _ := check.Marked(filepath.Join(tmp, "REC.probe"), z9Mark)
+	probeWith, _ := check.Marked(filepath.Join(tmp, "REC.probe"), w92Mark)
 	total := len(check.WalkFiles(filepath.Join(tmp, "REC.probe")))
-	ctlWith, ctlQuiet := check.Marked(filepath.Join(tmp, "REC.ctl"), z9Mark)
+	ctlWith, ctlQuiet := check.Marked(filepath.Join(tmp, "REC.ctl"), w92Mark)
 	// THE COUNT IS REPORTED AND NOT PINNED.  phase 123 added a sixth part
 	// to a recording and this phase once said `not the 106 this phase counted`
 	// at a corpus that had grown on purpose.
@@ -105,7 +105,7 @@ func z9Evidence(r *check.Rep, tmp, inst, state, f, old, bin string) error {
 		total, len(ctlWith), total)
 
 	// The eight adversarial sessions, on both instrumented binaries.
-	if err := z9Adversarial(r, filepath.Join(inst, "probe"), filepath.Join(inst, "ctl")); err != nil {
+	if err := w92Adversarial(r, filepath.Join(inst, "probe"), filepath.Join(inst, "ctl")); err != nil {
 		return err
 	}
 
@@ -123,11 +123,11 @@ func z9Evidence(r *check.Rep, tmp, inst, state, f, old, bin string) error {
 	r.Say("two full recordings, the binary this phase was handed and the one it made: identical, all %d records -- 102 screen cases, 111 command rows, 30 command lines, the pty and the terminal table", total)
 
 	// --- 8. the ones that must not move, shown to be DOING something ---------
-	return z9Cases(r, old, bin)
+	return w92Cases(r, old, bin)
 }
 
-func z9Adversarial(r *check.Rep, probe, ctl string) error {
-	sessions := z9Sessions()
+func w92Adversarial(r *check.Rep, probe, ctl string) error {
+	sessions := w92Sessions()
 	type res struct {
 		marks   int
 		blocked bool
@@ -139,12 +139,12 @@ func z9Adversarial(r *check.Rep, probe, ctl string) error {
 			wg.Add(1)
 			go func(i, j int, b string, keys [][]byte) {
 				defer wg.Done()
-				_, _, errb, _, err := harness.ZSession(b, keys, "xterm", []string{"+set paste"}, 24, 80, 8e9)
+				_, _, errb, _, err := harness.CoreSession(b, keys, "xterm", []string{"+set paste"}, 24, 80, 8e9)
 				if err == harness.ErrBlocked {
 					got[i][j] = res{0, true}
 					return
 				}
-				got[i][j] = res{strings.Count(string(errb), z9Mark), false}
+				got[i][j] = res{strings.Count(string(errb), w92Mark), false}
 			}(i, j, b, s.Keys)
 		}
 	}
@@ -171,7 +171,7 @@ func z9Adversarial(r *check.Rep, probe, ctl string) error {
 	return nil
 }
 
-func z9Cases(r *check.Rep, old, bin string) error {
+func w92Cases(r *check.Rep, old, bin string) error {
 	esc, cr := []byte("\x1b"), []byte("\r")
 	quit := []byte("\x1b:q!\r")
 	hello := []byte("hello")
@@ -208,8 +208,8 @@ func z9Cases(r *check.Rep, old, bin string) error {
 		wg.Add(1)
 		go func(i int, c kase) {
 			defer wg.Done()
-			ot, os_ := check.ZRecordStream(old, c.Args, c.Keys, 10e9)
-			nt, ns := check.ZRecordStream(bin, c.Args, c.Keys, 10e9)
+			ot, os_ := check.CoreRecordStream(old, c.Args, c.Keys, 10e9)
+			nt, ns := check.CoreRecordStream(bin, c.Args, c.Keys, 10e9)
 			outs[i] = Out{ot, nt, os_, ns}
 		}(i, c)
 	}

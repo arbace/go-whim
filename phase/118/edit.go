@@ -85,8 +85,8 @@ import (
 func init() { edit.RegisterArgs("whim118", Edit) }
 
 var (
-	z35Seed    = "void *malloc(usize n);"
-	z35CastFd1 = regexp.MustCompile(`\(int\)write\(1, `)
+	w118Seed    = "void *malloc(usize n);"
+	w118CastFd1 = regexp.MustCompile(`\(int\)write\(1, `)
 )
 
 // Whim118 makes the core call nothing but the host: `malloc`, `free` and `write`
@@ -126,7 +126,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		t = strings.Replace(t, old, new, 1)
 		return nil
 	}
-	shortName := func(l string) string { return edit.Z36Name.ReplaceAllString(l, "$1") }
+	shortName := func(l string) string { return edit.W119Name.ReplaceAllString(l, "$1") }
 
 	L := strings.Split(t, "\n")
 	linesBefore := len(L) - 1
@@ -135,7 +135,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// ---- 0. the boundary -----------------------------------------------------
 	var directives []int
 	for i, l := range L {
-		if edit.Z36Dir.MatchString(l) {
+		if edit.W119Dir.MatchString(l) {
 			directives = append(directives, i)
 		}
 	}
@@ -149,7 +149,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 	for _, i := range directives {
-		if !edit.Z36Inc.MatchString(L[i]) {
+		if !edit.W119Inc.MatchString(L[i]) {
 			return nil, p.Die("a directive is not an `#include <...>` of a system header, and no phase may " +
 				"add one")
 		}
@@ -161,7 +161,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// ---- 1. the core's block of ordinary declarations, FOUND rather than assumed
 	var seed []int
 	for i, l := range L[:boundary] {
-		if l == z35Seed {
+		if l == w118Seed {
 			seed = append(seed, i)
 		}
 	}
@@ -170,14 +170,14 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			"phase has not been handed the file it was written for")
 	}
 	lo, hi := seed[0], seed[0]
-	for lo > 0 && edit.Z36IsDecl(L[lo-1]) {
+	for lo > 0 && edit.W119IsDecl(L[lo-1]) {
 		lo--
 	}
-	for hi+1 < boundary && edit.Z36IsDecl(L[hi+1]) {
+	for hi+1 < boundary && edit.W119IsDecl(L[hi+1]) {
 		hi++
 	}
 	blockBefore := append([]string{}, L[lo:hi+1]...)
-	for _, line := range z35Go {
+	for _, line := range w118Go {
 		if !edit.Contains(blockBefore, line) {
 			return nil, p.Die("`%s` is not in the core's block of ordinary declarations, which is %s",
 				line, strings.Join(blockBefore, " / "))
@@ -259,7 +259,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// ---- 3. the three declarations leave the core's block --------------------
 	var blockAfter []string
 	for _, l := range blockBefore {
-		if !edit.Contains(z35Go, l) {
+		if !edit.Contains(w118Go, l) {
 			blockAfter = append(blockAfter, l)
 		}
 	}
@@ -271,7 +271,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			"the three this phase owns come out of it and the rest stay where they are"); err != nil {
 			return nil, err
 		}
-		dropped = len(z35Go)
+		dropped = len(w118Go)
 	} else {
 		if err := swap(oldBlock+"\n", "", "the core's block of declarations AND its trailing "+
 			"blank line",
@@ -285,7 +285,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// ---- 4. and three arrive at the end of the core -> host boundary block ---
 	if err := swap("static void host_message(const char *msg, int len, int err);\n",
 		"static void host_message(const char *msg, int len, int err);\n"+
-			strings.Join(z35Protos, "\n")+"\n",
+			strings.Join(w118Protos, "\n")+"\n",
 		"the last of the core -> host prototypes phase 108 left",
 		"the boundary is ONE block, and these three belong at the end of it rather than "+
 			"wherever a declaration happened to fit"); err != nil {
@@ -298,7 +298,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	L = strings.Split(t, "\n")
 	bnd := -1
 	for i, l := range L {
-		if edit.Z36Dir.MatchString(l) {
+		if edit.W119Dir.MatchString(l) {
 			bnd = i
 			break
 		}
@@ -315,8 +315,8 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// The CAST FORM IS TAKEN FIRST so the bare form cannot strip the call Out
 	// from under it: host_write() returns int, having narrowed inside the host
 	// where the libc type is visible.
-	cast := len(z35CastFd1.FindAllString(core, -1))
-	core = z35CastFd1.ReplaceAllString(core, "host_write(")
+	cast := len(w118CastFd1.FindAllString(core, -1))
+	core = w118CastFd1.ReplaceAllString(core, "host_write(")
 	bare := 0
 	var Out strings.Builder
 	last := 0
@@ -354,7 +354,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// ---- 6. the host defines the three, below the boundary -------------------
 	if err := swap("    int\nmain(int argc, char **argv)\n{\n",
-		z35Defs+"    int\nmain(int argc, char **argv)\n{\n",
+		w118Defs+"    int\nmain(int argc, char **argv)\n{\n",
 		"the launcher's head, the last function in the file",
 		"the three definitions go immediately above it, below host_exit and host_message "+
 			"and in the order their prototypes are written"); err != nil {
@@ -365,7 +365,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	L = strings.Split(t, "\n")
 	boundary = -1
 	for i, l := range L {
-		if edit.Z36Dir.MatchString(l) {
+		if edit.W119Dir.MatchString(l) {
 			boundary = i
 			break
 		}
@@ -392,7 +392,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	have := append([]string{}, L[lo:lo+len(blockAfter)]...)
 	if strings.Join(have, "\x00") != strings.Join(blockAfter, "\x00") {
 		return nil, p.Die("the ordinary declarations left above the boundary are %s and the input's "+
-			"block minus the three is %s", edit.Z36Or(have), edit.Z36Or(blockAfter))
+			"block minus the three is %s", edit.W119Or(have), edit.W119Or(blockAfter))
 	}
 	if L[lo-1] != "" || L[lo+len(blockAfter)] != "" {
 		return nil, p.Die("what is left of the block is not a paragraph of its own")
@@ -402,7 +402,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// declaration's shape exactly, and what tells them apart is the line above.
 	var stray []string
 	for i := 0; i < boundary; i++ {
-		if edit.Z36IsDecl(L[i]) && (L[i-1] == "" || edit.Z36IsDecl(L[i-1])) &&
+		if edit.W119IsDecl(L[i]) && (L[i-1] == "" || edit.W119IsDecl(L[i-1])) &&
 			!(lo <= i && i < lo+len(blockAfter)) {
 			stray = append(stray, fmt.Sprintf("%d:%s", i+1, L[i]))
 		}
@@ -439,7 +439,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// DECLARATION BEFORE USE, COMPUTED.
 	for i, name := range []string{"host_alloc", "host_free", "host_write"} {
-		proto := z35Protos[i]
+		proto := w118Protos[i]
 		var pr, df, uses []int
 		for j, l := range L {
 			if l == proto {
@@ -489,7 +489,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	var d []int
 	for i, l := range L {
-		if edit.Z36Dir.MatchString(l) {
+		if edit.W119Dir.MatchString(l) {
 			d = append(d, i)
 		}
 	}

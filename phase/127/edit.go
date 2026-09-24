@@ -141,21 +141,21 @@ import (
 
 func init() { edit.RegisterArgs("whim127", Edit) }
 
-const z44DbLineMax = 64
+const w127DbLineMax = 64
 
-// z44Bit is the mark, which used to be the top bit of an offset.  Phase 92's
+// w127Bit is the mark, which used to be the top bit of an offset.  Phase 92's
 // macro expansion left it spelled Out, and this is THE TEXT and not a description
 // of it.
-const z44Bit = "((unsigned)1 << ((sizeof(unsigned) * 8) - 1))"
+const w127Bit = "((unsigned)1 << ((sizeof(unsigned) * 8) - 1))"
 
-// z44Gone are the five names the leaf stops having, and the one flag whose only
+// w127Gone are the five names the leaf stops having, and the one flag whose only
 // caller goes with ml_flush_line()'s fallback.
-var z44Gone = []string{"db_free", "db_txt_start", "db_txt_end", "db_index", "ML_APPEND_MARK"}
+var w127Gone = []string{"db_free", "db_txt_start", "db_txt_end", "db_index", "ML_APPEND_MARK"}
 
-// z44Homes is where a mention of a gone name is allowed to be in the INPUT.  A
+// w127Homes is where a mention of a gone name is allowed to be in the INPUT.  A
 // mention anywhere else is a rule this edit does not have, and it refuses rather
 // than leaving it.
-var z44Homes = []string{"<file scope>", "ml_open", "ml_get_buf", "ml_append_int", "ml_delete_int",
+var w127Homes = []string{"<file scope>", "ml_open", "ml_get_buf", "ml_append_int", "ml_delete_int",
 	"ml_setmarked", "ml_firstmarked", "ml_clearmarked", "ml_flush_line", "ml_new_data"}
 
 // Whim127 de-pages the leaf: a data block stops being an index of byte offsets
@@ -223,7 +223,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 		if len(hits) != 1 {
 			return 0, die("%s matches %d lines where this edit needs exactly one",
-				edit.Z43PyRepr(pat), len(hits))
+				edit.W126PyRepr(pat), len(hits))
 		}
 		return hits[0], nil
 	}
@@ -234,7 +234,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 				return i, nil
 			}
 		}
-		return 0, die("%s matches nothing where this edit needs it", edit.Z43PyRepr(pat))
+		return 0, die("%s matches nothing where this edit needs it", edit.W126PyRepr(pat))
 	}
 	// stmtEnd: last index of the statement starting at a, following any `else`
 	// chain.
@@ -266,7 +266,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			if lines[j] == "}" {
 				return "<file scope>"
 			}
-			m := edit.Z44FnHead.FindStringSubmatch(lines[j])
+			m := edit.W127FnHead.FindStringSubmatch(lines[j])
 			if m != nil && j > 0 && strings.HasPrefix(strings.TrimLeft(lines[j-1], " \t"), "static") {
 				return m[1]
 			}
@@ -279,7 +279,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	carry := func(lo, hi, indent int) []string {
 		var Out []string
 		for i := lo; i <= hi; i++ {
-			if edit.Z44MlFlags.MatchString(lines[i]) {
+			if edit.W127MlFlags.MatchString(lines[i]) {
 				Out = append(Out, strings.Repeat(" ", indent)+strings.TrimSpace(lines[i]))
 			}
 		}
@@ -326,9 +326,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// --- the partition, before anything is changed ---------------------------
 	before := map[string]int{}
 	var strays []string
-	for _, name := range append(append([]string{}, z44Gone...), z44Bit) {
+	for _, name := range append(append([]string{}, w127Gone...), w127Bit) {
 		pat := `\b` + regexp.QuoteMeta(name) + `\b`
-		if name == z44Bit {
+		if name == w127Bit {
 			pat = regexp.QuoteMeta(name)
 		}
 		re := regexp.MustCompile(pat)
@@ -342,13 +342,13 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			return nil, die("%s is not in the input at all, so this phase has already run or the "+
 				"leaf is not the one it was written against", name)
 		}
-		if name == z44Bit {
-			before[name] = strings.Count(t0, z44Bit)
+		if name == w127Bit {
+			before[name] = strings.Count(t0, w127Bit)
 		} else {
 			before[name] = mentions(t0, name)
 		}
 		for _, i := range hits {
-			if !edit.Contains(z44Homes, enclosing(i)) {
+			if !edit.Contains(w127Homes, enclosing(i)) {
 				strays = append(strays, fmt.Sprintf("%s in %s (line %d)", name, enclosing(i), i+1))
 			}
 		}
@@ -358,18 +358,18 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			strings.Join(edit.First(strays, 5), "; "))
 	}
 	sum := 0
-	for _, n := range z44Gone {
+	for _, n := range w127Gone {
 		sum += before[n]
 	}
 	say("the input mentions %s -- %d times between them, the top bit %d more -- and every "+
 		"mention is in the struct, the enumerator or one of the eight memline functions "+
-		"this edit rewrites", strings.Join(z44Gone, ", "), sum, before[z44Bit])
+		"this edit rewrites", strings.Join(w127Gone, ", "), sum, before[w127Bit])
 
 	// --- 1. the typedef, the record and the block ----------------------------
-	i := edit.Z44Index(lines, "typedef struct data_block DATA_BL;")
-	lines = append(lines[:i+1], append(append([]string{}, z44b0...), lines[i+1:]...)...)
+	i := edit.W127Index(lines, "typedef struct data_block DATA_BL;")
+	lines = append(lines[:i+1], append(append([]string{}, w127b0...), lines[i+1:]...)...)
 
-	a := edit.Z44Index(lines, "struct data_block")
+	a := edit.W127Index(lines, "struct data_block")
 	b := a
 	for lines[b] != "};" {
 		b++
@@ -384,14 +384,14 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, die("struct data_block is not the header-index-arena block this phase replaces: %s",
 			strings.Join(members, " "))
 	}
-	lines = edit.Z44Splice(lines, a, b+1, z44b1)
+	lines = edit.W127Splice(lines, a, b+1, w127b1)
 
 	// --- 2. one line's text is its own allocation ----------------------------
 	lo, _, err := fn("ml_open")
 	if err != nil {
 		return nil, err
 	}
-	lines = edit.Z44Splice(lines, lo, lo, z44b2)
+	lines = edit.W127Splice(lines, lo, lo, w127b2)
 
 	// --- 3. ml_new_data has no page count ------------------------------------
 	i, err = one(0, len(lines)-1, `^static bhdr_T \*ml_new_data\(memfile_T \*`)
@@ -436,7 +436,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if b != a+1 {
 		return nil, die("ml_new_data does not set the arena on two consecutive lines")
 	}
-	lines = edit.Z44Splice(lines, a, b+1, nil)
+	lines = edit.W127Splice(lines, a, b+1, nil)
 
 	// --- 4. ml_open's one empty line -----------------------------------------
 	if lo, hi, err = fn("ml_open"); err != nil {
@@ -448,7 +448,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if b, err = one(lo, hi, `^    \*\(\(char_u \*\)dp \+ dp->db_txt_start\) = NUL;$`); err != nil {
 		return nil, err
 	}
-	lines = edit.Z44Splice(lines, a, b+1, z44b3)
+	lines = edit.W127Splice(lines, a, b+1, w127b3)
 	if lo, hi, err = fn("ml_open"); err != nil {
 		return nil, err
 	}
@@ -469,7 +469,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if b, err = one(lo, hi, `^        buf->b_ml\.ml_line_len = end - start;$`); err != nil {
 		return nil, err
 	}
-	lines = edit.Z44Splice(lines, a, b+1, z44b4)
+	lines = edit.W127Splice(lines, a, b+1, w127b4)
 
 	// --- 6. ml_append_int ----------------------------------------------------
 	if lo, hi, err = fn("ml_append_int"); err != nil {
@@ -478,7 +478,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if a, err = one(lo, hi, `^    int line_count;$`); err != nil {
 		return nil, err
 	}
-	lines = edit.Z44Splice(lines, a+1, a+1, z44b5)
+	lines = edit.W127Splice(lines, a+1, a+1, w127b5)
 
 	if lo, hi, err = fn("ml_append_int"); err != nil {
 		return nil, err
@@ -486,7 +486,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if a, err = one(lo, hi, `^    space_needed = len \+ `); err != nil {
 		return nil, err
 	}
-	lines = edit.Z44Splice(lines, a, a+1, z44b6)
+	lines = edit.W127Splice(lines, a, a+1, w127b6)
 
 	if lo, hi, err = fn("ml_append_int"); err != nil {
 		return nil, err
@@ -494,7 +494,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if a, err = one(lo, hi, `db_free < space_needed && db_idx == line_count - 1`); err != nil {
 		return nil, err
 	}
-	lines[a] = z44s0
+	lines[a] = w127s0
 
 	if lo, hi, err = fn("ml_append_int"); err != nil {
 		return nil, err
@@ -505,7 +505,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if k, err = firstMatch(a, hi, `if \(flags & ML_APPEND_MARK\)`); err != nil {
 		return nil, err
 	}
-	lines = edit.Z44Splice(lines, a, stmtEnd(k)+1, z44b7)
+	lines = edit.W127Splice(lines, a, stmtEnd(k)+1, w127b7)
 
 	if lo, hi, err = fn("ml_append_int"); err != nil {
 		return nil, err
@@ -516,7 +516,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if b, err = one(lo, hi, `offsetof\(DATA_BL, db_index\)`); err != nil {
 		return nil, err
 	}
-	lines = edit.Z44Splice(lines, a, b+1, z44b8)
+	lines = edit.W127Splice(lines, a, b+1, w127b8)
 
 	if lo, hi, err = fn("ml_append_int"); err != nil {
 		return nil, err
@@ -545,7 +545,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 		b = stmtEnd(k)
 	}
-	lines = edit.Z44Splice(lines, a, b+1, z44b9)
+	lines = edit.W127Splice(lines, a, b+1, w127b9)
 
 	// --- 7. ml_delete_int ----------------------------------------------------
 	if lo, hi, err = fn("ml_delete_int"); err != nil {
@@ -558,7 +558,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if !strings.Contains(strings.Join(lines[a:b+1], "\n"), "db_index[idx - 1]") {
 		return nil, die("the line_size computation is not the two-armed one this edit removes")
 	}
-	lines = edit.Z44Splice(lines, a, b+1, nil)
+	lines = edit.W127Splice(lines, a, b+1, nil)
 
 	if lo, hi, err = fn("ml_delete_int"); err != nil {
 		return nil, err
@@ -569,7 +569,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if b, err = one(lo, hi, `^        --\(dp->db_line_count\);$`); err != nil {
 		return nil, err
 	}
-	lines = edit.Z44Splice(lines, a, b+1, z44b10)
+	lines = edit.W127Splice(lines, a, b+1, w127b10)
 
 	// --- 8. the mark is a field ----------------------------------------------
 	if lo, hi, err = fn("ml_setmarked"); err != nil {
@@ -578,7 +578,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if a, err = one(lo, hi, `^    dp->db_index\[lnum - curbuf->b_ml\.ml_locked_low\] \|= `); err != nil {
 		return nil, err
 	}
-	lines[a] = z44s1
+	lines[a] = w127s1
 	for _, name := range []string{"ml_firstmarked", "ml_clearmarked"} {
 		if lo, hi, err = fn(name); err != nil {
 			return nil, err
@@ -589,7 +589,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		if b, err = one(lo, hi, `^                \(dp->db_index\[i\]\) &= `); err != nil {
 			return nil, err
 		}
-		lines = edit.Z44Splice(lines, a, b+1, z44b11)
+		lines = edit.W127Splice(lines, a, b+1, w127b11)
 	}
 
 	// --- 9. ml_flush_line stores the pointer ---------------------------------
@@ -604,12 +604,12 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	b = stmtEnd(k)
 	kept := carry(a, b, 12)
-	repl := append([]string{}, z44b12...)
+	repl := append([]string{}, w127b12...)
 	if len(kept) > 0 {
 		repl = append(repl, "")
 		repl = append(repl, kept...)
 	}
-	lines = edit.Z44Splice(lines, a, b+1, repl)
+	lines = edit.W127Splice(lines, a, b+1, repl)
 	if lo, hi, err = fn("ml_flush_line"); err != nil {
 		return nil, err
 	}
@@ -624,7 +624,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if strings.TrimSpace(lines[a+1]) == "" {
 		return nil, die("a blank line under vim_free(new_line) -- this edit takes the free alone")
 	}
-	lines = edit.Z44Splice(lines, a, a+1, nil)
+	lines = edit.W127Splice(lines, a, a+1, nil)
 
 	// --- 10. ML_APPEND_MARK has no caller left -------------------------------
 	markRe := regexp.MustCompile(`\bML_APPEND_MARK\b`)
@@ -638,7 +638,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, die("ML_APPEND_MARK is still mentioned %d times and not only by its own "+
 			"enumerator, so the flag has a caller this edit did not see", len(left))
 	}
-	lines = edit.Z44Splice(lines, left[0], left[0]+1, nil)
+	lines = edit.W127Splice(lines, left[0], left[0]+1, nil)
 
 	// --- 11. the locals the rewrite stopped using ----------------------------
 	// COMPUTED, not listed: a declaration whose name is left mentioned once in
@@ -654,16 +654,16 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			Body := strings.Join(lines[lo:hi+1], "\n")
 			found := false
 			for i := lo; i <= hi; i++ {
-				m := edit.Z44Decl.FindStringSubmatch(lines[i])
+				m := edit.W127Decl.FindStringSubmatch(lines[i])
 				if m == nil {
 					continue
 				}
-				if edit.Contains(edit.Z44NotDecl, strings.Fields(lines[i])[0]) {
+				if edit.Contains(edit.W127NotDecl, strings.Fields(lines[i])[0]) {
 					continue
 				}
 				if mentions(Body, m[1]) == 1 {
 					droppedLocals = append(droppedLocals, name+":"+m[1])
-					lines = edit.Z44Splice(lines, i, i+1, nil)
+					lines = edit.W127Splice(lines, i, i+1, nil)
 					found = true
 					break
 				}
@@ -678,15 +678,15 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// --- the partition again, on the output ----------------------------------
 	t := strings.Join(lines, "\n")
-	for _, name := range z44Gone {
+	for _, name := range w127Gone {
 		if k := mentions(t, name); k != 0 {
 			return nil, die("%s survives the edit with %d mentions", name, k)
 		}
 	}
-	if k := strings.Count(t, z44Bit); k != 0 {
+	if k := strings.Count(t, w127Bit); k != 0 {
 		return nil, die("the stolen top bit survives the edit %d times", k)
 	}
-	if edit.Z44Interior.MatchString(strings.ReplaceAll(t, "(char *)dp", "(char_u *)dp")) {
+	if edit.W127Interior.MatchString(strings.ReplaceAll(t, "(char *)dp", "(char_u *)dp")) {
 		return nil, die("an interior pointer into a data block survives the edit")
 	}
 	if strings.Contains(t, "offsetof(DATA_BL") {
@@ -706,15 +706,15 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	got := map[string]int{}
 	total := 0
 	for i, l := range lines {
-		if edit.Z44DlText.MatchString(l) {
+		if edit.W127DlText.MatchString(l) {
 			got[enclosing(i)]++
 			total++
 		}
 	}
 	want := map[string]int{"ml_open": 1, "ml_append_int": 3, "ml_flush_line": 1}
-	if !z44SameCount(got, want) {
+	if !w127SameCount(got, want) {
 		return nil, die("a record's text is assigned in %s, and the lifetime rule this phase pins "+
-			"says it is assigned in exactly %s", z44PyDict(got), z44PyDict(want))
+			"says it is assigned in exactly %s", w127PyDict(got), w127PyDict(want))
 	}
 	var wk []string
 	for k := range want {
@@ -730,21 +730,21 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		total, strings.Join(shown, ", "))
 
 	var gone strings.Builder
-	for _, n := range append(append([]string{}, z44Gone...), z44Bit) {
+	for _, n := range append(append([]string{}, w127Gone...), w127Bit) {
 		fmt.Fprintf(&gone, "%s\t%d\n", n, before[n])
 	}
 	if err := os.WriteFile(state+"/gone", []byte(gone.String()), 0o644); err != nil {
 		return nil, die("%v", err)
 	}
-	if err := os.WriteFile(state+"/dbmax", []byte(fmt.Sprintf("%d\n", z44DbLineMax)), 0o644); err != nil {
+	if err := os.WriteFile(state+"/dbmax", []byte(fmt.Sprintf("%d\n", w127DbLineMax)), 0o644); err != nil {
 		return nil, die("%v", err)
 	}
 	say("%d -> %d lines: the leaf is an array of %d records and a line's text is its own "+
-		"allocation", nIn, len(lines), z44DbLineMax)
+		"allocation", nIn, len(lines), w127DbLineMax)
 	return []byte(t), nil
 }
 
-func z44SameCount(a, b map[string]int) bool {
+func w127SameCount(a, b map[string]int) bool {
 	if len(a) != len(b) {
 		return false
 	}
@@ -756,8 +756,8 @@ func z44SameCount(a, b map[string]int) bool {
 	return true
 }
 
-// z44PyDict is Python's str() of a {str: int} dict, which the refusal quotes.
-func z44PyDict(m map[string]int) string {
+// w127PyDict is Python's str() of a {str: int} dict, which the refusal quotes.
+func w127PyDict(m map[string]int) string {
 	keys := make([]string, 0, len(m))
 	for k := range m {
 		keys = append(keys, k)

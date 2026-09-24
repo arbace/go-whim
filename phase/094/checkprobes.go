@@ -11,13 +11,13 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-const z11E37 = "E37: No write since last change (add ! to override)"
+const w94E37 = "E37: No write since last change (add ! to override)"
 
-// z11Probes: the corpus sees ONE case and cannot tell "the refusal was removed"
+// w94Probes: the corpus sees ONE case and cannot tell "the refusal was removed"
 // from "a message changed" -- every zcases case ends with a trailing `:q!`,
 // which quits the old binary too, so the exit status is 0 either side there.
 // q_alone is the probe: `:q` with nothing after it.
-func z11Probes(r *check.Rep, old, bin string) error {
+func w94Probes(r *check.Rep, old, bin string) error {
 	esc, cr := []byte("\x1b"), []byte("\r")
 	quit := []byte("\x1b:q!\r")
 	hello := []byte("hello")
@@ -30,25 +30,25 @@ func z11Probes(r *check.Rep, old, bin string) error {
 		k := [][]byte{append(append([]byte("i"), hello...), esc...), []byte(":set nopaste\r")}
 		return []string{"+set paste"}, append(k, keys...)
 	}
-	var probes []check.Z6Probe
+	var probes []check.W89Probe
 	one := func(name string, seed []byte, diff bool, keys ...[]byte) {
 		a, k := typed(seed, keys...)
-		probes = append(probes, check.Z6Probe{Name: name, Args: a, Keys: k, Differ: diff})
+		probes = append(probes, check.W89Probe{Name: name, Args: a, Keys: k, Differ: diff})
 	}
 	a, k := seeded([]byte(":q\r"))
-	probes = append(probes, check.Z6Probe{Name: "q_alone", Args: a, Keys: k, Differ: true})
+	probes = append(probes, check.W89Probe{Name: "q_alone", Args: a, Keys: k, Differ: true})
 	one("q_modified", hello, true, []byte(":q\r"))
 	one("q_range", hello, true, []byte(":1q\r"))
 	one("q_spell_qu", hello, true, []byte(":qu\r"))
 	one("q_spell_quit", hello, true, []byte(":quit\r"))
 	one("q_after_undo", hello, true, []byte("x"), []byte(":q\r"))
-	probes = append(probes, check.Z6Probe{Name: "q_clean", Args: []string{"+set paste"}, Keys: [][]byte{[]byte(":set nopaste\r"), []byte(":q\r")}, Differ: false})
+	probes = append(probes, check.W89Probe{Name: "q_clean", Args: []string{"+set paste"}, Keys: [][]byte{[]byte(":set nopaste\r"), []byte(":q\r")}, Differ: false})
 	a, k = seeded([]byte(":q!\r"))
-	probes = append(probes, check.Z6Probe{Name: "q_bang", Args: a, Keys: k, Differ: false})
+	probes = append(probes, check.W89Probe{Name: "q_bang", Args: a, Keys: k, Differ: false})
 	one("zz_key", hello, false, []byte("ZZ"))
 	one("zq_key", hello, false, []byte("ZQ"))
 	a, k = seeded([]byte(":cq\r"))
-	probes = append(probes, check.Z6Probe{Name: "cquit", Args: a, Keys: k, Differ: false})
+	probes = append(probes, check.W89Probe{Name: "cquit", Args: a, Keys: k, Differ: false})
 	one("ctrl_g", append(append([]byte("a"), cr...), []byte("b")...), false, ctrlG)
 	one("cmd_set_ro", hello, false, []byte(":set ro?\r"))
 	one("cmd_set_mod", hello, false, []byte(":set modified?\r"))
@@ -69,10 +69,10 @@ func z11Probes(r *check.Rep, old, bin string) error {
 	var wg sync.WaitGroup
 	for i, p := range probes {
 		wg.Add(1)
-		go func(i int, p check.Z6Probe) {
+		go func(i int, p check.W89Probe) {
 			defer wg.Done()
-			ot, os_, osn, orc, ob := check.ZRecordFull(old, p.Args, p.Keys, 10*time.Second)
-			nt, ns, nsn, nrc, nb := check.ZRecordFull(bin, p.Args, p.Keys, 10*time.Second)
+			ot, os_, osn, orc, ob := check.CoreRecordFull(old, p.Args, p.Keys, 10*time.Second)
+			nt, ns, nsn, nrc, nb := check.CoreRecordFull(bin, p.Args, p.Keys, 10*time.Second)
 			outs[i] = outcome{p.Name, ot, nt, os_, ns, osn, nsn, orc, nrc, ob, nb, p.Differ}
 		}(i, p)
 	}
@@ -96,7 +96,7 @@ func z11Probes(r *check.Rep, old, bin string) error {
 		}
 	}
 	o := by["q_alone"]
-	if !strings.Contains(o.oT, z11E37) {
+	if !strings.Contains(o.oT, w94E37) {
 		fail = append(fail, "q_alone: the input binary did not refuse, so this proves nothing about a refusal being removed")
 	}
 	if o.oRC != "1" {
@@ -105,7 +105,7 @@ func z11Probes(r *check.Rep, old, bin string) error {
 	if !strings.Contains(o.oS, "Vim: Finished.") && !strings.Contains(o.oT, "Vim: Finished.") {
 		fail = append(fail, "q_alone: the input binary did not print `Vim: Finished.`, so it did not reach end of input after refusing")
 	}
-	if strings.Contains(o.nT, z11E37) {
+	if strings.Contains(o.nT, w94E37) {
 		fail = append(fail, "q_alone: this binary still refuses")
 	}
 	if o.nRC != "0" {
@@ -113,10 +113,10 @@ func z11Probes(r *check.Rep, old, bin string) error {
 	}
 	for _, name := range []string{"q_modified", "q_range", "q_spell_qu", "q_spell_quit", "q_after_undo"} {
 		o := by[name]
-		if !strings.Contains(o.oT, z11E37) {
+		if !strings.Contains(o.oT, w94E37) {
 			fail = append(fail, fmt.Sprintf("%s: the input binary did not refuse, so \"it moved\" is not evidence of anything", name))
 		}
-		if strings.Contains(o.nT, z11E37) {
+		if strings.Contains(o.nT, w94E37) {
 			fail = append(fail, fmt.Sprintf("%s: this binary still refuses", name))
 		}
 		if o.nSn >= o.oSn {
@@ -127,7 +127,7 @@ func z11Probes(r *check.Rep, old, bin string) error {
 		fail = append(fail, fmt.Sprintf("q_modified: the bells went %d -> %d, expected 1 -> 0 -- the refusal beeped and nothing here does", o.oB, o.nB))
 	}
 	o = by["q_clean"]
-	if strings.Contains(o.oT, z11E37) || strings.Contains(o.nT, z11E37) || o.oRC != "0" || o.nRC != "0" {
+	if strings.Contains(o.oT, w94E37) || strings.Contains(o.nT, w94E37) || o.oRC != "0" || o.nRC != "0" {
 		fail = append(fail, fmt.Sprintf("q_clean: `:q` on an UNMODIFIED buffer must quit with status 0 on both binaries and refuse on neither -- it took the else arm before this phase and takes it now, which is what makes it the pair of q_alone (%s, %s)",
 			check.CutilRepr(o.oRC), check.CutilRepr(o.nRC)))
 	}
@@ -165,7 +165,7 @@ func z11Probes(r *check.Rep, old, bin string) error {
 	return nil
 }
 
-func z11Pty(r *check.Rep, old, bin string) error {
+func w94Pty(r *check.Rep, old, bin string) error {
 	home, err := os.MkdirTemp("", "whim94-home-")
 	if err != nil {
 		return err
@@ -176,7 +176,7 @@ func z11Pty(r *check.Rep, old, bin string) error {
 			return "", -1, err
 		}
 		text, status, err := harness.Session(binary, nil, keys, "xterm",
-			20*time.Second, 600*time.Millisecond, d, check.Z2Env(home), 0, 0)
+			20*time.Second, 600*time.Millisecond, d, check.W85Env(home), 0, 0)
 		return string(text), status, err
 	}
 	quitKeys := [][]byte{[]byte("ityped on a terminal\x1b"), []byte(":q\r"), []byte(":q!\r")}
@@ -209,10 +209,10 @@ func z11Pty(r *check.Rep, old, bin string) error {
 	}
 	// The blinded field, and the guard that keeps the blinding from becoming a
 	// blinding of nothing: see whim93, where the same measurement is written up.
-	if !strings.Contains(eo, "change; before #") || !check.Z10AGO.MatchString(eo) {
+	if !strings.Contains(eo, "change; before #") || !check.W93AGO.MatchString(eo) {
 		fail = append(fail, fmt.Sprintf("the undo report with its `N seconds ago` is not in the pty session on the input binary, so blinding the clock blinds nothing and the comparison below is not the one described: %s", check.CutilRepr(check.Tail200(eo))))
 	}
-	if check.Z10AGO.ReplaceAllString(eo, "<ago>") != check.Z10AGO.ReplaceAllString(en, "<ago>") || eos != ens {
+	if check.W93AGO.ReplaceAllString(eo, "<ago>") != check.W93AGO.ReplaceAllString(en, "<ago>") || eos != ens {
 		fail = append(fail, "an ordinary pty editing session moved, and nothing here may move it")
 	}
 	if !strings.Contains(en, "alpha") {

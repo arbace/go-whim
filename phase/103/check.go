@@ -83,8 +83,8 @@ import (
 func init() { check.Register("whim103", Check) }
 
 const (
-	z20SleepA = "    if (relax)\n    {\n        host_tty_set(FALSE, TRUE);\n    }\n"
-	z20SleepB = "    if (relax)\n    {\n        host_tty_set(TRUE, FALSE);\n    }\n"
+	w103SleepA = "    if (relax)\n    {\n        host_tty_set(FALSE, TRUE);\n    }\n"
+	w103SleepB = "    if (relax)\n    {\n        host_tty_set(TRUE, FALSE);\n    }\n"
 )
 
 // Whim103 is phase 103's check: the signals and the terminal are the host's.
@@ -102,18 +102,18 @@ func Check(w io.Writer, args []string) error {
 	}
 	defer os.RemoveAll(tmp)
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
-	cflags, ldflags := strings.Fields(check.Z9Flag(mk, "CFLAGS")), strings.Fields(check.Z9Flag(mk, "LDFLAGS"))
+	cflags, ldflags := strings.Fields(check.W92Flag(mk, "CFLAGS")), strings.Fields(check.W92Flag(mk, "LDFLAGS"))
 	newC, oldC := check.ReadFile(f), check.ReadFile(filepath.Join(state, "old.c"))
 
 	// --- 1. the control ------------------------------------------------------
-	for _, t := range []string{z20SleepA, z20SleepB} {
+	for _, t := range []string{w103SleepA, w103SleepB} {
 		if strings.Count(newC, t) != 1 {
 			r.Say("the musl_delay sleep-mode pair is not in the output exactly once, so the control below would not be the control")
 			return harness.ErrReported
 		}
 	}
 	nosleep := filepath.Join(tmp, "nosleep")
-	os.WriteFile(nosleep+".c", []byte(strings.ReplaceAll(strings.ReplaceAll(newC, z20SleepA, ""), z20SleepB, "")), 0o644)
+	os.WriteFile(nosleep+".c", []byte(strings.ReplaceAll(strings.ReplaceAll(newC, w103SleepA, ""), w103SleepB, "")), 0o644)
 	r.Say("the control: this phase's own output with musl_delay()'s two host_tty_set() calls deleted and nothing else -- the sleep mode gone and the nanosleep left")
 	ctl := make(chan error, 1)
 	go func() {
@@ -194,14 +194,14 @@ func Check(w io.Writer, args []string) error {
 			fail = append(fail, fmt.Sprintf("`%s` has %d mentions, expected %d -- %s", p.Name, n, p.want, p.why))
 		}
 	}
-	rows := check.Z6RowRe.FindAllString(newC, -1)
+	rows := check.W89RowRe.FindAllString(newC, -1)
 	got, _ := harness.CommandNamesIn([]byte(newC), "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
 		fail = append(fail, "cmdnames[] is not the 98 rows phase 93 left -- this phase touches no Ex command")
 	}
 	if i := strings.Index(newC, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newC[i:], "\n};")
-		if n := len(check.Z12RowRe.FindAllString(newC[i:i+j], -1)); n != 107 {
+		if n := len(check.W95RowRe.FindAllString(newC[i:i+j], -1)); n != 107 {
 			fail = append(fail, fmt.Sprintf("options[] has %d rows, expected 107 -- 'termresize' is the one row this phase removes, from the 108 phase 95 left", n))
 		}
 	}
@@ -292,5 +292,5 @@ func Check(w io.Writer, args []string) error {
 	}
 
 	// --- 6. the probes -------------------------------------------------------
-	return z20Probes(r, old, bin, nosleep)
+	return w103Probes(r, old, bin, nosleep)
 }

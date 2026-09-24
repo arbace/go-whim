@@ -89,16 +89,16 @@ import (
 func init() { edit.Register("whim90", Edit) }
 
 const (
-	z7RowsBefore = 105
-	z7RowsAfter  = 104
-	z7Floor      = 100
+	w90RowsBefore = 105
+	w90RowsAfter  = 104
+	w90Floor      = 100
 )
 
-// z7Dying are the names whose survivors are the reason the text does not
+// w90Dying are the names whose survivors are the reason the text does not
 // compile yet.
-var z7Dying = []string{"CMD_read", "usefilter"}
+var w90Dying = []string{"CMD_read", "usefilter"}
 
-var z7Assign = regexp.MustCompile(`\busefilter\s*=`)
+var w90Assign = regexp.MustCompile(`\busefilter\s*=`)
 
 // Whim90 takes the way to read a file: `:read`, its `:r !cmd` arm, and the
 // exarg_T.usefilter field that nothing writes once both `:w !` and `:r !` are
@@ -134,7 +134,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			k := strings.Count(string(s), old)
 			if k != n {
 				return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-					what, cutil.PyRepr(edit.ZHead(old, 60)), k, fn, n)
+					what, cutil.PyRepr(edit.CoreHead(old, 60)), k, fn, n)
 			}
 			return []byte(strings.ReplaceAll(string(s), old, new)), nil
 		})
@@ -160,20 +160,20 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		k := strings.Count(Body, old)
 		if k != n {
 			return nil, p.Die("%s -- %s occurs %d times in struct %s, expected %d",
-				what, cutil.PyRepr(edit.ZHead(old, 60)), k, tag, n)
+				what, cutil.PyRepr(edit.CoreHead(old, 60)), k, tag, n)
 		}
 		p.Say(what)
 		return []byte(string(t[:o]) + strings.ReplaceAll(Body, old, new) + string(t[c+1:])), nil
 	}
 
 	// ---- 0. the table and the field, at the shape the anchors were counted on
-	if n := len(edit.ZRows(text)); n != z7RowsBefore {
+	if n := len(edit.CoreRows(text)); n != w90RowsBefore {
 		return nil, p.Die("cmdnames[] has %d rows, expected %d -- the anchors below were counted "+
-			"against a different table", n, z7RowsBefore)
+			"against a different table", n, w90RowsBefore)
 	}
 	names, err := harness.CommandNamesIn(text, "whim-vim.c")
-	if err != nil || len(names) != z7RowsBefore {
-		return nil, p.Die("create_cmdidxs names() does not read %d rows out of this table", z7RowsBefore)
+	if err != nil || len(names) != w90RowsBefore {
+		return nil, p.Die("create_cmdidxs names() does not read %d rows out of this table", w90RowsBefore)
 	}
 	for _, b := range []struct {
 		Name string
@@ -185,7 +185,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				"against a different file", b.Name, k, b.want)
 		}
 	}
-	if writes := len(z7Assign.FindAll(text, -1)); writes != 2 {
+	if writes := len(w90Assign.FindAll(text, -1)); writes != 2 {
 		return nil, p.Die("usefilter is assigned %d times, expected the 2 that anchor 3 removes -- "+
 			"phase 89 took the other two with `:w >>` and `:w !cmd`", writes)
 	}
@@ -205,22 +205,22 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("cmdnames[] has no [CMD_read] row")
 	}
 	text = append(append([]byte{}, text[:m[0]]...), text[m[1]:]...)
-	if n := len(edit.ZRows(text)); n != z7RowsAfter {
-		return nil, p.Die("cmdnames[] has %d rows after the cut, expected %d", n, z7RowsAfter)
+	if n := len(edit.CoreRows(text)); n != w90RowsAfter {
+		return nil, p.Die("cmdnames[] has %d rows after the cut, expected %d", n, w90RowsAfter)
 	}
 	p.Sayf("the cmdnames[] row; %d -> %d, and create_cmdidxs names() refuses under %d, so "+
 		"the margin is %d rows -- the :edit phase spends it (GOALS.md II.3a)",
-		z7RowsBefore, z7RowsAfter, z7Floor, z7RowsAfter-z7Floor)
+		w90RowsBefore, w90RowsAfter, w90Floor, w90RowsAfter-w90Floor)
 
 	// ---- 3. do_one_cmd's `:r!` and `:r !cmd` parse -----------------------------
-	if text, err = within(text, "do_one_cmd", z7lit2, "",
+	if text, err = within(text, "do_one_cmd", w90lit2, "",
 		"do_one_cmd no longer parses `:r!` or `:r !cmd`: usefilter loses its last "+
 			"two writes", 1); err != nil {
 		return nil, err
 	}
 
 	// ---- 4. the field nothing writes any more, and its seven readers -----------
-	if z7Assign.Match(text) {
+	if w90Assign.Match(text) {
 		return nil, p.Die("usefilter is still assigned after anchor 3, so the fold below would be wrong")
 	}
 	for _, a := range []struct{ Old, New, What string }{
@@ -255,7 +255,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- 5. what is left, and why it does not compile yet ----------------------
-	left, holders, _, err := edit.ZResidue(p, text, z7Dying)
+	left, holders, _, err := edit.CoreResidue(p, text, w90Dying)
 	if err != nil {
 		return nil, err
 	}
@@ -265,6 +265,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	p.Sayf("%d mention%s of %s left, inside %s, and no surviving row names it: the text "+
 		"does not compile until the sweep has run, and phasecheck is where "+
-		"that is asserted", left, s, strings.Join(z7Dying, " and "), strings.Join(holders, ", "))
+		"that is asserted", left, s, strings.Join(w90Dying, " and "), strings.Join(holders, ", "))
 	return text, nil
 }

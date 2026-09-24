@@ -15,7 +15,7 @@ import (
 // that is only the echoed request.
 var vimError = regexp.MustCompile(`\bE\d+:`)
 
-// ZTermCheck asks the terminal table with `+set term={name}` instead of $TERM.
+// CoreTermCheck asks the terminal table with `+set term={name}` instead of $TERM.
 //
 // The old question was CONTENT-FREE and measurably so.  whim phase 19 removed
 // the getenv("TERM") the editor read, so every one of the nineteen rows said
@@ -33,7 +33,7 @@ var vimError = regexp.MustCompile(`\bE\d+:`)
 //
 // No file argument and no file: phase 88 made a file argument an unknown
 // option.
-func ZTermCheck(bin, out string, w io.Writer) error {
+func CoreTermCheck(bin, out string, w io.Writer) error {
 	home, err := os.MkdirTemp("", "ztermcheck-home-")
 	if err != nil {
 		return err
@@ -47,7 +47,7 @@ func ZTermCheck(bin, out string, w io.Writer) error {
 		wg.Add(1)
 		go func(i int, t string) {
 			defer wg.Done()
-			rows[i] = zaskTerm(bin, env, t)
+			rows[i] = coreAskTerm(bin, env, t)
 		}(i, t)
 	}
 	wg.Wait()
@@ -60,11 +60,11 @@ func ZTermCheck(bin, out string, w io.Writer) error {
 	return nil
 }
 
-func zaskTerm(bin string, env []string, t string) string {
+func coreAskTerm(bin string, env []string, t string) string {
 	var got []string
 	for _, settle := range []time.Duration{500 * time.Millisecond,
 		1500 * time.Millisecond, 3000 * time.Millisecond} {
-		got = zask(bin, env, t, settle)
+		got = coreAsk(bin, env, t, settle)
 		if len(got) > 0 {
 			break
 		}
@@ -76,7 +76,7 @@ func zaskTerm(bin string, env []string, t string) string {
 	return fmt.Sprintf(":set term=%-20s -> %s", pyRepr(t), answer)
 }
 
-func zask(bin string, env []string, t string, settle time.Duration) []string {
+func coreAsk(bin string, env []string, t string, settle time.Duration) []string {
 	d, err := os.MkdirTemp("", "ztermcheck-")
 	if err != nil {
 		return nil

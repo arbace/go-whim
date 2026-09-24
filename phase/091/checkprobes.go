@@ -15,12 +15,12 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-// z8Spellings are the ten ways to say the five commands, each of which answered
+// w91Spellings are the ten ways to say the five commands, each of which answered
 // E37 before and must answer E492 now.  `:en` is the ELEVENTH and is not this
 // phase's: enew's shortest abbreviation is three characters.
-var z8Spellings = []string{"e", "ed", "edit", "enew", "ex", "vi", "vis", "vie", "view", "visual"}
+var w91Spellings = []string{"e", "ed", "edit", "enew", "ex", "vi", "vis", "vie", "view", "visual"}
 
-func z8Probes(r *check.Rep, old, bin string) error {
+func w91Probes(r *check.Rep, old, bin string) error {
 	esc, cr := []byte("\x1b"), []byte("\r")
 	quit := []byte("\x1b:q!\r")
 	hello, word := []byte("hello"), []byte("nosuchfile")
@@ -28,10 +28,10 @@ func z8Probes(r *check.Rep, old, bin string) error {
 		k := [][]byte{append(append([]byte("i"), seed...), esc...), []byte(":set nopaste\r")}
 		return []string{"+set paste"}, append(append(k, keys...), quit)
 	}
-	var probes []check.Z6Probe
+	var probes []check.W89Probe
 	one := func(name string, seed []byte, diff bool, keys ...[]byte) {
 		a, k := typed(seed, keys...)
-		probes = append(probes, check.Z6Probe{Name: name, Args: a, Keys: k, Differ: diff})
+		probes = append(probes, check.W89Probe{Name: name, Args: a, Keys: k, Differ: diff})
 	}
 	one("edit_keys", hello, true, []byte(":e! keys\r"))
 	one("ex_keys", hello, true, []byte(":ex! keys\r"))
@@ -55,13 +55,13 @@ func z8Probes(r *check.Rep, old, bin string) error {
 	one("cmd_registers", hello, false, []byte(":registers\r"))
 	one("ctrl_g", append(append([]byte("a"), cr...), []byte("b")...), false, []byte("\x07"))
 	one("quit_modified", hello, false, []byte(":q\r"))
-	probes = append(probes, check.Z6Probe{Name: "quit_bang", Args: []string{"+set paste"}, Keys: [][]byte{append(append([]byte("i"), hello...), esc...), []byte(":set nopaste\r"), []byte(":q!\r")}, Differ: false})
+	probes = append(probes, check.W89Probe{Name: "quit_bang", Args: []string{"+set paste"}, Keys: [][]byte{append(append([]byte("i"), hello...), esc...), []byte(":set nopaste\r"), []byte(":q!\r")}, Differ: false})
 	one("editing", append(append([]byte("alpha"), cr...), []byte("beta")...), false,
 		[]byte("0dwA-tail\x1b"), []byte("u"), []byte("yyp"))
 	// THE SPELLINGS COME LAST, because the Python builds them with a list
 	// comprehension appended to the literal table -- and the report names the
 	// probes that moved in table order.
-	for _, s := range z8Spellings {
+	for _, s := range w91Spellings {
 		one("spell_"+s, hello, true, []byte(":"+s+"\r"))
 	}
 
@@ -75,10 +75,10 @@ func z8Probes(r *check.Rep, old, bin string) error {
 	var wg sync.WaitGroup
 	for i, p := range probes {
 		wg.Add(1)
-		go func(i int, p check.Z6Probe) {
+		go func(i int, p check.W89Probe) {
 			defer wg.Done()
-			ot, os_, osn := check.ZRecordSnaps(old, p.Args, p.Keys, 10*time.Second)
-			nt, ns, nsn := check.ZRecordSnaps(bin, p.Args, p.Keys, 10*time.Second)
+			ot, os_, osn := check.CoreRecordSnaps(old, p.Args, p.Keys, 10*time.Second)
+			nt, ns, nsn := check.CoreRecordSnaps(bin, p.Args, p.Keys, 10*time.Second)
 			outs[i] = outcome{p.Name, ot, nt, os_, ns, osn, nsn, p.Differ}
 		}(i, p)
 	}
@@ -103,13 +103,13 @@ func z8Probes(r *check.Rep, old, bin string) error {
 	}
 	for _, name := range []string{"edit_keys", "ex_keys", "visual_keys", "view_keys"} {
 		o := by[name]
-		if !strings.Contains(o.oT, check.Z7ReadIn) {
+		if !strings.Contains(o.oT, check.W90ReadIn) {
 			fail = append(fail, fmt.Sprintf("%s: the keystroke file did not reach the buffer on the input binary, so this proves nothing about opening a file", name))
 		}
-		if strings.Contains(o.nT, check.Z7ReadIn) {
+		if strings.Contains(o.nT, check.W90ReadIn) {
 			fail = append(fail, fmt.Sprintf("%s: the new binary opened the file anyway", name))
 		}
-		if !strings.Contains(o.nT, check.Z6E492) {
+		if !strings.Contains(o.nT, check.W89E492) {
 			fail = append(fail, fmt.Sprintf("%s: the new binary does not answer E492", name))
 		}
 		if !strings.Contains(o.oT, `"keys"`) {
@@ -139,7 +139,7 @@ func z8Probes(r *check.Rep, old, bin string) error {
 	if !strings.Contains(lastSnap(o.nT), "hello") {
 		fail = append(fail, "enew_bang: the new binary emptied the buffer anyway")
 	}
-	if !strings.Contains(o.nT, check.Z6E492) {
+	if !strings.Contains(o.nT, check.W89E492) {
 		fail = append(fail, "enew_bang: `:enew!` is not an unknown command")
 	}
 	for _, name := range []string{"key_gf", "key_gF", "key_br_f", "key_brc_f"} {
@@ -154,27 +154,27 @@ func z8Probes(r *check.Rep, old, bin string) error {
 			fail = append(fail, fmt.Sprintf("%s: %d snapshots against the input binary's %d, expected one fewer -- the message drew a redraw of its own", name, o.nSn, o.oSn))
 		}
 	}
-	for _, s := range z8Spellings {
+	for _, s := range w91Spellings {
 		o := by["spell_"+s]
-		if strings.Contains(o.oT, check.Z6E492) {
+		if strings.Contains(o.oT, check.W89E492) {
 			fail = append(fail, fmt.Sprintf(":%s already answered E492 before this phase, so it proves nothing", s))
 		}
 		if !strings.Contains(o.oT, "E37: No write since last change") {
 			fail = append(fail, fmt.Sprintf(":%s did not reach its own refusal on the input binary", s))
 		}
-		if !strings.Contains(o.nT, check.Z6E492) {
+		if !strings.Contains(o.nT, check.W89E492) {
 			fail = append(fail, fmt.Sprintf(":%s does not answer E492: a removed name has been inherited", s))
 		}
 	}
 	o = by["spell_en"]
-	if !strings.Contains(o.oT, check.Z6E492) || !strings.Contains(o.nT, check.Z6E492) {
+	if !strings.Contains(o.oT, check.W89E492) || !strings.Contains(o.nT, check.W89E492) {
 		fail = append(fail, "spell_en: `:en` was E492 on both sides before this phase was written -- enew's shortest abbreviation is three characters")
 	}
 	o = by["cmd_edit"]
 	if !strings.Contains(o.oT, "E37: No write since last change") || strings.Contains(o.nT, "E37") {
 		fail = append(fail, "cmd_edit: E37 was to be the old answer -- `:edit` with no file name reached check_changed() -- and to be gone now")
 	}
-	if !strings.Contains(o.nT, check.Z6E492) {
+	if !strings.Contains(o.nT, check.W89E492) {
 		fail = append(fail, "cmd_edit: `:edit` is not an unknown command")
 	}
 	if o := by["quit_modified"]; !strings.Contains(o.nT, "E37: No write since last change") {
@@ -195,7 +195,7 @@ func z8Probes(r *check.Rep, old, bin string) error {
 		fail = append(fail, "cmd_registers: :registers printed no table, so \"it did not move\" is two failures agreeing")
 	}
 	o = by["cmd_read"]
-	if !strings.Contains(o.oT, check.Z6E492) || !strings.Contains(o.nT, check.Z6E492) {
+	if !strings.Contains(o.oT, check.W89E492) || !strings.Contains(o.nT, check.W89E492) {
 		fail = append(fail, "cmd_read: `:read keys` was E492 on both sides before this phase was written -- phase 90 took it")
 	}
 	if len(fail) > 0 {
@@ -213,11 +213,11 @@ func z8Probes(r *check.Rep, old, bin string) error {
 	return nil
 }
 
-// z8Keys is section 7: fifty g*, [ and ] keys, of which exactly four may move.
+// w91Keys is section 7: fifty g*, [ and ] keys, of which exactly four may move.
 // No nv_cmds[] row is deleted or repointed here -- gf, gF, [f and ]f are ARMS
 // inside nv_g_cmd() and nv_brackets(), whose rows dispatch dozens of other
 // keys.  That is an argument; this is the measurement.
-func z8Keys(r *check.Rep, old, bin string) error {
+func w91Keys(r *check.Rep, old, bin string) error {
 	g := []string{"ga", "g8", "g_", "gI", "gi", "gJ", "gj", "gk", "gv", "gp", "gP", "gq", "gu",
 		"gU", "g~", "g?", "gg", "ge", "gE", "gm", "gM", "go", "gs", "gt", "gT", "g0",
 		"g^", "g$", "g&", "g;"}
@@ -229,7 +229,7 @@ func z8Keys(r *check.Rep, old, bin string) error {
 	rec := func(binary, k string) string {
 		ks := [][]byte{[]byte("ialpha beta\rnosuchfile\x1b"), []byte(":set nopaste\r"),
 			[]byte("gg0" + k), []byte("\x1b:q!\r")}
-		return z8KeyRecord(binary, ks)
+		return w91KeyRecord(binary, ks)
 	}
 	type kr struct{ k, o, n string }
 	res := make([]kr, len(keys))
@@ -265,10 +265,10 @@ func z8Keys(r *check.Rep, old, bin string) error {
 	return nil
 }
 
-// z8KeyRecord is the key sweep's own record shape: no stderr section, and the
+// w91KeyRecord is the key sweep's own record shape: no stderr section, and the
 // stream is a DIGEST with no length, because fifty keys make fifty records and
 // the length adds nothing the digest does not.
-func z8KeyRecord(binary string, keys [][]byte) string {
+func w91KeyRecord(binary string, keys [][]byte) string {
 	vim, err := harness.Stage(binary)
 	if err != nil {
 		return "ERROR " + err.Error()
@@ -286,7 +286,7 @@ func z8KeyRecord(binary string, keys [][]byte) string {
 	in, _ := os.Open(kf)
 	defer in.Close()
 	c := exec.Command(vim, "+set paste")
-	c.Stdin, c.Dir, c.Env = in, d, check.Z2Env(home)
+	c.Stdin, c.Dir, c.Env = in, d, check.W85Env(home)
 	harness.Setsid(c)
 	Out, _ := c.Output()
 	rcText := "0"
@@ -305,7 +305,7 @@ func z8KeyRecord(binary string, keys [][]byte) string {
 	return harness.Scrub(text)
 }
 
-func z8Pty(r *check.Rep, old, bin string) error {
+func w91Pty(r *check.Rep, old, bin string) error {
 	home, err := os.MkdirTemp("", "whim91-home-")
 	if err != nil {
 		return err
@@ -319,7 +319,7 @@ func z8Pty(r *check.Rep, old, bin string) error {
 			os.WriteFile(d+"/planted.txt", []byte("FROMTHEDISK\n"), 0o644)
 		}
 		text, status, err := harness.Session(binary, nil, keys, "xterm",
-			20*time.Second, 600*time.Millisecond, d, check.Z2Env(home), 0, 0)
+			20*time.Second, 600*time.Millisecond, d, check.W85Env(home), 0, 0)
 		return string(text), status, err
 	}
 	say := func(format string, a ...any) error { r.Say(format, a...); return harness.ErrReported }

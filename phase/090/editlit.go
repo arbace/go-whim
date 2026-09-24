@@ -6,5 +6,5 @@ package p090
 // literal that is 90%% right matches nothing.  See that tool for the
 // measurement.
 const (
-	z7lit2 = "    if (ea.cmdidx == CMD_read)\n    {\n        if (ea.forceit)\n        {\n            ea.usefilter = TRUE;\n            ea.forceit = FALSE;\n        }\n        else if (*ea.arg == '!')\n        {\n            ++ea.arg;\n            ea.usefilter = TRUE;\n        }\n    }\n"
+	w90lit2 = "    if (ea.cmdidx == CMD_read)\n    {\n        if (ea.forceit)\n        {\n            ea.usefilter = TRUE;\n            ea.forceit = FALSE;\n        }\n        else if (*ea.arg == '!')\n        {\n            ++ea.arg;\n            ea.usefilter = TRUE;\n        }\n    }\n"
 )

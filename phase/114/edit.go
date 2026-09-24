@@ -76,17 +76,17 @@ import (
 func init() { edit.Register("whim114", Edit) }
 
 var (
-	z31Inc  = regexp.MustCompile(`^#include <[A-Za-z0-9_/.]+>$`)
-	z31Word = regexp.MustCompile(`\b(labs|abs)\b`)
-	z31Any  = regexp.MustCompile(`\b(abs|labs)\b`)
+	w114Inc  = regexp.MustCompile(`^#include <[A-Za-z0-9_/.]+>$`)
+	w114Word = regexp.MustCompile(`\b(labs|abs)\b`)
+	w114Any  = regexp.MustCompile(`\b(abs|labs)\b`)
 )
 
-// z31Defs is /root/musl/src/stdlib/abs.c and labs.c, whole, WRITTEN THE WAY THIS
+// w114Defs is /root/musl/src/stdlib/abs.c and labs.c, whole, WRITTEN THE WAY THIS
 // FILE WRITES A FUNCTION -- the name at column 0 on a line of its own, which is
 // what funcreach.py reads a definition by.  MUSL'S TERNARY IS COPIED AND NOT
 // TURNED ROUND: `a < 0 ? -a : a` is the same function, so there is nothing to
 // gain and one more difference from the source of record to explain.
-const z31Defs = `    static int
+const w114Defs = `    static int
 musl_abs(int a)
 {
     return a > 0 ? a : -a;
@@ -100,7 +100,7 @@ musl_labs(long a)
 
 `
 
-const z31Anchor = "    static void *\nmusl_bsearch("
+const w114Anchor = "    static void *\nmusl_bsearch("
 
 // Whim114 vendors abs and labs -- called by the core, never in `nm -u` because
 // gcc lowers both to inline arithmetic, so the phase's whole value is that the
@@ -161,7 +161,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"%d at %s", len(d), at(d, 4))
 	}
 	for _, i := range d {
-		if !z31Inc.MatchString(lines[i]) {
+		if !w114Inc.MatchString(lines[i]) {
 			return nil, p.Die("a directive is not an `#include <...>` of a system header, and no phase may " +
 				"add one")
 		}
@@ -209,7 +209,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		block[i] = lines[j]
 	}
 	for _, line := range []string{"long labs(long n);", "int abs(int n);"} {
-		if z31Count(block, line) != 1 {
+		if w114Count(block, line) != 1 {
 			return nil, p.Die("`%s` is not in the core's libc declaration block exactly once -- the "+
 				"block is: %s", line, strings.Join(block, " | "))
 		}
@@ -233,7 +233,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	var holding []string
 	for _, s := range spans {
-		if z31Any.Match(text[s[0]:s[1]]) {
+		if w114Any.Match(text[s[0]:s[1]]) {
 			holding = append(holding, string(text[s[0]:s[1]]))
 		}
 	}
@@ -257,7 +257,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	var Out strings.Builder
 	last := 0
 	count := map[string]int{}
-	for _, m := range z31Word.FindAllSubmatchIndex(text, -1) {
+	for _, m := range w114Word.FindAllSubmatchIndex(text, -1) {
 		if inSpan(m[0]) {
 			continue
 		}
@@ -280,12 +280,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"and %d literals were scanned and none mentions either name", len(spans))
 
 	// ---- 3. the two definitions, copied from musl -----------------------------
-	if strings.Count(string(text), z31Anchor) != 1 {
+	if strings.Count(string(text), w114Anchor) != 1 {
 		return nil, p.Die("`musl_bsearch`'s definition is not in the file exactly once, so there is no " +
 			"unambiguous place for these two: they belong with musl_atoi and musl_atol, " +
 			"the other <stdlib.h> functions the core owns")
 	}
-	text = []byte(strings.Replace(string(text), z31Anchor, z31Defs+z31Anchor, 1))
+	text = []byte(strings.Replace(string(text), w114Anchor, w114Defs+w114Anchor, 1))
 
 	// ---- 4. what the file is now ----------------------------------------------
 	d, lines = directives(text)
@@ -331,7 +331,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return text, nil
 }
 
-func z31Count(ss []string, v string) int {
+func w114Count(ss []string, v string) int {
 	n := 0
 	for _, s := range ss {
 		if s == v {

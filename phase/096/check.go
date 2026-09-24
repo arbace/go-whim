@@ -87,15 +87,15 @@ import (
 
 func init() { check.Register("whim96", Check) }
 
-const z13Mark = "FILESTAR-ENTERED"
+const w96Mark = "FILESTAR-ENTERED"
 
-var z13Gone = []string{"scriptin", "curscript", "NSCRIPT", "saved_typebuf", "closescript", "using_script",
+var w96Gone = []string{"scriptin", "curscript", "NSCRIPT", "saved_typebuf", "closescript", "using_script",
 	"redir_fd", "redir_off", "redir_write", "redirecting", "vim_fsync", "script_char",
 	"retesc", "did_return", "FILE"}
 
-// z13Sites are the five places the probe marks, each asserted to occur exactly
+// w96Sites are the five places the probe marks, each asserted to occur exactly
 // once in the input so the instrument lands where the argument says it does.
-var z13Sites = []struct{ Text, What string }{
+var w96Sites = []struct{ Text, What string }{
 	{"closescript(void)\n{\n", "the top of closescript()"},
 	{"    while (scriptin[curscript] != NULL && script_char < 0)\n    {\n", "inchar()'s script loop, which is getc()'s only caller"},
 	{"    if (redirecting())\n    {\n", "redir_write()'s redirecting() block"},
@@ -103,12 +103,12 @@ var z13Sites = []struct{ Text, What string }{
 	{"vim_fsync(int fd)\n{\n", "the top of vim_fsync()"},
 }
 
-var z13Kept = map[string]int{
+var w96Kept = map[string]int{
 	"may_sync_undo": 3, "is_safe_now": 3, "free_typebuf": 4, "ui_write": 3, "mch_write": 2,
 	"read_cmd_fd": 12, "p_paste": 12, "u_sync": 8,
 }
 
-var z13Absent = []string{"open", "creat", "openat", "fopen", "fdopen", "opendir", "stat",
+var w96Absent = []string{"open", "creat", "openat", "fopen", "fdopen", "opendir", "stat",
 	"access", "fcntl", "getcwd", "strerror", "fclose", "getc", "putc",
 	"fsync", "mkdir", "rename", "unlink", "readlink"}
 
@@ -132,11 +132,11 @@ func Check(w io.Writer, args []string) error {
 
 	// The two instrumented builds start first, as in whim92.
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
-	cflags, ldflags := strings.Fields(check.Z9Flag(mk, "CFLAGS")), strings.Fields(check.Z9Flag(mk, "LDFLAGS"))
+	cflags, ldflags := strings.Fields(check.W92Flag(mk, "CFLAGS")), strings.Fields(check.W92Flag(mk, "LDFLAGS"))
 	oldC := check.ReadFile(filepath.Join(state, "old.c"))
-	mark := "    (void)write(2, \"" + z13Mark + "\\n\", 17);\n"
+	mark := "    (void)write(2, \"" + w96Mark + "\\n\", 17);\n"
 	probe := oldC
-	for _, s := range z13Sites {
+	for _, s := range w96Sites {
 		if n := strings.Count(probe, s.Text); n != 1 {
 			return stop("%s occurs %d times in the input source, expected 1", s.What, n)
 		}
@@ -172,7 +172,7 @@ func Check(w io.Writer, args []string) error {
 	newT := string(src)
 
 	// --- 1. what went --------------------------------------------------------
-	for _, g := range z13Gone {
+	for _, g := range w96Gone {
 		if n := check.CountWord(src, g); n != 0 {
 			return stop("'%s' still has %d mentions", g, n)
 		}
@@ -184,13 +184,13 @@ func Check(w io.Writer, args []string) error {
 	count := func(t, name string) int {
 		return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).FindAllString(t, -1))
 	}
-	names := make([]string, 0, len(z13Kept))
-	for n := range z13Kept {
+	names := make([]string, 0, len(w96Kept))
+	for n := range w96Kept {
 		names = append(names, n)
 	}
 	sort.Strings(names)
 	for _, name := range names {
-		want := z13Kept[name]
+		want := w96Kept[name]
 		if k := count(newT, name); k != want {
 			why := "something survived that should not have"
 			if k < want {
@@ -231,19 +231,19 @@ func Check(w io.Writer, args []string) error {
 	// `(?<![\w.>])name\s*\(` -- RE2 has no lookbehind, so the preceding byte is
 	// tested directly: a call, not a member access `x.open(`, a `->open(` or a
 	// longer identifier ending in the name.
-	for _, absent := range z13Absent {
+	for _, absent := range w96Absent {
 		if calledBare(newT, absent) {
 			fail = append(fail, fmt.Sprintf("%s( is called in the source, and after this phase the core has no way to name or open anything", absent))
 		}
 	}
-	rows := check.Z6RowRe.FindAllString(newT, -1)
+	rows := check.W89RowRe.FindAllString(newT, -1)
 	got, _ := harness.CommandNamesIn(src, "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
 		fail = append(fail, fmt.Sprintf("cmdnames[] has %d rows and names() reads %d; both must be 98", len(rows), len(got)))
 	}
 	if i := strings.Index(newT, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newT[i:], "\n};")
-		if len(check.Z12RowRe.FindAllString(newT[i:i+j], -1)) != 108 {
+		if len(check.W95RowRe.FindAllString(newT[i:i+j], -1)) != 108 {
 			fail = append(fail, "options[] is not the 108 rows phase 95 left")
 		}
 	}
@@ -310,7 +310,7 @@ func Check(w io.Writer, args []string) error {
 	}()
 	exec.Command("sh", "tools/enumvals.sh", f, evNew).Run()
 	ewg.Wait()
-	if err := z13Enums(r, check.ReadFile(evOld), check.ReadFile(evNew)); err != nil {
+	if err := w96Enums(r, check.ReadFile(evOld), check.ReadFile(evNew)); err != nil {
 		return err
 	}
 
@@ -332,7 +332,7 @@ func Check(w io.Writer, args []string) error {
 	if buildErr["ctl"] != nil {
 		return stop("the ui_write() control did not build")
 	}
-	return z13Evidence(r, tmp, inst, old, bin)
+	return w96Evidence(r, tmp, inst, old, bin)
 }
 
 // calledBare is `(?<![\w.>])name\s*\(`: a call of name that is not a member
@@ -351,7 +351,7 @@ func calledBare(text, name string) bool {
 	return false
 }
 
-func z13Enums(r *check.Rep, oldTxt, newTxt string) error {
+func w96Enums(r *check.Rep, oldTxt, newTxt string) error {
 	load := func(s string) map[string]string {
 		m := map[string]string{}
 		for _, l := range strings.Split(s, "\n") {

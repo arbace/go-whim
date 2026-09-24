@@ -141,21 +141,21 @@ import (
 func init() { check.Register("whim99", Check) }
 
 var (
-	z16Inc     = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
-	z16File    = regexp.MustCompile(`\bFILE\b`)
-	z16StatT   = regexp.MustCompile(`\bstat_T\b`)
-	z16Struct  = regexp.MustCompile(`\bstruct\s+stat\b`)
-	z16Row     = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
-	z16OptRow  = regexp.MustCompile(`(?m)^[ \t]*\{"([a-z]+)",`)
-	z16CFlags  = regexp.MustCompile(`(?m)^CFLAGS  *= *(.*)$`)
-	z16LDFlags = regexp.MustCompile(`(?m)^LDFLAGS  *= *(.*)$`)
-	z16GccErr  = regexp.MustCompile(`.*error: `)
+	w99Inc     = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
+	w99File    = regexp.MustCompile(`\bFILE\b`)
+	w99StatT   = regexp.MustCompile(`\bstat_T\b`)
+	w99Struct  = regexp.MustCompile(`\bstruct\s+stat\b`)
+	w99Row     = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
+	w99OptRow  = regexp.MustCompile(`(?m)^[ \t]*\{"([a-z]+)",`)
+	w99CFlags  = regexp.MustCompile(`(?m)^CFLAGS  *= *(.*)$`)
+	w99LDFlags = regexp.MustCompile(`(?m)^LDFLAGS  *= *(.*)$`)
+	w99GccErr  = regexp.MustCompile(`.*error: `)
 )
 
-var z16Keep = []string{"stdio.h", "stdlib.h", "unistd.h", "sys/param.h", "time.h",
+var w99Keep = []string{"stdio.h", "stdlib.h", "unistd.h", "sys/param.h", "time.h",
 	"signal.h", "errno.h", "stdint.h", "stdarg.h", "stddef.h", "sys/ioctl.h", "termios.h"}
 
-var z16Gone = []string{"sys/stat.h", "fcntl.h", "iconv.h", "string.h", "ctype.h", "wctype.h"}
+var w99Gone = []string{"sys/stat.h", "fcntl.h", "iconv.h", "string.h", "ctype.h", "wctype.h"}
 
 // The six identifier sets are the MEASURED ones: what whim-vim.c was measured
 // to take from each header, and nothing speculative.  A list written from what
@@ -166,7 +166,7 @@ var z16Gone = []string{"sys/stat.h", "fcntl.h", "iconv.h", "string.h", "ctype.h"
 // A SLICE and not a map, because the report walks it: the Python iterates
 // `sorted(SUPPLIED.items())` and ranging a Go map would reorder a refusal
 // every run.
-var z16Supplied = []struct{ header, ids string }{
+var w99Supplied = []struct{ header, ids string }{
 	{"ctype.h", "isalnum isalpha iscntrl isdigit isgraph islower ispunct isupper " +
 		"tolower toupper"},
 	{"fcntl.h", "fcntl creat openat O_RDONLY O_WRONLY O_RDWR O_CREAT O_TRUNC " +
@@ -182,14 +182,14 @@ var z16Supplied = []struct{ header, ids string }{
 // in the Python; RE2 has no lookbehind, so the preceding byte is tested
 // instead -- exact for the reason every byte test in this tree is exact, that
 // the excluded character is consumed by nothing.
-var z16Absent = []string{"open", "creat", "openat", "fopen", "fdopen", "opendir",
+var w99Absent = []string{"open", "creat", "openat", "fopen", "fdopen", "opendir",
 	"stat", "access", "fcntl", "getcwd", "strerror", "fclose", "getc", "putc",
 	"fsync", "mkdir", "rename", "unlink", "readlink"}
 
-var z16BadDirectives = []string{"#define", "#undef", "#if", "#ifdef", "#ifndef",
+var w99BadDirectives = []string{"#define", "#undef", "#if", "#ifdef", "#ifndef",
 	"#elif", "#else", "#endif", "#pragma", "#line", "#error", "#include_next"}
 
-func z16Runs(text string) int {
+func w99Runs(text string) int {
 	L := strings.Split(text, "\n")
 	n := 0
 	for i := 1; i < len(L); i++ {
@@ -200,18 +200,18 @@ func z16Runs(text string) int {
 	return n
 }
 
-func z16IsWord(c byte) bool {
+func w99IsWord(c byte) bool {
 	return c == '_' || (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')
 }
 
-// z16Called is `(?<![\w.>])name\s*\(`: a call of name that is not a member
+// w99Called is `(?<![\w.>])name\s*\(`: a call of name that is not a member
 // access and not the tail of a longer identifier.
-func z16Called(text, name string) bool {
+func w99Called(text, name string) bool {
 	re := regexp.MustCompile(regexp.QuoteMeta(name) + `\s*\(`)
 	for _, loc := range re.FindAllStringIndex(text, -1) {
 		if loc[0] > 0 {
 			c := text[loc[0]-1]
-			if z16IsWord(c) || c == '.' || c == '>' {
+			if w99IsWord(c) || c == '.' || c == '>' {
 				continue
 			}
 		}
@@ -220,16 +220,16 @@ func z16Called(text, name string) bool {
 	return false
 }
 
-type z16Directive struct {
+type w99Directive struct {
 	at   int
 	line string
 }
 
-func z16Directives(text string) []z16Directive {
-	var Out []z16Directive
+func w99Directives(text string) []w99Directive {
+	var Out []w99Directive
 	for i, l := range strings.Split(text, "\n") {
 		if strings.HasPrefix(l, "#") {
-			Out = append(Out, z16Directive{i, l})
+			Out = append(Out, w99Directive{i, l})
 		}
 	}
 	return Out
@@ -258,8 +258,8 @@ func Check(w io.Writer, args []string) error {
 	if err != nil {
 		return err
 	}
-	cflags := strings.Fields(z16CFlags.FindStringSubmatch(string(mk))[1])
-	ldflags := strings.Fields(z16LDFlags.FindStringSubmatch(string(mk))[1])
+	cflags := strings.Fields(w99CFlags.FindStringSubmatch(string(mk))[1])
+	ldflags := strings.Fields(w99LDFlags.FindStringSubmatch(string(mk))[1])
 
 	// The reproducible build of the OUTPUT is started first and waited for in
 	// section 5: it is three seconds of wall time that sections 1 to 3 can be
@@ -295,8 +295,8 @@ func Check(w io.Writer, args []string) error {
 	// --- 1. the directives, which are the whole of what this phase changed --
 	headers := func(text, where string) []string {
 		var Out []string
-		for _, d := range z16Directives(text) {
-			m := z16Inc.FindStringSubmatch(d.line)
+		for _, d := range w99Directives(text) {
+			m := w99Inc.FindStringSubmatch(d.line)
 			if m == nil {
 				r.Bad("%s has a directive that is not an #include of a system header: %s "+
 					"-- the charter is that whim-vim.c stays pure C without a "+
@@ -309,13 +309,13 @@ func Check(w io.Writer, args []string) error {
 	}
 
 	// THE INPUT, so that "six went" is a difference and not a number.
-	oldD := z16Directives(oldS)
-	if !z16Consecutive(oldD, 0, 18) {
+	oldD := w99Directives(oldS)
+	if !w99Consecutive(oldD, 0, 18) {
 		r.Bad("the input did not have eighteen directives on its first eighteen lines, " +
 			"so this is not the file the phase was written against")
 	}
 	oldH := headers(oldS, "the input")
-	if !z16SameSet(oldH, append(append([]string{}, z16Keep...), z16Gone...)) {
+	if !w99SameSet(oldH, append(append([]string{}, w99Keep...), w99Gone...)) {
 		s := append([]string{}, oldH...)
 		sort.Strings(s)
 		r.Bad("the input is not the eighteen headers this phase was written against: %s",
@@ -323,8 +323,8 @@ func Check(w io.Writer, args []string) error {
 	}
 
 	// THE OUTPUT.
-	d := z16Directives(newS)
-	if !z16Consecutive(d, 0, 12) {
+	d := w99Directives(newS)
+	if !w99Consecutive(d, 0, 12) {
 		var at []string
 		for _, x := range d {
 			at = append(at, strconv.Itoa(x.at))
@@ -333,11 +333,11 @@ func Check(w io.Writer, args []string) error {
 			"must be the first twelve lines of the file", len(d), strings.Join(at, " "))
 	}
 	newH := headers(newS, "the output")
-	if strings.Join(newH, "\x00") != strings.Join(z16Keep, "\x00") {
+	if strings.Join(newH, "\x00") != strings.Join(w99Keep, "\x00") {
 		r.Bad("the twelve that are left are not the twelve this phase keeps, in order: %s",
 			strings.Join(newH, " "))
 	}
-	for _, h := range z16Gone {
+	for _, h := range w99Gone {
 		if strings.Contains(newS, "#include <"+h+">") {
 			r.Bad("<%s> is still included", h)
 		}
@@ -345,7 +345,7 @@ func Check(w io.Writer, args []string) error {
 
 	// NOTHING BUT #include, ANYWHERE.  The charter's other half, and this is
 	// the only phase that has ever had a reason to look.
-	for _, bad := range z16BadDirectives {
+	for _, bad := range w99BadDirectives {
 		if regexp.MustCompile(`(?m)^\s*` + regexp.QuoteMeta(bad) + `\b`).MatchString(newS) {
 			r.Bad("%s appears in whim-vim.c, and no phase may add a directive that is "+
 				"not an #include of a system header", bad)
@@ -354,7 +354,7 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 2. what the six supplied, at zero -- and the one silent drop ------
 	Body := strings.Join(strings.Split(newS, "\n")[12:], "\n")
-	for _, s := range z16Supplied {
+	for _, s := range w99Supplied {
 		var live []string
 		for _, i := range strings.Fields(s.ids) {
 			if regexp.MustCompile(`\b` + i + `\b`).MatchString(Body) {
@@ -371,25 +371,25 @@ func Check(w io.Writer, args []string) error {
 	// section 3's loop could not have caught this: <sys/stat.h> is droppable
 	// WITH the typedef in place, and what is left is a lie that only
 	// sizeof(stat_T) would expose.
-	if z16StatT.MatchString(Body) {
+	if w99StatT.MatchString(Body) {
 		r.Bad("stat_T survives with no <sys/stat.h>: the typedef would declare a NEW, " +
 			"INCOMPLETE `struct stat` and compile cleanly, which is the only silent " +
 			"drop in this file")
 	}
-	if z16Struct.MatchString(Body) {
+	if w99Struct.MatchString(Body) {
 		r.Bad("`struct stat` survives with no <sys/stat.h>")
 	}
-	if k := len(z16StatT.FindAllString(oldS, -1)); k != 1 {
+	if k := len(w99StatT.FindAllString(oldS, -1)); k != 1 {
 		r.Bad("the input had %d stat_T mentions, expected 1 -- \"its only user is its own "+
 			"typedef\" was not true of the file this ran on", k)
 	}
 
 	// --- what must NOT have moved ------------------------------------------
-	if z16File.MatchString(newS) {
+	if w99File.MatchString(newS) {
 		r.Bad("FILE is named in whim-vim.c, and phase 96 took it to zero")
 	}
-	for _, absent := range z16Absent {
-		if z16Called(newS, absent) {
+	for _, absent := range w99Absent {
+		if w99Called(newS, absent) {
 			r.Bad("%s( is called in the source, and the core has had no way to name or "+
 				"open anything since phase 96", absent)
 		}
@@ -399,15 +399,15 @@ func Check(w io.Writer, args []string) error {
 	// between two blank lines; deleting the line alone would leave a run of
 	// two, and neither a byte-identical binary nor an identical token stream
 	// would show it.
-	if z16Runs(newS) != z16Runs(oldS) {
+	if w99Runs(newS) != w99Runs(oldS) {
 		r.Bad("runs of two blank lines: %d in the output against %d in the input. The "+
 			"typedef sat between two blanks and one of them goes with it; no "+
 			"verification tier can see this, which is why it is counted",
-			z16Runs(newS), z16Runs(oldS))
+			w99Runs(newS), w99Runs(oldS))
 	}
 
 	// The tables this phase does not touch.
-	rows := z16Row.FindAllString(newS, -1)
+	rows := w99Row.FindAllString(newS, -1)
 	got, err := harness.CommandNames(f)
 	if err != nil {
 		r.Bad("the command table could not be read: %v", err)
@@ -418,7 +418,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	i := strings.Index(newS, "static struct vimoption options[]")
 	j := strings.Index(newS[i:], "\n};") + i
-	if k := len(z16OptRow.FindAllString(newS[i:j], -1)); k != 108 {
+	if k := len(w99OptRow.FindAllString(newS[i:j], -1)); k != 108 {
 		r.Bad("options[] is not the 108 rows phase 95 left")
 	}
 
@@ -452,7 +452,7 @@ func Check(w io.Writer, args []string) error {
 	// Thirty compiles, run at once.  This is what makes the phase a
 	// computation rather than a list, and the second loop is what proves the
 	// first can fail.
-	kept, was, err := z16DropLoop(newS, oldS, tmp)
+	kept, was, err := w99DropLoop(newS, oldS, tmp)
 	if err != nil {
 		return err
 	}
@@ -482,7 +482,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	sort.Strings(droppable)
 	var want []string
-	for _, h := range z16Gone {
+	for _, h := range w99Gone {
 		want = append(want, "#include <"+h+">")
 	}
 	sort.Strings(want)
@@ -531,8 +531,8 @@ func Check(w io.Writer, args []string) error {
 	}
 	if !bytes.Equal(beforeU, afterU) {
 		r.Say("the libc surface moved, and REMOVING AN #include CANNOT MOVE IT:")
-		r.Cont("gone: %s", strings.Join(z16Minus(beforeU, afterU), " "))
-		r.Cont("came: %s", strings.Join(z16Minus(afterU, beforeU), " "))
+		r.Cont("gone: %s", strings.Join(w99Minus(beforeU, afterU), " "))
+		r.Cont("came: %s", strings.Join(w99Minus(afterU, beforeU), " "))
 		return fmt.Errorf("includes: the libc surface moved")
 	}
 	sb, _ := os.ReadFile(".cache/symbols/last/before")
@@ -559,7 +559,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	rep := &check.Rep{Tag: "build", W: w}
 	rep.Say("ok, %s -> %d lines, %d bytes", strings.TrimSpace(string(beforeLines)),
-		z16CountLines(newB), binSt.Size())
+		w99CountLines(newB), binSt.Size())
 
 	buildWG.Wait()
 	if buildErr != nil {
@@ -602,7 +602,7 @@ func Check(w io.Writer, args []string) error {
 		r.Cont("%d in, %d out.  The GNU build-id note is a hash of", oldSt.Size(), newSt.Size())
 		r.Cont("the whole image and sits near the front, so the first difference")
 		r.Cont("below is always that note and never the change itself:")
-		r.Cont("%s", z16FirstDiff(a, b))
+		r.Cont("%s", w99FirstDiff(a, b))
 		return fmt.Errorf("includes: the binary moved")
 	}
 	r.Say("THE BINARY IS BYTE-IDENTICAL, %d bytes either side -- tier 1 of CLAUDE.md's "+
@@ -614,14 +614,14 @@ func Check(w io.Writer, args []string) error {
 	return nil
 }
 
-type z16Drop struct {
+type w99Drop struct {
 	src, line, why string
 	ok             bool
 }
 
-// z16DropLoop removes each `#include` in turn from both files and compiles,
+// w99DropLoop removes each `#include` in turn from both files and compiles,
 // all thirty at once.
-func z16DropLoop(newS, oldS, dir string) (kept, was []z16Drop, err error) {
+func w99DropLoop(newS, oldS, dir string) (kept, was []w99Drop, err error) {
 	cc := []string{"-fsyntax-only", "-O0", "-w", "-fmax-errors=1"}
 	d, err := os.MkdirTemp("", "whim99-drop-")
 	if err != nil {
@@ -634,14 +634,14 @@ func z16DropLoop(newS, oldS, dir string) (kept, was []z16Drop, err error) {
 		i        int
 	}
 	var jobs []job
-	for _, x := range z16Directives(newS) {
+	for _, x := range w99Directives(newS) {
 		jobs = append(jobs, job{newS, "Out", x.at})
 	}
-	for _, x := range z16Directives(oldS) {
+	for _, x := range w99Directives(oldS) {
 		jobs = append(jobs, job{oldS, "in", x.at})
 	}
 
-	res := make([]z16Drop, len(jobs))
+	res := make([]w99Drop, len(jobs))
 	sem := make(chan struct{}, 16)
 	var wg sync.WaitGroup
 	for k, jb := range jobs {
@@ -667,11 +667,11 @@ func z16DropLoop(newS, oldS, dir string) (kept, was []z16Drop, err error) {
 			why := ""
 			for _, l := range strings.Split(errb.String(), "\n") {
 				if strings.Contains(l, "error:") {
-					why = strings.TrimSpace(z16GccErr.ReplaceAllString(l, ""))
+					why = strings.TrimSpace(w99GccErr.ReplaceAllString(l, ""))
 					break
 				}
 			}
-			res[k] = z16Drop{jb.Tag, L[jb.i], why, runErr == nil}
+			res[k] = w99Drop{jb.Tag, L[jb.i], why, runErr == nil}
 		}(k, jb)
 	}
 	wg.Wait()
@@ -685,7 +685,7 @@ func z16DropLoop(newS, oldS, dir string) (kept, was []z16Drop, err error) {
 	return kept, was, nil
 }
 
-func z16Consecutive(d []z16Directive, from, n int) bool {
+func w99Consecutive(d []w99Directive, from, n int) bool {
 	if len(d) != n {
 		return false
 	}
@@ -697,7 +697,7 @@ func z16Consecutive(d []z16Directive, from, n int) bool {
 	return true
 }
 
-func z16SameSet(a, b []string) bool {
+func w99SameSet(a, b []string) bool {
 	x := append([]string{}, a...)
 	y := append([]string{}, b...)
 	sort.Strings(x)
@@ -705,7 +705,7 @@ func z16SameSet(a, b []string) bool {
 	return strings.Join(x, "\x00") == strings.Join(y, "\x00")
 }
 
-func z16Minus(a, b []byte) []string {
+func w99Minus(a, b []byte) []string {
 	in := map[string]bool{}
 	for _, l := range strings.Split(string(b), "\n") {
 		in[l] = true
@@ -719,11 +719,11 @@ func z16Minus(a, b []byte) []string {
 	return Out
 }
 
-func z16CountLines(b []byte) int {
+func w99CountLines(b []byte) int {
 	return bytes.Count(b, []byte{'\n'})
 }
 
-func z16FirstDiff(a, b []byte) string {
+func w99FirstDiff(a, b []byte) string {
 	n := len(a)
 	if len(b) < n {
 		n = len(b)

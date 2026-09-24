@@ -85,8 +85,8 @@ func init() { check.Register("whim100", Check) }
 // The instrument's anchors.  Each must occur exactly once or the zero it
 // measures is a probe that cannot fail.
 const (
-	z17Enter = "    ++entered;\n    block_autocmds();\n"
-	z17Mark  = "    ++entered;\n" +
+	w100Enter = "    ++entered;\n    block_autocmds();\n"
+	w100Mark  = "    ++entered;\n" +
 		"\n" +
 		"    {\n" +
 		"        char dtbuf[4];\n" +
@@ -98,22 +98,22 @@ const (
 		"    }\n" +
 		"\n" +
 		"    block_autocmds();\n"
-	z17Ladder      = "    if (entered >= 3)\n    {\n        reset_signals();\n"
-	z17LadderMark  = "    if (entered >= 3)\n    {\n        (void)write(2, \"DTLADDER\\n\", 9);\n        reset_signals();\n"
-	z17Preserve    = "preserve_exit(void)\n{\n    prepare_to_exit();\n"
-	z17PreserveR   = "preserve_exit(void)\n{\n\n    raise(SIGHUP);\n\n    prepare_to_exit();\n"
-	z17Double      = "    if (entered == 2)\n    {\n        out_str((char_u *)(\"Vim: Double signal, exiting\\n\"));\n"
-	z17DoubleR     = "    if (entered == 2)\n    {\n        raise(SIGTERM);\n         out_str((char_u *)(\"Vim: Double signal, exiting\\n\")) ;\n"
-	z17Flags       = "            sa.sa_flags = 0;\n"
-	z17FlagsNodef  = "            sa.sa_flags = SA_NODEFER;\n"
-	z17BeforeL     = "    full_screen = FALSE;\n    if (entered >= 3)\n"
-	z17BeforeLR    = "    full_screen = FALSE;\n    if (entered == 3)\n    {\n        raise(SIGHUP);\n    }\n    if (entered >= 3)\n"
-	z17LadderWhole = "    if (entered >= 3)\n    {\n        reset_signals();\n        if (entered >= 4)\n        {\n            _exit(8);\n        }\n        exit(7);\n    }\n"
-	z17Table       = "} signal_info[] =\n{\n    {SIGHUP,        \"HUP\",      TRUE},\n    {SIGTERM,       \"TERM\",     TRUE},\n    {SIGINT,        \"INT\",      FALSE},\n    {SIGWINCH,      \"WINCH\",    FALSE},\n    {SIGTSTP,       \"TSTP\",     FALSE},\n    {-1,            \"Unknown!\", FALSE}\n};\n"
-	z17Install     = "        if (signal_info[i].deadly)\n        {\n            struct sigaction sa;\n            sa.sa_handler = func_deadly;\n            sigemptyset(&sa.sa_mask);\n            sa.sa_flags = 0;\n            sigaction(signal_info[i].sig, &sa, NULL);\n        }\n"
+	w100Ladder      = "    if (entered >= 3)\n    {\n        reset_signals();\n"
+	w100LadderMark  = "    if (entered >= 3)\n    {\n        (void)write(2, \"DTLADDER\\n\", 9);\n        reset_signals();\n"
+	w100Preserve    = "preserve_exit(void)\n{\n    prepare_to_exit();\n"
+	w100PreserveR   = "preserve_exit(void)\n{\n\n    raise(SIGHUP);\n\n    prepare_to_exit();\n"
+	w100Double      = "    if (entered == 2)\n    {\n        out_str((char_u *)(\"Vim: Double signal, exiting\\n\"));\n"
+	w100DoubleR     = "    if (entered == 2)\n    {\n        raise(SIGTERM);\n         out_str((char_u *)(\"Vim: Double signal, exiting\\n\")) ;\n"
+	w100Flags       = "            sa.sa_flags = 0;\n"
+	w100FlagsNodef  = "            sa.sa_flags = SA_NODEFER;\n"
+	w100BeforeL     = "    full_screen = FALSE;\n    if (entered >= 3)\n"
+	w100BeforeLR    = "    full_screen = FALSE;\n    if (entered == 3)\n    {\n        raise(SIGHUP);\n    }\n    if (entered >= 3)\n"
+	w100LadderWhole = "    if (entered >= 3)\n    {\n        reset_signals();\n        if (entered >= 4)\n        {\n            _exit(8);\n        }\n        exit(7);\n    }\n"
+	w100Table       = "} signal_info[] =\n{\n    {SIGHUP,        \"HUP\",      TRUE},\n    {SIGTERM,       \"TERM\",     TRUE},\n    {SIGINT,        \"INT\",      FALSE},\n    {SIGWINCH,      \"WINCH\",    FALSE},\n    {SIGTSTP,       \"TSTP\",     FALSE},\n    {-1,            \"Unknown!\", FALSE}\n};\n"
+	w100Install     = "        if (signal_info[i].deadly)\n        {\n            struct sigaction sa;\n            sa.sa_handler = func_deadly;\n            sigemptyset(&sa.sa_mask);\n            sa.sa_flags = 0;\n            sigaction(signal_info[i].sig, &sa, NULL);\n        }\n"
 )
 
-var z17Builds = []string{"in_mark", "in_forced", "in_nodefer3", "in_nodefer4", "out_forced"}
+var w100Builds = []string{"in_mark", "in_forced", "in_nodefer3", "in_nodefer4", "out_forced"}
 
 // Whim100 is phase 100's check: the deadly ladder that cannot run.
 //
@@ -157,30 +157,30 @@ func Check(w io.Writer, args []string) error {
 		}
 		return text, nil
 	}
-	inMark, e := chain(oldC, [3]string{z17Enter, z17Mark, "the `++entered;` the depth marker follows"},
-		[3]string{z17Ladder, z17LadderMark, "the ladder the second marker opens"})
+	inMark, e := chain(oldC, [3]string{w100Enter, w100Mark, "the `++entered;` the depth marker follows"},
+		[3]string{w100Ladder, w100LadderMark, "the ladder the second marker opens"})
 	if e != nil {
 		return e
 	}
-	inForced, e := chain(inMark, [3]string{z17Preserve, z17PreserveR, "preserve_exit()'s head"},
-		[3]string{z17Double, z17DoubleR, "the `entered == 2` arm"})
+	inForced, e := chain(inMark, [3]string{w100Preserve, w100PreserveR, "preserve_exit()'s head"},
+		[3]string{w100Double, w100DoubleR, "the `entered == 2` arm"})
 	if e != nil {
 		return e
 	}
-	inNodefer3, e := chain(inForced, [3]string{z17Flags, z17FlagsNodef, "catch_signals()'s `sa_flags = 0`"})
+	inNodefer3, e := chain(inForced, [3]string{w100Flags, w100FlagsNodef, "catch_signals()'s `sa_flags = 0`"})
 	if e != nil {
 		return e
 	}
-	inNodefer4, e := chain(inNodefer3, [3]string{z17BeforeL, z17BeforeLR, "the statement before the ladder"})
+	inNodefer4, e := chain(inNodefer3, [3]string{w100BeforeL, w100BeforeLR, "the statement before the ladder"})
 	if e != nil {
 		return e
 	}
-	if strings.Contains(newC, z17Ladder) {
+	if strings.Contains(newC, w100Ladder) {
 		return stop("the ladder is still in the output")
 	}
-	outForced, e := chain(newC, [3]string{z17Enter, z17Mark, "the `++entered;` in the OUTPUT"},
-		[3]string{z17Preserve, z17PreserveR, "preserve_exit()'s head in the OUTPUT"},
-		[3]string{z17Double, z17DoubleR, "the `entered == 2` arm in the OUTPUT"})
+	outForced, e := chain(newC, [3]string{w100Enter, w100Mark, "the `++entered;` in the OUTPUT"},
+		[3]string{w100Preserve, w100PreserveR, "preserve_exit()'s head in the OUTPUT"},
+		[3]string{w100Double, w100DoubleR, "the `entered == 2` arm in the OUTPUT"})
 	if e != nil {
 		return e
 	}
@@ -190,9 +190,9 @@ func Check(w io.Writer, args []string) error {
 	}
 	r.Say("five instrumented sources: the input marked, the input marked and forced, the same with ONE FIELD changed to SA_NODEFER, the same again forced one step further, and the OUTPUT marked and forced identically")
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
-	flags := append(strings.Fields(check.Z9Flag(mk, "CFLAGS")), strings.Fields(check.Z9Flag(mk, "LDFLAGS"))...)
+	flags := append(strings.Fields(check.W92Flag(mk, "CFLAGS")), strings.Fields(check.W92Flag(mk, "LDFLAGS"))...)
 	var bwg sync.WaitGroup
-	for _, n := range z17Builds {
+	for _, n := range w100Builds {
 		bwg.Add(1)
 		go func(n string) {
 			defer bwg.Done()
@@ -216,10 +216,10 @@ func Check(w io.Writer, args []string) error {
 		}
 		return n
 	}
-	if strings.Count(oldC, z17LadderWhole) != 1 {
+	if strings.Count(oldC, w100LadderWhole) != 1 {
 		fail = append(fail, "the input did not hold exactly one `entered >= 3` ladder, so this is not the file the phase was written against")
 	}
-	if strings.Contains(newC, z17LadderWhole) {
+	if strings.Contains(newC, w100LadderWhole) {
 		fail = append(fail, "the ladder survives in the output")
 	}
 	if mentions(oldC, "exit") != 6 || mentions(newC, "exit") != 5 {
@@ -241,10 +241,10 @@ func Check(w io.Writer, args []string) error {
 			fail = append(fail, fmt.Sprintf("%s is named in the output, and the ladder was unreachable only because SIGHUP and SIGTERM are the ONLY deadly signals", s))
 		}
 	}
-	if strings.Count(newC, z17Table) != 1 {
+	if strings.Count(newC, w100Table) != 1 {
 		fail = append(fail, "signal_info[] is not the five rows this phase was written against, of which EXACTLY TWO are deadly -- a third `TRUE` row would let `entered` reach 3")
 	}
-	if strings.Count(newC, z17Install) != 1 {
+	if strings.Count(newC, w100Install) != 1 {
 		fail = append(fail, "catch_signals()'s deadly arm is not the `sigemptyset(&sa.sa_mask)` plus `sa.sa_flags = 0` this phase was written against, and that one field is the whole reason a deadly signal cannot interrupt its own handler")
 	}
 	for _, flag := range []string{"SA_NODEFER", "SA_RESETHAND", "siginterrupt"} {
@@ -275,14 +275,14 @@ func Check(w io.Writer, args []string) error {
 	if runs(newC) != runs(oldC) {
 		fail = append(fail, fmt.Sprintf("runs of two blank lines: %d in the output against %d in the input", runs(newC), runs(oldC)))
 	}
-	rows := check.Z6RowRe.FindAllString(newC, -1)
+	rows := check.W89RowRe.FindAllString(newC, -1)
 	got, _ := harness.CommandNamesIn([]byte(newC), "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
 		fail = append(fail, "cmdnames[] is not the 98 rows phase 93 left")
 	}
 	if i := strings.Index(newC, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newC[i:], "\n};")
-		if len(check.Z12RowRe.FindAllString(newC[i:i+j], -1)) != 108 {
+		if len(check.W95RowRe.FindAllString(newC[i:i+j], -1)) != 108 {
 			fail = append(fail, "options[] is not the 108 rows phase 95 left")
 		}
 	}
@@ -354,10 +354,10 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 5. the five instrumented binaries -----------------------------------
 	bwg.Wait()
-	for _, n := range z17Builds {
+	for _, n := range w100Builds {
 		if fi, err := os.Stat(filepath.Join(inst, n)); err != nil || fi.Mode()&0o111 == 0 {
 			return stop("the instrumented build %s did not compile", n)
 		}
 	}
-	return z17Evidence(r, inst, old, bin)
+	return w100Evidence(r, inst, old, bin)
 }

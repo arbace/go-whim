@@ -13,23 +13,23 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-type z14Res struct {
+type w97Res struct {
 	ok    bool
 	Rc    int
 	Text  string
 	first string
 }
 
-// z14Run records one session.  It returns the EXIT STATUS as subprocess would
+// w97Run records one session.  It returns the EXIT STATUS as subprocess would
 // -- minus the signal number for a signal death -- because the overflow probe's
 // whole evidence is that the binary it was handed dies with SIGSEGV, -11.
-func z14RunC(binary string, args []string, keys [][]byte) z14Res {
-	scr, Out, errb, rc, err := harness.ZSession(binary, keys, "xterm", args, 24, 80, 20*time.Second)
+func w97RunC(binary string, args []string, keys [][]byte) w97Res {
+	scr, Out, errb, rc, err := harness.CoreSession(binary, keys, "xterm", args, 24, 80, 20*time.Second)
 	if err == harness.ErrBlocked {
-		return z14Res{}
+		return w97Res{}
 	}
 	if err != nil {
-		return z14Res{ok: true, Rc: -1, Text: "ERROR " + err.Error()}
+		return w97Res{ok: true, Rc: -1, Text: "ERROR " + err.Error()}
 	}
 	text := harness.Section(fmt.Sprintf("exit %d", rc), nil)
 	text += harness.Section(fmt.Sprintf("bells %d", scr.Bells), nil)
@@ -45,10 +45,10 @@ func z14RunC(binary string, args []string, keys [][]byte) z14Res {
 	if n := len(scr.Snaps); n > 0 {
 		first = strings.SplitN(scr.Snaps[n-1].Text, "\n", 2)[0]
 	}
-	return z14Res{true, rc, harness.Scrub(text), first}
+	return w97Res{true, rc, harness.Scrub(text), first}
 }
 
-func z14Probes(r *check.Rep, old, bin string) error {
+func w97Probes(r *check.Rep, old, bin string) error {
 	esc, cr, cg, ca := []byte("\x1b"), []byte("\r"), []byte("\x07"), []byte("\x01")
 	quit := []byte("\x1b:q!\r")
 	seed := func(t []byte) [][]byte {
@@ -142,7 +142,7 @@ func z14Probes(r *check.Rep, old, bin string) error {
 			jobs = append(jobs, job{p.Name, bi, p.Args, k})
 		}
 	}
-	res := map[[2]string]z14Res{}
+	res := map[[2]string]w97Res{}
 	var mu sync.Mutex
 	sem := make(chan struct{}, 64)
 	var wg sync.WaitGroup
@@ -152,7 +152,7 @@ func z14Probes(r *check.Rep, old, bin string) error {
 		go func(j job) {
 			defer wg.Done()
 			defer func() { <-sem }()
-			x := z14RunC(j.binary, j.Args, j.Keys)
+			x := w97RunC(j.binary, j.Args, j.Keys)
 			mu.Lock()
 			res[[2]string{j.Name, j.binary}] = x
 			mu.Unlock()

@@ -123,17 +123,17 @@ import (
 func init() { edit.Register("whim91", Edit) }
 
 const (
-	z8RowsBefore = 104
-	z8RowsAfter  = 99
-	z8Floor      = 80
+	w91RowsBefore = 104
+	w91RowsAfter  = 99
+	w91Floor      = 80
 )
 
-// z8Going are the five Ex commands that name another file to edit.  They are
+// w91Going are the five Ex commands that name another file to edit.  They are
 // ONE handler; `gf gF [f ]f` are arms inside two surviving handlers and not
 // nv_cmds[] rows, which is why anchors 4 and 5 are text and not table edits.
-var z8Going = []string{"CMD_edit", "CMD_enew", "CMD_ex", "CMD_visual", "CMD_view"}
+var w91Going = []string{"CMD_edit", "CMD_enew", "CMD_ex", "CMD_visual", "CMD_view"}
 
-var z8Before = map[string]int{
+var w91Before = map[string]int{
 	"CMD_edit": 3, "CMD_enew": 4, "CMD_ex": 2, "CMD_view": 3, "CMD_visual": 2,
 	"ex_edit": 6, "do_exedit": 3, "nv_gotofile": 3,
 	"EX_ARGOPT": 6, "getargopt": 3, "read_edit": 2,
@@ -164,7 +164,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			k := strings.Count(string(s), old)
 			if k != n {
 				return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-					what, cutil.PyRepr(edit.ZHead(old, 60)), k, fn, n)
+					what, cutil.PyRepr(edit.CoreHead(old, 60)), k, fn, n)
 			}
 			return []byte(strings.ReplaceAll(string(s), old, new)), nil
 		})
@@ -176,25 +176,25 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- 0. the shape the anchors below were counted on -----------------------
-	if n := len(edit.ZRows(text)); n != z8RowsBefore {
+	if n := len(edit.CoreRows(text)); n != w91RowsBefore {
 		return nil, p.Die("cmdnames[] has %d rows, expected %d -- the anchors below were counted "+
-			"against a different table", n, z8RowsBefore)
+			"against a different table", n, w91RowsBefore)
 	}
 	names, err := harness.CommandNamesIn(text, "whim-vim.c")
-	if err != nil || len(names) != z8RowsBefore {
-		return nil, p.Die("create_cmdidxs names() does not read %d rows out of this table", z8RowsBefore)
+	if err != nil || len(names) != w91RowsBefore {
+		return nil, p.Die("create_cmdidxs names() does not read %d rows out of this table", w91RowsBefore)
 	}
-	for _, name := range edit.SortedKeys(z8Before) {
-		if k := mentions(text, name); k != z8Before[name] {
+	for _, name := range edit.SortedKeys(w91Before) {
+		if k := mentions(text, name); k != w91Before[name] {
 			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
-				"against a different file", name, k, z8Before[name])
+				"against a different file", name, k, w91Before[name])
 		}
 	}
 	// EX_ARGOPT's five rows are what anchor 6 rests on: four here and `:read`'s,
 	// which phase 90 took.  Counted, so that a row arriving would refuse rather
 	// than leave a reachable block with no way in.
 	argopt := 0
-	for _, r := range edit.ZRows(text) {
+	for _, r := range edit.CoreRows(text) {
 		if strings.Contains(string(r), "EX_ARGOPT") {
 			argopt++
 		}
@@ -203,33 +203,33 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("EX_ARGOPT is on %d cmdnames[] rows, expected the 4 this phase removes", argopt)
 	}
 	p.Sayf("cmdnames[] %d rows, ex_edit on 5 of them, EX_ARGOPT on 4, readfile 5 and "+
-		"open_buffer 6 -- the line against the byte-reader phase", z8RowsBefore)
+		"open_buffer 6 -- the line against the byte-reader phase", w91RowsBefore)
 
 	// ---- 1. the five enumerators ----------------------------------------------
-	for _, e := range z8Going {
+	for _, e := range w91Going {
 		line := "    " + e + ",\n"
 		if strings.Count(string(text), line) != 1 {
 			return nil, p.Die("the %s enumerator is not one line of its own", e)
 		}
 		text = []byte(strings.ReplaceAll(string(text), line, ""))
 	}
-	p.Sayf("five enumerators of enum CMD_index: %s", strings.Join(z8Going, " "))
+	p.Sayf("five enumerators of enum CMD_index: %s", strings.Join(w91Going, " "))
 
 	// ---- 2. the five cmdnames[] rows ------------------------------------------
-	for _, e := range z8Going {
+	for _, e := range w91Going {
 		m := regexp.MustCompile(`(?m)^    \[` + e + `\] = \{.*\n`).FindIndex(text)
 		if m == nil {
 			return nil, p.Die("cmdnames[] has no [%s] row", e)
 		}
 		text = append(append([]byte{}, text[:m[0]]...), text[m[1]:]...)
 	}
-	if n := len(edit.ZRows(text)); n != z8RowsAfter {
-		return nil, p.Die("cmdnames[] has %d rows after the cut, expected %d", n, z8RowsAfter)
+	if n := len(edit.CoreRows(text)); n != w91RowsAfter {
+		return nil, p.Die("cmdnames[] has %d rows after the cut, expected %d", n, w91RowsAfter)
 	}
 	p.Sayf("the five cmdnames[] rows; %d -> %d, which is under the floor create_cmdidxs "+
 		"names() had -- lowered to %d in this phase's own commit (GOALS.md II.5 "+
 		"decision 8), so the margin is %d rows",
-		z8RowsBefore, z8RowsAfter, z8Floor, z8RowsAfter-z8Floor)
+		w91RowsBefore, w91RowsAfter, w91Floor, w91RowsAfter-w91Floor)
 
 	// ---- 3. do_one_cmd's curbuf_locked() exemption ----------------------------
 	if text, err = within(text, "do_one_cmd", "ea.cmdidx != CMD_edit && ", "",
@@ -238,7 +238,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 	// ---- 4. nv_g_cmd's gf and gF ----------------------------------------------
-	if text, err = within(text, "nv_g_cmd", z8lit1, "", "nv_g_cmd's `gf` and `gF` arm", 1); err != nil {
+	if text, err = within(text, "nv_g_cmd", w91lit1, "", "nv_g_cmd's `gf` and `gF` arm", 1); err != nil {
 		return nil, err
 	}
 	// ---- 5. nv_brackets's [f and ]f -------------------------------------------
@@ -248,12 +248,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// instead of eating the wrong block.
 	if text, err = inFunction(text, "nv_brackets", func(s []byte) ([]byte, error) {
 		str := string(s)
-		k := strings.Count(str, z8Head)
+		k := strings.Count(str, w91Head)
 		if k != 1 {
 			return nil, p.Die("nv_brackets: the `[f` head occurs %d times, expected 1", k)
 		}
-		i := strings.Index(str, z8Head)
-		o := i + len(z8Head) - 2 // the else's `{`
+		i := strings.Index(str, w91Head)
+		o := i + len(w91Head) - 2 // the else's `{`
 		if str[o] != '{' {
 			return nil, p.Die("nv_brackets: the else does not open where this phase expects it")
 		}
@@ -263,11 +263,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		a := strings.LastIndex(str[:c], "\n") + 1
 		z := strings.Index(str[c:], "\n") + c + 1
-		if str[a:z] != z8lit4 {
+		if str[a:z] != w91lit4 {
 			return nil, p.Die("nv_brackets: the else closes with %s, not a line of its own",
 				cutil.PyRepr(str[a:z]))
 		}
-		return []byte(str[:i] + str[i+len(z8Head):a] + str[z:]), nil
+		return []byte(str[:i] + str[i+len(w91Head):a] + str[z:]), nil
 	}); err != nil {
 		return nil, err
 	}
@@ -275,14 +275,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"function at the indentation it already had")
 
 	// ---- 6. do_one_cmd's ++opt parse ------------------------------------------
-	if text, err = within(text, "do_one_cmd", z8lit2, "",
+	if text, err = within(text, "do_one_cmd", w91lit2, "",
 		"do_one_cmd no longer parses `++opt`: EX_ARGOPT is on no row, so "+
 			"getargopt() is unreachable and read_edit is written by nothing", 1); err != nil {
 		return nil, err
 	}
 
 	// ---- 7. what is left, and why it does not compile yet ---------------------
-	left, holders, found, err := edit.ZResidue(p, text, z8Going)
+	left, holders, found, err := edit.CoreResidue(p, text, w91Going)
 	if err != nil {
 		return nil, err
 	}

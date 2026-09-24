@@ -92,29 +92,29 @@ func init() { edit.Register("whim112", Edit) }
 // required to be written ONE way throughout, and the merged table is re-emitted
 // the way the table it replaces was written.
 var (
-	z29RowCanon = regexp.MustCompile(`^    \{(0x[0-9a-f]+), (0x[0-9a-f]+), (-?\d+), (-?\d+)\},?$`)
-	z29RowTight = regexp.MustCompile(`^        \{(0x[0-9a-f]+),(0x[0-9a-f]+),(-?\d+),(-?\d+)\},?$`)
+	w112RowCanon = regexp.MustCompile(`^    \{(0x[0-9a-f]+), (0x[0-9a-f]+), (-?\d+), (-?\d+)\},?$`)
+	w112RowTight = regexp.MustCompile(`^        \{(0x[0-9a-f]+),(0x[0-9a-f]+),(-?\d+),(-?\d+)\},?$`)
 )
 
-// z29Shape is how one table writes a row, and the two formats that spell it.
-type z29Shape int
+// w112Shape is how one table writes a row, and the two formats that spell it.
+type w112Shape int
 
 const (
-	z29Canon z29Shape = iota
-	z29Tight
+	w112Canon w112Shape = iota
+	w112Tight
 )
 
-func (s z29Shape) format() string {
-	if s == z29Canon {
+func (s w112Shape) format() string {
+	if s == w112Canon {
 		return "    {0x%x, 0x%x, %d, %d}"
 	}
 	return "        {0x%x,0x%x,%d,%d}"
 }
 
-// z29Names are the four convertStruct tables this phase merges into two.
-var z29Names = []string{"toUpper", "toLower", "musl_toUpper", "musl_toLower"}
+// w112Names are the four convertStruct tables this phase merges into two.
+var w112Names = []string{"toUpper", "toLower", "musl_toUpper", "musl_toLower"}
 
-type z29Rec struct{ lo, hi, step, off int }
+type w112Rec struct{ lo, hi, step, off int }
 
 // Whim112 makes the case tables one, and it is the UNION: vim's toUpper[]/toLower[]
 // and the musl_to*[] phase 98 vendored disagreed at 97 upper and 96 lower
@@ -137,14 +137,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		return m, nil
 	}
-	shapes := map[string]z29Shape{}
-	parse := func(name, Body string) ([]z29Rec, error) {
-		var rows []z29Rec
+	shapes := map[string]w112Shape{}
+	parse := func(name, Body string) ([]w112Rec, error) {
+		var rows []w112Rec
 		for i, line := range strings.Split(Body, "\n") {
-			shape := z29Canon
-			m := z29RowCanon.FindStringSubmatch(line)
+			shape := w112Canon
+			m := w112RowCanon.FindStringSubmatch(line)
 			if m == nil {
-				shape, m = z29Tight, z29RowTight.FindStringSubmatch(line)
+				shape, m = w112Tight, w112RowTight.FindStringSubmatch(line)
 			}
 			if m == nil {
 				return nil, p.Die("%s has a row this phase cannot read: %s", name, cutil.PyRepr(line))
@@ -158,21 +158,21 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			hi, _ := strconv.ParseInt(m[2][2:], 16, 64)
 			step, _ := strconv.Atoi(m[3])
 			off, _ := strconv.Atoi(m[4])
-			rows = append(rows, z29Rec{int(lo), int(hi), step, off})
+			rows = append(rows, w112Rec{int(lo), int(hi), step, off})
 		}
 		return rows, nil
 	}
 	// The canonical text ends every row of a table with a comma, the last one
 	// included; the vendored block ends the last row without one.  The shape
 	// carries that too, so a table re-emits as the text it came from.
-	emit := func(rows []z29Rec, shape z29Shape) string {
+	emit := func(rows []w112Rec, shape w112Shape) string {
 		Out := make([]string, len(rows))
 		f := shape.format()
 		for i, r := range rows {
 			Out[i] = fmt.Sprintf(f, r.lo, r.hi, r.step, r.off)
 		}
 		s := strings.Join(Out, ",\n")
-		if shape == z29Canon {
+		if shape == w112Canon {
 			s += ","
 		}
 		return s
@@ -180,7 +180,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// expand is {codepoint: target}, EXACTLY as utf_convert() reads the row.  A
 	// row with `step < 0` is how this file spells a single codepoint, and it
 	// works because `(a - lo) % step` is 0 for every a when step is -1.
-	expand := func(name string, rows []z29Rec) (map[int]int, error) {
+	expand := func(name string, rows []w112Rec) (map[int]int, error) {
 		Out := map[int]int{}
 		for _, r := range rows {
 			if r.step < 0 {
@@ -197,7 +197,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		return Out, nil
 	}
-	ascending := func(name string, rows []z29Rec) error {
+	ascending := func(name string, rows []w112Rec) error {
 		for i := 0; i+1 < len(rows); i++ {
 			a, b := rows[i], rows[i+1]
 			if a.hi >= b.lo {
@@ -211,9 +211,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- the four tables, parsed and PROVEN to re-emit as the text they came from
 	blocks := map[string][]int{}
-	rows := map[string][]z29Rec{}
+	rows := map[string][]w112Rec{}
 	maps := map[string]map[int]int{}
-	for _, n := range z29Names {
+	for _, n := range w112Names {
 		m, err := block(n)
 		if err != nil {
 			return nil, err
@@ -238,7 +238,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		maps[n] = e
 	}
 	var fig []interface{}
-	for _, n := range z29Names {
+	for _, n := range w112Names {
 		fig = append(fig, len(rows[n]), len(maps[n]))
 	}
 	p.Sayf("four convertStruct tables read and re-emitted BYTE FOR BYTE as the text they came "+
@@ -247,7 +247,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"construction and not by resemblance", fig...)
 
 	// ---- A. the union, computed -----------------------------------------------
-	merged := map[string][]z29Rec{}
+	merged := map[string][]w112Rec{}
 	type rep struct {
 		vimN, muslN string
 		nv, nm      int
@@ -293,9 +293,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				}
 			}
 		}
-		newRows := append([]z29Rec{}, rows[pr.vimN]...)
+		newRows := append([]w112Rec{}, rows[pr.vimN]...)
 		for _, c := range muslOnly {
-			newRows = append(newRows, z29Rec{c, c, -1, em[c] - c})
+			newRows = append(newRows, w112Rec{c, c, -1, em[c] - c})
 		}
 		sort.SliceStable(newRows, func(i, j int) bool { return newRows[i].lo < newRows[j].lo })
 		union := map[int]int{}
@@ -309,7 +309,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		if !z29SameMap(got, union) {
+		if !w112SameMap(got, union) {
 			return nil, p.Die("the merged %s does not expand to the union of the two", pr.vimN)
 		}
 		if err := ascending(pr.vimN, newRows); err != nil {
@@ -398,7 +398,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				"utf_convert call and the wrapper's", n, k, strings.ToLower(n[2:]))
 		}
 	}
-	if k := edit.ZCalls([]byte(t), "utf_convert"); k != 6 {
+	if k := edit.CoreCalls([]byte(t), "utf_convert"); k != 6 {
 		return nil, p.Die("utf_convert is called %d times, expected the same 6 -- this phase moves no "+
 			"call, it changes what two of them read", k)
 	}
@@ -427,7 +427,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return []byte(t), nil
 }
 
-func z29SameMap(a, b map[int]int) bool {
+func w112SameMap(a, b map[int]int) bool {
 	if len(a) != len(b) {
 		return false
 	}

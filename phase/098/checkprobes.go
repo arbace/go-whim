@@ -11,14 +11,14 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-// z15Scripts is one letter from each of six scripts.  The first three
+// w98Scripts is one letter from each of six scripts.  The first three
 // separate an ASCII fallback, the last two separate vim's own table, and a
 // text with only one group would pass one of them.
-var z15Scripts = []byte("eé gα cа xⓐ sⱟ")
+var w98Scripts = []byte("eé gα cа xⓐ sⱟ")
 
-var z15UndoRow = regexp.MustCompile(`\r\r\n\s*(\d+)\x1b`)
+var w98UndoRow = regexp.MustCompile(`\r\r\n\s*(\d+)\x1b`)
 
-func z15Probes(r *check.Rep, old, bin string) error {
+func w98Probes(r *check.Rep, old, bin string) error {
 	esc, cr := []byte("\x1b"), []byte("\r")
 	quit := []byte("\x1b:q!\r")
 	b := func(s string) []byte { return []byte(s) }
@@ -37,12 +37,12 @@ func z15Probes(r *check.Rep, old, bin string) error {
 		a, k := typed(seed, keys...)
 		cases = append(cases, kase{name, a, k, want})
 	}
-	one("case_default", "Α", z15Scripts, b("gUU"))
-	one("case_lower", "α", z15Scripts, b("gUU"), b("guu"))
-	one("case_empty", "Α", z15Scripts, b(":set casemap=\r"), b("gUU"))
-	one("case_keepascii", "Α", z15Scripts, b(":set casemap=keepascii\r"), b("gUU"))
-	one("case_internal", "Α", z15Scripts, b(":set casemap=internal\r"), b("gUU"))
-	one("case_tilde", "Α", z15Scripts, b("0"+strings.Repeat("~", 20)))
+	one("case_default", "Α", w98Scripts, b("gUU"))
+	one("case_lower", "α", w98Scripts, b("gUU"), b("guu"))
+	one("case_empty", "Α", w98Scripts, b(":set casemap=\r"), b("gUU"))
+	one("case_keepascii", "Α", w98Scripts, b(":set casemap=keepascii\r"), b("gUU"))
+	one("case_internal", "Α", w98Scripts, b(":set casemap=internal\r"), b("gUU"))
+	one("case_tilde", "Α", w98Scripts, b("0"+strings.Repeat("~", 20)))
 	one("map_keys", "<S-Tab>", b("alpha"), b(":map <Tab> x\r"), b(":map <S-Tab> y\r"), b(":map <Esc> z\r"), b(":map\r"))
 	one("hl_cterm", "Foo", b("alpha"), b(":highlight Foo ctermfg=4 cterm=bold,reverse\r"), b(":highlight Foo\r"))
 	one("hl_colorname", "Foo", b("alpha"), b(":highlight Foo ctermfg=Blue cterm=NONE\r"), b(":highlight Foo\r"))
@@ -61,8 +61,8 @@ func z15Probes(r *check.Rep, old, bin string) error {
 		wg.Add(1)
 		go func(i int, c kase) {
 			defer wg.Done()
-			ot, _ := check.ZRecordStream(old, c.Args, c.Keys, 10*time.Second)
-			nt, ns := check.ZRecordStream(bin, c.Args, c.Keys, 10*time.Second)
+			ot, _ := check.CoreRecordStream(old, c.Args, c.Keys, 10*time.Second)
+			nt, ns := check.CoreRecordStream(bin, c.Args, c.Keys, 10*time.Second)
 			outs[i] = Out{ot, nt, ns}
 		}(i, c)
 	}
@@ -85,7 +85,7 @@ func z15Probes(r *check.Rep, old, bin string) error {
 	undoKeys := [][]byte{b("ione\x1b"), b(":set nopaste\r"), b("otwo\x1b"), b("u"), b("othree\x1b"),
 		b("u"), b("ofour\x1b"), b("u"), b("u"), b("ofive\x1b"), b(":undolist\r"), quit}
 	order := func(binary string) ([]string, bool) {
-		_, s := check.ZRecordStream(binary, []string{"+set paste"}, undoKeys, 10*time.Second)
+		_, s := check.CoreRecordStream(binary, []string{"+set paste"}, undoKeys, 10*time.Second)
 		i := strings.Index(s, "number changes")
 		if i < 0 {
 			return nil, false
@@ -95,7 +95,7 @@ func z15Probes(r *check.Rep, old, bin string) error {
 			end = len(s)
 		}
 		var rows []string
-		for _, m := range z15UndoRow.FindAllStringSubmatch(s[i:end], -1) {
+		for _, m := range w98UndoRow.FindAllStringSubmatch(s[i:end], -1) {
 			rows = append(rows, m[1])
 		}
 		return rows, true

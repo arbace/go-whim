@@ -96,7 +96,7 @@ const FMT = " __attribute__((format(printf, 3, 4)))"
 func wformat(txt string) (int, []string) {
 	n := strings.Count(txt, "[-Wformat-nonliteral]")
 	var fns []string
-	for _, m := range check.Z22InFunc.FindAllStringSubmatch(txt, -1) {
+	for _, m := range check.W105InFunc.FindAllStringSubmatch(txt, -1) {
 		if m[1] != "" {
 			fns = append(fns, m[1])
 		} else {
@@ -114,14 +114,14 @@ func distinct(s []string) map[string]bool {
 	return m
 }
 
-// z24StripUnused is re.Sub(r'(?<=\S) __attribute__\(\(unused\)\)(?=[,)])', ”, l).
+// w107StripUnused is re.Sub(r'(?<=\S) __attribute__\(\(unused\)\)(?=[,)])', ”, l).
 //
 // The canonical text writes a parameter's attribute with ONE space before it
 // and none after -- `int added __attribute__((unused))` -- where the residue
 // wrote two either side and left them behind when the attribute went.  The
 // conditions are the ones they always were: a non-space before, a `,` or a `)`
 // after.  Measured on q106: 111 attributes and every one in this shape.
-func z24StripUnused(l string) string {
+func w107StripUnused(l string) string {
 	const a = " __attribute__((unused))"
 	var b strings.Builder
 	i := 0
@@ -144,14 +144,14 @@ func z24StripUnused(l string) string {
 	}
 }
 
-type z24Job struct {
+type w107Job struct {
 	done chan struct{}
 	Err  error
 	Out  string
 }
 
-func z24Go(env []string, name string, a ...string) *z24Job {
-	j := &z24Job{done: make(chan struct{})}
+func w107Go(env []string, name string, a ...string) *w107Job {
+	j := &w107Job{done: make(chan struct{})}
 	go func() {
 		defer close(j.done)
 		c := exec.Command(name, a...)
@@ -166,12 +166,12 @@ func z24Go(env []string, name string, a ...string) *z24Job {
 	return j
 }
 
-func (j *z24Job) wait() *z24Job { <-j.done; return j }
+func (j *w107Job) wait() *w107Job { <-j.done; return j }
 
 var (
-	z24AttrKind = regexp.MustCompile(`__attribute__\(\((\w+)`)
-	z24Warn     = regexp.MustCompile(`^.*?:(\d+):\d+: warning: .*\[-W([a-z-]+)=?\]$`)
-	z24UnusedC  = regexp.MustCompile(`^.*?:(\d+):\d+: warning: unused parameter .(\w+)`)
+	w107AttrKind = regexp.MustCompile(`__attribute__\(\((\w+)`)
+	w107Warn     = regexp.MustCompile(`^.*?:(\d+):\d+: warning: .*\[-W([a-z-]+)=?\]$`)
+	w107UnusedC  = regexp.MustCompile(`^.*?:(\d+):\d+: warning: unused parameter .(\w+)`)
 )
 
 // Whim107 is phase 107's check: the attributes.
@@ -188,7 +188,7 @@ func Check(w io.Writer, args []string) error {
 	if err != nil {
 		return err
 	}
-	var jobs []*z24Job
+	var jobs []*w107Job
 	defer func() {
 		for _, j := range jobs {
 			j.wait()
@@ -197,17 +197,17 @@ func Check(w io.Writer, args []string) error {
 	}()
 	T := func(n string) string { return filepath.Join(tmp, n) }
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
-	cflags, ldflags := strings.Fields(check.Z9Flag(mk, "CFLAGS")), strings.Fields(check.Z9Flag(mk, "LDFLAGS"))
+	cflags, ldflags := strings.Fields(check.W92Flag(mk, "CFLAGS")), strings.Fields(check.W92Flag(mk, "LDFLAGS"))
 	newC, oldC := check.ReadFile(f), check.ReadFile(oldF)
 	stop := func(format string, a ...any) error { r.Say(format, a...); return harness.ErrReported }
 	sde := append(os.Environ(), "SOURCE_DATE_EPOCH=0")
-	link := func(Out, src string) *z24Job {
+	link := func(Out, src string) *w107Job {
 		a := append(append(append([]string{}, cflags...), ldflags...), "-o", Out, src)
-		j := z24Go(sde, "gcc", a...)
+		j := w107Go(sde, "gcc", a...)
 		jobs = append(jobs, j)
 		return j
 	}
-	gcc := func(a ...string) *z24Job { j := z24Go(nil, "gcc", a...); jobs = append(jobs, j); return j }
+	gcc := func(a ...string) *w107Job { j := w107Go(nil, "gcc", a...); jobs = append(jobs, j); return j }
 	jNew := link(T("new"), f)
 
 	// the four controls
@@ -239,7 +239,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	r.Say("four controls written: c1 vim_snprintf's format(printf, 3, 4) removed, c2 `_()`'s format_arg(1) removed, c3 all %d `[[fallthrough]];` blanked, c4 one of them replaced by `break;`", n3)
 	jC4 := link(T("c4"), T("c4.c"))
-	wf2 := func(src string) *z24Job {
+	wf2 := func(src string) *w107Job {
 		return gcc("-O0", "-fno-stack-protector", "-Wformat=2", "-fsyntax-only", src)
 	}
 	jC1, jC2 := wf2(T("c1.c")), wf2(T("c2.c"))
@@ -250,11 +250,11 @@ func Check(w io.Writer, args []string) error {
 	jWo, jWn := wf2(oldF), wf2(f)
 	j11o, j11n := gcc("-std=c11", "-fsyntax-only", oldF), gcc("-std=c11", "-fsyntax-only", f)
 	os.WriteFile(T("canon.c"), []byte(newC), 0o644)
-	jCanon := &z24Job{done: make(chan struct{})}
+	jCanon := &w107Job{done: make(chan struct{})}
 	jobs = append(jobs, jCanon)
 	go func() {
 		defer close(jCanon.done)
-		o, e := exec.Command("tools/canon.sh", T("canon.c")).CombinedOutput()
+		o, e := check.Canon(T("canon.c"))
 		jCanon.Out, jCanon.Err = string(o), e
 	}()
 
@@ -268,7 +268,7 @@ func Check(w io.Writer, args []string) error {
 		for _, k := range KINDS {
 			d[k] = 0
 		}
-		for _, m := range z24AttrKind.FindAllStringSubmatch(t, -1) {
+		for _, m := range w107AttrKind.FindAllStringSubmatch(t, -1) {
 			d[m[1]]++
 		}
 		return d
@@ -362,7 +362,7 @@ func Check(w io.Writer, args []string) error {
 			fail = append(fail, fmt.Sprintf("%d lines changed and the attributes sat on %d -- the two must be the same set", len(changed), len(u)))
 		}
 		for _, i := range heads {
-			want := z24StripUnused(OL[i])
+			want := w107StripUnused(OL[i])
 			if NL[i] != want {
 				fail = append(fail, fmt.Sprintf("line %d is %s and stripping its attributes gives %s", i+1, check.PyRepr(NL[i]), check.PyRepr(want)))
 				break
@@ -381,14 +381,14 @@ func Check(w io.Writer, args []string) error {
 	if sds.MatchString(newC) && !sds.MatchString(oldC) {
 		fail = append(fail, "the output has a declarator followed by two spaces and a `,` or `)` where the input had none")
 	}
-	rows := check.Z6RowRe.FindAllString(newC, -1)
+	rows := check.W89RowRe.FindAllString(newC, -1)
 	got, _ := harness.CommandNamesIn([]byte(newC), "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
 		fail = append(fail, "cmdnames[] is not the 98 rows phase 93 left -- this phase touches no Ex command")
 	}
 	if i := strings.Index(newC, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newC[i:], "\n};")
-		if m := len(check.Z12RowRe.FindAllString(newC[i:i+j], -1)); m != 107 {
+		if m := len(check.W95RowRe.FindAllString(newC[i:i+j], -1)); m != 107 {
 			fail = append(fail, fmt.Sprintf("options[] has %d rows, expected the 107 phase 103 left -- this phase removes no option", m))
 		}
 	}
@@ -435,19 +435,19 @@ func Check(w io.Writer, args []string) error {
 	// --- 2. the 113 were parameters, and 21 of them were used -----------------
 	jPo.wait()
 	jPn.wait()
-	if err := z24Params(r, oldC, jPo.Out, jPn.Out); err != nil {
+	if err := w107Params(r, oldC, jPo.Out, jPn.Out); err != nil {
 		return err
 	}
 
 	// --- 3. the fallthroughs -------------------------------------------------
 	jC3.wait()
 	jC3s.wait()
-	if err := z24FallC(r, NL, jC3.Out, jC3s.Out); err != nil {
+	if err := w107FallC(r, NL, jC3.Out, jC3s.Out); err != nil {
 		return err
 	}
 
 	// --- 4. C23, and that it is not a new dependency --------------------------
-	if err := z24C23C(w, r, newC, tmp, j11o, j11n); err != nil {
+	if err := w107C23C(w, r, newC, tmp, j11o, j11n); err != nil {
 		return err
 	}
 
@@ -492,7 +492,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	r.Say("-Wformat=2: THE IDENTICAL %d `-Wformat-nonliteral` warnings in THE IDENTICAL %d functions, before and after.  THIS IS THE EVIDENCE FOR THE SIX SURVIVORS AND THE BINARY CANNOT GIVE IT: an attribute emits no code, so a cmp-identical build is equally happy without them", no, len(distinct(fo)))
 	r.Cont("AND IT CAN FAIL, IN BOTH DIRECTIONS.  With vim_snprintf's format(printf, 3, 4) removed the count is %d -- gcc checks no format anywhere, and phase 105 is why one attribute now carries 201 `vim_snprintf` mentions.  With `_()`'s format_arg(1) removed it is %d, %d MORE: that attribute is what lets -Wformat see THROUGH the translation wrapper, which CLAUDE.md names as the reason `_()` and `NGETTEXT` were never macro-expanded", n1, n2, n2-no)
-	if err := z24Buys(w, r, NL, tmp); err != nil {
+	if err := w107Buys(w, r, NL, tmp); err != nil {
 		return err
 	}
 
@@ -594,29 +594,29 @@ func Check(w io.Writer, args []string) error {
 		r.Cont("(CLAUDE.md).")
 		return harness.ErrReported
 	}
-	r.Say("AND IT CAN FAIL: this phase's own output with ONE `[[fallthrough]];` replaced by `break;` -- the smallest change at these 20 sites that is a change to the PROGRAM and not to a diagnostic -- differs from the input's binary in %d bytes", check.Z23CmpL(ob, c4b))
+	r.Say("AND IT CAN FAIL: this phase's own output with ONE `[[fallthrough]];` replaced by `break;` -- the smallest change at these 20 sites that is a change to the PROGRAM and not to a diagnostic -- differs from the input's binary in %d bytes", check.W106CmpL(ob, c4b))
 	return nil
 }
 
-type z24W struct {
+type w107W struct {
 	line int
 	Name string
 }
 
-func z24Params(r *check.Rep, oldC, pOld, pNew string) error {
+func w107Params(r *check.Rep, oldC, pOld, pNew string) error {
 	OL := strings.Split(oldC, "\n")
-	warns := func(txt string) (map[z24W]bool, map[string]int) {
-		Out, kinds := map[z24W]bool{}, map[string]int{}
+	warns := func(txt string) (map[w107W]bool, map[string]int) {
+		Out, kinds := map[w107W]bool{}, map[string]int{}
 		for _, l := range strings.SplitAfter(txt, "\n") {
 			if l == "" {
 				continue
 			}
-			if m := z24Warn.FindStringSubmatch(strings.TrimRight(l, " \t\n\r\f\v")); m != nil {
+			if m := w107Warn.FindStringSubmatch(strings.TrimRight(l, " \t\n\r\f\v")); m != nil {
 				kinds[m[2]]++
 			}
-			if m := z24UnusedC.FindStringSubmatch(l); m != nil {
+			if m := w107UnusedC.FindStringSubmatch(l); m != nil {
 				n, _ := strconv.Atoi(m[1])
-				Out[z24W{n, m[2]}] = true
+				Out[w107W{n, m[2]}] = true
 			}
 		}
 		return Out, kinds
@@ -648,7 +648,7 @@ func z24Params(r *check.Rep, oldC, pOld, pNew string) error {
 			return harness.ErrReported
 		})()
 	}
-	var nw []z24W
+	var nw []w107W
 	for k := range b {
 		if !a[k] {
 			nw = append(nw, k)
@@ -676,7 +676,7 @@ func z24Params(r *check.Rep, oldC, pOld, pNew string) error {
 		sites[i] = true
 		nSites++
 	}
-	var stray []z24W
+	var stray []w107W
 	for _, x := range nw {
 		if !sites[x.line] {
 			stray = append(stray, x)
@@ -738,14 +738,14 @@ func z24Params(r *check.Rep, oldC, pOld, pNew string) error {
 	return nil
 }
 
-func head2(s []z24W, n int) []z24W {
+func head2(s []w107W, n int) []w107W {
 	if len(s) > n {
 		return s[:n]
 	}
 	return s
 }
 
-func z24FallC(r *check.Rep, NL []string, ctl, syn string) error {
+func w107FallC(r *check.Rep, NL []string, ctl, syn string) error {
 	var sites []int
 	for i, l := range NL {
 		if strings.TrimSpace(l) == "[[fallthrough]];" {
@@ -797,7 +797,7 @@ func z24FallC(r *check.Rep, NL []string, ctl, syn string) error {
 	return nil
 }
 
-func z24C23C(w io.Writer, r *check.Rep, newC, tmp string, j11o, j11n *z24Job) error {
+func w107C23C(w io.Writer, r *check.Rep, newC, tmp string, j11o, j11n *w107Job) error {
 	const stmt = "[[fallthrough]];"
 	if !strings.Contains(newC, stmt) {
 		r.Say("there is no [[fallthrough]]; in the output to take")
@@ -864,7 +864,7 @@ func z24C23C(w io.Writer, r *check.Rep, newC, tmp string, j11o, j11n *z24Job) er
 	return nil
 }
 
-func z24Buys(w io.Writer, r *check.Rep, NL []string, tmp string) error {
+func w107Buys(w io.Writer, r *check.Rep, NL []string, tmp string) error {
 	protoRe := regexp.MustCompile(`^static int vim_snprintf\(char \*, .*format\(printf, 3, 4\)`)
 	proto, tdef := "", ""
 	for _, l := range NL {

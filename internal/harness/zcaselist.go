@@ -1,12 +1,12 @@
 package harness
 
-// zcaseList is tools/zcases.py's CASES, transcribed by a program.
+// coreCaseList is tools/zcases.py's CASES, transcribed by a program.
 //
 // 102 keystroke cases that type their OWN text under 'paste'.  There is
 // no file argument, no :edit and no :read: from phase 91 the editor
 // has no way to name a file, so a corpus that opened one would stop
 // working at the phase that took it away.
-var zcaseList = []struct {
+var coreCaseList = []struct {
 	name string
 	args []string
 	keys [][]byte

@@ -21,12 +21,6 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   phases wrote. Fixing that is per phase, and optional: phase 163 would then
   change nothing and its check would say the input was already canonical.
 
-## Small
-
-- `internal/check/phases0NN.go` naming -- needs code moved into the phase
-  packages, so not mechanical.
-- The `z*` identifier family (`zmemline`, `ztc`, `z33Rule`, `z41*`).
-
 ## Declined, with the reason recorded
 
 **The closure as the sweep's analysis, switched on.** Built and measured, and merged

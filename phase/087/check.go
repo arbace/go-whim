@@ -53,33 +53,33 @@ import (
 
 func init() { check.Register("whim87", Check) }
 
-// z4Gone are the 21 identifiers the edit counted, matched BY WORD, plus the two
+// w87Gone are the 21 identifiers the edit counted, matched BY WORD, plus the two
 // strings only reachable through them.  `e_at_end_of_file`'s string is here and
 // not in the edit because the variable outlives the edit by one sweep.
-var z4Gone = []string{
+var w87Gone = []string{
 	"exmode_active", "silent_mode", "pending_exmode_active", "exmode_plus", "exmode_was",
 	"do_exmode", "getexmodeline", "nv_exmode", "EXMODE_NORMAL", "EXMODE_VIM", "BO_EX",
 	"ex_pressedreturn", "ex_no_reprint", "ex_exitval", "previous_got_int", "use_plus_cmd",
 	"s_vbuf", "e_at_end_of_file", "noexmode", "check_tty", "mch_input_isatty",
 }
 
-var z4GoneText = []string{"Entering Ex mode", "E501: At end-of-file"}
+var w87GoneText = []string{"Entering Ex mode", "E501: At end-of-file"}
 
-// z4GoneWord is by WORD and not by substring: `stdout_isatty` is phase 85's and
+// w87GoneWord is by WORD and not by substring: `stdout_isatty` is phase 85's and
 // survives this phase, and it contains `stdout`.
-var z4GoneWord = []string{"setvbuf", "stdout"}
+var w87GoneWord = []string{"setvbuf", "stdout"}
 
-// z4Kept is the argv phase's, named one by one so that this phase cutting into
+// w87Kept is the argv phase's, named one by one so that this phase cutting into
 // it fails HERE rather than three phases later.
-var z4Kept = []string{
+var w87Kept = []string{
 	"EDIT_STDIN", "read_cmd_fd = 2;", "had_minmin", "buflist_add",
 	"ME_TOO_MANY_ARGS", "case 'T':", "want_full_screen",
 }
 
 const (
-	z4QRow  = `    {'Q', nv_error, NV_NCW, 0},`
-	z4Enter = "Entering Ex mode"
-	z4Unk   = "Unknown option argument"
+	w87QRow  = `    {'Q', nv_error, NV_NCW, 0},`
+	w87Enter = "Entering Ex mode"
+	w87Unk   = "Unknown option argument"
 )
 
 // Whim87 is phase 87's check: Ex mode, silent mode and the four options.
@@ -107,12 +107,12 @@ func Check(w io.Writer, args []string) error {
 	stop := func(format string, a ...any) error { r.Say(format, a...); return harness.ErrReported }
 
 	// --- 1. what the cut removed ---------------------------------------------
-	for _, g := range append(append([]string{}, z4Gone...), z4GoneWord...) {
+	for _, g := range append(append([]string{}, w87Gone...), w87GoneWord...) {
 		if n := check.CountWord(src, g); n != 0 {
 			return stop("'%s' still has %d mentions", g, n)
 		}
 	}
-	for _, g := range z4GoneText {
+	for _, g := range w87GoneText {
 		if n := check.CountLinesWith(src, g); n != 0 {
 			return stop("'%s' still has %d mentions", g, n)
 		}
@@ -125,7 +125,7 @@ func Check(w io.Writer, args []string) error {
 	// --- 2. what it deliberately kept ----------------------------------------
 	// A row is repointed, never deleted: a hole in nv_cmds[] moves every key
 	// past it, and nvidx (run by phasecheck below) is the other half of this.
-	if !check.HasLine(src, z4QRow) {
+	if !check.HasLine(src, w87QRow) {
 		return stop("the 'Q' row is not a repointed nv_error row")
 	}
 	for _, p := range []struct{ prefix, why string }{
@@ -136,7 +136,7 @@ func Check(w io.Writer, args []string) error {
 			return stop("%s", p.why)
 		}
 	}
-	for _, k := range z4Kept {
+	for _, k := range w87Kept {
 		if !strings.Contains(string(src), k) {
 			return stop("'%s' went, and it is the argv phase's to take", k)
 		}
@@ -182,7 +182,7 @@ func Check(w io.Writer, args []string) error {
 		bells int
 	}
 	rec := func(binary string, pargs []string, keys [][]byte) res {
-		scr, Out, errb, rc, err := harness.ZSession(binary, keys, "xterm", pargs, 24, 80, 8*time.Second)
+		scr, Out, errb, rc, err := harness.CoreSession(binary, keys, "xterm", pargs, 24, 80, 8*time.Second)
 		if err == harness.ErrBlocked {
 			// `vim -` reads the keystroke file as buffer text and then waits
 			// for keys that never come.  That is a recording, not a crash.
@@ -205,7 +205,7 @@ func Check(w io.Writer, args []string) error {
 		return res{harness.Scrub(text), Out, scr.Bells}
 	}
 
-	probes := z4Probes()
+	probes := w87Probes()
 	type outcome struct {
 		Name   string
 		o, n   res
@@ -215,7 +215,7 @@ func Check(w io.Writer, args []string) error {
 	var wg sync.WaitGroup
 	for i, p := range probes {
 		wg.Add(1)
-		go func(i int, p check.Z4Probe) {
+		go func(i int, p check.W87Probe) {
 			defer wg.Done()
 			outs[i] = outcome{p.Name, rec(old, p.Args, p.Keys), rec(bin, p.Args, p.Keys), p.Differ}
 		}(i, p)
@@ -243,10 +243,10 @@ func Check(w io.Writer, args []string) error {
 	// has to be visible on the OLD binary.
 	for _, name := range []string{"key_Q", "key_gQ"} {
 		o := by[name]
-		if !strings.Contains(string(o.o.Out), z4Enter) {
+		if !strings.Contains(string(o.o.Out), w87Enter) {
 			fail = append(fail, fmt.Sprintf("%s: the input binary did not enter Ex mode, so this proves nothing", name))
 		}
-		if strings.Contains(string(o.n.Out), z4Enter) {
+		if strings.Contains(string(o.n.Out), w87Enter) {
 			fail = append(fail, fmt.Sprintf("%s: the new binary still enters Ex mode", name))
 		}
 		if o.n.bells <= o.o.bells {
@@ -255,14 +255,14 @@ func Check(w io.Writer, args []string) error {
 	}
 	for _, name := range []string{"argv_e", "argv_E", "argv_e_s", "argv_v"} {
 		o := by[name]
-		if strings.Contains(o.o.Text, z4Unk) {
+		if strings.Contains(o.o.Text, w87Unk) {
 			fail = append(fail, fmt.Sprintf("%s: the input binary already rejected it, so this proves nothing", name))
 		}
-		if !strings.Contains(o.n.Text, z4Unk) {
+		if !strings.Contains(o.n.Text, w87Unk) {
 			fail = append(fail, fmt.Sprintf("%s: it is not an unknown option now", name))
 		}
 	}
-	if s := by["argv_s"]; !strings.Contains(s.o.Text, z4Unk) || !strings.Contains(s.n.Text, z4Unk) {
+	if s := by["argv_s"]; !strings.Contains(s.o.Text, w87Unk) || !strings.Contains(s.n.Text, w87Unk) {
 		fail = append(fail, "argv_s: -s was to be an unknown option on both binaries")
 	}
 	if len(fail) > 0 {
@@ -276,7 +276,7 @@ func Check(w io.Writer, args []string) error {
 	r.Say("probes: %d moved (%s), %d unchanged", len(moved), strings.Join(moved, " "), len(static))
 
 	// --- 6. a real terminal, where none of this went through a pipe ----------
-	if err := z4Pty(r, old, bin); err != nil {
+	if err := w87Pty(r, old, bin); err != nil {
 		return err
 	}
 	return nil

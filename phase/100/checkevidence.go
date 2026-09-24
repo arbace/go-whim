@@ -13,8 +13,8 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-// z17Marks is the depths the handler reported and whether the ladder ran.
-func z17Marks(err []byte) ([]int, bool) {
+// w100Marks is the depths the handler reported and whether the ladder ran.
+func w100Marks(err []byte) ([]int, bool) {
 	var seen []int
 	for _, l := range strings.Split(string(err), "\n") {
 		if len(l) == 3 && strings.HasPrefix(l, "DT") && l[2] >= '0' && l[2] <= '9' {
@@ -24,11 +24,11 @@ func z17Marks(err []byte) ([]int, bool) {
 	return seen, bytes.Contains(err, []byte("DTLADDER"))
 }
 
-// z17Picture is what is compared: the exit, the snapshots, the final screen,
+// w100Picture is what is compared: the exit, the snapshots, the final screen,
 // the bells and stderr.  THE SCREEN AND NOT THE STREAM, because the stream is
 // not comparable -- the editor emits `\x1b[?4m`, which draws nothing, at a
 // point that depends on its own flush, and two runs of ONE binary differ there.
-type z17Pic struct {
+type w100Pic struct {
 	Rc    int
 	snaps string
 	dump  string
@@ -36,14 +36,14 @@ type z17Pic struct {
 	Err   string
 }
 
-func z17Picture(x check.Z17Res) z17Pic {
+func w100Picture(x check.W100Res) w100Pic {
 	s := harness.NewScreen(24, 80)
 	s.Feed(x.Out)
 	var b strings.Builder
 	for _, sn := range s.Snaps {
 		fmt.Fprintf(&b, "%d,%d,%d\n%s\n", sn.Y, sn.X, sn.Bells, sn.Text)
 	}
-	return z17Pic{x.Rc, b.String(), s.Dump(), s.Bells, string(x.Err)}
+	return w100Pic{x.Rc, b.String(), s.Dump(), s.Bells, string(x.Err)}
 }
 
 func intsEq(a, b []int) bool {
@@ -69,7 +69,7 @@ func intsRepr(a []int) string {
 	return "[" + strings.Join(s, ", ") + "]"
 }
 
-func z17Evidence(r *check.Rep, inst, old, bin string) error {
+func w100Evidence(r *check.Rep, inst, old, bin string) error {
 	TERM, HUP := syscall.SIGTERM, syscall.SIGHUP
 	var bomb []syscall.Signal
 	for i := 0; i < 60; i++ {
@@ -92,14 +92,14 @@ func z17Evidence(r *check.Rep, inst, old, bin string) error {
 	}
 	jobs = append(jobs, job{"old_term", old, []syscall.Signal{TERM}}, job{"new_term", bin, []syscall.Signal{TERM}},
 		job{"old_hup", old, []syscall.Signal{HUP}}, job{"new_hup", bin, []syscall.Signal{HUP}})
-	res := map[string]check.Z17Res{}
+	res := map[string]check.W100Res{}
 	var mu sync.Mutex
 	var wg sync.WaitGroup
 	for _, j := range jobs {
 		wg.Add(1)
 		go func(j job) {
 			defer wg.Done()
-			x := check.Z17Session(j.binary, j.sigs)
+			x := check.W100Session(j.binary, j.sigs)
 			mu.Lock()
 			res[j.Name] = x
 			mu.Unlock()
@@ -121,7 +121,7 @@ func z17Evidence(r *check.Rep, inst, old, bin string) error {
 	var fail, silent []string
 	high, twos := 0, 0
 	for i := 0; i < 8; i++ {
-		seen, ladder := z17Marks(res[fmt.Sprintf("bomb%d", i)].Err)
+		seen, ladder := w100Marks(res[fmt.Sprintf("bomb%d", i)].Err)
 		if len(seen) == 0 {
 			silent = append(silent, fmt.Sprintf("bomb%d", i))
 		}
@@ -160,7 +160,7 @@ func z17Evidence(r *check.Rep, inst, old, bin string) error {
 		{"out_forced", []int{1, 2}, false, 1, "THE OUTPUT, instrumented and forced identically: the same two depths and the same exit"},
 	} {
 		x := res[wnt.Name]
-		seen, gotLadder := z17Marks(x.Err)
+		seen, gotLadder := w100Marks(x.Err)
 		if !intsEq(seen, wnt.depths) {
 			fail = append(fail, fmt.Sprintf("%s reported depths %s, expected %s -- %s", wnt.Name, intsRepr(seen), intsRepr(wnt.depths), wnt.why))
 		}
@@ -178,11 +178,11 @@ func z17Evidence(r *check.Rep, inst, old, bin string) error {
 			fail = append(fail, fmt.Sprintf("%s exited %d, expected %d -- %s", wnt.Name, x.Rc, wnt.Rc, wnt.why))
 		}
 	}
-	if z17Picture(res["in_forced"]) != z17Picture(res["out_forced"]) {
+	if w100Picture(res["in_forced"]) != w100Picture(res["out_forced"]) {
 		fail = append(fail, "the forced double signal draws a different screen with the ladder and without it.  The ladder is not on that path, so it must not be")
 	}
 	for _, p := range []struct{ sig, Tag string }{{"term", "TERM"}, {"hup", "HUP"}} {
-		op, np := z17Picture(res["old_"+p.sig]), z17Picture(res["new_"+p.sig])
+		op, np := w100Picture(res["old_"+p.sig]), w100Picture(res["new_"+p.sig])
 		for _, what := range []string{"Vim: Caught deadly signal " + p.Tag, "Vim: Finished."} {
 			if !strings.Contains(op.dump, what) {
 				fail = append(fail, fmt.Sprintf("a single SIG%s did not make the binary this phase was handed draw %s, so the comparison below would agree for the wrong reason", p.Tag, check.CutilRepr(what)))

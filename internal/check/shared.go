@@ -54,7 +54,7 @@ func Occurrences(pat string, src []byte) int {
 }
 
 // From phase 85.
-func Z2Env(home string) []string {
+func W85Env(home string) []string {
 	env := []string{}
 	for _, kv := range os.Environ() {
 		k := kv[:strings.IndexByte(kv, '=')]
@@ -90,7 +90,7 @@ func CountHeaders(p string) int {
 func RecordThrice(w io.Writer, bin, f, tmp string) bool {
 	for i := 1; i <= 3; i++ {
 		Out := filepath.Join(tmp, fmt.Sprintf("run%d", i))
-		if err := RunZ(w, bin, f, Out); err != nil {
+		if err := RunCore(w, bin, f, Out); err != nil {
 			return false
 		}
 		if i != 1 {
@@ -110,7 +110,7 @@ func RecordThrice(w io.Writer, bin, f, tmp string) bool {
 // staticFacts is the four readelf facts every whole-phase program asserts,
 // and prints the one line that says so.
 func StaticFacts(w io.Writer, bin string) bool {
-	typ, Interp, Dyn, Rel := Z22Readelf(bin)
+	typ, Interp, Dyn, Rel := W105Readelf(bin)
 	if typ != "EXEC" || Interp != 0 || Dyn != 1 || Rel != 1 {
 		(&Rep{Tag: "static", W: w}).Say("NOT absolutely static: type %s, INTERP %d, no-dynamic %d, no-relocations %d", typ, Interp, Dyn, Rel)
 		return false
@@ -132,10 +132,10 @@ func Sha256File(p string) string {
 }
 
 // From phase 87.
-// z4Probe is one probe: a command line, a key sequence, and whether this phase
+// w87Probe is one probe: a command line, a key sequence, and whether this phase
 // is required to MOVE it.  Both halves matter -- a probe that only checks the
 // new binary passes just as well on a phase that did nothing.
-type Z4Probe struct {
+type W87Probe struct {
 	Name   string
 	Args   []string
 	Keys   [][]byte
@@ -143,9 +143,9 @@ type Z4Probe struct {
 }
 
 // From phase 89.
-// z6Probe is a probe whose run directory is kept, because what this phase is
+// w89Probe is a probe whose run directory is kept, because what this phase is
 // about is whether a file reached the disk.
-type Z6Probe struct {
+type W89Probe struct {
 	Name   string
 	Args   []string
 	Keys   [][]byte
@@ -153,10 +153,10 @@ type Z6Probe struct {
 }
 
 // From phase 89.
-const Z6E492 = "E492: Not an editor command"
+const W89E492 = "E492: Not an editor command"
 
 // From phase 89.
-var Z6RowRe = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
+var W89RowRe = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
 
 // From phase 90.
 // READ_IN is what proves the bytes arrived: the keystroke file holds
@@ -164,13 +164,13 @@ var Z6RowRe = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
 // in the buffer if the file was read -- nothing typed at `:` puts one there.
 // The file MESSAGE is not the check: `:1r keys` reads the file and leaves the
 // message line blank, measured, so only `:r keys` can be asked for `"keys"`.
-const Z7ReadIn = "^[:q!^M"
+const W90ReadIn = "^[:q!^M"
 
 // From phase 90.
-var Z7QRow = regexp.MustCompile(`(?m)^ *\{'Q', nv_error,`)
+var W90QRow = regexp.MustCompile(`(?m)^ *\{'Q', nv_error,`)
 
 // From phase 91.
-var Z8Lock = regexp.MustCompile(`(?m)^.*EX_LOCK_OK.*curbuf_locked\(\).*$`)
+var W91Lock = regexp.MustCompile(`(?m)^.*EX_LOCK_OK.*curbuf_locked\(\).*$`)
 
 // From phase 92.
 func Min(a, b int) int {
@@ -181,7 +181,7 @@ func Min(a, b int) int {
 }
 
 // From phase 92.
-func Z9Flag(mk, name string) string {
+func W92Flag(mk, name string) string {
 	m := regexp.MustCompile(`(?m)^` + name + `  *= *(.*)$`).FindStringSubmatch(mk)
 	if m == nil {
 		return ""
@@ -190,7 +190,7 @@ func Z9Flag(mk, name string) string {
 }
 
 // From phase 93.
-// z10AGO blinds ONE FIELD of the pty editing session, and the field is a WALL
+// w93AGO blinds ONE FIELD of the pty editing session, and the field is a WALL
 // CLOCK.  The `u` prints `1 change; before #3  N second(s) ago`, which neither
 // binary decides: ptyrun writes the keystrokes 0.6 s apart, so the elapsed time
 // sits ON the one-second boundary and which side it falls is how busy the
@@ -199,7 +199,7 @@ func Z9Flag(mk, name string) string {
 // blinded.  Everything else, `1 change; before #3` included, is still compared
 // byte for byte -- and the guard below is what stops the blinding from quietly
 // becoming a blinding of nothing.
-var Z10AGO = regexp.MustCompile(`\d+ seconds? ago`)
+var W93AGO = regexp.MustCompile(`\d+ seconds? ago`)
 
 // From phase 93.
 func Tail200(s string) string {
@@ -214,34 +214,34 @@ var _ = io.Discard
 
 // From phase 95.
 var (
-	Z12RowRe   = regexp.MustCompile(`(?m)^[ \t]*\{"([a-z]+)",`)
-	Z12GlobRe  = regexp.MustCompile(`&(p_[a-z0-9_]+)\b`)
-	Z12WhiteRe = regexp.MustCompile(`(?s)modeline_whitelist\[\][^;]*?\{(.*?)\n\};`)
-	Z12Fmt     = regexp.MustCompile(`"\\"%s%s%s%s%s", curbufIsChanged\(\)`)
+	W95RowRe   = regexp.MustCompile(`(?m)^[ \t]*\{"([a-z]+)",`)
+	W95GlobRe  = regexp.MustCompile(`&(p_[a-z0-9_]+)\b`)
+	W95WhiteRe = regexp.MustCompile(`(?s)modeline_whitelist\[\][^;]*?\{(.*?)\n\};`)
+	W95Fmt     = regexp.MustCompile(`"\\"%s%s%s%s%s", curbufIsChanged\(\)`)
 )
 
 // From phase 100.
-// z17Session starts the editor on pipes, types into it, waits for it to go
+// w100Session starts the editor on pipes, types into it, waits for it to go
 // QUIET, and only then sends the signals -- so that what was drawn is a
 // property of the editor and not of the machine's load.  argv[0] decides the
 // mode, so the binary is staged as `vim`; the child gets a session of its own,
 // because a signal sent to a process group reaches the harness too.
-func Z17Session(binary string, sigs []syscall.Signal) Z17Res {
+func W100Session(binary string, sigs []syscall.Signal) W100Res {
 	vim, err := harness.Stage(binary)
 	if err != nil {
-		return Z17Res{Rc: -1, Out: []byte("STAGE " + err.Error())}
+		return W100Res{Rc: -1, Out: []byte("STAGE " + err.Error())}
 	}
 	home, _ := os.MkdirTemp("", "whim100-home-")
 	defer os.RemoveAll(home)
 	c := exec.Command(vim, "+set paste")
-	c.Env = Z2Env(home)
+	c.Env = W85Env(home)
 	harness.Setsid(c)
 	stdin, _ := c.StdinPipe()
 	stdout, _ := c.StdoutPipe()
 	var errb bytes.Buffer
 	c.Stderr = &errb
 	if err := c.Start(); err != nil {
-		return Z17Res{Rc: -1, Out: []byte("START " + err.Error())}
+		return W100Res{Rc: -1, Out: []byte("START " + err.Error())}
 	}
 	stdin.Write([]byte("ihello"))
 
@@ -307,15 +307,15 @@ wait:
 	if werr != nil {
 		rc = ExitCode(werr)
 	}
-	return Z17Res{rc, drawn, errb.Bytes()}
+	return W100Res{rc, drawn, errb.Bytes()}
 }
 
 // From phase 101.
-// z18Quiet runs to completion with stdin at /dev/null.  /dev/null AND NOT A
+// w101Quiet runs to completion with stdin at /dev/null.  /dev/null AND NOT A
 // PIPE, and that was a measurement: with a pipe the harness closes, the EOF case
 // came back as a twenty-second timeout on four binaries of five and a clean 1 on
 // the fifth -- a race in the HARNESS, not the editor.
-func Z18Quiet(binary string, args []string) string {
+func W101Quiet(binary string, args []string) string {
 	vim, err := harness.Stage(binary)
 	if err != nil {
 		return "STAGE"
@@ -325,7 +325,7 @@ func Z18Quiet(binary string, args []string) string {
 	devnull, _ := os.Open(os.DevNull)
 	defer devnull.Close()
 	c := exec.Command(vim, args...)
-	c.Stdin, c.Stdout, c.Stderr, c.Env = devnull, nil, nil, Z2Env(home)
+	c.Stdin, c.Stdout, c.Stderr, c.Env = devnull, nil, nil, W85Env(home)
 	harness.Setsid(c)
 	if err := c.Start(); err != nil {
 		return "START"
@@ -346,8 +346,8 @@ func Z18Quiet(binary string, args []string) string {
 }
 
 // From phase 101.
-func Z18Signalled(binary string, sig syscall.Signal) string {
-	x := Z17Session(binary, []syscall.Signal{sig})
+func W101Signalled(binary string, sig syscall.Signal) string {
+	x := W100Session(binary, []syscall.Signal{sig})
 	if strings.Contains(string(x.Out), "NEVER DREW") {
 		return "NEVER DREW"
 	}
@@ -366,10 +366,10 @@ func TrSpace(s []string) string {
 }
 
 // From phase 105.
-// z22Readelf is the four facts the shell took from readelf: the Type word,
+// w105Readelf is the four facts the shell took from readelf: the Type word,
 // the count of INTERP lines, and whether readelf says there is no dynamic
 // section and no relocation.
-func Z22Readelf(bin string) (typ string, Interp, Dyn, Rel int) {
+func W105Readelf(bin string) (typ string, Interp, Dyn, Rel int) {
 	h, _ := exec.Command("readelf", "-h", bin).Output()
 	sc := bufio.NewScanner(strings.NewReader(string(h)))
 	for sc.Scan() {
@@ -387,9 +387,9 @@ func Z22Readelf(bin string) (typ string, Interp, Dyn, Rel int) {
 	lo, _ := exec.Command("readelf", "-l", bin).Output()
 	Interp = CountLinesWith(lo, "INTERP")
 	d, _ := exec.Command("readelf", "-d", bin).Output()
-	Dyn = z22CountExact(d, "There is no dynamic section in this file.")
+	Dyn = w105CountExact(d, "There is no dynamic section in this file.")
 	rr, _ := exec.Command("readelf", "-r", bin).Output()
-	Rel = z22CountExact(rr, "There are no relocations in this file.")
+	Rel = w105CountExact(rr, "There are no relocations in this file.")
 	return
 }
 
@@ -402,7 +402,7 @@ func Head(s []string, n int) []string {
 }
 
 // From phase 105.
-func z22CountExact(b []byte, line string) int {
+func w105CountExact(b []byte, line string) int {
 	n := 0
 	for _, l := range strings.Split(string(b), "\n") {
 		if l == line {
@@ -414,13 +414,13 @@ func z22CountExact(b []byte, line string) int {
 
 // From phase 105.
 var (
-	Z22Head   = regexp.MustCompile(`(?m)^(\w+)\(`)
-	Z22InFunc = regexp.MustCompile(`In function (?:‘(\w+)’|'(\w+)')`)
+	W105Head   = regexp.MustCompile(`(?m)^(\w+)\(`)
+	W105InFunc = regexp.MustCompile(`In function (?:‘(\w+)’|'(\w+)')`)
 )
 
 // From phase 106.
-// z23CmpL is `cmp -l a b | wc -l`: the bytes that differ over the common length.
-func Z23CmpL(a, b []byte) int {
+// w106CmpL is `cmp -l a b | wc -l`: the bytes that differ over the common length.
+func W106CmpL(a, b []byte) int {
 	n := len(a)
 	if len(b) < n {
 		n = len(b)
@@ -514,8 +514,8 @@ func Minus26(a, b []string) []string {
 }
 
 // From phase 110.
-// z27Repr is Python's `repr(k[:60])`.
-func Z27Repr(k string) string {
+// w110Repr is Python's `repr(k[:60])`.
+func W110Repr(k string) string {
 	if len(k) > 60 {
 		k = k[:60]
 	}
@@ -526,7 +526,7 @@ func Z27Repr(k string) string {
 }
 
 // From phase 110.
-func Z27Keys(m map[string]bool) []string {
+func W110Keys(m map[string]bool) []string {
 	Out := make([]string, 0, len(m))
 	for k := range m {
 		Out = append(Out, k)
@@ -536,16 +536,16 @@ func Z27Keys(m map[string]bool) []string {
 }
 
 // From phase 110.
-func Z27ReprList(xs []string) string {
+func W110ReprList(xs []string) string {
 	var Out []string
 	for _, x := range xs {
-		Out = append(Out, Z27Repr(x))
+		Out = append(Out, W110Repr(x))
 	}
 	return "[" + strings.Join(Out, ", ") + "]"
 }
 
 // From phase 110.
-func Z27Runs(lines []string) int {
+func W110Runs(lines []string) int {
 	n := 0
 	for i := 1; i < len(lines); i++ {
 		if lines[i] == "" && lines[i-1] == "" {
@@ -556,15 +556,15 @@ func Z27Runs(lines []string) int {
 }
 
 // From phase 111.
-// z28Cut is `make editor.c`'s rule character for character: stop at the first
+// w111Cut is `make editor.c`'s rule character for character: stop at the first
 // `#include`, drop the trailing blank lines -- where BLANK means `strip()` is
 // empty, so a line of spaces counts.  whim110's cut tests `== ""` instead; the
 // two are different rules and each port keeps its own heredoc's.
-func Z28Cut(text string) []string {
+func W111Cut(text string) []string {
 	var keep []string
 	last := 0
 	for _, line := range strings.Split(text, "\n") {
-		if Z28Inc.MatchString(line) {
+		if W111Inc.MatchString(line) {
 			break
 		}
 		keep = append(keep, line)
@@ -576,7 +576,7 @@ func Z28Cut(text string) []string {
 }
 
 // From phase 112.
-func Z29RowCount(text string) int {
+func W112RowCount(text string) int {
 	i := strings.Index(text, "static struct vimoption options[]")
 	if i < 0 {
 		i = len(text) - 1
@@ -585,23 +585,23 @@ func Z29RowCount(text string) int {
 	if j < 0 {
 		return 0
 	}
-	return len(Z29Opt.FindAllString(text[i:i+j], -1))
+	return len(W112Opt.FindAllString(text[i:i+j], -1))
 }
 
 // From phase 112.
 var (
-	Z29CFlags  = regexp.MustCompile(`(?m)^CFLAGS  *= *(.*)$`)
-	Z29LDFlags = regexp.MustCompile(`(?m)^LDFLAGS  *= *(.*)$`)
-	Z29Inc     = regexp.MustCompile(`^ *# *include `)
-	Z29Hash    = regexp.MustCompile(`(?m)^ *#`)
-	Z29Cmd     = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
-	Z29Opt     = regexp.MustCompile(`(?m)^[ \t]*\{"([a-z]+)",`)
-	Z29Undef   = regexp.MustCompile(`'[A-Za-z_][A-Za-z0-9_]*' used but never defined`)
+	W112CFlags  = regexp.MustCompile(`(?m)^CFLAGS  *= *(.*)$`)
+	W112LDFlags = regexp.MustCompile(`(?m)^LDFLAGS  *= *(.*)$`)
+	W112Inc     = regexp.MustCompile(`^ *# *include `)
+	W112Hash    = regexp.MustCompile(`(?m)^ *#`)
+	W112Cmd     = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
+	W112Opt     = regexp.MustCompile(`(?m)^[ \t]*\{"([a-z]+)",`)
+	W112Undef   = regexp.MustCompile(`'[A-Za-z_][A-Za-z0-9_]*' used but never defined`)
 )
 
 // From phase 113.
-// z30BytesRepr is Python's repr() of a bytes object, quote choice included.
-func Z30BytesRepr(b []byte) string {
+// w113BytesRepr is Python's repr() of a bytes object, quote choice included.
+func W113BytesRepr(b []byte) string {
 	q := byte('\'')
 	if strings.IndexByte(string(b), '\'') >= 0 && strings.IndexByte(string(b), '"') < 0 {
 		q = '"'
@@ -633,9 +633,9 @@ func Z30BytesRepr(b []byte) string {
 }
 
 // From phase 113.
-// z30Diff runs diff(1) and returns its output lines, which is what the shell
+// w113Diff runs diff(1) and returns its output lines, which is what the shell
 // greps and seds.
-func Z30Diff(a, b string) []string {
+func W113Diff(a, b string) []string {
 	Out, _ := exec.Command("diff", a, b).Output()
 	s := strings.TrimRight(string(Out), "\n")
 	if s == "" {
@@ -645,7 +645,7 @@ func Z30Diff(a, b string) []string {
 }
 
 // From phase 113.
-func Z30Same(a, b string) bool {
+func W113Same(a, b string) bool {
 	x, e1 := os.ReadFile(a)
 	y, e2 := os.ReadFile(b)
 	return e1 == nil && e2 == nil && string(x) == string(y)
@@ -653,14 +653,14 @@ func Z30Same(a, b string) bool {
 
 // From phase 113.
 var (
-	Z30Stamp = regexp.MustCompile(`compiled [A-Z][a-z][a-z] [ 0-9][0-9] [0-9]{4} [0-9:]{8}`)
-	Z30Dir   = regexp.MustCompile(`^ *#`)
-	Z30Undef = regexp.MustCompile(`'([A-Za-z_][A-Za-z0-9_]*)' used but never defined`)
-	Z30GT    = regexp.MustCompile(`^> ([A-Za-z_0-9]*) `)
+	W113Stamp = regexp.MustCompile(`compiled [A-Z][a-z][a-z] [ 0-9][0-9] [0-9]{4} [0-9:]{8}`)
+	W113Dir   = regexp.MustCompile(`^ *#`)
+	W113Undef = regexp.MustCompile(`'([A-Za-z_][A-Za-z0-9_]*)' used but never defined`)
+	W113GT    = regexp.MustCompile(`^> ([A-Za-z_0-9]*) `)
 )
 
 // From phase 114.
-func Z31Words(xs []string) string {
+func W114Words(xs []string) string {
 	s := ""
 	for _, x := range xs {
 		s += x + " "
@@ -669,8 +669,8 @@ func Z31Words(xs []string) string {
 }
 
 // From phase 118.
-// z35CallShaped is `(?<!\w)NAME\(`, counted.
-func Z35CallShaped(text, name string) int {
+// w118CallShaped is `(?<!\w)NAME\(`, counted.
+func W118CallShaped(text, name string) int {
 	n := 0
 	pat := name + "("
 	for i := 0; ; {
@@ -679,7 +679,7 @@ func Z35CallShaped(text, name string) int {
 			return n
 		}
 		k += i
-		if k == 0 || !Z35Word(text[k-1]) {
+		if k == 0 || !W118Word(text[k-1]) {
 			n++
 		}
 		i = k + 1
@@ -687,14 +687,14 @@ func Z35CallShaped(text, name string) int {
 }
 
 // From phase 118.
-// z35Decl is the heredoc's DECL: an ordinary declaration, which RE2 cannot
+// w118Decl is the heredoc's DECL: an ordinary declaration, which RE2 cannot
 // say with the Python's `(?!static |typedef |static_assert)` lookahead, so the
 // three prefixes are refused by hand.
-func Z35Decl(l string) bool {
+func W118Decl(l string) bool {
 	if strings.HasPrefix(l, "static ") || strings.HasPrefix(l, "typedef ") || strings.HasPrefix(l, "static_assert") {
 		return false
 	}
-	return Z35DeclRe.MatchString(l)
+	return W118DeclRe.MatchString(l)
 }
 
 // From phase 118.
@@ -708,27 +708,27 @@ func ContainsInt(xs []int, v int) bool {
 }
 
 // From phase 118.
-func Z35Word(b byte) bool {
+func W118Word(b byte) bool {
 	return b == '_' || (b >= '0' && b <= '9') || (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || b >= 0x80
 }
 
 // From phase 118.
 var (
-	Z35Dir     = regexp.MustCompile(`^ *# *`)
-	Z35Include = regexp.MustCompile(`^#include <[A-Za-z0-9_/.]+>$`)
-	Z35DeclRe  = regexp.MustCompile(`^[A-Za-z_][\w *]*\**\w+\([^;]*\);$`)
-	Z35FnName  = regexp.MustCompile(`^.*?\**(\w+)\(.*$`)
-	Z35CanonLn = regexp.MustCompile(`^.*canon *`)
-	Z35Warn    = regexp.MustCompile(`warning: '([A-Za-z_][A-Za-z0-9_]*)' used but never defined`)
-	Z35CmdRow  = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
-	Z35Probe   = regexp.MustCompile(`PROBE alloc=(\d+) amax=(\d+) free=(\d+) fnull=(\d+) write=(\d+) wmax=(\d+) wshort=(\d+)`)
-	Z35Probe4  = regexp.MustCompile(`PROBE alloc=(\d+) amax=(\d+) free=(\d+) fnull=(\d+)`)
+	W118Dir     = regexp.MustCompile(`^ *# *`)
+	W118Include = regexp.MustCompile(`^#include <[A-Za-z0-9_/.]+>$`)
+	W118DeclRe  = regexp.MustCompile(`^[A-Za-z_][\w *]*\**\w+\([^;]*\);$`)
+	W118FnName  = regexp.MustCompile(`^.*?\**(\w+)\(.*$`)
+	W118CanonLn = regexp.MustCompile(`^.*canon *`)
+	W118Warn    = regexp.MustCompile(`warning: '([A-Za-z_][A-Za-z0-9_]*)' used but never defined`)
+	W118CmdRow  = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
+	W118Probe   = regexp.MustCompile(`PROBE alloc=(\d+) amax=(\d+) free=(\d+) fnull=(\d+) write=(\d+) wmax=(\d+) wshort=(\d+)`)
+	W118Probe4  = regexp.MustCompile(`PROBE alloc=(\d+) amax=(\d+) free=(\d+) fnull=(\d+)`)
 )
 
 // From phase 119.
-// z36ShellRC is the status `$?` gives a subshell: the exit code, or 128 plus
+// w119ShellRC is the status `$?` gives a subshell: the exit code, or 128 plus
 // the signal that ended it.
-func Z36ShellRC(err error, ps *os.ProcessState) int {
+func W119ShellRC(err error, ps *os.ProcessState) int {
 	if ps == nil {
 		if err != nil {
 			return 127
@@ -743,21 +743,21 @@ func Z36ShellRC(err error, ps *os.ProcessState) int {
 
 // From phase 121.
 var (
-	Z38Row      = regexp.MustCompile(`(?m)^[ \t]*\{\s*"([^"]*)"\s*,\s*(\w+)\s*\},\n`)
-	Z38Quote    = regexp.MustCompile(`"`)
-	Z38VimErr   = regexp.MustCompile(`\bE\d+:`)
-	Z38ErrWord  = regexp.MustCompile(`\bE\d+\b`)
-	Z38ErrTok   = regexp.MustCompile(`^E\d+$`)
-	Z38Stream   = regexp.MustCompile(`stream (\d+)`)
-	Z38Counted  = regexp.MustCompile(`^[\s)]*,\s*\(\d+\)`)
-	Z38Prefix   = regexp.MustCompile(`musl_strncasecmp\(\(char \*\)\(name\), \(char \*\)\("([^"]*)"\), \((\d+)\)\)\s*(==|!=)`)
-	Z38IfaceWrn = regexp.MustCompile(`warning: '([a-zA-Z_][a-zA-Z_0-9]*)' used but never defined`)
-	Z38Inc      = regexp.MustCompile(`^ *# *include `)
+	W121Row      = regexp.MustCompile(`(?m)^[ \t]*\{\s*"([^"]*)"\s*,\s*(\w+)\s*\},\n`)
+	W121Quote    = regexp.MustCompile(`"`)
+	W121VimErr   = regexp.MustCompile(`\bE\d+:`)
+	W121ErrWord  = regexp.MustCompile(`\bE\d+\b`)
+	W121ErrTok   = regexp.MustCompile(`^E\d+$`)
+	W121Stream   = regexp.MustCompile(`stream (\d+)`)
+	W121Counted  = regexp.MustCompile(`^[\s)]*,\s*\(\d+\)`)
+	W121Prefix   = regexp.MustCompile(`musl_strncasecmp\(\(char \*\)\(name\), \(char \*\)\("([^"]*)"\), \((\d+)\)\)\s*(==|!=)`)
+	W121IfaceWrn = regexp.MustCompile(`warning: '([a-zA-Z_][a-zA-Z_0-9]*)' used but never defined`)
+	W121Inc      = regexp.MustCompile(`^ *# *include `)
 )
 
 // From phase 126.
-// z43PyList is Python's repr of a sorted list of names.
-func Z43PyList(xs []string) string {
+// w126PyList is Python's repr of a sorted list of names.
+func W126PyList(xs []string) string {
 	var q []string
 	for _, x := range xs {
 		q = append(q, "'"+x+"'")
@@ -766,18 +766,18 @@ func Z43PyList(xs []string) string {
 }
 
 // From phase 127.
-type Z44Mark struct{ Name, Pat, Where, Cond string }
+type W127Mark struct{ Name, Pat, Where, Cond string }
 
 // From phase 127.
 var (
-	Z44Ptr      = regexp.MustCompile(`\(char_u? \*\)dp[a-z_]* *\+`)
-	Z44FnHead   = regexp.MustCompile(`(?m)^([a-zA-Z_][a-zA-Z0-9_]*)\(`)
-	Z44DlText   = regexp.MustCompile(`\.dl_text\s*=[^=]`)
-	Z44Flush    = regexp.MustCompile(`(?ms)^ml_flush_line\(buf_T \*buf\)\n\{.*?^\}$`)
-	Z44FreeDb   = regexp.MustCompile(`free\([^)]*db_line`)
-	Z44Low      = regexp.MustCompile(`(?m)^    low = 1;$`)
-	Z44ZA       = regexp.MustCompile(`ZA=(\d+)`)
-	Z44IfaceGrp = regexp.MustCompile(`'[a-zA-Z_][a-zA-Z0-9_]*' used but never defined`)
+	W127Ptr      = regexp.MustCompile(`\(char_u? \*\)dp[a-z_]* *\+`)
+	W127FnHead   = regexp.MustCompile(`(?m)^([a-zA-Z_][a-zA-Z0-9_]*)\(`)
+	W127DlText   = regexp.MustCompile(`\.dl_text\s*=[^=]`)
+	W127Flush    = regexp.MustCompile(`(?ms)^ml_flush_line\(buf_T \*buf\)\n\{.*?^\}$`)
+	W127FreeDb   = regexp.MustCompile(`free\([^)]*db_line`)
+	W127Low      = regexp.MustCompile(`(?m)^    low = 1;$`)
+	W127ZA       = regexp.MustCompile(`ZA=(\d+)`)
+	W127IfaceGrp = regexp.MustCompile(`'[a-zA-Z_][a-zA-Z0-9_]*' used but never defined`)
 )
 
 // From phase 132.
@@ -885,23 +885,23 @@ func W152Vars(text string) [][2]string {
 }
 
 // From phase 100.
-type Z17Res struct {
+type W100Res struct {
 	Rc       int
 	Out, Err []byte
 }
 
 // From phase 111.
 var (
-	Z28CFlags  = regexp.MustCompile(`(?m)^CFLAGS  *= *(.*)$`)
-	Z28LDFlags = regexp.MustCompile(`(?m)^LDFLAGS  *= *(.*)$`)
-	Z28Inc     = regexp.MustCompile(`^ *# *include `)
-	Z28Hash    = regexp.MustCompile(`^ *#`)
-	Z28Stamp   = regexp.MustCompile(`(?m)^\s*(?:\w+\.)?start_tv = musl_now_ms\(\);$`)
-	Z28Read    = regexp.MustCompile(`musl_now_ms\(\) - (?:\w+\.)?start_tv\b`)
-	Z28TV      = regexp.MustCompile(`struct timeval\b`)
-	Z28ErrLine = regexp.MustCompile(`(?m)^[^ ].*: error:.*$`)
-	Z28Undef   = regexp.MustCompile(`'(\w+)' used but never defined`)
-	Z28Scalar  = regexp.MustCompile(`^(?:const +)?(?:void|int|long|char|usize) *\**$`)
-	Z28ParmNm  = regexp.MustCompile(`\b[A-Za-z_]\w* *$`)
-	Z28WS      = regexp.MustCompile(`\s+`)
+	W111CFlags  = regexp.MustCompile(`(?m)^CFLAGS  *= *(.*)$`)
+	W111LDFlags = regexp.MustCompile(`(?m)^LDFLAGS  *= *(.*)$`)
+	W111Inc     = regexp.MustCompile(`^ *# *include `)
+	W111Hash    = regexp.MustCompile(`^ *#`)
+	W111Stamp   = regexp.MustCompile(`(?m)^\s*(?:\w+\.)?start_tv = musl_now_ms\(\);$`)
+	W111Read    = regexp.MustCompile(`musl_now_ms\(\) - (?:\w+\.)?start_tv\b`)
+	W111TV      = regexp.MustCompile(`struct timeval\b`)
+	W111ErrLine = regexp.MustCompile(`(?m)^[^ ].*: error:.*$`)
+	W111Undef   = regexp.MustCompile(`'(\w+)' used but never defined`)
+	W111Scalar  = regexp.MustCompile(`^(?:const +)?(?:void|int|long|char|usize) *\**$`)
+	W111ParmNm  = regexp.MustCompile(`\b[A-Za-z_]\w* *$`)
+	W111WS      = regexp.MustCompile(`\s+`)
 )

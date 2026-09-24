@@ -170,8 +170,8 @@ func IndexOf(s []string, v string) int {
 }
 
 // From phase 88.
-// z5Lines is Python's splitlines(keepends=True): each line with its newline.
-func Z5Lines(s string) []string {
+// w88Lines is Python's splitlines(keepends=True): each line with its newline.
+func W88Lines(s string) []string {
 	var Out []string
 	for len(s) > 0 {
 		i := strings.IndexByte(s, '\n')
@@ -187,7 +187,7 @@ func Z5Lines(s string) []string {
 
 // From phase 90.
 // zHead is the heredocs' `old[:n]` in a refusal.
-func ZHead(s string, n int) string {
+func CoreHead(s string, n int) string {
 	if len(s) > n {
 		return s[:n]
 	}
@@ -202,9 +202,9 @@ func ZHead(s string, n int) string {
 // The Python spells it `(?<![\w])name\s*\(`, and RE2 has no lookbehind, so the
 // preceding byte is tested instead -- which is CLAUDE.md's own answer for
 // `nobackup` and `noconv`, and is exact rather than an approximation of one.
-func ZCalls(t []byte, name string) int {
+func CoreCalls(t []byte, name string) int {
 	n := 0
-	for _, m := range ZCallRe(name).FindAllIndex(t, -1) {
+	for _, m := range CoreCallRe(name).FindAllIndex(t, -1) {
 		if m[0] > 0 && IsWordByte(t[m[0]-1]) {
 			continue
 		}
@@ -214,7 +214,7 @@ func ZCalls(t []byte, name string) int {
 }
 
 // From phase 98.
-func ZCallRe(name string) *regexp.Regexp {
+func CoreCallRe(name string) *regexp.Regexp {
 	return regexp.MustCompile(regexp.QuoteMeta(name) + `\s*\(`)
 }
 
@@ -232,22 +232,22 @@ func Uniq(in []string) []string {
 }
 
 // From phase 119.
-// z36IsDecl is the phase's `DECL`, whose Python spells the exclusion as a
+// w119IsDecl is the phase's `DECL`, whose Python spells the exclusion as a
 // NEGATIVE LOOKAHEAD -- `^(?!static |typedef |static_assert)...`.  RE2 has none,
 // and the three prefixes are tested instead, which is exact here for the reason
 // the byte tests elsewhere are: what is excluded is at the START of the line and
 // is consumed by nothing.
-func Z36IsDecl(l string) bool {
+func W119IsDecl(l string) bool {
 	if strings.HasPrefix(l, "static ") || strings.HasPrefix(l, "typedef ") ||
 		strings.HasPrefix(l, "static_assert") {
 		return false
 	}
-	return Z36DeclRe.MatchString(l)
+	return W119DeclRe.MatchString(l)
 }
 
 // From phase 119.
-// z36Or is Python's `' / '.join(xs) or 'none'`.
-func Z36Or(xs []string) string {
+// w119Or is Python's `' / '.join(xs) or 'none'`.
+func W119Or(xs []string) string {
 	if len(xs) == 0 {
 		return "none"
 	}
@@ -256,15 +256,15 @@ func Z36Or(xs []string) string {
 
 // From phase 119.
 var (
-	Z36Dir     = regexp.MustCompile(`^ *# *`)
-	Z36Inc     = regexp.MustCompile(`^#include <[A-Za-z0-9_/.]+>$`)
-	Z36DeclRe  = regexp.MustCompile(`^[A-Za-z_][\w *]*\**\w+\([^;]*\);$`)
-	Z36Reraise = regexp.MustCompile(`^(\s*)kill\(getpid\(\), (\w+)\);$`)
-	Z36ProtoGP = regexp.MustCompile(`^static [\w *]+mch_get_pid\(.*\);$`)
-	Z36Write   = regexp.MustCompile(`^\s*long_to_char\(mch_get_pid\(\), (\w+)->b0_pid\);$`)
-	Z36Field   = regexp.MustCompile(`^\s*char_u\s+b0_pid\[\d+\];$`)
-	Z36Name    = regexp.MustCompile(`^.*?\**(\w+)\(.*$`)
-	Z36RetType = regexp.MustCompile(`^    [\w *]+$`)
+	W119Dir     = regexp.MustCompile(`^ *# *`)
+	W119Inc     = regexp.MustCompile(`^#include <[A-Za-z0-9_/.]+>$`)
+	W119DeclRe  = regexp.MustCompile(`^[A-Za-z_][\w *]*\**\w+\([^;]*\);$`)
+	W119Reraise = regexp.MustCompile(`^(\s*)kill\(getpid\(\), (\w+)\);$`)
+	W119ProtoGP = regexp.MustCompile(`^static [\w *]+mch_get_pid\(.*\);$`)
+	W119Write   = regexp.MustCompile(`^\s*long_to_char\(mch_get_pid\(\), (\w+)->b0_pid\);$`)
+	W119Field   = regexp.MustCompile(`^\s*char_u\s+b0_pid\[\d+\];$`)
+	W119Name    = regexp.MustCompile(`^.*?\**(\w+)\(.*$`)
+	W119RetType = regexp.MustCompile(`^    [\w *]+$`)
 )
 
 // From phase 121.
@@ -278,8 +278,8 @@ func ContainsStr(xs []string, x string) bool {
 }
 
 // From phase 126.
-// z43PyList is Python's str() of a list of strings, which the refusals quote.
-func Z43PyList(s []string) string {
+// w126PyList is Python's str() of a list of strings, which the refusals quote.
+func W126PyList(s []string) string {
 	Out := make([]string, len(s))
 	for i, v := range s {
 		Out[i] = "'" + v + "'"
@@ -288,19 +288,19 @@ func Z43PyList(s []string) string {
 }
 
 // From phase 126.
-// z43PyRepr is Python's %r of a string that may hold a newline.
-func Z43PyRepr(s string) string {
+// w126PyRepr is Python's %r of a string that may hold a newline.
+func W126PyRepr(s string) string {
 	return "'" + strings.ReplaceAll(strings.ReplaceAll(s, "\\", "\\\\"), "\n", "\\n") + "'"
 }
 
 // From phase 127.
-// z44NotDecl: `return OK;` has the shape of a declaration and is not one.  The
+// w127NotDecl: `return OK;` has the shape of a declaration and is not one.  The
 // first word of a declaration is a type, never one of these.
-var Z44NotDecl = []string{"return", "goto", "break", "continue", "case", "else", "do"}
+var W127NotDecl = []string{"return", "goto", "break", "continue", "case", "else", "do"}
 
 // From phase 127.
-// z44Splice is Python's `lines[a:b] = rows`.
-func Z44Splice(lines []string, a, b int, rows []string) []string {
+// w127Splice is Python's `lines[a:b] = rows`.
+func W127Splice(lines []string, a, b int, rows []string) []string {
 	Out := make([]string, 0, len(lines)-(b-a)+len(rows))
 	Out = append(Out, lines[:a]...)
 	Out = append(Out, rows...)
@@ -308,7 +308,7 @@ func Z44Splice(lines []string, a, b int, rows []string) []string {
 }
 
 // From phase 127.
-func Z44Index(lines []string, s string) int {
+func W127Index(lines []string, s string) int {
 	for i, l := range lines {
 		if l == s {
 			return i
@@ -319,11 +319,11 @@ func Z44Index(lines []string, s string) int {
 
 // From phase 127.
 var (
-	Z44Decl     = regexp.MustCompile(`^\s+(?:static\s+)?[A-Za-z_][A-Za-z0-9_]*(?:\s+\*?[A-Za-z_][A-Za-z0-9_]*)*\s+\*?([A-Za-z_][A-Za-z0-9_]*)\s*(?:=[^;]*)?;$`)
-	Z44FnHead   = regexp.MustCompile(`^([a-zA-Z_][a-zA-Z0-9_]*)\(`)
-	Z44MlFlags  = regexp.MustCompile(`ml_flags \|=`)
-	Z44DlText   = regexp.MustCompile(`\.dl_text\s*=[^=]`)
-	Z44Interior = regexp.MustCompile(`\(char_u? \*\)dp[a-z_]* *\+`)
+	W127Decl     = regexp.MustCompile(`^\s+(?:static\s+)?[A-Za-z_][A-Za-z0-9_]*(?:\s+\*?[A-Za-z_][A-Za-z0-9_]*)*\s+\*?([A-Za-z_][A-Za-z0-9_]*)\s*(?:=[^;]*)?;$`)
+	W127FnHead   = regexp.MustCompile(`^([a-zA-Z_][a-zA-Z0-9_]*)\(`)
+	W127MlFlags  = regexp.MustCompile(`ml_flags \|=`)
+	W127DlText   = regexp.MustCompile(`\.dl_text\s*=[^=]`)
+	W127Interior = regexp.MustCompile(`\(char_u? \*\)dp[a-z_]* *\+`)
 )
 
 // From phase 134.

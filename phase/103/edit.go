@@ -163,9 +163,9 @@ import (
 
 func init() { edit.Register("whim103", Edit) }
 
-// z20Before is counted on the INPUT, so a later phase that moved one of these
+// w103Before is counted on the INPUT, so a later phase that moved one of these
 // fails here and not in the middle of a cut.
-var z20Before = []struct {
+var w103Before = []struct {
 	Name string
 	want int
 }{
@@ -199,7 +199,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		c := strings.Count(t, old)
 		if c != n {
 			return p.Die("%s: `%s` occurs %d times, expected %d",
-				tag, edit.ZHead(strings.Split(strings.TrimSpace(old), "\n")[0], 70), c, n)
+				tag, edit.CoreHead(strings.Split(strings.TrimSpace(old), "\n")[0], 70), c, n)
 		}
 		t = strings.ReplaceAll(t, old, new)
 		return nil
@@ -208,7 +208,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	delfunc := func(sigline, tag string) error {
 		if c := strings.Count(t, sigline); c != 1 {
 			return p.Die("%s: the definition line `%s` occurs %d times, expected 1",
-				tag, edit.ZHead(strings.TrimSpace(sigline), 60), c)
+				tag, edit.CoreHead(strings.TrimSpace(sigline), 60), c)
 		}
 		i := strings.Index(t, sigline)
 		k := strings.Index(t[i:], "{") + i
@@ -233,7 +233,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	linesBefore := len(strings.Split(t, "\n"))
 
 	// ---- 0. this is the file the phase was written against -------------------
-	for _, b := range z20Before {
+	for _, b := range w103Before {
 		if k := mentions(b.Name); k != b.want {
 			return nil, p.Die("the input has %d mentions of `%s`, expected %d -- this is not the tree "+
 				"this phase was written against", k, b.Name, b.want)
@@ -263,7 +263,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// definition and RealWaitForChar()'s one call`.  The prototype and the
 	// definition had landed; the call had not, because the function that makes
 	// it had never been rewritten.
-	for _, op := range z20Ops {
+	for _, op := range w103Ops {
 		if len(op.Args) > 0 {
 			switch op.Args[len(op.Args)-1] {
 			case "K2":
@@ -281,7 +281,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 					return nil, p.Die("K5: RealWaitForChar() and no_Magic() are not the adjacent pair " +
 						"this phase replaces between")
 				}
-				t = t[:i] + z20RealWait + t[j:]
+				t = t[:i] + w103RealWait + t[j:]
 			}
 		}
 		switch op.kind {
@@ -302,7 +302,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				// `host_jump`, because that region is what becomes the second
 				// file at the split.
 				old := "\nstatic void *host_jump[5];\nstatic int host_code;\n"
-				if err := sub(old, "\n"+z20Host+"static void *host_jump[5];\nstatic int host_code;\n",
+				if err := sub(old, "\n"+w103Host+"static void *host_jump[5];\nstatic int host_code;\n",
 					1, "H3"); err != nil {
 					return nil, err
 				}
@@ -335,7 +335,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- what the file is now ------------------------------------------------
 	var left []string
-	for _, n := range z20Gone {
+	for _, n := range w103Gone {
 		if mentions(n) > 0 {
 			left = append(left, n)
 		}
@@ -343,7 +343,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if len(left) > 0 {
 		return nil, p.Die("these names should be at 0 mentions and are not: %s", strings.Join(left, " "))
 	}
-	for _, r := range z20Want {
+	for _, r := range w103Want {
 		if k := mentions(r.Name); k != r.want {
 			return nil, p.Die("`%s` has %d mentions, expected %d -- %s", r.Name, k, r.want, r.why)
 		}
@@ -365,6 +365,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p.Say(fmt.Sprintf("%d -> %d lines.  The core installs no handler, sets no terminal mode, runs no "+
 		"select and asks the kernel nothing about a window; the host block is %d lines at "+
 		"the bottom, inside the launcher region",
-		linesBefore, len(strings.Split(t, "\n")), strings.Count(z20Host, "\n")))
+		linesBefore, len(strings.Split(t, "\n")), strings.Count(w103Host, "\n")))
 	return []byte(t), nil
 }

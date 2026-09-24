@@ -6,8 +6,8 @@ package p091
 // literal that is 90%% right matches nothing.  See that tool for the
 // measurement.
 const (
-	z8Head = "    if (cap->nchar == 'f')\n    {\n        nv_gotofile(cap);\n    }\n    else\n    {\n"
-	z8lit1 = "    case 'f':\n    case 'F':\n        nv_gotofile(cap);\n        break;\n"
-	z8lit2 = "    if (ea.argt & EX_ARGOPT)\n    {\n        while (ea.arg[0] == '+' && ea.arg[1] == '+')\n        {\n            if (getargopt(&ea) == FAIL)\n            {\n                errormsg = _(e_invalid_argument);\n                goto doend;\n            }\n        }\n    }\n"
-	z8lit4 = "    }\n"
+	w91Head = "    if (cap->nchar == 'f')\n    {\n        nv_gotofile(cap);\n    }\n    else\n    {\n"
+	w91lit1 = "    case 'f':\n    case 'F':\n        nv_gotofile(cap);\n        break;\n"
+	w91lit2 = "    if (ea.argt & EX_ARGOPT)\n    {\n        while (ea.arg[0] == '+' && ea.arg[1] == '+')\n        {\n            if (getargopt(&ea) == FAIL)\n            {\n                errormsg = _(e_invalid_argument);\n                goto doend;\n            }\n        }\n    }\n"
+	w91lit4 = "    }\n"
 )

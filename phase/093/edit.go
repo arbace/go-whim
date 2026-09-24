@@ -101,11 +101,11 @@ import (
 
 func init() { edit.Register("whim93", Edit) }
 
-// z10Fields are the three the whole phase is about, and they are NULL for ever
+// w93Fields are the three the whole phase is about, and they are NULL for ever
 // once part B has run.
-var z10Fields = []string{"b_ffname", "b_sfname", "b_fname"}
+var w93Fields = []string{"b_ffname", "b_sfname", "b_fname"}
 
-var z10Before = map[string]int{
+var w93Before = map[string]int{
 	"b_ffname": 32, "b_sfname": 26, "b_fname": 29,
 	"CMD_file": 4, "EX_XFILE": 4, "buflist_new": 3, "buflist_name_nr": 3,
 	"buf_spname": 7, "buf_get_fname": 3, "fileinfo": 4, "check_fname": 3,
@@ -115,24 +115,24 @@ var z10Before = map[string]int{
 	"scriptin": 8, "redir_fd": 6,
 }
 
-var z10After = map[string]int{
+var w93After = map[string]int{
 	"CMD_file": 0, "EX_XFILE": 1, "buflist_name_nr": 1, "readonlymode": 0,
 	"shorten_buf_fname": 1, "check_fname": 3, "buf_get_fname": 3,
 	"check_changed": 4, "no_write_message": 3, "p_ur": 2, "p_ro": 2,
 	"read_cmd_fd": 12, "vim_fsync": 3, "scriptin": 8, "redir_fd": 6,
 }
 
-// z10Writers are the four functions every write to the three fields lives in,
-// and z10Readers the five every surviving mention lives in.  Both are computed
+// w93Writers are the four functions every write to the three fields lives in,
+// and w93Readers the five every surviving mention lives in.  Both are computed
 // against, not asserted about: a write anywhere else means every fold is a guess.
-var z10Writers = []string{"buflist_new", "setfname", "rename_buffer", "shorten_buf_fname"}
-var z10Readers = []string{"setfname", "rename_buffer", "otherfile_buf", "buf_setino",
+var w93Writers = []string{"buflist_new", "setfname", "rename_buffer", "shorten_buf_fname"}
+var w93Readers = []string{"setfname", "rename_buffer", "otherfile_buf", "buf_setino",
 	"eval_vars", "buflist_name_nr"}
 
 var (
-	z10CmdRow  = regexp.MustCompile(`(?m)^    \[CMD_file\] = \{.*\n`)
-	z10AnyRow  = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
-	z10ElseTop = regexp.MustCompile(`^[ \t]*else[ \t]*\n[ \t]*\{`)
+	w93CmdRow  = regexp.MustCompile(`(?m)^    \[CMD_file\] = \{.*\n`)
+	w93AnyRow  = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
+	w93ElseTop = regexp.MustCompile(`^[ \t]*else[ \t]*\n[ \t]*\{`)
 )
 
 // Whim93 takes the buffer's NAME: `:file`, buflist_new()'s two name parameters,
@@ -149,7 +149,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		k := strings.Count(string(t), old)
 		if k != n {
 			return nil, p.Die("%s -- the text occurs %d times, expected %d: %s",
-				what, k, n, cutil.PyRepr(edit.ZHead(old, 70)))
+				what, k, n, cutil.PyRepr(edit.CoreHead(old, 70)))
 		}
 		p.Say(what)
 		return []byte(strings.ReplaceAll(string(t), old, new)), nil
@@ -170,7 +170,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			k := strings.Count(string(s), old)
 			if k != n {
 				return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-					what, cutil.PyRepr(edit.ZHead(old, 60)), k, fn, n)
+					what, cutil.PyRepr(edit.CoreHead(old, 60)), k, fn, n)
 			}
 			return []byte(strings.ReplaceAll(string(s), old, new)), nil
 		})
@@ -225,7 +225,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				return nil, p.Die("%s -- unbalanced block", what)
 			}
 			endIf := strings.Index(s[c:], "\n") + c + 1
-			m := z10ElseTop.FindStringIndex(s[endIf:])
+			m := w93ElseTop.FindStringIndex(s[endIf:])
 			if m == nil {
 				return nil, p.Die("%s -- the block has no else, so cutil.fold_always is the tool", what)
 			}
@@ -235,14 +235,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				return nil, p.Die("%s -- unbalanced else block", what)
 			}
 			Body := s[strings.Index(s[o:], "\n")+o+1 : strings.LastIndex(s[:c], "\n")+1]
-			for _, l := range edit.Z5Lines(Body) {
+			for _, l := range edit.W88Lines(Body) {
 				if !strings.HasPrefix(l, "    ") && strings.TrimSpace(l) != "" {
 					return nil, p.Die("%s -- the if body is not written one level in, and dedenting it "+
 						"would move code to a column it was never at", what)
 				}
 			}
 			var Out strings.Builder
-			for _, l := range edit.Z5Lines(Body) {
+			for _, l := range edit.W88Lines(Body) {
 				if strings.HasPrefix(l, "    ") {
 					Out.WriteString(l[4:])
 				} else {
@@ -312,50 +312,50 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- 0. the shape every anchor below was counted against ------------------
-	for _, name := range edit.SortedKeys(z10Before) {
-		if k := mentions(text, name); k != z10Before[name] {
+	for _, name := range edit.SortedKeys(w93Before) {
+		if k := mentions(text, name); k != w93Before[name] {
 			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
-				"against a different file", name, k, z10Before[name])
+				"against a different file", name, k, w93Before[name])
 		}
 	}
 	p.Say("b_ffname 32, b_sfname 26, b_fname 29, CMD_file 4, EX_XFILE 4 -- the file the " +
 		"seven parts were counted against")
 
 	var offs []int
-	for _, fld := range z10Fields {
+	for _, fld := range w93Fields {
 		offs = append(offs, assignments(text, fld)...)
 	}
-	got, err := functionsHolding(text, offs, z10Writers)
+	got, err := functionsHolding(text, offs, w93Writers)
 	if err != nil {
 		return nil, err
 	}
-	want := append([]string{}, z10Writers...)
+	want := append([]string{}, w93Writers...)
 	sort.Strings(want)
 	if strings.Join(got, " ") != strings.Join(want, " ") {
 		return nil, p.Die("the writes to %s live in %s, expected exactly %s",
-			strings.Join(z10Fields, "/"), strings.Join(got, " "), strings.Join(want, " "))
+			strings.Join(w93Fields, "/"), strings.Join(got, " "), strings.Join(want, " "))
 	}
 	p.Sayf("%d writes to b_ffname, b_sfname and b_fname, and every one is in buflist_new, "+
 		"setfname, rename_buffer or shorten_buf_fname -- the four this phase accounts "+
 		"for.  That, and nothing weaker, is why every fold below may take a constant", len(offs))
 
 	// ---- A. :file goes --------------------------------------------------------
-	if text, err = textEdit(text, z10lit3, "", "the CMD_file enumerator of enum CMD_index", 1); err != nil {
+	if text, err = textEdit(text, w93lit3, "", "the CMD_file enumerator of enum CMD_index", 1); err != nil {
 		return nil, err
 	}
-	rows := z10CmdRow.FindAllString(string(text), -1)
+	rows := w93CmdRow.FindAllString(string(text), -1)
 	if len(rows) != 1 {
 		return nil, p.Die("the cmdnames[] row for :file matches %d lines, expected 1", len(rows))
 	}
 	text = []byte(strings.ReplaceAll(string(text), rows[0], ""))
 	p.Say("the cmdnames[] row [CMD_file] = {...}, one physical line: ex_file has no other " +
 		"reference, and rename_buffer and setfname no other caller")
-	if text, err = textEdit(text, z10lit4, z10lit5,
+	if text, err = textEdit(text, w93lit4, w93lit5,
 		"do_one_cmd's curbuf_locked() exemption: `ea.cmdidx != CMD_file` is "+
 			"TRUE for ever, and phase 91 kept it saying this phase would take it", 1); err != nil {
 		return nil, err
 	}
-	if text, err = textEdit(text, z10lit6, "",
+	if text, err = textEdit(text, w93lit6, "",
 		"do_one_cmd's second CMD_file test, deleted as text rather than "+
 			"folded: its condition names the enumerator that is going", 1); err != nil {
 		return nil, err
@@ -366,33 +366,33 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- B. buflist_new never names -------------------------------------------
 	for _, e := range []struct{ Old, New, What string }{
-		{z10lit7, z10lit8, "buflist_new's prototype loses both name parameters"},
-		{z10lit9, z10lit10, "and so does its definition"},
+		{w93lit7, w93lit8, "buflist_new's prototype loses both name parameters"},
+		{w93lit9, w93lit10, "and so does its definition"},
 	} {
 		if text, err = textEdit(text, e.Old, e.New, e.What, 1); err != nil {
 			return nil, err
 		}
 	}
 	for _, e := range []struct{ Old, New, What string }{
-		{z10lit11, z10lit12, "the two locals the parameters fed, and the stat_T nothing fills now"},
-		{z10lit13, "", "the prologue and the lookup: fname_expand() on two NULLs, a stat() the " +
+		{w93lit11, w93lit12, "the two locals the parameters fed, and the stat_T nothing fills now"},
+		{w93lit13, "", "the prologue and the lookup: fname_expand() on two NULLs, a stat() the " +
 			"`sfname == NULL` disjunct already short-circuited, and the search for " +
 			"an existing buffer of the same name, whose guard `ffname != NULL` is " +
 			"FALSE -- no buffer can be found by a name that is not given"},
-		{z10lit14, z10lit15, "the alloc failure arm's vim_free(ffname): there is no ffname to free"},
-		{z10lit16, "", "the assignment that named the buffer -- `ffname != NULL` is FALSE, and " +
+		{w93lit14, w93lit15, "the alloc failure arm's vim_free(ffname): there is no ffname to free"},
+		{w93lit16, "", "the assignment that named the buffer -- `ffname != NULL` is FALSE, and " +
 			"this is the statement the whole phase is about"},
-		{z10lit17, z10lit18, "the failure arm: its first disjunct is FALSE, so only the wininfo " +
+		{w93lit17, w93lit18, "the failure arm: its first disjunct is FALSE, so only the wininfo " +
 			"allocation can fail, and the two names it freed are not there to free"},
-		{z10lit19, "", "b_fname = b_sfname, which is NULL = NULL"},
-		{z10lit20, z10lit21, "the device block: `st.st_dev` was set to -1 by the prologue that has " +
+		{w93lit19, "", "b_fname = b_sfname, which is NULL = NULL"},
+		{w93lit20, w93lit21, "the device block: `st.st_dev` was set to -1 by the prologue that has " +
 			"gone, so the TRUE arm is the one that ran and b_dev_valid is false"},
 	} {
 		if text, err = within(text, "buflist_new", e.Old, e.New, e.What, 1); err != nil {
 			return nil, err
 		}
 	}
-	if text, err = textEdit(text, z10lit22, z10lit23,
+	if text, err = textEdit(text, w93lit22, w93lit23,
 		"the one call site, create_windows', which already passed NULL, NULL", 1); err != nil {
 		return nil, err
 	}
@@ -415,7 +415,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"only reader", 1); err != nil {
 		return nil, err
 	}
-	if text, err = textEdit(text, z10lit24, z10lit25,
+	if text, err = textEdit(text, w93lit24, w93lit25,
 		"can_unload_buffer: `fname` is NULL either way, so E937 names the "+
 			"buffer \"[No Name]\" -- which is what it printed before", 1); err != nil {
 		return nil, err
@@ -431,25 +431,25 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"rather than being kept with a fixed answer", 1); err != nil {
 		return nil, err
 	}
-	if text, err = textEdit(text, z10lit26, z10lit27,
+	if text, err = textEdit(text, w93lit26, w93lit27,
 		"getaltfname: buflist_name_nr() is FAIL ALWAYS, so the alternate file "+
 			"is E23 and NULL -- which is what the `#` register already answered", 1); err != nil {
 		return nil, err
 	}
-	if text, err = foldAlwaysElse(text, "fileinfo", z10lit28,
+	if text, err = foldAlwaysElse(text, "fileinfo", w93lit28,
 		"fileinfo: buf_spname() never returns NULL now, so CTRL-G "+
 			"prints the special name and never a path -- the else arm, "+
 			"which read b_fname and b_ffname, cannot be entered"); err != nil {
 		return nil, err
 	}
 	for _, e := range []struct{ Old, New, What string }{
-		{z10lit29, z10lit30, "buf_spname: `b_fname == NULL` is TRUE, so it answers for every " +
+		{w93lit29, w93lit30, "buf_spname: `b_fname == NULL` is TRUE, so it answers for every " +
 			"buffer and can no longer return NULL"},
-		{z10lit31, z10lit32, "buf_get_fname: the same, and \"[No Name]\" is now the only name the " +
+		{w93lit31, w93lit32, "buf_get_fname: the same, and \"[No Name]\" is now the only name the " +
 			"editor has for a buffer"},
-		{z10lit33, z10lit34, "check_changed_any: buf_spname() is non-NULL, so E162 names the " +
+		{w93lit33, w93lit34, "check_changed_any: buf_spname() is non-NULL, so E162 names the " +
 			"buffer through it and never through b_fname"},
-		{z10lit35, z10lit36, "check_fname: E32 for every buffer, and it stays because the `%` " +
+		{w93lit35, w93lit36, "check_fname: E32 for every buffer, and it stays because the `%` " +
 			"register still asks it"},
 	} {
 		if text, err = textEdit(text, e.Old, e.New, e.What, 1); err != nil {
@@ -462,17 +462,17 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"shorten and the function has nothing left to do", 1); err != nil {
 		return nil, err
 	}
-	if text, err = textEdit(text, z10lit37, z10lit38,
+	if text, err = textEdit(text, w93lit37, w93lit38,
 		"file_name_at_cursor: `curbuf->b_ffname` is the NULL it passes now", 1); err != nil {
 		return nil, err
 	}
-	if text, err = foldAlwaysElse(text, "set_b0_fname", z10lit39,
+	if text, err = foldAlwaysElse(text, "set_b0_fname", w93lit39,
 		"set_b0_fname: `b_ffname == NULL` is TRUE, so block zero's "+
 			"file name is empty -- and the stat() in the arm that goes is "+
 			"one of the two this phase takes"); err != nil {
 		return nil, err
 	}
-	if text, err = textEdit(text, z10lit40, z10lit41,
+	if text, err = textEdit(text, w93lit40, w93lit41,
 		"get_spec_reg: the `%` register is `b_fname`, which is NULL -- the "+
 			"register already yielded nothing, and check_fname() above it still "+
 			"says E32", 1); err != nil {
@@ -491,7 +491,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"what makes that function uncalled and the sweep's", 1); err != nil {
 		return nil, err
 	}
-	if text, err = foldAlwaysElse(text, "get_trans_bufname", z10lit42,
+	if text, err = foldAlwaysElse(text, "get_trans_bufname", w93lit42,
 		"get_trans_bufname: buf_spname() is non-NULL, so every window "+
 			"and every :ls row reads \"[No Name]\" -- as they already did"); err != nil {
 		return nil, err
@@ -503,14 +503,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- D. EX_XFILE reaches zero rows ----------------------------------------
 	var left []string
-	for _, r := range z10AnyRow.FindAllString(string(text), -1) {
+	for _, r := range w93AnyRow.FindAllString(string(text), -1) {
 		if strings.Contains(r, "EX_XFILE") {
 			left = append(left, r)
 		}
 	}
 	if len(left) > 0 {
 		return nil, p.Die("%d cmdnames[] rows still carry EX_XFILE, so the fold below would be a "+
-			"guess: %s", len(left), edit.ZHead(left[0], 60))
+			"guess: %s", len(left), edit.CoreHead(left[0], 60))
 	}
 	p.Say("no cmdnames[] row carries EX_XFILE any more -- :file was the last, as :read " +
 		"was EX_ARGOPT's in phase 90 and the :edit family in phase 91")
@@ -521,7 +521,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"filename-expansion layer from", 1); err != nil {
 		return nil, err
 	}
-	if text, err = textEdit(text, z10lit43, z10lit44,
+	if text, err = textEdit(text, w93lit43, w93lit44,
 		"separate_nextcmd's CTRL-V test: the EX_XFILE disjunct is 0 for every "+
 			"row, and dropping it is what takes the enumerator to zero mentions", 1); err != nil {
 		return nil, err
@@ -538,12 +538,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"here removes", 1); err != nil {
 		return nil, err
 	}
-	if text, err = textEdit(text, z10lit45, "",
+	if text, err = textEdit(text, w93lit45, "",
 		"and the definition of readonlymode, which phase 91 asserted at 5 "+
 			"mentions and phase 92 at 3", 1); err != nil {
 		return nil, err
 	}
-	if text, err = within(text, "buflist_new", z10lit21, "",
+	if text, err = within(text, "buflist_new", w93lit21, "",
 		"b_dev_valid's one surviving assignment, which part B left: every reader "+
 			"is inside a function the sweep takes, and deadfields.py cannot remove a "+
 			"field that is still written", 1); err != nil {
@@ -551,16 +551,16 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- F. shorten_fnames stops asking where it is ---------------------------
-	if text, err = within(text, "shorten_fnames", z10lit46, "",
+	if text, err = within(text, "shorten_fnames", w93lit46, "",
 		"shorten_fnames: the cwd, and the call to a function with an empty body", 1); err != nil {
 		return nil, err
 	}
 	for _, e := range []struct{ Old, New, What string }{
-		{z10lit47, z10lit48, "and its prototype takes void, because an unused PARAMETER is what " +
+		{w93lit47, w93lit48, "and its prototype takes void, because an unused PARAMETER is what " +
 			"tools/sweep.sh's -Wno-unused-parameter cannot see -- phase 92's " +
 			"anchor 4 measured that"},
-		{z10lit49, z10lit50, "the definition with it"},
-		{z10lit51, z10lit52, "and its one call site"},
+		{w93lit49, w93lit50, "the definition with it"},
+		{w93lit51, w93lit52, "and its one call site"},
 	} {
 		if text, err = textEdit(text, e.Old, e.New, e.What, 1); err != nil {
 			return nil, err
@@ -578,15 +578,15 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// ---- what the sweep is handed, as a count rather than as trust ------------
 	offs = nil
 	writes := 0
-	for _, fld := range z10Fields {
+	for _, fld := range w93Fields {
 		offs = append(offs, uses(text, fld)...)
 		writes += len(assignments(text, fld))
 	}
-	got, err = functionsHolding(text, offs, z10Readers)
+	got, err = functionsHolding(text, offs, w93Readers)
 	if err != nil {
 		return nil, err
 	}
-	want = append([]string{}, z10Readers...)
+	want = append([]string{}, w93Readers...)
 	sort.Strings(want)
 	if strings.Join(got, " ") != strings.Join(want, " ") {
 		return nil, p.Die("the surviving mentions of the three fields are in %s, expected exactly %s",
@@ -597,9 +597,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"eval_vars or buflist_name_nr -- none of which has a caller the sweep can "+
 		"reach", len(offs), writes)
 
-	for _, name := range edit.SortedKeys(z10After) {
-		if k := mentions(text, name); k != z10After[name] {
-			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, z10After[name])
+	for _, name := range edit.SortedKeys(w93After) {
+		if k := mentions(text, name); k != w93After[name] {
+			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, w93After[name])
 		}
 	}
 	p.Say("the cut is done: CMD_file 0, EX_XFILE 1 (its own definition), buflist_name_nr " +

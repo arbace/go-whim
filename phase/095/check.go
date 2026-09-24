@@ -108,23 +108,23 @@ import (
 
 func init() { check.Register("whim95", Check) }
 
-var z12Gone = []string{"b_p_ro", "b_p_fs", "b_did_warn", "change_warning", "did_set_readonly",
+var w95Gone = []string{"b_p_ro", "b_p_fs", "b_did_warn", "change_warning", "did_set_readonly",
 	"w_readonly", "SHM_RO", "BV_RO", "BV_FS", "p_fs", "p_ro", "p_ur", "p_write", "p_wa", "p_prompt"}
 
-var z12GoneStrings = []string{"W10: Warning: Changing a readonly file", "[RO]", "[readonly]"}
+var w95GoneStrings = []string{"W10: Warning: Changing a readonly file", "[RO]", "[readonly]"}
 
-var z12Went = []string{"fsync", "prompt", "readonly", "undoreload", "write", "writeany"}
+var w95Went = []string{"fsync", "prompt", "readonly", "undoreload", "write", "writeany"}
 
-var z12Kept = map[string]int{
+var w95Kept = map[string]int{
 	"scriptin": 8, "redir_fd": 6, "vim_fsync": 3, "read_cmd_fd": 12,
 	"bufIsChanged": 7, "curbufIsChanged": 6, "fileinfo": 3, "win_redr_status": 5,
 }
 
 const (
-	z12CPO     = `return did_set_option_listflag(*varp, (char_u *)"aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>#{|&/\\.;~", args->os_errbuf, args->os_errbuflen);`
-	z12SHM     = `return did_set_option_listflag(*varp, (char_u *)"rmfixlnwaWtToOsAIcCqFSu", args->os_errbuf, args->os_errbuflen);`
-	z12CPOList = `aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>#{|&/\.;~`
-	z12SHMList = "rmfixlnwaWtToOsAIcCqFSu"
+	w95CPO     = `return did_set_option_listflag(*varp, (char_u *)"aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>#{|&/\\.;~", args->os_errbuf, args->os_errbuflen);`
+	w95SHM     = `return did_set_option_listflag(*varp, (char_u *)"rmfixlnwaWtToOsAIcCqFSu", args->os_errbuf, args->os_errbuflen);`
+	w95CPOList = `aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>#{|&/\.;~`
+	w95SHMList = "rmfixlnwaWtToOsAIcCqFSu"
 )
 
 // Whim95 is phase 95's check: the options nothing reads.
@@ -154,12 +154,12 @@ func Check(w io.Writer, args []string) error {
 	defer os.RemoveAll(tmp)
 
 	// --- 1. what went --------------------------------------------------------
-	for _, g := range z12Gone {
+	for _, g := range w95Gone {
 		if n := check.CountWord(src, g); n != 0 {
 			return stop("'%s' still has %d mentions", g, n)
 		}
 	}
-	for _, g := range z12GoneStrings {
+	for _, g := range w95GoneStrings {
 		if n := check.CountLinesWith(src, g); n != 0 {
 			return stop("the string '%s' still has %d mentions", g, n)
 		}
@@ -189,18 +189,18 @@ func Check(w io.Writer, args []string) error {
 		}
 		return m
 	}
-	rowsOld, rowsNew := set(check.Z12RowRe, table(oldT)), set(check.Z12RowRe, table(newT))
+	rowsOld, rowsNew := set(check.W95RowRe, table(oldT)), set(check.W95RowRe, table(newT))
 	wentGot, cameGot := keysNotIn(rowsOld, rowsNew), keysNotIn(rowsNew, rowsOld)
-	if strings.Join(wentGot, " ") != strings.Join(z12Went, " ") || len(cameGot) > 0 {
+	if strings.Join(wentGot, " ") != strings.Join(w95Went, " ") || len(cameGot) > 0 {
 		fail = append(fail, fmt.Sprintf("the option rows that went are %s and %s arrived; exactly %s must go",
-			orNone(wentGot), orNone(cameGot), strings.Join(z12Went, " ")))
+			orNone(wentGot), orNone(cameGot), strings.Join(w95Went, " ")))
 	}
-	gOld, gNew := set(check.Z12GlobRe, table(oldT)), set(check.Z12GlobRe, table(newT))
+	gOld, gNew := set(check.W95GlobRe, table(oldT)), set(check.W95GlobRe, table(newT))
 	if len(gOld) != 102 || len(gNew) != 96 {
 		fail = append(fail, fmt.Sprintf("the distinct option globals went %d -> %d, expected 102 -> 96", len(gOld), len(gNew)))
 	}
-	if m := check.Z12WhiteRe.FindStringSubmatch(newT); m != nil {
-		for _, name := range z12Went {
+	if m := check.W95WhiteRe.FindStringSubmatch(newT); m != nil {
+		for _, name := range w95Went {
 			if strings.Contains(m[1], `"`+name+`"`) {
 				fail = append(fail, fmt.Sprintf("%s is still in modeline_whitelist[], which outlives the option it names", check.CutilRepr(name)))
 			}
@@ -217,14 +217,14 @@ func Check(w io.Writer, args []string) error {
 			fail = append(fail, fmt.Sprintf(`%s has %d mentions, expected 4 -- it is one of 'paste''s five save slots, which orphanopts.py reports and tolerates and which nothing here may "fix"`, slot, count(newT, slot)))
 		}
 	}
-	for _, p := range []struct{ What, lit string }{{"'cpoptions'", z12CPO}, {"'shortmess'", z12SHM}} {
+	for _, p := range []struct{ What, lit string }{{"'cpoptions'", w95CPO}, {"'shortmess'", w95SHM}} {
 		if strings.Count(newT, p.lit) != 1 || strings.Count(oldT, p.lit) != 1 {
 			fail = append(fail, fmt.Sprintf("%s's validity list is not the literal this phase was written against (%d in the input, %d here) -- it must be untouched, character for character",
 				p.What, strings.Count(oldT, p.lit), strings.Count(newT, p.lit)))
 		}
 	}
-	cpoI, shmI := z12Inert(newT, "CPO_", z12CPOList), z12Inert(newT, "SHM_", z12SHMList)
-	cpoIOld, shmIOld := z12Inert(oldT, "CPO_", z12CPOList), z12Inert(oldT, "SHM_", z12SHMList)
+	cpoI, shmI := w95Inert(newT, "CPO_", w95CPOList), w95Inert(newT, "SHM_", w95SHMList)
+	cpoIOld, shmIOld := w95Inert(oldT, "CPO_", w95CPOList), w95Inert(oldT, "SHM_", w95SHMList)
 	if cpoI != cpoIOld {
 		fail = append(fail, fmt.Sprintf("the inert 'cpoptions' letters moved, %s -> %s, and this phase touches no CPO_", check.CutilRepr(cpoIOld), check.CutilRepr(cpoI)))
 	}
@@ -232,17 +232,17 @@ func Check(w io.Writer, args []string) error {
 	if added != "r" || lost != "" {
 		fail = append(fail, fmt.Sprintf("the inert 'shortmess' letters went %s -> %s; exactly `r` must be added, SHM_RO going with the [RO] indicator", check.CutilRepr(shmIOld), check.CutilRepr(shmI)))
 	}
-	names := make([]string, 0, len(z12Kept))
-	for n := range z12Kept {
+	names := make([]string, 0, len(w95Kept))
+	for n := range w95Kept {
 		names = append(names, n)
 	}
 	sort.Strings(names)
 	for _, name := range names {
-		if k := count(newT, name); k != z12Kept[name] {
-			fail = append(fail, fmt.Sprintf("%s has %d mentions, expected %d", name, k, z12Kept[name]))
+		if k := count(newT, name); k != w95Kept[name] {
+			fail = append(fail, fmt.Sprintf("%s has %d mentions, expected %d", name, k, w95Kept[name]))
 		}
 	}
-	if !check.Z12Fmt.MatchString(newT) {
+	if !check.W95Fmt.MatchString(newT) {
 		fail = append(fail, "fileinfo's CTRL-G format is not %s%s%s%s%s: the format string and the argument had to move together, and nothing in the build checks a vim_snprintf_safelen count")
 	}
 	for _, keep := range []string{"[Modified]", "[Not edited]", "[Read errors]", "[Help]", "[+]"} {
@@ -250,7 +250,7 @@ func Check(w io.Writer, args []string) error {
 			fail = append(fail, fmt.Sprintf("%s went, and this phase removes only the read-only indicators", check.CutilRepr(keep)))
 		}
 	}
-	rows := check.Z6RowRe.FindAllString(newT, -1)
+	rows := check.W89RowRe.FindAllString(newT, -1)
 	got, _ := harness.CommandNamesIn(src, "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
 		fail = append(fail, fmt.Sprintf("cmdnames[] has %d rows and names() reads %d; both must be 98 -- this phase removes no command", len(rows), len(got)))
@@ -346,7 +346,7 @@ func Check(w io.Writer, args []string) error {
 	}()
 	exec.Command("sh", "tools/enumvals.sh", f, evNew).Run()
 	ewg.Wait()
-	if err := z12Enums(r, check.ReadFile(evOld), check.ReadFile(evNew)); err != nil {
+	if err := w95Enums(r, check.ReadFile(evOld), check.ReadFile(evNew)); err != nil {
 		return err
 	}
 
@@ -361,12 +361,12 @@ func Check(w io.Writer, args []string) error {
 	now, _ := os.ReadFile(f)
 	(&check.Rep{Tag: "build", W: w}).Say("ok, %s -> %d lines, %d bytes", beforeLines, check.CountLines(now), check.SizeOf(bin))
 
-	return z12Probes(r, old, bin)
+	return w95Probes(r, old, bin)
 }
 
-// z12Inert is the letters of a flag list that have no enumerator naming them:
+// w95Inert is the letters of a flag list that have no enumerator naming them:
 // accepted by the validity check and acted on by nothing.
-func z12Inert(text, prefix, letters string) string {
+func w95Inert(text, prefix, letters string) string {
 	have := map[rune]bool{}
 	for _, m := range regexp.MustCompile(regexp.QuoteMeta(prefix)+`(\w+) = '(.)'`).FindAllStringSubmatch(text, -1) {
 		have[[]rune(m[2])[0]] = true
@@ -415,7 +415,7 @@ func orNone(s []string) string {
 	return strings.Join(s, " ")
 }
 
-func z12Enums(r *check.Rep, oldTxt, newTxt string) error {
+func w95Enums(r *check.Rep, oldTxt, newTxt string) error {
 	load := func(s string) map[string]string {
 		m := map[string]string{}
 		for _, l := range strings.Split(s, "\n") {

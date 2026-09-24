@@ -102,21 +102,21 @@ import (
 func init() { check.Register("whim114", Check) }
 
 var (
-	z31Section = regexp.MustCompile(`^\s*\[\s*\d+\]\s+(\.\S+)\s+\S+\s+([0-9a-f]+)\s+[0-9a-f]+\s+` +
+	w114Section = regexp.MustCompile(`^\s*\[\s*\d+\]\s+(\.\S+)\s+\S+\s+([0-9a-f]+)\s+[0-9a-f]+\s+` +
 		`([0-9a-f]+)\s+\S+\s+\S*\s*\d+\s+\d+\s+(\d+)\s*$`)
-	z31ErrLine = regexp.MustCompile(`(?m)^[^ ].*: error:.*$`)
-	z31Undef   = regexp.MustCompile(`'(\w+)' used but never defined`)
-	z31Mark    = regexp.MustCompile(`(?m)^Z(\d) (-?\d+)$`)
-	z31OldCall = regexp.MustCompile(`\b(abs|labs)\b`)
-	z31NewCall = regexp.MustCompile(`call.*\bmusl_l?abs\b`)
-	z31Hits    = regexp.MustCompile(`^Z[123] `)
+	w114ErrLine = regexp.MustCompile(`(?m)^[^ ].*: error:.*$`)
+	w114Undef   = regexp.MustCompile(`'(\w+)' used but never defined`)
+	w114Mark    = regexp.MustCompile(`(?m)^Z(\d) (-?\d+)$`)
+	w114OldCall = regexp.MustCompile(`\b(abs|labs)\b`)
+	w114NewCall = regexp.MustCompile(`call.*\bmusl_l?abs\b`)
+	w114Hits    = regexp.MustCompile(`^Z[123] `)
 )
 
-const z31Ternary = "    return a > 0 ? a : -a;\n"
+const w114Ternary = "    return a > 0 ? a : -a;\n"
 
 // The instrument: the site and the VALUE at each call, on stderr.  `write` is
 // the core's own declaration, immediately above.
-const z31Probe = `    static long
+const w114Probe = `    static long
 zprobe(int site, long v)
 {
     char buf[32];
@@ -153,7 +153,7 @@ zprobe(int site, long v)
 `
 
 // THE EXHAUSTIVE EQUIVALENCE, as a program rather than a paragraph.
-const z31SameC = `#include <stdio.h>
+const w114SameC = `#include <stdio.h>
 #include <limits.h>
 __attribute__((noipa)) static int  musl_abs(int a)    { return a > 0 ? a : -a; }
 __attribute__((noipa)) static long musl_labs(long a)  { return a > 0 ? a : -a; }
@@ -180,23 +180,23 @@ int main(void)
 }
 `
 
-type z31Sec struct{ addr, size, align int64 }
+type w114Sec struct{ addr, size, align int64 }
 
-func z31Sections(path string) map[string]z31Sec {
-	Out := map[string]z31Sec{}
+func w114Sections(path string) map[string]w114Sec {
+	Out := map[string]w114Sec{}
 	b, _ := exec.Command("readelf", "-SW", path).Output()
 	for _, l := range strings.Split(string(b), "\n") {
-		if m := z31Section.FindStringSubmatch(l); m != nil {
+		if m := w114Section.FindStringSubmatch(l); m != nil {
 			a, _ := strconv.ParseInt(m[2], 16, 64)
 			s, _ := strconv.ParseInt(m[3], 16, 64)
 			al, _ := strconv.ParseInt(m[4], 10, 64)
-			Out[m[1]] = z31Sec{a, s, al}
+			Out[m[1]] = w114Sec{a, s, al}
 		}
 	}
 	return Out
 }
 
-func z31Sizes(obj string) map[string]int64 {
+func w114Sizes(obj string) map[string]int64 {
 	Out := map[string]int64{}
 	b, _ := exec.Command("nm", "-S", obj).Output()
 	for _, l := range strings.Split(string(b), "\n") {
@@ -209,7 +209,7 @@ func z31Sizes(obj string) map[string]int64 {
 	return Out
 }
 
-func z31TextSize(obj string) (int64, bool) {
+func w114TextSize(obj string) (int64, bool) {
 	b, _ := exec.Command("readelf", "-SW", obj).Output()
 	for _, l := range strings.Split(string(b), "\n") {
 		p := strings.Fields(l)
@@ -221,13 +221,13 @@ func z31TextSize(obj string) (int64, bool) {
 	return 0, false
 }
 
-func z31FDEs(obj string) int {
+func w114FDEs(obj string) int {
 	b, _ := exec.Command("readelf", "--debug-dump=frames-interp", obj).Output()
 	return strings.Count(string(b), "FDE cie=")
 }
 
-// z31Comma is Python's format(n, ',').
-func z31Comma(n int64) string {
+// w114Comma is Python's format(n, ',').
+func w114Comma(n int64) string {
 	s := strconv.FormatInt(n, 10)
 	neg := strings.HasPrefix(s, "-")
 	if neg {
@@ -246,14 +246,14 @@ func z31Comma(n int64) string {
 	return r
 }
 
-func z31Plus(n int64) string {
+func w114Plus(n int64) string {
 	if n >= 0 {
 		return fmt.Sprintf("+%d", n)
 	}
 	return fmt.Sprintf("%d", n)
 }
 
-func z31Head(w io.Writer, path string, n int, prefix string) {
+func w114Head(w io.Writer, path string, n int, prefix string) {
 	for i, l := range strings.Split(strings.TrimRight(check.ReadFile(path), "\n"), "\n") {
 		if i >= n {
 			break
@@ -284,10 +284,10 @@ func Check(w io.Writer, args []string) error {
 	T := func(n string) string { return filepath.Join(tmp, n) }
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
 	var cflags, ldflags []string
-	if m := check.Z29CFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112CFlags.FindStringSubmatch(mk); m != nil {
 		cflags = strings.Fields(m[1])
 	}
-	if m := check.Z29LDFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112LDFlags.FindStringSubmatch(mk); m != nil {
 		ldflags = strings.Fields(m[1])
 	}
 	link := func(src, Out, logPath string) error {
@@ -304,11 +304,11 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 0. the control, the instrument and the two spellings ------------------
 	t := check.ReadFile(f)
-	if strings.Count(t, z31Ternary) != 2 {
+	if strings.Count(t, w114Ternary) != 2 {
 		return stop("`%s` is not in the output exactly twice, so neither variant below "+
-			"could be built from it", strings.TrimSpace(z31Ternary))
+			"could be built from it", strings.TrimSpace(w114Ternary))
 	}
-	os.WriteFile(T("wrong.c"), []byte(strings.ReplaceAll(t, z31Ternary, "    return a;\n")), 0o644)
+	os.WriteFile(T("wrong.c"), []byte(strings.ReplaceAll(t, w114Ternary, "    return a;\n")), 0o644)
 	sites := [][2]string{
 		{"num = musl_labs((long)get_cursor_rel_lnum(wp, wlv->lnum));",
 			"num = musl_labs(zprobe(1, (long)get_cursor_rel_lnum(wp, wlv->lnum)));"},
@@ -334,7 +334,7 @@ func Check(w io.Writer, args []string) error {
 	if strings.Count(s, anchor) != 1 {
 		return stop("musl_bsearch is not in the output exactly once")
 	}
-	os.WriteFile(T("values.c"), []byte(strings.Replace(s, anchor, z31Probe+anchor, 1)), 0o644)
+	os.WriteFile(T("values.c"), []byte(strings.Replace(s, anchor, w114Probe+anchor, 1)), 0o644)
 	i := strings.Index(t, "musl_abs(int a)")
 	li := strings.Index(t, "musl_labs(long a)")
 	var Body string
@@ -346,12 +346,12 @@ func Check(w io.Writer, args []string) error {
 			}
 		}
 	}
-	if strings.Count(Body, z31Ternary) != 2 || !strings.Contains(Body, "musl_abs") || !strings.Contains(Body, "musl_labs") {
+	if strings.Count(Body, w114Ternary) != 2 || !strings.Contains(Body, "musl_abs") || !strings.Contains(Body, "musl_labs") {
 		return stop("the two definitions could not be lifted out of the output")
 	}
 	const tail = "int a1(int x) { return musl_abs(x); }\nlong a2(long x) { return musl_labs(x); }\n"
 	os.WriteFile(T("spell1.c"), []byte(Body+tail), 0o644)
-	os.WriteFile(T("spell2.c"), []byte(strings.ReplaceAll(Body, z31Ternary, "    return a < 0 ? -a : a;\n")+tail), 0o644)
+	os.WriteFile(T("spell2.c"), []byte(strings.ReplaceAll(Body, w114Ternary, "    return a < 0 ? -a : a;\n")+tail), 0o644)
 	r.Say("the control (both vendored functions return their argument unchanged), " +
 		"the instrument (the site and the VALUE at each of the three call sites) and the " +
 		"two spellings, all built FROM THE OUTPUT")
@@ -375,7 +375,7 @@ func Check(w io.Writer, args []string) error {
 			errNO = exec.Command("gcc", "-c", "-O0", "-fno-stack-protector", "-o", T("new.o"), f).Run()
 		}},
 		{&wSame, func() {
-			os.WriteFile(T("same.c"), []byte(z31SameC), 0o644)
+			os.WriteFile(T("same.c"), []byte(w114SameC), 0o644)
 			if errSame = exec.Command("gcc", "-O2", "-o", T("same"), T("same.c")).Run(); errSame != nil {
 				return
 			}
@@ -385,7 +385,7 @@ func Check(w io.Writer, args []string) error {
 		}},
 		{&wCanon, func() {
 			os.WriteFile(T("canon.c"), []byte(t), 0o644)
-			canonLog, errCanon = exec.Command("sh", "tools/canon.sh", T("canon.c")).CombinedOutput()
+			canonLog, errCanon = check.Canon(T("canon.c"))
 		}},
 	} {
 		x := x
@@ -527,8 +527,8 @@ func Check(w io.Writer, args []string) error {
 	if len(nlines)-ncut != len(olines)-ocut {
 		r.Bad("the host changed size, and this phase does not touch it")
 	}
-	if check.Z27Runs(nlines) != check.Z27Runs(olines) {
-		r.Bad("the edit left %d runs of two blank lines where there were %d", check.Z27Runs(nlines), check.Z27Runs(olines))
+	if check.W110Runs(nlines) != check.W110Runs(olines) {
+		r.Bad("the edit left %d runs of two blank lines where there were %d", check.W110Runs(nlines), check.W110Runs(olines))
 	}
 	if err := r.Done(); err != nil {
 		return err
@@ -551,7 +551,7 @@ func Check(w io.Writer, args []string) error {
 			lf.Close()
 			if err != nil {
 				r.Say("the %s spelling did not compile at %s:", sp, opt)
-				z31Head(w, T(sp+".log"), 3, "               ")
+				w114Head(w, T(sp+".log"), 3, "               ")
 				return harness.ErrReported
 			}
 			exec.Command("objcopy", "-O", "binary", "--only-section=.text", T(sp+opt+".o"), T(sp+opt+".text")).Run()
@@ -560,7 +560,7 @@ func Check(w io.Writer, args []string) error {
 			return stop("objcopy wrote an empty .text, and comparing two empty streams reports every pair " +
 				"identical (CLAUDE.md)")
 		}
-		if !check.Z30Same(T("spell1"+opt+".text"), T("spell2"+opt+".text")) {
+		if !check.W113Same(T("spell1"+opt+".text"), T("spell2"+opt+".text")) {
 			r.Say("THE TWO SPELLINGS COMPILE DIFFERENTLY at %s.  `a > 0 ? a : -a`", opt)
 			fmt.Fprintln(w, "               and `a < 0 ? -a : a` are the same function, and this phase")
 			fmt.Fprintln(w, "               copies musl's spelling BECAUSE the choice is free.  If it is")
@@ -572,7 +572,7 @@ func Check(w io.Writer, args []string) error {
 	if errSame != nil {
 		r.Say("the equivalence probe did not build or disagreed:")
 		if _, e := os.Stat(T("same.txt")); e == nil {
-			z31Head(w, T("same.txt"), 1<<30, "               ")
+			w114Head(w, T("same.txt"), 1<<30, "               ")
 		}
 		return harness.ErrReported
 	}
@@ -614,10 +614,10 @@ func Check(w io.Writer, args []string) error {
 		}
 		return harness.ErrReported
 	}
-	if !check.Z30Same(f, T("canon.c")) {
+	if !check.W113Same(f, T("canon.c")) {
 		r.Say("tools/canon.sh is not a no-op on the output -- the two definitions are not written the way " +
 			"this file writes everything else:")
-		for k, l := range check.Z30Diff(f, T("canon.c")) {
+		for k, l := range check.W113Diff(f, T("canon.c")) {
 			if k >= 12 {
 				break
 			}
@@ -634,12 +634,12 @@ func Check(w io.Writer, args []string) error {
 	seen := map[string][]string{}
 	cutN := map[string]int{}
 	for _, x := range []struct{ which, path string }{{"output", f}, {"input", oldC}} {
-		lines := check.Z28Cut(check.ReadFile(x.path))
+		lines := check.W111Cut(check.ReadFile(x.path))
 		cp := T("cut." + x.which + ".c")
 		os.WriteFile(cp, []byte(strings.Join(lines, "\n")+"\n"), 0o644)
 		var d []string
 		for _, l := range lines {
-			if check.Z30Dir.MatchString(l) {
+			if check.W113Dir.MatchString(l) {
 				d = append(d, l)
 			}
 		}
@@ -652,7 +652,7 @@ func Check(w io.Writer, args []string) error {
 		c.Stderr = &eb
 		c.Run()
 		wt := eb.String()
-		if errs := z31ErrLine.FindAllString(wt, -1); len(errs) > 0 {
+		if errs := w114ErrLine.FindAllString(wt, -1); len(errs) > 0 {
 			if len(errs) > 3 {
 				errs = errs[:3]
 			}
@@ -665,10 +665,10 @@ func Check(w io.Writer, args []string) error {
 			}
 		}
 		set := map[string]bool{}
-		for _, m := range z31Undef.FindAllStringSubmatch(wt, -1) {
+		for _, m := range w114Undef.FindAllStringSubmatch(wt, -1) {
 			set[m[1]] = true
 		}
-		seen[x.which] = check.Z27Keys(set)
+		seen[x.which] = check.W110Keys(set)
 		cutN[x.which] = len(lines)
 	}
 	if strings.Join(seen["output"], " ") != strings.Join(seen["input"], " ") {
@@ -728,10 +728,10 @@ func Check(w io.Writer, args []string) error {
 		return strings.Split(s, "\n")
 	}
 	bu, lu := lines(beforeU), lines(check.ReadFile(lastU))
-	if !check.Z30Same(T("before.u"), lastU) {
+	if !check.W113Same(T("before.u"), lastU) {
 		r.Say("the libc surface moved, and IT CANNOT:")
-		fmt.Fprintf(w, "               gone: %s\n", check.Z31Words(check.Comm23(bu, lu)))
-		fmt.Fprintf(w, "               came: %s\n", check.Z31Words(check.Comm23(lu, bu)))
+		fmt.Fprintf(w, "               gone: %s\n", check.W114Words(check.Comm23(bu, lu)))
+		fmt.Fprintf(w, "               came: %s\n", check.W114Words(check.Comm23(lu, bu)))
 		return harness.ErrReported
 	}
 	for _, n := range []string{"abs", "labs"} {
@@ -748,7 +748,7 @@ func Check(w io.Writer, args []string) error {
 	oldCalls, newCalls := 0, 0
 	var oldHits []string
 	for _, l := range strings.Split(check.ReadFile(T("old.s")), "\n") {
-		if z31OldCall.MatchString(l) {
+		if w114OldCall.MatchString(l) {
 			oldCalls++
 			if len(oldHits) < 3 {
 				oldHits = append(oldHits, l)
@@ -756,7 +756,7 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 	for _, l := range strings.Split(check.ReadFile(T("new.s")), "\n") {
-		if z31NewCall.MatchString(l) {
+		if w114NewCall.MatchString(l) {
 			newCalls++
 		}
 	}
@@ -812,13 +812,13 @@ func Check(w io.Writer, args []string) error {
 		return stop("the reproducible build is %d bytes and make produced %d: the two differ by more than "+
 			"a timestamp", newSize, check.SizeOf(bin))
 	}
-	if check.Z30Same(oldBinP, T("new")) {
+	if check.W113Same(oldBinP, T("new")) {
 		r.Say("THE BINARY DID NOT MOVE, and it must: at -O0 a call to a static")
 		fmt.Fprintln(w, "               function is a call and inline arithmetic is not.  Two identical")
 		fmt.Fprintln(w, "               binaries here mean the edit did not reach the three call sites.")
 		return harness.ErrReported
 	}
-	if err := z31Binary(r, oldBinP, T("new"), T("old.o"), T("new.o")); err != nil {
+	if err := w114Binary(r, oldBinP, T("new"), T("old.o"), T("new.o")); err != nil {
 		return err
 	}
 
@@ -826,13 +826,13 @@ func Check(w io.Writer, args []string) error {
 	wVal.Wait()
 	if errVal != nil {
 		r.Say("the instrumented build failed:")
-		z31Head(w, T("values.log"), 3, "               ")
+		w114Head(w, T("values.log"), 3, "               ")
 		return harness.ErrReported
 	}
 	wWrong.Wait()
 	if errWrong != nil {
 		r.Say("the control build failed:")
-		z31Head(w, T("wrong.log"), 3, "               ")
+		w114Head(w, T("wrong.log"), 3, "               ")
 		return harness.ErrReported
 	}
 	oldBin, _ := filepath.Abs(oldBinP)
@@ -845,10 +845,10 @@ func Check(w io.Writer, args []string) error {
 		wgR.Add(1)
 		go func() {
 			defer wgR.Done()
-			recErr[k] = check.RecZ(x.bin, x.src, T(x.Out))
+			recErr[k] = check.RecCore(x.bin, x.src, T(x.Out))
 		}()
 	}
-	perr := z31Probes(r, oldBin, tmp)
+	perr := w114Probes(r, oldBin, tmp)
 	if perr != nil {
 		return perr
 	}
@@ -882,7 +882,7 @@ func Check(w io.Writer, args []string) error {
 	hits := 0
 	for _, Rel := range check.WalkFiles(T("REC.values")) {
 		for _, l := range strings.Split(check.ReadFile(filepath.Join(T("REC.values"), Rel)), "\n") {
-			if z31Hits.MatchString(l) {
+			if w114Hits.MatchString(l) {
 				hits++
 			}
 		}
@@ -901,13 +901,13 @@ func Check(w io.Writer, args []string) error {
 	return nil
 }
 
-// z31Binary is section 6's heredoc: the image may change only in .Text and
+// w114Binary is section 6's heredoc: the image may change only in .Text and
 // .eh_frame, and the object's .Text delta must be accounted for.
-func z31Binary(r *check.Rep, oldBin, newBin, oldO, newO string) error {
-	so, sn := z31Sections(oldBin), z31Sections(newBin)
-	zo, zn := z31Sizes(oldO), z31Sizes(newO)
-	to, ok1 := z31TextSize(oldO)
-	tn, ok2 := z31TextSize(newO)
+func w114Binary(r *check.Rep, oldBin, newBin, oldO, newO string) error {
+	so, sn := w114Sections(oldBin), w114Sections(newBin)
+	zo, zn := w114Sizes(oldO), w114Sizes(newO)
+	to, ok1 := w114TextSize(oldO)
+	tn, ok2 := w114TextSize(newO)
 	if !ok2 {
 		r.Say("%s has no .text", newO)
 		return harness.ErrReported
@@ -942,7 +942,7 @@ func z31Binary(r *check.Rep, oldBin, newBin, oldO, newO string) error {
 	for k := range sn {
 		all[k] = true
 	}
-	names := check.Z27Keys(all)
+	names := check.W110Keys(all)
 	var resized, shifted []string
 	for _, k := range names {
 		if k != ".text" && k != ".eh_frame" && so[k].size != sn[k].size {
@@ -966,7 +966,7 @@ func z31Binary(r *check.Rep, oldBin, newBin, oldO, newO string) error {
 		r.Bad("%s moved by something other than 0 or the %d bytes .text grew by",
 			strings.Join(shifted, " "), dtext)
 	}
-	if nf := z31FDEs(newO) - z31FDEs(oldO); nf != 2 {
+	if nf := w114FDEs(newO) - w114FDEs(oldO); nf != 2 {
 		r.Bad("the object gained %d unwind records where 2 were expected, one per new "+
 			"function", nf)
 	}
@@ -1004,10 +1004,10 @@ func z31Binary(r *check.Rep, oldBin, newBin, oldO, newO string) error {
 	}
 	var callerS []string
 	for _, k := range cnames {
-		callerS = append(callerS, k+" "+z31Plus(callers[k]))
+		callerS = append(callerS, k+" "+w114Plus(callers[k]))
 	}
 	if len(r.Fail) == 0 && sumDefs+sumCallers != objDelta {
-		dn := check.Z27Keys(map[string]bool{"musl_abs": true, "musl_labs": true})
+		dn := check.W110Keys(map[string]bool{"musl_abs": true, "musl_labs": true})
 		var defS []string
 		for _, k := range dn {
 			defS = append(defS, fmt.Sprintf("%s %d", k, defs[k]))
@@ -1039,11 +1039,11 @@ func z31Binary(r *check.Rep, oldBin, newBin, oldO, newO string) error {
 		"WAYS for the identical edit: 0 on the r29 tree, %d here), and `.eh_frame` +%d, "+
 		"two 32-byte unwind records -- the object gains exactly 2, one per new function",
 		objDelta, defs["musl_abs"], defs["musl_labs"], strings.Join(callerS, " "),
-		z31Comma(check.SizeOf(newBin)), nDiff, z31Plus(dtext), sumDefs, align, dtext, deh)
+		w114Comma(check.SizeOf(newBin)), nDiff, w114Plus(dtext), sumDefs, align, dtext, deh)
 	return nil
 }
 
-type z31Run struct {
+type w114Run struct {
 	ok  bool
 	n   int
 	sha [32]byte
@@ -1051,8 +1051,8 @@ type z31Run struct {
 	se  []byte
 }
 
-// z31Probes is section 7's heredoc: one probe per call site, on four binaries.
-func z31Probes(r *check.Rep, oldBin, tmp string) error {
+// w114Probes is section 7's heredoc: one probe per call site, on four binaries.
+func w114Probes(r *check.Rep, oldBin, tmp string) error {
 	var lb, long strings.Builder
 	for k := 1; k <= 60; k++ {
 		fmt.Fprintf(&lb, "line%d\r", k)
@@ -1074,15 +1074,15 @@ func z31Probes(r *check.Rep, oldBin, tmp string) error {
 		{"old", oldBin}, {"new", filepath.Join(tmp, "new")},
 		{"values", filepath.Join(tmp, "values")}, {"wrong", filepath.Join(tmp, "wrong")},
 	}
-	run := func(binary string, args []string, keys string) z31Run {
-		_, so, se, rc, err := harness.ZSession(binary, [][]byte{[]byte(keys)}, "xterm", args, 24, 80, 25*time.Second)
+	run := func(binary string, args []string, keys string) w114Run {
+		_, so, se, rc, err := harness.CoreSession(binary, [][]byte{[]byte(keys)}, "xterm", args, 24, 80, 25*time.Second)
 		if err != nil {
-			return z31Run{}
+			return w114Run{}
 		}
-		return z31Run{true, len(so), sha256.Sum256(so), rc, se}
+		return w114Run{true, len(so), sha256.Sum256(so), rc, se}
 	}
 	// Sequential, in the Python's order: it ran them one after another.
-	seen := map[[2]string]z31Run{}
+	seen := map[[2]string]w114Run{}
 	for _, p := range probes {
 		for _, x := range whos {
 			seen[[2]string{x.who, p.Name}] = run(x.path, p.Args, p.Keys)
@@ -1092,13 +1092,13 @@ func z31Probes(r *check.Rep, oldBin, tmp string) error {
 	values := map[string]val{}
 	var order []string
 	var moved []string
-	same := func(a, b z31Run) bool { return a.ok == b.ok && a.n == b.n && a.sha == b.sha && a.Rc == b.Rc }
+	same := func(a, b w114Run) bool { return a.ok == b.ok && a.n == b.n && a.sha == b.sha && a.Rc == b.Rc }
 	for _, p := range probes {
 		o, n := seen[[2]string{"old", p.Name}], seen[[2]string{"new", p.Name}]
 		v, wr := seen[[2]string{"values", p.Name}], seen[[2]string{"wrong", p.Name}]
 		for _, x := range []struct {
 			who string
-			R   z31Run
+			R   w114Run
 		}{{"old", o}, {"new", n}, {"values", v}, {"wrong", wr}} {
 			if !x.R.ok {
 				r.Bad("the `%s` probe never returned on `%s`", p.Name, x.who)
@@ -1117,7 +1117,7 @@ func z31Probes(r *check.Rep, oldBin, tmp string) error {
 		}
 		var mine []int
 		other := map[int]bool{}
-		for _, m := range z31Mark.FindAllSubmatch(v.se, -1) {
+		for _, m := range w114Mark.FindAllSubmatch(v.se, -1) {
 			st, _ := strconv.Atoi(string(m[1]))
 			vv, _ := strconv.Atoi(string(m[2]))
 			if st == p.site {

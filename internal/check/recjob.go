@@ -38,7 +38,7 @@ type RecJob struct {
 func NewRec(what string, argv ...string) *RecJob { return &RecJob{What: what, argv: argv} }
 
 // NewRecFunc is one recorder, not yet run, IN THIS PROCESS -- a whole
-// recording is harness.ZRecord and not a shell that starts six children -- with
+// recording is harness.CoreRecord and not a shell that starts six children -- with
 // how naming it the way an argv would.
 func NewRecFunc(what, how string, fn func(io.Writer) error) *RecJob {
 	return &RecJob{What: what, how: how, fn: fn}

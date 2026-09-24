@@ -8,18 +8,18 @@ import (
 	"sync"
 )
 
-// ZRecord is one recording of a zero binary, six parts.
+// CoreRecord is one recording of a zero binary, six parts.
 //
 // The parts are independent and run at once.  Their shape is checked
 // afterwards rather than assumed: a harness that wrote nothing would turn
 // every later comparison into a tautology, so an empty file or an empty
 // directory is a failure here and not a quiet pass downstream.
 //
-// The terminal part is ZTermCheck and NOT TermCheck, and the difference is one
+// The terminal part is CoreTermCheck and NOT TermCheck, and the difference is one
 // argument: the whim tool opens a FILE to put something on the screen, and
 // from phase 88 a file argument is an unknown option, so every row would
 // read `(none)`.
-func ZRecord(bin, src, out string, w io.Writer) error {
+func CoreRecord(bin, src, out string, w io.Writer) error {
 	if err := os.RemoveAll(out); err != nil {
 		return err
 	}
@@ -32,15 +32,15 @@ func ZRecord(bin, src, out string, w io.Writer) error {
 		run  func() error
 	}
 	parts := []part{
-		{"screen", func() error { return ZCases(bin, filepath.Join(out, "screen"), io.Discard) }},
-		{"memline", func() error { return ZMemline(bin, filepath.Join(out, "memline"), io.Discard) }},
+		{"screen", func() error { return CoreCases(bin, filepath.Join(out, "screen"), io.Discard) }},
+		{"memline", func() error { return CoreMemline(bin, filepath.Join(out, "memline"), io.Discard) }},
 		{"ref-excmds.txt", func() error {
-			return ZExCmds(bin, src, filepath.Join(out, "ref-excmds.txt"), io.Discard)
+			return CoreExCmds(bin, src, filepath.Join(out, "ref-excmds.txt"), io.Discard)
 		}},
-		{"ref-argv.txt", func() error { return ZArgv(bin, filepath.Join(out, "ref-argv.txt"), io.Discard) }},
-		{"ref-pty.txt", func() error { return ZPty(bin, filepath.Join(out, "ref-pty.txt"), io.Discard) }},
+		{"ref-argv.txt", func() error { return CoreArgv(bin, filepath.Join(out, "ref-argv.txt"), io.Discard) }},
+		{"ref-pty.txt", func() error { return CorePty(bin, filepath.Join(out, "ref-pty.txt"), io.Discard) }},
 		{"ref-term.txt", func() error {
-			return ZTermCheck(bin, filepath.Join(out, "ref-term.txt"), io.Discard)
+			return CoreTermCheck(bin, filepath.Join(out, "ref-term.txt"), io.Discard)
 		}},
 	}
 

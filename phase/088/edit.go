@@ -108,16 +108,16 @@ var (
 	// The canonical text puts a blank line between two file-scope declarations,
 	// so the run of ME_* enumerators is five lines with four blanks among them.
 	// The same five sites, and the run is rewritten in the same shape below.
-	z5EnumRun  = regexp.MustCompile(`(?m)(?:^enum \{ ME_\w+ = \d+ \};\n\n?)+`)
-	z5EnumLine = regexp.MustCompile(`(?m)^enum \{ (ME_\w+) = (\d+) \};$`)
-	z5Table    = regexp.MustCompile(`(?ms)^static char \*\(main_errors\[\]\) =\n\{\n(.*?)^\};\n`)
+	w88EnumRun  = regexp.MustCompile(`(?m)(?:^enum \{ ME_\w+ = \d+ \};\n\n?)+`)
+	w88EnumLine = regexp.MustCompile(`(?m)^enum \{ (ME_\w+) = (\d+) \};$`)
+	w88Table    = regexp.MustCompile(`(?ms)^static char \*\(main_errors\[\]\) =\n\{\n(.*?)^\};\n`)
 )
 
-// z5Before is every identifier this phase removes at the mentions it has before
+// w88Before is every identifier this phase removes at the mentions it has before
 // it, plus the ones it must NOT move -- `read_stdin` as a parameter (23 of its
 // 26 mentions belong to the phase that stops reading bytes) and the five kept
 // ME_* / MAX_ARG_CMDS.
-var z5Before = map[string]int{
+var w88Before = map[string]int{
 	"had_minmin": 4, "edit_type": 7, "EDIT_NONE": 3, "EDIT_FILE": 2,
 	"EDIT_STDIN": 4, "ME_TOO_MANY_ARGS": 3, "buflist_add": 3,
 	"read_stdin": 26, "read_cmd_fd": 13, "ME_UNKNOWN_OPTION": 3,
@@ -126,11 +126,11 @@ var z5Before = map[string]int{
 	"exe_commands": 3,
 }
 
-// z5After is the same names once the cut has run: each removed name is down to
+// w88After is the same names once the cut has run: each removed name is down to
 // its definition, and each definition is a kind tools/sweep.sh deletes.  Stated
 // as a number per name, so a use that survived shows up HERE and not as a
 // warning five minutes later.
-var z5After = map[string]int{
+var w88After = map[string]int{
 	"had_minmin": 0, "edit_type": 1, "EDIT_NONE": 1, "EDIT_FILE": 1,
 	"EDIT_STDIN": 1, "ME_TOO_MANY_ARGS": 0, "buflist_add": 2,
 	"read_stdin": 25, "read_cmd_fd": 12, "ME_UNKNOWN_OPTION": 3,
@@ -186,33 +186,33 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	line := func(Body string) string { return `(?m)^[ \t]*` + regexp.QuoteMeta(Body) + `$` }
 
 	// ---- 0. the invariants the cut rests on -----------------------------------
-	for _, name := range edit.SortedKeys(z5Before) {
-		if k := mentions(text, name); k != z5Before[name] {
+	for _, name := range edit.SortedKeys(w88Before) {
+		if k := mentions(text, name); k != w88Before[name] {
 			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
-				"against a different file", name, k, z5Before[name])
+				"against a different file", name, k, w88Before[name])
 		}
 	}
 	p.Say("17 identifiers at their counted mentions: had_minmin 4, edit_type 7, " +
 		"read_stdin 26 (23 of them a parameter)")
 
 	// ---- 1. the parser: three ways to name a file or a stream -----------------
-	if text, err = within(text, "command_line_scan", z5lit1, z5lit2,
+	if text, err = within(text, "command_line_scan", w88lit1, w88lit2,
 		"a file argument is an unknown option: buflist_add loses its only caller", 1); err != nil {
 		return nil, err
 	}
-	if text, err = within(text, "command_line_scan", z5lit3, "\n",
+	if text, err = within(text, "command_line_scan", w88lit3, "\n",
 		"and `p`, which only that arm used", 1); err != nil {
 		return nil, err
 	}
-	if text, err = within(text, "command_line_scan", z5lit5, "",
+	if text, err = within(text, "command_line_scan", w88lit5, "",
 		"a bare `-` is an unknown option: EDIT_STDIN and read_cmd_fd = 2 go", 1); err != nil {
 		return nil, err
 	}
-	if text, err = within(text, "command_line_scan", z5lit6, "",
+	if text, err = within(text, "command_line_scan", w88lit6, "",
 		"`--` no longer ends the options", 1); err != nil {
 		return nil, err
 	}
-	if text, err = within(text, "command_line_scan", z5lit7, "\n",
+	if text, err = within(text, "command_line_scan", w88lit7, "\n",
 		"and had_minmin, the flag it set", 1); err != nil {
 		return nil, err
 	}
@@ -230,11 +230,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// are main_errors[]'s indices, so the two cannot be edited separately without
 	// the numbering being a guess.
 	const gone = "ME_TOO_MANY_ARGS"
-	enums := z5EnumRun.FindString(string(text))
+	enums := w88EnumRun.FindString(string(text))
 	if enums == "" {
 		return nil, p.Die("the ME_* enumerators are not a run of `enum { NAME = N };` lines")
 	}
-	pairs := z5EnumLine.FindAllStringSubmatch(enums, -1)
+	pairs := w88EnumLine.FindAllStringSubmatch(enums, -1)
 	var repr []string
 	for i, pr := range pairs {
 		if v, _ := strconv.Atoi(pr[2]); v != i {
@@ -245,12 +245,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				len(pairs)-1, strings.Join(repr, ", "))
 		}
 	}
-	tm := z5Table.FindStringSubmatchIndex(string(text))
+	tm := w88Table.FindStringSubmatchIndex(string(text))
 	if tm == nil {
 		return nil, p.Die("main_errors[] is not where it was")
 	}
 	whole := string(text[tm[0]:tm[1]])
-	rows := edit.Z5Lines(string(text[tm[2]:tm[3]]))
+	rows := edit.W88Lines(string(text[tm[2]:tm[3]]))
 	if len(rows) != len(pairs)+1 {
 		return nil, p.Die("main_errors[] has %d rows for %d enumerators; this phase only knows the "+
 			"shape where the one extra row is the unreachable one whim left", len(rows), len(pairs))
@@ -308,15 +308,15 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- 4. what is left is exactly what the sweep can take -------------------
-	for _, name := range edit.SortedKeys(z5After) {
+	for _, name := range edit.SortedKeys(w88After) {
 		k := mentions(text, name)
-		if k != z5After[name] {
+		if k != w88After[name] {
 			why := "more went than was meant to"
-			if k > z5After[name] {
+			if k > w88After[name] {
 				why = "a use survived"
 			}
 			return nil, p.Die("%s has %d mentions after the cut, expected %d -- %s",
-				name, k, z5After[name], why)
+				name, k, w88After[name], why)
 		}
 	}
 	if strings.Contains(string(text), "Too many edit arguments") {

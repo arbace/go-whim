@@ -82,16 +82,16 @@ import (
 func init() { check.Register("whim110", Check) }
 
 var (
-	z27IncC    = regexp.MustCompile(`^ *# *include `)
-	z27HashC   = regexp.MustCompile(`^ *#`)
-	z27EnumP   = regexp.MustCompile(`^enum \{ ([A-Z][A-Z0-9_]*) = (.+) \};$`)
-	z27EnumT   = regexp.MustCompile(`^    (?:int|long|long long|unsigned long long|usize) \{ ([A-Z][A-Z0-9_]*) = (.+) \};$`)
-	z27Defn    = regexp.MustCompile(`^([A-Za-z_]\w*)\s*\(`)
-	z27WordC   = regexp.MustCompile(`\b[A-Za-z_]\w*\b`)
-	z27ErrC    = regexp.MustCompile(`(?m)^[^ ].*:\d+:\d+: error:.*$`)
-	z27Undef   = regexp.MustCompile(`'(\w+)' used but never defined`)
-	z27CFlags  = regexp.MustCompile(`(?m)^CFLAGS  *= *(.*)$`)
-	z27LDFlags = regexp.MustCompile(`(?m)^LDFLAGS  *= *(.*)$`)
+	w110IncC    = regexp.MustCompile(`^ *# *include `)
+	w110HashC   = regexp.MustCompile(`^ *#`)
+	w110EnumP   = regexp.MustCompile(`^enum \{ ([A-Z][A-Z0-9_]*) = (.+) \};$`)
+	w110EnumT   = regexp.MustCompile(`^    (?:int|long|long long|unsigned long long|usize) \{ ([A-Z][A-Z0-9_]*) = (.+) \};$`)
+	w110Defn    = regexp.MustCompile(`^([A-Za-z_]\w*)\s*\(`)
+	w110WordC   = regexp.MustCompile(`\b[A-Za-z_]\w*\b`)
+	w110ErrC    = regexp.MustCompile(`(?m)^[^ ].*:\d+:\d+: error:.*$`)
+	w110Undef   = regexp.MustCompile(`'(\w+)' used but never defined`)
+	w110CFlags  = regexp.MustCompile(`(?m)^CFLAGS  *= *(.*)$`)
+	w110LDFlags = regexp.MustCompile(`(?m)^LDFLAGS  *= *(.*)$`)
 	// THE THIRD BACKREFERENCE IN THIS HALF, and it is the capture-and-compare
 	// kind rather than the scanner kind.  The heredoc writes
 	// `^static_assert\((.+) == ([A-Z][A-Z0-9_]*), "\2"\);$`, where `\2`
@@ -99,34 +99,34 @@ var (
 	// so the quoted name is captured too and the two are compared.  Exact for
 	// these lines, which the edit generates: `(.+)` is greedy and backtracks to
 	// the LAST ` == `, and the name that follows it is the name in quotes.
-	z27Assert = regexp.MustCompile(`(?m)^static_assert\((.+) == ([A-Z][A-Z0-9_]*), "([A-Z][A-Z0-9_]*)"\);$`)
+	w110Assert = regexp.MustCompile(`(?m)^static_assert\((.+) == ([A-Z][A-Z0-9_]*), "([A-Z][A-Z0-9_]*)"\);$`)
 )
 
-// z27Want is the twelve, in the order the report prints them.
-var z27Want = strings.Fields("INT_MAX INT_MIN LONG_MAX LONG_MIN LLONG_MAX LLONG_MIN " +
+// w110Want is the twelve, in the order the report prints them.
+var w110Want = strings.Fields("INT_MAX INT_MIN LONG_MAX LONG_MIN LLONG_MAX LLONG_MIN " +
 	"ULLONG_MAX SIZE_MAX PATH_MAX EXIT_FAILURE SIGHUP SIGTERM")
 
-// z27Declared is the boundary this phase declares: thirteen names, every one
+// w110Declared is the boundary this phase declares: thirteen names, every one
 // `used but never defined` in the cut.
-var z27Declared = strings.Fields("host_exit host_message musl_delay musl_get_winsize " +
+var w110Declared = strings.Fields("host_exit host_message musl_delay musl_get_winsize " +
 	"musl_gettimeofday musl_host_init musl_read_input musl_suspend musl_term_start " +
 	"musl_term_stop musl_tty_keys musl_wait_for_input vim_snprintf")
 
-var z27Protos = []string{
+var w110Protos = []string{
 	"void *malloc(usize n);", "void *realloc(void *p, usize n);",
 	"void free(void *p);", "long time(long *tp);", "int getpid(void);",
 	"int kill(int pid, int sig);", "long write(int fd, const void *buf, usize n);",
 	"long labs(long n);", "int abs(int n);",
 }
 
-// z27Cut is the deliverable's own rule: every line up to the first `#include`,
+// w110Cut is the deliverable's own rule: every line up to the first `#include`,
 // with trailing blanks dropped.  QUOTE IT ENTIRE OR NOT AT ALL -- the naive
 // prefix gives one line more on the same text, and a figure that differs by one
 // from its neighbour's is an off-by-one in neither phase.
-func z27Cut(lines []string) []string {
+func w110Cut(lines []string) []string {
 	var o []string
 	for _, l := range lines {
-		if z27IncC.MatchString(l) {
+		if w110IncC.MatchString(l) {
 			break
 		}
 		o = append(o, l)
@@ -137,32 +137,32 @@ func z27Cut(lines []string) []string {
 	return o
 }
 
-type z27ConstC struct{ init, line string }
+type w110ConstC struct{ init, line string }
 
-// z27ReadConstants reads the enumerators and the asserts OUT OF THE TEXT.
+// w110ReadConstants reads the enumerators and the asserts OUT OF THE TEXT.
 // Neither list is written down: the phase's claim is that each assert's
 // left-hand side IS its enumerator's initialiser, and that equality is the one
 // thing no compiler here can check -- under the includes `INT_MAX` is
 // <limits.h>'s MACRO, so an assert can compare the derivation against the
 // header and can never name the enumerator the core uses.
-func z27ReadConstants(text string) (map[string]z27ConstC, map[string]string) {
+func w110ReadConstants(text string) (map[string]w110ConstC, map[string]string) {
 	lines := strings.Split(text, "\n")
-	e := map[string]z27ConstC{}
+	e := map[string]w110ConstC{}
 	a := map[string]string{}
 	for i, l := range lines {
 		var m []string
 		if strings.HasPrefix(l, "enum { ") {
-			m = z27EnumP.FindStringSubmatch(l)
+			m = w110EnumP.FindStringSubmatch(l)
 		} else if i > 0 && lines[i-1] == "enum :" {
-			m = z27EnumT.FindStringSubmatch(l)
+			m = w110EnumT.FindStringSubmatch(l)
 		}
 		if m != nil {
 			if _, ok := e[m[1]]; !ok {
-				e[m[1]] = z27ConstC{m[2], l}
+				e[m[1]] = w110ConstC{m[2], l}
 			}
 		}
 	}
-	for _, m := range z27Assert.FindAllStringSubmatch(text, -1) {
+	for _, m := range w110Assert.FindAllStringSubmatch(text, -1) {
 		if m[2] == m[3] { // what the `\2` backreference required
 			a[m[2]] = m[1]
 		}
@@ -170,20 +170,20 @@ func z27ReadConstants(text string) (map[string]z27ConstC, map[string]string) {
 	return e, a
 }
 
-type z27Counter map[string]int
+type w110Counter map[string]int
 
-func z27Count(lines []string) z27Counter {
-	c := z27Counter{}
+func w110Count(lines []string) w110Counter {
+	c := w110Counter{}
 	for _, l := range lines {
 		c[l]++
 	}
 	return c
 }
 
-// z27Sub is Counter subtraction: only positive counts survive, which is
+// w110Sub is Counter subtraction: only positive counts survive, which is
 // Python's `co - cn`.
-func z27Sub(a, b z27Counter) z27Counter {
-	Out := z27Counter{}
+func w110Sub(a, b w110Counter) w110Counter {
+	Out := w110Counter{}
 	for k, v := range a {
 		if d := v - b[k]; d > 0 {
 			Out[k] = d
@@ -192,7 +192,7 @@ func z27Sub(a, b z27Counter) z27Counter {
 	return Out
 }
 
-func z27Total(c z27Counter) int {
+func w110Total(c w110Counter) int {
 	n := 0
 	for _, v := range c {
 		n += v
@@ -234,8 +234,8 @@ func Check(w io.Writer, args []string) error {
 	defer os.RemoveAll(tmp)
 
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
-	cflags := strings.Fields(z27CFlags.FindStringSubmatch(mk)[1])
-	ldflags := strings.Fields(z27LDFlags.FindStringSubmatch(mk)[1])
+	cflags := strings.Fields(w110CFlags.FindStringSubmatch(mk)[1])
+	ldflags := strings.Fields(w110LDFlags.FindStringSubmatch(mk)[1])
 
 	var wg sync.WaitGroup
 	var errNew error
@@ -255,7 +255,7 @@ func Check(w io.Writer, args []string) error {
 	// ---- the seven controls ---------------------------------------------
 	var incIdx []int
 	for i, l := range L {
-		if z27IncC.MatchString(l) {
+		if w110IncC.MatchString(l) {
 			incIdx = append(incIdx, i)
 		}
 	}
@@ -311,7 +311,7 @@ func Check(w io.Writer, args []string) error {
 	moved := append(append([]string{}, L[:s]...), L[e+2:]...)
 	at := -1
 	for i, l := range moved {
-		if z27IncC.MatchString(l) {
+		if w110IncC.MatchString(l) {
 			at = i
 		}
 	}
@@ -404,7 +404,7 @@ func Check(w io.Writer, args []string) error {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		b, e := exec.Command("sh", "tools/canon.sh", canonC).CombinedOutput()
+		b, e := check.Canon(canonC)
 		errCanon = e
 		os.WriteFile(filepath.Join(tmp, "canon.log"), b, 0o644)
 	}()
@@ -412,9 +412,9 @@ func Check(w io.Writer, args []string) error {
 	// ---- 1. the move, the cut and the boundary ---------------------------
 	old := check.ReadFile(filepath.Join(state, "old.c"))
 	N, O := L, strings.Split(old, "\n")
-	enums, asserts := z27ReadConstants(t)
+	enums, asserts := w110ReadConstants(t)
 
-	for _, n := range z27Want {
+	for _, n := range w110Want {
 		en, okE := enums[n]
 		as, okA := asserts[n]
 		switch {
@@ -431,7 +431,7 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 	want := map[string]bool{}
-	for _, n := range z27Want {
+	for _, n := range w110Want {
 		want[n] = true
 	}
 	var extra []string
@@ -450,7 +450,7 @@ func Check(w io.Writer, args []string) error {
 	if en, ok := enums["INT_MAX"]; ok {
 		broken := strings.Replace(t, en.line,
 			strings.Replace(en.line, "~0u >> 1", "~0u >> 2", 1), 1)
-		de, da := z27ReadConstants(broken)
+		de, da := w110ReadConstants(broken)
 		if da["INT_MAX"] == de["INT_MAX"].init {
 			r.Bad("with INT_MAX's ENUMERATOR alone changed the reading above still says " +
 				"the two texts agree, so it is not checking anything")
@@ -461,11 +461,11 @@ func Check(w io.Writer, args []string) error {
 	// except the 32 this phase writes, and no line of the input is missing
 	// except the blank ones an emptied paragraph left doubled.  A phase that
 	// moved code and altered a character of it on the way could not state this.
-	cn, co := z27Count(N), z27Count(O)
-	gone := z27Sub(co, cn)
-	came := z27Sub(cn, co)
-	written := z27Counter{"enum :": 8}
-	for _, n := range z27Want {
+	cn, co := w110Count(N), w110Count(O)
+	gone := w110Sub(co, cn)
+	came := w110Sub(cn, co)
+	written := w110Counter{"enum :": 8}
+	for _, n := range w110Want {
 		en, okE := enums[n]
 		as, okA := asserts[n]
 		if okE && okA {
@@ -487,9 +487,9 @@ func Check(w io.Writer, args []string) error {
 	delete(gone, "")
 	if len(gone) > 0 {
 		r.Bad("%d non-blank line(s) of the input are not in the output at all, so this is "+
-			"not a move: %s", z27Total(gone), z27Show(gone, 3))
+			"not a move: %s", w110Total(gone), w110Show(gone, 3))
 	}
-	unexpected := z27Counter{}
+	unexpected := w110Counter{}
 	for k, v := range came {
 		if written[k] != v {
 			unexpected[k] = v
@@ -504,7 +504,7 @@ func Check(w io.Writer, args []string) error {
 	sort.Strings(missing)
 	if len(unexpected) > 0 {
 		r.Bad("the output holds %d line(s) this phase does not write: %s",
-			z27Total(unexpected), z27Show(unexpected, 3))
+			w110Total(unexpected), w110Show(unexpected, 3))
 	}
 	if len(missing) > 0 {
 		var shown []string
@@ -512,7 +512,7 @@ func Check(w io.Writer, args []string) error {
 			if i >= 3 {
 				break
 			}
-			shown = append(shown, check.Z27Repr(k))
+			shown = append(shown, check.W110Repr(k))
 		}
 		r.Bad("%d line(s) this phase writes are not in the output: %s",
 			len(missing), strings.Join(shown, " / "))
@@ -522,26 +522,26 @@ func Check(w io.Writer, args []string) error {
 		r.Bad("the state directory says the edit was handed %d lines and old.c has %d",
 			beforeLines, len(O)-1)
 	}
-	added := z27Total(written)
+	added := w110Total(written)
 	if len(N)-len(O) != added+blanks-lost {
 		r.Bad("the output is %d lines and the input was %d, a difference of %d where %d "+
 			"was expected -- %d written lines, %d blank and %d blank lines collapsed "+
 			"where an emptied paragraph left two",
 			len(N)-1, len(O)-1, len(N)-len(O), added+blanks-lost, added, blanks, lost)
 	}
-	if rN, rO := check.Z27Runs(N), check.Z27Runs(O); rN != 0 || rO != 0 {
+	if rN, rO := check.W110Runs(N), check.W110Runs(O); rN != 0 || rO != 0 {
 		r.Bad("runs of two blank lines: %d in the input and %d in the output, and "+
 			"CLAUDE.md allows none", rO, rN)
 	}
 
 	var od, nd []int
 	for i, l := range O {
-		if z27HashC.MatchString(l) {
+		if w110HashC.MatchString(l) {
 			od = append(od, i)
 		}
 	}
 	for i, l := range N {
-		if z27HashC.MatchString(l) {
+		if w110HashC.MatchString(l) {
 			nd = append(nd, i)
 		}
 	}
@@ -590,7 +590,7 @@ func Check(w io.Writer, args []string) error {
 	}
 
 	// ---- THE CUT ---------------------------------------------------------
-	cutLines := z27CutRaw(N)
+	cutLines := w110CutRaw(N)
 	last := len(cutLines)
 	for last > 0 && cutLines[last-1] == "" {
 		last--
@@ -606,7 +606,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	var hashes []int
 	for i, l := range strings.Split(cut, "\n") {
-		if z27HashC.MatchString(l) {
+		if w110HashC.MatchString(l) {
 			hashes = append(hashes, i)
 		}
 	}
@@ -634,7 +634,7 @@ func Check(w io.Writer, args []string) error {
 	wb, _ := exec.Command("gcc", "-O0", "-fno-stack-protector", "-Wall", "-Wextra",
 		"-Wno-unused-parameter", "-fsyntax-only", filepath.Join(tmp, "cut.c")).CombinedOutput()
 	wtxt := string(wb)
-	if errs := z27ErrC.FindAllString(wtxt, -1); len(errs) > 0 {
+	if errs := w110ErrC.FindAllString(wtxt, -1); len(errs) > 0 {
 		if len(errs) > 4 {
 			errs = errs[:4]
 		}
@@ -642,10 +642,10 @@ func Check(w io.Writer, args []string) error {
 			strings.Join(errs, "\n    "))
 	}
 	seenSet := map[string]bool{}
-	for _, m := range z27Undef.FindAllStringSubmatch(wtxt, -1) {
+	for _, m := range w110Undef.FindAllStringSubmatch(wtxt, -1) {
 		seenSet[m[1]] = true
 	}
-	seen := check.Z27Keys(seenSet)
+	seen := check.W110Keys(seenSet)
 	var other []string
 	for _, l := range strings.Split(wtxt, "\n") {
 		if strings.Contains(l, ": warning: ") && !strings.Contains(l, "used but never defined") {
@@ -661,12 +661,12 @@ func Check(w io.Writer, args []string) error {
 	below := map[string]bool{}
 	rest := N[len(cutLines):]
 	for i := 0; i+1 < len(rest); i++ {
-		if m := z27Defn.FindStringSubmatch(rest[i]); m != nil && strings.HasPrefix(rest[i+1], "{") {
+		if m := w110Defn.FindStringSubmatch(rest[i]); m != nil && strings.HasPrefix(rest[i+1], "{") {
 			below[m[1]] = true
 		}
 	}
 	aboveWords := map[string]int{}
-	for _, x := range z27WordC.FindAllString(cut, -1) {
+	for _, x := range w110WordC.FindAllString(cut, -1) {
 		aboveWords[x]++
 	}
 	var textual []string
@@ -680,7 +680,7 @@ func Check(w io.Writer, args []string) error {
 		r.Bad("PART 4: gcc says the boundary is %s and the text says it is %s",
 			strings.Join(seen, " "), strings.Join(textual, " "))
 	}
-	decl := append([]string{}, z27Declared...)
+	decl := append([]string{}, w110Declared...)
 	sort.Strings(decl)
 	if strings.Join(seen, "\x00") != strings.Join(decl, "\x00") {
 		r.Bad("PART 4: the boundary is %d names and this phase declares %d.  Now: %s.  "+
@@ -689,7 +689,7 @@ func Check(w io.Writer, args []string) error {
 			len(seen), len(decl), strings.Join(seen, " "), strings.Join(decl, " "))
 	}
 
-	for _, p := range z27Protos {
+	for _, p := range w110Protos {
 		if strings.Count(t, "\n"+p+"\n") != 1 {
 			r.Bad("the prototype `%s` is not on a line of its own exactly once", p)
 		}
@@ -709,7 +709,7 @@ func Check(w io.Writer, args []string) error {
 		"blank where an emptied paragraph left two.  %d lines -> %d",
 		len(O)-1, added, added-12, blanks, len(O)-1, len(N)-1)
 	var shown []string
-	for _, n := range z27Want {
+	for _, n := range w110Want {
 		shown = append(shown, fmt.Sprintf("%s = %s", n, enums[n].init))
 	}
 	r.Say("the twelve constants, each an ENUMERATOR above the boundary and a "+
@@ -758,11 +758,11 @@ func Check(w io.Writer, args []string) error {
 	}
 
 	cutOf := func(path string) []string {
-		return z27Cut(strings.Split(check.ReadFile(path), "\n"))
+		return w110Cut(strings.Split(check.ReadFile(path), "\n"))
 	}
 	h := []string{}
 	for _, l := range cutOf(filepath.Join(tmp, "hash.c")) {
-		if z27HashC.MatchString(l) {
+		if w110HashC.MatchString(l) {
 			h = append(h, l)
 		}
 	}
@@ -772,7 +772,7 @@ func Check(w io.Writer, args []string) error {
 			shown = shown[:2]
 		}
 		return stop("the `#define` control did not put exactly one directive above the "+
-			"cut, so PART 1 is not proven able to fail: %s", check.Z27ReprList(shown))
+			"cut, so PART 1 is not proven able to fail: %s", check.W110ReprList(shown))
 	}
 	if tp := cutOf(filepath.Join(tmp, "top.c")); len(tp) != 0 {
 		return stop("with one `#include` back at line 1 the cut should be EMPTY and is "+
@@ -783,11 +783,11 @@ func Check(w io.Writer, args []string) error {
 	eb, _ := exec.Command("gcc", "-O0", "-fno-stack-protector", "-Wall", "-Wextra",
 		"-Wno-unused-parameter", "-fsyntax-only", filepath.Join(tmp, "ecut.c")).CombinedOutput()
 	gotSet := map[string]bool{}
-	for _, m := range z27Undef.FindAllStringSubmatch(string(eb), -1) {
+	for _, m := range w110Undef.FindAllStringSubmatch(string(eb), -1) {
 		gotSet[m[1]] = true
 	}
-	got := check.Z27Keys(gotSet)
-	base := check.Z27Keys(seenSet)
+	got := check.W110Keys(gotSet)
+	base := check.W110Keys(seenSet)
 	wantE := append(append([]string{}, base...), "elapsed")
 	sort.Strings(wantE)
 	if strings.Join(got, "\x00") != strings.Join(wantE, "\x00") {
@@ -879,9 +879,9 @@ func Check(w io.Writer, args []string) error {
 	}
 	r.Say("tools/canon.sh is a NO-OP on the output: the eight `enum : T` are on two " +
 		"lines, as the file already writes its one existing `enum : long`")
-	zh := exec.Command("sh", "tools/st.sh", "zhostonly", f)
-	zh.Stdout, zh.Stderr = w, w
-	if err := zh.Run(); err != nil {
+	hostOnly := exec.Command("sh", "tools/st.sh", "zhostonly", f)
+	hostOnly.Stdout, hostOnly.Stderr = w, w
+	if err := hostOnly.Run(); err != nil {
 		return harness.ErrReported
 	}
 
@@ -928,12 +928,12 @@ func Check(w io.Writer, args []string) error {
 	wgR.Add(2)
 	go func() {
 		defer wgR.Done()
-		recErr[0] = check.RecZ(filepath.Join(state, "old"),
+		recErr[0] = check.RecCore(filepath.Join(state, "old"),
 			filepath.Join(state, "old.c"), filepath.Join(tmp, "REC.old"))
 	}()
 	go func() {
 		defer wgR.Done()
-		recErr[1] = check.RecZ(filepath.Join(tmp, "new"), f,
+		recErr[1] = check.RecCore(filepath.Join(tmp, "new"), f,
 			filepath.Join(tmp, "REC.new"))
 	}()
 	wgR.Wait()
@@ -952,10 +952,10 @@ func Check(w io.Writer, args []string) error {
 	return nil
 }
 
-func z27CutRaw(lines []string) []string {
+func w110CutRaw(lines []string) []string {
 	var o []string
 	for _, l := range lines {
-		if z27IncC.MatchString(l) {
+		if w110IncC.MatchString(l) {
 			break
 		}
 		o = append(o, l)
@@ -963,12 +963,12 @@ func z27CutRaw(lines []string) []string {
 	return o
 }
 
-// z27Show lists the first n keys of a counter, in the order a Python dict
+// w110Show lists the first n keys of a counter, in the order a Python dict
 // would yield them -- which is INSERTION order and therefore not reproducible
 // from a Go map.  Sorted instead, and the difference is stated rather than
 // hidden: the set is what the assertion is about and the order is only how it
 // is printed.
-func z27Show(c z27Counter, n int) string {
+func w110Show(c w110Counter, n int) string {
 	keys := make([]string, 0, len(c))
 	for k := range c {
 		keys = append(keys, k)
@@ -979,7 +979,7 @@ func z27Show(c z27Counter, n int) string {
 	}
 	var Out []string
 	for _, k := range keys {
-		Out = append(Out, check.Z27Repr(k))
+		Out = append(Out, check.W110Repr(k))
 	}
 	return strings.Join(Out, " / ")
 }

@@ -27,9 +27,9 @@ import (
 // one of them as an operator -- so a BRE handed to Go unconverted is either a
 // compile error or, worse, a pattern that matches something else.
 
-// wsh is one check's shell: its work tree, its state directory, the source
+// Wsh is one check's shell: its work tree, its state directory, the source
 // and the line count the edit was handed.
-type wsh struct {
+type Wsh struct {
 	W              io.Writer
 	Work, State, F string
 	before         string
@@ -37,57 +37,57 @@ type wsh struct {
 	srcRead        bool
 }
 
-func newWsh(w io.Writer, name string, args []string) (*wsh, error) {
+func NewWsh(w io.Writer, name string, args []string) (*Wsh, error) {
 	if len(args) < 2 {
 		return nil, fmt.Errorf("usage: check %s <work-dir> <state-dir>", name)
 	}
-	s := &wsh{W: w, Work: args[0], State: args[1]}
+	s := &Wsh{W: w, Work: args[0], State: args[1]}
 	s.F = filepath.Join(s.Work, "whim-vim.c")
 	s.before = strings.TrimSpace(ReadFile(filepath.Join(s.State, "input-lines")))
 	return s, nil
 }
 
-// src is the source, read once: nothing a check does after its first grep
+// Src is the source, read once: nothing a check does after its first grep
 // writes whim-vim.c.
-func (s *wsh) src() string {
+func (s *Wsh) Src() string {
 	if !s.srcRead {
 		s.srcCache, s.srcRead = ReadFile(s.F), true
 	}
 	return s.srcCache
 }
 
-func (s *wsh) echo(format string, a ...any) { fmt.Fprintf(s.W, format+"\n", a...) }
+func (s *Wsh) Echo(format string, a ...any) { fmt.Fprintf(s.W, format+"\n", a...) }
 
-func (s *wsh) phasecheck() error {
+func (s *Wsh) Phasecheck() error {
 	if PhaseCheck(s.W, s.Work, s.F, filepath.Join(s.State, "symbols")) != nil {
 		return harness.ErrReported
 	}
 	return nil
 }
 
-func (s *wsh) phasebuild() error {
+func (s *Wsh) Phasebuild() error {
 	if PhaseBuild(s.W, s.Work, s.before) != nil {
 		return harness.ErrReported
 	}
 	return nil
 }
 
-// st runs `tools/st.sh <args>` with its output passed through, as a check's
+// St runs `tools/st.sh <args>` with its output passed through, as a check's
 // own_checks does, and reports whether it succeeded.
-func (s *wsh) st(args ...string) bool {
+func (s *Wsh) St(args ...string) bool {
 	return Run(s.W, "tools/st.sh", args...) == nil
 }
 
 // ---- grep --------------------------------------------------------------
 
-type gmode int
+type Gmode int
 
 const (
-	gBRE  gmode = iota // grep
-	gERE               // grep -E
-	gBREw              // grep -w
-	gEREw              // grep -Ew
-	gFix               // grep -F
+	GBRE  Gmode = iota // grep
+	GERE               // grep -E
+	GBREw              // grep -w
+	GEREw              // grep -Ew
+	GFix               // grep -F
 )
 
 // bre2re translates a GNU basic regular expression into RE2.
@@ -145,18 +145,18 @@ func ere2re(p string) string {
 	return strings.NewReplacer(`\<`, `\b`, `\>`, `\b`).Replace(p)
 }
 
-func gre(pat string, m gmode) *regexp.Regexp {
+func Gre(pat string, m Gmode) *regexp.Regexp {
 	var r string
 	switch m {
-	case gBRE:
+	case GBRE:
 		r = bre2re(pat)
-	case gERE:
+	case GERE:
 		r = ere2re(pat)
-	case gBREw:
+	case GBREw:
 		r = `\b(?:` + bre2re(pat) + `)\b`
-	case gEREw:
+	case GEREw:
 		r = `\b(?:` + ere2re(pat) + `)\b`
-	case gFix:
+	case GFix:
 		r = regexp.QuoteMeta(pat)
 	}
 	return regexp.MustCompile(r)
@@ -169,9 +169,9 @@ func Lines(text string) []string {
 	return strings.Split(strings.TrimSuffix(text, "\n"), "\n")
 }
 
-// grepLines is every line of text grep would print, with its number.
-func grepLines(text, pat string, m gmode) (nums []int, Out []string) {
-	re := gre(pat, m)
+// GrepLines is every line of text grep would print, with its number.
+func GrepLines(text, pat string, m Gmode) (nums []int, Out []string) {
+	re := Gre(pat, m)
 	for i, l := range Lines(text) {
 		if re.MatchString(l) {
 			nums, Out = append(nums, i+1), append(Out, l)
@@ -180,12 +180,12 @@ func grepLines(text, pat string, m gmode) (nums []int, Out []string) {
 	return
 }
 
-func grepC(text, pat string, m gmode) int  { n, _ := grepLines(text, pat, m); return len(n) }
-func grepQ(text, pat string, m gmode) bool { return grepC(text, pat, m) > 0 }
+func GrepC(text, pat string, m Gmode) int  { n, _ := GrepLines(text, pat, m); return len(n) }
+func GrepQ(text, pat string, m Gmode) bool { return GrepC(text, pat, m) > 0 }
 
-// grepO is `grep -o`: every match, in order.
-func grepO(text, pat string, m gmode) []string {
-	re := gre(pat, m)
+// GrepO is `grep -o`: every match, in order.
+func GrepO(text, pat string, m Gmode) []string {
+	re := Gre(pat, m)
 	var Out []string
 	for _, l := range Lines(text) {
 		Out = append(Out, re.FindAllString(l, -1)...)
@@ -193,8 +193,8 @@ func grepO(text, pat string, m gmode) []string {
 	return Out
 }
 
-// cutC is `cut -c1-N`, which counts bytes.
-func cutC(l string, n int) string {
+// CutC is `cut -c1-N`, which counts bytes.
+func CutC(l string, n int) string {
 	if len(l) > n {
 		return l[:n]
 	}
@@ -202,10 +202,10 @@ func cutC(l string, n int) string {
 }
 
 // show is `grep -n PAT f | head -3 | sed 's/^/               /' | cut -c1-100`.
-func (s *wsh) Show(pat string, m gmode) {
-	nums, ls := grepLines(s.src(), pat, m)
+func (s *Wsh) Show(pat string, m Gmode) {
+	nums, ls := GrepLines(s.Src(), pat, m)
 	for i := 0; i < len(nums) && i < 3; i++ {
-		fmt.Fprintln(s.W, cutC(fmt.Sprintf("               %d:%s", nums[i], ls[i]), 100))
+		fmt.Fprintln(s.W, CutC(fmt.Sprintf("               %d:%s", nums[i], ls[i]), 100))
 	}
 }
 
@@ -213,19 +213,19 @@ func (s *wsh) Show(pat string, m gmode) {
 // line in the source, and the first that does is named, with whatever the
 // check says next and three matching lines.  count and shown are separate
 // modes because one check counts with one grep and shows with another.
-func (s *wsh) Gone(prefix string, count, shown gmode, display bool, extra []string, pats ...string) bool {
-	return s.goneW(prefix, "%s", count, shown, display, extra, pats...)
+func (s *Wsh) Gone(prefix string, count, shown Gmode, display bool, extra []string, pats ...string) bool {
+	return s.GoneW(prefix, "%s", count, shown, display, extra, pats...)
 }
 
-// goneW is gone where the loop greps a pattern built around the name --
+// GoneW is gone where the loop greps a pattern built around the name --
 // `grep -cE "\b$g\b"` -- and names the bare $g when it refuses.
-func (s *wsh) goneW(prefix, wrap string, count, shown gmode, display bool, extra []string, names ...string) bool {
+func (s *Wsh) GoneW(prefix, wrap string, count, shown Gmode, display bool, extra []string, names ...string) bool {
 	for _, g := range names {
 		pat := strings.ReplaceAll(wrap, "%s", g)
-		if n := grepC(s.src(), pat, count); n != 0 {
-			s.echo("%s%s still has %d mentions after the sweep", prefix, g, n)
+		if n := GrepC(s.Src(), pat, count); n != 0 {
+			s.Echo("%s%s still has %d mentions after the sweep", prefix, g, n)
 			for _, e := range extra {
-				s.echo("%s", e)
+				s.Echo("%s", e)
 			}
 			if display {
 				s.Show(pat, shown)
@@ -246,14 +246,14 @@ func undefined(sym string) bool {
 	return false
 }
 
-func symNum(which string) int {
+func SymNum(which string) int {
 	n, _ := strconv.Atoi(strings.TrimSpace(ReadFile(".cache/symbols/last/" + which)))
 	return n
 }
 
-// awkRanges is `awk '/FROM/,/TO/' f`: every range, each from a line FROM
+// AwkRanges is `awk '/FROM/,/TO/' f`: every range, each from a line FROM
 // matches to the next line TO matches, the start line included in both tests.
-func awkRanges(text, from, to string) string {
+func AwkRanges(text, from, to string) string {
 	f, t := regexp.MustCompile(from), regexp.MustCompile(to)
 	var Out []string
 	in := false
@@ -276,17 +276,17 @@ func awkRanges(text, from, to string) string {
 
 // ---- files --------------------------------------------------------------
 
-// catS is "$(cat f)": the contents with trailing newlines removed, empty when
+// CatS is "$(cat f)": the contents with trailing newlines removed, empty when
 // there is no file.
-func catS(p string) string { return strings.TrimRight(ReadFile(p), "\n") }
+func CatS(p string) string { return strings.TrimRight(ReadFile(p), "\n") }
 
-// bar is "$(tr '\n' '|' < f)".
-func bar(p string) string { return strings.ReplaceAll(ReadFile(p), "\n", "|") }
+// Bar is "$(tr '\n' '|' < f)".
+func Bar(p string) string { return strings.ReplaceAll(ReadFile(p), "\n", "|") }
 
 func Put(p, s string) { os.WriteFile(p, []byte(s), 0o644) }
 
-// odX is "$(od -An -tx1 f | tr -d ' \n')".
-func odX(p string) string {
+// OdX is "$(od -An -tx1 f | tr -d ' \n')".
+func OdX(p string) string {
 	var b strings.Builder
 	for _, c := range []byte(ReadFile(p)) {
 		fmt.Fprintf(&b, "%02x", c)
@@ -294,9 +294,9 @@ func odX(p string) string {
 	return b.String()
 }
 
-// odC is "$(od -An -c f | tr -d ' \n')": printable bytes as themselves, the
+// OdC is "$(od -An -c f | tr -d ' \n')": printable bytes as themselves, the
 // C escapes od knows by name, and every other byte as three octal digits.
-func odC(p string) string {
+func OdC(p string) string {
 	var b strings.Builder
 	for _, c := range []byte(ReadFile(p)) {
 		switch c {
@@ -329,15 +329,15 @@ func odC(p string) string {
 	return b.String()
 }
 
-// odCs is "$(od -An -c f | tr -s ' ')", which only a refusal prints; close
+// OdCs is "$(od -An -c f | tr -s ' ')", which only a refusal prints; close
 // enough to read, and never compared.
-func odCs(p string) string {
+func OdCs(p string) string {
 	o, _ := exec.Command("sh", "-c", `od -An -c "$1" | tr -s ' '`, "sh", p).Output()
 	return strings.TrimRight(string(o), "\n")
 }
 
-// catA is `cat -A`: $ at every line end, ^I for tab, ^X and M- for the rest.
-func catA(p string) string {
+// CatA is `cat -A`: $ at every line end, ^I for tab, ^X and M- for the rest.
+func CatA(p string) string {
 	var b strings.Builder
 	for _, c := range []byte(ReadFile(p)) {
 		switch {
@@ -366,14 +366,14 @@ func catA(p string) string {
 
 // ---- running the editor ---------------------------------------------------
 
-// scratch is `d=$(mktemp -d); cp "$work/whim-vim" "$d/vim"`.
-func (s *wsh) scratch() (string, func()) {
+// Scratch is `d=$(mktemp -d); cp "$work/whim-vim" "$d/vim"`.
+func (s *Wsh) Scratch() (string, func()) {
 	d, _ := os.MkdirTemp("", "whimchk")
 	CopyExec(filepath.Join(s.Work, "whim-vim"), filepath.Join(d, "vim"))
 	return d, func() { os.RemoveAll(d) }
 }
 
-func envWith(kv ...string) []string {
+func EnvWith(kv ...string) []string {
 	drop := map[string]bool{}
 	for _, x := range kv {
 		drop[x[:strings.IndexByte(x, '=')]] = true
@@ -388,21 +388,21 @@ func envWith(kv ...string) []string {
 	return append(env, kv...)
 }
 
-// vimRC is `(cd DIR && [HOME=HOME] BIN ARGS... </dev/null >/dev/null 2>&1)`
+// VimRC is `(cd DIR && [HOME=HOME] BIN ARGS... </dev/null >/dev/null 2>&1)`
 // and its exit status.
-func vimRC(dir, home, bin string, args ...string) int {
-	_, rc := vimOut(dir, home, bin, false, args...)
+func VimRC(dir, home, bin string, args ...string) int {
+	_, rc := VimOut(dir, home, bin, false, args...)
 	return rc
 }
 
-// vimOut is the same with stdout and stderr captured together, as
+// VimOut is the same with stdout and stderr captured together, as
 // `$(cd DIR && BIN ARGS </dev/null 2>&1)` captures them -- minus the trailing
 // newlines $( ) strips.
-func vimOut(dir, home, bin string, capture bool, args ...string) (string, int) {
+func VimOut(dir, home, bin string, capture bool, args ...string) (string, int) {
 	c := exec.Command(bin, args...)
 	c.Dir = dir
 	if home != "" {
-		c.Env = envWith("HOME=" + home)
+		c.Env = EnvWith("HOME=" + home)
 	}
 	var o bytes.Buffer
 	if capture {
@@ -420,28 +420,28 @@ func vimOut(dir, home, bin string, capture bool, args ...string) (string, int) {
 	return strings.TrimRight(o.String(), "\n"), rc
 }
 
-// inD runs the scratch copy the way the later checks do:
+// InD runs the scratch copy the way the later checks do:
 // `(cd "$d" && HOME="$d" ./vim ARGS </dev/null >/dev/null 2>&1)`.
-func inD(d string, args ...string) int { return vimRC(d, d, "./vim", args...) }
+func InD(d string, args ...string) int { return VimRC(d, d, "./vim", args...) }
 
-// inWork is `(cd "$work" && ./whim-vim ARGS </dev/null >/dev/null 2>&1)`.
-func (s *wsh) inWork(args ...string) int { return vimRC(s.Work, "", "./whim-vim", args...) }
+// InWork is `(cd "$work" && ./whim-vim ARGS </dev/null >/dev/null 2>&1)`.
+func (s *Wsh) InWork(args ...string) int { return VimRC(s.Work, "", "./whim-vim", args...) }
 
-// outWork is `$(cd "$work" && ./whim-vim ARGS </dev/null 2>&1)` and its status.
-func (s *wsh) outWork(args ...string) (string, int) {
-	return vimOut(s.Work, "", "./whim-vim", true, args...)
+// OutWork is `$(cd "$work" && ./whim-vim ARGS </dev/null 2>&1)` and its status.
+func (s *Wsh) OutWork(args ...string) (string, int) {
+	return VimOut(s.Work, "", "./whim-vim", true, args...)
 }
 
 // sub makes `$work/<name>` afresh, as `rm -rf .x && mkdir .x`.
-func (s *wsh) Sub(name string) string {
+func (s *Wsh) Sub(name string) string {
 	p := filepath.Join(s.Work, name)
 	os.RemoveAll(p)
 	os.MkdirAll(p, 0o755)
 	return p
 }
 
-// lsA is "$(ls -A | tr '\n' ' ')".
-func lsA(dir string) string {
+// LsA is "$(ls -A | tr '\n' ' ')".
+func LsA(dir string) string {
 	e, _ := os.ReadDir(dir)
 	var n []string
 	for _, x := range e {
@@ -455,8 +455,8 @@ func lsA(dir string) string {
 	return b.String()
 }
 
-// sedN is `sed -n Np f`.
-func sedN(p string, n int) string {
+// SedN is `sed -n Np f`.
+func SedN(p string, n int) string {
 	ls := Lines(ReadFile(p))
 	if n-1 < len(ls) {
 		return ls[n-1]
@@ -467,19 +467,19 @@ func sedN(p string, n int) string {
 // std is the whole of a check whose Body is the two tools and nothing else.
 func stdWhim(name string) Func {
 	return func(w io.Writer, args []string) error {
-		s, err := newWsh(w, name, args)
+		s, err := NewWsh(w, name, args)
 		if err != nil {
 			return err
 		}
-		if err := s.phasecheck(); err != nil {
+		if err := s.Phasecheck(); err != nil {
 			return err
 		}
-		return s.phasebuild()
+		return s.Phasebuild()
 	}
 }
 
-// odXs is "$(od -An -tx1 f)" as a refusal prints it.
-func odXs(p string) string {
+// OdXs is "$(od -An -tx1 f)" as a refusal prints it.
+func OdXs(p string) string {
 	o, _ := exec.Command("od", "-An", "-tx1", p).Output()
 	return strings.TrimRight(string(o), "\n")
 }

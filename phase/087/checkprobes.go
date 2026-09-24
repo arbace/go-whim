@@ -13,38 +13,38 @@ import (
 )
 
 var (
-	z4ESC   = []byte("\x1b")
-	z4CR    = []byte("\r")
-	z4QUIT  = []byte("\x1b:q!\r")
-	z4ALPHA = []byte("alpha\rbeta")
+	w87ESC   = []byte("\x1b")
+	w87CR    = []byte("\r")
+	w87QUIT  = []byte("\x1b:q!\r")
+	w87ALPHA = []byte("alpha\rbeta")
 )
 
-// z4Typed is zcases's shape: type the seed under 'paste', then the real keys.
-func z4Typed(seed []byte, keys ...[]byte) ([]string, [][]byte) {
-	k := [][]byte{append(append([]byte("i"), seed...), z4ESC...), []byte(":set nopaste\r")}
-	return []string{"+set paste"}, append(append(k, keys...), z4QUIT)
+// w87Typed is zcases's shape: type the seed under 'paste', then the real keys.
+func w87Typed(seed []byte, keys ...[]byte) ([]string, [][]byte) {
+	k := [][]byte{append(append([]byte("i"), seed...), w87ESC...), []byte(":set nopaste\r")}
+	return []string{"+set paste"}, append(append(k, keys...), w87QUIT)
 }
 
-func z4KeysOnly(keys ...[]byte) ([]string, [][]byte) {
-	return nil, append(append([][]byte{}, keys...), z4QUIT)
+func w87KeysOnly(keys ...[]byte) ([]string, [][]byte) {
+	return nil, append(append([][]byte{}, keys...), w87QUIT)
 }
 
-func z4Probes() []check.Z4Probe {
-	p := func(name string, args []string, keys [][]byte, differ bool) check.Z4Probe {
-		return check.Z4Probe{Name: name, Args: args, Keys: keys, Differ: differ}
+func w87Probes() []check.W87Probe {
+	p := func(name string, args []string, keys [][]byte, differ bool) check.W87Probe {
+		return check.W87Probe{Name: name, Args: args, Keys: keys, Differ: differ}
 	}
-	only := [][]byte{z4QUIT}
-	ta, tk := z4Typed(z4ALPHA, []byte("Q"))
-	ga, gk := z4Typed(z4ALPHA, []byte("gQ"))
-	aa, ak := z4KeysOnly([]byte(":append\rone\rtwo\r.\r"))
-	ia, ik := z4KeysOnly([]byte(":insert\rfirst\r.\r"))
-	ca, ck := z4Typed(z4ALPHA, []byte(":change\rother\r.\r"))
-	va, vk := z4Typed(z4ALPHA, []byte(":visual\r"))
-	v2a, v2k := z4Typed(z4ALPHA, []byte(":vi\r"))
-	v3a, v3k := z4Typed(z4ALPHA, []byte(":view\r"))
-	xa, xk := z4Typed(z4ALPHA, []byte(":ex\r"))
-	ea, ek := z4Typed(z4ALPHA, []byte("0dwA-tail\x1b"), []byte("u"), []byte("\x12"), []byte("yyp"))
-	return []check.Z4Probe{
+	only := [][]byte{w87QUIT}
+	ta, tk := w87Typed(w87ALPHA, []byte("Q"))
+	ga, gk := w87Typed(w87ALPHA, []byte("gQ"))
+	aa, ak := w87KeysOnly([]byte(":append\rone\rtwo\r.\r"))
+	ia, ik := w87KeysOnly([]byte(":insert\rfirst\r.\r"))
+	ca, ck := w87Typed(w87ALPHA, []byte(":change\rother\r.\r"))
+	va, vk := w87Typed(w87ALPHA, []byte(":visual\r"))
+	v2a, v2k := w87Typed(w87ALPHA, []byte(":vi\r"))
+	v3a, v3k := w87Typed(w87ALPHA, []byte(":view\r"))
+	xa, xk := w87Typed(w87ALPHA, []byte(":ex\r"))
+	ea, ek := w87Typed(w87ALPHA, []byte("0dwA-tail\x1b"), []byte("u"), []byte("\x12"), []byte("yyp"))
+	return []check.W87Probe{
 		// the six the delta declares, each required to show Ex mode on the old
 		// binary: a probe the input passes is a probe that proves nothing.
 		p("key_Q", ta, tk, true),
@@ -86,10 +86,10 @@ func z4Probes() []check.Z4Probe {
 	}
 }
 
-// z4Pty is section 6: tools/zpty.py drives four sessions in the declared delta
+// w87Pty is section 6: tools/zpty.py drives four sessions in the declared delta
 // and none of them presses Q, so this is the before-and-after the delta cannot
 // give, because it has no old binary.
-func z4Pty(r *check.Rep, old, bin string) error {
+func w87Pty(r *check.Rep, old, bin string) error {
 	home, err := os.MkdirTemp("", "whim87-home-")
 	if err != nil {
 		return err
@@ -100,7 +100,7 @@ func z4Pty(r *check.Rep, old, bin string) error {
 			return "", -1, err
 		}
 		text, status, err := harness.Session(binary, nil, keys, "xterm",
-			20*time.Second, 600*time.Millisecond, d, check.Z2Env(home), 0, 0)
+			20*time.Second, 600*time.Millisecond, d, check.W85Env(home), 0, 0)
 		return string(text), status, err
 	}
 	// Q, then the word that leaves Ex mode, then quit.  On the old binary the
@@ -118,10 +118,10 @@ func z4Pty(r *check.Rep, old, bin string) error {
 		return err
 	}
 	say := func(format string, a ...any) error { r.Say(format, a...); return harness.ErrReported }
-	if !strings.Contains(oldTxt, z4Enter) {
+	if !strings.Contains(oldTxt, w87Enter) {
 		return say("the input binary did not enter Ex mode on a pty -- this proves nothing")
 	}
-	if strings.Contains(newTxt, z4Enter) {
+	if strings.Contains(newTxt, w87Enter) {
 		return say("the new binary still enters Ex mode on a pty")
 	}
 	for _, s := range []struct {

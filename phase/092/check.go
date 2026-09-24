@@ -72,7 +72,7 @@ import (
 
 func init() { check.Register("whim92", Check) }
 
-var z9Gone = []string{"readfile", "read_buffer", "read_eintr", "readfile_linenr", "filemess",
+var w92Gone = []string{"readfile", "read_buffer", "read_eintr", "readfile_linenr", "filemess",
 	"msg_add_fname", "msg_add_lines", "msg_add_eol", "after_pathsep",
 	"dir_of_file_exists", "fix_help_buffer", "gettail_sep", "mch_isdir",
 	"set_rw_fname", "u_find_first_changed", "utf_ptr2len_len",
@@ -80,10 +80,10 @@ var z9Gone = []string{"readfile", "read_buffer", "read_eintr", "readfile_linenr"
 	"READ_NEW", "READ_STDIN", "READ_BUFFER", "READ_FIFO", "READ_FILTER", "READ_NOFILE",
 	"READ_KEEP_UNDO", "READ_DUMMY"}
 
-// z9GoneStrings are the twenty-four literals the message layer was the last to
+// w92GoneStrings are the twenty-four literals the message layer was the last to
 // say: filemess(), msg_add_fname(), msg_add_lines() and msg_add_eol() are the
 // whole of what printed `"keys" [noeol] 1L, 30B` after a read.
-var z9GoneStrings = []string{
+var w92GoneStrings = []string{
 	`"%s%ldL, %lldB"`, `"%s%ld line, "`, `"%s%ld lines, "`, `"%lld byte"`,
 	`"%lld bytes"`, `"[noeol]"`, `"[READ ERRORS]"`, `"[New DIRECTORY]"`,
 	`"[Incomplete last line]"`, `"[long lines split]"`, `"[ILLEGAL BYTE in line %ld]"`,
@@ -95,7 +95,7 @@ var z9GoneStrings = []string{
 	`"E812: Autocommands changed buffer or buffer name"`,
 }
 
-var z9Kept = map[string]int{
+var w92Kept = map[string]int{
 	"open_buffer": 5, "read_cmd_fd": 12, "b_ffname": 32, "b_fname": 29, "b_sfname": 26,
 	"setfname": 2, "check_fname": 3, "readonlymode": 3, "msg_scrolled_ign": 2,
 	"b_mtime_read": 3, "b_mtime_read_ns": 3, "b_orig_size": 3, "b_orig_mode": 3,
@@ -105,11 +105,11 @@ var z9Kept = map[string]int{
 	"vim_FullName": 3, "mch_FullName": 3, "mch_dirname": 5,
 }
 
-var z9EnumWant = []string{"BF_NEW_W", "CONV_RESTLEN", "CPO_FNAMER", "NOTDONE", "O_EXTRA",
+var w92EnumWant = []string{"BF_NEW_W", "CONV_RESTLEN", "CPO_FNAMER", "NOTDONE", "O_EXTRA",
 	"READ_BUFFER", "READ_DUMMY", "READ_FIFO", "READ_FILTER", "READ_KEEP_UNDO",
 	"READ_NEW", "READ_NOFILE", "READ_STDIN", "SHM_LAST", "SHM_LINES", "SHM_OVER", "SHM_OVERALL"}
 
-const z9Mark = "READFILE-ENTERED"
+const w92Mark = "READFILE-ENTERED"
 
 // Whim92 is phase 92's check: the machinery under every way of naming a file.
 //
@@ -140,8 +140,8 @@ func Check(w io.Writer, args []string) error {
 	// three and a half seconds each of wall time the source checks below can be
 	// spending instead.  The flags are the boundary's, as everywhere.
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
-	cflags := strings.Fields(check.Z9Flag(mk, "CFLAGS"))
-	ldflags := strings.Fields(check.Z9Flag(mk, "LDFLAGS"))
+	cflags := strings.Fields(check.W92Flag(mk, "CFLAGS"))
+	ldflags := strings.Fields(check.W92Flag(mk, "LDFLAGS"))
 	oldC := check.ReadFile(filepath.Join(state, "old.c"))
 	for _, p := range []struct{ fn, Name string }{{"readfile", "probe.c"}, {"open_buffer", "ctl.c"}} {
 		var heads []string
@@ -158,7 +158,7 @@ func Check(w io.Writer, args []string) error {
 			return stop("%s does not open exactly once in the input source", p.fn)
 		}
 		os.WriteFile(filepath.Join(inst, p.Name),
-			[]byte(strings.Replace(oldC, head, head+"    (void)write(2, \""+z9Mark+"\\n\", 17);\n", 1)), 0o644)
+			[]byte(strings.Replace(oldC, head, head+"    (void)write(2, \""+w92Mark+"\\n\", 17);\n", 1)), 0o644)
 	}
 	var bwg sync.WaitGroup
 	buildErr := map[string]error{}
@@ -185,7 +185,7 @@ func Check(w io.Writer, args []string) error {
 	newT := string(src)
 
 	// --- 1. what the sweep took ----------------------------------------------
-	for _, g := range z9Gone {
+	for _, g := range w92Gone {
 		if n := check.CountWord(src, g); n != 0 {
 			return stop("'%s' still has %d mentions", g, n)
 		}
@@ -198,7 +198,7 @@ func Check(w io.Writer, args []string) error {
 		return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).FindAllString(t, -1))
 	}
 	var still, missing []string
-	for _, s := range z9GoneStrings {
+	for _, s := range w92GoneStrings {
 		if strings.Contains(newT, s) {
 			still = append(still, s)
 		}
@@ -224,13 +224,13 @@ func Check(w io.Writer, args []string) error {
 				lw.lit, k, lw.want))
 		}
 	}
-	names := make([]string, 0, len(z9Kept))
-	for n := range z9Kept {
+	names := make([]string, 0, len(w92Kept))
+	for n := range w92Kept {
 		names = append(names, n)
 	}
 	sort.Strings(names)
 	for _, name := range names {
-		want := z9Kept[name]
+		want := w92Kept[name]
 		if k := count(newT, name); k != want {
 			why := "something survived that should not have"
 			if k < want {
@@ -278,7 +278,7 @@ func Check(w io.Writer, args []string) error {
 			fail = append(fail, fmt.Sprintf("%s went, and it is a later phase's or this phase only cut inside it", kept))
 		}
 	}
-	rows := check.Z6RowRe.FindAllString(newT, -1)
+	rows := check.W89RowRe.FindAllString(newT, -1)
 	got, err9 := harness.CommandNamesIn(src, "whim-vim.c")
 	// THE FLOOR, ASSERTED BY USING IT rather than by grepping for the number.
 	if err9 != nil {
@@ -287,7 +287,7 @@ func Check(w io.Writer, args []string) error {
 	if len(rows) != 99 || len(got) != 99 {
 		fail = append(fail, fmt.Sprintf("cmdnames[] has %d rows and names() reads %d; both must be 99, unchanged: this phase removes no command", len(rows), len(got)))
 	}
-	if len(check.Z6RowRe.FindAllString(oldC, -1)) != 99 {
+	if len(check.W89RowRe.FindAllString(oldC, -1)) != 99 {
 		fail = append(fail, "the input does not have 99 rows, so this is not the file this phase was written against")
 	}
 	if !strings.Contains(newT, "static_assert(sizeof(cmdnames) / sizeof(cmdnames[0]) == CMD_SIZE") {
@@ -356,7 +356,7 @@ func Check(w io.Writer, args []string) error {
 	}()
 	exec.Command("sh", "tools/enumvals.sh", f, evNew).Run()
 	ewg.Wait()
-	if err := z9Enums(r, check.ReadFile(evOld), check.ReadFile(evNew)); err != nil {
+	if err := w92Enums(r, check.ReadFile(evOld), check.ReadFile(evNew)); err != nil {
 		return err
 	}
 
@@ -379,7 +379,7 @@ func Check(w io.Writer, args []string) error {
 	if buildErr["ctl"] != nil {
 		return stop("the open_buffer() control did not build")
 	}
-	return z9Evidence(r, tmp, inst, state, f, old, bin)
+	return w92Evidence(r, tmp, inst, state, f, old, bin)
 }
 
 func head4(s []string) []string {
@@ -389,10 +389,10 @@ func head4(s []string) []string {
 	return s
 }
 
-// z9Enums: SEVENTEEN GO AND NOTHING RENUMBERS, which is the opposite of phase 91
+// w92Enums: SEVENTEEN GO AND NOTHING RENUMBERS, which is the opposite of phase 91
 // and worth the four seconds either side to say.  A whole anonymous definition
 // leaving takes no survivor's value with it.
-func z9Enums(r *check.Rep, oldTxt, newTxt string) error {
+func w92Enums(r *check.Rep, oldTxt, newTxt string) error {
 	load := func(s string) map[string]string {
 		m := map[string]string{}
 		for _, l := range strings.Split(s, "\n") {
@@ -419,10 +419,10 @@ func z9Enums(r *check.Rep, oldTxt, newTxt string) error {
 	sort.Strings(gone)
 	sort.Strings(came)
 	sort.Strings(moved)
-	if strings.Join(gone, " ") != strings.Join(z9EnumWant, " ") || len(came) > 0 || len(moved) > 0 {
-		if strings.Join(gone, " ") != strings.Join(z9EnumWant, " ") {
+	if strings.Join(gone, " ") != strings.Join(w92EnumWant, " ") || len(came) > 0 || len(moved) > 0 {
+		if strings.Join(gone, " ") != strings.Join(w92EnumWant, " ") {
 			r.Say("enumerators gone: %s", strings.Join(gone, " "))
-			r.Cont("expected exactly: %s", strings.Join(z9EnumWant, " "))
+			r.Cont("expected exactly: %s", strings.Join(w92EnumWant, " "))
 		}
 		if len(came) > 0 {
 			r.Say("enumerators arrived: %s", strings.Join(came, " "))

@@ -113,7 +113,7 @@ import (
 
 func init() { edit.RegisterArgs("whim98", Edit) }
 
-var z15Before = map[string]int{
+var w98Before = map[string]int{
 	"tolower": 2, "toupper": 2, "towlower": 2, "towupper": 2,
 	"isalnum": 2, "iscntrl": 1, "ispunct": 1,
 	"isalpha": 3, "isdigit": 7, "isgraph": 1, "islower": 1, "isupper": 5,
@@ -122,35 +122,35 @@ var z15Before = map[string]int{
 	"utf_convert": 4, "sort_strings": 3, "sort_compare": 1,
 }
 
-// z15Free are the twenty musl_ names this phase defines.  This file is ONE
+// w98Free are the twenty musl_ names this phase defines.  This file is ONE
 // namespace and a silent collision between a tentative definition and a vendored
 // one is exactly what CLAUDE.md warns about, so each is required to be free.
-var z15Free = []string{"musl_isdigit", "musl_isalpha", "musl_isupper", "musl_islower",
+var w98Free = []string{"musl_isdigit", "musl_isalpha", "musl_isupper", "musl_islower",
 	"musl_isgraph", "musl_isspace", "musl_isalnum", "musl_iscntrl",
 	"musl_ispunct", "musl_tolower", "musl_toupper", "musl_atoi",
 	"musl_atol", "musl_strtol", "musl_bsearch", "musl_qsort", "musl_towupper",
 	"musl_towlower", "musl_toUpper", "musl_toLower"}
 
-// z15Rewrite is the seventeen names rewritten BELOW the inserted block.  How
-// many call sites each has is READ from the input: z15Before is the input this
+// w98Rewrite is the seventeen names rewritten BELOW the inserted block.  How
+// many call sites each has is READ from the input: w98Before is the input this
 // was written against, and upstream moving one atol to strtol (vim 9.2.1122's
 // getdigits) made every count there a refusal of a correct phase.
-var z15Rewrite = []string{
+var w98Rewrite = []string{
 	"tolower", "toupper", "towlower", "towupper",
 	"isalnum", "iscntrl", "ispunct",
 	"isalpha", "isdigit", "isgraph", "islower", "isupper",
 	"atoi", "atol", "strtol", "qsort", "bsearch",
 }
 
-// z15Provided is everything <ctype.h> and <wctype.h> could still be providing.
-var z15Provided = strings.Fields(
+// w98Provided is everything <ctype.h> and <wctype.h> could still be providing.
+var w98Provided = strings.Fields(
 	"isalnum isalpha isblank iscntrl isdigit isgraph islower isprint " +
 		"ispunct isspace isupper isxdigit isascii toascii tolower toupper " +
 		"iswalnum iswalpha iswblank iswcntrl iswdigit iswgraph iswlower " +
 		"iswprint iswpunct iswspace iswupper iswxdigit towlower towupper " +
 		"towctrans wctrans wctype iswctype")
 
-var z15Dead = regexp.MustCompile(`(?m)^ *return utf_is(?:upper|lower)\(c\);\n *if \(c >= 0x100\)$`)
+var w98Dead = regexp.MustCompile(`(?m)^ *return utf_is(?:upper|lower)\(c\);\n *if \(c >= 0x100\)$`)
 
 // Whim98 vendors the character classes, the two ato*, qsort and bsearch.
 func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
@@ -163,7 +163,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		k := strings.Count(string(t), old)
 		if k != n {
 			return nil, p.Die("%s -- the text occurs %d times, expected %d: %s",
-				what, k, n, cutil.PyRepr(edit.ZHead(old, 70)))
+				what, k, n, cutil.PyRepr(edit.CoreHead(old, 70)))
 		}
 		p.Say(what)
 		return []byte(strings.ReplaceAll(string(t), old, new)), nil
@@ -174,8 +174,8 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// exactly that statement -- and so is `isspace` and `isprint` having none.
 	calls := map[string]int{}
 	var shape []string
-	for _, name := range edit.SortedKeys(z15Before) {
-		calls[name] = edit.ZCalls(text, name)
+	for _, name := range edit.SortedKeys(w98Before) {
+		calls[name] = edit.CoreCalls(text, name)
 		shape = append(shape, fmt.Sprintf("%s %d", name, calls[name]))
 	}
 	if calls["iswupper"] != 1 || calls["isspace"] != 0 || calls["isprint"] != 0 {
@@ -185,7 +185,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	p.Say("the input's calls: " + strings.Join(shape, ", "))
 
-	for _, name := range z15Free {
+	for _, name := range w98Free {
 		if regexp.MustCompile(`\b` + name + `\b`).Match(text) {
 			return nil, p.Die("%s already exists in the file", name)
 		}
@@ -193,7 +193,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p.Say("the twenty musl_ names this phase defines are all free")
 
 	// ---- THE INVARIANT, COMPUTED BEFORE ANYTHING IS INSERTED ------------------
-	if k := len(z15Dead.FindAll(text, -1)); k != 2 {
+	if k := len(w98Dead.FindAll(text, -1)); k != 2 {
 		return nil, p.Die("the two dead `if (c >= 0x100)` arms of vim_isupper/vim_islower are not "+
 			"where this phase found them (%d)", k)
 	}
@@ -210,9 +210,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// THE BLOCK JOINS PHASE 97'S RATHER THAN STARTING A SECOND ONE, so the anchor
 	// is that JUNCTION -- the end of its last definition and the first enum --
 	// and not a line of its own.
-	const z15Tail = "    dest[18] = '\\0';\n    return 18;\n}\n"
-	const z15Wall = "\nenum { BH_DIRTY = 1 };\n"
-	if text, err = textEdit(text, z15Tail+z15Wall, z15Tail+block+z15Wall,
+	const w98Tail = "    dest[18] = '\\0';\n    return 18;\n}\n"
+	const w98Wall = "\nenum { BH_DIRTY = 1 };\n"
+	if text, err = textEdit(text, w98Tail+w98Wall, w98Tail+block+w98Wall,
 		"the eighteen functions go at the END OF PHASE 97's BLOCK, before the "+
 			"enum wall -- one vendored block and not two -- defined before every "+
 			"use, so only the two dead tow* mentions need a prototype", 1); err != nil {
@@ -224,8 +224,8 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if err != nil {
 		return nil, p.Die("%v", err)
 	}
-	const z15ToUpperEnd = "    {0x1e922, 0x1e943, 1, -34},\n};\n"
-	if text, err = textEdit(text, z15ToUpperEnd, z15ToUpperEnd+string(caseB),
+	const w98ToUpperEnd = "    {0x1e922, 0x1e943, 1, -34},\n};\n"
+	if text, err = textEdit(text, w98ToUpperEnd, w98ToUpperEnd+string(caseB),
 		"musl's case mapping as 187 + 171 convertStruct rows, after vim's own "+
 			"toUpper[] -- the same shape, the same size, and read by the "+
 			"utf_convert() that is already declared above them", 1); err != nil {
@@ -248,9 +248,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	cut := strings.Index(string(text), block) + len(block)
 	head, Body := string(text[:cut]), string(text[cut:])
 	total := 0
-	for _, r := range z15Rewrite {
+	for _, r := range w98Rewrite {
 		var idx [][]int
-		for _, m := range edit.ZCallRe(r).FindAllStringIndex(Body, -1) {
+		for _, m := range edit.CoreCallRe(r).FindAllStringIndex(Body, -1) {
 			if m[0] > 0 && edit.IsWordByte(Body[m[0]-1]) {
 				continue
 			}
@@ -282,14 +282,14 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	text = []byte(head + Body)
 	p.Say(fmt.Sprintf("seventeen names rewritten at the counts read above -- %d call sites, every one "+
 		"of them BELOW the block, so no vendored body rewrites itself", total))
-	if k := edit.ZCalls(text, "strtol"); k != 0 {
+	if k := edit.CoreCalls(text, "strtol"); k != 0 {
 		return nil, p.Die("strtol is still called %d times, and <stdlib.h> would keep providing it", k)
 	}
 
 	// ---- what the sweep is handed, as a count rather than as trust ------------
 	var left []string
-	for _, n := range z15Provided {
-		if edit.ZCalls(text, n) > 0 {
+	for _, n := range w98Provided {
+		if edit.CoreCalls(text, n) > 0 {
 			left = append(left, n)
 		}
 	}
@@ -305,7 +305,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p.Say("nothing <ctype.h> or <wctype.h> provides is called anywhere, and no wint_t, " +
 		"wctype_t or wctrans_t is named -- which is the contract phase 99 removes the " +
 		"two headers on, asserted here so that a miss fails THIS phase")
-	if edit.ZCalls(text, "iswupper") > 0 || regexp.MustCompile(`\biswupper\b`).Match(text) {
+	if edit.CoreCalls(text, "iswupper") > 0 || regexp.MustCompile(`\biswupper\b`).Match(text) {
 		return nil, p.Die("iswupper survives")
 	}
 	var directives, bad []string

@@ -54,8 +54,8 @@ import (
 func init() { check.Register("whim101", Check) }
 
 const (
-	z18Head   = "\n    int\nmain(int argc, char **argv)\n{\n"
-	z18Launch = "\n    int\nmain(int argc, char **argv)\n{\n    return vim_main(argc, argv);\n}\n"
+	w101Head   = "\n    int\nmain(int argc, char **argv)\n{\n"
+	w101Launch = "\n    int\nmain(int argc, char **argv)\n{\n    return vim_main(argc, argv);\n}\n"
 )
 
 // Whim101 is phase 101's check: main() demoted to a static vim_main(), with a
@@ -89,7 +89,7 @@ func Check(w io.Writer, args []string) error {
 	offC := filepath.Join(tmp, "off.c")
 	os.WriteFile(offC, []byte(off), 0o644)
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
-	flags := append(strings.Fields(check.Z9Flag(mk, "CFLAGS")), strings.Fields(check.Z9Flag(mk, "LDFLAGS"))...)
+	flags := append(strings.Fields(check.W92Flag(mk, "CFLAGS")), strings.Fields(check.W92Flag(mk, "LDFLAGS"))...)
 	offBin := filepath.Join(tmp, "off")
 	offDone := make(chan error, 1)
 	go func() {
@@ -111,7 +111,7 @@ func Check(w io.Writer, args []string) error {
 		}
 		return n
 	}
-	if strings.Count(oldC, z18Head) != 1 {
+	if strings.Count(oldC, w101Head) != 1 {
 		fail = append(fail, "the input did not hold exactly one two-line main() head, so this is not the file the phase was written against")
 	}
 	if mentions(oldC, "vim_main") > 0 {
@@ -131,10 +131,10 @@ func Check(w io.Writer, args []string) error {
 	if n := strings.Count(newC, "\nmain(int argc"); n != 1 {
 		fail = append(fail, fmt.Sprintf("a head beginning `main(int argc` occurs %d times, expected 1 -- the launcher's.  The old head was rewritten into `vim_main`, not copied", n))
 	}
-	if !strings.HasSuffix(newC, z18Launch) {
+	if !strings.HasSuffix(newC, w101Launch) {
 		fail = append(fail, "whim-vim.c does not end with the six-line launcher.  CLAUDE.md states that main() is literally the last thing in this file and its closing brace the final line, and that stays true")
 	}
-	if n := strings.Count(newC, z18Launch); n != 1 {
+	if n := strings.Count(newC, w101Launch); n != 1 {
 		fail = append(fail, fmt.Sprintf("the launcher occurs %d times, expected 1", n))
 	}
 	for _, p := range []struct {
@@ -162,24 +162,24 @@ func Check(w io.Writer, args []string) error {
 	if runs(newC) != runs(oldC) {
 		fail = append(fail, fmt.Sprintf("runs of two blank lines: %d in the output against %d in the input", runs(newC), runs(oldC)))
 	}
-	if i := strings.Index(oldC, z18Head); i >= 0 {
-		bodyOld := oldC[i+len(z18Head):]
+	if i := strings.Index(oldC, w101Head); i >= 0 {
+		bodyOld := oldC[i+len(w101Head):]
 		if j := strings.Index(newC, "vim_main(int argc, char **argv)\n{\n"); j >= 0 {
 			bn := newC[j:]
 			k := strings.Index(bn, "{\n") + 2
-			if end := len(bn) - len(z18Launch); end >= k && bodyOld != bn[k:end] {
+			if end := len(bn) - len(w101Launch); end >= k && bodyOld != bn[k:end] {
 				fail = append(fail, "the demoted function's body is not the bytes main()'s was")
 			}
 		}
 	}
-	rows := check.Z6RowRe.FindAllString(newC, -1)
+	rows := check.W89RowRe.FindAllString(newC, -1)
 	got, _ := harness.CommandNamesIn([]byte(newC), "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
 		fail = append(fail, "cmdnames[] is not the 98 rows phase 93 left")
 	}
 	if i := strings.Index(newC, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newC[i:], "\n};")
-		if len(check.Z12RowRe.FindAllString(newC[i:i+j], -1)) != 108 {
+		if len(check.W95RowRe.FindAllString(newC[i:i+j], -1)) != 108 {
 			fail = append(fail, "options[] is not the 108 rows phase 95 left")
 		}
 	}
@@ -260,22 +260,22 @@ func Check(w io.Writer, args []string) error {
 	}
 
 	// --- 5. every way the editor can end, on both binaries and the control ---
-	return z18Ways(r, old, bin, offBin)
+	return w101Ways(r, old, bin, offBin)
 }
 
-func z18Ways(r *check.Rep, old, bin, off string) error {
+func w101Ways(r *check.Rep, old, bin, off string) error {
 	ways := []struct {
 		Name string
 		fn   func(string) string
 		want string
 		why  string
 	}{
-		{"quit", func(b string) string { return check.Z18Quiet(b, []string{"+q!"}) }, "0", ":q! -- ex_quit -> getout(0)"},
-		{"cquit3", func(b string) string { return check.Z18Quiet(b, []string{"+cq 3"}) }, "3", ":cq 3 -- ex_cquit -> getout(3)"},
-		{"eof", func(b string) string { return check.Z18Quiet(b, nil) }, "1", "end of input -- read_error_exit -> preserve_exit -> getout(1)"},
-		{"badopt", func(b string) string { return check.Z18Quiet(b, []string{"-Z"}) }, "1", "a bad option -- mainerr -> mch_exit(1)"},
-		{"sigterm", func(b string) string { return check.Z18Signalled(b, syscall.SIGTERM) }, "1", "SIGTERM -- deathtrap -> preserve_exit -> getout(1)"},
-		{"sighup", func(b string) string { return check.Z18Signalled(b, syscall.SIGHUP) }, "1", "SIGHUP -- deathtrap -> preserve_exit -> getout(1)"},
+		{"quit", func(b string) string { return check.W101Quiet(b, []string{"+q!"}) }, "0", ":q! -- ex_quit -> getout(0)"},
+		{"cquit3", func(b string) string { return check.W101Quiet(b, []string{"+cq 3"}) }, "3", ":cq 3 -- ex_cquit -> getout(3)"},
+		{"eof", func(b string) string { return check.W101Quiet(b, nil) }, "1", "end of input -- read_error_exit -> preserve_exit -> getout(1)"},
+		{"badopt", func(b string) string { return check.W101Quiet(b, []string{"-Z"}) }, "1", "a bad option -- mainerr -> mch_exit(1)"},
+		{"sigterm", func(b string) string { return check.W101Signalled(b, syscall.SIGTERM) }, "1", "SIGTERM -- deathtrap -> preserve_exit -> getout(1)"},
+		{"sighup", func(b string) string { return check.W101Signalled(b, syscall.SIGHUP) }, "1", "SIGHUP -- deathtrap -> preserve_exit -> getout(1)"},
 	}
 	got := map[[2]string]string{}
 	var mu sync.Mutex

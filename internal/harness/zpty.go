@@ -15,19 +15,19 @@ import (
 
 const showCursor = "\x1b[?25h"
 
-// zptyModes are every mode the editor announces on the message line.  Which of
+// corePtyModes are every mode the editor announces on the message line.  Which of
 // them a scenario entered is a fact about the editor, and sel_arrows is a
 // scenario whose WHOLE ANSWER is one of them.
-var zptyModes = []string{"VISUAL", "SELECT", "INSERT", "REPLACE"}
+var corePtyModes = []string{"VISUAL", "SELECT", "INSERT", "REPLACE"}
 
 var (
-	zEsc    = "\x1b"
-	zDown   = zEsc + "[B"
-	zRight  = zEsc + "[C"
-	zSRight = zEsc + "[1;2C"
+	ptyEsc    = "\x1b"
+	ptyDown   = ptyEsc + "[B"
+	ptyRight  = ptyEsc + "[C"
+	ptySRight = ptyEsc + "[1;2C"
 )
 
-var zptyScenarios = []struct {
+var corePtyScenarios = []struct {
 	name       string
 	rows, cols int
 	term       string
@@ -35,17 +35,17 @@ var zptyScenarios = []struct {
 }{
 	{"size_24x80", 24, 80, "xterm", []string{":set lines? columns?\r", "\x1b:q!\r"}},
 	{"size_30x100", 30, 100, "xterm", []string{":set lines? columns?\r", "\x1b:q!\r"}},
-	{"raw_typing", 24, 80, "xterm", []string{"ihello world", zEsc, ":set term?\r", "\x1b:q!\r"}},
-	{"nav_arrows", 24, 80, "xterm", []string{"il1\rl2\rl3", zEsc, "gg", zDown + zDown + zRight,
+	{"raw_typing", 24, 80, "xterm", []string{"ihello world", ptyEsc, ":set term?\r", "\x1b:q!\r"}},
+	{"nav_arrows", 24, 80, "xterm", []string{"il1\rl2\rl3", ptyEsc, "gg", ptyDown + ptyDown + ptyRight,
 		"x", "\x1b:q!\r"}},
 	// Two SHIFTED rights on `alpha one` select `alp` under 'keymodel'=startsel,
 	// so `x` leaves `ha one`; without the flag they are two `w` motions and `x`
 	// leaves `alpha ne`.  Both the mode and the text move, together.
-	{"sel_arrows", 24, 80, "xterm", []string{"ialpha one", zEsc, "0", zSRight + zSRight,
+	{"sel_arrows", 24, 80, "xterm", []string{"ialpha one", ptyEsc, "0", ptySRight + ptySRight,
 		"x", "\x1b:q!\r"}},
 }
 
-// ZPty records the five pty scenarios: the window size, raw mode, and a
+// CorePty records the five pty scenarios: the window size, raw mode, and a
 // modified key.
 //
 // A PTY HARNESS WAITS ON CONTENT, NEVER ON A CLOCK.  It used to type the next
@@ -56,16 +56,16 @@ var zptyScenarios = []struct {
 // a redraw ENDS, and where the screen model snapshots -- and only then asks
 // about quiet.  Measured under one oscillating 192-way load: 16 of 60 runs
 // failed before, 0 of 60 after.
-func ZPty(bin, out string, w io.Writer) error {
+func CorePty(bin, out string, w io.Writer) error {
 	var rows []string
 	var bad []string
-	for _, sc := range zptyScenarios {
-		scr, status, stalled, err := zptySession(bin, sc.rows, sc.cols, sc.term, sc.keys,
+	for _, sc := range corePtyScenarios {
+		scr, status, stalled, err := corePtySession(bin, sc.rows, sc.cols, sc.term, sc.keys,
 			250*time.Millisecond, 60*time.Second)
 		if err != nil {
 			return err
 		}
-		got, body := zptyAnswers(scr)
+		got, body := corePtyAnswers(scr)
 		row := "=== " + sc.name + "\n"
 		row += Section(fmt.Sprintf("pty %dx%d TERM=%s status=%s",
 			sc.rows, sc.cols, sc.term, status), nil)
@@ -94,11 +94,11 @@ func ZPty(bin, out string, w io.Writer) error {
 		}
 		return fmt.Errorf("zpty: stalled")
 	}
-	fmt.Fprintf(w, "%d pty scenarios -> %s\n", len(zptyScenarios), out)
+	fmt.Fprintf(w, "%d pty scenarios -> %s\n", len(corePtyScenarios), out)
 	return nil
 }
 
-func zptySession(bin string, rows, cols int, term string, keys []string,
+func corePtySession(bin string, rows, cols int, term string, keys []string,
 	quiet, timeout time.Duration) (*Screen, string, []string, error) {
 
 	vim, err := Stage(bin)
@@ -231,7 +231,7 @@ func waitStatusInt(ws syscall.WaitStatus) int {
 	return ws.ExitStatus() << 8
 }
 
-func zptyAnswers(scr *Screen) ([]string, []string) {
+func corePtyAnswers(scr *Screen) ([]string, []string) {
 	// EVERY SNAPSHOT IS SEARCHED, not the final screen: the keys that quit
 	// wipe the message line, so a :set answer lives in the redraw before them
 	// and nowhere else.
@@ -256,7 +256,7 @@ func zptyAnswers(scr *Screen) ([]string, []string) {
 		sort.Strings(hits)
 		out = append(out, hits...)
 	}
-	for _, mode := range zptyModes {
+	for _, mode := range corePtyModes {
 		if strings.Contains(text, "-- "+mode+" --") {
 			out = append(out, "mode="+mode)
 		}

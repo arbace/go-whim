@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/arbace/go-whim/internal/canon"
 	"github.com/arbace/go-whim/internal/harness"
 )
 
@@ -265,4 +266,15 @@ func DiffRQ(a, b string) []string {
 		}
 	}
 	return Out
+}
+
+// Canon runs the canonicalisers on file in place, to a fixpoint, and returns
+// what they printed -- stdout and stderr together, as a check reading
+// `sh tools/canon.sh FILE` with CombinedOutput had them -- and an error when
+// they failed.  A check calls it on a copy of its output and requires the copy
+// unchanged: canon is a no-op on a tree written the way the file is written.
+func Canon(file string) ([]byte, error) {
+	var b bytes.Buffer
+	err := canon.Run(&b, &b, file, false)
+	return b.Bytes(), err
 }

@@ -11,9 +11,9 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-const z10NoName = `"[No Name]" [Modified] 1 line --100%--`
+const w93NoName = `"[No Name]" [Modified] 1 line --100%--`
 
-func z10Probes(r *check.Rep, old, bin string) error {
+func w93Probes(r *check.Rep, old, bin string) error {
 	esc, cr := []byte("\x1b"), []byte("\r")
 	quit := []byte("\x1b:q!\r")
 	hello := []byte("hello")
@@ -22,10 +22,10 @@ func z10Probes(r *check.Rep, old, bin string) error {
 		k := [][]byte{append(append([]byte("i"), seed...), esc...), []byte(":set nopaste\r")}
 		return []string{"+set paste"}, append(append(k, keys...), quit)
 	}
-	var probes []check.Z6Probe
+	var probes []check.W89Probe
 	one := func(name string, seed []byte, diff bool, keys ...[]byte) {
 		a, k := typed(seed, keys...)
-		probes = append(probes, check.Z6Probe{Name: name, Args: a, Keys: k, Differ: diff})
+		probes = append(probes, check.W89Probe{Name: name, Args: a, Keys: k, Differ: diff})
 	}
 	ab := append(append([]byte("a"), cr...), []byte("b")...)
 	cmdOf := func(mid ...[]byte) []byte {
@@ -49,11 +49,11 @@ func z10Probes(r *check.Rep, old, bin string) error {
 	one("cmd_fixdel", hello, false, []byte(":fixdel\r"))
 	one("cmd_ls", hello, false, []byte(":ls\r"))
 	one("quit_modified", hello, false, []byte(":q\r"))
-	probes = append(probes, check.Z6Probe{Name: "quit_bang", Args: []string{"+set paste"}, Keys: [][]byte{append(append([]byte("i"), hello...), esc...), []byte(":set nopaste\r"), []byte(":q!\r")}, Differ: false})
+	probes = append(probes, check.W89Probe{Name: "quit_bang", Args: []string{"+set paste"}, Keys: [][]byte{append(append([]byte("i"), hello...), esc...), []byte(":set nopaste\r"), []byte(":q!\r")}, Differ: false})
 	one("editing", append(append([]byte("alpha"), cr...), []byte("beta")...), false,
 		[]byte("0dwA-tail\x1b"), []byte("u"), []byte("yyp"))
 	// The spellings are appended, as the Python's comprehension is.
-	for _, s := range z10Spellings {
+	for _, s := range w93Spellings {
 		one("spell_"+s, hello, true, []byte(":"+s+"\r"))
 	}
 
@@ -66,10 +66,10 @@ func z10Probes(r *check.Rep, old, bin string) error {
 	var wg sync.WaitGroup
 	for i, p := range probes {
 		wg.Add(1)
-		go func(i int, p check.Z6Probe) {
+		go func(i int, p check.W89Probe) {
 			defer wg.Done()
-			ot, os_ := check.ZRecordStream(old, p.Args, p.Keys, 10*time.Second)
-			nt, ns := check.ZRecordStream(bin, p.Args, p.Keys, 10*time.Second)
+			ot, os_ := check.CoreRecordStream(old, p.Args, p.Keys, 10*time.Second)
+			nt, ns := check.CoreRecordStream(bin, p.Args, p.Keys, 10*time.Second)
 			outs[i] = outcome{p.Name, ot, nt, os_, ns, p.Differ}
 		}(i, p)
 	}
@@ -100,10 +100,10 @@ func z10Probes(r *check.Rep, old, bin string) error {
 		if strings.Contains(o.nT, `NEWNAME"`) {
 			fail = append(fail, fmt.Sprintf("%s: the new binary named the buffer anyway", name))
 		}
-		if !strings.Contains(o.nT, z10NoName) {
+		if !strings.Contains(o.nT, w93NoName) {
 			fail = append(fail, fmt.Sprintf(`%s: CTRL-G does not answer "[No Name]" now, and that is the only name a buffer has`, name))
 		}
-		if !strings.Contains(o.nT, check.Z6E492) {
+		if !strings.Contains(o.nT, check.W89E492) {
 			fail = append(fail, fmt.Sprintf("%s: `:file` is not an unknown command", name))
 		}
 		if strings.Contains(o.nT, "Not edited") {
@@ -111,7 +111,7 @@ func z10Probes(r *check.Rep, old, bin string) error {
 		}
 	}
 	o := by["cp_missing"]
-	if strings.Contains(o.oT, check.Z6E492) {
+	if strings.Contains(o.oT, check.W89E492) {
 		fail = append(fail, "cp_missing: the input binary already put the word on the command line, so it never asked the filesystem and this proves nothing")
 	}
 	if !strings.Contains(o.nT, "E492: Not an editor command: nosuchfile") {
@@ -124,21 +124,21 @@ func z10Probes(r *check.Rep, old, bin string) error {
 			fail = append(fail, fmt.Sprintf("%s: `keys` did not reach the command line on both binaries, so \"it did not move\" is two failures agreeing", name))
 		}
 	}
-	for _, s := range z10Spellings {
+	for _, s := range w93Spellings {
 		o := by["spell_"+s]
-		if strings.Contains(o.oT, check.Z6E492) {
+		if strings.Contains(o.oT, check.W89E492) {
 			fail = append(fail, fmt.Sprintf(":%s already answered E492 before this phase, so it proves nothing", s))
 		}
-		if !strings.Contains(o.oT, z10NoName) {
+		if !strings.Contains(o.oT, w93NoName) {
 			fail = append(fail, fmt.Sprintf(":%s did not report the buffer on the input binary", s))
 		}
-		if !strings.Contains(o.nT, check.Z6E492) {
+		if !strings.Contains(o.nT, check.W89E492) {
 			fail = append(fail, fmt.Sprintf(":%s does not answer E492: a removed name has been inherited", s))
 		}
 	}
 	for _, name := range []string{"cmd_filter", "cmd_fixdel"} {
 		o := by[name]
-		if strings.Contains(o.nT, check.Z6E492) && !strings.Contains(o.oT, check.Z6E492) {
+		if strings.Contains(o.nT, check.W89E492) && !strings.Contains(o.oT, check.W89E492) {
 			fail = append(fail, fmt.Sprintf("%s: a surviving command became unknown", name))
 		}
 	}
@@ -184,7 +184,7 @@ func z10Probes(r *check.Rep, old, bin string) error {
 	return nil
 }
 
-func z10Pty(r *check.Rep, old, bin string) error {
+func w93Pty(r *check.Rep, old, bin string) error {
 	home, err := os.MkdirTemp("", "whim93-home-")
 	if err != nil {
 		return err
@@ -195,7 +195,7 @@ func z10Pty(r *check.Rep, old, bin string) error {
 			return "", -1, err
 		}
 		text, status, err := harness.Session(binary, nil, keys, "xterm",
-			20*time.Second, 600*time.Millisecond, d, check.Z2Env(home), 0, 0)
+			20*time.Second, 600*time.Millisecond, d, check.W85Env(home), 0, 0)
 		return string(text), status, err
 	}
 	rename := [][]byte{[]byte("ityped on a terminal\x1b"), []byte(":file NEWNAME\r"), []byte("\x07"), []byte(":q!\r")}
@@ -226,10 +226,10 @@ func z10Pty(r *check.Rep, old, bin string) error {
 	if err != nil {
 		return err
 	}
-	if !strings.Contains(eo, "change; before #") || !check.Z10AGO.MatchString(eo) {
+	if !strings.Contains(eo, "change; before #") || !check.W93AGO.MatchString(eo) {
 		fail = append(fail, fmt.Sprintf("the undo report with its `N seconds ago` is not in the pty session on the input binary, so blinding the clock blinds nothing and the comparison below is not the one described: %s", check.CutilRepr(check.Tail200(eo))))
 	}
-	if check.Z10AGO.ReplaceAllString(eo, "<ago>") != check.Z10AGO.ReplaceAllString(en, "<ago>") || eos != ens {
+	if check.W93AGO.ReplaceAllString(eo, "<ago>") != check.W93AGO.ReplaceAllString(en, "<ago>") || eos != ens {
 		fail = append(fail, "an ordinary pty editing session moved, and nothing here may move it")
 	}
 	if !strings.Contains(en, "alpha") {

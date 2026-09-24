@@ -20,13 +20,13 @@ package p128
 // `'%shp = %s;' % (m.group(1), m.group(2))` in step 15 -- and the Go writes that
 // one with fmt, as the Python does.
 var (
-	z45b0 = []string{
+	w128b0 = []string{
 		"struct block_hdr",
 		"{",
 		"    short_u     bh_id;",
 		"};",
 	}
-	z45b1 = []string{
+	w128b1 = []string{
 		"enum { PB_COUNT_MAX = 255 };",
 		"",
 		"struct pointer_block",
@@ -36,12 +36,12 @@ var (
 		"    PTR_EN      pb_pointer[PB_COUNT_MAX];",
 		"};",
 	}
-	z45b2 = []string{
+	w128b2 = []string{
 		"static_assert(sizeof(PTR_EN) == 16, \"a pointer entry is one node reference and one line count\");",
 		"static_assert(PB_COUNT_MAX == (%d - 8) / sizeof(PTR_EN), \"the fanout the 4096-byte page gave, kept when the page went\");",
 		"static_assert(sizeof(DATA_BL) == 16 + DB_LINE_MAX * sizeof(DATA_LN), \"a leaf is its tag, its count and its records\");",
 	}
-	z45b3 = []string{
+	w128b3 = []string{
 		"    static bhdr_T *",
 		"ml_new_data(void)",
 		"{",
@@ -59,7 +59,7 @@ var (
 		"    return (bhdr_T *)dp;",
 		"}",
 	}
-	z45b4 = []string{
+	w128b4 = []string{
 		"    static bhdr_T *",
 		"ml_new_ptr(void)",
 		"{",
@@ -77,7 +77,7 @@ var (
 		"    return (bhdr_T *)pp;",
 		"}",
 	}
-	z45b5 = []string{
+	w128b5 = []string{
 		"    static void",
 		"ml_free_tree(bhdr_T *hp)",
 		"{",
@@ -100,34 +100,34 @@ var (
 		"}",
 		"",
 	}
-	z45b6 = []string{
+	w128b6 = []string{
 		"error:",
 		"    ml_free_tree(buf->b_ml.ml_root);",
 		"    buf->b_ml.ml_root = nullptr;",
 	}
-	z45b7 = []string{
+	w128b7 = []string{
 		"    if (buf->b_ml.ml_root == nullptr)",
 		"    {",
 		"        return FAIL;",
 		"    }",
 	}
-	z45b8 = []string{
+	w128b8 = []string{
 		"                pp_new->pb_count = pp->pb_count;",
 		"                 musl_memmove((char *)(&pp_new->pb_pointer[0]), (char *)(&pp->pb_pointer[0]), (usize)pp->pb_count * sizeof(PTR_EN)) ;",
 	}
 )
 
 const (
-	z45s0  = "    bhdr_T      db_hdr;"
-	z45s1  = "static bhdr_T *ml_new_data(void);"
-	z45s2  = "static bhdr_T *ml_new_ptr(void);"
-	z45s3  = "    if ((hp = ml_new_ptr()) == nullptr)"
-	z45s4  = "    pp = (PTR_BL *)(hp);"
-	z45s5  = "    if ((hp = ml_new_data()) == nullptr)"
-	z45s6  = "    dp = (DATA_BL *)(hp);"
-	z45s7  = "    if (buf->b_ml.ml_root == nullptr)"
-	z45s8  = "    ml_free_tree(buf->b_ml.ml_root);"
-	z45s9  = "    buf->b_ml.ml_root = nullptr;"
-	z45s10 = "        if ((hp_new = ml_new_data()) == nullptr)"
-	z45s11 = "                hp_new = ml_new_ptr();"
+	w128s0  = "    bhdr_T      db_hdr;"
+	w128s1  = "static bhdr_T *ml_new_data(void);"
+	w128s2  = "static bhdr_T *ml_new_ptr(void);"
+	w128s3  = "    if ((hp = ml_new_ptr()) == nullptr)"
+	w128s4  = "    pp = (PTR_BL *)(hp);"
+	w128s5  = "    if ((hp = ml_new_data()) == nullptr)"
+	w128s6  = "    dp = (DATA_BL *)(hp);"
+	w128s7  = "    if (buf->b_ml.ml_root == nullptr)"
+	w128s8  = "    ml_free_tree(buf->b_ml.ml_root);"
+	w128s9  = "    buf->b_ml.ml_root = nullptr;"
+	w128s10 = "        if ((hp_new = ml_new_data()) == nullptr)"
+	w128s11 = "                hp_new = ml_new_ptr();"
 )

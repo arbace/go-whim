@@ -1,7 +1,7 @@
-// Package canon holds the canonicalisers tools/canon.sh runs, in its order.
+// Package canon holds the canonicalisers `tools/st.sh canon` runs (Run), in their order.
 //
 // Every one of them is a pure text transform over bytes.  That is not a
-// simplification of the Python, it is what the Python is: canon.sh runs as the
+// simplification of the Python, it is what the Python is: canon runs as the
 // seventh member of a sweep round, after six tools have deleted from the text
 // and with no compile since the round began, so the text a canonicaliser sees
 // need not be valid C and a parser would fail on it.  See tools/sweep.sh.

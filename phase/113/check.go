@@ -86,7 +86,7 @@ import (
 
 func init() { check.Register("whim113", Check) }
 
-type z30Probe struct {
+type w113Probe struct {
 	Name string
 	Args []string
 	Keys []string
@@ -97,7 +97,7 @@ type z30Probe struct {
 // `!msg_check_screen()` -- full_screen FALSE or screen_valid(FALSE) FALSE -- or
 // when `swapping_screen() && !termcap_active`, and swapping_screen() needs t_TI
 // non-empty.  ORDER IS OUTPUT: the table file is these rows in this order.
-var z30Probes = []z30Probe{
+var w113Probes = []w113Probe{
 	{"T_debug", []string{"-T", "debug"}, []string{":set nosuchopt\r", ":q!\r"}, ""},
 	{"T_debug_quit", []string{"-T", "debug"}, []string{"ihello\x1b", ":q!\r"}, ""},
 	{"T_dumb", []string{"-T", "dumb"}, []string{":set nosuchopt\r", ":q!\r"}, ""},
@@ -132,7 +132,7 @@ var z30Probes = []z30Probe{
 	{"term_msg_after", nil, []string{":set term=debug\r", "\x07", ":q!\r"}, ""},
 }
 
-type z30Sig struct {
+type w113Sig struct {
 	Name string
 	Keys []string
 	sig  syscall.Signal
@@ -140,14 +140,14 @@ type z30Sig struct {
 }
 
 // Four deadly signals on a real pty, with fd 2 on a pipe of its own.
-var z30Sigs = []z30Sig{
+var w113Sigs = []w113Sig{
 	{"hup_clean", []string{""}, syscall.SIGHUP, nil},
 	{"hup_msg", []string{"\x07"}, syscall.SIGHUP, nil},
 	{"term_msg", []string{"\x07"}, syscall.SIGTERM, nil},
 	{"hup_dbg", []string{"\x07"}, syscall.SIGHUP, []string{"-T", "debug"}},
 }
 
-func z30Keys(ks []string) [][]byte {
+func w113Keys(ks []string) [][]byte {
 	Out := make([][]byte, len(ks))
 	for i, k := range ks {
 		Out[i] = []byte(k)
@@ -155,27 +155,27 @@ func z30Keys(ks []string) [][]byte {
 	return Out
 }
 
-func z30Sha12(b []byte) string {
+func w113Sha12(b []byte) string {
 	h := sha256.Sum256(b)
 	return hex.EncodeToString(h[:])[:12]
 }
 
-func z30Head(b []byte, n int) []byte {
+func w113Head(b []byte, n int) []byte {
 	if len(b) > n {
 		return b[:n]
 	}
 	return b
 }
 
-// z30Table is zprobe.py: every probe in order, one row each.
-func z30Table(binary, outPath string) {
+// w113Table is zprobe.py: every probe in order, one row each.
+func w113Table(binary, outPath string) {
 	var rows []string
-	for _, p := range z30Probes {
+	for _, p := range w113Probes {
 		term := p.term
 		if term == "" {
 			term = "xterm"
 		}
-		_, so, se, rc, err := harness.ZSession(binary, z30Keys(p.Keys), term, p.Args, 24, 80, 20*time.Second)
+		_, so, se, rc, err := harness.CoreSession(binary, w113Keys(p.Keys), term, p.Args, 24, 80, 20*time.Second)
 		if err == harness.ErrBlocked {
 			rows = append(rows, fmt.Sprintf("%-16s BLOCKED", p.Name))
 			continue
@@ -183,46 +183,46 @@ func z30Table(binary, outPath string) {
 		if err != nil {
 			return
 		}
-		so = check.Z30Stamp.ReplaceAll(so, []byte("compiled <date>"))
-		se = check.Z30Stamp.ReplaceAll(se, []byte("compiled <date>"))
+		so = check.W113Stamp.ReplaceAll(so, []byte("compiled <date>"))
+		se = check.W113Stamp.ReplaceAll(se, []byte("compiled <date>"))
 		rows = append(rows, fmt.Sprintf("%-16s rc=%-8s out=%-6d sha=%s err=%-4d %s",
-			p.Name, strconv.Itoa(rc), len(so), z30Sha12(so), len(se), check.Z30BytesRepr(z30Head(se, 80))))
+			p.Name, strconv.Itoa(rc), len(so), w113Sha12(so), len(se), check.W113BytesRepr(w113Head(se, 80))))
 	}
 	os.WriteFile(outPath, []byte(strings.Join(rows, "\n")+"\n"), 0o644)
 }
 
-// z30SigTable is zsig.py: the four signal cases in order.
-func z30SigTable(binary, outPath string) {
+// w113SigTable is zsig.py: the four signal cases in order.
+func w113SigTable(binary, outPath string) {
 	var rows []string
-	for _, c := range z30Sigs {
-		Out, errb, st, err := harness.PtySplit(binary, c.Args, z30Keys(c.Keys), c.sig,
+	for _, c := range w113Sigs {
+		Out, errb, st, err := harness.PtySplit(binary, c.Args, w113Keys(c.Keys), c.sig,
 			600*time.Millisecond, "xterm", 24, 80)
 		if err != nil {
 			return
 		}
 		rows = append(rows, fmt.Sprintf("%-12s st=%-6s out=%-6d sha=%s err=%-4d %s",
-			c.Name, strconv.Itoa(st), len(Out), z30Sha12(Out), len(errb), check.Z30BytesRepr(z30Head(errb, 40))))
+			c.Name, strconv.Itoa(st), len(Out), w113Sha12(Out), len(errb), check.W113BytesRepr(w113Head(errb, 40))))
 	}
 	os.WriteFile(outPath, []byte(strings.Join(rows, "\n")+"\n"), 0o644)
 }
 
-// z30Moved is `diff a b | sed -n 's/^> \([A-Za-z_0-9]*\) .*/\1/p' | tr '\n' ' '`,
+// w113Moved is `diff a b | sed -n 's/^> \([A-Za-z_0-9]*\) .*/\1/p' | tr '\n' ' '`,
 // and the count of `^>` lines beside it.
-func z30Moved(a, b string) (string, int) {
+func w113Moved(a, b string) (string, int) {
 	s, n := "", 0
-	for _, l := range check.Z30Diff(a, b) {
+	for _, l := range check.W113Diff(a, b) {
 		if strings.HasPrefix(l, ">") {
 			n++
 		}
-		if m := check.Z30GT.FindStringSubmatch(l); m != nil {
+		if m := check.W113GT.FindStringSubmatch(l); m != nil {
 			s += m[1] + " "
 		}
 	}
 	return s, n
 }
 
-// z30Out is `sed -n 's/^NAME  *KEY=[0-9]*  *out=\([0-9]*\).*/\1/p' FILE`.
-func z30Out(path, name, key string) string {
+// w113Out is `sed -n 's/^NAME  *KEY=[0-9]*  *out=\([0-9]*\).*/\1/p' FILE`.
+func w113Out(path, name, key string) string {
 	re := regexp.MustCompile(`^` + name + ` +` + key + `=[0-9]* +out=([0-9]*)`)
 	s := ""
 	for _, l := range strings.Split(check.ReadFile(path), "\n") {
@@ -254,10 +254,10 @@ func Check(w io.Writer, args []string) error {
 	defer os.RemoveAll(tmp)
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
 	cflagsS, ldflagsS := "", ""
-	if m := check.Z29CFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112CFlags.FindStringSubmatch(mk); m != nil {
 		cflagsS = m[1]
 	}
-	if m := check.Z29LDFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112LDFlags.FindStringSubmatch(mk); m != nil {
 		ldflagsS = m[1]
 	}
 	link := func(src, Out string) error {
@@ -355,7 +355,7 @@ func Check(w io.Writer, args []string) error {
 	wgCanon.Add(1)
 	go func() {
 		defer wgCanon.Done()
-		canonLog, errCanon = exec.Command("sh", "tools/canon.sh", canonC).CombinedOutput()
+		canonLog, errCanon = check.Canon(canonC)
 	}()
 
 	// --- 1. the source, as arithmetic on the input ------------------------------
@@ -431,7 +431,7 @@ func Check(w io.Writer, args []string) error {
 	dirs := func(L []string) []int {
 		var d []int
 		for i, l := range L {
-			if check.Z30Dir.MatchString(l) {
+			if check.W113Dir.MatchString(l) {
 				d = append(d, i)
 			}
 		}
@@ -462,9 +462,9 @@ func Check(w io.Writer, args []string) error {
 				"phase is above the first `#include`", nd[0]-od[0], len(N)-len(O))
 		}
 	}
-	if check.Z27Runs(N) != check.Z27Runs(O) {
+	if check.W110Runs(N) != check.W110Runs(O) {
 		r.Bad("the edit and the sweep left %d runs of two blank lines where there "+
-			"were %d", check.Z27Runs(N), check.Z27Runs(O))
+			"were %d", check.W110Runs(N), check.W110Runs(O))
 	}
 	if err := r.Done(); err != nil {
 		return err
@@ -483,7 +483,7 @@ func Check(w io.Writer, args []string) error {
 		"replacement's second line")
 	r.Say("the eleven directives are the input's own, consecutive, and the "+
 		"boundary moved by exactly the lines the file lost -- every line this phase "+
-		"touches is above the first `#include`.  Blank-line runs unmoved at %d", check.Z27Runs(N))
+		"touches is above the first `#include`.  Blank-line runs unmoved at %d", check.W110Runs(N))
 
 	// --- 2. canon.sh, and the tools with floors --------------------------------
 	wgCanon.Wait()
@@ -497,10 +497,10 @@ func Check(w io.Writer, args []string) error {
 		}
 		return harness.ErrReported
 	}
-	if !check.Z30Same(f, canonC) {
+	if !check.W113Same(f, canonC) {
 		r.Say("tools/canon.sh is not a no-op on the output -- the two lines the fold writes are not " +
 			"written the way this file writes everything else:")
-		for i, l := range check.Z30Diff(f, canonC) {
+		for i, l := range check.W113Diff(f, canonC) {
 			if i >= 12 {
 				break
 			}
@@ -571,10 +571,10 @@ func Check(w io.Writer, args []string) error {
 	bset := map[string][]string{}
 	cutN := map[string]int{}
 	for _, x := range []struct{ side, src string }{{"old", oldC}, {"new", f}} {
-		lines := check.Z28Cut(check.ReadFile(x.src))
+		lines := check.W111Cut(check.ReadFile(x.src))
 		var dl []string
 		for i, l := range lines {
-			if check.Z30Dir.MatchString(l) {
+			if check.W113Dir.MatchString(l) {
 				dl = append(dl, fmt.Sprintf("%d:%s", i+1, l))
 			}
 		}
@@ -619,10 +619,10 @@ func Check(w io.Writer, args []string) error {
 			return harness.ErrReported
 		}
 		set := map[string]bool{}
-		for _, m := range check.Z30Undef.FindAllStringSubmatch(eb.String(), -1) {
+		for _, m := range check.W113Undef.FindAllStringSubmatch(eb.String(), -1) {
 			set[m[1]] = true
 		}
-		bset[x.side] = check.Z27Keys(set)
+		bset[x.side] = check.W110Keys(set)
 		if len(warns) > 0 {
 			r.Say("the %s cut has a warning that is not a boundary name:", x.side)
 			for i, l := range warns {
@@ -658,12 +658,12 @@ func Check(w io.Writer, args []string) error {
 	for _, v := range []string{"old", "new", "cA", "cB", "cC"} {
 		v := v
 		wg.Add(1)
-		go func() { defer wg.Done(); z30Table(binOf(v), filepath.Join(tmp, "P."+v)) }()
+		go func() { defer wg.Done(); w113Table(binOf(v), filepath.Join(tmp, "P."+v)) }()
 	}
 	for _, v := range []string{"old", "new", "cA", "cC"} {
 		v := v
 		wg.Add(1)
-		go func() { defer wg.Done(); z30SigTable(binOf(v), filepath.Join(tmp, "S."+v)) }()
+		go func() { defer wg.Done(); w113SigTable(binOf(v), filepath.Join(tmp, "S."+v)) }()
 	}
 	// The five recordings go at the same time.  The shell's bare `wait`
 	// returned 0 whatever they did; a recording that fails now says why.
@@ -679,7 +679,7 @@ func Check(w io.Writer, args []string) error {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			recErr[k] = check.RecZ(x.bin, x.src, filepath.Join(tmp, x.Out))
+			recErr[k] = check.RecCore(x.bin, x.src, filepath.Join(tmp, x.Out))
 		}()
 	}
 	wg.Wait()
@@ -697,15 +697,15 @@ func Check(w io.Writer, args []string) error {
 			fmt.Fprintln(w, l)
 		}
 	}
-	if !check.Z30Same(pf("old"), pf("new")) {
+	if !check.W113Same(pf("old"), pf("new")) {
 		r.Say("the declared delta is NOTHING AT ALL and the 32 stream probes differ:")
-		head12(check.Z30Diff(pf("old"), pf("new")))
+		head12(check.W113Diff(pf("old"), pf("new")))
 		return harness.ErrReported
 	}
-	if !check.Z30Same(sf("old"), sf("new")) {
+	if !check.W113Same(sf("old"), sf("new")) {
 		r.Say("the four deadly-signal probes differ, which is the one thing this phase is most likely to " +
 			"have broken by accident -- exit_scroll's arm:")
-		head12(check.Z30Diff(sf("old"), sf("new")))
+		head12(check.W113Diff(sf("old"), sf("new")))
 		return harness.ErrReported
 	}
 	r.Say("MUST NOT DIFFER: all 32 stream probes identical on the binary this phase was handed and on its " +
@@ -722,31 +722,31 @@ func Check(w io.Writer, args []string) error {
 		{"cB", "msg_clr_eos_force's test replaced by msg_check_screen(), which drops the swapping_screen() " +
 			"&& !termcap_active disjunct"},
 	} {
-		if check.Z30Same(pf(x.v), pf("new")) {
+		if check.W113Same(pf(x.v), pf("new")) {
 			return stop("%s (%s) moves NONE of the 32 stream probes, so this phase's central finding -- that "+
 				"the fold cannot be made safely -- is no longer measured", x.v, x.What)
 		}
-		n, d := z30Moved(pf("new"), pf(x.v))
+		n, d := w113Moved(pf("new"), pf(x.v))
 		if n != "t_ti_stopterm " {
 			return stop("%s moves [%s] and was measured to move exactly t_ti_stopterm", x.v, n)
 		}
 		r.Say("MUST DIFFER -- %s: %s.  It moves %d of the 32 probes, and it is %s: %s bytes -> %s",
-			x.v, x.What, d, n, z30Out(pf("new"), "t_ti_stopterm", "rc"), z30Out(pf(x.v), "t_ti_stopterm", "rc"))
+			x.v, x.What, d, n, w113Out(pf("new"), "t_ti_stopterm", "rc"), w113Out(pf(x.v), "t_ti_stopterm", "rc"))
 	}
-	if check.Z30Same(sf("cA"), sf("new")) {
+	if check.W113Same(sf("cA"), sf("new")) {
 		return stop("cA moves none of the four signal probes, and hup_clean was measured to go 2,124 -> 2,142")
 	}
 	r.Say("AND THE SECOND MEASUREMENT OF THE SAME HAZARD: cA moves hup_clean, %s bytes -> %s, the extra "+
 		"eighteen being an escape sequence that erases the last line of a screen the editor has just declared "+
 		"unusable, AFTER `Vim: Finished.`  THE CORPUS CANNOT SEE EITHER: screen_fill() returns early on "+
 		"ScreenLines == nullptr and it is NULL in all 23 mainerr cases, so a phase checked only against the "+
-		"recording would ship this", z30Out(sf("new"), "hup_clean", "st"), z30Out(sf("cA"), "hup_clean", "st"))
-	sc, _ := z30Moved(pf("new"), pf("cC"))
+		"recording would ship this", w113Out(sf("new"), "hup_clean", "st"), w113Out(sf("cA"), "hup_clean", "st"))
+	sc, _ := w113Moved(pf("new"), pf("cC"))
 	if sc != "t_ti_more debug_more term_ti_then_ti " {
 		return stop("cC (exit_scroll's printf arm folded to out_char) moves [%s] of the 32 stream probes and "+
 			"was measured to move exactly t_ti_more, debug_more and term_ti_then_ti", sc)
 	}
-	sg, _ := z30Moved(sf("new"), sf("cC"))
+	sg, _ := w113Moved(sf("new"), sf("cC"))
 	if sg != "hup_msg term_msg hup_dbg " {
 		return stop("cC moves [%s] of the four signal probes and was measured to move exactly hup_msg, "+
 			"term_msg and hup_dbg", sg)

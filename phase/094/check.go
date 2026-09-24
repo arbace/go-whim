@@ -117,20 +117,20 @@ import (
 
 func init() { check.Register("whim94", Check) }
 
-var z11Gone = []string{"check_changed", "check_changed_any", "no_write_message",
+var w94Gone = []string{"check_changed", "check_changed_any", "no_write_message",
 	"no_write_message_nobang", "not_exiting",
 	"add_bufnum", "set_curbuf", "enter_buffer", "win_enter", "win_enter_ext",
 	"goto_tabpage_win", "goto_tabpage_tp", "get_winopts", "find_wininfo",
 	"buflist_findfpos", "buflist_getfpos",
 	"w_topline_was_set", "wi_changelistidx", "SHM_FILEINFO"}
 
-var z11GoneStrings = []string{
+var w94GoneStrings = []string{
 	"E37: No write since last change (add ! to override)",
 	"E37: No write since last change",
 	"E162: No write since last change for buffer ",
 }
 
-var z11Kept = map[string]int{
+var w94Kept = map[string]int{
 	"bufIsChanged": 7, "curbufIsChanged": 7, "bufIsChangedNotTerm": 3,
 	"text_locked": 6, "curbuf_locked": 7, "before_quit_autocmds": 2,
 	"getout": 7, "mch_exit": 8, "exiting": 13, "buf_spname": 4, "open_buffer": 4,
@@ -139,14 +139,14 @@ var z11Kept = map[string]int{
 	"nv_error": 46, "p_wh": 2,
 }
 
-var z11EnumWant = []string{"CCGD_ALLBUF", "CCGD_EXCMD", "CCGD_FORCEIT", "CCGD_MULTWIN",
+var w94EnumWant = []string{"CCGD_ALLBUF", "CCGD_EXCMD", "CCGD_FORCEIT", "CCGD_MULTWIN",
 	"DOBUF_GOTO", "DOBUF_UNLOAD", "SHM_FILEINFO",
 	"WEE_CURWIN_INVALID", "WEE_TRIGGER_ENTER_AUTOCMDS",
 	"WEE_TRIGGER_LEAVE_AUTOCMDS", "WEE_TRIGGER_NEW_AUTOCMDS", "WEE_UNDO_SYNC"}
 
 var (
-	z11Decl   = regexp.MustCompile(`(?m)^static\s+[A-Za-z_][\w \t*]*?\b(\w+)\s*(=[^;]*)?;$`)
-	z11Assign = regexp.MustCompile(`^\s*(\)\s*)?([-+|&^*/]|<<|>>)?=[^=]`)
+	w94Decl   = regexp.MustCompile(`(?m)^static\s+[A-Za-z_][\w \t*]*?\b(\w+)\s*(=[^;]*)?;$`)
+	w94Assign = regexp.MustCompile(`^\s*(\)\s*)?([-+|&^*/]|<<|>>)?=[^=]`)
 )
 
 // Whim94 is phase 94's check: the REFUSAL, `E37: No write since last change`,
@@ -172,12 +172,12 @@ func Check(w io.Writer, args []string) error {
 	defer os.RemoveAll(tmp)
 
 	// --- 1. what the sweep took ----------------------------------------------
-	for _, g := range z11Gone {
+	for _, g := range w94Gone {
 		if n := check.CountWord(src, g); n != 0 {
 			return stop("'%s' still has %d mentions", g, n)
 		}
 	}
-	for _, g := range z11GoneStrings {
+	for _, g := range w94GoneStrings {
 		if n := check.CountLinesWith(src, g); n != 0 {
 			return stop("the string '%s' still has %d mentions", g, n)
 		}
@@ -196,7 +196,7 @@ func Check(w io.Writer, args []string) error {
 	defsOld := dead.FuncDefinitions([]byte(oldT), cutil.Blank([]byte(oldT)))
 	defsNew := dead.FuncDefinitions(src, cutil.Blank(src))
 	want := map[string]bool{}
-	for _, g := range z11Gone[:16] {
+	for _, g := range w94Gone[:16] {
 		want[g] = true
 	}
 	var went, extra []string
@@ -219,13 +219,13 @@ func Check(w io.Writer, args []string) error {
 	} else {
 		r.Say("the functions that went, %d -> %d, are exactly the sixteen named -- eleven of them the switch-buffer island", len(defsOld), len(defsNew))
 	}
-	names := make([]string, 0, len(z11Kept))
-	for n := range z11Kept {
+	names := make([]string, 0, len(w94Kept))
+	for n := range w94Kept {
 		names = append(names, n)
 	}
 	sort.Strings(names)
 	for _, name := range names {
-		want := z11Kept[name]
+		want := w94Kept[name]
 		if k := count(newT, name); k != want {
 			why := "something survived that should not have"
 			if k < want {
@@ -240,7 +240,7 @@ func Check(w io.Writer, args []string) error {
 	if !regexp.MustCompile(`(?m)^\s*m = p_wh \+ `).MatchString(newT) {
 		fail = append(fail, `p_wh lost its one real reader, and a "uses - writes - 1 <= 0" scan would then be right about it for the first time`)
 	}
-	woOld, woNew := z11WriteOnly(oldT), z11WriteOnly(newT)
+	woOld, woNew := w94WriteOnly(oldT), w94WriteOnly(newT)
 	if strings.Join(woNew, " ") != strings.Join(woOld, " ") || strings.Join(woNew, " ") != "vim_ignored" {
 		fail = append(fail, fmt.Sprintf("the write-only scan reports %s where the input reports %s; both must be exactly vim_ignored, which is upstream's sink for an ignored return value and was write-only before this phase",
 			orNothing(woNew), orNothing(woOld)))
@@ -285,7 +285,7 @@ func Check(w io.Writer, args []string) error {
 	if strings.Count(zet, `do_cmdline_cmd((char_u *)"q!")`) != 2 {
 		fail = append(fail, "nv_Zet does not run `q!` for both ZZ and ZQ: it has since phase 89 and rewriting either string would move a record phase 89 declared")
 	}
-	rows := check.Z6RowRe.FindAllString(newT, -1)
+	rows := check.W89RowRe.FindAllString(newT, -1)
 	got, errN := harness.CommandNamesIn(src, "whim-vim.c")
 	if errN != nil {
 		fail = append(fail, fmt.Sprintf("the checked parser refuses this table -- the row floor is no longer below 98: %s", errN))
@@ -301,7 +301,7 @@ func Check(w io.Writer, args []string) error {
 	if !strings.Contains(newT, "static_assert(sizeof(cmdnames) / sizeof(cmdnames[0]) == CMD_SIZE") {
 		fail = append(fail, "the static_assert on the row count went, and it is what catches an enumerator removed without its row")
 	}
-	if !check.Z7QRow.MatchString(newT) {
+	if !check.W90QRow.MatchString(newT) {
 		fail = append(fail, "the 'Q' row is no longer nv_error's, and phase 87 put it there")
 	}
 	for _, p := range []struct{ opt, v string }{{"'undoreload'", "p_ur"}, {"'readonly'", "p_ro"}} {
@@ -370,7 +370,7 @@ func Check(w io.Writer, args []string) error {
 	}()
 	exec.Command("sh", "tools/enumvals.sh", f, evNew).Run()
 	ewg.Wait()
-	if err := z11Enums(r, check.ReadFile(evOld), check.ReadFile(evNew)); err != nil {
+	if err := w94Enums(r, check.ReadFile(evOld), check.ReadFile(evNew)); err != nil {
 		return err
 	}
 
@@ -385,18 +385,18 @@ func Check(w io.Writer, args []string) error {
 	now, _ := os.ReadFile(f)
 	(&check.Rep{Tag: "build", W: w}).Say("ok, %s -> %d lines, %d bytes", beforeLines, check.CountLines(now), check.SizeOf(bin))
 
-	if err := z11Probes(r, old, bin); err != nil {
+	if err := w94Probes(r, old, bin); err != nil {
 		return err
 	}
-	return z11Pty(r, old, bin)
+	return w94Pty(r, old, bin)
 }
 
-// z11WriteOnly is the scan that must report EXACTLY vim_ignored on both files:
+// w94WriteOnly is the scan that must report EXACTLY vim_ignored on both files:
 // a static with writes and no reads.  It is here rather than in util.go because
 // only this phase asks it, and what it is for is that the phase leaves none.
-func z11WriteOnly(text string) []string {
+func w94WriteOnly(text string) []string {
 	var Out []string
-	for _, m := range z11Decl.FindAllStringSubmatchIndex(text, -1) {
+	for _, m := range w94Decl.FindAllStringSubmatchIndex(text, -1) {
 		name := text[m[2]:m[3]]
 		reads, writes := 0, 0
 		for _, x := range regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).FindAllStringIndex(text, -1) {
@@ -404,7 +404,7 @@ func z11WriteOnly(text string) []string {
 				continue
 			}
 			end := x[1]
-			if z11Assign.MatchString(text[end:check.Min(end+4, len(text))]) {
+			if w94Assign.MatchString(text[end:check.Min(end+4, len(text))]) {
 				writes++
 			} else {
 				reads++
@@ -432,7 +432,7 @@ func tailN(s string, n int) string {
 	return s
 }
 
-func z11Enums(r *check.Rep, oldTxt, newTxt string) error {
+func w94Enums(r *check.Rep, oldTxt, newTxt string) error {
 	load := func(s string) map[string]string {
 		m := map[string]string{}
 		for _, l := range strings.Split(s, "\n") {
@@ -459,9 +459,9 @@ func z11Enums(r *check.Rep, oldTxt, newTxt string) error {
 	sort.Strings(gone)
 	sort.Strings(came)
 	sort.Strings(moved)
-	if strings.Join(gone, " ") != strings.Join(z11EnumWant, " ") || len(came) > 0 || len(moved) > 0 {
-		if strings.Join(gone, " ") != strings.Join(z11EnumWant, " ") {
-			r.Say("the enumerators that went are %s, expected exactly %s", strings.Join(gone, " "), strings.Join(z11EnumWant, " "))
+	if strings.Join(gone, " ") != strings.Join(w94EnumWant, " ") || len(came) > 0 || len(moved) > 0 {
+		if strings.Join(gone, " ") != strings.Join(w94EnumWant, " ") {
+			r.Say("the enumerators that went are %s, expected exactly %s", strings.Join(gone, " "), strings.Join(w94EnumWant, " "))
 		}
 		if len(came) > 0 {
 			r.Say("enumerators arrived: %s", strings.Join(came, " "))

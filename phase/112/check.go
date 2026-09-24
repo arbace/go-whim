@@ -88,11 +88,11 @@ func init() { check.Register("whim112", Check) }
 // phase changes on the default arm, and every one it stops mapping, is probed
 // -- and part 6 types it.
 const (
-	z29ProbeText = "ⓐ ⱟ 𐖗 𐵰 ß"
-	z29ProbeUp   = "Ⓐ Ⱟ 𐕰 𐵐 ẞ"
+	w112ProbeText = "ⓐ ⱟ 𐖗 𐵰 ß"
+	w112ProbeUp   = "Ⓐ Ⱟ 𐕰 𐵐 ẞ"
 )
 
-type z29RowT [4]int
+type w112RowT [4]int
 
 // A convertStruct row is written one of TWO ways in this file, and the edit
 // says which and why: vim's own toUpper[]/toLower[] are canonical text -- four
@@ -102,11 +102,11 @@ type z29RowT [4]int
 // that read the text through the edit's own regex would agree with it by
 // construction, and what is being asserted is what the FILE says.
 var (
-	z29CheckCanon = regexp.MustCompile(`^    \{(0x[0-9a-f]+), (0x[0-9a-f]+), (-?\d+), (-?\d+)\},?$`)
-	z29CheckTight = regexp.MustCompile(`^        \{(0x[0-9a-f]+),(0x[0-9a-f]+),(-?\d+),(-?\d+)\},?$`)
+	w112CheckCanon = regexp.MustCompile(`^    \{(0x[0-9a-f]+), (0x[0-9a-f]+), (-?\d+), (-?\d+)\},?$`)
+	w112CheckTight = regexp.MustCompile(`^        \{(0x[0-9a-f]+),(0x[0-9a-f]+),(-?\d+),(-?\d+)\},?$`)
 )
 
-// z29Table is rows_of(): the rows of one convertStruct table, or nil when the
+// w112Table is rows_of(): the rows of one convertStruct table, or nil when the
 // table is not in the text.
 //
 // IT IS A PARTITION AND NOT A FILTER.  Every line of the body must be a row in
@@ -114,26 +114,26 @@ var (
 // line this reader does not understand refuses instead of being skipped -- a
 // regex that silently matched nothing is how a table read as EMPTY and every
 // codepoint in it then looked unchanged.
-func z29Table(text, name string) ([]z29RowT, bool) {
+func w112Table(text, name string) ([]w112RowT, bool) {
 	re := regexp.MustCompile(`(?ms)^static convertStruct ` + regexp.QuoteMeta(name) + `\[\] =\n\{\n(.*?)\n\};\n`)
 	m := re.FindStringSubmatch(text)
 	if m == nil {
 		return nil, false
 	}
-	var Out []z29RowT
+	var Out []w112RowT
 	tight := 0
 	for _, line := range strings.Split(m[1], "\n") {
 		if strings.TrimSpace(line) == "" {
 			continue
 		}
-		r := z29CheckCanon.FindStringSubmatch(line)
+		r := w112CheckCanon.FindStringSubmatch(line)
 		if r == nil {
-			if r = z29CheckTight.FindStringSubmatch(line); r == nil {
+			if r = w112CheckTight.FindStringSubmatch(line); r == nil {
 				return nil, false
 			}
 			tight++
 		}
-		var row z29RowT
+		var row w112RowT
 		for k := 0; k < 4; k++ {
 			v, _ := strconv.ParseInt(r[k+1], 0, 64)
 			row[k] = int(v)
@@ -146,8 +146,8 @@ func z29Table(text, name string) ([]z29RowT, bool) {
 	return Out, true
 }
 
-// z29Expand is {codepoint: target}, exactly as utf_convert() reads the row.
-func z29Expand(rows []z29RowT) map[int]int {
+// w112Expand is {codepoint: target}, exactly as utf_convert() reads the row.
+func w112Expand(rows []w112RowT) map[int]int {
 	o := map[int]int{}
 	for _, r := range rows {
 		lo, hi, step, off := r[0], r[1], r[2], r[3]
@@ -165,14 +165,14 @@ func z29Expand(rows []z29RowT) map[int]int {
 	return o
 }
 
-func z29Get(m map[int]int, c int) int {
+func w112Get(m map[int]int, c int) int {
 	if v, ok := m[c]; ok {
 		return v
 	}
 	return c
 }
 
-func z29Sorted(pred func(int) bool, maps ...map[int]int) []int {
+func w112Sorted(pred func(int) bool, maps ...map[int]int) []int {
 	seen := map[int]bool{}
 	var Out []int
 	for _, m := range maps {
@@ -187,14 +187,14 @@ func z29Sorted(pred func(int) bool, maps ...map[int]int) []int {
 	return Out
 }
 
-// z29Words is re.findall(r'\bNAME\b').
-func z29Words(text, name string) int {
+// w112Words is re.findall(r'\bNAME\b').
+func w112Words(text, name string) int {
 	return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).FindAllStringIndex(text, -1))
 }
 
-// z29Calls is `(?<![\w])NAME\s*\(`: RE2 has no lookbehind, so the byte before
+// w112Calls is `(?<![\w])NAME\s*\(`: RE2 has no lookbehind, so the byte before
 // each match is tested instead.
-func z29Calls(text, name string) int {
+func w112Calls(text, name string) int {
 	n := 0
 	for _, m := range regexp.MustCompile(regexp.QuoteMeta(name)+`\s*\(`).FindAllStringIndex(text, -1) {
 		if m[0] > 0 {
@@ -208,7 +208,7 @@ func z29Calls(text, name string) int {
 	return n
 }
 
-func z29Retable(text, name string, rows []z29RowT) string {
+func w112Retable(text, name string, rows []w112RowT) string {
 	re := regexp.MustCompile(`(?ms)^static convertStruct ` + regexp.QuoteMeta(name) + `\[\] =\n\{\n.*?\n\};\n`)
 	head := re.FindString(text)
 	var Body []string
@@ -218,7 +218,7 @@ func z29Retable(text, name string, rows []z29RowT) string {
 	return strings.ReplaceAll(text, head, "static convertStruct "+name+"[] =\n{\n"+strings.Join(Body, ",\n")+"\n};\n")
 }
 
-func z29Hex(cs []int) string {
+func w112Hex(cs []int) string {
 	var s []string
 	for _, c := range cs {
 		s = append(s, fmt.Sprintf("U+%04X", c))
@@ -229,7 +229,7 @@ func z29Hex(cs []int) string {
 	return strings.Join(s, " ")
 }
 
-type z29Sum struct {
+type w112Sum struct {
 	Name                            string
 	r0, r1, ncp, nn, arm, ndef, nst int
 	defs                            string
@@ -256,10 +256,10 @@ func Check(w io.Writer, args []string) error {
 	defer os.RemoveAll(tmp)
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
 	var cflags, ldflags []string
-	if m := check.Z29CFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112CFlags.FindStringSubmatch(mk); m != nil {
 		cflags = strings.Fields(m[1])
 	}
-	if m := check.Z29LDFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112LDFlags.FindStringSubmatch(mk); m != nil {
 		ldflags = strings.Fields(m[1])
 	}
 
@@ -269,15 +269,15 @@ func Check(w io.Writer, args []string) error {
 	newT := check.ReadFile(f)
 	oldT := check.ReadFile(oldC)
 	probed := map[int]bool{}
-	for _, c := range z29ProbeText + z29ProbeUp {
+	for _, c := range w112ProbeText + w112ProbeUp {
 		probed[int(c)] = true
 	}
 	type key struct{ Tag, Name string }
-	tables := map[key][]z29RowT{}
+	tables := map[key][]w112RowT{}
 	have := map[key]bool{}
 	for _, x := range []struct{ Text, Tag string }{{oldT, "old"}, {newT, "new"}} {
 		for _, name := range []string{"toUpper", "toLower", "musl_toUpper", "musl_toLower"} {
-			rows, ok := z29Table(x.Text, name)
+			rows, ok := w112Table(x.Text, name)
 			tables[key{x.Tag, name}], have[key{x.Tag, name}] = rows, ok
 		}
 	}
@@ -295,7 +295,7 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 
-	var summary []z29Sum
+	var summary []w112Sum
 	if len(fail) == 0 {
 		up, low, err := harness.MuslCaseLibc()
 		if err != nil {
@@ -307,9 +307,9 @@ func Check(w io.Writer, args []string) error {
 		}{{"toUpper", up}, {"toLower", low}} {
 			name := x.Name
 			libcf := func(c int) int { return c + x.off[c] }
-			ev := z29Expand(tables[key{"old", name}])
-			em := z29Expand(tables[key{"old", "musl_" + name}])
-			en := z29Expand(tables[key{"new", name}])
+			ev := w112Expand(tables[key{"old", name}])
+			em := w112Expand(tables[key{"old", "musl_" + name}])
+			en := w112Expand(tables[key{"new", name}])
 			union := map[int]int{}
 			for c, v := range ev {
 				union[c] = v
@@ -319,11 +319,11 @@ func Check(w io.Writer, args []string) error {
 			}
 			// (a) everything the INPUT's vim table mapped, mapped the same
 			//     way -- the half a careless merge loses silently.
-			lostVim := z29Sorted(func(c int) bool { return z29Get(en, c) != ev[c] }, ev)
+			lostVim := w112Sorted(func(c int) bool { return w112Get(en, c) != ev[c] }, ev)
 			// (b) everything the INPUT's musl table mapped, mapped the same way.
-			lostMusl := z29Sorted(func(c int) bool { return z29Get(en, c) != em[c] }, em)
+			lostMusl := w112Sorted(func(c int) bool { return w112Get(en, c) != em[c] }, em)
 			// (c) nothing neither had.
-			invented := z29Sorted(func(c int) bool {
+			invented := w112Sorted(func(c int) bool {
 				u, ok := union[c]
 				return !ok || en[c] != u
 			}, en)
@@ -345,7 +345,7 @@ func Check(w io.Writer, args []string) error {
 			var bad []int
 			for c := 0; c < harness.MuslCasePlanes; c++ {
 				want := libcf(c)
-				if want != c && z29Get(en, c) != want {
+				if want != c && w112Get(en, c) != want {
 					bad = append(bad, c)
 					if len(bad) > 4 {
 						break
@@ -355,11 +355,11 @@ func Check(w io.Writer, args []string) error {
 			if len(bad) > 0 {
 				fail = append(fail, fmt.Sprintf("%s[] disagrees with THIS MACHINE'S libc at U+%04X (the table "+
 					"says %04X, libc says %04X) and %d more",
-					name, bad[0], z29Get(en, bad[0]), libcf(bad[0]), len(bad)-1))
+					name, bad[0], w112Get(en, bad[0]), libcf(bad[0]), len(bad)-1))
 			}
 			// (e) THE RULE, and it is a rule rather than a number.
-			defaultChanges := z29Sorted(func(c int) bool { return en[c] != z29Get(ev, c) }, en)
-			stops := z29Sorted(func(c int) bool { _, ok := en[c]; return !ok }, em)
+			defaultChanges := w112Sorted(func(c int) bool { return en[c] != w112Get(ev, c) }, en)
+			stops := w112Sorted(func(c int) bool { _, ok := en[c]; return !ok }, em)
 			var unprobed []int
 			for _, c := range append(append([]int{}, defaultChanges...), stops...) {
 				if !probed[c] {
@@ -373,7 +373,7 @@ func Check(w io.Writer, args []string) error {
 			}
 			// and the non-internal arm, where 96 arrive and no probe text
 			// could hold them all: at least one must be looked at.
-			armChanges := z29Sorted(func(c int) bool { return z29Get(en, c) != z29Get(em, c) }, en, em)
+			armChanges := w112Sorted(func(c int) bool { return w112Get(en, c) != w112Get(em, c) }, en, em)
 			anyProbed := false
 			for _, c := range armChanges {
 				if probed[c] {
@@ -388,8 +388,8 @@ func Check(w io.Writer, args []string) error {
 				fail = append(fail, fmt.Sprintf("%s[] and musl_%s[] agreed everywhere, so there was no union to "+
 					"take and this phase proves nothing", name, name))
 			}
-			summary = append(summary, z29Sum{name, len(tables[key{"old", name}]), len(tables[key{"new", name}]),
-				len(ev), len(en), len(armChanges), len(defaultChanges), len(stops), z29Hex(defaultChanges)})
+			summary = append(summary, w112Sum{name, len(tables[key{"old", name}]), len(tables[key{"new", name}]),
+				len(ev), len(en), len(armChanges), len(defaultChanges), len(stops), w112Hex(defaultChanges)})
 		}
 
 		// PROVEN ABLE TO FAIL: perturbing one row of the produced table must
@@ -401,12 +401,12 @@ func Check(w io.Writer, args []string) error {
 					"codepoint, so the union check cannot fail", name))
 				continue
 			}
-			broken := append([]z29RowT{{rows[0][0], rows[0][1], rows[0][2], rows[0][3] + 1}}, rows[1:]...)
-			eb := z29Expand(broken)
-			ev := z29Expand(tables[key{"old", name}])
+			broken := append([]w112RowT{{rows[0][0], rows[0][1], rows[0][2], rows[0][3] + 1}}, rows[1:]...)
+			eb := w112Expand(broken)
+			ev := w112Expand(tables[key{"old", name}])
 			moved := false
 			for c, v := range ev {
-				if z29Get(eb, c) != v {
+				if w112Get(eb, c) != v {
 					moved = true
 					break
 				}
@@ -437,17 +437,17 @@ func Check(w io.Writer, args []string) error {
 	// --- the source, as rules ------------------------------------------------
 	var src []string
 	for _, name := range []string{"musl_toUpper", "musl_toLower"} {
-		if n := z29Words(newT, name); n > 0 {
+		if n := w112Words(newT, name); n > 0 {
 			src = append(src, fmt.Sprintf("%s is still named %d times", name, n))
 		}
-		if n := z29Words(oldT, name); n != 3 {
+		if n := w112Words(oldT, name); n != 3 {
 			src = append(src, fmt.Sprintf("the input names %s %d times, not the 3 this phase was written "+
 				"against -- its definition and the two in its wrapper's "+
 				"utf_convert call", name, n))
 		}
 	}
 	for _, name := range []string{"musl_towupper", "musl_towlower"} {
-		nw, ow := z29Words(newT, name), z29Words(oldT, name)
+		nw, ow := w112Words(newT, name), w112Words(oldT, name)
 		if nw != ow || nw != 4 {
 			src = append(src, fmt.Sprintf("%s has %d mentions and the input had %d; both must be 4 -- its "+
 				"prototype, its definition, the live call in utf_to*() and the dead "+
@@ -455,13 +455,13 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 	for _, name := range []string{"toUpper", "toLower"} {
-		nw, ow := z29Words(newT, name), z29Words(oldT, name)
+		nw, ow := w112Words(newT, name), w112Words(oldT, name)
 		if nw != ow+2 {
 			src = append(src, fmt.Sprintf("%s is named %d times and the input named it %d; the repointed "+
 				"wrapper adds exactly two", name, nw, ow))
 		}
 	}
-	nCalls, oCalls := z29Calls(newT, "utf_convert"), z29Calls(oldT, "utf_convert")
+	nCalls, oCalls := w112Calls(newT, "utf_convert"), w112Calls(oldT, "utf_convert")
 	if nCalls != oCalls {
 		src = append(src, fmt.Sprintf("utf_convert is called %d times and the input called it %d -- this "+
 			"phase moves no call, it changes what two of them read", nCalls, oCalls))
@@ -488,7 +488,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	allInc := true
 	for _, i := range d {
-		if !check.Z29Inc.MatchString(L[i]) {
+		if !check.W112Inc.MatchString(L[i]) {
 			allInc = false
 		}
 	}
@@ -504,16 +504,16 @@ func Check(w io.Writer, args []string) error {
 	}
 	// The two tables this phase must not touch, stated against the INPUT
 	// rather than as remembered numbers.
-	cmds := len(check.Z29Cmd.FindAllString(newT, -1))
-	was := len(check.Z29Cmd.FindAllString(oldT, -1))
+	cmds := len(check.W112Cmd.FindAllString(newT, -1))
+	was := len(check.W112Cmd.FindAllString(oldT, -1))
 	got, _ := harness.CommandNames(f)
 	if cmds != was || len(got) != was {
 		src = append(src, fmt.Sprintf("cmdnames[] has %d rows and names() reads %d; the input had %d and this "+
 			"phase touches no row", cmds, len(got), was))
 	}
-	if check.Z29RowCount(newT) != check.Z29RowCount(oldT) {
+	if check.W112RowCount(newT) != check.W112RowCount(oldT) {
 		src = append(src, fmt.Sprintf("options[] has %d rows and the input had %d; this phase retires no option",
-			check.Z29RowCount(newT), check.Z29RowCount(oldT)))
+			check.W112RowCount(newT), check.W112RowCount(oldT)))
 	}
 	if !strings.Contains(newT, `{"casemap"`) {
 		src = append(src, "the 'casemap' option row is gone, and retiring it is not this phase's")
@@ -531,16 +531,16 @@ func Check(w io.Writer, args []string) error {
 		"show the row, and it is what the row makes the table agree with -- and "+
 		"utf_islower()'s `|| a == 0xdf`, now redundant, deliberately left; eleven "+
 		"consecutive #includes and nothing else; cmdnames[] %d and options[] %d, both the "+
-		"input's, with 'casemap' still among them", nCalls, cmds, check.Z29RowCount(newT))
+		"input's, with 'casemap' still among them", nCalls, cmds, check.W112RowCount(newT))
 
 	// The two controls, computed from the two sources rather than spelled Out.
 	//   vimonly  the output with musl's contribution taken back Out.
 	//   vimless  vim's toUpper[] replaced by the input's musl_toUpper[].
 	vimonly := newT
 	for _, name := range []string{"toUpper", "toLower"} {
-		ev := z29Expand(tables[key{"old", name}])
-		em := z29Expand(tables[key{"old", "musl_" + name}])
-		var keep []z29RowT
+		ev := w112Expand(tables[key{"old", name}])
+		em := w112Expand(tables[key{"old", "musl_" + name}])
+		var keep []w112RowT
 		for _, rr := range tables[key{"new", name}] {
 			_, inEm := em[rr[0]]
 			_, inEv := ev[rr[0]]
@@ -553,7 +553,7 @@ func Check(w io.Writer, args []string) error {
 				"where the input had %d, so the `vimonly` control is not the input's "+
 				"table", name, len(keep), len(tables[key{"old", name}]))
 		}
-		vimonly = z29Retable(vimonly, name, keep)
+		vimonly = w112Retable(vimonly, name, keep)
 	}
 	if vimonly == newT {
 		return stop("the `vimonly` control is the output unchanged, so the union added " +
@@ -562,7 +562,7 @@ func Check(w io.Writer, args []string) error {
 	if err := os.WriteFile(filepath.Join(tmp, "vimonly.c"), []byte(vimonly), 0o644); err != nil {
 		return err
 	}
-	vimless := z29Retable(newT, "toUpper", tables[key{"old", "musl_toUpper"}])
+	vimless := w112Retable(newT, "toUpper", tables[key{"old", "musl_toUpper"}])
 	if err := os.WriteFile(filepath.Join(tmp, "vimless.c"), []byte(vimless), 0o644); err != nil {
 		return err
 	}
@@ -674,14 +674,14 @@ func Check(w io.Writer, args []string) error {
 	cutLines := map[string]int{}
 	boundary := map[string]string{}
 	for _, x := range []struct{ src, base string }{{f, "whim-vim.c"}, {oldC, "old.c"}} {
-		lines := check.Z28Cut(check.ReadFile(x.src))
+		lines := check.W111Cut(check.ReadFile(x.src))
 		text := ""
 		for _, l := range lines {
 			text += l + "\n"
 		}
 		cp := filepath.Join(tmp, "cut.c")
 		os.WriteFile(cp, []byte(text), 0o644)
-		if check.Z29Hash.MatchString(text) {
+		if check.W112Hash.MatchString(text) {
 			return stop("the cut of %s holds a directive", x.src)
 		}
 		c := exec.Command("gcc", "-O0", "-fno-stack-protector", "-Wall", "-Wextra",
@@ -718,10 +718,10 @@ func Check(w io.Writer, args []string) error {
 			return harness.ErrReported
 		}
 		set := map[string]bool{}
-		for _, m := range check.Z29Undef.FindAllString(eb.String(), -1) {
+		for _, m := range check.W112Undef.FindAllString(eb.String(), -1) {
 			set[m] = true
 		}
-		names := check.Z27Keys(set)
+		names := check.W110Keys(set)
 		bt := ""
 		for _, n := range names {
 			bt += n + "\n"
@@ -787,7 +787,7 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 6. twelve probes on both binaries, and the two controls --------------
 	oldBin, _ := filepath.Abs(filepath.Join(state, "old"))
-	if err := z29Probes(r, oldBin, bin, vimonlyBin, vimlessBin); err != nil {
+	if err := w112Probes(r, oldBin, bin, vimonlyBin, vimlessBin); err != nil {
 		return err
 	}
 
@@ -798,11 +798,11 @@ func Check(w io.Writer, args []string) error {
 	wgR.Add(2)
 	go func() {
 		defer wgR.Done()
-		errRO = check.RecZ(oldBin, oldC, filepath.Join(tmp, "REC.old"))
+		errRO = check.RecCore(oldBin, oldC, filepath.Join(tmp, "REC.old"))
 	}()
 	go func() {
 		defer wgR.Done()
-		errRN = check.RecZ(bin, f, filepath.Join(tmp, "REC.new"))
+		errRN = check.RecCore(bin, f, filepath.Join(tmp, "REC.new"))
 	}()
 	wgR.Wait()
 	if check.RecReport(w, errRO, errRN) {
@@ -825,30 +825,30 @@ func Check(w io.Writer, args []string) error {
 	return nil
 }
 
-type z29Session struct {
+type w112Session struct {
 	Args []string
 	Keys [][]byte
 }
 
-type z29Probe struct {
+type w112Probe struct {
 	Name       string
-	session    z29Session
+	session    w112Session
 	mustDiffer bool
 	want       string
 }
 
-func z29Typed(seed string, keys ...string) z29Session {
+func w112Typed(seed string, keys ...string) w112Session {
 	k := [][]byte{[]byte("i" + seed + "\x1b"), []byte(":set nopaste\r")}
 	for _, x := range keys {
 		k = append(k, []byte(x))
 	}
 	k = append(k, []byte("\x1b:q!\r"))
-	return z29Session{[]string{"+set paste"}, k}
+	return w112Session{[]string{"+set paste"}, k}
 }
 
-// z29Line is the first line of the last screen the editor drew -- the edited
+// w112Line is the first line of the last screen the editor drew -- the edited
 // text.
-func z29Line(rec string) string {
+func w112Line(rec string) string {
 	last, ok := "", false
 	for _, p := range harness.SplitRecord(rec) {
 		if strings.HasPrefix(p.Head, "snap") {
@@ -861,37 +861,37 @@ func z29Line(rec string) string {
 	return strings.TrimSpace(strings.SplitN(last, "\n", 2)[0])
 }
 
-func z29Probes(r *check.Rep, oldBin, newBin, vimonlyBin, vimlessBin string) error {
-	low, up, ss := z29ProbeText, z29ProbeUp, "ß"
+func w112Probes(r *check.Rep, oldBin, newBin, vimonlyBin, vimlessBin string) error {
+	low, up, ss := w112ProbeText, w112ProbeUp, "ß"
 	const subst = ":s/.*/\\U&/\r"
 	// name, session, must-differ, what the NEW record must SHOW.  A record
 	// that is equal because both binaries did nothing is two failures
 	// agreeing, so every row says what it expects to see.
-	probes := []z29Probe{
+	probes := []w112Probe{
 		// THE FOUR THAT MOVE ON THE NON-INTERNAL ARM.
-		{"empty_gUU", z29Typed(low, ":set casemap=\r", "gUU"), true, "Ⓐ Ⱟ 𐕰 𐵐 ẞ"},
-		{"empty_guu", z29Typed(up, ":set casemap=\r", "guu"), true, "ⓐ ⱟ 𐖗 𐵰 ß"},
-		{"keepascii_gUU", z29Typed(low, ":set casemap=keepascii\r", "gUU"), true, "Ⓐ Ⱟ 𐕰 𐵐 ẞ"},
-		{"empty_subst_U", z29Typed(low, ":set casemap=\r", subst), true, "Ⓐ Ⱟ 𐕰 𐵐 ẞ"},
+		{"empty_gUU", w112Typed(low, ":set casemap=\r", "gUU"), true, "Ⓐ Ⱟ 𐕰 𐵐 ẞ"},
+		{"empty_guu", w112Typed(up, ":set casemap=\r", "guu"), true, "ⓐ ⱟ 𐖗 𐵰 ß"},
+		{"keepascii_gUU", w112Typed(low, ":set casemap=keepascii\r", "gUU"), true, "Ⓐ Ⱟ 𐕰 𐵐 ẞ"},
+		{"empty_subst_U", w112Typed(low, ":set casemap=\r", subst), true, "Ⓐ Ⱟ 𐕰 𐵐 ẞ"},
 		// AND THE TWO THAT MOVE ON THE DEFAULT ARM, which is the one row,
 		// reached through `\U` because swapchar() hard-codes U+00DF.
-		{"default_subst_U", z29Typed(low, subst), true, "Ⓐ Ⱟ 𐕰 𐵐 ẞ"},
-		{"default_subst_ss", z29Typed(ss, subst), true, "ẞ"},
+		{"default_subst_U", w112Typed(low, subst), true, "Ⓐ Ⱟ 𐕰 𐵐 ẞ"},
+		{"default_subst_ss", w112Typed(ss, subst), true, "ẞ"},
 		// THE SIX THAT MUST NOT MOVE.
-		{"default_gUU", z29Typed(low, "gUU"), false, "Ⓐ Ⱟ 𐕰 𐵐 ẞ"},
-		{"default_guu", z29Typed(up, "guu"), false, "ⓐ ⱟ 𐖗 𐵰 ß"},
-		{"internal_gUU", z29Typed(low, ":set casemap=internal\r", "gUU"), false, "Ⓐ Ⱟ 𐕰 𐵐 ẞ"},
-		{"empty_subst_ss", z29Typed(ss, ":set casemap=\r", subst), false, "ẞ"},
-		{"tilde_ss", z29Typed(ss, "0", "g~g~"), false, "ẞ"},
+		{"default_gUU", w112Typed(low, "gUU"), false, "Ⓐ Ⱟ 𐕰 𐵐 ẞ"},
+		{"default_guu", w112Typed(up, "guu"), false, "ⓐ ⱟ 𐖗 𐵰 ß"},
+		{"internal_gUU", w112Typed(low, ":set casemap=internal\r", "gUU"), false, "Ⓐ Ⱟ 𐕰 𐵐 ẞ"},
+		{"empty_subst_ss", w112Typed(ss, ":set casemap=\r", subst), false, "ẞ"},
+		{"tilde_ss", w112Typed(ss, "0", "g~g~"), false, "ẞ"},
 		// the chartab the 892 startup calls of towupper/towlower build.
-		{"isk_at", z29Typed("café naïve", ":set isk=@\r", "0", "dw"), false, "naïve"},
+		{"isk_at", w112Typed("café naïve", ":set isk=@\r", "0", "dw"), false, "naïve"},
 	}
 	controls := []struct{ cname, binary, probe string }{
 		{"vimonly", vimonlyBin, "default_subst_ss"},
 		{"vimonly", vimonlyBin, "empty_subst_ss"},
 		{"vimless", vimlessBin, "default_gUU"},
 	}
-	session := map[string]z29Session{}
+	session := map[string]w112Session{}
 	for _, p := range probes {
 		session[p.Name] = p.session
 	}
@@ -912,7 +912,7 @@ func z29Probes(r *check.Rep, oldBin, newBin, vimonlyBin, vimlessBin string) erro
 		go func() {
 			defer wg.Done()
 			s := session[j.Name]
-			t, _ := check.ZRecordStream(j.binary, s.Args, s.Keys, 10*time.Second)
+			t, _ := check.CoreRecordStream(j.binary, s.Args, s.Keys, 10*time.Second)
 			mu.Lock()
 			rec[j] = t
 			mu.Unlock()
@@ -925,20 +925,20 @@ func z29Probes(r *check.Rep, oldBin, newBin, vimonlyBin, vimlessBin string) erro
 		o, n := rec[job{p.Name, oldBin}], rec[job{p.Name, newBin}]
 		if !strings.Contains(n, p.want) {
 			fail = append(fail, fmt.Sprintf("%s: the new binary shows %s and not %s, so the comparison below "+
-				"is two failures agreeing", p.Name, check.PyRepr26(z29Line(n)), check.PyRepr26(p.want)))
+				"is two failures agreeing", p.Name, check.PyRepr26(w112Line(n)), check.PyRepr26(p.want)))
 		}
 		if p.mustDiffer && o == n {
 			fail = append(fail, fmt.Sprintf("%s DID NOT MOVE, and this phase claims it does: %s",
-				p.Name, check.PyRepr26(z29Line(n))))
+				p.Name, check.PyRepr26(w112Line(n))))
 		}
 		if !p.mustDiffer && o != n {
 			fail = append(fail, fmt.Sprintf("%s MOVED, and this phase claims it does not: %s -> %s",
-				p.Name, check.PyRepr26(z29Line(o)), check.PyRepr26(z29Line(n))))
+				p.Name, check.PyRepr26(w112Line(o)), check.PyRepr26(w112Line(n))))
 		}
 		if p.mustDiffer {
-			moved = append(moved, fmt.Sprintf("%s %s -> %s", p.Name, check.PyRepr26(z29Line(o)), check.PyRepr26(z29Line(n))))
+			moved = append(moved, fmt.Sprintf("%s %s -> %s", p.Name, check.PyRepr26(w112Line(o)), check.PyRepr26(w112Line(n))))
 		} else {
-			still = append(still, fmt.Sprintf("%s == %s", p.Name, check.PyRepr26(z29Line(n))))
+			still = append(still, fmt.Sprintf("%s == %s", p.Name, check.PyRepr26(w112Line(n))))
 		}
 	}
 	for _, c := range controls {
@@ -952,7 +952,7 @@ func z29Probes(r *check.Rep, oldBin, newBin, vimonlyBin, vimlessBin string) erro
 				"it removes is not exactly what the union adds", c.probe))
 		}
 	}
-	vl := z29Line(rec[job{"default_gUU", vimlessBin}])
+	vl := w112Line(rec[job{"default_gUU", vimlessBin}])
 	if strings.Contains(vl, "Ⓐ") {
 		fail = append(fail, fmt.Sprintf("the `vimless` control still uppercases the circled letter, so it is "+
 			"not the careless merge it is meant to be: %s", check.PyRepr26(vl)))
@@ -976,7 +976,7 @@ func z29Probes(r *check.Rep, oldBin, newBin, vimonlyBin, vimlessBin string) erro
 		"row buys.  With toUpper[] replaced by the input's musl_toUpper[] -- the merge "+
 		"done the careless way round -- default_gUU draws %s and the circled letter is "+
 		"gone, which is the regression no record could report",
-		check.PyRepr26(z29Line(rec[job{"empty_subst_ss", vimonlyBin}])),
-		check.PyRepr26(z29Line(rec[job{"empty_subst_ss", newBin}])), check.PyRepr26(vl))
+		check.PyRepr26(w112Line(rec[job{"empty_subst_ss", vimonlyBin}])),
+		check.PyRepr26(w112Line(rec[job{"empty_subst_ss", newBin}])), check.PyRepr26(vl))
 	return nil
 }
