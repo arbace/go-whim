@@ -1,4 +1,4 @@
-# surveys/
+# doc/
 
 Investigations that measured something and changed no code. Each was written to
 answer one question, each states what it measured and how, and **each is dated

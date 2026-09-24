@@ -36,7 +36,7 @@ s). Not worth the re-derivation and a full whim-verify today; one env var
 away if the balance changes. The reporter (`go tool whim reach`, cast-guarded)
 stays the standing answer to what is still dead: 16 on the product.
 
-**In-AST editing.** `surveys/AST-EDITING.md`, and `GOALS.md`'s *What comes next*.
+**In-AST editing.** `doc/AST-EDITING.md`, and `GOALS.md`'s *What comes next*.
 Not on cost: `internal/cemit` joins the AST to the source text by byte offset, so
 a mutation moves the tree while the text stands still, and deleting a table row
 gives BYTE-IDENTICAL output -- an edit that did nothing, which `whim-build-check`

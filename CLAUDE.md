@@ -118,6 +118,8 @@ Makefile           the whole build: fetches the input, runs the pipeline, builds
 src/               the input and the product: slim-vim.c (fetched, not tracked),
                    whim-vim.c (produced, tracked), their binaries slim-vim and
                    whim-vim, upstream.sha and slim.sha
+doc/               the surveys: measured assessments of what the pipeline could
+                   become (README.md indexes them)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go

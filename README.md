@@ -120,6 +120,8 @@ internal/gen/    the generator of editor/editor.go (go tool whim gen), splice/
                  editor/), pre/ (whim pre: ccx's reports on an editor.c),
                  sigs.md, CONVENTIONS.md and FINDINGS.md
 Makefile         the whole build: the input, the pipeline, the binaries, the editor
+doc/             the surveys: measured assessments of what the pipeline could
+                 become (README.md indexes them)
 src/             the input and the product, their binaries and digests:
                  whim-vim.c (the product, tracked; make editor.c cuts the core
                  out of it), slim-vim.c (the input, fetched, not tracked),

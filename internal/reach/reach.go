@@ -1,6 +1,6 @@
 // Package reach is a reachability closure over one C translation unit, of
 // every kind of thing the sweep's six deleting tools delete, and it REPORTS:
-// it changes no text.  surveys/REACHABILITY.md is the measurement it was
+// it changes no text.  doc/REACHABILITY.md is the measurement it was
 // built from; this is that survey's throwaway instrument made a partition.
 //
 // An entity is one of eight kinds:
@@ -652,7 +652,7 @@ func (c *Closure) Partition() ccx.Result {
 }
 
 // The ways an unreachable entity is found, and what deleting it would need
-// beyond deleting it.  The last three are surveys/REACHABILITY.md's guards,
+// beyond deleting it.  The last three are doc/REACHABILITY.md's guards,
 // carried as findings rather than filters: a filter silently keeps a thing,
 // and a finding says what it would not touch and why.
 const (
