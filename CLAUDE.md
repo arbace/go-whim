@@ -68,7 +68,7 @@ steps only (`internal/steps`). An edit registers itself with `internal/edit` in
 an `init()`, and `internal/phase/registry.go` is what links them in -- `cmd/whim`
 imports it blank.
 
-**`GOALS.md`** is what holds for every phase: Part I (phases 0-82: the charter,
+**`doc/GOALS.md`** is what holds for every phase: Part I (phases 0-82: the charter,
 what was measured and the declared delta -- a record now, see its opening -- the rules, the sweep, the concept index,
 an index of the phases) and Part II (phases 83 on: the core's charter, what is
 measured from 83 on, the core's rules -- cited as *core rule N*, and holding beside
@@ -118,8 +118,9 @@ Makefile           the whole build: fetches the input, runs the pipeline, builds
 src/               the input and the product: slim-vim.c (fetched, not tracked),
                    whim-vim.c (produced, tracked), their binaries slim-vim and
                    whim-vim, upstream.sha and slim.sha
-doc/               the surveys: measured assessments of what the pipeline could
-                   become (README.md indexes them)
+doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
+                   done, in order), and the surveys: measured assessments of
+                   what the pipeline could become (README.md indexes them)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
@@ -209,7 +210,7 @@ was the input boundary's digest and the implementation's together, so a moved
   over them; a second one goes in a worktree.
 - **The analysis tools report, they do not cut**: `go tool whim reach FILE` is
   what nothing reaches in a text, with gcc as its control and struct casts held;
-  `WHIM_CLOSURE=1` makes the sweep delete by it, and is off (`AGENDA.md`,
+  `WHIM_CLOSURE=1` makes the sweep delete by it, and is off (`doc/AGENDA.md`,
   *Declined*).
 
 ## The core and the host

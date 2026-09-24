@@ -1,5 +1,10 @@
 # doc/
 
+**`GOALS.md`** is what holds for every phase -- the charters, the rules, an index
+of the phases, and Part II's appendix, the plan phases 83 onwards were built
+from. **`AGENDA.md`** is what is not done, in the order it has to happen. The
+rest of this directory is the surveys:
+
 Investigations that measured something and changed no code. Each was written to
 answer one question, each states what it measured and how, and **each is dated
 evidence rather than doctrine**: a later measurement may have overturned part of

@@ -44,7 +44,7 @@ to be derived from upstream.
 - **`internal/phase/NNN/`** — one directory per phase, numbered in three digits:
   **`GOAL.md`** — what it removes, why, and what was measured — and, where the
   cut is a program, **`edit.go`**, which makes it a Go package of its own.
-- **`GOALS.md`** — what holds for every phase. **Part I** is phases 0-82, **Part
+- **`doc/GOALS.md`** — what holds for every phase. **Part I** is phases 0-82, **Part
   II** phases 83 onwards with the core's own charter and rules; each has an index
   of its phases, Part II's *Adding a phase* is the process for the next one, and
   its appendix is the plan phases 83 onwards were built from (sections II.1-II.6).
@@ -120,8 +120,9 @@ internal/gen/    the generator of editor/editor.go (go tool whim gen), splice/
                  editor/), pre/ (whim pre: ccx's reports on an editor.c),
                  sigs.md, CONVENTIONS.md and FINDINGS.md
 Makefile         the whole build: the input, the pipeline, the binaries, the editor
-doc/             the surveys: measured assessments of what the pipeline could
-                 become (README.md indexes them)
+doc/             GOALS.md (what holds for every phase), AGENDA.md (what is not
+                 done, in order), and the surveys: measured assessments of
+                 what the pipeline could become (README.md indexes them)
 src/             the input and the product, their binaries and digests:
                  whim-vim.c (the product, tracked; make editor.c cuts the core
                  out of it), slim-vim.c (the input, fetched, not tracked),
