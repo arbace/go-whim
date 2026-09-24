@@ -107,8 +107,6 @@ phase/boundaries.md every boundary's lines, entity counts, binary and nm -u, as
 tools/             st.sh, which finds the Go binary (gobuild.sh builds it):
                    every tool is `tools/st.sh <name>` at a prompt; and the
                    musl data phase 98 splices in
-tools/templates/   whim.mk, the makefile phase 0 starts from, and core.mk, the one
-                   phase 83 writes over it
 editor/            the core in Go: editor.go GENERATED (make editor/editor.go; never edit it),
                    its runtime crt.go and host host.go by hand
 tx/                skel (types, globals, signatures and, with -bodies, the bodies),
@@ -157,12 +155,11 @@ make help            # every target, with a line each
   when the content differs and never runs make: through `whim-vim.c`'s rule it
   could start a build. The binary is `bin/whim`.
 
-- **The compile line is the boundary's**, in the work tree's `Makefile`. Up to
-  q82 it is `gcc -O0 -static -s` (a static-PIE); phase 83 writes
-  `tools/templates/core.mk` over it, `-static -no-pie -s`, and phase 84 adds
-  `-fno-stack-protector` (`internal/build`'s `Makefile` field). `whim.mk` states
-  the product's flags once more as `WHIMCFLAGS`/`WHIMLDFLAGS`, and the input's
-  as `SLIMCFLAGS`/`SLIMLDFLAGS`, for a checkout with no work tree to read.
+- **The compile line is the boundary's** (`internal/build/compile.go`'s
+  `FlagsFor(n)`, from each phase's `Line` in the plan). Up to q82 it is `gcc -O0
+  -static -s` (a static-PIE); phase 83 makes it `-static -no-pie -s`, and phase 84
+  adds `-fno-stack-protector`. `whim.mk` states the product's flags once more as
+  `WHIMCFLAGS`/`WHIMLDFLAGS`, and the input's as `SLIMCFLAGS`/`SLIMLDFLAGS`.
 - **No `-g`**, so a formatting change leaves the binary byte-identical -- the
   cheapest comparison there is. `SOURCE_DATE_EPOCH=0` pins `__DATE__`/`__TIME__`
   when two builds are compared.

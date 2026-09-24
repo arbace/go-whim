@@ -85,8 +85,8 @@ func measureOne(path string, compile bool) string {
 }
 
 // binaryOf builds the boundary with the compile line its phase leaves
-// (build.MakefileFor -- whim.mk to 82, core.mk from 83, the stack protector
-// gone from 84) and SOURCE_DATE_EPOCH=0, and returns the binary's size and
+// (build.FlagsFor -- the input's line to 82, -no-pie from 83, the stack
+// protector gone from 84) and SOURCE_DATE_EPOCH=0, and returns the binary's size and
 // the count of undefined symbols the gate counts (score.Symbols), or why not.
 func binaryOf(path, phase string) (string, string) {
 	n, _ := strconv.Atoi(phase)
@@ -99,11 +99,13 @@ func binaryOf(path, phase string) (string, string) {
 	if err := os.WriteFile(filepath.Join(dir, "whim-vim.c"), src, 0o644); err != nil {
 		return "err", "err"
 	}
-	if err := build.MakefileFor(n, filepath.Join(dir, "Makefile")); err != nil {
-		return "no-mk", "-"
+	cflags, ldflags, err := build.FlagsFor(n)
+	if err != nil {
+		return "no-line", "-"
 	}
 	bin, nmu := "fails", "-"
-	cmd := exec.Command("make", "-s", "-C", dir)
+	args := append(append(cflags, ldflags...), "-o", filepath.Join(dir, "whim-vim"), filepath.Join(dir, "whim-vim.c"))
+	cmd := exec.Command("gcc", args...)
 	cmd.Env = append(os.Environ(), "SOURCE_DATE_EPOCH=0")
 	if cmd.Run() == nil {
 		if fi, err := os.Stat(filepath.Join(dir, "whim-vim")); err == nil {

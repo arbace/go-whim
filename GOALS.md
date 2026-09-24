@@ -1184,10 +1184,9 @@ Cited as *core rule N*; Part I's rules still hold.
    static-PIE, and from 83 the binary is an ordinary static executable — `readelf -h`
    says `EXEC`, with no `INTERP`, no dynamic section and no relocations — because a core
    with nothing left to relocate is one a host can place without a loader. Every further
-   flag is **a phase of its own**, and a phase changes the flags by editing the
-   boundary's `Makefile` (in the work tree, `.tmp/whim-stage/`), never `tools/templates/core.mk`, which phase 83 writes and
-   which is in its key. `-fno-stack-protector` is phase 84. `whim.mk` states the result
-   once more as `WHIMCFLAGS` and `WHIMLDFLAGS`, for a checkout with no work tree.
+   flag is **a phase of its own**, set by its plan entry's `Line`
+   (`internal/build/compile.go`'s `FlagsFor`). `-fno-stack-protector` is phase 84.
+   The `Makefile` states the result once more as `WHIMCFLAGS` and `WHIMLDFLAGS`.
 9. **`tools/` is shared, and gated.** A change to a tool the build runs must
    leave `make whim-build-check` passing (the product is unmoved). There is no key
    to move any more: what was `tools/implhash.sh`'s account of which units a tool

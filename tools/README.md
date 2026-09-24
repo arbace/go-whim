@@ -27,7 +27,6 @@ and every cutter a phase names, each runnable on a file by hand.
 | --- | --- |
 | `st.sh` | runs `whimtools`: builds it if it must (`gobuild.sh`) and execs it. A makefile rule and a person at a prompt reach the toolset the same way |
 | `gobuild.sh` | builds `whimtools`, content-keyed on go.mod, go.sum and every .go under cmd/, internal/ and phase/ |
-| `templates/whim.mk`, `templates/core.mk` | the makefile phase 0 starts from, and the one phase 83 writes over it |
 | `musl-case.txt`, `musl-ctype.txt` | the musl definitions phase 98 splices into the tree |
 
 Every one of them runs from the repository root and writes its temporaries in

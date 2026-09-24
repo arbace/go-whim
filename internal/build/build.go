@@ -85,12 +85,6 @@ func Run(o *Options) ([]byte, error) {
 		return nil, err
 	}
 	path := filepath.Join(work, "whim-vim.c")
-	mk := filepath.Join(work, "Makefile")
-	if o.From > 0 {
-		if err := MakefileFor(o.From, mk); err != nil {
-			return nil, err
-		}
-	}
 
 	var text []byte
 	if o.From > 0 {
@@ -117,11 +111,6 @@ func Run(o *Options) ([]byte, error) {
 		}
 		if text == nil {
 			return nil, fmt.Errorf("build: phase %d runs before the input was seeded", p.N)
-		}
-		if p.Makefile != "" {
-			if err := ApplyMakefile(p.Makefile, mk); err != nil {
-				return nil, fmt.Errorf("phase %d: makefile: %w", p.N, err)
-			}
 		}
 		if p.NoSource {
 			if err := o.keep(p.N, text); err != nil {
@@ -172,9 +161,8 @@ func Run(o *Options) ([]byte, error) {
 				bytes.Count(text, []byte("\n")))
 		}
 	}
-	// The work tree is left as the pipeline leaves it: the source and the
-	// makefile it was produced with, which is what a phase program run by hand
-	// (the baseline recorders, phase 0 and phase 83) is handed.
+	// The work tree is left holding the source the pipeline leaves; its compile
+	// line is FlagsFor the last phase run.
 	if err := os.WriteFile(path, text, 0o644); err != nil {
 		return nil, err
 	}
