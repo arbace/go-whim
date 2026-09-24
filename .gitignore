@@ -1,12 +1,13 @@
 # The input, fetched by `make` from github.com/arbace/slim-vim at the commit in
-# upstream.sha.  Not tracked: this repository records WHICH slim-vim.c it was
-# built from (upstream.sha, and its digest in slim.sha), as arbace/slim-vim
-# records the upstream vim commit it was built from and not the tree.
-slim-vim.c
+# src/upstream.sha.  Not tracked: this repository records WHICH slim-vim.c it
+# was built from (src/upstream.sha, and its digest in src/slim.sha), as
+# arbace/slim-vim records the upstream vim commit it was built from and not the
+# tree.
+/src/slim-vim.c
 
-# The products' binaries: the C product's, and the editor's, the core in Go.
-slim-vim
-whim-vim
+# The binaries: the input's and the C product's, and the editor's, the core in Go.
+/src/slim-vim
+/src/whim-vim
 /bin/
 
 # The core half of whim-vim.c, cut at the first #include by `make editor.c`.

@@ -18,7 +18,7 @@ slim-vim.c  --whim-->  whim-vim.c
   unit, produced by [arbace/slim-vim](https://github.com/arbace/slim-vim), whose
   pipeline removes the preprocessor, the comments and dead code and **changes
   nothing the editor does**. `make` fetches it and vim's `LICENSE` at the commit
-  that repository's `main` points to, and records the commit in `upstream.sha`.
+  that repository's `main` points to, and records the commit in `src/upstream.sha`.
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
 - **whim** (the `Makefile`) removes capability on purpose, 164 phases from 180,870
@@ -56,7 +56,7 @@ and the reader takes the fence and ignores the rest -- `internal/build`'s
 `declared()` reads `internal/phase/080/delta.md` that way (the command rows phase 80's
 edit cuts), and phase 98's edit embeds `internal/phase/098/musl-ctype.md` and
 `musl-case.md` and splices their fenced C in byte for byte. What is left outside
-the rule is what Markdown would only obscure: `slim.sha` and `upstream.sha`, one
+the rule is what Markdown would only obscure: `src/slim.sha` and `src/upstream.sha`, one
 digest each, read by `make`.
 
 **A phase is a directory, `internal/phase/NNN/`**, its number in three digits so that they
@@ -76,7 +76,7 @@ Part I's -- *Phases 83 to 128 as they stand*, *Adding a phase*, an index of the
 phases, and an appendix: the plan phases 83 onwards were built from, its sections
 numbered II.1-II.6 and cited `GOALS.md II.4c`), then *What comes next*.
 
-`whim-vim.c` is **produced, not edited**. `slim.sha` records the digest of the
+`src/whim-vim.c` is **produced, not edited**. `src/slim.sha` records the digest of the
 `slim-vim.c` the committed `whim-vim.c` came from.
 
 **There is no Python and no agent here.** Every phase is a program; a phase that
@@ -115,6 +115,9 @@ internal/gen/      the generator of editor/editor.go (`go tool whim gen`; `whim
                    editor.c), sigs.md, CONVENTIONS.md and FINDINGS.md
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
                    binaries and the editor
+src/               the input and the product: slim-vim.c (fetched, not tracked),
+                   whim-vim.c (produced, tracked), their binaries slim-vim and
+                   whim-vim, upstream.sha and slim.sha
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go

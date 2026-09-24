@@ -23,7 +23,7 @@ import (
 // plan was derived from the phase programs, so what holds it to them is that
 // the product comes back byte for byte.
 func runBuild(args []string) int {
-	o := &build.Options{Src: "slim-vim.c", To: -1, W: os.Stdout}
+	o := &build.Options{Src: "src/slim-vim.c", To: -1, W: os.Stdout}
 	// NOTHING IS WRITTEN WITHOUT --out.  This defaulted to `whim-vim.c`, so a
 	// measurement run -- `--canonical`, `--keep-going`, `--to N` -- overwrote
 	// the tracked product just by being run from the repository root.  It
@@ -91,7 +91,7 @@ func runBuild(args []string) int {
 	}
 	if check {
 		// --check reads the committed product and compares; it writes nothing.
-		want, err := os.ReadFile("whim-vim.c")
+		want, err := os.ReadFile("src/whim-vim.c")
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 			return 1

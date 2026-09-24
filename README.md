@@ -14,7 +14,7 @@ no preprocessor, no comments, every body braced — produced by
 [arbace/slim-vim](https://github.com/arbace/slim-vim), whose own pipeline changes
 nothing about what the editor does. `make` asks that repository for its head,
 fetches `slim-vim.c` and vim's `LICENSE` at exactly that commit, and records the
-commit in `upstream.sha`.
+commit in `src/upstream.sha`.
 
 **whim** (the `Makefile`, 164 phases) removes capability on purpose. **Phases 0-82** remove the runtime files, the eval layer,
 windows beyond one, buffers beyond one, the command-line arguments and 489 Ex
@@ -120,9 +120,12 @@ internal/gen/    the generator of editor/editor.go (go tool whim gen), splice/
                  editor/), pre/ (whim pre: ccx's reports on an editor.c),
                  sigs.md, CONVENTIONS.md and FINDINGS.md
 Makefile         the whole build: the input, the pipeline, the binaries, the editor
-whim-vim.c       the product, tracked; make editor.c cuts the core out of it
-upstream.sha     the arbace/slim-vim commit slim-vim.c was fetched from
-slim.sha         slim-vim.c's digest, from which whim-vim.c was produced
+src/             the input and the product, their binaries and digests:
+                 whim-vim.c (the product, tracked; make editor.c cuts the core
+                 out of it), slim-vim.c (the input, fetched, not tracked),
+                 upstream.sha (the arbace/slim-vim commit slim-vim.c was
+                 fetched from), slim.sha (slim-vim.c's digest, from which
+                 whim-vim.c was produced), and the binaries slim-vim, whim-vim
 ```
 
 ## License

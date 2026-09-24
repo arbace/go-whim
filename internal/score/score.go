@@ -27,38 +27,38 @@ import (
 func Score(w io.Writer) {
 	c, l, _ := build.FlagsFor(0)
 	cflags, ldflags := strings.Join(c, " "), strings.Join(l, " ")
-	scoreRow(w, "slim-vim", "slim-vim.c", "slim-vim", ldflags, cflags)
-	scoreRow(w, "whim-vim", "whim-vim.c", "whim-vim", ldflags, cflags)
+	scoreRow(w, "slim-vim", "src/slim-vim.c", ldflags, cflags)
+	scoreRow(w, "whim-vim", "src/whim-vim.c", ldflags, cflags)
 }
 
-func scoreRow(w io.Writer, name, src, bin, ldflags, cflags string) {
+func scoreRow(w io.Writer, name, src, ldflags, cflags string) {
 	sst, err := os.Stat(src)
 	if err != nil || !sst.Mode().IsRegular() {
 		fmt.Fprintf(w, "  %-10s %s\n", name, "absent")
 		return
 	}
-	// BUILD WHEN THE BINARY IS MISSING **OR OLDER THAN THE SOURCE**.  Testing
-	// only for absence reports the bytes of whatever was lying about: measured,
-	// after phases 97-99 this printed 799,816 for a source that builds to
-	// 805,544, because the binary on disk predated them by eight hours.  The
-	// lines and the symbols were right -- both are recomputed from the source
-	// below -- so the one stale column was the plausible-looking one.  "Older"
-	// is in whole seconds, as the shell's `-nt` compared it.
-	bst, err := os.Stat(bin)
-	if err != nil || !bst.Mode().IsRegular() || sst.ModTime().Unix() > bst.ModTime().Unix() {
-		args := append(append(strings.Fields(cflags), strings.Fields(ldflags)...), "-o", bin, src)
-		cmd := exec.Command("gcc", args...)
-		cmd.Stdout = w
-		cmd.Run()
-	}
+	// BUILT FRESH, INTO A SCRATCH DIRECTORY, every time.  It reused the binary
+	// beside the source when it was not older, and once reported the bytes of a
+	// binary eight hours stale; and the binaries beside the sources are make's,
+	// stamped with the digest they were built from (the Makefile), which a
+	// binary written here would not be.
 	data, _ := os.ReadFile(src)
 	lines := bytes.Count(data, []byte{'\n'})
 	if len(data) > 0 && data[len(data)-1] != '\n' {
 		lines++
 	}
 	var size int64
-	if st, err := os.Stat(bin); err == nil && st.Mode().IsRegular() {
-		size = st.Size()
+	if dir, err := os.MkdirTemp("", "score-bin."); err == nil {
+		bin := filepath.Join(dir, name)
+		args := append(append(strings.Fields(cflags), strings.Fields(ldflags)...), "-o", bin, src)
+		cmd := exec.Command("gcc", args...)
+		cmd.Stdout = w
+		if cmd.Run() == nil {
+			if st, err := os.Stat(bin); err == nil {
+				size = st.Size()
+			}
+		}
+		os.RemoveAll(dir)
 	}
 	// What it needs from the world: undefined symbols in the object, which is
 	// the honest question.  A static binary has resolved them all already, so

@@ -4,8 +4,9 @@
 # a single translation unit, produced there by its own pipeline.  This makefile
 # asks that repository for its head, fetches slim-vim.c (and vim's LICENSE, which
 # every modified vim must carry) at exactly that commit, and records the commit in
-# upstream.sha.  Everything downstream is keyed on CONTENT, not on the commit:
-# whim-vim.c is produced again only when slim-vim.c's digest moved (slim.sha).
+# src/upstream.sha; the input, the product, their binaries and both digests
+# live in src/.  Everything downstream is keyed on CONTENT, not on the commit:
+# whim-vim.c is produced again only when slim-vim.c's digest moved (src/slim.sha).
 # So a slim-vim commit that does not change slim-vim.c costs a fetch and nothing
 # else.
 #
@@ -82,28 +83,28 @@ STAMPS = .cache/stamps
 
 # $(call drop-stale,BINARY), a shell command: remove BINARY when BINARY.c is not
 # what its stamp says it was built from, and say so.
-drop-stale = if [ -e $(1) ] && [ "`sha256sum $(1).c 2>/dev/null | cut -c1-64`" != "`cat $(STAMPS)/$(1).sha 2>/dev/null`" ]; then rm -f $(1); printf '  %-12s %s\n' "stale" "$(1).c is not what $(1) was built from -- removed; make $(1) builds it again"; fi
+drop-stale = if [ -e $(1) ] && [ "`sha256sum $(1).c 2>/dev/null | cut -c1-64`" != "`cat $(STAMPS)/$(notdir $(1)).sha 2>/dev/null`" ]; then rm -f $(1); printf '  %-12s %s\n' "stale" "$(1).c is not what $(1) was built from -- removed; make $(notdir $(1)) builds it again"; fi
 
 # $(call stamp,BINARY), a shell command: record the digest of BINARY.c, which
 # BINARY was just built from.
-stamp = mkdir -p $(STAMPS) && sha256sum $(1).c | cut -c1-64 > $(STAMPS)/$(1).sha
+stamp = mkdir -p $(STAMPS) && sha256sum $(1).c | cut -c1-64 > $(STAMPS)/$(notdir $(1)).sha
 
 empty :=
-$(foreach b,slim-vim whim-vim,$(eval _stale := $(shell $(call drop-stale,$(b))))$(if $(_stale),$(info $(empty)  $(_stale))))
+$(foreach b,src/slim-vim src/whim-vim,$(eval _stale := $(shell $(call drop-stale,$(b))))$(if $(_stale),$(info $(empty)  $(_stale))))
 
 # ==== the input
 # It cannot be a timestamp -- a clone writes every file at checkout time in
 # arbitrary order -- so the question asked is the remote's head against
-# upstream.sha.  An unreachable remote with a slim-vim.c on disk builds what is
+# src/upstream.sha.  An unreachable remote with a slim-vim.c on disk builds what is
 # there and says so; with none on disk there is nothing to build from.
-slim-vim.c: force  ## fetch the input at arbace/slim-vim's head, if it moved
+src/slim-vim.c: force  ## fetch the input at arbace/slim-vim's head, if it moved
 	@set -e; \
 	live=`GIT_TERMINAL_PROMPT=0 timeout 60 git ls-remote $(SLIMVIM_URL) $(SLIMVIM_BRANCH) 2>/dev/null | cut -f1` || true; \
 	if [ -z "$$live" ]; then \
 	    if [ -f $@ ]; then echo "  upstream     UNREACHABLE -- using the slim-vim.c on disk"; exit 0; fi; \
 	    echo "  upstream     UNREACHABLE and there is no slim-vim.c to build from"; exit 1; \
 	fi; \
-	if [ -f $@ ] && [ "$$live" = "`cat upstream.sha 2>/dev/null`" ]; then \
+	if [ -f $@ ] && [ "$$live" = "`cat src/upstream.sha 2>/dev/null`" ]; then \
 	    printf '  %-12s %s unchanged -- slim-vim.c is current\n' "upstream" "`echo $$live | cut -c1-12`"; \
 	    exit 0; \
 	fi; \
@@ -115,32 +116,35 @@ slim-vim.c: force  ## fetch the input at arbace/slim-vim's head, if it moved
 	mv -f "$$tmp/slim-vim.c" $@; \
 	mv -f "$$tmp/LICENSE" LICENSE; \
 	rm -rf "$$tmp"; \
-	echo "$$live" > upstream.sha; \
-	printf '  %-12s %s lines, sha256 %s\n' "slim-vim.c" "`grep -c '' $@`" "`sha256sum $@ | cut -c1-12`"; \
-	$(call drop-stale,slim-vim)
+	echo "$$live" > src/upstream.sha; \
+	printf '  %-12s %s lines, sha256 %s\n' "$@" "`grep -c '' $@`" "`sha256sum $@ | cut -c1-12`"; \
+	$(call drop-stale,src/slim-vim)
 
-slim-vim: slim-vim.c  ## the input's binary, compiled with the one line
+src/slim-vim: src/slim-vim.c
 	@printf '  %-12s %s\n' "compiling" "$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<"
 	@t0=`date +%s`; $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< && $(call stamp,$@); \
 	 printf '  %-12s %s bytes, static, not PIE, %ss\n' "$@" \
 	     "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
 	     "$$((`date +%s` - t0))"
 
+.PHONY: slim-vim
+slim-vim: src/slim-vim  ## the input's binary, src/slim-vim, compiled with the one line
+
 # ==== the product
 # whim-vim.c is keyed on slim-vim.c's content, not on mtimes: both are tracked,
 # and a fresh clone writes them at checkout time in arbitrary order, so an mtime
-# dependency would run a pass on a tree that is exactly right.  slim.sha records
+# dependency would run a pass on a tree that is exactly right.  src/slim.sha records
 # the slim-vim.c the committed whim-vim.c was produced from.
-whim-vim.c: slim-vim.c force
+src/whim-vim.c: src/slim-vim.c force
 	@set -e; \
-	live=`sha256sum slim-vim.c | cut -c1-64`; \
-	if [ -f $@ ] && [ "$$live" = "`cat slim.sha 2>/dev/null`" ]; then \
+	live=`sha256sum src/slim-vim.c | cut -c1-64`; \
+	if [ -f $@ ] && [ "$$live" = "`cat src/slim.sha 2>/dev/null`" ]; then \
 	    printf '  %-12s %s unchanged -- whim-vim.c is current\n' "slim-vim.c" "`echo $$live | cut -c1-12`"; \
 	    exit 0; \
 	fi; \
 	printf '  %-12s %s -- whim-vim.c must be produced\n' "slim-vim.c" "`echo $$live | cut -c1-12`"; \
 	$(MAKE) --no-print-directory whim-build; \
-	echo "$$live" > slim.sha
+	echo "$$live" > src/slim.sha
 
 # The pipeline in one process: 164 phases, in order, in memory -- internal/build's
 # plan and internal/steps' transformations.  It writes whim-vim.c (and editor.go
@@ -150,19 +154,22 @@ whim-vim.c: slim-vim.c force
 .PHONY: whim-build whim-build-check
 whim-build:  ## the 164 phases in one process: slim-vim.c -> whim-vim.c
 	@printf '\n\033[1m  whim-vim\033[0m  from slim-vim.c: an editor with no runtime\n'
-	@go tool whim build --out whim-vim.c
-	@$(call drop-stale,whim-vim)
+	@go tool whim build --out src/whim-vim.c
+	@$(call drop-stale,src/whim-vim)
 	@$(MAKE) --no-print-directory whim-editor
 
 whim-build-check:  ## the same build, required to give the committed bytes back
 	@go tool whim build --check
 
-whim-vim: whim-vim.c  ## the C product, compiled with the one line
+src/whim-vim: src/whim-vim.c
 	@printf '  %-12s %s\n' "compiling" "$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<"
 	@t0=`date +%s`; $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< && $(call stamp,$@); \
 	 printf '  %-12s %s bytes, static, not PIE, %ss\n' "$@" \
 	     "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
 	     "$$((`date +%s` - t0))"
+
+.PHONY: whim-vim
+whim-vim: src/whim-vim  ## the C product's binary, src/whim-vim, compiled with the one line
 
 # ==== the editor
 # whim-vim.c is one translation unit with two parts: above, the core editor, with
@@ -180,7 +187,7 @@ whim-vim: whim-vim.c  ## the C product, compiled with the one line
 # whim-vim.c's own rule they would start a build.
 define cut-editor
 	@awk '/^ *# *include / { exit } { a[NR] = $$0; if (NF) last = NR } \
-	      END { for (i = 1; i <= last; i++) print a[i] }' whim-vim.c > editor.c
+	      END { for (i = 1; i <= last; i++) print a[i] }' src/whim-vim.c > editor.c
 	@if grep -q '^ *#' editor.c; then \
 	    echo "  editor.c     REFUSED -- the cut holds a directive, so it found the wrong line:"; \
 	    grep -n '^ *#' editor.c | head -3 | sed 's/^/               /'; \
@@ -188,11 +195,11 @@ define cut-editor
 	 fi
 	@printf '  %-12s %s lines, cut at the first #include of %s\n' editor.c \
 	    "`grep -c '' editor.c | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
-	    "`grep -c '' whim-vim.c | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
+	    "`grep -c '' src/whim-vim.c | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
 endef
 
 .PHONY: editor.c
-editor.c: whim-vim.c  ## the core, cut from whim-vim.c at its first #include
+editor.c: src/whim-vim.c  ## the core, cut from whim-vim.c at its first #include
 	$(cut-editor)
 
 # editor/editor.go is GENERATED: internal/gen writes it whole from editor.c
@@ -226,7 +233,7 @@ bin/whim: editor/editor.go force  ## the editor binary alone, from editor/
 # ==== housekeeping
 .PHONY: clean
 clean:  ## remove the built binaries and editor.c
-	rm -f slim-vim whim-vim bin/whim editor.c
+	rm -f src/slim-vim src/whim-vim bin/whim editor.c
 
 .PHONY: clean-cache
 clean-cache:  ## remove .cache/ (the Go build cache, the sweep's compiles, the stamps)
