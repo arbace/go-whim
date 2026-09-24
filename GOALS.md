@@ -148,7 +148,7 @@ phase:**
 | enumerators | `deadenums` | no — a mention anywhere |
 
 Each is `internal/dead`, and a `go tool whim` subcommand of the same name; the
-phase accounts call them by the Python they were ported from (`tools/README.md`).
+phase accounts call them by the Python they were ported from (`cmd/whim/README.md`).
 
 **The sweep is not written into a phase program; the plan runs it, once per
 stage.** Every phase is two programs: `phase/NNN/edit.go` makes the cut (and
@@ -1187,7 +1187,7 @@ Cited as *core rule N*; Part I's rules still hold.
    (`-fno-stack-protector`), with phases 0 to 82 on `-O0 -static -s`, a static-PIE;
    it is one line now (`internal/build/compile.go`, and the `Makefile`'s `CFLAGS`
    and `LDFLAGS`), and those two phases change nothing.
-9. **`tools/` is shared, and gated.** A change to a tool the build runs must
+9. **The toolset is shared, and gated.** A change to a tool the build runs must
    leave `make whim-build-check` passing (the product is unmoved). There is no key
    to move any more: what was `tools/implhash.sh`'s account of which units a tool
    reached went with the memoize.

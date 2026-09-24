@@ -1,9 +1,8 @@
-# tools/
+# cmd/whim -- the toolset
 
 The toolset is `cmd/whim`, declared as a tool in `go.mod`, so it runs as
 `go tool whim <subcommand>`: Go builds it, caches it, and rebuilds it when any
-`.go` moves. The `Makefile` calls it the same way. This directory holds only
-the data phase 98 splices into the tree, and this file. There is no test suite:
+`.go` moves. The `Makefile` calls it the same way. There is no test suite:
 the checks, the deltas, the recorders and the baselines were removed after
 `448e9a8`, the last commit that has them.
 
@@ -22,10 +21,6 @@ the checks, the deltas, the recorders and the baselines were removed after
 `go tool whim` with no argument lists the rest: the dead-code tools one at a
 time and every cutter a phase names, each runnable on a file by hand. Every one
 runs from the repository root and writes its temporaries in `.tmp/`.
-
-| file | what it is |
-| --- | --- |
-| `musl-case.txt`, `musl-ctype.txt` | the musl definitions phase 98 splices into the tree |
 
 ## Retired, and what became of them
 
@@ -64,3 +59,4 @@ too, with the test suite; `448e9a8` is the last commit that has it.
 | `graph.py`, `sim.py`, `corpus.py`, `run2.py`, `argvcheck.py`, `allstatic.py`, `exsweep_stream.py`, `.tmp/…/seq.sh` and the like | throwaway probes under `/tmp` or `.tmp/`, never tracked; the text naming them says what they measured | -- |
 | `enumvals.sh`, `sweep.sh`, `nolibm_check.c`; the `whimtools` subcommands `verify`, `record`, `delta`, `check`, `phasecheck`, `phasebuild`, `symbols`, `nvidx`, `orphanopts`, `behaviour`, `termcheck`, `exsweep`, `starcheck`, `termrestore`, `complcheck`, `clicheck`, `muslctype`, `muslcase` and the ten `z*` | nothing: they were the test suite (the DWARF control, the checks' sweep, a phase-23 probe, the verifier, the recorders) | with the test suite, after `448e9a8` |
 | `st.sh`, `gobuild.sh` | `go tool whim <subcommand>`: `go.mod` declares `cmd/whim` (renamed from `cmd/whimtools`) as a tool, and Go builds and caches it | the commit that made the toolset a go tool |
+| `tools/musl-ctype.txt`, `tools/musl-case.txt`, and `tools/` itself | `phase/098/musl-ctype.md` and `musl-case.md`, embedded in phase 98's edit (the fenced block, byte for byte); this file moved to `cmd/whim/README.md` | the commit that embedded them |

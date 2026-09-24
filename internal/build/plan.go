@@ -563,7 +563,7 @@ var Plan = []Phase{
 		}, Sweep: true},
 	{N: 98, Name: "the character classes, the numbers and the sort",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim98", "tools/musl-ctype.txt", "tools/musl-case.txt"}},
+			{Op: "edit", Args: []string{"whim98"}},
 		}, Sweep: true},
 	{N: 99, Name: "the includes nothing names",
 		Steps: []Step{

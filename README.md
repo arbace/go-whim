@@ -112,7 +112,6 @@ internal/        the cutters, the sweep, the canonicalisers, the plan and its
                  pointer casts, evaluation order -- partitioned
 phase/NNN/       a phase: GOAL.md, and edit.go where its cut is a program
 phase/STAGES.md     the record the stages were read from: need, apart, the packages
-tools/           the musl data, and the toolset's README
 editor/          the core transpiled into Go, with its runtime and host
 tx/              tx/skel (the skeleton generator and, with -bodies, the body
                  emitter), tx/splice (measures the emitted bodies in a copy of

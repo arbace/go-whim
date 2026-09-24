@@ -53,11 +53,11 @@ slim-vim.c  --whim-->  whim-vim.c
 mix freely in one directory: `phase/099/` holds `edit.go` and `GOAL.md`. A
 data file in Markdown puts its data in a FENCED BLOCK and its notes around it,
 and the reader takes the fence and ignores the rest -- `internal/build`'s
-`declared()` reads `phase/080/delta.md` that way, the one data file a phase
-still has: the command rows phase 80's edit cuts. What is left outside the rule is what Markdown would only obscure:
-`slim.sha` and `upstream.sha` (one digest each, read by `make`), and the C that
-is C -- `tools/musl-case.txt` and `tools/musl-ctype.txt`, the definitions phase
-98 splices into the tree.
+`declared()` reads `phase/080/delta.md` that way (the command rows phase 80's
+edit cuts), and phase 98's edit embeds `phase/098/musl-ctype.md` and
+`musl-case.md` and splices their fenced C in byte for byte. What is left outside
+the rule is what Markdown would only obscure: `slim.sha` and `upstream.sha`, one
+digest each, read by `make`.
 
 **A phase is a directory, `phase/NNN/`**, its number in three digits so that they
 sort: `GOAL.md`, which opens `# Phase N — …` and says what the phase removes,
@@ -87,6 +87,7 @@ through to. arbace/slim-vim keeps both, for its own pipeline.
 
 ```
 cmd/whim/         the toolset, every tool a subcommand: go tool whim <subcommand>
+                   (README.md: each tool, and what each retired script became)
 internal/          the Go: cc (the forked C front end), sweep, canon, dead,
                    cut/cutil (the cutters), edit (what the phases' edits are
                    written against: the driver, and in shared.go what more than
@@ -104,8 +105,6 @@ phase/STAGES.md       the record the plan was read from: the stages, need and ap
                    the packages.  Prose now, not a manifest a program reads
 phase/boundaries.md every boundary's lines, entity counts, binary and nm -u, as
                    `go tool whim build --keep D` and `measure D` give them
-tools/             the musl data phase 98 splices in, and README.md: the toolset
-                   (`go tool whim <name>`) and what each retired script became
 editor/            the core in Go: editor.go GENERATED (make editor/editor.go; never edit it),
                    its runtime crt.go and host host.go by hand
 tx/                skel (types, globals, signatures and, with -bodies, the bodies),

@@ -1,3 +1,13 @@
+# musl's case mapping, as phase 98 splices it
+
+musl's Unicode simple case mapping, range-compressed into the shape the file
+already has: 187 + 171 `convertStruct` rows, read by `utf_convert()`, which phase
+98 puts after vim's own `toUpper[]`. The edit embeds this file and splices the
+FENCED BLOCK in byte for byte -- its first line is blank on purpose -- and reads
+nothing around it. It was generated from the machine's libc by a tool that went
+with the test suite (`muslcase --generate`, at `448e9a8`).
+
+```c
 
 static convertStruct musl_toUpper[] =
 {
@@ -376,3 +386,4 @@ musl_towlower(int a)
 {
     return utf_convert(a, musl_toLower, (int)sizeof(musl_toLower));
 }
+```

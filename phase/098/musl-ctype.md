@@ -1,3 +1,11 @@
+# musl's character classes, as phase 98 splices them
+
+The seventeen `<ctype.h>`/`<wctype.h>` functions, and two prototypes, that phase
+98 vendors from musl into the end of the block phase 97 started. The edit
+embeds this file and splices the FENCED BLOCK in byte for byte -- its first line
+is blank on purpose -- and reads nothing around it.
+
+```c
 
     static int
 musl_isdigit(int c)
@@ -226,3 +234,4 @@ musl_qsort(void *base, size_t nel, size_t width, int (*cmp)(const void *, const 
 
 static int musl_towupper(int a);
 static int musl_towlower(int a);
+```
