@@ -216,7 +216,7 @@ func Check(w io.Writer, args []string) error {
 			fail = append(fail, fmt.Sprintf("%s has %d mentions, expected %d", name, k, want))
 		}
 	}
-	if !regexp.MustCompile(`(?m)^highlight_arg_to_string\(int .*char_u      \*buf\)$`).MatchString(newT) {
+	if !regexp.MustCompile(`(?m)^highlight_arg_to_string\(int .*char_u \*buf\)$`).MatchString(newT) {
 		fail = append(fail, "highlight_arg_to_string is not defined with a char_u *buf parameter")
 	}
 	if strings.Count(newT, "    ts = highlight_arg_to_string(type, iarg, sarg, buf);\n") != 1 {

@@ -13,7 +13,7 @@ package p111
 // ARITHMETIC  computed FROM THE INPUT: elapsed_T, elapsed, now_tv and
 // musl_gettimeofday are at 0, `struct timeval` is 0 above the boundary
 // and 3 below it, musl_now_ms is 9 above and 1 below, and the line count
-// moved by exactly -16 in the core and +6 in the host.
+// moved by exactly -15 in the core and +6 in the host.
 // THE BOUNDARY
 // `make editor.c`'s cut, computed here by the same awk clause: 0
 // directives, `-fsyntax-only` with no error and no warning that is not a
@@ -433,10 +433,16 @@ func Check(w io.Writer, args []string) error {
 		r.Bad("`elapsed_time` is inchar_loop's own `long` and not this phase's, and it "+
 			"moved from %d to %d", on, nn)
 	}
-	if ncut-ocut != -16 {
-		r.Bad("the core is %d lines and was %d, a difference of %d where -16 was "+
-			"expected: -6 for the typedef and the prototype with a blank and -10 for "+
-			"elapsed() with a blank", ncut, ocut, ncut-ocut)
+	// -15, and it was -16.  The two removals re-counted on the canonical text:
+	// the tagless struct, its prototype, the blank line between them and the
+	// blank line below is SEVEN, and elapsed()'s definition with the blank line
+	// below it is EIGHT -- the canonical text writes the return in one line
+	// where the residue wrapped it, and writes no blank line after the opening
+	// brace.  Measured: the core 76,473 -> 76,458.
+	if ncut-ocut != -15 {
+		r.Bad("the core is %d lines and was %d, a difference of %d where -15 was "+
+			"expected: -7 for the typedef and the prototype with their blank lines and "+
+			"-8 for elapsed() with a blank", ncut, ocut, ncut-ocut)
 	}
 	hostN, hostO := len(nlines)-ncut, len(olines)-ocut
 	if hostN-hostO != 6 {
@@ -469,7 +475,7 @@ func Check(w io.Writer, args []string) error {
 		count(old, `\bmusl_gettimeofday\b`), tvh)
 	r.Say("four stamps `X = musl_now_ms();` and four readings `musl_now_ms() - X`, the "+
 		"prototype above and the definition below: the core is %d lines against %d "+
-		"(-16) and the host %d against %d (+6)", ncut, ocut, hostN, hostO)
+		"(-15) and the host %d against %d (+6)", ncut, ocut, hostN, hostO)
 
 	// ---- 2 and 3. the boundary: the cut, and the shape of what crosses it --
 	r2 := &check.Rep{Tag: "clock", W: w}

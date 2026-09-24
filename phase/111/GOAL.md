@@ -88,7 +88,7 @@ it at 1,008 ms.
 
 | | input | after |
 | --- | --- | --- |
-| lines | 80,232 | **80,222 (−10)** |
+| lines | 78,153 | **78,144 (−9)** — re-measured on the canonical text; the core loses 15 and the host gains 6. The rest of this table is not re-measured |
 | `elapsed_T` / `elapsed()` / `musl_gettimeofday` | 3 things | **0** |
 | `make editor.c` | 78,358 lines | **78,342**, 0 directives, 13 boundary names |
 | the boundary | 13 names | **13**, `musl_gettimeofday` → `musl_now_ms`, asserted as a *set* |

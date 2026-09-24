@@ -373,10 +373,14 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 
-	// THE SHAPE OF THE EDIT.  Five lines fewer.
-	if len(NL)-1 != beforeLines-5 || len(OL)-1 != beforeLines {
+	// THE SHAPE OF THE EDIT.  Four lines fewer, and it was five, which is the
+	// edit's own arithmetic: two objects with their blank lines is four, two
+	// prototypes back is two, and the two assignments are TWO and not three --
+	// the canonical text writes no blank line inside a function, so there is
+	// none here to take with them.  Measured: 78,116 -> 78,112.
+	if len(NL)-1 != beforeLines-4 || len(OL)-1 != beforeLines {
 		r.Bad("the file is %d lines and the input was %d (%d recorded) -- expected "+
-			"exactly five fewer", len(NL)-1, len(OL)-1, beforeLines)
+			"exactly four fewer", len(NL)-1, len(OL)-1, beforeLines)
 	}
 	runs := 0
 	for k := 1; k < len(NL); k++ {
@@ -436,7 +440,7 @@ func Check(w io.Writer, args []string) error {
 		"byte -- %s -- and they are the two lines below phase 103's last `musl_` "+
 		"prototype, so the core -> host boundary is ONE block of eleven",
 		strings.Join(built, " / "))
-	r.Cont("%d -> %d lines, five fewer; cmdnames[] 98 and options[] 107 unmoved; "+
+	r.Cont("%d -> %d lines, four fewer; cmdnames[] 98 and options[] 107 unmoved; "+
 		"ELEVEN #includes on the first eleven lines", beforeLines, len(NL)-1)
 
 	// ---- 2. declaration before use, and the control that says it is needed --

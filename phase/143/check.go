@@ -96,7 +96,7 @@ func Check(w io.Writer, args []string) error {
 	okGone := map[string]bool{"delimiter_atom:": true, "collection:": true, "do_multibyte:": true,
 		"goto delimiter_atom;": true, "goto collection;": true, "goto do_multibyte;": true,
 		"switch (c)": true, "{": true, "}": true}
-	okAdded := map[string]bool{"int             sw;": true, "sw = c;": true, "for (;;)": true, "switch (sw)": true,
+	okAdded := map[string]bool{"int sw;": true, "sw = c;": true, "for (;;)": true, "switch (sw)": true,
 		"{": true, "}": true, "break;": true, "continue;": true, "sw = ((int)('[') - 256);": true,
 		"ret = regatom_delim(c, delim_nl, flagp);": true, "if (ret == nullptr)": true, "return nullptr;": true,
 		"ret = regnode(MULTIBYTECODE);": true, "regmbc(c);": true, "*flagp |= HASWIDTH | SIMPLE;": true}

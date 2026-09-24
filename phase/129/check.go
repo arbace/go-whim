@@ -25,7 +25,12 @@ import (
 func init() { check.Register("whim129", Check) }
 
 var (
-	w129Row  = regexp.MustCompile(`\{"([a-z]+)",\s*(?:"[a-z]*"|nullptr),\s*([A-Z_|]+),\s*\(char_u \*\)&(p_[a-z_]+)`)
+	// The flag word is `P_BOOL | P_VI_DEF | P_RCLR`, with a space either side
+	// of each `|`: the canonical text spaces a binary operator and the residue
+	// did not, so the character class has to admit the space or the regex reads
+	// NO rows at all -- which is how an empty partition once looked like a
+	// partition that held.
+	w129Row  = regexp.MustCompile(`\{"([a-z]+)",\s*(?:"[a-z]*"|nullptr),\s*([A-Z_| ]+),\s*\(char_u \*\)&(p_[a-z_]+)`)
 	w129Decl = regexp.MustCompile(`(?m)^static ([a-z_]+(?: [a-z_]+)?)\s+(\**)(p_[a-z_]+)(?:\[[^]]*\])?;`)
 )
 
@@ -89,9 +94,9 @@ func Check(w io.Writer, args []string) error {
 		len(okOut), len(okIn), badIn["emoji"])
 
 	want := []string{
-		"static int      p_emoji;",
+		"static int p_emoji;",
 		"if (p_emoji && intable(emoji_wide, sizeof(emoji_wide), c))",
-		"(char_u *)&p_emoji, PV_NONE, did_set_ambiwidth, nullptr,",
+		`{"emoji", "emo", P_BOOL | P_VI_DEF | P_RCLR, (char_u *)&p_emoji, PV_NONE, did_set_ambiwidth, nullptr, {(char_u *)TRUE, (char_u *)0L}},`,
 	}
 	got := check.LinesWith(c.New, "p_emoji")
 	sort.Strings(got)

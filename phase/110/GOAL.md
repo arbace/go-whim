@@ -94,13 +94,17 @@ Every address below the first moved definition moves with it, so the binary cann
 evidence and the phase does not pretend otherwise. What replaces it is `CLAUDE.md`'s tier
 1 **one level up**, stated and checked as a **multiset**:
 
-> not one of the input's 80,197 lines is missing from the output, and the only lines the
+> not one NON-BLANK line of the input is missing from the output, and the only lines the
 > output adds are the **32** this phase writes — twenty enumerator lines and twelve
-> `static_assert`s — plus three blanks where an emptied paragraph left two.
+> `static_assert`s.
 
 **A phase that moved code and altered a character of it on the way could not say that.**
-Re-measured independently by sorting both files: 0 lines missing, 35 added, and the 35
-are exactly the 32 and three blanks. 80,197 → 80,232 lines.
+Re-measured on the canonical text by sorting both files: **15 lines missing and every one
+of them blank**, 32 added and not one of them blank, 78,136 → 78,153 lines (+17). The
+fifteen are the pairs an emptied paragraph left meeting, which the edit collapses and
+reports; `CLAUDE.md` allows no run of two. The residue text lost none and gained three
+blanks instead, because its paragraphs were separated differently — the claim is the
+same and the arithmetic is the text's.
 
 The recording answers for the thirty-two: two full recordings, of the binary the phase
 was handed and of its own, **byte-identical across all 106 records**. `nm -u` is the same
@@ -164,8 +168,8 @@ commit carry, and the number reproduced here.
 
 | | input | after |
 | --- | --- | --- |
-| lines | 80,197 | **80,232 (+35)** — 32 written, 3 blanks |
-| input lines missing from the output | | **0**, as a multiset |
+| lines | 78,136 | **78,153 (+17)** — 32 written, 15 blank lines collapsed. Re-measured on the canonical text; the rest of this table is not |
+| non-blank input lines missing from the output | | **0**, as a multiset |
 | first `#include` | line 1 | **line 78,360** |
 | directives above the first `#include` | 11 | **0** |
 | `make editor.c` | an empty file | **78,358 lines**, 0 directives, 0 errors, 13 warnings |

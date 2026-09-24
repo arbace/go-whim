@@ -119,14 +119,14 @@ func init() { check.Register("whim123", Check) }
 
 type z40Mark struct{ Name, anchor, Where, Cond, extra string }
 
-const z40Page = "        page_count = ((space_needed +  (__builtin_offsetof(DATA_BL, db_index)) ) + page_size - 1) / page_size;\n"
+const z40Page = "        page_count = ((space_needed + (__builtin_offsetof(DATA_BL, db_index))) + page_size - 1) / page_size;\n"
 
 var z40Marks = []z40Mark{
 	{"MLSPLITDATA", z40Page, "before", "", ""},
 	{"MLBIGLINE", z40Page, "after", "page_count > 1", ""},
 	{"MLSPLITPTR", "                hp_new = ml_new_ptr(mfp);\n", "before", "", "        ++zprobe_ptr;\n"},
-	{"MLSIBSPLIT", "                if (hp-> bh_hashitem.mhi_key  != 1)\n                {\n                    break;\n                }\n", "before", "zprobe_ptr == 1", ""},
-	{"MLSPLITROOT", "                 musl_memmove((char *)(pp_new), (char *)(pp), (usize)page_size) ;\n", "before", "", ""},
+	{"MLSIBSPLIT", "                if (hp->bh_hashitem.mhi_key != 1)\n                {\n                    break;\n                }\n", "before", "zprobe_ptr == 1", ""},
+	{"MLSPLITROOT", "                musl_memmove((char *)(pp_new), (char *)(pp), (usize)page_size);\n", "before", "", ""},
 	{"MLIDXNZ", "                ip->ip_index = idx;\n", "after", "idx > 0", ""},
 	{"MLDEEP", "        if ((top = ml_add_stack(buf)) < 0)\n", "before", "++zprobe_lvl >= 2", ""},
 }
@@ -169,8 +169,8 @@ var z40Ctl = map[string][][2]string{
 	"lineadd": {{"        pp->pb_pointer[ip->ip_index].pe_line_count += count;\n", ""}},
 	"cache": {{"            if (ip->ip_low <= lnum && ip->ip_high >= lnum)\n",
 		"            if (ip->ip_low <= lnum && ip->ip_high + 1 >= lnum)\n"}},
-	"reshape": {{"    pp->pb_count_max =  (short_u)(((mfp)->mf_page_size - __builtin_offsetof(PTR_BL, pb_pointer)) / sizeof(PTR_EN)) ;\n",
-		"    pp->pb_count_max =  (short_u)(((mfp)->mf_page_size - __builtin_offsetof(PTR_BL, pb_pointer)) / sizeof(PTR_EN) / 4) ;\n"}},
+	"reshape": {{"    pp->pb_count_max = (short_u)(((mfp)->mf_page_size - __builtin_offsetof(PTR_BL, pb_pointer)) / sizeof(PTR_EN));\n",
+		"    pp->pb_count_max = (short_u)(((mfp)->mf_page_size - __builtin_offsetof(PTR_BL, pb_pointer)) / sizeof(PTR_EN) / 4);\n"}},
 	"clock": {
 		{"host_time(void)\n{\n    return time(nullptr);\n}\n",
 			"host_time(void)\n{\n    static long z_t = 2000000000L;\n    z_t += 7;\n    return z_t;\n}\n"},

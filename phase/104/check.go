@@ -296,8 +296,19 @@ func Check(w io.Writer, args []string) error {
 	}
 	var before int
 	fmt.Sscan(beforeLines, &before)
-	if len(L)-1 != before+25 {
-		fail = append(fail, fmt.Sprintf("the file is %d lines and the input was %d -- expected exactly 25 more: 2 for the pointer and its blank line, 1 for vim_main's installation, 1 net in report_term_error, 23 for host_message and the blank line above it, less 1 for the fflush and less 1 for <stdio.h>.  The six one-for-one sites and mainerr are line-neutral", len(L)-1, before))
+	// TWENTY-SEVEN, and it was 25.  The hunks re-counted on the canonical input,
+	// from `diff -u q103.c q104.c`: -1 for <stdio.h>, +2 for the pointer and its
+	// blank line, +1 net in report_term_error, -1 for the fflush, +3 in mainerr,
+	// +1 for vim_main's installation and +22 for host_message and the blank line
+	// above it.  ONE component moved and it is mainerr, from +1 to +3: the
+	// canonical text writes no blank line after an opening brace and none before
+	// a closing statement, so the two blank lines the residue had inside mainerr
+	// are not in the text this phase replaces, while the block it writes is
+	// unchanged.  (The old wording said mainerr was line-neutral and host_message
+	// 23; it was +1 and 22, two errors that cancelled in the total.)  The six
+	// one-for-one sites are line-neutral either way.  Measured: 78,062 -> 78,089.
+	if len(L)-1 != before+27 {
+		fail = append(fail, fmt.Sprintf("the file is %d lines and the input was %d -- expected exactly 27 more: 2 for the pointer and its blank line, 1 for vim_main's installation, 1 net in report_term_error, 3 net in mainerr, 22 for host_message and the blank line above it, less 1 for the fflush and less 1 for <stdio.h>.  The six one-for-one sites are line-neutral", len(L)-1, before))
 	}
 	if len(fail) > 0 {
 		for _, l := range fail {

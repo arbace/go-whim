@@ -86,7 +86,7 @@ all three untouched sites are asserted verbatim before and after.
 
 | | input | after |
 | --- | --- | --- |
-| lines | 79,857 | **79,766** — the edit adds 1, the sweep takes 92 |
+| lines | 77,779 | **77,693** — the edit adds 1, the sweep takes 87. Re-measured on the canonical text; the rest of this table is not |
 | function definitions | 1,756 | **1,754** |
 | `make editor.c` | 77,977 | **77,886**, 0 directives, 0 errors, the boundary unchanged |
 | `nm -u` | 17 | **17, the same set** |

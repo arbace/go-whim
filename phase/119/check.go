@@ -267,11 +267,18 @@ func Check(w io.Writer, args []string) error {
 	p = strings.Replace(p, RERAISE, "probe_raise++;\n                                 "+RERAISE, 1)
 	p = strings.Replace(p, EXIT, strings.Replace(z36Instr, DECLS, "", 1)+EXIT+"    probe_dump();\n", 1)
 	ctl["probe"] = p
-	const INIT = "    out_flush();\n\n    musl_host_init();\n\n}\n"
-	const FORCE = "    out_flush();\n\n    musl_host_init();\n\n" +
-		"    (void)vim_handle_signal(SIGTERM);\n    (void)vim_handle_signal(-2);\n\n}\n"
+	const INIT = "    out_flush();\n    musl_host_init();\n}\n"
+	const FORCE = "    out_flush();\n    musl_host_init();\n" +
+		"    (void)vim_handle_signal(SIGTERM);\n    (void)vim_handle_signal(-2);\n}\n"
 	forced := map[string]string{}
-	for _, x := range []struct{ side, Text string }{{"in", oldT}, {"Out", t}} {
+	// The side is DATA and not a Go identifier: it names a file and a map key,
+	// `pfout.c` and `forced["pfout"]`, which section 9 below reads back by that
+	// spelling.  It was capitalised to `Out` when the checks were ported from
+	// shell to Go, and nothing noticed because this check refused above this
+	// line for a different reason; with that reason gone it fails here, on
+	// `the forced binary pfout did not build` with an empty compiler message,
+	// because gcc was handed a path nothing had written.
+	for _, x := range []struct{ side, Text string }{{"in", oldT}, {"out", t}} {
 		if _, e := one(x.Text, INIT, "mch_init()'s tail"); e != nil {
 			return e
 		}
@@ -536,12 +543,20 @@ func Check(w io.Writer, args []string) error {
 			"host_raise() in the output (%s), or the two lines the sweep takes are "+
 			"not exactly two in the input (%d)", pb(gp != nil), pb(hr != nil), len(swept))
 	} else {
+		// aboveIn is host_raise()'s prototype, which JOINS the host block and
+		// so brings no blank line with it; aboveOut is mch_get_pid()'s forward
+		// declaration WITH ITS BLANK LINE (2), its definition with one (gp+1),
+		// the libc prototype block with one (blk) and the two lines the sweep
+		// takes.  The declaration used to cost one line: the canonical text
+		// separates forward declarations by a blank line where the residue
+		// wrote them consecutively, so the one that goes takes its blank with
+		// it.  Measured: the boundary moves 12 lines and the file loses 6.
 		aboveIn := 1
 		blk := len(blockBefore) + 1
 		if len(blockAfter) > 0 {
 			blk = 2
 		}
-		aboveOut := 1 + (len(gp) + 1) + blk + len(swept)
+		aboveOut := 2 + (len(gp) + 1) + blk + len(swept)
 		belowIn := len(hr) + 1
 		want := beforeLines + aboveIn + belowIn - aboveOut
 		if len(NL)-1 != want || len(OL)-1 != beforeLines {

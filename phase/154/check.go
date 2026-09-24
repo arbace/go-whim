@@ -55,7 +55,7 @@ func Check(w io.Writer, args []string) error {
 	before := c.Old[:strings.Index(c.Old, W154Call)]
 	tail := before[strings.LastIndex(before, "\n    static void\n"):]
 	for _, k := range []string{"KS_CSB", "KS_CAB"} {
-		if !strings.Contains(tail, "* ( term_strings[(int)("+k+")] )  == NUL") {
+		if !strings.Contains(tail, "*(term_strings[(int)("+k+")]) == NUL") {
 			r.Bad("%s is not already dereferenced above the call", k)
 		}
 	}

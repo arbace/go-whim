@@ -103,12 +103,11 @@ const z34GA = `    new_len = (usize)gap->ga_itemsize * (gap->ga_len + n);
         musl_memcpy(pp, gap->ga_data, old_len);
         free(gap->ga_data);
     }
-     musl_memset((pp + old_len), (0), (new_len - old_len)) ;
+    musl_memset((pp + old_len), (0), (new_len - old_len));
 `
 
-const z34KS = `            char_u  *t_buf = buf;
-            int     t_buflen = buflen;
-
+const z34KS = `            char_u *t_buf = buf;
+            int t_buflen = buflen;
             buflen += 100;
             buf = malloc(buflen);
             if (buf == nullptr)

@@ -320,7 +320,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// be taken from anywhere else.
 	if err := sub(`            set_string_option_direct((char_u *)"term", -1, term, OPT_FREE, 0);
             fflush(stderr);
-`, `                set_string_option_direct((char_u *)"term", -1, term, OPT_FREE, 0);
+`, `            set_string_option_direct((char_u *)"term", -1, term, OPT_FREE, 0);
 `, 1, "F1"); err != nil {
 		return nil, err
 	}

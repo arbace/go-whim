@@ -312,8 +312,8 @@ func Check(w io.Writer, args []string) error {
 	sites := [][2]string{
 		{"num = musl_labs((long)get_cursor_rel_lnum(wp, wlv->lnum));",
 			"num = musl_labs(zprobe(1, (long)get_cursor_rel_lnum(wp, wlv->lnum)));"},
-		{"if (musl_labs(curwin->w_topline - prev_topline) > (dir ==  (-1) ))",
-			"if (musl_labs(zprobe(2, curwin->w_topline - prev_topline)) > (dir ==  (-1) ))"},
+		{"if (musl_labs(curwin->w_topline - prev_topline) > (dir == (-1)))",
+			"if (musl_labs(zprobe(2, curwin->w_topline - prev_topline)) > (dir == (-1)))"},
 		{"if (musl_abs(wp->w_height - wp->w_prev_height) == 1)",
 			"if (musl_abs((int)zprobe(3, (long)(wp->w_height - wp->w_prev_height))) == 1)"},
 	}

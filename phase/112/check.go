@@ -94,8 +94,26 @@ const (
 
 type z29RowT [4]int
 
+// A convertStruct row is written one of TWO ways in this file, and the edit
+// says which and why: vim's own toUpper[]/toLower[] are canonical text -- four
+// spaces of indent and a space after each comma -- and the musl_to*[] that
+// phase 98 vendored are that phase's INSERTED text, written tight at eight.
+// Both shapes are written out here rather than borrowed from the edit: a check
+// that read the text through the edit's own regex would agree with it by
+// construction, and what is being asserted is what the FILE says.
+var (
+	z29CheckCanon = regexp.MustCompile(`^    \{(0x[0-9a-f]+), (0x[0-9a-f]+), (-?\d+), (-?\d+)\},?$`)
+	z29CheckTight = regexp.MustCompile(`^        \{(0x[0-9a-f]+),(0x[0-9a-f]+),(-?\d+),(-?\d+)\},?$`)
+)
+
 // z29Table is rows_of(): the rows of one convertStruct table, or nil when the
 // table is not in the text.
+//
+// IT IS A PARTITION AND NOT A FILTER.  Every line of the body must be a row in
+// one of the two shapes and the table must be written one way throughout, so a
+// line this reader does not understand refuses instead of being skipped -- a
+// regex that silently matched nothing is how a table read as EMPTY and every
+// codepoint in it then looked unchanged.
 func z29Table(text, name string) ([]z29RowT, bool) {
 	re := regexp.MustCompile(`(?ms)^static convertStruct ` + regexp.QuoteMeta(name) + `\[\] =\n\{\n(.*?)\n\};\n`)
 	m := re.FindStringSubmatch(text)
@@ -103,13 +121,27 @@ func z29Table(text, name string) ([]z29RowT, bool) {
 		return nil, false
 	}
 	var Out []z29RowT
-	for _, r := range check.Z29Row.FindAllStringSubmatch(m[1], -1) {
+	tight := 0
+	for _, line := range strings.Split(m[1], "\n") {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		r := z29CheckCanon.FindStringSubmatch(line)
+		if r == nil {
+			if r = z29CheckTight.FindStringSubmatch(line); r == nil {
+				return nil, false
+			}
+			tight++
+		}
 		var row z29RowT
 		for k := 0; k < 4; k++ {
 			v, _ := strconv.ParseInt(r[k+1], 0, 64)
 			row[k] = int(v)
 		}
 		Out = append(Out, row)
+	}
+	if len(Out) == 0 || (tight != 0 && tight != len(Out)) {
+		return nil, false
 	}
 	return Out, true
 }

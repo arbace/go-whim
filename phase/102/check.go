@@ -189,8 +189,8 @@ func Check(w io.Writer, args []string) error {
 	}
 	for _, p := range []struct{ Text, What string }{
 		{"static void (*vim_host_exit)(int);\n\n    static void\nmch_exit(int r)\n{\n", "the pointer declared immediately above mch_exit(), its one reader"},
-		{"    ml_close_all(TRUE);\n\n    vim_host_exit(r);\n}\n", "mch_exit()'s tail: everything it did before is unchanged and only the last statement moved"},
-		{"    static int\nvim_main(int argc, char **argv, void (*exit_fn)(int))\n{\n\n    vim_host_exit = exit_fn;\n", "vim_main() taking the callback as a parameter and installing it"},
+		{"    ml_close_all(TRUE);\n    vim_host_exit(r);\n}\n", "mch_exit()'s tail: everything it did before is unchanged and only the last statement moved"},
+		{"    static int\nvim_main(int argc, char **argv, void (*exit_fn)(int))\n{\n    vim_host_exit = exit_fn;\n", "vim_main() taking the callback as a parameter and installing it"},
 	} {
 		if strings.Count(newC, p.Text) != 1 {
 			fail = append(fail, fmt.Sprintf("%s: not found exactly once in the output", p.What))
@@ -220,8 +220,13 @@ func Check(w io.Writer, args []string) error {
 			fail = append(fail, fmt.Sprintf("`%s` as a whole word has %d mentions, expected %d -- %s", p.Name, mentions(newC, p.Name), p.want, p.why))
 		}
 	}
-	if d := len(strings.Split(newC, "\n")) - len(strings.Split(oldC, "\n")); d != 18 {
-		fail = append(fail, fmt.Sprintf("the file gained %d lines, expected 18", d))
+	// SEVENTEEN, not eighteen, and the edit says the same: two lines for the
+	// pointer and its blank line, ONE for the installation -- the canonical
+	// text writes no blank line inside a function, so the statement the host
+	// inserts writes none either -- and fourteen for the launcher growing from
+	// six lines to twenty.  Measured: 78,291 -> 78,308.
+	if d := len(strings.Split(newC, "\n")) - len(strings.Split(oldC, "\n")); d != 17 {
+		fail = append(fail, fmt.Sprintf("the file gained %d lines, expected 17", d))
 	}
 	if runs(newC) != runs(oldC) {
 		fail = append(fail, fmt.Sprintf("runs of two blank lines: %d in the output against %d in the input", runs(newC), runs(oldC)))
@@ -255,7 +260,7 @@ func Check(w io.Writer, args []string) error {
 		}
 		return harness.ErrReported
 	}
-	r.Say("mch_exit() ends `vim_host_exit(r);`, the pointer is declared above it, vim_main() takes the callback as its third parameter and installs it, and the launcher is twenty lines that land on __builtin_setjmp and RETURN the status.  +18 lines, four hunks")
+	r.Say("mch_exit() ends `vim_host_exit(r);`, the pointer is declared above it, vim_main() takes the callback as its third parameter and installs it, and the launcher is twenty lines that land on __builtin_setjmp and RETURN the status.  +17 lines, four hunks")
 	r.Cont("the counting trap: `exit` as a word is 5 -> 4 and the number of `exit(` STATEMENTS is 1 -> 0.  The four that stay are two string literals and a `goto exit;` with its `exit:` label in vim_regsub_both(), so `assert exit at 0` fails on a correct phase.  No spelling of setjmp or longjmp is in the file either")
 	r.Cont("and the twelve #includes are phase 99's, untouched: <setjmp.h> would be a thirteenth, which is half of what the library spelling costs")
 

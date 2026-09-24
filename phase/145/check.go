@@ -51,7 +51,7 @@ func Check(w io.Writer, args []string) error {
 		return text[a:z]
 	}
 	in, Out := fn(c.Old), fn(c.New)
-	jump := "            modifiers = 0;\n            goto handle_osc;\n        }\n\n"
+	jump := "            modifiers = 0;\n            goto handle_osc;\n        }\n"
 	ji, li := strings.Index(in, jump), strings.Index(in, "handle_osc:\n")
 	bi := strings.LastIndex(in[:max(li, 0)], "        if (key_name[0] == NUL)\n        {\n")
 	if ji < 0 || li < 0 || bi < 0 {
@@ -65,7 +65,10 @@ func Check(w io.Writer, args []string) error {
 		r.Bad("the block holding the label has code after its if-chain")
 	}
 	end := cl + 1 + strings.Index(in[cl:], "\n")
-	skipped := strings.Replace(in[ji+len(jump):end], "handle_osc:\n", "", 1)
+	// The label's WHOLE line, indentation and all: the canonical text writes it
+	// twelve spaces in, and taking only the name would leave those twelve
+	// spaces standing in front of the line below.
+	skipped := w145LabelLine.ReplaceAllString(in[ji+len(jump):end], "")
 	if err := r.Done(); err != nil {
 		return err
 	}

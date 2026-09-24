@@ -165,7 +165,7 @@ what says the other four speakers fire in zero of 106 records.
 
 | | input | after |
 | --- | --- | --- |
-| lines | 80,148 | **80,173 (+25)** |
+| lines | 78,062 | **78,089 (+27)** — re-measured on the canonical text; the rest of this table is not |
 | functions | 1,757 | **1,758** (`host_message`) |
 | type definitions | 904 | 904 |
 | DWARF enumerators | 1,177 | 1,177 |

@@ -115,7 +115,11 @@ func Check(w io.Writer, args []string) error {
 	} else {
 		loop, brk := W144Inner(W144Enclosing(Out, dm[0][1]-len("break;\n")))
 		after := Out[dm[0][1]:]
-		wi := regexp.MustCompile(`\n *\} while \(.*\);\n *if \(esc_now\)\n`).FindStringIndex(after)
+		// The canonical text puts a do-while's `while` on a line of its own
+		// below the closing brace, and its terminating `;` on the line after
+		// that, where the residue wrote `} while (...);` on one line.  Same
+		// site, measured: one match either spelling.
+		wi := regexp.MustCompile(`\n *\}\n *while \(.*\)\n *;\n *if \(esc_now\)\n`).FindStringIndex(after)
 		if loop != "do" || brk != "do" || wi == nil {
 			r.Bad("the esc_now break does not leave the do-while straight to the flag's test")
 		}
@@ -147,7 +151,7 @@ func Check(w io.Writer, args []string) error {
 	for _, l := range append(eb, nb...) {
 		okGone[l] = true
 	}
-	okAdded := map[string]bool{"int         esc_now = FALSE;": true, "esc_now = TRUE;": true, "esc_now = FALSE;": true,
+	okAdded := map[string]bool{"int esc_now = FALSE;": true, "esc_now = TRUE;": true, "esc_now = FALSE;": true,
 		"if (esc_now)": true, "if (edit_esc(&count, cmdchar, nomove, &o_lnum))": true, "return (c == Ctrl_O);": true,
 		"continue;": true, "break;": true, "edit_normalchar(c, &inserted_space);": true, "{": true, "}": true}
 	for _, l := range check.W143Lines(strings.SplitN(in[strings.Index(in, "do_intr:\n"):], "doESCkey:", 2)[0]) {

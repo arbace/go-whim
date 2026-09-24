@@ -71,7 +71,7 @@ func init() { check.Register("whim125", Check) }
 
 var (
 	z42Ident    = regexp.MustCompile(`[A-Za-z_]\w*`)
-	z42Test     = regexp.MustCompile(`(?m)^( *)if \(hp-> bh_hashitem\.mhi_key  != (\d)\)$`)
+	z42Test     = regexp.MustCompile(`(?m)^( *)if \(hp->bh_hashitem\.mhi_key != (\d)\)$`)
 	z42IfaceWrn = regexp.MustCompile(`warning: '([A-Za-z_0-9]*)' used but never defined`)
 	z42MemName  = regexp.MustCompile(`^.*memline/([a-z_]*) .*$`)
 	z42RootProb = regexp.MustCompile(`ROOTPROBE pres=(\d+) over=(\d+)`)
@@ -443,14 +443,22 @@ func Check(w io.Writer, args []string) error {
 		"four write-only fields, a write-only state machine, two unreachable functions, four "+
 		"parameters and four locals; the sweep's is what those left behind, %d of them "+
 		"enumerators and %d functions with no caller", len(goneEdit), len(goneSweep), nEnum, nFunc)
+	// EACH ANCHOR IS THE DEFINITION'S HEAD, and the newlines are what say so.
+	// The canonical text writes a definition's name at column 0 with its
+	// specifiers on the line above, and it spells a prototype's parameter list
+	// the same way -- the residue padded the definition's columns and did not
+	// pad the prototype's, so the bare signature used to be the definition's
+	// alone and now names both.  Anchored `\n...\n` each is one site again, and
+	// it is the site that matters: a prototype that disagreed with its
+	// definition would not compile.
 	for _, x := range [][2]string{
-		{"mf_new(memfile_T *mfp, int page_count)", "mf_new() takes no `negative`"},
-		{"mf_put(bhdr_T *hp)", "mf_put() takes neither a memfile nor a state"},
-		{"ml_new_data(memfile_T *mfp, int page_count)", "ml_new_data() takes no `negative`"},
-		{"ml_append(linenr_T    lnum, char_u      *line, colnr_T     len)", "ml_append() takes no `newfile`"},
+		{"\nmf_new(memfile_T *mfp, int page_count)\n", "mf_new() takes no `negative`"},
+		{"\nmf_put(bhdr_T *hp)\n", "mf_put() takes neither a memfile nor a state"},
+		{"\nml_new_data(memfile_T *mfp, int page_count)\n", "ml_new_data() takes no `negative`"},
+		{"\nml_append(linenr_T lnum, char_u *line, colnr_T len)\n", "ml_append() takes no `newfile`"},
 	} {
 		if c := strings.Count(newT, x[0]); c != 1 {
-			return die("%s -- `%s` is in the output %d times", x[1], x[0], c)
+			return die("%s -- `%s` is in the output %d times", x[1], strings.TrimSpace(x[0]), c)
 		}
 	}
 	say("the four signatures this phase narrows are each in the output exactly once: " +

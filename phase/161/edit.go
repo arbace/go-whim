@@ -32,7 +32,7 @@ ml_get_invalid(buf_T *buf, linenr_T lnum)
 {
     static char_u questions[4];
 
-     musl_strcpy((char *)(questions), (char *)("???")) ;
+    musl_strcpy((char *)(questions), (char *)("???"));
     buf->b_ml.ml_line_len = 4;
     buf->b_ml.ml_line_textlen = buf->b_ml.ml_line_len;
     buf->b_ml.ml_line_lnum = lnum;

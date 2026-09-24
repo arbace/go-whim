@@ -514,19 +514,31 @@ func Check(w io.Writer, args []string) error {
 	if len(nb) != len(ob)-1 {
 		r.Bad("the prototype block is %d lines and was %d", len(nb), len(ob))
 	}
-	if ncut-ocut != -7 {
-		r.Bad("the core is %d lines and was %d, a difference of %d where -7 was "+
-			"expected: -1 for the forward declaration, +1 for the host-block one, "+
-			"-6 for the definition with its blank and -1 for the libc prototype", ncut, ocut, ncut-ocut)
+	// -8 in the core, and it was -7.  The forward declaration costs TWO lines
+	// and not one: the canonical text writes a blank line between forward
+	// declarations, so `static time_T vim_time(void);` takes its blank with it,
+	// where in the residue the block was consecutive lines.  Measured: the core
+	// 76,017 -> 76,009 and the host 1,686 -> 1,693.
+	if ncut-ocut != -8 {
+		r.Bad("the core is %d lines and was %d, a difference of %d where -8 was "+
+			"expected: -2 for the forward declaration with its blank line, +1 for the "+
+			"host-block one, -6 for the definition with its blank and -1 for the libc "+
+			"prototype", ncut, ocut, ncut-ocut)
 	}
 	if hd := (len(nlines) - ncut) - (len(olines) - ocut); hd != 7 {
 		r.Bad("the host is %d lines and was %d, a difference of %d where +7 was "+
 			"expected: +6 for the definition with its blank and +1 for the "+
 			"static_assert", len(nlines)-ncut, len(olines)-ocut, hd)
 	}
-	if len(nlines) != len(olines) {
-		r.Bad("the file is %d lines and was %d, and the two halves were expected to "+
-			"cancel exactly", len(nlines)-1, len(olines)-1)
+	// The two halves DO NOT cancel any more, and the one line is named: the core
+	// loses 8 and the host gains 7, because the blank line that separated the
+	// forward declaration from its neighbours goes with it and the host block
+	// the declaration joins already had its own separators.  So the file is one
+	// line shorter, and the assertion states that one line rather than zero.
+	if len(nlines) != len(olines)-1 {
+		r.Bad("the file is %d lines and was %d, and exactly one line was expected to "+
+			"go -- the blank line above the forward declaration, which the core loses "+
+			"and the host does not gain", len(nlines)-1, len(olines)-1)
 	}
 	if check.Z27Runs(nlines) != check.Z27Runs(olines) {
 		r.Bad("the edit left %d runs of two blank lines where there were %d", check.Z27Runs(nlines), check.Z27Runs(olines))
@@ -555,9 +567,11 @@ func Check(w io.Writer, args []string) error {
 	}
 	r.Say("the libc prototype block is %d lines and was %d, losing `long time(long "+
 		"*tp);` and nothing else: %s", len(nb), len(ob), strings.Join(bnames, " "))
-	r.Say("the core is %d lines against %d (-7) and the host %d against %d (+7), so "+
-		"the file is %d lines either side, and `time_t` is named ONCE in the whole file -- "+
-		"the static_assert", ncut, ocut, len(nlines)-ncut, len(olines)-ocut, len(nlines)-1)
+	r.Say("the core is %d lines against %d (-8) and the host %d against %d (+7), so "+
+		"the file is one line shorter -- %d against %d, the blank line the forward "+
+		"declaration took with it -- and `time_t` is named ONCE in the whole file: "+
+		"the static_assert", ncut, ocut, len(nlines)-ncut, len(olines)-ocut,
+		len(nlines)-1, len(olines)-1)
 
 	// --- 2. THE GUARANTEE, as four compiles -------------------------------------
 	wgSyn.Wait()
