@@ -12,12 +12,14 @@ import (
 // envCopy is expand_env_esc with the $ arm gone.  Written out rather than cut,
 // because what survives is the loop's tail and it reads better as its own
 // function than as a `copy_char` flag that is now always true.
+const envNote = `// $VAR is part of a name, not a place to look one up.  There is no
+// environment to ask, so what is left of this is the escape handling and
+// the bound on dstlen: a name reaches its caller as it was written.
+`
+
 const envCopy = `    char_u      *src;
     char_u      *dst_start = dst;
 
-    // $VAR is part of a name, not a place to look one up.  There is no
-    // environment to ask, so what is left of this is the escape handling and
-    // the bound on dstlen: a name reaches its caller as it was written.
     src = skipwhite(srcp);
     --dstlen;
     while (*src && dstlen > 0)
@@ -62,6 +64,9 @@ func envBody(text []byte, name, replacement string) ([]byte, int, error) {
 func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	text, was, err := envBody(text, "expand_env_esc", envCopy)
 	if err != nil {
+		return nil, err
+	}
+	if text, err = commentAbove(text, "expand_env_esc", envNote, "nogetenv"); err != nil {
 		return nil, err
 	}
 	fmt.Fprintf(w, "  nogetenv     expand_env_esc was %d lines, and now copies a name\n", was)

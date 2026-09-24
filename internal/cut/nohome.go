@@ -11,11 +11,13 @@ import (
 )
 
 // homeReplaceCopy is what home_replace becomes: a bounded copy.
+const homeReplaceNote = `// A name is shown as what it is.  This was the shortening of a path under
+// $HOME to ~/..., and its thirteen callers are every place that displays a
+// file name to the user; they keep working, and see the name unchanged.
+`
+
 const homeReplaceCopy = `    size_t len;
 
-    // A name is shown as what it is.  This was the shortening of a path under
-    // $HOME to ~/..., and its thirteen callers are every place that displays a
-    // file name to the user; they keep working, and see the name unchanged.
     if (src == NULL)
     {
         *dst = NUL;
@@ -82,13 +84,16 @@ func NoHome(text []byte, w io.Writer) ([]byte, error) {
 	hbuf = append(hbuf, homeReplaceCopy...)
 	hbuf = append(hbuf, "\n}"...)
 	text = append(hbuf, text[hc+1:]...)
+	var err error
+	if text, err = commentAbove(text, "home_replace", homeReplaceNote, "nohome"); err != nil {
+		return nil, err
+	}
 	fmt.Fprintf(w, "  nohome       home_replace was %d lines, and now shows a name as "+
 		"it is\n", was)
 
 	// The `$VAR` arm is kept and the two `~` arms go, so the chain
 	// `if (*src != '~') A else if (...) B else C` becomes just A.  Brace
 	// matched, because each arm holds inner blocks.
-	var err error
 	blanked := cutil.Blank(text)
 	k := bytes.Index(text, []byte(tildeArmHead))
 	if k < 0 {
