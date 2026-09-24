@@ -42,7 +42,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if n := regexp.MustCompile(`\bcookie\b`).FindAll(text, -1); len(n) != 19 {
 		return nil, p.Die("cookie is named %d times; this phase was written against 19", len(n))
 	}
-	if text, err = p.Literal(text, "typedef long (*find_func_t)(const char *line, long line_len, char *buffer, long buffer_size, void *priv);\n", "", "find_func_t, a typedef nothing names, goes", 1); err != nil {
+	if text, err = p.LiteralOrGone(text, "typedef long (*find_func_t)(const char *line, long line_len, char *buffer, long buffer_size, void *priv);\n", "", "find_func_t, a typedef nothing names, goes", 1, "find_func_t"); err != nil {
 		return nil, err
 	}
 	if text, err = p.Literal(text, "(int, void *, int, getline_opt_T)", "(int, int, getline_opt_T)", "a line getter takes no cookie: its type", 9); err != nil {

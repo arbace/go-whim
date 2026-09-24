@@ -20,3 +20,10 @@ line naming the parameter is its head, a test against `nullptr`, or its
 being handed on, and each function's one call passes `nullptr`; on the output
 none of the 16 eval types is named. Its probes cover the paths the tests sat
 on — `g CTRL-G`, a `\=` substitution and `:match` — and each control moves.
+
+**Already gone is a class of its own.** The cut of `cfunc_T` and `cfunc_free_T` is a partition, not a
+count: the typedef is here and this phase removes it, or nothing at all names
+it and the phase says so and cuts nothing (`edit.Ph.LiteralOrGone`). The
+second class exists for the closure swap (`WHIM_CLOSURE=1`,
+`internal/sweep/closure.go`), whose closure takes a typedef nothing names in
+an earlier sweep. Anything else refuses as it always did.
