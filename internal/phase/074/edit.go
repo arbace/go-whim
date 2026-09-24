@@ -68,7 +68,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.DeleteDefinition("fmarks_check_names", "fmarks_check_names, which had nothing to match")
 	e.DeleteDefinition("fname2fnum", "fname2fnum, folded empty in phase 70 and now unreachable")
 	e.Lines(`static xfmark_T namedfm\[\('z' - 'a' \+ 1\) \+ EXTRA_MARKS\];`, 1, "namedfm")
-	e.Literal(w74lit4, "", "xfmark_T, a mark with a filename bolted on")
 	e.Lines(`enum \{ EXTRA_MARKS = 10 \};`, 1, "the numbered-mark count")
 	return e.Done()
 }

@@ -1,3 +1,8 @@
+// Package dead is what is left of the sweep's six dead-code tools now that
+// internal/sweep's closure is the sweep: funcreach, the function-level
+// reachability a phase step still asks for in the middle of its own edit, and
+// FuncDefinitions, which cutters use to find a function's extent; and
+// GccWarnings (gcc.go), which internal/reach's control asks.
 package dead
 
 import (
@@ -20,6 +25,10 @@ import (
 //	greedy parameter list runs into the body and stops at some later ')' that
 //	happens to end a line.
 //	[ \t]*$ and never \s*$   -- \s matches a newline, with the same effect.
+//
+// identRe is a C identifier.
+var identRe = regexp.MustCompile(`\b[A-Za-z_]\w*\b`)
+
 var defn = regexp.MustCompile(`(?m)^([A-Za-z_]\w*)\([^;\n]*\)[ \t]*$`)
 
 var (

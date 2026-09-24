@@ -132,51 +132,47 @@ run of them) — the tokens inside the fenced block, not the notes.
 
 ## The sweep, and what unreachable covers
 
-Every phase ends the same way: `tools/sweep.sh` deletes what the phase's cut
-left unreachable, to a fixpoint, because each kind of dead thing orphans the
-others — deleting a function orphans a type, deleting a type orphans a
-prototype, deleting a field orphans an enumerator. **Six kinds, in every
-phase:**
+**Every phase ends the same way: the sweep, then the canonical print.** The sweep
+is `internal/sweep`'s `Prune`: the text parsed (`cc.Parse`, no type-checking,
+no gcc), ONE reachability closure from `main` and the static_asserts, and
+everything it did not reach cut. A name is a key in one of C's three name spaces
+-- ordinary, tag, member -- told apart by the token before it, and a name the
+parser's scopes resolve to a local or a parameter is not the file-scope thing it
+spells. What it cuts, all in one pass:
 
-| | by what | islands? |
-| --- | --- | --- |
-| functions | `deadsweep` (gcc) and `funcreach` | yes — reachability |
-| prototypes | `deadprotos` | n/a |
-| types | `typereach` | yes — reachability |
-| variables | `deadsweep`, `-Wunused-variable` | no — reference counting |
-| struct fields | `deadfields` | no — a mention outside every type definition |
-| enumerators | `deadenums` | no — a mention anywhere |
+| | reached how |
+| --- | --- |
+| functions, objects, prototypes, typedefs | named by something reached |
+| struct, union and enum definitions | named by something reached, or an enumerator of theirs is |
+| members | their struct is reached AND their name is, by `.` or `->` -- by name, not type |
+| enumerators | named by something reached |
+| locals | named in their own scope, besides their declaration |
 
-Each is `internal/dead`, and a `go tool whim` subcommand of the same name; the
-phase accounts call them by the Python they were ported from (`cmd/whim/README.md`).
+and what it keeps that is not reached, each a way a deletion would change
+something the closure cannot see: every member while `ml_recover` is defined (a
+struct layout is a disk format); every member of a struct some brace list fills
+by position, and of every struct held by value inside one; every member or
+enumerator when all would go (that is not C); and the run before an enumerator
+survivor whose value cannot be computed from the text -- one that can is written
+with the value it had. Locals go with their initialisers, as gcc's
+`-Wunused-variable` had them go, and the count of those that called something is
+reported. A local's deletion is the one thing that can orphan more, so only then
+is there a second round.
 
-**The sweep is not written into a phase program; the plan runs it, once per
-stage.** Every phase is two programs: `internal/phase/NNN/edit.go` makes the cut (and
-may sweep part way through, where a second cut needs the first one swept), and
-`internal/phase/NNN/check.go` asserts, builds and probes. A **stage** is a run of phases
-whose edits share one sweep: every edit in order on text no sweep has touched
-since the stage began, one sweep, every check in order on the swept text and its
-binary, and then the declared delta once (`internal/verify`). The check shares
-nothing with the edit but the work tree and a state directory — the line count of
-the text its edit was handed, the stage's symbol snapshot, and whatever file the
-edit names for it. Only a stage's end is a boundary.
+It replaced six deleters -- `deadsweep` (gcc's unused warnings), `deadprotos`,
+`typereach`, `funcreach`, `deadfields`, `deadenums` -- looped to a fixpoint
+around gcc, which the phase accounts below still name, because a record keeps
+the name it was measured with (`cmd/whim/README.md`). Measured when it did, on
+the product: it keeps nothing they cut (5,657 entities against 5,662; the five
+it adds were declared and never used), the 44 `whim-test` cases behave the same,
+and the build takes 1,039 s with a sweep after EVERY phase against their 1,192 s
+after 87.
 
-The schedule — 0 | 1-12 | 13-41 | 42-63 | 64-65 | 66-71 | 72 | 73-77 | 78 | 79 |
-80 | 81 | 82 — is in `internal/build/plan.go`, and `internal/phase/STAGES.md` keeps the two
-kinds of fact that decided it, both measured:
-
-- **what an edit needs of its input** (`need P swept|silent|swept-inner:K`). **A
-  phase whose cut is computed from the text must see it swept** — phase 54 after 53
-  without its inner sweep cut one option row too few and did not refuse — so that
-  requirement is declared, not discovered. A counted anchor refuses on unswept text;
-  a computed set shrinks silently.
-- **which checks must see a boundary before a later phase** (`apart P K`). Inside a
-  stage every check runs on the stage's end, so a check that asserts something a
-  later phase removes on purpose — 64's "startPS stays", which 66 takes — fails
-  there, and the two phases go in different stages.
-
-And a stage whose end does not reproduce its recording is a failure, which is the
-check behind both: without it the silent under-cut would have shipped.
+**There are no stages.** A stage was a run of phases sharing one sweep, and the
+schedule of them -- and the `need` and `apart` facts that placed it -- is
+`internal/phase/STAGES.md`, a record now. Every phase is handed swept text, so a
+phase whose cut is computed from the text always sees it swept. A phase that
+needs its own earlier steps swept still says so with a `sweep` step.
 
 Each phase's `delta` is its part of rule 2's list, **written once**: the Ex
 commands, behaviour cases (`case:`) and terminal table (`term-moved`) it changes,
@@ -193,10 +189,11 @@ parts. A phase is a directory, `internal/phase/NNN/`, its number in three digits
 1. Write the cut in `internal/phase/NNN/edit.go`, or as steps in the plan. It does not
    sweep at its end, and write its `GOAL.md`, which opens `# Phase N — what it
    does`.
-2. **Place it in the plan** (`internal/build/plan.go`): its steps, and whether a
-   sweep follows. A sweep must precede it if its edit counts anchors against, or
-   computes its cut from, swept text; record such facts in `internal/phase/STAGES.md`
-   (`need N swept`), where the placement of every sweep was measured.
+2. **Place it in the plan** (`internal/build/plan.go`): its steps. Every phase is
+   swept after its steps and every phase is handed swept text, so there is no
+   placement to decide (`internal/phase/STAGES.md` is the record of when there
+   was); a `sweep` step inside its steps is for an edit that must read its own
+   earlier steps' text swept.
 3. `make whim-build` says whether the product moved as the phase intends; there
    is no test suite, so the evidence the phase needs goes in its `GOAL.md`.
 
@@ -2124,8 +2121,8 @@ number in three digits, and this is how one would join now.
 1. **Write it in Go** if its cut is a program: `internal/phase/NNN/` is then a package of
    its own, `pNNN`, whose `edit.go` registers itself in an `init()`, and
    `internal/phase/registry.go` gains a line so it is linked in.
-2. **Add it to the plan**, `internal/build/plan.go`: its steps in order and
-   whether a sweep follows.
+2. **Add it to the plan**, `internal/build/plan.go`: its steps in order. The
+   sweep follows every phase.
 3. Write its `internal/phase/NNN/GOAL.md`, which opens `# Phase N — ...`, and add it to
    the index below.
 4. `make whim-build` produces `whim-vim.c` and `editor/editor.go` again — **both
@@ -3107,6 +3104,9 @@ count and that is the charter's to decide.
 
 #### II.3c. Stages, packages, `need`, `apart`, `uses`
 
+*A record: there are no stages now -- every phase is swept (see* The sweep, and
+*what unreachable covers). This is the plan phases 83 onwards were built from.*
+
 ```
 phases      83 1 2 3 4 5 6 7 8 9 10 11 12
 
@@ -3917,9 +3917,12 @@ Not yet done, and each one only when it is asked for:
   again: `internal/cemit` joins the AST to the source text by byte offset, so a
   mutation that moves the tree leaves the text standing, and deleting a table row
   yields BYTE-IDENTICAL output — an edit that did nothing, which the product gate
-  cannot see. `doc/surveys/AST-EDITING.md` has the measurements and what would
+  cannot see. `doc/AST-EDITING.md` has the measurements and what would
   unblock it. The cheap half of the idea stands: the AST as a LOCATOR, with the
   text still doing the editing.
+- **The Go editor, idiomatic.** `doc/GO-IDIOMS.md` measured how far the
+  generated Go is from idiomatic and ranked the work; `make whim-test` runs the
+  Go editor against the C on every case, so each step is checked.
 
 When Part I ended at phase 82 this list also held the file-lookup layer, state
 on disk and the build-time dependencies. Phases 89 to 96 took every way the

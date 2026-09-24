@@ -43,19 +43,14 @@ type tool struct {
 // before they report.
 var order = []string{
 	"sweep",
-	"deadsweep", "deadprotos", "typereach", "funcreach", "deadfields", "deadenums",
+	"funcreach",
 	"score", "cmdnames", "cmdidxs", "dropoptions", "retire", "droplocal", "nointro", "noargv0", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "dropopts", "nostartup", "nohome", "nocmdargs", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "query",
 	"build", "cemit",
 	"parse", "fieldref", "reach", "measure", "test", "gen", "skel", "splice", "pre",
 }
 
 var tools = map[string]tool{
-	"deadprotos":  {runDeadprotos, "deadprotos <file>"},
-	"typereach":   {runTypereach, "typereach <file> [--delete]"},
 	"funcreach":   {runFuncreach, "funcreach <file> [--delete]"},
-	"deadfields":  {runDeadfields, "deadfields <file> [--delete]"},
-	"deadenums":   {runDeadenums, "deadenums <file> <enumvals.txt> [--delete|--verify]"},
-	"deadsweep":   {runDeadsweep, "deadsweep <file> [--keep <dir>]"},
 	"sweep":       {runSweep, "sweep <file.c>"},
 	"score":       {runScore, "score"},
 	"cmdnames":    {runCmdnames, "cmdnames <file>"},

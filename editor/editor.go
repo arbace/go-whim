@@ -41,7 +41,6 @@ type fptr_T = func(*int32, int32)
 type frame_T = S_frame_S
 type garray_T = S_growarray
 type getline_opt_T = int32
-type hash_T = uint64
 type histentry_T = S_hist_entry
 type hl_overrides_T = S_hl_overrides_S
 type hlf_T = int32
@@ -83,7 +82,6 @@ type soffset_T = S_soffset
 type spat_T = S_spat
 type tabpage_T = S_tabpage_S
 type taggy_T = S_taggy
-type term_sync_output_T = int32
 type time_T = int64
 type u8char_T = uint32
 type u_entry_T = S_u_entry
@@ -656,7 +654,6 @@ type S_tabpage_S struct {
 	tp_topframe *S_frame_S
 	tp_curwin   *S_window_S
 	tp_ch_used  int64
-	tp_snapshot [3]*S_frame_S
 }
 
 type S_oparg_S struct {
@@ -802,7 +799,6 @@ type S_exarg struct {
 	cmdlinep    *Ptr[byte]
 	cmdidx      cmdidx_T
 	argt        int64
-	skip        int32
 	forceit     int32
 	addr_count  int32
 	line1       linenr_T
@@ -1816,7 +1812,6 @@ const (
 	ETYPE_TOP                = 0
 	ETYPE_ARGS               = 6
 	ETYPE_INTERNAL           = 8
-	SNAP_COUNT               = 3
 	FR_LEAF                  = 0
 	CA_COMMAND_BUSY          = 1
 	CA_NO_ADJ_OP_END         = 2

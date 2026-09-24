@@ -11,25 +11,21 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   no files, no startup options. What it cannot see -- terminal handling,
   resize, reading and writing files, `argv` -- the archived suite (`448e9a8`:
   `internal/harness`, its corpus and pty harness) covered and is where a wider
-  one can be read from. First, though, the in-AST sweep this one was built to
-  guard.
+  one can be read from. It checks the Go editor against the C on the same
+  cases, so a wider corpus widens both.
+- **The Go editor, idiomatic.** `doc/GO-IDIOMS.md` measured it and ranked the
+  work: first the output lint-clean (`true`/`false` for `(1 != 0)`, no `*&`, the
+  32 unreachable statements, `gofmt -s`: generator rules, and a C phase for the
+  dead statements), then truth values typed `bool` (198 predicate and OK/FAIL
+  functions, as a C phase the generator already follows). Each is checked by
+  `make whim-test`, which now runs the Go editor.
 
 ## Known stale, not yet scoped
 
 
 ## Declined, with the reason recorded
 
-**The closure as the sweep's analysis, switched on.** Built and measured, and merged
-OFF (`271ea7d`, `WHIM_CLOSURE=1`): with it on, no phase refuses (phases 78, 99,
-138 and 160 accept "already gone" when the closure took what they cut), q82
-records identical to the core baselines, and it buys the product 5 entities,
-7 lines (75,218 against 75,225) -- the other ~114 dead things it finds at q82
-later phases remove anyway -- for a build ~80 % slower (1,874 s against 1,044
-s). Not worth the re-derivation and a full whim-verify today; one env var
-away if the balance changes. The reporter (`go tool whim reach`, cast-guarded)
-stays the standing answer to what is still dead: 16 on the product.
-
-**In-AST editing.** `doc/surveys/AST-EDITING.md`, and `GOALS.md`'s *What comes next*.
+**In-AST editing.** `doc/AST-EDITING.md`, and `GOALS.md`'s *What comes next*.
 Not on cost: `internal/cemit` joins the AST to the source text by byte offset, so
 a mutation moves the tree while the text stands still, and deleting a table row
 gives BYTE-IDENTICAL output -- an edit that did nothing, which `whim-build-check`

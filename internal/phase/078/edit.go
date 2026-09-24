@@ -182,7 +182,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// A PARTITION, not a count: the member is here and this phase removes it,
 	// or it is already gone -- which is accepted only when nothing at all is
 	// left that says `prechar`, the one way the sweep's closure
-	// (WHIM_CLOSURE=1, internal/sweep/closure.go) leaves it.  A stray mention
+	// (internal/sweep) leaves it.  A stray mention
 	// is neither, and Lines refuses it with the message it always had.
 	if e.Mentions("prechar") == 0 {
 		e.Say("cmdarg_T.prechar: already gone -- nothing says prechar, so the sweep's closure took it")

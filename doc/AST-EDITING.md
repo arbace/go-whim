@@ -1,5 +1,18 @@
 # Could the phases edit the AST instead of the text?
 
+**Status: assessed, not taken; revisit later** (decided 2026-09-23). The blocker
+is not cost. `internal/cemit` is a function of (AST, source text) joined by byte
+offset, so a mutation moves the tree while the source stands still; deleting an
+initializer-list element then produces BYTE-IDENTICAL output. 10 of 10 deletions
+did this, over a class of 829 hazardous sites of 15,185 in the product, and
+`whim-build-check` cannot see it. What would unblock it: recording an
+expansion's extent in `internal/cc` rather than inferring it as "the next offset
+any token has". The survey's companions -- whether the SWEEP could work from the
+AST -- were answered by doing it (`internal/sweep`), and removed with that
+commit. Two corrections: the survey quotes `slim-vim.c`'s md5 as though it were
+`slim.sha`, which records a sha256 (the input was verified against it); and the
+"54 shared cutters" line it calls stale in CLAUDE.md was in no tracked file.
+
 A survey, not an implementation. Nothing tracked was modified; `git status` is
 clean and `slim-vim.c` still hashes to `1a4d25021f118c63f5dc5654913e0299`, the
 digest `slim.sha` records. Every number below was measured in this tree on

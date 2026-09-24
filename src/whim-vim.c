@@ -2063,8 +2063,6 @@ struct mapblock
     char m_nowait;
 };
 
-typedef long_u hash_T;
-
 typedef long long varnumber_T;
 
 typedef unsigned long long uvarnumber_T;
@@ -2170,8 +2168,6 @@ struct file_buffer
     int b_mapped_ctrl_c;
 };
 
-enum { SNAP_COUNT = 3 };
-
 typedef struct tabpage_S tabpage_T;
 
 struct tabpage_S
@@ -2179,7 +2175,6 @@ struct tabpage_S
     frame_T *tp_topframe;
     win_T *tp_curwin;
     long tp_ch_used;
-    frame_T *(tp_snapshot[SNAP_COUNT]);
 };
 
 typedef struct w_line
@@ -2606,13 +2601,13 @@ typedef struct
     string_T value;
 } keyvalue_T;
 
-typedef enum
+enum
 {
     TERM_SYNC_OUTPUT_ENABLE = 1 << 0,
     TERM_SYNC_OUTPUT_DISABLE = 1 << 1,
     TERM_SYNC_OUTPUT_OFF = 1 << 2,
     TERM_SYNC_OUTPUT_FLUSH = 1 << 3,
-} term_sync_output_T;
+};
 
 enum { TABSTOP_MAX = 9999 };
 
@@ -2808,7 +2803,6 @@ struct exarg
     char_u **cmdlinep;
     cmdidx_T cmdidx;
     long argt;
-    int skip;
     int forceit;
     int addr_count;
     linenr_T line1;

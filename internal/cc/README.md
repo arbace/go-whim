@@ -1,7 +1,7 @@
 # internal/cc — the C front end, forked
 
 modernc.org/cc/v4 v4.29.7, the fifteen non-test files, with two C23 productions
-added. Upstream's BSD licence is beside this file and the copyright stays with
+added and one lookup exported. Upstream's BSD licence is beside this file and the copyright stays with
 The CC Authors.
 
 **The delta is the source here, and nowhere else.** It was a patch under
@@ -25,6 +25,12 @@ statement (C23 6.8.1, `theend:` with nothing before the `}`), and
 `[[fallthrough]];` where a statement is expected. `whim parse` is the smoke
 test that this fork, and not a pristine one, is what got linked: whim-vim.c does
 not parse without them.
+
+And one method, `Scope.Declares` (end of `parser.go`): the scope an identifier
+resolves to where it is written, asked of the parse alone. The sweep
+(`internal/sweep`) needs it to tell a local from the global it shadows without
+type-checking a text that need not type-check; the checker's own lookup is
+unexported and resolves further than a scope.
 
 **Upstream is still named**, in go.mod's comment and here, so a later version can
 be diffed against this tree: take the delta above, copy the new release's

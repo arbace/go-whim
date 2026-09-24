@@ -19,7 +19,7 @@ import (
 // from one whose roots swallowed the program, so what makes the partition
 // evidence is a second instrument that can disagree with it: gcc's call graph
 // names every unreferenced static function, object and prototype, which is the
-// F/O/P half of the closure one level deep (doc/surveys/REACHABILITY.md measured
+// F/O/P half of the closure one level deep (REACHABILITY.md measured
 // 13/98/85 exact on its richest text).  Three controls:
 //
 //   - Agreement: on the text, gcc's unused set is exactly the closure's
@@ -255,7 +255,7 @@ func Planted(c *Closure, src []byte, gccBefore []gccUnused, dir string) (ccx.Res
 // must see -- an initialiser that fills the LAST member leaves an element with
 // nowhere to go -- and a silent gcc there refuses.  A silent gcc anywhere else
 // is the case the tree alone sees: values shift and nothing complains.
-// doc/surveys/REACHABILITY.md measured termrequest_T.tr_start: a warning, exit 0.
+// REACHABILITY.md measured termrequest_T.tr_start: a warning, exit 0.
 func Positional(c *Closure, src []byte, dir string) (ccx.Result, error) {
 	res := ccx.Result{Title: "control: gcc on each positionally initialised member, deleted", Classes: map[string]int{}}
 	path := filepath.Join(dir, "positional.c")

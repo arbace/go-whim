@@ -33,7 +33,7 @@ type Options struct {
 	KeepGoing bool
 
 	// Keep, when set, is a directory the text after every phase is written into
-	// as qNNN.c -- after the phase's sweep where the schedule put one, so each
+	// as qNNN.c -- after the phase's sweep and canonical print, so each
 	// file is the boundary that phase hands on.  For measuring every boundary
 	// from one run (whim measure); it writes nothing else.
 	Keep    string
@@ -154,7 +154,7 @@ func Run(o *Options) ([]byte, error) {
 			os.RemoveAll(scratch)
 			return nil, fmt.Errorf("phase %d (%s): %w", p.N, p.Name, err)
 		}
-		// The sweep, if the schedule puts one here, and the canonical print --
+		// The sweep and the canonical print --
 		// also after a refusal, so the text handed on is canonical either way.
 		finished, err := finish(p, text, scratch, o.W)
 		os.RemoveAll(scratch)

@@ -22,7 +22,7 @@ slim-vim.c  --whim-->  whim-vim.c
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
 - **whim** (the `Makefile`) removes capability on purpose, 164 phases from 180,870
-  lines to 75,208. It is two arcs, a coda and an empty last phase:
+  lines to 75,202. It is two arcs, a coda and an empty last phase:
   - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
     install, 84,111 lines at q82;
   - **phases 83-128** (`GOALS.md` Part II) turn it into an embeddable core:
@@ -51,7 +51,10 @@ slim-vim.c  --whim-->  whim-vim.c
   `src/whim-vim.c` and to one of HEAD's, required to print the same screens and
   exit the same way, with a control (`" INSERT"` spelled `" INSERX"`) that must
   move at least one of them, and a case that runs out of keys before its `:q!`
-  refused. Half a second.
+  refused. Then the same cases on the GO editor (`editor/` built), required to
+  answer exactly as the C candidate does -- the one check that `editor.go` is
+  the editor and not only what `internal/gen` writes (the same control moves 41
+  of the 44 there). About 5 s, the four builds side by side.
 
 ## What a file is called
 
@@ -107,8 +110,8 @@ internal/          the Go: cc (the forked C front end), cemit (the canonical pri
                    nothing)
 internal/phase/    the phases: NNN/ (GOAL.md, and edit.go where its cut is a
                    program), registry.go (every phase with an edit.go,
-                   blank-imported so it registers), STAGES.md (the record the
-                   plan was read from: the stages, need and apart, the packages --
+                   blank-imported so it registers), STAGES.md (the record of
+                   the stages there were, and of the measurement that retired them --
                    prose, not a manifest a program reads) and boundaries.md
                    (every boundary's lines, entity counts, binary and nm -u, as
                    `go tool whim build --keep D` and `measure D` give them)
@@ -125,8 +128,9 @@ src/               the input and the product: slim-vim.c (fetched, not tracked),
                    whim-vim.c (produced, tracked), their binaries slim-vim and
                    whim-vim, upstream.sha and slim.sha
 doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
-                   done, in order), and surveys/: measured assessments of what
-                   the pipeline could become (surveys/README.md indexes them)
+                   done, in order), and two surveys: AST-EDITING.md (the phases
+                   editing the AST: not taken, to revisit) and GO-IDIOMS.md (how the Go
+                   editor could be idiomatic, measured and ranked)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
@@ -156,20 +160,30 @@ make help            # every target, with a line each
 ```
 
 - **One path.** `make whim-build` is what a moved upstream runs:
-  `internal/build`'s plan -- each phase's steps (`internal/steps`), the sweep
-  where the schedule put one, and **the canonical print of what is left**
+  `internal/build`'s plan -- each phase's steps (`internal/steps`), **the sweep,
+  after every phase** (there are no stages), and **the canonical print of what is left**
   (`internal/cemit`: one spelling per construct, and NO COMMENTS, of any kind),
   so every boundary that is C is in the one spelling phase 0 seeds with -- applied
-  in one process, in memory. Measured: 164 phases, **1,192 s**, 75,208 lines. A
+  in one process, in memory. Measured: 164 phases, **1,039 s**, 75,202 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
-  set with the input's digest (`manifest`). The sweep is the six deleters; the
-  Python-era canonicalisers it ran every round are gone from it.
+  set with the input's digest (`manifest`).
+- **The sweep is one closure** (`internal/sweep`'s `Prune`): the text parsed
+  (`cc.Parse`, no type-checking, no gcc), everything reachable from `main` and
+  the static_asserts found by name in C's three name spaces, and everything else
+  cut -- functions, objects, prototypes, typedefs, tags, members, enumerators, and
+  the locals nothing reads (resolved by the parser's scopes). Its guards: no
+  member goes while `ml_recover` is defined; a struct filled by position keeps
+  every member; nothing is emptied; an enumerator's deletion pins the survivor
+  after it to its value. About 3 s a phase. It replaced six deleters looped around
+  gcc, and keeps nothing they cut (measured on the product: 5,657 entities
+  against 5,662, the five it adds all unused).
+  It needs every text it is handed to PARSE, and every one does.
 - **`whim-build-check` runs phase by phase, in parallel.** With a sealed set of
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **77 s** on 64 cores, 14 GB at the peak,
-  against 1,192 s in order; and a phase whose program was changed on purpose
+  committed `whim-vim.c`. Measured: **91 s** on 64 cores, against 1,039 s in
+  order; and a phase whose program was changed on purpose
   (a control) is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
   program changed breaks its own link and is named. With no snapshots of this
@@ -212,11 +226,10 @@ A phase is a function of the tree it is handed, so the pipeline is
 was the input boundary's digest and the implementation's together, so a moved
 `slim-vim.c` missed every entry by construction.
 
-- **Where the sweeps fall is the schedule** (`internal/build/plan.go`'s `Sweep`
-  field, and the inner `sweep` steps). `internal/phase/STAGES.md` records the facts that
-  placed them -- `need P swept` (an edit that computes its cut from the text
-  must see it swept) and `apart P K` -- and a sweep moved anywhere else moves
-  the product, which `whim-build-check` sees.
+- **There are no stages.** Every phase is its steps, the sweep, and the
+  canonical print; a `sweep` step inside a phase's steps is for an edit that
+  reads its own earlier steps' text swept. `internal/phase/STAGES.md` is the
+  record of the schedule there was, and of the measurement that retired it.
 - `go tool whim build --to N --work D` leaves the tree after phase N; `--keep D` writes every boundary, and `go tool whim measure
   D` counts them (`internal/phase/boundaries.md`).
 - **A binary is only ever the build of its source as it stands.** `slim-vim` and
@@ -229,9 +242,8 @@ was the input boundary's digest and the implementation's together, so a moved
   by side. Two WHOLE builds in one checkout would still both write
   `.cache/boundaries/`; a second one goes in a worktree.
 - **The analysis tools report, they do not cut**: `go tool whim reach FILE` is
-  what nothing reaches in a text, with gcc as its control and struct casts held;
-  `WHIM_CLOSURE=1` makes the sweep delete by it, and is off (`doc/AGENDA.md`,
-  *Declined*).
+  what nothing reaches in a text, typed, with gcc as its control and struct
+  casts held -- the survey instrument the sweep's closure grew from.
 
 ## The core and the host
 
@@ -249,8 +261,8 @@ design.
 and no more are expected -- the pipeline's goal is met. What a new one takes:
 `internal/phase/NNN/` with `GOAL.md`, and `edit.go` in package `pNNN` registering
 itself if its cut is a program (a line in `internal/phase/registry.go`); and an entry at
-the end of `internal/build`'s `Plan` naming its steps and whether a sweep
-follows. Then `make whim-build` (the product moves, so the tracked `whim-vim.c`
+the end of `internal/build`'s `Plan` naming its steps (the sweep follows
+every phase). Then `make whim-build` (the product moves, so the tracked `whim-vim.c`
 and `editor/editor.go` are rewritten), `make whim-test` against the commit
 before it (a phase that removes capability moves cases on purpose: name them),
 and whatever further evidence the phase needs, stated in its `GOAL.md`.

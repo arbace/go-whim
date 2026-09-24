@@ -25,6 +25,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/arbace/go-whim/internal/build"
@@ -195,18 +196,24 @@ func Check(w io.Writer, rev, candSrc string) error {
 	if err := os.WriteFile(ctlSrc, bytes.Replace(cand, []byte(controlOld), []byte(controlNew), 1), 0o644); err != nil {
 		return err
 	}
-	ref, err := Build(refSrc, dir, "ref")
-	if err != nil {
-		return err
+	// The three builds are the cost of a run, and independent: side by side.
+	srcs, names := []string{refSrc, candSrc, ctlSrc}, []string{"ref", "cand", "control"}
+	bins, errs := make([]string, 3), make([]error, 3)
+	var wg sync.WaitGroup
+	for i := range srcs {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			bins[i], errs[i] = Build(srcs[i], dir, names[i])
+		}(i)
 	}
-	cb, err := Build(candSrc, dir, "cand")
-	if err != nil {
-		return err
+	wg.Wait()
+	for _, err := range errs {
+		if err != nil {
+			return err
+		}
 	}
-	ctl, err := Build(ctlSrc, dir, "control")
-	if err != nil {
-		return err
-	}
+	ref, cb, ctl := bins[0], bins[1], bins[2]
 	start := time.Now()
 	seen, err := Compare(cases, ref, ctl)
 	if err != nil {
@@ -225,5 +232,24 @@ func Check(w io.Writer, rev, candSrc string) error {
 	}
 	fmt.Fprintf(w, "  test         %d cases behave exactly as %s does; the control was seen by %d of them; %dms\n",
 		len(cases), rev, len(seen), time.Since(start).Milliseconds())
+
+	// THE GO EDITOR, the same cases: editor/ as it stands, which is what
+	// internal/gen made of the C, answering exactly as the C candidate does.
+	// Its control is the C one's: the string is in editor.go too.
+	goStart := time.Now()
+	goBin := filepath.Join(dir, "whim")
+	if out, err := exec.Command("go", "build", "-o", goBin, "./editor").CombinedOutput(); err != nil {
+		return fmt.Errorf("go build ./editor: %v\n%s", err, out)
+	}
+	goDiff, err := Compare(cases, cb, goBin)
+	if err != nil {
+		return err
+	}
+	if len(goDiff) > 0 {
+		fmt.Fprintf(w, "  test         %d of %d cases: the Go editor differs from the C: %s\n", len(goDiff), len(cases), strings.Join(goDiff, " "))
+		return fmt.Errorf("suite: the Go editor moved")
+	}
+	fmt.Fprintf(w, "  test         the Go editor (editor/) answers all %d exactly as the C does; %dms\n",
+		len(cases), time.Since(goStart).Milliseconds())
 	return nil
 }

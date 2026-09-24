@@ -2,15 +2,17 @@
 // process and in memory.
 //
 // THE PLAN IS THE PIPELINE.  Each phase is a sequence of named steps
-// (internal/steps) and, after the last of them, a sweep where the schedule put
-// one.  That is everything a phase does to the source; the rest of what a phase
+// (internal/steps), then the sweep, then the canonical print.  A step may be
+// a sweep too, where an edit needs the text swept before its next step reads
+// it.  There are no stages: every phase is swept, and what it hands on is
+// C, swept and canonical.  That is everything a phase does to the source; the rest of what a phase
 // program did -- building the binary its check measures, snapshotting symbols,
 // writing a state directory -- is the check's, and a build does none of it.
 //
 // It was derived from the 163 phase programs and the stage schedule they ran
-// under, and it is held to them by the only gate that matters: the product.  A
-// build from the committed slim-vim.c must be the committed whim-vim.c, byte
-// for byte.  A step in the wrong order, a missing sweep or a dropped argument
+// under (internal/phase/STAGES.md, a record now), and it is held to them by
+// the only gate that matters: the product.  A build from the committed slim-vim.c must be the committed whim-vim.c, byte
+// for byte.  A step in the wrong order or a dropped argument
 // moves those bytes, so the table is checked by `whim build --check` and
 // not by reading it.
 //
@@ -40,7 +42,6 @@ type Phase struct {
 	Seed     bool // phase 0: the tree is the input, printed canonically
 	NoSource bool // the phase changes no source at all (83, 86, 116, 123)
 	Steps    []Step
-	Sweep    bool // a sweep follows this phase's steps
 }
 
 // Plan is the pipeline, phase by phase.
@@ -108,7 +109,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "noenc"},
 			{Op: "dropoptions", Args: []string{"--strict", "charconvert"}},
-		}, Sweep: true},
+		}},
 	{N: 13, Name: "the editor stops re-reading a file it has already read",
 		Steps: []Step{
 			{Op: "nostat"},
@@ -271,7 +272,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "retire", Args: []string{"buffer", "buffers", "files", "ls", "badd", "balt", "bdelete", "bunload", "bwipeout", "bfirst", "brewind", "blast", "bmodified", "bNext", "bufdo"}},
 			{Op: "nobuflist"},
-		}, Sweep: true},
+		}},
 	{N: 42, Name: "one buffer, always",
 		Steps: []Step{
 			{Op: "retire", Args: []string{"bnext", "bprevious", "keepalt"}},
@@ -407,7 +408,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim63"}},
 			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
-		}, Sweep: true},
+		}},
 	{N: 64, Name: "no formatting, comment or nroff-macro options",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim64"}},
@@ -421,7 +422,7 @@ var Plan = []Phase{
 	{N: 65, Name: "no rot13, no operator function, no empty key handler",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim65"}},
-		}, Sweep: true},
+		}},
 	{N: 66, Name: "no sentences, paragraphs, sections, methods, #if blocks or comment blocks",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim66"}},
@@ -450,12 +451,12 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim71"}},
 			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
-		}, Sweep: true},
+		}},
 	{N: 72, Name: "one window, one tabpage, structurally",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim72"}},
 			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
-		}, Sweep: true},
+		}},
 	{N: 73, Name: "one frame",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim73"}},
@@ -480,69 +481,69 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim77"}},
 			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
-		}, Sweep: true},
+		}},
 	{N: 78, Name: "empty functions, write-only counters, and the window id",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim78"}},
 			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
-		}, Sweep: true},
+		}},
 	{N: 79, Name: "the constant-return predicates",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim79"}},
 			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
-		}, Sweep: true},
+		}},
 	{N: 80, Name: "the Ex command table, cut to the commands that exist",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim80", "@state/words"}, Declared: true},
-		}, Sweep: true},
+		}},
 	{N: 81, Name: "one line, one command",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim81"}},
-		}, Sweep: true},
+		}},
 	{N: 82, Name: "the system headers nothing needs, and every comment",
 		Steps: []Step{
 			{Op: "includes", Args: []string{"@state"}},
 			{Op: "edit", Args: []string{"whim82"}},
-		}, Sweep: true},
+		}},
 	{N: 83, Name: "the core's compile line, and the baselines it is measured against", NoSource: true},
 	{N: 84, Name: "the stack protector goes", NoSource: true},
 	{N: 85, Name: "the core stops diagnosing its own terminal",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim85"}},
-		}, Sweep: true},
+		}},
 	{N: 86, Name: "the instrument becomes the screen", NoSource: true},
 	{N: 87, Name: "no streaming Ex",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim87"}},
-		}, Sweep: true},
+		}},
 	{N: 88, Name: "argv is `+{command}` and `-T {term}`",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim88"}},
-		}, Sweep: true},
+		}},
 	{N: 89, Name: "no write",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim89"}},
-		}, Sweep: true},
+		}},
 	{N: 90, Name: "no read",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim90"}},
-		}, Sweep: true},
+		}},
 	{N: 91, Name: "no `:edit`, and no `gf`",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim91"}},
-		}, Sweep: true},
+		}},
 	{N: 92, Name: "nothing reads a byte",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim92"}},
-		}, Sweep: true},
+		}},
 	{N: 93, Name: "the buffer has no name",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim93"}},
-		}, Sweep: true},
+		}},
 	{N: 94, Name: "`:q` quits, and `ZZ` is `ZQ`",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim94"}},
-		}, Sweep: true},
+		}},
 	{N: 95, Name: "the options nothing reads",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim95"}},
@@ -552,268 +553,268 @@ var Plan = []Phase{
 			{Op: "dropoptions", Args: []string{"--strict", "--local", "readonly"}},
 			{Op: "droplocal", Args: []string{"b_p_ro"}},
 			{Op: "edit", Args: []string{"whim95rows"}},
-		}, Sweep: true},
+		}},
 	{N: 96, Name: "no `FILE *` that is never opened",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim96"}},
-		}, Sweep: true},
+		}},
 	{N: 97, Name: "the strings are the editor's own",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim97"}},
-		}, Sweep: true},
+		}},
 	{N: 98, Name: "the character classes, the numbers and the sort",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim98"}},
-		}, Sweep: true},
+		}},
 	{N: 99, Name: "the includes nothing names",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim99"}},
-		}, Sweep: true},
+		}},
 	{N: 100, Name: "the deadly ladder that cannot run",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim100"}},
-		}, Sweep: true},
+		}},
 	{N: 101, Name: "`main()` is demoted to `vim_main()`",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim101"}},
-		}, Sweep: true},
+		}},
 	{N: 102, Name: "the core can no longer stop the process",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim102"}},
-		}, Sweep: true},
+		}},
 	{N: 103, Name: "the signals and the terminal are the host's",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim103"}},
-		}, Sweep: true},
+		}},
 	{N: 104, Name: "the messages are the editor's, the writing is the host's",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim104"}},
-		}, Sweep: true},
+		}},
 	{N: 105, Name: "the variadic collapse",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim105"}},
-		}, Sweep: true},
+		}},
 	{N: 106, Name: "`nullptr` and `usize`",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim106"}},
-		}, Sweep: true},
+		}},
 	{N: 107, Name: "the attributes",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim107"}},
-		}, Sweep: true},
+		}},
 	{N: 108, Name: "the plain host calls",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim108"}},
-		}, Sweep: true},
+		}},
 	{N: 109, Name: "the header types and macros the core can own",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim109", "@minmax"}},
-		}, Sweep: true},
+		}},
 	{N: 110, Name: "the move: the first `#include` becomes the boundary",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim110", "@state"}},
-		}, Sweep: true},
+		}},
 	{N: 111, Name: "the scalar clock",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim111"}},
-		}, Sweep: true},
+		}},
 	{N: 112, Name: "the case tables become one, and it is the union",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim112"}},
-		}, Sweep: true},
+		}},
 	{N: 113, Name: "the message fold: `msg_puts_printf()` and the branch that reaches it",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim113"}},
-		}, Sweep: true},
+		}},
 	{N: 114, Name: "`abs` and `labs`, the two the core took on trust",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim114"}},
-		}, Sweep: true},
+		}},
 	{N: 115, Name: "the clock crosses the boundary",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim115"}},
-		}, Sweep: true},
+		}},
 	{N: 116, Name: "the terminal table is asked with `+set term=`, not `$TERM`", NoSource: true},
 	{N: 117, Name: "the core stops reallocating",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim117"}},
-		}, Sweep: true},
+		}},
 	{N: 118, Name: "the core calls nothing but the host",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim118", "@state"}},
-		}, Sweep: true},
+		}},
 	{N: 119, Name: "the core names no libc function at all",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim119", "@state"}},
-		}, Sweep: true},
+		}},
 	{N: 120, Name: "the degenerate unions go",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim120"}},
-		}, Sweep: true},
+		}},
 	{N: 121, Name: "the eight terminal names go, leaving two",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim121"}},
-		}, Sweep: true},
+		}},
 	{N: 122, Name: "`-T {term}` goes, and the command line is `+{command}`",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim122"}},
-		}, Sweep: true},
+		}},
 	{N: 123, Name: "the instrument could not see the text layer", NoSource: true},
 	{N: 124, Name: "freeing is free, and the arena is measured",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim124", "@state"}},
-		}, Sweep: true},
+		}},
 	{N: 125, Name: "the swap file's residue, and what no sweep could find",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim125", "@state"}},
-		}, Sweep: true},
+		}},
 	{N: 126, Name: "a block number becomes a reference",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim126", "@state"}},
-		}, Sweep: true},
+		}},
 	{N: 127, Name: "de-page the leaf",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim127", "@state"}},
-		}, Sweep: true},
+		}},
 	{N: 128, Name: "fold the node types",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim128", "@state"}},
-		}, Sweep: true},
+		}},
 	{N: 129, Name: "`p_emoji` is an `int`",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim129"}},
-		}, Sweep: true},
+		}},
 	{N: 130, Name: "the `(pos_T *)-1` tests go",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim130"}},
-		}, Sweep: true},
+		}},
 	{N: 131, Name: "the saved input buffer is a `garray_T *`",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim131"}},
-		}, Sweep: true},
+		}},
 	{N: 132, Name: "nothing frees",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim132"}},
-		}, Sweep: true},
+		}},
 	{N: 133, Name: "one buffer needs no hash table",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim133"}},
-		}, Sweep: true},
+		}},
 	{N: 134, Name: "the empty blocks fold",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim134"}},
-		}, Sweep: true},
+		}},
 	{N: 135, Name: "one regexp program type",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim135"}},
-		}, Sweep: true},
+		}},
 	{N: 136, Name: "the engine is called directly",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim136"}},
-		}, Sweep: true},
+		}},
 	{N: 137, Name: "the changedtick is a number",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim137"}},
-		}, Sweep: true},
+		}},
 	{N: 138, Name: "no parameter carries an eval value",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim138"}},
-		}, Sweep: true},
+		}},
 	{N: 139, Name: "the core sorts and searches typed arrays",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim139"}},
-		}, Sweep: true},
+		}},
 	{N: 140, Name: "highlight groups are found in their array",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim140"}},
-		}, Sweep: true},
+		}},
 	{N: 141, Name: "`regrepeat()` does not jump into a case",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim141"}},
-		}, Sweep: true},
+		}},
 	{N: 142, Name: "the version names no build date or time",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim142"}},
-		}, Sweep: true},
+		}},
 	{N: 143, Name: "`regatom()` has no goto",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim143"}},
-		}, Sweep: true},
+		}},
 	{N: 144, Name: "`edit()` has no goto",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim144"}},
-		}, Sweep: true},
+		}},
 	{N: 145, Name: "`check_termcode()` has no goto",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim145"}},
-		}, Sweep: true},
+		}},
 	{N: 146, Name: "a memline node names its block",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim146"}},
-		}, Sweep: true},
+		}},
 	{N: 147, Name: "`deathtrap()` runs at the host's next wait",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim147"}},
-		}, Sweep: true},
+		}},
 	{N: 148, Name: "allocation cannot fail",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim148"}},
-		}, Sweep: true},
+		}},
 	{N: 149, Name: "the allocation-failure branches fold",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim149"}},
-		}, Sweep: true},
+		}},
 	{N: 150, Name: "the regexp stack is three typed stacks",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim150"}},
-		}, Sweep: true},
+		}},
 	{N: 151, Name: "the option table's defaults are typed",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim151"}},
-		}, Sweep: true},
+		}},
 	{N: 152, Name: "the option variables are typed",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim152"}},
-		}, Sweep: true},
+		}},
 	{N: 153, Name: "`free_one_termoption()` compares without a cast",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim153"}},
-		}, Sweep: true},
+		}},
 	{N: 154, Name: "the NULL write in `free_one_termoption()` is gone",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim154"}},
-		}, Sweep: true},
+		}},
 	{N: 155, Name: "call arguments with effects are evaluated in gcc's order",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim155"}},
-		}, Sweep: true},
+		}},
 	{N: 156, Name: "the regex size pass's node is a static byte, not (char_u *) -1",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim156"}},
-		}, Sweep: true},
+		}},
 	{N: 157, Name: "get_register() and put_register() carry a yankreg_T *, not a void *",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim157"}},
-		}, Sweep: true},
+		}},
 	{N: 158, Name: "a highlight's terminal font is read only from a colour entry",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim158"}},
-		}, Sweep: true},
+		}},
 	{N: 159, Name: "a struct's text is a pointer to an allocation of its own",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim159"}},
-		}, Sweep: true},
+		}},
 	{N: 160, Name: "no line getter takes a cookie",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim160"}},
-		}, Sweep: true},
+		}},
 	{N: 161, Name: "no goto jumps into a block",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim161"}},
-		}, Sweep: true},
+		}},
 	{N: 162, Name: "no two function pointers are compared",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim162"}},
-		}, Sweep: true},
+		}},
 	{N: 163, Name: "the product is in the one canonical spelling", NoSource: true},
 }

@@ -3955,3 +3955,34 @@ type lexicalScope Scope
 
 // LexicalScope provides the scope a node appears in.
 func (n *lexicalScope) LexicalScope() *Scope { return (*Scope)(n) }
+
+// Declares is the scope an identifier resolves to where it is written: the
+// innermost scope, from s outwards, holding a declarator, enumerator or
+// parameter of that name already visible at t.  An `extern` declarator names
+// the outer object, so it resolves outwards.  Nil when nothing declares it.
+//
+// It is the lookup the checker does, asked of the parse alone: the parser
+// builds the scopes, and nothing here needs a type.  (go-whim: added, for the
+// sweep, which must tell a local from the global it shadows.)
+func (s *Scope) Declares(t Token) *Scope {
+	nm := string(t.Src())
+	for ; s != nil; s = s.Parent {
+		for _, v := range s.Nodes[nm] {
+			switch x := v.(type) {
+			case *Declarator:
+				if t.seq >= int32(x.visible) && !x.isExtern {
+					return s
+				}
+			case *Enumerator:
+				if t.seq >= int32(x.visible) {
+					return s
+				}
+			case *Parameter:
+				if t.seq >= int32(x.visible) {
+					return s
+				}
+			}
+		}
+	}
+	return nil
+}

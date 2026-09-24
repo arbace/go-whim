@@ -1,10 +1,18 @@
-# The stages: the record, not the program
+# The stages: a record
 
-What runs is internal/build/plan.go, which carries each phase's stage, whether
-that stage sweeps after every edit, and where the sweeps fall.  This file is
-where those facts were measured and why, and it is kept for the `need` and
-`apart` lines and the packages, which are statements about the phases that no
-program can re-derive.
+**There are no stages any more.**  Every phase is its steps, the sweep, and the
+canonical print (internal/build's `finish`); a step may be a sweep too, where an
+edit needs its text swept before its next step reads it.  Stages were the price
+of a sweep that cost minutes: six deleters looped to a fixpoint around gcc.
+Measured before they went: sweeping after EVERY phase with that old sweep gave
+the committed whim-vim.c back byte for byte, no phase refusing (1,853 s against
+1,192 s staged) -- so the schedule decided cost, never the product.  The sweep
+is one closure now (internal/sweep), cheap enough to run after every phase.
+
+What follows is where the schedule's facts were measured and why.  It is kept
+for the `need` and `apart` lines and the packages, statements about the phases
+that no program can re-derive; the `need P swept` facts are what every phase
+now has by construction.
 
 A STAGE is a run of phases between two sweeps: every phase's edit in order, ONE
 sweep, then every phase's check on that one swept text (`each` reverses it: a

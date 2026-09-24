@@ -17,7 +17,7 @@ import (
 )
 
 // Advance is ONE PHASE, as a function of the text it is handed: its steps, the
-// sweep where the schedule puts one, and the canonical print of what is left.
+// sweep, and the canonical print of what is left.
 // Every boundary is canonical -- the one C23 spelling phase 0 seeds with -- so
 // a phase reads the form its anchors were written against whatever the phases
 // before it wrote, and the text it hands on is a fixed point of the printer.
@@ -40,37 +40,28 @@ func Advance(p Phase, text []byte, w io.Writer) ([]byte, error) {
 	return finish(p, out, scratch, w)
 }
 
-// finish is what follows a phase's steps: its sweep, if the schedule puts one
-// after it, and the canonical print.
+// finish is what follows every phase's steps: the sweep, and the canonical
+// print.  There are no stages -- no phase hands on a text the sweep has not
+// seen, and every text a phase hands on is C: phases 69 and 74, which removed
+// a typedef while prototypes naming it waited for a later sweep, leave the
+// typedef to the sweep now, which takes it with them.
 func finish(p Phase, text []byte, scratch string, w io.Writer) ([]byte, error) {
-	if p.Sweep {
-		path := filepath.Join(scratch, "whim-vim.c")
-		if err := os.WriteFile(path, text, 0o644); err != nil {
-			return nil, err
-		}
-		if _, err := sweep.Sweep(path, w); err != nil {
-			return nil, fmt.Errorf("sweep: %w", err)
-		}
-		var err error
-		if text, err = os.ReadFile(path); err != nil {
-			return nil, err
-		}
+	path := filepath.Join(scratch, "whim-vim.c")
+	if err := os.WriteFile(path, text, 0o644); err != nil {
+		return nil, err
+	}
+	if _, err := sweep.Sweep(path, w); err != nil {
+		return nil, err
+	}
+	text, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
 	}
 	canon, err := Seed(text, io.Discard)
-	switch {
-	case err == nil:
-		return canon, nil
-	case !p.Sweep:
-		// A TEXT INSIDE A SHARED STAGE NEED NOT BE C.  The edit cuts and the
-		// stage's sweep collects: phase 69 removes the alist_T typedef while
-		// prototypes naming it wait for the sweep at 71, and a type name that
-		// is no type is a syntax error, so there is no canonical form to
-		// print.  Such a text is handed on as it is, and the next boundary
-		// that is C prints it; measured, 69, 70 and 74-76 are the ones.
-		return text, nil
-	default:
+	if err != nil {
 		return nil, fmt.Errorf("canonical print: %w", err)
 	}
+	return canon, nil
 }
 
 // SNAPSHOTS.  A complete build from phase 0 keeps every boundary it produced
@@ -123,7 +114,7 @@ func Check(o *Options, jobs int) ([]byte, error) {
 	}
 	if jobs <= 0 {
 		jobs = runtime.NumCPU()
-		}
+	}
 	start := time.Now()
 	seed, err := Seed(src, io.Discard)
 	if err != nil {

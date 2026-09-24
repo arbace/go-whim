@@ -172,9 +172,16 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 		{"edit_buffers(&params, start_dir);", "edit_buffers(&params);"},
 		{"static void edit_buffers(mparm_T *parmp, char_u *cwd);",
 			"static void edit_buffers(mparm_T *parmp);"},
-		{"edit_buffers(mparm_T     *parmp, char_u      *cwd)",
-			"edit_buffers(mparm_T     *parmp)"},
+		{"edit_buffers(mparm_T *parmp, char_u *cwd)",
+			"edit_buffers(mparm_T *parmp)"},
 	} {
+		// Each exactly once.  The definition's anchor was spelled in the
+		// aligned layout the canonical print no longer has, and an unchecked
+		// Replace missed it without a word: the definition kept its second
+		// parameter and disagreed with its prototype until the sweep took it.
+		if n := bytes.Count(text, []byte(r.old)); n != 1 {
+			return nil, fmt.Errorf("nochdir: %q occurs %d times, expected 1", r.old, n)
+		}
 		text = bytes.Replace(text, []byte(r.old), []byte(r.new), 1)
 	}
 	fmt.Fprintln(w, "  nochdir      the -o window walk stops returning to a directory it "+

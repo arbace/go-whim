@@ -30,14 +30,18 @@ date from the version line.
 
 **A phase is a function of the tree it is handed**, so the pipeline is 164 of
 them in order, and it runs as one program: `make whim-build` applies them in
-memory and produces `whim-vim.c` in about eighteen minutes. What answers for it
+memory and produces `whim-vim.c` in about seventeen minutes. Every phase is its steps, then
+the sweep -- one reachability closure over the parsed text, cutting what `main`
+cannot reach -- then the one canonical print. What answers for it
 is that the product is tracked — `make whim-build-check` requires the committed
 bytes back from the committed input.
 
-**There is no test suite.** Each phase was verified while it was written, by a
-check program and a delta declared in advance against recorded baselines; that
-suite was removed after `448e9a8`, the last commit that has it, and a new one is
-to be derived from upstream.
+**The test suite is minimal**, `make whim-test`: 44 key sessions, each required
+to print the same screens from the working tree's build as from HEAD's, and from
+the Go editor as from the C, with a control that must move them; about five
+seconds. The suite each phase was verified with while it was written -- check
+programs, and deltas declared in advance against recorded baselines -- was
+removed after `448e9a8`, the last commit that has it.
 
 ## Documents
 
@@ -88,8 +92,9 @@ produces `whim-vim.c`, and `make editor/editor.go` does it on its own.
 writes, and `make` builds it into `bin/whim`.
 
 The Go is faithful, not yet idiomatic. The phases from 129 on removed from the C
-what it had to work around; making the Go idiomatic comes next, measured by the
-test suite still to be derived from upstream.
+what it had to work around; making the Go idiomatic comes next -- `doc/GO-IDIOMS.md`
+is the measured survey of how, and `make whim-test` checks the Go editor
+against the C on every run.
 
 ## Requirements
 
@@ -112,8 +117,8 @@ internal/        the cutters, the sweep, the canonical printer (cemit), the plan
                  what the core's C leaves a translation to decide -- pointer
                  casts, evaluation order -- partitioned, and the phases:
                  internal/phase/NNN/ (GOAL.md, and edit.go where its cut is a
-                 program) and internal/phase/STAGES.md, the record the stages
-                 were read from
+                 program) and internal/phase/STAGES.md, the record of the
+                 stages there were
 editor/          the core transpiled into Go, with its runtime and host
 internal/gen/    the generator of editor/editor.go (go tool whim gen), splice/
                  (whim splice: the emitted bodies measured in a copy of
@@ -121,8 +126,9 @@ internal/gen/    the generator of editor/editor.go (go tool whim gen), splice/
                  sigs.md, CONVENTIONS.md and FINDINGS.md
 Makefile         the whole build: the input, the pipeline, the binaries, the editor
 doc/             GOALS.md (what holds for every phase), AGENDA.md (what is not
-                 done, in order), and surveys/: measured assessments of what
-                 the pipeline could become (surveys/README.md indexes them)
+                 done, in order), and two surveys: AST-EDITING.md (the phases
+                 editing the AST: not taken, to revisit) and GO-IDIOMS.md (how the Go
+                 editor could be idiomatic, measured and ranked)
 src/             the input and the product, their binaries and digests:
                  whim-vim.c (the product, tracked; make editor.c cuts the core
                  out of it), slim-vim.c (the input, fetched, not tracked),

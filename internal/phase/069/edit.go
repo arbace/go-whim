@@ -135,17 +135,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Lines(`curwin->w_alist = &global_alist;`, 1, "the one window pointing at it")
 	})
 
-	// The two types, matched in their INPUT shape.  An earlier version patterned
-	// against `typedef struct arglist { int id; } alist_T;` -- which is what the
-	// file looks like AFTER a sweep has stripped the fields, not before one --
-	// and matched nothing.  Both are removed here rather than left to
-	// typereach.py, which takes roots from mentions outside every type
-	// definition and still leaves the typedef standing.
-	e.Cut(`(?m)^typedef struct arglist\n\{\n[ \t]*garray_T[ \t]+al_ga;\n[ \t]*int[ \t]+al_refcount;\n[ \t]*int[ \t]+id;\n\} alist_T;\n\n?`, 1,
-		"the argument list type itself")
-	e.Cut(`(?m)^typedef struct argentry\n\{\n[ \t]*char_u[ \t]+\*ae_fname;\n[ \t]*int[ \t]+ae_fnum;\n\} aentry_T;\n\n?`, 1,
-		"the argument entry type")
-
 	// and the count message, which one file argument can never satisfy
 	e.Cut(`(?m)^[ \t]*if \(\(global_alist\.al_ga\.ga_len\) > 1 && !silent_mode\)\n[ \t]*\{\n[ \t]*printf\(_\("%d files to edit\\n"\), \(global_alist\.al_ga\.ga_len\)\);\n[ \t]*\}\n\n?`, 1,
 		"the \"N files to edit\" message at startup")

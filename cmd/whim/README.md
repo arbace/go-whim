@@ -11,7 +11,7 @@ commit that has them.
 | --- | --- |
 | `go tool whim build` | the 164 phases in one process; `--check` requires the committed product back, `--canonical` prints the input in canonical form at phase 0 first, `--keep-going` records a phase that refuses instead of stopping |
 | `go tool whim test` | the editor on the key sessions in `internal/suite/cases.md`, built from the working tree and from `--ref REV` (HEAD), required to print the same; a control must move one (`internal/suite`) |
-| `go tool whim sweep` | the dead-code sweep on one file, to a fixpoint (`internal/sweep`) |
+| `go tool whim sweep` | the sweep on one file: one reachability closure over its parse, and everything it did not reach cut out (`internal/sweep`) |
 | `go tool whim cemit` | one file in the canonical C23 form (`internal/cemit`), `--check` to ask whether it already is |
 | `go tool whim parse` | the front end's smoke test, and the proof that the PATCHED `internal/cc` is what got linked |
 | `go tool whim reach` | what nothing reaches in a text, as a partition with gcc as its control (`internal/reach`); it deletes nothing |
@@ -64,3 +64,4 @@ too, with the test suite; `448e9a8` is the last commit that has it.
 | `st.sh`, `gobuild.sh` | `go tool whim <subcommand>`: `go.mod` declares `cmd/whim` (renamed from `cmd/whimtools`) as a tool, and Go builds and caches it | the commit that made the toolset a go tool |
 | `tools/musl-ctype.txt`, `tools/musl-case.txt`, and `tools/` itself | `internal/phase/098/musl-ctype.md` and `musl-case.md`, embedded in phase 98's edit (the fenced block, byte for byte); this file moved to `cmd/whim/README.md` | the commit that embedded them |
 | `internal/canon` and the subcommands `canon`, `blankruns`, `joinparens`, `splitheads`, `brace`, `onestmt`, `onedecl`, `forcomma` | nothing: `internal/cemit` is the one canonical printer, run at the end of every phase (`go tool whim cemit` by hand); the sweep stopped running these | the commit that removed them, after 38be391 |
+| the subcommands `deadsweep`, `deadprotos`, `typereach`, `deadfields`, `deadenums`, and `internal/sweep`'s `WHIM_CLOSURE` switch | `internal/sweep`'s closure (`Prune`), which replaced the six-tool loop; `funcreach` stays, a step some phases run mid-edit, and `internal/dead` keeps it, `FuncDefinitions` and the gcc warnings `reach` uses as its control | the commit that replaced the sweep |

@@ -222,7 +222,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// A PARTITION, not a count: the typedef is here and this phase removes
 	// it, or it is already gone -- accepted only when neither `stat_T` nor
 	// `struct stat` is left at all, the one way the sweep's closure
-	// (WHIM_CLOSURE=1, internal/sweep/closure.go) leaves it: it reads the
+	// (internal/sweep) leaves it: it reads the
 	// typedef as the type definition nothing names, which typereach could
 	// not.  Anything else refuses with the messages it always had.
 	statGone := p.Mentions(Body, "stat_T") == 0 && len(whim99StructStat.FindAll(Body, -1)) == 0

@@ -205,8 +205,7 @@ func (p Ph) SwapOnce(text []byte, old, new, what, why string) ([]byte, error) {
 
 // LiteralOrGone is Literal as a PARTITION: the text is here n times and is
 // replaced, or it is ALREADY GONE -- accepted only when nothing at all names
-// name, which is the one way the sweep's closure (WHIM_CLOSURE=1,
-// internal/sweep/closure.go) leaves a definition nothing names.  Anything
+// name, which is the one way the sweep (internal/sweep) leaves a definition nothing names.  Anything
 // else refuses with Literal's message.  It says which class fired.
 func (p Ph) LiteralOrGone(text []byte, old, new, what string, n int, name string) ([]byte, error) {
 	if k, _ := matchCount(text, old); k == 0 && p.Mentions(text, name) == 0 {
