@@ -909,6 +909,12 @@ What differs
 from Part I is what the phases remove and what their behaviour is measured against
 (core rules 2 and 3).
 
+This part was once a pipeline of its own, **zero**, and `d3ac925` retired the name
+after the two were one: a record written before then -- a phase's `delta.md` or `GOAL.md`, `phase/STAGES.md`, the
+appendix -- calls the product `zero-vim.c` and the executable `zero-vim`, and means
+`whim-vim.c` and its binary as they stood at that phase. The records keep the name
+they were measured under.
+
 **This part is iterative.** Its first forty-six phases, 83 to 128, build the core. Phase 83 is where
 the core begins, phase 84 is a compiler flag, phase 85 is the first cut in the source — the first
 piece of *a component, not a program* — phase 86 changes no source at all: it
