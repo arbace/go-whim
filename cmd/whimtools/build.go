@@ -17,6 +17,7 @@ import (
 //	whimtools build --to N          stop after phase N
 //	whimtools build --from N --src B   start at phase N, from boundary B
 //	whimtools build --src F --out F the input and the output
+//	whimtools build --keep D        every boundary as D/qNNN.c, for measuring
 //
 // --check is the gate on internal/build's plan, and the only one there is: the
 // plan was derived from the phase programs, so what holds it to them is that
@@ -40,7 +41,7 @@ func runBuild(args []string) int {
 			flag := args[i]
 			i++
 			if i >= len(args) {
-				fmt.Fprintln(os.Stderr, "usage: whimtools build [--check] [--to N] [--src F] [--out F] [--work D]")
+				fmt.Fprintln(os.Stderr, "usage: whimtools build [--check] [--to N] [--src F] [--out F] [--work D] [--keep D]")
 				return 2
 			}
 			n, err := strconv.Atoi(args[i])
@@ -53,11 +54,11 @@ func runBuild(args []string) int {
 			} else {
 				o.To = n
 			}
-		case "--src", "--out", "--work":
+		case "--src", "--out", "--work", "--keep":
 			flag := args[i]
 			i++
 			if i >= len(args) {
-				fmt.Fprintln(os.Stderr, "usage: whimtools build [--check] [--to N] [--src F] [--out F] [--work D]")
+				fmt.Fprintln(os.Stderr, "usage: whimtools build [--check] [--to N] [--src F] [--out F] [--work D] [--keep D]")
 				return 2
 			}
 			switch flag {
@@ -67,6 +68,8 @@ func runBuild(args []string) int {
 				out = args[i]
 			case "--work":
 				o.Work = args[i]
+			case "--keep":
+				o.Keep = args[i]
 			}
 		default:
 			fmt.Fprintf(os.Stderr, "whimtools build: unknown argument %q\n", args[i])

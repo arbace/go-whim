@@ -32,6 +32,12 @@ type Options struct {
 	// as it was.  Everything after a dropped phase is answering a different
 	// question, so what this gives is a LIST and not a product.
 	KeepGoing bool
+
+	// Keep, when set, is a directory the text after every phase is written into
+	// as qNNN.c -- after the phase's sweep where the schedule put one, so each
+	// file is the boundary that phase hands on.  For measuring every boundary
+	// from one run (whimtools measure); it writes nothing else.
+	Keep string
 	Refused   []string
 }
 
@@ -121,6 +127,9 @@ func Run(o *Options) ([]byte, error) {
 			}
 		}
 		if p.NoSource {
+			if err := o.keep(p.N, text); err != nil {
+				return nil, err
+			}
 			continue
 		}
 		scratch, err := os.MkdirTemp("", fmt.Sprintf("whim%03d.", p.N))
@@ -157,6 +166,9 @@ func Run(o *Options) ([]byte, error) {
 			if text, err = os.ReadFile(path); err != nil {
 				return nil, err
 			}
+		}
+		if err := o.keep(p.N, text); err != nil {
+			return nil, err
 		}
 		if d := time.Since(start); d > time.Second {
 			fmt.Fprintf(o.W, "  phase %-6d %ds, %d lines\n", p.N, int(d.Seconds()),
@@ -270,4 +282,15 @@ func declared(n int) (string, error) {
 		toks = append(toks, strings.Fields(ln)...)
 	}
 	return strings.Join(toks, " "), nil
+}
+
+// keep writes the boundary after phase n into o.Keep, when it is set.
+func (o *Options) keep(n int, text []byte) error {
+	if o.Keep == "" {
+		return nil
+	}
+	if err := os.MkdirAll(o.Keep, 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(o.Keep, fmt.Sprintf("q%03d.c", n)), text, 0o644)
 }
