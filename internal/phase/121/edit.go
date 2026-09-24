@@ -133,7 +133,7 @@ var (
 // That is why this blanks and p.mentions does not.
 func whim121Mentions(text []byte, name string) int {
 	return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).
-		FindAll(cutil.Blank(text), -1))
+		FindAll(cutil.Blank(edit.WithoutIncludes(text)), -1))
 }
 
 type whim121Edit struct {

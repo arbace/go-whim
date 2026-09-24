@@ -99,6 +99,7 @@ var (
 // 4 and 5.  A count is a fact about a tree that WAS measured; a partition is a
 // fact about the tree that arrives.
 func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 166 drops the unused)
 	p := edit.Ph{Tag: "hostcall", W: w}
 	if len(args) != 1 {
 		return nil, p.Die("usage: edit whim118 <file> <state-dir>")
@@ -128,7 +129,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			directives = append(directives, i)
 		}
 	}
-	if len(directives) != 11 {
+	if len(directives) != nInc {
 		return nil, p.Die("the file holds %d preprocessor directives and this phase was written against "+
 			"the eleven `#include`s phase 104 left", len(directives))
 	}
@@ -495,7 +496,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			d = append(d, i)
 		}
 	}
-	okd := len(d) == 11 && d[0] == boundary
+	okd := len(d) == nInc && d[0] == boundary
 	for i := range d {
 		if d[i] != d[0]+i {
 			okd = false

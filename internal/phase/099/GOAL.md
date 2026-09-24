@@ -1,5 +1,10 @@
 # Phase 99 — the includes nothing names
 
+**Since phase 166:** the six headers are shown unused here and dropped there,
+with every other unused header, last and at once. This phase still removes the
+`stat_T` typedef, and still refuses when anything names what the six supply. What
+follows is the record of when the six went here.
+
 `internal/phase/099/edit.go` and `internal/phase/099/check.go`, `stage 99`, `package includes`.
 `whim-vim.c` inherited **eighteen** preprocessor directives from `whim-vim.c`, every
 one an `#include` of a system header, and fifteen phases removed none of them. Six are

@@ -174,9 +174,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "noopts", W: w}
 	var err error
 
-	mentions := func(t []byte, name string) int {
-		return len(regexp.MustCompile(`\b`+name+`\b`).FindAll(t, -1))
-	}
+	mentions := edit.MentionCount
 	textEdit := func(t []byte, old, new, what string, n int) ([]byte, error) {
 		k := strings.Count(string(t), old)
 		if k != n {
@@ -347,9 +345,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 // than as trust, taken AFTER the four droplocal/dropoptions calls between them.
 func Whim95Rows(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "noopts", W: w}
-	mentions := func(name string) int {
-		return len(regexp.MustCompile(`\b`+name+`\b`).FindAll(text, -1))
-	}
+	mentions := func(name string) int { return edit.MentionCount(text, name) }
 	for _, name := range edit.SortedKeys(w95After) {
 		if k := mentions(name); k != w95After[name] {
 			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, w95After[name])

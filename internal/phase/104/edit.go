@@ -15,11 +15,10 @@ package p104
 // vim_host_message = message_fn;
 // host_message()   beside host_exit(), in the launcher, write(err ? 2 : 1, ...)
 //
-// and `<stdio.h>` goes with them: TWELVE DIRECTIVES BECOME ELEVEN.  That is the second
-// time a Part II phase has removed one (phase 99 was the first), and it is the same
-// argument -- this is the header the phase's symbols came from, the charter permits a
-// removal and forbids an addition, and from here the "no stdio stream" invariant phase
-// 96 asserted is visible in the directive list as well as in `nm -u`.
+// and `<stdio.h>` is left unused: the header the phase's symbols came from.  It is
+// not removed here -- phase 166 drops every header the file does not need, together
+// and last -- and from there the "no stdio stream" invariant phase 96 asserted is
+// visible in the directive list as well as in `nm -u`.
 //
 // UNLIKE PHASE 103, THIS ONE REALLY FREES SYMBOLS, and the reason is the rule phase 103
 // stated: a symbol leaves when its last CALLER leaves the file.  `printf` and
@@ -131,9 +130,10 @@ var w104Stmt = regexp.MustCompile(`(?m)^\s*(?:printf|fprintf|fflush)\(`)
 
 // Whim104 makes the messages the editor's and the writing the host's: twenty
 // output statements in five functions become eight calls through one
-// vim_host_message(msg, len, err) the launcher installs, with <stdio.h> and
-// seven symbols going with them.
+// vim_host_message(msg, len, err) the launcher installs, with seven symbols
+// going with them and <stdio.h> left unused.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 166 drops the unused)
 	p := edit.Ph{Tag: "message", W: w}
 	t := text
 
@@ -189,8 +189,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"report_term_error, 1 in set_termname and 6 in mainerr", k)
 	}
 	if bytes.Count(t, []byte("#include <stdio.h>\n")) != 1 {
-		return nil, p.Die("<stdio.h> is not included exactly once, so the directive this phase " +
-			"removes is not the one it was written against")
+		return nil, p.Die("<stdio.h> is not included exactly once, so the header this phase " +
+			"stops needing is not the one it was written against")
 	}
 	p.Say("the input is r20: 20 statements put bytes on a stream -- `fprintf` 16, " +
 		"`printf` 13 words of which THREE are calls, `fflush` 1 -- and `FILE` and " +
@@ -458,12 +458,8 @@ main(int argc, char **argv)
 	t = append(append([]byte(nil), t[:len(t)-len(old)]...), new...)
 
 	// ---- 9. the header the symbols came from -----------------------------
-	// GOALS.md's charter: a phase may REMOVE a directive and may never add
-	// one.  This is the second removal in the pipeline; phase 99 was the
-	// first, and made the argument.
-	if err := sub("#include <stdio.h>\n", "", 1, "H1"); err != nil {
-		return nil, err
-	}
+	// <stdio.h> is unused from here, and stays for phase 166, which drops every
+	// header the file does not need, together and last.
 
 	// ---- what the file is now --------------------------------------------
 	for _, name := range []string{"fprintf", "stderr", "fflush"} {
@@ -516,18 +512,18 @@ main(int argc, char **argv)
 			d = append(d, l)
 		}
 	}
-	okInc := len(d) == 11
+	okInc := len(d) == nInc
 	for _, l := range d {
 		if !bytes.HasPrefix(l, []byte("#include <")) {
 			okInc = false
 		}
 	}
 	if !okInc {
-		return nil, p.Die("the output does not have exactly ELEVEN #include directives and nothing " +
-			"else -- this phase removes <stdio.h> and adds none")
+		return nil, p.Die("the output does not have the %d #include directives it was handed and "+
+			"nothing else -- this phase adds and removes none", nInc)
 	}
 	p.Sayf("%d -> %d lines.  Every byte that leaves this editor other than the screen "+
 		"goes through one `vim_host_message(msg, len, err)` the launcher installs; "+
-		"<stdio.h> is gone and the directive count is 11", linesBefore, p.Lines(t))
+		"<stdio.h> is unused, for phase 166 to drop", linesBefore, p.Lines(t))
 	return t, nil
 }

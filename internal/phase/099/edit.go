@@ -142,10 +142,11 @@ var whim99Gone = []struct{ header, why, ids string }{
 var whim99Keep = []string{"stdio.h", "stdlib.h", "unistd.h", "sys/param.h", "time.h",
 	"signal.h", "errno.h", "stdint.h", "stdarg.h", "stddef.h", "sys/ioctl.h", "termios.h"}
 
-// Whim99 removes the six `#include`s nothing names, and the stat_T typedef no
-// sweep could take.
+// Whim99 shows six `#include`s nothing names -- phase 166 drops them, with every
+// other unused header -- and removes the stat_T typedef no sweep could take.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "includes", W: w}
+	nInc := edit.IncludeCount(text)
 
 	// ---- 0. the file this edit was written against -----------------------
 	// EVERY DIRECTIVE IS AN #include OF A SYSTEM HEADER, they are the first
@@ -160,13 +161,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			dirLine = append(dirLine, string(l))
 		}
 	}
-	if len(dirIdx) != 18 {
-		return nil, p.Die("the file has %d preprocessor directives, expected 18 -- the charter says "+
-			"whim-vim.c inherited eighteen from whim-vim.c and that no phase adds one", len(dirIdx))
+	if len(dirIdx) != nInc {
+		return nil, p.Die("the file has %d preprocessor directives and %d `#include`s: every directive "+
+			"is an #include of a system header, and no phase adds another kind", len(dirIdx), nInc)
 	}
 	for k, i := range dirIdx {
 		if i != k {
-			return nil, p.Die("the eighteen directives are not the first eighteen lines of the file")
+			return nil, p.Die("the directives are not the first lines of the file")
 		}
 	}
 	var headers []string
@@ -178,15 +179,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		headers = append(headers, m[1])
 	}
-	if len(edit.Uniq(headers)) != 18 {
+	if len(edit.Uniq(headers)) != len(headers) {
 		s := append([]string(nil), headers...)
 		sort.Strings(s)
 		return nil, p.Die("a header is included twice: %s", strings.Join(s, " "))
 	}
-	Body := bytes.Join(lines[18:], []byte{'\n'})
-	p.Say("eighteen directives, every one an `#include <...>` of a system header and every " +
-		"one of them among the first eighteen lines -- the charter, checked rather than " +
-		"believed")
+	Body := bytes.Join(lines[nInc:], []byte{'\n'})
+	p.Sayf("%d directives, every one an `#include <...>` of a system header and all of "+
+		"them the first lines -- the charter, checked rather than believed", nInc)
 
 	// ---- 1. what whim-vim.c takes from each of the six, and it must be
 	// NOTHING.  This is the pre-flight and not the argument: the argument is
@@ -246,9 +246,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	got := append([]string(nil), headers...)
 	sort.Strings(got)
 	sort.Strings(want)
-	if strings.Join(got, "\x00") != strings.Join(want, "\x00") {
-		return nil, p.Die("the eighteen headers are not the twelve this phase keeps and the six it "+
-			"takes: %s", strings.Join(got, " "))
+	have := map[string]bool{}
+	for _, h := range got {
+		have[h] = true
+	}
+	for _, h := range want {
+		if !have[h] {
+			return nil, p.Die("<%s> is not among the headers this phase was handed: %s", h, strings.Join(got, " "))
+		}
 	}
 	// TWO OF THE TWELVE ARE HELD BY ALMOST NOTHING, and those are counted
 	// exactly, because the count IS the statement: a later phase that took
@@ -280,11 +285,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"means ADDING <limits.h>, <sys/time.h> and <sys/select.h>, and no phase adds a " +
 		"directive")
 
-	// ---- 3. the cut: six lines, the typedef, and one blank ---------------
-	for _, g := range whim99Gone {
-		text = bytes.Replace(text, []byte("#include <"+g.header+">\n"), nil, 1)
-	}
-	p.Say("the six `#include` lines")
+	// ---- 3. the cut: the typedef, and one blank -------------------------
+	// The six `#include` lines stay for phase 166, which drops every header
+	// the file does not need, together and last.
 
 	// The typedef AND one of its two blank lines: deleting the line alone
 	// leaves a run of two blank lines, which CLAUDE.md states this tree does
@@ -314,7 +317,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			dirLine = append(dirLine, string(l))
 		}
 	}
-	bad := len(dirIdx) != 12
+	bad := len(dirIdx) != nInc
 	for k, i := range dirIdx {
 		if i != k {
 			bad = true
@@ -325,21 +328,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		for _, i := range dirIdx {
 			at = append(at, strconv.Itoa(i))
 		}
-		return nil, p.Die("the file does not have exactly twelve directives on its first twelve lines "+
-			"after the cut: %d directives at lines %s", len(dirIdx), strings.Join(at, " "))
+		return nil, p.Die("the file does not have the %d directives it was handed on its first lines "+
+			"after the cut: %d directives at lines %s", nInc, len(dirIdx), strings.Join(at, " "))
 	}
-	var left []string
-	for _, l := range dirLine {
-		if m := whim99Inc.FindStringSubmatch(l); m != nil {
-			left = append(left, m[1])
-		} else {
-			left = append(left, l)
-		}
-	}
-	if strings.Join(left, "\x00") != strings.Join(whim99Keep, "\x00") {
-		return nil, p.Die("the twelve that are left are not the twelve this phase keeps, in order")
-	}
-	Body = bytes.Join(lines[12:], []byte{'\n'})
+	Body = bytes.Join(lines[nInc:], []byte{'\n'})
 	if p.Mentions(Body, "stat_T") != 0 {
 		return nil, p.Die("stat_T survives the cut")
 	}
@@ -347,8 +339,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("`struct stat` survives the cut, and with no <sys/stat.h> it would be an " +
 			"incomplete type nothing declares")
 	}
-	p.Sayf("twelve directives, every one an `#include <...>`, on the first twelve lines; "+
+	p.Sayf("%d directives, every one an `#include <...>`, on the first lines, as handed; "+
 		"stat_T and `struct stat` at zero; and %d runs of two blank lines, exactly as "+
-		"before", p.BlankRuns(text))
+		"before", nInc, p.BlankRuns(text))
 	return text, nil
 }

@@ -500,9 +500,8 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim81"}},
 		}},
-	{N: 82, Name: "the system headers nothing needs, and every comment",
+	{N: 82, Name: "every comment",
 		Steps: []Step{
-			{Op: "includes", Args: []string{"@state"}},
 			{Op: "edit", Args: []string{"whim82"}},
 		}},
 	{N: 83, Name: "the core's compile line, and the baselines it is measured against", NoSource: true},
@@ -824,5 +823,9 @@ var Plan = []Phase{
 	{N: 165, Name: "no store nothing reads",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim165"}},
+		}},
+	{N: 166, Name: "the system headers nothing needs",
+		Steps: []Step{
+			{Op: "includes"},
 		}},
 }

@@ -21,8 +21,9 @@ slim-vim.c  --whim-->  whim-vim.c
   that repository's `main` points to, and records the commit in `src/upstream.sha`.
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
-- **whim** (the `Makefile`) removes capability on purpose, 166 phases from 180,870
-  lines to 75,099. It is two arcs, a coda, an empty phase and a lint pair:
+- **whim** (the `Makefile`) removes capability on purpose, 167 phases from 180,870
+  lines to 75,097. It is two arcs, a coda, an empty phase, a lint pair and the
+  headers last:
   - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
     install, 84,111 lines at q82;
   - **phases 83-128** (`GOALS.md` Part II) turn it into an embeddable core:
@@ -40,6 +41,11 @@ slim-vim.c  --whim-->  whim-vim.c
     statements after a jump (164, a general rule) and six stores nothing reads
     (165, named). With the generator's own fixes, `go vet`, staticcheck and
     `gofmt -s` are clean on `editor/`.
+  - **phase 166**, last, drops every system header nothing needs, in one step:
+    each `#include` is tried and kept out while the file compiles silently.
+    Phases 82, 99 and 104 once did it piecemeal, and the phases between them
+    asserted the counts it left; now they assert only that every directive is a
+    contiguous `#include` and that they add and remove none.
 
   Phase 83 is the line between the two arcs.
 
@@ -153,7 +159,7 @@ the same `editor/editor.go` byte for byte either way.
 ```sh
 make                 # all: bin/whim, the editor (editor/ built), through whim-vim.c
                      # (produced only when slim-vim.c moved) and editor/editor.go
-make whim-build      # the 166 phases in one process: slim-vim.c -> whim-vim.c
+make whim-build      # the 167 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go that is not what internal/gen writes
 make whim-test        # the editor on 44 key sessions, required to behave as HEAD's does
@@ -168,7 +174,7 @@ make help            # every target, with a line each
   after every phase** (there are no stages), and **the canonical print of what is left**
   (`internal/cemit`: one spelling per construct, and NO COMMENTS, of any kind),
   so every boundary that is C is in the one spelling phase 0 seeds with -- applied
-  in one process, in memory. Measured: 166 phases, **1,045 s**, 75,099 lines. A
+  in one process, in memory. Measured: 167 phases, **1,055 s**, 75,097 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`internal/sweep`'s `Prune`): the text parsed
@@ -186,7 +192,7 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **79 s** on 64 cores, against 1,045 s in
+  committed `whim-vim.c`. Measured: **71 s** on 64 cores, against 1,055 s in
   order; and a phase whose program was changed on purpose
   (a control) is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
@@ -226,7 +232,7 @@ ours belongs inside `.claude/`. Outside `make`, run with `TMPDIR=$PWD/.tmp`.
 ## The pipeline
 
 A phase is a function of the tree it is handed, so the pipeline is
-`p_N = f_N(p_{N-1})` -- 166 of them, in order. **There is no memoize**: its key
+`p_N = f_N(p_{N-1})` -- 167 of them, in order. **There is no memoize**: its key
 was the input boundary's digest and the implementation's together, so a moved
 `slim-vim.c` missed every entry by construction.
 
@@ -251,7 +257,7 @@ was the input boundary's digest and the implementation's together, so a moved
 
 ## The core and the host
 
-`whim-vim.c`'s twelve `#include`s are not at the top: **the first one is the line
+`whim-vim.c`'s ten `#include`s are not at the top: **the first one is the line
 between the editor core and its host**, marked by nothing else. `make editor.c`
 cuts there: a complete translation unit with 0 preprocessor lines, 0 errors under
 `-fsyntax-only`, and an interface of exactly the names the host defines --
@@ -261,7 +267,7 @@ design.
 
 ## Adding a phase
 
-`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 166.
+`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 167.
 The pipeline's goal is met; what comes now is the Go editor idiomatic
 (`doc/GO-IDIOMS.md`), by the generator where it can and by a phase where the C
 is the cause. What a new one takes:

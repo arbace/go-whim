@@ -142,9 +142,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "noname", W: w}
 	var err error
 
-	mentions := func(t []byte, name string) int {
-		return len(regexp.MustCompile(`\b`+name+`\b`).FindAll(t, -1))
-	}
+	mentions := edit.MentionCount
 	textEdit := func(t []byte, old, new, what string, n int) ([]byte, error) {
 		k := strings.Count(string(t), old)
 		if k != n {

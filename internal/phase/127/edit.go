@@ -180,9 +180,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	say := func(format string, a ...interface{}) {
 		fmt.Fprintf(w, "  leaf         %s\n", fmt.Sprintf(format, a...))
 	}
-	mentions := func(s, name string) int {
-		return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).FindAllString(s, -1))
-	}
+	mentions := func(s, name string) int { return edit.MentionCount([]byte(s), name) }
 
 	// --- finding things ------------------------------------------------------
 	fn := func(name string) (int, int, error) {

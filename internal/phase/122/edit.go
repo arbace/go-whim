@@ -147,7 +147,7 @@ var (
 // w122Mentions counts an IDENTIFIER with string literals excluded.
 func w122Mentions(text []byte, name string) int {
 	return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).
-		FindAll(cutil.Blank(text), -1))
+		FindAll(cutil.Blank(edit.WithoutIncludes(text)), -1))
 }
 
 // Whim122 removes `-T {term}`: command_line_scan() becomes one `if (argv[0][0]

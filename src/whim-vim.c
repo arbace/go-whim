@@ -73259,13 +73259,11 @@ vim_main(int argc, char **argv)
     return vim_main2();
 }
 
-#include <stdlib.h>
 #include <unistd.h>
 #include <sys/param.h>
 #include <time.h>
 #include <signal.h>
 #include <errno.h>
-#include <stdint.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <sys/ioctl.h>

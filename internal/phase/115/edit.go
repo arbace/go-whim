@@ -137,6 +137,7 @@ func w115Code(lines [][]byte) []byte {
 // host_time() below the line, `long time(long *tp);` leaves the core's
 // prototype block and a static_assert stronger than it replaces it.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 166 drops the unused)
 	p := edit.Ph{Tag: "wallclock", W: w}
 	t := text
 
@@ -164,7 +165,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			directives = append(directives, i)
 		}
 	}
-	if len(directives) != 11 {
+	if len(directives) != nInc {
 		return nil, p.Die("the file has %d preprocessor directives and this phase was written "+
 			"against 11", len(directives))
 	}
@@ -196,7 +197,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p.Sayf("eleven `#include`s, contiguous, at lines %d-%d, <time.h> among them, and "+
 		"NOTHING above the first of them -- so the core is the %d lines above the "+
 		"boundary and the host is the %d below it",
-		cut+1, cut+11, cut, len(lines)-cut-1)
+		cut+1, cut+nInc, cut, len(lines)-cut-1)
 
 	// ---- 1. the inventory, counted here rather than remembered -----------
 	// Every number is what this edit is about to act on, taken on the
@@ -205,13 +206,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		Name          string
 		nCore, nBelow int
 	}{
-		{"time", 4, 1}, {"vim_time", 7, 0}, {"host_time", 0, 0},
+		{"time", 4, 0}, {"vim_time", 7, 0}, {"host_time", 0, 0},
 		{"time_T", 10, 0}, {"time_t", 0, 0}, {"musl_now_ms", 9, 1},
 	}
 	for _, x := range want {
 		re := regexp.MustCompile(`\b` + x.Name + `\b`)
-		gc := len(re.FindAll(core, -1))
-		gb := len(re.FindAll(below, -1))
+		gc := len(re.FindAll(edit.WithoutIncludes(core), -1))
+		gb := len(re.FindAll(edit.WithoutIncludes(below), -1))
 		if gc != x.nCore || gb != x.nBelow {
 			return nil, p.Die("`%s` occurs %d times above the boundary and %d below it, where this "+
 				"phase was written against %d and %d", x.Name, gc, gb, x.nCore, x.nBelow)
@@ -219,8 +220,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	p.Say("the core says `time` FOUR times -- the libc prototype, vim_time's own call, " +
 		"and ui_focus_change's TWO, which bypass the wrapper -- and `vim_time` seven: a " +
-		"prototype, a definition and five call sites.  Below the boundary `time` is the " +
-		"one `#include <time.h>`, and musl_now_ms, the clock that has already crossed, " +
+		"prototype, a definition and five call sites.  Below the boundary `time` is only " +
+		"in `#include <time.h>`, which names a header, and musl_now_ms, the clock that has already crossed, " +
 		"is 9 above and 1 below")
 
 	// ---- 2. the core's own libc prototype block, computed ----------------
@@ -433,7 +434,7 @@ musl_delay(long ms, int interruptible)
 	// THE BOUNDARY MOVES UP BY WHAT THE CORE LOST, and by exactly that: the
 	// core is the lines above the first `#include`, so the directive's index
 	// IS the core's line count.
-	okDir := len(ndir) == 11
+	okDir := len(ndir) == nInc
 	for k, i := range ndir {
 		if okDir && i != cut+coreDelta+k {
 			okDir = false
@@ -473,9 +474,9 @@ musl_delay(long ms, int interruptible)
 		return nil, p.Die("`host_time` occurs %d times below the boundary where 1 was expected "+
 			"-- its definition", k)
 	}
-	if k := len(w115Word.FindAll(nbelow, -1)); k != 2 {
-		return nil, p.Die("`time` occurs %d times below the boundary where 2 were expected -- "+
-			"`#include <time.h>` and host_time's call.  `time_t` is not one of them: `_` "+
+	if k := len(w115Word.FindAll(edit.WithoutIncludes(nbelow), -1)); k != 1 {
+		return nil, p.Die("`time` occurs %d times below the boundary where 1 was expected -- "+
+			"host_time's call (an #include line names a header).  `time_t` is not one of them: `_` "+
 			"is a word character, so `\\btime\\b` does not match inside it", k)
 	}
 	if k := len(w115TimeT.FindAll(nbelow, -1)); k != 1 {

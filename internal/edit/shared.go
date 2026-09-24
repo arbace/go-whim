@@ -1,11 +1,13 @@
 package edit
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/arbace/go-whim/internal/cutil"
 )
@@ -877,3 +879,58 @@ var (
 	W80Else   = regexp.MustCompile(`^[ \t]*else[ \t]*\n`)
 	W80Else2  = regexp.MustCompile(`^[ \t]*else\b`)
 )
+
+// IncludeCount is how many `#include` lines text has: the system headers a
+// phase is handed.  Phases 97-126 once asserted a number -- eighteen, twelve,
+// eleven -- because phases 82, 99 and 104 dropped the unused ones as they
+// went; one last phase (166) drops them all now, so a phase asserts the count
+// it was HANDED, and that it adds and removes none.
+func IncludeCount(text []byte) int {
+	n := 0
+	for _, l := range bytes.Split(text, []byte{'\n'}) {
+		if bytes.HasPrefix(l, []byte("#include ")) {
+			n++
+		}
+	}
+	return n
+}
+
+// MentionCount counts whole-word occurrences of name in text, outside
+// `#include` lines: a directive names a HEADER, not an identifier.  Every
+// phase's mention counter goes through it, so a count means the same thing
+// whichever headers phase 166 has yet to drop.  (Until the headers were
+// dropped last, a count before 166 included the lines of the headers still
+// there -- `ioctl` was "the #include and the host's one call" -- and changed
+// with every header a phase took.)
+func MentionCount(text []byte, name string) int {
+	return len(wordRe(name).FindAll(WithoutIncludes(text), -1))
+}
+
+// WithoutIncludes is text with every `#include` line blanked to an empty
+// line, so offsets move but line numbers do not.
+func WithoutIncludes(text []byte) []byte {
+	if !bytes.Contains(text, []byte("#include ")) {
+		return text
+	}
+	lines := bytes.Split(text, []byte{'\n'})
+	out := make([][]byte, len(lines))
+	for i, l := range lines {
+		if bytes.HasPrefix(l, []byte("#include ")) {
+			out[i] = nil
+		} else {
+			out[i] = l
+		}
+	}
+	return bytes.Join(out, []byte{'\n'})
+}
+
+var wordRes sync.Map // name -> *regexp.Regexp
+
+func wordRe(name string) *regexp.Regexp {
+	if r, ok := wordRes.Load(name); ok {
+		return r.(*regexp.Regexp)
+	}
+	r := regexp.MustCompile(`\b` + regexp.QuoteMeta(name) + `\b`)
+	wordRes.Store(name, r)
+	return r
+}

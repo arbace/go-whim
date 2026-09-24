@@ -122,6 +122,7 @@ type w112Rec struct{ lo, hi, step, off int }
 // and a core with no C library has nothing for 'casemap' to choose between.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "casemap", W: w}
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 166 drops the unused)
 	t := string(text)
 	before := strings.Count(t, "\n")
 
@@ -410,18 +411,18 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	inc := regexp.MustCompile(`^ *# *include `)
-	okd := len(directives) == 11
+	okd := len(directives) == nInc
 	for _, i := range directives {
 		if !inc.MatchString(L[i]) {
 			okd = false
 		}
 	}
 	if !okd {
-		return nil, p.Die("the directives are no longer eleven #includes and nothing else")
+		return nil, p.Die("the directives are no longer the %d #includes it was handed and nothing else", nInc)
 	}
 	p.Sayf("musl_toUpper and musl_toLower at 0 mentions, musl_towupper and musl_towlower at "+
 		"4 each, toUpper and toLower at 5 each, utf_convert at the same 6 calls, and the "+
-		"first of eleven #includes -- the boundary -- is still line %d with no directive "+
+		"first #include -- the boundary -- is still line %d with no directive "+
 		"above it", directives[0]+1)
 	p.Sayf("the file is %d lines and the input was %d", strings.Count(t, "\n"), before)
 	return []byte(t), nil

@@ -241,9 +241,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "format", W: w}
 	t := string(text)
 
-	mentions := func(s, name string) int {
-		return len(regexp.MustCompile(`\b`+name+`\b`).FindAllString(s, -1))
-	}
+	mentions := func(s, name string) int { return edit.MentionCount([]byte(s), name) }
 	sub := func(old, new string, n int, tag string) error {
 		c := cutil.CountAnchor(t, old)
 		if c != n {

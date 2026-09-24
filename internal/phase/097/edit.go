@@ -110,12 +110,11 @@ const w97Pad = "                                "
 // Whim97 vendors the sixteen mem*/str* of <string.h> as local `static musl_*`
 // functions, with sprintf moved onto the editor's own vim_snprintf instead.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 166 drops the unused)
 	p := edit.Ph{Tag: "strings", W: w}
 	t := string(text)
 
-	mentions := func(s, name string) int {
-		return len(regexp.MustCompile(`\b`+name+`\b`).FindAllString(s, -1))
-	}
+	mentions := func(s, name string) int { return edit.MentionCount([]byte(s), name) }
 	// textEdit does NOT report: sections A and B each make many edits and then
 	// say one line about all of them.
 	textEdit := func(old, new, what string, n int) error {
@@ -282,7 +281,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			}
 		}
 	}
-	if len(directives) != 18 || len(bad) > 0 {
+	if len(directives) != nInc || len(bad) > 0 {
 		return nil, p.Die("the file has %d lines starting with # and they must be the same eighteen "+
 			"#includes: this phase adds no preprocessor syntax", len(directives))
 	}

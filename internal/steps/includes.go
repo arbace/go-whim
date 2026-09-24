@@ -115,7 +115,8 @@ func Includes(t []byte, args []string, w io.Writer) ([]byte, error) {
 		fmt.Fprintf(w, "  includes     together they do not build; %d removed one by one, from the bottom\n", len(keep))
 	}
 	if len(keep) == 0 {
-		return nil, fmt.Errorf("  includes     nothing to remove")
+		fmt.Fprintf(w, "  includes     every header is needed\n")
+		return t, nil
 	}
 	var removed []string
 	for _, n := range keep {

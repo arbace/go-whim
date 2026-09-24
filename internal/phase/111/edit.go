@@ -118,6 +118,7 @@ func whim111Once(p edit.Ph, text []byte, old, new, why string) ([]byte, error) {
 // to invent a tagless `struct timeval` mirror for the core to hold; this
 // deletes it.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 166 drops the unused)
 	p := edit.Ph{Tag: "clock", W: w}
 	lines := bytes.Split(text, []byte{'\n'})
 	var err error
@@ -132,7 +133,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			directives = append(directives, i)
 		}
 	}
-	if len(directives) != 11 {
+	if len(directives) != nInc {
 		return nil, p.Die("the file has %d preprocessor directives and this phase was written against 11",
 			len(directives))
 	}
@@ -364,7 +365,7 @@ musl_now_ms(void)
 	// THE ELEVEN DIRECTIVES ARE STILL ONE BLOCK.  How far it moved up was a
 	// count of lines, which is layout; what the core and the host each lost is
 	// asserted by content below.
-	okDir := len(ndir) == 11
+	okDir := len(ndir) == nInc
 	for k, i := range ndir {
 		if i != ndir[0]+k {
 			okDir = false

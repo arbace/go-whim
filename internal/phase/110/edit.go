@@ -188,6 +188,7 @@ type w110Enum struct {
 // header-supplied constants become enumerators asserted from below, and the
 // formatter's private island follows the four `va_list` functions down.
 func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 166 drops the unused)
 	p := edit.Ph{Tag: "boundary", W: w}
 	if len(args) != 1 {
 		return nil, p.Die("usage: edit whim110 <file> <state-dir>")
@@ -218,7 +219,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			dLine = append(dLine, l)
 		}
 	}
-	okFirst := len(dIdx) == 11
+	okFirst := len(dIdx) == nInc
 	for k, i := range dIdx {
 		if okFirst && i != k {
 			okFirst = false
@@ -240,8 +241,8 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 		incNames = append(incNames, "<"+m[1]+">")
 	}
-	if base[11] != "" {
-		return nil, p.Die("the eleventh `#include` is not followed by a blank line, so the block " +
+	if base[nInc] != "" {
+		return nil, p.Die("the last `#include` is not followed by a blank line, so the block " +
 			"this edit lifts is not the shape it was written against")
 	}
 	var hb []int
@@ -356,7 +357,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// done with one word histogram per round, not one regex per name, because
 	// there are seven hundred blocks and two megabytes of text.
 	var enums []w110Enum
-	for i := 12; i < hb[0]; {
+	for i := nInc + 1; i < hb[0]; {
 		if w110EnumHead.MatchString(base[i]) {
 			s, e, err := espan(i)
 			if err != nil {
@@ -404,7 +405,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// includes.
 	build := func(funcs, objs []string, moveEnums []int, consts bool) ([]string, int, map[int]bool, error) {
 		drop := map[int]bool{}
-		for i := 0; i < 12; i++ {
+		for i := 0; i <= nInc; i++ { // the includes and the blank after them
 			drop[i] = true
 		}
 		for i := p0 - 1; i < p0+3; i++ {
@@ -441,7 +442,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 		sort.SliceStable(items, func(i, j int) bool { return items[i].at < items[j].at })
 
-		low := append([]string{}, base[0:11]...)
+		low := append([]string{}, base[0:nInc]...)
 		low = append(low, "")
 		if consts {
 			for _, c := range w110Consts {
@@ -730,7 +731,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			incAt = append(incAt, i)
 		}
 	}
-	okAt := len(incAt) == 11
+	okAt := len(incAt) == nInc
 	for k, i := range incAt {
 		if okAt && i != incAt[0]+k {
 			okAt = false

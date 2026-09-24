@@ -126,6 +126,7 @@ var (
 // core's own and nine libc prototypes are written Out, WHILE THE HEADERS ARE
 // STILL ABOVE THEM to be cross-checked against.
 func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 166 drops the unused)
 	p := edit.Ph{Tag: "headers", W: w}
 	if len(args) != 1 {
 		return nil, p.Die("usage: edit whim109 <file> <minmax.txt>")
@@ -148,7 +149,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			dLine = append(dLine, l)
 		}
 	}
-	okFirst := len(dIdx) == 11
+	okFirst := len(dIdx) == nInc
 	for k, i := range dIdx {
 		if okFirst && i != k {
 			okFirst = false
@@ -563,7 +564,7 @@ musl_gettimeofday(long *sec, long *usec)
 			nd++
 		}
 	}
-	if nd != 11 {
+	if nd != nInc {
 		return nil, p.Die("the file no longer has exactly eleven directives")
 	}
 	p.Say("the core is clean: size_t, time_t, sig_atomic_t, uintptr_t, struct timeval, " +

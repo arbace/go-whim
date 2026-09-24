@@ -101,6 +101,7 @@ func init() { edit.RegisterArgs("whim119", Edit) }
 // takes no pid because a core that cannot ask for its own process id must not be
 // handed one.
 func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 166 drops the unused)
 	p := edit.Ph{Tag: "noclib", W: w}
 	if len(args) != 1 {
 		return nil, p.Die("usage: edit whim119 <file> <state-dir>")
@@ -157,7 +158,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			directives = append(directives, i)
 		}
 	}
-	if len(directives) != 11 {
+	if len(directives) != nInc {
 		return nil, p.Die("the file holds %d preprocessor directives and this phase was written against "+
 			"the eleven `#include`s phase 104 left", len(directives))
 	}
@@ -593,7 +594,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			d2 = append(d2, i)
 		}
 	}
-	okd := len(d2) == 11 && d2[0] == boundary
+	okd := len(d2) == nInc && d2[0] == boundary
 	for i := range d2 {
 		if d2[i] != d2[0]+i {
 			okd = false

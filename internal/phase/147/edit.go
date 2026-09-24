@@ -13,6 +13,7 @@ package p147
 // $state/old.c, for the check.
 
 import (
+	"bytes"
 	"io"
 
 	"github.com/arbace/go-whim/internal/edit"
@@ -80,6 +81,14 @@ host_deliver_death(void)
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "selfpipe", W: w}
 	var err error
+	// <fcntl.h> is still there when nothing has dropped it (phase 166 drops the
+	// unused headers last): it moves to where this phase has always put it.
+	if k := bytes.Count(text, []byte("#include <fcntl.h>\n")); k == 1 {
+		text = bytes.Replace(text, []byte("#include <fcntl.h>\n"), nil, 1)
+		p.Say("<fcntl.h>, never dropped, moves to beside <termios.h>")
+	} else if k > 1 {
+		return nil, p.Die("<fcntl.h> is included %d times", k)
+	}
 	steps := []struct{ Old, New, What string }{
 		{"#include <termios.h>\n", "#include <termios.h>\n#include <fcntl.h>\n", "the host includes <fcntl.h> for the pipe's flags"},
 		{"static volatile sig_atomic_t host_int_pending = FALSE;\n",

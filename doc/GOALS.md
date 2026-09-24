@@ -774,7 +774,7 @@ make it a worse record and no truer.
 - [Phase 79 — the constant-return predicates](../internal/phase/079/GOAL.md)
 - [Phase 80 — the Ex command table, cut to the commands that exist](../internal/phase/080/GOAL.md)
 - [Phase 81 — one line, one command](../internal/phase/081/GOAL.md)
-- [Phase 82 — the system headers nothing needs, and every comment](../internal/phase/082/GOAL.md)
+- [Phase 82 — every comment](../internal/phase/082/GOAL.md)
 
 ## Three phases moved to SLIM-GOAL.md
 
@@ -2224,6 +2224,7 @@ declared `delta.md`.
 - [Phase 163 — the product is in the one canonical spelling](../internal/phase/163/GOAL.md)
 - [Phase 164 — no statement follows a jump](../internal/phase/164/GOAL.md)
 - [Phase 165 — no store nothing reads](../internal/phase/165/GOAL.md)
+- [Phase 166 — the system headers nothing needs](../internal/phase/166/GOAL.md)
 
 ## Appendix to Part II — the plan phases 83 onwards were built from
 

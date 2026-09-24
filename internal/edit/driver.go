@@ -367,9 +367,7 @@ func (e *E) repeatSay(pattern string, n int, what string, f func([]byte, string,
 func (e *E) Refuse(format string, a ...interface{}) { e.Die(format, a...) }
 
 // Mentions counts whole-word occurrences of a name in the tree as it stands.
-func (e *E) Mentions(name string) int {
-	return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).FindAll(e.buf, -1))
-}
+func (e *E) Mentions(name string) int { return MentionCount(e.buf, name) }
 
 // Lines deletes n whole lines matching the pattern, which is Cut with the
 // indentation and the newline supplied -- `^[ \t]*<pattern>\n`.  Most of what

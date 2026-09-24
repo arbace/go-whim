@@ -95,6 +95,7 @@ var (
 // installed become a forward declaration and a direct call, so vim_main is
 // phase 101's signature again.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 166 drops the unused)
 	p := edit.Ph{Tag: "hostcall", W: w}
 	linesBefore := bytes.Count(text, []byte{'\n'})
 	var err error
@@ -110,7 +111,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			dirIdx = append(dirIdx, i)
 		}
 	}
-	bad := len(dirIdx) != 11
+	bad := len(dirIdx) != nInc
 	for k, i := range dirIdx {
 		if i != k {
 			bad = true
@@ -377,7 +378,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			d = append(d, l)
 		}
 	}
-	ok := len(d) == 11
+	ok := len(d) == nInc
 	for _, l := range d {
 		if !bytes.HasPrefix(l, []byte("#include <")) {
 			ok = false

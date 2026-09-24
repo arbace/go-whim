@@ -1,39 +1,9 @@
 package p082
 
-// Whim phase 82 -- the system headers nothing needs, and every comment.
-// See GOAL.md.
+// Whim phase 82 -- every comment.  See GOAL.md.  (The system headers nothing
+// needs were this phase's too; phase 166 drops them now, last and together.)
 //
-// whim-vim.c opens with the 41 #includes slim-vim.c has, and eighty-one phases have
-// taken away most of what they were for: the directory walker, the locale,
-// the password file, dlopen, setjmp, the maths library, utime, uname.  The object
-// now leaves 80 symbols for libc to supply, and a header that supplies none of them
-// -- no function, no type, no constant -- is a dependency on the host that buys
-// nothing.
-//
-// THE SET IS COMPUTED, NOT LISTED.  A header's name says what it is for, not what
-// this file uses from it: <sys/types.h> may be the only thing declaring a type the
-// code names, and musl's headers include one another, so one that looks dead can be
-// carrying another.  So each #include is tried: delete it and require the compile
-// to stay SILENT under the sweep's flags.  gcc 15 compiles C23, where a call to an
-// undeclared function is an error and an unknown type is an error, so "silent" is
-// "nothing this header provided was used".  The candidates are tried one at a time
-// and in parallel, then all together; if the set fails together -- two headers each
-// covering for the other -- it falls back to removing them one by one, keeping each
-// removal only while the build stays silent.  ONE BY ONE FROM THE BOTTOM: tried top
-// down, the first dry run dropped <string.h> and <stdlib.h>, whose declarations also
-// arrive through headers further down, and kept <wchar.h>.  The general headers come
-// first in the file, so walking up from the end drops the specific ones and keeps
-// the ones everything else leans on.
-//
-// THE PROOF IS THE BINARY, BYTE FOR BYTE.  A declaration that no longer exists cannot
-// change what is compiled -- but a header can also define a function-like macro that
-// shadows the function (musl's <ctype.h> does, for isalpha and friends), and losing
-// one of those would change code without a word from the compiler if the prototype
-// still came from somewhere.  So the input and the output are both built with
-// SOURCE_DATE_EPOCH pinned, from the same file name, and must be identical.  That is
-// tier 1 of the verification tiers, and it makes the delta "none" a measurement.
-//
-// EVERY COMMENT GOES TOO: the former-file banners, the notes, and the lines earlier
+// EVERY COMMENT GOES: the former-file banners, the notes, and the lines earlier
 // phases wrote to explain themselves.  Reasoning lives in the phase programs,
 // GOALS.md and the commit messages; whim-vim.c carries code and nothing else, and
 // no phase after this one writes a comment into it.  Comments do not reach the
@@ -42,13 +12,6 @@ package p082
 // "pack/*/start/*" and "://" are data.  A line that was only a comment is deleted; a
 // comment after code is cut with the whitespace before it; a blank run the deletions
 // create is collapsed.
-// The input, for the binary comparison at the end.  Same file name both sides, or
-// __FILE__ differs.  Built there, not here in the background: the header trials
-// below end in a bare `wait`, which reaps every child, and a later `wait $pid` on a
-// reaped child is status 127 -- which is how the first dry run died.
-// The block: every #include, and they are the first directives in the file.
-// One at a time, all at once.
-// All together, and if not, one by one from the bottom.
 // --- every comment ---------------------------------------------------------
 
 import (

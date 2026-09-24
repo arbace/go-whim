@@ -149,9 +149,7 @@ func (p Ph) Gone(text []byte, names ...string) error {
 // every invariant about an identifier.  `main_loop`, `main_errors`, `vim_main2`
 // and `domain` are different words from `main`, and \b does not match inside
 // them -- which is the whole reason the counts in these phases mean anything.
-func (p Ph) Mentions(text []byte, name string) int {
-	return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).FindAll(text, -1))
-}
+func (p Ph) Mentions(text []byte, name string) int { return MentionCount(text, name) }
 
 // blankRuns counts runs of two blank lines.
 //

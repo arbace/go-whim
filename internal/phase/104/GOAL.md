@@ -1,5 +1,9 @@
 # Phase 104 — the messages are the editor's, the writing is the host's
 
+**Since phase 166:** `<stdio.h>` is left unused here and dropped there, with every
+other unused header, last and at once; the directive count below is the record
+of when it went here.
+
 `internal/phase/104/edit.go` and `internal/phase/104/check.go`, `stage 104`, `package host`.
 `GOALS.md` §II.4c's second step, and the half of it that is not the screen: *"`printf`
 for the messages that appear before there is a screen, which is itself a question for

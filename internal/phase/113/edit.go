@@ -122,6 +122,7 @@ const whim113New = `    if (msg_use_printf())
 // Whim113 folds msg_puts_attr_len()'s never-taken arm into one host_message()
 // call.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 166 drops the unused)
 	p := edit.Ph{Tag: "msgfold", W: w}
 	linesBefore := p.Lines(text)
 
@@ -142,7 +143,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			consecutive = false
 		}
 	}
-	if len(directives) != 11 || !consecutive {
+	if len(directives) != nInc || !consecutive {
 		var first []string
 		for _, i := range directives {
 			if len(first) < 4 {
@@ -261,7 +262,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			n++
 		}
 	}
-	if n != 11 {
+	if n != nInc {
 		return nil, p.Die("the file no longer has exactly eleven directives")
 	}
 	p.Sayf("one line added, msg_use_printf still 6, msg_puts_printf down to 2 -- the "+

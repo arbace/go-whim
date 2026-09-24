@@ -155,7 +155,6 @@ import (
 	"fmt"
 	"github.com/arbace/go-whim/internal/cutil"
 	"io"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -180,12 +179,11 @@ var w103Before = []struct {
 // RealWaitForChar's select, mch_get_shellsize and all three isatty() calls move
 // into a 229-line host block at the bottom of the same file.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 166 drops the unused)
 	p := edit.Ph{Tag: "host", W: w}
 	t := string(text)
 
-	mentions := func(name string) int {
-		return len(regexp.MustCompile(`\b`+name+`\b`).FindAllString(t, -1))
-	}
+	mentions := func(name string) int { return edit.MentionCount([]byte(t), name) }
 	blankRuns := func(s string) int {
 		L := strings.Split(s, "\n")
 		n := 0
@@ -355,7 +353,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			n++
 		}
 	}
-	if n != 12 {
+	if n != nInc {
 		return nil, p.Die("the twelve #include directives moved, and this phase adds and removes none")
 	}
 	if blankRuns(t) == 0 {

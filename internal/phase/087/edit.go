@@ -133,9 +133,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "noexmode", W: w}
 	var err error
 
-	mentions := func(t []byte, name string) int {
-		return len(regexp.MustCompile(`\b`+name+`\b`).FindAll(t, -1))
-	}
+	mentions := edit.MentionCount
 	// line is a whole line by its trimmed text; head is a line that STARTS with
 	// this and runs on -- the 200-column conditions.
 	line := func(Body string) string { return `(?m)^[ \t]*` + regexp.QuoteMeta(Body) + `$` }

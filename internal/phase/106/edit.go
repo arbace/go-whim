@@ -137,13 +137,14 @@ const whim106Anchor = "#include <termios.h>\n\n"
 // Whim106 gives the core two names the language supplies instead of a header:
 // NULL becomes nullptr and size_t becomes usize.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 166 drops the unused)
 	p := edit.Ph{Tag: "language", W: w}
 
 	// ---- 0. the file this edit was written against -----------------------
 	// ELEVEN DIRECTIVES on the first eleven lines: phase 104 left that, and
 	// this phase adds a line directly below them, so it must know exactly
 	// where they end.
-	if err := whim106Directives(p, text, 11, "the file does not have exactly eleven preprocessor directives on its first "+
+	if err := whim106Directives(p, text, nInc, "the file does not have exactly eleven preprocessor directives on its first "+
 		"eleven lines"); err != nil {
 		return nil, err
 	}
@@ -275,24 +276,33 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// the bottom the typedef is the first line of the core.  A TYPEDEF and
 	// not a `static` anything: `usize` is a type name, and every one of its
 	// uses is a type-name position.
-	if k := bytes.Count(text, []byte(whim106Anchor)); k != 1 {
+	// the LAST #include, whichever it is: phase 166 drops the unused headers
+	// later, and <termios.h> is last only once it has
+	anchor := whim106Anchor
+	for _, l := range bytes.Split(text, []byte{'\n'}) {
+		if bytes.HasPrefix(l, []byte("#include ")) {
+			anchor = string(l) + "\n\n"
+		}
+	}
+	if k := bytes.Count(text, []byte(anchor)); k != 1 {
 		return nil, p.Die("the last `#include` is not followed by exactly one blank line, so there is no " +
 			"unambiguous place for the typedef")
 	}
-	text = bytes.Replace(text, []byte(whim106Anchor),
-		[]byte(whim106Anchor+whim106Typedef+"\n\n"), 1)
+	text = bytes.Replace(text, []byte(anchor),
+		[]byte(anchor+whim106Typedef+"\n\n"), 1)
 
 	// ---- 6. what the file is now -----------------------------------------
-	if err := whim106Directives(p, text, 11, "the eleven directives are no longer the first eleven lines"); err != nil {
+	if err := whim106Directives(p, text, nInc, "the eleven directives are no longer the first eleven lines"); err != nil {
 		return nil, p.Die("the eleven directives are no longer the first eleven lines")
 	}
 	lines := bytes.Split(text, []byte{'\n'})
-	if len(lines) < 13 || string(lines[12]) != whim106Typedef {
+	at := nInc + 1 // below the includes and their blank
+	if len(lines) <= at || string(lines[at]) != whim106Typedef {
 		got := ""
-		if len(lines) > 12 {
-			got = string(lines[12])
+		if len(lines) > at {
+			got = string(lines[at])
 		}
-		return nil, p.Die("the typedef did not land on line 13, below the includes and their blank: %s",
+		return nil, p.Die("the typedef did not land on line "+strconv.Itoa(at+1)+", below the includes and their blank: %s",
 			cutil.PyRepr(got))
 	}
 	if bytes.Count(text, []byte(whim106Typedef+"\n")) != 1 {

@@ -106,11 +106,10 @@ const w114Anchor = "    static void *\nmusl_bsearch("
 // gcc lowers both to inline arithmetic, so the phase's whole value is that the
 // core stops depending on behaviour nothing states.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 166 drops the unused)
 	p := edit.Ph{Tag: "arith", W: w}
 
-	mentions := func(t []byte, name string) int {
-		return len(regexp.MustCompile(`\b`+name+`\b`).FindAll(t, -1))
-	}
+	mentions := edit.MentionCount
 	directives := func(t []byte) ([]int, []string) {
 		lines := strings.Split(string(t), "\n")
 		var d []int
@@ -149,7 +148,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// boundary between the core and the host, so everything this phase writes
 	// must land ABOVE it.
 	d, lines := directives(text)
-	if len(d) != 11 || !contiguous(lines, d) {
+	if len(d) != nInc || !contiguous(lines, d) {
 		return nil, p.Die("the file does not have exactly eleven contiguous preprocessor directives: "+
 			"%d at %s", len(d), at(d, 4))
 	}
@@ -282,7 +281,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- 4. what the file is now ----------------------------------------------
 	d, lines = directives(text)
-	if len(d) != 11 || !contiguous(lines, d) {
+	if len(d) != nInc || !contiguous(lines, d) {
 		return nil, p.Die("the eleven directives are no longer eleven contiguous lines")
 	}
 	for _, nw := range []struct {
