@@ -76,9 +76,9 @@ package p114
 // OBSERVABLE, and the phase's real evidence for it is section 2: it is the same
 // function.
 // tools/funcreach.py
-// tools/phasecheck.sh
+// phasecheck
 // tools/st.sh
-// tools/symbols.sh
+// check.Symbols
 // tools/st.sh zrecord
 
 import (
@@ -716,9 +716,7 @@ func Check(w io.Writer, args []string) error {
 	// --- 5. the symbols, and the reason they cannot move -------------------------
 	beforeU := check.ReadFile(filepath.Join(state, "symbols", "undefined"))
 	os.WriteFile(T("before.u"), []byte(beforeU), 0o644)
-	pc := exec.Command("sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols"))
-	pc.Stdout, pc.Stderr = w, w
-	if err := pc.Run(); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 	lastU := ".cache/symbols/last/undefined"
@@ -776,7 +774,7 @@ func Check(w io.Writer, args []string) error {
 			"sites: the core is still not calling anything", newCalls)
 	}
 	r.Say("`nm -u` IS THE SAME SET, %d names, as a `comm` empty in BOTH directions, and `main` is still the "+
-		"only external symbol.  (That is tools/symbols.sh's count, which compiles plain -O0 and so adds "+
+		"only external symbol.  (That is check.Symbols's count, which compiles plain -O0 and so adds "+
 		"`__stack_chk_fail`; the core's own compile line has -fno-stack-protector and gives 17.)  THIS PHASE "+
 		"FREES NOTHING AND IT CANNOT: `abs` and `labs` were in the undefined set ZERO times before it, "+
 		"because gcc lowers both to inline arithmetic -- measured, the INPUT's whole assembly mentions "+

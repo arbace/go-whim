@@ -874,9 +874,7 @@ func Check(w io.Writer, args []string) error {
 	r.Say("the binary is %d bytes against the input's %d.  This phase is NOT tier 1 of CLAUDE.md's table and "+
 		"does not pretend to be: one call becomes a test, a call, a copy loop and a free, and at -O0 that is "+
 		"different instructions", check.SizeOf(T("new")), check.SizeOf(filepath.Join(state, "old")))
-	pc := exec.Command("sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols"))
-	pc.Stdout, pc.Stderr = w, w
-	if err := pc.Run(); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 

@@ -561,13 +561,11 @@ func Check(w io.Writer, args []string) error {
 		"'host_exit' follows non-static declaration\" -- and with it off the prototypes "+
 		"AND the definitions the build is SILENT and the object defines %s.  The second "+
 		"is the mistake this phase could have made without anything else noticing, and "+
-		"tools/phasecheck.sh below is what catches it", c3ext)
+		"phasecheck below is what catches it", c3ext)
 
 	// ---- 4. the compile, the linkage and the libc surface -----------------
 	beforeU := check.ReadFile(filepath.Join(state, "symbols", "undefined"))
-	pc := exec.Command("sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols"))
-	pc.Stdout, pc.Stderr = w, w
-	if err := pc.Run(); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 	afterU := check.ReadFile(".cache/symbols/last/undefined")

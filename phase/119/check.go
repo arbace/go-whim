@@ -53,7 +53,7 @@ package p119
 // the phase owes probes, and they are a forced deferral driven identically
 // into both binaries, with two controls.
 // tools/deadfields.py
-// tools/phasecheck.sh
+// phasecheck
 // tools/st.sh
 // tools/st.sh zrecord
 
@@ -962,14 +962,12 @@ func Check(w io.Writer, args []string) error {
 	r.Say("THE `static` TRAP, BOTH HALVES, MEASURED ON THIS PHASE'S OWN OUTPUT: with the keyword off the PROTOTYPE "+
 		"gcc REFUSES -- \"static declaration of 'host_raise' follows non-static declaration\" -- and with it off "+
 		"the prototype AND the definition the build is SILENT and the object defines %s.  The second is the "+
-		"mistake this phase could have made without anything else noticing, and tools/phasecheck.sh below is "+
+		"mistake this phase could have made without anything else noticing, and phasecheck below is "+
 		"what catches it", c3s)
 
 	// --- 6. the libc surface ---------------------------------------------------------------
 	os.WriteFile(T("before.u"), []byte(check.ReadFile(filepath.Join(state, "symbols", "undefined"))), 0o644)
-	pc := exec.Command("sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols"))
-	pc.Stdout, pc.Stderr = w, w
-	if err := pc.Run(); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 	lastU := ".cache/symbols/last/undefined"

@@ -658,14 +658,12 @@ func Check(w io.Writer, args []string) error {
 		"PROTOTYPES gcc REFUSES -- \"static declaration of 'host_alloc' follows non-static declaration\" -- and "+
 		"with it off the prototypes AND the definitions the build is SILENT and the object defines %s.  The "+
 		"second is the mistake this phase could have made without anything else noticing, and "+
-		"tools/phasecheck.sh below is what catches it", c3s)
+		"phasecheck below is what catches it", c3s)
 
 	// --- 4. the libc surface ------------------------------------------------------------
 	beforeU := check.ReadFile(filepath.Join(state, "symbols", "undefined"))
 	os.WriteFile(T("before.u"), []byte(beforeU), 0o644)
-	pc := exec.Command("sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols"))
-	pc.Stdout, pc.Stderr = w, w
-	if err := pc.Run(); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 	lastU := ".cache/symbols/last/undefined"

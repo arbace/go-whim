@@ -42,12 +42,12 @@ func Check(w io.Writer, args []string) error {
 	r := &check.Rep{Tag: "static", W: w}
 	bin := filepath.Join(work, "whim-vim")
 	// The line count of the text this phase was handed, which is what
-	// tools/phasebuild.sh reports the build against.
+	// phasebuild reports the build against.
 	before := strings.TrimSpace(check.ReadFile(filepath.Join(state, "input-lines")))
 	if before == "" {
 		before = "0"
 	}
-	if err := check.Run(w, "sh", "tools/phasebuild.sh", work, before); err != nil {
+	if err := check.PhaseBuild(w, work, before); err != nil {
 		return harness.ErrReported
 	}
 	ask := func(flag, want string) (int, error) {

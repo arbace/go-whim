@@ -59,14 +59,14 @@ func (s *wsh) src() string {
 func (s *wsh) echo(format string, a ...any) { fmt.Fprintf(s.W, format+"\n", a...) }
 
 func (s *wsh) phasecheck() error {
-	if Run(s.W, "sh", "tools/phasecheck.sh", s.Work, s.F, filepath.Join(s.State, "symbols")) != nil {
+	if PhaseCheck(s.W, s.Work, s.F, filepath.Join(s.State, "symbols")) != nil {
 		return harness.ErrReported
 	}
 	return nil
 }
 
 func (s *wsh) phasebuild() error {
-	if Run(s.W, "sh", "tools/phasebuild.sh", s.Work, s.before) != nil {
+	if PhaseBuild(s.W, s.Work, s.before) != nil {
 		return harness.ErrReported
 	}
 	return nil

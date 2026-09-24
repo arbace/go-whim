@@ -50,12 +50,12 @@ func NewCore(w io.Writer, args []string, name, tag string) (*core, error) {
 	return c, nil
 }
 
-// gate is the standard part of every check: tools/phasecheck.sh (a compile with
+// gate is the standard part of every check: phasecheck (a compile with
 // no warning, main the only external symbol, nv_cmds indexed, the libc
-// surface) and tools/phasebuild.sh (the binary).  sameSymbols requires the
+// surface) and phasebuild (the binary).  sameSymbols requires the
 // libc surface to be the one the stage was handed, as a set.
 func (c *core) Gate(sameSymbols bool) error {
-	if err := Run(c.W, "sh", "tools/phasecheck.sh", c.Work, c.F, filepath.Join(c.State, "symbols")); err != nil {
+	if err := PhaseCheck(c.W, c.Work, c.F, filepath.Join(c.State, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 	if sameSymbols {
@@ -67,7 +67,7 @@ func (c *core) Gate(sameSymbols bool) error {
 		}
 	}
 	before := strings.TrimSpace(ReadFile(filepath.Join(c.State, "input-lines")))
-	if err := Run(c.W, "sh", "tools/phasebuild.sh", c.Work, before); err != nil {
+	if err := PhaseBuild(c.W, c.Work, before); err != nil {
 		return harness.ErrReported
 	}
 	return nil

@@ -170,7 +170,7 @@ func runStage(stage []build.Phase, text []byte, work, src, mk, root, input strin
 		// every phase's own input and for a shared stage is the text its first
 		// edit was handed -- the one text in a stage that is certain to compile.
 		if each || k == 0 {
-			if err := Symbols(src, filepath.Join(state, "symbols")); err != nil {
+			if err := check.Symbols(src, filepath.Join(state, "symbols")); err != nil {
 				return nil, fmt.Errorf("phase %d: symbols: %w", p.N, err)
 			}
 			stageSymbols = filepath.Join(state, "symbols")

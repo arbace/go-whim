@@ -184,7 +184,7 @@ current process for it; what follows is how the mechanics work, and holds for bo
 parts. A phase is a directory, `phase/NNN/`, its number in three digits.
 
 1. Write the cut in `phase/NNN/edit.go` and the assertions in
-   `phase/NNN/check.go` — `tools/phasecheck.sh`, `tools/phasebuild.sh` and
+   `phase/NNN/check.go` — `check.PhaseCheck`, `check.PhaseBuild` and
    the probes. Neither sweeps at its end and neither checks the delta; anything
    the check needs from the edit goes in the state directory by name.
 2. **Declare its delta** in `phase/NNN/delta.md`: its tokens — `command… case:name…` —
@@ -2103,7 +2103,7 @@ between the two pipelines' recordings.
   rule cannot read the work tree, so `whim.mk` states the flags once more, as
   `WHIMCFLAGS` and `WHIMLDFLAGS`, which is what a checkout with no work tree
   compiles the committed `whim-vim.c` with.
-  `make score` passes both to `tools/score.sh`, so the symbol count is taken with
+  `make score` passes both to `tools/st.sh score`, so the symbol count is taken with
   the product's flags.
 - **Part II's behaviour is measured against its own baselines**,
   `.reference/core-baselines`, which phase 83 records from `whim-vim.c` built

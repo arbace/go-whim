@@ -61,10 +61,10 @@ func Check(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	r.Say("no handler that only refused is left, and ex_listdo asks nothing about quickfix")
-	if err := check.Run(w, "sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols")); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
-	if err := check.Run(w, "sh", "tools/phasebuild.sh", work, beforeLines); err != nil {
+	if err := check.PhaseBuild(w, work, beforeLines); err != nil {
 		return harness.ErrReported
 	}
 	return nil

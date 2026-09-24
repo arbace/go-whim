@@ -14,7 +14,7 @@ package p126
 // compiling the structs out of both sources, because a pointer entry that has lost
 // a field holds MORE children per page and that is what decides whether phase 123's
 // corpus still reaches the code this phase changes
-// 3  the build: no warning, one external symbol, tools/phasecheck.sh, tools/canon.sh
+// 3  the build: no warning, one external symbol, phasecheck, tools/canon.sh
 // a no-op, `nvidx`, `orphanopts`, `zhostonly`
 // 4  the cut `make editor.c` makes: the core is still plain C above the first
 // `#include` and its interface to the host is the same thirteen names
@@ -377,13 +377,14 @@ func Check(w io.Writer, args []string) error {
 		w.Write(canonLog)
 		return die("tools/canon.sh is not a no-op on the output")
 	}
-	pcOut, pcErr := exec.Command("sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols")).CombinedOutput()
-	if pcErr != nil {
-		w.Write(pcOut)
-		return die("tools/phasecheck.sh refuses the output")
+	var pcBuf bytes.Buffer
+	if check.PhaseCheck(&pcBuf, work, f, filepath.Join(state, "symbols")) != nil {
+		w.Write(pcBuf.Bytes())
+		return die("phasecheck refuses the output")
 	}
-	for _, l := range strings.Split(strings.TrimSuffix(string(pcOut), "\n"), "\n") {
-		if string(pcOut) == "" {
+	pcOut := pcBuf.String()
+	for _, l := range strings.Split(strings.TrimSuffix(pcOut, "\n"), "\n") {
+		if pcOut == "" {
 			break
 		}
 		fmt.Fprintf(w, "  %s\n", l)
@@ -400,7 +401,7 @@ func Check(w io.Writer, args []string) error {
 		return die("zhostonly refuses the output")
 	}
 	oo, _ := exec.Command("sh", "tools/st.sh", "orphanopts", f).CombinedOutput()
-	say("tools/phasecheck.sh, nvidx, orphanopts and zhostonly all pass, and tools/canon.sh is a no-op: this phase "+
+	say("phasecheck, nvidx, orphanopts and zhostonly all pass, and tools/canon.sh is a no-op: this phase "+
 		"touches no option row, no nv_cmds[] row and nothing below the boundary -- %s", strings.ReplaceAll(string(oo), "\n", ""))
 
 	// --- 4. the cut `make editor.c` makes ---------------------------------------------

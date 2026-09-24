@@ -735,9 +735,7 @@ func Check(w io.Writer, args []string) error {
 		"111 did for `gettimeofday`: the host calls it to implement host_time(), and a symbol leaves when its "+
 		"last CALLER leaves the FILE, which is the split and not this phase.  The binary is %d bytes against %d "+
 		"and they are NOT the same bytes", len(uNew), check.SizeOf(T("new")), check.SizeOf(filepath.Join(state, "old")))
-	pc := exec.Command("sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols"))
-	pc.Stdout, pc.Stderr = w, w
-	if err := pc.Run(); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 

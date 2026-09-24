@@ -62,7 +62,7 @@ package p121
 // which IS the core -> host interface -- UNCHANGED.  The input's set
 // is computed here and never written down.
 // STRUCTURE    `zhostonly`, phase 103's structural check, and
-// tools/phasecheck.sh.
+// phasecheck.
 
 import (
 	"fmt"
@@ -1064,9 +1064,7 @@ func Check(w io.Writer, args []string) error {
 	if err := zh.Run(); err != nil {
 		return harness.ErrReported
 	}
-	pc := exec.Command("sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols"))
-	pc.Stdout, pc.Stderr = w, w
-	if err := pc.Run(); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 	return nil

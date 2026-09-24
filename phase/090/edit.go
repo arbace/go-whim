@@ -264,7 +264,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		s = ""
 	}
 	p.Sayf("%d mention%s of %s left, inside %s, and no surviving row names it: the text "+
-		"does not compile until the sweep has run, and tools/phasecheck.sh is where "+
+		"does not compile until the sweep has run, and phasecheck is where "+
 		"that is asserted", left, s, strings.Join(z7Dying, " and "), strings.Join(holders, ", "))
 	return text, nil
 }

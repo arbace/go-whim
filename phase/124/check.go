@@ -594,9 +594,7 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 4. linkage and the symbols ----------------------------------------------------------
 	os.WriteFile(T("before.u"), []byte(check.ReadFile(filepath.Join(state, "symbols", "undefined"))), 0o644)
-	pc := exec.Command("sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols"))
-	pc.Stdout, pc.Stderr = w, w
-	if err := pc.Run(); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 	lastU := ".cache/symbols/last/undefined"

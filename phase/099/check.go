@@ -46,7 +46,7 @@ package p099
 // * the libc surface, as a `cmp` OF THE WHOLE SET.  This phase frees nothing and
 // nothing arrives -- it is phase 88's, 94's and 95's equality, and a symbol
 // ARRIVING must fail as loudly as one leaving.
-// * `main` the only external symbol (tools/phasecheck.sh).  Phases 97 and 98 added
+// * `main` the only external symbol (phasecheck).  Phases 97 and 98 added
 // twenty-eight `static` definitions of what were libc functions, and that check is
 // what says the keyword was not forgotten; this phase re-asserts it for free.
 // * `file` at zero mentions, and nothing that could open or name a file called --
@@ -522,10 +522,8 @@ func Check(w io.Writer, args []string) error {
 	if err != nil {
 		return err
 	}
-	pc := exec.Command("sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols"))
-	pc.Stdout, pc.Stderr = w, w
-	if err := pc.Run(); err != nil {
-		return fmt.Errorf("  includes     tools/phasecheck.sh refused")
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
+		return fmt.Errorf("  includes     phasecheck refused")
 	}
 	afterU, err := os.ReadFile(".cache/symbols/last/undefined")
 	if err != nil {

@@ -148,7 +148,7 @@ func Check(w io.Writer, args []string) error {
 	// it: what this phase gives back is setvbuf and stdout, and NOT isatty,
 	// which still has four callers.
 	before := strings.Fields(check.ReadFile(filepath.Join(state, "symbols", "undefined")))
-	if err := check.Run(w, "sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols")); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 	after := strings.Fields(check.ReadFile(".cache/symbols/last/undefined"))

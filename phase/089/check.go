@@ -229,7 +229,7 @@ func Check(w io.Writer, args []string) error {
 	// phase that frees any.  The five a later phase owns must still be
 	// undefined, so a cut reaching past this boundary fails here.
 	before := strings.Fields(check.ReadFile(filepath.Join(state, "symbols", "undefined")))
-	if err := check.Run(w, "sh", "tools/phasecheck.sh", work, f, filepath.Join(state, "symbols")); err != nil {
+	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {
 		return harness.ErrReported
 	}
 	after := strings.Fields(check.ReadFile(".cache/symbols/last/undefined"))
