@@ -4,15 +4,15 @@ What is not done, in the order it has to happen, with what was measured rather
 than what is hoped. Written 2026-09-23. **When an item lands, delete it** --
 this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 
-## Committed, awaiting this batch's verification
+## Committed, one measurement short
 
-- `61ffa8d` (the two literals that ate an indent) and `e3bac07` (the notes of
-  phases 21, 22 and 26 moved above the functions they explain) move text a
-  phase inserts.  `whim-build` on `61ffa8d` moved `whim-vim.c` in exactly the two
-  lines; `whim-build-check` on the batch, a `whim-verify` over stages 13-41 to 82,
-  and canonicalising the phase-35 intermediate that refused at *line 9190* are
-  what land them.  The agenda counted 44 in-brace comment lines; 37 were found
-  in the four cuts, and the intermediate is where the other 7 are looked for.
+- **The in-brace comments** (`e3bac07`, `b42ea0e`): 44 whole-line comments
+  inside braces, measured at q35 before the move -- 38 in the notes of phases
+  21, 22 and 26 and 6 in phase 20's -- are 0 at q35 and at q81, and both
+  intermediates canonicalise. `whim-build-check` gives the product back byte for
+  byte, so no line count or anchor on the build path moved. Not yet run: the
+  checks of phases 20 to 81 on the moved text, `tools/st.sh verify --from 13
+  --to 82 --src` a q12, which is what lands it.
 
 ## Queued, measured, not started
 
@@ -37,8 +37,11 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   binary sizes from before canonicalisation. Only the rows this work re-derived
   were changed, and each such row says so in the row itself. Re-measure, never
   adjust by reasoning: `CLAUDE.md` says the numbers are measurements.
-- **Inserted text is not canonical.** Phases write residue-spelled blocks into the
-  tree, so the product carries them.
+- **Inserted text is not canonical at the boundaries.** Phase 163 prints the
+  PRODUCT canonically (1,080 lines moved at q162, 226 beyond whitespace), so
+  the product is held to the form; every intermediate still carries what the
+  phases wrote. Fixing that is per phase, and optional: phase 163 would then
+  change nothing and its check would say the input was already canonical.
 
 ## Small
 
