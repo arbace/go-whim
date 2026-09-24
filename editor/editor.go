@@ -3331,7 +3331,13 @@ func init() {
 	copy(latin1upper.Slice(256), "                                 !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`ABCDEFGHIJKLMNOPQRSTUVWXYZ{|}~\x7f\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf\xb0\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xf7\xd8\xd9\xda\xdb\xdc\xdd\xde\xff")
 	copy(latin1lower.Slice(256), "                                 !\"#$%&'()*+,-./0123456789:;<=>?@abcdefghijklmnopqrstuvwxyz[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7f\x80\x81\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x8b\x8c\x8d\x8e\x8f\x90\x91\x92\x93\x94\x95\x96\x97\x98\x99\x9a\x9b\x9c\x9d\x9e\x9f\xa0\xa1\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xab\xac\xad\xae\xaf\xb0\xb1\xb2\xb3\xb4\xb5\xb6\xb7\xb8\xb9\xba\xbb\xbc\xbd\xbe\xbf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xd7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xdf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef\xf0\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xfb\xfc\xfd\xfe\xff")
 	hisidx = [5]int32{-1, -1, -1, -1, -1}
-	history_names = [5]Ptr[byte]{S("cmd"), S("search"), S("expr"), S("input"), Ptr[byte]{}}
+	history_names = [5]Ptr[byte]{
+		S("cmd"),
+		S("search"),
+		S("expr"),
+		S("input"),
+		{},
+	}
 	last_maptick = -1
 	update_Insstart_orig = TRUE
 	dollar_command.Set(0, '$')
@@ -3341,48 +3347,48 @@ func init() {
 	readbuf1 = S_buffheader{bh_first: S_buffblock{b_next: nil, b_strlen: 0, b_str: Mk[byte](1)}, bh_curr: nil, bh_index: 0, bh_space: 0, bh_create_newblock: FALSE}
 	readbuf2 = S_buffheader{bh_first: S_buffblock{b_next: nil, b_strlen: 0, b_str: Mk[byte](1)}, bh_curr: nil, bh_index: 0, bh_space: 0, bh_create_newblock: FALSE}
 	old_char = -1
-	highlight_tab.Set(0, keyvalue_T{key: HL_BOLD, value: string_T{string_: S("bold"), length: (5 - 1)}})
-	highlight_tab.Set(1, keyvalue_T{key: HL_INVERSE, value: string_T{string_: S("inverse"), length: (8 - 1)}})
-	highlight_tab.Set(2, keyvalue_T{key: HL_ITALIC, value: string_T{string_: S("italic"), length: (7 - 1)}})
-	highlight_tab.Set(3, keyvalue_T{key: HL_NOCOMBINE, value: string_T{string_: S("nocombine"), length: (10 - 1)}})
-	highlight_tab.Set(4, keyvalue_T{key: HL_NORMAL, value: string_T{string_: S("NONE"), length: (5 - 1)}})
-	highlight_tab.Set(5, keyvalue_T{key: HL_INVERSE, value: string_T{string_: S("reverse"), length: (8 - 1)}})
-	highlight_tab.Set(6, keyvalue_T{key: HL_STANDOUT, value: string_T{string_: S("standout"), length: (9 - 1)}})
-	highlight_tab.Set(7, keyvalue_T{key: HL_STRIKETHROUGH, value: string_T{string_: S("strikethrough"), length: (14 - 1)}})
-	highlight_tab.Set(8, keyvalue_T{key: HL_UNDERCURL, value: string_T{string_: S("undercurl"), length: (10 - 1)}})
-	highlight_tab.Set(9, keyvalue_T{key: HL_UNDERDASHED, value: string_T{string_: S("underdashed"), length: (12 - 1)}})
-	highlight_tab.Set(10, keyvalue_T{key: HL_UNDERDOTTED, value: string_T{string_: S("underdotted"), length: (12 - 1)}})
-	highlight_tab.Set(11, keyvalue_T{key: HL_UNDERDOUBLE, value: string_T{string_: S("underdouble"), length: (12 - 1)}})
-	highlight_tab.Set(12, keyvalue_T{key: HL_UNDERLINE, value: string_T{string_: S("underline"), length: (10 - 1)}})
+	highlight_tab.Set(0, keyvalue_T{key: HL_BOLD, value: string_T{string_: S("bold"), length: 4}})
+	highlight_tab.Set(1, keyvalue_T{key: HL_INVERSE, value: string_T{string_: S("inverse"), length: 7}})
+	highlight_tab.Set(2, keyvalue_T{key: HL_ITALIC, value: string_T{string_: S("italic"), length: 6}})
+	highlight_tab.Set(3, keyvalue_T{key: HL_NOCOMBINE, value: string_T{string_: S("nocombine"), length: 9}})
+	highlight_tab.Set(4, keyvalue_T{key: HL_NORMAL, value: string_T{string_: S("NONE"), length: 4}})
+	highlight_tab.Set(5, keyvalue_T{key: HL_INVERSE, value: string_T{string_: S("reverse"), length: 7}})
+	highlight_tab.Set(6, keyvalue_T{key: HL_STANDOUT, value: string_T{string_: S("standout"), length: 8}})
+	highlight_tab.Set(7, keyvalue_T{key: HL_STRIKETHROUGH, value: string_T{string_: S("strikethrough"), length: 13}})
+	highlight_tab.Set(8, keyvalue_T{key: HL_UNDERCURL, value: string_T{string_: S("undercurl"), length: 9}})
+	highlight_tab.Set(9, keyvalue_T{key: HL_UNDERDASHED, value: string_T{string_: S("underdashed"), length: 11}})
+	highlight_tab.Set(10, keyvalue_T{key: HL_UNDERDOTTED, value: string_T{string_: S("underdotted"), length: 11}})
+	highlight_tab.Set(11, keyvalue_T{key: HL_UNDERDOUBLE, value: string_T{string_: S("underdouble"), length: 11}})
+	highlight_tab.Set(12, keyvalue_T{key: HL_UNDERLINE, value: string_T{string_: S("underline"), length: 9}})
 	highlight_index_tab = [13]*keyvalue_T{highlight_tab.P(), highlight_tab.Add(6).P(), highlight_tab.Add(12).P(), highlight_tab.Add(8).P(), highlight_tab.Add(11).P(), highlight_tab.Add(10).P(), highlight_tab.Add(9).P(), highlight_tab.Add(2).P(), highlight_tab.Add(5).P(), highlight_tab.Add(1).P(), highlight_tab.Add(3).P(), highlight_tab.Add(7).P(), highlight_tab.Add(4).P()}
-	color_name_tab.Set(0, keyvalue_T{key: BLACK, value: string_T{string_: S("Black"), length: (6 - 1)}})
-	color_name_tab.Set(1, keyvalue_T{key: BLUE, value: string_T{string_: S("Blue"), length: (5 - 1)}})
-	color_name_tab.Set(2, keyvalue_T{key: BROWN, value: string_T{string_: S("Brown"), length: (6 - 1)}})
-	color_name_tab.Set(3, keyvalue_T{key: CYAN, value: string_T{string_: S("Cyan"), length: (5 - 1)}})
-	color_name_tab.Set(4, keyvalue_T{key: DARKBLUE, value: string_T{string_: S("DarkBlue"), length: (9 - 1)}})
-	color_name_tab.Set(5, keyvalue_T{key: DARKCYAN, value: string_T{string_: S("DarkCyan"), length: (9 - 1)}})
-	color_name_tab.Set(6, keyvalue_T{key: DARKGRAY, value: string_T{string_: S("DarkGray"), length: (9 - 1)}})
-	color_name_tab.Set(7, keyvalue_T{key: DARKGREEN, value: string_T{string_: S("DarkGreen"), length: (10 - 1)}})
-	color_name_tab.Set(8, keyvalue_T{key: DARKGREY, value: string_T{string_: S("DarkGrey"), length: (9 - 1)}})
-	color_name_tab.Set(9, keyvalue_T{key: DARKMAGENTA, value: string_T{string_: S("DarkMagenta"), length: (12 - 1)}})
-	color_name_tab.Set(10, keyvalue_T{key: DARKRED, value: string_T{string_: S("DarkRed"), length: (8 - 1)}})
-	color_name_tab.Set(11, keyvalue_T{key: DARKYELLOW, value: string_T{string_: S("DarkYellow"), length: (11 - 1)}})
-	color_name_tab.Set(12, keyvalue_T{key: GRAY, value: string_T{string_: S("Gray"), length: (5 - 1)}})
-	color_name_tab.Set(13, keyvalue_T{key: GREEN, value: string_T{string_: S("Green"), length: (6 - 1)}})
-	color_name_tab.Set(14, keyvalue_T{key: GREY, value: string_T{string_: S("Grey"), length: (5 - 1)}})
-	color_name_tab.Set(15, keyvalue_T{key: LIGHTBLUE, value: string_T{string_: S("LightBlue"), length: (10 - 1)}})
-	color_name_tab.Set(16, keyvalue_T{key: LIGHTCYAN, value: string_T{string_: S("LightCyan"), length: (10 - 1)}})
-	color_name_tab.Set(17, keyvalue_T{key: LIGHTGRAY, value: string_T{string_: S("LightGray"), length: (10 - 1)}})
-	color_name_tab.Set(18, keyvalue_T{key: LIGHTGREEN, value: string_T{string_: S("LightGreen"), length: (11 - 1)}})
-	color_name_tab.Set(19, keyvalue_T{key: LIGHTGREY, value: string_T{string_: S("LightGrey"), length: (10 - 1)}})
-	color_name_tab.Set(20, keyvalue_T{key: LIGHTMAGENTA, value: string_T{string_: S("LightMagenta"), length: (13 - 1)}})
-	color_name_tab.Set(21, keyvalue_T{key: LIGHTRED, value: string_T{string_: S("LightRed"), length: (9 - 1)}})
-	color_name_tab.Set(22, keyvalue_T{key: LIGHTYELLOW, value: string_T{string_: S("LightYellow"), length: (12 - 1)}})
-	color_name_tab.Set(23, keyvalue_T{key: MAGENTA, value: string_T{string_: S("Magenta"), length: (8 - 1)}})
-	color_name_tab.Set(24, keyvalue_T{key: NONE, value: string_T{string_: S("NONE"), length: (5 - 1)}})
-	color_name_tab.Set(25, keyvalue_T{key: RED, value: string_T{string_: S("Red"), length: (4 - 1)}})
-	color_name_tab.Set(26, keyvalue_T{key: WHITE, value: string_T{string_: S("White"), length: (6 - 1)}})
-	color_name_tab.Set(27, keyvalue_T{key: YELLOW, value: string_T{string_: S("Yellow"), length: (7 - 1)}})
+	color_name_tab.Set(0, keyvalue_T{key: BLACK, value: string_T{string_: S("Black"), length: 5}})
+	color_name_tab.Set(1, keyvalue_T{key: BLUE, value: string_T{string_: S("Blue"), length: 4}})
+	color_name_tab.Set(2, keyvalue_T{key: BROWN, value: string_T{string_: S("Brown"), length: 5}})
+	color_name_tab.Set(3, keyvalue_T{key: CYAN, value: string_T{string_: S("Cyan"), length: 4}})
+	color_name_tab.Set(4, keyvalue_T{key: DARKBLUE, value: string_T{string_: S("DarkBlue"), length: 8}})
+	color_name_tab.Set(5, keyvalue_T{key: DARKCYAN, value: string_T{string_: S("DarkCyan"), length: 8}})
+	color_name_tab.Set(6, keyvalue_T{key: DARKGRAY, value: string_T{string_: S("DarkGray"), length: 8}})
+	color_name_tab.Set(7, keyvalue_T{key: DARKGREEN, value: string_T{string_: S("DarkGreen"), length: 9}})
+	color_name_tab.Set(8, keyvalue_T{key: DARKGREY, value: string_T{string_: S("DarkGrey"), length: 8}})
+	color_name_tab.Set(9, keyvalue_T{key: DARKMAGENTA, value: string_T{string_: S("DarkMagenta"), length: 11}})
+	color_name_tab.Set(10, keyvalue_T{key: DARKRED, value: string_T{string_: S("DarkRed"), length: 7}})
+	color_name_tab.Set(11, keyvalue_T{key: DARKYELLOW, value: string_T{string_: S("DarkYellow"), length: 10}})
+	color_name_tab.Set(12, keyvalue_T{key: GRAY, value: string_T{string_: S("Gray"), length: 4}})
+	color_name_tab.Set(13, keyvalue_T{key: GREEN, value: string_T{string_: S("Green"), length: 5}})
+	color_name_tab.Set(14, keyvalue_T{key: GREY, value: string_T{string_: S("Grey"), length: 4}})
+	color_name_tab.Set(15, keyvalue_T{key: LIGHTBLUE, value: string_T{string_: S("LightBlue"), length: 9}})
+	color_name_tab.Set(16, keyvalue_T{key: LIGHTCYAN, value: string_T{string_: S("LightCyan"), length: 9}})
+	color_name_tab.Set(17, keyvalue_T{key: LIGHTGRAY, value: string_T{string_: S("LightGray"), length: 9}})
+	color_name_tab.Set(18, keyvalue_T{key: LIGHTGREEN, value: string_T{string_: S("LightGreen"), length: 10}})
+	color_name_tab.Set(19, keyvalue_T{key: LIGHTGREY, value: string_T{string_: S("LightGrey"), length: 9}})
+	color_name_tab.Set(20, keyvalue_T{key: LIGHTMAGENTA, value: string_T{string_: S("LightMagenta"), length: 12}})
+	color_name_tab.Set(21, keyvalue_T{key: LIGHTRED, value: string_T{string_: S("LightRed"), length: 8}})
+	color_name_tab.Set(22, keyvalue_T{key: LIGHTYELLOW, value: string_T{string_: S("LightYellow"), length: 11}})
+	color_name_tab.Set(23, keyvalue_T{key: MAGENTA, value: string_T{string_: S("Magenta"), length: 7}})
+	color_name_tab.Set(24, keyvalue_T{key: NONE, value: string_T{string_: S("NONE"), length: 4}})
+	color_name_tab.Set(25, keyvalue_T{key: RED, value: string_T{string_: S("Red"), length: 3}})
+	color_name_tab.Set(26, keyvalue_T{key: WHITE, value: string_T{string_: S("White"), length: 5}})
+	color_name_tab.Set(27, keyvalue_T{key: YELLOW, value: string_T{string_: S("Yellow"), length: 6}})
 	hl_flags = [70]int32{'8', '~', '@', 'd', 'e', 'h', 'i', 'l', 'y', 'm', 'M', 'n', 'a', 'b', 'N', 'G', 'O', 'r', 's', 'S', 'c', '|', 't', 'v', 'V', 'w', 'W', 'f', 'F', 'A', 'C', 'D', 'T', 'E', '-', '>', 'B', 'P', 'R', 'L', '+', '=', 'k', '<', '[', ']', '{', '}', 'x', 'X', 'j', 'H', 'p', 'J', 'Q', '*', '#', '_', '!', '.', 'o', 'q', 'z', 'Z', 'g', '%', '^', '&', 'I', '('}
 	highlight_init_both.Set(0, S("ErrorMsg term=standout ctermbg=DarkRed ctermfg=White"))
 	highlight_init_both.Set(1, S("IncSearch term=reverse,bold,underline cterm=reverse"))
@@ -3455,9 +3461,14 @@ func init() {
 	color_numbers_16 = [28]int32{0, 1, 2, 3, 4, 5, 6, 6, 7, 7, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13, 14, 14, 15, -1}
 	color_numbers_88 = [28]int32{0, 4, 2, 6, 1, 5, 32, 72, 84, 84, 7, 7, 82, 82, 12, 43, 10, 61, 14, 63, 9, 74, 13, 75, 11, 78, 15, -1}
 	color_numbers_256 = [28]int32{0, 4, 2, 6, 1, 5, 130, 3, 248, 248, 7, 7, 242, 242, 12, 81, 10, 121, 14, 159, 9, 224, 13, 225, 11, 229, 15, -1}
-	color_numbers_8 = [28]int32{0, 4, 2, 6, 1, 5, 3, 3, 7, 7, 7, 7, 0 + 8, 0 + 8, 4 + 8, 4 + 8, 2 + 8, 2 + 8, 6 + 8, 6 + 8, 1 + 8, 1 + 8, 5 + 8, 5 + 8, 3 + 8, 3 + 8, 7 + 8, -1}
+	color_numbers_8 = [28]int32{0, 4, 2, 6, 1, 5, 3, 3, 7, 7, 7, 7, 8, 8, 12, 12, 10, 10, 14, 14, 9, 9, 13, 13, 11, 11, 15, -1}
 	cterm_color_16 = [16]long_u{0x000000, 0xc00000, 0x008000, 0x808000, 0x0000c0, 0xc000c0, 0x004080, 0xc0c0c0, 0x808080, 0xff8080, 0x00ff00, 0xffff00, 0x6060ff, 0xff40ff, 0x00ffff, 0xffffff}
-	vimrc_mappings = [4]S_initmap{S_initmap{arg: S("<Tab> %"), mode: ((MODE_NORMAL | MODE_VISUAL) | MODE_SELECT) | MODE_OP_PENDING}, S_initmap{arg: S("\xc2\xa7 <C-_>"), mode: MODE_INSERT | MODE_CMDLINE}, S_initmap{arg: S("\xc3\xa9 u"), mode: MODE_NORMAL}, S_initmap{arg: S("\xc3\xa1 <C-R>"), mode: MODE_NORMAL}}
+	vimrc_mappings = [4]S_initmap{
+		{arg: S("<Tab> %"), mode: ((MODE_NORMAL | MODE_VISUAL) | MODE_SELECT) | MODE_OP_PENDING},
+		{arg: S("\xc2\xa7 <C-_>"), mode: MODE_INSERT | MODE_CMDLINE},
+		{arg: S("\xc3\xa9 u"), mode: MODE_NORMAL},
+		{arg: S("\xc3\xa1 <C-R>"), mode: MODE_NORMAL},
+	}
 	utf8len_tab = [256]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 1, 1}
 	utf8len_tab_zero = [256]byte{1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 0, 0}
 	ambiguous.Set(0, S_interval{first: 0x00a1, last: 0x00a1})
@@ -4375,186 +4386,476 @@ func init() {
 	toUpper.Set(198, convertStruct{rangeStart: 0x1e922, rangeEnd: 0x1e943, step: 1, offset: -34})
 	msg_hist_max = 500
 	msg_flags = MESSAGES_HIT_ENTER | MESSAGES_HISTORY
-	mod_mask_table = [9]S_modmasktable{S_modmasktable{mod_mask: MOD_MASK_ALT, mod_flag: MOD_MASK_ALT, name: 77}, S_modmasktable{mod_mask: MOD_MASK_META, mod_flag: MOD_MASK_META, name: 84}, S_modmasktable{mod_mask: MOD_MASK_CTRL, mod_flag: MOD_MASK_CTRL, name: 67}, S_modmasktable{mod_mask: MOD_MASK_SHIFT, mod_flag: MOD_MASK_SHIFT, name: 83}, S_modmasktable{mod_mask: ((MOD_MASK_2CLICK | MOD_MASK_3CLICK) | MOD_MASK_4CLICK), mod_flag: MOD_MASK_2CLICK, name: 50}, S_modmasktable{mod_mask: ((MOD_MASK_2CLICK | MOD_MASK_3CLICK) | MOD_MASK_4CLICK), mod_flag: MOD_MASK_3CLICK, name: 51}, S_modmasktable{mod_mask: ((MOD_MASK_2CLICK | MOD_MASK_3CLICK) | MOD_MASK_4CLICK), mod_flag: MOD_MASK_4CLICK, name: 52}, S_modmasktable{mod_mask: MOD_MASK_ALT, mod_flag: MOD_MASK_ALT, name: 65}, S_modmasktable{}}
+	mod_mask_table = [9]S_modmasktable{
+		{mod_mask: MOD_MASK_ALT, mod_flag: MOD_MASK_ALT, name: 77},
+		{mod_mask: MOD_MASK_META, mod_flag: MOD_MASK_META, name: 84},
+		{mod_mask: MOD_MASK_CTRL, mod_flag: MOD_MASK_CTRL, name: 67},
+		{mod_mask: MOD_MASK_SHIFT, mod_flag: MOD_MASK_SHIFT, name: 83},
+		{mod_mask: ((MOD_MASK_2CLICK | MOD_MASK_3CLICK) | MOD_MASK_4CLICK), mod_flag: MOD_MASK_2CLICK, name: 50},
+		{mod_mask: ((MOD_MASK_2CLICK | MOD_MASK_3CLICK) | MOD_MASK_4CLICK), mod_flag: MOD_MASK_3CLICK, name: 51},
+		{mod_mask: ((MOD_MASK_2CLICK | MOD_MASK_3CLICK) | MOD_MASK_4CLICK), mod_flag: MOD_MASK_4CLICK, name: 52},
+		{mod_mask: MOD_MASK_ALT, mod_flag: MOD_MASK_ALT, name: 65},
+		{},
+	}
 	modifier_keys_table = [376]byte{MOD_MASK_SHIFT, '&', '9', '@', '1', MOD_MASK_SHIFT, '&', '0', '@', '2', MOD_MASK_SHIFT, '*', '1', '@', '4', MOD_MASK_SHIFT, '*', '2', '@', '5', MOD_MASK_SHIFT, '*', '3', '@', '6', MOD_MASK_SHIFT, '*', '4', 'k', 'D', MOD_MASK_SHIFT, '*', '5', 'k', 'L', MOD_MASK_SHIFT, '*', '7', '@', '7', MOD_MASK_CTRL, KS_EXTRA, 88, '@', '7', MOD_MASK_SHIFT, '*', '9', '@', '9', MOD_MASK_SHIFT, '*', '0', '@', '0', MOD_MASK_SHIFT, '#', '1', '%', '1', MOD_MASK_SHIFT, '#', '2', 'k', 'h', MOD_MASK_CTRL, KS_EXTRA, 87, 'k', 'h', MOD_MASK_SHIFT, '#', '3', 'k', 'I', MOD_MASK_SHIFT, '#', '4', 'k', 'l', MOD_MASK_CTRL, KS_EXTRA, 85, 'k', 'l', MOD_MASK_SHIFT, '%', 'a', '%', '3', MOD_MASK_SHIFT, '%', 'b', '%', '4', MOD_MASK_SHIFT, '%', 'c', '%', '5', MOD_MASK_SHIFT, '%', 'd', '%', '7', MOD_MASK_SHIFT, '%', 'e', '%', '8', MOD_MASK_SHIFT, '%', 'f', '%', '9', MOD_MASK_SHIFT, '%', 'g', '%', '0', MOD_MASK_SHIFT, '%', 'h', '&', '3', MOD_MASK_SHIFT, '%', 'i', 'k', 'r', MOD_MASK_CTRL, KS_EXTRA, 86, 'k', 'r', MOD_MASK_SHIFT, '%', 'j', '&', '5', MOD_MASK_SHIFT, '!', '1', '&', '6', MOD_MASK_SHIFT, '!', '2', '&', '7', MOD_MASK_SHIFT, '!', '3', '&', '8', MOD_MASK_SHIFT, KS_EXTRA, 4, 'k', 'u', MOD_MASK_SHIFT, KS_EXTRA, 5, 'k', 'd', MOD_MASK_SHIFT, KS_EXTRA, 71, KS_EXTRA, 57, MOD_MASK_SHIFT, KS_EXTRA, 72, KS_EXTRA, 58, MOD_MASK_SHIFT, KS_EXTRA, 73, KS_EXTRA, 59, MOD_MASK_SHIFT, KS_EXTRA, 74, KS_EXTRA, 60, MOD_MASK_SHIFT, KS_EXTRA, 6, 'k', '1', MOD_MASK_SHIFT, KS_EXTRA, 7, 'k', '2', MOD_MASK_SHIFT, KS_EXTRA, 8, 'k', '3', MOD_MASK_SHIFT, KS_EXTRA, 9, 'k', '4', MOD_MASK_SHIFT, KS_EXTRA, 10, 'k', '5', MOD_MASK_SHIFT, KS_EXTRA, 11, 'k', '6', MOD_MASK_SHIFT, KS_EXTRA, 12, 'k', '7', MOD_MASK_SHIFT, KS_EXTRA, 13, 'k', '8', MOD_MASK_SHIFT, KS_EXTRA, 14, 'k', '9', MOD_MASK_SHIFT, KS_EXTRA, 15, 'k', ';', MOD_MASK_SHIFT, KS_EXTRA, 16, 'F', '1', MOD_MASK_SHIFT, KS_EXTRA, 17, 'F', '2', MOD_MASK_SHIFT, KS_EXTRA, 18, 'F', '3', MOD_MASK_SHIFT, KS_EXTRA, 19, 'F', '4', MOD_MASK_SHIFT, KS_EXTRA, 20, 'F', '5', MOD_MASK_SHIFT, KS_EXTRA, 21, 'F', '6', MOD_MASK_SHIFT, KS_EXTRA, 22, 'F', '7', MOD_MASK_SHIFT, KS_EXTRA, 23, 'F', '8', MOD_MASK_SHIFT, KS_EXTRA, 24, 'F', '9', MOD_MASK_SHIFT, KS_EXTRA, 25, 'F', 'A', MOD_MASK_SHIFT, KS_EXTRA, 26, 'F', 'B', MOD_MASK_SHIFT, KS_EXTRA, 27, 'F', 'C', MOD_MASK_SHIFT, KS_EXTRA, 28, 'F', 'D', MOD_MASK_SHIFT, KS_EXTRA, 29, 'F', 'E', MOD_MASK_SHIFT, KS_EXTRA, 30, 'F', 'F', MOD_MASK_SHIFT, KS_EXTRA, 31, 'F', 'G', MOD_MASK_SHIFT, KS_EXTRA, 32, 'F', 'H', MOD_MASK_SHIFT, KS_EXTRA, 33, 'F', 'I', MOD_MASK_SHIFT, KS_EXTRA, 34, 'F', 'J', MOD_MASK_SHIFT, KS_EXTRA, 35, 'F', 'K', MOD_MASK_SHIFT, KS_EXTRA, 36, 'F', 'L', MOD_MASK_SHIFT, KS_EXTRA, 37, 'F', 'M', MOD_MASK_SHIFT, KS_EXTRA, 38, 'F', 'N', MOD_MASK_SHIFT, KS_EXTRA, 39, 'F', 'O', MOD_MASK_SHIFT, KS_EXTRA, 40, 'F', 'P', MOD_MASK_SHIFT, KS_EXTRA, 41, 'F', 'Q', MOD_MASK_SHIFT, KS_EXTRA, 42, 'F', 'R', MOD_MASK_SHIFT, 'k', 'B', KS_EXTRA, 54, NUL}
-	key_names_table.Set(0, S_key_name_entry{enabled: TRUE, key: -('k' + (98 << 8)), name: string_T{string_: S("BackSpace"), length: (10 - 1)}, is_alt: TRUE})
-	key_names_table.Set(1, S_key_name_entry{enabled: TRUE, key: '|', name: string_T{string_: S("Bar"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(2, S_key_name_entry{enabled: TRUE, key: -('k' + (98 << 8)), name: string_T{string_: S("BS"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(3, S_key_name_entry{enabled: TRUE, key: 92, name: string_T{string_: S("Bslash"), length: (7 - 1)}, is_alt: FALSE})
-	key_names_table.Set(4, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (103 << 8)), name: string_T{string_: S("Cmd"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(5, S_key_name_entry{enabled: TRUE, key: CAR, name: string_T{string_: S("CR"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(6, S_key_name_entry{enabled: TRUE, key: CSI, name: string_T{string_: S("CSI"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(7, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (96 << 8)), name: string_T{string_: S("CursorHold"), length: (11 - 1)}, is_alt: FALSE})
-	key_names_table.Set(8, S_key_name_entry{enabled: TRUE, key: -('k' + (68 << 8)), name: string_T{string_: S("Del"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(9, S_key_name_entry{enabled: TRUE, key: -('k' + (68 << 8)), name: string_T{string_: S("Delete"), length: (7 - 1)}, is_alt: TRUE})
-	key_names_table.Set(10, S_key_name_entry{enabled: TRUE, key: -('k' + (100 << 8)), name: string_T{string_: S("Down"), length: (5 - 1)}, is_alt: FALSE})
-	key_names_table.Set(11, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (95 << 8)), name: string_T{string_: S("Drop"), length: (5 - 1)}, is_alt: FALSE})
-	key_names_table.Set(12, S_key_name_entry{enabled: TRUE, key: -('@' + (55 << 8)), name: string_T{string_: S("End"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(13, S_key_name_entry{enabled: TRUE, key: CAR, name: string_T{string_: S("Enter"), length: (6 - 1)}, is_alt: TRUE})
-	key_names_table.Set(14, S_key_name_entry{enabled: TRUE, key: ESC, name: string_T{string_: S("Esc"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(15, S_key_name_entry{enabled: TRUE, key: -('k' + (49 << 8)), name: string_T{string_: S("F1"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(16, S_key_name_entry{enabled: TRUE, key: -('k' + (59 << 8)), name: string_T{string_: S("F10"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(17, S_key_name_entry{enabled: TRUE, key: -('F' + (49 << 8)), name: string_T{string_: S("F11"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(18, S_key_name_entry{enabled: TRUE, key: -('F' + (50 << 8)), name: string_T{string_: S("F12"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(19, S_key_name_entry{enabled: TRUE, key: -('F' + (51 << 8)), name: string_T{string_: S("F13"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(20, S_key_name_entry{enabled: TRUE, key: -('F' + (52 << 8)), name: string_T{string_: S("F14"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(21, S_key_name_entry{enabled: TRUE, key: -('F' + (53 << 8)), name: string_T{string_: S("F15"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(22, S_key_name_entry{enabled: TRUE, key: -('F' + (54 << 8)), name: string_T{string_: S("F16"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(23, S_key_name_entry{enabled: TRUE, key: -('F' + (55 << 8)), name: string_T{string_: S("F17"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(24, S_key_name_entry{enabled: TRUE, key: -('F' + (56 << 8)), name: string_T{string_: S("F18"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(25, S_key_name_entry{enabled: TRUE, key: -('F' + (57 << 8)), name: string_T{string_: S("F19"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(26, S_key_name_entry{enabled: TRUE, key: -('k' + (50 << 8)), name: string_T{string_: S("F2"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(27, S_key_name_entry{enabled: TRUE, key: -('F' + (65 << 8)), name: string_T{string_: S("F20"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(28, S_key_name_entry{enabled: TRUE, key: -('F' + (66 << 8)), name: string_T{string_: S("F21"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(29, S_key_name_entry{enabled: TRUE, key: -('F' + (67 << 8)), name: string_T{string_: S("F22"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(30, S_key_name_entry{enabled: TRUE, key: -('F' + (68 << 8)), name: string_T{string_: S("F23"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(31, S_key_name_entry{enabled: TRUE, key: -('F' + (69 << 8)), name: string_T{string_: S("F24"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(32, S_key_name_entry{enabled: TRUE, key: -('F' + (70 << 8)), name: string_T{string_: S("F25"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(33, S_key_name_entry{enabled: TRUE, key: -('F' + (71 << 8)), name: string_T{string_: S("F26"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(34, S_key_name_entry{enabled: TRUE, key: -('F' + (72 << 8)), name: string_T{string_: S("F27"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(35, S_key_name_entry{enabled: TRUE, key: -('F' + (73 << 8)), name: string_T{string_: S("F28"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(36, S_key_name_entry{enabled: TRUE, key: -('F' + (74 << 8)), name: string_T{string_: S("F29"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(37, S_key_name_entry{enabled: TRUE, key: -('k' + (51 << 8)), name: string_T{string_: S("F3"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(38, S_key_name_entry{enabled: TRUE, key: -('F' + (75 << 8)), name: string_T{string_: S("F30"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(39, S_key_name_entry{enabled: TRUE, key: -('F' + (76 << 8)), name: string_T{string_: S("F31"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(40, S_key_name_entry{enabled: TRUE, key: -('F' + (77 << 8)), name: string_T{string_: S("F32"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(41, S_key_name_entry{enabled: TRUE, key: -('F' + (78 << 8)), name: string_T{string_: S("F33"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(42, S_key_name_entry{enabled: TRUE, key: -('F' + (79 << 8)), name: string_T{string_: S("F34"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(43, S_key_name_entry{enabled: TRUE, key: -('F' + (80 << 8)), name: string_T{string_: S("F35"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(44, S_key_name_entry{enabled: TRUE, key: -('F' + (81 << 8)), name: string_T{string_: S("F36"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(45, S_key_name_entry{enabled: TRUE, key: -('F' + (82 << 8)), name: string_T{string_: S("F37"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(46, S_key_name_entry{enabled: TRUE, key: -('k' + (52 << 8)), name: string_T{string_: S("F4"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(47, S_key_name_entry{enabled: TRUE, key: -('k' + (53 << 8)), name: string_T{string_: S("F5"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(48, S_key_name_entry{enabled: TRUE, key: -('k' + (54 << 8)), name: string_T{string_: S("F6"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(49, S_key_name_entry{enabled: TRUE, key: -('k' + (55 << 8)), name: string_T{string_: S("F7"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(50, S_key_name_entry{enabled: TRUE, key: -('k' + (56 << 8)), name: string_T{string_: S("F8"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(51, S_key_name_entry{enabled: TRUE, key: -('k' + (57 << 8)), name: string_T{string_: S("F9"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(52, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (98 << 8)), name: string_T{string_: S("FocusGained"), length: (12 - 1)}, is_alt: FALSE})
-	key_names_table.Set(53, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (99 << 8)), name: string_T{string_: S("FocusLost"), length: (10 - 1)}, is_alt: FALSE})
-	key_names_table.Set(54, S_key_name_entry{enabled: TRUE, key: -('%' + (49 << 8)), name: string_T{string_: S("Help"), length: (5 - 1)}, is_alt: FALSE})
-	key_names_table.Set(55, S_key_name_entry{enabled: TRUE, key: -('k' + (104 << 8)), name: string_T{string_: S("Home"), length: (5 - 1)}, is_alt: FALSE})
-	key_names_table.Set(56, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (53 << 8)), name: string_T{string_: S("Ignore"), length: (7 - 1)}, is_alt: FALSE})
-	key_names_table.Set(57, S_key_name_entry{enabled: TRUE, key: -('k' + (73 << 8)), name: string_T{string_: S("Ins"), length: (4 - 1)}, is_alt: TRUE})
-	key_names_table.Set(58, S_key_name_entry{enabled: TRUE, key: -('k' + (73 << 8)), name: string_T{string_: S("Insert"), length: (7 - 1)}, is_alt: FALSE})
-	key_names_table.Set(59, S_key_name_entry{enabled: TRUE, key: -('K' + (67 << 8)), name: string_T{string_: S("k0"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(60, S_key_name_entry{enabled: TRUE, key: -('K' + (68 << 8)), name: string_T{string_: S("k1"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(61, S_key_name_entry{enabled: TRUE, key: -('K' + (69 << 8)), name: string_T{string_: S("k2"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(62, S_key_name_entry{enabled: TRUE, key: -('K' + (70 << 8)), name: string_T{string_: S("k3"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(63, S_key_name_entry{enabled: TRUE, key: -('K' + (71 << 8)), name: string_T{string_: S("k4"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(64, S_key_name_entry{enabled: TRUE, key: -('K' + (72 << 8)), name: string_T{string_: S("k5"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(65, S_key_name_entry{enabled: TRUE, key: -('K' + (73 << 8)), name: string_T{string_: S("k6"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(66, S_key_name_entry{enabled: TRUE, key: -('K' + (74 << 8)), name: string_T{string_: S("k7"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(67, S_key_name_entry{enabled: TRUE, key: -('K' + (75 << 8)), name: string_T{string_: S("k8"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(68, S_key_name_entry{enabled: TRUE, key: -('K' + (76 << 8)), name: string_T{string_: S("k9"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(69, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (80 << 8)), name: string_T{string_: S("kDel"), length: (5 - 1)}, is_alt: FALSE})
-	key_names_table.Set(70, S_key_name_entry{enabled: TRUE, key: -('K' + (56 << 8)), name: string_T{string_: S("kDivide"), length: (8 - 1)}, is_alt: FALSE})
-	key_names_table.Set(71, S_key_name_entry{enabled: TRUE, key: -('K' + (52 << 8)), name: string_T{string_: S("kEnd"), length: (5 - 1)}, is_alt: FALSE})
-	key_names_table.Set(72, S_key_name_entry{enabled: TRUE, key: -('K' + (65 << 8)), name: string_T{string_: S("kEnter"), length: (7 - 1)}, is_alt: FALSE})
-	key_names_table.Set(73, S_key_name_entry{enabled: TRUE, key: -('K' + (49 << 8)), name: string_T{string_: S("kHome"), length: (6 - 1)}, is_alt: FALSE})
-	key_names_table.Set(74, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (79 << 8)), name: string_T{string_: S("kInsert"), length: (8 - 1)}, is_alt: FALSE})
-	key_names_table.Set(75, S_key_name_entry{enabled: TRUE, key: -('K' + (55 << 8)), name: string_T{string_: S("kMinus"), length: (7 - 1)}, is_alt: FALSE})
-	key_names_table.Set(76, S_key_name_entry{enabled: TRUE, key: -('K' + (57 << 8)), name: string_T{string_: S("kMultiply"), length: (10 - 1)}, is_alt: FALSE})
-	key_names_table.Set(77, S_key_name_entry{enabled: TRUE, key: -('K' + (53 << 8)), name: string_T{string_: S("kPageDown"), length: (10 - 1)}, is_alt: FALSE})
-	key_names_table.Set(78, S_key_name_entry{enabled: TRUE, key: -('K' + (51 << 8)), name: string_T{string_: S("kPageUp"), length: (8 - 1)}, is_alt: FALSE})
-	key_names_table.Set(79, S_key_name_entry{enabled: TRUE, key: -('K' + (54 << 8)), name: string_T{string_: S("kPlus"), length: (6 - 1)}, is_alt: FALSE})
-	key_names_table.Set(80, S_key_name_entry{enabled: TRUE, key: -('K' + (66 << 8)), name: string_T{string_: S("kPoint"), length: (7 - 1)}, is_alt: FALSE})
-	key_names_table.Set(81, S_key_name_entry{enabled: TRUE, key: -('k' + (108 << 8)), name: string_T{string_: S("Left"), length: (5 - 1)}, is_alt: FALSE})
-	key_names_table.Set(82, S_key_name_entry{enabled: TRUE, key: NL, name: string_T{string_: S("LF"), length: (3 - 1)}, is_alt: TRUE})
-	key_names_table.Set(83, S_key_name_entry{enabled: TRUE, key: NL, name: string_T{string_: S("LineFeed"), length: (9 - 1)}, is_alt: TRUE})
-	key_names_table.Set(84, S_key_name_entry{enabled: TRUE, key: '<', name: string_T{string_: S("lt"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(85, S_key_name_entry{enabled: TRUE, key: NL, name: string_T{string_: S("NewLine"), length: (8 - 1)}, is_alt: TRUE})
-	key_names_table.Set(86, S_key_name_entry{enabled: TRUE, key: NL, name: string_T{string_: S("NL"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(87, S_key_name_entry{enabled: TRUE, key: -(KS_ZERO + (88 << 8)), name: string_T{string_: S("Nul"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(88, S_key_name_entry{enabled: TRUE, key: OSC, name: string_T{string_: S("OSC"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(89, S_key_name_entry{enabled: TRUE, key: -('k' + (78 << 8)), name: string_T{string_: S("PageDown"), length: (9 - 1)}, is_alt: FALSE})
-	key_names_table.Set(90, S_key_name_entry{enabled: TRUE, key: -('k' + (80 << 8)), name: string_T{string_: S("PageUp"), length: (7 - 1)}, is_alt: FALSE})
-	key_names_table.Set(91, S_key_name_entry{enabled: TRUE, key: -('P' + (69 << 8)), name: string_T{string_: S("PasteEnd"), length: (9 - 1)}, is_alt: FALSE})
-	key_names_table.Set(92, S_key_name_entry{enabled: TRUE, key: -('P' + (83 << 8)), name: string_T{string_: S("PasteStart"), length: (11 - 1)}, is_alt: FALSE})
-	key_names_table.Set(93, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (83 << 8)), name: string_T{string_: S("Plug"), length: (5 - 1)}, is_alt: FALSE})
-	key_names_table.Set(94, S_key_name_entry{enabled: TRUE, key: CAR, name: string_T{string_: S("Return"), length: (7 - 1)}, is_alt: TRUE})
-	key_names_table.Set(95, S_key_name_entry{enabled: TRUE, key: -('k' + (114 << 8)), name: string_T{string_: S("Right"), length: (6 - 1)}, is_alt: FALSE})
-	key_names_table.Set(96, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (104 << 8)), name: string_T{string_: S("ScriptCmd"), length: (10 - 1)}, is_alt: FALSE})
-	key_names_table.Set(97, S_key_name_entry{enabled: FALSE, key: -(KS_EXTRA + (82 << 8)), name: string_T{string_: S("SNR"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(98, S_key_name_entry{enabled: TRUE, key: ' ', name: string_T{string_: S("Space"), length: (6 - 1)}, is_alt: FALSE})
-	key_names_table.Set(99, S_key_name_entry{enabled: TRUE, key: TAB, name: string_T{string_: S("Tab"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(100, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (54 << 8)), name: string_T{string_: S("Tab"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(101, S_key_name_entry{enabled: TRUE, key: -('&' + (56 << 8)), name: string_T{string_: S("Undo"), length: (5 - 1)}, is_alt: FALSE})
-	key_names_table.Set(102, S_key_name_entry{enabled: TRUE, key: -('k' + (117 << 8)), name: string_T{string_: S("Up"), length: (3 - 1)}, is_alt: FALSE})
-	key_names_table.Set(103, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (81 << 8)), name: string_T{string_: S("xCSI"), length: (5 - 1)}, is_alt: FALSE})
-	key_names_table.Set(104, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (66 << 8)), name: string_T{string_: S("xDown"), length: (6 - 1)}, is_alt: FALSE})
-	key_names_table.Set(105, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (61 << 8)), name: string_T{string_: S("xEnd"), length: (5 - 1)}, is_alt: FALSE})
-	key_names_table.Set(106, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (57 << 8)), name: string_T{string_: S("xF1"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(107, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (58 << 8)), name: string_T{string_: S("xF2"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(108, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (59 << 8)), name: string_T{string_: S("xF3"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(109, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (60 << 8)), name: string_T{string_: S("xF4"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(110, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (63 << 8)), name: string_T{string_: S("xHome"), length: (6 - 1)}, is_alt: FALSE})
-	key_names_table.Set(111, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (67 << 8)), name: string_T{string_: S("xLeft"), length: (6 - 1)}, is_alt: FALSE})
-	key_names_table.Set(112, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (109 << 8)), name: string_T{string_: S("xOSC"), length: (5 - 1)}, is_alt: FALSE})
-	key_names_table.Set(113, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (68 << 8)), name: string_T{string_: S("xRight"), length: (7 - 1)}, is_alt: FALSE})
-	key_names_table.Set(114, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (65 << 8)), name: string_T{string_: S("xUp"), length: (4 - 1)}, is_alt: FALSE})
-	key_names_table.Set(115, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (62 << 8)), name: string_T{string_: S("zEnd"), length: (5 - 1)}, is_alt: FALSE})
-	key_names_table.Set(116, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (64 << 8)), name: string_T{string_: S("zHome"), length: (6 - 1)}, is_alt: FALSE})
-	nv_cmds = [194]S_nv_cmd{S_nv_cmd{cmd_char: NUL, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: Ctrl_A, cmd_func: nv_addsub, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: Ctrl_B, cmd_func: nv_page, cmd_flags: NV_STS, cmd_arg: -1}, S_nv_cmd{cmd_char: Ctrl_C, cmd_func: nv_esc, cmd_flags: 0, cmd_arg: TRUE}, S_nv_cmd{cmd_char: Ctrl_D, cmd_func: nv_halfpage, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: Ctrl_E, cmd_func: nv_scroll_line, cmd_flags: 0, cmd_arg: TRUE}, S_nv_cmd{cmd_char: Ctrl_F, cmd_func: nv_page, cmd_flags: NV_STS, cmd_arg: FORWARD}, S_nv_cmd{cmd_char: Ctrl_G, cmd_func: nv_ctrlg, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: Ctrl_H, cmd_func: nv_ctrlh, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: Ctrl_I, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: NL, cmd_func: nv_down, cmd_flags: 0, cmd_arg: FALSE}, S_nv_cmd{cmd_char: Ctrl_K, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: Ctrl_L, cmd_func: nv_clear, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: CAR, cmd_func: nv_down, cmd_flags: 0, cmd_arg: TRUE}, S_nv_cmd{cmd_char: Ctrl_N, cmd_func: nv_down, cmd_flags: NV_STS, cmd_arg: FALSE}, S_nv_cmd{cmd_char: Ctrl_O, cmd_func: nv_ctrlo, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: Ctrl_P, cmd_func: nv_up, cmd_flags: NV_STS, cmd_arg: FALSE}, S_nv_cmd{cmd_char: Ctrl_Q, cmd_func: nv_visual, cmd_flags: 0, cmd_arg: FALSE}, S_nv_cmd{cmd_char: Ctrl_R, cmd_func: nv_redo_or_register, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: Ctrl_S, cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: Ctrl_T, cmd_func: nv_tagpop, cmd_flags: NV_NCW, cmd_arg: 0}, S_nv_cmd{cmd_char: Ctrl_U, cmd_func: nv_halfpage, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: Ctrl_V, cmd_func: nv_visual, cmd_flags: 0, cmd_arg: FALSE}, S_nv_cmd{cmd_char: Ctrl_W, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: Ctrl_X, cmd_func: nv_addsub, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: Ctrl_Y, cmd_func: nv_scroll_line, cmd_flags: 0, cmd_arg: FALSE}, S_nv_cmd{cmd_char: Ctrl_Z, cmd_func: nv_suspend, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: ESC, cmd_func: nv_esc, cmd_flags: 0, cmd_arg: FALSE}, S_nv_cmd{cmd_char: Ctrl_BSL, cmd_func: nv_normal, cmd_flags: (0x04 | NV_NCH), cmd_arg: 0}, S_nv_cmd{cmd_char: Ctrl_RSB, cmd_func: nv_error, cmd_flags: NV_NCW, cmd_arg: 0}, S_nv_cmd{cmd_char: Ctrl_HAT, cmd_func: nv_error, cmd_flags: NV_NCW, cmd_arg: 0}, S_nv_cmd{cmd_char: Ctrl__, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: ' ', cmd_func: nv_right, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '!', cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '"', cmd_func: nv_regname, cmd_flags: (0x02 | NV_NCH) | NV_KEEPREG, cmd_arg: 0}, S_nv_cmd{cmd_char: '#', cmd_func: nv_ident, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '$', cmd_func: nv_dollar, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '%', cmd_func: nv_percent, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '&', cmd_func: nv_optrans, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 39, cmd_func: nv_gomark, cmd_flags: (0x04 | NV_NCH), cmd_arg: TRUE}, S_nv_cmd{cmd_char: '(', cmd_func: nv_error, cmd_flags: 0, cmd_arg: -1}, S_nv_cmd{cmd_char: ')', cmd_func: nv_error, cmd_flags: 0, cmd_arg: FORWARD}, S_nv_cmd{cmd_char: '*', cmd_func: nv_ident, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '+', cmd_func: nv_down, cmd_flags: 0, cmd_arg: TRUE}, S_nv_cmd{cmd_char: ',', cmd_func: nv_csearch, cmd_flags: 0, cmd_arg: TRUE}, S_nv_cmd{cmd_char: '-', cmd_func: nv_up, cmd_flags: 0, cmd_arg: TRUE}, S_nv_cmd{cmd_char: '.', cmd_func: nv_dot, cmd_flags: NV_KEEPREG, cmd_arg: 0}, S_nv_cmd{cmd_char: '/', cmd_func: nv_search, cmd_flags: 0, cmd_arg: FALSE}, S_nv_cmd{cmd_char: '0', cmd_func: nv_beginline, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '1', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '2', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '3', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '4', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '5', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '6', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '7', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '8', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '9', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: ':', cmd_func: nv_colon, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: ';', cmd_func: nv_csearch, cmd_flags: 0, cmd_arg: FALSE}, S_nv_cmd{cmd_char: '<', cmd_func: nv_operator, cmd_flags: NV_RL, cmd_arg: 0}, S_nv_cmd{cmd_char: '=', cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '>', cmd_func: nv_operator, cmd_flags: NV_RL, cmd_arg: 0}, S_nv_cmd{cmd_char: '?', cmd_func: nv_search, cmd_flags: 0, cmd_arg: FALSE}, S_nv_cmd{cmd_char: '@', cmd_func: nv_at, cmd_flags: (0x02 | NV_NCH), cmd_arg: FALSE}, S_nv_cmd{cmd_char: 'A', cmd_func: nv_edit, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'B', cmd_func: nv_bck_word, cmd_flags: 0, cmd_arg: 1}, S_nv_cmd{cmd_char: 'C', cmd_func: nv_abbrev, cmd_flags: NV_KEEPREG, cmd_arg: 0}, S_nv_cmd{cmd_char: 'D', cmd_func: nv_abbrev, cmd_flags: NV_KEEPREG, cmd_arg: 0}, S_nv_cmd{cmd_char: 'E', cmd_func: nv_wordcmd, cmd_flags: 0, cmd_arg: TRUE}, S_nv_cmd{cmd_char: 'F', cmd_func: nv_csearch, cmd_flags: (0x04 | NV_NCH) | NV_LANG, cmd_arg: -1}, S_nv_cmd{cmd_char: 'G', cmd_func: nv_goto, cmd_flags: 0, cmd_arg: TRUE}, S_nv_cmd{cmd_char: 'H', cmd_func: nv_scroll, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'I', cmd_func: nv_edit, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'J', cmd_func: nv_join, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'K', cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'L', cmd_func: nv_scroll, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'M', cmd_func: nv_scroll, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'N', cmd_func: nv_next, cmd_flags: 0, cmd_arg: SEARCH_REV}, S_nv_cmd{cmd_char: 'O', cmd_func: nv_open, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'P', cmd_func: nv_put, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'Q', cmd_func: nv_error, cmd_flags: NV_NCW, cmd_arg: 0}, S_nv_cmd{cmd_char: 'R', cmd_func: nv_Replace, cmd_flags: 0, cmd_arg: FALSE}, S_nv_cmd{cmd_char: 'S', cmd_func: nv_subst, cmd_flags: NV_KEEPREG, cmd_arg: 0}, S_nv_cmd{cmd_char: 'T', cmd_func: nv_csearch, cmd_flags: (0x04 | NV_NCH) | NV_LANG, cmd_arg: -1}, S_nv_cmd{cmd_char: 'U', cmd_func: nv_Undo, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'V', cmd_func: nv_visual, cmd_flags: 0, cmd_arg: FALSE}, S_nv_cmd{cmd_char: 'W', cmd_func: nv_wordcmd, cmd_flags: 0, cmd_arg: TRUE}, S_nv_cmd{cmd_char: 'X', cmd_func: nv_abbrev, cmd_flags: NV_KEEPREG, cmd_arg: 0}, S_nv_cmd{cmd_char: 'Y', cmd_func: nv_abbrev, cmd_flags: NV_KEEPREG, cmd_arg: 0}, S_nv_cmd{cmd_char: 'Z', cmd_func: nv_Zet, cmd_flags: (0x02 | NV_NCH) | NV_NCW, cmd_arg: 0}, S_nv_cmd{cmd_char: '[', cmd_func: nv_brackets, cmd_flags: (0x04 | NV_NCH), cmd_arg: -1}, S_nv_cmd{cmd_char: 92, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: ']', cmd_func: nv_brackets, cmd_flags: (0x04 | NV_NCH), cmd_arg: FORWARD}, S_nv_cmd{cmd_char: '^', cmd_func: nv_beginline, cmd_flags: 0, cmd_arg: BL_WHITE | BL_FIX}, S_nv_cmd{cmd_char: '_', cmd_func: nv_lineop, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '`', cmd_func: nv_gomark, cmd_flags: (0x04 | NV_NCH), cmd_arg: FALSE}, S_nv_cmd{cmd_char: 'a', cmd_func: nv_edit, cmd_flags: NV_NCH, cmd_arg: 0}, S_nv_cmd{cmd_char: 'b', cmd_func: nv_bck_word, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'c', cmd_func: nv_operator, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'd', cmd_func: nv_operator, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'e', cmd_func: nv_wordcmd, cmd_flags: 0, cmd_arg: FALSE}, S_nv_cmd{cmd_char: 'f', cmd_func: nv_csearch, cmd_flags: (0x04 | NV_NCH) | NV_LANG, cmd_arg: FORWARD}, S_nv_cmd{cmd_char: 'g', cmd_func: nv_g_cmd, cmd_flags: (0x04 | NV_NCH), cmd_arg: FALSE}, S_nv_cmd{cmd_char: 'h', cmd_func: nv_left, cmd_flags: NV_RL, cmd_arg: 0}, S_nv_cmd{cmd_char: 'i', cmd_func: nv_edit, cmd_flags: NV_NCH, cmd_arg: 0}, S_nv_cmd{cmd_char: 'j', cmd_func: nv_down, cmd_flags: 0, cmd_arg: FALSE}, S_nv_cmd{cmd_char: 'k', cmd_func: nv_up, cmd_flags: 0, cmd_arg: FALSE}, S_nv_cmd{cmd_char: 'l', cmd_func: nv_right, cmd_flags: NV_RL, cmd_arg: 0}, S_nv_cmd{cmd_char: 'm', cmd_func: nv_mark, cmd_flags: (0x02 | NV_NCH), cmd_arg: 0}, S_nv_cmd{cmd_char: 'n', cmd_func: nv_next, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'o', cmd_func: nv_open, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'p', cmd_func: nv_put, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'q', cmd_func: nv_record, cmd_flags: NV_NCH, cmd_arg: 0}, S_nv_cmd{cmd_char: 'r', cmd_func: nv_replace, cmd_flags: (0x02 | NV_NCH) | NV_LANG, cmd_arg: 0}, S_nv_cmd{cmd_char: 's', cmd_func: nv_subst, cmd_flags: NV_KEEPREG, cmd_arg: 0}, S_nv_cmd{cmd_char: 't', cmd_func: nv_csearch, cmd_flags: (0x04 | NV_NCH) | NV_LANG, cmd_arg: FORWARD}, S_nv_cmd{cmd_char: 'u', cmd_func: nv_undo, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'v', cmd_func: nv_visual, cmd_flags: 0, cmd_arg: FALSE}, S_nv_cmd{cmd_char: 'w', cmd_func: nv_wordcmd, cmd_flags: 0, cmd_arg: FALSE}, S_nv_cmd{cmd_char: 'x', cmd_func: nv_abbrev, cmd_flags: NV_KEEPREG, cmd_arg: 0}, S_nv_cmd{cmd_char: 'y', cmd_func: nv_operator, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: 'z', cmd_func: nv_zet, cmd_flags: (0x04 | NV_NCH), cmd_arg: 0}, S_nv_cmd{cmd_char: '{', cmd_func: nv_error, cmd_flags: 0, cmd_arg: -1}, S_nv_cmd{cmd_char: '|', cmd_func: nv_pipe, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: '}', cmd_func: nv_error, cmd_flags: 0, cmd_arg: FORWARD}, S_nv_cmd{cmd_char: '~', cmd_func: nv_tilde, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: POUND, cmd_func: nv_ident, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (76 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: MSCR_UP}, S_nv_cmd{cmd_char: -(KS_EXTRA + (75 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: MSCR_DOWN}, S_nv_cmd{cmd_char: -(KS_EXTRA + (77 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: -1}, S_nv_cmd{cmd_char: -(KS_EXTRA + (78 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: -2}, S_nv_cmd{cmd_char: -(KS_EXTRA + (44 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (69 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (45 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (46 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (70 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (100 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (47 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (48 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (49 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (50 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (51 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (52 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (89 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (90 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (91 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (92 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (93 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (94 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (53 << 8)), cmd_func: nv_ignore, cmd_flags: NV_KEEPREG, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (97 << 8)), cmd_func: nv_nop, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -('k' + (73 << 8)), cmd_func: nv_edit, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (79 << 8)), cmd_func: nv_edit, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -('k' + (98 << 8)), cmd_func: nv_ctrlh, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -('k' + (117 << 8)), cmd_func: nv_up, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE}, S_nv_cmd{cmd_char: -(KS_EXTRA + (4 << 8)), cmd_func: nv_page, cmd_flags: NV_SS, cmd_arg: -1}, S_nv_cmd{cmd_char: -('k' + (100 << 8)), cmd_func: nv_down, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE}, S_nv_cmd{cmd_char: -(KS_EXTRA + (5 << 8)), cmd_func: nv_page, cmd_flags: NV_SS, cmd_arg: FORWARD}, S_nv_cmd{cmd_char: -('k' + (108 << 8)), cmd_func: nv_left, cmd_flags: (NV_SSS | NV_STS) | NV_RL, cmd_arg: 0}, S_nv_cmd{cmd_char: -('#' + (52 << 8)), cmd_func: nv_bck_word, cmd_flags: NV_SS | NV_RL, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (85 << 8)), cmd_func: nv_bck_word, cmd_flags: (NV_SSS | NV_RL) | NV_STS, cmd_arg: 1}, S_nv_cmd{cmd_char: -('k' + (114 << 8)), cmd_func: nv_right, cmd_flags: (NV_SSS | NV_STS) | NV_RL, cmd_arg: 0}, S_nv_cmd{cmd_char: -('%' + (105 << 8)), cmd_func: nv_wordcmd, cmd_flags: NV_SS | NV_RL, cmd_arg: FALSE}, S_nv_cmd{cmd_char: -(KS_EXTRA + (86 << 8)), cmd_func: nv_wordcmd, cmd_flags: (NV_SSS | NV_RL) | NV_STS, cmd_arg: TRUE}, S_nv_cmd{cmd_char: -('k' + (80 << 8)), cmd_func: nv_page, cmd_flags: NV_SSS | NV_STS, cmd_arg: -1}, S_nv_cmd{cmd_char: -('K' + (51 << 8)), cmd_func: nv_page, cmd_flags: NV_SSS | NV_STS, cmd_arg: -1}, S_nv_cmd{cmd_char: -('k' + (78 << 8)), cmd_func: nv_page, cmd_flags: NV_SSS | NV_STS, cmd_arg: FORWARD}, S_nv_cmd{cmd_char: -('K' + (53 << 8)), cmd_func: nv_page, cmd_flags: NV_SSS | NV_STS, cmd_arg: FORWARD}, S_nv_cmd{cmd_char: -('@' + (55 << 8)), cmd_func: nv_end, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE}, S_nv_cmd{cmd_char: -('K' + (52 << 8)), cmd_func: nv_end, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE}, S_nv_cmd{cmd_char: -('*' + (55 << 8)), cmd_func: nv_end, cmd_flags: NV_SS, cmd_arg: FALSE}, S_nv_cmd{cmd_char: -(KS_EXTRA + (88 << 8)), cmd_func: nv_end, cmd_flags: NV_SSS | NV_STS, cmd_arg: TRUE}, S_nv_cmd{cmd_char: -('k' + (104 << 8)), cmd_func: nv_home, cmd_flags: NV_SSS | NV_STS, cmd_arg: 0}, S_nv_cmd{cmd_char: -('K' + (49 << 8)), cmd_func: nv_home, cmd_flags: NV_SSS | NV_STS, cmd_arg: 0}, S_nv_cmd{cmd_char: -('#' + (50 << 8)), cmd_func: nv_home, cmd_flags: NV_SS, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (87 << 8)), cmd_func: nv_goto, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE}, S_nv_cmd{cmd_char: -('k' + (68 << 8)), cmd_func: nv_abbrev, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (80 << 8)), cmd_func: nv_abbrev, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -('&' + (56 << 8)), cmd_func: nv_kundo, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -('%' + (49 << 8)), cmd_func: nv_help, cmd_flags: NV_NCW, cmd_arg: 0}, S_nv_cmd{cmd_char: -('k' + (49 << 8)), cmd_func: nv_help, cmd_flags: NV_NCW, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (57 << 8)), cmd_func: nv_help, cmd_flags: NV_NCW, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_SELECT + (88 << 8)), cmd_func: nv_select, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_VER_SCROLLBAR + (88 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_HOR_SCROLLBAR + (88 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_TABLINE + (88 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_TABMENU + (88 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -('F' + (66 << 8)), cmd_func: nv_error, cmd_flags: (0x04 | NV_NCH), cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (95 << 8)), cmd_func: nv_error, cmd_flags: NV_STS, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (96 << 8)), cmd_func: nv_cursorhold, cmd_flags: NV_KEEPREG, cmd_arg: 0}, S_nv_cmd{cmd_char: -('P' + (83 << 8)), cmd_func: nv_edit, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (103 << 8)), cmd_func: nv_colon, cmd_flags: 0, cmd_arg: 0}, S_nv_cmd{cmd_char: -(KS_EXTRA + (104 << 8)), cmd_func: nv_colon, cmd_flags: 0, cmd_arg: 0}}
+	key_names_table.Set(0, S_key_name_entry{enabled: TRUE, key: -('k' + (98 << 8)), name: string_T{string_: S("BackSpace"), length: 9}, is_alt: TRUE})
+	key_names_table.Set(1, S_key_name_entry{enabled: TRUE, key: '|', name: string_T{string_: S("Bar"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(2, S_key_name_entry{enabled: TRUE, key: -('k' + (98 << 8)), name: string_T{string_: S("BS"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(3, S_key_name_entry{enabled: TRUE, key: 92, name: string_T{string_: S("Bslash"), length: 6}, is_alt: FALSE})
+	key_names_table.Set(4, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (103 << 8)), name: string_T{string_: S("Cmd"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(5, S_key_name_entry{enabled: TRUE, key: CAR, name: string_T{string_: S("CR"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(6, S_key_name_entry{enabled: TRUE, key: CSI, name: string_T{string_: S("CSI"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(7, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (96 << 8)), name: string_T{string_: S("CursorHold"), length: 10}, is_alt: FALSE})
+	key_names_table.Set(8, S_key_name_entry{enabled: TRUE, key: -('k' + (68 << 8)), name: string_T{string_: S("Del"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(9, S_key_name_entry{enabled: TRUE, key: -('k' + (68 << 8)), name: string_T{string_: S("Delete"), length: 6}, is_alt: TRUE})
+	key_names_table.Set(10, S_key_name_entry{enabled: TRUE, key: -('k' + (100 << 8)), name: string_T{string_: S("Down"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(11, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (95 << 8)), name: string_T{string_: S("Drop"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(12, S_key_name_entry{enabled: TRUE, key: -('@' + (55 << 8)), name: string_T{string_: S("End"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(13, S_key_name_entry{enabled: TRUE, key: CAR, name: string_T{string_: S("Enter"), length: 5}, is_alt: TRUE})
+	key_names_table.Set(14, S_key_name_entry{enabled: TRUE, key: ESC, name: string_T{string_: S("Esc"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(15, S_key_name_entry{enabled: TRUE, key: -('k' + (49 << 8)), name: string_T{string_: S("F1"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(16, S_key_name_entry{enabled: TRUE, key: -('k' + (59 << 8)), name: string_T{string_: S("F10"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(17, S_key_name_entry{enabled: TRUE, key: -('F' + (49 << 8)), name: string_T{string_: S("F11"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(18, S_key_name_entry{enabled: TRUE, key: -('F' + (50 << 8)), name: string_T{string_: S("F12"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(19, S_key_name_entry{enabled: TRUE, key: -('F' + (51 << 8)), name: string_T{string_: S("F13"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(20, S_key_name_entry{enabled: TRUE, key: -('F' + (52 << 8)), name: string_T{string_: S("F14"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(21, S_key_name_entry{enabled: TRUE, key: -('F' + (53 << 8)), name: string_T{string_: S("F15"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(22, S_key_name_entry{enabled: TRUE, key: -('F' + (54 << 8)), name: string_T{string_: S("F16"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(23, S_key_name_entry{enabled: TRUE, key: -('F' + (55 << 8)), name: string_T{string_: S("F17"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(24, S_key_name_entry{enabled: TRUE, key: -('F' + (56 << 8)), name: string_T{string_: S("F18"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(25, S_key_name_entry{enabled: TRUE, key: -('F' + (57 << 8)), name: string_T{string_: S("F19"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(26, S_key_name_entry{enabled: TRUE, key: -('k' + (50 << 8)), name: string_T{string_: S("F2"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(27, S_key_name_entry{enabled: TRUE, key: -('F' + (65 << 8)), name: string_T{string_: S("F20"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(28, S_key_name_entry{enabled: TRUE, key: -('F' + (66 << 8)), name: string_T{string_: S("F21"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(29, S_key_name_entry{enabled: TRUE, key: -('F' + (67 << 8)), name: string_T{string_: S("F22"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(30, S_key_name_entry{enabled: TRUE, key: -('F' + (68 << 8)), name: string_T{string_: S("F23"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(31, S_key_name_entry{enabled: TRUE, key: -('F' + (69 << 8)), name: string_T{string_: S("F24"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(32, S_key_name_entry{enabled: TRUE, key: -('F' + (70 << 8)), name: string_T{string_: S("F25"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(33, S_key_name_entry{enabled: TRUE, key: -('F' + (71 << 8)), name: string_T{string_: S("F26"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(34, S_key_name_entry{enabled: TRUE, key: -('F' + (72 << 8)), name: string_T{string_: S("F27"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(35, S_key_name_entry{enabled: TRUE, key: -('F' + (73 << 8)), name: string_T{string_: S("F28"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(36, S_key_name_entry{enabled: TRUE, key: -('F' + (74 << 8)), name: string_T{string_: S("F29"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(37, S_key_name_entry{enabled: TRUE, key: -('k' + (51 << 8)), name: string_T{string_: S("F3"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(38, S_key_name_entry{enabled: TRUE, key: -('F' + (75 << 8)), name: string_T{string_: S("F30"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(39, S_key_name_entry{enabled: TRUE, key: -('F' + (76 << 8)), name: string_T{string_: S("F31"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(40, S_key_name_entry{enabled: TRUE, key: -('F' + (77 << 8)), name: string_T{string_: S("F32"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(41, S_key_name_entry{enabled: TRUE, key: -('F' + (78 << 8)), name: string_T{string_: S("F33"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(42, S_key_name_entry{enabled: TRUE, key: -('F' + (79 << 8)), name: string_T{string_: S("F34"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(43, S_key_name_entry{enabled: TRUE, key: -('F' + (80 << 8)), name: string_T{string_: S("F35"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(44, S_key_name_entry{enabled: TRUE, key: -('F' + (81 << 8)), name: string_T{string_: S("F36"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(45, S_key_name_entry{enabled: TRUE, key: -('F' + (82 << 8)), name: string_T{string_: S("F37"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(46, S_key_name_entry{enabled: TRUE, key: -('k' + (52 << 8)), name: string_T{string_: S("F4"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(47, S_key_name_entry{enabled: TRUE, key: -('k' + (53 << 8)), name: string_T{string_: S("F5"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(48, S_key_name_entry{enabled: TRUE, key: -('k' + (54 << 8)), name: string_T{string_: S("F6"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(49, S_key_name_entry{enabled: TRUE, key: -('k' + (55 << 8)), name: string_T{string_: S("F7"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(50, S_key_name_entry{enabled: TRUE, key: -('k' + (56 << 8)), name: string_T{string_: S("F8"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(51, S_key_name_entry{enabled: TRUE, key: -('k' + (57 << 8)), name: string_T{string_: S("F9"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(52, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (98 << 8)), name: string_T{string_: S("FocusGained"), length: 11}, is_alt: FALSE})
+	key_names_table.Set(53, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (99 << 8)), name: string_T{string_: S("FocusLost"), length: 9}, is_alt: FALSE})
+	key_names_table.Set(54, S_key_name_entry{enabled: TRUE, key: -('%' + (49 << 8)), name: string_T{string_: S("Help"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(55, S_key_name_entry{enabled: TRUE, key: -('k' + (104 << 8)), name: string_T{string_: S("Home"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(56, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (53 << 8)), name: string_T{string_: S("Ignore"), length: 6}, is_alt: FALSE})
+	key_names_table.Set(57, S_key_name_entry{enabled: TRUE, key: -('k' + (73 << 8)), name: string_T{string_: S("Ins"), length: 3}, is_alt: TRUE})
+	key_names_table.Set(58, S_key_name_entry{enabled: TRUE, key: -('k' + (73 << 8)), name: string_T{string_: S("Insert"), length: 6}, is_alt: FALSE})
+	key_names_table.Set(59, S_key_name_entry{enabled: TRUE, key: -('K' + (67 << 8)), name: string_T{string_: S("k0"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(60, S_key_name_entry{enabled: TRUE, key: -('K' + (68 << 8)), name: string_T{string_: S("k1"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(61, S_key_name_entry{enabled: TRUE, key: -('K' + (69 << 8)), name: string_T{string_: S("k2"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(62, S_key_name_entry{enabled: TRUE, key: -('K' + (70 << 8)), name: string_T{string_: S("k3"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(63, S_key_name_entry{enabled: TRUE, key: -('K' + (71 << 8)), name: string_T{string_: S("k4"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(64, S_key_name_entry{enabled: TRUE, key: -('K' + (72 << 8)), name: string_T{string_: S("k5"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(65, S_key_name_entry{enabled: TRUE, key: -('K' + (73 << 8)), name: string_T{string_: S("k6"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(66, S_key_name_entry{enabled: TRUE, key: -('K' + (74 << 8)), name: string_T{string_: S("k7"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(67, S_key_name_entry{enabled: TRUE, key: -('K' + (75 << 8)), name: string_T{string_: S("k8"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(68, S_key_name_entry{enabled: TRUE, key: -('K' + (76 << 8)), name: string_T{string_: S("k9"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(69, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (80 << 8)), name: string_T{string_: S("kDel"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(70, S_key_name_entry{enabled: TRUE, key: -('K' + (56 << 8)), name: string_T{string_: S("kDivide"), length: 7}, is_alt: FALSE})
+	key_names_table.Set(71, S_key_name_entry{enabled: TRUE, key: -('K' + (52 << 8)), name: string_T{string_: S("kEnd"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(72, S_key_name_entry{enabled: TRUE, key: -('K' + (65 << 8)), name: string_T{string_: S("kEnter"), length: 6}, is_alt: FALSE})
+	key_names_table.Set(73, S_key_name_entry{enabled: TRUE, key: -('K' + (49 << 8)), name: string_T{string_: S("kHome"), length: 5}, is_alt: FALSE})
+	key_names_table.Set(74, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (79 << 8)), name: string_T{string_: S("kInsert"), length: 7}, is_alt: FALSE})
+	key_names_table.Set(75, S_key_name_entry{enabled: TRUE, key: -('K' + (55 << 8)), name: string_T{string_: S("kMinus"), length: 6}, is_alt: FALSE})
+	key_names_table.Set(76, S_key_name_entry{enabled: TRUE, key: -('K' + (57 << 8)), name: string_T{string_: S("kMultiply"), length: 9}, is_alt: FALSE})
+	key_names_table.Set(77, S_key_name_entry{enabled: TRUE, key: -('K' + (53 << 8)), name: string_T{string_: S("kPageDown"), length: 9}, is_alt: FALSE})
+	key_names_table.Set(78, S_key_name_entry{enabled: TRUE, key: -('K' + (51 << 8)), name: string_T{string_: S("kPageUp"), length: 7}, is_alt: FALSE})
+	key_names_table.Set(79, S_key_name_entry{enabled: TRUE, key: -('K' + (54 << 8)), name: string_T{string_: S("kPlus"), length: 5}, is_alt: FALSE})
+	key_names_table.Set(80, S_key_name_entry{enabled: TRUE, key: -('K' + (66 << 8)), name: string_T{string_: S("kPoint"), length: 6}, is_alt: FALSE})
+	key_names_table.Set(81, S_key_name_entry{enabled: TRUE, key: -('k' + (108 << 8)), name: string_T{string_: S("Left"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(82, S_key_name_entry{enabled: TRUE, key: NL, name: string_T{string_: S("LF"), length: 2}, is_alt: TRUE})
+	key_names_table.Set(83, S_key_name_entry{enabled: TRUE, key: NL, name: string_T{string_: S("LineFeed"), length: 8}, is_alt: TRUE})
+	key_names_table.Set(84, S_key_name_entry{enabled: TRUE, key: '<', name: string_T{string_: S("lt"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(85, S_key_name_entry{enabled: TRUE, key: NL, name: string_T{string_: S("NewLine"), length: 7}, is_alt: TRUE})
+	key_names_table.Set(86, S_key_name_entry{enabled: TRUE, key: NL, name: string_T{string_: S("NL"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(87, S_key_name_entry{enabled: TRUE, key: -(KS_ZERO + (88 << 8)), name: string_T{string_: S("Nul"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(88, S_key_name_entry{enabled: TRUE, key: OSC, name: string_T{string_: S("OSC"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(89, S_key_name_entry{enabled: TRUE, key: -('k' + (78 << 8)), name: string_T{string_: S("PageDown"), length: 8}, is_alt: FALSE})
+	key_names_table.Set(90, S_key_name_entry{enabled: TRUE, key: -('k' + (80 << 8)), name: string_T{string_: S("PageUp"), length: 6}, is_alt: FALSE})
+	key_names_table.Set(91, S_key_name_entry{enabled: TRUE, key: -('P' + (69 << 8)), name: string_T{string_: S("PasteEnd"), length: 8}, is_alt: FALSE})
+	key_names_table.Set(92, S_key_name_entry{enabled: TRUE, key: -('P' + (83 << 8)), name: string_T{string_: S("PasteStart"), length: 10}, is_alt: FALSE})
+	key_names_table.Set(93, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (83 << 8)), name: string_T{string_: S("Plug"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(94, S_key_name_entry{enabled: TRUE, key: CAR, name: string_T{string_: S("Return"), length: 6}, is_alt: TRUE})
+	key_names_table.Set(95, S_key_name_entry{enabled: TRUE, key: -('k' + (114 << 8)), name: string_T{string_: S("Right"), length: 5}, is_alt: FALSE})
+	key_names_table.Set(96, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (104 << 8)), name: string_T{string_: S("ScriptCmd"), length: 9}, is_alt: FALSE})
+	key_names_table.Set(97, S_key_name_entry{enabled: FALSE, key: -(KS_EXTRA + (82 << 8)), name: string_T{string_: S("SNR"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(98, S_key_name_entry{enabled: TRUE, key: ' ', name: string_T{string_: S("Space"), length: 5}, is_alt: FALSE})
+	key_names_table.Set(99, S_key_name_entry{enabled: TRUE, key: TAB, name: string_T{string_: S("Tab"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(100, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (54 << 8)), name: string_T{string_: S("Tab"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(101, S_key_name_entry{enabled: TRUE, key: -('&' + (56 << 8)), name: string_T{string_: S("Undo"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(102, S_key_name_entry{enabled: TRUE, key: -('k' + (117 << 8)), name: string_T{string_: S("Up"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(103, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (81 << 8)), name: string_T{string_: S("xCSI"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(104, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (66 << 8)), name: string_T{string_: S("xDown"), length: 5}, is_alt: FALSE})
+	key_names_table.Set(105, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (61 << 8)), name: string_T{string_: S("xEnd"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(106, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (57 << 8)), name: string_T{string_: S("xF1"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(107, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (58 << 8)), name: string_T{string_: S("xF2"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(108, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (59 << 8)), name: string_T{string_: S("xF3"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(109, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (60 << 8)), name: string_T{string_: S("xF4"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(110, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (63 << 8)), name: string_T{string_: S("xHome"), length: 5}, is_alt: FALSE})
+	key_names_table.Set(111, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (67 << 8)), name: string_T{string_: S("xLeft"), length: 5}, is_alt: FALSE})
+	key_names_table.Set(112, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (109 << 8)), name: string_T{string_: S("xOSC"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(113, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (68 << 8)), name: string_T{string_: S("xRight"), length: 6}, is_alt: FALSE})
+	key_names_table.Set(114, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (65 << 8)), name: string_T{string_: S("xUp"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(115, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (62 << 8)), name: string_T{string_: S("zEnd"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(116, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (64 << 8)), name: string_T{string_: S("zHome"), length: 5}, is_alt: FALSE})
+	nv_cmds = [194]S_nv_cmd{
+		{cmd_char: NUL, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: Ctrl_A, cmd_func: nv_addsub, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: Ctrl_B, cmd_func: nv_page, cmd_flags: NV_STS, cmd_arg: -1},
+		{cmd_char: Ctrl_C, cmd_func: nv_esc, cmd_flags: 0, cmd_arg: TRUE},
+		{cmd_char: Ctrl_D, cmd_func: nv_halfpage, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: Ctrl_E, cmd_func: nv_scroll_line, cmd_flags: 0, cmd_arg: TRUE},
+		{cmd_char: Ctrl_F, cmd_func: nv_page, cmd_flags: NV_STS, cmd_arg: FORWARD},
+		{cmd_char: Ctrl_G, cmd_func: nv_ctrlg, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: Ctrl_H, cmd_func: nv_ctrlh, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: Ctrl_I, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: NL, cmd_func: nv_down, cmd_flags: 0, cmd_arg: FALSE},
+		{cmd_char: Ctrl_K, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: Ctrl_L, cmd_func: nv_clear, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: CAR, cmd_func: nv_down, cmd_flags: 0, cmd_arg: TRUE},
+		{cmd_char: Ctrl_N, cmd_func: nv_down, cmd_flags: NV_STS, cmd_arg: FALSE},
+		{cmd_char: Ctrl_O, cmd_func: nv_ctrlo, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: Ctrl_P, cmd_func: nv_up, cmd_flags: NV_STS, cmd_arg: FALSE},
+		{cmd_char: Ctrl_Q, cmd_func: nv_visual, cmd_flags: 0, cmd_arg: FALSE},
+		{cmd_char: Ctrl_R, cmd_func: nv_redo_or_register, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: Ctrl_S, cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: Ctrl_T, cmd_func: nv_tagpop, cmd_flags: NV_NCW, cmd_arg: 0},
+		{cmd_char: Ctrl_U, cmd_func: nv_halfpage, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: Ctrl_V, cmd_func: nv_visual, cmd_flags: 0, cmd_arg: FALSE},
+		{cmd_char: Ctrl_W, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: Ctrl_X, cmd_func: nv_addsub, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: Ctrl_Y, cmd_func: nv_scroll_line, cmd_flags: 0, cmd_arg: FALSE},
+		{cmd_char: Ctrl_Z, cmd_func: nv_suspend, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: ESC, cmd_func: nv_esc, cmd_flags: 0, cmd_arg: FALSE},
+		{cmd_char: Ctrl_BSL, cmd_func: nv_normal, cmd_flags: (0x04 | NV_NCH), cmd_arg: 0},
+		{cmd_char: Ctrl_RSB, cmd_func: nv_error, cmd_flags: NV_NCW, cmd_arg: 0},
+		{cmd_char: Ctrl_HAT, cmd_func: nv_error, cmd_flags: NV_NCW, cmd_arg: 0},
+		{cmd_char: Ctrl__, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: ' ', cmd_func: nv_right, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '!', cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '"', cmd_func: nv_regname, cmd_flags: (0x02 | NV_NCH) | NV_KEEPREG, cmd_arg: 0},
+		{cmd_char: '#', cmd_func: nv_ident, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '$', cmd_func: nv_dollar, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '%', cmd_func: nv_percent, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '&', cmd_func: nv_optrans, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 39, cmd_func: nv_gomark, cmd_flags: (0x04 | NV_NCH), cmd_arg: TRUE},
+		{cmd_char: '(', cmd_func: nv_error, cmd_flags: 0, cmd_arg: -1},
+		{cmd_char: ')', cmd_func: nv_error, cmd_flags: 0, cmd_arg: FORWARD},
+		{cmd_char: '*', cmd_func: nv_ident, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '+', cmd_func: nv_down, cmd_flags: 0, cmd_arg: TRUE},
+		{cmd_char: ',', cmd_func: nv_csearch, cmd_flags: 0, cmd_arg: TRUE},
+		{cmd_char: '-', cmd_func: nv_up, cmd_flags: 0, cmd_arg: TRUE},
+		{cmd_char: '.', cmd_func: nv_dot, cmd_flags: NV_KEEPREG, cmd_arg: 0},
+		{cmd_char: '/', cmd_func: nv_search, cmd_flags: 0, cmd_arg: FALSE},
+		{cmd_char: '0', cmd_func: nv_beginline, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '1', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '2', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '3', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '4', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '5', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '6', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '7', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '8', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '9', cmd_func: nv_ignore, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: ':', cmd_func: nv_colon, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: ';', cmd_func: nv_csearch, cmd_flags: 0, cmd_arg: FALSE},
+		{cmd_char: '<', cmd_func: nv_operator, cmd_flags: NV_RL, cmd_arg: 0},
+		{cmd_char: '=', cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '>', cmd_func: nv_operator, cmd_flags: NV_RL, cmd_arg: 0},
+		{cmd_char: '?', cmd_func: nv_search, cmd_flags: 0, cmd_arg: FALSE},
+		{cmd_char: '@', cmd_func: nv_at, cmd_flags: (0x02 | NV_NCH), cmd_arg: FALSE},
+		{cmd_char: 'A', cmd_func: nv_edit, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'B', cmd_func: nv_bck_word, cmd_flags: 0, cmd_arg: 1},
+		{cmd_char: 'C', cmd_func: nv_abbrev, cmd_flags: NV_KEEPREG, cmd_arg: 0},
+		{cmd_char: 'D', cmd_func: nv_abbrev, cmd_flags: NV_KEEPREG, cmd_arg: 0},
+		{cmd_char: 'E', cmd_func: nv_wordcmd, cmd_flags: 0, cmd_arg: TRUE},
+		{cmd_char: 'F', cmd_func: nv_csearch, cmd_flags: (0x04 | NV_NCH) | NV_LANG, cmd_arg: -1},
+		{cmd_char: 'G', cmd_func: nv_goto, cmd_flags: 0, cmd_arg: TRUE},
+		{cmd_char: 'H', cmd_func: nv_scroll, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'I', cmd_func: nv_edit, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'J', cmd_func: nv_join, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'K', cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'L', cmd_func: nv_scroll, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'M', cmd_func: nv_scroll, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'N', cmd_func: nv_next, cmd_flags: 0, cmd_arg: SEARCH_REV},
+		{cmd_char: 'O', cmd_func: nv_open, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'P', cmd_func: nv_put, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'Q', cmd_func: nv_error, cmd_flags: NV_NCW, cmd_arg: 0},
+		{cmd_char: 'R', cmd_func: nv_Replace, cmd_flags: 0, cmd_arg: FALSE},
+		{cmd_char: 'S', cmd_func: nv_subst, cmd_flags: NV_KEEPREG, cmd_arg: 0},
+		{cmd_char: 'T', cmd_func: nv_csearch, cmd_flags: (0x04 | NV_NCH) | NV_LANG, cmd_arg: -1},
+		{cmd_char: 'U', cmd_func: nv_Undo, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'V', cmd_func: nv_visual, cmd_flags: 0, cmd_arg: FALSE},
+		{cmd_char: 'W', cmd_func: nv_wordcmd, cmd_flags: 0, cmd_arg: TRUE},
+		{cmd_char: 'X', cmd_func: nv_abbrev, cmd_flags: NV_KEEPREG, cmd_arg: 0},
+		{cmd_char: 'Y', cmd_func: nv_abbrev, cmd_flags: NV_KEEPREG, cmd_arg: 0},
+		{cmd_char: 'Z', cmd_func: nv_Zet, cmd_flags: (0x02 | NV_NCH) | NV_NCW, cmd_arg: 0},
+		{cmd_char: '[', cmd_func: nv_brackets, cmd_flags: (0x04 | NV_NCH), cmd_arg: -1},
+		{cmd_char: 92, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: ']', cmd_func: nv_brackets, cmd_flags: (0x04 | NV_NCH), cmd_arg: FORWARD},
+		{cmd_char: '^', cmd_func: nv_beginline, cmd_flags: 0, cmd_arg: BL_WHITE | BL_FIX},
+		{cmd_char: '_', cmd_func: nv_lineop, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '`', cmd_func: nv_gomark, cmd_flags: (0x04 | NV_NCH), cmd_arg: FALSE},
+		{cmd_char: 'a', cmd_func: nv_edit, cmd_flags: NV_NCH, cmd_arg: 0},
+		{cmd_char: 'b', cmd_func: nv_bck_word, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'c', cmd_func: nv_operator, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'd', cmd_func: nv_operator, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'e', cmd_func: nv_wordcmd, cmd_flags: 0, cmd_arg: FALSE},
+		{cmd_char: 'f', cmd_func: nv_csearch, cmd_flags: (0x04 | NV_NCH) | NV_LANG, cmd_arg: FORWARD},
+		{cmd_char: 'g', cmd_func: nv_g_cmd, cmd_flags: (0x04 | NV_NCH), cmd_arg: FALSE},
+		{cmd_char: 'h', cmd_func: nv_left, cmd_flags: NV_RL, cmd_arg: 0},
+		{cmd_char: 'i', cmd_func: nv_edit, cmd_flags: NV_NCH, cmd_arg: 0},
+		{cmd_char: 'j', cmd_func: nv_down, cmd_flags: 0, cmd_arg: FALSE},
+		{cmd_char: 'k', cmd_func: nv_up, cmd_flags: 0, cmd_arg: FALSE},
+		{cmd_char: 'l', cmd_func: nv_right, cmd_flags: NV_RL, cmd_arg: 0},
+		{cmd_char: 'm', cmd_func: nv_mark, cmd_flags: (0x02 | NV_NCH), cmd_arg: 0},
+		{cmd_char: 'n', cmd_func: nv_next, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'o', cmd_func: nv_open, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'p', cmd_func: nv_put, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'q', cmd_func: nv_record, cmd_flags: NV_NCH, cmd_arg: 0},
+		{cmd_char: 'r', cmd_func: nv_replace, cmd_flags: (0x02 | NV_NCH) | NV_LANG, cmd_arg: 0},
+		{cmd_char: 's', cmd_func: nv_subst, cmd_flags: NV_KEEPREG, cmd_arg: 0},
+		{cmd_char: 't', cmd_func: nv_csearch, cmd_flags: (0x04 | NV_NCH) | NV_LANG, cmd_arg: FORWARD},
+		{cmd_char: 'u', cmd_func: nv_undo, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'v', cmd_func: nv_visual, cmd_flags: 0, cmd_arg: FALSE},
+		{cmd_char: 'w', cmd_func: nv_wordcmd, cmd_flags: 0, cmd_arg: FALSE},
+		{cmd_char: 'x', cmd_func: nv_abbrev, cmd_flags: NV_KEEPREG, cmd_arg: 0},
+		{cmd_char: 'y', cmd_func: nv_operator, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: 'z', cmd_func: nv_zet, cmd_flags: (0x04 | NV_NCH), cmd_arg: 0},
+		{cmd_char: '{', cmd_func: nv_error, cmd_flags: 0, cmd_arg: -1},
+		{cmd_char: '|', cmd_func: nv_pipe, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: '}', cmd_func: nv_error, cmd_flags: 0, cmd_arg: FORWARD},
+		{cmd_char: '~', cmd_func: nv_tilde, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: POUND, cmd_func: nv_ident, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (76 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: MSCR_UP},
+		{cmd_char: -(KS_EXTRA + (75 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: MSCR_DOWN},
+		{cmd_char: -(KS_EXTRA + (77 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: -1},
+		{cmd_char: -(KS_EXTRA + (78 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: -2},
+		{cmd_char: -(KS_EXTRA + (44 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (69 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (45 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (46 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (70 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (100 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (47 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (48 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (49 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (50 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (51 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (52 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (89 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (90 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (91 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (92 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (93 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (94 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (53 << 8)), cmd_func: nv_ignore, cmd_flags: NV_KEEPREG, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (97 << 8)), cmd_func: nv_nop, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -('k' + (73 << 8)), cmd_func: nv_edit, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (79 << 8)), cmd_func: nv_edit, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -('k' + (98 << 8)), cmd_func: nv_ctrlh, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -('k' + (117 << 8)), cmd_func: nv_up, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE},
+		{cmd_char: -(KS_EXTRA + (4 << 8)), cmd_func: nv_page, cmd_flags: NV_SS, cmd_arg: -1},
+		{cmd_char: -('k' + (100 << 8)), cmd_func: nv_down, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE},
+		{cmd_char: -(KS_EXTRA + (5 << 8)), cmd_func: nv_page, cmd_flags: NV_SS, cmd_arg: FORWARD},
+		{cmd_char: -('k' + (108 << 8)), cmd_func: nv_left, cmd_flags: (NV_SSS | NV_STS) | NV_RL, cmd_arg: 0},
+		{cmd_char: -('#' + (52 << 8)), cmd_func: nv_bck_word, cmd_flags: NV_SS | NV_RL, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (85 << 8)), cmd_func: nv_bck_word, cmd_flags: (NV_SSS | NV_RL) | NV_STS, cmd_arg: 1},
+		{cmd_char: -('k' + (114 << 8)), cmd_func: nv_right, cmd_flags: (NV_SSS | NV_STS) | NV_RL, cmd_arg: 0},
+		{cmd_char: -('%' + (105 << 8)), cmd_func: nv_wordcmd, cmd_flags: NV_SS | NV_RL, cmd_arg: FALSE},
+		{cmd_char: -(KS_EXTRA + (86 << 8)), cmd_func: nv_wordcmd, cmd_flags: (NV_SSS | NV_RL) | NV_STS, cmd_arg: TRUE},
+		{cmd_char: -('k' + (80 << 8)), cmd_func: nv_page, cmd_flags: NV_SSS | NV_STS, cmd_arg: -1},
+		{cmd_char: -('K' + (51 << 8)), cmd_func: nv_page, cmd_flags: NV_SSS | NV_STS, cmd_arg: -1},
+		{cmd_char: -('k' + (78 << 8)), cmd_func: nv_page, cmd_flags: NV_SSS | NV_STS, cmd_arg: FORWARD},
+		{cmd_char: -('K' + (53 << 8)), cmd_func: nv_page, cmd_flags: NV_SSS | NV_STS, cmd_arg: FORWARD},
+		{cmd_char: -('@' + (55 << 8)), cmd_func: nv_end, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE},
+		{cmd_char: -('K' + (52 << 8)), cmd_func: nv_end, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE},
+		{cmd_char: -('*' + (55 << 8)), cmd_func: nv_end, cmd_flags: NV_SS, cmd_arg: FALSE},
+		{cmd_char: -(KS_EXTRA + (88 << 8)), cmd_func: nv_end, cmd_flags: NV_SSS | NV_STS, cmd_arg: TRUE},
+		{cmd_char: -('k' + (104 << 8)), cmd_func: nv_home, cmd_flags: NV_SSS | NV_STS, cmd_arg: 0},
+		{cmd_char: -('K' + (49 << 8)), cmd_func: nv_home, cmd_flags: NV_SSS | NV_STS, cmd_arg: 0},
+		{cmd_char: -('#' + (50 << 8)), cmd_func: nv_home, cmd_flags: NV_SS, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (87 << 8)), cmd_func: nv_goto, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE},
+		{cmd_char: -('k' + (68 << 8)), cmd_func: nv_abbrev, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (80 << 8)), cmd_func: nv_abbrev, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -('&' + (56 << 8)), cmd_func: nv_kundo, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -('%' + (49 << 8)), cmd_func: nv_help, cmd_flags: NV_NCW, cmd_arg: 0},
+		{cmd_char: -('k' + (49 << 8)), cmd_func: nv_help, cmd_flags: NV_NCW, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (57 << 8)), cmd_func: nv_help, cmd_flags: NV_NCW, cmd_arg: 0},
+		{cmd_char: -(KS_SELECT + (88 << 8)), cmd_func: nv_select, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_VER_SCROLLBAR + (88 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_HOR_SCROLLBAR + (88 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_TABLINE + (88 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_TABMENU + (88 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -('F' + (66 << 8)), cmd_func: nv_error, cmd_flags: (0x04 | NV_NCH), cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (95 << 8)), cmd_func: nv_error, cmd_flags: NV_STS, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (96 << 8)), cmd_func: nv_cursorhold, cmd_flags: NV_KEEPREG, cmd_arg: 0},
+		{cmd_char: -('P' + (83 << 8)), cmd_func: nv_edit, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (103 << 8)), cmd_func: nv_colon, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: -(KS_EXTRA + (104 << 8)), cmd_func: nv_colon, cmd_flags: 0, cmd_arg: 0},
+	}
 	nv_cmd_idx = [194]uint16{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 156, 158, 132, 134, 135, 138, 139, 180, 174, 181, 140, 175, 141, 166, 142, 160, 170, 143, 168, 150, 171, 169, 179, 182, 188, 177, 133, 136, 152, 129, 128, 130, 167, 131, 153, 165, 178, 191, 161, 164, 176, 187, 186, 183, 185, 184, 172, 144, 145, 146, 147, 148, 149, 189, 190, 151, 154, 157, 137, 192, 173, 193, 163, 159, 162, 155}
 	nv_max_linear = 126
 	showcmd_is_clear = TRUE
-	opchars = [30][3]byte{[3]byte{}, [3]byte{'d', NUL, OPF_CHANGE}, [3]byte{'y', NUL, 0}, [3]byte{'c', NUL, OPF_CHANGE}, [3]byte{'<', NUL, OPF_LINES | OPF_CHANGE}, [3]byte{'>', NUL, OPF_LINES | OPF_CHANGE}, [3]byte{'!', NUL, OPF_LINES | OPF_CHANGE}, [3]byte{'g', '~', OPF_CHANGE}, [3]byte{'=', NUL, OPF_LINES | OPF_CHANGE}, [3]byte{'g', 'q', OPF_LINES | OPF_CHANGE}, [3]byte{':', NUL, OPF_LINES}, [3]byte{'g', 'U', OPF_CHANGE}, [3]byte{'g', 'u', OPF_CHANGE}, [3]byte{'J', NUL, OPF_LINES | OPF_CHANGE}, [3]byte{'g', 'J', OPF_LINES | OPF_CHANGE}, [3]byte{'g', '?', OPF_CHANGE}, [3]byte{'r', NUL, OPF_CHANGE}, [3]byte{'I', NUL, OPF_CHANGE}, [3]byte{'A', NUL, OPF_CHANGE}, [3]byte{'z', 'f', OPF_LINES}, [3]byte{'z', 'o', OPF_LINES}, [3]byte{'z', 'O', OPF_LINES}, [3]byte{'z', 'c', OPF_LINES}, [3]byte{'z', 'C', OPF_LINES}, [3]byte{'z', 'd', OPF_LINES}, [3]byte{'z', 'D', OPF_LINES}, [3]byte{'g', 'w', OPF_LINES | OPF_CHANGE}, [3]byte{'g', '@', OPF_CHANGE}, [3]byte{Ctrl_A, NUL, OPF_CHANGE}, [3]byte{Ctrl_X, NUL, OPF_CHANGE}}
-	options.Set(0, S_vimoption{fullname: S("ambiwidth"), shortname: S("ambw"), flags: (P_STRING | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_ambw), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_ambiwidth, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("single"), Ptr[byte]{}}, def_num: [2]int64{}})
+	opchars = [30][3]byte{
+		{},
+		{'d', NUL, OPF_CHANGE},
+		{'y', NUL, 0},
+		{'c', NUL, OPF_CHANGE},
+		{'<', NUL, OPF_LINES | OPF_CHANGE},
+		{'>', NUL, OPF_LINES | OPF_CHANGE},
+		{'!', NUL, OPF_LINES | OPF_CHANGE},
+		{'g', '~', OPF_CHANGE},
+		{'=', NUL, OPF_LINES | OPF_CHANGE},
+		{'g', 'q', OPF_LINES | OPF_CHANGE},
+		{':', NUL, OPF_LINES},
+		{'g', 'U', OPF_CHANGE},
+		{'g', 'u', OPF_CHANGE},
+		{'J', NUL, OPF_LINES | OPF_CHANGE},
+		{'g', 'J', OPF_LINES | OPF_CHANGE},
+		{'g', '?', OPF_CHANGE},
+		{'r', NUL, OPF_CHANGE},
+		{'I', NUL, OPF_CHANGE},
+		{'A', NUL, OPF_CHANGE},
+		{'z', 'f', OPF_LINES},
+		{'z', 'o', OPF_LINES},
+		{'z', 'O', OPF_LINES},
+		{'z', 'c', OPF_LINES},
+		{'z', 'C', OPF_LINES},
+		{'z', 'd', OPF_LINES},
+		{'z', 'D', OPF_LINES},
+		{'g', 'w', OPF_LINES | OPF_CHANGE},
+		{'g', '@', OPF_CHANGE},
+		{Ctrl_A, NUL, OPF_CHANGE},
+		{Ctrl_X, NUL, OPF_CHANGE},
+	}
+	options.Set(0, S_vimoption{fullname: S("ambiwidth"), shortname: S("ambw"), flags: (P_STRING | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_ambw), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_ambiwidth, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S("single"),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(1, S_vimoption{fullname: S("autoindent"), shortname: S("ai"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_ai, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16384, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(2, S_vimoption{fullname: S("background"), shortname: S("bg"), flags: ((P_STRING | P_VI_DEF) | P_RCLR) | P_HLONLY, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_bg), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_background, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("light"), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(2, S_vimoption{fullname: S("background"), shortname: S("bg"), flags: ((P_STRING | P_VI_DEF) | P_RCLR) | P_HLONLY, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_bg), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_background, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S("light"),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(3, S_vimoption{fullname: S("backspace"), shortname: S("bs"), flags: ((P_STRING | P_VIM) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_bs), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_backspace, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), S("indent,eol,start")}, def_num: [2]int64{}})
-	options.Set(4, S_vimoption{fullname: S("belloff"), shortname: S("bo"), flags: ((P_STRING | P_VI_DEF) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_bo), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_belloff, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(5, S_vimoption{fullname: S("casemap"), shortname: S("cmp"), flags: ((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_cmp), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_casemap, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("internal,keepascii"), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(4, S_vimoption{fullname: S("belloff"), shortname: S("bo"), flags: ((P_STRING | P_VI_DEF) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_bo), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_belloff, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(5, S_vimoption{fullname: S("casemap"), shortname: S("cmp"), flags: ((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_cmp), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_casemap, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S("internal,keepascii"),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(6, S_vimoption{fullname: S("cmdheight"), shortname: S("ch"), flags: (P_NUM | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: &p_ch, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_cmdheight, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1, 0}})
 	options.Set(7, S_vimoption{fullname: S("columns"), shortname: S("co"), flags: (((P_NUM | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: nil, ov_long: &Columns, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{80, 0}})
 	options.Set(8, S_vimoption{fullname: S("compatible"), shortname: S("cp"), flags: P_BOOL | P_RALL, var_: optvar_T{ov_int: &p_cp, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_compatible, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
 	options.Set(9, S_vimoption{fullname: S("copyindent"), shortname: S("ci"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_ci, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16393, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
 	options.Set(10, S_vimoption{fullname: S("cpoptions"), shortname: S("cpo"), flags: ((P_STRING | P_VIM) | P_RALL) | P_FLAGLIST, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_cpo), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_cpoptions, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>;"), S("aABceFsz")}, def_num: [2]int64{}})
 	options.Set(11, S_vimoption{fullname: S("delcombine"), shortname: S("deco"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_deco, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(12, S_vimoption{fullname: S("display"), shortname: S("dy"), flags: (((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_RALL) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_dy), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_display, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(12, S_vimoption{fullname: S("display"), shortname: S("dy"), flags: (((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_RALL) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_dy), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_display, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(13, S_vimoption{fullname: S("edcompatible"), shortname: S("ed"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_ed, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
 	options.Set(14, S_vimoption{fullname: S("emoji"), shortname: S("emo"), flags: (P_BOOL | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: &p_emoji, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_ambiwidth, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
 	options.Set(15, S_vimoption{fullname: S("errorbells"), shortname: S("eb"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_eb, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
 	options.Set(16, S_vimoption{fullname: S("esckeys"), shortname: S("ek"), flags: P_BOOL | P_VIM, var_: optvar_T{ov_int: &p_ek, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{FALSE, TRUE}})
 	options.Set(17, S_vimoption{fullname: S("expandtab"), shortname: S("et"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_et, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16410, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(18, S_vimoption{fullname: S("fillchars"), shortname: S("fcs"), flags: ((((P_STRING | P_VI_DEF) | P_RALL) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_fcs), ov_win: 0}, indir: 12290, opt_did_set_cb: did_set_chars_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("vert:|,fold:-,eob:~,lastline:@"), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(18, S_vimoption{fullname: S("fillchars"), shortname: S("fcs"), flags: ((((P_STRING | P_VI_DEF) | P_RALL) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_fcs), ov_win: 0}, indir: 12290, opt_did_set_cb: did_set_chars_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S("vert:|,fold:-,eob:~,lastline:@"),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(19, S_vimoption{fullname: S("gdefault"), shortname: S("gd"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_gd, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(20, S_vimoption{fullname: S("highlight"), shortname: S("hl"), flags: ((((P_STRING | P_VI_DEF) | P_RCLR) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_hl), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_highlight, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("8:SpecialKey,~:EndOfBuffer,@:NonText,d:Directory,e:ErrorMsg,i:IncSearch,l:Search,y:CurSearch,m:MoreMsg,M:ModeMsg,n:LineNr,a:LineNrAbove,b:LineNrBelow,N:CursorLineNr,G:CursorLineSign,O:CursorLineFold,r:Question,s:StatusLine,S:StatusLineNC,c:VertSplit,|:VertSplitNC,t:Title,v:Visual,V:VisualNOS,w:WarningMsg,W:WildMenu,f:Folded,F:FoldColumn,A:DiffAdd,C:DiffChange,D:DiffDelete,T:DiffText,E:DiffTextAdd,>:SignColumn,-:Conceal,B:SpellBad,P:SpellCap,R:SpellRare,L:SpellLocal,+:Pmenu,=:PmenuSel,k:PmenuMatch,<:PmenuMatchSel,[:PmenuKind,]:PmenuKindSel,{:PmenuExtra,}:PmenuExtraSel,x:PmenuSbar,X:PmenuThumb,j:PmenuBorder,H:PmenuShadow,p:Popup,J:PopupBorder,Q:PopupTitle,*:TabLine,#:TabLineSel,_:TabLineFill,!:CursorColumn,.:CursorLine,o:ColorColumn,q:QuickFixLine,z:StatusLineTerm,Z:StatusLineTermNC,g:MsgArea,h:ComplMatchIns,%:TabPanel,^:TabPanelSel,&:TabPanelFill,I:PreInsert"), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(20, S_vimoption{fullname: S("highlight"), shortname: S("hl"), flags: ((((P_STRING | P_VI_DEF) | P_RCLR) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_hl), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_highlight, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S("8:SpecialKey,~:EndOfBuffer,@:NonText,d:Directory,e:ErrorMsg,i:IncSearch,l:Search,y:CurSearch,m:MoreMsg,M:ModeMsg,n:LineNr,a:LineNrAbove,b:LineNrBelow,N:CursorLineNr,G:CursorLineSign,O:CursorLineFold,r:Question,s:StatusLine,S:StatusLineNC,c:VertSplit,|:VertSplitNC,t:Title,v:Visual,V:VisualNOS,w:WarningMsg,W:WildMenu,f:Folded,F:FoldColumn,A:DiffAdd,C:DiffChange,D:DiffDelete,T:DiffText,E:DiffTextAdd,>:SignColumn,-:Conceal,B:SpellBad,P:SpellCap,R:SpellRare,L:SpellLocal,+:Pmenu,=:PmenuSel,k:PmenuMatch,<:PmenuMatchSel,[:PmenuKind,]:PmenuKindSel,{:PmenuExtra,}:PmenuExtraSel,x:PmenuSbar,X:PmenuThumb,j:PmenuBorder,H:PmenuShadow,p:Popup,J:PopupBorder,Q:PopupTitle,*:TabLine,#:TabLineSel,_:TabLineFill,!:CursorColumn,.:CursorLine,o:ColorColumn,q:QuickFixLine,z:StatusLineTerm,Z:StatusLineTermNC,g:MsgArea,h:ComplMatchIns,%:TabPanel,^:TabPanelSel,&:TabPanelFill,I:PreInsert"),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(21, S_vimoption{fullname: S("history"), shortname: S("hi"), flags: P_NUM | P_VIM, var_: optvar_T{ov_int: nil, ov_long: &p_hi, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{9999, 9999}})
 	options.Set(22, S_vimoption{fullname: S("hlsearch"), shortname: S("hls"), flags: (((P_BOOL | P_VI_DEF) | P_VIM) | P_RALL) | P_HLONLY, var_: optvar_T{ov_int: &p_hls, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_hlsearch, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
 	options.Set(23, S_vimoption{fullname: S("ignorecase"), shortname: S("ic"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_ic, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_ignorecase, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
 	options.Set(24, S_vimoption{fullname: S("incsearch"), shortname: S("is"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_is, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
 	options.Set(25, S_vimoption{fullname: S("insertmode"), shortname: S("im"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_im, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_insertmode, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(26, S_vimoption{fullname: S("isfname"), shortname: S("isf"), flags: ((P_STRING | P_VI_DEF) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_isf), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_isopt, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("@,48-57,/,.,-,_,+,,,#,$,%,~,="), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(27, S_vimoption{fullname: S("isident"), shortname: S("isi"), flags: ((P_STRING | P_VI_DEF) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_isi), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_isopt, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("@,48-57,_,192-255"), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(26, S_vimoption{fullname: S("isfname"), shortname: S("isf"), flags: ((P_STRING | P_VI_DEF) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_isf), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_isopt, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S("@,48-57,/,.,-,_,+,,,#,$,%,~,="),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(27, S_vimoption{fullname: S("isident"), shortname: S("isi"), flags: ((P_STRING | P_VI_DEF) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_isi), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_isopt, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S("@,48-57,_,192-255"),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(28, S_vimoption{fullname: S("iskeyword"), shortname: S("isk"), flags: (((P_STRING | P_ALLOCED) | P_VIM) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_isk), ov_win: 0}, indir: 16422, opt_did_set_cb: did_set_iskeyword, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("@,48-57,_"), S("@,48-57,_,192-255")}, def_num: [2]int64{}})
-	options.Set(29, S_vimoption{fullname: S("isprint"), shortname: S("isp"), flags: (((P_STRING | P_VI_DEF) | P_RALL) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_isp), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_isopt, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("@,161-255"), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(29, S_vimoption{fullname: S("isprint"), shortname: S("isp"), flags: (((P_STRING | P_VI_DEF) | P_RALL) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_isp), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_isopt, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S("@,161-255"),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(30, S_vimoption{fullname: S("joinspaces"), shortname: S("js"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_js, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(31, S_vimoption{fullname: S("keymodel"), shortname: S("km"), flags: ((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_km), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_keymodel, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("startsel"), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(32, S_vimoption{fullname: S("keyprotocol"), shortname: S("kpc"), flags: (((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_kpc), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_keyprotocol, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("kitty:kitty,foot:kitty,ghostty:kitty,wezterm:kitty,xterm:mok2"), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(31, S_vimoption{fullname: S("keymodel"), shortname: S("km"), flags: ((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_km), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_keymodel, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S("startsel"),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(32, S_vimoption{fullname: S("keyprotocol"), shortname: S("kpc"), flags: (((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_kpc), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_keyprotocol, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S("kitty:kitty,foot:kitty,ghostty:kitty,wezterm:kitty,xterm:mok2"),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(33, S_vimoption{fullname: S("laststatus"), shortname: S("ls"), flags: (P_NUM | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: &p_ls, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_laststatus, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1, 0}})
 	options.Set(34, S_vimoption{fullname: S("lazyredraw"), shortname: S("lz"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_lz, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
 	options.Set(35, S_vimoption{fullname: S("lines"), shortname: Ptr[byte]{}, flags: (((P_NUM | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: nil, ov_long: &Rows, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{24, 0}})
 	options.Set(36, S_vimoption{fullname: S("list"), shortname: Ptr[byte]{}, flags: (P_BOOL | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8192, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(37, S_vimoption{fullname: S("listchars"), shortname: S("lcs"), flags: ((((P_STRING | P_VI_DEF) | P_RALL) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_lcs), ov_win: 0}, indir: 12289, opt_did_set_cb: did_set_chars_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("eol:$"), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(37, S_vimoption{fullname: S("listchars"), shortname: S("lcs"), flags: ((((P_STRING | P_VI_DEF) | P_RALL) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_lcs), ov_win: 0}, indir: 12289, opt_did_set_cb: did_set_chars_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S("eol:$"),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(38, S_vimoption{fullname: S("magic"), shortname: Ptr[byte]{}, flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_magic, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(39, S_vimoption{fullname: S("matchpairs"), shortname: S("mps"), flags: (((P_STRING | P_ALLOCED) | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_mps), ov_win: 0}, indir: 16431, opt_did_set_cb: did_set_matchpairs, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("(:),{:},[:]"), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(39, S_vimoption{fullname: S("matchpairs"), shortname: S("mps"), flags: (((P_STRING | P_ALLOCED) | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_mps), ov_win: 0}, indir: 16431, opt_did_set_cb: did_set_matchpairs, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S("(:),{:},[:]"),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(40, S_vimoption{fullname: S("matchtime"), shortname: S("mat"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_mat, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{5, 0}})
 	options.Set(41, S_vimoption{fullname: S("maxcombine"), shortname: S("mco"), flags: (P_NUM | P_VI_DEF) | P_CURSWANT, var_: optvar_T{ov_int: nil, ov_long: &p_mco, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_maxcombine, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{2, 0}})
 	options.Set(42, S_vimoption{fullname: S("maxmapdepth"), shortname: S("mmd"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_mmd, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1000, 0}})
 	options.Set(43, S_vimoption{fullname: S("maxmempattern"), shortname: S("mmp"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_mmp, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1000, 0}})
 	options.Set(44, S_vimoption{fullname: S("maxsearchcount"), shortname: S("msc"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_msc, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_maxsearchcount, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{99, 0}})
-	options.Set(45, S_vimoption{fullname: S("messagesopt"), shortname: S("mopt"), flags: ((((P_STRING | P_ALLOCED) | P_VI_DEF) | P_ONECOMMA) | P_COLON) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_mopt), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_messagesopt, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("hit-enter,history:500"), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(45, S_vimoption{fullname: S("messagesopt"), shortname: S("mopt"), flags: ((((P_STRING | P_ALLOCED) | P_VI_DEF) | P_ONECOMMA) | P_COLON) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_mopt), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_messagesopt, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S("hit-enter,history:500"),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(46, S_vimoption{fullname: S("modifiable"), shortname: S("ma"), flags: (P_BOOL | P_VI_DEF) | P_NOGLOB, var_: optvar_T{ov_int: &p_ma, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16428, opt_did_set_cb: did_set_modifiable, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
 	options.Set(47, S_vimoption{fullname: S("modified"), shortname: S("mod"), flags: ((P_BOOL | P_NO_MKRC) | P_VI_DEF) | P_RSTAT, var_: optvar_T{ov_int: &p_mod, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16430, opt_did_set_cb: did_set_modified, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
 	options.Set(48, S_vimoption{fullname: S("more"), shortname: Ptr[byte]{}, flags: P_BOOL | P_VIM, var_: optvar_T{ov_int: &p_more, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{FALSE, TRUE}})
-	options.Set(49, S_vimoption{fullname: S("nrformats"), shortname: S("nf"), flags: (((P_STRING | P_ALLOCED) | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_nf), ov_win: 0}, indir: 16432, opt_did_set_cb: did_set_nrformats, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("bin,octal,hex"), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(49, S_vimoption{fullname: S("nrformats"), shortname: S("nf"), flags: (((P_STRING | P_ALLOCED) | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_nf), ov_win: 0}, indir: 16432, opt_did_set_cb: did_set_nrformats, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S("bin,octal,hex"),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(50, S_vimoption{fullname: S("number"), shortname: S("nu"), flags: (P_BOOL | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8198, opt_did_set_cb: did_set_number_relativenumber, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
 	options.Set(51, S_vimoption{fullname: S("osctimeoutlen"), shortname: S("ost"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ost, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_osctimeoutlen, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1000, 0}})
 	options.Set(52, S_vimoption{fullname: S("paste"), shortname: Ptr[byte]{}, flags: (P_BOOL | P_VI_DEF) | P_PRI_MKRC, var_: optvar_T{ov_int: &p_paste, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_paste, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(53, S_vimoption{fullname: S("pastetoggle"), shortname: S("pt"), flags: P_STRING | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_pt), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_pastetoggle, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(53, S_vimoption{fullname: S("pastetoggle"), shortname: S("pt"), flags: P_STRING | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_pt), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_pastetoggle, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(54, S_vimoption{fullname: S("preserveindent"), shortname: S("pi"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_pi, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16434, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(55, S_vimoption{fullname: S("quoteescape"), shortname: S("qe"), flags: (P_STRING | P_ALLOCED) | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_qe), ov_win: 0}, indir: 16435, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("\\"), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(55, S_vimoption{fullname: S("quoteescape"), shortname: S("qe"), flags: (P_STRING | P_ALLOCED) | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_qe), ov_win: 0}, indir: 16435, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S("\\"),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(56, S_vimoption{fullname: S("relativenumber"), shortname: S("rnu"), flags: (P_BOOL | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8199, opt_did_set_cb: did_set_number_relativenumber, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
 	options.Set(57, S_vimoption{fullname: S("remap"), shortname: Ptr[byte]{}, flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_remap, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
 	options.Set(58, S_vimoption{fullname: S("report"), shortname: Ptr[byte]{}, flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_report, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{2, 0}})
@@ -4563,8 +4864,14 @@ func init() {
 	options.Set(61, S_vimoption{fullname: S("scrolljump"), shortname: S("sj"), flags: (P_NUM | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: nil, ov_long: &p_sj, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1, 0}})
 	options.Set(62, S_vimoption{fullname: S("scrolloff"), shortname: S("so"), flags: ((P_NUM | P_VI_DEF) | P_VIM) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: &p_so, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 12301, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1, 0}})
 	options.Set(63, S_vimoption{fullname: S("scrolloffpad"), shortname: S("sop"), flags: ((P_NUM | P_VI_DEF) | P_VIM) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: &p_sop, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 12302, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(64, S_vimoption{fullname: S("selection"), shortname: S("sel"), flags: P_STRING | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_sel), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_selection, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("inclusive"), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(65, S_vimoption{fullname: S("selectmode"), shortname: S("slm"), flags: ((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_slm), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_selectmode, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(64, S_vimoption{fullname: S("selection"), shortname: S("sel"), flags: P_STRING | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_sel), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_selection, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S("inclusive"),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(65, S_vimoption{fullname: S("selectmode"), shortname: S("slm"), flags: ((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_slm), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_selectmode, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(66, S_vimoption{fullname: S("shiftround"), shortname: S("sr"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_sr, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
 	options.Set(67, S_vimoption{fullname: S("shiftwidth"), shortname: S("sw"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_sw, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16441, opt_did_set_cb: did_set_shiftwidth_tabstop, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{4, 0}})
 	options.Set(68, S_vimoption{fullname: S("shortmess"), shortname: S("shm"), flags: (P_STRING | P_VIM) | P_FLAGLIST, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_shm), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_shortmess, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("S"), S("filnxtToOS")}, def_num: [2]int64{}})
@@ -4581,7 +4888,10 @@ func init() {
 	options.Set(79, S_vimoption{fullname: S("softtabstop"), shortname: S("sts"), flags: (P_NUM | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: nil, ov_long: &p_sts, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16439, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{4, 0}})
 	options.Set(80, S_vimoption{fullname: S("startofline"), shortname: S("sol"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_sol, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
 	options.Set(81, S_vimoption{fullname: S("tabstop"), shortname: S("ts"), flags: (P_NUM | P_VI_DEF) | P_RBUF, var_: optvar_T{ov_int: nil, ov_long: &p_ts, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16445, opt_did_set_cb: did_set_shiftwidth_tabstop, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{4, 0}})
-	options.Set(82, S_vimoption{fullname: S("term"), shortname: Ptr[byte]{}, flags: ((((P_STRING | P_EXPAND) | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(82, S_vimoption{fullname: S("term"), shortname: Ptr[byte]{}, flags: ((((P_STRING | P_EXPAND) | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(83, S_vimoption{fullname: S("termsync"), shortname: S("tsy"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_tsy, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_termsync, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
 	options.Set(84, S_vimoption{fullname: S("terse"), shortname: Ptr[byte]{}, flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_terse, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_terse, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
 	options.Set(85, S_vimoption{fullname: S("textwidth"), shortname: S("tw"), flags: (((P_NUM | P_VI_DEF) | P_VIM) | P_RBUF) | P_HLONLY, var_: optvar_T{ov_int: nil, ov_long: &p_tw, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16446, opt_did_set_cb: did_set_textwidth, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
@@ -4592,97 +4902,337 @@ func init() {
 	options.Set(90, S_vimoption{fullname: S("ttimeoutlen"), shortname: S("ttm"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ttm, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{-1, 0}})
 	options.Set(91, S_vimoption{fullname: S("ttyfast"), shortname: S("tf"), flags: (P_BOOL | P_NO_MKRC) | P_VI_DEF, var_: optvar_T{ov_int: &p_tf, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
 	options.Set(92, S_vimoption{fullname: S("ttyscroll"), shortname: S("tsl"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ttyscroll, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{999, 0}})
-	options.Set(93, S_vimoption{fullname: S("ttytype"), shortname: S("tty"), flags: ((((P_STRING | P_EXPAND) | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(93, S_vimoption{fullname: S("ttytype"), shortname: S("tty"), flags: ((((P_STRING | P_EXPAND) | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(94, S_vimoption{fullname: S("undolevels"), shortname: S("ul"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ul, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 20545, opt_did_set_cb: did_set_undolevels, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{9999, 0}})
 	options.Set(95, S_vimoption{fullname: S("verbose"), shortname: S("vbs"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_verbose, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
 	options.Set(96, S_vimoption{fullname: S("virtualedit"), shortname: S("ve"), flags: ((((P_STRING | P_ONECOMMA) | P_NODUP) | P_VI_DEF) | P_VIM) | P_CURSWANT, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_ve), ov_win: 0}, indir: 12296, opt_did_set_cb: did_set_virtualedit, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), S("")}, def_num: [2]int64{}})
 	options.Set(97, S_vimoption{fullname: S("visualbell"), shortname: S("vb"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_vb, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
 	options.Set(98, S_vimoption{fullname: S("weirdinvert"), shortname: S("wiv"), flags: (P_BOOL | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: &p_wiv, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_weirdinvert, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
 	options.Set(99, S_vimoption{fullname: S("whichwrap"), shortname: S("ww"), flags: ((P_STRING | P_VIM) | P_ONECOMMA) | P_FLAGLIST, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_ww), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_whichwrap, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), S("b,s")}, def_num: [2]int64{}})
-	options.Set(100, S_vimoption{fullname: S("wincolor"), shortname: S("wcr"), flags: ((P_STRING | P_ALLOCED) | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8196, opt_did_set_cb: did_set_wincolor, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(100, S_vimoption{fullname: S("wincolor"), shortname: S("wcr"), flags: ((P_STRING | P_ALLOCED) | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8196, opt_did_set_cb: did_set_wincolor, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(101, S_vimoption{fullname: S("window"), shortname: S("wi"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_window, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_window, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(102, S_vimoption{fullname: S("winhighlight"), shortname: S("whl"), flags: ((((P_STRING | P_VI_DEF) | P_RALL) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8210, opt_did_set_cb: did_set_winhighlight, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(102, S_vimoption{fullname: S("winhighlight"), shortname: S("whl"), flags: ((((P_STRING | P_VI_DEF) | P_RALL) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8210, opt_did_set_cb: did_set_winhighlight, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
 	options.Set(103, S_vimoption{fullname: S("wrap"), shortname: Ptr[byte]{}, flags: (P_BOOL | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8211, opt_did_set_cb: did_set_wrap, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
 	options.Set(104, S_vimoption{fullname: S("wrapmargin"), shortname: S("wm"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_wm, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16450, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
 	options.Set(105, S_vimoption{fullname: S("wrapscan"), shortname: S("ws"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_ws, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
 	options.Set(106, S_vimoption{fullname: S("writedelay"), shortname: S("wd"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_wd, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(107, S_vimoption{fullname: S("t_AB"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(56), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(108, S_vimoption{fullname: S("t_AF"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(55), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(109, S_vimoption{fullname: S("t_AU"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(57), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(110, S_vimoption{fullname: S("t_AL"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(3), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(111, S_vimoption{fullname: S("t_al"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(2), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(112, S_vimoption{fullname: S("t_bc"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(47), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(113, S_vimoption{fullname: S("t_BE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(82), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(114, S_vimoption{fullname: S("t_BD"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(83), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(115, S_vimoption{fullname: S("t_cd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(8), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(116, S_vimoption{fullname: S("t_ce"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(1), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(117, S_vimoption{fullname: S("t_Ce"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(28), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(118, S_vimoption{fullname: S("t_CF"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(90), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(119, S_vimoption{fullname: S("t_cl"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(7), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(120, S_vimoption{fullname: S("t_cm"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(36), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(121, S_vimoption{fullname: S("t_Co"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(49), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(122, S_vimoption{fullname: S("t_CS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(48), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(123, S_vimoption{fullname: S("t_Cs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(29), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(124, S_vimoption{fullname: S("t_cs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(6), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(125, S_vimoption{fullname: S("t_CV"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(76), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(126, S_vimoption{fullname: S("t_da"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(10), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(127, S_vimoption{fullname: S("t_db"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(11), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(128, S_vimoption{fullname: S("t_DL"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(5), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(129, S_vimoption{fullname: S("t_dl"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(4), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(130, S_vimoption{fullname: S("t_ds"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(31), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(131, S_vimoption{fullname: S("t_Ds"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(32), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(132, S_vimoption{fullname: S("t_fs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(65), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(133, S_vimoption{fullname: S("t_fd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(88), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(134, S_vimoption{fullname: S("t_fe"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(89), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(135, S_vimoption{fullname: S("t_IE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(61), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(136, S_vimoption{fullname: S("t_IS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(60), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(137, S_vimoption{fullname: S("t_ke"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(41), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(138, S_vimoption{fullname: S("t_ks"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(40), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(139, S_vimoption{fullname: S("t_le"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(58), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(140, S_vimoption{fullname: S("t_mb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(54), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(141, S_vimoption{fullname: S("t_md"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(21), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(142, S_vimoption{fullname: S("t_me"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(19), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(143, S_vimoption{fullname: S("t_mr"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(20), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(144, S_vimoption{fullname: S("t_ms"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(35), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(145, S_vimoption{fullname: S("t_nd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(59), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(146, S_vimoption{fullname: S("t_op"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(77), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(147, S_vimoption{fullname: S("t_RI"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(38), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(148, S_vimoption{fullname: S("t_Ri"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(87), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(149, S_vimoption{fullname: S("t_RK"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(44), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(150, S_vimoption{fullname: S("t_RT"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(85), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(151, S_vimoption{fullname: S("t_RV"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(69), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(152, S_vimoption{fullname: S("t_Sb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(51), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(153, S_vimoption{fullname: S("t_se"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(22), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(154, S_vimoption{fullname: S("t_Sf"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(50), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(155, S_vimoption{fullname: S("t_Si"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(86), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(156, S_vimoption{fullname: S("t_so"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(23), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(157, S_vimoption{fullname: S("t_sr"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(37), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(158, S_vimoption{fullname: S("t_ST"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(84), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(159, S_vimoption{fullname: S("t_Te"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(33), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(160, S_vimoption{fullname: S("t_te"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(45), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(161, S_vimoption{fullname: S("t_TE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(46), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(162, S_vimoption{fullname: S("t_ti"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(42), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(163, S_vimoption{fullname: S("t_TI"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(43), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(164, S_vimoption{fullname: S("t_Ts"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(34), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(165, S_vimoption{fullname: S("t_ts"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(64), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(166, S_vimoption{fullname: S("t_ue"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(26), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(167, S_vimoption{fullname: S("t_us"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(27), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(168, S_vimoption{fullname: S("t_Us"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(30), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(169, S_vimoption{fullname: S("t_ut"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(9), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(170, S_vimoption{fullname: S("t_vb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(39), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(171, S_vimoption{fullname: S("t_ve"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(13), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(172, S_vimoption{fullname: S("t_vi"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(12), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(173, S_vimoption{fullname: S("t_VS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(15), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(174, S_vimoption{fullname: S("t_vs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(14), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(175, S_vimoption{fullname: S("t_WS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(68), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(176, S_vimoption{fullname: S("t_xn"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(53), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(177, S_vimoption{fullname: S("t_xs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(52), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(178, S_vimoption{fullname: S("t_ZH"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(24), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(179, S_vimoption{fullname: S("t_ZR"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(25), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(180, S_vimoption{fullname: S("t_8u"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(81), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(181, S_vimoption{fullname: S("t_xo"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(91), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(182, S_vimoption{fullname: S("t_BS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(92), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
-	options.Set(183, S_vimoption{fullname: S("t_ES"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(93), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), Ptr[byte]{}}, def_num: [2]int64{}})
+	options.Set(107, S_vimoption{fullname: S("t_AB"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(56), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(108, S_vimoption{fullname: S("t_AF"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(55), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(109, S_vimoption{fullname: S("t_AU"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(57), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(110, S_vimoption{fullname: S("t_AL"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(3), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(111, S_vimoption{fullname: S("t_al"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(2), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(112, S_vimoption{fullname: S("t_bc"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(47), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(113, S_vimoption{fullname: S("t_BE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(82), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(114, S_vimoption{fullname: S("t_BD"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(83), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(115, S_vimoption{fullname: S("t_cd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(8), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(116, S_vimoption{fullname: S("t_ce"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(1), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(117, S_vimoption{fullname: S("t_Ce"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(28), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(118, S_vimoption{fullname: S("t_CF"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(90), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(119, S_vimoption{fullname: S("t_cl"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(7), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(120, S_vimoption{fullname: S("t_cm"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(36), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(121, S_vimoption{fullname: S("t_Co"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(49), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(122, S_vimoption{fullname: S("t_CS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(48), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(123, S_vimoption{fullname: S("t_Cs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(29), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(124, S_vimoption{fullname: S("t_cs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(6), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(125, S_vimoption{fullname: S("t_CV"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(76), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(126, S_vimoption{fullname: S("t_da"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(10), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(127, S_vimoption{fullname: S("t_db"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(11), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(128, S_vimoption{fullname: S("t_DL"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(5), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(129, S_vimoption{fullname: S("t_dl"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(4), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(130, S_vimoption{fullname: S("t_ds"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(31), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(131, S_vimoption{fullname: S("t_Ds"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(32), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(132, S_vimoption{fullname: S("t_fs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(65), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(133, S_vimoption{fullname: S("t_fd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(88), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(134, S_vimoption{fullname: S("t_fe"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(89), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(135, S_vimoption{fullname: S("t_IE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(61), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(136, S_vimoption{fullname: S("t_IS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(60), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(137, S_vimoption{fullname: S("t_ke"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(41), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(138, S_vimoption{fullname: S("t_ks"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(40), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(139, S_vimoption{fullname: S("t_le"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(58), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(140, S_vimoption{fullname: S("t_mb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(54), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(141, S_vimoption{fullname: S("t_md"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(21), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(142, S_vimoption{fullname: S("t_me"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(19), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(143, S_vimoption{fullname: S("t_mr"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(20), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(144, S_vimoption{fullname: S("t_ms"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(35), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(145, S_vimoption{fullname: S("t_nd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(59), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(146, S_vimoption{fullname: S("t_op"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(77), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(147, S_vimoption{fullname: S("t_RI"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(38), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(148, S_vimoption{fullname: S("t_Ri"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(87), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(149, S_vimoption{fullname: S("t_RK"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(44), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(150, S_vimoption{fullname: S("t_RT"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(85), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(151, S_vimoption{fullname: S("t_RV"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(69), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(152, S_vimoption{fullname: S("t_Sb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(51), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(153, S_vimoption{fullname: S("t_se"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(22), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(154, S_vimoption{fullname: S("t_Sf"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(50), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(155, S_vimoption{fullname: S("t_Si"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(86), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(156, S_vimoption{fullname: S("t_so"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(23), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(157, S_vimoption{fullname: S("t_sr"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(37), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(158, S_vimoption{fullname: S("t_ST"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(84), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(159, S_vimoption{fullname: S("t_Te"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(33), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(160, S_vimoption{fullname: S("t_te"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(45), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(161, S_vimoption{fullname: S("t_TE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(46), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(162, S_vimoption{fullname: S("t_ti"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(42), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(163, S_vimoption{fullname: S("t_TI"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(43), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(164, S_vimoption{fullname: S("t_Ts"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(34), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(165, S_vimoption{fullname: S("t_ts"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(64), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(166, S_vimoption{fullname: S("t_ue"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(26), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(167, S_vimoption{fullname: S("t_us"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(27), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(168, S_vimoption{fullname: S("t_Us"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(30), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(169, S_vimoption{fullname: S("t_ut"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(9), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(170, S_vimoption{fullname: S("t_vb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(39), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(171, S_vimoption{fullname: S("t_ve"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(13), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(172, S_vimoption{fullname: S("t_vi"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(12), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(173, S_vimoption{fullname: S("t_VS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(15), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(174, S_vimoption{fullname: S("t_vs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(14), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(175, S_vimoption{fullname: S("t_WS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(68), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(176, S_vimoption{fullname: S("t_xn"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(53), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(177, S_vimoption{fullname: S("t_xs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(52), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(178, S_vimoption{fullname: S("t_ZH"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(24), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(179, S_vimoption{fullname: S("t_ZR"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(25), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(180, S_vimoption{fullname: S("t_8u"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(81), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(181, S_vimoption{fullname: S("t_xo"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(91), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(182, S_vimoption{fullname: S("t_BS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(92), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
+	options.Set(183, S_vimoption{fullname: S("t_ES"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(93), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+		S(""),
+		{},
+	}, def_num: [2]int64{}})
 	p_ambw_values.Set(0, S("single"))
 	p_ambw_values.Set(1, S("double"))
 	p_bg_values.Set(0, S("light"))
@@ -4731,39 +5281,95 @@ func init() {
 	p_bs_values.Set(2, S("start"))
 	p_bs_values.Set(3, S("nostop"))
 	p_sloc_values.Set(0, S("last"))
-	signal_info = [3]S_signalinfo{S_signalinfo{sig: SIGHUP, name: S("HUP")}, S_signalinfo{sig: SIGTERM, name: S("TERM")}, S_signalinfo{sig: -1, name: S("Unknown!")}}
+	signal_info = [3]S_signalinfo{
+		{sig: SIGHUP, name: S("HUP")},
+		{sig: SIGTERM, name: S("TERM")},
+		{sig: -1, name: S("Unknown!")},
+	}
 	copy(REGEXP_INRANGE.Slice(5), "]^-n\\")
 	copy(REGEXP_ABBR.Slice(10), "nrtebdoxuU")
 	META_flags = [127]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1}
-	decomp_table = [48]decomp_T{decomp_T{a: 0x5e2, b: 0, c: 0}, decomp_T{a: 0x5d0, b: 0, c: 0}, decomp_T{a: 0x5d3, b: 0, c: 0}, decomp_T{a: 0x5d4, b: 0, c: 0}, decomp_T{a: 0x5db, b: 0, c: 0}, decomp_T{a: 0x5dc, b: 0, c: 0}, decomp_T{a: 0x5dd, b: 0, c: 0}, decomp_T{a: 0x5e8, b: 0, c: 0}, decomp_T{a: 0x5ea, b: 0, c: 0}, decomp_T{a: '+', b: 0, c: 0}, decomp_T{a: 0x5e9, b: 0x5c1, c: 0}, decomp_T{a: 0x5e9, b: 0x5c2, c: 0}, decomp_T{a: 0x5e9, b: 0x5c1, c: 0x5bc}, decomp_T{a: 0x5e9, b: 0x5c2, c: 0x5bc}, decomp_T{a: 0x5d0, b: 0x5b7, c: 0}, decomp_T{a: 0x5d0, b: 0x5b8, c: 0}, decomp_T{a: 0x5d0, b: 0x5b4, c: 0}, decomp_T{a: 0x5d1, b: 0x5bc, c: 0}, decomp_T{a: 0x5d2, b: 0x5bc, c: 0}, decomp_T{a: 0x5d3, b: 0x5bc, c: 0}, decomp_T{a: 0x5d4, b: 0x5bc, c: 0}, decomp_T{a: 0x5d5, b: 0x5bc, c: 0}, decomp_T{a: 0x5d6, b: 0x5bc, c: 0}, decomp_T{a: 0xfb37, b: 0, c: 0}, decomp_T{a: 0x5d8, b: 0x5bc, c: 0}, decomp_T{a: 0x5d9, b: 0x5bc, c: 0}, decomp_T{a: 0x5da, b: 0x5bc, c: 0}, decomp_T{a: 0x5db, b: 0x5bc, c: 0}, decomp_T{a: 0x5dc, b: 0x5bc, c: 0}, decomp_T{a: 0xfb3d, b: 0, c: 0}, decomp_T{a: 0x5de, b: 0x5bc, c: 0}, decomp_T{a: 0xfb3f, b: 0, c: 0}, decomp_T{a: 0x5e0, b: 0x5bc, c: 0}, decomp_T{a: 0x5e1, b: 0x5bc, c: 0}, decomp_T{a: 0xfb42, b: 0, c: 0}, decomp_T{a: 0x5e3, b: 0x5bc, c: 0}, decomp_T{a: 0x5e4, b: 0x5bc, c: 0}, decomp_T{a: 0xfb45, b: 0, c: 0}, decomp_T{a: 0x5e6, b: 0x5bc, c: 0}, decomp_T{a: 0x5e7, b: 0x5bc, c: 0}, decomp_T{a: 0x5e8, b: 0x5bc, c: 0}, decomp_T{a: 0x5e9, b: 0x5bc, c: 0}, decomp_T{a: 0x5ea, b: 0x5bc, c: 0}, decomp_T{a: 0x5d5, b: 0x5b9, c: 0}, decomp_T{a: 0x5d1, b: 0x5bf, c: 0}, decomp_T{a: 0x5db, b: 0x5bf, c: 0}, decomp_T{a: 0x5e4, b: 0x5bf, c: 0}, decomp_T{a: 0x5d0, b: 0x5dc, c: 0}}
+	decomp_table = [48]decomp_T{
+		{a: 0x5e2, b: 0, c: 0},
+		{a: 0x5d0, b: 0, c: 0},
+		{a: 0x5d3, b: 0, c: 0},
+		{a: 0x5d4, b: 0, c: 0},
+		{a: 0x5db, b: 0, c: 0},
+		{a: 0x5dc, b: 0, c: 0},
+		{a: 0x5dd, b: 0, c: 0},
+		{a: 0x5e8, b: 0, c: 0},
+		{a: 0x5ea, b: 0, c: 0},
+		{a: '+', b: 0, c: 0},
+		{a: 0x5e9, b: 0x5c1, c: 0},
+		{a: 0x5e9, b: 0x5c2, c: 0},
+		{a: 0x5e9, b: 0x5c1, c: 0x5bc},
+		{a: 0x5e9, b: 0x5c2, c: 0x5bc},
+		{a: 0x5d0, b: 0x5b7, c: 0},
+		{a: 0x5d0, b: 0x5b8, c: 0},
+		{a: 0x5d0, b: 0x5b4, c: 0},
+		{a: 0x5d1, b: 0x5bc, c: 0},
+		{a: 0x5d2, b: 0x5bc, c: 0},
+		{a: 0x5d3, b: 0x5bc, c: 0},
+		{a: 0x5d4, b: 0x5bc, c: 0},
+		{a: 0x5d5, b: 0x5bc, c: 0},
+		{a: 0x5d6, b: 0x5bc, c: 0},
+		{a: 0xfb37, b: 0, c: 0},
+		{a: 0x5d8, b: 0x5bc, c: 0},
+		{a: 0x5d9, b: 0x5bc, c: 0},
+		{a: 0x5da, b: 0x5bc, c: 0},
+		{a: 0x5db, b: 0x5bc, c: 0},
+		{a: 0x5dc, b: 0x5bc, c: 0},
+		{a: 0xfb3d, b: 0, c: 0},
+		{a: 0x5de, b: 0x5bc, c: 0},
+		{a: 0xfb3f, b: 0, c: 0},
+		{a: 0x5e0, b: 0x5bc, c: 0},
+		{a: 0x5e1, b: 0x5bc, c: 0},
+		{a: 0xfb42, b: 0, c: 0},
+		{a: 0x5e3, b: 0x5bc, c: 0},
+		{a: 0x5e4, b: 0x5bc, c: 0},
+		{a: 0xfb45, b: 0, c: 0},
+		{a: 0x5e6, b: 0x5bc, c: 0},
+		{a: 0x5e7, b: 0x5bc, c: 0},
+		{a: 0x5e8, b: 0x5bc, c: 0},
+		{a: 0x5e9, b: 0x5bc, c: 0},
+		{a: 0x5ea, b: 0x5bc, c: 0},
+		{a: 0x5d5, b: 0x5b9, c: 0},
+		{a: 0x5d1, b: 0x5bf, c: 0},
+		{a: 0x5db, b: 0x5bf, c: 0},
+		{a: 0x5e4, b: 0x5bf, c: 0},
+		{a: 0x5d0, b: 0x5dc, c: 0},
+	}
 	classchars = S(".iIkKfFpPsSdDxXoOwWhHaAlLuU")
 	classcodes = [27]int32{ANY, IDENT, SIDENT, KWORD, SKWORD, FNAME, SFNAME, PRINT, SPRINT, RE_WHITE, NWHITE, DIGIT, NDIGIT, HEX, NHEX, OCTAL, NOCTAL, WORD, NWORD, HEAD, NHEAD, ALPHA, NALPHA, LOWER, NLOWER, UPPER, NUPPER}
-	filltab.Set(0, S_charstab{cp: &fill_chars.stl, name: string_T{string_: S("stl"), length: (4 - 1)}})
-	filltab.Set(1, S_charstab{cp: &fill_chars.stlnc, name: string_T{string_: S("stlnc"), length: (6 - 1)}})
-	filltab.Set(2, S_charstab{cp: &fill_chars.vert, name: string_T{string_: S("vert"), length: (5 - 1)}})
-	filltab.Set(3, S_charstab{cp: &fill_chars.fold, name: string_T{string_: S("fold"), length: (5 - 1)}})
-	filltab.Set(4, S_charstab{cp: &fill_chars.foldopen, name: string_T{string_: S("foldopen"), length: (9 - 1)}})
-	filltab.Set(5, S_charstab{cp: &fill_chars.foldclosed, name: string_T{string_: S("foldclose"), length: (10 - 1)}})
-	filltab.Set(6, S_charstab{cp: &fill_chars.foldsep, name: string_T{string_: S("foldsep"), length: (8 - 1)}})
-	filltab.Set(7, S_charstab{cp: &fill_chars.foldinner, name: string_T{string_: S("foldinner"), length: (10 - 1)}})
-	filltab.Set(8, S_charstab{cp: &fill_chars.diff, name: string_T{string_: S("diff"), length: (5 - 1)}})
-	filltab.Set(9, S_charstab{cp: &fill_chars.eob, name: string_T{string_: S("eob"), length: (4 - 1)}})
-	filltab.Set(10, S_charstab{cp: &fill_chars.lastline, name: string_T{string_: S("lastline"), length: (9 - 1)}})
-	filltab.Set(11, S_charstab{cp: &fill_chars.trunc, name: string_T{string_: S("trunc"), length: (6 - 1)}})
-	filltab.Set(12, S_charstab{cp: &fill_chars.truncrl, name: string_T{string_: S("truncrl"), length: (8 - 1)}})
-	lcstab.Set(0, S_charstab{cp: &lcs_chars.eol, name: string_T{string_: S("eol"), length: (4 - 1)}})
-	lcstab.Set(1, S_charstab{cp: &lcs_chars.ext, name: string_T{string_: S("extends"), length: (8 - 1)}})
-	lcstab.Set(2, S_charstab{cp: &lcs_chars.nbsp, name: string_T{string_: S("nbsp"), length: (5 - 1)}})
-	lcstab.Set(3, S_charstab{cp: &lcs_chars.prec, name: string_T{string_: S("precedes"), length: (9 - 1)}})
-	lcstab.Set(4, S_charstab{cp: &lcs_chars.space, name: string_T{string_: S("space"), length: (6 - 1)}})
-	lcstab.Set(5, S_charstab{cp: &lcs_chars.tab2, name: string_T{string_: S("tab"), length: (4 - 1)}})
-	lcstab.Set(6, S_charstab{cp: &lcs_chars.leadtab2, name: string_T{string_: S("leadtab"), length: (8 - 1)}})
-	lcstab.Set(7, S_charstab{cp: &lcs_chars.trail, name: string_T{string_: S("trail"), length: (6 - 1)}})
-	lcstab.Set(8, S_charstab{cp: &lcs_chars.lead, name: string_T{string_: S("lead"), length: (5 - 1)}})
-	lcstab.Set(9, S_charstab{cp: nil, name: string_T{string_: S("conceal"), length: (8 - 1)}})
-	lcstab.Set(10, S_charstab{cp: nil, name: string_T{string_: S("multispace"), length: (11 - 1)}})
-	lcstab.Set(11, S_charstab{cp: nil, name: string_T{string_: S("leadmultispace"), length: (15 - 1)}})
-	spats = [2]S_spat{S_spat{pat: Ptr[byte]{}, patlen: 0, magic: TRUE, no_scs: FALSE, off: S_soffset{dir: '/', line: 0, end: 0, off: 0}}, S_spat{pat: Ptr[byte]{}, patlen: 0, magic: TRUE, no_scs: FALSE, off: S_soffset{dir: '/', line: 0, end: 0, off: 0}}}
+	filltab.Set(0, S_charstab{cp: &fill_chars.stl, name: string_T{string_: S("stl"), length: 3}})
+	filltab.Set(1, S_charstab{cp: &fill_chars.stlnc, name: string_T{string_: S("stlnc"), length: 5}})
+	filltab.Set(2, S_charstab{cp: &fill_chars.vert, name: string_T{string_: S("vert"), length: 4}})
+	filltab.Set(3, S_charstab{cp: &fill_chars.fold, name: string_T{string_: S("fold"), length: 4}})
+	filltab.Set(4, S_charstab{cp: &fill_chars.foldopen, name: string_T{string_: S("foldopen"), length: 8}})
+	filltab.Set(5, S_charstab{cp: &fill_chars.foldclosed, name: string_T{string_: S("foldclose"), length: 9}})
+	filltab.Set(6, S_charstab{cp: &fill_chars.foldsep, name: string_T{string_: S("foldsep"), length: 7}})
+	filltab.Set(7, S_charstab{cp: &fill_chars.foldinner, name: string_T{string_: S("foldinner"), length: 9}})
+	filltab.Set(8, S_charstab{cp: &fill_chars.diff, name: string_T{string_: S("diff"), length: 4}})
+	filltab.Set(9, S_charstab{cp: &fill_chars.eob, name: string_T{string_: S("eob"), length: 3}})
+	filltab.Set(10, S_charstab{cp: &fill_chars.lastline, name: string_T{string_: S("lastline"), length: 8}})
+	filltab.Set(11, S_charstab{cp: &fill_chars.trunc, name: string_T{string_: S("trunc"), length: 5}})
+	filltab.Set(12, S_charstab{cp: &fill_chars.truncrl, name: string_T{string_: S("truncrl"), length: 7}})
+	lcstab.Set(0, S_charstab{cp: &lcs_chars.eol, name: string_T{string_: S("eol"), length: 3}})
+	lcstab.Set(1, S_charstab{cp: &lcs_chars.ext, name: string_T{string_: S("extends"), length: 7}})
+	lcstab.Set(2, S_charstab{cp: &lcs_chars.nbsp, name: string_T{string_: S("nbsp"), length: 4}})
+	lcstab.Set(3, S_charstab{cp: &lcs_chars.prec, name: string_T{string_: S("precedes"), length: 8}})
+	lcstab.Set(4, S_charstab{cp: &lcs_chars.space, name: string_T{string_: S("space"), length: 5}})
+	lcstab.Set(5, S_charstab{cp: &lcs_chars.tab2, name: string_T{string_: S("tab"), length: 3}})
+	lcstab.Set(6, S_charstab{cp: &lcs_chars.leadtab2, name: string_T{string_: S("leadtab"), length: 7}})
+	lcstab.Set(7, S_charstab{cp: &lcs_chars.trail, name: string_T{string_: S("trail"), length: 5}})
+	lcstab.Set(8, S_charstab{cp: &lcs_chars.lead, name: string_T{string_: S("lead"), length: 4}})
+	lcstab.Set(9, S_charstab{cp: nil, name: string_T{string_: S("conceal"), length: 7}})
+	lcstab.Set(10, S_charstab{cp: nil, name: string_T{string_: S("multispace"), length: 10}})
+	lcstab.Set(11, S_charstab{cp: nil, name: string_T{string_: S("leadmultispace"), length: 14}})
+	spats = [2]S_spat{
+		{pat: Ptr[byte]{}, patlen: 0, magic: TRUE, no_scs: FALSE, off: S_soffset{dir: '/', line: 0, end: 0, off: 0}},
+		{pat: Ptr[byte]{}, patlen: 0, magic: TRUE, no_scs: FALSE, off: S_soffset{dir: '/', line: 0, end: 0, off: 0}},
+	}
 	lastcdir = FORWARD
 	last_t_cmd = TRUE
 	lastc_bytelen = 1
@@ -5066,8 +5672,111 @@ func init() {
 	builtin_256colors.Set(0, tcap_entry_T{bt_entry: 49, bt_string: S("256")})
 	builtin_256colors.Set(1, tcap_entry_T{bt_entry: 56, bt_string: S("\x1b[48;5;%dm")})
 	builtin_256colors.Set(2, tcap_entry_T{bt_entry: 55, bt_string: S("\x1b[38;5;%dm")})
-	builtin_terminals = [3]builtin_tcap_T{builtin_tcap_T{bitc_name: S("xterm-256color"), bitc_table: builtin_xterm}, builtin_tcap_T{bitc_name: S("debug"), bitc_table: builtin_debug}, builtin_tcap_T{}}
-	cmdnames = [98]S_cmdname{CMD_append: S_cmdname{cmd_name: S("append"), cmd_minlen: 1, cmd_func: ex_append, cmd_argt: 18354435, cmd_addr_type: ADDR_LINES}, CMD_ascii: S_cmdname{cmd_name: S("ascii"), cmd_minlen: 2, cmd_func: do_ascii, cmd_argt: 17563904, cmd_addr_type: ADDR_NONE}, CMD_change: S_cmdname{cmd_name: S("change"), cmd_minlen: 1, cmd_func: ex_change, cmd_argt: 18351427, cmd_addr_type: ADDR_LINES}, CMD_changes: S_cmdname{cmd_name: S("changes"), cmd_minlen: 7, cmd_func: ex_changes, cmd_argt: 17301760, cmd_addr_type: ADDR_NONE}, CMD_cmap: S_cmdname{cmd_name: S("cmap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_cmapclear: S_cmdname{cmd_name: S("cmapclear"), cmd_minlen: 5, cmd_func: ex_mapclear, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE}, CMD_cnoremap: S_cmdname{cmd_name: S("cnoremap"), cmd_minlen: 3, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_copy: S_cmdname{cmd_name: S("copy"), cmd_minlen: 2, cmd_func: ex_copymove, cmd_argt: 18350405, cmd_addr_type: ADDR_LINES}, CMD_cquit: S_cmdname{cmd_name: S("cquit"), cmd_minlen: 2, cmd_func: ex_cquit, cmd_argt: 5379, cmd_addr_type: ADDR_UNSIGNED}, CMD_cunmap: S_cmdname{cmd_name: S("cunmap"), cmd_minlen: 2, cmd_func: ex_unmap, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_delete: S_cmdname{cmd_name: S("delete"), cmd_minlen: 1, cmd_func: ex_operators, cmd_argt: 18351937, cmd_addr_type: ADDR_LINES}, CMD_delmarks: S_cmdname{cmd_name: S("delmarks"), cmd_minlen: 4, cmd_func: ex_delmarks, cmd_argt: 17301766, cmd_addr_type: ADDR_NONE}, CMD_display: S_cmdname{cmd_name: S("display"), cmd_minlen: 2, cmd_func: ex_display, cmd_argt: 17565956, cmd_addr_type: ADDR_NONE}, CMD_earlier: S_cmdname{cmd_name: S("earlier"), cmd_minlen: 2, cmd_func: ex_later, cmd_argt: 17301780, cmd_addr_type: ADDR_NONE}, CMD_filter: S_cmdname{cmd_name: S("filter"), cmd_minlen: 4, cmd_func: ex_wrongmodifier, cmd_argt: 2182, cmd_addr_type: ADDR_NONE}, CMD_fixdel: S_cmdname{cmd_name: S("fixdel"), cmd_minlen: 3, cmd_func: do_fixdel, cmd_argt: 17301760, cmd_addr_type: ADDR_NONE}, CMD_global: S_cmdname{cmd_name: S("global"), cmd_minlen: 1, cmd_func: ex_global, cmd_argt: 51118183, cmd_addr_type: ADDR_LINES}, CMD_highlight: S_cmdname{cmd_name: S("highlight"), cmd_minlen: 2, cmd_func: ex_highlight, cmd_argt: 17563910, cmd_addr_type: ADDR_NONE}, CMD_history: S_cmdname{cmd_name: S("history"), cmd_minlen: 3, cmd_func: ex_history, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE}, CMD_insert: S_cmdname{cmd_name: S("insert"), cmd_minlen: 1, cmd_func: ex_append, cmd_argt: 18350339, cmd_addr_type: ADDR_LINES}, CMD_imap: S_cmdname{cmd_name: S("imap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_imapclear: S_cmdname{cmd_name: S("imapclear"), cmd_minlen: 5, cmd_func: ex_mapclear, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE}, CMD_inoremap: S_cmdname{cmd_name: S("inoremap"), cmd_minlen: 3, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_iput: S_cmdname{cmd_name: S("iput"), cmd_minlen: 2, cmd_func: ex_iput, cmd_argt: 18355011, cmd_addr_type: ADDR_LINES}, CMD_iunmap: S_cmdname{cmd_name: S("iunmap"), cmd_minlen: 2, cmd_func: ex_unmap, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_join: S_cmdname{cmd_name: S("join"), cmd_minlen: 1, cmd_func: ex_join, cmd_argt: 20448579, cmd_addr_type: ADDR_LINES}, CMD_k: S_cmdname{cmd_name: S("k"), cmd_minlen: 1, cmd_func: ex_mark, cmd_argt: 51118357, cmd_addr_type: ADDR_LINES}, CMD_keepmarks: S_cmdname{cmd_name: S("keepmarks"), cmd_minlen: 2, cmd_func: ex_wrongmodifier, cmd_argt: 2180, cmd_addr_type: ADDR_NONE}, CMD_keepjumps: S_cmdname{cmd_name: S("keepjumps"), cmd_minlen: 5, cmd_func: ex_wrongmodifier, cmd_argt: 2180, cmd_addr_type: ADDR_NONE}, CMD_keeppatterns: S_cmdname{cmd_name: S("keeppatterns"), cmd_minlen: 5, cmd_func: ex_wrongmodifier, cmd_argt: 2180, cmd_addr_type: ADDR_NONE}, CMD_list: S_cmdname{cmd_name: S("list"), cmd_minlen: 1, cmd_func: ex_print, cmd_argt: 19400001, cmd_addr_type: ADDR_LINES}, CMD_later: S_cmdname{cmd_name: S("later"), cmd_minlen: 3, cmd_func: ex_later, cmd_argt: 17301780, cmd_addr_type: ADDR_NONE}, CMD_lockmarks: S_cmdname{cmd_name: S("lockmarks"), cmd_minlen: 3, cmd_func: ex_wrongmodifier, cmd_argt: 2180, cmd_addr_type: ADDR_NONE}, CMD_move: S_cmdname{cmd_name: S("move"), cmd_minlen: 1, cmd_func: ex_copymove, cmd_argt: 18350405, cmd_addr_type: ADDR_LINES}, CMD_mark: S_cmdname{cmd_name: S("mark"), cmd_minlen: 2, cmd_func: ex_mark, cmd_argt: 17563925, cmd_addr_type: ADDR_LINES}, CMD_map: S_cmdname{cmd_name: S("map"), cmd_minlen: 3, cmd_func: ex_map, cmd_argt: 17312006, cmd_addr_type: ADDR_NONE}, CMD_mapclear: S_cmdname{cmd_name: S("mapclear"), cmd_minlen: 4, cmd_func: ex_mapclear, cmd_argt: 17301766, cmd_addr_type: ADDR_NONE}, CMD_marks: S_cmdname{cmd_name: S("marks"), cmd_minlen: 5, cmd_func: ex_marks, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE}, CMD_match: S_cmdname{cmd_name: S("match"), cmd_minlen: 3, cmd_func: ex_match, cmd_argt: 17301509, cmd_addr_type: ADDR_OTHER}, CMD_messages: S_cmdname{cmd_name: S("messages"), cmd_minlen: 3, cmd_func: ex_messages, cmd_argt: 17301765, cmd_addr_type: ADDR_OTHER}, CMD_nmap: S_cmdname{cmd_name: S("nmap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_nmapclear: S_cmdname{cmd_name: S("nmapclear"), cmd_minlen: 5, cmd_func: ex_mapclear, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE}, CMD_nnoremap: S_cmdname{cmd_name: S("nnoremap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_noremap: S_cmdname{cmd_name: S("noremap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312006, cmd_addr_type: ADDR_NONE}, CMD_nohlsearch: S_cmdname{cmd_name: S("nohlsearch"), cmd_minlen: 3, cmd_func: ex_nohlsearch, cmd_argt: 17563904, cmd_addr_type: ADDR_NONE}, CMD_normal: S_cmdname{cmd_name: S("normal"), cmd_minlen: 4, cmd_func: ex_normal, cmd_argt: 17574023, cmd_addr_type: ADDR_LINES}, CMD_number: S_cmdname{cmd_name: S("number"), cmd_minlen: 2, cmd_func: ex_print, cmd_argt: 19400001, cmd_addr_type: ADDR_LINES}, CMD_nunmap: S_cmdname{cmd_name: S("nunmap"), cmd_minlen: 3, cmd_func: ex_unmap, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_omap: S_cmdname{cmd_name: S("omap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_omapclear: S_cmdname{cmd_name: S("omapclear"), cmd_minlen: 5, cmd_func: ex_mapclear, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE}, CMD_onoremap: S_cmdname{cmd_name: S("onoremap"), cmd_minlen: 3, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_ounmap: S_cmdname{cmd_name: S("ounmap"), cmd_minlen: 2, cmd_func: ex_unmap, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_print: S_cmdname{cmd_name: S("print"), cmd_minlen: 1, cmd_func: ex_print, cmd_argt: 19662145, cmd_addr_type: ADDR_LINES}, CMD_put: S_cmdname{cmd_name: S("put"), cmd_minlen: 2, cmd_func: ex_put, cmd_argt: 18355011, cmd_addr_type: ADDR_LINES}, CMD_quit: S_cmdname{cmd_name: S("quit"), cmd_minlen: 1, cmd_func: ex_quit, cmd_argt: 17302787, cmd_addr_type: ADDR_WINDOWS}, CMD_redo: S_cmdname{cmd_name: S("redo"), cmd_minlen: 3, cmd_func: ex_redo, cmd_argt: 17301760, cmd_addr_type: ADDR_NONE}, CMD_redraw: S_cmdname{cmd_name: S("redraw"), cmd_minlen: 4, cmd_func: ex_redraw, cmd_argt: 17301762, cmd_addr_type: ADDR_NONE}, CMD_redrawstatus: S_cmdname{cmd_name: S("redrawstatus"), cmd_minlen: 7, cmd_func: ex_redrawstatus, cmd_argt: 17301762, cmd_addr_type: ADDR_NONE}, CMD_registers: S_cmdname{cmd_name: S("registers"), cmd_minlen: 3, cmd_func: ex_display, cmd_argt: 17565956, cmd_addr_type: ADDR_NONE}, CMD_substitute: S_cmdname{cmd_name: S("substitute"), cmd_minlen: 1, cmd_func: ex_substitute, cmd_argt: 50856005, cmd_addr_type: ADDR_LINES}, CMD_set: S_cmdname{cmd_name: S("set"), cmd_minlen: 2, cmd_func: ex_set, cmd_argt: 17563910, cmd_addr_type: ADDR_NONE}, CMD_silent: S_cmdname{cmd_name: S("silent"), cmd_minlen: 3, cmd_func: ex_wrongmodifier, cmd_argt: 17565830, cmd_addr_type: ADDR_NONE}, CMD_smagic: S_cmdname{cmd_name: S("smagic"), cmd_minlen: 2, cmd_func: ex_submagic, cmd_argt: 50856005, cmd_addr_type: ADDR_LINES}, CMD_smap: S_cmdname{cmd_name: S("smap"), cmd_minlen: 4, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_smapclear: S_cmdname{cmd_name: S("smapclear"), cmd_minlen: 5, cmd_func: ex_mapclear, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE}, CMD_snomagic: S_cmdname{cmd_name: S("snomagic"), cmd_minlen: 3, cmd_func: ex_submagic, cmd_argt: 50856005, cmd_addr_type: ADDR_LINES}, CMD_snoremap: S_cmdname{cmd_name: S("snoremap"), cmd_minlen: 4, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_stop: S_cmdname{cmd_name: S("stop"), cmd_minlen: 2, cmd_func: ex_stop, cmd_argt: 17301762, cmd_addr_type: ADDR_NONE}, CMD_sunmap: S_cmdname{cmd_name: S("sunmap"), cmd_minlen: 4, cmd_func: ex_unmap, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_suspend: S_cmdname{cmd_name: S("suspend"), cmd_minlen: 3, cmd_func: ex_stop, cmd_argt: 17301762, cmd_addr_type: ADDR_NONE}, CMD_t: S_cmdname{cmd_name: S("t"), cmd_minlen: 1, cmd_func: ex_copymove, cmd_argt: 18350405, cmd_addr_type: ADDR_LINES}, CMD_undo: S_cmdname{cmd_name: S("undo"), cmd_minlen: 1, cmd_func: ex_undo, cmd_argt: 17306881, cmd_addr_type: ADDR_OTHER}, CMD_undojoin: S_cmdname{cmd_name: S("undojoin"), cmd_minlen: 5, cmd_func: ex_undojoin, cmd_argt: 17301760, cmd_addr_type: ADDR_NONE}, CMD_undolist: S_cmdname{cmd_name: S("undolist"), cmd_minlen: 5, cmd_func: ex_undolist, cmd_argt: 17301760, cmd_addr_type: ADDR_NONE}, CMD_unmap: S_cmdname{cmd_name: S("unmap"), cmd_minlen: 3, cmd_func: ex_unmap, cmd_argt: 17312006, cmd_addr_type: ADDR_NONE}, CMD_unsilent: S_cmdname{cmd_name: S("unsilent"), cmd_minlen: 3, cmd_func: ex_wrongmodifier, cmd_argt: 17565828, cmd_addr_type: ADDR_NONE}, CMD_vglobal: S_cmdname{cmd_name: S("vglobal"), cmd_minlen: 1, cmd_func: ex_global, cmd_argt: 50856037, cmd_addr_type: ADDR_LINES}, CMD_verbose: S_cmdname{cmd_name: S("verbose"), cmd_minlen: 4, cmd_func: ex_wrongmodifier, cmd_argt: 17565829, cmd_addr_type: ADDR_OTHER}, CMD_vmap: S_cmdname{cmd_name: S("vmap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_vmapclear: S_cmdname{cmd_name: S("vmapclear"), cmd_minlen: 5, cmd_func: ex_mapclear, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE}, CMD_vnoremap: S_cmdname{cmd_name: S("vnoremap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_vunmap: S_cmdname{cmd_name: S("vunmap"), cmd_minlen: 2, cmd_func: ex_unmap, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_winsize: S_cmdname{cmd_name: S("winsize"), cmd_minlen: 2, cmd_func: ex_winsize, cmd_argt: 388, cmd_addr_type: ADDR_NONE}, CMD_xmap: S_cmdname{cmd_name: S("xmap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_xmapclear: S_cmdname{cmd_name: S("xmapclear"), cmd_minlen: 5, cmd_func: ex_mapclear, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE}, CMD_xnoremap: S_cmdname{cmd_name: S("xnoremap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_xunmap: S_cmdname{cmd_name: S("xunmap"), cmd_minlen: 2, cmd_func: ex_unmap, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE}, CMD_yank: S_cmdname{cmd_name: S("yank"), cmd_minlen: 1, cmd_func: ex_operators, cmd_argt: 17303361, cmd_addr_type: ADDR_LINES}, CMD_z: S_cmdname{cmd_name: S("z"), cmd_minlen: 1, cmd_func: ex_z, cmd_argt: 19398983, cmd_addr_type: ADDR_LINES}, CMD_pound: S_cmdname{cmd_name: S("#"), cmd_minlen: 1, cmd_func: ex_print, cmd_argt: 19400001, cmd_addr_type: ADDR_LINES}, CMD_and: S_cmdname{cmd_name: S("&"), cmd_minlen: 1, cmd_func: ex_substitute, cmd_argt: 51904581, cmd_addr_type: ADDR_LINES}, CMD_star: S_cmdname{cmd_name: S("*"), cmd_minlen: 1, cmd_func: ex_at, cmd_argt: 50856261, cmd_addr_type: ADDR_LINES}, CMD_lshift: S_cmdname{cmd_name: S("<"), cmd_minlen: 1, cmd_func: ex_operators, cmd_argt: 20448577, cmd_addr_type: ADDR_LINES}, CMD_equal: S_cmdname{cmd_name: S("="), cmd_minlen: 1, cmd_func: ex_equal, cmd_argt: 19398945, cmd_addr_type: ADDR_LINES}, CMD_rshift: S_cmdname{cmd_name: S(">"), cmd_minlen: 1, cmd_func: ex_operators, cmd_argt: 20448577, cmd_addr_type: ADDR_LINES}, CMD_at: S_cmdname{cmd_name: S("@"), cmd_minlen: 1, cmd_func: ex_at, cmd_argt: 50856261, cmd_addr_type: ADDR_LINES}, CMD_tilde: S_cmdname{cmd_name: S("~"), cmd_minlen: 1, cmd_func: ex_substitute, cmd_argt: 51904581, cmd_addr_type: ADDR_LINES}, CMD_Print: S_cmdname{cmd_name: S("Print"), cmd_minlen: 1, cmd_func: ex_print, cmd_argt: 19400001, cmd_addr_type: ADDR_LINES}}
+	builtin_terminals = [3]builtin_tcap_T{
+		{bitc_name: S("xterm-256color"), bitc_table: builtin_xterm},
+		{bitc_name: S("debug"), bitc_table: builtin_debug},
+		{},
+	}
+	cmdnames = [98]S_cmdname{
+		CMD_append:       {cmd_name: S("append"), cmd_minlen: 1, cmd_func: ex_append, cmd_argt: 18354435, cmd_addr_type: ADDR_LINES},
+		CMD_ascii:        {cmd_name: S("ascii"), cmd_minlen: 2, cmd_func: do_ascii, cmd_argt: 17563904, cmd_addr_type: ADDR_NONE},
+		CMD_change:       {cmd_name: S("change"), cmd_minlen: 1, cmd_func: ex_change, cmd_argt: 18351427, cmd_addr_type: ADDR_LINES},
+		CMD_changes:      {cmd_name: S("changes"), cmd_minlen: 7, cmd_func: ex_changes, cmd_argt: 17301760, cmd_addr_type: ADDR_NONE},
+		CMD_cmap:         {cmd_name: S("cmap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_cmapclear:    {cmd_name: S("cmapclear"), cmd_minlen: 5, cmd_func: ex_mapclear, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE},
+		CMD_cnoremap:     {cmd_name: S("cnoremap"), cmd_minlen: 3, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_copy:         {cmd_name: S("copy"), cmd_minlen: 2, cmd_func: ex_copymove, cmd_argt: 18350405, cmd_addr_type: ADDR_LINES},
+		CMD_cquit:        {cmd_name: S("cquit"), cmd_minlen: 2, cmd_func: ex_cquit, cmd_argt: 5379, cmd_addr_type: ADDR_UNSIGNED},
+		CMD_cunmap:       {cmd_name: S("cunmap"), cmd_minlen: 2, cmd_func: ex_unmap, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_delete:       {cmd_name: S("delete"), cmd_minlen: 1, cmd_func: ex_operators, cmd_argt: 18351937, cmd_addr_type: ADDR_LINES},
+		CMD_delmarks:     {cmd_name: S("delmarks"), cmd_minlen: 4, cmd_func: ex_delmarks, cmd_argt: 17301766, cmd_addr_type: ADDR_NONE},
+		CMD_display:      {cmd_name: S("display"), cmd_minlen: 2, cmd_func: ex_display, cmd_argt: 17565956, cmd_addr_type: ADDR_NONE},
+		CMD_earlier:      {cmd_name: S("earlier"), cmd_minlen: 2, cmd_func: ex_later, cmd_argt: 17301780, cmd_addr_type: ADDR_NONE},
+		CMD_filter:       {cmd_name: S("filter"), cmd_minlen: 4, cmd_func: ex_wrongmodifier, cmd_argt: 2182, cmd_addr_type: ADDR_NONE},
+		CMD_fixdel:       {cmd_name: S("fixdel"), cmd_minlen: 3, cmd_func: do_fixdel, cmd_argt: 17301760, cmd_addr_type: ADDR_NONE},
+		CMD_global:       {cmd_name: S("global"), cmd_minlen: 1, cmd_func: ex_global, cmd_argt: 51118183, cmd_addr_type: ADDR_LINES},
+		CMD_highlight:    {cmd_name: S("highlight"), cmd_minlen: 2, cmd_func: ex_highlight, cmd_argt: 17563910, cmd_addr_type: ADDR_NONE},
+		CMD_history:      {cmd_name: S("history"), cmd_minlen: 3, cmd_func: ex_history, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE},
+		CMD_insert:       {cmd_name: S("insert"), cmd_minlen: 1, cmd_func: ex_append, cmd_argt: 18350339, cmd_addr_type: ADDR_LINES},
+		CMD_imap:         {cmd_name: S("imap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_imapclear:    {cmd_name: S("imapclear"), cmd_minlen: 5, cmd_func: ex_mapclear, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE},
+		CMD_inoremap:     {cmd_name: S("inoremap"), cmd_minlen: 3, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_iput:         {cmd_name: S("iput"), cmd_minlen: 2, cmd_func: ex_iput, cmd_argt: 18355011, cmd_addr_type: ADDR_LINES},
+		CMD_iunmap:       {cmd_name: S("iunmap"), cmd_minlen: 2, cmd_func: ex_unmap, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_join:         {cmd_name: S("join"), cmd_minlen: 1, cmd_func: ex_join, cmd_argt: 20448579, cmd_addr_type: ADDR_LINES},
+		CMD_k:            {cmd_name: S("k"), cmd_minlen: 1, cmd_func: ex_mark, cmd_argt: 51118357, cmd_addr_type: ADDR_LINES},
+		CMD_keepmarks:    {cmd_name: S("keepmarks"), cmd_minlen: 2, cmd_func: ex_wrongmodifier, cmd_argt: 2180, cmd_addr_type: ADDR_NONE},
+		CMD_keepjumps:    {cmd_name: S("keepjumps"), cmd_minlen: 5, cmd_func: ex_wrongmodifier, cmd_argt: 2180, cmd_addr_type: ADDR_NONE},
+		CMD_keeppatterns: {cmd_name: S("keeppatterns"), cmd_minlen: 5, cmd_func: ex_wrongmodifier, cmd_argt: 2180, cmd_addr_type: ADDR_NONE},
+		CMD_list:         {cmd_name: S("list"), cmd_minlen: 1, cmd_func: ex_print, cmd_argt: 19400001, cmd_addr_type: ADDR_LINES},
+		CMD_later:        {cmd_name: S("later"), cmd_minlen: 3, cmd_func: ex_later, cmd_argt: 17301780, cmd_addr_type: ADDR_NONE},
+		CMD_lockmarks:    {cmd_name: S("lockmarks"), cmd_minlen: 3, cmd_func: ex_wrongmodifier, cmd_argt: 2180, cmd_addr_type: ADDR_NONE},
+		CMD_move:         {cmd_name: S("move"), cmd_minlen: 1, cmd_func: ex_copymove, cmd_argt: 18350405, cmd_addr_type: ADDR_LINES},
+		CMD_mark:         {cmd_name: S("mark"), cmd_minlen: 2, cmd_func: ex_mark, cmd_argt: 17563925, cmd_addr_type: ADDR_LINES},
+		CMD_map:          {cmd_name: S("map"), cmd_minlen: 3, cmd_func: ex_map, cmd_argt: 17312006, cmd_addr_type: ADDR_NONE},
+		CMD_mapclear:     {cmd_name: S("mapclear"), cmd_minlen: 4, cmd_func: ex_mapclear, cmd_argt: 17301766, cmd_addr_type: ADDR_NONE},
+		CMD_marks:        {cmd_name: S("marks"), cmd_minlen: 5, cmd_func: ex_marks, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE},
+		CMD_match:        {cmd_name: S("match"), cmd_minlen: 3, cmd_func: ex_match, cmd_argt: 17301509, cmd_addr_type: ADDR_OTHER},
+		CMD_messages:     {cmd_name: S("messages"), cmd_minlen: 3, cmd_func: ex_messages, cmd_argt: 17301765, cmd_addr_type: ADDR_OTHER},
+		CMD_nmap:         {cmd_name: S("nmap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_nmapclear:    {cmd_name: S("nmapclear"), cmd_minlen: 5, cmd_func: ex_mapclear, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE},
+		CMD_nnoremap:     {cmd_name: S("nnoremap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_noremap:      {cmd_name: S("noremap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312006, cmd_addr_type: ADDR_NONE},
+		CMD_nohlsearch:   {cmd_name: S("nohlsearch"), cmd_minlen: 3, cmd_func: ex_nohlsearch, cmd_argt: 17563904, cmd_addr_type: ADDR_NONE},
+		CMD_normal:       {cmd_name: S("normal"), cmd_minlen: 4, cmd_func: ex_normal, cmd_argt: 17574023, cmd_addr_type: ADDR_LINES},
+		CMD_number:       {cmd_name: S("number"), cmd_minlen: 2, cmd_func: ex_print, cmd_argt: 19400001, cmd_addr_type: ADDR_LINES},
+		CMD_nunmap:       {cmd_name: S("nunmap"), cmd_minlen: 3, cmd_func: ex_unmap, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_omap:         {cmd_name: S("omap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_omapclear:    {cmd_name: S("omapclear"), cmd_minlen: 5, cmd_func: ex_mapclear, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE},
+		CMD_onoremap:     {cmd_name: S("onoremap"), cmd_minlen: 3, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_ounmap:       {cmd_name: S("ounmap"), cmd_minlen: 2, cmd_func: ex_unmap, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_print:        {cmd_name: S("print"), cmd_minlen: 1, cmd_func: ex_print, cmd_argt: 19662145, cmd_addr_type: ADDR_LINES},
+		CMD_put:          {cmd_name: S("put"), cmd_minlen: 2, cmd_func: ex_put, cmd_argt: 18355011, cmd_addr_type: ADDR_LINES},
+		CMD_quit:         {cmd_name: S("quit"), cmd_minlen: 1, cmd_func: ex_quit, cmd_argt: 17302787, cmd_addr_type: ADDR_WINDOWS},
+		CMD_redo:         {cmd_name: S("redo"), cmd_minlen: 3, cmd_func: ex_redo, cmd_argt: 17301760, cmd_addr_type: ADDR_NONE},
+		CMD_redraw:       {cmd_name: S("redraw"), cmd_minlen: 4, cmd_func: ex_redraw, cmd_argt: 17301762, cmd_addr_type: ADDR_NONE},
+		CMD_redrawstatus: {cmd_name: S("redrawstatus"), cmd_minlen: 7, cmd_func: ex_redrawstatus, cmd_argt: 17301762, cmd_addr_type: ADDR_NONE},
+		CMD_registers:    {cmd_name: S("registers"), cmd_minlen: 3, cmd_func: ex_display, cmd_argt: 17565956, cmd_addr_type: ADDR_NONE},
+		CMD_substitute:   {cmd_name: S("substitute"), cmd_minlen: 1, cmd_func: ex_substitute, cmd_argt: 50856005, cmd_addr_type: ADDR_LINES},
+		CMD_set:          {cmd_name: S("set"), cmd_minlen: 2, cmd_func: ex_set, cmd_argt: 17563910, cmd_addr_type: ADDR_NONE},
+		CMD_silent:       {cmd_name: S("silent"), cmd_minlen: 3, cmd_func: ex_wrongmodifier, cmd_argt: 17565830, cmd_addr_type: ADDR_NONE},
+		CMD_smagic:       {cmd_name: S("smagic"), cmd_minlen: 2, cmd_func: ex_submagic, cmd_argt: 50856005, cmd_addr_type: ADDR_LINES},
+		CMD_smap:         {cmd_name: S("smap"), cmd_minlen: 4, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_smapclear:    {cmd_name: S("smapclear"), cmd_minlen: 5, cmd_func: ex_mapclear, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE},
+		CMD_snomagic:     {cmd_name: S("snomagic"), cmd_minlen: 3, cmd_func: ex_submagic, cmd_argt: 50856005, cmd_addr_type: ADDR_LINES},
+		CMD_snoremap:     {cmd_name: S("snoremap"), cmd_minlen: 4, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_stop:         {cmd_name: S("stop"), cmd_minlen: 2, cmd_func: ex_stop, cmd_argt: 17301762, cmd_addr_type: ADDR_NONE},
+		CMD_sunmap:       {cmd_name: S("sunmap"), cmd_minlen: 4, cmd_func: ex_unmap, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_suspend:      {cmd_name: S("suspend"), cmd_minlen: 3, cmd_func: ex_stop, cmd_argt: 17301762, cmd_addr_type: ADDR_NONE},
+		CMD_t:            {cmd_name: S("t"), cmd_minlen: 1, cmd_func: ex_copymove, cmd_argt: 18350405, cmd_addr_type: ADDR_LINES},
+		CMD_undo:         {cmd_name: S("undo"), cmd_minlen: 1, cmd_func: ex_undo, cmd_argt: 17306881, cmd_addr_type: ADDR_OTHER},
+		CMD_undojoin:     {cmd_name: S("undojoin"), cmd_minlen: 5, cmd_func: ex_undojoin, cmd_argt: 17301760, cmd_addr_type: ADDR_NONE},
+		CMD_undolist:     {cmd_name: S("undolist"), cmd_minlen: 5, cmd_func: ex_undolist, cmd_argt: 17301760, cmd_addr_type: ADDR_NONE},
+		CMD_unmap:        {cmd_name: S("unmap"), cmd_minlen: 3, cmd_func: ex_unmap, cmd_argt: 17312006, cmd_addr_type: ADDR_NONE},
+		CMD_unsilent:     {cmd_name: S("unsilent"), cmd_minlen: 3, cmd_func: ex_wrongmodifier, cmd_argt: 17565828, cmd_addr_type: ADDR_NONE},
+		CMD_vglobal:      {cmd_name: S("vglobal"), cmd_minlen: 1, cmd_func: ex_global, cmd_argt: 50856037, cmd_addr_type: ADDR_LINES},
+		CMD_verbose:      {cmd_name: S("verbose"), cmd_minlen: 4, cmd_func: ex_wrongmodifier, cmd_argt: 17565829, cmd_addr_type: ADDR_OTHER},
+		CMD_vmap:         {cmd_name: S("vmap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_vmapclear:    {cmd_name: S("vmapclear"), cmd_minlen: 5, cmd_func: ex_mapclear, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE},
+		CMD_vnoremap:     {cmd_name: S("vnoremap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_vunmap:       {cmd_name: S("vunmap"), cmd_minlen: 2, cmd_func: ex_unmap, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_winsize:      {cmd_name: S("winsize"), cmd_minlen: 2, cmd_func: ex_winsize, cmd_argt: 388, cmd_addr_type: ADDR_NONE},
+		CMD_xmap:         {cmd_name: S("xmap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_xmapclear:    {cmd_name: S("xmapclear"), cmd_minlen: 5, cmd_func: ex_mapclear, cmd_argt: 17301764, cmd_addr_type: ADDR_NONE},
+		CMD_xnoremap:     {cmd_name: S("xnoremap"), cmd_minlen: 2, cmd_func: ex_map, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_xunmap:       {cmd_name: S("xunmap"), cmd_minlen: 2, cmd_func: ex_unmap, cmd_argt: 17312004, cmd_addr_type: ADDR_NONE},
+		CMD_yank:         {cmd_name: S("yank"), cmd_minlen: 1, cmd_func: ex_operators, cmd_argt: 17303361, cmd_addr_type: ADDR_LINES},
+		CMD_z:            {cmd_name: S("z"), cmd_minlen: 1, cmd_func: ex_z, cmd_argt: 19398983, cmd_addr_type: ADDR_LINES},
+		CMD_pound:        {cmd_name: S("#"), cmd_minlen: 1, cmd_func: ex_print, cmd_argt: 19400001, cmd_addr_type: ADDR_LINES},
+		CMD_and:          {cmd_name: S("&"), cmd_minlen: 1, cmd_func: ex_substitute, cmd_argt: 51904581, cmd_addr_type: ADDR_LINES},
+		CMD_star:         {cmd_name: S("*"), cmd_minlen: 1, cmd_func: ex_at, cmd_argt: 50856261, cmd_addr_type: ADDR_LINES},
+		CMD_lshift:       {cmd_name: S("<"), cmd_minlen: 1, cmd_func: ex_operators, cmd_argt: 20448577, cmd_addr_type: ADDR_LINES},
+		CMD_equal:        {cmd_name: S("="), cmd_minlen: 1, cmd_func: ex_equal, cmd_argt: 19398945, cmd_addr_type: ADDR_LINES},
+		CMD_rshift:       {cmd_name: S(">"), cmd_minlen: 1, cmd_func: ex_operators, cmd_argt: 20448577, cmd_addr_type: ADDR_LINES},
+		CMD_at:           {cmd_name: S("@"), cmd_minlen: 1, cmd_func: ex_at, cmd_argt: 50856261, cmd_addr_type: ADDR_LINES},
+		CMD_tilde:        {cmd_name: S("~"), cmd_minlen: 1, cmd_func: ex_substitute, cmd_argt: 51904581, cmd_addr_type: ADDR_LINES},
+		CMD_Print:        {cmd_name: S("Print"), cmd_minlen: 1, cmd_func: ex_print, cmd_argt: 19400001, cmd_addr_type: ADDR_LINES},
+	}
 	min_set_ch = 1
 	command_frame_height = TRUE
 	main_errors = [3]Ptr[byte]{S("Unknown option argument"), S("Too many \"+command\", \"-c command\" or \"--cmd command\" arguments"), S("Invalid argument for")}
@@ -5614,31 +6323,103 @@ func init() {
 	utf_printable_nonprint.Set(6, S_interval{first: 0xfeff, last: 0xfeff})
 	utf_printable_nonprint.Set(7, S_interval{first: 0xfff9, last: 0xfffb})
 	utf_printable_nonprint.Set(8, S_interval{first: 0xfffe, last: 0xffff})
-	utf_class_buf_classes = [71]S_clinterval{S_clinterval{first: 0x037e, last: 0x037e, class: 1}, S_clinterval{first: 0x0387, last: 0x0387, class: 1}, S_clinterval{first: 0x055a, last: 0x055f, class: 1}, S_clinterval{first: 0x0589, last: 0x0589, class: 1}, S_clinterval{first: 0x05be, last: 0x05be, class: 1}, S_clinterval{first: 0x05c0, last: 0x05c0, class: 1}, S_clinterval{first: 0x05c3, last: 0x05c3, class: 1}, S_clinterval{first: 0x05f3, last: 0x05f4, class: 1}, S_clinterval{first: 0x060c, last: 0x060c, class: 1}, S_clinterval{first: 0x061b, last: 0x061b, class: 1}, S_clinterval{first: 0x061f, last: 0x061f, class: 1}, S_clinterval{first: 0x066a, last: 0x066d, class: 1}, S_clinterval{first: 0x06d4, last: 0x06d4, class: 1}, S_clinterval{first: 0x0700, last: 0x070d, class: 1}, S_clinterval{first: 0x0964, last: 0x0965, class: 1}, S_clinterval{first: 0x0970, last: 0x0970, class: 1}, S_clinterval{first: 0x0df4, last: 0x0df4, class: 1}, S_clinterval{first: 0x0e4f, last: 0x0e4f, class: 1}, S_clinterval{first: 0x0e5a, last: 0x0e5b, class: 1}, S_clinterval{first: 0x0f04, last: 0x0f12, class: 1}, S_clinterval{first: 0x0f3a, last: 0x0f3d, class: 1}, S_clinterval{first: 0x0f85, last: 0x0f85, class: 1}, S_clinterval{first: 0x104a, last: 0x104f, class: 1}, S_clinterval{first: 0x10fb, last: 0x10fb, class: 1}, S_clinterval{first: 0x1361, last: 0x1368, class: 1}, S_clinterval{first: 0x166d, last: 0x166e, class: 1}, S_clinterval{first: 0x1680, last: 0x1680, class: 0}, S_clinterval{first: 0x169b, last: 0x169c, class: 1}, S_clinterval{first: 0x16eb, last: 0x16ed, class: 1}, S_clinterval{first: 0x1735, last: 0x1736, class: 1}, S_clinterval{first: 0x17d4, last: 0x17dc, class: 1}, S_clinterval{first: 0x1800, last: 0x180a, class: 1}, S_clinterval{first: 0x2000, last: 0x200b, class: 0}, S_clinterval{first: 0x200c, last: 0x2027, class: 1}, S_clinterval{first: 0x2028, last: 0x2029, class: 0}, S_clinterval{first: 0x202a, last: 0x202e, class: 1}, S_clinterval{first: 0x202f, last: 0x202f, class: 0}, S_clinterval{first: 0x2030, last: 0x205e, class: 1}, S_clinterval{first: 0x205f, last: 0x205f, class: 0}, S_clinterval{first: 0x2060, last: 0x206f, class: 1}, S_clinterval{first: 0x2070, last: 0x207f, class: 0x2070}, S_clinterval{first: 0x2080, last: 0x2094, class: 0x2080}, S_clinterval{first: 0x20a0, last: 0x27ff, class: 1}, S_clinterval{first: 0x2800, last: 0x28ff, class: 0x2800}, S_clinterval{first: 0x2900, last: 0x2998, class: 1}, S_clinterval{first: 0x29d8, last: 0x29db, class: 1}, S_clinterval{first: 0x29fc, last: 0x29fd, class: 1}, S_clinterval{first: 0x2e00, last: 0x2e7f, class: 1}, S_clinterval{first: 0x3000, last: 0x3000, class: 0}, S_clinterval{first: 0x3001, last: 0x3020, class: 1}, S_clinterval{first: 0x3030, last: 0x3030, class: 1}, S_clinterval{first: 0x303d, last: 0x303d, class: 1}, S_clinterval{first: 0x3040, last: 0x309f, class: 0x3040}, S_clinterval{first: 0x30a0, last: 0x30ff, class: 0x30a0}, S_clinterval{first: 0x3300, last: 0x9fff, class: 0x4e00}, S_clinterval{first: 0xac00, last: 0xd7a3, class: 0xac00}, S_clinterval{first: 0xf900, last: 0xfaff, class: 0x4e00}, S_clinterval{first: 0xfd3e, last: 0xfd3f, class: 1}, S_clinterval{first: 0xfe30, last: 0xfe6b, class: 1}, S_clinterval{first: 0xff00, last: 0xff0f, class: 1}, S_clinterval{first: 0xff1a, last: 0xff20, class: 1}, S_clinterval{first: 0xff3b, last: 0xff40, class: 1}, S_clinterval{first: 0xff5b, last: 0xff65, class: 1}, S_clinterval{first: 0x1d000, last: 0x1d24f, class: 1}, S_clinterval{first: 0x1d400, last: 0x1d7ff, class: 1}, S_clinterval{first: 0x1f000, last: 0x1f2ff, class: 1}, S_clinterval{first: 0x1f300, last: 0x1f9ff, class: 1}, S_clinterval{first: 0x20000, last: 0x2a6df, class: 0x4e00}, S_clinterval{first: 0x2a700, last: 0x2b73f, class: 0x4e00}, S_clinterval{first: 0x2b740, last: 0x2b81f, class: 0x4e00}, S_clinterval{first: 0x2f800, last: 0x2fa1f, class: 0x4e00}}
+	utf_class_buf_classes = [71]S_clinterval{
+		{first: 0x037e, last: 0x037e, class: 1},
+		{first: 0x0387, last: 0x0387, class: 1},
+		{first: 0x055a, last: 0x055f, class: 1},
+		{first: 0x0589, last: 0x0589, class: 1},
+		{first: 0x05be, last: 0x05be, class: 1},
+		{first: 0x05c0, last: 0x05c0, class: 1},
+		{first: 0x05c3, last: 0x05c3, class: 1},
+		{first: 0x05f3, last: 0x05f4, class: 1},
+		{first: 0x060c, last: 0x060c, class: 1},
+		{first: 0x061b, last: 0x061b, class: 1},
+		{first: 0x061f, last: 0x061f, class: 1},
+		{first: 0x066a, last: 0x066d, class: 1},
+		{first: 0x06d4, last: 0x06d4, class: 1},
+		{first: 0x0700, last: 0x070d, class: 1},
+		{first: 0x0964, last: 0x0965, class: 1},
+		{first: 0x0970, last: 0x0970, class: 1},
+		{first: 0x0df4, last: 0x0df4, class: 1},
+		{first: 0x0e4f, last: 0x0e4f, class: 1},
+		{first: 0x0e5a, last: 0x0e5b, class: 1},
+		{first: 0x0f04, last: 0x0f12, class: 1},
+		{first: 0x0f3a, last: 0x0f3d, class: 1},
+		{first: 0x0f85, last: 0x0f85, class: 1},
+		{first: 0x104a, last: 0x104f, class: 1},
+		{first: 0x10fb, last: 0x10fb, class: 1},
+		{first: 0x1361, last: 0x1368, class: 1},
+		{first: 0x166d, last: 0x166e, class: 1},
+		{first: 0x1680, last: 0x1680, class: 0},
+		{first: 0x169b, last: 0x169c, class: 1},
+		{first: 0x16eb, last: 0x16ed, class: 1},
+		{first: 0x1735, last: 0x1736, class: 1},
+		{first: 0x17d4, last: 0x17dc, class: 1},
+		{first: 0x1800, last: 0x180a, class: 1},
+		{first: 0x2000, last: 0x200b, class: 0},
+		{first: 0x200c, last: 0x2027, class: 1},
+		{first: 0x2028, last: 0x2029, class: 0},
+		{first: 0x202a, last: 0x202e, class: 1},
+		{first: 0x202f, last: 0x202f, class: 0},
+		{first: 0x2030, last: 0x205e, class: 1},
+		{first: 0x205f, last: 0x205f, class: 0},
+		{first: 0x2060, last: 0x206f, class: 1},
+		{first: 0x2070, last: 0x207f, class: 0x2070},
+		{first: 0x2080, last: 0x2094, class: 0x2080},
+		{first: 0x20a0, last: 0x27ff, class: 1},
+		{first: 0x2800, last: 0x28ff, class: 0x2800},
+		{first: 0x2900, last: 0x2998, class: 1},
+		{first: 0x29d8, last: 0x29db, class: 1},
+		{first: 0x29fc, last: 0x29fd, class: 1},
+		{first: 0x2e00, last: 0x2e7f, class: 1},
+		{first: 0x3000, last: 0x3000, class: 0},
+		{first: 0x3001, last: 0x3020, class: 1},
+		{first: 0x3030, last: 0x3030, class: 1},
+		{first: 0x303d, last: 0x303d, class: 1},
+		{first: 0x3040, last: 0x309f, class: 0x3040},
+		{first: 0x30a0, last: 0x30ff, class: 0x30a0},
+		{first: 0x3300, last: 0x9fff, class: 0x4e00},
+		{first: 0xac00, last: 0xd7a3, class: 0xac00},
+		{first: 0xf900, last: 0xfaff, class: 0x4e00},
+		{first: 0xfd3e, last: 0xfd3f, class: 1},
+		{first: 0xfe30, last: 0xfe6b, class: 1},
+		{first: 0xff00, last: 0xff0f, class: 1},
+		{first: 0xff1a, last: 0xff20, class: 1},
+		{first: 0xff3b, last: 0xff40, class: 1},
+		{first: 0xff5b, last: 0xff65, class: 1},
+		{first: 0x1d000, last: 0x1d24f, class: 1},
+		{first: 0x1d400, last: 0x1d7ff, class: 1},
+		{first: 0x1f000, last: 0x1f2ff, class: 1},
+		{first: 0x1f300, last: 0x1f9ff, class: 1},
+		{first: 0x20000, last: 0x2a6df, class: 0x4e00},
+		{first: 0x2a700, last: 0x2b73f, class: 0x4e00},
+		{first: 0x2b740, last: 0x2b81f, class: 0x4e00},
+		{first: 0x2f800, last: 0x2fa1f, class: 0x4e00},
+	}
 	add_to_showcmd_ignore = [26]int32{-(KS_EXTRA + (53 << 8)), -('P' + (83 << 8)), -(KS_EXTRA + (44 << 8)), -(KS_EXTRA + (45 << 8)), -(KS_EXTRA + (46 << 8)), -(KS_EXTRA + (100 << 8)), -(KS_EXTRA + (47 << 8)), -(KS_EXTRA + (48 << 8)), -(KS_EXTRA + (49 << 8)), -(KS_EXTRA + (50 << 8)), -(KS_EXTRA + (51 << 8)), -(KS_EXTRA + (52 << 8)), -(KS_EXTRA + (75 << 8)), -(KS_EXTRA + (76 << 8)), -(KS_EXTRA + (77 << 8)), -(KS_EXTRA + (78 << 8)), -(KS_EXTRA + (89 << 8)), -(KS_EXTRA + (90 << 8)), -(KS_EXTRA + (91 << 8)), -(KS_EXTRA + (92 << 8)), -(KS_EXTRA + (93 << 8)), -(KS_EXTRA + (94 << 8)), -(KS_EXTRA + (96 << 8)), -(KS_EXTRA + (103 << 8)), -(KS_EXTRA + (104 << 8)), 0}
 	copy(v_visop_trans.Slice(16), "YyDdCcxdXdAAIIrr")
 	nv_optrans_ar = [8]Ptr[byte]{S("dl"), S("dh"), S("d$"), S("c$"), S("cl"), S("cc"), S("yy"), S(":s\r")}
 	nv_optrans_str = S("xXDCsSY&")
 	vim_handle_signal_blocked = TRUE
-	get_char_class_char_class_tab.Set(0, keyvalue_T{key: CLASS_ALNUM, value: string_T{string_: S("alnum:]"), length: (8 - 1)}})
-	get_char_class_char_class_tab.Set(1, keyvalue_T{key: CLASS_ALPHA, value: string_T{string_: S("alpha:]"), length: (8 - 1)}})
-	get_char_class_char_class_tab.Set(2, keyvalue_T{key: CLASS_BACKSPACE, value: string_T{string_: S("backspace:]"), length: (12 - 1)}})
-	get_char_class_char_class_tab.Set(3, keyvalue_T{key: CLASS_BLANK, value: string_T{string_: S("blank:]"), length: (8 - 1)}})
-	get_char_class_char_class_tab.Set(4, keyvalue_T{key: CLASS_CNTRL, value: string_T{string_: S("cntrl:]"), length: (8 - 1)}})
-	get_char_class_char_class_tab.Set(5, keyvalue_T{key: CLASS_DIGIT, value: string_T{string_: S("digit:]"), length: (8 - 1)}})
-	get_char_class_char_class_tab.Set(6, keyvalue_T{key: CLASS_ESCAPE, value: string_T{string_: S("escape:]"), length: (9 - 1)}})
-	get_char_class_char_class_tab.Set(7, keyvalue_T{key: CLASS_FNAME, value: string_T{string_: S("fname:]"), length: (8 - 1)}})
-	get_char_class_char_class_tab.Set(8, keyvalue_T{key: CLASS_GRAPH, value: string_T{string_: S("graph:]"), length: (8 - 1)}})
-	get_char_class_char_class_tab.Set(9, keyvalue_T{key: CLASS_IDENT, value: string_T{string_: S("ident:]"), length: (8 - 1)}})
-	get_char_class_char_class_tab.Set(10, keyvalue_T{key: CLASS_KEYWORD, value: string_T{string_: S("keyword:]"), length: (10 - 1)}})
-	get_char_class_char_class_tab.Set(11, keyvalue_T{key: CLASS_LOWER, value: string_T{string_: S("lower:]"), length: (8 - 1)}})
-	get_char_class_char_class_tab.Set(12, keyvalue_T{key: CLASS_PRINT, value: string_T{string_: S("print:]"), length: (8 - 1)}})
-	get_char_class_char_class_tab.Set(13, keyvalue_T{key: CLASS_PUNCT, value: string_T{string_: S("punct:]"), length: (8 - 1)}})
-	get_char_class_char_class_tab.Set(14, keyvalue_T{key: CLASS_RETURN, value: string_T{string_: S("return:]"), length: (9 - 1)}})
-	get_char_class_char_class_tab.Set(15, keyvalue_T{key: CLASS_SPACE, value: string_T{string_: S("space:]"), length: (8 - 1)}})
-	get_char_class_char_class_tab.Set(16, keyvalue_T{key: CLASS_TAB, value: string_T{string_: S("tab:]"), length: (6 - 1)}})
-	get_char_class_char_class_tab.Set(17, keyvalue_T{key: CLASS_UPPER, value: string_T{string_: S("upper:]"), length: (8 - 1)}})
-	get_char_class_char_class_tab.Set(18, keyvalue_T{key: CLASS_XDIGIT, value: string_T{string_: S("xdigit:]"), length: (9 - 1)}})
+	get_char_class_char_class_tab.Set(0, keyvalue_T{key: CLASS_ALNUM, value: string_T{string_: S("alnum:]"), length: 7}})
+	get_char_class_char_class_tab.Set(1, keyvalue_T{key: CLASS_ALPHA, value: string_T{string_: S("alpha:]"), length: 7}})
+	get_char_class_char_class_tab.Set(2, keyvalue_T{key: CLASS_BACKSPACE, value: string_T{string_: S("backspace:]"), length: 11}})
+	get_char_class_char_class_tab.Set(3, keyvalue_T{key: CLASS_BLANK, value: string_T{string_: S("blank:]"), length: 7}})
+	get_char_class_char_class_tab.Set(4, keyvalue_T{key: CLASS_CNTRL, value: string_T{string_: S("cntrl:]"), length: 7}})
+	get_char_class_char_class_tab.Set(5, keyvalue_T{key: CLASS_DIGIT, value: string_T{string_: S("digit:]"), length: 7}})
+	get_char_class_char_class_tab.Set(6, keyvalue_T{key: CLASS_ESCAPE, value: string_T{string_: S("escape:]"), length: 8}})
+	get_char_class_char_class_tab.Set(7, keyvalue_T{key: CLASS_FNAME, value: string_T{string_: S("fname:]"), length: 7}})
+	get_char_class_char_class_tab.Set(8, keyvalue_T{key: CLASS_GRAPH, value: string_T{string_: S("graph:]"), length: 7}})
+	get_char_class_char_class_tab.Set(9, keyvalue_T{key: CLASS_IDENT, value: string_T{string_: S("ident:]"), length: 7}})
+	get_char_class_char_class_tab.Set(10, keyvalue_T{key: CLASS_KEYWORD, value: string_T{string_: S("keyword:]"), length: 9}})
+	get_char_class_char_class_tab.Set(11, keyvalue_T{key: CLASS_LOWER, value: string_T{string_: S("lower:]"), length: 7}})
+	get_char_class_char_class_tab.Set(12, keyvalue_T{key: CLASS_PRINT, value: string_T{string_: S("print:]"), length: 7}})
+	get_char_class_char_class_tab.Set(13, keyvalue_T{key: CLASS_PUNCT, value: string_T{string_: S("punct:]"), length: 7}})
+	get_char_class_char_class_tab.Set(14, keyvalue_T{key: CLASS_RETURN, value: string_T{string_: S("return:]"), length: 8}})
+	get_char_class_char_class_tab.Set(15, keyvalue_T{key: CLASS_SPACE, value: string_T{string_: S("space:]"), length: 7}})
+	get_char_class_char_class_tab.Set(16, keyvalue_T{key: CLASS_TAB, value: string_T{string_: S("tab:]"), length: 5}})
+	get_char_class_char_class_tab.Set(17, keyvalue_T{key: CLASS_UPPER, value: string_T{string_: S("upper:]"), length: 7}})
+	get_char_class_char_class_tab.Set(18, keyvalue_T{key: CLASS_XDIGIT, value: string_T{string_: S("xdigit:]"), length: 8}})
 	uc_fun_cmd_fcmd = [27]byte{0x84, 0xaf, 0x60, 0xb9, 0xaf, 0xb5, 0x60, 0xa4, 0xa5, 0xad, 0xa1, 0xae, 0xa4, 0x60, 0xa1, 0x60, 0xb3, 0xa8, 0xb2, 0xb5, 0xa2, 0xa2, 0xa5, 0xb2, 0xb9, 0x7f, 0}
 }
 
@@ -5772,7 +6553,7 @@ func musl_strcasecmp(ls Ptr[byte], rs Ptr[byte]) int32 {
 			}
 			t3 = t1 == t2
 		}
-		if !(t3) {
+		if !t3 {
 			break
 		}
 		l = l.Add(1)
@@ -5823,7 +6604,7 @@ func musl_strncasecmp(ls Ptr[byte], rs Ptr[byte], n usize) int32 {
 			}
 			t4 = t2 == t3
 		}
-		if !(t4) {
+		if !t4 {
 			break
 		}
 		l = l.Add(1)
@@ -6240,7 +7021,7 @@ func open_buffer() int32 {
 		getout(2)
 	}
 	set_bufref(&old_curbuf, curbuf)
-	curbuf.b_modified_was_set = (0 != 0)
+	curbuf.b_modified_was_set = false
 	curwin.w_valid = 0
 	if curbuf.b_flags&BF_NEVERLOADED != 0 {
 		buf_init_chartab(curbuf, FALSE)
@@ -6332,7 +7113,7 @@ func close_buffer(win *S_window_S, buf *S_file_buffer, action int32, abort_if_la
 	wipe_buf = B2i(((action == DOBUF_WIPE) || (action == DOBUF_WIPE_REUSE)))
 	del_buf = B2i(((action == DOBUF_DEL) || (wipe_buf != 0)))
 	win_valid = win_valid_any_tab(win)
-	closed_popup = B2i(((win != nil) && (win_valid == 0)) && (0 != 0))
+	closed_popup = B2i(((win != nil) && (win_valid == 0)) && false)
 	if ((del_buf != 0) || (wipe_buf != 0)) && (can_unload_buffer(buf) == 0) {
 		return FALSE
 	}
@@ -6386,7 +7167,7 @@ func close_buffer(win *S_window_S, buf *S_file_buffer, action int32, abort_if_la
 	if del_buf != 0 {
 		free_buffer_stuff(buf, TRUE)
 		buf.b_flags = BF_CHECK_RO | BF_NEVERLOADED
-		buf.b_p_initialized = (0 != 0)
+		buf.b_p_initialized = false
 	}
 	buf_clear_file(buf)
 	return TRUE
@@ -6395,7 +7176,7 @@ func close_buffer(win *S_window_S, buf *S_file_buffer, action int32, abort_if_la
 func buf_clear_file(buf *S_file_buffer) {
 	buf.b_ml.ml_line_count = 1
 	unchanged(buf, TRUE, TRUE)
-	buf.b_shortname = (0 != 0)
+	buf.b_shortname = false
 	buf.b_ml.ml_root = nil
 	buf.b_ml.ml_flags = ML_EMPTY
 }
@@ -6481,7 +7262,7 @@ func buflist_new(lnum linenr_T, flags int32) *S_file_buffer {
 	buf.b_wininfo = new(S_wininfo_S)
 	if buf == curbuf {
 		free_buffer_stuff(buf, FALSE)
-		buf.b_p_initialized = (0 != 0)
+		buf.b_p_initialized = false
 		buf_copy_options(buf, BCO_ENTER)
 	} else {
 		t1 = top_file_num
@@ -6499,7 +7280,7 @@ func buflist_new(lnum linenr_T, flags int32) *S_file_buffer {
 	}
 	buf.b_wininfo.wi_fpos.lnum = lnum
 	buf.b_wininfo.wi_win = curwin
-	buf.b_u_synced = (1 != 0)
+	buf.b_u_synced = true
 	buf.b_flags = BF_CHECK_RO | BF_NEVERLOADED
 	if flags&BLN_DUMMY != 0 {
 		buf.b_flags |= BF_DUMMY
@@ -6594,15 +7375,15 @@ func fileinfo(fullname int32, shorthelp int32, dont_truncate int32) {
 	var p Ptr[byte]
 
 	bufferlen = 0
-	buffer = Alloc((1024 + 1))
+	buffer = Alloc(1025)
 	if fullname > 1 {
-		bufferlen = safelen_result(buffer, (1024 + 1), vim_snprintf(buffer, (1024+1), S("buf %d: "), curbuf.b_fnum))
+		bufferlen = safelen_result(buffer, 1025, vim_snprintf(buffer, 1025, S("buf %d: "), curbuf.b_fnum))
 	}
 	t1 = bufferlen
 	bufferlen++
 	buffer.Set(int(t1), '"')
 	name = buf_spname(curbuf)
-	bufferlen += safelen_result(buffer.Add(int(bufferlen)), (1024+1)-bufferlen, vim_snprintf(buffer.Add(int(bufferlen)), (1024+1)-bufferlen, S("%s"), name))
+	bufferlen += safelen_result(buffer.Add(int(bufferlen)), 1025-bufferlen, vim_snprintf(buffer.Add(int(bufferlen)), 1025-bufferlen, S("%s"), name))
 	if (curbuf.b_flags & BF_NEW) != 0 {
 		t2 = new_file_message()
 	} else {
@@ -6634,15 +7415,15 @@ func fileinfo(fullname int32, shorthelp int32, dont_truncate int32) {
 	} else {
 		t7 = S("")
 	}
-	bufferlen += safelen_result(buffer.Add(int(bufferlen)), (1024+1)-bufferlen, vim_snprintf(buffer.Add(int(bufferlen)), (1024+1)-bufferlen, S("\"%s%s%s%s%s"), t4, t5, new_msg, t6, t7))
+	bufferlen += safelen_result(buffer.Add(int(bufferlen)), 1025-bufferlen, vim_snprintf(buffer.Add(int(bufferlen)), 1025-bufferlen, S("\"%s%s%s%s%s"), t4, t5, new_msg, t6, t7))
 	if curbuf.b_ml.ml_flags&ML_EMPTY != 0 {
-		bufferlen += safelen_result(buffer.Add(int(bufferlen)), (1024+1)-bufferlen, vim_snprintf(buffer.Add(int(bufferlen)), (1024+1)-bufferlen, S("%s"), gettext_(no_lines_msg)))
+		bufferlen += safelen_result(buffer.Add(int(bufferlen)), 1025-bufferlen, vim_snprintf(buffer.Add(int(bufferlen)), 1025-bufferlen, S("%s"), gettext_(no_lines_msg)))
 	} else if p_ru != 0 {
-		bufferlen += safelen_result(buffer.Add(int(bufferlen)), (1024+1)-bufferlen, vim_snprintf(buffer.Add(int(bufferlen)), (1024+1)-bufferlen, NGETTEXT(S("%ld line --%d%%--"), S("%ld lines --%d%%--"), uint64(curbuf.b_ml.ml_line_count)), curbuf.b_ml.ml_line_count, calc_percentage(curwin.w_cursor.lnum, curbuf.b_ml.ml_line_count)))
+		bufferlen += safelen_result(buffer.Add(int(bufferlen)), 1025-bufferlen, vim_snprintf(buffer.Add(int(bufferlen)), 1025-bufferlen, NGETTEXT(S("%ld line --%d%%--"), S("%ld lines --%d%%--"), uint64(curbuf.b_ml.ml_line_count)), curbuf.b_ml.ml_line_count, calc_percentage(curwin.w_cursor.lnum, curbuf.b_ml.ml_line_count)))
 	} else {
-		bufferlen += safelen_result(buffer.Add(int(bufferlen)), (1024+1)-bufferlen, vim_snprintf(buffer.Add(int(bufferlen)), (1024+1)-bufferlen, gettext_(S("line %ld of %ld --%d%%-- col ")), curwin.w_cursor.lnum, curbuf.b_ml.ml_line_count, calc_percentage(curwin.w_cursor.lnum, curbuf.b_ml.ml_line_count)))
+		bufferlen += safelen_result(buffer.Add(int(bufferlen)), 1025-bufferlen, vim_snprintf(buffer.Add(int(bufferlen)), 1025-bufferlen, gettext_(S("line %ld of %ld --%d%%-- col ")), curwin.w_cursor.lnum, curbuf.b_ml.ml_line_count, calc_percentage(curwin.w_cursor.lnum, curbuf.b_ml.ml_line_count)))
 		validate_virtcol()
-		bufferlen += usize(col_print(buffer.Add(int(bufferlen)), (1024+1)-bufferlen, curwin.w_cursor.col+1, curwin.w_virtcol+1))
+		bufferlen += usize(col_print(buffer.Add(int(bufferlen)), 1025-bufferlen, curwin.w_cursor.col+1, curwin.w_virtcol+1))
 	}
 	if dont_truncate != 0 {
 		msg_start()
@@ -6761,7 +7542,7 @@ func changed_common(lnum linenr_T, col colnr_T, lnume linenr_T, xtra int64) {
 				}
 			}
 			if add != 0 {
-				curbuf.b_new_change = (0 != 0)
+				curbuf.b_new_change = false
 				if curbuf.b_changelistlen == JUMPLISTSIZE {
 					curbuf.b_changelistlen = JUMPLISTSIZE - 1
 					Memmove(View(curbuf.b_changelist[:]), View(curbuf.b_changelist[:]).Add(1), 99)
@@ -6849,7 +7630,7 @@ func changedOneline(buf *S_file_buffer, lnum linenr_T) {
 			buf.b_mod_bot = lnum + 1
 		}
 	} else {
-		buf.b_mod_set = (1 != 0)
+		buf.b_mod_set = true
 		buf.b_mod_top = lnum
 		buf.b_mod_bot = lnum + 1
 		buf.b_mod_xlines = 0
@@ -6899,7 +7680,7 @@ func changed_lines_buf(buf *S_file_buffer, lnum linenr_T, lnume linenr_T, xtra i
 		}
 		buf.b_mod_xlines += xtra
 	} else {
-		buf.b_mod_set = (1 != 0)
+		buf.b_mod_set = true
 		buf.b_mod_top = lnum
 		buf.b_mod_bot = lnume + xtra
 		buf.b_mod_xlines = xtra
@@ -7531,7 +8312,7 @@ func buf_init_chartab(buf *S_file_buffer, global int32) int32 {
 			}
 		}
 	}
-	*&buf.b_chartab = [32]byte{}
+	buf.b_chartab = [32]byte{}
 	if global != 0 {
 		t7 = 0
 	} else {
@@ -7826,7 +8607,7 @@ func vim_strnsize(s Ptr[byte], len_ int32) int32 {
 			len_--
 			t1 = len_ >= 0
 		}
-		if !(t1) {
+		if !t1 {
 			break
 		}
 		l = utfc_ptr2len(s)
@@ -7846,7 +8627,6 @@ func chartabsize(p Ptr[byte], col colnr_T) int32 {
 	} else {
 		return ptr2cells(p)
 	}
-	panic("not reached")
 }
 
 func linetabsize_str(s Ptr[byte]) int32 {
@@ -7985,7 +8765,6 @@ func lbr_chartabsize(cts *chartabsize_T) int32 {
 	} else {
 		return ptr2cells(cts.cts_ptr)
 	}
-	panic("not reached")
 }
 
 func lbr_chartabsize_adv(cts *chartabsize_T) int32 {
@@ -8014,7 +8793,6 @@ func win_lbr_chartabsize(cts *chartabsize_T, headp *int32, tailp *int32) int32 {
 	} else {
 		return ptr2cells(s)
 	}
-	panic("not reached")
 }
 
 func win_nolbr_chartabsize(cts *chartabsize_T, headp *int32) int32 {
@@ -8169,7 +8947,7 @@ func getvcol(wp *S_window_S, pos *pos_T, start *colnr_T, cursor *colnr_T, end *c
 				}
 				t5 = t4
 			}
-			t6 = !(t5)
+			t6 = !t5
 		}
 		if t6 {
 			*cursor = (vcol + incr) - 1
@@ -9060,7 +9838,7 @@ func ex_history(eap *S_exarg) {
 		return
 	}
 	for ; (got_int == 0) && (histype1 <= histype2); histype1++ {
-		vim_snprintf(IObuff, (1024 + 1), S("\n      #  %s history"), history_names[int(histype1)])
+		vim_snprintf(IObuff, 1025, S("\n      #  %s history"), history_names[int(histype1)])
 		msg_puts_title(IObuff)
 		idx = hisidx[int(histype1)]
 		hist = history[int(histype1)]
@@ -9095,9 +9873,9 @@ func ex_history(eap *S_exarg) {
 					} else {
 						t3 = ' '
 					}
-					len_ = vim_snprintf(IObuff, (1024 + 1), S("%c%6d  "), t3, hist.Ref(int(i)).hisnum)
+					len_ = vim_snprintf(IObuff, 1025, S("%c%6d  "), t3, hist.Ref(int(i)).hisnum)
 					if vim_strsize(hist.Ref(int(i)).hisstr) > (int32(Columns) - 10) {
-						trunc_string(hist.Ref(int(i)).hisstr, IObuff.Add(int(len_)), int32(Columns)-10, (1024+1)-len_)
+						trunc_string(hist.Ref(int(i)).hisstr, IObuff.Add(int(len_)), int32(Columns)-10, 1025-len_)
 					} else {
 						musl_strcpy(IObuff.Add(int(len_)), hist.Ref(int(i)).hisstr)
 					}
@@ -9163,7 +9941,7 @@ func handle_lnum_col(wp *S_window_S, wlv *winlinevars_T, sign_present int32, num
 			wlv.c_extra = ' '
 			wlv.c_final = NUL
 		}
-		wlv.n_extra = 7 + 1
+		wlv.n_extra = 8
 		wlv.char_attr = hl_combine_attr(get_win_attr(wp), highlight_attr[11])
 		if ((wp.w_onebuf_opt.wo_rnu != 0) && (wlv.lnum < wp.w_cursor.lnum)) && (highlight_attr[12] != 0) {
 			wlv.char_attr = hl_combine_attr(get_win_attr(wp), highlight_attr[12])
@@ -9361,7 +10139,7 @@ func win_line(wp *S_window_S, lnum linenr_T, startrow int32, endrow int32, numbe
 	if startrow > endrow {
 		return startrow
 	}
-	*&wlv = winlinevars_T{}
+	wlv = winlinevars_T{}
 	wlv.lnum = lnum
 	wlv.startrow = startrow
 	wlv.row = startrow
@@ -10157,7 +10935,7 @@ func update_screen(type_arg int32) int32 {
 					} else {
 						wp.w_redr_type = UPD_NOT_VALID
 						if ((wp.w_winrow + wp.w_height) + wp.w_status_height) <= msg_scrolled {
-							wp.w_redr_status = (1 != 0)
+							wp.w_redr_status = true
 						}
 					}
 				}
@@ -10216,7 +10994,7 @@ func update_screen(type_arg int32) int32 {
 		}
 	}
 	wp = curwin
-	wp.w_buffer.b_mod_set = (0 != 0)
+	wp.w_buffer.b_mod_set = false
 	after_updating_screen(TRUE)
 	if ((clear_cmdline != 0) || (redraw_cmdline != 0)) || (redraw_mode != 0) {
 		showmode()
@@ -10254,11 +11032,11 @@ func win_redr_status(wp *S_window_S, ignore_pum int32) {
 	}
 	win_redr_status_busy = TRUE
 	row = statusline_row(wp)
-	wp.w_redr_status = (0 != 0)
+	wp.w_redr_status = false
 	if wp.w_status_height == 0 {
 		redraw_cmdline = TRUE
 	} else if redrawing() == 0 {
-		wp.w_redr_status = (1 != 0)
+		wp.w_redr_status = true
 	} else {
 		fillchar = fillchar_status(&attr, wp)
 		get_trans_bufname(wp.w_buffer)
@@ -10541,7 +11319,7 @@ func win_update(wp *S_window_S) {
 	}
 	type_ = wp.w_redr_type
 	if type_ == UPD_NOT_VALID {
-		wp.w_redr_status = (1 != 0)
+		wp.w_redr_status = true
 		wp.w_lines_valid = 0
 	}
 	if ((wp.w_height + 0) == 0) || (wp.w_frame.fr_height == wp.w_status_height) {
@@ -10792,7 +11570,7 @@ func win_update(wp *S_window_S) {
 							} else {
 								t3 = pos.lnum >= VIsual.lnum
 							}
-							if !(t3) {
+							if !t3 {
 								break
 							}
 							pos.col = ml_get_buf_len(wp.w_buffer, pos.lnum)
@@ -11010,7 +11788,7 @@ func win_update(wp *S_window_S) {
 					}
 				}
 			}
-			if ((((((idx < wp.w_lines_valid) && (wp.w_lines.Ref(int(idx)).wl_valid != 0)) && (wp.w_lines.Ref(int(idx)).wl_lnum == lnum)) && (lnum > wp.w_topline)) && ((dy_flags & (DY_LASTLINE | DY_TRUNCATE)) == 0)) && (0 == 0)) && ((srow + int32(wp.w_lines.Ref(int(idx)).wl_size)) > wp.w_height) {
+			if ((((((idx < wp.w_lines_valid) && (wp.w_lines.Ref(int(idx)).wl_valid != 0)) && (wp.w_lines.Ref(int(idx)).wl_lnum == lnum)) && (lnum > wp.w_topline)) && ((dy_flags & (DY_LASTLINE | DY_TRUNCATE)) == 0)) && true) && ((srow + int32(wp.w_lines.Ref(int(idx)).wl_size)) > wp.w_height) {
 				row = wp.w_height + 1
 			} else {
 				prepare_search_hl(wp, &screen_search_hl, lnum)
@@ -11101,7 +11879,7 @@ func win_update(wp *S_window_S) {
 		} else if (dollar_vcol == -1) || (wp != curwin) {
 			wp.w_botline = lnum
 		}
-		if 0 != 0 {
+		if false {
 			win_draw_end(wp, ' ', ' ', FALSE, row, wp.w_height, HLF_AT)
 		} else {
 			win_draw_end(wp, wp.w_fill_chars.eob, ' ', FALSE, row, wp.w_height, HLF_EOB)
@@ -11116,7 +11894,7 @@ func win_update(wp *S_window_S) {
 			update_topline()
 			if wp.w_redr_type != 0 {
 				b = (curbuf.b_mod_set)
-				curbuf.b_mod_set = (0 != 0)
+				curbuf.b_mod_set = false
 				j = curbuf.b_mod_xlines
 				curbuf.b_mod_xlines = 0
 				curs_columns(TRUE)
@@ -11265,7 +12043,7 @@ func status_redraw_all() {
 
 	wp = curwin
 	if wp.w_status_height != 0 {
-		wp.w_redr_status = (1 != 0)
+		wp.w_redr_status = true
 		redraw_later(UPD_VALID)
 	}
 	ruler_redraw_lastwin()
@@ -11276,7 +12054,7 @@ func status_redraw_curbuf() {
 
 	wp = curwin
 	if (wp.w_status_height != 0) && (wp.w_buffer == curbuf) {
-		wp.w_redr_status = (1 != 0)
+		wp.w_redr_status = true
 		redraw_later(UPD_VALID)
 	}
 	if curwin.w_buffer == curbuf {
@@ -11498,7 +12276,7 @@ func edit(cmdchar int32, startln int32, count int64) int32 {
 			continue
 		}
 		if arrow_used == 0 {
-			curwin.w_set_curswant = (1 != 0)
+			curwin.w_set_curswant = true
 		}
 		if stuff_empty() != 0 {
 		}
@@ -11743,7 +12521,6 @@ func edit(cmdchar int32, startln int32, count int64) int32 {
 			inserted_space = FALSE
 			if ins_tab() != 0 {
 				edit_normalchar(c, &inserted_space)
-				break
 			}
 		case -('K' + (65 << 8)):
 			c = CAR
@@ -11801,7 +12578,6 @@ func edit(cmdchar int32, startln int32, count int64) int32 {
 			inserted_space = FALSE
 		}
 	}
-	panic("not reached")
 }
 
 func ins_redraw(ready int32) {
@@ -12462,7 +13238,7 @@ func beginline(flags int32) {
 				curwin.w_cursor.col++
 			}
 		}
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 	}
 	adjust_skipcol()
 }
@@ -12483,7 +13259,7 @@ func oneright() int32 {
 			t1 = 1
 		}
 		coladvance(getviscol() + t1)
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 		if (prevpos.col != curwin.w_cursor.col) || (prevpos.coladd != curwin.w_cursor.coladd) {
 			t2 = OK
 		} else {
@@ -12500,7 +13276,7 @@ func oneright() int32 {
 		return FAIL
 	}
 	curwin.w_cursor.col += l
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 	adjust_skipcol()
 	return OK
 }
@@ -12521,14 +13297,14 @@ func oneleft() int32 {
 				curwin.w_cursor.coladd = 0
 			}
 		}
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 		adjust_skipcol()
 		return OK
 	}
 	if curwin.w_cursor.col == 0 {
 		return FAIL
 	}
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 	curwin.w_cursor.col--
 	mb_adjust_cursor()
 	adjust_skipcol()
@@ -12628,9 +13404,9 @@ func stuff_inserted(c int32, count int64, no_esc int32) int32 {
 		stuffReadbuffLen(insert.string_, int64(insert.length))
 		switch last {
 		case '0':
-			stuffReadbuffLen(S("\x16048"), (5 - 1))
+			stuffReadbuffLen(S("\x16048"), 4)
 		case '^':
-			stuffReadbuffLen(S("\x16^"), (3 - 1))
+			stuffReadbuffLen(S("\x16^"), 2)
 		default:
 		}
 		count--
@@ -12974,7 +13750,7 @@ func ins_esc(count *int64, cmdchar int32, nomove int32) int32 {
 		undisplay_dollar()
 	}
 	if (restart_edit == NUL) && (temp == curwin.w_cursor.col) {
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 	}
 	if (cmdmod.cmod_flags & CMOD_KEEPJUMPS) == 0 {
 		curbuf.b_last_insert = curwin.w_cursor
@@ -13438,7 +14214,7 @@ func ins_left() {
 		start_arrow(&tpos)
 		curwin.w_cursor.lnum--
 		coladvance(2147483647)
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 	} else {
 		vim_beep(BO_CRSR)
 	}
@@ -13483,7 +14259,7 @@ func ins_s_left() {
 			AppendCharToRedobuff(-('#' + (52 << 8)))
 		}
 		bck_word(1, FALSE, FALSE)
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 	} else {
 		vim_beep(BO_CRSR)
 	}
@@ -13500,7 +14276,7 @@ func ins_right() {
 		if end_change == 0 {
 			AppendCharToRedobuff(-('k' + (114 << 8)))
 		}
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 		if virtual_active() != 0 {
 			oneright()
 		} else {
@@ -13508,7 +14284,7 @@ func ins_right() {
 		}
 	} else if !vim_strchr(p_ww, ']').Nil() && (curwin.w_cursor.lnum < curbuf.b_ml.ml_line_count) {
 		start_arrow(&curwin.w_cursor)
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 		curwin.w_cursor.lnum++
 		curwin.w_cursor.col = 0
 	} else {
@@ -13528,7 +14304,7 @@ func ins_s_right() {
 			AppendCharToRedobuff(-('%' + (105 << 8)))
 		}
 		fwd_word(1, FALSE, 0)
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 	} else {
 		vim_beep(BO_CRSR)
 	}
@@ -13885,7 +14661,7 @@ func do_ascii(eap *S_exarg) {
 		} else {
 			buf2.Set(0, NUL)
 		}
-		vim_snprintf(IObuff, (1024 + 1), gettext_(S("<%s>%s%s  %d,  Hex %02x,  Octal %03o")), transchar(c), buf1, buf2, cval, cval, cval)
+		vim_snprintf(IObuff, 1025, gettext_(S("<%s>%s%s  %d,  Hex %02x,  Octal %03o")), transchar(c), buf1, buf2, cval, cval, cval)
 		t1 = ci
 		ci++
 		c = cc.At(int(t1))
@@ -13911,7 +14687,7 @@ func do_ascii(eap *S_exarg) {
 		} else {
 			t5 = gettext_(S("> %d, Hex %08x, Octal %o"))
 		}
-		vim_snprintf(IObuff.Add(int(len_)), usize((1024+1)-len_), t5, c, c, c)
+		vim_snprintf(IObuff.Add(int(len_)), usize(1025-len_), t5, c, c, c)
 		if ci == MAX_MCO {
 			break
 		}
@@ -14266,7 +15042,7 @@ func ex_z(eap *S_exarg) {
 	lnum = eap.line2
 	if eap.forceit != 0 {
 		bigness = Rows - 1
-	} else if TRUE == 0 {
+	} else if false {
 		bigness = int64(curwin.w_height - 3)
 	} else {
 		bigness = curwin.w_onebuf_opt.wo_scr * 2
@@ -14490,7 +15266,7 @@ func ex_substitute(eap *S_exarg) {
 				which_pat = RE_SEARCH
 			}
 			pat.string_ = S("")
-			pat.length = (1 - 1)
+			pat.length = 0
 			t1 = cmd
 			cmd = cmd.Add(1)
 			delimiter = int32(t1.Get())
@@ -14672,7 +15448,7 @@ func ex_substitute(eap *S_exarg) {
 			did_sub = FALSE
 			nmatch_tl = 0
 			skip_match = FALSE
-			did_split = (0 != 0)
+			did_split = false
 			sub_firstlnum = lnum
 			copycol = 0
 			matchcol = 0
@@ -14920,7 +15696,7 @@ func ex_substitute(eap *S_exarg) {
 							sub_firstlnum++
 							lnum++
 							line2++
-							did_split = (1 != 0)
+							did_split = true
 							curwin.w_cursor.lnum++
 							n = new_start.length - uint64(plen)
 							Memmove(new_start.string_, p1.Add(1), int(n+1))
@@ -14986,7 +15762,7 @@ func ex_substitute(eap *S_exarg) {
 						matchcol = int32((sub_firstline.length - uint64(matchcol)))
 						prev_matchcol = int32((sub_firstline.length - uint64(prev_matchcol)))
 						copycol = 0
-						did_split = (0 != 0)
+						did_split = false
 					}
 					if (nmatch == -1) && (lastone == 0) {
 						nmatch = vim_regexec_multi(&regmatch, curwin, curbuf, sub_firstlnum, matchcol, nil)
@@ -15453,7 +16229,7 @@ func do_one_cmd(cmdlinep *Ptr[byte], flags int32, fgetline func(int32, int32, ge
 	save_pending_end_reg_executing = pending_end_reg_executing
 	sourcing = flags & DOCMD_VERBOSE
 	did_append_cmd = FALSE
-	*&ea = S_exarg{}
+	ea = S_exarg{}
 	ea.line1 = 1
 	ea.line2 = 1
 	if quitmore != 0 {
@@ -15985,19 +16761,19 @@ func append_command(cmd Ptr[byte]) {
 
 	len_ = musl_strlen(IObuff)
 	s = cmd
-	if len_ > ((1024 + 1) - 100) {
-		d = IObuff.Add((1024 + 1)).Add(-100)
+	if len_ > 925 {
+		d = IObuff.Add(1025).Add(-100)
 		d = d.Add(-int(utf_head_off(IObuff, d)))
 		musl_strcpy(d, S("..."))
 	}
 	musl_strcat(IObuff, S(": "))
 	d = IObuff.Add(int(musl_strlen(IObuff)))
-	for (int32(s.Get()) != NUL) && ((int64(d.Sub(IObuff)) + 5) < (1024 + 1)) {
+	for (int32(s.Get()) != NUL) && ((int64(d.Sub(IObuff)) + 5) < 1025) {
 		if (int32(s.At(0)) == 0xc2) && (int32(s.At(1)) == 0xa0) {
 			s = s.Add(2)
 			musl_strcpy(d, S("<a0>"))
 			d = d.Add(4)
-		} else if ((int64(d.Sub(IObuff)) + int64(utfc_ptr2len(s))) + 1) >= (1024 + 1) {
+		} else if ((int64(d.Sub(IObuff)) + int64(utfc_ptr2len(s))) + 1) >= 1025 {
 			break
 		} else {
 			mb_copy_char(&s, &d)
@@ -16525,7 +17301,6 @@ func check_nextcmd(p Ptr[byte]) Ptr[byte] {
 	} else {
 		return Ptr[byte]{}
 	}
-	panic("not reached")
 }
 
 func set_nextcmd(eap *S_exarg, arg Ptr[byte]) {
@@ -17279,7 +18054,7 @@ func parse_pattern_and_range(incsearch_start *pos_T, search_delim *int32, skiple
 	*patlen = ccline.cmdlen
 	search_first_line = 0
 	search_last_line = LONG_MAX
-	*&ea = S_exarg{}
+	ea = S_exarg{}
 	ea.line1 = 1
 	ea.line2 = 1
 	ea.cmd = ccline.cmdbuff
@@ -17336,7 +18111,7 @@ func parse_pattern_and_range(incsearch_start *pos_T, search_delim *int32, skiple
 					p = skipwhite(p)
 					t6 = ((uint32(p.Get()) - 'a') < 26)
 				}
-				if !(t6) {
+				if !t6 {
 					break
 				}
 				p = p.Add(1)
@@ -17600,7 +18375,7 @@ func may_do_incsearch_highlighting(firstc int32, count int64, is_state *incsearc
 	}
 	validate_cursor()
 	if (p_ru != 0) && (curwin.w_status_height > 0) {
-		curwin.w_redr_status = (1 != 0)
+		curwin.w_redr_status = true
 	}
 	update_screen(UPD_SOME_VALID)
 	highlight_match = FALSE
@@ -17808,7 +18583,7 @@ func may_add_char_to_search(firstc int32, c *int32, is_state *incsearch_state_T)
 }
 
 func cmdline_init() {
-	*&ccline = cmdline_info_T{}
+	ccline = cmdline_info_T{}
 }
 
 func cmdline_handle_ctrl_bsl(c int32, gotesc *int32) int32 {
@@ -18141,7 +18916,7 @@ func getcmdline_int(firstc int32, count int64, indent int32, clear_ccline int32)
 		did_save_ccline = TRUE
 	}
 	if clear_ccline != 0 {
-		*&ccline = cmdline_info_T{}
+		ccline = cmdline_info_T{}
 	}
 	init_incsearch_state(&is_state)
 	if init_ccline(firstc, indent) != OK {
@@ -18694,7 +19469,7 @@ func put_on_cmdline(str Ptr[byte], len_ int32, redraw int32) int32 {
 
 func save_cmdline(ccp *cmdline_info_T) {
 	if prev_ccline_used == 0 {
-		*&prev_ccline = cmdline_info_T{}
+		prev_ccline = cmdline_info_T{}
 		prev_ccline_used = TRUE
 	}
 	*ccp = prev_ccline
@@ -19466,7 +20241,7 @@ func AppendToRedobuffLit(str Ptr[byte], len_ int32) {
 		} else {
 			t1 = int64(s.Sub(str)) < int64(len_)
 		}
-		if !(t1) {
+		if !t1 {
 			break
 		}
 		start = s
@@ -21140,7 +21915,7 @@ func getcmdkeycmd(promptc int32, indent int32, do_concat getline_opt_T) Ptr[byte
 			emsg(gettext_(e_cmd_mapping_must_end_with_cr_before_second_cmd))
 			aborted = TRUE
 		} else if c1 == -(KS_EXTRA + (82 << 8)) {
-			ga_concat_len(&line_ga, S("<SNR>"), (6 - 1))
+			ga_concat_len(&line_ga, S("<SNR>"), 5)
 		} else {
 			if cmod != 0 {
 				ga_append(&line_ga, 0x80)
@@ -21542,7 +22317,7 @@ func highlight_set_startstop_termcode(idx int32, key Ptr[byte], arg Ptr[byte], i
 	} else {
 		p = arg
 		off = 0
-		for (off < (100 - 6)) && (p.Get() != 0) {
+		for (off < 94) && (p.Get() != 0) {
 			len_ = trans_special(&p, buf.Add(int(off)), FSK_SIMPLIFY, FALSE, nil)
 			if len_ > 0 {
 				off += len_
@@ -21911,7 +22686,7 @@ func hl_combine_attr(char_attr int32, prim_attr int32) int32 {
 		if char_aep != nil {
 			new_en = (*char_aep)
 		} else {
-			*&new_en = S_attr_entry{}
+			new_en = S_attr_entry{}
 			if char_attr <= HL_ALL {
 				new_en.ae_attr = int16(char_attr)
 			}
@@ -21954,7 +22729,7 @@ func hl_combine_attr(char_attr int32, prim_attr int32) int32 {
 	if char_aep != nil {
 		new_en = (*char_aep)
 	} else {
-		*&new_en = S_attr_entry{}
+		new_en = S_attr_entry{}
 		if char_attr <= HL_ALL {
 			new_en.ae_attr = int16(char_attr)
 		}
@@ -22054,9 +22829,9 @@ func rgb_to_cterm_idx(r int32, g int32, b int32) int32 {
 func resolve_color_to_rgb(cterm_c int32, rgb int64, r *int32, g *int32, b *int32) bool {
 	if cterm_c > 0 {
 		cterm_idx_to_rgb(cterm_c-1, r, g, b)
-		return (1 != 0)
+		return true
 	}
-	return (0 != 0)
+	return false
 }
 
 func resolve_fallback_color(cterm_c int32, rgb int64, default_rgb int64) int64 {
@@ -22069,7 +22844,6 @@ func resolve_fallback_color(cterm_c int32, rgb int64, default_rgb int64) int64 {
 	} else {
 		return int64(((red << 16) | (green << 8)) | blue)
 	}
-	panic("not reached")
 }
 
 func resolve_fallback_fg_to_rgb() {
@@ -22154,13 +22928,13 @@ func hl_blend_attr_common(char_attr int32, popup_attr int32, blend int32, blend_
 		if char_aep != nil {
 			new_en = (*char_aep)
 		} else {
-			*&new_en = S_attr_entry{}
+			new_en = S_attr_entry{}
 			if char_attr <= HL_ALL {
 				new_en.ae_attr = int16(char_attr)
 			}
 		}
 		if popup_attr <= HL_ALL {
-			*&tmp_en = S_attr_entry{}
+			tmp_en = S_attr_entry{}
 			tmp_en.ae_attr = int16(popup_attr)
 			popup_aep = &tmp_en
 			popup_aep.ae_u.cterm.bg_color = short_u(cterm_normal_bg_color)
@@ -22215,7 +22989,7 @@ func hl_blend_attr_common(char_attr int32, popup_attr int32, blend int32, blend_
 	if char_aep != nil {
 		new_en = (*char_aep)
 	} else {
-		*&new_en = S_attr_entry{}
+		new_en = S_attr_entry{}
 		if char_attr <= HL_ALL {
 			new_en.ae_attr = int16(char_attr)
 		}
@@ -22728,7 +23502,7 @@ func push_highlight_overrides(arr Ptr[hl_override_T], len_ int32) bool {
 	var set *S_hl_overrides_S
 
 	if (overrides != nil) && (overrides.arr == arr) {
-		return (0 != 0)
+		return false
 	}
 	set = new(S_hl_overrides_S)
 	set.arr = arr
@@ -22738,9 +23512,9 @@ func push_highlight_overrides(arr Ptr[hl_override_T], len_ int32) bool {
 	Memmove(View(set.attr[:]), View(highlight_attr[:]), 70)
 	Memmove(View(highlight_attr[:]), View(highlight_attr_raw[:]), 70)
 	if !arr.Nil() {
-		set_highlight_attr(arr, len_, (0 != 0))
+		set_highlight_attr(arr, len_, false)
 	}
-	return (1 != 0)
+	return true
 }
 
 func pop_highlight_overrides() {
@@ -22786,7 +23560,7 @@ func parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byte]) Ptr[hl_ov
 	}
 	for {
 		p = vim_strchr(p, ',')
-		if !(!p.Nil()) {
+		if p.Nil() {
 			break
 		}
 		p = p.Add(1)
@@ -22795,7 +23569,7 @@ func parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byte]) Ptr[hl_ov
 	p = opt
 	for {
 		p = vim_strchr(p, ':')
-		if !(!p.Nil()) {
+		if p.Nil() {
 			break
 		}
 		p = p.Add(1)
@@ -22911,7 +23685,7 @@ func hlf_get_id(wp *S_window_S, hlf int32) int32 {
 		return highlight_ids[int(hlf)]
 	}
 	Memmove(View(hlf_get_id_prev[:]), View(highlight_ids[:]), 70)
-	set_highlight_attr(wp.w_hl, wp.w_hl_len, (1 != 0))
+	set_highlight_attr(wp.w_hl, wp.w_hl_len, true)
 	id = highlight_ids[int(hlf)]
 	Memmove(View(highlight_ids[:]), View(hlf_get_id_prev[:]), 70)
 	return id
@@ -23204,7 +23978,6 @@ func inindent(extra int32) int32 {
 	} else {
 		return FALSE
 	}
-	panic("not reached")
 }
 
 func preprocs_left() int32 {
@@ -23403,7 +24176,7 @@ func change_indent(type_ int32, amount int32, round int32, replaced int32, call_
 	} else {
 		curwin.w_cursor.col = new_cursor_col
 	}
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 	changed_cline_bef_curs()
 	if State&MODE_INSERT != 0 {
 		if (curwin.w_cursor.lnum == Insstart.lnum) && (Insstart.col != 0) {
@@ -24920,7 +25693,7 @@ func show_one_mark(c int32, arg Ptr[byte], p Ptr[pos_T], name_arg Ptr[byte], cur
 			}
 			msg_putchar(10)
 			if got_int == 0 {
-				vim_snprintf(IObuff, (1024 + 1), S(" %c %6ld %4d "), c, p.P().lnum, p.P().col)
+				vim_snprintf(IObuff, 1025, S(" %c %6ld %4d "), c, p.P().lnum, p.P().col)
 				msg_outtrans(IObuff)
 				if !name.Nil() {
 					if current != 0 {
@@ -25020,7 +25793,7 @@ func ex_changes(eap *S_exarg) {
 			} else {
 				t2 = curwin.w_changelistidx - i
 			}
-			vim_snprintf(IObuff, (1024 + 1), S("%c %3d %5ld %4d "), t1, t2, curbuf.b_changelist[int(i)].lnum, curbuf.b_changelist[int(i)].col)
+			vim_snprintf(IObuff, 1025, S("%c %3d %5ld %4d "), t1, t2, curbuf.b_changelist[int(i)].lnum, curbuf.b_changelist[int(i)].col)
 			msg_outtrans(IObuff)
 			name = mark_line(View(curbuf.b_changelist[:]).Add(int(i)), 17)
 			msg_outtrans_attr(name, highlight_attr[3])
@@ -26464,7 +27237,6 @@ func utfc_ptr2len(p Ptr[byte]) int32 {
 			return len_
 		}
 	}
-	panic("not reached")
 }
 
 func utfc_ptr2len_len(p Ptr[byte], size int32) int32 {
@@ -26635,7 +27407,6 @@ func utf_convert(a int32, table Ptr[convertStruct], tableSize int32) int32 {
 	} else {
 		return a
 	}
-	panic("not reached")
 }
 
 func utf_fold(a int32) int32 {
@@ -26782,7 +27553,6 @@ func mb_strnicmp2(s1 Ptr[byte], s2 Ptr[byte], n1 usize, n2 usize) int32 {
 	} else {
 		return utf_strnicmp(s1, s2, n1, n2)
 	}
-	panic("not reached")
 }
 
 func mb_strnicmp(s1 Ptr[byte], s2 Ptr[byte], nn usize) int32 {
@@ -26820,10 +27590,10 @@ func show_utf8() {
 		} else {
 			t1 = int32(line.At(int(i)))
 		}
-		vim_snprintf(IObuff.Add(int(rlen)), uint64(((1024 + 1) - rlen)), S("%02x "), t1)
+		vim_snprintf(IObuff.Add(int(rlen)), uint64((1025 - rlen)), S("%02x "), t1)
 		clen--
 		rlen += int32(musl_strlen(IObuff.Add(int(rlen))))
-		if rlen > ((1024 + 1) - 20) {
+		if rlen > 1005 {
 			break
 		}
 	}
@@ -26895,7 +27665,7 @@ func utf_find_illegal() {
 			len_ = utf_ptr2len(p)
 			if (int32(p.Get()) >= 0x80) && ((len_ == 1) || (utf_char2len(utf_ptr2char(p)) != len_)) {
 				curwin.w_cursor.col += int32(int64(p.Sub(ml_get_cursor())))
-				curwin.w_set_curswant = (TRUE != 0)
+				curwin.w_set_curswant = true
 				goto theend
 			}
 			p = p.Add(int(len_))
@@ -28000,14 +28770,14 @@ func iobuff_room() usize {
 	if IObuff.Nil() {
 		return 0
 	}
-	return (1024 + 1)
+	return 1025
 }
 
 func emsg_iobuff_room() usize {
 	if IObuff.Nil() || (emsg_not_now() != 0) {
 		return 0
 	}
-	return (1024 + 1)
+	return 1025
 }
 
 func iobuff_or(s Ptr[byte]) Ptr[byte] {
@@ -28304,15 +29074,15 @@ func messagesopt_changed() int32 {
 	messages_history_new = 0
 	p = p_mopt
 	for int32(p.Get()) != NUL {
-		if musl_strncmp(p, S("hit-enter"), (10-1)) == 0 {
-			p = p.Add((10 - 1))
+		if musl_strncmp(p, S("hit-enter"), 9) == 0 {
+			p = p.Add(9)
 			messages_flags_new |= MESSAGES_HIT_ENTER
-		} else if (musl_strncmp(p, S("wait:"), (6-1)) == 0) && ((uint32(p.At((6 - 1))) - '0') < 10) {
-			p = p.Add((6 - 1))
+		} else if (musl_strncmp(p, S("wait:"), 5) == 0) && ((uint32(p.At(5)) - '0') < 10) {
+			p = p.Add(5)
 			messages_wait_new = int32(getdigits(Addr(&p)))
 			messages_flags_new |= MESSAGES_WAIT
-		} else if (musl_strncmp(p, S("history:"), (9-1)) == 0) && ((uint32(p.At((9 - 1))) - '0') < 10) {
-			p = p.Add((9 - 1))
+		} else if (musl_strncmp(p, S("history:"), 8) == 0) && ((uint32(p.At(8)) - '0') < 10) {
+			p = p.Add(8)
 			messages_history_new = int32(getdigits(Addr(&p)))
 			messages_flags_new |= MESSAGES_HISTORY
 		}
@@ -29664,7 +30434,7 @@ func msg_advance(col int32) {
 func msg_warn_missing_clipboard() {
 	if ((global_busy == 0) && !did_warn_clipboard) && (silence_w23_w24_msg == 0) {
 		msg(gettext_(S("W24: Clipboard register not available. See :h W24")))
-		did_warn_clipboard = (TRUE != 0)
+		did_warn_clipboard = true
 	}
 }
 
@@ -29809,7 +30579,7 @@ func check_status(buf *S_file_buffer) {
 
 	wp = curwin
 	if (wp.w_buffer == buf) && (wp.w_status_height != 0) {
-		wp.w_redr_status = (1 != 0)
+		wp.w_redr_status = true
 		set_must_redraw(UPD_VALID)
 	}
 }
@@ -30573,7 +31343,7 @@ func set_leftcol(leftcol colnr_T) int32 {
 		}
 	}
 	if retval != 0 {
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 	}
 	redraw_later(UPD_NOT_VALID)
 	return retval
@@ -31385,7 +32155,7 @@ func use_scrolloffpad() bool {
 
 func scrolloffpad_eof_pressure(lnum linenr_T, so int64) bool {
 	if !use_scrolloffpad() || (so <= 0) {
-		return (0 != 0)
+		return false
 	}
 	return lnum > (curbuf.b_ml.ml_line_count - so)
 }
@@ -31569,7 +32339,7 @@ func check_top_offset() int32 {
 func update_curswant_force() {
 	validate_virtcol()
 	curwin.w_curswant = curwin.w_virtcol
-	curwin.w_set_curswant = (0 != 0)
+	curwin.w_set_curswant = false
 }
 
 func update_curswant() {
@@ -31759,7 +32529,7 @@ func win_col_off(wp *S_window_S) int32 {
 	var t1 int32
 
 	if (wp.w_onebuf_opt.wo_nu != 0) || (wp.w_onebuf_opt.wo_rnu != 0) {
-		t1 = 7 + 1
+		t1 = 8
 	} else {
 		t1 = 0
 	}
@@ -31772,7 +32542,7 @@ func curwin_col_off() int32 {
 
 func win_col_off2(wp *S_window_S) int32 {
 	if ((wp.w_onebuf_opt.wo_nu != 0) || (wp.w_onebuf_opt.wo_rnu != 0)) && !vim_strchr(p_cpo, CPO_NUMCOL).Nil() {
-		return 7 + 1
+		return 8
 	}
 	return 0
 }
@@ -32913,7 +33683,6 @@ func get_scroll_overlap(dir int32) int32 {
 	} else {
 		return min_height
 	}
-	panic("not reached")
 }
 
 func scroll_with_sms(dir int32, count int64, curscount *int64) int32 {
@@ -33019,7 +33788,7 @@ func pagescroll(dir int32, count int64, half int32) int32 {
 			cursor_up_inner(curwin, curscount)
 		}
 	} else {
-		if ((TRUE != 0) && (p_window > 0)) && (p_window < (Rows - 1)) {
+		if (true && (p_window > 0)) && (p_window < (Rows - 1)) {
 			if 1 > (p_window - 2) {
 				t3 = 1
 			} else {
@@ -33366,7 +34135,7 @@ func normal_cmd(oap *S_oparg_S, toplevel int32) {
 	need_flushbuf = FALSE
 	set_prevcount = FALSE
 	save_did_cursorhold = did_cursorhold
-	*&ca = S_cmdarg_S{}
+	ca = S_cmdarg_S{}
 	ca.oap = oap
 	ca.opcount = opcount
 	finish_op = B2i((oap.op_type != OP_NOP))
@@ -33678,7 +34447,7 @@ func find_ident_at_pos(wp *S_window_S, lnum linenr_T, startcol colnr_T, text *Pt
 			}
 			t3 = (t2 || ((((find_type & FIND_EVAL) != 0) && (col <= startcol)) && (find_is_eval_item(ptr.Add(int(col)), &col, &bn, FORWARD) != 0)))
 		}
-		if !(t3) {
+		if !t3 {
 			break
 		}
 		col += utfc_ptr2len(ptr.Add(int(col)))
@@ -33838,7 +34607,7 @@ func clear_showcmd() {
 				} else {
 					t3 = s.Lt(e)
 				}
-				if !(t3) {
+				if !t3 {
 					break
 				}
 				l = utfc_ptr2len(s)
@@ -33966,7 +34735,7 @@ func display_showcmd() {
 	cursor_off()
 	if int32(p_sloc.Get()) == 's' {
 		if (showcmd_is_clear != 0) && (vgetc_busy == 0) {
-			curwin.w_redr_status = (1 != 0)
+			curwin.w_redr_status = true
 		} else {
 			win_redr_status(curwin, FALSE)
 		}
@@ -34489,7 +35258,7 @@ func nv_ident(cap_ *S_cmdarg_S) {
 	curwin.w_cursor.col = int32(int64(ptr.Sub(ml_get_curline())))
 	if (g_cmd == 0) && (vim_iswordp(ptr) != 0) {
 		musl_strcpy(buf, S("\\<"))
-		buflen = (3 - 1)
+		buflen = 2
 	}
 	no_smartcase = TRUE
 	if cmdchar == '*' {
@@ -34543,7 +35312,7 @@ func nv_ident(cap_ *S_cmdarg_S) {
 	buflen = usize(int64(p.Sub(buf)))
 	if (g_cmd == 0) && (vim_iswordp(mb_prevptr(ml_get_curline(), ptr)) != 0) {
 		musl_strcpy(buf.Add(int(buflen)), S("\\>"))
-		buflen += (3 - 1)
+		buflen += 2
 	}
 	init_history()
 	add_to_history(HIST_SEARCH, buf, buflen, TRUE, NUL)
@@ -34630,7 +35399,7 @@ func nv_right(cap_ *S_cmdarg_S) {
 					curwin.w_cursor.lnum++
 					curwin.w_cursor.col = 0
 					curwin.w_cursor.coladd = 0
-					curwin.w_set_curswant = (1 != 0)
+					curwin.w_set_curswant = true
 					cap_.oap.inclusive = FALSE
 				}
 				continue
@@ -34646,7 +35415,7 @@ func nv_right(cap_ *S_cmdarg_S) {
 			}
 			break
 		} else if past_line != 0 {
-			curwin.w_set_curswant = (1 != 0)
+			curwin.w_set_curswant = true
 			if virtual_active() != 0 {
 				oneright()
 			} else {
@@ -34675,7 +35444,7 @@ func nv_left(cap_ *S_cmdarg_S) {
 			if (((((cap_.cmdchar == -('k' + (98 << 8))) || (cap_.cmdchar == Ctrl_H)) && !vim_strchr(p_ww, 'b').Nil()) || ((cap_.cmdchar == 'h') && !vim_strchr(p_ww, 'h').Nil())) || ((cap_.cmdchar == -('k' + (108 << 8))) && !vim_strchr(p_ww, '<').Nil())) && (curwin.w_cursor.lnum > 1) {
 				curwin.w_cursor.lnum--
 				coladvance(2147483647)
-				curwin.w_set_curswant = (1 != 0)
+				curwin.w_set_curswant = true
 				if ((cap_.oap.op_type == OP_DELETE) || (cap_.oap.op_type == OP_CHANGE)) && !(int32(ml_get(curwin.w_cursor.lnum).Get()) == NUL) {
 					cp = ml_get_cursor()
 					if int32(cp.Get()) != NUL {
@@ -34787,8 +35556,8 @@ func normal_search(cap_ *S_cmdarg_S, dir int32, pat Ptr[byte], patlen usize, opt
 	cap_.oap.motion_type = MCHAR
 	cap_.oap.inclusive = FALSE
 	cap_.oap.use_reg_one = TRUE
-	curwin.w_set_curswant = (1 != 0)
-	*&sia = searchit_arg_T{}
+	curwin.w_set_curswant = true
+	sia = searchit_arg_T{}
 	i = do_search(cap_.oap, dir, dir, pat, patlen, cap_.count1, ((opt|SEARCH_OPT)|SEARCH_ECHO)|SEARCH_MSG, &sia)
 	if wrapped != nil {
 		*wrapped = sia.sa_wrapped
@@ -34832,7 +35601,7 @@ func nv_csearch(cap_ *S_cmdarg_S) {
 		}
 		return
 	}
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 	if (((gchar_cursor() == TAB) && (virtual_active() != 0)) && (cap_.arg == FORWARD)) && ((t_cmd != 0) || (cap_.oap.op_type != OP_NOP)) {
 		getvcol(curwin, &curwin.w_cursor, &scol, nil, &ecol, 0)
 		curwin.w_cursor.coladd = ecol - scol
@@ -34875,7 +35644,7 @@ func nv_bracket_block(cap_ *S_cmdarg_S, old_pos *pos_T) {
 	if pos != nil {
 		setpcmark()
 		curwin.w_cursor = (*pos)
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 	}
 }
 
@@ -34954,7 +35723,7 @@ func nv_percent(cap_ *S_cmdarg_S) {
 		} else {
 			setpcmark()
 			curwin.w_cursor = (*pos)
-			curwin.w_set_curswant = (1 != 0)
+			curwin.w_set_curswant = true
 			curwin.w_cursor.coladd = 0
 			adjust_for_sel(cap_)
 		}
@@ -34985,7 +35754,7 @@ func nv_kundo(cap_ *S_cmdarg_S) {
 		return
 	}
 	u_undo(int32(cap_.count1))
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 }
 
 func nv_replace(cap_ *S_cmdarg_S) {
@@ -35094,7 +35863,7 @@ func nv_replace(cap_ *S_cmdarg_S) {
 		curwin.w_cursor.col--
 		mb_adjust_cursor()
 		curbuf.b_op_end = curwin.w_cursor
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 		set_last_insert(cap_.nchar)
 	}
 }
@@ -35131,7 +35900,7 @@ func v_swap_corners(cmdchar int32) {
 		old_cursor = curwin.w_cursor
 		curwin.w_cursor = VIsual
 		VIsual = old_cursor
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 	}
 }
 
@@ -35230,7 +35999,7 @@ func n_swapchar(cap_ *S_cmdarg_S) {
 		}
 	}
 	check_cursor()
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 	if did_change != 0 {
 		changed_lines(startpos.lnum, startpos.col, curwin.w_cursor.lnum+1, 0)
 		curbuf.b_op_start = startpos
@@ -35267,7 +36036,7 @@ func nv_cursormark(cap_ *S_cmdarg_S, flag int32, pos Ptr[pos_T]) {
 		cap_.oap.use_reg_one = TRUE
 	}
 	cap_.oap.inclusive = FALSE
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 }
 
 func v_visop(cap_ *S_cmdarg_S) {
@@ -35441,7 +36210,7 @@ func nv_visual(cap_ *S_cmdarg_S) {
 				}
 				coladvance(curwin.w_curswant)
 			} else {
-				curwin.w_set_curswant = (1 != 0)
+				curwin.w_set_curswant = true
 			}
 			redraw_curbuf_later(UPD_INVERTED)
 		} else {
@@ -35598,7 +36367,7 @@ func nv_g_home_m_cmd(cap_ *S_cmdarg_S) {
 		}
 		curwin.w_valid &= ^VALID_WCOL
 	}
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 	adjust_skipcol()
 }
 
@@ -35619,7 +36388,7 @@ func nv_g_underscore_cmd(cap_ *S_cmdarg_S) {
 	for (curwin.w_cursor.col > 0) && ((int32(ptr.At(int(curwin.w_cursor.col))) == (' ')) || (int32(ptr.At(int(curwin.w_cursor.col))) == 9)) {
 		curwin.w_cursor.col--
 	}
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 	adjust_for_sel(cap_)
 }
 
@@ -35776,7 +36545,7 @@ func nv_g_cmd(cap_ *S_cmdarg_S) {
 		} else {
 			coladvance((i / 2))
 		}
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 	case '_':
 		nv_g_underscore_cmd(cap_)
 	case '$', -('@' + (55 << 8)), -('K' + (52 << 8)):
@@ -35785,7 +36554,7 @@ func nv_g_cmd(cap_ *S_cmdarg_S) {
 		nv_ident(cap_)
 	case 'e', 'E':
 		oap.motion_type = MCHAR
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 		oap.inclusive = TRUE
 		if bckend_word(cap_.count1, B2i(cap_.nchar == 'E'), FALSE) == FAIL {
 			clearopbeep(oap)
@@ -35926,7 +36695,7 @@ func nv_redo_or_register(cap_ *S_cmdarg_S) {
 		return
 	}
 	u_redo(int32(cap_.count1))
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 }
 
 func nv_Undo(cap_ *S_cmdarg_S) {
@@ -35940,7 +36709,7 @@ func nv_Undo(cap_ *S_cmdarg_S) {
 		return
 	}
 	u_undoline()
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 }
 
 func nv_tilde(cap_ *S_cmdarg_S) {
@@ -35995,14 +36764,14 @@ func nv_pipe(cap_ *S_cmdarg_S) {
 	} else {
 		curwin.w_curswant = 0
 	}
-	curwin.w_set_curswant = (0 != 0)
+	curwin.w_set_curswant = false
 	adjust_skipcol()
 }
 
 func nv_bck_word(cap_ *S_cmdarg_S) {
 	cap_.oap.motion_type = MCHAR
 	cap_.oap.inclusive = FALSE
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 	if bck_word(cap_.count1, cap_.arg, FALSE) == FAIL {
 		clearopbeep(cap_.oap)
 	}
@@ -36043,7 +36812,7 @@ func nv_wordcmd(cap_ *S_cmdarg_S) {
 		}
 	}
 	cap_.oap.motion_type = MCHAR
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 	if word_end != 0 {
 		n = end_word(cap_.count1, cap_.arg, flag, FALSE)
 	} else {
@@ -36234,7 +37003,7 @@ func nv_esc(cap_ *S_cmdarg_S) {
 	if VIsual_active != 0 {
 		end_visual_mode()
 		check_cursor_col()
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 		redraw_curbuf_later(UPD_INVERTED)
 	} else if no_reason != 0 {
 		vim_beep(BO_ESC)
@@ -36248,7 +37017,7 @@ func nv_esc(cap_ *S_cmdarg_S) {
 func set_cursor_for_append_to_line() {
 	var save_State int32
 
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 	if get_ve_flags() == VE_ALL {
 		save_State = State
 		State = MODE_INSERT
@@ -36399,7 +37168,7 @@ func nv_object(cap_ *S_cmdarg_S) {
 		clearopbeep(cap_.oap)
 	}
 	adjust_cursor_col()
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 }
 
 func nv_record(cap_ *S_cmdarg_S) {
@@ -36614,7 +37383,7 @@ func get_op_type(char1 int32, char2 int32) int32 {
 		if (int32(opchars[int(i)][0]) == char1) && (int32(opchars[int(i)][1]) == char2) {
 			break
 		}
-		if i == (30 - 1) {
+		if i == 29 {
 			internal_error(S("get_op_type()"))
 			break
 		}
@@ -36685,7 +37454,7 @@ func op_shift(oap *S_oparg_S, curs_top int32, amount int32) {
 		}
 		msg_line_single = NGETTEXT(S("%ld line %sed %d time"), S("%ld line %sed %d times"), uint64(amount))
 		msg_line_plural = NGETTEXT(S("%ld lines %sed %d time"), S("%ld lines %sed %d times"), uint64(amount))
-		vim_snprintf(IObuff, (1024 + 1), NGETTEXT(msg_line_single, msg_line_plural, uint64(oap.line_count)), oap.line_count, op, amount)
+		vim_snprintf(IObuff, 1025, NGETTEXT(msg_line_single, msg_line_plural, uint64(oap.line_count)), oap.line_count, op, amount)
 		msg_attr_keep(IObuff, 0, TRUE)
 	}
 	if (cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0 {
@@ -37641,7 +38410,7 @@ func op_insert(oap *S_oparg_S, count1 int64) {
 	}
 	if oap.op_type == OP_APPEND {
 		if (oap.block_mode != 0) && (curwin.w_cursor.coladd == 0) {
-			curwin.w_set_curswant = (1 != 0)
+			curwin.w_set_curswant = true
 			for (int32(ml_get_cursor().Get()) != NUL) && (curwin.w_cursor.col < (bd.textcol + bd.textlen)) {
 				curwin.w_cursor.col++
 			}
@@ -37990,7 +38759,7 @@ func do_join(count int64, insert_space int32, save_undo int32, use_formatoptions
 	curwin.w_cursor.col = t1
 	check_cursor_col()
 	curwin.w_cursor.coladd = 0
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 theend:
 	return ret
 }
@@ -38627,7 +39396,7 @@ theend:
 	if visual != 0 {
 		curwin.w_cursor = save_cursor
 	} else if did_change != 0 {
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 	} else if virtual_active() != 0 {
 		curwin.w_cursor.coladd = save_coladd
 	}
@@ -38810,9 +39579,9 @@ func cursor_pos_info() {
 				buf1.Set(0, NUL)
 			}
 			if (char_count_cursor == byte_count_cursor) && (char_count == byte_count) {
-				vim_snprintf(IObuff, (1024 + 1), gettext_(S("Selected %s%ld of %ld Lines; %lld of %lld Words; %lld of %lld Bytes")), buf1, line_count_selected, curbuf.b_ml.ml_line_count, word_count_cursor, word_count, byte_count_cursor, byte_count)
+				vim_snprintf(IObuff, 1025, gettext_(S("Selected %s%ld of %ld Lines; %lld of %lld Words; %lld of %lld Bytes")), buf1, line_count_selected, curbuf.b_ml.ml_line_count, word_count_cursor, word_count, byte_count_cursor, byte_count)
 			} else {
-				vim_snprintf(IObuff, (1024 + 1), gettext_(S("Selected %s%ld of %ld Lines; %lld of %lld Words; %lld of %lld Chars; %lld of %lld Bytes")), buf1, line_count_selected, curbuf.b_ml.ml_line_count, word_count_cursor, word_count, char_count_cursor, char_count, byte_count_cursor, byte_count)
+				vim_snprintf(IObuff, 1025, gettext_(S("Selected %s%ld of %ld Lines; %lld of %lld Words; %lld of %lld Chars; %lld of %lld Bytes")), buf1, line_count_selected, curbuf.b_ml.ml_line_count, word_count_cursor, word_count, char_count_cursor, char_count, byte_count_cursor, byte_count)
 			}
 		} else {
 			p = ml_get_curline()
@@ -38821,9 +39590,9 @@ func cursor_pos_info() {
 			vcol = linetabsize_str(p)
 			col_print(buf2, 40, ml_get_curline_len(), vcol)
 			if (char_count_cursor == byte_count_cursor) && (char_count == byte_count) {
-				vim_snprintf(IObuff, (1024 + 1), gettext_(S("Col %s of %s; Line %ld of %ld; Word %lld of %lld; Byte %lld of %lld")), buf1, buf2, curwin.w_cursor.lnum, curbuf.b_ml.ml_line_count, word_count_cursor, word_count, byte_count_cursor, byte_count)
+				vim_snprintf(IObuff, 1025, gettext_(S("Col %s of %s; Line %ld of %ld; Word %lld of %lld; Byte %lld of %lld")), buf1, buf2, curwin.w_cursor.lnum, curbuf.b_ml.ml_line_count, word_count_cursor, word_count, byte_count_cursor, byte_count)
 			} else {
-				vim_snprintf(IObuff, (1024 + 1), gettext_(S("Col %s of %s; Line %ld of %ld; Word %lld of %lld; Char %lld of %lld; Byte %lld of %lld")), buf1, buf2, curwin.w_cursor.lnum, curbuf.b_ml.ml_line_count, word_count_cursor, word_count, char_count_cursor, char_count, byte_count_cursor, byte_count)
+				vim_snprintf(IObuff, 1025, gettext_(S("Col %s of %s; Line %ld of %ld; Word %lld of %lld; Char %lld of %lld; Byte %lld of %lld")), buf1, buf2, curwin.w_cursor.lnum, curbuf.b_ml.ml_line_count, word_count_cursor, word_count, char_count_cursor, char_count, byte_count_cursor, byte_count)
 			}
 		}
 		p = p_shm
@@ -39138,7 +39907,7 @@ func do_pending_operator(cap_ *S_cmdarg_S, old_col int32, gui_yank int32) {
 				oap.end.col += l - 1
 			}
 		}
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 		oap.empty = B2i(((((oap.motion_type == MCHAR) && ((oap.inclusive == 0) || ((oap.op_type == OP_YANK) && (gchar_pos(&oap.end) == NUL)))) && (((oap.start.lnum == oap.end.lnum) && (oap.start.col == oap.end.col)) && (oap.start.coladd == oap.end.coladd))) && !((virtual_op != 0) && (oap.start.coladd != oap.end.coladd))))
 		empty_region_error = B2i(((oap.empty != 0) && !vim_strchr(p_cpo, CPO_EMPTYREGION).Nil()))
 		if (oap.is_VIsual != 0) && ((oap.empty != 0) || (curbuf.b_p_ma == 0)) {
@@ -39326,7 +40095,7 @@ func set_init_1() {
 	km_startsel = TRUE
 	km_stopsel = FALSE
 	set_options_default(0)
-	curbuf.b_p_initialized = (1 != 0)
+	curbuf.b_p_initialized = true
 	curbuf.b_p_ul = -123456
 	check_buf_options(curbuf)
 	check_win_options(curwin)
@@ -39630,11 +40399,11 @@ func opt_backspace_nr2str(varp optvar_T, origval_p *Ptr[byte], origval_l_p *Ptr[
 	case 0:
 		varp.ov_str.Put(empty_option)
 	case 1:
-		varp.ov_str.Put(vim_strnsave(S("indent,eol"), (11 - 1)))
+		varp.ov_str.Put(vim_strnsave(S("indent,eol"), 10))
 	case 2:
-		varp.ov_str.Put(vim_strnsave(S("indent,eol,start"), (17 - 1)))
+		varp.ov_str.Put(vim_strnsave(S("indent,eol,start"), 16))
 	case 3:
-		varp.ov_str.Put(vim_strnsave(S("indent,eol,nostop"), (18 - 1)))
+		varp.ov_str.Put(vim_strnsave(S("indent,eol,nostop"), 17))
 	}
 	if (*origval_p) == (*oldval_p) {
 		*origval_p = varp.ov_str.Get()
@@ -39812,7 +40581,7 @@ func remove_key_item(str Ptr[byte], key Ptr[byte], keylen int32, skip Ptr[byte])
 
 	for {
 		found = find_key_item(str, key, keylen, &itemlen)
-		if !(!found.Nil()) {
+		if found.Nil() {
 			break
 		}
 		if found == skip {
@@ -39876,11 +40645,11 @@ func stropt_handle_keymatch(origval Ptr[byte], newval Ptr[byte], op set_op_T, fl
 	var found_3 Ptr[byte]
 
 	if vim_strchr(newval, ':').Nil() && vim_strchr(newval, ',').Nil() {
-		return (0 != 0)
+		return false
 	}
 	newval_copy = vim_strsave(newval)
 	if newval_copy.Nil() {
-		return (0 != 0)
+		return false
 	}
 	musl_strcpy(newval, origval)
 	item_start = newval_copy
@@ -39942,7 +40711,7 @@ func stropt_handle_keymatch(origval Ptr[byte], newval Ptr[byte], op set_op_T, fl
 		}
 		item_start = p.Add(1)
 	}
-	return (1 != 0)
+	return true
 }
 
 func stropt_remove_dupflags(newval Ptr[byte], flags int32) {
@@ -40426,13 +41195,13 @@ func do_set(arg_start Ptr[byte], opt_flags int32) int32 {
 				}
 			}
 			if !errmsg.Nil() {
-				i = vim_snprintf(IObuff, (1024+1), S("%s"), gettext_(errmsg)) + 2
-				if (int64(i) + int64(arg.Sub(startarg))) < (1024 + 1) {
+				i = vim_snprintf(IObuff, 1025, S("%s"), gettext_(errmsg)) + 2
+				if (int64(i) + int64(arg.Sub(startarg))) < 1025 {
 					musl_strcpy(IObuff.Add(int(i)).Add(-2), S(": "))
 					Memmove(IObuff.Add(int(i)), startarg, int(int64(arg.Sub(startarg))))
 					IObuff.Set(int(int64(i)+int64(arg.Sub(startarg))), NUL)
 				}
-				trans_characters(IObuff, (1024 + 1))
+				trans_characters(IObuff, 1025)
 				no_wait_return++
 				emsg(IObuff)
 				no_wait_return--
@@ -40850,7 +41619,7 @@ func set_bool_option(opt_idx int32, varp optvar_T, value int32, opt_flags int32)
 		*get_varp_scope(options.Add(int(opt_idx)), OPT_GLOBAL).ov_int = value
 	}
 	if options.Ref(int(opt_idx)).opt_did_set_cb != nil {
-		*&args = optset_T{}
+		args = optset_T{}
 		args.os_varp = varp
 		args.os_flags = opt_flags
 		args.os_oldval.boolean = old_value
@@ -40864,7 +41633,7 @@ func set_bool_option(opt_idx int32, varp optvar_T, value int32, opt_flags int32)
 	options.Ref(int(opt_idx)).flags |= P_WAS_SET
 	comp_col()
 	if ((curwin.w_curswant != MAXCOL) && ((options.Ref(int(opt_idx)).flags & (P_CURSWANT | P_RALL)) != 0)) && ((options.Ref(int(opt_idx)).flags & P_HLONLY) == 0) {
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 	}
 	if (opt_flags & OPT_NO_REDRAW) == 0 {
 		check_redraw(options.Ref(int(opt_idx)).flags)
@@ -40978,7 +41747,7 @@ func set_num_option(opt_idx int32, varp optvar_T, value int64, errbuf Ptr[byte],
 		*get_varp_scope(options.Add(int(opt_idx)), OPT_GLOBAL).ov_long = value
 	}
 	if options.Ref(int(opt_idx)).opt_did_set_cb != nil {
-		*&args = optset_T{}
+		args = optset_T{}
 		args.os_varp = varp
 		args.os_flags = opt_flags
 		args.os_oldval.number = old_value
@@ -40990,7 +41759,7 @@ func set_num_option(opt_idx int32, varp optvar_T, value int64, errbuf Ptr[byte],
 	options.Ref(int(opt_idx)).flags |= P_WAS_SET
 	comp_col()
 	if ((curwin.w_curswant != MAXCOL) && ((options.Ref(int(opt_idx)).flags & (P_CURSWANT | P_RALL)) != 0)) && ((options.Ref(int(opt_idx)).flags & P_HLONLY) == 0) {
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 	}
 	if (opt_flags & OPT_NO_REDRAW) == 0 {
 		check_redraw(options.Ref(int(opt_idx)).flags)
@@ -41725,12 +42494,12 @@ func buf_copy_options(buf *S_file_buffer, flags int32) {
 				buf.b_p_isk = vim_strsave(p_isk)
 				did_isk = TRUE
 				buf.b_p_ts = p_ts
-				buf.b_help = (0 != 0)
+				buf.b_help = false
 				buf.b_p_ma = p_ma
 			}
 		}
 		if should_copy != 0 {
-			buf.b_p_initialized = (1 != 0)
+			buf.b_p_initialized = true
 		}
 	}
 	check_buf_options(buf)
@@ -42409,7 +43178,7 @@ func did_set_string_option(opt_idx int32, varp Ptr[Ptr[byte]], oldval Ptr[byte],
 			did_set_cb = get_option_did_set_cb(opt_idx)
 		}
 	}
-	*&args = optset_T{}
+	args = optset_T{}
 	if (secure != 0) && ((get_option_flags(opt_idx) & P_SECURE) != 0) {
 		errmsg = e_not_allowed_here
 	} else if check_illegal_path_names(opt_idx, varp) != 0 {
@@ -42449,7 +43218,7 @@ func did_set_string_option(opt_idx int32, varp Ptr[Ptr[byte]], oldval Ptr[byte],
 		}
 	}
 	if ((curwin.w_curswant != MAXCOL) && ((get_option_flags(opt_idx) & (P_CURSWANT | P_RALL)) != 0)) && ((get_option_flags(opt_idx) & P_HLONLY) == 0) {
-		curwin.w_set_curswant = (1 != 0)
+		curwin.w_set_curswant = true
 	}
 	if (opt_flags & OPT_NO_REDRAW) == 0 {
 		check_redraw(get_option_flags(opt_idx))
@@ -42528,7 +43297,7 @@ func deathtrap(sigarg int32) {
 		out_flush()
 		getout(1)
 	}
-	vim_snprintf(IObuff, (1024 + 1), S("Vim: Caught deadly signal %s\r\n"), signal_info[int(i)].name)
+	vim_snprintf(IObuff, 1025, S("Vim: Caught deadly signal %s\r\n"), signal_info[int(i)].name)
 	preserve_exit()
 }
 
@@ -42704,10 +43473,10 @@ func toggle_Magic(x int32) int32 {
 }
 
 func re_multi_type(c int32) int32 {
-	if ((c == (64 - 256)) || (c == (61 - 256))) || (c == (63 - 256)) {
+	if ((c == -192) || (c == -195)) || (c == -193) {
 		return MULTI_ONE
 	}
-	if ((c == (42 - 256)) || (c == (43 - 256))) || (c == (123 - 256)) {
+	if ((c == -214) || (c == -213)) || (c == -133) {
 		return MULTI_MULT
 	}
 	return NOT_MULTI
@@ -42932,12 +43701,12 @@ func peekchr() int32 {
 			curchr = (curchr - 256)
 		}
 	case '*':
-		if (((reg_magic >= MAGIC_ON) && (at_start == 0)) && !((prev_at_start != 0) && (prevchr == (94 - 256)))) && ((peekchr_after_slash != 0) || (((prevchr != (40 - 256)) && (prevchr != (38 - 256))) && (prevchr != (124 - 256)))) {
-			curchr = (42 - 256)
+		if (((reg_magic >= MAGIC_ON) && (at_start == 0)) && !((prev_at_start != 0) && (prevchr == -162))) && ((peekchr_after_slash != 0) || (((prevchr != -216) && (prevchr != -218)) && (prevchr != -132))) {
+			curchr = -214
 		}
 	case '^':
-		if (reg_magic >= MAGIC_OFF) && (((((((at_start != 0) || (reg_magic == MAGIC_ALL)) || (prevchr == (40 - 256))) || (prevchr == (124 - 256))) || (prevchr == (38 - 256))) || (prevchr == (110 - 256))) || (no_Magic(prevchr) == '(') && (prevprevchr == (37-256))) {
-			curchr = (94 - 256)
+		if (reg_magic >= MAGIC_OFF) && (((((((at_start != 0) || (reg_magic == MAGIC_ALL)) || (prevchr == -216)) || (prevchr == -132)) || (prevchr == -218)) || (prevchr == -146)) || (no_Magic(prevchr) == '(') && (prevprevchr == -219)) {
+			curchr = -162
 			at_start = TRUE
 			prev_at_start = FALSE
 		}
@@ -42954,7 +43723,7 @@ func peekchr() int32 {
 				p = p.Add(2)
 			}
 			if (((int32(p.At(0)) == NUL) || ((int32(p.At(0)) == 92) && ((((int32(p.At(1)) == '|') || (int32(p.At(1)) == '&')) || (int32(p.At(1)) == ')')) || (int32(p.At(1)) == 'n')))) || ((is_magic_all != 0) && (((int32(p.At(0)) == '|') || (int32(p.At(0)) == '&')) || (int32(p.At(0)) == ')')))) || (reg_magic == MAGIC_ALL) {
-				curchr = (36 - 256)
+				curchr = -220
 			}
 		}
 	case 92:
@@ -42982,7 +43751,6 @@ func peekchr() int32 {
 				curchr = c
 			}
 		}
-		break
 	default:
 		if curchr >= 0x80 {
 			curchr = utf_ptr2char(regparse)
@@ -43964,7 +44732,7 @@ func regcomp_start(expr Ptr[byte], re_flags int32) {
 	get_cpo_flags()
 	num_complex_braces = 0
 	regnpar = 1
-	*&had_endbrace = [10]byte{}
+	had_endbrace = [10]byte{}
 	regsize = 0
 	reg_toolong = FALSE
 	bt_reg_parse_depth = 0
@@ -44054,7 +44822,6 @@ func regnext(p Ptr[byte]) Ptr[byte] {
 	} else {
 		return p.Add(int(offset))
 	}
-	panic("not reached")
 }
 
 func regtail(p Ptr[byte], val Ptr[byte]) {
@@ -44289,15 +45056,15 @@ func regatom(flagp *int32) Ptr[byte] {
 	sw = c
 	for {
 		switch sw {
-		case (94 - 256):
+		case -162:
 			ret = regnode(BOL)
-		case (36 - 256):
+		case -220:
 			ret = regnode(EOL)
-		case (60 - 256):
+		case -196:
 			ret = regnode(BOW)
-		case (62 - 256):
+		case -194:
 			ret = regnode(EOW)
-		case (95 - 256):
+		case -161:
 			c = no_Magic(getchr())
 			if c == '%' {
 				delim_nl = TRUE
@@ -44322,16 +45089,16 @@ func regatom(flagp *int32) Ptr[byte] {
 			extra = ADD_NL
 			(*flagp) |= HASNL
 			if c == '[' {
-				sw = (91 - 256)
+				sw = -165
 				continue
 			}
 			fallthrough
-		case (46 - 256), (105 - 256), (73 - 256), (107 - 256), (75 - 256), (102 - 256), (70 - 256), (112 - 256), (80 - 256), (115 - 256), (83 - 256), (100 - 256), (68 - 256), (120 - 256), (88 - 256), (111 - 256), (79 - 256), (119 - 256), (87 - 256), (104 - 256), (72 - 256), (97 - 256), (65 - 256), (108 - 256), (76 - 256), (117 - 256), (85 - 256):
+		case -210, -151, -183, -149, -181, -154, -186, -144, -176, -141, -173, -156, -188, -136, -168, -145, -177, -137, -169, -152, -184, -159, -191, -148, -180, -139, -171:
 			p = vim_strchr(classchars, no_Magic(c))
 			if p.Nil() {
 				return Ptr[byte]{}
 			}
-			if (c == (46 - 256)) && (utf_iscomposing(peekchr()) != 0) {
+			if (c == -210) && (utf_iscomposing(peekchr()) != 0) {
 				c = getchr()
 				ret = regnode(MULTIBYTECODE)
 				regmbc(c)
@@ -44340,7 +45107,7 @@ func regatom(flagp *int32) Ptr[byte] {
 			}
 			ret = regnode(classcodes[int(int64(p.Sub(classchars)))] + extra)
 			(*flagp) |= HASWIDTH | SIMPLE
-		case (110 - 256):
+		case -146:
 			if reg_string != 0 {
 				ret = regnode(EXACTLY)
 				regc(NL)
@@ -44350,7 +45117,7 @@ func regatom(flagp *int32) Ptr[byte] {
 				ret = regnode(NEWL)
 				(*flagp) |= HASWIDTH | HASNL
 			}
-		case (40 - 256):
+		case -216:
 			if one_exactly != 0 {
 				return Ptr[byte]{}
 			}
@@ -44359,15 +45126,15 @@ func regatom(flagp *int32) Ptr[byte] {
 				return Ptr[byte]{}
 			}
 			(*flagp) |= flags & (((HASWIDTH | SPSTART) | HASNL) | HASLOOKBH)
-		case NUL, (124 - 256), (38 - 256), (41 - 256):
+		case NUL, -132, -218, -215:
 			if one_exactly != 0 {
 				return Ptr[byte]{}
 			}
 			return Ptr[byte]{}
-		case (61 - 256), (63 - 256), (43 - 256), (64 - 256), (123 - 256), (42 - 256):
+		case -195, -193, -213, -192, -133, -214:
 			c = no_Magic(c)
 			return Ptr[byte]{}
-		case (126 - 256):
+		case -130:
 			if !reg_prev_sub.Nil() {
 				ret = regnode(EXACTLY)
 				lp = reg_prev_sub
@@ -44386,13 +45153,13 @@ func regatom(flagp *int32) Ptr[byte] {
 			} else {
 				return Ptr[byte]{}
 			}
-		case (49 - 256), (50 - 256), (51 - 256), (52 - 256), (53 - 256), (54 - 256), (55 - 256), (56 - 256), (57 - 256):
-			refnum = c - (48 - 256)
+		case -207, -206, -205, -204, -203, -202, -201, -200, -199:
+			refnum = c - -208
 			if seen_endbrace(refnum) == 0 {
 				return Ptr[byte]{}
 			}
 			ret = regnode(BACKREF + refnum)
-		case (122 - 256):
+		case -134:
 			c = no_Magic(getchr())
 			switch c {
 			case 's':
@@ -44408,7 +45175,7 @@ func regatom(flagp *int32) Ptr[byte] {
 			default:
 				return Ptr[byte]{}
 			}
-		case (37 - 256):
+		case -219:
 			c = no_Magic(getchr())
 			switch c {
 			case '(':
@@ -44488,7 +45255,6 @@ func regatom(flagp *int32) Ptr[byte] {
 					}
 				}
 				(*flagp) &= ^(HASWIDTH | SIMPLE)
-				break
 			case 'd', 'o', 'x', 'u', 'U':
 				switch c {
 				case 'd':
@@ -44519,7 +45285,6 @@ func regatom(flagp *int32) Ptr[byte] {
 				}
 				regc(NUL)
 				(*flagp) |= HASWIDTH
-				break
 			case ')', ']', '}', 'f', 't':
 				ret = regatom_delim(c, delim_nl, flagp)
 				if ret.Nil() {
@@ -44609,7 +45374,7 @@ func regatom(flagp *int32) Ptr[byte] {
 				}
 				return Ptr[byte]{}
 			}
-		case (91 - 256):
+		case -165:
 			lp_2 = skip_anyof(regparse)
 			if int32(lp_2.Get()) == ']' {
 				startc = -1
@@ -44902,7 +45667,7 @@ func regpiece(flagp *int32) Ptr[byte] {
 	*flagp = ((WORST | SPSTART) | (flags & (HASNL | HASLOOKBH)))
 	skipchr()
 	switch op {
-	case (42 - 256):
+	case -214:
 		if flags&SIMPLE != 0 {
 			reginsert(STAR, ret)
 		} else {
@@ -44912,7 +45677,7 @@ func regpiece(flagp *int32) Ptr[byte] {
 			regtail(ret, regnode(BRANCH))
 			regtail(ret, regnode(NOTHING))
 		}
-	case (43 - 256):
+	case -213:
 		if flags&SIMPLE != 0 {
 			reginsert(PLUS, ret)
 		} else {
@@ -44923,7 +45688,7 @@ func regpiece(flagp *int32) Ptr[byte] {
 			regtail(ret, regnode(NOTHING))
 		}
 		*flagp = ((WORST | HASWIDTH) | (flags & (HASNL | HASLOOKBH)))
-	case (64 - 256):
+	case -192:
 		lop = END
 		nr = getdecchrs()
 		switch no_Magic(getchr()) {
@@ -44957,14 +45722,13 @@ func regpiece(flagp *int32) Ptr[byte] {
 		} else {
 			reginsert(lop, ret)
 		}
-		break
-	case (63 - 256), (61 - 256):
+	case -193, -195:
 		reginsert(BRANCH, ret)
 		regtail(ret, regnode(BRANCH))
 		next = regnode(NOTHING)
 		regtail(ret, next)
 		regoptail(ret, next)
-	case (123 - 256):
+	case -133:
 		if read_limits(&minval, &maxval) == 0 {
 			return Ptr[byte]{}
 		}
@@ -44986,7 +45750,7 @@ func regpiece(flagp *int32) Ptr[byte] {
 		}
 	}
 	if re_multi_type(peekchr()) != NOT_MULTI {
-		if peekchr() == (42 - 256) {
+		if peekchr() == -214 {
 			return Ptr[byte]{}
 		}
 		return Ptr[byte]{}
@@ -45007,30 +45771,30 @@ func regconcat(flagp *int32) Ptr[byte] {
 	*flagp = WORST
 	for cont != 0 {
 		switch peekchr() {
-		case NUL, (124 - 256), (38 - 256), (41 - 256):
+		case NUL, -132, -218, -215:
 			cont = FALSE
-		case (90 - 256):
+		case -166:
 			regflags |= RF_ICOMBINE
 			skipchr_keepstart()
-		case (99 - 256):
+		case -157:
 			regflags |= RF_ICASE
 			skipchr_keepstart()
-		case (67 - 256):
+		case -189:
 			regflags |= RF_NOICASE
 			skipchr_keepstart()
-		case (118 - 256):
+		case -138:
 			reg_magic = MAGIC_ALL
 			skipchr_keepstart()
 			curchr = -1
-		case (109 - 256):
+		case -147:
 			reg_magic = MAGIC_ON
 			skipchr_keepstart()
 			curchr = -1
-		case (77 - 256):
+		case -179:
 			reg_magic = MAGIC_OFF
 			skipchr_keepstart()
 			curchr = -1
-		case (86 - 256):
+		case -170:
 			reg_magic = MAGIC_NONE
 			skipchr_keepstart()
 			curchr = -1
@@ -45076,7 +45840,7 @@ func regbranch(flagp *int32) Ptr[byte] {
 		if !chain.Nil() {
 			regtail(chain, latest)
 		}
-		if peekchr() != (38 - 256) {
+		if peekchr() != -218 {
 			break
 		}
 		skipchr()
@@ -45134,7 +45898,7 @@ func reg(paren int32, flagp *int32) Ptr[byte] {
 		(*flagp) &= ^HASWIDTH
 	}
 	(*flagp) |= flags & ((SPSTART | HASNL) | HASLOOKBH)
-	for peekchr() == (124 - 256) {
+	for peekchr() == -132 {
 		skipchr()
 		br = regbranch(&flags)
 		if br.Nil() || (reg_toolong != 0) {
@@ -45163,7 +45927,7 @@ func reg(paren int32, flagp *int32) Ptr[byte] {
 	for ; !br.Nil(); br = regnext(br) {
 		regoptail(br, ender)
 	}
-	if (paren != REG_NOPAREN) && (getchr() != (41 - 256)) {
+	if (paren != REG_NOPAREN) && (getchr() != -215) {
 		if paren == REG_NPAREN {
 			if reg_magic == MAGIC_ALL {
 				t3 = S("")
@@ -45188,7 +45952,7 @@ func reg(paren int32, flagp *int32) Ptr[byte] {
 			goto theend
 		}
 	} else if (paren == REG_NOPAREN) && (peekchr() != NUL) {
-		if curchr == (41 - 256) {
+		if curchr == -215 {
 			if reg_magic == MAGIC_ALL {
 				t5 = S("")
 			} else {
@@ -45576,7 +46340,6 @@ func regrepeat(p Ptr[byte], maxcount int64) int32 {
 				scan = scan.Add(1)
 			}
 		}
-		break
 	case MULTIBYTECODE:
 		cf = 0
 		len_ = utfc_ptr2len(opnd)
@@ -46139,7 +46902,6 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 						}
 						rex.input = rex.input.Add(int(len__2))
 					}
-					break
 				case MULTIBYTECODE:
 					opndc = 0
 					opnd_2 = scan.Add(3)
@@ -46751,7 +47513,6 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 			return B2i((status == RA_MATCH))
 		}
 	}
-	panic("not reached")
 }
 
 func regtry(prog *S_regprog, col colnr_T, timed_out *int32) int64 {
@@ -46841,7 +47602,7 @@ func bt_regexec_both(line Ptr[byte], startcol colnr_T, timed_out *int32) int64 {
 		if rex.reg_ic == 0 {
 			for {
 				s = vim_strchr(s, c)
-				if !(!s.Nil()) {
+				if s.Nil() {
 					break
 				}
 				if cstrncmp(s, prog.regmust, &prog.regmlen) == 0 {
@@ -46852,7 +47613,7 @@ func bt_regexec_both(line Ptr[byte], startcol colnr_T, timed_out *int32) int64 {
 		} else {
 			for {
 				s = cstrchr(s, c)
-				if !(!s.Nil()) {
+				if s.Nil() {
 					break
 				}
 				if cstrncmp(s, prog.regmust, &prog.regmlen) == 0 {
@@ -47682,7 +48443,6 @@ func op_yank(oap *S_oparg_S, deleting int32, mess int32) int32 {
 			if yank_copy_line(&bd, y_idx, FALSE) == FAIL {
 				goto fail
 			}
-			break
 		}
 		lnum++
 		y_idx++
@@ -48350,7 +49110,7 @@ func do_put(regname int32, expr_result Ptr[byte], dir int32, count int64, flags 
 		}
 	}
 	msgmore(nr_lines)
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 	len__2 = ml_get_curline_len()
 	if curwin.w_cursor.col > len__2 {
 		if cur_ve_flags == VE_ALL {
@@ -48379,7 +49139,6 @@ func get_register_name(num int32) int32 {
 	} else {
 		return (num + 'a') - 10
 	}
-	panic("not reached")
 }
 
 func ex_display(eap *S_exarg) {
@@ -48455,7 +49214,7 @@ func ex_display(eap *S_exarg) {
 							n -= ptr2cells(p)
 							t1 = n >= 0
 						}
-						if !(t1) {
+						if !t1 {
 							break
 						}
 						clen = utfc_ptr2len(p)
@@ -48502,7 +49261,7 @@ func dis_msg(p Ptr[byte], skip_esc int32) {
 			n -= ptr2cells(p)
 			t1 = n >= 0
 		}
-		if !(t1) {
+		if !t1 {
 			break
 		}
 		l = utfc_ptr2len(p)
@@ -48579,7 +49338,7 @@ func win_draw_end(wp *S_window_S, c1 int32, c2 int32, draw_margin int32, row int
 	attr = hl_combine_attr(win_attr, attr)
 	if draw_margin != 0 {
 		if ((wp.w_onebuf_opt.wo_nu != 0) || (wp.w_onebuf_opt.wo_rnu != 0)) && vim_strchr(p_cpo, CPO_NUMCOL).Nil() {
-			n = screen_fill_end(wp, ' ', ' ', n, 7+1, row, endrow, hl_combine_attr(win_attr, highlight_attr[11]))
+			n = screen_fill_end(wp, ' ', ' ', n, 8, row, endrow, hl_combine_attr(win_attr, highlight_attr[11]))
 		}
 	}
 	screen_fill(wp.w_winrow+row, wp.w_winrow+endrow, wp.w_wincol+n, (wp.w_wincol + wp.w_width), c1, c2, attr)
@@ -48940,7 +49699,7 @@ func screen_puts_len(text Ptr[byte], textlen int32, row int32, col int32, attr_a
 			soff = ((row - pum_bg_top) * pum_bg_cols) + col
 			cell_attr = hl_blend_attr(int32(pum_bg_attrs.At(int(soff))), attr, screen_pum_blend, FALSE)
 		}
-		t4 = ((int32(ScreenLines.At(int(off))) != c) || ((mbyte_cells == 2) && (int32(ScreenLines.At(int(off+1))) != 0))) || (FALSE != 0)
+		t4 = ((int32(ScreenLines.At(int(off))) != c) || ((mbyte_cells == 2) && (int32(ScreenLines.At(int(off+1))) != 0))) || false
 		if !t4 {
 			if (c < 0x80) && (u8cc.At(0) == 0) {
 				t3 = 0
@@ -49595,7 +50354,7 @@ give_up:
 					} else {
 						len_ = int32(Columns)
 					}
-					if !(ScreenLinesUC.Nil()) && (p_mco == int64(Screen_mco)) {
+					if !ScreenLinesUC.Nil() && (p_mco == int64(Screen_mco)) {
 						Memmove(new_ScreenLines.Add(int(new_LineOffset.At(int(new_row)))), ScreenLines.Add(int(LineOffset.At(int(old_row)))), int(uint64(len_)*1))
 					}
 					if !ScreenLinesUC.Nil() && (p_mco == int64(Screen_mco)) {
@@ -49869,7 +50628,7 @@ func windgoto(row int32, col int32) {
 					p = p.Add(1)
 					t2 = int32(t1.Get()) == attr
 				}
-				if !(t2) {
+				if !t2 {
 					break
 				}
 				i--
@@ -49885,7 +50644,7 @@ func windgoto(row int32, col int32) {
 							p = p.Add(1)
 							t4 = int32(t3.Get()) == 0
 						}
-						if !(t4) {
+						if !t4 {
 							break
 						}
 						i--
@@ -50010,7 +50769,7 @@ func win_ins_lines(wp *S_window_S, row int32, line_count int32, invalid int32, m
 		}
 	}
 	if did_delete == 0 {
-		wp.w_redr_status = (1 != 0)
+		wp.w_redr_status = true
 		redraw_cmdline = TRUE
 		nextrow = (wp.w_winrow + wp.w_height) + wp.w_status_height
 		lastrow = nextrow + line_count
@@ -50021,7 +50780,7 @@ func win_ins_lines(wp *S_window_S, row int32, line_count int32, invalid int32, m
 	}
 	if screen_ins_lines(0, wp.w_winrow+row, line_count, int32(Rows), 0, nil) == FAIL {
 		if did_delete != 0 {
-			wp.w_redr_status = (1 != 0)
+			wp.w_redr_status = true
 		}
 		return FAIL
 	}
@@ -50046,7 +50805,7 @@ func win_del_lines(wp *S_window_S, row int32, line_count int32, invalid int32, m
 	}
 	if (wp.w_status_height != 0) || (int64(cmdline_row) < (Rows - 1)) {
 		if screen_ins_lines(0, (wp.w_winrow+wp.w_height)-line_count, line_count, int32(Rows), clear_attr, nil) == FAIL {
-			wp.w_redr_status = (1 != 0)
+			wp.w_redr_status = true
 		}
 	} else {
 		redraw_cmdline = TRUE
@@ -50095,7 +50854,7 @@ func win_do_lines(wp *S_window_S, row int32, line_count int32, mayclear int32, d
 
 func win_rest_invalid(wp *S_window_S) {
 	redraw_win_later(wp, UPD_NOT_VALID)
-	wp.w_redr_status = (1 != 0)
+	wp.w_redr_status = true
 	redraw_cmdline = TRUE
 }
 
@@ -50572,12 +51331,12 @@ func fillchar_status(attr *int32, wp *S_window_S) int32 {
 
 func vsep_row_is_curwin(wp *S_window_S, row int32) bool {
 	if wp == curwin {
-		return (1 != 0)
+		return true
 	}
 	if ((curwin.w_wincol == ((wp.w_wincol + wp.w_width) + wp.w_vsep_width)) && (row >= curwin.w_winrow)) && (row < ((curwin.w_winrow + curwin.w_height) + curwin.w_status_height)) {
-		return (1 != 0)
+		return true
 	}
-	return (0 != 0)
+	return false
 }
 
 func fillchar_vsep(attr *int32, wp *S_window_S, row int32) int32 {
@@ -50597,7 +51356,6 @@ func fillchar_vsep(attr *int32, wp *S_window_S, row int32) int32 {
 	} else {
 		return wp.w_fill_chars.vert
 	}
-	panic("not reached")
 }
 
 func typed_ahead() int32 {
@@ -50715,7 +51473,7 @@ func set_chars_option(wp *S_window_S, value Ptr[byte], is_listchars int32, apply
 	lead_multispace_len = 0
 	if is_listchars != 0 {
 		tab = lcstab
-		*&lcs_chars = lcs_chars_T{}
+		lcs_chars = lcs_chars_T{}
 		entries = (288 / 24)
 		if int32(wp.w_onebuf_opt.wo_lcs.At(0)) == NUL {
 			value = p_lcs
@@ -51314,7 +52072,7 @@ func searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_pos *pos_T, d
 								}
 								t6 = t5
 							}
-							if !(t6) {
+							if !t6 {
 								break
 							}
 							if search_from_match_end != 0 {
@@ -51849,7 +52607,7 @@ func do_search(oap *S_oparg_S, dirc int32, search_delim int32, pat Ptr[byte], pa
 		setpcmark()
 	}
 	curwin.w_cursor = pos
-	curwin.w_set_curswant = (1 != 0)
+	curwin.w_set_curswant = true
 end_do_search:
 	if ((options & SEARCH_KEEP) != 0) || ((cmdmod.cmod_flags & CMOD_KEEPPATTERNS) != 0) {
 		spats[0].off = old_off
@@ -52642,7 +53400,7 @@ func is_zero_width(pattern Ptr[byte], patternlen usize, move int32, cur *pos_T, 
 				}
 				t2 = t1
 			}
-			if !(t2) {
+			if !t2 {
 				break
 			}
 		}
@@ -53508,7 +54266,7 @@ func match_keyprotocol(term Ptr[byte]) keyprot_T {
 		} else {
 			goto theend
 		}
-		*&regmatch = regmatch_T{}
+		regmatch = regmatch_T{}
 		regmatch.rm_ic = TRUE
 		regmatch.regprog = vim_regcomp(buf, RE_MAGIC)
 		if regmatch.regprog == nil {
@@ -54421,7 +55179,7 @@ func accept_modifiers_for_function_keys() {
 	var len_ usize
 	var ns Ptr[byte]
 
-	*&regmatch = regmatch_T{}
+	regmatch = regmatch_T{}
 	regmatch.rm_ic = TRUE
 	regmatch.regprog = vim_regcomp(S("^\x1b[\\d\\+\\~$"), RE_MAGIC)
 	i = 0
@@ -54956,7 +55714,7 @@ func handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset int32, buf Ptr[
 				break
 			}
 		}
-		for (ap.Lt(tp.Add(int(len_))) && !((int32(ap.Get()) >= '{') && (int32(ap.Get()) <= '~'))) && !(((uint32(ap.Get()) - 'A') < 26) || ((uint32(ap.Get()) - 'a') < 26)) {
+		for (ap.Lt(tp.Add(int(len_))) && !(int32(ap.Get()) >= '{') && (int32(ap.Get()) <= '~')) && !(((uint32(ap.Get()) - 'A') < 26) || ((uint32(ap.Get()) - 'a') < 26)) {
 			ap = ap.Add(1)
 		}
 		if ap.Ge(tp.Add(int(len_))) {
@@ -55838,7 +56596,7 @@ func term_set_sync_output(flags int32) {
 	var t1 int32
 	var t2 bool
 
-	in_gui = (0 != 0)
+	in_gui = false
 	allowed = (p_tsy != 0) && ((sync_output_setting == 1) || (sync_output_setting == 2))
 	if flags&TERM_SYNC_OUTPUT_FLUSH != 0 {
 		if (((allowed && !in_gui) && (sync_output_state > 0)) && (int32(term_strings[93].Get()) != NUL)) && (int32(term_strings[92].Get()) != NUL) {
@@ -56550,7 +57308,7 @@ func current_block(oap *S_oparg_S, count int64, include int32, what int32, other
 			}
 			t8 = t7
 		}
-		t11 = !(t8)
+		t11 = !t8
 		if t11 {
 			if old_end.lnum != curwin.w_cursor.lnum {
 				t10 = old_end.lnum < curwin.w_cursor.lnum
@@ -56562,7 +57320,7 @@ func current_block(oap *S_oparg_S, count int64, include int32, what int32, other
 				}
 				t10 = t9
 			}
-			t11 = !(t10)
+			t11 = !t10
 		}
 		if (t11 && !(((start_pos.lnum == curwin.w_cursor.lnum) && (start_pos.col == curwin.w_cursor.col)) && (start_pos.coladd == curwin.w_cursor.coladd))) && (VIsual_active != 0) {
 			curwin.w_cursor = old_start
@@ -57249,7 +58007,7 @@ func u_savecommon(top linenr_T, bot linenr_T, newbot linenr_T, reload int32) int
 	}
 	size = (bot - top) - 1
 	if curbuf.b_u_synced {
-		curbuf.b_new_change = (1 != 0)
+		curbuf.b_new_change = true
 		if get_undolevel() >= 0 {
 			uhp = new(S_u_header)
 		} else {
@@ -57277,7 +58035,7 @@ func u_savecommon(top linenr_T, bot linenr_T, newbot linenr_T, reload int32) int
 			if old_curhead != nil {
 				u_freebranch(curbuf, old_curhead, nil)
 			}
-			curbuf.b_u_synced = (0 != 0)
+			curbuf.b_u_synced = false
 			return OK
 		}
 		uhp.uh_prev = nil
@@ -57359,7 +58117,7 @@ func u_savecommon(top linenr_T, bot linenr_T, newbot linenr_T, reload int32) int
 				if (uep.ue_size == 1) && (uep.ue_top == top) {
 					if i > 0 {
 						u_getbot()
-						curbuf.b_u_synced = (0 != 0)
+						curbuf.b_u_synced = false
 						prev_uep.ue_next = uep.ue_next
 						uep.ue_next = curbuf.b_u_newhead.uh_entry
 						curbuf.b_u_newhead.uh_entry = uep
@@ -57414,7 +58172,7 @@ func u_savecommon(top linenr_T, bot linenr_T, newbot linenr_T, reload int32) int
 	}
 	uep.ue_next = curbuf.b_u_newhead.uh_entry
 	curbuf.b_u_newhead.uh_entry = uep
-	curbuf.b_u_synced = (0 != 0)
+	curbuf.b_u_synced = false
 	undo_undoes = FALSE
 	return OK
 nomem:
@@ -58091,7 +58849,7 @@ func u_sync(force int32) {
 		return
 	}
 	if get_undolevel() < 0 {
-		curbuf.b_u_synced = (1 != 0)
+		curbuf.b_u_synced = true
 	} else {
 		u_getbot()
 		curbuf.b_u_curhead = nil
@@ -58122,8 +58880,8 @@ func ex_undolist(eap *S_exarg) {
 			if ga_grow(&ga, 1) == FAIL {
 				break
 			}
-			len_ = vim_snprintf(IObuff, (1024 + 1), S("%6ld %7d  "), uhp.uh_seq, changes)
-			add_time(IObuff.Add(int(len_)), usize((1024+1)-len_), uhp.uh_time)
+			len_ = vim_snprintf(IObuff, 1025, S("%6ld %7d  "), uhp.uh_seq, changes)
+			add_time(IObuff.Add(int(len_)), usize(1025-len_), uhp.uh_time)
 			len_ += int32(musl_strlen(IObuff.Add(int(len_))))
 			if uhp.uh_save_nr > 0 {
 				if len_ >= 33 {
@@ -58132,7 +58890,7 @@ func ex_undolist(eap *S_exarg) {
 					t1 = 33 - len_
 				}
 				n = t1
-				len_ += vim_snprintf(IObuff.Add(int(len_)), usize((1024+1)-len_), S("%*.*s  %3ld"), n, n, S(" "), uhp.uh_save_nr)
+				len_ += vim_snprintf(IObuff.Add(int(len_)), usize(1025-len_), S("%*.*s  %3ld"), n, n, S(" "), uhp.uh_save_nr)
 			}
 			t2 = ga.ga_len
 			ga.ga_len++
@@ -58190,7 +58948,7 @@ func ex_undojoin(eap *S_exarg) {
 	if get_undolevel() < 0 {
 		return
 	} else {
-		curbuf.b_u_synced = (0 != 0)
+		curbuf.b_u_synced = false
 	}
 }
 
@@ -58220,7 +58978,7 @@ func u_getbot() {
 		}
 		curbuf.b_u_newhead.uh_getbot_entry = nil
 	}
-	curbuf.b_u_synced = (1 != 0)
+	curbuf.b_u_synced = true
 }
 
 func u_freeheader(buf *S_file_buffer, uhp *S_u_header, uhpp **S_u_header) {
@@ -58301,7 +59059,7 @@ func u_freeentry(uep *S_u_entry, n int64) {
 
 func u_clearall(buf *S_file_buffer) {
 	buf.b_u_newhead = nil
-	buf.b_u_synced = (1 != 0)
+	buf.b_u_synced = true
 	buf.b_u_numhead = 0
 	buf.b_u_line_ptr.ul_line = Ptr[byte]{}
 	buf.b_u_line_ptr.ul_len = 0
@@ -58686,7 +59444,7 @@ func frame_comp_pos(topfrp *S_frame_S, row *int32, col *int32) {
 			wp.w_winrow = (*row)
 			wp.w_wincol = (*col)
 			redraw_win_later(wp, UPD_NOT_VALID)
-			wp.w_redr_status = (1 != 0)
+			wp.w_redr_status = true
 		}
 		h = wp.w_height + wp.w_status_height
 		if h > topfrp.fr_height {
@@ -58782,7 +59540,7 @@ func win_fix_scroll(resize int32) {
 	skip_update_topline = TRUE
 	wp = curwin
 	if wp.w_height != wp.w_prev_height {
-		wp.w_do_win_fix_cursor = (1 != 0)
+		wp.w_do_win_fix_cursor = true
 		if ((int32(p_spk.Get()) == 's') && (wp.w_winrow != wp.w_prev_winrow)) && ((wp.w_botline - 1) <= wp.w_buffer.b_ml.ml_line_count) {
 			diff = (wp.w_winrow - wp.w_prev_winrow) + (wp.w_height - wp.w_prev_height)
 			cursor = wp.w_cursor
@@ -58832,7 +59590,7 @@ func win_fix_cursor(normal int32) {
 	if ((skip_win_fix_cursor != 0) || !wp.w_do_win_fix_cursor) || (wp.w_buffer.b_ml.ml_line_count < int64(wp.w_height)) {
 		return
 	}
-	wp.w_do_win_fix_cursor = (0 != 0)
+	wp.w_do_win_fix_cursor = false
 	if int64((wp.w_height / 2)) < get_scrolloff_value() {
 		t1 = int64((wp.w_height / 2))
 	} else {
@@ -58897,7 +59655,7 @@ func win_new_height(wp *S_window_S, height int32) {
 		}
 	}
 	wp.w_height = height
-	wp.w_redr_status = (1 != 0)
+	wp.w_redr_status = true
 	win_comp_scroll(wp)
 	if (exiting == 0) && (int32(p_spk.Get()) == 'c') {
 		if wp.w_onebuf_opt.wo_sms == 0 {
@@ -58986,7 +59744,7 @@ func win_new_width(wp *S_window_S, width int32) {
 		curs_columns(TRUE)
 	}
 	redraw_win_later(wp, UPD_NOT_VALID)
-	wp.w_redr_status = (1 != 0)
+	wp.w_redr_status = true
 }
 
 func win_comp_scroll(wp *S_window_S) {
@@ -59070,7 +59828,7 @@ func statusline_height(wp *S_window_S) int32 {
 func last_stl_height(morewin int32) int32 {
 	var t1 int32
 
-	if (p_ls == 2) || ((p_ls == 1) && ((morewin != 0) || (TRUE == 0))) {
+	if (p_ls == 2) || ((p_ls == 1) && ((morewin != 0) || false)) {
 		t1 = STATUS_HEIGHT
 	} else {
 		t1 = 0
@@ -59160,7 +59918,7 @@ func common_init_1() {
 	for ; i < 256; i++ {
 		mb_bytelen_tab[int(i)] = 1
 	}
-	IObuff = Alloc((1024 + 1))
+	IObuff = Alloc(1025)
 	t1 = IObuff.Nil()
 	if !t1 {
 		NameBuff = Alloc(PATH_MAX)
@@ -59198,10 +59956,10 @@ func may_trigger_deferred_events() {
 	if may_trigger_deferred_events_recursive {
 		return
 	}
-	may_trigger_deferred_events_recursive = (1 != 0)
+	may_trigger_deferred_events_recursive = true
 	update_topline()
 	validate_cursor()
-	may_trigger_deferred_events_recursive = (0 != 0)
+	may_trigger_deferred_events_recursive = false
 }
 
 func main_loop(cmdwin int32) {
@@ -59391,7 +60149,7 @@ func mainerr(n int32, str Ptr[byte]) {
 }
 
 func vim_main(argc int32, argv Ptr[Ptr[byte]]) int32 {
-	*&params = mparm_T{}
+	params = mparm_T{}
 	params.argc = argc
 	params.argv = argv
 	params.want_full_screen = TRUE

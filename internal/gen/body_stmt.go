@@ -172,6 +172,7 @@ func (f *fnEmit) initValue(typ string, t cc.Type, key string, in *cc.Initializer
 		return typ + "{}"
 	}
 	var parts []string
+	composite := false // an array of composite elements: one to a line
 	switch x := t.(type) {
 	case *cc.StructType:
 		i := 0
@@ -209,6 +210,11 @@ func (f *fnEmit) initValue(typ string, t cc.Type, key string, in *cc.Initializer
 		et := elemOfGo(typ)
 		for l := in.InitializerList; l != nil; l = l.InitializerList {
 			v := f.initValue(et, x.Elem(), "elem:"+key, l.Initializer)
+			// An element's type is the array's: `{...}`, not `T{...}` (gofmt -s).
+			if strings.HasPrefix(v, et+"{") {
+				v = v[len(et):]
+				composite = true
+			}
 			if d := designator(f, l); d != nil {
 				if d.Case != cc.DesignatorIndex {
 					f.no(in, "a field designator in an array")
@@ -223,6 +229,9 @@ func (f *fnEmit) initValue(typ string, t cc.Type, key string, in *cc.Initializer
 			return f.initValue(typ, t, key, items[0])
 		}
 		f.no(in, "a braced initializer for a %s", t)
+	}
+	if composite && len(parts) > 1 {
+		return typ + "{\n" + strings.Join(parts, ",\n") + ",\n}"
 	}
 	return typ + "{" + strings.Join(parts, ", ") + "}"
 }
@@ -354,6 +363,15 @@ func (f *fnEmit) switchStmt(s *cc.SelectionStatement) {
 				trailingBreak = true
 			}
 		}
+		if trailingBreak {
+			// `if (c) { ...; break; } break;`: the inner break is the case's end
+			// either way, and in Go, which does not fall through, it says nothing.
+			f.tailBreaks(stmts)
+		} else if n := len(stmts); n > 0 && stmts[n-1].Case == cc.BlockItemStmt && stmts[n-1].Statement.Case == cc.StatementCompound {
+			// `case X: { ...; break; }`: the break is the block's end and the
+			// case's, and endsInJump already keeps the fallthrough out.
+			f.blockBreak(stmts[n-1].Statement)
+		}
 		f.pushBreakable(false)
 		for _, it := range stmts {
 			switch it.Case {
@@ -471,7 +489,7 @@ func (f *fnEmit) iteration(s *cc.IterationStatement) {
 		} else {
 			f.line("for {")
 			f.out.WriteString(pre)
-			f.line("\tif !(%s) {", c)
+			f.line("\tif %s {", not(c))
 			f.line("\t\tbreak")
 			f.line("\t}")
 		}
@@ -490,7 +508,7 @@ func (f *fnEmit) iteration(s *cc.IterationStatement) {
 		f.indent++
 		if !isConstTrue(s.ExpressionList) {
 			c := f.condition(s.ExpressionList)
-			f.line("if !(%s) {", c)
+			f.line("if %s {", not(c))
 			f.line("\tbreak")
 			f.line("}")
 		}
@@ -539,7 +557,7 @@ func (f *fnEmit) iteration(s *cc.IterationStatement) {
 		f.line("for {")
 		if c != "" {
 			f.out.WriteString(pre)
-			f.line("\tif !(%s) {", c)
+			f.line("\tif %s {", not(c))
 			f.line("\t\tbreak")
 			f.line("\t}")
 		}
@@ -559,6 +577,9 @@ func (f *fnEmit) jump(j *cc.JumpStatement) {
 	case cc.JumpStatementGoto:
 		f.line("goto %s", j.Token2.SrcStr())
 	case cc.JumpStatementBreak:
+		if f.deadBrk[j] {
+			return
+		}
 		f.line("break")
 	case cc.JumpStatementContinue:
 		if len(f.cont) == 0 {
@@ -685,7 +706,7 @@ func (g *gen) emitFunction(fd *cc.FunctionDefinition) (src string, why string) {
 		b.WriteString("\n")
 	}
 	b.WriteString(body.String())
-	if rt != "" && !terminates(strings.Split(body.String(), "\n")) {
+	if rt != "" && !terminates(strings.Split(body.String(), "\n")) && !goTerminates(body.String()) {
 		b.WriteString("\tpanic(\"not reached\")\n")
 	}
 	b.WriteString("}\n")
@@ -748,4 +769,72 @@ func (g *gen) bodies(skip map[string]bool) (string, string) {
 		fmt.Fprintf(logw, "  %5d  %s\n", whys[k], k)
 	}
 	return out.String(), report.String()
+}
+
+// tailBreaks marks the breaks that end the branches of the if statements a
+// case's statements end with, when the case itself ends in a break.
+func (f *fnEmit) tailBreaks(items []*cc.BlockItem) {
+	if len(items) == 0 {
+		return
+	}
+	last := items[len(items)-1]
+	if last.Case != cc.BlockItemStmt {
+		return
+	}
+	var branch func(s *cc.Statement)
+	branch = func(s *cc.Statement) {
+		if s == nil {
+			return
+		}
+		switch s.Case {
+		case cc.StatementJump:
+			if s.JumpStatement.Case == cc.JumpStatementBreak {
+				if f.deadBrk == nil {
+					f.deadBrk = map[*cc.JumpStatement]bool{}
+				}
+				f.deadBrk[s.JumpStatement] = true
+			}
+		case cc.StatementCompound:
+			var its []*cc.BlockItem
+			for l := s.CompoundStatement.BlockItemList; l != nil; l = l.BlockItemList {
+				its = append(its, l.BlockItem)
+			}
+			if len(its) > 0 && its[len(its)-1].Case == cc.BlockItemStmt {
+				branch(its[len(its)-1].Statement)
+			}
+		case cc.StatementSelection:
+			sel := s.SelectionStatement
+			switch sel.Case {
+			case cc.SelectionStatementIf:
+				branch(sel.Statement)
+			case cc.SelectionStatementIfElse:
+				branch(sel.Statement)
+				branch(sel.Statement2)
+			}
+		}
+	}
+	if s := last.Statement; s.Case == cc.StatementSelection {
+		branch(s)
+	}
+}
+
+// blockBreak marks the break a compound statement ends with, through nested
+// compounds.
+func (f *fnEmit) blockBreak(s *cc.Statement) {
+	for s != nil && s.Case == cc.StatementCompound {
+		var last *cc.BlockItem
+		for l := s.CompoundStatement.BlockItemList; l != nil; l = l.BlockItemList {
+			last = l.BlockItem
+		}
+		if last == nil || last.Case != cc.BlockItemStmt {
+			return
+		}
+		s = last.Statement
+	}
+	if s != nil && s.Case == cc.StatementJump && s.JumpStatement.Case == cc.JumpStatementBreak {
+		if f.deadBrk == nil {
+			f.deadBrk = map[*cc.JumpStatement]bool{}
+		}
+		f.deadBrk[s.JumpStatement] = true
+	}
 }

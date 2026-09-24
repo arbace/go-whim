@@ -144,8 +144,15 @@ func (f *fnEmit) exprTo(e cc.ExpressionNode, to string) val {
 			}
 		}
 	}
+	if v.hasCv && digitSum.MatchString(v.s) {
+		// `sizeof("") - 1` folds to `1 - 1`: say the number.  Named constants
+		// and shifts stay as written; they carry the meaning.
+		v.s = strconv.FormatInt(v.cv, 10)
+	}
 	return v
 }
+
+var digitSum = regexp.MustCompile(`^\(?[0-9]+ [-+] [0-9]+\)?$`)
 
 func (f *fnEmit) exprTo1(e cc.ExpressionNode, to string) val {
 	switch x := e.(type) {
@@ -1017,7 +1024,7 @@ func (f *fnEmit) call(x *cc.PostfixExpression, to string) val {
 			dt := f.g.canon(d.t)
 			switch {
 			case strings.HasPrefix(dt, "*"):
-				f.line("*%s = %s{}", paren(d.s), elemOfGo(d.t))
+				f.line("%s = %s{}", deref(d.s), elemOfGo(d.t))
 				return val{s: "", t: ""}
 			case strings.HasPrefix(dt, "Ptr["):
 				return val{s: "Zero(" + d.s + ", " + f.sizeCount(args[2], elem) + ")", t: "", c: x.Type()}

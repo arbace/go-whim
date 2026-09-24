@@ -58,6 +58,7 @@ type fnEmit struct {
 	gotos  map[string]bool // labels some goto names
 	cont   []string        // the label a continue goes to, per loop; "" is Go's continue
 	brk    []bool          // whether the innermost breakable is a loop
+	deadBrk map[*cc.JumpStatement]bool // breaks that end a case already ending in one
 }
 
 func (f *fnEmit) line(format string, args ...any) {
@@ -244,6 +245,9 @@ func (f *fnEmit) conv(v val, to string) string {
 		return to + "(B2i(" + v.s + "))"
 	}
 	if want == "bool" && !v.boolean {
+		if t := f.truth(v); t == "true" || t == "false" {
+			return t
+		}
 		return "(" + f.truth(v) + ")"
 	}
 	if from == want {
@@ -291,6 +295,9 @@ func (f *fnEmit) truth(v val) string {
 	if v.boolean {
 		return v.s
 	}
+	if v.konst && v.hasCv {
+		return strconv.FormatBool(v.cv != 0) // C's `true`, `1`, `0`: Go's constant
+	}
 	t := f.g.canon(v.t)
 	switch {
 	case strings.HasPrefix(t, "Ptr["):
@@ -305,7 +312,10 @@ func (f *fnEmit) truth(v val) string {
 
 func (f *fnEmit) falsity(v val) string {
 	if v.boolean {
-		return "!(" + v.s + ")"
+		return not(v.s)
+	}
+	if v.konst && v.hasCv {
+		return strconv.FormatBool(v.cv == 0)
 	}
 	t := f.g.canon(v.t)
 	switch {
@@ -443,4 +453,20 @@ func (g *gen) funcSig(name string, ft *cc.FunctionType) string {
 		s += " " + r
 	}
 	return s
+}
+
+// deref is *s, folding *&x to x.
+func deref(s string) string {
+	if strings.HasPrefix(s, "&") && paren(s[1:]) == s[1:] {
+		return s[1:]
+	}
+	return "*" + paren(s)
+}
+
+// not is !s, folding !!x to x.
+func not(s string) string {
+	if strings.HasPrefix(s, "!") && paren(s[1:]) == s[1:] {
+		return s[1:]
+	}
+	return "!" + paren(s)
 }
