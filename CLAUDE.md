@@ -88,7 +88,7 @@ through to. arbace/slim-vim keeps both, for its own pipeline.
 ```
 cmd/whim/         the toolset, every tool a subcommand: go tool whim <subcommand>
                    (README.md: each tool, and what each retired script became)
-internal/          the Go: cc (the forked C front end), sweep, canon, dead,
+internal/          the Go: cc (the forked C front end), cemit (the canonical printer), sweep, dead,
                    cut/cutil (the cutters), edit (what the phases' edits are
                    written against: the driver, and in shared.go what more than
                    one phase uses), steps (every transformation a phase names, as

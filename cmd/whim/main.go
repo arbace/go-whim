@@ -42,8 +42,7 @@ type tool struct {
 // Go-shaped version of the determinism trap the Python tools avoid by sorting
 // before they report.
 var order = []string{
-	"blankruns", "joinparens", "splitheads", "brace", "onestmt", "onedecl", "forcomma",
-	"sweep", "canon",
+	"sweep",
 	"deadsweep", "deadprotos", "typereach", "funcreach", "deadfields", "deadenums",
 	"score", "cmdnames", "cmdidxs", "dropoptions", "retire", "droplocal", "nointro", "noargv0", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "dropopts", "nostartup", "nohome", "nocmdargs", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "query",
 	"build", "cemit",
@@ -51,14 +50,6 @@ var order = []string{
 }
 
 var tools = map[string]tool{
-	"blankruns":   {runBlankruns, "blankruns <file>"},
-	"joinparens":  {runJoinparens, "joinparens <file>"},
-	"splitheads":  {runSplitheads, "splitheads <file>"},
-	"onestmt":     {runOnestmt, "onestmt <file>"},
-	"onedecl":     {runOnedecl, "onedecl <file>"},
-	"forcomma":    {runForcomma, "forcomma <file> [--check]"},
-	"brace":       {runBrace, "brace <file>"},
-	"canon":       {runCanon, "canon <file> [--once]"},
 	"deadprotos":  {runDeadprotos, "deadprotos <file>"},
 	"typereach":   {runTypereach, "typereach <file> [--delete]"},
 	"funcreach":   {runFuncreach, "funcreach <file> [--delete]"},

@@ -107,7 +107,7 @@ and a phase that refuses stops the pass with its own report.
 
 ```
 cmd/whim/        the toolset, every tool a subcommand: go tool whim <subcommand>
-internal/        the cutters, the sweep, the canonicalisers, the plan and its
+internal/        the cutters, the sweep, the canonical printer (cemit), the plan and its
                  driver (internal/build), the dead-code reporter (reach), ccx:
                  what the core's C leaves a translation to decide -- pointer
                  casts, evaluation order -- partitioned, and the phases:
