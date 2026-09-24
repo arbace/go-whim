@@ -30,10 +30,10 @@ slim-vim.c  --whim-->  whim-vim.c
     text a tree. `GOALS.md` Part II, *Phases 83 to 128 as they
     stand*, is the account read across and belongs there, not here;
   - **phases 129-162** (Part II too) remove from the core what transpiling it to
-    Go (`editor/editor.go`, `tx/FINDINGS.md`) had to work around. All but 142
+    Go (`editor/editor.go`, `internal/gen/FINDINGS.md`) had to work around. All but 142
     were meant to change nothing the editor does; 142 drops the build date from
     the version line.
-    `tx/FINDINGS.md` maps each finding to its phase.
+    `internal/gen/FINDINGS.md` maps each finding to its phase.
   - **phase 163** prints the product in the one canonical spelling phase 0
     seeded with, and the binary is byte-identical.
 
@@ -108,9 +108,11 @@ internal/phase/    the phases: NNN/ (GOAL.md, and edit.go where its cut is a
                    `go tool whim build --keep D` and `measure D` give them)
 editor/            the core in Go: editor.go GENERATED (make editor/editor.go; never edit it),
                    its runtime crt.go and host host.go by hand
-tx/                skel (types, globals, signatures and, with -bodies, the bodies),
-                   splice (emitted bodies measured in a copy of editor/), pre
-                   (internal/ccx's partitions on an editor.c), and the conventions
+internal/gen/      the generator of editor/editor.go (`go tool whim gen`; `whim
+                   skel` runs it by hand, with -bodies for the bodies alone),
+                   splice/ (`whim splice`: emitted bodies measured in a copy of
+                   editor/), pre/ (`whim pre`: internal/ccx's partitions on an
+                   editor.c), sigs.md, CONVENTIONS.md and FINDINGS.md
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
                    binaries and the editor
 ```
@@ -123,7 +125,7 @@ C23 productions added, tracked as ordinary source (`internal/cc/README.md`,
 which says how to diff it against upstream). It was composed at build time under `.cache/gofork/`
 before, because a patched `vendor/` fails `go mod verify`; a fork under its own
 import path has neither problem. Measured: with the patch reversed, `whim
-parse whim-vim.c` says *unexpected `<EOF>`, expected `}`*, and `tx/skel` writes
+parse whim-vim.c` says *unexpected `<EOF>`, expected `}`*, and `internal/gen` writes
 the same `editor/editor.go` byte for byte either way.
 
 ## Build
@@ -133,7 +135,7 @@ make                 # all: bin/whim, the editor (editor/ built), through whim-v
                      # (produced only when slim-vim.c moved) and editor/editor.go
 make whim-build      # the 164 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
-make whim-editor-check # refuse a tracked editor.go that is not what tx/skel writes
+make whim-editor-check # refuse a tracked editor.go that is not what internal/gen writes
 make whim-vim        # the C product's binary
 make slim-vim        # the input's binary, with the same one line
 make score           # bytes to store and symbols to provide, input beside product
@@ -149,10 +151,10 @@ make help            # every target, with a line each
   step in the wrong order, a dropped argument or a missing sweep cannot survive.
   Nothing checks behaviour any more (see *What this is*).
 
-- **`editor/editor.go` is generated** (`tx/gen.sh`, `tx/skel` on the cut
+- **`editor/editor.go` is generated** (`go tool whim gen`, `internal/gen` on the cut
   `editor.c`) and tracked. `whim-build` writes it after producing `whim-vim.c`;
   `make editor/editor.go` writes it on its own; `whim-editor-check` refuses a
-  tracked file that is not what the program writes. `tx/gen.sh` writes only
+  tracked file that is not what the program writes. `go tool whim gen` writes only
   when the content differs and never runs make: through `whim-vim.c`'s rule it
   could start a build. The binary is `bin/whim`.
 

@@ -88,7 +88,7 @@ func W134Rule(core []byte) ([]byte, int, []string) {
 // empty else, and an empty else-if that ends its chain.  What the condition
 // computed is then read by nothing: a local only ever given a value goes with
 // its stores (DeadStores), and the sweep takes the rest.
-// The Go transpilation never had these blocks (tx/FINDINGS.md, 9).
+// The Go transpilation never had these blocks (internal/gen/FINDINGS.md, 9).
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "empty", W: w}
 	i := bytes.Index(text, []byte("\n#include"))

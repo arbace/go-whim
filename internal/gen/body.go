@@ -1,7 +1,7 @@
-package main
+package gen
 
 // body.go writes the functions' bodies: editor.c's statements and expressions
-// in Go, to tx/CONVENTIONS.md, against the types, globals and signatures this
+// in Go, to internal/gen/CONVENTIONS.md, against the types, globals and signatures this
 // program already generates.  Every construct it meets has a rule or stops
 // the function: a function it cannot write whole is reported and not written,
 // so what it writes is only ever a complete translation.

@@ -30,5 +30,5 @@ alone leaves the binary as it was. The check requires
 Measured, `tools/st.sh verify --from 163 --src` the committed q162: 75,273 →
 75,225 lines, the output its own canonical form, **759,496 bytes either
 side**, the control different, the declared delta exactly as declared, 32 s.
-`editor/editor.go` does not move: `tx/skel` reads the AST, and the
+`editor/editor.go` does not move: `internal/gen` reads the AST, and the
 AST is the same.

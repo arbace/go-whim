@@ -2,7 +2,7 @@ package p143
 
 // Whim phase 143 -- regatom() has no goto.  See GOAL.md.
 //
-// regatom() jumped into other cases three ways (tx/FINDINGS.md, 11).  The
+// regatom() jumped into other cases three ways (internal/gen/FINDINGS.md, 11).  The
 // delimiter atom becomes regatom_delim(), the multibyte node is written where
 // its jump was, and the switch dispatches on sw in a loop that runs once, so
 // the collection is reached by dispatching again.
@@ -61,7 +61,7 @@ func W143Helper(block string) string {
 
 // Whim143 takes the three jumps Out of regatom().
 //
-// regatom() jumped into the middle of other cases three ways (tx/FINDINGS.md,
+// regatom() jumped into the middle of other cases three ways (internal/gen/FINDINGS.md,
 // 11): `\_%)` to the delimiter atom inside the `\%` case's own switch, and
 // `\%>` there too when no digit follows; `\_[` to the collection that starts
 // the `[` case; and `.` followed by a composing character to the multibyte

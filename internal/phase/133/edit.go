@@ -4,7 +4,7 @@ package p133
 //
 // Whim left one buffer, so buf_hashtab held one entry and buflist_findnr(), its
 // one reader, recovered the buffer from the key inside it by subtracting the
-// key's offset (tx/FINDINGS.md, 3).  buflist_findnr() becomes "the current
+// key's offset (internal/gen/FINDINGS.md, 3).  buflist_findnr() becomes "the current
 // buffer, if its number is nr"; the table's init, add and remove go, and the
 // sweep takes the helpers, the table and b_key.
 //
@@ -36,7 +36,7 @@ const W133FindnrBody = `    if (curbuf != nullptr && curbuf->b_fnum == nr)
 // that buffer or NULL.  So buf_hashtab held one entry, and buflist_findnr() --
 // its one reader -- recovered the buffer from the key inside it by subtracting
 // the key's offset, the container_of the Go transpilation could not say
-// (tx/FINDINGS.md, 3).  buflist_findnr() becomes "the current buffer, if its
+// (internal/gen/FINDINGS.md, 3).  buflist_findnr() becomes "the current buffer, if its
 // number is nr", and the table's init, add and remove go; the sweep takes the
 // two helpers, the table, the b_key field and the message nothing says any
 // more.

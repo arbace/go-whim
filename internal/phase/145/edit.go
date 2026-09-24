@@ -3,7 +3,7 @@ package p145
 // Whim phase 145 -- check_termcode() has no goto.  See GOAL.md.
 //
 // While an OSC response arrived over several reads, the loop jumped into the
-// OSC branch of a later if-chain (tx/FINDINGS.md, 11).  The jump's if handles
+// OSC branch of a later if-chain (internal/gen/FINDINGS.md, 11).  The jump's if handles
 // the response itself and everything the jump skipped becomes its else.
 //
 // THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
@@ -44,7 +44,7 @@ const (
 // While an OSC response was arriving over several reads, check_termcode()
 // jumped from the top of its loop to handle_osc, a label inside the OSC branch
 // of the if-chain in `if (key_name[0] == NUL)`, skipping everything between
-// (tx/FINDINGS.md, 11).  Nothing follows that chain inside its block, so the
+// (internal/gen/FINDINGS.md, 11).  Nothing follows that chain inside its block, so the
 // jump did exactly this: the OSC handling, then the code after the block.  So
 // the jump's if gets the handling as its Body, and everything it skipped --
 // from the key's first byte through the end of the block -- becomes its else.

@@ -1,13 +1,13 @@
 # Transpiling editor.c to Go: the conventions
 
-> **These are now the rules of a program.** `tx/skel -editor` applies them to
-> write `editor/editor.go` whole (`tx/gen.sh`); the text below is kept as their
+> **These are now the rules of a program.** `internal/gen -editor` applies them to
+> write `editor/editor.go` whole (`go tool whim gen`); the text below is kept as their
 > statement, and a rule the program applies differently is a bug in one or the
 > other. It was written for the one parallel pass that produced the first
 > `editor/editor.go` by hand. The per-file pieces it
 > names (`types.go`, `globals.go`, the chunk files) and its checking script
-> were folded into `editor/editor.go` afterwards; `tx/skel` regenerates the
-> generated part and `tx/sigs.md` is the signature list the pass used.
+> were folded into `editor/editor.go` afterwards; `internal/gen` regenerates the
+> generated part and `internal/gen/sigs.md` is the signature list the pass used.
 
 `editor.c` (the core of `whim-vim.c`, cut at its first `#include`) is being
 transpiled **by hand** into the Go package `editor/` (`package main`),
@@ -28,7 +28,7 @@ exactly as the C does.
   initializers), and every **block-scope `static`** hoisted to a global named
   `<function>_<name>` (e.g. `static int entered` in `deathtrap` is
   `deathtrap_entered`).
-- `tx/sigs.md` — **the Go signature of every function**. Copy yours
+- `internal/gen/sigs.md` — **the Go signature of every function**. Copy yours
   verbatim; call everyone else's exactly as written there. A parameter's Go
   type was decided by a whole-file analysis you cannot redo from one chunk.
 
@@ -202,7 +202,7 @@ it one in an `init()` in your file: `func init() { deathtrap_entered = 0 }`.
 
 ## Checking your file
 
-`sh tx/check.sh editor/<yourfile>.go` compiles your file alone against the
+`sh internal/gen/check.sh editor/<yourfile>.go` compiles your file alone against the
 skeleton, with a panicking stub for every function you do not define. It must
 print `check: <name> compiles` before you are done.
 

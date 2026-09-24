@@ -3,7 +3,7 @@ package p141
 // Whim phase 141 -- regrepeat() does not jump into a case.  See GOAL.md.
 //
 // Seventeen character classes set their mask and jumped to do_class, a label
-// inside the \s case (tx/FINDINGS.md, 11).  All eighteen now share one case
+// inside the \s case (internal/gen/FINDINGS.md, 11).  All eighteen now share one case
 // that sets mask and testval in a switch on the same opcode, then runs the
 // unchanged loop.
 //
@@ -33,7 +33,7 @@ var (
 // labels: \s set its mask and testval and ran into the class loop, labelled
 // do_class, and each of the other seventeen set its own and jumped to the
 // label from further down the switch.  Go cannot jump into a case, and the
-// transpilation restructured it by hand (tx/FINDINGS.md, 11).  Here all
+// transpilation restructured it by hand (internal/gen/FINDINGS.md, 11).  Here all
 // thirty-six labels lead to one case that sets the two variables in a switch
 // on the same opcode, then runs the loop: the same assignments for each
 // opcode, the loop unchanged, and no goto.

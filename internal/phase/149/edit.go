@@ -4,7 +4,7 @@ package p149
 //
 // Every NULL test of a never-NULL allocation's result that follows it folds,
 // the never-NULL functions found to a fixpoint from host_alloc(); labels only
-// the folded branches jumped to go (tx/FINDINGS.md, 9).
+// the folded branches jumped to go (internal/gen/FINDINGS.md, 9).
 //
 // THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
 // OldBinary), from the boundary's own makefile flags, as $state/old beside
@@ -278,7 +278,7 @@ func w149Labels(core []byte) []byte {
 // `!= nullptr`, and folds; folding one can make another function never-NULL,
 // so the rule recomputes the set and goes on until nothing changes.  The
 // branches that released memory, said E342 or returned FAIL go, and so does a
-// label only they jumped to; the sweep takes what only they used.  The Go transpilation never had them (tx/FINDINGS.md, 9).
+// label only they jumped to; the sweep takes what only they used.  The Go transpilation never had them (internal/gen/FINDINGS.md, 9).
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "allocnull", W: w}
 	i := bytes.Index(text, []byte("\n#include"))

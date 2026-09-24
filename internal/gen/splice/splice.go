@@ -1,4 +1,4 @@
-// Command splice measures tx/skel's emitted bodies against the hand-written
+// Package splice measures internal/gen's emitted bodies against the hand-written
 // editor: it replaces, in a copy of editor/, every function of editor.go that
 // bodies.go also defines, builds the copy, and takes back the hand-written
 // body of every function the Go compiler rejects, until the copy builds.  It
@@ -6,7 +6,7 @@
 // are the hand-written function exactly, after gofmt.
 //
 //	splice <editor-dir> <bodies.go> <out-dir>
-package main
+package splice
 
 import (
 	"bytes"
@@ -15,6 +15,7 @@ import (
 	"go/format"
 	"go/parser"
 	"go/token"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -54,12 +55,16 @@ func norm(s []byte) string {
 	return string(b)
 }
 
-func main() {
-	if len(os.Args) != 4 {
-		fmt.Fprintln(os.Stderr, "usage: splice <editor-dir> <bodies.go> <out-dir>")
-		os.Exit(2)
+// Run is the program, called as `go tool whim <name> ARGS`: args are its
+// arguments, and what it used to print on stderr goes to errw.  It returns
+// the exit status.
+func Run(args []string, errw io.Writer) int {
+	osArgs := append([]string{"run"}, args...)
+	if len(osArgs) != 4 {
+		fmt.Fprintln(errw, "usage: splice <editor-dir> <bodies.go> <out-dir>")
+		return 2
 	}
-	dir, bodiesPath, out := os.Args[1], os.Args[2], os.Args[3]
+	dir, bodiesPath, out := osArgs[1], osArgs[2], osArgs[3]
 	hand, err := os.ReadFile(filepath.Join(dir, "editor.go"))
 	check(err)
 	bodies, err := os.ReadFile(bodiesPath)
@@ -128,10 +133,10 @@ func main() {
 			}
 		}
 		if bad == 0 {
-			fmt.Fprintf(os.Stderr, "splice: the copy does not build, and no emitted function is to blame:\n%s", o)
-			os.Exit(1)
+			fmt.Fprintf(errw, "splice: the copy does not build, and no emitted function is to blame:\n%s", o)
+			return 1
 		}
-		fmt.Fprintf(os.Stderr, "splice: round %d, %d functions rejected\n", round, bad)
+		fmt.Fprintf(errw, "splice: round %d, %d functions rejected\n", round, bad)
 	}
 	kept, same := 0, 0
 	for name, e := range emitted {
@@ -151,6 +156,7 @@ func main() {
 	check(os.WriteFile(filepath.Join(out, "rejected.txt"), []byte(strings.Join(rs, "\n")+"\n"), 0o644))
 	fmt.Printf("splice: %d functions in editor.go, %d emitted, %d kept by the build (%d the hand-written function exactly), %d rejected\n",
 		len(hf), len(emitted), kept, same, len(rejected))
+	return 0
 }
 
 func check(err error) {

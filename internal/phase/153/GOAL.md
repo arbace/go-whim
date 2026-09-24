@@ -12,7 +12,7 @@ then writes through the NULL.
 The comparison now says exactly that, `p->var.ov_str == nullptr && var ==
 nullptr`, with no pointer cast to another type. What it does is unchanged,
 the latent NULL write included. That is vim's bug, recorded in
-`tx/FINDINGS.md` and not this phase's to fix. The Go transpilation already
+`internal/gen/FINDINGS.md` and not this phase's to fix. The Go transpilation already
 wrote it this way, because Go cannot compare the two types.
 
 **Declared delta: nothing.** The check proves the premise from the input:

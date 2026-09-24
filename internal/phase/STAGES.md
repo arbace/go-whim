@@ -290,7 +290,7 @@ stage       117-122 each
 stage       123
 stage       124-128 each
 ```
-Phases 129 onwards come of transpiling editor.c to Go (tx/FINDINGS.md): each
+Phases 129 onwards come of transpiling editor.c to Go (internal/gen/FINDINGS.md): each
 removes from the C a construct the transpilation had to work around, and
 changes nothing the editor does.
 ```

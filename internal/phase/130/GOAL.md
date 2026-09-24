@@ -6,7 +6,7 @@ Nothing in this tree returns it: `getmark()` is `getmark_buf_fnum()`, which
 returns a pointer into the buffer or NULL, and `movechangelist()` returns NULL
 or an element of `b_changelist`. So each test was an `if` never taken, and
 `cutil.FoldNever` folds the three away, keeping the branch that runs. The Go
-transpilation had written each as `if false` (`tx/FINDINGS.md`, finding 10).
+transpilation had written each as `if false` (`internal/gen/FINDINGS.md`, finding 10).
 
 **Declared delta: nothing.** The check proves the tests were dead from the
 input — every mention of `(pos_T *)-1` is one of the three tests, and no

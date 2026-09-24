@@ -2,7 +2,7 @@ package p147
 
 // Whim phase 147 -- deathtrap() runs at the host's next wait.  See GOAL.md.
 //
-// SIGHUP and SIGTERM ran deathtrap() as their handler (tx/FINDINGS.md, 12).
+// SIGHUP and SIGTERM ran deathtrap() as their handler (internal/gen/FINDINGS.md, 12).
 // The handler records the signal and writes a byte to a pipe; the host's wait
 // selects on the pipe beside the input, and the wait and the read run
 // deathtrap() first, inside the wait where the core unblocks deadly signals.
@@ -65,7 +65,7 @@ host_deliver_death(void)
 // Out -- preserving, restoring the terminal, writing its message -- inside a
 // signal handler, at whatever point the signal found the core, which is
 // undefined behaviour in C and not expressible in Go, whose runtime takes the
-// signal and hands it to a goroutine (tx/FINDINGS.md, 12).  The handler now
+// signal and hands it to a goroutine (internal/gen/FINDINGS.md, 12).  The handler now
 // records the signal and writes a byte to a pipe; the host's wait selects on
 // the pipe beside the input, and the wait and the read run deathtrap() first.
 // The pipe is what makes it race-free: a signal that lands after the flag was

@@ -184,7 +184,7 @@ dead", where earlier rounds may already have removed whole enums.
 ### Method
 
 `.tmp/de/ev/main.go` parses with `internal/cc` exactly as `internal/ccx.Parse`
-and `tx/skel` do, walks the tree with the reflect walker from
+and `internal/gen` do, walks the tree with the reflect walker from
 `internal/ccx/ccx.go:31`, and for every `EnumSpecifierDef` emits `NAME=VALUE`
 from `Enumerator.Value()` (`Int64Value` / `UInt64Value`, via
 `internal/cc/check.go:3148`). `.tmp/de/cmpvals/main.go` compares the two files
@@ -719,7 +719,7 @@ half is free.**
    deadenums-input text that can be produced. The claim to establish is numeric
    equality on every name DWARF has, with the `-c` variant used where the link
    refuses. If any text disagrees, stop: that is a finding about the front end
-   and belongs in `tx/FINDINGS.md`, not in a sweep.
+   and belongs in `internal/gen/FINDINGS.md`, not in a sweep.
 3. **Assert the pin format**: every enumerator with no initialiser has a value
    below 65,536, on every text in step 2. That is the whole of what makes the
    swap byte-neutral, and it should be a check that can fail rather than a

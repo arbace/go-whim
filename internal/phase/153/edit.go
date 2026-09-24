@@ -4,7 +4,7 @@ package p153
 //
 // It compared an option variable's address, cast to char_u *, with a string
 // value; the two are equal exactly when both are NULL, and the comparison
-// now says so, with no pointer cast to another type (tx/FINDINGS.md).
+// now says so, with no pointer cast to another type (internal/gen/FINDINGS.md).
 //
 // THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
 // OldBinary), from the boundary's own makefile flags, as $state/old beside
@@ -29,7 +29,7 @@ func init() { edit.Register("whim153", Edit) }
 // both are NULL: a row with no variable, and a NULL terminal string -- where
 // the C then writes through the NULL.  The comparison is written as that, so
 // no pointer is cast to a pointer of another type; what it does is unchanged,
-// the latent NULL write included (tx/FINDINGS.md).  The Go transpilation of
+// the latent NULL write included (internal/gen/FINDINGS.md).  The Go transpilation of
 // phase 152 already wrote it this way, since Go cannot compare the two types.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "termopt", W: w}

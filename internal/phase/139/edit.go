@@ -5,7 +5,7 @@ package p139
 // The four table searches call a typed copy of musl_bsearch() -- the same
 // probes in the same order -- the comparators take the type they cast to, and
 // :undolist's sort is an insertion sort; the sweep takes musl_qsort(),
-// musl_bsearch() and sort_compare() (tx/FINDINGS.md, 7).
+// musl_bsearch() and sort_compare() (internal/gen/FINDINGS.md, 7).
 //
 // THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
 // OldBinary), from the boundary's own makefile flags, as $state/old beside
@@ -82,7 +82,7 @@ var w139Site = regexp.MustCompile(`\((keyvalue_T|struct key_name_entry) \*\)musl
 // and musl_bsearch(), which see an array as a void * stepped by a byte width
 // and hand each element to the comparator as a const void *.  The Go
 // transpilation could not follow a pointer through void * -- sort_strings()'s
-// first Go signature was wrong -- and typed each by hand (tx/FINDINGS.md, 7).
+// first Go signature was wrong -- and typed each by hand (internal/gen/FINDINGS.md, 7).
 // Here the four searches call a typed copy of musl's search, one per element
 // type, the comparators take the type they always cast to, and :undolist's one
 // sort is an insertion sort; the sweep takes musl_qsort(), musl_bsearch() and

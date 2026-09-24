@@ -195,26 +195,26 @@ endef
 editor.c: whim-vim.c  ## the core, cut from whim-vim.c at its first #include
 	$(cut-editor)
 
-# editor/editor.go is GENERATED: tx/skel writes it whole from editor.c
-# (tx/gen.sh), and it is tracked, so it must be what the program writes from the
-# tracked whim-vim.c.  tx/gen.sh writes it only when that differs, so a current
+# editor/editor.go is GENERATED: internal/gen writes it whole from editor.c
+# (go tool whim gen), and it is tracked, so it must be what the program writes
+# from the tracked whim-vim.c.  It is written only when that differs, so a current
 # file keeps its mtime.  whim-build writes it after producing whim-vim.c;
 # whim-editor-check refuses a stale one.
 .PHONY: editor/editor.go
 editor/editor.go: editor.c  ## the core in Go, generated whole from editor.c
-	@sh tx/gen.sh
+	@go tool whim gen
 
 .PHONY: whim-editor
 whim-editor:
 	$(cut-editor)
-	@sh tx/gen.sh
+	@go tool whim gen
 
 .PHONY: whim-editor-check
-whim-editor-check:  ## refuse if the tracked editor.go is not what tx/skel writes
+whim-editor-check:  ## refuse if the tracked editor.go is not what internal/gen writes
 	$(cut-editor)
-	@sh tx/gen.sh --check
+	@go tool whim gen --check
 
-# The editor: editor/ built -- editor.go as tx/skel writes it from whim-vim.c,
+# The editor: editor/ built -- editor.go as internal/gen writes it from whim-vim.c,
 # crt.go and host.go.  Go's own build cache decides what compiles again, so the
 # rule runs every time and costs nothing when nothing moved.
 bin/whim: editor/editor.go force  ## the editor binary alone, from editor/

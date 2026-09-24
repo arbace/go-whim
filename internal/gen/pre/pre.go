@@ -9,27 +9,32 @@
 //	pre gotos <editor.c>     every goto, by whether it jumps into a block
 //	pre funcs <editor.c>     every comparison of function pointers
 //	                         (CCX_GUARDS=1 prints what holds at each leftover)
-package main
+package pre
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/arbace/go-whim/internal/ccx"
 )
 
-func main() {
-	if len(os.Args) != 3 {
-		fmt.Fprintln(os.Stderr, "usage: pre casts|order|unions|garrays|voids|gotos|funcs <editor.c>")
-		os.Exit(2)
+// Run is the program, called as `go tool whim <name> ARGS`: args are its
+// arguments, and what it used to print on stderr goes to errw.  It returns
+// the exit status.
+func Run(args []string, errw io.Writer) int {
+	osArgs := append([]string{"run"}, args...)
+	if len(osArgs) != 3 {
+		fmt.Fprintln(errw, "usage: pre casts|order|unions|garrays|voids|gotos|funcs <editor.c>")
+		return 2
 	}
-	ast, err := ccx.Parse(os.Args[2])
+	ast, err := ccx.Parse(osArgs[2])
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		fmt.Fprintln(errw, err)
+		return 1
 	}
 	var r ccx.Result
-	switch os.Args[1] {
+	switch osArgs[1] {
 	case "casts":
 		r = ccx.Casts(ast)
 	case "order":
@@ -45,10 +50,11 @@ func main() {
 	case "unions":
 		r = ccx.Unions(ast)
 	default:
-		fmt.Fprintln(os.Stderr, "pre: no check", os.Args[1])
-		os.Exit(2)
+		fmt.Fprintln(errw, "pre: no check", osArgs[1])
+		return 2
 	}
 	if !r.Print(os.Stdout) {
-		os.Exit(1)
+		return 1
 	}
+	return 0
 }

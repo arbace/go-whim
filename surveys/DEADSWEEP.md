@@ -175,7 +175,7 @@ checker, scopes — and, relevant here, **it already counts uses.**
 
 ### Entering
 
-Exactly what `tx/skel` and `internal/ccx.Parse` do, and what `whimtools parse`
+Exactly what `internal/gen` and `internal/ccx.Parse` do, and what `whimtools parse`
 does:
 
 ```go
@@ -239,7 +239,7 @@ file-scope static does not increment the static. `AddressTaken` is set by
 which matters, see §4.
 
 `PrimaryExpression.ResolvedTo()` gives the node an identifier resolved to; that is
-how `internal/ccx`'s `takeAddr` and `tx/skel`'s `fnDecls` work.
+how `internal/ccx`'s `takeAddr` and `internal/gen`'s `fnDecls` work.
 
 ### Spans to delete
 
@@ -270,7 +270,7 @@ argument, not a speed one.
 
 ### The two existing consumers
 
-- **`tx/skel/analyze.go`** (656 lines) walks with its own reflect-based walker,
+- **`internal/gen/analyze.go`** (656 lines) walks with its own reflect-based walker,
   keys declarators by a string, keeps `fnDecls map[string]*cc.Declarator` and an
   `addr map[string]bool` for *functions used as values*. It already does the
   merge-by-name that a deadsweep needs.
@@ -592,7 +592,7 @@ speculative compile was already saturating a core.
 ### What the parse does NOT cost
 
 `cc.Translate` on `whim-vim.c` reads the twelve system headers the host half
-includes. That is already the case for `whimtools parse`, `tx/skel` and
+includes. That is already the case for `whimtools parse`, `internal/gen` and
 `internal/ccx`, and it is inside the 0.62 s.
 
 ---
@@ -657,7 +657,7 @@ parses. Three ways, in increasing order of cost:
    widened from 7 texts to all 43 tars and every pre-sweep text that can be
    produced. The claim to establish is set equality, per class, with the
    `static inline` exemption written in. If any text disagrees, stop: that is a
-   finding about the front end and it belongs in `tx/FINDINGS.md`, not in a sweep.
+   finding about the front end and it belongs in `internal/gen/FINDINGS.md`, not in a sweep.
 3. **Add block-scope objects.** §1 measured 12 of them across the survey; the file
    scope walk in §4 does not reach them. `Scope.Children` plus the same counters,
    with the same `HasInitializer` correction, and the same comparison against

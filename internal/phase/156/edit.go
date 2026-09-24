@@ -29,7 +29,7 @@ const W156Sentinel = "((char_u *)-1)"
 // In the first pass every node the compiler makes is that sentinel, returned
 // and compared but never dereferenced, so one code path serves both passes.
 // It is an integer made a pointer, which the Go transpilation replaced with a
-// one-byte allocation of its own (tx/FINDINGS.md; internal/ccx's Casts).
+// one-byte allocation of its own (internal/gen/FINDINGS.md; internal/ccx's Casts).
 // Here too: the sentinel is the address of reg_calc_size_node, a static byte
 // nothing reads or writes, and all fourteen uses compare with or assign it.
 func Edit(text []byte, w io.Writer) ([]byte, error) {

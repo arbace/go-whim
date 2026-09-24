@@ -4,7 +4,7 @@ package p148
 //
 // host_alloc() never returns NULL, and lalloc()'s one other NULL -- a request
 // for zero bytes, an internal error -- now reports the error and returns
-// host_alloc(0).  So no allocation in the core can fail (tx/FINDINGS.md, 9).
+// host_alloc(0).  So no allocation in the core can fail (internal/gen/FINDINGS.md, 9).
 //
 // THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
 // OldBinary), from the boundary's own makefile flags, as $state/old beside
@@ -38,7 +38,7 @@ const W148LallocBody = `    if (size == 0)
 // zero bytes, which reported E341, an internal error, and returned NULL.  That
 // one now reports the same error and returns host_alloc(0) -- a pointer to no
 // bytes, where NULL was -- so that no allocation in the core can fail, and the
-// failure branches after every allocation are dead (tx/FINDINGS.md, 9): the
+// failure branches after every allocation are dead (internal/gen/FINDINGS.md, 9): the
 // next phase folds them.  The Go transpilation had dropped them already.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "nofail", W: w}

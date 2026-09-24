@@ -4,7 +4,7 @@ package p150
 //
 // regmatch()'s stack held regitem_T records and, below a star's or a
 // look-behind's record, its regstar_T or regbehind_T, in one byte array
-// (tx/FINDINGS.md, 5 and 8).  They are three stacks of their own types, kept in
+// (internal/gen/FINDINGS.md, 5 and 8).  They are three stacks of their own types, kept in
 // step, and regstack_bytes keeps the byte count 'maxmempattern' is measured by.
 //
 // THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
@@ -48,7 +48,7 @@ func w150Grow(ga string) string {
 // carries: pushed first, found again as `((regstar_T *)rp) - 1`, popped with a
 // `ga_len -= sizeof(...)`.  Go cannot overlay structs on bytes, and the
 // transpilation kept the objects in a side table and the accounting in x86-64
-// sizes (tx/FINDINGS.md, 5 and 8).  Now the records, the stars and the
+// sizes (internal/gen/FINDINGS.md, 5 and 8).  Now the records, the stars and the
 // look-behinds are three stacks of their own types.  The extra data is still
 // pushed just before its record and popped just after it, so the three stay
 // in step; regstack_bytes adds and subtracts exactly the sizes the byte array

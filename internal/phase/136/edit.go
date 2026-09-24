@@ -5,7 +5,7 @@ package p136
 // bt_regengine is the only regengine_T and every program's engine points at it,
 // so the four calls through the table call known functions.  They name them,
 // bt_regcomp() stops recording an engine, and the sweep takes the table, the
-// field and regengine_T (tx/FINDINGS.md, 4).
+// field and regengine_T (internal/gen/FINDINGS.md, 4).
 //
 // THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
 // OldBinary), from the boundary's own makefile flags, as $state/old beside
@@ -27,7 +27,7 @@ func init() { edit.Register("whim136", Edit) }
 // function that makes a program, sets it.  So each call through the table is
 // a call to a function known here.  The four calls name their function, and
 // bt_regcomp() stops recording an engine; the sweep takes the table, the field
-// and regengine_T (tx/FINDINGS.md, 4).
+// and regengine_T (internal/gen/FINDINGS.md, 4).
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "engine", W: w}
 	var err error

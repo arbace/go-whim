@@ -3,7 +3,7 @@ package p146
 // Whim phase 146 -- a memline node names its block.  See GOAL.md.
 //
 // A tree node was a block beginning with a tagged header, and the tree cast
-// the header to the block its tag named (tx/FINDINGS.md, 4).  The header
+// the header to the block its tag named (internal/gen/FINDINGS.md, 4).  The header
 // becomes the node, holding its tag and a typed pointer to its block, and each
 // of the 19 casts reads that pointer.
 //
@@ -76,7 +76,7 @@ var (
 // A node of the text's tree was a PTR_BL or a DATA_BL whose first member was a
 // bhdr_T holding a tag; the tree held bhdr_T pointers and cast them to the
 // block the tag named -- struct prefix inheritance, which the Go transpilation
-// kept a registry of blocks for (tx/FINDINGS.md, 4).  The header becomes the
+// kept a registry of blocks for (internal/gen/FINDINGS.md, 4).  The header becomes the
 // node: its tag and a pointer to its block, of the block's own type, set when
 // the two are allocated.  Every cast is then a field -- (DATA_BL *)(hp) is
 // hp->bh_data -- and the blocks no longer begin with a header.  Every cast

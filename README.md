@@ -24,7 +24,7 @@ cross to a host block at the bottom of the same file, the libc that is pure
 computation is vendored, the core names no libc function at all, and the memline
 stops being pages and becomes a tree, measured with an instrument that reads the
 screen. **Phases 129-162** take out of
-the core what transpiling it to Go (`editor/`, `tx/FINDINGS.md`) had to work
+the core what transpiling it to Go (`editor/`, `internal/gen/FINDINGS.md`) had to work
 around; all but one change nothing the editor does, and 142 drops the build
 date from the version line.
 
@@ -48,8 +48,8 @@ to be derived from upstream.
   II** phases 83 onwards with the core's own charter and rules; each has an index
   of its phases, Part II's *Adding a phase* is the process for the next one, and
   its appendix is the plan phases 83 onwards were built from (sections II.1-II.6).
-- **`tx/FINDINGS.md`** — what transpiling the core to Go found, and which phase
-  took each finding out of the C; `tx/CONVENTIONS.md` is how the C is written in
+- **`internal/gen/FINDINGS.md`** — what transpiling the core to Go found, and which phase
+  took each finding out of the C; `internal/gen/CONVENTIONS.md` is how the C is written in
   Go.
 - **`CLAUDE.md`** — the working guide: the build, the pipeline, and what to know
   before changing anything shared.
@@ -62,7 +62,7 @@ make whim-vim        # the C product's binary
 make slim-vim        # the input's binary, with the same one line
 make whim-build      # the 164 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same build, required to give the committed bytes back
-make whim-editor-check # refuse an editor/editor.go that is not what tx/skel writes
+make whim-editor-check # refuse an editor/editor.go that is not what internal/gen writes
 make help            # every target, with a line each
 make editor.c        # whim-vim.c's core, cut at the line between core and host
 make editor/editor.go  # the core in Go, generated from editor.c
@@ -75,7 +75,7 @@ program run by hand, and `--keep D` every boundary.
 ## The Go editor
 
 `editor/` is the core, `editor.c`, in Go:
-- **`editor.go`**: **generated** by `tx/gen.sh` (`tx/skel` on `modernc.org/cc/v4`):
+- **`editor.go`**: **generated** by `go tool whim gen` (`internal/gen` on `modernc.org/cc/v4`):
   every C function a Go function with the same name and control flow, so the
   two read line for line;
 - **`crt.go`**: the C runtime it is written against, `Ptr[T]` for a C pointer
@@ -115,10 +115,10 @@ internal/        the cutters, the sweep, the canonicalisers, the plan and its
                  program) and internal/phase/STAGES.md, the record the stages
                  were read from
 editor/          the core transpiled into Go, with its runtime and host
-tx/              tx/skel (the skeleton generator and, with -bodies, the body
-                 emitter), tx/splice (measures the emitted bodies in a copy of
-                 editor/), tx/pre (ccx's reports on an editor.c), sigs.md,
-                 CONVENTIONS.md and FINDINGS.md
+internal/gen/    the generator of editor/editor.go (go tool whim gen), splice/
+                 (whim splice: the emitted bodies measured in a copy of
+                 editor/), pre/ (whim pre: ccx's reports on an editor.c),
+                 sigs.md, CONVENTIONS.md and FINDINGS.md
 Makefile         the whole build: the input, the pipeline, the binaries, the editor
 whim-vim.c       the product, tracked; make editor.c cuts the core out of it
 upstream.sha     the arbace/slim-vim commit slim-vim.c was fetched from

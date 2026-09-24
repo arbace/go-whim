@@ -811,7 +811,7 @@ partition: classify every entity into *reachable*, *root: external linkage*,
 **refuse on a leftover**. Nothing in the pipeline changes.
 *What would prove it*: run it on every tar in `.build/` and require
 `sweep ∖ closure = ∅` on all 43, as measured here on 5. If any text disagrees,
-that is a finding about the front end and belongs in `tx/FINDINGS.md`.
+that is a finding about the front end and belongs in `internal/gen/FINDINGS.md`.
 *What it buys*: a standing answer to "what is still dead in the product", which is
 today 16 entities and which nothing in the tree reports.
 

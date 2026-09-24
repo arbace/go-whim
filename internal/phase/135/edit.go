@@ -3,7 +3,7 @@ package p135
 // Whim phase 135 -- one regexp program type.  See GOAL.md.
 //
 // With one engine every regprog_T is a bt_regprog_T, and the casts between the
-// two are casts to itself (tx/FINDINGS.md, 4).  regprog_T takes the
+// two are casts to itself (internal/gen/FINDINGS.md, 4).  regprog_T takes the
 // backtracking fields, the casts go, and bt_regprog_T is not a name any more.
 //
 // THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
@@ -67,7 +67,7 @@ const W135One = `typedef struct regprog
 // and added its own, and the code cast between the two.  Whim kept one engine,
 // so every regprog_T is a bt_regprog_T and the casts are casts to itself.  The
 // Go transpilation could not cast a struct to the larger one it heads and kept
-// a registry to find one from the other (tx/FINDINGS.md, 4).  regprog_T takes
+// a registry to find one from the other (internal/gen/FINDINGS.md, 4).  regprog_T takes
 // the backtracking fields, the five casts go, and bt_regprog_T is not a name
 // any more.  The layout of every field is what it was, so the code is too.
 func Edit(text []byte, w io.Writer) ([]byte, error) {

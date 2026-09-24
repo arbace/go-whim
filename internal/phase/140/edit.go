@@ -3,7 +3,7 @@ package p140
 // Whim phase 140 -- highlight groups are found in their array.  See GOAL.md.
 //
 // syn_name2id_len() found a group's id by subtracting a key's offset in
-// hlname_T (tx/FINDINGS.md, 3).  Names are unique and the id is the index + 1,
+// hlname_T (internal/gen/FINDINGS.md, 3).  Names are unique and the id is the index + 1,
 // so the lookup scans highlight_ga; highlight_ht was the last hash table, and
 // the sweep takes the hash table code.
 //
@@ -47,7 +47,7 @@ const W140LookupBody = `    char_u      name_u[MAX_SYN_NAME + 1];
 // hl_group_T, and as the key of an entry in highlight_ht, allocated inside an
 // hlname_T beside the group's id.  syn_name2id_len() found the key in the table
 // and recovered the id by subtracting the key's offset in hlname_T -- the
-// container_of the Go transpilation kept an owner registry for (tx/FINDINGS.md,
+// container_of the Go transpilation kept an owner registry for (internal/gen/FINDINGS.md,
 // 3).  A group is only added after the lookup of its name failed, so the names
 // are unique, and the group whose sg_name_u is the name is the one the table
 // found: its id is its index + 1, which is what hn_id held.  So the lookup

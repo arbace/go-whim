@@ -5,7 +5,7 @@ package p130
 // get_address(), nv_gomark() and nv_pcmark() each compared a mark lookup with
 // (pos_T *)-1, vim's old "mark in another file" -- and nothing in this tree
 // returns it.  Each test is an if never taken, and cutil.FoldNever folds the
-// three away keeping the branch that runs (tx/FINDINGS.md, 10).
+// three away keeping the branch that runs (internal/gen/FINDINGS.md, 10).
 //
 // THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
 // OldBinary), from the boundary's own makefile flags, as $state/old beside
@@ -29,7 +29,7 @@ func init() { edit.Register("whim130", Edit) }
 // movechangelist() returns NULL or an element of b_changelist.  So each test
 // is an `if` that is never taken, and folds away with its Body: the else
 // branch stays, dedented, and an `else if` becomes the `if`.  The Go
-// transpilation had to write each as `if false` (tx/FINDINGS.md, 10).
+// transpilation had to write each as `if false` (internal/gen/FINDINGS.md, 10).
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "sentinel", W: w}
 	Out, err := cutil.FoldNever(text, `if \([a-z]+ == \(pos_T \*\)-1\)`, 3)

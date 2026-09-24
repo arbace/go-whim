@@ -1,7 +1,7 @@
 // Package ccx checks editor.c for what an automatic transpilation to Go needs
 // to be able to assume, and reports every place it cannot.  Each check is a
 // partition: every occurrence of a construct is put in a class the emitter has
-// a faithful rule for, and a leftover is a finding.  tx/pre runs them on a
+// a faithful rule for, and a leftover is a finding.  internal/gen/pre runs them on a
 // file; the pipeline's checks run them on a phase's output.
 package ccx
 
@@ -13,7 +13,7 @@ import (
 	"github.com/arbace/go-whim/internal/cc"
 )
 
-// Parse reads a C file the way tx/skel does.
+// Parse reads a C file the way internal/gen does.
 func Parse(path string) (*cc.AST, error) {
 	cfg, err := cc.NewConfig("linux", "amd64")
 	if err != nil {

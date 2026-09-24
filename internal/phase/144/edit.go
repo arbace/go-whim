@@ -3,7 +3,7 @@ package p144
 // Whim phase 144 -- edit() has no goto.  See GOAL.md.
 //
 // Insert mode jumped to doESCkey, normalchar and do_intr from other cases and
-// from before its switch (tx/FINDINGS.md, 11).  The two blocks become
+// from before its switch (internal/gen/FINDINGS.md, 11).  The two blocks become
 // edit_esc() and edit_normalchar(), each jump a call whose continue or break
 // is checked to go where the label's went, and do_intr's block is written out.
 //
@@ -177,7 +177,7 @@ func W144Inner(encl []string) (loop, breaks string) {
 
 // Whim144 takes the jumps Out of edit().
 //
-// Insert mode's loop jumped to three labels (tx/FINDINGS.md, 11): doESCkey,
+// Insert mode's loop jumped to three labels (internal/gen/FINDINGS.md, 11): doESCkey,
 // the second half of the Esc case, from nine places, some before the switch;
 // normalchar, the default case's insertion, from seven cases; and do_intr, the
 // start of the Esc case, from the default case when the key is the interrupt

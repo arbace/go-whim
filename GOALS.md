@@ -1012,7 +1012,7 @@ there are no pages, no blocks and no memfile left — and turns the arc's standi
 that shrinking `PTR_EN` would silently take the root split out of the corpus, into a
 `static_assert` that fails to compile.
 Phases 129 to 162 then remove from the core what translating it to Go had to work
-around, `tx/FINDINGS.md` mapping each finding to its phase. Phase 163 prints the product in
+around, `internal/gen/FINDINGS.md` mapping each finding to its phase. Phase 163 prints the product in
 the canonical spelling phase 0 seeds with. Phases are added one at a
 time, each on the user's own request, and each is written into its own `internal/phase/NNN/`
 and into `internal/phase/STAGES.md` when it is added — never in advance.

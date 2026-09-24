@@ -47,7 +47,7 @@ var order = []string{
 	"deadsweep", "deadprotos", "typereach", "funcreach", "deadfields", "deadenums",
 	"score", "cmdnames", "cmdidxs", "dropoptions", "retire", "droplocal", "nointro", "noargv0", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "dropopts", "nostartup", "nohome", "nocmdargs", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "query",
 	"build", "cemit",
-	"parse", "fieldref", "reach", "measure",
+	"parse", "fieldref", "reach", "measure", "gen", "skel", "splice", "pre",
 }
 
 var tools = map[string]tool{
@@ -133,6 +133,10 @@ var tools = map[string]tool{
 	"build":       {runBuild, "build [--check] [--canonical] [--keep-going] [--from N] [--to N] [--src F] [--out F] [--work D] [--keep D]"},
 	"parse":       {runParse, "parse <file.c>"},
 	"fieldref":    {runFieldRef, "fieldref <file.c>"},
+	"gen":         {runGen, "gen [--check]"},
+	"skel":        {runSkel, "skel <editor.c> <outdir> [-bodies | -editor <editor.go>]"},
+	"splice":      {runSplice, "splice <editor-dir> <bodies.go> <out-dir>"},
+	"pre":         {runPre, "pre casts|order|unions|garrays|voids|gotos|funcs <editor.c>"},
 	"measure":     {runMeasure, "measure <dir of qNNN.c>"},
 	"reach":       {runReach, "reach <file.c> [--no-control]"},
 }

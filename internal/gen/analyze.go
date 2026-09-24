@@ -1,4 +1,4 @@
-// Command skel reads editor.c with modernc.org/cc/v4 and writes the shared
+// Package gen reads editor.c with modernc.org/cc/v4 and writes the shared
 // skeleton of its Go transpilation: which C pointers must become cursors
 // (Ptr[T], a buffer and an offset) and which may stay plain Go pointers, and
 // from that the Go types, globals and function signatures every transpiling
@@ -11,7 +11,7 @@
 // initialisation, argument passing, return, the arms of ?:, casts and ==.  A
 // class with no such use is a plain *T.  char and unsigned char pointers are
 // always cursors: they are C strings.
-package main
+package gen
 
 import (
 	"fmt"

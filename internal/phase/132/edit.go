@@ -6,7 +6,7 @@ package p132
 // test around it -- does nothing observable.  All 273 calls to either in the
 // core go; the two whose argument decrements a counter keep the decrement.
 // vim_free() is then called by nothing and the sweep takes it
-// (tx/FINDINGS.md, 9).
+// (internal/gen/FINDINGS.md, 9).
 //
 // THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
 // OldBinary), from the boundary's own makefile flags, as $state/old beside
@@ -59,7 +59,7 @@ func W132Rule(indent, arg string) (repl string, ok bool) {
 // Since phase 124 host_free() has an empty Body -- the host's arena is a bump
 // allocator and the garbage collector is assumed -- so vim_free(), a NULL test
 // around it, does nothing observable, and neither does any call to either.
-// The Go transpilation dropped every one (tx/FINDINGS.md, 9); this is the C
+// The Go transpilation dropped every one (internal/gen/FINDINGS.md, 9); this is the C
 // catching up.  A call goes when its argument has no side effect, and becomes
 // its one ++ or -- when that is its only effect; any other argument refuses.
 // vim_free() itself is then called by nothing and the sweep takes it; the

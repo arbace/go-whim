@@ -3,7 +3,7 @@ package p151
 // Whim phase 151 -- the option table's defaults are typed.  See GOAL.md.
 //
 // def_val[2] held a string option's defaults and, cast to char_u *, a number's
-// or a boolean's (tx/FINDINGS.md, 2).  A row now has def_str[2] and def_num[2],
+// or a boolean's (internal/gen/FINDINGS.md, 2).  A row now has def_str[2] and def_num[2],
 // the one its kind uses filled and the other empty, and every read names one.
 //
 // THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
@@ -91,7 +91,7 @@ func W151Rows(text string) ([][4]string, [][2]int, error) {
 // string for a string option, and for a number or boolean option the number
 // itself cast to char_u * -- `(char_u *)80L`, `(char_u *)TRUE` -- cast back
 // with (long)(long_i) where it was read.  The Go transpilation held them as
-// `any` (tx/FINDINGS.md, 2).  Now a row has def_str[2] and def_num[2]: a string
+// `any` (internal/gen/FINDINGS.md, 2).  Now a row has def_str[2] and def_num[2]: a string
 // option's defaults in the first, a number's or a boolean's in the second, the
 // other pair empty; every read and write names the one it means.
 func Edit(text []byte, w io.Writer) ([]byte, error) {

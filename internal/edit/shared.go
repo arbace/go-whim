@@ -349,7 +349,7 @@ func W134Pure(cond string) bool {
 // evaluates linetabsize_str first; and fileinfo()'s message, whose
 // new_file_message() it calls before the shortmess() of an earlier argument.
 // Each first-evaluated argument becomes a local computed before the call, so
-// the order is written, not implied (tx/FINDINGS.md).
+// the order is written, not implied (internal/gen/FINDINGS.md).
 func Whim155(text []byte, w io.Writer) ([]byte, error) {
 	p := Ph{Tag: "argorder", W: w}
 	s := string(text)

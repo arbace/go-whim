@@ -3,7 +3,7 @@ package p152
 // Whim phase 152 -- the option variables are typed.  See GOAL.md.
 //
 // vimoption_T.var, optset_T.os_varp, get_varp() and every varp held the address
-// of an int, a long or a char_u * as a char_u * (tx/FINDINGS.md, 2).  They are
+// of an int, a long or a char_u * as a char_u * (internal/gen/FINDINGS.md, 2).  They are
 // an optvar_T, a pointer of each kind and a window-local flag, and a
 // window-local option's global value is get_varp_allbuf(), not a byte offset.
 //
@@ -117,7 +117,7 @@ func w152Kind(t, star string) string {
 // char_u *, cast back at every read: `*(int *)varp`.  A window-local option
 // with no global variable held (char_u *)-1, and its global value was reached
 // as `(char *)get_varp(p) + sizeof(winopt_T)`, the same field one winopt_T
-// further on.  The Go transpilation held them as `any` (tx/FINDINGS.md, 2).
+// further on.  The Go transpilation held them as `any` (internal/gen/FINDINGS.md, 2).
 // Now they are an optvar_T: a pointer of each kind, one set, and a flag for
 // the window-local sentinel.  Each read names its kind (`*varp.ov_int`), the
 // table's rows are typed by the row's P_BOOL, P_NUM or P_STRING, get_varp()'s

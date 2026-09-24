@@ -1,8 +1,9 @@
-package main
+package gen
 
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/arbace/go-whim/internal/cc"
@@ -20,15 +21,23 @@ func parse(path string) (*cc.AST, error) {
 	})
 }
 
-func main() {
-	if len(os.Args) < 3 {
-		fmt.Fprintln(os.Stderr, "usage: skel <editor.c> <outdir> [-bodies | -editor <editor.go>]")
-		os.Exit(2)
+// Run is the program, called as `go tool whim <name> ARGS`: args are its
+// arguments, and what it used to print on stderr goes to errw.  It returns
+// the exit status.
+// logw is where the generator's progress lines go: Run's errw.
+var logw io.Writer = os.Stderr
+
+func Run(args []string, errw io.Writer) int {
+	logw = errw
+	osArgs := append([]string{"run"}, args...)
+	if len(osArgs) < 3 {
+		fmt.Fprintln(errw, "usage: skel <editor.c> <outdir> [-bodies | -editor <editor.go>]")
+		return 2
 	}
-	ast, err := parse(os.Args[1])
+	ast, err := parse(osArgs[1])
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+		fmt.Fprintln(errw, err)
+		return 1
 	}
 	a := &an{u: newUF(), fnDecls: map[string]*cc.Declarator{}, decls: map[*cc.Declarator]string{}, addr: map[string]bool{}}
 	for tu := ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
@@ -36,20 +45,20 @@ func main() {
 	}
 	g := newGen(ast, a)
 	g.collect()
-	if err := g.write(os.Args[2]); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
+	if err := g.write(osArgs[2]); err != nil {
+		fmt.Fprintln(errw, err)
+		return 1
 	}
-	if len(os.Args) > 4 && os.Args[3] == "-editor" {
-		if err := g.writeEditor(os.Args[4], crtFuncs); err != nil {
-			fmt.Fprintln(os.Stderr, "skel:", err)
-			os.Exit(1)
+	if len(osArgs) > 4 && osArgs[3] == "-editor" {
+		if err := g.writeEditor(osArgs[4], crtFuncs); err != nil {
+			fmt.Fprintln(errw, "skel:", err)
+			return 1
 		}
 	}
-	if len(os.Args) > 3 && os.Args[3] == "-bodies" {
-		if err := g.writeBodies(os.Args[2], crtFuncs); err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
+	if len(osArgs) > 3 && osArgs[3] == "-bodies" {
+		if err := g.writeBodies(osArgs[2], crtFuncs); err != nil {
+			fmt.Fprintln(errw, err)
+			return 1
 		}
 	}
 	// the facts, for review
@@ -63,13 +72,14 @@ func main() {
 		facts["PUN "+k] = why
 	}
 	b, _ := json.MarshalIndent(facts, "", " ")
-	os.WriteFile(os.Args[2]+"/facts.json", b, 0o644)
-	fmt.Fprintf(os.Stderr, "skel: %d objects, %d cursors, %d statics, %d functions used as values\n",
+	os.WriteFile(osArgs[2]+"/facts.json", b, 0o644)
+	fmt.Fprintf(errw, "skel: %d objects, %d cursors, %d statics, %d functions used as values\n",
 		len(a.u.parent), len(facts), len(a.statics), len(a.addr))
+	return 0
 }
 
 // crtFuncs are the C functions editor/crt.go replaces: their calls are
-// translated, their bodies are not (tx/CONVENTIONS.md).  ga_grow_inner()'s
+// translated, their bodies are not (internal/gen/CONVENTIONS.md).  ga_grow_inner()'s
 // body is the one rule of its own: it grows the storage with GaGrowTo, in
 // elements of the storage's type.
 var crtFuncs = map[string]bool{"alloc": true, "alloc_clear": true, "lalloc": true, "lalloc_clear": true,

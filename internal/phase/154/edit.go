@@ -33,7 +33,7 @@ func init() { edit.Register("whim154", Edit) }
 // ever did was that write.  It goes, with the if around it, whose condition
 // only reads the two strings the lines above it already read; the sweep takes
 // free_one_termoption(), which nothing else calls.  What the editor does is
-// unchanged, but for the crash (tx/FINDINGS.md).
+// unchanged, but for the crash (internal/gen/FINDINGS.md).
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "nullwrite", W: w}
 	return p.Literal(text, W154Call, "\n", "ttest() no longer calls free_one_termoption(), whose one effect was a write through NULL", 1)

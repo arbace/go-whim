@@ -1,6 +1,6 @@
 # Phase 129 — `p_emoji` is an `int`
 
-The first phase that comes of transpiling `editor.c` to Go (`tx/FINDINGS.md`,
+The first phase that comes of transpiling `editor.c` to Go (`internal/gen/FINDINGS.md`,
 finding 1). `'emoji'` is a boolean option, and the options table writes and
 reads every boolean option through an `int *` — `set_option_default()` stores
 `*(int *)varp`, as `do_set_option_bool()` and `set_bool_option()` do — but its

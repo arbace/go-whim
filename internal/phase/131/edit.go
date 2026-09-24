@@ -5,7 +5,7 @@ package p131
 // get_input_buf() makes a garray_T, casts it to char_u * for
 // tasave_T.save_inputbuf, and set_input_buf() casts it back; nothing reads it as
 // characters.  The field, the prototypes, the definition and the return say
-// what it is (tx/FINDINGS.md, 6).
+// what it is (internal/gen/FINDINGS.md, 6).
 //
 // THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
 // OldBinary), from the boundary's own makefile flags, as $state/old beside
@@ -26,7 +26,7 @@ func init() { edit.Register("whim131", Edit) }
 // char_u * to be stored, and cast back by set_input_buf().  Nothing reads it
 // as characters.  The Go transpilation could not carry a growarray in a
 // string pointer and had to register it under a one-byte key
-// (tx/FINDINGS.md, 6).  The field, both prototypes, the definition and the
+// (internal/gen/FINDINGS.md, 6).  The field, both prototypes, the definition and the
 // return say garray_T *, and set_input_buf() takes the garray_T it always
 // cast its argument to.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
