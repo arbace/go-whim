@@ -4,47 +4,19 @@ What is not done, in the order it has to happen, with what was measured rather
 than what is hoped. Written 2026-09-23. **When an item lands, delete it** --
 this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 
-## In flight: canonicalisation at phase 0
+## Landed: canonicalisation at phase 0
 
-Phase 0 seeds the input through `internal/cemit`, so every later phase reads one
-C23 spelling per construct instead of whatever the input happened to write. It
-lives on **`worktree-agent-a8c7188a3477181d0`** (pushed; worktree at
-`.tmp/worktrees/canon`), **20 commits ahead of main**. The `--canonical` flag is
-gone: it was scaffolding while 163 phases' anchors were migrated, and a flag that
-can only be on is a lie about what the pipeline does.
+Merged 2026-09-24 (`d8365fb`). Kept here only as the pointer a later reader will
+want: the account is in that merge commit, and the two migrations behind it are
+in the branch's 22.
 
-Measured on the branch: **163 of 163 phases build clean**, 75,273 lines, ~1,220 s.
-`build --check` returns the committed product. **`whim-verify --to 82` passes 13
-of 13 Part I stages**, 892 s. `whim-vim.c` and `editor/editor.go` are
-regenerated. `internal/cemit` prints from `cc.Parse`, not `cc.Translate`.
-
-It has already paid for itself. Reading the canonical product against the old one
-token by token found **three latent bugs** no check could see: phase 152 emitted
-an empty `get_varp_allbuf()` (the global value of every window-local option,
-gone), phase 150 left three pops on the byte stack, and phase 127 deleted
-`ml_flush_line`'s re-entrancy clear. Each compiled, swept, and passed every count
-its phase took. A fourth was in the harness: `harness.Stage` keyed the staged
-binary on its PATH, so in a whole-pipeline run every delta after the first
-measured phase 0's binary -- slim against slim's own baselines -- and reported
-that nothing had moved. **A delta that could not fail.**
-
-### Before it merges, in order
-
-1. **Name what moved at q82, then decide about `.reference/core-baselines`.**
-   q82 went 86,583 -> 84,111 lines, so phase 83 REFUSES to overwrite the recorded
-   set, and it is right to: what moved must be named before a recording is thrown
-   away. The Part II checks are what would name it. **Do not re-record to make a
-   run pass** -- a set regenerated from a binary a later phase can reach agrees by
-   construction and proves nothing.
-2. **Verify Part II** (phases 83-162), which needs step 1. Expect it to refuse
-   things it used to pass, and expect those refusals to be REAL: an `each` stage
-   runs a delta per phase in one process, so every delta after the first in
-   stages 87-115 was vacuous until `cab3d36`.
-3. **Merge to main and push.** Nothing lands before step 2.
-4. **Re-measure what the merge makes stale.** Most phases' `GOAL.md` numbers are
-   residue-era (line counts, binary sizes); only 054 and 101 were updated, where
-   a *statement* became wrong rather than a number stale. Re-measure, never adjust
-   by reasoning.
+What it left behind for this file: the stale `Measured` tables below, and the
+two "literals that
+ate an indent" still in the product -- a `return;` at 30 spaces
+(`phase/074/editlit.go`, `whim-vim.c:28014`) and a `got_int = TRUE;` at 29
+(`internal/cut/nosignals.go`, `whim-vim.c:52439`). Neither fails a check. They
+are the same class as the phase 145 and 104 defects the merge names, and they
+belong with the inserted-text item.
 
 ## Queued, measured, not started
 
@@ -60,6 +32,10 @@ that nothing had moved. **A delta that could not fail.**
 
 ## Known stale, not yet scoped
 
+- **Most phases' `GOAL.md` `Measured` tables are residue-era** -- line counts and
+  binary sizes from before canonicalisation. Only the rows this work re-derived
+  were changed, and each such row says so in the row itself. Re-measure, never
+  adjust by reasoning: `CLAUDE.md` says the numbers are measurements.
 - **Inserted text is not canonical.** Phases write residue-spelled blocks into the
   tree, so the product carries them.
 - **44 whole-line comments inside braces, from four phases**, are what now stop an
