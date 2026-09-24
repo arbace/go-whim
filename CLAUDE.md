@@ -21,9 +21,9 @@ slim-vim.c  --whim-->  whim-vim.c
   that repository's `main` points to, and records the commit in `upstream.sha`.
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
-- **whim** (`whim.mk`) removes capability on purpose, 163 phases from 180,870
-  lines to 75,273, and every phase **declares its delta in advance**; the harness
-  proves it changed that and nothing else. It is two arcs and a coda:
+- **whim** (`whim.mk`) removes capability on purpose, 164 phases from 180,870
+  lines to 75,225, and every phase **declares its delta in advance**; the harness
+  proves it changed that and nothing else. It is two arcs, a coda and a last print:
   - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
     install, 84,111 lines at q82; their deltas are measured against
     `.reference/baselines`;
@@ -38,6 +38,8 @@ slim-vim.c  --whim-->  whim-vim.c
     the recording cannot see. All but 142 change nothing the editor does; 142
     drops the build date from the version line, which only stderr shows.
     `tx/FINDINGS.md` maps each finding to its phase.
+  - **phase 163** prints the product in the one canonical spelling phase 0
+    seeded with, and the binary is byte-identical.
 
   `CoreFrom = 83` in `internal/build/plan.go` is the line between the two arcs,
   stated once.
@@ -133,7 +135,7 @@ the same `editor/editor.go` byte for byte either way.
 ```sh
 make                 # all: bin/whim, the editor (editor/ built), through whim-vim.c
                      # (produced only when slim-vim.c moved) and editor/editor.go
-make whim-build      # the 163 phases in one process: slim-vim.c -> whim-vim.c
+make whim-build      # the 164 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-verify     # every phase's check and every declared delta (hours)
 make whim-vim        # the C product's binary
@@ -185,7 +187,7 @@ inside `.claude/`. Outside `make`, run with
 ## The two paths
 
 A phase is a function of the tree it is handed, so the pipeline is
-`p_N = f_N(p_{N-1})` -- 163 of them, in order. **There is no memoize.** Its key
+`p_N = f_N(p_{N-1})` -- 164 of them, in order. **There is no memoize.** Its key
 was the input boundary's digest and the implementation's together, so a moved
 `slim-vim.c` missed every entry by construction; it paid only while the phases
 were being written, and that is over.
@@ -313,7 +315,7 @@ design.
 
 ## Adding a phase
 
-`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 163,
+`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 164,
 and no more are expected -- the pipeline's goal is met. What a new one takes:
 `phase/NNN/` with `GOAL.md`, `delta`, `edit.go` and `check.go` in package
 `pNNN`, registering themselves; a line in `phase/registry.go`; and an entry at

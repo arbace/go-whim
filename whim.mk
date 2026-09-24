@@ -1,6 +1,6 @@
 # The pipeline: whim-vim.c = G(slim-vim.c), and editor/editor.go from it.
 #
-# Included by the root Makefile.  163 phases remove capability on purpose, and
+# Included by the root Makefile.  164 phases remove capability on purpose, and
 # every phase declares its delta in advance: phases 0-82 (GOALS.md Part I) leave
 # an editor with no runtime to install; phases 83 on (Part II) turn it into an
 # embeddable core -- no filesystem, the host behind a line in the file, no libc
@@ -59,7 +59,7 @@ whim-vim.c: force
 	echo "$$live" > slim.sha
 
 # --- the build: the pipeline in one process -------------------------------
-# 163 phases, in order, in memory -- internal/build's plan and internal/steps'
+# 164 phases, in order, in memory -- internal/build's plan and internal/steps'
 # transformations, which are the phase programs' own (tools/st.sh, cmd/, internal/).
 # It produces whim-vim.c and nothing else: no boundaries, no digests, no cache.
 #
@@ -73,7 +73,7 @@ whim-vim.c: force
 # they cost hours and this costs twenty minutes.
 # ==== the pipeline
 .PHONY: whim-build whim-build-check
-whim-build:  ## the 163 phases in one process: slim-vim.c -> whim-vim.c
+whim-build:  ## the 164 phases in one process: slim-vim.c -> whim-vim.c
 	@printf '\n\033[1m  whim-vim\033[0m  from slim-vim.c: an editor with no runtime\n'
 	@tools/st.sh build --out whim-vim.c
 	@$(MAKE) --no-print-directory whim-editor

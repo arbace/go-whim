@@ -1016,7 +1016,8 @@ there are no pages, no blocks and no memfile left — and turns the arc's standi
 that shrinking `PTR_EN` would silently take the root split out of the corpus, into a
 `static_assert` that fails to compile.
 Phases 129 to 162 then remove from the core what translating it to Go had to work
-around, `tx/FINDINGS.md` mapping each finding to its phase. Phases are added one at a
+around, `tx/FINDINGS.md` mapping each finding to its phase. Phase 163 prints the product in
+the canonical spelling phase 0 seeds with. Phases are added one at a
 time, each on the user's own request, and each is written into its own `phase/NNN/`
 and into `phase/STAGES.md` when it is added — never in advance.
 
@@ -2152,7 +2153,7 @@ the tracked product can lag the pipeline — went with the memoize. The product
 cannot lag now: it is what `make whim-build` writes, and `make whim-build-check`
 requires the committed bytes back from the committed input.
 
-## Phases 83 to 162
+## Phases 83 to 163
 
 Each phase is a directory, `phase/NNN/`: its program, its `GOAL.md` and its
 declared `delta.md`.
@@ -2237,6 +2238,7 @@ declared `delta.md`.
 - [Phase 160 — no line getter takes a cookie](phase/160/GOAL.md)
 - [Phase 161 — no goto jumps into a block](phase/161/GOAL.md)
 - [Phase 162 — no two function pointers are compared](phase/162/GOAL.md)
+- [Phase 163 — the product is in the one canonical spelling](phase/163/GOAL.md)
 
 ## Appendix to Part II — the plan phases 83 onwards were built from
 

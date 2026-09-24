@@ -9,7 +9,7 @@ Everything is reached the same way, as a subcommand of the one binary:
 
 | | |
 | --- | --- |
-| `tools/st.sh build` | the 163 phases in one process; `--check` requires the committed product back, `--canonical` prints the input in canonical form at phase 0 first, `--keep-going` records a phase that refuses instead of stopping |
+| `tools/st.sh build` | the 164 phases in one process; `--check` requires the committed product back, `--canonical` prints the input in canonical form at phase 0 first, `--keep-going` records a phase that refuses instead of stopping |
 | `tools/st.sh verify` | every phase's check and every stage's declared delta |
 | `tools/st.sh record` | the two baseline sets every delta is measured against |
 | `tools/st.sh delta` | the declared delta at a phase, as a check: `BIN SRC --phase N`; `--declared N` prints what phase N itself declares, `--list FROM TO` a run of phases' declarations |

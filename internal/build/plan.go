@@ -838,4 +838,8 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim162"}},
 		}, Sweep: true, Stage: "150-162", Each: true, OldSource: true, OldBinary: "epoch"},
+	{N: 163, Name: "the product is in the one canonical spelling",
+		Steps: []Step{
+			{Op: "cemit"},
+		}, Stage: "163", OldSource: true, OldBinary: "epoch"},
 }

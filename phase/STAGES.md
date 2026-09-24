@@ -1733,3 +1733,13 @@ uses  memline:128  host:124      rationale   mf_close() walked a used list to fr
 uses  memline:128  vendor:97    mechanical  the root split stops copying a whole 4,096-byte page and copies the count and the entries in use with musl_memmove, phase 97's static definition
 uses  memline:128  boundary:110  mechanical  sizeof(PTR_EN) == 16 is compiled AGAINST THE CUT -- the lines above the first #include -- on both sides, and that line is the boundary between the core and the host only because phase 110 moved the eleven directives below the core
 ```
+
+## Phase 163
+
+`stage 163`, a stage of its own and not `each`: one step, `cemit`, and no sweep,
+because a change of layout orphans nothing.  No `need` and no `apart`: its
+input is whatever the last phase left, and it asserts nothing a later phase
+takes.  `package canonical 163`, and one `uses` line in prose rather than in
+the block above, since nothing reads either now: it relies on phase 0's seed
+being the same printer (`internal/build`'s Seed and the plan's `cemit` step are
+one function), which is why its output is the form every phase read.

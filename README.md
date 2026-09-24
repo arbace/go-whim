@@ -16,7 +16,7 @@ nothing about what the editor does. `make` asks that repository for its head,
 fetches `slim-vim.c` and vim's `LICENSE` at exactly that commit, and records the
 commit in `upstream.sha`.
 
-**whim** (`whim.mk`, 163 phases) removes capability on purpose, and every phase
+**whim** (`whim.mk`, 164 phases) removes capability on purpose, and every phase
 declares in advance what it changes and a harness proves it changed exactly that
 and nothing else. **Phases 0-82** remove the runtime files, the eval layer,
 windows beyond one, buffers beyond one, the command-line arguments and 489 Ex
@@ -61,7 +61,7 @@ phase is swept on its own.
 ```sh
 make                 # fetch slim-vim.c if upstream moved, then bin/whim, the editor
 make whim-vim        # the C product's binary
-make whim-build      # the 163 phases in one process: slim-vim.c -> whim-vim.c
+make whim-build      # the 164 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same build, required to give the committed bytes back
 make whim-verify     # every phase's check and every declared delta, and refuse
                      # an editor/editor.go that is not what tx/skel writes
