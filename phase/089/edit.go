@@ -84,9 +84,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/arbace/go-whim/internal/cmdtab"
 	"github.com/arbace/go-whim/internal/cutil"
 	"github.com/arbace/go-whim/internal/edit"
-	"github.com/arbace/go-whim/internal/harness"
 )
 
 func init() { edit.Register("whim89", Edit) }
@@ -140,7 +140,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("cmdnames[] has %d rows, expected %d -- the anchors below were counted "+
 			"against a different table", n, w89RowsBefore)
 	}
-	names, err := harness.CommandNamesIn(text, "whim-vim.c")
+	names, err := cmdtab.CommandNamesIn(text, "whim-vim.c")
 	if err != nil || len(names) != w89RowsBefore {
 		return nil, p.Die("create_cmdidxs.names() does not read %d rows out of this table", w89RowsBefore)
 	}

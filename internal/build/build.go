@@ -21,8 +21,7 @@ type Options struct {
 	// To is the last phase to run, and a NEGATIVE value means all of them.
 	// It was `0 or less`, which made `--to 0` -- seed and stop -- run the whole
 	// pipeline instead, and a caller measuring the seed got the product back
-	// with no sign anything was wrong.  internal/verify's Options says the same
-	// thing this way already.
+	// with no sign anything was wrong.
 	To   int
 	W    io.Writer // the report
 	Work string    // a directory to sweep in; a temporary one when empty
@@ -37,8 +36,8 @@ type Options struct {
 	// as qNNN.c -- after the phase's sweep where the schedule put one, so each
 	// file is the boundary that phase hands on.  For measuring every boundary
 	// from one run (whimtools measure); it writes nothing else.
-	Keep string
-	Refused   []string
+	Keep    string
+	Refused []string
 }
 
 // Seed is what phase 0 hands the pipeline: the input IN CANONICAL FORM.  Every
@@ -47,11 +46,9 @@ type Options struct {
 // --canonical flag while the 163 phases' anchors were migrated to it; it is the
 // pipeline now, and there is no second spelling to fall back to.
 //
-// IT IS A FUNCTION SO THAT THERE IS ONE OF IT.  internal/verify seeds its own
-// run, and when it seeded by reading the file it handed every phase after 0 the
-// residue spelling -- so `whimtools verify` measured a pipeline that `whimtools
-// build` does not run, and the first migrated edit refused on text no phase
-// produces.
+// IT IS A FUNCTION SO THAT THERE IS ONE OF IT: when a second caller seeded by
+// reading the file, it ran every phase after 0 on the residue spelling, a
+// pipeline the build does not run.
 func Seed(src []byte, w io.Writer) ([]byte, error) {
 	if w == nil {
 		w = io.Discard
@@ -185,8 +182,8 @@ func Run(o *Options) ([]byte, error) {
 }
 
 // RunPhase applies one phase's steps, with scratch as the directory its @state
-// arguments name.  internal/verify hands it the phase's real state directory,
-// which is how a check gets the files the phase's edit writes for it.
+// arguments name.  A few edits still write files there that their checks read
+// when the pipeline had checks (448e9a8 and before); the build discards them.
 func RunPhase(p Phase, text []byte, scratch string, w io.Writer) ([]byte, error) {
 	for _, s := range p.Steps {
 		if s.Op == "sweep" {
@@ -261,9 +258,9 @@ func resolve(p Phase, args []string, scratch string) ([]string, error) {
 	return out, nil
 }
 
-// declared is the phase's own declaration, as verify.Declarations reads it: the
-// tokens inside phase/NNN/delta.md's FENCED BLOCK, with the prose around it left
-// out.  A phase that declares nothing has no block, and yields nothing.
+// declared is the tokens inside phase/NNN/delta.md's FENCED BLOCK, with the prose
+// around it left out.  Only phase 80 has one now: its edit cuts exactly the
+// command rows it lists, so the file is that edit's input and not a test's.
 func declared(n int) (string, error) {
 	b, err := os.ReadFile(fmt.Sprintf("phase/%03d/delta.md", n))
 	if err != nil {

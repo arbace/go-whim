@@ -16,9 +16,7 @@ nothing about what the editor does. `make` asks that repository for its head,
 fetches `slim-vim.c` and vim's `LICENSE` at exactly that commit, and records the
 commit in `upstream.sha`.
 
-**whim** (`whim.mk`, 164 phases) removes capability on purpose, and every phase
-declares in advance what it changes and a harness proves it changed exactly that
-and nothing else. **Phases 0-82** remove the runtime files, the eval layer,
+**whim** (`whim.mk`, 164 phases) removes capability on purpose. **Phases 0-82** remove the runtime files, the eval layer,
 windows beyond one, buffers beyond one, the command-line arguments and 489 Ex
 commands. **Phases 83-128** turn what is
 left into an embeddable core: the filesystem goes, the signals and the terminal
@@ -30,22 +28,22 @@ the core what transpiling it to Go (`editor/`, `tx/FINDINGS.md`) had to work
 around; all but one change nothing the editor does, and 142 drops the build
 date from the version line.
 
-**A phase is a function of the tree it is handed**, so the pipeline is 163 of
+**A phase is a function of the tree it is handed**, so the pipeline is 164 of
 them in order, and it runs as one program: `make whim-build` applies them in
-memory and produces `whim-vim.c` in twenty minutes. What answers for it is that
-the product is tracked — `make whim-build-check` requires the committed bytes
-back from the committed input. `make whim-verify` is the other path: the same
-phases with every check and every declared delta, which costs hours and is not
-on the way to the editor. Phases are grouped in **stages**, and a stage decides
-what text a check sees: phases 1-82 share one sweep per stage, and from 87 each
-phase is swept on its own.
+memory and produces `whim-vim.c` in about eighteen minutes. What answers for it
+is that the product is tracked — `make whim-build-check` requires the committed
+bytes back from the committed input.
+
+**There is no test suite.** Each phase was verified while it was written, by a
+check program and a delta declared in advance against recorded baselines; that
+suite was removed after `448e9a8`, the last commit that has it, and a new one is
+to be derived from upstream.
 
 ## Documents
 
-- **`phase/NNN/`** — one directory per phase, numbered in three digits, and a Go
-  package of its own: **`edit.go`** (its cut), **`check.go`** (its evidence),
-  **`GOAL.md`** — what it removes, why, and what was measured — and its declared
-  **`delta`**.
+- **`phase/NNN/`** — one directory per phase, numbered in three digits:
+  **`GOAL.md`** — what it removes, why, and what was measured — and, where the
+  cut is a program, **`edit.go`**, which makes it a Go package of its own.
 - **`GOALS.md`** — what holds for every phase. **Part I** is phases 0-82, **Part
   II** phases 83 onwards with the core's own charter and rules; each has an index
   of its phases, Part II's *Adding a phase* is the process for the next one, and
@@ -53,8 +51,8 @@ phase is swept on its own.
 - **`tx/FINDINGS.md`** — what transpiling the core to Go found, and which phase
   took each finding out of the C; `tx/CONVENTIONS.md` is how the C is written in
   Go.
-- **`CLAUDE.md`** — the working guide: the two paths, how a check is verified,
-  and what to know before changing anything shared.
+- **`CLAUDE.md`** — the working guide: the build, the pipeline, and what to know
+  before changing anything shared.
 
 ## Use
 
@@ -64,17 +62,15 @@ make whim-vim        # the C product's binary
 make slim-vim        # the input's binary, gcc -O0 -static -s (a static-PIE)
 make whim-build      # the 164 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same build, required to give the committed bytes back
-make whim-verify     # every phase's check and every declared delta, and refuse
-                     # an editor/editor.go that is not what tx/skel writes
+make whim-editor-check # refuse an editor/editor.go that is not what tx/skel writes
 make help            # every target, with a line each
 make editor.c        # whim-vim.c's core, cut at the line between core and host
 make editor/editor.go  # the core in Go, generated from editor.c
 make score           # bytes to store and libc symbols to provide, input and product
 ```
 
-`tools/st.sh verify --from N --src BOUNDARY` verifies one stage from a boundary
-you already have, and `tools/st.sh build --to N --work D` leaves that tree for a
-phase program run by hand.
+`tools/st.sh build --to N --work D` leaves the tree after phase N for a phase
+program run by hand, and `--keep D` every boundary.
 
 ## The Go editor
 
@@ -88,21 +84,12 @@ phase program run by hand.
 
 It follows the current core. `make whim-build` writes `editor.go` again after it
 produces `whim-vim.c`, and `make editor/editor.go` does it on its own.
-`make whim-verify` refuses a committed file that is not what the program
-writes (`make whim-editor-check` asks just that).
-
-```sh
-make                                                 # bin/whim
-tools/st.sh delta bin/whim whim-vim.c --phase N       # N: the last phase
-```
-
-It is measured the way the C is: the Go build must record exactly the declared
-delta of the last phase, byte for byte across the screen cases, the Ex rows, the
-command lines, the pty scenarios, the terminals and the memline corpus.
+`make whim-editor-check` refuses a committed file that is not what the program
+writes, and `make` builds it into `bin/whim`.
 
 The Go is faithful, not yet idiomatic. The phases from 129 on removed from the C
 what it had to work around; making the Go idiomatic comes next, measured by the
-same recording.
+test suite still to be derived from upstream.
 
 ## Requirements
 
@@ -120,13 +107,12 @@ and a phase that refuses stops the pass with its own report.
 
 ```
 cmd/whimtools/   the one binary every tool runs as: whimtools <subcommand>
-internal/        the cutters, the sweep, the canonicalisers, the harnesses,
-                 what every phase check is written against (internal/check/),
-                 and ccx: what the core's C leaves a translation to decide --
+internal/        the cutters, the sweep, the canonicalisers, the plan and its
+                 driver (internal/build), the dead-code reporter (reach), and ccx: what the core's C leaves a translation to decide --
                  pointer casts, evaluation order -- partitioned
-phase/NNN/       a phase, and a Go package: edit.go, check.go, GOAL.md, delta.md
+phase/NNN/       a phase: GOAL.md, and edit.go where its cut is a program
 phase/STAGES.md     the record the stages were read from: need, apart, the packages
-tools/           the instruments a check runs, and the wrappers around whimtools
+tools/           st.sh, the wrapper around whimtools, and the musl data
 editor/          the core transpiled into Go, with its runtime and host
 tx/              tx/skel (the skeleton generator and, with -bodies, the body
                  emitter), tx/splice (measures the emitted bodies in a copy of

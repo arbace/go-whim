@@ -1,61 +1,17 @@
 // Package phase is the pipeline's phases, one package each.
 //
-// A phase is a directory: GOAL.md says what it removes and why, delta declares
-// how its binary may move, and edit.go and check.go are the programs.  They
-// register themselves with internal/edit and internal/check, which is what
-// internal/build and internal/verify look them up in -- so SOMETHING HAS TO
-// IMPORT THEM, and this is that file.  cmd/whimtools imports it blank; nothing
-// else needs to.
-//
-// It is generated: `whimtools phases --check` refuses when a phase directory
-// holds Go that is not listed here.
+// A phase is a directory: GOAL.md says what it removes and why, and edit.go,
+// where the phase has one, is its program.  It registers itself with
+// internal/edit, which is what internal/build looks it up in -- so SOMETHING HAS
+// TO IMPORT IT, and this is that file: every phase directory that holds Go.
+// cmd/whimtools imports it blank; nothing else needs to.
 package phase
 
 import (
 	_ "github.com/arbace/go-whim/phase/002"
-	_ "github.com/arbace/go-whim/phase/003"
-	_ "github.com/arbace/go-whim/phase/008"
-	_ "github.com/arbace/go-whim/phase/009"
-	_ "github.com/arbace/go-whim/phase/011"
-	_ "github.com/arbace/go-whim/phase/012"
-	_ "github.com/arbace/go-whim/phase/016"
-	_ "github.com/arbace/go-whim/phase/017"
-	_ "github.com/arbace/go-whim/phase/018"
-	_ "github.com/arbace/go-whim/phase/019"
-	_ "github.com/arbace/go-whim/phase/020"
-	_ "github.com/arbace/go-whim/phase/021"
-	_ "github.com/arbace/go-whim/phase/022"
-	_ "github.com/arbace/go-whim/phase/023"
-	_ "github.com/arbace/go-whim/phase/024"
-	_ "github.com/arbace/go-whim/phase/025"
-	_ "github.com/arbace/go-whim/phase/026"
-	_ "github.com/arbace/go-whim/phase/027"
-	_ "github.com/arbace/go-whim/phase/028"
-	_ "github.com/arbace/go-whim/phase/029"
-	_ "github.com/arbace/go-whim/phase/030"
-	_ "github.com/arbace/go-whim/phase/031"
-	_ "github.com/arbace/go-whim/phase/032"
 	_ "github.com/arbace/go-whim/phase/033"
-	_ "github.com/arbace/go-whim/phase/034"
-	_ "github.com/arbace/go-whim/phase/035"
-	_ "github.com/arbace/go-whim/phase/036"
-	_ "github.com/arbace/go-whim/phase/037"
-	_ "github.com/arbace/go-whim/phase/038"
-	_ "github.com/arbace/go-whim/phase/039"
-	_ "github.com/arbace/go-whim/phase/040"
-	_ "github.com/arbace/go-whim/phase/041"
-	_ "github.com/arbace/go-whim/phase/042"
-	_ "github.com/arbace/go-whim/phase/043"
 	_ "github.com/arbace/go-whim/phase/044"
-	_ "github.com/arbace/go-whim/phase/045"
-	_ "github.com/arbace/go-whim/phase/046"
-	_ "github.com/arbace/go-whim/phase/047"
 	_ "github.com/arbace/go-whim/phase/048"
-	_ "github.com/arbace/go-whim/phase/049"
-	_ "github.com/arbace/go-whim/phase/050"
-	_ "github.com/arbace/go-whim/phase/051"
-	_ "github.com/arbace/go-whim/phase/052"
-	_ "github.com/arbace/go-whim/phase/053"
 	_ "github.com/arbace/go-whim/phase/054"
 	_ "github.com/arbace/go-whim/phase/055"
 	_ "github.com/arbace/go-whim/phase/056"
@@ -85,9 +41,7 @@ import (
 	_ "github.com/arbace/go-whim/phase/080"
 	_ "github.com/arbace/go-whim/phase/081"
 	_ "github.com/arbace/go-whim/phase/082"
-	_ "github.com/arbace/go-whim/phase/083"
 	_ "github.com/arbace/go-whim/phase/085"
-	_ "github.com/arbace/go-whim/phase/086"
 	_ "github.com/arbace/go-whim/phase/087"
 	_ "github.com/arbace/go-whim/phase/088"
 	_ "github.com/arbace/go-whim/phase/089"
@@ -117,14 +71,12 @@ import (
 	_ "github.com/arbace/go-whim/phase/113"
 	_ "github.com/arbace/go-whim/phase/114"
 	_ "github.com/arbace/go-whim/phase/115"
-	_ "github.com/arbace/go-whim/phase/116"
 	_ "github.com/arbace/go-whim/phase/117"
 	_ "github.com/arbace/go-whim/phase/118"
 	_ "github.com/arbace/go-whim/phase/119"
 	_ "github.com/arbace/go-whim/phase/120"
 	_ "github.com/arbace/go-whim/phase/121"
 	_ "github.com/arbace/go-whim/phase/122"
-	_ "github.com/arbace/go-whim/phase/123"
 	_ "github.com/arbace/go-whim/phase/124"
 	_ "github.com/arbace/go-whim/phase/125"
 	_ "github.com/arbace/go-whim/phase/126"
@@ -164,5 +116,4 @@ import (
 	_ "github.com/arbace/go-whim/phase/160"
 	_ "github.com/arbace/go-whim/phase/161"
 	_ "github.com/arbace/go-whim/phase/162"
-	_ "github.com/arbace/go-whim/phase/163"
 )

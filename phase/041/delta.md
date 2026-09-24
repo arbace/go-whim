@@ -1,3 +1,0 @@
-```
-buffer bNext bdelete bfirst blast brewind buffers bwipeout files ls
-```

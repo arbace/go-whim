@@ -1,5 +1,0 @@
-term-moved: phase 19 collapsed the terminal table for good.  The comparison is
-always against the slim baseline, so every phase after it inherits the line.
-```
-term-moved
-```

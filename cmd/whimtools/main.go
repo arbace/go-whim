@@ -25,7 +25,7 @@ import (
 	"fmt"
 	"os"
 
-	// The phases register themselves with internal/edit and internal/check
+	// The phases register their edits with internal/edit
 	// when their packages are linked in, and this is what links them in.
 	_ "github.com/arbace/go-whim/phase"
 )
@@ -45,9 +45,8 @@ var order = []string{
 	"blankruns", "joinparens", "splitheads", "brace", "onestmt", "onedecl", "forcomma",
 	"sweep", "canon",
 	"deadsweep", "deadprotos", "typereach", "funcreach", "deadfields", "deadenums",
-	"snapshot",
-	"phasecheck", "phasebuild", "symbols", "score", "nvidx", "orphanopts", "exsweep", "cmdnames", "cmdidxs", "muslctype", "muslcase", "starcheck", "termrestore", "complcheck", "clicheck", "behaviour", "termcheck", "zscreen", "zhostonly", "zargv", "zexcmds", "zcases", "ztermcheck", "zpty", "zmemline", "zcompare", "zrecord", "dropoptions", "retire", "droplocal", "nointro", "noargv0", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "dropopts", "nostartup", "nohome", "nocmdargs", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "check", "query",
-	"build", "verify", "record", "delta", "cemit",
+	"score", "cmdnames", "cmdidxs", "dropoptions", "retire", "droplocal", "nointro", "noargv0", "noglob", "noequiclass", "nowild", "nostat", "nofnamemod", "notags", "nofind", "noterm", "noshellout", "noruntime", "noabbr", "dropopts", "nostartup", "nohome", "nocmdargs", "noinert", "noarglist", "noinertopts", "nofencs", "nocmdopts", "nobuflist", "nofloat", "keepbytes", "oneoptset", "optreaders", "noowner", "nogetenv", "nochdir", "nosignals", "noswap", "norecover", "noucmd", "nonfa", "nolocale", "nowinsizes", "nocompl", "nofenc", "noident", "nobackup", "nosession", "onebuffer", "nocindent", "nowildmenu", "nomouse", "notabs", "nomemfile", "nocomplkeys", "lfonly", "nowindows", "noconv", "noenc", "utf8only", "fold", "edit", "query",
+	"build", "cemit",
 	"parse", "fieldref", "reach", "measure",
 }
 
@@ -67,33 +66,9 @@ var tools = map[string]tool{
 	"deadenums":   {runDeadenums, "deadenums <file> <enumvals.txt> [--delete|--verify]"},
 	"deadsweep":   {runDeadsweep, "deadsweep <file> [--keep <dir>]"},
 	"sweep":       {runSweep, "sweep <file.c>"},
-	"phasecheck":  {runPhasecheck, "phasecheck <work-dir> <source> <before-dir>"},
-	"phasebuild":  {runPhasebuild, "phasebuild <work-dir> <lines-before>"},
-	"symbols":     {runSymbols, "symbols <file.c> <outdir>"},
 	"score":       {runScore, "score"},
-	"nvidx":       {runNvidx, "nvidx <file>"},
-	"orphanopts":  {runOrphanopts, "orphanopts <file>"},
-	"exsweep":     {runExsweep, "exsweep <vim-binary> <table> <outfile>"},
 	"cmdnames":    {runCmdnames, "cmdnames <file>"},
 	"cmdidxs":     {runCmdidxs, "cmdidxs <file> [--check|--update]"},
-	"muslctype":   {runMuslctype, "muslctype --verify <file.c>"},
-	"muslcase":    {runMuslcase, "muslcase --generate | --verify <file.c>"},
-	"starcheck":   {runStarcheck, "starcheck <vim-binary>"},
-	"termrestore": {runTermrestore, "termrestore <vim-binary>"},
-	"complcheck":  {runComplcheck, "complcheck <vim-binary>"},
-	"clicheck":    {runClicheck, "clicheck <vim-binary>"},
-	"behaviour":   {runBehaviour, "behaviour <vim-binary> <outdir>"},
-	"termcheck":   {runTermcheck, "termcheck <vim-binary> <outfile>"},
-	"zscreen":     {runCoreScreen, "zscreen <streamfile>"},
-	"zhostonly":   {runCoreHostonly, "zhostonly <file> [--quiet]"},
-	"zargv":       {runCoreArgv, "zargv <vim-binary> <outfile>"},
-	"zexcmds":     {runCoreExcmds, "zexcmds <vim-binary> <table> <outfile>"},
-	"zcases":      {runCoreCases, "zcases <vim-binary> <outdir>"},
-	"ztermcheck":  {runCoreTermcheck, "ztermcheck <vim-binary> <outfile>"},
-	"zpty":        {runCorePty, "zpty <vim-binary> <outfile>"},
-	"zmemline":    {runCoreMemline, "zmemline <vim-binary> <outdir>"},
-	"zcompare":    {runCoreCompare, "zcompare <base> <new> <delta> <phase>"},
-	"zrecord":     {runCoreRecord, "zrecord <binary> <source> <outdir>"},
 	"dropoptions": {fileStep("dropoptions"), "dropoptions <file> <option-name>..."},
 	"retire":      {fileStep("retire"), "retire <file> <command>..."},
 	"droplocal":   {fileStep("droplocal"), "droplocal <file> <field>..."},
@@ -109,7 +84,6 @@ var tools = map[string]tool{
 	"noterm":      {fileStep("noterm"), "noterm <file>"},
 	"noshellout":  {fileStep("noshellout"), "noshellout <file>"},
 	"edit":        {runEdit, "edit <phase> <file>"},
-	"check":       {runCheck, "check <phase> [args...]"},
 	"query":       {runQuery, "query <phase> <file>"},
 	"noruntime":   {fileStep("noruntime"), "noruntime <file>"},
 	"noabbr":      {fileStep("noabbr"), "noabbr <file>"},
@@ -155,10 +129,7 @@ var tools = map[string]tool{
 	"noenc":       {fileStep("noenc"), "noenc <file>"},
 	"utf8only":    {fileStep("utf8only"), "utf8only <file>"},
 	"fold":        {runFold, "fold <always|never|dropif> <file> <pattern> <count>"},
-	"record":      {runRecord, "record"},
-	"delta":       {runDelta, "delta <binary> <source> --phase N | --declared N | --list FROM TO"},
 	"cemit":       {runCemit, "cemit <file.c> [--check]"},
-	"verify":      {runVerify, "verify [--from N --src B] [--to N] [--root D]"},
 	"build":       {runBuild, "build [--check] [--canonical] [--keep-going] [--from N] [--to N] [--src F] [--out F] [--work D] [--keep D]"},
 	"parse":       {runParse, "parse <file.c>"},
 	"fieldref":    {runFieldRef, "fieldref <file.c>"},

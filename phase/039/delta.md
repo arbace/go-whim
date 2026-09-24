@@ -1,5 +1,0 @@
-```
-aboveleft ball belowright botright horizontal leftabove new only resize rightbelow
-sbuffer sbNext sball sbfirst sblast sbnext sbprevious sbrewind split sunhide sview
-syncbind topleft unhide vertical vnew vsplit
-```

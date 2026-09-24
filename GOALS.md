@@ -11,6 +11,13 @@ slim-vim.c = F(upstream@sha)          SLIM-GOAL.md, twelve phases
 whim-vim.c = G(slim-vim.c)            this document: phases 0-82, then 83 on
 ```
 
+**The test suite this document describes is gone.** *What is measured*, the
+declared deltas, the rules about them, the checks and the baselines are how
+phases 0 to 163 were verified while they were written; the suite was removed
+after `448e9a8`, the last commit that has it, and those sections are kept as
+that record. What holds now is `CLAUDE.md`'s *Build*: one path, and the product
+reproduced byte for byte.
+
 The two pipelines are the same construct — a phase is a function of the tree it
 is handed, memoized in three tiers — and differ only in what they remove.
 `SLIM-GOAL.md` removes *files and preprocessor* and changes nothing about what
@@ -183,26 +190,15 @@ A new phase is the next one after the last, and Part II's *Adding a phase* is th
 current process for it; what follows is how the mechanics work, and holds for both
 parts. A phase is a directory, `phase/NNN/`, its number in three digits.
 
-1. Write the cut in `phase/NNN/edit.go` and the assertions in
-   `phase/NNN/check.go` — `check.PhaseCheck`, `check.PhaseBuild` and
-   the probes. Neither sweeps at its end and neither checks the delta; anything
-   the check needs from the edit goes in the state directory by name.
-2. **Declare its delta** in `phase/NNN/delta.md`: its tokens — `command… case:name…` —
-   or `# declares nothing` if the harness sees nothing new, before running it, and
-   write its `GOAL.md`, which opens `# Phase N — what it does`. (From phase 83 on
-   the delta is measured against other baselines: Part II.)
-3. **Place it in the plan** (`internal/build/plan.go`): its steps, its stage, and
-   whether a sweep follows. It takes a stage of its own, or widens the last one.
-   It must start a stage if its edit counts anchors against,
-   or computes its cut from, swept text (declare `need N swept`), or needs a silent
-   compile (`need N silent`). It must not share a stage with an earlier phase whose
-   check it breaks (declare `apart P N`) — run the earlier checks on its result to
-   find out.
-   Then record it in `phase/STAGES.md`: the `package` line of its concept (or a new
-   one), and a `uses` line for each phase of another package it relies on. Nothing
-   runs that file; it is where these facts are kept.
-4. `make whim-build-check` says whether the product moved as the phase intends,
-   and `make whim-verify` runs every check and every declared delta.
+1. Write the cut in `phase/NNN/edit.go`, or as steps in the plan. It does not
+   sweep at its end, and write its `GOAL.md`, which opens `# Phase N — what it
+   does`.
+2. **Place it in the plan** (`internal/build/plan.go`): its steps, and whether a
+   sweep follows. A sweep must precede it if its edit counts anchors against, or
+   computes its cut from, swept text; record such facts in `phase/STAGES.md`
+   (`need N swept`), where the placement of every sweep was measured.
+3. `make whim-build` says whether the product moved as the phase intends; there
+   is no test suite, so the evidence the phase needs goes in its `GOAL.md`.
 
 **The last two are covered by no warning at all**, and for a while they were
 covered by no sweep either. A phase of its own asserted them, part way through
@@ -693,8 +689,8 @@ declares.
 **THE ACCOUNTS BELOW NAME THE TOOLS THAT RAN AT THE TIME**, and a few of those
 are gone: `tools/phaserun.sh` running a stage, `tools/memo.sh` keying it,
 `tools/implhash.sh` deciding what a change re-keyed, `make whim-tip` and `make
-whim-pass`. What runs now is `internal/build` (the plan, and `make whim-build`)
-and `internal/verify` (`make whim-verify`); `CLAUDE.md` is where the current
+whim-pass`. What runs now is `internal/build` (the plan, and `make whim-build`), and
+nothing verifies (the suite is at `448e9a8`); `CLAUDE.md` is where the current
 shape is stated. A phase's account is a record of how it was measured, and it is
 left as it was measured -- rewriting the history to name today's tools would
 make it a worse record and no truer.
@@ -1192,9 +1188,8 @@ Cited as *core rule N*; Part I's rules still hold.
    boundary's `Makefile` (in the work tree, `.tmp/whim-stage/`), never `tools/templates/core.mk`, which phase 83 writes and
    which is in its key. `-fno-stack-protector` is phase 84. `whim.mk` states the result
    once more as `WHIMCFLAGS` and `WHIMLDFLAGS`, for a checkout with no work tree.
-9. **`tools/` is shared, and gated.** A change to a tool a check or a delta runs
-   must leave `make whim-build-check` passing (the product is unmoved) and `make
-   whim-verify` passing (every check and every delta still holds). There is no key
+9. **`tools/` is shared, and gated.** A change to a tool the build runs must
+   leave `make whim-build-check` passing (the product is unmoved). There is no key
    to move any more: what was `tools/implhash.sh`'s account of which units a tool
    reached went with the memoize.
 
@@ -2127,26 +2122,18 @@ Only on request, and one at a time — and the pipeline's goal is met, so the
 expected number of new phases is none. A phase is a directory, `phase/NNN/`, its
 number in three digits, and this is how one would join now.
 
-1. **Write it in Go**: `phase/NNN/` is a package of its own, `pNNN` -- `edit.go`
-   is its cut and `check.go` its evidence, each registering itself in an
-   `init()`, and `phase/registry.go` gains a line so they are linked in.
-2. **Declare its delta** in `phase/NNN/delta.md`, before running it: every phase
-   from 83 on is measured against `.reference/core-baselines` with
-   `tools/st.sh zrecord`, and `tools/st.sh delta` hands it to `internal/verify`'s
-   `CoreDelta`.
-3. **Add it to the plan**, `internal/build/plan.go`: its steps in order, whether
-   a sweep follows, its stage, and what its check is handed beside the tree
-   (`OldSource`, `OldBinary`, `EnumVals`). A new phase joins the last `each`
-   stage or takes a stage of its own; inside an each stage every edit is swept
-   before the next and every check sees its own tree, so `need` and `apart`
-   cannot bind there — record them in `phase/STAGES.md` anyway, measured, because
-   they are what a shared stage would have to respect.
-4. Write its `phase/NNN/GOAL.md`, which opens `# Phase N — ...`, and add it to
+1. **Write it in Go** if its cut is a program: `phase/NNN/` is then a package of
+   its own, `pNNN`, whose `edit.go` registers itself in an `init()`, and
+   `phase/registry.go` gains a line so it is linked in.
+2. **Add it to the plan**, `internal/build/plan.go`: its steps in order and
+   whether a sweep follows.
+3. Write its `phase/NNN/GOAL.md`, which opens `# Phase N — ...`, and add it to
    the index below.
-5. `make whim-build` produces `whim-vim.c` and `editor/editor.go` again — **both
+4. `make whim-build` produces `whim-vim.c` and `editor/editor.go` again — **both
    are tracked, and a new phase moves them**, so the diff is the phase's product
-   and is reviewed as such. `make whim-verify` then runs every check and every
-   declared delta.
+   and is reviewed as such. There is no test suite (the one these phases were
+   verified with is at `448e9a8`); what shows the phase does what it says is
+   stated in its `GOAL.md`.
 
 What used to be here — the boundary to record, `whim-tip`, and the warning that
 the tracked product can lag the pipeline — went with the memoize. The product

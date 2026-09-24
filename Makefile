@@ -12,18 +12,17 @@
 #   make                 fetch if the upstream moved, then bin/whim: the editor, the
 #                        core in Go (editor/) built with its runtime and host
 #   make whim-build      the 164 phases in one process: slim-vim.c -> whim-vim.c,
-#                        twenty minutes, no cache and no checks
+#                        about eighteen minutes, no cache and no checks
 #   make whim-build-check  the same build, required to give the committed bytes back
 #   make whim-vim        the C product's binary
 #   make slim-vim        the input's binary, with the line phase 0 starts from
-#   make whim-verify     every phase's check and every declared delta
 #   make editor.c        the core, cut from whim-vim.c at its first #include
 #   make editor/editor.go  the core in Go, generated from editor.c
 #
 # whim.mk is the pipeline; tools and the phases (phase/NNN) are what it runs.
 
-# Every temporary a recipe makes -- mktemp, Go's os.MkdirTemp, the harnesses'
-# scratch homes, verifypass's and specpass's scratch roots -- goes in .tmp/
+# Every temporary a recipe makes
+# -- mktemp, Go's os.MkdirTemp, a build's work tree -- goes in .tmp/
 # here, not the shared /tmp.  Gitignored.
 export TMPDIR := $(CURDIR)/.tmp
 $(shell mkdir -p $(TMPDIR))

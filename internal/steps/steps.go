@@ -22,10 +22,10 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/internal/cemit"
+	"github.com/arbace/go-whim/internal/cmdtab"
 	"github.com/arbace/go-whim/internal/cut"
 	"github.com/arbace/go-whim/internal/dead"
 	"github.com/arbace/go-whim/internal/edit"
-	"github.com/arbace/go-whim/internal/harness"
 )
 
 // A Step is one transformation: the tree in, the tree out, its report on w.
@@ -261,7 +261,7 @@ func cmdIdxs(t []byte, args []string, w io.Writer) ([]byte, error) {
 	if err := f.Close(); err != nil {
 		return nil, err
 	}
-	if err := harness.CheckCmdIdxs(f.Name()); err != nil {
+	if err := cmdtab.CheckCmdIdxs(f.Name()); err != nil {
 		return nil, err
 	}
 	fmt.Fprintf(w, "  cmdidxs      ex_cmdidxs block reproduces byte for byte\n")

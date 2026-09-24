@@ -1,33 +1,34 @@
 # tools/
 
-What a check or a delta runs, and the two wrappers that find the Go binary.
-**The driver is gone**: the pipeline is `internal/build` (the plan and the
-phases) and `internal/verify` (the same plan with every check and delta), and
-there is no memoize, no boundary and no oracle between them.
+The wrapper that finds the Go binary, and the data the phases splice in. The
+pipeline is `internal/build` (the plan and the phases), with no memoize, no
+boundary and no oracle. There is no test suite: the checks, the deltas, the
+recorders and the baselines were removed after `448e9a8`, the last commit that
+has them.
 
 Everything is reached the same way, as a subcommand of the one binary:
 
 | | |
 | --- | --- |
 | `tools/st.sh build` | the 164 phases in one process; `--check` requires the committed product back, `--canonical` prints the input in canonical form at phase 0 first, `--keep-going` records a phase that refuses instead of stopping |
-| `tools/st.sh verify` | every phase's check and every stage's declared delta |
-| `tools/st.sh record` | the two baseline sets every delta is measured against |
-| `tools/st.sh delta` | the declared delta at a phase, as a check: `BIN SRC --phase N`; `--declared N` prints what phase N itself declares, `--list FROM TO` a run of phases' declarations |
-| `tools/st.sh zrecord` | one core recording: six harnesses at once, 122 records |
-| `tools/st.sh phasecheck` | the standard gate on a work tree: `WORK SRC BEFORE` -- one compile, no warning but the fall-throughs, `main` the only external symbol, `nvidx`, and the libc surface against the stage's snapshot in `BEFORE` (which it removes), answers left in `.cache/symbols/last` (`internal/check`'s `PhaseCheck`) |
-| `tools/st.sh phasebuild` | the work tree's binary: `WORK LINES-BEFORE`, linked from the sweep's object when it is of exactly this text, with the flags the work makefile resolves to, and `make` otherwise (`PhaseBuild`) |
-| `tools/st.sh symbols` | a source's libc surface and external names, `FILE OUTDIR`, cached by content in `.cache/symbols` (`check.Symbols`; the verification writes every stage's snapshot with it) |
-| `tools/st.sh score` | bytes to store and symbols to provide, slim-vim beside whim-vim; `make score` passes `WHIMCFLAGS` and `WHIMLDFLAGS` (`internal/verify`'s `Score`) |
+| `tools/st.sh sweep` | the dead-code sweep on one file, to a fixpoint (`internal/sweep`) |
+| `tools/st.sh canon` | the canonicalisers on one file, `FILE [--once]` (`internal/canon`) |
 | `tools/st.sh cemit` | one file in the canonical C23 form (`internal/cemit`), `--check` to ask whether it already is |
 | `tools/st.sh parse` | the front end's smoke test, and the proof that the PATCHED `internal/cc` is what got linked |
+| `tools/st.sh reach` | what nothing reaches in a text, as a partition with gcc as its control (`internal/reach`); it deletes nothing |
+| `tools/st.sh measure` | one row per boundary a `build --keep D` left: lines, entity counts, binary, undefined symbols (`phase/boundaries.md`) |
+| `tools/st.sh score` | bytes to store and symbols to provide, slim-vim beside whim-vim; `make score` passes `WHIMCFLAGS` and `WHIMLDFLAGS` (`internal/score`) |
+| `tools/st.sh cmdidxs`, `cmdnames` | the Ex command table: its names, and the ex_cmdidxs block derived from them (`internal/cmdtab`) |
+
+`whimtools` with no argument lists the rest: the dead-code tools one at a time
+and every cutter a phase names, each runnable on a file by hand.
 
 | file | what it is |
 | --- | --- |
-| `st.sh`, `sweep.sh` | run `whimtools`: they build it if they must (`gobuild.sh`) and exec it. A phase program, a check, a makefile rule and a person at a prompt all reach the toolset the same way |
+| `st.sh` | runs `whimtools`: builds it if it must (`gobuild.sh`) and execs it. A makefile rule and a person at a prompt reach the toolset the same way |
 | `gobuild.sh` | builds `whimtools`, content-keyed on go.mod, go.sum and every .go under cmd/, internal/ and phase/ |
-| `enumvals.sh` | every enumerator's value from DWARF, before and after -- kept as shell on purpose: twelve phase checks use it as the control that is independent of the Go |
 | `templates/whim.mk`, `templates/core.mk` | the makefile phase 0 starts from, and the one phase 83 writes over it |
-| `musl-case.txt`, `musl-ctype.txt`, `nolibm_check.c` | data and a probe a phase reads |
+| `musl-case.txt`, `musl-ctype.txt` | the musl definitions phase 98 splices into the tree |
 
 Every one of them runs from the repository root and writes its temporaries in
 `.tmp/`.
@@ -41,6 +42,11 @@ would claim a measurement nobody made. This table is where such a name leads.
 The Python was never tracked in this repository: it is arbace/slim-vim's
 history from before the split (`8ba7c9d`), ported to Go there or here, one
 subcommand per script.
+
+Where the middle column names a verification tool -- `tools/st.sh verify`,
+`record`, `delta`, `zrecord`, `phasecheck`, `phasebuild`, `symbols`, anything in
+`internal/check`, `internal/verify` or `internal/harness` -- that successor went
+too, with the test suite; `448e9a8` is the last commit that has it.
 
 | retired | what it is now | gone in |
 | --- | --- | --- |
@@ -62,3 +68,4 @@ subcommand per script.
 | `ptyrun.py`, `ptycheck.py` | the pty driver in `internal/harness` (`pty.go`, `ptyprobes.go`, `ptysplit.go`) | before the split |
 | `arrowcheck.py`, `coverage.sh` | not ported; nothing runs them, and the text naming them is the record of what they measured | before the split |
 | `graph.py`, `sim.py`, `corpus.py`, `run2.py`, `argvcheck.py`, `allstatic.py`, `exsweep_stream.py`, `.tmp/…/seq.sh` and the like | throwaway probes under `/tmp` or `.tmp/`, never tracked; the text naming them says what they measured | -- |
+| `enumvals.sh`, `sweep.sh`, `nolibm_check.c`; the `whimtools` subcommands `verify`, `record`, `delta`, `check`, `phasecheck`, `phasebuild`, `symbols`, `nvidx`, `orphanopts`, `behaviour`, `termcheck`, `exsweep`, `starcheck`, `termrestore`, `complcheck`, `clicheck`, `muslctype`, `muslcase` and the ten `z*` | nothing: they were the test suite (the DWARF control, the checks' sweep, a phase-23 probe, the verifier, the recorders) | with the test suite, after `448e9a8` |

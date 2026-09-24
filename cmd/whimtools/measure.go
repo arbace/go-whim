@@ -13,8 +13,8 @@ import (
 
 	"github.com/arbace/go-whim/internal/build"
 	"github.com/arbace/go-whim/internal/ccx"
-	"github.com/arbace/go-whim/internal/check"
 	"github.com/arbace/go-whim/internal/reach"
+	"github.com/arbace/go-whim/internal/score"
 )
 
 // runMeasure counts every boundary a `whimtools build --keep D` left in D, one
@@ -87,7 +87,7 @@ func measureOne(path string, compile bool) string {
 // binaryOf builds the boundary with the compile line its phase leaves
 // (build.MakefileFor -- whim.mk to 82, core.mk from 83, the stack protector
 // gone from 84) and SOURCE_DATE_EPOCH=0, and returns the binary's size and
-// the count of undefined symbols the gate counts (check.Symbols), or why not.
+// the count of undefined symbols the gate counts (score.Symbols), or why not.
 func binaryOf(path, phase string) (string, string) {
 	n, _ := strconv.Atoi(phase)
 	dir, err := os.MkdirTemp("", "measure-"+phase+".")
@@ -110,7 +110,7 @@ func binaryOf(path, phase string) (string, string) {
 			bin = strconv.FormatInt(fi.Size(), 10)
 		}
 	}
-	if check.Symbols(filepath.Join(dir, "whim-vim.c"), filepath.Join(dir, "sym")) == nil {
+	if score.Symbols(filepath.Join(dir, "whim-vim.c"), filepath.Join(dir, "sym")) == nil {
 		u, _ := os.ReadFile(filepath.Join(dir, "sym", "undefined"))
 		nmu = strconv.Itoa(len(strings.Fields(string(u))))
 	}

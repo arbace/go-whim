@@ -322,30 +322,6 @@ func runDeadsweep(args []string) int {
 	return 1
 }
 
-// runOrphanopts is tools/orphanopts.py.
-func runOrphanopts(args []string) int {
-	if len(args) != 1 {
-		fmt.Fprintln(os.Stderr, "usage: whimtools orphanopts <file>")
-		return 1
-	}
-	data, err := os.ReadFile(args[0])
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "whimtools: %v\n", err)
-		return 1
-	}
-	if err := dead.OrphanOpts(data, os.Stdout); err != nil {
-		// A parse below the floor, or a pointer orphan: both exit 1, and the
-		// floor's message goes to stderr as the Python's sys.exit does.
-		if !strings.HasPrefix(err.Error(), "orphanopts: ") ||
-			strings.Contains(err.Error(), "rows parsed") ||
-			strings.Contains(err.Error(), "not in this file") {
-			fmt.Fprintln(os.Stderr, err)
-		}
-		return 1
-	}
-	return 0
-}
-
 // droppedTail is the Python's report suffix: the first four names, and an
 // ellipsis when there were more.
 func droppedTail(dropped [][]byte) string {
