@@ -217,6 +217,10 @@ whim-editor:
 	$(cut-editor)
 	@go tool whim gen
 
+.PHONY: whim-test
+whim-test:  ## the editor on 44 key sessions, required to behave as HEAD's whim-vim.c does
+	@go tool whim test
+
 .PHONY: whim-editor-check
 whim-editor-check:  ## refuse if the tracked editor.go is not what internal/gen writes
 	$(cut-editor)

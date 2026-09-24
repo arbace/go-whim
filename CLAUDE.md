@@ -39,13 +39,19 @@ slim-vim.c  --whim-->  whim-vim.c
 
   Phase 83 is the line between the two arcs.
 
-  **There is no test suite.** Each phase was verified, while it was written, by a
+  **The test suite is minimal.** Each phase was verified, while it was written, by a
   check program of its own and a delta declared in advance against recorded
   baselines; that whole suite (`internal/check`, `internal/verify`,
   `internal/harness`, every `check.go`, every `delta.md` but phase 80's, the
-  baselines and `make whim-verify`) was removed after `448e9a8`, which is the
-  last commit that has it, and a new one is to be derived from upstream. What is left to prove a
-  change is `make whim-build-check`: the committed product back, byte for byte.
+  baselines and `make whim-verify`) was removed after `448e9a8`, the last commit
+  that has it. What proves a change now is two things: `make whim-build-check`,
+  the committed product back byte for byte, which sees the text; and `make
+  whim-test` (`internal/suite`), which sees the editor -- 44 key sessions
+  (`internal/suite/cases.md`) fed on stdin to a build of the working tree's
+  `src/whim-vim.c` and to one of HEAD's, required to print the same screens and
+  exit the same way, with a control (`" INSERT"` spelled `" INSERX"`) that must
+  move at least one of them, and a case that runs out of keys before its `:q!`
+  refused. Half a second.
 
 ## What a file is called
 

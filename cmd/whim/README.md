@@ -2,13 +2,15 @@
 
 The toolset is `cmd/whim`, declared as a tool in `go.mod`, so it runs as
 `go tool whim <subcommand>`: Go builds it, caches it, and rebuilds it when any
-`.go` moves. The `Makefile` calls it the same way. There is no test suite:
-the checks, the deltas, the recorders and the baselines were removed after
-`448e9a8`, the last commit that has them.
+`.go` moves. The `Makefile` calls it the same way. The test suite is
+`whim test` (`internal/suite`), minimal; the checks, the deltas, the recorders
+and the baselines of the one before it were removed after `448e9a8`, the last
+commit that has them.
 
 | | |
 | --- | --- |
 | `go tool whim build` | the 164 phases in one process; `--check` requires the committed product back, `--canonical` prints the input in canonical form at phase 0 first, `--keep-going` records a phase that refuses instead of stopping |
+| `go tool whim test` | the editor on the key sessions in `internal/suite/cases.md`, built from the working tree and from `--ref REV` (HEAD), required to print the same; a control must move one (`internal/suite`) |
 | `go tool whim sweep` | the dead-code sweep on one file, to a fixpoint (`internal/sweep`) |
 | `go tool whim cemit` | one file in the canonical C23 form (`internal/cemit`), `--check` to ask whether it already is |
 | `go tool whim parse` | the front end's smoke test, and the proof that the PATCHED `internal/cc` is what got linked |

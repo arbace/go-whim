@@ -6,15 +6,13 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 
 ## Queued, measured, not started
 
-- **A test suite derived from upstream.** The one the phases were verified with
-  -- every `check.go`, the declared deltas, the recorders (`internal/harness`),
-  `internal/check`, `internal/verify`, the baselines and `make whim-verify` --
-  was removed after `448e9a8`, the last commit that has it, because verifying
-  was a pipeline of its own that cost more than it returned. What proves a change
-  now is `make whim-build-check` alone, which sees the text and not the editor.
-  Re-deriving a suite from the behaviour of upstream slim-vim is the plan; the
-  archived one is where its corpus, its recorders and its pty harness can be
-  read.
+- **A wider test suite.** `make whim-test` (`internal/suite`) is the minimal
+  one: 44 key sessions on stdin, compared against HEAD's build, 24x80, no pty,
+  no files, no startup options. What it cannot see -- terminal handling,
+  resize, reading and writing files, `argv` -- the archived suite (`448e9a8`:
+  `internal/harness`, its corpus and pty harness) covered and is where a wider
+  one can be read from. First, though, the in-AST sweep this one was built to
+  guard.
 
 ## Known stale, not yet scoped
 
