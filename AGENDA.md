@@ -21,6 +21,21 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   the survey measured on five texts, was not measured: that needs a sweep of
   each, and two pipelines cannot share `.cache`.
 
+  **Step 1 measured: NO-GO as it stands** (branch `closure-swap`, `492640f`,
+  behind `WHIM_CLOSURE=1`, off by default and `cmp`-identical to main off).
+  With it on, `build --keep-going`: 45 phases refuse, 78,209 lines against
+  75,225. And the core's BEHAVIOUR moves at q82: every record of a recording
+  differs from `.reference/core-baselines` (the switch-off q82 matches them),
+  because the closure deleted `re_engine` and `re_flags` from `bt_regprog_T`,
+  which is read only through `regprog_T`, the shared opening sequence the code
+  casts between -- `re_in_use` moved and every pattern gives `E956`. So the
+  closure's MEMBER class is unsound under struct casts, and so is the
+  reporter's: its 119 at q82 include those two. Before a second attempt: (1)
+  a guard, or a refusal class in the reporter, for members of structs used
+  through a common initial sequence (`internal/ccx`'s casts are the start);
+  (2) phases 78 (`cmdarg_T.prechar`) and 99 (`stat_T`) assert counts the
+  closure changes, and 99's refusal cascades through every phase after it.
+
 ## Known stale, not yet scoped
 
 - **Most phases' `GOAL.md` `Measured` tables are residue-era** -- line counts and
