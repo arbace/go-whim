@@ -28011,7 +28011,7 @@ ex_delmarks(exarg_T *eap)
                     default:
                         vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_invalid_argument_str), p);
                         emsg(iobuff_or(_(e_invalid_argument_str)));
-                              return;
+                        return;
                 }
             }
         }
@@ -52436,7 +52436,7 @@ vim_handle_signal(int sig)
             return TRUE;
         }
         got_signal = sig;
-                             got_int = TRUE;
+        got_int = TRUE;
         break;
     }
     return FALSE;

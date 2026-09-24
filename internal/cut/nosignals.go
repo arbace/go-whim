@@ -116,7 +116,7 @@ func NoSignals(text []byte, w io.Writer) ([]byte, error) {
 	text = bytes.Replace(text,
 		[]byte("        got_signal = sig;\n"),
 		[]byte("        got_signal = sig;\n"+
-			"                             got_int = TRUE;\n"), 1)
+			"        got_int = TRUE;\n"), 1)
 	fmt.Fprintln(w, "  nosignals    the test for a signal that can no longer arrive")
 
 	// `in_mch_delay && sigarg == SIGQUIT` and the early return for
