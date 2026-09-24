@@ -103,6 +103,8 @@ phase/NNN/         a phase, and a package: edit.go, check.go, GOAL.md, delta.md
 phase/registry.go  every phase package, blank-imported so they register
 phase/STAGES.md       the record the plan was read from: the stages, need and apart,
                    the packages.  Prose now, not a manifest a program reads
+phase/boundaries.md every boundary's lines, entity counts, binary and nm -u, as
+                   `tools/st.sh build --keep D` and `measure D` give them
 tools/             what a check still shells out to -- enumvals, the DWARF
                    control kept as shell on purpose -- and the three wrappers
                    that find the Go binary: st.sh, sweep.sh, canon.sh.  The

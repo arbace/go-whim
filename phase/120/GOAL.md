@@ -85,6 +85,8 @@ the phase**; it is not offered as the evidence.
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 79,799 | **79,786 (−13)**, every one above the boundary |

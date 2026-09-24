@@ -138,6 +138,8 @@ rather than taking the weaker evidence for all of it.
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 80,173 | **80,197 (+24)** |

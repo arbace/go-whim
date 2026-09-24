@@ -84,6 +84,8 @@ all three untouched sites are asserted verbatim before and after.
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 77,779 | **77,693** — the edit adds 1, the sweep takes 87. Re-measured on the canonical text; the rest of this table is not |

@@ -134,6 +134,8 @@ ctermfg=1` twice for `memcmp`, and `:set winhighlight=` for `memcpy`.
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 79,603 | **79,884** (+281) |

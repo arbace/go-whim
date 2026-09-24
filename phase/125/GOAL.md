@@ -101,6 +101,8 @@ a constant, and the check requires it present so the folding cannot hide anythin
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 79,660 | **79,294 (−366)** — the edit takes 280 and the sweep 86 |

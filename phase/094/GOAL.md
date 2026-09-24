@@ -153,6 +153,8 @@ binary on both sides they add *this binary still refuses* and *exited 1, expecte
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 80,387 | **79,866** (−521) |

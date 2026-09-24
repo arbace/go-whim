@@ -44,10 +44,6 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 
 ## Known stale, not yet scoped
 
-- **Most phases' `GOAL.md` `Measured` tables are residue-era** -- line counts and
-  binary sizes from before canonicalisation. Only the rows this work re-derived
-  were changed, and each such row says so in the row itself. Re-measure, never
-  adjust by reasoning: `CLAUDE.md` says the numbers are measurements.
 - **Inserted text is not canonical at the boundaries.** Phase 163 prints the
   PRODUCT canonically (1,080 lines moved at q162, 226 beyond whitespace), so
   the product is held to the form; every intermediate still carries what the

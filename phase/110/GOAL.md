@@ -166,6 +166,8 @@ commit carry, and the number reproduced here.
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 78,136 | **78,153 (+17)** — 32 written, 15 blank lines collapsed. Re-measured on the canonical text; the rest of this table is not |

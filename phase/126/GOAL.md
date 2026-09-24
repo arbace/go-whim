@@ -131,6 +131,8 @@ block splits no more often than a narrower one.
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 79,294 | **78,977 (−317)** — the edit takes 315 and the sweep 2 |

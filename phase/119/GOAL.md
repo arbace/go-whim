@@ -118,6 +118,8 @@ that was deferred the screen says `Caught deadly signal HUP` (47 bytes), which s
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 77,730 | **77,724 (−6)** — re-measured on the canonical text; the rest of this table is not |

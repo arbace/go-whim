@@ -102,6 +102,8 @@ the pty scenarios and the terminal table are identical.
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 One recording is **5.1 s** (its parts run at once; the 102 cases alone are 0.5 s
 against a binary with no startup pause and 2.4 s against whim-vim, which still has
 one). The phase runs in **30 s**, phase 83 in **33 s** with its three recordings and

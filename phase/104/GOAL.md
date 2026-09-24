@@ -163,6 +163,8 @@ what says the other four speakers fire in zero of 106 records.
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 78,062 | **78,089 (+27)** — re-measured on the canonical text; the rest of this table is not |

@@ -123,6 +123,8 @@ it, and phase 126 removed both before it.
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 78,977 | **78,859 (−118)** — 184 out and 71 in, and the sweep finds exactly one thing |

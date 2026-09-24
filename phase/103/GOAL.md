@@ -380,6 +380,8 @@ correct at once instead of at the next keystroke*, not *a regression is avoided*
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 80,446 | **80,148 (−298)** |

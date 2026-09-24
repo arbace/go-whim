@@ -117,6 +117,8 @@ directory; `termcheck.py` is whim's and slim's and is left alone.
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | `whim-vim.c` | 79,776 lines | **79,776, byte for byte** — `cmp`-identical |

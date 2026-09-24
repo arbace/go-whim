@@ -91,6 +91,8 @@ load-bearing.
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 77,703 | **77,702** — the core loses 8 and the host gains 7. Re-measured on the canonical text; the rest of this table is not |

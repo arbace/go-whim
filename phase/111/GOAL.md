@@ -86,6 +86,8 @@ it at 1,008 ms.
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 78,153 | **78,144 (−9)** — re-measured on the canonical text; the core loses 15 and the host gains 6. The rest of this table is not re-measured |

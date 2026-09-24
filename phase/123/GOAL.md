@@ -113,6 +113,8 @@ and the other three take the floor of 100 their siblings already use — which i
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | before | after |
 | --- | --- | --- |
 | `whim-vim.c` | 79,592 | **79,592**, byte for byte |

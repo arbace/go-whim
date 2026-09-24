@@ -88,6 +88,8 @@ it, and it drives both versions.
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 79,776 | **79,786 (+10)** — +5 at `ga_grow_inner`, +6 at `get_keystroke`, −1 for the prototype |

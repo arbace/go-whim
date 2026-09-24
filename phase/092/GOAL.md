@@ -160,6 +160,8 @@ each. `E32: No file name` survives with `check_fname` at 3 mentions, and E37 wit
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 83,755 | **82,572** (−1,183) |

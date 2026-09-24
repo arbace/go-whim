@@ -185,6 +185,8 @@ buffer NEWNAME, so this proves nothing*; with the old binary on both sides they 
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 82,572 | **80,387** (−2,185) |

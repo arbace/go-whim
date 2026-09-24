@@ -104,6 +104,8 @@ naming all three, which is what makes them load-bearing rather than decorative.
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 79,786 | **79,804 (+18)** — three prototypes and three five-line definitions with their blanks |

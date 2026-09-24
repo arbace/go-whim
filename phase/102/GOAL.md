@@ -178,6 +178,8 @@ cases, 111 of 111 Ex-command rows, 30 of 30 command lines.
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 78,291 | **78,308** (+17) |

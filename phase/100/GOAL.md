@@ -136,6 +136,8 @@ was wrong. `tools/coredelta.sh --phase 100` finds the corpus unmoved, as it must
 
 ## Measured
 
+*Measured before canonical seeding (`d8365fb`), and kept as the record of that run; a row re-measured since says so. What the pipeline measures now is in `phase/boundaries.md`.*
+
 | | input | after |
 | --- | --- | --- |
 | lines | 80,432 | **80,423** (−9) |
