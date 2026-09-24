@@ -52,15 +52,17 @@ var nosignalsCuts = []struct {
 // terminal with ICANON and ECHO off.  Measured on the slave side of a pty,
 // before and after this phase: identical, and wrong both times.  Upstream has
 // the same hole.
-const cookTerminal = `        // settmode() returns at once when !full_screen, and deathtrap()
-        // clears it before this runs -- so on the way out from a signal
-        // the one thing this function exists for never happened: the
-        // terminal was left with ICANON and ECHO off and the shell that
-        // got it back was unusable.  The guard is there to avoid drawing
-        // on a screen that is not there, and putting the terminal back is
-        // not drawing, so it is lent full_screen for the length of the
-        // call.  Upstream has the same hole.
-        {
+const cookTerminalNote = `// settmode() returns at once when !full_screen, and deathtrap()
+// clears it before this runs -- so on the way out from a signal
+// the one thing this function exists for never happened: the
+// terminal was left with ICANON and ECHO off and the shell that
+// got it back was unusable.  The guard is there to avoid drawing
+// on a screen that is not there, and putting the terminal back is
+// not drawing, so it is lent full_screen for the length of the
+// call.  Upstream has the same hole.
+`
+
+const cookTerminal = `        {
             int was_full_screen = full_screen;
 
             full_screen = TRUE;
@@ -159,6 +161,9 @@ func NoSignals(text []byte, w io.Writer) ([]byte, error) {
 	rebuilt = append(rebuilt, text[:span[0]]...)
 	rebuilt = append(rebuilt, body...)
 	text = append(rebuilt, text[span[1]:]...)
+	if text, err = commentAbove(text, "prepare_to_exit", cookTerminalNote, "nosignals"); err != nil {
+		return nil, err
+	}
 	fmt.Fprintln(w, "  nosignals    a killed editor puts the terminal back, which is what "+
 		"SIGHUP and SIGTERM are kept for")
 

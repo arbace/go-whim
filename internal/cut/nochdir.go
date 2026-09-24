@@ -9,23 +9,25 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-// nochdirFullName is mch_FullName with the chdir dance gone.
+// nochdirFullNameNote is what stands above mch_FullName.
 //
 // Written as an interpreted string and not a raw one because it CONTAINS
 // BACKTICKS, in the comment it carries into the C.  Generated from the
 // Python's own constant rather than retyped, so the two cannot drift.
+const nochdirFullNameNote = "// The dance that used to be here chdir'd into the leading directory of a\n" +
+	"// relative name, asked getcwd() where that landed, and chdir'd back -- so\n" +
+	"// that `..` and a symlinked directory were resolved on the way.  Nothing\n" +
+	"// moves this process any more, so a full name is the working directory\n" +
+	"// with the name appended, and a `..` in it survives into the answer.\n" +
+	"//\n" +
+	"// `force` asked for that re-resolution even when the name was already\n" +
+	"// absolute.  There is nothing left to re-resolve, so an absolute name is\n" +
+	"// its own answer -- and prepending the cwd to one was the whole of the\n" +
+	"// first attempt at this, which moved :read, :write and :wq.\n"
+
+// nochdirFullName is mch_FullName with the chdir dance gone.
 const nochdirFullName = "    int buflen = 0;\n" +
 	"\n" +
-	"    // The dance that used to be here chdir'd into the leading directory of a\n" +
-	"    // relative name, asked getcwd() where that landed, and chdir'd back -- so\n" +
-	"    // that `..` and a symlinked directory were resolved on the way.  Nothing\n" +
-	"    // moves this process any more, so a full name is the working directory\n" +
-	"    // with the name appended, and a `..` in it survives into the answer.\n" +
-	"    //\n" +
-	"    // `force` asked for that re-resolution even when the name was already\n" +
-	"    // absolute.  There is nothing left to re-resolve, so an absolute name is\n" +
-	"    // its own answer -- and prepending the cwd to one was the whole of the\n" +
-	"    // first attempt at this, which moved :read, :write and :wq.\n" +
 	"    if (!mch_isFullName(fname))\n" +
 	"    {\n" +
 	"        if (mch_dirname(buf, len) == FAIL)\n" +
@@ -62,11 +64,12 @@ const nochdirFullName = "    int buflen = 0;\n" +
 	"    return OK;"
 
 // nochdirDirname is mch_dirname, asked once.
-const nochdirDirname = "    // Asked once.  Nothing can move this process -- :cd, :lcd and :tcd are\n" +
-	"    // ex_ni, :! does not fork, and mch_FullName() no longer chdirs -- so every\n" +
-	"    // later call is asking the kernel a question whose answer cannot have\n" +
-	"    // changed since the first one.\n" +
-	"    static char_u   cwd[ PATH_MAX ];\n" +
+const nochdirDirnameNote = "// Asked once.  Nothing can move this process -- :cd, :lcd and :tcd are\n" +
+	"// ex_ni, :! does not fork, and mch_FullName() no longer chdirs -- so every\n" +
+	"// later call is asking the kernel a question whose answer cannot have\n" +
+	"// changed since the first one.\n"
+
+const nochdirDirname = "    static char_u   cwd[ PATH_MAX ];\n" +
 	"    static int      cwd_len = -1;\n" +
 	"\n" +
 	"    if (cwd_len < 0)\n" +
@@ -112,6 +115,12 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	text, err = nochdirBody(text, "mch_dirname", nochdirDirname,
 		"the answer cannot change", w)
 	if err != nil {
+		return nil, err
+	}
+	if text, err = commentAbove(text, "mch_FullName", nochdirFullNameNote, "nochdir"); err != nil {
+		return nil, err
+	}
+	if text, err = commentAbove(text, "mch_dirname", nochdirDirnameNote, "nochdir"); err != nil {
 		return nil, err
 	}
 

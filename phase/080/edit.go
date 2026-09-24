@@ -355,7 +355,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	e.Say("the prefix index, its banners and its count")
 	e.Term("zeroed hole, which the 600-command sweep catches.",
 		"zeroed hole, which the command sweep catches.", 1, "the note on the two lists")
-	e.Term("    // ex_ni, :! does not fork,", "    // not commands, :! does not fork,", 1,
+	e.Term("// ex_ni, :! does not fork,", "// not commands, :! does not fork,", 1,
 		"the note in mch_dirname, which named the stub")
 	e.Term(":wundo and :rundo are ex_ni --", ":wundo and :rundo are not commands --", 1,
 		"and the note in add_time")

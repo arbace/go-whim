@@ -156,3 +156,35 @@ func linesMatchingUnless(text []byte, want, unless *regexp.Regexp) []string {
 	}
 	return out
 }
+
+// commentAbove writes comment -- whole `//` lines, at any indent -- directly
+// above name's definition, at file scope.
+//
+// A cut that explains itself puts the explanation HERE and not inside the body
+// it rewrote.  The canonical printer carries a comment with the declaration it
+// stands above, and a whole-line comment inside a brace has no declaration to
+// stand above, so internal/cemit refuses it rather than move it.  Such lines,
+// written by phases 21, 22 and 26, stopped the intermediates between them and
+// phase 82 canonicalising.  Phase 82 strips every comment, so where they stood never
+// reached the product.
+func commentAbove(text []byte, name, comment, tool string) ([]byte, error) {
+	start, _, ok := cutil.FindDefinition(text, cutil.Blank(text), name)
+	if !ok {
+		return nil, fmt.Errorf("%s: %s is not defined at file scope", tool, name)
+	}
+	var lines []byte
+	for _, l := range bytes.SplitAfter([]byte(comment), []byte("\n")) {
+		t := bytes.TrimLeft(l, " \t")
+		if len(t) == 0 {
+			continue
+		}
+		if !bytes.HasPrefix(t, []byte("//")) {
+			return nil, fmt.Errorf("%s: the note above %s is not a line comment: %q", tool, name, l)
+		}
+		lines = append(lines, t...)
+	}
+	out := make([]byte, 0, len(text)+len(lines))
+	out = append(out, text[:start]...)
+	out = append(out, lines...)
+	return append(out, text[start:]...), nil
+}
