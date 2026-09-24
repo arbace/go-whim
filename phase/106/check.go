@@ -72,9 +72,9 @@ import (
 
 func init() { check.Register("whim106", Check) }
 
-// z23Spans is the heredoc's literal_spans(): every string and character
+// w106Spans is the heredoc's literal_spans(): every string and character
 // literal, escapes skipped, refusing one a newline or the end of the text cuts.
-func z23Spans(t string) ([][2]int, bool) {
+func w106Spans(t string) ([][2]int, bool) {
 	var Out [][2]int
 	i, n := 0, len(t)
 	for i < n {
@@ -103,7 +103,7 @@ func z23Spans(t string) ([][2]int, bool) {
 	return Out, true
 }
 
-func z23Outside(t string, S [][2]int, name string) int {
+func w106Outside(t string, S [][2]int, name string) int {
 	starts := make([]int, len(S))
 	for i, s := range S {
 		starts[i] = s[0]
@@ -133,7 +133,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	defer os.RemoveAll(tmp)
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
-	cflags, ldflags := strings.Fields(check.Z9Flag(mk, "CFLAGS")), strings.Fields(check.Z9Flag(mk, "LDFLAGS"))
+	cflags, ldflags := strings.Fields(check.W92Flag(mk, "CFLAGS")), strings.Fields(check.W92Flag(mk, "LDFLAGS"))
 	newC, oldC := check.ReadFile(f), check.ReadFile(filepath.Join(state, "old.c"))
 	stop := func(format string, a ...any) error { r.Say(format, a...); return harness.ErrReported }
 	sde := append(os.Environ(), "SOURCE_DATE_EPOCH=0")
@@ -192,17 +192,17 @@ func Check(w io.Writer, args []string) error {
 	mentions := func(t, name string) int {
 		return len(regexp.MustCompile(`\b`+name+`\b`).FindAllString(t, -1))
 	}
-	So, ok1 := z23Spans(oldC)
+	So, ok1 := w106Spans(oldC)
 	if !ok1 {
 		return stop("an unterminated literal in %s", f)
 	}
-	Sn, ok2 := z23Spans(newC)
+	Sn, ok2 := w106Spans(newC)
 	if !ok2 {
 		return stop("an unterminated literal in %s", f)
 	}
 	inNull, inSize := mentions(oldC, "NULL"), mentions(oldC, "size_t")
-	litNull := inNull - z23Outside(oldC, So, "NULL")
-	litSize := inSize - z23Outside(oldC, So, "size_t")
+	litNull := inNull - w106Outside(oldC, So, "NULL")
+	litSize := inSize - w106Outside(oldC, So, "size_t")
 	if litNull != 3 || litSize != 0 {
 		fail = append(fail, fmt.Sprintf("the input has %d `NULL` and %d `size_t` inside literals, expected 3 and 0 -- the exclusion rule is about a set this phase has looked at", litNull, litSize))
 	}
@@ -262,14 +262,14 @@ func Check(w io.Writer, args []string) error {
 	if nCast != 30 {
 		fail = append(fail, fmt.Sprintf("the input has %d `(void *)NULL`, and this phase was measured on 30", nCast))
 	}
-	rows := check.Z6RowRe.FindAllString(newC, -1)
+	rows := check.W89RowRe.FindAllString(newC, -1)
 	got, _ := harness.CommandNamesIn([]byte(newC), "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
 		fail = append(fail, "cmdnames[] is not the 98 rows phase 93 left -- this phase touches no Ex command")
 	}
 	if i := strings.Index(newC, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newC[i:], "\n};")
-		if m := len(check.Z12RowRe.FindAllString(newC[i:i+j], -1)); m != 107 {
+		if m := len(check.W95RowRe.FindAllString(newC[i:i+j], -1)); m != 107 {
 			fail = append(fail, fmt.Sprintf("options[] has %d rows, expected the 107 phase 103 left -- this phase removes no option", m))
 		}
 	}
@@ -438,14 +438,14 @@ func Check(w io.Writer, args []string) error {
 		r.Cont("evidence (CLAUDE.md).")
 		return harness.ErrReported
 	}
-	diffBytes := check.Z23CmpL(ob, c1b)
+	diffBytes := check.W106CmpL(ob, c1b)
 	orod, crod := filepath.Join(tmp, "old.rodata"), filepath.Join(tmp, "c1.rodata")
 	exec.Command("objcopy", "-O", "binary", "--only-section=.rodata", oldBin, orod).Run()
 	exec.Command("objcopy", "-O", "binary", "--only-section=.rodata", filepath.Join(tmp, "c1"), crod).Run()
 	if check.SizeOf(orod) <= 0 || check.SizeOf(crod) <= 0 {
 		return stop("objcopy wrote an empty .rodata, and comparing two empty streams reports every pair of binaries identical (CLAUDE.md)")
 	}
-	rodataBytes := check.Z23CmpL([]byte(check.ReadFile(orod)), []byte(check.ReadFile(crod)))
+	rodataBytes := check.W106CmpL([]byte(check.ReadFile(orod)), []byte(check.ReadFile(crod)))
 	if rodataBytes < 1000 {
 		return stop("c1 differs in %d bytes of .rodata, and the three strings it rewrites are 84 characters between them -- expected over a thousand", rodataBytes)
 	}

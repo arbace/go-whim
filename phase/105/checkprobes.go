@@ -13,13 +13,13 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-type z22Probe struct {
+type w105Probe struct {
 	Tag  string
 	Args []string
 	Keys [][]byte
 }
 
-func z22Build() ([]z22Probe, int) {
+func w105Build() ([]w105Probe, int) {
 	esc, cr, cg, ca := []byte("\x1b"), []byte("\r"), []byte("\x07"), []byte("\x01")
 	quit := []byte("\x1b:q!\r")
 	paste := []string{"+set paste"}
@@ -31,10 +31,10 @@ func z22Build() ([]z22Probe, int) {
 	}
 	l40 := bytes.Join(l40p, cr)
 	seed := func(t []byte) [][]byte { return [][]byte{cat([]byte("i"), t, esc), cat([]byte(":set nopaste"), cr)} }
-	var P []z22Probe
+	var P []w105Probe
 	probe := func(tag string, args []string, keys ...[]byte) {
 		k := append(append([][]byte{}, keys...), quit)
-		P = append(P, z22Probe{tag, args, k})
+		P = append(P, w105Probe{tag, args, k})
 	}
 	sk := func(s []byte, keys ...[]byte) [][]byte { return append(seed(s), keys...) }
 	plus := func(extra ...string) []string { return append(append([]string{}, paste...), extra...) }
@@ -204,8 +204,8 @@ func z22Build() ([]z22Probe, int) {
 	return P, 2 * 3 * len(badpat)
 }
 
-func z22Run(binary string, p z22Probe) string {
-	scr, Out, errb, rc, err := harness.ZSession(binary, p.Keys, "xterm", p.Args, 24, 80, 20*time.Second)
+func w105Run(binary string, p w105Probe) string {
+	scr, Out, errb, rc, err := harness.CoreSession(binary, p.Keys, "xterm", p.Args, 24, 80, 20*time.Second)
 	if err == harness.ErrBlocked {
 		return p.Tag + "|BLOCKED"
 	}
@@ -220,8 +220,8 @@ func z22Run(binary string, p z22Probe) string {
 	return fmt.Sprintf("%s|%d|%s|%d|%d|%s", p.Tag, len(Out), hex.EncodeToString(so[:])[:16], rc, len(errb), hex.EncodeToString(sb[:])[:16])
 }
 
-func z22Probes(r *check.Rep, old, bin, b1, b2, b3, b4 string) error {
-	P, nre := z22Build()
+func w105Probes(r *check.Rep, old, bin, b1, b2, b3, b4 string) error {
+	P, nre := w105Build()
 	bins := []string{old, bin, b1, b2, b3, b4}
 	res := make([][]string, len(bins))
 	for i := range res {
@@ -233,9 +233,9 @@ func z22Probes(r *check.Rep, old, bin, b1, b2, b3, b4 string) error {
 		for pi, p := range P {
 			wg.Add(1)
 			sem <- struct{}{}
-			go func(bi, pi int, b string, p z22Probe) {
+			go func(bi, pi int, b string, p w105Probe) {
 				defer wg.Done()
-				res[bi][pi] = z22Run(b, p)
+				res[bi][pi] = w105Run(b, p)
 				<-sem
 			}(bi, pi, b, p)
 		}

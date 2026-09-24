@@ -112,13 +112,13 @@ import (
 func init() { edit.RegisterArgs("whim109", Edit) }
 
 var (
-	z26Inc   = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
-	z26Names = regexp.MustCompile(`\b(?:time_t|sig_atomic_t|uintptr_t|MIN|MAX|offsetof|gettimeofday)\b|struct timeval\b`)
-	z26TV    = regexp.MustCompile(`struct timeval\b`)
-	z26TimeT = regexp.MustCompile(`\btime_t\b`)
-	z26Off   = regexp.MustCompile(`\boffsetof\b`)
-	z26GT    = regexp.MustCompile(`gettimeofday\(&(\(?[A-Za-z_][\w.]*(?:->[\w.]+)?\)?), nullptr\)`)
-	z26MM    = regexp.MustCompile(`\b(MIN|MAX)\(`)
+	w109Inc   = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
+	w109Names = regexp.MustCompile(`\b(?:time_t|sig_atomic_t|uintptr_t|MIN|MAX|offsetof|gettimeofday)\b|struct timeval\b`)
+	w109TV    = regexp.MustCompile(`struct timeval\b`)
+	w109TimeT = regexp.MustCompile(`\btime_t\b`)
+	w109Off   = regexp.MustCompile(`\boffsetof\b`)
+	w109GT    = regexp.MustCompile(`gettimeofday\(&(\(?[A-Za-z_][\w.]*(?:->[\w.]+)?\)?), nullptr\)`)
+	w109MM    = regexp.MustCompile(`\b(MIN|MAX)\(`)
 )
 
 // Whim109 gives the core the header types and macros it can own: time_t,
@@ -165,7 +165,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	var headers []string
 	for _, l := range dLine {
-		m := z26Inc.FindSubmatch(l)
+		m := w109Inc.FindSubmatch(l)
 		if m == nil {
 			return nil, p.Die("a directive is not an `#include <...>` of a system header, and no " +
 				"phase may add one")
@@ -229,8 +229,8 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 				"this phase was written against %d and %d", x.Name, gc, gh, x.nCore, x.nHost)
 		}
 	}
-	tvCore := len(z26TV.FindAll(coreT, -1))
-	tvHost := len(z26TV.FindAll(hostT, -1))
+	tvCore := len(w109TV.FindAll(coreT, -1))
+	tvHost := len(w109TV.FindAll(hostT, -1))
 	if tvCore != 4 || tvHost != 2 {
 		return nil, p.Die("`struct timeval` occurs %d times in the core and %d in the host block, "+
 			"where this phase was written against 4 and 2", tvCore, tvHost)
@@ -250,7 +250,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	var bad []string
 	for _, s := range spans {
-		if z26Names.Match(t[s[0]:s[1]]) {
+		if w109Names.Match(t[s[0]:s[1]]) {
 			bad = append(bad, string(t[s[0]:s[1]]))
 		}
 	}
@@ -298,8 +298,8 @@ int abs(int n);
 		return nil, p.Die("`%s` is not in the file exactly once", td)
 	}
 	t = bytes.Replace(t, []byte(td), []byte("typedef long        time_T;"), 1)
-	nTime := len(z26TimeT.FindAll(t, -1))
-	t = z26TimeT.ReplaceAll(t, []byte("time_T"))
+	nTime := len(w109TimeT.FindAll(t, -1))
+	t = w109TimeT.ReplaceAll(t, []byte("time_T"))
 	if nTime != 5 {
 		return nil, p.Die("%d further `time_t` were rewritten where 5 were counted", nTime)
 	}
@@ -354,7 +354,7 @@ int abs(int n);
 		t = bytes.Replace(t, []byte(x[0]), []byte(x[1]), 1)
 	}
 
-	locs := z26GT.FindAllSubmatchIndex(t, -1)
+	locs := w109GT.FindAllSubmatchIndex(t, -1)
 	nGt := len(locs)
 	if nGt != 5 {
 		return nil, p.Die("%d `gettimeofday(&X, nullptr)` calls were rewritten where 5 were "+
@@ -409,8 +409,8 @@ musl_gettimeofday(long *sec, long *usec)
 	// None of these nine needs to be one, so it stays a real option and not a
 	// reason to change: one gcc extension in one construct is cheaper to
 	// explain than a UB-by-the-letter idiom in nine places.
-	nOff := len(z26Off.FindAll(t, -1))
-	t = z26Off.ReplaceAll(t, []byte("__builtin_offsetof"))
+	nOff := len(w109Off.FindAll(t, -1))
+	t = w109Off.ReplaceAll(t, []byte("__builtin_offsetof"))
 	if nOff != 9 {
 		return nil, p.Die("%d `offsetof` were rewritten where 9 were counted", nOff)
 	}
@@ -446,14 +446,14 @@ musl_gettimeofday(long *sec, long *usec)
 	// minmax_lines is counted BEFORE the expansion, because expanding moves
 	// every offset after the first act.
 	seen := map[int]bool{}
-	for _, m := range z26MM.FindAllIndex(t, -1) {
+	for _, m := range w109MM.FindAllIndex(t, -1) {
 		seen[bytes.Count(t[:m[0]], []byte{'\n'})] = true
 	}
 	minmaxLines := len(seen)
 
 	nMin, nMax := 0, 0
 	for {
-		m := z26MM.FindSubmatchIndex(t)
+		m := w109MM.FindSubmatchIndex(t)
 		if m == nil {
 			break
 		}
@@ -548,13 +548,13 @@ musl_gettimeofday(long *sec, long *usec)
 			return nil, p.Die("`%s` still occurs %d times in the core", name, n)
 		}
 	}
-	if z26TV.Match(ncore) {
+	if w109TV.Match(ncore) {
 		return nil, p.Die("`struct timeval` still occurs in the core")
 	}
 	if len(regexp.MustCompile(`\bsig_atomic_t\b`).FindAll(nhost, -1)) != 3 {
 		return nil, p.Die("the host block no longer has its three `sig_atomic_t`")
 	}
-	if k := len(z26TV.FindAll(nhost, -1)); k != 3 {
+	if k := len(w109TV.FindAll(nhost, -1)); k != 3 {
 		return nil, p.Die("the host block should have three `struct timeval` -- its two and "+
 			"musl_gettimeofday's -- and has %d", k)
 	}

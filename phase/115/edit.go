@@ -78,25 +78,25 @@ import (
 func init() { edit.Register("whim115", Edit) }
 
 var (
-	z32Inc      = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
-	z32Proto    = regexp.MustCompile(`^[A-Za-z_].*\);$`)
-	z32Names    = regexp.MustCompile(`\b(?:vim_time|host_time|time_T|time_t)\b`)
-	z32Word     = regexp.MustCompile(`\btime\b`)
-	z32TimeCall = regexp.MustCompile(`\btime\s*\(`)
-	z32VimTime  = regexp.MustCompile(`\bvim_time\b`)
-	z32HostTime = regexp.MustCompile(`\bhost_time\b`)
-	z32TimeT    = regexp.MustCompile(`\btime_t\b`)
-	z32TimeTT   = regexp.MustCompile(`\btime_T\b`)
+	w115Inc      = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
+	w115Proto    = regexp.MustCompile(`^[A-Za-z_].*\);$`)
+	w115Names    = regexp.MustCompile(`\b(?:vim_time|host_time|time_T|time_t)\b`)
+	w115Word     = regexp.MustCompile(`\btime\b`)
+	w115TimeCall = regexp.MustCompile(`\btime\s*\(`)
+	w115VimTime  = regexp.MustCompile(`\bvim_time\b`)
+	w115HostTime = regexp.MustCompile(`\bhost_time\b`)
+	w115TimeT    = regexp.MustCompile(`\btime_t\b`)
+	w115TimeTT   = regexp.MustCompile(`\btime_T\b`)
 )
 
-// z32Strip blanks string and character literals in ONE line.  It is
+// w115Strip blanks string and character literals in ONE line.  It is
 // zhostonly's, and for the same reason: this file says "%ld line %sed %d time"
 // in two NGETTEXT strings, and a count that read those as calls would be
 // counting English.
 //
 // It is NOT cutil.Blank -- it collapses a literal to a single space rather
 // than preserving its offsets, because nothing here indexes back into it.
-func z32Strip(line []byte) []byte {
+func w115Strip(line []byte) []byte {
 	Out := make([]byte, 0, len(line))
 	i, n := 0, len(line)
 	for i < n {
@@ -124,10 +124,10 @@ func z32Strip(line []byte) []byte {
 	return Out
 }
 
-func z32Code(lines [][]byte) []byte {
+func w115Code(lines [][]byte) []byte {
 	Out := make([][]byte, len(lines))
 	for i, l := range lines {
-		Out[i] = z32Strip(l)
+		Out[i] = w115Strip(l)
 	}
 	return bytes.Join(Out, []byte{'\n'})
 }
@@ -179,7 +179,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	var incNames []string
 	for _, i := range directives {
-		if !z32Inc.Match(lines[i]) {
+		if !w115Inc.Match(lines[i]) {
 			return nil, p.Die("a directive is not an `#include <...>` of a system header, and no " +
 				"phase may add one")
 		}
@@ -191,8 +191,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"static_assert this phase adds compares `time_T` against")
 	}
 	cut := directives[0]
-	core := z32Code(lines[:cut])
-	below := z32Code(lines[cut:])
+	core := w115Code(lines[:cut])
+	below := w115Code(lines[cut:])
 	p.Sayf("eleven `#include`s, contiguous, at lines %d-%d, <time.h> among them, and "+
 		"NOTHING above the first of them -- so the core is the %d lines above the "+
 		"boundary and the host is the %d below it",
@@ -252,7 +252,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	var notProto []string
 	for _, l := range lines[a : b+1] {
-		if !z32Proto.Match(l) {
+		if !w115Proto.Match(l) {
 			notProto = append(notProto, string(l))
 		}
 	}
@@ -285,10 +285,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	var bad, english []string
 	for _, s := range spans {
 		lit := t[s[0]:s[1]]
-		if z32Names.Match(lit) {
+		if w115Names.Match(lit) {
 			bad = append(bad, string(lit))
 		}
-		if z32Word.Match(lit) {
+		if w115Word.Match(lit) {
 			english = append(english, string(lit))
 		}
 	}
@@ -326,8 +326,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	mid := z32Code(bytes.Split(t, []byte{'\n'})[:cut])
-	if k := len(z32TimeCall.FindAll(mid, -1)); k != 2 {
+	mid := w115Code(bytes.Split(t, []byte{'\n'})[:cut])
+	if k := len(w115TimeCall.FindAll(mid, -1)); k != 2 {
 		return nil, p.Die("`time(` occurs %d times above the boundary after step one, where 2 were "+
 			"expected -- the prototype and the one call inside the wrapper", k)
 	}
@@ -336,8 +336,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"above the boundary is now the prototype and ONE call site, the wrapper's own")
 
 	// ---- 5. STEP TWO: the wrapper becomes the host's ---------------------
-	nRen := len(z32VimTime.FindAll(t, -1))
-	t = z32VimTime.ReplaceAll(t, []byte("host_time"))
+	nRen := len(w115VimTime.FindAll(t, -1))
+	t = w115VimTime.ReplaceAll(t, []byte("host_time"))
 	if nRen != 9 {
 		return nil, p.Die("%d `vim_time` were renamed where 9 were counted -- the prototype, the "+
 			"definition, five call sites and the two step one just made", nRen)
@@ -451,38 +451,38 @@ musl_delay(long ms, int interruptible)
 			"the core lost", cut+coreDelta+1, strings.Join(at3, " "))
 	}
 	for _, i := range ndir {
-		if !z32Inc.Match(L[i]) {
+		if !w115Inc.Match(L[i]) {
 			return nil, p.Die("a directive is no longer an `#include <...>` of a system header")
 		}
 	}
-	ncore := z32Code(L[:ndir[0]])
-	nbelow := z32Code(L[ndir[0]:])
-	if z32Word.Match(ncore) {
+	ncore := w115Code(L[:ndir[0]])
+	nbelow := w115Code(L[ndir[0]:])
+	if w115Word.Match(ncore) {
 		return nil, p.Die("`time` is still named %d times above the boundary, and the whole "+
 			"product of this phase is that the core does not name it at all",
-			len(z32Word.FindAll(ncore, -1)))
+			len(w115Word.FindAll(ncore, -1)))
 	}
-	if len(z32VimTime.FindAll(t, -1)) > 0 {
+	if len(w115VimTime.FindAll(t, -1)) > 0 {
 		return nil, p.Die("`vim_time` survives somewhere in the file")
 	}
-	if k := len(z32HostTime.FindAll(ncore, -1)); k != 8 {
+	if k := len(w115HostTime.FindAll(ncore, -1)); k != 8 {
 		return nil, p.Die("`host_time` occurs %d times above the boundary where 8 were expected "+
 			"-- the declaration and seven call sites", k)
 	}
-	if k := len(z32HostTime.FindAll(nbelow, -1)); k != 1 {
+	if k := len(w115HostTime.FindAll(nbelow, -1)); k != 1 {
 		return nil, p.Die("`host_time` occurs %d times below the boundary where 1 was expected "+
 			"-- its definition", k)
 	}
-	if k := len(z32Word.FindAll(nbelow, -1)); k != 2 {
+	if k := len(w115Word.FindAll(nbelow, -1)); k != 2 {
 		return nil, p.Die("`time` occurs %d times below the boundary where 2 were expected -- "+
 			"`#include <time.h>` and host_time's call.  `time_t` is not one of them: `_` "+
 			"is a word character, so `\\btime\\b` does not match inside it", k)
 	}
-	if k := len(z32TimeT.FindAll(nbelow, -1)); k != 1 {
+	if k := len(w115TimeT.FindAll(nbelow, -1)); k != 1 {
 		return nil, p.Die("`time_t` occurs %d times below the boundary where 1 was expected -- "+
 			"the static_assert", k)
 	}
-	if k := len(z32TimeTT.FindAll(ncore, -1)); k != 8 {
+	if k := len(w115TimeTT.FindAll(ncore, -1)); k != 8 {
 		return nil, p.Die("`time_T` occurs %d times above the boundary where 8 were expected -- "+
 			"the input had 10 and the two that go are the prototype's and the "+
 			"definition's", k)

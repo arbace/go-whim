@@ -104,15 +104,15 @@ import (
 func init() { check.Register("whim116", Check) }
 
 var (
-	z33Named = regexp.MustCompile(`\{\s*"([^"]*)"`)
-	z33Err   = regexp.MustCompile(`\bE\d+:`)
-	z33Code  = regexp.MustCompile(`^E\d+$`)
-	z33ErrW  = regexp.MustCompile(`\bE\d+\b`)
+	w116Named = regexp.MustCompile(`\{\s*"([^"]*)"`)
+	w116Err   = regexp.MustCompile(`\bE\d+:`)
+	w116Code  = regexp.MustCompile(`^E\d+$`)
+	w116ErrW  = regexp.MustCompile(`\bE\d+\b`)
 )
 
-// z33Ask is one pty session with no file argument, and the `term=` and
+// w116Ask is one pty session with no file argument, and the `term=` and
 // `t_Co=` answers scraped from every line of it.
-func z33Ask(bin string, env []string, term string) []string {
+func w116Ask(bin string, env []string, term string) []string {
 	d, err := os.MkdirTemp("", "ztermcheck-")
 	if err != nil {
 		return nil
@@ -136,7 +136,7 @@ func z33Ask(bin string, env []string, term string) []string {
 	return got
 }
 
-func z33Lines(p string) []string {
+func w116Lines(p string) []string {
 	s := check.ReadFile(p)
 	if s == "" {
 		return nil
@@ -144,7 +144,7 @@ func z33Lines(p string) []string {
 	return strings.Split(strings.TrimSuffix(s, "\n"), "\n")
 }
 
-func z33Asked(row string) string {
+func w116Asked(row string) string {
 	i, j := strings.Index(row, "'"), strings.LastIndex(row, "'")
 	if i < 0 || j <= i {
 		return ""
@@ -187,7 +187,7 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 0. the baselines must already be the new shape ----------------------
 	if _, e := os.Stat(base + "/ref-term.txt"); e == nil {
-		rows := z33Lines(base + "/ref-term.txt")
+		rows := w116Lines(base + "/ref-term.txt")
 		ok := len(rows) == len(harness.Terms)
 		for _, r := range rows {
 			if !strings.HasPrefix(r, ":set term='") {
@@ -263,17 +263,17 @@ func Check(w io.Writer, args []string) error {
 	// --- 3. the new table means what it claims ------------------------------
 	// A table that did not finish says why (recjob.go); the boundary loop
 	// below collects its errors and reports them together, after the wait.
-	ztcQuiet := func(b, Out string) error { return check.RecCmd("tools/st.sh", "ztermcheck", b, Out) }
-	ztc := func(b, Out string) error {
-		e := ztcQuiet(b, Out)
+	termCheckQuiet := func(b, Out string) error { return check.RecCmd("tools/st.sh", "ztermcheck", b, Out) }
+	termCheck := func(b, Out string) error {
+		e := termCheckQuiet(b, Out)
 		check.RecReport(w, e)
 		return e
 	}
-	if ztc(bin, T("term")) != nil {
+	if termCheck(bin, T("term")) != nil {
 		return harness.ErrReported
 	}
 	tb := "  table        "
-	rule, ok := z33Rule(f, T("term"), bin, env)
+	rule, ok := w116Rule(f, T("term"), bin, env)
 	printPrefixed(w, tb, rule)
 	if !ok {
 		return harness.ErrReported
@@ -283,7 +283,7 @@ func Check(w io.Writer, args []string) error {
 	sm := &check.Rep{Tag: "same", W: w}
 	if whim != nil && <-whim == nil {
 		whim = nil
-		if ztc(T("whim-vim"), T("term-whim")) != nil {
+		if termCheck(T("whim-vim"), T("term-whim")) != nil {
 			return harness.ErrReported
 		}
 		if check.ReadFile(T("term")) != check.ReadFile(T("term-whim")) {
@@ -337,7 +337,7 @@ func Check(w io.Writer, args []string) error {
 			sem <- struct{}{}
 			go func(i int, r string) {
 				defer wg.Done()
-				rowErr[i] = ztcQuiet(T("bins/"+r), T("rows/"+r))
+				rowErr[i] = termCheckQuiet(T("bins/"+r), T("rows/"+r))
 				<-sem
 			}(i, r)
 		}
@@ -419,10 +419,10 @@ func Check(w io.Writer, args []string) error {
 		af.Say("the patched copy did not build -- the break is wrong, not the corpus")
 		return harness.ErrReported
 	}
-	if ztc(filepath.Join(broken, "whim-vim"), T("broken-term")) != nil {
+	if termCheck(filepath.Join(broken, "whim-vim"), T("broken-term")) != nil {
 		return harness.ErrReported
 	}
-	moved, mok := z33Moved(T("term"), T("broken-term"), gone)
+	moved, mok := w116Moved(T("term"), T("broken-term"), gone)
 	if !mok {
 		printPrefixed(w, "  ablefail     ", moved)
 		unifiedHead(w, T("term"), T("broken-term"), 10)
@@ -435,7 +435,7 @@ func Check(w io.Writer, args []string) error {
 			wg.Add(1)
 			go func(k int, term string) {
 				defer wg.Done()
-				got := strings.Join(z33Ask(b, env, term), " ")
+				got := strings.Join(w116Ask(b, env, term), " ")
 				if got == "" {
 					got = "(none)"
 				}
@@ -458,7 +458,7 @@ func Check(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	ans := map[string]bool{}
-	oldRows := z33Lines(T("old-in"))
+	oldRows := w116Lines(T("old-in"))
 	for _, l := range oldRows {
 		if k := strings.LastIndex(l, "-> "); k >= 0 {
 			ans[l[k+3:]] = true
@@ -482,10 +482,10 @@ func Check(w io.Writer, args []string) error {
 	return nil
 }
 
-// z33Rule is section 3's partition: the recording against builtin_terminals[]
+// w116Rule is section 3's partition: the recording against builtin_terminals[]
 // and the default measured from the binary.  It returns the text the heredoc
 // printed, or the message it exited with, and whether it passed.
-func z33Rule(src, rec, bin string, env []string) (string, bool) {
+func w116Rule(src, rec, bin string, env []string) (string, bool) {
 	text := check.ReadFile(src)
 	i := strings.Index(text, "builtin_terminals[] =\n{")
 	if i < 0 {
@@ -496,7 +496,7 @@ func z33Rule(src, rec, bin string, env []string) (string, bool) {
 		return "builtin_terminals[] is not in the source: nothing to check the table against", false
 	}
 	var resolves []string
-	for _, m := range z33Named.FindAllStringSubmatch(text[i:i+j], -1) {
+	for _, m := range w116Named.FindAllStringSubmatch(text[i:i+j], -1) {
 		resolves = append(resolves, m[1])
 	}
 	if len(resolves) == 0 {
@@ -508,7 +508,7 @@ func z33Rule(src, rec, bin string, env []string) (string, bool) {
 		"xterm", 20*time.Second, time.Second, d, env, 0, 0)
 	def := ""
 	for _, line := range strings.Split(strings.ToValidUTF8(string(Out), "�"), "\n") {
-		if k := strings.Index(line, "term="); k >= 0 && !z33Err.MatchString(line) {
+		if k := strings.Index(line, "term="); k >= 0 && !w116Err.MatchString(line) {
 			def = strings.Fields(line[k:])[0]
 			break
 		}
@@ -516,10 +516,10 @@ func z33Rule(src, rec, bin string, env []string) (string, bool) {
 	if def == "" {
 		return "the binary answered nothing with no +set term= at all: the default is unmeasurable", false
 	}
-	rows := z33Lines(rec)
+	rows := w116Lines(rec)
 	asked := make([]string, len(rows))
 	for k, r := range rows {
-		asked[k] = z33Asked(r)
+		asked[k] = w116Asked(r)
 	}
 	if strings.Join(asked, "\x00") != strings.Join(harness.Terms, "\x00") || len(asked) != len(harness.Terms) {
 		q := func(s []string) string {
@@ -542,7 +542,7 @@ func z33Rule(src, rec, bin string, env []string) (string, bool) {
 			if got == "" && strings.HasPrefix(x, "term=") {
 				got = x
 			}
-			if z33Code.MatchString(x) {
+			if w116Code.MatchString(x) {
 				errs = append(errs, x)
 			}
 		}
@@ -566,10 +566,10 @@ func z33Rule(src, rec, bin string, env []string) (string, bool) {
 	return fmt.Sprintf("%d rows: %d names builtin_terminals[] carries, each resolving to itself, and %d refused with an E5NN and left at %s", len(rows), len(rows)-nRef, nRef, def), true
 }
 
-// z33Moved is section 6's heredoc: exactly the deleted name's row moved, and
+// w116Moved is section 6's heredoc: exactly the deleted name's row moved, and
 // from resolving to refused.
-func z33Moved(was, now, gone string) (string, bool) {
-	a, b := z33Lines(was), z33Lines(now)
+func w116Moved(was, now, gone string) (string, bool) {
+	a, b := w116Lines(was), w116Lines(now)
 	if len(a) != len(b) {
 		return fmt.Sprintf("the broken build recorded %d rows where the input recorded %d", len(b), len(a)), false
 	}
@@ -582,13 +582,13 @@ func z33Moved(was, now, gone string) (string, bool) {
 	if len(mv) != 1 {
 		return fmt.Sprintf("deleting the %s row moved %d rows, and exactly 1 was due", check.PyRepr(gone), len(mv)), false
 	}
-	name := z33Asked(mv[0][0])
+	name := w116Asked(mv[0][0])
 	if name != gone {
 		return fmt.Sprintf("deleting the %s row moved the %s row instead", check.PyRepr(gone), check.PyRepr(name)), false
 	}
 	_, before, _ := strings.Cut(mv[0][0], " -> ")
 	_, after, _ := strings.Cut(mv[0][1], " -> ")
-	if !check.Contains(strings.Fields(before), "term="+gone) || !z33ErrW.MatchString(after) {
+	if !check.Contains(strings.Fields(before), "term="+gone) || !w116ErrW.MatchString(after) {
 		return fmt.Sprintf("the %s row went %s -> %s, where resolving -> refused was due", check.PyRepr(gone), before, after), false
 	}
 	return fmt.Sprintf("deleting the %s row from builtin_terminals[] moves EXACTLY 1 of %d rows here, %s -> %s", check.PyRepr(gone), len(a), before, after), true

@@ -134,14 +134,14 @@ import (
 
 func init() { edit.RegisterArgs("whim124", Edit) }
 
-// z41Names are the three libc allocators.  `\b` does not match inside
+// w124Names are the three libc allocators.  `\b` does not match inside
 // `host_free`, `vim_free` or `realloc_cmdbuff` -- `_` is a word character --
 // so these are the bare libc names.
-var z41Names = []string{"malloc", "free", "realloc"}
+var w124Names = []string{"malloc", "free", "realloc"}
 
 var (
-	z41Dir = regexp.MustCompile(`^ *# *`)
-	z41Inc = regexp.MustCompile(`^#include <[A-Za-z0-9_/.]+>$`)
+	w124Dir = regexp.MustCompile(`^ *# *`)
+	w124Inc = regexp.MustCompile(`^#include <[A-Za-z0-9_/.]+>$`)
 )
 
 // Whim124 makes freeing free: host_alloc() becomes a bump allocator into a 1 GiB
@@ -182,7 +182,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// ---- 0. the boundary, and the file this edit was written against ---------
 	var directives []int
 	for i, l := range L {
-		if z41Dir.MatchString(l) {
+		if w124Dir.MatchString(l) {
 			directives = append(directives, i)
 		}
 	}
@@ -196,7 +196,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 	for _, i := range directives {
-		if !z41Inc.MatchString(L[i]) {
+		if !w124Inc.MatchString(L[i]) {
 			return nil, p.Die("a directive is not an `#include <...>` of a system header, and no phase may " +
 				"add one")
 		}
@@ -211,7 +211,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, name := range z41Names {
+	for _, name := range w124Names {
 		re := regexp.MustCompile(`\b` + name + `\b`)
 		var bad []string
 		for _, s := range spans {
@@ -232,10 +232,10 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// text and never written down; what is written down is that every one falls
 	// in a class this phase rewrites, and that a mention in no class REFUSES.
 	classes := []struct{ What, Text string }{
-		{"host_alloc()'s body", z41AllocOld},
-		{"host_free()'s body", z41FreeOld},
-		{"format_overflow_error()'s free of argcopy", z41OverflowOld},
-		{"adjust_types()'s realloc of *ap_types, with the failure test below it", z41ReallocOld},
+		{"host_alloc()'s body", w124AllocOld},
+		{"host_free()'s body", w124FreeOld},
+		{"format_overflow_error()'s free of argcopy", w124OverflowOld},
+		{"adjust_types()'s realloc of *ap_types, with the failure test below it", w124ReallocOld},
 	}
 	var covered [][2]int
 	for _, c := range classes {
@@ -248,7 +248,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	total := map[string]int{}
 	var stray []string
-	for _, name := range z41Names {
+	for _, name := range w124Names {
 		n := 0
 		for _, m := range regexp.MustCompile(`\b`+name+`\b`).FindAllStringIndex(t, -1) {
 			in := false
@@ -277,7 +277,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	// AND ALL OF THEM ARE BELOW THE BOUNDARY, which is the host-only claim stated
 	// as a place before it is stated as a `cmp`.
-	for _, name := range z41Names {
+	for _, name := range w124Names {
 		if regexp.MustCompile(`\b` + name + `\b`).MatchString(coreBefore) {
 			return nil, p.Die("`%s` is mentioned above the boundary, and phases 117 and 118 took the core's "+
 				"last one -- this phase changes the host and nothing else", name)
@@ -297,18 +297,18 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// ---- 3 to 6. the four replacements ---------------------------------------
 	for _, e := range []struct{ Old, New, What, why string }{
-		{z41AllocOld, z41AllocNew, "host_alloc()'s definition",
+		{w124AllocOld, w124AllocNew, "host_alloc()'s definition",
 			"the arena, its offset, the two message helpers and the abort go where the one " +
 				"call of malloc() was, so the allocator and its data stay one paragraph of the " +
 				"launcher region"},
-		{z41FreeOld, z41FreeNew, "host_free()'s definition",
+		{w124FreeOld, w124FreeNew, "host_free()'s definition",
 			"this is the whole of \"freeing is now free\": the parameter is named so the " +
 				"signature does not move and discarded so the build is silent"},
-		{z41OverflowOld, z41lit2, "format_overflow_error()'s free of argcopy",
+		{w124OverflowOld, w124lit2, "format_overflow_error()'s free of argcopy",
 			"argcopy came from alloc_clear(), which is host_alloc(), and from the line above " +
 				"this one libc's free() of that pointer is undefined.  It is the same rename " +
 				"phase 118 made at every core site, made at the one site below the boundary"},
-		{z41ReallocOld, z41ReallocNew, "adjust_types()'s realloc of *ap_types",
+		{w124ReallocOld, w124ReallocNew, "adjust_types()'s realloc of *ap_types",
 			"phase 117's rewrite at the one site phase 117 left: allocate, copy what was there, " +
 				"free the old block.  The old size is `*num_posarg` entries, which the function " +
 				"already has, and the guard is the same `*ap_types != nullptr` the arm above tests"},
@@ -322,7 +322,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	L = strings.Split(t, "\n")
 	var d []int
 	for i, l := range L {
-		if z41Dir.MatchString(l) {
+		if w124Dir.MatchString(l) {
 			d = append(d, i)
 		}
 	}
@@ -336,7 +336,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, p.Die("the output does not have the same eleven contiguous `#include` directives at " +
 			"the same line -- this phase adds no directive, removes none and moves none")
 	}
-	for _, name := range z41Names {
+	for _, name := range w124Names {
 		if n := len(regexp.MustCompile(`\b`+name+`\b`).FindAllString(t, -1)); n != 0 {
 			return nil, p.Die("`%s` still has %d mentions after every class was rewritten", name, n)
 		}
@@ -355,8 +355,8 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// line counts.
 	grew := 0
 	for _, e := range [][2]string{
-		{z41AllocOld, z41AllocNew}, {z41FreeOld, z41FreeNew},
-		{z41OverflowOld, z41lit2}, {z41ReallocOld, z41ReallocNew},
+		{w124AllocOld, w124AllocNew}, {w124FreeOld, w124FreeNew},
+		{w124OverflowOld, w124lit2}, {w124ReallocOld, w124ReallocNew},
 	} {
 		grew += len(strings.Split(e[1], "\n")) - len(strings.Split(e[0], "\n"))
 	}

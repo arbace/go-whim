@@ -76,14 +76,14 @@ import (
 func init() { check.Register("whim119", Check) }
 
 var (
-	z36Probe  = regexp.MustCompile(`PROBE b0=(\d+) vhs=(\d+) raise=(\d+)`)
-	z36DefnHd = regexp.MustCompile(`^([A-Za-z_]\w*)\s*\(`)
-	z36Swept1 = regexp.MustCompile(`^static [\w *]+mch_get_pid\(.*\);$`)
-	z36Swept2 = regexp.MustCompile(`^\s*char_u\s+b0_pid\[\d+\];$`)
-	z36WS     = regexp.MustCompile(`[ \t]+`)
+	w119Probe  = regexp.MustCompile(`PROBE b0=(\d+) vhs=(\d+) raise=(\d+)`)
+	w119DefnHd = regexp.MustCompile(`^([A-Za-z_]\w*)\s*\(`)
+	w119Swept1 = regexp.MustCompile(`^static [\w *]+mch_get_pid\(.*\);$`)
+	w119Swept2 = regexp.MustCompile(`^\s*char_u\s+b0_pid\[\d+\];$`)
+	w119WS     = regexp.MustCompile(`[ \t]+`)
 )
 
-const z36Instr = `static long probe_b0, probe_vhs, probe_raise;
+const w119Instr = `static long probe_b0, probe_vhs, probe_raise;
 
     static void
 probe_num(long v)
@@ -117,9 +117,9 @@ probe_dump(void)
 
 `
 
-// z36Body is the heredoc's Body(): a definition's own lines, from its
+// w119Body is the heredoc's Body(): a definition's own lines, from its
 // return-type line to its closing brace, in this tree's one shape.
-func z36Body(lines []string, name string) []string {
+func w119Body(lines []string, name string) []string {
 	re := regexp.MustCompile(`^` + name + `\s*\(`)
 	var h []int
 	for i, l := range lines {
@@ -179,10 +179,10 @@ func Check(w io.Writer, args []string) error {
 	T := func(n string) string { return filepath.Join(tmp, n) }
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
 	cflagsS, ldflagsS := "", ""
-	if m := check.Z29CFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112CFlags.FindStringSubmatch(mk); m != nil {
 		cflagsS = m[1]
 	}
-	if m := check.Z29LDFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112LDFlags.FindStringSubmatch(mk); m != nil {
 		ldflagsS = m[1]
 	}
 	link := func(src, Out, logPath string) error {
@@ -265,7 +265,7 @@ func Check(w io.Writer, args []string) error {
 	p = strings.Replace(p, WRITE, "        probe_b0++;\n"+WRITE, 1)
 	p = strings.Replace(p, VHS, VHS+"    probe_vhs++;\n", 1)
 	p = strings.Replace(p, RERAISE, "probe_raise++;\n                                 "+RERAISE, 1)
-	p = strings.Replace(p, EXIT, strings.Replace(z36Instr, DECLS, "", 1)+EXIT+"    probe_dump();\n", 1)
+	p = strings.Replace(p, EXIT, strings.Replace(w119Instr, DECLS, "", 1)+EXIT+"    probe_dump();\n", 1)
 	ctl["probe"] = p
 	const INIT = "    out_flush();\n    musl_host_init();\n}\n"
 	const FORCE = "    out_flush();\n    musl_host_init();\n" +
@@ -365,7 +365,7 @@ func Check(w io.Writer, args []string) error {
 	halves := func(lines []string) (string, string, int, bool) {
 		var d []int
 		for i, l := range lines {
-			if check.Z35Dir.MatchString(l) {
+			if check.W118Dir.MatchString(l) {
 				d = append(d, i)
 			}
 		}
@@ -373,7 +373,7 @@ func Check(w io.Writer, args []string) error {
 			return "", "", 0, false
 		}
 		for k, i := range d {
-			if i != d[0]+k || !check.Z35Include.MatchString(lines[i]) {
+			if i != d[0]+k || !check.W118Include.MatchString(lines[i]) {
 				return "", "", 0, false
 			}
 		}
@@ -399,7 +399,7 @@ func Check(w io.Writer, args []string) error {
 		{"kill", 2, "the re-raise; and musl_suspend()'s `kill(0, SIGTSTP)` below the boundary already did"},
 	} {
 		occ := mentions(ocore, x.Name)
-		paren := check.Z35CallShaped(ocore, x.Name)
+		paren := check.W118CallShaped(ocore, x.Name)
 		if occ != paren || paren < 2 {
 			r.Bad("the INPUT has %d mentions of `%s` above the boundary of which %d "+
 				"are call-shaped, and this phase needs every one to be the "+
@@ -413,8 +413,8 @@ func Check(w io.Writer, args []string) error {
 			r.Bad("`%s` ends at %d mentions below the boundary, expected %d -- %s", x.Name, n, x.nhost, x.why)
 		}
 	}
-	nGetpid := check.Z35CallShaped(ocore, "getpid")
-	nKill := check.Z35CallShaped(ocore, "kill")
+	nGetpid := check.W118CallShaped(ocore, "getpid")
+	nKill := check.W118CallShaped(ocore, "kill")
 	for _, x := range []struct {
 		Name string
 		o, n int
@@ -442,10 +442,10 @@ func Check(w io.Writer, args []string) error {
 		r.Bad("the input does not declare `%s` exactly once above the boundary", GO[0])
 	} else {
 		lo, hi := seed[0], seed[0]
-		for lo > 0 && check.Z35Decl(OL[lo-1]) {
+		for lo > 0 && check.W118Decl(OL[lo-1]) {
 			lo--
 		}
-		for hi+1 < obound && check.Z35Decl(OL[hi+1]) {
+		for hi+1 < obound && check.W118Decl(OL[hi+1]) {
 			hi++
 		}
 		blockBefore = OL[lo : hi+1]
@@ -464,7 +464,7 @@ func Check(w io.Writer, args []string) error {
 			if i > 0 {
 				prev = NL[i-1]
 			}
-			if check.Z35Decl(l) && (prev == "" || check.Z35Decl(prev)) {
+			if check.W118Decl(l) && (prev == "" || check.W118Decl(prev)) {
 				have = append(have, l)
 			}
 		}
@@ -480,14 +480,14 @@ func Check(w io.Writer, args []string) error {
 				"input's block minus the two is %s", hs, bs)
 		}
 	}
-	od, nd := z36Body(OL, "deathtrap"), z36Body(NL, "deathtrap")
+	od, nd := w119Body(OL, "deathtrap"), w119Body(NL, "deathtrap")
 	if od == nil || nd == nil {
 		r.Bad("deathtrap() is not defined exactly once in one of the two files")
 	} else if strings.Join(od, "\n") != strings.Join(nd, "\n") {
 		r.Bad("deathtrap() is NOT identical in and out, and this phase surveyed the "+
 			"`entered` fold and did not take it: %d lines in, %d out", len(od), len(nd))
 	}
-	ov, nv := z36Body(OL, "vim_handle_signal"), z36Body(NL, "vim_handle_signal")
+	ov, nv := w119Body(OL, "vim_handle_signal"), w119Body(NL, "vim_handle_signal")
 	if ov == nil || nv == nil || len(ov) != len(nv) {
 		r.Bad("vim_handle_signal() is not the same shape in and out")
 	} else {
@@ -511,24 +511,24 @@ func Check(w io.Writer, args []string) error {
 	}
 	// tools/create_cmdidxs.py -- named as a PATH so tools/implhash.sh hashes
 	// it into this phase's key.  Do not delete it.
-	nOld := len(check.Z35CmdRow.FindAllString(oldT, -1))
-	nNew := len(check.Z35CmdRow.FindAllString(t, -1))
+	nOld := len(check.W118CmdRow.FindAllString(oldT, -1))
+	nNew := len(check.W118CmdRow.FindAllString(t, -1))
 	cn, _ := harness.CommandNames(f)
 	if nNew != nOld || len(cn) != nOld {
 		r.Bad("cmdnames[] is %d rows and the input had %d -- this phase touches no Ex "+
 			"command", nNew, nOld)
 	}
-	if check.Z29RowCount(t) != check.Z29RowCount(oldT) {
+	if check.W112RowCount(t) != check.W112RowCount(oldT) {
 		r.Bad("options[] has %d rows and the input had %d -- this phase removes no "+
-			"option", check.Z29RowCount(t), check.Z29RowCount(oldT))
+			"option", check.W112RowCount(t), check.W112RowCount(oldT))
 	}
-	if check.Z27Runs(NL) > 0 {
+	if check.W110Runs(NL) > 0 {
 		r.Bad("there is a run of two blank lines, which canon.sh should have taken")
 	}
-	gp, hr := z36Body(OL, "mch_get_pid"), z36Body(NL, "host_raise")
+	gp, hr := w119Body(OL, "mch_get_pid"), w119Body(NL, "host_raise")
 	var swept []int
 	for i, l := range OL {
-		if z36Swept1.MatchString(l) || z36Swept2.MatchString(l) {
+		if w119Swept1.MatchString(l) || w119Swept2.MatchString(l) {
 			swept = append(swept, i)
 		}
 	}
@@ -584,7 +584,7 @@ func Check(w io.Writer, args []string) error {
 	if len(blockAfter) > 0 {
 		var fn []string
 		for _, l := range blockAfter {
-			fn = append(fn, check.Z35FnName.ReplaceAllString(l, "$1"))
+			fn = append(fn, check.W118FnName.ReplaceAllString(l, "$1"))
 		}
 		tail = strings.Join(fn, " ") + " remain, and each belongs to a phase of its own"
 	} else {
@@ -601,7 +601,7 @@ func Check(w io.Writer, args []string) error {
 		"so here rather than leaving it to be believed", len(od))
 	r.Cont("%d -> %d lines, %d fewer; cmdnames[] %d and options[] %d unmoved; the "+
 		"eleven #includes still eleven consecutive lines, at %d where they were %d",
-		beforeLines, len(NL)-1, beforeLines-(len(NL)-1), nNew, check.Z29RowCount(t), nbound+1, obound+1)
+		beforeLines, len(NL)-1, beforeLines-(len(NL)-1), nNew, check.W112RowCount(t), nbound+1, obound+1)
 
 	// --- 2. THE CLAIM: the cut, and what the core needs from outside itself ------------
 	type cut struct {
@@ -611,14 +611,14 @@ func Check(w io.Writer, args []string) error {
 		objOK              bool
 	}
 	editorcut := func(src, dst string) (cut, error) {
-		lines := check.Z28Cut(check.ReadFile(src))
+		lines := check.W111Cut(check.ReadFile(src))
 		text := ""
 		for _, l := range lines {
 			text += l + "\n"
 		}
 		os.WriteFile(dst, []byte(text), 0o644)
 		for _, l := range lines {
-			if check.Z30Dir.MatchString(l) {
+			if check.W113Dir.MatchString(l) {
 				return cut{}, stop("the cut of %s holds a directive, so it found the wrong line", src)
 			}
 		}
@@ -640,7 +640,7 @@ func Check(w io.Writer, args []string) error {
 			if strings.Contains(l, "warning:") {
 				cu.warns++
 			}
-			if m := check.Z35Warn.FindStringSubmatch(l); m != nil {
+			if m := check.W118Warn.FindStringSubmatch(l); m != nil {
 				cu.names = append(cu.names, m[1])
 			}
 		}
@@ -694,8 +694,8 @@ func Check(w io.Writer, args []string) error {
 	if len(fb) < len(cutBytes) || string(fb[:len(cutBytes)]) != string(cutBytes) {
 		return stop("the cut is not a byte prefix of whim-vim.c")
 	}
-	arrived := check.Z31Words(check.Comm23(cnw.names, co.names))
-	left := check.Z31Words(check.Comm23(co.names, cnw.names))
+	arrived := check.W114Words(check.Comm23(cnw.names, co.names))
+	left := check.W114Words(check.Comm23(co.names, cnw.names))
 	if arrived != "host_raise " || left != "" {
 		a, l := arrived, left
 		if a == "" {
@@ -717,7 +717,7 @@ func Check(w io.Writer, args []string) error {
 		L := strings.Split(check.ReadFile(path), "\n")
 		b := -1
 		for i, l := range L {
-			if check.Z35Dir.MatchString(l) {
+			if check.W118Dir.MatchString(l) {
 				b = i
 				break
 			}
@@ -727,7 +727,7 @@ func Check(w io.Writer, args []string) error {
 			return Out
 		}
 		for i := b; i < len(L)-1; i++ {
-			if m := z36DefnHd.FindStringSubmatch(L[i]); m != nil && L[i+1] == "{" {
+			if m := w119DefnHd.FindStringSubmatch(L[i]); m != nil && L[i+1] == "{" {
 				Out[m[1]] = true
 			}
 		}
@@ -803,9 +803,9 @@ func Check(w io.Writer, args []string) error {
 		strings.Join(res["new"].u, " "))
 
 	// --- 3. the vocabulary the core has left -------------------------------------------
-	zh := exec.Command("sh", "tools/st.sh", "zhostonly", f)
-	zh.Stdout, zh.Stderr = w, w
-	if err := zh.Run(); err != nil {
+	hostOnly := exec.Command("sh", "tools/st.sh", "zhostonly", f)
+	hostOnly.Stdout, hostOnly.Stderr = w, w
+	if err := hostOnly.Run(); err != nil {
 		return harness.ErrReported
 	}
 	// tools/zhostonly.py -- named as a PATH so tools/implhash.sh hashes it
@@ -815,7 +815,7 @@ func Check(w io.Writer, args []string) error {
 		L := strings.Split(check.ReadFile(x.path), "\n")
 		b := -1
 		for i, l := range L {
-			if check.Z35Dir.MatchString(l) {
+			if check.W118Dir.MatchString(l) {
 				b = i
 				break
 			}
@@ -826,7 +826,7 @@ func Check(w io.Writer, args []string) error {
 				continue
 			}
 			for _, mm := range harness.HostVocab().FindAllString(harness.StripStrings(L[i]), -1) {
-				k := z36WS.ReplaceAllString(mm, " ")
+				k := w119WS.ReplaceAllString(mm, " ")
 				hits[k] = append(hits[k], i+1)
 			}
 		}
@@ -866,7 +866,7 @@ func Check(w io.Writer, args []string) error {
 	errC1 := check.ReadFile(T("e.c1"))
 	bound := -1
 	for i, l := range NL {
-		if check.Z35Dir.MatchString(l) {
+		if check.W118Dir.MatchString(l) {
 			bound = i
 			break
 		}
@@ -901,7 +901,7 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 	for i, l := range NL {
-		if check.Z35CallShaped(l, name) > 0 && !check.ContainsInt(proto, i) && !check.ContainsInt(defn, i) {
+		if check.W118CallShaped(l, name) > 0 && !check.ContainsInt(proto, i) && !check.ContainsInt(defn, i) {
 			uses = append(uses, i)
 		}
 	}
@@ -952,7 +952,7 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 	sort.Strings(c3ext)
-	c3s := check.Z31Words(c3ext)
+	c3s := check.W114Words(c3ext)
 	if c3s != "host_raise main " {
 		r.Say("THE CONTROL c3 DID NOT SHOW.  With `static` off the prototype AND")
 		raw("               the definition the object must define host_raise and main; it")
@@ -971,13 +971,13 @@ func Check(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	lastU := ".cache/symbols/last/undefined"
-	if !check.Z30Same(T("before.u"), lastU) {
+	if !check.W113Same(T("before.u"), lastU) {
 		bu, lu := fileLines(T("before.u")), fileLines(lastU)
 		r.Say("the libc surface moved, and NEITHER HALF OF THIS PHASE CAN MOVE IT --")
 		raw("               host_raise() calls kill() and getpid() where vim_handle_signal() did,")
 		raw("               and mch_get_pid()'s getpid() was one of two:")
-		raw("               gone: %s", check.Z31Words(check.Comm23(bu, lu)))
-		raw("               came: %s", check.Z31Words(check.Comm23(lu, bu)))
+		raw("               gone: %s", check.W114Words(check.Comm23(bu, lu)))
+		raw("               came: %s", check.W114Words(check.Comm23(lu, bu)))
 		return harness.ErrReported
 	}
 	for _, s := range []string{"getpid", "kill"} {
@@ -996,15 +996,15 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 7. the binary, and canon ------------------------------------------------------------
 	jCanon.wg.Wait()
-	if !check.Z30Same(T("canon.c"), f) {
+	if !check.W113Same(T("canon.c"), f) {
 		r.Say("tools/canon.sh CHANGED THE OUTPUT, and it must be a no-op:")
-		head(check.Z30Diff(f, T("canon.c")), 6, "               ")
+		head(check.W113Diff(f, T("canon.c")), 6, "               ")
 		return harness.ErrReported
 	}
 	canonWord := ""
 	for _, l := range strings.Split(string(canonLog), "\n") {
-		if check.Z35CanonLn.MatchString(l) {
-			canonWord = check.Z35CanonLn.ReplaceAllString(l, "")
+		if check.W118CanonLn.MatchString(l) {
+			canonWord = check.W118CanonLn.ReplaceAllString(l, "")
 			break
 		}
 	}
@@ -1033,7 +1033,7 @@ func Check(w io.Writer, args []string) error {
 		return stop("the reproducible build is %d bytes and make produced %d: the two differ by more than a "+
 			"timestamp, so nothing below would be about this boundary", newSize, check.SizeOf(bin))
 	}
-	if check.Z30Same(oldBinP, T("new")) {
+	if check.W113Same(oldBinP, T("new")) {
 		r.Say("THE BINARY IS BYTE-IDENTICAL, and it must not be: a statement goes,")
 		raw("               a function goes, a call site becomes a call into another function")
 		raw("               of this file and a definition arrives.")
@@ -1076,7 +1076,7 @@ func Check(w io.Writer, args []string) error {
 		wgR.Add(1)
 		go func() {
 			defer wgR.Done()
-			recErr[k] = check.RecZ(x.bin, x.src, T("REC-"+x.Name))
+			recErr[k] = check.RecCore(x.bin, x.src, T("REC-"+x.Name))
 		}()
 	}
 	wgR.Wait()
@@ -1096,7 +1096,7 @@ func Check(w io.Writer, args []string) error {
 		}
 		var mv []string
 		for _, n := range base {
-			if !check.Z30Same(filepath.Join(T("REC-old"), n), filepath.Join(d, n)) {
+			if !check.W113Same(filepath.Join(T("REC-old"), n), filepath.Join(d, n)) {
 				mv = append(mv, n)
 			}
 		}
@@ -1195,7 +1195,7 @@ func Check(w io.Writer, args []string) error {
 		c.Stdin, c.Stdout, c.Stderr = in, &ob, &eb
 		err := c.Run()
 		in.Close()
-		sessions[v] = sess{[]byte(ob.String()), []byte(eb.String()), check.Z36ShellRC(err, c.ProcessState)}
+		sessions[v] = sess{[]byte(ob.String()), []byte(eb.String()), check.W119ShellRC(err, c.ProcessState)}
 	}
 	wgS.Wait()
 	if scErr != nil {
@@ -1215,7 +1215,7 @@ func Check(w io.Writer, args []string) error {
 	seen := 0
 	fields := []string{"b0", "vhs", "raise"}
 	for _, n := range sbase {
-		mm := z36Probe.FindStringSubmatch(check.ReadFile(filepath.Join(T("SC-probe"), n)))
+		mm := w119Probe.FindStringSubmatch(check.ReadFile(filepath.Join(T("SC-probe"), n)))
 		if mm == nil {
 			continue
 		}
@@ -1273,7 +1273,7 @@ func Check(w io.Writer, args []string) error {
 			tail = tail[len(tail)-90:]
 		}
 		return stop("the forced deferral did not reach deathtrap(): the screen does not "+
-			"carry `Vim: Caught deadly signal TERM`.  %s", check.Z30BytesRepr(tail))
+			"carry `Vim: Caught deadly signal TERM`.  %s", check.W113BytesRepr(tail))
 	}
 	if probe.Rc != 1 {
 		return stop("the forced deferral exits %d and preserve_exit() ends in getout(1)", probe.Rc)

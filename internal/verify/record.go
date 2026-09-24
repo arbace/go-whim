@@ -100,7 +100,7 @@ func recordCore(w io.Writer) error {
 	fmt.Fprintf(w, "  q82          %d lines, %d bytes\n", countLines(mustRead(src)), sizeOf(bin))
 
 	one := func(dir string) error {
-		return harness.ZRecord(bin, src, dir, io.Discard)
+		return harness.CoreRecord(bin, src, dir, io.Discard)
 	}
 	return recordThrice(w, tmp, ".reference/core-baselines", "q82", one)
 }

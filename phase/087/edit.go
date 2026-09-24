@@ -100,7 +100,7 @@ import (
 
 func init() { edit.Register("whim87", Edit) }
 
-var z4Before = map[string]int{
+var w87Before = map[string]int{
 	"exmode_active": 49, "silent_mode": 23, "pending_exmode_active": 4,
 	"exmode_plus": 3, "exmode_was": 2, "do_exmode": 4, "getexmodeline": 6,
 	"nv_exmode": 3, "EXMODE_NORMAL": 6, "EXMODE_VIM": 5, "BO_EX": 2,
@@ -110,10 +110,10 @@ var z4Before = map[string]int{
 	"mch_input_isatty": 2,
 }
 
-// z4After: every use is gone and what remains of each name is its definition,
+// w87After: every use is gone and what remains of each name is its definition,
 // each of them a kind tools/sweep.sh deletes.  Stated as a number per name, so a
 // use that survived shows up HERE and not as a warning five minutes later.
-var z4After = map[string]int{
+var w87After = map[string]int{
 	"exmode_active": 1, "silent_mode": 1, "pending_exmode_active": 1,
 	"exmode_plus": 1, "exmode_was": 0, "do_exmode": 0, "getexmodeline": 1,
 	"nv_exmode": 1, "EXMODE_NORMAL": 1, "EXMODE_VIM": 1, "BO_EX": 1,
@@ -124,8 +124,8 @@ var z4After = map[string]int{
 }
 
 var (
-	z4Isatty   = regexp.MustCompile(`\bisatty\(`)
-	z4BreakCon = regexp.MustCompile(`\b(break|continue)\b`)
+	w87Isatty   = regexp.MustCompile(`\bisatty\(`)
+	w87BreakCon = regexp.MustCompile(`\b(break|continue)\b`)
 )
 
 // Whim87 removes Ex mode, silent mode and the `-e -E -s -v` options.
@@ -174,7 +174,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		Out, err := inFunction(t, fn, func(s []byte) ([]byte, error) {
 			if kind == "always" {
 				for _, m := range regexp.MustCompile(pattern).FindAllIndex(s, -1) {
-					if z4BreakCon.Match(guardedBody(s, m[0])) {
+					if w87BreakCon.Match(guardedBody(s, m[0])) {
 						return nil, p.Die("%s -- the body kept by this fold carries a break or continue", what)
 					}
 				}
@@ -236,24 +236,24 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- 0. the invariants the cut rests on -----------------------------------
-	for _, name := range edit.SortedKeys(z4Before) {
-		if k := mentions(text, name); k != z4Before[name] {
+	for _, name := range edit.SortedKeys(w87Before) {
+		if k := mentions(text, name); k != w87Before[name] {
 			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
-				"against a different file", name, k, z4Before[name])
+				"against a different file", name, k, w87Before[name])
 		}
 	}
-	if k := len(z4Isatty.FindAll(text, -1)); k != 5 {
+	if k := len(w87Isatty.FindAll(text, -1)); k != 5 {
 		return nil, p.Die("isatty is called %d times, expected 5", k)
 	}
 	p.Say("21 identifiers at their counted mentions: exmode_active 49, silent_mode 23, isatty 5 calls")
 
 	// ---- 1. the two keys, and the three functions they reach ------------------
 	// The row is REPOINTED, never deleted (CLAUDE.md, `nvidx`).
-	if text, err = literal(text, z4lit3, z4lit4,
+	if text, err = literal(text, w87lit3, w87lit4,
 		"the 'Q' row points at nv_error, so Q beeps like any unused key", 1); err != nil {
 		return nil, err
 	}
-	if text, err = literal(text, z4lit5, "", "gQ's arm of nv_g_cmd, which falls to default: clearopbeep", 1); err != nil {
+	if text, err = literal(text, w87lit5, "", "gQ's arm of nv_g_cmd, which falls to default: clearopbeep", 1); err != nil {
 		return nil, err
 	}
 	if text, err = dropDefinition(text, "nv_exmode", "nv_exmode"); err != nil {
@@ -277,7 +277,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// two `if (exmode_active)` in command_line_scan and a counted fold refuses --
 	// loudly, which is the point.
 	for _, o := range []struct{ opt, Body string }{
-		{"e", z4lit6}, {"E", z4lit7}, {"s", z4lit8}, {"v", z4lit9},
+		{"e", w87lit6}, {"E", w87lit7}, {"s", w87lit8}, {"v", w87lit9},
 	} {
 		if text, err = literal(text,
 			fmt.Sprintf("            case '%s':\n%s                break;\n", o.opt, o.Body), "",
@@ -307,7 +307,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{kind: "never", fn: "do_exedit",
 			Pat: line("if (exmode_active && (eap->cmdidx == CMD_visual || eap->cmdidx == CMD_view))"), n: 1,
 			What: ":visual, :vi and :view lose the branch that left Ex mode"},
-		{fn: "do_exedit", Old: z4lit10, New: "\n", n: 1,
+		{fn: "do_exedit", Old: w87lit10, New: "\n", n: 1,
 			What: "and exmode_was, which only that branch read"},
 		{kind: "never", fn: "ex_read", Pat: line("if (empty && exmode_active)"), n: 1,
 			What: ":read stops deleting the empty line it read into"},
@@ -344,7 +344,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			What: "msg_puts_display scrolls the command row"},
 		{fn: "msg_puts_display", Old: " && !msg_no_more && !exmode_active)", New: " && !msg_no_more)", n: 1,
 			What: "and the more-prompt is offered whenever the screen is full"},
-		{fn: "screen_puts_len", Old: z4lit12, New: "", n: 1,
+		{fn: "screen_puts_len", Old: w87lit12, New: "", n: 1,
 			What: "a character is redrawn when it changed, and not otherwise"},
 		{fn: "set_shellsize_inner", Old: " || State == MODE_CONFIRM || exmode_active)",
 			New: " || State == MODE_CONFIRM)", n: 1,
@@ -387,7 +387,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = dropDefinition(text, "check_tty", "check_tty, which has nothing left to ask"); err != nil {
 		return nil, err
 	}
-	if text, err = within(text, "main", z4lit13, "\n", "and its call in main", 1); err != nil {
+	if text, err = within(text, "main", w87lit13, "\n", "and its call in main", 1); err != nil {
 		return nil, err
 	}
 	// exe_commands MUST SURVIVE: it is what runs `+{command}`, and every harness
@@ -401,8 +401,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	for _, a := range []act{
 		{fn: "change_warning", Old: "if (msg_silent == 0 && !silent_mode)", New: "if (msg_silent == 0)", n: 1,
 			What: "the 'readonly' warning pauses whenever it is shown"},
-		{fn: "print_line", Old: z4lit14, New: "\n", n: 1, What: "print_line prints on the screen, once"},
-		{fn: "print_line", Old: z4lit15, New: "\n", n: 1},
+		{fn: "print_line", Old: w87lit14, New: "\n", n: 1, What: "print_line prints on the screen, once"},
+		{fn: "print_line", Old: w87lit15, New: "\n", n: 1},
 		{kind: "never", fn: "print_line", Pat: line("if (save_silent)"), n: 1,
 			What: "and no longer flushes a line it never buffered"},
 		{kind: "always", fn: "msg_puts_printf", Pat: line("if (!(silent_mode && p_verbose == 0))"), n: 1,
@@ -411,9 +411,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			New: "if (*p != NUL)", n: 1, What: "including the last piece"},
 		{kind: "never", fn: "do_set", Pat: line("if (silent_mode && did_show)"), n: 1,
 			What: ":set prints its listing on the screen"},
-		{fn: "showoneopt", Old: z4lit14, New: "\n", n: 1, What: "and so does one option"},
-		{fn: "showoneopt", Old: z4lit15, New: "\n", n: 1},
-		{fn: "showoneopt", Old: z4lit16, New: "\n", n: 1},
+		{fn: "showoneopt", Old: w87lit14, New: "\n", n: 1, What: "and so does one option"},
+		{fn: "showoneopt", Old: w87lit15, New: "\n", n: 1},
+		{fn: "showoneopt", Old: w87lit16, New: "\n", n: 1},
 		{kind: "never", fn: "exit_scroll", Pat: line("if (silent_mode)"), n: 1,
 			What: "exiting scrolls the screen as it does from Normal mode"},
 		{fn: "typed_ahead", Old: "return (!silent_mode && char_avail());", New: "return char_avail();", n: 1,
@@ -444,35 +444,35 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// A file-scope static that is written and never read draws no warning at all,
 	// and a local one draws -Wunused-but-set-variable, which deadsweep.py does not
 	// act on.  Six of them, and they are invisible to every tool here.
-	if text, err = literal(text, z4lit17, "\n", "ex_pressedreturn", 1); err != nil {
+	if text, err = literal(text, w87lit17, "\n", "ex_pressedreturn", 1); err != nil {
 		return nil, err
 	}
-	if text, err = within(text, "parse_command_modifiers", z4lit18, "\n", "and its one remaining write", 1); err != nil {
+	if text, err = within(text, "parse_command_modifiers", w87lit18, "\n", "and its one remaining write", 1); err != nil {
 		return nil, err
 	}
-	if text, err = literal(text, z4lit19, "\n", "ex_no_reprint", 1); err != nil {
+	if text, err = literal(text, w87lit19, "\n", "ex_no_reprint", 1); err != nil {
 		return nil, err
 	}
-	if text, err = literal(text, z4lit20, "\n", "and its seven writes", 6); err != nil {
+	if text, err = literal(text, w87lit20, "\n", "and its seven writes", 6); err != nil {
 		return nil, err
 	}
-	if text, err = literal(text, z4lit21, "\n", "and the seventh", 1); err != nil {
+	if text, err = literal(text, w87lit21, "\n", "and the seventh", 1); err != nil {
 		return nil, err
 	}
-	if text, err = literal(text, z4lit22, "\n", "ex_exitval", 1); err != nil {
+	if text, err = literal(text, w87lit22, "\n", "ex_exitval", 1); err != nil {
 		return nil, err
 	}
-	if text, err = within(text, "emsg_core", z4lit23, "\n", "and its one write", 1); err != nil {
+	if text, err = within(text, "emsg_core", w87lit23, "\n", "and its one write", 1); err != nil {
 		return nil, err
 	}
-	if text, err = within(text, "main_loop", z4lit24, "\n",
+	if text, err = within(text, "main_loop", w87lit24, "\n",
 		"previous_got_int, which only the Ex-mode arm read", 1); err != nil {
 		return nil, err
 	}
-	if text, err = within(text, "main_loop", z4lit25, "\n", "", 1); err != nil {
+	if text, err = within(text, "main_loop", w87lit25, "\n", "", 1); err != nil {
 		return nil, err
 	}
-	if text, err = within(text, "main_loop", z4lit26, "", "", 1); err != nil {
+	if text, err = within(text, "main_loop", w87lit26, "", "", 1); err != nil {
 		return nil, err
 	}
 	if text, err = fold(text, "never", "parse_command_modifiers", line("if (use_plus_cmd)"),
@@ -483,35 +483,35 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"and the + command it stood for", 1); err != nil {
 		return nil, err
 	}
-	if text, err = within(text, "parse_command_modifiers", z4lit27, "\n", "and the flag itself", 1); err != nil {
+	if text, err = within(text, "parse_command_modifiers", w87lit27, "\n", "and the flag itself", 1); err != nil {
 		return nil, err
 	}
 
 	// ---- 6. main_loop's second parameter, and the label it jumped to ----------
-	if text, err = literal(text, z4lit28, z4lit29, "main_loop's prototype", 1); err != nil {
+	if text, err = literal(text, w87lit28, w87lit29, "main_loop's prototype", 1); err != nil {
 		return nil, err
 	}
-	if text, err = literal(text, z4lit30, z4lit31, "its definition", 1); err != nil {
+	if text, err = literal(text, w87lit30, w87lit31, "its definition", 1); err != nil {
 		return nil, err
 	}
-	if text, err = literal(text, z4lit32, z4lit33, "and its one caller", 1); err != nil {
+	if text, err = literal(text, w87lit32, w87lit33, "and its one caller", 1); err != nil {
 		return nil, err
 	}
-	if text, err = within(text, "main_loop", z4lit34, z4lit35,
+	if text, err = within(text, "main_loop", w87lit34, w87lit35,
 		"the theend: label, which nothing jumps to now", 1); err != nil {
 		return nil, err
 	}
 
 	// ---- 7. what is left is exactly what the sweep can take -------------------
-	for _, name := range edit.SortedKeys(z4After) {
+	for _, name := range edit.SortedKeys(w87After) {
 		k := mentions(text, name)
-		if k != z4After[name] {
+		if k != w87After[name] {
 			why := "more went than was meant to"
-			if k > z4After[name] {
+			if k > w87After[name] {
 				why = "a use survived"
 			}
 			return nil, p.Die("%s has %d mentions after the cut, expected %d -- %s",
-				name, k, z4After[name], why)
+				name, k, w87After[name], why)
 		}
 	}
 	// `E501: At end-of-file` is not checked here: it is the initialiser of

@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-// ZCases records the 102 screen cases: keystrokes in, escape sequences out,
+// CoreCases records the 102 screen cases: keystrokes in, escape sequences out,
 // and a screen rebuilt per redraw.
 //
 // This is the core's instrument, and it is the core's own.  The file-based harnesses
@@ -21,7 +21,7 @@ import (
 //
 // It is proven able to fail: do_addsub() returning FAIL moves exactly 11 of
 // the 102 cases and nothing else.
-func ZCases(bin, outdir string, w io.Writer) error {
+func CoreCases(bin, outdir string, w io.Writer) error {
 	if err := os.RemoveAll(outdir); err != nil {
 		return err
 	}
@@ -31,22 +31,22 @@ func ZCases(bin, outdir string, w io.Writer) error {
 	start := time.Now()
 
 	n := runtime.NumCPU() * 2
-	if n > len(zcaseList) {
-		n = len(zcaseList)
+	if n > len(coreCaseList) {
+		n = len(coreCaseList)
 	}
 	sem := make(chan struct{}, n)
 	var wg sync.WaitGroup
-	for _, c := range zcaseList {
+	for _, c := range coreCaseList {
 		wg.Add(1)
 		go func(name string, args []string, keys [][]byte) {
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
-			os.WriteFile(filepath.Join(outdir, name), []byte(zrecord(bin, args, keys)), 0o644)
+			os.WriteFile(filepath.Join(outdir, name), []byte(coreCaseRecord(bin, args, keys)), 0o644)
 		}(c.name, c.args, c.keys)
 	}
 	wg.Wait()
-	fmt.Fprintf(w, "%d cases -> %s in %.1fs\n", len(zcaseList), outdir, time.Since(start).Seconds())
+	fmt.Fprintf(w, "%d cases -> %s in %.1fs\n", len(coreCaseList), outdir, time.Since(start).Seconds())
 	return nil
 }
 
@@ -55,9 +55,9 @@ func ZCases(bin, outdir string, w io.Writer) error {
 // The stream's own sha is kept, which is DELIBERATELY the strongest part and
 // the part that is open: it is named in eighty files, so replacing it is
 // expensive rather than difficult and deserves a pass of its own.  The memline
-// recorder carries no digest for the opposite reason -- see ZMemline.
-func zrecord(bin string, args []string, keys [][]byte) string {
-	scr, out, errOut, rc, err := ZSession(bin, keys, "xterm", args, 24, 80, 20*time.Second)
+// recorder carries no digest for the opposite reason -- see CoreMemline.
+func coreCaseRecord(bin string, args []string, keys [][]byte) string {
+	scr, out, errOut, rc, err := CoreSession(bin, keys, "xterm", args, 24, 80, 20*time.Second)
 	if err != nil {
 		why := "the editor took the input over and did not return"
 		return Section("blocked", nil) + Section("why", &why)

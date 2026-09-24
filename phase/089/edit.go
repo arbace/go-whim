@@ -91,13 +91,13 @@ import (
 
 func init() { edit.Register("whim89", Edit) }
 
-// z6Six are the six commands that put bytes on a disk, and nothing else.
-var z6Six = []string{"CMD_exit", "CMD_saveas", "CMD_update", "CMD_write", "CMD_wq", "CMD_xit"}
+// w89Six are the six commands that put bytes on a disk, and nothing else.
+var w89Six = []string{"CMD_exit", "CMD_saveas", "CMD_update", "CMD_write", "CMD_wq", "CMD_xit"}
 
 const (
-	z6RowsBefore = 111
-	z6RowsAfter  = 105
-	z6Floor      = 100
+	w89RowsBefore = 111
+	w89RowsAfter  = 105
+	w89Floor      = 100
 )
 
 // Whim89 takes every way to write a file: the six Ex commands, ZZ and the
@@ -115,7 +115,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	literal := func(t []byte, old, new, what string, n int) ([]byte, error) {
 		k := strings.Count(string(t), old)
 		if k != n {
-			return nil, p.Die("%s -- %s occurs %d times, expected %d", what, cutil.PyRepr(edit.ZHead(old, 50)), k, n)
+			return nil, p.Die("%s -- %s occurs %d times, expected %d", what, cutil.PyRepr(edit.CoreHead(old, 50)), k, n)
 		}
 		return []byte(strings.ReplaceAll(string(t), old, new)), nil
 	}
@@ -130,35 +130,35 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		k := strings.Count(Body, old)
 		if k != n {
 			return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-				what, cutil.PyRepr(edit.ZHead(old, 50)), k, fn, n)
+				what, cutil.PyRepr(edit.CoreHead(old, 50)), k, fn, n)
 		}
 		return []byte(string(t[:a]) + strings.ReplaceAll(Body, old, new) + string(t[z:])), nil
 	}
 
 	// ---- 0. the table this phase edits, at the shape the anchors were counted on
-	if n := len(edit.ZRows(text)); n != z6RowsBefore {
+	if n := len(edit.CoreRows(text)); n != w89RowsBefore {
 		return nil, p.Die("cmdnames[] has %d rows, expected %d -- the anchors below were counted "+
-			"against a different table", n, z6RowsBefore)
+			"against a different table", n, w89RowsBefore)
 	}
 	names, err := harness.CommandNamesIn(text, "whim-vim.c")
-	if err != nil || len(names) != z6RowsBefore {
-		return nil, p.Die("create_cmdidxs.names() does not read %d rows out of this table", z6RowsBefore)
+	if err != nil || len(names) != w89RowsBefore {
+		return nil, p.Die("create_cmdidxs.names() does not read %d rows out of this table", w89RowsBefore)
 	}
 
 	// ---- 1. the six enumerators of enum CMD_index -----------------------------
-	for _, e := range z6Six {
+	for _, e := range w89Six {
 		if text, err = literal(text, fmt.Sprintf("    %s,\n", e), "", "the "+e+" enumerator", 1); err != nil {
 			return nil, err
 		}
 	}
-	short := make([]string, len(z6Six))
-	for i, e := range z6Six {
+	short := make([]string, len(w89Six))
+	for i, e := range w89Six {
 		short[i] = e[4:]
 	}
 	p.Sayf("six enumerators of enum CMD_index: %s", strings.Join(short, " "))
 
 	// ---- 2. the six cmdnames[] rows -------------------------------------------
-	for _, e := range z6Six {
+	for _, e := range w89Six {
 		re := regexp.MustCompile(`(?m)^    \[` + e + `\] = \{.*\n`)
 		m := re.FindIndex(text)
 		if m == nil {
@@ -166,12 +166,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		text = append(append([]byte{}, text[:m[0]]...), text[m[1]:]...)
 	}
-	if n := len(edit.ZRows(text)); n != z6RowsAfter {
-		return nil, p.Die("cmdnames[] has %d rows after the cut, expected %d", n, z6RowsAfter)
+	if n := len(edit.CoreRows(text)); n != w89RowsAfter {
+		return nil, p.Die("cmdnames[] has %d rows after the cut, expected %d", n, w89RowsAfter)
 	}
 	p.Sayf("six cmdnames[] rows; %d -> %d, and create_cmdidxs.names() refuses under %d, "+
 		"so the margin is %d rows -- the :edit phase spends it (GOALS.md II.3a)",
-		z6RowsBefore, z6RowsAfter, z6Floor, z6RowsAfter-z6Floor)
+		w89RowsBefore, w89RowsAfter, w89Floor, w89RowsAfter-w89Floor)
 
 	// ---- 3. ZZ ----------------------------------------------------------------
 	if text, err = within(text, "nv_Zet", `do_cmdline_cmd((char_u *)"x");`,
@@ -182,7 +182,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		`phase's decision and moves case:zz_key`)
 
 	// ---- 4. do_one_cmd's :w>> and :w! parse -----------------------------------
-	if text, err = within(text, "do_one_cmd", z6lit1, "",
+	if text, err = within(text, "do_one_cmd", w89lit1, "",
 		"do_one_cmd no longer parses `:w >>file` or `:w !cmd`", 1); err != nil {
 		return nil, err
 	}
@@ -190,7 +190,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"two of the enumerators above")
 
 	// ---- 5. what is left, and why it does not compile yet ---------------------
-	left, holders, _, err := edit.ZResidue(p, text, z6Six)
+	left, holders, _, err := edit.CoreResidue(p, text, w89Six)
 	if err != nil {
 		return nil, err
 	}

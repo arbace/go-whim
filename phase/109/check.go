@@ -75,11 +75,11 @@ import (
 
 func init() { check.Register("whim109", Check) }
 
-const z26Host = "static volatile sig_atomic_t host_winch_pending"
+const w109Host = "static volatile sig_atomic_t host_winch_pending"
 
 var (
-	z26CFlags  = regexp.MustCompile(`(?m)^CFLAGS  *= *(.*)$`)
-	z26LDFlags = regexp.MustCompile(`(?m)^LDFLAGS  *= *(.*)$`)
+	w109CFlags  = regexp.MustCompile(`(?m)^CFLAGS  *= *(.*)$`)
+	w109LDFlags = regexp.MustCompile(`(?m)^LDFLAGS  *= *(.*)$`)
 	// THE SECOND BACKREFERENCE IN THIS FILE, and unlike the MIN/MAX one it
 	// does not need a scanner.  The heredoc writes
 	// `musl_gettimeofday\(&([\w.]+)\.tv_sec, &\1\.tv_usec\)`, where `\1`
@@ -95,18 +95,18 @@ var (
 	// take the same extent whenever Python's backtracking would have made them
 	// equal.  A pair that differ are skipped, which is what Python's failure
 	// to match does.
-	z26Call    = regexp.MustCompile(`musl_gettimeofday\(&([\w.]+)\.tv_sec, &([\w.]+)\.tv_usec\)`)
-	z26MinMax  = regexp.MustCompile(`\b(MIN|MAX)\(`)
-	z26TVC     = regexp.MustCompile(`struct timeval\b`)
-	z26ScrName = regexp.MustCompile(`.*screen/([A-Za-z0-9_]*) .*`)
+	w109Call    = regexp.MustCompile(`musl_gettimeofday\(&([\w.]+)\.tv_sec, &([\w.]+)\.tv_usec\)`)
+	w109MinMax  = regexp.MustCompile(`\b(MIN|MAX)\(`)
+	w109TVC     = regexp.MustCompile(`struct timeval\b`)
+	w109ScrName = regexp.MustCompile(`.*screen/([A-Za-z0-9_]*) .*`)
 )
 
-// z26Protos are the nine the core declares, and NOT ONE of them may be
+// w109Protos are the nine the core declares, and NOT ONE of them may be
 // `static`: gcc would give libc's own declaration internal linkage to match,
 // warn `'malloc' declared 'static' but never defined`, link anyway, and the
 // sweep's rule that the build print NOTHING is what stands between the core
 // and that.
-var z26Protos = []string{
+var w109Protos = []string{
 	"void *malloc(usize n);", "void *realloc(void *p, usize n);",
 	"void free(void *p);", "long time(long *tp);", "int getpid(void);",
 	"int kill(int pid, int sig);", "long write(int fd, const void *buf, usize n);",
@@ -128,18 +128,18 @@ var z26Protos = []string{
 // first with backtracking, and `re.findall` takes the leftmost match and
 // resumes after it.
 
-type z26Seg struct{ lit, ph string }
+type w109Seg struct{ lit, ph string }
 
-func z26Parse(tmpl string) []z26Seg {
-	var segs []z26Seg
+func w109Parse(tmpl string) []w109Seg {
+	var segs []w109Seg
 	cur := ""
 	for i := 0; i < len(tmpl); {
 		if strings.HasPrefix(tmpl[i:], "ZZA") || strings.HasPrefix(tmpl[i:], "ZZB") {
 			if cur != "" {
-				segs = append(segs, z26Seg{lit: cur})
+				segs = append(segs, w109Seg{lit: cur})
 				cur = ""
 			}
-			segs = append(segs, z26Seg{ph: tmpl[i : i+3]})
+			segs = append(segs, w109Seg{ph: tmpl[i : i+3]})
 			i += 3
 			continue
 		}
@@ -147,12 +147,12 @@ func z26Parse(tmpl string) []z26Seg {
 		i++
 	}
 	if cur != "" {
-		segs = append(segs, z26Seg{lit: cur})
+		segs = append(segs, w109Seg{lit: cur})
 	}
 	return segs
 }
 
-func z26MatchAt(text string, pos int, segs []z26Seg, bound map[string]string) int {
+func w109MatchAt(text string, pos int, segs []w109Seg, bound map[string]string) int {
 	if len(segs) == 0 {
 		return pos
 	}
@@ -161,20 +161,20 @@ func z26MatchAt(text string, pos int, segs []z26Seg, bound map[string]string) in
 		if !strings.HasPrefix(text[pos:], s.lit) {
 			return -1
 		}
-		return z26MatchAt(text, pos+len(s.lit), segs[1:], bound)
+		return w109MatchAt(text, pos+len(s.lit), segs[1:], bound)
 	}
 	if v, ok := bound[s.ph]; ok {
 		if !strings.HasPrefix(text[pos:], v) {
 			return -1
 		}
-		return z26MatchAt(text, pos+len(v), segs[1:], bound)
+		return w109MatchAt(text, pos+len(v), segs[1:], bound)
 	}
 	for n := 1; pos+n <= len(text); n++ {
 		if text[pos+n-1] == '\n' { // `.` does not match a newline
 			break
 		}
 		bound[s.ph] = text[pos : pos+n]
-		if e := z26MatchAt(text, pos+n, segs[1:], bound); e >= 0 {
+		if e := w109MatchAt(text, pos+n, segs[1:], bound); e >= 0 {
 			return e
 		}
 	}
@@ -182,11 +182,11 @@ func z26MatchAt(text string, pos int, segs []z26Seg, bound map[string]string) in
 	return -1
 }
 
-func z26Count(text, tmpl string) int {
-	segs := z26Parse(tmpl)
+func w109Count(text, tmpl string) int {
+	segs := w109Parse(tmpl)
 	n, i := 0, 0
 	for i < len(text) {
-		if e := z26MatchAt(text, i, segs, map[string]string{}); e > i {
+		if e := w109MatchAt(text, i, segs, map[string]string{}); e > i {
 			n++
 			i = e
 		} else {
@@ -232,8 +232,8 @@ func Check(w io.Writer, args []string) error {
 	defer os.RemoveAll(tmp)
 
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
-	cflags := strings.Fields(z26CFlags.FindStringSubmatch(mk)[1])
-	ldflags := strings.Fields(z26LDFlags.FindStringSubmatch(mk)[1])
+	cflags := strings.Fields(w109CFlags.FindStringSubmatch(mk)[1])
+	ldflags := strings.Fields(w109LDFlags.FindStringSubmatch(mk)[1])
 	link := func(src, Out string) *exec.Cmd {
 		a := append(append([]string{}, cflags...), ldflags...)
 		a = append(a, "-o", Out, src)
@@ -254,11 +254,11 @@ func Check(w io.Writer, args []string) error {
 	// was handed, the six renames, the macro expansions and the nine
 	// prototypes generate not one different instruction.
 	r0 := t
-	const z26Struct = "typedef struct {\n    long        tv_sec;\n    long        tv_usec;\n} elapsed_T;"
-	if strings.Count(r0, z26Struct) != 1 {
+	const w109Struct = "typedef struct {\n    long        tv_sec;\n    long        tv_usec;\n} elapsed_T;"
+	if strings.Count(r0, w109Struct) != 1 {
 		return stop("the tagless elapsed_T is not in the output exactly once")
 	}
-	r0 = strings.Replace(r0, z26Struct, "typedef struct timeval elapsed_T;", 1)
+	r0 = strings.Replace(r0, w109Struct, "typedef struct timeval elapsed_T;", 1)
 	for _, ab := range [][2]string{
 		{"static long elapsed(elapsed_T *start_tv);", "static long elapsed(struct timeval *start_tv);"},
 		{"elapsed(elapsed_T *start_tv)\n{", "elapsed(struct timeval *start_tv)\n{"},
@@ -287,8 +287,8 @@ musl_gettimeofday(long *sec, long *usec)
 		r0 = strings.Replace(r0, ab[0], ab[1], 1)
 	}
 	nRev := 0
-	r0 = z26Call.ReplaceAllStringFunc(r0, func(m string) string {
-		g := z26Call.FindStringSubmatch(m)
+	r0 = w109Call.ReplaceAllStringFunc(r0, func(m string) string {
+		g := w109Call.FindStringSubmatch(m)
 		if g[1] != g[2] { // what the backreference refused
 			return m
 		}
@@ -300,7 +300,7 @@ musl_gettimeofday(long *sec, long *usec)
 	}
 
 	// x0 -- THE POSITIVE CROSS-CHECK, and the thing the move destroys.
-	const z26Asserts = `
+	const w109Asserts = `
 static_assert(sizeof(elapsed_T) == sizeof(struct timeval), "elapsed_T size");
 static_assert(__builtin_offsetof(elapsed_T, tv_sec) == __builtin_offsetof(struct timeval, tv_sec), "tv_sec");
 static_assert(__builtin_offsetof(elapsed_T, tv_usec) == __builtin_offsetof(struct timeval, tv_usec), "tv_usec");
@@ -318,8 +318,8 @@ static_assert(__builtin_offsetof(PTR_BL, pb_pointer) == offsetof(PTR_BL, pb_poin
 static_assert(__builtin_offsetof(msgchunk_T, sb_text) == offsetof(msgchunk_T, sb_text), "msgchunk_T");
 static_assert(__builtin_offsetof(bt_regprog_T, program) == offsetof(bt_regprog_T, program), "bt_regprog_T");
 `
-	x0 := t + z26Asserts
-	x0bad := t + strings.Replace(z26Asserts,
+	x0 := t + w109Asserts
+	x0bad := t + strings.Replace(w109Asserts,
 		"__builtin_offsetof(elapsed_T, tv_usec) == __builtin_offsetof(struct timeval, tv_usec)",
 		"__builtin_offsetof(elapsed_T, tv_usec) == __builtin_offsetof(struct timeval, tv_sec)", 1)
 
@@ -443,7 +443,7 @@ static_assert(__builtin_offsetof(bt_regprog_T, program) == offsetof(bt_regprog_T
 		lines := strings.Split(text, "\n")
 		var hb []int
 		for i, l := range lines {
-			if strings.HasPrefix(l, z26Host) {
+			if strings.HasPrefix(l, w109Host) {
 				hb = append(hb, i)
 			}
 		}
@@ -451,7 +451,7 @@ static_assert(__builtin_offsetof(bt_regprog_T, program) == offsetof(bt_regprog_T
 			return "", "", nil, stop("the host block does not begin exactly once with "+
 				"%s -- found %d.  Every count below distinguishes the core from the "+
 				"host and without the line there is nothing to distinguish",
-				check.PyRepr26(z26Host), len(hb))
+				check.PyRepr26(w109Host), len(hb))
 		}
 		return strings.Join(lines[11:hb[0]], "\n"), strings.Join(lines[hb[0]:], "\n"), lines, nil
 	}
@@ -489,11 +489,11 @@ static_assert(__builtin_offsetof(bt_regprog_T, program) == offsetof(bt_regprog_T
 				"below the boundary and keeps its own headers", x.Name, h, x.inHost)
 		}
 	}
-	if tvc := len(z26TVC.FindAllString(ncore, -1)); tvc != 0 {
+	if tvc := len(w109TVC.FindAllString(ncore, -1)); tvc != 0 {
 		r.Bad("`struct timeval` is still %d in the core", tvc)
 	}
-	tvh := len(z26TVC.FindAllString(nhost, -1))
-	if oh := len(z26TVC.FindAllString(ohost, -1)); tvh != oh+1 {
+	tvh := len(w109TVC.FindAllString(nhost, -1))
+	if oh := len(w109TVC.FindAllString(ohost, -1)); tvh != oh+1 {
 		r.Bad("`struct timeval` is %d in the host block and the input had %d there: "+
 			"musl_gettimeofday adds exactly one", tvh, oh)
 	}
@@ -536,7 +536,7 @@ static_assert(__builtin_offsetof(bt_regprog_T, program) == offsetof(bt_regprog_T
 		}
 	}
 	for _, tmpl := range mm {
-		was, now := z26Count(old, tmpl), z26Count(t, tmpl)
+		was, now := w109Count(old, tmpl), w109Count(t, tmpl)
 		want := 16
 		if strings.Contains(tmpl, "<") {
 			want = 7
@@ -547,7 +547,7 @@ static_assert(__builtin_offsetof(bt_regprog_T, program) == offsetof(bt_regprog_T
 				check.PyRepr26(tmpl), now, was, now-was, want)
 		}
 	}
-	if z26MinMax.MatchString(t) {
+	if w109MinMax.MatchString(t) {
 		r.Bad("a `MIN(` or `MAX(` survives in the output")
 	}
 
@@ -579,7 +579,7 @@ static_assert(__builtin_offsetof(bt_regprog_T, program) == offsetof(bt_regprog_T
 			"lines: %d at %s", len(dIdx), strings.Join(at, " "))
 	}
 
-	for _, p := range z26Protos {
+	for _, p := range w109Protos {
 		if strings.Count(t, "\n"+p+"\n") != 1 {
 			r.Bad("the prototype `%s` is not on a line of its own exactly once", p)
 		}
@@ -604,7 +604,7 @@ static_assert(__builtin_offsetof(bt_regprog_T, program) == offsetof(bt_regprog_T
 		"preprocessor gives for <sys/param.h> (%s), and 5 gettimeofday call sites "+
 		"through musl_gettimeofday", oldTimeT, oldOffset, strings.Join(mm, " and "))
 	var pnames []string
-	for _, p := range z26Protos {
+	for _, p := range w109Protos {
 		fs := strings.Fields(strings.SplitN(p, "(", 2)[0])
 		pnames = append(pnames, strings.TrimLeft(fs[len(fs)-1], "*"))
 	}
@@ -688,9 +688,9 @@ static_assert(__builtin_offsetof(bt_regprog_T, program) == offsetof(bt_regprog_T
 		"everything else")
 
 	// ---- 5. the host's vocabulary is still the host's --------------------
-	zh := exec.Command("sh", "tools/st.sh", "zhostonly", f)
-	zh.Stdout, zh.Stderr = w, w
-	if err := zh.Run(); err != nil {
+	hostOnly := exec.Command("sh", "tools/st.sh", "zhostonly", f)
+	hostOnly.Stdout, hostOnly.Stderr = w, w
+	if err := hostOnly.Run(); err != nil {
 		return harness.ErrReported
 	}
 
@@ -763,12 +763,12 @@ static_assert(__builtin_offsetof(bt_regprog_T, program) == offsetof(bt_regprog_T
 	wgR.Add(3)
 	go func() {
 		defer wgR.Done()
-		recErr[0] = check.RecZ(filepath.Join(state, "old"),
+		recErr[0] = check.RecCore(filepath.Join(state, "old"),
 			filepath.Join(state, "old.c"), filepath.Join(tmp, "REC.old"))
 	}()
 	go func() {
 		defer wgR.Done()
-		recErr[1] = check.RecZ(filepath.Join(tmp, "new"), f,
+		recErr[1] = check.RecCore(filepath.Join(tmp, "new"), f,
 			filepath.Join(tmp, "REC.new"))
 	}()
 	go func() {
@@ -800,7 +800,7 @@ static_assert(__builtin_offsetof(bt_regprog_T, program) == offsetof(bt_regprog_T
 	}
 	var nm []string
 	for _, l := range movedLines {
-		if m := z26ScrName.FindStringSubmatch(l); m != nil {
+		if m := w109ScrName.FindStringSubmatch(l); m != nil {
 			nm = append(nm, m[1])
 		}
 	}

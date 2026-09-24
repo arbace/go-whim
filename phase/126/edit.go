@@ -94,23 +94,23 @@ import (
 func init() { edit.RegisterArgs("whim126", Edit) }
 
 var (
-	z43Lit     = regexp.MustCompile(`"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'`)
-	z43Head    = regexp.MustCompile(`^([A-Za-z_]\w*)\s*\(`)
-	z43IncLine = regexp.MustCompile(`^ *# *include `)
-	z43DirLine = regexp.MustCompile(`^ *#`)
+	w126Lit     = regexp.MustCompile(`"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'`)
+	w126Head    = regexp.MustCompile(`^([A-Za-z_]\w*)\s*\(`)
+	w126IncLine = regexp.MustCompile(`^ *# *include `)
+	w126DirLine = regexp.MustCompile(`^ *#`)
 )
 
-// z43Names are the names this edit partitions, plus the three it introduces.
-var z43Names = []string{"blocknr_T", "mf_hashitem_T", "mf_hashtab_T", "mhi_key", "mhi_next",
+// w126Names are the names this edit partitions, plus the three it introduces.
+var w126Names = []string{"blocknr_T", "mf_hashitem_T", "mf_hashtab_T", "mhi_key", "mhi_next",
 	"mhi_prev", "bh_hashitem", "pe_bnum", "ip_bnum", "pe_page_count",
 	"bh_page_count", "mf_blocknr_max", "mf_free_first", "mf_used_last",
 	"mf_hash", "ml_root", "pe_block", "ip_block"}
 
 var (
-	z43HashImpl = []string{"mf_hash_init", "mf_hash_free", "mf_hash_find", "mf_hash_add_item",
+	w126HashImpl = []string{"mf_hash_init", "mf_hash_free", "mf_hash_find", "mf_hash_add_item",
 		"mf_hash_rem_item", "mf_hash_grow"}
-	z43HashWrap = []string{"mf_ins_hash", "mf_rem_hash", "mf_find_hash"}
-	z43FreeList = []string{"mf_ins_free", "mf_rem_free"}
+	w126HashWrap = []string{"mf_ins_hash", "mf_rem_hash", "mf_find_hash"}
+	w126FreeList = []string{"mf_ins_free", "mf_rem_free"}
 )
 
 // Whim126 turns a block number into a reference: `pe_bnum` and `ip_bnum` become
@@ -157,7 +157,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		L := strings.Split(src, "\n")
 		var Out []head
 		for i, l := range L {
-			m := z43Head.FindStringSubmatch(l)
+			m := w126Head.FindStringSubmatch(l)
 			if m != nil && i+1 < len(L) && L[i+1] == "{" {
 				end := i + 1
 				for end < len(L) && L[end] != "}" {
@@ -204,7 +204,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		sort.Strings(ek)
 		if strings.Join(gk, "\x00") != strings.Join(ek, "\x00") {
 			return p.Die("`%s` is said in %s and this phase accounts for %s -- %s",
-				name, edit.Z43PyList(gk), edit.Z43PyList(ek), what)
+				name, edit.W126PyList(gk), edit.W126PyList(ek), what)
 		}
 		var parts []string
 		for _, k := range gk {
@@ -231,9 +231,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 
 	// ---- 0. the file this edit is handed --------------------------------------
-	literals := z43Lit.FindAllString(t, -1)
+	literals := w126Lit.FindAllString(t, -1)
 	var inlit []string
-	for _, n := range z43Names {
+	for _, n := range w126Names {
 		re := regexp.MustCompile(`\b` + n + `\b`)
 		for _, s := range literals {
 			if re.MatchString(s) {
@@ -252,14 +252,14 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 	p.Sayf("%d string and character literals, and not one of them holds any of the %d names "+
-		"this edit partitions or the 3 it introduces", len(literals), len(z43Names)-3)
+		"this edit partitions or the 3 it introduces", len(literals), len(w126Names)-3)
 
 	var incs, directives []int
 	for i, l := range lines() {
-		if z43IncLine.MatchString(l) {
+		if w126IncLine.MatchString(l) {
 			incs = append(incs, i)
 		}
-		if z43DirLine.MatchString(l) {
+		if w126DirLine.MatchString(l) {
 			directives = append(directives, i)
 		}
 	}
@@ -292,7 +292,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			"it is the page count a block header carries"},
 		{"mf_blocknr_max", []string{"<file scope>", "mf_open", "mf_new", "mf_get"},
 			"it is the counter the block numbers came from"},
-		{"mf_free_first", append([]string{"<file scope>", "mf_open", "mf_close", "mf_new"}, z43FreeList...),
+		{"mf_free_first", append([]string{"<file scope>", "mf_open", "mf_close", "mf_new"}, w126FreeList...),
 			"it is the head of the free list, which is keyed by block number"},
 		{"mf_used_last", []string{"<file scope>", "mf_open", "mf_ins_used", "mf_rem_used"},
 			"it is the tail of the used list"},
@@ -372,7 +372,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if strings.Join(insIn, ",") != "mf_get,mf_new" || strings.Join(remIn, ",") != "mf_free,mf_get" {
 		return nil, p.Die("the hash is inserted into from %s and removed from from %s, and this phase "+
 			"rests on mf_new() and mf_get() being the only insertions and mf_free() and "+
-			"mf_get() the only removals", edit.Z43PyList(insIn), edit.Z43PyList(remIn))
+			"mf_get() the only removals", edit.W126PyList(insIn), edit.W126PyList(remIn))
 	}
 	p.Sayf("THE HASH HOLDS EVERY LIVE BLOCK: it is inserted into by %s and removed from by "+
 		"%s, and mf_get() does both in one breath to move a block to the head of the used "+
@@ -382,11 +382,11 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// ---- 2. the types ---------------------------------------------------------
 	for _, s := range []struct{ Old, New, What, why string }{
-		{z43s0Old, z43s0New, z43s0What, z43s0Why},
-		{z43s1Old, z43s1New, z43s1What, z43s1Why},
-		{z43s2Old, z43s2New, z43s2What, z43s2Why},
-		{z43s3Old, z43s3New, z43s3What, z43s3Why},
-		{z43s4Old, z43s4New, z43s4What, z43s4Why},
+		{w126s0Old, w126s0New, w126s0What, w126s0Why},
+		{w126s1Old, w126s1New, w126s1What, w126s1Why},
+		{w126s2Old, w126s2New, w126s2What, w126s2Why},
+		{w126s3Old, w126s3New, w126s3What, w126s3Why},
+		{w126s4Old, w126s4New, w126s4What, w126s4Why},
 	} {
 		if err := swap(s.Old, s.New, s.What, s.why); err != nil {
 			return nil, err
@@ -397,7 +397,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// Eleven functions go, and they go HERE and not to tools/sweep.sh: every one
 	// names a type or a field removed above, so leaving them for the sweep would
 	// leave a file that does not compile for the sweep to ask gcc about.
-	all := append(append(append([]string{}, z43HashWrap...), z43FreeList...), z43HashImpl...)
+	all := append(append(append([]string{}, w126HashWrap...), w126FreeList...), w126HashImpl...)
 	for _, name := range all {
 		// WITH THE BLANK LINE UNDER IT.  The canonical text puts one between two
 		// file-scope declarations, so taking the line alone would leave the
@@ -413,57 +413,57 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	p.Sayf("%d forward declarations go: %s", len(all), strings.Join(all, ", "))
 
 	for _, s := range []struct{ Old, New, What, why string }{
-		{z43s5Old, z43s5New, z43s5What, z43s5Why},
-		{z43s6Old, z43s6New, z43s6What, z43s6Why},
-		{z43s7Old, z43s7New, z43s7What, z43s7Why},
-		{z43s8Old, z43s8New, z43s8What, z43s8Why},
-		{z43s9Old, z43s9New, z43s9What, z43s9Why},
+		{w126s5Old, w126s5New, w126s5What, w126s5Why},
+		{w126s6Old, w126s6New, w126s6What, w126s6Why},
+		{w126s7Old, w126s7New, w126s7What, w126s7Why},
+		{w126s8Old, w126s8New, w126s8What, w126s8Why},
+		{w126s9Old, w126s9New, w126s9What, w126s9Why},
 	} {
 		if err := swap(s.Old, s.New, s.What, s.why); err != nil {
 			return nil, err
 		}
 	}
-	n, err := cut(z43c10A, z43c10B, z43c10What)
+	n, err := cut(w126c10A, w126c10B, w126c10What)
 	if err != nil {
 		return nil, err
 	}
-	p.Sayf("the three one-line wrappers go, %d lines: %s", n, strings.Join(z43HashWrap, ", "))
+	p.Sayf("the three one-line wrappers go, %d lines: %s", n, strings.Join(w126HashWrap, ", "))
 
 	for _, s := range []struct{ Old, New, What, why string }{
-		{z43s11Old, z43s11New, z43s11What, z43s11Why},
-		{z43s12Old, z43s12New, z43s12What, z43s12Why},
-		{z43s13Old, z43s13New, z43s13What, z43s13Why},
+		{w126s11Old, w126s11New, w126s11What, w126s11Why},
+		{w126s12Old, w126s12New, w126s12What, w126s12Why},
+		{w126s13Old, w126s13New, w126s13What, w126s13Why},
 	} {
 		if err := swap(s.Old, s.New, s.What, s.why); err != nil {
 			return nil, err
 		}
 	}
-	n, err = cut(z43c14A, z43c14B, z43c14What)
+	n, err = cut(w126c14A, w126c14B, w126c14What)
 	if err != nil {
 		return nil, err
 	}
 	p.Sayf("the free list and the hash implementation go, %d lines: %s, the two MHT_ "+
-		"enumerators and %s", n, strings.Join(z43FreeList, ", "), strings.Join(z43HashImpl, ", "))
+		"enumerators and %s", n, strings.Join(w126FreeList, ", "), strings.Join(w126HashImpl, ", "))
 
 	// ---- 4. the memline -------------------------------------------------------
 	for _, s := range []struct{ Old, New, What, why string }{
-		{z43s15Old, z43s15New, z43s15What, z43s15Why},
-		{z43s16Old, z43s16New, z43s16What, z43s16Why},
-		{z43s17Old, z43s17New, z43s17What, z43s17Why},
-		{z43s18Old, z43s18New, z43s18What, z43s18Why},
-		{z43s19Old, z43s19New, z43s19What, z43s19Why},
-		{z43s20Old, z43s20New, z43s20What, z43s20Why},
-		{z43s21Old, z43s21New, z43s21What, z43s21Why},
-		{z43s22Old, z43s22New, z43s22What, z43s22Why},
-		{z43s23Old, z43s23New, z43s23What, z43s23Why},
-		{z43s24Old, z43s24New, z43s24What, z43s24Why},
-		{z43s25Old, z43s25New, z43s25What, z43s25Why},
-		{z43s26Old, z43s26New, z43s26What, z43s26Why},
-		{z43s27Old, z43s27New, z43s27What, z43s27Why},
-		{z43s28Old, z43s28New, z43s28What, z43s28Why},
-		{z43s29Old, z43s29New, z43s29What, z43s29Why},
-		{z43s30Old, z43s30New, z43s30What, z43s30Why},
-		{z43s31Old, z43s31New, z43s31What, z43s31Why},
+		{w126s15Old, w126s15New, w126s15What, w126s15Why},
+		{w126s16Old, w126s16New, w126s16What, w126s16Why},
+		{w126s17Old, w126s17New, w126s17What, w126s17Why},
+		{w126s18Old, w126s18New, w126s18What, w126s18Why},
+		{w126s19Old, w126s19New, w126s19What, w126s19Why},
+		{w126s20Old, w126s20New, w126s20What, w126s20Why},
+		{w126s21Old, w126s21New, w126s21What, w126s21Why},
+		{w126s22Old, w126s22New, w126s22What, w126s22Why},
+		{w126s23Old, w126s23New, w126s23What, w126s23Why},
+		{w126s24Old, w126s24New, w126s24What, w126s24Why},
+		{w126s25Old, w126s25New, w126s25What, w126s25Why},
+		{w126s26Old, w126s26New, w126s26What, w126s26Why},
+		{w126s27Old, w126s27New, w126s27What, w126s27Why},
+		{w126s28Old, w126s28New, w126s28What, w126s28Why},
+		{w126s29Old, w126s29New, w126s29What, w126s29Why},
+		{w126s30Old, w126s30New, w126s30What, w126s30Why},
+		{w126s31Old, w126s31New, w126s31What, w126s31Why},
 	} {
 		if err := swap(s.Old, s.New, s.What, s.why); err != nil {
 			return nil, err
@@ -483,10 +483,10 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		t = strings.ReplaceAll(t, e.Old, e.New)
 		p.Sayf("%d stores of the %s label", c, e.side)
 	}
-	for _, old := range []string{z43pc1, z43pc2, z43pc3} {
+	for _, old := range []string{w126pc1, w126pc2, w126pc3} {
 		if strings.Count(t, old) < 1 {
 			return nil, p.Die("a page-count store this phase accounts for is not there: %s",
-				edit.Z43PyRepr(old))
+				edit.W126PyRepr(old))
 		}
 		t = regexp.MustCompile(`\n *`+regexp.QuoteMeta(strings.TrimRight(old, "\n"))).
 			ReplaceAllString(t, "")
@@ -569,10 +569,10 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	var incs2, dirs2 []int
 	for i, l := range lines() {
-		if z43IncLine.MatchString(l) {
+		if w126IncLine.MatchString(l) {
 			incs2 = append(incs2, i)
 		}
-		if z43DirLine.MatchString(l) {
+		if w126DirLine.MatchString(l) {
 			dirs2 = append(dirs2, i)
 		}
 	}

@@ -118,17 +118,17 @@ import (
 
 func init() { check.Register("whim111", Check) }
 
-var z28Declared = strings.Fields("host_exit host_message musl_delay musl_get_winsize " +
+var w111Declared = strings.Fields("host_exit host_message musl_delay musl_get_winsize " +
 	"musl_host_init musl_now_ms musl_read_input musl_suspend musl_term_start " +
 	"musl_term_stop musl_tty_keys musl_wait_for_input vim_snprintf")
 
-const z28Gone = "musl_gettimeofday"
+const w111Gone = "musl_gettimeofday"
 
-// z28RoundC is the rounding probe, written and run here so that the claim in
+// w111RoundC is the rounding probe, written and run here so that the claim in
 // the edit's header is a measurement at every boundary and not a memory.
 // `srandom(12345)`, so its output is the same every run and the report line it
 // feeds is stable where the timing probes are not.
-const z28RoundC = `#include <stdio.h>
+const w111RoundC = `#include <stdio.h>
 #include <stdlib.h>
 static long old_f(long s1, long u1, long s2, long u2)
 { return (s2 - s1) * 1000L + (u2 - u1) / 1000L; }
@@ -159,11 +159,11 @@ int main(void)
 }
 `
 
-// z28Args is the heredoc's `argsof`: the parameter list by BRACE MATCHING and
+// w111Args is the heredoc's `argsof`: the parameter list by BRACE MATCHING and
 // not by a split on the first `(`.  `__attribute__((format(printf, 3, 4)))`
 // carries parentheses and commas of its own, and a naive split reads them as
 // parameters -- measured, three of them.
-func z28Args(decl, name string) (string, []string) {
+func w111Args(decl, name string) (string, []string) {
 	i := strings.Index(decl, name) + len(name)
 	for i < len(decl) && (decl[i] == ' ' || decl[i] == '\t') {
 		i++
@@ -203,7 +203,7 @@ func z28Args(decl, name string) (string, []string) {
 	return decl[len("static"):strings.Index(decl, name)], Out
 }
 
-type z28Probe struct {
+type w111Probe struct {
 	Name  string
 	Keys  []byte
 	bells int
@@ -212,13 +212,13 @@ type z28Probe struct {
 // `gs` IS nv_g_cmd's `s` arm and it is do_sleep(count * 1000): the one call
 // site a keystroke file can drive, and the only way real time passes inside
 // the editor.
-var z28Probes = []z28Probe{
+var w111Probes = []w111Probe{
 	{"1gs", []byte("gs:q!\r"), 0},
 	{"2gs", []byte("2gs:q!\r"), 0},
 	{"hgshh", []byte("hgshh:q!\r"), 2},
 }
 
-type z28Res struct {
+type w111Res struct {
 	ms, bells, Rc int
 	ok            bool // false is Python's (None, None, None): the probe blocked
 }
@@ -257,8 +257,8 @@ func Check(w io.Writer, args []string) error {
 	defer os.RemoveAll(tmp)
 
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
-	cflags := strings.Fields(check.Z28CFlags.FindStringSubmatch(mk)[1])
-	ldflags := strings.Fields(check.Z28LDFlags.FindStringSubmatch(mk)[1])
+	cflags := strings.Fields(check.W111CFlags.FindStringSubmatch(mk)[1])
+	ldflags := strings.Fields(check.W111LDFlags.FindStringSubmatch(mk)[1])
 	link := func(src, Out string) *exec.Cmd {
 		a := append(append([]string{}, cflags...), ldflags...)
 		a = append(a, "-o", Out, src)
@@ -331,7 +331,7 @@ func Check(w io.Writer, args []string) error {
 	go func() {
 		defer wg.Done()
 		rc := filepath.Join(tmp, "round.c")
-		os.WriteFile(rc, []byte(z28RoundC), 0o644)
+		os.WriteFile(rc, []byte(w111RoundC), 0o644)
 		if e := exec.Command("gcc", "-O2", "-o", filepath.Join(tmp, "round"), rc).Run(); e != nil {
 			errRound = e
 			return
@@ -394,11 +394,11 @@ func Check(w io.Writer, args []string) error {
 				"whole product is that it is 0 everywhere", name, was, now)
 		}
 	}
-	if n := len(check.Z28TV.FindAllString(ncore, -1)); n > 0 {
+	if n := len(check.W111TV.FindAllString(ncore, -1)); n > 0 {
 		r.Bad("`struct timeval` is back above the boundary, %d times", n)
 	}
-	tvh := len(check.Z28TV.FindAllString(nbelow, -1))
-	if oh := len(check.Z28TV.FindAllString(obelow, -1)); tvh != oh {
+	tvh := len(check.W111TV.FindAllString(nbelow, -1))
+	if oh := len(check.W111TV.FindAllString(obelow, -1)); tvh != oh {
 		r.Bad("`struct timeval` is %d below the boundary and the input had %d there: "+
 			"musl_now_ms keeps musl_gettimeofday's one and adds none", tvh, oh)
 	}
@@ -423,8 +423,8 @@ func Check(w io.Writer, args []string) error {
 				n, x.Where, x.want, x.why)
 		}
 	}
-	stamps := len(check.Z28Stamp.FindAllString(ncore, -1))
-	reads := len(check.Z28Read.FindAllString(ncore, -1))
+	stamps := len(check.W111Stamp.FindAllString(ncore, -1))
+	reads := len(check.W111Read.FindAllString(ncore, -1))
 	if stamps != 4 || reads != 4 {
 		r.Bad("the core has %d stamps of the shape `X = musl_now_ms();` and %d readings "+
 			"of the shape `musl_now_ms() - X`, where 4 and 4 were expected", stamps, reads)
@@ -461,7 +461,7 @@ func Check(w io.Writer, args []string) error {
 			"breaks silently, and the symptom would be base 0, epoch milliseconds and a " +
 			"32-bit overflow on every call")
 	}
-	if rn, ro := check.Z27Runs(nlines), check.Z27Runs(olines); rn != ro {
+	if rn, ro := check.W110Runs(nlines), check.W110Runs(olines); rn != ro {
 		r.Bad("the edit left %d runs of two blank lines where there were %d", rn, ro)
 	}
 	if err := r.Done(); err != nil {
@@ -482,15 +482,15 @@ func Check(w io.Writer, args []string) error {
 	for _, x := range []struct{ which, path string }{
 		{"output", f}, {"input", filepath.Join(state, "old.c")},
 	} {
-		lines := check.Z28Cut(check.ReadFile(x.path))
+		lines := check.W111Cut(check.ReadFile(x.path))
 		text := strings.Join(lines, "\n") + "\n"
 		cp := filepath.Join(tmp, "cut."+x.which+".c")
 		os.WriteFile(cp, []byte(text), 0o644)
 		for _, l := range lines {
-			if check.Z28Hash.MatchString(l) {
+			if check.W111Hash.MatchString(l) {
 				var dcount int
 				for _, l2 := range lines {
-					if check.Z28Hash.MatchString(l2) {
+					if check.W111Hash.MatchString(l2) {
 						dcount++
 					}
 				}
@@ -502,7 +502,7 @@ func Check(w io.Writer, args []string) error {
 		wb, _ := exec.Command("gcc", "-O0", "-fno-stack-protector", "-Wall", "-Wextra",
 			"-Wno-unused-parameter", "-fsyntax-only", cp).CombinedOutput()
 		wtxt := string(wb)
-		if errs := check.Z28ErrLine.FindAllString(wtxt, -1); len(errs) > 0 {
+		if errs := check.W111ErrLine.FindAllString(wtxt, -1); len(errs) > 0 {
 			if len(errs) > 3 {
 				errs = errs[:3]
 			}
@@ -516,20 +516,20 @@ func Check(w io.Writer, args []string) error {
 			}
 		}
 		seenSet := map[string]bool{}
-		for _, m := range check.Z28Undef.FindAllStringSubmatch(wtxt, -1) {
+		for _, m := range check.W111Undef.FindAllStringSubmatch(wtxt, -1) {
 			seenSet[m[1]] = true
 		}
-		seen := check.Z27Keys(seenSet)
+		seen := check.W110Keys(seenSet)
 		var want []string
 		if x.which == "output" {
-			want = append(want, z28Declared...)
+			want = append(want, w111Declared...)
 		} else {
-			for _, n := range z28Declared {
+			for _, n := range w111Declared {
 				if n != "musl_now_ms" {
 					want = append(want, n)
 				}
 			}
-			want = append(want, z28Gone)
+			want = append(want, w111Gone)
 		}
 		sort.Strings(want)
 		if strings.Join(seen, "\x00") != strings.Join(want, "\x00") {
@@ -550,9 +550,9 @@ func Check(w io.Writer, args []string) error {
 					"must have exactly one", x.which, name, len(decl))
 				continue
 			}
-			retT, params := z28Args(decl[0], name)
+			retT, params := w111Args(decl[0], name)
 			for _, a := range append([]string{retT}, params...) {
-				a = strings.TrimSpace(check.Z28WS.ReplaceAllString(a, " "))
+				a = strings.TrimSpace(check.W111WS.ReplaceAllString(a, " "))
 				if a == "..." {
 					if !strings.Contains(decl[0], "format(printf") {
 						r2.Bad("the %s boundary name `%s` is VARIADIC and carries no "+
@@ -561,8 +561,8 @@ func Check(w io.Writer, args []string) error {
 					}
 					continue
 				}
-				bare := strings.TrimSpace(check.Z28ParmNm.ReplaceAllString(a, ""))
-				if !(check.Z28Scalar.MatchString(a) || check.Z28Scalar.MatchString(bare)) {
+				bare := strings.TrimSpace(check.W111ParmNm.ReplaceAllString(a, ""))
+				if !(check.W111Scalar.MatchString(a) || check.W111Scalar.MatchString(bare)) {
 					r2.Bad("the %s boundary name `%s` takes or returns `%s`, which is not "+
 						"a scalar or a byte buffer", x.which, name, a)
 				}
@@ -572,12 +572,12 @@ func Check(w io.Writer, args []string) error {
 	if err := r2.Done(); err != nil {
 		return err
 	}
-	decl := append([]string{}, z28Declared...)
+	decl := append([]string{}, w111Declared...)
 	sort.Strings(decl)
 	r.Say("THE BOUNDARY IS THIRTEEN NAMES, stated as a SET: %s.  `musl_gettimeofday` is "+
 		"REPLACED by `musl_now_ms` and not added to, and the cut is %d lines with 0 "+
 		"directives, no error and no warning that is not one of the thirteen",
-		strings.Join(decl, " "), len(check.Z28Cut(t)))
+		strings.Join(decl, " "), len(check.W111Cut(t)))
 	r.Say("and EVERY ONE OF THE THIRTEEN TAKES SCALARS AND BYTE BUFFERS ONLY -- void, " +
 		"int, long, usize, char * and int *, with vim_snprintf's `...` held to printf " +
 		"arguments by `format(printf, 3, 4)` on a build that is -Wall -Wextra clean.  IT " +
@@ -638,9 +638,9 @@ func Check(w io.Writer, args []string) error {
 		"writes everything else")
 
 	// ---- 6. the host's vocabulary, which this phase extends --------------
-	zh := exec.Command("sh", "tools/st.sh", "zhostonly", f)
-	zh.Stdout, zh.Stderr = w, w
-	if err := zh.Run(); err != nil {
+	hostOnly := exec.Command("sh", "tools/st.sh", "zhostonly", f)
+	hostOnly.Stdout, hostOnly.Stderr = w, w
+	if err := hostOnly.Run(); err != nil {
 		return harness.ErrReported
 	}
 
@@ -704,20 +704,20 @@ func Check(w io.Writer, args []string) error {
 		wgR.Add(1)
 		go func() {
 			defer wgR.Done()
-			recErr[k] = check.RecZ(x.bin, x.src, filepath.Join(tmp, x.Out))
+			recErr[k] = check.RecCore(x.bin, x.src, filepath.Join(tmp, x.Out))
 		}()
 	}
 
-	run := func(bin string, keys []byte) (z28Res, error) {
+	run := func(bin string, keys []byte) (w111Res, error) {
 		t0 := time.Now()
-		_, stdout, _, rc, err := harness.ZSession(bin, [][]byte{keys}, "xterm", nil, 24, 80, 8*time.Second)
+		_, stdout, _, rc, err := harness.CoreSession(bin, [][]byte{keys}, "xterm", nil, 24, 80, 8*time.Second)
 		if err == harness.ErrBlocked {
-			return z28Res{}, nil
+			return w111Res{}, nil
 		}
 		if err != nil {
-			return z28Res{}, err
+			return w111Res{}, err
 		}
-		return z28Res{int(time.Since(t0) / time.Millisecond), bytes.Count(stdout, []byte{7}), rc, true}, nil
+		return w111Res{int(time.Since(t0) / time.Millisecond), bytes.Count(stdout, []byte{7}), rc, true}, nil
 	}
 	// SEQUENTIAL and in the Python's order, because the measurement is wall
 	// time and running them at once would make each one's load the others'.
@@ -732,10 +732,10 @@ func Check(w io.Writer, args []string) error {
 		"all": {"1gs", "2gs", "hgshh"}, "sleep": {"1gs", "2gs"},
 		"one": {"1gs"}, "bell": {"hgshh"},
 	}
-	res := map[string]map[string]z28Res{}
+	res := map[string]map[string]w111Res{}
 	for _, x := range whos {
-		res[x.Name] = map[string]z28Res{}
-		for _, p := range z28Probes {
+		res[x.Name] = map[string]w111Res{}
+		for _, p := range w111Probes {
 			if !containsStr28(wantBy[x.which], p.Name) {
 				continue
 			}
@@ -749,7 +749,7 @@ func Check(w io.Writer, args []string) error {
 
 	r3 := &check.Rep{Tag: "clock", W: w}
 	for _, who := range []string{"old", "new", "ceil", "epoch"} {
-		for _, p := range z28Probes {
+		for _, p := range w111Probes {
 			g := res[who][p.Name]
 			if !g.ok {
 				r3.Bad("%s: the %s probe never returned", who, p.Name)
@@ -797,13 +797,13 @@ func Check(w io.Writer, args []string) error {
 		r3.Bad("the `nobell` control -- vim_beep's 500 written 500000 -- rang %s bells on "+
 			"`hgshh` and 1 was expected.  The second h rings BECAUSE more than 500 ms have "+
 			"passed, and if moving the threshold does not stop it the probe is measuring "+
-			"something else", z28Opt(nob))
+			"something else", w111Opt(nob))
 	}
 	if allb.bells != 3 {
 		r3.Bad("the `allbell` control -- vim_beep's 500 written -1 -- rang %s bells on "+
 			"`hgshh` and 3 were expected.  The THIRD h is suppressed because fewer than "+
 			"500 ms have passed, and if making the test always true does not let it ring, "+
-			"that half of the probe measures nothing", z28Opt(allb))
+			"that half of the probe measures nothing", w111Opt(allb))
 	}
 	if err := r3.Done(); err != nil {
 		return err
@@ -898,9 +898,9 @@ func Check(w io.Writer, args []string) error {
 	return nil
 }
 
-// z28Opt is Python's `%s` of a value that may be None: a probe that blocked
+// w111Opt is Python's `%s` of a value that may be None: a probe that blocked
 // printed `None` there, and the Go must too or the refusal reads differently.
-func z28Opt(x z28Res) string {
+func w111Opt(x w111Res) string {
 	if !x.ok {
 		return "None"
 	}

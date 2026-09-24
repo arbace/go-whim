@@ -73,16 +73,16 @@ import (
 func init() { check.Register("whim88", Check) }
 
 var (
-	z5Gone     = []string{"had_minmin", "edit_type", "EDIT_NONE", "EDIT_FILE", "EDIT_STDIN", "ME_TOO_MANY_ARGS", "buflist_add"}
-	z5GoneText = []string{"Too many edit arguments", "read_stdin(void)", "read_stdin();"}
-	z5Kept     = []string{"MAX_ARG_CMDS", "ME_EXTRA_CMD", "ME_GARBAGE", "ME_UNKNOWN_OPTION",
+	w88Gone     = []string{"had_minmin", "edit_type", "EDIT_NONE", "EDIT_FILE", "EDIT_STDIN", "ME_TOO_MANY_ARGS", "buflist_add"}
+	w88GoneText = []string{"Too many edit arguments", "read_stdin(void)", "read_stdin();"}
+	w88Kept     = []string{"MAX_ARG_CMDS", "ME_EXTRA_CMD", "ME_GARBAGE", "ME_UNKNOWN_OPTION",
 		"ME_ARG_MISSING", "mainerr_arg_missing", "want_argument", "case 'T':",
 		"if (argv[0][0] == '+')", "p_paste"}
-	z5MEWant = [][2]string{{"ME_UNKNOWN_OPTION", "0"}, {"ME_ARG_MISSING", "1"},
+	w88MEWant = [][2]string{{"ME_UNKNOWN_OPTION", "0"}, {"ME_ARG_MISSING", "1"},
 		{"ME_GARBAGE", "2"}, {"ME_EXTRA_CMD", "3"}}
-	z5MERe   = regexp.MustCompile(`(?m)^enum \{ (ME_\w+) = (\d+) \};$`)
-	z5RowsRe = regexp.MustCompile(`(?s)(?m)^static char \*\(main_errors\[\]\) =\n\{\n(.*?)^\};\n`)
-	z5Unk    = "Unknown option argument"
+	w88MERe   = regexp.MustCompile(`(?m)^enum \{ (ME_\w+) = (\d+) \};$`)
+	w88RowsRe = regexp.MustCompile(`(?s)(?m)^static char \*\(main_errors\[\]\) =\n\{\n(.*?)^\};\n`)
+	w88Unk    = "Unknown option argument"
 )
 
 // Whim88 is phase 88's check: argv ends as `+{command}` and `-T {term}`.
@@ -115,12 +115,12 @@ func Check(w io.Writer, args []string) error {
 	defer os.RemoveAll(tmp)
 
 	// --- 1. what the cut removed ---------------------------------------------
-	for _, g := range z5Gone {
+	for _, g := range w88Gone {
 		if n := check.CountWord(src, g); n != 0 {
 			return stop("'%s' still has %d mentions", g, n)
 		}
 	}
-	for _, g := range z5GoneText {
+	for _, g := range w88GoneText {
 		if n := check.CountLinesWith(src, g); n != 0 {
 			return stop("'%s' still has %d mentions", g, n)
 		}
@@ -136,7 +136,7 @@ func Check(w io.Writer, args []string) error {
 	r.Say("0 mentions of all seven; read_stdin's 23 parameter mentions and read_cmd_fd's 12 readers untouched")
 
 	// --- 2. what it deliberately kept ----------------------------------------
-	for _, k := range z5Kept {
+	for _, k := range w88Kept {
 		if !strings.Contains(string(src), k) {
 			return stop("'%s' went, and argv ends as +{command} and -T {term}", k)
 		}
@@ -145,15 +145,15 @@ func Check(w io.Writer, args []string) error {
 		return stop("exe_commands went, and with it every +{command}")
 	}
 	// The ME_* enumerators are main_errors[]'s indices: 0..3, in table order.
-	pairs := z5MERe.FindAllStringSubmatch(string(src), -1)
+	pairs := w88MERe.FindAllStringSubmatch(string(src), -1)
 	got := make([][2]string, len(pairs))
 	for i, p := range pairs {
 		got[i] = [2]string{p[1], p[2]}
 	}
-	if !z5PairsEq(got, z5MEWant) {
-		return stop("the ME_* enumerators are %s, expected %s", z5PairsRepr(got), z5PairsRepr(z5MEWant))
+	if !w88PairsEq(got, w88MEWant) {
+		return stop("the ME_* enumerators are %s, expected %s", w88PairsRepr(got), w88PairsRepr(w88MEWant))
 	}
-	rows := z5RowsRe.FindStringSubmatch(string(src))
+	rows := w88RowsRe.FindStringSubmatch(string(src))
 	if rows == nil {
 		return stop("main_errors[] has no rows, expected 5: four the enumerators index and the one whim left unreachable")
 	}
@@ -188,7 +188,7 @@ func Check(w io.Writer, args []string) error {
 	if err := exec.Command("sh", "tools/enumvals.sh", f, enumsAfter).Run(); err != nil {
 		return fmt.Errorf("tools/enumvals.sh refused")
 	}
-	if err := z5Enums(r, check.ReadFile(filepath.Join(state, "enums-before")), check.ReadFile(enumsAfter)); err != nil {
+	if err := w88Enums(r, check.ReadFile(filepath.Join(state, "enums-before")), check.ReadFile(enumsAfter)); err != nil {
 		return err
 	}
 
@@ -204,12 +204,12 @@ func Check(w io.Writer, args []string) error {
 	(&check.Rep{Tag: "build", W: w}).Say("ok, %s -> %d lines, %d bytes", beforeLines, check.CountLines(now), check.SizeOf(bin))
 
 	// --- 6. the probes, both halves ------------------------------------------
-	if err := z5Probes(r, old, bin); err != nil {
+	if err := w88Probes(r, old, bin); err != nil {
 		return err
 	}
 
 	// --- 7. a real terminal --------------------------------------------------
-	if err := z5Pty(r, old, bin); err != nil {
+	if err := w88Pty(r, old, bin); err != nil {
 		return err
 	}
 
@@ -241,7 +241,7 @@ func Check(w io.Writer, args []string) error {
 	return nil
 }
 
-func z5PairsEq(a, b [][2]string) bool {
+func w88PairsEq(a, b [][2]string) bool {
 	if len(a) != len(b) {
 		return false
 	}
@@ -253,9 +253,9 @@ func z5PairsEq(a, b [][2]string) bool {
 	return true
 }
 
-// z5PairsRepr is Python's %r of a list of tuples, because the refusal message
+// w88PairsRepr is Python's %r of a list of tuples, because the refusal message
 // is compared byte for byte against the shell's.
-func z5PairsRepr(p [][2]string) string {
+func w88PairsRepr(p [][2]string) string {
 	q := make([]string, len(p))
 	for i, v := range p {
 		q[i] = fmt.Sprintf("('%s', '%s')", v[0], v[1])
@@ -263,10 +263,10 @@ func z5PairsRepr(p [][2]string) string {
 	return "[" + strings.Join(q, ", ") + "]"
 }
 
-// z5Enums is the DWARF comparison: 1,327 enumerators, of which four must be
+// w88Enums is the DWARF comparison: 1,327 enumerators, of which four must be
 // gone, three must be exactly one lower, and every other must be unmoved.  A
 // wrong table index would not show up anywhere else.
-func z5Enums(r *check.Rep, beforeTxt, afterTxt string) error {
+func w88Enums(r *check.Rep, beforeTxt, afterTxt string) error {
 	load := func(s string) map[string]string {
 		m := map[string]string{}
 		for _, l := range strings.Split(s, "\n") {

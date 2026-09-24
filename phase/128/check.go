@@ -60,17 +60,17 @@ import (
 func init() { check.Register("whim128", Check) }
 
 var (
-	z45Name     = regexp.MustCompile(`\b[A-Za-z_][A-Za-z0-9_]*\b`)
-	z45Alloc    = regexp.MustCompile(`\b(alloc\w*)\(sizeof\((\w+)\)\)`)
-	z45AllocAny = regexp.MustCompile(`\balloc\w*\(`)
-	z45Memfile  = regexp.MustCompile(`\bmemfile\b`)
-	z45Tag      = regexp.MustCompile(`^(.*= )(.*);$`)
-	z45Assert   = regexp.MustCompile(`static_assert\(PB_COUNT_MAX == \(\d+ - 8\)`)
+	w128Name     = regexp.MustCompile(`\b[A-Za-z_][A-Za-z0-9_]*\b`)
+	w128Alloc    = regexp.MustCompile(`\b(alloc\w*)\(sizeof\((\w+)\)\)`)
+	w128AllocAny = regexp.MustCompile(`\balloc\w*\(`)
+	w128Memfile  = regexp.MustCompile(`\bmemfile\b`)
+	w128Tag      = regexp.MustCompile(`^(.*= )(.*);$`)
+	w128Assert   = regexp.MustCompile(`static_assert\(PB_COUNT_MAX == \(\d+ - 8\)`)
 )
 
-// z45Code is the heredoc's code(): every string and character literal
+// w128Code is the heredoc's code(): every string and character literal
 // blanked to one space, escapes skipped two at a time, across newlines.
-func z45Code(t string) string {
+func w128Code(t string) string {
 	var Out strings.Builder
 	i, n := 0, len(t)
 	for i < n {
@@ -95,16 +95,16 @@ func z45Code(t string) string {
 	return Out.String()
 }
 
-// z45Instrument is this phase's MARK_PY: phase 123's five markers, three of
+// w128Instrument is this phase's MARK_PY: phase 123's five markers, three of
 // them at lines this phase rewrote, so each side names its own.
-func z45Instrument(src, dst string, Out bool) (string, string) {
+func w128Instrument(src, dst string, Out bool) (string, string) {
 	pick := func(a, b string) string {
 		if Out {
 			return a
 		}
 		return b
 	}
-	marks := []check.Z44Mark{
+	marks := []check.W127Mark{
 		{Name: "MLSPLITDATA", Pat: pick(`(?m)^        if \(\(hp_new = ml_new_data\(\)\) == nullptr\)$`,
 			`(?m)^        if \(\(hp_new = ml_new_data\(mfp\)\) == nullptr\)$`), Where: "before", Cond: ""},
 		{Name: "MLSPLITPTR", Pat: pick(`(?m)^                hp_new = ml_new_ptr\(\);$`,
@@ -114,10 +114,10 @@ func z45Instrument(src, dst string, Out bool) (string, string) {
 		{Name: "MLIDXNZ", Pat: `(?m)^                ip->ip_index = idx;$`, Where: "after", Cond: "idx > 0"},
 		{Name: "MLDEEP", Pat: `(?m)^        if \(\(top = ml_add_stack\(buf\)\) < 0\)$`, Where: "before", Cond: "++zprobe_lvl >= 2"}}
 	t := check.ReadFile(src)
-	if n := len(check.Z44Low.FindAllStringIndex(t, -1)); n != 1 {
+	if n := len(check.W127Low.FindAllStringIndex(t, -1)); n != 1 {
 		return "", fmt.Sprintf("the probe cannot declare its depth counter: the file has %d `low = 1;`", n)
 	}
-	loc := check.Z44Low.FindStringIndex(t)
+	loc := check.W127Low.FindStringIndex(t)
 	t = t[:loc[0]] + "    int zprobe_lvl = 0;\n    low = 1;" + t[loc[1]:]
 	var names []string
 	for _, m := range marks {
@@ -216,7 +216,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	names := func(t string) map[string]bool {
 		m := map[string]bool{}
-		for _, x := range z45Name.FindAllString(z45Code(t), -1) {
+		for _, x := range w128Name.FindAllString(w128Code(t), -1) {
 			m[x] = true
 		}
 		return m
@@ -242,14 +242,14 @@ func Check(w io.Writer, args []string) error {
 	for _, x := range append(append([]string{}, forsweep...), WITH...) {
 		wantSet[x] = true
 	}
-	wantLeft := check.Z27Keys(wantSet)
+	wantLeft := check.W110Keys(wantSet)
 	if strings.Join(left, " ") != strings.Join(wantLeft, " ") {
-		return die("partition", "the names that leave are %s and this phase accounts for %s", check.Z43PyList(left), check.Z43PyList(wantLeft))
+		return die("partition", "the names that leave are %s and this phase accounts for %s", check.W126PyList(left), check.W126PyList(wantLeft))
 	}
 	wr := append([]string{}, WRITTEN...)
 	sort.Strings(wr)
 	if strings.Join(came, " ") != strings.Join(wr, " ") {
-		return die("partition", "the names that arrive are %s and this phase writes %s", check.Z43PyList(came), check.Z43PyList(wr))
+		return die("partition", "the names that arrive are %s and this phase writes %s", check.W126PyList(came), check.W126PyList(wr))
 	}
 	sum := 0
 	var gn []string
@@ -317,7 +317,7 @@ func Check(w io.Writer, args []string) error {
 	if !strings.HasPrefix(ptr[0], "bhdr_T") || !strings.HasPrefix(dat[0], "bhdr_T") {
 		return die("record", "the tag is not the FIRST member of both node types, so (PTR_BL *)hp and (bhdr_T *)pp would not be the same address")
 	}
-	if z45Memfile.MatchString(z45Code(newT)) || !z45Memfile.MatchString(z45Code(oldT)) {
+	if w128Memfile.MatchString(w128Code(newT)) || !w128Memfile.MatchString(w128Code(oldT)) {
 		return die("record", "there is still a memfile in the output, or there was none in the input")
 	}
 	if !regexp.MustCompile(fmt.Sprintf(`enum \{ PB_COUNT_MAX = %d \};`, fanout)).MatchString(newT) {
@@ -337,7 +337,7 @@ func Check(w io.Writer, args []string) error {
 		if e != nil {
 			return e
 		}
-		got := z45Alloc.FindAllStringSubmatch(b, -1)
+		got := w128Alloc.FindAllStringSubmatch(b, -1)
 		if len(got) != 1 || got[0][1] != "alloc_clear" || got[0][2] != x[1] {
 			var gs []string
 			for _, g := range got {
@@ -345,7 +345,7 @@ func Check(w io.Writer, args []string) error {
 			}
 			return die("alloc", "%s allocates [%s], and a node is ONE alloc_clear of sizeof(%s)", x[0], strings.Join(gs, ", "), x[1])
 		}
-		if len(z45AllocAny.FindAllStringIndex(b, -1)) != 1 {
+		if len(w128AllocAny.FindAllStringIndex(b, -1)) != 1 {
 			return die("alloc", "%s asks for memory more than once", x[0])
 		}
 	}
@@ -358,7 +358,7 @@ func Check(w io.Writer, args []string) error {
 	if e != nil {
 		return e
 	}
-	if len(z45AllocAny.FindAllStringIndex(ab, -1)) != 2 || !strings.Contains(ab, "mf_page_size") {
+	if len(w128AllocAny.FindAllStringIndex(ab, -1)) != 2 || !strings.Contains(ab, "mf_page_size") {
 		return die("alloc", "the input does not make TWO allocations per node, a header and a page of mf_page_size")
 	}
 	say("alloc", "each constructor makes ONE allocation, alloc_clear(sizeof(DATA_BL)) and alloc_clear(sizeof(PTR_BL)): "+
@@ -367,7 +367,7 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 3b. sizeof(PTR_EN) == 16, COMPILED, on both cuts ------------------------------------
 	writeCut := func(src, dst string) int {
-		lines := check.Z28Cut(check.ReadFile(src))
+		lines := check.W111Cut(check.ReadFile(src))
 		text := ""
 		for _, l := range lines {
 			text += l + "\n"
@@ -406,7 +406,7 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 5. two full recordings ---------------------------------------------------------------
 	for _, x := range [][3]string{{newBin, f, "rec1"}, {newBin, f, "rec2"}, {oldBin, oldC, "rec0"}} {
-		if err := check.RunZ(w, x[0], x[1], T(x[2])); err != nil {
+		if err := check.RunCore(w, x[0], x[1], T(x[2])); err != nil {
 			return harness.ErrReported
 		}
 	}
@@ -433,13 +433,13 @@ func Check(w io.Writer, args []string) error {
 	// --- 6. the corpus reaches the tree, case by case --------------------------------------
 	mkdir("pnew")
 	mkdir("pold")
-	marksNew, msg := z45Instrument(f, filepath.Join(T("pnew"), "whim-vim.c"), true)
+	marksNew, msg := w128Instrument(f, filepath.Join(T("pnew"), "whim-vim.c"), true)
 	if msg != "" {
 		say("probe", "the instrument could not be built from this phase's output:")
 		prefixed(msg)
 		return harness.ErrReported
 	}
-	marksOld, msg := z45Instrument(oldC, filepath.Join(T("pold"), "whim-vim.c"), false)
+	marksOld, msg := w128Instrument(oldC, filepath.Join(T("pold"), "whim-vim.c"), false)
 	if msg != "" {
 		say("probe", "the instrument could not be built from this phase's input:")
 		prefixed(msg)
@@ -523,7 +523,7 @@ func Check(w io.Writer, args []string) error {
 		fmt.Fprintln(w, "the two sides did not record the same cases")
 		return harness.ErrReported
 	}
-	setStr := func(s map[string]bool) string { return check.Z43PyList(check.Z27Keys(s)) }
+	setStr := func(s map[string]bool) string { return check.W126PyList(check.W110Keys(s)) }
 	eqSet := func(a, b map[string]bool) bool { return setStr(a) == setStr(b) }
 	var mv []string
 	for _, n := range nOrder {
@@ -569,7 +569,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	if len(scrSet) > 0 {
 		fmt.Fprintf(w, "%s is reached by the 102 screen cases, so the memline corpus is not what makes the text layer "+
-			"visible on this boundary\n", strings.Join(check.Z27Keys(scrSet), " "))
+			"visible on this boundary\n", strings.Join(check.W110Keys(scrSet), " "))
 		return harness.ErrReported
 	}
 	var root []string
@@ -636,7 +636,7 @@ func Check(w io.Writer, args []string) error {
 		ns := listDir(d)
 		for _, n := range ns {
 			var best int64
-			for _, m := range check.Z44ZA.FindAllStringSubmatch(check.ReadFile(filepath.Join(d, n)), -1) {
+			for _, m := range check.W127ZA.FindAllStringSubmatch(check.ReadFile(filepath.Join(d, n)), -1) {
 				v, _ := strconv.ParseInt(m[1], 10, 64)
 				if v > best {
 					best = v
@@ -711,7 +711,7 @@ func Check(w io.Writer, args []string) error {
 	rewrite := func(name, s string) string {
 		switch name {
 		case "newdata_tag", "newptr_tag":
-			return z45Tag.ReplaceAllString(s, "${1}(${2}) + 1;")
+			return w128Tag.ReplaceAllString(s, "${1}(${2}) + 1;")
 		case "leaftest":
 			return strings.Replace(s, "==", "!=", 1)
 		case "ptrcap", "leafcap":
@@ -747,7 +747,7 @@ func Check(w io.Writer, args []string) error {
 			t = strings.Replace(t, "if (dp->db_line_count >= DB_LINE_MAX && db_idx", "if (dp->db_line_count > DB_LINE_MAX && db_idx", 1)
 		}
 		if c.Name == "fanout" {
-			if loc := z45Assert.FindStringIndex(t); loc != nil {
+			if loc := w128Assert.FindStringIndex(t); loc != nil {
 				t = t[:loc[0]] + "static_assert(PB_COUNT_MAX == (8192 - 16)" + t[loc[1]:]
 			}
 		}
@@ -771,7 +771,7 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 	mkdir("fan")
-	if _, m := z45Instrument(filepath.Join(T("ctl"), "fanout", "whim-vim.c"), filepath.Join(T("fan"), "whim-vim.c"), true); m != "" {
+	if _, m := w128Instrument(filepath.Join(T("ctl"), "fanout", "whim-vim.c"), filepath.Join(T("fan"), "whim-vim.c"), true); m != "" {
 		fmt.Fprintln(w, m)
 		return harness.ErrReported
 	}
@@ -845,7 +845,7 @@ func Check(w io.Writer, args []string) error {
 			for _, n := range listDir(bdir) {
 				t++
 				p := filepath.Join(ndir, n)
-				if _, e := os.Stat(p); e != nil || !check.Z30Same(filepath.Join(bdir, n), p) {
+				if _, e := os.Stat(p); e != nil || !check.W113Same(filepath.Join(bdir, n), p) {
 					m++
 				}
 			}
@@ -993,7 +993,7 @@ func Check(w io.Writer, args []string) error {
 		return die("cut", "the core is %d lines, so the cut found the wrong line", cutLines)
 	}
 	for _, l := range strings.Split(check.ReadFile(T("cut.c")), "\n") {
-		if check.Z30Dir.MatchString(l) {
+		if check.W113Dir.MatchString(l) {
 			return die("cut", "the core holds a directive")
 		}
 	}
@@ -1011,17 +1011,17 @@ func Check(w io.Writer, args []string) error {
 	wo, _ := gw(T("cut.old.c"))
 	ifc := func(s string) []string {
 		set := map[string]bool{}
-		for _, m := range check.Z44IfaceGrp.FindAllString(s, -1) {
+		for _, m := range check.W127IfaceGrp.FindAllString(s, -1) {
 			set[m] = true
 		}
-		return check.Z27Keys(set)
+		return check.W110Keys(set)
 	}
 	ifOld, ifNew := ifc(wo), ifc(wn)
 	if strings.Join(ifOld, "\n") != strings.Join(ifNew, "\n") {
 		say("cut", "the core -> host interface moved, and this phase adds no host call:")
 		os.WriteFile(T("if.old"), []byte(strings.Join(ifOld, "\n")+"\n"), 0o644)
 		os.WriteFile(T("if.new"), []byte(strings.Join(ifNew, "\n")+"\n"), 0o644)
-		for _, l := range check.Z30Diff(T("if.old"), T("if.new")) {
+		for _, l := range check.W113Diff(T("if.old"), T("if.new")) {
 			fmt.Fprintf(w, "               %s\n", l)
 		}
 		return harness.ErrReported
@@ -1031,9 +1031,9 @@ func Check(w io.Writer, args []string) error {
 	nb2, _ := os.ReadFile(f)
 	say("source", "%s -> %d lines; the binary is %d bytes against the input's %d", beforeRaw, check.CountLines(nb2),
 		check.SizeOf(newBin), check.SizeOf(oldBin))
-	zh := exec.Command("sh", "tools/st.sh", "zhostonly", f)
-	zh.Stdout, zh.Stderr = w, w
-	if err := zh.Run(); err != nil {
+	hostOnly := exec.Command("sh", "tools/st.sh", "zhostonly", f)
+	hostOnly.Stdout, hostOnly.Stderr = w, w
+	if err := hostOnly.Run(); err != nil {
 		return harness.ErrReported
 	}
 	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {

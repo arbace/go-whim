@@ -71,13 +71,13 @@ import (
 func init() { check.Register("whim124", Check) }
 
 var (
-	z41Arena   = regexp.MustCompile(`ARENA used=(\d+) calls=(\d+)`)
-	z41Exhaust = regexp.MustCompile(`whim-vim: host arena exhausted: (\d+) bytes, (\d+) used, request (\d+)`)
-	z41Grows   = regexp.MustCompile(`grows=(\d+)`)
-	z41Type    = regexp.MustCompile(`(?m)^ *Type: *([A-Z]*)`)
+	w124Arena   = regexp.MustCompile(`ARENA used=(\d+) calls=(\d+)`)
+	w124Exhaust = regexp.MustCompile(`whim-vim: host arena exhausted: (\d+) bytes, (\d+) used, request (\d+)`)
+	w124Grows   = regexp.MustCompile(`grows=(\d+)`)
+	w124Type    = regexp.MustCompile(`(?m)^ *Type: *([A-Z]*)`)
 )
 
-const z41Dump = `static int host_arena_say(char *b, int at, const char *s);
+const w124Dump = `static int host_arena_say(char *b, int at, const char *s);
 static int host_arena_num(char *b, int at, usize v);
 static usize host_arena_used;
 static long host_arena_calls;
@@ -98,7 +98,7 @@ host_exit(int r)
     }
 `
 
-const z41Driver = `
+const w124Driver = `
 main(int argc, char **argv)
 {
     if (argc == 2 && argv[1][0] == 'Z')
@@ -133,10 +133,10 @@ main(int argc, char **argv)
     }
 `
 
-// z41Bss is `readelf -S | grep -A1 '\.bss' | tail -1 | awk '{print $1}'`
+// w124Bss is `readelf -S | grep -A1 '\.bss' | tail -1 | awk '{print $1}'`
 // read as hex: the size, which non-wide readelf prints on the line after
 // the section's name.
-func z41Bss(bin string) int64 {
+func w124Bss(bin string) int64 {
 	Out, _ := exec.Command("readelf", "-S", bin).Output()
 	L := strings.Split(strings.TrimRight(string(Out), "\n"), "\n")
 	last := -1
@@ -200,10 +200,10 @@ func Check(w io.Writer, args []string) error {
 	T := func(n string) string { return filepath.Join(tmp, n) }
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
 	cflagsS, ldflagsS := "", ""
-	if m := check.Z29CFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112CFlags.FindStringSubmatch(mk); m != nil {
 		cflagsS = m[1]
 	}
-	if m := check.Z29LDFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112LDFlags.FindStringSubmatch(mk); m != nil {
 		ldflagsS = m[1]
 	}
 	link := func(src, Out, logPath string, extra ...string) error {
@@ -276,7 +276,7 @@ func Check(w io.Writer, args []string) error {
 	if e != nil {
 		return e
 	}
-	p := strings.Replace(t, EXIT, z41Dump, 1)
+	p := strings.Replace(t, EXIT, w124Dump, 1)
 	p = strings.Replace(p, "static usize host_arena_used;\n", "static usize host_arena_used;\nstatic long host_arena_calls;\n", 1)
 	p = strings.Replace(p, RET, "    host_arena_calls++;\n"+RET, 1)
 	ctl["probe"] = p
@@ -287,7 +287,7 @@ func Check(w io.Writer, args []string) error {
 		if e != nil {
 			return e
 		}
-		d := strings.Replace(x.src, h, z41Driver, 1)
+		d := strings.Replace(x.src, h, w124Driver, 1)
 		g, e := one(x.src, x.grow, "adjust_types's grow arm")
 		if e != nil {
 			return e
@@ -342,7 +342,7 @@ func Check(w io.Writer, args []string) error {
 		L := strings.Split(text, "\n")
 		var b []int
 		for i, l := range L {
-			if check.Z35Dir.MatchString(l) {
+			if check.W118Dir.MatchString(l) {
 				b = append(b, i)
 			}
 		}
@@ -456,14 +456,14 @@ func Check(w io.Writer, args []string) error {
 		objOK              bool
 	}
 	editorcut := func(src, dst string) (cutT, error) {
-		lines := check.Z28Cut(check.ReadFile(src))
+		lines := check.W111Cut(check.ReadFile(src))
 		text := ""
 		for _, l := range lines {
 			text += l + "\n"
 		}
 		os.WriteFile(dst, []byte(text), 0o644)
 		for _, l := range lines {
-			if check.Z30Dir.MatchString(l) {
+			if check.W113Dir.MatchString(l) {
 				return cutT{}, stop("the cut of %s holds a directive, so it found the wrong line", src)
 			}
 		}
@@ -485,7 +485,7 @@ func Check(w io.Writer, args []string) error {
 			if strings.Contains(l, "warning:") {
 				cu.warns++
 			}
-			if m := check.Z35Warn.FindStringSubmatch(l); m != nil {
+			if m := check.W118Warn.FindStringSubmatch(l); m != nil {
 				cu.names = append(cu.names, m[1])
 			}
 		}
@@ -539,12 +539,12 @@ func Check(w io.Writer, args []string) error {
 	if len(fb) < len(cutBytes) || string(fb[:len(cutBytes)]) != string(cutBytes) {
 		return stop("the cut is not a byte prefix of whim-vim.c")
 	}
-	if !check.Z30Same(T("cut-old.c"), T("cut-new.c")) {
+	if !check.W113Same(T("cut-old.c"), T("cut-new.c")) {
 		r.Say("THE CUT MOVED, and this phase is host-only.  It is below the first")
 		raw("               #include from end to end, so `make editor.c` must write the same bytes:")
 		Out, _ := exec.Command("cmp", T("cut-old.c"), T("cut-new.c")).CombinedOutput()
 		head(strings.Split(strings.TrimRight(string(Out), "\n"), "\n"), 2, "               ")
-		head(check.Z30Diff(T("cut-old.c"), T("cut-new.c")), 6, "               ")
+		head(check.W113Diff(T("cut-old.c"), T("cut-new.c")), 6, "               ")
 		return harness.ErrReported
 	}
 	if strings.Join(co.names, "\n") != strings.Join(cn.names, "\n") {
@@ -563,7 +563,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	oldSize, newSize := check.SizeOf(filepath.Join(state, "old")), check.SizeOf(T("new"))
 	hdr, _ := exec.Command("readelf", "-h", T("new")).Output()
-	if m := z41Type.FindSubmatch(hdr); m == nil || string(m[1]) != "EXEC" {
+	if m := w124Type.FindSubmatch(hdr); m == nil || string(m[1]) != "EXEC" {
 		return stop("readelf -h no longer says EXEC")
 	}
 	if ph, _ := exec.Command("readelf", "-l", T("new")).Output(); strings.Contains(string(ph), "INTERP") {
@@ -575,7 +575,7 @@ func Check(w io.Writer, args []string) error {
 	if rl, _ := exec.Command("readelf", "-r", T("new")).Output(); strings.Contains(string(rl), "R_X86") {
 		return stop("the image carries relocations")
 	}
-	obss, nbss := z41Bss(filepath.Join(state, "old")), z41Bss(T("new"))
+	obss, nbss := w124Bss(filepath.Join(state, "old")), w124Bss(T("new"))
 	slack := arena / 1024
 	if d := nbss - obss; d < arena-slack || d > arena+slack {
 		return stop("%s", fmt.Sprintf(".bss grew by %d bytes and the arena is %d -- the arena is not in .bss, which is the only reason it can cost nothing to store", d, arena))
@@ -599,7 +599,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	lastU := ".cache/symbols/last/undefined"
 	bu, lu := fileLines(T("before.u")), fileLines(lastU)
-	gone, came := check.Z31Words(check.Comm23(bu, lu)), check.Z31Words(check.Comm23(lu, bu))
+	gone, came := check.W114Words(check.Comm23(bu, lu)), check.W114Words(check.Comm23(lu, bu))
 	if gone != "free malloc realloc " || came != "" {
 		g, c := gone, came
 		if g == "" {
@@ -639,7 +639,7 @@ func Check(w io.Writer, args []string) error {
 		wgR.Add(1)
 		go func() {
 			defer wgR.Done()
-			recErr[k] = check.RecZ(x[1], x[2], T("REC-"+x[0]))
+			recErr[k] = check.RecCore(x[1], x[2], T("REC-"+x[0]))
 		}()
 	}
 	wgR.Wait()
@@ -660,7 +660,7 @@ func Check(w io.Writer, args []string) error {
 		}
 		var mv []string
 		for _, n := range base {
-			if !check.Z30Same(filepath.Join(T("REC-new"), n), filepath.Join(d, n)) {
+			if !check.W113Same(filepath.Join(T("REC-new"), n), filepath.Join(d, n)) {
 				mv = append(mv, n)
 			}
 		}
@@ -751,7 +751,7 @@ func Check(w io.Writer, args []string) error {
 		c.Env = append(env, "HOME=", "VIM=", "VIMRUNTIME=", "XDG_CONFIG_HOME=", "TERM=xterm")
 		c.Stdin, c.Stdout, c.Stderr = in, nil, ef
 		err := c.Run()
-		os.WriteFile(T("rc."+errFile), []byte(strconv.Itoa(check.Z36ShellRC(err, c.ProcessState))+"\n"), 0o644)
+		os.WriteFile(T("rc."+errFile), []byte(strconv.Itoa(check.W119ShellRC(err, c.ProcessState))+"\n"), 0o644)
 	}
 	session("ctiny", "tiny.err")
 	session("new", "big.err")
@@ -798,7 +798,7 @@ func Check(w io.Writer, args []string) error {
 			}
 			a := filepath.Join(T("REC-"+side), c.part)
 			for _, n := range cases[c.part] {
-				if !check.Z30Same(filepath.Join(a, n), filepath.Join(d, n)) {
+				if !check.W113Same(filepath.Join(a, n), filepath.Join(d, n)) {
 					Out[c.part] = append(Out[c.part], n)
 				}
 			}
@@ -810,7 +810,7 @@ func Check(w io.Writer, args []string) error {
 	for _, c := range CORPORA {
 		seen := 0
 		for _, n := range cases[c.part] {
-			m := z41Arena.FindStringSubmatch(check.ReadFile(filepath.Join(T(c.pre+"-probe"), n)))
+			m := w124Arena.FindStringSubmatch(check.ReadFile(filepath.Join(T(c.pre+"-probe"), n)))
 			if m == nil {
 				continue
 			}
@@ -904,7 +904,7 @@ func Check(w io.Writer, args []string) error {
 	tiny, big := check.ReadFile(T("tiny.err")), check.ReadFile(T("big.err"))
 	rcTiny, _ := strconv.Atoi(strings.TrimSpace(check.ReadFile(T("rc.tiny.err"))))
 	rcBig, _ := strconv.Atoi(strings.TrimSpace(check.ReadFile(T("rc.big.err"))))
-	m := z41Exhaust.FindStringSubmatch(tiny)
+	m := w124Exhaust.FindStringSubmatch(tiny)
 	if m == nil {
 		t120 := tiny
 		if len(t120) > 120 {
@@ -961,7 +961,7 @@ func Check(w io.Writer, args []string) error {
 		var ob, eb strings.Builder
 		c.Stdout, c.Stderr = &ob, &eb
 		err := c.Run()
-		return eb.String(), check.Z36ShellRC(err, c.ProcessState)
+		return eb.String(), check.W119ShellRC(err, c.ProcessState)
 	}
 	a, rcA := runD("din")
 	b, rcB := runD("dout")
@@ -973,7 +973,7 @@ func Check(w io.Writer, args []string) error {
 			return stop("the %s driver exited %d", x.W, x.Rc)
 		}
 	}
-	ma, mb := z41Grows.FindStringSubmatch(a), z41Grows.FindStringSubmatch(b)
+	ma, mb := w124Grows.FindStringSubmatch(a), w124Grows.FindStringSubmatch(b)
 	if ma == nil || mb == nil {
 		return stop("a driver printed no `grows=` line, so nothing says it reached the " +
 			"arm this phase rewrote")
@@ -1009,9 +1009,9 @@ func Check(w io.Writer, args []string) error {
 		"for the same reason a dead branch is kept correct", ma[1])
 
 	// --- 9. the host's vocabulary is still the host's --------------------------------------
-	zh := exec.Command("sh", "tools/st.sh", "zhostonly", f)
-	zh.Stdout, zh.Stderr = w, w
-	if err := zh.Run(); err != nil {
+	hostOnly := exec.Command("sh", "tools/st.sh", "zhostonly", f)
+	hostOnly.Stdout, hostOnly.Stderr = w, w
+	if err := hostOnly.Run(); err != nil {
 		return harness.ErrReported
 	}
 	r.Say("and that is phase 103's check, undisturbed and unamended.  zhostonly reads the host region from " +
@@ -1021,7 +1021,7 @@ func Check(w io.Writer, args []string) error {
 		"exception -- the phase moves memory, not a syscall")
 
 	// --- 10. <stdlib.h>, measured and declined -----------------------------------------------
-	if !check.Z30Same(T("cstdlib"), T("new")) {
+	if !check.W113Same(T("cstdlib"), T("new")) {
 		return stop("the output built WITHOUT <stdlib.h> is not byte-identical to the output, so the directive is " +
 			"not dead after all and the sentence below would be wrong")
 	}
@@ -1034,15 +1034,15 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 11. canon -----------------------------------------------------------------------------
 	jCanon.wg.Wait()
-	if !check.Z30Same(T("canon.c"), f) {
+	if !check.W113Same(T("canon.c"), f) {
 		r.Say("tools/canon.sh CHANGED THE OUTPUT, and it must be a no-op:")
-		head(check.Z30Diff(f, T("canon.c")), 6, "               ")
+		head(check.W113Diff(f, T("canon.c")), 6, "               ")
 		return harness.ErrReported
 	}
 	canonWord := ""
 	for _, l := range strings.Split(string(canonLog), "\n") {
-		if check.Z35CanonLn.MatchString(l) {
-			canonWord = check.Z35CanonLn.ReplaceAllString(l, "")
+		if check.W118CanonLn.MatchString(l) {
+			canonWord = check.W118CanonLn.ReplaceAllString(l, "")
 			break
 		}
 	}

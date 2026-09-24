@@ -50,10 +50,6 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   phases wrote. Fixing that is per phase, and optional: phase 163 would then
   change nothing and its check would say the input was already canonical.
 
-## Small
-
-- The `z*` identifier family (`zmemline`, `ztc`, `z33Rule`, `z41*`).
-
 ## Declined, with the reason recorded
 
 **In-AST editing.** `surveys/AST-EDITING.md`, and `GOALS.md`'s *What comes next*.

@@ -126,7 +126,7 @@ import (
 
 func init() { edit.Register("whim104", Edit) }
 
-var z21Stmt = regexp.MustCompile(`(?m)^\s*(?:printf|fprintf|fflush)\(`)
+var w104Stmt = regexp.MustCompile(`(?m)^\s*(?:printf|fprintf|fflush)\(`)
 
 // Whim104 makes the messages the editor's and the writing the host's: twenty
 // output statements in five functions become eight calls through one
@@ -183,7 +183,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				"taken", name, k)
 		}
 	}
-	if k := len(z21Stmt.FindAll(t, -1)); k != 20 {
+	if k := len(w104Stmt.FindAll(t, -1)); k != 20 {
 		return nil, p.Die("%d statements begin with printf(, fprintf( or fflush(, expected the 20 "+
 			"the inventory names -- 4 in msg_puts_printf, 2 in exit_scroll, 7 in "+
 			"report_term_error, 1 in set_termname and 6 in mainerr", k)
@@ -470,7 +470,7 @@ main(int argc, char **argv)
 			return nil, p.Die("`%s` still has %d mentions", name, k)
 		}
 	}
-	if len(z21Stmt.FindAll(t, -1)) > 0 {
+	if len(w104Stmt.FindAll(t, -1)) > 0 {
 		return nil, p.Die("a statement still begins with printf(, fprintf( or fflush(")
 	}
 	for _, x := range []struct {

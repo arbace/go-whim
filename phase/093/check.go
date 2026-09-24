@@ -106,7 +106,7 @@ import (
 
 func init() { check.Register("whim93", Check) }
 
-var z10Gone = []string{"ex_file", "rename_buffer", "setfname", "buf_name_changed", "ml_timestamp",
+var w93Gone = []string{"ex_file", "rename_buffer", "setfname", "buf_name_changed", "ml_timestamp",
 	"ml_upd_block0", "ml_check_b0_id", "buflist_name_nr", "buflist_findlnum",
 	"buflist_findname_stat", "buf_setino", "buf_same_ino", "buf_store_time",
 	"otherfile_buf", "fname_expand", "fix_fname", "shorten_fname", "shorten_fname1",
@@ -125,12 +125,12 @@ var z10Gone = []string{"ex_file", "rename_buffer", "setfname", "buf_name_changed
 	"b_mtime_read", "b_mtime_read_ns", "b_orig_size", "b_orig_mode",
 	"CMD_file", "EX_XFILE", "readonlymode"}
 
-var z10GoneStrings = []string{`"file"`, `E447: Can't find file `, "E480: No match",
+var w93GoneStrings = []string{`"file"`, `E447: Can't find file `, "E480: No match",
 	"E95: Buffer with this name already exists", "E304: ml_upd_block0",
 	"E194: No alternate file name to substitute", "E499: Empty file name",
 	`"cword>"`, `"afile>"`, `"sfile>"`, `\n  c  \"%   `, `\n  c  \"#   `}
 
-var z10Kept = map[string]int{
+var w93Kept = map[string]int{
 	"buf_spname": 5, "buf_get_fname": 3, "get_trans_bufname": 4, "fileinfo": 3,
 	"check_fname": 3, "check_changed": 4, "no_write_message": 3,
 	"p_ur": 2, "p_ro": 2, "read_cmd_fd": 12, "vim_fsync": 3,
@@ -139,14 +139,14 @@ var z10Kept = map[string]int{
 	"BF_NOTEDITED": 3, "BF_NEW": 3, "b_shortname": 2, "nv_error": 46, "open_buffer": 5,
 }
 
-// z10Families and z10Prefix are every enumerator family that goes, and what took
+// w93Families and w93Prefix are every enumerator family that goes, and what took
 // it: CMD_file is the row, EX_XFILE the flag no row carries any more, and the
 // rest are whole anonymous enums typereach takes with the code that named them.
-var z10Families = []string{"CMD_file", "EX_XFILE", "B0_FNAME_SIZE_CRYPT", "UB_FNAME"}
-var z10Prefix = []string{"EW_", "WILD_", "EXPAND_", "XP_BS_", "SPEC_", "BLOCK0_", "BLN_",
+var w93Families = []string{"CMD_file", "EX_XFILE", "B0_FNAME_SIZE_CRYPT", "UB_FNAME"}
+var w93Prefix = []string{"EW_", "WILD_", "EXPAND_", "XP_BS_", "SPEC_", "BLOCK0_", "BLN_",
 	"ESTACK_", "VSE_", "VALID_"}
 
-var z10Spellings = []string{"f", "fi", "fil", "file", "file!"}
+var w93Spellings = []string{"f", "fi", "fil", "file", "file!"}
 
 // Whim93 is phase 93's check: the buffer's NAME.
 func Check(w io.Writer, args []string) error {
@@ -170,12 +170,12 @@ func Check(w io.Writer, args []string) error {
 	defer os.RemoveAll(tmp)
 
 	// --- 1. what the sweep took ----------------------------------------------
-	for _, g := range z10Gone {
+	for _, g := range w93Gone {
 		if n := check.CountWord(src, g); n != 0 {
 			return stop("'%s' still has %d mentions", g, n)
 		}
 	}
-	for _, g := range z10GoneStrings {
+	for _, g := range w93GoneStrings {
 		if n := check.CountLinesWith(src, g); n != 0 {
 			return stop("the string '%s' still has %d mentions", g, n)
 		}
@@ -187,13 +187,13 @@ func Check(w io.Writer, args []string) error {
 	count := func(t, name string) int {
 		return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).FindAllString(t, -1))
 	}
-	names := make([]string, 0, len(z10Kept))
-	for n := range z10Kept {
+	names := make([]string, 0, len(w93Kept))
+	for n := range w93Kept {
 		names = append(names, n)
 	}
 	sort.Strings(names)
 	for _, name := range names {
-		want := z10Kept[name]
+		want := w93Kept[name]
 		if k := count(newT, name); k != want {
 			why := "something survived that should not have"
 			if k < want {
@@ -242,7 +242,7 @@ func Check(w io.Writer, args []string) error {
 			fail = append(fail, "check_fname still tests something: `b_ffname == NULL` was TRUE for ever and the fold leaves an unconditional E32")
 		}
 	}
-	rows := check.Z6RowRe.FindAllString(newT, -1)
+	rows := check.W89RowRe.FindAllString(newT, -1)
 	got, errN := harness.CommandNamesIn(src, "whim-vim.c")
 	if errN != nil {
 		fail = append(fail, fmt.Sprintf("the checked parser refuses this table -- the row floor is no longer below 98: %s", errN))
@@ -250,7 +250,7 @@ func Check(w io.Writer, args []string) error {
 	if len(rows) != 98 || len(got) != 98 {
 		fail = append(fail, fmt.Sprintf("cmdnames[] has %d rows and names() reads %d; both must be 98", len(rows), len(got)))
 	}
-	if len(check.Z6RowRe.FindAllString(oldT, -1)) != 99 {
+	if len(check.W89RowRe.FindAllString(oldT, -1)) != 99 {
 		fail = append(fail, "the input does not have 99 rows, so this is not the file this phase was written against")
 	}
 	if check.Contains(got, "file") {
@@ -264,11 +264,11 @@ func Check(w io.Writer, args []string) error {
 	if !strings.Contains(newT, "static_assert(sizeof(cmdnames) / sizeof(cmdnames[0]) == CMD_SIZE") {
 		fail = append(fail, "the static_assert on the row count went, and it is what catches an enumerator removed without its row")
 	}
-	if !check.Z7QRow.MatchString(newT) {
+	if !check.W90QRow.MatchString(newT) {
 		fail = append(fail, "the 'Q' row is no longer nv_error's, and phase 87 put it there")
 	}
 	// THE EXEMPTION PHASE 91 KEPT, from the other side.
-	m := check.Z8Lock.FindString(newT)
+	m := check.W91Lock.FindString(newT)
 	if m == "" {
 		fail = append(fail, "do_one_cmd's curbuf_locked() test went, and this phase removed one conjunct of it and not the test")
 	} else if strings.Contains(m, "CMD_") {
@@ -342,7 +342,7 @@ func Check(w io.Writer, args []string) error {
 	}()
 	exec.Command("sh", "tools/enumvals.sh", f, evNew).Run()
 	ewg.Wait()
-	if err := z10Enums(r, check.ReadFile(evOld), check.ReadFile(evNew)); err != nil {
+	if err := w93Enums(r, check.ReadFile(evOld), check.ReadFile(evNew)); err != nil {
 		return err
 	}
 
@@ -357,16 +357,16 @@ func Check(w io.Writer, args []string) error {
 	now, _ := os.ReadFile(f)
 	(&check.Rep{Tag: "build", W: w}).Say("ok, %s -> %d lines, %d bytes", beforeLines, check.CountLines(now), check.SizeOf(bin))
 
-	if err := z10Probes(r, old, bin); err != nil {
+	if err := w93Probes(r, old, bin); err != nil {
 		return err
 	}
-	return z10Pty(r, old, bin)
+	return w93Pty(r, old, bin)
 }
 
-// z10Enums: EIGHTY-FIVE SURVIVORS RENUMBER and every one must be a CMD_.  85
+// w93Enums: EIGHTY-FIVE SURVIVORS RENUMBER and every one must be a CMD_.  85
 // movers from one family is the case CLAUDE.md says a build is happy to get
 // wrong.
-func z10Enums(r *check.Rep, oldTxt, newTxt string) error {
+func w93Enums(r *check.Rep, oldTxt, newTxt string) error {
 	load := func(s string) map[string]string {
 		m := map[string]string{}
 		for _, l := range strings.Split(s, "\n") {
@@ -399,8 +399,8 @@ func z10Enums(r *check.Rep, oldTxt, newTxt string) error {
 		}
 	}
 	for _, k := range gone {
-		ok := check.Contains(z10Families, k)
-		for _, p := range z10Prefix {
+		ok := check.Contains(w93Families, k)
+		for _, p := range w93Prefix {
 			if strings.HasPrefix(k, p) {
 				ok = true
 			}

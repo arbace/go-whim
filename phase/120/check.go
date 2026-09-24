@@ -84,14 +84,14 @@ import (
 func init() { check.Register("whim120", Check) }
 
 var (
-	z37UnionC  = regexp.MustCompile(`\bunion\b`)
-	z37TailC   = regexp.MustCompile(`^([ \t]*)([A-Za-z_]\w*)[ \t]*;`)
-	z37Member  = regexp.MustCompile(`(?s)^(.*?)([A-Za-z_]\w*)[ \t]*;$`)
-	z37DirAny  = regexp.MustCompile(`^ *#`)
-	z37IncLine = regexp.MustCompile(`^ *# *include <[A-Za-z0-9_/.]+>$`)
+	w120UnionC  = regexp.MustCompile(`\bunion\b`)
+	w120TailC   = regexp.MustCompile(`^([ \t]*)([A-Za-z_]\w*)[ \t]*;`)
+	w120Member  = regexp.MustCompile(`(?s)^(.*?)([A-Za-z_]\w*)[ \t]*;$`)
+	w120DirAny  = regexp.MustCompile(`^ *#`)
+	w120IncLine = regexp.MustCompile(`^ *# *include <[A-Za-z0-9_/.]+>$`)
 )
 
-type z37U struct {
+type w120U struct {
 	Name        string
 	members     int
 	indent      string
@@ -99,12 +99,12 @@ type z37U struct {
 	Body, Text  string
 }
 
-// z37Scan is the heredoc's scan(): every `union { ... } name;`, braces
+// w120Scan is the heredoc's scan(): every `union { ... } name;`, braces
 // matched and members counted at depth 1.  A malformed one is an error
 // carrying the heredoc's message.
-func z37Scan(text, which string) ([]z37U, string) {
-	var found []z37U
-	for _, loc := range z37UnionC.FindAllStringIndex(text, -1) {
+func w120Scan(text, which string) ([]w120U, string) {
+	var found []w120U
+	for _, loc := range w120UnionC.FindAllStringIndex(text, -1) {
 		j := loc[1]
 		for j < len(text) && (text[j] == ' ' || text[j] == '\t' || text[j] == '\n') {
 			j++
@@ -130,7 +130,7 @@ func z37Scan(text, which string) ([]z37U, string) {
 		if k+1 > len(text) {
 			return nil, fmt.Sprintf("the union at line %d of the %s does not end `} <name>;`", line, which)
 		}
-		tm := z37TailC.FindStringSubmatchIndex(text[k+1:])
+		tm := w120TailC.FindStringSubmatchIndex(text[k+1:])
 		if tm == nil {
 			return nil, fmt.Sprintf("the union at line %d of the %s does not end `} <name>;`", line, which)
 		}
@@ -139,7 +139,7 @@ func z37Scan(text, which string) ([]z37U, string) {
 		if end > len(text) {
 			end = len(text)
 		}
-		found = append(found, z37U{
+		found = append(found, w120U{
 			Name: text[k+1+tm[4] : k+1+tm[5]], members: members, indent: text[start:loc[0]],
 			start: start, line: line, Body: text[j+1 : k], Text: text[start:end],
 		})
@@ -185,10 +185,10 @@ func Check(w io.Writer, args []string) error {
 	T := func(n string) string { return filepath.Join(tmp, n) }
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
 	cflagsS, ldflagsS := "", ""
-	if m := check.Z29CFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112CFlags.FindStringSubmatch(mk); m != nil {
 		cflagsS = m[1]
 	}
-	if m := check.Z29LDFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112LDFlags.FindStringSubmatch(mk); m != nil {
 		ldflagsS = m[1]
 	}
 	link := func(src, Out, logPath string) error {
@@ -219,11 +219,11 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 0. the three controls, built from the input's own text -------------------
 	newT, oldT := check.ReadFile(f), check.ReadFile(oldC)
-	IN, msg := z37Scan(oldT, "input")
+	IN, msg := w120Scan(oldT, "input")
 	if msg != "" {
 		return stop("%s", msg)
 	}
-	var deg, gen []z37U
+	var deg, gen []w120U
 	for _, u := range IN {
 		if u.members < 2 {
 			deg = append(deg, u)
@@ -242,7 +242,7 @@ func Check(w io.Writer, args []string) error {
 		if u.members == 0 {
 			continue
 		}
-		mm := z37Member.FindStringSubmatch(strings.TrimSpace(u.Body))
+		mm := w120Member.FindStringSubmatch(strings.TrimSpace(u.Body))
 		if mm == nil {
 			return stop("the single member of `%s` is not one `<type> <name>;`", u.Name)
 		}
@@ -261,7 +261,7 @@ func Check(w io.Writer, args []string) error {
 			"control cannot be built out of this phase's own subject")
 	}
 	c1 := strings.Replace(newT, pair[2]+pair[3], pair[3]+pair[2], 1)
-	var empty []z37U
+	var empty []w120U
 	for _, u := range deg {
 		if u.members == 0 {
 			empty = append(empty, u)
@@ -278,14 +278,14 @@ func Check(w io.Writer, args []string) error {
 			"cannot be put back where it was")
 	}
 	c2 := strings.Replace(newT, above, above+e.Text, 1)
-	var single []z37U
+	var single []w120U
 	for _, u := range deg {
 		if u.members > 0 {
 			single = append(single, u)
 		}
 	}
 	s := single[len(single)-1]
-	mm := z37Member.FindStringSubmatch(strings.TrimSpace(s.Body))
+	mm := w120Member.FindStringSubmatch(strings.TrimSpace(s.Body))
 	if mm == nil {
 		return stop("the single member of `%s` is not one `<type> <name>;`", s.Name)
 	}
@@ -343,13 +343,13 @@ func Check(w io.Writer, args []string) error {
 	halves := func(lines []string, which string) (int, int, error) {
 		var d []int
 		for i, l := range lines {
-			if z37DirAny.MatchString(l) {
+			if w120DirAny.MatchString(l) {
 				d = append(d, i)
 			}
 		}
 		ok := len(d) > 0
 		for k, i := range d {
-			if ok && (i != d[0]+k || !z37IncLine.MatchString(lines[i])) {
+			if ok && (i != d[0]+k || !w120IncLine.MatchString(lines[i])) {
 				ok = false
 			}
 		}
@@ -368,11 +368,11 @@ func Check(w io.Writer, args []string) error {
 	if e2 != nil {
 		return e2
 	}
-	IN, msg = z37Scan(oldT, "input")
+	IN, msg = w120Scan(oldT, "input")
 	if msg != "" {
 		return stop("%s", msg)
 	}
-	OUT, msg := z37Scan(newT, "output")
+	OUT, msg := w120Scan(newT, "output")
 	if msg != "" {
 		return stop("%s", msg)
 	}
@@ -404,7 +404,7 @@ func Check(w io.Writer, args []string) error {
 				u.Name, u.members, strings.Count(oldT, u.Text), strings.Count(newT, u.Text))
 		}
 	}
-	names := func(us []z37U) string {
+	names := func(us []w120U) string {
 		var ns []string
 		for _, u := range us {
 			ns = append(ns, u.Name)
@@ -418,8 +418,8 @@ func Check(w io.Writer, args []string) error {
 		}
 		r.Bad("the output's unions are %s and the input's genuine ones are %s", o, names(gen))
 	}
-	nKeyIn := len(z37UnionC.FindAllStringIndex(oldT, -1))
-	nKeyOut := len(z37UnionC.FindAllStringIndex(newT, -1))
+	nKeyIn := len(w120UnionC.FindAllStringIndex(oldT, -1))
+	nKeyOut := len(w120UnionC.FindAllStringIndex(newT, -1))
 	if nKeyIn != len(IN) || nKeyOut != len(gen) {
 		r.Bad("`union` is %d keywords in the input and %d in the output, and the scan "+
 			"found %d unions in and %d genuine -- every keyword must be one of the "+
@@ -431,7 +431,7 @@ func Check(w io.Writer, args []string) error {
 		nIn := cnt(`\b`+u.Name+`\b`, oldT)
 		nOut := cnt(`\b`+u.Name+`\b`, newT)
 		if u.members > 0 {
-			mm := z37Member.FindStringSubmatch(strings.TrimSpace(u.Body))
+			mm := w120Member.FindStringSubmatch(strings.TrimSpace(u.Body))
 			if mm == nil {
 				r.Bad("the single member of `%s` is not one `<type> <name>;`", u.Name)
 				continue
@@ -492,18 +492,18 @@ func Check(w io.Writer, args []string) error {
 	}
 	// tools/create_cmdidxs.py -- named as a PATH so tools/implhash.sh hashes
 	// it into this phase's key.  Do not delete it.
-	nOld := len(check.Z35CmdRow.FindAllString(oldT, -1))
-	nNew := len(check.Z35CmdRow.FindAllString(newT, -1))
+	nOld := len(check.W118CmdRow.FindAllString(oldT, -1))
+	nNew := len(check.W118CmdRow.FindAllString(newT, -1))
 	cn, _ := harness.CommandNames(f)
 	if nNew != nOld || len(cn) != nOld {
 		r.Bad("cmdnames[] is %d rows and the input had %d -- this phase touches no Ex "+
 			"command", nNew, nOld)
 	}
-	if check.Z29RowCount(newT) != check.Z29RowCount(oldT) {
+	if check.W112RowCount(newT) != check.W112RowCount(oldT) {
 		r.Bad("options[] has %d rows and the input had %d -- this phase removes no "+
-			"option", check.Z29RowCount(newT), check.Z29RowCount(oldT))
+			"option", check.W112RowCount(newT), check.W112RowCount(oldT))
 	}
-	if check.Z27Runs(NL) > 0 {
+	if check.W110Runs(NL) > 0 {
 		r.Bad("there is a run of two blank lines, which canon.sh should have taken")
 	}
 	if err := r.Done(); err != nil {
@@ -534,7 +534,7 @@ func Check(w io.Writer, args []string) error {
 	r.Cont("%d -> %d lines, %d fewer and every one of them above the boundary, which "+
 		"moved by the same %d; %d directives unmoved, cmdnames[] %d and options[] %d "+
 		"unchanged, and no run of two blank lines",
-		beforeLines, len(NL)-1, linesGone, linesGone, nndir, nNew, check.Z29RowCount(newT))
+		beforeLines, len(NL)-1, linesGone, linesGone, nndir, nNew, check.W112RowCount(newT))
 
 	// --- 2. the empty union's own argument, measured --------------------------------
 	os.WriteFile(T("iso-empty.c"), []byte("typedef struct { long a; union { } b; } S;\nS s;\nint main(void) { return (int)sizeof(S) + (int)s.a; }\n"), 0o644)
@@ -600,11 +600,11 @@ func Check(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	lastU := ".cache/symbols/last/undefined"
-	if !check.Z30Same(T("before.u"), lastU) {
+	if !check.W113Same(T("before.u"), lastU) {
 		bu, lu := fileLines(T("before.u")), fileLines(lastU)
 		r.Say("the libc surface moved, and DELETING A WRAPPER TYPE CANNOT MOVE IT:")
-		raw("               gone: %s", check.Z31Words(check.Comm23(bu, lu)))
-		raw("               came: %s", check.Z31Words(check.Comm23(lu, bu)))
+		raw("               gone: %s", check.W114Words(check.Comm23(bu, lu)))
+		raw("               came: %s", check.W114Words(check.Comm23(lu, bu)))
 		return harness.ErrReported
 	}
 	r.Say("symbols %s -> %s, and the set is IDENTICAL as a cmp -- nothing left and nothing arrived; main is "+
@@ -618,14 +618,14 @@ func Check(w io.Writer, args []string) error {
 		log                string
 	}
 	editorcut := func(src, dst string) (cut, error) {
-		lines := check.Z28Cut(check.ReadFile(src))
+		lines := check.W111Cut(check.ReadFile(src))
 		text := ""
 		for _, l := range lines {
 			text += l + "\n"
 		}
 		os.WriteFile(dst, []byte(text), 0o644)
 		for _, l := range lines {
-			if check.Z30Dir.MatchString(l) {
+			if check.W113Dir.MatchString(l) {
 				return cut{}, stop("the cut of %s holds a directive, so it found the wrong line", src)
 			}
 		}
@@ -646,7 +646,7 @@ func Check(w io.Writer, args []string) error {
 			if strings.Contains(l, "warning:") {
 				cu.warns++
 			}
-			if m := check.Z35Warn.FindStringSubmatch(l); m != nil {
+			if m := check.W118Warn.FindStringSubmatch(l); m != nil {
 				cu.names = append(cu.names, m[1])
 			}
 		}
@@ -695,8 +695,8 @@ func Check(w io.Writer, args []string) error {
 	}
 	if strings.Join(co.names, "\n") != strings.Join(cnw.names, "\n") {
 		r.Say("THE CUT'S BOUNDARY SET MOVED, AND THIS PHASE CROSSES NO BOUNDARY:")
-		raw("               gone: %s", check.Z31Words(check.Comm23(co.names, cnw.names)))
-		raw("               came: %s", check.Z31Words(check.Comm23(cnw.names, co.names)))
+		raw("               gone: %s", check.W114Words(check.Comm23(co.names, cnw.names)))
+		raw("               came: %s", check.W114Words(check.Comm23(cnw.names, co.names)))
 		return harness.ErrReported
 	}
 	r.Say("THE CUT -- `make editor.c`'s own rule, and a byte prefix of the file -- is %d lines in and %d out, 0 "+
@@ -704,15 +704,15 @@ func Check(w io.Writer, args []string) error {
 		"interface, is the SAME %d names as a cmp.  The input's set is computed here and never written down",
 		co.lines, cnw.lines, len(cnw.names))
 	jCanon.wg.Wait()
-	if !check.Z30Same(T("canon.c"), f) {
+	if !check.W113Same(T("canon.c"), f) {
 		r.Say("tools/canon.sh CHANGED THE OUTPUT, and it must be a no-op:")
-		head(check.Z30Diff(f, T("canon.c")), 6, "               ")
+		head(check.W113Diff(f, T("canon.c")), 6, "               ")
 		return harness.ErrReported
 	}
 	canonWord := ""
 	for _, l := range strings.Split(string(canonLog), "\n") {
-		if check.Z35CanonLn.MatchString(l) {
-			canonWord = check.Z35CanonLn.ReplaceAllString(l, "")
+		if check.W118CanonLn.MatchString(l) {
+			canonWord = check.W118CanonLn.ReplaceAllString(l, "")
 			break
 		}
 	}
@@ -744,7 +744,7 @@ func Check(w io.Writer, args []string) error {
 		return stop("the reproducible build is %d bytes and make produced %d: the two differ by more than a "+
 			"timestamp, so the comparison below would not be about this boundary", newSize, check.SizeOf(bin))
 	}
-	if !check.Z30Same(oldBinP, T("new")) {
+	if !check.W113Same(oldBinP, T("new")) {
 		r.Say("THE BINARY MOVED.  A union of ONE member has the size, the")
 		raw("               alignment and the offset of that member, and an EMPTY union")
 		raw("               contributes no storage, so this phase changes no layout and no")
@@ -776,7 +776,7 @@ func Check(w io.Writer, args []string) error {
 			return harness.ErrReported
 		}
 	}
-	if check.Z30Same(T("new"), T("c1")) {
+	if check.W113Same(T("new"), T("c1")) {
 		r.Say("THE CONTROL c1 DID NOT SHOW.  This phase's own output with the two")
 		raw("               fields it PROMOTED exchanged -- a pure layout permutation of the")
 		raw("               very struct it rewrites -- gives a binary IDENTICAL to the output's,")
@@ -803,7 +803,7 @@ func Check(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	for _, c := range []string{"c2", "c3"} {
-		if !check.Z30Same(T("new"), T(c)) {
+		if !check.W113Same(T("new"), T(c)) {
 			r.Say("THE CONTROL %s MOVED, AND IT IS DECLARED TO MOVE NOTHING.", c)
 			raw("               %s is this phase run BACKWARDS on one field: a union of one", c)
 			raw("               member put back around a plain field, or an empty union put")
@@ -831,11 +831,11 @@ func Check(w io.Writer, args []string) error {
 	wgR.Add(2)
 	go func() {
 		defer wgR.Done()
-		errRO = check.RecZ(oldBin, oldC, T("REC-old"))
+		errRO = check.RecCore(oldBin, oldC, T("REC-old"))
 	}()
 	go func() {
 		defer wgR.Done()
-		errRN = check.RecZ(T("new"), f, T("REC-new"))
+		errRN = check.RecCore(T("new"), f, T("REC-new"))
 	}()
 	wgR.Wait()
 	if check.RecReport(w, errRO, errRN) {
@@ -852,7 +852,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	var moved []string
 	for _, n := range base {
-		if !check.Z30Same(filepath.Join(T("REC-new"), n), filepath.Join(T("REC-old"), n)) {
+		if !check.W113Same(filepath.Join(T("REC-new"), n), filepath.Join(T("REC-old"), n)) {
 			moved = append(moved, n)
 		}
 	}
@@ -873,9 +873,9 @@ func Check(w io.Writer, args []string) error {
 		"words rather than offered as evidence for the edit", len(base))
 
 	// --- 8. phase 103's structural check ------------------------------------------------
-	zh := exec.Command("sh", "tools/st.sh", "zhostonly", f)
-	zh.Stdout, zh.Stderr = w, w
-	if err := zh.Run(); err != nil {
+	hostOnly := exec.Command("sh", "tools/st.sh", "zhostonly", f)
+	hostOnly.Stdout, hostOnly.Stderr = w, w
+	if err := hostOnly.Run(); err != nil {
 		return harness.ErrReported
 	}
 	r.Say("and that is phase 103's check, undisturbed: none of the six names this phase removes is in its " +

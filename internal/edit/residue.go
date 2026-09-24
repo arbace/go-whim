@@ -8,10 +8,10 @@ import (
 	"github.com/arbace/go-whim/internal/dead"
 )
 
-// zRowRe is the one physical line of a designated cmdnames[] row.
-var zRowRe = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
+// coreRowRe is the one physical line of a designated cmdnames[] row.
+var coreRowRe = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
 
-func ZRows(text []byte) [][]byte { return zRowRe.FindAll(text, -1) }
+func CoreRows(text []byte) [][]byte { return coreRowRe.FindAll(text, -1) }
 
 // zResidue is step 5 of phases 89, 90, 91 and 92, which those phases write the same
 // way because it is the same argument: THE TEXT THIS EDIT LEAVES DOES NOT
@@ -24,7 +24,7 @@ func ZRows(text []byte) [][]byte { return zRowRe.FindAll(text, -1) }
 // the dying names actually FOUND, sorted -- phase 91 reports that third one where
 // 89, 90 and 92 report the list they were given.  Each phase writes its own report
 // line, because the wording is the phase's.
-func ZResidue(p Ph, text []byte, dying []string) (int, []string, []string, error) {
+func CoreResidue(p Ph, text []byte, dying []string) (int, []string, []string, error) {
 	blanked := cutil.Blank(text)
 	defs := dead.FuncDefinitions(text, blanked)
 	type span struct {
@@ -72,7 +72,7 @@ func ZResidue(p Ph, text []byte, dying []string) (int, []string, []string, error
 		names = append(names, fn)
 	}
 	sort.Strings(names)
-	survivors := ZRows(text)
+	survivors := CoreRows(text)
 	for _, fn := range names {
 		re := regexp.MustCompile(`\b` + fn + `\b`)
 		for _, r := range survivors {

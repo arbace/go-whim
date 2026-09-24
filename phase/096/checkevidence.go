@@ -11,11 +11,11 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-// z13Evidence is sections 6, 7 and 8.  Section 6 is the instrumented pair:
+// w96Evidence is sections 6, 7 and 8.  Section 6 is the instrumented pair:
 // scriptin[] is assigned once in the whole file -- to NULL, inside the function
 // the phase removes -- and redir_fd only by its declaration, so neither FILE *
 // has been opened in any build and the phase removes the POSSIBILITY.
-func z13Evidence(r *check.Rep, tmp, inst, old, bin string) error {
+func w96Evidence(r *check.Rep, tmp, inst, old, bin string) error {
 	stop := func(format string, a ...any) error { r.Say(format, a...); return harness.ErrReported }
 	var wg sync.WaitGroup
 	errs := make([]error, 2)
@@ -23,7 +23,7 @@ func z13Evidence(r *check.Rep, tmp, inst, old, bin string) error {
 		wg.Add(1)
 		go func(i int, n string) {
 			defer wg.Done()
-			errs[i] = check.RecZ(filepath.Join(inst, n),
+			errs[i] = check.RecCore(filepath.Join(inst, n),
 				filepath.Join(inst, n+".c"), filepath.Join(tmp, "REC."+n))
 		}(i, n)
 	}
@@ -32,8 +32,8 @@ func z13Evidence(r *check.Rep, tmp, inst, old, bin string) error {
 		return stop("a harness failed on one of the two recordings")
 	}
 	total := len(check.WalkFiles(filepath.Join(tmp, "REC.probe")))
-	probeWith, _ := check.Marked(filepath.Join(tmp, "REC.probe"), z13Mark)
-	ctlWith, _ := check.Marked(filepath.Join(tmp, "REC.ctl"), z13Mark)
+	probeWith, _ := check.Marked(filepath.Join(tmp, "REC.probe"), w96Mark)
+	ctlWith, _ := check.Marked(filepath.Join(tmp, "REC.ctl"), w96Mark)
 	if total < 100 {
 		r.Say("a recording is %d files, and a comparison of two things", total)
 		r.Cont("nothing wrote passes.  The COUNT is reported and not pinned:")
@@ -63,14 +63,14 @@ func z13Evidence(r *check.Rep, tmp, inst, old, bin string) error {
 
 	// --- 7. eighteen adversarial sessions, each a way of making the editor
 	// PRINT, which is where redir_write() sat.
-	if err := z13Adversarial(r, filepath.Join(inst, "probe"), filepath.Join(inst, "ctl")); err != nil {
+	if err := w96Adversarial(r, filepath.Join(inst, "probe"), filepath.Join(inst, "ctl")); err != nil {
 		return err
 	}
 	// --- 8. and the ordinary sessions, byte-identical either side.
-	return z13Ordinary(r, old, bin)
+	return w96Ordinary(r, old, bin)
 }
 
-func z13Adversarial(r *check.Rep, probe, ctl string) error {
+func w96Adversarial(r *check.Rep, probe, ctl string) error {
 	esc := []byte("\x1b")
 	quit := []byte("\x1b:q!\r")
 	seed := [][]byte{append([]byte("ialpha"), esc...), []byte(":set nopaste\r")}
@@ -105,12 +105,12 @@ func z13Adversarial(r *check.Rep, probe, ctl string) error {
 			wg.Add(1)
 			go func(i, j int, b string, keys [][]byte) {
 				defer wg.Done()
-				_, _, errb, _, err := harness.ZSession(b, keys, "xterm", []string{"+set paste"}, 24, 80, 8*time.Second)
+				_, _, errb, _, err := harness.CoreSession(b, keys, "xterm", []string{"+set paste"}, 24, 80, 8*time.Second)
 				if err == harness.ErrBlocked {
 					got[i][j] = res{0, true}
 					return
 				}
-				got[i][j] = res{strings.Count(string(errb), z13Mark), false}
+				got[i][j] = res{strings.Count(string(errb), w96Mark), false}
 			}(i, j, b, x.Keys)
 		}
 	}
@@ -137,7 +137,7 @@ func z13Adversarial(r *check.Rep, probe, ctl string) error {
 	return nil
 }
 
-func z13Ordinary(r *check.Rep, old, bin string) error {
+func w96Ordinary(r *check.Rep, old, bin string) error {
 	esc, cr := []byte("\x1b"), []byte("\r")
 	quit := []byte("\x1b:q!\r")
 	hello := []byte("hello")
@@ -174,8 +174,8 @@ func z13Ordinary(r *check.Rep, old, bin string) error {
 		wg.Add(1)
 		go func(i int, c kase) {
 			defer wg.Done()
-			ot, _ := check.ZRecordStream(old, c.Args, c.Keys, 10*time.Second)
-			nt, ns := check.ZRecordStream(bin, c.Args, c.Keys, 10*time.Second)
+			ot, _ := check.CoreRecordStream(old, c.Args, c.Keys, 10*time.Second)
+			nt, ns := check.CoreRecordStream(bin, c.Args, c.Keys, 10*time.Second)
 			outs[i] = Out{ot, nt, ns}
 		}(i, c)
 	}

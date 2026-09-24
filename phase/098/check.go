@@ -99,23 +99,23 @@ import (
 
 func init() { check.Register("whim98", Check) }
 
-var z15ProvidedC = strings.Fields(`isalnum isalpha isblank iscntrl isdigit isgraph islower isprint
+var w98ProvidedC = strings.Fields(`isalnum isalpha isblank iscntrl isdigit isgraph islower isprint
 ispunct isspace isupper isxdigit isascii toascii tolower toupper
 iswalnum iswalpha iswblank iswcntrl iswdigit iswgraph iswlower
 iswprint iswpunct iswspace iswupper iswxdigit towlower towupper
 towctrans wctrans wctype iswctype`)
 
-var z15Had = strings.Fields("isalnum isalpha isdigit isgraph islower ispunct iscntrl isupper iswupper tolower toupper towlower towupper")
+var w98Had = strings.Fields("isalnum isalpha isdigit isgraph islower ispunct iscntrl isupper iswupper tolower toupper towlower towupper")
 
-var z15Defs = strings.Fields(`musl_isdigit musl_isalpha musl_isupper musl_islower musl_isgraph
+var w98Defs = strings.Fields(`musl_isdigit musl_isalpha musl_isupper musl_islower musl_isgraph
 musl_isspace musl_isalnum musl_iscntrl musl_ispunct musl_tolower musl_toupper musl_atoi
 musl_atol musl_strtol musl_bsearch musl_qsort musl_towupper musl_towlower`)
 
-var z15Rewritten = strings.Fields("tolower toupper towlower towupper isalnum iscntrl ispunct isalpha isdigit isgraph islower isupper isspace atoi atol strtol qsort bsearch")
+var w98Rewritten = strings.Fields("tolower toupper towlower towupper isalnum iscntrl ispunct isalpha isdigit isgraph islower isupper isspace atoi atol strtol qsort bsearch")
 
-// z15Calls is `(?<![\w])name\s*\(`: a call whose name is not the tail of a
+// w98Calls is `(?<![\w])name\s*\(`: a call whose name is not the tail of a
 // longer identifier.  RE2 has no lookbehind, so the byte before is tested.
-func z15Calls(text, name string) int {
+func w98Calls(text, name string) int {
 	re := regexp.MustCompile(regexp.QuoteMeta(name) + `\s*\(`)
 	n := 0
 	for _, m := range re.FindAllStringIndex(text, -1) {
@@ -158,8 +158,8 @@ func Check(w io.Writer, args []string) error {
 	// --- 1. the source, as counts --------------------------------------------
 	var fail []string
 	var left []string
-	for _, n := range z15ProvidedC {
-		if z15Calls(newT, n) > 0 {
+	for _, n := range w98ProvidedC {
+		if w98Calls(newT, n) > 0 {
 			left = append(left, n)
 		}
 	}
@@ -175,12 +175,12 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 	var had []string
-	for _, n := range z15ProvidedC {
-		if z15Calls(oldT, n) > 0 {
+	for _, n := range w98ProvidedC {
+		if w98Calls(oldT, n) > 0 {
 			had = append(had, n)
 		}
 	}
-	wantHad := append([]string{}, z15Had...)
+	wantHad := append([]string{}, w98Had...)
 	sort.Strings(had)
 	sort.Strings(wantHad)
 	if strings.Join(had, " ") != strings.Join(wantHad, " ") {
@@ -189,7 +189,7 @@ func Check(w io.Writer, args []string) error {
 	if words(oldT, "iswupper") == 0 {
 		fail = append(fail, "the input did not name iswupper, so deleting it proves nothing")
 	}
-	for _, name := range z15Defs {
+	for _, name := range w98Defs {
 		if len(regexp.MustCompile(`(?m)^`+regexp.QuoteMeta(name)+`\(`).FindAllString(newT, -1)) != 1 {
 			fail = append(fail, fmt.Sprintf("%s is not defined exactly once", name))
 		}
@@ -197,15 +197,15 @@ func Check(w io.Writer, args []string) error {
 	block := check.ReadFile("tools/musl-ctype.txt") + check.ReadFile("tools/musl-case.txt")
 	for _, name := range []string{"tolower", "toupper", "towlower", "towupper", "isalnum", "iscntrl",
 		"ispunct", "isalpha", "isdigit", "isgraph", "islower", "isupper", "isspace", "atoi", "atol", "strtol", "qsort", "bsearch"} {
-		want := z15Calls(oldT, name) + z15Calls(block, "musl_"+name)
-		if got := z15Calls(newT, "musl_"+name); got != want {
+		want := w98Calls(oldT, name) + w98Calls(block, "musl_"+name)
+		if got := w98Calls(newT, "musl_"+name); got != want {
 			fail = append(fail, fmt.Sprintf("musl_%s is called %d times, expected %d -- the %d sites the input called %s at, plus the %d times the vendored text names it",
-				name, got, want, z15Calls(oldT, name), name, z15Calls(block, "musl_"+name)))
+				name, got, want, w98Calls(oldT, name), name, w98Calls(block, "musl_"+name)))
 		}
 	}
 	moved := 0
-	for _, n := range z15Rewritten {
-		moved += z15Calls(oldT, n)
+	for _, n := range w98Rewritten {
+		moved += w98Calls(oldT, n)
 	}
 	// How many sites there are is the input's (44 in both 9.2.1037's and
 	// 9.2.1122's, one atol having become a strtol); the per-name counts above
@@ -220,9 +220,9 @@ func Check(w io.Writer, args []string) error {
 				name, words(newT, name), name, words(newT, "musl_"+name), want))
 		}
 	}
-	if z15Calls(newT, "utf_convert") != z15Calls(oldT, "utf_convert")+2 {
+	if w98Calls(newT, "utf_convert") != w98Calls(oldT, "utf_convert")+2 {
 		fail = append(fail, fmt.Sprintf("utf_convert is called %d times, expected %d -- its own callers plus the two wrappers this phase adds",
-			z15Calls(newT, "utf_convert"), z15Calls(oldT, "utf_convert")+2))
+			w98Calls(newT, "utf_convert"), w98Calls(oldT, "utf_convert")+2))
 	}
 	for _, p := range []struct {
 		Name string
@@ -248,14 +248,14 @@ func Check(w io.Writer, args []string) error {
 	if !strings.Contains(newT, "#include <ctype.h>") || !strings.Contains(newT, "#include <wctype.h>") {
 		fail = append(fail, "a header was removed, and removing them is phase 99's")
 	}
-	rows := check.Z6RowRe.FindAllString(newT, -1)
+	rows := check.W89RowRe.FindAllString(newT, -1)
 	got, _ := harness.CommandNamesIn(src, "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
 		fail = append(fail, fmt.Sprintf("cmdnames[] has %d rows and names() reads %d; both must be 98", len(rows), len(got)))
 	}
 	if i := strings.Index(newT, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newT[i:], "\n};")
-		if len(check.Z12RowRe.FindAllString(newT[i:i+j], -1)) != 108 {
+		if len(check.W95RowRe.FindAllString(newT[i:i+j], -1)) != 108 {
 			fail = append(fail, "options[] is not the 108 rows phase 95 left")
 		}
 	}
@@ -320,7 +320,7 @@ func Check(w io.Writer, args []string) error {
 	// The eleven, and strtol wherever the input calls it: vim 9.2.1122's
 	// getdigits() moved from atol to strtol, which this phase vendors too.
 	wantGone := strings.Fields("atoi atol bsearch isalnum iscntrl ispunct qsort tolower toupper towlower towupper")
-	if z15Calls(oldT, "strtol") > 0 {
+	if w98Calls(oldT, "strtol") > 0 {
 		wantGone = append(wantGone, "strtol")
 	}
 	sort.Strings(wantGone)
@@ -354,7 +354,7 @@ func Check(w io.Writer, args []string) error {
 	}()
 	exec.Command("sh", "tools/enumvals.sh", f, evNew).Run()
 	ewg.Wait()
-	if err := z15Enums(r, check.ReadFile(evOld), check.ReadFile(evNew)); err != nil {
+	if err := w98Enums(r, check.ReadFile(evOld), check.ReadFile(evNew)); err != nil {
 		return err
 	}
 
@@ -387,10 +387,10 @@ func Check(w io.Writer, args []string) error {
 	(&check.Rep{Tag: "build", W: w}).Say("ok, %s -> %d lines, %d bytes -- and it GROWS, because the 358 convertStruct rows are data the image did not carry and musl packed the same mapping into 16,998 bytes",
 		beforeLines, check.CountLines(now), check.SizeOf(bin))
 
-	return z15Probes(r, old, bin)
+	return w98Probes(r, old, bin)
 }
 
-func z15Enums(r *check.Rep, oldTxt, newTxt string) error {
+func w98Enums(r *check.Rep, oldTxt, newTxt string) error {
 	load := func(s string) map[string]string {
 		m := map[string]string{}
 		for _, l := range strings.Split(s, "\n") {

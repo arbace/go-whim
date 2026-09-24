@@ -19,7 +19,7 @@ import (
 // zRec is one probe recording: the scrubbed record text, the raw stream and the
 // bell count.  Several zero checks build exactly this and compare it between
 // two binaries, so it is written once here rather than in each.
-type ZRec struct {
+type CoreRec struct {
 	Text  string
 	Out   []byte
 	bells int
@@ -29,16 +29,16 @@ type ZRec struct {
 // same way, because mainerr() prints the version banner and that carries
 // __DATE__ and __TIME__ -- two binaries built a minute apart would disagree on
 // stderr for a reason that is not the editor's behaviour.
-func ZRecord(binary string, args []string, keys [][]byte) ZRec {
-	scr, Out, errb, rc, err := harness.ZSession(binary, keys, "xterm", args, 24, 80, 8*time.Second)
+func CoreRecord(binary string, args []string, keys [][]byte) CoreRec {
+	scr, Out, errb, rc, err := harness.CoreSession(binary, keys, "xterm", args, 24, 80, 8*time.Second)
 	if err == harness.ErrBlocked {
 		// `vim -` reads the keystroke file as buffer text and then waits for
 		// keys that never come.  That is a recording, not a crash.
 		Body := "took the input over and never returned"
-		return ZRec{harness.Section("blocked", &Body), nil, 0}
+		return CoreRec{harness.Section("blocked", &Body), nil, 0}
 	}
 	if err != nil {
-		return ZRec{"ERROR " + err.Error(), nil, 0}
+		return CoreRec{"ERROR " + err.Error(), nil, 0}
 	}
 	text := harness.Section(fmt.Sprintf("exit %d", rc), nil)
 	text += harness.Section(fmt.Sprintf("bells %d", scr.Bells), nil)
@@ -50,7 +50,7 @@ func ZRecord(binary string, args []string, keys [][]byte) ZRec {
 		d := s.Text
 		text += harness.Section(fmt.Sprintf("snap %d cursor=%d,%d bells=%d", i, s.Y, s.X, s.Bells), &d)
 	}
-	return ZRec{harness.Scrub(text), Out, scr.Bells}
+	return CoreRec{harness.Scrub(text), Out, scr.Bells}
 }
 
 // zRecordFiles is zRecord except that the run directory is LOOKED IN.
@@ -61,8 +61,8 @@ func ZRecord(binary string, args []string, keys [][]byte) ZRec {
 // because argv[0] decides what the editor is, the environment is emptied so no
 // vimrc is found, and the session is its own so a stop signal cannot reach the
 // caller's shell.
-func ZRecordFiles(binary string, args []string, keys [][]byte, timeout time.Duration) (string, map[string]int64) {
-	x := zRun(binary, args, keys, timeout, true)
+func CoreRecordFiles(binary string, args []string, keys [][]byte, timeout time.Duration) (string, map[string]int64) {
+	x := coreRun(binary, args, keys, timeout, true)
 	return x.Text, x.files
 }
 
@@ -71,8 +71,8 @@ func ZRecordFiles(binary string, args []string, keys [][]byte, timeout time.Dura
 // are drawn, followed by a Press ENTER prompt, and the next redraw wipes the
 // line before the cursor comes back -- which is where zscreen takes its
 // picture.  So those two live in the stream and in no snapshot.
-func ZRecordStream(binary string, args []string, keys [][]byte, timeout time.Duration) (string, string) {
-	x := zRun(binary, args, keys, timeout, false)
+func CoreRecordStream(binary string, args []string, keys [][]byte, timeout time.Duration) (string, string) {
+	x := coreRun(binary, args, keys, timeout, false)
 	return x.Text, x.stream
 }
 
@@ -81,8 +81,8 @@ func ZRecordStream(binary string, args []string, keys [][]byte, timeout time.Dur
 // check where the bell is not -- the key beeps from the same place every other
 // unused g/[/] key does, so the bell is identical either side and only the
 // snapshot count moves.
-func ZRecordSnaps(binary string, args []string, keys [][]byte, timeout time.Duration) (string, string, int) {
-	x := zRun(binary, args, keys, timeout, false)
+func CoreRecordSnaps(binary string, args []string, keys [][]byte, timeout time.Duration) (string, string, int) {
+	x := coreRun(binary, args, keys, timeout, false)
 	return x.Text, x.stream, x.snaps
 }
 
@@ -91,8 +91,8 @@ func ZRecordSnaps(binary string, args []string, keys [][]byte, timeout time.Dura
 // runs Out of stdin and exits 1 on the binary that refuses, and exits 0 on the
 // one that quits.  No recording can see that -- every zcases case ends with a
 // trailing `:q!`, which quits both.
-func ZRecordFull(binary string, args []string, keys [][]byte, timeout time.Duration) (string, string, int, string, int) {
-	x := zRun(binary, args, keys, timeout, false)
+func CoreRecordFull(binary string, args []string, keys [][]byte, timeout time.Duration) (string, string, int, string, int) {
+	x := coreRun(binary, args, keys, timeout, false)
 	return x.Text, x.stream, x.snaps, x.Rc, x.bells
 }
 
@@ -100,16 +100,16 @@ func ZRecordFull(binary string, args []string, keys [][]byte, timeout time.Durat
 // which whim95 needs: change_warning() ends in ui_delay(1002L, TRUE), and a
 // second of wall clock is the clearest evidence there is that the warning was
 // really drawn and not merely a string in the binary.
-func ZRecordTimed(binary string, args []string, keys [][]byte, timeout time.Duration) (string, string, int64) {
-	x := zRun(binary, args, keys, timeout, false)
+func CoreRecordTimed(binary string, args []string, keys [][]byte, timeout time.Duration) (string, string, int64) {
+	x := coreRun(binary, args, keys, timeout, false)
 	return x.Text, x.stream, x.ms
 }
 
-// zRes is everything one run can say.  It is a struct and not six positional
+// coreRes is everything one run can say.  It is a struct and not six positional
 // returns because five shapes of recorder had already made the tuple
 // unreadable, and each new check needs one more field rather than one more
 // arity.
-type zRes struct {
+type coreRes struct {
 	Text   string
 	files  map[string]int64
 	stream string
@@ -119,10 +119,10 @@ type zRes struct {
 	ms     int64
 }
 
-func zRun(binary string, args []string, keys [][]byte, timeout time.Duration, withFiles bool) zRes {
+func coreRun(binary string, args []string, keys [][]byte, timeout time.Duration, withFiles bool) coreRes {
 	vim, err := harness.Stage(binary)
 	if err != nil {
-		return zRes{Text: "ERROR " + err.Error()}
+		return coreRes{Text: "ERROR " + err.Error()}
 	}
 	home, _ := os.MkdirTemp("", "zrun-home-")
 	defer os.RemoveAll(home)
@@ -135,7 +135,7 @@ func zRun(binary string, args []string, keys [][]byte, timeout time.Duration, wi
 	}
 	os.WriteFile(kf, buf, 0o644)
 
-	env := Z2Env(home)
+	env := W85Env(home)
 	for i := 0; i < len(env); i++ {
 		if strings.HasPrefix(env[i], "LINES=") || strings.HasPrefix(env[i], "COLUMNS=") {
 			env = append(env[:i], env[i+1:]...)
@@ -154,7 +154,7 @@ func zRun(binary string, args []string, keys [][]byte, timeout time.Duration, wi
 	harness.Setsid(c)
 	done := make(chan error, 1)
 	if err := c.Start(); err != nil {
-		return zRes{Text: "ERROR " + err.Error()}
+		return coreRes{Text: "ERROR " + err.Error()}
 	}
 	t0 := time.Now()
 	go func() { done <- c.Wait() }()
@@ -200,7 +200,7 @@ func zRun(binary string, args []string, keys [][]byte, timeout time.Duration, wi
 		dd := s.Text
 		text += harness.Section(fmt.Sprintf("snap %d cursor=%d,%d bells=%d", i, s.Y, s.X, s.Bells), &dd)
 	}
-	return zRes{harness.Scrub(text), left, string(Out), len(scr.Snaps), rcText, scr.Bells, ms}
+	return coreRes{harness.Scrub(text), left, string(Out), len(scr.Snaps), rcText, scr.Bells, ms}
 }
 
 // pyDict is Python's %r of a dict of name -> size, which is what the record
@@ -222,25 +222,25 @@ func PyDict(m map[string]int64) string {
 	return "{" + strings.Join(parts, ", ") + "}"
 }
 
-// A WHOLE RECORDING IS harness.ZRecord AND NOT A SHELL, and these are the two
+// A WHOLE RECORDING IS harness.CoreRecord AND NOT A SHELL, and these are the two
 // shapes a check asks for one in.  tools/zrecord.sh was a shell that started
 // six children; the six are goroutines in this process now, and a check that
 // wants a recording says so rather than naming a path.
 
-// RecZ is RecCmd for a whole recording: the same run, the output kept, and an
+// RecCore is RecCmd for a whole recording: the same run, the output kept, and an
 // error that carries it so RecReport can tell which recording died.
-func RecZ(bin, src, out string) error {
+func RecCore(bin, src, out string) error {
 	j := NewRecFunc("the recording into "+recBase(out),
 		fmt.Sprintf("zrecord %s %s %s", bin, src, out),
-		func(w io.Writer) error { return harness.ZRecord(bin, src, out, w) }).Run()
+		func(w io.Writer) error { return harness.CoreRecord(bin, src, out, w) }).Run()
 	if j.Failed() {
 		return &recError{j}
 	}
 	return nil
 }
 
-// RunZ is Run for a whole recording: its own refusal message is its output, so
+// RunCore is Run for a whole recording: its own refusal message is its output, so
 // nothing is added here.
-func RunZ(w io.Writer, bin, src, out string) error {
-	return harness.ZRecord(bin, src, out, w)
+func RunCore(w io.Writer, bin, src, out string) error {
+	return harness.CoreRecord(bin, src, out, w)
 }

@@ -9,11 +9,11 @@ import (
 	"time"
 )
 
-// zargvKeys is what every invocation is typed: escape out of whatever mode the
+// coreArgvKeys is what every invocation is typed: escape out of whatever mode the
 // command line left the editor in, then quit without writing.
-var zargvKeys = [][]byte{[]byte("\x1b:q!\r")}
+var coreArgvKeys = [][]byte{[]byte("\x1b:q!\r")}
 
-// zargvInvocations is every command line the parser may see.
+// coreArgvInvocations is every command line the parser may see.
 //
 // It is a RECORDING and not a test of correctness: what each answers is
 // whatever the editor does, and a phase that removes an option declares the
@@ -21,7 +21,7 @@ var zargvKeys = [][]byte{[]byte("\x1b:q!\r")}
 // errors -- `-T` with no argument, `--` alone -- since a phase can move the
 // MESSAGE without moving the outcome, which phase 122 did when the
 // enumerators behind ME_ARG_MISSING and ME_GARBAGE went.
-var zargvInvocations = [][]string{
+var coreArgvInvocations = [][]string{
 	{}, {"+q!"}, {"+set nu", "+q!"}, {"+set nu"},
 	{"-T", "xterm"}, {"-T"}, {"-Txterm"}, {"-T", "no-such-term-9x"},
 	{"-e"}, {"-E"}, {"-e", "-s"}, {"-v"}, {"-"}, {"--"}, {"--ttyfail"},
@@ -30,16 +30,16 @@ var zargvInvocations = [][]string{
 	{"+"}, {"+q!", "f.txt"}, {"--", "+q!"},
 }
 
-// ZArgv records every command line the parser may see.
-func ZArgv(bin, out string, w io.Writer) error {
+// CoreArgv records every command line the parser may see.
+func CoreArgv(bin, out string, w io.Writer) error {
 	start := time.Now()
-	rows := make([]string, len(zargvInvocations))
+	rows := make([]string, len(coreArgvInvocations))
 	var wg sync.WaitGroup
-	for i, args := range zargvInvocations {
+	for i, args := range coreArgvInvocations {
 		wg.Add(1)
 		go func(i int, args []string) {
 			defer wg.Done()
-			rows[i] = zargvOne(bin, args)
+			rows[i] = coreArgvOne(bin, args)
 		}(i, args)
 	}
 	wg.Wait()
@@ -51,14 +51,14 @@ func ZArgv(bin, out string, w io.Writer) error {
 	return nil
 }
 
-func zargvOne(bin string, args []string) string {
+func coreArgvOne(bin string, args []string) string {
 	name := "(none)"
 	if len(args) > 0 {
 		name = strings.Join(args, " ")
 	}
 	row := "=== " + name + "\n"
 
-	_, stdout, stderr, rc, err := ZSession(bin, zargvKeys, "xterm", args, 24, 80, 5*time.Second)
+	_, stdout, stderr, rc, err := CoreSession(bin, coreArgvKeys, "xterm", args, 24, 80, 5*time.Second)
 	if err == ErrBlocked {
 		body := "took the input over and never returned"
 		return row + Section("blocked", &body)

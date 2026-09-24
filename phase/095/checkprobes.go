@@ -10,11 +10,11 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-const z12W10 = "W10: Warning: Changing a readonly file"
+const w95W10 = "W10: Warning: Changing a readonly file"
 
-var z12GoneOpts = []string{"ro", "fsync", "write", "wa", "undoreload", "prompt"}
+var w95GoneOpts = []string{"ro", "fsync", "write", "wa", "undoreload", "prompt"}
 
-func z12Probes(r *check.Rep, old, bin string) error {
+func w95Probes(r *check.Rep, old, bin string) error {
 	esc, cr := []byte("\x1b"), []byte("\r")
 	quit := []byte("\x1b:q!\r")
 	hello := []byte("hello")
@@ -27,9 +27,9 @@ func z12Probes(r *check.Rep, old, bin string) error {
 	plain := func(keys ...[]byte) ([]string, [][]byte) {
 		return []string{"+set paste"}, append(append([][]byte{[]byte(":set nopaste\r")}, keys...), quit)
 	}
-	var probes []check.Z6Probe
+	var probes []check.W89Probe
 	add := func(name string, a []string, k [][]byte, d bool) {
-		probes = append(probes, check.Z6Probe{Name: name, Args: a, Keys: k, Differ: d})
+		probes = append(probes, check.W89Probe{Name: name, Args: a, Keys: k, Differ: d})
 	}
 	b := func(s string) []byte { return []byte(s) }
 
@@ -75,7 +75,7 @@ func z12Probes(r *check.Rep, old, bin string) error {
 	add("undo_case", a, k, false)
 	a, k = typed(append(append(b("alpha"), cr...), b("beta")...), b("0dwA-tail\x1b"), b("u"), b("yyp"))
 	add("editing", a, k, false)
-	for _, n := range z12GoneOpts {
+	for _, n := range w95GoneOpts {
 		a, k = plain(b(":set " + n + "?\r"))
 		add("q_"+n, a, k, true)
 	}
@@ -90,10 +90,10 @@ func z12Probes(r *check.Rep, old, bin string) error {
 	var wg sync.WaitGroup
 	for i, p := range probes {
 		wg.Add(1)
-		go func(i int, p check.Z6Probe) {
+		go func(i int, p check.W89Probe) {
 			defer wg.Done()
-			ot, os_, oms := check.ZRecordTimed(old, p.Args, p.Keys, 10*time.Second)
-			nt, ns, nms := check.ZRecordTimed(bin, p.Args, p.Keys, 10*time.Second)
+			ot, os_, oms := check.CoreRecordTimed(old, p.Args, p.Keys, 10*time.Second)
+			nt, ns, nms := check.CoreRecordTimed(bin, p.Args, p.Keys, 10*time.Second)
 			outs[i] = outcome{p.Name, ot, nt, os_, ns, oms, nms, p.Differ}
 		}(i, p)
 	}
@@ -117,13 +117,13 @@ func z12Probes(r *check.Rep, old, bin string) error {
 		}
 	}
 	o := by["ro_w10"]
-	if !strings.Contains(o.oS, z12W10) {
+	if !strings.Contains(o.oS, w95W10) {
 		fail = append(fail, "ro_w10: the input binary did not warn, so this proves nothing -- change_warning() returns early on b_did_warn || curbufIsChanged(), so the buffer must be UNMODIFIED when `:set ro` runs")
 	}
 	if o.oMs < 500 {
 		fail = append(fail, fmt.Sprintf("ro_w10: the input binary took %d ms and the warning ends in ui_delay(1002L, TRUE); under half a second means it never drew it", o.oMs))
 	}
-	if strings.Contains(o.nS, z12W10) {
+	if strings.Contains(o.nS, w95W10) {
 		fail = append(fail, "ro_w10: this binary still warns")
 	}
 	if o.nMs > 400 {
@@ -162,7 +162,7 @@ func z12Probes(r *check.Rep, old, bin string) error {
 	if !strings.Contains(o.nS, "paste") || !strings.Contains(o.nS, "modified") {
 		fail = append(fail, "set_all: 'paste' or 'modified' is no longer listed, and both stay")
 	}
-	for _, n := range z12GoneOpts {
+	for _, n := range w95GoneOpts {
 		o := by["q_"+n]
 		if strings.Contains(o.oS, "E518") {
 			fail = append(fail, fmt.Sprintf(":set %s? already answered E518 before this phase, so it proves nothing", n))

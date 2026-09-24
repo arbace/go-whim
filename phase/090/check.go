@@ -28,7 +28,7 @@ package p090
 // an E222 string -- and `readfile`, `read_buffer`, `read_edit`, `readonly`
 // and `filter` all survive at their own counts.  This phase removes
 // `:read`, not reading.  (`shell` was in that list until the canonical text
-// let a Part I phase finish emptying p_bo_values[]; see z7Kept.)
+// let a Part I phase finish emptying p_bo_values[]; see w90Kept.)
 // * `E32: No file name` SURVIVES, still reachable through check_fname() from
 // do_ecmd(); `E484: Can't open file` does NOT -- ex_read was its last
 // speaker, and after this phase nothing in the file says it.  Both are
@@ -103,15 +103,15 @@ import (
 
 func init() { check.Register("whim90", Check) }
 
-var z7GoneWords = []string{"ex_read", "do_bang", "do_shell", "do_filter", "check_secure",
+var w90GoneWords = []string{"ex_read", "do_bang", "do_shell", "do_filter", "check_secure",
 	"prevcmd_is_set", "prevcmd", "CMD_read", "usefilter"}
 
-// z7GoneStrings lose their last speaker.  `"read"` is the command name; the four
+// w90GoneStrings lose their last speaker.  `"read"` is the command name; the four
 // errors were said by the five functions above and by nothing else.
-var z7GoneStrings = []string{`"read"`, "E484: Can't open file", "E319: Sorry",
+var w90GoneStrings = []string{`"read"`, "E484: Can't open file", "E319: Sorry",
 	"E34: No previous command", "E12: Command not allowed"}
 
-// z7Kept is the BARE WORDS, each with the reason it is not this phase's.  A loop
+// w90Kept is the BARE WORDS, each with the reason it is not this phase's.  A loop
 // that wanted zero for any of these would fail on a correct phase.
 //
 // `shell` was one of them and is not any more, and the reason is a measurement
@@ -124,12 +124,12 @@ var z7GoneStrings = []string{`"read"`, "E484: Can't open file", "E319: Sorry",
 // `"wildmode"` between q41 and q63.  Measured on this branch: `grep -cw shell`
 // is 0 in q82, q86, q88 and q89 -- the word is gone from the file before this
 // phase is handed anything, so there is no site left here to pin.
-var z7Kept = map[string]int{
+var w90Kept = map[string]int{
 	"secure": 11, "read": 3, "readfile": 5, "read_buffer": 17, "open_buffer": 6,
 	"read_edit": 2, "readonly": 4, "filter": 2, "check_fname": 4,
 }
 
-var z7Later = []string{"check_changed", "do_ecmd", "setfname", "otherfile", "fix_fname",
+var w90Later = []string{"check_changed", "do_ecmd", "setfname", "otherfile", "fix_fname",
 	"b_ffname", "b_fname", "getexline", "exe_commands", "nv_error"}
 
 // Whim90 is phase 90's check: the way to read a file.
@@ -149,12 +149,12 @@ func Check(w io.Writer, args []string) error {
 	stop := func(format string, a ...any) error { r.Say(format, a...); return harness.ErrReported }
 
 	// --- 1. what the sweep took ----------------------------------------------
-	for _, g := range z7GoneWords {
+	for _, g := range w90GoneWords {
 		if n := check.CountWord(src, g); n != 0 {
 			return stop("'%s' still has %d mentions", g, n)
 		}
 	}
-	for _, g := range z7GoneStrings {
+	for _, g := range w90GoneStrings {
 		if n := check.CountLinesWith(src, g); n != 0 {
 			return stop("the string '%s' still has %d mentions", g, n)
 		}
@@ -166,13 +166,13 @@ func Check(w io.Writer, args []string) error {
 	count := func(t, name string) int {
 		return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).FindAllString(t, -1))
 	}
-	names := make([]string, 0, len(z7Kept))
-	for n := range z7Kept {
+	names := make([]string, 0, len(w90Kept))
+	for n := range w90Kept {
 		names = append(names, n)
 	}
 	sort.Strings(names)
 	for _, name := range names {
-		want := z7Kept[name]
+		want := w90Kept[name]
 		if k := count(newT, name); k != want {
 			why := "something survived that should not have"
 			if k < want {
@@ -190,15 +190,15 @@ func Check(w io.Writer, args []string) error {
 	if strings.Contains(newT, "E484: Can't open file") {
 		fail = append(fail, "E484: Can't open file survives, and ex_read was its last speaker")
 	}
-	for _, kept := range z7Later {
+	for _, kept := range w90Later {
 		if count(newT, kept) == 0 {
 			fail = append(fail, fmt.Sprintf("%s went, and it is a later phase's", kept))
 		}
 	}
-	if !check.Z7QRow.MatchString(newT) {
+	if !check.W90QRow.MatchString(newT) {
 		fail = append(fail, "the 'Q' row is no longer nv_error's, and phase 87 put it there")
 	}
-	rows := check.Z6RowRe.FindAllString(newT, -1)
+	rows := check.W89RowRe.FindAllString(newT, -1)
 	got, _ := harness.CommandNamesIn(src, "whim-vim.c")
 	if len(rows) != 104 || len(got) != 104 {
 		fail = append(fail, fmt.Sprintf("cmdnames[] has %d rows and names() reads %d; both must be 104", len(rows), len(got)))
@@ -275,9 +275,9 @@ func Check(w io.Writer, args []string) error {
 	(&check.Rep{Tag: "build", W: w}).Say("ok, %s -> %d lines, %d bytes", beforeLines, check.CountLines(now), check.SizeOf(bin))
 
 	// --- 5. the probes, on both binaries -------------------------------------
-	if err := z7Probes(r, old, bin); err != nil {
+	if err := w90Probes(r, old, bin); err != nil {
 		return err
 	}
 	// --- 6. a real terminal, and a file the runner wrote ---------------------
-	return z7Pty(r, old, bin)
+	return w90Pty(r, old, bin)
 }

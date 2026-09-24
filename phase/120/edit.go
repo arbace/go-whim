@@ -90,14 +90,14 @@ import (
 func init() { edit.Register("whim120", Edit) }
 
 var (
-	z37Inc  = regexp.MustCompile(`^ *# *include <([A-Za-z0-9_/.]+)>$`)
-	z37Dir  = regexp.MustCompile(`^ *#`)
-	z37Word = regexp.MustCompile(`\bunion\b`)
-	z37Tail = regexp.MustCompile(`^([ \t]*)([A-Za-z_]\w*)[ \t]*;`)
-	z37Decl = regexp.MustCompile(`(?s)^(.*?)([A-Za-z_]\w*)[ \t]*;$`)
+	w120Inc  = regexp.MustCompile(`^ *# *include <([A-Za-z0-9_/.]+)>$`)
+	w120Dir  = regexp.MustCompile(`^ *#`)
+	w120Word = regexp.MustCompile(`\bunion\b`)
+	w120Tail = regexp.MustCompile(`^([ \t]*)([A-Za-z_]\w*)[ \t]*;`)
+	w120Decl = regexp.MustCompile(`(?s)^(.*?)([A-Za-z_]\w*)[ \t]*;$`)
 )
 
-type z37Union struct {
+type w120Union struct {
 	line        int
 	Name        string
 	members     int
@@ -109,7 +109,7 @@ type z37Union struct {
 	accessors   int
 }
 
-type z37Edit struct {
+type w120Edit struct {
 	a, b int
 	rep  string
 }
@@ -142,7 +142,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// ---- 0. the file this edit was written against ----------------------------
 	var d []int
 	for i, l := range lines {
-		if z37Dir.MatchString(l) {
+		if w120Dir.MatchString(l) {
 			d = append(d, i)
 		}
 	}
@@ -157,7 +157,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	for _, i := range d {
-		if !z37Inc.MatchString(lines[i]) {
+		if !w120Inc.MatchString(lines[i]) {
 			return nil, p.Die("a directive is not an `#include <...>` of a system header, and no phase may add " +
 				"one")
 		}
@@ -187,8 +187,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p.Sayf("%d string and character literals scanned, so every span below is over code", len(spans))
 
 	// ---- 2. every union in the file, and which of them union nothing ----------
-	var unions []*z37Union
-	for _, m := range z37Word.FindAllStringIndex(t, -1) {
+	var unions []*w120Union
+	for _, m := range w120Word.FindAllStringIndex(t, -1) {
 		if inLiteral(m[0]) {
 			return nil, p.Die("a literal holds the word `union` at line %d, which no literal in this file "+
 				"ever has", lineOf(t, m[0]))
@@ -219,7 +219,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if k >= len(t) {
 			return nil, p.Die("the union at line %d never closes", lineOf(t, m[0]))
 		}
-		tail := z37Tail.FindStringSubmatchIndex(t[k+1:])
+		tail := w120Tail.FindStringSubmatchIndex(t[k+1:])
 		if tail == nil {
 			return nil, p.Die("the union at line %d does not end `} <name>;`, and this phase rewrites only "+
 				"a union declared as one named field", lineOf(t, m[0]))
@@ -228,7 +228,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if strings.TrimSpace(t[start:m[0]]) != "" {
 			return nil, p.Die("the union at line %d does not begin its line", lineOf(t, m[0]))
 		}
-		unions = append(unions, &z37Union{
+		unions = append(unions, &w120Union{
 			line: lineOf(t, m[0]), Name: t[k+1+tail[4] : k+1+tail[5]], members: members,
 			indent: t[start:m[0]], start: start, Body: t[j+1 : k], end: k + 1 + tail[1],
 		})
@@ -240,7 +240,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				"CORE")
 		}
 	}
-	var degenerate, genuine []*z37Union
+	var degenerate, genuine []*w120Union
 	for _, u := range unions {
 		if u.members < 2 {
 			degenerate = append(degenerate, u)
@@ -272,12 +272,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p.Sayf("THE %d THAT GO UNION NOTHING WITH ANYTHING: %s", len(degenerate), strings.Join(ds, ", "))
 
 	// ---- 3. the partition -----------------------------------------------------
-	var edits []z37Edit
+	var edits []w120Edit
 	var report []string
 	for _, u := range degenerate {
 		if u.members != 0 {
 			decl := strings.TrimSpace(u.Body)
-			mm := z37Decl.FindStringSubmatch(decl)
+			mm := w120Decl.FindStringSubmatch(decl)
 			if mm == nil || strings.Contains(decl, "\n") {
 				return nil, p.Die("the single member of `%s` is not one `<type> <name>;` on one line: %s",
 					u.Name, cutil.PyRepr(decl))
@@ -295,9 +295,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			case u.start <= m[0] && m[0] < u.end:
 				// its own declaration, which this edit rewrites
 			case u.member != "" && strings.HasPrefix(t[m[1]:], "."+u.member) &&
-				!z37IsIdent(z37At(t, m[1]+1+len(u.member))):
+				!w120IsIdent(w120At(t, m[1]+1+len(u.member))):
 				acc++
-				edits = append(edits, z37Edit{m[1], m[1] + 1 + len(u.member), ""})
+				edits = append(edits, w120Edit{m[1], m[1] + 1 + len(u.member), ""})
 			default:
 				lo := m[0] - 40
 				if lo < 0 {
@@ -331,13 +331,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		u.accessors = acc
 		report = append(report, fmt.Sprintf("%s 1 + %d", u.Name, acc))
 		if u.members != 0 {
-			edits = append(edits, z37Edit{u.start, u.end, u.replacement})
+			edits = append(edits, w120Edit{u.start, u.end, u.replacement})
 		} else {
-			if z37At(t, u.end) != '\n' {
+			if w120At(t, u.end) != '\n' {
 				return nil, p.Die("the empty union `%s` does not end its line, so deleting it would take "+
 					"code with it", u.Name)
 			}
-			edits = append(edits, z37Edit{u.start, u.end + 1, ""})
+			edits = append(edits, w120Edit{u.start, u.end + 1, ""})
 		}
 	}
 	p.Sayf("THE PARTITION HOLDS FOR ALL %d: every mention outside a literal is the "+
@@ -374,7 +374,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- 5. what the file is now ----------------------------------------------
 	L := strings.Split(t, "\n")
-	left := z37Word.FindAllString(t, -1)
+	left := w120Word.FindAllString(t, -1)
 	if len(left) != len(genuine) {
 		return nil, p.Die("the file has %d `union` keywords and the %d genuine ones are what must remain",
 			len(left), len(genuine))
@@ -401,7 +401,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	var nd []int
 	for i, l := range L {
-		if z37Dir.MatchString(l) {
+		if w120Dir.MatchString(l) {
 			nd = append(nd, i)
 		}
 	}
@@ -422,15 +422,15 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return []byte(t), nil
 }
 
-func z37At(s string, i int) byte {
+func w120At(s string, i int) byte {
 	if i < 0 || i >= len(s) {
 		return 0
 	}
 	return s[i]
 }
 
-// z37IsIdent is the Python's `(c or ' ').isalnum() or c == '_'`: the byte after
+// w120IsIdent is the Python's `(c or ' ').isalnum() or c == '_'`: the byte after
 // a `.member` access must not continue the identifier.
-func z37IsIdent(c byte) bool {
+func w120IsIdent(c byte) bool {
 	return c == '_' || (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
 }

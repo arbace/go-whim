@@ -76,16 +76,16 @@ import (
 
 func init() { edit.Register("whim92", Edit) }
 
-// z9Before is the file the four anchors were counted against.
-var z9Before = map[string]int{
+// w92Before is the file the four anchors were counted against.
+var w92Before = map[string]int{
 	"readfile": 5, "read_buffer": 17, "read_stdin": 23, "read_fifo": 9,
 	"check_readonly": 4, "msg_scrolled_ign": 6, "filemess": 11, "read_cmd_fd": 12,
 }
 
-// z9After is what the sweep is handed, as a count rather than as trust.
-var z9After = map[string]int{"readfile": 3, "read_buffer": 15, "read_stdin": 20, "read_fifo": 4}
+// w92After is what the sweep is handed, as a count rather than as trust.
+var w92After = map[string]int{"readfile": 3, "read_buffer": 15, "read_stdin": 20, "read_fifo": 4}
 
-var z9Assign = regexp.MustCompile(`\bretval\b\s*=[^=]`)
+var w92Assign = regexp.MustCompile(`\bretval\b\s*=[^=]`)
 
 // Whim92 takes the machinery under every way to name a file: readfile(),
 // read_buffer() and the message layer that reported what had been read.
@@ -109,7 +109,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		k := strings.Count(Body, old)
 		if k != n {
 			return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-				what, cutil.PyRepr(edit.ZHead(old, 60)), k, fn, n)
+				what, cutil.PyRepr(edit.CoreHead(old, 60)), k, fn, n)
 		}
 		p.Say(what)
 		return []byte(string(t[:a]) + strings.ReplaceAll(Body, old, new) + string(t[z:])), nil
@@ -124,38 +124,38 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"`(void)open_buffer(FALSE, eap, readfile_flags);`, which anchor 4 would not "+
 			"rewrite.  This phase needs swept text", k)
 	}
-	for _, name := range edit.SortedKeys(z9Before) {
-		if k := mentions(text, name); k != z9Before[name] {
+	for _, name := range edit.SortedKeys(w92Before) {
+		if k := mentions(text, name); k != w92Before[name] {
 			return nil, p.Die("%s has %d mentions, expected %d -- the anchors below were counted "+
-				"against a different file", name, k, z9Before[name])
+				"against a different file", name, k, w92Before[name])
 		}
 	}
 	p.Say("open_buffer 5, readfile 5, read_buffer 17, read_stdin 23 -- the file the four " +
 		"anchors were counted against")
 
 	// ---- 1. the two arms, which hold every call into the read path ------------
-	if text, err = within(text, "open_buffer", z9Arms, "",
+	if text, err = within(text, "open_buffer", w92Arms, "",
 		"open_buffer's two read arms, 36 lines: both calls to readfile(), both "+
 			"to read_buffer(), and the fifo test between them", 1); err != nil {
 		return nil, err
 	}
 	// ---- 2. read_fifo, written nowhere now ------------------------------------
-	if text, err = within(text, "open_buffer", z9lit1, "",
+	if text, err = within(text, "open_buffer", w92lit1, "",
 		"the read_fifo local: anchor 1 was its only writer", 1); err != nil {
 		return nil, err
 	}
 	// ---- 3. the unchanged() test, where its second reader was -----------------
-	if text, err = within(text, "open_buffer", z9lit2, z9lit3,
+	if text, err = within(text, "open_buffer", w92lit2, w92lit3,
 		"the unchanged() arm: !read_stdin and !read_fifo were both constantly true", 1); err != nil {
 		return nil, err
 	}
 	// ---- 4. the signature, and the four callers -------------------------------
-	if text, err = within(text, "open_buffer", z9lit4, z9lit5,
+	if text, err = within(text, "open_buffer", w92lit4, w92lit5,
 		"open_buffer(void): read_stdin, eap and flags_arg are read by nothing "+
 			"now, and there is no prototype to follow", 1); err != nil {
 		return nil, err
 	}
-	if text, err = within(text, "open_buffer", z9lit6, "",
+	if text, err = within(text, "open_buffer", w92lit6, "",
 		"the flags local, which only the deleted arms passed on", 1); err != nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, p.Die("%s is still named inside open_buffer", gone)
 		}
 	}
-	assigns := len(z9Assign.FindAll(Body, -1))
+	assigns := len(w92Assign.FindAll(Body, -1))
 	if assigns != 1 || mentions(Body, "retval") != 5 {
 		return nil, p.Die("retval is assigned %d times in open_buffer and mentioned %d: this phase "+
 			"leaves exactly one assignment, the initialiser, and 5 mentions",
@@ -190,9 +190,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"the two ml_ guards can never hold -- left for a later tidy, not folded here",
 		strings.Count(string(Body), "\n"))
 
-	for _, name := range edit.SortedKeys(z9After) {
-		if k := mentions(text, name); k != z9After[name] {
-			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, z9After[name])
+	for _, name := range edit.SortedKeys(w92After) {
+		if k := mentions(text, name); k != w92After[name] {
+			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, w92After[name])
 		}
 	}
 	p.Say("readfile 5 -> 3 and read_buffer 17 -> 15, and the survivors are not calls: a " +

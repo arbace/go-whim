@@ -71,7 +71,7 @@ func ownersOf(lines []string) []string {
 	return out
 }
 
-// ZHostOnly asserts a PLACE rather than a count: every mention of every host
+// CoreHostOnly asserts a PLACE rather than a count: every mention of every host
 // word must be inside the host block.
 //
 // Inside one translation unit, moving a call from the core into the host frees
@@ -80,7 +80,7 @@ func ownersOf(lines []string) []string {
 // assertion.  Like the two floors elsewhere it refuses to pass vacuously: the
 // host region must be found, must define all of its functions, and must itself
 // mention the words it is supposed to own.
-func ZHostOnly(path string, quiet bool, w io.Writer) error {
+func CoreHostOnly(path string, quiet bool, w io.Writer) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return err

@@ -117,13 +117,13 @@ import (
 
 func init() { check.Register("whim123", Check) }
 
-type z40Mark struct{ Name, anchor, Where, Cond, extra string }
+type w123Mark struct{ Name, anchor, Where, Cond, extra string }
 
-const z40Page = "        page_count = ((space_needed + (__builtin_offsetof(DATA_BL, db_index))) + page_size - 1) / page_size;\n"
+const w123Page = "        page_count = ((space_needed + (__builtin_offsetof(DATA_BL, db_index))) + page_size - 1) / page_size;\n"
 
-var z40Marks = []z40Mark{
-	{"MLSPLITDATA", z40Page, "before", "", ""},
-	{"MLBIGLINE", z40Page, "after", "page_count > 1", ""},
+var w123Marks = []w123Mark{
+	{"MLSPLITDATA", w123Page, "before", "", ""},
+	{"MLBIGLINE", w123Page, "after", "page_count > 1", ""},
 	{"MLSPLITPTR", "                hp_new = ml_new_ptr(mfp);\n", "before", "", "        ++zprobe_ptr;\n"},
 	{"MLSIBSPLIT", "                if (hp->bh_hashitem.mhi_key != 1)\n                {\n                    break;\n                }\n", "before", "zprobe_ptr == 1", ""},
 	{"MLSPLITROOT", "                musl_memmove((char *)(pp_new), (char *)(pp), (usize)page_size);\n", "before", "", ""},
@@ -131,21 +131,21 @@ var z40Marks = []z40Mark{
 	{"MLDEEP", "        if ((top = ml_add_stack(buf)) < 0)\n", "before", "++zprobe_lvl >= 2", ""},
 }
 
-var z40Decls = [][2]string{
+var w123Decls = [][2]string{
 	{"    bnum = 1;\n", "    int zprobe_lvl = 0;\n"},
 	{"            if (pp->pb_count < pp->pb_count_max)\n", "            int zprobe_ptr = 0;\n"},
 }
 
-// z40Probe is MARK_PY: seven once-per-process host_message() markers.
-func z40Probe(t string) (string, []string, error) {
-	for _, d := range z40Decls {
+// w123Probe is MARK_PY: seven once-per-process host_message() markers.
+func w123Probe(t string) (string, []string, error) {
+	for _, d := range w123Decls {
 		if n := strings.Count(t, d[0]); n != 1 {
 			return "", nil, fmt.Errorf("the probe anchor %s is in the source %d times, expected 1", check.PyRepr(strings.TrimSpace(d[0])), n)
 		}
 		t = strings.Replace(t, d[0], d[1]+d[0], 1)
 	}
 	var names []string
-	for _, m := range z40Marks {
+	for _, m := range w123Marks {
 		if n := strings.Count(t, m.anchor); n != 1 {
 			return "", nil, fmt.Errorf("the probe anchor for %s is in the source %d times, expected 1", m.Name, n)
 		}
@@ -164,7 +164,7 @@ func z40Probe(t string) (string, []string, error) {
 	return t, names, nil
 }
 
-var z40Ctl = map[string][][2]string{
+var w123Ctl = map[string][][2]string{
 	"descent": {{"            pp->pb_pointer[idx].pe_line_count--;\n", ""}},
 	"lineadd": {{"        pp->pb_pointer[ip->ip_index].pe_line_count += count;\n", ""}},
 	"cache": {{"            if (ip->ip_low <= lnum && ip->ip_high >= lnum)\n",
@@ -247,7 +247,7 @@ func Check(w io.Writer, args []string) error {
 	(&check.Rep{Tag: "symbols", W: w}).Say("`main` is still the only external symbol, over %d undefined", len(check.Lines(string(u))))
 
 	// --- 3. the corpus is sized against the source's own arithmetic --------
-	sizes, ok := z40Sizes(f, tmp)
+	sizes, ok := w123Sizes(f, tmp)
 	prefixed(w, "  arithmetic   ", sizes)
 	if !ok {
 		return harness.ErrReported
@@ -255,7 +255,7 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 4. the depth is reached, and the old corpus does not reach it -----
 	src := check.ReadFile(f)
-	probed, marks, perr := z40Probe(src)
+	probed, marks, perr := w123Probe(src)
 	if perr != nil {
 		(&check.Rep{Tag: "probe", W: w}).Say("the instrument could not be built from this source:")
 		fmt.Fprintln(w, "               "+perr.Error())
@@ -270,7 +270,7 @@ func Check(w io.Writer, args []string) error {
 	setup("probe", probed)
 	for _, c := range []string{"descent", "lineadd", "cache", "reshape", "clock"} {
 		t := src
-		for _, e := range z40Ctl[c] {
+		for _, e := range w123Ctl[c] {
 			if n := strings.Count(t, e[0]); n != 1 {
 				(&check.Rep{Tag: "ablefail", W: w}).Say("a control could not be made from this source:")
 				fmt.Fprintf(w, "               a %s control anchor is in the source %d times, expected 1\n", c, n)
@@ -280,7 +280,7 @@ func Check(w io.Writer, args []string) error {
 		}
 		setup(c, t)
 	}
-	reprobed, _, _ := z40Probe(check.ReadFile(T("reshape", "whim-vim.c")))
+	reprobed, _, _ := w123Probe(check.ReadFile(T("reshape", "whim-vim.c")))
 	setup("reprobe", reprobed)
 	dirs := []string{"probe", "descent", "lineadd", "cache", "reshape", "clock", "reprobe"}
 	errs := make([]error, len(dirs))
@@ -310,7 +310,7 @@ func Check(w io.Writer, args []string) error {
 			return harness.ErrReported
 		}
 	}
-	cover, deep, ok := z40Cover(T("probe-mem"), T("probe-screen"), marks)
+	cover, deep, ok := w123Cover(T("probe-mem"), T("probe-screen"), marks)
 	prefixed(w, "  probe        ", cover)
 	if !ok {
 		return harness.ErrReported
@@ -332,7 +332,7 @@ func Check(w io.Writer, args []string) error {
 			return harness.ErrReported
 		}
 	}
-	res, ok := z40Controls(run1, tmp, deep, T("probe-mem"), T("reprobe-mem"))
+	res, ok := w123Controls(run1, tmp, deep, T("probe-mem"), T("reprobe-mem"))
 	prefixed(w, "  ablefail     ", res)
 	if !ok {
 		fmt.Fprintln(w, "               A corpus that cannot fail is not evidence, and one that")
@@ -354,9 +354,9 @@ func Check(w io.Writer, args []string) error {
 	return nil
 }
 
-// z40Sizes is section 3: the block arithmetic lifted Out of the source and
+// w123Sizes is section 3: the block arithmetic lifted Out of the source and
 // compiled, and the corpus's sizes checked against it.
-func z40Sizes(src, tmp string) (string, bool) {
+func w123Sizes(src, tmp string) (string, bool) {
 	text := check.ReadFile(src)
 	var parts []string
 	for _, name := range []string{"char_u", "short_u", "linenr_T", "blocknr_T", "PTR_EN"} {
@@ -404,12 +404,12 @@ int main(void) {
 		v = append(v, n)
 	}
 	page, dataHdr, ptrHdr, ptrEn, idx := v[0], v[1], v[2], v[3], v[4]
-	lb := harness.ZmemLineBytes()
+	lb := harness.CoreMemLineBytes()
 	perBlock := (page - dataHdr) / (lb + 1 + idx)
 	pbMax := (page - ptrHdr) / ptrEn
 	rootSplit := (pbMax + 1) * perBlock
 	set := map[int]bool{}
-	for _, s := range harness.ZmemSizes() {
+	for _, s := range harness.CoreMemSizes() {
 		set[s] = true
 	}
 	var sizes []int
@@ -440,11 +440,11 @@ int main(void) {
 	return fmt.Sprintf("page %d, data header %d, index %d, PTR_EN %d: a %d-byte line packs %d to a block and pb_count_max is %d, so the root splits past %d lines\n"+
 		"%d cases build %s lines: %d past one block, %d past the root split",
 		page, dataHdr, idx, ptrEn, lb, perBlock, pbMax, rootSplit,
-		harness.ZmemCaseCount(), strings.Join(ss, ","), past1, pastRoot), true
+		harness.CoreMemCaseCount(), strings.Join(ss, ","), past1, pastRoot), true
 }
 
-// z40Read is every record in a directory, by name.
-func z40Read(d string) map[string]string {
+// w123Read is every record in a directory, by name.
+func w123Read(d string) map[string]string {
 	Out := map[string]string{}
 	e, _ := os.ReadDir(d)
 	for _, x := range e {
@@ -453,15 +453,15 @@ func z40Read(d string) map[string]string {
 	return Out
 }
 
-// z40Cover is section 4's heredoc: every marker in at least one memline
+// w123Cover is section 4's heredoc: every marker in at least one memline
 // record and in none of the screen cases; the deep cases, for section 6.
-func z40Cover(memdir, scrdir string, marks []string) (string, []string, bool) {
+func w123Cover(memdir, scrdir string, marks []string) (string, []string, bool) {
 	if len(marks) == 0 {
 		return "the probe placed no marker at all, so this check would be vacuous", nil, false
 	}
 	hits := func(d string) map[string]map[string]bool {
 		Out := map[string]map[string]bool{}
-		for n, t := range z40Read(d) {
+		for n, t := range w123Read(d) {
 			Out[n] = map[string]bool{}
 			for _, m := range marks {
 				if strings.Contains(t, m) {
@@ -529,8 +529,8 @@ func z40Cover(memdir, scrdir string, marks []string) (string, []string, bool) {
 		len(marks), len(mem), len(scr), strings.Join(counts, "  ")), deep, true
 }
 
-// z40Controls is section 6's heredoc.
-func z40Controls(run1, tmp string, deep []string, probeMem, reprobeMem string) (string, bool) {
+// w123Controls is section 6's heredoc.
+func w123Controls(run1, tmp string, deep []string, probeMem, reprobeMem string) (string, bool) {
 	moved := func(a, b map[string]string) []string {
 		set := map[string]bool{}
 		for n := range a {
@@ -550,12 +550,12 @@ func z40Controls(run1, tmp string, deep []string, probeMem, reprobeMem string) (
 		sort.Strings(Out)
 		return Out
 	}
-	baseMem, baseScr := z40Read(filepath.Join(run1, "memline")), z40Read(filepath.Join(run1, "screen"))
+	baseMem, baseScr := w123Read(filepath.Join(run1, "memline")), w123Read(filepath.Join(run1, "screen"))
 	corrupt := []string{"descent", "lineadd", "cache", "reshape"}
 	by, byscr := map[string][]string{}, map[string][]string{}
 	for _, c := range append(corrupt, "clock") {
-		by[c] = moved(baseMem, z40Read(filepath.Join(tmp, "mem-"+c)))
-		byscr[c] = moved(baseScr, z40Read(filepath.Join(tmp, "scr-"+c)))
+		by[c] = moved(baseMem, w123Read(filepath.Join(tmp, "mem-"+c)))
+		byscr[c] = moved(baseScr, w123Read(filepath.Join(tmp, "scr-"+c)))
 	}
 	var bad []string
 	for _, c := range corrupt {
@@ -587,7 +587,7 @@ func z40Controls(run1, tmp string, deep []string, probeMem, reprobeMem string) (
 	}
 	splits := func(d string) map[string]bool {
 		Out := map[string]bool{}
-		for n, t := range z40Read(d) {
+		for n, t := range w123Read(d) {
 			if strings.Contains(t, "MLSPLITROOT") {
 				Out[n] = true
 			}

@@ -120,7 +120,7 @@ func Check(w io.Writer, args []string) error {
 	e363 := func(bin string, mmp int) (bool, string) {
 		keys := [][]byte{[]byte("ic" + strings.Repeat("ab", 300) + "\x1b0"),
 			[]byte(":set mmp=" + strconv.Itoa(mmp) + "\r:s/a\\(a\\|b\\)*c/X/\r"), []byte(":q!\r")}
-		_, o, _, _, _ := harness.ZSession(bin, keys, "xterm", nil, 24, 80, 30*time.Second)
+		_, o, _, _, _ := harness.CoreSession(bin, keys, "xterm", nil, 24, 80, 30*time.Second)
 		return strings.Contains(string(o), "E363"), string(o)
 	}
 	lo, hi := 1, 1000

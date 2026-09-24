@@ -82,14 +82,14 @@ import (
 func init() { check.Register("whim105", Check) }
 
 const (
-	z22RoomC = "iobuff_room(void)\n{\n    if (IObuff == NULL)\n    {\n        return 0;\n    }\n    return  (1024+1) ;\n}"
-	z22ERoom = "emsg_iobuff_room(void)\n{\n    if (IObuff == NULL || emsg_not_now())\n    {\n        return 0;\n    }\n    return  (1024+1) ;\n}"
-	z22Or    = "iobuff_or(const char *s)\n{\n    if (IObuff == NULL)\n    {\n        return (char *)s;\n    }\n    return (char *)IObuff;\n}"
-	z22Clamp = "    return ((size_t)str_l >= str_m) ? str_m - 1 : (size_t)str_l;"
+	w105RoomC = "iobuff_room(void)\n{\n    if (IObuff == NULL)\n    {\n        return 0;\n    }\n    return  (1024+1) ;\n}"
+	w105ERoom = "emsg_iobuff_room(void)\n{\n    if (IObuff == NULL || emsg_not_now())\n    {\n        return 0;\n    }\n    return  (1024+1) ;\n}"
+	w105Or    = "iobuff_or(const char *s)\n{\n    if (IObuff == NULL)\n    {\n        return (char *)s;\n    }\n    return (char *)IObuff;\n}"
+	w105Clamp = "    return ((size_t)str_l >= str_m) ? str_m - 1 : (size_t)str_l;"
 )
 
-// z22Tails is re.subn(r'(?<![A-Za-z0-9_])emsg\(iobuff_or\(', 'msg(iobuff_or(', t).
-func z22Tails(t string) (string, int) {
+// w105Tails is re.subn(r'(?<![A-Za-z0-9_])emsg\(iobuff_or\(', 'msg(iobuff_or(', t).
+func w105Tails(t string) (string, int) {
 	const want = "emsg(iobuff_or("
 	var b strings.Builder
 	n, i := 0, 0
@@ -131,26 +131,26 @@ func Check(w io.Writer, args []string) error {
 	}
 	defer os.RemoveAll(tmp)
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
-	cflags, ldflags := strings.Fields(check.Z9Flag(mk, "CFLAGS")), strings.Fields(check.Z9Flag(mk, "LDFLAGS"))
+	cflags, ldflags := strings.Fields(check.W92Flag(mk, "CFLAGS")), strings.Fields(check.W92Flag(mk, "LDFLAGS"))
 	newC, oldC := check.ReadFile(f), check.ReadFile(filepath.Join(state, "old.c"))
 	stop := func(format string, a ...any) error { r.Say(format, a...); return harness.ErrReported }
 
 	// --- 1. the four controls ------------------------------------------------
-	for _, t := range []string{z22RoomC, z22ERoom, z22Or, z22Clamp} {
+	for _, t := range []string{w105RoomC, w105ERoom, w105Or, w105Clamp} {
 		if strings.Count(newC, t) != 1 {
 			return stop("the helper `%s` is not in the output exactly once, so the controls below would not be controls", strings.TrimSpace(strings.SplitN(t, "(", 2)[0]))
 		}
 	}
 	ret20 := func(s string) string { return strings.ReplaceAll(s, "return  (1024+1) ;", "return 20;") }
-	b1 := strings.ReplaceAll(strings.ReplaceAll(newC, z22RoomC, ret20(z22RoomC)), z22ERoom, ret20(z22ERoom))
-	b2, n2 := z22Tails(newC)
+	b1 := strings.ReplaceAll(strings.ReplaceAll(newC, w105RoomC, ret20(w105RoomC)), w105ERoom, ret20(w105ERoom))
+	b2, n2 := w105Tails(newC)
 	if n2 != 94 {
 		return stop("b2 rewrote %d `emsg(iobuff_or(` tails, expected 94", n2)
 	}
-	b3 := strings.ReplaceAll(newC, z22Clamp, "    return (size_t)str_l;")
-	b4 := strings.ReplaceAll(newC, z22RoomC, "iobuff_room(void)\n{\n    return  (1024+1) ;\n}")
-	b4 = strings.ReplaceAll(b4, z22ERoom, "emsg_iobuff_room(void)\n{\n    return  (1024+1) ;\n}")
-	b4 = strings.ReplaceAll(b4, z22Or, "iobuff_or(const char *s)\n{\n    (void)s;\n    return (char *)IObuff;\n}")
+	b3 := strings.ReplaceAll(newC, w105Clamp, "    return (size_t)str_l;")
+	b4 := strings.ReplaceAll(newC, w105RoomC, "iobuff_room(void)\n{\n    return  (1024+1) ;\n}")
+	b4 = strings.ReplaceAll(b4, w105ERoom, "emsg_iobuff_room(void)\n{\n    return  (1024+1) ;\n}")
+	b4 = strings.ReplaceAll(b4, w105Or, "iobuff_or(const char *s)\n{\n    (void)s;\n    return (char *)IObuff;\n}")
 	for _, p := range [][2]string{{"b1", b1}, {"b2", b2}, {"b3", b3}, {"b4", b4}} {
 		if p[1] == newC {
 			return stop("%s changed nothing", p[0])
@@ -208,7 +208,7 @@ func Check(w io.Writer, args []string) error {
 		fail = append(fail, fmt.Sprintf("`va_start` has %d mentions, expected exactly 1 -- that single mention IS this phase", len(starts)))
 	} else {
 		owner := ""
-		for _, m := range check.Z22Head.FindAllStringSubmatchIndex(newC, -1) {
+		for _, m := range check.W105Head.FindAllStringSubmatchIndex(newC, -1) {
 			if m[0] < starts[0][0] {
 				owner = newC[m[2]:m[3]]
 			}
@@ -260,14 +260,14 @@ func Check(w io.Writer, args []string) error {
 			fail = append(fail, fmt.Sprintf("the declaration `%s` is not in the output exactly once", p))
 		}
 	}
-	rows := check.Z6RowRe.FindAllString(newC, -1)
+	rows := check.W89RowRe.FindAllString(newC, -1)
 	got, _ := harness.CommandNamesIn([]byte(newC), "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
 		fail = append(fail, "cmdnames[] is not the 98 rows phase 93 left -- this phase touches no Ex command")
 	}
 	if i := strings.Index(newC, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newC[i:], "\n};")
-		if m := len(check.Z12RowRe.FindAllString(newC[i:i+j], -1)); m != 107 {
+		if m := len(check.W95RowRe.FindAllString(newC[i:i+j], -1)); m != 107 {
 			fail = append(fail, fmt.Sprintf("options[] has %d rows, expected the 107 phase 103 left -- this phase removes no option", m))
 		}
 	}
@@ -309,7 +309,7 @@ func Check(w io.Writer, args []string) error {
 		txt := eb.String()
 		n := strings.Count(txt, "[-Wformat-nonliteral]")
 		var fns []string
-		for _, m := range check.Z22InFunc.FindAllStringSubmatch(txt, -1) {
+		for _, m := range check.W105InFunc.FindAllStringSubmatch(txt, -1) {
 			if m[1] != "" {
 				fns = append(fns, m[1])
 			} else {
@@ -452,7 +452,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	bin, _ := filepath.Abs(filepath.Join(work, "whim-vim"))
 	old, _ := filepath.Abs(filepath.Join(state, "old"))
-	typ, Interp, Dyn, Rel := check.Z22Readelf(bin)
+	typ, Interp, Dyn, Rel := check.W105Readelf(bin)
 	if typ != "EXEC" || Interp != 0 || Dyn != 1 || Rel != 1 {
 		(&check.Rep{Tag: "static", W: w}).Say("NOT absolutely static: type %s, INTERP %d, no-dynamic %d, no-relocations %d", typ, Interp, Dyn, Rel)
 		return harness.ErrReported
@@ -478,5 +478,5 @@ func Check(w io.Writer, args []string) error {
 	}
 
 	// --- 7. the probes -------------------------------------------------------
-	return z22Probes(r, old, bin, filepath.Join(tmp, "b1"), filepath.Join(tmp, "b2"), filepath.Join(tmp, "b3"), filepath.Join(tmp, "b4"))
+	return w105Probes(r, old, bin, filepath.Join(tmp, "b1"), filepath.Join(tmp, "b2"), filepath.Join(tmp, "b3"), filepath.Join(tmp, "b4"))
 }

@@ -117,30 +117,30 @@ import (
 
 func init() { check.Register("whim91", Check) }
 
-var z8GoneWords = []string{"do_ecmd", "get_visual_text", "check_lnums_both", "do_exedit",
+var w91GoneWords = []string{"do_ecmd", "get_visual_text", "check_lnums_both", "do_exedit",
 	"nv_gotofile", "grab_file_name", "prepare_help_buffer", "u_unch_branch",
 	"text_or_buf_locked", "reset_VIsual", "reset_VIsual_and_resel", "delbuf_msg",
 	"ex_edit", "u_unchanged", "otherfile", "check_lnums", "getargopt",
 	"CMD_edit", "CMD_enew", "CMD_ex", "CMD_view", "CMD_visual", "EX_ARGOPT", "read_edit"}
 
-var z8GoneStrings = []string{`"edit"`, `"enew"`, `"view"`, `"visual"`,
+var w91GoneStrings = []string{`"edit"`, `"enew"`, `"view"`, `"visual"`,
 	"E143: Autocommands unexpectedly deleted new buffer",
 	"E1546: Cannot switch to a closing buffer",
 	`!-~,^*,^|,^\",192-255`}
 
-var z8Kept = map[string]int{
+var w91Kept = map[string]int{
 	"readfile": 5, "read_buffer": 17, "open_buffer": 5, "otherfile_buf": 3,
 	"do_ecmd_cmd": 6, "do_ecmd_lnum": 2, "readonlymode": 5, "p_ur": 2,
 	"getargcmd": 3, "EX_CMDARG": 2, "check_changed": 4, "nv_error": 46,
 	"check_fname": 3, "b_ffname": 43, "b_fname": 37,
 }
 
-var z8Later = []string{"setfname", "fix_fname", "expand_filename", "eval_vars", "do_one_cmd",
+var w91Later = []string{"setfname", "fix_fname", "expand_filename", "eval_vars", "do_one_cmd",
 	"nv_g_cmd", "nv_brackets", "getexline", "exe_commands"}
 
-// z8EnumOK are the ten single-constant enums the sweep took with their types,
+// w91EnumOK are the ten single-constant enums the sweep took with their types,
 // beside the five CMD_ and EX_ARGOPT.  Anything else leaving is unaccounted for.
-var z8EnumOK = map[string]bool{
+var w91EnumOK = map[string]bool{
 	"CPO_GOTO1": true, "DOCMD_RANGEOK": true, "ECMD_FORCEIT": true, "ECMD_HIDE": true,
 	"ECMD_NOWINENTER": true, "ECMD_OLDBUF": true, "ECMD_SET_HELP": true,
 	"EX_ARGOPT": true, "FNAME_REL": true, "FNAME_UNESC": true, "READ_NOWINENTER": true,
@@ -168,12 +168,12 @@ func Check(w io.Writer, args []string) error {
 	defer os.RemoveAll(tmp)
 
 	// --- 1. what the sweep took ----------------------------------------------
-	for _, g := range z8GoneWords {
+	for _, g := range w91GoneWords {
 		if n := check.CountWord(src, g); n != 0 {
 			return stop("'%s' still has %d mentions", g, n)
 		}
 	}
-	for _, g := range z8GoneStrings {
+	for _, g := range w91GoneStrings {
 		if n := check.CountLinesWith(src, g); n != 0 {
 			return stop("the string '%s' still has %d mentions", g, n)
 		}
@@ -185,13 +185,13 @@ func Check(w io.Writer, args []string) error {
 	count := func(t, name string) int {
 		return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).FindAllString(t, -1))
 	}
-	names := make([]string, 0, len(z8Kept))
-	for n := range z8Kept {
+	names := make([]string, 0, len(w91Kept))
+	for n := range w91Kept {
 		names = append(names, n)
 	}
 	sort.Strings(names)
 	for _, name := range names {
-		want := z8Kept[name]
+		want := w91Kept[name]
 		if k := count(newT, name); k != want {
 			why := "something survived that should not have"
 			if k < want {
@@ -216,12 +216,12 @@ func Check(w io.Writer, args []string) error {
 	if strings.Count(newT, "E32: No file name") != 1 {
 		fail = append(fail, "E32: No file name went, and it is reachable through check_fname()")
 	}
-	for _, kept := range z8Later {
+	for _, kept := range w91Later {
 		if count(newT, kept) == 0 {
 			fail = append(fail, fmt.Sprintf("%s went, and it is a later phase's or this phase only cut inside it", kept))
 		}
 	}
-	if !check.Z7QRow.MatchString(newT) {
+	if !check.W90QRow.MatchString(newT) {
 		fail = append(fail, "the 'Q' row is no longer nv_error's, and phase 87 put it there")
 	}
 	for _, key := range []string{`'g'`, `'\['`, `'\]'`} {
@@ -232,7 +232,7 @@ func Check(w io.Writer, args []string) error {
 	if !strings.Contains(newT, "(char_u *)&p_ur, PV_NONE") {
 		fail = append(fail, "'undoreload' lost its option row, and that is the options phase's: a row removed here would change what :set answers, which nothing this pipeline records sweeps")
 	}
-	rows := check.Z6RowRe.FindAllString(newT, -1)
+	rows := check.W89RowRe.FindAllString(newT, -1)
 	got, _ := harness.CommandNamesIn(src, "whim-vim.c")
 	if len(rows) != 99 || len(got) != 99 {
 		fail = append(fail, fmt.Sprintf("cmdnames[] has %d rows and names() reads %d; both must be 99", len(rows), len(got)))
@@ -253,7 +253,7 @@ func Check(w io.Writer, args []string) error {
 	// ANCHOR 3, FROM THE OTHER SIDE: the one anchor outside the table and the
 	// keys.  An edit shaped like the table forgets it, and `:file` is what must
 	// still be exempt.
-	m := check.Z8Lock.FindString(newT)
+	m := check.W91Lock.FindString(newT)
 	if m == "" {
 		fail = append(fail, "do_one_cmd's curbuf_locked() test went, and this phase only removed one conjunct of it")
 	} else if strings.Contains(m, "CMD_edit") || !strings.Contains(m, "CMD_file") {
@@ -316,7 +316,7 @@ func Check(w io.Writer, args []string) error {
 		return fmt.Errorf("tools/enumvals.sh refused")
 	}
 	wg.Wait()
-	if err := z8Enums(r, check.ReadFile(evOld), check.ReadFile(evNew)); err != nil {
+	if err := w91Enums(r, check.ReadFile(evOld), check.ReadFile(evNew)); err != nil {
 		return err
 	}
 
@@ -332,16 +332,16 @@ func Check(w io.Writer, args []string) error {
 	(&check.Rep{Tag: "build", W: w}).Say("ok, %s -> %d lines, %d bytes", beforeLines, check.CountLines(now), check.SizeOf(bin))
 
 	// --- 6, 7, 8 -------------------------------------------------------------
-	if err := z8Probes(r, old, bin); err != nil {
+	if err := w91Probes(r, old, bin); err != nil {
 		return err
 	}
-	if err := z8Keys(r, old, bin); err != nil {
+	if err := w91Keys(r, old, bin); err != nil {
 		return err
 	}
-	return z8Pty(r, old, bin)
+	return w91Pty(r, old, bin)
 }
 
-func z8Enums(r *check.Rep, oldTxt, newTxt string) error {
+func w91Enums(r *check.Rep, oldTxt, newTxt string) error {
 	load := func(s string) map[string]string {
 		m := map[string]string{}
 		for _, l := range strings.Split(s, "\n") {
@@ -374,7 +374,7 @@ func z8Enums(r *check.Rep, oldTxt, newTxt string) error {
 		}
 	}
 	for _, k := range gone {
-		if !strings.HasPrefix(k, "CMD_") && !z8EnumOK[k] {
+		if !strings.HasPrefix(k, "CMD_") && !w91EnumOK[k] {
 			bad = append(bad, k)
 		}
 	}

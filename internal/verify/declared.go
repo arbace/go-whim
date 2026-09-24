@@ -69,7 +69,7 @@ func PhaseDeclared(n int) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		_, own, err := harness.ZDeclaredText(text, n)
+		_, own, err := harness.CoreDeclaredText(text, n)
 		return own, err
 	}
 	text, err := Declarations(0, n)

@@ -211,11 +211,11 @@ import (
 
 func init() { edit.Register("whim105", Edit) }
 
-// z22Wrap is the seven wrappers that walk a va_list, and their whole-file
+// w105Wrap is the seven wrappers that walk a va_list, and their whole-file
 // mention totals in q104.  `vim_snprintf`'s OWN count is deliberately NOT
 // asserted up front: phase 104 formats its host message with it, so the number
 // before the edit is the message layer's business and not this phase's.
-var z22Wrap = []struct {
+var w105Wrap = []struct {
 	Name string
 	want int
 }{
@@ -223,13 +223,13 @@ var z22Wrap = []struct {
 	{"siemsg", 12}, {"vim_snprintf_add", 3}, {"vim_snprintf_safelen", 13},
 }
 
-var z22Room = map[string]string{
+var w105Room = map[string]string{
 	"smsg": "iobuff_room()", "smsg_attr": "iobuff_room()",
 	"smsg_attr_keep": "iobuff_room()", "semsg": "emsg_iobuff_room()",
 	"siemsg": "emsg_iobuff_room()",
 }
 
-var z22Lead = map[string]int{
+var w105Lead = map[string]int{
 	"smsg": 0, "smsg_attr": 1, "smsg_attr_keep": 1, "semsg": 0, "siemsg": 0,
 }
 
@@ -247,7 +247,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		c := strings.Count(t, old)
 		if c != n {
 			return p.Die("%s: `%s` occurs %d times, expected %d",
-				tag, edit.ZHead(strings.Split(strings.TrimSpace(old), "\n")[0], 70), c, n)
+				tag, edit.CoreHead(strings.Split(strings.TrimSpace(old), "\n")[0], 70), c, n)
 		}
 		t = strings.ReplaceAll(t, old, new)
 		return nil
@@ -256,7 +256,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	delfunc := func(sigline, tag string) error {
 		if k := strings.Count(t, sigline); k != 1 {
 			return p.Die("%s: the definition line `%s` occurs %d times, expected 1",
-				tag, edit.ZHead(strings.TrimSpace(sigline), 60), k)
+				tag, edit.CoreHead(strings.TrimSpace(sigline), 60), k)
 		}
 		i := strings.Index(t, sigline)
 		k := strings.Index(t[i:], "{") + i
@@ -280,7 +280,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	linesBefore := len(strings.Split(t, "\n"))
 
 	// ---- 0. this is the file the phase was written against --------------------
-	for _, wr := range z22Wrap {
+	for _, wr := range w105Wrap {
 		if k := mentions(t, wr.Name); k != wr.want {
 			return nil, p.Die("the input has %d mentions of `%s`, expected %d -- this is not the tree "+
 				"this phase was written against", k, wr.Name, wr.want)
@@ -314,26 +314,26 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// ---- 2. the prototypes -----------------------------------------------------
 	// Six, not seven: `smsg_attr_keep` never had one.  And `vim_snprintf`'s SECOND
 	// prototype, which existed only because the wrappers sit above its definition.
-	if err := sub(z22lit1, "", 1, "P0"); err != nil {
+	if err := sub(w105lit1, "", 1, "P0"); err != nil {
 		return nil, err
 	}
-	for _, pr := range []string{z22lit2, z22lit3, z22lit4, z22lit5, z22lit6, z22lit7} {
+	for _, pr := range []string{w105lit2, w105lit3, w105lit4, w105lit5, w105lit6, w105lit7} {
 		if err := sub(pr, "", 1, "P"); err != nil {
 			return nil, err
 		}
 	}
-	if err := sub(z22lit8, z22lit9, 1, "P1"); err != nil {
+	if err := sub(w105lit8, w105lit9, 1, "P1"); err != nil {
 		return nil, err
 	}
 
 	// ---- 3. the five helpers, where the message wrappers were -----------------
-	if err := sub(z22Anchor, z22Helpers+z22Anchor, 1, "H"); err != nil {
+	if err := sub(w105Anchor, w105Helpers+w105Anchor, 1, "H"); err != nil {
 		return nil, err
 	}
 
 	// ---- 4. the 129 call sites -------------------------------------------------
-	names := make([]string, len(z22Wrap))
-	for i, wr := range z22Wrap {
+	names := make([]string, len(w105Wrap))
+	for i, wr := range w105Wrap {
 		names[i] = wr.Name
 	}
 	// The Python spells the boundaries `(?<![A-Za-z0-9_])name(?![A-Za-z0-9_])`.
@@ -462,14 +462,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				args[0], args[0], args[0], args[1], strings.Join(args[2:], ", "))
 			shapes["value"]++
 		default:
-			nl := z22Lead[name]
+			nl := w105Lead[name]
 			if len(args) < nl+2 {
 				return nil, p.Die("`%s` with %d arguments -- no site passes zero variadic arguments",
 					name, len(args))
 			}
 			f := args[nl]
 			a := fmt.Sprintf("vim_snprintf((char *)IObuff, %s, %s)",
-				z22Room[name], strings.Join(append([]string{f}, args[nl+1:]...), ", "))
+				w105Room[name], strings.Join(append([]string{f}, args[nl+1:]...), ", "))
 			var b string
 			switch name {
 			case "smsg":
@@ -521,7 +521,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if total != 129 {
 		return nil, p.Die("%d call sites, expected 129 -- %s", total, tally())
 	}
-	for _, wr := range z22Wrap {
+	for _, wr := range w105Wrap {
 		if k := mentions(t, wr.Name); k != 0 {
 			return nil, p.Die("`%s` still has %d mentions after the expansion", wr.Name, k)
 		}

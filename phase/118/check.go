@@ -72,7 +72,7 @@ import (
 
 func init() { check.Register("whim118", Check) }
 
-const z35Instr = `static long probe_a, probe_f, probe_fnull, probe_w, probe_amax, probe_wmax, probe_wshort;
+const w118Instr = `static long probe_a, probe_f, probe_fnull, probe_w, probe_amax, probe_wmax, probe_wshort;
 
     static void
 probe_num(long v)
@@ -153,10 +153,10 @@ func Check(w io.Writer, args []string) error {
 	T := func(n string) string { return filepath.Join(tmp, n) }
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
 	cflagsS, ldflagsS := "", ""
-	if m := check.Z29CFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112CFlags.FindStringSubmatch(mk); m != nil {
 		cflagsS = m[1]
 	}
-	if m := check.Z29LDFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112LDFlags.FindStringSubmatch(mk); m != nil {
 		ldflagsS = m[1]
 	}
 	link := func(src, Out, logPath string) error {
@@ -252,7 +252,7 @@ func Check(w io.Writer, args []string) error {
 	if e != nil {
 		return e
 	}
-	p := strings.Replace(t, EXIT, z35Instr+EXIT+"    probe_dump();\n", 1)
+	p := strings.Replace(t, EXIT, w118Instr+EXIT+"    probe_dump();\n", 1)
 	p = strings.Replace(p, ALLOC, `    probe_a++;
     if ((long)n > probe_amax)
     {
@@ -342,7 +342,7 @@ func Check(w io.Writer, args []string) error {
 	halves := func(lines []string) (string, string, int, bool) {
 		var d []int
 		for i, l := range lines {
-			if check.Z35Dir.MatchString(l) {
+			if check.W118Dir.MatchString(l) {
 				d = append(d, i)
 			}
 		}
@@ -350,7 +350,7 @@ func Check(w io.Writer, args []string) error {
 			return "", "", 0, false
 		}
 		for k, i := range d {
-			if i != d[0]+k || !check.Z35Include.MatchString(lines[i]) {
+			if i != d[0]+k || !check.W118Include.MatchString(lines[i]) {
 				return "", "", 0, false
 			}
 		}
@@ -380,7 +380,7 @@ func Check(w io.Writer, args []string) error {
 		{"write", 1, "mch_write(); and host_message() below the boundary already did"},
 	} {
 		occ := mentions(ocore, x.Name)
-		paren := check.Z35CallShaped(ocore, x.Name)
+		paren := check.W118CallShaped(ocore, x.Name)
 		if occ != paren || paren < 2 {
 			r.Bad("the INPUT has %d mentions of `%s` above the boundary of which %d "+
 				"are call-shaped, and this phase needs every one to be the "+
@@ -406,7 +406,7 @@ func Check(w io.Writer, args []string) error {
 				break
 			}
 			k += i
-			if k == 0 || !check.Z35Word(ocore[k-1]) {
+			if k == 0 || !check.W118Word(ocore[k-1]) {
 				fd1++
 			}
 			i = k + 1
@@ -442,10 +442,10 @@ func Check(w io.Writer, args []string) error {
 		r.Bad("the input does not declare `%s` exactly once above the boundary", GO[0])
 	} else {
 		lo, hi := seed[0], seed[0]
-		for lo > 0 && check.Z35Decl(OL[lo-1]) {
+		for lo > 0 && check.W118Decl(OL[lo-1]) {
 			lo--
 		}
-		for hi+1 < obound && check.Z35Decl(OL[hi+1]) {
+		for hi+1 < obound && check.W118Decl(OL[hi+1]) {
 			hi++
 		}
 		blockBefore = OL[lo : hi+1]
@@ -466,7 +466,7 @@ func Check(w io.Writer, args []string) error {
 			} else {
 				prev = NL[len(NL)-1]
 			}
-			if check.Z35Decl(l) && (prev == "" || check.Z35Decl(prev)) {
+			if check.W118Decl(l) && (prev == "" || check.W118Decl(prev)) {
 				have = append(have, l)
 			}
 		}
@@ -490,21 +490,21 @@ func Check(w io.Writer, args []string) error {
 		r.Bad("the file is %d lines and the input was %d (%d recorded) -- expected %d "+
 			"more", len(NL)-1, len(OL)-1, beforeLines, 21-dropped)
 	}
-	if check.Z27Runs(NL) > 0 {
+	if check.W110Runs(NL) > 0 {
 		r.Bad("there is a run of two blank lines, which canon.sh should have taken")
 	}
 	// tools/create_cmdidxs.py -- named as a PATH so tools/implhash.sh hashes
 	// it into this phase's key.  Do not delete it.
-	nOld := len(check.Z35CmdRow.FindAllString(oldT, -1))
-	nNew := len(check.Z35CmdRow.FindAllString(t, -1))
+	nOld := len(check.W118CmdRow.FindAllString(oldT, -1))
+	nNew := len(check.W118CmdRow.FindAllString(t, -1))
 	cn, _ := harness.CommandNames(f)
 	if nNew != nOld || len(cn) != nOld {
 		r.Bad("cmdnames[] is %d rows and the input had %d -- this phase touches no Ex "+
 			"command", nNew, nOld)
 	}
-	if check.Z29RowCount(t) != check.Z29RowCount(oldT) {
+	if check.W112RowCount(t) != check.W112RowCount(oldT) {
 		r.Bad("options[] has %d rows and the input had %d -- this phase removes no "+
-			"option", check.Z29RowCount(t), check.Z29RowCount(oldT))
+			"option", check.W112RowCount(t), check.W112RowCount(oldT))
 	}
 	if nbound != obound {
 		r.Bad("the boundary moved from line %d to line %d, and it must not: three "+
@@ -533,7 +533,7 @@ func Check(w io.Writer, args []string) error {
 	if len(blockAfter) > 0 {
 		var fn []string
 		for _, l := range blockAfter {
-			fn = append(fn, check.Z35FnName.ReplaceAllString(l, "$1"))
+			fn = append(fn, check.W118FnName.ReplaceAllString(l, "$1"))
 		}
 		tail = strings.Join(fn, " ") + " remain, and each belongs to a phase of its own"
 	} else {
@@ -545,14 +545,14 @@ func Check(w io.Writer, args []string) error {
 		len(blockAfter), len(blockBefore), tail)
 	r.Cont("%d -> %d lines, %d more; cmdnames[] %d and options[] %d unmoved; the "+
 		"eleven #includes still eleven consecutive lines at %d",
-		beforeLines, len(NL)-1, len(NL)-1-beforeLines, nNew, check.Z29RowCount(t), nbound+1)
+		beforeLines, len(NL)-1, len(NL)-1-beforeLines, nNew, check.W112RowCount(t), nbound+1)
 
 	// --- 2. declaration before use ------------------------------------------------
 	jC1.wg.Wait()
 	errC1 := check.ReadFile(T("e.c1"))
 	bound := -1
 	for i, l := range NL {
-		if check.Z35Dir.MatchString(l) {
+		if check.W118Dir.MatchString(l) {
 			bound = i
 			break
 		}
@@ -576,7 +576,7 @@ func Check(w io.Writer, args []string) error {
 			}
 		}
 		for i, l := range NL {
-			if check.Z35CallShaped(l, name) > 0 && !check.ContainsInt(proto, i) && !check.ContainsInt(defn, i) {
+			if check.W118CallShaped(l, name) > 0 && !check.ContainsInt(proto, i) && !check.ContainsInt(defn, i) {
 				uses = append(uses, i)
 			}
 		}
@@ -647,7 +647,7 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 	sort.Strings(c3ext)
-	c3s := check.Z31Words(c3ext)
+	c3s := check.W114Words(c3ext)
 	if c3s != "host_alloc host_free host_write main " {
 		r.Say("THE CONTROL c3 DID NOT SHOW.  With `static` off the prototypes AND")
 		raw("               the definitions the object must define host_alloc, host_free,")
@@ -667,12 +667,12 @@ func Check(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	lastU := ".cache/symbols/last/undefined"
-	if !check.Z30Same(T("before.u"), lastU) {
+	if !check.W113Same(T("before.u"), lastU) {
 		bu, lu := fileLines(T("before.u")), fileLines(lastU)
 		r.Say("the libc surface moved, and MOVING A CALL ACROSS THE BOUNDARY CANNOT")
 		raw("               MOVE IT -- the host calls all three where the core did:")
-		raw("               gone: %s", check.Z31Words(check.Comm23(bu, lu)))
-		raw("               came: %s", check.Z31Words(check.Comm23(lu, bu)))
+		raw("               gone: %s", check.W114Words(check.Comm23(bu, lu)))
+		raw("               came: %s", check.W114Words(check.Comm23(lu, bu)))
 		return harness.ErrReported
 	}
 	for _, s := range []string{"malloc", "free", "write"} {
@@ -698,14 +698,14 @@ func Check(w io.Writer, args []string) error {
 		log   string
 	}
 	editorcut := func(src, dst string) (cut, error) {
-		lines := check.Z28Cut(check.ReadFile(src))
+		lines := check.W111Cut(check.ReadFile(src))
 		text := ""
 		for _, l := range lines {
 			text += l + "\n"
 		}
 		os.WriteFile(dst, []byte(text), 0o644)
 		for _, l := range lines {
-			if check.Z30Dir.MatchString(l) {
+			if check.W113Dir.MatchString(l) {
 				return cut{}, stop("the cut of %s holds a directive, so it found the wrong line", src)
 			}
 		}
@@ -727,7 +727,7 @@ func Check(w io.Writer, args []string) error {
 			if strings.Contains(l, "warning:") {
 				cu.warns++
 			}
-			if m := check.Z35Warn.FindStringSubmatch(l); m != nil {
+			if m := check.W118Warn.FindStringSubmatch(l); m != nil {
 				cu.names = append(cu.names, m[1])
 			}
 		}
@@ -774,8 +774,8 @@ func Check(w io.Writer, args []string) error {
 	if len(fb) < len(cutBytes) || string(fb[:len(cutBytes)]) != string(cutBytes) {
 		return stop("the cut is not a byte prefix of whim-vim.c")
 	}
-	arrived := check.Z31Words(check.Comm23(cnw.names, co.names))
-	left := check.Z31Words(check.Comm23(co.names, cnw.names))
+	arrived := check.W114Words(check.Comm23(cnw.names, co.names))
+	left := check.W114Words(check.Comm23(co.names, cnw.names))
 	if arrived != "host_alloc host_free host_write " || left != "" {
 		a, l := arrived, left
 		if a == "" {
@@ -797,15 +797,15 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 6. the binary ---------------------------------------------------------------------
 	jCanon.wg.Wait()
-	if !check.Z30Same(T("canon.c"), f) {
+	if !check.W113Same(T("canon.c"), f) {
 		r.Say("tools/canon.sh CHANGED THE OUTPUT, and it must be a no-op:")
-		head(check.Z30Diff(f, T("canon.c")), 6, "               ")
+		head(check.W113Diff(f, T("canon.c")), 6, "               ")
 		return harness.ErrReported
 	}
 	canonWord := ""
 	for _, l := range strings.Split(string(canonLog), "\n") {
-		if check.Z35CanonLn.MatchString(l) {
-			canonWord = check.Z35CanonLn.ReplaceAllString(l, "")
+		if check.W118CanonLn.MatchString(l) {
+			canonWord = check.W118CanonLn.ReplaceAllString(l, "")
 			break
 		}
 	}
@@ -834,7 +834,7 @@ func Check(w io.Writer, args []string) error {
 		return stop("the reproducible build is %d bytes and make produced %d: the two differ by more than a "+
 			"timestamp, so nothing below would be about this boundary", newSize, check.SizeOf(bin))
 	}
-	if check.Z30Same(oldBinP, T("new")) {
+	if check.W113Same(oldBinP, T("new")) {
 		r.Say("THE BINARY IS BYTE-IDENTICAL, and it must not be: four call sites go")
 		raw("               from a direct libc call to a call into a function of this file, and")
 		raw("               three definitions arrive at the bottom of it.")
@@ -871,7 +871,7 @@ func Check(w io.Writer, args []string) error {
 		wgR.Add(1)
 		go func() {
 			defer wgR.Done()
-			recErr[k] = check.RecZ(x.bin, x.src, T("REC-"+x.Name))
+			recErr[k] = check.RecCore(x.bin, x.src, T("REC-"+x.Name))
 		}()
 	}
 	wgR.Wait()
@@ -891,7 +891,7 @@ func Check(w io.Writer, args []string) error {
 		}
 		var m []string
 		for _, n := range base {
-			if !check.Z30Same(filepath.Join(T("REC-new"), n), filepath.Join(d, n)) {
+			if !check.W113Same(filepath.Join(T("REC-new"), n), filepath.Join(d, n)) {
 				m = append(m, n)
 			}
 		}
@@ -1014,7 +1014,7 @@ func Check(w io.Writer, args []string) error {
 		}
 		var m []string
 		for _, n := range sbase {
-			if !check.Z30Same(filepath.Join(T("REC-new"), "screen", n), filepath.Join(d, n)) {
+			if !check.W113Same(filepath.Join(T("REC-new"), "screen", n), filepath.Join(d, n)) {
 				m = append(m, n)
 			}
 		}
@@ -1025,7 +1025,7 @@ func Check(w io.Writer, args []string) error {
 	var totOrder []string
 	seen := 0
 	for _, n := range sbase {
-		m := check.Z35Probe.FindStringSubmatch(check.ReadFile(filepath.Join(T("SC-probe"), n)))
+		m := check.W118Probe.FindStringSubmatch(check.ReadFile(filepath.Join(T("SC-probe"), n)))
 		if m == nil {
 			continue
 		}
@@ -1076,7 +1076,7 @@ func Check(w io.Writer, args []string) error {
 		"byte-identical recording above was carried by",
 		tot["alloc"], tot["amax"], tot["free"], tot["fnull"], tot["write"], tot["wmax"], tot["wshort"])
 	big, small, null := check.ReadFile(T("big.err")), check.ReadFile(T("small.err")), check.ReadFile(T("null.err"))
-	mb, ms := check.Z35Probe4.FindStringSubmatch(big), check.Z35Probe4.FindStringSubmatch(small)
+	mb, ms := check.W118Probe4.FindStringSubmatch(big), check.W118Probe4.FindStringSubmatch(small)
 	if mb == nil || ms == nil {
 		return stop("a by-hand probe session printed no counter line")
 	}
@@ -1154,9 +1154,9 @@ func Check(w io.Writer, args []string) error {
 		"it -- 0 of the corpus's frees are null -- but the wrapper inherits it")
 
 	// --- 9. phase 103's structural check -----------------------------------------------------
-	zh := exec.Command("sh", "tools/st.sh", "zhostonly", f)
-	zh.Stdout, zh.Stderr = w, w
-	if err := zh.Run(); err != nil {
+	hostOnly := exec.Command("sh", "tools/st.sh", "zhostonly", f)
+	hostOnly.Stdout, hostOnly.Stderr = w, w
+	if err := hostOnly.Run(); err != nil {
 		return harness.ErrReported
 	}
 	r.Say("and that is phase 103's check, undisturbed.  Its vocabulary is libc's terminal, signal and descriptor " +

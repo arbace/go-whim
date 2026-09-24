@@ -83,7 +83,7 @@ func (c *core) Bins() (string, string) {
 // the digest of every byte it wrote, and its exit status.  Two binaries that
 // draw the same thing write the same bytes; the digest is the comparison.
 func Stream(bin string, keys [][]byte, args []string) (string, int, error) {
-	_, Out, _, rc, err := harness.ZSession(bin, keys, "xterm", args, 24, 80, 20*time.Second)
+	_, Out, _, rc, err := harness.CoreSession(bin, keys, "xterm", args, 24, 80, 20*time.Second)
 	if err != nil {
 		return "", rc, err
 	}

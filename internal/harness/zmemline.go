@@ -12,11 +12,11 @@ import (
 	"time"
 )
 
-// zmemTimeout is generous because these cases build up to 25,000 lines by
+// coreMemTimeout is generous because these cases build up to 25,000 lines by
 // typing them.
-const zmemTimeout = 180 * time.Second
+const coreMemTimeout = 180 * time.Second
 
-// ZMemline records the sixteen memline cases: the only part of the recording
+// CoreMemline records the sixteen memline cases: the only part of the recording
 // that can see the text layer as a tree.
 //
 // Until it existed nothing in the pipeline could tell a working memline from a
@@ -24,7 +24,7 @@ const zmemTimeout = 180 * time.Second
 // from ml_find_line()'s descent recorded ALL 102 SCREEN CASES BYTE FOR BYTE,
 // because every one of them allocates exactly one data block, so idx is 0
 // every time and a pointer entry's line count never decides anything.
-func ZMemline(bin, outdir string, w io.Writer) error {
+func CoreMemline(bin, outdir string, w io.Writer) error {
 	if err := os.RemoveAll(outdir); err != nil {
 		return err
 	}
@@ -37,18 +37,18 @@ func ZMemline(bin, outdir string, w io.Writer) error {
 	var blocked []string
 
 	n := runtime.NumCPU() * 2
-	if n > len(zmemCases) {
-		n = len(zmemCases)
+	if n > len(coreMemCases) {
+		n = len(coreMemCases)
 	}
 	sem := make(chan struct{}, n)
 	var wg sync.WaitGroup
-	for _, c := range zmemCases {
+	for _, c := range coreMemCases {
 		wg.Add(1)
 		go func(name string, args []string, keys [][]byte) {
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
-			text, stalled := zmemRecord(bin, args, keys)
+			text, stalled := coreMemRecord(bin, args, keys)
 			os.WriteFile(filepath.Join(outdir, name), []byte(text), 0o644)
 			if stalled {
 				mu.Lock()
@@ -60,7 +60,7 @@ func ZMemline(bin, outdir string, w io.Writer) error {
 	wg.Wait()
 
 	fmt.Fprintf(w, "%d memline cases -> %s in %.1fs\n",
-		len(zmemCases), outdir, time.Since(start).Seconds())
+		len(coreMemCases), outdir, time.Since(start).Seconds())
 	if len(blocked) > 0 {
 		sort.Strings(blocked)
 		fmt.Fprintf(os.Stderr, "%d case(s) stalled and did not return: %s\n",
@@ -70,7 +70,7 @@ func ZMemline(bin, outdir string, w io.Writer) error {
 	return nil
 }
 
-// zmemRedraws counts how many times the editor finished a redraw -- and NOT
+// coreMemRedraws counts how many times the editor finished a redraw -- and NOT
 // the stream's digest.
 //
 // zcases records `stream <bytes> sha=<digest>` as a tripwire under its
@@ -90,19 +90,19 @@ func ZMemline(bin, outdir string, w io.Writer) error {
 // What is kept instead is the count of show-cursor, where a redraw ENDS and
 // where the screen model snapshots, which is the same number as the snapshots
 // and is clock-free.
-func zmemRedraws(out []byte) int {
+func coreMemRedraws(out []byte) int {
 	return bytes.Count(out, []byte(showCursor))
 }
 
-func zmemRecord(bin string, args []string, keys [][]byte) (string, bool) {
-	scr, out, errOut, rc, err := ZSession(bin, keys, "xterm", args, 24, 80, zmemTimeout)
+func coreMemRecord(bin string, args []string, keys [][]byte) (string, bool) {
+	scr, out, errOut, rc, err := CoreSession(bin, keys, "xterm", args, 24, 80, coreMemTimeout)
 	if err != nil {
 		why := "the editor took the input over and did not return"
 		return Section("blocked", nil) + Section("why", &why), true
 	}
 	text := Section(fmt.Sprintf("exit %d", rc), nil)
 	text += Section(fmt.Sprintf("bells %d", scr.Bells), nil)
-	text += Section(fmt.Sprintf("stream %d redraws", zmemRedraws(out)), nil)
+	text += Section(fmt.Sprintf("stream %d redraws", coreMemRedraws(out)), nil)
 	errBody := trimTrailingNewlines(decodeReplace(errOut))
 	text += Section("stderr", &errBody)
 	for i, snap := range scr.Snaps {

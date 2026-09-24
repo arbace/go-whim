@@ -106,22 +106,22 @@ import (
 func init() { edit.Register("whim107", Edit) }
 
 var (
-	z24Inc     = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
-	z24Attr    = regexp.MustCompile(`__attribute__\(\((\w+)`)
-	z24Words   = regexp.MustCompile(`attribute|fallthrough|unused`)
-	z24Fall    = regexp.MustCompile(`(?m)^[ ]*__attribute__\(\(fallthrough\)\);$`)
-	z24C23     = regexp.MustCompile(`(?m)^[ ]*\[\[fallthrough\]\];$`)
-	z24Head    = regexp.MustCompile(`^(?:static\s+[\w \*]+?\s*\**)?(\w+)\s*$`)
-	z24Fmt     = regexp.MustCompile(`format(_arg)?\(`)
-	z24Pad     = regexp.MustCompile(`  [,)]`)
-	z24Unused  = regexp.MustCompile(`__attribute__\(\(unused\)\)`)
-	z24NeedleS = " __attribute__((unused))"
+	w107Inc     = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
+	w107Attr    = regexp.MustCompile(`__attribute__\(\((\w+)`)
+	w107Words   = regexp.MustCompile(`attribute|fallthrough|unused`)
+	w107Fall    = regexp.MustCompile(`(?m)^[ ]*__attribute__\(\(fallthrough\)\);$`)
+	w107C23     = regexp.MustCompile(`(?m)^[ ]*\[\[fallthrough\]\];$`)
+	w107Head    = regexp.MustCompile(`^(?:static\s+[\w \*]+?\s*\**)?(\w+)\s*$`)
+	w107Fmt     = regexp.MustCompile(`format(_arg)?\(`)
+	w107Pad     = regexp.MustCompile(`  [,)]`)
+	w107Unused  = regexp.MustCompile(`__attribute__\(\(unused\)\)`)
+	w107NeedleS = " __attribute__((unused))"
 )
 
-// z24Kinds are the four kinds of attribute this phase has a decision for.  A
+// w107Kinds are the four kinds of attribute this phase has a decision for.  A
 // FIFTH APPEARING IS A DECISION THIS PHASE HAS NEVER TAKEN, and it must refuse
 // rather than leave it or guess -- a partition and not a count.
-var z24Kinds = []string{"unused", "fallthrough", "format", "format_arg"}
+var w107Kinds = []string{"unused", "fallthrough", "format", "format_arg"}
 
 // Whim107 takes the attributes: 139 GNU `__attribute__` to six.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
@@ -165,7 +165,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"eleven lines: %d directives at lines %s", len(dIdx), strings.Join(at, " "))
 	}
 	for _, l := range dLines {
-		if !z24Inc.MatchString(l) {
+		if !w107Inc.MatchString(l) {
 			return nil, p.Die("a directive is not an `#include <...>` of a system header, and no phase may " +
 				"add one")
 		}
@@ -189,7 +189,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if strings.Contains(lit, "__attribute__") || strings.Contains(lit, "[[") {
 			bad = append(bad, lit)
 		}
-		if z24Words.MatchString(lit) {
+		if w107Words.MatchString(lit) {
 			words = append(words, lit)
 		}
 	}
@@ -202,14 +202,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		len(spans), strings.Join(words, " / "))
 
 	// ---- 2. the partition -----------------------------------------------------
-	allAttrs := z24Attr.FindAllStringSubmatch(string(text), -1)
+	allAttrs := w107Attr.FindAllStringSubmatch(string(text), -1)
 	kinds := map[string]int{}
 	for _, m := range allAttrs {
 		kinds[m[1]]++
 	}
 	var extra []string
 	for k := range kinds {
-		if !edit.Contains(z24Kinds, k) {
+		if !edit.Contains(w107Kinds, k) {
 			extra = append(extra, k)
 		}
 	}
@@ -217,10 +217,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		sort.Strings(extra)
 		return nil, p.Die("the file holds an attribute this phase has never looked at: %s -- the three "+
 			"decisions below are about %s and nothing else",
-			strings.Join(extra, " "), strings.Join(z24Kinds, " "))
+			strings.Join(extra, " "), strings.Join(w107Kinds, " "))
 	}
-	parts := make([]string, len(z24Kinds))
-	for i, k := range z24Kinds {
+	parts := make([]string, len(w107Kinds))
+	for i, k := range w107Kinds {
 		parts[i] = k + " " + strconv.Itoa(kinds[k])
 	}
 	p.Sayf("%d `__attribute__` in the file, and every one is one of four kinds: %s",
@@ -236,13 +236,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	var unusedSpans [][2]int
 	s := string(text)
 	for i := 0; ; {
-		j := strings.Index(s[i:], z24NeedleS)
+		j := strings.Index(s[i:], w107NeedleS)
 		if j < 0 {
 			break
 		}
 		j += i
-		e := j + len(z24NeedleS)
-		if j > 0 && !z24IsSpace(s[j-1]) && e < len(s) && (s[e] == ',' || s[e] == ')') {
+		e := j + len(w107NeedleS)
+		if j > 0 && !w107IsSpace(s[j-1]) && e < len(s) && (s[e] == ',' || s[e] == ')') {
 			unusedSpans = append(unusedSpans, [2]int{j, e})
 		}
 		i = e
@@ -261,7 +261,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// is exact.
 	seen := map[int]bool{}
 	var unusedLines []int
-	for _, m := range z24Unused.FindAllStringIndex(s, -1) {
+	for _, m := range w107Unused.FindAllStringIndex(s, -1) {
 		ln := strings.Count(s[:m[0]], "\n")
 		if !seen[ln] {
 			seen[ln] = true
@@ -283,11 +283,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				d--
 			}
 		}
-		if j < 0 || !z24Head.MatchString(l[:j]) {
+		if j < 0 || !w107Head.MatchString(l[:j]) {
 			return nil, p.Die("the `unused` at line %d is not inside a function's parameter list -- what "+
 				"precedes its innermost `(` is %s, which is not a function name, so this "+
 				"may be an attribute on a variable, an object or a field and the phase has "+
-				"no decision for those", i+1, cutil.PyRepr(z24Slice(l, j)))
+				"no decision for those", i+1, cutil.PyRepr(w107Slice(l, j)))
 		}
 		if lines[i+1] != "{" {
 			return nil, p.Die("line %d holds an `unused` but is not a function DEFINITION header: the "+
@@ -301,7 +301,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		nUnused, len(unusedLines))
 
 	// ---- 4. the 20: a standalone statement, every one -------------------------
-	nFall := len(z24Fall.FindAllString(s, -1))
+	nFall := len(w107Fall.FindAllString(s, -1))
 	if nFall != kinds["fallthrough"] {
 		return nil, p.Die("%d of the %d `fallthrough` attributes are a whole line of their own -- the "+
 			"swap below is one-for-one and textual, and an attribute sharing a line with "+
@@ -316,7 +316,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	var keep []int
 	var keepText []string
 	for i, l := range lines {
-		if z24Fmt.MatchString(l) && strings.Contains(l, "__attribute__") {
+		if w107Fmt.MatchString(l) && strings.Contains(l, "__attribute__") {
 			keep = append(keep, i)
 			keepText = append(keepText, l)
 		}
@@ -336,7 +336,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- 6. the two substitutions ---------------------------------------------
 	runsBefore := blankRuns(text)
-	padBefore := len(z24Pad.FindAllString(s, -1))
+	padBefore := len(w107Pad.FindAllString(s, -1))
 	var Out strings.Builder
 	prev := 0
 	for _, sp := range unusedSpans {
@@ -346,8 +346,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	Out.WriteString(s[prev:])
 	s = Out.String()
 	a := len(unusedSpans)
-	b := len(z24Fall.FindAllString(s, -1))
-	s = z24Fall.ReplaceAllStringFunc(s, func(m string) string {
+	b := len(w107Fall.FindAllString(s, -1))
+	s = w107Fall.ReplaceAllStringFunc(s, func(m string) string {
 		return strings.Replace(m, "__attribute__((fallthrough));", "[[fallthrough]];", 1)
 	})
 	if a != nUnused || b != nFall {
@@ -365,7 +365,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"neither may add or remove one", len(L)-1, len(lines)-1)
 	}
 	var leftK []string
-	for _, m := range z24Attr.FindAllStringSubmatch(s, -1) {
+	for _, m := range w107Attr.FindAllStringSubmatch(s, -1) {
 		leftK = append(leftK, m[1])
 	}
 	wantK := make([]string, 0, kinds["format"]+kinds["format_arg"])
@@ -391,13 +391,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, p.Die("a line carrying a kept attribute is not the line it was, byte for byte")
 		}
 	}
-	if len(z24Fall.FindAllString(s, -1)) > 0 || strings.Contains(s, "__attribute__((unused))") {
+	if len(w107Fall.FindAllString(s, -1)) > 0 || strings.Contains(s, "__attribute__((unused))") {
 		return nil, p.Die("an `unused` or a GNU `fallthrough` survives the substitution")
 	}
-	if len(z24C23.FindAllString(s, -1)) != nFall {
+	if len(w107C23.FindAllString(s, -1)) != nFall {
 		return nil, p.Die("the %d C23 statements are not %d standalone lines", nFall, nFall)
 	}
-	if k := len(z24Pad.FindAllString(s, -1)); k != padBefore {
+	if k := len(w107Pad.FindAllString(s, -1)); k != padBefore {
 		return nil, p.Die("the edit left %d doubled spaces before a `,` or `)` where there were %d -- "+
 			"deleting the attribute without its own two spaces is exactly the mistake this "+
 			"phase can make, and canon.sh does not take it", k, padBefore)
@@ -421,13 +421,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return text, nil
 }
 
-func z24IsSpace(c byte) bool {
+func w107IsSpace(c byte) bool {
 	return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v'
 }
 
-// z24Slice is Python's `l[:j]`, negative j included -- the refusal quotes it and
+// w107Slice is Python's `l[:j]`, negative j included -- the refusal quotes it and
 // j is -1 exactly when the attribute is the first thing on the line.
-func z24Slice(l string, j int) string {
+func w107Slice(l string, j int) string {
 	if j < 0 {
 		j += len(l)
 		if j < 0 {

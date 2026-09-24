@@ -35,30 +35,30 @@ import (
 
 func init() { check.Register("whim85", Check) }
 
-// z2Gone is what the cut removed, matched as FIXED strings because two of them
+// w85Gone is what the cut removed, matched as FIXED strings because two of them
 // are C fragments with parentheses in.
-var z2Gone = []string{
+var w85Gone = []string{
 	"tty_fail", "ttyfail",
 	"Vim: Warning: Output is not to a terminal",
 	"Vim: Warning: Input is not from a terminal",
 	"ui_delay(2005L",
 }
 
-// z2Kept is what the phase deliberately keeps, each with the reader that forces
+// w85Kept is what the phase deliberately keeps, each with the reader that forces
 // it.  A sweep that took one of these would leave the editor silently different
 // rather than fail to build, which is why they are asserted rather than trusted.
-var z2Kept = []struct{ needle, why string }{
+var w85Kept = []struct{ needle, why string }{
 	{"^check_tty(void)$", "check_tty(void) is gone"},
 	{"^    check_tty();$", "nothing calls check_tty()"},
 }
 
-var z2KeptBody = []struct{ needle, why string }{
+var w85KeptBody = []struct{ needle, why string }{
 	{"input_isatty = mch_input_isatty();", "check_tty no longer asks mch_input_isatty()"},
 	{"if (exmode_active)", "the exmode_active branch went -- Ex mode is a later phase, not this one"},
 	{"silent_mode = TRUE;", "Ex mode no longer goes silent when its input is not a terminal"},
 }
 
-var z2KeptFile = []struct{ needle, why string }{
+var w85KeptFile = []struct{ needle, why string }{
 	{"int out_redir = !stdout_isatty;", "stdout_isatty lost the reader that keeps it, and mch_check_win, alive"},
 	{"stdout_isatty = (mch_check_win(", "nothing assigns stdout_isatty any more"},
 }
@@ -88,7 +88,7 @@ func Check(w io.Writer, args []string) error {
 	stop := func(format string, a ...any) error { r.Say(format, a...); return harness.ErrReported }
 
 	// --- 1. what the cut removed ---------------------------------------------
-	for _, g := range z2Gone {
+	for _, g := range w85Gone {
 		if n := bytes.Count(src, []byte(g)); n != 0 {
 			return stop("'%s' still has %d mentions", g, n)
 		}
@@ -103,19 +103,19 @@ func Check(w io.Writer, args []string) error {
 	// `^check_tty(void)$` means that line.  Compiled as an RE2 pattern the
 	// parentheses are a GROUP and the same string means `check_ttyvoid` --
 	// which is a check that cannot pass, and did not.
-	for _, k := range z2Kept {
+	for _, k := range w85Kept {
 		line := strings.TrimSuffix(strings.TrimPrefix(k.needle, "^"), "$")
 		if !check.HasLine(src, line) {
 			return stop("%s", k.why)
 		}
 	}
 	Body := check.AwkRange(src, `^check_tty\(void\)$`, `^\}$`)
-	for _, k := range z2KeptBody {
+	for _, k := range w85KeptBody {
 		if !strings.Contains(Body, k.needle) {
 			return stop("%s", k.why)
 		}
 	}
-	for _, k := range z2KeptFile {
+	for _, k := range w85KeptFile {
 		if !bytes.Contains(src, []byte(k.needle)) {
 			return stop("%s", k.why)
 		}
@@ -172,7 +172,7 @@ func Check(w io.Writer, args []string) error {
 
 	// No -u NONE: an empty $HOME, $VIM, $VIMRUNTIME and $XDG_CONFIG_HOME are
 	// the isolation, as in every harness here.
-	env := check.Z2Env(filepath.Join(d, "h"))
+	env := check.W85Env(filepath.Join(d, "h"))
 	runSide := func(side string, in []byte, argv ...string) (int, []byte, []byte, int64) {
 		c := exec.Command("./vim", argv...)
 		c.Dir = filepath.Join(d, side)
@@ -300,8 +300,8 @@ func Check(w io.Writer, args []string) error {
 	// session under both binaries.  termcheck drives 19 of these in the
 	// declared delta; this one is the before-and-after the delta cannot give,
 	// because it has no old binary.
-	oldS, e1 := z2Pty(filepath.Join(state, "old"))
-	newS, e2 := z2Pty(bin)
+	oldS, e1 := w85Pty(filepath.Join(state, "old"))
+	newS, e2 := w85Pty(bin)
 	if e1 != nil {
 		return e1
 	}
@@ -310,11 +310,11 @@ func Check(w io.Writer, args []string) error {
 	}
 	for _, p := range []struct {
 		Name string
-		s    z2Sess
+		s    w85Sess
 	}{{"old", oldS}, {"new", newS}} {
 		if p.s.status != 0 || p.s.file != "alpha one\nbeta two-typed\n" || !p.s.typed || len(p.s.term) == 0 {
 			return stop("the pty session broke on the %s binary: status=%d file=%s term=%s typed=%v",
-				p.Name, p.s.status, cutil.PyRepr(p.s.file), z2List(p.s.term), p.s.typed)
+				p.Name, p.s.status, cutil.PyRepr(p.s.file), w85List(p.s.term), p.s.typed)
 		}
 	}
 	if !oldS.Eq(newS) {
@@ -327,22 +327,22 @@ func Check(w io.Writer, args []string) error {
 	return nil
 }
 
-type z2Sess struct {
+type w85Sess struct {
 	status int
 	file   string
 	term   []string
 	typed  bool
 }
 
-func (a z2Sess) Eq(b z2Sess) bool {
-	return a.status == b.status && a.file == b.file && a.typed == b.typed && z2List(a.term) == z2List(b.term)
+func (a w85Sess) Eq(b w85Sess) bool {
+	return a.status == b.status && a.file == b.file && a.typed == b.typed && w85List(a.term) == w85List(b.term)
 }
 
-func (a z2Sess) repr() string {
-	return fmt.Sprintf("(%d, %s, %s, %v)", a.status, cutil.PyRepr(a.file), z2List(a.term), a.typed)
+func (a w85Sess) repr() string {
+	return fmt.Sprintf("(%d, %s, %s, %v)", a.status, cutil.PyRepr(a.file), w85List(a.term), a.typed)
 }
 
-func z2List(s []string) string {
+func w85List(s []string) string {
 	q := make([]string, len(s))
 	for i, v := range s {
 		q[i] = cutil.PyRepr(v)
@@ -350,29 +350,29 @@ func z2List(s []string) string {
 	return "[" + strings.Join(q, ", ") + "]"
 }
 
-var z2Term = regexp.MustCompile(`term=[\w.-]+`)
+var w85Term = regexp.MustCompile(`term=[\w.-]+`)
 
-func z2Pty(binary string) (z2Sess, error) {
+func w85Pty(binary string) (w85Sess, error) {
 	home, err := os.MkdirTemp("", "whim85-home-")
 	if err != nil {
-		return z2Sess{}, err
+		return w85Sess{}, err
 	}
 	d, err := os.MkdirTemp("", "whim85-pty-")
 	if err != nil {
-		return z2Sess{}, err
+		return w85Sess{}, err
 	}
 	os.WriteFile(filepath.Join(d, "f.txt"), []byte("alpha one\nbeta two\n"), 0o644)
 	text, status, err := harness.Session(binary, []string{"f.txt"},
 		[][]byte{[]byte("GA-typed"), []byte("\x1b"), []byte(":set term?\r"), []byte(":wq\r")},
-		"xterm", 20*time.Second, 600*time.Millisecond, d, check.Z2Env(home), 0, 0)
+		"xterm", 20*time.Second, 600*time.Millisecond, d, check.W85Env(home), 0, 0)
 	if err != nil {
-		return z2Sess{}, err
+		return w85Sess{}, err
 	}
 	s := string(text)
 	// The two answers land among the '~' filler and the cursor keeps moving
 	// through them, so take the name and nothing after it, as termcheck does.
 	seen := map[string]bool{}
-	for _, m := range z2Term.FindAllString(s, -1) {
+	for _, m := range w85Term.FindAllString(s, -1) {
 		seen[m] = true
 	}
 	Out := make([]string, 0, len(seen))
@@ -380,5 +380,5 @@ func z2Pty(binary string) (z2Sess, error) {
 		Out = append(Out, k)
 	}
 	sort.Strings(Out)
-	return z2Sess{status, check.ReadFile(filepath.Join(d, "f.txt")), Out, strings.Contains(s, "-typed")}, nil
+	return w85Sess{status, check.ReadFile(filepath.Join(d, "f.txt")), Out, strings.Contains(s, "-typed")}, nil
 }

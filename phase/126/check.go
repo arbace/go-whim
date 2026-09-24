@@ -64,26 +64,26 @@ import (
 func init() { check.Register("whim126", Check) }
 
 var (
-	z43LitC     = regexp.MustCompile(`"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'`)
-	z43DQ       = regexp.MustCompile(`"(?:[^"\\\n]|\\.)*"`)
-	z43Ident    = regexp.MustCompile(`[A-Za-z_]\w*`)
-	z43Mfget3   = regexp.MustCompile(`\bmf_get\s*\([^)]*,[^)]*,`)
-	z43Page     = regexp.MustCompile(`enum \{ MEMFILE_PAGE_SIZE = (\d+) \};`)
-	z43Arena    = regexp.MustCompile(`enum \{ HOST_ARENA_BYTES = [^;]*\};`)
-	z43Tree     = regexp.MustCompile(`TREE (\d+) (\d+) (\d+) (\d+) (\d+)`)
-	z43Clock    = regexp.MustCompile(`\d+ seconds? ago`)
-	z43Iemsg    = regexp.MustCompile(`(?m)^( *)iemsg\([^\n]*e_line_count_wrong_in_block[^\n]*\);$`)
-	z43E323Num  = regexp.MustCompile(`E323: Line count wrong in block \d`)
-	z43E323Any  = regexp.MustCompile(`E323[^\x1b]*`)
-	z43IfaceWrn = regexp.MustCompile(`warning: '([A-Za-z_][A-Za-z_0-9]*)' used but never defined`)
+	w126LitC     = regexp.MustCompile(`"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'`)
+	w126DQ       = regexp.MustCompile(`"(?:[^"\\\n]|\\.)*"`)
+	w126Ident    = regexp.MustCompile(`[A-Za-z_]\w*`)
+	w126Mfget3   = regexp.MustCompile(`\bmf_get\s*\([^)]*,[^)]*,`)
+	w126Page     = regexp.MustCompile(`enum \{ MEMFILE_PAGE_SIZE = (\d+) \};`)
+	w126Arena    = regexp.MustCompile(`enum \{ HOST_ARENA_BYTES = [^;]*\};`)
+	w126Tree     = regexp.MustCompile(`TREE (\d+) (\d+) (\d+) (\d+) (\d+)`)
+	w126Clock    = regexp.MustCompile(`\d+ seconds? ago`)
+	w126Iemsg    = regexp.MustCompile(`(?m)^( *)iemsg\([^\n]*e_line_count_wrong_in_block[^\n]*\);$`)
+	w126E323Num  = regexp.MustCompile(`E323: Line count wrong in block \d`)
+	w126E323Any  = regexp.MustCompile(`E323[^\x1b]*`)
+	w126IfaceWrn = regexp.MustCompile(`warning: '([A-Za-z_][A-Za-z_0-9]*)' used but never defined`)
 )
 
-const z43Rig = "enum { HOST_ARENA_BYTES = 1536 * 1024 * 1024L };"
+const w126Rig = "enum { HOST_ARENA_BYTES = 1536 * 1024 * 1024L };"
 
-const z43Counters = "static long ev_root;\nstatic long ev_ptr;\nstatic long ev_data;\n" +
+const w126Counters = "static long ev_root;\nstatic long ev_ptr;\nstatic long ev_data;\n" +
 	"static long ev_depth;\nstatic long ev_blocks;\n\n"
 
-const z43Dump = `    static void
+const w126Dump = `    static void
 ev_num(long v)
 {
     char        d[24];
@@ -103,14 +103,14 @@ ev_num(long v)
 
 `
 
-var z43Anch = [][3]string{
+var w126Anch = [][3]string{
 	{"ev_data", "        dp_right = (DATA_BL *)(hp_right->bh_data);", "the data-block split"},
 	{"ev_root", "                musl_memmove((char *)(pp_new), (char *)(pp), (usize)page_size);", "the root-preserving branch of ml_append_int()"},
 	{"ev_ptr", "            total_moved = pp->pb_count - pb_idx - 1;", "the pointer-block split"},
 	{"ev_blocks", "    dp->db_id = (('d' << 8) + 'a');", "a new data block"},
 }
 
-const z43Depth = "        ip->ip_low = low;\n        ip->ip_high = high;\n        ip->ip_index = -1;"
+const w126Depth = "        ip->ip_low = low;\n        ip->ip_high = high;\n        ip->ip_index = -1;"
 
 // Whim126 is phase 126's check: a block number becomes a reference.
 func Check(w io.Writer, args []string) error {
@@ -138,10 +138,10 @@ func Check(w io.Writer, args []string) error {
 	}
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
 	cflagsS, ldflagsS := "", ""
-	if m := check.Z29CFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112CFlags.FindStringSubmatch(mk); m != nil {
 		cflagsS = m[1]
 	}
-	if m := check.Z29LDFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112LDFlags.FindStringSubmatch(mk); m != nil {
 		ldflagsS = m[1]
 	}
 	tmp, err := os.MkdirTemp("", "whim126-")
@@ -186,7 +186,7 @@ func Check(w io.Writer, args []string) error {
 	nl := func(s string) int { return strings.Count(s, "\n") }
 	words := func(s string) map[string]bool {
 		m := map[string]bool{}
-		for _, x := range z43Ident.FindAllString(z43LitC.ReplaceAllString(s, `""`), -1) {
+		for _, x := range w126Ident.FindAllString(w126LitC.ReplaceAllString(s, `""`), -1) {
 			m[x] = true
 		}
 		return m
@@ -238,7 +238,7 @@ func Check(w io.Writer, args []string) error {
 				verb = "arrive"
 			}
 			return die("%s: the names that %s are %s and this phase accounts for %s", x.What, verb,
-				check.Z43PyList(x.got), check.Z43PyList(x.want))
+				check.W126PyList(x.got), check.W126PyList(x.want))
 		}
 	}
 	say("%d names leave in the EDIT and %d in the SWEEP, and they are different kinds: the "+
@@ -252,7 +252,7 @@ func Check(w io.Writer, args []string) error {
 	say("%d names arrive and no more: %s", len(arrived), strings.Join(ap, ", "))
 	litSet := func(s string) map[string]bool {
 		m := map[string]bool{}
-		for _, x := range z43DQ.FindAllString(s, -1) {
+		for _, x := range w126DQ.FindAllString(s, -1) {
 			m[x] = true
 		}
 		return m
@@ -262,10 +262,10 @@ func Check(w io.Writer, args []string) error {
 	wantRem := sortedCopy([]string{`"E323: Line count wrong in block %ld"`, `"E298: Didn't get block nr 0?"`, `"E298: Didn't get block nr 1?"`})
 	if strings.Join(rem, "\x00") != strings.Join(wantRem, "\x00") {
 		return die("the string literals this phase removes are %s, and it accounts for E323 with "+
-			"its %%ld and the two E298s", check.Z43PyList(rem))
+			"its %%ld and the two E298s", check.W126PyList(rem))
 	}
 	if strings.Join(add, "\x00") != `"E323: Line count wrong in block"` {
-		return die("the string literals this phase adds are %s, and it adds one", check.Z43PyList(add))
+		return die("the string literals this phase adds are %s, and it adds one", check.W126PyList(add))
 	}
 	say("THE STRINGS MOVE BY EXACTLY FOUR: `E323: Line count wrong in block %%ld` becomes " +
 		"`E323: Line count wrong in block`, because there is no number left to print, and " +
@@ -283,7 +283,7 @@ func Check(w io.Writer, args []string) error {
 	if !strings.Contains(newT, "mf_get(memfile_T *mfp, bhdr_T *hp)") {
 		return die("mf_get() does not take a block")
 	}
-	if z43Mfget3.MatchString(newT) {
+	if w126Mfget3.MatchString(newT) {
 		return die("mf_get() is still called with three arguments somewhere")
 	}
 	say("mf_get(mfp, hp) takes a block, and no call of it anywhere has three arguments; " +
@@ -307,7 +307,7 @@ func Check(w io.Writer, args []string) error {
 			}
 			Out = append(Out, m)
 		}
-		pm := z43Page.FindStringSubmatch(t)
+		pm := w126Page.FindStringSubmatch(t)
 		if pm == nil {
 			return 0, nil, die("the page size is not an enumerator in %s", path)
 		}
@@ -407,7 +407,7 @@ func Check(w io.Writer, args []string) error {
 	// --- 4. the cut `make editor.c` makes ---------------------------------------------
 	var cutL []string
 	for _, l := range strings.Split(newT, "\n") {
-		if check.Z38Inc.MatchString(l) {
+		if check.W121Inc.MatchString(l) {
 			break
 		}
 		cutL = append(cutL, l)
@@ -419,7 +419,7 @@ func Check(w io.Writer, args []string) error {
 	os.WriteFile(T("editor.c"), []byte(cutText), 0o644)
 	cutDirs := 0
 	for _, l := range cutL {
-		if check.Z30Dir.MatchString(l) {
+		if check.W113Dir.MatchString(l) {
 			cutDirs++
 		}
 	}
@@ -441,10 +441,10 @@ func Check(w io.Writer, args []string) error {
 	cc.Stderr = &cb
 	cc.Run()
 	set := map[string]bool{}
-	for _, m := range z43IfaceWrn.FindAllStringSubmatch(cb.String(), -1) {
+	for _, m := range w126IfaceWrn.FindAllStringSubmatch(cb.String(), -1) {
 		set[m[1]] = true
 	}
-	iface := check.Z27Keys(set)
+	iface := check.W110Keys(set)
 	other := 0
 	for _, l := range strings.Split(cb.String(), "\n") {
 		if strings.Contains(l, "warning:") {
@@ -468,46 +468,46 @@ func Check(w io.Writer, args []string) error {
 		return nil
 	}
 	rig := func(text, what string) (string, error) {
-		m := z43Arena.FindString(text)
+		m := w126Arena.FindString(text)
 		if m == "" {
 			return "", die("%s has no `HOST_ARENA_BYTES` enumerator, and sections 5 and 7 raise the "+
 				"arena so that this phase's evidence does not rest on phase 124's number", what)
 		}
-		Out := strings.Replace(text, m, z43Rig, 1)
-		if Out == text && m != z43Rig {
+		Out := strings.Replace(text, m, w126Rig, 1)
+		if Out == text && m != w126Rig {
 			return "", die("the arena rig changed nothing in %s", what)
 		}
 		return Out, nil
 	}
 	instrument := func(text, what string) (string, error) {
-		p := strings.Replace(text, "enum { STACK_INCR = 5 };", "enum { STACK_INCR = 5 };\n\n"+strings.TrimRight(z43Counters, "\n"), 1)
+		p := strings.Replace(text, "enum { STACK_INCR = 5 };", "enum { STACK_INCR = 5 };\n\n"+strings.TrimRight(w126Counters, "\n"), 1)
 		if p == text {
 			return "", die("%s does not declare STACK_INCR, so the counters have nowhere to go", what)
 		}
-		for _, a := range z43Anch {
+		for _, a := range w126Anch {
 			if e := one(p, a[1], a[2]); e != nil {
 				return "", e
 			}
 			ind := len(a[1]) - len(strings.TrimLeft(a[1], " \t\n\r\v\f"))
 			p = strings.Replace(p, a[1], strings.Repeat(" ", ind)+a[0]+"++;\n"+a[1], 1)
 		}
-		if e := one(p, z43Depth, "ml_find_line()'s push"); e != nil {
+		if e := one(p, w126Depth, "ml_find_line()'s push"); e != nil {
 			return "", e
 		}
-		p = strings.Replace(p, z43Depth, z43Depth+"\n        if ((long)top + 1 > ev_depth)\n"+
+		p = strings.Replace(p, w126Depth, w126Depth+"\n        if ((long)top + 1 > ev_depth)\n"+
 			"        {\n            ev_depth = (long)top + 1;\n        }", 1)
 		const EXIT = "    static void\nhost_exit(int r)\n{\n"
 		if e := one(p, EXIT, "host_exit()"); e != nil {
 			return "", e
 		}
-		p = strings.Replace(p, EXIT, z43Dump+EXIT+
+		p = strings.Replace(p, EXIT, w126Dump+EXIT+
 			"    write(2, \"TREE \", 5);\n"+
 			"    ev_num(ev_root);\n    write(2, \" \", 1);\n"+
 			"    ev_num(ev_ptr);\n    write(2, \" \", 1);\n"+
 			"    ev_num(ev_data);\n    write(2, \" \", 1);\n"+
 			"    ev_num(ev_depth);\n    write(2, \" \", 1);\n"+
 			"    ev_num(ev_blocks);\n    write(2, \"\\n\", 1);\n", 1)
-		for _, a := range z43Anch {
+		for _, a := range w126Anch {
 			if strings.Count(p, a[0]+"++") != 1 {
 				return "", die("the counter %s was not planted exactly once in %s", a[0], what)
 			}
@@ -580,7 +580,7 @@ func Check(w io.Writer, args []string) error {
 			return e
 		}
 		q := strings.Replace(x[1], SCAN, "            t = 0;", 1)
-		m := z43Iemsg.FindStringSubmatchIndex(q)
+		m := w126Iemsg.FindStringSubmatchIndex(q)
 		if m == nil {
 			return die("%s has no iemsg of E323 on a line of its own, so the arm cannot be made "+
 				"to draw and stop", x[0])
@@ -656,7 +656,7 @@ func Check(w io.Writer, args []string) error {
 		sort.Strings(ns)
 		for _, name := range ns {
 			txt := check.ReadFile(filepath.Join(Out, name))
-			ms := z43Tree.FindAllStringSubmatch(txt, -1)
+			ms := w126Tree.FindAllStringSubmatch(txt, -1)
 			if len(ms) == 0 {
 				return nil, die("the memline case %s on %s printed no TREE line, so the instrument did "+
 					"not reach host_exit()", name, tag)
@@ -673,7 +673,7 @@ func Check(w io.Writer, args []string) error {
 			got[name] = v
 			if strings.Contains(txt, "arena exhausted") {
 				return nil, die("the memline case %s exhausted the arena even with the rig raised to "+
-					"%s, so nothing in section 5 is a measurement of this phase", name, z43Rig)
+					"%s, so nothing in section 5 is a measurement of this phase", name, w126Rig)
 			}
 		}
 		return got, nil
@@ -750,7 +750,7 @@ func Check(w io.Writer, args []string) error {
 		wgR.Add(1)
 		go func() {
 			defer wgR.Done()
-			recErr[k] = check.RecZ(x[1], x[2], T("rec-"+x[0]))
+			recErr[k] = check.RecCore(x[1], x[2], T("rec-"+x[0]))
 		}()
 	}
 	wgR.Wait()
@@ -789,11 +789,11 @@ func Check(w io.Writer, args []string) error {
 		Err, Out []byte
 	}
 	run := func(binary string, k [][]byte) (runR, error) {
-		_, so, se, rc, err := harness.ZSession(binary, k, "xterm", nil, 24, 80, 900*time.Second)
+		_, so, se, rc, err := harness.CoreSession(binary, k, "xterm", nil, 24, 80, 900*time.Second)
 		if err != nil {
 			return runR{}, die("a session on %s never returned", filepath.Base(binary))
 		}
-		sum := sha256.Sum256(z43Clock.ReplaceAll(so, []byte("<CLOCK>")))
+		sum := sha256.Sum256(w126Clock.ReplaceAll(so, []byte("<CLOCK>")))
 		return runR{rc, hex.EncodeToString(sum[:])[:16], se, so}, nil
 	}
 	type evt struct {
@@ -806,7 +806,7 @@ func Check(w io.Writer, args []string) error {
 		if e != nil {
 			return e
 		}
-		m := z43Tree.FindStringSubmatch(harness.DecodeReplace(rr.Err))
+		m := w126Tree.FindStringSubmatch(harness.DecodeReplace(rr.Err))
 		if m == nil {
 			return die("the tree instrument on %s printed no TREE line", side)
 		}
@@ -983,8 +983,8 @@ func Check(w io.Writer, args []string) error {
 		"in mf_alloc_bhdr(), which is why removing the FIELD is safe", cp, len(SESSION))
 
 	// --- 9. E323 ------------------------------------------------------------------------
-	check.RunZ(w, B["m_e323"], oldC, T("rec-mark-e323"))
-	check.RunZ(w, B["m_reach"], oldC, T("rec-mark-reach"))
+	check.RunCore(w, B["m_e323"], oldC, T("rec-mark-e323"))
+	check.RunCore(w, B["m_reach"], oldC, T("rec-mark-reach"))
 	carry := func(root string) (int, int) {
 		hit, tot := 0, 0
 		for _, Rel := range check.WalkFiles(root) {
@@ -1031,17 +1031,17 @@ func Check(w io.Writer, args []string) error {
 	}
 	if !bytes.Contains(smOld.Out, []byte("E323: Line count wrong in block 0")) {
 		return die("the forced input does not draw E323 with a block number, so the message this "+
-			"phase changes is not the one being exhibited: %s", check.Z30BytesRepr(from(smOld.Out)))
+			"phase changes is not the one being exhibited: %s", check.W113BytesRepr(from(smOld.Out)))
 	}
-	if !bytes.Contains(smNew.Out, []byte("E323: Line count wrong in block")) || z43E323Num.Match(smNew.Out) {
-		return die("the forced output draws %s, and this phase leaves E323 with no number", check.Z30BytesRepr(from(smNew.Out)))
+	if !bytes.Contains(smNew.Out, []byte("E323: Line count wrong in block")) || w126E323Num.Match(smNew.Out) {
+		return die("the forced output draws %s, and this phase leaves E323 with no number", check.W113BytesRepr(from(smNew.Out)))
 	}
 	say("E323 IS THE ONE STRING AND IT IS NOT DRAWN: the input built with a marker on that "+
 		"arm carries it in %d of %d records of a whole recording, and the IDENTICAL marker "+
 		"on the line above it -- the descent into a pointer block -- is carried by %d of "+
 		"%d.  Both sources built with the scan forced to find nothing DO draw it, and what "+
 		"they draw is %s against %s", h1, t1, h2, t2,
-		check.Z30BytesRepr(bytes.TrimSpace(z43E323Any.Find(smOld.Out))), check.Z30BytesRepr(bytes.TrimSpace(z43E323Any.Find(smNew.Out))))
+		check.W113BytesRepr(bytes.TrimSpace(w126E323Any.Find(smOld.Out))), check.W113BytesRepr(bytes.TrimSpace(w126E323Any.Find(smNew.Out))))
 
 	// --- 10. what this phase declares ---------------------------------------------------
 	decl, _ := verify.PhaseDeclared(126)

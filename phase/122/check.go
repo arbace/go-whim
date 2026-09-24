@@ -76,33 +76,33 @@ import (
 func init() { check.Register("whim122", Check) }
 
 var (
-	z39TermpArm  = regexp.MustCompile(`(?m)^[ \t]*if \(termp == nullptr\)$`)
-	z39StartingC = regexp.MustCompile(`(?m)^[ \t]*if \(starting != NO_SCREEN\)$`)
-	z39Strstr    = regexp.MustCompile(`musl_strstr\(\(char \*\)term, "([^"]*)"\) != nullptr`)
-	z39Case      = regexp.MustCompile(`(?m)^[ \t]*case '(.)':$`)
-	z39PlusTest  = regexp.MustCompile(`(?m)^[ \t]*if \(argv\[0\]\[0\] == '\+'\)$`)
-	z39Else      = regexp.MustCompile(`(?m)^[ \t]*else$`)
-	z39TermField = regexp.MustCompile(`(?m)^[ \t]*char_u +\*term;\n`)
-	z39OwnerC    = regexp.MustCompile(`(\w+)\s*(?:\.|->)\s*term\b`)
-	z39DotTermC  = regexp.MustCompile(`(?:\.|->)\s*term\b`)
-	z39MEPair    = regexp.MustCompile(`(?m)^enum \{ (ME_\w+) = (\d+) \};$`)
-	z39MainErr   = regexp.MustCompile(`(?ms)^static char \*\(main_errors\[\]\) =\n\{\n(.*?)^\};\n`)
-	z39Exit      = regexp.MustCompile(`--- exit (\S+)`)
-	z39StreamN   = regexp.MustCompile(`--- stream (\d+)`)
-	z39Promise   = regexp.MustCompile(`not known, defaulting to '([^']*)'`)
-	z39TermSp    = regexp.MustCompile(`term=\S+ `)
+	w122TermpArm  = regexp.MustCompile(`(?m)^[ \t]*if \(termp == nullptr\)$`)
+	w122StartingC = regexp.MustCompile(`(?m)^[ \t]*if \(starting != NO_SCREEN\)$`)
+	w122Strstr    = regexp.MustCompile(`musl_strstr\(\(char \*\)term, "([^"]*)"\) != nullptr`)
+	w122Case      = regexp.MustCompile(`(?m)^[ \t]*case '(.)':$`)
+	w122PlusTest  = regexp.MustCompile(`(?m)^[ \t]*if \(argv\[0\]\[0\] == '\+'\)$`)
+	w122Else      = regexp.MustCompile(`(?m)^[ \t]*else$`)
+	w122TermField = regexp.MustCompile(`(?m)^[ \t]*char_u +\*term;\n`)
+	w122OwnerC    = regexp.MustCompile(`(\w+)\s*(?:\.|->)\s*term\b`)
+	w122DotTermC  = regexp.MustCompile(`(?:\.|->)\s*term\b`)
+	w122MEPair    = regexp.MustCompile(`(?m)^enum \{ (ME_\w+) = (\d+) \};$`)
+	w122MainErr   = regexp.MustCompile(`(?ms)^static char \*\(main_errors\[\]\) =\n\{\n(.*?)^\};\n`)
+	w122Exit      = regexp.MustCompile(`--- exit (\S+)`)
+	w122StreamN   = regexp.MustCompile(`--- stream (\d+)`)
+	w122Promise   = regexp.MustCompile(`not known, defaulting to '([^']*)'`)
+	w122TermSp    = regexp.MustCompile(`term=\S+ `)
 )
 
-// z39Arm is the heredoc's arm(): set_termname()'s `termp == nullptr` arm,
+// w122Arm is the heredoc's arm(): set_termname()'s `termp == nullptr` arm,
 // its extent in t and its text.
-func z39Arm(t string) (int, int, string, bool) {
+func w122Arm(t string) (int, int, string, bool) {
 	lo, hi, ok := cutil.FindDefinition([]byte(t), cutil.Blank([]byte(t)), "set_termname")
 	if !ok {
 		return 0, 0, "", false
 	}
 	seg := t[lo:hi]
 	b := string(cutil.Blank([]byte(seg)))
-	m := z39TermpArm.FindStringIndex(seg)
+	m := w122TermpArm.FindStringIndex(seg)
 	if m == nil {
 		return 0, 0, "", false
 	}
@@ -116,13 +116,13 @@ func z39Arm(t string) (int, int, string, bool) {
 	return lo + k, lo + end, seg[k:end], true
 }
 
-func z39Def(t, name string) (int, int) {
+func w122Def(t, name string) (int, int) {
 	lo, hi, _ := cutil.FindDefinition([]byte(t), cutil.Blank([]byte(t)), name)
 	return lo, hi
 }
 
-func z39Letters(t string) []string {
-	lo, hi := z39Def(t, "command_line_scan")
+func w122Letters(t string) []string {
+	lo, hi := w122Def(t, "command_line_scan")
 	seg := t[lo:hi]
 	b := string(cutil.Blank([]byte(seg)))
 	i := strings.Index(b, "switch (c)")
@@ -132,19 +132,19 @@ func z39Letters(t string) []string {
 	o := strings.Index(b[i:], "{") + i
 	c := cutil.Match([]byte(b), o)
 	var Out []string
-	for _, m := range z39Case.FindAllStringSubmatch(seg[o+1:c], -1) {
+	for _, m := range w122Case.FindAllStringSubmatch(seg[o+1:c], -1) {
 		Out = append(Out, m[1])
 	}
 	return Out
 }
 
-// z39Gist is the heredoc's gist(): one record block said in a line.
-func z39Gist(block string) string {
+// w122Gist is the heredoc's gist(): one record block said in a line.
+func w122Gist(block string) string {
 	ex, st := "?", "?"
-	if m := z39Exit.FindStringSubmatch(block); m != nil {
+	if m := w122Exit.FindStringSubmatch(block); m != nil {
 		ex = m[1]
 	}
-	if m := z39StreamN.FindStringSubmatch(block); m != nil {
+	if m := w122StreamN.FindStringSubmatch(block); m != nil {
 		st = m[1]
 	}
 	var errl []string
@@ -164,7 +164,7 @@ func z39Gist(block string) string {
 	return fmt.Sprintf("%s exit %s, %s bytes drawn%s", bl, ex, st, tail)
 }
 
-func z39Pad(s string, n int) string {
+func w122Pad(s string, n int) string {
 	if k := len([]rune(s)); k < n {
 		return s + strings.Repeat(" ", n-k)
 	}
@@ -193,10 +193,10 @@ func Check(w io.Writer, args []string) error {
 	T := func(n string) string { return filepath.Join(tmp, n) }
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
 	cflagsS, ldflagsS := "", ""
-	if m := check.Z29CFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112CFlags.FindStringSubmatch(mk); m != nil {
 		cflagsS = m[1]
 	}
-	if m := check.Z29LDFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112LDFlags.FindStringSubmatch(mk); m != nil {
 		ldflagsS = m[1]
 	}
 
@@ -214,8 +214,8 @@ func Check(w io.Writer, args []string) error {
 	// this phase's key.  Do not delete it.
 	const CT = "controls"
 	newT, oldT := check.ReadFile(f), check.ReadFile(oldC)
-	_, _, blkOld, ok1 := z39Arm(oldT)
-	an, zn, blkNew, ok2 := z39Arm(newT)
+	_, _, blkOld, ok1 := w122Arm(oldT)
+	an, zn, blkNew, ok2 := w122Arm(newT)
 	if !ok1 || !ok2 {
 		return die(CT, "set_termname() has no `termp == nullptr` arm in one of the two texts")
 	}
@@ -226,25 +226,25 @@ func Check(w io.Writer, args []string) error {
 		return die(CT, "the output's refusal arm still tests `starting` or calls "+
 			"report_default_term(), so this phase did not do what it says")
 	}
-	lo, hi := z39Def(oldT, "report_default_term")
+	lo, hi := w122Def(oldT, "report_default_term")
 	rdt := oldT[lo:hi]
 	if strings.Contains(newT, rdt) {
 		return die(CT, "report_default_term() is still in the output, so the sweep did not take it")
 	}
 	c1 := newT[:an] + blkOld + newT[zn:]
-	slo, _ := z39Def(c1, "set_termname")
+	slo, _ := w122Def(c1, "set_termname")
 	c1 = c1[:slo] + rdt + "\n" + c1[slo:]
 	if c1 == newT {
 		return die(CT, "the arm-restored control changed nothing, so it is not a control")
 	}
 	os.WriteFile(T("c1.c"), []byte(c1), 0o644)
 	mark := func(text, label string) (string, error) {
-		a, z, blk, ok := z39Arm(text)
+		a, z, blk, ok := w122Arm(text)
 		if !ok {
 			return "", die(CT, "set_termname() has no `termp == nullptr` arm in one of the two texts")
 		}
 		b := string(cutil.Blank([]byte(blk)))
-		g := z39StartingC.FindStringIndex(blk)
+		g := w122StartingC.FindStringIndex(blk)
 		if g == nil {
 			return "", die(CT, "%s: the restored arm does not test `starting`", label)
 		}
@@ -269,7 +269,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	os.WriteFile(T("i-old.c"), []byte(iOld), 0o644)
 	os.WriteFile(T("i-new.c"), []byte(iNew), 0o644)
-	sm := z39Strstr.FindStringSubmatch(newT)
+	sm := w122Strstr.FindStringSubmatch(newT)
 	if sm == nil {
 		return die(CT, "the 256-colour name test is not a musl_strstr on `term` in the output")
 	}
@@ -279,7 +279,7 @@ func Check(w io.Writer, args []string) error {
 	os.WriteFile(T("cT.c"), []byte(strings.ReplaceAll(newT, sm[0], "(TRUE)")), 0o644)
 	os.WriteFile(T("cF.c"), []byte(strings.ReplaceAll(newT, sm[0], "(FALSE)")), 0o644)
 	needle := sm[1]
-	was, now := z39Letters(oldT), z39Letters(newT)
+	was, now := w122Letters(oldT), w122Letters(newT)
 	if len(was) == 0 {
 		return die(CT, "the input's parser accepts no option letter, so this phase removed nothing")
 	}
@@ -287,7 +287,7 @@ func Check(w io.Writer, args []string) error {
 		return die(CT, "the output still accepts the option letter(s) %s", strings.Join(now, " "))
 	}
 	LETTERS := strings.Join(was, "")
-	lo, hi = z39Def(oldT, "command_line_scan")
+	lo, hi = w122Def(oldT, "command_line_scan")
 	seg := oldT[lo:hi]
 	b := string(cutil.Blank([]byte(seg)))
 	o := strings.Index(b[strings.Index(b, "switch (c)"):], "{") + strings.Index(b, "switch (c)")
@@ -357,7 +357,7 @@ func Check(w io.Writer, args []string) error {
 			return die(CL, "%s went, and it is not this phase's", n)
 		}
 	}
-	lo, hi = z39Def(newT, "command_line_scan")
+	lo, hi = w122Def(newT, "command_line_scan")
 	nseg := newT[lo:hi]
 	bseg := string(cutil.Blank([]byte(nseg)))
 	if strings.Contains(bseg, "switch") {
@@ -368,10 +368,10 @@ func Check(w io.Writer, args []string) error {
 			return die(CL, "command_line_scan() still declares `%s`", name)
 		}
 	}
-	if len(z39PlusTest.FindAllStringIndex(nseg, -1)) != 1 {
+	if len(w122PlusTest.FindAllStringIndex(nseg, -1)) != 1 {
 		return die(CL, "command_line_scan() does not test for exactly one `+`")
 	}
-	if len(z39Else.FindAllStringIndex(nseg, -1)) != 2 {
+	if len(w122Else.FindAllStringIndex(nseg, -1)) != 2 {
 		return die(CL, "command_line_scan() does not have the two elses this phase leaves -- the "+
 			"`+cmd` arm's inner one and the unknown-option arm")
 	}
@@ -385,14 +385,14 @@ func Check(w io.Writer, args []string) error {
 		"`requested` the fallback needed", strings.Join(dashed, " "))
 	mEnd := strings.Index(newT, "} mparm_T;")
 	mStart := strings.LastIndex(newT[:mEnd], "{")
-	if z39TermField.MatchString(newT[mStart:mEnd]) {
+	if w122TermField.MatchString(newT[mStart:mEnd]) {
 		return die(CL, "mparm_T still has its `term` member")
 	}
 	ownSet := map[string]bool{}
-	for _, m := range z39OwnerC.FindAllStringSubmatch(bnew, -1) {
+	for _, m := range w122OwnerC.FindAllStringSubmatch(bnew, -1) {
 		ownSet[m[1]] = true
 	}
-	owners := check.Z27Keys(ownSet)
+	owners := check.W110Keys(ownSet)
 	var bad []string
 	for _, x := range owners {
 		if x == "params" || x == "parmp" {
@@ -408,7 +408,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	say(CL, "mparm_T has no `term` member, and the %d `.term` mentions left all belong to "+
 		"another struct (%s): deadfields.py matches by NAME, which is why the member was "+
-		"the edit's and not the sweep's", len(z39DotTermC.FindAllStringIndex(bnew, -1)), strings.Join(owners, " "))
+		"the edit's and not the sweep's", len(w122DotTermC.FindAllStringIndex(bnew, -1)), strings.Join(owners, " "))
 	after := strings.Count(newT, "\n")
 	if !strings.HasSuffix(newT, "\n") {
 		after++
@@ -447,7 +447,7 @@ func Check(w io.Writer, args []string) error {
 	pairs := func(t string) ([]string, map[string]string) {
 		var order []string
 		m := map[string]string{}
-		for _, p := range z39MEPair.FindAllStringSubmatch(t, -1) {
+		for _, p := range w122MEPair.FindAllStringSubmatch(t, -1) {
 			if _, ok := m[p[1]]; !ok {
 				order = append(order, p[1])
 			}
@@ -537,7 +537,7 @@ func Check(w io.Writer, args []string) error {
 	if len(lost) > 0 {
 		fail = append(fail, fmt.Sprintf("%d enumerators left the binary and were not to: %s", len(lost), first8(lost)))
 	}
-	rowsM := z39MainErr.FindStringSubmatch(newT)
+	rowsM := w122MainErr.FindStringSubmatch(newT)
 	nRows := -1
 	if rowsM != nil {
 		nRows = len(strings.Split(strings.TrimRight(rowsM[1], "\n"), "\n"))
@@ -582,7 +582,7 @@ func Check(w io.Writer, args []string) error {
 		wgR.Add(1)
 		go func() {
 			defer wgR.Done()
-			check.RunZ(w, x[0], x[1], T(x[2]))
+			check.RunCore(w, x[0], x[1], T(x[2]))
 		}()
 	}
 	wgR.Wait()
@@ -637,14 +637,14 @@ func Check(w io.Writer, args []string) error {
 					badA = append(badA, fmt.Sprintf("%s was already an unknown option, so moving it proves nothing", check.PyRepr26(name)))
 				}
 				if !strings.Contains(b, UNKNOWN) {
-					badA = append(badA, fmt.Sprintf("%s is not an unknown option now: %s", check.PyRepr26(name), z39Gist(b)))
+					badA = append(badA, fmt.Sprintf("%s is not an unknown option now: %s", check.PyRepr26(name), w122Gist(b)))
 				}
 			}
 			rhs := "(identical)"
 			if a != b {
-				rhs = z39Gist(b)
+				rhs = w122Gist(b)
 			}
-			printed = append(printed, "               "+z39Pad(check.PyRepr26(name), 22)+" "+z39Pad(z39Gist(a), 46)+" -> "+rhs)
+			printed = append(printed, "               "+w122Pad(check.PyRepr26(name), 22)+" "+w122Pad(w122Gist(a), 46)+" -> "+rhs)
 		}
 		if len(moved) == 0 {
 			return "no invocation spells a removed option letter, so this check is vacuous"
@@ -674,7 +674,7 @@ func Check(w io.Writer, args []string) error {
 		var dl []string
 		if what == "screen" {
 			dl = check.DiffRQ(a, bb)
-		} else if !check.Z30Same(a, bb) {
+		} else if !check.W113Same(a, bb) {
 			dl = []string{fmt.Sprintf("Files %s and %s differ", a, bb)}
 		}
 		if len(dl) > 0 {
@@ -820,17 +820,17 @@ func Check(w io.Writer, args []string) error {
 				return fmt.Sprintf("%s does not report the name at all", k)
 			}
 		}
-		wm := z39Promise.FindStringSubmatch(plain["old"])
-		nm := z39Promise.FindStringSubmatch(plain["new"])
+		wm := w122Promise.FindStringSubmatch(plain["old"])
+		nm := w122Promise.FindStringSubmatch(plain["new"])
 		if wm == nil {
 			return "the binary this phase was handed did not promise a default, so there was nothing here to take away"
 		}
 		if nm != nil {
 			return fmt.Sprintf("the new binary still promises %s, and there is no fallback to make that true", check.PyRepr26(nm[1]))
 		}
-		to, tn := z39TermSp.FindAllString(plain["old"], -1), z39TermSp.FindAllString(plain["new"], -1)
+		to, tn := w122TermSp.FindAllString(plain["old"], -1), w122TermSp.FindAllString(plain["new"], -1)
 		if strings.Join(to, "\x00") != strings.Join(tn, "\x00") {
-			return fmt.Sprintf("the terminal the editor is left at moved: %s -> %s", check.Z27ReprList(to), check.Z27ReprList(tn))
+			return fmt.Sprintf("the terminal the editor is left at moved: %s -> %s", check.W110ReprList(to), check.W110ReprList(tn))
 		}
 		return fmt.Sprintf("OK`:set term=%s` on a real pty takes the no-screen arm on BOTH instrumented "+
 			"builds and reaches the fallback on neither: the test this phase folded is "+
@@ -901,7 +901,7 @@ func Check(w io.Writer, args []string) error {
 		}
 		if len(both) > 0 {
 			return fmt.Sprintf("%s moves whichever way the test is forced, so neither control says "+
-				"what the test decides", strings.Join(check.Z27Keys(both), " "))
+				"what the test decides", strings.Join(check.W110Keys(both), " "))
 		}
 		var resolving []string
 		for _, r := range rows {
@@ -916,7 +916,7 @@ func Check(w io.Writer, args []string) error {
 			}
 		}
 		if len(extraU) > 0 {
-			return fmt.Sprintf("forcing the test TRUE moved a row that does not resolve at all: %s", strings.Join(check.Z27Keys(extraU), " "))
+			return fmt.Sprintf("forcing the test TRUE moved a row that does not resolve at all: %s", strings.Join(check.W110Keys(extraU), " "))
 		}
 		askTC := func(binary, name string) string {
 			s := ask(binary, name)
@@ -995,7 +995,7 @@ func Check(w io.Writer, args []string) error {
 	uNew := check.NmField26(T("new.o"), []string{"-u"}, 1)
 	uOld := check.NmField26(T("old.o"), []string{"-u"}, 1)
 	if g, cm := check.Minus26(uOld, uNew), check.Minus26(uNew, uOld); len(g)+len(cm) > 0 {
-		return die("symbols", "the libc surface moved, and this phase frees nothing: gone '%s', new '%s'", check.Z31Words(g), check.Z31Words(cm))
+		return die("symbols", "the libc surface moved, and this phase frees nothing: gone '%s', new '%s'", check.W114Words(g), check.W114Words(cm))
 	}
 	extOut, _ := exec.Command("nm", "--extern-only", "--defined-only", T("new.o")).Output()
 	var ext []string
@@ -1008,7 +1008,7 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 	sort.Strings(ext)
-	if s := check.Z31Words(ext); s != "main " {
+	if s := check.W114Words(ext); s != "main " {
 		return die("symbols", "the output defines external symbols other than main: %s", s)
 	}
 	say("symbols", "`nm -u` is THE SAME %d symbols, a comm empty in both directions -- and that is a statement and not a disappointment: what this phase removes is a parser arm and an unreachable fallback, and neither was anything's last caller.  `main` is still the only external symbol", len(uNew))
@@ -1020,7 +1020,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	sides := map[string]side{}
 	for _, x := range []struct{ side, src string }{{"old", oldC}, {"new", f}} {
-		lines := check.Z28Cut(check.ReadFile(x.src))
+		lines := check.W111Cut(check.ReadFile(x.src))
 		text := ""
 		for _, l := range lines {
 			text += l + "\n"
@@ -1029,13 +1029,13 @@ func Check(w io.Writer, args []string) error {
 		os.WriteFile(cp, []byte(text), 0o644)
 		d := 0
 		for _, l := range lines {
-			if check.Z30Dir.MatchString(l) {
+			if check.W113Dir.MatchString(l) {
 				d++
 			}
 		}
 		inc := 0
 		for _, l := range strings.Split(check.ReadFile(x.src), "\n") {
-			if check.Z38Inc.MatchString(l) {
+			if check.W121Inc.MatchString(l) {
 				inc++
 			}
 		}
@@ -1057,10 +1057,10 @@ func Check(w io.Writer, args []string) error {
 		}
 		wo, _ := exec.Command("gcc", "-fsyntax-only", "-Wall", "-Wextra", "-Wno-unused-parameter", cp).CombinedOutput()
 		set := map[string]bool{}
-		for _, m := range check.Z38IfaceWrn.FindAllStringSubmatch(string(wo), -1) {
+		for _, m := range check.W121IfaceWrn.FindAllStringSubmatch(string(wo), -1) {
 			set[m[1]] = true
 		}
-		sides[x.side] = side{len(lines), inc, check.Z27Keys(set)}
+		sides[x.side] = side{len(lines), inc, check.W110Keys(set)}
 	}
 	if sides["old"].inc != sides["new"].inc {
 		return die("boundary", "the file had %d #include directives and has %d: this phase removes none and adds none",
@@ -1070,7 +1070,7 @@ func Check(w io.Writer, args []string) error {
 		say("boundary", "the core -> host interface moved, and this phase is above the boundary entirely:")
 		os.WriteFile(T("iface-old"), []byte(strings.Join(sides["old"].iface, "\n")+"\n"), 0o644)
 		os.WriteFile(T("iface-new"), []byte(strings.Join(sides["new"].iface, "\n")+"\n"), 0o644)
-		for _, l := range check.Z30Diff(T("iface-old"), T("iface-new")) {
+		for _, l := range check.W113Diff(T("iface-old"), T("iface-new")) {
 			fmt.Fprintf(w, "               %s\n", l)
 		}
 		return harness.ErrReported
@@ -1082,9 +1082,9 @@ func Check(w io.Writer, args []string) error {
 		sides["old"].lines, sides["new"].lines, sides["old"].inc, len(sides["new"].iface))
 
 	// --- 10. STRUCTURE --------------------------------------------------------------------------
-	zh := exec.Command("sh", "tools/st.sh", "zhostonly", f)
-	zh.Stdout, zh.Stderr = w, w
-	if err := zh.Run(); err != nil {
+	hostOnly := exec.Command("sh", "tools/st.sh", "zhostonly", f)
+	hostOnly.Stdout, hostOnly.Stderr = w, w
+	if err := hostOnly.Run(); err != nil {
 		return harness.ErrReported
 	}
 	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {

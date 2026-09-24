@@ -11,7 +11,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func z6Probes(r *check.Rep, old, bin string) error {
+func w89Probes(r *check.Rep, old, bin string) error {
 	esc, cr := []byte("\x1b"), []byte("\r")
 	quit := append(append([]byte{}, esc...), []byte(":q!\r")...)
 	hello := []byte("hello")
@@ -25,10 +25,10 @@ func z6Probes(r *check.Rep, old, bin string) error {
 		k := [][]byte{append(append([]byte("i"), seed...), esc...), []byte(":set nopaste\r")}
 		return []string{"+set paste"}, append(k, keys...)
 	}
-	mk := func(name string, a []string, k [][]byte, d bool) check.Z6Probe {
-		return check.Z6Probe{Name: name, Args: a, Keys: k, Differ: d}
+	mk := func(name string, a []string, k [][]byte, d bool) check.W89Probe {
+		return check.W89Probe{Name: name, Args: a, Keys: k, Differ: d}
 	}
-	var probes []check.Z6Probe
+	var probes []check.W89Probe
 	add := func(name string, a []string, k [][]byte, d bool) { probes = append(probes, mk(name, a, k, d)) }
 
 	a, k := typed([]byte("WROTEME"), []byte(":w out.txt\r"), []byte(":%d\r"), []byte(":r out.txt\r"))
@@ -86,10 +86,10 @@ func z6Probes(r *check.Rep, old, bin string) error {
 	var wg sync.WaitGroup
 	for i, p := range probes {
 		wg.Add(1)
-		go func(i int, p check.Z6Probe) {
+		go func(i int, p check.W89Probe) {
 			defer wg.Done()
-			ot, of := check.ZRecordFiles(old, p.Args, p.Keys, 10*time.Second)
-			nt, nf := check.ZRecordFiles(bin, p.Args, p.Keys, 10*time.Second)
+			ot, of := check.CoreRecordFiles(old, p.Args, p.Keys, 10*time.Second)
+			nt, nf := check.CoreRecordFiles(bin, p.Args, p.Keys, 10*time.Second)
 			outs[i] = outcome{p.Name, ot, nt, of, nf, p.Differ}
 		}(i, p)
 	}
@@ -150,10 +150,10 @@ func z6Probes(r *check.Rep, old, bin string) error {
 	for _, name := range []string{"w_bare", "x_bare", "wq_bare", "up_bare", "sav_a", "w_bang",
 		"w_append", "w_filter", "w_named", "sav_named", "up_named", "wq_named", "x_named", "cmd_write"} {
 		o := by[name]
-		if strings.Contains(o.oT, check.Z6E492) {
+		if strings.Contains(o.oT, check.W89E492) {
 			fail = append(fail, fmt.Sprintf("%s already answered E492 before this phase, so it proves nothing", name))
 		}
-		if !strings.Contains(o.nT, check.Z6E492) {
+		if !strings.Contains(o.nT, check.W89E492) {
 			fail = append(fail, fmt.Sprintf("%s does not answer E492: a removed name has been inherited", name))
 		}
 	}
@@ -168,7 +168,7 @@ func z6Probes(r *check.Rep, old, bin string) error {
 	if !strings.Contains(o.oT, "E32: No file name") {
 		fail = append(fail, "zz_key: ZZ did not run :x on the input binary, so this proves nothing")
 	}
-	if strings.Contains(o.nT, check.Z6E492) {
+	if strings.Contains(o.nT, check.W89E492) {
 		fail = append(fail, "zz_key: ZZ still names a command that does not exist")
 	}
 	if !strings.Contains(o.nT, "exit 0") {
@@ -179,7 +179,7 @@ func z6Probes(r *check.Rep, old, bin string) error {
 	}
 	// `:read` still IS a command -- it answers E32 for want of a file name,
 	// exactly as `:write` did before this phase.
-	if o := by["cmd_read"]; !strings.Contains(o.nT, "E32: No file name") || strings.Contains(o.nT, check.Z6E492) {
+	if o := by["cmd_read"]; !strings.Contains(o.nT, "E32: No file name") || strings.Contains(o.nT, check.W89E492) {
 		fail = append(fail, "cmd_read: `:read` is no longer a command, and it is the read phase's")
 	}
 	if o := by["editing"]; !strings.Contains(o.nT, "alpha") {
@@ -199,9 +199,9 @@ func z6Probes(r *check.Rep, old, bin string) error {
 	return nil
 }
 
-// z6Pty is section 6: `:wq` on a pty is how a person leaves this editor, and
+// w89Pty is section 6: `:wq` on a pty is how a person leaves this editor, and
 // every probe above went through a pipe.
-func z6Pty(r *check.Rep, old, bin string) error {
+func w89Pty(r *check.Rep, old, bin string) error {
 	home, err := os.MkdirTemp("", "whim89-home-")
 	if err != nil {
 		return err
@@ -212,7 +212,7 @@ func z6Pty(r *check.Rep, old, bin string) error {
 			return "", -1, nil, err
 		}
 		text, status, err := harness.Session(binary, nil, keys, "xterm",
-			20*time.Second, 600*time.Millisecond, d, check.Z2Env(home), 0, 0)
+			20*time.Second, 600*time.Millisecond, d, check.W85Env(home), 0, 0)
 		var left []string
 		ents, _ := os.ReadDir(d)
 		for _, e := range ents {

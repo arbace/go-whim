@@ -70,24 +70,24 @@ import (
 func init() { check.Register("whim125", Check) }
 
 var (
-	z42Ident    = regexp.MustCompile(`[A-Za-z_]\w*`)
-	z42Test     = regexp.MustCompile(`(?m)^( *)if \(hp->bh_hashitem\.mhi_key != (\d)\)$`)
-	z42IfaceWrn = regexp.MustCompile(`warning: '([A-Za-z_0-9]*)' used but never defined`)
-	z42MemName  = regexp.MustCompile(`^.*memline/([a-z_]*) .*$`)
-	z42RootProb = regexp.MustCompile(`ROOTPROBE pres=(\d+) over=(\d+)`)
-	z42Clock    = regexp.MustCompile(`\d+ seconds? ago`)
-	z42SplitIn  = regexp.MustCompile(`split_root=[1-9]`)
-	z42PresOut  = regexp.MustCompile(`ROOTPROBE pres=[1-9]`)
+	w125Ident    = regexp.MustCompile(`[A-Za-z_]\w*`)
+	w125Test     = regexp.MustCompile(`(?m)^( *)if \(hp->bh_hashitem\.mhi_key != (\d)\)$`)
+	w125IfaceWrn = regexp.MustCompile(`warning: '([A-Za-z_0-9]*)' used but never defined`)
+	w125MemName  = regexp.MustCompile(`^.*memline/([a-z_]*) .*$`)
+	w125RootProb = regexp.MustCompile(`ROOTPROBE pres=(\d+) over=(\d+)`)
+	w125Clock    = regexp.MustCompile(`\d+ seconds? ago`)
+	w125SplitIn  = regexp.MustCompile(`split_root=[1-9]`)
+	w125PresOut  = regexp.MustCompile(`ROOTPROBE pres=[1-9]`)
 )
 
-var z42Names = []string{"neg_new", "neg_add", "neg_del", "neg_find", "ctl_data",
+var w125Names = []string{"neg_new", "neg_add", "neg_del", "neg_find", "ctl_data",
 	"b0_open", "b0_flags", "b0_fname", "split_seen", "split_root", "find_ptr"}
 
-// z42Body is the instrument's two functions, generated from the names as the
+// w125Body is the instrument's two functions, generated from the names as the
 // heredoc generated them.
-func z42Body() string {
+func w125Body() string {
 	var calls []string
-	for _, n := range z42Names {
+	for _, n := range w125Names {
 		calls = append(calls, fmt.Sprintf("    write(2, \" %s=\", %d);\n    probe_num(probe_%s);", n, len(n)+2, n))
 	}
 	return `
@@ -120,9 +120,9 @@ probe_dump(void)
 `
 }
 
-type z42Mark struct{ Name, anchor, marked, What string }
+type w125Mark struct{ Name, anchor, marked, What string }
 
-var z42Marks = []z42Mark{
+var w125Marks = []w125Mark{
 	{"neg_new", "        if (negative)\n        {\n            hp->bh_hashitem.mhi_key = mfp->mf_blocknr_min--;",
 		"        if (negative)\n        {\n            probe_neg_new++;\n            hp-> bh_hashitem.mhi_key  = mfp->mf_blocknr_min--;",
 		"mf_new()'s negative branch"},
@@ -154,7 +154,7 @@ var z42Marks = []z42Mark{
 }
 
 // z42Keys builds a keystroke list the way the heredocs build theirs.
-func z42Lines(n int, f func(int) string) [][]byte {
+func w125Lines(n int, f func(int) string) [][]byte {
 	k := [][]byte{[]byte("i")}
 	for i := 0; i < n; i++ {
 		k = append(k, []byte(f(i)))
@@ -162,7 +162,7 @@ func z42Lines(n int, f func(int) string) [][]byte {
 	return append(k, []byte("\x1b"))
 }
 
-func z42Repeat(k [][]byte, s string, n int) [][]byte {
+func w125Repeat(k [][]byte, s string, n int) [][]byte {
 	for i := 0; i < n; i++ {
 		k = append(k, []byte(s))
 	}
@@ -209,10 +209,10 @@ func Check(w io.Writer, args []string) error {
 	}
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
 	cflagsS, ldflagsS := "", ""
-	if m := check.Z29CFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112CFlags.FindStringSubmatch(mk); m != nil {
 		cflagsS = m[1]
 	}
-	if m := check.Z29LDFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112LDFlags.FindStringSubmatch(mk); m != nil {
 		ldflagsS = m[1]
 	}
 	link := func(src, Out, logPath string) error {
@@ -251,11 +251,11 @@ func Check(w io.Writer, args []string) error {
 		return nil
 	}
 	var dn []string
-	for _, n := range z42Names {
+	for _, n := range w125Names {
 		dn = append(dn, "probe_"+n)
 	}
 	DECLS := "static long " + strings.Join(dn, ", ") + ";\n\n"
-	BODY := z42Body()
+	BODY := w125Body()
 	const EXIT = "    static void\nhost_exit(int r)\n{\n"
 	if e := one(oldT, EXIT, "host_exit()"); e != nil {
 		return e
@@ -269,7 +269,7 @@ func Check(w io.Writer, args []string) error {
 		return die("mf_new() is not defined in this tree's shape, so the counters " +
 			"have nowhere to go above their first use")
 	}
-	for _, m := range z42Marks {
+	for _, m := range w125Marks {
 		if e := one(p, m.anchor, m.What); e != nil {
 			return e
 		}
@@ -341,7 +341,7 @@ func Check(w io.Writer, args []string) error {
 		nl(oldT), nl(mid), nl(newT), nl(oldT)-nl(mid), nl(mid)-nl(newT), nl(oldT)-nl(newT))
 	words := func(s string) map[string]bool {
 		m := map[string]bool{}
-		for _, x := range z42Ident.FindAllString(s, -1) {
+		for _, x := range w125Ident.FindAllString(s, -1) {
 			m[x] = true
 		}
 		return m
@@ -467,7 +467,7 @@ func Check(w io.Writer, args []string) error {
 	if strings.Count(newT, "    bnum = 0;\n") != 1 {
 		return die("ml_find_line() does not start its descent at block nr 0 exactly once")
 	}
-	tests := z42Test.FindAllStringSubmatch(newT, -1)
+	tests := w125Test.FindAllStringSubmatch(newT, -1)
 	var shallow, deep, all []string
 	for _, t := range tests {
 		if len(t[1]) == 4 {
@@ -490,7 +490,7 @@ func Check(w io.Writer, args []string) error {
 	dirs := func(s string) []int {
 		var d []int
 		for i, l := range strings.Split(s, "\n") {
-			if check.Z35Dir.MatchString(l) {
+			if check.W118Dir.MatchString(l) {
 				d = append(d, i)
 			}
 		}
@@ -516,7 +516,7 @@ func Check(w io.Writer, args []string) error {
 	for _, x := range [][2]string{{"old", oldC}, {"new", f}} {
 		var lines []string
 		for _, l := range strings.Split(check.ReadFile(x[1]), "\n") {
-			if check.Z38Inc.MatchString(l) {
+			if check.W121Inc.MatchString(l) {
 				break
 			}
 			lines = append(lines, l)
@@ -535,7 +535,7 @@ func Check(w io.Writer, args []string) error {
 		}
 		hashes := 0
 		for _, l := range lines {
-			if check.Z30Dir.MatchString(l) {
+			if check.W113Dir.MatchString(l) {
 				hashes++
 			}
 		}
@@ -553,10 +553,10 @@ func Check(w io.Writer, args []string) error {
 		}
 		wo2, _ := exec.Command("gcc", "-c", "-O0", "-fno-stack-protector", "-o", T("cut-"+x[0]+".o"), cp).CombinedOutput()
 		set := map[string]bool{}
-		for _, m := range z42IfaceWrn.FindAllStringSubmatch(string(wo2), -1) {
+		for _, m := range w125IfaceWrn.FindAllStringSubmatch(string(wo2), -1) {
 			set[m[1]] = true
 		}
-		iface[x[0]] = check.Z27Keys(set)
+		iface[x[0]] = check.W110Keys(set)
 		cutN[x[0]] = len(lines)
 	}
 	if strings.Join(iface["old"], "\n") != strings.Join(iface["new"], "\n") {
@@ -567,11 +567,11 @@ func Check(w io.Writer, args []string) error {
 		for _, n := range check.Comm23(iface["new"], iface["old"]) {
 			sym[n] = true
 		}
-		return die("the core -> host interface moved: %s", check.Z31Words(check.Z27Keys(sym)))
+		return die("the core -> host interface moved: %s", check.W114Words(check.W110Keys(sym)))
 	}
 	say("the cut is %d -> %d lines, every line this phase removes is ABOVE the boundary, 0 of them begin with `#`, "+
 		"both draw 0 errors under -fsyntax-only, and the core -> host interface is the same %d names either "+
-		"side: %s", cutN["old"], cutN["new"], len(iface["new"]), check.Z31Words(iface["new"]))
+		"side: %s", cutN["old"], cutN["new"], len(iface["new"]), check.W114Words(iface["new"]))
 
 	// --- 3. the tools that assert a place, a floor and a linkage --------------------
 	jNew.wg.Wait()
@@ -593,7 +593,7 @@ func Check(w io.Writer, args []string) error {
 	if jCanon.Err != nil {
 		return die("tools/canon.sh failed on the output")
 	}
-	if !check.Z30Same(T("canon.c"), f) {
+	if !check.W113Same(T("canon.c"), f) {
 		cl := strings.Split(strings.TrimRight(string(canonLog), "\n"), "\n")
 		return die("tools/canon.sh is not a no-op on the output: %s", cl[len(cl)-1])
 	}
@@ -613,7 +613,7 @@ func Check(w io.Writer, args []string) error {
 		for _, n := range check.Comm23(uNew, uOld) {
 			sym[n] = true
 		}
-		return die("the undefined set moved by %s and this phase frees none", check.Z31Words(check.Z27Keys(sym)))
+		return die("the undefined set moved by %s and this phase frees none", check.W114Words(check.W110Keys(sym)))
 	}
 	extOut, _ := exec.Command("nm", "--extern-only", "--defined-only", T("new.o")).Output()
 	ext := ""
@@ -630,7 +630,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	say("the undefined set is UNCHANGED, %d names either side -- %s-- and `nm --extern-only --defined-only` prints "+
 		"exactly main.  A phase that deletes core code and crosses no boundary frees no symbol, and this is that "+
-		"stated as an equality rather than as a count", len(uNew), check.Z31Words(uNew))
+		"stated as an equality rather than as a count", len(uNew), check.W114Words(uNew))
 	say("the binary is %d bytes in and %d out, %d fewer", oldSize, newSize, oldSize-newSize)
 
 	// --- 4. the two recordings ----------------------------------------------------------
@@ -640,11 +640,11 @@ func Check(w io.Writer, args []string) error {
 	wgR.Add(2)
 	go func() {
 		defer wgR.Done()
-		errRO = check.RunZ(w, oldBin, oldC, T("REC-old"))
+		errRO = check.RunCore(w, oldBin, oldC, T("REC-old"))
 	}()
 	go func() {
 		defer wgR.Done()
-		errRN = check.RunZ(w, T("new"), T("new.c"), T("REC-new"))
+		errRN = check.RunCore(w, T("new"), T("new.c"), T("REC-new"))
 	}()
 	wgR.Wait()
 	if errRO != nil {
@@ -699,26 +699,26 @@ func Check(w io.Writer, args []string) error {
 			Keys [][]byte
 		}
 		CASES := []cs{
-			{"4k lines", append(z42Lines(4000, func(i int) string { return fmt.Sprintf("line %d of the buffer here\n", i) }),
+			{"4k lines", append(w125Lines(4000, func(i int) string { return fmt.Sprintf("line %d of the buffer here\n", i) }),
 				[]byte("G"), []byte(":q!\r"))},
-			{"25k lines", append(z42Repeat([][]byte{[]byte("i")}, strings.Repeat("x", 19)+"\n", 25000),
+			{"25k lines", append(w125Repeat([][]byte{[]byte("i")}, strings.Repeat("x", 19)+"\n", 25000),
 				[]byte("\x1b"), []byte("G"), []byte(":q!\r"))},
-			{"25k dGG+undo", append(z42Repeat([][]byte{[]byte("i")}, strings.Repeat("y", 19)+"\n", 25000),
+			{"25k dGG+undo", append(w125Repeat([][]byte{[]byte("i")}, strings.Repeat("y", 19)+"\n", 25000),
 				[]byte("\x1b"), []byte("ggdG"), []byte("u"), []byte("G"), []byte(":q!\r"))},
-			{"25k mid-delete", append(z42Repeat(append(z42Lines(25000, func(i int) string { return fmt.Sprintf("z%d\n", i) })[:25001],
+			{"25k mid-delete", append(w125Repeat(append(w125Lines(25000, func(i int) string { return fmt.Sprintf("z%d\n", i) })[:25001],
 				[]byte("\x1b"), []byte("12000G")), "dd", 2000), []byte("G"), []byte(":q!\r"))},
-			{"25k sort", append(z42Lines(25000, func(i int) string { return fmt.Sprintf("%d\n", 7919*i%99991) }),
+			{"25k sort", append(w125Lines(25000, func(i int) string { return fmt.Sprintf("%d\n", 7919*i%99991) }),
 				[]byte(":sort\r"), []byte("G"), []byte(":q!\r"))},
-			{"mid churn", append(z42Repeat(z42Lines(2000, func(i int) string { return fmt.Sprintf("abcdefghij%d\n", i) }), "1000Gdd", 300),
+			{"mid churn", append(w125Repeat(w125Lines(2000, func(i int) string { return fmt.Sprintf("abcdefghij%d\n", i) }), "1000Gdd", 300),
 				[]byte("G"), []byte(":q!\r"))},
-			{"sort big", append(z42Lines(3000, func(i int) string { return fmt.Sprintf("s%d\n", 7919*i%10000) }),
+			{"sort big", append(w125Lines(3000, func(i int) string { return fmt.Sprintf("s%d\n", 7919*i%10000) }),
 				[]byte(":sort\r"), []byte("G"), []byte(":q!\r"))},
-			{"join all", append(z42Lines(2000, func(i int) string { return fmt.Sprintf("j%d\n", i) }),
+			{"join all", append(w125Lines(2000, func(i int) string { return fmt.Sprintf("j%d\n", i) }),
 				[]byte("gg"), []byte("2000J"), []byte(":q!\r"))},
 		}
 		var Out strings.Builder
 		for _, c := range CASES {
-			_, _, se, rc, err := harness.ZSession(T("probe"), c.Keys, "xterm", nil, 24, 80, 600*time.Second)
+			_, _, se, rc, err := harness.CoreSession(T("probe"), c.Keys, "xterm", nil, 24, 80, 600*time.Second)
 			if err != nil {
 				return err
 			}
@@ -739,7 +739,7 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 	var rxParts []string
-	for _, n := range z42Names {
+	for _, n := range w125Names {
 		rxParts = append(rxParts, n+`=(\d+)`)
 	}
 	RX := regexp.MustCompile(`PROBE ` + strings.Join(rxParts, " "))
@@ -750,7 +750,7 @@ func Check(w io.Writer, args []string) error {
 		for _, m := range RX.FindAllStringSubmatch(text, -1) {
 			nrec++
 			got++
-			for k, n := range z42Names {
+			for k, n := range w125Names {
 				v, _ := strconv.Atoi(m[k+1])
 				tot[n] += v
 				if v != 0 {
@@ -911,7 +911,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	var mv []string
 	for _, l := range check.DiffRQ(filepath.Join(T("REC-new"), "memline"), T("ML-croot")) {
-		mv = append(mv, z42MemName.ReplaceAllString(l, "$1"))
+		mv = append(mv, w125MemName.ReplaceAllString(l, "$1"))
 	}
 	moved := strings.TrimRight(strings.Join(mv, " ")+" ", " ")
 	if moved == "" {
@@ -929,7 +929,7 @@ func Check(w io.Writer, args []string) error {
 		}
 		return n
 	}
-	mlIn, mlOut := filesMatching(T("ML-in"), z42SplitIn), filesMatching(T("ML-out"), z42PresOut)
+	mlIn, mlOut := filesMatching(T("ML-in"), w125SplitIn), filesMatching(T("ML-out"), w125PresOut)
 	if mlOut < 1 {
 		return die("no case of phase 123's corpus reaches the root split on this phase's output")
 	}
@@ -953,11 +953,11 @@ func Check(w io.Writer, args []string) error {
 		return die("the depth instrument on c_root did not build")
 	}
 	keys := func(n int) [][]byte {
-		k := z42Repeat([][]byte{[]byte("i")}, strings.Repeat("x", 19)+"\n", n)
+		k := w125Repeat([][]byte{[]byte("i")}, strings.Repeat("x", 19)+"\n", n)
 		return append(k, []byte("\x1b"), []byte("G"), []byte(fmt.Sprintf("%dG", n/2)), []byte(":q!\r"))
 	}
 	reads := func(n int) [][]byte {
-		k := z42Lines(n, func(i int) string { return fmt.Sprintf("L%07d\n", i) })
+		k := w125Lines(n, func(i int) string { return fmt.Sprintf("L%07d\n", i) })
 		for _, j := range []int{1, 1000, n / 2, n - 1} {
 			k = append(k, []byte(fmt.Sprintf("%dG", j)))
 		}
@@ -971,11 +971,11 @@ func Check(w io.Writer, args []string) error {
 		blocked bool
 	}
 	run := func(binary string, k [][]byte) runR {
-		_, so, se, rc, err := harness.ZSession(binary, k, "xterm", nil, 24, 80, 900*time.Second)
+		_, so, se, rc, err := harness.CoreSession(binary, k, "xterm", nil, 24, 80, 900*time.Second)
 		if err != nil {
 			return runR{blocked: true}
 		}
-		sum := sha256.Sum256(z42Clock.ReplaceAll(so, []byte("<CLOCK>")))
+		sum := sha256.Sum256(w125Clock.ReplaceAll(so, []byte("<CLOCK>")))
 		return runR{rc, hex.EncodeToString(sum[:])[:16], se, so, false}
 	}
 	type rp struct {
@@ -988,7 +988,7 @@ func Check(w io.Writer, args []string) error {
 		if rr.blocked {
 			return die("the %s session never returned", side)
 		}
-		m := z42RootProb.FindSubmatch(rr.Err)
+		m := w125RootProb.FindSubmatch(rr.Err)
 		if m == nil {
 			return die("the depth instrument on %s printed no ROOTPROBE line", side)
 		}
@@ -1023,9 +1023,9 @@ func Check(w io.Writer, args []string) error {
 	CASES := []cs{
 		{"60k + a jump to the middle", keys(60000)},
 		{"60k with reads all over it", reads(60000)},
-		{"60k deleted and undone", append(z42Repeat([][]byte{[]byte("i")}, strings.Repeat("y", 19)+"\n", 60000),
+		{"60k deleted and undone", append(w125Repeat([][]byte{[]byte("i")}, strings.Repeat("y", 19)+"\n", 60000),
 			[]byte("\x1b"), []byte("ggdG"), []byte("u"), []byte("G"), []byte(":q!\r"))},
-		{"100k with five hundred deletions", append(z42Repeat(append(z42Lines(100000, func(i int) string {
+		{"100k with five hundred deletions", append(w125Repeat(append(w125Lines(100000, func(i int) string {
 			return fmt.Sprintf("z%07d\n", i)
 		})[:100001], []byte("\x1b"), []byte("50000G")), "dd", 500), []byte("G"), []byte("25000G"), []byte(":q!\r"))},
 	}
@@ -1037,10 +1037,10 @@ func Check(w io.Writer, args []string) error {
 		if a.blocked || b.blocked {
 			return die("a session of %s never returned", c.Name)
 		}
-		if z42Clock.Match(a.raw) {
+		if w125Clock.Match(a.raw) {
 			clocks++
 		}
-		if z42Clock.Match(b.raw) {
+		if w125Clock.Match(b.raw) {
 			clocks++
 		}
 		if a.Rc != b.Rc || a.sha != b.sha || !bytes.Equal(a.Err, b.Err) {

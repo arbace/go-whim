@@ -263,7 +263,7 @@ passes: every delta is measured against it.
   own baselines byte for byte (67 behaviour cases, 19 terminals, 600 Ex
   commands). `internal/verify`'s `Delta` checks whim's declared delta against them.
 - **`.reference/core-baselines/`** -- `screen/`, `memline/`, `ref-excmds.txt`,
-  `ref-argv.txt`, `ref-pty.txt`, `ref-term.txt` (`harness.ZRecord`) -- is
+  `ref-argv.txt`, `ref-pty.txt`, `ref-term.txt` (`harness.CoreRecord`) -- is
   recorded by **phase 83 from q82**, the tree it is handed, built with the compile
   line that tree carries; `Delta` hands every phase from 83 on to `CoreDelta`,
   which checks the declarations from 83 on against it.

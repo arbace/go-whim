@@ -10,15 +10,15 @@ import (
 	"time"
 )
 
-// zexcmdsSeed is what every command is given to work on.
-var zexcmdsSeed = "alpha\rbeta\rgamma"
+// coreExcmdsSeed is what every command is given to work on.
+var coreExcmdsSeed = "alpha\rbeta\rgamma"
 
-// zexcmdsSkip hand the process group to the shell.  They are skipped here as
+// coreExcmdsSkip hand the process group to the shell.  They are skipped here as
 // they are in the file sweep, although every run gets a session of its own
 // anyway.
-var zexcmdsSkip = map[string]bool{"stop": true, "suspend": true}
+var coreExcmdsSkip = map[string]bool{"stop": true, "suspend": true}
 
-// ZExCmds types every Ex command at ':' and records the message it printed.
+// CoreExCmds types every Ex command at ':' and records the message it printed.
 //
 // Two details in the key sequence are load-bearing.  `:highlight` pages and
 // ESC does NOT stop a --More-- listing, so a session without an answer for it
@@ -29,7 +29,7 @@ var zexcmdsSkip = map[string]bool{"stop": true, "suspend": true}
 // The editor starts with +set paste and the seed is typed under it, then
 // 'nopaste' is set back: the corpus types its own text rather than opening a
 // file, because from phase 91 there is no way to name one.
-func ZExCmds(bin, table, out string, w io.Writer) error {
+func CoreExCmds(bin, table, out string, w io.Writer) error {
 	names, err := CommandNames(table)
 	if err != nil {
 		return err
@@ -48,7 +48,7 @@ func ZExCmds(bin, table, out string, w io.Writer) error {
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
-			rows[i] = zexcmdsOne(bin, name)
+			rows[i] = coreExcmdsOne(bin, name)
 		}(i, name)
 	}
 	wg.Wait()
@@ -59,18 +59,18 @@ func ZExCmds(bin, table, out string, w io.Writer) error {
 	return nil
 }
 
-func zexcmdsOne(bin, name string) string {
-	if zexcmdsSkip[name] {
+func coreExcmdsOne(bin, name string) string {
+	if coreExcmdsSkip[name] {
 		body := "hands over the process group"
 		return "=== " + name + "\n" + Section("skipped", &body)
 	}
 	keys := [][]byte{
-		[]byte("i" + zexcmdsSeed + "\x1b"),
+		[]byte("i" + coreExcmdsSeed + "\x1b"),
 		[]byte(":set nopaste\r"),
 		[]byte(":" + name + "\r"),
 		[]byte("q"), []byte("\x1b"), []byte(":q!\r"),
 	}
-	scr, _, stderr, rc, err := ZSession(bin, keys, "xterm", []string{"+set paste"},
+	scr, _, stderr, rc, err := CoreSession(bin, keys, "xterm", []string{"+set paste"},
 		24, 80, 20*time.Second)
 	if err != nil {
 		body := "never returned"

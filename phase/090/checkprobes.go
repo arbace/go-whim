@@ -11,7 +11,7 @@ import (
 	"github.com/arbace/go-whim/internal/harness"
 )
 
-func z7Probes(r *check.Rep, old, bin string) error {
+func w90Probes(r *check.Rep, old, bin string) error {
 	esc, cr := []byte("\x1b"), []byte("\r")
 	quit := []byte("\x1b:q!\r")
 	hello := []byte("hello")
@@ -19,9 +19,9 @@ func z7Probes(r *check.Rep, old, bin string) error {
 		k := [][]byte{append(append([]byte("i"), seed...), esc...), []byte(":set nopaste\r")}
 		return []string{"+set paste"}, append(append(k, keys...), quit)
 	}
-	var probes []check.Z6Probe
+	var probes []check.W89Probe
 	add := func(name string, a []string, k [][]byte, d bool) {
-		probes = append(probes, check.Z6Probe{Name: name, Args: a, Keys: k, Differ: d})
+		probes = append(probes, check.W89Probe{Name: name, Args: a, Keys: k, Differ: d})
 	}
 	// THE ORDER IS THE OUTPUT.  The report names the probes that moved in table
 	// order, so a table built in a different sequence passes every assertion
@@ -71,10 +71,10 @@ func z7Probes(r *check.Rep, old, bin string) error {
 	var wg sync.WaitGroup
 	for i, p := range probes {
 		wg.Add(1)
-		go func(i int, p check.Z6Probe) {
+		go func(i int, p check.W89Probe) {
 			defer wg.Done()
-			ot, os_ := check.ZRecordStream(old, p.Args, p.Keys, 10*time.Second)
-			nt, ns := check.ZRecordStream(bin, p.Args, p.Keys, 10*time.Second)
+			ot, os_ := check.CoreRecordStream(old, p.Args, p.Keys, 10*time.Second)
+			nt, ns := check.CoreRecordStream(bin, p.Args, p.Keys, 10*time.Second)
 			outs[i] = outcome{p.Name, ot, nt, os_, ns, p.Differ}
 		}(i, p)
 	}
@@ -99,13 +99,13 @@ func z7Probes(r *check.Rep, old, bin string) error {
 	}
 	for _, name := range []string{"r_keys", "r_range"} {
 		o := by[name]
-		if !strings.Contains(o.oT, check.Z7ReadIn) {
+		if !strings.Contains(o.oT, check.W90ReadIn) {
 			fail = append(fail, fmt.Sprintf("%s: the keystroke file did not reach the buffer on the input binary, so this proves nothing about reading", name))
 		}
-		if strings.Contains(o.nT, check.Z7ReadIn) {
+		if strings.Contains(o.nT, check.W90ReadIn) {
 			fail = append(fail, fmt.Sprintf("%s: the new binary read the file anyway", name))
 		}
-		if !strings.Contains(o.nT, check.Z6E492) {
+		if !strings.Contains(o.nT, check.W89E492) {
 			fail = append(fail, fmt.Sprintf("%s: the new binary does not answer E492", name))
 		}
 	}
@@ -120,7 +120,7 @@ func z7Probes(r *check.Rep, old, bin string) error {
 	if !strings.Contains(o.oT, "E484: Can't open file nosuch") {
 		fail = append(fail, "r_missing: the input binary did not try to open the file")
 	}
-	if !strings.Contains(o.nT, check.Z6E492) || strings.Contains(o.nT, "E484") {
+	if !strings.Contains(o.nT, check.W89E492) || strings.Contains(o.nT, "E484") {
 		fail = append(fail, "r_missing: E484 has a speaker left")
 	}
 	// `:r !cmd` went through do_bang() to whim's do_shell() stub, which
@@ -133,16 +133,16 @@ func z7Probes(r *check.Rep, old, bin string) error {
 	if strings.Contains(o.nS, "E319") {
 		fail = append(fail, "r_bang: the shell stub still speaks")
 	}
-	if !strings.Contains(o.nS, check.Z6E492) {
+	if !strings.Contains(o.nS, check.W89E492) {
 		fail = append(fail, "r_bang: `:r !echo piped` is not an unknown command")
 	}
 	for _, name := range []string{"r_keys", "r_range", "r_missing", "r_bang", "r_bare", "re_bare",
 		"rea_bare", "r_forceit", "r_cat", "cmd_read", "read_cmd_gone"} {
 		o := by[name]
-		if strings.Contains(o.oT, check.Z6E492) {
+		if strings.Contains(o.oT, check.W89E492) {
 			fail = append(fail, fmt.Sprintf("%s already answered E492 before this phase, so it proves nothing", name))
 		}
-		if !strings.Contains(o.nT, check.Z6E492) {
+		if !strings.Contains(o.nT, check.W89E492) {
 			fail = append(fail, fmt.Sprintf("%s does not answer E492: a removed name has been inherited", name))
 		}
 	}
@@ -160,7 +160,7 @@ func z7Probes(r *check.Rep, old, bin string) error {
 	// `:%!sort` IS THE TRAP IN THE DECLARATION: `:!` has not existed since
 	// whim, so this record was ALREADY E492 and is not this phase's to declare.
 	o = by["filter_gone"]
-	if !strings.Contains(o.oT, check.Z6E492) || !strings.Contains(o.nT, check.Z6E492) {
+	if !strings.Contains(o.oT, check.W89E492) || !strings.Contains(o.nT, check.W89E492) {
 		fail = append(fail, "filter_gone: `:%!sort` was E492 on both sides before this phase was written, and declaring it would be a delta the phase did not cause")
 	}
 	if o := by["quit_modified"]; !strings.Contains(o.nT, "E37: No write since last change") {
@@ -192,7 +192,7 @@ func z7Probes(r *check.Rep, old, bin string) error {
 	return nil
 }
 
-func z7Pty(r *check.Rep, old, bin string) error {
+func w90Pty(r *check.Rep, old, bin string) error {
 	home, err := os.MkdirTemp("", "whim90-home-")
 	if err != nil {
 		return err
@@ -206,7 +206,7 @@ func z7Pty(r *check.Rep, old, bin string) error {
 			os.WriteFile(d+"/"+plantName, []byte(plantBody), 0o644)
 		}
 		text, status, err := harness.Session(binary, nil, keys, "xterm",
-			20*time.Second, 600*time.Millisecond, d, check.Z2Env(home), 0, 0)
+			20*time.Second, 600*time.Millisecond, d, check.W85Env(home), 0, 0)
 		return string(text), status, err
 	}
 	say := func(format string, a ...any) error { r.Say(format, a...); return harness.ErrReported }

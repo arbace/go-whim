@@ -83,9 +83,9 @@ import (
 
 func init() { check.Register("whim121", Check) }
 
-type z38R struct{ Name, tab, Text string }
+type w121R struct{ Name, tab, Text string }
 
-func z38Table(t string) (int, int, []z38R, bool) {
+func w121Table(t string) (int, int, []w121R, bool) {
 	i := strings.Index(t, "static builtin_tcap_T builtin_terminals[] =\n{")
 	if i < 0 {
 		return 0, 0, nil, false
@@ -95,22 +95,22 @@ func z38Table(t string) (int, int, []z38R, bool) {
 		return 0, 0, nil, false
 	}
 	j += i
-	var rows []z38R
-	for _, m := range check.Z38Row.FindAllStringSubmatch(t[i:j], -1) {
-		rows = append(rows, z38R{m[1], m[2], m[0]})
+	var rows []w121R
+	for _, m := range check.W121Row.FindAllStringSubmatch(t[i:j], -1) {
+		rows = append(rows, w121R{m[1], m[2], m[0]})
 	}
 	return i, j, rows, true
 }
 
-func z38Def(t, b, name string) (int, int, bool) {
+func w121Def(t, b, name string) (int, int, bool) {
 	return cutil.FindDefinition([]byte(t), []byte(b), name)
 }
 
-// z38Lits is the heredoc's literals(): the blanked text and the spans of its
+// w121Lits is the heredoc's literals(): the blanked text and the spans of its
 // string delimiters, in pairs.
-func z38Lits(t string) (string, [][2]int, bool) {
+func w121Lits(t string) (string, [][2]int, bool) {
 	b := string(cutil.Blank([]byte(t)))
-	q := check.Z38Quote.FindAllStringIndex(b, -1)
+	q := check.W121Quote.FindAllStringIndex(b, -1)
 	if len(q)%2 != 0 {
 		return b, nil, false
 	}
@@ -121,7 +121,7 @@ func z38Lits(t string) (string, [][2]int, bool) {
 	return b, Out, true
 }
 
-func z38Names(rows []z38R) []string {
+func w121Names(rows []w121R) []string {
 	var Out []string
 	for _, r := range rows {
 		Out = append(Out, r.Name)
@@ -129,9 +129,9 @@ func z38Names(rows []z38R) []string {
 	return Out
 }
 
-// z38Blocks is the heredoc's blocks(): a record file split at `=== ` heads,
+// w121Blocks is the heredoc's blocks(): a record file split at `=== ` heads,
 // keys in insertion order.
-func z38Blocks(p string) ([]string, map[string]string) {
+func w121Blocks(p string) ([]string, map[string]string) {
 	var order []string
 	Out := map[string]string{}
 	cur, have := "", false
@@ -182,10 +182,10 @@ func Check(w io.Writer, args []string) error {
 	T := func(n string) string { return filepath.Join(tmp, n) }
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
 	cflagsS, ldflagsS := "", ""
-	if m := check.Z29CFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112CFlags.FindStringSubmatch(mk); m != nil {
 		cflagsS = m[1]
 	}
-	if m := check.Z29LDFlags.FindStringSubmatch(mk); m != nil {
+	if m := check.W112LDFlags.FindStringSubmatch(mk); m != nil {
 		ldflagsS = m[1]
 	}
 
@@ -205,12 +205,12 @@ func Check(w io.Writer, args []string) error {
 	// tools/cutil.py -- named as a PATH so tools/implhash.sh hashes it into
 	// this phase's key.  Do not delete it.
 	newT, oldT := check.ReadFile(f), check.ReadFile(oldC)
-	_, _, orows, ok1 := z38Table(oldT)
-	iN, jN, nrows, ok2 := z38Table(newT)
+	_, _, orows, ok1 := w121Table(oldT)
+	iN, jN, nrows, ok2 := w121Table(newT)
 	if !ok1 || !ok2 {
 		return stop("builtin_terminals[] is not in one of the two texts")
 	}
-	nnames := z38Names(nrows)
+	nnames := w121Names(nrows)
 	var GONE []string
 	for _, x := range orows {
 		if !check.Contains(nnames, x.Name) {
@@ -222,7 +222,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	bNew := string(cutil.Blank([]byte(newT)))
 	bOld := string(cutil.Blank([]byte(oldT)))
-	lo, hi, _ := z38Def(newT, bNew, "set_termname")
+	lo, hi, _ := w121Def(newT, bNew, "set_termname")
 	seg := newT[lo:hi]
 	fbSet := map[string]bool{}
 	for _, x := range nrows {
@@ -234,8 +234,8 @@ func Check(w io.Writer, args []string) error {
 		return stop("set_termname() names %d of the surviving rows and this check needs one -- "+
 			"the fallback", len(fbSet))
 	}
-	NEWFB := check.Z27Keys(fbSet)[0]
-	olo, ohi, _ := z38Def(oldT, bOld, "set_termname")
+	NEWFB := check.W110Keys(fbSet)[0]
+	olo, ohi, _ := w121Def(oldT, bOld, "set_termname")
 	ofb := map[string]bool{}
 	for _, n := range GONE {
 		if strings.Contains(oldT[olo:ohi], `"`+n+`"`) {
@@ -245,17 +245,17 @@ func Check(w io.Writer, args []string) error {
 	if len(ofb) != 1 {
 		return stop("set_termname() in the INPUT names %d removed rows and this check needs one", len(ofb))
 	}
-	OLDFB := check.Z27Keys(ofb)[0]
+	OLDFB := check.W110Keys(ofb)[0]
 	c1 := newT[:lo] + strings.ReplaceAll(seg, `"`+NEWFB+`"`, `"`+OLDFB+`"`) + newT[hi:]
 	b1 := string(cutil.Blank([]byte(c1)))
-	lo, hi, _ = z38Def(c1, b1, "report_term_error")
+	lo, hi, _ = w121Def(c1, b1, "report_term_error")
 	c1 = c1[:lo] + strings.ReplaceAll(c1[lo:hi], "'"+NEWFB+"'", "'"+OLDFB+"'") + c1[hi:]
 	if c1 == newT {
 		return stop("the repair-left-out control changed nothing, so it is not a control")
 	}
 	os.WriteFile(T("c1.c"), []byte(c1), 0o644)
-	_, olits, _ := z38Lits(oldT)
-	flo, fhi, _ := z38Def(oldT, bOld, "find_builtin_term")
+	_, olits, _ := w121Lits(oldT)
+	flo, fhi, _ := w121Def(oldT, bOld, "find_builtin_term")
 	var hits [][2]int
 	for _, l := range olits {
 		if flo <= l[0] && l[0] < fhi && check.Contains(GONE, oldT[l[0]+1:l[1]]) {
@@ -275,7 +275,7 @@ func Check(w io.Writer, args []string) error {
 		end++
 	}
 	clause := oldT[start:end]
-	nlo, nhi, _ := z38Def(newT, bNew, "find_builtin_term")
+	nlo, nhi, _ := w121Def(newT, bNew, "find_builtin_term")
 	if oldT[flo:start]+oldT[end:fhi] != newT[nlo:nhi] {
 		return stop("the input's find_builtin_term() minus the xterm-family clause is NOT the " +
 			"output's, so this phase did something else to that function as well")
@@ -327,7 +327,7 @@ func Check(w io.Writer, args []string) error {
 	defer wgB.Wait()
 
 	// --- 1. THE CUT, computed from the input -------------------------------------------
-	onames := z38Names(orows)
+	onames := w121Names(orows)
 	var extra []string
 	for _, n := range nnames {
 		if !check.Contains(onames, n) {
@@ -349,7 +349,7 @@ func Check(w io.Writer, args []string) error {
 			"can name is not what this phase is", len(nnames))
 	}
 	for _, x := range nrows {
-		var was z38R
+		var was w121R
 		for _, o := range orows {
 			if o.Name == x.Name {
 				was = o
@@ -371,7 +371,7 @@ func Check(w io.Writer, args []string) error {
 	for _, x := range orows {
 		tabSet[x.tab] = true
 	}
-	tabs := check.Z27Keys(tabSet)
+	tabs := check.W110Keys(tabSet)
 	var pred, live []string
 	for _, x := range tabs {
 		kept := false
@@ -422,7 +422,7 @@ func Check(w io.Writer, args []string) error {
 		"the %d capability tables the sweep found under them", before-after, before, after, len(GONE), len(pred))
 
 	// --- 2. THE PARTITION ------------------------------------------------------------------
-	if _, _, ok := z38Lits(oldT); !ok {
+	if _, _, ok := w121Lits(oldT); !ok {
 		return stop("a text has an odd number of string delimiters after blanking")
 	}
 	i := strings.Index(oldT, "static builtin_tcap_T builtin_terminals[] =\n{")
@@ -431,9 +431,9 @@ func Check(w io.Writer, args []string) error {
 		kind   string
 		lo, hi int
 	}
-	fl, fh, _ := z38Def(oldT, bOld, "find_builtin_term")
-	sl, sh, _ := z38Def(oldT, bOld, "set_termname")
-	vl, vh, _ := z38Def(oldT, bOld, "vim_is_xterm")
+	fl, fh, _ := w121Def(oldT, bOld, "find_builtin_term")
+	sl, sh, _ := w121Def(oldT, bOld, "set_termname")
+	vl, vh, _ := w121Def(oldT, bOld, "vim_is_xterm")
 	CLASS := []cls{{"row", i, j}, {"family", fl, fh}, {"fallback", sl, sh}, {"prefix", vl, vh}}
 	part := map[string]int{}
 	var loose []string
@@ -460,18 +460,18 @@ func Check(w io.Writer, args []string) error {
 			set[x] = true
 		}
 		return stop("the input spells a removed terminal name in a place this phase has no "+
-			"class for: %s", strings.Join(check.Z27Keys(set), " "))
+			"class for: %s", strings.Join(check.W110Keys(set), " "))
 	}
 	if part["row"] != len(GONE) || part["family"] != 1 || part["fallback"] != 1 {
 		return stop("the input partitions as {'row': %d, 'family': %d, 'fallback': %d, 'prefix': %d}, and this "+
 			"phase is written against one row per removed name, one family clause and one fallback",
 			part["row"], part["family"], part["fallback"], part["prefix"])
 	}
-	bn, nlits, ok := z38Lits(newT)
+	bn, nlits, ok := w121Lits(newT)
 	if !ok {
 		return stop("a text has an odd number of string delimiters after blanking")
 	}
-	lo, hi, _ = z38Def(newT, bn, "vim_is_xterm")
+	lo, hi, _ = w121Def(newT, bn, "vim_is_xterm")
 	var left [][2]int
 	for _, l := range nlits {
 		if check.Contains(GONE, newT[l[0]+1:l[1]]) {
@@ -486,7 +486,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	if len(straySet) > 0 {
 		return stop("the output still spells a removed terminal name outside vim_is_xterm(): %s",
-			strings.Join(check.Z27Keys(straySet), " "))
+			strings.Join(check.W110Keys(straySet), " "))
 	}
 	if len(left) != part["prefix"] {
 		return stop("vim_is_xterm() spells a removed name %d times in the output and %d in the "+
@@ -503,7 +503,7 @@ func Check(w io.Writer, args []string) error {
 		if to > len(newT) {
 			to = len(newT)
 		}
-		if !strings.Contains(newT[from:a], "musl_strncasecmp") || !check.Z38Counted.MatchString(newT[z+1:to]) {
+		if !strings.Contains(newT[from:a], "musl_strncasecmp") || !check.W121Counted.MatchString(newT[z+1:to]) {
 			return stop("%s survives in vim_is_xterm() other than as a counted prefix test", check.PyRepr26(newT[a+1:z]))
 		}
 		leftSet[newT[a+1:z]] = true
@@ -513,12 +513,12 @@ func Check(w io.Writer, args []string) error {
 		"last class: %s in vim_is_xterm(), each a musl_strncasecmp with its length "+
 		"written out, and %s -- which stays -- begins with it",
 		part["row"]+part["family"]+part["fallback"]+part["prefix"], part["row"], part["prefix"],
-		strings.Join(check.Z27Keys(leftSet), " "), check.PyRepr26(nnames[0]))
+		strings.Join(check.W110Keys(leftSet), " "), check.PyRepr26(nnames[0]))
 
 	// --- 3. THE FALLBACK NAMES A ROW THAT EXISTS ----------------------------------------
 	named := map[string]string{}
 	for _, fn := range []string{"set_termname", "termcapinit"} {
-		lo, hi, _ := z38Def(newT, bn, fn)
+		lo, hi, _ := w121Def(newT, bn, fn)
 		got := map[string]bool{}
 		for _, l := range nlits {
 			s := newT[l[0]+1 : l[1]]
@@ -526,7 +526,7 @@ func Check(w io.Writer, args []string) error {
 				got[s] = true
 			}
 		}
-		gs := check.Z27Keys(got)
+		gs := check.W110Keys(got)
 		if len(gs) != 1 {
 			g := strings.Join(gs, " ")
 			if g == "" {
@@ -545,7 +545,7 @@ func Check(w io.Writer, args []string) error {
 		return stop("set_termname()'s fallback is %s and termcapinit()'s compiled default is "+
 			"%s: after this phase they must be the same name", check.PyRepr26(named["set_termname"]), check.PyRepr26(named["termcapinit"]))
 	}
-	lo, hi, _ = z38Def(newT, bn, "report_term_error")
+	lo, hi, _ = w121Def(newT, bn, "report_term_error")
 	var msgs []string
 	for _, l := range nlits {
 		if lo <= l[0] && l[0] < hi {
@@ -580,7 +580,7 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 4. THE FALLBACK'S CONTROL: the repair left Out ---------------------------------
 	rec := func(bin, src, Out string) error {
-		return check.RunZ(w, bin, src, T(Out))
+		return check.RunCore(w, bin, src, T(Out))
 	}
 	if err := rec(newBin, f, "rec-new"); err != nil {
 		return harness.ErrReported
@@ -608,8 +608,8 @@ func Check(w io.Writer, args []string) error {
 				}
 				continue
 			}
-			order, x := z38Blocks(a)
-			_, y := z38Blocks(b)
+			order, x := w121Blocks(a)
+			_, y := w121Blocks(b)
 			for _, k := range order {
 				if yv, ok := y[k]; !ok || x[k] != yv {
 					moved = append(moved, mv{k, x[k], y[k]})
@@ -647,8 +647,8 @@ func Check(w io.Writer, args []string) error {
 			if strings.Contains(m.a, "E437") || !strings.Contains(m.b, "E437") {
 				return fmt.Errorf("%s does not go from drawing to E437 when the repair is left out", check.PyRepr26(m.k))
 			}
-			fa := check.Z38Stream.FindStringSubmatch(m.a)
-			fbm := check.Z38Stream.FindStringSubmatch(m.b)
+			fa := check.W121Stream.FindStringSubmatch(m.a)
+			fbm := check.W121Stream.FindStringSubmatch(m.b)
 			var na, nb int
 			if fa != nil {
 				fmt.Sscanf(fa[1], "%d", &na)
@@ -674,7 +674,7 @@ func Check(w io.Writer, args []string) error {
 		"move -- %s -- each from drawing %s bytes to %s bytes and E437: Terminal "+
 		"capability \"cm\" required.  The repair points it at %s instead, and those "+
 		"records are the baseline's again", check.PyRepr26(OLDFB), len(moved), strings.Join(kr, ", "),
-		check.Z38Stream.FindStringSubmatch(moved[0].a)[1], check.Z38Stream.FindStringSubmatch(moved[0].b)[1], check.PyRepr26(NEWFB))
+		check.W121Stream.FindStringSubmatch(moved[0].a)[1], check.W121Stream.FindStringSubmatch(moved[0].b)[1], check.PyRepr26(NEWFB))
 
 	// --- 5. THE CLAUSE IS DEAD, TWICE -----------------------------------------------------
 	rc := &check.Rep{Tag: "clause", W: w}
@@ -765,7 +765,7 @@ func Check(w io.Writer, args []string) error {
 			"xterm", 20*time.Second, time.Second, d, harness.Env(home), 0, 0)
 		def := ""
 		for _, line := range strings.Split(harness.DecodeReplace(Out), "\n") {
-			if k := strings.Index(line, "term="); k >= 0 && !check.Z38VimErr.MatchString(line) {
+			if k := strings.Index(line, "term="); k >= 0 && !check.W121VimErr.MatchString(line) {
 				def = strings.Fields(line[k:])[0]
 				break
 			}
@@ -787,7 +787,7 @@ func Check(w io.Writer, args []string) error {
 				fs := strings.Fields(b)
 				hasE, termTok := false, ""
 				for _, t := range fs {
-					if check.Z38ErrTok.MatchString(t) {
+					if check.W121ErrTok.MatchString(t) {
 						hasE = true
 					}
 				}
@@ -817,7 +817,7 @@ func Check(w io.Writer, args []string) error {
 		}
 		clean := 0
 		for _, x := range now {
-			if !check.Z38ErrWord.MatchString(x) {
+			if !check.W121ErrWord.MatchString(x) {
 				clean++
 			}
 		}
@@ -860,13 +860,13 @@ func Check(w io.Writer, args []string) error {
 		return strings.SplitN(a, " -> ", 2)[1], strings.SplitN(b, " -> ", 2)[1], nil
 	}
 	a3, b3, e3 := one(T("term-c3"), c3Name, "deleting")
-	if e3 == nil && (!check.Contains(strings.Fields(a3), "term="+c3Name) || !check.Z38ErrWord.MatchString(b3)) {
+	if e3 == nil && (!check.Contains(strings.Fields(a3), "term="+c3Name) || !check.W121ErrWord.MatchString(b3)) {
 		e3 = fmt.Errorf("deleting the %s row went %s -> %s, where resolving -> refused was due", check.PyRepr26(c3Name), a3, b3)
 	}
 	var a4, b4 string
 	if e3 == nil {
 		a4, b4, e3 = one(T("term-c4"), c4Name, "restoring")
-		if e3 == nil && (!check.Z38ErrWord.MatchString(a4) || !check.Contains(strings.Fields(b4), "term="+c4Name)) {
+		if e3 == nil && (!check.W121ErrWord.MatchString(a4) || !check.Contains(strings.Fields(b4), "term="+c4Name)) {
 			e3 = fmt.Errorf("restoring the %s row went %s -> %s, where refused -> resolving was due", check.PyRepr26(c4Name), a4, b4)
 		}
 	}
@@ -881,8 +881,8 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 7b. THE XTERM FAMILY, WHICH NO HARNESS ASKS ABOUT --------------------------------
 	rfam := &check.Rep{Tag: "family", W: w}
-	olo2, ohi2, _ := z38Def(oldT, bOld, "vim_is_xterm")
-	tests := check.Z38Prefix.FindAllStringSubmatch(oldT[olo2:ohi2], -1)
+	olo2, ohi2, _ := w121Def(oldT, bOld, "vim_is_xterm")
+	tests := check.W121Prefix.FindAllStringSubmatch(oldT[olo2:ohi2], -1)
 	if len(tests) == 0 {
 		rfam.Say("vim_is_xterm() holds no counted prefix test in the shape this probe " +
 			"reads, so the names below cannot be derived")
@@ -940,7 +940,7 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 	if len(wrongSet) > 0 {
-		rfam.Say("the xterm family did not move the way deleting its row says it must: %s", strings.Join(check.Z27Keys(wrongSet), " "))
+		rfam.Say("the xterm family did not move the way deleting its row says it must: %s", strings.Join(check.W110Keys(wrongSet), " "))
 		return harness.ErrReported
 	}
 	sk := strings.Join(skip, " ")
@@ -965,7 +965,7 @@ func Check(w io.Writer, args []string) error {
 	uNew := check.NmField26(T("new.o"), []string{"-u"}, 1)
 	uOld := check.NmField26(T("old.o"), []string{"-u"}, 1)
 	if g, c := check.Minus26(uOld, uNew), check.Minus26(uNew, uOld); len(g)+len(c) > 0 {
-		rs.Say("the libc surface moved, and this phase frees nothing: gone '%s', new '%s'", check.Z31Words(g), check.Z31Words(c))
+		rs.Say("the libc surface moved, and this phase frees nothing: gone '%s', new '%s'", check.W114Words(g), check.W114Words(c))
 		return harness.ErrReported
 	}
 	extOut, _ := exec.Command("nm", "--extern-only", "--defined-only", T("new.o")).Output()
@@ -979,7 +979,7 @@ func Check(w io.Writer, args []string) error {
 		}
 	}
 	sort.Strings(ext)
-	if s := check.Z31Words(ext); s != "main " {
+	if s := check.W114Words(ext); s != "main " {
 		rs.Say("the output defines external symbols other than main: %s", s)
 		return harness.ErrReported
 	}
@@ -995,7 +995,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	sides := map[string]side{}
 	for _, x := range []struct{ side, src string }{{"old", oldC}, {"new", f}} {
-		lines := check.Z28Cut(check.ReadFile(x.src))
+		lines := check.W111Cut(check.ReadFile(x.src))
 		text := ""
 		for _, l := range lines {
 			text += l + "\n"
@@ -1004,13 +1004,13 @@ func Check(w io.Writer, args []string) error {
 		os.WriteFile(cp, []byte(text), 0o644)
 		d := 0
 		for _, l := range lines {
-			if check.Z30Dir.MatchString(l) {
+			if check.W113Dir.MatchString(l) {
 				d++
 			}
 		}
 		inc := 0
 		for _, l := range strings.Split(check.ReadFile(x.src), "\n") {
-			if check.Z38Inc.MatchString(l) {
+			if check.W121Inc.MatchString(l) {
 				inc++
 			}
 		}
@@ -1033,10 +1033,10 @@ func Check(w io.Writer, args []string) error {
 		}
 		wo, _ := exec.Command("gcc", "-fsyntax-only", "-Wall", "-Wextra", "-Wno-unused-parameter", cp).CombinedOutput()
 		set := map[string]bool{}
-		for _, m := range check.Z38IfaceWrn.FindAllStringSubmatch(string(wo), -1) {
+		for _, m := range check.W121IfaceWrn.FindAllStringSubmatch(string(wo), -1) {
 			set[m[1]] = true
 		}
-		sides[x.side] = side{len(lines), inc, check.Z27Keys(set)}
+		sides[x.side] = side{len(lines), inc, check.W110Keys(set)}
 	}
 	if sides["old"].inc != sides["new"].inc {
 		rb.Say("the file had %d #include directives and has %d: this phase removes none and adds none",
@@ -1047,7 +1047,7 @@ func Check(w io.Writer, args []string) error {
 		rb.Say("the core -> host interface moved, and this phase is above the boundary entirely:")
 		os.WriteFile(T("iface-old"), []byte(strings.Join(sides["old"].iface, "\n")+"\n"), 0o644)
 		os.WriteFile(T("iface-new"), []byte(strings.Join(sides["new"].iface, "\n")+"\n"), 0o644)
-		for _, l := range check.Z30Diff(T("iface-old"), T("iface-new")) {
+		for _, l := range check.W113Diff(T("iface-old"), T("iface-new")) {
 			fmt.Fprintf(w, "               %s\n", l)
 		}
 		return harness.ErrReported
@@ -1059,9 +1059,9 @@ func Check(w io.Writer, args []string) error {
 		sides["old"].lines, sides["new"].lines, sides["old"].inc, len(sides["new"].iface))
 
 	// --- 10. STRUCTURE --------------------------------------------------------------------
-	zh := exec.Command("sh", "tools/st.sh", "zhostonly", f)
-	zh.Stdout, zh.Stderr = w, w
-	if err := zh.Run(); err != nil {
+	hostOnly := exec.Command("sh", "tools/st.sh", "zhostonly", f)
+	hostOnly.Stdout, hostOnly.Stderr = w, w
+	if err := hostOnly.Run(); err != nil {
 		return harness.ErrReported
 	}
 	if err := check.PhaseCheck(w, work, f, filepath.Join(state, "symbols")); err != nil {

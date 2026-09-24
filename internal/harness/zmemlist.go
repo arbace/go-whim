@@ -1,6 +1,6 @@
 package harness
 
-// zmemCases is tools/zmemline.py's CASES, transcribed by a program.
+// coreMemCases is tools/zmemline.py's CASES, transcribed by a program.
 //
 // Sixteen cases of 200 to 25,000 lines, built IN THE EDITOR: there is no
 // file argument, no :edit and no :read.  Their depth is MEASURED and not
@@ -8,7 +8,7 @@ package harness
 // 0 of 102 for all seven markers in the screen corpus -- which is why
 // this part exists at all: until it did, nothing in the pipeline could
 // tell a working memline from a broken one.
-var zmemCases = []struct {
+var coreMemCases = []struct {
 	name string
 	args []string
 	keys [][]byte

@@ -60,7 +60,7 @@ import (
 
 func init() { check.Register("whim102", Check) }
 
-func z19Probe(ind string) string {
+func w102Probe(ind string) string {
 	p := ind
 	return p + "{\n" +
 		p + "    sigset_t hostmask;\n" +
@@ -72,9 +72,9 @@ func z19Probe(ind string) string {
 }
 
 const (
-	z19Builtin = "static void *host_jump[5];\nstatic int host_code;\n\n    static void\nhost_exit(int r)\n{\n    host_code = r;\n    __builtin_longjmp(host_jump, 1);\n}\n"
-	z19Sigjmp  = "static sigjmp_buf host_jump;\nstatic int host_code;\n\n    static void\nhost_exit(int r)\n{\n    host_code = r;\n    siglongjmp(host_jump, 1);\n}\n"
-	z19Launch  = "\nstatic void *host_jump[5];\nstatic int host_code;\n\n    static void\nhost_exit(int r)\n{\n    host_code = r;\n    __builtin_longjmp(host_jump, 1);\n}\n\n    int\nmain(int argc, char **argv)\n{\n    if (__builtin_setjmp(host_jump) != 0)\n    {\n        return host_code;\n    }\n    return vim_main(argc, argv, host_exit);\n}\n"
+	w102Builtin = "static void *host_jump[5];\nstatic int host_code;\n\n    static void\nhost_exit(int r)\n{\n    host_code = r;\n    __builtin_longjmp(host_jump, 1);\n}\n"
+	w102Sigjmp  = "static sigjmp_buf host_jump;\nstatic int host_code;\n\n    static void\nhost_exit(int r)\n{\n    host_code = r;\n    siglongjmp(host_jump, 1);\n}\n"
+	w102Launch  = "\nstatic void *host_jump[5];\nstatic int host_code;\n\n    static void\nhost_exit(int r)\n{\n    host_code = r;\n    __builtin_longjmp(host_jump, 1);\n}\n\n    int\nmain(int argc, char **argv)\n{\n    if (__builtin_setjmp(host_jump) != 0)\n    {\n        return host_code;\n    }\n    return vim_main(argc, argv, host_exit);\n}\n"
 )
 
 // Whim102 is phase 102's check: the core can no longer stop the process.
@@ -105,15 +105,15 @@ func Check(w io.Writer, args []string) error {
 		}
 		return strings.Replace(text, want, repl, 1), nil
 	}
-	inMask, e := edit(oldC, "    exit(r);\n", z19Probe("    ")+"    exit(r);\n", "mch_exit's `exit(r);` in the INPUT")
+	inMask, e := edit(oldC, "    exit(r);\n", w102Probe("    ")+"    exit(r);\n", "mch_exit's `exit(r);` in the INPUT")
 	if e != nil {
 		return e
 	}
-	outMask, e := edit(newC, "        return host_code;\n", z19Probe("        ")+"        return host_code;\n", "the launcher's `return host_code;` in the OUTPUT")
+	outMask, e := edit(newC, "        return host_code;\n", w102Probe("        ")+"        return host_code;\n", "the launcher's `return host_code;` in the OUTPUT")
 	if e != nil {
 		return e
 	}
-	alt, e := edit(newC, z19Builtin, z19Sigjmp, "the launcher's jump, in the OUTPUT")
+	alt, e := edit(newC, w102Builtin, w102Sigjmp, "the launcher's jump, in the OUTPUT")
 	if e != nil {
 		return e
 	}
@@ -132,7 +132,7 @@ func Check(w io.Writer, args []string) error {
 	}
 	r.Say("four more sources: the input asked what signals are blocked immediately before `exit(r);`, the output asked the same immediately before `return host_code;`, the output with the launcher rewritten to sigsetjmp/siglongjmp out of <setjmp.h>, and the output with `host_code = r;` made `host_code = r + 1;`")
 	mk := check.ReadFile(filepath.Join(work, "Makefile"))
-	cflags, ldflags := strings.Fields(check.Z9Flag(mk, "CFLAGS")), strings.Fields(check.Z9Flag(mk, "LDFLAGS"))
+	cflags, ldflags := strings.Fields(check.W92Flag(mk, "CFLAGS")), strings.Fields(check.W92Flag(mk, "LDFLAGS"))
 	var bwg sync.WaitGroup
 	for _, n := range []string{"in_mask", "out_mask", "off"} {
 		bwg.Add(1)
@@ -196,7 +196,7 @@ func Check(w io.Writer, args []string) error {
 			fail = append(fail, fmt.Sprintf("%s: not found exactly once in the output", p.What))
 		}
 	}
-	if !strings.HasSuffix(newC, z19Launch) {
+	if !strings.HasSuffix(newC, w102Launch) {
 		fail = append(fail, "whim-vim.c does not end with the twenty-line launcher.  CLAUDE.md states that main() is literally the last thing in this file and its closing brace the final line, and that stays true")
 	}
 	for _, p := range []struct {
@@ -231,14 +231,14 @@ func Check(w io.Writer, args []string) error {
 	if runs(newC) != runs(oldC) {
 		fail = append(fail, fmt.Sprintf("runs of two blank lines: %d in the output against %d in the input", runs(newC), runs(oldC)))
 	}
-	rows := check.Z6RowRe.FindAllString(newC, -1)
+	rows := check.W89RowRe.FindAllString(newC, -1)
 	got, _ := harness.CommandNamesIn([]byte(newC), "whim-vim.c")
 	if len(rows) != 98 || len(got) != 98 {
 		fail = append(fail, "cmdnames[] is not the 98 rows phase 93 left")
 	}
 	if i := strings.Index(newC, "static struct vimoption options[]"); i >= 0 {
 		j := strings.Index(newC[i:], "\n};")
-		if len(check.Z12RowRe.FindAllString(newC[i:i+j], -1)) != 108 {
+		if len(check.W95RowRe.FindAllString(newC[i:i+j], -1)) != 108 {
 			fail = append(fail, "options[] is not the 108 rows phase 95 left")
 		}
 	}
@@ -339,11 +339,11 @@ func Check(w io.Writer, args []string) error {
 			return stop("the %s build is missing", n)
 		}
 	}
-	return z19Ways(r, old, bin, filepath.Join(inst, "off"), filepath.Join(inst, "in_mask"), filepath.Join(inst, "out_mask"))
+	return w102Ways(r, old, bin, filepath.Join(inst, "off"), filepath.Join(inst, "in_mask"), filepath.Join(inst, "out_mask"))
 }
 
-// z19Marks is the sorted set of mask lines one run wrote to stderr.
-func z19Marks(err []byte) []string {
+// w102Marks is the sorted set of mask lines one run wrote to stderr.
+func w102Marks(err []byte) []string {
 	var Out []string
 	for _, l := range strings.Split(string(err), "\n") {
 		switch l {
@@ -355,22 +355,22 @@ func z19Marks(err []byte) []string {
 	return Out
 }
 
-func z19Ways(r *check.Rep, old, bin, off, inMask, outMask string) error {
+func w102Ways(r *check.Rep, old, bin, off, inMask, outMask string) error {
 	ways := []struct {
 		Name string
 		fn   func(string) string
 		want string
 		why  string
 	}{
-		{"quit", func(b string) string { return check.Z18Quiet(b, []string{"+q!"}) }, "0", ":q! -- ex_quit -> getout(0) -> mch_exit(0)"},
-		{"cquit3", func(b string) string { return check.Z18Quiet(b, []string{"+cq 3"}) }, "3", ":cq 3 -- ex_cquit -> getout(3)"},
-		{"eof", func(b string) string { return check.Z18Quiet(b, nil) }, "1", "end of input -- read_error_exit -> preserve_exit -> getout(1)"},
-		{"badopt", func(b string) string { return check.Z18Quiet(b, []string{"-Z"}) }, "1", "a bad option -- mainerr -> mch_exit(1), which never reaches the editor at all"},
-		{"sigterm", func(b string) string { return check.Z18Signalled(b, syscall.SIGTERM) }, "1", "SIGTERM -- deathtrap -> preserve_exit -> getout(1), from inside a signal handler"},
-		{"sighup", func(b string) string { return check.Z18Signalled(b, syscall.SIGHUP) }, "1", "SIGHUP -- deathtrap -> preserve_exit -> getout(1), from inside a signal handler"},
+		{"quit", func(b string) string { return check.W101Quiet(b, []string{"+q!"}) }, "0", ":q! -- ex_quit -> getout(0) -> mch_exit(0)"},
+		{"cquit3", func(b string) string { return check.W101Quiet(b, []string{"+cq 3"}) }, "3", ":cq 3 -- ex_cquit -> getout(3)"},
+		{"eof", func(b string) string { return check.W101Quiet(b, nil) }, "1", "end of input -- read_error_exit -> preserve_exit -> getout(1)"},
+		{"badopt", func(b string) string { return check.W101Quiet(b, []string{"-Z"}) }, "1", "a bad option -- mainerr -> mch_exit(1), which never reaches the editor at all"},
+		{"sigterm", func(b string) string { return check.W101Signalled(b, syscall.SIGTERM) }, "1", "SIGTERM -- deathtrap -> preserve_exit -> getout(1), from inside a signal handler"},
+		{"sighup", func(b string) string { return check.W101Signalled(b, syscall.SIGHUP) }, "1", "SIGHUP -- deathtrap -> preserve_exit -> getout(1), from inside a signal handler"},
 	}
 	got := map[[2]string]string{}
-	masks := map[string]z19Rec{}
+	masks := map[string]w102Rec{}
 	var mu sync.Mutex
 	var wg sync.WaitGroup
 	for _, w := range ways {
@@ -393,7 +393,7 @@ func z19Ways(r *check.Rep, old, bin, off, inMask, outMask string) error {
 		wg.Add(1)
 		go func(name, b string, s syscall.Signal) {
 			defer wg.Done()
-			x := z19Signalled(b, s)
+			x := w102Signalled(b, s)
 			mu.Lock()
 			masks[name] = x
 			mu.Unlock()
@@ -416,14 +416,14 @@ func z19Ways(r *check.Rep, old, bin, off, inMask, outMask string) error {
 		}
 	}
 	for _, sig := range []string{"term", "hup"} {
-		a, b := z19Marks(masks["in_"+sig].Err), z19Marks(masks["out_"+sig].Err)
+		a, b := w102Marks(masks["in_"+sig].Err), w102Marks(masks["out_"+sig].Err)
 		up := strings.ToUpper(sig)
 		if len(a) == 0 {
 			fail = append(fail, fmt.Sprintf("the INPUT instrumented before `exit(r);` reported no mask at all on SIG%s, so the comparison below would be two silences agreeing", up))
 		}
 		if strings.Join(a, " ") != strings.Join(b, " ") {
 			fail = append(fail, fmt.Sprintf("SIG%s: the process used to end with %s and now ends with %s.  __builtin_longjmp does not restore the signal mask, and the whole argument for using it is that exit() was already called from inside the handler with the handled signal blocked",
-				up, z19Tuple(a), z19Tuple(b)))
+				up, w102Tuple(a), w102Tuple(b)))
 		}
 		maskRows = append(maskRows, "SIG"+up+" "+strings.Join(a, " "))
 	}
@@ -442,7 +442,7 @@ func z19Ways(r *check.Rep, old, bin, off, inMask, outMask string) error {
 	return nil
 }
 
-func z19Tuple(s []string) string {
+func w102Tuple(s []string) string {
 	if len(s) == 0 {
 		return "nothing"
 	}
@@ -456,17 +456,17 @@ func z19Tuple(s []string) string {
 	return "(" + strings.Join(q, ", ") + ")"
 }
 
-type z19Rec struct {
+type w102Rec struct {
 	Rc  string
 	Err []byte
 }
 
-// z19Signalled is the heredoc's signalled(): a run that never drew is
+// w102Signalled is the heredoc's signalled(): a run that never drew is
 // ('NEVER DREW', b”), so its stderr cannot stand in for a mask.
-func z19Signalled(binary string, sig syscall.Signal) z19Rec {
-	x := check.Z17Session(binary, []syscall.Signal{sig})
+func w102Signalled(binary string, sig syscall.Signal) w102Rec {
+	x := check.W100Session(binary, []syscall.Signal{sig})
 	if strings.Contains(string(x.Out), "NEVER DREW") {
-		return z19Rec{"NEVER DREW", nil}
+		return w102Rec{"NEVER DREW", nil}
 	}
-	return z19Rec{fmt.Sprintf("%d", x.Rc), x.Err}
+	return w102Rec{fmt.Sprintf("%d", x.Rc), x.Err}
 }

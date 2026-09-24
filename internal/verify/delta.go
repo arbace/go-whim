@@ -164,8 +164,8 @@ func DeltaIs(bin, src string, termMoved bool, cases, cmds []string, w io.Writer)
 }
 
 // CoreDelta is Delta's rule against a different instrument: it records the
-// binary (harness.ZRecord) and hands the recording, the baselines and the
-// declarations from build.CoreFrom on to harness.ZCompare, which requires
+// binary (harness.CoreRecord) and hands the recording, the baselines and the
+// declarations from build.CoreFrom on to harness.CoreCompare, which requires
 // EXACTLY the declared difference -- every record that moved is declared, every
 // declaration moved something, and nothing else differs at all.
 //
@@ -207,7 +207,7 @@ func CoreDelta(bin, src string, n int, w io.Writer) error {
 	defer os.RemoveAll(tmp)
 
 	now := filepath.Join(tmp, "now")
-	if err := harness.ZRecord(bin, src, now, w); err != nil {
+	if err := harness.CoreRecord(bin, src, now, w); err != nil {
 		return err // it named the harness that failed
 	}
 	orphans()
@@ -220,7 +220,7 @@ func CoreDelta(bin, src string, n int, w io.Writer) error {
 	if err := os.WriteFile(declared, []byte(text), 0o644); err != nil {
 		return err
 	}
-	if err := harness.ZCompare(coreBaselines, now, declared, n, w); err != nil {
+	if err := harness.CoreCompare(coreBaselines, now, declared, n, w); err != nil {
 		fail = true
 	}
 	if fail {
