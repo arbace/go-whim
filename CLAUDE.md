@@ -119,8 +119,8 @@ src/               the input and the product: slim-vim.c (fetched, not tracked),
                    whim-vim.c (produced, tracked), their binaries slim-vim and
                    whim-vim, upstream.sha and slim.sha
 doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
-                   done, in order), and the surveys: measured assessments of
-                   what the pipeline could become (README.md indexes them)
+                   done, in order), and surveys/: measured assessments of what
+                   the pipeline could become (surveys/README.md indexes them)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go

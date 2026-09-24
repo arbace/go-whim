@@ -21,7 +21,7 @@ import (
 // dead.AnalyseEnumsWith's pinning.  deadsweep, deadprotos, funcreach and canon
 // are unchanged.  Off, which is the default, the sweep is what it was.
 //
-// This is doc/REACHABILITY.md's Option 3 as a measurement: whether the
+// This is doc/surveys/REACHABILITY.md's Option 3 as a measurement: whether the
 // product moves, and whether any phase refuses, is the question it answers.
 //
 // The guards are REFUSALS, each counted in the tool's line, never filters:
@@ -40,7 +40,7 @@ import (
 //     nothing does;
 //   - when the text does not parse, the closure DECLINES for the rest of the
 //     round and the tools' own analysis runs, as it did before: funcreach is
-//     what repairs such a text (doc/REACHABILITY.md §6).
+//     what repairs such a text (doc/surveys/REACHABILITY.md §6).
 var closureOn = os.Getenv("WHIM_CLOSURE") == "1"
 
 // closureRounds is the ceiling with the switch on.  A deferred entity costs a
