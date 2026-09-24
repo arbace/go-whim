@@ -90,8 +90,9 @@ cmd/whimtools/     one binary, every tool a subcommand: whimtools <subcommand>
 internal/          the Go: cc (the forked C front end), sweep, canon, dead,
                    cut/cutil (the cutters), edit and
                    check (what the phases' edits and checks are written against --
-                   the drivers, the reporters, and in shared.go what more than one
-                   phase uses), steps (every transformation a phase names, as one
+                   the drivers, the reporters, in shared.go what more than one
+                   phase uses, and for Part I's checks shell.go's Wsh and
+                   partone.go), steps (every transformation a phase names, as one
                    table), build (the plan: what each phase does to the source,
                    and the driver that runs it), verify (the same plan with every
                    check and delta, and the baseline recorder), harness (every

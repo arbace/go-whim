@@ -52,8 +52,6 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 
 ## Small
 
-- `internal/check/phases0NN.go` naming -- needs code moved into the phase
-  packages, so not mechanical.
 - The `z*` identifier family (`zmemline`, `ztc`, `z33Rule`, `z41*`).
 
 ## Declined, with the reason recorded
