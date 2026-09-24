@@ -113,8 +113,8 @@ that stage leaves and every part of it passed. **No `need 112 swept`**, measured
 same run.
 
 **Two things about the pipeline this phase ran into, recorded and not acted on.** `make
-whim-verify` cannot run while the phase list has a gap — `tools/verifypass.sh` takes the
-previous boundary as `r$((first - 1))`, so a reserved-but-unlanded number makes it die
-on a missing tar. And `make whim-tip` in a fresh worktree re-runs every phase, because
+whim-verify` could not run while the phase list had a gap — `tools/verifypass.sh` took the
+previous boundary as `r$((first - 1))`, so a reserved-but-unlanded number made it die
+on a missing tar. And `make whim-tip` in a fresh worktree re-ran every phase, because
 `git worktree add` gives `whim-vim.c` a new mtime and `$(ZEROBUILD)/input.sha256`
-depends on it.
+depended on it.

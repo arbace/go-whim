@@ -194,7 +194,7 @@ recomputes all ten in 80 s of wall time over 448 s of phases.
 ## Its placement
 
 `stage 92`, `package files`, and two `uses` lines: `files:92 seed:83 mechanical`,
-because `tools/coredelta.sh` compares the recording with the baselines phase 83
+because `tools/coredelta.sh` compared the recording with the baselines phase 83
 records and this phase's whole declaration is that nothing in them moved, and
 `files:92 streams:88 mechanical`, because the `read_stdin` *argument* anchor 4 removes
 is `FALSE` at all four call sites only since phase 88 took the bare `-` and

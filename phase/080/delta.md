@@ -1,6 +1,6 @@
 Every removed row: the sweep dispatches the names in the table, so a row that
 goes is a row whose result goes.  Phase 80's edit reads this list as the rows
-it must find as stubs (tools/whimdelta.sh --declared 80).
+it must find as stubs (tools/st.sh delta --declared 80).
 ```
 abbreviate abclear aboveleft abstract all amenu anoremenu args argadd argdelete
 argdo argdedupe argedit argglobal arglocal argument autocmd augroup aunmenu buffer

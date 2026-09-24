@@ -45,7 +45,7 @@ from phase 71 wearing a different hat.
 
 ## The delta
 
-**None**, and `whimdelta.sh` confirms it.
+**None**, and `whimdelta.sh` confirmed it.
 
 The probes are worth stating because this is where the first attempt failed. The
 **discriminator** is a pair: on q73 a lowercase mark gives `K1|K2-kept|K3|` and an

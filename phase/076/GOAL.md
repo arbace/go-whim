@@ -43,7 +43,7 @@ earlier edit either, so the specific-then-blanket ordering problem does not aris
 
 ## The delta
 
-**None**, and `whimdelta.sh` confirms it. The blocks never ran, so removing them
+**None**, and `whimdelta.sh` confirmed it. The blocks never ran, so removing them
 cannot change a match.
 
 The probes exercise **matching**, not editing, because a load-and-edit probe would

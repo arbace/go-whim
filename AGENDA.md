@@ -41,13 +41,14 @@ belong with the inserted-text item.
 - **44 whole-line comments inside braces, from four phases**, are what now stop an
   intermediate text canonicalising. The fix is where those phases put their
   comments, not the printer -- the finished product has zero.
-- **Eleven retired tools are still named in the prose**, every one gone from disk:
-  `phaserun.sh` in 30 `.md` files, `coredelta.sh` in 22, `zcompare.py` in 20,
-  `zrecord.sh` in 14, `stages.sh` and `whimdelta.sh` in 8 each, plus
-  `implhash.sh`, `ztermcheck.py`, `pipeline.sh`, `memo.sh`, `verifypass.sh`. A
-  `GOAL.md` that says to run a file that does not exist is a dead end. The fix
-  differs per file: a doc should be corrected, a phase's record may deserve
-  "(now `internal/verify`)" rather than a rename.
+- **Retired tools in the prose: what is left.** The prose names 93 scripts not on
+  disk, about 900 times, nearly all as records of what was run; those keep their
+  names, and `tools/README.md`'s *Retired* table says what each became. The
+  present-tense claims and instructions were corrected. Left: `CLAUDE.md`'s
+  `CORE_FROM=83` in `tools/pipeline.sh` (it is `internal/build`'s `CoreFrom`),
+  and Go comments that still describe the old machinery as current --
+  `phase/{033,054,080,081,085}/check.go` "as tools/phaserun.sh describes",
+  `phase/{096,097,099,106}/check.go` on `coredelta.sh` and `phaserun.sh`.
 - **`zero-vim` in prose**: 20 in `GOALS.md`, 7 in `phase/STAGES.md`, 6 across five
   `delta.md`. `GOALS.md`'s appendix is the plan AS WRITTEN, so renaming inside it
   falsifies a record -- a judgement, not a sweep.

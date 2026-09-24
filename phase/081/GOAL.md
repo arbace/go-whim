@@ -29,7 +29,7 @@ trailing spaces are stripped, which is what lets a mapping end in a space.
 ## The delta
 
 No behaviour case, terminal row or swept command uses a bar or a comment, so the
-cumulative list is phase 80's, unchanged, and `whimdelta.sh` confirms it. What moves
+cumulative list is phase 80's, unchanged, and `whimdelta.sh` confirmed it. What moves
 is probed directly: 43 cases through q80's binary and this one, comparing exit
 status, stderr and what was written. Fourteen differ, each declared with its reason;
 29 controls must not — `:s/a\|b/…/` and `:g/a\|c/d` (a bar inside a pattern was

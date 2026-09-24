@@ -45,7 +45,7 @@ one file argument `do_argfile()` already answered *"there is only one file to
 edit"* — so pointing the rows at `ex_ni` changes the message text, which the sweep
 does not record, while the exit status, the files touched and stderr all stay the
 same. The declaration was **narrowed** to match the measurement; widening one to
-fit is what `whimdelta.sh` exists to refuse.
+fit is what `whimdelta.sh` existed to refuse, and `tools/st.sh delta` refuses now.
 
 The probes are **load-first**: `+$` then `+s/^/LAST /` proves the buffer holds the
 file's lines, which is the check the abandoned attempt lacked and needed. Then

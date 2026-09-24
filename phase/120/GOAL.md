@@ -105,15 +105,15 @@ earlier cuts, which is phase 96's kind, and only the sixth has a dialect argumen
 **It was for a while the one phase after the seed with no `uses` line at all**, and that
 looked defensible — its evidence is a `cmp` and not the recording, so it does not rest on
 phase 83's baselines the way every other empty declaration does. **It was still wrong.**
-`phase/120/check.go` names `tools/coredelta.sh` twice, the delta check runs at its stage
+`phase/120/check.go` named `tools/coredelta.sh` twice, the delta check runs at its stage
 end like every other phase's, and the two **other** `cmp`-evidenced phases, 99 and 106, both
 declare the dependency — five `uses` lines and six respectively. So the line is written now,
 with the reason it was missing recorded in it. It was found by a documentation pass and not
 by anything failing, which is the property of `phase/STAGES.md` worth saying plainly: the
-file is read by `tools/stages.sh` and `tools/packages.sh` and **named by no phase program**,
-so `tools/implhash.sh` never hashes it. **A manifest edit is free, which is why package and
-`uses` data can be kept honest without paying for a repass — and it is also why a wrong one
-is never caught by anything running. The only guard on that file is a reader.** Measured
+file was read by `tools/stages.sh` and `tools/packages.sh` and **named by no phase program**,
+so `tools/implhash.sh` never hashed it, and now nothing reads it at all. **A manifest
+edit is free, which is why package and `uses` data can be kept honest without paying
+for a repass — and it is also why a wrong one is never caught by anything running. The only guard on that file is a reader.** Measured
 either side of the correction: slim 9, whim 13-41, 120 and 127 are byte-identical,
 and both manifest checks pass.
 

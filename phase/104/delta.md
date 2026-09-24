@@ -19,8 +19,9 @@ THE PHASE OWES A CONTROL FOR EXACTLY THAT REASON, and it is one character:
 `write(err ? 2 : 1, ...)` made `write(err ? 1 : 1, ...)` moves all 24 records, 217
 lines of `diff -r` -- where tools/zerodelta.sh names only 14 of them, ten of the 24
 being argv rows phases 87 and 88 already declared and tools/zcompare.py therefore no
-longer comparing.  That gap is why phase/104/check.sh diffs the two recordings
-itself and keeps zerodelta.sh as the second opinion.
+longer comparing.  That gap is why phase 104's check
+(check.sh then, check.go now) diffs the two recordings itself and keeps the delta
+check as the second opinion.
 
 ONE THING REALLY CHANGES AND NO INSTRUMENT IN THIS PIPELINE CAN SEE IT: mainerr and
 report_term_error assemble into a 1024-byte buffer, so a message built from an argv

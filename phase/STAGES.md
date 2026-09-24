@@ -21,18 +21,14 @@ without its inner sweep.
 It also carries a second view of the same 83 phases, which changes nothing about
 how they run: PACKAGES (at the end).  `package NAME P...` puts phases in a concept,
 and `uses A:P B:Q KIND why` says phase P of package A relies on phase Q of package
-B having run, mechanically or as the stated rationale.  Those two kinds are read
-by tools/packages.sh and by nothing that runs a phase: tools/stages.sh reads only
-`stage`, `need` and `apart`, and this file is not part of any implementation
-digest.  `make whim-verify` and `make whim-tip` run tools/packages.sh --check first.  The packages checker is a tool of its
-own rather than a mode of tools/stages.sh because tools/phaserun.sh names
-stages.sh, so every byte of stages.sh is in every stage's cache key.
+B having run, mechanically or as the stated rationale.  Nothing reads this file
+now.  tools/stages.sh and tools/packages.sh did, and packages.sh --check refused a
+phase in no package or in two; both went with the memoize (4496964), and the
+refusals the text below attributes to them are records of what they printed.
+tools/README.md says what each retired tool became.
 
-The phase list, read by tools/pipeline.sh as PHASE_LIST.  It is here and not in
-tools/pipeline.sh because that file is hashed into every stage's key and every
-edit's: a phase added there would re-key the whole pipeline.  Nothing hashes this
-file.  It is contiguous because it has to be: tools/memo.sh refuses a unit whose
-previous boundary does not exist.
+The phase list, which tools/pipeline.sh read as PHASE_LIST; internal/build's
+Plan is the list now.
 ```
 phases      0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 136 137 138 139 140 141 142 143 144 145 146 147 148 149 150 151 152 153 154 155 156 157 158 159 160 161 162
 ```

@@ -17,8 +17,8 @@ is handed, memoized in three tiers — and differ only in what they remove.
 the editor can do. **This one removes capability, on purpose**, and every phase
 has to say which and prove it removed nothing else.
 
-**A phase is a directory, `phase/NNN/`**, its number in three digits: its program
-(`make.sh`, or `edit.sh` and `check.sh`), its `GOAL.md` — what it removes and why,
+**A phase is a directory, `phase/NNN/`**, its number in three digits, and a Go
+package of its own: `edit.go` and `check.go`, its `GOAL.md` — what it removes and why,
 and what was measured — and its declared `delta.md`. This document is what holds for
 all of them: the charters, the rules, what is measured, and an index of the
 phases in each part.
@@ -133,17 +133,20 @@ phase:**
 
 | | by what | islands? |
 | --- | --- | --- |
-| functions | `deadsweep.py` (gcc) and `funcreach.py` | yes — reachability |
-| prototypes | `deadprotos.py` | n/a |
-| types | `typereach.py` | yes — reachability |
-| variables | `deadsweep.py`, `-Wunused-variable` | no — reference counting |
-| struct fields | `deadfields.py` | no — a mention outside every type definition |
-| enumerators | `deadenums.py` | no — a mention anywhere |
+| functions | `deadsweep` (gcc) and `funcreach` | yes — reachability |
+| prototypes | `deadprotos` | n/a |
+| types | `typereach` | yes — reachability |
+| variables | `deadsweep`, `-Wunused-variable` | no — reference counting |
+| struct fields | `deadfields` | no — a mention outside every type definition |
+| enumerators | `deadenums` | no — a mention anywhere |
 
-**The sweep is not written into a phase program; the driver runs it, once per
-stage.** Phases 1–82 are each two programs: `phase/NNN/edit.sh` makes the cut (and
+Each is `internal/dead`, and a `whimtools` subcommand of the same name; the
+phase accounts call them by the Python they were ported from (`tools/README.md`).
+
+**The sweep is not written into a phase program; the plan runs it, once per
+stage.** Every phase is two programs: `phase/NNN/edit.go` makes the cut (and
 may sweep part way through, where a second cut needs the first one swept), and
-`phase/NNN/check.sh` asserts, builds and probes. A **stage** is a run of phases
+`phase/NNN/check.go` asserts, builds and probes. A **stage** is a run of phases
 whose edits share one sweep: every edit in order on text no sweep has touched
 since the stage began, one sweep, every check in order on the swept text and its
 binary, and then the declared delta once (`internal/verify`). The check shares
@@ -209,7 +212,7 @@ nothing in their own sweeps noticed. **An invariant asserted in one place is a
 cleanup.** Asserted in every sweep, it holds at every boundary, and no phase is
 ever handed dead code by the one before it.
 
-**A struct field is not a variable.** `deadfields.py` calls a field live if its
+**A struct field is not a variable.** `deadfields` calls a field live if its
 name appears outside every type definition, since a mention inside another struct
 is a different field with the same name. It refuses what it cannot be sure of,
 because being wrong here is silent:
@@ -217,7 +220,7 @@ because being wrong here is silent:
 - a bitfield or anonymous member, whose declaration does not say plainly what
   it declares;
 - the last field of a struct, since an empty struct is not C and whole types
-  are `typereach.py`'s;
+  are `typereach`'s;
 - any field of a type that is ever initialised positionally.
   `static termrequest_T crv_status = {STATUS_GET, -1};` fills two fields and
   names neither, so the second looks dead, and removing it gives *"excess
@@ -232,7 +235,7 @@ because being wrong here is silent:
   Phase 21 removes a field, and Phase 21 removes 80.
 
 **An enumerator's value is its position**, so deleting one renumbers every
-implicit one after it, and several enums index a parallel table. `deadenums.py`
+implicit one after it, and several enums index a parallel table. `deadenums`
 reads the values from DWARF — `tools/enumvals.sh`, where the compiler has already
 done the arithmetic for `1 << 3` and `0x80000000L` — pins the first survivor
 after each deleted run, and dumps DWARF again after the sweep to require that no
@@ -1145,8 +1148,8 @@ Cited as *core rule N*; Part I's rules still hold.
    and `stderr-moved` — in Part I's grammar, and
    `tools/st.sh delta BIN SRC --phase N` shows exactly that set moved and no more. "Some
    cases differ" is not a check, and neither is a dimension declared that nothing
-   touched: `tools/zcompare.py` refuses a `-moved` token whose dimension did not
-   move.
+   touched: `internal/harness`'s `ZCompare` refuses a `-moved` token whose
+   dimension did not move.
 3. **The delta is from q82, not from slim-vim, and it is cumulative.** From phase 83
    behaviour is compared with `.reference/core-baselines`, which phase 83 records from
    the tree it is handed — q82's `whim-vim.c` built with the compile line q82 carries.
@@ -2122,8 +2125,8 @@ number in three digits, and this is how one would join now.
    `init()`, and `phase/registry.go` gains a line so they are linked in.
 2. **Declare its delta** in `phase/NNN/delta.md`, before running it: every phase
    from 83 on is measured against `.reference/core-baselines` with
-   `tools/zrecord.sh`, and `tools/whimdelta.sh` hands it to
-   `tools/coredelta.sh`.
+   `tools/st.sh zrecord`, and `tools/st.sh delta` hands it to `internal/verify`'s
+   `CoreDelta`.
 3. **Add it to the plan**, `internal/build/plan.go`: its steps in order, whether
    a sweep follows, its stage, and what its check is handed beside the tree
    (`OldSource`, `OldBinary`, `EnumVals`). A new phase joins the last `each`

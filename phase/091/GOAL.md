@@ -88,7 +88,7 @@ margin is 19 rows and the next row the plan removes is `:file`'s.
 every Part II phase): **28 move** — 6 whim stages (42-63, 66-71, 72, 73-77, 78, 79), 15
 whim edits (58, 63, 66, 68–79), 2 slim phases (6, 7) and 5 of the phases from 83 (85, 87, 88, 89,
 90). The last five are there only because their programs name the tool's path in a
-comment; `implhash.sh` greps for paths and does not know what a comment is. Every
+comment; `implhash.sh` grepped for paths and did not know what a comment is. Every
 one of those phases calls the tool with a 489- or 600-row table, so `--check` passes
 identically and every boundary reproduces; the cost is CPU in a repass. **Gated on
 both**: `make slim-verify` 12 of 12 (394 s of phases in 114 s of wall time) and

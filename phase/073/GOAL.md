@@ -57,7 +57,7 @@ fall out by cascade once their callers' `wfh`/`wfw` loops vanish, and `FR_ROW` a
 
 ## The delta
 
-**None**, and `whimdelta.sh` confirms it. Every splitting and resizing Ex command is
+**None**, and `whimdelta.sh` confirmed it. Every splitting and resizing Ex command is
 already `ex_ni`, and `:set cmdheight=` keeps its accepted range because
 `frame_minheight` kept its arithmetic.
 

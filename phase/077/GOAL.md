@@ -39,7 +39,7 @@ removing the one call site orphans them all and the sweep takes them.
 
 ## The delta
 
-**None**, and `whimdelta.sh` confirms it. `:buffer foo` already exited 1 with nothing
+**None**, and `whimdelta.sh` confirmed it. `:buffer foo` already exited 1 with nothing
 on stderr — `ex_ni` sets `eap->errmsg` rather than printing, and an `exsweep` row is
 `exit= left= err=`. Measured on q76: exit 1, empty stderr, file written either way.
 So the gain is code, not behaviour, and the phase says so rather than claiming a

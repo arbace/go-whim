@@ -29,3 +29,31 @@ Everything is reached the same way, as a subcommand of the one binary:
 
 Every one of them runs from the repository root and writes its temporaries in
 `.tmp/`.
+
+## Retired, and what became of them
+
+The prose names about ninety scripts that are not here. Almost every mention is
+a **record** -- what was run when a phase was measured, and what it printed --
+and a record keeps the name it was measured with; renaming it to today's tool
+would claim a measurement nobody made. This table is where such a name leads.
+The Python was never tracked in this repository: it is arbace/slim-vim's
+history from before the split (`8ba7c9d`), ported to Go there or here, one
+subcommand per script.
+
+| retired | what it is now | gone in |
+| --- | --- | --- |
+| `phaserun.sh` (a stage from its boundary), `verifypass.sh` | `tools/st.sh verify --from N --to M --src BOUNDARY` (`internal/verify`) | `4496964` |
+| `stages.sh`, `packages.sh` | the stages are `internal/build/plan.go`; `need`, `apart`, `package` and `uses` are prose in `phase/STAGES.md`, and nothing checks them | `4496964` |
+| `pipeline.sh` (`PHASE_LIST`, `CORE_FROM`) | `internal/build`'s `Plan` and `CoreFrom` | `4496964` |
+| `memo.sh`, `implhash.sh`, `oracle.sh`, `snapshot.sh`, `restore.sh`, `specpass.sh`, `residue.sh`, `phasename.sh` | nothing: the memoize and its keys went, and the tracked product is what answers for the pipeline (`make whim-build-check`) | `4496964` |
+| `whimdelta.sh`, `coredelta.sh` (earlier `zerodelta.sh`), `declared.sh` | `tools/st.sh delta BIN SRC --phase N`, `--declared N`, `--list FROM TO` (`internal/verify`'s `Delta`, `CoreDelta`, `Declarations`) | `d8b3c29` (`zerodelta.sh` renamed in `d3ac925`) |
+| `zrecord.sh` | `tools/st.sh zrecord` (`internal/harness`'s `ZRecord`; `check.RecZ` from a check) | `d8b3c29` |
+| `phase/NNN/make.sh`, `edit.sh`, `check.sh` | `phase/NNN/edit.go` and `check.go`, package `pNNN` | `f0a58b9` |
+| `deadsweep.py`, `deadprotos.py`, `typereach.py`, `funcreach.py`, `deadfields.py`, `deadenums.py`, `orphanopts.py`, `nvidxcheck.py` | `whimtools` of the same name (`nvidx` for the last), in `internal/dead` | before the split |
+| `canon.py`, `cutil.py` and the canonicaliser's pieces (`brace.py`, `onestmt.py`, `onedecl.py`, `forcomma.py`) | `internal/canon`, `internal/cutil` | before the split |
+| `behaviour.py`, `exsweep.py`, `termcheck.py`, `clicheck.py`, `starcheck.py`, `complcheck.py`, `termrestore.py`, `muslcase.py`, `muslctype.py`, `create_cmdidxs.py` | `whimtools` of the same name (`cmdidxs` for the last), in `internal/harness` | before the split |
+| `zscreen.py`, `zstream.py`, `zrec.py`, `zcases.py`, `zexcmds.py`, `zargv.py`, `zpty.py`, `zmemline.py`, `ztermcheck.py`, `zhostonly.py`, `zcompare.py` | `internal/harness`'s `z*.go`, each also a `whimtools` subcommand where it has a command line | before the split |
+| a phase's cutter (`noswap.py`, `nosession.py`, `retire.py`, `dropoptions.py`, …) | the step of that name in `internal/steps`, most of them also a `whimtools` subcommand | before the split |
+| `ptyrun.py`, `ptycheck.py` | the pty driver in `internal/harness` (`pty.go`, `ptyprobes.go`, `ptysplit.go`) | before the split |
+| `arrowcheck.py`, `coverage.sh` | not ported; nothing runs them, and the text naming them is the record of what they measured | before the split |
+| `graph.py`, `sim.py`, `corpus.py`, `run2.py`, `argvcheck.py`, `allstatic.py`, `exsweep_stream.py`, `.tmp/…/seq.sh` and the like | throwaway probes under `/tmp` or `.tmp/`, never tracked; the text naming them says what they measured | -- |

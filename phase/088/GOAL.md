@@ -109,8 +109,8 @@ buy its way out with.
 So Part II's recording now uses **`tools/ztermcheck.py`**: `termcheck.py` imported
 with its `ask()` replaced and nothing else, so the terminal list, the environment
 isolation, the settle ladder and the output format stay in one place and cannot
-drift from whim's. Editing `termcheck.py` itself is what core rule 9 forbids — it is
-named by `tools/whimdelta.sh` and `tools/verify.sh`, so its bytes are in every whim
+drift from whim's. Editing `termcheck.py` itself is what core rule 9 forbids — it was
+named by `tools/whimdelta.sh` and `tools/verify.sh`, so its bytes were in every whim
 stage's key. **The swap is proven, not asserted**, in three places: the new tool
 records `.reference/core-baselines/ref-term.txt` byte for byte from the binary this
 phase was *handed* (which still accepts a file argument, so both forms work on it),

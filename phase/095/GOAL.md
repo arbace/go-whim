@@ -104,7 +104,7 @@ cpo=h` to answer E539 on both.
 
 `tools/orphanopts.py` refused a table it parsed fewer than 100 distinct `&p_xx` out
 of; this phase takes the count **102 → 96**, and its first call crosses it.
-`tools/coredelta.sh` runs that tool beside its harnesses, so crossing the floor does
+`tools/coredelta.sh` ran that tool beside its harnesses, so crossing the floor did
 not fail *this* phase — it fails the delta check of **every Part II phase after it**, with
 a message about a table that moved. It is the same failure shape as
 `create_cmdidxs.py`'s 100-row floor at phase 91, arriving from a different table.
@@ -118,8 +118,8 @@ byte-identical to its output on the input — five non-pointer orphans, which ar
 `'paste'`'s save slots, and every option pointer still with the row that sets it.
 
 **It cost implementation keys, and that is stated rather than hidden.** `tools/whimdelta.sh`
-names `orphanopts.py` and `tools/implhash.sh` hashes what a delta checker names, so
-lowering the number re-keys whim and zero. Measured, before and after, over every
+named `orphanopts.py` and `tools/implhash.sh` hashed what a delta checker named, so
+lowering the number re-keyed whim and zero. Measured, before and after, over every
 whim stage, every whim phase-as-unit, every whim edit, every slim phase and every zero
 unit and edit: **12 whim stage keys, 4 whim edit keys, 82 whim phase-as-unit keys, 12
 Part II unit keys and 3 Part II edit keys move, and not one slim key.** The tool's *verdict*

@@ -58,7 +58,7 @@ count used `[a-z_]+_status`, which cannot match the digit in `u7_status`.
 
 ## The delta
 
-**None**, and `whimdelta.sh` confirms it. An empty function called or not called does
+**None**, and `whimdelta.sh` confirmed it. An empty function called or not called does
 the same nothing, a counter nobody reads has no effect, and the two `winid` guards
 could never fire. The inventory was produced by two independent scanners that agree
 exactly on all 16 empty functions and 32 stubs.

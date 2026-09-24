@@ -70,7 +70,7 @@ own terms.
 
 ## The delta
 
-**None**, and `whimdelta.sh` confirms it. Nothing could fire an autocommand, so
+**None**, and `whimdelta.sh` confirmed it. Nothing could fire an autocommand, so
 removing the dispatch cannot change what the editor does.
 
 A `:%!sort` probe was written and **discarded**: `!` went in phase 64, so it fails on

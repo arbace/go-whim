@@ -40,8 +40,8 @@ reports the *requested* name as the result; any line carrying an `E<digits>:` ha
 code taken off it and is then skipped. And the row label is `:set term=` and not
 `TERM=`, or the record would say `TERM='vt320'` about something that is not the
 environment at all, so `termcheck.one` is overridden as well as `termcheck.ask`.
-`tools/termcheck.py` itself is untouched: it is named by `tools/whimdelta.sh` and
-`tools/verify.sh` and its bytes are in every whim stage's key (core rule 9).
+`tools/termcheck.py` itself is untouched: it was named by `tools/whimdelta.sh` and
+`tools/verify.sh` and its bytes were in every whim stage's key (core rule 9).
 
 ## The re-record is the delicate part, and it is not `CLAUDE.md`'s mistake
 

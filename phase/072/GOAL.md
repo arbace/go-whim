@@ -76,7 +76,7 @@ the incsearch state use, are not list state.
 
 ## The delta
 
-**None**, and `whimdelta.sh` confirms it. Every window and tabpage Ex command was
+**None**, and `whimdelta.sh` confirmed it. Every window and tabpage Ex command was
 already `ex_ni`.
 
 **A third probe that could not fail.** The autocommand probe was written

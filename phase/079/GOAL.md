@@ -88,7 +88,7 @@ context. Phases 77 and 78 avoided this with `|| true` and never needed the statu
 
 ## The delta
 
-**None**, and `whimdelta.sh` confirms it. Every fold removes a branch whose condition
+**None**, and `whimdelta.sh` confirmed it. Every fold removes a branch whose condition
 cannot hold and every term edit removes a constantly-true conjunct or a constantly-false
 disjunct. The quit path is the one place where an error would be silent rather than
 fatal — `check_more()` feeds the four `ex_quit`/`ex_exit` conditions that decide whether

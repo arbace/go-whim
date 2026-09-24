@@ -60,7 +60,7 @@ was guarded by `(b_prev != NULL || b_next != NULL)`, already false with one buff
 
 ## The delta
 
-**None**, and `whimdelta.sh` confirms it. The buffer commands were already `ex_ni`,
+**None**, and `whimdelta.sh` confirmed it. The buffer commands were already `ex_ni`,
 so no `exsweep` row can move.
 
 **A probe that cannot fail proves nothing, again.** The buffer-local mapping probe
