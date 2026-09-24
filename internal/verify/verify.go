@@ -77,6 +77,14 @@ func Run(o Options) error {
 		}
 	}
 
+	if o.From > 0 {
+		// The boundary handed in is the one before From, and a check that
+		// measures across boundaries (phase 116) needs it as much as the ones
+		// this run produces.
+		if err := keepBoundary(root, o.From-1, text); err != nil {
+			return err
+		}
+	}
 	var failed []int
 	for i := 0; i < len(build.Plan); i++ {
 		p := build.Plan[i]
@@ -110,6 +118,11 @@ func Run(o Options) error {
 		// one refusal at phase 79 into three more at 80, 81 and 82, each of them
 		// `the input binary did not build: undefined reference to main` from a
 		// state file that was the empty string.
+		if out != nil {
+			if err := keepBoundary(root, stage[len(stage)-1].N, out); err != nil {
+				return err
+			}
+		}
 		if out == nil {
 			return fmt.Errorf("verify: stage %s left no tree, so the stages after it have no input: %w", p.Stage, err)
 		}
@@ -378,4 +391,22 @@ func countLines(b []byte) int {
 		}
 	}
 	return n
+}
+
+// Boundary is where a verification keeps the text a stage ended with, for a
+// check handed state directory state: <root>/boundaries/qN.c, N the stage's
+// last phase.  They replace the per-boundary tars .build/ held while the
+// pipeline memoized -- phase 116 compares a table across every boundary from
+// q82, and nothing produces those tars any more.  A run from --from N also
+// keeps its input, as q(N-1).
+func Boundary(state string, n int) string {
+	return filepath.Join(filepath.Dir(filepath.Dir(state)), "boundaries", fmt.Sprintf("q%d.c", n))
+}
+
+func keepBoundary(root string, n int, text []byte) error {
+	p := Boundary(filepath.Join(root, "state", "x"), n)
+	if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(p, text, 0o644)
 }

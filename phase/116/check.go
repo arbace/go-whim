@@ -96,6 +96,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/arbace/go-whim/internal/build"
 	"github.com/arbace/go-whim/internal/check"
 	"github.com/arbace/go-whim/internal/harness"
 	"github.com/arbace/go-whim/internal/verify"
@@ -173,6 +174,10 @@ func Check(w io.Writer, args []string) error {
 		return fmt.Errorf("usage: check whim116 <work-dir>")
 	}
 	work := args[0]
+	state := ""
+	if len(args) > 1 {
+		state = args[1]
+	}
 	const self = 116
 	f := filepath.Join(work, "whim-vim.c")
 	base := ".reference/core-baselines"
@@ -213,9 +218,10 @@ func Check(w io.Writer, args []string) error {
 
 	// --- 2. the build ---------------------------------------------------------
 	// The input the core baselines were recorded from is q82's whim-vim.c, the
-	// tree phase 83 was handed, and it is read Out of that boundary's tar.
+	// tree phase 83 was handed: the boundary this verification kept
+	// (verify.Boundary), which replaced the tars .build/ held.
 	var whim chan error
-	if in, e := exec.Command("tar", "-xOf", ".build/q82.tar", "./whim-vim.c").Output(); e == nil && len(in) > 0 {
+	if in, e := os.ReadFile(verify.Boundary(state, 82)); state != "" && e == nil && len(in) > 0 {
 		os.WriteFile(T("whim-vim.c"), in, 0o644)
 		whim = make(chan error, 1)
 		go func() {
@@ -293,13 +299,13 @@ func Check(w io.Writer, args []string) error {
 		}
 		sm.Say("whim-vim, built -O0 -static -s, records the identical table: the baseline is this table and not a third thing")
 	} else {
-		// Nothing produces .build's tars any more (.gitignore says so), and
-		// without q82's the comparison has no left-hand side.  This arm used to
+		// Without q82 the comparison has no left-hand side: a verification from
+		// phase 84 or later has not seen it.  This arm used to
 		// say that and pass, which made it a sentence rather than evidence -- a
 		// check that cannot fail is not one.  It refuses instead, and names
 		// which of the two reasons applies.
 		if whim == nil {
-			sm.Say("no .build/q82.tar here -- q82's whim-vim.c is what the core baselines were recorded from, so without it this table cannot be held against the input's own recording")
+			sm.Say("this verification kept no q82 -- run it from phase 83 or earlier; q82's whim-vim.c is what the core baselines were recorded from, so without it this table cannot be held against the input's own recording")
 		} else {
 			sm.Say("q82's whim-vim.c did not build -- this table cannot be held against the input's own recording")
 		}
@@ -307,28 +313,46 @@ func Check(w io.Writer, args []string) error {
 		return harness.ErrReported
 	}
 	bd := &check.Rep{Tag: "boundaries", W: w}
-	if fi, e := os.Stat(".build"); e == nil && fi.IsDir() {
+	if state != "" {
+		// Every boundary this verification kept from q83 up to this phase,
+		// built with the compile line its phase leaves (build.MakefileFor) --
+		// what the .build/ tars carried as their whim-vim.
 		os.MkdirAll(T("bins"), 0o755)
 		os.MkdirAll(T("rows"), 0o755)
 		var names []string
+		var bmu sync.Mutex
+		var bwg sync.WaitGroup
+		bsem := make(chan struct{}, 8)
 		for i := 83; i <= self; i++ {
-			t := fmt.Sprintf(".build/q%d.tar", i)
-			if _, e := os.Stat(t); e != nil {
+			src, e := os.ReadFile(verify.Boundary(state, i))
+			if e != nil || len(src) == 0 {
 				continue
 			}
-			r := fmt.Sprintf("q%d", i)
-			b, e := exec.Command("tar", "-xOf", t, "./whim-vim").Output()
-			if e != nil {
-				if b, e = exec.Command("tar", "-xOf", t, "whim-vim").Output(); e != nil {
-					continue
+			bwg.Add(1)
+			bsem <- struct{}{}
+			go func(i int, src []byte) {
+				defer bwg.Done()
+				defer func() { <-bsem }()
+				r := fmt.Sprintf("q%d", i)
+				d := T("build-" + r)
+				os.MkdirAll(d, 0o755)
+				if os.WriteFile(filepath.Join(d, "whim-vim.c"), src, 0o644) != nil ||
+					build.MakefileFor(i, filepath.Join(d, "Makefile")) != nil ||
+					exec.Command("make", "-s", "-C", d).Run() != nil {
+					return
 				}
-			}
-			if len(b) == 0 {
-				continue
-			}
-			os.WriteFile(T("bins/"+r), b, 0o755)
-			names = append(names, r)
+				b, e := os.ReadFile(filepath.Join(d, "whim-vim"))
+				if e != nil || len(b) == 0 {
+					return
+				}
+				os.WriteFile(T("bins/"+r), b, 0o755)
+				bmu.Lock()
+				names = append(names, r)
+				bmu.Unlock()
+			}(i, src)
 		}
+		bwg.Wait()
+		sort.Strings(names)
 		sem := make(chan struct{}, 8)
 		var wg sync.WaitGroup
 		rowErr := make([]error, len(names))
@@ -346,7 +370,7 @@ func Check(w io.Writer, args []string) error {
 			return harness.ErrReported
 		}
 		if len(names) == 0 {
-			bd.Say(".build holds no boundary binary from q83 on -- the table cannot be rechecked across the pipeline")
+			bd.Say("this verification kept no boundary from q83 on that builds -- the table cannot be rechecked across the pipeline")
 			return harness.ErrReported
 		} else {
 			ents, _ := os.ReadDir(T("rows"))
@@ -370,7 +394,7 @@ func Check(w io.Writer, args []string) error {
 			bd.Say("all %d recorded boundary binaries up to q%d record the SAME table as whim-vim and as this one, one digest across every one of them", len(names), self)
 		}
 	} else {
-		bd.Say("no .build here -- this arm needs the boundary tars, and nothing produces them any more; keep the set this pass was run with")
+		bd.Say("no state directory -- this arm needs the boundaries a verification keeps (verify.Boundary); run it through tools/st.sh verify")
 		return harness.ErrReported
 	}
 
