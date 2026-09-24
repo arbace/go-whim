@@ -148,3 +148,47 @@ func TestControls(t *testing.T) {
 		t.Fatalf("positional: %+v", pos)
 	}
 }
+
+// The cast guard: two structs sharing an initial sequence, read through the
+// other's pointer, as regprog_T and bt_regprog_T are.  engine and flags are
+// named only through base_T; deleting flags from wide_T would move in_use
+// under the cast.  Both are held, and the control is the struct NOT cast,
+// whose same-named dead member is still reported.
+const punned = `typedef struct { int engine; int flags; int in_use; } base_T;
+typedef struct { int engine; int flags; int in_use; int program; } wide_T;
+typedef struct { int engine; int flags_dead; } alone_T;
+static wide_T w;
+static alone_T a;
+int main(void)
+{
+    base_T *b = (base_T *)&w;
+    b->engine = 1;
+    b->flags = 2;
+    w.in_use = b->in_use;
+    w.program = 0;
+    a.engine = 0;
+    return w.in_use + a.engine;
+}
+`
+
+func TestCastGuard(t *testing.T) {
+	c, _ := analyze(t, punned)
+	if got := ids(c.Unreachable()); got != "M:alone_T.flags_dead" {
+		t.Fatalf("unreachable: %s", got)
+	}
+	if got := strings.Join(c.Pun.Held, " "); got != "M:wide_T.engine M:wide_T.flags" {
+		t.Fatalf("held by the cast: %s", got)
+	}
+	if got := strings.Join(c.Pun.Pairs, "; "); got != "base_T <-> wide_T" {
+		t.Fatalf("pairs: %s", got)
+	}
+	if c.Partition().Classes[ClassCast] != 2 {
+		t.Fatalf("partition: %+v", c.Partition().Classes)
+	}
+	// Without the cast, the same two members are unreachable: the guard is
+	// what holds them.
+	c2, _ := analyze(t, strings.Replace(punned, "(base_T *)&w", "(base_T *)0", 1))
+	if got := ids(c2.Unreachable()); !strings.Contains(got, "M:wide_T.engine M:wide_T.flags") {
+		t.Fatalf("without the cast: %s", got)
+	}
+}

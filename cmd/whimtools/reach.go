@@ -66,6 +66,17 @@ func runReach(args []string) int {
 	for _, cl := range []string{reach.ClassExternal, reach.ClassAssert, reach.ClassCut} {
 		fmt.Printf("  %6d  %s: %s\n", len(c.Roots[cl]), cl, strings.Join(c.Roots[cl], " "))
 	}
+	fmt.Printf("  %6d  %s: %s\n", len(c.Pun.Held), reach.ClassCast, strings.Join(c.Pun.Held, " "))
+	fmt.Printf("pointer casts between struct types (every member of both sides held): %d pairs: %s\n",
+		len(c.Pun.Pairs), strings.Join(c.Pun.Pairs, "; "))
+	fmt.Printf("through void * (NOT held -- the reader of a void * is no cast when it is implicit):\n")
+	for _, v := range []struct {
+		n  string
+		ts []string
+	}{{"cast from void *, not an allocator", c.Pun.FromVoid}, {"cast from an allocator", c.Pun.FromAllocator},
+		{"cast to void *", c.Pun.ToVoid}, {"both to and from void *", c.Pun.RoundTrip}} {
+		fmt.Printf("  %6d struct types %s: %s\n", len(v.ts), v.n, strings.Join(v.ts, " "))
+	}
 	ok := c.Partition().Print(os.Stdout)
 	if !control {
 		return status(ok)

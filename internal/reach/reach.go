@@ -45,6 +45,7 @@ const (
 	ClassExternal = "root: external linkage"
 	ClassAssert   = "root: named by a static_assert"
 	ClassCut      = "root: named across the core/host cut"
+	ClassCast     = "held: a member of a struct or union punned through a pointer cast"
 	ClassReached  = "reachable from a root"
 )
 
@@ -102,6 +103,8 @@ type Closure struct {
 	// memberDecl: member key -> its StructDeclaration's span and how many
 	// members that declaration declares.
 	memberDecl map[string][3]int
+	// Pun is what the cast guard measured: see cast.go.
+	Pun PunStats
 }
 
 type enumItem struct {
@@ -557,18 +560,24 @@ func Analyze(ast *cc.AST, path string, src []byte) *Closure {
 			stack = append(stack, e.key)
 		}
 	}
-	for len(stack) > 0 {
-		k := stack[len(stack)-1]
-		stack = stack[:len(stack)-1]
-		e := c.byKey[k]
-		if e == nil || e.reached {
-			continue
-		}
-		e.reached = true
-		for t := range edges[k] {
-			stack = append(stack, t)
+	propagate := func(stack []string) {
+		for len(stack) > 0 {
+			k := stack[len(stack)-1]
+			stack = stack[:len(stack)-1]
+			e := c.byKey[k]
+			if e == nil || e.reached {
+				continue
+			}
+			e.reached = true
+			for t := range edges[k] {
+				stack = append(stack, t)
+			}
 		}
 	}
+	propagate(stack)
+	// A member of a struct punned through a pointer cast is held, and what
+	// it names is reached from it: see cast.go.
+	propagate(c.punned(ast, path, fieldKey))
 	// Deleting an enumerator moves every implicit value after it, up to the
 	// next explicit one; it is a hazard when what moves survives.
 	for _, list := range enums {
@@ -625,7 +634,7 @@ func (c *Closure) Unreachable() []*Entity {
 // is one.  What the instrument itself could not place is a finding too.
 func (c *Closure) Partition() ccx.Result {
 	res := ccx.Result{Title: "reachability: every entity, by why it is kept", Classes: map[string]int{}}
-	for _, cl := range []string{ClassExternal, ClassAssert, ClassCut, ClassReached} {
+	for _, cl := range []string{ClassExternal, ClassAssert, ClassCut, ClassCast, ClassReached} {
 		res.Classes[cl] = 0
 	}
 	for _, e := range c.Entities {
@@ -767,7 +776,7 @@ func (c *Closure) FillsLast(e *Entity) bool {
 // firstRoot is the first of the root classes, in the order they are tried,
 // that seeds e.
 func (e *Entity) firstRoot() string {
-	for _, cl := range []string{ClassExternal, ClassAssert, ClassCut} {
+	for _, cl := range []string{ClassExternal, ClassAssert, ClassCut, ClassCast} {
 		for _, r := range e.roots {
 			if r == cl {
 				return cl
