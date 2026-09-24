@@ -78,7 +78,7 @@ package p088
 // already `Unknown option argument: "--help"` in .reference/core-baselines/
 // ref-argv.txt.  Nothing here prints a list of options to keep true.
 //
-// THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own makefile
+// THE INPUT BINARY IS BUILT BY THE PLAN, before the edit, from the boundary's own makefile
 // flags, exactly as phase/085/edit.go and phase/087/edit.go do it: the check
 // requires the OLD binary to open the file and the new one to refuse, which is the
 // difference between a probe and a formality.
@@ -90,7 +90,6 @@ package p088
 // first-two-letters index went with the command table whim reduced, and the tool
 // raises rather than reporting nothing.  Nothing here touches the command table.
 //
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"fmt"

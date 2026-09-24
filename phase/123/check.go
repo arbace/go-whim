@@ -27,7 +27,7 @@ package p123
 // an instrument blind to the data structure the whole editor stands on.
 //
 // WHAT THE NEW PART IS.  ``zmemline``, the sixth part of a recording
-// (`tools/zrecord.sh`): 16 cases that build buffers of 200 to 25,000 lines IN THE
+// (`tools/st.sh zrecord`): 16 cases that build buffers of 200 to 25,000 lines IN THE
 // EDITOR -- there is no file argument (phase 88), no `:edit` (phase 91) and no
 // `:read` (phase 90) -- churn them in the middle, and read them back.  Every line
 // begins with its own line number, so a screen drawn with `'number'` shows the
@@ -95,7 +95,7 @@ package p123
 // the core can read are replaced by counters that run away from the wall, and
 // no memline record may move -- while some of the 102 must, which is what
 // keeps that from being a control with no effect;
-// 7. the declared delta holds -- NOTHING, and nothing new: tools/coredelta.sh
+// 7. the declared delta holds -- NOTHING, and nothing new: tools/st.sh delta
 // --phase 123 against .reference/core-baselines.
 
 import (

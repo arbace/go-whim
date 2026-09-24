@@ -3,7 +3,7 @@ package p119
 // Whim phase 119, the check -- the core's libc prototype block empties.
 // See phase/119/edit.go, and GOALS.md II.4c.
 //
-// Runs after phase/119/edit.go and the sweep tools/phaserun.sh runs between them, and
+// Runs after phase/119/edit.go and the sweep internal/verify runs between them, and
 // reads nothing from the edit's shell -- only the work tree and the state directory.
 // What the edit left there is `old.c`, the source this phase was HANDED, and `old`, that
 // source built with SOURCE_DATE_EPOCH=0 and the boundary's own flags.
@@ -44,7 +44,7 @@ package p119
 // core mention of two libc names frees NEITHER, because the host calls
 // both and a symbol leaves when its last caller leaves the FILE.
 // THE BINARY  the same SIZE or not, stated as a measurement, and NOT the same bytes.
-// THE RECORD  two full tools/zrecord.sh recordings, `diff -r` empty over 106 records,
+// THE RECORD  two full tools/st.sh zrecord recordings, `diff -r` empty over 106 records,
 // with one control that MOVES all 106 and one that moves NONE, both on the
 // line this phase deletes.
 // THE PROBES  THE CORPUS CANNOT SEE EITHER HALF OF THIS PHASE, and that is measured
@@ -55,7 +55,7 @@ package p119
 // tools/deadfields.py
 // tools/phasecheck.sh
 // tools/st.sh
-// tools/zrecord.sh
+// tools/st.sh zrecord
 
 import (
 	"fmt"

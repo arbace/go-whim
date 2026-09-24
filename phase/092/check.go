@@ -3,7 +3,7 @@ package p092
 // Whim phase 92, the check -- nothing in the editor reads a byte any more.
 // See phase/092/edit.go, and GOALS.md.
 //
-// Runs after phase/092/edit.go and the sweep tools/phaserun.sh runs between them,
+// Runs after phase/092/edit.go and the sweep internal/verify runs between them,
 // and reads nothing from the edit's shell -- only the work tree and the state
 // directory.  What the edit left there is `old`, the binary this phase was HANDED,
 // and `old.c`, the source it was built from: the left-hand side of every
@@ -21,7 +21,7 @@ package p092
 // handed, and it is the whole of what this phase can prove:
 //
 // probe   old.c with `(void)write(2, "READFILE-ENTERED\n", 17);` as readfile()'s
-// first statement.  Recorded with tools/zrecord.sh: ZERO of the 106
+// first statement.  Recorded with tools/st.sh zrecord: ZERO of the 106
 // records a recording held WHEN THIS PHASE WAS WRITTEN -- it is 122 since
 // phase 123 added the memline corpus, and the assertions below are
 // written against the count the run measures, not against that number --
@@ -46,9 +46,9 @@ package p092
 // a session that reaches neither proves nothing, and that is checked.
 //
 // AND THE RECORDINGS ARE COMPARED DIRECTLY, old binary against new, rather than
-// only through .reference/core-baselines: `diff -rq` over two full tools/zrecord.sh
+// only through .reference/core-baselines: `diff -rq` over two full tools/st.sh zrecord
 // recordings, which is what "this phase declares nothing at all" means measured
-// between the two binaries themselves.  tools/coredelta.sh runs afterwards and says
+// between the two binaries themselves.  tools/st.sh delta runs afterwards and says
 // the same thing against whim-vim's frozen behaviour.
 //
 // SIX THINGS THE SOURCE MUST SAY, and the traps that make the obvious check wrong,

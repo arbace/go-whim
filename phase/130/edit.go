@@ -7,9 +7,9 @@ package p130
 // returns it.  Each test is an if never taken, and cutil.FoldNever folds the
 // three away keeping the branch that runs (tx/FINDINGS.md, 10).
 //
-// THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own
-// makefile flags, as $state/old beside $state/old.c, for the check.
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
+// THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
+// OldBinary), from the boundary's own makefile flags, as $state/old beside
+// $state/old.c, for the check.
 
 import (
 	"io"

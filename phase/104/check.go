@@ -3,7 +3,7 @@ package p104
 // Whim phase 104, the check -- the messages are the editor's, the writing is the host's.
 // See phase/104/edit.go, and GOALS.md.
 //
-// Runs after phase/104/edit.go and the sweep tools/phaserun.sh runs between them,
+// Runs after phase/104/edit.go and the sweep internal/verify runs between them,
 // and reads nothing from the edit's shell -- only the work tree and the state
 // directory.  What the edit left there is `old.c`, the source this phase was HANDED,
 // and `old`, that source built with the boundary's own flags.  EVERY PROBE BELOW IS A
@@ -29,13 +29,13 @@ package p104
 // same moments; only the syscall underneath them changes.
 //
 // THE DECLARED DELTA IS NOTHING, AND THE FIRST CHECK OF THAT IS `diff -r` AND NOT
-// tools/coredelta.sh.  Measured on the control below: `diff -r` of the two recordings
-// reports 217 lines across 24 moved records and coredelta.sh names only FOURTEEN,
+// tools/st.sh delta.  Measured on the control below: `diff -r` of the two recordings
+// reports 217 lines across 24 moved records and the delta check names only FOURTEEN,
 // because ten of the 24 argv rows (`-`, `--`, `-e`, `-E`, `-e -s`, `-v`, `f.txt`,
 // `f.txt g.txt`, `+q! f.txt`, `-- +q!`) are already declared movers from phases 87 and 88
 // and tools/zcompare.py therefore accepts any FURTHER movement in them silently.  So
 // this check diffs the recording of the binary it was handed against the recording of
-// the one it made, and uses coredelta.sh as the second opinion -- on the CONTROL, where
+// the one it made, and uses the delta check as the second opinion -- on the CONTROL, where
 // it must refuse.
 //
 // THE INSTRUMENTED PAIR IS THE EVIDENCE THAT THE DELTA IS EMPTY FOR THE RIGHT REASON.
@@ -75,8 +75,8 @@ package p104
 // version banner's `__DATE__`/`__TIME__` differ between two builds and their LENGTH does
 // not, so only the equality at 900 is scrubbed.
 // tools/zcompare.py
-// tools/coredelta.sh
-// tools/zrecord.sh
+// tools/st.sh delta
+// tools/st.sh zrecord
 
 import (
 	"bytes"

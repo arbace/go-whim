@@ -37,7 +37,7 @@ package p069
 // edit" -- so pointing the rows at ex_ni changes the message text, which the sweep
 // does not record, while the exit status, the files touched and stderr all stay the
 // same.  The declaration is narrowed to match the measurement; widening one to fit
-// is what whimdelta.sh exists to refuse.
+// is what the delta check exists to refuse.
 //
 // The probes are LOAD-FIRST -- the first one proves the buffer holds the file's
 // lines, because that is the check the earlier attempt did not have and needed.

@@ -3,7 +3,7 @@ package p110
 // Whim phase 110, the check -- THE MOVE, and the boundary as an assertion.
 // See phase/110/edit.go, GOALS.md II.4c and .claude/briefs/zero-reorg.md 5.
 //
-// Runs after phase/110/edit.go and the sweep tools/phaserun.sh runs between them, and
+// Runs after phase/110/edit.go and the sweep internal/verify runs between them, and
 // reads nothing from the edit's shell -- only the work tree and the state directory.
 // What the edit left there is `old.c`, the source this phase was HANDED, and `old`, that
 // source built with SOURCE_DATE_EPOCH=0 and the boundary's own flags.

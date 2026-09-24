@@ -52,7 +52,7 @@ package p075
 // may_trigger_modechanged() takes no argument and waits for the combined phase.
 //
 // THE DELTA: none expected.  Nothing could fire an autocommand, so removing the
-// dispatch cannot change what the editor does.  Declared empty, left for whimdelta.sh.
+// dispatch cannot change what the editor does.  Declared empty, left for the delta check.
 
 import (
 	"fmt"

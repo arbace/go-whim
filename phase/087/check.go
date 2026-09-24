@@ -3,14 +3,14 @@ package p087
 // Whim phase 87, the check -- Ex mode, silent mode and the four options are gone.
 // See phase/087/edit.go, and GOALS.md.
 //
-// Runs after phase/087/edit.go and the sweep tools/phaserun.sh runs between them,
+// Runs after phase/087/edit.go and the sweep internal/verify runs between them,
 // and reads nothing from the edit's shell -- only the work tree and the state
 // directory.  What the edit left there is `old`, the binary this phase was HANDED,
 // built from the boundary's own makefile flags.
 //
 // THE DECLARED DELTA IS NOT THE WHOLE EVIDENCE HERE, for two reasons that pull in
 // opposite directions.  `phase/087/delta.md` says six records move -- `key_Q`,
-// `key_gQ` and the argv rows `-e`, `-E`, `-e -s`, `-v` -- and tools/coredelta.sh
+// `key_gQ` and the argv rows `-e`, `-E`, `-e -s`, `-v` -- and tools/st.sh delta
 // proves that exactly those and nothing else did, against baselines recorded from
 // whim-vim.  What it cannot show is a BEFORE: the baselines are one recording of one
 // binary, so "the old one entered Ex mode and the new one beeps" is not a sentence
@@ -86,7 +86,7 @@ const (
 //
 // THE DECLARED DELTA IS NOT THE WHOLE EVIDENCE, for two reasons that pull in
 // opposite directions.  phase/087/delta.md says six records move and
-// tools/coredelta.sh proves exactly those did.  What it cannot show is a
+// tools/st.sh delta proves exactly those did.  What it cannot show is a
 // BEFORE: the baselines are one recording of one binary, so "the old one
 // entered Ex mode and the new one beeps" is not a sentence it can say.  The
 // probes say it, by running both binaries -- and they are in two halves, the

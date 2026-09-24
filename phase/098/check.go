@@ -3,7 +3,7 @@ package p098
 // Whim phase 98, the check -- the character classes, the numbers and the sort.
 // See phase/098/edit.go, and GOALS.md.
 //
-// Runs after phase/098/edit.go and the sweep tools/phaserun.sh runs between them,
+// Runs after phase/098/edit.go and the sweep internal/verify runs between them,
 // and reads nothing from the edit's shell -- only the work tree and the state
 // directory.  What the edit left there is `old`, the binary this phase was HANDED,
 // and `old.c`, the source it was built from.
@@ -69,7 +69,7 @@ package p098
 // 4. FOURTEEN PROBE SESSIONS ON BOTH BINARIES, byte-identical, each required to be
 // doing something.  The corpus is ASCII-only and seeds itself by typing, so it
 // cannot reach Unicode case folding, `'casemap'`, the four bsearch tables or the
-// sort at all -- which is exactly why `tools/coredelta.sh` saying "nothing moved"
+// sort at all -- which is exactly why `tools/st.sh delta` saying "nothing moved"
 // is not enough on its own.
 //
 // 5. AND THE SORT, WHICH NO RECORD CAN SEE.  `:undolist` is wiped by the Press-ENTER
@@ -80,7 +80,7 @@ package p098
 // tools/musl-ctype.txt
 // tools/phasecheck.sh
 // tools/st.sh
-// tools/zrecord.sh
+// tools/st.sh zrecord
 
 import (
 	"fmt"

@@ -49,7 +49,7 @@ package p071
 // and buflist_getfile.  Collapsing that to a curbuf test is a separate step.
 //
 // THE DELTA: none expected.  The buffer commands are already ex_ni, so no exsweep row
-// can move; declared empty and left for whimdelta.sh to correct.
+// can move; declared empty and left for the delta check to correct.
 
 import (
 	"bytes"

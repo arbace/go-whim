@@ -3,7 +3,7 @@ package p109
 // Whim phase 109, the check -- the header types and macros the core can own.
 // See phase/109/edit.go, and GOALS.md II.4c.
 //
-// Runs after phase/109/edit.go and the sweep tools/phaserun.sh runs between them, and
+// Runs after phase/109/edit.go and the sweep internal/verify runs between them, and
 // reads nothing from the edit's shell -- only the work tree and the state directory.
 // What the edit left there is `old.c`, the source this phase was HANDED, `old`, that
 // source built with SOURCE_DATE_EPOCH=0 and the boundary's own flags, and `minmax.txt`,
@@ -40,7 +40,7 @@ package p109
 // binary this phase was handed and of its own, are BYTE-IDENTICAL -- and
 // the recording is NOT blind to what moved: a control whose
 // `musl_gettimeofday` writes the two fields the wrong way round moves six
-// of the 102 screen cases.  tools/coredelta.sh is run by
+// of the 102 screen cases.  tools/st.sh delta is run by
 //
 // THE CONTROL IS SCREEN CASES AND NOT A WHOLE RECORDING, and that is a measurement
 // about the harness rather than a shortcut.  A binary whose clock runs backwards has

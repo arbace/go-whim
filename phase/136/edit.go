@@ -7,9 +7,9 @@ package p136
 // bt_regcomp() stops recording an engine, and the sweep takes the table, the
 // field and regengine_T (tx/FINDINGS.md, 4).
 //
-// THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own
-// makefile flags, as $state/old beside $state/old.c, for the check.
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
+// THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
+// OldBinary), from the boundary's own makefile flags, as $state/old beside
+// $state/old.c, for the check.
 
 import (
 	"io"

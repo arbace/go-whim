@@ -67,7 +67,7 @@ package p078
 //
 // THE DELTA: none expected.  An empty function called or not called does the same
 // nothing; a counter nobody reads has no effect; and the two winid guards can never
-// fire.  Declared empty, left for whimdelta.sh to correct.
+// fire.  Declared empty, left for the delta check to correct.
 
 import (
 	"bytes"

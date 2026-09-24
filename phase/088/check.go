@@ -3,7 +3,7 @@ package p088
 // Whim phase 88, the check -- argv is `+{command}` and `-T {term}`, and nothing else.
 // See phase/088/edit.go, and GOALS.md.
 //
-// Runs after phase/088/edit.go and the sweep tools/phaserun.sh runs between them,
+// Runs after phase/088/edit.go and the sweep internal/verify runs between them,
 // and reads nothing from the edit's shell -- only the work tree and the state
 // directory.  What the edit left there is `old`, the binary this phase was HANDED,
 // and `enums-before`, that binary's DWARF enumerator values.
@@ -26,7 +26,7 @@ package p088
 // 1,327 of them and a wrong table index would not show up anywhere else.
 //
 // 3. THE PROBES, in two halves, run on BOTH binaries.  The declared delta
-// (tools/coredelta.sh) says exactly six of the 30 command lines moved and
+// (tools/st.sh delta) says exactly six of the 30 command lines moved and
 // nothing else did, against baselines recorded from whim-vim -- but the
 // baselines are one recording of one binary, so they cannot say "the old one
 // opened the file".  These say it:

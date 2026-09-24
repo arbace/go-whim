@@ -6,9 +6,9 @@ package p151
 // or a boolean's (tx/FINDINGS.md, 2).  A row now has def_str[2] and def_num[2],
 // the one its kind uses filled and the other empty, and every read names one.
 //
-// THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own
-// makefile flags, as $state/old beside $state/old.c, for the check.
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
+// THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
+// OldBinary), from the boundary's own makefile flags, as $state/old beside
+// $state/old.c, for the check.
 
 import (
 	"fmt"

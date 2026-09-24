@@ -3,7 +3,7 @@ package p095
 // Whim phase 95, the check -- the options nothing reads.
 // See phase/095/edit.go, and GOALS.md.
 //
-// Runs after phase/095/edit.go and the sweep tools/phaserun.sh runs between them,
+// Runs after phase/095/edit.go and the sweep internal/verify runs between them,
 // and reads nothing from the edit's shell -- only the work tree and the state
 // directory.  What the edit left there is `old`, the binary this phase was HANDED,
 // and `old.c`, the source it was built from.
@@ -57,7 +57,7 @@ package p095
 //
 // 3. THE ROW FLOOR, WHICH THIS PHASE CROSSES.  ``orphanopts`` refused a table
 // it parsed fewer than 100 distinct `&p_xx` out of, and this phase takes the count
-// 102 -> 96.  `tools/coredelta.sh` runs that tool beside its harnesses, so crossing
+// 102 -> 96.  `tools/st.sh delta` runs that tool beside its harnesses, so crossing
 // the floor would not fail this phase -- it would fail the delta check of EVERY
 // Part II phase after it.  The floor is 80 now, lowered in this phase's own commit
 // with the reason in the tool's docstring, the same number and the same argument as

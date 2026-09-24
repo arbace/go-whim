@@ -7,9 +7,9 @@ package p137
 // in a typval in a struct, and the one field keeping typval_T alive in buf_T.
 // The field becomes a varnumber_T and its 18 uses name it.
 //
-// THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own
-// makefile flags, as $state/old beside $state/old.c, for the check.
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
+// THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
+// OldBinary), from the boundary's own makefile flags, as $state/old beside
+// $state/old.c, for the check.
 
 import (
 	"fmt"

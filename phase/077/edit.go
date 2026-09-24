@@ -33,7 +33,7 @@ package p077
 // THE DELTA: none expected.  `:buffer foo` already exits 1 with nothing on stderr --
 // ex_ni sets eap->errmsg rather than printing, and an exsweep row is
 // `exit= left= err=`.  Measured on q76: exit=1, stderr empty, file written.  So the
-// gain here is code, not behaviour.  Declared empty, left for whimdelta.sh.
+// gain here is code, not behaviour.  Declared empty, left for the delta check.
 
 import (
 	"fmt"

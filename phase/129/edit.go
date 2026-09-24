@@ -12,9 +12,8 @@ package p129
 // that, and panicked on its first run.  This phase declares the variable what
 // every writer and the reader already take it to be.
 //
-// THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own
+// THE INPUT BINARY IS BUILT BY THE PLAN, before the edit, from the boundary's own
 // makefile flags, as $state/old beside $state/old.c: the check's probe runs both.
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"io"

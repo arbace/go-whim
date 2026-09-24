@@ -67,10 +67,9 @@ package p118
 // outward call it makes is a `musl_` or a `host_`.  That is the arc's claim, and the
 // check states it as a measurement of the output rather than as a sentence written here.
 //
-// THE INPUT BINARY IS BUILT HERE with SOURCE_DATE_EPOCH=0, and the check records from it.
+// THE INPUT BINARY IS BUILT by the plan (internal/build's OldBinary) with SOURCE_DATE_EPOCH=0, and the check records from it.
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"fmt"

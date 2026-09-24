@@ -42,7 +42,7 @@ package p073
 //
 // THE DELTA: none expected.  Every window-splitting and resizing Ex command is
 // already ex_ni, and :set cmdheight= keeps the same accepted range because
-// frame_minheight keeps its arithmetic.  Declared empty, left for whimdelta.sh.
+// frame_minheight keeps its arithmetic.  Declared empty, left for the delta check.
 
 import (
 	"io"

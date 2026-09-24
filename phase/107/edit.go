@@ -82,7 +82,7 @@ package p107
 // every attribute that is itself the flag.  That is a rule and not a list, and it is
 // what a later phase should apply to anything new.
 //
-// THE INPUT BINARY IS BUILT HERE with SOURCE_DATE_EPOCH=0, and it is this phase's whole
+// THE INPUT BINARY IS BUILT by the plan (internal/build's OldBinary) with SOURCE_DATE_EPOCH=0, and it is this phase's whole
 // evidence, exactly as at phase 106.  Neither edit generates code: `unused` suppresses a
 // diagnostic and `[[fallthrough]]` is a hint to the same diagnostic machinery.  The
 // check rebuilds the output the same way and requires THE SAME BYTES -- tier 1 of
@@ -91,7 +91,6 @@ package p107
 // run is the same program.  Nothing is staged and no editor is run, for that reason.
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"io"

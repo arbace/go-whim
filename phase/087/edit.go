@@ -76,7 +76,7 @@ package p087
 // from five calls to four here and not there.  It is deleted by name rather than
 // folded, for the reason given at the site.
 //
-// THAT INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own makefile
+// THAT INPUT BINARY IS BUILT BY THE PLAN, before the edit, from the boundary's own makefile
 // flags, exactly as phase/085/edit.go does it: phase/087/check.go requires the
 // OLD binary to enter Ex mode and the new one to refuse, which is the difference
 // between a probe and a formality.
@@ -87,7 +87,6 @@ package p087
 // to find -- it raises rather than reporting nothing (phase/085/edit.go says the
 // same).  Nothing here touches the command table.
 //
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"fmt"

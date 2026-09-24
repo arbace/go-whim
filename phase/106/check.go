@@ -3,7 +3,7 @@ package p106
 // Whim phase 106, the check -- `nullptr` and `usize`.
 // See phase/106/edit.go, and GOALS.md II.4c.
 //
-// Runs after phase/106/edit.go and the sweep tools/phaserun.sh runs between them, and
+// Runs after phase/106/edit.go and the sweep internal/verify runs between them, and
 // reads nothing from the edit's shell -- only the work tree and the state directory.
 // What the edit left there is `old.c`, the source this phase was HANDED, and `old`, that
 // source built with SOURCE_DATE_EPOCH=0 and the boundary's own flags.
@@ -12,8 +12,8 @@ package p106
 // offered.  What it has instead is stronger than any recording: THE BINARY IS THE SAME
 // BYTES.  That is tier 1 of CLAUDE.md's verification table, and it subsumes every screen
 // case, every Ex-command row, every command line and every pty scenario at once, because
-// the program that would be run is literally the same program.  tools/coredelta.sh
-// --phase 106 still runs, from tools/phaserun.sh after this check, and corroborates; it
+// the program that would be run is literally the same program.  `tools/st.sh
+// delta --phase 106` still runs, from internal/verify after this check, and corroborates; it
 // is not the evidence.  It is phase 99's shape exactly, on three thousand edits instead
 // of seven.
 //

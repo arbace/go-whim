@@ -3,9 +3,9 @@ package p081
 // Whim phase 81, the check -- one line, one command.
 // See phase/081/edit.go, and GOALS.md.
 //
-// Runs after phase/081/edit.go and the sweep tools/phaserun.sh runs between
+// Runs after phase/081/edit.go and the sweep internal/verify runs between
 // them, and reads nothing from the edit's shell -- only the work tree and the state
-// directory, as tools/phaserun.sh describes.
+// directory, which is what internal/verify hands a check.
 
 import (
 	"fmt"

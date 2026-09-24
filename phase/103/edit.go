@@ -150,7 +150,6 @@ package p103
 // before, `t_CWS` is still emitted and the recording does not move by one byte.
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"fmt"

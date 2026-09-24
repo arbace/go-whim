@@ -82,13 +82,12 @@ package p093
 // `setfname`'s second caller and went with `readfile` in phase 92, which is what
 // leaves `rename_buffer` as its only one.
 //
-// THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own makefile
+// THE INPUT BINARY IS BUILT BY THE PLAN, before the edit, from the boundary's own makefile
 // flags, as every Part II edit since phase 85 does, and the source goes with it as
 // $state/old.c.  The check needs both: `:file NEWNAME` is the one thing that proves
 // the old binary could name a buffer at all, and no recording can see it.
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"io"

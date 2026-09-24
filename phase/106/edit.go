@@ -96,7 +96,7 @@ package p106
 // the check reports rather than hides: reverting a `usize` to `size_t` still compiles
 // and still gives a byte-identical binary.  That control moves nothing here on purpose.
 //
-// THE INPUT BINARY IS BUILT HERE with SOURCE_DATE_EPOCH=0, and it is this phase's whole
+// THE INPUT BINARY IS BUILT by the plan (internal/build's OldBinary) with SOURCE_DATE_EPOCH=0, and it is this phase's whole
 // evidence.  Nothing below changes a statement, so the check rebuilds the output the
 // same way and requires THE SAME BYTES -- tier 1 of CLAUDE.md's verification table,
 // which subsumes every screen case, every Ex-command row, every command line and every
@@ -106,7 +106,6 @@ package p106
 // and no `__LINE__` and gcc not being given `-g`.
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"bytes"

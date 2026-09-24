@@ -12,7 +12,7 @@ package p086
 // moment the phases they are meant to measure land.  A whole-program phase is
 // right here because there is no source edit for a sweep to follow.
 //
-// The instrument they are replaced with is `tools/zrecord.sh`: keystrokes in on
+// The instrument they are replaced with is `tools/st.sh zrecord`: keystrokes in on
 // stdin, escape sequences out on stdout, and a screen per redraw rebuilt from them
 // (GOALS.md II.2).  Five parts -- 102 keystroke cases, every Ex command typed at
 // `:`, every command line the parser may see, four pty scenarios for what only a
@@ -28,13 +28,13 @@ package p086
 // FAIL -- CLAUDE.md's canonical break -- must move EXACTLY the eleven cases
 // that increment or decrement, and no others.  A corpus that cannot fail is
 // not evidence;
-// 5. the declared delta holds: tools/coredelta.sh --phase 86 against
+// 5. the declared delta holds: tools/st.sh delta --phase 86 against
 // .reference/core-baselines, which phase 83 records from whim-vim.  Those
 // baselines are the INPUT's behaviour, so the delta is cumulative -- phase 85
 // removed the two "not to a terminal" warnings, and `stderr-moved` is that,
 // declared once and checked at every phase after it;
-// 6. the old instrument still reaches whim's baselines: tools/whimdelta.sh on the
-// same binary against .reference/baselines, which is the only bridge between
+// 6. the old instrument still reaches whim's baselines: `tools/st.sh delta --phase 82` on
+// the same binary against .reference/baselines, which is the only bridge between
 // the two pipelines' recordings and is kept for exactly that.
 
 import (

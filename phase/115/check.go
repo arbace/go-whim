@@ -3,7 +3,7 @@ package p115
 // Whim phase 115, the check -- the clock crosses the boundary.
 // See phase/115/edit.go, and GOALS.md II.4c.
 //
-// Runs after phase/115/edit.go and the sweep tools/phaserun.sh runs between them, and
+// Runs after phase/115/edit.go and the sweep internal/verify runs between them, and
 // reads nothing from the edit's shell -- only the work tree and the state directory.
 // What the edit left there is `old.c`, the source this phase was HANDED, and `old`, that
 // source built with SOURCE_DATE_EPOCH=0 and the boundary's own flags.
@@ -54,7 +54,7 @@ package p115
 // Plus focus probes, because no corpus case reaches ui_focus_change at all.
 // BEHAVIOUR   the declared delta is NOTHING AT ALL: two full recordings, of the binary
 // this phase was handed and of its own, byte-identical across all 106
-// records.  tools/coredelta.sh is run by tools/phaserun.sh after this check
+// records.  tools/st.sh delta is run by internal/verify after this check
 // and is the second opinion.
 //
 // THE CORPUS CANNOT REACH ui_focus_change AND THE PHASE SAYS SO RATHER THAN HOPING.
@@ -97,7 +97,7 @@ package p115
 //
 // IT IS NOT THIS PHASE'S TO FIX AND NOT THIS PHASE'S TO PAPER OVER.  Every Part II phase
 // since 3 compares two full recordings and every one of them is exposed; so is
-// tools/coredelta.sh, which compares against baselines recorded the same way.  Hashing
+// tools/st.sh delta, which compares against baselines recorded the same way.  Hashing
 // the SCRUBBED stream in tools/zrec.py would close it, and would re-key all 33 Part II
 // phases and require .reference/core-baselines to be recorded again.  A private exclusion
 // HERE would be a check narrowed to fit what it saw, would leave coredelta failing on the

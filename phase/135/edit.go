@@ -6,9 +6,9 @@ package p135
 // two are casts to itself (tx/FINDINGS.md, 4).  regprog_T takes the
 // backtracking fields, the casts go, and bt_regprog_T is not a name any more.
 //
-// THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own
-// makefile flags, as $state/old beside $state/old.c, for the check.
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
+// THE INPUT BINARY IS BUILT before the edit, by the plan (internal/build's
+// OldBinary), from the boundary's own makefile flags, as $state/old beside
+// $state/old.c, for the check.
 
 import (
 	"bytes"

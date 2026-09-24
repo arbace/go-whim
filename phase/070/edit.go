@@ -44,7 +44,7 @@ package p070
 //
 // THE DELTA: none expected.  :e prints nothing to stderr, and an exsweep row is
 // `exit= left= err=` -- the same reason :next did not move in phase 69.  Declared
-// empty and left for whimdelta.sh to correct.
+// empty and left for the delta check to correct.
 
 import (
 	"io"

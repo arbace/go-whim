@@ -66,14 +66,13 @@ package p108
 // call through a pointer loads the pointer and calls the register; a direct call is a
 // relative call to a known address.  Different instructions, and removing two file-scope
 // objects moves everything after them.  MEASURED: the same 788,488 bytes, and 347,279 of
-// them differ.  So the evidence is the RECORDING -- two full tools/zrecord.sh runs,
+// them differ.  So the evidence is the RECORDING -- two full tools/st.sh zrecord runs,
 // byte-identical -- which is how every Part II phase before 106 was checked, with a control
 // for each of the two names this phase makes direct.
 //
-// THE INPUT BINARY IS BUILT HERE with SOURCE_DATE_EPOCH=0, and the check records from it.
+// THE INPUT BINARY IS BUILT by the plan (internal/build's OldBinary) with SOURCE_DATE_EPOCH=0, and the check records from it.
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"bytes"

@@ -3,7 +3,7 @@ package p099
 // Whim phase 99, the check -- the includes nothing names.
 // See phase/099/edit.go, and GOALS.md.
 //
-// Runs after phase/099/edit.go and the sweep tools/phaserun.sh runs between them,
+// Runs after phase/099/edit.go and the sweep internal/verify runs between them,
 // and reads nothing from the edit's shell -- only the work tree and the state
 // directory.  What the edit left there is `old.c`, the source this phase was HANDED,
 // and `old`, that source built with SOURCE_DATE_EPOCH=0 and the boundary's own flags.
@@ -13,8 +13,8 @@ package p099
 // BYTES.  That is tier 1 of CLAUDE.md's verification table -- "pure formatting: the
 // binary is byte-identical (cmp)" -- and a byte-identical binary subsumes every screen
 // case, every Ex-command row, every command line and every pty scenario at once, because
-// the program that would be run is literally the same program.  tools/coredelta.sh
-// --phase 99 still runs, from tools/phaserun.sh after this check, and it corroborates;
+// the program that would be run is literally the same program.  `tools/st.sh
+// delta --phase 99` still runs, from internal/verify after this check, and it corroborates;
 // it is not the evidence.
 //
 // THE ARGUMENT IS A COMPUTATION AND NOT A LIST, and section 3 is the whole phase.  A
@@ -68,7 +68,7 @@ package p099
 // Phase 99, the check -- the includes nothing names.
 // See phase/099/edit.go, and GOALS.md.
 //
-// Runs after phase/099/edit.go and the sweep tools/phaserun.sh runs between
+// Runs after phase/099/edit.go and the sweep internal/verify runs between
 // them, and reads nothing from the edit's shell -- only the work tree and the
 // state directory.  What the edit left there is `old.c`, the source this phase
 // was HANDED, and `old`, that source built with SOURCE_DATE_EPOCH=0 and the
@@ -80,8 +80,8 @@ package p099
 // -- "pure formatting: the binary is byte-identical (cmp)" -- and a
 // byte-identical binary subsumes every screen case, every Ex-command row,
 // every command line and every pty scenario at once, because the program that
-// would be run is literally the same program.  tools/coredelta.sh --phase 99
-// still runs, from tools/phaserun.sh after this check, and it corroborates; it
+// would be run is literally the same program.  `tools/st.sh delta --phase 99`
+// still runs, from internal/verify after this check, and it corroborates; it
 // is not the evidence.
 //
 // THE ARGUMENT IS A COMPUTATION AND NOT A LIST, and section 3 is the whole

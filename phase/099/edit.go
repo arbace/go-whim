@@ -77,7 +77,7 @@ package p099
 // the line alone leaves a run of two, which CLAUDE.md states this tree does not have.
 // is handed is already right.
 //
-// THE INPUT BINARY IS BUILT HERE with SOURCE_DATE_EPOCH=0, and that is this phase's
+// THE INPUT BINARY IS BUILT by the plan (internal/build's OldBinary) with SOURCE_DATE_EPOCH=0, and that is this phase's
 // whole evidence.  Nothing below changes a line of code, so the check does not offer
 // behavioural probes: it rebuilds the output the same way and requires the two binaries
 // to be THE SAME BYTES.  That is tier 1 of CLAUDE.md's verification table, and it
@@ -88,7 +88,6 @@ package p099
 // built under two different names is identical.
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"bytes"

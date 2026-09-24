@@ -32,7 +32,7 @@ package p074
 //
 // THE DELTA: none expected.  :marks and :delmarks keep their exit status and write
 // nothing to stderr for the arguments exsweep uses, and an exsweep row is
-// `exit= left= err=`.  Declared empty and left for whimdelta.sh to correct.
+// `exit= left= err=`.  Declared empty and left for the delta check to correct.
 
 import (
 	"fmt"

@@ -74,12 +74,11 @@ package p126
 // The flags are the boundary makefile's and are not written here a second time
 // (GOALS.md core rule 8).  The check needs the binary this phase was HANDED, for the
 // instrumented pair and for the two recordings, so it is built here and left in the
-// state directory (tools/phaserun.sh: what passes between the parts is files).
+// state directory (what passes between the parts is files).
 // NOT create_cmdidxs --check, for phase/085/edit.go's reason: the derived
 // first-two-letters index went with the command table whim's phase 80 reduced, and the
 // tool raises rather than reporting nothing.  Nothing here touches the command table.
 //
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"fmt"

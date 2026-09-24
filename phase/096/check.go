@@ -3,7 +3,7 @@ package p096
 // Whim phase 96, the check -- no `FILE *` that is never opened.
 // See phase/096/edit.go, and GOALS.md.
 //
-// Runs after phase/096/edit.go and the sweep tools/phaserun.sh runs between them,
+// Runs after phase/096/edit.go and the sweep internal/verify runs between them,
 // and reads nothing from the edit's shell -- only the work tree and the state
 // directory.  What the edit left there is `old`, the binary this phase was HANDED,
 // and `old.c`, the source it was built from.
@@ -67,7 +67,7 @@ package p096
 // of the five.
 //
 // 5. AND THE ORDINARY SESSIONS, byte-identical either side, each required to be doing
-// something.  The corpus itself is `tools/coredelta.sh --phase 96`, which
+// something.  The corpus itself is `tools/st.sh delta --phase 96`, which
 
 import (
 	"fmt"

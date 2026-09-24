@@ -3,13 +3,13 @@ package p085
 // Whim phase 85, the check -- the terminal warnings, the pause and --ttyfail.
 // See phase/085/edit.go, and GOALS.md.
 //
-// Runs after phase/085/edit.go and the sweep tools/phaserun.sh runs between them,
+// Runs after phase/085/edit.go and the sweep internal/verify runs between them,
 // and reads nothing from the edit's shell -- only the work tree and the state
-// directory, as tools/phaserun.sh describes.  What the edit left there is `old`, the
+// directory, which is what internal/verify hands a check.  What the edit left there is `old`, the
 // binary this phase was HANDED, built from the boundary's own makefile flags.
 //
 // THE PROBES ARE THIS PHASE'S EVIDENCE, and they are two-sided for the reason phase
-// 84's symbol check is: the three harnesses tools/coredelta.sh runs cannot see this
+// 84's symbol check is: the three harnesses the delta check runs cannot see this
 // cut at all -- behaviour.py and exsweep.py run the editor `-e -s`, where
 // exmode_active takes check_tty()'s first branch, and termcheck.py drives a real pty
 // where neither stream is a file.  So the declared delta is legitimately "none", and
@@ -67,7 +67,7 @@ var z2KeptFile = []struct{ needle, why string }{
 // --ttyfail.
 //
 // THE PROBES ARE THIS PHASE'S EVIDENCE and they are two-sided.  The three
-// harnesses tools/coredelta.sh runs cannot see this cut at all -- behaviour and
+// harnesses the delta check runs cannot see this cut at all -- behaviour and
 // exsweep run the editor `-e -s`, where exmode_active takes check_tty()'s first
 // branch, and termcheck drives a real pty where neither stream is a file.  So
 // the declared delta is legitimately none, and a delta of none from a blind

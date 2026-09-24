@@ -3,7 +3,7 @@ package p124
 // Whim phase 124, the check -- freeing is free.  See phase/124/edit.go, and
 // GOALS.md's charter bullet "A GARBAGE COLLECTOR IS ASSUMED FROM HERE ON".
 //
-// Runs after phase/124/edit.go and the sweep tools/phaserun.sh runs between them, and
+// Runs after phase/124/edit.go and the sweep internal/verify runs between them, and
 // reads nothing from the edit's shell -- only the work tree and the state directory.
 // What the edit left there is `old.c`, the source this phase was HANDED, `old`, that
 // source built with SOURCE_DATE_EPOCH=0 and the boundary's own flags, and `arena-bytes`.
@@ -26,7 +26,7 @@ package p124
 // four facts, which a gigabyte object could have disturbed and does not.
 // `.bss` grows by the arena and THE FILE SHRINKS, both as measurements:
 // `.bss` is NOBITS and musl's allocator is no longer linked in.
-// THE RECORD  two full tools/zrecord.sh recordings, `diff -r` empty over 106 records,
+// THE RECORD  two full tools/st.sh zrecord recordings, `diff -r` empty over 106 records,
 // with a control that moves all 106.
 // THE ARENA   the high-water the corpus really asks for, measured by an instrument on
 // THIS PHASE'S OWN OUTPUT over all 102 screen cases, and required to sit

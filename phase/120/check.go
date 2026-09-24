@@ -3,7 +3,7 @@ package p120
 // Whim phase 120, the check -- the degenerate unions go.
 // See phase/120/edit.go, and GOALS.md.
 //
-// Runs after phase/120/edit.go and the sweep tools/phaserun.sh runs between them, and
+// Runs after phase/120/edit.go and the sweep internal/verify runs between them, and
 // reads nothing from the edit's shell -- only the work tree and the state directory.
 // What the edit left there is `old.c`, the source this phase was HANDED, and `old`, that
 // source built with SOURCE_DATE_EPOCH=0 and the boundary's own flags.
@@ -60,7 +60,7 @@ package p120
 // 103's structural check -- still passes.
 //
 // AND TWO FULL RECORDINGS, WHICH ARE A CHECK ON THE HARNESS AND NOT ON THE PHASE.  With a
-// byte-identical binary a `tools/zrecord.sh` of each side compares a program with itself,
+// byte-identical binary a `tools/st.sh zrecord` of each side compares a program with itself,
 // so an empty `diff -r` says the instrument is deterministic and says nothing about the
 // edit.  They are run because it is cheaper to measure that than to assert it, and this
 // comment is what keeps them from being read as the evidence.  The evidence is the `cmp`.

@@ -56,14 +56,13 @@ package p114
 // whether the three call sites can reach the value, and the answer is no in one case
 // by a clamp in this file and in the other two by the arithmetic of line numbers.
 //
-// THE INPUT BINARY IS BUILT HERE with SOURCE_DATE_EPOCH=0, and the check needs it for
+// THE INPUT BINARY IS BUILT by the plan (internal/build's OldBinary) with SOURCE_DATE_EPOCH=0, and the check needs it for
 // more than a comparison: the corpus CANNOT SEE any of the three call sites (measured
 // -- an instrumented build enters none of them in 106 records), so this phase owes
 // probes of its own, and those probes are run on the binary this phase was handed and
 // on its own and required to draw the same screen.
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"io"

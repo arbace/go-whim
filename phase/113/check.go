@@ -3,7 +3,7 @@ package p113
 // Whim phase 113, the check -- the message fold.
 // See phase/113/edit.go, and GOALS.md II.4c.
 //
-// Runs after phase/113/edit.go and the sweep tools/phaserun.sh runs between them,
+// Runs after phase/113/edit.go and the sweep internal/verify runs between them,
 // and reads nothing from the edit's shell -- only the work tree and the state
 // directory.  What the edit left there is `old.c`, the source this phase was HANDED,
 // and `old`, that source built with SOURCE_DATE_EPOCH=0 and the boundary's own flags.
@@ -62,7 +62,7 @@ package p113
 // in a recording.  So `diff -r` is necessary here and is not the check; the
 // instrumented pair and the 36 probes are.
 // tools/zpty.py
-// tools/zrecord.sh
+// tools/st.sh zrecord
 
 import (
 	"crypto/sha256"

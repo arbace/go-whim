@@ -3,7 +3,7 @@ package p097
 // Whim phase 97, the check -- the strings are the editor's own.
 // See phase/097/edit.go, and GOALS.md.
 //
-// Runs after phase/097/edit.go and the sweep tools/phaserun.sh runs between them,
+// Runs after phase/097/edit.go and the sweep internal/verify runs between them,
 // and reads nothing from the edit's shell -- only the work tree and the state
 // directory.  What the edit left there is `old`, the binary this phase was HANDED,
 // and `old.c`, the source it was built from.
@@ -86,7 +86,7 @@ package p097
 // `musl_fmtptr` (nothing formats a pointer).  Their correctness rests on musl's
 // source, not on the recording.
 //
-// The corpus itself is tools/coredelta.sh --phase 97, which tools/phaserun.sh runs
+// The corpus itself is tools/st.sh delta --phase 97, which internal/verify runs
 // after this check, and its declaration is NOTHING AT ALL.
 
 import (

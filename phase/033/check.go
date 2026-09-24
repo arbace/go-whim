@@ -3,9 +3,9 @@ package p033
 // Whim phase 33, the check -- commands whose machinery has already gone.
 // See phase/033/edit.go, and GOALS.md.
 //
-// Runs after phase/033/edit.go and the sweep tools/phaserun.sh runs between
+// Runs after phase/033/edit.go and the sweep internal/verify runs between
 // them, and reads nothing from the edit's shell -- only the work tree and the state
-// directory, as tools/phaserun.sh describes.
+// directory, which is what internal/verify hands a check.
 
 import (
 	"fmt"

@@ -96,7 +96,6 @@ package p109
 // header actually defines; the edit turns that into its template by replacing the two
 // arguments.  If <sys/param.h> ever spelled MIN differently this phase would expand it
 // differently, which is the only honest meaning of "the exact text the header gives".
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"bytes"

@@ -73,13 +73,12 @@ package p094
 // the letter is inert afterwards.  That is the options phase's and the flag strings
 // are not touched here.
 //
-// THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own makefile
+// THE INPUT BINARY IS BUILT BY THE PLAN, before the edit, from the boundary's own makefile
 // flags, as every Part II edit since phase 85 does, and the source goes with it as
 // $state/old.c.  The check needs both: the exit status of a session that quits with
 // unsaved changes is what moves, and no recording can see it.
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"io"

@@ -82,7 +82,7 @@ package p091
 // not with "too few rows" but with `no command table found in either shape`, because
 // names() tries both parsers with check=False and neither answer clears the bar.
 // `zexcmds` enumerates the core's whole Ex sweep through names(), so the old
-// floor would have stopped the sweep, tools/coredelta.sh, the recording and every
+// floor would have stopped the sweep, tools/st.sh delta, the recording and every
 // later phase's check rather than giving a wrong answer.  GOALS.md II decision 8:
 // lowered deliberately, to 80, in the phase that crosses it and in the same commit,
 // with the reason in the tool's own docstring.  The margin is 19 rows and the next
@@ -99,7 +99,7 @@ package p091
 // `do_ecmd` and thirteen more follow it.  The check records the sixteen as a
 // measurement of what the sweep did.
 //
-// THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own makefile
+// THE INPUT BINARY IS BUILT BY THE PLAN, before the edit, from the boundary's own makefile
 // flags, exactly as phase/085/edit.go, phase/087/edit.go, phase/088/edit.go, phase/089/edit.go
 // and phase/090/edit.go do it.  THE CORPUS SEES TWO CASES OF THIS PHASE and neither of
 // them opens a file: `cmd_edit` types `:edit` with no file name and `key_gf` presses
@@ -109,7 +109,6 @@ package p091
 // with it, as $state/old.c, for the before-and-after counts the check takes.
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"io"

@@ -64,7 +64,6 @@ package p115
 // out, and the substitutions are exact multi-line blocks, never a bare `time` -> anything.
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"bytes"

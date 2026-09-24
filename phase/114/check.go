@@ -3,7 +3,7 @@ package p114
 // Whim phase 114, the check -- abs and labs, the two the core took on trust.
 // See phase/114/edit.go, and GOALS.md II.4c.
 //
-// Runs after phase/114/edit.go and the sweep tools/phaserun.sh runs between them, and
+// Runs after phase/114/edit.go and the sweep internal/verify runs between them, and
 // reads nothing from the edit's shell -- only the work tree and the state directory.
 // What the edit left there is `old.c`, the source this phase was HANDED, and `old`, that
 // source built with SOURCE_DATE_EPOCH=0 and the boundary's own flags.
@@ -79,7 +79,7 @@ package p114
 // tools/phasecheck.sh
 // tools/st.sh
 // tools/symbols.sh
-// tools/zrecord.sh
+// tools/st.sh zrecord
 
 import (
 	"crypto/sha256"

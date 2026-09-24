@@ -88,7 +88,6 @@ package p122
 // first-two-letters index went with the command table whim reduced, and the tool
 // raises rather than reporting nothing.  Nothing here touches the command table.
 //
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"bytes"

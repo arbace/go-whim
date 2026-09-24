@@ -3,7 +3,7 @@ package p117
 // Whim phase 117, the check -- the core stops reallocating.
 // See phase/117/edit.go, and GOALS.md II.4c.
 //
-// Runs after phase/117/edit.go and the sweep tools/phaserun.sh runs between them, and
+// Runs after phase/117/edit.go and the sweep internal/verify runs between them, and
 // reads nothing from the edit's shell -- only the work tree and the state directory.
 // What the edit left there is `old.c`, the source this phase was HANDED, and `old`, that
 // source built with SOURCE_DATE_EPOCH=0 and the boundary's own flags.

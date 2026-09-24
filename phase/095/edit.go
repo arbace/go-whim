@@ -87,7 +87,7 @@ package p095
 // ONE MORE SO -- `'shortmess'`'s `r`, whose SHM_RO the sweep takes with the `[RO]`
 // indicator.  The check asserts both literals character for character.
 //
-// THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own makefile
+// THE INPUT BINARY IS BUILT BY THE PLAN, before the edit, from the boundary's own makefile
 // flags, as every Part II edit since phase 85 does, and the source goes with it as
 // $state/old.c.  The check needs both, and needs them more than any phase so far:
 // THIS PHASE DECLARES NOTHING, because `:set` is the one thing the core's instrument
@@ -103,7 +103,6 @@ package p095
 // the reader test is ever reached, and its message talks about a segfault at startup
 // rather than about readers.  droplocal.py is the other half and goes first.
 // ---- C5. 'readonly': the row, then the field -------------------------------------------
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"fmt"

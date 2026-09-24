@@ -3,7 +3,7 @@ package p089
 // Whim phase 89, the check -- nothing can put bytes on a disk any more.
 // See phase/089/edit.go, and GOALS.md.
 //
-// Runs after phase/089/edit.go and the sweep tools/phaserun.sh runs between them,
+// Runs after phase/089/edit.go and the sweep internal/verify runs between them,
 // and reads nothing from the edit's shell -- only the work tree and the state
 // directory.  What the edit left there is `old`, the binary this phase was HANDED,
 // and `old.c`, the source it was built from, which is the left-hand side of every

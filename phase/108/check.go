@@ -3,7 +3,7 @@ package p108
 // Whim phase 108, the check -- the plain host calls.
 // See phase/108/edit.go, and GOALS.md II.4c.
 //
-// Runs after phase/108/edit.go and the sweep tools/phaserun.sh runs between them, and
+// Runs after phase/108/edit.go and the sweep internal/verify runs between them, and
 // reads nothing from the edit's shell -- only the work tree and the state directory.
 // What the edit left there is `old.c`, the source this phase was HANDED, and `old`, that
 // source built with SOURCE_DATE_EPOCH=0 and the boundary's own flags.
@@ -40,7 +40,7 @@ package p108
 // back, because the host's definition still does not call it -- phase 102's
 // __builtin_longjmp launcher is untouched.
 // THE BINARY  the same SIZE and NOT the same bytes, both stated as measurements.
-// THE RECORD  two full tools/zrecord.sh recordings, `diff -r` empty, with one control
+// THE RECORD  two full tools/st.sh zrecord recordings, `diff -r` empty, with one control
 // per name: `host_code = r;` -> `r + 1` in host_exit moves 105 of the 106
 // records, and host_message's `write(err ? 2 : 1, ...)` with the streams
 // swapped moves 24 of the 30 command lines AND NOTHING ELSE -- which is

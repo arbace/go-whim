@@ -82,7 +82,7 @@ package p079
 // is constantly false.  The quit path is the one place where getting this wrong is
 // silent rather than fatal -- check_more() feeds the four ex_quit/ex_exit conditions
 // that decide whether getout(0) runs -- so five quit probes, calibrated on q78, guard
-// it directly.  Declared empty, left for whimdelta.sh to correct.
+// it directly.  Declared empty, left for the delta check to correct.
 
 import (
 	"fmt"

@@ -59,7 +59,7 @@ package p072
 // this phase's job.
 //
 // THE DELTA: none expected.  Every window and tabpage Ex command is already ex_ni, so
-// no exsweep row can move; declared empty and left for whimdelta.sh to correct.
+// no exsweep row can move; declared empty and left for the delta check to correct.
 
 import (
 	"fmt"

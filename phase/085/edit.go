@@ -53,7 +53,7 @@ package p085
 // not evidence, so phase/085/check.go measures the removed behaviour directly, in
 // both directions, against the binary this phase was handed.
 //
-// THAT BINARY IS BUILT HERE, before the edit, from the boundary's own makefile
+// THAT BINARY IS BUILT BY THE PLAN, before the edit, from the boundary's own makefile
 // flags -- the same shape as whim phases 80 and 81, which keep an `old` binary in
 // the state directory for their checks to compare against.  It is what makes the
 // probes able to fail: the check requires the OLD binary to warn and to pause and
@@ -67,7 +67,6 @@ package p085
 // there are no `ex_cmdidxs.h` banners left in whim-vim.c for it to find -- it raises
 // rather than reporting nothing.  Nothing here touches the command table anyway.
 //
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"io"

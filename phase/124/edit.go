@@ -18,7 +18,7 @@ package p124
 // WHAT THE CORPUS ASKED FOR, MEASURED AND NOT GUESSED.  The input source was built with
 // a counter on host_alloc that totals every request, rounded as the allocator below
 // rounds it, and dumped from host_exit() -- which every session reaches.  Over the whole
-// of tools/zrecord.sh, 268 sessions in 122 records, the largest single session asked for
+// of tools/st.sh zrecord, 268 sessions in 122 records, the largest single session asked for
 // 200,458,672 bytes, and two separate recordings gave that same number.  It is ONE case:
 //
 // the heaviest memline case, mem_deep_jumps, 25,000 lines     200,458,672
@@ -118,10 +118,9 @@ package p124
 // above the first `#include` must be byte-identical in and out.  The check states the
 // same thing the way the project states it -- `cmp` of `make editor.c`'s own cut.
 //
-// THE INPUT BINARY IS BUILT HERE with SOURCE_DATE_EPOCH=0, and the check records from it.
+// THE INPUT BINARY IS BUILT by the plan (internal/build's OldBinary) with SOURCE_DATE_EPOCH=0, and the check records from it.
 // The flags are read out of the boundary's makefile rather than written here a second
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"fmt"

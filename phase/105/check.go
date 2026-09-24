@@ -3,7 +3,7 @@ package p105
 // Whim phase 105, the check -- the variadic collapse.
 // See phase/105/edit.go, and GOALS.md II.4c.
 //
-// Runs after phase/105/edit.go and the sweep tools/phaserun.sh runs between them, and
+// Runs after phase/105/edit.go and the sweep internal/verify runs between them, and
 // reads nothing from the edit's shell -- only the work tree and the state directory.
 // What the edit left there is `old.c`, the source this phase was HANDED, and `old`, that
 // source built with the boundary's own flags.
@@ -30,7 +30,7 @@ package p105
 // a pure restructure inside one translation unit frees nothing.  The
 // binary GROWS, which is the same fact wearing its other face, and the
 // check reports the number rather than letting it look like a mistake.
-// BEHAVIOUR   the declared delta is NOTHING AT ALL, so tools/coredelta.sh proves the
+// BEHAVIOUR   the declared delta is NOTHING AT ALL, so tools/st.sh delta proves the
 // recording did not move.  And the recording is NEARLY BLIND to this
 // phase, which is measured rather than asserted (see below), so the phase
 // owes probes: 263 of them on both binaries, and FOUR DELIBERATE BREAKS

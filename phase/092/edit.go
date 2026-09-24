@@ -57,14 +57,13 @@ package p092
 // hold.  That is memline tidy and not the read path; this phase asserts `retval` at
 // its 5 mentions and says it is constant, and leaves the fold to a later one.
 //
-// THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own makefile
+// THE INPUT BINARY IS BUILT BY THE PLAN, before the edit, from the boundary's own makefile
 // flags, exactly as phase/085/edit.go and whim87- through phase/091/edit.go do it, and
 // the source goes with it as $state/old.c.  The check needs BOTH: the binary is the
 // left-hand side of every "this did not move" comparison, and the source is what it
 // builds twice more, instrumented, for the only evidence this phase has.
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"io"

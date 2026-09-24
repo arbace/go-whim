@@ -56,7 +56,7 @@ package p097
 // here would trip it.  The check asserts `tolower` at exactly 2 mentions after this
 // phase, which is what it had before.
 //
-// THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own makefile
+// THE INPUT BINARY IS BUILT BY THE PLAN, before the edit, from the boundary's own makefile
 // flags, and the source goes with it as $state/old.c.  The check needs the binary for
 // its one MUST-DIFFER probe: `t_CF` is a user-settable option used as a FORMAT STRING
 // into `char buf[20]`, `sprintf` has no bound, and the binary this phase is handed
@@ -64,7 +64,6 @@ package p097
 // only reachable input on which this phase changes what the editor does.
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"fmt"

@@ -3,7 +3,7 @@ package p118
 // Whim phase 118, the check -- the core calls nothing but the host.
 // See phase/118/edit.go, and GOALS.md II.4c.
 //
-// Runs after phase/118/edit.go and the sweep tools/phaserun.sh runs between them, and
+// Runs after phase/118/edit.go and the sweep internal/verify runs between them, and
 // reads nothing from the edit's shell -- only the work tree and the state directory.
 // What the edit left there is `old.c`, the source this phase was HANDED, and `old`, that
 // source built with SOURCE_DATE_EPOCH=0 and the boundary's own flags.
@@ -43,7 +43,7 @@ package p118
 // input's set is computed here and never written down: it has gone stale
 // twice for other phases.
 // THE BINARY  the same SIZE and NOT the same bytes, both stated as measurements.
-// THE RECORD  two full tools/zrecord.sh recordings, `diff -r` empty over 106 records,
+// THE RECORD  two full tools/st.sh zrecord recordings, `diff -r` empty over 106 records,
 // with a control that moves all 106.
 // THE PROBES  ONE PER FUNCTION, on an instrumented build of this phase's own output,
 // because a byte-identical recording says the editor did the same thing

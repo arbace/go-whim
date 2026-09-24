@@ -66,7 +66,7 @@ package p089
 // rather than reporting nothing.  Its `names()` is called, which is the part that
 // still means something here.
 //
-// THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own makefile
+// THE INPUT BINARY IS BUILT BY THE PLAN, before the edit, from the boundary's own makefile
 // flags, exactly as phase/085/edit.go, phase/087/edit.go and phase/088/edit.go do it.  It
 // is not decoration: THE CORPUS CANNOT SEE WRITING.  ``zcases``'s `cmd_write`
 // types `:write` with no file name and has only ever recorded `E32: No file name`,
@@ -77,7 +77,6 @@ package p089
 // the check takes.
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"fmt"

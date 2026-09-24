@@ -3,7 +3,7 @@ package p103
 // Whim phase 103, the check -- the signals and the terminal are the host's.
 // See phase/103/edit.go, and GOALS.md.
 //
-// Runs after phase/103/edit.go and the sweep tools/phaserun.sh runs between them,
+// Runs after phase/103/edit.go and the sweep internal/verify runs between them,
 // and reads nothing from the edit's shell -- only the work tree and the state
 // directory.  What the edit left there is `old.c`, the source this phase was HANDED,
 // and `old`, that source built with the boundary's own flags.  EVERY PROBE BELOW IS A
@@ -23,7 +23,7 @@ package p103
 // check requires those PRESENT: moving code from the core to the host
 // inside one translation unit frees nothing, and a check that asserted
 // them gone would be asserting the file split had happened.
-// BEHAVIOUR   the declared delta is NOTHING, so tools/coredelta.sh proves the
+// BEHAVIOUR   the declared delta is NOTHING, so tools/st.sh delta proves the
 // recording did not move -- and the recording cannot see any of this
 // (no case sends a signal, resizes a window, types `gs` or reaches EOF
 // with a terminal on fd 2), so the phase owes probes.  Fifteen of them,

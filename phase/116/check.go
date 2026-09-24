@@ -31,8 +31,8 @@ package p116
 // `-T {term}`: measured, a `-T` harness records nothing but `(none)` against a binary
 // with no `-T`, which is precisely the failure the tool's own docstring exists to
 // prevent, and `-T` is being abandoned.  `termcheck` is imported and
-// untouched -- it is named by tools/whimdelta.sh and tools/verify.sh and its bytes
-// are in every whim stage's key (GOALS.md core rule 9).
+// untouched -- it was named by tools/whimdelta.sh and tools/verify.sh and its bytes
+// were in every whim stage's key (GOALS.md core rule 9).
 //
 // WHY RE-RECORDING THE BASELINES IS LEGITIMATE, which is the delicate part.
 // CLAUDE.md's rule is "never regenerate it from the current binary, which would make
@@ -81,7 +81,7 @@ package p116
 // that name's row, from resolving to refused -- and must move NOTHING AT ALL
 // when the same names are asked the old way.  A corpus that cannot fail is not
 // evidence, and that pair is the whole of this phase in one measurement;
-// 7. the declared delta holds -- NOTHING, and nothing new: tools/coredelta.sh
+// 7. the declared delta holds -- NOTHING, and nothing new: tools/st.sh delta
 // --phase 116 against the re-recorded .reference/core-baselines.
 
 import (

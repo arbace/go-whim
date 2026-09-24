@@ -3,7 +3,7 @@ package p112
 // Whim phase 112, the check -- THE CASE TABLES BECOME ONE, AND IT IS THE UNION.
 // See phase/112/edit.go, and GOALS.md.
 //
-// Runs after phase/112/edit.go and the sweep tools/phaserun.sh runs between them,
+// Runs after phase/112/edit.go and the sweep internal/verify runs between them,
 // and reads nothing from the edit's shell -- only the work tree and the state
 // directory.  What the edit left there is `old.c`, the source this phase was HANDED,
 // and `old`, that source built with the boundary's own flags.

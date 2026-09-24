@@ -65,7 +65,7 @@ package p090
 // file -- whim's Phase 80 took it with the 489 stub rows -- so nothing else depends
 // on a position.
 //
-// THE INPUT BINARY IS BUILT HERE, before the edit, from the boundary's own makefile
+// THE INPUT BINARY IS BUILT BY THE PLAN, before the edit, from the boundary's own makefile
 // flags, exactly as phase/085/edit.go, phase/087/edit.go, phase/088/edit.go and
 // `zcases`'s 102 cases types its own text and names no file, so `cmd_read`
 // types `:read` with no file name and has only ever recorded `E32: No file name`.
@@ -75,7 +75,6 @@ package p090
 // after counts the check takes.
 // The flags are read out of the boundary's makefile rather than written here a
 // second time: the core's compile line is the boundary's (GOALS.md core rule 8).
-// An edit that starts a background job waits for it before it exits (tools/phaserun.sh).
 
 import (
 	"io"

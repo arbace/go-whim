@@ -28,7 +28,7 @@ package p076
 // them without the hazards phases 71, 72 and 75 each ran into.
 //
 // THE DELTA: none expected.  The blocks never ran, so removing them cannot change a
-// match.  Declared empty and left for whimdelta.sh to correct.
+// match.  Declared empty and left for the delta check to correct.
 
 import (
 	"io"
