@@ -307,16 +307,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 		return a, b, members
 	}
-	// cut deletes [a,b], and the blank line either side of it that would pair up.
+	// cut deletes [a,b].  The blank lines around it are the canonical print's.
 	cut := func(a, b int) {
-		if b+1 < len(lines) && strings.TrimSpace(lines[b+1]) == "" {
-			b++
-		}
 		lines = edit.W127Splice(lines, a, b+1, nil)
-		if a > 0 && a < len(lines) && strings.TrimSpace(lines[a-1]) == "" &&
-			strings.TrimSpace(lines[a]) == "" {
-			lines = edit.W127Splice(lines, a, a+1, nil)
-		}
 	}
 
 	// --- the partition, before anything is changed ---------------------------
@@ -396,13 +389,11 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			strings.Join(members, " "))
 	}
 	cut(a, b)
-	// The alignment is phase 126's: this typedef is text THAT phase writes, not
-	// text phase 0 printed, so it is read here as phase 126 spells it.
-	i := edit.W127Index(lines, "typedef struct memfile      memfile_T;")
-	lines = edit.W127Splice(lines, i, i+1, nil)
+	// Its typedef, `typedef struct memfile memfile_T;`, is left for the sweep:
+	// nothing names memfile_T once the fold is done.
 
 	// --- 3. memline_T loses its handle on one --------------------------------
-	i = edit.W127Index(lines, "    memfile_T   *ml_mfp;")
+	i := edit.W127Index(lines, "    memfile_T   *ml_mfp;")
 	if lines[i+1] != "    bhdr_T *ml_root;" {
 		return nil, die("ml_mfp is not the line above ml_root, so the memline is not the one this " +
 			"edit reads")
@@ -619,9 +610,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, die("the page size is not read where this edit expects")
 	}
 	lines = edit.W127Splice(lines, i, i+2, nil)
-	if strings.TrimSpace(lines[i-1]) == "" && strings.TrimSpace(lines[i]) == "" {
-		lines = edit.W127Splice(lines, i, i+1, nil)
-	}
 
 	if lo, hi, err = fn("ml_delete_int"); err != nil {
 		return nil, err
@@ -679,10 +667,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			}
 			i = hits[0]
 			lines = edit.W127Splice(lines, i, i+1, nil)
-			if i > 0 && i < len(lines) && strings.TrimSpace(lines[i-1]) == "" &&
-				strings.TrimSpace(lines[i]) == "" {
-				lines = edit.W127Splice(lines, i, i+1, nil)
-			}
 		}
 	}
 
@@ -808,7 +792,11 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// --- the partition again, on the output ----------------------------------
 	t := strings.Join(lines, "\n")
 	for _, name := range w128Gone {
-		if k := mentions(t, name); k != 0 {
+		want := 0
+		if name == "memfile" || name == "memfile_T" {
+			want = 1 // the typedef, the sweep's
+		}
+		if k := mentions(t, name); k != want {
 			return nil, die("%s survives the edit with %d mentions", name, k)
 		}
 	}
