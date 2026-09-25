@@ -29,9 +29,8 @@ func init() { edit.Register("whim138", Edit) }
 // formatter's typval_T *tvs, in the host).  Each parameter goes with its
 // nullptr, and each test of it becomes what it always was.  So do
 // find_ex_command()'s Vim9 lookup and compile context, which it never read,
-// and the builtin function types cfunc_T and cfunc_free_T, which nothing names
-// and the sweep does not take -- a function-pointer typedef is not a type it
-// follows.  They are the last
+// and with them the builtin function types cfunc_T and cfunc_free_T, which
+// the sweep takes.  They are the last
 // things naming typval_T, list_T and dict_T outside their own definitions, so
 // the sweep takes the eval layer's value types with them.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
@@ -70,14 +69,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if text, err = p.Literal(text, s.Old, s.New, s.What, s.n); err != nil {
 			return nil, err
 		}
-	}
-	// the builtin-function types, which name typval_T and nothing names.  A
-	// partition: here and cut, or already taken by the sweep's closure.
-	if text, err = p.LiteralOrGone(text, "typedef int (*cfunc_T)(int argcount, typval_T *argvars, typval_T *rettv, void *state);\n", "", "the builtin function type goes", 1, "cfunc_T"); err != nil {
-		return nil, err
-	}
-	if text, err = p.LiteralOrGone(text, "typedef void (*cfunc_free_T)(void *state);\n", "", "and its state's destructor", 1, "cfunc_free_T"); err != nil {
-		return nil, err
 	}
 	if text, err = p.FoldAlways(text, "cursor_pos_info", `if \(dict == nullptr\)`, "cursor_pos_info() always gives its message", 3); err != nil {
 		return nil, err
