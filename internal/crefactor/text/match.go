@@ -1,4 +1,4 @@
-package cutil
+package text
 
 // Match returns the index of the closer matching the opener at b[i], or -1 if
 // the text is unbalanced.

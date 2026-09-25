@@ -1,4 +1,4 @@
-package cutil
+package text
 
 // Depths returns the per-byte nesting depth of () [] {} over blanked text.
 //

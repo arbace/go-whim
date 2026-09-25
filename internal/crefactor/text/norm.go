@@ -1,4 +1,4 @@
-package cutil
+package text
 
 import (
 	"bytes"
