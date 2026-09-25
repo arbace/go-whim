@@ -122,7 +122,8 @@ func W144NormalCall(ind string) string {
 }
 
 // W144Enclosing names the blocks around pos, outermost first: the header of
-// each -- the line holding its `{`, or the line above when the brace is alone.
+// each -- the line holding its `{`, or the line above when the brace is alone
+// (the canonical text has no blank line inside a body).
 func W144Enclosing(s string, pos int) []string {
 	b := cutil.Blank([]byte(s))
 	var stack []string
@@ -134,13 +135,8 @@ func W144Enclosing(s string, pos int) []string {
 			switch ch {
 			case '{':
 				h := strings.TrimSpace(l)
-				if h == "{" {
-					for k := li - 1; k >= 0; k-- {
-						if t := strings.TrimSpace(lines[k]); t != "" {
-							h = t
-							break
-						}
-					}
+				if h == "{" && li > 0 {
+					h = strings.TrimSpace(lines[li-1])
 				}
 				stack = append(stack, h)
 			case '}':
@@ -237,13 +233,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			if brk != sw || loop != main {
 				return nil, p.Die("the jump to do_intr is inside %q", brk)
 			}
-			var b strings.Builder
-			for _, l := range strings.SplitAfter(w144Intr, "\n") {
-				if l != "" {
-					b.WriteString(ind[:len(ind)-12] + l)
-				}
-			}
-			repl = b.String() + W144EscCall(ind)
+			repl = w144Intr + W144EscCall(ind)
 		}
 		count[label]++
 		s = s[:m[0]] + repl + s[m[1]:]
@@ -253,9 +243,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	// the do-while's flag, tested just after it
 	// The canonical text writes a do-while's end as `}` on its own line and
-	// `while (...);` on the next (the sweep's old canonicalisers put the `;` on a
-	// third), and the indentation the insertion takes is the brace's.
-	dw := regexp.MustCompile(`(?m)^( *)\}\n *while \([^\n]*\)(?:\n *)?;\n`)
+	// `while (...);` on the next, and the indentation the insertion takes is the
+	// brace's.
+	dw := regexp.MustCompile(`(?m)^( *)\}\n *while \([^\n]*\);\n`)
 	wm := dw.FindStringSubmatchIndex(s[doSite:])
 	if wm == nil {
 		return nil, p.Die("the do-while around the jump has no end")
@@ -263,7 +253,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	at := doSite + wm[1]
 	ind := s[doSite+wm[2] : doSite+wm[3]]
 	s = s[:at] + ind + "if (esc_now)\n" + ind + "{\n" + ind + "    esc_now = FALSE;\n" +
-		strings.ReplaceAll(W144EscCall(ind+"    "), "\n", "\n") + ind + "}\n" + s[at:]
+		W144EscCall(ind+"    ") + ind + "}\n" + s[at:]
 	// the labelled blocks themselves
 	s = strings.Replace(s, "        do_intr:\n"+w144Intr+"        doESCkey:\n"+w144Esc, w144Intr+W144EscCall("            "), 1)
 	s = strings.Replace(s, "        normalchar:\n"+w144Normal, W144NormalCall("            "), 1)
