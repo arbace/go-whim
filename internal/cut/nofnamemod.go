@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io"
 	"regexp"
-
-	"github.com/arbace/go-whim/internal/cutil"
 )
 
 const fnameModArm = `        else if (!skip_mod)
@@ -20,18 +18,14 @@ const fnameModArm = `        else if (!skip_mod)
         }
 `
 
-// fnameModFeeders are the locals that existed only to be passed to
-// modify_fname() or to suppress it.
-//
-// -Wunused-but-set-variable is not a shape deadsweep deletes -- they are
-// ASSIGNED, so nothing calls them unused -- so they are named here, which is
-// the same reason Phase 20 had to name at_start.
+// fnameModFeeders are the assignments to the locals that existed only to be
+// passed to modify_fname() or to suppress it.  The sweep takes a local nothing
+// names but not a store to one, so the stores go here and the declarations,
+// like modify_fname itself, are the sweep's.
 var fnameModFeeders = []struct {
 	pat, what string
 	n         int
 }{
-	{`(?m)^[ \t]*int tilde_file = FALSE;\n`, "tilde_file's declaration", 1},
-	{`(?m)^[ \t]*int skip_mod = FALSE;\n`, "skip_mod's declaration", 1},
 	{`(?m)^[ \t]*tilde_file = strcmp\(\(char \*\)\(result\), \(char \*\)\("~"\)\) == 0;\n`,
 		"a tilde_file assignment", 2},
 	{`(?m)^[ \t]*skip_mod = TRUE;\n`, "skip_mod's assignment", 1},
@@ -41,8 +35,8 @@ var modifyFname = regexp.MustCompile(`\bmodify_fname\b`)
 
 // NoFnameMod makes % a file name and nothing more.
 //
-// eval_vars' modifier arm goes as exact text, then the two locals that only fed
-// it, then the function itself.
+// eval_vars' modifier arm goes as exact text, then the stores to the two locals
+// that only fed it.
 func NoFnameMod(text []byte, w io.Writer) ([]byte, error) {
 	if !bytes.Contains(text, []byte(fnameModArm)) {
 		return nil, fmt.Errorf("nofnamemod: eval_vars' modifier arm is not where this expects")
@@ -67,10 +61,6 @@ func NoFnameMod(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  nofnamemod   tilde_file and skip_mod, which only fed it")
 
-	text, ok := cutil.DeleteDefinition(text, "modify_fname")
-	if !ok {
-		return nil, fmt.Errorf("nofnamemod: modify_fname is not defined at file scope")
-	}
 	fmt.Fprintf(w, "  nofnamemod   %d modify_fname mentions left for the sweep\n",
 		len(modifyFname.FindAll(text, -1)))
 	return text, nil
