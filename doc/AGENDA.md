@@ -7,23 +7,18 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 ## Queued, measured, not started
 
 - **A wider test suite.** `make whim-test` (`internal/suite`) is the minimal
-  one: 44 key sessions on stdin, compared against HEAD's build, 24x80, no pty,
+  one: 45 key sessions on stdin, compared against HEAD's build, 24x80, no pty,
   no files, no startup options. What it cannot see -- terminal handling,
   resize, reading and writing files, `argv` -- the archived suite (`448e9a8`:
   `internal/harness`, its corpus and pty harness) covered and is where a wider
   one can be read from. It checks the Go editor against the C on the same
   cases, so a wider corpus widens both.
-- **The Go editor, idiomatic.** `doc/GO-IDIOMS.md` measured it and ranked the
-  work. Lint-clean is done (vet, staticcheck, `gofmt -s` all 0: generator rules,
-  phases 164-165), and so are the yes/no functions typed `bool` (phase 166, 278
-  functions), and so are locals and the generator's temporaries declared where they
-  are made (only functions with a goto keep theirs at the top). OK/FAIL is done too:
-  phase 166 counts it a yes/no, success `true`. Struct members and parameters that
-  hold an answer are `bool` too. The nine C string functions are Go's own now
-  (`editor/libc.go`), and the key codes have their names (phase 167). Each step is checked
-  by `make whim-test`, which runs the Go editor against the C.
-
-
+- **The Go editor, the rest of idiomatic.** `doc/GO-IDIOMS.md`'s items 1-6 are
+  done (lint, dead code, `bool`, scoped locals, libc, key names). Left, in its
+  order: `Ptr[T]` where a plain slice or `*T` would do (item 7), a `goto` whose
+  target is `return x` as that `return` (10), the 824 globals as a struct
+  (11), and the package structure (12). Each is checked by `make whim-test`,
+  which runs the Go editor against the C.
 - **A tighter verb set for phase edits** (`doc/DSL.md`). A separate language would
   cover only 10-22% of the edit code; the savings come from one verb set in
   `edit.E` (seven spellings of FoldNever today), verbs for what phases
