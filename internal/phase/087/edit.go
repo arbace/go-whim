@@ -49,20 +49,18 @@ package p087
 // this phase and fails in the same way after it.  `-e`, `-E`, `-e -s` and `-v` do
 // move, and are declared in internal/phase/087/delta.md.
 //
-// THREE FUNCTIONS ARE DELETED BY NAME rather than left to the sweep.  A function
-// whose address is taken is reachable as far as gcc is concerned: `getexmodeline`
-// is passed to `do_cmdline()` and compared with `getline_equal()`, so -Wunused-
-// function never names it, and `do_exmode` keeps it alive through a call the sweep
-// would have to remove first.  `nv_exmode` goes the same way, because an `nv_cmds[]`
-// row is a reference: the row is REPOINTED at `nv_error` and never deleted -- a
+// THE KEYS AND THE CALLS GO BY HAND; THE FUNCTIONS THEY REACHED GO TO THE SWEEP.
+// `nv_exmode`'s `nv_cmds[]` row is REPOINTED at `nv_error` and never deleted -- a
 // deleted row shifts `nv_cmd_idx[]` and every key past the hole resolves to another
-// key's handler (CLAUDE.md; `nvidx` is what would catch it).
+// key's handler (CLAUDE.md; `nvidx` is what would catch it).  Once the row, the
+// `getline_equal()` test and `check_tty()`'s call are gone, `nv_exmode`,
+// `do_exmode`, `getexmodeline` and `check_tty` are unreachable, and the sweep
+// deletes them.
 //
-// SIX WRITE-ONLY LEFTOVERS GO BY HAND, because no warning covers a variable that is
-// assigned and never read: `ex_pressedreturn`, `ex_no_reprint` (seven writes),
-// `ex_exitval`, `previous_got_int`, `use_plus_cmd` and `exmode_was`.  gcc's
-// -Wunused-but-set-variable sees a local, not a file-scope static, and
-// tools/deadsweep.py only deletes what gcc names.
+// SIX WRITE-ONLY LEFTOVERS lose their writes by hand, because the sweep deletes
+// declarations, never statements: `ex_pressedreturn`, `ex_no_reprint` (seven
+// writes), `ex_exitval`, `previous_got_int`, `use_plus_cmd` and `exmode_was`.
+// Their declarations, unused once the writes are gone, the sweep takes.
 //
 // THE SWEEP TAKES the rest: `exmode_active`, `silent_mode`, `pending_exmode_active`,
 // `s_vbuf`, `exmode_plus`, `e_at_end_of_file`, the `getexmodeline` and `nv_exmode`
@@ -110,17 +108,18 @@ var w87Before = map[string]int{
 	"mch_input_isatty": 2,
 }
 
-// w87After: every use is gone and what remains of each name is its definition,
-// each of them a kind tools/sweep.sh deletes.  Stated as a number per name, so a
-// use that survived shows up HERE and not as a warning five minutes later.
+// w87After: every use is gone but the definitions and what the four unreachable
+// functions (nv_exmode, do_exmode, getexmodeline, check_tty) still say, each of
+// them a kind the sweep deletes.  Stated as a number per name, so a use that
+// survived shows up HERE and not after the sweep.
 var w87After = map[string]int{
-	"exmode_active": 1, "silent_mode": 1, "pending_exmode_active": 1,
-	"exmode_plus": 1, "exmode_was": 0, "do_exmode": 0, "getexmodeline": 1,
-	"nv_exmode": 1, "EXMODE_NORMAL": 1, "EXMODE_VIM": 1, "BO_EX": 1,
-	"ex_pressedreturn": 0, "ex_no_reprint": 0, "ex_exitval": 0,
-	"previous_got_int": 0, "use_plus_cmd": 0, "s_vbuf": 1,
-	"e_at_end_of_file": 1, "noexmode": 0, "check_tty": 0,
-	"mch_input_isatty": 1,
+	"exmode_active": 7, "silent_mode": 2, "pending_exmode_active": 1,
+	"exmode_plus": 1, "exmode_was": 1, "do_exmode": 2, "getexmodeline": 3,
+	"nv_exmode": 2, "EXMODE_NORMAL": 2, "EXMODE_VIM": 2, "BO_EX": 2,
+	"ex_pressedreturn": 4, "ex_no_reprint": 4, "ex_exitval": 1,
+	"previous_got_int": 1, "use_plus_cmd": 1, "s_vbuf": 1,
+	"e_at_end_of_file": 2, "noexmode": 0, "check_tty": 1,
+	"mch_input_isatty": 2,
 }
 
 var (
@@ -224,14 +223,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		p.Say(what)
 		return []byte(strings.ReplaceAll(string(t), old, new)), nil
 	}
-	dropDefinition := func(t []byte, name, what string) ([]byte, error) {
-		Out, ok := cutil.DeleteDefinition(t, name)
-		if !ok {
-			return nil, p.Die("%s -- %s is not defined", what, name)
-		}
-		p.Say(what)
-		return Out, nil
-	}
 
 	// ---- 0. the invariants the cut rests on -----------------------------------
 	for _, name := range edit.SortedKeys(w87Before) {
@@ -254,19 +245,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = literal(text, w87lit5, "", "gQ's arm of nv_g_cmd, which falls to default: clearopbeep", 1); err != nil {
 		return nil, err
 	}
-	if text, err = dropDefinition(text, "nv_exmode", "nv_exmode"); err != nil {
-		return nil, err
-	}
-	if text, err = dropDefinition(text, "do_exmode", "do_exmode, the Ex-mode loop"); err != nil {
-		return nil, err
-	}
 	if text, err = literal(text,
 		"(getline_equal(fgetline, cookie, getexmodeline) || getline_equal(fgetline, cookie, getexline))",
 		"getline_equal(fgetline, cookie, getexline)",
 		"do_cmdline stops asking whether it is reading Ex-mode lines", 1); err != nil {
-		return nil, err
-	}
-	if text, err = dropDefinition(text, "getexmodeline", "getexmodeline, the Ex-mode line reader"); err != nil {
 		return nil, err
 	}
 
@@ -305,8 +287,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{kind: "never", fn: "do_exedit",
 			Pat: line("if (exmode_active && (eap->cmdidx == CMD_visual || eap->cmdidx == CMD_view))"), n: 1,
 			What: ":visual, :vi and :view lose the branch that left Ex mode"},
-		{fn: "do_exedit", Old: w87lit10, New: "\n", n: 1,
-			What: "and exmode_was, which only that branch read"},
 		{kind: "never", fn: "ex_read", Pat: line("if (empty && exmode_active)"), n: 1,
 			What: ":read stops deleting the empty line it read into"},
 		{kind: "never", fn: "cmdline_erase_chars", Pat: line("if (exmode_active)"), n: 1,
@@ -378,13 +358,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 	}
-	// check_tty() IS DELETED HERE RATHER THAN FOLDED, and the reason is a gap in
-	// the sweep worth naming: folding its one branch leaves a local that is
-	// written and never read, which is -Wunused-but-set-variable, and
-	// deadsweep.py acts only on -Wunused-variable and -Wunused-function.
-	if text, err = dropDefinition(text, "check_tty", "check_tty, which has nothing left to ask"); err != nil {
-		return nil, err
-	}
+	// check_tty() loses its one call rather than being folded: folding its one
+	// branch would leave a local that is written and never read.  Uncalled, the
+	// sweep deletes it.
 	if text, err = within(text, "main", w87lit13, "\n", "and its call in main", 1); err != nil {
 		return nil, err
 	}
@@ -442,13 +418,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// A file-scope static that is written and never read draws no warning at all,
 	// and a local one draws -Wunused-but-set-variable, which deadsweep.py does not
 	// act on.  Six of them, and they are invisible to every tool here.
-	if text, err = literal(text, w87lit17, "\n", "ex_pressedreturn", 1); err != nil {
-		return nil, err
-	}
 	if text, err = within(text, "parse_command_modifiers", w87lit18, "\n", "and its one remaining write", 1); err != nil {
-		return nil, err
-	}
-	if text, err = literal(text, w87lit19, "\n", "ex_no_reprint", 1); err != nil {
 		return nil, err
 	}
 	if text, err = literal(text, w87lit20, "\n", "and its seven writes", 6); err != nil {
@@ -457,17 +427,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = literal(text, w87lit21, "\n", "and the seventh", 1); err != nil {
 		return nil, err
 	}
-	if text, err = literal(text, w87lit22, "\n", "ex_exitval", 1); err != nil {
-		return nil, err
-	}
 	if text, err = within(text, "emsg_core", w87lit23, "\n", "and its one write", 1); err != nil {
 		return nil, err
 	}
-	if text, err = within(text, "main_loop", w87lit24, "\n",
-		"previous_got_int, which only the Ex-mode arm read", 1); err != nil {
-		return nil, err
-	}
-	if text, err = within(text, "main_loop", w87lit25, "\n", "", 1); err != nil {
+	if text, err = within(text, "main_loop", w87lit25, "\n",
+		"previous_got_int's writes: only the Ex-mode arm read it", 1); err != nil {
 		return nil, err
 	}
 	if text, err = within(text, "main_loop", w87lit26, "", "", 1); err != nil {
@@ -479,9 +443,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	if text, err = fold(text, "never", "parse_command_modifiers", line("else if (use_plus_cmd)"),
 		"and the + command it stood for", 1); err != nil {
-		return nil, err
-	}
-	if text, err = within(text, "parse_command_modifiers", w87lit27, "\n", "and the flag itself", 1); err != nil {
 		return nil, err
 	}
 
@@ -512,13 +473,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				name, k, w87After[name], why)
 		}
 	}
-	// `E501: At end-of-file` is not checked here: it is the initialiser of
-	// e_at_end_of_file, whose last reader was do_exmode, and the string leaves
-	// with the variable in the sweep.  The check asks for it afterwards.
-	if strings.Contains(string(text), "Entering Ex mode") {
-		return nil, p.Die("'Entering Ex mode' survives the edit")
-	}
-	p.Say("every use of all 21 is gone; eleven lone definitions and mch_input_isatty " +
-		"are what the sweep takes")
+	p.Say("every use of all 21 is gone; the lone definitions, the four unreachable " +
+		"functions and mch_input_isatty are what the sweep takes")
 	return text, nil
 }
