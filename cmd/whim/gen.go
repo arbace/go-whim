@@ -111,9 +111,11 @@ func runGen(args []string) int {
 }
 
 // runSkel is the generator itself, for a run by hand: `whim skel <editor.c>
-// <outdir> [-bodies | -editor <editor.go> | -java <Class.java>]` writes the
-// skeleton, the facts and, asked, the bodies, the whole editor.go, or the
-// Java class (doc/JAVA.md) and beside it what it refuses, into outdir.
+// <outdir> [-bodies | -editor <editor.go> | -java <Class.java> | -clj
+// <editor.clj> | -lowerc <lowered.c>]` writes the skeleton, the facts and,
+// asked, the bodies, the whole editor.go, the Java class (doc/JAVA.md) or
+// the Clojure namespace (doc/CLOJURE.md) and beside it what it refuses, or
+// every function lowered and printed back as C, into outdir.
 func runSkel(args []string) int {
 	prof, err := genProfile()
 	if err != nil {

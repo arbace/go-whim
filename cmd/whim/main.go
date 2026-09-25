@@ -116,7 +116,7 @@ var tools = map[string]tool{
 	"parse":       {runParse, "parse <file.c>"},
 	"fieldref":    {runFieldRef, "fieldref <file.c>"},
 	"gen":         {runGen, "gen [--check]"},
-	"skel":        {runSkel, "skel <editor.c> <outdir> [-bodies | -editor <editor.go> | -java <Class.java>]"},
+	"skel":        {runSkel, "skel <editor.c> <outdir> [-bodies | -editor <editor.go> | -java <Class.java> | -clj <editor.clj> | -lowerc <lowered.c>]"},
 	"java":        {runJava, "java [--out DIR] [FILE]"},
 	"clj":         {runClj, "clj [--out DIR] [--editor editor.clj] [--jar FILE] [FILE]"},
 	"pre":         {runPre, "pre casts|order|unions|garrays|voids|gotos|funcs <editor.c>"},

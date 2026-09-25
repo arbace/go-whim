@@ -130,7 +130,7 @@ Each verified before the next, as the Java's were.
 
 ## Milestone 3, as built
 
-Written 2026-09-25, beside milestones 1-2 (in progress in another worktree),
+Written 2026-09-25, beside milestones 1-2 (then in progress in another worktree; *Milestones 1 and 2, as built*),
 so built against the contract above and proven on a **stand-in**:
 `cljeditor/testdata/standin/whim/editor.clj`, a hand-written `whim.editor`
 that provides what the contract says the generated one does and calls every
@@ -263,11 +263,239 @@ for the merge to check:
 - `" INSERT"`, the suite's control, appears in the generated `editor.clj`
   exactly once, spelled so (a Clojure string literal is spelled as the C's).
 
+## Milestones 1 and 2, as built
+
+Written 2026-09-25. Both milestones were built together, in
+`crefactor/togo`, and the result met milestone 3's glue on main: **every
+function of `editor.c` written, none refused, the namespace compiling ahead
+of time with no reflection warning, and `whim test --clojure` answering all
+45 cases, and `--wide --clojure` all 240, exactly as the C does** -- the
+control seen by 41 of the 45 and, wide, as the Go's is (94 keys, 6 pty).
+
+### Where it lives
+
+| file | what |
+|---|---|
+| `crefactor/togo/lower.go` | the lowered form: a function as basic blocks |
+| `crefactor/togo/lower_c.go` | the lowered form printed back as C: `whim skel <editor.c> <dir> -lowerc <out.c>` |
+| `crefactor/togo/clj.go` | the namespace: struct types, the editor's state, initial values, the order, the report |
+| `crefactor/togo/clj_expr.go` | expressions: `java_expr.go`'s decisions on long-valued integers |
+| `crefactor/togo/clj_fn.go` | a function: its steps and terminators printed, its header, initializers, the split |
+| `crefactor/togo/clj_shape.go` | the nesting: joins, loops, state machines |
+| `crefactor/togo/lower_test.go`, `clj_test.go` | the tests |
+
+`whim skel <editor.c> <dir> -clj <out.clj>` writes the namespace and beside it
+`<out.clj>.refused` (empty on `editor.c`), and logs the coverage:
+
+```
+clj: 1693 of 1701 functions written (1358 structured, 334 state machines, 2 of them split), 8 the runtime's, 0 refused
+clj: state machines, by the first thing that would not nest:
+    232  a jump to a block with ways in: a join whose arms change more than one variable it reads, or leave it
+     52  a loop whose changes are read after it
+     36  a loop left to more than one place
+      8  a loop's exit with another way in
+      6  an irreducible loop
+```
+
+The 8 are the Java's: the allocators and `musl_mem*`, whose calls are the
+runtime's. `ga_grow_inner` is a rule of the profile's, as for the Go and the
+Java (`RuntimeBody.Clj`, `internal/whim/gen.go`). The profile also names what
+the host reads of the core's state (`CljExports`: `IObuff`,
+`e_val_too_large`, each a function of the editor).
+
+### Milestone 1: the lowered form
+
+`lowerFunction` turns a C function into basic blocks, entry first and then
+in reverse postorder, each a list of **steps** -- an assignment (`=`, `op=`,
+`++`, `--`, each its own step), a call evaluated for what it does, a
+declared object's initializer -- ended by a jump, a branch, a switch (its
+case values and targets, the default last) or a return. What an expression
+does besides giving its value is taken apart before it into temporaries: an
+assignment inside it (its value the lvalue, read back), `x++` (the old value
+in a temporary), the comma's left operands, a compound literal (storage made
+there), `&&`, `||` and `?:` whose later operands do something (a truth value
+or the chosen arm in a temporary, the operand's steps only where C evaluates
+them). The expressions left are the C's own nodes, read through the
+function's substitutions, so the backends' pattern rules (a cast of the
+growarray's member, `k * sizeof(T)`, a null constant) see what they saw.
+
+**Deviation: calls stay where C has them**, not each in a temporary
+(three-address form in the strict sense): the Java evaluates them in place,
+left to right, and that order is the one the Java editor is proven with. A
+call is taken apart only where it would be evaluated twice -- an lvalue
+read and then written (`*f() += 1`, `a[g()]++`). One order the tests found
+where gcc and Java differ: gcc reads a compound assignment's left side
+after the right side's calls (`g += bump(3)`, `bump` changing `g`); the
+lowering does too (a right side that calls is a temporary first).
+
+**Its tests** (`lower_test.go`): every program of the Java tests, and one of
+its own (if-else arms that both go on, `?:` `&&` `||` with effects as values
+and statements, a goto backwards, a switch in a loop that falls through and
+continues, a case label in a block), lowered, printed back as C, compiled by
+gcc and required to print what the original prints. **And the whole core**:
+`whim skel editor.c D -lowerc L.c`, `L.c` with `whim-vim.c`'s host appended,
+built with the one compile line -- `whim test L` and `whim test --wide L`
+find all 45 and all 240 cases behaving exactly as HEAD's. The first run found
+an if-else whose then-arm jumped into its else-arm, which the programs had
+not reached.
+
+### Milestone 1 and 2: the Clojure printer
+
+**Values.** Every C integer is a Clojure `long` holding the C value -- a
+signed type sign-extended, an unsigned one narrower than 64 bits
+zero-extended, a 64-bit unsigned one its bits -- so C's comparisons,
+division and right shift are Clojure's own, but for 64-bit unsigned
+(`Long/compareUnsigned`, `divideUnsigned`, `remainderUnsigned`,
+`unsigned-bit-shift-right`). What can leave a type's range -- `+ - * <<` and
+unary `-` of a type narrower than 64 bits, `~` of an unsigned one, a
+conversion to a narrower type -- is brought back by the namespace's macros
+`i8 u8 i16 u16 i32 u32` (`(i32 (+ a b))`); what cannot (`& | ^`, a widening,
+a shift right) is written bare. A Java array or runtime pointer holds bits in
+the element's primitive: a load widens them (`(bit-and (.at p i) 0xff)` for
+an unsigned char), a store narrows (`unchecked-byte`). `*unchecked-math*` is
+on. C's `bool` is a Clojure boolean; a test of an integer is `(zero? x)` with
+the `if`'s arms swapped, of a pointer `(nil? p)`. Pointers, arrays, the
+allocators, the functions of bytes, the growarray (`GA_IntPtr` and kin, over
+`Ga`), memcmp of structs, `Ptr/is`: the Java backend's decisions (`jgen`,
+reused, not re-derived), on the same runtime classes.
+
+**Structs: a deftype behind an interface of accessors** (`definterface
+I_S_pos`), its scalar and pointer members mutable fields read `(.lnum p)` and
+written `(.set_lnum p v)`, its struct, array and boxed members final fields
+`(.-w_cursor wp)`; it is a `whim.rt.Struct` (`set`, `zero`, for
+`Rt/moveStructs` and `zeroStructs`) with `copy` and, where some code compares
+it, `eq`; `new-S_x` and `array-S_x` make them. A union is the same, every
+member its own field. **Why a deftype, measured**: a loop of 10^8
+read-modify-writes of a long field and every 1,024th of a pointer field took
+32 ms through the accessor interface and 32 ms through a struct of typed
+slot arrays (`(aget ^longs (.-l r) 3)`) once the JIT settled (51 and 60 ms
+the first round); so the deftype, which is one object where slot arrays are
+three, and reads as the C (`(.lnum pos)` against `(aget (.-l pos) 0)`). A
+deftype's mutable fields are not public -- Clojure's compiler resolves `.-x`
+only on public fields -- hence the interface; a pointer member's accessor
+returns Object, since two struct types that point at each other cannot name
+each other's class in their definitions, and the reader hints it. The 106
+types compile in about 1 s (105 types of 40 fields each, measured apart:
+1.9 s with the JVM's start).
+
+**The editor's state: typed slot arrays**, `(deftype Editor [host ^longs L
+^booleans Z ^objects O])` -- integers in `L`, booleans in `Z`, everything
+else (pointers, arrays, structs, boxes, functions) in `O` -- read `(g ed
+curwin)` and written `(g! ed curwin v)` by macros over a table of every
+object's slot and class. **Why, measured**: a deftype's constructor takes
+every field, and a JVM method takes at most 255 parameter slots (a long two),
+so the 821 objects cannot be one type's fields; several deftypes behind one
+would be a second dereference and a type per group, and the accessor
+interface measured no faster than the slots (above). `(new-editor host)` makes
+the arrays, the objects the slots start with (`make-objects-N`) and the
+initial values (`init-globals-N`, 300 forms each); `(host-of ed)` is the
+host.
+
+**Functions.** `(defn name ^long [^Editor ed ^long a ^BytePtr p] ...)`: the
+editor first, then the C's parameters. Clojure takes primitive parameters and
+results only in functions of at most four parameters: those have `^long`
+integers; a longer one takes Objects and makes its integers `long` as it
+starts. A boolean parameter or result is a Boolean. A call's integer result
+is `(long ...)` (a no-op on a primitive one); a struct is passed and returned
+as a copy. A function used as a value is the function itself (its var's
+value), so two uses compare `identical?` as C's pointers compare; where the
+pointer's parameter classes are not the function's (a `Ptr` against a plain
+struct), a def'd adapter, made once. A call through a pointer is `(fp ed a
+b)`. A function declared and not defined is the host's: `(whim.cljhost/f ed
+...)`. The variadic `vim_snprintf`'s arguments past the format are one
+`(object-array [...])`, boxed as the Java boxes them (an int an `Integer`, an
+unsigned int a `Long` of its value, a pointer itself, NULL nil). Locals: a
+scalar or pointer whose address is taken is a one-element Java array (the
+Java's box), a struct or array local an object made as the function starts;
+neither is ever rebound. Every other local is a binding **rebound by `let`**
+at each assignment. A C name Clojure has (`inc`, `dec` -- vim's own -- and
+any of `clojure.core`'s, the special forms, the namespace's macros) takes a
+trailing underscore, as a Java reserved word does in `Editor.java`: `inc_`,
+`dec_`; `_` is `gettext_` by the profile.
+
+**The nesting** (`clj_shape.go`). Each block's steps are one `let` (a step
+done for what it does bound to `_`), its terminator the `let`'s body: an
+`if`, a `case`, a value. Blocks are then written in place of the one edge
+into them; a **join** of a branch -- where an if's or a switch's arms meet
+again -- is written once after the branch when every path from it reaches the
+join and nothing else, and the arms change at most one variable the join
+reads: `(let [r (if (> x 0) 1 -1)] ...)`, or `(do (if ...) ...)` with none; a
+**natural loop**, where the function is otherwise structured, is `(loop [t t
+i i] ...)` over the variables it changes that its head reads, its back edges
+`recur`, the code after it where it leaves (each exit the one way into what
+follows) -- or, nested in a loop reachable from there, `(do (loop ...)
+after)`, which needs one exit and nothing changed that is read after; a
+small block that returns is written at each way into it. A function all of
+whose blocks nest so is **structured** (1,358); the others (334) are **state
+machines**: `(loop [st 0, x x, ...] (case st 0 ... 1 ...))`, each block no
+rule nests a state, each jump to one `(recur k x ...)` with the variables
+live at some state, and the joins still written in place inside the states.
+A function whose machine is too large for a method is **split** (2:
+`win_line`, `regmatch`): every block a state, the states in groups, each
+group `(defn- f__N ^long [ed fl__ fo__ st])` running its own states on a
+frame of the carried variables (`fl__` their longs, `fo__` the rest and the
+result) and returning the next group's state or -1; the function fills the
+frame and runs the groups. The size is guessed from the text and the
+recurs' width (`Profile.CljSplit`, default 110,000); the largest function
+left whole, `ex_substitute`, compiles.
+
+**The namespace's own limit, found on the way**: compiled ahead of time
+(the glue's build), every top-level form adds about 24 bytes to one method
+of the namespace's class, `load()` -- and 64 KB hold about 2,700. A declare
+of every function (1,700), a def per enumerator (926) and a literal map of
+the slots (built by code in one static initializer) did not fit. So the
+functions are written each after the functions it names (a `declare` only
+for the 40 a cycle or an adapter reaches first -- which also lets a direct-linked
+call see the callee's primitive signature), the enumerators are one table
+read by the macro `(e FAIL)`, and both tables are read from strings. The
+namespace now has about 2,200 top-level forms; a core much larger would need
+the namespace split across files (`load`).
+
+**Measured** (2026-09-25, `editor.c` of 73,632 lines): `whim skel -clj` 4 s;
+`editor.clj` 76,975 lines, 4.6 MB, 1,969 defns and 106 deftypes (105 struct and union types and `Editor`); loaded from
+source (JIT-compiled) in 10-12 s, compiled ahead of time in 9.4 s, 2,357
+classes (11 MB), no reflection warning either way; `go tool whim clj` builds
+`bin/whim-clj` in 23 s; a run to `:q!` in 0.34 s with the AOT cache. `whim
+test --clojure`: the Clojure cases 2.6 s (the Java's 1.1 s); `--wide
+--clojure` 11-13 s.
+
+**The tests** (`clj_test.go`, skipped without gcc, javac, java or clojure;
+each program's run bounded and killed with the test): the programs of the
+Java tests and the lowering's, translated with every function written,
+loaded by `clojure.main` with the runtime and a `whim.cljhost` of the tests'
+(`out`, `outs`, a printf of the boxed arguments), any output on stderr -- a
+reflection warning -- a failure, and required to print what gcc's build
+prints: integers, flow, strings, structs, the profile's allocators and
+functions of bytes, varargs, the growarray, member addresses, function
+pointers and unions, gotos, a dead label. `TestCljSplit` runs four with
+every state machine split; `TestCljShapes` requires a loop, a goto backwards
+and a join structured and a join of two variables a state machine;
+`TestCljControl` undoes one rule at a time -- an unsigned int's range, a
+short's, an unsigned char's widening, 64-bit unsigned division, a struct's
+copy, a function pointer, a join's test -- and each moves the output;
+`TestCljRefuses` names floating point and a variadic definition, the rest of
+the namespace loading and running. `whim gen --check` is clean: the Go and
+the Java do not move.
+
+### For the glue, as built
+
+What the glue assumed (*Milestone 3, as built*) holds: `(new-editor host)`,
+`(host-of ed)`, `(vim_main ed argc argv)` -- argc a long, argv a `Ptr` of
+`BytePtr`s, its value a long; `deathtrap`, `gettext_`, `emsg`, `iemsg`,
+`iobuff_or`, `emsg_iobuff_room`, `utfc_ptr2len`, `utf_ptr2cells` as core
+functions of the editor first; `IObuff` and `e_val_too_large` functions of
+the editor; host functions called with longs, the runtime's pointers and one
+`Object[]`, their integer results read as `(long ...)`; `whim.editor`
+requires `whim.cljhost`; `" INSERT"` once (a block holding a string literal
+is never copied).
+
 ## Risks, named in advance
 
 - **Compile time and size.** One namespace of about 80,000 lines, compiled by
   Clojure's single-pass compiler: measured in milestone 1 on the slice, and
-  split into namespaces if it is slow.
+  split into namespaces if it is slow. (As built: 77,000 lines, 10 s; the
+  limit met was not the time but the namespace class's one load method,
+  above.)
 - **Speed.** Boxed arithmetic or reflection anywhere in a hot path is orders
   of magnitude slower; the reflection check refuses it, and the suite's
   timings show the rest.

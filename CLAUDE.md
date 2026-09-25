@@ -104,9 +104,10 @@ slim-vim.c  --whim-->  whim-vim.c
   Java editor answers all 45 and all 240 as the C does (`doc/JAVA.md`,
   milestone 2), its control seen as the Go's is. **`--clojure`** adds the
   CLOJURE editor (`cljeditor/`) the same way, its control `" INSERT"` changed
-  in the generated `editor.clj`; it waits on the Clojure backend
-  (`doc/CLOJURE.md`, milestones 1-2), and `--clojure-editor F` runs it on a
-  namespace written already. Both suites are exact under load (`internal/suite/stress_test.go`:
+  in the generated `editor.clj`, written by `crefactor/togo`'s Clojure backend
+  (`doc/CLOJURE.md`, milestones 1-2); the Clojure editor answers all 45 and
+  all 240 as the C does, and `--clojure-editor F` runs it on a namespace
+  written already. Both suites are exact under load (`internal/suite/stress_test.go`:
   0 differing runs of 6,720 for the wide suite).
 
 ## What a file is called
@@ -178,9 +179,12 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    shared.go the generic helpers more than one phase uses.
                    togo/: the C-to-Go translator internal/gen runs, and its
                    instance pass (instance.go: the state a struct's fields,
-                   the functions reaching it its methods), and its Java
+                   the functions reaching it its methods), its Java
                    backend (java*.go: `whim skel ... -java F.java`,
-                   doc/JAVA.md). Its tests
+                   doc/JAVA.md), and its Clojure backend (lower*.go, the
+                   lowered form -- a function as basic blocks, `-lowerc
+                   F.c` prints it back as C -- and clj*.go: `whim skel ...
+                   -clj F.clj`, doc/CLOJURE.md). Its tests
                    run in it: `cd crefactor && go test ./...`
 internal/whim/     what the generic side is told about vim: profile.go (the
                    sweep), xform.go, analysis.go (dead's roots, reach's and ccx's
@@ -229,7 +233,7 @@ jeditor/           the editor in Java (doc/JAVA.md), by hand but for Editor.java
                    jeditor.jar: the same as ./jeditor.jar)
 cljeditor/         the editor in Clojure (doc/CLOJURE.md), all by hand but the
                    namespace whim.editor, which the Clojure backend writes (not
-                   yet merged, and not tracked): src/whim/cljhost.clj the glue
+                   tracked): src/whim/cljhost.clj the glue
                    (the C's 17 host functions, the editor first, to jeditor's
                    Host and Printf through interop), src/whim/cljmain.clj the
                    launcher's -main; cljeditor.go the Go that builds it (`go
