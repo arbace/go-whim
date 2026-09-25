@@ -157,21 +157,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"a double quote always starts a comment outside Vim9 script")
 	e.Term("(*p == '#' && vim9script && !(eap->argt & EX_NOTRLCOM) && p > eap->cmd && ((p[-1]) == ' ' || (p[-1]) == '\\t')) || (*p == '|' && eap->cmdidx != CMD_append",
 		"(*p == '|' && eap->cmdidx != CMD_append", 1, "and a hash never does")
-	// The three declarations were told apart by the padding that aligned them
-	// -- `int `, `int     `, `int         ` -- and the canonical text writes
-	// one space, so that discriminator is gone.  The one that replaces it is
-	// the FUNCTION each declaration sits in: do_one_cmd, parse_command_modifiers
-	// and separate_nextcmd have one apiece, so the count stays 1 three times
-	// over and the phase says the same line three times, as it did.
-	for _, fn := range []string{"do_one_cmd", "parse_command_modifiers", "separate_nextcmd"} {
-		e.InFunction(fn, func(e *edit.E) {
-			e.Lines(`int vim9script = in_vim9script\(\);`, 1, "the local that recorded it")
-		})
-	}
+	// The three vim9script locals, in do_one_cmd, parse_command_modifiers and
+	// separate_nextcmd, are named by nothing now; the sweep takes them.
 	e.FoldAlways(`(?m)^[ \t]*if \(may_have_range\)$`, "skipping a range that is always allowed")
 	e.FoldNever(`(?m)^[ \t]*if \(!may_have_range\)$`, "the default address for a range that cannot be absent")
 	e.Lines(`may_have_range = TRUE;`, 1, "the flag nothing decides any more")
-	e.Lines(`int may_have_range;`, 1, "and its declaration")
 	e.FoldNever(`(?m)^[ \t]*if \(in_vim9script\(\) && \*p == '\\'' && \(\(unsigned\)\(p\[1\]\) - '0' < 10\)\)$`,
 		"a digit separator in a Vim9 number literal")
 	e.FoldNever(`(?m)^[ \t]*if \(in_vim9script\(\) && \*p == '#'\)$`, "a hash comment ending a Vim9 command")
@@ -224,7 +214,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.FoldNever(`(?m)^[ \t]*if \(!finish_op && has_textchanged\(\) && `, "and the change tick for TextChanged")
 	e.DropIfCount(`(?m)^[ \t]*if \(need_check_timestamps\)$`, 3, "three checks for a file changed outside the editor")
 	e.Lines(`need_check_timestamps = TRUE;`, 1, "asking for one")
-	e.Lines(`static int need_check_timestamps = FALSE;`, 1, "and the flag itself")
 	e.Lines(`need_redraw = check_timestamps\(FALSE\);`, 1, "the timestamp check on focus")
 	e.FoldNever(`(?m)^[ \t]*if \(need_redraw\)$`, "and the redraw it asked for")
 	e.Lines(`\(void\)append_arg_number\(curwin, \(char_u \*\)buffer \+ bufferlen, \(1024 \+ 1\) - bufferlen, !shortmess\(SHM_FILE\)\);`, 1,
