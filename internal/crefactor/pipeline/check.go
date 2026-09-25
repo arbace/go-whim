@@ -1,11 +1,10 @@
-package build
+package pipeline
 
 import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"github.com/arbace/go-whim/internal/whim"
 	"io"
 	"os"
 	"path/filepath"
@@ -25,33 +24,31 @@ import (
 //
 // It touches no shared state: its scratch and its sweep's file are temporary
 // directories of its own, which is what lets Check run phases side by side.
-func Advance(p Phase, text []byte, w io.Writer) ([]byte, error) {
+func (c *Config) Advance(p Phase, text []byte, w io.Writer) ([]byte, error) {
 	if p.NoSource {
 		return text, nil
 	}
-	scratch, err := os.MkdirTemp("", fmt.Sprintf("whim%03d.", p.N))
+	scratch, err := os.MkdirTemp("", fmt.Sprintf("%s%03d.", c.Name, p.N))
 	if err != nil {
 		return nil, err
 	}
 	defer os.RemoveAll(scratch)
-	out, err := RunPhase(p, text, scratch, w)
+	out, err := c.RunPhase(p, text, scratch, w)
 	if err != nil {
 		return nil, err
 	}
-	return finish(p, out, scratch, w)
+	return c.finish(out, scratch, w)
 }
 
 // finish is what follows every phase's steps: the sweep, and the canonical
 // print.  There are no stages -- no phase hands on a text the sweep has not
-// seen, and every text a phase hands on is C: phases 69 and 74, which removed
-// a typedef while prototypes naming it waited for a later sweep, leave the
-// typedef to the sweep now, which takes it with them.
-func finish(p Phase, text []byte, scratch string, w io.Writer) ([]byte, error) {
-	path := filepath.Join(scratch, "whim-vim.c")
+// seen, and every text a phase hands on is C.
+func (c *Config) finish(text []byte, scratch string, w io.Writer) ([]byte, error) {
+	path := filepath.Join(scratch, c.WorkName)
 	if err := os.WriteFile(path, text, 0o644); err != nil {
 		return nil, err
 	}
-	if _, err := sweep.Sweep(path, w, whim.Profile.Sweep); err != nil {
+	if _, err := sweep.Sweep(path, w, c.Sweep); err != nil {
 		return nil, err
 	}
 	text, err := os.ReadFile(path)
@@ -65,27 +62,31 @@ func finish(p Phase, text []byte, scratch string, w io.Writer) ([]byte, error) {
 	return canon, nil
 }
 
-// SNAPSHOTS.  A complete build from phase 0 keeps every boundary it produced
-// in .cache/boundaries/ -- qNNN.c, the canonical text after phase NNN -- and
-// then writes `manifest`, the digest of the input they came from.  A manifest
-// that names the input on disk means the set is whole and is that input's.
-const SnapDir = ".cache/boundaries"
+// SNAPSHOTS.  A complete run from phase 0 keeps every boundary it produced in
+// SnapDir -- qNNN.c, the canonical text after phase NNN -- and then writes
+// `manifest`, the digest of the input they came from.  A manifest that names
+// the input on disk means the set is whole and is that input's.
 
-func snapPath(n int) string { return filepath.Join(SnapDir, fmt.Sprintf("q%03d.c", n)) }
+func (c *Config) snapPath(n int) string {
+	return filepath.Join(c.SnapDir, fmt.Sprintf("q%03d.c", n))
+}
 
 func digestOf(b []byte) string {
 	s := sha256.Sum256(b)
 	return hex.EncodeToString(s[:])
 }
 
-// snapshotsFor says whether .cache/boundaries holds a whole set for src.
-func snapshotsFor(src []byte) bool {
-	m, err := os.ReadFile(filepath.Join(SnapDir, "manifest"))
+// snapshotsFor says whether SnapDir holds a whole set for src.
+func (c *Config) snapshotsFor(src []byte) bool {
+	if c.SnapDir == "" {
+		return false
+	}
+	m, err := os.ReadFile(filepath.Join(c.SnapDir, "manifest"))
 	if err != nil || strings.TrimSpace(string(m)) != digestOf(src) {
 		return false
 	}
-	for _, p := range Plan {
-		if _, err := os.Stat(snapPath(p.N)); err != nil {
+	for _, p := range c.Plan {
+		if _, err := os.Stat(c.snapPath(p.N)); err != nil {
 			return false
 		}
 	}
@@ -100,18 +101,21 @@ func snapshotsFor(src []byte) bool {
 // of the input is q000, and for every phase N, Advance on q(N-1) is qN.  Those
 // together are the induction the sequential run would have walked, so the
 // last snapshot is what the pipeline gives; a phase whose program changed
-// breaks its own link and is named.  jobs phases run at a time; 0 means as
-// many as fit (runtime.NumCPU; measured, 64 at once peak at 14 GB and finish in 77 s).
+// breaks its own link and is named.  jobs phases run at a time; 0 means
+// runtime.NumCPU.
 //
 // Without snapshots it runs the pipeline in order, which writes them.
-func Check(o *Options, jobs int) ([]byte, error) {
+func (c *Config) Check(o *Options, jobs int) ([]byte, error) {
+	if o.W == nil {
+		o.W = io.Discard
+	}
 	src, err := os.ReadFile(o.Src)
 	if err != nil {
 		return nil, err
 	}
-	if !snapshotsFor(src) {
-		fmt.Fprintf(o.W, "  check        no snapshots of this input in %s -- running the pipeline in order, which writes them\n", SnapDir)
-		return Run(o)
+	if !c.snapshotsFor(src) {
+		fmt.Fprintf(o.W, "  check        no snapshots of this input in %s -- running the pipeline in order, which writes them\n", c.SnapDir)
+		return c.Run(o)
 	}
 	if jobs <= 0 {
 		jobs = runtime.NumCPU()
@@ -121,8 +125,8 @@ func Check(o *Options, jobs int) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("phase 0: %w", err)
 	}
-	if q0, _ := os.ReadFile(snapPath(0)); !bytes.Equal(seed, q0) {
-		return nil, fmt.Errorf("phase 0: the seed of %s is not %s", o.Src, snapPath(0))
+	if q0, _ := os.ReadFile(c.snapPath(0)); !bytes.Equal(seed, q0) {
+		return nil, fmt.Errorf("phase 0: the seed of %s is not %s", o.Src, c.snapPath(0))
 	}
 
 	type result struct {
@@ -136,25 +140,25 @@ func Check(o *Options, jobs int) ([]byte, error) {
 		wg      sync.WaitGroup
 		sem     = make(chan struct{}, jobs)
 	)
-	for i := 1; i < len(Plan); i++ {
-		p, prev := Plan[i], Plan[i-1]
+	for i := 1; i < len(c.Plan); i++ {
+		p, prev := c.Plan[i], c.Plan[i-1]
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			sem <- struct{}{}
 			defer func() { <-sem }()
 			var log bytes.Buffer
-			in, err := os.ReadFile(snapPath(prev.N))
+			in, err := os.ReadFile(c.snapPath(prev.N))
 			var out, want []byte
 			if err == nil {
-				out, err = Advance(p, in, &log)
+				out, err = c.Advance(p, in, &log)
 			}
 			if err == nil {
-				want, err = os.ReadFile(snapPath(p.N))
+				want, err = os.ReadFile(c.snapPath(p.N))
 			}
 			if err == nil && !bytes.Equal(out, want) {
 				err = fmt.Errorf("gives %d lines where %s holds %d -- the phase no longer does what it did when the snapshots were made",
-					bytes.Count(out, []byte("\n")), snapPath(p.N), bytes.Count(want, []byte("\n")))
+					bytes.Count(out, []byte("\n")), c.snapPath(p.N), bytes.Count(want, []byte("\n")))
 			}
 			if err != nil {
 				mu.Lock()
@@ -168,13 +172,13 @@ func Check(o *Options, jobs int) ([]byte, error) {
 		for _, r := range results {
 			fmt.Fprintf(o.W, "  phase %-6d %v\n", r.n, r.err)
 		}
-		return nil, fmt.Errorf("check: %d of %d phases do not reproduce their snapshot", len(results), len(Plan)-1)
+		return nil, fmt.Errorf("check: %d of %d phases do not reproduce their snapshot", len(results), len(c.Plan)-1)
 	}
-	last, err := os.ReadFile(snapPath(Plan[len(Plan)-1].N))
+	last, err := os.ReadFile(c.snapPath(c.Plan[len(c.Plan)-1].N))
 	if err != nil {
 		return nil, err
 	}
 	fmt.Fprintf(o.W, "  check        %d phases, each from its snapshot, %d at a time: every one reproduces the next, %ds\n",
-		len(Plan)-1, jobs, int(time.Since(start).Seconds()))
+		len(c.Plan)-1, jobs, int(time.Since(start).Seconds()))
 	return last, nil
 }

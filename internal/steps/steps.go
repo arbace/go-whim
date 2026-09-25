@@ -21,8 +21,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cemit"
 	"github.com/arbace/go-whim/internal/cmdtab"
+	"github.com/arbace/go-whim/internal/crefactor/pipeline"
 	"github.com/arbace/go-whim/internal/cut"
 	"github.com/arbace/go-whim/internal/dead"
 	"github.com/arbace/go-whim/internal/edit"
@@ -101,7 +101,7 @@ var ops = map[string]Step{
 	"edit":        runEdit,
 	"query":       runQuery,
 
-	"cemit":             cemitStep,
+	"cemit":             Step(pipeline.Canonical),
 	"includes":          Includes,
 	"query-empty":       queryEmpty,
 	"query-dropoptions": queryDropOptions,
@@ -382,38 +382,4 @@ func MinMax() ([]byte, error) {
 		return nil, fmt.Errorf("the MIN/MAX probe gave %d lines, not 2", len(keep))
 	}
 	return []byte(strings.Join(keep, "\n") + "\n"), nil
-}
-
-// cemitStep is `cemit`: the text in one canonical C23 form (internal/cemit).
-// The front end needs a path, so the text is handed to it as one.
-func cemitStep(t []byte, args []string, w io.Writer) ([]byte, error) {
-	f, err := os.CreateTemp("", "cemit.*.c")
-	if err != nil {
-		return nil, err
-	}
-	defer os.Remove(f.Name())
-	if _, err := f.Write(t); err != nil {
-		f.Close()
-		return nil, err
-	}
-	if err := f.Close(); err != nil {
-		return nil, err
-	}
-	out, err := cemit.Canonical(f.Name(), t)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Fprintf(w, "  canonical    %d lines from %d, one form per construct\n",
-		lines(out), lines(t))
-	return out, nil
-}
-
-func lines(b []byte) int {
-	n := 0
-	for _, c := range b {
-		if c == '\n' {
-			n++
-		}
-	}
-	return n
 }

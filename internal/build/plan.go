@@ -1,5 +1,7 @@
-// Package build runs the pipeline: slim-vim.c in, whim-vim.c out, in one
-// process and in memory.
+// Package build is whim's pipeline: slim-vim.c in, whim-vim.c out, in one
+// process and in memory.  The driver is generic (internal/crefactor/pipeline);
+// what is whim's is here -- this plan, the file names, and how the plan's
+// non-literal arguments are resolved (build.go's config).
 //
 // THE PLAN IS THE PIPELINE.  Each phase is a sequence of named steps
 // (internal/steps), then the sweep, then the canonical print.  A step may be
@@ -28,21 +30,15 @@
 //	           which is what the phase declares in internal/phase/080/delta.md.
 package build
 
-// A Step is one call: an op in internal/steps and its arguments.
-type Step struct {
-	Op       string
-	Args     []string
-	Declared bool // the phase's declared tokens go in REMOVED (phase 80)
-}
+import "github.com/arbace/go-whim/internal/crefactor/pipeline"
 
-// A Phase is what one phase of the pipeline does to the source.
-type Phase struct {
-	N        int
-	Name     string
-	Seed     bool // phase 0: the tree is the input, printed canonically
-	NoSource bool // the phase changes no source at all (83, 86, 116, 123)
-	Steps    []Step
-}
+// Step and Phase are the generic driver's (internal/crefactor/pipeline): a
+// Step marked Declared is handed REMOVED, which config sets from the phase's
+// delta.md.
+type (
+	Step  = pipeline.Step
+	Phase = pipeline.Phase
+)
 
 // Plan is the pipeline, phase by phase.
 var Plan = []Phase{
