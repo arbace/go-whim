@@ -76,10 +76,6 @@ func NoOwner(text []byte, w io.Writer) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	text, err = cutCounted(text, `(?m)^enum \{ ROOT_UID = 0 \};\n`, "noowner", "the ROOT_UID enumerator", 1)
-	if err != nil {
-		return nil, err
-	}
 	fmt.Fprintln(w, "  noowner      'modeline' stops asking whether this is root")
 
 	text, err = cutCounted(text,
@@ -121,34 +117,14 @@ func NoOwner(text []byte, w io.Writer) ([]byte, error) {
 	text = append(buf, text[end:]...)
 
 	// `flen` was the length the user name would have been spliced in front of.
-	// -Wunused-but-set-variable is not a shape deadsweep deletes, so the
-	// assignment becomes a plain call and the declaration is named here.
+	// The assignment becomes a plain call; the declaration is the sweep's.
 	if !bytes.Contains(text, []byte(flenOld)) {
 		return nil, fmt.Errorf("noowner: set_b0_fname's home_replace is not where this expects")
 	}
 	text = bytes.Replace(text, []byte(flenOld), []byte(flenNew), 1)
-	if text, err = cutCounted(text, `(?m)^[ \t]*size_t flen;\n`, "noowner",
-		"set_b0_fname's flen", 1); err != nil {
-		return nil, err
-	}
 
-	// And the field it wrote into.  A STRUCT FIELD IS NOT A VARIABLE: no
-	// warning names one that nothing reads, and the dead-code sweep cannot see
-	// it.  The layout of block zero does not matter -- nothing writes it to a
-	// disk and nothing reads one back -- and there is no assertion on its size.
-	if text, err = cutCounted(text, `(?m)^[ \t]*char_u b0_uname\[B0_UNAME_SIZE\];\n`,
-		"noowner", "block zero's b0_uname field", 1); err != nil {
-		return nil, err
-	}
-	if text, err = cutCounted(text, `(?m)^enum \{ B0_UNAME_SIZE = 40 \};\n`,
-		"noowner", "B0_UNAME_SIZE", 1); err != nil {
-		return nil, err
-	}
-
-	var ok bool
-	if text, ok = cutil.DeleteDefinition(text, "get_user_name"); !ok {
-		return nil, fmt.Errorf("noowner: get_user_name is not defined at file scope")
-	}
+	// The b0_uname field it wrote into, B0_UNAME_SIZE and get_user_name are the
+	// sweep's: nothing names them now.
 	fmt.Fprintln(w, "  noowner      who wrote the swap file, a stub since Phase 20")
 
 	fmt.Fprintf(w, "  noowner      %d identity mentions left for the sweep\n",

@@ -154,23 +154,16 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  nobackup     thirteen tests that asked whether a backup happened")
 
-	for _, name := range []string{"vim_rename", "vim_copyfile", "set_file_time", "get_bkc_flags"} {
-		var ok bool
-		if text, ok = cutil.DeleteDefinition(text, name); !ok {
-			return nil, fmt.Errorf("nobackup: %s is not defined at file scope", name)
-		}
-	}
-	fmt.Fprintln(w, "  nobackup     vim_rename and vim_copyfile: readlink, symlink, rename")
-	fmt.Fprintln(w, "  nobackup     set_file_time: utime")
-
-	for _, name := range []string{"mch_get_acl", "mch_set_acl"} {
+	// get_bkc_flags reads b_p_bkc, and droplocal b_p_bkc runs later in this
+	// phase with no sweep between; vim_rename, vim_copyfile and set_file_time
+	// are the sweep's.
+	for _, name := range []string{"get_bkc_flags"} {
 		var ok bool
 		if text, ok = cutil.DeleteDefinition(text, name); !ok {
 			return nil, fmt.Errorf("nobackup: %s is not defined at file scope", name)
 		}
 	}
 	for _, c := range []struct{ pat, what string }{
-		{`(?m)^[ \t]*vim_acl_T[ \t]+acl = NULL;\n`, "buf_write's acl"},
 		{`(?m)^[ \t]*\{\n[ \t]*acl = mch_get_acl\(fname\);\n[ \t]*\}\n`, "buf_write's mch_get_acl"},
 		{`(?m)^[ \t]*mch_set_acl\(wfname, acl\);\n`, "the ACL put back"},
 	} {
@@ -178,34 +171,18 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 	}
-	var ok bool
-	if text, ok = cutil.DeleteDefinition(text, "mch_free_acl"); !ok {
-		return nil, fmt.Errorf("nobackup: mch_free_acl is not defined at file scope")
-	}
 	if text, err = cutCounted(text, `(?m)^[ \t]*mch_free_acl\(acl\);\n`,
 		"nobackup", "buf_write's mch_free_acl", 1); err != nil {
 		return nil, err
 	}
-	// Their forward declarations go here rather than in the sweep: the sweep
-	// has to compile the file first, and a prototype that names a type this
-	// removes is an error, not a warning.
-	if text, err = cutCounted(text,
-		`(?m)^static vim_acl_T mch_get_acl\(char_u \*fname\);\n`+
-			`\n`+
-			`static void mch_set_acl\(char_u \*fname, vim_acl_T aclent\);\n`+
-			`\nstatic void mch_free_acl\(vim_acl_T aclent\);\n`,
-		"nobackup", "the three ACL declarations", 1); err != nil {
-		return nil, err
-	}
-	if text, err = cutCounted(text, `(?m)^typedef void \*vim_acl_T;\n`,
-		"nobackup", "the vim_acl_T type", 1); err != nil {
-		return nil, err
-	}
+	// The three ACL functions, their declarations, the acl local and the
+	// vim_acl_T type are the sweep's once these calls are gone.
 	fmt.Fprintln(w, "  nobackup     the ACL calls, which were stubs in this build")
 
 	// set_init_default_backupskip() builds 'backupskip' from /tmp at startup
 	// and looks the row up BY NAME -- the lookup that returns -1 for a row
 	// that is not there, is not checked, and indexes options[-1].
+	var ok bool
 	if text, ok = cutil.DeleteDefinition(text, "set_init_default_backupskip"); !ok {
 		return nil, fmt.Errorf("nobackup: set_init_default_backupskip is not defined")
 	}
@@ -257,10 +234,6 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nobackup     the two `is this option a directory?` tests")
 
 	for _, c := range []struct{ pat, what string }{
-		{`(?m)^[ \t]*char_u \*backup = NULL;\n`, "backup"},
-		{`(?m)^[ \t]*int backup_copy = FALSE;\n`, "backup_copy"},
-		{`(?m)^[ \t]*int dobackup;\n`, "dobackup"},
-		{`(?m)^[ \t]*char_u \*backup_ext;\n`, "backup_ext"},
 		{`(?m)^[ \t]*unsigned int bkc = get_bkc_flags\(buf\);\n`, "bkc"},
 		{`(?m)^[ \t]*dobackup = \(p_wb \|\| p_bk \|\| \*p_pm != NUL\);\n`, "its one assignment"},
 		{`(?m)^[ \t]*vim_free\(backup\);\n`, "the free of backup"},
