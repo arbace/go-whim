@@ -55,7 +55,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"history navigation remembered for the wildcard trigger")
 		e.DropIf(fmt.Sprintf(`(?m)^[ \t]*if \(c != p_wc && c == [ \t]*%s[ \t]*&& xpc\.xp_numfiles > 0\)$`, edit.Key("k", "B")),
 			"S-Tab stepping back through matches")
-		e.Cut(`(?m)^[ \t]*int key_is_wc = [^\n]*;\n`, 1, "the 'wildchar' key test")
 		e.DropIf(`(?m)^[ \t]*if \(\(did_wild_list\) && !key_is_wc && xpc\.xp_numfiles > 0\)$`,
 			"CTRL-E and CTRL-Y over a match list")
 		e.DropIf(`(?m)^[ \t]*if \(\(c == ESC \|\| c == Ctrl_C\) && \(wim_flags\[0\] & WIM_LIST\)\)$`,

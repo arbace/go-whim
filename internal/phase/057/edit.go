@@ -52,11 +52,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 
 	// findmatchlimit carried a lisp comment state through the whole scan, so
-	// this is ten acts rather than one: two locals, six conditions that named
-	// them and two that named b_p_lisp directly.
+	// this is eight acts rather than one: six conditions that named its two
+	// locals and two that named b_p_lisp directly.  The locals themselves,
+	// named by nothing after that, go to the sweep.
 	e.InFunction("findmatchlimit", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*int[ \t]+lispcomm = FALSE;\n`, 1, "% without a lisp comment state")
-		e.Cut(`(?m)^[ \t]*int[ \t]+lisp = curbuf->b_p_lisp;\n`, 1, "% without lisp mode")
 		e.Literal("if ((backwards && comment_dir) || lisp || skip_comments)",
 			"if ((backwards && comment_dir) || skip_comments)",
 			"% looking for a comment only for a comment direction or FM_SKIPCOMM")

@@ -207,20 +207,18 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-// Whim62BL takes 'buflisted”s field and its get_varp case.  A second entry,
-// standing where its heredoc stood.
+// Whim62BL takes 'buflisted”s get_varp case; the field, named by nothing
+// after it, goes to the sweep.  A second entry, standing where its heredoc
+// stood.
 func Whim62BL(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nobufopts", text, w)
-	fieldPat := `(?m)^[ \t]*int[ \t]+b_p_bl;\n`
-	casePat := `(?m)^[ \t]*case[^\n]*\bBV_BL\b[^\n]*\n[ \t]*return \(char_u \*\)&\(curbuf->b_p_bl\);\n`
-	a := len(regexp.MustCompile(fieldPat).FindAll(e.Text(), -1))
-	b := len(regexp.MustCompile(casePat).FindAll(e.Text(), -1))
-	if a != 1 || b != 1 {
-		e.Refuse("b_p_bl's field and get_varp case matched %d and %d times, expected 1 and 1", a, b)
+	casePat := regexp.MustCompile(`(?m)^[ \t]*case[^\n]*\bBV_BL\b[^\n]*\n[ \t]*return \(char_u \*\)&\(curbuf->b_p_bl\);\n`)
+	if b := len(casePat.FindAll(e.Text(), -1)); b != 1 {
+		e.Refuse("b_p_bl's get_varp case matched %d times, expected 1", b)
 		return e.Done()
 	}
-	e.Set(regexp.MustCompile(casePat).ReplaceAll(regexp.MustCompile(fieldPat).ReplaceAll(e.Text(), nil), nil))
-	e.Say("'buflisted''s field and get_varp case removed")
+	e.Set(casePat.ReplaceAll(e.Text(), nil))
+	e.Say("'buflisted''s get_varp case removed")
 	return e.Done()
 }
 
