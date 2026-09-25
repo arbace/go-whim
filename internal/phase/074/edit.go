@@ -68,7 +68,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// with no file marks there is nothing to reattach.  With its two calls
 	// gone the sweep takes it, fname2fnum (folded empty in phase 70), namedfm
 	// and EXTRA_MARKS.
-	e.Lines(`fmarks_check_names\(buf\);`, 2, "the two calls that rematched file marks")
+	e.Cut(edit.Line("fmarks_check_names(buf);"), 2, "the two calls that rematched file marks")
 	return e.Done()
 }
 

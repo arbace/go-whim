@@ -85,14 +85,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	e.Literal(" || (is_mouse_key(n) && n != (-((KS_EXTRA) + ((int)(KE_LEFTMOUSE) << 8))))", "", 1,
 		"the input loop asking whether a key is a mouse key")
-	e.Lines(`reset_dragwin\(\);`, 2, "the two calls that forgot the dragged window")
-	e.Lines(`reset_held_button\(\);`, 1, "the call that forgot the held button")
+	e.Cut(edit.Line("reset_dragwin();"), 2, "the two calls that forgot the dragged window")
+	e.Cut(edit.Line("reset_held_button();"), 1, "the call that forgot the held button")
 	// mouse_row/col and old_mouse_row/col are a closed loop: saved here,
 	// restored there, read by nothing else.
-	e.Lines(`mouse_row = old_mouse_row;`, 1, "restoring the mouse row")
-	e.Lines(`mouse_col = old_mouse_col;`, 1, "restoring the mouse column")
-	e.Lines(`old_mouse_row = mouse_row;`, 1, "saving the mouse row")
-	e.Lines(`old_mouse_col = mouse_col;`, 1, "saving the mouse column")
+	e.Cut(edit.Line("mouse_row = old_mouse_row;"), 1, "restoring the mouse row")
+	e.Cut(edit.Line("mouse_col = old_mouse_col;"), 1, "restoring the mouse column")
+	e.Cut(edit.Line("old_mouse_row = mouse_row;"), 1, "saving the mouse row")
+	e.Cut(edit.Line("old_mouse_col = mouse_col;"), 1, "saving the mouse column")
 
 	one := e.Query(mouseNameOneLine, 1)
 	e.Expect(len(one) == 13, "key_names_table -- %d single-line mouse names, expected 13: %s", len(one), strings.Join(one, " "))
@@ -125,13 +125,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	for _, s := range writeOnlyStatics {
 		e.Lines(s.writes, s.n, s.writesWhat)
 	}
-	e.Lines(`frame_locked\+\+;`, 1, "the lock it took")
-	e.Lines(`frame_locked--;`, 1, "the lock it released")
-	e.Lines(`swap_exists_did_quit = TRUE;`, 1, "its one write")
-	e.Lines(`did_swapwrite_msg = FALSE;`, 1, "its one write")
-	e.Lines(`autocmd_nested = ac->nested;`, 1, "its one write")
-	e.Lines(`oldtitle_outdated = TRUE;`, 1, "its one write")
-	e.Lines(`deadly_signal = sigarg;`, 1, "the signal number it recorded")
+	e.Cut(edit.Line("frame_locked++;"), 1, "the lock it took")
+	e.Cut(edit.Line("frame_locked--;"), 1, "the lock it released")
+	e.Cut(edit.Line("swap_exists_did_quit = TRUE;"), 1, "its one write")
+	e.Cut(edit.Line("did_swapwrite_msg = FALSE;"), 1, "its one write")
+	e.Cut(edit.Line("autocmd_nested = ac->nested;"), 1, "its one write")
+	e.Cut(edit.Line("oldtitle_outdated = TRUE;"), 1, "its one write")
+	e.Cut(edit.Line("deadly_signal = sigarg;"), 1, "the signal number it recorded")
 	// mr_patternlen's two writes are a whole if/else, so the test goes with them.
 	e.Cut(edit.Line("if (mr_pattern == NULL)", "{", "mr_patternlen = 0;", "}", "else", "{", "mr_patternlen = patlen;", "}"), 1,
 		"mr_patternlen's if/else")

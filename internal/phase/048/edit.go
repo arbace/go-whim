@@ -25,7 +25,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"the :noswapfile modifier")
 	})
 	e.InFunction("set_context_by_cmdname", func(e *edit.E) {
-		e.Lines(`case CMD_noswapfile:`, 1, "completion for :noswapfile")
+		e.Cut(edit.Line("case CMD_noswapfile:"), 1, "completion for :noswapfile")
 	})
 	e.InFunction("ml_open", func(e *edit.E) {
 		e.DropIf(noswapTest, 1, "ml_open asking for it")

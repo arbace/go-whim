@@ -70,7 +70,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"g? reaching the operator with a search pending")
 	})
 	e.InFunction("do_pending_operator", func(e *edit.E) {
-		e.Lines(`case OP_ROT13:`, 1, "rot13 sharing the case-change dispatch")
+		e.Cut(edit.Line("case OP_ROT13:"), 1, "rot13 sharing the case-change dispatch")
 	})
 	e.InFunction("swapchar", func(e *edit.E) {
 		e.DropIf(edit.Head("if (c >= 0x80 && op_type == OP_ROT13)"), 1, "rot13 refusing a multibyte character")

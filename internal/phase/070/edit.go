@@ -82,12 +82,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal(w70lit12, "", 1, "reading stdin answering it")
 	})
 	e.InFunction("ml_open", func(e *edit.E) {
-		e.Lines(`buf->b_may_swap = false;`, 1, "ml_open clearing b_may_swap")
+		e.Cut(edit.Line("buf->b_may_swap = false;"), 1, "ml_open clearing b_may_swap")
 	})
 	e.InFunction("changed", func(e *edit.E) {
 		e.FoldNever(edit.Head("if (curbuf->b_may_swap)"), 1, "the first change to a buffer opening a swap file")
 	})
-	e.Lines(`check_need_swap\(newfile\);`, 2, "the two calls that asked for a swap file")
+	e.Cut(edit.Line("check_need_swap(newfile);"), 2, "the two calls that asked for a swap file")
 	// handle_swap_exists(), check_swap_exists_action(), check_need_swap(),
 	// ml_open_file(), swap_exists_action, the SEA_* actions and the
 	// b_may_swap field are named by nothing live now; the sweep takes them.

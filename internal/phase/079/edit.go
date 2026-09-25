@@ -153,7 +153,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// separate_nextcmd, are named by nothing now; the sweep takes them.
 	e.FoldAlways(edit.Head("if (may_have_range)"), 1, "skipping a range that is always allowed")
 	e.FoldNever(edit.Head("if (!may_have_range)"), 1, "the default address for a range that cannot be absent")
-	e.Lines(`may_have_range = TRUE;`, 1, "the flag nothing decides any more")
+	e.Cut(edit.Line("may_have_range = TRUE;"), 1, "the flag nothing decides any more")
 	e.FoldNever(edit.Head(`if (in_vim9script() && *p == '\'' && ((unsigned)(p[1]) - '0' < 10))`), 1,
 		"a digit separator in a Vim9 number literal")
 	e.FoldNever(edit.Head("if (in_vim9script() && *p == '#')"), 1, "a hash comment ending a Vim9 command")
@@ -203,13 +203,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.FoldNever(`(?m)^[ \t]*if \(!finish_op && \(has_cursormoved\(\)\) && !\(`, 1, "tracking the cursor for CursorMoved")
 	e.FoldNever(`(?m)^[ \t]*if \(!finish_op && has_textchanged\(\) && `, 1, "and the change tick for TextChanged")
 	e.DropIf(edit.Head("if (need_check_timestamps)"), 3, "three checks for a file changed outside the editor")
-	e.Lines(`need_check_timestamps = TRUE;`, 1, "asking for one")
-	e.Lines(`need_redraw = check_timestamps\(FALSE\);`, 1, "the timestamp check on focus")
+	e.Cut(edit.Line("need_check_timestamps = TRUE;"), 1, "asking for one")
+	e.Cut(edit.Line("need_redraw = check_timestamps(FALSE);"), 1, "the timestamp check on focus")
 	e.FoldNever(edit.Head("if (need_redraw)"), 1, "and the redraw it asked for")
-	e.Lines(`\(void\)append_arg_number\(curwin, \(char_u \*\)buffer \+ bufferlen, \(1024 \+ 1\) - bufferlen, !shortmess\(SHM_FILE\)\);`, 1,
+	e.Cut(edit.Line("(void)append_arg_number(curwin, (char_u *)buffer + bufferlen, (1024 + 1) - bufferlen, !shortmess(SHM_FILE));"), 1,
 		"appending the argument-list position to the file message")
 	e.Literal(w79lit1, w79lit2, 1, "reading a here-document for a command that cannot run")
-	e.Lines(`bom_count = bomb_size\(\);`, 1, "counting the byte order mark")
+	e.Cut(edit.Line("bom_count = bomb_size();"), 1, "counting the byte order mark")
 	e.FoldNever(edit.Head("if (dict == NULL && bom_count > 0)"), 1, "and reporting it")
 	e.Literal(w79lit3, w79lit4, 1, "the window-or-tab count for a bare range")
 	for _, f := range []struct {
@@ -223,7 +223,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			fmt.Sprintf("there is one window and one tabpage (%s(%s))", f.fn, f.arg))
 	}
 	e.Literal(w79lit5, w79lit6, 1, "the minimum rows needed, without a tab line")
-	e.Lines(`total \+= tabline_height\(\);`, 1, "the tab line in the all-tabpages minimum")
+	e.Cut(edit.Line("total += tabline_height();"), 1, "the tab line in the all-tabpages minimum")
 	e.Literal("int row = tabline_height();", "int row = 0;", 1, "window layout starting at the top row")
 	e.Literal("(Rows - p_ch - tabline_height())", "(Rows - p_ch)", 5, "five window heights with no tab line to subtract")
 	e.Literal("tabline_height() + topframe->fr_height", "topframe->fr_height", 1, "and the 'cmdheight' consistency check")

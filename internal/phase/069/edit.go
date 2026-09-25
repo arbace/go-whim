@@ -112,7 +112,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Cut(edit.Line("newp->w_alist = oldp->w_alist;", "++newp->w_alist->al_refcount;", "newp->w_arg_idx = oldp->w_arg_idx;"), 1,
 			"a new window inheriting the argument list")
 	})
-	e.Lines(`curwin->w_arg_idx = -1;`, 1, "the index a swap-file quit invalidated")
+	e.Cut(edit.Line("curwin->w_arg_idx = -1;"), 1, "the index a swap-file quit invalidated")
 	// The window's argument-list fields are named by nothing after this, and
 	// the sweep takes them.
 
@@ -133,7 +133,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Cut(edit.Line("alist_init(&global_alist);", "global_alist.id = 0;"), 1, "the argument list set up at startup")
 	})
 	e.InFunction("win_alloc_firstwin", func(e *edit.E) {
-		e.Lines(`curwin->w_alist = &global_alist;`, 1, "the one window pointing at it")
+		e.Cut(edit.Line("curwin->w_alist = &global_alist;"), 1, "the one window pointing at it")
 	})
 
 	// and the count message, which one file argument can never satisfy

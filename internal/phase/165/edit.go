@@ -43,7 +43,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	// the column within the row, which nothing after asks for
 	e.InFunction("adjust_skipcol", func(e *edit.E) {
-		e.Lines(`col = col % width2;`, 1, "adjust_skipcol's col % width2")
+		e.Cut(edit.Line("col = col % width2;"), 1, "adjust_skipcol's col % width2")
 	})
 	// the line after the put, stepped back once the loop is done with it
 	e.InFunction("do_put", func(e *edit.E) {

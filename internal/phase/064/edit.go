@@ -115,19 +115,19 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.DropIf(`(?m)^[ \t]*if \(lead_len > 0\)\n[ \t]*\{\n[ \t]*char_u[ \t]+\*lead_repl = NULL;$`, 1,
 			"copying, replacing and aligning a comment leader")
 		e.FoldNever(edit.Head("if (flags & OPENLINE_DO_COM)"), 1, "a new line finding the leader to repeat")
-		e.Lines(`lead_len = 0;`, 1, "a new line with no leader")
+		e.Cut(edit.Line("lead_len = 0;"), 1, "a new line with no leader")
 		e.FoldNever(edit.Head("if (lead_len > 0)"), 1, "smartindent treating a comment line specially")
 		e.FoldNever(edit.Head("if (lead_len)"), 1, "the new line starting with its leader")
-		e.Lines(`end_comment_pending = NUL;`, 2, "a new line clearing the pending comment end")
+		e.Cut(edit.Line("end_comment_pending = NUL;"), 2, "a new line clearing the pending comment end")
 		e.Literal("if (trunc_line && !(flags & OPENLINE_KEEPTRAIL))", "if (trunc_line)", 1,
 			"a broken line always losing its trailing blanks ('w')")
 		e.DropIf(`(?m)^[ \t]*if \(\(\(\(State\) & REPLACE_FLAG\) && !\(\(State\) & VREPLACE_FLAG\)\)\)$\n[ \t]*\{\n[ \t]*while \(lead_len-- > 0\)`, 1,
 			"Replace mode pushing a NUL per leader byte")
 		e.Literal("if (newindent == 0 && !(flags & OPENLINE_COM_LIST))", "if (newindent == 0)", 1,
 			"the second-line indent no longer for a comment list")
-		e.Lines(`vim_free\(allocated\);`, 1, "freeing the leader")
+		e.Cut(edit.Line("vim_free(allocated);"), 1, "freeing the leader")
 		// extra_len sized the leader's allocation and nothing else
-		e.Lines(`extra_len = \(int\)strlen\(\(char \*\)\(p_extra\)\);`, 1,
+		e.Cut(edit.Line("extra_len = (int)strlen((char *)(p_extra));"), 1,
 			"measuring the text after the cursor for the leader")
 	})
 	e.Literal("has_format_option(FO_RET_COMS) ? OPENLINE_DO_COM : 0", "0", 1, "Enter in Insert mode repeating a leader ('r')")
@@ -135,24 +135,24 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// insertchar: 'b' and 'l' off, no comment end to complete
 	e.InFunction("insertchar", func(e *edit.E) {
-		e.Lines(`fo_ins_blank = has_format_option\(FO_INS_BLANK\);`, 1, "insertchar asking for 'b'")
+		e.Cut(edit.Line("fo_ins_blank = has_format_option(FO_INS_BLANK);"), 1, "insertchar asking for 'b'")
 		e.Literal(" && (curwin->w_cursor.lnum != Insstart.lnum || ((!has_format_option(FO_INS_LONG) || Insstart_textlen <= (colnr_T)textwidth) && (!fo_ins_blank || Insstart_blank_vcol <= (colnr_T)textwidth)))",
 			"", 1, "wrapping a line that was already long when Insert began ('l', 'b')")
 		e.DropIf(edit.Head("if (did_ai && c == end_comment_pending)"), 1, "typing the last character of a comment end")
-		e.Lines(`end_comment_pending = NUL;`, 1, "insertchar clearing the pending comment end")
+		e.Cut(edit.Line("end_comment_pending = NUL;"), 1, "insertchar clearing the pending comment end")
 	})
-	e.Lines(`Insstart_textlen = \(colnr_T\)linetabsize_str\(ml_get_curline\(\)\);`, 3, "measuring the line Insert began on")
-	e.Lines(`Insstart_blank_vcol = MAXCOL;`, 1, "resetting the first blank typed")
+	e.Cut(edit.Line("Insstart_textlen = (colnr_T)linetabsize_str(ml_get_curline());"), 3, "measuring the line Insert began on")
+	e.Cut(edit.Line("Insstart_blank_vcol = MAXCOL;"), 1, "resetting the first blank typed")
 	e.DropIf(edit.Head("if (Insstart_blank_vcol == MAXCOL && curwin->w_cursor.lnum == Insstart.lnum)"), 2,
 		"remembering the first blank typed")
-	e.Lines(`end_comment_pending = NUL;`, 1, "ins_bs clearing the pending comment end")
+	e.Cut(edit.Line("end_comment_pending = NUL;"), 1, "ins_bs clearing the pending comment end")
 
 	// 'a' and 'w': no auto-formatting
 	e.InFunction("stop_insert", func(e *edit.E) {
 		e.DropIf(edit.Head("if (!ins_need_undo && has_format_option(FO_AUTO))"), 1, "leaving Insert mode auto-formatting")
 	})
 	e.InFunction("stop_insert", func(e *edit.E) {
-		e.Lines(`check_auto_format\(TRUE\);`, 1, "leaving Insert mode removing an auto-format space")
+		e.Cut(edit.Line("check_auto_format(TRUE);"), 1, "leaving Insert mode removing an auto-format space")
 	})
 	e.InFunction("ins_bs", func(e *edit.E) {
 		e.DropIf(edit.Head("if (has_format_option(FO_AUTO) && has_format_option(FO_WHITE_PAR))"), 1,
@@ -288,7 +288,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// to it is a warning.  The free below it runs either way, so only the marker
 	// goes.
 	e.InFunction("do_bang", func(e *edit.E) {
-		e.Lines(`theend:`, 1, "do_bang's label, which only the redo block jumped to")
+		e.Cut(edit.Line("theend:"), 1, "do_bang's label, which only the redo block jumped to")
 	})
 
 	// what C-indenting left behind.  Three of the ten writes are the whole Body
@@ -307,7 +307,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	e.Lines(`can_cindent = (?:TRUE|FALSE);`, 7, "the other places that armed or disarmed a reindent")
 	e.InFunction("internal_format", func(e *edit.E) {
-		e.Lines(`set_can_cindent\(TRUE\);`, 1, "a wrapped line arming a reindent")
+		e.Cut(edit.Line("set_can_cindent(TRUE);"), 1, "a wrapped line arming a reindent")
 	})
 
 	// cindent_on() is `return FALSE`; its two callers fold and the sweep takes it.

@@ -357,7 +357,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// add_time) were comments, and the canonical form has none.
 
 	// ---- 3: find_ex_command ----------------------------------------------------
-	e.Lines(`int vim9 = FALSE;`, 1, "the Vim9 flag nothing sets")
+	e.Cut(edit.Line("int vim9 = FALSE;"), 1, "the Vim9 flag nothing sets")
 	e.FoldNever(edit.Head("if (vim9 && eap->cmdidx != CMD_SIZE)"), 1,
 		"the Vim9 whole-name check, the one reader of the name length")
 	e.Literal("if (!vim9 && *eap->cmd == 'd' && ", "if (*eap->cmd == 'd' && ", 1,
@@ -435,7 +435,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"(ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput)", 1, "nor in which registers may be written")
 	e.FoldNever(edit.Head("if (((int)(eap->cmdidx) < 0))"), 1, "nor in a % range over windows")
 
-	e.Lines(`ni = \(!\(\(int\)\(ea\.cmdidx\) < 0\) && \(cmdnames\[ea\.cmdidx\]\.cmd_func == ex_ni \|\| cmdnames\[ea\.cmdidx\]\.cmd_func == ex_script_ni\)\);`,
+	e.Cut(edit.Line("ni = (!((int)(ea.cmdidx) < 0) && (cmdnames[ea.cmdidx].cmd_func == ex_ni || cmdnames[ea.cmdidx].cmd_func == ex_script_ni));"),
 		1, "the stub flag, which no row can raise")
 	// do_one_cmd's `int ni;` is named by nothing after the three terms below,
 	// and the sweep takes it.
@@ -445,8 +445,8 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	e.DropIf(`(?m)^    if \(ea\.cmdidx == CMD_if\)$`, 1, ":if and the level it raised")
 	e.FoldNever(`(?m)^    if \(if_level\)$`, 1, "the level is never raised")
-	e.Lines(`ea\.skip = \(if_level > 0\);`, 1, "so nothing is skipped")
-	e.Lines(`if_level = 0;`, 1, "the reset")
+	e.Cut(edit.Line("ea.skip = (if_level > 0);"), 1, "so nothing is skipped")
+	e.Cut(edit.Line("if_level = 0;"), 1, "the reset")
 	// and the level itself, named by nothing now, goes to the sweep
 
 	e.FoldNever(edit.Head("if (ea.cmdidx == CMD_bang)"), 1, ":! keeps no leading space")

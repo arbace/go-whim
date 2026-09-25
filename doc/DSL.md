@@ -4,6 +4,13 @@ Survey, 2026-09-25. Main checkout at `ee05eee` with the working-tree changes
 
 **Since written:** the prototype it ran (`.tmp/dsl/`) is not tracked. Its remark that CLAUDE.md said 164 phases and no test suite was checked and is wrong: CLAUDE.md said neither.
 
+**Step 3, line anchors, is done too** (2026-09-25): `cutil.Line` and `cutil.Head`
+(aliased in `edit`) spell an anchor as the C it matches, and build the same
+regular expression phases wrote by hand. 418 anchors use them: 116 whole-line
+literals, 244 fold heads, and 58 `Lines` calls that became `Cut(Line(...))`.
+The 271 left as regular expressions use a regex feature. Each conversion was
+mechanical, and `whim-build-check` reproduced every link and the product.
+
 **Since written, the embedded half was done (steps 1 and 2 of §4).** The
 census was re-run first, on `986e8b9`, after the redundant-steps removals:
 

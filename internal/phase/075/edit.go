@@ -159,7 +159,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.FoldNever(`(?m)^[ \t]*if \(ready && \(has_cursormovedI\(\)\)`, 1, "insert mode reporting the cursor moved")
 	})
 	e.InFunction("free_buffer", func(e *edit.E) {
-		e.Lines(`aubuflocal_remove\(buf\);`, 1, "a freed buffer detaching its buffer-local patterns")
+		e.Cut(edit.Line("aubuflocal_remove(buf);"), 1, "a freed buffer detaching its buffer-local patterns")
 	})
 	e.InFunction("getout", func(e *edit.E) {
 		for _, ev := range []string{"VIMLEAVEPRE", "VIMLEAVE"} {
@@ -172,7 +172,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// the command-line type: its one write goes, and the sweep takes the
 	// declaration
 	e.InFunction("getcmdline_int", func(e *edit.E) {
-		e.Lines(`cmdline_type = firstc == NUL \? '-' : firstc;`, 1, "the line that set the command-line type")
+		e.Cut(edit.Line("cmdline_type = firstc == NUL ? '-' : firstc;"), 1, "the line that set the command-line type")
 	})
 	e.Lines(`(?:\(void\))?apply_autocmds\w*\([^\n]*\);`, 49, "every remaining bare dispatch (49)")
 	e.Lines(`trigger_cmd_autocmd\([^\n]*\);`, 7, "the command-line triggers (7)")

@@ -68,8 +68,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		// Both tests are never true now, and the second has no else: one
 		// counted fold takes the pair, keeping the first's else arm.
 		e.FoldNever(methodTest, 2, "a method's braces choosing the character to match, and walking out to a method start or end")
-		e.Lines(`prev_pos\.lnum = 0;`, 1, "the previous match, which only a method walk-out read")
-		e.Lines(`prev_pos = new_pos;`, 1, "remembering the previous match")
+		e.Cut(edit.Line("prev_pos.lnum = 0;"), 1, "the previous match, which only a method walk-out read")
+		e.Cut(edit.Line("prev_pos = new_pos;"), 1, "remembering the previous match")
 	})
 
 	e.InFunction("nv_object", func(e *edit.E) {

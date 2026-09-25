@@ -121,7 +121,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		w72lit3, 1, "aucmd_prepbuf searching for the window showing a buffer")
 	e.DropWalk("can_unload_buffer", "for ((wp) = firstwin; (wp) != NULL; (wp) = (wp)->w_next)",
 		w72lit4, 1, "can_unload_buffer asking whether the buffer is on screen")
-	e.Lines(`borrow_stl_vsep_hl\(\);`, 2, "the two calls to the separator-highlight pass")
+	e.Cut(edit.Line("borrow_stl_vsep_hl();"), 2, "the two calls to the separator-highlight pass")
 	e.DeleteDefinition("borrow_stl_vsep_hl", "borrow_stl_vsep_hl, which had no window to borrow from")
 	e.Body("current_win_nr", w72lit5, "current_win_nr, which counted to the window")
 	e.Body("current_tab_nr", w72lit5, "current_tab_nr, which counted to the tabpage")

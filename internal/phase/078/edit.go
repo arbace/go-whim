@@ -120,13 +120,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.FoldNever(edit.Head("if (is_state.winid != curwin->w_id)"), 2, "the command line re-initialising incremental search for another window")
 	})
 	e.InFunction("init_incsearch_state", func(e *edit.E) {
-		e.Lines(`is_state->winid = curwin->w_id;`, 1, "recording which window the search started in")
+		e.Cut(edit.Line("is_state->winid = curwin->w_id;"), 1, "recording which window the search started in")
 	})
 	e.InFunction("win_alloc", func(e *edit.E) {
-		e.Lines(`new_wp->w_id = \+\+last_win_id;`, 1, "numbering the one window")
+		e.Cut(edit.Line("new_wp->w_id = ++last_win_id;"), 1, "numbering the one window")
 	})
-	e.InFunction("block_autocmds", func(e *edit.E) { e.Lines(`\+\+autocmd_blocked;`, 1, "blocking autocommands") })
-	e.InFunction("unblock_autocmds", func(e *edit.E) { e.Lines(`--autocmd_blocked;`, 1, "and unblocking them") })
+	e.InFunction("block_autocmds", func(e *edit.E) { e.Cut(edit.Line("++autocmd_blocked;"), 1, "blocking autocommands") })
+	e.InFunction("unblock_autocmds", func(e *edit.E) { e.Cut(edit.Line("--autocmd_blocked;"), 1, "and unblocking them") })
 	for _, v := range []string{"autocmd_no_enter", "autocmd_no_leave"} {
 		v := v
 		e.InFunction("create_windows", func(e *edit.E) {
@@ -137,13 +137,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		})
 	}
 	e.InFunction("redraw_after_callback", func(e *edit.E) {
-		e.Lines(`\+\+redrawing_for_callback;`, 1, "marking a callback redraw")
+		e.Cut(edit.Line("++redrawing_for_callback;"), 1, "marking a callback redraw")
 	})
 	e.InFunction("redraw_after_callback", func(e *edit.E) {
-		e.Lines(`--redrawing_for_callback;`, 1, "and unmarking it")
+		e.Cut(edit.Line("--redrawing_for_callback;"), 1, "and unmarking it")
 	})
 	e.InFunction("win_enter_ext", func(e *edit.E) {
-		e.Lines(`prevwin = curwin;`, 1, "remembering the previous window")
+		e.Cut(edit.Line("prevwin = curwin;"), 1, "remembering the previous window")
 	})
 	// The fields and statics those writes were the last mention of --
 	// incsearch_state_T.winid, w_id, last_win_id, LOWEST_WIN_ID,
