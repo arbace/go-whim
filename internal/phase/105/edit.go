@@ -160,12 +160,9 @@ package p105
 // PHASE IS A RULE.  It finds every call by word boundary, splits its arguments by
 // balanced parens with string and character literals honoured, and rewrites.  The
 // residue is 0 and the program does not care what upstream renamed.
-// 3. THE SITES COME IN THREE SHAPES AND AN EDIT THAT EMITS TWO STATEMENTS
-// UNCONDITIONALLY GETS TWO OF THEM WRONG.  92 are a plain statement alone on its
-// line, and become two lines at the same indentation.  7 are a WHOLE BLOCK ON ONE
-// LINE -- `{   semsg(...);         goto error;     }   ;` inside `parse_fmt_types`
-// -- where two lines would put a statement in front of the closing brace, so the
-// expansion goes inline on the same line.  30 are in VALUE POSITION: 18 `semsg`es
+// 3. THE SITES COME IN TWO SHAPES.  99 are a statement, and become two
+// statements where it was; the canonical print lays them out.  30 are in VALUE
+// POSITION: 18 `semsg`es
 // inside `return (..., rc_did_emsg = TRUE, (void *)NULL) ;` comma expressions in
 // the regexp engine, all eleven `vim_snprintf_safelen`s (whose value is consumed at
 // every site, five of them `+=`), and `vim_snprintf_add`'s one.  A statement is
@@ -405,7 +402,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return args
 	}
 
-	shapes := map[string]int{"plain": 0, "inline": 0, "value": 0}
+	shapes := map[string]int{"statement": 0, "value": 0}
 	counts := map[string]int{}
 	for _, n := range names {
 		counts[n] = 0
@@ -483,17 +480,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				b = fmt.Sprintf("iemsg(iobuff_or(%s))", f)
 			}
 			if cp+1 < len(t) && t[cp+1] == ';' {
-				bol := strings.LastIndex(t[:m[0]], "\n") + 1
-				eol := strings.Index(t[cp:], "\n") + cp
-				if strings.TrimSpace(t[bol:m[0]]) == "" && strings.TrimSpace(t[cp+2:eol]) == "" {
-					rep = a + ";\n" + t[bol:m[0]] + b + ";"
-					shapes["plain"]++
-				} else {
-					// A WHOLE BLOCK ON ONE LINE.  Two lines here would leave a
-					// statement in front of the closing brace.
-					rep = a + "; " + b + ";"
-					shapes["inline"]++
-				}
+				// A STATEMENT: two statements where it was, and the canonical
+				// print gives each its own line.
+				rep = a + "; " + b + ";"
+				shapes["statement"]++
 				t = t[:m[0]] + rep + t[cp+2:]
 				pos = m[0] + len(rep)
 				continue
@@ -544,10 +534,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		commaTally[i] = fmt.Sprintf("%s %d", n, counts[n])
 	}
 	p.Sayf("129 call sites expanded: %s", strings.Join(commaTally, ", "))
-	p.Sayf("%d plain statements (two lines), %d whole blocks on one line (inline), %d in value "+
+	p.Sayf("%d statements, %d in value "+
 		"position -- the 18 `return (semsg(...), rc_did_emsg = TRUE, NULL)` comma "+
 		"expressions, the 11 safelens whose value is consumed, and the one append",
-		shapes["plain"], shapes["inline"], shapes["value"])
+		shapes["statement"], shapes["value"])
 	p.Sayf("`va_start` 8 -> 1, `va_list` 15 -> 8, `va_end` 10 -> 3; `vim_snprintf` %d -> %d; "+
 		"seven definitions and six prototypes gone, five helpers and six declarations in; "+
 		"lines %d -> %d",
