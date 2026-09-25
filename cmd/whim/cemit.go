@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/arbace/go-whim/internal/cemit"
+	"github.com/arbace/go-whim/crefactor/cemit"
 )
 
 // runCemit prints a translation unit in the canonical form, in place.

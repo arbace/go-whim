@@ -5,13 +5,13 @@
 // hard-code it.
 package whim
 
-import "github.com/arbace/go-whim/internal/sweep"
+import "github.com/arbace/go-whim/crefactor/sweep"
 
 // Profile is vim's.
 var Profile = struct {
 	// Sweep is what the sweep is told: vim's one entry point, and ml_recover,
 	// whose presence makes a struct layout a swap-file format.  It was
-	// hard-coded in internal/sweep/prune.go.
+	// hard-coded in crefactor/sweep/prune.go.
 	Sweep sweep.Options
 }{
 	Sweep: sweep.Options{

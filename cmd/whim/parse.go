@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/arbace/go-whim/internal/cc"
+	"github.com/arbace/go-whim/crefactor/cc"
 )
 
 // runParse is the front end's smoke test: it parses a whole product and

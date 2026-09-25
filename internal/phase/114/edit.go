@@ -65,7 +65,7 @@ package p114
 // time: the core's compile line is the boundary's (GOALS.md core rule 8).
 
 import (
-	"github.com/arbace/go-whim/internal/crefactor/xform"
+	"github.com/arbace/go-whim/crefactor/xform"
 	"github.com/arbace/go-whim/internal/edit"
 	"github.com/arbace/go-whim/internal/whim"
 )

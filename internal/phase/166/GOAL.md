@@ -24,7 +24,7 @@ A local declared `int` alone, with one declarator, that is only ever given an
 answer (no `&`, no `++`, no compound assignment) is `bool` too. So is a
 struct member of that kind -- by name, so every member so named, and never
 one a designator names or a brace initializer fills by position, since those
-give values no assignment shows (`internal/sweep`'s `PositionalMembers` says
+give values no assignment shows (`crefactor/sweep`'s `PositionalMembers` says
 which) -- and a parameter every call gives an answer, of a function called
 only by name from the core. A comparison with 0 becomes the answer or its
 negation too. Anything compared with a code, a constant other than 0, 1,
@@ -57,4 +57,4 @@ Not done: what the rule refuses by design keeps its `B2i` -- a variable also
 updated with `|=` (`area_highlighting`), a member some table fills by position,
 a parameter of a function taken by address.
 
-The transformation now lives in `internal/crefactor/xform` (`BoolRet`), with vim's knobs in `internal/whim/xform.go`.
+The transformation now lives in `crefactor/xform` (`BoolRet`), with vim's knobs in `internal/whim/xform.go`.

@@ -7,7 +7,7 @@ of a sweep that cost minutes: six deleters looped to a fixpoint around gcc.
 Measured before they went: sweeping after EVERY phase with that old sweep gave
 the committed whim-vim.c back byte for byte, no phase refusing (1,853 s against
 1,192 s staged) -- so the schedule decided cost, never the product.  The sweep
-is one closure now (internal/sweep), cheap enough to run after every phase.
+is one closure now (crefactor/sweep), cheap enough to run after every phase.
 
 What follows is where the schedule's facts were measured and why.  It is kept
 for the `need` and `apart` lines and the packages, statements about the phases

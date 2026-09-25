@@ -68,7 +68,7 @@ Measured: 89,407 → **89,233 lines**.
 **Already gone is a class of its own.** The anchor on `cmdarg_T.prechar` is a
 partition, not a count: the member is here and this phase removes it, or
 nothing at all says `prechar` and the phase says so and cuts nothing. The
-second class exists for the sweep's closure (`internal/sweep`,
+second class exists for the sweep's closure (`crefactor/sweep`,
 the sweep itself since the six deleters went), whose closure sees that no code reads the
 member and takes it in an earlier sweep. A stray mention is neither class and
 refuses as it always did.

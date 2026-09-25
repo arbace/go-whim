@@ -67,7 +67,7 @@ func GenerateCmdIdxs(names []string) string {
 	}
 
 	// THE SHAPE IS THE PRINTER'S.  The block sits in a canonically printed
-	// file, so it is written the way internal/cemit writes a table: a blank
+	// file, so it is written the way crefactor/cemit writes a table: a blank
 	// line under the banner and between the three declarations, the brace on
 	// its own line under the `=`, one element per line, a trailing comma on
 	// every element including the last, and a row on one line with no padding.

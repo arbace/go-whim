@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/crefactor/text"
+	"github.com/arbace/go-whim/crefactor/text"
 )
 
 // ed is the shape most cutters share: a tool name, a writer, and the counted
@@ -14,7 +14,7 @@ import (
 //
 // THE EDITS ARE THE VERB SET'S.  This was a third copy of it, after edit.E and
 // edit.Ph; what it does now is the part that is the cutters' own -- the report
-// column and the refusal's wording -- around internal/crefactor/text's counted
+// column and the refusal's wording -- around crefactor/text's counted
 // acts (counted.go) and folds, the ones E and Ph are written on.  A refusal's
 // reason is theirs, word for word, and the line in front of it is the tool's.
 //

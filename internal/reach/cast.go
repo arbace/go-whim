@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cc"
+	"github.com/arbace/go-whim/crefactor/cc"
 )
 
 // THE CAST GUARD.  A pointer to one struct or union cast to a pointer to

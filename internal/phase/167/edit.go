@@ -10,9 +10,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cc"
+	"github.com/arbace/go-whim/crefactor/cc"
+	"github.com/arbace/go-whim/crefactor/sweep"
 	"github.com/arbace/go-whim/internal/edit"
-	"github.com/arbace/go-whim/internal/sweep"
 )
 
 func init() { edit.Register("whim167", Edit) }

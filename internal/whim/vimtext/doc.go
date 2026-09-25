@@ -6,7 +6,7 @@
 // those phases wrote for themselves.
 //
 // It is internal/edit/shared.go's vim half, and residue.go, split off when
-// the rest of internal/edit moved to internal/crefactor/text
+// the rest of internal/edit moved to crefactor/text
 // (doc/VIM-VS-GENERIC.md section 4, migration step 4).  internal/edit
 // forwards every name, so the phases read as they did.
 package vimtext

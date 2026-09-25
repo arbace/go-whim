@@ -1,5 +1,5 @@
 // Package build is whim's pipeline: slim-vim.c in, whim-vim.c out, in one
-// process and in memory.  The driver is generic (internal/crefactor/pipeline);
+// process and in memory.  The driver is generic (crefactor/pipeline);
 // what is whim's is here -- this plan, the file names, and how the plan's
 // non-literal arguments are resolved (build.go's config).
 //
@@ -30,9 +30,9 @@
 //	           which is what the phase declares in internal/phase/080/delta.md.
 package build
 
-import "github.com/arbace/go-whim/internal/crefactor/pipeline"
+import "github.com/arbace/go-whim/crefactor/pipeline"
 
-// Step and Phase are the generic driver's (internal/crefactor/pipeline): a
+// Step and Phase are the generic driver's (crefactor/pipeline): a
 // Step marked Declared is handed REMOVED, which config sets from the phase's
 // delta.md.
 type (

@@ -211,4 +211,4 @@ attributes it keeps — is outside it, and the phase had to go and get a second 
 for that part rather than let the strongest evidence it had cover a decision the evidence
 cannot see.
 
-The transformation now lives in `internal/crefactor/xform` (`Attrs`).
+The transformation now lives in `crefactor/xform` (`Attrs`).

@@ -27,4 +27,4 @@ reports the blocks the calls leave empty,
 which a later phase can fold once each condition is shown to have no side
 effect.
 
-The transformation now lives in `internal/crefactor/xform` (`DropCalls`), with vim's knobs in `internal/whim/xform.go`.
+The transformation now lives in `crefactor/xform` (`DropCalls`), with vim's knobs in `internal/whim/xform.go`.

@@ -138,4 +138,4 @@ and every part held, at exactly the counts it gets on swept text. It asserts no 
 sweep can move. Adding the phase moved no existing implementation key — 144 whim, slim and
 Part II keys identical either side, with only z37 new.
 
-The transformation now lives in `internal/crefactor/xform` (`Unions`).
+The transformation now lives in `crefactor/xform` (`Unions`).

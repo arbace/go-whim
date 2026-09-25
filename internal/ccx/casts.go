@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cc"
+	"github.com/arbace/go-whim/crefactor/cc"
 )
 
 func isByte(t cc.Type) bool {

@@ -1,6 +1,6 @@
 # Phase 0 — seed, in the one spelling every later phase reads
 
-`whim-vim.c` starts as `slim-vim.c` printed canonically: `internal/cemit` parses
+`whim-vim.c` starts as `slim-vim.c` printed canonically: `crefactor/cemit` parses
 the input and prints it back in one C23 form per construct — one statement per
 line, one declarator per declaration, braces always, a table one element per
 line with the brace under the `=`, one space between a type and its declarator.
@@ -25,7 +25,7 @@ object: `slim-vim.c` and the seed, both built `gcc -O0 -static -s` with
 `SOURCE_DATE_EPOCH=0`, give the same 2,204,344 bytes and the same digest. That
 is what `cmp` used to say and says more — and it is why
 `.reference/baselines`, recorded from `slim-vim.c`'s own binary, is the seed's
-baseline too. The phase declares no delta, and `internal/cemit` refuses a node
+baseline too. The phase declares no delta, and `crefactor/cemit` refuses a node
 it cannot print rather than dropping it, so a construct it does not understand
 stops the pipeline instead of quietly leaving the file.
 

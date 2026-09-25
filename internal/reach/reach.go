@@ -1,7 +1,7 @@
 // Package reach is a reachability closure over one C translation unit, of
 // every kind of thing the old sweep's six deleting tools deleted, and it REPORTS:
 // it changes no text.  doc/surveys/REACHABILITY.md, in git history before
-// the sweep became a closure (internal/sweep), is the measurement it was
+// the sweep became a closure (crefactor/sweep), is the measurement it was
 // built from; this is that survey's throwaway instrument made a partition.
 //
 // An entity is one of eight kinds:
@@ -36,7 +36,7 @@ import (
 	"reflect"
 	"sort"
 
-	"github.com/arbace/go-whim/internal/cc"
+	"github.com/arbace/go-whim/crefactor/cc"
 	"github.com/arbace/go-whim/internal/ccx"
 	"modernc.org/token"
 )

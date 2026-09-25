@@ -14,4 +14,4 @@ input's core with `edit.W134Rule` applied, run through the real sweep, must
 be the output byte for byte. It names what the sweep took beyond the blocks,
 and requires every empty block left to be one the rule must keep.
 
-The transformation now lives in `internal/crefactor/xform` (`EmptyBlocks`), with vim's knobs in `internal/whim/xform.go`.
+The transformation now lives in `crefactor/xform` (`EmptyBlocks`), with vim's knobs in `internal/whim/xform.go`.

@@ -49,7 +49,7 @@ What changed:
 
 Not done: step 0 (`whim build --from N --to N` and a `cmp` against the
 committed `qN` served instead, with a control), and step 3 (line anchors).
-`git status` showed at the start (phase 166, `internal/sweep/prune.go`,
+`git status` showed at the start (phase 166, `crefactor/sweep/prune.go`,
 `src/whim-vim.c`, the editor). **No tracked file was modified and nothing was
 committed.** No build that writes `.cache/boundaries` was run: four boundaries
 were *copied* out of it (`q060`, `q136`, `q157`, `q159`) into `.tmp/dsl/b/`, and
@@ -82,7 +82,7 @@ The instruments are untracked, under `.tmp/dsl/`:
   - **20 (18 %) are declarative apart from one or two small computations,**
     3,504 lines. A few more verbs would cover these.
   - **56 (50 %) need real code,** 22,839 lines, 78 % of the edit code. They
-    compute a set from the text, use the compiler or `internal/cc` as an oracle,
+    compute a set from the text, use the compiler or `crefactor/cc` as an oracle,
     or restructure control flow.
 
   Measured by line count, a language covers the part of the pipeline that is
@@ -247,7 +247,7 @@ run a local `[]struct{Old, New, What}` table through
 **C (56), and why they need code.** The grouping below is by reading and by the
 markers `census` found:
 
-1. **The tree as locator** (`internal/cc` and `sweep.Walk`, text cut by span):
+1. **The tree as locator** (`crefactor/cc` and `sweep.Walk`, text cut by span):
    164 (statements after a jump), 166 (functions answering a question become
    `bool`: 870 lines, 97 logic `if`s, 18 `switch`es), 167 (key codes get
    names). 149 does a text-level non-null dataflow (309 lines).
@@ -399,7 +399,7 @@ logic is Go written worse. Not a fit.
 - cost: it *looks* like Go and is not, which is confusing next to 56 phases
   that are real Go.
 
-The C analogue, patterns parsed by `internal/cc` and matched on the tree, is
+The C analogue, patterns parsed by `crefactor/cc` and matched on the tree, is
 the *locator* half of `doc/AST-EDITING.md`'s recommended hybrid. That is
 possible for matching. For editing it is blocked by what that document measured
 (cemit maps tree to source by position).
@@ -673,7 +673,7 @@ this is an argument for deleting layout code, not for a new language.
 
 1. **Coverage.** It expresses 36 phases now and 56 with about eight more verbs,
    but those are **10–22 % of the edit code**. The 56 phases that are 78 % of
-   the code compute sets, consult gcc or `internal/cc`, or restructure control
+   the code compute sets, consult gcc or `crefactor/cc`, or restructure control
    flow. Their computing is deliberate: phase 54 computes its set *so that* a
    moved upstream is still cut right, and a language that invites listing works
    against that.

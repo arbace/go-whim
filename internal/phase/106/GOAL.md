@@ -228,4 +228,4 @@ instrument is nearly blind to it, so 263 probes stand in; 23 **the binary is the
 bytes**, which is the strongest kind this pipeline has — phase 99's, and the reason this
 phase was made the smallest of the four rather than the first convenient one.
 
-The transformation now lives in `internal/crefactor/xform` (`NullptrUsize`).
+The transformation now lives in `crefactor/xform` (`NullptrUsize`).

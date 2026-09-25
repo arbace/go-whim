@@ -133,7 +133,7 @@ run of them) — the tokens inside the fenced block, not the notes.
 ## The sweep, and what unreachable covers
 
 **Every phase ends the same way: the sweep, then the canonical print.** The sweep
-is `internal/sweep`'s `Prune`: the text parsed (`cc.Parse`, no type-checking,
+is `crefactor/sweep`'s `Prune`: the text parsed (`cc.Parse`, no type-checking,
 no gcc), ONE reachability closure from `main` and the static_asserts, and
 everything it did not reach cut. A name is a key in one of C's three name spaces
 -- ordinary, tag, member -- told apart by the token before it, and a name the
@@ -3920,7 +3920,7 @@ Not yet done, and each one only when it is asked for:
   and a regex anchor can silently match the wrong thing — phase 54's missed two
   `options[]` rows for the pipeline's whole life. Editing the tree instead was
   surveyed and declined, for a reason worth re-reading before it is proposed
-  again: `internal/cemit` joins the AST to the source text by byte offset, so a
+  again: `crefactor/cemit` joins the AST to the source text by byte offset, so a
   mutation that moves the tree leaves the text standing, and deleting a table row
   yields BYTE-IDENTICAL output — an edit that did nothing, which the product gate
   cannot see. `doc/AST-EDITING.md` has the measurements and what would

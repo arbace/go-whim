@@ -12,7 +12,7 @@ import (
 // runFuncreach is the one dead-code tool left from the sweep's six: the
 // function-level reachability a phase step still asks for in the middle of
 // its own edit (internal/steps' "funcreach").  The sweep itself is
-// internal/sweep's closure, and the other five went with the loop that ran
+// crefactor/sweep's closure, and the other five went with the loop that ran
 // them.
 //
 // Its roots are vim's, main (internal/whim, Dead); --root NAME, given once

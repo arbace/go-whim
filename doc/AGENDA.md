@@ -7,12 +7,6 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 ## Queued, measured, not started
 
 
-- **`crefactor` as a Go module of its own** (`doc/VIM-VS-GENERIC.md` §4,
-  step 9, optional). Steps 1-8 are done: `internal/crefactor/{pipeline,text,
-  xform,togo}` import nothing of whim's -- only `internal/cc`, `cemit` and
-  `sweep`, which would have to move with it. What it buys: a boundary the
-  compiler enforces rather than one kept by review. Nothing needs it yet.
-
 ## Known stale, not yet scoped
 
 
@@ -28,7 +22,7 @@ the editor already has. Revisit only as a redesign of the string
 representation, not as a generator rule.
 
 **In-AST editing.** `doc/AST-EDITING.md`, and `GOALS.md`'s *What comes next*.
-Not on cost: `internal/cemit` joins the AST to the source text by byte offset, so
+Not on cost: `crefactor/cemit` joins the AST to the source text by byte offset, so
 a mutation moves the tree while the text stands still, and deleting a table row
 gives BYTE-IDENTICAL output -- an edit that did nothing, which `whim-build-check`
 cannot see. 10 of 10 deletions did this. What survives the assessment is the

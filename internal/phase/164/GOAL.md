@@ -19,4 +19,4 @@ and two tags, the Latin-1 case tables among them.
 ./editor` goes from 17 findings to 0. `whim-test`: 45/45 as the commit before,
 and the Go editor answers all 45 as the C does.
 
-The transformation now lives in `internal/crefactor/xform` (`DeadStmt`).
+The transformation now lives in `crefactor/xform` (`DeadStmt`).

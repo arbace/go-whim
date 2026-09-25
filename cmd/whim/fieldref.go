@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"sort"
 
-	"github.com/arbace/go-whim/internal/cc"
+	"github.com/arbace/go-whim/crefactor/cc"
 )
 
 // runFieldRef reports, for every struct member in a product, how many times it

@@ -3,7 +3,7 @@ package ccx
 import (
 	"fmt"
 
-	"github.com/arbace/go-whim/internal/cc"
+	"github.com/arbace/go-whim/crefactor/cc"
 )
 
 // Go's func values compare only with nil.  FuncCompares partitions every ==

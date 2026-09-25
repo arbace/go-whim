@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cc"
+	"github.com/arbace/go-whim/crefactor/cc"
 )
 
 // A growarray's storage (Profile.GrowArray.Data; vim's ga_data) is a void *:

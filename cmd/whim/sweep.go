@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/arbace/go-whim/internal/sweep"
+	"github.com/arbace/go-whim/crefactor/sweep"
 	"github.com/arbace/go-whim/internal/whim"
 )
 
-// runSweep is the dead-code sweep on one file (internal/sweep).  By default it
+// runSweep is the dead-code sweep on one file (crefactor/sweep).  By default it
 // is told what the pipeline tells it, vim's profile; --root and --freeze tell
 // it about another program instead: its entry points, and the functions whose
 // presence freezes struct layouts.

@@ -1,14 +1,14 @@
 # Could the phases edit the AST instead of the text?
 
 **Status: assessed, not taken; revisit later** (decided 2026-09-23). The blocker
-is not cost. `internal/cemit` is a function of (AST, source text) joined by byte
+is not cost. `crefactor/cemit` is a function of (AST, source text) joined by byte
 offset, so a mutation moves the tree while the source stands still; deleting an
 initializer-list element then produces BYTE-IDENTICAL output. 10 of 10 deletions
 did this, over a class of 829 hazardous sites of 15,185 in the product, and
 `whim-build-check` cannot see it. What would unblock it: recording an
-expansion's extent in `internal/cc` rather than inferring it as "the next offset
+expansion's extent in `crefactor/cc` rather than inferring it as "the next offset
 any token has". The survey's companions -- whether the SWEEP could work from the
-AST -- were answered by doing it (`internal/sweep`), and removed with that
+AST -- were answered by doing it (`crefactor/sweep`), and removed with that
 commit. Two corrections: the survey quotes `slim-vim.c`'s md5 as though it were
 `slim.sha`, which records a sha256 (the input was verified against it); and the
 "54 shared cutters" line it calls stale in CLAUDE.md was in no tracked file.
@@ -31,7 +31,7 @@ today's: from phase 1 on the text is `cemit`'s canonical form, so
 followed by a print would land in the form the next phase's anchors expect.
 
 **Short answer: no, not as the printer stands, and the reason is not cost or
-taste. `internal/cemit` is a function of (AST, source text), and the map between
+taste. `crefactor/cemit` is a function of (AST, source text), and the map between
 the two is BY POSITION. Three of the four mutations a phase would need are
 therefore either reverted or corrupted, SILENTLY, with an output that still
 parses, still compiles and is still the printer's fixpoint. Measured: deleting an
@@ -56,8 +56,8 @@ available on the intermediate texts that fail semantic analysis.**
 
 | | what it is |
 |---|---|
-| `.tmp/astedit/` | `internal/cemit` copied into `package main` (so its unexported `scan`/`expansions` can be instrumented) plus mutation probes: `time`, `exp`, `emit`, `delext`, `delstmt`, `delafter`, `synth`, `synth2`, `hazard`, `hazcheck`, `insert`, `rename`, `renameuse` |
-| `.tmp/astedit2/` | the same, against the **canon branch's** `internal/cemit` (`git show worktree-agent-a8c7188a3477181d0:internal/cemit/*.go`), which adds whole-line comment recovery and `specToken`. One accessor the branch adds to `internal/cc` is shimmed with `unsafe` in `.tmp/astedit2/shim.go` rather than editing a tracked file. |
+| `.tmp/astedit/` | `crefactor/cemit` copied into `package main` (so its unexported `scan`/`expansions` can be instrumented) plus mutation probes: `time`, `exp`, `emit`, `delext`, `delstmt`, `delafter`, `synth`, `synth2`, `hazard`, `hazcheck`, `insert`, `rename`, `renameuse` |
+| `.tmp/astedit2/` | the same, against the **canon branch's** `crefactor/cemit` (`git show worktree-agent-a8c7188a3477181d0:crefactor/cemit/*.go`), which adds whole-line comment recovery and `specToken`. One accessor the branch adds to `crefactor/cc` is shimmed with `unsafe` in `.tmp/astedit2/shim.go` rather than editing a tracked file. |
 | `.tmp/ptrace/` | applies phases FROM..TO with **no sweep** and, after each, reports whether the text `cc.Parse`s and whether it `cc.Translate`s |
 | `.tmp/presweep/` | the earlier survey's probe, reused: a run of phases' edits with no sweep |
 | `.tmp/ast/` | the texts: copies of `slim-vim.c`, `whim-vim.c`, `editor.c`, their canonical forms, and two synthetic files built to isolate one mechanism each |
@@ -84,7 +84,7 @@ comparisons between them were taken in the same minutes and are sound.
 
 ### 1.1 What the printer actually is
 
-`internal/cemit/macro.go` recovers macro invocations from the source text by
+`crefactor/cemit/macro.go` recovers macro invocations from the source text by
 position. Its own account is exact and worth restating because everything here
 rests on it: every token of an expansion carries the INVOCATION's position, so an
 expansion is a run of tokens sharing one offset, **and the text it came from runs
@@ -212,7 +212,7 @@ Then the census was checked by doing it. Ten hazardous elements of canonical
      out right did so because the host's bytes at those offsets were a newline or
      a digit rather than a letter.
 - **Synthesising a token at all.** There is no exported constructor: every
-  `Token`-returning function in `internal/cc` is a method on an unexported
+  `Token`-returning function in `crefactor/cc` is a method on an unexported
   `scanner` or `parser`. The only way to give a node new text from outside the
   package is to copy an existing `Token` and call `Set`, which appends to the
   scanner's buffer and leaves `off` — the position — untouched. That is precisely
@@ -225,8 +225,8 @@ of an expansion is INFERRED (`the next offset any token has`) rather than
 recorded, which is what makes `macro.go` need no macro table. `cc.Token` does
 carry an `m *Macro` field, so a front end that exposed it could give the printer
 the invocation's true extent and remove hazard classes 1.3 and 1.5-#1 entirely.
-That is a change to `internal/cc` — a fork whose whole discipline is to differ
-from upstream in two C23 productions and nothing else (`internal/cc/README.md`).
+That is a change to `crefactor/cc` — a fork whose whole discipline is to differ
+from upstream in two C23 productions and nothing else (`crefactor/cc/README.md`).
 Nothing measured here says it is impossible; everything measured says it is not
 free, and that until it is done, three of the four mutations a phase needs are
 silently wrong.
@@ -261,7 +261,7 @@ the shape of the answer.**
 
 ### 2.1 The texts parse; they fail semantic analysis
 
-`internal/cc` exposes `cc.Parse` (cc.go:896) separately from `cc.Translate`
+`crefactor/cc` exposes `cc.Parse` (cc.go:896) separately from `cc.Translate`
 (cc.go:913). Measured on the real thing — `.tmp/presweep` applied phases 13
 through 35 to the real q12 boundary with **no sweep at all**, producing
 `.tmp/ast/q35-nosweep.c`, 3,509,183 bytes:
@@ -305,7 +305,7 @@ IS-REACHABILITY-ANALYSABLE follows the second, not the first.
 
 ### 2.2 The printer needs no types
 
-`internal/cemit` is 1,482 lines and contains **zero** uses of the type system:
+`crefactor/cemit` is 1,482 lines and contains **zero** uses of the type system:
 `grep` for `.Type()`, `.Value()`, `typer`, `IsTypename`, `ResolvedTo`, `.Field()`
 across all five files returns two hits, both `reflect.Value.Type()` inside the
 token walk. `Translate` is simply what `Canonical` happens to call.
@@ -458,7 +458,7 @@ of §1's problems are counted.
 
 Yes, mechanically, and easily — which is what makes §1 the crux rather than this.
 
-- `internal/cc`'s AST is 85 node types, 20 of them right-recursive list types
+- `crefactor/cc`'s AST is 85 node types, 20 of them right-recursive list types
   (`TranslationUnit`, `BlockItemList`, `InitializerList`, `EnumeratorList`,
   `InitDeclaratorList`, …), and **every list field is exported**. Deleting an
   element is `prev.Next = cell.Next`, from any package. All the probes here do
@@ -619,7 +619,7 @@ intermediate text, per §2.
 
 ### Step 1 — print from `cc.Parse`, not `cc.Translate` (cheapest, do it anyway)
 
-Change one call in `internal/cemit/emit.go`. **What it buys:** canonicalisation
+Change one call in `crefactor/cemit/emit.go`. **What it buys:** canonicalisation
 becomes available on every intermediate text, including the whole
 edit-before-sweep window that both earlier surveys called unparseable; and the
 parse gets 15–29 % cheaper. **What proves it:** the three byte-identical
@@ -679,7 +679,7 @@ In order:
 1. **Record expansion extents at parse time** instead of inferring them from the
    next surviving token (`cc.Token` already carries `*Macro`). That kills the
    1,321/829 hazard and makes `Token.Set` usable on identifiers. It is a change
-   to `internal/cc`, whose discipline is to differ from upstream in two
+   to `crefactor/cc`, whose discipline is to differ from upstream in two
    productions.
 2. **An exported way to build tokens and nodes with no position**, so that a
    spliced fragment does not resolve against the host's source. Without it,

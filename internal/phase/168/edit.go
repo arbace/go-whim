@@ -3,7 +3,7 @@ package p168
 // Whim phase 168 -- a goto whose label returns is that return.  See GOAL.md.
 
 import (
-	"github.com/arbace/go-whim/internal/crefactor/xform"
+	"github.com/arbace/go-whim/crefactor/xform"
 	"github.com/arbace/go-whim/internal/edit"
 )
 

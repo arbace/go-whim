@@ -4,15 +4,15 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/crefactor/text"
+	"github.com/arbace/go-whim/crefactor/text"
 )
 
 // The verb set and the helpers the phases share moved to
-// internal/crefactor/text (doc/VIM-VS-GENERIC.md section 4, migration step
+// crefactor/text (doc/VIM-VS-GENERIC.md section 4, migration step
 // 3): E, Ph, the structural verbs, the literal scanners, the dead-store
 // fixpoint and the half of shared.go that knows nothing of vim.  Every name
 // is forwarded here, so the phase packages that write edit.E and edit.Ph read
-// as they did.  New code imports internal/crefactor/text.
+// as they did.  New code imports crefactor/text.
 
 type E = text.E
 type Ph = text.Ph

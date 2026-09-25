@@ -20,7 +20,7 @@ exactly as the C does.
 ## What the generator is told
 
 The rules below are the generator's; the names they apply to are vim's, and
-the generator -- `internal/crefactor/togo`, which `internal/gen` runs -- is
+the generator -- `crefactor/togo`, which `internal/gen` runs -- is
 told them, one value, `whim.Gen` (`internal/whim/gen.go`, of type
 `togo.Profile`): the C functions `editor/crt.go` replaces, whose calls
 are translated and whose bodies are not (`alloc*`, `musl_mem*`, `musl_str*`,

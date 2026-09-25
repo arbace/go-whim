@@ -12,7 +12,7 @@ package p134
 // $state/old.c, for the check.
 
 import (
-	"github.com/arbace/go-whim/internal/crefactor/xform"
+	"github.com/arbace/go-whim/crefactor/xform"
 	"github.com/arbace/go-whim/internal/edit"
 	"github.com/arbace/go-whim/internal/whim"
 )

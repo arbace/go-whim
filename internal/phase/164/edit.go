@@ -3,7 +3,7 @@ package p164
 // Whim phase 164 -- no statement follows a jump.  See GOAL.md.
 
 import (
-	"github.com/arbace/go-whim/internal/crefactor/xform"
+	"github.com/arbace/go-whim/crefactor/xform"
 	"github.com/arbace/go-whim/internal/edit"
 )
 

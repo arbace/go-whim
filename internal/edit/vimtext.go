@@ -1,7 +1,7 @@
 package edit
 
 import (
-	"github.com/arbace/go-whim/internal/crefactor/text"
+	"github.com/arbace/go-whim/crefactor/text"
 	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 

@@ -25,4 +25,4 @@ never-NULL set on the output with a second, simpler test: each function
 returns only calls and names, never NULL or a literal. It requires the rule to
 fold nothing more.
 
-The transformation now lives in `internal/crefactor/xform` (`NeverNull`), with vim's knobs in `internal/whim/xform.go`.
+The transformation now lives in `crefactor/xform` (`NeverNull`), with vim's knobs in `internal/whim/xform.go`.

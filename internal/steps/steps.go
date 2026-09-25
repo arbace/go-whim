@@ -21,9 +21,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/arbace/go-whim/crefactor/pipeline"
+	"github.com/arbace/go-whim/crefactor/xform"
 	"github.com/arbace/go-whim/internal/cmdtab"
-	"github.com/arbace/go-whim/internal/crefactor/pipeline"
-	"github.com/arbace/go-whim/internal/crefactor/xform"
 	"github.com/arbace/go-whim/internal/cut"
 	"github.com/arbace/go-whim/internal/dead"
 	"github.com/arbace/go-whim/internal/edit"

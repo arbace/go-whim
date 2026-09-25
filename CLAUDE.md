@@ -123,8 +123,7 @@ through to. arbace/slim-vim keeps both, for its own pipeline.
 ```
 cmd/whim/         the toolset, every tool a subcommand: go tool whim <subcommand>
                    (README.md: each tool, and what each retired script became)
-internal/          the Go: cc (the forked C front end), cemit (the canonical printer), sweep, dead,
-                   cut (the cutters), edit (the registry the phases' edits join,
+internal/          whim's Go: dead, cut (the cutters), edit (the registry the phases' edits join,
                    and a forwarding declaration for every name of crefactor/text's
                    verb set and of whim/vimtext, so a phase still writes edit.E),
                    cutil (crefactor/text's old name, every name forwarded), steps (every transformation a phase names, as
@@ -137,17 +136,22 @@ internal/          the Go: cc (the forked C front end), cemit (the canonical pri
                    reach (what nothing reaches, as a partition with gcc as its
                    control -- a reporter, `go tool whim reach FILE`; it deletes
                    nothing)
-internal/crefactor/ the generic C machinery (doc/VIM-VS-GENERIC.md §4), knowing
-                   no code base: no vim identifier in a string literal, no import
-                   of whim, phase, cut or cmdtab. pipeline/: the driver -- Phase,
-                   Step, Plan, Run, Advance, Check, the snapshots, Seed -- told
-                   everything through a Config. xform/: the generic transforms.
-                   text/: the C-text substrate that was cutil, and the one verb
-                   set -- E, every act counted (driver.go, blocks.go); Ph, the
-                   driver of the phases whose cut is a computation; the counted
-                   acts both and internal/cut's `ed` are written on (counted.go);
-                   and in shared.go the generic helpers more than one phase uses.
-                   togo/: the C-to-Go translator internal/gen runs
+crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
+                   (github.com/arbace/go-whim/crefactor, its own go.mod; this
+                   module requires it and replaces it with ./crefactor), knowing
+                   no code base: it cannot import this module, so the boundary of
+                   doc/VIM-VS-GENERIC.md §4 is the compiler's. cc/: the forked C
+                   front end. cemit/: the canonical printer. sweep/: the closure.
+                   pipeline/: the driver -- Phase, Step, Plan, Run, Advance,
+                   Check, the snapshots, Seed -- told everything through a
+                   Config. xform/: the generic transforms. text/: the C-text
+                   substrate that was cutil, and the one verb set -- E, every act
+                   counted (driver.go, blocks.go); Ph, the driver of the phases
+                   whose cut is a computation; the counted acts both and
+                   internal/cut's `ed` are written on (counted.go); and in
+                   shared.go the generic helpers more than one phase uses.
+                   togo/: the C-to-Go translator internal/gen runs. Its tests
+                   run in it: `cd crefactor && go test ./...`
 internal/whim/     what the generic side is told about vim: profile.go (the
                    sweep), xform.go, analysis.go (dead's roots, reach's and ccx's
                    names), gen.go (togo's profile, whim.Gen),
@@ -165,7 +169,7 @@ editor/            the core in Go: editor.go GENERATED (make editor/editor.go; n
                    its runtime crt.go and host host.go by hand
 internal/gen/      the generator of editor/editor.go (`go tool whim gen`; `whim
                    skel` runs it by hand, with -bodies for the bodies alone):
-                   internal/crefactor/togo, the C-to-Go translator, which names
+                   crefactor/togo, the C-to-Go translator, which names
                    nothing in vim, told vim's names by internal/whim/gen.go
                    (whim.Gen) -- gen.go is that one line --
                    splice/ (`whim splice`: emitted bodies measured in a copy of
@@ -187,8 +191,8 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
 builds it, caches it and rebuilds it when any `.go` moves; every tool is a
 subcommand, `go tool whim <name>`, and the `Makefile` calls it the same way.
-**The C front end is a fork**, `internal/cc`: modernc.org/cc/v4 v4.29.7 with two
-C23 productions added, tracked as ordinary source (`internal/cc/README.md`,
+**The C front end is a fork**, `crefactor/cc`: modernc.org/cc/v4 v4.29.7 with two
+C23 productions added, tracked as ordinary source (`crefactor/cc/README.md`,
 which says how to diff it against upstream). It was composed at build time under `.cache/gofork/`
 before, because a patched `vendor/` fails `go mod verify`; a fork under its own
 import path has neither problem. Measured: with the patch reversed, `whim
@@ -214,12 +218,12 @@ make help            # every target, with a line each
 - **One path.** `make whim-build` is what a moved upstream runs:
   `internal/build`'s plan -- each phase's steps (`internal/steps`), **the sweep,
   after every phase** (there are no stages), and **the canonical print of what is left**
-  (`internal/cemit`: one spelling per construct, and NO COMMENTS, of any kind),
+  (`crefactor/cemit`: one spelling per construct, and NO COMMENTS, of any kind),
   so every boundary that is C is in the one spelling phase 0 seeds with -- applied
   in one process, in memory. Measured: 170 phases, **1,070 s**, 75,396 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
-- **The sweep is one closure** (`internal/sweep`'s `Prune`): the text parsed
+- **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
   (`cc.Parse`, no type-checking, no gcc), everything reachable from `main` and
   the static_asserts found by name in C's three name spaces, and everything else
   cut -- functions, objects, prototypes, typedefs, tags, members, enumerators, and
@@ -278,7 +282,7 @@ A phase is a function of the tree it is handed, so the pipeline is
 was the input boundary's digest and the implementation's together, so a moved
 `slim-vim.c` missed every entry by construction.
 
-- **The driver is generic, the plan is whim's.** `internal/crefactor/pipeline`
+- **The driver is generic, the plan is whim's.** `crefactor/pipeline`
   runs a plan (Run, the parallel Check, Advance, the snapshots, `--keep-going`)
   and knows no code base; `internal/build` hands it a `pipeline.Config` -- the
   plan, the op table (`internal/steps`), the work file `whim-vim.c`, `SnapDir`

@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"sort"
 
-	"github.com/arbace/go-whim/internal/cc"
+	"github.com/arbace/go-whim/crefactor/cc"
 )
 
 // Parse reads a C file the way internal/gen does.

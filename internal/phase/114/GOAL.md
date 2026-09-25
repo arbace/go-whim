@@ -104,4 +104,4 @@ shape exactly, and it is one direction only. The same run measures that **`need 
 swept` is not required**, this edit applying unchanged to phase 113's unswept output with
 all five anchors holding.
 
-The transformation now lives in `internal/crefactor/xform` (`Own`), with the two bodies in `internal/whim/xform.go`.
+The transformation now lives in `crefactor/xform` (`Own`), with the two bodies in `internal/whim/xform.go`.

@@ -30,6 +30,6 @@ moves.
 **Already gone is a class of its own.** The cut of `find_func_t` is a partition, not a
 count: the typedef is here and this phase removes it, or nothing at all names
 it and the phase says so and cuts nothing (`edit.Ph.LiteralOrGone`). The
-second class exists for the sweep's closure (`internal/sweep`,
+second class exists for the sweep's closure (`crefactor/sweep`,
 the sweep itself since the six deleters went), whose closure takes a typedef nothing names in
 an earlier sweep. Anything else refuses as it always did.

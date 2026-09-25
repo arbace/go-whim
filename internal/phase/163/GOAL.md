@@ -1,7 +1,7 @@
 # Phase 163 — the product is in the one canonical spelling
 
 Phase 0 hands the pipeline its input in the one canonical C23 form
-(`internal/cemit`), and every phase after it reads that form. What the phases
+(`crefactor/cemit`), and every phase after it reads that form. What the phases
 WRITE is not held to it: a cut leaves a one-enumerator `typedef enum` spread
 over four lines, a Part II phase inserts `enum :\n    int { INT_MAX … }`, an
 inserted initialiser keeps the residue era's column alignment. Measured on

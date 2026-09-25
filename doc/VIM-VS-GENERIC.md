@@ -1,16 +1,18 @@
 # Vim-specific or generic C: a survey of go-whim's phases and machinery
 
-**Done since:** the separation of §4, steps 1-8, 2026-09-25, each step
+**Done since:** the separation of §4, all nine steps, 2026-09-25, each step
 byte-identical under `whim-build-check` (and gen's under `whim-editor-check` and
-`whim test`). The library is `internal/crefactor/`: `pipeline` (the driver,
-told through a Config), `text` (cutil and the verb set), `xform` (the eleven
-generic transformations; 164 and 168 share `terminates.go`) and `togo` (the
-C-to-Go translator). It imports only `internal/cc`, `cemit` and `sweep`. What it
+`whim test`). The library is `crefactor/`, a Go module of its own
+(`github.com/arbace/go-whim/crefactor`, required by this one through a `replace`
+to `./crefactor`), so it cannot import whim's code. It holds `cc` (the forked C
+front end), `cemit`, `sweep`, `pipeline` (the driver, told through a Config),
+`text` (cutil and the verb set), `xform` (the eleven generic transformations;
+164 and 168 share `terminates.go`) and `togo` (the C-to-Go translator). What it
 is told about vim lives in `internal/whim` (`profile.go`, `xform.go`,
 `analysis.go`, `gen.go`) and `internal/whim/vimtext`. `internal/edit`,
 `internal/cutil` and `internal/gen` remain as forwarding layers so that no
 phase package had to change. reach, ccx and dead take their names as options
-but were not moved. Step 9, a module of its own, is not done (`AGENDA.md`).
+but stay in whim's module.
 
 **Since written:** two side findings were checked. Its claim that CLAUDE.md still said 164 phases, no test suite and a `Sweep` field is wrong: CLAUDE.md says none of those. Its finding that the sweep documented an `ml_recover` guard it did not implement was right, and the guard is implemented now: phases 1-18 had been deleting struct members while the editor could still read a swap file. The throwaway instruments it names under `.tmp/survey/` are not tracked.
 
@@ -246,7 +248,7 @@ The plan uses 62 of the 65 ops. The unused three are `cemit` (reached through
 | `includes` | G | steps/includes.go: a gcc silent-compile oracle; "phase 82's" order from the bottom is a reproduction detail |
 | `funcreach` | Gv | root `main` (dead/funcreach.go:132), floor `MinDefinitions = 100` (dead/funcreach.go:189) |
 
-### internal/sweep: Gv (4 files)
+### crefactor/sweep: Gv (4 files)
 
 - **prune.go:232**: `a.roots = append(a.roots, "o:main")`. **The one piece
   of vim knowledge, and it matters.** Measured: with `main` renamed in
@@ -264,7 +266,7 @@ The plan uses 62 of the 65 ops. The unused three are `cemit` (reached through
   `DeleteEffectfulInitialisers bool`.
 - eval.go, sweep.go and prune_test.go: G.
 
-### internal/cemit: G (5 files)
+### crefactor/cemit: G (5 files)
 
 - **No vim names.** What it carries from vim is a **style**. emit.go:209-221
   puts the name at column 0 under indented specifiers ("vim's own style"),
@@ -382,7 +384,7 @@ Written for someone using the generic tool on another code base.
 
 **Common preconditions.**
 - **The input is a slimmed TU**: one C23 file, parseable by the
-  `internal/cc` fork (modernc cc/v4 plus two C23 productions), with **no
+  `crefactor/cc` fork (modernc cc/v4 plus two C23 productions), with **no
   preprocessor directives other than `#include <...>`** and no old-style
   parameter lists.
 - **Anchors expect the canonical form.** Every text-level tool assumes
@@ -392,8 +394,8 @@ Written for someone using the generic tool on another code base.
 
 | # | name | what it does | preconditions | evidence in the repo | where |
 |---|---|---|---|---|---|
-| 1 | **Canonical print** | prints the TU from the syntax tree in one spelling per construct (one statement per line, braces always, name at column 0, one declarator per declaration, comments dropped), recovering macro invocations from token positions | the common ones; **refuses nothing for `#define`/`#if` and drops them silently (measured), so add a refusal** | checked fixpoint `Emit(Emit(x)) == Emit(x)`; no `-g`, so a format change leaves the binary byte-identical; `whim-build-check` over 170 boundaries. Measured on testregex.c: fixpoint, 122/122 tests identical | internal/cemit |
-| 2 | **Reachability sweep** | one closure from the roots over C's name spaces (ordinary, tag, member by name); deletes unreached functions, objects, prototypes, typedefs, tags, members, enumerators and unused locals, to a fixpoint | roots are `main` + static_assert names (hard-coded); members are live by name; **an unused local goes with an effectful initialiser (counted)**; guards: positional initialisers keep all members, enumerator runs are pinned to their values or kept, a struct or enum is never emptied | replaced six gcc-warning deleters; prune_test.go; `whim-build-check`; `internal/reach` reports the same closure with gcc as control. Measured: testregex.c kept its behaviour | internal/sweep |
+| 1 | **Canonical print** | prints the TU from the syntax tree in one spelling per construct (one statement per line, braces always, name at column 0, one declarator per declaration, comments dropped), recovering macro invocations from token positions | the common ones; **refuses nothing for `#define`/`#if` and drops them silently (measured), so add a refusal** | checked fixpoint `Emit(Emit(x)) == Emit(x)`; no `-g`, so a format change leaves the binary byte-identical; `whim-build-check` over 170 boundaries. Measured on testregex.c: fixpoint, 122/122 tests identical | crefactor/cemit |
+| 2 | **Reachability sweep** | one closure from the roots over C's name spaces (ordinary, tag, member by name); deletes unreached functions, objects, prototypes, typedefs, tags, members, enumerators and unused locals, to a fixpoint | roots are `main` + static_assert names (hard-coded); members are live by name; **an unused local goes with an effectful initialiser (counted)**; guards: positional initialisers keep all members, enumerator runs are pinned to their values or kept, a struct or enum is never emptied | replaced six gcc-warning deleters; prune_test.go; `whim-build-check`; `internal/reach` reports the same closure with gcc as control. Measured: testregex.c kept its behaviour | crefactor/sweep |
 | 3 | **Dead statements after a jump** | deletes the statements after a terminating statement (jump, `if/else` whose branches both terminate, a block ending in one) up to the next label/case | holds a run containing a declaration | `whim-test` 45/45 C and Go; staticcheck 17 → 0 on the Go. Measured on mini.c | phase/164 |
 | 4 | **goto to a return** | writes the label's `return E;` at each `goto` whose label marks only a return; drops the label when unreferenced, and a now-unreachable return | holds when a name in E could be shadowed (inner-block or later declarations) | `whim-test` 45/45; the binary may differ at `-O0`. Measured on mini.c | phase/168 |
 | 5 | **A question returns bool** | an `int` function whose every return is an answer (named truth constants, comparison, `!`/`&&`/`\|\|`, another answer, an answer-only local) becomes `bool`, with its locals, members and parameters; `f() == OK` becomes `f()` | truth constants are named (`TRUE/FALSE/OK/FAIL`, literal 0/1 are not answers); a function used as a value or named by the host stays `int`; the core ends at the first `"\n#include "` | "changes no value" argument; `whim-test` 45/45; vet/staticcheck clean. Measured: works on mini.c, refuses a file starting with `#include` | phase/166 |
@@ -421,7 +423,7 @@ Written for someone using the generic tool on another code base.
 ### Package layout
 
 ```
-internal/crefactor/          GENERIC: no vim identifier in any string literal (the scanner is the check)
+crefactor/          GENERIC: no vim identifier in any string literal (the scanner is the check)
   cc/          the fork, as is (moved or aliased)
   cprint/      = cemit; Style (column-0 names: default), and REFUSES non-#include directives
   sweep/       = sweep; Options{Roots, RootExternal, DeleteEffectfulInits, FreezeLayoutIf}
@@ -506,7 +508,7 @@ sealed snapshots. Steps that touch gen must also keep `make whim-editor-check`.
 8. **Lift gen's profile** (section 2's table) out of gen, and check with
    `whim-editor-check`.
 9. **Optional: make `crefactor` a separate Go module**, with the foreign-C
-   check as its own test. This needs `internal/cc` to move with it.
+   check as its own test. This needs `crefactor/cc` to move with it.
 
 ### Effort
 
@@ -560,7 +562,7 @@ phases (section 5).
   library only enforces "a miss refuses".
 - **The 8 NoSource phases** are records, with nothing to separate. This
   includes phase 82's stale `editlit.go`, which could simply be deleted.
-- **The `internal/cc` fork** is already generic and needs no split. It only
+- **The `crefactor/cc` fork** is already generic and needs no split. It only
   needs to move with the library if the library becomes its own module.
 
 ## Side findings (not acted on)

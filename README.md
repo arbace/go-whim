@@ -104,7 +104,7 @@ Linux, **Go 1.27**, **gcc** that links a static binary against **musl** (every
 binary is built `-O0 -fno-stack-protector -static -no-pie -s`), `git`,
 `curl`, and binutils (`readelf`, `nm`, `objcopy`, `strings`). Measured on Alpine
 Linux with gcc 15.2 and musl. The C front end is a fork of `modernc.org/cc/v4`
-carried as source in `internal/cc`, so nothing is downloaded to build it; `make`
+carried as source in `crefactor/cc`, so nothing is downloaded to build it; `make`
 fetches `slim-vim.c`, and after that needs no network.
 
 There is no Python in this repository and no agent: every phase is a program,
@@ -114,16 +114,17 @@ and a phase that refuses stops the pass with its own report.
 
 ```
 cmd/whim/        the toolset, every tool a subcommand: go tool whim <subcommand>
-internal/        the cutters, the sweep, the canonical printer (cemit), the plan and its
-                 driver (internal/build), the dead-code reporter (reach), ccx:
+internal/        the cutters, the plan (internal/build), the dead-code reporter (reach), ccx:
                  what the core's C leaves a translation to decide -- pointer
                  casts, evaluation order -- partitioned, and the phases:
                  internal/phase/NNN/ (GOAL.md, and edit.go where its cut is a
                  program) and internal/phase/STAGES.md, the record of the
                  stages there were
-internal/crefactor/ the generic C refactoring library, knowing no code base:
-                 pipeline (the driver), text (the text verbs), xform (generic
-                 transformations), togo (the C-to-Go translator)
+crefactor/       the generic C refactoring library, a Go module of its own
+                 that knows no code base: cc (the forked C front end), cemit
+                 (the canonical printer), sweep, pipeline (the driver), text
+                 (the text verbs), xform (generic transformations), togo (the
+                 C-to-Go translator)
 internal/whim/   what that library is told about vim: roots, names, knobs
 editor/          the core transpiled into Go, with its runtime and host
 internal/gen/    the generator of editor/editor.go (go tool whim gen: crefactor/togo

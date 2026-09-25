@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"sort"
 
-	"github.com/arbace/go-whim/internal/crefactor/text"
+	"github.com/arbace/go-whim/crefactor/text"
 	"github.com/arbace/go-whim/internal/dead"
 )
 

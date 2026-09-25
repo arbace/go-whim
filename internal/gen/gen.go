@@ -1,4 +1,4 @@
-// Package gen is the generator of editor/editor.go: internal/crefactor/togo,
+// Package gen is the generator of editor/editor.go: crefactor/togo,
 // the C-to-Go translator, told what it must know about vim's core
 // (internal/whim, Gen).  CONVENTIONS.md states the translation's rules,
 // FINDINGS.md what it had to work around, and sigs.md is every signature it
@@ -8,7 +8,7 @@ package gen
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/crefactor/togo"
+	"github.com/arbace/go-whim/crefactor/togo"
 	"github.com/arbace/go-whim/internal/whim"
 )
 

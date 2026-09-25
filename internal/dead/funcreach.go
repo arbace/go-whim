@@ -1,5 +1,5 @@
 // Package dead is what is left of the sweep's six dead-code tools now that
-// internal/sweep's closure is the sweep: funcreach, the function-level
+// crefactor/sweep's closure is the sweep: funcreach, the function-level
 // reachability a phase step still asks for in the middle of its own edit, and
 // FuncDefinitions, which cutters use to find a function's extent; and
 // GccWarnings (gcc.go), which internal/reach's control asks.

@@ -3,7 +3,7 @@ package whim
 import (
 	"strings"
 
-	"github.com/arbace/go-whim/internal/crefactor/togo"
+	"github.com/arbace/go-whim/crefactor/togo"
 )
 
 // What the generator is told about the core it translates to Go

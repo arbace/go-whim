@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/crefactor/pipeline"
+	"github.com/arbace/go-whim/crefactor/pipeline"
 	"github.com/arbace/go-whim/internal/steps"
 	"github.com/arbace/go-whim/internal/whim"
 )

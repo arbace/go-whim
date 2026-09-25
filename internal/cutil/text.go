@@ -1,11 +1,11 @@
-// Package cutil is internal/crefactor/text under its old name: the C-text
+// Package cutil is crefactor/text under its old name: the C-text
 // substrate moved there (doc/VIM-VS-GENERIC.md section 4, migration step 3),
 // and every name it had is forwarded here, so the phases, the cutters, the
 // sweep and dead-code analysis that are written against cutil read as they
-// did.  New code imports internal/crefactor/text.
+// did.  New code imports crefactor/text.
 package cutil
 
-import "github.com/arbace/go-whim/internal/crefactor/text"
+import "github.com/arbace/go-whim/crefactor/text"
 
 type Norm = text.Norm
 

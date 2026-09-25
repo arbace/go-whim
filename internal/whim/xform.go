@@ -3,10 +3,10 @@ package whim
 import (
 	"bytes"
 
-	"github.com/arbace/go-whim/internal/crefactor/xform"
+	"github.com/arbace/go-whim/crefactor/xform"
 )
 
-// The knobs internal/crefactor/xform's transformations are built with, for
+// The knobs crefactor/xform's transformations are built with, for
 // vim: what those phases hard-coded before they became library code.  A
 // count a phase refuses under is not here; it is an argument in the plan.
 
