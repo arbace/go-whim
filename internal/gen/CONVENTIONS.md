@@ -126,6 +126,17 @@ chunk). Translate their *calls*:
 | `musl_qsort(base, n, sizeof(T), cmp)` | `Qsort(base, int(n), cmp)` — `base` a `Ptr[T]`; a comparator's `const void *` parameters are `any` holding a `*T` |
 | `musl_bsearch(key, base, n, sizeof(T), cmp)` | `Bsearch(key, base, int(n), cmp)` |
 
+And nine C string functions are written in Go in `editor/libc.go`, on `bytes`
+and `copy` rather than transpiled: `musl_strlen`, `musl_strcpy`,
+`musl_strncpy`, `musl_strcat`, `musl_strcmp`, `musl_strncmp`, `musl_strchr`,
+`musl_strstr` and `musl_strpbrk`. Their calls are translated as they stand.
+Their contracts are musl's exactly: a comparison returns the difference of
+the first bytes that differ, not only its sign, and `strchr(s, 0)` is the
+terminator. `editor/libc_test.go` holds each to the transpiled original it
+replaced, kept as `editor/libc_oracle_test.go`. The case-insensitive pair,
+`strtol`/`atoi` and the `is*`/`to*` one-liners stay transpiled: the first
+three have no exact Go counterpart, and the one-liners are plain Go already.
+
 `sizeof` has no Go counterpart: it becomes an element count (`sizeof(buf)` of
 a `char buf[N]` is `N`), or disappears into `new`/`Mk`. Never use
 `unsafe.Sizeof` — `unsafe` is `crt.go`'s alone.

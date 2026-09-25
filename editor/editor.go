@@ -6434,78 +6434,6 @@ func ga_grow_inner(gap *S_growarray, n int32) bool {
 	return true
 }
 
-func musl_strlen(s Ptr[byte]) usize {
-	a := s
-	for ; s.Get() != 0; s = s.Add(1) {
-	}
-	return uint64(int64(s.Sub(a)))
-}
-
-func musl_strcpy(dest Ptr[byte], src Ptr[byte]) Ptr[byte] {
-	d := dest
-	for {
-		d.Put(src.Get())
-		if !(int32(d.Get()) != 0) {
-			break
-		}
-		d = d.Add(1)
-		src = src.Add(1)
-	}
-	return dest
-}
-
-func musl_strncpy(dest Ptr[byte], src Ptr[byte], n usize) Ptr[byte] {
-	d := dest
-	for ; (n != 0) && (src.Get() != 0); n-- {
-		var t1 Ptr[byte] = d
-		d = d.Add(1)
-		var t2 Ptr[byte] = src
-		src = src.Add(1)
-		t1.Put(t2.Get())
-	}
-	for ; n != 0; n-- {
-		var t3 Ptr[byte] = d
-		d = d.Add(1)
-		t3.Put(0)
-	}
-	return dest
-}
-
-func musl_strcat(dest Ptr[byte], src Ptr[byte]) Ptr[byte] {
-	musl_strcpy(dest.Add(int(musl_strlen(dest))), src)
-	return dest
-}
-
-func musl_strcmp(l Ptr[byte], r Ptr[byte]) int32 {
-	for {
-		if !((int32(l.Get()) == int32(r.Get())) && (l.Get() != 0)) {
-			break
-		}
-		l = l.Add(1)
-		r = r.Add(1)
-	}
-	return int32(l.Get()) - int32(r.Get())
-}
-
-func musl_strncmp(ls Ptr[byte], rs Ptr[byte], n usize) int32 {
-	l := ls
-	r := rs
-	var t1 usize = n
-	n--
-	if t1 == 0 {
-		return 0
-	}
-	for {
-		if !((((l.Get() != 0) && (r.Get() != 0)) && (n != 0)) && (int32(l.Get()) == int32(r.Get()))) {
-			break
-		}
-		l = l.Add(1)
-		r = r.Add(1)
-		n--
-	}
-	return int32(l.Get()) - int32(r.Get())
-}
-
 func musl_strcasecmp(ls Ptr[byte], rs Ptr[byte]) int32 {
 	l := ls
 	r := rs
@@ -6592,45 +6520,6 @@ func musl_strncasecmp(ls Ptr[byte], rs Ptr[byte], n usize) int32 {
 		t6 = int32(r.Get())
 	}
 	return t5 - t6
-}
-
-func musl_strchr(s Ptr[byte], c int32) Ptr[byte] {
-	ch := byte(c)
-	for ; (s.Get() != 0) && (int32(s.Get()) != int32(ch)); s = s.Add(1) {
-	}
-	if int32(s.Get()) == int32(ch) {
-		return s
-	}
-	return Ptr[byte]{}
-}
-
-func musl_strstr(h Ptr[byte], n Ptr[byte]) Ptr[byte] {
-	var i usize
-	if n.At(0) == 0 {
-		return h
-	}
-	for ; h.Get() != 0; h = h.Add(1) {
-		i = 0
-		for ; (n.At(int(i)) != 0) && (int32(h.At(int(i))) == int32(n.At(int(i)))); i++ {
-		}
-		if n.At(int(i)) == 0 {
-			return h
-		}
-	}
-	return Ptr[byte]{}
-}
-
-func musl_strpbrk(s Ptr[byte], b Ptr[byte]) Ptr[byte] {
-	var c Ptr[byte]
-	for ; s.Get() != 0; s = s.Add(1) {
-		c = b
-		for ; c.Get() != 0; c = c.Add(1) {
-			if int32(s.Get()) == int32(c.Get()) {
-				return s
-			}
-		}
-	}
-	return Ptr[byte]{}
 }
 
 func musl_isdigit(c int32) bool {

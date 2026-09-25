@@ -84,4 +84,8 @@ func Run(args []string, errw io.Writer) int {
 // elements of the storage's type.
 var crtFuncs = map[string]bool{"alloc": true, "alloc_clear": true, "lalloc": true, "lalloc_clear": true,
 	"musl_memmove": true, "musl_memcpy": true, "musl_memset": true, "musl_memcmp": true,
-	"ga_grow_inner": true}
+	"ga_grow_inner": true,
+	// the C string functions: editor/libc.go, on Go's byte functions
+	"musl_strlen": true, "musl_strcpy": true, "musl_strncpy": true, "musl_strcat": true,
+	"musl_strcmp": true, "musl_strncmp": true, "musl_strchr": true, "musl_strstr": true,
+	"musl_strpbrk": true}
