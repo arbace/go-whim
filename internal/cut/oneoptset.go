@@ -151,13 +151,8 @@ func OneOptSet(text []byte, w io.Writer) ([]byte, error) {
 
 	// b_p_ml_nobin is where 'binary' kept 'modeline' while it was off.  It is
 	// not an option, so it has no get_varp() case and droplocal does not know
-	// its shape: its declaration and its one copy go here, and p_ml_nobin,
-	// with no reader left, goes to the sweep.
-	text, err = e.subOnce(text, `^[ \t]*int[ \t]+b_p_ml_nobin;\n`,
-		"the buffer's saved 'modeline' field")
-	if err != nil {
-		return nil, err
-	}
+	// its shape: its one copy goes here, and the field and p_ml_nobin, with
+	// no reader left, go to the sweep.
 	text, err = e.inFunction(text, "buf_copy_options", func(s []byte) ([]byte, error) {
 		return e.subOnce(s, `^[ \t]*buf->b_p_ml_nobin = p_ml_nobin;\n`,
 			"a new buffer copying the saved 'modeline'")
