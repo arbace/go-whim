@@ -13,8 +13,11 @@ import (
 // phase's argument; the phase it was written for is named above it.
 
 // From phase 071.
-// FoldWalk turns `for ((v) = firstbuf; ...)` and its block into `v = curbuf;`
-// followed by the block's Body, n times.
+// FoldWalk turns a walk -- the loop whose header is head, `for ((v) = first;
+// (v) != NULL; (v) = (v)->next)` -- and its block into `v = to;` followed by
+// the block's Body, n times: the list it walked has one element, and to is
+// the expression that names it.  Phase 71 folds vim's buffer list, `v =
+// curbuf;`; the variable, the element and the header are all the caller's.
 //
 // IT REFUSES A BODY WITH A `break` OR `continue` THAT BINDS TO THE WALK.
 // Deleting the `for` header rebinds such a statement to whatever encloses it,
@@ -28,7 +31,7 @@ import (
 // and brace depth has nothing to do with it -- getout()'s break sits two ifs
 // deep and still bound to the `for`.  An earlier version tested depth and would
 // have passed it.
-func (e *E) FoldWalk(fn, v, head string, n int, what string) {
+func (e *E) FoldWalk(fn, v, to, head string, n int, what string) {
 	e.InFunction(fn, func(e *E) {
 		if e.Failed() {
 			return
@@ -51,7 +54,7 @@ func (e *E) FoldWalk(fn, v, head string, n int, what string) {
 			end := IndexFrom(e.buf, []byte("\n"), c) + 1
 			out := append([]byte{}, e.buf[:m[0]]...)
 			out = append(out, e.buf[m[2]:m[3]]...)
-			out = append(out, (v + " = curbuf;\n")...)
+			out = append(out, (v + " = " + to + ";\n")...)
 			out = append(out, raw...)
 			e.buf = append(out, e.buf[end:]...)
 		}

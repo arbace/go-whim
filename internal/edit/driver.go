@@ -45,7 +45,8 @@ import (
 //	definition  Body(fn, body, what)           DeleteDefinition(fn, what)
 //	block       DropBlocks(fn, re, n, what)    ReplaceBlock(fn, re, repl, what)
 //	            DropBareBlock(fn, stmt, what)
-//	walk        FoldWalk(fn, v, head, n, what) DropWalk(fn, head, repl, n, what)
+//	walk        FoldWalk(fn, v, to, head, n, what)
+//	            DropWalk(fn, head, repl, n, what)
 //	            FoldWalks(re, ok, subst, what)
 //
 // A count is written, never inferred: these run on a tree every earlier phase
