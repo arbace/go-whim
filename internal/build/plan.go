@@ -828,7 +828,11 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim166"}},
 		}},
-	{N: 167, Name: "the system headers nothing needs",
+	{N: 167, Name: "a key code has a name",
+		Steps: []Step{
+			{Op: "edit", Args: []string{"whim167"}},
+		}},
+	{N: 168, Name: "the system headers nothing needs",
 		Steps: []Step{
 			{Op: "includes"},
 		}},

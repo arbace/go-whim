@@ -126,7 +126,7 @@ var (
 // core's own and nine libc prototypes are written Out, WHILE THE HEADERS ARE
 // STILL ABOVE THEM to be cross-checked against.
 func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 167 drops the unused)
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 168 drops the unused)
 	p := edit.Ph{Tag: "headers", W: w}
 	if len(args) != 1 {
 		return nil, p.Die("usage: edit whim109 <file> <minmax.txt>")

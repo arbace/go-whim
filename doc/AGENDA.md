@@ -20,7 +20,7 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   are made (only functions with a goto keep theirs at the top). OK/FAIL is done too:
   phase 166 counts it a yes/no, success `true`. Next: struct fields that hold an
   answer, still `int`. The nine C string functions are Go's own now
-  (`editor/libc.go`); the key codes are next. Each step is checked
+  (`editor/libc.go`), and the key codes have their names (phase 167). Each step is checked
   by `make whim-test`, which runs the Go editor against the C.
 
 ## Known stale, not yet scoped

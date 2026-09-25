@@ -101,7 +101,7 @@ func init() { edit.RegisterArgs("whim119", Edit) }
 // takes no pid because a core that cannot ask for its own process id must not be
 // handed one.
 func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 167 drops the unused)
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 168 drops the unused)
 	p := edit.Ph{Tag: "noclib", W: w}
 	if len(args) != 1 {
 		return nil, p.Die("usage: edit whim119 <file> <state-dir>")

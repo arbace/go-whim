@@ -137,7 +137,7 @@ const whim106Anchor = "#include <termios.h>\n\n"
 // Whim106 gives the core two names the language supplies instead of a header:
 // NULL becomes nullptr and size_t becomes usize.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 167 drops the unused)
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 168 drops the unused)
 	p := edit.Ph{Tag: "language", W: w}
 
 	// ---- 0. the file this edit was written against -----------------------
@@ -276,7 +276,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// the bottom the typedef is the first line of the core.  A TYPEDEF and
 	// not a `static` anything: `usize` is a type name, and every one of its
 	// uses is a type-name position.
-	// the LAST #include, whichever it is: phase 167 drops the unused headers
+	// the LAST #include, whichever it is: phase 168 drops the unused headers
 	// later, and <termios.h> is last only once it has
 	anchor := whim106Anchor
 	for _, l := range bytes.Split(text, []byte{'\n'}) {

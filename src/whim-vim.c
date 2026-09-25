@@ -11590,6 +11590,312 @@ edit_normalchar(int c, int *inserted_space)
     }
 }
 
+enum { K_PASTESTART = (-(('P') + ((int)('S') << 8))) };
+
+enum { K_CURSORHOLD = (-((KS_EXTRA) + ((int)(KE_CURSORHOLD) << 8))) };
+
+enum { K_COMPLETE_DELAY = (-((KS_EXTRA) + ((int)(KE_COMPLETE_DELAY) << 8))) };
+
+enum { K_IGNORE = (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))) };
+
+enum { K_NOP = (-((KS_EXTRA) + ((int)(KE_NOP) << 8))) };
+
+enum { K_INS = (-(('k') + ((int)('I') << 8))) };
+
+enum { K_KINS = (-((KS_EXTRA) + ((int)(KE_KINS) << 8))) };
+
+enum { K_HELP = (-(('%') + ((int)('1') << 8))) };
+
+enum { K_F1 = (-(('k') + ((int)('1') << 8))) };
+
+enum { K_XF1 = (-((KS_EXTRA) + ((int)(KE_XF1) << 8))) };
+
+enum { K_DEL = (-(('k') + ((int)('D') << 8))) };
+
+enum { K_KDEL = (-((KS_EXTRA) + ((int)(KE_KDEL) << 8))) };
+
+enum { K_BS = (-(('k') + ((int)('b') << 8))) };
+
+enum { K_S_BS = (-((KS_EXTRA) + ((int)(KE_S_BS) << 8))) };
+
+enum { K_PASTEEND = (-(('P') + ((int)('E') << 8))) };
+
+enum { K_COMMAND = (-((KS_EXTRA) + ((int)(KE_COMMAND) << 8))) };
+
+enum { K_SCRIPT_COMMAND = (-((KS_EXTRA) + ((int)(KE_SCRIPT_COMMAND) << 8))) };
+
+enum { K_HOME = (-(('k') + ((int)('h') << 8))) };
+
+enum { K_KHOME = (-(('K') + ((int)('1') << 8))) };
+
+enum { K_TC_HASH_2 = (-(('#') + ((int)('2') << 8))) };
+
+enum { K_C_HOME = (-((KS_EXTRA) + ((int)(KE_C_HOME) << 8))) };
+
+enum { K_END = (-(('@') + ((int)('7') << 8))) };
+
+enum { K_KEND = (-(('K') + ((int)('4') << 8))) };
+
+enum { K_TC_STAR_7 = (-(('*') + ((int)('7') << 8))) };
+
+enum { K_C_END = (-((KS_EXTRA) + ((int)(KE_C_END) << 8))) };
+
+enum { K_LEFT = (-(('k') + ((int)('l') << 8))) };
+
+enum { K_TC_HASH_4 = (-(('#') + ((int)('4') << 8))) };
+
+enum { K_C_LEFT = (-((KS_EXTRA) + ((int)(KE_C_LEFT) << 8))) };
+
+enum { K_RIGHT = (-(('k') + ((int)('r') << 8))) };
+
+enum { K_TC_PCT_i = (-(('%') + ((int)('i') << 8))) };
+
+enum { K_C_RIGHT = (-((KS_EXTRA) + ((int)(KE_C_RIGHT) << 8))) };
+
+enum { K_UP = (-(('k') + ((int)('u') << 8))) };
+
+enum { K_S_UP = (-((KS_EXTRA) + ((int)(KE_S_UP) << 8))) };
+
+enum { K_PAGEUP = (-(('k') + ((int)('P') << 8))) };
+
+enum { K_KPAGEUP = (-(('K') + ((int)('3') << 8))) };
+
+enum { K_DOWN = (-(('k') + ((int)('d') << 8))) };
+
+enum { K_S_DOWN = (-((KS_EXTRA) + ((int)(KE_S_DOWN) << 8))) };
+
+enum { K_PAGEDOWN = (-(('k') + ((int)('N') << 8))) };
+
+enum { K_KPAGEDOWN = (-(('K') + ((int)('5') << 8))) };
+
+enum { K_TC_k_B = (-(('k') + ((int)('B') << 8))) };
+
+enum { K_KENTER = (-(('K') + ((int)('A') << 8))) };
+
+enum { K_FOCUSGAINED = (-((KS_EXTRA) + ((int)(KE_FOCUSGAINED) << 8))) };
+
+enum { K_FOCUSLOST = (-((KS_EXTRA) + ((int)(KE_FOCUSLOST) << 8))) };
+
+enum { K_OSC = (-((KS_EXTRA) + ((int)(KE_OSC) << 8))) };
+
+enum { K_ESC = (-((KS_EXTRA) + ((int)(KE_ESC) << 8))) };
+
+enum { K_KPLUS = (-(('K') + ((int)('6') << 8))) };
+
+enum { K_KMINUS = (-(('K') + ((int)('7') << 8))) };
+
+enum { K_KDIVIDE = (-(('K') + ((int)('8') << 8))) };
+
+enum { K_KMULTIPLY = (-(('K') + ((int)('9') << 8))) };
+
+enum { K_KPOINT = (-(('K') + ((int)('B') << 8))) };
+
+enum { K_K0 = (-(('K') + ((int)('C') << 8))) };
+
+enum { K_K1 = (-(('K') + ((int)('D') << 8))) };
+
+enum { K_K2 = (-(('K') + ((int)('E') << 8))) };
+
+enum { K_K3 = (-(('K') + ((int)('F') << 8))) };
+
+enum { K_K4 = (-(('K') + ((int)('G') << 8))) };
+
+enum { K_K5 = (-(('K') + ((int)('H') << 8))) };
+
+enum { K_K6 = (-(('K') + ((int)('I') << 8))) };
+
+enum { K_K7 = (-(('K') + ((int)('J') << 8))) };
+
+enum { K_K8 = (-(('K') + ((int)('K') << 8))) };
+
+enum { K_K9 = (-(('K') + ((int)('L') << 8))) };
+
+enum { K_XHOME = (-((KS_EXTRA) + ((int)(KE_XHOME) << 8))) };
+
+enum { K_ZHOME = (-((KS_EXTRA) + ((int)(KE_ZHOME) << 8))) };
+
+enum { K_XEND = (-((KS_EXTRA) + ((int)(KE_XEND) << 8))) };
+
+enum { K_ZEND = (-((KS_EXTRA) + ((int)(KE_ZEND) << 8))) };
+
+enum { K_XUP = (-((KS_EXTRA) + ((int)(KE_XUP) << 8))) };
+
+enum { K_XDOWN = (-((KS_EXTRA) + ((int)(KE_XDOWN) << 8))) };
+
+enum { K_XLEFT = (-((KS_EXTRA) + ((int)(KE_XLEFT) << 8))) };
+
+enum { K_XRIGHT = (-((KS_EXTRA) + ((int)(KE_XRIGHT) << 8))) };
+
+enum { K_MOUSEMOVE = (-((KS_EXTRA) + ((int)(KE_MOUSEMOVE) << 8))) };
+
+enum { K_CANCEL = (-((KS_EXTRA) + ((int)(KE_CANCEL) << 8))) };
+
+enum { K_SNR = (-((KS_EXTRA) + ((int)(KE_SNR) << 8))) };
+
+enum { K_LEFTDRAG = (-((KS_EXTRA) + ((int)(KE_LEFTDRAG) << 8))) };
+
+enum { K_LEFTRELEASE = (-((KS_EXTRA) + ((int)(KE_LEFTRELEASE) << 8))) };
+
+enum { K_MIDDLEDRAG = (-((KS_EXTRA) + ((int)(KE_MIDDLEDRAG) << 8))) };
+
+enum { K_MIDDLERELEASE = (-((KS_EXTRA) + ((int)(KE_MIDDLERELEASE) << 8))) };
+
+enum { K_RIGHTDRAG = (-((KS_EXTRA) + ((int)(KE_RIGHTDRAG) << 8))) };
+
+enum { K_RIGHTRELEASE = (-((KS_EXTRA) + ((int)(KE_RIGHTRELEASE) << 8))) };
+
+enum { K_MOUSELEFT = (-((KS_EXTRA) + ((int)(KE_MOUSELEFT) << 8))) };
+
+enum { K_MOUSERIGHT = (-((KS_EXTRA) + ((int)(KE_MOUSERIGHT) << 8))) };
+
+enum { K_MOUSEDOWN = (-((KS_EXTRA) + ((int)(KE_MOUSEDOWN) << 8))) };
+
+enum { K_MOUSEUP = (-((KS_EXTRA) + ((int)(KE_MOUSEUP) << 8))) };
+
+enum { K_LEFTMOUSE = (-((KS_EXTRA) + ((int)(KE_LEFTMOUSE) << 8))) };
+
+enum { K_MIDDLEMOUSE = (-((KS_EXTRA) + ((int)(KE_MIDDLEMOUSE) << 8))) };
+
+enum { K_RIGHTMOUSE = (-((KS_EXTRA) + ((int)(KE_RIGHTMOUSE) << 8))) };
+
+enum { K_X1MOUSE = (-((KS_EXTRA) + ((int)(KE_X1MOUSE) << 8))) };
+
+enum { K_X2MOUSE = (-((KS_EXTRA) + ((int)(KE_X2MOUSE) << 8))) };
+
+enum { K_DROP = (-((KS_EXTRA) + ((int)(KE_DROP) << 8))) };
+
+enum { K_F10 = (-(('k') + ((int)(';') << 8))) };
+
+enum { K_F11 = (-(('F') + ((int)('1') << 8))) };
+
+enum { K_F12 = (-(('F') + ((int)('2') << 8))) };
+
+enum { K_F13 = (-(('F') + ((int)('3') << 8))) };
+
+enum { K_F14 = (-(('F') + ((int)('4') << 8))) };
+
+enum { K_F15 = (-(('F') + ((int)('5') << 8))) };
+
+enum { K_F16 = (-(('F') + ((int)('6') << 8))) };
+
+enum { K_F17 = (-(('F') + ((int)('7') << 8))) };
+
+enum { K_F18 = (-(('F') + ((int)('8') << 8))) };
+
+enum { K_F19 = (-(('F') + ((int)('9') << 8))) };
+
+enum { K_F2 = (-(('k') + ((int)('2') << 8))) };
+
+enum { K_F20 = (-(('F') + ((int)('A') << 8))) };
+
+enum { K_F21 = (-(('F') + ((int)('B') << 8))) };
+
+enum { K_F22 = (-(('F') + ((int)('C') << 8))) };
+
+enum { K_F23 = (-(('F') + ((int)('D') << 8))) };
+
+enum { K_F24 = (-(('F') + ((int)('E') << 8))) };
+
+enum { K_F25 = (-(('F') + ((int)('F') << 8))) };
+
+enum { K_F26 = (-(('F') + ((int)('G') << 8))) };
+
+enum { K_F27 = (-(('F') + ((int)('H') << 8))) };
+
+enum { K_F28 = (-(('F') + ((int)('I') << 8))) };
+
+enum { K_F29 = (-(('F') + ((int)('J') << 8))) };
+
+enum { K_F3 = (-(('k') + ((int)('3') << 8))) };
+
+enum { K_F30 = (-(('F') + ((int)('K') << 8))) };
+
+enum { K_F31 = (-(('F') + ((int)('L') << 8))) };
+
+enum { K_F32 = (-(('F') + ((int)('M') << 8))) };
+
+enum { K_F33 = (-(('F') + ((int)('N') << 8))) };
+
+enum { K_F34 = (-(('F') + ((int)('O') << 8))) };
+
+enum { K_F35 = (-(('F') + ((int)('P') << 8))) };
+
+enum { K_F36 = (-(('F') + ((int)('Q') << 8))) };
+
+enum { K_F37 = (-(('F') + ((int)('R') << 8))) };
+
+enum { K_F4 = (-(('k') + ((int)('4') << 8))) };
+
+enum { K_F5 = (-(('k') + ((int)('5') << 8))) };
+
+enum { K_F6 = (-(('k') + ((int)('6') << 8))) };
+
+enum { K_F7 = (-(('k') + ((int)('7') << 8))) };
+
+enum { K_F8 = (-(('k') + ((int)('8') << 8))) };
+
+enum { K_F9 = (-(('k') + ((int)('9') << 8))) };
+
+enum { K_PLUG = (-((KS_EXTRA) + ((int)(KE_PLUG) << 8))) };
+
+enum { K_TAB = (-((KS_EXTRA) + ((int)(KE_TAB) << 8))) };
+
+enum { K_UNDO = (-(('&') + ((int)('8') << 8))) };
+
+enum { K_CSI = (-((KS_EXTRA) + ((int)(KE_CSI) << 8))) };
+
+enum { K_XF2 = (-((KS_EXTRA) + ((int)(KE_XF2) << 8))) };
+
+enum { K_XF3 = (-((KS_EXTRA) + ((int)(KE_XF3) << 8))) };
+
+enum { K_XF4 = (-((KS_EXTRA) + ((int)(KE_XF4) << 8))) };
+
+enum { K_S_XF1 = (-((KS_EXTRA) + ((int)(KE_S_XF1) << 8))) };
+
+enum { K_S_F1 = (-((KS_EXTRA) + ((int)(KE_S_F1) << 8))) };
+
+enum { K_S_XF2 = (-((KS_EXTRA) + ((int)(KE_S_XF2) << 8))) };
+
+enum { K_S_F2 = (-((KS_EXTRA) + ((int)(KE_S_F2) << 8))) };
+
+enum { K_S_XF3 = (-((KS_EXTRA) + ((int)(KE_S_XF3) << 8))) };
+
+enum { K_S_F3 = (-((KS_EXTRA) + ((int)(KE_S_F3) << 8))) };
+
+enum { K_S_XF4 = (-((KS_EXTRA) + ((int)(KE_S_XF4) << 8))) };
+
+enum { K_S_F4 = (-((KS_EXTRA) + ((int)(KE_S_F4) << 8))) };
+
+enum { K_LEFTMOUSE_NM = (-((KS_EXTRA) + ((int)(KE_LEFTMOUSE_NM) << 8))) };
+
+enum { K_LEFTRELEASE_NM = (-((KS_EXTRA) + ((int)(KE_LEFTRELEASE_NM) << 8))) };
+
+enum { K_X1DRAG = (-((KS_EXTRA) + ((int)(KE_X1DRAG) << 8))) };
+
+enum { K_X1RELEASE = (-((KS_EXTRA) + ((int)(KE_X1RELEASE) << 8))) };
+
+enum { K_X2DRAG = (-((KS_EXTRA) + ((int)(KE_X2DRAG) << 8))) };
+
+enum { K_X2RELEASE = (-((KS_EXTRA) + ((int)(KE_X2RELEASE) << 8))) };
+
+enum { K_TC_k_0 = (-(('k') + ((int)('0') << 8))) };
+
+enum { K_S_F5 = (-((KS_EXTRA) + ((int)(KE_S_F5) << 8))) };
+
+enum { K_S_F6 = (-((KS_EXTRA) + ((int)(KE_S_F6) << 8))) };
+
+enum { K_S_F7 = (-((KS_EXTRA) + ((int)(KE_S_F7) << 8))) };
+
+enum { K_S_F8 = (-((KS_EXTRA) + ((int)(KE_S_F8) << 8))) };
+
+enum { K_S_F9 = (-((KS_EXTRA) + ((int)(KE_S_F9) << 8))) };
+
+enum { K_S_F10 = (-((KS_EXTRA) + ((int)(KE_S_F10) << 8))) };
+
+enum { K_S_F11 = (-((KS_EXTRA) + ((int)(KE_S_F11) << 8))) };
+
+enum { K_S_F12 = (-((KS_EXTRA) + ((int)(KE_S_F12) << 8))) };
+
     static bool
 edit(int cmdchar, int startln, long count)
 {
@@ -11657,7 +11963,7 @@ edit(int cmdchar, int startln, long count)
         }
         else
         {
-            if (cmdchar == (-(('P') + ((int)('S') << 8))))
+            if (cmdchar == K_PASTESTART)
             {
                 AppendCharToRedobuff('a');
             }
@@ -11799,7 +12105,7 @@ edit(int cmdchar, int startln, long count)
         }
         old_topline = curwin->w_topline;
         may_send_t_RK();
-        if (c != (-((KS_EXTRA) + ((int)(KE_CURSORHOLD) << 8))) && c != (-((KS_EXTRA) + ((int)(KE_COMPLETE_DELAY) << 8))))
+        if (c != K_CURSORHOLD && c != K_COMPLETE_DELAY)
         {
             lastc = c;
         }
@@ -11811,9 +12117,9 @@ edit(int cmdchar, int startln, long count)
         {
             dont_sync_undo = FALSE;
         }
-        if (cmdchar == (-(('P') + ((int)('S') << 8))))
+        if (cmdchar == K_PASTESTART)
         {
-            c = (-(('P') + ((int)('S') << 8)));
+            c = K_PASTESTART;
         }
         else
         {
@@ -11826,7 +12132,7 @@ edit(int cmdchar, int startln, long count)
                 c = safe_vgetc();
                 if (stop_insert_mode)
                 {
-                    if (c != (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))) && c != (-((KS_EXTRA) + ((int)(KE_NOP) << 8))))
+                    if (c != K_IGNORE && c != K_NOP)
                     {
                         vungetc(c);
                     }
@@ -11843,7 +12149,7 @@ edit(int cmdchar, int startln, long count)
                     break;
                 }
             }
-            while (c == (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_NOP) << 8))));
+            while (c == K_IGNORE || c == K_NOP);
             if (esc_now)
             {
                 esc_now = FALSE;
@@ -11946,16 +12252,16 @@ edit(int cmdchar, int startln, long count)
                 return (c == Ctrl_O);
             }
             continue;
-        case (-(('k') + ((int)('I') << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_KINS) << 8))):
+        case K_INS:
+        case K_KINS:
             ins_insert(replaceState);
             break;
         case (-((KS_SELECT) + ((int)(('X')) << 8))):
             break;
-        case (-(('%') + ((int)('1') << 8))):
-        case (-(('k') + ((int)('1') << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_XF1) << 8))):
-            stuffcharReadbuff((-(('%') + ((int)('1') << 8))));
+        case K_HELP:
+        case K_F1:
+        case K_XF1:
+            stuffcharReadbuff(K_HELP);
             if (p_im)
             {
                 need_start_insertmode = TRUE;
@@ -11992,12 +12298,12 @@ edit(int cmdchar, int startln, long count)
             ins_shift(c, lastc);
             inserted_space = FALSE;
             break;
-        case (-(('k') + ((int)('D') << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_KDEL) << 8))):
+        case K_DEL:
+        case K_KDEL:
             ins_del();
             break;
-        case (-(('k') + ((int)('b') << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_S_BS) << 8))):
+        case K_BS:
+        case K_S_BS:
         case Ctrl_H:
             did_backspace = ins_bs(c, BACKSPACE_CHAR, &inserted_space);
             break;
@@ -12008,9 +12314,9 @@ edit(int cmdchar, int startln, long count)
             did_backspace = ins_bs(c, BACKSPACE_LINE, &inserted_space);
             inserted_space = FALSE;
             break;
-        case (-(('P') + ((int)('S') << 8))):
+        case K_PASTESTART:
             bracketed_paste(PASTE_INSERT, FALSE, nullptr);
-            if (cmdchar == (-(('P') + ((int)('S') << 8))))
+            if (cmdchar == K_PASTESTART)
             {
                 if (edit_esc(&count, cmdchar, nomove, &o_lnum))
                 {
@@ -12019,12 +12325,12 @@ edit(int cmdchar, int startln, long count)
                 continue;
             }
             break;
-        case (-(('P') + ((int)('E') << 8))):
+        case K_PASTEEND:
             break;
-        case (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))):
+        case K_IGNORE:
             break;
-        case (-((KS_EXTRA) + ((int)(KE_COMMAND) << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_SCRIPT_COMMAND) << 8))):
+        case K_COMMAND:
+        case K_SCRIPT_COMMAND:
             {
                 bufref_T save_curbuf;
                 varnumber_T tick = curbuf->b_changedtick;
@@ -12036,32 +12342,32 @@ edit(int cmdchar, int startln, long count)
                 }
             }
             break;
-        case (-((KS_EXTRA) + ((int)(KE_CURSORHOLD) << 8))):
+        case K_CURSORHOLD:
             did_cursorhold = TRUE;
             if (dont_sync_undo == TRUE)
             {
                 dont_sync_undo = MAYBE;
             }
             break;
-        case (-((KS_EXTRA) + ((int)(KE_COMPLETE_DELAY) << 8))):
+        case K_COMPLETE_DELAY:
             if (dont_sync_undo == TRUE)
             {
                 dont_sync_undo = MAYBE;
             }
             break;
-        case (-(('k') + ((int)('h') << 8))):
-        case (-(('K') + ((int)('1') << 8))):
-        case (-(('#') + ((int)('2') << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_C_HOME) << 8))):
+        case K_HOME:
+        case K_KHOME:
+        case K_TC_HASH_2:
+        case K_C_HOME:
             ins_home(c);
             break;
-        case (-(('@') + ((int)('7') << 8))):
-        case (-(('K') + ((int)('4') << 8))):
-        case (-(('*') + ((int)('7') << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_C_END) << 8))):
+        case K_END:
+        case K_KEND:
+        case K_TC_STAR_7:
+        case K_C_END:
             ins_end(c);
             break;
-        case (-(('k') + ((int)('l') << 8))):
+        case K_LEFT:
             if (mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL))
             {
                 ins_s_left();
@@ -12071,11 +12377,11 @@ edit(int cmdchar, int startln, long count)
                 ins_left();
             }
             break;
-        case (-(('#') + ((int)('4') << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_C_LEFT) << 8))):
+        case K_TC_HASH_4:
+        case K_C_LEFT:
             ins_s_left();
             break;
-        case (-(('k') + ((int)('r') << 8))):
+        case K_RIGHT:
             if (mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL))
             {
                 ins_s_right();
@@ -12085,11 +12391,11 @@ edit(int cmdchar, int startln, long count)
                 ins_right();
             }
             break;
-        case (-(('%') + ((int)('i') << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_C_RIGHT) << 8))):
+        case K_TC_PCT_i:
+        case K_C_RIGHT:
             ins_s_right();
             break;
-        case (-(('k') + ((int)('u') << 8))):
+        case K_UP:
             if (mod_mask & MOD_MASK_SHIFT)
             {
                 ins_pageup();
@@ -12099,12 +12405,12 @@ edit(int cmdchar, int startln, long count)
                 ins_up(FALSE);
             }
             break;
-        case (-((KS_EXTRA) + ((int)(KE_S_UP) << 8))):
-        case (-(('k') + ((int)('P') << 8))):
-        case (-(('K') + ((int)('3') << 8))):
+        case K_S_UP:
+        case K_PAGEUP:
+        case K_KPAGEUP:
             ins_pageup();
             break;
-        case (-(('k') + ((int)('d') << 8))):
+        case K_DOWN:
             if (mod_mask & MOD_MASK_SHIFT)
             {
                 ins_pagedown();
@@ -12114,12 +12420,12 @@ edit(int cmdchar, int startln, long count)
                 ins_down(FALSE);
             }
             break;
-        case (-((KS_EXTRA) + ((int)(KE_S_DOWN) << 8))):
-        case (-(('k') + ((int)('N') << 8))):
-        case (-(('K') + ((int)('5') << 8))):
+        case K_S_DOWN:
+        case K_PAGEDOWN:
+        case K_KPAGEDOWN:
             ins_pagedown();
             break;
-        case (-(('k') + ((int)('B') << 8))):
+        case K_TC_k_B:
             c = TAB;
             ;
         case TAB:
@@ -12130,7 +12436,7 @@ edit(int cmdchar, int startln, long count)
                 break;
             }
             break;
-        case (-(('K') + ((int)('A') << 8))):
+        case K_KENTER:
             c = CAR;
             ;
         case CAR:
@@ -12203,7 +12509,7 @@ edit(int cmdchar, int startln, long count)
             edit_normalchar(c, &inserted_space);
             break;
         }
-        if (c != (-((KS_EXTRA) + ((int)(KE_CURSORHOLD) << 8))) && c != (-((KS_EXTRA) + ((int)(KE_COMPLETE_DELAY) << 8))))
+        if (c != K_CURSORHOLD && c != K_COMPLETE_DELAY)
         {
             did_cursorhold = FALSE;
         }
@@ -13409,12 +13715,12 @@ ins_ctrl_g(void)
     --allow_keys;
     switch (c)
     {
-    case (-(('k') + ((int)('u') << 8))):
+    case K_UP:
     case Ctrl_K:
     case 'k':
         ins_up(TRUE);
         break;
-    case (-(('k') + ((int)('d') << 8))):
+    case K_DOWN:
     case Ctrl_J:
     case 'j':
         ins_down(TRUE);
@@ -13537,23 +13843,23 @@ ins_start_select(int c)
     }
     switch (c)
     {
-    case (-(('K') + ((int)('1') << 8))):
-    case (-(('K') + ((int)('4') << 8))):
-    case (-(('k') + ((int)('P') << 8))):
-    case (-(('K') + ((int)('3') << 8))):
-    case (-(('k') + ((int)('N') << 8))):
-    case (-(('K') + ((int)('5') << 8))):
+    case K_KHOME:
+    case K_KEND:
+    case K_PAGEUP:
+    case K_KPAGEUP:
+    case K_PAGEDOWN:
+    case K_KPAGEDOWN:
         if (!(mod_mask & MOD_MASK_SHIFT))
         {
             break;
         }
         ;
-    case (-(('#') + ((int)('4') << 8))):
-    case (-(('%') + ((int)('i') << 8))):
-    case (-((KS_EXTRA) + ((int)(KE_S_UP) << 8))):
-    case (-((KS_EXTRA) + ((int)(KE_S_DOWN) << 8))):
-    case (-(('*') + ((int)('7') << 8))):
-    case (-(('#') + ((int)('2') << 8))):
+    case K_TC_HASH_4:
+    case K_TC_PCT_i:
+    case K_S_UP:
+    case K_S_DOWN:
+    case K_TC_STAR_7:
+    case K_TC_HASH_2:
         start_selection();
         stuffcharReadbuff(Ctrl_O);
         if (mod_mask)
@@ -13582,7 +13888,7 @@ ins_insert(int replaceState)
     {
         State = replaceState;
     }
-    AppendCharToRedobuff((-(('k') + ((int)('I') << 8))));
+    AppendCharToRedobuff(K_INS);
     showmode();
 }
 
@@ -13679,7 +13985,7 @@ ins_del(void)
     did_si = FALSE;
     can_si = FALSE;
     can_si_back = FALSE;
-    AppendCharToRedobuff((-(('k') + ((int)('D') << 8))));
+    AppendCharToRedobuff(K_DEL);
 }
 
     static void
@@ -13973,7 +14279,7 @@ bracketed_paste(paste_mode_T mode, int drop, garray_T *gap)
         {
             c = vgetc();
         }
-        while (c == (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))) || c == (-((KS_VER_SCROLLBAR) + ((int)(('X')) << 8))) || c == (-((KS_HOR_SCROLLBAR) + ((int)(('X')) << 8))));
+        while (c == K_IGNORE || c == (-((KS_VER_SCROLLBAR) + ((int)(('X')) << 8))) || c == (-((KS_HOR_SCROLLBAR) + ((int)(('X')) << 8))));
         if (c == NUL || got_int || (ex_normal_busy > 0 && c == Ctrl_C))
         {
             break;
@@ -14006,7 +14312,7 @@ bracketed_paste(paste_mode_T mode, int drop, garray_T *gap)
                 if (stop_arrow())
                 {
                     c = buf[0];
-                    if (idx == 1 && (c == CAR || c == (-(('K') + ((int)('A') << 8))) || c == NL))
+                    if (idx == 1 && (c == CAR || c == K_KENTER || c == NL))
                     {
                         ins_eol(c);
                     }
@@ -14049,7 +14355,7 @@ ins_left(void)
             start_arrow_with_change(&tpos, end_change);
             if (!end_change)
             {
-                AppendCharToRedobuff((-(('k') + ((int)('l') << 8))));
+                AppendCharToRedobuff(K_LEFT);
             }
         }
     }
@@ -14073,7 +14379,7 @@ ins_home(int c)
     pos_T tpos;
     undisplay_dollar();
     tpos = curwin->w_cursor;
-    if (c == (-((KS_EXTRA) + ((int)(KE_C_HOME) << 8))))
+    if (c == K_C_HOME)
     {
         curwin->w_cursor.lnum = 1;
     }
@@ -14089,7 +14395,7 @@ ins_end(int c)
     pos_T tpos;
     undisplay_dollar();
     tpos = curwin->w_cursor;
-    if (c == (-((KS_EXTRA) + ((int)(KE_C_END) << 8))))
+    if (c == K_C_END)
     {
         curwin->w_cursor.lnum = curbuf->b_ml.ml_line_count;
     }
@@ -14108,7 +14414,7 @@ ins_s_left(void)
         start_arrow_with_change(&curwin->w_cursor, end_change);
         if (!end_change)
         {
-            AppendCharToRedobuff((-(('#') + ((int)('4') << 8))));
+            AppendCharToRedobuff(K_TC_HASH_4);
         }
         (void)bck_word(1L, FALSE, FALSE);
         curwin->w_set_curswant = true;
@@ -14130,7 +14436,7 @@ ins_right(void)
         start_arrow_with_change(&curwin->w_cursor, end_change);
         if (!end_change)
         {
-            AppendCharToRedobuff((-(('k') + ((int)('r') << 8))));
+            AppendCharToRedobuff(K_RIGHT);
         }
         curwin->w_set_curswant = true;
         if (virtual_active())
@@ -14166,7 +14472,7 @@ ins_s_right(void)
         start_arrow_with_change(&curwin->w_cursor, end_change);
         if (!end_change)
         {
-            AppendCharToRedobuff((-(('%') + ((int)('i') << 8))));
+            AppendCharToRedobuff(K_TC_PCT_i);
         }
         (void)fwd_word(1L, FALSE, 0);
         curwin->w_set_curswant = true;
@@ -19181,15 +19487,15 @@ cmdline_erase_chars(int c, int indent, incsearch_state_T *isp)
 {
     int i;
     int j;
-    if (c == (-((KS_EXTRA) + ((int)(KE_KDEL) << 8))))
+    if (c == K_KDEL)
     {
-        c = (-(('k') + ((int)('D') << 8)));
+        c = K_DEL;
     }
-    if (c == (-(('k') + ((int)('D') << 8))) && ccline.cmdpos != ccline.cmdlen)
+    if (c == K_DEL && ccline.cmdpos != ccline.cmdlen)
     {
         ++ccline.cmdpos;
     }
-    if (c == (-(('k') + ((int)('D') << 8))))
+    if (c == K_DEL)
     {
         ccline.cmdpos += mb_off_next(ccline.cmdbuff, ccline.cmdbuff + ccline.cmdpos);
     }
@@ -19296,7 +19602,7 @@ cmdline_browse_history(int c, int firstc, char_u **curcmdstr, usize *curcmdstrle
     }
     for (;;)
     {
-        if (c == (-(('k') + ((int)('u') << 8))) || c == (-((KS_EXTRA) + ((int)(KE_S_UP) << 8))) || c == Ctrl_P || c == (-(('k') + ((int)('P') << 8))) || c == (-(('K') + ((int)('3') << 8))))
+        if (c == K_UP || c == K_S_UP || c == Ctrl_P || c == K_PAGEUP || c == K_KPAGEUP)
         {
             if (hiscnt == get_hislen())
             {
@@ -19341,7 +19647,7 @@ cmdline_browse_history(int c, int firstc, char_u **curcmdstr, usize *curcmdstrle
             hiscnt = orig_hiscnt;
             break;
         }
-        if ((c != (-(('k') + ((int)('u') << 8))) && c != (-(('k') + ((int)('d') << 8)))) || hiscnt == orig_hiscnt || musl_strncmp((char *)(get_histentry(histype)[hiscnt].hisstr), (char *)(lookfor), (lookforlen)) == 0)
+        if ((c != K_UP && c != K_DOWN) || hiscnt == orig_hiscnt || musl_strncmp((char *)(get_histentry(histype)[hiscnt].hisstr), (char *)(lookfor), (lookforlen)) == 0)
         {
             break;
         }
@@ -19557,9 +19863,9 @@ getcmdline_int(int firstc, long count, int indent, int clear_ccline)
             cursorcmd();
             c = safe_vgetc();
         }
-        while (c == (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_NOP) << 8))));
+        while (c == K_IGNORE || c == K_NOP);
         ccline.cmdbuff_replaced = FALSE;
-        if (c == (-((KS_EXTRA) + ((int)(KE_COMMAND) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_SCRIPT_COMMAND) << 8))))
+        if (c == K_COMMAND || c == K_SCRIPT_COMMAND)
         {
             int clen = ccline.cmdlen;
             int cc_count = aucmd_cmdline_changed_count;
@@ -19580,7 +19886,7 @@ getcmdline_int(int firstc, long count, int indent, int clear_ccline)
         {
             got_int = FALSE;
         }
-        if (lookfor != nullptr && c != (-((KS_EXTRA) + ((int)(KE_S_DOWN) << 8))) && c != (-((KS_EXTRA) + ((int)(KE_S_UP) << 8))) && c != (-(('k') + ((int)('d') << 8))) && c != (-(('k') + ((int)('u') << 8))) && c != (-(('k') + ((int)('N') << 8))) && c != (-(('k') + ((int)('P') << 8))) && c != (-(('K') + ((int)('5') << 8))) && c != (-(('K') + ((int)('3') << 8))) && c != (-(('k') + ((int)('l') << 8))) && c != (-(('k') + ((int)('r') << 8))) && (xpc.xp_numfiles > 0 || (c != Ctrl_P && c != Ctrl_N)))
+        if (lookfor != nullptr && c != K_S_DOWN && c != K_S_UP && c != K_DOWN && c != K_UP && c != K_PAGEDOWN && c != K_PAGEUP && c != K_KPAGEDOWN && c != K_KPAGEUP && c != K_LEFT && c != K_RIGHT && (xpc.xp_numfiles > 0 || (c != Ctrl_P && c != Ctrl_N)))
         {
             (lookfor) = nullptr;
             lookforlen = 0;
@@ -19602,7 +19908,7 @@ getcmdline_int(int firstc, long count, int indent, int clear_ccline)
             }
             c = Ctrl_BSL;
         }
-        if (c == '\n' || c == '\r' || c == (-(('K') + ((int)('A') << 8))) || (c == ESC && (!KeyTyped || vim_strchr(p_cpo, CPO_ESC) != nullptr)))
+        if (c == '\n' || c == '\r' || c == K_KENTER || (c == ESC && (!KeyTyped || vim_strchr(p_cpo, CPO_ESC) != nullptr)))
         {
             gotesc = FALSE;
             if (!cmd_silent)
@@ -19629,10 +19935,10 @@ getcmdline_int(int firstc, long count, int indent, int clear_ccline)
         }
         switch (c)
         {
-        case (-(('k') + ((int)('b') << 8))):
+        case K_BS:
         case Ctrl_H:
-        case (-(('k') + ((int)('D') << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_KDEL) << 8))):
+        case K_DEL:
+        case K_KDEL:
         case Ctrl_W:
             res = cmdline_erase_chars(c, indent, &is_state);
             if (res == CMDLINE_NOT_CHANGED)
@@ -19644,8 +19950,8 @@ getcmdline_int(int firstc, long count, int indent, int clear_ccline)
                 goto returncmd;
             }
             goto cmdline_changed;
-        case (-(('k') + ((int)('I') << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_KINS) << 8))):
+        case K_INS:
+        case K_KINS:
             ccline.overstrike = !ccline.overstrike;
             status_redraw_curbuf();
             redraw_statuslines();
@@ -19682,9 +19988,9 @@ getcmdline_int(int firstc, long count, int indent, int clear_ccline)
                 goto cmdline_changed;
             }
             goto cmdline_not_changed;
-        case (-(('k') + ((int)('r') << 8))):
-        case (-(('%') + ((int)('i') << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_C_RIGHT) << 8))):
+        case K_RIGHT:
+        case K_TC_PCT_i:
+        case K_C_RIGHT:
             do
             {
                 if (ccline.cmdpos >= ccline.cmdlen)
@@ -19699,12 +20005,12 @@ getcmdline_int(int firstc, long count, int indent, int clear_ccline)
                 ccline.cmdspos += i;
                 ccline.cmdpos += utfc_ptr2len(ccline.cmdbuff + ccline.cmdpos);
             }
-            while ((c == (-(('%') + ((int)('i') << 8))) || c == (-((KS_EXTRA) + ((int)(KE_C_RIGHT) << 8))) || (mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL))) && ccline.cmdbuff[ccline.cmdpos] != ' ');
+            while ((c == K_TC_PCT_i || c == K_C_RIGHT || (mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL))) && ccline.cmdbuff[ccline.cmdpos] != ' ');
             set_cmdspos_cursor();
             goto cmdline_not_changed;
-        case (-(('k') + ((int)('l') << 8))):
-        case (-(('#') + ((int)('4') << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_C_LEFT) << 8))):
+        case K_LEFT:
+        case K_TC_HASH_4:
+        case K_C_LEFT:
             if (ccline.cmdpos == 0)
             {
                 goto cmdline_not_changed;
@@ -19715,26 +20021,26 @@ getcmdline_int(int firstc, long count, int indent, int clear_ccline)
                 ccline.cmdpos -= utf_head_off(ccline.cmdbuff, ccline.cmdbuff + ccline.cmdpos);
                 ccline.cmdspos -= cmdline_charsize(ccline.cmdpos);
             }
-            while (ccline.cmdpos > 0 && (c == (-(('#') + ((int)('4') << 8))) || c == (-((KS_EXTRA) + ((int)(KE_C_LEFT) << 8))) || (mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL))) && ccline.cmdbuff[ccline.cmdpos - 1] != ' ');
+            while (ccline.cmdpos > 0 && (c == K_TC_HASH_4 || c == K_C_LEFT || (mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL))) && ccline.cmdbuff[ccline.cmdpos - 1] != ' ');
             set_cmdspos_cursor();
             goto cmdline_not_changed;
-        case (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))):
+        case K_IGNORE:
             goto cmdline_not_changed;
         case (-((KS_SELECT) + ((int)(('X')) << 8))):
             goto cmdline_not_changed;
         case Ctrl_B:
-        case (-(('k') + ((int)('h') << 8))):
-        case (-(('K') + ((int)('1') << 8))):
-        case (-(('#') + ((int)('2') << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_C_HOME) << 8))):
+        case K_HOME:
+        case K_KHOME:
+        case K_TC_HASH_2:
+        case K_C_HOME:
             ccline.cmdpos = 0;
             set_cmdspos();
             goto cmdline_not_changed;
         case Ctrl_E:
-        case (-(('@') + ((int)('7') << 8))):
-        case (-(('K') + ((int)('4') << 8))):
-        case (-(('*') + ((int)('7') << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_C_END) << 8))):
+        case K_END:
+        case K_KEND:
+        case K_TC_STAR_7:
+        case K_C_END:
             ccline.cmdpos = ccline.cmdlen;
             set_cmdspos_cursor();
             goto cmdline_not_changed;
@@ -19747,14 +20053,14 @@ getcmdline_int(int firstc, long count, int indent, int clear_ccline)
         case Ctrl_N:
         case Ctrl_P:
             ;
-        case (-(('k') + ((int)('u') << 8))):
-        case (-(('k') + ((int)('d') << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_S_UP) << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_S_DOWN) << 8))):
-        case (-(('k') + ((int)('P') << 8))):
-        case (-(('K') + ((int)('3') << 8))):
-        case (-(('k') + ((int)('N') << 8))):
-        case (-(('K') + ((int)('5') << 8))):
+        case K_UP:
+        case K_DOWN:
+        case K_S_UP:
+        case K_S_DOWN:
+        case K_PAGEUP:
+        case K_KPAGEUP:
+        case K_PAGEDOWN:
+        case K_KPAGEDOWN:
             res = cmdline_browse_history(c, firstc, &lookfor, &lookforlen, histype, &hiscnt, &xpc);
             if (res == CMDLINE_CHANGED)
             {
@@ -19787,7 +20093,7 @@ getcmdline_int(int firstc, long count, int indent, int clear_ccline)
                 }
             }
             break;
-        case (-(('P') + ((int)('S') << 8))):
+        case K_PASTESTART:
             bracketed_paste(PASTE_CMDLINE, FALSE, nullptr);
             goto cmdline_changed;
         default:
@@ -21713,7 +22019,7 @@ gotchars_add_byte(gotchars_state_T *state, char_u byte)
                 goto ret_false;
             }
             c = ((state->prev_c) == KS_SPECIAL ? (0x80) : (state->prev_c) == KS_ZERO ? (-((KS_ZERO) + ((int)(('X')) << 8))) : (-((state->prev_c) + ((int)(c) << 8))));
-            if (c == (-((KS_EXTRA) + ((int)(KE_FOCUSGAINED) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_FOCUSLOST) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_COMPLETE_DELAY) << 8))))
+            if (c == K_FOCUSGAINED || c == K_FOCUSLOST || c == K_COMPLETE_DELAY)
             {
                 state->buflen = 0;
             }
@@ -22019,11 +22325,11 @@ vgetc(void)
                     continue;
                 }
                 c = ((c2) == KS_SPECIAL ? (0x80) : (c2) == KS_ZERO ? (-((KS_ZERO) + ((int)(('X')) << 8))) : (-((c2) + ((int)(c) << 8))));
-                if (allow_osc_key == 0 && c == (-((KS_EXTRA) + ((int)(KE_OSC) << 8))))
+                if (allow_osc_key == 0 && c == K_OSC)
                 {
                     continue;
                 }
-                if (c == (-((KS_EXTRA) + ((int)(KE_ESC) << 8))))
+                if (c == K_ESC)
                 {
                     c = ESC;
                 }
@@ -22054,99 +22360,99 @@ vgetc(void)
             }
             switch (c)
             {
-            case (-(('K') + ((int)('6') << 8))):
+            case K_KPLUS:
                 c = '+';
                 break;
-            case (-(('K') + ((int)('7') << 8))):
+            case K_KMINUS:
                 c = '-';
                 break;
-            case (-(('K') + ((int)('8') << 8))):
+            case K_KDIVIDE:
                 c = '/';
                 break;
-            case (-(('K') + ((int)('9') << 8))):
+            case K_KMULTIPLY:
                 c = '*';
                 break;
-            case (-(('K') + ((int)('A') << 8))):
+            case K_KENTER:
                 c = CAR;
                 break;
-            case (-(('K') + ((int)('B') << 8))):
+            case K_KPOINT:
                 c = '.';
                 break;
-            case (-(('K') + ((int)('C') << 8))):
+            case K_K0:
                 c = '0';
                 break;
-            case (-(('K') + ((int)('D') << 8))):
+            case K_K1:
                 c = '1';
                 break;
-            case (-(('K') + ((int)('E') << 8))):
+            case K_K2:
                 c = '2';
                 break;
-            case (-(('K') + ((int)('F') << 8))):
+            case K_K3:
                 c = '3';
                 break;
-            case (-(('K') + ((int)('G') << 8))):
+            case K_K4:
                 c = '4';
                 break;
-            case (-(('K') + ((int)('H') << 8))):
+            case K_K5:
                 c = '5';
                 break;
-            case (-(('K') + ((int)('I') << 8))):
+            case K_K6:
                 c = '6';
                 break;
-            case (-(('K') + ((int)('J') << 8))):
+            case K_K7:
                 c = '7';
                 break;
-            case (-(('K') + ((int)('K') << 8))):
+            case K_K8:
                 c = '8';
                 break;
-            case (-(('K') + ((int)('L') << 8))):
+            case K_K9:
                 c = '9';
                 break;
-            case (-((KS_EXTRA) + ((int)(KE_XHOME) << 8))):
-            case (-((KS_EXTRA) + ((int)(KE_ZHOME) << 8))):
+            case K_XHOME:
+            case K_ZHOME:
                 if (mod_mask == MOD_MASK_SHIFT)
                 {
-                    c = (-(('#') + ((int)('2') << 8)));
+                    c = K_TC_HASH_2;
                     mod_mask = 0;
                 }
                 else if (mod_mask == MOD_MASK_CTRL)
                 {
-                    c = (-((KS_EXTRA) + ((int)(KE_C_HOME) << 8)));
+                    c = K_C_HOME;
                     mod_mask = 0;
                 }
                 else
                 {
-                    c = (-(('k') + ((int)('h') << 8)));
+                    c = K_HOME;
                 }
                 break;
-            case (-((KS_EXTRA) + ((int)(KE_XEND) << 8))):
-            case (-((KS_EXTRA) + ((int)(KE_ZEND) << 8))):
+            case K_XEND:
+            case K_ZEND:
                 if (mod_mask == MOD_MASK_SHIFT)
                 {
-                    c = (-(('*') + ((int)('7') << 8)));
+                    c = K_TC_STAR_7;
                     mod_mask = 0;
                 }
                 else if (mod_mask == MOD_MASK_CTRL)
                 {
-                    c = (-((KS_EXTRA) + ((int)(KE_C_END) << 8)));
+                    c = K_C_END;
                     mod_mask = 0;
                 }
                 else
                 {
-                    c = (-(('@') + ((int)('7') << 8)));
+                    c = K_END;
                 }
                 break;
-            case (-((KS_EXTRA) + ((int)(KE_XUP) << 8))):
-                c = (-(('k') + ((int)('u') << 8)));
+            case K_XUP:
+                c = K_UP;
                 break;
-            case (-((KS_EXTRA) + ((int)(KE_XDOWN) << 8))):
-                c = (-(('k') + ((int)('d') << 8)));
+            case K_XDOWN:
+                c = K_DOWN;
                 break;
-            case (-((KS_EXTRA) + ((int)(KE_XLEFT) << 8))):
-                c = (-(('k') + ((int)('l') << 8)));
+            case K_XLEFT:
+                c = K_LEFT;
                 break;
-            case (-((KS_EXTRA) + ((int)(KE_XRIGHT) << 8))):
-                c = (-(('k') + ((int)('r') << 8)));
+            case K_XRIGHT:
+                c = K_RIGHT;
                 break;
             }
             break;
@@ -22176,7 +22482,7 @@ plain_vgetc_nopaste(void)
     {
         c = safe_vgetc();
     }
-    while (c == (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))) || c == (-((KS_VER_SCROLLBAR) + ((int)(('X')) << 8))) || c == (-((KS_HOR_SCROLLBAR) + ((int)(('X')) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_MOUSEMOVE) << 8))));
+    while (c == K_IGNORE || c == (-((KS_VER_SCROLLBAR) + ((int)(('X')) << 8))) || c == (-((KS_HOR_SCROLLBAR) + ((int)(('X')) << 8))) || c == K_MOUSEMOVE);
     return c;
 }
 
@@ -22184,7 +22490,7 @@ plain_vgetc_nopaste(void)
 plain_vgetc(void)
 {
     int c = plain_vgetc_nopaste();
-    if (c == (-(('P') + ((int)('S') << 8))))
+    if (c == K_PASTESTART)
     {
         c = bracketed_paste(PASTE_ONE_CHAR, FALSE, nullptr);
     }
@@ -22917,7 +23223,7 @@ vgetorpeek(int advance)
             }
         }
     }
-    while ((c < 0 && c != (-((KS_EXTRA) + ((int)(KE_CANCEL) << 8)))) || (advance && c == NUL));
+    while ((c < 0 && c != K_CANCEL) || (advance && c == NUL));
     if (advance && p_smd && msg_silent == 0 && (State & MODE_INSERT))
     {
         if (c == ESC && !mode_deleted && !no_mapping && mode_displayed)
@@ -23057,7 +23363,7 @@ getcmdkeycmd(int promptc, int indent, getline_opt_T do_concat)
                 continue;
             }
             c1 = ((c1) == KS_SPECIAL ? (0x80) : (c1) == KS_ZERO ? (-((KS_ZERO) + ((int)(('X')) << 8))) : (-((c1) + ((int)(c2) << 8))));
-            if (c1 == (-((KS_EXTRA) + ((int)(KE_ESC) << 8))))
+            if (c1 == K_ESC)
             {
                 c1 = ESC;
             }
@@ -23074,12 +23380,12 @@ getcmdkeycmd(int promptc, int indent, getline_opt_T do_concat)
         {
             aborted = TRUE;
         }
-        else if (c1 == (-((KS_EXTRA) + ((int)(KE_COMMAND) << 8))) || c1 == (-((KS_EXTRA) + ((int)(KE_SCRIPT_COMMAND) << 8))))
+        else if (c1 == K_COMMAND || c1 == K_SCRIPT_COMMAND)
         {
             emsg(_(e_cmd_mapping_must_end_with_cr_before_second_cmd));
             aborted = TRUE;
         }
-        else if (c1 == (-((KS_EXTRA) + ((int)(KE_SNR) << 8))))
+        else if (c1 == K_SNR)
         {
             ga_concat_len((&line_ga), (char_u *)("<SNR>"), (sizeof("<SNR>") - 1));
         }
@@ -34319,7 +34625,7 @@ wait_return(int redraw)
                 reg_recording = save_reg_recording;
                 if (KeyTyped && p_more && !p_cp)
                 {
-                    if (c == 'b' || c == Ctrl_B || c == 'k' || c == 'u' || c == 'g' || c == (-(('k') + ((int)('u') << 8))) || c == (-(('k') + ((int)('P') << 8))))
+                    if (c == 'b' || c == Ctrl_B || c == 'k' || c == 'u' || c == 'g' || c == K_UP || c == K_PAGEUP)
                     {
                         if (msg_scrolled > Rows)
                         {
@@ -34328,7 +34634,7 @@ wait_return(int redraw)
                         else
                         {
                             msg_didout = FALSE;
-                            c = (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8)));
+                            c = K_IGNORE;
                             msg_col = 0;
                         }
                         if (quit_more)
@@ -34337,21 +34643,21 @@ wait_return(int redraw)
                             quit_more = FALSE;
                             got_int = FALSE;
                         }
-                        else if (c != (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))))
+                        else if (c != K_IGNORE)
                         {
-                            c = (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8)));
+                            c = K_IGNORE;
                             hit_return_msg();
                         }
                     }
-                    else if (msg_scrolled > Rows - 2 && (c == 'j' || c == 'd' || c == 'f' || c == Ctrl_F || c == (-(('k') + ((int)('d') << 8))) || c == (-(('k') + ((int)('N') << 8)))))
+                    else if (msg_scrolled > Rows - 2 && (c == 'j' || c == 'd' || c == 'f' || c == Ctrl_F || c == K_DOWN || c == K_PAGEDOWN))
                     {
-                        c = (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8)));
+                        c = K_IGNORE;
                     }
                 }
             }
-            while ((had_got_int && c == Ctrl_C) || c == (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_LEFTDRAG) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_LEFTRELEASE) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_MIDDLEDRAG) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_MIDDLERELEASE) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_RIGHTDRAG) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_RIGHTRELEASE) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_MOUSELEFT) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_MOUSERIGHT) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_MOUSEDOWN) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_MOUSEUP) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_MOUSEMOVE) << 8))));
+            while ((had_got_int && c == Ctrl_C) || c == K_IGNORE || c == K_LEFTDRAG || c == K_LEFTRELEASE || c == K_MIDDLEDRAG || c == K_MIDDLERELEASE || c == K_RIGHTDRAG || c == K_RIGHTRELEASE || c == K_MOUSELEFT || c == K_MOUSERIGHT || c == K_MOUSEDOWN || c == K_MOUSEUP || c == K_MOUSEMOVE);
             ui_breakcheck();
-            if (c == (-((KS_EXTRA) + ((int)(KE_LEFTMOUSE) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_MIDDLEMOUSE) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_RIGHTMOUSE) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_X1MOUSE) << 8))) || c == (-((KS_EXTRA) + ((int)(KE_X2MOUSE) << 8))))
+            if (c == K_LEFTMOUSE || c == K_MIDDLEMOUSE || c == K_RIGHTMOUSE || c == K_X1MOUSE || c == K_X2MOUSE)
             {
             }
             else if (!KeyTyped || (vim_strchr((char_u *)"\r\n ", c) == nullptr && c != Ctrl_C && c != 'q'))
@@ -35464,15 +35770,15 @@ do_more_prompt(int typed_char)
         switch (c)
         {
         case BS:
-        case (-(('k') + ((int)('b') << 8))):
+        case K_BS:
         case 'k':
-        case (-(('k') + ((int)('u') << 8))):
+        case K_UP:
             toscroll = -1;
             break;
         case CAR:
         case NL:
         case 'j':
-        case (-(('k') + ((int)('d') << 8))):
+        case K_DOWN:
             toscroll = 1;
             break;
         case 'u':
@@ -35483,14 +35789,14 @@ do_more_prompt(int typed_char)
             break;
         case 'b':
         case Ctrl_B:
-        case (-(('k') + ((int)('P') << 8))):
+        case K_PAGEUP:
             toscroll = -(Rows - 1);
             break;
         case ' ':
         case 'f':
         case Ctrl_F:
-        case (-(('k') + ((int)('N') << 8))):
-        case (-((KS_EXTRA) + ((int)(KE_LEFTMOUSE) << 8))):
+        case K_PAGEDOWN:
+        case K_LEFTMOUSE:
             toscroll = Rows - 1;
             break;
         case 'g':
@@ -36113,7 +36419,7 @@ get_keystroke(void)
         if (n == (0x80))
         {
             n = ((buf[1]) == KS_SPECIAL ? (0x80) : (buf[1]) == KS_ZERO ? (-((KS_ZERO) + ((int)(('X')) << 8))) : (-((buf[1]) + ((int)(buf[2]) << 8))));
-            if (buf[1] == KS_MODIFIER || n == (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))))
+            if (buf[1] == KS_MODIFIER || n == K_IGNORE)
             {
                 if (buf[1] == KS_MODIFIER)
                 {
@@ -37283,88 +37589,88 @@ static struct key_name_entry
     int is_alt;
 } key_names_table[] =
 {
-    {TRUE, (-(('k') + ((int)('b') << 8))), {(char_u *)("BackSpace"), (sizeof("BackSpace") - 1)}, TRUE},
+    {TRUE, K_BS, {(char_u *)("BackSpace"), (sizeof("BackSpace") - 1)}, TRUE},
     {TRUE, '|', {(char_u *)("Bar"), (sizeof("Bar") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('b') << 8))), {(char_u *)("BS"), (sizeof("BS") - 1)}, FALSE},
+    {TRUE, K_BS, {(char_u *)("BS"), (sizeof("BS") - 1)}, FALSE},
     {TRUE, '\\', {(char_u *)("Bslash"), (sizeof("Bslash") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_COMMAND) << 8))), {(char_u *)("Cmd"), (sizeof("Cmd") - 1)}, FALSE},
+    {TRUE, K_COMMAND, {(char_u *)("Cmd"), (sizeof("Cmd") - 1)}, FALSE},
     {TRUE, CAR, {(char_u *)("CR"), (sizeof("CR") - 1)}, FALSE},
     {TRUE, CSI, {(char_u *)("CSI"), (sizeof("CSI") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_CURSORHOLD) << 8))), {(char_u *)("CursorHold"), (sizeof("CursorHold") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('D') << 8))), {(char_u *)("Del"), (sizeof("Del") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('D') << 8))), {(char_u *)("Delete"), (sizeof("Delete") - 1)}, TRUE},
-    {TRUE, (-(('k') + ((int)('d') << 8))), {(char_u *)("Down"), (sizeof("Down") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_DROP) << 8))), {(char_u *)("Drop"), (sizeof("Drop") - 1)}, FALSE},
-    {TRUE, (-(('@') + ((int)('7') << 8))), {(char_u *)("End"), (sizeof("End") - 1)}, FALSE},
+    {TRUE, K_CURSORHOLD, {(char_u *)("CursorHold"), (sizeof("CursorHold") - 1)}, FALSE},
+    {TRUE, K_DEL, {(char_u *)("Del"), (sizeof("Del") - 1)}, FALSE},
+    {TRUE, K_DEL, {(char_u *)("Delete"), (sizeof("Delete") - 1)}, TRUE},
+    {TRUE, K_DOWN, {(char_u *)("Down"), (sizeof("Down") - 1)}, FALSE},
+    {TRUE, K_DROP, {(char_u *)("Drop"), (sizeof("Drop") - 1)}, FALSE},
+    {TRUE, K_END, {(char_u *)("End"), (sizeof("End") - 1)}, FALSE},
     {TRUE, CAR, {(char_u *)("Enter"), (sizeof("Enter") - 1)}, TRUE},
     {TRUE, ESC, {(char_u *)("Esc"), (sizeof("Esc") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('1') << 8))), {(char_u *)("F1"), (sizeof("F1") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)(';') << 8))), {(char_u *)("F10"), (sizeof("F10") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('1') << 8))), {(char_u *)("F11"), (sizeof("F11") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('2') << 8))), {(char_u *)("F12"), (sizeof("F12") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('3') << 8))), {(char_u *)("F13"), (sizeof("F13") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('4') << 8))), {(char_u *)("F14"), (sizeof("F14") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('5') << 8))), {(char_u *)("F15"), (sizeof("F15") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('6') << 8))), {(char_u *)("F16"), (sizeof("F16") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('7') << 8))), {(char_u *)("F17"), (sizeof("F17") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('8') << 8))), {(char_u *)("F18"), (sizeof("F18") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('9') << 8))), {(char_u *)("F19"), (sizeof("F19") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('2') << 8))), {(char_u *)("F2"), (sizeof("F2") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('A') << 8))), {(char_u *)("F20"), (sizeof("F20") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('B') << 8))), {(char_u *)("F21"), (sizeof("F21") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('C') << 8))), {(char_u *)("F22"), (sizeof("F22") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('D') << 8))), {(char_u *)("F23"), (sizeof("F23") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('E') << 8))), {(char_u *)("F24"), (sizeof("F24") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('F') << 8))), {(char_u *)("F25"), (sizeof("F25") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('G') << 8))), {(char_u *)("F26"), (sizeof("F26") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('H') << 8))), {(char_u *)("F27"), (sizeof("F27") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('I') << 8))), {(char_u *)("F28"), (sizeof("F28") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('J') << 8))), {(char_u *)("F29"), (sizeof("F29") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('3') << 8))), {(char_u *)("F3"), (sizeof("F3") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('K') << 8))), {(char_u *)("F30"), (sizeof("F30") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('L') << 8))), {(char_u *)("F31"), (sizeof("F31") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('M') << 8))), {(char_u *)("F32"), (sizeof("F32") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('N') << 8))), {(char_u *)("F33"), (sizeof("F33") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('O') << 8))), {(char_u *)("F34"), (sizeof("F34") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('P') << 8))), {(char_u *)("F35"), (sizeof("F35") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('Q') << 8))), {(char_u *)("F36"), (sizeof("F36") - 1)}, FALSE},
-    {TRUE, (-(('F') + ((int)('R') << 8))), {(char_u *)("F37"), (sizeof("F37") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('4') << 8))), {(char_u *)("F4"), (sizeof("F4") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('5') << 8))), {(char_u *)("F5"), (sizeof("F5") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('6') << 8))), {(char_u *)("F6"), (sizeof("F6") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('7') << 8))), {(char_u *)("F7"), (sizeof("F7") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('8') << 8))), {(char_u *)("F8"), (sizeof("F8") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('9') << 8))), {(char_u *)("F9"), (sizeof("F9") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_FOCUSGAINED) << 8))), {(char_u *)("FocusGained"), (sizeof("FocusGained") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_FOCUSLOST) << 8))), {(char_u *)("FocusLost"), (sizeof("FocusLost") - 1)}, FALSE},
-    {TRUE, (-(('%') + ((int)('1') << 8))), {(char_u *)("Help"), (sizeof("Help") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('h') << 8))), {(char_u *)("Home"), (sizeof("Home") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))), {(char_u *)("Ignore"), (sizeof("Ignore") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('I') << 8))), {(char_u *)("Ins"), (sizeof("Ins") - 1)}, TRUE},
-    {TRUE, (-(('k') + ((int)('I') << 8))), {(char_u *)("Insert"), (sizeof("Insert") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('C') << 8))), {(char_u *)("k0"), (sizeof("k0") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('D') << 8))), {(char_u *)("k1"), (sizeof("k1") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('E') << 8))), {(char_u *)("k2"), (sizeof("k2") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('F') << 8))), {(char_u *)("k3"), (sizeof("k3") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('G') << 8))), {(char_u *)("k4"), (sizeof("k4") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('H') << 8))), {(char_u *)("k5"), (sizeof("k5") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('I') << 8))), {(char_u *)("k6"), (sizeof("k6") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('J') << 8))), {(char_u *)("k7"), (sizeof("k7") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('K') << 8))), {(char_u *)("k8"), (sizeof("k8") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('L') << 8))), {(char_u *)("k9"), (sizeof("k9") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_KDEL) << 8))), {(char_u *)("kDel"), (sizeof("kDel") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('8') << 8))), {(char_u *)("kDivide"), (sizeof("kDivide") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('4') << 8))), {(char_u *)("kEnd"), (sizeof("kEnd") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('A') << 8))), {(char_u *)("kEnter"), (sizeof("kEnter") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('1') << 8))), {(char_u *)("kHome"), (sizeof("kHome") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_KINS) << 8))), {(char_u *)("kInsert"), (sizeof("kInsert") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('7') << 8))), {(char_u *)("kMinus"), (sizeof("kMinus") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('9') << 8))), {(char_u *)("kMultiply"), (sizeof("kMultiply") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('5') << 8))), {(char_u *)("kPageDown"), (sizeof("kPageDown") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('3') << 8))), {(char_u *)("kPageUp"), (sizeof("kPageUp") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('6') << 8))), {(char_u *)("kPlus"), (sizeof("kPlus") - 1)}, FALSE},
-    {TRUE, (-(('K') + ((int)('B') << 8))), {(char_u *)("kPoint"), (sizeof("kPoint") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('l') << 8))), {(char_u *)("Left"), (sizeof("Left") - 1)}, FALSE},
+    {TRUE, K_F1, {(char_u *)("F1"), (sizeof("F1") - 1)}, FALSE},
+    {TRUE, K_F10, {(char_u *)("F10"), (sizeof("F10") - 1)}, FALSE},
+    {TRUE, K_F11, {(char_u *)("F11"), (sizeof("F11") - 1)}, FALSE},
+    {TRUE, K_F12, {(char_u *)("F12"), (sizeof("F12") - 1)}, FALSE},
+    {TRUE, K_F13, {(char_u *)("F13"), (sizeof("F13") - 1)}, FALSE},
+    {TRUE, K_F14, {(char_u *)("F14"), (sizeof("F14") - 1)}, FALSE},
+    {TRUE, K_F15, {(char_u *)("F15"), (sizeof("F15") - 1)}, FALSE},
+    {TRUE, K_F16, {(char_u *)("F16"), (sizeof("F16") - 1)}, FALSE},
+    {TRUE, K_F17, {(char_u *)("F17"), (sizeof("F17") - 1)}, FALSE},
+    {TRUE, K_F18, {(char_u *)("F18"), (sizeof("F18") - 1)}, FALSE},
+    {TRUE, K_F19, {(char_u *)("F19"), (sizeof("F19") - 1)}, FALSE},
+    {TRUE, K_F2, {(char_u *)("F2"), (sizeof("F2") - 1)}, FALSE},
+    {TRUE, K_F20, {(char_u *)("F20"), (sizeof("F20") - 1)}, FALSE},
+    {TRUE, K_F21, {(char_u *)("F21"), (sizeof("F21") - 1)}, FALSE},
+    {TRUE, K_F22, {(char_u *)("F22"), (sizeof("F22") - 1)}, FALSE},
+    {TRUE, K_F23, {(char_u *)("F23"), (sizeof("F23") - 1)}, FALSE},
+    {TRUE, K_F24, {(char_u *)("F24"), (sizeof("F24") - 1)}, FALSE},
+    {TRUE, K_F25, {(char_u *)("F25"), (sizeof("F25") - 1)}, FALSE},
+    {TRUE, K_F26, {(char_u *)("F26"), (sizeof("F26") - 1)}, FALSE},
+    {TRUE, K_F27, {(char_u *)("F27"), (sizeof("F27") - 1)}, FALSE},
+    {TRUE, K_F28, {(char_u *)("F28"), (sizeof("F28") - 1)}, FALSE},
+    {TRUE, K_F29, {(char_u *)("F29"), (sizeof("F29") - 1)}, FALSE},
+    {TRUE, K_F3, {(char_u *)("F3"), (sizeof("F3") - 1)}, FALSE},
+    {TRUE, K_F30, {(char_u *)("F30"), (sizeof("F30") - 1)}, FALSE},
+    {TRUE, K_F31, {(char_u *)("F31"), (sizeof("F31") - 1)}, FALSE},
+    {TRUE, K_F32, {(char_u *)("F32"), (sizeof("F32") - 1)}, FALSE},
+    {TRUE, K_F33, {(char_u *)("F33"), (sizeof("F33") - 1)}, FALSE},
+    {TRUE, K_F34, {(char_u *)("F34"), (sizeof("F34") - 1)}, FALSE},
+    {TRUE, K_F35, {(char_u *)("F35"), (sizeof("F35") - 1)}, FALSE},
+    {TRUE, K_F36, {(char_u *)("F36"), (sizeof("F36") - 1)}, FALSE},
+    {TRUE, K_F37, {(char_u *)("F37"), (sizeof("F37") - 1)}, FALSE},
+    {TRUE, K_F4, {(char_u *)("F4"), (sizeof("F4") - 1)}, FALSE},
+    {TRUE, K_F5, {(char_u *)("F5"), (sizeof("F5") - 1)}, FALSE},
+    {TRUE, K_F6, {(char_u *)("F6"), (sizeof("F6") - 1)}, FALSE},
+    {TRUE, K_F7, {(char_u *)("F7"), (sizeof("F7") - 1)}, FALSE},
+    {TRUE, K_F8, {(char_u *)("F8"), (sizeof("F8") - 1)}, FALSE},
+    {TRUE, K_F9, {(char_u *)("F9"), (sizeof("F9") - 1)}, FALSE},
+    {TRUE, K_FOCUSGAINED, {(char_u *)("FocusGained"), (sizeof("FocusGained") - 1)}, FALSE},
+    {TRUE, K_FOCUSLOST, {(char_u *)("FocusLost"), (sizeof("FocusLost") - 1)}, FALSE},
+    {TRUE, K_HELP, {(char_u *)("Help"), (sizeof("Help") - 1)}, FALSE},
+    {TRUE, K_HOME, {(char_u *)("Home"), (sizeof("Home") - 1)}, FALSE},
+    {TRUE, K_IGNORE, {(char_u *)("Ignore"), (sizeof("Ignore") - 1)}, FALSE},
+    {TRUE, K_INS, {(char_u *)("Ins"), (sizeof("Ins") - 1)}, TRUE},
+    {TRUE, K_INS, {(char_u *)("Insert"), (sizeof("Insert") - 1)}, FALSE},
+    {TRUE, K_K0, {(char_u *)("k0"), (sizeof("k0") - 1)}, FALSE},
+    {TRUE, K_K1, {(char_u *)("k1"), (sizeof("k1") - 1)}, FALSE},
+    {TRUE, K_K2, {(char_u *)("k2"), (sizeof("k2") - 1)}, FALSE},
+    {TRUE, K_K3, {(char_u *)("k3"), (sizeof("k3") - 1)}, FALSE},
+    {TRUE, K_K4, {(char_u *)("k4"), (sizeof("k4") - 1)}, FALSE},
+    {TRUE, K_K5, {(char_u *)("k5"), (sizeof("k5") - 1)}, FALSE},
+    {TRUE, K_K6, {(char_u *)("k6"), (sizeof("k6") - 1)}, FALSE},
+    {TRUE, K_K7, {(char_u *)("k7"), (sizeof("k7") - 1)}, FALSE},
+    {TRUE, K_K8, {(char_u *)("k8"), (sizeof("k8") - 1)}, FALSE},
+    {TRUE, K_K9, {(char_u *)("k9"), (sizeof("k9") - 1)}, FALSE},
+    {TRUE, K_KDEL, {(char_u *)("kDel"), (sizeof("kDel") - 1)}, FALSE},
+    {TRUE, K_KDIVIDE, {(char_u *)("kDivide"), (sizeof("kDivide") - 1)}, FALSE},
+    {TRUE, K_KEND, {(char_u *)("kEnd"), (sizeof("kEnd") - 1)}, FALSE},
+    {TRUE, K_KENTER, {(char_u *)("kEnter"), (sizeof("kEnter") - 1)}, FALSE},
+    {TRUE, K_KHOME, {(char_u *)("kHome"), (sizeof("kHome") - 1)}, FALSE},
+    {TRUE, K_KINS, {(char_u *)("kInsert"), (sizeof("kInsert") - 1)}, FALSE},
+    {TRUE, K_KMINUS, {(char_u *)("kMinus"), (sizeof("kMinus") - 1)}, FALSE},
+    {TRUE, K_KMULTIPLY, {(char_u *)("kMultiply"), (sizeof("kMultiply") - 1)}, FALSE},
+    {TRUE, K_KPAGEDOWN, {(char_u *)("kPageDown"), (sizeof("kPageDown") - 1)}, FALSE},
+    {TRUE, K_KPAGEUP, {(char_u *)("kPageUp"), (sizeof("kPageUp") - 1)}, FALSE},
+    {TRUE, K_KPLUS, {(char_u *)("kPlus"), (sizeof("kPlus") - 1)}, FALSE},
+    {TRUE, K_KPOINT, {(char_u *)("kPoint"), (sizeof("kPoint") - 1)}, FALSE},
+    {TRUE, K_LEFT, {(char_u *)("Left"), (sizeof("Left") - 1)}, FALSE},
     {TRUE, NL, {(char_u *)("LF"), (sizeof("LF") - 1)}, TRUE},
     {TRUE, NL, {(char_u *)("LineFeed"), (sizeof("LineFeed") - 1)}, TRUE},
     {TRUE, '<', {(char_u *)("lt"), (sizeof("lt") - 1)}, FALSE},
@@ -37372,34 +37678,34 @@ static struct key_name_entry
     {TRUE, NL, {(char_u *)("NL"), (sizeof("NL") - 1)}, FALSE},
     {TRUE, (-((KS_ZERO) + ((int)(('X')) << 8))), {(char_u *)("Nul"), (sizeof("Nul") - 1)}, FALSE},
     {TRUE, OSC, {(char_u *)("OSC"), (sizeof("OSC") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('N') << 8))), {(char_u *)("PageDown"), (sizeof("PageDown") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('P') << 8))), {(char_u *)("PageUp"), (sizeof("PageUp") - 1)}, FALSE},
-    {TRUE, (-(('P') + ((int)('E') << 8))), {(char_u *)("PasteEnd"), (sizeof("PasteEnd") - 1)}, FALSE},
-    {TRUE, (-(('P') + ((int)('S') << 8))), {(char_u *)("PasteStart"), (sizeof("PasteStart") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_PLUG) << 8))), {(char_u *)("Plug"), (sizeof("Plug") - 1)}, FALSE},
+    {TRUE, K_PAGEDOWN, {(char_u *)("PageDown"), (sizeof("PageDown") - 1)}, FALSE},
+    {TRUE, K_PAGEUP, {(char_u *)("PageUp"), (sizeof("PageUp") - 1)}, FALSE},
+    {TRUE, K_PASTEEND, {(char_u *)("PasteEnd"), (sizeof("PasteEnd") - 1)}, FALSE},
+    {TRUE, K_PASTESTART, {(char_u *)("PasteStart"), (sizeof("PasteStart") - 1)}, FALSE},
+    {TRUE, K_PLUG, {(char_u *)("Plug"), (sizeof("Plug") - 1)}, FALSE},
     {TRUE, CAR, {(char_u *)("Return"), (sizeof("Return") - 1)}, TRUE},
-    {TRUE, (-(('k') + ((int)('r') << 8))), {(char_u *)("Right"), (sizeof("Right") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_SCRIPT_COMMAND) << 8))), {(char_u *)("ScriptCmd"), (sizeof("ScriptCmd") - 1)}, FALSE},
-    {FALSE, (-((KS_EXTRA) + ((int)(KE_SNR) << 8))), {(char_u *)("SNR"), (sizeof("SNR") - 1)}, FALSE},
+    {TRUE, K_RIGHT, {(char_u *)("Right"), (sizeof("Right") - 1)}, FALSE},
+    {TRUE, K_SCRIPT_COMMAND, {(char_u *)("ScriptCmd"), (sizeof("ScriptCmd") - 1)}, FALSE},
+    {FALSE, K_SNR, {(char_u *)("SNR"), (sizeof("SNR") - 1)}, FALSE},
     {TRUE, ' ', {(char_u *)("Space"), (sizeof("Space") - 1)}, FALSE},
     {TRUE, TAB, {(char_u *)("Tab"), (sizeof("Tab") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_TAB) << 8))), {(char_u *)("Tab"), (sizeof("Tab") - 1)}, FALSE},
-    {TRUE, (-(('&') + ((int)('8') << 8))), {(char_u *)("Undo"), (sizeof("Undo") - 1)}, FALSE},
-    {TRUE, (-(('k') + ((int)('u') << 8))), {(char_u *)("Up"), (sizeof("Up") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_CSI) << 8))), {(char_u *)("xCSI"), (sizeof("xCSI") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_XDOWN) << 8))), {(char_u *)("xDown"), (sizeof("xDown") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_XEND) << 8))), {(char_u *)("xEnd"), (sizeof("xEnd") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_XF1) << 8))), {(char_u *)("xF1"), (sizeof("xF1") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_XF2) << 8))), {(char_u *)("xF2"), (sizeof("xF2") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_XF3) << 8))), {(char_u *)("xF3"), (sizeof("xF3") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_XF4) << 8))), {(char_u *)("xF4"), (sizeof("xF4") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_XHOME) << 8))), {(char_u *)("xHome"), (sizeof("xHome") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_XLEFT) << 8))), {(char_u *)("xLeft"), (sizeof("xLeft") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_OSC) << 8))), {(char_u *)("xOSC"), (sizeof("xOSC") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_XRIGHT) << 8))), {(char_u *)("xRight"), (sizeof("xRight") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_XUP) << 8))), {(char_u *)("xUp"), (sizeof("xUp") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_ZEND) << 8))), {(char_u *)("zEnd"), (sizeof("zEnd") - 1)}, FALSE},
-    {TRUE, (-((KS_EXTRA) + ((int)(KE_ZHOME) << 8))), {(char_u *)("zHome"), (sizeof("zHome") - 1)}, FALSE},
+    {TRUE, K_TAB, {(char_u *)("Tab"), (sizeof("Tab") - 1)}, FALSE},
+    {TRUE, K_UNDO, {(char_u *)("Undo"), (sizeof("Undo") - 1)}, FALSE},
+    {TRUE, K_UP, {(char_u *)("Up"), (sizeof("Up") - 1)}, FALSE},
+    {TRUE, K_CSI, {(char_u *)("xCSI"), (sizeof("xCSI") - 1)}, FALSE},
+    {TRUE, K_XDOWN, {(char_u *)("xDown"), (sizeof("xDown") - 1)}, FALSE},
+    {TRUE, K_XEND, {(char_u *)("xEnd"), (sizeof("xEnd") - 1)}, FALSE},
+    {TRUE, K_XF1, {(char_u *)("xF1"), (sizeof("xF1") - 1)}, FALSE},
+    {TRUE, K_XF2, {(char_u *)("xF2"), (sizeof("xF2") - 1)}, FALSE},
+    {TRUE, K_XF3, {(char_u *)("xF3"), (sizeof("xF3") - 1)}, FALSE},
+    {TRUE, K_XF4, {(char_u *)("xF4"), (sizeof("xF4") - 1)}, FALSE},
+    {TRUE, K_XHOME, {(char_u *)("xHome"), (sizeof("xHome") - 1)}, FALSE},
+    {TRUE, K_XLEFT, {(char_u *)("xLeft"), (sizeof("xLeft") - 1)}, FALSE},
+    {TRUE, K_OSC, {(char_u *)("xOSC"), (sizeof("xOSC") - 1)}, FALSE},
+    {TRUE, K_XRIGHT, {(char_u *)("xRight"), (sizeof("xRight") - 1)}, FALSE},
+    {TRUE, K_XUP, {(char_u *)("xUp"), (sizeof("xUp") - 1)}, FALSE},
+    {TRUE, K_ZEND, {(char_u *)("zEnd"), (sizeof("zEnd") - 1)}, FALSE},
+    {TRUE, K_ZHOME, {(char_u *)("zHome"), (sizeof("zHome") - 1)}, FALSE},
 };
 
     static int
@@ -37430,7 +37736,7 @@ simplify_key(int key, int *modifiers)
     if (key == TAB && (*modifiers & MOD_MASK_SHIFT))
     {
         *modifiers &= ~MOD_MASK_SHIFT;
-        return (-(('k') + ((int)('B') << 8)));
+        return K_TC_k_B;
     }
     key0 = ((-(key)) & 0xff);
     key1 = (((unsigned)(-(key)) >> 8) & 0xff);
@@ -37450,38 +37756,38 @@ handle_x_keys(int key)
 {
     switch (key)
     {
-    case (-((KS_EXTRA) + ((int)(KE_XUP) << 8))):
-        return (-(('k') + ((int)('u') << 8)));
-    case (-((KS_EXTRA) + ((int)(KE_XDOWN) << 8))):
-        return (-(('k') + ((int)('d') << 8)));
-    case (-((KS_EXTRA) + ((int)(KE_XLEFT) << 8))):
-        return (-(('k') + ((int)('l') << 8)));
-    case (-((KS_EXTRA) + ((int)(KE_XRIGHT) << 8))):
-        return (-(('k') + ((int)('r') << 8)));
-    case (-((KS_EXTRA) + ((int)(KE_XHOME) << 8))):
-        return (-(('k') + ((int)('h') << 8)));
-    case (-((KS_EXTRA) + ((int)(KE_ZHOME) << 8))):
-        return (-(('k') + ((int)('h') << 8)));
-    case (-((KS_EXTRA) + ((int)(KE_XEND) << 8))):
-        return (-(('@') + ((int)('7') << 8)));
-    case (-((KS_EXTRA) + ((int)(KE_ZEND) << 8))):
-        return (-(('@') + ((int)('7') << 8)));
-    case (-((KS_EXTRA) + ((int)(KE_XF1) << 8))):
-        return (-(('k') + ((int)('1') << 8)));
-    case (-((KS_EXTRA) + ((int)(KE_XF2) << 8))):
-        return (-(('k') + ((int)('2') << 8)));
-    case (-((KS_EXTRA) + ((int)(KE_XF3) << 8))):
-        return (-(('k') + ((int)('3') << 8)));
-    case (-((KS_EXTRA) + ((int)(KE_XF4) << 8))):
-        return (-(('k') + ((int)('4') << 8)));
-    case (-((KS_EXTRA) + ((int)(KE_S_XF1) << 8))):
-        return (-((KS_EXTRA) + ((int)(KE_S_F1) << 8)));
-    case (-((KS_EXTRA) + ((int)(KE_S_XF2) << 8))):
-        return (-((KS_EXTRA) + ((int)(KE_S_F2) << 8)));
-    case (-((KS_EXTRA) + ((int)(KE_S_XF3) << 8))):
-        return (-((KS_EXTRA) + ((int)(KE_S_F3) << 8)));
-    case (-((KS_EXTRA) + ((int)(KE_S_XF4) << 8))):
-        return (-((KS_EXTRA) + ((int)(KE_S_F4) << 8)));
+    case K_XUP:
+        return K_UP;
+    case K_XDOWN:
+        return K_DOWN;
+    case K_XLEFT:
+        return K_LEFT;
+    case K_XRIGHT:
+        return K_RIGHT;
+    case K_XHOME:
+        return K_HOME;
+    case K_ZHOME:
+        return K_HOME;
+    case K_XEND:
+        return K_END;
+    case K_ZEND:
+        return K_END;
+    case K_XF1:
+        return K_F1;
+    case K_XF2:
+        return K_F2;
+    case K_XF3:
+        return K_F3;
+    case K_XF4:
+        return K_F4;
+    case K_S_XF1:
+        return K_S_F1;
+    case K_S_XF2:
+        return K_S_F2;
+    case K_S_XF3:
+        return K_S_F3;
+    case K_S_XF4:
+        return K_S_F4;
     }
     return key;
 }
@@ -37731,11 +38037,11 @@ find_special_key(char_u **srcp, int *modp, int flags, int *did_simplify)
                 key = simplify_key(key, &modifiers);
                 if ((flags & FSK_KEYCODE) == 0)
                 {
-                    if (key == (-(('k') + ((int)('b') << 8))))
+                    if (key == K_BS)
                     {
                         key = BS;
                     }
-                    else if (key == (-(('k') + ((int)('D') << 8))) || key == (-((KS_EXTRA) + ((int)(KE_KDEL) << 8))))
+                    else if (key == K_DEL || key == K_KDEL)
                     {
                         key = DEL;
                     }
@@ -37751,7 +38057,7 @@ find_special_key(char_u **srcp, int *modp, int flags, int *did_simplify)
                     }
                     else
                     {
-                        key = (-((KS_EXTRA) + ((int)(KE_ESC) << 8)));
+                        key = K_ESC;
                     }
                 }
                 if (!((key) < 0))
@@ -37955,7 +38261,7 @@ get_special_key_code(char_u *name)
         if (entry != nullptr && entry->enabled)
         {
             int key = entry->key;
-            return key == (-((KS_EXTRA) + ((int)(KE_TAB) << 8))) ? TAB : key;
+            return key == K_TAB ? TAB : key;
         }
     }
     return 0;
@@ -40440,72 +40746,72 @@ static const struct nv_cmd
     {'}', nv_error, 0, FORWARD},
     {'~', nv_tilde, 0, 0},
     {POUND, nv_ident, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_MOUSEUP) << 8))), nv_error, 0, MSCR_UP},
-    {(-((KS_EXTRA) + ((int)(KE_MOUSEDOWN) << 8))), nv_error, 0, MSCR_DOWN},
-    {(-((KS_EXTRA) + ((int)(KE_MOUSELEFT) << 8))), nv_error, 0, (-1)},
-    {(-((KS_EXTRA) + ((int)(KE_MOUSERIGHT) << 8))), nv_error, 0, (-2)},
-    {(-((KS_EXTRA) + ((int)(KE_LEFTMOUSE) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_LEFTMOUSE_NM) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_LEFTDRAG) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_LEFTRELEASE) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_LEFTRELEASE_NM) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_MOUSEMOVE) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_MIDDLEMOUSE) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_MIDDLEDRAG) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_MIDDLERELEASE) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_RIGHTMOUSE) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_RIGHTDRAG) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_RIGHTRELEASE) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_X1MOUSE) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_X1DRAG) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_X1RELEASE) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_X2MOUSE) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_X2DRAG) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_X2RELEASE) << 8))), nv_error, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))), nv_ignore, NV_KEEPREG, 0},
-    {(-((KS_EXTRA) + ((int)(KE_NOP) << 8))), nv_nop, 0, 0},
-    {(-(('k') + ((int)('I') << 8))), nv_edit, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_KINS) << 8))), nv_edit, 0, 0},
-    {(-(('k') + ((int)('b') << 8))), nv_ctrlh, 0, 0},
-    {(-(('k') + ((int)('u') << 8))), nv_up, NV_SSS | NV_STS, FALSE},
-    {(-((KS_EXTRA) + ((int)(KE_S_UP) << 8))), nv_page, NV_SS, (-1)},
-    {(-(('k') + ((int)('d') << 8))), nv_down, NV_SSS | NV_STS, FALSE},
-    {(-((KS_EXTRA) + ((int)(KE_S_DOWN) << 8))), nv_page, NV_SS, FORWARD},
-    {(-(('k') + ((int)('l') << 8))), nv_left, NV_SSS | NV_STS | NV_RL, 0},
-    {(-(('#') + ((int)('4') << 8))), nv_bck_word, NV_SS | NV_RL, 0},
-    {(-((KS_EXTRA) + ((int)(KE_C_LEFT) << 8))), nv_bck_word, NV_SSS | NV_RL | NV_STS, 1},
-    {(-(('k') + ((int)('r') << 8))), nv_right, NV_SSS | NV_STS | NV_RL, 0},
-    {(-(('%') + ((int)('i') << 8))), nv_wordcmd, NV_SS | NV_RL, FALSE},
-    {(-((KS_EXTRA) + ((int)(KE_C_RIGHT) << 8))), nv_wordcmd, NV_SSS | NV_RL | NV_STS, TRUE},
-    {(-(('k') + ((int)('P') << 8))), nv_page, NV_SSS | NV_STS, (-1)},
-    {(-(('K') + ((int)('3') << 8))), nv_page, NV_SSS | NV_STS, (-1)},
-    {(-(('k') + ((int)('N') << 8))), nv_page, NV_SSS | NV_STS, FORWARD},
-    {(-(('K') + ((int)('5') << 8))), nv_page, NV_SSS | NV_STS, FORWARD},
-    {(-(('@') + ((int)('7') << 8))), nv_end, NV_SSS | NV_STS, FALSE},
-    {(-(('K') + ((int)('4') << 8))), nv_end, NV_SSS | NV_STS, FALSE},
-    {(-(('*') + ((int)('7') << 8))), nv_end, NV_SS, FALSE},
-    {(-((KS_EXTRA) + ((int)(KE_C_END) << 8))), nv_end, NV_SSS | NV_STS, TRUE},
-    {(-(('k') + ((int)('h') << 8))), nv_home, NV_SSS | NV_STS, 0},
-    {(-(('K') + ((int)('1') << 8))), nv_home, NV_SSS | NV_STS, 0},
-    {(-(('#') + ((int)('2') << 8))), nv_home, NV_SS, 0},
-    {(-((KS_EXTRA) + ((int)(KE_C_HOME) << 8))), nv_goto, NV_SSS | NV_STS, FALSE},
-    {(-(('k') + ((int)('D') << 8))), nv_abbrev, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_KDEL) << 8))), nv_abbrev, 0, 0},
-    {(-(('&') + ((int)('8') << 8))), nv_kundo, 0, 0},
-    {(-(('%') + ((int)('1') << 8))), nv_help, NV_NCW, 0},
-    {(-(('k') + ((int)('1') << 8))), nv_help, NV_NCW, 0},
-    {(-((KS_EXTRA) + ((int)(KE_XF1) << 8))), nv_help, NV_NCW, 0},
+    {K_MOUSEUP, nv_error, 0, MSCR_UP},
+    {K_MOUSEDOWN, nv_error, 0, MSCR_DOWN},
+    {K_MOUSELEFT, nv_error, 0, (-1)},
+    {K_MOUSERIGHT, nv_error, 0, (-2)},
+    {K_LEFTMOUSE, nv_error, 0, 0},
+    {K_LEFTMOUSE_NM, nv_error, 0, 0},
+    {K_LEFTDRAG, nv_error, 0, 0},
+    {K_LEFTRELEASE, nv_error, 0, 0},
+    {K_LEFTRELEASE_NM, nv_error, 0, 0},
+    {K_MOUSEMOVE, nv_error, 0, 0},
+    {K_MIDDLEMOUSE, nv_error, 0, 0},
+    {K_MIDDLEDRAG, nv_error, 0, 0},
+    {K_MIDDLERELEASE, nv_error, 0, 0},
+    {K_RIGHTMOUSE, nv_error, 0, 0},
+    {K_RIGHTDRAG, nv_error, 0, 0},
+    {K_RIGHTRELEASE, nv_error, 0, 0},
+    {K_X1MOUSE, nv_error, 0, 0},
+    {K_X1DRAG, nv_error, 0, 0},
+    {K_X1RELEASE, nv_error, 0, 0},
+    {K_X2MOUSE, nv_error, 0, 0},
+    {K_X2DRAG, nv_error, 0, 0},
+    {K_X2RELEASE, nv_error, 0, 0},
+    {K_IGNORE, nv_ignore, NV_KEEPREG, 0},
+    {K_NOP, nv_nop, 0, 0},
+    {K_INS, nv_edit, 0, 0},
+    {K_KINS, nv_edit, 0, 0},
+    {K_BS, nv_ctrlh, 0, 0},
+    {K_UP, nv_up, NV_SSS | NV_STS, FALSE},
+    {K_S_UP, nv_page, NV_SS, (-1)},
+    {K_DOWN, nv_down, NV_SSS | NV_STS, FALSE},
+    {K_S_DOWN, nv_page, NV_SS, FORWARD},
+    {K_LEFT, nv_left, NV_SSS | NV_STS | NV_RL, 0},
+    {K_TC_HASH_4, nv_bck_word, NV_SS | NV_RL, 0},
+    {K_C_LEFT, nv_bck_word, NV_SSS | NV_RL | NV_STS, 1},
+    {K_RIGHT, nv_right, NV_SSS | NV_STS | NV_RL, 0},
+    {K_TC_PCT_i, nv_wordcmd, NV_SS | NV_RL, FALSE},
+    {K_C_RIGHT, nv_wordcmd, NV_SSS | NV_RL | NV_STS, TRUE},
+    {K_PAGEUP, nv_page, NV_SSS | NV_STS, (-1)},
+    {K_KPAGEUP, nv_page, NV_SSS | NV_STS, (-1)},
+    {K_PAGEDOWN, nv_page, NV_SSS | NV_STS, FORWARD},
+    {K_KPAGEDOWN, nv_page, NV_SSS | NV_STS, FORWARD},
+    {K_END, nv_end, NV_SSS | NV_STS, FALSE},
+    {K_KEND, nv_end, NV_SSS | NV_STS, FALSE},
+    {K_TC_STAR_7, nv_end, NV_SS, FALSE},
+    {K_C_END, nv_end, NV_SSS | NV_STS, TRUE},
+    {K_HOME, nv_home, NV_SSS | NV_STS, 0},
+    {K_KHOME, nv_home, NV_SSS | NV_STS, 0},
+    {K_TC_HASH_2, nv_home, NV_SS, 0},
+    {K_C_HOME, nv_goto, NV_SSS | NV_STS, FALSE},
+    {K_DEL, nv_abbrev, 0, 0},
+    {K_KDEL, nv_abbrev, 0, 0},
+    {K_UNDO, nv_kundo, 0, 0},
+    {K_HELP, nv_help, NV_NCW, 0},
+    {K_F1, nv_help, NV_NCW, 0},
+    {K_XF1, nv_help, NV_NCW, 0},
     {(-((KS_SELECT) + ((int)(('X')) << 8))), nv_select, 0, 0},
     {(-((KS_VER_SCROLLBAR) + ((int)(('X')) << 8))), nv_error, 0, 0},
     {(-((KS_HOR_SCROLLBAR) + ((int)(('X')) << 8))), nv_error, 0, 0},
     {(-((KS_TABLINE) + ((int)(('X')) << 8))), nv_error, 0, 0},
     {(-((KS_TABMENU) + ((int)(('X')) << 8))), nv_error, 0, 0},
-    {(-(('F') + ((int)('B') << 8))), nv_error, (0x04 | NV_NCH), 0},
-    {(-((KS_EXTRA) + ((int)(KE_DROP) << 8))), nv_error, NV_STS, 0},
-    {(-((KS_EXTRA) + ((int)(KE_CURSORHOLD) << 8))), nv_cursorhold, NV_KEEPREG, 0},
-    {(-(('P') + ((int)('S') << 8))), nv_edit, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_COMMAND) << 8))), nv_colon, 0, 0},
-    {(-((KS_EXTRA) + ((int)(KE_SCRIPT_COMMAND) << 8))), nv_colon, 0, 0},
+    {K_F21, nv_error, (0x04 | NV_NCH), 0},
+    {K_DROP, nv_error, NV_STS, 0},
+    {K_CURSORHOLD, nv_cursorhold, NV_KEEPREG, 0},
+    {K_PASTESTART, nv_edit, 0, 0},
+    {K_COMMAND, nv_colon, 0, 0},
+    {K_SCRIPT_COMMAND, nv_colon, 0, 0},
 };
 
 static const unsigned short nv_cmd_idx[] =
@@ -40795,9 +41101,9 @@ normal_cmd_get_count(cmdarg_T *cap, int c, int toplevel, int set_prevcount, int 
 getcount:
     if (!(VIsual_active && VIsual_select))
     {
-        while ((c >= '1' && c <= '9') || (cap->count0 != 0 && (c == (-(('k') + ((int)('D') << 8))) || c == (-((KS_EXTRA) + ((int)(KE_KDEL) << 8))) || c == '0')))
+        while ((c >= '1' && c <= '9') || (cap->count0 != 0 && (c == K_DEL || c == K_KDEL || c == '0')))
         {
-            if (c == (-(('k') + ((int)('D') << 8))) || c == (-((KS_EXTRA) + ((int)(KE_KDEL) << 8))))
+            if (c == K_DEL || c == K_KDEL)
             {
                 cap->count0 /= 10;
                 del_from_showcmd(4);
@@ -40841,7 +41147,7 @@ getcount:
             goto getcount;
         }
     }
-    if (c == (-((KS_EXTRA) + ((int)(KE_CURSORHOLD) << 8))))
+    if (c == K_CURSORHOLD)
     {
         cap->oap->prev_opcount = cap->opcount;
         cap->oap->prev_count0 = cap->count0;
@@ -41090,7 +41396,7 @@ normal_cmd(oparg_T *oap, int toplevel)
     {
         c = (-((KS_ZERO) + ((int)(('X')) << 8)));
     }
-    if (VIsual_active && VIsual_select && (vim_isprintc(c) || c == NL || c == CAR || c == (-(('K') + ((int)('A') << 8)))))
+    if (VIsual_active && VIsual_select && (vim_isprintc(c) || c == NL || c == CAR || c == K_KENTER))
     {
         int len;
         len = ins_char_typebuf(vgetc_char, vgetc_mod_mask);
@@ -41167,7 +41473,7 @@ normal_cmd(oparg_T *oap, int toplevel)
     {
         out_flush();
     }
-    if (ca.cmdchar != (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))))
+    if (ca.cmdchar != K_IGNORE)
     {
         if (ex_normal_busy)
         {
@@ -41188,7 +41494,7 @@ normal_cmd(oparg_T *oap, int toplevel)
         }
         goto normal_end;
     }
-    if (ca.cmdchar != (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))))
+    if (ca.cmdchar != K_IGNORE)
     {
         msg_didout = FALSE;
         msg_col = 0;
@@ -41218,7 +41524,7 @@ normal_cmd(oparg_T *oap, int toplevel)
     {
         old_mapped_len = typebuf_maplen();
     }
-    if (ca.cmdchar != (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))) && ca.cmdchar != (-((KS_EXTRA) + ((int)(KE_MOUSEMOVE) << 8))))
+    if (ca.cmdchar != K_IGNORE && ca.cmdchar != K_MOUSEMOVE)
     {
         do_pending_operator(&ca, old_col, FALSE);
     }
@@ -41232,7 +41538,7 @@ normal_end:
     {
         finish_op = FALSE;
     }
-    if (oap->op_type == OP_NOP && oap->regname == 0 && ca.cmdchar != (-((KS_EXTRA) + ((int)(KE_CURSORHOLD) << 8))))
+    if (oap->op_type == OP_NOP && oap->regname == 0 && ca.cmdchar != K_CURSORHOLD)
     {
         clear_showcmd();
     }
@@ -41522,23 +41828,23 @@ unshift_special(cmdarg_T *cap)
 {
     switch (cap->cmdchar)
     {
-    case (-(('%') + ((int)('i') << 8))):
-        cap->cmdchar = (-(('k') + ((int)('r') << 8)));
+    case K_TC_PCT_i:
+        cap->cmdchar = K_RIGHT;
         break;
-    case (-(('#') + ((int)('4') << 8))):
-        cap->cmdchar = (-(('k') + ((int)('l') << 8)));
+    case K_TC_HASH_4:
+        cap->cmdchar = K_LEFT;
         break;
-    case (-((KS_EXTRA) + ((int)(KE_S_UP) << 8))):
-        cap->cmdchar = (-(('k') + ((int)('u') << 8)));
+    case K_S_UP:
+        cap->cmdchar = K_UP;
         break;
-    case (-((KS_EXTRA) + ((int)(KE_S_DOWN) << 8))):
-        cap->cmdchar = (-(('k') + ((int)('d') << 8)));
+    case K_S_DOWN:
+        cap->cmdchar = K_DOWN;
         break;
-    case (-(('#') + ((int)('2') << 8))):
-        cap->cmdchar = (-(('k') + ((int)('h') << 8)));
+    case K_TC_HASH_2:
+        cap->cmdchar = K_HOME;
         break;
-    case (-(('*') + ((int)('7') << 8))):
-        cap->cmdchar = (-(('@') + ((int)('7') << 8)));
+    case K_TC_STAR_7:
+        cap->cmdchar = K_END;
         break;
     }
     cap->cmdchar = simplify_key(cap->cmdchar, &mod_mask);
@@ -41665,31 +41971,31 @@ add_to_showcmd(int c)
     char_u mbyte_buf[MB_MAXBYTES];
     static int ignore[] =
     {
-        (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))),
-        (-(('P') + ((int)('S') << 8))),
-        (-((KS_EXTRA) + ((int)(KE_LEFTMOUSE) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_LEFTDRAG) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_LEFTRELEASE) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_MOUSEMOVE) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_MIDDLEMOUSE) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_MIDDLEDRAG) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_MIDDLERELEASE) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_RIGHTMOUSE) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_RIGHTDRAG) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_RIGHTRELEASE) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_MOUSEDOWN) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_MOUSEUP) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_MOUSELEFT) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_MOUSERIGHT) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_X1MOUSE) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_X1DRAG) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_X1RELEASE) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_X2MOUSE) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_X2DRAG) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_X2RELEASE) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_CURSORHOLD) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_COMMAND) << 8))),
-        (-((KS_EXTRA) + ((int)(KE_SCRIPT_COMMAND) << 8))),
+        K_IGNORE,
+        K_PASTESTART,
+        K_LEFTMOUSE,
+        K_LEFTDRAG,
+        K_LEFTRELEASE,
+        K_MOUSEMOVE,
+        K_MIDDLEMOUSE,
+        K_MIDDLEDRAG,
+        K_MIDDLERELEASE,
+        K_RIGHTMOUSE,
+        K_RIGHTDRAG,
+        K_RIGHTRELEASE,
+        K_MOUSEDOWN,
+        K_MOUSEUP,
+        K_MOUSELEFT,
+        K_MOUSERIGHT,
+        K_X1MOUSE,
+        K_X1DRAG,
+        K_X1RELEASE,
+        K_X2MOUSE,
+        K_X2DRAG,
+        K_X2RELEASE,
+        K_CURSORHOLD,
+        K_COMMAND,
+        K_SCRIPT_COMMAND,
         0,
     };
     if (!p_sc || msg_silent != 0)
@@ -42067,7 +42373,7 @@ nv_z_get_count(cmdarg_T *cap, int *nchar_arg)
         --no_mapping;
         --allow_keys;
         (void)add_to_showcmd(nchar);
-        if (nchar == (-(('k') + ((int)('D') << 8))) || nchar == (-((KS_EXTRA) + ((int)(KE_KDEL) << 8))))
+        if (nchar == K_DEL || nchar == K_KDEL)
         {
             n /= 10;
         }
@@ -42084,7 +42390,7 @@ nv_z_get_count(cmdarg_T *cap, int *nchar_arg)
             win_setheight((int)n);
             break;
         }
-        else if (nchar == 'l' || nchar == 'h' || nchar == (-(('k') + ((int)('l') << 8))) || nchar == (-(('k') + ((int)('r') << 8))))
+        else if (nchar == 'l' || nchar == 'h' || nchar == K_LEFT || nchar == K_RIGHT)
         {
             cap->count1 = n ? n * cap->count1 : cap->count1;
             *nchar_arg = nchar;
@@ -42146,7 +42452,7 @@ nv_zet(cmdarg_T *cap)
         ;
     case NL:
     case CAR:
-    case (-(('K') + ((int)('A') << 8))):
+    case K_KENTER:
         beginline(BL_WHITE | BL_FIX);
         ;
     case 't':
@@ -42189,7 +42495,7 @@ nv_zet(cmdarg_T *cap)
         cap->count1 *= curwin->w_width / 2;
         ;
     case 'h':
-    case (-(('k') + ((int)('l') << 8))):
+    case K_LEFT:
         if (!curwin->w_onebuf_opt.wo_wrap)
         {
             (void)set_leftcol((colnr_T)cap->count1 > curwin->w_leftcol ? 0 : curwin->w_leftcol - (colnr_T)cap->count1);
@@ -42199,7 +42505,7 @@ nv_zet(cmdarg_T *cap)
         cap->count1 *= curwin->w_width / 2;
         ;
     case 'l':
-    case (-(('k') + ((int)('r') << 8))):
+    case K_RIGHT:
         if (!curwin->w_onebuf_opt.wo_wrap)
         {
             (void)set_leftcol(curwin->w_leftcol + (colnr_T)cap->count1);
@@ -42265,7 +42571,7 @@ nv_colon(cmdarg_T *cap)
 {
     int old_p_im;
     bool cmd_result;
-    bool is_cmdkey = cap->cmdchar == (-((KS_EXTRA) + ((int)(KE_COMMAND) << 8))) || cap->cmdchar == (-((KS_EXTRA) + ((int)(KE_SCRIPT_COMMAND) << 8)));
+    bool is_cmdkey = cap->cmdchar == K_COMMAND || cap->cmdchar == K_SCRIPT_COMMAND;
     int flags;
     if (VIsual_active && !is_cmdkey)
     {
@@ -42560,7 +42866,7 @@ nv_right(cmdarg_T *cap)
     {
         if ((!past_line && !oneright()) || (past_line && *ml_get_cursor() == NUL))
         {
-            if (((cap->cmdchar == ' ' && vim_strchr(p_ww, 's') != nullptr) || (cap->cmdchar == 'l' && vim_strchr(p_ww, 'l') != nullptr) || (cap->cmdchar == (-(('k') + ((int)('r') << 8))) && vim_strchr(p_ww, '>') != nullptr)) && curwin->w_cursor.lnum < curbuf->b_ml.ml_line_count)
+            if (((cap->cmdchar == ' ' && vim_strchr(p_ww, 's') != nullptr) || (cap->cmdchar == 'l' && vim_strchr(p_ww, 'l') != nullptr) || (cap->cmdchar == K_RIGHT && vim_strchr(p_ww, '>') != nullptr)) && curwin->w_cursor.lnum < curbuf->b_ml.ml_line_count)
             {
                 if (cap->oap->op_type != OP_NOP && !cap->oap->inclusive && !(*ml_get(curwin->w_cursor.lnum) == NUL))
                 {
@@ -42626,7 +42932,7 @@ nv_left(cmdarg_T *cap)
     {
         if (!oneleft())
         {
-            if ((((cap->cmdchar == (-(('k') + ((int)('b') << 8))) || cap->cmdchar == Ctrl_H) && vim_strchr(p_ww, 'b') != nullptr) || (cap->cmdchar == 'h' && vim_strchr(p_ww, 'h') != nullptr) || (cap->cmdchar == (-(('k') + ((int)('l') << 8))) && vim_strchr(p_ww, '<') != nullptr)) && curwin->w_cursor.lnum > 1)
+            if ((((cap->cmdchar == K_BS || cap->cmdchar == Ctrl_H) && vim_strchr(p_ww, 'b') != nullptr) || (cap->cmdchar == 'h' && vim_strchr(p_ww, 'h') != nullptr) || (cap->cmdchar == K_LEFT && vim_strchr(p_ww, '<') != nullptr)) && curwin->w_cursor.lnum > 1)
             {
                 --(curwin->w_cursor.lnum);
                 coladvance((colnr_T)MAXCOL);
@@ -42908,7 +43214,7 @@ nv_brackets(cmdarg_T *cap)
         }
         nv_cursormark(cap, cap->nchar == '\'', pos);
     }
-    else if (cap->nchar >= (-((KS_EXTRA) + ((int)(KE_RIGHTRELEASE) << 8))) && cap->nchar <= (-((KS_EXTRA) + ((int)(KE_LEFTMOUSE) << 8))))
+    else if (cap->nchar >= K_RIGHTRELEASE && cap->nchar <= K_LEFTMOUSE)
     {
     }
     else
@@ -43392,7 +43698,7 @@ nv_subst(cmdarg_T *cap)
     static void
 nv_abbrev(cmdarg_T *cap)
 {
-    if (cap->cmdchar == (-(('k') + ((int)('D') << 8))) || cap->cmdchar == (-((KS_EXTRA) + ((int)(KE_KDEL) << 8))))
+    if (cap->cmdchar == K_DEL || cap->cmdchar == K_KDEL)
     {
         cap->cmdchar = 'x';
     }
@@ -43818,7 +44124,7 @@ nv_g_dollar_cmd(cmdarg_T *cap)
     int i;
     int col_off = curwin_col_off();
     bool flag = FALSE;
-    if (cap->nchar == (-(('@') + ((int)('7') << 8))) || cap->nchar == (-(('K') + ((int)('4') << 8))))
+    if (cap->nchar == K_END || cap->nchar == K_KEND)
     {
         flag = TRUE;
     }
@@ -43943,7 +44249,7 @@ nv_g_cmd(cmdarg_T *cap)
     case 'V':
         VIsual_reselect = FALSE;
         break;
-    case (-(('k') + ((int)('b') << 8))):
+    case K_BS:
         cap->nchar = Ctrl_H;
         ;
     case 'h':
@@ -43961,7 +44267,7 @@ nv_g_cmd(cmdarg_T *cap)
         }
         break;
     case 'j':
-    case (-(('k') + ((int)('d') << 8))):
+    case K_DOWN:
         if (!curwin->w_onebuf_opt.wo_wrap)
         {
             oap->motion_type = MLINE;
@@ -43977,7 +44283,7 @@ nv_g_cmd(cmdarg_T *cap)
         }
         break;
     case 'k':
-    case (-(('k') + ((int)('u') << 8))):
+    case K_UP:
         if (!curwin->w_onebuf_opt.wo_wrap)
         {
             oap->motion_type = MLINE;
@@ -43998,8 +44304,8 @@ nv_g_cmd(cmdarg_T *cap)
     case '^':
     case '0':
     case 'm':
-    case (-(('k') + ((int)('h') << 8))):
-    case (-(('K') + ((int)('1') << 8))):
+    case K_HOME:
+    case K_KHOME:
         nv_g_home_m_cmd(cap);
         break;
     case 'M':
@@ -44022,8 +44328,8 @@ nv_g_cmd(cmdarg_T *cap)
         nv_g_underscore_cmd(cap);
         break;
     case '$':
-    case (-(('@') + ((int)('7') << 8))):
-    case (-(('K') + ((int)('4') << 8))):
+    case K_END:
+    case K_KEND:
         nv_g_dollar_cmd(cap);
         break;
     case '*':
@@ -44088,25 +44394,25 @@ nv_g_cmd(cmdarg_T *cap)
     case 'U':
         nv_operator(cap);
         break;
-    case (-((KS_EXTRA) + ((int)(KE_MIDDLEMOUSE) << 8))):
-    case (-((KS_EXTRA) + ((int)(KE_MIDDLEDRAG) << 8))):
-    case (-((KS_EXTRA) + ((int)(KE_MIDDLERELEASE) << 8))):
-    case (-((KS_EXTRA) + ((int)(KE_LEFTMOUSE) << 8))):
-    case (-((KS_EXTRA) + ((int)(KE_LEFTDRAG) << 8))):
-    case (-((KS_EXTRA) + ((int)(KE_LEFTRELEASE) << 8))):
-    case (-((KS_EXTRA) + ((int)(KE_MOUSEMOVE) << 8))):
-    case (-((KS_EXTRA) + ((int)(KE_RIGHTMOUSE) << 8))):
-    case (-((KS_EXTRA) + ((int)(KE_RIGHTDRAG) << 8))):
-    case (-((KS_EXTRA) + ((int)(KE_RIGHTRELEASE) << 8))):
-    case (-((KS_EXTRA) + ((int)(KE_X1MOUSE) << 8))):
-    case (-((KS_EXTRA) + ((int)(KE_X1DRAG) << 8))):
-    case (-((KS_EXTRA) + ((int)(KE_X1RELEASE) << 8))):
-    case (-((KS_EXTRA) + ((int)(KE_X2MOUSE) << 8))):
-    case (-((KS_EXTRA) + ((int)(KE_X2DRAG) << 8))):
-    case (-((KS_EXTRA) + ((int)(KE_X2RELEASE) << 8))):
+    case K_MIDDLEMOUSE:
+    case K_MIDDLEDRAG:
+    case K_MIDDLERELEASE:
+    case K_LEFTMOUSE:
+    case K_LEFTDRAG:
+    case K_LEFTRELEASE:
+    case K_MOUSEMOVE:
+    case K_RIGHTMOUSE:
+    case K_RIGHTDRAG:
+    case K_RIGHTRELEASE:
+    case K_X1MOUSE:
+    case K_X1DRAG:
+    case K_X1RELEASE:
+    case K_X2MOUSE:
+    case K_X2DRAG:
+    case K_X2RELEASE:
         mod_mask = MOD_MASK_CTRL;
         break;
-    case (-((KS_EXTRA) + ((int)(KE_IGNORE) << 8))):
+    case K_IGNORE:
         break;
     case 'p':
     case 'P':
@@ -44591,7 +44897,7 @@ set_cursor_for_append_to_line(void)
     static void
 nv_edit(cmdarg_T *cap)
 {
-    if (cap->cmdchar == (-(('k') + ((int)('I') << 8))) || cap->cmdchar == (-((KS_EXTRA) + ((int)(KE_KINS) << 8))))
+    if (cap->cmdchar == K_INS || cap->cmdchar == K_KINS)
     {
         cap->cmdchar = 'i';
     }
@@ -44607,12 +44913,12 @@ nv_edit(cmdarg_T *cap)
     {
         emsg(_(e_cannot_make_changes_modifiable_is_off));
         clearop(cap->oap);
-        if (cap->cmdchar == (-(('P') + ((int)('S') << 8))))
+        if (cap->cmdchar == K_PASTESTART)
         {
             bracketed_paste(PASTE_INSERT, TRUE, nullptr);
         }
     }
-    else if (cap->cmdchar == (-(('P') + ((int)('S') << 8))) && VIsual_active)
+    else if (cap->cmdchar == K_PASTESTART && VIsual_active)
     {
         pos_T old_pos = curwin->w_cursor;
         pos_T old_visual = VIsual;
@@ -44630,7 +44936,7 @@ nv_edit(cmdarg_T *cap)
         cap->nchar = NUL;
         nv_operator(cap);
         do_pending_operator(cap, 0, FALSE);
-        cap->cmdchar = (-(('P') + ((int)('S') << 8)));
+        cap->cmdchar = K_PASTESTART;
         if (*ml_get_cursor() != NUL)
         {
             if (old_visual_mode == 'V')
@@ -44668,7 +44974,7 @@ nv_edit(cmdarg_T *cap)
                 beginline(BL_WHITE | BL_FIX);
             }
             break;
-        case (-(('P') + ((int)('S') << 8))):
+        case K_PASTESTART:
             if (curwin->w_cursor.col == 0)
             {
                 break;
@@ -44694,7 +45000,7 @@ nv_edit(cmdarg_T *cap)
         }
         invoke_edit(cap, FALSE, cap->cmdchar, FALSE);
     }
-    else if (cap->cmdchar == (-(('P') + ((int)('S') << 8))))
+    else if (cap->cmdchar == K_PASTESTART)
     {
         bracketed_paste(PASTE_INSERT, TRUE, nullptr);
     }
@@ -47604,7 +47910,7 @@ typedef struct
     static bool
 is_ex_cmdchar(cmdarg_T *cap)
 {
-    return cap->cmdchar == ':' || cap->cmdchar == (-((KS_EXTRA) + ((int)(KE_COMMAND) << 8))) || cap->cmdchar == (-((KS_EXTRA) + ((int)(KE_SCRIPT_COMMAND) << 8)));
+    return cap->cmdchar == ':' || cap->cmdchar == K_COMMAND || cap->cmdchar == K_SCRIPT_COMMAND;
 }
 
     static void
@@ -65923,92 +66229,92 @@ static tcap_entry_T builtin_xterm[] =
     {(int)KS_SRI, "\033[23;1t"},
     {(int)KS_FD, "\033[?1004l"},
     {(int)KS_FE, "\033[?1004h"},
-    {(-(('k') + ((int)('u') << 8))), "\033O*A"},
-    {(-(('k') + ((int)('d') << 8))), "\033O*B"},
-    {(-(('k') + ((int)('r') << 8))), "\033O*C"},
-    {(-(('k') + ((int)('l') << 8))), "\033O*D"},
-    {(-((KS_EXTRA) + ((int)(KE_XUP) << 8))), "\033[@;*A"},
-    {(-((KS_EXTRA) + ((int)(KE_XDOWN) << 8))), "\033[@;*B"},
-    {(-((KS_EXTRA) + ((int)(KE_XRIGHT) << 8))), "\033[@;*C"},
-    {(-((KS_EXTRA) + ((int)(KE_XLEFT) << 8))), "\033[@;*D"},
-    {(-((KS_EXTRA) + ((int)(KE_XF1) << 8))), "\033O*P"},
-    {(-((KS_EXTRA) + ((int)(KE_XF2) << 8))), "\033O*Q"},
-    {(-((KS_EXTRA) + ((int)(KE_XF3) << 8))), "\033O*R"},
-    {(-((KS_EXTRA) + ((int)(KE_XF4) << 8))), "\033O*S"},
-    {(-(('k') + ((int)('1') << 8))), "\033[11;*~"},
-    {(-(('k') + ((int)('2') << 8))), "\033[12;*~"},
-    {(-(('k') + ((int)('3') << 8))), "\033[13;*~"},
-    {(-(('k') + ((int)('4') << 8))), "\033[14;*~"},
-    {(-(('k') + ((int)('5') << 8))), "\033[15;*~"},
-    {(-(('k') + ((int)('6') << 8))), "\033[17;*~"},
-    {(-(('k') + ((int)('7') << 8))), "\033[18;*~"},
-    {(-(('k') + ((int)('8') << 8))), "\033[19;*~"},
-    {(-(('k') + ((int)('9') << 8))), "\033[20;*~"},
-    {(-(('k') + ((int)(';') << 8))), "\033[21;*~"},
-    {(-(('F') + ((int)('1') << 8))), "\033[23;*~"},
-    {(-(('F') + ((int)('2') << 8))), "\033[24;*~"},
-    {(-(('k') + ((int)('B') << 8))), "\033[Z"},
-    {(-(('%') + ((int)('1') << 8))), "\033[28;*~"},
-    {(-(('&') + ((int)('8') << 8))), "\033[26;*~"},
-    {(-(('k') + ((int)('I') << 8))), "\033[2;*~"},
-    {(-(('k') + ((int)('h') << 8))), "\033[@;*H"},
-    {(-(('K') + ((int)('1') << 8))), "\033[1;*~"},
-    {(-((KS_EXTRA) + ((int)(KE_XHOME) << 8))), "\033O*H"},
-    {(-((KS_EXTRA) + ((int)(KE_ZHOME) << 8))), "\033[7;*~"},
-    {(-(('@') + ((int)('7') << 8))), "\033[@;*F"},
-    {(-(('K') + ((int)('4') << 8))), "\033[4;*~"},
-    {(-((KS_EXTRA) + ((int)(KE_XEND) << 8))), "\033O*F"},
-    {(-((KS_EXTRA) + ((int)(KE_ZEND) << 8))), "\033[8;*~"},
-    {(-(('k') + ((int)('P') << 8))), "\033[5;*~"},
-    {(-(('k') + ((int)('N') << 8))), "\033[6;*~"},
-    {(-(('K') + ((int)('6') << 8))), "\033O*k"},
-    {(-(('K') + ((int)('7') << 8))), "\033O*m"},
-    {(-(('K') + ((int)('8') << 8))), "\033O*o"},
-    {(-(('K') + ((int)('9') << 8))), "\033O*j"},
-    {(-(('K') + ((int)('A') << 8))), "\033O*M"},
-    {(-(('K') + ((int)('B') << 8))), "\033O*n"},
-    {(-(('K') + ((int)('C') << 8))), "\033O*p"},
-    {(-(('K') + ((int)('D') << 8))), "\033O*q"},
-    {(-(('K') + ((int)('E') << 8))), "\033O*r"},
-    {(-(('K') + ((int)('F') << 8))), "\033O*s"},
-    {(-(('K') + ((int)('G') << 8))), "\033O*t"},
-    {(-(('K') + ((int)('H') << 8))), "\033O*u"},
-    {(-(('K') + ((int)('I') << 8))), "\033O*v"},
-    {(-(('K') + ((int)('J') << 8))), "\033O*w"},
-    {(-(('K') + ((int)('K') << 8))), "\033O*x"},
-    {(-(('K') + ((int)('L') << 8))), "\033O*y"},
-    {(-((KS_EXTRA) + ((int)(KE_KDEL) << 8))), "\033[3;*~"},
-    {(-(('P') + ((int)('S') << 8))), "\033[200~"},
-    {(-(('P') + ((int)('E') << 8))), "\033[201~"},
+    {K_UP, "\033O*A"},
+    {K_DOWN, "\033O*B"},
+    {K_RIGHT, "\033O*C"},
+    {K_LEFT, "\033O*D"},
+    {K_XUP, "\033[@;*A"},
+    {K_XDOWN, "\033[@;*B"},
+    {K_XRIGHT, "\033[@;*C"},
+    {K_XLEFT, "\033[@;*D"},
+    {K_XF1, "\033O*P"},
+    {K_XF2, "\033O*Q"},
+    {K_XF3, "\033O*R"},
+    {K_XF4, "\033O*S"},
+    {K_F1, "\033[11;*~"},
+    {K_F2, "\033[12;*~"},
+    {K_F3, "\033[13;*~"},
+    {K_F4, "\033[14;*~"},
+    {K_F5, "\033[15;*~"},
+    {K_F6, "\033[17;*~"},
+    {K_F7, "\033[18;*~"},
+    {K_F8, "\033[19;*~"},
+    {K_F9, "\033[20;*~"},
+    {K_F10, "\033[21;*~"},
+    {K_F11, "\033[23;*~"},
+    {K_F12, "\033[24;*~"},
+    {K_TC_k_B, "\033[Z"},
+    {K_HELP, "\033[28;*~"},
+    {K_UNDO, "\033[26;*~"},
+    {K_INS, "\033[2;*~"},
+    {K_HOME, "\033[@;*H"},
+    {K_KHOME, "\033[1;*~"},
+    {K_XHOME, "\033O*H"},
+    {K_ZHOME, "\033[7;*~"},
+    {K_END, "\033[@;*F"},
+    {K_KEND, "\033[4;*~"},
+    {K_XEND, "\033O*F"},
+    {K_ZEND, "\033[8;*~"},
+    {K_PAGEUP, "\033[5;*~"},
+    {K_PAGEDOWN, "\033[6;*~"},
+    {K_KPLUS, "\033O*k"},
+    {K_KMINUS, "\033O*m"},
+    {K_KDIVIDE, "\033O*o"},
+    {K_KMULTIPLY, "\033O*j"},
+    {K_KENTER, "\033O*M"},
+    {K_KPOINT, "\033O*n"},
+    {K_K0, "\033O*p"},
+    {K_K1, "\033O*q"},
+    {K_K2, "\033O*r"},
+    {K_K3, "\033O*s"},
+    {K_K4, "\033O*t"},
+    {K_K5, "\033O*u"},
+    {K_K6, "\033O*v"},
+    {K_K7, "\033O*w"},
+    {K_K8, "\033O*x"},
+    {K_K9, "\033O*y"},
+    {K_KDEL, "\033[3;*~"},
+    {K_PASTESTART, "\033[200~"},
+    {K_PASTEEND, "\033[201~"},
     {(int)KS_CCO, "8"},
     {(int)KS_CAB, "\033[4%dm"},
     {(int)KS_CAF, "\033[3%dm"},
     {(int)KS_OP, "\033[0m"},
     {BT_EXTRA_KEYS, ""},
-    {(-(('k') + ((int)('0') << 8))), "\033[10;*~"},
-    {(-(('F') + ((int)('3') << 8))), "\033[25;*~"},
-    {(-(('F') + ((int)('6') << 8))), "\033[29;*~"},
-    {(-(('F') + ((int)('7') << 8))), "\033[31;*~"},
-    {(-(('F') + ((int)('8') << 8))), "\033[32;*~"},
-    {(-(('F') + ((int)('9') << 8))), "\033[33;*~"},
-    {(-(('F') + ((int)('A') << 8))), "\033[34;*~"},
-    {(-(('F') + ((int)('B') << 8))), "\033[42;*~"},
-    {(-(('F') + ((int)('C') << 8))), "\033[43;*~"},
-    {(-(('F') + ((int)('D') << 8))), "\033[44;*~"},
-    {(-(('F') + ((int)('E') << 8))), "\033[45;*~"},
-    {(-(('F') + ((int)('F') << 8))), "\033[46;*~"},
-    {(-(('F') + ((int)('G') << 8))), "\033[47;*~"},
-    {(-(('F') + ((int)('H') << 8))), "\033[48;*~"},
-    {(-(('F') + ((int)('I') << 8))), "\033[49;*~"},
-    {(-(('F') + ((int)('J') << 8))), "\033[50;*~"},
-    {(-(('F') + ((int)('K') << 8))), "\033[51;*~"},
-    {(-(('F') + ((int)('L') << 8))), "\033[52;*~"},
-    {(-(('F') + ((int)('M') << 8))), "\033[53;*~"},
-    {(-(('F') + ((int)('N') << 8))), "\033[54;*~"},
-    {(-(('F') + ((int)('O') << 8))), "\033[55;*~"},
-    {(-(('F') + ((int)('P') << 8))), "\033[56;*~"},
-    {(-(('F') + ((int)('Q') << 8))), "\033[57;*~"},
-    {(-(('F') + ((int)('R') << 8))), "\033[58;*~"},
+    {K_TC_k_0, "\033[10;*~"},
+    {K_F13, "\033[25;*~"},
+    {K_F16, "\033[29;*~"},
+    {K_F17, "\033[31;*~"},
+    {K_F18, "\033[32;*~"},
+    {K_F19, "\033[33;*~"},
+    {K_F20, "\033[34;*~"},
+    {K_F21, "\033[42;*~"},
+    {K_F22, "\033[43;*~"},
+    {K_F23, "\033[44;*~"},
+    {K_F24, "\033[45;*~"},
+    {K_F25, "\033[46;*~"},
+    {K_F26, "\033[47;*~"},
+    {K_F27, "\033[48;*~"},
+    {K_F28, "\033[49;*~"},
+    {K_F29, "\033[50;*~"},
+    {K_F30, "\033[51;*~"},
+    {K_F31, "\033[52;*~"},
+    {K_F32, "\033[53;*~"},
+    {K_F33, "\033[54;*~"},
+    {K_F34, "\033[55;*~"},
+    {K_F35, "\033[56;*~"},
+    {K_F36, "\033[57;*~"},
+    {K_F37, "\033[58;*~"},
     {(int)KS_NAME, nullptr},
 };
 
@@ -66091,93 +66397,93 @@ static tcap_entry_T builtin_debug[] =
     {(int)KS_RFG, "[RFG]"},
     {(int)KS_RBG, "[RBG]"},
     {(int)KS_CF, "[CF%d]"},
-    {(-(('k') + ((int)('u') << 8))), "[KU]"},
-    {(-(('k') + ((int)('d') << 8))), "[KD]"},
-    {(-(('k') + ((int)('l') << 8))), "[KL]"},
-    {(-(('k') + ((int)('r') << 8))), "[KR]"},
-    {(-((KS_EXTRA) + ((int)(KE_XUP) << 8))), "[xKU]"},
-    {(-((KS_EXTRA) + ((int)(KE_XDOWN) << 8))), "[xKD]"},
-    {(-((KS_EXTRA) + ((int)(KE_XLEFT) << 8))), "[xKL]"},
-    {(-((KS_EXTRA) + ((int)(KE_XRIGHT) << 8))), "[xKR]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_UP) << 8))), "[S-KU]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_DOWN) << 8))), "[S-KD]"},
-    {(-(('#') + ((int)('4') << 8))), "[S-KL]"},
-    {(-((KS_EXTRA) + ((int)(KE_C_LEFT) << 8))), "[C-KL]"},
-    {(-(('%') + ((int)('i') << 8))), "[S-KR]"},
-    {(-((KS_EXTRA) + ((int)(KE_C_RIGHT) << 8))), "[C-KR]"},
-    {(-(('k') + ((int)('1') << 8))), "[F1]"},
-    {(-((KS_EXTRA) + ((int)(KE_XF1) << 8))), "[xF1]"},
-    {(-(('k') + ((int)('2') << 8))), "[F2]"},
-    {(-((KS_EXTRA) + ((int)(KE_XF2) << 8))), "[xF2]"},
-    {(-(('k') + ((int)('3') << 8))), "[F3]"},
-    {(-((KS_EXTRA) + ((int)(KE_XF3) << 8))), "[xF3]"},
-    {(-(('k') + ((int)('4') << 8))), "[F4]"},
-    {(-((KS_EXTRA) + ((int)(KE_XF4) << 8))), "[xF4]"},
-    {(-(('k') + ((int)('5') << 8))), "[F5]"},
-    {(-(('k') + ((int)('6') << 8))), "[F6]"},
-    {(-(('k') + ((int)('7') << 8))), "[F7]"},
-    {(-(('k') + ((int)('8') << 8))), "[F8]"},
-    {(-(('k') + ((int)('9') << 8))), "[F9]"},
-    {(-(('k') + ((int)(';') << 8))), "[F10]"},
-    {(-(('F') + ((int)('1') << 8))), "[F11]"},
-    {(-(('F') + ((int)('2') << 8))), "[F12]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_F1) << 8))), "[S-F1]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_XF1) << 8))), "[S-xF1]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_F2) << 8))), "[S-F2]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_XF2) << 8))), "[S-xF2]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_F3) << 8))), "[S-F3]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_XF3) << 8))), "[S-xF3]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_F4) << 8))), "[S-F4]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_XF4) << 8))), "[S-xF4]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_F5) << 8))), "[S-F5]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_F6) << 8))), "[S-F6]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_F7) << 8))), "[S-F7]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_F8) << 8))), "[S-F8]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_F9) << 8))), "[S-F9]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_F10) << 8))), "[S-F10]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_F11) << 8))), "[S-F11]"},
-    {(-((KS_EXTRA) + ((int)(KE_S_F12) << 8))), "[S-F12]"},
-    {(-(('%') + ((int)('1') << 8))), "[HELP]"},
-    {(-(('&') + ((int)('8') << 8))), "[UNDO]"},
-    {(-(('k') + ((int)('b') << 8))), "[BS]"},
-    {(-(('k') + ((int)('I') << 8))), "[INS]"},
-    {(-((KS_EXTRA) + ((int)(KE_KINS) << 8))), "[KINS]"},
-    {(-(('k') + ((int)('D') << 8))), "[DEL]"},
-    {(-((KS_EXTRA) + ((int)(KE_KDEL) << 8))), "[KDEL]"},
-    {(-(('k') + ((int)('h') << 8))), "[HOME]"},
-    {(-(('#') + ((int)('2') << 8))), "[C-HOME]"},
-    {(-((KS_EXTRA) + ((int)(KE_C_HOME) << 8))), "[C-HOME]"},
-    {(-(('K') + ((int)('1') << 8))), "[KHOME]"},
-    {(-((KS_EXTRA) + ((int)(KE_XHOME) << 8))), "[XHOME]"},
-    {(-((KS_EXTRA) + ((int)(KE_ZHOME) << 8))), "[ZHOME]"},
-    {(-(('@') + ((int)('7') << 8))), "[END]"},
-    {(-(('*') + ((int)('7') << 8))), "[C-END]"},
-    {(-((KS_EXTRA) + ((int)(KE_C_END) << 8))), "[C-END]"},
-    {(-(('K') + ((int)('4') << 8))), "[KEND]"},
-    {(-((KS_EXTRA) + ((int)(KE_XEND) << 8))), "[XEND]"},
-    {(-((KS_EXTRA) + ((int)(KE_ZEND) << 8))), "[ZEND]"},
-    {(-(('k') + ((int)('P') << 8))), "[PAGEUP]"},
-    {(-(('k') + ((int)('N') << 8))), "[PAGEDOWN]"},
-    {(-(('K') + ((int)('3') << 8))), "[KPAGEUP]"},
-    {(-(('K') + ((int)('5') << 8))), "[KPAGEDOWN]"},
-    {(-(('K') + ((int)('6') << 8))), "[KPLUS]"},
-    {(-(('K') + ((int)('7') << 8))), "[KMINUS]"},
-    {(-(('K') + ((int)('8') << 8))), "[KDIVIDE]"},
-    {(-(('K') + ((int)('9') << 8))), "[KMULTIPLY]"},
-    {(-(('K') + ((int)('A') << 8))), "[KENTER]"},
-    {(-(('K') + ((int)('B') << 8))), "[KPOINT]"},
-    {(-(('P') + ((int)('S') << 8))), "[PASTE-START]"},
-    {(-(('P') + ((int)('E') << 8))), "[PASTE-END]"},
-    {(-(('K') + ((int)('C') << 8))), "[K0]"},
-    {(-(('K') + ((int)('D') << 8))), "[K1]"},
-    {(-(('K') + ((int)('E') << 8))), "[K2]"},
-    {(-(('K') + ((int)('F') << 8))), "[K3]"},
-    {(-(('K') + ((int)('G') << 8))), "[K4]"},
-    {(-(('K') + ((int)('H') << 8))), "[K5]"},
-    {(-(('K') + ((int)('I') << 8))), "[K6]"},
-    {(-(('K') + ((int)('J') << 8))), "[K7]"},
-    {(-(('K') + ((int)('K') << 8))), "[K8]"},
-    {(-(('K') + ((int)('L') << 8))), "[K9]"},
+    {K_UP, "[KU]"},
+    {K_DOWN, "[KD]"},
+    {K_LEFT, "[KL]"},
+    {K_RIGHT, "[KR]"},
+    {K_XUP, "[xKU]"},
+    {K_XDOWN, "[xKD]"},
+    {K_XLEFT, "[xKL]"},
+    {K_XRIGHT, "[xKR]"},
+    {K_S_UP, "[S-KU]"},
+    {K_S_DOWN, "[S-KD]"},
+    {K_TC_HASH_4, "[S-KL]"},
+    {K_C_LEFT, "[C-KL]"},
+    {K_TC_PCT_i, "[S-KR]"},
+    {K_C_RIGHT, "[C-KR]"},
+    {K_F1, "[F1]"},
+    {K_XF1, "[xF1]"},
+    {K_F2, "[F2]"},
+    {K_XF2, "[xF2]"},
+    {K_F3, "[F3]"},
+    {K_XF3, "[xF3]"},
+    {K_F4, "[F4]"},
+    {K_XF4, "[xF4]"},
+    {K_F5, "[F5]"},
+    {K_F6, "[F6]"},
+    {K_F7, "[F7]"},
+    {K_F8, "[F8]"},
+    {K_F9, "[F9]"},
+    {K_F10, "[F10]"},
+    {K_F11, "[F11]"},
+    {K_F12, "[F12]"},
+    {K_S_F1, "[S-F1]"},
+    {K_S_XF1, "[S-xF1]"},
+    {K_S_F2, "[S-F2]"},
+    {K_S_XF2, "[S-xF2]"},
+    {K_S_F3, "[S-F3]"},
+    {K_S_XF3, "[S-xF3]"},
+    {K_S_F4, "[S-F4]"},
+    {K_S_XF4, "[S-xF4]"},
+    {K_S_F5, "[S-F5]"},
+    {K_S_F6, "[S-F6]"},
+    {K_S_F7, "[S-F7]"},
+    {K_S_F8, "[S-F8]"},
+    {K_S_F9, "[S-F9]"},
+    {K_S_F10, "[S-F10]"},
+    {K_S_F11, "[S-F11]"},
+    {K_S_F12, "[S-F12]"},
+    {K_HELP, "[HELP]"},
+    {K_UNDO, "[UNDO]"},
+    {K_BS, "[BS]"},
+    {K_INS, "[INS]"},
+    {K_KINS, "[KINS]"},
+    {K_DEL, "[DEL]"},
+    {K_KDEL, "[KDEL]"},
+    {K_HOME, "[HOME]"},
+    {K_TC_HASH_2, "[C-HOME]"},
+    {K_C_HOME, "[C-HOME]"},
+    {K_KHOME, "[KHOME]"},
+    {K_XHOME, "[XHOME]"},
+    {K_ZHOME, "[ZHOME]"},
+    {K_END, "[END]"},
+    {K_TC_STAR_7, "[C-END]"},
+    {K_C_END, "[C-END]"},
+    {K_KEND, "[KEND]"},
+    {K_XEND, "[XEND]"},
+    {K_ZEND, "[ZEND]"},
+    {K_PAGEUP, "[PAGEUP]"},
+    {K_PAGEDOWN, "[PAGEDOWN]"},
+    {K_KPAGEUP, "[KPAGEUP]"},
+    {K_KPAGEDOWN, "[KPAGEDOWN]"},
+    {K_KPLUS, "[KPLUS]"},
+    {K_KMINUS, "[KMINUS]"},
+    {K_KDIVIDE, "[KDIVIDE]"},
+    {K_KMULTIPLY, "[KMULTIPLY]"},
+    {K_KENTER, "[KENTER]"},
+    {K_KPOINT, "[KPOINT]"},
+    {K_PASTESTART, "[PASTE-START]"},
+    {K_PASTEEND, "[PASTE-END]"},
+    {K_K0, "[K0]"},
+    {K_K1, "[K1]"},
+    {K_K2, "[K2]"},
+    {K_K3, "[K3]"},
+    {K_K4, "[K4]"},
+    {K_K5, "[K5]"},
+    {K_K6, "[K6]"},
+    {K_K7, "[K7]"},
+    {K_K8, "[K8]"},
+    {K_K9, "[K9]"},
     {(int)KS_NAME, nullptr},
 };
 
@@ -67981,7 +68287,7 @@ handle_key_with_modifier(int *arg, int csi_len, int offset, char_u *buf, int buf
     }
     if (key == ESC)
     {
-        key = (-((KS_EXTRA) + ((int)(KE_ESC) << 8)));
+        key = K_ESC;
     }
     else if (arg[0] >= 11 && arg[0] <= 24 && trail == '~')
     {
@@ -72931,7 +73237,7 @@ vim_main2(void)
     }
     if (restart_edit != 0)
     {
-        stuffcharReadbuff((-((KS_EXTRA) + ((int)(KE_NOP) << 8))));
+        stuffcharReadbuff(K_NOP);
     }
     do_redraw = TRUE;
     main_loop(FALSE);

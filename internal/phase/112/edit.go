@@ -122,7 +122,7 @@ type w112Rec struct{ lo, hi, step, off int }
 // and a core with no C library has nothing for 'casemap' to choose between.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "casemap", W: w}
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 167 drops the unused)
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 168 drops the unused)
 	t := string(text)
 	before := strings.Count(t, "\n")
 

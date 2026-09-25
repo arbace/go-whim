@@ -125,7 +125,7 @@ var w107Kinds = []string{"unused", "fallthrough", "format", "format_arg"}
 
 // Whim107 takes the attributes: 139 GNU `__attribute__` to six.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 167 drops the unused)
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 168 drops the unused)
 	p := edit.Ph{Tag: "attrs", W: w}
 
 

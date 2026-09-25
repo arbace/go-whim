@@ -21,8 +21,8 @@ slim-vim.c  --whim-->  whim-vim.c
   that repository's `main` points to, and records the commit in `src/upstream.sha`.
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
-- **whim** (the `Makefile`) removes capability on purpose, 168 phases from 180,870
-  lines to 75,097. It is two arcs, a coda, an empty phase, three for the Go's
+- **whim** (the `Makefile`) removes capability on purpose, 169 phases from 180,870
+  lines to 75,403. It is two arcs, a coda, an empty phase, four for the Go's
   sake and the headers last:
   - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
     install, 84,111 lines at q82;
@@ -45,7 +45,9 @@ slim-vim.c  --whim-->  whim-vim.c
     answers yes or no -- OK and FAIL included, OK being `true` -- and the 327
     locals that only hold an answer; `f() == FAIL` is `!f()`. So the Go says
     `if f()` where it said `if f() != 0`.
-  - **phase 167**, last, drops every system header nothing needs, in one step:
+  - **phase 167** names the 153 constant key codes (`K_DEL`, `K_IGNORE`) the
+    preprocessor's removal left as arithmetic; the binary is byte-identical.
+  - **phase 168**, last, drops every system header nothing needs, in one step:
     each `#include` is tried and kept out while the file compiles silently.
     Phases 82, 99 and 104 once did it piecemeal, and the phases between them
     asserted the counts it left; now they assert only that every directive is a
@@ -163,7 +165,7 @@ the same `editor/editor.go` byte for byte either way.
 ```sh
 make                 # all: bin/whim, the editor (editor/ built), through whim-vim.c
                      # (produced only when slim-vim.c moved) and editor/editor.go
-make whim-build      # the 168 phases in one process: slim-vim.c -> whim-vim.c
+make whim-build      # the 169 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go that is not what internal/gen writes
 make whim-test        # the editor on 44 key sessions, required to behave as HEAD's does
@@ -178,7 +180,7 @@ make help            # every target, with a line each
   after every phase** (there are no stages), and **the canonical print of what is left**
   (`internal/cemit`: one spelling per construct, and NO COMMENTS, of any kind),
   so every boundary that is C is in the one spelling phase 0 seeds with -- applied
-  in one process, in memory. Measured: 168 phases, **1,086 s**, 75,097 lines. A
+  in one process, in memory. Measured: 169 phases, **1,072 s**, 75,403 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`internal/sweep`'s `Prune`): the text parsed
@@ -196,7 +198,7 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **86 s** on 64 cores, against 1,086 s in
+  committed `whim-vim.c`. Measured: **89 s** on 64 cores, against 1,072 s in
   order; and a phase whose program was changed on purpose
   (a control) is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
@@ -236,7 +238,7 @@ ours belongs inside `.claude/`. Outside `make`, run with `TMPDIR=$PWD/.tmp`.
 ## The pipeline
 
 A phase is a function of the tree it is handed, so the pipeline is
-`p_N = f_N(p_{N-1})` -- 168 of them, in order. **There is no memoize**: its key
+`p_N = f_N(p_{N-1})` -- 169 of them, in order. **There is no memoize**: its key
 was the input boundary's digest and the implementation's together, so a moved
 `slim-vim.c` missed every entry by construction.
 
@@ -271,7 +273,7 @@ design.
 
 ## Adding a phase
 
-`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 168.
+`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 169.
 The pipeline's goal is met; what comes now is the Go editor idiomatic
 (`doc/GO-IDIOMS.md`), by the generator where it can and by a phase where the C
 is the cause. What a new one takes:

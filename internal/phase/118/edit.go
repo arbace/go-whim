@@ -99,7 +99,7 @@ var (
 // 4 and 5.  A count is a fact about a tree that WAS measured; a partition is a
 // fact about the tree that arrives.
 func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 167 drops the unused)
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 168 drops the unused)
 	p := edit.Ph{Tag: "hostcall", W: w}
 	if len(args) != 1 {
 		return nil, p.Die("usage: edit whim118 <file> <state-dir>")

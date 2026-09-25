@@ -151,7 +151,7 @@ var (
 // IT TOUCHES NO CORE LINE, and that is the phase's central claim: the text above
 // the first `#include` must be BYTE-IDENTICAL in and Out.
 func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 167 drops the unused)
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 168 drops the unused)
 	p := edit.Ph{Tag: "arena", W: w}
 	if len(args) != 1 {
 		return nil, p.Die("usage: edit whim124 <file> <state-dir>")

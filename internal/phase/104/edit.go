@@ -16,7 +16,7 @@ package p104
 // host_message()   beside host_exit(), in the launcher, write(err ? 2 : 1, ...)
 //
 // and `<stdio.h>` is left unused: the header the phase's symbols came from.  It is
-// not removed here -- phase 167 drops every header the file does not need, together
+// not removed here -- phase 168 drops every header the file does not need, together
 // and last -- and from there the "no stdio stream" invariant phase 96 asserted is
 // visible in the directive list as well as in `nm -u`.
 //
@@ -133,7 +133,7 @@ var w104Stmt = regexp.MustCompile(`(?m)^\s*(?:printf|fprintf|fflush)\(`)
 // vim_host_message(msg, len, err) the launcher installs, with seven symbols
 // going with them and <stdio.h> left unused.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 167 drops the unused)
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 168 drops the unused)
 	p := edit.Ph{Tag: "message", W: w}
 	t := text
 
@@ -458,7 +458,7 @@ main(int argc, char **argv)
 	t = append(append([]byte(nil), t[:len(t)-len(old)]...), new...)
 
 	// ---- 9. the header the symbols came from -----------------------------
-	// <stdio.h> is unused from here, and stays for phase 167, which drops every
+	// <stdio.h> is unused from here, and stays for phase 168, which drops every
 	// header the file does not need, together and last.
 
 	// ---- what the file is now --------------------------------------------
@@ -524,6 +524,6 @@ main(int argc, char **argv)
 	}
 	p.Sayf("%d -> %d lines.  Every byte that leaves this editor other than the screen "+
 		"goes through one `vim_host_message(msg, len, err)` the launcher installs; "+
-		"<stdio.h> is unused, for phase 167 to drop", linesBefore, p.Lines(t))
+		"<stdio.h> is unused, for phase 168 to drop", linesBefore, p.Lines(t))
 	return t, nil
 }

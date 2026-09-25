@@ -110,7 +110,7 @@ const w97Pad = "                                "
 // Whim97 vendors the sixteen mem*/str* of <string.h> as local `static musl_*`
 // functions, with sprintf moved onto the editor's own vim_snprintf instead.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 167 drops the unused)
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 168 drops the unused)
 	p := edit.Ph{Tag: "strings", W: w}
 	t := string(text)
 

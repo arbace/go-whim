@@ -179,7 +179,7 @@ var w103Before = []struct {
 // RealWaitForChar's select, mch_get_shellsize and all three isatty() calls move
 // into a 229-line host block at the bottom of the same file.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 167 drops the unused)
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 168 drops the unused)
 	p := edit.Ph{Tag: "host", W: w}
 	t := string(text)
 

@@ -2225,7 +2225,8 @@ declared `delta.md`.
 - [Phase 164 — no statement follows a jump](../internal/phase/164/GOAL.md)
 - [Phase 165 — no store nothing reads](../internal/phase/165/GOAL.md)
 - [Phase 166 — a question returns bool](../internal/phase/166/GOAL.md)
-- [Phase 167 — the system headers nothing needs](../internal/phase/167/GOAL.md)
+- [Phase 167 — a key code has a name](../internal/phase/167/GOAL.md)
+- [Phase 168 — the system headers nothing needs](../internal/phase/168/GOAL.md)
 
 ## Appendix to Part II — the plan phases 83 onwards were built from
 

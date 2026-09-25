@@ -2010,6 +2010,159 @@ const (
 	BACKSPACE_WORD           = 2
 	BACKSPACE_WORD_NOT_SPACE = 3
 	BACKSPACE_LINE           = 4
+	K_PASTESTART             = -21328
+	K_CURSORHOLD             = -24829
+	K_COMPLETE_DELAY         = -28413
+	K_IGNORE                 = -13821
+	K_NOP                    = -25085
+	K_INS                    = -18795
+	K_KINS                   = -20477
+	K_HELP                   = -12581
+	K_F1                     = -12651
+	K_XF1                    = -14845
+	K_DEL                    = -17515
+	K_KDEL                   = -20733
+	K_BS                     = -25195
+	K_S_BS                   = -27133
+	K_PASTEEND               = -17744
+	K_COMMAND                = -26621
+	K_SCRIPT_COMMAND         = -26877
+	K_HOME                   = -26731
+	K_KHOME                  = -12619
+	K_TC_HASH_2              = -12835
+	K_C_HOME                 = -22525
+	K_END                    = -14144
+	K_KEND                   = -13387
+	K_TC_STAR_7              = -14122
+	K_C_END                  = -22781
+	K_LEFT                   = -27755
+	K_TC_HASH_4              = -13347
+	K_C_LEFT                 = -22013
+	K_RIGHT                  = -29291
+	K_TC_PCT_i               = -26917
+	K_C_RIGHT                = -22269
+	K_UP                     = -30059
+	K_S_UP                   = -1277
+	K_PAGEUP                 = -20587
+	K_KPAGEUP                = -13131
+	K_DOWN                   = -25707
+	K_S_DOWN                 = -1533
+	K_PAGEDOWN               = -20075
+	K_KPAGEDOWN              = -13643
+	K_TC_k_B                 = -17003
+	K_KENTER                 = -16715
+	K_FOCUSGAINED            = -25341
+	K_FOCUSLOST              = -25597
+	K_OSC                    = -28157
+	K_ESC                    = -27645
+	K_KPLUS                  = -13899
+	K_KMINUS                 = -14155
+	K_KDIVIDE                = -14411
+	K_KMULTIPLY              = -14667
+	K_KPOINT                 = -16971
+	K_K0                     = -17227
+	K_K1                     = -17483
+	K_K2                     = -17739
+	K_K3                     = -17995
+	K_K4                     = -18251
+	K_K5                     = -18507
+	K_K6                     = -18763
+	K_K7                     = -19019
+	K_K8                     = -19275
+	K_K9                     = -19531
+	K_XHOME                  = -16381
+	K_ZHOME                  = -16637
+	K_XEND                   = -15869
+	K_ZEND                   = -16125
+	K_XUP                    = -16893
+	K_XDOWN                  = -17149
+	K_XLEFT                  = -17405
+	K_XRIGHT                 = -17661
+	K_MOUSEMOVE              = -25853
+	K_CANCEL                 = -26365
+	K_SNR                    = -21245
+	K_LEFTDRAG               = -11773
+	K_LEFTRELEASE            = -12029
+	K_MIDDLEDRAG             = -12541
+	K_MIDDLERELEASE          = -12797
+	K_RIGHTDRAG              = -13309
+	K_RIGHTRELEASE           = -13565
+	K_MOUSELEFT              = -19965
+	K_MOUSERIGHT             = -20221
+	K_MOUSEDOWN              = -19453
+	K_MOUSEUP                = -19709
+	K_LEFTMOUSE              = -11517
+	K_MIDDLEMOUSE            = -12285
+	K_RIGHTMOUSE             = -13053
+	K_X1MOUSE                = -23037
+	K_X2MOUSE                = -23805
+	K_DROP                   = -24573
+	K_F10                    = -15211
+	K_F11                    = -12614
+	K_F12                    = -12870
+	K_F13                    = -13126
+	K_F14                    = -13382
+	K_F15                    = -13638
+	K_F16                    = -13894
+	K_F17                    = -14150
+	K_F18                    = -14406
+	K_F19                    = -14662
+	K_F2                     = -12907
+	K_F20                    = -16710
+	K_F21                    = -16966
+	K_F22                    = -17222
+	K_F23                    = -17478
+	K_F24                    = -17734
+	K_F25                    = -17990
+	K_F26                    = -18246
+	K_F27                    = -18502
+	K_F28                    = -18758
+	K_F29                    = -19014
+	K_F3                     = -13163
+	K_F30                    = -19270
+	K_F31                    = -19526
+	K_F32                    = -19782
+	K_F33                    = -20038
+	K_F34                    = -20294
+	K_F35                    = -20550
+	K_F36                    = -20806
+	K_F37                    = -21062
+	K_F4                     = -13419
+	K_F5                     = -13675
+	K_F6                     = -13931
+	K_F7                     = -14187
+	K_F8                     = -14443
+	K_F9                     = -14699
+	K_PLUG                   = -21501
+	K_TAB                    = -14077
+	K_UNDO                   = -14374
+	K_CSI                    = -20989
+	K_XF2                    = -15101
+	K_XF3                    = -15357
+	K_XF4                    = -15613
+	K_S_XF1                  = -18429
+	K_S_F1                   = -1789
+	K_S_XF2                  = -18685
+	K_S_F2                   = -2045
+	K_S_XF3                  = -18941
+	K_S_F3                   = -2301
+	K_S_XF4                  = -19197
+	K_S_F4                   = -2557
+	K_LEFTMOUSE_NM           = -17917
+	K_LEFTRELEASE_NM         = -18173
+	K_X1DRAG                 = -23293
+	K_X1RELEASE              = -23549
+	K_X2DRAG                 = -24061
+	K_X2RELEASE              = -24317
+	K_TC_k_0                 = -12395
+	K_S_F5                   = -2813
+	K_S_F6                   = -3069
+	K_S_F7                   = -3325
+	K_S_F8                   = -3581
+	K_S_F9                   = -3837
+	K_S_F10                  = -4093
+	K_S_F11                  = -4349
+	K_S_F12                  = -4605
 	PC_STATUS_UNSET          = 0
 	PC_STATUS_RIGHT          = 1
 	PC_STATUS_LEFT           = 2
@@ -4390,88 +4543,88 @@ func init() {
 		{},
 	}
 	modifier_keys_table = [376]byte{MOD_MASK_SHIFT, '&', '9', '@', '1', MOD_MASK_SHIFT, '&', '0', '@', '2', MOD_MASK_SHIFT, '*', '1', '@', '4', MOD_MASK_SHIFT, '*', '2', '@', '5', MOD_MASK_SHIFT, '*', '3', '@', '6', MOD_MASK_SHIFT, '*', '4', 'k', 'D', MOD_MASK_SHIFT, '*', '5', 'k', 'L', MOD_MASK_SHIFT, '*', '7', '@', '7', MOD_MASK_CTRL, KS_EXTRA, 88, '@', '7', MOD_MASK_SHIFT, '*', '9', '@', '9', MOD_MASK_SHIFT, '*', '0', '@', '0', MOD_MASK_SHIFT, '#', '1', '%', '1', MOD_MASK_SHIFT, '#', '2', 'k', 'h', MOD_MASK_CTRL, KS_EXTRA, 87, 'k', 'h', MOD_MASK_SHIFT, '#', '3', 'k', 'I', MOD_MASK_SHIFT, '#', '4', 'k', 'l', MOD_MASK_CTRL, KS_EXTRA, 85, 'k', 'l', MOD_MASK_SHIFT, '%', 'a', '%', '3', MOD_MASK_SHIFT, '%', 'b', '%', '4', MOD_MASK_SHIFT, '%', 'c', '%', '5', MOD_MASK_SHIFT, '%', 'd', '%', '7', MOD_MASK_SHIFT, '%', 'e', '%', '8', MOD_MASK_SHIFT, '%', 'f', '%', '9', MOD_MASK_SHIFT, '%', 'g', '%', '0', MOD_MASK_SHIFT, '%', 'h', '&', '3', MOD_MASK_SHIFT, '%', 'i', 'k', 'r', MOD_MASK_CTRL, KS_EXTRA, 86, 'k', 'r', MOD_MASK_SHIFT, '%', 'j', '&', '5', MOD_MASK_SHIFT, '!', '1', '&', '6', MOD_MASK_SHIFT, '!', '2', '&', '7', MOD_MASK_SHIFT, '!', '3', '&', '8', MOD_MASK_SHIFT, KS_EXTRA, 4, 'k', 'u', MOD_MASK_SHIFT, KS_EXTRA, 5, 'k', 'd', MOD_MASK_SHIFT, KS_EXTRA, 71, KS_EXTRA, 57, MOD_MASK_SHIFT, KS_EXTRA, 72, KS_EXTRA, 58, MOD_MASK_SHIFT, KS_EXTRA, 73, KS_EXTRA, 59, MOD_MASK_SHIFT, KS_EXTRA, 74, KS_EXTRA, 60, MOD_MASK_SHIFT, KS_EXTRA, 6, 'k', '1', MOD_MASK_SHIFT, KS_EXTRA, 7, 'k', '2', MOD_MASK_SHIFT, KS_EXTRA, 8, 'k', '3', MOD_MASK_SHIFT, KS_EXTRA, 9, 'k', '4', MOD_MASK_SHIFT, KS_EXTRA, 10, 'k', '5', MOD_MASK_SHIFT, KS_EXTRA, 11, 'k', '6', MOD_MASK_SHIFT, KS_EXTRA, 12, 'k', '7', MOD_MASK_SHIFT, KS_EXTRA, 13, 'k', '8', MOD_MASK_SHIFT, KS_EXTRA, 14, 'k', '9', MOD_MASK_SHIFT, KS_EXTRA, 15, 'k', ';', MOD_MASK_SHIFT, KS_EXTRA, 16, 'F', '1', MOD_MASK_SHIFT, KS_EXTRA, 17, 'F', '2', MOD_MASK_SHIFT, KS_EXTRA, 18, 'F', '3', MOD_MASK_SHIFT, KS_EXTRA, 19, 'F', '4', MOD_MASK_SHIFT, KS_EXTRA, 20, 'F', '5', MOD_MASK_SHIFT, KS_EXTRA, 21, 'F', '6', MOD_MASK_SHIFT, KS_EXTRA, 22, 'F', '7', MOD_MASK_SHIFT, KS_EXTRA, 23, 'F', '8', MOD_MASK_SHIFT, KS_EXTRA, 24, 'F', '9', MOD_MASK_SHIFT, KS_EXTRA, 25, 'F', 'A', MOD_MASK_SHIFT, KS_EXTRA, 26, 'F', 'B', MOD_MASK_SHIFT, KS_EXTRA, 27, 'F', 'C', MOD_MASK_SHIFT, KS_EXTRA, 28, 'F', 'D', MOD_MASK_SHIFT, KS_EXTRA, 29, 'F', 'E', MOD_MASK_SHIFT, KS_EXTRA, 30, 'F', 'F', MOD_MASK_SHIFT, KS_EXTRA, 31, 'F', 'G', MOD_MASK_SHIFT, KS_EXTRA, 32, 'F', 'H', MOD_MASK_SHIFT, KS_EXTRA, 33, 'F', 'I', MOD_MASK_SHIFT, KS_EXTRA, 34, 'F', 'J', MOD_MASK_SHIFT, KS_EXTRA, 35, 'F', 'K', MOD_MASK_SHIFT, KS_EXTRA, 36, 'F', 'L', MOD_MASK_SHIFT, KS_EXTRA, 37, 'F', 'M', MOD_MASK_SHIFT, KS_EXTRA, 38, 'F', 'N', MOD_MASK_SHIFT, KS_EXTRA, 39, 'F', 'O', MOD_MASK_SHIFT, KS_EXTRA, 40, 'F', 'P', MOD_MASK_SHIFT, KS_EXTRA, 41, 'F', 'Q', MOD_MASK_SHIFT, KS_EXTRA, 42, 'F', 'R', MOD_MASK_SHIFT, 'k', 'B', KS_EXTRA, 54, NUL}
-	key_names_table.Set(0, S_key_name_entry{enabled: TRUE, key: -('k' + (98 << 8)), name: string_T{string_: S("BackSpace"), length: 9}, is_alt: TRUE})
+	key_names_table.Set(0, S_key_name_entry{enabled: TRUE, key: K_BS, name: string_T{string_: S("BackSpace"), length: 9}, is_alt: TRUE})
 	key_names_table.Set(1, S_key_name_entry{enabled: TRUE, key: '|', name: string_T{string_: S("Bar"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(2, S_key_name_entry{enabled: TRUE, key: -('k' + (98 << 8)), name: string_T{string_: S("BS"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(2, S_key_name_entry{enabled: TRUE, key: K_BS, name: string_T{string_: S("BS"), length: 2}, is_alt: FALSE})
 	key_names_table.Set(3, S_key_name_entry{enabled: TRUE, key: 92, name: string_T{string_: S("Bslash"), length: 6}, is_alt: FALSE})
-	key_names_table.Set(4, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (103 << 8)), name: string_T{string_: S("Cmd"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(4, S_key_name_entry{enabled: TRUE, key: K_COMMAND, name: string_T{string_: S("Cmd"), length: 3}, is_alt: FALSE})
 	key_names_table.Set(5, S_key_name_entry{enabled: TRUE, key: CAR, name: string_T{string_: S("CR"), length: 2}, is_alt: FALSE})
 	key_names_table.Set(6, S_key_name_entry{enabled: TRUE, key: CSI, name: string_T{string_: S("CSI"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(7, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (96 << 8)), name: string_T{string_: S("CursorHold"), length: 10}, is_alt: FALSE})
-	key_names_table.Set(8, S_key_name_entry{enabled: TRUE, key: -('k' + (68 << 8)), name: string_T{string_: S("Del"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(9, S_key_name_entry{enabled: TRUE, key: -('k' + (68 << 8)), name: string_T{string_: S("Delete"), length: 6}, is_alt: TRUE})
-	key_names_table.Set(10, S_key_name_entry{enabled: TRUE, key: -('k' + (100 << 8)), name: string_T{string_: S("Down"), length: 4}, is_alt: FALSE})
-	key_names_table.Set(11, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (95 << 8)), name: string_T{string_: S("Drop"), length: 4}, is_alt: FALSE})
-	key_names_table.Set(12, S_key_name_entry{enabled: TRUE, key: -('@' + (55 << 8)), name: string_T{string_: S("End"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(7, S_key_name_entry{enabled: TRUE, key: K_CURSORHOLD, name: string_T{string_: S("CursorHold"), length: 10}, is_alt: FALSE})
+	key_names_table.Set(8, S_key_name_entry{enabled: TRUE, key: K_DEL, name: string_T{string_: S("Del"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(9, S_key_name_entry{enabled: TRUE, key: K_DEL, name: string_T{string_: S("Delete"), length: 6}, is_alt: TRUE})
+	key_names_table.Set(10, S_key_name_entry{enabled: TRUE, key: K_DOWN, name: string_T{string_: S("Down"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(11, S_key_name_entry{enabled: TRUE, key: K_DROP, name: string_T{string_: S("Drop"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(12, S_key_name_entry{enabled: TRUE, key: K_END, name: string_T{string_: S("End"), length: 3}, is_alt: FALSE})
 	key_names_table.Set(13, S_key_name_entry{enabled: TRUE, key: CAR, name: string_T{string_: S("Enter"), length: 5}, is_alt: TRUE})
 	key_names_table.Set(14, S_key_name_entry{enabled: TRUE, key: ESC, name: string_T{string_: S("Esc"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(15, S_key_name_entry{enabled: TRUE, key: -('k' + (49 << 8)), name: string_T{string_: S("F1"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(16, S_key_name_entry{enabled: TRUE, key: -('k' + (59 << 8)), name: string_T{string_: S("F10"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(17, S_key_name_entry{enabled: TRUE, key: -('F' + (49 << 8)), name: string_T{string_: S("F11"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(18, S_key_name_entry{enabled: TRUE, key: -('F' + (50 << 8)), name: string_T{string_: S("F12"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(19, S_key_name_entry{enabled: TRUE, key: -('F' + (51 << 8)), name: string_T{string_: S("F13"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(20, S_key_name_entry{enabled: TRUE, key: -('F' + (52 << 8)), name: string_T{string_: S("F14"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(21, S_key_name_entry{enabled: TRUE, key: -('F' + (53 << 8)), name: string_T{string_: S("F15"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(22, S_key_name_entry{enabled: TRUE, key: -('F' + (54 << 8)), name: string_T{string_: S("F16"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(23, S_key_name_entry{enabled: TRUE, key: -('F' + (55 << 8)), name: string_T{string_: S("F17"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(24, S_key_name_entry{enabled: TRUE, key: -('F' + (56 << 8)), name: string_T{string_: S("F18"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(25, S_key_name_entry{enabled: TRUE, key: -('F' + (57 << 8)), name: string_T{string_: S("F19"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(26, S_key_name_entry{enabled: TRUE, key: -('k' + (50 << 8)), name: string_T{string_: S("F2"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(27, S_key_name_entry{enabled: TRUE, key: -('F' + (65 << 8)), name: string_T{string_: S("F20"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(28, S_key_name_entry{enabled: TRUE, key: -('F' + (66 << 8)), name: string_T{string_: S("F21"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(29, S_key_name_entry{enabled: TRUE, key: -('F' + (67 << 8)), name: string_T{string_: S("F22"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(30, S_key_name_entry{enabled: TRUE, key: -('F' + (68 << 8)), name: string_T{string_: S("F23"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(31, S_key_name_entry{enabled: TRUE, key: -('F' + (69 << 8)), name: string_T{string_: S("F24"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(32, S_key_name_entry{enabled: TRUE, key: -('F' + (70 << 8)), name: string_T{string_: S("F25"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(33, S_key_name_entry{enabled: TRUE, key: -('F' + (71 << 8)), name: string_T{string_: S("F26"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(34, S_key_name_entry{enabled: TRUE, key: -('F' + (72 << 8)), name: string_T{string_: S("F27"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(35, S_key_name_entry{enabled: TRUE, key: -('F' + (73 << 8)), name: string_T{string_: S("F28"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(36, S_key_name_entry{enabled: TRUE, key: -('F' + (74 << 8)), name: string_T{string_: S("F29"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(37, S_key_name_entry{enabled: TRUE, key: -('k' + (51 << 8)), name: string_T{string_: S("F3"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(38, S_key_name_entry{enabled: TRUE, key: -('F' + (75 << 8)), name: string_T{string_: S("F30"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(39, S_key_name_entry{enabled: TRUE, key: -('F' + (76 << 8)), name: string_T{string_: S("F31"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(40, S_key_name_entry{enabled: TRUE, key: -('F' + (77 << 8)), name: string_T{string_: S("F32"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(41, S_key_name_entry{enabled: TRUE, key: -('F' + (78 << 8)), name: string_T{string_: S("F33"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(42, S_key_name_entry{enabled: TRUE, key: -('F' + (79 << 8)), name: string_T{string_: S("F34"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(43, S_key_name_entry{enabled: TRUE, key: -('F' + (80 << 8)), name: string_T{string_: S("F35"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(44, S_key_name_entry{enabled: TRUE, key: -('F' + (81 << 8)), name: string_T{string_: S("F36"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(45, S_key_name_entry{enabled: TRUE, key: -('F' + (82 << 8)), name: string_T{string_: S("F37"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(46, S_key_name_entry{enabled: TRUE, key: -('k' + (52 << 8)), name: string_T{string_: S("F4"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(47, S_key_name_entry{enabled: TRUE, key: -('k' + (53 << 8)), name: string_T{string_: S("F5"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(48, S_key_name_entry{enabled: TRUE, key: -('k' + (54 << 8)), name: string_T{string_: S("F6"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(49, S_key_name_entry{enabled: TRUE, key: -('k' + (55 << 8)), name: string_T{string_: S("F7"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(50, S_key_name_entry{enabled: TRUE, key: -('k' + (56 << 8)), name: string_T{string_: S("F8"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(51, S_key_name_entry{enabled: TRUE, key: -('k' + (57 << 8)), name: string_T{string_: S("F9"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(52, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (98 << 8)), name: string_T{string_: S("FocusGained"), length: 11}, is_alt: FALSE})
-	key_names_table.Set(53, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (99 << 8)), name: string_T{string_: S("FocusLost"), length: 9}, is_alt: FALSE})
-	key_names_table.Set(54, S_key_name_entry{enabled: TRUE, key: -('%' + (49 << 8)), name: string_T{string_: S("Help"), length: 4}, is_alt: FALSE})
-	key_names_table.Set(55, S_key_name_entry{enabled: TRUE, key: -('k' + (104 << 8)), name: string_T{string_: S("Home"), length: 4}, is_alt: FALSE})
-	key_names_table.Set(56, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (53 << 8)), name: string_T{string_: S("Ignore"), length: 6}, is_alt: FALSE})
-	key_names_table.Set(57, S_key_name_entry{enabled: TRUE, key: -('k' + (73 << 8)), name: string_T{string_: S("Ins"), length: 3}, is_alt: TRUE})
-	key_names_table.Set(58, S_key_name_entry{enabled: TRUE, key: -('k' + (73 << 8)), name: string_T{string_: S("Insert"), length: 6}, is_alt: FALSE})
-	key_names_table.Set(59, S_key_name_entry{enabled: TRUE, key: -('K' + (67 << 8)), name: string_T{string_: S("k0"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(60, S_key_name_entry{enabled: TRUE, key: -('K' + (68 << 8)), name: string_T{string_: S("k1"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(61, S_key_name_entry{enabled: TRUE, key: -('K' + (69 << 8)), name: string_T{string_: S("k2"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(62, S_key_name_entry{enabled: TRUE, key: -('K' + (70 << 8)), name: string_T{string_: S("k3"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(63, S_key_name_entry{enabled: TRUE, key: -('K' + (71 << 8)), name: string_T{string_: S("k4"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(64, S_key_name_entry{enabled: TRUE, key: -('K' + (72 << 8)), name: string_T{string_: S("k5"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(65, S_key_name_entry{enabled: TRUE, key: -('K' + (73 << 8)), name: string_T{string_: S("k6"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(66, S_key_name_entry{enabled: TRUE, key: -('K' + (74 << 8)), name: string_T{string_: S("k7"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(67, S_key_name_entry{enabled: TRUE, key: -('K' + (75 << 8)), name: string_T{string_: S("k8"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(68, S_key_name_entry{enabled: TRUE, key: -('K' + (76 << 8)), name: string_T{string_: S("k9"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(69, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (80 << 8)), name: string_T{string_: S("kDel"), length: 4}, is_alt: FALSE})
-	key_names_table.Set(70, S_key_name_entry{enabled: TRUE, key: -('K' + (56 << 8)), name: string_T{string_: S("kDivide"), length: 7}, is_alt: FALSE})
-	key_names_table.Set(71, S_key_name_entry{enabled: TRUE, key: -('K' + (52 << 8)), name: string_T{string_: S("kEnd"), length: 4}, is_alt: FALSE})
-	key_names_table.Set(72, S_key_name_entry{enabled: TRUE, key: -('K' + (65 << 8)), name: string_T{string_: S("kEnter"), length: 6}, is_alt: FALSE})
-	key_names_table.Set(73, S_key_name_entry{enabled: TRUE, key: -('K' + (49 << 8)), name: string_T{string_: S("kHome"), length: 5}, is_alt: FALSE})
-	key_names_table.Set(74, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (79 << 8)), name: string_T{string_: S("kInsert"), length: 7}, is_alt: FALSE})
-	key_names_table.Set(75, S_key_name_entry{enabled: TRUE, key: -('K' + (55 << 8)), name: string_T{string_: S("kMinus"), length: 6}, is_alt: FALSE})
-	key_names_table.Set(76, S_key_name_entry{enabled: TRUE, key: -('K' + (57 << 8)), name: string_T{string_: S("kMultiply"), length: 9}, is_alt: FALSE})
-	key_names_table.Set(77, S_key_name_entry{enabled: TRUE, key: -('K' + (53 << 8)), name: string_T{string_: S("kPageDown"), length: 9}, is_alt: FALSE})
-	key_names_table.Set(78, S_key_name_entry{enabled: TRUE, key: -('K' + (51 << 8)), name: string_T{string_: S("kPageUp"), length: 7}, is_alt: FALSE})
-	key_names_table.Set(79, S_key_name_entry{enabled: TRUE, key: -('K' + (54 << 8)), name: string_T{string_: S("kPlus"), length: 5}, is_alt: FALSE})
-	key_names_table.Set(80, S_key_name_entry{enabled: TRUE, key: -('K' + (66 << 8)), name: string_T{string_: S("kPoint"), length: 6}, is_alt: FALSE})
-	key_names_table.Set(81, S_key_name_entry{enabled: TRUE, key: -('k' + (108 << 8)), name: string_T{string_: S("Left"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(15, S_key_name_entry{enabled: TRUE, key: K_F1, name: string_T{string_: S("F1"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(16, S_key_name_entry{enabled: TRUE, key: K_F10, name: string_T{string_: S("F10"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(17, S_key_name_entry{enabled: TRUE, key: K_F11, name: string_T{string_: S("F11"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(18, S_key_name_entry{enabled: TRUE, key: K_F12, name: string_T{string_: S("F12"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(19, S_key_name_entry{enabled: TRUE, key: K_F13, name: string_T{string_: S("F13"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(20, S_key_name_entry{enabled: TRUE, key: K_F14, name: string_T{string_: S("F14"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(21, S_key_name_entry{enabled: TRUE, key: K_F15, name: string_T{string_: S("F15"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(22, S_key_name_entry{enabled: TRUE, key: K_F16, name: string_T{string_: S("F16"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(23, S_key_name_entry{enabled: TRUE, key: K_F17, name: string_T{string_: S("F17"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(24, S_key_name_entry{enabled: TRUE, key: K_F18, name: string_T{string_: S("F18"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(25, S_key_name_entry{enabled: TRUE, key: K_F19, name: string_T{string_: S("F19"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(26, S_key_name_entry{enabled: TRUE, key: K_F2, name: string_T{string_: S("F2"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(27, S_key_name_entry{enabled: TRUE, key: K_F20, name: string_T{string_: S("F20"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(28, S_key_name_entry{enabled: TRUE, key: K_F21, name: string_T{string_: S("F21"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(29, S_key_name_entry{enabled: TRUE, key: K_F22, name: string_T{string_: S("F22"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(30, S_key_name_entry{enabled: TRUE, key: K_F23, name: string_T{string_: S("F23"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(31, S_key_name_entry{enabled: TRUE, key: K_F24, name: string_T{string_: S("F24"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(32, S_key_name_entry{enabled: TRUE, key: K_F25, name: string_T{string_: S("F25"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(33, S_key_name_entry{enabled: TRUE, key: K_F26, name: string_T{string_: S("F26"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(34, S_key_name_entry{enabled: TRUE, key: K_F27, name: string_T{string_: S("F27"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(35, S_key_name_entry{enabled: TRUE, key: K_F28, name: string_T{string_: S("F28"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(36, S_key_name_entry{enabled: TRUE, key: K_F29, name: string_T{string_: S("F29"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(37, S_key_name_entry{enabled: TRUE, key: K_F3, name: string_T{string_: S("F3"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(38, S_key_name_entry{enabled: TRUE, key: K_F30, name: string_T{string_: S("F30"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(39, S_key_name_entry{enabled: TRUE, key: K_F31, name: string_T{string_: S("F31"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(40, S_key_name_entry{enabled: TRUE, key: K_F32, name: string_T{string_: S("F32"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(41, S_key_name_entry{enabled: TRUE, key: K_F33, name: string_T{string_: S("F33"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(42, S_key_name_entry{enabled: TRUE, key: K_F34, name: string_T{string_: S("F34"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(43, S_key_name_entry{enabled: TRUE, key: K_F35, name: string_T{string_: S("F35"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(44, S_key_name_entry{enabled: TRUE, key: K_F36, name: string_T{string_: S("F36"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(45, S_key_name_entry{enabled: TRUE, key: K_F37, name: string_T{string_: S("F37"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(46, S_key_name_entry{enabled: TRUE, key: K_F4, name: string_T{string_: S("F4"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(47, S_key_name_entry{enabled: TRUE, key: K_F5, name: string_T{string_: S("F5"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(48, S_key_name_entry{enabled: TRUE, key: K_F6, name: string_T{string_: S("F6"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(49, S_key_name_entry{enabled: TRUE, key: K_F7, name: string_T{string_: S("F7"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(50, S_key_name_entry{enabled: TRUE, key: K_F8, name: string_T{string_: S("F8"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(51, S_key_name_entry{enabled: TRUE, key: K_F9, name: string_T{string_: S("F9"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(52, S_key_name_entry{enabled: TRUE, key: K_FOCUSGAINED, name: string_T{string_: S("FocusGained"), length: 11}, is_alt: FALSE})
+	key_names_table.Set(53, S_key_name_entry{enabled: TRUE, key: K_FOCUSLOST, name: string_T{string_: S("FocusLost"), length: 9}, is_alt: FALSE})
+	key_names_table.Set(54, S_key_name_entry{enabled: TRUE, key: K_HELP, name: string_T{string_: S("Help"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(55, S_key_name_entry{enabled: TRUE, key: K_HOME, name: string_T{string_: S("Home"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(56, S_key_name_entry{enabled: TRUE, key: K_IGNORE, name: string_T{string_: S("Ignore"), length: 6}, is_alt: FALSE})
+	key_names_table.Set(57, S_key_name_entry{enabled: TRUE, key: K_INS, name: string_T{string_: S("Ins"), length: 3}, is_alt: TRUE})
+	key_names_table.Set(58, S_key_name_entry{enabled: TRUE, key: K_INS, name: string_T{string_: S("Insert"), length: 6}, is_alt: FALSE})
+	key_names_table.Set(59, S_key_name_entry{enabled: TRUE, key: K_K0, name: string_T{string_: S("k0"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(60, S_key_name_entry{enabled: TRUE, key: K_K1, name: string_T{string_: S("k1"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(61, S_key_name_entry{enabled: TRUE, key: K_K2, name: string_T{string_: S("k2"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(62, S_key_name_entry{enabled: TRUE, key: K_K3, name: string_T{string_: S("k3"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(63, S_key_name_entry{enabled: TRUE, key: K_K4, name: string_T{string_: S("k4"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(64, S_key_name_entry{enabled: TRUE, key: K_K5, name: string_T{string_: S("k5"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(65, S_key_name_entry{enabled: TRUE, key: K_K6, name: string_T{string_: S("k6"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(66, S_key_name_entry{enabled: TRUE, key: K_K7, name: string_T{string_: S("k7"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(67, S_key_name_entry{enabled: TRUE, key: K_K8, name: string_T{string_: S("k8"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(68, S_key_name_entry{enabled: TRUE, key: K_K9, name: string_T{string_: S("k9"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(69, S_key_name_entry{enabled: TRUE, key: K_KDEL, name: string_T{string_: S("kDel"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(70, S_key_name_entry{enabled: TRUE, key: K_KDIVIDE, name: string_T{string_: S("kDivide"), length: 7}, is_alt: FALSE})
+	key_names_table.Set(71, S_key_name_entry{enabled: TRUE, key: K_KEND, name: string_T{string_: S("kEnd"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(72, S_key_name_entry{enabled: TRUE, key: K_KENTER, name: string_T{string_: S("kEnter"), length: 6}, is_alt: FALSE})
+	key_names_table.Set(73, S_key_name_entry{enabled: TRUE, key: K_KHOME, name: string_T{string_: S("kHome"), length: 5}, is_alt: FALSE})
+	key_names_table.Set(74, S_key_name_entry{enabled: TRUE, key: K_KINS, name: string_T{string_: S("kInsert"), length: 7}, is_alt: FALSE})
+	key_names_table.Set(75, S_key_name_entry{enabled: TRUE, key: K_KMINUS, name: string_T{string_: S("kMinus"), length: 6}, is_alt: FALSE})
+	key_names_table.Set(76, S_key_name_entry{enabled: TRUE, key: K_KMULTIPLY, name: string_T{string_: S("kMultiply"), length: 9}, is_alt: FALSE})
+	key_names_table.Set(77, S_key_name_entry{enabled: TRUE, key: K_KPAGEDOWN, name: string_T{string_: S("kPageDown"), length: 9}, is_alt: FALSE})
+	key_names_table.Set(78, S_key_name_entry{enabled: TRUE, key: K_KPAGEUP, name: string_T{string_: S("kPageUp"), length: 7}, is_alt: FALSE})
+	key_names_table.Set(79, S_key_name_entry{enabled: TRUE, key: K_KPLUS, name: string_T{string_: S("kPlus"), length: 5}, is_alt: FALSE})
+	key_names_table.Set(80, S_key_name_entry{enabled: TRUE, key: K_KPOINT, name: string_T{string_: S("kPoint"), length: 6}, is_alt: FALSE})
+	key_names_table.Set(81, S_key_name_entry{enabled: TRUE, key: K_LEFT, name: string_T{string_: S("Left"), length: 4}, is_alt: FALSE})
 	key_names_table.Set(82, S_key_name_entry{enabled: TRUE, key: NL, name: string_T{string_: S("LF"), length: 2}, is_alt: TRUE})
 	key_names_table.Set(83, S_key_name_entry{enabled: TRUE, key: NL, name: string_T{string_: S("LineFeed"), length: 8}, is_alt: TRUE})
 	key_names_table.Set(84, S_key_name_entry{enabled: TRUE, key: '<', name: string_T{string_: S("lt"), length: 2}, is_alt: FALSE})
@@ -4479,34 +4632,34 @@ func init() {
 	key_names_table.Set(86, S_key_name_entry{enabled: TRUE, key: NL, name: string_T{string_: S("NL"), length: 2}, is_alt: FALSE})
 	key_names_table.Set(87, S_key_name_entry{enabled: TRUE, key: -(KS_ZERO + (88 << 8)), name: string_T{string_: S("Nul"), length: 3}, is_alt: FALSE})
 	key_names_table.Set(88, S_key_name_entry{enabled: TRUE, key: OSC, name: string_T{string_: S("OSC"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(89, S_key_name_entry{enabled: TRUE, key: -('k' + (78 << 8)), name: string_T{string_: S("PageDown"), length: 8}, is_alt: FALSE})
-	key_names_table.Set(90, S_key_name_entry{enabled: TRUE, key: -('k' + (80 << 8)), name: string_T{string_: S("PageUp"), length: 6}, is_alt: FALSE})
-	key_names_table.Set(91, S_key_name_entry{enabled: TRUE, key: -('P' + (69 << 8)), name: string_T{string_: S("PasteEnd"), length: 8}, is_alt: FALSE})
-	key_names_table.Set(92, S_key_name_entry{enabled: TRUE, key: -('P' + (83 << 8)), name: string_T{string_: S("PasteStart"), length: 10}, is_alt: FALSE})
-	key_names_table.Set(93, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (83 << 8)), name: string_T{string_: S("Plug"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(89, S_key_name_entry{enabled: TRUE, key: K_PAGEDOWN, name: string_T{string_: S("PageDown"), length: 8}, is_alt: FALSE})
+	key_names_table.Set(90, S_key_name_entry{enabled: TRUE, key: K_PAGEUP, name: string_T{string_: S("PageUp"), length: 6}, is_alt: FALSE})
+	key_names_table.Set(91, S_key_name_entry{enabled: TRUE, key: K_PASTEEND, name: string_T{string_: S("PasteEnd"), length: 8}, is_alt: FALSE})
+	key_names_table.Set(92, S_key_name_entry{enabled: TRUE, key: K_PASTESTART, name: string_T{string_: S("PasteStart"), length: 10}, is_alt: FALSE})
+	key_names_table.Set(93, S_key_name_entry{enabled: TRUE, key: K_PLUG, name: string_T{string_: S("Plug"), length: 4}, is_alt: FALSE})
 	key_names_table.Set(94, S_key_name_entry{enabled: TRUE, key: CAR, name: string_T{string_: S("Return"), length: 6}, is_alt: TRUE})
-	key_names_table.Set(95, S_key_name_entry{enabled: TRUE, key: -('k' + (114 << 8)), name: string_T{string_: S("Right"), length: 5}, is_alt: FALSE})
-	key_names_table.Set(96, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (104 << 8)), name: string_T{string_: S("ScriptCmd"), length: 9}, is_alt: FALSE})
-	key_names_table.Set(97, S_key_name_entry{enabled: FALSE, key: -(KS_EXTRA + (82 << 8)), name: string_T{string_: S("SNR"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(95, S_key_name_entry{enabled: TRUE, key: K_RIGHT, name: string_T{string_: S("Right"), length: 5}, is_alt: FALSE})
+	key_names_table.Set(96, S_key_name_entry{enabled: TRUE, key: K_SCRIPT_COMMAND, name: string_T{string_: S("ScriptCmd"), length: 9}, is_alt: FALSE})
+	key_names_table.Set(97, S_key_name_entry{enabled: FALSE, key: K_SNR, name: string_T{string_: S("SNR"), length: 3}, is_alt: FALSE})
 	key_names_table.Set(98, S_key_name_entry{enabled: TRUE, key: ' ', name: string_T{string_: S("Space"), length: 5}, is_alt: FALSE})
 	key_names_table.Set(99, S_key_name_entry{enabled: TRUE, key: TAB, name: string_T{string_: S("Tab"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(100, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (54 << 8)), name: string_T{string_: S("Tab"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(101, S_key_name_entry{enabled: TRUE, key: -('&' + (56 << 8)), name: string_T{string_: S("Undo"), length: 4}, is_alt: FALSE})
-	key_names_table.Set(102, S_key_name_entry{enabled: TRUE, key: -('k' + (117 << 8)), name: string_T{string_: S("Up"), length: 2}, is_alt: FALSE})
-	key_names_table.Set(103, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (81 << 8)), name: string_T{string_: S("xCSI"), length: 4}, is_alt: FALSE})
-	key_names_table.Set(104, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (66 << 8)), name: string_T{string_: S("xDown"), length: 5}, is_alt: FALSE})
-	key_names_table.Set(105, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (61 << 8)), name: string_T{string_: S("xEnd"), length: 4}, is_alt: FALSE})
-	key_names_table.Set(106, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (57 << 8)), name: string_T{string_: S("xF1"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(107, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (58 << 8)), name: string_T{string_: S("xF2"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(108, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (59 << 8)), name: string_T{string_: S("xF3"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(109, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (60 << 8)), name: string_T{string_: S("xF4"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(110, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (63 << 8)), name: string_T{string_: S("xHome"), length: 5}, is_alt: FALSE})
-	key_names_table.Set(111, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (67 << 8)), name: string_T{string_: S("xLeft"), length: 5}, is_alt: FALSE})
-	key_names_table.Set(112, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (109 << 8)), name: string_T{string_: S("xOSC"), length: 4}, is_alt: FALSE})
-	key_names_table.Set(113, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (68 << 8)), name: string_T{string_: S("xRight"), length: 6}, is_alt: FALSE})
-	key_names_table.Set(114, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (65 << 8)), name: string_T{string_: S("xUp"), length: 3}, is_alt: FALSE})
-	key_names_table.Set(115, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (62 << 8)), name: string_T{string_: S("zEnd"), length: 4}, is_alt: FALSE})
-	key_names_table.Set(116, S_key_name_entry{enabled: TRUE, key: -(KS_EXTRA + (64 << 8)), name: string_T{string_: S("zHome"), length: 5}, is_alt: FALSE})
+	key_names_table.Set(100, S_key_name_entry{enabled: TRUE, key: K_TAB, name: string_T{string_: S("Tab"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(101, S_key_name_entry{enabled: TRUE, key: K_UNDO, name: string_T{string_: S("Undo"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(102, S_key_name_entry{enabled: TRUE, key: K_UP, name: string_T{string_: S("Up"), length: 2}, is_alt: FALSE})
+	key_names_table.Set(103, S_key_name_entry{enabled: TRUE, key: K_CSI, name: string_T{string_: S("xCSI"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(104, S_key_name_entry{enabled: TRUE, key: K_XDOWN, name: string_T{string_: S("xDown"), length: 5}, is_alt: FALSE})
+	key_names_table.Set(105, S_key_name_entry{enabled: TRUE, key: K_XEND, name: string_T{string_: S("xEnd"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(106, S_key_name_entry{enabled: TRUE, key: K_XF1, name: string_T{string_: S("xF1"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(107, S_key_name_entry{enabled: TRUE, key: K_XF2, name: string_T{string_: S("xF2"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(108, S_key_name_entry{enabled: TRUE, key: K_XF3, name: string_T{string_: S("xF3"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(109, S_key_name_entry{enabled: TRUE, key: K_XF4, name: string_T{string_: S("xF4"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(110, S_key_name_entry{enabled: TRUE, key: K_XHOME, name: string_T{string_: S("xHome"), length: 5}, is_alt: FALSE})
+	key_names_table.Set(111, S_key_name_entry{enabled: TRUE, key: K_XLEFT, name: string_T{string_: S("xLeft"), length: 5}, is_alt: FALSE})
+	key_names_table.Set(112, S_key_name_entry{enabled: TRUE, key: K_OSC, name: string_T{string_: S("xOSC"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(113, S_key_name_entry{enabled: TRUE, key: K_XRIGHT, name: string_T{string_: S("xRight"), length: 6}, is_alt: FALSE})
+	key_names_table.Set(114, S_key_name_entry{enabled: TRUE, key: K_XUP, name: string_T{string_: S("xUp"), length: 3}, is_alt: FALSE})
+	key_names_table.Set(115, S_key_name_entry{enabled: TRUE, key: K_ZEND, name: string_T{string_: S("zEnd"), length: 4}, is_alt: FALSE})
+	key_names_table.Set(116, S_key_name_entry{enabled: TRUE, key: K_ZHOME, name: string_T{string_: S("zHome"), length: 5}, is_alt: FALSE})
 	nv_cmds = [194]S_nv_cmd{
 		{cmd_char: NUL, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
 		{cmd_char: Ctrl_A, cmd_func: nv_addsub, cmd_flags: 0, cmd_arg: 0},
@@ -4636,72 +4789,72 @@ func init() {
 		{cmd_char: '}', cmd_func: nv_error, cmd_flags: 0, cmd_arg: FORWARD},
 		{cmd_char: '~', cmd_func: nv_tilde, cmd_flags: 0, cmd_arg: 0},
 		{cmd_char: POUND, cmd_func: nv_ident, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (76 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: MSCR_UP},
-		{cmd_char: -(KS_EXTRA + (75 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: MSCR_DOWN},
-		{cmd_char: -(KS_EXTRA + (77 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: -1},
-		{cmd_char: -(KS_EXTRA + (78 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: -2},
-		{cmd_char: -(KS_EXTRA + (44 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (69 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (45 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (46 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (70 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (100 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (47 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (48 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (49 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (50 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (51 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (52 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (89 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (90 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (91 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (92 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (93 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (94 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (53 << 8)), cmd_func: nv_ignore, cmd_flags: NV_KEEPREG, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (97 << 8)), cmd_func: nv_nop, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -('k' + (73 << 8)), cmd_func: nv_edit, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (79 << 8)), cmd_func: nv_edit, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -('k' + (98 << 8)), cmd_func: nv_ctrlh, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -('k' + (117 << 8)), cmd_func: nv_up, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE},
-		{cmd_char: -(KS_EXTRA + (4 << 8)), cmd_func: nv_page, cmd_flags: NV_SS, cmd_arg: -1},
-		{cmd_char: -('k' + (100 << 8)), cmd_func: nv_down, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE},
-		{cmd_char: -(KS_EXTRA + (5 << 8)), cmd_func: nv_page, cmd_flags: NV_SS, cmd_arg: FORWARD},
-		{cmd_char: -('k' + (108 << 8)), cmd_func: nv_left, cmd_flags: (NV_SSS | NV_STS) | NV_RL, cmd_arg: 0},
-		{cmd_char: -('#' + (52 << 8)), cmd_func: nv_bck_word, cmd_flags: NV_SS | NV_RL, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (85 << 8)), cmd_func: nv_bck_word, cmd_flags: (NV_SSS | NV_RL) | NV_STS, cmd_arg: 1},
-		{cmd_char: -('k' + (114 << 8)), cmd_func: nv_right, cmd_flags: (NV_SSS | NV_STS) | NV_RL, cmd_arg: 0},
-		{cmd_char: -('%' + (105 << 8)), cmd_func: nv_wordcmd, cmd_flags: NV_SS | NV_RL, cmd_arg: FALSE},
-		{cmd_char: -(KS_EXTRA + (86 << 8)), cmd_func: nv_wordcmd, cmd_flags: (NV_SSS | NV_RL) | NV_STS, cmd_arg: TRUE},
-		{cmd_char: -('k' + (80 << 8)), cmd_func: nv_page, cmd_flags: NV_SSS | NV_STS, cmd_arg: -1},
-		{cmd_char: -('K' + (51 << 8)), cmd_func: nv_page, cmd_flags: NV_SSS | NV_STS, cmd_arg: -1},
-		{cmd_char: -('k' + (78 << 8)), cmd_func: nv_page, cmd_flags: NV_SSS | NV_STS, cmd_arg: FORWARD},
-		{cmd_char: -('K' + (53 << 8)), cmd_func: nv_page, cmd_flags: NV_SSS | NV_STS, cmd_arg: FORWARD},
-		{cmd_char: -('@' + (55 << 8)), cmd_func: nv_end, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE},
-		{cmd_char: -('K' + (52 << 8)), cmd_func: nv_end, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE},
-		{cmd_char: -('*' + (55 << 8)), cmd_func: nv_end, cmd_flags: NV_SS, cmd_arg: FALSE},
-		{cmd_char: -(KS_EXTRA + (88 << 8)), cmd_func: nv_end, cmd_flags: NV_SSS | NV_STS, cmd_arg: TRUE},
-		{cmd_char: -('k' + (104 << 8)), cmd_func: nv_home, cmd_flags: NV_SSS | NV_STS, cmd_arg: 0},
-		{cmd_char: -('K' + (49 << 8)), cmd_func: nv_home, cmd_flags: NV_SSS | NV_STS, cmd_arg: 0},
-		{cmd_char: -('#' + (50 << 8)), cmd_func: nv_home, cmd_flags: NV_SS, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (87 << 8)), cmd_func: nv_goto, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE},
-		{cmd_char: -('k' + (68 << 8)), cmd_func: nv_abbrev, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (80 << 8)), cmd_func: nv_abbrev, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -('&' + (56 << 8)), cmd_func: nv_kundo, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -('%' + (49 << 8)), cmd_func: nv_help, cmd_flags: NV_NCW, cmd_arg: 0},
-		{cmd_char: -('k' + (49 << 8)), cmd_func: nv_help, cmd_flags: NV_NCW, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (57 << 8)), cmd_func: nv_help, cmd_flags: NV_NCW, cmd_arg: 0},
+		{cmd_char: K_MOUSEUP, cmd_func: nv_error, cmd_flags: 0, cmd_arg: MSCR_UP},
+		{cmd_char: K_MOUSEDOWN, cmd_func: nv_error, cmd_flags: 0, cmd_arg: MSCR_DOWN},
+		{cmd_char: K_MOUSELEFT, cmd_func: nv_error, cmd_flags: 0, cmd_arg: -1},
+		{cmd_char: K_MOUSERIGHT, cmd_func: nv_error, cmd_flags: 0, cmd_arg: -2},
+		{cmd_char: K_LEFTMOUSE, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_LEFTMOUSE_NM, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_LEFTDRAG, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_LEFTRELEASE, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_LEFTRELEASE_NM, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_MOUSEMOVE, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_MIDDLEMOUSE, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_MIDDLEDRAG, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_MIDDLERELEASE, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_RIGHTMOUSE, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_RIGHTDRAG, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_RIGHTRELEASE, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_X1MOUSE, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_X1DRAG, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_X1RELEASE, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_X2MOUSE, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_X2DRAG, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_X2RELEASE, cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_IGNORE, cmd_func: nv_ignore, cmd_flags: NV_KEEPREG, cmd_arg: 0},
+		{cmd_char: K_NOP, cmd_func: nv_nop, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_INS, cmd_func: nv_edit, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_KINS, cmd_func: nv_edit, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_BS, cmd_func: nv_ctrlh, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_UP, cmd_func: nv_up, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE},
+		{cmd_char: K_S_UP, cmd_func: nv_page, cmd_flags: NV_SS, cmd_arg: -1},
+		{cmd_char: K_DOWN, cmd_func: nv_down, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE},
+		{cmd_char: K_S_DOWN, cmd_func: nv_page, cmd_flags: NV_SS, cmd_arg: FORWARD},
+		{cmd_char: K_LEFT, cmd_func: nv_left, cmd_flags: (NV_SSS | NV_STS) | NV_RL, cmd_arg: 0},
+		{cmd_char: K_TC_HASH_4, cmd_func: nv_bck_word, cmd_flags: NV_SS | NV_RL, cmd_arg: 0},
+		{cmd_char: K_C_LEFT, cmd_func: nv_bck_word, cmd_flags: (NV_SSS | NV_RL) | NV_STS, cmd_arg: 1},
+		{cmd_char: K_RIGHT, cmd_func: nv_right, cmd_flags: (NV_SSS | NV_STS) | NV_RL, cmd_arg: 0},
+		{cmd_char: K_TC_PCT_i, cmd_func: nv_wordcmd, cmd_flags: NV_SS | NV_RL, cmd_arg: FALSE},
+		{cmd_char: K_C_RIGHT, cmd_func: nv_wordcmd, cmd_flags: (NV_SSS | NV_RL) | NV_STS, cmd_arg: TRUE},
+		{cmd_char: K_PAGEUP, cmd_func: nv_page, cmd_flags: NV_SSS | NV_STS, cmd_arg: -1},
+		{cmd_char: K_KPAGEUP, cmd_func: nv_page, cmd_flags: NV_SSS | NV_STS, cmd_arg: -1},
+		{cmd_char: K_PAGEDOWN, cmd_func: nv_page, cmd_flags: NV_SSS | NV_STS, cmd_arg: FORWARD},
+		{cmd_char: K_KPAGEDOWN, cmd_func: nv_page, cmd_flags: NV_SSS | NV_STS, cmd_arg: FORWARD},
+		{cmd_char: K_END, cmd_func: nv_end, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE},
+		{cmd_char: K_KEND, cmd_func: nv_end, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE},
+		{cmd_char: K_TC_STAR_7, cmd_func: nv_end, cmd_flags: NV_SS, cmd_arg: FALSE},
+		{cmd_char: K_C_END, cmd_func: nv_end, cmd_flags: NV_SSS | NV_STS, cmd_arg: TRUE},
+		{cmd_char: K_HOME, cmd_func: nv_home, cmd_flags: NV_SSS | NV_STS, cmd_arg: 0},
+		{cmd_char: K_KHOME, cmd_func: nv_home, cmd_flags: NV_SSS | NV_STS, cmd_arg: 0},
+		{cmd_char: K_TC_HASH_2, cmd_func: nv_home, cmd_flags: NV_SS, cmd_arg: 0},
+		{cmd_char: K_C_HOME, cmd_func: nv_goto, cmd_flags: NV_SSS | NV_STS, cmd_arg: FALSE},
+		{cmd_char: K_DEL, cmd_func: nv_abbrev, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_KDEL, cmd_func: nv_abbrev, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_UNDO, cmd_func: nv_kundo, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_HELP, cmd_func: nv_help, cmd_flags: NV_NCW, cmd_arg: 0},
+		{cmd_char: K_F1, cmd_func: nv_help, cmd_flags: NV_NCW, cmd_arg: 0},
+		{cmd_char: K_XF1, cmd_func: nv_help, cmd_flags: NV_NCW, cmd_arg: 0},
 		{cmd_char: -(KS_SELECT + (88 << 8)), cmd_func: nv_select, cmd_flags: 0, cmd_arg: 0},
 		{cmd_char: -(KS_VER_SCROLLBAR + (88 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
 		{cmd_char: -(KS_HOR_SCROLLBAR + (88 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
 		{cmd_char: -(KS_TABLINE + (88 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
 		{cmd_char: -(KS_TABMENU + (88 << 8)), cmd_func: nv_error, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -('F' + (66 << 8)), cmd_func: nv_error, cmd_flags: (0x04 | NV_NCH), cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (95 << 8)), cmd_func: nv_error, cmd_flags: NV_STS, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (96 << 8)), cmd_func: nv_cursorhold, cmd_flags: NV_KEEPREG, cmd_arg: 0},
-		{cmd_char: -('P' + (83 << 8)), cmd_func: nv_edit, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (103 << 8)), cmd_func: nv_colon, cmd_flags: 0, cmd_arg: 0},
-		{cmd_char: -(KS_EXTRA + (104 << 8)), cmd_func: nv_colon, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_F21, cmd_func: nv_error, cmd_flags: (0x04 | NV_NCH), cmd_arg: 0},
+		{cmd_char: K_DROP, cmd_func: nv_error, cmd_flags: NV_STS, cmd_arg: 0},
+		{cmd_char: K_CURSORHOLD, cmd_func: nv_cursorhold, cmd_flags: NV_KEEPREG, cmd_arg: 0},
+		{cmd_char: K_PASTESTART, cmd_func: nv_edit, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_COMMAND, cmd_func: nv_colon, cmd_flags: 0, cmd_arg: 0},
+		{cmd_char: K_SCRIPT_COMMAND, cmd_func: nv_colon, cmd_flags: 0, cmd_arg: 0},
 	}
 	nv_cmd_idx = [194]uint16{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 156, 158, 132, 134, 135, 138, 139, 180, 174, 181, 140, 175, 141, 166, 142, 160, 170, 143, 168, 150, 171, 169, 179, 182, 188, 177, 133, 136, 152, 129, 128, 130, 167, 131, 153, 165, 178, 191, 161, 164, 176, 187, 186, 183, 185, 184, 172, 144, 145, 146, 147, 148, 149, 189, 190, 151, 154, 157, 137, 192, 173, 193, 163, 159, 162, 155}
 	nv_max_linear = 126
@@ -5421,92 +5574,92 @@ func init() {
 	builtin_xterm.Set(49, tcap_entry_T{bt_entry: 87, bt_string: S("\x1b[23;1t")})
 	builtin_xterm.Set(50, tcap_entry_T{bt_entry: 88, bt_string: S("\x1b[?1004l")})
 	builtin_xterm.Set(51, tcap_entry_T{bt_entry: 89, bt_string: S("\x1b[?1004h")})
-	builtin_xterm.Set(52, tcap_entry_T{bt_entry: -('k' + (117 << 8)), bt_string: S("\x1bO*A")})
-	builtin_xterm.Set(53, tcap_entry_T{bt_entry: -('k' + (100 << 8)), bt_string: S("\x1bO*B")})
-	builtin_xterm.Set(54, tcap_entry_T{bt_entry: -('k' + (114 << 8)), bt_string: S("\x1bO*C")})
-	builtin_xterm.Set(55, tcap_entry_T{bt_entry: -('k' + (108 << 8)), bt_string: S("\x1bO*D")})
-	builtin_xterm.Set(56, tcap_entry_T{bt_entry: -(KS_EXTRA + (65 << 8)), bt_string: S("\x1b[@;*A")})
-	builtin_xterm.Set(57, tcap_entry_T{bt_entry: -(KS_EXTRA + (66 << 8)), bt_string: S("\x1b[@;*B")})
-	builtin_xterm.Set(58, tcap_entry_T{bt_entry: -(KS_EXTRA + (68 << 8)), bt_string: S("\x1b[@;*C")})
-	builtin_xterm.Set(59, tcap_entry_T{bt_entry: -(KS_EXTRA + (67 << 8)), bt_string: S("\x1b[@;*D")})
-	builtin_xterm.Set(60, tcap_entry_T{bt_entry: -(KS_EXTRA + (57 << 8)), bt_string: S("\x1bO*P")})
-	builtin_xterm.Set(61, tcap_entry_T{bt_entry: -(KS_EXTRA + (58 << 8)), bt_string: S("\x1bO*Q")})
-	builtin_xterm.Set(62, tcap_entry_T{bt_entry: -(KS_EXTRA + (59 << 8)), bt_string: S("\x1bO*R")})
-	builtin_xterm.Set(63, tcap_entry_T{bt_entry: -(KS_EXTRA + (60 << 8)), bt_string: S("\x1bO*S")})
-	builtin_xterm.Set(64, tcap_entry_T{bt_entry: -('k' + (49 << 8)), bt_string: S("\x1b[11;*~")})
-	builtin_xterm.Set(65, tcap_entry_T{bt_entry: -('k' + (50 << 8)), bt_string: S("\x1b[12;*~")})
-	builtin_xterm.Set(66, tcap_entry_T{bt_entry: -('k' + (51 << 8)), bt_string: S("\x1b[13;*~")})
-	builtin_xterm.Set(67, tcap_entry_T{bt_entry: -('k' + (52 << 8)), bt_string: S("\x1b[14;*~")})
-	builtin_xterm.Set(68, tcap_entry_T{bt_entry: -('k' + (53 << 8)), bt_string: S("\x1b[15;*~")})
-	builtin_xterm.Set(69, tcap_entry_T{bt_entry: -('k' + (54 << 8)), bt_string: S("\x1b[17;*~")})
-	builtin_xterm.Set(70, tcap_entry_T{bt_entry: -('k' + (55 << 8)), bt_string: S("\x1b[18;*~")})
-	builtin_xterm.Set(71, tcap_entry_T{bt_entry: -('k' + (56 << 8)), bt_string: S("\x1b[19;*~")})
-	builtin_xterm.Set(72, tcap_entry_T{bt_entry: -('k' + (57 << 8)), bt_string: S("\x1b[20;*~")})
-	builtin_xterm.Set(73, tcap_entry_T{bt_entry: -('k' + (59 << 8)), bt_string: S("\x1b[21;*~")})
-	builtin_xterm.Set(74, tcap_entry_T{bt_entry: -('F' + (49 << 8)), bt_string: S("\x1b[23;*~")})
-	builtin_xterm.Set(75, tcap_entry_T{bt_entry: -('F' + (50 << 8)), bt_string: S("\x1b[24;*~")})
-	builtin_xterm.Set(76, tcap_entry_T{bt_entry: -('k' + (66 << 8)), bt_string: S("\x1b[Z")})
-	builtin_xterm.Set(77, tcap_entry_T{bt_entry: -('%' + (49 << 8)), bt_string: S("\x1b[28;*~")})
-	builtin_xterm.Set(78, tcap_entry_T{bt_entry: -('&' + (56 << 8)), bt_string: S("\x1b[26;*~")})
-	builtin_xterm.Set(79, tcap_entry_T{bt_entry: -('k' + (73 << 8)), bt_string: S("\x1b[2;*~")})
-	builtin_xterm.Set(80, tcap_entry_T{bt_entry: -('k' + (104 << 8)), bt_string: S("\x1b[@;*H")})
-	builtin_xterm.Set(81, tcap_entry_T{bt_entry: -('K' + (49 << 8)), bt_string: S("\x1b[1;*~")})
-	builtin_xterm.Set(82, tcap_entry_T{bt_entry: -(KS_EXTRA + (63 << 8)), bt_string: S("\x1bO*H")})
-	builtin_xterm.Set(83, tcap_entry_T{bt_entry: -(KS_EXTRA + (64 << 8)), bt_string: S("\x1b[7;*~")})
-	builtin_xterm.Set(84, tcap_entry_T{bt_entry: -('@' + (55 << 8)), bt_string: S("\x1b[@;*F")})
-	builtin_xterm.Set(85, tcap_entry_T{bt_entry: -('K' + (52 << 8)), bt_string: S("\x1b[4;*~")})
-	builtin_xterm.Set(86, tcap_entry_T{bt_entry: -(KS_EXTRA + (61 << 8)), bt_string: S("\x1bO*F")})
-	builtin_xterm.Set(87, tcap_entry_T{bt_entry: -(KS_EXTRA + (62 << 8)), bt_string: S("\x1b[8;*~")})
-	builtin_xterm.Set(88, tcap_entry_T{bt_entry: -('k' + (80 << 8)), bt_string: S("\x1b[5;*~")})
-	builtin_xterm.Set(89, tcap_entry_T{bt_entry: -('k' + (78 << 8)), bt_string: S("\x1b[6;*~")})
-	builtin_xterm.Set(90, tcap_entry_T{bt_entry: -('K' + (54 << 8)), bt_string: S("\x1bO*k")})
-	builtin_xterm.Set(91, tcap_entry_T{bt_entry: -('K' + (55 << 8)), bt_string: S("\x1bO*m")})
-	builtin_xterm.Set(92, tcap_entry_T{bt_entry: -('K' + (56 << 8)), bt_string: S("\x1bO*o")})
-	builtin_xterm.Set(93, tcap_entry_T{bt_entry: -('K' + (57 << 8)), bt_string: S("\x1bO*j")})
-	builtin_xterm.Set(94, tcap_entry_T{bt_entry: -('K' + (65 << 8)), bt_string: S("\x1bO*M")})
-	builtin_xterm.Set(95, tcap_entry_T{bt_entry: -('K' + (66 << 8)), bt_string: S("\x1bO*n")})
-	builtin_xterm.Set(96, tcap_entry_T{bt_entry: -('K' + (67 << 8)), bt_string: S("\x1bO*p")})
-	builtin_xterm.Set(97, tcap_entry_T{bt_entry: -('K' + (68 << 8)), bt_string: S("\x1bO*q")})
-	builtin_xterm.Set(98, tcap_entry_T{bt_entry: -('K' + (69 << 8)), bt_string: S("\x1bO*r")})
-	builtin_xterm.Set(99, tcap_entry_T{bt_entry: -('K' + (70 << 8)), bt_string: S("\x1bO*s")})
-	builtin_xterm.Set(100, tcap_entry_T{bt_entry: -('K' + (71 << 8)), bt_string: S("\x1bO*t")})
-	builtin_xterm.Set(101, tcap_entry_T{bt_entry: -('K' + (72 << 8)), bt_string: S("\x1bO*u")})
-	builtin_xterm.Set(102, tcap_entry_T{bt_entry: -('K' + (73 << 8)), bt_string: S("\x1bO*v")})
-	builtin_xterm.Set(103, tcap_entry_T{bt_entry: -('K' + (74 << 8)), bt_string: S("\x1bO*w")})
-	builtin_xterm.Set(104, tcap_entry_T{bt_entry: -('K' + (75 << 8)), bt_string: S("\x1bO*x")})
-	builtin_xterm.Set(105, tcap_entry_T{bt_entry: -('K' + (76 << 8)), bt_string: S("\x1bO*y")})
-	builtin_xterm.Set(106, tcap_entry_T{bt_entry: -(KS_EXTRA + (80 << 8)), bt_string: S("\x1b[3;*~")})
-	builtin_xterm.Set(107, tcap_entry_T{bt_entry: -('P' + (83 << 8)), bt_string: S("\x1b[200~")})
-	builtin_xterm.Set(108, tcap_entry_T{bt_entry: -('P' + (69 << 8)), bt_string: S("\x1b[201~")})
+	builtin_xterm.Set(52, tcap_entry_T{bt_entry: K_UP, bt_string: S("\x1bO*A")})
+	builtin_xterm.Set(53, tcap_entry_T{bt_entry: K_DOWN, bt_string: S("\x1bO*B")})
+	builtin_xterm.Set(54, tcap_entry_T{bt_entry: K_RIGHT, bt_string: S("\x1bO*C")})
+	builtin_xterm.Set(55, tcap_entry_T{bt_entry: K_LEFT, bt_string: S("\x1bO*D")})
+	builtin_xterm.Set(56, tcap_entry_T{bt_entry: K_XUP, bt_string: S("\x1b[@;*A")})
+	builtin_xterm.Set(57, tcap_entry_T{bt_entry: K_XDOWN, bt_string: S("\x1b[@;*B")})
+	builtin_xterm.Set(58, tcap_entry_T{bt_entry: K_XRIGHT, bt_string: S("\x1b[@;*C")})
+	builtin_xterm.Set(59, tcap_entry_T{bt_entry: K_XLEFT, bt_string: S("\x1b[@;*D")})
+	builtin_xterm.Set(60, tcap_entry_T{bt_entry: K_XF1, bt_string: S("\x1bO*P")})
+	builtin_xterm.Set(61, tcap_entry_T{bt_entry: K_XF2, bt_string: S("\x1bO*Q")})
+	builtin_xterm.Set(62, tcap_entry_T{bt_entry: K_XF3, bt_string: S("\x1bO*R")})
+	builtin_xterm.Set(63, tcap_entry_T{bt_entry: K_XF4, bt_string: S("\x1bO*S")})
+	builtin_xterm.Set(64, tcap_entry_T{bt_entry: K_F1, bt_string: S("\x1b[11;*~")})
+	builtin_xterm.Set(65, tcap_entry_T{bt_entry: K_F2, bt_string: S("\x1b[12;*~")})
+	builtin_xterm.Set(66, tcap_entry_T{bt_entry: K_F3, bt_string: S("\x1b[13;*~")})
+	builtin_xterm.Set(67, tcap_entry_T{bt_entry: K_F4, bt_string: S("\x1b[14;*~")})
+	builtin_xterm.Set(68, tcap_entry_T{bt_entry: K_F5, bt_string: S("\x1b[15;*~")})
+	builtin_xterm.Set(69, tcap_entry_T{bt_entry: K_F6, bt_string: S("\x1b[17;*~")})
+	builtin_xterm.Set(70, tcap_entry_T{bt_entry: K_F7, bt_string: S("\x1b[18;*~")})
+	builtin_xterm.Set(71, tcap_entry_T{bt_entry: K_F8, bt_string: S("\x1b[19;*~")})
+	builtin_xterm.Set(72, tcap_entry_T{bt_entry: K_F9, bt_string: S("\x1b[20;*~")})
+	builtin_xterm.Set(73, tcap_entry_T{bt_entry: K_F10, bt_string: S("\x1b[21;*~")})
+	builtin_xterm.Set(74, tcap_entry_T{bt_entry: K_F11, bt_string: S("\x1b[23;*~")})
+	builtin_xterm.Set(75, tcap_entry_T{bt_entry: K_F12, bt_string: S("\x1b[24;*~")})
+	builtin_xterm.Set(76, tcap_entry_T{bt_entry: K_TC_k_B, bt_string: S("\x1b[Z")})
+	builtin_xterm.Set(77, tcap_entry_T{bt_entry: K_HELP, bt_string: S("\x1b[28;*~")})
+	builtin_xterm.Set(78, tcap_entry_T{bt_entry: K_UNDO, bt_string: S("\x1b[26;*~")})
+	builtin_xterm.Set(79, tcap_entry_T{bt_entry: K_INS, bt_string: S("\x1b[2;*~")})
+	builtin_xterm.Set(80, tcap_entry_T{bt_entry: K_HOME, bt_string: S("\x1b[@;*H")})
+	builtin_xterm.Set(81, tcap_entry_T{bt_entry: K_KHOME, bt_string: S("\x1b[1;*~")})
+	builtin_xterm.Set(82, tcap_entry_T{bt_entry: K_XHOME, bt_string: S("\x1bO*H")})
+	builtin_xterm.Set(83, tcap_entry_T{bt_entry: K_ZHOME, bt_string: S("\x1b[7;*~")})
+	builtin_xterm.Set(84, tcap_entry_T{bt_entry: K_END, bt_string: S("\x1b[@;*F")})
+	builtin_xterm.Set(85, tcap_entry_T{bt_entry: K_KEND, bt_string: S("\x1b[4;*~")})
+	builtin_xterm.Set(86, tcap_entry_T{bt_entry: K_XEND, bt_string: S("\x1bO*F")})
+	builtin_xterm.Set(87, tcap_entry_T{bt_entry: K_ZEND, bt_string: S("\x1b[8;*~")})
+	builtin_xterm.Set(88, tcap_entry_T{bt_entry: K_PAGEUP, bt_string: S("\x1b[5;*~")})
+	builtin_xterm.Set(89, tcap_entry_T{bt_entry: K_PAGEDOWN, bt_string: S("\x1b[6;*~")})
+	builtin_xterm.Set(90, tcap_entry_T{bt_entry: K_KPLUS, bt_string: S("\x1bO*k")})
+	builtin_xterm.Set(91, tcap_entry_T{bt_entry: K_KMINUS, bt_string: S("\x1bO*m")})
+	builtin_xterm.Set(92, tcap_entry_T{bt_entry: K_KDIVIDE, bt_string: S("\x1bO*o")})
+	builtin_xterm.Set(93, tcap_entry_T{bt_entry: K_KMULTIPLY, bt_string: S("\x1bO*j")})
+	builtin_xterm.Set(94, tcap_entry_T{bt_entry: K_KENTER, bt_string: S("\x1bO*M")})
+	builtin_xterm.Set(95, tcap_entry_T{bt_entry: K_KPOINT, bt_string: S("\x1bO*n")})
+	builtin_xterm.Set(96, tcap_entry_T{bt_entry: K_K0, bt_string: S("\x1bO*p")})
+	builtin_xterm.Set(97, tcap_entry_T{bt_entry: K_K1, bt_string: S("\x1bO*q")})
+	builtin_xterm.Set(98, tcap_entry_T{bt_entry: K_K2, bt_string: S("\x1bO*r")})
+	builtin_xterm.Set(99, tcap_entry_T{bt_entry: K_K3, bt_string: S("\x1bO*s")})
+	builtin_xterm.Set(100, tcap_entry_T{bt_entry: K_K4, bt_string: S("\x1bO*t")})
+	builtin_xterm.Set(101, tcap_entry_T{bt_entry: K_K5, bt_string: S("\x1bO*u")})
+	builtin_xterm.Set(102, tcap_entry_T{bt_entry: K_K6, bt_string: S("\x1bO*v")})
+	builtin_xterm.Set(103, tcap_entry_T{bt_entry: K_K7, bt_string: S("\x1bO*w")})
+	builtin_xterm.Set(104, tcap_entry_T{bt_entry: K_K8, bt_string: S("\x1bO*x")})
+	builtin_xterm.Set(105, tcap_entry_T{bt_entry: K_K9, bt_string: S("\x1bO*y")})
+	builtin_xterm.Set(106, tcap_entry_T{bt_entry: K_KDEL, bt_string: S("\x1b[3;*~")})
+	builtin_xterm.Set(107, tcap_entry_T{bt_entry: K_PASTESTART, bt_string: S("\x1b[200~")})
+	builtin_xterm.Set(108, tcap_entry_T{bt_entry: K_PASTEEND, bt_string: S("\x1b[201~")})
 	builtin_xterm.Set(109, tcap_entry_T{bt_entry: 49, bt_string: S("8")})
 	builtin_xterm.Set(110, tcap_entry_T{bt_entry: 56, bt_string: S("\x1b[4%dm")})
 	builtin_xterm.Set(111, tcap_entry_T{bt_entry: 55, bt_string: S("\x1b[3%dm")})
 	builtin_xterm.Set(112, tcap_entry_T{bt_entry: 77, bt_string: S("\x1b[0m")})
 	builtin_xterm.Set(113, tcap_entry_T{bt_entry: BT_EXTRA_KEYS, bt_string: S("")})
-	builtin_xterm.Set(114, tcap_entry_T{bt_entry: -('k' + (48 << 8)), bt_string: S("\x1b[10;*~")})
-	builtin_xterm.Set(115, tcap_entry_T{bt_entry: -('F' + (51 << 8)), bt_string: S("\x1b[25;*~")})
-	builtin_xterm.Set(116, tcap_entry_T{bt_entry: -('F' + (54 << 8)), bt_string: S("\x1b[29;*~")})
-	builtin_xterm.Set(117, tcap_entry_T{bt_entry: -('F' + (55 << 8)), bt_string: S("\x1b[31;*~")})
-	builtin_xterm.Set(118, tcap_entry_T{bt_entry: -('F' + (56 << 8)), bt_string: S("\x1b[32;*~")})
-	builtin_xterm.Set(119, tcap_entry_T{bt_entry: -('F' + (57 << 8)), bt_string: S("\x1b[33;*~")})
-	builtin_xterm.Set(120, tcap_entry_T{bt_entry: -('F' + (65 << 8)), bt_string: S("\x1b[34;*~")})
-	builtin_xterm.Set(121, tcap_entry_T{bt_entry: -('F' + (66 << 8)), bt_string: S("\x1b[42;*~")})
-	builtin_xterm.Set(122, tcap_entry_T{bt_entry: -('F' + (67 << 8)), bt_string: S("\x1b[43;*~")})
-	builtin_xterm.Set(123, tcap_entry_T{bt_entry: -('F' + (68 << 8)), bt_string: S("\x1b[44;*~")})
-	builtin_xterm.Set(124, tcap_entry_T{bt_entry: -('F' + (69 << 8)), bt_string: S("\x1b[45;*~")})
-	builtin_xterm.Set(125, tcap_entry_T{bt_entry: -('F' + (70 << 8)), bt_string: S("\x1b[46;*~")})
-	builtin_xterm.Set(126, tcap_entry_T{bt_entry: -('F' + (71 << 8)), bt_string: S("\x1b[47;*~")})
-	builtin_xterm.Set(127, tcap_entry_T{bt_entry: -('F' + (72 << 8)), bt_string: S("\x1b[48;*~")})
-	builtin_xterm.Set(128, tcap_entry_T{bt_entry: -('F' + (73 << 8)), bt_string: S("\x1b[49;*~")})
-	builtin_xterm.Set(129, tcap_entry_T{bt_entry: -('F' + (74 << 8)), bt_string: S("\x1b[50;*~")})
-	builtin_xterm.Set(130, tcap_entry_T{bt_entry: -('F' + (75 << 8)), bt_string: S("\x1b[51;*~")})
-	builtin_xterm.Set(131, tcap_entry_T{bt_entry: -('F' + (76 << 8)), bt_string: S("\x1b[52;*~")})
-	builtin_xterm.Set(132, tcap_entry_T{bt_entry: -('F' + (77 << 8)), bt_string: S("\x1b[53;*~")})
-	builtin_xterm.Set(133, tcap_entry_T{bt_entry: -('F' + (78 << 8)), bt_string: S("\x1b[54;*~")})
-	builtin_xterm.Set(134, tcap_entry_T{bt_entry: -('F' + (79 << 8)), bt_string: S("\x1b[55;*~")})
-	builtin_xterm.Set(135, tcap_entry_T{bt_entry: -('F' + (80 << 8)), bt_string: S("\x1b[56;*~")})
-	builtin_xterm.Set(136, tcap_entry_T{bt_entry: -('F' + (81 << 8)), bt_string: S("\x1b[57;*~")})
-	builtin_xterm.Set(137, tcap_entry_T{bt_entry: -('F' + (82 << 8)), bt_string: S("\x1b[58;*~")})
+	builtin_xterm.Set(114, tcap_entry_T{bt_entry: K_TC_k_0, bt_string: S("\x1b[10;*~")})
+	builtin_xterm.Set(115, tcap_entry_T{bt_entry: K_F13, bt_string: S("\x1b[25;*~")})
+	builtin_xterm.Set(116, tcap_entry_T{bt_entry: K_F16, bt_string: S("\x1b[29;*~")})
+	builtin_xterm.Set(117, tcap_entry_T{bt_entry: K_F17, bt_string: S("\x1b[31;*~")})
+	builtin_xterm.Set(118, tcap_entry_T{bt_entry: K_F18, bt_string: S("\x1b[32;*~")})
+	builtin_xterm.Set(119, tcap_entry_T{bt_entry: K_F19, bt_string: S("\x1b[33;*~")})
+	builtin_xterm.Set(120, tcap_entry_T{bt_entry: K_F20, bt_string: S("\x1b[34;*~")})
+	builtin_xterm.Set(121, tcap_entry_T{bt_entry: K_F21, bt_string: S("\x1b[42;*~")})
+	builtin_xterm.Set(122, tcap_entry_T{bt_entry: K_F22, bt_string: S("\x1b[43;*~")})
+	builtin_xterm.Set(123, tcap_entry_T{bt_entry: K_F23, bt_string: S("\x1b[44;*~")})
+	builtin_xterm.Set(124, tcap_entry_T{bt_entry: K_F24, bt_string: S("\x1b[45;*~")})
+	builtin_xterm.Set(125, tcap_entry_T{bt_entry: K_F25, bt_string: S("\x1b[46;*~")})
+	builtin_xterm.Set(126, tcap_entry_T{bt_entry: K_F26, bt_string: S("\x1b[47;*~")})
+	builtin_xterm.Set(127, tcap_entry_T{bt_entry: K_F27, bt_string: S("\x1b[48;*~")})
+	builtin_xterm.Set(128, tcap_entry_T{bt_entry: K_F28, bt_string: S("\x1b[49;*~")})
+	builtin_xterm.Set(129, tcap_entry_T{bt_entry: K_F29, bt_string: S("\x1b[50;*~")})
+	builtin_xterm.Set(130, tcap_entry_T{bt_entry: K_F30, bt_string: S("\x1b[51;*~")})
+	builtin_xterm.Set(131, tcap_entry_T{bt_entry: K_F31, bt_string: S("\x1b[52;*~")})
+	builtin_xterm.Set(132, tcap_entry_T{bt_entry: K_F32, bt_string: S("\x1b[53;*~")})
+	builtin_xterm.Set(133, tcap_entry_T{bt_entry: K_F33, bt_string: S("\x1b[54;*~")})
+	builtin_xterm.Set(134, tcap_entry_T{bt_entry: K_F34, bt_string: S("\x1b[55;*~")})
+	builtin_xterm.Set(135, tcap_entry_T{bt_entry: K_F35, bt_string: S("\x1b[56;*~")})
+	builtin_xterm.Set(136, tcap_entry_T{bt_entry: K_F36, bt_string: S("\x1b[57;*~")})
+	builtin_xterm.Set(137, tcap_entry_T{bt_entry: K_F37, bt_string: S("\x1b[58;*~")})
 	builtin_mok2.Set(0, tcap_entry_T{bt_entry: 43, bt_string: S("\x1b[>4;2m")})
 	builtin_mok2.Set(1, tcap_entry_T{bt_entry: 44, bt_string: S("\x1b[?4m")})
 	builtin_mok2.Set(2, tcap_entry_T{bt_entry: 46, bt_string: S("\x1b[>4;m")})
@@ -5574,93 +5727,93 @@ func init() {
 	builtin_debug.Set(56, tcap_entry_T{bt_entry: 71, bt_string: S("[RFG]")})
 	builtin_debug.Set(57, tcap_entry_T{bt_entry: 72, bt_string: S("[RBG]")})
 	builtin_debug.Set(58, tcap_entry_T{bt_entry: 90, bt_string: S("[CF%d]")})
-	builtin_debug.Set(59, tcap_entry_T{bt_entry: -('k' + (117 << 8)), bt_string: S("[KU]")})
-	builtin_debug.Set(60, tcap_entry_T{bt_entry: -('k' + (100 << 8)), bt_string: S("[KD]")})
-	builtin_debug.Set(61, tcap_entry_T{bt_entry: -('k' + (108 << 8)), bt_string: S("[KL]")})
-	builtin_debug.Set(62, tcap_entry_T{bt_entry: -('k' + (114 << 8)), bt_string: S("[KR]")})
-	builtin_debug.Set(63, tcap_entry_T{bt_entry: -(KS_EXTRA + (65 << 8)), bt_string: S("[xKU]")})
-	builtin_debug.Set(64, tcap_entry_T{bt_entry: -(KS_EXTRA + (66 << 8)), bt_string: S("[xKD]")})
-	builtin_debug.Set(65, tcap_entry_T{bt_entry: -(KS_EXTRA + (67 << 8)), bt_string: S("[xKL]")})
-	builtin_debug.Set(66, tcap_entry_T{bt_entry: -(KS_EXTRA + (68 << 8)), bt_string: S("[xKR]")})
-	builtin_debug.Set(67, tcap_entry_T{bt_entry: -(KS_EXTRA + (4 << 8)), bt_string: S("[S-KU]")})
-	builtin_debug.Set(68, tcap_entry_T{bt_entry: -(KS_EXTRA + (5 << 8)), bt_string: S("[S-KD]")})
-	builtin_debug.Set(69, tcap_entry_T{bt_entry: -('#' + (52 << 8)), bt_string: S("[S-KL]")})
-	builtin_debug.Set(70, tcap_entry_T{bt_entry: -(KS_EXTRA + (85 << 8)), bt_string: S("[C-KL]")})
-	builtin_debug.Set(71, tcap_entry_T{bt_entry: -('%' + (105 << 8)), bt_string: S("[S-KR]")})
-	builtin_debug.Set(72, tcap_entry_T{bt_entry: -(KS_EXTRA + (86 << 8)), bt_string: S("[C-KR]")})
-	builtin_debug.Set(73, tcap_entry_T{bt_entry: -('k' + (49 << 8)), bt_string: S("[F1]")})
-	builtin_debug.Set(74, tcap_entry_T{bt_entry: -(KS_EXTRA + (57 << 8)), bt_string: S("[xF1]")})
-	builtin_debug.Set(75, tcap_entry_T{bt_entry: -('k' + (50 << 8)), bt_string: S("[F2]")})
-	builtin_debug.Set(76, tcap_entry_T{bt_entry: -(KS_EXTRA + (58 << 8)), bt_string: S("[xF2]")})
-	builtin_debug.Set(77, tcap_entry_T{bt_entry: -('k' + (51 << 8)), bt_string: S("[F3]")})
-	builtin_debug.Set(78, tcap_entry_T{bt_entry: -(KS_EXTRA + (59 << 8)), bt_string: S("[xF3]")})
-	builtin_debug.Set(79, tcap_entry_T{bt_entry: -('k' + (52 << 8)), bt_string: S("[F4]")})
-	builtin_debug.Set(80, tcap_entry_T{bt_entry: -(KS_EXTRA + (60 << 8)), bt_string: S("[xF4]")})
-	builtin_debug.Set(81, tcap_entry_T{bt_entry: -('k' + (53 << 8)), bt_string: S("[F5]")})
-	builtin_debug.Set(82, tcap_entry_T{bt_entry: -('k' + (54 << 8)), bt_string: S("[F6]")})
-	builtin_debug.Set(83, tcap_entry_T{bt_entry: -('k' + (55 << 8)), bt_string: S("[F7]")})
-	builtin_debug.Set(84, tcap_entry_T{bt_entry: -('k' + (56 << 8)), bt_string: S("[F8]")})
-	builtin_debug.Set(85, tcap_entry_T{bt_entry: -('k' + (57 << 8)), bt_string: S("[F9]")})
-	builtin_debug.Set(86, tcap_entry_T{bt_entry: -('k' + (59 << 8)), bt_string: S("[F10]")})
-	builtin_debug.Set(87, tcap_entry_T{bt_entry: -('F' + (49 << 8)), bt_string: S("[F11]")})
-	builtin_debug.Set(88, tcap_entry_T{bt_entry: -('F' + (50 << 8)), bt_string: S("[F12]")})
-	builtin_debug.Set(89, tcap_entry_T{bt_entry: -(KS_EXTRA + (6 << 8)), bt_string: S("[S-F1]")})
-	builtin_debug.Set(90, tcap_entry_T{bt_entry: -(KS_EXTRA + (71 << 8)), bt_string: S("[S-xF1]")})
-	builtin_debug.Set(91, tcap_entry_T{bt_entry: -(KS_EXTRA + (7 << 8)), bt_string: S("[S-F2]")})
-	builtin_debug.Set(92, tcap_entry_T{bt_entry: -(KS_EXTRA + (72 << 8)), bt_string: S("[S-xF2]")})
-	builtin_debug.Set(93, tcap_entry_T{bt_entry: -(KS_EXTRA + (8 << 8)), bt_string: S("[S-F3]")})
-	builtin_debug.Set(94, tcap_entry_T{bt_entry: -(KS_EXTRA + (73 << 8)), bt_string: S("[S-xF3]")})
-	builtin_debug.Set(95, tcap_entry_T{bt_entry: -(KS_EXTRA + (9 << 8)), bt_string: S("[S-F4]")})
-	builtin_debug.Set(96, tcap_entry_T{bt_entry: -(KS_EXTRA + (74 << 8)), bt_string: S("[S-xF4]")})
-	builtin_debug.Set(97, tcap_entry_T{bt_entry: -(KS_EXTRA + (10 << 8)), bt_string: S("[S-F5]")})
-	builtin_debug.Set(98, tcap_entry_T{bt_entry: -(KS_EXTRA + (11 << 8)), bt_string: S("[S-F6]")})
-	builtin_debug.Set(99, tcap_entry_T{bt_entry: -(KS_EXTRA + (12 << 8)), bt_string: S("[S-F7]")})
-	builtin_debug.Set(100, tcap_entry_T{bt_entry: -(KS_EXTRA + (13 << 8)), bt_string: S("[S-F8]")})
-	builtin_debug.Set(101, tcap_entry_T{bt_entry: -(KS_EXTRA + (14 << 8)), bt_string: S("[S-F9]")})
-	builtin_debug.Set(102, tcap_entry_T{bt_entry: -(KS_EXTRA + (15 << 8)), bt_string: S("[S-F10]")})
-	builtin_debug.Set(103, tcap_entry_T{bt_entry: -(KS_EXTRA + (16 << 8)), bt_string: S("[S-F11]")})
-	builtin_debug.Set(104, tcap_entry_T{bt_entry: -(KS_EXTRA + (17 << 8)), bt_string: S("[S-F12]")})
-	builtin_debug.Set(105, tcap_entry_T{bt_entry: -('%' + (49 << 8)), bt_string: S("[HELP]")})
-	builtin_debug.Set(106, tcap_entry_T{bt_entry: -('&' + (56 << 8)), bt_string: S("[UNDO]")})
-	builtin_debug.Set(107, tcap_entry_T{bt_entry: -('k' + (98 << 8)), bt_string: S("[BS]")})
-	builtin_debug.Set(108, tcap_entry_T{bt_entry: -('k' + (73 << 8)), bt_string: S("[INS]")})
-	builtin_debug.Set(109, tcap_entry_T{bt_entry: -(KS_EXTRA + (79 << 8)), bt_string: S("[KINS]")})
-	builtin_debug.Set(110, tcap_entry_T{bt_entry: -('k' + (68 << 8)), bt_string: S("[DEL]")})
-	builtin_debug.Set(111, tcap_entry_T{bt_entry: -(KS_EXTRA + (80 << 8)), bt_string: S("[KDEL]")})
-	builtin_debug.Set(112, tcap_entry_T{bt_entry: -('k' + (104 << 8)), bt_string: S("[HOME]")})
-	builtin_debug.Set(113, tcap_entry_T{bt_entry: -('#' + (50 << 8)), bt_string: S("[C-HOME]")})
-	builtin_debug.Set(114, tcap_entry_T{bt_entry: -(KS_EXTRA + (87 << 8)), bt_string: S("[C-HOME]")})
-	builtin_debug.Set(115, tcap_entry_T{bt_entry: -('K' + (49 << 8)), bt_string: S("[KHOME]")})
-	builtin_debug.Set(116, tcap_entry_T{bt_entry: -(KS_EXTRA + (63 << 8)), bt_string: S("[XHOME]")})
-	builtin_debug.Set(117, tcap_entry_T{bt_entry: -(KS_EXTRA + (64 << 8)), bt_string: S("[ZHOME]")})
-	builtin_debug.Set(118, tcap_entry_T{bt_entry: -('@' + (55 << 8)), bt_string: S("[END]")})
-	builtin_debug.Set(119, tcap_entry_T{bt_entry: -('*' + (55 << 8)), bt_string: S("[C-END]")})
-	builtin_debug.Set(120, tcap_entry_T{bt_entry: -(KS_EXTRA + (88 << 8)), bt_string: S("[C-END]")})
-	builtin_debug.Set(121, tcap_entry_T{bt_entry: -('K' + (52 << 8)), bt_string: S("[KEND]")})
-	builtin_debug.Set(122, tcap_entry_T{bt_entry: -(KS_EXTRA + (61 << 8)), bt_string: S("[XEND]")})
-	builtin_debug.Set(123, tcap_entry_T{bt_entry: -(KS_EXTRA + (62 << 8)), bt_string: S("[ZEND]")})
-	builtin_debug.Set(124, tcap_entry_T{bt_entry: -('k' + (80 << 8)), bt_string: S("[PAGEUP]")})
-	builtin_debug.Set(125, tcap_entry_T{bt_entry: -('k' + (78 << 8)), bt_string: S("[PAGEDOWN]")})
-	builtin_debug.Set(126, tcap_entry_T{bt_entry: -('K' + (51 << 8)), bt_string: S("[KPAGEUP]")})
-	builtin_debug.Set(127, tcap_entry_T{bt_entry: -('K' + (53 << 8)), bt_string: S("[KPAGEDOWN]")})
-	builtin_debug.Set(128, tcap_entry_T{bt_entry: -('K' + (54 << 8)), bt_string: S("[KPLUS]")})
-	builtin_debug.Set(129, tcap_entry_T{bt_entry: -('K' + (55 << 8)), bt_string: S("[KMINUS]")})
-	builtin_debug.Set(130, tcap_entry_T{bt_entry: -('K' + (56 << 8)), bt_string: S("[KDIVIDE]")})
-	builtin_debug.Set(131, tcap_entry_T{bt_entry: -('K' + (57 << 8)), bt_string: S("[KMULTIPLY]")})
-	builtin_debug.Set(132, tcap_entry_T{bt_entry: -('K' + (65 << 8)), bt_string: S("[KENTER]")})
-	builtin_debug.Set(133, tcap_entry_T{bt_entry: -('K' + (66 << 8)), bt_string: S("[KPOINT]")})
-	builtin_debug.Set(134, tcap_entry_T{bt_entry: -('P' + (83 << 8)), bt_string: S("[PASTE-START]")})
-	builtin_debug.Set(135, tcap_entry_T{bt_entry: -('P' + (69 << 8)), bt_string: S("[PASTE-END]")})
-	builtin_debug.Set(136, tcap_entry_T{bt_entry: -('K' + (67 << 8)), bt_string: S("[K0]")})
-	builtin_debug.Set(137, tcap_entry_T{bt_entry: -('K' + (68 << 8)), bt_string: S("[K1]")})
-	builtin_debug.Set(138, tcap_entry_T{bt_entry: -('K' + (69 << 8)), bt_string: S("[K2]")})
-	builtin_debug.Set(139, tcap_entry_T{bt_entry: -('K' + (70 << 8)), bt_string: S("[K3]")})
-	builtin_debug.Set(140, tcap_entry_T{bt_entry: -('K' + (71 << 8)), bt_string: S("[K4]")})
-	builtin_debug.Set(141, tcap_entry_T{bt_entry: -('K' + (72 << 8)), bt_string: S("[K5]")})
-	builtin_debug.Set(142, tcap_entry_T{bt_entry: -('K' + (73 << 8)), bt_string: S("[K6]")})
-	builtin_debug.Set(143, tcap_entry_T{bt_entry: -('K' + (74 << 8)), bt_string: S("[K7]")})
-	builtin_debug.Set(144, tcap_entry_T{bt_entry: -('K' + (75 << 8)), bt_string: S("[K8]")})
-	builtin_debug.Set(145, tcap_entry_T{bt_entry: -('K' + (76 << 8)), bt_string: S("[K9]")})
+	builtin_debug.Set(59, tcap_entry_T{bt_entry: K_UP, bt_string: S("[KU]")})
+	builtin_debug.Set(60, tcap_entry_T{bt_entry: K_DOWN, bt_string: S("[KD]")})
+	builtin_debug.Set(61, tcap_entry_T{bt_entry: K_LEFT, bt_string: S("[KL]")})
+	builtin_debug.Set(62, tcap_entry_T{bt_entry: K_RIGHT, bt_string: S("[KR]")})
+	builtin_debug.Set(63, tcap_entry_T{bt_entry: K_XUP, bt_string: S("[xKU]")})
+	builtin_debug.Set(64, tcap_entry_T{bt_entry: K_XDOWN, bt_string: S("[xKD]")})
+	builtin_debug.Set(65, tcap_entry_T{bt_entry: K_XLEFT, bt_string: S("[xKL]")})
+	builtin_debug.Set(66, tcap_entry_T{bt_entry: K_XRIGHT, bt_string: S("[xKR]")})
+	builtin_debug.Set(67, tcap_entry_T{bt_entry: K_S_UP, bt_string: S("[S-KU]")})
+	builtin_debug.Set(68, tcap_entry_T{bt_entry: K_S_DOWN, bt_string: S("[S-KD]")})
+	builtin_debug.Set(69, tcap_entry_T{bt_entry: K_TC_HASH_4, bt_string: S("[S-KL]")})
+	builtin_debug.Set(70, tcap_entry_T{bt_entry: K_C_LEFT, bt_string: S("[C-KL]")})
+	builtin_debug.Set(71, tcap_entry_T{bt_entry: K_TC_PCT_i, bt_string: S("[S-KR]")})
+	builtin_debug.Set(72, tcap_entry_T{bt_entry: K_C_RIGHT, bt_string: S("[C-KR]")})
+	builtin_debug.Set(73, tcap_entry_T{bt_entry: K_F1, bt_string: S("[F1]")})
+	builtin_debug.Set(74, tcap_entry_T{bt_entry: K_XF1, bt_string: S("[xF1]")})
+	builtin_debug.Set(75, tcap_entry_T{bt_entry: K_F2, bt_string: S("[F2]")})
+	builtin_debug.Set(76, tcap_entry_T{bt_entry: K_XF2, bt_string: S("[xF2]")})
+	builtin_debug.Set(77, tcap_entry_T{bt_entry: K_F3, bt_string: S("[F3]")})
+	builtin_debug.Set(78, tcap_entry_T{bt_entry: K_XF3, bt_string: S("[xF3]")})
+	builtin_debug.Set(79, tcap_entry_T{bt_entry: K_F4, bt_string: S("[F4]")})
+	builtin_debug.Set(80, tcap_entry_T{bt_entry: K_XF4, bt_string: S("[xF4]")})
+	builtin_debug.Set(81, tcap_entry_T{bt_entry: K_F5, bt_string: S("[F5]")})
+	builtin_debug.Set(82, tcap_entry_T{bt_entry: K_F6, bt_string: S("[F6]")})
+	builtin_debug.Set(83, tcap_entry_T{bt_entry: K_F7, bt_string: S("[F7]")})
+	builtin_debug.Set(84, tcap_entry_T{bt_entry: K_F8, bt_string: S("[F8]")})
+	builtin_debug.Set(85, tcap_entry_T{bt_entry: K_F9, bt_string: S("[F9]")})
+	builtin_debug.Set(86, tcap_entry_T{bt_entry: K_F10, bt_string: S("[F10]")})
+	builtin_debug.Set(87, tcap_entry_T{bt_entry: K_F11, bt_string: S("[F11]")})
+	builtin_debug.Set(88, tcap_entry_T{bt_entry: K_F12, bt_string: S("[F12]")})
+	builtin_debug.Set(89, tcap_entry_T{bt_entry: K_S_F1, bt_string: S("[S-F1]")})
+	builtin_debug.Set(90, tcap_entry_T{bt_entry: K_S_XF1, bt_string: S("[S-xF1]")})
+	builtin_debug.Set(91, tcap_entry_T{bt_entry: K_S_F2, bt_string: S("[S-F2]")})
+	builtin_debug.Set(92, tcap_entry_T{bt_entry: K_S_XF2, bt_string: S("[S-xF2]")})
+	builtin_debug.Set(93, tcap_entry_T{bt_entry: K_S_F3, bt_string: S("[S-F3]")})
+	builtin_debug.Set(94, tcap_entry_T{bt_entry: K_S_XF3, bt_string: S("[S-xF3]")})
+	builtin_debug.Set(95, tcap_entry_T{bt_entry: K_S_F4, bt_string: S("[S-F4]")})
+	builtin_debug.Set(96, tcap_entry_T{bt_entry: K_S_XF4, bt_string: S("[S-xF4]")})
+	builtin_debug.Set(97, tcap_entry_T{bt_entry: K_S_F5, bt_string: S("[S-F5]")})
+	builtin_debug.Set(98, tcap_entry_T{bt_entry: K_S_F6, bt_string: S("[S-F6]")})
+	builtin_debug.Set(99, tcap_entry_T{bt_entry: K_S_F7, bt_string: S("[S-F7]")})
+	builtin_debug.Set(100, tcap_entry_T{bt_entry: K_S_F8, bt_string: S("[S-F8]")})
+	builtin_debug.Set(101, tcap_entry_T{bt_entry: K_S_F9, bt_string: S("[S-F9]")})
+	builtin_debug.Set(102, tcap_entry_T{bt_entry: K_S_F10, bt_string: S("[S-F10]")})
+	builtin_debug.Set(103, tcap_entry_T{bt_entry: K_S_F11, bt_string: S("[S-F11]")})
+	builtin_debug.Set(104, tcap_entry_T{bt_entry: K_S_F12, bt_string: S("[S-F12]")})
+	builtin_debug.Set(105, tcap_entry_T{bt_entry: K_HELP, bt_string: S("[HELP]")})
+	builtin_debug.Set(106, tcap_entry_T{bt_entry: K_UNDO, bt_string: S("[UNDO]")})
+	builtin_debug.Set(107, tcap_entry_T{bt_entry: K_BS, bt_string: S("[BS]")})
+	builtin_debug.Set(108, tcap_entry_T{bt_entry: K_INS, bt_string: S("[INS]")})
+	builtin_debug.Set(109, tcap_entry_T{bt_entry: K_KINS, bt_string: S("[KINS]")})
+	builtin_debug.Set(110, tcap_entry_T{bt_entry: K_DEL, bt_string: S("[DEL]")})
+	builtin_debug.Set(111, tcap_entry_T{bt_entry: K_KDEL, bt_string: S("[KDEL]")})
+	builtin_debug.Set(112, tcap_entry_T{bt_entry: K_HOME, bt_string: S("[HOME]")})
+	builtin_debug.Set(113, tcap_entry_T{bt_entry: K_TC_HASH_2, bt_string: S("[C-HOME]")})
+	builtin_debug.Set(114, tcap_entry_T{bt_entry: K_C_HOME, bt_string: S("[C-HOME]")})
+	builtin_debug.Set(115, tcap_entry_T{bt_entry: K_KHOME, bt_string: S("[KHOME]")})
+	builtin_debug.Set(116, tcap_entry_T{bt_entry: K_XHOME, bt_string: S("[XHOME]")})
+	builtin_debug.Set(117, tcap_entry_T{bt_entry: K_ZHOME, bt_string: S("[ZHOME]")})
+	builtin_debug.Set(118, tcap_entry_T{bt_entry: K_END, bt_string: S("[END]")})
+	builtin_debug.Set(119, tcap_entry_T{bt_entry: K_TC_STAR_7, bt_string: S("[C-END]")})
+	builtin_debug.Set(120, tcap_entry_T{bt_entry: K_C_END, bt_string: S("[C-END]")})
+	builtin_debug.Set(121, tcap_entry_T{bt_entry: K_KEND, bt_string: S("[KEND]")})
+	builtin_debug.Set(122, tcap_entry_T{bt_entry: K_XEND, bt_string: S("[XEND]")})
+	builtin_debug.Set(123, tcap_entry_T{bt_entry: K_ZEND, bt_string: S("[ZEND]")})
+	builtin_debug.Set(124, tcap_entry_T{bt_entry: K_PAGEUP, bt_string: S("[PAGEUP]")})
+	builtin_debug.Set(125, tcap_entry_T{bt_entry: K_PAGEDOWN, bt_string: S("[PAGEDOWN]")})
+	builtin_debug.Set(126, tcap_entry_T{bt_entry: K_KPAGEUP, bt_string: S("[KPAGEUP]")})
+	builtin_debug.Set(127, tcap_entry_T{bt_entry: K_KPAGEDOWN, bt_string: S("[KPAGEDOWN]")})
+	builtin_debug.Set(128, tcap_entry_T{bt_entry: K_KPLUS, bt_string: S("[KPLUS]")})
+	builtin_debug.Set(129, tcap_entry_T{bt_entry: K_KMINUS, bt_string: S("[KMINUS]")})
+	builtin_debug.Set(130, tcap_entry_T{bt_entry: K_KDIVIDE, bt_string: S("[KDIVIDE]")})
+	builtin_debug.Set(131, tcap_entry_T{bt_entry: K_KMULTIPLY, bt_string: S("[KMULTIPLY]")})
+	builtin_debug.Set(132, tcap_entry_T{bt_entry: K_KENTER, bt_string: S("[KENTER]")})
+	builtin_debug.Set(133, tcap_entry_T{bt_entry: K_KPOINT, bt_string: S("[KPOINT]")})
+	builtin_debug.Set(134, tcap_entry_T{bt_entry: K_PASTESTART, bt_string: S("[PASTE-START]")})
+	builtin_debug.Set(135, tcap_entry_T{bt_entry: K_PASTEEND, bt_string: S("[PASTE-END]")})
+	builtin_debug.Set(136, tcap_entry_T{bt_entry: K_K0, bt_string: S("[K0]")})
+	builtin_debug.Set(137, tcap_entry_T{bt_entry: K_K1, bt_string: S("[K1]")})
+	builtin_debug.Set(138, tcap_entry_T{bt_entry: K_K2, bt_string: S("[K2]")})
+	builtin_debug.Set(139, tcap_entry_T{bt_entry: K_K3, bt_string: S("[K3]")})
+	builtin_debug.Set(140, tcap_entry_T{bt_entry: K_K4, bt_string: S("[K4]")})
+	builtin_debug.Set(141, tcap_entry_T{bt_entry: K_K5, bt_string: S("[K5]")})
+	builtin_debug.Set(142, tcap_entry_T{bt_entry: K_K6, bt_string: S("[K6]")})
+	builtin_debug.Set(143, tcap_entry_T{bt_entry: K_K7, bt_string: S("[K7]")})
+	builtin_debug.Set(144, tcap_entry_T{bt_entry: K_K8, bt_string: S("[K8]")})
+	builtin_debug.Set(145, tcap_entry_T{bt_entry: K_K9, bt_string: S("[K9]")})
 	builtin_256colors.Set(0, tcap_entry_T{bt_entry: 49, bt_string: S("256")})
 	builtin_256colors.Set(1, tcap_entry_T{bt_entry: 56, bt_string: S("\x1b[48;5;%dm")})
 	builtin_256colors.Set(2, tcap_entry_T{bt_entry: 55, bt_string: S("\x1b[38;5;%dm")})
@@ -6388,7 +6541,7 @@ func init() {
 		{first: 0x2b740, last: 0x2b81f, class: 0x4e00},
 		{first: 0x2f800, last: 0x2fa1f, class: 0x4e00},
 	}
-	add_to_showcmd_ignore = [26]int32{-(KS_EXTRA + (53 << 8)), -('P' + (83 << 8)), -(KS_EXTRA + (44 << 8)), -(KS_EXTRA + (45 << 8)), -(KS_EXTRA + (46 << 8)), -(KS_EXTRA + (100 << 8)), -(KS_EXTRA + (47 << 8)), -(KS_EXTRA + (48 << 8)), -(KS_EXTRA + (49 << 8)), -(KS_EXTRA + (50 << 8)), -(KS_EXTRA + (51 << 8)), -(KS_EXTRA + (52 << 8)), -(KS_EXTRA + (75 << 8)), -(KS_EXTRA + (76 << 8)), -(KS_EXTRA + (77 << 8)), -(KS_EXTRA + (78 << 8)), -(KS_EXTRA + (89 << 8)), -(KS_EXTRA + (90 << 8)), -(KS_EXTRA + (91 << 8)), -(KS_EXTRA + (92 << 8)), -(KS_EXTRA + (93 << 8)), -(KS_EXTRA + (94 << 8)), -(KS_EXTRA + (96 << 8)), -(KS_EXTRA + (103 << 8)), -(KS_EXTRA + (104 << 8)), 0}
+	add_to_showcmd_ignore = [26]int32{K_IGNORE, K_PASTESTART, K_LEFTMOUSE, K_LEFTDRAG, K_LEFTRELEASE, K_MOUSEMOVE, K_MIDDLEMOUSE, K_MIDDLEDRAG, K_MIDDLERELEASE, K_RIGHTMOUSE, K_RIGHTDRAG, K_RIGHTRELEASE, K_MOUSEDOWN, K_MOUSEUP, K_MOUSELEFT, K_MOUSERIGHT, K_X1MOUSE, K_X1DRAG, K_X1RELEASE, K_X2MOUSE, K_X2DRAG, K_X2RELEASE, K_CURSORHOLD, K_COMMAND, K_SCRIPT_COMMAND, 0}
 	copy(v_visop_trans.Slice(16), "YyDdCcxdXdAAIIrr")
 	nv_optrans_ar = [8]Ptr[byte]{S("dl"), S("dh"), S("d$"), S("c$"), S("cl"), S("cc"), S("yy"), S(":s\r")}
 	nv_optrans_str = S("xXDCsSY&")
@@ -11703,7 +11856,7 @@ func edit(cmdchar int32, startln int32, count int64) bool {
 			}
 			AppendCharToRedobuff(t1)
 		} else {
-			if cmdchar == -('P' + (83 << 8)) {
+			if cmdchar == K_PASTESTART {
 				AppendCharToRedobuff('a')
 			} else {
 				AppendCharToRedobuff(cmdchar)
@@ -11812,7 +11965,7 @@ func edit(cmdchar int32, startln int32, count int64) bool {
 		}
 		old_topline = curwin.w_topline
 		may_send_t_RK()
-		if (c != -(KS_EXTRA + (96 << 8))) && (c != -(KS_EXTRA + (110 << 8))) {
+		if (c != K_CURSORHOLD) && (c != K_COMPLETE_DELAY) {
 			lastc = c
 		}
 		if dont_sync_undo == MAYBE {
@@ -11820,8 +11973,8 @@ func edit(cmdchar int32, startln int32, count int64) bool {
 		} else {
 			dont_sync_undo = FALSE
 		}
-		if cmdchar == -('P' + (83 << 8)) {
-			c = -('P' + (83 << 8))
+		if cmdchar == K_PASTESTART {
+			c = K_PASTESTART
 		} else {
 			if ins_just_started {
 				ins_just_started = false
@@ -11829,7 +11982,7 @@ func edit(cmdchar int32, startln int32, count int64) bool {
 			for {
 				c = safe_vgetc()
 				if stop_insert_mode != 0 {
-					if (c != -(KS_EXTRA + (53 << 8))) && (c != -(KS_EXTRA + (97 << 8))) {
+					if (c != K_IGNORE) && (c != K_NOP) {
 						vungetc(c)
 					}
 					count = 0
@@ -11841,7 +11994,7 @@ func edit(cmdchar int32, startln int32, count int64) bool {
 					esc_now = true
 					break
 				}
-				if !((c == -(KS_EXTRA + (53 << 8))) || (c == -(KS_EXTRA + (97 << 8)))) {
+				if !((c == K_IGNORE) || (c == K_NOP)) {
 					break
 				}
 			}
@@ -11925,11 +12078,11 @@ func edit(cmdchar int32, startln int32, count int64) bool {
 				return (c == Ctrl_O)
 			}
 			continue
-		case -('k' + (73 << 8)), -(KS_EXTRA + (79 << 8)):
+		case K_INS, K_KINS:
 			ins_insert(replaceState)
 		case -(KS_SELECT + (88 << 8)):
-		case -('%' + (49 << 8)), -('k' + (49 << 8)), -(KS_EXTRA + (57 << 8)):
-			stuffcharReadbuff(-('%' + (49 << 8)))
+		case K_HELP, K_F1, K_XF1:
+			stuffcharReadbuff(K_HELP)
 			if p_im != 0 {
 				need_start_insertmode = TRUE
 			}
@@ -11954,78 +12107,78 @@ func edit(cmdchar int32, startln int32, count int64) bool {
 		case Ctrl_D, Ctrl_T:
 			ins_shift(c, lastc)
 			inserted_space = FALSE
-		case -('k' + (68 << 8)), -(KS_EXTRA + (80 << 8)):
+		case K_DEL, K_KDEL:
 			ins_del()
-		case -('k' + (98 << 8)), -(KS_EXTRA + (105 << 8)), Ctrl_H:
+		case K_BS, K_S_BS, Ctrl_H:
 			did_backspace = (ins_bs(c, BACKSPACE_CHAR, &inserted_space))
 		case Ctrl_W:
 			did_backspace = (ins_bs(c, BACKSPACE_WORD, &inserted_space))
 		case Ctrl_U:
 			did_backspace = (ins_bs(c, BACKSPACE_LINE, &inserted_space))
 			inserted_space = FALSE
-		case -('P' + (83 << 8)):
+		case K_PASTESTART:
 			bracketed_paste(PASTE_INSERT, FALSE, nil)
-			if cmdchar == -('P' + (83 << 8)) {
+			if cmdchar == K_PASTESTART {
 				if edit_esc(&count, cmdchar, B2i(nomove), &edit_o_lnum) {
 					return (c == Ctrl_O)
 				}
 				continue
 			}
-		case -('P' + (69 << 8)):
-		case -(KS_EXTRA + (53 << 8)):
-		case -(KS_EXTRA + (103 << 8)), -(KS_EXTRA + (104 << 8)):
+		case K_PASTEEND:
+		case K_IGNORE:
+		case K_COMMAND, K_SCRIPT_COMMAND:
 			tick := curbuf.b_changedtick
 			set_bufref(&save_curbuf, curbuf)
 			do_cmdkey_command(c, 0)
 			if curbuf.b_u_synced || ((bufref_valid(&save_curbuf) && (curbuf == save_curbuf.br_buf)) && (tick != curbuf.b_changedtick)) {
 				ins_need_undo = TRUE
 			}
-		case -(KS_EXTRA + (96 << 8)):
+		case K_CURSORHOLD:
 			did_cursorhold = TRUE
 			if dont_sync_undo == TRUE {
 				dont_sync_undo = MAYBE
 			}
-		case -(KS_EXTRA + (110 << 8)):
+		case K_COMPLETE_DELAY:
 			if dont_sync_undo == TRUE {
 				dont_sync_undo = MAYBE
 			}
-		case -('k' + (104 << 8)), -('K' + (49 << 8)), -('#' + (50 << 8)), -(KS_EXTRA + (87 << 8)):
+		case K_HOME, K_KHOME, K_TC_HASH_2, K_C_HOME:
 			ins_home(c)
-		case -('@' + (55 << 8)), -('K' + (52 << 8)), -('*' + (55 << 8)), -(KS_EXTRA + (88 << 8)):
+		case K_END, K_KEND, K_TC_STAR_7, K_C_END:
 			ins_end(c)
-		case -('k' + (108 << 8)):
+		case K_LEFT:
 			if mod_mask&(MOD_MASK_SHIFT|MOD_MASK_CTRL) != 0 {
 				ins_s_left()
 			} else {
 				ins_left()
 			}
-		case -('#' + (52 << 8)), -(KS_EXTRA + (85 << 8)):
+		case K_TC_HASH_4, K_C_LEFT:
 			ins_s_left()
-		case -('k' + (114 << 8)):
+		case K_RIGHT:
 			if mod_mask&(MOD_MASK_SHIFT|MOD_MASK_CTRL) != 0 {
 				ins_s_right()
 			} else {
 				ins_right()
 			}
-		case -('%' + (105 << 8)), -(KS_EXTRA + (86 << 8)):
+		case K_TC_PCT_i, K_C_RIGHT:
 			ins_s_right()
-		case -('k' + (117 << 8)):
+		case K_UP:
 			if mod_mask&MOD_MASK_SHIFT != 0 {
 				ins_pageup()
 			} else {
 				ins_up(FALSE)
 			}
-		case -(KS_EXTRA + (4 << 8)), -('k' + (80 << 8)), -('K' + (51 << 8)):
+		case K_S_UP, K_PAGEUP, K_KPAGEUP:
 			ins_pageup()
-		case -('k' + (100 << 8)):
+		case K_DOWN:
 			if mod_mask&MOD_MASK_SHIFT != 0 {
 				ins_pagedown()
 			} else {
 				ins_down(FALSE)
 			}
-		case -(KS_EXTRA + (5 << 8)), -('k' + (78 << 8)), -('K' + (53 << 8)):
+		case K_S_DOWN, K_PAGEDOWN, K_KPAGEDOWN:
 			ins_pagedown()
-		case -('k' + (66 << 8)):
+		case K_TC_k_B:
 			c = TAB
 			fallthrough
 		case TAB:
@@ -12033,7 +12186,7 @@ func edit(cmdchar int32, startln int32, count int64) bool {
 			if ins_tab() {
 				edit_normalchar(c, &inserted_space)
 			}
-		case -('K' + (65 << 8)):
+		case K_KENTER:
 			c = CAR
 			fallthrough
 		case CAR, NL:
@@ -12082,7 +12235,7 @@ func edit(cmdchar int32, startln int32, count int64) bool {
 			}
 			edit_normalchar(c, &inserted_space)
 		}
-		if (c != -(KS_EXTRA + (96 << 8))) && (c != -(KS_EXTRA + (110 << 8))) {
+		if (c != K_CURSORHOLD) && (c != K_COMPLETE_DELAY) {
 			did_cursorhold = FALSE
 		}
 		if arrow_used != 0 {
@@ -13105,9 +13258,9 @@ func ins_ctrl_g() {
 	no_mapping--
 	allow_keys--
 	switch c {
-	case -('k' + (117 << 8)), Ctrl_K, 'k':
+	case K_UP, Ctrl_K, 'k':
 		ins_up(TRUE)
-	case -('k' + (100 << 8)), Ctrl_J, 'j':
+	case K_DOWN, Ctrl_J, 'j':
 		ins_down(TRUE)
 	case 'u':
 		u_sync(TRUE)
@@ -13201,12 +13354,12 @@ func ins_start_select(c int32) bool {
 		return false
 	}
 	switch c {
-	case -('K' + (49 << 8)), -('K' + (52 << 8)), -('k' + (80 << 8)), -('K' + (51 << 8)), -('k' + (78 << 8)), -('K' + (53 << 8)):
+	case K_KHOME, K_KEND, K_PAGEUP, K_KPAGEUP, K_PAGEDOWN, K_KPAGEDOWN:
 		if (mod_mask & MOD_MASK_SHIFT) == 0 {
 			break
 		}
 		fallthrough
-	case -('#' + (52 << 8)), -('%' + (105 << 8)), -(KS_EXTRA + (4 << 8)), -(KS_EXTRA + (5 << 8)), -('*' + (55 << 8)), -('#' + (50 << 8)):
+	case K_TC_HASH_4, K_TC_PCT_i, K_S_UP, K_S_DOWN, K_TC_STAR_7, K_TC_HASH_2:
 		start_selection()
 		stuffcharReadbuff(Ctrl_O)
 		if mod_mask != 0 {
@@ -13229,7 +13382,7 @@ func ins_insert(replaceState int32) {
 	} else {
 		State = replaceState
 	}
-	AppendCharToRedobuff(-('k' + (73 << 8)))
+	AppendCharToRedobuff(K_INS)
 	showmode()
 }
 
@@ -13303,7 +13456,7 @@ func ins_del() {
 	did_si = FALSE
 	can_si = FALSE
 	can_si_back = FALSE
-	AppendCharToRedobuff(-('k' + (68 << 8)))
+	AppendCharToRedobuff(K_DEL)
 }
 
 func ins_bs_one() {
@@ -13538,7 +13691,7 @@ func bracketed_paste(mode paste_mode_T, drop int32, gap *S_growarray) int32 {
 		}
 		for {
 			c = vgetc()
-			if !(((c == -(KS_EXTRA + (53 << 8))) || (c == -(KS_VER_SCROLLBAR + (88 << 8)))) || (c == -(KS_HOR_SCROLLBAR + (88 << 8)))) {
+			if !(((c == K_IGNORE) || (c == -(KS_VER_SCROLLBAR + (88 << 8)))) || (c == -(KS_HOR_SCROLLBAR + (88 << 8)))) {
 				break
 			}
 		}
@@ -13565,7 +13718,7 @@ func bracketed_paste(mode paste_mode_T, drop int32, gap *S_growarray) int32 {
 			case PASTE_INSERT:
 				if stop_arrow() {
 					c = int32(buf.At(0))
-					if (idx == 1) && (((c == CAR) || (c == -('K' + (65 << 8)))) || (c == NL)) {
+					if (idx == 1) && (((c == CAR) || (c == K_KENTER)) || (c == NL)) {
 						ins_eol(c)
 					} else {
 						ins_char_bytes(buf, idx)
@@ -13596,7 +13749,7 @@ func ins_left() {
 	if oneleft() {
 		start_arrow_with_change(&tpos, B2i(end_change))
 		if !end_change {
-			AppendCharToRedobuff(-('k' + (108 << 8)))
+			AppendCharToRedobuff(K_LEFT)
 		}
 	} else if !vim_strchr(p_ww, '[').Nil() && (curwin.w_cursor.lnum > 1) {
 		start_arrow(&tpos)
@@ -13613,7 +13766,7 @@ func ins_home(c int32) {
 	var tpos pos_T
 	undisplay_dollar()
 	tpos = curwin.w_cursor
-	if c == -(KS_EXTRA + (87 << 8)) {
+	if c == K_C_HOME {
 		curwin.w_cursor.lnum = 1
 	}
 	curwin.w_cursor.col = 0
@@ -13626,7 +13779,7 @@ func ins_end(c int32) {
 	var tpos pos_T
 	undisplay_dollar()
 	tpos = curwin.w_cursor
-	if c == -(KS_EXTRA + (88 << 8)) {
+	if c == K_C_END {
 		curwin.w_cursor.lnum = curbuf.b_ml.ml_line_count
 	}
 	coladvance(2147483647)
@@ -13640,7 +13793,7 @@ func ins_s_left() {
 	if (curwin.w_cursor.lnum > 1) || (curwin.w_cursor.col > 0) {
 		start_arrow_with_change(&curwin.w_cursor, B2i(end_change))
 		if !end_change {
-			AppendCharToRedobuff(-('#' + (52 << 8)))
+			AppendCharToRedobuff(K_TC_HASH_4)
 		}
 		bck_word(1, FALSE, FALSE)
 		curwin.w_set_curswant = true
@@ -13656,7 +13809,7 @@ func ins_right() {
 	if (gchar_cursor() != NUL) || (virtual_active() != 0) {
 		start_arrow_with_change(&curwin.w_cursor, B2i(end_change))
 		if !end_change {
-			AppendCharToRedobuff(-('k' + (114 << 8)))
+			AppendCharToRedobuff(K_RIGHT)
 		}
 		curwin.w_set_curswant = true
 		if virtual_active() != 0 {
@@ -13681,7 +13834,7 @@ func ins_s_right() {
 	if (curwin.w_cursor.lnum < curbuf.b_ml.ml_line_count) || (gchar_cursor() != NUL) {
 		start_arrow_with_change(&curwin.w_cursor, B2i(end_change))
 		if !end_change {
-			AppendCharToRedobuff(-('%' + (105 << 8)))
+			AppendCharToRedobuff(K_TC_PCT_i)
 		}
 		fwd_word(1, FALSE, 0)
 		curwin.w_set_curswant = true
@@ -17816,13 +17969,13 @@ func cmdline_handle_ctrl_bsl(gotesc *int32) int32 {
 func cmdline_erase_chars(c int32, indent int32, isp *incsearch_state_T) int32 {
 	var i int32
 	var j int32
-	if c == -(KS_EXTRA + (80 << 8)) {
-		c = -('k' + (68 << 8))
+	if c == K_KDEL {
+		c = K_DEL
 	}
-	if (c == -('k' + (68 << 8))) && (ccline.cmdpos != ccline.cmdlen) {
+	if (c == K_DEL) && (ccline.cmdpos != ccline.cmdlen) {
 		ccline.cmdpos++
 	}
-	if c == -('k' + (68 << 8)) {
+	if c == K_DEL {
 		ccline.cmdpos += mb_off_next(ccline.cmdbuff, ccline.cmdbuff.Add(int(ccline.cmdpos)))
 	}
 	if ccline.cmdpos > 0 {
@@ -17931,7 +18084,7 @@ func cmdline_browse_history(c int32, firstc int32, curcmdstr *Ptr[byte], curcmds
 		lookforlen = usize(ccline.cmdpos)
 	}
 	for {
-		if ((((c == -('k' + (117 << 8))) || (c == -(KS_EXTRA + (4 << 8)))) || (c == Ctrl_P)) || (c == -('k' + (80 << 8)))) || (c == -('K' + (51 << 8))) {
+		if ((((c == K_UP) || (c == K_S_UP)) || (c == Ctrl_P)) || (c == K_PAGEUP)) || (c == K_KPAGEUP) {
 			if hiscnt == get_hislen() {
 				hiscnt = get_hisidx(histype).Get()
 			} else if (hiscnt == 0) && (get_hisidx(histype).Get() != (get_hislen() - 1)) {
@@ -17960,7 +18113,7 @@ func cmdline_browse_history(c int32, firstc int32, curcmdstr *Ptr[byte], curcmds
 			hiscnt = orig_hiscnt
 			break
 		}
-		if (((c != -('k' + (117 << 8))) && (c != -('k' + (100 << 8)))) || (hiscnt == orig_hiscnt)) || (musl_strncmp(get_histentry(histype).Ref(int(hiscnt)).hisstr, lookfor, lookforlen) == 0) {
+		if (((c != K_UP) && (c != K_DOWN)) || (hiscnt == orig_hiscnt)) || (musl_strncmp(get_histentry(histype).Ref(int(hiscnt)).hisstr, lookfor, lookforlen) == 0) {
 			break
 		}
 	}
@@ -18171,12 +18324,12 @@ func getcmdline_int(firstc int32, count int64, indent int32, clear_ccline int32)
 		for {
 			cursorcmd()
 			c = safe_vgetc()
-			if !((c == -(KS_EXTRA + (53 << 8))) || (c == -(KS_EXTRA + (97 << 8)))) {
+			if !((c == K_IGNORE) || (c == K_NOP)) {
 				break
 			}
 		}
 		ccline.cmdbuff_replaced = FALSE
-		if (c == -(KS_EXTRA + (103 << 8))) || (c == -(KS_EXTRA + (104 << 8))) {
+		if (c == K_COMMAND) || (c == K_SCRIPT_COMMAND) {
 			clen = ccline.cmdlen
 			cc_count = aucmd_cmdline_changed_count
 			if do_cmdkey_command(c, DOCMD_NOWAIT) {
@@ -18192,7 +18345,7 @@ func getcmdline_int(firstc int32, count int64, indent int32, clear_ccline int32)
 		if ((c == Ctrl_C) || (c == intr_char)) && (global_busy == 0) {
 			got_int = FALSE
 		}
-		if ((((((((((!lookfor.Nil() && (c != -(KS_EXTRA + (5 << 8)))) && (c != -(KS_EXTRA + (4 << 8)))) && (c != -('k' + (100 << 8)))) && (c != -('k' + (117 << 8)))) && (c != -('k' + (78 << 8)))) && (c != -('k' + (80 << 8)))) && (c != -('K' + (53 << 8)))) && (c != -('K' + (51 << 8)))) && (c != -('k' + (108 << 8)))) && (c != -('k' + (114 << 8)))) && ((xpc.xp_numfiles > 0) || ((c != Ctrl_P) && (c != Ctrl_N))) {
+		if ((((((((((!lookfor.Nil() && (c != K_S_DOWN)) && (c != K_S_UP)) && (c != K_DOWN)) && (c != K_UP)) && (c != K_PAGEDOWN)) && (c != K_PAGEUP)) && (c != K_KPAGEDOWN)) && (c != K_KPAGEUP)) && (c != K_LEFT)) && (c != K_RIGHT)) && ((xpc.xp_numfiles > 0) || ((c != Ctrl_P) && (c != Ctrl_N))) {
 			lookfor = Ptr[byte]{}
 			lookforlen = 0
 		}
@@ -18207,7 +18360,7 @@ func getcmdline_int(firstc int32, count int64, indent int32, clear_ccline int32)
 			}
 			c = Ctrl_BSL
 		}
-		if (((c == 10) || (c == 13)) || (c == -('K' + (65 << 8)))) || ((c == ESC) && ((KeyTyped == 0) || !vim_strchr(p_cpo, CPO_ESC).Nil())) {
+		if (((c == 10) || (c == 13)) || (c == K_KENTER)) || ((c == ESC) && ((KeyTyped == 0) || !vim_strchr(p_cpo, CPO_ESC).Nil())) {
 			gotesc = FALSE
 			if cmd_silent == 0 {
 				windgoto(msg_row, cmdline_col_off)
@@ -18228,7 +18381,7 @@ func getcmdline_int(firstc int32, count int64, indent int32, clear_ccline int32)
 			goto cmdline_not_changed
 		}
 		switch c {
-		case -('k' + (98 << 8)), Ctrl_H, -('k' + (68 << 8)), -(KS_EXTRA + (80 << 8)), Ctrl_W:
+		case K_BS, Ctrl_H, K_DEL, K_KDEL, Ctrl_W:
 			res = cmdline_erase_chars(c, indent, &is_state)
 			if res == CMDLINE_NOT_CHANGED {
 				goto cmdline_not_changed
@@ -18236,7 +18389,7 @@ func getcmdline_int(firstc int32, count int64, indent int32, clear_ccline int32)
 				goto returncmd
 			}
 			goto cmdline_changed
-		case -('k' + (73 << 8)), -(KS_EXTRA + (79 << 8)):
+		case K_INS, K_KINS:
 			ccline.overstrike = B2i(ccline.overstrike == 0)
 			status_redraw_curbuf()
 			redraw_statuslines()
@@ -18273,7 +18426,7 @@ func getcmdline_int(firstc int32, count int64, indent int32, clear_ccline int32)
 				goto cmdline_changed
 			}
 			goto cmdline_not_changed
-		case -('k' + (114 << 8)), -('%' + (105 << 8)), -(KS_EXTRA + (86 << 8)):
+		case K_RIGHT, K_TC_PCT_i, K_C_RIGHT:
 			for {
 				if ccline.cmdpos >= ccline.cmdlen {
 					break
@@ -18284,13 +18437,13 @@ func getcmdline_int(firstc int32, count int64, indent int32, clear_ccline int32)
 				}
 				ccline.cmdspos += i
 				ccline.cmdpos += utfc_ptr2len(ccline.cmdbuff.Add(int(ccline.cmdpos)))
-				if !((((c == -('%' + (105 << 8))) || (c == -(KS_EXTRA + (86 << 8)))) || ((mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL)) != 0)) && (int32(ccline.cmdbuff.At(int(ccline.cmdpos))) != (' '))) {
+				if !((((c == K_TC_PCT_i) || (c == K_C_RIGHT)) || ((mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL)) != 0)) && (int32(ccline.cmdbuff.At(int(ccline.cmdpos))) != (' '))) {
 					break
 				}
 			}
 			set_cmdspos_cursor()
 			goto cmdline_not_changed
-		case -('k' + (108 << 8)), -('#' + (52 << 8)), -(KS_EXTRA + (85 << 8)):
+		case K_LEFT, K_TC_HASH_4, K_C_LEFT:
 			if ccline.cmdpos == 0 {
 				goto cmdline_not_changed
 			}
@@ -18298,21 +18451,21 @@ func getcmdline_int(firstc int32, count int64, indent int32, clear_ccline int32)
 				ccline.cmdpos--
 				ccline.cmdpos -= utf_head_off(ccline.cmdbuff, ccline.cmdbuff.Add(int(ccline.cmdpos)))
 				ccline.cmdspos -= cmdline_charsize(ccline.cmdpos)
-				if !(((ccline.cmdpos > 0) && (((c == -('#' + (52 << 8))) || (c == -(KS_EXTRA + (85 << 8)))) || ((mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL)) != 0))) && (int32(ccline.cmdbuff.At(int(ccline.cmdpos-1))) != (' '))) {
+				if !(((ccline.cmdpos > 0) && (((c == K_TC_HASH_4) || (c == K_C_LEFT)) || ((mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL)) != 0))) && (int32(ccline.cmdbuff.At(int(ccline.cmdpos-1))) != (' '))) {
 					break
 				}
 			}
 			set_cmdspos_cursor()
 			goto cmdline_not_changed
-		case -(KS_EXTRA + (53 << 8)):
+		case K_IGNORE:
 			goto cmdline_not_changed
 		case -(KS_SELECT + (88 << 8)):
 			goto cmdline_not_changed
-		case Ctrl_B, -('k' + (104 << 8)), -('K' + (49 << 8)), -('#' + (50 << 8)), -(KS_EXTRA + (87 << 8)):
+		case Ctrl_B, K_HOME, K_KHOME, K_TC_HASH_2, K_C_HOME:
 			ccline.cmdpos = 0
 			set_cmdspos()
 			goto cmdline_not_changed
-		case Ctrl_E, -('@' + (55 << 8)), -('K' + (52 << 8)), -('*' + (55 << 8)), -(KS_EXTRA + (88 << 8)):
+		case Ctrl_E, K_END, K_KEND, K_TC_STAR_7, K_C_END:
 			ccline.cmdpos = ccline.cmdlen
 			set_cmdspos_cursor()
 			goto cmdline_not_changed
@@ -18322,7 +18475,7 @@ func getcmdline_int(firstc int32, count int64, indent int32, clear_ccline int32)
 			}
 		case Ctrl_N, Ctrl_P:
 			fallthrough
-		case -('k' + (117 << 8)), -('k' + (100 << 8)), -(KS_EXTRA + (4 << 8)), -(KS_EXTRA + (5 << 8)), -('k' + (80 << 8)), -('K' + (51 << 8)), -('k' + (78 << 8)), -('K' + (53 << 8)):
+		case K_UP, K_DOWN, K_S_UP, K_S_DOWN, K_PAGEUP, K_KPAGEUP, K_PAGEDOWN, K_KPAGEDOWN:
 			res = cmdline_browse_history(c, firstc, &lookfor, &lookforlen, histype, &hiscnt, &xpc)
 			if res == CMDLINE_CHANGED {
 				goto cmdline_changed
@@ -18344,7 +18497,7 @@ func getcmdline_int(firstc int32, count int64, indent int32, clear_ccline int32)
 				msg_putchar(' ')
 				cursorcmd()
 			}
-		case -('P' + (83 << 8)):
+		case K_PASTESTART:
 			bracketed_paste(PASTE_CMDLINE, FALSE, nil)
 			goto cmdline_changed
 		default:
@@ -19831,7 +19984,7 @@ func gotchars_add_byte(state *gotchars_state_T, byte_ char_u) bool {
 				t3 = t2
 			}
 			c = t3
-			if ((c == -(KS_EXTRA + (98 << 8))) || (c == -(KS_EXTRA + (99 << 8)))) || (c == -(KS_EXTRA + (110 << 8))) {
+			if ((c == K_FOCUSGAINED) || (c == K_FOCUSLOST)) || (c == K_COMPLETE_DELAY) {
 				state.buflen = 0
 			}
 		}
@@ -20095,10 +20248,10 @@ func vgetc() int32 {
 					t2 = t1
 				}
 				c = t2
-				if (allow_osc_key == 0) && (c == -(KS_EXTRA + (109 << 8))) {
+				if (allow_osc_key == 0) && (c == K_OSC) {
 					continue
 				}
-				if c == -(KS_EXTRA + (107 << 8)) {
+				if c == K_ESC {
 					c = ESC
 				}
 			}
@@ -20130,66 +20283,66 @@ func vgetc() int32 {
 				vgetc_char = c
 			}
 			switch c {
-			case -('K' + (54 << 8)):
+			case K_KPLUS:
 				c = '+'
-			case -('K' + (55 << 8)):
+			case K_KMINUS:
 				c = '-'
-			case -('K' + (56 << 8)):
+			case K_KDIVIDE:
 				c = '/'
-			case -('K' + (57 << 8)):
+			case K_KMULTIPLY:
 				c = '*'
-			case -('K' + (65 << 8)):
+			case K_KENTER:
 				c = CAR
-			case -('K' + (66 << 8)):
+			case K_KPOINT:
 				c = '.'
-			case -('K' + (67 << 8)):
+			case K_K0:
 				c = '0'
-			case -('K' + (68 << 8)):
+			case K_K1:
 				c = '1'
-			case -('K' + (69 << 8)):
+			case K_K2:
 				c = '2'
-			case -('K' + (70 << 8)):
+			case K_K3:
 				c = '3'
-			case -('K' + (71 << 8)):
+			case K_K4:
 				c = '4'
-			case -('K' + (72 << 8)):
+			case K_K5:
 				c = '5'
-			case -('K' + (73 << 8)):
+			case K_K6:
 				c = '6'
-			case -('K' + (74 << 8)):
+			case K_K7:
 				c = '7'
-			case -('K' + (75 << 8)):
+			case K_K8:
 				c = '8'
-			case -('K' + (76 << 8)):
+			case K_K9:
 				c = '9'
-			case -(KS_EXTRA + (63 << 8)), -(KS_EXTRA + (64 << 8)):
+			case K_XHOME, K_ZHOME:
 				if mod_mask == MOD_MASK_SHIFT {
-					c = -('#' + (50 << 8))
+					c = K_TC_HASH_2
 					mod_mask = 0
 				} else if mod_mask == MOD_MASK_CTRL {
-					c = -(KS_EXTRA + (87 << 8))
+					c = K_C_HOME
 					mod_mask = 0
 				} else {
-					c = -('k' + (104 << 8))
+					c = K_HOME
 				}
-			case -(KS_EXTRA + (61 << 8)), -(KS_EXTRA + (62 << 8)):
+			case K_XEND, K_ZEND:
 				if mod_mask == MOD_MASK_SHIFT {
-					c = -('*' + (55 << 8))
+					c = K_TC_STAR_7
 					mod_mask = 0
 				} else if mod_mask == MOD_MASK_CTRL {
-					c = -(KS_EXTRA + (88 << 8))
+					c = K_C_END
 					mod_mask = 0
 				} else {
-					c = -('@' + (55 << 8))
+					c = K_END
 				}
-			case -(KS_EXTRA + (65 << 8)):
-				c = -('k' + (117 << 8))
-			case -(KS_EXTRA + (66 << 8)):
-				c = -('k' + (100 << 8))
-			case -(KS_EXTRA + (67 << 8)):
-				c = -('k' + (108 << 8))
-			case -(KS_EXTRA + (68 << 8)):
-				c = -('k' + (114 << 8))
+			case K_XUP:
+				c = K_UP
+			case K_XDOWN:
+				c = K_DOWN
+			case K_XLEFT:
+				c = K_LEFT
+			case K_XRIGHT:
+				c = K_RIGHT
 			}
 			break
 		}
@@ -20210,7 +20363,7 @@ func plain_vgetc_nopaste() int32 {
 	var c int32
 	for {
 		c = safe_vgetc()
-		if !((((c == -(KS_EXTRA + (53 << 8))) || (c == -(KS_VER_SCROLLBAR + (88 << 8)))) || (c == -(KS_HOR_SCROLLBAR + (88 << 8)))) || (c == -(KS_EXTRA + (100 << 8)))) {
+		if !((((c == K_IGNORE) || (c == -(KS_VER_SCROLLBAR + (88 << 8)))) || (c == -(KS_HOR_SCROLLBAR + (88 << 8)))) || (c == K_MOUSEMOVE)) {
 			break
 		}
 	}
@@ -20219,7 +20372,7 @@ func plain_vgetc_nopaste() int32 {
 
 func plain_vgetc() int32 {
 	c := plain_vgetc_nopaste()
-	if c == -('P' + (83 << 8)) {
+	if c == K_PASTESTART {
 		c = bracketed_paste(PASTE_ONE_CHAR, FALSE, nil)
 	}
 	return c
@@ -20817,7 +20970,7 @@ func vgetorpeek(advance int32) int32 {
 				}
 			}
 		}
-		if !(((c < 0) && (c != -(KS_EXTRA + (102 << 8)))) || ((advance != 0) && (c == NUL))) {
+		if !(((c < 0) && (c != K_CANCEL)) || ((advance != 0) && (c == NUL))) {
 			break
 		}
 	}
@@ -20967,7 +21120,7 @@ func getcmdkeycmd(promptc int32, indent int32, do_concat getline_opt_T) Ptr[byte
 				t2 = t1
 			}
 			c1 = t2
-			if c1 == -(KS_EXTRA + (107 << 8)) {
+			if c1 == K_ESC {
 				c1 = ESC
 			}
 		}
@@ -20977,10 +21130,10 @@ func getcmdkeycmd(promptc int32, indent int32, do_concat getline_opt_T) Ptr[byte
 			c1 = NUL
 		} else if c1 == ESC {
 			aborted = true
-		} else if (c1 == -(KS_EXTRA + (103 << 8))) || (c1 == -(KS_EXTRA + (104 << 8))) {
+		} else if (c1 == K_COMMAND) || (c1 == K_SCRIPT_COMMAND) {
 			emsg(gettext_(e_cmd_mapping_must_end_with_cr_before_second_cmd))
 			aborted = true
-		} else if c1 == -(KS_EXTRA + (82 << 8)) {
+		} else if c1 == K_SNR {
 			ga_concat_len(&line_ga, S("<SNR>"), 5)
 		} else {
 			if cmod != 0 {
@@ -27908,32 +28061,32 @@ func wait_return(redraw int32) {
 				allow_keys--
 				reg_recording = save_reg_recording
 				if ((KeyTyped != 0) && (p_more != 0)) && (p_cp == 0) {
-					if ((((((c == 'b') || (c == Ctrl_B)) || (c == 'k')) || (c == 'u')) || (c == 'g')) || (c == -('k' + (117 << 8)))) || (c == -('k' + (80 << 8))) {
+					if ((((((c == 'b') || (c == Ctrl_B)) || (c == 'k')) || (c == 'u')) || (c == 'g')) || (c == K_UP)) || (c == K_PAGEUP) {
 						if int64(msg_scrolled) > Rows {
 							do_more_prompt(c)
 						} else {
 							msg_didout = FALSE
-							c = -(KS_EXTRA + (53 << 8))
+							c = K_IGNORE
 							msg_col = 0
 						}
 						if quit_more != 0 {
 							c = CAR
 							quit_more = FALSE
 							got_int = FALSE
-						} else if c != -(KS_EXTRA + (53 << 8)) {
-							c = -(KS_EXTRA + (53 << 8))
+						} else if c != K_IGNORE {
+							c = K_IGNORE
 							hit_return_msg()
 						}
-					} else if (int64(msg_scrolled) > (Rows - 2)) && ((((((c == 'j') || (c == 'd')) || (c == 'f')) || (c == Ctrl_F)) || (c == -('k' + (100 << 8)))) || (c == -('k' + (78 << 8)))) {
-						c = -(KS_EXTRA + (53 << 8))
+					} else if (int64(msg_scrolled) > (Rows - 2)) && ((((((c == 'j') || (c == 'd')) || (c == 'f')) || (c == Ctrl_F)) || (c == K_DOWN)) || (c == K_PAGEDOWN)) {
+						c = K_IGNORE
 					}
 				}
-				if !((((((((((((((had_got_int != 0) && (c == Ctrl_C)) || (c == -(KS_EXTRA + (53 << 8)))) || (c == -(KS_EXTRA + (45 << 8)))) || (c == -(KS_EXTRA + (46 << 8)))) || (c == -(KS_EXTRA + (48 << 8)))) || (c == -(KS_EXTRA + (49 << 8)))) || (c == -(KS_EXTRA + (51 << 8)))) || (c == -(KS_EXTRA + (52 << 8)))) || (c == -(KS_EXTRA + (77 << 8)))) || (c == -(KS_EXTRA + (78 << 8)))) || (c == -(KS_EXTRA + (75 << 8)))) || (c == -(KS_EXTRA + (76 << 8)))) || (c == -(KS_EXTRA + (100 << 8)))) {
+				if !((((((((((((((had_got_int != 0) && (c == Ctrl_C)) || (c == K_IGNORE)) || (c == K_LEFTDRAG)) || (c == K_LEFTRELEASE)) || (c == K_MIDDLEDRAG)) || (c == K_MIDDLERELEASE)) || (c == K_RIGHTDRAG)) || (c == K_RIGHTRELEASE)) || (c == K_MOUSELEFT)) || (c == K_MOUSERIGHT)) || (c == K_MOUSEDOWN)) || (c == K_MOUSEUP)) || (c == K_MOUSEMOVE)) {
 					break
 				}
 			}
 			ui_breakcheck()
-			if ((((c == -(KS_EXTRA + (44 << 8))) || (c == -(KS_EXTRA + (47 << 8)))) || (c == -(KS_EXTRA + (50 << 8)))) || (c == -(KS_EXTRA + (89 << 8)))) || (c == -(KS_EXTRA + (92 << 8))) {
+			if ((((c == K_LEFTMOUSE) || (c == K_MIDDLEMOUSE)) || (c == K_RIGHTMOUSE)) || (c == K_X1MOUSE)) || (c == K_X2MOUSE) {
 			} else if (KeyTyped == 0) || ((vim_strchr(S("\r\n "), c).Nil() && (c != Ctrl_C)) && (c != 'q')) {
 				ins_char_typebuf(vgetc_char, vgetc_mod_mask)
 				do_redraw = TRUE
@@ -28818,17 +28971,17 @@ func do_more_prompt(typed_char int32) bool {
 		}
 		toscroll = 0
 		switch c {
-		case BS, -('k' + (98 << 8)), 'k', -('k' + (117 << 8)):
+		case BS, K_BS, 'k', K_UP:
 			toscroll = -1
-		case CAR, NL, 'j', -('k' + (100 << 8)):
+		case CAR, NL, 'j', K_DOWN:
 			toscroll = 1
 		case 'u':
 			toscroll = int32(-(Rows / 2))
 		case 'd':
 			toscroll = int32(Rows / 2)
-		case 'b', Ctrl_B, -('k' + (80 << 8)):
+		case 'b', Ctrl_B, K_PAGEUP:
 			toscroll = int32(-(Rows - 1))
-		case ' ', 'f', Ctrl_F, -('k' + (78 << 8)), -(KS_EXTRA + (44 << 8)):
+		case ' ', 'f', Ctrl_F, K_PAGEDOWN, K_LEFTMOUSE:
 			toscroll = int32(Rows - 1)
 		case 'g':
 			toscroll = -999999
@@ -29322,7 +29475,7 @@ func get_keystroke() int32 {
 				t6 = t5
 			}
 			n = t6
-			if (int32(buf.At(1)) == KS_MODIFIER) || (n == -(KS_EXTRA + (53 << 8))) {
+			if (int32(buf.At(1)) == KS_MODIFIER) || (n == K_IGNORE) {
 				if int32(buf.At(1)) == KS_MODIFIER {
 					mod_mask = int32(buf.At(2))
 				}
@@ -29953,7 +30106,7 @@ func simplify_key(key int32, modifiers *int32) int32 {
 	}
 	if (key == TAB) && (((*modifiers) & MOD_MASK_SHIFT) != 0) {
 		(*modifiers) &= ^MOD_MASK_SHIFT
-		return -('k' + (66 << 8))
+		return K_TC_k_B
 	}
 	key0 = (-key & 0xff)
 	key1 = int32(((uint32(-key) >> 8) & 0xff))
@@ -29969,38 +30122,38 @@ func simplify_key(key int32, modifiers *int32) int32 {
 
 func handle_x_keys(key int32) int32 {
 	switch key {
-	case -(KS_EXTRA + (65 << 8)):
-		return -('k' + (117 << 8))
-	case -(KS_EXTRA + (66 << 8)):
-		return -('k' + (100 << 8))
-	case -(KS_EXTRA + (67 << 8)):
-		return -('k' + (108 << 8))
-	case -(KS_EXTRA + (68 << 8)):
-		return -('k' + (114 << 8))
-	case -(KS_EXTRA + (63 << 8)):
-		return -('k' + (104 << 8))
-	case -(KS_EXTRA + (64 << 8)):
-		return -('k' + (104 << 8))
-	case -(KS_EXTRA + (61 << 8)):
-		return -('@' + (55 << 8))
-	case -(KS_EXTRA + (62 << 8)):
-		return -('@' + (55 << 8))
-	case -(KS_EXTRA + (57 << 8)):
-		return -('k' + (49 << 8))
-	case -(KS_EXTRA + (58 << 8)):
-		return -('k' + (50 << 8))
-	case -(KS_EXTRA + (59 << 8)):
-		return -('k' + (51 << 8))
-	case -(KS_EXTRA + (60 << 8)):
-		return -('k' + (52 << 8))
-	case -(KS_EXTRA + (71 << 8)):
-		return -(KS_EXTRA + (6 << 8))
-	case -(KS_EXTRA + (72 << 8)):
-		return -(KS_EXTRA + (7 << 8))
-	case -(KS_EXTRA + (73 << 8)):
-		return -(KS_EXTRA + (8 << 8))
-	case -(KS_EXTRA + (74 << 8)):
-		return -(KS_EXTRA + (9 << 8))
+	case K_XUP:
+		return K_UP
+	case K_XDOWN:
+		return K_DOWN
+	case K_XLEFT:
+		return K_LEFT
+	case K_XRIGHT:
+		return K_RIGHT
+	case K_XHOME:
+		return K_HOME
+	case K_ZHOME:
+		return K_HOME
+	case K_XEND:
+		return K_END
+	case K_ZEND:
+		return K_END
+	case K_XF1:
+		return K_F1
+	case K_XF2:
+		return K_F2
+	case K_XF3:
+		return K_F3
+	case K_XF4:
+		return K_F4
+	case K_S_XF1:
+		return K_S_F1
+	case K_S_XF2:
+		return K_S_F2
+	case K_S_XF3:
+		return K_S_F3
+	case K_S_XF4:
+		return K_S_F4
 	}
 	return key
 }
@@ -30218,9 +30371,9 @@ func find_special_key(srcp *Ptr[byte], modp *int32, flags int32, did_simplify *i
 			if key != NUL {
 				key = simplify_key(key, &modifiers)
 				if (flags & FSK_KEYCODE) == 0 {
-					if key == -('k' + (98 << 8)) {
+					if key == K_BS {
 						key = BS
-					} else if (key == -('k' + (68 << 8))) || (key == -(KS_EXTRA + (80 << 8))) {
+					} else if (key == K_DEL) || (key == K_KDEL) {
 						key = DEL
 					}
 				} else if ((key == 27) && ((flags & FSK_FROM_PART) != 0)) && ((kitty_protocol_state == KKPS_ENABLED) || (kitty_protocol_state == KKPS_DISABLED)) {
@@ -30229,7 +30382,7 @@ func find_special_key(srcp *Ptr[byte], modp *int32, flags int32, did_simplify *i
 							*did_simplify = TRUE
 						}
 					} else {
-						key = -(KS_EXTRA + (107 << 8))
+						key = K_ESC
 					}
 				}
 				if !(key < 0) {
@@ -30431,7 +30584,7 @@ func get_special_key_code(name Ptr[byte]) int32 {
 		if !entry.Nil() && (entry.P().enabled != 0) {
 			key := entry.P().key
 			var t1 int32
-			if key == -(KS_EXTRA + (54 << 8)) {
+			if key == K_TAB {
 				t1 = TAB
 			} else {
 				t1 = key
@@ -32256,8 +32409,8 @@ func normal_cmd_get_count(cap_ *S_cmdarg_S, c int32, toplevel int32, set_prevcou
 
 getcount:
 	if !((VIsual_active != 0) && (VIsual_select != 0)) {
-		for ((c >= '1') && (c <= '9')) || ((cap_.count0 != 0) && (((c == -('k' + (68 << 8))) || (c == -(KS_EXTRA + (80 << 8)))) || (c == '0'))) {
-			if (c == -('k' + (68 << 8))) || (c == -(KS_EXTRA + (80 << 8))) {
+		for ((c >= '1') && (c <= '9')) || ((cap_.count0 != 0) && (((c == K_DEL) || (c == K_KDEL)) || (c == '0'))) {
+			if (c == K_DEL) || (c == K_KDEL) {
 				cap_.count0 /= 10
 				del_from_showcmd(4)
 			} else if cap_.count0 > 99999999 {
@@ -32291,7 +32444,7 @@ getcount:
 			goto getcount
 		}
 	}
-	if c == -(KS_EXTRA + (96 << 8)) {
+	if c == K_CURSORHOLD {
 		cap_.oap.prev_opcount = cap_.opcount
 		cap_.oap.prev_count0 = cap_.count0
 	} else if cap_.opcount != 0 {
@@ -32505,7 +32658,7 @@ func normal_cmd(oap *S_oparg_S, toplevel int32) {
 	if c == NUL {
 		c = -(KS_ZERO + (88 << 8))
 	}
-	if ((VIsual_active != 0) && (VIsual_select != 0)) && (((vim_isprintc(c) || (c == NL)) || (c == CAR)) || (c == -('K' + (65 << 8)))) {
+	if ((VIsual_active != 0) && (VIsual_select != 0)) && (((vim_isprintc(c) || (c == NL)) || (c == CAR)) || (c == K_KENTER)) {
 		len_ = ins_char_typebuf(vgetc_char, vgetc_mod_mask)
 		if KeyTyped != 0 {
 			ungetchars(len_)
@@ -32561,7 +32714,7 @@ func normal_cmd(oap *S_oparg_S, toplevel int32) {
 	if need_flushbuf != 0 {
 		out_flush()
 	}
-	if ca.cmdchar != -(KS_EXTRA + (53 << 8)) {
+	if ca.cmdchar != K_IGNORE {
 		if ex_normal_busy != 0 {
 			did_cursorhold = save_did_cursorhold
 		} else {
@@ -32576,7 +32729,7 @@ func normal_cmd(oap *S_oparg_S, toplevel int32) {
 		}
 		goto normal_end
 	}
-	if ca.cmdchar != -(KS_EXTRA + (53 << 8)) {
+	if ca.cmdchar != K_IGNORE {
 		msg_didout = FALSE
 		msg_col = 0
 	}
@@ -32599,7 +32752,7 @@ func normal_cmd(oap *S_oparg_S, toplevel int32) {
 	if normal_cmd_old_mapped_len > 0 {
 		normal_cmd_old_mapped_len = typebuf_maplen()
 	}
-	if (ca.cmdchar != -(KS_EXTRA + (53 << 8))) && (ca.cmdchar != -(KS_EXTRA + (100 << 8))) {
+	if (ca.cmdchar != K_IGNORE) && (ca.cmdchar != K_MOUSEMOVE) {
 		do_pending_operator(&ca, old_col, FALSE)
 	}
 	if normal_cmd_need_to_wait_for_msg(&ca, &old_pos) {
@@ -32610,7 +32763,7 @@ normal_end:
 	if oap.op_type == OP_NOP {
 		finish_op = FALSE
 	}
-	if ((oap.op_type == OP_NOP) && (oap.regname == 0)) && (ca.cmdchar != -(KS_EXTRA + (96 << 8))) {
+	if ((oap.op_type == OP_NOP) && (oap.regname == 0)) && (ca.cmdchar != K_CURSORHOLD) {
 		clear_showcmd()
 	}
 	checkpcmark()
@@ -32862,18 +33015,18 @@ func clearopbeep(oap *S_oparg_S) {
 
 func unshift_special(cap_ *S_cmdarg_S) {
 	switch cap_.cmdchar {
-	case -('%' + (105 << 8)):
-		cap_.cmdchar = -('k' + (114 << 8))
-	case -('#' + (52 << 8)):
-		cap_.cmdchar = -('k' + (108 << 8))
-	case -(KS_EXTRA + (4 << 8)):
-		cap_.cmdchar = -('k' + (117 << 8))
-	case -(KS_EXTRA + (5 << 8)):
-		cap_.cmdchar = -('k' + (100 << 8))
-	case -('#' + (50 << 8)):
-		cap_.cmdchar = -('k' + (104 << 8))
-	case -('*' + (55 << 8)):
-		cap_.cmdchar = -('@' + (55 << 8))
+	case K_TC_PCT_i:
+		cap_.cmdchar = K_RIGHT
+	case K_TC_HASH_4:
+		cap_.cmdchar = K_LEFT
+	case K_S_UP:
+		cap_.cmdchar = K_UP
+	case K_S_DOWN:
+		cap_.cmdchar = K_DOWN
+	case K_TC_HASH_2:
+		cap_.cmdchar = K_HOME
+	case K_TC_STAR_7:
+		cap_.cmdchar = K_END
 	}
 	cap_.cmdchar = simplify_key(cap_.cmdchar, &mod_mask)
 }
@@ -33268,7 +33421,7 @@ func nv_z_get_count(cap_ *S_cmdarg_S, nchar_arg *int32) bool {
 		no_mapping--
 		allow_keys--
 		add_to_showcmd(nchar)
-		if (nchar == -('k' + (68 << 8))) || (nchar == -(KS_EXTRA + (80 << 8))) {
+		if (nchar == K_DEL) || (nchar == K_KDEL) {
 			n /= 10
 		} else if (uint32(nchar) - '0') < 10 {
 			if !vim_append_digit_long(&n, nchar-'0') {
@@ -33278,7 +33431,7 @@ func nv_z_get_count(cap_ *S_cmdarg_S, nchar_arg *int32) bool {
 		} else if nchar == CAR {
 			win_setheight(int32(n))
 			break
-		} else if (((nchar == 'l') || (nchar == 'h')) || (nchar == -('k' + (108 << 8)))) || (nchar == -('k' + (114 << 8))) {
+		} else if (((nchar == 'l') || (nchar == 'h')) || (nchar == K_LEFT)) || (nchar == K_RIGHT) {
 			var t1 int64
 			if n != 0 {
 				t1 = n * cap_.count1
@@ -33328,7 +33481,7 @@ func nv_zet(cap_ *S_cmdarg_S) {
 			}
 		}
 		fallthrough
-	case NL, CAR, -('K' + (65 << 8)):
+	case NL, CAR, K_KENTER:
 		beginline(BL_WHITE | BL_FIX)
 		fallthrough
 	case 't':
@@ -33362,7 +33515,7 @@ func nv_zet(cap_ *S_cmdarg_S) {
 	case 'H':
 		cap_.count1 *= int64(curwin.w_width / 2)
 		fallthrough
-	case 'h', -('k' + (108 << 8)):
+	case 'h', K_LEFT:
 		if curwin.w_onebuf_opt.wo_wrap == 0 {
 			var t1 colnr_T
 			if int32(cap_.count1) > curwin.w_leftcol {
@@ -33375,7 +33528,7 @@ func nv_zet(cap_ *S_cmdarg_S) {
 	case 'L':
 		cap_.count1 *= int64(curwin.w_width / 2)
 		fallthrough
-	case 'l', -('k' + (114 << 8)):
+	case 'l', K_RIGHT:
 		if curwin.w_onebuf_opt.wo_wrap == 0 {
 			set_leftcol(curwin.w_leftcol + int32(cap_.count1))
 		}
@@ -33420,7 +33573,7 @@ func nv_zet(cap_ *S_cmdarg_S) {
 func nv_colon(cap_ *S_cmdarg_S) {
 	var old_p_im int32
 	var cmd_result bool
-	is_cmdkey := (cap_.cmdchar == -(KS_EXTRA + (103 << 8))) || (cap_.cmdchar == -(KS_EXTRA + (104 << 8)))
+	is_cmdkey := (cap_.cmdchar == K_COMMAND) || (cap_.cmdchar == K_SCRIPT_COMMAND)
 	var flags int32
 	if (VIsual_active != 0) && !is_cmdkey {
 		nv_operator(cap_)
@@ -33694,7 +33847,7 @@ func nv_right(cap_ *S_cmdarg_S) {
 	n = cap_.count1
 	for ; n > 0; n-- {
 		if ((past_line == 0) && !oneright()) || ((past_line != 0) && (int32(ml_get_cursor().Get()) == NUL)) {
-			if ((((cap_.cmdchar == (' ')) && !vim_strchr(p_ww, 's').Nil()) || ((cap_.cmdchar == 'l') && !vim_strchr(p_ww, 'l').Nil())) || ((cap_.cmdchar == -('k' + (114 << 8))) && !vim_strchr(p_ww, '>').Nil())) && (curwin.w_cursor.lnum < curbuf.b_ml.ml_line_count) {
+			if ((((cap_.cmdchar == (' ')) && !vim_strchr(p_ww, 's').Nil()) || ((cap_.cmdchar == 'l') && !vim_strchr(p_ww, 'l').Nil())) || ((cap_.cmdchar == K_RIGHT) && !vim_strchr(p_ww, '>').Nil())) && (curwin.w_cursor.lnum < curbuf.b_ml.ml_line_count) {
 				if ((cap_.oap.op_type != OP_NOP) && (cap_.oap.inclusive == 0)) && !(int32(ml_get(curwin.w_cursor.lnum).Get()) == NUL) {
 					cap_.oap.inclusive = TRUE
 				} else {
@@ -33741,7 +33894,7 @@ func nv_left(cap_ *S_cmdarg_S) {
 	n = cap_.count1
 	for ; n > 0; n-- {
 		if !oneleft() {
-			if (((((cap_.cmdchar == -('k' + (98 << 8))) || (cap_.cmdchar == Ctrl_H)) && !vim_strchr(p_ww, 'b').Nil()) || ((cap_.cmdchar == 'h') && !vim_strchr(p_ww, 'h').Nil())) || ((cap_.cmdchar == -('k' + (108 << 8))) && !vim_strchr(p_ww, '<').Nil())) && (curwin.w_cursor.lnum > 1) {
+			if (((((cap_.cmdchar == K_BS) || (cap_.cmdchar == Ctrl_H)) && !vim_strchr(p_ww, 'b').Nil()) || ((cap_.cmdchar == 'h') && !vim_strchr(p_ww, 'h').Nil())) || ((cap_.cmdchar == K_LEFT) && !vim_strchr(p_ww, '<').Nil())) && (curwin.w_cursor.lnum > 1) {
 				curwin.w_cursor.lnum--
 				coladvance(2147483647)
 				curwin.w_set_curswant = true
@@ -33966,7 +34119,7 @@ func nv_brackets(cap_ *S_cmdarg_S) {
 			pos = Addr(&prev_pos)
 		}
 		nv_cursormark(cap_, B2i(cap_.nchar == 39), pos)
-	} else if (cap_.nchar >= -(KS_EXTRA + (52 << 8))) && (cap_.nchar <= -(KS_EXTRA + (44 << 8))) {
+	} else if (cap_.nchar >= K_RIGHTRELEASE) && (cap_.nchar <= K_LEFTMOUSE) {
 	} else {
 		clearopbeep(cap_.oap)
 	}
@@ -34339,7 +34492,7 @@ func nv_subst(cap_ *S_cmdarg_S) {
 }
 
 func nv_abbrev(cap_ *S_cmdarg_S) {
-	if (cap_.cmdchar == -('k' + (68 << 8))) || (cap_.cmdchar == -(KS_EXTRA + (80 << 8))) {
+	if (cap_.cmdchar == K_DEL) || (cap_.cmdchar == K_KDEL) {
 		cap_.cmdchar = 'x'
 	}
 	if VIsual_active != 0 {
@@ -34658,7 +34811,7 @@ func nv_g_dollar_cmd(cap_ *S_cmdarg_S) {
 	var i int32
 	col_off := curwin_col_off()
 	var flag bool = false
-	if (cap_.nchar == -('@' + (55 << 8))) || (cap_.nchar == -('K' + (52 << 8))) {
+	if (cap_.nchar == K_END) || (cap_.nchar == K_KEND) {
 		flag = true
 	}
 	oap.motion_type = MCHAR
@@ -34752,7 +34905,7 @@ func nv_g_cmd(cap_ *S_cmdarg_S) {
 		nv_gv_cmd(cap_)
 	case 'V':
 		VIsual_reselect = FALSE
-	case -('k' + (98 << 8)):
+	case K_BS:
 		cap_.nchar = Ctrl_H
 		fallthrough
 	case 'h', 'H', Ctrl_H:
@@ -34763,7 +34916,7 @@ func nv_g_cmd(cap_ *S_cmdarg_S) {
 		if !current_search(cap_.count1, B2i(cap_.nchar == 'n')) {
 			clearopbeep(oap)
 		}
-	case 'j', -('k' + (100 << 8)):
+	case 'j', K_DOWN:
 		if curwin.w_onebuf_opt.wo_wrap == 0 {
 			oap.motion_type = MLINE
 			i = B2i(cursor_down(cap_.count1, B2i(oap.op_type == OP_NOP)))
@@ -34773,7 +34926,7 @@ func nv_g_cmd(cap_ *S_cmdarg_S) {
 		if i == FAIL {
 			clearopbeep(oap)
 		}
-	case 'k', -('k' + (117 << 8)):
+	case 'k', K_UP:
 		if curwin.w_onebuf_opt.wo_wrap == 0 {
 			oap.motion_type = MLINE
 			i = B2i(cursor_up(cap_.count1, B2i(oap.op_type == OP_NOP)))
@@ -34785,7 +34938,7 @@ func nv_g_cmd(cap_ *S_cmdarg_S) {
 		}
 	case 'J':
 		nv_join(cap_)
-	case '^', '0', 'm', -('k' + (104 << 8)), -('K' + (49 << 8)):
+	case '^', '0', 'm', K_HOME, K_KHOME:
 		nv_g_home_m_cmd(cap_)
 	case 'M':
 		oap.motion_type = MCHAR
@@ -34799,7 +34952,7 @@ func nv_g_cmd(cap_ *S_cmdarg_S) {
 		curwin.w_set_curswant = true
 	case '_':
 		nv_g_underscore_cmd(cap_)
-	case '$', -('@' + (55 << 8)), -('K' + (52 << 8)):
+	case '$', K_END, K_KEND:
 		nv_g_dollar_cmd(cap_)
 	case '*', '#', POUND:
 		nv_ident(cap_)
@@ -34841,9 +34994,9 @@ func nv_g_cmd(cap_ *S_cmdarg_S) {
 		nv_goto(cap_)
 	case '~', 'u', 'U':
 		nv_operator(cap_)
-	case -(KS_EXTRA + (47 << 8)), -(KS_EXTRA + (48 << 8)), -(KS_EXTRA + (49 << 8)), -(KS_EXTRA + (44 << 8)), -(KS_EXTRA + (45 << 8)), -(KS_EXTRA + (46 << 8)), -(KS_EXTRA + (100 << 8)), -(KS_EXTRA + (50 << 8)), -(KS_EXTRA + (51 << 8)), -(KS_EXTRA + (52 << 8)), -(KS_EXTRA + (89 << 8)), -(KS_EXTRA + (90 << 8)), -(KS_EXTRA + (91 << 8)), -(KS_EXTRA + (92 << 8)), -(KS_EXTRA + (93 << 8)), -(KS_EXTRA + (94 << 8)):
+	case K_MIDDLEMOUSE, K_MIDDLEDRAG, K_MIDDLERELEASE, K_LEFTMOUSE, K_LEFTDRAG, K_LEFTRELEASE, K_MOUSEMOVE, K_RIGHTMOUSE, K_RIGHTDRAG, K_RIGHTRELEASE, K_X1MOUSE, K_X1DRAG, K_X1RELEASE, K_X2MOUSE, K_X2DRAG, K_X2RELEASE:
 		mod_mask = MOD_MASK_CTRL
-	case -(KS_EXTRA + (53 << 8)):
+	case K_IGNORE:
 	case 'p', 'P':
 		nv_put(cap_)
 	case ',':
@@ -35263,7 +35416,7 @@ func set_cursor_for_append_to_line() {
 }
 
 func nv_edit(cap_ *S_cmdarg_S) {
-	if (cap_.cmdchar == -('k' + (73 << 8))) || (cap_.cmdchar == -(KS_EXTRA + (79 << 8))) {
+	if (cap_.cmdchar == K_INS) || (cap_.cmdchar == K_KINS) {
 		cap_.cmdchar = 'i'
 	}
 	if (VIsual_active != 0) && ((cap_.cmdchar == 'A') || (cap_.cmdchar == 'I')) {
@@ -35273,10 +35426,10 @@ func nv_edit(cap_ *S_cmdarg_S) {
 	} else if (curbuf.b_p_ma == 0) && (p_im == 0) {
 		emsg(gettext_(e_cannot_make_changes_modifiable_is_off))
 		clearop(cap_.oap)
-		if cap_.cmdchar == -('P' + (83 << 8)) {
+		if cap_.cmdchar == K_PASTESTART {
 			bracketed_paste(PASTE_INSERT, TRUE, nil)
 		}
-	} else if (cap_.cmdchar == -('P' + (83 << 8))) && (VIsual_active != 0) {
+	} else if (cap_.cmdchar == K_PASTESTART) && (VIsual_active != 0) {
 		old_pos := curwin.w_cursor
 		old_visual := VIsual
 		old_visual_mode := VIsual_mode
@@ -35290,7 +35443,7 @@ func nv_edit(cap_ *S_cmdarg_S) {
 		cap_.nchar = NUL
 		nv_operator(cap_)
 		do_pending_operator(cap_, 0, FALSE)
-		cap_.cmdchar = -('P' + (83 << 8))
+		cap_.cmdchar = K_PASTESTART
 		if int32(ml_get_cursor().Get()) != NUL {
 			if old_visual_mode == 'V' {
 				if (curwin.w_cursor.lnum < old_pos.lnum) && (curwin.w_cursor.lnum < old_visual.lnum) {
@@ -35316,7 +35469,7 @@ func nv_edit(cap_ *S_cmdarg_S) {
 			} else {
 				beginline(BL_WHITE | BL_FIX)
 			}
-		case -('P' + (83 << 8)):
+		case K_PASTESTART:
 			if curwin.w_cursor.col == 0 {
 				break
 			}
@@ -35335,7 +35488,7 @@ func nv_edit(cap_ *S_cmdarg_S) {
 			State = save_State
 		}
 		invoke_edit(cap_, FALSE, cap_.cmdchar, FALSE)
-	} else if cap_.cmdchar == -('P' + (83 << 8)) {
+	} else if cap_.cmdchar == K_PASTESTART {
 		bracketed_paste(PASTE_INSERT, TRUE, nil)
 	}
 }
@@ -37799,7 +37952,7 @@ func get_op_vcol(oap *S_oparg_S, redo_VIsual_vcol colnr_T, initial int32) {
 }
 
 func is_ex_cmdchar(cap_ *S_cmdarg_S) bool {
-	return ((cap_.cmdchar == ':') || (cap_.cmdchar == -(KS_EXTRA + (103 << 8)))) || (cap_.cmdchar == -(KS_EXTRA + (104 << 8)))
+	return ((cap_.cmdchar == ':') || (cap_.cmdchar == K_COMMAND)) || (cap_.cmdchar == K_SCRIPT_COMMAND)
 }
 
 func do_pending_operator(cap_ *S_cmdarg_S, old_col int32, gui_yank int32) {
@@ -53106,7 +53259,7 @@ func handle_key_with_modifier(arg Ptr[int32], csi_len int32, offset int32, buf P
 		key += 'A' - 'a'
 	}
 	if key == ESC {
-		key = -(KS_EXTRA + (107 << 8))
+		key = K_ESC
 	} else if ((arg.At(0) >= 11) && (arg.At(0) <= 24)) && (trail == '~') {
 		key = parse_csi_f_keys(arg.At(0))
 	}
@@ -57214,7 +57367,7 @@ func vim_main2() int32 {
 		need_start_insertmode = TRUE
 	}
 	if restart_edit != 0 {
-		stuffcharReadbuff(-(KS_EXTRA + (97 << 8)))
+		stuffcharReadbuff(K_NOP)
 	}
 	do_redraw = TRUE
 	main_loop(FALSE)
