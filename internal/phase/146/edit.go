@@ -81,14 +81,13 @@ var (
 // the two are allocated.  Every cast is then a field -- (DATA_BL *)(hp) is
 // hp->bh_data -- and the blocks no longer begin with a header.  Every cast
 // was of a node already known not to be NULL, so reading the field where the
-// cast was changes nothing.
+// cast was changes nothing.  The headers the blocks began with, pb_hdr and
+// db_hdr, are named by nothing then, and the sweep takes them.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "memnode", W: w}
 	var err error
 	steps := []struct{ Old, New, What string }{
 		{"struct block_hdr\n{\n    short_u     bh_id;\n};\n", "struct block_hdr\n{\n    short_u     bh_id;\n    struct pointer_block *bh_ptr;\n    struct data_block *bh_data;\n};\n", "a node is its tag and a pointer to its block"},
-		{"    bhdr_T      pb_hdr;\n", "", "a pointer block begins with no header"},
-		{"    bhdr_T      db_hdr;\n", "", "nor does a data block"},
 		{"static_assert(sizeof(DATA_BL) == 16 + DB_LINE_MAX * sizeof(DATA_LN), \"a leaf is its tag, its count and its records\");",
 			"static_assert(sizeof(DATA_BL) == 8 + DB_LINE_MAX * sizeof(DATA_LN), \"a leaf is its count and its records\");", "a leaf is its count and its records"},
 	}
