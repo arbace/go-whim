@@ -171,8 +171,8 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 		var err error
 		for _, l := range []struct{ old, what string }{
 			{" || (cmdwin_type > 0 && tc == ESC)", "an interrupted Esc closing it"},
-			// tc remembered the previous key for that test alone.
-			{"                    static int tc = 0;\n", "vgetorpeek declaring the previous key"},
+			// tc remembered the previous key for that test alone.  Its store goes
+			// here and its declaration is the sweep's.
 			{"                    tc = c;\n", "vgetorpeek remembering it"},
 		} {
 			if s, err = e.literal(s, l.old, "", l.what, 1); err != nil {
@@ -341,13 +341,9 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	if text, err = e.inFunction(text, "ex_drop", func(s []byte) ([]byte, error) {
-		s, err := e.literal(s, "    int split = FALSE;\n", "",
-			":drop declaring its fallback", 1)
+		s, err := e.dropIfPlain(s, `^[ \t]*if \(!buf_hide\(curbuf\)\)$`,
+			":drop asking whether to split")
 		if err != nil {
-			return nil, err
-		}
-		if s, err = e.dropIfPlain(s, `^[ \t]*if \(!buf_hide\(curbuf\)\)$`,
-			":drop asking whether to split"); err != nil {
 			return nil, err
 		}
 		return e.foldNever(s, `^[ \t]*if \(split\)$`, ":drop splitting")
@@ -355,13 +351,9 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 	if text, err = e.inFunction(text, "do_argfile", func(s []byte) ([]byte, error) {
-		s, err := e.literal(s, "    int is_split_cmd = *eap->cmd == 's';\n", "",
-			"do_argfile asking for a split", 1)
+		s, err := e.literal(s, "!is_split_cmd && ", "",
+			"do_argfile checking the buffer can go", 1)
 		if err != nil {
-			return nil, err
-		}
-		if s, err = e.literal(s, "!is_split_cmd && ", "",
-			"do_argfile checking the buffer can go", 1); err != nil {
 			return nil, err
 		}
 		return e.foldNever(s, `^[ \t]*if \(is_split_cmd\)$`, "do_argfile splitting")
@@ -439,7 +431,7 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 		for _, l := range []struct{ old, what string }{
-			{"    int i;\n    win_T *wp;\n", "ex_listdo declaring its counters"},
+			// The stores go here; i's and wp's declarations are the sweep's.
 			{"        i = 0;\n", "ex_listdo starting the count"},
 			{"            ++i;\n", "ex_listdo counting"},
 		} {
