@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 // The lowered form on C that is not vim: every function of each program is
@@ -45,7 +46,8 @@ func runC(t *testing.T, dir, name, src, harness string) string {
 	if o, err := exec.Command("gcc", "-w", "-O0", "-Wno-error=incompatible-pointer-types", "-o", exe, c, h).CombinedOutput(); err != nil {
 		t.Fatalf("gcc: %v\n%s\n%s", err, o, numbered(src))
 	}
-	b, err := exec.Command(exe).Output()
+	// a wrong lowering may loop for ever: bounded, and killed with the test
+	b, err := bounded(60*time.Second, "", exe)
 	if err != nil {
 		t.Fatalf("%s: %v", name, err)
 	}

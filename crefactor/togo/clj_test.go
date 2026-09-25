@@ -236,3 +236,160 @@ func cljMatch(t *testing.T, prog string, pats ...string) {
 		}
 	}
 }
+
+// Every state machine split into functions of its states (Profile.CljSplit
+// at its least): the frame carries the variables between them, and the
+// programs print what the C prints.
+func TestCljSplit(t *testing.T) {
+	for _, c := range []struct {
+		name, src string
+		prof      Profile
+		harness   string
+	}{
+		{"flow", javaFlowC, Profile{CljSplit: 1}, javaHarnessC},
+		{"goto", javaGotoC, Profile{CljSplit: 1}, javaHarnessC},
+		{"extra", lowerExtraC, Profile{CljSplit: 1}, javaHarnessC},
+		{"shapes", cljShapesC, Profile{CljSplit: 1}, javaHarnessC},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			prog := cljSame(t, c.src, c.prof, c.harness)
+			cljMatch(t, prog, `\(defn- \w+__0 \^long \[\^Editor ed \^longs fl__ \^objects fo__ \^long st0__\]`)
+		})
+	}
+}
+
+// The shapes: a loop with nothing that jumps out of it is a loop over what
+// it changes -- a goto backwards too -- a join whose arms change one
+// variable it reads a let of an if, and a join whose arms change two a
+// state machine.
+const cljShapesC = javaHost + `
+int sum(int n)
+{
+    int t = 0;
+    for (int i = 0; i < n; i++)
+        t += i * i;
+    return t;
+}
+
+int pick(int x)
+{
+    int r;
+    if (x > 0)
+        r = 1;
+    else
+        r = -1;
+    r = r * 7;
+    out(r);
+    out(0);
+    return r + 1;
+}
+
+int two(int x)
+{
+    int a = 0, b = 0;
+    if (x > 0)
+    {
+        a = x;
+        b = x * 2;
+    }
+    out(a);
+    out(b);
+    out(0);
+    return a + b;
+}
+
+int back(int n)
+{
+    int t = 0;
+again:
+    t += n;
+    if (--n > 0)
+        goto again;
+    return t;
+}
+
+void run(void)
+{
+    out(sum(10));
+    out(pick(3) + pick(-3));
+    out(two(4) + two(-4));
+    out(back(5));
+}
+`
+
+func TestCljShapes(t *testing.T) {
+	prog := cljSame(t, cljShapesC, Profile{}, javaHarnessC)
+	cljMatch(t, prog,
+		`(?s)\(defn sum \^long \[\^Editor ed \^long n\]\n  \(let \[t 0\n\s+i 0\]\n\s+\(loop \[t t\n\s+i i\]`,
+		`(?s)\(defn pick .*\(let \[r \(if \(> x 0\)`,
+		`(?s)\(defn back .*\(loop \[n n\n\s+t t\]`,
+		`(?s)\(defn two .*\(case st`,
+		`;; 5 of 5 functions written \(4 structured, 1 state machines\)`)
+}
+
+// The control: the comparison sees a translation that is wrong.  Each
+// mutation undoes one rule of the Clojure's -- an unsigned int's range, a
+// signed int's, an unsigned char widened without its mask, unsigned 64-bit
+// division, a struct passed by value, a pointer to another function, a
+// join's value -- and each must move the output.
+func TestCljControl(t *testing.T) {
+	cp := requireClj(t)
+	for _, c := range []struct {
+		name, src string
+		from      *regexp.Regexp
+		repl      string
+	}{
+		{"unsigned range", javaIntsC, regexp.MustCompile(`\(u32 `), "(identity "},
+		{"signed range", javaIntsC, regexp.MustCompile(`\(i16 `), "(identity "},
+		{"unsigned widening", javaStringsC, regexp.MustCompile(`\(bit-and (\((?:aget|\.at|\.get) [^()]*\)) 0xff\)`), "(long $1)"},
+		{"unsigned division", javaIntsC, regexp.MustCompile(`Long/divideUnsigned`), "quot"},
+		{"struct copy", javaStructsC, regexp.MustCompile(`\(\.copy `), "(identity "},
+		{"function pointer", javaPointersC, regexp.MustCompile(`\(apply_ ed sub `), "(apply_ ed mul "},
+		{"join", cljShapesC, regexp.MustCompile(`\(let \[r \(if \(> x 0\)`), "(let [r (if (< x 0)"},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			t.Parallel()
+			dir := t.TempDir()
+			prog, refused := cljProgram(t, dir, c.src, Profile{})
+			if refused != "" {
+				t.Fatalf("refused:\n%s", refused)
+			}
+			wrong := c.from.ReplaceAllString(prog, c.repl)
+			if wrong == prog {
+				t.Fatalf("the control changed nothing:\n%s", numbered(prog))
+			}
+			want := cOutputWith(t, dir, c.src, javaHarnessC)
+			if cljOutput(t, cp, dir, prog) != want {
+				t.Fatalf("the right translation does not print what the C prints")
+			}
+			if cljOutput(t, cp, dir, wrong) == want {
+				t.Errorf("the control: the wrong translation prints what the C prints")
+			}
+		})
+	}
+}
+
+// What is refused is refused per function, with its reason, and the
+// namespace still loads: the function is a stub that throws.
+func TestCljRefuses(t *testing.T) {
+	cp := requireClj(t)
+	const src = javaHost + `
+int half(int x) { double d = x; return d / 2; }
+int first(int n, ...) { return n; }
+int fine(int x) { return x + 1; }
+void run(void) { out(fine(1)); }
+`
+	dir := t.TempDir()
+	prog, refused := cljProgram(t, dir, src, Profile{})
+	for _, want := range []string{"half: floating point", "first: a variadic function"} {
+		if !strings.Contains(refused, want) {
+			t.Errorf("no %q in the refusals:\n%s", want, refused)
+		}
+	}
+	if strings.Contains(refused, "fine:") || strings.Contains(refused, "run:") {
+		t.Errorf("a function refused that is not:\n%s", refused)
+	}
+	if got := cljOutput(t, cp, dir, prog); got != "2\n" {
+		t.Errorf("the Clojure prints %q", got)
+	}
+}
