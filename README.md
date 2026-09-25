@@ -36,10 +36,12 @@ cannot reach -- then the one canonical print. What answers for it
 is that the product is tracked — `make whim-build-check` requires the committed
 bytes back from the committed input.
 
-**The test suite is minimal**, `make whim-test`: 44 key sessions, each required
-to print the same screens from the working tree's build as from HEAD's, and from
-the Go editor as from the C, with a control that must move them; about five
-seconds. The suite each phase was verified with while it was written -- check
+**Two test suites.** `make whim-test` is the quick one: 45 key sessions, each
+required to print the same screens from the working tree's build as from HEAD's,
+and from the Go editor as from the C, with a control that must move them; about
+five seconds. `make whim-test-wide` is the optional wide one: 240 cases in four
+groups -- keystrokes with startup arguments, every Ex command, command lines,
+and a real terminal -- held to the same comparisons. The suite each phase was verified with while it was written -- check
 programs, and deltas declared in advance against recorded baselines -- was
 removed after `448e9a8`, the last commit that has it.
 

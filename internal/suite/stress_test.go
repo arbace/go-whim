@@ -65,3 +65,41 @@ func TestStress(t *testing.T) {
 		}
 	}
 }
+
+// TestWideStress is TestStress for the wide suite: every wide case REPS times
+// on each of BINS, counting runs whose output or status is not the case's
+// first.  The ex group is made from src/whim-vim.c.
+func TestWideStress(t *testing.T) {
+	bins := os.Getenv("BINS")
+	if bins == "" {
+		t.Skip()
+	}
+	reps, _ := strconv.Atoi(os.Getenv("REPS"))
+	cases, err := WideCases()
+	if err != nil {
+		t.Fatal(err)
+	}
+	src, err := os.ReadFile("../../src/whim-vim.c")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ex, err := exCases(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cases = append(cases, ex...)
+	for _, bin := range bytes.Fields([]byte(bins)) {
+		b := string(bin)
+		diff := map[string]int{}
+		for _, c := range cases {
+			first, fs, _ := runWide(b, c)
+			for i := 1; i < reps; i++ {
+				out, s, _ := runWide(b, c)
+				if s != fs || !bytes.Equal(out, first) {
+					diff[c.Group]++
+				}
+			}
+		}
+		t.Logf("%s: runs differing from the case's first, by group: %v (of %d cases x %d)", b, diff, len(cases), reps-1)
+	}
+}

@@ -6,13 +6,6 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 
 ## Queued, measured, not started
 
-- **A wider test suite.** `make whim-test` (`internal/suite`) is the minimal
-  one: 45 key sessions on stdin, compared against HEAD's build, 24x80, no pty,
-  no files, no startup options. What it cannot see -- terminal handling,
-  resize, reading and writing files, `argv` -- the archived suite (`448e9a8`:
-  `internal/harness`, its corpus and pty harness) covered and is where a wider
-  one can be read from. It checks the Go editor against the C on the same
-  cases, so a wider corpus widens both.
 
 - **The generic C refactorings, separated from vim's** (`doc/VIM-VS-GENERIC.md`).
   12 phases are generic C, 93 mixed (most apply a generic kernel to targets vim

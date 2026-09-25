@@ -123,7 +123,7 @@ var tools = map[string]tool{
 	"skel":        {runSkel, "skel <editor.c> <outdir> [-bodies | -editor <editor.go>]"},
 	"splice":      {runSplice, "splice <editor-dir> <bodies.go> <out-dir>"},
 	"pre":         {runPre, "pre casts|order|unions|garrays|voids|gotos|funcs <editor.c>"},
-	"test":        {runTest, "test [--ref REV] [FILE]"},
+	"test":        {runTest, "test [--wide] [--ref REV] [FILE]"},
 	"measure":     {runMeasure, "measure <dir of qNNN.c>"},
 	"reach":       {runReach, "reach <file.c> [--no-control]"},
 }

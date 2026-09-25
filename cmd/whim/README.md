@@ -10,7 +10,7 @@ commit that has them.
 | | |
 | --- | --- |
 | `go tool whim build` | the 164 phases in one process; `--check` requires the committed product back, `--canonical` prints the input in canonical form at phase 0 first, `--keep-going` records a phase that refuses instead of stopping |
-| `go tool whim test` | the editor on the key sessions in `internal/suite/cases.md`, built from the working tree and from `--ref REV` (HEAD), required to print the same; a control must move one (`internal/suite`) |
+| `go tool whim test` | the quick suite: the editor on the key sessions in `internal/suite/cases.md`, built from the working tree and from `--ref REV` (HEAD), required to print the same, and the Go editor as the C; a control must move one. `--wide` runs the optional wide suite instead: keystrokes with arguments (`wide-cases.md`), every Ex command, command lines (`wide-argv.md`) and a real terminal (`wide-pty.md`) (`internal/suite`) |
 | `go tool whim sweep` | the sweep on one file: one reachability closure over its parse, and everything it did not reach cut out (`internal/sweep`) |
 | `go tool whim cemit` | one file in the canonical C23 form (`internal/cemit`), `--check` to ask whether it already is |
 | `go tool whim parse` | the front end's smoke test, and the proof that the PATCHED `internal/cc` is what got linked |

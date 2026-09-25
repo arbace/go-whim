@@ -16,7 +16,6 @@ package suite
 
 import (
 	"bytes"
-	"context"
 	_ "embed"
 	"fmt"
 	"io"
@@ -26,6 +25,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/arbace/go-whim/internal/build"
@@ -115,7 +115,10 @@ func Build(src, dir, name string) (string, error) {
 }
 
 // Run is one session: its output and its exit status, or a hang.
-func Run(bin string, keys []byte) ([]byte, int, error) {
+func Run(bin string, keys []byte) ([]byte, int, error) { return RunArgs(bin, nil, keys) }
+
+// RunArgs is Run with the editor's command-line arguments.
+func RunArgs(bin string, args []string, keys []byte) ([]byte, int, error) {
 	// THE KEYS ARE A FILE, NOT A PIPE.  The editor asks whether more typed input
 	// is waiting when it decides whether to redraw, and through a pipe the answer
 	// is how much the feeding goroutine has written by then: under load the
@@ -133,23 +136,57 @@ func Run(bin string, keys []byte) ([]byte, int, error) {
 	if _, err := in.Seek(0, 0); err != nil {
 		return nil, -1, err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	cmd := exec.CommandContext(ctx, bin)
+	cmd := exec.Command(bin, args...)
 	cmd.Stdin = in
-	var out bytes.Buffer
-	cmd.Stdout, cmd.Stderr = &out, &out
-	err = cmd.Run()
-	if ctx.Err() != nil {
-		return out.Bytes(), -1, fmt.Errorf("no exit within 10 s")
-	}
-	code := 0
-	if ee, ok := err.(*exec.ExitError); ok {
-		code = ee.ExitCode()
-	} else if err != nil {
+	// ITS OWN PROCESS GROUP.  `:suspend` and `:stop` signal the editor's whole group,
+	// and in ours that stops the test and the shell that ran it.
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	// The output is a file as well: the child is reaped here, by wait4, and no
+	// goroutine copying a pipe is left waiting on it.
+	out, err := os.CreateTemp("", "out.")
+	if err != nil {
 		return nil, -1, err
 	}
-	return out.Bytes(), code, nil
+	defer os.Remove(out.Name())
+	defer out.Close()
+	cmd.Stdout, cmd.Stderr = out, out
+	if err := cmd.Start(); err != nil {
+		return nil, -1, err
+	}
+	code, err := reap(cmd.Process.Pid, 10*time.Second)
+	b, rerr := os.ReadFile(out.Name())
+	if err != nil {
+		return b, -1, err
+	}
+	return b, code, rerr
+}
+
+// reap waits for pid to exit, as a shell would: a child that stops itself --
+// `:suspend`, `:stop` -- is continued with SIGCONT, and one still running
+// after limit is killed.  The exit status, or -1 for a signal.
+func reap(pid int, limit time.Duration) (int, error) {
+	timer := time.AfterFunc(limit, func() { syscall.Kill(pid, syscall.SIGKILL) })
+	defer timer.Stop()
+	for {
+		var ws syscall.WaitStatus
+		if _, err := syscall.Wait4(pid, &ws, syscall.WUNTRACED, nil); err != nil {
+			if err == syscall.EINTR {
+				continue
+			}
+			return -1, err
+		}
+		switch {
+		case ws.Stopped():
+			syscall.Kill(pid, syscall.SIGCONT)
+		case ws.Exited():
+			return ws.ExitStatus(), nil
+		case ws.Signaled():
+			if ws.Signal() == syscall.SIGKILL {
+				return -1, fmt.Errorf("no exit within %s", limit)
+			}
+			return -1, nil
+		}
+	}
 }
 
 // Compare runs every case on ref and on cand and returns the names of the
@@ -189,48 +226,12 @@ func Check(w io.Writer, rev, candSrc string) error {
 	if err != nil {
 		return err
 	}
-	dir, err := os.MkdirTemp("", "suite.")
+	b, err := prepare(rev, candSrc)
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(dir)
-	refSrc := filepath.Join(dir, "ref.c")
-	show, err := exec.Command("git", "show", rev+":src/whim-vim.c").Output()
-	if err != nil {
-		return fmt.Errorf("git show %s:src/whim-vim.c: %w", rev, err)
-	}
-	if err := os.WriteFile(refSrc, show, 0o644); err != nil {
-		return err
-	}
-	cand, err := os.ReadFile(candSrc)
-	if err != nil {
-		return err
-	}
-	if bytes.Count(cand, []byte(controlOld)) != 1 {
-		return fmt.Errorf("suite: the control string %s is not in %s exactly once", controlOld, candSrc)
-	}
-	ctlSrc := filepath.Join(dir, "control.c")
-	if err := os.WriteFile(ctlSrc, bytes.Replace(cand, []byte(controlOld), []byte(controlNew), 1), 0o644); err != nil {
-		return err
-	}
-	// The three builds are the cost of a run, and independent: side by side.
-	srcs, names := []string{refSrc, candSrc, ctlSrc}, []string{"ref", "cand", "control"}
-	bins, errs := make([]string, 3), make([]error, 3)
-	var wg sync.WaitGroup
-	for i := range srcs {
-		wg.Add(1)
-		go func(i int) {
-			defer wg.Done()
-			bins[i], errs[i] = Build(srcs[i], dir, names[i])
-		}(i)
-	}
-	wg.Wait()
-	for _, err := range errs {
-		if err != nil {
-			return err
-		}
-	}
-	ref, cb, ctl := bins[0], bins[1], bins[2]
+	defer os.RemoveAll(b.dir)
+	ref, cb, ctl := b.ref, b.cand, b.ctl
 	start := time.Now()
 	seen, err := Compare(cases, ref, ctl)
 	if err != nil {
@@ -254,11 +255,7 @@ func Check(w io.Writer, rev, candSrc string) error {
 	// internal/gen made of the C, answering exactly as the C candidate does.
 	// Its control is the C one's: the string is in editor.go too.
 	goStart := time.Now()
-	goBin := filepath.Join(dir, "whim")
-	if out, err := exec.Command("go", "build", "-o", goBin, "./editor").CombinedOutput(); err != nil {
-		return fmt.Errorf("go build ./editor: %v\n%s", err, out)
-	}
-	goDiff, err := Compare(cases, cb, goBin)
+	goDiff, err := Compare(cases, cb, b.goBin)
 	if err != nil {
 		return err
 	}
@@ -269,4 +266,71 @@ func Check(w io.Writer, rev, candSrc string) error {
 	fmt.Fprintf(w, "  test         the Go editor (editor/) answers all %d exactly as the C does; %dms\n",
 		len(cases), time.Since(goStart).Milliseconds())
 	return nil
+}
+
+// builds is what a run compares: the C of rev (the reference), the
+// candidate's C, the candidate with the control applied, and the Go editor as
+// editor/ stands -- in a directory the caller removes.
+type builds struct {
+	dir                   string
+	refSrc, candSrc       []byte
+	ref, cand, ctl, goBin string
+}
+
+// prepare makes the four binaries, side by side: they are the cost of a run,
+// and independent.
+func prepare(rev, candSrc string) (*builds, error) {
+	dir, err := os.MkdirTemp("", "suite.")
+	if err != nil {
+		return nil, err
+	}
+	b := &builds{dir: dir}
+	fail := func(err error) (*builds, error) {
+		os.RemoveAll(dir)
+		return nil, err
+	}
+	if b.refSrc, err = exec.Command("git", "show", rev+":src/whim-vim.c").Output(); err != nil {
+		return fail(fmt.Errorf("git show %s:src/whim-vim.c: %w", rev, err))
+	}
+	if b.candSrc, err = os.ReadFile(candSrc); err != nil {
+		return fail(err)
+	}
+	if bytes.Count(b.candSrc, []byte(controlOld)) != 1 {
+		return fail(fmt.Errorf("suite: the control string %s is not in %s exactly once", controlOld, candSrc))
+	}
+	refSrc, ctlSrc := filepath.Join(dir, "ref.c"), filepath.Join(dir, "control.c")
+	if err := os.WriteFile(refSrc, b.refSrc, 0o644); err != nil {
+		return fail(err)
+	}
+	if err := os.WriteFile(ctlSrc, bytes.Replace(b.candSrc, []byte(controlOld), []byte(controlNew), 1), 0o644); err != nil {
+		return fail(err)
+	}
+	b.goBin = filepath.Join(dir, "whim")
+	jobs := []func() error{
+		func() (err error) { b.ref, err = Build(refSrc, dir, "ref"); return },
+		func() (err error) { b.cand, err = Build(candSrc, dir, "cand"); return },
+		func() (err error) { b.ctl, err = Build(ctlSrc, dir, "control"); return },
+		func() error {
+			if out, err := exec.Command("go", "build", "-o", b.goBin, "./editor").CombinedOutput(); err != nil {
+				return fmt.Errorf("go build ./editor: %v\n%s", err, out)
+			}
+			return nil
+		},
+	}
+	errs := make([]error, len(jobs))
+	var wg sync.WaitGroup
+	for i, j := range jobs {
+		wg.Add(1)
+		go func(i int, j func() error) {
+			defer wg.Done()
+			errs[i] = j()
+		}(i, j)
+	}
+	wg.Wait()
+	for _, err := range errs {
+		if err != nil {
+			return fail(err)
+		}
+	}
+	return b, nil
 }

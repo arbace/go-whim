@@ -65,15 +65,22 @@ slim-vim.c  --whim-->  whim-vim.c
   baselines and `make whim-verify`) was removed after `448e9a8`, the last commit
   that has it. What proves a change now is two things: `make whim-build-check`,
   the committed product back byte for byte, which sees the text; and `make
-  whim-test` (`internal/suite`), which sees the editor -- 44 key sessions
-  (`internal/suite/cases.md`) fed on stdin to a build of the working tree's
+  whim-test` (`internal/suite`), which sees the editor -- 45 key sessions
+  (`internal/suite/cases.md`) fed from a file on stdin, so that a run's output
+  never depends on timing, to a build of the working tree's
   `src/whim-vim.c` and to one of HEAD's, required to print the same screens and
   exit the same way, with a control (`" INSERT"` spelled `" INSERX"`) that must
   move at least one of them, and a case that runs out of keys before its `:q!`
   refused. Then the same cases on the GO editor (`editor/` built), required to
   answer exactly as the C candidate does -- the one check that `editor.go` is
   the editor and not only what `internal/gen` writes (the same control moves 41
-  of the 44 there). About 5 s, the four builds side by side.
+  of the 45 there). About 5 s, the four builds side by side. **`make
+  whim-test-wide`** is optional and wider: 240 cases in four groups -- the 102
+  keystroke cases of the archived suite with their startup arguments, every Ex
+  command by name, 30 command lines, and 10 runs on a real pseudo-terminal of
+  several sizes and TERMs -- held to the same two comparisons and the same
+  control, in about 4 s. Both are exact under load (`internal/suite/stress_test.go`:
+  0 differing runs of 6,720 for the wide suite).
 
 ## What a file is called
 
@@ -175,7 +182,8 @@ make                 # all: bin/whim, the editor (editor/ built), through whim-v
 make whim-build      # the 170 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go that is not what internal/gen writes
-make whim-test        # the editor on 44 key sessions, required to behave as HEAD's does
+make whim-test        # the quick suite: 45 key sessions, required to behave as HEAD's does
+make whim-test-wide   # the optional wide suite: 240 cases, keys, Ex commands, argv, a terminal
 make whim-vim        # the C product's binary
 make slim-vim        # the input's binary, with the same one line
 make score           # bytes to store and symbols to provide, input beside product
