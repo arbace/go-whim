@@ -210,3 +210,5 @@ carry. Phase 106's whole content was inside the `cmp`; a sixth of this phase's â
 attributes it keeps â€” is outside it, and the phase had to go and get a second instrument
 for that part rather than let the strongest evidence it had cover a decision the evidence
 cannot see.
+
+The transformation now lives in `internal/crefactor/xform` (`Attrs`).

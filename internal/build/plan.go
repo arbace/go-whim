@@ -582,7 +582,7 @@ var Plan = []Phase{
 		}},
 	{N: 106, Name: "`nullptr` and `usize`",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim106"}},
+			{Op: "edit", Args: []string{"whim106", "--casts", "1"}},
 		}},
 	{N: 107, Name: "the attributes",
 		Steps: []Step{
@@ -635,7 +635,7 @@ var Plan = []Phase{
 		}},
 	{N: 120, Name: "the degenerate unions go",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim120"}},
+			{Op: "edit", Args: []string{"whim120", "--degenerate", "1", "--genuine", "1"}},
 		}},
 	{N: 121, Name: "the eight terminal names go, leaving two",
 		Steps: []Step{

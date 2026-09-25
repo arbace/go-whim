@@ -47,3 +47,5 @@ counts that had counted a kept header's line on purpose drop by one: 103's
 (the typedef on line 13, the first twelve lines lifted), and now use the size
 they were handed. Phase 147 moves `<fcntl.h>` beside `<termios.h>` instead of
 adding it.
+
+The transformation now lives in `internal/crefactor/xform` (`Includes`), with its compiler question in `internal/whim/xform.go`.

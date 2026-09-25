@@ -1,4 +1,4 @@
-package steps
+package xform
 
 import (
 	"fmt"
@@ -12,25 +12,31 @@ import (
 	"sync"
 )
 
-// ccCheck is phase 82's compiler question, and the whole of its instrument: a
-// header is unnecessary when the file still compiles with NOTHING printed.  A
-// warning is an answer, so `gcc` exiting 0 is not enough -- it exits 0 with
-// warnings, and an implicit declaration is exactly the warning a removed header
-// produces.
-var ccCheck = []string{"-fsyntax-only", "-O0", "-Wall", "-Wextra", "-Wno-unused-parameter"}
+// Silent is the compiler question Includes asks: a file is fine when Cmd,
+// given Flags and the file, prints NOTHING.  A warning is an answer, so the
+// command exiting 0 is not enough -- gcc exits 0 with warnings, and an
+// implicit declaration is exactly the warning a removed header produces.
+type Silent struct {
+	Cmd   string
+	Flags []string
+}
 
 var includeLine = regexp.MustCompile(`^#include <[^>]+>$`)
 
-// Includes removes every system header the file does not need, asking the
-// compiler rather than a rule: each `#include <...>` line is deleted on its own
-// and kept out if the file still compiles silently; the survivors are then
-// removed together, and if that is not silent they are re-tried one at a time
-// FROM THE BOTTOM, which is the order phase 82's program used and therefore the
-// order the committed product was cut in.
+// Includes is the step that removes every system header the file does not
+// need, asking the compiler rather than a rule: each `#include <...>` line is
+// deleted on its own and kept out if the file still compiles silently; the
+// survivors are then removed together, and if that is not silent they are
+// re-tried one at a time FROM THE BOTTOM.  A directive other than `#include`
+// refuses, and so does an input that does not compile silently.
 //
-// With a directory argument it leaves `total` and `keep` there, as the phase
-// program did, for a check that wants to know what was asked and what went.
-func Includes(t []byte, args []string, w io.Writer) ([]byte, error) {
+// With a directory argument it leaves `total` and `keep` there, for a check
+// that wants to know what was asked and what went.
+func Includes(s Silent) Step {
+	return func(t []byte, args []string, w io.Writer) ([]byte, error) { return includes(s, t, args, w) }
+}
+
+func includes(s Silent, t []byte, args []string, w io.Writer) ([]byte, error) {
 	lines := strings.Split(string(t), "\n")
 	var cand []int
 	for i, ln := range lines {
@@ -54,7 +60,7 @@ func Includes(t []byte, args []string, w io.Writer) ([]byte, error) {
 		if err := os.WriteFile(p, text, 0o644); err != nil {
 			return false, err
 		}
-		out, err := exec.Command("gcc", append(append([]string{}, ccCheck...), p)...).CombinedOutput()
+		out, err := exec.Command(s.Cmd, append(append([]string{}, s.Flags...), p)...).CombinedOutput()
 		os.Remove(p)
 		return err == nil && len(out) == 0, nil
 	}

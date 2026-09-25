@@ -23,9 +23,11 @@ import (
 
 	"github.com/arbace/go-whim/internal/cmdtab"
 	"github.com/arbace/go-whim/internal/crefactor/pipeline"
+	"github.com/arbace/go-whim/internal/crefactor/xform"
 	"github.com/arbace/go-whim/internal/cut"
 	"github.com/arbace/go-whim/internal/dead"
 	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/internal/whim"
 )
 
 // A Step is one transformation: the tree in, the tree out, its report on w.
@@ -102,7 +104,7 @@ var ops = map[string]Step{
 	"query":       runQuery,
 
 	"cemit":             Step(pipeline.Canonical),
-	"includes":          Includes,
+	"includes":          Step(xform.Includes(whim.Includes)),
 	"query-empty":       queryEmpty,
 	"query-dropoptions": queryDropOptions,
 }

@@ -42,3 +42,23 @@ var BoolRet = xform.BoolRetKnobs{
 	Keep:   []string{"main"},
 	Layout: Profile.Sweep,
 }
+
+// Nullptr is phase 106's: the three string literals that hold `NULL` and
+// stay as they are -- a message, the printf layer's stand-in for a null %s,
+// and what an empty growarray prints.  A fourth would be a message the phase
+// has never seen, and refuses.
+var Nullptr = xform.NullptrKnobs{
+	NullLiterals: []string{
+		`"E1507: Internal error: ap_types or ap_types[idx] is NULL: %d: %s"`,
+		`"[NULL]"`,
+		`"NULL"`,
+	},
+}
+
+// Includes is phase 169's compiler question, phase 82's before it: a header
+// is unnecessary when the file still compiles with NOTHING printed, under the
+// sweep's warnings.
+var Includes = xform.Silent{
+	Cmd:   "gcc",
+	Flags: []string{"-fsyntax-only", "-O0", "-Wall", "-Wextra", "-Wno-unused-parameter"},
+}
