@@ -60,7 +60,7 @@ func init() {
 	zipmap
 	catch def do finally fn if monitor new quote recur throw try var
 	nil true false
-	g i8 u8 i16 u16 i32 u32 slots ed st this o v k Editor Struct Ptr Rt Ga BytePtr ShortPtr IntPtr LongPtr
+	g e enumerators i8 u8 i16 u16 i32 u32 slots ed st this o v k Editor Struct Ptr Rt Ga BytePtr ShortPtr IntPtr LongPtr
 	BoolPtr IFn Integer Long Boolean Object String Math System`) {
 		cljReserved[w] = true
 	}
@@ -175,8 +175,9 @@ func (g *gen) writeClj(path string) error {
 	c.allocSlots()
 
 	// the functions, written or refused
-	var fns, report strings.Builder
-	var names []string
+	var report strings.Builder
+	texts := map[string]string{}
+	var fds []*cc.FunctionDefinition
 	written, replaced, total, structured, machine, split := 0, 0, 0, 0, 0, 0
 	whys := map[string]int{}
 	for tu := g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
@@ -191,12 +192,12 @@ func (g *gen) writeClj(path string) error {
 			replaced++
 			continue
 		}
-		names = append(names, c.fnName(name))
+		fds = append(fds, fd)
 		src, why, mode := c.function(fd)
 		if why != "" {
 			fmt.Fprintf(&report, "%s: %s\n", name, why)
 			whys[reasonKey(why)]++
-			fns.WriteString(c.stub(fd.Declarator, why))
+			texts[name] = c.stub(fd.Declarator, why)
 			continue
 		}
 		written++
@@ -209,7 +210,7 @@ func (g *gen) writeClj(path string) error {
 			machine++
 			split++
 		}
-		fns.WriteString("\n" + src)
+		texts[name] = "\n" + src
 	}
 	inits, failed := c.initializers()
 	for _, f := range failed {
@@ -225,31 +226,51 @@ func (g *gen) writeClj(path string) error {
 	fmt.Fprintf(&b, "(ns %s\n  (:require [%s])\n  (:import [whim.rt BytePtr ShortPtr IntPtr LongPtr BoolPtr Ptr Rt Ga Struct]))\n\n", ns, host)
 	b.WriteString("(set! *warn-on-reflection* true)\n(set! *unchecked-math* true)\n\n")
 	b.WriteString(cljPrelude)
-	sort.Strings(names)
-	b.WriteString("\n(declare")
-	for i, n := range names {
-		if i%8 == 0 {
-			b.WriteString("\n ")
+	// the functions a function calls before it where they can be: a
+	// namespace's top-level forms are one method of its class when it is
+	// compiled ahead of time, and a declare of every function would take a
+	// third of its 64 KB; and a call to a function defined before it is a
+	// direct one
+	order, forward := c.fnOrder(fds)
+	if len(forward) > 0 {
+		b.WriteString("\n(declare")
+		for i, n := range forward {
+			if i%8 == 0 {
+				b.WriteString("\n ")
+			}
+			b.WriteString(" " + n)
 		}
-		b.WriteString(" " + n)
+		b.WriteString(")\n\n")
 	}
-	b.WriteString(")\n\n")
 	var enums []string
 	for _, e := range c.enums {
 		enums = append(enums, e)
 	}
 	sort.Strings(enums)
-	for _, e := range enums {
-		b.WriteString(e)
-	}
-	b.WriteString("\n")
+	// the enumerators the code names, by name: (e NAME) is its value,
+	// written where it is used -- a def each would be a top-level form each,
+	// and the namespace's class has one method for all of them
+	b.WriteString(";; The enumerators the code names: (e NAME) is the value.\n(def ^:private enumerators\n  (read-string \"{")
+	b.WriteString(strings.Join(enums, "\n    "))
+	b.WriteString(`}"))
+
+(defmacro ^:private e
+  "The value of the enumerator n."
+  [n]
+  (or (get enumerators n) (throw (IllegalArgumentException. (str "no enumerator " n)))))
+
+`)
 	b.WriteString(types)
-	b.WriteString(c.editorText(inits))
+	head, tail := c.editorText(inits)
+	b.WriteString(head)
 	b.WriteString(c.gaHelpers())
 	for _, a := range c.adapterText {
 		b.WriteString(a)
 	}
-	b.WriteString(fns.String())
+	for _, name := range order {
+		b.WriteString(texts[name])
+	}
+	b.WriteString("\n" + tail)
 
 	var ks []string
 	for k := range whys {
@@ -443,11 +464,11 @@ func (c *cgen) slotPlace(f *cfn, s *cslot) cplace {
 
 // editorText is the Editor type, its slots, new-editor, host-of and the
 // accessors the host reads.
-func (c *cgen) editorText(inits []string) string {
+func (c *cgen) editorText(inits []string) (string, string) {
 	var b strings.Builder
 	b.WriteString(";; The editor: its host, and the C's file-scope objects in three typed slot arrays.\n")
 	b.WriteString("(deftype Editor [host ^longs L ^booleans Z ^objects O])\n\n")
-	b.WriteString(";; Each file-scope object's slot: [array index class].\n(def ^:private slots\n  '{")
+	b.WriteString(";; Each file-scope object's slot: [array index class] -- read from a string, since a\n;; literal map would be built by code in one method of the namespace's class.\n(def ^:private slots\n  (read-string \"{")
 	for i, s := range c.slotOrder {
 		if i > 0 {
 			b.WriteString("\n    ")
@@ -460,7 +481,7 @@ func (c *cgen) editorText(inits []string) string {
 		}
 		b.WriteString("]")
 	}
-	b.WriteString("})\n\n")
+	b.WriteString("}\"))\n\n")
 	b.WriteString(`(defmacro ^:private g
   "The file-scope object n of the editor ed."
   [ed n]
@@ -513,6 +534,8 @@ func (c *cgen) editorText(inits []string) string {
 		calls = append(calls, "("+n+" ed)")
 		fmt.Fprintf(&fnsText, "(defn- %s [^Editor ed]\n  %s\n  nil)\n\n", n, strings.ReplaceAll(in, "\n", "\n  "))
 	}
+	head := b.String()
+	b.Reset()
 	b.WriteString(fnsText.String())
 	fmt.Fprintf(&b, `(defn new-editor
   "An editor on host, a whim.host.Host: the C's file-scope objects as they start."
@@ -532,7 +555,91 @@ func (c *cgen) editorText(inits []string) string {
 			fmt.Fprintf(&b, "(defn %s\n  \"The file-scope object %s of the editor ed, for the host.\"\n  [^Editor ed]\n  (g ed %s))\n\n", c.cljName(name), name, s.name)
 		}
 	}
-	return b.String()
+	return head, b.String()
+}
+
+// fnOrder is the order the functions are written in -- each after the
+// functions it names, where no cycle forbids it -- and the functions named
+// before they are defined: the declare.
+func (c *cgen) fnOrder(fds []*cc.FunctionDefinition) ([]string, []string) {
+	byName := map[string]*cc.FunctionDefinition{}
+	for _, fd := range fds {
+		byName[fd.Declarator.Name()] = fd
+	}
+	refs := func(fd *cc.FunctionDefinition) []string {
+		var r []string
+		seen := map[string]bool{}
+		var rec func(cc.Node)
+		rec = func(n cc.Node) {
+			if n == nil {
+				return
+			}
+			if x, ok := n.(*cc.PrimaryExpression); ok && x.Case == cc.PrimaryExpressionIdent {
+				if d, ok := x.ResolvedTo().(*cc.Declarator); ok && d.Type() != nil && d.Type().Kind() == cc.Function {
+					if name := d.Name(); byName[name] != nil && !seen[name] {
+						seen[name] = true
+						r = append(r, name)
+					}
+				}
+			}
+			walkChildrenFn(n, rec)
+		}
+		rec(fd.CompoundStatement)
+		return r
+	}
+	var order []string
+	state := map[string]int{} // 1 on the stack, 2 written
+	var visit func(name string)
+	visit = func(name string) {
+		if state[name] != 0 {
+			return
+		}
+		state[name] = 1
+		for _, r := range refs(byName[name]) {
+			visit(r)
+		}
+		state[name] = 2
+		order = append(order, name)
+	}
+	for _, fd := range fds {
+		visit(fd.Declarator.Name())
+	}
+	pos := map[string]int{}
+	for i, n := range order {
+		pos[n] = i
+	}
+	fwd := map[string]bool{}
+	for _, n := range order {
+		for _, r := range refs(byName[n]) {
+			if pos[r] >= pos[n] {
+				fwd[c.fnName(r)] = true
+			}
+		}
+	}
+	// what the adapters and the initial values name comes before them too
+	for n := range byName {
+		fwd[c.fnName(n)] = fwd[c.fnName(n)]
+	}
+	var forward []string
+	for n, f := range fwd {
+		if f {
+			forward = append(forward, n)
+		}
+	}
+	for _, a := range c.adapterText {
+		for n := range byName {
+			if strings.Contains(a, "("+c.fnName(n)+" ") && !fwd[c.fnName(n)] {
+				fwd[c.fnName(n)] = true
+				forward = append(forward, c.fnName(n))
+			}
+		}
+	}
+	sort.Strings(forward)
+	var names []string
+	for _, n := range order {
+		names = append(names, n)
+	}
+	return names, forward
 }
 
 // gaHelpers are the growarray's typed accessors: each makes or grows the

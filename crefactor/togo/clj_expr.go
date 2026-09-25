@@ -573,8 +573,8 @@ func (f *cfn) identTo(x *cc.PrimaryExpression, to string) cv {
 		}
 		v, _ := intValue(d.Value())
 		v = truncK(v, k)
-		f.c.enums[name] = fmt.Sprintf("(def ^:const %s %s)\n", name, clit(v, k))
-		return cv{s: name, t: k.java(), c: x.Type(), konst: true, named: true, cv: v, typed: true}
+		f.c.enums[name] = fmt.Sprintf("%s %s", name, clit(v, k))
+		return cv{s: "(e " + name + ")", t: k.java(), c: x.Type(), konst: true, named: true, cv: v, typed: true}
 	}
 	f.no(x, "an identifier resolved to %T", x.ResolvedTo())
 	return cv{}
