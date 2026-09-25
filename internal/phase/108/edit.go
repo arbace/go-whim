@@ -206,34 +206,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	// ---- 4. the two objects go -------------------------------------------
-	text, err = p.SwapOnce(text,
-		"static int musl_towlower(int a);\n"+
-			"\n"+
-			"static void (*vim_host_message)(const char *msg, int len, int err);\n"+
-			"\n",
-		"static int musl_towlower(int a);\n\n",
-		"the vim_host_message object, where phase 104 put it",
-		"it and the blank line that separated it from what follows go together, so the "+
-			"paragraphing either side of it is what it was")
-	if err != nil {
-		return nil, err
-	}
-	text, err = p.SwapOnce(text,
-		"}\n"+
-			"\n"+
-			"static void (*vim_host_exit)(int);\n"+
-			"\n"+
-			"    static void\n"+
-			"mch_exit(int r)\n"+
-			"{\n",
-		"}\n\n    static void\nmch_exit(int r)\n{\n",
-		"the vim_host_exit object, where phase 102 put it -- immediately above mch_exit",
-		"the same: the object and its blank line, leaving mch_exit separated from the "+
-			"function above it exactly as every other function in this file is")
-	if err != nil {
-		return nil, err
-	}
+	// ---- 4. the two objects are the sweep's ------------------------------
+	// Once the two assignments and every call through them are gone, nothing
+	// names `vim_host_exit` or `vim_host_message` but its declaration.
 
 	// ---- 5. vim_main takes argc and argv, and nothing else ---------------
 	text, err = p.SwapOnce(text,
@@ -266,13 +241,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			a, b, nExitCalls, nMsgCalls)
 	}
 	p.Sayf("%d call site renamed to `host_exit` and %d to `host_message`, and vim_main is "+
-		"`vim_main(int argc, char **argv)` again -- two objects, two parameters, two "+
-		"assignments and two arguments gone, two prototypes arrived", a, b)
+		"`vim_main(int argc, char **argv)` again -- two parameters, two "+
+		"assignments and two arguments gone, two prototypes arrived; the two objects are the "+
+		"sweep's", a, b)
 
 	// ---- 7. what the file is now -----------------------------------------
 	L := bytes.Split(text, []byte{'\n'})
-	if p.Mentions(text, "vim_host_exit") > 0 || p.Mentions(text, "vim_host_message") > 0 {
-		return nil, p.Die("a `vim_host_*` name survives")
+	if p.Mentions(text, "vim_host_exit") != 1 || p.Mentions(text, "vim_host_message") != 1 {
+		return nil, p.Die("a `vim_host_*` name survives other than as its declaration")
 	}
 	if p.Mentions(text, "exit_fn") > 0 || p.Mentions(text, "message_fn") > 0 {
 		return nil, p.Die("a parameter name survives the signature it was written for")
@@ -366,11 +342,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p.Sayf("the core -> host boundary is now ONE run of %d prototypes ending at line %d: "+
 		"phase 103's nine `musl_` and these two", nBoundary, block[0]+3)
 
-	if n := len(L) - 1; n != linesBefore-4 {
-		return nil, p.Die("the file is %d lines and the input was %d -- expected exactly 4 fewer: two "+
-			"objects with their blank lines is four, two prototypes back is two, and the "+
-			"two assignments are two -- the canonical text writes no blank line inside a "+
-			"function, so there is none here to take with them", n, linesBefore)
+	if n := len(L) - 1; n != linesBefore {
+		return nil, p.Die("the file is %d lines and the input was %d -- expected the same: two "+
+			"prototypes in, and the two assignments out -- the canonical text writes no "+
+			"blank line inside a function, so there is none here to take with them", n, linesBefore)
 	}
 	var d [][]byte
 	for _, l := range L {
