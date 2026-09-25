@@ -125,10 +125,6 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	// The window- and tab-local directory restore.  Its guard can never be
 	// true: w_localdir and tp_localdir come only from :lcd and :tcd, and
 	// globaldir is assigned only inside this function.
-	var ok bool
-	if text, ok = cutil.DeleteDefinition(text, "win_fix_current_dir"); !ok {
-		return nil, fmt.Errorf("nochdir: win_fix_current_dir is not defined at file scope")
-	}
 	if text, err = cutil.DropIf(text, `(?m)^[ \t]*if \(awp->w_localdir != NULL\)$`, 1); err != nil {
 		return nil, err
 	}
@@ -141,13 +137,11 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	// `globaldir` remembers the directory to come back to when a window-local
 	// one is in force.  win_fix_current_dir() was the only thing that ever set
 	// it, so what is left is aucmd_prepbuf()/aucmd_restbuf() saving and
-	// restoring a pointer that is always NULL.  A STRUCT FIELD IS NOT A
-	// VARIABLE -- no warning would report this one -- so it is named here.
+	// restoring a pointer that is always NULL.  The save and the restore go
+	// here; the field, the global and the function are the sweep's.
 	for _, g := range []struct{ pat, what string }{
 		{`(?m)^[ \t]*aco->globaldir = globaldir;\n[ \t]*globaldir = NULL;\n`, "the save"},
 		{`(?m)^[ \t]*vim_free\(globaldir\);\n[ \t]*globaldir = aco->globaldir;\n`, "the restore"},
-		{`(?m)^[ \t]*char_u \*globaldir;\n`, "the field"},
-		{`(?m)^static char_u \*globaldir = NULL;\n`, "the global"},
 	} {
 		if text, err = cutCounted(text, g.pat, "nochdir", "globaldir -- "+g.what, 1); err != nil {
 			return nil, err
@@ -156,12 +150,12 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nochdir      globaldir, saved and restored and always NULL")
 
 	// edit_buffers() returns to `cwd` between -o windows.  It is passed
-	// start_dir, which nothing assigns.
+	// start_dir, which nothing assigns.  The free of it goes here, and the
+	// global is the sweep's.
 	if text, err = cutil.DropIf(text, `(?m)^[ \t]*if \(cwd != NULL\)$`, 1); err != nil {
 		return nil, err
 	}
 	for _, g := range []struct{ pat, what string }{
-		{`(?m)^static char_u \*start_dir = NULL;\n`, "start_dir itself"},
 		{`(?m)^[ \t]*vim_free\(start_dir\);\n`, "the free of it"},
 	} {
 		if text, err = cutCounted(text, g.pat, "nochdir", "start_dir -- "+g.what, 1); err != nil {
