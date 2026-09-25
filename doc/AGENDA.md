@@ -21,11 +21,13 @@ order, each step
 held to `make whim-test` (and a Java editor, once there is one, to the same
 cases):
 
-1. **A Java backend for `togo`** (`doc/JAVA.md`: the design and its four milestones), from the same analysis -- which pointers walk
-   (`Ptr[byte]`, 2,212 in the Go, is `byte[]` and an offset), which ints are
-   answers, which are unsigned (570 uses: `Integer.*Unsigned`), structs copied
-   by value (99 types), function pointers as interfaces -- rather than a
-   translation of the Go. `whim test` then compares three editors.
+1. **The Java editor kept current** (`doc/JAVA.md`, milestone 4). Milestones
+   1-3 are done: `togo`'s Java backend writes every function of the core,
+   `jeditor/` is its host on a terminal, and `whim test --java` requires the
+   Java editor to answer every case as the C does -- 45 of 45, and 240 of 240
+   with `--wide`. `Editor.java` is generated from the candidate at test time
+   and not tracked; tracking it, written by `make whim-build` as `editor.go`
+   is, with a check that refuses a stale one, is what is left.
 
 
 ## Known stale, not yet scoped
