@@ -84,13 +84,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("do_pending_operator", func(e *edit.E) {
 		e.Literal(" || oap->op_type == OP_FUNCTION", "", "the operator function deciding whether the motion is inclusive")
 	})
-	e.DeleteDefinition("op_function", "op_function, which only said the eval feature is not available")
 
 	// An empty call.
 	e.InFunction("edit", func(e *edit.E) {
 		e.Sub(`(?m)^([ \t]*case Ctrl_X:\n)[ \t]*ins_ctrl_x\(\);\n`, "${1}", 1, "CTRL-X calling an empty function")
 	})
-	e.DeleteDefinition("ins_ctrl_x", "ins_ctrl_x, whose body has been empty since completion went")
 	return e.Done()
 }
 

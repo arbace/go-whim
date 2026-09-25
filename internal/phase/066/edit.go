@@ -89,7 +89,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			e.Say("walking out to a method start or end")
 		}
 		e.FoldNever(methodTest, "a method's braces choosing the character to match")
-		e.Lines(`pos_T[ \t]+prev_pos;`, 1, "nv_bracket_block declaring prev_pos")
 		e.Lines(`prev_pos\.lnum = 0;`, 1, "the previous match, which only a method walk-out read")
 		e.Lines(`prev_pos = new_pos;`, 1, "remembering the previous match")
 	})
