@@ -416,8 +416,19 @@ func (f *fnEmit) switchStmt(s *cc.SelectionStatement) {
 	f.line("}")
 }
 
-func (f *fnEmit) pushBreakable(loop bool) { f.brk = append(f.brk, loop) }
-func (f *fnEmit) popBreakable()           { f.brk = f.brk[:len(f.brk)-1] }
+func (f *fnEmit) pushBreakable(loop bool) { f.pushBreakTo(loop, "") }
+func (f *fnEmit) popBreakable() {
+	f.brk = f.brk[:len(f.brk)-1]
+	f.brkTo = f.brkTo[:len(f.brkTo)-1]
+}
+
+// pushBreakTo is pushBreakable for a level whose C break leaves by a labeled
+// Go break: the body of a loop written inside a once-loop (loopOnce), where a
+// bare break would leave only the once-loop.
+func (f *fnEmit) pushBreakTo(loop bool, label string) {
+	f.brk = append(f.brk, loop)
+	f.brkTo = append(f.brkTo, label)
+}
 
 func endsInJump(items []*cc.BlockItem) bool {
 	if len(items) == 0 {
@@ -439,6 +450,69 @@ func jumpsStmt(s *cc.Statement) bool {
 		return endsInJump(items)
 	}
 	return false
+}
+
+// hasBreak says a loop body has a break for this loop: one not inside a
+// loop or a switch of its own.
+func hasBreak(n cc.Node) bool {
+	found := false
+	var rec func(cc.Node)
+	rec = func(n cc.Node) {
+		if n == nil || found {
+			return
+		}
+		switch x := n.(type) {
+		case *cc.IterationStatement:
+			return
+		case *cc.SelectionStatement:
+			if x.Case == cc.SelectionStatementSwitch {
+				return
+			}
+		case *cc.JumpStatement:
+			if x.Case == cc.JumpStatementBreak {
+				found = true
+			}
+		}
+		walkChildrenFn(n, rec)
+	}
+	walkChildrenFn(n, rec)
+	return found
+}
+
+// loopOnce writes the body of a loop whose continue must run something
+// before the next turn -- a do-while's condition, a for's increment that is
+// not one statement -- as a once-loop inside it: `contN: for { body; break }`.
+// A continue is `break contN`, which reaches that code; a break of the C loop
+// is `break loopN`, to the label the caller put on the loop (outer, "" when
+// the body has no break of its own).  Neither is a goto: a goto to the loop's
+// end jumps over the declarations of a function whose locals are not hoisted,
+// which Go refuses.
+func (f *fnEmit) loopOnce(body *cc.Statement, outer string) {
+	cont := f.newLabel("cont")
+	f.line("%s:", cont)
+	f.line("for {")
+	f.cont = append(f.cont, "break "+cont)
+	f.pushBreakTo(true, outer)
+	text := f.capture(func() { f.body(body) })
+	f.popBreakable()
+	f.cont = f.cont[:len(f.cont)-1]
+	f.out.WriteString(text)
+	if !terminates(strings.Split(text, "\n")) {
+		f.line("\tbreak")
+	}
+	f.line("}")
+}
+
+// loopLabel writes the label a loop written with loopOnce is left by, when
+// its body has a break of its own, and returns it; "" when it has none, since
+// Go refuses a label nothing names.
+func (f *fnEmit) loopLabel(body *cc.Statement) string {
+	if !hasBreak(body) {
+		return ""
+	}
+	l := f.newLabel("loop")
+	f.line("%s:", l)
+	return l
 }
 
 // hasContinue says a loop body has a continue for this loop.
@@ -569,14 +643,15 @@ func (f *fnEmit) iteration(s *cc.IterationStatement) {
 			f.once(s.Statement)
 			return
 		}
-		cont := ""
 		if hasContinue(s.Statement) {
-			cont = f.newLabel("cont")
-		}
-		f.line("for {")
-		f.loopBody(s.Statement, cont)
-		if cont != "" {
-			f.line("%s:", cont)
+			outer := f.loopLabel(s.Statement)
+			f.line("for {")
+			f.indent++
+			f.loopOnce(s.Statement, outer)
+			f.indent--
+		} else {
+			f.line("for {")
+			f.loopBody(s.Statement, "")
 		}
 		f.indent++
 		if !isConstTrue(s.ExpressionList) {
@@ -623,9 +698,10 @@ func (f *fnEmit) iteration(s *cc.IterationStatement) {
 			f.line("}")
 			return
 		}
-		cont := ""
-		if postText != "" && hasContinue(s.Statement) {
-			cont = f.newLabel("cont")
+		once := postText != "" && hasContinue(s.Statement)
+		outer := ""
+		if once {
+			outer = f.loopLabel(s.Statement)
 		}
 		f.line("for {")
 		if c != "" {
@@ -634,9 +710,12 @@ func (f *fnEmit) iteration(s *cc.IterationStatement) {
 			f.line("\t\tbreak")
 			f.line("\t}")
 		}
-		f.loopBody(s.Statement, cont)
-		if cont != "" {
-			f.line("%s:", cont)
+		if once {
+			f.indent++
+			f.loopOnce(s.Statement, outer)
+			f.indent--
+		} else {
+			f.loopBody(s.Statement, "")
 		}
 		f.out.WriteString(postText)
 		f.line("}")
@@ -653,15 +732,17 @@ func (f *fnEmit) jump(j *cc.JumpStatement) {
 		if f.deadBrk[j] {
 			return
 		}
+		if n := len(f.brkTo); n > 0 && f.brkTo[n-1] != "" {
+			f.line("break %s", f.brkTo[n-1])
+			return
+		}
 		f.line("break")
 	case cc.JumpStatementContinue:
 		if len(f.cont) == 0 {
 			f.no(j, "a continue outside a loop")
 		}
-		if c := f.cont[len(f.cont)-1]; strings.HasPrefix(c, "break ") {
-			f.line("%s", c) // a do-while(0)'s: see once
-		} else if c != "" {
-			f.line("goto %s", c)
+		if c := f.cont[len(f.cont)-1]; c != "" {
+			f.line("%s", c) // `break L`: a do-while(0)'s (once) or a loop's once-body (loopOnce)
 		} else {
 			f.line("continue")
 		}

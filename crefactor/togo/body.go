@@ -59,6 +59,7 @@ type fnEmit struct {
 	gotos    map[string]bool            // labels some goto names
 	cont     []string                   // the label a continue goes to, per loop; "" is Go's continue
 	brk      []bool                     // whether the innermost breakable is a loop
+	brkTo    []string                   // the label a C break at that level leaves by, or "" for a bare break
 	deadBrk  map[*cc.JumpStatement]bool // breaks that end a case already ending in one
 	hoistAll bool                       // the function has a goto: every local at the top, where no jump can pass it
 	inCase   bool                       // emitting a switch case's own items: C's case is no scope, Go's is

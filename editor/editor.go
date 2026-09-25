@@ -21048,66 +21048,70 @@ func (ed *Editor) handle_mapping(keylenp *int32, timedout *int32, mapdepth *int3
 		}
 		mp_match = nil
 		mp_match_len = 0
+	loop1:
 		for {
 			if !(mp != nil) {
 				break
 			}
-			if ((int32(mp.m_keys.At(0)) == tb_c1) && ((mp.m_mode & local_State) != 0)) && !(((mp.m_simplified && ed.key_protocol_enabled()) && (ed.typebuf.tb_maplen == 0)) && ((int32(ed.typebuf.tb_noremap.At(int(ed.typebuf.tb_off))) & RM_SIMPLIFIED) == 0)) {
-				mlen = 1
-				for ; mlen < ed.typebuf.tb_len; mlen++ {
-					var c2 int32 = int32(ed.typebuf.tb_buf.At(int(ed.typebuf.tb_off + mlen)))
-					if int32(mp.m_keys.At(int(mlen))) != c2 {
-						break
-					}
-				}
-				p1 := mp.m_keys
-				p2 := ed.mb_unescape(&p1)
-				if !p2.Nil() && (int32(ed.mb_bytelen_tab[int(tb_c1)]) > ed.utfc_ptr2len(p2)) {
-					mlen = 0
-				}
-				keylen = mp.m_keylen
-				if (mlen == keylen) || ((mlen == ed.typebuf.tb_len) && (ed.typebuf.tb_len < keylen)) {
-					s = ed.typebuf.tb_noremap.Add(int(ed.typebuf.tb_off)).Tail()
-					if ((int32(s[0]) & ^RM_SIMPLIFIED) == RM_SCRIPT) && (((int32(mp.m_keys.At(0)) != 0x80) || (int32(mp.m_keys.At(1)) != KS_EXTRA)) || (int32(mp.m_keys.At(2)) != KE_SNR)) {
-						goto cont1
-					}
-					n = mlen
-					for {
-						n--
-						if !(n >= 0) {
-							break
-						}
-						var t2 []byte = s
-						s = s[1:]
-						if int32(t2[0])&(RM_NONE|RM_ABBR) != 0 {
+		cont2:
+			for {
+				if ((int32(mp.m_keys.At(0)) == tb_c1) && ((mp.m_mode & local_State) != 0)) && !(((mp.m_simplified && ed.key_protocol_enabled()) && (ed.typebuf.tb_maplen == 0)) && ((int32(ed.typebuf.tb_noremap.At(int(ed.typebuf.tb_off))) & RM_SIMPLIFIED) == 0)) {
+					mlen = 1
+					for ; mlen < ed.typebuf.tb_len; mlen++ {
+						var c2 int32 = int32(ed.typebuf.tb_buf.At(int(ed.typebuf.tb_off + mlen)))
+						if int32(mp.m_keys.At(int(mlen))) != c2 {
 							break
 						}
 					}
-					if !is_plug_map && (n >= 0) {
-						goto cont1
+					p1 := mp.m_keys
+					p2 := ed.mb_unescape(&p1)
+					if !p2.Nil() && (int32(ed.mb_bytelen_tab[int(tb_c1)]) > ed.utfc_ptr2len(p2)) {
+						mlen = 0
 					}
-					if keylen > ed.typebuf.tb_len {
-						if ((*timedout) == 0) && !((mp_match != nil) && (mp_match.m_nowait != 0)) {
-							keylen = -2
-							break
+					keylen = mp.m_keylen
+					if (mlen == keylen) || ((mlen == ed.typebuf.tb_len) && (ed.typebuf.tb_len < keylen)) {
+						s = ed.typebuf.tb_noremap.Add(int(ed.typebuf.tb_off)).Tail()
+						if ((int32(s[0]) & ^RM_SIMPLIFIED) == RM_SCRIPT) && (((int32(mp.m_keys.At(0)) != 0x80) || (int32(mp.m_keys.At(1)) != KS_EXTRA)) || (int32(mp.m_keys.At(2)) != KE_SNR)) {
+							break cont2
 						}
-					} else if keylen > mp_match_len {
-						mp_match = mp
-						mp_match_len = keylen
-					}
-				} else {
-					if max_mlen < mlen {
-						max_mlen = mlen
-						want_termcode = B2i(int32(mp.m_keys.At(int(mlen))) == 0x80)
-					} else if (max_mlen == mlen) && (int32(mp.m_keys.At(int(mlen))) == 0x80) {
-						want_termcode = 1
-					}
-					if (uint32(mp.m_keys.At(int(mlen))) - 'A') < 26 {
-						want_termcode = 1
+						n = mlen
+						for {
+							n--
+							if !(n >= 0) {
+								break
+							}
+							var t3 []byte = s
+							s = s[1:]
+							if int32(t3[0])&(RM_NONE|RM_ABBR) != 0 {
+								break
+							}
+						}
+						if !is_plug_map && (n >= 0) {
+							break cont2
+						}
+						if keylen > ed.typebuf.tb_len {
+							if ((*timedout) == 0) && !((mp_match != nil) && (mp_match.m_nowait != 0)) {
+								keylen = -2
+								break loop1
+							}
+						} else if keylen > mp_match_len {
+							mp_match = mp
+							mp_match_len = keylen
+						}
+					} else {
+						if max_mlen < mlen {
+							max_mlen = mlen
+							want_termcode = B2i(int32(mp.m_keys.At(int(mlen))) == 0x80)
+						} else if (max_mlen == mlen) && (int32(mp.m_keys.At(int(mlen))) == 0x80) {
+							want_termcode = 1
+						}
+						if (uint32(mp.m_keys.At(int(mlen))) - 'A') < 26 {
+							want_termcode = 1
+						}
 					}
 				}
+				break
 			}
-		cont1:
 			if mp.m_next == nil {
 				mp = mp2
 				mp2 = nil
@@ -47384,41 +47388,44 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 				} else {
 					totlen = int32(count * int64(yanklen))
 					for {
-						oldp = ed.ml_get(lnum)
-						oldlen = ed.ml_get_len(lnum)
-						if lnum > start_lnum {
-							pos_2.lnum = lnum
-							if ed.getvpos(&pos_2, vcol) {
-								col = pos_2.col
-							} else {
-								col = MAXCOL
-							}
-						}
-						if (ed.VIsual_active != 0) && (col > oldlen) {
-							lnum++
-							goto cont7
-						}
-						newp = Alloc(int((totlen + oldlen) + 1))
-						Memmove(newp, oldp, int(uint64(col)))
-						ptr = newp.Add(int(col))
-						i = 0
-						for ; i < count; i++ {
-							Memmove(ptr, y_array.Ref(0).string_, int(uint64(yanklen)))
-							ptr = ptr.Add(int(yanklen))
-						}
-						Memmove(ptr, oldp.Add(int(col)), int(uint64((oldlen-col))+1))
-						first_byte_off = ed.utf_head_off(newp, ptr.Add(-1))
-						ed.ml_replace(lnum, newp, false)
-						ed.inserted_bytes(lnum, col, totlen)
-						if lnum == ed.curwin.w_cursor.lnum {
-							ed.changed_cline_bef_curs()
-							ed.invalidate_botline()
-							ed.curwin.w_cursor.col += (totlen - 1)
-						}
-						if ed.VIsual_active != 0 {
-							lnum++
-						}
 					cont7:
+						for {
+							oldp = ed.ml_get(lnum)
+							oldlen = ed.ml_get_len(lnum)
+							if lnum > start_lnum {
+								pos_2.lnum = lnum
+								if ed.getvpos(&pos_2, vcol) {
+									col = pos_2.col
+								} else {
+									col = MAXCOL
+								}
+							}
+							if (ed.VIsual_active != 0) && (col > oldlen) {
+								lnum++
+								break cont7
+							}
+							newp = Alloc(int((totlen + oldlen) + 1))
+							Memmove(newp, oldp, int(uint64(col)))
+							ptr = newp.Add(int(col))
+							i = 0
+							for ; i < count; i++ {
+								Memmove(ptr, y_array.Ref(0).string_, int(uint64(yanklen)))
+								ptr = ptr.Add(int(yanklen))
+							}
+							Memmove(ptr, oldp.Add(int(col)), int(uint64((oldlen-col))+1))
+							first_byte_off = ed.utf_head_off(newp, ptr.Add(-1))
+							ed.ml_replace(lnum, newp, false)
+							ed.inserted_bytes(lnum, col, totlen)
+							if lnum == ed.curwin.w_cursor.lnum {
+								ed.changed_cline_bef_curs()
+								ed.invalidate_botline()
+								ed.curwin.w_cursor.col += (totlen - 1)
+							}
+							if ed.VIsual_active != 0 {
+								lnum++
+							}
+							break
+						}
 						if !((ed.VIsual_active != 0) && (lnum <= end_lnum)) {
 							break
 						}
@@ -50302,208 +50309,212 @@ func (ed *Editor) searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_
 		}
 		loop = 0
 		for ; loop <= 1; loop++ {
+		loop1:
 			for {
 				if !((lnum > 0) && (lnum <= buf.b_ml.ml_line_count)) {
 					break
 				}
-				var t3 bool = stop_lnum != 0
-				if t3 {
-					var t2 bool
-					if dir == FORWARD {
-						t2 = lnum > stop_lnum
-					} else {
-						t2 = lnum < stop_lnum
+			cont2:
+				for {
+					var t4 bool = stop_lnum != 0
+					if t4 {
+						var t3 bool
+						if dir == FORWARD {
+							t3 = lnum > stop_lnum
+						} else {
+							t3 = lnum < stop_lnum
+						}
+						t4 = t3
 					}
-					t3 = t2
-				}
-				if t3 {
-					break
-				}
-				if (*timed_out) != 0 {
-					break
-				}
-				var t4 colnr_T
-				if at_first_line && ((options & SEARCH_COL) != 0) {
-					t4 = pos.col
-				} else {
-					t4 = 0
-				}
-				col = t4
-				nmatched = ed.vim_regexec_multi(&regmatch, win, buf, lnum, col, timed_out)
-				if regmatch.regprog == nil {
-					break
-				}
-				if (ed.called_emsg > called_emsg_before) || ((*timed_out) != 0) {
-					break
-				}
-				if nmatched > 0 {
-					matchpos = regmatch.startpos[0]
-					endpos = regmatch.endpos[0]
-					if (lnum + matchpos.lnum) > buf.b_ml.ml_line_count {
-						ptr = S("")
-					} else {
-						ptr = ed.ml_get_buf(buf, lnum+matchpos.lnum, false)
+					if t4 {
+						break loop1
 					}
-					if (dir == FORWARD) && at_first_line {
-						match_ok = true
-						for {
-							var t6 bool = matchpos.lnum == 0
-							if t6 {
-								var t5 bool
-								if ((options & SEARCH_END) != 0) && first_match {
-									t5 = ((nmatched == 1) && ((endpos.col - 1) < (start_pos.col + extra_col)))
-								} else {
-									t5 = ((matchpos.col - B2i((int32(ptr.At(int(matchpos.col))) == NUL))) < (start_pos.col + extra_col))
+					if (*timed_out) != 0 {
+						break loop1
+					}
+					var t5 colnr_T
+					if at_first_line && ((options & SEARCH_COL) != 0) {
+						t5 = pos.col
+					} else {
+						t5 = 0
+					}
+					col = t5
+					nmatched = ed.vim_regexec_multi(&regmatch, win, buf, lnum, col, timed_out)
+					if regmatch.regprog == nil {
+						break loop1
+					}
+					if (ed.called_emsg > called_emsg_before) || ((*timed_out) != 0) {
+						break loop1
+					}
+					if nmatched > 0 {
+						matchpos = regmatch.startpos[0]
+						endpos = regmatch.endpos[0]
+						if (lnum + matchpos.lnum) > buf.b_ml.ml_line_count {
+							ptr = S("")
+						} else {
+							ptr = ed.ml_get_buf(buf, lnum+matchpos.lnum, false)
+						}
+						if (dir == FORWARD) && at_first_line {
+							match_ok = true
+							for {
+								var t7 bool = matchpos.lnum == 0
+								if t7 {
+									var t6 bool
+									if ((options & SEARCH_END) != 0) && first_match {
+										t6 = ((nmatched == 1) && ((endpos.col - 1) < (start_pos.col + extra_col)))
+									} else {
+										t6 = ((matchpos.col - B2i((int32(ptr.At(int(matchpos.col))) == NUL))) < (start_pos.col + extra_col))
+									}
+									t7 = t6
 								}
-								t6 = t5
-							}
-							if !t6 {
-								break
-							}
-							if search_from_match_end {
-								if nmatched > 1 {
+								if !t7 {
+									break
+								}
+								if search_from_match_end {
+									if nmatched > 1 {
+										match_ok = false
+										break
+									}
+									matchcol = endpos.col
+									if (matchcol == matchpos.col) && (int32(ptr.At(int(matchcol))) != NUL) {
+										matchcol += ed.utfc_ptr2len(ptr.Add(int(matchcol)))
+									}
+								} else {
+									matchcol = regmatch.rmm_matchcol
+									if int32(ptr.At(int(matchcol))) != NUL {
+										matchcol += ed.utfc_ptr2len(ptr.Add(int(matchcol)))
+									}
+								}
+								if (matchcol == 0) && ((options & SEARCH_START) != 0) {
+									break
+								}
+								var t8 bool = int32(ptr.At(int(matchcol))) == NUL
+								if !t8 {
+									nmatched = ed.vim_regexec_multi(&regmatch, win, buf, lnum+matchpos.lnum, matchcol, timed_out)
+									t8 = nmatched == 0
+								}
+								if t8 {
 									match_ok = false
 									break
 								}
-								matchcol = endpos.col
-								if (matchcol == matchpos.col) && (int32(ptr.At(int(matchcol))) != NUL) {
-									matchcol += ed.utfc_ptr2len(ptr.Add(int(matchcol)))
+								if regmatch.regprog == nil {
+									break
 								}
-							} else {
-								matchcol = regmatch.rmm_matchcol
-								if int32(ptr.At(int(matchcol))) != NUL {
-									matchcol += ed.utfc_ptr2len(ptr.Add(int(matchcol)))
-								}
-							}
-							if (matchcol == 0) && ((options & SEARCH_START) != 0) {
-								break
-							}
-							var t7 bool = int32(ptr.At(int(matchcol))) == NUL
-							if !t7 {
-								nmatched = ed.vim_regexec_multi(&regmatch, win, buf, lnum+matchpos.lnum, matchcol, timed_out)
-								t7 = nmatched == 0
-							}
-							if t7 {
-								match_ok = false
-								break
-							}
-							if regmatch.regprog == nil {
-								break
-							}
-							matchpos = regmatch.startpos[0]
-							endpos = regmatch.endpos[0]
-							ptr = ed.ml_get_buf(buf, lnum+matchpos.lnum, false)
-						}
-						if !match_ok {
-							goto cont1
-						}
-					}
-					if dir == -1 {
-						match_ok = false
-						for {
-							var t9 bool = loop != 0
-							if !t9 {
-								var t8 bool
-								if (options & SEARCH_END) != 0 {
-									t8 = (((lnum + regmatch.endpos[0].lnum) < start_pos.lnum) || (((lnum + regmatch.endpos[0].lnum) == start_pos.lnum) && ((regmatch.endpos[0].col - 1) < (start_pos.col + extra_col))))
-								} else {
-									t8 = (((lnum + regmatch.startpos[0].lnum) < start_pos.lnum) || (((lnum + regmatch.startpos[0].lnum) == start_pos.lnum) && (regmatch.startpos[0].col < (start_pos.col + extra_col))))
-								}
-								t9 = t8
-							}
-							if t9 {
-								match_ok = true
 								matchpos = regmatch.startpos[0]
 								endpos = regmatch.endpos[0]
-							} else {
-								break
+								ptr = ed.ml_get_buf(buf, lnum+matchpos.lnum, false)
 							}
-							if search_from_match_end {
-								if nmatched > 1 {
+							if !match_ok {
+								break cont2
+							}
+						}
+						if dir == -1 {
+							match_ok = false
+							for {
+								var t10 bool = loop != 0
+								if !t10 {
+									var t9 bool
+									if (options & SEARCH_END) != 0 {
+										t9 = (((lnum + regmatch.endpos[0].lnum) < start_pos.lnum) || (((lnum + regmatch.endpos[0].lnum) == start_pos.lnum) && ((regmatch.endpos[0].col - 1) < (start_pos.col + extra_col))))
+									} else {
+										t9 = (((lnum + regmatch.startpos[0].lnum) < start_pos.lnum) || (((lnum + regmatch.startpos[0].lnum) == start_pos.lnum) && (regmatch.startpos[0].col < (start_pos.col + extra_col))))
+									}
+									t10 = t9
+								}
+								if t10 {
+									match_ok = true
+									matchpos = regmatch.startpos[0]
+									endpos = regmatch.endpos[0]
+								} else {
 									break
 								}
-								matchcol = endpos.col
-								if (matchcol == matchpos.col) && (int32(ptr.At(int(matchcol))) != NUL) {
-									matchcol += ed.utfc_ptr2len(ptr.Add(int(matchcol)))
+								if search_from_match_end {
+									if nmatched > 1 {
+										break
+									}
+									matchcol = endpos.col
+									if (matchcol == matchpos.col) && (int32(ptr.At(int(matchcol))) != NUL) {
+										matchcol += ed.utfc_ptr2len(ptr.Add(int(matchcol)))
+									}
+								} else {
+									if matchpos.lnum > 0 {
+										break
+									}
+									matchcol = matchpos.col
+									if int32(ptr.At(int(matchcol))) != NUL {
+										matchcol += ed.utfc_ptr2len(ptr.Add(int(matchcol)))
+									}
 								}
-							} else {
-								if matchpos.lnum > 0 {
+								var t11 bool = int32(ptr.At(int(matchcol))) == NUL
+								if !t11 {
+									nmatched = ed.vim_regexec_multi(&regmatch, win, buf, lnum+matchpos.lnum, matchcol, timed_out)
+									t11 = nmatched == 0
+								}
+								if t11 {
+									if (*timed_out) != 0 {
+										match_ok = false
+									}
 									break
 								}
-								matchcol = matchpos.col
-								if int32(ptr.At(int(matchcol))) != NUL {
-									matchcol += ed.utfc_ptr2len(ptr.Add(int(matchcol)))
+								if regmatch.regprog == nil {
+									break
+								}
+								ptr = ed.ml_get_buf(buf, lnum+matchpos.lnum, false)
+							}
+							if !match_ok {
+								break cont2
+							}
+						}
+						if (((options & SEARCH_END) != 0) && ((options & SEARCH_NOOF) == 0)) && !((matchpos.lnum == endpos.lnum) && (matchpos.col == endpos.col)) {
+							pos.lnum = lnum + endpos.lnum
+							pos.col = endpos.col
+							if endpos.col == 0 {
+								if pos.lnum > 1 {
+									pos.lnum--
+									pos.col = ed.ml_get_buf_len(buf, pos.lnum)
+								}
+							} else {
+								pos.col--
+								if pos.lnum <= buf.b_ml.ml_line_count {
+									ptr = ed.ml_get_buf(buf, pos.lnum, false)
+									pos.col -= ed.utf_head_off(ptr, ptr.Add(int(pos.col)))
 								}
 							}
-							var t10 bool = int32(ptr.At(int(matchcol))) == NUL
-							if !t10 {
-								nmatched = ed.vim_regexec_multi(&regmatch, win, buf, lnum+matchpos.lnum, matchcol, timed_out)
-								t10 = nmatched == 0
-							}
-							if t10 {
-								if (*timed_out) != 0 {
-									match_ok = false
-								}
-								break
-							}
-							if regmatch.regprog == nil {
-								break
-							}
-							ptr = ed.ml_get_buf(buf, lnum+matchpos.lnum, false)
-						}
-						if !match_ok {
-							goto cont1
-						}
-					}
-					if (((options & SEARCH_END) != 0) && ((options & SEARCH_NOOF) == 0)) && !((matchpos.lnum == endpos.lnum) && (matchpos.col == endpos.col)) {
-						pos.lnum = lnum + endpos.lnum
-						pos.col = endpos.col
-						if endpos.col == 0 {
-							if pos.lnum > 1 {
-								pos.lnum--
-								pos.col = ed.ml_get_buf_len(buf, pos.lnum)
+							if end_pos != nil {
+								end_pos.lnum = lnum + matchpos.lnum
+								end_pos.col = matchpos.col
 							}
 						} else {
-							pos.col--
-							if pos.lnum <= buf.b_ml.ml_line_count {
-								ptr = ed.ml_get_buf(buf, pos.lnum, false)
-								pos.col -= ed.utf_head_off(ptr, ptr.Add(int(pos.col)))
+							pos.lnum = lnum + matchpos.lnum
+							pos.col = matchpos.col
+							if end_pos != nil {
+								end_pos.lnum = lnum + endpos.lnum
+								end_pos.col = endpos.col
 							}
 						}
+						pos.coladd = 0
 						if end_pos != nil {
-							end_pos.lnum = lnum + matchpos.lnum
-							end_pos.col = matchpos.col
+							end_pos.coladd = 0
 						}
-					} else {
-						pos.lnum = lnum + matchpos.lnum
-						pos.col = matchpos.col
-						if end_pos != nil {
-							end_pos.lnum = lnum + endpos.lnum
-							end_pos.col = endpos.col
-						}
+						found = 1
+						first_match = false
+						ed.search_match_lines = endpos.lnum - matchpos.lnum
+						ed.search_match_endcol = endpos.col
+						break loop1
 					}
-					pos.coladd = 0
-					if end_pos != nil {
-						end_pos.coladd = 0
+					ed.line_breakcheck()
+					if ed.got_int != 0 {
+						break loop1
 					}
-					found = 1
-					first_match = false
-					ed.search_match_lines = endpos.lnum - matchpos.lnum
-					ed.search_match_endcol = endpos.col
+					if (((options & SEARCH_PEEK) != 0) && (((lnum - pos.lnum) & 0x3f) == 0)) && ed.char_avail() {
+						break_loop = true
+						break loop1
+					}
+					if (loop != 0) && (lnum == start_pos.lnum) {
+						break loop1
+					}
 					break
 				}
-				ed.line_breakcheck()
-				if ed.got_int != 0 {
-					break
-				}
-				if (((options & SEARCH_PEEK) != 0) && (((lnum - pos.lnum) & 0x3f) == 0)) && ed.char_avail() {
-					break_loop = true
-					break
-				}
-				if (loop != 0) && (lnum == start_pos.lnum) {
-					break
-				}
-			cont1:
 				lnum += linenr_T(dir)
 				at_first_line = false
 			}
@@ -50520,13 +50531,13 @@ func (ed *Editor) searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_
 				lnum = 1
 			}
 			if (!ed.shortmess(SHM_SEARCH) && ed.shortmess(SHM_SEARCHCOUNT)) && ((options & SEARCH_MSG) != 0) {
-				var t11 Ptr[byte]
+				var t12 Ptr[byte]
 				if dir == -1 {
-					t11 = ed.top_bot_msg
+					t12 = ed.top_bot_msg
 				} else {
-					t11 = ed.bot_top_msg
+					t12 = ed.bot_top_msg
 				}
-				ed.give_warning(gettext_(t11), true)
+				ed.give_warning(gettext_(t12), true)
 			}
 			if extra_arg != nil {
 				extra_arg.sa_wrapped = true

@@ -70,7 +70,9 @@ slim-vim.c  --whim-->  whim-vim.c
     `for { ...; break }`. After 170-172: 50 gotos, 11 labels. The C keeps 49
     gotos, all in the core (185 before 170): each leaves a loop or switch and
     needs a flag or a state variable, which a Java backend need not have (a
-    labeled break says them). The Go keeps 54 in 10 functions, from 163 in 34.
+    labeled break says them). The Go keeps the same 49, in 8 functions, from 163 in 34:
+    togo writes no goto of its own (a continue that must reach a loop's end
+    is `break contN` out of a once-loop around the body).
 
   Phase 83 is the line between the two arcs.
 
