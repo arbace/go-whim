@@ -41,22 +41,11 @@ func W143Call(indent string) string {
 }
 
 // W143Helper is regatom_delim(): the delimiter block, taken Out of regatom()
-// verbatim and dedented, with the node it makes returned.
+// verbatim, with the node it makes returned.  Its indentation is the canonical
+// print's.
 func W143Helper(block string) string {
-	var b strings.Builder
-	b.WriteString("    static char_u *\nregatom_delim(int c, int delim_nl, int *flagp)\n{\n    char_u      *ret;\n\n")
-	for _, l := range strings.Split(strings.TrimSuffix(block, "\n"), "\n") {
-		if l == "" {
-			b.WriteString("\n")
-			continue
-		}
-		// Sixteen, not twenty: the canonical text writes the block's statements
-		// at twenty columns inside a case at twelve, and the helper's body sits
-		// at four.
-		b.WriteString(strings.TrimPrefix(l, strings.Repeat(" ", 16)) + "\n")
-	}
-	b.WriteString("    return ret;\n}\n\n")
-	return b.String()
+	return "    static char_u *\nregatom_delim(int c, int delim_nl, int *flagp)\n{\n    char_u      *ret;\n\n" +
+		block + "    return ret;\n}\n\n"
 }
 
 // Whim143 takes the three jumps Out of regatom().
@@ -98,7 +87,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("the delimiter block does not end in a break")
 	}
 	Inner := s[bo+len("                {\n") : bc]
-	Inner = strings.TrimSuffix(Inner, "                ")
 	helper := W143Helper(Inner)
 	s = s[:h] + "            case 't':\n" + W143Call("                ") + s[bc+1+len(w143Tail):]
 	n := 0
@@ -140,16 +128,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	ti := strings.LastIndex(s, tail)
 	Body := s[hi+len(head) : ti]
-	var ib strings.Builder
-	for _, l := range strings.Split(Body, "\n") {
-		if l == "" {
-			ib.WriteString("\n")
-		} else {
-			ib.WriteString("    " + l + "\n")
-		}
-	}
 	s = s[:hi] + "    c = getchr();\n    sw = c;\n    for (;;)\n    {\n        switch (sw)\n        {\n" +
-		strings.TrimSuffix(ib.String(), "\n") + "\n        }\n        break;\n    }\n    return ret;\n}" + s[ti+len(tail):]
+		Body + "\n        }\n        break;\n    }\n    return ret;\n}" + s[ti+len(tail):]
 	decl := "    int c;\n"
 	if strings.Count(s, decl) != 1 {
 		return nil, p.Die("regatom()'s c is not declared where this phase expects")
