@@ -25,8 +25,9 @@ package p090
 // field is WRITTEN NOWHERE -- and `do_one_cmd` memsets the struct, so every reader
 // is constantly FALSE.  No tool here can see that: tools/deadfields.py removes a
 // field nothing NAMES, and gcc has no warning for a struct member that is only
-// read.  So the six readers are folded by hand and the field goes with them, which
-// is phase 87's argument for `exmode_active` in a smaller shape.  Measured on this
+// read.  So the six readers are folded by hand, and the field, read then only in
+// ex_read, goes in the sweep after it -- phase 87's argument for `exmode_active`
+// in a smaller shape.  Measured on this
 // input: folding costs 13 lines and gives a BYTE-IDENTICAL recording -- the fold
 // changes no behaviour at all, it removes a test whose answer was already fixed.
 //
@@ -36,9 +37,9 @@ package p090
 // have to work out for itself that they can never be taken.
 //
 // THE TEXT THIS EDIT LEAVES DOES NOT COMPILE, and that is stated here because
-// nothing else would say it.  One mention of `usefilter` survives the cut, in
-// `ex_read` -- the function whose only reference was the row that just went -- and
-// the field it names is gone.  The invariant at the end is the honest form of that,
+// nothing else would say it.  `CMD_read` survives the cut in `ex_read` -- the
+// function whose only reference was the row that just went -- and the enumerator
+// it names is gone.  The invariant at the end is the honest form of that,
 // computed rather than listed: every surviving mention is inside a function
 // definition, and no surviving `cmdnames[]` row names that function, which is the
 // whole argument that funcreach.py takes it in the sweep's first round.
@@ -95,8 +96,9 @@ const (
 )
 
 // w90Dying are the names whose survivors are the reason the text does not
-// compile yet.
-var w90Dying = []string{"CMD_read", "usefilter"}
+// compile yet.  `usefilter` is not among them: its member declaration is still
+// there when the edit returns, and the sweep takes it with ex_read's last read.
+var w90Dying = []string{"CMD_read"}
 
 var w90Assign = regexp.MustCompile(`\busefilter\s*=`)
 
@@ -141,27 +143,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		p.Say(what)
 		return Out, nil
-	}
-	// withinStruct is the same inside one struct Body: cutil.FindDefinition is
-	// functions only.
-	withinStruct := func(t []byte, tag, old, new, what string, n int) ([]byte, error) {
-		m := regexp.MustCompile(`(?m)^struct ` + regexp.QuoteMeta(tag) + `\n\{\n`).FindIndex(t)
-		if m == nil {
-			return nil, p.Die("struct %s is not defined where this phase expects it", tag)
-		}
-		o := strings.Index(string(t[m[0]:]), "{") + m[0]
-		c := cutil.Match(cutil.Blank(t), o)
-		if c < 0 {
-			return nil, p.Die("struct %s does not close", tag)
-		}
-		Body := string(t[o : c+1])
-		k := strings.Count(Body, old)
-		if k != n {
-			return nil, p.Die("%s -- %s occurs %d times in struct %s, expected %d",
-				what, cutil.PyRepr(edit.CoreHead(old, 60)), k, tag, n)
-		}
-		p.Say(what)
-		return []byte(string(t[:o]) + strings.ReplaceAll(Body, old, new) + string(t[c+1:])), nil
 	}
 
 	// ---- 0. the table and the field, at the shape the anchors were counted on
@@ -245,10 +226,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p.Say("and no longer escapes `!` for a shell, which only a filter needed")
 	if text, err = within(text, "expand_filename", "(eap->argt & EX_NOSPC) && !eap->usefilter",
 		"eap->argt & EX_NOSPC", "and EX_NOSPC refuses a second file name whatever it said", 1); err != nil {
-		return nil, err
-	}
-	if text, err = withinStruct(text, "exarg", "    int usefilter;\n", "",
-		"the exarg field itself, written by nothing since anchor 3", 1); err != nil {
 		return nil, err
 	}
 
