@@ -6,15 +6,15 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // nostatCalls are the three direct buf_check_timestamp() sites, each with the
 // function it sits in, so a refusal names WHERE the shape moved.
 var nostatCalls = []struct{ pat, where string }{
-	{cutil.Line("(void)buf_check_timestamp(curbuf, FALSE);"), "do_ecmd"},
-	{cutil.Line("(void)buf_check_timestamp(buf, FALSE);"), "enter_buffer"},
-	{cutil.Line("buf_check_timestamp(curbuf, FALSE);"), "ex_drop"},
+	{edit.Line("(void)buf_check_timestamp(curbuf, FALSE);"), "do_ecmd"},
+	{edit.Line("(void)buf_check_timestamp(buf, FALSE);"), "enter_buffer"},
+	{edit.Line("buf_check_timestamp(curbuf, FALSE);"), "ex_drop"},
 }
 
 // NoStat stops the editor re-reading a file it has already read.
@@ -27,7 +27,7 @@ var nostatCalls = []struct{ pat, where string }{
 // check_mtime() is NOT touched: it runs only when the user asks to write, and
 // it is what stops a write silently clobbering someone else's edit.
 func NoStat(text []byte, w io.Writer) ([]byte, error) {
-	text, was, err := cutil.ReplaceBody(text, "check_timestamps", "    return 0;")
+	text, was, err := edit.ReplaceBody(text, "check_timestamps", "    return 0;")
 	if err != nil {
 		return nil, fmt.Errorf("nostat: %v", err)
 	}

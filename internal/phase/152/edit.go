@@ -17,11 +17,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim152", Edit) }
+func init() { phase.Register("whim152", Edit) }
 
 // W152Type is optvar_T and its helpers, exported so the check requires the
 // identical text.
@@ -133,11 +133,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if err != nil {
 			return
 		}
-		if k := cutil.CountAnchor(s, old); k != n {
+		if k := edit.CountAnchor(s, old); k != n {
 			err = p.Die("%s (%.60q) -- occurs %d times, expected %d", what, old, k, n)
 			return
 		}
-		s = cutil.ReplaceAnchor(s, old, new, -1)
+		s = edit.ReplaceAnchor(s, old, new, -1)
 		if what != "" {
 			p.Say(what)
 		}
@@ -159,8 +159,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if ti < 0 {
 		return nil, p.Die("options[] is not where this phase expects it")
 	}
-	b := cutil.Blank([]byte(s))
-	tend := cutil.Match(b, ti+len(head)-2)
+	b := edit.Blank([]byte(s))
+	tend := edit.Match(b, ti+len(head)-2)
 	type cut struct {
 		a, z int
 		t    string
@@ -171,7 +171,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if b[k] != '{' {
 			continue
 		}
-		re := cutil.Match(b, k)
+		re := edit.Match(b, k)
 		// the fourth top-level field of the row
 		depth, field, start := 0, 0, k+1
 		var fs [][2]int

@@ -12,7 +12,8 @@ package p048
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 var noswapTest = edit.Head("if (cmdmod.cmod_flags & CMOD_NOSWAPFILE)")
@@ -42,4 +43,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim48", Edit) }
+func init() { phase.Register("whim48", Edit) }

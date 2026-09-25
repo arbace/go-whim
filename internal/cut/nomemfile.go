@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/internal/dead"
 )
 
@@ -73,7 +73,7 @@ const lallocBody = "    p = malloc(size);\n" +
 
 // nomemfileBody replaces a definition's body and reports its old line count.
 func nomemfileBody(text []byte, name, replacement, tag string, w io.Writer) ([]byte, error) {
-	o, c, found, balanced := cutil.Body(text, name)
+	o, c, found, balanced := edit.Body(text, name)
 	if !found || !balanced {
 		return nil, fmt.Errorf("nomemfile: %s is not defined at file scope", name)
 	}
@@ -111,13 +111,13 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	// mf_release reads p_mmt, which dropoptions --strict refuses later in this
 	// phase with no sweep between; the rest of the file back-end is the sweep's.
 	var ok bool
-	if text, ok = cutil.DeleteDefinition(text, "mf_release"); !ok {
+	if text, ok = edit.DeleteDefinition(text, "mf_release"); !ok {
 		return nil, fmt.Errorf("nomemfile: mf_release is not defined at file scope")
 	}
 
 	for _, c := range []struct{ pat, what string }{
-		{cutil.Line("mf_fullname(buf->b_ml.ml_mfp);"), "mf_fullname's caller"},
-		{cutil.Line("if (mfp->mf_fd >= 0)") +
+		{edit.Line("mf_fullname(buf->b_ml.ml_mfp);"), "mf_fullname's caller"},
+		{edit.Line("if (mfp->mf_fd >= 0)") +
 			`[ \t]*\{\n` +
 			`[ \t]*if \(close\(mfp->mf_fd\) < 0\)\n` +
 			`[ \t]*\{\n` +
@@ -127,7 +127,7 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 			`[ \t]*if \(del_file && mfp->mf_fname != NULL\)\n` +
 			`[ \t]*\{\n[ \t]* unlink\(\(char \*\)\(mfp->mf_fname\)\);\n[ \t]*\}\n`,
 			"mf_close's descriptor and unlink"},
-		{cutil.Line("vim_free(mfp->mf_fname);", "vim_free(mfp->mf_ffname);"),
+		{edit.Line("vim_free(mfp->mf_fname);", "vim_free(mfp->mf_ffname);"),
 			"mf_close's two names"},
 	} {
 		if text, err = cutCounted(text, c.pat, "nomemfile", c.what, 1); err != nil {
@@ -138,13 +138,13 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	// buf_write matched the swap file's permissions and group to the file's.
 	// mf_fname is NULL for ever, so the block never ran; it is the last
 	// mention of mf_fd, and swap_mode exists only for it.
-	if text, err = cutil.DropIf(text,
+	if text, err = edit.DropIf(text,
 		`(?m)^[ \t]*if \(swap_mode > 0 && curbuf->b_ml\.ml_mfp != NULL `+
 			`&& curbuf->b_ml\.ml_mfp->mf_fname != NULL\)$`, 1); err != nil {
 		return nil, err
 	}
 	for _, c := range []struct{ pat, what string }{
-		{cutil.Line("swap_mode = (st.st_mode & 0644) | 0600;"), "swap_mode's one assignment"},
+		{edit.Line("swap_mode = (st.st_mode & 0644) | 0600;"), "swap_mode's one assignment"},
 	} {
 		if text, err = cutCounted(text, c.pat, "nomemfile", c.what, 1); err != nil {
 			return nil, err
@@ -155,14 +155,14 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 		[]byte("    hp = NULL;\n"), 1)
 
 	// mf_get's cache miss: the block could only have come back from the file.
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	k := bytes.Index(text, []byte("        if (nr < 0 || nr >= mfp->mf_infile_count)"))
 	if k < 0 {
 		return nil, fmt.Errorf("nomemfile: mf_get's cache miss is not where this expects")
 	}
 	at := k - 400 + bytes.Index(text[k-400:], []byte("if (hp == NULL)"))
 	o := at + bytes.IndexByte(blanked[at:], '{')
-	c := cutil.Match(blanked, o)
+	c := edit.Match(blanked, o)
 	if c < 0 {
 		return nil, fmt.Errorf("nomemfile: mf_get's cache miss is unbalanced")
 	}
@@ -174,13 +174,13 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	text = append(buf, text[c+1:]...)
 	fmt.Fprintln(w, "  nomemfile    mf_get stops trying to read a block back")
 
-	blanked = cutil.Blank(text)
+	blanked = edit.Blank(text)
 	k = bytes.Index(text, []byte("    for (;;)\n    {\n        if ((p = malloc(size)) != NULL)"))
 	if k < 0 {
 		return nil, fmt.Errorf("nomemfile: lalloc's retry loop is not where this expects")
 	}
 	o = k + 12 + bytes.IndexByte(blanked[k+12:], '{')
-	c = cutil.Match(blanked, o)
+	c = edit.Match(blanked, o)
 	if c < 0 {
 		return nil, fmt.Errorf("nomemfile: lalloc's retry loop is unbalanced")
 	}
@@ -202,13 +202,13 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nomemfile    lalloc stops retrying: there is nothing to page out")
 
 	for _, c := range []struct{ pat, what string }{
-		{cutil.Line("mfp->mf_used_count += hp->bh_page_count;") +
+		{edit.Line("mfp->mf_used_count += hp->bh_page_count;") +
 			`[ \t]*total_mem_used \+= \(long_u\)hp->bh_page_count \* mfp->mf_page_size;\n`,
 			"mf_ins_used's accounting"},
-		{cutil.Line("mfp->mf_used_count -= hp->bh_page_count;") +
+		{edit.Line("mfp->mf_used_count -= hp->bh_page_count;") +
 			`[ \t]*total_mem_used -= \(long_u\)hp->bh_page_count \* mfp->mf_page_size;\n`,
 			"mf_rem_used's accounting"},
-		{cutil.Line("total_mem_used -= (long_u)hp->bh_page_count * mfp->mf_page_size;"),
+		{edit.Line("total_mem_used -= (long_u)hp->bh_page_count * mfp->mf_page_size;"),
 			"mf_close's accounting"},
 	} {
 		if text, err = cutCounted(text, c.pat, "nomemfile", c.what, 1); err != nil {
@@ -218,10 +218,10 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	// set_init_default_maxmemtot looks "maxmem" up by name, which dropoptions
 	// --strict refuses later in this phase with no sweep between; mch_total_mem
 	// is the sweep's.
-	if text, ok = cutil.DeleteDefinition(text, "set_init_default_maxmemtot"); !ok {
+	if text, ok = edit.DeleteDefinition(text, "set_init_default_maxmemtot"); !ok {
 		return nil, fmt.Errorf("nomemfile: set_init_default_maxmemtot is not defined at file scope")
 	}
-	if text, err = cutCounted(text, cutil.Line("set_init_default_maxmemtot();"),
+	if text, err = cutCounted(text, edit.Line("set_init_default_maxmemtot();"),
 		"nomemfile", "its call", 1); err != nil {
 		return nil, err
 	}
@@ -229,14 +229,14 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 		"evicts; sysinfo and getrlimit go with them")
 
 	if text, err = cutCounted(text,
-		cutil.Line("mch_get_host_name(b0p->b0_hname, B0_HNAME_SIZE);")+
+		edit.Line("mch_get_host_name(b0p->b0_hname, B0_HNAME_SIZE);")+
 			`[ \t]*b0p->b0_hname\[B0_HNAME_SIZE - 1\] = NUL;\n`,
 		"nomemfile", "block zero's host name", 1); err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  nomemfile    the machine name in block zero; uname goes with it")
 
-	if text, err = cutil.DropIf(text, cutil.Head("if (other && !emsg_silent)"), 1); err != nil {
+	if text, err = edit.DropIf(text, edit.Head("if (other && !emsg_silent)"), 1); err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  nomemfile    check_overwrite's `is another vim editing this` "+
@@ -252,7 +252,7 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	// SCOPED TO THE FUNCTION: `for ((buf) = firstbuf; ...)` is the expansion of
 	// FOR_ALL_BUFFERS and appears dozens of times, so an unanchored cut takes
 	// the first one in the file -- which is somebody else's loop entirely.
-	blanked = cutil.Blank(text)
+	blanked = edit.Blank(text)
 	span, found := dead.FuncDefinitions(text, blanked)["preserve_exit"]
 	if !found {
 		return nil, fmt.Errorf("nomemfile: preserve_exit is not defined at file scope")
@@ -263,9 +263,9 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("nomemfile: preserve_exit has no FOR_ALL_BUFFERS loop")
 	}
 	fk = bytes.LastIndexByte(fn[:fk], '\n') + 1
-	fb := cutil.Blank(fn)
+	fb := edit.Blank(fn)
 	fo := fk + bytes.IndexByte(fb[fk:], '{')
-	fc := cutil.Match(fb, fo)
+	fc := edit.Match(fb, fo)
 	if fc < 0 {
 		return nil, fmt.Errorf("nomemfile: preserve_exit's loop is unbalanced")
 	}

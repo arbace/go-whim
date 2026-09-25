@@ -82,12 +82,13 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/internal/cmdtab"
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/internal/phase"
+	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-func init() { edit.Register("whim90", Edit) }
+func init() { phase.Register("whim90", Edit) }
 
 const (
 	w90RowsBefore = 105
@@ -115,12 +116,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	var err error
 
 	mentions := edit.MentionCount
-	inFunction := func(t []byte, name string, edit func([]byte) ([]byte, error)) ([]byte, error) {
-		a, z, ok := cutil.FindDefinition(t, cutil.Blank(t), name)
+	inFunction := func(t []byte, name string, fn func([]byte) ([]byte, error)) ([]byte, error) {
+		a, z, ok := edit.FindDefinition(t, edit.Blank(t), name)
 		if !ok {
 			return nil, p.Die("%s is not defined", name)
 		}
-		Body, err := edit(t[a:z])
+		Body, err := fn(t[a:z])
 		if err != nil {
 			return nil, err
 		}
@@ -134,7 +135,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			k := strings.Count(string(s), old)
 			if k != n {
 				return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-					what, cutil.PyRepr(edit.CoreHead(old, 60)), k, fn, n)
+					what, edit.PyRepr(edit.CoreHead(old, 60)), k, fn, n)
 			}
 			return []byte(strings.ReplaceAll(string(s), old, new)), nil
 		})
@@ -146,7 +147,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- 0. the table and the field, at the shape the anchors were counted on
-	if n := len(edit.CoreRows(text)); n != w90RowsBefore {
+	if n := len(vimtext.CoreRows(text)); n != w90RowsBefore {
 		return nil, p.Die("cmdnames[] has %d rows, expected %d -- the anchors below were counted "+
 			"against a different table", n, w90RowsBefore)
 	}
@@ -184,7 +185,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("cmdnames[] has no [CMD_read] row")
 	}
 	text = append(append([]byte{}, text[:m[0]]...), text[m[1]:]...)
-	if n := len(edit.CoreRows(text)); n != w90RowsAfter {
+	if n := len(vimtext.CoreRows(text)); n != w90RowsAfter {
 		return nil, p.Die("cmdnames[] has %d rows after the cut, expected %d", n, w90RowsAfter)
 	}
 	p.Sayf("the cmdnames[] row; %d -> %d, and create_cmdidxs names() refuses under %d, so "+
@@ -219,7 +220,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 	if text, err = inFunction(text, "expand_filename", func(s []byte) ([]byte, error) {
-		return cutil.FoldNever(s, `(?m)^[ \t]*if \(eap->usefilter &&.*\)$`, 1)
+		return edit.FoldNever(s, `(?m)^[ \t]*if \(eap->usefilter &&.*\)$`, 1)
 	}); err != nil {
 		return nil, err
 	}
@@ -230,7 +231,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- 5. what is left, and why it does not compile yet ----------------------
-	left, holders, _, err := edit.CoreResidue(p, text, w90Dying)
+	left, holders, _, err := vimtext.CoreResidue(p, text, w90Dying)
 	if err != nil {
 		return nil, err
 	}

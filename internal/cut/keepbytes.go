@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 var (
@@ -24,7 +24,7 @@ func (e ed) foldAll(seg []byte, pattern, what string) ([]byte, error) {
 	if n == 0 {
 		return nil, fmt.Errorf("%s: %s -- no occurrence", e.tool, what)
 	}
-	out, err := cutil.FoldNever(seg, "(?m)"+pattern, n)
+	out, err := edit.FoldNever(seg, "(?m)"+pattern, n)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s -- %v", e.tool, what, err)
 	}
@@ -45,8 +45,8 @@ func (e ed) keepThenChain(seg []byte, pattern, what string) ([]byte, error) {
 		return nil, fmt.Errorf("%s: %s -- the condition occurs %d times, expected 1",
 			e.tool, what, len(ms))
 	}
-	b := cutil.Blank(seg)
-	k, o, c, head, err := cutil.Guarded(seg, b, ms[0])
+	b := edit.Blank(seg)
+	k, o, c, head, err := edit.Guarded(seg, b, ms[0])
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s -- %v", e.tool, what, err)
 	}
@@ -61,7 +61,7 @@ func (e ed) keepThenChain(seg []byte, pattern, what string) ([]byte, error) {
 			break
 		}
 		o2 := end + nxt[1] + bytes.IndexByte(b[end+nxt[1]:], '{')
-		c2 := cutil.Match(b, o2)
+		c2 := edit.Match(b, o2)
 		if c2 < 0 {
 			return nil, fmt.Errorf("%s: %s -- an else arm is unbalanced", e.tool, what)
 		}

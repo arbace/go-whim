@@ -5,7 +5,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 const notHere = "    emsg(_(e_sorry_command_is_not_available_in_this_version));"
@@ -28,7 +28,7 @@ func NoShellOut(text []byte, w io.Writer) ([]byte, error) {
 	for _, s := range shelloutStubs {
 		var was int
 		var err error
-		text, was, err = cutil.ReplaceBody(text, s.name, s.body)
+		text, was, err = edit.ReplaceBody(text, s.name, s.body)
 		if err != nil {
 			return nil, fmt.Errorf("noshellout: %v", err)
 		}

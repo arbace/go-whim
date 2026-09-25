@@ -15,10 +15,11 @@ package p147
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim147", Edit) }
+func init() { phase.Register("whim147", Edit) }
 
 // W147Handler and W147Deliver are the host's new functions, exported so the
 // check requires the identical text.

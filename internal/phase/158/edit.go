@@ -13,10 +13,11 @@ package p158
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim158", Edit) }
+func init() { phase.Register("whim158", Edit) }
 
 // W158Font is the test phase 158 finds and the one it writes.
 const (

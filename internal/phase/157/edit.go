@@ -13,10 +13,11 @@ package p157
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim157", Edit) }
+func init() { phase.Register("whim157", Edit) }
 
 // Whim157 types the register get_register() hands to put_register().
 //

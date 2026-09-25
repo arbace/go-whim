@@ -3,9 +3,10 @@ package cut
 import (
 	"bytes"
 	"fmt"
-	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"regexp"
+
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 const fnameModArm = `        else if (!skip_mod)
@@ -27,9 +28,9 @@ var fnameModFeeders = []struct {
 	pat, what string
 	n         int
 }{
-	{cutil.Line(`tilde_file = strcmp((char *)(result), (char *)("~")) == 0;`),
+	{edit.Line(`tilde_file = strcmp((char *)(result), (char *)("~")) == 0;`),
 		"a tilde_file assignment", 2},
-	{cutil.Line("skip_mod = TRUE;"), "skip_mod's assignment", 1},
+	{edit.Line("skip_mod = TRUE;"), "skip_mod's assignment", 1},
 }
 
 var modifyFname = regexp.MustCompile(`\bmodify_fname\b`)

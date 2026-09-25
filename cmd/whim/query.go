@@ -5,19 +5,19 @@ import (
 	"os"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 func runQuery(args []string) int {
 	if len(args) != 2 {
 		fmt.Fprintf(os.Stderr, "usage: whim query <phase> <file>\n  queries: %s\n",
-			strings.Join(edit.QueryNames(), " "))
+			strings.Join(phase.QueryNames(), " "))
 		return 1
 	}
-	f, ok := edit.LookupQuery(args[0])
+	f, ok := phase.LookupQuery(args[0])
 	if !ok {
 		fmt.Fprintf(os.Stderr, "whim query: no query for phase %q\n  queries: %s\n",
-			args[0], strings.Join(edit.QueryNames(), " "))
+			args[0], strings.Join(phase.QueryNames(), " "))
 		return 1
 	}
 	text, err := os.ReadFile(args[1])

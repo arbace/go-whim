@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 var backupWord = regexp.MustCompile(`\bbackup\b`)
@@ -14,14 +14,14 @@ var backupWord = regexp.MustCompile(`\bbackup\b`)
 // nobackupBlock deletes the `if` block whose line is `anchor` (a literal), and
 // reports how many lines went.  With keepBody it keeps the dedented body.
 func nobackupBlock(text []byte, anchor, what string, keepBody bool) ([]byte, int, error) {
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	k := bytes.Index(text, []byte(anchor))
 	if k < 0 {
 		return nil, 0, fmt.Errorf("nobackup: %s -- not where this expects", what)
 	}
 	from := k + len(anchor) - 2
 	o := from + bytes.IndexByte(blanked[from:], '{')
-	c := cutil.Match(blanked, o)
+	c := edit.Match(blanked, o)
 	if c < 0 {
 		return nil, 0, fmt.Errorf("nobackup: %s -- unbalanced", what)
 	}
@@ -46,11 +46,11 @@ func nobackupBlock(text []byte, anchor, what string, keepBody bool) ([]byte, int
 
 // nobackupSub replaces exact text, counted.
 func nobackupSub(text []byte, old, new, what string, count int) ([]byte, error) {
-	n := cutil.CountAnchorB(text, old)
+	n := edit.CountAnchorB(text, old)
 	if n != count {
 		return nil, fmt.Errorf("nobackup: %s -- expected %d, matched %d", what, count, n)
 	}
-	return cutil.ReplaceAnchorB(text, old, []byte(new), -1), nil
+	return edit.ReplaceAnchorB(text, old, []byte(new), -1), nil
 }
 
 // pointRowsAtNull replaces a handler name with NULL wherever it appears
@@ -117,7 +117,7 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 	// Its `else if` is the branch that now always runs, so the pair collapses
 	// to that rather than going -- buf_setino() still has to happen.
 	text, err := cutCounted(text,
-		cutil.Line("if (backup != NULL && !backup_copy)", "{")+
+		edit.Line("if (backup != NULL && !backup_copy)", "{")+
 			`(?:[^\n]*\n)*?[ \t]*buf_setino\(buf\);\n[ \t]*\}\n`+
 			`[ \t]*else (if \(!buf->b_dev_valid\))`,
 		"nobackup", "the owner carried to the backup", 1)
@@ -159,19 +159,19 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 	// are the sweep's.
 	for _, name := range []string{"get_bkc_flags"} {
 		var ok bool
-		if text, ok = cutil.DeleteDefinition(text, name); !ok {
+		if text, ok = edit.DeleteDefinition(text, name); !ok {
 			return nil, fmt.Errorf("nobackup: %s is not defined at file scope", name)
 		}
 	}
 	for _, c := range []struct{ pat, what string }{
-		{cutil.Line("{", "acl = mch_get_acl(fname);", "}"), "buf_write's mch_get_acl"},
-		{cutil.Line("mch_set_acl(wfname, acl);"), "the ACL put back"},
+		{edit.Line("{", "acl = mch_get_acl(fname);", "}"), "buf_write's mch_get_acl"},
+		{edit.Line("mch_set_acl(wfname, acl);"), "the ACL put back"},
 	} {
 		if text, err = cutCounted(text, c.pat, "nobackup", c.what, 1); err != nil {
 			return nil, err
 		}
 	}
-	if text, err = cutCounted(text, cutil.Line("mch_free_acl(acl);"),
+	if text, err = cutCounted(text, edit.Line("mch_free_acl(acl);"),
 		"nobackup", "buf_write's mch_free_acl", 1); err != nil {
 		return nil, err
 	}
@@ -183,10 +183,10 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 	// and looks the row up BY NAME -- the lookup that returns -1 for a row
 	// that is not there, is not checked, and indexes options[-1].
 	var ok bool
-	if text, ok = cutil.DeleteDefinition(text, "set_init_default_backupskip"); !ok {
+	if text, ok = edit.DeleteDefinition(text, "set_init_default_backupskip"); !ok {
 		return nil, fmt.Errorf("nobackup: set_init_default_backupskip is not defined")
 	}
-	if text, err = cutCounted(text, cutil.Line("set_init_default_backupskip();"),
+	if text, err = cutCounted(text, edit.Line("set_init_default_backupskip();"),
 		"nobackup", "its call", 1); err != nil {
 		return nil, err
 	}
@@ -210,21 +210,21 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 			return nil, fmt.Errorf("nobackup: %s is named in %d rows, expected %d",
 				h.handler, got, h.rows)
 		}
-		if text, ok = cutil.DeleteDefinition(text, h.handler); !ok {
+		if text, ok = edit.DeleteDefinition(text, h.handler); !ok {
 			return nil, fmt.Errorf("nobackup: %s is not defined at file scope", h.handler)
 		}
 	}
 	fmt.Fprintln(w, "  nobackup     the three handlers the rows kept reachable")
 
 	if text, err = cutCounted(text,
-		cutil.Line("(void)opt_strings_flags(p_bkc, p_bkc_values, &bkc_flags, TRUE);"),
+		edit.Line("(void)opt_strings_flags(p_bkc, p_bkc_values, &bkc_flags, TRUE);"),
 		"nobackup", "didset_string_options' p_bkc line", 1); err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  nobackup     didset_string_options stops reading 'backupcopy'")
 
-	if text, err = cutil.DropIf(text,
-		cutil.Head("else if (*arg == '>' && varp == (char_u *)&p_bdir)"), 1); err != nil {
+	if text, err = edit.DropIf(text,
+		edit.Head("else if (*arg == '>' && varp == (char_u *)&p_bdir)"), 1); err != nil {
 		return nil, err
 	}
 	if text, err = nobackupSub(text, "if (p == (char_u *)&p_bdir || p == (char_u *)&p_pp",
@@ -234,16 +234,16 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nobackup     the two `is this option a directory?` tests")
 
 	for _, c := range []struct{ pat, what string }{
-		{cutil.Line("unsigned int bkc = get_bkc_flags(buf);"), "bkc"},
-		{cutil.Line("dobackup = (p_wb || p_bk || *p_pm != NUL);"), "its one assignment"},
-		{cutil.Line("vim_free(backup);"), "the free of backup"},
+		{edit.Line("unsigned int bkc = get_bkc_flags(buf);"), "bkc"},
+		{edit.Line("dobackup = (p_wb || p_bk || *p_pm != NUL);"), "its one assignment"},
+		{edit.Line("vim_free(backup);"), "the free of backup"},
 	} {
 		if text, err = cutCounted(text, c.pat, "nobackup", c.what, 1); err != nil {
 			return nil, err
 		}
 	}
-	if text, err = cutil.DropIf(text,
-		cutil.Head("if (dobackup && *p_bsk != NUL && match_file_list(p_bsk, sfname, ffname))"),
+	if text, err = edit.DropIf(text,
+		edit.Head("if (dobackup && *p_bsk != NUL && match_file_list(p_bsk, sfname, ffname))"),
 		1); err != nil {
 		return nil, err
 	}

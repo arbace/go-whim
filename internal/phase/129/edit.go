@@ -18,10 +18,11 @@ package p129
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim129", Edit) }
+func init() { phase.Register("whim129", Edit) }
 
 // Whim129 declares p_emoji an int.
 //

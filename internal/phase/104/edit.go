@@ -116,15 +116,15 @@ package p104
 
 import (
 	"bytes"
-	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim104", Edit) }
+func init() { phase.Register("whim104", Edit) }
 
 var w104Stmt = regexp.MustCompile(`(?m)^\s*(?:printf|fprintf|fflush)\(`)
 
@@ -144,7 +144,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// line stripped and truncated at 70 -- which is what makes a refusal
 	// readable when the needle is a fifteen-line function Body.
 	sub := func(old, new string, n int, tag string) error {
-		c := cutil.CountAnchorB(t, old)
+		c := edit.CountAnchorB(t, old)
 		if c != n {
 			head := strings.SplitN(strings.TrimSpace(old), "\n", 2)[0]
 			if len(head) > 70 {
@@ -152,7 +152,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			}
 			return p.Die("%s: `%s` occurs %d times, expected %d", tag, head, c, n)
 		}
-		t = cutil.ReplaceAnchorB(t, old, []byte(new), -1)
+		t = edit.ReplaceAnchorB(t, old, []byte(new), -1)
 		return nil
 	}
 

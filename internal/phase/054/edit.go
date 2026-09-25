@@ -29,7 +29,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // noVarRow matches an options[] row whose VARIABLE FIELD is a null pointer --
@@ -52,4 +52,4 @@ func Whim54NoVar(text []byte, w io.Writer) error {
 	return err
 }
 
-func init() { edit.RegisterQuery("whim54", Whim54NoVar) }
+func init() { phase.RegisterQuery("whim54", Whim54NoVar) }

@@ -61,7 +61,8 @@ package p064
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // internalFormatDecls are the writes internal_format loses, paired with the
@@ -321,4 +322,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim64", Edit) }
+func init() { phase.Register("whim64", Edit) }

@@ -33,7 +33,8 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // Whim62 takes five buffer options: 'autowrite' and 'autowriteall', 'buftype',
@@ -196,6 +197,6 @@ func Whim62BL(text []byte, w io.Writer) ([]byte, error) {
 }
 
 func init() {
-	edit.Register("whim62", Edit)
-	edit.Register("whim62bl", Whim62BL)
+	phase.Register("whim62", Edit)
+	phase.Register("whim62bl", Whim62BL)
 }

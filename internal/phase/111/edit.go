@@ -76,16 +76,16 @@ package p111
 
 import (
 	"bytes"
-	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim111", Edit) }
+func init() { phase.Register("whim111", Edit) }
 
 var (
 	whim111Inc   = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
@@ -99,14 +99,14 @@ const whim111HostMark = "static volatile sig_atomic_t host_winch_pending"
 // whim111Once replaces text that must occur exactly once, with this phase's own
 // refusal: the anchor truncated to seventy characters with its newlines shown.
 func whim111Once(p edit.Ph, text []byte, old, new, why string) ([]byte, error) {
-	if k := cutil.CountAnchorB(text, old); k != 1 {
+	if k := edit.CountAnchorB(text, old); k != 1 {
 		shown := strings.ReplaceAll(old, "\n", `\n`)
 		if len(shown) > 70 {
 			shown = shown[:70]
 		}
 		return nil, p.Die("`%s` is not in the file exactly once (%s)", shown, why)
 	}
-	return cutil.ReplaceAnchorB(text, old, []byte(new), 1), nil
+	return edit.ReplaceAnchorB(text, old, []byte(new), 1), nil
 }
 
 // Whim111 makes the clock a scalar: `long musl_now_ms(void)` replaces

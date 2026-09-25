@@ -6,21 +6,21 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 var cmodTab = regexp.MustCompile(`\bcmod_tab\b`)
 
 // notabsBody replaces a definition's body, scoped to its own span.
 func notabsBody(text []byte, name, newBody string) ([]byte, error) {
-	a, z, ok := cutil.FindDefinition(text, cutil.Blank(text), name)
+	a, z, ok := edit.FindDefinition(text, edit.Blank(text), name)
 	if !ok {
 		return nil, fmt.Errorf("notabs: %s is not defined at file scope", name)
 	}
 	seg := text[a:z]
-	b := cutil.Blank(seg)
+	b := edit.Blank(seg)
 	o := bytes.IndexByte(b, '{')
-	c := cutil.Match(b, o)
+	c := edit.Match(b, o)
 	if o < 0 || c < 0 {
 		return nil, fmt.Errorf("notabs: %s is unbalanced", name)
 	}
@@ -39,11 +39,11 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 	e := ed{"notabs", w}
 	var err error
 
-	var tabMod = cutil.Head(`if (checkforcmd_noparen(&p, "tab", 3))`)
+	var tabMod = edit.Head(`if (checkforcmd_noparen(&p, "tab", 3))`)
 	if n := len(regexp.MustCompile(tabMod).FindAll(text, -1)); n != 1 {
 		return nil, fmt.Errorf("notabs: the :tab modifier is not where this expects")
 	}
-	if text, err = cutil.DropIf(text, tabMod, 1); err != nil {
+	if text, err = edit.DropIf(text, tabMod, 1); err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  notabs       the :tab modifier")
@@ -366,7 +366,7 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 	// ex_tabnext() and ex_tabonly(), whose rows retire pointed away, so the
 	// sweep takes those callers; whim36 counts what is left after it.
 	// may_open_tabpage() still names it, and has no caller now.
-	ga, gz, gone := cutil.FindDefinition(text, cutil.Blank(text), "may_open_tabpage")
+	ga, gz, gone := edit.FindDefinition(text, edit.Blank(text), "may_open_tabpage")
 	n := 0
 	for _, m := range cmodTab.FindAllIndex(text, -1) {
 		if gone && ga <= m[0] && m[0] < gz {

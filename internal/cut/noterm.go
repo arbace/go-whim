@@ -5,7 +5,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // replaceFirst rewrites the FIRST match only, expanding $1 in repl.
@@ -52,7 +52,7 @@ var notermEdits = []struct{ what, pat, repl string }{
 func NoTerm(text []byte, w io.Writer) ([]byte, error) {
 	// Brace-matched, not regex-matched: this block contains two inner `if`s
 	// and a lazy pattern stops at the first of their closing braces.
-	text, err := cutil.DropIf(text, `(?m)^[ \t]*if \(columns == 0 \|\| rows == 0 \|\| `+
+	text, err := edit.DropIf(text, `(?m)^[ \t]*if \(columns == 0 \|\| rows == 0 \|\| `+
 		`vim_strchr\(p_cpo, CPO_TSIZE\) != NULL\)$`, 1)
 	if err != nil {
 		return nil, err

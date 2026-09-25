@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // envCopy is expand_env_esc with the $ arm gone.  Written out rather than cut,
@@ -48,7 +48,7 @@ var envLeft = regexp.MustCompile(`\bgetenv\b|\bsetenv\b|\benviron\b`)
 
 // envBody replaces a file-scope definition's body and reports its line count.
 func envBody(text []byte, name, replacement string) ([]byte, int, error) {
-	o, c, found, balanced := cutil.Body(text, name)
+	o, c, found, balanced := edit.Body(text, name)
 	if !found || !balanced {
 		return nil, 0, fmt.Errorf("nogetenv: %s is not defined at file scope", name)
 	}
@@ -71,7 +71,7 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintf(w, "  nogetenv     expand_env_esc was %d lines, and now copies a name\n", was)
 
 	if text, err = cutCounted(text,
-		cutil.Line("if (!mch_isFullName(pat))", "{")+
+		edit.Line("if (!mch_isFullName(pat))", "{")+
 			`[ \t]*path = vim_getenv\(\(char_u \*\)"PATH", &mustfree\);\n[ \t]*\}\n`,
 		"nogetenv", "$PATH in expand_shellcmd", 1); err != nil {
 		return nil, err
@@ -81,13 +81,13 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	// Phase 1 folded `vimruntime` to FALSE inside vim_getenv, so `rt` here has
 	// been NULL since then and the block has added nothing.  It goes rather
 	// than staying to look like it might.
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	k := bytes.Index(text, []byte(localAdditions))
 	if k < 0 {
 		return nil, fmt.Errorf("nogetenv: the local-additions scan is not where this expects")
 	}
 	o := k + 40 + bytes.IndexByte(blanked[k+40:], '{')
-	c := cutil.Match(blanked, o)
+	c := edit.Match(blanked, o)
 	if c < 0 {
 		return nil, fmt.Errorf("nogetenv: the local-additions scan is unbalanced")
 	}
@@ -109,8 +109,8 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 		fmt.Fprintf(w, "  nogetenv     %s\n", d.call)
 	}
 
-	if text, err = cutil.DropIf(text,
-		cutil.Head(`if ((char_u *)getenv((char *)((char_u *)"VIM_POSIX")) != NULL)`),
+	if text, err = edit.DropIf(text,
+		edit.Head(`if ((char_u *)getenv((char *)((char_u *)"VIM_POSIX")) != NULL)`),
 		1); err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 		"nogetenv", "the two DOSO_VIMRC arms of do_source_ext", 1); err != nil {
 		return nil, err
 	}
-	if text, err = cutil.DropIf(text, cutil.Head("if (varp == &p_rtp)"), 1); err != nil {
+	if text, err = edit.DropIf(text, edit.Head("if (varp == &p_rtp)"), 1); err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  nogetenv     $VIM, $VIMRUNTIME and $MYVIMDIR stop being published")
@@ -162,7 +162,7 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 		"nogetenv", "the EXPAND_ENV_VARS completion row", 1); err != nil {
 		return nil, err
 	}
-	if text, err = cutil.DropIf(text, cutil.Head("if (*xp->xp_pattern == '$')"), 1); err != nil {
+	if text, err = edit.DropIf(text, edit.Head("if (*xp->xp_pattern == '$')"), 1); err != nil {
 		return nil, err
 	}
 	if text, err = cutCounted(text,

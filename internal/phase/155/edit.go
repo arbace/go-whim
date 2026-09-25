@@ -14,10 +14,11 @@ import (
 	"io"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim155", Edit) }
+func init() { phase.Register("whim155", Edit) }
 
 // w155Save is a copy of a line with its length, `x = vim_strnsave(get(args),
 // get_len(args2));`, where the length is that line's when get_len is get's

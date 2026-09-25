@@ -115,10 +115,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
+	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-func init() { edit.RegisterArgs("whim128", Edit) }
+func init() { phase.RegisterArgs("whim128", Edit) }
 
 // w128Fanout is the fanout, and it is a LITERAL rather than a computation: the
 // corpus's root-split coverage is measured against the number the input gives,
@@ -225,7 +227,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 		if len(hits) != 1 {
 			return 0, die("%s matches %d lines where this edit needs exactly one",
-				edit.W126PyRepr(pat), len(hits))
+				vimtext.W126PyRepr(pat), len(hits))
 		}
 		return hits[0], nil
 	}
@@ -267,7 +269,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			if ls[j] == "}" {
 				return "<file scope>"
 			}
-			m := edit.W127FnHead.FindStringSubmatch(ls[j])
+			m := vimtext.W127FnHead.FindStringSubmatch(ls[j])
 			if m != nil && j > 0 && strings.HasPrefix(strings.TrimLeft(ls[j-1], " \t"), "static") {
 				return m[1]
 			}
@@ -294,7 +296,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 	structOf := func(name string) (int, int, []string) {
-		a := edit.W127Index(lines, "struct "+name)
+		a := vimtext.W127Index(lines, "struct "+name)
 		b := a
 		for lines[b] != "};" {
 			b++
@@ -309,7 +311,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	// cut deletes [a,b].  The blank lines around it are the canonical print's.
 	cut := func(a, b int) {
-		lines = edit.W127Splice(lines, a, b+1, nil)
+		lines = vimtext.W127Splice(lines, a, b+1, nil)
 	}
 
 	// --- the partition, before anything is changed ---------------------------
@@ -380,7 +382,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, die("struct block_hdr is not the four-member page header this phase folds: %s",
 			strings.Join(members, " "))
 	}
-	lines = edit.W127Splice(lines, a, b+1, w128b0)
+	lines = vimtext.W127Splice(lines, a, b+1, w128b0)
 
 	// --- 2. struct memfile has nothing left to hold --------------------------
 	a, b, members = structOf("memfile")
@@ -393,15 +395,15 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// nothing names memfile_T once the fold is done.
 
 	// --- 3. memline_T loses its handle on one --------------------------------
-	i := edit.W127Index(lines, "    memfile_T   *ml_mfp;")
+	i := vimtext.W127Index(lines, "    memfile_T   *ml_mfp;")
 	if lines[i+1] != "    bhdr_T *ml_root;" {
 		return nil, die("ml_mfp is not the line above ml_root, so the memline is not the one this " +
 			"edit reads")
 	}
-	lines = edit.W127Splice(lines, i, i+1, nil)
+	lines = vimtext.W127Splice(lines, i, i+1, nil)
 
 	// --- 4. the memfile layer itself -----------------------------------------
-	i = edit.W127Index(lines, fmt.Sprintf("enum { MEMFILE_PAGE_SIZE = %d };", page))
+	i = vimtext.W127Index(lines, fmt.Sprintf("enum { MEMFILE_PAGE_SIZE = %d };", page))
 	if lines[i+2] != "static void mf_ins_used(memfile_T *, bhdr_T *);" {
 		return nil, die("the memfile block does not start where this edit expects")
 	}
@@ -438,7 +440,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// --- 5. a branch is a counted array of entries and not a page ------------
 	a, b, _ = structOf("pointer_block")
-	lines = edit.W127Splice(lines, a, b+1, w128b1)
+	lines = vimtext.W127Splice(lines, a, b+1, w128b1)
 
 	a, b, members = structOf("data_block")
 	tails = nil
@@ -458,7 +460,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	asserts := append([]string{}, w128b2...)
 	asserts[1] = fmt.Sprintf(asserts[1], page)
-	lines = edit.W127Splice(lines, i, i+1, asserts)
+	lines = vimtext.W127Splice(lines, i, i+1, asserts)
 
 	// --- 6. the two constructors allocate a node at its own size -------------
 	// The id constants are CARRIED Out of the definitions being replaced and
@@ -485,7 +487,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	if !strings.Contains(da, "<< 8") || !strings.Contains(pt, "<< 8") || da == pt {
 		return nil, die("the two block ids are not the two distinct constants this edit carries: "+
-			"%s and %s", edit.W126PyRepr(da), edit.W126PyRepr(pt))
+			"%s and %s", vimtext.W126PyRepr(da), vimtext.W126PyRepr(pt))
 	}
 	fill := func(rows []string) []string {
 		Out := make([]string, len(rows))
@@ -499,27 +501,27 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return Out
 	}
 
-	i = edit.W127Index(lines, "static bhdr_T *ml_new_data(memfile_T *);")
+	i = vimtext.W127Index(lines, "static bhdr_T *ml_new_data(memfile_T *);")
 	lines[i] = w128s1
-	i = edit.W127Index(lines, "static bhdr_T *ml_new_ptr(memfile_T *);")
+	i = vimtext.W127Index(lines, "static bhdr_T *ml_new_ptr(memfile_T *);")
 	lines[i] = w128s2
 
 	aa, bb, err := defn(`^ml_new_data\(memfile_T \*mfp\)$`)
 	if err != nil {
 		return nil, err
 	}
-	lines = edit.W127Splice(lines, aa, bb+1, fill(w128b3))
+	lines = vimtext.W127Splice(lines, aa, bb+1, fill(w128b3))
 	if aa, bb, err = defn(`^ml_new_ptr\(memfile_T \*mfp\)$`); err != nil {
 		return nil, err
 	}
-	lines = edit.W127Splice(lines, aa, bb+1, fill(w128b4))
+	lines = vimtext.W127Splice(lines, aa, bb+1, fill(w128b4))
 
 	// --- 7. a closed buffer gives its nodes back by walking the tree ---------
 	lo, _, err := fn("ml_alloc_line")
 	if err != nil {
 		return nil, err
 	}
-	lines = edit.W127Splice(lines, lo, lo, fill(w128b5))
+	lines = vimtext.W127Splice(lines, lo, lo, fill(w128b5))
 
 	// --- 8. ml_open opens nothing --------------------------------------------
 	lo, hi, err := fn("ml_open")
@@ -537,7 +539,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if lines[c] != "    buf->b_ml.ml_mfp = mfp;" {
 		return nil, die("mf_open is not followed by its failure arm and the assignment to ml_mfp")
 	}
-	lines = edit.W127Splice(lines, a, c+1, nil)
+	lines = vimtext.W127Splice(lines, a, c+1, nil)
 
 	if lo, hi, err = fn("ml_open"); err != nil {
 		return nil, err
@@ -553,7 +555,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if i, err = one(lo, hi, `^    mf_put\(hp\);$`); err != nil {
 		return nil, err
 	}
-	lines = edit.W127Splice(lines, i, i+1, nil)
+	lines = vimtext.W127Splice(lines, i, i+1, nil)
 
 	if lo, hi, err = fn("ml_open"); err != nil {
 		return nil, err
@@ -580,7 +582,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if b, err = one(lo, hi, `^    buf->b_ml\.ml_mfp = nullptr;$`); err != nil {
 		return nil, err
 	}
-	lines = edit.W127Splice(lines, a, b+1, w128b6)
+	lines = vimtext.W127Splice(lines, a, b+1, w128b6)
 
 	// --- 9. ml_close frees the tree it has ------------------------------------
 	if lo, hi, err = fn("ml_close"); err != nil {
@@ -609,7 +611,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if !regexp.MustCompile(`^    page_size = mfp->mf_page_size;$`).MatchString(lines[i+1]) {
 		return nil, die("the page size is not read where this edit expects")
 	}
-	lines = edit.W127Splice(lines, i, i+2, nil)
+	lines = vimtext.W127Splice(lines, i, i+2, nil)
 
 	if lo, hi, err = fn("ml_delete_int"); err != nil {
 		return nil, err
@@ -621,7 +623,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if !strings.Contains(strings.Join(lines[i:b+1], "\n"), "return FAIL") {
 		return nil, die("the memfile null test in ml_delete_int is not the arm this edit rewrites")
 	}
-	lines = edit.W127Splice(lines, i, b+1, w128b7)
+	lines = vimtext.W127Splice(lines, i, b+1, w128b7)
 
 	if lo, hi, err = fn("ml_find_line"); err != nil {
 		return nil, err
@@ -631,7 +633,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	// The statement alone: the canonical text writes no blank line inside a
 	// function, so there is none under it to take.
-	lines = edit.W127Splice(lines, i, i+1, nil)
+	lines = vimtext.W127Splice(lines, i, i+1, nil)
 
 	// --- 11. everywhere else, ml_mfp was the question "is this buffer loaded"
 	for i, l := range lines {
@@ -666,7 +668,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 				break
 			}
 			i = hits[0]
-			lines = edit.W127Splice(lines, i, i+1, nil)
+			lines = vimtext.W127Splice(lines, i, i+1, nil)
 		}
 	}
 
@@ -687,7 +689,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		if m == nil {
 			return nil, die("an mf_get is not the guarded assignment this edit rewrites: %s", lines[i])
 		}
-		lines = edit.W127Splice(lines, i, stmtEnd(i)+1, []string{m[1] + "hp = " + m[2] + ";"})
+		lines = vimtext.W127Splice(lines, i, stmtEnd(i)+1, []string{m[1] + "hp = " + m[2] + ";"})
 	}
 
 	// --- 16. ml_append_int ----------------------------------------------------
@@ -711,7 +713,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if i, err = one(lo, hi, `^ *musl_memmove\(\(char \*\)\(pp_new\), \(char \*\)\(pp\), \(usize\)page_size\);$`); err != nil {
 		return nil, err
 	}
-	lines = edit.W127Splice(lines, i, i+1, w128b8)
+	lines = vimtext.W127Splice(lines, i, i+1, w128b8)
 
 	// --- 17. ml_delete_int releases a node by freeing it ---------------------
 	if lo, hi, err = fn("ml_delete_int"); err != nil {
@@ -735,7 +737,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if !regexp.MustCompile(`if \(hp->bh_id ==\s`).MatchString(lines[a+1]) {
 		return nil, die("the leaf test does not follow the cast it replaces: %s", lines[a+1])
 	}
-	lines = edit.W127Splice(lines, a, a+1, nil)
+	lines = vimtext.W127Splice(lines, a, a+1, nil)
 	if lo, hi, err = fn("ml_find_line"); err != nil {
 		return nil, err
 	}
@@ -752,7 +754,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if lines[a+1] != "error_noblock:" {
 		return nil, die("error_block and error_noblock are not adjacent once the lock has gone")
 	}
-	lines = edit.W127Splice(lines, a+1, a+2, nil)
+	lines = vimtext.W127Splice(lines, a+1, a+2, nil)
 
 	// --- 19. the locals the fold stopped using -------------------------------
 	var dropped []string
@@ -767,16 +769,16 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			Body := strings.Join(lines[lo:hi+1], "\n")
 			found := false
 			for i := lo; i <= hi; i++ {
-				m := edit.W127Decl.FindStringSubmatch(lines[i])
+				m := vimtext.W127Decl.FindStringSubmatch(lines[i])
 				if m == nil {
 					continue
 				}
-				if edit.Contains(edit.W127NotDecl, strings.Fields(lines[i])[0]) {
+				if edit.Contains(vimtext.W127NotDecl, strings.Fields(lines[i])[0]) {
 					continue
 				}
 				if mentions(Body, m[1]) == 1 {
 					dropped = append(dropped, name+":"+m[1])
-					lines = edit.W127Splice(lines, i, i+1, nil)
+					lines = vimtext.W127Splice(lines, i, i+1, nil)
 					found = true
 					break
 				}
@@ -846,7 +848,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if strings.Join(want, "\x00") != strings.Join(now, "\x00") {
 		return nil, die("the \"is this buffer's memline open\" question is asked in %s and it was asked "+
 			"in %s; the only one this edit adds is ml_delete_int, which asked it through a "+
-			"local copy of the handle", edit.W126PyList(now), edit.W126PyList(was))
+			"local copy of the handle", vimtext.W126PyList(now), vimtext.W126PyList(was))
 	}
 	say("the question \"does this buffer have a memline\" moved from ml_mfp to ml_root in "+
 		"all %d functions that asked it, plus ml_delete_int, which asked it through its own "+

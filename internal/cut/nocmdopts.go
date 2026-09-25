@@ -5,7 +5,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/internal/dead"
 )
 
@@ -60,7 +60,7 @@ var nocmdoptsElsewhere = []struct {
 	// reads $SHELL at startup and turns the mode on when it is nologin or
 	// false.  An environment read, deciding a mode that now restricts nothing.
 	{"$SHELL deciding restricted mode at startup",
-		cutil.Line("set_init_restricted_mode();"), "", 1},
+		edit.Line("set_init_restricted_mode();"), "", 1},
 	{"restricted mode in do_bang and ex_stop",
 		`(?m)check_restricted\(\) \|\| check_secure\(\)`, "check_secure()", 1},
 	{"ex_stop's restricted check",
@@ -75,7 +75,7 @@ var nocmdoptsElsewhere = []struct {
 // NoCmdOpts removes -t, -i, -y and -Z, the fields they set, and restricted
 // mode.
 func NoCmdOpts(text []byte, w io.Writer) ([]byte, error) {
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	defs := dead.FuncDefinitions(text, blanked)
 	span, ok := defs["command_line_scan"]
 	if !ok {

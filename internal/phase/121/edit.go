@@ -109,11 +109,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim121", Edit) }
+func init() { phase.Register("whim121", Edit) }
 
 // THE ONLY THING WRITTEN DOWN IN THIS PHASE.  Everything else is computed from
 // it and from the source: which rows go, which capability tables die, which
@@ -133,7 +133,7 @@ var (
 // That is why this blanks and p.mentions does not.
 func whim121Mentions(text []byte, name string) int {
 	return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).
-		FindAll(cutil.Blank(edit.WithoutIncludes(text)), -1))
+		FindAll(edit.Blank(edit.WithoutIncludes(text)), -1))
 }
 
 type whim121Edit struct {
@@ -146,11 +146,11 @@ type whim121Edit struct {
 // clause and a repair to set_termname()'s no-screen fallback.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "terms", W: w}
-	b := cutil.Blank(text)
+	b := edit.Blank(text)
 
 	lineOf := func(off int) int { return bytes.Count(text[:off], []byte{'\n'}) + 1 }
 	defspan := func(name string) (int, int, error) {
-		a, z, ok := cutil.FindDefinition(text, b, name)
+		a, z, ok := edit.FindDefinition(text, b, name)
 		if !ok {
 			return 0, 0, p.Die("%s() is not defined in this file, and the partition below is drawn "+
 				"against its extent", name)
@@ -213,7 +213,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		len(rows), strings.Join(whim121Keep, " and "), len(gone), strings.Join(gone, " "))
 
 	// ---- 1. THE PARTITION: every literal that IS a removed name ----------
-	// cutil.Blank keeps offsets and blanks literal CONTENT, so a `"` left in
+	// edit.Blank keeps offsets and blanks literal CONTENT, so a `"` left in
 	// the blanked text is a real delimiter and the quotes pair up in order.
 	// That is what makes this literal-aware: the identifier `builtin_xterm`,
 	// the prefix inside `"screen.xterm"` and the substring of
@@ -273,7 +273,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if len(loose) > 0 {
 		var at []string
 		for _, s := range loose {
-			at = append(at, fmt.Sprintf("%s at line %d", cutil.PyRepr(string(text[s[0]+1:s[1]])), lineOf(s[0])))
+			at = append(at, fmt.Sprintf("%s at line %d", edit.PyRepr(string(text[s[0]+1:s[1]])), lineOf(s[0])))
 		}
 		return nil, p.Die("%d literal(s) spell a removed terminal name outside builtin_terminals[], "+
 			"find_builtin_term(), set_termname() and vim_is_xterm(), and this phase has "+
@@ -303,7 +303,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if !bytes.Contains(text[lo:s[0]], []byte("musl_strncasecmp")) {
 			return nil, p.Die("vim_is_xterm() compares %s other than as a counted prefix, so it is a "+
 				"terminal NAME there and not five characters",
-				cutil.PyRepr(string(text[s[0]+1:s[1]])))
+				edit.PyRepr(string(text[s[0]+1:s[1]])))
 		}
 		hi := s[1] + 16
 		if hi > len(text) {
@@ -311,7 +311,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		if !whim121Len.Match(text[s[1]+1 : hi]) {
 			return nil, p.Die("the comparison of %s in vim_is_xterm() carries no written length",
-				cutil.PyRepr(string(text[s[0]+1:s[1]])))
+				edit.PyRepr(string(text[s[0]+1:s[1]])))
 		}
 	}
 	p.Sayf("the %d literals that spell a removed name partition exactly: %d rows, 1 in "+
@@ -319,8 +319,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"fallback) and %d in vim_is_xterm(), which are counted PREFIX tests -- "+
 		"musl_strncasecmp(name, %s, N) -- and %s, which stays, begins with it",
 		len(gone)+2+len(part["prefix"]), len(gone), len(part["prefix"]),
-		cutil.PyRepr(string(text[part["prefix"][0][0]+1:part["prefix"][0][1]])),
-		cutil.PyRepr(whim121Keep[0]))
+		edit.PyRepr(string(text[part["prefix"][0][0]+1:part["prefix"][0][1]])),
+		edit.PyRepr(whim121Keep[0]))
 
 	// ---- 2. what the fallback may name, computed from termcapinit() ------
 	tcA, tcZ, err := defspan("termcapinit")
@@ -354,7 +354,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	dflt := compiled[0]
 	if !edit.ContainsStr(whim121Keep, dflt) {
 		return nil, p.Die("termcapinit()'s compiled default is %s, which this phase deletes: the "+
-			"fallback cannot be retargeted onto a row that is going", cutil.PyRepr(dflt))
+			"fallback cannot be retargeted onto a row that is going", edit.PyRepr(dflt))
 	}
 	fa, fz := part["fallback"][0][0], part["fallback"][0][1]
 	oldFallback := string(text[fa+1 : fz])
@@ -362,25 +362,25 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"compiled default is %s, which stays.  The fallback is retargeted onto it, so "+
 		"after this phase there is ONE name the editor falls back to and one compiled "+
 		"default, and they are the same name",
-		cutil.PyRepr(oldFallback), cutil.PyRepr(dflt))
+		edit.PyRepr(oldFallback), edit.PyRepr(dflt))
 
 	// ---- 3. the family clause: dead by computation -----------------------
 	ca, cz := part["family"][0][0], part["family"][0][1]
 	if edit.ContainsStr(names, oldFallback) && !edit.ContainsStr(gone, oldFallback) {
 		return nil, p.Die("%s is still a row of builtin_terminals[], so the special case in "+
 			"find_builtin_term() is live and must not be removed",
-			cutil.PyRepr(string(text[ca+1:cz])))
+			edit.PyRepr(string(text[ca+1:cz])))
 	}
 	start := bytes.LastIndexByte(text[:ca], '\n') + 1
 	headEnd := ca + bytes.IndexByte(text[ca:], '\n')
 	head := string(text[start:headEnd])
 	if !whim121IfCall.MatchString(head) || !strings.Contains(head, "vim_is_xterm") {
 		return nil, p.Die("the literal %s in find_builtin_term() is not the condition of an `if` that "+
-			"calls vim_is_xterm(): %s", cutil.PyRepr(string(text[ca+1:cz])), strings.TrimSpace(head))
+			"calls vim_is_xterm(): %s", edit.PyRepr(string(text[ca+1:cz])), strings.TrimSpace(head))
 	}
 	closeParen := ca + bytes.IndexByte(text[ca:], ')')
 	ob := closeParen + bytes.IndexByte(b[closeParen:], '{')
-	cb := cutil.Match(b, ob)
+	cb := edit.Match(b, ob)
 	if cb < 0 {
 		return nil, p.Die("the xterm-family clause's block is not balanced")
 	}
@@ -394,7 +394,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"against %s, and no row will carry that name: the clause can never fire again.  "+
 		"gcc has no warning for a condition that is false at run time and no tool in "+
 		"tools/sweep.sh reads one, so it is the edit's to take -- %d lines at line %d",
-		cutil.PyRepr(oldFallback), bytes.Count(text[start:end], []byte{'\n'})+1, lineOf(start))
+		edit.PyRepr(oldFallback), bytes.Count(text[start:end], []byte{'\n'})+1, lineOf(start))
 
 	// ---- 4. the message that announces the fallback ----------------------
 	// The message and the name move together.  Nothing in the build checks
@@ -489,7 +489,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"dead", len(dead), len(tabs), strings.Join(dead, " "), strings.Join(live, " "))
 
 	// ---- 7. nothing spells a removed name any more, except the prefix tests
-	b2 := cutil.Blank(text)
+	b2 := edit.Blank(text)
 	var q2 []int
 	for _, m := range regexp.MustCompile(`"`).FindAllIndex(b2, -1) {
 		q2 = append(q2, m[0])
@@ -500,7 +500,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			left = append(left, [2]int{q2[k], q2[k+1]})
 		}
 	}
-	lo2, hi2, ok := cutil.FindDefinition(text, b2, "vim_is_xterm")
+	lo2, hi2, ok := edit.FindDefinition(text, b2, "vim_is_xterm")
 	if !ok {
 		return nil, p.Die("vim_is_xterm() is not defined in this file, and the partition below is " +
 			"drawn against its extent")
@@ -514,7 +514,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if len(stray) > 0 {
 		var at []string
 		for _, s := range stray {
-			at = append(at, cutil.PyRepr(string(text[s[0]+1:s[1]])))
+			at = append(at, edit.PyRepr(string(text[s[0]+1:s[1]])))
 		}
 		return nil, p.Die("%d literal(s) still spell a removed terminal name outside vim_is_xterm(): "+
 			"%s", len(stray), strings.Join(at, ", "))

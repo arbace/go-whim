@@ -92,11 +92,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim113", Edit) }
+func init() { phase.Register("whim113", Edit) }
 
 var whim113Directive = regexp.MustCompile(`^ *#`)
 var whim113Include = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
@@ -215,7 +215,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	for _, k := range keep {
 		if got := bytes.Count(text, []byte(k.s)); got != k.want {
 			return nil, p.Die("the %s site is %d occurrences of %s and must be %d -- %s",
-				k.who, got, cutil.PyRepr(k.s), k.want, k.why)
+				k.who, got, edit.PyRepr(k.s), k.want, k.why)
 		}
 	}
 	p.Say("and the THREE sites this phase leaves alone, each asserted verbatim: " +

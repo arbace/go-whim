@@ -153,15 +153,15 @@ package p103
 
 import (
 	"fmt"
-	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"strconv"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim103", Edit) }
+func init() { phase.Register("whim103", Edit) }
 
 // w103Before is counted on the INPUT, so a later phase that moved one of these
 // fails here and not in the middle of a cut.
@@ -195,12 +195,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return n
 	}
 	sub := func(old, new string, n int, tag string) error {
-		c := cutil.CountAnchor(t, old)
+		c := edit.CountAnchor(t, old)
 		if c != n {
 			return p.Die("%s: `%s` occurs %d times, expected %d",
 				tag, edit.CoreHead(strings.Split(strings.TrimSpace(old), "\n")[0], 70), c, n)
 		}
-		t = cutil.ReplaceAnchor(t, old, new, -1)
+		t = edit.ReplaceAnchor(t, old, new, -1)
 		return nil
 	}
 	// delfunc deletes a whole definition by brace matching from its name line.

@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // oneFile is the shape most cutters have: one file argument, read it whole,
@@ -33,7 +33,7 @@ func oneFile(args []string, name string, f func([]byte, *os.File) ([]byte, error
 	return 0
 }
 
-// runFold exercises cutil's fold primitives directly.
+// runFold exercises crefactor/edit's fold primitives directly.
 //
 // cutil.py has no CLI -- phase programs import it -- so this exists so the
 // three can be compared against the Python on the same input and the same
@@ -58,11 +58,11 @@ func runFold(args []string) int {
 	var out []byte
 	switch kind {
 	case "always":
-		out, err = cutil.FoldAlways(text, pattern, count)
+		out, err = edit.FoldAlways(text, pattern, count)
 	case "never":
-		out, err = cutil.FoldNever(text, pattern, count)
+		out, err = edit.FoldNever(text, pattern, count)
 	case "dropif":
-		out, err = cutil.DropIf(text, pattern, count)
+		out, err = edit.DropIf(text, pattern, count)
 	default:
 		fmt.Fprintln(os.Stderr, "usage: whim fold <always|never|dropif> <file> <pattern> <count>")
 		return 2

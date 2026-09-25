@@ -12,10 +12,10 @@ package p149
 
 import (
 	"github.com/arbace/go-whim/crefactor/xform"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim"
 )
 
 // The rule is general, and it is crefactor/xform's NeverNull, built with vim's
 // knobs (internal/whim/xform.go); its counts are arguments in the plan.
-func init() { edit.RegisterArgs("whim149", xform.NeverNull(whim.NeverNull).Edit()) }
+func init() { phase.RegisterArgs("whim149", xform.NeverNull(whim.NeverNull).Edit()) }

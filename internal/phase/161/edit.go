@@ -12,10 +12,11 @@ package p161
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim161", Edit) }
+func init() { phase.Register("whim161", Edit) }
 
 // W161Tail is the error path ml_get_buf()'s goto jumped back into, and
 // W161Func the function it becomes.

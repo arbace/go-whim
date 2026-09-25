@@ -78,11 +78,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim112", Edit) }
+func init() { phase.Register("whim112", Edit) }
 
 // A convertStruct row is canonical text, as every table in the file is: four
 // spaces of indent and a space after each comma.
@@ -122,7 +122,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		for _, line := range strings.Split(Body, "\n") {
 			m := w112Row.FindStringSubmatch(line)
 			if m == nil {
-				return nil, p.Die("%s has a row this phase cannot read: %s", name, cutil.PyRepr(line))
+				return nil, p.Die("%s has a row this phase cannot read: %s", name, edit.PyRepr(line))
 			}
 			lo, _ := strconv.ParseInt(m[1][2:], 16, 64)
 			hi, _ := strconv.ParseInt(m[2][2:], 16, 64)

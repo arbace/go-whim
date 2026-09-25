@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	ctext "github.com/arbace/go-whim/crefactor/text"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // OwnFunc is one library function a core takes on as its own.
@@ -45,7 +45,7 @@ type OwnKnobs struct {
 // renamed, per function.  Without them there is no count.
 func Own(k OwnKnobs) Step {
 	return func(text []byte, args []string, w io.Writer) ([]byte, error) {
-		p := ctext.Ph{Tag: "arith", W: w}
+		p := edit.Ph{Tag: "arith", W: w}
 		want := map[string]int{}
 		for _, a := range args {
 			name, n, ok := strings.Cut(a, "=")
@@ -70,8 +70,8 @@ func (k OwnKnobs) has(name string) bool {
 
 var ownInc = regexp.MustCompile(`^#include <[A-Za-z0-9_/.]+>$`)
 
-func own(p ctext.Ph, k OwnKnobs, want map[string]int, text []byte) ([]byte, error) {
-	nInc := ctext.IncludeCount(text)
+func own(p edit.Ph, k OwnKnobs, want map[string]int, text []byte) ([]byte, error) {
+	nInc := edit.IncludeCount(text)
 	if len(k.Funcs) == 0 {
 		return nil, p.Die("no function was named")
 	}
@@ -84,7 +84,7 @@ func own(p ctext.Ph, k OwnKnobs, want map[string]int, text []byte) ([]byte, erro
 		defs += f.Def
 	}
 	word := regexp.MustCompile(`\b(` + strings.Join(names, "|") + `)\b`)
-	mentions := ctext.MentionCount
+	mentions := edit.MentionCount
 	directives := func(t []byte) ([]int, []string) {
 		lines := strings.Split(string(t), "\n")
 		var d []int
@@ -193,7 +193,7 @@ func own(p ctext.Ph, k OwnKnobs, want map[string]int, text []byte) ([]byte, erro
 	// Literal-aware, because a name in a string is DATA, and single-pass,
 	// because a literal span is an OFFSET and every offset after the first
 	// replacement is wrong.
-	spans, err := ctext.LiteralSpans(p, text)
+	spans, err := edit.LiteralSpans(p, text)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func own(p ctext.Ph, k OwnKnobs, want map[string]int, text []byte) ([]byte, erro
 	}
 	if len(holding) > 0 {
 		return nil, p.Die("a string or character literal mentions a function this step renames, so a rename "+
-			"would change what the program PRINTS: %s", strings.Join(ctext.First(holding, 3), " / "))
+			"would change what the program PRINTS: %s", strings.Join(edit.First(holding, 3), " / "))
 	}
 	inSpan := func(off int) bool {
 		lo, hi := 0, len(spans)

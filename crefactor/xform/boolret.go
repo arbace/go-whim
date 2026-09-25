@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/cc"
+	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/crefactor/sweep"
-	ctext "github.com/arbace/go-whim/crefactor/text"
 )
 
 // BoolRetKnobs is what BoolRet is told.
@@ -58,7 +58,7 @@ func BoolRet(k BoolRetKnobs) Step {
 		b.no[s] = true
 	}
 	return func(text []byte, args []string, w io.Writer) ([]byte, error) {
-		p := ctext.Ph{Tag: "boolret", W: w}
+		p := edit.Ph{Tag: "boolret", W: w}
 		if _, err := flags(p.Tag, args); err != nil {
 			return nil, err
 		}
@@ -70,7 +70,7 @@ func BoolRet(k BoolRetKnobs) Step {
 	}
 }
 
-func (b *boolRet) run(p ctext.Ph, text []byte, cut int) ([]byte, error) {
+func (b *boolRet) run(p edit.Ph, text []byte, cut int) ([]byte, error) {
 	const path = file
 	host := text[cut:]
 	ast, err := parse(text)
@@ -163,7 +163,7 @@ func (b *boolRet) run(p ctext.Ph, text []byte, cut int) ([]byte, error) {
 		return true
 	})
 	for name := range plain {
-		if ctext.MentionCount(host, name) > 0 {
+		if edit.MentionCount(host, name) > 0 {
 			delete(fns, name)
 			delete(plain, name)
 		}
@@ -675,7 +675,7 @@ func (b *boolRet) memberCandidates(ast *cc.AST, path string, text []byte, cut in
 		get(m).bad = true
 	}
 	for m, f := range out {
-		if len(f.toks) == 0 || ctext.MentionCount(host, m) > 0 {
+		if len(f.toks) == 0 || edit.MentionCount(host, m) > 0 {
 			f.bad = true
 		}
 	}

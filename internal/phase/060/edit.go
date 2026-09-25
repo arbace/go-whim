@@ -23,7 +23,8 @@ package p060
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // Whim60 takes six options that share nothing but being unreachable: 'suffixes',
@@ -131,6 +132,6 @@ func Whim60EP(text []byte, w io.Writer) ([]byte, error) {
 }
 
 func init() {
-	edit.Register("whim60", Edit)
-	edit.Register("whim60ep", Whim60EP)
+	phase.Register("whim60", Edit)
+	phase.Register("whim60ep", Whim60EP)
 }

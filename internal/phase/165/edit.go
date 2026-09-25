@@ -5,10 +5,11 @@ package p165
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim165", Edit) }
+func init() { phase.Register("whim165", Edit) }
 
 // Edit removes six stores to locals that nothing reads before they are
 // written again or go out of scope.  The Go transpilation showed them

@@ -6,12 +6,13 @@ byte-identical under `whim-build-check` (and gen's under `whim-editor-check` and
 (`github.com/arbace/go-whim/crefactor`, required by this one through a `replace`
 to `./crefactor`), so it cannot import whim's code. It holds `cc` (the forked C
 front end), `cemit`, `sweep`, `pipeline` (the driver, told through a Config),
-`text` (cutil and the verb set), `xform` (the eleven generic transformations;
+`edit` (cutil and the verb set, first called `text`), `xform` (the eleven generic transformations;
 164 and 168 share `terminates.go`) and `togo` (the C-to-Go translator). What it
 is told about vim lives in `internal/whim` (`profile.go`, `xform.go`,
-`analysis.go`, `gen.go`) and `internal/whim/vimtext`. `internal/edit`,
-`internal/cutil` and `internal/gen` remain as forwarding layers so that no
-phase package had to change. reach, ccx and dead take their names as options
+`analysis.go`, `gen.go`) and `internal/whim/vimtext`. The forwarding layers the move
+left (`internal/edit`, `internal/cutil`, `internal/gen`'s wrapper) are retired:
+the phases import `crefactor/edit`, `internal/whim/vimtext` and the registry,
+`internal/phase`, by their own names. reach, ccx and dead take their names as options
 but stay in whim's module.
 
 **Since written:** two side findings were checked. Its claim that CLAUDE.md still said 164 phases, no test suite and a `Sweep` field is wrong: CLAUDE.md says none of those. Its finding that the sweep documented an `ml_recover` guard it did not implement was right, and the guard is implemented now: phases 1-18 had been deleting struct members while the editor could still read a swap file. The throwaway instruments it names under `.tmp/survey/` are not tracked.

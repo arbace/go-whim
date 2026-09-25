@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/internal/dead"
 )
 
@@ -32,11 +32,11 @@ var nosignalsCuts = []struct {
 	pat, what string
 	count     int
 }{
-	{cutil.Line("mch_signal(SIGUSR1, catch_sigusr1);"), "the SIGUSR1 install", 1},
-	{cutil.Line("mch_signal(SIGPWR, catch_sigpwr);"), "the SIGPWR install", 1},
-	{cutil.Line("may_core_dump();"), "the may_core_dump calls", 2},
-	{cutil.Line("signal_stack = alloc(get_signal_stack_size());"), "the signal stack", 1},
-	{cutil.Line("init_signal_stack();"), "its install", 1},
+	{edit.Line("mch_signal(SIGUSR1, catch_sigusr1);"), "the SIGUSR1 install", 1},
+	{edit.Line("mch_signal(SIGPWR, catch_sigpwr);"), "the SIGPWR install", 1},
+	{edit.Line("may_core_dump();"), "the may_core_dump calls", 2},
+	{edit.Line("signal_stack = alloc(get_signal_stack_size());"), "the signal stack", 1},
+	{edit.Line("init_signal_stack();"), "its install", 1},
 	{`(?m)^static char \*signal_stack;\n`, "signal_stack", 1},
 	{`(?m)^static stack_t sigstk;\n`, "sigstk", 1},
 	{`(?m)^static volatile sig_atomic_t got_sigusr1 = FALSE;\n`, "got_sigusr1", 1},
@@ -75,13 +75,13 @@ const cookTerminal = `        {
 
 // NoSignals leaves the five signals this editor can still be sent.
 func NoSignals(text []byte, w io.Writer) ([]byte, error) {
-	b := cutil.Blank(text)
+	b := edit.Blank(text)
 	k := bytes.Index(text, []byte("} signal_info[] ="))
 	if k < 0 {
 		return nil, fmt.Errorf("nosignals: signal_info is not where this expects")
 	}
 	o := k + 10 + bytes.IndexByte(b[k+10:], '{')
-	c := cutil.Match(b, o)
+	c := edit.Match(b, o)
 	if c < 0 {
 		return nil, fmt.Errorf("nosignals: signal_info is unbalanced")
 	}
@@ -95,7 +95,7 @@ func NoSignals(text []byte, w io.Writer) ([]byte, error) {
 	for _, name := range []string{"catch_sigusr1", "catch_sigpwr", "may_core_dump",
 		"init_signal_stack", "get_signal_stack_size"} {
 		var ok bool
-		if text, ok = cutil.DeleteDefinition(text, name); !ok {
+		if text, ok = edit.DeleteDefinition(text, name); !ok {
 			return nil, fmt.Errorf("nosignals: %s is not defined at file scope", name)
 		}
 	}
@@ -127,8 +127,8 @@ func NoSignals(text []byte, w io.Writer) ([]byte, error) {
 	// HUP/QUIT/TERM/PWR/USR1/USR2 were written when all six could arrive here.
 	// Two can.  Left alone they would be a lie in the one function whose
 	// remaining job is to be trustworthy.
-	if text, err = cutil.DropIf(text,
-		cutil.Head("if (in_mch_delay && sigarg == SIGQUIT)"), 1); err != nil {
+	if text, err = edit.DropIf(text,
+		edit.Head("if (in_mch_delay && sigarg == SIGQUIT)"), 1); err != nil {
 		return nil, err
 	}
 	early := regexp.MustCompile(
@@ -148,7 +148,7 @@ func NoSignals(text []byte, w io.Writer) ([]byte, error) {
 	// And it uses settmode() rather than mch_settmode(), because mch_settmode()
 	// is defined 89,000 lines further down with no forward declaration left to
 	// reach it -- Phase 8 removed the ones nothing needed.
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	span, ok := dead.FuncDefinitions(text, blanked)["prepare_to_exit"]
 	if !ok {
 		return nil, fmt.Errorf("nosignals: prepare_to_exit is not defined at file scope")

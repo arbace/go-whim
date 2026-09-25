@@ -71,10 +71,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim100", Edit) }
+func init() { phase.Register("whim100", Edit) }
 
 var whim100ExitCall = regexp.MustCompile(`(?m)^\s*exit\(`)
 

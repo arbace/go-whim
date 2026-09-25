@@ -7,14 +7,14 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // pyList renders a []string the way Python prints a list of str.
 func pyList(items []string) string {
 	parts := make([]string, len(items))
 	for i, s := range items {
-		parts[i] = cutil.PyRepr(s)
+		parts[i] = edit.PyRepr(s)
 	}
 	return "[" + strings.Join(parts, ", ") + "]"
 }
@@ -30,11 +30,11 @@ func pyList(items []string) string {
 var (
 	cCaseArm = regexp.MustCompile(`(?sm)^[ \t]*case 'c':\n[ \t]*if \(argv\[0\]\[argv_idx\] != NUL\)\n` +
 		`.*?^[ \t]*__attribute__\(\(fallthrough\)\);\n([ \t]*case 'T':\n)`)
-	mCaseArm = regexp.MustCompile(cutil.Line("case 'M':") +
+	mCaseArm = regexp.MustCompile(edit.Line("case 'M':") +
 		`[ \t]*reset_modifiable\(\);\n` +
 		`[ \t]*__attribute__\(\(fallthrough\)\);\n` +
 		`[ \t]*case 'm':\n[ \t]*p_write = FALSE;\n[ \t]*break;\n`)
-	preCommands = regexp.MustCompile(cutil.Line("exe_pre_commands(&params);"))
+	preCommands = regexp.MustCompile(edit.Line("exe_pre_commands(&params);"))
 	leftCase    = regexp.MustCompile(`(?m)^[ \t]*case '[cRmMw]':$`)
 	leftCmd     = regexp.MustCompile(`\("cmd"\)`)
 )
@@ -62,8 +62,8 @@ func sortedKeys(m map[string]bool) []string {
 
 // NoCmdArgs removes -c, --cmd, -R, -m, -M and -w.
 func NoCmdArgs(text []byte, w io.Writer) ([]byte, error) {
-	blanked := cutil.Blank(text)
-	a, z, ok := cutil.FindDefinition(text, blanked, "command_line_scan")
+	blanked := edit.Blank(text)
+	a, z, ok := edit.FindDefinition(text, blanked, "command_line_scan")
 	if !ok {
 		return nil, fmt.Errorf("nocmdargs: command_line_scan is not defined at file scope")
 	}
@@ -107,7 +107,7 @@ func NoCmdArgs(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  nocmdargs    --cmd in the option switch")
 
-	fn, err = cutil.FoldAlways(fn, cutil.Head("if (!want_argument)"), 1)
+	fn, err = edit.FoldAlways(fn, edit.Head("if (!want_argument)"), 1)
 	if err != nil {
 		return nil, fmt.Errorf("nocmdargs: -- asking whether it wants an argument -- %v", err)
 	}
@@ -134,7 +134,7 @@ func NoCmdArgs(text []byte, w io.Writer) ([]byte, error) {
 		{"--cmd in the parser", leftCmd},
 	} {
 		if n := len(c.re.FindAll(fn, -1)); n != 0 {
-			left = append(left, fmt.Sprintf("(%s, %d)", cutil.PyRepr(c.what), n))
+			left = append(left, fmt.Sprintf("(%s, %d)", edit.PyRepr(c.what), n))
 		}
 	}
 	if len(left) > 0 {

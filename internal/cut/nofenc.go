@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 var nofencStubs = []struct{ name, body string }{
@@ -92,25 +92,25 @@ var nofencEdits = []struct {
 	// gvarp existed to ask which of the three encoding options was being set.
 	// There is one, so its assignment goes; the declaration left is the sweep's.
 	{"gvarp's one assignment",
-		cutil.Line("gvarp = (char_u **)get_option_varp_scope(args->os_idx, OPT_GLOBAL);"),
+		edit.Line("gvarp = (char_u **)get_option_varp_scope(args->os_idx, OPT_GLOBAL);"),
 		"", 1},
 }
 
 // dropIfBlock removes an `if` and the block it guards, found by BRACE
 // MATCHING from the condition's own parenthesis.
 func dropIfBlock(text []byte, pat, what string) ([]byte, error) {
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	m := regexp.MustCompile(pat).FindIndex(text)
 	if m == nil {
 		return nil, fmt.Errorf("nofenc: %s is not where this expects", what)
 	}
 	lp := m[0] + bytes.IndexByte(text[m[0]:], '(')
-	rp := cutil.Match(blanked, lp)
+	rp := edit.Match(blanked, lp)
 	i := rp + 1
 	for i < len(text) && (text[i] == ' ' || text[i] == '\t' || text[i] == '\n') {
 		i++
 	}
-	closing := cutil.Match(blanked, i)
+	closing := edit.Match(blanked, i)
 	if closing < 0 {
 		return nil, fmt.Errorf("nofenc: %s is unbalanced", what)
 	}
@@ -137,7 +137,7 @@ func NoFenc(text []byte, w io.Writer) ([]byte, error) {
 				}
 			} else {
 				if text, err = dropIfBlock(text,
-					cutil.Head("if (gvarp == &p_fenc)"), e.what); err != nil {
+					edit.Head("if (gvarp == &p_fenc)"), e.what); err != nil {
 					return nil, err
 				}
 			}
@@ -154,7 +154,7 @@ func NoFenc(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	for _, s := range nofencStubs {
-		o, c, found, balanced := cutil.Body(text, s.name)
+		o, c, found, balanced := edit.Body(text, s.name)
 		if !found || !balanced {
 			return nil, fmt.Errorf("nofenc: %s is not defined at file scope any more", s.name)
 		}

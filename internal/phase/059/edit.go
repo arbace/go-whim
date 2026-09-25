@@ -25,7 +25,9 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
+	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
 func kex(k string) string {
@@ -47,7 +49,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"a wildcard trigger after history navigation")
 		e.Cut(edit.Line("did_hist_navigate = TRUE;"), 1,
 			"history navigation remembered for the wildcard trigger")
-		e.DropIf(fmt.Sprintf(`(?m)^[ \t]*if \(c != p_wc && c == [ \t]*%s[ \t]*&& xpc\.xp_numfiles > 0\)$`, edit.Key("k", "B")), 1,
+		e.DropIf(fmt.Sprintf(`(?m)^[ \t]*if \(c != p_wc && c == [ \t]*%s[ \t]*&& xpc\.xp_numfiles > 0\)$`, vimtext.Key("k", "B")), 1,
 			"S-Tab stepping back through matches")
 		e.DropIf(edit.Head("if ((did_wild_list) && !key_is_wc && xpc.xp_numfiles > 0)"), 1,
 			"CTRL-E and CTRL-Y over a match list")
@@ -57,7 +59,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.DropIf(edit.Head("if (end_wildmenu)"), 1, "ending the match list")
 		e.DropIf(fmt.Sprintf(`(?m)^[ \t]*if \(\(c == p_wc && !gotesc && KeyTyped\) \|\| c == p_wcm \|\| c == [ \t]*%s[ \t]*\)$`, kex("KE_WILD")), 1,
 			"completing on 'wildchar', 'wildcharm' or the wildcard trigger")
-		e.DropIf(fmt.Sprintf(`(?m)^[ \t]*if \(c == [ \t]*%s[ \t]*&& KeyTyped\)$`, edit.Key("k", "B")), 1,
+		e.DropIf(fmt.Sprintf(`(?m)^[ \t]*if \(c == [ \t]*%s[ \t]*&& KeyTyped\)$`, vimtext.Key("k", "B")), 1,
 			"S-Tab completing backwards")
 		e.Cut(edit.Line("case Ctrl_D:", "if (showmatches(&xpc, TRUE) == EXPAND_NOTHING)", "{", "break;", "}", "redrawcmd();", "continue;"),
 			1, "CTRL-D listing matches")
@@ -129,4 +131,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim59", Edit) }
+func init() { phase.Register("whim59", Edit) }

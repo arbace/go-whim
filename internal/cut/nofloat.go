@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 const nofloatRound = `                score = (fzy_score ==  INFINITY ) ? INT_MAX
@@ -39,12 +39,12 @@ var nofloatCuts = []struct{ what, pat string }{
 		`(?m)^    case 'f':\n    case 'F':\n    case 'e':\n    case 'E':\n` +
 			`    case 'g':\n    case 'G':\n        return TYPE_FLOAT;\n`},
 	{"the argument walker's six labels",
-		cutil.Line("case 'f':", "case 'F':", "case 'e':") +
+		edit.Line("case 'f':", "case 'F':", "case 'e':") +
 			`[ \t]*case 'E':\n[ \t]*case 'g':\n[ \t]*case 'G':\n`},
 	{"format_typename's float arm",
-		cutil.Line("case TYPE_FLOAT:", "return typename_float;")},
+		edit.Line("case TYPE_FLOAT:", "return typename_float;")},
 	{"the va_arg walker's float arm",
-		cutil.Line("case TYPE_FLOAT:", "va_arg(*ap, double);", "break;")},
+		edit.Line("case TYPE_FLOAT:", "va_arg(*ap, double);", "break;")},
 }
 
 // checkNoFloatFormats refuses to cut unless nothing can reach the branch being
@@ -103,13 +103,13 @@ func NoFloat(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nofloat      ceil and floor: a conversion truncates toward zero, "+
 		"which is both of them")
 
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	k := bytes.Index(text, []byte(floatLabels+"                {\n"))
 	if k < 0 {
 		return nil, fmt.Errorf("nofloat: the float conversion case is not where this expects")
 	}
 	o := k + len(floatLabels) + bytes.IndexByte(blanked[k+len(floatLabels):], '{')
-	c := cutil.Match(blanked, o)
+	c := edit.Match(blanked, o)
 	if c < 0 {
 		return nil, fmt.Errorf("nofloat: the float conversion case is unbalanced")
 	}

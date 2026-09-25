@@ -31,7 +31,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // methodTest is `if (cap->nchar == 'm' || cap->nchar == 'M')`, which appears
@@ -84,4 +85,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim66", Edit) }
+func init() { phase.Register("whim66", Edit) }

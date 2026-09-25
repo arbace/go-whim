@@ -10,7 +10,7 @@ import (
 	"sync"
 
 	"github.com/arbace/go-whim/crefactor/cc"
-	"github.com/arbace/go-whim/crefactor/text"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // Prune is the sweep: ONE reachability closure over the syntax tree of the
@@ -212,7 +212,7 @@ func pruneOnce(src []byte, path string, opt Options) ([]byte, Stats, error) {
 		return nil, Stats{}, fmt.Errorf("parse: %w", err)
 	}
 	a := &analysis{
-		src: src, blank: text.Blank(src), path: path,
+		src: src, blank: edit.Blank(src), path: path,
 		byKey: map[string][]*ent{}, byName: map[string][]*ent{},
 		live: map[string]bool{}, named: map[string]bool{},
 		structs: map[string][]*ent{}, typedef: map[string]string{},
@@ -1366,7 +1366,7 @@ func Walk(n cc.Node, f func(cc.Node) bool) { walk(n, f) }
 func PositionalMembers(ast *cc.AST, path string, src []byte, opt Options) map[string]bool {
 	a := &analysis{
 		opt: opt,
-		src: src, blank: text.Blank(src), path: path,
+		src: src, blank: edit.Blank(src), path: path,
 		byKey: map[string][]*ent{}, byName: map[string][]*ent{},
 		live: map[string]bool{}, named: map[string]bool{},
 		structs: map[string][]*ent{}, typedef: map[string]string{},

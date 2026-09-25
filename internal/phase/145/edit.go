@@ -15,15 +15,15 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // w145LabelLine is the label with the whole of its line: the indentation before
 // it and the newline after it.
 var w145LabelLine = regexp.MustCompile(edit.Line("handle_osc:"))
 
-func init() { edit.Register("whim145", Edit) }
+func init() { phase.Register("whim145", Edit) }
 
 const (
 	w145Jump = `        if (osc_state.processing)
@@ -64,9 +64,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if bi < 0 {
 			return nil, p.Die("the label is not inside `if (key_name[0] == NUL)`")
 		}
-		b := cutil.Blank([]byte(s))
+		b := edit.Blank([]byte(s))
 		open := bi + len(w145Block) - 2
-		cl := cutil.Match(b, open)
+		cl := edit.Match(b, open)
 		if cl < 0 || l > cl {
 			return nil, p.Die("the label is not inside that block")
 		}

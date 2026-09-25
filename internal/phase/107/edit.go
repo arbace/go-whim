@@ -94,8 +94,8 @@ package p107
 
 import (
 	"github.com/arbace/go-whim/crefactor/xform"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // The rule is general, and it is crefactor/xform's Attrs: it takes no knobs.
-func init() { edit.RegisterArgs("whim107", xform.Attrs().Edit()) }
+func init() { phase.RegisterArgs("whim107", xform.Attrs().Edit()) }

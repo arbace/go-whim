@@ -16,10 +16,11 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim150", Edit) }
+func init() { phase.Register("whim150", Edit) }
 
 // W150Tops are the two accessors for the top of the extra-data stacks,
 // exported so the check requires the identical text.

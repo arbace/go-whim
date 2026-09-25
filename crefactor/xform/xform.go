@@ -24,8 +24,9 @@ import (
 // It is internal/steps' Step, and the shape internal/build runs.
 type Step func(text []byte, args []string, w io.Writer) ([]byte, error)
 
-// Edit is the step in the argument order internal/edit registers
-// (internal/edit's ArgFunc), so that a phase is one line: edit.RegisterArgs(name, s.Edit()).
+// Edit is the step in the argument order a phase registry takes
+// (whim's internal/phase.ArgFunc), so that a phase is one line:
+// phase.RegisterArgs(name, s.Edit()).
 func (s Step) Edit() func([]byte, io.Writer, []string) ([]byte, error) {
 	return func(t []byte, w io.Writer, args []string) ([]byte, error) { return s(t, args, w) }
 }

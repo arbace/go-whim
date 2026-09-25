@@ -136,10 +136,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
+	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-func init() { edit.RegisterArgs("whim127", Edit) }
+func init() { phase.RegisterArgs("whim127", Edit) }
 
 const w127DbLineMax = 64
 
@@ -221,7 +223,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 		if len(hits) != 1 {
 			return 0, die("%s matches %d lines where this edit needs exactly one",
-				edit.W126PyRepr(pat), len(hits))
+				vimtext.W126PyRepr(pat), len(hits))
 		}
 		return hits[0], nil
 	}
@@ -232,7 +234,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 				return i, nil
 			}
 		}
-		return 0, die("%s matches nothing where this edit needs it", edit.W126PyRepr(pat))
+		return 0, die("%s matches nothing where this edit needs it", vimtext.W126PyRepr(pat))
 	}
 	// stmtEnd: last index of the statement starting at a, following any `else`
 	// chain.
@@ -264,7 +266,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			if lines[j] == "}" {
 				return "<file scope>"
 			}
-			m := edit.W127FnHead.FindStringSubmatch(lines[j])
+			m := vimtext.W127FnHead.FindStringSubmatch(lines[j])
 			if m != nil && j > 0 && strings.HasPrefix(strings.TrimLeft(lines[j-1], " \t"), "static") {
 				return m[1]
 			}
@@ -278,7 +280,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	carry := func(lo, hi int) []string {
 		var Out []string
 		for i := lo; i <= hi; i++ {
-			if edit.W127MlFlags.MatchString(lines[i]) {
+			if vimtext.W127MlFlags.MatchString(lines[i]) {
 				Out = append(Out, lines[i])
 			}
 		}
@@ -365,10 +367,10 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"this edit rewrites", strings.Join(w127Gone, ", "), sum, before[w127Bit])
 
 	// --- 1. the typedef, the record and the block ----------------------------
-	i := edit.W127Index(lines, "typedef struct data_block DATA_BL;")
+	i := vimtext.W127Index(lines, "typedef struct data_block DATA_BL;")
 	lines = append(lines[:i+1], append(append([]string{}, w127b0...), lines[i+1:]...)...)
 
-	a := edit.W127Index(lines, "struct data_block")
+	a := vimtext.W127Index(lines, "struct data_block")
 	b := a
 	for lines[b] != "};" {
 		b++
@@ -383,14 +385,14 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, die("struct data_block is not the header-index-arena block this phase replaces: %s",
 			strings.Join(members, " "))
 	}
-	lines = edit.W127Splice(lines, a, b+1, w127b1)
+	lines = vimtext.W127Splice(lines, a, b+1, w127b1)
 
 	// --- 2. one line's text is its own allocation ----------------------------
 	lo, _, err := fn("ml_open")
 	if err != nil {
 		return nil, err
 	}
-	lines = edit.W127Splice(lines, lo, lo, w127b2)
+	lines = vimtext.W127Splice(lines, lo, lo, w127b2)
 
 	// --- 3. ml_new_data has no page count ------------------------------------
 	i, err = one(0, len(lines)-1, `^static bhdr_T \*ml_new_data\(memfile_T \*`)
@@ -435,7 +437,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if b != a+1 {
 		return nil, die("ml_new_data does not set the arena on two consecutive lines")
 	}
-	lines = edit.W127Splice(lines, a, b+1, nil)
+	lines = vimtext.W127Splice(lines, a, b+1, nil)
 
 	// --- 4. ml_open's one empty line -----------------------------------------
 	if lo, hi, err = fn("ml_open"); err != nil {
@@ -447,7 +449,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if b, err = one(lo, hi, `^    \*\(\(char_u \*\)dp \+ dp->db_txt_start\) = NUL;$`); err != nil {
 		return nil, err
 	}
-	lines = edit.W127Splice(lines, a, b+1, w127b3)
+	lines = vimtext.W127Splice(lines, a, b+1, w127b3)
 	if lo, hi, err = fn("ml_open"); err != nil {
 		return nil, err
 	}
@@ -468,7 +470,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if b, err = one(lo, hi, `^        buf->b_ml\.ml_line_len = end - start;$`); err != nil {
 		return nil, err
 	}
-	lines = edit.W127Splice(lines, a, b+1, w127b4)
+	lines = vimtext.W127Splice(lines, a, b+1, w127b4)
 
 	// --- 6. ml_append_int ----------------------------------------------------
 	if lo, hi, err = fn("ml_append_int"); err != nil {
@@ -477,7 +479,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if a, err = one(lo, hi, `^    int line_count;$`); err != nil {
 		return nil, err
 	}
-	lines = edit.W127Splice(lines, a+1, a+1, w127b5)
+	lines = vimtext.W127Splice(lines, a+1, a+1, w127b5)
 
 	if lo, hi, err = fn("ml_append_int"); err != nil {
 		return nil, err
@@ -485,7 +487,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if a, err = one(lo, hi, `^    space_needed = len \+ `); err != nil {
 		return nil, err
 	}
-	lines = edit.W127Splice(lines, a, a+1, w127b6)
+	lines = vimtext.W127Splice(lines, a, a+1, w127b6)
 
 	if lo, hi, err = fn("ml_append_int"); err != nil {
 		return nil, err
@@ -504,7 +506,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if k, err = firstMatch(a, hi, `if \(flags & ML_APPEND_MARK\)`); err != nil {
 		return nil, err
 	}
-	lines = edit.W127Splice(lines, a, stmtEnd(k)+1, w127b7)
+	lines = vimtext.W127Splice(lines, a, stmtEnd(k)+1, w127b7)
 
 	if lo, hi, err = fn("ml_append_int"); err != nil {
 		return nil, err
@@ -515,7 +517,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if b, err = one(lo, hi, `offsetof\(DATA_BL, db_index\)`); err != nil {
 		return nil, err
 	}
-	lines = edit.W127Splice(lines, a, b+1, w127b8)
+	lines = vimtext.W127Splice(lines, a, b+1, w127b8)
 
 	if lo, hi, err = fn("ml_append_int"); err != nil {
 		return nil, err
@@ -544,7 +546,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 		b = stmtEnd(k)
 	}
-	lines = edit.W127Splice(lines, a, b+1, w127b9)
+	lines = vimtext.W127Splice(lines, a, b+1, w127b9)
 
 	// --- 7. ml_delete_int ----------------------------------------------------
 	if lo, hi, err = fn("ml_delete_int"); err != nil {
@@ -557,7 +559,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if !strings.Contains(strings.Join(lines[a:b+1], "\n"), "db_index[idx - 1]") {
 		return nil, die("the line_size computation is not the two-armed one this edit removes")
 	}
-	lines = edit.W127Splice(lines, a, b+1, nil)
+	lines = vimtext.W127Splice(lines, a, b+1, nil)
 
 	if lo, hi, err = fn("ml_delete_int"); err != nil {
 		return nil, err
@@ -568,7 +570,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if b, err = one(lo, hi, `^        --\(dp->db_line_count\);$`); err != nil {
 		return nil, err
 	}
-	lines = edit.W127Splice(lines, a, b+1, w127b10)
+	lines = vimtext.W127Splice(lines, a, b+1, w127b10)
 
 	// --- 8. the mark is a field ----------------------------------------------
 	if lo, hi, err = fn("ml_setmarked"); err != nil {
@@ -588,7 +590,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		if b, err = one(lo, hi, `^                \(dp->db_index\[i\]\) &= `); err != nil {
 			return nil, err
 		}
-		lines = edit.W127Splice(lines, a, b+1, w127b11)
+		lines = vimtext.W127Splice(lines, a, b+1, w127b11)
 	}
 
 	// --- 9. ml_flush_line stores the pointer ---------------------------------
@@ -603,7 +605,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	b = stmtEnd(k)
 	repl := append(append([]string{}, w127b12...), carry(a, b)...)
-	lines = edit.W127Splice(lines, a, b+1, repl)
+	lines = vimtext.W127Splice(lines, a, b+1, repl)
 	if lo, hi, err = fn("ml_flush_line"); err != nil {
 		return nil, err
 	}
@@ -618,7 +620,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if strings.TrimSpace(lines[a+1]) == "" {
 		return nil, die("a blank line under vim_free(new_line) -- this edit takes the free alone")
 	}
-	lines = edit.W127Splice(lines, a, a+1, nil)
+	lines = vimtext.W127Splice(lines, a, a+1, nil)
 
 	// --- 10. ML_APPEND_MARK has no caller left -------------------------------
 	// Its enumerator is left for the sweep, which takes one nothing names.
@@ -652,7 +654,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if k := strings.Count(t, w127Bit); k != 0 {
 		return nil, die("the stolen top bit survives the edit %d times", k)
 	}
-	if edit.W127Interior.MatchString(strings.ReplaceAll(t, "(char *)dp", "(char_u *)dp")) {
+	if vimtext.W127Interior.MatchString(strings.ReplaceAll(t, "(char *)dp", "(char_u *)dp")) {
 		return nil, die("an interior pointer into a data block survives the edit")
 	}
 	if strings.Contains(t, "offsetof(DATA_BL") {
@@ -672,7 +674,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	got := map[string]int{}
 	total := 0
 	for i, l := range lines {
-		if edit.W127DlText.MatchString(l) {
+		if vimtext.W127DlText.MatchString(l) {
 			got[enclosing(i)]++
 			total++
 		}

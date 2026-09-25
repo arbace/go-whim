@@ -12,10 +12,11 @@ package p162
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim162", Edit) }
+func init() { phase.Register("whim162", Edit) }
 
 // Whim162 has do_cmdline() read a flag where it compared function pointers.
 //

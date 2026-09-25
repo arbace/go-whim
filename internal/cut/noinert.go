@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 var noinertLeft = regexp.MustCompile(`"(browse|confirm)", \d, TRUE|modec == 't'|CMD_behave:`)
@@ -19,8 +19,8 @@ func NoInert(text []byte, w io.Writer) ([]byte, error) {
 	var err error
 
 	text, err = e.inFunction(text, "parse_command_modifiers", func(seg []byte) ([]byte, error) {
-		seg, err := cutil.DropIf(seg,
-			cutil.Head(`if (checkforcmd_opt(&eap->cmd, "browse", 3, TRUE))`), 1)
+		seg, err := edit.DropIf(seg,
+			edit.Head(`if (checkforcmd_opt(&eap->cmd, "browse", 3, TRUE))`), 1)
 		if err != nil {
 			return nil, err
 		}

@@ -22,7 +22,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // langmapCmds are the four commands that make a language mapping.  A row is
@@ -100,4 +101,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim58", Edit) }
+func init() { phase.Register("whim58", Edit) }

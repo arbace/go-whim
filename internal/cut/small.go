@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // NoIntro points :intro and :version at ex_ni and cuts the splash screen.
@@ -33,7 +33,7 @@ func NoIntro(text []byte, w io.Writer) ([]byte, error) {
 		text = buf
 	}
 
-	splash := regexp.MustCompile(cutil.Line("maybe_intro_message();"))
+	splash := regexp.MustCompile(edit.Line("maybe_intro_message();"))
 	n := len(splash.FindAll(text, -1))
 	if n != 2 {
 		return nil, fmt.Errorf("nointro: expected two splash call sites, removed %d -- "+
@@ -71,7 +71,7 @@ func NoArgv0(text []byte, w io.Writer) ([]byte, error) {
 			"dropping the name sensitivity would REMOVE capability rather than relocate "+
 			"it: %s", strings.Join(missing, ", "))
 	}
-	pat := regexp.MustCompile(cutil.Line("parse_command_name(&params);"))
+	pat := regexp.MustCompile(edit.Line("parse_command_name(&params);"))
 	n := len(pat.FindAll(text, -1))
 	if n != 1 {
 		return nil, fmt.Errorf("noargv0: expected exactly one call to parse_command_name, "+
@@ -89,7 +89,7 @@ func NoArgv0(text []byte, w io.Writer) ([]byte, error) {
 // The extent is found by BRACE MATCHING from the definition's head, because
 // replacing a function by guesswork is how an editor stops opening files.
 func NoGlob(text []byte, w io.Writer) ([]byte, error) {
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	head := regexp.MustCompile(`(?m)^gen_expand_wildcards\([^\n]*\n`)
 	m := head.FindIndex(text)
 	if m == nil {
@@ -102,7 +102,7 @@ func NoGlob(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("noglob: gen_expand_wildcards is unbalanced")
 	}
 	opening := m[1] + rel
-	close := cutil.Match(blanked, opening)
+	close := edit.Match(blanked, opening)
 	if close < 0 {
 		return nil, fmt.Errorf("noglob: gen_expand_wildcards is unbalanced")
 	}

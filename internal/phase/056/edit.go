@@ -26,7 +26,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // exNiCompletions are commands whose handler is ex_ni -- present in the table,
@@ -109,6 +110,6 @@ func Whim56KP(text []byte, w io.Writer) ([]byte, error) {
 }
 
 func init() {
-	edit.Register("whim56", Edit)
-	edit.Register("whim56kp", Whim56KP)
+	phase.Register("whim56", Edit)
+	phase.Register("whim56kp", Whim56KP)
 }

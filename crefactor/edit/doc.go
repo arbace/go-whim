@@ -1,4 +1,4 @@
-// Package text is the generic C-text machinery the pipeline's edits stand on:
+// Package edit is the generic C-text machinery the pipeline's edits stand on:
 // brace matching with strings and characters blanked, definitions found and
 // deleted by name, the counted folds of an `if` whose condition is decided,
 // anchors matched exactly or modulo whitespace -- and, on those, the verb set
@@ -14,6 +14,6 @@
 // doc/VIM-VS-GENERIC.md section 4 is the layout this is part of.
 //
 // It was internal/cutil, the port of tools/cutil.py -- the substrate the text
-// tools stood on -- and internal/cutil still forwards every name to it, so the
-// code written against that package reads as it did.
-package text
+// tools stood on -- and the generic half of internal/edit; both are gone, and
+// the phases import this package by its own name.
+package edit

@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 var (
@@ -26,7 +26,7 @@ type optSwitch struct{ open, close int }
 // option's letter and one that reads its argument, and a tool that took "the
 // first" of some other number would edit whichever one happened to come first.
 func Switches(fn []byte) ([]optSwitch, []byte, error) {
-	b := cutil.Blank(fn)
+	b := edit.Blank(fn)
 	var found []optSwitch
 	for _, m := range switchOnC.FindAllIndex(b, -1) {
 		rel := bytes.IndexByte(b[m[1]:], '{')
@@ -34,7 +34,7 @@ func Switches(fn []byte) ([]optSwitch, []byte, error) {
 			continue
 		}
 		o := m[1] + rel
-		found = append(found, optSwitch{o, cutil.Match(b, o)})
+		found = append(found, optSwitch{o, edit.Match(b, o)})
 	}
 	if len(found) != 2 {
 		return nil, nil, fmt.Errorf("dropopts: expected the option switch and the "+
@@ -183,9 +183,9 @@ func DropLong(fn []byte, name string) ([]byte, error) {
 			"switch, found %d", name, len(ms))
 	}
 	m := ms[0]
-	b := cutil.Blank(seg)
+	b := edit.Blank(seg)
 	ob := m[1] - 1 + bytes.IndexByte(b[m[1]-1:], '{')
-	cb := cutil.Match(b, ob)
+	cb := edit.Match(b, ob)
 	if cb < 0 {
 		return nil, fmt.Errorf("dropopts: --%s -- its branch is unbalanced", name)
 	}
@@ -227,12 +227,12 @@ func DropOpts(text []byte, args []string, w io.Writer) ([]byte, error) {
 		case longOpt.MatchString(a):
 			longs = append(longs, a[2:])
 		default:
-			return nil, fmt.Errorf("dropopts: not an option this can remove: %s", cutil.PyRepr(a))
+			return nil, fmt.Errorf("dropopts: not an option this can remove: %s", edit.PyRepr(a))
 		}
 	}
 
-	blanked := cutil.Blank(text)
-	a, z, ok := cutil.FindDefinition(text, blanked, "command_line_scan")
+	blanked := edit.Blank(text)
+	a, z, ok := edit.FindDefinition(text, blanked, "command_line_scan")
 	if !ok {
 		return nil, fmt.Errorf("dropopts: command_line_scan is not defined at file scope")
 	}

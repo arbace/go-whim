@@ -7,14 +7,14 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 var nolocaleEdits = []struct {
 	what, pat, repl string
 	want            int
 }{
-	{"the setlocale at startup", cutil.Line("init_locale();"), "", 1},
+	{"the setlocale at startup", edit.Line("init_locale();"), "", 1},
 	// NOT a deletion.  set_init_default_encoding() did three things: ask the
 	// locale, re-initialise the multibyte layer for whatever it answered, and
 	// write that back as the option's default.  Only the first is locale.  The
@@ -57,10 +57,10 @@ func dropDbcsConversion(text []byte) ([]byte, error) {
 	if i < 0 {
 		return nil, fmt.Errorf("nolocale: mb_init no longer sets up a conversion here")
 	}
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	at := i + bytes.Index(text[i:], []byte("if (enc_dbcs)"))
 	opening := at + bytes.IndexByte(blanked[at:], '{')
-	closing := cutil.Match(blanked, opening)
+	closing := edit.Match(blanked, opening)
 	if closing < 0 {
 		return nil, fmt.Errorf("nolocale: the enc_dbcs block is unbalanced")
 	}

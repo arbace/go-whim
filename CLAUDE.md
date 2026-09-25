@@ -99,9 +99,10 @@ sort: `GOAL.md`, which opens `# Phase N — …` and says what the phase removes
 why and what was measured, and -- for the 111 phases whose cut is a program of
 its own -- `edit.go`, which makes that directory **a Go package**, `pNNN`
 (`editlit.go` beside it where the literals are long). The other phases are plan
-steps only (`internal/steps`). An edit registers itself with `internal/edit` in
-an `init()`, and `internal/phase/registry.go` is what links them in -- `cmd/whim`
-imports it blank.
+steps only (`internal/steps`). An edit is written in `crefactor/edit`'s verb set
+(`edit.E`, `edit.Ph`) and `internal/whim/vimtext`'s shared shapes, registers
+itself with `internal/phase` (`phase.Register`) in an `init()`, and
+`cmd/whim/phases.go` is what links them in: it imports every phase blank.
 
 **`doc/GOALS.md`** is what holds for every phase: Part I (phases 0-82: the charter,
 what was measured and the declared delta -- a record now, see its opening -- the rules, the sweep, the concept index,
@@ -123,10 +124,7 @@ through to. arbace/slim-vim keeps both, for its own pipeline.
 ```
 cmd/whim/         the toolset, every tool a subcommand: go tool whim <subcommand>
                    (README.md: each tool, and what each retired script became)
-internal/          whim's Go: dead, cut (the cutters), edit (the registry the phases' edits join,
-                   and a forwarding declaration for every name of crefactor/text's
-                   verb set and of whim/vimtext, so a phase still writes edit.E),
-                   cutil (crefactor/text's old name, every name forwarded), steps (every transformation a phase names, as
+internal/          whim's Go: dead, cut (the cutters), steps (every transformation a phase names, as
                    one table), build (whim's pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, vim's sweep,
@@ -144,7 +142,7 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    front end. cemit/: the canonical printer. sweep/: the closure.
                    pipeline/: the driver -- Phase, Step, Plan, Run, Advance,
                    Check, the snapshots, Seed -- told everything through a
-                   Config. xform/: the generic transforms. text/: the C-text
+                   Config. xform/: the generic transforms. edit/: the C-text
                    substrate that was cutil, and the one verb set -- E, every act
                    counted (driver.go, blocks.go); Ph, the driver of the phases
                    whose cut is a computation; the counted acts both and
@@ -158,9 +156,9 @@ internal/whim/     what the generic side is told about vim: profile.go (the
                    and vimtext/ (what more than one phase uses that knows vim: the
                    buffer walks, Key, the command table's shapes and residue
                    check, the W80-W127 helpers)
-internal/phase/    the phases: NNN/ (GOAL.md, and edit.go where its cut is a
-                   program), registry.go (every phase with an edit.go,
-                   blank-imported so it registers), STAGES.md (the record of
+internal/phase/    the registry the phases' programs join (registry.go, query.go),
+                   and the phases: NNN/ (GOAL.md, and edit.go where its cut is a
+                   program; cmd/whim/phases.go imports each blank), STAGES.md (the record of
                    the stages there were, and of the measurement that retired them --
                    prose, not a manifest a program reads) and boundaries.md
                    (every boundary's lines, entity counts, binary and nm -u, as
@@ -171,7 +169,7 @@ internal/gen/      the generator of editor/editor.go (`go tool whim gen`; `whim
                    skel` runs it by hand, with -bodies for the bodies alone):
                    crefactor/togo, the C-to-Go translator, which names
                    nothing in vim, told vim's names by internal/whim/gen.go
-                   (whim.Gen) -- gen.go is that one line --
+                   (whim.Gen), which cmd/whim hands it. Beside its docs:
                    splice/ (`whim splice`: emitted bodies measured in a copy of
                    editor/), pre/ (`whim pre`: internal/ccx's partitions on an
                    editor.c), sigs.md, CONVENTIONS.md and FINDINGS.md
@@ -330,7 +328,7 @@ The pipeline's goal is met; what comes now is the Go editor idiomatic
 (`doc/GO-IDIOMS.md`), by the generator where it can and by a phase where the C
 is the cause. What a new one takes:
 `internal/phase/NNN/` with `GOAL.md`, and `edit.go` in package `pNNN` registering
-itself if its cut is a program (a line in `internal/phase/registry.go`); and an entry at
+itself if its cut is a program (a line in `cmd/whim/phases.go`); and an entry at
 the end of `internal/build`'s `Plan` naming its steps (the sweep follows
 every phase). Then `make whim-build` (the product moves, so the tracked `whim-vim.c`
 and `editor/editor.go` are rewritten), `make whim-test` against the commit

@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // keepThen is an `if (T) { A } else { B }` whose condition is always true:
@@ -23,8 +23,8 @@ func (e ed) keepThen(seg []byte, pattern, what string) ([]byte, error) {
 		return nil, fmt.Errorf("%s: %s -- the condition occurs %d times, expected 1",
 			e.tool, what, len(ms))
 	}
-	b := cutil.Blank(seg)
-	k, o, c, head, err := cutil.Guarded(seg, b, ms[0])
+	b := edit.Blank(seg)
+	k, o, c, head, err := edit.Guarded(seg, b, ms[0])
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s -- %v", e.tool, what, err)
 	}
@@ -39,7 +39,7 @@ func (e ed) keepThen(seg []byte, pattern, what string) ([]byte, error) {
 	}
 	at := end + nxt[1]
 	o2 := at + bytes.IndexByte(b[at:], '{')
-	c2 := cutil.Match(b, o2)
+	c2 := edit.Match(b, o2)
 	if c2 < 0 {
 		return nil, fmt.Errorf("%s: %s -- the else block is unbalanced", e.tool, what)
 	}
@@ -378,9 +378,9 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 			return nil, fmt.Errorf("lfonly: buf_copy_options has no 'fileformats' switch")
 		}
 		a = bytes.LastIndexByte(s[:a], '\n') + 1
-		b := cutil.Blank(s)
+		b := edit.Blank(s)
 		o := a + bytes.IndexByte(b[a:], '{')
-		c := cutil.Match(b, o)
+		c := edit.Match(b, o)
 		if c < 0 {
 			return nil, fmt.Errorf("lfonly: buf_copy_options' switch is unbalanced")
 		}
@@ -401,10 +401,10 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 
 	// Every call left must be inside code the sweep takes with them.  Counted
 	// by WHERE each call sits, not by a tally that has to be guessed.
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	var spans [][2]int
 	for _, n := range lfonlyDying {
-		if a, z, ok := cutil.FindDefinition(text, blanked, n); ok {
+		if a, z, ok := edit.FindDefinition(text, blanked, n); ok {
 			spans = append(spans, [2]int{a, z})
 		}
 	}

@@ -72,11 +72,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim92", Edit) }
+func init() { phase.Register("whim92", Edit) }
 
 // w92Before is the file the four anchors were counted against.
 var w92Before = map[string]int{
@@ -103,7 +103,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return len(regexp.MustCompile(`\b`+name+`\b`).FindAll(t, -1))
 	}
 	within := func(t []byte, fn, old, new, what string, n int) ([]byte, error) {
-		a, z, ok := cutil.FindDefinition(t, cutil.Blank(t), fn)
+		a, z, ok := edit.FindDefinition(t, edit.Blank(t), fn)
 		if !ok {
 			return nil, p.Die("%s is not defined", fn)
 		}
@@ -111,7 +111,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		k := strings.Count(Body, old)
 		if k != n {
 			return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-				what, cutil.PyRepr(edit.CoreHead(old, 60)), k, fn, n)
+				what, edit.PyRepr(edit.CoreHead(old, 60)), k, fn, n)
 		}
 		p.Say(what)
 		return []byte(string(t[:a]) + strings.ReplaceAll(Body, old, new) + string(t[z:])), nil
@@ -163,7 +163,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"create_windows -- every one of which passed FALSE, NULL, 0")
 
 	// ---- 5. what is left, and what is deliberately left -----------------------
-	a, z, ok := cutil.FindDefinition(text, cutil.Blank(text), "open_buffer")
+	a, z, ok := edit.FindDefinition(text, edit.Blank(text), "open_buffer")
 	if !ok {
 		return nil, p.Die("open_buffer no longer parses as a definition")
 	}

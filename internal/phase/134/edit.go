@@ -13,10 +13,10 @@ package p134
 
 import (
 	"github.com/arbace/go-whim/crefactor/xform"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim"
 )
 
 // The rule is general, and it is crefactor/xform's EmptyBlocks, built with vim's
 // knobs (internal/whim/xform.go); its counts are arguments in the plan.
-func init() { edit.RegisterArgs("whim134", xform.EmptyBlocks(whim.Core).Edit()) }
+func init() { phase.RegisterArgs("whim134", xform.EmptyBlocks(whim.Core).Edit()) }

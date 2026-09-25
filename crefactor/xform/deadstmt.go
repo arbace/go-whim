@@ -6,8 +6,8 @@ import (
 	"sort"
 
 	"github.com/arbace/go-whim/crefactor/cc"
+	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/crefactor/sweep"
-	ctext "github.com/arbace/go-whim/crefactor/text"
 )
 
 // DeadStmt is the step that deletes every statement no path reaches: those
@@ -21,7 +21,7 @@ import (
 // them.
 func DeadStmt() Step {
 	return func(text []byte, args []string, w io.Writer) ([]byte, error) {
-		p := ctext.Ph{Tag: "nodeadstmt", W: w}
+		p := edit.Ph{Tag: "nodeadstmt", W: w}
 		if _, err := flags(p.Tag, args); err != nil {
 			return nil, err
 		}
@@ -29,7 +29,7 @@ func DeadStmt() Step {
 	}
 }
 
-func deadStmt(p ctext.Ph, text []byte) ([]byte, error) {
+func deadStmt(p edit.Ph, text []byte) ([]byte, error) {
 	const path = file
 	ast, err := parse(text)
 	if err != nil {

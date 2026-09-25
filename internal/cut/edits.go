@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/crefactor/text"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // ed is the shape most cutters share: a tool name, a writer, and the counted
@@ -14,7 +14,7 @@ import (
 //
 // THE EDITS ARE THE VERB SET'S.  This was a third copy of it, after edit.E and
 // edit.Ph; what it does now is the part that is the cutters' own -- the report
-// column and the refusal's wording -- around crefactor/text's counted
+// column and the refusal's wording -- around crefactor/edit's counted
 // acts (counted.go) and folds, the ones E and Ph are written on.  A refusal's
 // reason is theirs, word for word, and the line in front of it is the tool's.
 //
@@ -51,7 +51,7 @@ func (e ed) done(out []byte, err error, what string) ([]byte, error) {
 
 // literal replaces exact text, counted.
 func (e ed) literal(seg []byte, old, new, what string, count int) ([]byte, error) {
-	out, err := text.ReplaceLiteral(seg, old, new, count)
+	out, err := edit.ReplaceLiteral(seg, old, new, count)
 	return e.done(out, err, what)
 }
 
@@ -62,13 +62,13 @@ func (e ed) subOnce(seg []byte, pattern, what string) ([]byte, error) {
 
 // foldNever folds a condition that is now always false.
 func (e ed) foldNever(seg []byte, pattern, what string) ([]byte, error) {
-	out, err := text.FoldNever(seg, "(?m)"+pattern, 1)
+	out, err := edit.FoldNever(seg, "(?m)"+pattern, 1)
 	return e.done(out, err, what)
 }
 
 // foldAlways folds a condition that is now always true.
 func (e ed) foldAlways(seg []byte, pattern, what string) ([]byte, error) {
-	out, err := text.FoldAlways(seg, "(?m)"+pattern, 1)
+	out, err := edit.FoldAlways(seg, "(?m)"+pattern, 1)
 	return e.done(out, err, what)
 }
 
@@ -85,14 +85,14 @@ func (e ed) dropIf(seg []byte, pattern, what string) ([]byte, error) {
 
 // subCount deletes a pattern that must match exactly `count` times.
 func (e ed) subCount(seg []byte, pattern, what string, count int) ([]byte, error) {
-	out, err := text.ReplacePattern(seg, "(?m)"+pattern, "", count)
+	out, err := edit.ReplacePattern(seg, "(?m)"+pattern, "", count)
 	return e.done(out, err, what)
 }
 
 // subCountRepl replaces a pattern `count` times with a replacement that may
 // expand $1.
 func (e ed) subCountRepl(seg []byte, pattern, repl, what string, count int) ([]byte, error) {
-	out, err := text.ReplacePattern(seg, pattern, repl, count)
+	out, err := edit.ReplacePattern(seg, pattern, repl, count)
 	return e.done(out, err, what)
 }
 
@@ -100,14 +100,14 @@ func (e ed) subCountRepl(seg []byte, pattern, repl, what string, count int) ([]b
 // Python passes straight to cutil.drop_if and reports its ValueError: the
 // fold counts for itself, in its own words.
 func (e ed) dropIfUncounted(seg []byte, pattern, what string) ([]byte, error) {
-	out, err := text.DropIf(seg, "(?m)"+pattern, 1)
+	out, err := edit.DropIf(seg, "(?m)"+pattern, 1)
 	return e.done(out, err, what)
 }
 
 // inFunction applies an edit to ONE function's text and splices it back, so a
 // pattern that would match elsewhere in the file cannot.
-func (e ed) inFunction(t []byte, name string, edit func([]byte) ([]byte, error)) ([]byte, error) {
-	out, found, err := text.InDefinition(t, name, edit)
+func (e ed) inFunction(t []byte, name string, fn func([]byte) ([]byte, error)) ([]byte, error) {
+	out, found, err := edit.InDefinition(t, name, fn)
 	if !found {
 		return nil, fmt.Errorf("%s: %s is not defined at file scope", e.tool, name)
 	}

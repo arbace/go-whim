@@ -40,7 +40,8 @@ package p065
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // opFunctionCase is g@'s arm in do_pending_operator.  It is matched as a
@@ -92,4 +93,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim65", Edit) }
+func init() { phase.Register("whim65", Edit) }

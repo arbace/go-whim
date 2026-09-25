@@ -32,7 +32,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 var cmdRow = regexp.MustCompile(`\[CMD_(\w+)\] = \{\(char_u \*\)"([^"]*)", sizeof\([^)]*\) - 1,\s*(\w+)\s*,`)
@@ -66,4 +66,4 @@ func Whim2Live(text []byte, w io.Writer) error {
 	return err
 }
 
-func init() { edit.RegisterQuery("whim2", Whim2Live) }
+func init() { phase.RegisterQuery("whim2", Whim2Live) }

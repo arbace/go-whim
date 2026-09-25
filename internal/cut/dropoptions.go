@@ -14,7 +14,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 var (
@@ -44,9 +44,9 @@ func DropRow(text []byte, name string, strict, local bool) ([]byte, bool, error)
 	// THE ROW'S OWN EXTENT, computed before the guards, because every guard
 	// asks a question about "this row" and a fixed window of lines would ask
 	// it of the wrong text.
-	b := cutil.Blank(text)
+	b := edit.Blank(text)
 	open := start + bytes.IndexByte(text[start:], '{')
-	rowEnd := cutil.Match(b, open)
+	rowEnd := edit.Match(b, open)
 	if rowEnd < 0 {
 		return text, false, nil
 	}
@@ -133,7 +133,7 @@ func DropRow(text []byte, name string, strict, local bool) ([]byte, bool, error)
 		}
 	}
 
-	end := cutil.Match(cutil.Blank(text), open)
+	end := edit.Match(edit.Blank(text), open)
 	if end < 0 {
 		return text, false, fmt.Errorf("dropoptions: the row for %s is not balanced", name)
 	}

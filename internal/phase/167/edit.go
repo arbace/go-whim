@@ -11,11 +11,12 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/cc"
+	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/crefactor/sweep"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim167", Edit) }
+func init() { phase.Register("whim167", Edit) }
 
 // keyCode is vim's TERMCAP2KEY(a, b) as the preprocessor left it, in the
 // canonical spelling: two constant operands, a character or a name.

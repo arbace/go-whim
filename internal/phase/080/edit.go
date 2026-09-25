@@ -73,8 +73,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
+	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
 // w80OldChars is the set of one-character command names q79 still recognises.
@@ -98,7 +99,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	t := string(text)
 
 	// ---- 1: the table, the index, and the proof --------------------------------
-	mt := edit.W80Table.FindStringSubmatchIndex(t)
+	mt := vimtext.W80Table.FindStringSubmatchIndex(t)
 	if mt == nil {
 		return nil, e.Refused("cmdnames[] definition not found")
 	}
@@ -110,26 +111,26 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		if line == "" {
 			continue
 		}
-		r := edit.W80RowRe.FindStringSubmatch(line)
+		r := vimtext.W80RowRe.FindStringSubmatch(line)
 		if r == nil || r[2] != r[3] {
 			z := line
 			if len(z) > 90 {
 				z = z[:90]
 			}
-			return nil, e.Refused("a cmdnames[] row does not have the expected shape: %s", cutil.PyRepr(z))
+			return nil, e.Refused("a cmdnames[] row does not have the expected shape: %s", edit.PyRepr(z))
 		}
 		rowName[r[1]] = r[2]
 		rowHandler[r[1]] = r[4]
 		rowOrder = append(rowOrder, r[1])
 	}
 
-	me := edit.W80EnumRe.FindStringSubmatchIndex(t)
+	me := vimtext.W80EnumRe.FindStringSubmatchIndex(t)
 	if me == nil {
 		return nil, e.Refused("enum CMD_index not found")
 	}
 	enumStart, enumEnd := me[2], me[3]
 	var ids []string
-	for _, m := range edit.W80IdRe.FindAllStringSubmatch(t[enumStart:enumEnd], -1) {
+	for _, m := range vimtext.W80IdRe.FindAllStringSubmatch(t[enumStart:enumEnd], -1) {
 		ids = append(ids, m[1])
 	}
 	if len(ids) != 600 || !sameSet(ids, rowOrder) {
@@ -163,9 +164,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		len(names), len(dead), len(live)))
 
 	// The old index, read Out of the file rather than regenerated.
-	m1 := edit.W80Idx1.FindStringSubmatch(t)
-	m2 := edit.W80Idx2.FindStringSubmatch(t)
-	mc := edit.W80Count.FindStringSubmatch(t)
+	m1 := vimtext.W80Idx1.FindStringSubmatch(t)
+	m2 := vimtext.W80Idx2.FindStringSubmatch(t)
+	mc := vimtext.W80Count.FindStringSubmatch(t)
 	if m1 == nil || m2 == nil || mc == nil {
 		return nil, e.Refused("the ex_cmdidxs block is not where it was")
 	}
@@ -174,9 +175,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, e.Refused("the ex_cmdidxs block has an unexpected shape")
 	}
 
-	mch := edit.W80Chars.FindStringSubmatch(t)
+	mch := vimtext.W80Chars.FindStringSubmatch(t)
 	if mch == nil || mch[1] != w80OldChars {
-		return nil, e.Refused("the one-character command set is not %s", cutil.PyRepr(w80OldChars))
+		return nil, e.Refused("the one-character command set is not %s", edit.PyRepr(w80OldChars))
 	}
 	liveSet := map[string]bool{}
 	for _, n := range live {
@@ -227,7 +228,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	minlen := map[string]int{}
 	for _, n := range live {
 		if oldLookup(n) != n {
-			return nil, e.Refused("%s does not resolve to itself in the old table", cutil.PyRepr(n))
+			return nil, e.Refused("%s does not resolve to itself in the old table", edit.PyRepr(n))
 		}
 		for i := 1; i <= len(n); i++ {
 			if oldLookup(n[:i]) == n {
@@ -243,7 +244,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 				return ""
 			}
 		} else {
-			wd = edit.W80Word.FindString(wd)
+			wd = vimtext.W80Word.FindString(wd)
 		}
 		for _, n := range live {
 			if len(wd) >= minlen[n] && strings.HasPrefix(n, wd) {
@@ -276,7 +277,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			want = o
 		}
 		if got := newLookup(wd); got != want {
-			moved = append(moved, fmt.Sprintf("(%s, %s, %s)", cutil.PyRepr(wd), pyOrNone(o), pyOrNone(got)))
+			moved = append(moved, fmt.Sprintf("(%s, %s, %s)", edit.PyRepr(wd), pyOrNone(o), pyOrNone(got)))
 		}
 	}
 	if len(moved) > 0 {
@@ -292,7 +293,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			}
 		}
 		if k > 1 {
-			unique = append(unique, cutil.PyRepr(wd))
+			unique = append(unique, edit.PyRepr(wd))
 		}
 	}
 	if len(unique) > 0 {
@@ -320,7 +321,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			Body = append(Body, "")
 			continue
 		}
-		r := edit.W80RowRe.FindStringSubmatch(line)
+		r := vimtext.W80RowRe.FindStringSubmatch(line)
 		name := r[2]
 		if n, ok := minlen[name]; ok {
 			Body = append(Body, strings.Replace(line,
@@ -330,7 +331,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	tabBody := strings.Join(Body, "\n")
 	var enumBody []string
 	for _, line := range strings.Split(t[enumStart:enumEnd], "\n") {
-		r := edit.W80IdRe.FindStringSubmatch(line)
+		r := vimtext.W80IdRe.FindStringSubmatch(line)
 		if r != nil {
 			if _, ok := minlen[rowName[r[1]]]; !ok {
 				continue
@@ -347,7 +348,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		len(minlen), len(minlen)))
 
 	e.Literal(w80lit3, w80lit4, 1, "the row field that held the name length holds the shortest abbreviation")
-	if loc := edit.W80Banner.FindIndex(e.Text()); loc == nil {
+	if loc := vimtext.W80Banner.FindIndex(e.Text()); loc == nil {
 		return nil, e.Refused("the ex_cmdidxs block is gone")
 	} else {
 		e.Set(append(append([]byte{}, e.Text()[:loc[0]]...), e.Text()[loc[1]:]...))
@@ -383,7 +384,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	t = string(e.Text())
 	fx := strings.Index(t, w80lit11)
-	if fx >= 0 && edit.W80Vim9.MatchString(t[fx:min80(fx+6000, len(t))]) {
+	if fx >= 0 && vimtext.W80Vim9.MatchString(t[fx:min80(fx+6000, len(t))]) {
 		return nil, e.Refused("vim9 survives in find_ex_command")
 	}
 
@@ -396,13 +397,13 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, e.Refused("the lookup span does not contain its for loop")
 	}
 	loop += a
-	b := cutil.Blank([]byte(t))
+	b := edit.Blank([]byte(t))
 	lb := strings.Index(string(b[loop:]), "{")
 	if lb < 0 {
 		return nil, e.Refused("the lookup span has no body")
 	}
 	lb += loop
-	z := strings.Index(t[cutil.Match(b, lb):], "\n") + cutil.Match(b, lb) + 1
+	z := strings.Index(t[edit.Match(b, lb):], "\n") + edit.Match(b, lb) + 1
 	oldSpan := t[a:z]
 	for _, need := range []string{"cmdidxs1", "cmdidxs2", "command_count", "CMD_Next", "CMD_bang", "strncmp"} {
 		if !strings.Contains(oldSpan, need) {
@@ -464,7 +465,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// ---- 5: ea.skip, which only :if ever raised --------------------------------
 	for _, fn := range []string{"ex_ni", "ex_script_ni"} {
 		cur := e.Text()
-		a, z, ok := cutil.FindDefinition(cur, cutil.Blank(cur), fn)
+		a, z, ok := edit.FindDefinition(cur, edit.Blank(cur), fn)
 		if !ok {
 			return nil, e.Refused("%s is not defined", fn)
 		}
@@ -482,7 +483,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if e.Failed() {
 		return e.Done()
 	}
-	if edit.W80Skip.Match(e.Text()) {
+	if vimtext.W80Skip.Match(e.Text()) {
 		return nil, e.Refused("a read of skip survives")
 	}
 
@@ -528,7 +529,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// SURVIVING ROW carries one of the seven address types this phase removes,
 	// and that is what it asks now: the table as it is, found by its own header.
 	t = string(e.Text())
-	mt2 := edit.W80Table.FindStringSubmatchIndex(t)
+	mt2 := vimtext.W80Table.FindStringSubmatchIndex(t)
 	if mt2 == nil {
 		return nil, e.Refused("cmdnames[] is gone before its address types were checked")
 	}
@@ -546,7 +547,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	var Out []string
 	labelsGone, groupsGone := 0, 0
 	for i := 0; i < len(L); {
-		mm := edit.W80Label.FindStringSubmatch(L[i])
+		mm := vimtext.W80Label.FindStringSubmatch(L[i])
 		if mm == nil {
 			Out = append(Out, L[i])
 			i++
@@ -556,7 +557,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		j := i
 		var labels []string
 		for j < len(L) {
-			x := edit.W80Label.FindStringSubmatch(L[j])
+			x := vimtext.W80Label.FindStringSubmatch(L[j])
 			if x == nil || x[1] != ind {
 				break
 			}
@@ -564,14 +565,14 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			j++
 		}
 		k := j
-		for k < len(L) && (L[k] == "" || (strings.HasPrefix(L[k], ind+" ") && !edit.W80Label.MatchString(L[k]))) {
+		for k < len(L) && (L[k] == "" || (strings.HasPrefix(L[k], ind+" ") && !vimtext.W80Label.MatchString(L[k]))) {
 			k++
 		}
 		var keep []string
 		for _, x := range labels {
 			n := "default"
 			if strings.TrimSpace(x) != "default:" {
-				n = edit.W80Case.FindStringSubmatch(x)[1]
+				n = vimtext.W80Case.FindStringSubmatch(x)[1]
 			}
 			if !w80DeadAddr[n] {
 				keep = append(keep, x)
@@ -592,9 +593,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 					break
 				}
 			}
-			if !edit.W80Fall.MatchString(prev) {
+			if !vimtext.W80Fall.MatchString(prev) {
 				return nil, e.Refused("a removed case group can be fallen into from %s",
-					cutil.PyRepr(strings.TrimSpace(prev)))
+					edit.PyRepr(strings.TrimSpace(prev)))
 			}
 			labelsGone += len(labels)
 			groupsGone++
@@ -624,7 +625,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 func w80Ints(s string) []int {
 	var Out []int
-	for _, x := range edit.W80Num.FindAllString(s, -1) {
+	for _, x := range vimtext.W80Num.FindAllString(s, -1) {
 		n, _ := strconv.Atoi(x)
 		Out = append(Out, n)
 	}
@@ -669,7 +670,7 @@ func pyOrNone(s string) string {
 	if s == "" {
 		return "None"
 	}
-	return cutil.PyRepr(s)
+	return edit.PyRepr(s)
 }
 
-func init() { edit.RegisterArgs("whim80", Edit) }
+func init() { phase.RegisterArgs("whim80", Edit) }

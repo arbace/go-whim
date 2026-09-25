@@ -35,7 +35,8 @@ package p033
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // Whim33 takes the quickfix arms of :cdo, :ldo, :cfdo and :lfdo, which answer
@@ -59,4 +60,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim33", Edit) }
+func init() { phase.Register("whim33", Edit) }

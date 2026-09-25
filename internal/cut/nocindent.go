@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 const (
@@ -53,10 +53,10 @@ var cindentLeft = regexp.MustCompile(`\b(?:get_c_indent|in_cinkeys)\b`)
 func NoCindent(text []byte, w io.Writer) ([]byte, error) {
 	var err error
 	for _, p := range []string{
-		cutil.Head("if (cindent_on() && ctrl_x_mode_none())"),
-		cutil.Head("if (can_cindent && cindent_on() && ctrl_x_mode_normal())"),
+		edit.Head("if (cindent_on() && ctrl_x_mode_none())"),
+		edit.Head("if (can_cindent && cindent_on() && ctrl_x_mode_normal())"),
 	} {
-		if text, err = cutil.DropIf(text, p, 1); err != nil {
+		if text, err = edit.DropIf(text, p, 1); err != nil {
 			return nil, err
 		}
 	}
@@ -72,8 +72,8 @@ func NoCindent(text []byte, w io.Writer) ([]byte, error) {
 	text = bytes.Replace(text,
 		[]byte("if (lead_len == 0 && curbuf->b_p_cin && do_cindent && dir == FORWARD"),
 		[]byte("if (lead_len == 0 && dir == FORWARD"), 1)
-	if text, err = cutil.DropIf(text,
-		cutil.Head("else if (do_cindent || (curbuf->b_p_ai && use_indentexpr_for_lisp()))"),
+	if text, err = edit.DropIf(text,
+		edit.Head("else if (do_cindent || (curbuf->b_p_ai && use_indentexpr_for_lisp()))"),
 		1); err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func NoCindent(text []byte, w io.Writer) ([]byte, error) {
 	// declaration, like do_cindent's, is the sweep's; so are parse_cino and
 	// do_c_expr_indent once their calls are gone.
 	for _, c := range []struct{ pat, what string }{
-		{cutil.Line("want_cindent = (get_can_cindent() && cindent_on());"),
+		{edit.Line("want_cindent = (get_can_cindent() && cindent_on());"),
 			"ins_compl_stop's want_cindent"},
 		{`(?m)[ \t]*if \(want_cindent\)\n[ \t]*\{\n` +
 			`[ \t]*do_c_expr_indent\(\);\n[ \t]*want_cindent = FALSE;\n[ \t]*\}\n`,
@@ -120,8 +120,8 @@ func NoCindent(text []byte, w io.Writer) ([]byte, error) {
 	text = bytes.Replace(text, []byte("                op_reindent(oap, get_c_indent);"),
 		[]byte("                op_reindent(oap, get_indent);"), 1)
 
-	if text, err = cutil.DropIf(text,
-		cutil.Head("if (leader_len == 0 && curbuf->b_p_cin)"), 1); err != nil {
+	if text, err = edit.DropIf(text,
+		edit.Head("if (leader_len == 0 && curbuf->b_p_cin)"), 1); err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  nocindent    preprocs_left, fix_indent, completion, `=` and the "+
@@ -143,11 +143,11 @@ func NoCindent(text []byte, w io.Writer) ([]byte, error) {
 	// of them are expressed in shiftwidths, and check_buf_options() re-parses
 	// on every option check.  Neither is about indenting; both just keep the
 	// b_ind_* fields in step with a string that no longer exists.
-	if text, err = cutCounted(text, cutil.Line("parse_cino(curbuf);"),
+	if text, err = cutCounted(text, edit.Line("parse_cino(curbuf);"),
 		"nocindent", "a parse_cino call", 3); err != nil {
 		return nil, err
 	}
-	if text, err = cutCounted(text, cutil.Line("parse_cino(buf);"),
+	if text, err = cutCounted(text, edit.Line("parse_cino(buf);"),
 		"nocindent", "check_buf_options' parse_cino", 1); err != nil {
 		return nil, err
 	}
@@ -155,13 +155,13 @@ func NoCindent(text []byte, w io.Writer) ([]byte, error) {
 
 	// cindent_on() stays and answers no: five of its seven callers only ask in
 	// order to do something else instead.
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	m := regexp.MustCompile(`(?m)^cindent_on\(void\)\n`).FindIndex(text)
 	if m == nil {
 		return nil, fmt.Errorf("nocindent: cindent_on is not defined at file scope")
 	}
 	o := m[1] + bytes.IndexByte(blanked[m[1]:], '{')
-	c := cutil.Match(blanked, o)
+	c := edit.Match(blanked, o)
 	if c < 0 {
 		return nil, fmt.Errorf("nocindent: cindent_on is unbalanced")
 	}

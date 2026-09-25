@@ -98,11 +98,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.RegisterArgs("whim125", Edit) }
+func init() { phase.RegisterArgs("whim125", Edit) }
 
 type w125Class struct {
 	label string
@@ -156,11 +156,11 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	lines := func() []string { return strings.Split(t, "\n") }
 	swap := func(old, new, what, why string, n int) error {
-		c := cutil.CountAnchor(t, old)
+		c := edit.CountAnchor(t, old)
 		if c != n {
 			return p.Die("%s occurs %d times, expected %d -- %s", what, c, n, why)
 		}
-		t = cutil.ReplaceAnchor(t, old, new, -1)
+		t = edit.ReplaceAnchor(t, old, new, -1)
 		return nil
 	}
 	drop := func(old, what, why string, n int) error { return swap(old, "", what, why, n) }
@@ -237,7 +237,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 		if !regexp.MustCompile(`^    [\w *]+$`).MatchString(L[heads[0]-1]) {
 			return 0, 0, p.Die("the line above `%s`'s head is %s, and every definition in this tree "+
-				"carries its return type there, indented", name, cutil.PyRepr(L[heads[0]-1]))
+				"carries its return type there, indented", name, edit.PyRepr(L[heads[0]-1]))
 		}
 		return heads[0] - 1, end + 1, nil
 	}
@@ -329,7 +329,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	for i := sb + 2; i < end; i++ {
 		m := fieldRe.FindStringSubmatch(L[i])
 		if m == nil {
-			return nil, p.Die("`struct block0` has a member this phase cannot read: %s", cutil.PyRepr(L[i]))
+			return nil, p.Die("`struct block0` has a member this phase cannot read: %s", edit.PyRepr(L[i]))
 		}
 		fields = append(fields, m[1])
 	}

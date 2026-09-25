@@ -72,10 +72,11 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim85", Edit) }
+func init() { phase.Register("whim85", Edit) }
 
 // Whim85 stops the core diagnosing its own terminal.
 //

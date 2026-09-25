@@ -17,10 +17,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim141", Edit) }
+func init() { phase.Register("whim141", Edit) }
 
 var (
 	w141Head  = "    case RE_WHITE:\n    case RE_WHITE + ADD_NL:\n        testval = mask = RI_WHITE;\n    do_class:\n"

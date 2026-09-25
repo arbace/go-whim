@@ -14,10 +14,11 @@ package p140
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim140", Edit) }
+func init() { phase.Register("whim140", Edit) }
 
 // W140LookupBody is syn_name2id_len()'s Body after this phase, inside its
 // braces, exported so the check requires the identical text.

@@ -6,14 +6,14 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 const vimrcNoneTest = `^[ \t]*if \(params\.use_vimrc != NULL && \(strcmp\(\(char \*\)\(params\.use_vimrc\), \(char \*\)\("NONE"\)\) == 0`
 
 var (
-	startupCall = regexp.MustCompile(cutil.Line("source_startup_scripts(&params);"))
-	xdgRtpCall  = regexp.MustCompile(cutil.Line("set_init_xdg_rtp();"))
+	startupCall = regexp.MustCompile(edit.Line("source_startup_scripts(&params);"))
+	xdgRtpCall  = regexp.MustCompile(edit.Line("set_init_xdg_rtp();"))
 )
 
 // NoStartup stops the editor reading anything at startup.
@@ -23,7 +23,7 @@ var (
 // than ReplaceBody: a body of "" through that helper would leave a blank line
 // between the braces, and this file has no run of two blank lines anywhere.
 func NoStartup(text []byte, w io.Writer) ([]byte, error) {
-	o, c, found, balanced := cutil.Body(text, "source_startup_scripts")
+	o, c, found, balanced := edit.Body(text, "source_startup_scripts")
 	if !found {
 		return nil, fmt.Errorf("nostartup: source_startup_scripts is not defined at file scope")
 	}
@@ -49,7 +49,7 @@ func NoStartup(text []byte, w io.Writer) ([]byte, error) {
 	if n := len(regexp.MustCompile("(?m)"+vimrcNoneTest).FindAll(text, -1)); n != 1 {
 		return nil, fmt.Errorf("nostartup: the -u NONE test in main() is not where this expects")
 	}
-	if text, err = cutil.DropIf(text, "(?m)"+vimrcNoneTest, 1); err != nil {
+	if text, err = edit.DropIf(text, "(?m)"+vimrcNoneTest, 1); err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  nostartup    -u NONE no longer switches 'loadplugins' off")

@@ -7,22 +7,22 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 var abbrFolds = []struct{ what, pattern string }{
 	{"insert mode: ESC expanding an abbreviation first",
-		cutil.Head("if (echeck_abbr(ESC + ABBR_OFF))")},
+		edit.Head("if (echeck_abbr(ESC + ABBR_OFF))")},
 	{"insert mode: CTRL-O expanding an abbreviation first",
-		cutil.Head("if (echeck_abbr(Ctrl_O + ABBR_OFF))")},
+		edit.Head("if (echeck_abbr(Ctrl_O + ABBR_OFF))")},
 	{"insert mode: CTRL-L under 'insertmode'",
-		cutil.Head("if (echeck_abbr(Ctrl_L + ABBR_OFF))")},
+		edit.Head("if (echeck_abbr(Ctrl_L + ABBR_OFF))")},
 	{"insert mode: Tab expanding an abbreviation first",
-		cutil.Head("if (echeck_abbr(TAB + ABBR_OFF))")},
+		edit.Head("if (echeck_abbr(TAB + ABBR_OFF))")},
 	{"insert mode: Enter expanding an abbreviation first",
-		cutil.Head("if (echeck_abbr(c + ABBR_OFF))")},
+		edit.Head("if (echeck_abbr(c + ABBR_OFF))")},
 	{"the command line: a special key expanding an abbreviation",
-		cutil.Head("if (ccheck_abbr(c + ABBR_OFF))")},
+		edit.Head("if (ccheck_abbr(c + ABBR_OFF))")},
 }
 
 var abbrLiteral = []struct{ what, old, new string }{
@@ -48,7 +48,7 @@ var (
 // than counting mentions.
 func NoAbbr(text []byte, w io.Writer) ([]byte, error) {
 	for _, f := range abbrFolds {
-		out, err := cutil.FoldNever(text, f.pattern, 1)
+		out, err := edit.FoldNever(text, f.pattern, 1)
 		if err != nil {
 			return nil, fmt.Errorf("noabbr: %s -- %v", f.what, err)
 		}
@@ -64,11 +64,11 @@ func NoAbbr(text []byte, w io.Writer) ([]byte, error) {
 		fmt.Fprintf(w, "  noabbr       %s\n", l.what)
 	}
 
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	type span struct{ a, z int }
 	var spans []span
 	for _, n := range []string{"echeck_abbr", "ccheck_abbr", "check_abbr"} {
-		if a, z, ok := cutil.FindDefinition(text, blanked, n); ok {
+		if a, z, ok := edit.FindDefinition(text, blanked, n); ok {
 			spans = append(spans, span{a, z})
 		}
 	}

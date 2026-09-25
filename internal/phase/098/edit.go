@@ -106,8 +106,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // The two blocks this phase splices in, kept beside it as data (musl-ctype.md,
@@ -135,7 +135,7 @@ func fenced(md string) (string, bool) {
 	return body[:j+1], true
 }
 
-func init() { edit.Register("whim98", Edit) }
+func init() { phase.Register("whim98", Edit) }
 
 var w98Before = map[string]int{
 	"tolower": 2, "toupper": 2, "towlower": 2, "towupper": 2,
@@ -185,7 +185,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		k := strings.Count(string(t), old)
 		if k != n {
 			return nil, p.Die("%s -- the text occurs %d times, expected %d: %s",
-				what, k, n, cutil.PyRepr(edit.CoreHead(old, 70)))
+				what, k, n, edit.PyRepr(edit.CoreHead(old, 70)))
 		}
 		p.Say(what)
 		return []byte(strings.ReplaceAll(string(t), old, new)), nil

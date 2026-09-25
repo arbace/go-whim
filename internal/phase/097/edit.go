@@ -71,11 +71,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim97", Edit) }
+func init() { phase.Register("whim97", Edit) }
 
 // w97Before is the seventeen as OCCURRENCES.  Nothing here is approximate: a
 // rename is only safe if the count of what is about to be renamed is known
@@ -118,12 +118,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// textEdit does NOT report: sections A and B each make many edits and then
 	// say one line about all of them.
 	textEdit := func(old, new, what string, n int) error {
-		k := cutil.CountAnchor(t, old)
+		k := edit.CountAnchor(t, old)
 		if k != n {
 			return p.Die("%s -- the text occurs %d times, expected %d: %s",
-				what, k, n, cutil.PyRepr(edit.CoreHead(old, 70)))
+				what, k, n, edit.PyRepr(edit.CoreHead(old, 70)))
 		}
-		t = cutil.ReplaceAnchor(t, old, new, -1)
+		t = edit.ReplaceAnchor(t, old, new, -1)
 		return nil
 	}
 
@@ -223,7 +223,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if r.lit {
 			if pat.MatchString(r.s) {
 				return nil, p.Die("a string literal mentions one of the sixteen and the rename would "+
-					"change what the editor PRINTS: %s", cutil.PyRepr(edit.CoreHead(r.s, 60)))
+					"change what the editor PRINTS: %s", edit.PyRepr(edit.CoreHead(r.s, 60)))
 			}
 			pieces.WriteString(r.s)
 		} else {

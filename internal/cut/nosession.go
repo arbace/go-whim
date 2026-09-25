@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // The four tables are GENERATED from the Python module's own, imported rather
@@ -35,12 +35,12 @@ var nosessionStubs = []struct{ name, body string }{
 }
 
 var nosessionDrops = []struct{ what, pat string }{
-	{"the legacy modifier", cutil.Head(`if (checkforcmd_noparen(&eap->cmd, "legacy", 3))`)},
-	{"the noautocmd modifier", cutil.Head(`if (checkforcmd_noparen(&eap->cmd, "noautocmd", 3))`)},
-	{"the sandbox modifier", cutil.Head(`if (checkforcmd_noparen(&eap->cmd, "sandbox", 3))`)},
-	{"the vim9cmd modifier", cutil.Head(`if (checkforcmd_noparen(&eap->cmd, "vim9cmd", 4))`)},
-	{"noautocmd saving 'eventignore'", cutil.Head("if ((cmod->cmod_flags & CMOD_NOAUTOCMD) && cmod->cmod_save_ei == NULL)")},
-	{"noautocmd restoring 'eventignore'", cutil.Head("if (cmod->cmod_save_ei != NULL)")},
+	{"the legacy modifier", edit.Head(`if (checkforcmd_noparen(&eap->cmd, "legacy", 3))`)},
+	{"the noautocmd modifier", edit.Head(`if (checkforcmd_noparen(&eap->cmd, "noautocmd", 3))`)},
+	{"the sandbox modifier", edit.Head(`if (checkforcmd_noparen(&eap->cmd, "sandbox", 3))`)},
+	{"the vim9cmd modifier", edit.Head(`if (checkforcmd_noparen(&eap->cmd, "vim9cmd", 4))`)},
+	{"noautocmd saving 'eventignore'", edit.Head("if ((cmod->cmod_flags & CMOD_NOAUTOCMD) && cmod->cmod_save_ei == NULL)")},
+	{"noautocmd restoring 'eventignore'", edit.Head("if (cmod->cmod_save_ei != NULL)")},
 }
 
 var nosessionLiteral = []struct{ what, old, new string }{
@@ -60,14 +60,14 @@ var nosessionParser = []struct{ what, old, new string }{
 // nosessionBody replaces a definition's body, scoped to the definition's own
 // span -- the first `{` inside it is the body opener.
 func nosessionBody(text []byte, name, newBody string) ([]byte, error) {
-	a, z, ok := cutil.FindDefinition(text, cutil.Blank(text), name)
+	a, z, ok := edit.FindDefinition(text, edit.Blank(text), name)
 	if !ok {
 		return nil, fmt.Errorf("nosession: %s is not defined at file scope", name)
 	}
 	seg := text[a:z]
-	b := cutil.Blank(seg)
+	b := edit.Blank(seg)
 	o := bytes.IndexByte(b, '{')
-	c := cutil.Match(b, o)
+	c := edit.Match(b, o)
 	if o < 0 || c < 0 {
 		return nil, fmt.Errorf("nosession: %s is unbalanced", name)
 	}
@@ -97,7 +97,7 @@ func NoSession(text []byte, w io.Writer) ([]byte, error) {
 		if n != 1 {
 			return nil, fmt.Errorf("nosession: %s -- matches %d times, not once", d.what, n)
 		}
-		if text, err = cutil.DropIf(text, d.pat, 1); err != nil {
+		if text, err = edit.DropIf(text, d.pat, 1); err != nil {
 			return nil, err
 		}
 		fmt.Fprintf(w, "  nosession    %s\n", d.what)
@@ -115,14 +115,14 @@ func NoSession(text []byte, w io.Writer) ([]byte, error) {
 	// :write and :file to a new name re-run filetype detection when the
 	// `filetypedetect` group exists -- a group only :augroup or :autocmd made.
 	// The test is known now, and with it goes the last caller of do_doautocmd().
-	if text, err = cutil.FoldNever(text,
-		cutil.Head(`if (au_has_group((char_u *)"filetypedetect"))`), 2); err != nil {
+	if text, err = edit.FoldNever(text,
+		edit.Head(`if (au_has_group((char_u *)"filetypedetect"))`), 2); err != nil {
 		return nil, fmt.Errorf("nosession: filetype detection after a rename -- %v", err)
 	}
 	fmt.Fprintln(w, "  nosession    :write and :file no longer re-detect a filetype no "+
 		"group can detect")
 
-	a, z, ok := cutil.FindDefinition(text, cutil.Blank(text), "command_line_scan")
+	a, z, ok := edit.FindDefinition(text, edit.Blank(text), "command_line_scan")
 	if !ok {
 		return nil, fmt.Errorf("nosession: command_line_scan is not defined at file scope")
 	}
@@ -152,7 +152,7 @@ func NoSession(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("nosession: -S and -s are not both in the argument "+
 			"switch: %s", pyList(sortedKeys(held2)))
 	}
-	if fn, err = cutil.FoldNever(fn, cutil.Head("if (c == 'S')"), 1); err != nil {
+	if fn, err = edit.FoldNever(fn, edit.Head("if (c == 'S')"), 1); err != nil {
 		return nil, fmt.Errorf("nosession: the session file becoming a :source -- %v", err)
 	}
 	fmt.Fprintln(w, "  nosession    -S, -s file, -w file and -W are unknown options")

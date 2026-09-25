@@ -80,9 +80,9 @@ package p120
 
 import (
 	"github.com/arbace/go-whim/crefactor/xform"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // The rule is general, and it is crefactor/xform's Unions: it takes no knobs, and
 // its counts are arguments in the plan.
-func init() { edit.RegisterArgs("whim120", xform.Unions().Edit()) }
+func init() { phase.RegisterArgs("whim120", xform.Unions().Edit()) }

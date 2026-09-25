@@ -98,11 +98,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
+	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-func init() { edit.Register("whim88", Edit) }
+func init() { phase.Register("whim88", Edit) }
 
 var (
 	// The canonical text puts a blank line between two file-scope declarations,
@@ -148,12 +149,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	mentions := func(t []byte, name string) int {
 		return len(regexp.MustCompile(`\b`+name+`\b`).FindAll(t, -1))
 	}
-	inFunction := func(t []byte, name string, edit func([]byte) ([]byte, error)) ([]byte, error) {
-		a, z, ok := cutil.FindDefinition(t, cutil.Blank(t), name)
+	inFunction := func(t []byte, name string, fn func([]byte) ([]byte, error)) ([]byte, error) {
+		a, z, ok := edit.FindDefinition(t, edit.Blank(t), name)
 		if !ok {
 			return nil, p.Die("%s is not defined", name)
 		}
-		Body, err := edit(t[a:z])
+		Body, err := fn(t[a:z])
 		if err != nil {
 			return nil, err
 		}
@@ -170,7 +171,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 					w = "in " + fn
 				}
 				return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-					w, cutil.PyRepr(old), k, fn, n)
+					w, edit.PyRepr(old), k, fn, n)
 			}
 			return []byte(strings.ReplaceAll(string(s), old, new)), nil
 		})
@@ -231,7 +232,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	for i, pr := range pairs {
 		if v, _ := strconv.Atoi(pr[2]); v != i {
 			for _, q := range pairs {
-				repr = append(repr, "("+cutil.PyRepr(q[1])+", "+cutil.PyRepr(q[2])+")")
+				repr = append(repr, "("+edit.PyRepr(q[1])+", "+edit.PyRepr(q[2])+")")
 			}
 			return nil, p.Die("the ME_* enumerators are not 0..%d in order: [%s]",
 				len(pairs)-1, strings.Join(repr, ", "))
@@ -242,7 +243,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("main_errors[] is not where it was")
 	}
 	whole := string(text[tm[0]:tm[1]])
-	rows := edit.W88Lines(string(text[tm[2]:tm[3]]))
+	rows := vimtext.W88Lines(string(text[tm[2]:tm[3]]))
 	if len(rows) != len(pairs)+1 {
 		return nil, p.Die("main_errors[] has %d rows for %d enumerators; this phase only knows the "+
 			"shape where the one extra row is the unreachable one whim left", len(rows), len(pairs))
@@ -257,7 +258,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	if !strings.Contains(rows[i], "Too many edit arguments") {
 		return nil, p.Die("main_errors[%d] is %s, which is not %s's row",
-			i, cutil.PyRepr(strings.TrimSpace(rows[i])), gone)
+			i, edit.PyRepr(strings.TrimSpace(rows[i])), gone)
 	}
 	var kept []string
 	for _, n := range names {
@@ -289,7 +290,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- 3. what params.edit_type is once nothing assigns it ------------------
 	if text, err = inFunction(text, "vim_main2", func(s []byte) ([]byte, error) {
-		return cutil.FoldNever(s, line("if (params.edit_type == EDIT_STDIN)"), 1)
+		return edit.FoldNever(s, line("if (params.edit_type == EDIT_STDIN)"), 1)
 	}); err != nil {
 		return nil, err
 	}

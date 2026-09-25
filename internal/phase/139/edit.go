@@ -15,10 +15,11 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim139", Edit) }
+func init() { phase.Register("whim139", Edit) }
 
 // W139Search is a typed binary search over an array of T, compared by cmp: the
 // vendored musl_bsearch() line for line, on a T * instead of a char * stepped

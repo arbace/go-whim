@@ -47,7 +47,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // The mouse names in key_names_table are matched ON THE NAME and not on the
@@ -142,4 +143,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim67", Edit) }
+func init() { phase.Register("whim67", Edit) }

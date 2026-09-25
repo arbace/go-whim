@@ -14,10 +14,11 @@ package p130
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim130", Edit) }
+func init() { phase.Register("whim130", Edit) }
 
 // Whim130 removes the three tests for (pos_T *)-1.
 //

@@ -14,10 +14,11 @@ package p131
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim131", Edit) }
+func init() { phase.Register("whim131", Edit) }
 
 // Whim131 gives the saved input buffer its type.
 //

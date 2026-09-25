@@ -3,9 +3,10 @@ package cut
 import (
 	"bytes"
 	"fmt"
-	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"regexp"
+
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 var runtimeCommands = []string{"help", "helpclose", "helptags", "runtime", "exusage", "viusage"}
@@ -52,13 +53,13 @@ func NoRuntime(text []byte, w io.Writer) ([]byte, error) {
 
 	nPath := 0
 	for _, s := range runtimePaths {
-		c := cutil.CountAnchorB(text, s)
+		c := edit.CountAnchorB(text, s)
 		if c == 0 {
 			return nil, fmt.Errorf("noruntime: this runtime path is not here any more, so "+
 				"the file has moved under this phase: %s", s)
 		}
 		nPath += c
-		text = cutil.ReplaceAnchorB(text, s, []byte(`""`), -1)
+		text = edit.ReplaceAnchorB(text, s, []byte(`""`), -1)
 	}
 
 	if !bytes.Contains(text, []byte(getenvTest)) {

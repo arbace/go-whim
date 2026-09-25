@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // The dispatch in mb_init(): everything from the first `else if` that sniffs a
@@ -70,11 +70,11 @@ var noencStubs = []struct{ name, stub string }{
 var noencIconvBlocks = []struct{ pat, what string }{
 	{`(?m)^[ \t]*if \(ip->bw_iconv_fd != \(iconv_t\)-1\)\n[ \t]*\{\n[ \t]*const char`,
 		"buf_write's conversion"},
-	{cutil.Line("if (converted && wb_flags == 0)", "{") +
+	{edit.Line("if (converted && wb_flags == 0)", "{") +
 		`[ \t]*write_info\.bw_iconv_fd = \(iconv_t\)my_iconv_open`, "buf_write's iconv open"},
-	{cutil.Line("if (write_info.bw_iconv_fd != (iconv_t)-1)", "{") +
+	{edit.Line("if (write_info.bw_iconv_fd != (iconv_t)-1)", "{") +
 		`[ \t]*iconv_close`, "buf_write's iconv close"},
-	{cutil.Line("if (fio_flags == 0)", "{") +
+	{edit.Line("if (fio_flags == 0)", "{") +
 		`[ \t]*iconv_fd = \(iconv_t\)my_iconv_open`, "readfile's iconv open"},
 	{`(?m)^[ \t]*if \(iconv_fd != \(iconv_t\)-1\)\n[ \t]*\{\n[ \t]*iconv_close`,
 		"readfile's iconv close"},
@@ -83,10 +83,10 @@ var noencIconvBlocks = []struct{ pat, what string }{
 	// Two more closes, nested deeper: one where the read loop gives up on a
 	// conversion, one in readfile's exit path.  Indentation differs, the body
 	// does not.
-	{cutil.Line("if (iconv_fd != (iconv_t)-1)", "{") +
+	{edit.Line("if (iconv_fd != (iconv_t)-1)", "{") +
 		`[ \t]*iconv_close\(iconv_fd\);\n[ \t]*iconv_fd = \(iconv_t\)-1;\n[ \t]*\}`,
 		"the read loop giving up on a conversion"},
-	{cutil.Line("if (iconv_fd != (iconv_t)-1)", "{") +
+	{edit.Line("if (iconv_fd != (iconv_t)-1)", "{") +
 		`[ \t]*iconv_close\(iconv_fd\);\n[ \t]*\}`, "readfile's exit path"},
 }
 
@@ -96,13 +96,13 @@ var fencsRow = regexp.MustCompile(
 // noencDropIfBlock deletes an `if (...)` and the block it guards, by matching
 // braces.
 func noencDropIfBlock(text []byte, pat, what string) ([]byte, error) {
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	m := regexp.MustCompile(pat).FindIndex(text)
 	if m == nil {
 		return nil, fmt.Errorf("noenc: %s is not where this expects", what)
 	}
 	lp := m[0] + bytes.IndexByte(text[m[0]:], '(')
-	rp := cutil.Match(blanked, lp)
+	rp := edit.Match(blanked, lp)
 	i := rp + 1
 	for i < len(text) && (text[i] == ' ' || text[i] == '\t' || text[i] == '\n') {
 		i++
@@ -110,7 +110,7 @@ func noencDropIfBlock(text []byte, pat, what string) ([]byte, error) {
 	if i >= len(text) || text[i] != '{' {
 		return nil, fmt.Errorf("noenc: %s does not open a block", what)
 	}
-	closing := cutil.Match(blanked, i)
+	closing := edit.Match(blanked, i)
 	// An `else` after the block means deleting the block alone changes which
 	// branch runs, and leaves the `else` with no `if`.
 	tail := text[closing+1:]
@@ -131,7 +131,7 @@ func noencDropIfBlock(text []byte, pat, what string) ([]byte, error) {
 }
 
 func noencReplaceBody(text []byte, name, body string) ([]byte, int, error) {
-	o, c, found, balanced := cutil.Body(text, name)
+	o, c, found, balanced := edit.Body(text, name)
 	if !found {
 		return nil, 0, fmt.Errorf("noenc: %s is not defined at file scope any more", name)
 	}
@@ -167,13 +167,13 @@ func NoEnc(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  noenc        mb_init accepts utf-8 and rejects every other value")
 
 	// The function-pointer table: keep the utf-8 arm, drop the other two.
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	k := bytes.Index(text, []byte("    if (enc_utf8)\n    {\n        mb_ptr2len = utfc_ptr2len;"))
 	if k < 0 {
 		return nil, fmt.Errorf("noenc: the utf-8 arm is not where this expects")
 	}
 	o1 := k + bytes.IndexByte(blanked[k:], '{')
-	c1 := cutil.Match(blanked, o1)
+	c1 := edit.Match(blanked, o1)
 	if c1 < 0 {
 		return nil, fmt.Errorf("noenc: the utf-8 arm is unbalanced")
 	}
@@ -183,7 +183,7 @@ func NoEnc(text []byte, w io.Writer) ([]byte, error) {
 	}
 	at := c1 + 1 + m[1]
 	o2 := at + bytes.IndexByte(blanked[at:], '{')
-	c2 := cutil.Match(blanked, o2)
+	c2 := edit.Match(blanked, o2)
 	if c2 < 0 {
 		return nil, fmt.Errorf("noenc: the dbcs arm is unbalanced")
 	}
@@ -193,7 +193,7 @@ func NoEnc(text []byte, w io.Writer) ([]byte, error) {
 	}
 	at2 := c2 + 1 + m2[1]
 	o3 := at2 + bytes.IndexByte(blanked[at2:], '{')
-	c3 := cutil.Match(blanked, o3)
+	c3 := edit.Match(blanked, o3)
 	if c3 < 0 {
 		return nil, fmt.Errorf("noenc: the latin1 arm is unbalanced")
 	}

@@ -42,7 +42,8 @@ package p068
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // Whim68 makes one window and one tabpage an invariant: the autocommand window
@@ -127,4 +128,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim68", Edit) }
+func init() { phase.Register("whim68", Edit) }

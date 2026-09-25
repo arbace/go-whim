@@ -1,4 +1,4 @@
-package text
+package edit
 
 // countBytes and replaceBytes are how every literal anchor in the pipeline is
 // matched: E.Literal, Ph.Literal and Splice all come through here.  THE MATCH IS

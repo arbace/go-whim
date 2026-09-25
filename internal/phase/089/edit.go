@@ -84,12 +84,13 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/internal/cmdtab"
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/internal/phase"
+	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-func init() { edit.Register("whim89", Edit) }
+func init() { phase.Register("whim89", Edit) }
 
 // w89Six are the six commands that put bytes on a disk, and nothing else.
 var w89Six = []string{"CMD_exit", "CMD_saveas", "CMD_update", "CMD_write", "CMD_wq", "CMD_xit"}
@@ -115,14 +116,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	literal := func(t []byte, old, new, what string, n int) ([]byte, error) {
 		k := strings.Count(string(t), old)
 		if k != n {
-			return nil, p.Die("%s -- %s occurs %d times, expected %d", what, cutil.PyRepr(edit.CoreHead(old, 50)), k, n)
+			return nil, p.Die("%s -- %s occurs %d times, expected %d", what, edit.PyRepr(edit.CoreHead(old, 50)), k, n)
 		}
 		return []byte(strings.ReplaceAll(string(t), old, new)), nil
 	}
 	// within replaces exact text inside ONE function, counted there and not
 	// file-wide -- `q!` is already in nv_Zet's neighbour as ZQ's.
 	within := func(t []byte, fn, old, new, what string, n int) ([]byte, error) {
-		a, z, ok := cutil.FindDefinition(t, cutil.Blank(t), fn)
+		a, z, ok := edit.FindDefinition(t, edit.Blank(t), fn)
 		if !ok {
 			return nil, p.Die("%s is not defined", fn)
 		}
@@ -130,13 +131,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		k := strings.Count(Body, old)
 		if k != n {
 			return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-				what, cutil.PyRepr(edit.CoreHead(old, 50)), k, fn, n)
+				what, edit.PyRepr(edit.CoreHead(old, 50)), k, fn, n)
 		}
 		return []byte(string(t[:a]) + strings.ReplaceAll(Body, old, new) + string(t[z:])), nil
 	}
 
 	// ---- 0. the table this phase edits, at the shape the anchors were counted on
-	if n := len(edit.CoreRows(text)); n != w89RowsBefore {
+	if n := len(vimtext.CoreRows(text)); n != w89RowsBefore {
 		return nil, p.Die("cmdnames[] has %d rows, expected %d -- the anchors below were counted "+
 			"against a different table", n, w89RowsBefore)
 	}
@@ -166,7 +167,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		text = append(append([]byte{}, text[:m[0]]...), text[m[1]:]...)
 	}
-	if n := len(edit.CoreRows(text)); n != w89RowsAfter {
+	if n := len(vimtext.CoreRows(text)); n != w89RowsAfter {
 		return nil, p.Die("cmdnames[] has %d rows after the cut, expected %d", n, w89RowsAfter)
 	}
 	p.Sayf("six cmdnames[] rows; %d -> %d, and create_cmdidxs.names() refuses under %d, "+
@@ -190,7 +191,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"two of the enumerators above")
 
 	// ---- 5. what is left, and why it does not compile yet ---------------------
-	left, holders, _, err := edit.CoreResidue(p, text, w89Six)
+	left, holders, _, err := vimtext.CoreResidue(p, text, w89Six)
 	if err != nil {
 		return nil, err
 	}

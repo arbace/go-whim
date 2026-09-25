@@ -13,10 +13,11 @@ package p142
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim142", Edit) }
+func init() { phase.Register("whim142", Edit) }
 
 // Whim142 takes the build's date and time Out of the version.
 //

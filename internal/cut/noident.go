@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // identBody is nv_ident rewritten to the half that is search.  Generated from
@@ -112,13 +112,13 @@ var identLeft = regexp.MustCompile(`\b(?:nv_K_getcmd|do_nv_ident|g_tag_at_cursor
 
 // NoIdent leaves `*` and `#` and takes K, CTRL-], g] and the two CTRL-W forms.
 func NoIdent(text []byte, w io.Writer) ([]byte, error) {
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	m := regexp.MustCompile(`(?m)^nv_ident\(cmdarg_T \*cap\)\n`).FindIndex(text)
 	if m == nil {
 		return nil, fmt.Errorf("noident: nv_ident is not defined at file scope")
 	}
 	o := m[1] + bytes.IndexByte(blanked[m[1]:], '{')
-	c := cutil.Match(blanked, o)
+	c := edit.Match(blanked, o)
 	if c < 0 {
 		return nil, fmt.Errorf("noident: nv_ident is unbalanced")
 	}

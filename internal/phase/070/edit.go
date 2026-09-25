@@ -49,7 +49,8 @@ package p070
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // Whim70 makes one buffer the invariant: :edit stops opening a second, the
@@ -94,4 +95,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim70", Edit) }
+func init() { phase.Register("whim70", Edit) }

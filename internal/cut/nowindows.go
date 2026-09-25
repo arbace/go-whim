@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // nwBreak is `{ break; }` as the expander leaves it.
@@ -24,7 +24,7 @@ var (
 
 // foldCount folds a condition that is now always false, `count` times.
 func (e ed) foldCount(seg []byte, pattern, what string, count int) ([]byte, error) {
-	out, err := cutil.FoldNever(seg, "(?m)"+pattern, count)
+	out, err := edit.FoldNever(seg, "(?m)"+pattern, count)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s -- %v", e.tool, what, err)
 	}
@@ -35,7 +35,7 @@ func (e ed) foldCount(seg []byte, pattern, what string, count int) ([]byte, erro
 // dropIfPlain is DropIf with no count assertion, matching the Python's own
 // helper here.
 func (e ed) dropIfPlain(seg []byte, pattern, what string) ([]byte, error) {
-	out, err := cutil.DropIf(seg, "(?m)"+pattern, 1)
+	out, err := edit.DropIf(seg, "(?m)"+pattern, 1)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s -- %v", e.tool, what, err)
 	}
@@ -463,7 +463,7 @@ func NoWindows(text []byte, w io.Writer) ([]byte, error) {
 		{"CMD_windo outside the table", len(linesMatchingUnless(text, nwWindoName, nwTableRow)), 0},
 	} {
 		if c.n != c.want {
-			left = append(left, fmt.Sprintf("(%s, %d)", cutil.PyRepr(c.what), c.n))
+			left = append(left, fmt.Sprintf("(%s, %d)", edit.PyRepr(c.what), c.n))
 		}
 	}
 	if len(left) > 0 {

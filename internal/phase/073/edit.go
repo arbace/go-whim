@@ -47,7 +47,8 @@ package p073
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // frameLinkWrite is any write to the frame tree's four pointers.  THE PHASE
@@ -89,4 +90,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim73", Edit) }
+func init() { phase.Register("whim73", Edit) }

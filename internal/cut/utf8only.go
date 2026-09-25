@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 const (
@@ -92,7 +92,7 @@ func outer(s string) bool {
 	if !strings.HasPrefix(s, "(") || !strings.HasSuffix(s, ")") {
 		return false
 	}
-	return cutil.Match(cutil.Blank([]byte(s)), 0) == len(s)-1
+	return edit.Match(edit.Blank([]byte(s)), 0) == len(s)-1
 }
 
 // constOf folds a fully-simplified expression to a constant, if it is one.
@@ -113,14 +113,14 @@ func constOf(e string) (val, ok bool) {
 // pure reports whether an expression has no side effect: no assignment, no
 // call.  An impure operand cannot be dropped from a || or && chain.
 func pure(e string) bool {
-	b := string(cutil.Blank([]byte(e)))
+	b := string(edit.Blank([]byte(e)))
 	return !hasAssign(b) && !callRe.MatchString(b)
 }
 
 // maskDeep blanks everything at parenthesis depth above zero, so a test can
 // ask about the top level only.
 func maskDeep(b string) string {
-	dep := cutil.Depths([]byte(b))
+	dep := edit.Depths([]byte(b))
 	out := []byte(b)
 	for i := range out {
 		if dep[i] != 0 {
@@ -139,8 +139,8 @@ func simplify(e string) string {
 	if s == "" || !markRe.MatchString(s) {
 		return e
 	}
-	sb := cutil.Blank([]byte(s))
-	if cutil.FindTop([]byte(s), sb, ',') >= 0 {
+	sb := edit.Blank([]byte(s))
+	if edit.FindTop([]byte(s), sb, ',') >= 0 {
 		return e
 	}
 	// An assignment at the top of the expression is left to the statement code.
@@ -148,15 +148,15 @@ func simplify(e string) string {
 		return e
 	}
 
-	if q := cutil.FindTop([]byte(s), sb, '?'); q >= 0 {
+	if q := edit.FindTop([]byte(s), sb, '?'); q >= 0 {
 		cond, rest := s[:q], s[q+1:]
-		rb := cutil.Blank([]byte(rest))
-		colon := cutil.FindTop([]byte(rest), rb, ':')
+		rb := edit.Blank([]byte(rest))
+		colon := edit.FindTop([]byte(rest), rb, ':')
 		if colon < 0 {
 			return e
 		}
 		head := rest[:colon]
-		if cutil.FindTop([]byte(head), cutil.Blank([]byte(head)), '?') >= 0 {
+		if edit.FindTop([]byte(head), edit.Blank([]byte(head)), '?') >= 0 {
 			return e
 		}
 		yes, no := rest[:colon], rest[colon+1:]
@@ -179,7 +179,7 @@ func simplify(e string) string {
 		op   string
 		stop bool
 	}{{"||", true}, {"&&", false}} {
-		parts := cutil.SplitTop([]byte(s), sb, o.op)
+		parts := edit.SplitTop([]byte(s), sb, o.op)
 		if len(parts) > 1 {
 			var out []string
 			for _, p := range parts {
@@ -280,7 +280,7 @@ func enclosingGroup(text string, b []byte, dep []int, pos int) (int, int, bool) 
 	for i > 0 {
 		i--
 		if b[i] == '(' && dep[i] < d {
-			c := cutil.Match(b, i)
+			c := edit.Match(b, i)
 			if c > pos {
 				return i, c, true
 			}
@@ -311,8 +311,8 @@ func statementBounds(text string, b []byte, dep []int, pos int) (int, int) {
 func simplifyFunction(body string) (string, int) {
 	changes := 0
 	for round := 0; round < 200; round++ {
-		b := cutil.Blank([]byte(body))
-		dep := cutil.Depths(b)
+		b := edit.Blank([]byte(body))
+		dep := edit.Depths(b)
 		progressed := false
 		for _, mk := range markRe.FindAllStringIndex(body, -1) {
 			pos := mk[0]
@@ -323,15 +323,15 @@ func simplifyFunction(body string) (string, int) {
 					(isAlnumByte(before[len(before)-1]) || before[len(before)-1] == '_' ||
 						before[len(before)-1] == ')' || before[len(before)-1] == ']')
 				inner := body[o+1 : c]
-				ib := cutil.Blank([]byte(inner))
-				pieces := cutil.SplitTop([]byte(inner), ib, ",")
+				ib := edit.Blank([]byte(inner))
+				pieces := edit.SplitTop([]byte(inner), ib, ",")
 				isFor := forBefore.MatchString(before)
 				if len(pieces) > 1 || call || isFor {
 					sep := ","
 					if isFor {
 						sep = ";"
 					}
-					pieces = cutil.SplitTop([]byte(inner), ib, sep)
+					pieces = edit.SplitTop([]byte(inner), ib, sep)
 					newPieces := make([]string, len(pieces))
 					for i, p := range pieces {
 						newPieces[i] = simplify(string(p))
@@ -361,7 +361,7 @@ func simplifyFunction(body string) (string, int) {
 			}
 			i, j := statementBounds(body, b, dep, pos)
 			stmt := body[i:j]
-			sb := string(cutil.Blank([]byte(stmt)))
+			sb := string(edit.Blank([]byte(stmt)))
 			var head, rhs string
 			if ma := returnHead.FindStringIndex(stmt); ma != nil {
 				head, rhs = stmt[:ma[1]], stmt[ma[1]:]
@@ -415,7 +415,7 @@ func foldControls(body string) (string, int, error) {
 			all := pat.FindAllStringIndex(body, -1)
 			last := all[len(all)-1]
 			start := strings.LastIndexByte(body[:last[0]], '\n') + 1
-			out, err := cutil.FoldNever([]byte(body[start:]), pat.String(), 1)
+			out, err := edit.FoldNever([]byte(body[start:]), pat.String(), 1)
 			if err != nil {
 				return "", 0, fmt.Errorf("utf8only: %v", err)
 			}
@@ -423,9 +423,9 @@ func foldControls(body string) (string, int, error) {
 			n++
 			continue
 		}
-		b := cutil.Blank([]byte(body))
+		b := edit.Blank([]byte(body))
 		mm := pat.FindStringIndex(body)
-		k, o, c, _, err := cutil.Guarded([]byte(body), b, mm)
+		k, o, c, _, err := edit.Guarded([]byte(body), b, mm)
 		if err != nil {
 			return "", 0, fmt.Errorf("utf8only: %v", err)
 		}
@@ -438,7 +438,7 @@ func foldControls(body string) (string, int, error) {
 			}
 			at := end + nxt[1]
 			o2 := at + bytes.IndexByte(b[at:], '{')
-			c2 := cutil.Match(b, o2)
+			c2 := edit.Match(b, o2)
 			if c2 < 0 {
 				return "", 0, fmt.Errorf("utf8only: an else block is unbalanced")
 			}
@@ -463,7 +463,7 @@ func Utf8Only(text []byte, w io.Writer) ([]byte, error) {
 	}
 	text = flagDecls.ReplaceAll(text, nil)
 
-	a, z, ok := cutil.FindDefinition(text, cutil.Blank(text), "mb_init")
+	a, z, ok := edit.FindDefinition(text, edit.Blank(text), "mb_init")
 	if !ok {
 		return nil, fmt.Errorf("utf8only: mb_init is not defined at file scope")
 	}
@@ -513,7 +513,7 @@ func Utf8Only(text []byte, w io.Writer) ([]byte, error) {
 
 	exprs, folds := 0, 0
 	for _, name := range names {
-		fa, fz, ok := cutil.FindDefinition(text, cutil.Blank(text), name)
+		fa, fz, ok := edit.FindDefinition(text, edit.Blank(text), name)
 		if !ok {
 			return nil, fmt.Errorf("utf8only: %s holds a marker and is not a function at "+
 				"file scope", name)

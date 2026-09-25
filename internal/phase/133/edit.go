@@ -15,10 +15,11 @@ package p133
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim133", Edit) }
+func init() { phase.Register("whim133", Edit) }
 
 // W133FindnrBody is buflist_findnr()'s Body after this phase, inside its braces
 // (Body writes those), exported so the check requires the

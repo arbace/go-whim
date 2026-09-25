@@ -83,10 +83,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim117", Edit) }
+func init() { phase.Register("whim117", Edit) }
 
 var (
 	whim117Directive = regexp.MustCompile(`^ *#`)

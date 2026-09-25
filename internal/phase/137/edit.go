@@ -14,10 +14,11 @@ package p137
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim137", Edit) }
+func init() { phase.Register("whim137", Edit) }
 
 // Whim137 makes the changedtick a number.
 //

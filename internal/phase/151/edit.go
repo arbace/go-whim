@@ -16,11 +16,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim151", Edit) }
+func init() { phase.Register("whim151", Edit) }
 
 var (
 	w151Cast    = regexp.MustCompile(`^\(\s*char_u\s*\*\s*\)\s*`)
@@ -55,19 +55,19 @@ func W151Rows(text string) ([][4]string, [][2]int, error) {
 	if i < 0 {
 		return nil, nil, fmt.Errorf("options[] is not where this phase expects it")
 	}
-	b := cutil.Blank([]byte(text))
+	b := edit.Blank([]byte(text))
 	open := i + len(head) - 2
-	end := cutil.Match(b, open)
+	end := edit.Match(b, open)
 	var rows [][4]string
 	var spans [][2]int
 	for k := open + 1; k < end; k++ {
 		if b[k] != '{' {
 			continue
 		}
-		re := cutil.Match(b, k)
+		re := edit.Match(b, k)
 		// the default pair is the row's last brace pair
 		dp := strings.LastIndex(string(b[k+1:re]), "{") + k + 1
-		dq := cutil.Match(b, dp)
+		dq := edit.Match(b, dp)
 		Inner := text[dp+1 : dq]
 		bi := string(b[dp+1 : dq])
 		c := strings.Index(bi, ",")

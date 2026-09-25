@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // homeReplaceCopy is what home_replace becomes: a bounded copy.
@@ -34,7 +34,7 @@ const homeReplaceCopy = `    size_t len;
     return len;`
 
 var (
-	initHomedir  = regexp.MustCompile(cutil.Line("init_homedir();"))
+	initHomedir  = regexp.MustCompile(edit.Line("init_homedir();"))
 	expandUser   = regexp.MustCompile(`[ \t]*\{EXPAND_USER, get_users, TRUE, FALSE\},\n`)
 	userNameHead = `^[ \t]*if \(\*xp->xp_pattern == '~'\)$`
 )
@@ -48,7 +48,7 @@ func NoHome(text []byte, w io.Writer) ([]byte, error) {
 	text, _ = replaceFirst(initHomedir, text, "")
 	fmt.Fprintln(w, "  nohome       $HOME, read once at startup")
 
-	ho, hc, found, _ := cutil.Body(text, "home_replace")
+	ho, hc, found, _ := edit.Body(text, "home_replace")
 	if !found {
 		return nil, fmt.Errorf("nohome: home_replace is not defined at file scope")
 	}
@@ -74,7 +74,7 @@ func NoHome(text []byte, w io.Writer) ([]byte, error) {
 	// leaves match_user() called from set_context_for_wildcard_arg(), and
 	// match_user() is what walks the password database -- so the five pw
 	// symbols stayed until this went too.
-	if text, err = cutil.DropIf(text, "(?m)"+userNameHead, 1); err != nil {
+	if text, err = edit.DropIf(text, "(?m)"+userNameHead, 1); err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  nohome       ~user completion, and the context that reaches it")
@@ -82,7 +82,7 @@ func NoHome(text []byte, w io.Writer) ([]byte, error) {
 	// get_user_name() answers who this is, for a swap file's block zero.
 	// There are no swap files; the block is still built in memory, and it can
 	// be built without a name.  This is the last reader of getpwuid.
-	go_, gc, found, _ := cutil.Body(text, "get_user_name")
+	go_, gc, found, _ := edit.Body(text, "get_user_name")
 	if !found {
 		return nil, fmt.Errorf("nohome: get_user_name is not defined at file scope")
 	}

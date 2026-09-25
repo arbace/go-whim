@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // Not written into the C any more -- the canonical form has no comments --
@@ -26,16 +26,16 @@ var recoverymodeWord = regexp.MustCompile(`\brecoverymode\b`)
 // recoverBlock returns the start-of-line, opening brace and closing brace for
 // the `if` that pattern matches.
 func recoverBlock(text []byte, pattern string) (k, o, c int, err error) {
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	m := regexp.MustCompile(pattern).FindIndex(text)
 	if m == nil {
-		return 0, 0, 0, fmt.Errorf("norecover: no match for %s", cutil.PyRepr(pattern))
+		return 0, 0, 0, fmt.Errorf("norecover: no match for %s", edit.PyRepr(pattern))
 	}
 	k = bytes.LastIndexByte(text[:m[0]], '\n') + 1
 	o = m[1] + bytes.IndexByte(blanked[m[1]:], '{')
-	c = cutil.Match(blanked, o)
+	c = edit.Match(blanked, o)
 	if c < 0 {
-		return 0, 0, 0, fmt.Errorf("norecover: unbalanced block for %s", cutil.PyRepr(pattern))
+		return 0, 0, 0, fmt.Errorf("norecover: unbalanced block for %s", edit.PyRepr(pattern))
 	}
 	return k, o, c, nil
 }
@@ -73,9 +73,9 @@ func keepElse(text []byte, pattern, what string, w io.Writer) ([]byte, error) {
 	if m == nil {
 		return nil, fmt.Errorf("norecover: %s -- no else to keep", what)
 	}
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	o2 := c + 1 + m[1] + bytes.IndexByte(blanked[c+1+m[1]:], '{')
-	c2 := cutil.Match(blanked, o2)
+	c2 := edit.Match(blanked, o2)
 	if c2 < 0 {
 		return nil, fmt.Errorf("norecover: %s -- the else block is unbalanced", what)
 	}
@@ -106,15 +106,15 @@ func NoRecover(text []byte, w io.Writer) ([]byte, error) {
 	for _, name := range []string{"recover_names"} {
 		before := bytes.Count(text, []byte{'\n'})
 		var ok bool
-		if text, ok = cutil.DeleteDefinition(text, name); !ok {
+		if text, ok = edit.DeleteDefinition(text, name); !ok {
 			return nil, fmt.Errorf("norecover: %s is not defined at file scope", name)
 		}
 		fmt.Fprintf(w, "  norecover    %s, %d lines\n",
 			name, before-bytes.Count(text, []byte{'\n'}))
 	}
 
-	if text, err = cutil.DropIf(text,
-		cutil.Head("if (recoverymode && params.fname == NULL)"), 2); err != nil {
+	if text, err = edit.DropIf(text,
+		edit.Head("if (recoverymode && params.fname == NULL)"), 2); err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  norecover    the two `-r with no file` arms of main and vim_main2")
@@ -127,7 +127,7 @@ func NoRecover(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  norecover    reading stdin stops asking whether this is a recovery")
 
-	if text, err = keepElse(text, cutil.Head("if (recoverymode)"),
+	if text, err = keepElse(text, edit.Head("if (recoverymode)"),
 		"the recovery arm of create_windows", w); err != nil {
 		return nil, err
 	}
@@ -140,16 +140,16 @@ func NoRecover(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("norecover: readfile's `reading from stdin` message is not " +
 			"where this expects")
 	}
-	if text, err = unwrapIf(text, cutil.Head("if (!recoverymode)"),
+	if text, err = unwrapIf(text, edit.Head("if (!recoverymode)"),
 		"readfile's redraw and line count", w); err != nil {
 		return nil, err
 	}
-	if text, err = unwrapIf(text, cutil.Head("if (!(recoverymode && error))"),
+	if text, err = unwrapIf(text, edit.Head("if (!(recoverymode && error))"),
 		"readfile's return value", w); err != nil {
 		return nil, err
 	}
 
-	o, c, found, balanced := cutil.Body(text, "add_time")
+	o, c, found, balanced := edit.Body(text, "add_time")
 	if !found || !balanced {
 		return nil, fmt.Errorf("norecover: add_time is not defined at file scope")
 	}

@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 const ucmdDispatch = `    if (((int)(ea.cmdidx) < 0))
@@ -21,10 +21,10 @@ var (
 	ucmdComplRows = regexp.MustCompile(
 		`(?m)^[ \t]*\{EXPAND_USER_(?:COMMANDS|ADDR_TYPE|CMD_FLAGS|NARGS|COMPLETE|COMPLETEOPT), ` +
 			`get_user_(?:commands|cmd[a-z_]*), FALSE, TRUE\},\n`)
-	ucmdFindA = regexp.MustCompile(cutil.Line("p = find_ucmd(eap, p, NULL, xp, complp);"))
-	ucmdFindB = regexp.MustCompile(cutil.Line("p = find_ucmd(eap, p, full, NULL, NULL);"))
+	ucmdFindA = regexp.MustCompile(edit.Line("p = find_ucmd(eap, p, NULL, xp, complp);"))
+	ucmdFindB = regexp.MustCompile(edit.Line("p = find_ucmd(eap, p, full, NULL, NULL);"))
 	ucmdCtx   = regexp.MustCompile(
-		cutil.Line("case CMD_command:", "return set_context_in_user_cmd(xp, arg);") +
+		edit.Line("case CMD_command:", "return set_context_in_user_cmd(xp, arg);") +
 			`[ \t]*case CMD_delcommand:\n[ \t]*xp->xp_context = EXPAND_USER_COMMANDS;\n` +
 			`[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n`)
 	ucmdLeft = regexp.MustCompile(`\b(?:do_ucmd|ucmds)\b`)
@@ -37,11 +37,11 @@ func NoUcmd(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("noucmd: the user-command dispatch is not where this expects")
 	}
 	// Keep the else body: an unknown name has already been rejected upstream.
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	elseAt := k + len(ucmdDispatch) - 30
 	elseAt += bytes.Index(text[elseAt:], []byte("else"))
 	o := elseAt + bytes.IndexByte(blanked[elseAt:], '{')
-	c := cutil.Match(blanked, o)
+	c := edit.Match(blanked, o)
 	if c < 0 {
 		return nil, fmt.Errorf("noucmd: the user-command dispatch is unbalanced")
 	}
@@ -86,7 +86,7 @@ func NoUcmd(text []byte, w io.Writer) ([]byte, error) {
 		"and two completion contexts")
 
 	var err error
-	if text, err = cutCounted(text, cutil.Line("uc_clear(&buf->b_ucmds);"),
+	if text, err = cutCounted(text, edit.Line("uc_clear(&buf->b_ucmds);"),
 		"noucmd", "the buffer's table", 1); err != nil {
 		return nil, err
 	}

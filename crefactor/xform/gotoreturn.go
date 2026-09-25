@@ -6,8 +6,8 @@ import (
 	"sort"
 
 	"github.com/arbace/go-whim/crefactor/cc"
+	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/crefactor/sweep"
-	ctext "github.com/arbace/go-whim/crefactor/text"
 )
 
 // GotoReturn is the step that writes `return x;` for every `goto L;` whose
@@ -24,7 +24,7 @@ import (
 // rule).
 func GotoReturn() Step {
 	return func(text []byte, args []string, w io.Writer) ([]byte, error) {
-		p := ctext.Ph{Tag: "gotoreturn", W: w}
+		p := edit.Ph{Tag: "gotoreturn", W: w}
 		if _, err := flags(p.Tag, args); err != nil {
 			return nil, err
 		}
@@ -32,7 +32,7 @@ func GotoReturn() Step {
 	}
 }
 
-func gotoReturn(p ctext.Ph, text []byte) ([]byte, error) {
+func gotoReturn(p edit.Ph, text []byte) ([]byte, error) {
 	const path = file
 	ast, err := parse(text)
 	if err != nil {

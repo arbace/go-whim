@@ -13,10 +13,11 @@ package p153
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim153", Edit) }
+func init() { phase.Register("whim153", Edit) }
 
 // Whim153 says what free_one_termoption() compares.
 //

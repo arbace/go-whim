@@ -4,8 +4,8 @@ package p168
 
 import (
 	"github.com/arbace/go-whim/crefactor/xform"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // The rule is general, and it is crefactor/xform's GotoReturn: it takes no knobs.
-func init() { edit.RegisterArgs("whim168", xform.GotoReturn().Edit()) }
+func init() { phase.RegisterArgs("whim168", xform.GotoReturn().Edit()) }

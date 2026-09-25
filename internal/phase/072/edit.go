@@ -65,7 +65,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // THE ONE PATTERN BACKREFERENCE IN ANY EDIT PART, and RE2 has none.
@@ -200,4 +201,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim72", Edit) }
+func init() { phase.Register("whim72", Edit) }

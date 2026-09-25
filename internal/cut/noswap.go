@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // noswapStubs: the flag matters.  check_need_swap() and changed() call
@@ -25,7 +25,7 @@ const recoverArm = `(?m)[ \t]*else if \(swap_exists_action == SEA_RECOVER\)\n` +
 // noswapBody stubs a body, writing `{\n}` for an EMPTY one rather than
 // `{\n\n}` -- this file has no run of two blank lines anywhere.
 func noswapBody(text []byte, name, body string) ([]byte, int, error) {
-	o, c, found, balanced := cutil.Body(text, name)
+	o, c, found, balanced := edit.Body(text, name)
 	if !found {
 		return nil, 0, fmt.Errorf("noswap: %s is not defined at file scope any more", name)
 	}
@@ -95,8 +95,8 @@ func NoSwap(text []byte, w io.Writer) ([]byte, error) {
 	//
 	// 'updatecount' is the third and is safe: p_uc is a long, so an orphan
 	// reads as 0 -- which is exactly "never create a swap file".
-	if text, err = cutil.DropIf(text,
-		cutil.Head("if ((flags & MFS_FLUSH) && *p_sws != NUL)"), 1); err != nil {
+	if text, err = edit.DropIf(text,
+		edit.Head("if ((flags & MFS_FLUSH) && *p_sws != NUL)"), 1); err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  noswap       mf_sync's fsync/sync tail, the last reader of p_sws")

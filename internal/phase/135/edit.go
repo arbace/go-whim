@@ -13,10 +13,11 @@ package p135
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim135", Edit) }
+func init() { phase.Register("whim135", Edit) }
 
 const w135Two = `typedef struct regprog
 {

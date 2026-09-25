@@ -105,11 +105,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.RegisterArgs("whim109", Edit) }
+func init() { phase.RegisterArgs("whim109", Edit) }
 
 var (
 	w109Inc   = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
@@ -203,7 +203,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if len(hb) != 1 {
 		return nil, p.Die("the host block does not begin exactly once with %s -- found %d.  "+
 			"Without it this phase cannot tell a core mention from a host one",
-			cutil.PyRepr(host), len(hb))
+			edit.PyRepr(host), len(hb))
 	}
 	hostAt := hb[0]
 	coreT := bytes.Join(lines[11:hostAt], []byte{'\n'})
@@ -282,12 +282,12 @@ long write(int fd, const void *buf, usize n);
 long labs(long n);
 int abs(int n);
 `
-	if cutil.CountAnchorB(t, anchor) != 1 {
+	if edit.CountAnchorB(t, anchor) != 1 {
 		return nil, p.Die("`%s` is not in the file exactly once -- phase 106 put it directly below "+
 			"the last `#include` and this phase declares the libc calls beneath it",
 			strings.TrimSpace(anchor))
 	}
-	t = cutil.ReplaceAnchorB(t, anchor, []byte(anchor+block), 1)
+	t = edit.ReplaceAnchorB(t, anchor, []byte(anchor+block), 1)
 	p.Say("nine plain prototypes below the usize typedef -- malloc realloc free time " +
 		"getpid kill write labs abs -- and NOT ONE of them `static`.  gettimeofday is " +
 		"the tenth and is the one that cannot stay: its argument is a struct")
@@ -430,7 +430,7 @@ musl_gettimeofday(long *sec, long *usec)
 		}
 		if !strings.Contains(line, "ZZA") || !strings.Contains(line, "ZZB") {
 			return nil, p.Die("the preprocessed probe line %s does not mention both arguments -- "+
-				"the expansion could not be turned into a template", cutil.PyRepr(line))
+				"the expansion could not be turned into a template", edit.PyRepr(line))
 		}
 		if strings.Contains(line, "<") {
 			tmpl["MIN"] = line
@@ -537,7 +537,7 @@ musl_gettimeofday(long *sec, long *usec)
 		}
 	}
 	if len(host2) != 1 {
-		return nil, p.Die("the host block no longer begins exactly once with %s", cutil.PyRepr(host))
+		return nil, p.Die("the host block no longer begins exactly once with %s", edit.PyRepr(host))
 	}
 	ncore := bytes.Join(L[11:host2[0]], []byte{'\n'})
 	nhost := bytes.Join(L[host2[0]:], []byte{'\n'})

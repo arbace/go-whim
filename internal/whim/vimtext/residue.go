@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"sort"
 
-	"github.com/arbace/go-whim/crefactor/text"
+	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/internal/dead"
 )
 
@@ -24,8 +24,8 @@ func CoreRows(t []byte) [][]byte { return coreRowRe.FindAll(t, -1) }
 // the dying names actually FOUND, sorted -- phase 91 reports that third one where
 // 89, 90 and 92 report the list they were given.  Each phase writes its own report
 // line, because the wording is the phase's.
-func CoreResidue(p text.Ph, t []byte, dying []string) (int, []string, []string, error) {
-	blanked := text.Blank(t)
+func CoreResidue(p edit.Ph, t []byte, dying []string) (int, []string, []string, error) {
+	blanked := edit.Blank(t)
 	defs := dead.FuncDefinitions(t, blanked)
 	type span struct {
 		a, z int

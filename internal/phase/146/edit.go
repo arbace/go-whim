@@ -14,10 +14,11 @@ package p146
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim146", Edit) }
+func init() { phase.Register("whim146", Edit) }
 
 // W146NewData and W146NewPtr are the two allocators' bodies after this phase,
 // inside their braces: the block and its header, each allocated, the header

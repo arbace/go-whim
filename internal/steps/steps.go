@@ -26,7 +26,7 @@ import (
 	"github.com/arbace/go-whim/internal/cmdtab"
 	"github.com/arbace/go-whim/internal/cut"
 	"github.com/arbace/go-whim/internal/dead"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim"
 )
 
@@ -275,7 +275,7 @@ func runEdit(t []byte, args []string, w io.Writer) ([]byte, error) {
 	if len(args) == 0 {
 		return nil, fmt.Errorf("edit: no phase named")
 	}
-	f, ok := edit.Lookup(args[0])
+	f, ok := phase.Lookup(args[0])
 	if !ok {
 		return nil, fmt.Errorf("edit: no edit for phase %q", args[0])
 	}
@@ -288,7 +288,7 @@ func runQuery(t []byte, args []string, w io.Writer) ([]byte, error) {
 	if len(args) == 0 {
 		return nil, fmt.Errorf("query: no phase named")
 	}
-	f, ok := edit.LookupQuery(args[0])
+	f, ok := phase.LookupQuery(args[0])
 	if !ok {
 		return nil, fmt.Errorf("query: no query for phase %q", args[0])
 	}

@@ -17,11 +17,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim144", Edit) }
+func init() { phase.Register("whim144", Edit) }
 
 // the blocks the labels name, as the input has them
 const (
@@ -125,7 +125,7 @@ func W144NormalCall(ind string) string {
 // each -- the line holding its `{`, or the line above when the brace is alone
 // (the canonical text has no blank line inside a body).
 func W144Enclosing(s string, pos int) []string {
-	b := cutil.Blank([]byte(s))
+	b := edit.Blank([]byte(s))
 	var stack []string
 	lines := strings.Split(s[:pos], "\n")
 	off := 0
@@ -191,8 +191,8 @@ func W144Inner(encl []string) (loop, breaks string) {
 //     edit_esc() call.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "editgoto", W: w}
-	blank := cutil.Blank(text)
-	a, z, ok := cutil.FindDefinition(text, blank, "edit")
+	blank := edit.Blank(text)
+	a, z, ok := edit.FindDefinition(text, blank, "edit")
 	if !ok {
 		return nil, p.Die("edit is not defined")
 	}

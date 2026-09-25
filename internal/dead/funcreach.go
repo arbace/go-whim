@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"sort"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // defn is a definition at file scope: the name at column 0, a parameter list,
@@ -53,7 +53,7 @@ func FuncDefinitions(text, blanked []byte) FuncDefs {
 		if i >= len(blanked) || blanked[i] != '{' {
 			continue
 		}
-		end := cutil.Match(blanked, i)
+		end := edit.Match(blanked, i)
 		if end < 0 {
 			continue
 		}
@@ -93,7 +93,7 @@ func FuncDefinitions(text, blanked []byte) FuncDefs {
 // name.  Over-keeping is recoverable; the other error deletes something that
 // runs.
 func FuncReach(text []byte, roots []string) (defs FuncDefs, reachable int, deadNames []string, deadLines int) {
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	defs = FuncDefinitions(text, blanked)
 
 	mentions := map[string][]string{}

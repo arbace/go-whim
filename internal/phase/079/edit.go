@@ -89,7 +89,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // w79Constants are functions whose WHOLE Body is `return <constant>;`.  The
@@ -230,4 +231,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim79", Edit) }
+func init() { phase.Register("whim79", Edit) }

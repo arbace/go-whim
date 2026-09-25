@@ -107,11 +107,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.RegisterArgs("whim110", Edit) }
+func init() { phase.RegisterArgs("whim110", Edit) }
 
 // ---- the twelve constants -----------------------------------------------
 // Eight derived and four asserted.  The initialiser text is used TWICE -- as
@@ -244,7 +244,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if len(hb) != 1 {
 		return nil, p.Die("the host block does not begin exactly once with %s -- found %d.  It is "+
 			"where the includes are going and there is nowhere else to put them",
-			cutil.PyRepr(w110Host), len(hb))
+			edit.PyRepr(w110Host), len(hb))
 	}
 	nTypedef := 0
 	for _, l := range base {
@@ -277,7 +277,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		s := i[0] - 1
 		if !strings.HasPrefix(base[s], "    static ") {
 			return 0, 0, p.Die("`%s` is not preceded by its `    static T` line: %s",
-				n, cutil.PyRepr(base[s]))
+				n, edit.PyRepr(base[s]))
 		}
 		e := i[0]
 		for base[e] != "}" {

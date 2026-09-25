@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 var nofencsEdits = []struct{ what, pat, repl string }{
@@ -24,7 +24,7 @@ var nofencsEdits = []struct{ what, pat, repl string }{
 
 // tencCond is the head of the block did_set_encoding used to convert between
 // 'termencoding' and 'encoding'.
-var tencCond = cutil.Head("if (((varp == &p_enc && *p_tenc != NUL) || varp == &p_tenc))")
+var tencCond = edit.Head("if (((varp == &p_enc && *p_tenc != NUL) || varp == &p_tenc))")
 
 // dropTencBlock needs BRACE MATCHING and not a regex, for the reason this tree
 // has now recorded three times: a lazy `(?:[^\n]*\n)*?\}` stops at the first
@@ -32,14 +32,14 @@ var tencCond = cutil.Head("if (((varp == &p_enc && *p_tenc != NUL) || varp == &p
 // -- leaving the outer `}` and the function's own `}` with nothing to close,
 // and gcc reporting it as "expected identifier or '(' before 'return'".
 func dropTencBlock(text []byte) ([]byte, error) {
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	m := regexp.MustCompile(tencCond).FindIndex(text)
 	if m == nil {
 		return nil, fmt.Errorf("nofencs: did_set_encoding no longer converts between " +
 			"'termencoding' and 'encoding'")
 	}
 	lp := m[0] + bytes.IndexByte(text[m[0]:], '(')
-	rp := cutil.Match(blanked, lp)
+	rp := edit.Match(blanked, lp)
 	i := rp + 1
 	for i < len(text) && (text[i] == ' ' || text[i] == '\t' || text[i] == '\n') {
 		i++
@@ -47,7 +47,7 @@ func dropTencBlock(text []byte) ([]byte, error) {
 	if i >= len(text) || text[i] != '{' {
 		return nil, fmt.Errorf("nofencs: that condition does not open a block")
 	}
-	closing := cutil.Match(blanked, i)
+	closing := edit.Match(blanked, i)
 	end := closing + 1
 	for end < len(text) && (text[end] == ' ' || text[end] == '\t') {
 		end++

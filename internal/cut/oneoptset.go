@@ -5,7 +5,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 var (
@@ -161,10 +161,10 @@ func OneOptSet(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	var dying [][2]int
 	for _, n := range []string{"chk_modeline", "do_modelines"} {
-		if a, z, ok := cutil.FindDefinition(text, blanked, n); ok {
+		if a, z, ok := edit.FindDefinition(text, blanked, n); ok {
 			dying = append(dying, [2]int{a, z})
 		}
 	}

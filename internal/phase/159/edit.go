@@ -12,10 +12,11 @@ package p159
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim159", Edit) }
+func init() { phase.Register("whim159", Edit) }
 
 // W159Types are the three structs whose last member was a one-element array
 // sized at allocation.

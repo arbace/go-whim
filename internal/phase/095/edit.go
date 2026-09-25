@@ -111,18 +111,18 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 func init() {
-	edit.Register("whim95", Edit)
+	phase.Register("whim95", Edit)
 	// THE SECOND HEREDOC IS A SECOND REGISTRATION, not a tail of the first, and
 	// the position is the reason: two `tools/st.sh droplocal` and two
 	// `tools/st.sh dropoptions` calls run BETWEEN them, and the counts this one
 	// asserts are the counts after those four have run.  Folding the two into
 	// one call would move the assertion to before its subject.
-	edit.Register("whim95rows", Whim95Rows)
+	phase.Register("whim95rows", Whim95Rows)
 }
 
 var (
@@ -179,7 +179,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		k := strings.Count(string(t), old)
 		if k != n {
 			return nil, p.Die("%s -- the text occurs %d times, expected %d: %s",
-				what, k, n, cutil.PyRepr(edit.CoreHead(old, 70)))
+				what, k, n, edit.PyRepr(edit.CoreHead(old, 70)))
 		}
 		p.Say(what)
 		return []byte(strings.ReplaceAll(string(t), old, new)), nil
@@ -205,7 +205,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("options[] is not in this file")
 	}
 	j := strings.Index(t[i:], "\n};") + i
-	b := cutil.Blank(text)
+	b := edit.Blank(text)
 	type row struct {
 		Name       string
 		start, end int
@@ -213,9 +213,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	var rows []row
 	for _, m := range w95OptRow.FindAllStringSubmatchIndex(t[i:j], -1) {
 		start := i + m[0]
-		end := cutil.Match(b, strings.Index(t[start:], "{")+start)
+		end := edit.Match(b, strings.Index(t[start:], "{")+start)
 		if end < 0 {
-			return nil, p.Die("the options[] row for %s is not balanced", cutil.PyRepr(t[i+m[2]:i+m[3]]))
+			return nil, p.Die("the options[] row for %s is not balanced", edit.PyRepr(t[i+m[2]:i+m[3]]))
 		}
 		rows = append(rows, row{t[i+m[2] : i+m[3]], start, end})
 	}
@@ -289,7 +289,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	text = w95Call.ReplaceAll([]byte(t), nil)
 	var removed bool
-	if text, removed = cutil.DeleteDefinition(text, "change_warning"); !removed {
+	if text, removed = edit.DeleteDefinition(text, "change_warning"); !removed {
 		return nil, p.Die("change_warning has no definition to remove")
 	}
 	if k := mentions(text, "change_warning"); k != 0 {
@@ -322,7 +322,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	// ---- C4. did_set_readonly, by name and with the reason: its definition.
 	// Its prototype, named by nothing once the row goes, is the sweep's.
-	if text, removed = cutil.DeleteDefinition(text, "did_set_readonly"); !removed {
+	if text, removed = edit.DeleteDefinition(text, "did_set_readonly"); !removed {
 		return nil, p.Die("did_set_readonly has no definition to remove")
 	}
 	if k := mentions(text, "did_set_readonly"); k != 2 {

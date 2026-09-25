@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // ke is a `case (-((KS_EXTRA) + ((int)(NAME) << 8))) :` label, as the macro
@@ -32,7 +32,7 @@ var (
 	mouseRow      = regexp.MustCompile(`(?m)^([ \t]*\{[^\n]*, )nv_mouse(?:scroll)?(, [^\n]*\},)$`)
 	mchSetmouse   = regexp.MustCompile(`(?m)^[ \t]*mch_setmouse\((?:TRUE|FALSE)\);\n`)
 	mchSetmouseW  = regexp.MustCompile(`\bmch_setmouse\b`)
-	setmouseCall  = regexp.MustCompile(cutil.Line("setmouse();"))
+	setmouseCall  = regexp.MustCompile(edit.Line("setmouse();"))
 	anyMouse      = regexp.MustCompile(`(?i)mouse`)
 	insScrollCase = regexp.MustCompile(
 		`(?m)[ \t]*case \(-\(\(KS_EXTRA\) \+ \(\(int\)\(KE_MOUSE(?:DOWN|UP|LEFT|RIGHT)\) << 8\)\)\):\n` +
@@ -138,8 +138,8 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  nomouse      the click that dismissed a `Press ENTER` prompt")
 
-	if text, err = cutil.DropIf(text,
-		cutil.Head("if (check_termcode_mouse(tp, &slen, key_name, modifiers_start, idx, &modifiers) == -1)"),
+	if text, err = edit.DropIf(text,
+		edit.Head("if (check_termcode_mouse(tp, &slen, key_name, modifiers_start, idx, &modifiers) == -1)"),
 		1); err != nil {
 		return nil, err
 	}
@@ -148,14 +148,14 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	// reading the 1006 capability, setting 'ttymouse' from it, and installing
 	// the termcodes.  Forty lines, from `did_set_ttym` to the end of the block
 	// that calls check_mouse_termcode().
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	k := bytes.Index(text, []byte("    int did_set_ttym = FALSE;\n"))
 	if k < 0 {
 		return nil, fmt.Errorf("nomouse: set_termname()'s mouse block is not where this expects")
 	}
 	pAt := k + bytes.Index(text[k:], []byte(`char_u *p = (char_u *)"";`)) - 40
 	o := pAt + bytes.IndexByte(blanked[pAt:], '{')
-	c := cutil.Match(blanked, o)
+	c := edit.Match(blanked, o)
 	if c < 0 {
 		return nil, fmt.Errorf("nomouse: set_termname()'s mouse block is unbalanced")
 	}
@@ -211,16 +211,16 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	// 'mouse'.  Both read p_mouse, so --strict refuses to drop the row; and
 	// the row is what keeps them reachable.  The circle is broken here, by
 	// hand, which is the honest place for it.
-	if text, err = cutil.DropIf(text, cutil.Head("if (varp == &p_mouse)"), 1); err != nil {
+	if text, err = edit.DropIf(text, edit.Head("if (varp == &p_mouse)"), 1); err != nil {
 		return nil, err
 	}
-	if text, err = cutCounted(text, cutil.Line("check_mouse_termcode();"),
+	if text, err = cutCounted(text, edit.Line("check_mouse_termcode();"),
 		"nomouse", "did_set_ttymouse's call to check_mouse_termcode", 1); err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  nomouse      the two p_mouse readers an option row kept reachable")
 
-	if text, err = cutil.DropIf(text,
+	if text, err = edit.DropIf(text,
 		`(?m)^[ \t]*if \(!option_was_set\(\(char_u \*\)"ttym"\) && \(term_props\[TPR_MOUSE\]`,
 		1); err != nil {
 		return nil, err
@@ -229,7 +229,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 		"'ttymouse'")
 
 	if text, err = cutCounted(text,
-		cutil.Line("(void)opt_strings_flags(p_ttym, p_ttym_values, &ttym_flags, FALSE);"),
+		edit.Line("(void)opt_strings_flags(p_ttym, p_ttym_values, &ttym_flags, FALSE);"),
 		"nomouse", "didset_string_options' p_ttym line", 1); err != nil {
 		return nil, err
 	}
@@ -249,7 +249,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	// GUI build, where it also polled for motion events.  CHECKED rather than
 	// assumed, and folded into WaitForChar(), its only caller, rather than
 	// left telling a lie.
-	o, c, found, balanced := cutil.Body(text, "WaitForCharOrMouse")
+	o, c, found, balanced := edit.Body(text, "WaitForCharOrMouse")
 	if !found || !balanced {
 		return nil, fmt.Errorf("nomouse: WaitForCharOrMouse is not defined at file scope")
 	}
@@ -259,10 +259,10 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("nomouse: WaitForCharOrMouse does mention the mouse after all")
 	}
 	var ok bool
-	if text, ok = cutil.DeleteDefinition(text, "WaitForCharOrMouse"); !ok {
+	if text, ok = edit.DeleteDefinition(text, "WaitForCharOrMouse"); !ok {
 		return nil, fmt.Errorf("nomouse: WaitForCharOrMouse would not delete")
 	}
-	o, c, found, balanced = cutil.Body(text, "WaitForChar")
+	o, c, found, balanced = edit.Body(text, "WaitForChar")
 	if !found || !balanced {
 		return nil, fmt.Errorf("nomouse: WaitForChar is not defined at file scope")
 	}

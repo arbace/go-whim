@@ -16,11 +16,11 @@ import (
 	"io"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim143", Edit) }
+func init() { phase.Register("whim143", Edit) }
 
 const (
 	w143DelimHead = "            case 't':\n            delimiter_atom:\n"
@@ -65,8 +65,8 @@ func W143Helper(block string) string {
 //     left it.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "regatom", W: w}
-	blank := cutil.Blank(text)
-	a, z, ok := cutil.FindDefinition(text, blank, "regatom")
+	blank := edit.Blank(text)
+	a, z, ok := edit.FindDefinition(text, blank, "regatom")
 	if !ok {
 		return nil, p.Die("regatom is not defined")
 	}
@@ -81,8 +81,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if !strings.HasPrefix(s[bo:], "                {\n") {
 		return nil, p.Die("delimiter_atom does not label a block")
 	}
-	bs := cutil.Blank([]byte(s))
-	bc := cutil.Match(bs, bo+strings.Index(s[bo:], "{"))
+	bs := edit.Blank([]byte(s))
+	bc := edit.Match(bs, bo+strings.Index(s[bo:], "{"))
 	if bc < 0 || !strings.HasPrefix(s[bc+1:], w143Tail) {
 		return nil, p.Die("the delimiter block does not end in a break")
 	}

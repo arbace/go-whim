@@ -60,7 +60,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // writesTo returns the 1-based line of every assignment TO name, or to an
@@ -187,4 +188,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim75", Edit) }
+func init() { phase.Register("whim75", Edit) }

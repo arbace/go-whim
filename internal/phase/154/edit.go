@@ -14,13 +14,14 @@ package p154
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // W154Call is the call this phase takes Out, with the if around it.
 const W154Call = "\n        if (*(term_strings[(int)(KS_CSB)]) == NUL && *(term_strings[(int)(KS_CAB)]) == NUL)\n        {\n            free_one_termoption((term_strings[(int)(KS_CCO)]));\n        }\n"
 
-func init() { edit.Register("whim154", Edit) }
+func init() { phase.Register("whim154", Edit) }
 
 // Whim154 fixes vim's NULL write in free_one_termoption().
 //

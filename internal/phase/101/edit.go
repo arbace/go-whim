@@ -64,10 +64,11 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim101", Edit) }
+func init() { phase.Register("whim101", Edit) }
 
 // head is upstream's #ifdef'ed signature with the conditional gone: the name
 // sits on a line of its own because there was a directive between it and the

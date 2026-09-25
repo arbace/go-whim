@@ -98,11 +98,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim122", Edit) }
+func init() { phase.Register("whim122", Edit) }
 
 var (
 	w122SwitchC   = regexp.MustCompile(`\bswitch \(c\)`)
@@ -151,7 +151,7 @@ var (
 // w122Mentions counts an IDENTIFIER with string literals excluded.
 func w122Mentions(text []byte, name string) int {
 	return len(regexp.MustCompile(`\b`+regexp.QuoteMeta(name)+`\b`).
-		FindAll(cutil.Blank(edit.WithoutIncludes(text)), -1))
+		FindAll(edit.Blank(edit.WithoutIncludes(text)), -1))
 }
 
 // Whim122 removes `-T {term}`: command_line_scan() becomes one `if (argv[0][0]
@@ -162,7 +162,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "cmdline", W: w}
 
 	span := func(t []byte, name string) (int, int, error) {
-		a, z, ok := cutil.FindDefinition(t, cutil.Blank(t), name)
+		a, z, ok := edit.FindDefinition(t, edit.Blank(t), name)
 		if !ok {
 			return 0, 0, p.Die("%s() is not defined in this file, and this phase is drawn against its "+
 				"extent", name)
@@ -188,14 +188,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// `switch (c)` in command_line_scan(), and this phase removes every one;
 	// what is left is the `default:` that was always there.
 	parser := func(s []byte) ([]byte, error) {
-		b := cutil.Blank(s)
+		b := edit.Blank(s)
 		sw := w122SwitchC.FindAllIndex(s, -1)
 		if len(sw) != 2 {
 			return nil, p.Die("command_line_scan() holds %d `switch (c)`, and this phase is written "+
 				"against the two phase 88 left -- the letter and its argument", len(sw))
 		}
 		o := sw[0][0] + bytes.IndexByte(b[sw[0][0]:], '{')
-		c := cutil.Match(b, o)
+		c := edit.Match(b, o)
 		if c < 0 {
 			return nil, p.Die("the option switch is not balanced")
 		}
@@ -219,7 +219,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		if nDefault != 1 || labels[len(labels)-1] != "default" {
 			return nil, p.Die("the option switch is %s, and this phase needs one default, last",
-				cutil.PyRepr(strings.Join(labels, ", ")))
+				edit.PyRepr(strings.Join(labels, ", ")))
 		}
 		for _, lab := range letters {
 			re := regexp.MustCompile(`\n[ \t]*` + regexp.QuoteMeta(lab) + `:\n(?:[^\n]*\n)*?[ \t]*break;\n`)
@@ -248,9 +248,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if m == nil {
 			return nil, p.Die("command_line_scan() has no `if (want_argument)` to fold")
 		}
-		bb := cutil.Blank(s)
+		bb := edit.Blank(s)
 		ob := m[1] + bytes.IndexByte(bb[m[1]:], '{')
-		cb := cutil.Match(bb, ob)
+		cb := edit.Match(bb, ob)
 		inside := s[ob+1 : cb]
 		for _, name := range []string{"parmp->term", "ME_GARBAGE", "mainerr_arg_missing"} {
 			if k := bytes.Count(inside, []byte(name)); k != 1 {
@@ -262,7 +262,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, p.Die("the want_argument block does not hold the argument switch, so this " +
 				"phase has misread what it is deleting")
 		}
-		folded, err := cutil.FoldNever(s, "(?m)"+w122WantArg.String(), 1)
+		folded, err := edit.FoldNever(s, "(?m)"+w122WantArg.String(), 1)
 		if err != nil {
 			return nil, p.Die("the want_argument block would not fold -- %v", err)
 		}
@@ -277,14 +277,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		// The letter switch is one `default:` now, so it IS its Body.  That
 		// is only a rewrite because mainerr() does not return, which is read
 		// off mainerr() itself, below.
-		bb = cutil.Blank(s)
+		bb = edit.Blank(s)
 		i := bytes.Index(s, []byte("switch (c)"))
 		o = i + bytes.IndexByte(bb[i:], '{')
-		c = cutil.Match(bb, o)
+		c = edit.Match(bb, o)
 		mm := w122OneDflt.FindSubmatchIndex(s[o+1 : c])
 		if mm == nil {
 			return nil, p.Die("the option switch did not reduce to one default label: %s",
-				cutil.PyRepr(string(s[o+1:c])))
+				edit.PyRepr(string(s[o+1:c])))
 		}
 		Inner := s[o+1+mm[2] : o+1+mm[3]]
 		k := bytes.LastIndexByte(s[:bytes.LastIndexByte(s[:i], '\n')], '\n') + 1
@@ -303,26 +303,26 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// collapse: the two arms do the same thing now, so the chain is one else.
 	collapse := func(s []byte) ([]byte, error) {
-		b := cutil.Blank(s)
+		b := edit.Blank(s)
 		m := w122DashArm.FindIndex(s)
 		if m == nil {
 			return nil, p.Die("command_line_scan() has no `-` arm left to collapse")
 		}
 		k := bytes.LastIndexByte(s[:m[0]], '\n') + 1
 		o1 := m[1] + bytes.IndexByte(b[m[1]:], '{')
-		c1 := cutil.Match(b, o1)
+		c1 := edit.Match(b, o1)
 		nxt := w122PlainElse.FindIndex(s[c1+1:])
 		if nxt == nil {
 			return nil, p.Die("the `-` arm is not followed by a plain else, so collapsing it would " +
 				"change which branch runs")
 		}
 		o2 := c1 + 1 + nxt[1] + bytes.IndexByte(b[c1+1+nxt[1]:], '{')
-		c2 := cutil.Match(b, o2)
-		a1 := string(bytes.TrimSpace(cutil.CollapseWS(s[o1+1 : c1])))
-		a2 := string(bytes.TrimSpace(cutil.CollapseWS(s[o2+1 : c2])))
+		c2 := edit.Match(b, o2)
+		a1 := string(bytes.TrimSpace(edit.CollapseWS(s[o1+1 : c1])))
+		a2 := string(bytes.TrimSpace(edit.CollapseWS(s[o2+1 : c2])))
 		if a1 != a2 {
 			return nil, p.Die("the `-` arm and the last arm are not the same statement -- %s against "+
-				"%s -- so they do not collapse", cutil.PyRepr(a1), cutil.PyRepr(a2))
+				"%s -- so they do not collapse", edit.PyRepr(a1), edit.PyRepr(a2))
 		}
 		p.Sayf("a word beginning with `-` and any other word are now the same statement, "+
 			"%s, so the chain is ONE else and what is kept is the else arm's own text: "+
@@ -356,7 +356,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("mainerr_arg_missing has %d mentions after the fold, expected its "+
 			"definition and its prototype", k)
 	}
-	t2, dropped := cutil.DeleteDefinition(t, "mainerr_arg_missing")
+	t2, dropped := edit.DeleteDefinition(t, "mainerr_arg_missing")
 	if !dropped {
 		return nil, p.Die("mainerr_arg_missing() is not defined in this file")
 	}
@@ -462,7 +462,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// ---- 2. termcapinit() takes no name ----------------------------------
 	var dflt string
 	tci := func(s []byte) ([]byte, error) {
-		folded, err := cutil.FoldNever(s, "(?m)"+w122EmptyName, 1)
+		folded, err := edit.FoldNever(s, "(?m)"+w122EmptyName, 1)
 		if err != nil {
 			return nil, p.Die("termcapinit()'s empty-name test would not fold -- %v", err)
 		}
@@ -472,13 +472,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, p.Die("termcapinit() has no `given none` test, so the compiled default cannot " +
 				"be read out of it")
 		}
-		b := cutil.Blank(s)
+		b := edit.Blank(s)
 		o := d[1] + bytes.IndexByte(b[d[1]:], '{')
-		c := cutil.Match(b, o)
+		c := edit.Match(b, o)
 		ass := w122Assign.FindSubmatch(s[o+1 : c])
 		if ass == nil {
 			return nil, p.Die("the compiled default is not one assignment: %s",
-				cutil.PyRepr(string(s[o+1:c])))
+				edit.PyRepr(string(s[o+1:c])))
 		}
 		dflt = string(ass[1])
 		end := c + bytes.IndexByte(s[c:], '\n') + 1
@@ -523,7 +523,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if iM < 0 {
 		return nil, p.Die("mparm_T's definition is not balanced")
 	}
-	oM := cutil.RMatch(cutil.Blank(t), bytes.LastIndexByte(t[:iM+1], '}'))
+	oM := edit.RMatch(edit.Blank(t), bytes.LastIndexByte(t[:iM+1], '}'))
 	if oM < 0 {
 		return nil, p.Die("mparm_T's definition is not balanced")
 	}
@@ -534,7 +534,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	Out := append([]byte(nil), t[:oM+mem[0]]...)
 	t = append(Out, t[oM+mem[1]:]...)
 	var owners []string
-	for _, m := range w122Owner.FindAllSubmatch(cutil.Blank(t), -1) {
+	for _, m := range w122Owner.FindAllSubmatch(edit.Blank(t), -1) {
 		if !edit.ContainsStr(owners, string(m[1])) {
 			owners = append(owners, string(m[1]))
 		}
@@ -556,7 +556,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p.Sayf("mparm_T loses its `term` member, in the EDIT: every one of the %d `.term` "+
 		"mentions left belongs to another struct (%s), and deadfields.py matches by "+
 		"NAME, so that tool could never see this one dead",
-		len(w122DotTerm.FindAll(cutil.Blank(t), -1)), strings.Join(owners, " "))
+		len(w122DotTerm.FindAll(edit.Blank(t), -1)), strings.Join(owners, " "))
 
 	// ---- 4. set_termname()'s no-screen arm cannot run --------------------
 	// THE ARGUMENT, computed in three parts before a line is cut.
@@ -565,7 +565,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 	var sites []string
-	for _, m := range w122SetTerm.FindAllIndex(cutil.Blank(t), -1) {
+	for _, m := range w122SetTerm.FindAllIndex(edit.Blank(t), -1) {
 		at := m[0]
 		if dA <= at && at < dZ {
 			continue
@@ -607,7 +607,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			name = dn[1]
 		}
 		return nil, p.Die("the compiled default %s is not a row of builtin_terminals[], so "+
-			"termcapinit() can still be refused and the arm below is live", cutil.PyRepr(name))
+			"termcapinit() can still be refused and the arm below is live", edit.PyRepr(name))
 	}
 	defaultName := dn[1]
 	var assigns []string
@@ -626,21 +626,21 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"passes %s, which IS a row of builtin_terminals[]; and the only assignments to "+
 		"`starting` are %s -- so a refusal can only come from did_set_term(), where "+
 		"`starting != NO_SCREEN`",
-		strings.Join(sites, " and "), cutil.PyRepr(defaultName), strings.Join(assigns, " and "))
+		strings.Join(sites, " and "), edit.PyRepr(defaultName), strings.Join(assigns, " and "))
 
 	var tail string
 	stn := func(s []byte) ([]byte, error) {
-		b := cutil.Blank(s)
+		b := edit.Blank(s)
 		m := w122TermpNull.FindIndex(s)
 		if m == nil {
 			return nil, p.Die("set_termname() has no `termp == nullptr` arm")
 		}
 		o := m[1] + bytes.IndexByte(b[m[1]:], '{')
-		c := cutil.Match(b, o)
+		c := edit.Match(b, o)
 		if c < 0 {
 			return nil, p.Die("the refusal arm is not balanced")
 		}
-		Inner, err := cutil.FoldAlways(s[o+1:c], "(?m)"+w122NoScreen, 1)
+		Inner, err := edit.FoldAlways(s[o+1:c], "(?m)"+w122NoScreen, 1)
 		if err != nil {
 			return nil, p.Die("the no-screen test would not fold -- %v", err)
 		}
@@ -685,7 +685,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		o := re.ReplaceAll(s, nil)
 		if bytes.Equal(o, s) {
 			return nil, p.Die("report_term_error() does not promise %s, so there is nothing here to "+
-				"keep in step with the fallback", cutil.PyRepr(promised))
+				"keep in step with the fallback", edit.PyRepr(promised))
 		}
 		var left []string
 		for _, x := range tabRows {
@@ -704,11 +704,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	p.Sayf("report_term_error() stops promising %s: phase 121 moved the message and the "+
 		"fallback together because nothing in the build checks that a message tells the "+
-		"truth, and this is that rule with no fallback left to name", cutil.PyRepr(promised))
+		"truth, and this is that rule with no fallback left to name", edit.PyRepr(promised))
 
 	// ---- 5. `requested` is `term` for the one test that reads it ---------
 	requested := func(s []byte) ([]byte, error) {
-		if k := len(w122Requested.FindAll(cutil.Blank(s), -1)); k != 2 {
+		if k := len(w122Requested.FindAll(edit.Blank(s), -1)); k != 2 {
 			return nil, p.Die("`requested` has %d mentions in set_termname(), and this phase is "+
 				"written against two -- its declaration and the 256-colour test", k)
 		}
@@ -748,7 +748,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if bytes.IndexByte(pre[1], nd[1][0]) >= 0 {
 			return nil, p.Die("%s begins with a character the stripped prefix %s contains, so a match "+
 				"could start inside the prefix and `requested` is NOT `term` here",
-				cutil.PyRepr(string(nd[1])), cutil.PyRepr(string(pre[1])))
+				edit.PyRepr(string(nd[1])), edit.PyRepr(string(pre[1])))
 		}
 		s = bytes.ReplaceAll(s,
 			[]byte(`musl_strstr((char *)requested, "`+string(nd[1])+`")`),
@@ -759,7 +759,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		p.Sayf("`requested` goes: it existed because the fallback reassigned `term`, and "+
 			"the only rewrite left is the %s that strips %s -- %s cannot match inside "+
 			"that, because it begins with a character the prefix does not hold",
-			rew[0], cutil.PyRepr(string(pre[1])), cutil.PyRepr(string(nd[1])))
+			rew[0], edit.PyRepr(string(pre[1])), edit.PyRepr(string(nd[1])))
 		return s, nil
 	}
 	rA, rZ, err := span(t, "set_termname")

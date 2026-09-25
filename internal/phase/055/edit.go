@@ -33,7 +33,8 @@ package p055
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // cdpathTest is 'cdpath' being offered as a directory list by command-line
@@ -50,4 +51,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim55", Edit) }
+func init() { phase.Register("whim55", Edit) }

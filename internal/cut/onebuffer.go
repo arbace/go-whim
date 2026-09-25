@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 var (
@@ -318,10 +318,10 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 	// setaltfname() and buf_hide() have no caller now and still name the
 	// alternate and the two modifier flags; the sweep takes them, and whim42
 	// counts again after it.  Everything else is counted here.
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	var dying [][2]int
 	for _, n := range []string{"setaltfname", "buf_hide"} {
-		if a, z, ok := cutil.FindDefinition(text, blanked, n); ok {
+		if a, z, ok := edit.FindDefinition(text, blanked, n); ok {
 			dying = append(dying, [2]int{a, z})
 		}
 	}
@@ -352,7 +352,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 		{"nv_hat in the key table", `\{Ctrl_HAT, nv_hat`, 0},
 	} {
 		if n := count(c.pattern); n != c.want {
-			left = append(left, fmt.Sprintf("(%s, %d)", cutil.PyRepr(c.what), n))
+			left = append(left, fmt.Sprintf("(%s, %d)", edit.PyRepr(c.what), n))
 		}
 	}
 	if len(left) > 0 {

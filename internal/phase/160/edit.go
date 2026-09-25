@@ -13,10 +13,11 @@ package p160
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim160", Edit) }
+func init() { phase.Register("whim160", Edit) }
 
 // Whim160 takes the cookie Out of the line getters.
 //

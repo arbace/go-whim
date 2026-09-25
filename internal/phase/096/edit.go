@@ -83,11 +83,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim96", Edit) }
+func init() { phase.Register("whim96", Edit) }
 
 var w96Before = map[string]int{
 	"scriptin": 8, "curscript": 11, "NSCRIPT": 3, "saved_typebuf": 2,
@@ -133,22 +133,22 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		k := strings.Count(string(t), old)
 		if k != n {
 			return nil, p.Die("%s -- the text occurs %d times, expected %d: %s",
-				what, k, n, cutil.PyRepr(edit.CoreHead(old, 70)))
+				what, k, n, edit.PyRepr(edit.CoreHead(old, 70)))
 		}
 		p.Say(what)
 		return []byte(strings.ReplaceAll(string(t), old, new)), nil
 	}
 	fold := func(t []byte, fn, how, pattern, what string, n int) ([]byte, error) {
-		a, z, ok := cutil.FindDefinition(t, cutil.Blank(t), fn)
+		a, z, ok := edit.FindDefinition(t, edit.Blank(t), fn)
 		if !ok {
 			return nil, p.Die("%s is not defined", fn)
 		}
-		f := cutil.FoldNever
+		f := edit.FoldNever
 		switch how {
 		case "always":
-			f = cutil.FoldAlways
+			f = edit.FoldAlways
 		case "drop":
-			f = cutil.DropIf
+			f = edit.DropIf
 		}
 		Body, err := f(t[a:z], pattern, n)
 		if err != nil {
@@ -255,7 +255,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- the recommended extra: the no-op that is left ------------------------
-	Out, err := cutil.DropIf(text, `(?m)^    if \(!did_return\)$`, 1)
+	Out, err := edit.DropIf(text, `(?m)^    if \(!did_return\)$`, 1)
 	if err != nil {
 		return nil, p.Die("msg_end's `if (!did_return)` block -- %v", err)
 	}

@@ -89,11 +89,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
+	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-func init() { edit.RegisterArgs("whim119", Edit) }
+func init() { phase.RegisterArgs("whim119", Edit) }
 
 // Whim119 leaves the core naming no libc function at all.  The last two go by
 // DIFFERENT routes: `getpid` is avoidable outright, its one caller feeding a
@@ -113,10 +114,10 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return len(regexp.MustCompile(`\b`+name+`\b`).FindAllString(s, -1))
 	}
 	swap := func(old, new, what, why string) error {
-		if c := cutil.CountAnchor(t, old); c != 1 {
+		if c := edit.CountAnchor(t, old); c != 1 {
 			return p.Die("%s occurs %d times, expected 1 -- %s", what, c, why)
 		}
-		t = cutil.ReplaceAnchor(t, old, new, 1)
+		t = edit.ReplaceAnchor(t, old, new, 1)
 		return nil
 	}
 	// defn is the half-open line range of a definition in this tree's ONE shape,
@@ -140,13 +141,13 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		if end >= len(L) {
 			return 0, 0, p.Die("`%s` does not close at column 0", name)
 		}
-		if !edit.W119RetType.MatchString(L[heads[0]-1]) {
+		if !vimtext.W119RetType.MatchString(L[heads[0]-1]) {
 			return 0, 0, p.Die("the line above `%s`'s head is %s and every definition in this tree carries "+
-				"its return type there, indented", name, cutil.PyRepr(L[heads[0]-1]))
+				"its return type there, indented", name, edit.PyRepr(L[heads[0]-1]))
 		}
 		return heads[0] - 1, end + 1, nil
 	}
-	shortName := func(l string) string { return edit.W119Name.ReplaceAllString(l, "$1") }
+	shortName := func(l string) string { return vimtext.W119Name.ReplaceAllString(l, "$1") }
 
 	L := strings.Split(t, "\n")
 	linesBefore := len(L) - 1
@@ -154,7 +155,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// ---- 0. the boundary, and the file this edit was written against ---------
 	var directives []int
 	for i, l := range L {
-		if edit.W119Dir.MatchString(l) {
+		if vimtext.W119Dir.MatchString(l) {
 			directives = append(directives, i)
 		}
 	}
@@ -168,7 +169,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 	for _, i := range directives {
-		if !edit.W119Inc.MatchString(L[i]) {
+		if !vimtext.W119Inc.MatchString(L[i]) {
 			return nil, p.Die("a directive is not an `#include <...>` of a system header, and no phase may " +
 				"add one")
 		}
@@ -197,7 +198,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		for j > 0 && L[j] == "" {
 			j--
 		}
-		if j < 0 || !edit.W119IsDecl(L[j]) {
+		if j < 0 || !vimtext.W119IsDecl(L[j]) {
 			break
 		}
 		lo = j
@@ -207,7 +208,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		for j < boundary-1 && L[j] == "" {
 			j++
 		}
-		if j >= boundary || !edit.W119IsDecl(L[j]) {
+		if j >= boundary || !vimtext.W119IsDecl(L[j]) {
 			break
 		}
 		hi = j
@@ -226,7 +227,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	if L[lo-1] != "" || L[hi+1] != "" {
 		return nil, p.Die("the block is not a paragraph of its own -- line %d is %s and line %d is %s",
-			lo, cutil.PyRepr(L[lo-1]), hi+2, cutil.PyRepr(L[hi+1]))
+			lo, edit.PyRepr(L[lo-1]), hi+2, edit.PyRepr(L[hi+1]))
 	}
 	var blockAfter []string
 	for _, l := range blockBefore {
@@ -254,7 +255,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	var raiseLines []int
 	for i := 0; i < boundary; i++ {
-		if edit.W119Reraise.MatchString(L[i]) {
+		if vimtext.W119Reraise.MatchString(L[i]) {
 			raiseLines = append(raiseLines, i)
 		}
 	}
@@ -263,7 +264,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			"exactly one, the deferred deadly signal vim_handle_signal() re-raises", len(raiseLines))
 	}
 	rl := raiseLines[0]
-	m := edit.W119Reraise.FindStringSubmatch(L[rl])
+	m := vimtext.W119Reraise.FindStringSubmatch(L[rl])
 	indent, deferred := m[1], m[2]
 	gpRange := make([]int, 0, gpHi-gpLo)
 	for i := gpLo; i < gpHi; i++ {
@@ -360,7 +361,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// ---- 3. getpid is AVOIDED -------------------------------------------------
 	var protoGP, callers []int
 	for i, l := range L {
-		if edit.W119ProtoGP.MatchString(l) {
+		if vimtext.W119ProtoGP.MatchString(l) {
 			protoGP = append(protoGP, i)
 		}
 	}
@@ -375,16 +376,16 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			"definition, and this phase needs one of each -- the prototype tools/deadprotos.py "+
 			"takes, and ml_open()'s write of b0_pid", len(protoGP), len(callers))
 	}
-	if !edit.W119Write.MatchString(L[callers[0]]) {
+	if !vimtext.W119Write.MatchString(L[callers[0]]) {
 		return nil, p.Die("mch_get_pid()'s one call site is %s, and this phase was written against "+
-			"ml_open()'s `long_to_char(mch_get_pid(), b0p->b0_pid);`", cutil.PyRepr(L[callers[0]]))
+			"ml_open()'s `long_to_char(mch_get_pid(), b0p->b0_pid);`", edit.PyRepr(L[callers[0]]))
 	}
 	var b0, field []int
 	b0Re := regexp.MustCompile(`\bb0_pid\b`)
 	for i, l := range L {
 		if b0Re.MatchString(l) {
 			b0 = append(b0, i)
-			if edit.W119Field.MatchString(l) {
+			if vimtext.W119Field.MatchString(l) {
 				field = append(field, i)
 			}
 		}
@@ -462,7 +463,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	L = strings.Split(t, "\n")
 	boundary = -1
 	for i, l := range L {
-		if edit.W119Dir.MatchString(l) {
+		if vimtext.W119Dir.MatchString(l) {
 			boundary = i
 			break
 		}
@@ -488,14 +489,14 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	have := append([]string{}, L[lo:lo+len(blockAfter)]...)
 	if strings.Join(have, "\x00") != strings.Join(blockAfter, "\x00") {
 		return nil, p.Die("the ordinary declarations left above the boundary are %s and the input's "+
-			"block minus the two is %s", edit.W119Or(have), edit.W119Or(blockAfter))
+			"block minus the two is %s", vimtext.W119Or(have), vimtext.W119Or(blockAfter))
 	}
 	if len(blockAfter) > 0 && (L[lo-1] != "" || L[lo+len(blockAfter)] != "") {
 		return nil, p.Die("what is left of the block is not a paragraph of its own")
 	}
 	var stray []string
 	for i := 0; i < boundary; i++ {
-		if edit.W119IsDecl(L[i]) && (L[i-1] == "" || edit.W119IsDecl(L[i-1])) &&
+		if vimtext.W119IsDecl(L[i]) && (L[i-1] == "" || vimtext.W119IsDecl(L[i-1])) &&
 			!(lo <= i && i < lo+len(blockAfter)) {
 			stray = append(stray, fmt.Sprintf("%d:%s", i+1, L[i]))
 		}
@@ -587,7 +588,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// what moved is asserted by content above.
 	var d2 []int
 	for i, l := range L {
-		if edit.W119Dir.MatchString(l) {
+		if vimtext.W119Dir.MatchString(l) {
 			d2 = append(d2, i)
 		}
 	}

@@ -55,7 +55,9 @@ import (
 	"io"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
+	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
 // Whim71 makes the buffer list one buffer: buf_valid() is `buf == curbuf`,
@@ -68,16 +70,16 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.Body("anyBufIsChanged", w71lit4, "anyBufIsChanged, which asked every buffer")
 	e.Body("buflist_findname_stat", w71lit5, "buflist_findname_stat, which searched the list by name")
 
-	e.FoldWalk("ml_close_all", "buf", "curbuf", edit.FwdWalk, 1, "ml_close_all closing every buffer")
-	e.FoldWalk("ml_close_notmod", "buf", "curbuf", edit.FwdWalk, 1, "ml_close_notmod closing every buffer")
-	e.FoldWalk("shorten_fnames", "buf", "curbuf", edit.FwdWalk, 1, "shorten_fnames shortening every name")
-	e.FoldWalk("did_set_paste", "buf", "curbuf", edit.FwdWalk, 3, "'paste' saving and restoring every buffer")
-	e.FoldWalk("set_termname", "buf", "curbuf", edit.FwdWalk, 1, "a new terminal notifying every buffer")
-	e.DropWalk("getout", edit.FwdWalk, w71lit6, 1, "quitting unloading every buffer, whose break bound to the walk")
+	e.FoldWalk("ml_close_all", "buf", "curbuf", vimtext.FwdWalk, 1, "ml_close_all closing every buffer")
+	e.FoldWalk("ml_close_notmod", "buf", "curbuf", vimtext.FwdWalk, 1, "ml_close_notmod closing every buffer")
+	e.FoldWalk("shorten_fnames", "buf", "curbuf", vimtext.FwdWalk, 1, "shorten_fnames shortening every name")
+	e.FoldWalk("did_set_paste", "buf", "curbuf", vimtext.FwdWalk, 3, "'paste' saving and restoring every buffer")
+	e.FoldWalk("set_termname", "buf", "curbuf", vimtext.FwdWalk, 1, "a new terminal notifying every buffer")
+	e.DropWalk("getout", vimtext.FwdWalk, w71lit6, 1, "quitting unloading every buffer, whose break bound to the walk")
 	e.Body("buflist_findpat", w71lit7, "buflist_findpat matching against every buffer")
-	e.DropWalk("check_changed_any", edit.FwdWalk, w71lit8,
+	e.DropWalk("check_changed_any", vimtext.FwdWalk, w71lit8,
 		2, "counting the buffers to check, and re-adding the one already seeded")
-	e.DropWalk("open_buffer", strings.ReplaceAll(edit.FwdWalk, "(buf)", "(curbuf)"), "", 1, "open_buffer looking for another loaded buffer")
+	e.DropWalk("open_buffer", strings.ReplaceAll(vimtext.FwdWalk, "(buf)", "(curbuf)"), "", 1, "open_buffer looking for another loaded buffer")
 
 	e.InFunction("open_buffer", func(e *edit.E) {
 		e.FoldAlways(edit.Head("if (curbuf == NULL)"), 1, "open_buffer testing whether it found one")
@@ -121,4 +123,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim71", Edit) }
+func init() { phase.Register("whim71", Edit) }

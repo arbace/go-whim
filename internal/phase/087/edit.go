@@ -92,11 +92,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim87", Edit) }
+func init() { phase.Register("whim87", Edit) }
 
 var w87Before = map[string]int{
 	"exmode_active": 49, "silent_mode": 23, "pending_exmode_active": 4,
@@ -138,12 +138,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	line := func(Body string) string { return `(?m)^[ \t]*` + regexp.QuoteMeta(Body) + `$` }
 	head := func(Body string) string { return `(?m)^[ \t]*` + regexp.QuoteMeta(Body) + `.*$` }
 
-	inFunction := func(t []byte, name string, edit func([]byte) ([]byte, error)) ([]byte, error) {
-		a, z, ok := cutil.FindDefinition(t, cutil.Blank(t), name)
+	inFunction := func(t []byte, name string, fn func([]byte) ([]byte, error)) ([]byte, error) {
+		a, z, ok := edit.FindDefinition(t, edit.Blank(t), name)
 		if !ok {
 			return nil, p.Die("%s is not defined", name)
 		}
-		Body, err := edit(t[a:z])
+		Body, err := fn(t[a:z])
 		if err != nil {
 			return nil, err
 		}
@@ -154,14 +154,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// binds to, but a Body that carries one is a Body whose condition was doing
 	// more than choosing, and that is worth failing on rather than assuming.
 	guardedBody := func(s []byte, at int) []byte {
-		b := cutil.Blank(s)
+		b := edit.Blank(s)
 		lp := strings.Index(string(s[at:]), "(") + at
-		rp := cutil.Match(b, lp)
+		rp := edit.Match(b, lp)
 		o := rp + 1
 		for o < len(s) && (s[o] == ' ' || s[o] == '\t' || s[o] == '\n') {
 			o++
 		}
-		c := cutil.Match(b, o)
+		c := edit.Match(b, o)
 		if c < 0 {
 			return nil
 		}
@@ -176,9 +176,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 					}
 				}
 			}
-			f := cutil.FoldNever
+			f := edit.FoldNever
 			if kind == "always" {
-				f = cutil.FoldAlways
+				f = edit.FoldAlways
 			}
 			o, err := f(s, pattern, n)
 			if err != nil {
@@ -203,7 +203,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 					wh = "in " + fn
 				}
 				return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-					wh, cutil.PyRepr(old), k, fn, n)
+					wh, edit.PyRepr(old), k, fn, n)
 			}
 			return []byte(strings.ReplaceAll(string(s), old, new)), nil
 		})
@@ -218,7 +218,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	literal := func(t []byte, old, new, what string, n int) ([]byte, error) {
 		k := strings.Count(string(t), old)
 		if k != n {
-			return nil, p.Die("%s -- %s occurs %d times, expected %d", what, cutil.PyRepr(old), k, n)
+			return nil, p.Die("%s -- %s occurs %d times, expected %d", what, edit.PyRepr(old), k, n)
 		}
 		p.Say(what)
 		return []byte(strings.ReplaceAll(string(t), old, new)), nil

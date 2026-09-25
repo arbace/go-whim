@@ -41,8 +41,8 @@ import (
 	"io"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // Whim81 makes a command line one command: no bar separator and no trailing
@@ -57,7 +57,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	e.Expect(len(calls) == 1 && calls[0] == "&ea, FALSE",
-		"separate_nextcmd is called as %s, expected once with FALSE", cutil.PyRepr(fmt.Sprint(calls)))
+		"separate_nextcmd is called as %s, expected once with FALSE", edit.PyRepr(fmt.Sprint(calls)))
 	for _, c := range []string{"append", "insert", "change"} {
 		argt := e.Query(`(?m)^    \[CMD_`+c+`\] = \{.*\(long_u\)\(([^)]*)\)`, 1)
 		e.Expect(len(argt) > 0 && !strings.Contains(argt[0], "EX_EXTRA"), ":%s is not a command without EX_EXTRA", c)
@@ -96,4 +96,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim81", Edit) }
+func init() { phase.Register("whim81", Edit) }

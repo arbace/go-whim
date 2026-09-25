@@ -81,10 +81,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim108", Edit) }
+func init() { phase.Register("whim108", Edit) }
 
 var (
 	whim108IncLine  = regexp.MustCompile(`^#include <[A-Za-z0-9_/.]+>$`)

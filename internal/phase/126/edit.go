@@ -82,17 +82,18 @@ package p126
 
 import (
 	"fmt"
-	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"os"
 	"regexp"
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
+	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-func init() { edit.RegisterArgs("whim126", Edit) }
+func init() { phase.RegisterArgs("whim126", Edit) }
 
 var (
 	w126Lit     = regexp.MustCompile(`"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'`)
@@ -134,11 +135,11 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return len(regexp.MustCompile(`\b(?:`+name+`)\b`).FindAllString(s, -1))
 	}
 	swap := func(old, new, what, why string) error {
-		c := cutil.CountAnchor(t, old)
+		c := edit.CountAnchor(t, old)
 		if c != 1 {
 			return p.Die("%s occurs %d times, expected %d -- %s", what, c, 1, why)
 		}
-		t = cutil.ReplaceAnchor(t, old, new, -1)
+		t = edit.ReplaceAnchor(t, old, new, -1)
 		return nil
 	}
 	// heads: every definition in this tree's ONE shape -- a name at column 0 with
@@ -198,7 +199,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		sort.Strings(ek)
 		if strings.Join(gk, "\x00") != strings.Join(ek, "\x00") {
 			return p.Die("`%s` is said in %s and this phase accounts for %s -- %s",
-				name, edit.W126PyList(gk), edit.W126PyList(ek), what)
+				name, vimtext.W126PyList(gk), vimtext.W126PyList(ek), what)
 		}
 		var parts []string
 		for _, k := range gk {
@@ -366,7 +367,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if strings.Join(insIn, ",") != "mf_get,mf_new" || strings.Join(remIn, ",") != "mf_free,mf_get" {
 		return nil, p.Die("the hash is inserted into from %s and removed from from %s, and this phase "+
 			"rests on mf_new() and mf_get() being the only insertions and mf_free() and "+
-			"mf_get() the only removals", edit.W126PyList(insIn), edit.W126PyList(remIn))
+			"mf_get() the only removals", vimtext.W126PyList(insIn), vimtext.W126PyList(remIn))
 	}
 	p.Sayf("THE HASH HOLDS EVERY LIVE BLOCK: it is inserted into by %s and removed from by "+
 		"%s, and mf_get() does both in one breath to move a block to the head of the used "+
@@ -480,9 +481,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		p.Sayf("%d stores of the %s label", c, e.side)
 	}
 	for _, old := range []string{w126pc1, w126pc2, w126pc3} {
-		if cutil.CountAnchor(t, old) < 1 {
+		if edit.CountAnchor(t, old) < 1 {
 			return nil, p.Die("a page-count store this phase accounts for is not there: %s",
-				edit.W126PyRepr(old))
+				vimtext.W126PyRepr(old))
 		}
 		t = regexp.MustCompile(`\n *`+regexp.QuoteMeta(strings.TrimRight(old, "\n"))).
 			ReplaceAllString(t, "")

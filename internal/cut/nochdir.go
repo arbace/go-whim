@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // nochdirFullNameNote is what stands above mch_FullName.
@@ -95,7 +95,7 @@ const nochdirDirname = "    static char_u   cwd[ PATH_MAX ];\n" +
 // nochdirBody replaces a definition's body and reports its old line count in
 // the tool's own column.
 func nochdirBody(text []byte, name, replacement, tag string, w io.Writer) ([]byte, error) {
-	o, c, found, balanced := cutil.Body(text, name)
+	o, c, found, balanced := edit.Body(text, name)
 	if !found || !balanced {
 		return nil, fmt.Errorf("nochdir: %s is not defined at file scope", name)
 	}
@@ -125,10 +125,10 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	// The window- and tab-local directory restore.  Its guard can never be
 	// true: w_localdir and tp_localdir come only from :lcd and :tcd, and
 	// globaldir is assigned only inside this function.
-	if text, err = cutil.DropIf(text, cutil.Head("if (awp->w_localdir != NULL)"), 1); err != nil {
+	if text, err = edit.DropIf(text, edit.Head("if (awp->w_localdir != NULL)"), 1); err != nil {
 		return nil, err
 	}
-	if text, err = cutCounted(text, cutil.Line("win_fix_current_dir();"),
+	if text, err = cutCounted(text, edit.Line("win_fix_current_dir();"),
 		"nochdir", "its unconditional call", 1); err != nil {
 		return nil, err
 	}
@@ -140,8 +140,8 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	// restoring a pointer that is always NULL.  The save and the restore go
 	// here; the field, the global and the function are the sweep's.
 	for _, g := range []struct{ pat, what string }{
-		{cutil.Line("aco->globaldir = globaldir;", "globaldir = NULL;"), "the save"},
-		{cutil.Line("vim_free(globaldir);", "globaldir = aco->globaldir;"), "the restore"},
+		{edit.Line("aco->globaldir = globaldir;", "globaldir = NULL;"), "the save"},
+		{edit.Line("vim_free(globaldir);", "globaldir = aco->globaldir;"), "the restore"},
 	} {
 		if text, err = cutCounted(text, g.pat, "nochdir", "globaldir -- "+g.what, 1); err != nil {
 			return nil, err
@@ -152,11 +152,11 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	// edit_buffers() returns to `cwd` between -o windows.  It is passed
 	// start_dir, which nothing assigns.  The free of it goes here, and the
 	// global is the sweep's.
-	if text, err = cutil.DropIf(text, cutil.Head("if (cwd != NULL)"), 1); err != nil {
+	if text, err = edit.DropIf(text, edit.Head("if (cwd != NULL)"), 1); err != nil {
 		return nil, err
 	}
 	for _, g := range []struct{ pat, what string }{
-		{cutil.Line("vim_free(start_dir);"), "the free of it"},
+		{edit.Line("vim_free(start_dir);"), "the free of it"},
 	} {
 		if text, err = cutCounted(text, g.pat, "nochdir", "start_dir -- "+g.what, 1); err != nil {
 			return nil, err

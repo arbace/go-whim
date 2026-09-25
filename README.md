@@ -122,9 +122,9 @@ internal/        the cutters, the plan (internal/build), the dead-code reporter 
                  stages there were
 crefactor/       the generic C refactoring library, a Go module of its own
                  that knows no code base: cc (the forked C front end), cemit
-                 (the canonical printer), sweep, pipeline (the driver), text
-                 (the text verbs), xform (generic transformations), togo (the
-                 C-to-Go translator)
+                 (the canonical printer), sweep, pipeline (the driver), edit
+                 (the text verbs phases are written in), xform (generic
+                 transformations), togo (the C-to-Go translator)
 internal/whim/   what that library is told about vim: roots, names, knobs
 editor/          the core transpiled into Go, with its runtime and host
 internal/gen/    the generator of editor/editor.go (go tool whim gen: crefactor/togo

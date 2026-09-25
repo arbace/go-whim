@@ -1,4 +1,4 @@
-package text
+package edit
 
 // Depths returns the per-byte nesting depth of () [] {} over blanked text.
 //

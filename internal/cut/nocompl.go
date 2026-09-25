@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/internal/dead"
 )
 
@@ -32,13 +32,13 @@ var nocomplStubs = []struct{ name, rep string }{
 func NoCompl(text []byte, w io.Writer) ([]byte, error) {
 	total := 0
 	for _, s := range nocomplStubs {
-		blanked := cutil.Blank(text)
+		blanked := edit.Blank(text)
 		m := regexp.MustCompile(`(?m)^` + regexp.QuoteMeta(s.name) + `\(`).FindIndex(text)
 		if m == nil {
 			return nil, fmt.Errorf("nocompl: %s is not defined at file scope", s.name)
 		}
 		o := m[1] + bytes.IndexByte(blanked[m[1]:], '{')
-		c := cutil.Match(blanked, o)
+		c := edit.Match(blanked, o)
 		if c < 0 {
 			return nil, fmt.Errorf("nocompl: %s is unbalanced", s.name)
 		}
@@ -61,7 +61,7 @@ func NoCompl(text []byte, w io.Writer) ([]byte, error) {
 	// empty.  With the option gone there is nothing to test, and the two keys
 	// should take that path unconditionally -- which is what `goto normalchar`
 	// already said they should.
-	text, err := cutil.DropIf(text,
+	text, err := edit.DropIf(text,
 		`(?m)^[ \t]*if \(\*curbuf->b_p_cpt == NUL && \(ctrl_x_mode_normal\(\) \|\| `+
 			`ctrl_x_mode_whole_line\(\)\)`, 1)
 	if err != nil {
@@ -119,12 +119,12 @@ func NoCompl(text []byte, w io.Writer) ([]byte, error) {
 	// edit().  Harmless there, because the guard is now false either way, but
 	// not what was meant -- and the same mistake as `case 't':` and
 	// `settmode(TMODE_COOK)` before it.
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	span, found := dead.FuncDefinitions(text, blanked)["set_shellsize_inner"]
 	if !found {
 		return nil, fmt.Errorf("nocompl: set_shellsize_inner is not defined at file scope")
 	}
-	fn2, err := cutil.DropIf(text[span[0]:span[1]], cutil.Head("if (pum_visible())"), 1)
+	fn2, err := edit.DropIf(text[span[0]:span[1]], edit.Head("if (pum_visible())"), 1)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func NoCompl(text []byte, w io.Writer) ([]byte, error) {
 	// this one -- and here it was a segfault before the first keystroke,
 	// because 'completeopt''s row goes and nothing else reads p_cot.
 	if text, err = cutCounted(text,
-		cutil.Line("(void)opt_strings_flags(p_cot, p_cot_values, &cot_flags, TRUE);"),
+		edit.Line("(void)opt_strings_flags(p_cot, p_cot_values, &cot_flags, TRUE);"),
 		"nocompl", "didset_string_options' p_cot line", 1); err != nil {
 		return nil, err
 	}

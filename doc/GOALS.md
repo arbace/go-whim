@@ -2120,7 +2120,7 @@ number in three digits, and this is how one would join now.
 
 1. **Write it in Go** if its cut is a program: `internal/phase/NNN/` is then a package of
    its own, `pNNN`, whose `edit.go` registers itself in an `init()`, and
-   `internal/phase/registry.go` gains a line so it is linked in.
+   `cmd/whim/phases.go` gains a line so it is linked in.
 2. **Add it to the plan**, `internal/build/plan.go`: its steps in order. The
    sweep follows every phase.
 3. Write its `internal/phase/NNN/GOAL.md`, which opens `# Phase N — ...`, and add it to

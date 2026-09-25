@@ -6,20 +6,20 @@ import (
 	"io"
 	"strings"
 
-	ctext "github.com/arbace/go-whim/crefactor/text"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // EmptyBlocks is the step that folds the empty blocks of the core: an empty
 // block guarded by a condition that only reads goes, as do an empty else and
 // an empty else-if ending its chain; a local then only ever given a value
-// goes with its stores (ctext.DeadStores), the two alternating to a fixpoint.
+// goes with its stores (edit.DeadStores), the two alternating to a fixpoint.
 // The host, past core, is not touched.
 //
 // Its one argument is a floor: `--at-least N` refuses when fewer than N
 // blocks fold.  Without it there is none.
 func EmptyBlocks(core Core) Step {
 	return func(text []byte, args []string, w io.Writer) ([]byte, error) {
-		p := ctext.Ph{Tag: "empty", W: w}
+		p := edit.Ph{Tag: "empty", W: w}
 		f, err := flags(p.Tag, args, "--at-least")
 		if err != nil {
 			return nil, err
@@ -51,7 +51,7 @@ func EmptyBlocksFold(core []byte) ([]byte, int) {
 	n := 0
 	for {
 		changed := false
-		for _, m := range ctext.W134Empty.FindAllSubmatchIndex(core, -1) {
+		for _, m := range edit.W134Empty.FindAllSubmatchIndex(core, -1) {
 			head := string(core[m[4]:m[5]])
 			after := core[m[1]:]
 			var cond string
@@ -62,7 +62,7 @@ func EmptyBlocksFold(core []byte) ([]byte, int) {
 			default: // else if
 				cond = head[9 : len(head)-1]
 			}
-			if head != "else" && (!ctext.W134Pure(cond) || ctext.W134Else.Match(after)) {
+			if head != "else" && (!edit.W134Pure(cond) || edit.W134Else.Match(after)) {
 				continue
 			}
 			core = append(append([]byte{}, core[:m[0]]...), core[m[1]:]...)
@@ -76,7 +76,7 @@ func EmptyBlocksFold(core []byte) ([]byte, int) {
 	}
 }
 
-// EmptyBlocksRule is EmptyBlocksFold and ctext.DeadStores, each to its
+// EmptyBlocksRule is EmptyBlocksFold and edit.DeadStores, each to its
 // fixpoint, in turn until neither changes anything -- a flag tested only by
 // an empty if is only stored once the if goes, and a store that goes can
 // leave a block empty.  It returns the text, the blocks that went and the
@@ -88,7 +88,7 @@ func EmptyBlocksRule(core []byte) ([]byte, int, []string) {
 		var k int
 		var t []string
 		core, k = EmptyBlocksFold(core)
-		core, t = ctext.DeadStores(core)
+		core, t = edit.DeadStores(core)
 		n += k
 		took = append(took, t...)
 		if k == 0 && len(t) == 0 {

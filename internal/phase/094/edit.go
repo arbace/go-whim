@@ -86,11 +86,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim94", Edit) }
+func init() { phase.Register("whim94", Edit) }
 
 // w94Swept are the twelve the sweep reads Out of check_changed_any's tail, and
 // they are mostly three mentions each -- a prototype, a definition and one call.
@@ -147,13 +147,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	textEdit := func(t []byte, old, new, what string, n int) ([]byte, error) {
 		// exact first, then modulo whitespace: a fold earlier in this phase keeps a
 		// body at its old indentation, and the canonical print re-indents it
-		k := cutil.CountAnchorB(t, old)
+		k := edit.CountAnchorB(t, old)
 		if k != n {
 			return nil, p.Die("%s -- the text occurs %d times, expected %d: %s",
-				what, k, n, cutil.PyRepr(edit.CoreHead(old, 70)))
+				what, k, n, edit.PyRepr(edit.CoreHead(old, 70)))
 		}
 		p.Say(what)
-		return cutil.ReplaceAnchorB(t, old, []byte(new), n), nil
+		return edit.ReplaceAnchorB(t, old, []byte(new), n), nil
 	}
 
 	// ---- 0. the shape every anchor below was counted against ------------------
@@ -169,10 +169,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// THE INVARIANT, COMPUTED BEFORE ANYTHING IS FOLDED: every call to any of the
 	// eleven is inside check_changed_any or inside another of the eleven, so the
 	// whole island is reachable from that one tail and from nowhere else.
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	spans := map[string][2]int{}
 	for _, name := range append(append([]string{}, w94Island...), "check_changed_any") {
-		a, z, ok := cutil.FindDefinition(text, blanked, name)
+		a, z, ok := edit.FindDefinition(text, blanked, name)
 		if !ok {
 			return nil, p.Die("%s is not defined", name)
 		}
@@ -221,13 +221,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"the one fold below takes eleven functions nobody would predict")
 
 	// ---- 1. the anchor: the refusal folds never -------------------------------
-	a, z, ok := cutil.FindDefinition(text, cutil.Blank(text), "ex_quit")
+	a, z, ok := edit.FindDefinition(text, edit.Blank(text), "ex_quit")
 	if !ok {
 		return nil, p.Die("ex_quit is not defined")
 	}
 	what := "ex_quit: the refusal folds NEVER, so `:q` takes the else arm and quits -- " +
 		"this one fold is the phase, and it is check_changed()'s last reference"
-	Body, err := cutil.FoldNever(text[a:z],
+	Body, err := edit.FoldNever(text[a:z],
 		`(?m)^    if \(\(check_changed\(wp->w_buffer, \(eap->forceit \? CCGD_FORCEIT : 0\) \| CCGD_EXCMD\)\) \|\| \(check_changed_any\(eap->forceit, TRUE\)\)\)$`, 1)
 	if err != nil {
 		return nil, p.Die("%s -- %v", what, err)
@@ -254,7 +254,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	for _, fr := range []struct{ fld, reader string }{
 		{"w_topline_was_set", "enter_buffer"}, {"wi_changelistidx", "get_winopts"},
 	} {
-		a, z, ok := cutil.FindDefinition(text, cutil.Blank(text), fr.reader)
+		a, z, ok := edit.FindDefinition(text, edit.Blank(text), fr.reader)
 		if !ok || !strings.Contains(string(text[a:z]), fr.fld) {
 			return nil, p.Die("%s is not named inside %s, and the sweep taking that function is the "+
 				"whole reason this field becomes write-only", fr.fld, fr.reader)

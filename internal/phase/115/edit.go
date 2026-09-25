@@ -68,15 +68,15 @@ package p115
 import (
 	"bytes"
 	"fmt"
-	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim115", Edit) }
+func init() { phase.Register("whim115", Edit) }
 
 var (
 	w115Inc      = regexp.MustCompile(`^#include <([A-Za-z0-9_/.]+)>$`)
@@ -95,7 +95,7 @@ var (
 // in two NGETTEXT strings, and a count that read those as calls would be
 // counting English.
 //
-// It is NOT cutil.Blank -- it collapses a literal to a single space rather
+// It is NOT edit.Blank -- it collapses a literal to a single space rather
 // than preserving its offsets, because nothing here indexes back into it.
 func w115Strip(line []byte) []byte {
 	Out := make([]byte, 0, len(line))
@@ -142,14 +142,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	t := text
 
 	once := func(text []byte, old, new, why string) ([]byte, error) {
-		if k := cutil.CountAnchorB(text, old); k != 1 {
+		if k := edit.CountAnchorB(text, old); k != 1 {
 			shown := strings.ReplaceAll(old, "\n", "\\n")
 			if len(shown) > 70 {
 				shown = shown[:70]
 			}
 			return nil, p.Die("`%s` is not in the file exactly once (%s)", shown, why)
 		}
-		return cutil.ReplaceAnchorB(text, old, []byte(new), 1), nil
+		return edit.ReplaceAnchorB(text, old, []byte(new), 1), nil
 	}
 
 	lines := bytes.Split(t, []byte{'\n'})

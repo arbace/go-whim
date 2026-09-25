@@ -1,4 +1,4 @@
-package text
+package edit
 
 // The part of cutil.py the SWEEP does not reach, added as a phase program
 // needs it.  The package docstring says these are "left out until something

@@ -115,12 +115,13 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/internal/cmdtab"
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/internal/phase"
+	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
-func init() { edit.Register("whim91", Edit) }
+func init() { phase.Register("whim91", Edit) }
 
 const (
 	w91RowsBefore = 104
@@ -146,12 +147,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	var err error
 
 	mentions := edit.MentionCount
-	inFunction := func(t []byte, name string, edit func([]byte) ([]byte, error)) ([]byte, error) {
-		a, z, ok := cutil.FindDefinition(t, cutil.Blank(t), name)
+	inFunction := func(t []byte, name string, fn func([]byte) ([]byte, error)) ([]byte, error) {
+		a, z, ok := edit.FindDefinition(t, edit.Blank(t), name)
 		if !ok {
 			return nil, p.Die("%s is not defined", name)
 		}
-		Body, err := edit(t[a:z])
+		Body, err := fn(t[a:z])
 		if err != nil {
 			return nil, err
 		}
@@ -162,7 +163,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			k := strings.Count(string(s), old)
 			if k != n {
 				return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-					what, cutil.PyRepr(edit.CoreHead(old, 60)), k, fn, n)
+					what, edit.PyRepr(edit.CoreHead(old, 60)), k, fn, n)
 			}
 			return []byte(strings.ReplaceAll(string(s), old, new)), nil
 		})
@@ -174,7 +175,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- 0. the shape the anchors below were counted on -----------------------
-	if n := len(edit.CoreRows(text)); n != w91RowsBefore {
+	if n := len(vimtext.CoreRows(text)); n != w91RowsBefore {
 		return nil, p.Die("cmdnames[] has %d rows, expected %d -- the anchors below were counted "+
 			"against a different table", n, w91RowsBefore)
 	}
@@ -192,7 +193,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// which phase 90 took.  Counted, so that a row arriving would refuse rather
 	// than leave a reachable block with no way in.
 	argopt := 0
-	for _, r := range edit.CoreRows(text) {
+	for _, r := range vimtext.CoreRows(text) {
 		if strings.Contains(string(r), "EX_ARGOPT") {
 			argopt++
 		}
@@ -221,7 +222,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		text = append(append([]byte{}, text[:m[0]]...), text[m[1]:]...)
 	}
-	if n := len(edit.CoreRows(text)); n != w91RowsAfter {
+	if n := len(vimtext.CoreRows(text)); n != w91RowsAfter {
 		return nil, p.Die("cmdnames[] has %d rows after the cut, expected %d", n, w91RowsAfter)
 	}
 	p.Sayf("the five cmdnames[] rows; %d -> %d, which is under the floor create_cmdidxs "+
@@ -255,7 +256,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if str[o] != '{' {
 			return nil, p.Die("nv_brackets: the else does not open where this phase expects it")
 		}
-		c := cutil.Match(cutil.Blank(s), o)
+		c := edit.Match(edit.Blank(s), o)
 		if c < 0 {
 			return nil, p.Die("nv_brackets: the else's block does not close")
 		}
@@ -263,7 +264,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		z := strings.Index(str[c:], "\n") + c + 1
 		if str[a:z] != w91lit4 {
 			return nil, p.Die("nv_brackets: the else closes with %s, not a line of its own",
-				cutil.PyRepr(str[a:z]))
+				edit.PyRepr(str[a:z]))
 		}
 		return []byte(str[:i] + str[i+len(w91Head):a] + str[z:]), nil
 	}); err != nil {
@@ -280,7 +281,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- 7. what is left, and why it does not compile yet ---------------------
-	left, holders, found, err := edit.CoreResidue(p, text, w91Going)
+	left, holders, found, err := vimtext.CoreResidue(p, text, w91Going)
 	if err != nil {
 		return nil, err
 	}

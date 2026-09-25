@@ -24,10 +24,6 @@ package main
 import (
 	"fmt"
 	"os"
-
-	// The phases register their edits with internal/edit
-	// when their packages are linked in, and this is what links them in.
-	_ "github.com/arbace/go-whim/internal/phase"
 )
 
 // A tool is one subcommand.  It is handed everything after the subcommand

@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 const (
@@ -29,7 +29,7 @@ var identityLeft = regexp.MustCompile(`\bgetuid\b|\bgetgid\b|\bget_user_name\b`)
 // dropping the `if` line around it and everything up to `endAfter`.
 func keepBodyAt(text, blanked []byte, k, endAfter int) []byte {
 	o := k + bytes.IndexByte(blanked[k:], '{')
-	c := cutil.Match(blanked, o)
+	c := edit.Match(blanked, o)
 	if c < 0 {
 		return nil
 	}
@@ -53,13 +53,13 @@ func NoOwner(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  noowner      :w! clears the read-only bit without asking whose it is")
 
 	// The mode masking stays; only the test that guarded it goes.
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	k := bytes.Index(text, []byte(uidGidTest))
 	if k < 0 {
 		return nil, fmt.Errorf("noowner: the mode masking is not where this expects")
 	}
 	o := k + bytes.IndexByte(blanked[k:], '{')
-	c := cutil.Match(blanked, o)
+	c := edit.Match(blanked, o)
 	if c < 0 {
 		return nil, fmt.Errorf("noowner: the mode masking is not where this expects")
 	}
@@ -71,15 +71,15 @@ func NoOwner(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  noowner      a written file never carries a setuid bit, whoever wrote it")
 
 	var err error
-	text, err = cutil.DropIf(text,
-		cutil.Head("if (options[opt_idx].indir == (idopt_T)(PV_BUF + (int)(BV_ML)) && getuid() == ROOT_UID)"), 1)
+	text, err = edit.DropIf(text,
+		edit.Head("if (options[opt_idx].indir == (idopt_T)(PV_BUF + (int)(BV_ML)) && getuid() == ROOT_UID)"), 1)
 	if err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  noowner      'modeline' stops asking whether this is root")
 
 	text, err = cutCounted(text,
-		cutil.Line("(void)get_user_name(b0p->b0_uname, B0_UNAME_SIZE);")+
+		edit.Line("(void)get_user_name(b0p->b0_uname, B0_UNAME_SIZE);")+
 			`[ \t]*b0p->b0_uname\[B0_UNAME_SIZE - 1\] = NUL;\n`,
 		"noowner", "block zero's user name", 1)
 	if err != nil {
@@ -88,14 +88,14 @@ func NoOwner(text []byte, w io.Writer) ([]byte, error) {
 
 	// The other caller's `if` was already always true -- get_user_name() has
 	// returned FAIL since Phase 20 -- so its `else` has been dead that long.
-	blanked = cutil.Blank(text)
+	blanked = edit.Blank(text)
 	k = bytes.Index(text, []byte(unameTest))
 	if k < 0 {
 		return nil, fmt.Errorf("noowner: the get_user_name arm is not where this expects")
 	}
 	nl := k + bytes.IndexByte(text[k:], '\n')
 	o = nl + bytes.IndexByte(blanked[nl:], '{')
-	c = cutil.Match(blanked, o)
+	c = edit.Match(blanked, o)
 	if c < 0 {
 		return nil, fmt.Errorf("noowner: the get_user_name arm is unbalanced")
 	}
@@ -104,7 +104,7 @@ func NoOwner(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("noowner: the get_user_name arm has no else")
 	}
 	o2 := c + 1 + m[1] + bytes.IndexByte(blanked[c+1+m[1]:], '{')
-	c2 := cutil.Match(blanked, o2)
+	c2 := edit.Match(blanked, o2)
 	if c2 < 0 {
 		return nil, fmt.Errorf("noowner: the get_user_name else arm is unbalanced")
 	}

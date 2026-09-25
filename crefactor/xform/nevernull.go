@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	ctext "github.com/arbace/go-whim/crefactor/text"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // NeverNullKnobs is what NeverNull is told.
@@ -32,7 +32,7 @@ type NeverNullKnobs struct {
 // tests fold.  Without it there is none.
 func NeverNull(k NeverNullKnobs) Step {
 	return func(text []byte, args []string, w io.Writer) ([]byte, error) {
-		p := ctext.Ph{Tag: "allocnull", W: w}
+		p := edit.Ph{Tag: "allocnull", W: w}
 		f, err := flags(p.Tag, args, "--at-least")
 		if err != nil {
 			return nil, err
@@ -63,14 +63,14 @@ var (
 // one pass -- a name at the start of a line, its parameter list, then a brace
 // -- where the start is the line before, which holds the return type.
 func nnFuncs(text []byte) map[string][2]int {
-	b := ctext.Blank(text)
+	b := edit.Blank(text)
 	fs := map[string][2]int{}
 	for _, m := range nnDef.FindAllSubmatchIndex(text, -1) {
 		name := string(text[m[2]:m[3]])
 		if _, seen := fs[name]; seen {
 			continue
 		}
-		rp := ctext.Match(b, m[1]-1)
+		rp := edit.Match(b, m[1]-1)
 		if rp < 0 {
 			continue
 		}
@@ -81,7 +81,7 @@ func nnFuncs(text []byte) map[string][2]int {
 		if k >= len(b) || b[k] != '{' {
 			continue
 		}
-		e := ctext.Match(b, k)
+		e := edit.Match(b, k)
 		if e < 0 {
 			continue
 		}
@@ -99,7 +99,7 @@ func nnIsNN(e string, nn map[string]bool) bool {
 	}
 	// the call is the whole expression
 	e = strings.TrimSpace(e)
-	return strings.HasSuffix(e, ")") && ctext.Match(ctext.Blank([]byte(e)), strings.Index(e, m[1]+"(")+len(m[1])) == len(e)-1
+	return strings.HasSuffix(e, ")") && edit.Match(edit.Blank([]byte(e)), strings.Index(e, m[1]+"(")+len(m[1])) == len(e)-1
 }
 
 // nnLocalNN: v is a local of fn whose every assignment is a never-NULL call,
@@ -257,9 +257,9 @@ func NeverNullRule(core []byte, roots []string) ([]byte, map[string]bool, int, [
 			var Out []byte
 			var err error
 			if op == "==" {
-				Out, err = ctext.FoldNever(marked, `if \(__nevernull__\)`, 1)
+				Out, err = edit.FoldNever(marked, `if \(__nevernull__\)`, 1)
 			} else {
-				Out, err = ctext.FoldAlways(marked, `if \(__nevernull__\)`, 1)
+				Out, err = edit.FoldAlways(marked, `if \(__nevernull__\)`, 1)
 			}
 			if err != nil {
 				key := fmt.Sprintf("%s %s nullptr after %s", string(core[m[12]:m[13]]), op, call)

@@ -7,7 +7,7 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // noconvPointers are the ten mb_* indirections and the UTF-8 function each
@@ -56,9 +56,9 @@ func (e ed) ncFold(seg []byte, pattern, what, kind string, count int) ([]byte, e
 		var out []byte
 		var err error
 		if kind == "never" {
-			out, err = cutil.FoldNever(seg[start:], "(?m)"+pattern, 1)
+			out, err = edit.FoldNever(seg[start:], "(?m)"+pattern, 1)
 		} else {
-			out, err = cutil.FoldAlways(seg[start:], "(?m)"+pattern, 1)
+			out, err = edit.FoldAlways(seg[start:], "(?m)"+pattern, 1)
 		}
 		if err != nil {
 			return nil, noconvDie(fmt.Sprintf("%s -- %v", what, err), seg)

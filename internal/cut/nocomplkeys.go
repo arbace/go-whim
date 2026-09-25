@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // complkeysStubs are predicates the rest of the editor asks on its own
@@ -40,7 +40,7 @@ var complkeysStubs = []struct{ name, ret string }{
 // So find the name, and LET THE C DECIDE: a definition is the occurrence whose
 // matching `)` is followed by `{`.  A prototype ends in `;` and is skipped.
 func complkeysStub(text []byte, name, ret string) ([]byte, error) {
-	blanked := cutil.Blank(text)
+	blanked := edit.Blank(text)
 	re := regexp.MustCompile(`\b` + regexp.QuoteMeta(name) + `\s*\(`)
 	pos := 0
 	for {
@@ -49,7 +49,7 @@ func complkeysStub(text []byte, name, ret string) ([]byte, error) {
 			return nil, fmt.Errorf("nocomplkeys: %s is not defined", name)
 		}
 		lp := pos + m[1] - 1
-		rp := cutil.Match(blanked, lp)
+		rp := edit.Match(blanked, lp)
 		if rp < 0 {
 			return nil, fmt.Errorf("nocomplkeys: %s has an unbalanced argument list", name)
 		}
@@ -61,7 +61,7 @@ func complkeysStub(text []byte, name, ret string) ([]byte, error) {
 		pos = rp + 1
 		if len(rest) > 0 && rest[0] == '{' {
 			o := rp + bytes.IndexByte(blanked[rp:], '{')
-			c := cutil.Match(blanked, o)
+			c := edit.Match(blanked, o)
 			if c < 0 {
 				return nil, fmt.Errorf("nocomplkeys: %s is unbalanced", name)
 			}
@@ -95,7 +95,7 @@ func complkeysDropUnique(text []byte, cond, what string) ([]byte, error) {
 		return nil, fmt.Errorf("nocomplkeys: %s -- the condition occurs %d times, not once",
 			what, n)
 	}
-	return cutil.DropIf(text, `(?m)^[ \t]*`+regexp.QuoteMeta(cond), 1)
+	return edit.DropIf(text, `(?m)^[ \t]*`+regexp.QuoteMeta(cond), 1)
 }
 
 // complkeysDropUniqueAfter is complkeysDropUnique where the condition is NOT
@@ -117,7 +117,7 @@ func complkeysDropUniqueAfter(text []byte, lead, cond, what string) ([]byte, err
 	}
 	at := ms[0][0] + bytes.Index(text[ms[0][0]:ms[0][1]], []byte(cond))
 	at = bytes.LastIndexByte(text[:at], '\n') + 1
-	out, err := cutil.DropIf(text[at:], `(?m)^[ \t]*`+regexp.QuoteMeta(cond), 1)
+	out, err := edit.DropIf(text[at:], `(?m)^[ \t]*`+regexp.QuoteMeta(cond), 1)
 	if err != nil {
 		return nil, err
 	}
@@ -131,11 +131,11 @@ func complkeysDropUniqueAfter(text []byte, lead, cond, what string) ([]byte, err
 // island instead of the caller keeping it alive -- and the island then does
 // not die, because the reachable call is still there.
 func complkeysDropIn(text []byte, fn, pattern, what string) ([]byte, error) {
-	a, z, ok := cutil.FindDefinition(text, cutil.Blank(text), fn)
+	a, z, ok := edit.FindDefinition(text, edit.Blank(text), fn)
 	if !ok {
 		return nil, fmt.Errorf("nocomplkeys: %s is not defined", fn)
 	}
-	inner, err := cutil.DropIf(text[a:z], pattern, 1)
+	inner, err := edit.DropIf(text[a:z], pattern, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -149,11 +149,11 @@ func complkeysDropIn(text []byte, fn, pattern, what string) ([]byte, error) {
 }
 
 func complkeysSub(text []byte, old, new, what string, count int) ([]byte, error) {
-	n := cutil.CountAnchorB(text, old)
+	n := edit.CountAnchorB(text, old)
 	if n != count {
 		return nil, fmt.Errorf("nocomplkeys: %s -- expected %d, found %d", what, count, n)
 	}
-	return cutil.ReplaceAnchorB(text, old, []byte(new), count), nil
+	return edit.ReplaceAnchorB(text, old, []byte(new), count), nil
 }
 
 const complkeysDisarm = `        if (c != (-((KS_EXTRA) + ((int)(KE_CURSORHOLD) << 8))) && c != (-((KS_EXTRA) + ((int)(KE_COMPLETE_DELAY) << 8))))

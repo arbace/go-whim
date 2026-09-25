@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	ctext "github.com/arbace/go-whim/crefactor/text"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // NullptrKnobs is what NullptrUsize is told.
@@ -56,8 +56,8 @@ func NullptrUsize(k NullptrKnobs) Step {
 }
 
 func nullptrUsize(k NullptrKnobs, casts int, text []byte, w io.Writer) ([]byte, error) {
-	nInc := ctext.IncludeCount(text) // the headers it was handed
-	p := ctext.Ph{Tag: "language", W: w}
+	nInc := edit.IncludeCount(text) // the headers it was handed
+	p := edit.Ph{Tag: "language", W: w}
 
 	// ---- 0. the file this step is written for ---------------------------
 	// Every directive an `#include` on the file's first lines: the step adds
@@ -76,7 +76,7 @@ func nullptrUsize(k NullptrKnobs, casts int, text []byte, w io.Writer) ([]byte, 
 		"`usize` and `nullptr` at zero mentions", nInc, nInc)
 
 	// ---- 1. the literals, which are the one thing here that can go wrong -
-	spans, err := ctext.LiteralSpans(p, text)
+	spans, err := edit.LiteralSpans(p, text)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +146,7 @@ func nullptrUsize(k NullptrKnobs, casts int, text []byte, w io.Writer) ([]byte, 
 			}
 			return nil, p.Die("`size_t` at line %d is neither a cast nor a declaration, so it is a "+
 				"position a typedef may not serve: %s",
-				bytes.Count(text[:loc[0]], []byte{'\n'})+1, ctext.PyRepr(string(text[lo:hi])))
+				bytes.Count(text[:loc[0]], []byte{'\n'})+1, edit.PyRepr(string(text[lo:hi])))
 		}
 	}
 	p.Sayf("%d mentions of `size_t`, ALL of them type-name positions: %d casts and %d "+
@@ -215,7 +215,7 @@ func nullptrUsize(k NullptrKnobs, casts int, text []byte, w io.Writer) ([]byte, 
 			got = string(lines[at])
 		}
 		return nil, p.Die("the typedef did not land on line "+strconv.Itoa(at+1)+", below the includes and their blank: %s",
-			ctext.PyRepr(got))
+			edit.PyRepr(got))
 	}
 	if bytes.Count(text, []byte(nuTypedef+"\n")) != 1 {
 		return nil, p.Die("the typedef is not in the file exactly once")
@@ -228,7 +228,7 @@ func nullptrUsize(k NullptrKnobs, casts int, text []byte, w io.Writer) ([]byte, 
 			return nil, p.Die("`%s` has %d mentions after the cut, expected %d", c.Name, n, c.want)
 		}
 	}
-	after, err := ctext.LiteralSpans(p, text)
+	after, err := edit.LiteralSpans(p, text)
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +259,7 @@ func nullptrUsize(k NullptrKnobs, casts int, text []byte, w io.Writer) ([]byte, 
 
 // nuDirectives requires exactly n directives on the first n lines, each an
 // `#include <...>` of a system header.
-func nuDirectives(p ctext.Ph, text []byte, n int, msg string) error {
+func nuDirectives(p edit.Ph, text []byte, n int, msg string) error {
 	lines := bytes.Split(text, []byte{'\n'})
 	var idx []int
 	var at []string

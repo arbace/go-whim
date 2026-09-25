@@ -17,7 +17,8 @@ package p044
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // Whim44 takes the filter operator and :retab's completion.
@@ -37,4 +38,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim44", Edit) }
+func init() { phase.Register("whim44", Edit) }

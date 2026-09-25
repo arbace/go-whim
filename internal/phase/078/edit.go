@@ -75,8 +75,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
 // emptyFns do nothing at all.  The phase PROVES that before removing a single
@@ -105,7 +105,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	for _, fn := range emptyFns {
 		q := regexp.QuoteMeta(fn)
 		bare := `(?m)^[ \t]*(?:\(void\))?` + q + `\([^;\n]*\);\n`
-		allref := len(regexp.MustCompile(`\b`+q+`\b`).FindAll(cutil.Blank(e.Text()), -1))
+		allref := len(regexp.MustCompile(`\b`+q+`\b`).FindAll(edit.Blank(e.Text()), -1))
 		nBare := len(e.Query(bare, 0))
 		// every mention that is not the prototype, the definition or a bare
 		// call is a use this phase cannot simply delete
@@ -163,4 +163,4 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	return e.Done()
 }
 
-func init() { edit.Register("whim78", Edit) }
+func init() { phase.Register("whim78", Edit) }

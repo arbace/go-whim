@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 // wmCut is edits applied in order, each of which must find exactly what it
@@ -53,9 +53,9 @@ func (c *wmCut) block(pat string) (start, opening, closing int, ok bool) {
 	if m == nil {
 		return 0, 0, 0, false
 	}
-	blanked := cutil.Blank(c.text)
+	blanked := edit.Blank(c.text)
 	lp := m[0] + bytes.IndexByte(c.text[m[0]:], '(')
-	rp := cutil.Match(blanked, lp)
+	rp := edit.Match(blanked, lp)
 	if rp < 0 {
 		return 0, 0, 0, false
 	}
@@ -66,7 +66,7 @@ func (c *wmCut) block(pat string) (start, opening, closing int, ok bool) {
 	if i >= len(c.text) || c.text[i] != '{' {
 		return 0, 0, 0, false
 	}
-	cl := cutil.Match(blanked, i)
+	cl := edit.Match(blanked, i)
 	if cl < 0 {
 		return 0, 0, 0, false
 	}
@@ -139,10 +139,10 @@ func (c *wmCut) keepElse(pat, what string) error {
 		return fmt.Errorf("nowildmenu: %s -- no else branch, so there is nothing to "+
 			"keep and deleting the if alone would delete the fallback", what)
 	}
-	blanked := cutil.Blank(c.text)
+	blanked := edit.Blank(c.text)
 	at := closing + 1 + m[1]
 	opening := at + bytes.IndexByte(blanked[at:], '{')
-	eclose := cutil.Match(blanked, opening)
+	eclose := edit.Match(blanked, opening)
 	if eclose < 0 {
 		return fmt.Errorf("nowildmenu: %s -- the else branch is unbalanced", what)
 	}

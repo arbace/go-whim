@@ -124,16 +124,16 @@ package p124
 
 import (
 	"fmt"
-	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"os"
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.RegisterArgs("whim124", Edit) }
+func init() { phase.RegisterArgs("whim124", Edit) }
 
 // w124Names are the three libc allocators.  `\b` does not match inside
 // `host_free`, `vim_free` or `realloc_cmdbuff` -- `_` is a word character --
@@ -160,10 +160,10 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	t := string(text)
 
 	swap := func(old, new, what, why string) error {
-		if c := cutil.CountAnchor(t, old); c != 1 {
+		if c := edit.CountAnchor(t, old); c != 1 {
 			return p.Die("%s occurs %d times, expected 1 -- %s", what, c, why)
 		}
-		t = cutil.ReplaceAnchor(t, old, new, 1)
+		t = edit.ReplaceAnchor(t, old, new, 1)
 		return nil
 	}
 

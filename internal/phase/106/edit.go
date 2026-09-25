@@ -109,10 +109,10 @@ package p106
 
 import (
 	"github.com/arbace/go-whim/crefactor/xform"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim"
 )
 
 // The rule is general, and it is crefactor/xform's NullptrUsize, built with vim's
 // knobs (internal/whim/xform.go); its count is an argument in the plan.
-func init() { edit.RegisterArgs("whim106", xform.NullptrUsize(whim.Nullptr).Edit()) }
+func init() { phase.RegisterArgs("whim106", xform.NullptrUsize(whim.Nullptr).Edit()) }

@@ -6,7 +6,7 @@ import (
 	"io"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/crefactor/edit"
 )
 
 const cleanPrescan = `    for (i = 1; i < argc; ++i)
@@ -87,9 +87,9 @@ func OptReaders(text []byte, w io.Writer) ([]byte, error) {
 	for _, f := range optreadersFolds {
 		var err error
 		if f.kind == "always" {
-			text, err = cutil.FoldAlways(text, "(?m)"+f.pattern, f.count)
+			text, err = edit.FoldAlways(text, "(?m)"+f.pattern, f.count)
 		} else {
-			text, err = cutil.FoldNever(text, "(?m)"+f.pattern, f.count)
+			text, err = edit.FoldNever(text, "(?m)"+f.pattern, f.count)
 		}
 		if err != nil {
 			return nil, fmt.Errorf("optreaders: %s -- %v", f.what, err)

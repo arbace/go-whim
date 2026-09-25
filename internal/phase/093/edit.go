@@ -93,11 +93,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim93", Edit) }
+func init() { phase.Register("whim93", Edit) }
 
 // w93Fields are the three the whole phase is about, and they are NULL for ever
 // once part B has run.
@@ -145,17 +145,17 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		k := strings.Count(string(t), old)
 		if k != n {
 			return nil, p.Die("%s -- the text occurs %d times, expected %d: %s",
-				what, k, n, cutil.PyRepr(edit.CoreHead(old, 70)))
+				what, k, n, edit.PyRepr(edit.CoreHead(old, 70)))
 		}
 		p.Say(what)
 		return []byte(strings.ReplaceAll(string(t), old, new)), nil
 	}
-	inFunction := func(t []byte, name string, edit func([]byte) ([]byte, error)) ([]byte, error) {
-		a, z, ok := cutil.FindDefinition(t, cutil.Blank(t), name)
+	inFunction := func(t []byte, name string, fn func([]byte) ([]byte, error)) ([]byte, error) {
+		a, z, ok := edit.FindDefinition(t, edit.Blank(t), name)
 		if !ok {
 			return nil, p.Die("%s is not defined", name)
 		}
-		Body, err := edit(t[a:z])
+		Body, err := fn(t[a:z])
 		if err != nil {
 			return nil, err
 		}
@@ -166,7 +166,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			k := strings.Count(string(s), old)
 			if k != n {
 				return nil, p.Die("%s -- %s occurs %d times in %s, expected %d",
-					what, cutil.PyRepr(edit.CoreHead(old, 60)), k, fn, n)
+					what, edit.PyRepr(edit.CoreHead(old, 60)), k, fn, n)
 			}
 			return []byte(strings.ReplaceAll(string(s), old, new)), nil
 		})
@@ -186,11 +186,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			var f func([]byte, string, int) ([]byte, error)
 			switch how {
 			case "always":
-				f = cutil.FoldAlways
+				f = edit.FoldAlways
 			case "never":
-				f = cutil.FoldNever
+				f = edit.FoldNever
 			default:
-				f = cutil.DropIf
+				f = edit.DropIf
 			}
 			o, err := f(s, pattern, n)
 			if err != nil {
@@ -205,7 +205,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return Out, nil
 	}
 	// foldAlwaysElse keeps A of `if (TRUE) { A } else { B }` inside fn.
-	// cutil.FoldAlways refuses a block with an else, deliberately, and this is
+	// edit.FoldAlways refuses a block with an else, deliberately, and this is
 	// the shape three sites here have.  The Body is kept as it is written; the
 	// canonical print re-indents it.
 	foldAlwaysElse := func(t []byte, fn, ifline, what string) ([]byte, error) {
@@ -214,10 +214,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			if k := strings.Count(s, ifline); k != 1 {
 				return nil, p.Die("%s -- the if line occurs %d times in %s, expected 1", what, k, fn)
 			}
-			b := cutil.Blank(sb)
+			b := edit.Blank(sb)
 			i := strings.Index(s, ifline)
 			o := strings.Index(string(b[i+len(ifline)-1:]), "{") + i + len(ifline) - 1
-			c := cutil.Match(b, o)
+			c := edit.Match(b, o)
 			if c < 0 {
 				return nil, p.Die("%s -- unbalanced block", what)
 			}
@@ -227,7 +227,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				return nil, p.Die("%s -- the block has no else, so cutil.fold_always is the tool", what)
 			}
 			o2 := endIf + m[1] - 1
-			c2 := cutil.Match(b, o2)
+			c2 := edit.Match(b, o2)
 			if c2 < 0 {
 				return nil, p.Die("%s -- unbalanced else block", what)
 			}
@@ -262,9 +262,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			Name string
 		}
 		var spans []sp
-		b := cutil.Blank(t)
+		b := edit.Blank(t)
 		for _, n := range names {
-			if a, z, ok := cutil.FindDefinition(t, b, n); ok {
+			if a, z, ok := edit.FindDefinition(t, b, n); ok {
 				spans = append(spans, sp{a, z, n})
 			}
 		}
@@ -378,7 +378,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"the one call site, create_windows', which already passed NULL, NULL", 1); err != nil {
 		return nil, err
 	}
-	a, z, ok := cutil.FindDefinition(text, cutil.Blank(text), "buflist_new")
+	a, z, ok := edit.FindDefinition(text, edit.Blank(text), "buflist_new")
 	if !ok {
 		return nil, p.Die("buflist_new is not defined")
 	}

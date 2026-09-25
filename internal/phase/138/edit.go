@@ -14,10 +14,11 @@ package p138
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/edit"
+	"github.com/arbace/go-whim/crefactor/edit"
+	"github.com/arbace/go-whim/internal/phase"
 )
 
-func init() { edit.Register("whim138", Edit) }
+func init() { phase.Register("whim138", Edit) }
 
 // Whim138 takes Out the parameters that carry an eval value.
 //
