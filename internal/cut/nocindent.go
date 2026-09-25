@@ -69,10 +69,6 @@ func NoCindent(text []byte, w io.Writer) ([]byte, error) {
 		text, ""); !hit {
 		return nil, fmt.Errorf("nocindent: open_line's do_cindent is not where this expects")
 	}
-	if text, err = cutCounted(text, `(?m)^[ \t]*int do_cindent;\n`,
-		"nocindent", "do_cindent's declaration", 1); err != nil {
-		return nil, err
-	}
 	text = bytes.Replace(text,
 		[]byte("if (lead_len == 0 && curbuf->b_p_cin && do_cindent && dir == FORWARD"),
 		[]byte("if (lead_len == 0 && dir == FORWARD"), 1)
@@ -100,7 +96,9 @@ func NoCindent(text []byte, w io.Writer) ([]byte, error) {
 	}
 	text = bytes.Replace(text, []byte(fixIndentOld), []byte(fixIndentNew), 1)
 
-	// want_cindent is (get_can_cindent() && cindent_on()), so it is FALSE.
+	// want_cindent is (get_can_cindent() && cindent_on()), so it is FALSE.  Its
+	// declaration, like do_cindent's, is the sweep's; so are parse_cino and
+	// do_c_expr_indent once their calls are gone.
 	for _, c := range []struct{ pat, what string }{
 		{`(?m)^[ \t]*want_cindent = \(get_can_cindent\(\) && cindent_on\(\)\);\n`,
 			"ins_compl_stop's want_cindent"},
@@ -109,7 +107,6 @@ func NoCindent(text []byte, w io.Writer) ([]byte, error) {
 			"its first use"},
 		{`(?m)[ \t]*if \(want_cindent && in_cinkeys\(KEY_COMPLETE, ' ', inindent\(0\)\)\)\n` +
 			`[ \t]*\{\n[ \t]*do_c_expr_indent\(\);\n[ \t]*\}\n`, "its second use"},
-		{`(?m)^[ \t]*int[ \t]+want_cindent;\n`, "its declaration"},
 	} {
 		if text, err = cutCounted(text, c.pat, "nocindent", c.what, 1); err != nil {
 			return nil, err
@@ -154,15 +151,7 @@ func NoCindent(text []byte, w io.Writer) ([]byte, error) {
 		"nocindent", "check_buf_options' parse_cino", 1); err != nil {
 		return nil, err
 	}
-	var ok bool
-	if text, ok = cutil.DeleteDefinition(text, "parse_cino"); !ok {
-		return nil, fmt.Errorf("nocindent: parse_cino is not defined at file scope")
-	}
 	fmt.Fprintln(w, "  nocindent    'cinwords' for 'smartindent', and 'cinoptions' parsing")
-
-	if text, ok = cutil.DeleteDefinition(text, "do_c_expr_indent"); !ok {
-		return nil, fmt.Errorf("nocindent: do_c_expr_indent is not defined at file scope")
-	}
 
 	// cindent_on() stays and answers no: five of its seven callers only ask in
 	// order to do something else instead.
