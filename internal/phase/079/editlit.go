@@ -12,5 +12,4 @@ const (
 	w79lit4 = "                        eap->line2 = 1;\n"
 	w79lit5 = "    return frame_minheight(curtab->tp_topframe, NULL) + tabline_height() + MIN_CMDHEIGHT;\n"
 	w79lit6 = "    return frame_minheight(curtab->tp_topframe, NULL) + MIN_CMDHEIGHT;\n"
-	w79lit7 = "{\n"
 )

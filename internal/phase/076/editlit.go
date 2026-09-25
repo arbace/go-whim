@@ -6,7 +6,5 @@ package p076
 // literal that is 90%% right matches nothing.  See that tool for the
 // measurement.
 const (
-	w76lit1 = "Assignments TO `name` or to a `->name` field, skipping any subscript.\n\n    Written the careful way after phase 75, where a first guard matched\n    `name[^\\n;]*=` and reported the `!=` of three predicates as writes.  An\n    assertion that cries wolf invites being loosened until it passes.\n    "
 	w76lit2 = "    if (p_re < 0 || p_re > 2)\n    {\n        errmsg = e_invalid_argument;\n        p_re = 0;\n    }\n"
-	w76lit3 = "\n"
 )

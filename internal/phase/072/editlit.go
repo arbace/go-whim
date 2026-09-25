@@ -6,8 +6,6 @@ package p072
 // literal that is 90%% right matches nothing.  See that tool for the
 // measurement.
 const (
-	w72lit1  = "True if `raw` holds a break/continue that binds to the loop AROUND it.\n\n    Not a depth test.  C binds break to the nearest enclosing loop or switch, so the\n    question is whether one of those lies between the statement and the body's edge.\n    An earlier version of this tested brace depth and would have passed getout().\n    "
-	w72lit2  = "Fold every walk of one shape, refusing if any body's break/continue rebinds.\n\n    Walks of a single shape are disjoint, so the matches are rewritten back to front\n    and the blanked copy stays valid for every offset still to be processed.\n    "
 	w72lit3  = "        win = (curwin->w_buffer == buf) ? curwin : NULL;\n"
 	w72lit4  = "        if (curwin->w_buffer == buf)\n        {\n            can_unload = FALSE;\n        }\n"
 	w72lit5  = "    return 1;\n"
@@ -20,7 +18,6 @@ const (
 	w72lit12 = "    if (win_alloc_firstwin(NULL) == FAIL)\n    {\n        return FAIL;\n    }\n\n    curtab = alloc_tabpage();\n    if (curtab == NULL)\n    {\n        return FAIL;\n    }\n    unuse_tabpage(curtab);\n\n    return OK;\n"
 	w72lit13 = "    tp->tp_topframe = topframe;\n    tp->tp_curwin = curwin;\n"
 	w72lit14 = "    redraw_win_later(wp, UPD_NOT_VALID);\n    wp->w_redr_status = true;\n    redraw_cmdline = TRUE;\n"
-	w72lit15 = "}\n"
 	w72lit16 = "    if (wp->w_next != NULL || wp->w_status_height)\n"
 	w72lit17 = "    if (wp->w_status_height)\n"
 	w72lit18 = "        else if (wp->w_next)\n        {\n            return FAIL;\n        }\n"
@@ -31,6 +28,4 @@ const (
 	w72lit23 = "            wp->w_redr_status = true;\n            win_rest_invalid(wp->w_next);\n"
 	w72lit24 = "            wp->w_redr_status = true;\n"
 	w72lit25 = "    if (wp->w_next != NULL && p_tf)\n    {\n        return FAIL;\n    }\n"
-	w72lit26 = "\n"
-	w72lit27 = "{\n"
 )

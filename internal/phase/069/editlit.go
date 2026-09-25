@@ -23,9 +23,6 @@ const (
 	w69lit8   = "    case ADDR_ARGUMENTS:\n        lnum = 0;\n        break;\n"
 	w69lit12  = "        case ADDR_ARGUMENTS:\n            if (eap->line2 > ((curwin)->w_alist->al_ga.ga_len) + (!((curwin)->w_alist->al_ga.ga_len)))\n            {\n                return _(e_invalid_range);\n            }\n            break;\n"
 	w69lit13  = "        case ADDR_ARGUMENTS:\n            break;\n"
-	w69lit14  = "\n"
-	w69lit15  = "}\n"
 	w69lit16  = "                result = arg_all();\n                resultbuf = result;\n"
 	w69lit17  = "                result = (char_u *)\"\";\n                resultbuf = NULL;\n"
-	w69lit18  = "{\n"
 )

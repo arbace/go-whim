@@ -9,7 +9,6 @@ const (
 	w70OldOpen   = "        if (fnum)\n        {\n            buf = buflist_findnr(fnum);\n        }\n        else\n        {\n            buf = buflist_new(ffname, sfname, 0L, BLN_CURBUF | ((flags & ECMD_SET_HELP) ? 0 : BLN_LISTED));\n            if (oldwin != NULL)\n            {\n                oldwin = curwin;\n            }\n            set_bufref(&old_curbuf, curbuf);\n        }\n        if (buf == NULL)\n        {\n            goto theend;\n        }\n"
 	w70NewOpen   = "        if (ffname != NULL && setfname(curbuf, ffname, sfname, FALSE) == FAIL)\n        {\n            goto theend;\n        }\n        if (oldwin != NULL)\n        {\n            oldwin = curwin;\n        }\n        set_bufref(&old_curbuf, curbuf);\n        buf = curbuf;\n"
 	w70OldOldbuf = "        if (buf->b_ml.ml_mfp == NULL)\n        {\n            oldbuf = FALSE;\n        }\n        else\n        {\n            oldbuf = TRUE;\n            set_bufref(&bufref, buf);\n            if (!bufref_valid(&bufref) || curbuf != old_curbuf.br_buf)\n            {\n                goto theend;\n            }\n        }\n"
-	w70lit1      = "}\n"
 	w70lit2      = "        oldbuf = FALSE;\n"
 	w70lit3      = "    if (!other_file && !oldbuf)\n"
 	w70lit4      = "    if (!oldbuf)\n"
@@ -21,5 +20,4 @@ const (
 	w70lit10     = "            (void)open_buffer(FALSE, NULL, 0);\n"
 	w70lit11     = "    swap_exists_action = SEA_DIALOG;\n"
 	w70lit12     = "    check_swap_exists_action();\n"
-	w70lit13     = "{\n"
 )
