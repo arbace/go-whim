@@ -144,7 +144,7 @@ var w95Before = map[string]int{
 }
 
 var w95After = map[string]int{
-	"b_p_ro": 0, "b_p_fs": 0, "change_warning": 0, "did_set_readonly": 0,
+	"b_p_ro": 0, "b_p_fs": 0, "change_warning": 0, "did_set_readonly": 1,
 	"p_ro": 1, "p_fs": 1, "p_ur": 1, "p_write": 1, "p_wa": 1, "p_prompt": 1,
 	"b_did_warn": 1, "p_mod": 2, "did_set_modified": 3, "p_paste": 12,
 	"read_cmd_fd": 12, "vim_fsync": 3, "scriptin": 8, "redir_fd": 6,
@@ -315,19 +315,19 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"win_redr_status: the name-padding test's `|| b_p_ro` disjunct"},
 		{w95lit2, "", "and the block that appended [RO] to it -- nothing else reaches that " +
 			"indicator"},
-		// ---- C4. did_set_readonly, by name and with the reason
-		{w95lit3, "", "did_set_readonly's prototype"},
 	} {
 		if text, err = textEdit(text, e.Old, e.New, e.What, 1); err != nil {
 			return nil, err
 		}
 	}
+	// ---- C4. did_set_readonly, by name and with the reason: its definition.
+	// Its prototype, named by nothing once the row goes, is the sweep's.
 	if text, removed = cutil.DeleteDefinition(text, "did_set_readonly"); !removed {
 		return nil, p.Die("did_set_readonly has no definition to remove")
 	}
-	if k := mentions(text, "did_set_readonly"); k != 1 {
-		return nil, p.Die("did_set_readonly has %d mentions, expected 1 -- the row that names it as "+
-			"its callback, which part C5 removes", k)
+	if k := mentions(text, "did_set_readonly"); k != 2 {
+		return nil, p.Die("did_set_readonly has %d mentions, expected 2 -- its prototype, for the "+
+			"sweep, and the row that names it as its callback, which part C5 removes", k)
 	}
 	p.Say("did_set_readonly, BY NAME: it is 'readonly''s callback and the sweep would take " +
 		"it, but droplocal.py runs in this same edit and would find it still reading " +
