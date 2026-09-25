@@ -251,3 +251,5 @@ declared delta    20 records + stderr-moved, from whim-vim
 host boundary is a terminal, a clock, three allocations and eight signal calls — and
 §4c's remaining step is the one that takes the first and the last of those out
 together.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 100-102 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).

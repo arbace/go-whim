@@ -47,3 +47,5 @@ three-byte character.
 **None.** Folding a constant changes no behaviour, and the harnesses — with their
 multibyte motion, case and insertion cases — are the check. Measured: 114,275 →
 **112,439 lines**, libc symbols 84 → 82.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 53, in the group 51-53, whose phases share one purpose. There is no boundary q052 of its own any more; everything above still says what the steps do and why.

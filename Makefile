@@ -150,11 +150,11 @@ src/whim-vim.c: src/slim-vim.c force
 # plan and internal/steps' transformations, every boundary printed canonically.  It
 # writes whim-vim.c (and editor.go after it), and keeps every boundary in
 # .cache/boundaries/.  It proves the text, not the behaviour.  Measured: 170
-# 159 phases, 981 s, 75,539 lines.
+# 143 phases, 920 s, 75,539 lines.
 # whim-build-check, given those snapshots, proves every phase from its own
-# snapshot at once: 62 s at --jobs 32.
+# snapshot at once: 65 s at --jobs 32.
 .PHONY: whim-build whim-build-check
-whim-build:  ## the 159 phases in one process: slim-vim.c -> whim-vim.c
+whim-build:  ## the 143 phases in one process: slim-vim.c -> whim-vim.c
 	@printf '\n\033[1m  whim-vim\033[0m  from slim-vim.c: an editor with no runtime\n'
 	@go tool whim build --out src/whim-vim.c
 	@$(call drop-stale,src/whim-vim)
@@ -258,6 +258,21 @@ bin/whim: editor/editor.go force  ## the editor binary alone, from editor/
 bin/whim-java: force  ## the editor in Java: Editor.java generated, compiled, and a launcher
 	@go tool whim java
 
+# bin/jeditor.jar is the same classes as one executable jar, for
+# `java -jar bin/jeditor.jar [args]`.  Its manifest names the main class and
+# grants the terminal host its native access (Enable-Native-Access, JDK 22 and
+# later), so no flag is needed; the launcher's -XX flags only tune a short run
+# and have no manifest form, so java -jar runs without them.
+.PHONY: bin/jeditor.jar
+bin/jeditor.jar: bin/whim-java  ## the editor in Java as one jar: java -jar bin/jeditor.jar [args]
+	@printf 'Main-Class: Whim\nEnable-Native-Access: ALL-UNNAMED\n' > bin/java/manifest.txt
+	@jar --create --file $@ --manifest bin/java/manifest.txt -C bin/java/classes .
+	@printf '  %-12s %s bytes, the core in Java (jeditor/): java -jar %s\n' "$@" \
+	    "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" "$@"
+
+.PHONY: jeditor.jar
+jeditor.jar: bin/jeditor.jar  ## the same: make jeditor.jar writes bin/jeditor.jar
+
 .PHONY: whim-test-java
 whim-test-java:  ## the quick suite with the Java editor too, required to answer as the C does
 	@go tool whim test --java
@@ -265,7 +280,7 @@ whim-test-java:  ## the quick suite with the Java editor too, required to answer
 # ==== housekeeping
 .PHONY: clean
 clean:  ## remove the built binaries and editor.c
-	rm -f src/slim-vim src/whim-vim bin/whim bin/whim-java editor.c
+	rm -f src/slim-vim src/whim-vim bin/whim bin/whim-java bin/jeditor.jar editor.c
 	rm -rf bin/java
 
 .PHONY: clean-cache

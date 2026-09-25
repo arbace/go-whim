@@ -90,3 +90,5 @@ rewritten BUFWINLEAVE block, and an `O` that exercises the folded scroll path �
 calibrated that way and pass on q71.
 
 Measured: 92,749 → **92,110 lines**.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 73, in the group 72-73, whose phases share one purpose. There is no boundary q072 of its own any more; everything above still says what the steps do and why.

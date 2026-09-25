@@ -229,3 +229,5 @@ bytes**, which is the strongest kind this pipeline has — phase 99's, and the r
 phase was made the smallest of the four rather than the first convenient one.
 
 The transformation now lives in `crefactor/xform` (`NullptrUsize`).
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 107, in the group 105-107, whose phases share one purpose. There is no boundary q106 of its own any more; everything above still says what the steps do and why.

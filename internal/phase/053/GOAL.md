@@ -63,3 +63,5 @@ back unchanged.
 **110,672 lines**, libc symbols 82 → 81 (`lseek`, whose two callers were the
 retry's rewind and the help buffer's look at a file's first line — the second
 already unreachable, behind a `c = TRUE` its own test could never pass).
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 51-53 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).

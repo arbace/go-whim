@@ -215,3 +215,5 @@ and since phase 119 **so are the other two**: `getpid` and `kill` are `host_rais
 `musl_suspend()`'s, and the core's whole vocabulary of the seventeen is three English
 words inside string literals — the two `NGETTEXT` strings in `op_shift()` that say *time*,
 and `E222`'s *"already read from"*, measured on this file.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 121-122 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).

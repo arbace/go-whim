@@ -49,3 +49,5 @@ leaves the editor, where slim-vim stays open with the second window.
 **The twenty-seven rows that succeeded run bare**, read from the slim baseline.
 `:close`, `:hide`, `:sbmodified`, `:wincmd` and `:windo` already failed.
 Measured: 121,368 → **118,516 lines**, libc symbols 88 → 88.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 40, in the group 39-40, whose phases share one purpose. There is no boundary q039 of its own any more; everything above still says what the steps do and why.

@@ -166,3 +166,5 @@ declared delta    20 records + stderr-moved, from whim-vim
 **Nothing in the table moved but the line count and the function count**, which is what
 a phase that renames one function and adds another is entitled to move. `exit` is still
 `mch_exit`'s single call site; the next phase in this package is the one that takes it.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 102, in the group 100-102, whose phases share one purpose. There is no boundary q101 of its own any more; everything above still says what the steps do and why.

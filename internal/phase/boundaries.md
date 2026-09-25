@@ -5,11 +5,14 @@ The text after every phase -- the snapshots a whole `make whim-build` keeps in
 whim measure .cache/boundaries`.  The build's product was `whim-vim.c` byte for
 byte, and so was `q163`.
 
-**Since the compaction** (`doc/PIPELINE-COMPACTION.md`): 15 of these rows no
-longer have a snapshot of their own, and a whole build writes 155. The 8
-phases that edit nothing (82, 83, 84, 86, 99, 116, 123, 163) left the plan, so
-their rows equal the row before; 44-47, 143-144 and 153 run inside 48, 145 and
-154, so their rows are texts no build now stops at. The rest are unchanged.
+**Since the compaction** (`doc/PIPELINE-COMPACTION.md`): 31 of these rows no
+longer have a snapshot of their own. The 8 phases that edit nothing (82, 83,
+84, 86, 99, 116, 123, 163) left the plan, so their rows equal the row before;
+and the 14 same-purpose groups of §3d each run as one phase under their last
+number -- 39, 44-47, 51-52, 72, 100-101, 105-106, 117-118, 121, 143-144, 148,
+151, 153, 164 and 166-167 run inside the phase after them, so their rows are
+texts no build now stops at. The rest are unchanged. (Phases 170-173 came
+after this table was measured.)
 
 A row is the boundary AFTER that phase: after its sweep and canonical print,
 which every phase has now -- there are no stages, and every row parses.

@@ -19,3 +19,5 @@ such stores in general is dataflow through `goto`s, and there are six.
 **Measured:** staticcheck's default checks on `./editor` go to 0. Together
 with phase 164, the generator's own fixes and phase 149's widened rule, `go
 vet`, staticcheck and `gofmt -s` are all clean. `whim-test`: 45/45, C and Go.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 164-165 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).

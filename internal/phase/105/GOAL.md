@@ -236,3 +236,5 @@ va_start          1, in vim_snprintf
 omission. What it produced is not a symbol, a line count or a row but a *shape*: one
 `va_start` in the file, which is what the split needs and what nothing before it could
 have asserted.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 107, in the group 105-107, whose phases share one purpose. There is no boundary q105 of its own any more; everything above still says what the steps do and why.

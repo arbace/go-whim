@@ -17,3 +17,5 @@ allocation is dead (finding 9). Phase 149 folds them.
 runs out. The zero-byte path is an internal error that no input reaches. The
 check proves from the input that `host_alloc()` never returns NULL, and
 requires the new `lalloc()` body.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 149, in the group 148-149, whose phases share one purpose. There is no boundary q148 of its own any more; everything above still says what the steps do and why.

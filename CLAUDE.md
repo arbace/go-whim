@@ -251,7 +251,7 @@ the same `editor/editor.go` byte for byte either way.
 ```sh
 make                 # all: bin/whim, the editor (editor/ built), through whim-vim.c
                      # (produced only when slim-vim.c moved) and editor/editor.go
-make whim-build      # the 159 phases in one process: slim-vim.c -> whim-vim.c
+make whim-build      # the 143 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go or Editor.java that is not what the generator writes
 make whim-test        # the quick suite: 45 key sessions, required to behave as HEAD's does
@@ -273,7 +273,7 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time; `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 159 phases, **981 s**, 75,539 lines. A
+  before the reason. Measured: 143 phases, **920 s**, 75,539 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -291,7 +291,7 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **62 s** with `--jobs 32`, 158 links, bound by
+  committed `whim-vim.c`. Measured: **65 s** with `--jobs 32`, 142 links, bound by
   the machine's load and no longer by one link (phase 54 was 44 s alone), against 1,089 s in
   order; and a phase whose program was changed on purpose
   (a control) is named and fails the check. That is
@@ -335,10 +335,12 @@ ours belongs inside `.claude/`. Outside `make`, run with `TMPDIR=$PWD/.tmp`.
 ## The pipeline
 
 A phase is a function of the tree it is handed, so the pipeline is
-`p_N = f_N(p_{N-1})` -- 159 of them, in order, numbered 0-173: 8 phases that
-edit nothing any more are records only (a `GOAL.md`, no plan entry), and 44-48,
-143-145 and 153-154 each run as one phase under the group's last number
-(`doc/PIPELINE-COMPACTION.md`). A gap in the numbers is nothing to the driver,
+`p_N = f_N(p_{N-1})` -- 143 of them, in order, numbered 0-173: 8 phases that
+edit nothing any more are records only (a `GOAL.md`, no plan entry), and the
+14 same-purpose groups of `doc/PIPELINE-COMPACTION.md` §3d -- 39-40, 44-48,
+51-53, 72-73, 100-102, 105-107, 117-119, 121-122, 143-145, 148-149, 151-152,
+153-154, 164-165, 166-168 -- each run as one phase under the group's last
+number. A gap in the numbers is nothing to the driver,
 which pairs plan entries by position. **There is no memoize**: its key
 was the input boundary's digest and the implementation's together, so a moved
 `slim-vim.c` missed every entry by construction.

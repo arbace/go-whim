@@ -129,3 +129,5 @@ has no edit and check to run`. **`need 117` is measured not to be required** —
 run on phase 113's unswept output, 79,858 lines against the swept 79,776, and every anchor
 and every count held — and it could not be exercised anyway, a phase whose predecessor can
 never share its stage being handed a boundary either way.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 119, in the group 117-119, whose phases share one purpose. There is no boundary q117 of its own any more; everything above still says what the steps do and why.

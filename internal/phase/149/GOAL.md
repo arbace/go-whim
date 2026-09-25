@@ -26,3 +26,5 @@ returns only calls and names, never NULL or a literal. It requires the rule to
 fold nothing more.
 
 The transformation now lives in `crefactor/xform` (`NeverNull`), with vim's knobs in `internal/whim/xform.go`.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 148-149 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).

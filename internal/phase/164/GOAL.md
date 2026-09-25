@@ -20,3 +20,5 @@ and two tags, the Latin-1 case tables among them.
 and the Go editor answers all 45 as the C does.
 
 The transformation now lives in `crefactor/xform` (`DeadStmt`).
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 165, in the group 164-165, whose phases share one purpose. There is no boundary q164 of its own any more; everything above still says what the steps do and why.

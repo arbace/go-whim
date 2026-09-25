@@ -17,3 +17,5 @@ field left. The silent compile is the proof that no read takes a string where
 a number is. Its probes set every option to its default and list them
 (`:set all&` then `:set all`), list the terminal options, and reset one
 option. Each control moves.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 152, in the group 151-152, whose phases share one purpose. There is no boundary q151 of its own any more; everything above still says what the steps do and why.

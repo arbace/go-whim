@@ -169,3 +169,5 @@ or slim key**: the units and the edits of phases 103, 104, 108, 109, 110, 111, 1
 118, with all 107 whim unit, whim edit and slim phase keys byte-identical either side.
 `make whim-verify` (13 of 13) and `make slim-verify` (12 of 12) are the gate core rule 9 asks
 for, and both were green.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 117-119 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).

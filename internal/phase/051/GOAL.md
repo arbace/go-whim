@@ -30,3 +30,5 @@ and an `:s` that does not match there stops the `:wq` after it. The probe says
 ## The delta
 
 **None the harnesses record.** Measured: 114,399 → **114,275 lines**.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 53, in the group 51-53, whose phases share one purpose. There is no boundary q051 of its own any more; everything above still says what the steps do and why.

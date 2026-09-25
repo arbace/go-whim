@@ -170,3 +170,5 @@ different table:*, exit 1. Repairing another phase's program is a decision and n
 phase's to take, so it was reported; the fix bounds the loop by the phase's own number,
 and the rule it states is **a phase may assert anything it likes about the past; it may
 not assert that the future will not change what it measured.**
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 122, in the group 121-122, whose phases share one purpose. There is no boundary q121 of its own any more; everything above still says what the steps do and why.

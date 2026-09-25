@@ -208,3 +208,5 @@ boundary that is not a device:
 **`exit` is now a single call site**, `mch_exit`'s `exit(r);`, and that is what this phase
 was for as much as the symbol: the next phase in this package has one line to replace in
 one function rather than three in two.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 102, in the group 100-102, whose phases share one purpose. There is no boundary q100 of its own any more; everything above still says what the steps do and why.

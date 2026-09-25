@@ -58,3 +58,5 @@ updated with `|=` (`area_highlighting`), a member some table fills by position,
 a parameter of a function taken by address.
 
 The transformation now lives in `crefactor/xform` (`BoolRet`), with vim's knobs in `internal/whim/xform.go`.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 168, in the group 166-168, whose phases share one purpose. There is no boundary q166 of its own any more; everything above still says what the steps do and why.

@@ -247,7 +247,8 @@ var Plan = []Phase{
 			{Op: "retire", Args: []string{"args", "argglobal", "arglocal", "argadd", "argdelete", "argdedupe", "argedit", "argument", "sargument", "first", "sfirst", "rewind", "srewind", "last", "slast", "snext", "wnext", "Next", "sNext", "sprevious", "wNext", "wprevious", "all", "sall", "argdo"}},
 			{Op: "noarglist"},
 		}},
-	{N: 39, Name: "one window, always",
+	// Phases 39-40, merged: one window, then no window sizes.
+	{N: 40, Name: "one window, and no window sizes",
 		Steps: []Step{
 			{Op: "retire", Args: []string{"split", "vsplit", "new", "vnew", "sview", "close", "only", "resize", "wincmd", "windo", "syncbind", "hide", "sbuffer", "sbNext", "sball", "sbfirst", "sblast", "sbmodified", "sbnext", "sbprevious", "sbrewind", "ball", "unhide", "sunhide", "aboveleft", "leftabove", "belowright", "rightbelow", "topleft", "botright", "vertical", "horizontal"}},
 			{Op: "nowindows"},
@@ -255,9 +256,6 @@ var Plan = []Phase{
 			{Op: "dropoptions", Args: []string{"--local", "scrollbind", "cursorbind", "winfixbuf"}},
 			{Op: "dropoptions", Args: []string{"--strict", "previewheight"}},
 			{Op: "dropoptions", Args: []string{"--strict", "--local", "previewwindow"}},
-		}},
-	{N: 40, Name: "no window sizes to set",
-		Steps: []Step{
 			{Op: "nowinsizes"},
 			{Op: "dropoptions", Args: []string{"splitbelow", "splitright", "splitkeep", "equalalways", "eadirection", "winheight", "winminheight", "winwidth", "winminwidth", "helpheight"}},
 			{Op: "dropoptions", Args: []string{"--local", "winfixheight", "winfixwidth"}},
@@ -309,16 +307,11 @@ var Plan = []Phase{
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_bin", "b_p_ff", "b_p_fixeol", "b_p_tx"}},
 		}},
-	{N: 51, Name: "a byte that is not UTF-8 is kept as it is",
+	// Phases 51-53, merged: the encoding, reduced to UTF-8 in three steps.
+	{N: 53, Name: "UTF-8: the bytes kept, UTF-8 only, no conversion",
 		Steps: []Step{
 			{Op: "keepbytes"},
-		}},
-	{N: 52, Name: "UTF-8 is not a question",
-		Steps: []Step{
 			{Op: "utf8only"},
-		}},
-	{N: 53, Name: "no conversion layer, no 'encoding'",
-		Steps: []Step{
 			{Op: "noconv"},
 			{Op: "dropoptions", Args: []string{"encoding"}},
 			{Op: "dropoptions", Args: []string{"--local", "makeencoding"}},
@@ -432,13 +425,11 @@ var Plan = []Phase{
 			{Op: "edit", Args: []string{"whim71"}},
 			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
-	{N: 72, Name: "one window, one tabpage, structurally",
+	// Phases 72-73, merged: one window/tab page structurally, then one frame.
+	{N: 73, Name: "one window and tab page structurally, and one frame",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim72"}},
 			{Op: "cmdidxs", Args: []string{"--check"}},
-		}},
-	{N: 73, Name: "one frame",
-		Steps: []Step{
 			{Op: "edit", Args: []string{"whim73"}},
 			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
@@ -543,16 +534,11 @@ var Plan = []Phase{
 			{Op: "edit", Args: []string{"whim98"}},
 		}},
 	// 99, the includes nothing names: a record (internal/phase/099/GOAL.md); it edits nothing now.
-	{N: 100, Name: "the deadly ladder that cannot run",
+	// Phases 100-102, merged: the core's way out: the deadly ladder, vim_main, no stopping the process.
+	{N: 102, Name: "the deadly ladder, `vim_main`, and a core that cannot stop the process",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim100"}},
-		}},
-	{N: 101, Name: "`main()` is demoted to `vim_main()`",
-		Steps: []Step{
 			{Op: "edit", Args: []string{"whim101"}},
-		}},
-	{N: 102, Name: "the core can no longer stop the process",
-		Steps: []Step{
 			{Op: "edit", Args: []string{"whim102"}},
 		}},
 	{N: 103, Name: "the signals and the terminal are the host's",
@@ -563,16 +549,11 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim104"}},
 		}},
-	{N: 105, Name: "the variadic collapse",
+	// Phases 105-107, merged: C23 spelling, in three steps.
+	{N: 107, Name: "C23 spelling: the variadic collapse, `nullptr` and `usize`, the attributes",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim105"}},
-		}},
-	{N: 106, Name: "`nullptr` and `usize`",
-		Steps: []Step{
 			{Op: "edit", Args: []string{"whim106", "--casts", "1"}},
-		}},
-	{N: 107, Name: "the attributes",
-		Steps: []Step{
 			{Op: "edit", Args: []string{"whim107"}},
 		}},
 	{N: 108, Name: "the plain host calls",
@@ -608,28 +589,21 @@ var Plan = []Phase{
 			{Op: "edit", Args: []string{"whim115"}},
 		}},
 	// 116, the terminal table is asked with `+set term=`, not `$TERM`: a record (internal/phase/116/GOAL.md); it edits nothing now.
-	{N: 117, Name: "the core stops reallocating",
+	// Phases 117-119, merged: the core calls nothing but the host.
+	{N: 119, Name: "the core calls nothing but the host",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim117"}},
-		}},
-	{N: 118, Name: "the core calls nothing but the host",
-		Steps: []Step{
 			{Op: "edit", Args: []string{"whim118", "@state"}},
-		}},
-	{N: 119, Name: "the core names no libc function at all",
-		Steps: []Step{
 			{Op: "edit", Args: []string{"whim119", "@state"}},
 		}},
 	{N: 120, Name: "the degenerate unions go",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim120", "--degenerate", "1", "--genuine", "1"}},
 		}},
-	{N: 121, Name: "the eight terminal names go, leaving two",
+	// Phases 121-122, merged: the terminal names, then -T.
+	{N: 122, Name: "the terminal names, and `-T`",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim121"}},
-		}},
-	{N: 122, Name: "`-T {term}` goes, and the command line is `+{command}`",
-		Steps: []Step{
 			{Op: "edit", Args: []string{"whim122"}},
 		}},
 	// 123, the instrument could not see the text layer: a record (internal/phase/123/GOAL.md); it edits nothing now.
@@ -724,24 +698,20 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim147"}},
 		}},
-	{N: 148, Name: "allocation cannot fail",
+	// Phases 148-149, merged: allocation cannot fail, then its branches fold.
+	{N: 149, Name: "allocation cannot fail, and its branches fold",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim148"}},
-		}},
-	{N: 149, Name: "the allocation-failure branches fold",
-		Steps: []Step{
 			{Op: "edit", Args: []string{"whim149", "--at-least", "80"}},
 		}},
 	{N: 150, Name: "the regexp stack is three typed stacks",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim150"}},
 		}},
-	{N: 151, Name: "the option table's defaults are typed",
+	// Phases 151-152, merged: the option table typed: its defaults, then its variables.
+	{N: 152, Name: "the option table's defaults and its variables, typed",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim151"}},
-		}},
-	{N: 152, Name: "the option variables are typed",
-		Steps: []Step{
 			{Op: "edit", Args: []string{"whim152"}},
 		}},
 	// Phases 153-154, merged: one function, its cast and then its NULL write.
@@ -783,24 +753,17 @@ var Plan = []Phase{
 			{Op: "edit", Args: []string{"whim162"}},
 		}},
 	// 163, the product is in the one canonical spelling: a record (internal/phase/163/GOAL.md); it edits nothing now.
-	{N: 164, Name: "no statement follows a jump",
+	// Phases 164-165, merged: what the Go's linters found dead, in two steps.
+	{N: 165, Name: "what the Go's linters found dead",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim164"}},
-		}},
-	{N: 165, Name: "no store nothing reads",
-		Steps: []Step{
 			{Op: "edit", Args: []string{"whim165"}},
 		}},
-	{N: 166, Name: "a question returns bool",
+	// Phases 166-168, merged: for the Go: bool, key names, goto as return.
+	{N: 168, Name: "`bool`, key names, and `goto` as `return`",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim166"}},
-		}},
-	{N: 167, Name: "a key code has a name",
-		Steps: []Step{
 			{Op: "edit", Args: []string{"whim167"}},
-		}},
-	{N: 168, Name: "a goto whose label returns is that return",
-		Steps: []Step{
 			{Op: "edit", Args: []string{"whim168"}},
 		}},
 	{N: 169, Name: "the system headers nothing needs",

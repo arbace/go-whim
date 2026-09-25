@@ -30,3 +30,5 @@ it shared with `'winheight'`, and the sweep takes both.
 twelve names is refused by `:set` now, which the phase probes against a
 `:set ignorecase` control. Measured: 118,516 → **118,130 lines**, libc symbols
 88 → 88.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 39-40 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).

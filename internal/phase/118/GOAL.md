@@ -209,3 +209,5 @@ here, `time` at 32 and `gettimeofday` at 28, and `__errno_location` is gcc's own
 host's `errno`. **The two that are not are `getpid` and `kill`.** What the core still does
 for itself is one re-raise of a deadly signal and one `getpid()` that fills a `b0_pid`
 nothing reads.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 119, in the group 117-119, whose phases share one purpose. There is no boundary q118 of its own any more; everything above still says what the steps do and why.

@@ -29,3 +29,5 @@ enumerator as a Go constant, so the Go says `case K_INS, K_KINS:` where it said
 as `K_X`, 6 mechanically. The Go spells a key code out 24 times, where it
 did 707: the definitions and the run-time forms. vet, staticcheck and
 `gofmt -s` stay at 0. `whim-test`: 45/45, C and Go.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 168, in the group 166-168, whose phases share one purpose. There is no boundary q167 of its own any more; everything above still says what the steps do and why.
