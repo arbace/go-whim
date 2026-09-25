@@ -39,6 +39,8 @@ func runBuild(args []string) int {
 			check = true
 		case "--keep-going":
 			o.KeepGoing = true
+		case "-v", "--verbose":
+			o.Verbose = true
 		case "--jobs":
 			i++
 			n, err := strconv.Atoi(args[min(i, len(args)-1)])

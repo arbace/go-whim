@@ -84,9 +84,15 @@ type Options struct {
 	// It was `0 or less`, which made `--to 0` -- seed and stop -- run the whole
 	// pipeline instead, and a caller measuring the seed got the product back
 	// with no sign anything was wrong.
-	To   int
-	W    io.Writer // the report
-	Work string    // a directory to sweep in; a temporary one when empty
+	To int
+	W  io.Writer // the report
+	// Verbose writes every step's report as it runs: each act, each check and
+	// the sweep's tally.  Without it a phase is ONE line -- its name, how many
+	// acts its steps reported, what its edits and the sweep took and what is
+	// left -- and the full report is written only when the phase refuses,
+	// where it is the reason's context.
+	Verbose bool
+	Work    string // a directory to sweep in; a temporary one when empty
 
 	// KeepGoing is for measuring, never for producing: a phase that refuses is
 	// recorded, its text change dropped, and the run carries on with the text

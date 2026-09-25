@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -130,9 +131,10 @@ func (c *Config) Check(o *Options, jobs int) ([]byte, error) {
 	}
 
 	type result struct {
-		n   int
-		err error
-		log []byte
+		n       int
+		err     error
+		log     []byte
+		refused bool // the phase stopped, as against ran and gave other bytes
 	}
 	var (
 		mu      sync.Mutex
@@ -150,8 +152,10 @@ func (c *Config) Check(o *Options, jobs int) ([]byte, error) {
 			var log bytes.Buffer
 			in, err := os.ReadFile(c.snapPath(prev.N))
 			var out, want []byte
+			refused := false
 			if err == nil {
 				out, err = c.Advance(p, in, &log)
+				refused = err != nil
 			}
 			if err == nil {
 				want, err = os.ReadFile(c.snapPath(p.N))
@@ -162,14 +166,20 @@ func (c *Config) Check(o *Options, jobs int) ([]byte, error) {
 			}
 			if err != nil {
 				mu.Lock()
-				results = append(results, result{p.N, err, log.Bytes()})
+				results = append(results, result{p.N, err, log.Bytes(), refused})
 				mu.Unlock()
 			}
 		}()
 	}
 	wg.Wait()
 	if len(results) > 0 {
+		// In phase order, whatever order they finished in; a phase that
+		// refused shows the report its steps wrote first, as a run does.
+		sort.Slice(results, func(i, j int) bool { return results[i].n < results[j].n })
 		for _, r := range results {
+			if r.refused || o.Verbose {
+				o.W.Write(r.log)
+			}
 			fmt.Fprintf(o.W, "  phase %-6d %v\n", r.n, r.err)
 		}
 		return nil, fmt.Errorf("check: %d of %d phases do not reproduce their snapshot", len(results), len(c.Plan)-1)

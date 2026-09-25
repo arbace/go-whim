@@ -222,7 +222,10 @@ make help            # every target, with a line each
   after every phase** (there are no stages), and **the canonical print of what is left**
   (`crefactor/cemit`: one spelling per construct, and NO COMMENTS, of any kind),
   so every boundary that is C is in the one spelling phase 0 seeds with -- applied
-  in one process, in memory. Measured: 170 phases, **1,070 s**, 75,396 lines. A
+  in one process, in memory. **Its log is a line a phase** -- the name, the acts its
+  steps reported, the lines its edits and the sweep took, the lines left, the
+  time; `-v` writes every act, and a phase that refuses writes its whole report
+  before the reason. Measured: 170 phases, **1,070 s**, 75,396 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed

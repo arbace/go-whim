@@ -63,18 +63,43 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 			continue
 		}
 		start := time.Now()
-		fmt.Fprintf(o.W, "  phase %-6d %s\n", p.N, p.Name)
+		// rep is the phase's own report: o.W itself when verbose, and
+		// otherwise held back, and written only if the phase refuses.
+		rep, held := o.W, (*bytes.Buffer)(nil)
+		if o.Verbose {
+			fmt.Fprintf(o.W, "  phase %-6d %s\n", p.N, p.Name)
+		} else {
+			held = &bytes.Buffer{}
+			rep = held
+		}
+		refused := func() {
+			if held != nil {
+				fmt.Fprintf(o.W, "  phase %-6d %s\n", p.N, p.Name)
+				o.W.Write(held.Bytes())
+				held.Reset()
+			}
+		}
+		before := bytes.Count(text, []byte("\n"))
 		if p.Seed {
-			out, err := Seed(src, o.W)
+			out, err := Seed(src, rep)
 			if err != nil {
+				refused()
 				return nil, fmt.Errorf("phase %d: %w", p.N, err)
 			}
 			text = out
+			before = bytes.Count(src, []byte("\n"))
 		}
 		if text == nil {
 			return nil, fmt.Errorf("build: phase %d runs before the input was seeded", p.N)
 		}
 		if p.NoSource {
+			if held != nil {
+				summary := "no edit"
+				if p.Seed {
+					summary = fmt.Sprintf("%d lines from %d", bytes.Count(text, []byte("\n")), before)
+				}
+				fmt.Fprintf(o.W, "  phase %-6d %s: %s\n", p.N, p.Name, summary)
+			}
 			if err := c.keep(o, p.N, text); err != nil {
 				return nil, err
 			}
@@ -84,7 +109,11 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		out, err := c.RunPhase(p, text, scratch, o.W)
+		out, err := c.RunPhase(p, text, scratch, rep)
+		acts := 0
+		if held != nil {
+			acts = bytes.Count(held.Bytes(), []byte("\n"))
+		}
 		switch {
 		case err == nil:
 			text = out
@@ -98,31 +127,39 @@ func (c *Config) Run(o *Options) ([]byte, error) {
 			if strings.TrimSpace(why) == "" {
 				why = "(it printed its reason above)"
 			}
+			refused()
 			fmt.Fprintf(o.W, "  REFUSED %-4d %s\n", p.N, why)
 			o.Refused = append(o.Refused, fmt.Sprintf("%d: %s", p.N, why))
 		default:
 			os.RemoveAll(scratch)
+			refused()
 			return nil, fmt.Errorf("phase %d (%s): %w", p.N, p.Name, err)
 		}
+		edited := bytes.Count(text, []byte("\n"))
 		// The sweep and the canonical print --
 		// also after a refusal, so the text handed on is canonical either way.
-		finished, err := c.finish(text, scratch, o.W)
+		finished, err := c.finish(text, scratch, rep)
 		os.RemoveAll(scratch)
 		switch {
 		case err == nil:
 			text = finished
 		case o.KeepGoing:
+			refused()
 			fmt.Fprintf(o.W, "  REFUSED %-4d %v\n", p.N, err)
 			o.Refused = append(o.Refused, fmt.Sprintf("%d: %v", p.N, err))
 		default:
+			refused()
 			return nil, fmt.Errorf("phase %d (%s): %w", p.N, p.Name, err)
 		}
 		if err := c.keep(o, p.N, text); err != nil {
 			return nil, err
 		}
-		if d := time.Since(start); d > time.Second {
-			fmt.Fprintf(o.W, "  phase %-6d %ds, %d lines\n", p.N, int(d.Seconds()),
-				bytes.Count(text, []byte("\n")))
+		d := time.Since(start)
+		after := bytes.Count(text, []byte("\n"))
+		if held != nil {
+			fmt.Fprintf(o.W, "  phase %-6d %s: %s\n", p.N, p.Name, summary(acts, before, edited, after, d))
+		} else if d > time.Second {
+			fmt.Fprintf(o.W, "  phase %-6d %ds, %d lines\n", p.N, int(d.Seconds()), after)
 		}
 	}
 	// The work tree is left holding the source the pipeline leaves.
@@ -206,4 +243,32 @@ func (c *Config) keep(o *Options, n int, text []byte) error {
 		return err
 	}
 	return os.WriteFile(filepath.Join(o.Keep, fmt.Sprintf("q%03d.c", n)), text, 0o644)
+}
+
+// summary is a phase in one line: how many acts its steps reported, the lines
+// its edits and then the sweep and canonical print took (a negative count is
+// lines added), the lines left, and the time when it is a second or more.
+//
+//	54 acts, -1203 edited, -91 swept; 84059 lines, 9s
+func summary(acts, before, edited, after int, d time.Duration) string {
+	noun := "acts"
+	if acts == 1 {
+		noun = "act"
+	}
+	s := fmt.Sprintf("%d %s, %s edited, %s swept; %d lines", acts, noun, took(before-edited), took(edited-after), after)
+	if d >= time.Second {
+		s += fmt.Sprintf(", %ds", int(d.Seconds()))
+	}
+	return s
+}
+
+// took is a count of lines removed, signed: -91 for 91 removed, +3 for 3 added.
+func took(n int) string {
+	if n == 0 {
+		return "0"
+	}
+	if n > 0 {
+		return fmt.Sprintf("-%d", n)
+	}
+	return fmt.Sprintf("+%d", -n)
 }
