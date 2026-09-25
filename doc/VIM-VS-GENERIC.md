@@ -1,5 +1,17 @@
 # Vim-specific or generic C: a survey of go-whim's phases and machinery
 
+**Done since:** the separation of §4, steps 1-8, 2026-09-25, each step
+byte-identical under `whim-build-check` (and gen's under `whim-editor-check` and
+`whim test`). The library is `internal/crefactor/`: `pipeline` (the driver,
+told through a Config), `text` (cutil and the verb set), `xform` (the eleven
+generic transformations; 164 and 168 share `terminates.go`) and `togo` (the
+C-to-Go translator). It imports only `internal/cc`, `cemit` and `sweep`. What it
+is told about vim lives in `internal/whim` (`profile.go`, `xform.go`,
+`analysis.go`, `gen.go`) and `internal/whim/vimtext`. `internal/edit`,
+`internal/cutil` and `internal/gen` remain as forwarding layers so that no
+phase package had to change. reach, ccx and dead take their names as options
+but were not moved. Step 9, a module of its own, is not done (`AGENDA.md`).
+
 **Since written:** two side findings were checked. Its claim that CLAUDE.md still said 164 phases, no test suite and a `Sweep` field is wrong: CLAUDE.md says none of those. Its finding that the sweep documented an `ml_recover` guard it did not implement was right, and the guard is implemented now: phases 1-18 had been deleting struct members while the editor could still read a swap file. The throwaway instruments it names under `.tmp/survey/` are not tracked.
 
 2026-09-25. This survey reads the code and changes nothing. It was measured on commit

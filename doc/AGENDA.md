@@ -7,17 +7,11 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 ## Queued, measured, not started
 
 
-- **The generic C refactorings, separated from vim's** (`doc/VIM-VS-GENERIC.md`).
-  12 phases are generic C, 93 mixed (most apply a generic kernel to targets vim
-  chooses), 57 vim-specific. The proposal: a library `internal/crefactor/`
-  (printer, sweep, text verbs, transformations, analysis, pipeline, Go
-  generation) and a vim side holding the plan, the cutters and one `Profile`
-  value that passes in what the library must not hard-code: the sweep's roots,
-  where the core ends, the truth constants, the allocator and free functions.
-  Nine steps, each byte-identical under `whim-build-check`, about 8-11 days;
-  the first is the sweep's roots as a parameter. Also found: the canonical
-  printer drops `#define` and resolves `#if` silently, and phases 164 and 168
-  each have their own test of whether a statement ends in a jump.
+- **`crefactor` as a Go module of its own** (`doc/VIM-VS-GENERIC.md` §4,
+  step 9, optional). Steps 1-8 are done: `internal/crefactor/{pipeline,text,
+  xform,togo}` import nothing of whim's -- only `internal/cc`, `cemit` and
+  `sweep`, which would have to move with it. What it buys: a boundary the
+  compiler enforces rather than one kept by review. Nothing needs it yet.
 
 ## Known stale, not yet scoped
 

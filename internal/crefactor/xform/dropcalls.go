@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/edit"
+	ctext "github.com/arbace/go-whim/internal/crefactor/text"
 )
 
 // DropCallsKnobs is what DropCalls is told.
@@ -55,7 +55,7 @@ func DropCallRule(indent, arg string) (repl string, ok bool) {
 // alone on its line, of a function that does nothing (k.Funcs).  A call goes
 // when its argument has no side effect, and becomes its one ++ or -- when
 // that is its only effect; any other argument refuses.  A local then only
-// given values goes with its stores (edit.DeadStores), and the host's calls
+// given values goes with its stores (ctext.DeadStores), and the host's calls
 // are redirected as k.Redirect says.
 //
 // Its arguments are counts it requires exactly: `--calls N`, the calls that
@@ -69,7 +69,7 @@ func DropCalls(k DropCallsKnobs) Step {
 	call := regexp.MustCompile(`^([ \t]*)(` + strings.Join(alt, "|") + `)\((.*)\);[ \t]*$`)
 	named := strings.Join(k.Funcs, "(), ") + "()"
 	return func(text []byte, args []string, w io.Writer) ([]byte, error) {
-		p := edit.Ph{Tag: "free", W: w}
+		p := ctext.Ph{Tag: "free", W: w}
 		f, err := flags(p.Tag, args, "--calls", "--redirected")
 		if err != nil {
 			return nil, err
@@ -99,7 +99,7 @@ func DropCalls(k DropCallsKnobs) Step {
 			}
 			out.WriteString(repl)
 		}
-		swept, took := edit.DeadStores(out.Bytes())
+		swept, took := ctext.DeadStores(out.Bytes())
 		out.Reset()
 		out.Write(swept)
 		host := text[len(core):]

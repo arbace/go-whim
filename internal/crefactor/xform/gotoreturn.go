@@ -6,7 +6,7 @@ import (
 	"sort"
 
 	"github.com/arbace/go-whim/internal/cc"
-	"github.com/arbace/go-whim/internal/edit"
+	ctext "github.com/arbace/go-whim/internal/crefactor/text"
 	"github.com/arbace/go-whim/internal/sweep"
 )
 
@@ -24,7 +24,7 @@ import (
 // rule).
 func GotoReturn() Step {
 	return func(text []byte, args []string, w io.Writer) ([]byte, error) {
-		p := edit.Ph{Tag: "gotoreturn", W: w}
+		p := ctext.Ph{Tag: "gotoreturn", W: w}
 		if _, err := flags(p.Tag, args); err != nil {
 			return nil, err
 		}
@@ -32,7 +32,7 @@ func GotoReturn() Step {
 	}
 }
 
-func gotoReturn(p edit.Ph, text []byte) ([]byte, error) {
+func gotoReturn(p ctext.Ph, text []byte) ([]byte, error) {
 	const path = file
 	ast, err := parse(text)
 	if err != nil {

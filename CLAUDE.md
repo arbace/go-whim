@@ -146,8 +146,11 @@ internal/crefactor/ the generic C machinery (doc/VIM-VS-GENERIC.md §4), knowing
                    set -- E, every act counted (driver.go, blocks.go); Ph, the
                    driver of the phases whose cut is a computation; the counted
                    acts both and internal/cut's `ed` are written on (counted.go);
-                   and in shared.go the generic helpers more than one phase uses
-internal/whim/     what the generic side is told about vim: profile.go, xform.go,
+                   and in shared.go the generic helpers more than one phase uses.
+                   togo/: the C-to-Go translator internal/gen runs
+internal/whim/     what the generic side is told about vim: profile.go (the
+                   sweep), xform.go, analysis.go (dead's roots, reach's and ccx's
+                   names), gen.go (togo's profile, whim.Gen),
                    and vimtext/ (what more than one phase uses that knows vim: the
                    buffer walks, Key, the command table's shapes and residue
                    check, the W80-W127 helpers)

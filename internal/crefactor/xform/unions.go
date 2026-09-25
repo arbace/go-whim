@@ -7,8 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	ctext "github.com/arbace/go-whim/internal/crefactor/text"
 )
 
 var (
@@ -64,7 +63,7 @@ type unEdit struct {
 // and the members counted at depth 1, so it states a property of the file rather
 // than a memory of one.
 func unions(text []byte, w io.Writer, minDegenerate, minGenuine int) ([]byte, error) {
-	p := edit.Ph{Tag: "unions", W: w}
+	p := ctext.Ph{Tag: "unions", W: w}
 	t := string(text)
 
 	blankRuns := func(s string) int {
@@ -109,7 +108,7 @@ func unions(text []byte, w io.Writer, minDegenerate, minGenuine int) ([]byte, er
 		"is the %d lines above the first of them", len(d), bound+1, bound)
 
 	// ---- 1. the literals ------------------------------------------------------
-	spans, err := edit.LiteralSpans(p, text)
+	spans, err := ctext.LiteralSpans(p, text)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +220,7 @@ func unions(text []byte, w io.Writer, minDegenerate, minGenuine int) ([]byte, er
 		mm := unDecl.FindStringSubmatch(decl)
 		if mm == nil || strings.Contains(decl, "\n") {
 			return nil, p.Die("the single member of `%s` is not one `<type> <name>;` on one line: %s",
-				u.Name, cutil.PyRepr(decl))
+				u.Name, ctext.PyRepr(decl))
 		}
 		u.member = mm[2]
 		u.replacement = u.indent + mm[1] + u.Name + ";"
@@ -231,7 +230,7 @@ func unions(text []byte, w io.Writer, minDegenerate, minGenuine int) ([]byte, er
 			switch {
 			case inLiteral(m[0]):
 				leftover = append(leftover, fmt.Sprintf("line %d %s",
-					lineOf(t, m[0]), cutil.PyRepr("inside a literal")))
+					lineOf(t, m[0]), ctext.PyRepr("inside a literal")))
 			case u.start <= m[0] && m[0] < u.end:
 				// its own declaration, which this edit rewrites
 			case strings.HasPrefix(t[m[1]:], "."+u.member) &&
@@ -248,7 +247,7 @@ func unions(text []byte, w io.Writer, minDegenerate, minGenuine int) ([]byte, er
 					hi = len(t)
 				}
 				leftover = append(leftover, fmt.Sprintf("line %d %s",
-					lineOf(t, m[0]), cutil.PyRepr(strings.ReplaceAll(t[lo:hi], "\n", "|"))))
+					lineOf(t, m[0]), ctext.PyRepr(strings.ReplaceAll(t[lo:hi], "\n", "|"))))
 			}
 		}
 		if len(leftover) > 0 {
@@ -258,7 +257,7 @@ func unions(text []byte, w io.Writer, minDegenerate, minGenuine int) ([]byte, er
 			}
 			return nil, p.Die("`%s` has %d mention%s that is neither its own declaration nor a `.%s` access "+
 				"on it, so this step may not rewrite it: %s",
-				u.Name, len(leftover), s, u.member, strings.Join(edit.First(leftover, 4), "; "))
+				u.Name, len(leftover), s, u.member, strings.Join(ctext.First(leftover, 4), "; "))
 		}
 		if acc == 0 {
 			return nil, p.Die("`%s` has no `.%s` access anywhere, so the field this step would promote is "+

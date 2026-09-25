@@ -6,7 +6,7 @@ import (
 	"sort"
 
 	"github.com/arbace/go-whim/internal/cc"
-	"github.com/arbace/go-whim/internal/edit"
+	ctext "github.com/arbace/go-whim/internal/crefactor/text"
 	"github.com/arbace/go-whim/internal/sweep"
 )
 
@@ -21,7 +21,7 @@ import (
 // them.
 func DeadStmt() Step {
 	return func(text []byte, args []string, w io.Writer) ([]byte, error) {
-		p := edit.Ph{Tag: "nodeadstmt", W: w}
+		p := ctext.Ph{Tag: "nodeadstmt", W: w}
 		if _, err := flags(p.Tag, args); err != nil {
 			return nil, err
 		}
@@ -29,7 +29,7 @@ func DeadStmt() Step {
 	}
 }
 
-func deadStmt(p edit.Ph, text []byte) ([]byte, error) {
+func deadStmt(p ctext.Ph, text []byte) ([]byte, error) {
 	const path = file
 	ast, err := parse(text)
 	if err != nil {

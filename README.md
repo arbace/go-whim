@@ -121,8 +121,13 @@ internal/        the cutters, the sweep, the canonical printer (cemit), the plan
                  internal/phase/NNN/ (GOAL.md, and edit.go where its cut is a
                  program) and internal/phase/STAGES.md, the record of the
                  stages there were
+internal/crefactor/ the generic C refactoring library, knowing no code base:
+                 pipeline (the driver), text (the text verbs), xform (generic
+                 transformations), togo (the C-to-Go translator)
+internal/whim/   what that library is told about vim: roots, names, knobs
 editor/          the core transpiled into Go, with its runtime and host
-internal/gen/    the generator of editor/editor.go (go tool whim gen), splice/
+internal/gen/    the generator of editor/editor.go (go tool whim gen: crefactor/togo
+                 with whim.Gen), splice/
                  (whim splice: the emitted bodies measured in a copy of
                  editor/), pre/ (whim pre: ccx's reports on an editor.c),
                  sigs.md, CONVENTIONS.md and FINDINGS.md
@@ -132,7 +137,7 @@ doc/             GOALS.md (what holds for every phase), AGENDA.md (what is not
                  editing the AST: not taken, to revisit), GO-IDIOMS.md (how the Go
                  editor could be idiomatic, measured and ranked), DSL.md (a language
                  for phase edits: partially, as Go verbs) and VIM-VS-GENERIC.md (which
-                 steps are generic C, and how to separate them)
+                 steps are generic C, and how to separate them: done)
 src/             the input and the product, their binaries and digests:
                  whim-vim.c (the product, tracked; make editor.c cuts the core
                  out of it), slim-vim.c (the input, fetched, not tracked),

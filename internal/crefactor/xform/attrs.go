@@ -7,8 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
-	"github.com/arbace/go-whim/internal/edit"
+	ctext "github.com/arbace/go-whim/internal/crefactor/text"
 )
 
 var (
@@ -46,8 +45,8 @@ func Attrs() Step {
 }
 
 func attrs(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed
-	p := edit.Ph{Tag: "attrs", W: w}
+	nInc := ctext.IncludeCount(text) // the headers it was handed
+	p := ctext.Ph{Tag: "attrs", W: w}
 
 	// ---- 0. the file this edit was written against ----------------------------
 	// `[[fallthrough]]` is a STATEMENT and not a directive, so this step must
@@ -90,7 +89,7 @@ func attrs(text []byte, w io.Writer) ([]byte, error) {
 		"`[[` at zero occurrences", nInc, nInc)
 
 	// ---- 1. the literals ------------------------------------------------------
-	spans, err := edit.LiteralSpans(p, text)
+	spans, err := ctext.LiteralSpans(p, text)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +119,7 @@ func attrs(text []byte, w io.Writer) ([]byte, error) {
 	}
 	var extra []string
 	for k := range kinds {
-		if !edit.Contains(atKinds, k) {
+		if !ctext.Contains(atKinds, k) {
 			extra = append(extra, k)
 		}
 	}
@@ -198,11 +197,11 @@ func attrs(text []byte, w io.Writer) ([]byte, error) {
 			return nil, p.Die("the `unused` at line %d is not inside a function's parameter list -- what "+
 				"precedes its innermost `(` is %s, which is not a function name, so this "+
 				"may be an attribute on a variable, an object or a field and the step has "+
-				"no decision for those", i+1, cutil.PyRepr(atSlice(l, j)))
+				"no decision for those", i+1, ctext.PyRepr(atSlice(l, j)))
 		}
 		if lines[i+1] != "{" {
 			return nil, p.Die("line %d holds an `unused` but is not a function DEFINITION header: the "+
-				"line below it is %s and not `{`", i+1, cutil.PyRepr(lines[i+1]))
+				"line below it is %s and not `{`", i+1, ctext.PyRepr(lines[i+1]))
 		}
 	}
 	p.Sayf("%d `__attribute__((unused))`, ALL of them in the parameter list of a function "+
