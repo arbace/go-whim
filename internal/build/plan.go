@@ -364,7 +364,7 @@ var Plan = []Phase{
 	{N: 58, Name: "no language mappings",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim58"}},
-			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
+			{Op: "cmdidxs", Args: []string{"--check"}},
 			{Op: "dropoptions", Args: []string{"--local", "iminsert", "imsearch"}},
 			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_iminsert", "b_p_imsearch"}},
@@ -400,7 +400,7 @@ var Plan = []Phase{
 	{N: 63, Name: "no jump list",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim63"}},
-			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
+			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 64, Name: "no formatting, comment or nroff-macro options",
 		Steps: []Step{
@@ -408,9 +408,7 @@ var Plan = []Phase{
 			{Op: "dropoptions", Args: []string{"paragraphs", "sections"}},
 			{Op: "dropoptions", Args: []string{"--local", "formatoptions", "formatlistpat", "comments"}},
 			{Op: "sweep"},
-			{Op: "droplocal", Args: []string{"b_p_fo"}},
-			{Op: "droplocal", Args: []string{"b_p_flp"}},
-			{Op: "droplocal", Args: []string{"b_p_com"}},
+			{Op: "droplocal", Args: []string{"b_p_fo", "b_p_flp", "b_p_com"}},
 		}},
 	{N: 65, Name: "no rot13, no operator function, no empty key handler",
 		Steps: []Step{
@@ -419,7 +417,7 @@ var Plan = []Phase{
 	{N: 66, Name: "no sentences, paragraphs, sections, methods, #if blocks or comment blocks",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim66"}},
-			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
+			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 67, Name: "no mouse, no spell plumbing, no write-only flags",
 		Steps: []Step{
@@ -428,62 +426,62 @@ var Plan = []Phase{
 	{N: 68, Name: "one window, structurally",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim68"}},
-			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
+			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 69, Name: "one file argument, and no argument list",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim69"}},
-			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
+			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 70, Name: ":e reloads in place, and there is no swap file",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim70"}},
-			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
+			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 71, Name: "one buffer, structurally",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim71"}},
-			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
+			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 72, Name: "one window, one tabpage, structurally",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim72"}},
-			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
+			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 73, Name: "one frame",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim73"}},
-			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
+			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 74, Name: "no file marks",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim74"}},
-			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
+			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 75, Name: "no autocommands",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim75"}},
-			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
+			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 76, Name: "one regexp engine, so no retry",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim76"}},
-			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
+			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 77, Name: "no buffer-name argument matching",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim77"}},
-			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
+			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 78, Name: "empty functions, write-only counters, and the window id",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim78"}},
-			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
+			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 79, Name: "the constant-return predicates",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim79"}},
-			{Op: "cmdidxs", Args: []string{"--check", ">/dev/null"}},
+			{Op: "cmdidxs", Args: []string{"--check"}},
 		}},
 	{N: 80, Name: "the Ex command table, cut to the commands that exist",
 		Steps: []Step{
@@ -493,14 +491,14 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim81"}},
 		}},
-	{N: 82, Name: "every comment", NoSource: true},
-	{N: 83, Name: "the core's compile line, and the baselines it is measured against", NoSource: true},
-	{N: 84, Name: "the stack protector goes", NoSource: true},
+	// 82, every comment: a record (internal/phase/082/GOAL.md); it edits nothing now.
+	// 83, the core's compile line, and the baselines it is measured against: a record (internal/phase/083/GOAL.md); it edits nothing now.
+	// 84, the stack protector goes: a record (internal/phase/084/GOAL.md); it edits nothing now.
 	{N: 85, Name: "the core stops diagnosing its own terminal",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim85"}},
 		}},
-	{N: 86, Name: "the instrument becomes the screen", NoSource: true},
+	// 86, the instrument becomes the screen: a record (internal/phase/086/GOAL.md); it edits nothing now.
 	{N: 87, Name: "no streaming Ex",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim87"}},
@@ -555,7 +553,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim98"}},
 		}},
-	{N: 99, Name: "the includes nothing names", NoSource: true},
+	// 99, the includes nothing names: a record (internal/phase/099/GOAL.md); it edits nothing now.
 	{N: 100, Name: "the deadly ladder that cannot run",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim100"}},
@@ -620,7 +618,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim115"}},
 		}},
-	{N: 116, Name: "the terminal table is asked with `+set term=`, not `$TERM`", NoSource: true},
+	// 116, the terminal table is asked with `+set term=`, not `$TERM`: a record (internal/phase/116/GOAL.md); it edits nothing now.
 	{N: 117, Name: "the core stops reallocating",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim117"}},
@@ -645,7 +643,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim122"}},
 		}},
-	{N: 123, Name: "the instrument could not see the text layer", NoSource: true},
+	// 123, the instrument could not see the text layer: a record (internal/phase/123/GOAL.md); it edits nothing now.
 	{N: 124, Name: "freeing is free, and the arena is measured",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim124", "@state"}},
@@ -802,7 +800,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim162"}},
 		}},
-	{N: 163, Name: "the product is in the one canonical spelling", NoSource: true},
+	// 163, the product is in the one canonical spelling: a record (internal/phase/163/GOAL.md); it edits nothing now.
 	{N: 164, Name: "no statement follows a jump",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim164"}},
