@@ -2,6 +2,13 @@
 
 Survey, 2026-09-25. Worktree at HEAD `aa268c4`. No tracked file in the main checkout was changed. Nothing was committed.
 
+**Acted on (2026-09-25):** every row was removed or kept for a stated reason, each
+phase proven byte-identical on its own boundary, and the whole set by
+`whim-build-check`: `d95a76e`, `da15643` and the 75 phase commits after them.
+What stayed and why is in those commits. One thing the survey could not know:
+with the inner sweep at 21 gone, phase 21 needs three of the deletions it called
+redundant (`mf_release`, `set_init_default_maxmemtot`, `recover_names`).
+
 **Since written:** it measured `aa268c4`. Phases 166-168 came after it (the
 answers typed `bool`, the key names, and the headers dropped last, which moved
 the header drops out of 82, 99 and 104), so re-run a finding before acting on
