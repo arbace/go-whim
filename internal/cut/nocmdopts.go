@@ -34,10 +34,8 @@ var nocmdoptsInParser = []struct{ what, pat, repl string }{
 // nocmdoptsElsewhere are the fields the four options set, their now-unreachable
 // readers, and restricted mode.
 //
-// A struct field is not a variable, so no warning reports it and the sweep
-// cannot see it -- the same shape Phase 17 met with b_start_fenc.  SCOPED BY
-// THEIR NEIGHBOUR: `char_u *tagname;` is also a field of taggy_T, seventeen
-// hundred lines earlier, and an unanchored pattern takes the first -- which
+// SCOPED BY THEIR NEIGHBOUR: `char_u *tagname;` is also a field of taggy_T,
+// seventeen hundred lines earlier, and an unanchored pattern takes the first -- which
 // removed the tag stack's field and broke five lines in two functions this
 // phase never meant to touch.  `int edit_type;` sits immediately above
 // mparm_T's and nowhere else.
@@ -45,7 +43,6 @@ var nocmdoptsElsewhere = []struct {
 	what, pat, repl string
 	want            int
 }{
-	{"mparm_T's evim_mode field", `(?m)^[ \t]*int[ \t]*evim_mode;\n`, "", 1},
 	{"the startup tag jump, which nothing can now ask for",
 		`(?m)[ \t]*if \(params\.tagname != NULL\)\n[ \t]*\{\n(?:[^\n]*\n)*?` +
 			`[ \t]*do_cmdline_cmd\(IObuff\);\n(?:[^\n]*\n)*?^[ \t]{4}\}\n`, "", 1},
