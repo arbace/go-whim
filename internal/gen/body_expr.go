@@ -1016,6 +1016,9 @@ func (f *fnEmit) alloc(c *cc.PostfixExpression, elem cc.Type, to string) val {
 	if pe == "" {
 		pe = et
 	}
+	if strings.HasPrefix(f.g.canon(want), "[]") {
+		return val{s: "make([]" + pe + ", " + n + ")", t: "[]" + pe, c: c.Type()}
+	}
 	return val{s: "Mk[" + pe + "](" + n + ")", t: "Ptr[" + pe + "]", c: c.Type()}
 }
 
@@ -1070,6 +1073,10 @@ func (f *fnEmit) call(x *cc.PostfixExpression, to string) val {
 	case "__builtin_expect":
 		return f.exprTo(args[0], to)
 	case "alloc", "alloc_clear", "lalloc", "lalloc_clear":
+		if f.g.canon(to) == "[]byte" {
+			// bytes for a pointer that only walks forward: a Go slice, zeroed
+			return val{s: "make([]byte, " + f.index(f.expr(x.ArgumentExpressionList.AssignmentExpression)) + ")", t: "[]byte", c: x.Type()}
+		}
 		var elem cc.Type
 		if !strings.HasPrefix(f.g.canon(to), "Ptr[byte]") && to != "" && to != "any" {
 			elem = sizeofElem(args[0])

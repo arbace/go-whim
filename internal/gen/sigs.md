@@ -1491,7 +1491,7 @@ func vim_strcat(to Ptr[byte], from Ptr[byte], tosize usize)
 func vim_strnicmp_asc(s1 Ptr[byte], s2 Ptr[byte], len_ usize) int32
 func vim_strchr(string_ Ptr[byte], c int32) Ptr[byte]
 func vim_strbyte(string_ Ptr[byte], c int32) Ptr[byte]
-func sort_strings(files Ptr[Ptr[byte]], count int32)
+func sort_strings(files []Ptr[byte], count int32)
 func concat_str(str1 Ptr[byte], str2 Ptr[byte]) Ptr[byte]
 func set_rgb_term_prop()
 func init_term_props(all bool)

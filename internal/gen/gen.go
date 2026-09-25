@@ -63,7 +63,8 @@ func (g *gen) cursor(key string) bool {
 	return ok
 }
 
-// forward says a walking class only ever walks forward, by constants, and is
+// forward says a walking class only ever walks forward, by constants -- or
+// never moves at all and is only indexed -- and is
 // never compared with another pointer, subtracted, ordered or stepped back --
 // what a Go slice can express, `p[k]` and `p = p[k:]` -- and that it never
 // reaches the hand-written runtime, whose signatures are Ptr (crtFuncs).  Such
@@ -74,6 +75,12 @@ func (g *gen) forward(key string) bool {
 	}
 	r := g.a.u.find(key)
 	if g.a.u.ident[r] != "" || g.a.u.varOff[r] != "" {
+		return false
+	}
+	// A variable index is safe only in a class that never moves: its pointers
+	// are always at their array's start, where a negative index is out of
+	// bounds in C as well, so no legal access is lost to the slice.
+	if g.a.u.varIdx[r] != "" && (g.a.u.moved[r] != "" || g.a.u.into[r] != "") {
 		return false
 	}
 	if g.crtRoots == nil {

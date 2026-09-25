@@ -67,9 +67,11 @@ Integer division and `%` truncate in both languages.
 
 ## Pointers that only walk forward: `[]T`
 
-A class of pointers that walks, but only ever forward by constants -- never
-compared with another pointer, subtracted, ordered, stepped back, indexed by a
-variable that might be negative, or had its own address taken -- is a Go slice:
+A class of pointers that walks, but only ever forward by constants -- or never
+moves and is only indexed, so that its pointers are always at their array's
+start, where a negative index is out of bounds in C too -- and is never
+compared with another pointer, subtracted, ordered, stepped back, or had its own
+address taken, is a Go slice:
 `[]T`, or `[]byte` for a C string, its NUL kept at the end. `*p` is `p[0]`,
 `p[k]` is `p[k]`, `p->x` is `p[0].x`, `p++` and `p += k` are `p = p[1:]` and
 `p = p[k:]`, and NULL is `nil`. Excluded as well: a class that reaches the

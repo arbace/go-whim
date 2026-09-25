@@ -31,11 +31,13 @@ type uf struct {
 	pun    map[string]string // root -> first reason it holds a non-char address
 	ident  map[string]string // root -> first use only a pointer can express: ordered, subtracted, compared with another, stepped back
 	varOff map[string]string // root -> first offset that is not a constant, and so may be negative
+	varIdx map[string]string // root -> first index that is not a constant
+	moved  map[string]string // root -> first place a member points anywhere but its array's start
 }
 
 func newUF() *uf {
 	return &uf{parent: map[string]string{}, flag: map[string]string{}, into: map[string]string{},
-		sink: map[string]string{}, pun: map[string]string{}, ident: map[string]string{}, varOff: map[string]string{}}
+		sink: map[string]string{}, pun: map[string]string{}, ident: map[string]string{}, varOff: map[string]string{}, varIdx: map[string]string{}, moved: map[string]string{}}
 }
 
 func (u *uf) find(k string) string {
@@ -58,7 +60,7 @@ func (u *uf) union(a, b string) {
 		return
 	}
 	u.parent[ra] = rb
-	for _, m := range []map[string]string{u.flag, u.into, u.sink, u.ident, u.varOff} {
+	for _, m := range []map[string]string{u.flag, u.into, u.sink, u.ident, u.varOff, u.varIdx, u.moved} {
 		if r, ok := m[ra]; ok {
 			if _, ok2 := m[rb]; !ok2 {
 				m[rb] = r
@@ -97,8 +99,10 @@ func (u *uf) mark(k, why string) {
 
 // markInto records that a class holds a pointer into an array.  That alone
 // does not make it walk: &a[i] kept and read through is a plain *T.
-func (u *uf) markIdent(k, why string) { u.markIn(u.ident, k, why) }
-func (u *uf) markVar(k, why string)   { u.markIn(u.varOff, k, why) }
+func (u *uf) markIdent(k, why string)  { u.markIn(u.ident, k, why) }
+func (u *uf) markVar(k, why string)    { u.markIn(u.varOff, k, why) }
+func (u *uf) markVarIdx(k, why string) { u.markIn(u.varIdx, k, why) }
+func (u *uf) markMoved(k, why string)  { u.markIn(u.moved, k, why) }
 
 func (u *uf) markInto(k, why string) { u.markIn(u.into, k, why) }
 
@@ -556,7 +560,7 @@ func (a *an) walk(n cc.Node) {
 			if t := typeOf(x.PostfixExpression); t != nil && t.Kind() == cc.Ptr && (t.Undecay().Kind() != cc.Array || isParamRef(x.PostfixExpression)) {
 				a.u.mark(a.objTyped(x.PostfixExpression), fmt.Sprintf("indexed at %d", x.Position().Line))
 				if v := x.ExpressionList.Value(); v == nil || v == cc.Unknown {
-					a.u.markVar(a.objTyped(x.PostfixExpression), "variable index")
+					a.u.markVarIdx(a.objTyped(x.PostfixExpression), "variable index")
 				} else if iv, ok := v.(cc.Int64Value); ok && iv < 0 {
 					a.u.markIdent(a.objTyped(x.PostfixExpression), "negative index")
 				}
@@ -567,6 +571,7 @@ func (a *an) walk(n cc.Node) {
 					a.u.markIdent(a.objTyped(x.PostfixExpression), "decremented")
 				}
 				a.u.mark(a.objTyped(x.PostfixExpression), fmt.Sprintf("incremented at %d", x.Position().Line))
+				a.u.markMoved(a.objTyped(x.PostfixExpression), "incremented")
 			}
 		case cc.PostfixExpressionCall:
 			if d := calleeDecl(x.PostfixExpression); d != nil {
@@ -601,12 +606,14 @@ func (a *an) walk(n cc.Node) {
 					a.u.markIdent(a.objTyped(x.UnaryExpression), "decremented")
 				}
 				a.u.mark(a.objTyped(x.UnaryExpression), fmt.Sprintf("incremented at %d", x.Position().Line))
+				a.u.markMoved(a.objTyped(x.UnaryExpression), "incremented")
 			}
 		}
 	case *cc.AdditiveExpression:
 		if x.Case == cc.AdditiveExpressionAdd || x.Case == cc.AdditiveExpressionSub {
 			if isPtr(typeOf(x.AdditiveExpression)) {
 				a.u.mark(a.objTyped(x.AdditiveExpression), fmt.Sprintf("arithmetic at %d", x.Position().Line))
+				a.u.markMoved(a.objTyped(x.AdditiveExpression), "added to")
 				switch {
 				case isPtr(typeOf(x.MultiplicativeExpression)):
 					a.u.markIdent(a.objTyped(x.AdditiveExpression), "subtracted")
@@ -653,6 +660,7 @@ func (a *an) walk(n cc.Node) {
 					a.u.markVar(a.objTyped(x.UnaryExpression), "variable offset")
 				}
 				a.u.mark(a.objTyped(x.UnaryExpression), fmt.Sprintf("compound arithmetic at %d", x.Position().Line))
+				a.u.markMoved(a.objTyped(x.UnaryExpression), "added to")
 			}
 		}
 	case *cc.JumpStatement:
