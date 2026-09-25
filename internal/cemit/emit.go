@@ -20,6 +20,7 @@
 package cemit
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -268,6 +269,17 @@ func includes(src []byte) ([]string, int) {
 // canonicalisation is available there; translating refuses it.
 func Canonical(path string, src []byte) ([]byte, error) {
 	src = stripComments(src)
+	// ONLY #include.  The front end preprocesses: a #define is expanded and gone,
+	// an #if resolved to one branch, and the printer prints the tree -- so a
+	// directive other than #include would be lost from the output without a
+	// word.  It is refused instead.  (vim's text has only #include; a foreign
+	// file with macros is not this printer's to canonicalise.)
+	for i, line := range bytes.Split(src, []byte{'\n'}) {
+		t := bytes.TrimLeft(line, " \t")
+		if len(t) > 0 && t[0] == '#' && !bytes.HasPrefix(bytes.TrimLeft(t[1:], " \t"), []byte("include")) {
+			return nil, fmt.Errorf("%s:%d: %s -- a directive other than #include, which printing the parsed tree would drop", path, i+1, bytes.TrimSpace(line))
+		}
+	}
 	cfg, err := cc.NewConfig("linux", "amd64")
 	if err != nil {
 		return nil, err
