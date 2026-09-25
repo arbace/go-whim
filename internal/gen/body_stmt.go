@@ -881,6 +881,9 @@ func (f *fnEmit) inLoop() bool {
 	return false
 }
 
+// forMerge is a scoped `var i int` followed by the loop that counts with it.
+var forMerge = regexp.MustCompile(`(?m)^(\s*)var (\w+) int\n\s*for (\w+) = `)
+
 // declMerge is a scoped `var x T` followed by x's first assignment.
 var declMerge = regexp.MustCompile(`(?m)^(\s*)var (\w+) ([^\n=]+)\n\s*(\w+) = `)
 
@@ -906,6 +909,13 @@ func scopedDecls(body string, locals []*local) string {
 			body = body[:i] + "\n" + ind + "_ = " + l.name + body[i+len(mark):]
 		}
 	}
+	body = forMerge.ReplaceAllStringFunc(body, func(m string) string {
+		s := forMerge.FindStringSubmatch(m)
+		if s[2] != s[3] {
+			return m
+		}
+		return s[1] + "for " + s[2] + " := "
+	})
 	return declMerge.ReplaceAllStringFunc(body, func(m string) string {
 		s := declMerge.FindStringSubmatch(m)
 		if s[2] != s[4] {

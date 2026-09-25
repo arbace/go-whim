@@ -185,6 +185,10 @@ construction, so that the pointers are equal where C's are.
 - **`goto`**: keep it. With its function's locals at the top, most C `goto`s are
   legal Go as they stand; restructure the rest with labeled loops and flags,
   preserving behaviour exactly.
+- **Temporaries** (`tN`, for a `?:`, a split `&&`, a postfix `++` used as a
+  value) are declared where they are made, since each is assigned on the next
+  line: `var tN T = e`, or `for tN := 0` for a counter. A function with a `goto`
+  keeps them at its top with its locals.
 - **`for (;;)`** is `for {`. A C `for` with a comma in it becomes its
   statements.
 - **Unused**: Go rejects unused locals and imports; C does not. Delete the

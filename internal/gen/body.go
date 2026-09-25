@@ -378,7 +378,14 @@ func (f *fnEmit) newTemp(typ string) string {
 		n := fmt.Sprintf("t%d", f.tmp)
 		if !f.taken[n] {
 			f.taken[n] = true
-			f.locals = append(f.locals, &local{name: n, typ: typ, read: true})
+			l := &local{name: n, typ: typ, read: true}
+			f.locals = append(f.locals, l)
+			if !f.hoistAll {
+				// declared where it is made: every temporary is assigned on the
+				// next line, so it carries nothing from an earlier evaluation
+				l.scoped = true
+				f.line("var %s %s\x01%s", n, typ, n)
+			}
 			return n
 		}
 	}

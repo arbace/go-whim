@@ -16,10 +16,9 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 - **The Go editor, idiomatic.** `doc/GO-IDIOMS.md` measured it and ranked the
   work. Lint-clean is done (vet, staticcheck, `gofmt -s` all 0: generator rules,
   phases 164-165), and so are the yes/no functions typed `bool` (phase 166, 151
-  functions), and so are locals declared where C declares them (the generator:
-  1,411 declarations now carry their value, 605 as `x := e`). Next: the 65
-  functions that return OK/FAIL, and the 971 generator temporaries still at the
-  top. Each step is checked
+  functions), and so are locals and the generator's temporaries declared where they
+  are made (only functions with a goto keep theirs at the top). Next: the 65
+  functions that return OK/FAIL. Each step is checked
   by `make whim-test`, which runs the Go editor against the C.
 
 ## Known stale, not yet scoped
