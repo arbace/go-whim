@@ -181,12 +181,6 @@ func NoWildMenu(text []byte, w io.Writer) ([]byte, error) {
 				"showmatches loses its wildmenu and wim_flags arguments")
 		},
 		func() error {
-			return c.sub(`^[ \t]*int noselect = \(wim_flags_arg & WIM_NOSELECT\);\n`+
-				`[ \t]*int noinsert = \(wim_flags_arg & WIM_NOINSERT\);\n`+
-				`[ \t]*int cmdline_unchanged = noselect \|\| noinsert;\n`, "", 1,
-				"showmatches drops the three locals only the menu read")
-		},
-		func() error {
 			return c.dropIf(`^[ \t]*if \(display_wildmenu && !display_list && vim_strchr`, 1,
 				"the popup form of the wildmenu")
 		},
@@ -203,10 +197,6 @@ func NoWildMenu(text []byte, w io.Writer) ([]byte, error) {
 				"the status-line menu arm of showmatches")
 		},
 		func() error {
-			return c.sub(`^[ \t]*int wim_noselect = p_wmnu[^\n]*\n[ \t]*int wim_noinsert = p_wmnu[^\n]*\n`, "", 1,
-				"the two menu-only locals")
-		},
-		func() error {
 			return c.sub(`if \(wim_noselect \|\| \(wim_list && !wim_full\)\)`,
 				"if (wim_list && !wim_full)", 1, "the WILD_NOSELECT condition")
 		},
@@ -216,10 +206,6 @@ func NoWildMenu(text []byte, w io.Writer) ([]byte, error) {
 		func() error {
 			return c.sub(`xp->xp_numfiles > \(\(wim_noselect \|\| wim_noinsert\) \? 0 : 1\)`,
 				"xp->xp_numfiles > 1", 1, "the match-count threshold")
-		},
-		func() error {
-			return c.sub(`^[ \t]*int show_menu = p_wmnu[^\n]*\n`, "", 2,
-				"the two `show_menu` locals")
 		},
 		func() error {
 			return c.sub(`if \(wim_list \|\| show_menu\)`, "if (wim_list)", 2,
@@ -275,10 +261,6 @@ func NoWildMenu(text []byte, w io.Writer) ([]byte, error) {
 		func() error {
 			return c.dropIf(`^[ \t]*if \(cmdline_pum_active\(\)\)\n[ \t]*\{\n[ \t]*skip_pum_redraw`,
 				1, "the popup teardown on any other key")
-		},
-		func() error {
-			return c.sub(`^[ \t]*int skip_pum_redraw = FALSE;\n`, "", 1,
-				"the popup redraw flag")
 		},
 		func() error {
 			return c.dropIf(`^[ \t]*if \(c == \(-\(\(KS_EXTRA\) \+ \(\(int\)\(KE_WILD\) << 8\)\)\) && firstc != .@.\)[ \t]*$`, 1, "the one place that set it")
