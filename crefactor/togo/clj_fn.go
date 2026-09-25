@@ -24,8 +24,6 @@ package togo
 
 import (
 	"fmt"
-	"os"
-	"sort"
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/cc"
@@ -162,9 +160,6 @@ func (c *cgen) function(fd *cc.FunctionDefinition) (src string, why string, mode
 	f.ntmp = 0
 	f.printBlocks()
 	body, mode, pre := f.structure()
-	if os.Getenv("WHIM_CLJ_STATS") != "" {
-		fmt.Fprintf(os.Stderr, "stat %s %d %s %d %d\n", d.Name(), len(body), mode, strings.Count(body, "(recur "), strings.Count(body, "(recur ")*0+f.nvarsCarried)
-	}
 	return pre + f.header(body), "", mode
 }
 
@@ -688,23 +683,6 @@ func (f *cfn) bindName(v *lvar) string {
 	return v.name
 }
 
-// structure nests the blocks: the body, and how it was written.
-func (f *cfn) structure() (string, string, string) {
-	lf := f.lf
-	s := &shaper{f: f, live: lf.live()}
-	s.analyze()
-	body, ok := s.structured()
-	if ok {
-		return s.entryLets(body), "structured", ""
-	}
-	body = s.machine()
-	if s.cost(body) > f.c.splitAt() {
-		b := s.split()
-		return b, "split", s.pre
-	}
-	return s.entryLets(body), "machine", ""
-}
-
 // cost is a guess at the bytecode a state machine's text becomes: its
 // length, and each recur's stores of every variable it carries.
 func (s *shaper) cost(body string) int {
@@ -858,179 +836,6 @@ func (s *shaper) split() string {
 	return b.String()
 }
 
-// shaper nests one function's blocks.
-type shaper struct {
-	f      *cfn
-	live   map[*lblock]map[*lvar]bool
-	back   map[[2]int]bool // the back edges, by block ids
-	header map[*lblock]bool
-	edges  map[*lblock]int // incoming edges
-	dup    map[*lblock]bool
-	states []*lblock
-	state  map[*lblock]int
-	vars   []*lvar // what a recur carries
-	// a split machine's
-	splitting bool
-	slot      map[*lvar]int
-	group     []int
-	cur       int
-	pre       string // the groups' functions
-	all       bool   // every block is a state
-}
-
-func (s *shaper) analyze() {
-	f := s.f
-	s.back = map[[2]int]bool{}
-	s.header = map[*lblock]bool{}
-	s.edges = map[*lblock]int{}
-	s.dup = map[*lblock]bool{}
-	for _, b := range f.lf.blocks {
-		for _, t := range b.term.to {
-			s.edges[t]++
-			if t.id <= b.id {
-				s.back[[2]int{b.id, t.id}] = true
-				s.header[t] = true
-			}
-		}
-	}
-	for _, b := range f.lf.blocks {
-		if s.header[b] || b.id == 0 || s.edges[b] < 2 {
-			continue
-		}
-		// a small block that returns is written at each edge
-		if len(b.steps) <= 2 && (b.term.kind == tRet || b.term.kind == tFall) && !s.hasLiteral(b) {
-			s.dup[b] = true
-		}
-	}
-}
-
-// hasLiteral says a block's text holds a string literal: the suite's
-// control needs " INSERT" once, and a copy would make it twice.
-func (s *shaper) hasLiteral(b *lblock) bool {
-	for _, st := range s.f.steps[b] {
-		if strings.Contains(st.form, "(BytePtr/lit ") {
-			return true
-		}
-	}
-	return strings.Contains(s.f.terms[b].test, "(BytePtr/lit ")
-}
-
-// inline says a block is written where the edge to it is.
-func (s *shaper) inline(b *lblock) bool {
-	if b.id == 0 || s.header[b] || s.all {
-		return false
-	}
-	return s.edges[b] == 1 || s.dup[b]
-}
-
-// structured is the body when the blocks nest with no state machine: a
-// tree from the entry, no joins, no loops.
-func (s *shaper) structured() (string, bool) {
-	for _, b := range s.f.lf.blocks {
-		if b.id != 0 && !s.inline(b) {
-			return "", false
-		}
-		if s.header[b] {
-			return "", false
-		}
-	}
-	return s.emit(s.f.lf.blocks[0], nil), true
-}
-
-// machine is the body as a state machine.
-func (s *shaper) machine() string {
-	f := s.f
-	s.state = map[*lblock]int{}
-	for _, b := range f.lf.blocks {
-		if b.id == 0 || !s.inline(b) {
-			s.state[b] = len(s.states)
-			s.states = append(s.states, b)
-		}
-	}
-	carried := map[*lvar]bool{}
-	for _, b := range s.states {
-		for v := range s.live[b] {
-			if f.rebindable(v) {
-				carried[v] = true
-			}
-		}
-	}
-	s.vars = f.lf.sortedVars(carried)
-	f.nvarsCarried = len(s.vars)
-	var binds []string
-	binds = append(binds, "st 0")
-	for _, v := range s.vars {
-		binds = append(binds, f.bindName(v)+" "+s.initial(v))
-	}
-	var b strings.Builder
-	fmt.Fprintf(&b, "(loop [%s]\n  (case st\n", strings.Join(binds, "\n       "))
-	for i, st := range s.states {
-		fmt.Fprintf(&b, "    %d\n%s\n", i, indent(s.emit(st, nil), 4))
-	}
-	fmt.Fprintf(&b, "    (throw (IllegalStateException. \"no state\"))))")
-	return b.String()
-}
-
-// initial is a carried variable's value as the machine starts: a
-// parameter's, or its zero.
-func (s *shaper) initial(v *lvar) string {
-	if v.param {
-		return v.name
-	}
-	if s.live[s.f.lf.blocks[0]][v] {
-		return v.name // bound at the start: C may read it before it is set
-	}
-	return s.f.zeroVal(v)
-}
-
-// entryLets binds, before body, the variables C may read before it sets
-// them: Java's zero.
-func (s *shaper) entryLets(body string) string {
-	f := s.f
-	var bs []cbind
-	for _, v := range f.lf.sortedVars(s.live[f.lf.blocks[0]]) {
-		if v.param || !f.rebindable(v) {
-			continue
-		}
-		bs = append(bs, cbind{f.bindName(v), f.zeroVal(v)})
-	}
-	if len(bs) == 0 {
-		return body
-	}
-	return "(let [" + bindText(bs, "\n      ") + "]\n" + indent(body, 2) + ")"
-}
-
-// emit is block b and what it inlines, as one expression.
-func (s *shaper) emit(b *lblock, _ any) string {
-	f := s.f
-	term := s.emitTerm(b)
-	binds := f.steps[b]
-	if len(binds) == 0 {
-		return term
-	}
-	var bs []string
-	for _, bd := range binds {
-		name := bd.name
-		if name != "_" {
-			if v := s.varNamed(name); v != nil {
-				name = f.bindName(v)
-			}
-		}
-		bs = append(bs, name+" "+bd.form)
-	}
-	return "(let [" + strings.Join(bs, "\n      ") + "]\n" + indent(term, 2) + ")"
-}
-
-// varNamed is the variable a binding's name is.
-func (s *shaper) varNamed(name string) *lvar {
-	for _, v := range s.f.lf.vars {
-		if v.name == name {
-			return v
-		}
-	}
-	return nil
-}
-
 // boxed is a value of Java type jt as an Object: a primitive boxed.
 func boxed(s, jt string) string {
 	switch {
@@ -1055,63 +860,4 @@ func (s *shaper) leave(r string) string {
 		}
 	}
 	return "(do " + strings.Join(append(st, r), "\n    ") + ")"
-}
-
-func (s *shaper) emitTerm(b *lblock) string {
-	f := s.f
-	t := f.terms[b]
-	switch b.term.kind {
-	case tRet:
-		if s.splitting {
-			if b.term.ret.isZero() {
-				return "-1"
-			}
-			return "(do (aset fo__ 0 " + boxed(t.test, f.ret) + ")\n    -1)"
-		}
-		return t.test
-	case tFall:
-		return t.test
-	case tGoto:
-		return s.edge(b.term.to[0])
-	case tIf:
-		a, e := s.edge(b.term.to[0]), s.edge(b.term.to[1])
-		if t.swap {
-			a, e = e, a
-		}
-		return "(if " + t.test + "\n  " + indent(a, 2)[2:] + "\n  " + indent(e, 2)[2:] + ")"
-	case tSwitch:
-		var sb strings.Builder
-		fmt.Fprintf(&sb, "(case %s", t.test)
-		for i, vs := range t.cases {
-			var ks []string
-			for _, v := range vs {
-				ks = append(ks, fmt.Sprint(v))
-			}
-			sort.Slice(ks, func(a, c int) bool { return ks[a] < ks[c] })
-			key := ks[0]
-			if len(ks) > 1 {
-				key = "(" + strings.Join(ks, " ") + ")"
-			}
-			fmt.Fprintf(&sb, "\n  %s\n%s", key, indent(s.edge(b.term.to[i]), 4))
-		}
-		fmt.Fprintf(&sb, "\n%s)", indent(s.edge(b.term.to[len(b.term.to)-1]), 2))
-		return sb.String()
-	}
-	return "nil"
-}
-
-// edge is a jump to b: b written here, or a recur to its state.
-func (s *shaper) edge(b *lblock) string {
-	if s.inline(b) {
-		return s.emit(b, nil)
-	}
-	k, ok := s.state[b]
-	if !ok {
-		s.f.no(nil, "a jump to block %d that is no state", b.id)
-	}
-	parts := []string{"recur", fmt.Sprint(k)}
-	for _, v := range s.vars {
-		parts = append(parts, v.name)
-	}
-	return "(" + strings.Join(parts, " ") + ")"
 }

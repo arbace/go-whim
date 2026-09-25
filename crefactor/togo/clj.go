@@ -60,7 +60,7 @@ func init() {
 	zipmap
 	catch def do finally fn if monitor new quote recur throw try var
 	nil true false
-	g e enumerators i8 u8 i16 u16 i32 u32 slots ed st this o v k Editor Struct Ptr Rt Ga BytePtr ShortPtr IntPtr LongPtr
+	g e enumerators i8 u8 i16 u16 i32 u32 slots ed st Editor Struct Ptr Rt Ga BytePtr ShortPtr IntPtr LongPtr
 	BoolPtr IFn Integer Long Boolean Object String Math System`) {
 		cljReserved[w] = true
 	}
