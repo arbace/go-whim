@@ -108,11 +108,9 @@ var (
 	w122SwitchC   = regexp.MustCompile(`\bswitch \(c\)`)
 	w122Label     = regexp.MustCompile(`(?m)^[ \t]*(case .*?|default):$`)
 	w122WantArg   = regexp.MustCompile(`(?m)^[ \t]*if \(want_argument\)$`)
-	w122DeclWant  = regexp.MustCompile(`\n[ \t]*int +want_argument;\n`)
 	w122SetWant   = regexp.MustCompile(`\n[ \t]*want_argument = FALSE;\n`)
 	w122OneDflt   = regexp.MustCompile(`(?s)\A\s*\n[ \t]*default:\n(.*)\z`)
 	w122ReadC     = regexp.MustCompile(`\n[ \t]*c = argv\[0\]\[argv_idx\+\+\];\n`)
-	w122DeclC     = regexp.MustCompile(`\n[ \t]*int +c;\n`)
 	w122DashArm   = regexp.MustCompile(`(?m)^[ \t]*else if \(argv\[0\]\[0\] == '-'\)$`)
 	w122PlainElse = regexp.MustCompile(`\A\s*\n[ \t]*else\n`)
 	w122EnumPair  = regexp.MustCompile(`(?m)^enum \{ (ME_\w+) = (\d+) \};$`)
@@ -142,6 +140,12 @@ var (
 	w122Prefix    = regexp.MustCompile(`musl_strncmp\(\(char \*\)\(name\), \(char \*\)\("([^"]*)"\), \(\(usize\)(\d+)\)\)`)
 	w122Needle    = regexp.MustCompile(`musl_strstr\(\(char \*\)requested, "([^"]*)"\)`)
 	w122ReqDecl   = regexp.MustCompile(`\n[ \t]*char_u +\*requested = term;\n`)
+	// w122DeclOnly: a local's declaration, what is left of it for the sweep.
+	w122DeclOnly = map[string]*regexp.Regexp{
+		"want_argument": regexp.MustCompile(`\bint +want_argument;`),
+		"c":             regexp.MustCompile(`\bint +c;`),
+		"requested":     regexp.MustCompile(`\bchar_u +\*requested = term;`),
+	}
 )
 
 // w122Mentions counts an IDENTIFIER with string literals excluded.
@@ -263,10 +267,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, p.Die("the want_argument block would not fold -- %v", err)
 		}
 		s = folded
-		s = w122DeclWant.ReplaceAll(s, []byte("\n"))
 		s = w122SetWant.ReplaceAll(s, []byte("\n"))
-		if w122Mentions(s, "want_argument") > 0 {
-			return nil, p.Die("want_argument survives the fold")
+		if w122Mentions(s, "want_argument") != 1 || !w122DeclOnly["want_argument"].Match(s) {
+			return nil, p.Die("want_argument survives the fold, beyond its declaration")
 		}
 		p.Say("want_argument is FALSE for ever, so the block it guarded goes: the " +
 			"argument switch, `parmp->term`, ME_GARBAGE and mainerr_arg_missing with it")
@@ -292,9 +295,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		Out = append(Out, s[end:]...)
 		s = Out
 		s = w122ReadC.ReplaceAll(s, []byte("\n"))
-		s = w122DeclC.ReplaceAll(s, []byte("\n"))
-		if w122Mentions(s, "c") > 0 {
-			return nil, p.Die("`c` survives in command_line_scan()")
+		if w122Mentions(s, "c") != 1 || !w122DeclOnly["c"].Match(s) {
+			return nil, p.Die("`c` survives in command_line_scan(), beyond its declaration")
 		}
 		return s, nil
 	}
@@ -422,7 +424,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	var newEnum bytes.Buffer
 	for k, n := range keep {
-		fmt.Fprintf(&newEnum, "enum { %s = %d };\n\n", n, k)
+		fmt.Fprintf(&newEnum, "enum { %s = %d };\n", n, k)
 	}
 	var newRows bytes.Buffer
 	for k, r := range rows {
@@ -638,7 +640,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if c < 0 {
 			return nil, p.Die("the refusal arm is not balanced")
 		}
-		pad := s[bytes.LastIndexByte(s[:c], '\n')+1 : c]
 		Inner, err := cutil.FoldAlways(s[o+1:c], "(?m)"+w122NoScreen, 1)
 		if err != nil {
 			return nil, p.Die("the no-screen test would not fold -- %v", err)
@@ -651,7 +652,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		Out := append([]byte(nil), s[:o+1]...)
 		Out = append(Out, Inner[:k]...)
-		Out = append(Out, pad...)
 		return append(Out, s[c:]...), nil
 	}
 	sA, sZ, err := span(t, "set_termname")
@@ -753,9 +753,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		s = bytes.ReplaceAll(s,
 			[]byte(`musl_strstr((char *)requested, "`+string(nd[1])+`")`),
 			[]byte(`musl_strstr((char *)term, "`+string(nd[1])+`")`))
-		before := len(s)
-		s = w122ReqDecl.ReplaceAll(s, []byte("\n"))
-		if len(s) == before {
+		if !w122ReqDecl.Match(s) {
 			return nil, p.Die("`requested` is not declared as `= term`")
 		}
 		p.Sayf("`requested` goes: it existed because the fallback reassigned `term`, and "+
@@ -777,11 +775,17 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	t = append(Out, t[rZ:]...)
 
 	// ---- 6. what is left, as a partition ---------------------------------
-	goneNames := []string{"want_argument", "mainerr_arg_missing", "ME_GARBAGE",
-		"ME_ARG_MISSING", "requested"}
+	goneNames := []string{"mainerr_arg_missing", "ME_GARBAGE", "ME_ARG_MISSING"}
 	for _, name := range goneNames {
 		if k := w122Mentions(t, name); k != 0 {
 			return nil, p.Die("%s still has %d mentions", name, k)
+		}
+	}
+	// want_argument, c and requested are left declared and read by nothing,
+	// which is what the sweep takes.
+	for _, name := range []string{"want_argument", "requested"} {
+		if k := w122Mentions(t, name); k != 1 || !w122DeclOnly[name].Match(t) {
+			return nil, p.Die("%s still has %d mentions, beyond its declaration", name, k-1)
 		}
 	}
 	for _, name := range []string{"ME_UNKNOWN_OPTION", "ME_EXTRA_CMD", "MAX_ARG_CMDS",
@@ -794,7 +798,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("report_default_term has %d mentions, and this phase leaves it at one -- "+
 			"its own definition, which is what the sweep takes", k)
 	}
-	p.Sayf("0 mentions of %s; report_default_term is down to its definition and is the "+
+	p.Sayf("0 mentions of %s; want_argument, c, requested and report_default_term are down to their declarations and are the "+
 		"sweep's; ME_UNKNOWN_OPTION, ME_EXTRA_CMD, MAX_ARG_CMDS, exe_commands and "+
 		"'paste' are untouched", strings.Join(goneNames, ", "))
 	return t, nil
