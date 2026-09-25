@@ -74,23 +74,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		// the last branch
 		end := cl + 1 + strings.Index(s[cl:], "\n")
 		mid := s[j+len(w145Jump) : end]
-		// THE LABEL'S WHOLE LINE, indentation included.  The canonical text
-		// writes `            handle_osc:` twelve spaces in; replacing the bare
-		// name left those twelve spaces standing and glued them to the line
-		// below, which the `    ` of the re-indentation below then made
-		// thirty-two.  Measured on q144: one line, and it is the label's.
+		// THE LABEL'S WHOLE LINE, indentation included: the canonical text
+		// writes `            handle_osc:` twelve spaces in.  Measured on
+		// q144: one line, and it is the label's.  The skipped code keeps its
+		// indentation as the else's body; the canonical print re-lays it.
 		if n := len(w145LabelLine.FindAllString(mid, -1)); n != 1 {
 			return nil, p.Die("the label's line is in the skipped code %d times, expected 1", n)
 		}
 		mid = w145LabelLine.ReplaceAllString(mid, "")
-		var ib strings.Builder
-		for _, ln := range strings.SplitAfter(mid, "\n") {
-			if strings.TrimSpace(ln) == "" {
-				ib.WriteString(ln)
-			} else {
-				ib.WriteString("    " + ln)
-			}
-		}
 		Body := strings.Replace(w145Jump, "            goto handle_osc;\n",
 			"            if (handle_osc(tp, len, key_name, &slen) == FAIL)\n            {\n                return -1;\n            }\n", 1)
 		// w145Jump ends at the if's own closing brace and its newline, so the
@@ -99,7 +90,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		// it back off; the canonical text writes no blank line there, and with
 		// the literal ending in a newline a TrimSuffix would run the brace and
 		// the `else` together.
-		Body = Body + "        else\n        {\n" + ib.String() + "        }\n"
+		Body = Body + "        else\n        {\n" + mid + "        }\n"
 		s = s[:j] + Body + s[end:]
 		if strings.Contains(s, "handle_osc:") || strings.Contains(s, "goto ") {
 			return nil, p.Die("check_termcode() still jumps")
