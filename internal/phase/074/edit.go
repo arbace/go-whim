@@ -63,12 +63,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			fmt.Sprintf("and the loop over the numbered marks in %s", fn))
 	}
 	// fmarks_check_names existed to reattach a file mark to a buffer by name;
-	// with no file marks there is nothing to reattach.
+	// with no file marks there is nothing to reattach.  With its two calls
+	// gone the sweep takes it, fname2fnum (folded empty in phase 70), namedfm
+	// and EXTRA_MARKS.
 	e.Lines(`fmarks_check_names\(buf\);`, 2, "the two calls that rematched file marks")
-	e.DeleteDefinition("fmarks_check_names", "fmarks_check_names, which had nothing to match")
-	e.DeleteDefinition("fname2fnum", "fname2fnum, folded empty in phase 70 and now unreachable")
-	e.Lines(`static xfmark_T namedfm\[\('z' - 'a' \+ 1\) \+ EXTRA_MARKS\];`, 1, "namedfm")
-	e.Lines(`enum \{ EXTRA_MARKS = 10 \};`, 1, "the numbered-mark count")
 	return e.Done()
 }
 

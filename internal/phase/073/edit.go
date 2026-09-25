@@ -87,10 +87,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	} {
 		e.Body(f.Name, f.Body, f.What)
 	}
-	e.Lines(`frame_T[ \t]+\*fr_parent;`, 1, "the parent pointer")
-	e.Lines(`frame_T[ \t]+\*fr_next;`, 1, "the next pointer")
-	e.Lines(`frame_T[ \t]+\*fr_prev;`, 1, "the previous pointer")
-	e.Lines(`frame_T[ \t]+\*fr_child;`, 1, "the child pointer")
+	// fr_parent, fr_next, fr_prev and fr_child are named by nothing now; the
+	// sweep takes them.
 	return e.Done()
 }
 
