@@ -136,10 +136,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	text, err = p.Literal(text, "    int tty_fail;\n", "", "the mparm_T field it set", 1)
-	if err != nil {
-		return nil, err
-	}
 
 	// ---- 3. the argument check_tty no longer reads -----------------------
 	// The alternative is __attribute__((unused)) on a parameter nothing will
@@ -156,7 +152,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 
-	if err = p.Gone(text, "tty_fail", "ttyfail", "not to a terminal",
+	if err = p.Gone(text, "ttyfail", "not to a terminal",
 		"not from a terminal", "ui_delay(2005L"); err != nil {
 		return nil, err
 	}
