@@ -102,10 +102,6 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 		{"set_init_default_shell", "$SHELL for 'shell'"},
 		{"set_init_default_cdpath", "$CDPATH for 'cdpath'"},
 	} {
-		var ok bool
-		if text, ok = cutil.DeleteDefinition(text, d.name); !ok {
-			return nil, fmt.Errorf("nogetenv: %s is not defined at file scope", d.name)
-		}
 		if text, err = cutCounted(text, `(?m)^[ \t]*`+d.name+`\(\);\n`,
 			"nogetenv", "the call to "+d.name, 1); err != nil {
 			return nil, err
@@ -121,14 +117,8 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nogetenv     $VIM_POSIX, which chose a stricter 'cpoptions'")
 
 	// 'backupskip' was $TMPDIR, $TEMP, $TMP and always /tmp.  Three of the four
-	// cannot contribute now, so the table goes and the loop runs its one pass;
-	// `i` is left for the sweep.
-	if text, err = cutCounted(text,
-		`(?m)^[ \t]*static char \*\(names\[4\]\) =\n[ \t]*\{\n[ \t]*"",\n[ \t]*"TMPDIR",\n`+
-			`[ \t]*"TEMP",\n[ \t]*"TMP",\n[ \t]*\};\n`,
-		"nogetenv", "backupskip's table of environment names", 1); err != nil {
-		return nil, err
-	}
+	// cannot contribute now, so the loop runs its one pass; the table and `i`
+	// are left for the sweep.
 	// The loop's one surviving pass keeps its braces and its `mustfree`, which
 	// the tail of the body still frees: the substitution keeps those two
 	// groups rather than deleting the whole match.
