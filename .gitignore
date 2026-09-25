@@ -15,6 +15,9 @@
 /lib/
 /jeditor.jar
 
+# The Go editor as one go-lisp file (make editor.lgo, doc/GO-LISP.md).
+/editor.lgo
+
 # The core half of whim-vim.c, cut at the first #include by `make editor.c`.
 editor.c
 

@@ -45,6 +45,7 @@ make go-test           # the Go packages' tests
 make whim-vim          # the C editor's binary
 make bin/whim-java     # the Java editor, and a launcher: bin/whim-java [args]
 make jeditor.jar       # the same as one jar: java -jar jeditor.jar [args]
+make editor.lgo        # the Go editor as one go-lisp file (doc/GO-LISP.md)
 make help              # every target
 ```
 
@@ -79,7 +80,8 @@ crefactor/       the generic C refactoring library, a Go module of its own:
 editor/          the editor in Go          jeditor/   the editor in Java
 src/             the input (fetched) and the product (tracked)
 doc/             GOALS.md (what holds for every phase), AGENDA.md (what is
-                 not done), JAVA.md, GO-IDIOMS.md, PIPELINE-COMPACTION.md
+                 not done), JAVA.md, GO-IDIOMS.md, PIPELINE-COMPACTION.md,
+                 GO-LISP.md
 CLAUDE.md        the working guide: the build, the pipeline, what to know
                  before changing anything shared
 ```

@@ -276,6 +276,33 @@ jeditor.jar: bin/whim-java  ## the editor in Java as one jar: java -jar jeditor.
 	@printf '  %-12s %s bytes, the core in Java (jeditor/): java -jar %s\n' "$@" \
 	    "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" "$@"
 
+# editor.lgo is the Go editor as ONE go-lisp file (doc/GO-LISP.md): editor/'s
+# files merged into one Go file (whim gocat), converted by go-lisp's golisp,
+# then compiled by go-lisp's go as the proof it is a package.  It needs the
+# go-lisp toolchain, which is not this repository's: GOLISP names its golisp
+# tool, and the go beside it compiles.  Not tracked, not part of `all`.
+GOLISP ?= golisp
+.PHONY: editor.lgo
+editor.lgo:  ## the Go editor as one go-lisp file, compiled (needs go-lisp: GOLISP=.../golisp)
+	@golisp=`command -v $(GOLISP) 2>/dev/null`; \
+	 if [ -z "$$golisp" ]; then \
+	    echo "  editor.lgo   needs go-lisp's golisp tool: make editor.lgo GOLISP=/path/to/go-lisp/bin/golisp (doc/GO-LISP.md)"; \
+	    exit 1; \
+	 fi; \
+	 set -e; \
+	 go tool whim gocat editor > $(TMPDIR)/editor-all.go; \
+	 "$$golisp" go2lisp $(TMPDIR)/editor-all.go > $@.tmp; \
+	 rm -f $(TMPDIR)/editor-all.go; \
+	 check=`mktemp -d`; \
+	 cp $@.tmp $$check/editor.lgo; \
+	 printf 'module lgocheck\n\ngo 1.27\n' > $$check/go.mod; \
+	 (cd $$check && GOTOOLCHAIN=local GOFLAGS= "`dirname $$golisp`/go" build ./...) \
+	    || { echo "  editor.lgo   REFUSED -- go-lisp's go does not compile it"; rm -rf $$check $@.tmp; exit 1; }; \
+	 rm -rf $$check; \
+	 mv $@.tmp $@; \
+	 printf '  %-12s %s lines, the Go editor in go-lisp, one file; go-lisp compiles it\n' $@ \
+	    "`grep -c '' $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
+
 .PHONY: whim-test-java
 whim-test-java:  ## the quick suite with the Java editor too, required to answer as the C does
 	@go tool whim test --java
@@ -283,7 +310,7 @@ whim-test-java:  ## the quick suite with the Java editor too, required to answer
 # ==== housekeeping
 .PHONY: clean
 clean:  ## remove the built binaries and editor.c
-	rm -f src/slim-vim src/whim-vim bin/whim bin/whim-java jeditor.jar editor.c
+	rm -f src/slim-vim src/whim-vim bin/whim bin/whim-java jeditor.jar editor.lgo editor.c
 	rm -rf lib/java
 
 .PHONY: clean-cache

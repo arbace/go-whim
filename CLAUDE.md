@@ -232,8 +232,10 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    done, in order, and what was declined, with why), GO-IDIOMS.md (how
                    the Go editor could be idiomatic, measured and ranked; done or
                    declined), JAVA.md (the Java backend: its design and milestones),
-                   and PIPELINE-COMPACTION.md (which phases could be dropped, merged,
-                   split or reordered, measured byte for byte)
+                   PIPELINE-COMPACTION.md (which phases could be dropped, merged,
+                   split or reordered, measured byte for byte) and GO-LISP.md
+                   (the Go editor in go-lisp syntax: an experiment, and make
+                   editor.lgo)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
@@ -259,6 +261,7 @@ make whim-test        # the quick suite: 45 key sessions, required to behave as 
 make whim-test-wide   # the optional wide suite: 240 cases, keys, Ex commands, argv, a terminal
 make bin/whim-java    # the editor in Java: Editor.java generated, compiled, and a launcher
 make whim-test-java   # the quick suite with the Java editor too (whim test --java; --wide --java)
+make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP=.../golisp; doc/GO-LISP.md)
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make whim-vim        # the C product's binary
 make slim-vim        # the input's binary, with the same one line
