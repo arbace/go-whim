@@ -508,7 +508,6 @@ func TestSeed(t *testing.T) {
 // phase, so Run writes q000 as the seed SWEPT -- and Check compares q000 with
 // the seed unswept, so it refuses the set Run has just written.
 func TestCheckAcceptsASweptSeed(t *testing.T) {
-	t.Skip("BUG: Run writes q000 after the seed phase's sweep, Check compares q000 with Seed(src) alone; a plan whose phase 0 is Seed without NoSource can never check (whim's is NoSource, so whim does not see it)")
 	c, dir := config(t)
 	c.Plan[0].NoSource = false
 	o := options(dir)

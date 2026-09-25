@@ -9,7 +9,7 @@ import (
 	"github.com/arbace/go-whim/crefactor/cc"
 )
 
-// A growarray's storage (Profile.GrowArray.Data; vim's ga_data) is a void *:
+// A growarray's storage (Profile.GrowArray.Data) is a void *:
 // C casts it to its element type where it is used, and a translation into Go
 // has to give the storage one type.
 // editor/crt.go's GaData[T] makes the storage at the first typed access and
@@ -21,11 +21,11 @@ import (
 // an array of them, or one allocated.  A pointer to a growarray -- a
 // parameter, a local, a field, a function's result -- points at every object
 // it is given, by a call's argument, an assignment, an initializer or a
-// return.  The element type comes from every use of ga_data: the
+// return.  The element type comes from every use of the data member: the
 // pointer it is cast to, or converted to by an argument, an assignment, an
 // initializer or a return; and from every itemsize set as sizeof(T).  A test
-// against nullptr, a store into ga_data and a function of bytes (ga_grow's
-// copy) are neutral.  Char, unsigned char and signed char are one type,
+// against nullptr, a store into the data member and a function of bytes (the
+// grow function's copy) are neutral.  Char, unsigned char and signed char are one type,
 // bytes.
 
 type gaUse struct {
@@ -376,7 +376,7 @@ func (w *gaWalk) use(m *cc.PostfixExpression, up []cc.Node) {
 				return
 			}
 			if ft != nil && ft.IsVariadic() {
-				// a variadic argument: vim_snprintf's %s
+				// a variadic argument: a printf-like %s
 				w.add(m, "bytes", m)
 				return
 			}

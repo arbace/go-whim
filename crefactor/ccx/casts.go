@@ -219,7 +219,7 @@ func Casts(ast *cc.AST, p Profile) Result {
 		case fe != nil && fe.Kind() == cc.Void && isByte(te):
 			classes["from void * to bytes"]++
 		default:
-			left = append(left, Finding{fn, x.Position().String(), fmt.Sprintf("(%s) of %s: %s", to, from, srcText(x.CastExpression))})
+			left = append(left, Finding{fn, x.Position().String(), fmt.Sprintf("(%s) of %s: %s", to, from, srcOrdered(x.CastExpression))})
 		}
 	})
 	return Result{"pointer casts", classes, left}

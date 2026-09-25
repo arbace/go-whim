@@ -122,7 +122,12 @@ func (c *Config) Check(o *Options, jobs int) ([]byte, error) {
 		jobs = runtime.NumCPU()
 	}
 	start := time.Now()
+	// Phase 0 as Run does it: the seed, and then -- unless the phase is only
+	// the seed (NoSource) -- its steps, the sweep and the canonical print.
 	seed, err := Seed(src, io.Discard)
+	if err == nil {
+		seed, err = c.Advance(c.Plan[0], seed, io.Discard)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("phase 0: %w", err)
 	}
