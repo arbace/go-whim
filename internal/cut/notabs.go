@@ -9,7 +9,6 @@ import (
 	"github.com/arbace/go-whim/internal/cutil"
 )
 
-var tpWord = regexp.MustCompile(`\btp\b`)
 var cmodTab = regexp.MustCompile(`\bcmod_tab\b`)
 
 // notabsBody replaces a definition's body, scoped to its own span.
@@ -118,8 +117,7 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 			":ball's 'tabpagemax'"); err != nil {
 			return nil, err
 		}
-		return e.literal(s, "    int had_tab = cmdmod.cmod_tab;\n", "",
-			":ball remembering :tab", 1)
+		return s, nil
 	}); err != nil {
 		return nil, err
 	}
@@ -152,11 +150,6 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	if text, err = e.inFunction(text, "ex_splitview", func(s []byte) ([]byte, error) {
-		s, err := e.literal(s, `    int use_tab = eap->cmdidx == CMD_tabedit || eap->cmdidx == CMD_tabfind || eap->cmdidx == CMD_tabnew;
-`, "", "ex_splitview asking whether this is a tab command", 1)
-		if err != nil {
-			return nil, err
-		}
 		return e.foldNever(s, `^[ \t]*if \(use_tab\)$`, "ex_splitview opening a tab page")
 	}); err != nil {
 		return nil, err
@@ -199,17 +192,13 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 		for _, l := range []struct{ old, new, what string }{
 			{"if (eap->cmdidx == CMD_windo || eap->cmdidx == CMD_tabdo)",
 				"if (eap->cmdidx == CMD_windo)", ":tabdo counting its range"},
-			// The tab-page cursor only :tabdo read.  Set and never read is a
-			// warning the sweep does not act on, so it goes here.
-			{"    tabpage_T *tp;\n", "", ":tabdo's tab-page cursor"},
+			// The tab-page cursor only :tabdo read.  The sweep takes a local
+			// nothing names but not a store to one, so the store goes here.
 			{"        tp = first_tabpage;\n", "", ":tabdo starting at the first tab page"},
 		} {
 			if s, err = e.literal(s, l.old, l.new, l.what, 1); err != nil {
 				return nil, err
 			}
-		}
-		if tpWord.Match(s) {
-			return nil, fmt.Errorf("notabs: ex_listdo still names tp after :tabdo went")
 		}
 		return s, nil
 	}); err != nil {
@@ -385,9 +374,11 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 		}
 		n++
 	}
-	if n != 1 {
-		return nil, fmt.Errorf("notabs: cmod_tab outside its declaration -- %d mentions, "+
-			"expected 1", n)
+	// Two: its declaration, and ex_buffer_all's had_tab, a local nothing reads
+	// now that the sweep takes.
+	if n != 2 {
+		return nil, fmt.Errorf("notabs: cmod_tab outside its declaration and had_tab -- "+
+			"%d mentions, expected 2", n)
 	}
 
 	e.say("nothing makes or reaches a second tab page")
