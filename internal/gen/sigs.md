@@ -68,19 +68,19 @@ func ga_clear(gap *S_growarray)
 func ga_clear_strings(gap *S_growarray)
 func ga_init(gap *S_growarray)
 func ga_init2(gap *S_growarray, itemsize usize, growsize int32)
-func ga_grow(gap *S_growarray, n int32) int32
-func ga_grow_inner(gap *S_growarray, n int32) int32
+func ga_grow(gap *S_growarray, n int32) bool
+func ga_grow_inner(gap *S_growarray, n int32) bool
 func ga_concat(gap *S_growarray, s Ptr[byte])
 func ga_concat_len(gap *S_growarray, s Ptr[byte], len_ usize)
-func ga_append(gap *S_growarray, c int32) int32
+func ga_append(gap *S_growarray, c int32) bool
 func block_autocmds()
 func unblock_autocmds()
 func calc_percentage(part int64, whole int64) int32
-func open_buffer() int32
+func open_buffer() bool
 func set_bufref(bufref *bufref_T, buf *S_file_buffer)
 func bufref_valid(bufref *bufref_T) bool
 func buf_valid(buf *S_file_buffer) bool
-func can_unload_buffer(buf *S_file_buffer) int32
+func can_unload_buffer(buf *S_file_buffer) bool
 func close_buffer(win *S_window_S, buf *S_file_buffer, action int32, abort_if_last int32, ignore_abort int32, set_context int32) bool
 func buf_clear_file(buf *S_file_buffer)
 func buf_freeall(buf *S_file_buffer, flags int32) bool
@@ -119,16 +119,16 @@ func ins_bytes_len(p Ptr[byte], len_ int32)
 func ins_char(c int32)
 func ins_char_bytes(buf Ptr[byte], charlen int32)
 func ins_str(s Ptr[byte], slen usize)
-func del_char(fixpos int32) int32
-func del_chars(count int64, fixpos int32) int32
-func del_bytes(count int64, fixpos_arg int32, use_delcombine int32) int32
-func open_line(dir int32, flags int32, second_line_indent int32, did_do_comment *int32) int32
-func truncate_line(fixpos int32) int32
+func del_char(fixpos int32) bool
+func del_chars(count int64, fixpos int32) bool
+func del_bytes(count int64, fixpos_arg int32, use_delcombine int32) bool
+func open_line(dir int32, flags int32, second_line_indent int32, did_do_comment *int32) bool
+func truncate_line(fixpos int32) bool
 func del_lines(nlines int64, undo int32)
-func init_chartab() int32
-func buf_init_chartab(buf *S_file_buffer, global int32) int32
-func check_isopt(var_ Ptr[byte]) int32
-func parse_isopt(var_ Ptr[byte], buf *S_file_buffer, only_check int32) int32
+func init_chartab() bool
+func buf_init_chartab(buf *S_file_buffer, global int32) bool
+func check_isopt(var_ Ptr[byte]) bool
+func parse_isopt(var_ Ptr[byte], buf *S_file_buffer, only_check int32) bool
 func trans_characters(buf Ptr[byte], bufsize int32)
 func transchar(c int32) Ptr[byte]
 func transchar_buf(buf *S_file_buffer, c int32) Ptr[byte]
@@ -211,7 +211,7 @@ func draw_screen_line(wp *S_window_S, wlv *winlinevars_T)
 func win_line_start(wp *S_window_S, wlv *winlinevars_T, save_extra int32)
 func win_line_continue(wlv *winlinevars_T)
 func win_line(wp *S_window_S, lnum linenr_T, startrow int32, endrow int32, number_only int32) int32
-func update_screen(type_arg int32) int32
+func update_screen(type_arg int32) bool
 func statusline_row(wp *S_window_S) int32
 func win_redr_status(wp *S_window_S, ignore_pum int32)
 func showruler(always int32)
@@ -253,18 +253,18 @@ func redo_literal(c int32)
 func start_arrow(end_insert_pos *pos_T)
 func start_arrow_with_change(end_insert_pos *pos_T, end_change int32)
 func start_arrow_common(end_insert_pos *pos_T, end_change int32)
-func stop_arrow() int32
+func stop_arrow() bool
 func stop_insert(end_insert_pos *pos_T, esc int32, nomove int32)
 func set_last_insert(c int32)
 func add_char2buf(c int32, s Ptr[byte]) Ptr[byte]
 func beginline(flags int32)
-func oneright() int32
-func oneleft() int32
+func oneright() bool
+func oneleft() bool
 func cursor_up_inner(wp *S_window_S, n int64)
-func cursor_up(n int64, upd_topline int32) int32
+func cursor_up(n int64, upd_topline int32) bool
 func cursor_down_inner(wp *S_window_S, n int64)
-func cursor_down(n int64, upd_topline int32) int32
-func stuff_inserted(c int32, count int64, no_esc int32) int32
+func cursor_down(n int64, upd_topline int32) bool
+func stuff_inserted(c int32, count int64, no_esc int32) bool
 func get_last_insert() string_T
 func get_last_insert_save() Ptr[byte]
 func replace_push(c int32)
@@ -284,7 +284,7 @@ func ins_ctrl_o()
 func ins_shift(c int32, lastc int32)
 func ins_del()
 func ins_bs_one()
-func ins_bs(c int32, mode int32, inserted_space_p *int32) int32
+func ins_bs(c int32, mode int32, inserted_space_p *int32) bool
 func bracketed_paste(mode paste_mode_T, drop int32, gap *S_growarray) int32
 func ins_left()
 func ins_home(c int32)
@@ -297,12 +297,12 @@ func ins_pageup()
 func ins_down(startcol int32)
 func ins_pagedown()
 func ins_tab() bool
-func ins_eol(c int32) int32
+func ins_eol(c int32) bool
 func ins_copychar(lnum linenr_T) int32
 func ins_ctrl_ey(tc int32) int32
 func get_nolist_virtcol() colnr_T
 func do_ascii(eap *S_exarg)
-func do_move(line1 linenr_T, line2 linenr_T, dest linenr_T) int32
+func do_move(line1 linenr_T, line2 linenr_T, dest linenr_T) bool
 func ex_copy(line1 linenr_T, line2 linenr_T, n linenr_T)
 func do_fixdel(eap *S_exarg)
 func print_line_no_prefix(lnum linenr_T, use_number int32, list int32)
@@ -311,7 +311,7 @@ func ex_append(eap *S_exarg)
 func ex_change(eap *S_exarg)
 func ex_z(eap *S_exarg)
 func skip_substitute(start Ptr[byte], delimiter int32) Ptr[byte]
-func check_regexp_delim(c int32) int32
+func check_regexp_delim(c int32) bool
 func ex_substitute(eap *S_exarg)
 func do_sub_msg(count_only int32) bool
 func global_exe_one(cmd Ptr[byte], lnum linenr_T)
@@ -319,19 +319,19 @@ func ex_global(eap *S_exarg)
 func global_exe(cmd Ptr[byte])
 func skip_vimgrep_pat(p Ptr[byte], s *Ptr[byte], flags *int32) Ptr[byte]
 func skip_vimgrep_pat_ext(p Ptr[byte], s *Ptr[byte], flags *int32, nulp *Ptr[byte], cp *int32) Ptr[byte]
-func check_fname() int32
+func check_fname() bool
 func msg_verbose_cmd(lnum linenr_T, cmd Ptr[byte])
-func do_cmdline_cmd(cmd Ptr[byte]) int32
-func do_cmdline(cmdline Ptr[byte], fgetline func(int32, int32, getline_opt_T) Ptr[byte], flags int32) int32
+func do_cmdline_cmd(cmd Ptr[byte]) bool
+func do_cmdline(cmdline Ptr[byte], fgetline func(int32, int32, getline_opt_T) Ptr[byte], flags int32) bool
 func do_one_cmd(cmdlinep *Ptr[byte], flags int32, fgetline func(int32, int32, getline_opt_T) Ptr[byte]) Ptr[byte]
 func ex_errmsg(msg Ptr[byte], arg Ptr[byte]) Ptr[byte]
 func ex_range_without_command(eap *S_exarg) Ptr[byte]
 func checkforcmd_opt(pp *Ptr[byte], cmd Ptr[byte], len_ int32, noparen int32) bool
 func checkforcmd_noparen(pp *Ptr[byte], cmd Ptr[byte], len_ int32) bool
-func parse_command_modifiers(eap *S_exarg, errormsg *Ptr[byte], cmod *cmdmod_T, skip_only int32) int32
+func parse_command_modifiers(eap *S_exarg, errormsg *Ptr[byte], cmod *cmdmod_T, skip_only int32) bool
 func apply_cmdmod(cmod *cmdmod_T)
 func undo_cmdmod(cmod *cmdmod_T)
-func parse_cmd_address(eap *S_exarg, errormsg *Ptr[byte], silent int32) int32
+func parse_cmd_address(eap *S_exarg, errormsg *Ptr[byte], silent int32) bool
 func append_command(cmd Ptr[byte])
 func one_letter_cmd(p Ptr[byte], idx *cmdidx_T) bool
 func find_ex_command(eap *S_exarg, full *int32) Ptr[byte]
@@ -392,17 +392,17 @@ func restore_viewstate(vs *viewstate_T)
 func init_incsearch_state(is_state *incsearch_state_T)
 func set_search_match(t *pos_T)
 func parse_pattern_and_range(incsearch_start *pos_T, search_delim *int32, skiplen *int32, patlen *int32) bool
-func do_incsearch_highlighting(firstc int32, search_delim *int32, is_state *incsearch_state_T, skiplen *int32, patlen *int32) int32
+func do_incsearch_highlighting(firstc int32, search_delim *int32, is_state *incsearch_state_T, skiplen *int32, patlen *int32) bool
 func finish_incsearch_highlighting(gotesc int32, is_state *incsearch_state_T, call_update_screen int32)
 func may_do_incsearch_highlighting(firstc int32, count int64, is_state *incsearch_state_T)
-func may_adjust_incsearch_highlighting(firstc int32, count int64, is_state *incsearch_state_T, c int32) int32
-func may_add_char_to_search(firstc int32, c *int32, is_state *incsearch_state_T) int32
+func may_adjust_incsearch_highlighting(firstc int32, count int64, is_state *incsearch_state_T, c int32) bool
+func may_add_char_to_search(firstc int32, c *int32, is_state *incsearch_state_T) bool
 func cmdline_init()
 func cmdline_handle_ctrl_bsl(gotesc *int32) int32
 func cmdline_erase_chars(c int32, indent int32, isp *incsearch_state_T) int32
 func cmdline_insert_reg(gotesc *int32) int32
 func cmdline_browse_history(c int32, firstc int32, curcmdstr *Ptr[byte], curcmdstrlen *usize, histype int32, hiscnt_p *int32, xp *S_expand) int32
-func init_ccline(firstc int32, indent int32) int32
+func init_ccline(firstc int32, indent int32) bool
 func getcmdline(firstc int32, count int64, indent int32, do_concat getline_opt_T) Ptr[byte]
 func getcmdline_int(firstc int32, count int64, indent int32, clear_ccline int32) Ptr[byte]
 func text_locked() bool
@@ -417,14 +417,14 @@ func correct_cmdspos(idx int32, cells int32)
 func getexline(c int32, indent int32, options getline_opt_T) Ptr[byte]
 func dealloc_cmdbuff()
 func alloc_cmdbuff(len_ usize)
-func realloc_cmdbuff(len_ int32) int32
+func realloc_cmdbuff(len_ int32) bool
 func draw_cmdline(start int32, len_ int32)
 func putcmdline(c int32, shift int32)
 func unputcmdline()
-func put_on_cmdline(str Ptr[byte], len_ int32, redraw int32) int32
+func put_on_cmdline(str Ptr[byte], len_ int32, redraw int32) bool
 func save_cmdline(ccp *cmdline_info_T)
 func restore_cmdline(ccp *cmdline_info_T)
-func cmdline_paste(regname int32, literally int32, remcr int32) int32
+func cmdline_paste(regname int32, literally int32, remcr int32) bool
 func cmdline_paste_str(s Ptr[byte], literally int32)
 func redrawcmdline()
 func redrawcmdline_ex(do_compute_cmdrow int32)
@@ -435,7 +435,7 @@ func cursorcmd()
 func gotocmdline(clr int32)
 func get_cmdline_info() *cmdline_info_T
 func get_cmdline_firstc() int32
-func get_list_range(str *Ptr[byte], num1 *int32, num2 *int32) int32
+func get_list_range(str *Ptr[byte], num1 *int32, num2 *int32) bool
 func shorten_fnames()
 func shorten_dir_len(str Ptr[byte], trim_len int32)
 func shorten_dir(str Ptr[byte])
@@ -477,22 +477,22 @@ func stuffnumReadbuff(n int64)
 func stuffescaped(arg Ptr[byte], literally int32)
 func read_redo(init_ int32, old_redo int32) int32
 func copy_redo(old_redo int32)
-func start_redo(count int64, old_redo int32) int32
-func start_redo_ins() int32
+func start_redo(count int64, old_redo int32) bool
+func start_redo_ins() bool
 func stop_redo_ins()
 func init_typebuf()
-func ins_typebuf(str Ptr[byte], noremap int32, offset int32, nottyped int32, silent int32) int32
+func ins_typebuf(str Ptr[byte], noremap int32, offset int32, nottyped int32, silent int32) bool
 func ins_char_typebuf(c int32, modifiers int32) int32
 func typebuf_changed(tb_change_cnt int32) bool
 func typebuf_typed() bool
 func typebuf_maplen() int32
 func del_typebuf(len_ int32, offset int32)
-func gotchars_add_byte(state *gotchars_state_T, byte_ char_u) int32
+func gotchars_add_byte(state *gotchars_state_T, byte_ char_u) bool
 func gotchars(chars Ptr[byte], len_ int32)
 func gotchars_ignore()
 func ungetchars(len_ int32)
 func may_sync_undo()
-func alloc_typebuf() int32
+func alloc_typebuf() bool
 func free_typebuf()
 func can_get_old_char() bool
 func save_typeahead(tp *tasave_T)
@@ -515,7 +515,7 @@ func inchar(buf Ptr[byte], maxlen int32, wait_time int64) int32
 func fix_input_buffer(buf Ptr[byte], len_ int32) int32
 func input_available() bool
 func getcmdkeycmd(promptc int32, indent int32, do_concat getline_opt_T) Ptr[byte]
-func do_cmdkey_command(key int32, flags int32) int32
+func do_cmdkey_command(key int32, flags int32) bool
 func init_highlight(both int32, reset int32)
 func lookup_color(idx int32, foreground int32, boldp *int32) int32
 func highlight_group_link(from_hg Ptr[byte], from_len int32, to_hg Ptr[byte], to_len int32, dodefault int32, forceit int32, init_ int32)
@@ -553,7 +553,7 @@ func syn_cterm_attr2entry(attr int32) *S_attr_entry
 func highlight_list_one(id int32)
 func highlight_arg_to_string(type_ int32, iarg int32, sarg Ptr[byte], buf Ptr[byte]) Ptr[byte]
 func highlight_list_arg(id int32, didh int32, type_ int32, iarg int32, sarg Ptr[byte], name Ptr[byte]) int32
-func syn_list_header(did_header int32, outlen int32, id int32) int32
+func syn_list_header(did_header int32, outlen int32, id int32) bool
 func set_hl_attr(idx int32)
 func syn_override(id int32) int32
 func syn_name2id_len(name Ptr[byte], len_ int32) int32
@@ -563,7 +563,7 @@ func syn_add_group(name Ptr[byte]) int32
 func syn_unadd_group()
 func syn_id2attr(hl_id int32) int32
 func syn_get_final_id(hl_id int32) int32
-func highlight_changed() int32
+func highlight_changed() bool
 func update_highlight_overrides(old Ptr[hl_override_T], hl_new Ptr[hl_override_T], newlen int32)
 func set_highlight_attr(arr Ptr[hl_override_T], len_ int32, update_ids bool)
 func push_highlight_overrides(arr Ptr[hl_override_T], len_ int32) bool
@@ -580,7 +580,7 @@ func get_sts_value() int64
 func get_indent() int32
 func get_indent_lnum(lnum linenr_T) int32
 func get_indent_str(ptr Ptr[byte], ts int32, no_ts int32) int32
-func set_indent(size int32, flags int32) int32
+func set_indent(size int32, flags int32) bool
 func inindent(extra int32) bool
 func preprocs_left() int32
 func may_do_si() bool
@@ -613,7 +613,7 @@ func ex_map(eap *S_exarg)
 func ex_unmap(eap *S_exarg)
 func ex_mapclear(eap *S_exarg)
 func setmark(c int32) int32
-func setmark_pos(c int32, pos *pos_T, fnum int32) int32
+func setmark_pos(c int32, pos *pos_T, fnum int32) bool
 func setpcmark()
 func checkpcmark()
 func movechangelist(count int32) Ptr[pos_T]
@@ -621,7 +621,7 @@ func getmark_buf(buf *S_file_buffer, c int32, changefile int32) Ptr[pos_T]
 func getmark(c int32, changefile int32) Ptr[pos_T]
 func getmark_buf_fnum(buf *S_file_buffer, c int32, changefile int32, fnum *int32) Ptr[pos_T]
 func getnextmark(startpos Ptr[pos_T], dir int32, begin_line int32) Ptr[pos_T]
-func check_mark(pos Ptr[pos_T]) int32
+func check_mark(pos Ptr[pos_T]) bool
 func clrallmarks(buf *S_file_buffer)
 func mark_line(mp Ptr[pos_T], lead_len int32) Ptr[byte]
 func ex_marks(eap *S_exarg)
@@ -640,9 +640,9 @@ func next_search_hl_pos(shl *match_T, lnum linenr_T, match *S_matchitem, mincol 
 func next_search_hl(win *S_window_S, search_hl *match_T, shl *match_T, lnum linenr_T, mincol colnr_T, cur *S_matchitem)
 func prepare_search_hl(wp *S_window_S, search_hl *match_T, lnum linenr_T)
 func check_cur_search_hl(wp *S_window_S, shl *match_T)
-func prepare_search_hl_line(wp *S_window_S, lnum linenr_T, mincol colnr_T, line *Ptr[byte], search_hl *match_T, search_attr *int32) int32
+func prepare_search_hl_line(wp *S_window_S, lnum linenr_T, mincol colnr_T, line *Ptr[byte], search_hl *match_T, search_attr *int32) bool
 func update_search_hl(wp *S_window_S, lnum linenr_T, col colnr_T, line *Ptr[byte], search_hl *match_T, has_match_conc *int32, match_conc *int32, did_line_attr int32, lcs_eol_one int32, on_last_col *int32) int32
-func get_prevcol_hl_flag(wp *S_window_S, search_hl *match_T, curcol int64) int32
+func get_prevcol_hl_flag(wp *S_window_S, search_hl *match_T, curcol int64) bool
 func get_search_match_hl(wp *S_window_S, search_hl *match_T, col int64, char_attr *int32)
 func ex_match(eap *S_exarg)
 func mb_init() Ptr[byte]
@@ -698,7 +698,7 @@ func mb_lefthalve(row int32, col int32) bool
 func mb_fix_col(col int32, row int32) int32
 func ml_free_tree(hp *S_block_hdr)
 func ml_alloc_line(line Ptr[byte], len_ colnr_T) Ptr[byte]
-func ml_open(buf *S_file_buffer) int32
+func ml_open(buf *S_file_buffer) bool
 func ml_close(buf *S_file_buffer, del_file int32)
 func ml_close_all(del_file int32)
 func ml_close_notmod()
@@ -714,15 +714,15 @@ func ml_get_buf_len(buf *S_file_buffer, lnum linenr_T) colnr_T
 func ml_get_invalid(buf *S_file_buffer, lnum linenr_T) Ptr[byte]
 func ml_get_buf(buf *S_file_buffer, lnum linenr_T, will_change int32) Ptr[byte]
 func ml_line_alloced() int32
-func ml_append_int(buf *S_file_buffer, lnum linenr_T, line_arg Ptr[byte], len_arg colnr_T, flags int32) int32
-func ml_append_flush(buf *S_file_buffer, lnum linenr_T, line Ptr[byte], len_ colnr_T, flags int32) int32
-func ml_append(lnum linenr_T, line Ptr[byte], len_ colnr_T) int32
-func ml_append_flags(lnum linenr_T, line Ptr[byte], len_ colnr_T, flags int32) int32
-func ml_replace(lnum linenr_T, line Ptr[byte], copy_ int32) int32
-func ml_replace_len(lnum linenr_T, line_arg Ptr[byte], len_arg colnr_T, has_props int32, copy_ int32) int32
-func ml_delete_int(buf *S_file_buffer, lnum linenr_T, flags int32) int32
-func ml_delete(lnum linenr_T) int32
-func ml_delete_flags(lnum linenr_T, flags int32) int32
+func ml_append_int(buf *S_file_buffer, lnum linenr_T, line_arg Ptr[byte], len_arg colnr_T, flags int32) bool
+func ml_append_flush(buf *S_file_buffer, lnum linenr_T, line Ptr[byte], len_ colnr_T, flags int32) bool
+func ml_append(lnum linenr_T, line Ptr[byte], len_ colnr_T) bool
+func ml_append_flags(lnum linenr_T, line Ptr[byte], len_ colnr_T, flags int32) bool
+func ml_replace(lnum linenr_T, line Ptr[byte], copy_ int32) bool
+func ml_replace_len(lnum linenr_T, line_arg Ptr[byte], len_arg colnr_T, has_props int32, copy_ int32) bool
+func ml_delete_int(buf *S_file_buffer, lnum linenr_T, flags int32) bool
+func ml_delete(lnum linenr_T) bool
+func ml_delete_flags(lnum linenr_T, flags int32) bool
 func ml_setmarked(lnum linenr_T)
 func ml_firstmarked() linenr_T
 func ml_clearmarked()
@@ -734,7 +734,7 @@ func ml_add_stack(buf *S_file_buffer) int32
 func ml_lineadd(buf *S_file_buffer, count int32)
 func msg(s Ptr[byte]) int32
 func msg_attr(s Ptr[byte], attr int32) int32
-func msg_attr_keep(s Ptr[byte], attr int32, keep int32) int32
+func msg_attr_keep(s Ptr[byte], attr int32, keep int32) bool
 func msg_strtrunc(s Ptr[byte], force int32) Ptr[byte]
 func trunc_string(s Ptr[byte], buf Ptr[byte], room_in int32, buflen int32)
 func iobuff_room() usize
@@ -756,9 +756,9 @@ func emsg_invreg(name int32)
 func msg_trunc_attr(s Ptr[byte], force int32, attr int32) Ptr[byte]
 func msg_may_trunc(force int32, s Ptr[byte]) Ptr[byte]
 func add_msg_hist(s Ptr[byte], len_ int32, attr int32)
-func delete_first_msg() int32
+func delete_first_msg() bool
 func check_msg_hist()
-func messagesopt_changed() int32
+func messagesopt_changed() bool
 func ex_messages(eap *S_exarg)
 func wait_return(redraw int32)
 func hit_return_msg()
@@ -782,7 +782,7 @@ func msg_puts_title(s Ptr[byte])
 func msg_puts_attr(s Ptr[byte], attr int32)
 func msg_puts_attr_len(str Ptr[byte], maxlen int32, attr int32)
 func msg_puts_display(str Ptr[byte], maxlen int32, attr int32, recurse int32)
-func message_filtered(msg Ptr[byte]) int32
+func message_filtered(msg Ptr[byte]) bool
 func msg_scroll_up()
 func inc_msg_scrolled()
 func store_sb_text(sb_str *Ptr[byte], s Ptr[byte], attr int32, sb_col *int32, finish int32)
@@ -835,15 +835,15 @@ func line_breakcheck()
 func fast_breakcheck()
 func goto_im() bool
 func path_is_url(p Ptr[byte]) int32
-func vim_append_digit_long(value *int64, digit int32) int32
+func vim_append_digit_long(value *int64, digit int32) bool
 func trim_to_int(x vimlong_T) int32
 func virtual_active() int32
 func getviscol() int32
-func coladvance_force(wcol colnr_T) int32
+func coladvance_force(wcol colnr_T) bool
 func getviscol2(col colnr_T, coladd colnr_T) int32
-func coladvance(wantcol colnr_T) int32
-func getvpos(pos *pos_T, wantcol colnr_T) int32
-func coladvance2(pos *pos_T, addspaces int32, finetune int32, wcol_arg colnr_T) int32
+func coladvance(wantcol colnr_T) bool
+func getvpos(pos *pos_T, wantcol colnr_T) bool
+func coladvance2(pos *pos_T, addspaces int32, finetune int32, wcol_arg colnr_T) bool
 func inc_cursor() int32
 func inc(lp *pos_T) int32
 func incl(lp *pos_T) int32
@@ -858,7 +858,7 @@ func check_cursor_col_win(win *S_window_S)
 func check_cursor()
 func check_visual_pos()
 func adjust_cursor_col()
-func set_leftcol(leftcol colnr_T) int32
+func set_leftcol(leftcol colnr_T) bool
 func copy_option_part(option *Ptr[byte], buf Ptr[byte], maxlen int32, sep_chars Ptr[byte]) int32
 func vim_isspace(x int32) bool
 func name_to_mod_mask(c int32) int32
@@ -937,7 +937,7 @@ func scroll_cursor_halfway(atend int32, prefer_above int32)
 func cursor_correct()
 func get_scroll_overlap(dir int32) int32
 func scroll_with_sms(dir int32, count int64, curscount *int64) bool
-func pagescroll(dir int32, count int64, half int32) int32
+func pagescroll(dir int32, count int64, half int32) bool
 func find_command(cmdchar int32) int32
 func check_text_locked(oap *S_oparg_S) bool
 func check_text_or_curbuf_locked(oap *S_oparg_S) bool
@@ -977,7 +977,7 @@ func nv_error(cap_ *S_cmdarg_S)
 func nv_help(cap_ *S_cmdarg_S)
 func nv_addsub(cap_ *S_cmdarg_S)
 func nv_page(cap_ *S_cmdarg_S)
-func nv_screengo(oap *S_oparg_S, dir int32, dist int64) int32
+func nv_screengo(oap *S_oparg_S, dir int32, dist int64) bool
 func nv_scroll_line(cap_ *S_cmdarg_S)
 func nv_z_get_count(cap_ *S_cmdarg_S, nchar_arg *int32) bool
 func nv_zet(cap_ *S_cmdarg_S)
@@ -1071,21 +1071,21 @@ func get_new_sw_indent(left int32, round int32, amount vimlong_T, sw_val vimlong
 func shift_line(left int32, round int32, amount int32, call_changed_bytes int32)
 func shift_block(oap *S_oparg_S, amount int32)
 func block_insert(oap *S_oparg_S, s Ptr[byte], slen usize, b_insert int32, bdp *S_block_def)
-func op_delete(oap *S_oparg_S) int32
+func op_delete(oap *S_oparg_S) bool
 func mb_adjust_opend(oap *S_oparg_S)
 func replace_character(c int32)
-func op_replace(oap *S_oparg_S, c int32) int32
+func op_replace(oap *S_oparg_S, c int32) bool
 func op_tilde(oap *S_oparg_S)
 func swapchars(op_type int32, pos *pos_T, length int32) int32
 func swapchar(op_type int32, pos *pos_T) bool
 func op_insert(oap *S_oparg_S, count1 int64)
-func op_change(oap *S_oparg_S) int32
+func op_change(oap *S_oparg_S) bool
 func adjust_cursor_eol()
-func do_join(count int64, insert_space int32, save_undo int32, use_formatoptions int32, setmark int32) int32
+func do_join(count int64, insert_space int32, save_undo int32, use_formatoptions int32, setmark int32) bool
 func block_prep(oap *S_oparg_S, bdp *S_block_def, lnum linenr_T, is_del int32)
 func charwise_block_prep(start pos_T, end pos_T, bdp *S_block_def, lnum linenr_T, inclusive int32)
 func op_addsub(oap *S_oparg_S, Prenum1 linenr_T, g_cmd int32)
-func do_addsub(op_type int32, pos *pos_T, length int32, Prenum1 linenr_T) int32
+func do_addsub(op_type int32, pos *pos_T, length int32, Prenum1 linenr_T) bool
 func clear_oparg(oap *S_oparg_S)
 func line_count_info(line Ptr[byte], wc *varnumber_T, cc *varnumber_T, limit varnumber_T, eol_size int32) varnumber_T
 func cursor_pos_info()
@@ -1105,9 +1105,9 @@ func set_number_default(name Ptr[byte], val int64)
 func set_init_2()
 func ex_set(eap *S_exarg)
 func get_option_prefix(argp *Ptr[byte]) set_prefix_T
-func parse_option_name(arg Ptr[byte], opt_idxp *int32, lenp *int32, keyp *int32) int32
+func parse_option_name(arg Ptr[byte], opt_idxp *int32, lenp *int32, keyp *int32) bool
 func get_opt_op(arg Ptr[byte]) set_op_T
-func validate_opt_idx(opt_idx int32, opt_flags int32, flags long_u, errmsg *Ptr[byte], prefix set_prefix_T) int32
+func validate_opt_idx(opt_idx int32, opt_flags int32, flags long_u, errmsg *Ptr[byte], prefix set_prefix_T) bool
 func stropt_get_default_val(opt_idx int32, varp optvar_T, flags int32, cp_val int32) Ptr[byte]
 func opt_backspace_nr2str(varp optvar_T, origval_p *Ptr[byte], origval_l_p *Ptr[byte], origval_g_p *Ptr[byte], oldval_p *Ptr[byte])
 func opt_whichwrap_nr2str(argp Ptr[Ptr[byte]], whichwrap Ptr[byte]) Ptr[byte]
@@ -1123,13 +1123,13 @@ func prepend_item(str Ptr[byte], item Ptr[byte], item_len int32)
 func stropt_handle_keymatch(origval Ptr[byte], newval Ptr[byte], op set_op_T, flags int32) bool
 func stropt_remove_dupflags(newval Ptr[byte], flags int32)
 func stropt_get_newval(nextchar int32, opt_idx int32, argp *Ptr[byte], varp optvar_T, origval_arg *Ptr[byte], origval_l_arg *Ptr[byte], origval_g_arg *Ptr[byte], oldval_arg *Ptr[byte], op_arg *set_op_T, flags int32, cp_val int32) Ptr[byte]
-func do_set_option_string(opt_idx int32, opt_flags int32, argp *Ptr[byte], nextchar int32, op_arg set_op_T, flags long_u, cp_val int32, varp_arg optvar_T, errbuf Ptr[byte], errbuflen usize, value_checked *int32, errmsg *Ptr[byte]) int32
+func do_set_option_string(opt_idx int32, opt_flags int32, argp *Ptr[byte], nextchar int32, op_arg set_op_T, flags long_u, cp_val int32, varp_arg optvar_T, errbuf Ptr[byte], errbuflen usize, value_checked *int32, errmsg *Ptr[byte]) bool
 func do_set_option_bool(opt_idx int32, opt_flags int32, prefix set_prefix_T, flags long_u, varp optvar_T, nextchar int32, afterchar int32, cp_val int32) Ptr[byte]
 func do_set_option_numeric(opt_idx int32, opt_flags int32, argp *Ptr[byte], nextchar int32, op set_op_T, flags long_u, cp_val int32, varp optvar_T, errbuf Ptr[byte], errbuflen usize) Ptr[byte]
 func do_set_option_keycode(argp *Ptr[byte], key_name Ptr[byte], nextchar int32) Ptr[byte]
 func do_set_option_value(opt_idx int32, opt_flags int32, argp *Ptr[byte], prefix set_prefix_T, op set_op_T, flags long_u, varp optvar_T, key_name Ptr[byte], nextchar int32, afterchar int32, cp_val int32, stopopteval *int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte]
 func do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[byte], startarg *Ptr[byte], did_show *int32, stopopteval *int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte]
-func do_set(arg_start Ptr[byte], opt_flags int32) int32
+func do_set(arg_start Ptr[byte], opt_flags int32) bool
 func did_set_option(opt_idx int32, opt_flags int32, new_value int32, value_checked int32)
 func option_expand(opt_idx int32, val Ptr[byte]) Ptr[byte]
 func didset_options()
@@ -1202,7 +1202,7 @@ func buf_copy_options(buf *S_file_buffer, flags int32)
 func option_value2string(opp Ptr[S_vimoption], scope int32)
 func shortmess(x int32) bool
 func option_was_set(name Ptr[byte]) bool
-func reset_option_was_set(name Ptr[byte]) int32
+func reset_option_was_set(name Ptr[byte]) bool
 func compatible_set()
 func can_bs(what int32) bool
 func get_scrolloff_value() int64
@@ -1253,8 +1253,8 @@ func did_set_whichwrap(args *optset_T) Ptr[byte]
 func did_set_wincolor(args *optset_T) Ptr[byte]
 func did_set_winhighlight(args *optset_T) Ptr[byte]
 func did_set_string_option(opt_idx int32, varp Ptr[Ptr[byte]], oldval Ptr[byte], value Ptr[byte], errbuf Ptr[byte], errbuflen usize, opt_flags int32, op set_op_T, value_checked *int32) Ptr[byte]
-func check_opt_strings(val Ptr[byte], values Ptr[Ptr[byte]], list int32) int32
-func opt_strings_flags(val Ptr[byte], values Ptr[Ptr[byte]], flagp *uint32, list int32) int32
+func check_opt_strings(val Ptr[byte], values Ptr[Ptr[byte]], list int32) bool
+func opt_strings_flags(val Ptr[byte], values Ptr[Ptr[byte]], flagp *uint32, list int32) bool
 func mch_write(s Ptr[byte], len_ int32)
 func mch_inchar(buf Ptr[byte], maxlen int32, wtime int64, tb_change_cnt int32) int32
 func mch_delay(msec int64, flags int32)
@@ -1266,7 +1266,7 @@ func vim_is_xterm(name Ptr[byte]) bool
 func exit_scroll()
 func mch_exit(r int32)
 func get_stty()
-func get_tty_info(fd int32, info *ttyinfo_T) int32
+func get_tty_info(fd int32, info *ttyinfo_T) bool
 func mch_set_shellsize()
 func mch_breakcheck(force int32)
 func WaitForChar(msec int64, interrupted *int32, ignore_input int32) int32
@@ -1303,7 +1303,7 @@ func prog_magic_wrong() bool
 func cleanup_subexpr()
 func reg_nextline()
 func match_with_backref(start_lnum linenr_T, start_col colnr_T, end_lnum linenr_T, end_col colnr_T, bytelen *int32) int32
-func re_mult_next(what Ptr[byte]) int32
+func re_mult_next(what Ptr[byte]) bool
 func mb_decompose(c int32, c1 *int32, c2 *int32, c3 *int32)
 func cstrncmp(s1 Ptr[byte], s2 Ptr[byte], n *int32) int32
 func cstrchr(s Ptr[byte], c int32) Ptr[byte]
@@ -1360,24 +1360,24 @@ func vim_regexec(rmp *regmatch_T, line Ptr[byte], col colnr_T) bool
 func vim_regexec_multi(rmp *regmmatch_T, win *S_window_S, buf *S_file_buffer, lnum linenr_T, col colnr_T, timed_out *int32) int64
 func reset_y_append()
 func valid_yank_reg(regname int32, writing int32) bool
-func get_yank_register(regname int32, writing int32) int32
+func get_yank_register(regname int32, writing int32) bool
 func get_register(name int32, copy_ int32) *yankreg_T
 func put_register(name int32, reg *yankreg_T)
-func do_record(c int32) int32
-func stuff_yank(regname int32, p Ptr[byte]) int32
+func do_record(c int32) bool
+func stuff_yank(regname int32, p Ptr[byte]) bool
 func execreg_line_continuation(lines Ptr[string_T], idx *int64) Ptr[byte]
-func do_execreg(regname int32, colon int32, addcr int32, silent int32) int32
+func do_execreg(regname int32, colon int32, addcr int32, silent int32) bool
 func put_reedit_in_typebuf(silent int32)
-func put_in_typebuf(s Ptr[byte], esc int32, colon int32, silent int32) int32
-func insert_reg(regname int32, literally_arg int32) int32
+func put_in_typebuf(s Ptr[byte], esc int32, colon int32, silent int32) bool
+func insert_reg(regname int32, literally_arg int32) bool
 func get_spec_reg(regname int32, argp *Ptr[byte], allocated *int32, errmsg int32) bool
-func cmdline_paste_reg(regname int32, literally_arg int32, remcr int32) int32
+func cmdline_paste_reg(regname int32, literally_arg int32, remcr int32) bool
 func shift_delete_registers()
 func init_yank()
 func free_yank(n int64)
 func free_yank_all()
-func op_yank(oap *S_oparg_S, deleting int32, mess int32) int32
-func yank_copy_line(bd *S_block_def, y_idx int64, exclude_trailing_space int32) int32
+func op_yank(oap *S_oparg_S, deleting int32, mess int32) bool
+func yank_copy_line(bd *S_block_def, y_idx int64, exclude_trailing_space int32) bool
 func do_put(regname int32, expr_result Ptr[byte], dir int32, count int64, flags int32)
 func get_register_name(num int32) int32
 func ex_display(eap *S_exarg)
@@ -1411,9 +1411,9 @@ func clear_TabPageIdxs()
 func screen_valid(doclear int32) bool
 func screenalloc(doclear int32)
 func free_screenlines()
-func screenclear() int32
+func screenclear() bool
 func redraw_as_cleared()
-func screenclear2(doclear int32) int32
+func screenclear2(doclear int32) bool
 func lineclear(off uint32, width int32, attr int32)
 func lineinvalid(off uint32, width int32)
 func linecopy(to int32, from int32, wp *S_window_S)
@@ -1426,8 +1426,8 @@ func win_ins_lines(wp *S_window_S, row int32, line_count int32, invalid int32, m
 func win_del_lines(wp *S_window_S, row int32, line_count int32, invalid int32, mayclear int32, clear_attr int32) int32
 func win_do_lines(wp *S_window_S, row int32, line_count int32, mayclear int32, del int32, clear_attr int32) int32
 func win_rest_invalid(wp *S_window_S)
-func screen_ins_lines(off int32, row int32, line_count int32, end int32, clear_attr int32, wp *S_window_S) int32
-func screen_del_lines(off int32, row int32, line_count int32, end int32, force int32, clear_attr int32, wp *S_window_S) int32
+func screen_ins_lines(off int32, row int32, line_count int32, end int32, clear_attr int32, wp *S_window_S) bool
+func screen_del_lines(off int32, row int32, line_count int32, end int32, force int32, clear_attr int32, wp *S_window_S) bool
 func skip_showmode() bool
 func showmode() int32
 func msg_pos_mode()
@@ -1453,7 +1453,7 @@ func estack_init()
 func estack_push(type_ etype_T, name Ptr[byte], lnum int64) Ptr[estack_T]
 func estack_pop() Ptr[estack_T]
 func estack_sfile(which estack_arg_T) Ptr[byte]
-func search_regcomp(pat Ptr[byte], patlen usize, used_pat *Ptr[byte], pat_save int32, pat_use int32, options int32, regmatch *regmmatch_T) int32
+func search_regcomp(pat Ptr[byte], patlen usize, used_pat *Ptr[byte], pat_save int32, pat_use int32, options int32, regmatch *regmmatch_T) bool
 func get_search_pat() Ptr[byte]
 func save_re_pat(idx int32, pat Ptr[byte], patlen usize, magic int32)
 func save_last_search_pattern()
@@ -1468,15 +1468,15 @@ func last_pat_prog(regmatch *regmmatch_T)
 func searchit(win *S_window_S, buf *S_file_buffer, pos *pos_T, end_pos *pos_T, dir int32, pat Ptr[byte], patlen usize, count int64, options int32, pat_use int32, extra_arg *searchit_arg_T) int32
 func parse_search_pattern_offset(pat *Ptr[byte], patlen *usize, search_delim int32, options int32, strcopy *Ptr[byte], searchstr *Ptr[byte], searchstrlen *usize, dircp *Ptr[byte], offset *S_soffset) int32
 func do_search(oap *S_oparg_S, dirc int32, search_delim int32, pat Ptr[byte], patlen usize, count int64, options int32, sia *searchit_arg_T) int32
-func searchc(cap_ *S_cmdarg_S, t_cmd int32) int32
+func searchc(cap_ *S_cmdarg_S, t_cmd int32) bool
 func findmatch(oap *S_oparg_S, initc int32) *pos_T
 func check_prevcol(linep Ptr[byte], col int32, ch int32, prevcol *int32) bool
-func find_rawstring_end(linep Ptr[byte], startpos *pos_T, endpos *pos_T) int32
+func find_rawstring_end(linep Ptr[byte], startpos *pos_T, endpos *pos_T) bool
 func find_mps_values(initc *int32, findc *int32, backwards *int32, switchit int32)
 func findmatchlimit(oap *S_oparg_S, initc int32, flags int32, maxtravel int32) *pos_T
 func showmatch(c int32)
 func is_zero_width(pattern Ptr[byte], patternlen usize, move int32, cur *pos_T, direction int32) int32
-func current_search(count int64, forward int32) int32
+func current_search(count int64, forward int32) bool
 func cmdline_search_stat(dirc int32, pos *pos_T, cursor_pos *pos_T, show_top_bot_msg int32, msgbuf Ptr[byte], msgbuflen usize, recompute int32, maxcount int32, timeout int64)
 func update_search_stat(dirc int32, pos *pos_T, cursor_pos *pos_T, stat *S_searchstat, recompute int32, maxcount int32, timeout int64)
 func vim_strsave(string_ Ptr[byte]) Ptr[byte]
@@ -1504,8 +1504,8 @@ func may_adjust_color_count(val int32)
 func term_strings_not_set(idx int32) bool
 func report_term_error(error_msg Ptr[byte], term Ptr[byte])
 func match_keyprotocol(term Ptr[byte]) keyprot_T
-func set_termname(term Ptr[byte]) int32
-func add_termcap_entry(name Ptr[byte], force int32) int32
+func set_termname(term Ptr[byte]) bool
+func add_termcap_entry(name Ptr[byte], force int32) bool
 func term_is_builtin(name Ptr[byte]) bool
 func term_is_8bit(name Ptr[byte]) bool
 func term_7to8bit(p Ptr[byte]) int32
@@ -1563,7 +1563,7 @@ func find_termcode(name Ptr[byte]) Ptr[byte]
 func del_termcode(name Ptr[byte])
 func del_termcode_idx(idx int32)
 func switch_to_8bit()
-func put_string_in_typebuf(offset int32, slen int32, string_ Ptr[byte], new_slen int32, buf Ptr[byte], bufsize int32, buflen *int32) int32
+func put_string_in_typebuf(offset int32, slen int32, string_ Ptr[byte], new_slen int32, buf Ptr[byte], bufsize int32, buflen *int32) bool
 func decode_modifiers(n int32) int32
 func modifiers2keycode(modifiers int32, key *int32, string_ Ptr[byte]) int32
 func handle_u7_response(arg Ptr[int32], tp Ptr[byte], csi_len int32)
@@ -1577,8 +1577,8 @@ func handle_csi_function_key(argc int32, arg Ptr[int32], trail int32, csi_len in
 func handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset int32, buf Ptr[byte], bufsize int32, buflen *int32, key_name Ptr[byte], slen *int32) int32
 func check_for_color_response(resp Ptr[byte], len_ int32)
 func in_osc_sequence() bool
-func handle_osc(tp Ptr[byte], len_ int32, key_name Ptr[byte], slen *int32) int32
-func handle_dcs(tp Ptr[byte], argp Ptr[byte], len_ int32, key_name Ptr[byte], slen *int32) int32
+func handle_osc(tp Ptr[byte], len_ int32, key_name Ptr[byte], slen *int32) bool
+func handle_dcs(tp Ptr[byte], argp Ptr[byte], len_ int32, key_name Ptr[byte], slen *int32) bool
 func check_termcode(max_offset int32, buf Ptr[byte], bufsize int32, buflen *int32) int32
 func replace_termcodes(from Ptr[byte], bufp *Ptr[byte], sid_arg scid_T, flags int32, did_simplify *int32) Ptr[byte]
 func find_term_bykeys(src Ptr[byte], matchlen *int32) int32
@@ -1591,24 +1591,24 @@ func term_set_sync_output(flags int32)
 func internal_format(textwidth int32, second_indent int32, flags int32, format_only int32, c int32)
 func comp_textwidth() int32
 func cls() int32
-func fwd_word(count int64, bigword int32, eol int32) int32
-func bck_word(count int64, bigword int32, stop int32) int32
-func end_word(count int64, bigword int32, stop int32, empty int32) int32
-func bckend_word(count int64, bigword int32, eol int32) int32
+func fwd_word(count int64, bigword int32, eol int32) bool
+func bck_word(count int64, bigword int32, stop int32) bool
+func end_word(count int64, bigword int32, stop int32, empty int32) bool
+func bckend_word(count int64, bigword int32, eol int32) bool
 func skip_chars(cclass int32, dir int32) bool
 func back_in_line()
-func current_word(oap *S_oparg_S, count int64, include int32, bigword int32) int32
-func current_block(oap *S_oparg_S, count int64, include int32, what int32, other int32) int32
+func current_word(oap *S_oparg_S, count int64, include int32, bigword int32) bool
+func current_block(oap *S_oparg_S, count int64, include int32, what int32, other int32) bool
 func find_next_quote(line Ptr[byte], col int32, quotechar int32, escape Ptr[byte]) int32
 func find_prev_quote(line Ptr[byte], col_start int32, quotechar int32, escape Ptr[byte]) int32
-func current_quote(oap *S_oparg_S, count int64, include int32, quotechar int32) int32
+func current_quote(oap *S_oparg_S, count int64, include int32, quotechar int32) bool
 func add_time(buf Ptr[byte], buflen usize, tt time_T)
 func ui_write(s Ptr[byte], len_ int32)
 func ui_inchar(buf Ptr[byte], maxlen int32, wtime int64, tb_change_cnt int32) int32
 func inchar_loop(buf Ptr[byte], maxlen int32, wtime int64, tb_change_cnt int32, wait_func func(int64, *int32, int32) int32, resize_func func(int32) int32) int32
 func ui_delay(msec_arg int64, ignoreinput int32)
 func ui_suspend()
-func ui_get_shellsize() int32
+func ui_get_shellsize() bool
 func ui_set_shellsize(mustset int32)
 func ui_new_shellsize()
 func ui_breakcheck()
@@ -1624,15 +1624,15 @@ func read_error_exit()
 func check_col(col int32) int32
 func check_row(row int32) int32
 func ui_focus_change(in_focus int32)
-func u_save_cursor() int32
-func u_save(top linenr_T, bot linenr_T) int32
-func u_savesub(lnum linenr_T) int32
-func u_inssub(lnum linenr_T) int32
-func u_savedel(lnum linenr_T, nlines int64) int32
+func u_save_cursor() bool
+func u_save(top linenr_T, bot linenr_T) bool
+func u_savesub(lnum linenr_T) bool
+func u_inssub(lnum linenr_T) bool
+func u_savedel(lnum linenr_T, nlines int64) bool
 func undo_allowed() bool
 func get_undolevel() int64
-func u_save_line(ul Ptr[undoline_T], lnum linenr_T) int32
-func u_savecommon(top linenr_T, bot linenr_T, newbot linenr_T, reload int32) int32
+func u_save_line(ul Ptr[undoline_T], lnum linenr_T) bool
+func u_savecommon(top linenr_T, bot linenr_T, newbot linenr_T, reload int32) bool
 func u_undo(count int32)
 func u_redo(count int32)
 func u_doit(startcount int32)
@@ -1670,13 +1670,13 @@ func frame_new_height(topfrp *S_frame_S, height int32, topfirst int32, wfh int32
 func frame_new_width(topfrp *S_frame_S, width int32, leftfirst int32, wfw int32)
 func frame_minheight(topfrp *S_frame_S, next_curwin *S_window_S) int32
 func unuse_tabpage(tp *S_tabpage_S)
-func win_alloc_first() int32
-func win_alloc_firstwin(oldwin *S_window_S) int32
+func win_alloc_first() bool
+func win_alloc_firstwin(oldwin *S_window_S) bool
 func new_frame(wp *S_window_S)
 func win_init_size()
 func alloc_tabpage() *S_tabpage_S
 func win_alloc(after *S_window_S, hidden int32) *S_window_S
-func win_alloc_lines(wp *S_window_S) int32
+func win_alloc_lines(wp *S_window_S) bool
 func win_free_lsize(wp *S_window_S)
 func shell_new_rows()
 func shell_new_columns()

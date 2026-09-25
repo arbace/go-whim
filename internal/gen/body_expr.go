@@ -110,7 +110,7 @@ func pure(s string) bool {
 }
 
 func (f *fnEmit) index(v val) string {
-	if v.boolean {
+	if v.boolean || f.g.canon(v.t) == "bool" {
 		return "int(B2i(" + v.s + "))"
 	}
 	if v.konst {

@@ -2,6 +2,7 @@ package gen
 
 import (
 	"fmt"
+	"github.com/arbace/go-whim/internal/cc"
 	"go/format"
 	"os"
 	"strings"
@@ -65,11 +66,34 @@ func (g *gen) writeEditor(path string, skip map[string]bool) error {
 	b.WriteString("\n// The initial values of the file-scope objects and the hoisted statics whose\n// C initializer is not all zeros.\nfunc init() {\n")
 	b.WriteString(inits)
 	b.WriteString("}\n\n")
-	b.WriteString(gaGrowInner + "\n")
+	b.WriteString(g.gaGrowInnerText() + "\n")
 	b.WriteString(body)
 	src, err := format.Source([]byte(b.String()))
 	if err != nil {
 		return fmt.Errorf("the generated file is not Go: %v", err)
 	}
 	return os.WriteFile(path, src, 0o644)
+}
+
+// gaGrowInnerText is gaGrowInner with the result type the C gives it: `int`,
+// OK and FAIL, until phase 166 made a success bool, and then `bool`, true and
+// false.  The rule is the runtime's; the signature is the C's.
+func (g *gen) gaGrowInnerText() string {
+	for _, n := range g.ast.Scope.Nodes["ga_grow_inner"] {
+		d, ok := n.(*cc.Declarator)
+		if !ok {
+			continue
+		}
+		ft, ok := d.Type().(*cc.FunctionType)
+		if !ok {
+			continue
+		}
+		if g.goType(ft.Result(), "ret:ga_grow_inner") == "bool" {
+			s := strings.Replace(gaGrowInner, "n int32) int32 {", "n int32) bool {", 1)
+			s = strings.ReplaceAll(s, "return FAIL", "return false")
+			return strings.ReplaceAll(s, "return OK", "return true")
+		}
+		break
+	}
+	return gaGrowInner
 }

@@ -41,8 +41,10 @@ slim-vim.c  --whim-->  whim-vim.c
     statements after a jump (164, a general rule) and six stores nothing reads
     (165, named). With the generator's own fixes, `go vet`, staticcheck and
     `gofmt -s` are clean on `editor/`.
-  - **phase 166** declares `bool` the 151 core functions whose every return
-    answers yes or no, so the Go says `if f()` where it said `if f() != 0`.
+  - **phase 166** declares `bool` the 278 core functions whose every return
+    answers yes or no -- OK and FAIL included, OK being `true` -- and the 327
+    locals that only hold an answer; `f() == FAIL` is `!f()`. So the Go says
+    `if f()` where it said `if f() != 0`.
   - **phase 167**, last, drops every system header nothing needs, in one step:
     each `#include` is tried and kept out while the file compiles silently.
     Phases 82, 99 and 104 once did it piecemeal, and the phases between them
@@ -176,7 +178,7 @@ make help            # every target, with a line each
   after every phase** (there are no stages), and **the canonical print of what is left**
   (`internal/cemit`: one spelling per construct, and NO COMMENTS, of any kind),
   so every boundary that is C is in the one spelling phase 0 seeds with -- applied
-  in one process, in memory. Measured: 168 phases, **1,054 s**, 75,097 lines. A
+  in one process, in memory. Measured: 168 phases, **1,086 s**, 75,097 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`internal/sweep`'s `Prune`): the text parsed
@@ -194,7 +196,7 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **75 s** on 64 cores, against 1,054 s in
+  committed `whim-vim.c`. Measured: **86 s** on 64 cores, against 1,086 s in
   order; and a phase whose program was changed on purpose
   (a control) is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
