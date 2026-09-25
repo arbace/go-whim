@@ -124,11 +124,10 @@ through to. arbace/slim-vim keeps both, for its own pipeline.
 cmd/whim/         the toolset, every tool a subcommand: go tool whim <subcommand>
                    (README.md: each tool, and what each retired script became)
 internal/          the Go: cc (the forked C front end), cemit (the canonical printer), sweep, dead,
-                   cut/cutil (the cutters), edit (what the phases' edits are
-                   written against: the one verb set, edit.E, in driver.go and
-                   blocks.go, every act counted; Ph, the driver of the phases
-                   whose cut is a computation; and in shared.go what more than
-                   one phase uses), steps (every transformation a phase names, as
+                   cut (the cutters), edit (the registry the phases' edits join,
+                   and a forwarding declaration for every name of crefactor/text's
+                   verb set and of whim/vimtext, so a phase still writes edit.E),
+                   cutil (crefactor/text's old name, every name forwarded), steps (every transformation a phase names, as
                    one table), build (whim's pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, vim's sweep,
@@ -138,9 +137,20 @@ internal/          the Go: cc (the forked C front end), cemit (the canonical pri
                    reach (what nothing reaches, as a partition with gcc as its
                    control -- a reporter, `go tool whim reach FILE`; it deletes
                    nothing)
-internal/crefactor/ the generic C machinery, knowing no code base: pipeline
-                   (the driver -- Phase, Step, Plan, Run, Advance, Check,
-                   the snapshots, Seed -- told everything through a Config)
+internal/crefactor/ the generic C machinery (doc/VIM-VS-GENERIC.md §4), knowing
+                   no code base: no vim identifier in a string literal, no import
+                   of whim, phase, cut or cmdtab. pipeline/: the driver -- Phase,
+                   Step, Plan, Run, Advance, Check, the snapshots, Seed -- told
+                   everything through a Config. xform/: the generic transforms.
+                   text/: the C-text substrate that was cutil, and the one verb
+                   set -- E, every act counted (driver.go, blocks.go); Ph, the
+                   driver of the phases whose cut is a computation; the counted
+                   acts both and internal/cut's `ed` are written on (counted.go);
+                   and in shared.go the generic helpers more than one phase uses
+internal/whim/     what the generic side is told about vim: profile.go, xform.go,
+                   and vimtext/ (what more than one phase uses that knows vim: the
+                   buffer walks, Key, the command table's shapes and residue
+                   check, the W80-W127 helpers)
 internal/phase/    the phases: NNN/ (GOAL.md, and edit.go where its cut is a
                    program), registry.go (every phase with an edit.go,
                    blank-imported so it registers), STAGES.md (the record of
