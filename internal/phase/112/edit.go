@@ -46,8 +46,8 @@ package p112
 // WHAT IT DOES, in three parts, every one of them computed:
 //
 // A  the union, INSERTED INTO VIM'S ROWS, as above.
-// B  `musl_toUpper[]` and `musl_toLower[]`, deleted with the blank line above each,
-// as ONE span from the first table's head to the second's closing brace.
+// B  `musl_toUpper[]` and `musl_toLower[]`, read by nothing after C, which the
+// sweep deletes.
 // C  `musl_towupper()` and `musl_towlower()` repointed at `toUpper[]`/`toLower[]`.
 // The two three-line wrappers STAY: they are what the non-internal arm of
 // `utf_toupper()`/`utf_tolower()` calls and what the two dead `if (c >= 0x100)`
@@ -84,32 +84,11 @@ import (
 
 func init() { edit.Register("whim112", Edit) }
 
-// A convertStruct row is written one of TWO ways in this file, and which one a
-// table uses is a fact about that table rather than a spelling to be tolerated:
-// vim's own toUpper[] and toLower[] are canonical text -- four spaces of indent
-// and a space after each comma -- and the musl_to*[] phase 98 vendored are that
-// phase's inserted text, written tight at eight.  Both are read, each table is
-// required to be written ONE way throughout, and the merged table is re-emitted
-// the way the table it replaces was written.
-var (
-	w112RowCanon = regexp.MustCompile(`^    \{(0x[0-9a-f]+), (0x[0-9a-f]+), (-?\d+), (-?\d+)\},?$`)
-	w112RowTight = regexp.MustCompile(`^        \{(0x[0-9a-f]+),(0x[0-9a-f]+),(-?\d+),(-?\d+)\},?$`)
-)
+// A convertStruct row is canonical text, as every table in the file is: four
+// spaces of indent and a space after each comma.
+var w112Row = regexp.MustCompile(`^    \{(0x[0-9a-f]+), (0x[0-9a-f]+), (-?\d+), (-?\d+)\},?$`)
 
-// w112Shape is how one table writes a row, and the two formats that spell it.
-type w112Shape int
-
-const (
-	w112Canon w112Shape = iota
-	w112Tight
-)
-
-func (s w112Shape) format() string {
-	if s == w112Canon {
-		return "    {0x%x, 0x%x, %d, %d}"
-	}
-	return "        {0x%x,0x%x,%d,%d}"
-}
+const w112RowFormat = "    {0x%x, 0x%x, %d, %d}"
 
 // w112Names are the four convertStruct tables this phase merges into two.
 var w112Names = []string{"toUpper", "toLower", "musl_toUpper", "musl_toLower"}
@@ -138,22 +117,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 		return m, nil
 	}
-	shapes := map[string]w112Shape{}
 	parse := func(name, Body string) ([]w112Rec, error) {
 		var rows []w112Rec
-		for i, line := range strings.Split(Body, "\n") {
-			shape := w112Canon
-			m := w112RowCanon.FindStringSubmatch(line)
-			if m == nil {
-				shape, m = w112Tight, w112RowTight.FindStringSubmatch(line)
-			}
+		for _, line := range strings.Split(Body, "\n") {
+			m := w112Row.FindStringSubmatch(line)
 			if m == nil {
 				return nil, p.Die("%s has a row this phase cannot read: %s", name, cutil.PyRepr(line))
-			}
-			if i == 0 {
-				shapes[name] = shape
-			} else if shapes[name] != shape {
-				return nil, p.Die("%s is not written one way throughout: %s", name, cutil.PyRepr(line))
 			}
 			lo, _ := strconv.ParseInt(m[1][2:], 16, 64)
 			hi, _ := strconv.ParseInt(m[2][2:], 16, 64)
@@ -164,19 +133,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return rows, nil
 	}
 	// The canonical text ends every row of a table with a comma, the last one
-	// included; the vendored block ends the last row without one.  The shape
-	// carries that too, so a table re-emits as the text it came from.
-	emit := func(rows []w112Rec, shape w112Shape) string {
+	// included.
+	emit := func(rows []w112Rec) string {
 		Out := make([]string, len(rows))
-		f := shape.format()
 		for i, r := range rows {
-			Out[i] = fmt.Sprintf(f, r.lo, r.hi, r.step, r.off)
+			Out[i] = fmt.Sprintf(w112RowFormat, r.lo, r.hi, r.step, r.off)
 		}
-		s := strings.Join(Out, ",\n")
-		if shape == w112Canon {
-			s += ","
-		}
-		return s
+		return strings.Join(Out, ",\n") + ","
 	}
 	// expand is {codepoint: target}, EXACTLY as utf_convert() reads the row.  A
 	// row with `step < 0` is how this file spells a single codepoint, and it
@@ -225,7 +188,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 		rows[n] = r
-		if emit(r, shapes[n]) != t[m[2]:m[3]] {
+		if emit(r) != t[m[2]:m[3]] {
 			return nil, p.Die("%s does not re-emit as the text it came from, so the rows this phase "+
 				"writes would not be in the file's own shape", n)
 		}
@@ -340,26 +303,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, p.Die("%s[] is not in the file exactly once", n)
 		}
 		t = strings.Replace(t, oldText,
-			fmt.Sprintf("static convertStruct %s[] =\n{\n%s\n};\n", n, emit(merged[n], shapes[n])), 1)
+			fmt.Sprintf("static convertStruct %s[] =\n{\n%s\n};\n", n, emit(merged[n])), 1)
 	}
 
-	// ---- B. musl's two tables, deleted with the blank line above each ---------
-	i := strings.Index(t, "static convertStruct musl_toUpper[] =")
-	j := strings.Index(t[strings.Index(t, "static convertStruct musl_toLower[] ="):], "\n};\n") +
-		strings.Index(t, "static convertStruct musl_toLower[] =") + 4
-	if i < 2 || t[i-2:i] != "\n\n" {
-		return nil, p.Die("musl_toUpper[] does not open on its own paragraph, so the deletion would " +
-			"leave a blank line behind or take one it should not")
-	}
-	cut := t[i-1 : j]
-	if !strings.Contains(cut, "musl_toLower") || strings.Count(cut, "static convertStruct") != 2 {
-		return nil, p.Die("the span between musl_toUpper[] and the end of musl_toLower[] is not the " +
-			"two tables and nothing else")
-	}
-	t = t[:i-1] + t[j:]
-	p.Sayf("musl_toUpper[] and musl_toLower[] deleted, %d lines including the blank line above "+
-		"each -- one span, from the first table's head to the second's closing brace, and "+
-		"it holds exactly two `static convertStruct`", strings.Count(cut, "\n"))
+	// ---- B. musl's two tables are the sweep's -------------------------------
+	// Once C repoints the two wrappers, nothing reads musl_toUpper[] or
+	// musl_toLower[], and the sweep deletes both.
 
 	// ---- C. the two wrappers, repointed ---------------------------------------
 	for _, wp := range []struct{ W, table string }{
@@ -380,8 +329,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// ---- what must be true of the result --------------------------------------
 	for _, gone := range []string{"musl_toUpper", "musl_toLower"} {
-		if words(t, gone) > 0 {
-			return nil, p.Die("%s survives", gone)
+		if words(t, gone) != 1 {
+			return nil, p.Die("%s is named other than by its own definition", gone)
 		}
 	}
 	for _, kw := range []struct {
@@ -420,7 +369,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if !okd {
 		return nil, p.Die("the directives are no longer the %d #includes it was handed and nothing else", nInc)
 	}
-	p.Sayf("musl_toUpper and musl_toLower at 0 mentions, musl_towupper and musl_towlower at "+
+	p.Sayf("musl_toUpper and musl_toLower at 1 mention each, their definitions, for the "+
+		"sweep, musl_towupper and musl_towlower at "+
 		"4 each, toUpper and toLower at 5 each, utf_convert at the same 6 calls, and the "+
 		"first #include -- the boundary -- is still line %d with no directive "+
 		"above it", directives[0]+1)
