@@ -31,7 +31,10 @@ package p120
 // output none.  GOALS.md's core is meant to be readable by something that is not gcc,
 // and a construct the C standard forbids is exactly the kind of latent exotic that costs
 // a reader later.  It is also the cheapest possible removal: the field has ZERO uses, one
-// mention in the whole file, its own declaration.
+// mention in the whole file, its own declaration -- which is why the sweep, deleting an
+// unused member, takes it before this phase runs.  So the input holds five degenerate
+// unions, every one of ONE member, and an empty union here refuses: nothing names it,
+// so it is the sweep's, not this edit's.
 //
 // WHAT THE REWRITE IS, and it is the same rule twice.  A single-member union becomes its
 // member, keeping the UNION's name:
@@ -42,8 +45,7 @@ package p120
 //
 // and every `uh_next.ptr` becomes `uh_next`.  The replacement text is the member's OWN
 // declaration with the member's name replaced by the union's, so the type, the pointer
-// stars and the internal spacing are the input's and not this program's.  The empty union
-// is deleted outright, there being no member to promote and no use to rewrite.
+// stars and the internal spacing are the input's and not this program's.
 //
 // A PARTITION AND NOT A COUNT (CLAUDE.md, *Rename a name across the whole file*).  For
 // each of the six names, EVERY mention outside a literal must classify as either its own
@@ -262,11 +264,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		len(unions), len(degenerate), len(genuine), strings.Join(gs, ", "))
 	ds := make([]string, len(degenerate))
 	for i, u := range degenerate {
-		kind := "empty"
-		if u.members != 0 {
-			kind = "1 member"
+		if u.members == 0 {
+			return nil, p.Die("`%s` is an EMPTY union, and nothing can name a field with no member: it "+
+				"is the sweep's, which takes an unused member, and not this edit's", u.Name)
 		}
-		ds[i] = fmt.Sprintf("%s (%s)", u.Name, kind)
+		ds[i] = fmt.Sprintf("%s (1 member)", u.Name)
 	}
 	p.Sayf("THE %d THAT GO UNION NOTHING WITH ANYTHING: %s", len(degenerate), strings.Join(ds, ", "))
 
@@ -274,16 +276,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	var edits []w120Edit
 	var report []string
 	for _, u := range degenerate {
-		if u.members != 0 {
-			decl := strings.TrimSpace(u.Body)
-			mm := w120Decl.FindStringSubmatch(decl)
-			if mm == nil || strings.Contains(decl, "\n") {
-				return nil, p.Die("the single member of `%s` is not one `<type> <name>;` on one line: %s",
-					u.Name, cutil.PyRepr(decl))
-			}
-			u.member = mm[2]
-			u.replacement = u.indent + mm[1] + u.Name + ";"
+		decl := strings.TrimSpace(u.Body)
+		mm := w120Decl.FindStringSubmatch(decl)
+		if mm == nil || strings.Contains(decl, "\n") {
+			return nil, p.Die("the single member of `%s` is not one `<type> <name>;` on one line: %s",
+				u.Name, cutil.PyRepr(decl))
 		}
+		u.member = mm[2]
+		u.replacement = u.indent + mm[1] + u.Name + ";"
 		acc := 0
 		var leftover []string
 		for _, m := range regexp.MustCompile(`\b`+u.Name+`\b`).FindAllStringIndex(t, -1) {
@@ -293,7 +293,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 					lineOf(t, m[0]), cutil.PyRepr("inside a literal")))
 			case u.start <= m[0] && m[0] < u.end:
 				// its own declaration, which this edit rewrites
-			case u.member != "" && strings.HasPrefix(t[m[1]:], "."+u.member) &&
+			case strings.HasPrefix(t[m[1]:], "."+u.member) &&
 				!w120IsIdent(w120At(t, m[1]+1+len(u.member))):
 				acc++
 				edits = append(edits, w120Edit{m[1], m[1] + 1 + len(u.member), ""})
@@ -315,29 +315,17 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			if len(leftover) == 1 {
 				s = ""
 			}
-			mem := u.member
-			if mem == "" {
-				mem = "<no member>"
-			}
 			return nil, p.Die("`%s` has %d mention%s that is neither its own declaration nor a `.%s` access "+
 				"on it, so this phase may not rewrite it: %s",
-				u.Name, len(leftover), s, mem, strings.Join(edit.First(leftover, 4), "; "))
+				u.Name, len(leftover), s, u.member, strings.Join(edit.First(leftover, 4), "; "))
 		}
-		if u.members != 0 && acc == 0 {
+		if acc == 0 {
 			return nil, p.Die("`%s` has no `.%s` access anywhere, so the field this phase would promote is "+
 				"read by nothing and belongs to the sweep and not to this edit", u.Name, u.member)
 		}
 		u.accessors = acc
 		report = append(report, fmt.Sprintf("%s 1 + %d", u.Name, acc))
-		if u.members != 0 {
-			edits = append(edits, w120Edit{u.start, u.end, u.replacement})
-		} else {
-			if w120At(t, u.end) != '\n' {
-				return nil, p.Die("the empty union `%s` does not end its line, so deleting it would take "+
-					"code with it", u.Name)
-			}
-			edits = append(edits, w120Edit{u.start, u.end + 1, ""})
-		}
+		edits = append(edits, w120Edit{u.start, u.end, u.replacement})
 	}
 	p.Sayf("THE PARTITION HOLDS FOR ALL %d: every mention outside a literal is the "+
 		"declaration or a `.member` access on it, and there is nothing else -- %s",
@@ -380,22 +368,16 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	for _, u := range degenerate {
 		n := len(regexp.MustCompile(`\b`+u.Name+`\b`).FindAllString(t, -1))
-		want := 0
-		if u.members != 0 {
-			want = 1 + u.accessors
-		}
-		if n != want {
+		if want := 1 + u.accessors; n != want {
 			return nil, p.Die("`%s` has %d mentions and must have %d -- its own declaration and the %d "+
 				"accesses that are now plain field references", u.Name, n, want, u.accessors)
 		}
-		if u.members != 0 {
-			if strings.Count(t, u.replacement+"\n") != 1 {
-				return nil, p.Die("`%s` is not declared exactly once as `%s`",
-					u.Name, strings.TrimSpace(u.replacement))
-			}
-			if regexp.MustCompile(`\b` + u.Name + `\s*\.\s*` + u.member + `\b`).MatchString(t) {
-				return nil, p.Die("a `%s.%s` access survives", u.Name, u.member)
-			}
+		if strings.Count(t, u.replacement+"\n") != 1 {
+			return nil, p.Die("`%s` is not declared exactly once as `%s`",
+				u.Name, strings.TrimSpace(u.replacement))
+		}
+		if regexp.MustCompile(`\b` + u.Name + `\s*\.\s*` + u.member + `\b`).MatchString(t) {
+			return nil, p.Die("a `%s.%s` access survives", u.Name, u.member)
 		}
 	}
 	var nd []int
