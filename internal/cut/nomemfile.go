@@ -116,8 +116,8 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	for _, c := range []struct{ pat, what string }{
-		{`(?m)^[ \t]*mf_fullname\(buf->b_ml\.ml_mfp\);\n`, "mf_fullname's caller"},
-		{`(?m)^[ \t]*if \(mfp->mf_fd >= 0\)\n` +
+		{cutil.Line("mf_fullname(buf->b_ml.ml_mfp);"), "mf_fullname's caller"},
+		{cutil.Line("if (mfp->mf_fd >= 0)") +
 			`[ \t]*\{\n` +
 			`[ \t]*if \(close\(mfp->mf_fd\) < 0\)\n` +
 			`[ \t]*\{\n` +
@@ -127,7 +127,7 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 			`[ \t]*if \(del_file && mfp->mf_fname != NULL\)\n` +
 			`[ \t]*\{\n[ \t]* unlink\(\(char \*\)\(mfp->mf_fname\)\);\n[ \t]*\}\n`,
 			"mf_close's descriptor and unlink"},
-		{`(?m)^[ \t]*vim_free\(mfp->mf_fname\);\n[ \t]*vim_free\(mfp->mf_ffname\);\n`,
+		{cutil.Line("vim_free(mfp->mf_fname);", "vim_free(mfp->mf_ffname);"),
 			"mf_close's two names"},
 	} {
 		if text, err = cutCounted(text, c.pat, "nomemfile", c.what, 1); err != nil {
@@ -144,7 +144,7 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 	for _, c := range []struct{ pat, what string }{
-		{`(?m)^[ \t]*swap_mode = \(st\.st_mode & 0644\) \| 0600;\n`, "swap_mode's one assignment"},
+		{cutil.Line("swap_mode = (st.st_mode & 0644) | 0600;"), "swap_mode's one assignment"},
 	} {
 		if text, err = cutCounted(text, c.pat, "nomemfile", c.what, 1); err != nil {
 			return nil, err
@@ -202,13 +202,13 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nomemfile    lalloc stops retrying: there is nothing to page out")
 
 	for _, c := range []struct{ pat, what string }{
-		{`(?m)^[ \t]*mfp->mf_used_count \+= hp->bh_page_count;\n` +
+		{cutil.Line("mfp->mf_used_count += hp->bh_page_count;") +
 			`[ \t]*total_mem_used \+= \(long_u\)hp->bh_page_count \* mfp->mf_page_size;\n`,
 			"mf_ins_used's accounting"},
-		{`(?m)^[ \t]*mfp->mf_used_count -= hp->bh_page_count;\n` +
+		{cutil.Line("mfp->mf_used_count -= hp->bh_page_count;") +
 			`[ \t]*total_mem_used -= \(long_u\)hp->bh_page_count \* mfp->mf_page_size;\n`,
 			"mf_rem_used's accounting"},
-		{`(?m)^[ \t]*total_mem_used -= \(long_u\)hp->bh_page_count \* mfp->mf_page_size;\n`,
+		{cutil.Line("total_mem_used -= (long_u)hp->bh_page_count * mfp->mf_page_size;"),
 			"mf_close's accounting"},
 	} {
 		if text, err = cutCounted(text, c.pat, "nomemfile", c.what, 1); err != nil {
@@ -221,7 +221,7 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	if text, ok = cutil.DeleteDefinition(text, "set_init_default_maxmemtot"); !ok {
 		return nil, fmt.Errorf("nomemfile: set_init_default_maxmemtot is not defined at file scope")
 	}
-	if text, err = cutCounted(text, `(?m)^[ \t]*set_init_default_maxmemtot\(\);\n`,
+	if text, err = cutCounted(text, cutil.Line("set_init_default_maxmemtot();"),
 		"nomemfile", "its call", 1); err != nil {
 		return nil, err
 	}
@@ -229,7 +229,7 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 		"evicts; sysinfo and getrlimit go with them")
 
 	if text, err = cutCounted(text,
-		`(?m)^[ \t]*mch_get_host_name\(b0p->b0_hname, B0_HNAME_SIZE\);\n`+
+		cutil.Line("mch_get_host_name(b0p->b0_hname, B0_HNAME_SIZE);")+
 			`[ \t]*b0p->b0_hname\[B0_HNAME_SIZE - 1\] = NUL;\n`,
 		"nomemfile", "block zero's host name", 1); err != nil {
 		return nil, err

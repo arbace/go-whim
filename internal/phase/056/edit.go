@@ -45,13 +45,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// 'shellredir''s default was chosen by the name of 'shell'.
 	e.InFunction("set_init_3", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*idx_srr = findoption\(\(char_u \*\)"srr"\);\n`, 1,
+		e.Cut(edit.Line(`idx_srr = findoption((char_u *)"srr");`), 1,
 			"set_init_3 looking up 'shellredir'")
 		e.FoldNever(`(?m)^[ \t]*if \(idx_srr < 0\)$`, 1,
 			"set_init_3 without a 'shellredir' row")
-		e.Cut(`(?m)^[ \t]*do_srr = !\(options\[idx_srr\]\.flags & P_WAS_SET\);\n`, 1,
+		e.Cut(edit.Line("do_srr = !(options[idx_srr].flags & P_WAS_SET);"), 1,
 			"set_init_3 asking whether 'shellredir' was set")
-		e.Cut(`(?m)^[ \t]*p = get_isolated_shell_name\(\);\n`, 1,
+		e.Cut(edit.Line("p = get_isolated_shell_name();"), 1,
 			"set_init_3 naming the shell")
 		e.DropIf(`(?m)^[ \t]*if \(p != NULL\)$`, 1,
 			"set_init_3 choosing 'shellredir' by shell")
@@ -71,7 +71,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			e.Cut(fmt.Sprintf(`(?m)^[ \t]*case CMD_%s:\n[ \t]*xp->xp_context = EXPAND_\w+;\n[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n`, c),
 				1, fmt.Sprintf("completing :%s, which is ex_ni", c))
 		}
-		e.Cut(`(?m)^[ \t]*case CMD_runtime:\n[ \t]*set_context_in_runtime_cmd\(xp, arg\);\n[ \t]*break;\n`,
+		e.Cut(edit.Line("case CMD_runtime:", "set_context_in_runtime_cmd(xp, arg);", "break;"),
 			1, "completing :runtime, which is ex_ni")
 	})
 	e.InFunction("ExpandFromContext", func(e *edit.E) {

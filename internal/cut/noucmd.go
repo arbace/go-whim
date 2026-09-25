@@ -21,10 +21,10 @@ var (
 	ucmdComplRows = regexp.MustCompile(
 		`(?m)^[ \t]*\{EXPAND_USER_(?:COMMANDS|ADDR_TYPE|CMD_FLAGS|NARGS|COMPLETE|COMPLETEOPT), ` +
 			`get_user_(?:commands|cmd[a-z_]*), FALSE, TRUE\},\n`)
-	ucmdFindA = regexp.MustCompile(`(?m)^[ \t]*p = find_ucmd\(eap, p, NULL, xp, complp\);\n`)
-	ucmdFindB = regexp.MustCompile(`(?m)^[ \t]*p = find_ucmd\(eap, p, full, NULL, NULL\);\n`)
+	ucmdFindA = regexp.MustCompile(cutil.Line("p = find_ucmd(eap, p, NULL, xp, complp);"))
+	ucmdFindB = regexp.MustCompile(cutil.Line("p = find_ucmd(eap, p, full, NULL, NULL);"))
 	ucmdCtx   = regexp.MustCompile(
-		`(?m)^[ \t]*case CMD_command:\n[ \t]*return set_context_in_user_cmd\(xp, arg\);\n` +
+		cutil.Line("case CMD_command:", "return set_context_in_user_cmd(xp, arg);") +
 			`[ \t]*case CMD_delcommand:\n[ \t]*xp->xp_context = EXPAND_USER_COMMANDS;\n` +
 			`[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n`)
 	ucmdLeft = regexp.MustCompile(`\b(?:do_ucmd|ucmds)\b`)
@@ -86,7 +86,7 @@ func NoUcmd(text []byte, w io.Writer) ([]byte, error) {
 		"and two completion contexts")
 
 	var err error
-	if text, err = cutCounted(text, `(?m)^[ \t]*uc_clear\(&buf->b_ucmds\);\n`,
+	if text, err = cutCounted(text, cutil.Line("uc_clear(&buf->b_ucmds);"),
 		"noucmd", "the buffer's table", 1); err != nil {
 		return nil, err
 	}

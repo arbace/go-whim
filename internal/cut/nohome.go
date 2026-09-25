@@ -34,7 +34,7 @@ const homeReplaceCopy = `    size_t len;
     return len;`
 
 var (
-	initHomedir  = regexp.MustCompile(`(?m)^[ \t]*init_homedir\(\);\n`)
+	initHomedir  = regexp.MustCompile(cutil.Line("init_homedir();"))
 	expandUser   = regexp.MustCompile(`[ \t]*\{EXPAND_USER, get_users, TRUE, FALSE\},\n`)
 	userNameHead = `^[ \t]*if \(\*xp->xp_pattern == '~'\)$`
 )

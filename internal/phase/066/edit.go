@@ -73,9 +73,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 
 	e.InFunction("nv_object", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*case 'p':\n[ \t]*flag = current_par\(cap->oap, cap->count1, include, 'p'\);\n[ \t]*break;\n`, 1,
+		e.Cut(edit.Line("case 'p':", "flag = current_par(cap->oap, cap->count1, include, 'p');", "break;"), 1,
 			"ip and ap, the paragraph objects")
-		e.Cut(`(?m)^[ \t]*case 's':\n[ \t]*flag = current_sent\(cap->oap, cap->count1, include\);\n[ \t]*break;\n`, 1,
+		e.Cut(edit.Line("case 's':", "flag = current_sent(cap->oap, cap->count1, include);", "break;"), 1,
 			"is and as, the sentence objects")
 	})
 

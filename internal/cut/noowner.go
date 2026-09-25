@@ -79,7 +79,7 @@ func NoOwner(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  noowner      'modeline' stops asking whether this is root")
 
 	text, err = cutCounted(text,
-		`(?m)^[ \t]*\(void\)get_user_name\(b0p->b0_uname, B0_UNAME_SIZE\);\n`+
+		cutil.Line("(void)get_user_name(b0p->b0_uname, B0_UNAME_SIZE);")+
 			`[ \t]*b0p->b0_uname\[B0_UNAME_SIZE - 1\] = NUL;\n`,
 		"noowner", "block zero's user name", 1)
 	if err != nil {

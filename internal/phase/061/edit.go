@@ -23,7 +23,7 @@ var (
 	// titleWanted is the flag a change sets to ask for a title update.
 	titleWanted = `(?m)^[ \t]*if \(need_maketitle\)$`
 	// restoreTitle is the call that puts the terminal's title back.
-	restoreTitle = `(?m)^[ \t]*mch_restore_title\(\(SAVE_RESTORE_TITLE \| SAVE_RESTORE_ICON\)\);\n`
+	restoreTitle = edit.Line("mch_restore_title((SAVE_RESTORE_TITLE | SAVE_RESTORE_ICON));")
 )
 
 // Whim61 takes the window title: the flag, the eleven callers that set or
@@ -40,14 +40,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	for _, fn := range []string{"enter_buffer", "buf_name_changed", "do_ecmd", "set_termname", "set_shellsize_inner", "win_enter_ext"} {
 		fn := fn
 		e.InFunction(fn, func(e *edit.E) {
-			e.Cut(`(?m)^[ \t]*maketitle\(\);\n`, 1, fmt.Sprintf("%s updating the title", fn))
+			e.Cut(edit.Line("maketitle();"), 1, fmt.Sprintf("%s updating the title", fn))
 		})
 	}
 
 	e.InFunction("do_exedit", func(e *edit.E) {
 		e.DropIf(`(?m)^[ \t]*if \(n != curwin->w_arg_idx_invalid\)$`, 1,
 			":edit updating the title when the argument index moved")
-		e.Cut(`(?m)^[ \t]*n = curwin->w_arg_idx_invalid;\n`, 1,
+		e.Cut(edit.Line("n = curwin->w_arg_idx_invalid;"), 1,
 			":edit remembering the argument index for the title")
 		// n has one other use in do_exedit(): saving and restoring readonlymode
 		// around :view.  So after the title's assignment and test go, exactly
@@ -60,32 +60,32 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	e.InFunction("ex_stop", func(e *edit.E) {
 		e.Cut(restoreTitle, 1, ":stop restoring the title")
-		e.Cut(`(?m)^[ \t]*maketitle\(\);\n[ \t]*resettitle\(\);\n`, 1, ":stop setting the title again")
+		e.Cut(edit.Line("maketitle();", "resettitle();"), 1, ":stop setting the title again")
 	})
 	e.InFunction("mch_exit", func(e *edit.E) {
 		e.Cut(restoreTitle, 1, "exit restoring the title")
-		e.Cut(`(?m)^[ \t]*term_pop_title\(\(SAVE_RESTORE_TITLE \| SAVE_RESTORE_ICON\)\);\n`, 1,
+		e.Cut(edit.Line("term_pop_title((SAVE_RESTORE_TITLE | SAVE_RESTORE_ICON));"), 1,
 			"exit popping the terminal's title stack")
 	})
 	e.InFunction("vim_main2", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*term_push_title\(\(SAVE_RESTORE_TITLE \| SAVE_RESTORE_ICON\)\);\n`, 1,
+		e.Cut(edit.Line("term_push_title((SAVE_RESTORE_TITLE | SAVE_RESTORE_ICON));"), 1,
 			"startup pushing the terminal's title stack")
 	})
 	e.InFunction("clear_termoptions", func(e *edit.E) {
 		e.Cut(restoreTitle, 1, "changing terminal restoring the title")
 	})
 	e.InFunction("value_changed", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*mch_restore_title\(last == &lasttitle \? SAVE_RESTORE_TITLE : SAVE_RESTORE_ICON\);\n`, 1,
+		e.Cut(edit.Line("mch_restore_title(last == &lasttitle ? SAVE_RESTORE_TITLE : SAVE_RESTORE_ICON);"), 1,
 			"a cleared value restoring the title")
 	})
 	e.InFunction("set_init_3", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*set_title_defaults\(\);\n`, 1, "startup choosing 'title' and 'icon' defaults")
+		e.Cut(edit.Line("set_title_defaults();"), 1, "startup choosing 'title' and 'icon' defaults")
 	})
 
 	// Six: buf_write(), changed_internal(), unchanged(), redraw_titles(), and
 	// two that the sweep takes anyway -- maketitle()'s own early return and
 	// did_set_titlelen().
-	e.Cut(`(?m)^[ \t]*need_maketitle = TRUE;\n`, 6, "changes asking for a title update")
+	e.Cut(edit.Line("need_maketitle = TRUE;"), 6, "changes asking for a title update")
 	return e.Done()
 }
 

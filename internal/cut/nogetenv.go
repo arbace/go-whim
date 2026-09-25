@@ -71,7 +71,7 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintf(w, "  nogetenv     expand_env_esc was %d lines, and now copies a name\n", was)
 
 	if text, err = cutCounted(text,
-		`(?m)^[ \t]*if \(!mch_isFullName\(pat\)\)\n[ \t]*\{\n`+
+		cutil.Line("if (!mch_isFullName(pat))", "{")+
 			`[ \t]*path = vim_getenv\(\(char_u \*\)"PATH", &mustfree\);\n[ \t]*\}\n`,
 		"nogetenv", "$PATH in expand_shellcmd", 1); err != nil {
 		return nil, err

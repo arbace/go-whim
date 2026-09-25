@@ -70,11 +70,11 @@ var noencStubs = []struct{ name, stub string }{
 var noencIconvBlocks = []struct{ pat, what string }{
 	{`(?m)^[ \t]*if \(ip->bw_iconv_fd != \(iconv_t\)-1\)\n[ \t]*\{\n[ \t]*const char`,
 		"buf_write's conversion"},
-	{`(?m)^[ \t]*if \(converted && wb_flags == 0\)\n[ \t]*\{\n` +
+	{cutil.Line("if (converted && wb_flags == 0)", "{") +
 		`[ \t]*write_info\.bw_iconv_fd = \(iconv_t\)my_iconv_open`, "buf_write's iconv open"},
-	{`(?m)^[ \t]*if \(write_info\.bw_iconv_fd != \(iconv_t\)-1\)\n[ \t]*\{\n` +
+	{cutil.Line("if (write_info.bw_iconv_fd != (iconv_t)-1)", "{") +
 		`[ \t]*iconv_close`, "buf_write's iconv close"},
-	{`(?m)^[ \t]*if \(fio_flags == 0\)\n[ \t]*\{\n` +
+	{cutil.Line("if (fio_flags == 0)", "{") +
 		`[ \t]*iconv_fd = \(iconv_t\)my_iconv_open`, "readfile's iconv open"},
 	{`(?m)^[ \t]*if \(iconv_fd != \(iconv_t\)-1\)\n[ \t]*\{\n[ \t]*iconv_close`,
 		"readfile's iconv close"},
@@ -83,10 +83,10 @@ var noencIconvBlocks = []struct{ pat, what string }{
 	// Two more closes, nested deeper: one where the read loop gives up on a
 	// conversion, one in readfile's exit path.  Indentation differs, the body
 	// does not.
-	{`(?m)^[ \t]*if \(iconv_fd != \(iconv_t\)-1\)\n[ \t]*\{\n` +
+	{cutil.Line("if (iconv_fd != (iconv_t)-1)", "{") +
 		`[ \t]*iconv_close\(iconv_fd\);\n[ \t]*iconv_fd = \(iconv_t\)-1;\n[ \t]*\}`,
 		"the read loop giving up on a conversion"},
-	{`(?m)^[ \t]*if \(iconv_fd != \(iconv_t\)-1\)\n[ \t]*\{\n` +
+	{cutil.Line("if (iconv_fd != (iconv_t)-1)", "{") +
 		`[ \t]*iconv_close\(iconv_fd\);\n[ \t]*\}`, "readfile's exit path"},
 }
 

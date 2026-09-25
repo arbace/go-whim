@@ -3,6 +3,7 @@ package cut
 import (
 	"bytes"
 	"fmt"
+	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"regexp"
 )
@@ -26,9 +27,9 @@ var fnameModFeeders = []struct {
 	pat, what string
 	n         int
 }{
-	{`(?m)^[ \t]*tilde_file = strcmp\(\(char \*\)\(result\), \(char \*\)\("~"\)\) == 0;\n`,
+	{cutil.Line(`tilde_file = strcmp((char *)(result), (char *)("~")) == 0;`),
 		"a tilde_file assignment", 2},
-	{`(?m)^[ \t]*skip_mod = TRUE;\n`, "skip_mod's assignment", 1},
+	{cutil.Line("skip_mod = TRUE;"), "skip_mod's assignment", 1},
 }
 
 var modifyFname = regexp.MustCompile(`\bmodify_fname\b`)

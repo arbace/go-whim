@@ -57,12 +57,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"the jump list as the other half of nv_pcmark")
 		e.Sub(`(?m)^([ \t]*)else if \(cap->cmdchar == 'g'\)$`, "${1}else", 1,
 			"the change-list messages no longer choosing by key")
-		e.Cut(`(?m)^[ \t]*else\n[ \t]*\{\n[ \t]*clearopbeep\(cap->oap\);\n[ \t]*\}\n`, 1,
+		e.Cut(edit.Line("else", "{", "clearopbeep(cap->oap);", "}"), 1,
 			"a jump-list miss beeping")
 	})
 	e.InFunction("mark_adjust_internal", func(e *edit.E) {
 		e.DropIf(`(?m)^[ \t]*for \(i = 0; i < win->w_jumplistlen; \+\+i\)$`, 1, "line changes moving jump-list marks")
-		e.Cut(`(?m)^[ \t]*if \(\(cmdmod\.cmod_flags & CMOD_LOCKMARKS\) == 0\)\n[ \t]*\{\n[ \t]*\}\n`, 1,
+		e.Cut(edit.Line("if ((cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0)", "{", "}"), 1,
 			"the now-empty 'lockmarks' test around them")
 	})
 	e.InFunction("mark_col_adjust", func(e *edit.E) {
@@ -76,10 +76,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			1, "a named buffer resolving jump-list file names")
 	})
 	e.InFunction("win_init", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*copy_jumplist\(oldp, newp\);\n`, 1, "a new window copying the jump list")
+		e.Cut(edit.Line("copy_jumplist(oldp, newp);"), 1, "a new window copying the jump list")
 	})
 	e.InFunction("win_free", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*free_jumplist\(wp\);\n`, 1, "a closed window freeing the jump list")
+		e.Cut(edit.Line("free_jumplist(wp);"), 1, "a closed window freeing the jump list")
 	})
 	return e.Done()
 }

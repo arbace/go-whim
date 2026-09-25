@@ -1,6 +1,10 @@
 package cutil
 
-import "bytes"
+import (
+	"bytes"
+	"regexp"
+	"strings"
+)
 
 // WHITESPACE-INSENSITIVE LITERAL MATCHING.
 //
@@ -260,4 +264,23 @@ func ReplaceAnchorB(text []byte, old string, new []byte, n int) []byte {
 		text = ReplaceFirst(text, []byte(old), new)
 	}
 	return text
+}
+
+// Line is the anchor most patterns are: one or more whole C lines, each after
+// its indentation, spelled as the C is.  Line("maketitle();") is the regular
+// expression `(?m)^[ \t]*maketitle\(\);\n` -- the one phases wrote by hand --
+// and Line("if (x)", "{") matches the two lines in a row.  On canonical text
+// the indentation is the only thing a line's spelling does not fix.
+func Line(lines ...string) string {
+	var b strings.Builder
+	b.WriteString(`(?m)`)
+	for i, l := range lines {
+		if i == 0 {
+			b.WriteString(`^`)
+		}
+		b.WriteString(`[ \t]*`)
+		b.WriteString(regexp.QuoteMeta(l))
+		b.WriteString(`\n`)
+	}
+	return b.String()
 }

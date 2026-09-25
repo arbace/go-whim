@@ -419,3 +419,7 @@ func wordRe(name string) *regexp.Regexp {
 	wordRes.Store(name, r)
 	return r
 }
+
+// Line is cutil.Line: the anchor most patterns are, whole C lines after their
+// indentation, spelled as the C is.
+func Line(lines ...string) string { return cutil.Line(lines...) }

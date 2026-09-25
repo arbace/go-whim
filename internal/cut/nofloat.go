@@ -39,12 +39,12 @@ var nofloatCuts = []struct{ what, pat string }{
 		`(?m)^    case 'f':\n    case 'F':\n    case 'e':\n    case 'E':\n` +
 			`    case 'g':\n    case 'G':\n        return TYPE_FLOAT;\n`},
 	{"the argument walker's six labels",
-		`(?m)^[ \t]*case 'f':\n[ \t]*case 'F':\n[ \t]*case 'e':\n` +
+		cutil.Line("case 'f':", "case 'F':", "case 'e':") +
 			`[ \t]*case 'E':\n[ \t]*case 'g':\n[ \t]*case 'G':\n`},
 	{"format_typename's float arm",
-		`(?m)^[ \t]*case TYPE_FLOAT:\n[ \t]*return typename_float;\n`},
+		cutil.Line("case TYPE_FLOAT:", "return typename_float;")},
 	{"the va_arg walker's float arm",
-		`(?m)^[ \t]*case TYPE_FLOAT:\n[ \t]*va_arg\(\*ap, double\);\n[ \t]*break;\n`},
+		cutil.Line("case TYPE_FLOAT:", "va_arg(*ap, double);", "break;")},
 }
 
 // checkNoFloatFormats refuses to cut unless nothing can reach the branch being

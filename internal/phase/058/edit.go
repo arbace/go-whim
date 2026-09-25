@@ -46,7 +46,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	e.InFunction("set_context_by_cmdname", func(e *edit.E) {
 		for _, c := range langmapCmds {
-			e.Cut(fmt.Sprintf(`(?m)^[ \t]*case CMD_%s:\n`, c.Name), 1,
+			e.Cut(fmt.Sprintf(edit.Line("case CMD_%s:"), c.Name), 1,
 				fmt.Sprintf("no completion for :%s", c.Name))
 		}
 	})

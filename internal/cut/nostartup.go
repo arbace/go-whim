@@ -12,8 +12,8 @@ import (
 const vimrcNoneTest = `^[ \t]*if \(params\.use_vimrc != NULL && \(strcmp\(\(char \*\)\(params\.use_vimrc\), \(char \*\)\("NONE"\)\) == 0`
 
 var (
-	startupCall = regexp.MustCompile(`(?m)^[ \t]*source_startup_scripts\(&params\);\n`)
-	xdgRtpCall  = regexp.MustCompile(`(?m)^[ \t]*set_init_xdg_rtp\(\);\n`)
+	startupCall = regexp.MustCompile(cutil.Line("source_startup_scripts(&params);"))
+	xdgRtpCall  = regexp.MustCompile(cutil.Line("set_init_xdg_rtp();"))
 )
 
 // NoStartup stops the editor reading anything at startup.

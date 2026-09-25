@@ -100,7 +100,7 @@ func NoCindent(text []byte, w io.Writer) ([]byte, error) {
 	// declaration, like do_cindent's, is the sweep's; so are parse_cino and
 	// do_c_expr_indent once their calls are gone.
 	for _, c := range []struct{ pat, what string }{
-		{`(?m)^[ \t]*want_cindent = \(get_can_cindent\(\) && cindent_on\(\)\);\n`,
+		{cutil.Line("want_cindent = (get_can_cindent() && cindent_on());"),
 			"ins_compl_stop's want_cindent"},
 		{`(?m)[ \t]*if \(want_cindent\)\n[ \t]*\{\n` +
 			`[ \t]*do_c_expr_indent\(\);\n[ \t]*want_cindent = FALSE;\n[ \t]*\}\n`,
@@ -143,11 +143,11 @@ func NoCindent(text []byte, w io.Writer) ([]byte, error) {
 	// of them are expressed in shiftwidths, and check_buf_options() re-parses
 	// on every option check.  Neither is about indenting; both just keep the
 	// b_ind_* fields in step with a string that no longer exists.
-	if text, err = cutCounted(text, `(?m)^[ \t]*parse_cino\(curbuf\);\n`,
+	if text, err = cutCounted(text, cutil.Line("parse_cino(curbuf);"),
 		"nocindent", "a parse_cino call", 3); err != nil {
 		return nil, err
 	}
-	if text, err = cutCounted(text, `(?m)^[ \t]*parse_cino\(buf\);\n`,
+	if text, err = cutCounted(text, cutil.Line("parse_cino(buf);"),
 		"nocindent", "check_buf_options' parse_cino", 1); err != nil {
 		return nil, err
 	}

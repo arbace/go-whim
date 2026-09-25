@@ -34,7 +34,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// 'suffixes'
 	e.InFunction("ExpandOne_start", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*for \(i = 0; i < 2; \+\+i\)\n[ \t]*\{\n[ \t]*if \(match_suffix\(xp->xp_files\[i\]\)\)\n[ \t]*\{\n[ \t]*\+\+non_suf_match;\n[ \t]*\}\n[ \t]*\}\n`,
+		e.Cut(edit.Line("for (i = 0; i < 2; ++i)", "{", "if (match_suffix(xp->xp_files[i]))", "{", "++non_suf_match;", "}", "}"),
 			1, "a single match chosen by 'suffixes'")
 	})
 	e.InFunction("expand_wildcards", func(e *edit.E) {

@@ -117,7 +117,7 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 	// Its `else if` is the branch that now always runs, so the pair collapses
 	// to that rather than going -- buf_setino() still has to happen.
 	text, err := cutCounted(text,
-		`(?m)^[ \t]*if \(backup != NULL && !backup_copy\)\n[ \t]*\{\n`+
+		cutil.Line("if (backup != NULL && !backup_copy)", "{")+
 			`(?:[^\n]*\n)*?[ \t]*buf_setino\(buf\);\n[ \t]*\}\n`+
 			`[ \t]*else (if \(!buf->b_dev_valid\))`,
 		"nobackup", "the owner carried to the backup", 1)
@@ -164,14 +164,14 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	for _, c := range []struct{ pat, what string }{
-		{`(?m)^[ \t]*\{\n[ \t]*acl = mch_get_acl\(fname\);\n[ \t]*\}\n`, "buf_write's mch_get_acl"},
-		{`(?m)^[ \t]*mch_set_acl\(wfname, acl\);\n`, "the ACL put back"},
+		{cutil.Line("{", "acl = mch_get_acl(fname);", "}"), "buf_write's mch_get_acl"},
+		{cutil.Line("mch_set_acl(wfname, acl);"), "the ACL put back"},
 	} {
 		if text, err = cutCounted(text, c.pat, "nobackup", c.what, 1); err != nil {
 			return nil, err
 		}
 	}
-	if text, err = cutCounted(text, `(?m)^[ \t]*mch_free_acl\(acl\);\n`,
+	if text, err = cutCounted(text, cutil.Line("mch_free_acl(acl);"),
 		"nobackup", "buf_write's mch_free_acl", 1); err != nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 	if text, ok = cutil.DeleteDefinition(text, "set_init_default_backupskip"); !ok {
 		return nil, fmt.Errorf("nobackup: set_init_default_backupskip is not defined")
 	}
-	if text, err = cutCounted(text, `(?m)^[ \t]*set_init_default_backupskip\(\);\n`,
+	if text, err = cutCounted(text, cutil.Line("set_init_default_backupskip();"),
 		"nobackup", "its call", 1); err != nil {
 		return nil, err
 	}
@@ -217,7 +217,7 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nobackup     the three handlers the rows kept reachable")
 
 	if text, err = cutCounted(text,
-		`(?m)^[ \t]*\(void\)opt_strings_flags\(p_bkc, p_bkc_values, &bkc_flags, TRUE\);\n`,
+		cutil.Line("(void)opt_strings_flags(p_bkc, p_bkc_values, &bkc_flags, TRUE);"),
 		"nobackup", "didset_string_options' p_bkc line", 1); err != nil {
 		return nil, err
 	}
@@ -234,9 +234,9 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nobackup     the two `is this option a directory?` tests")
 
 	for _, c := range []struct{ pat, what string }{
-		{`(?m)^[ \t]*unsigned int bkc = get_bkc_flags\(buf\);\n`, "bkc"},
-		{`(?m)^[ \t]*dobackup = \(p_wb \|\| p_bk \|\| \*p_pm != NUL\);\n`, "its one assignment"},
-		{`(?m)^[ \t]*vim_free\(backup\);\n`, "the free of backup"},
+		{cutil.Line("unsigned int bkc = get_bkc_flags(buf);"), "bkc"},
+		{cutil.Line("dobackup = (p_wb || p_bk || *p_pm != NUL);"), "its one assignment"},
+		{cutil.Line("vim_free(backup);"), "the free of backup"},
 	} {
 		if text, err = cutCounted(text, c.pat, "nobackup", c.what, 1); err != nil {
 			return nil, err

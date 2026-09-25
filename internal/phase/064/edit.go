@@ -106,7 +106,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// open_line: no leader to find, copy or align
 	e.InFunction("open_line", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*if \(flags & OPENLINE_DO_COM\)\n[ \t]*\{\n[ \t]*lead_len = get_leader_len\(ptr, NULL, FALSE, TRUE\);\n[ \t]*\}\n[ \t]*else\n[ \t]*\{\n[ \t]*lead_len = 0;\n[ \t]*\}\n`,
+		e.Cut(edit.Line("if (flags & OPENLINE_DO_COM)", "{", "lead_len = get_leader_len(ptr, NULL, FALSE, TRUE);", "}", "else", "{", "lead_len = 0;", "}"),
 			2, "smartindent looking for a comment leader")
 		e.Sub(`\( ?lead_len == 0 && ptr\[0\] == '#'\)`, "(ptr[0] == '#')", 2,
 			"smartindent after a # line not asking about a leader")
@@ -163,7 +163,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"a linewise delete auto-formatting")
 	})
 	e.InFunction("op_delete", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*if \(oap->op_type == OP_DELETE\)\n[ \t]*\{\n[ \t]*auto_format\(FALSE, TRUE\);\n[ \t]*\}\n`, 1,
+		e.Cut(edit.Line("if (oap->op_type == OP_DELETE)", "{", "auto_format(FALSE, TRUE);", "}"), 1,
 			"a characterwise delete auto-formatting")
 	})
 	e.Lines(`auto_format\((?:FALSE|TRUE), (?:FALSE|TRUE)\);`, 15, "the other calls to auto_format")
@@ -191,7 +191,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.FoldNever(`(?m)^[ \t]*else if \(\(cc >= 0x100 \|\| !utf_allow_break_before\(cc\)\) && fo_multibyte\)$`, 1,
 			"breaking between multibyte characters ('m', ']')")
 		e.DropIf(`(?m)^[ \t]*if \(has_format_option\(FO_ONE_LETTER\)\)$`, 1, "not breaking after a one-letter word ('1')")
-		e.Cut(`(?m)^[ \t]*if \(curwin->w_cursor\.col < leader_len\)\n[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n`, 1, "not breaking inside the leader")
+		e.Cut(edit.Line("if (curwin->w_cursor.col < leader_len)", "{", "break;", "}"), 1, "not breaking inside the leader")
 		e.Literal(" && (!fo_white_par || curwin->w_cursor.col < startcol)", "", 1, "keeping a trailing blank ('w')")
 		e.FoldAlways(`(?m)^[ \t]*if \(!fo_white_par\)$`, 2, "removing the blanks at the break ('w')")
 		e.Literal("open_line(FORWARD, OPENLINE_DELSPACES + OPENLINE_MARKFIX + (fo_white_par ? OPENLINE_KEEPTRAIL : 0) + (do_comments ? OPENLINE_DO_COM : 0) + OPENLINE_FORMAT + ((flags & INSCHAR_COM_LIST) ? OPENLINE_COM_LIST : 0), ((flags & INSCHAR_COM_LIST) ? second_indent : old_indent), &did_do_comment);",
@@ -222,20 +222,20 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// the format operator: gq, gw, and gqq/gwgw
 	e.InFunction("nv_g_cmd", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*case 'q':\n[ \t]*case 'w':\n[ \t]*oap->cursor_start = curwin->w_cursor;\n[ \t]*__attribute__\(\(fallthrough\)\);\n`, 1,
+		e.Cut(edit.Line("case 'q':", "case 'w':", "oap->cursor_start = curwin->w_cursor;", "__attribute__((fallthrough));"), 1,
 			"gq and gw as operators")
 	})
 	e.InFunction("nv_record", func(e *edit.E) {
 		e.DropIf(`(?m)^[ \t]*if \(cap->oap->op_type == OP_FORMAT\)$`, 1, "gqq and gqgq doubling the operator")
 	})
 	e.InFunction("do_pending_operator", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*case OP_FORMAT:\n[ \t]*\{\n[ \t]*op_format\(oap, FALSE\);\n[ \t]*\}\n[ \t]*break;\n[ \t]*case OP_FORMAT2:\n[ \t]*op_format\(oap, TRUE\);\n[ \t]*break;\n`, 1,
+		e.Cut(edit.Line("case OP_FORMAT:", "{", "op_format(oap, FALSE);", "}", "break;", "case OP_FORMAT2:", "op_format(oap, TRUE);", "break;"), 1,
 			"the operator reaching the formatter")
 	})
 
 	// gd and gD
 	e.InFunction("nv_g_cmd", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*case 'd':\n[ \t]*case 'D':\n[ \t]*nv_gd\(oap, cap->nchar, \(int\)cap->count0\);\n[ \t]*break;\n`, 1, "gd and gD")
+		e.Cut(edit.Line("case 'd':", "case 'D':", "nv_gd(oap, cap->nchar, (int)cap->count0);", "break;"), 1, "gd and gD")
 	})
 
 	// what only the formatter set: INSCHAR_FORMAT

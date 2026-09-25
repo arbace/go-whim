@@ -60,7 +60,7 @@ var nocmdoptsElsewhere = []struct {
 	// reads $SHELL at startup and turns the mode on when it is nologin or
 	// false.  An environment read, deciding a mode that now restricts nothing.
 	{"$SHELL deciding restricted mode at startup",
-		`(?m)^[ \t]*set_init_restricted_mode\(\);\n`, "", 1},
+		cutil.Line("set_init_restricted_mode();"), "", 1},
 	{"restricted mode in do_bang and ex_stop",
 		`(?m)check_restricted\(\) \|\| check_secure\(\)`, "check_secure()", 1},
 	{"ex_stop's restricted check",

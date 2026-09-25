@@ -12,9 +12,9 @@ import (
 // nostatCalls are the three direct buf_check_timestamp() sites, each with the
 // function it sits in, so a refusal names WHERE the shape moved.
 var nostatCalls = []struct{ pat, where string }{
-	{`(?m)^[ \t]*\(void\)buf_check_timestamp\(curbuf, FALSE\);\n`, "do_ecmd"},
-	{`(?m)^[ \t]*\(void\)buf_check_timestamp\(buf, FALSE\);\n`, "enter_buffer"},
-	{`(?m)^[ \t]*buf_check_timestamp\(curbuf, FALSE\);\n`, "ex_drop"},
+	{cutil.Line("(void)buf_check_timestamp(curbuf, FALSE);"), "do_ecmd"},
+	{cutil.Line("(void)buf_check_timestamp(buf, FALSE);"), "enter_buffer"},
+	{cutil.Line("buf_check_timestamp(curbuf, FALSE);"), "ex_drop"},
 }
 
 // NoStat stops the editor re-reading a file it has already read.

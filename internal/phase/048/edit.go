@@ -21,7 +21,7 @@ const noswapTest = `(?m)^[ \t]*if \(cmdmod\.cmod_flags & CMOD_NOSWAPFILE\)$`
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("noswapfile", text, w)
 	e.InFunction("parse_command_modifiers", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*case 'n':\n[ \t]*if \(!checkforcmd_noparen\(&eap->cmd, "noswapfile", 3\)\)\n[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n[ \t]*cmod->cmod_flags \|= CMOD_NOSWAPFILE;\n[ \t]*continue;\n`, 1,
+		e.Cut(edit.Line("case 'n':", `if (!checkforcmd_noparen(&eap->cmd, "noswapfile", 3))`, "{", "break;", "}", "cmod->cmod_flags |= CMOD_NOSWAPFILE;", "continue;"), 1,
 			"the :noswapfile modifier")
 	})
 	e.InFunction("set_context_by_cmdname", func(e *edit.E) {

@@ -76,9 +76,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// nothing can make true now.  With them gone the sweep takes the table and
 	// autocmd_init(), whose body was the memset that zeroed it.
 	e.Lines(`autocmd_init\(\);`, 1, "the call that zeroed the table at startup")
-	e.Cut(`(?m)^[ \t]*for \(int i = 0; i < AUCMD_WIN_COUNT; \+\+i\)\n[ \t]*\{\n[ \t]*if \(aucmd_win\[i\]\.auc_win != NULL\)\n[ \t]*\{\n[ \t]*win_free_lsize\(aucmd_win\[i\]\.auc_win\);\n[ \t]*\}\n[ \t]*\}\n`, 1,
+	e.Cut(edit.Line("for (int i = 0; i < AUCMD_WIN_COUNT; ++i)", "{", "if (aucmd_win[i].auc_win != NULL)", "{", "win_free_lsize(aucmd_win[i].auc_win);", "}", "}"), 1,
 		"screenalloc freeing the line sizes of windows that do not exist")
-	e.Cut(`(?m)^[ \t]*for \(int i = 0; i < AUCMD_WIN_COUNT; \+\+i\)\n[ \t]*\{\n[ \t]*if \(aucmd_win\[i\]\.auc_win != NULL && aucmd_win\[i\]\.auc_win->w_lines == NULL && win_alloc_lines\(aucmd_win\[i\]\.auc_win\) == FAIL\)\n[ \t]*\{\n[ \t]*outofmem = TRUE;\n[ \t]*break;\n[ \t]*\}\n[ \t]*\}\n`, 1,
+	e.Cut(edit.Line("for (int i = 0; i < AUCMD_WIN_COUNT; ++i)", "{", "if (aucmd_win[i].auc_win != NULL && aucmd_win[i].auc_win->w_lines == NULL && win_alloc_lines(aucmd_win[i].auc_win) == FAIL)", "{", "outofmem = TRUE;", "break;", "}", "}"), 1,
 		"screenalloc allocating lines for them")
 
 	// 2. the invariant: one window, one tabpage

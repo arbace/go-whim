@@ -31,7 +31,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.Sub(`(?m)^([ \t]*\{'!', )nv_operator(, 0, 0\},)$`, "${1}nv_error${2}", 1,
 		"the ! operator's row points at nv_error")
 	e.InFunction("set_context_by_cmdname", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*case CMD_retab:\n[ \t]*xp->xp_context = EXPAND_RETAB;\n[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n`, 1,
+		e.Cut(edit.Line("case CMD_retab:", "xp->xp_context = EXPAND_RETAB;", "xp->xp_pattern = arg;", "break;"), 1,
 			"completion for :retab")
 	})
 	return e.Done()

@@ -52,10 +52,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.DropIf(`(?m)^[ \t]*if \(curbufIsChanged\(\) && curbuf->b_nwindows <= 1\)$`, 1, "gf writing the buffer first")
 	})
 	e.InFunction("do_bang", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*if \(addr_count == 0\)\n[ \t]*\{\n[ \t]*msg_scroll = FALSE;\n[ \t]*autowrite_all\(\);\n[ \t]*msg_scroll = scroll_save;\n[ \t]*\}\n`, 1, ":! writing all buffers first")
+		e.Cut(edit.Line("if (addr_count == 0)", "{", "msg_scroll = FALSE;", "autowrite_all();", "msg_scroll = scroll_save;", "}"), 1, ":! writing all buffers first")
 	})
 	e.InFunction("ex_stop", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*if \(!eap->forceit\)\n[ \t]*\{\n[ \t]*autowrite_all\(\);\n[ \t]*\}\n`, 1, ":stop writing all buffers first")
+		e.Cut(edit.Line("if (!eap->forceit)", "{", "autowrite_all();", "}"), 1, ":stop writing all buffers first")
 	})
 	e.Literal("(p_awa ? CCGD_AW : 0) | ", "", 3, "'autowriteall' asking check_changed to write")
 	e.Literal("CCGD_AW | ", "", 2, ":next and the argument list asking check_changed to autowrite")
@@ -110,7 +110,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal("mustfree = !(jop_flags & JOP_STACK);", "mustfree = TRUE;", 1, "duplicate jumps kept for a stack")
 	})
 	e.InFunction("didset_string_options", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*\(void\)opt_strings_flags\(p_jop, p_jop_values, &jop_flags, TRUE\);\n`, 1, "startup parsing 'jumpoptions'")
+		e.Cut(edit.Line("(void)opt_strings_flags(p_jop, p_jop_values, &jop_flags, TRUE);"), 1, "startup parsing 'jumpoptions'")
 	})
 
 	// 'updatetime': the idle wait did nothing, so it goes
@@ -132,7 +132,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal(" || (wtime < 0 && !did_start_blocking))", ")", 1, "an interrupted indefinite wait returning instead of blocking again")
 	})
 	e.InFunction("gotchars", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*for \(i = 0; i < state\.buflen; \+\+i\)\n[ \t]*\{\n[ \t]*updatescript\(state\.buf\[i\]\);\n[ \t]*\}\n`, 1, "typed characters passed to a script file and a swap sync that are both gone")
+		e.Cut(edit.Line("for (i = 0; i < state.buflen; ++i)", "{", "updatescript(state.buf[i]);", "}"), 1, "typed characters passed to a script file and a swap sync that are both gone")
 	})
 	e.InFunction("wait_return", func(e *edit.E) {
 		for _, line := range []string{"save_scriptout = scriptout;", "scriptout = NULL;", "scriptout = save_scriptout;"} {
@@ -152,17 +152,17 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	e.InFunction("buflist_new", func(e *edit.E) {
 		e.DropIf(`(?m)^[ \t]*if \(\(flags & BLN_LISTED\) && !buf->b_p_bl\)$`, 1, "an existing buffer becoming listed")
-		e.Cut(`(?m)^[ \t]*buf->b_p_bl = \(flags & BLN_LISTED\) \? TRUE : FALSE;\n`, 1, "a new buffer recording whether it is listed")
+		e.Cut(edit.Line("buf->b_p_bl = (flags & BLN_LISTED) ? TRUE : FALSE;"), 1, "a new buffer recording whether it is listed")
 		e.DropIf(`(?m)^[ \t]*if \(flags & BLN_LISTED\)$`, 1, "BufAdd for a new listed buffer")
 	})
 	e.InFunction("close_buffer", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*if \(del_buf\)\n[ \t]*\{\n[ \t]*buf->b_p_bl = FALSE;\n[ \t]*\}\n`, 1, "a deleted buffer becoming unlisted")
+		e.Cut(edit.Line("if (del_buf)", "{", "buf->b_p_bl = FALSE;", "}"), 1, "a deleted buffer becoming unlisted")
 	})
 	e.InFunction("set_rw_fname", func(e *edit.E) {
 		e.FoldNever(`(?m)^[ \t]*if \(curbuf->b_p_bl\)$`, 2, "BufDelete and BufAdd around a renamed listed buffer")
 	})
 	e.InFunction("do_ecmd", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*else\n[ \t]*\{\n[ \t]*if \(!curbuf->b_help\)\n[ \t]*\{\n[ \t]*set_buflisted\(TRUE\);\n[ \t]*\}\n[ \t]*\}\n`, 1, "an edited buffer becoming listed")
+		e.Cut(edit.Line("else", "{", "if (!curbuf->b_help)", "{", "set_buflisted(TRUE);", "}", "}"), 1, "an edited buffer becoming listed")
 	})
 	e.Cut(`(?m)^[ \t]*set_buflisted\((?:TRUE|FALSE)\);\n`, 3, "stdin, startup and help buffers setting whether they are listed")
 
@@ -171,10 +171,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.DropIf(`(?m)^[ \t]*if \(\*curbuf->b_p_ft == NUL\)$`, 1, "entering a buffer with no 'filetype' forgetting FileType")
 	})
 	e.InFunction("do_ecmd", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*curbuf->b_did_filetype = false;\n`, 1, ":edit forgetting FileType")
+		e.Cut(edit.Line("curbuf->b_did_filetype = false;"), 1, ":edit forgetting FileType")
 	})
 	e.InFunction("readfile", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*curbuf->b_au_did_filetype = false;\n`, 1, "reading forgetting FileType")
+		e.Cut(edit.Line("curbuf->b_au_did_filetype = false;"), 1, "reading forgetting FileType")
 		e.DropIf(`(?m)^[ \t]*if \(!curbuf->b_au_did_filetype && \*curbuf->b_p_ft != NUL\)$`, 1, "reading firing FileType")
 	})
 	e.InFunction("did_set_string_option", func(e *edit.E) {

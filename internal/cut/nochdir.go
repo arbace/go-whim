@@ -128,7 +128,7 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = cutil.DropIf(text, `(?m)^[ \t]*if \(awp->w_localdir != NULL\)$`, 1); err != nil {
 		return nil, err
 	}
-	if text, err = cutCounted(text, `(?m)^[ \t]*win_fix_current_dir\(\);\n`,
+	if text, err = cutCounted(text, cutil.Line("win_fix_current_dir();"),
 		"nochdir", "its unconditional call", 1); err != nil {
 		return nil, err
 	}
@@ -140,8 +140,8 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	// restoring a pointer that is always NULL.  The save and the restore go
 	// here; the field, the global and the function are the sweep's.
 	for _, g := range []struct{ pat, what string }{
-		{`(?m)^[ \t]*aco->globaldir = globaldir;\n[ \t]*globaldir = NULL;\n`, "the save"},
-		{`(?m)^[ \t]*vim_free\(globaldir\);\n[ \t]*globaldir = aco->globaldir;\n`, "the restore"},
+		{cutil.Line("aco->globaldir = globaldir;", "globaldir = NULL;"), "the save"},
+		{cutil.Line("vim_free(globaldir);", "globaldir = aco->globaldir;"), "the restore"},
 	} {
 		if text, err = cutCounted(text, g.pat, "nochdir", "globaldir -- "+g.what, 1); err != nil {
 			return nil, err
@@ -156,7 +156,7 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 	for _, g := range []struct{ pat, what string }{
-		{`(?m)^[ \t]*vim_free\(start_dir\);\n`, "the free of it"},
+		{cutil.Line("vim_free(start_dir);"), "the free of it"},
 	} {
 		if text, err = cutCounted(text, g.pat, "nochdir", "start_dir -- "+g.what, 1); err != nil {
 			return nil, err

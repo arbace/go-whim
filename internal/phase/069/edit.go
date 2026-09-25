@@ -109,7 +109,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal(w69lit16, w69lit17, 1, "## expanding to every file in the argument list")
 	})
 	e.InFunction("win_init_some", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*newp->w_alist = oldp->w_alist;\n[ \t]*\+\+newp->w_alist->al_refcount;\n[ \t]*newp->w_arg_idx = oldp->w_arg_idx;\n`, 1,
+		e.Cut(edit.Line("newp->w_alist = oldp->w_alist;", "++newp->w_alist->al_refcount;", "newp->w_arg_idx = oldp->w_arg_idx;"), 1,
 			"a new window inheriting the argument list")
 	})
 	e.Lines(`curwin->w_arg_idx = -1;`, 1, "the index a swap-file quit invalidated")
@@ -119,7 +119,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// main() takes the first entry's name into params.fname and never reads it:
 	// the WHOLE guarded assignment goes, not just the line, or alist_name
 	// outlives the list.
-	e.Cut(`(?m)^[ \t]*if \(\(global_alist\.al_ga\.ga_len\) > 0\)\n[ \t]*\{\n[ \t]*params\.fname = alist_name\(&\(\(aentry_T \*\)global_alist\.al_ga\.ga_data\)\[0\]\);\n[ \t]*\}\n`, 1,
+	e.Cut(edit.Line("if ((global_alist.al_ga.ga_len) > 0)", "{", "params.fname = alist_name(&((aentry_T *)global_alist.al_ga.ga_data)[0]);", "}"), 1,
 		"main taking the first argument as the file name")
 	// mparm_T's field, and no other `char_u *fname;`: the blank line that used
 	// to tell them apart is not in a canonical text, so the field above it is.
@@ -130,14 +130,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// These are the last two mentions, and without them alist_init,
 	// global_alist, alist_T and aentry_T all lose their readers.
 	e.InFunction("common_init_2", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*alist_init\(&global_alist\);\n[ \t]*global_alist\.id = 0;\n`, 1, "the argument list set up at startup")
+		e.Cut(edit.Line("alist_init(&global_alist);", "global_alist.id = 0;"), 1, "the argument list set up at startup")
 	})
 	e.InFunction("win_alloc_firstwin", func(e *edit.E) {
 		e.Lines(`curwin->w_alist = &global_alist;`, 1, "the one window pointing at it")
 	})
 
 	// and the count message, which one file argument can never satisfy
-	e.Cut(`(?m)^[ \t]*if \(\(global_alist\.al_ga\.ga_len\) > 1 && !silent_mode\)\n[ \t]*\{\n[ \t]*printf\(_\("%d files to edit\\n"\), \(global_alist\.al_ga\.ga_len\)\);\n[ \t]*\}\n`, 1,
+	e.Cut(edit.Line("if ((global_alist.al_ga.ga_len) > 1 && !silent_mode)", "{", `printf(_("%d files to edit\n"), (global_alist.al_ga.ga_len));`, "}"), 1,
 		"the \"N files to edit\" message at startup")
 	return e.Done()
 }

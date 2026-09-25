@@ -14,7 +14,7 @@ var nolocaleEdits = []struct {
 	what, pat, repl string
 	want            int
 }{
-	{"the setlocale at startup", `(?m)^[ \t]*init_locale\(\);\n`, "", 1},
+	{"the setlocale at startup", cutil.Line("init_locale();"), "", 1},
 	// NOT a deletion.  set_init_default_encoding() did three things: ask the
 	// locale, re-initialise the multibyte layer for whatever it answered, and
 	// write that back as the option's default.  Only the first is locale.  The

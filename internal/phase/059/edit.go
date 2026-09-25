@@ -45,7 +45,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"a replaced command line freeing its matches")
 		e.DropIf(fmt.Sprintf(`(?m)^[ \t]*if \(c == [ \t]*%s[ \t]*&& did_hist_navigate\)$`, kex("KE_WILD")), 1,
 			"a wildcard trigger after history navigation")
-		e.Cut(`(?m)^[ \t]*did_hist_navigate = TRUE;\n`, 1,
+		e.Cut(edit.Line("did_hist_navigate = TRUE;"), 1,
 			"history navigation remembered for the wildcard trigger")
 		e.DropIf(fmt.Sprintf(`(?m)^[ \t]*if \(c != p_wc && c == [ \t]*%s[ \t]*&& xpc\.xp_numfiles > 0\)$`, edit.Key("k", "B")), 1,
 			"S-Tab stepping back through matches")
@@ -59,14 +59,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"completing on 'wildchar', 'wildcharm' or the wildcard trigger")
 		e.DropIf(fmt.Sprintf(`(?m)^[ \t]*if \(c == [ \t]*%s[ \t]*&& KeyTyped\)$`, edit.Key("k", "B")), 1,
 			"S-Tab completing backwards")
-		e.Cut(`(?m)^[ \t]*case Ctrl_D:\n[ \t]*if \(showmatches\(&xpc, TRUE\) == EXPAND_NOTHING\)\n[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n[ \t]*redrawcmd\(\);\n[ \t]*continue;\n`,
+		e.Cut(edit.Line("case Ctrl_D:", "if (showmatches(&xpc, TRUE) == EXPAND_NOTHING)", "{", "break;", "}", "redrawcmd();", "continue;"),
 			1, "CTRL-D listing matches")
-		e.Cut(`(?m)^[ \t]*case Ctrl_A:\n[ \t]*if \(nextwild\(&xpc, WILD_ALL, 0, firstc != '@'\) == FAIL\)\n[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n[ \t]*xpc\.xp_context = EXPAND_NOTHING;\n[ \t]*did_wild_list = FALSE;\n[ \t]*goto cmdline_changed;\n`,
+		e.Cut(edit.Line("case Ctrl_A:", "if (nextwild(&xpc, WILD_ALL, 0, firstc != '@') == FAIL)", "{", "break;", "}", "xpc.xp_context = EXPAND_NOTHING;", "did_wild_list = FALSE;", "goto cmdline_changed;"),
 			1, "CTRL-A inserting every match")
 		e.Sub(`(?m)^([ \t]*)if \(nextwild\(&xpc, WILD_LONGEST, 0, firstc != '@'\) == FAIL\)\n[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n[ \t]*goto cmdline_changed;\n`,
 			"${1}break;\n", 1, "CTRL-L completing the longest match")
 		e.DropIf(`(?m)^[ \t]*if \(xpc\.xp_numfiles > 0\)$`, 1, "CTRL-N and CTRL-P stepping through matches")
-		e.Cut(`(?m)^[ \t]*did_wild_list = FALSE;\n[ \t]*wim_index = 0;\n`, 1,
+		e.Cut(edit.Line("did_wild_list = FALSE;", "wim_index = 0;"), 1,
 			"leaving the command line resetting the match list")
 		e.Literal("may_trigger_safestate(xpc.xp_numfiles <= 0);", "may_trigger_safestate(TRUE);", 1,
 			"SafeState not waiting on a match list")
@@ -112,7 +112,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 
 	e.InFunction("didset_options2", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*check_opt_wim\(\);\n`, 1, "startup parsing 'wildmode' into flags nothing reads")
+		e.Cut(edit.Line("check_opt_wim();"), 1, "startup parsing 'wildmode' into flags nothing reads")
 	})
 	e.InFunction("expand_filename", func(e *edit.E) {
 		e.DropIf(`(?m)^[ \t]*if \(p_wic\)$`, 1, "'wildignorecase' in filename globbing")

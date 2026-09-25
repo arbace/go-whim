@@ -143,7 +143,7 @@ func NoCompl(text []byte, w io.Writer) ([]byte, error) {
 	// this one -- and here it was a segfault before the first keystroke,
 	// because 'completeopt''s row goes and nothing else reads p_cot.
 	if text, err = cutCounted(text,
-		`(?m)^[ \t]*\(void\)opt_strings_flags\(p_cot, p_cot_values, &cot_flags, TRUE\);\n`,
+		cutil.Line("(void)opt_strings_flags(p_cot, p_cot_values, &cot_flags, TRUE);"),
 		"nocompl", "didset_string_options' p_cot line", 1); err != nil {
 		return nil, err
 	}

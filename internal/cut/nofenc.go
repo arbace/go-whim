@@ -92,7 +92,7 @@ var nofencEdits = []struct {
 	// gvarp existed to ask which of the three encoding options was being set.
 	// There is one, so its assignment goes; the declaration left is the sweep's.
 	{"gvarp's one assignment",
-		`(?m)^[ \t]*gvarp = \(char_u \*\*\)get_option_varp_scope\(args->os_idx, OPT_GLOBAL\);\n`,
+		cutil.Line("gvarp = (char_u **)get_option_varp_scope(args->os_idx, OPT_GLOBAL);"),
 		"", 1},
 }
 

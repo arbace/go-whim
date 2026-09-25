@@ -33,7 +33,7 @@ func NoIntro(text []byte, w io.Writer) ([]byte, error) {
 		text = buf
 	}
 
-	splash := regexp.MustCompile(`(?m)^[ \t]*maybe_intro_message\(\);\n`)
+	splash := regexp.MustCompile(cutil.Line("maybe_intro_message();"))
 	n := len(splash.FindAll(text, -1))
 	if n != 2 {
 		return nil, fmt.Errorf("nointro: expected two splash call sites, removed %d -- "+
@@ -71,7 +71,7 @@ func NoArgv0(text []byte, w io.Writer) ([]byte, error) {
 			"dropping the name sensitivity would REMOVE capability rather than relocate "+
 			"it: %s", strings.Join(missing, ", "))
 	}
-	pat := regexp.MustCompile(`(?m)^[ \t]*parse_command_name\(&params\);\n`)
+	pat := regexp.MustCompile(cutil.Line("parse_command_name(&params);"))
 	n := len(pat.FindAll(text, -1))
 	if n != 1 {
 		return nil, fmt.Errorf("noargv0: expected exactly one call to parse_command_name, "+

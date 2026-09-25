@@ -21,7 +21,7 @@ import (
 
 // w145LabelLine is the label with the whole of its line: the indentation before
 // it and the newline after it.
-var w145LabelLine = regexp.MustCompile(`(?m)^[ \t]*handle_osc:\n`)
+var w145LabelLine = regexp.MustCompile(edit.Line("handle_osc:"))
 
 func init() { edit.Register("whim145", Edit) }
 

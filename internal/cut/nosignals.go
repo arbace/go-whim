@@ -32,11 +32,11 @@ var nosignalsCuts = []struct {
 	pat, what string
 	count     int
 }{
-	{`(?m)^[ \t]*mch_signal\(SIGUSR1, catch_sigusr1\);\n`, "the SIGUSR1 install", 1},
-	{`(?m)^[ \t]*mch_signal\(SIGPWR, catch_sigpwr\);\n`, "the SIGPWR install", 1},
-	{`(?m)^[ \t]*may_core_dump\(\);\n`, "the may_core_dump calls", 2},
-	{`(?m)^[ \t]*signal_stack = alloc\(get_signal_stack_size\(\)\);\n`, "the signal stack", 1},
-	{`(?m)^[ \t]*init_signal_stack\(\);\n`, "its install", 1},
+	{cutil.Line("mch_signal(SIGUSR1, catch_sigusr1);"), "the SIGUSR1 install", 1},
+	{cutil.Line("mch_signal(SIGPWR, catch_sigpwr);"), "the SIGPWR install", 1},
+	{cutil.Line("may_core_dump();"), "the may_core_dump calls", 2},
+	{cutil.Line("signal_stack = alloc(get_signal_stack_size());"), "the signal stack", 1},
+	{cutil.Line("init_signal_stack();"), "its install", 1},
 	{`(?m)^static char \*signal_stack;\n`, "signal_stack", 1},
 	{`(?m)^static stack_t sigstk;\n`, "sigstk", 1},
 	{`(?m)^static volatile sig_atomic_t got_sigusr1 = FALSE;\n`, "got_sigusr1", 1},

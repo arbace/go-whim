@@ -32,7 +32,7 @@ var (
 	mouseRow      = regexp.MustCompile(`(?m)^([ \t]*\{[^\n]*, )nv_mouse(?:scroll)?(, [^\n]*\},)$`)
 	mchSetmouse   = regexp.MustCompile(`(?m)^[ \t]*mch_setmouse\((?:TRUE|FALSE)\);\n`)
 	mchSetmouseW  = regexp.MustCompile(`\bmch_setmouse\b`)
-	setmouseCall  = regexp.MustCompile(`(?m)^[ \t]*setmouse\(\);\n`)
+	setmouseCall  = regexp.MustCompile(cutil.Line("setmouse();"))
 	anyMouse      = regexp.MustCompile(`(?i)mouse`)
 	insScrollCase = regexp.MustCompile(
 		`(?m)[ \t]*case \(-\(\(KS_EXTRA\) \+ \(\(int\)\(KE_MOUSE(?:DOWN|UP|LEFT|RIGHT)\) << 8\)\)\):\n` +
@@ -214,7 +214,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = cutil.DropIf(text, `(?m)^[ \t]*if \(varp == &p_mouse\)$`, 1); err != nil {
 		return nil, err
 	}
-	if text, err = cutCounted(text, `(?m)^[ \t]*check_mouse_termcode\(\);\n`,
+	if text, err = cutCounted(text, cutil.Line("check_mouse_termcode();"),
 		"nomouse", "did_set_ttymouse's call to check_mouse_termcode", 1); err != nil {
 		return nil, err
 	}
@@ -229,7 +229,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 		"'ttymouse'")
 
 	if text, err = cutCounted(text,
-		`(?m)^[ \t]*\(void\)opt_strings_flags\(p_ttym, p_ttym_values, &ttym_flags, FALSE\);\n`,
+		cutil.Line("(void)opt_strings_flags(p_ttym, p_ttym_values, &ttym_flags, FALSE);"),
 		"nomouse", "didset_string_options' p_ttym line", 1); err != nil {
 		return nil, err
 	}
