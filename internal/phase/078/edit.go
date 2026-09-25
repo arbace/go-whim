@@ -147,16 +147,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("init_incsearch_state", func(e *edit.E) {
 		e.Lines(`is_state->winid = curwin->w_id;`, 1, "recording which window the search started in")
 	})
-	e.Lines(`int[ \t]+winid;`, 1, "the field that recorded it")
 	e.InFunction("win_alloc", func(e *edit.E) {
 		e.Lines(`new_wp->w_id = \+\+last_win_id;`, 1, "numbering the one window")
 	})
-	e.Lines(`int[ \t]+w_id;`, 1, "the number it was given")
-	e.Lines(`static int last_win_id = LOWEST_WIN_ID - 1;`, 1, "the counter behind it")
-	e.Lines(`enum \{ LOWEST_WIN_ID = 1000 \};`, 1, "and where the numbering started")
 	e.InFunction("block_autocmds", func(e *edit.E) { e.Lines(`\+\+autocmd_blocked;`, 1, "blocking autocommands") })
 	e.InFunction("unblock_autocmds", func(e *edit.E) { e.Lines(`--autocmd_blocked;`, 1, "and unblocking them") })
-	e.Lines(`static int[ \t]+autocmd_blocked = 0;`, 1, "the count nothing reads")
 	for _, v := range []string{"autocmd_no_enter", "autocmd_no_leave"} {
 		v := v
 		e.InFunction("create_windows", func(e *edit.E) {
@@ -166,19 +161,20 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			e.Lines(`--`+v+`;`, 1, "and restoring it")
 		})
 	}
-	e.Lines(`static int[ \t]+autocmd_no_enter = FALSE;`, 1, "the enter flag")
-	e.Lines(`static int[ \t]+autocmd_no_leave = FALSE;`, 1, "the leave flag")
 	e.InFunction("redraw_after_callback", func(e *edit.E) {
 		e.Lines(`\+\+redrawing_for_callback;`, 1, "marking a callback redraw")
 	})
 	e.InFunction("redraw_after_callback", func(e *edit.E) {
 		e.Lines(`--redrawing_for_callback;`, 1, "and unmarking it")
 	})
-	e.Lines(`static int redrawing_for_callback = 0;`, 1, "the mark nothing reads")
 	e.InFunction("win_enter_ext", func(e *edit.E) {
 		e.Lines(`prevwin = curwin;`, 1, "remembering the previous window")
 	})
-	e.Lines(`static win_T[ \t]+\*prevwin = NULL;`, 1, "the window nothing looks back at")
+	// The fields and statics those writes were the last mention of --
+	// incsearch_state_T.winid, w_id, last_win_id, LOWEST_WIN_ID,
+	// autocmd_blocked, autocmd_no_enter, autocmd_no_leave,
+	// redrawing_for_callback and prevwin -- are named by nothing now; the
+	// sweep takes them.
 	// A PARTITION, not a count: the member is here and this phase removes it,
 	// or it is already gone -- which is accepted only when nothing at all is
 	// left that says `prechar`, the one way the sweep's closure
