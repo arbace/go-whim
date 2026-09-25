@@ -49,7 +49,6 @@ package p070
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/cutil"
 	"github.com/arbace/go-whim/internal/edit"
 )
 
@@ -64,22 +63,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	e.InFunction("do_ecmd", func(e *edit.E) {
 		e.Literal(w70OldOpen, w70NewOpen, 1, ":edit opening a second buffer")
-	})
-	e.InFunction("do_ecmd", func(e *edit.E) {
 		e.Literal(w70OldOldbuf, w70lit2, 1, ":edit deciding the buffer was already loaded")
-	})
-	// Brace-matched: the Body may be any length, which is the point.
-	e.InFunction("do_ecmd", func(e *edit.E) {
+		// Brace-matched: the Body may be any length, which is the point.
 		e.DropIf(`(?m)^[ \t]*if \(buf != curbuf\)\n[ \t]*\{\n[ \t]*bufref_T[ \t]+save_au_new_curbuf;$`, 1,
 			":edit leaving one buffer for another")
-	})
-	e.InFunction("do_ecmd", func(e *edit.E) {
 		e.Literal(w70lit3, w70lit4, 1, "the reload path asking whether the file changed")
-	})
-	e.InFunction("do_ecmd", func(e *edit.E) {
 		e.Literal(w70lit5, w70lit6, 1, ":edit arming the swap-file dialog")
-	})
-	e.InFunction("do_ecmd", func(e *edit.E) {
 		e.Literal(w70lit7, "", 1, ":edit answering it")
 	})
 	e.InFunction("readfile", func(e *edit.E) {
@@ -90,30 +79,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	e.InFunction("read_stdin", func(e *edit.E) {
 		e.Literal(w70lit11, "", 1, "reading stdin arming the dialog")
-	})
-	e.InFunction("read_stdin", func(e *edit.E) {
 		e.Literal(w70lit12, "", 1, "reading stdin answering it")
 	})
 	e.InFunction("ml_open", func(e *edit.E) {
 		e.Lines(`buf->b_may_swap = false;`, 1, "ml_open clearing b_may_swap")
 	})
-	// The fold and its report are separate in the phase: cutil.fold_never is
-	// called directly and say() follows outside in_function, so the message
-	// lands after the edit rather than as part of it.
 	e.InFunction("changed", func(e *edit.E) {
-		if e.Failed() {
-			return
-		}
-		Out, err := cutil.FoldNever(e.Text(), `(?m)^[ \t]*if \(curbuf->b_may_swap\)$`, 1)
-		if err != nil {
-			e.Refuse("%v", err)
-			return
-		}
-		e.Set(Out)
+		e.FoldNever(`(?m)^[ \t]*if \(curbuf->b_may_swap\)$`, 1, "the first change to a buffer opening a swap file")
 	})
-	if !e.Failed() {
-		e.Say("the first change to a buffer opening a swap file")
-	}
 	e.Lines(`check_need_swap\(newfile\);`, 2, "the two calls that asked for a swap file")
 	// handle_swap_exists(), check_swap_exists_action(), check_need_swap(),
 	// ml_open_file(), swap_exists_action, the SEA_* actions and the

@@ -23,7 +23,6 @@
 package edit
 
 import (
-	"fmt"
 	"github.com/arbace/go-whim/internal/cutil"
 	"io"
 	"sort"
@@ -74,25 +73,8 @@ func Names() []string {
 	return Out
 }
 
-// Once replaces the single occurrence of old with new, refusing unless it
-// occurs exactly once.
-//
-// The refusal is the point and not a courtesy: these edits run on a tree
-// produced by every phase before them, so an anchor that has stopped matching
-// means the phase is about to cut something other than what it was written to
-// cut.  CLAUDE.md's rule is to assert a partition rather than a count wherever
-// the text allows it; a single literal occurrence IS that partition when the
-// literal is unique, and the count is how it is stated.
-func Once(text []byte, old, new string, what string) ([]byte, error) {
-	n, norm := matchCount(text, old)
-	if n != 1 {
-		return nil, fmt.Errorf("  %s occurs %d times, expected 1", what, n)
-	}
-	return replaceMatched(text, old, new, 1, norm), nil
-}
-
 // countBytes and replaceBytes are how every literal anchor in the pipeline is
-// matched: e.Literal, e.LiteralN and Once all come through here.  THE MATCH IS
+// matched: E.Literal, Ph.Literal and Splice all come through here.  THE MATCH IS
 // EXACT, and the alternative was measured rather than argued about.
 //
 // internal/cutil.Normalize matches modulo whitespace, which is what an anchor

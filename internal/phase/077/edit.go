@@ -38,15 +38,14 @@ package p077
 import (
 	"fmt"
 	"io"
-	"regexp"
 	"strings"
 
 	"github.com/arbace/go-whim/internal/edit"
 )
 
-var (
-	bufnameRows = regexp.MustCompile(`\[CMD_[a-zA-Z]+\] = \{\(char_u \*\)"([a-zA-Z]+)", [^,]+, *([a-z_]+)[^}]*EX_BUFNAME`)
-	niComputed  = regexp.MustCompile(`(?m)^[ \t]*ni = \(!\(\(int\)\(ea\.cmdidx\) < 0\) && \(cmdnames\[ea\.cmdidx\]\.cmd_func == ex_ni`)
+const (
+	bufnameRows = `\[CMD_[a-zA-Z]+\] = \{\(char_u \*\)"([a-zA-Z]+)", [^,]+, *([a-z_]+)[^}]*EX_BUFNAME`
+	niComputed  = `(?m)^[ \t]*ni = \(!\(\(int\)\(ea\.cmdidx\) < 0\) && \(cmdnames\[ea\.cmdidx\]\.cmd_func == ex_ni`
 )
 
 // Whim77 stops a command naming a buffer by pattern, having first proved that
@@ -54,29 +53,19 @@ var (
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nobufpat", text, w)
 
-	rows := bufnameRows.FindAllSubmatch(text, -1)
-	if len(rows) == 0 {
-		e.Refuse("no command carries EX_BUFNAME -- the block this phase removes is already gone")
-		return e.Done()
-	}
+	names, handlers := e.Query(bufnameRows, 1), e.Query(bufnameRows, 2)
+	e.Expect(len(names) > 0, "no command carries EX_BUFNAME -- the block this phase removes is already gone")
 	var live []string
-	for _, r := range rows {
-		fn := string(r[2])
+	for i, fn := range handlers {
 		if fn != "ex_ni" && fn != "ex_script_ni" {
-			live = append(live, string(r[1]))
+			live = append(live, names[i])
 		}
 	}
-	if len(live) > 0 {
-		e.Refuse("these EX_BUFNAME commands have a LIVE handler and still need the pattern matching: %s",
-			strings.Join(live, " "))
-		return e.Done()
-	}
-	e.Say(fmt.Sprintf("confirmed: all %d EX_BUFNAME commands are ex_ni", len(rows)))
+	e.Expect(len(live) == 0, "these EX_BUFNAME commands have a LIVE handler and still need the pattern matching: %s",
+		strings.Join(live, " "))
+	e.Say(fmt.Sprintf("confirmed: all %d EX_BUFNAME commands are ex_ni", len(names)))
 
-	if !niComputed.Match(text) {
-		e.Refuse("`ni` is no longer computed as \"the handler is ex_ni\"")
-		return e.Done()
-	}
+	e.Expect(len(e.Query(niComputed, 0)) > 0, "`ni` is no longer computed as \"the handler is ex_ni\"")
 	e.InFunction("do_one_cmd", func(e *edit.E) {
 		e.FoldNever(`(?m)^[ \t]*if \(\(ea\.argt & EX_BUFNAME\) && \*ea\.arg != NUL && ea\.addr_count == 0 && !\(\(int\)\(ea\.cmdidx\) < 0\)\)$`, 1, "naming a buffer by pattern for commands that cannot run")
 	})

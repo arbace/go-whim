@@ -22,10 +22,8 @@ package p059
 // and that `:e` still edits a named file.
 
 import (
-	"bytes"
 	"fmt"
 	"io"
-	"regexp"
 
 	"github.com/arbace/go-whim/internal/edit"
 )
@@ -34,11 +32,7 @@ func kex(k string) string {
 	return fmt.Sprintf(`\(-\(\(KS_EXTRA\) \+ \(\(int\)\(%s\) << 8\)\)\)`, k)
 }
 
-var (
-	optionsTableStart = regexp.MustCompile(`(?m)^[ \t]*\{"ambiwidth",`)
-	valueCompletion   = regexp.MustCompile(`\bexpand_set_\w+(\s*,)`)
-	noFileMatches     = regexp.MustCompile(`(?m)^    \*matches = \(char_u \*\*\)"";\n`)
-)
+const valueCompletion = `\bexpand_set_\w+(\s*,)`
 
 // Whim59 takes command-line completion: the wildcard machinery in
 // getcmdline_int, every options[] row's value-completion callback, and every
@@ -88,26 +82,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// carry one is a fact about a table other phases are also cutting, and a
 	// floor refuses the case this guards against -- a pattern that has stopped
 	// matching.
-	if !e.Failed() {
-		t := e.Text()
-		m := optionsTableStart.FindIndex(t)
-		if m == nil {
-			e.Die("options[] does not start at \"ambiwidth\"")
-		} else if z := bytes.Index(t[m[0]:], []byte("\n};")); z < 0 {
-			e.Die("options[] does not end")
-		} else {
-			a, z := m[0], m[0]+z
-			k := len(valueCompletion.FindAll(t[a:z], -1))
-			if k < 20 {
-				e.Die("options[] names %d value-completion callbacks, expected many", k)
-			} else {
-				Out := append([]byte{}, t[:a]...)
-				Out = append(Out, valueCompletion.ReplaceAll(t[a:z], []byte("NULL$1"))...)
-				e.Set(append(Out, t[z:]...))
-				e.Say(fmt.Sprintf("options[] no longer names a value-completion callback (%d rows)", k))
-			}
-		}
-	}
+	e.InTable("static struct vimoption options[] =\n", func(e *edit.E) {
+		k := len(e.Query(valueCompletion, 0))
+		e.Expect(k >= 20, "options[] names %d value-completion callbacks, expected many", k)
+		e.Sub(valueCompletion, "NULL$1", k,
+			fmt.Sprintf("options[] no longer names a value-completion callback (%d rows)", k))
+	})
 
 	e.InFunction("ExpandFromContext", func(e *edit.E) {
 		// The non-file contexts are one run, from the empty-match assignment to
@@ -115,20 +95,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		// by a pattern over the whole span: the run is hundreds of lines of
 		// unrelated cases, and a regular expression that matched all of them
 		// would match anything.
-		if e.Failed() {
-			return
-		}
-		t := e.Text()
-		m := noFileMatches.FindIndex(t)
-		tail := []byte("\n    return ret;\n")
-		z := bytes.LastIndex(t, tail)
-		if m == nil || z < 0 {
-			e.Die("ExpandFromContext -- the non-file contexts were not found")
-			return
-		}
-		Out := append([]byte{}, t[:m[0]]...)
-		e.Set(append(Out, t[z+len(tail):]...))
-		e.Say("every completion context but files")
+		e.Splice("    *matches = (char_u **)\"\";\n", "    return ret;\n", "",
+			"every completion context but files")
 		e.FoldAlways(`(?m)^[ \t]*if \(xp->xp_context == EXPAND_FILES \|\| xp->xp_context == EXPAND_DIRECTORIES \|\| xp->xp_context == EXPAND_FILES_IN_PATH \|\| xp->xp_context == EXPAND_FINDFUNC \|\| xp->xp_context == EXPAND_DIRS_IN_CDPATH\)$`, 1,
 			"file expansion is the only context")
 	})

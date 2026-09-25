@@ -30,15 +30,11 @@ package p062
 // get_varp() case, and they go by hand.
 
 import (
-	"bytes"
-	"fmt"
 	"io"
 	"regexp"
 
 	"github.com/arbace/go-whim/internal/edit"
 )
-
-var expiredWait = regexp.MustCompile(`(?m)^([ \t]*)if \(wait_time <= 0 && did_call_wait_func\)\n`)
 
 // Whim62 takes five buffer options: 'autowrite' and 'autowriteall', 'buftype',
 // 'jumpoptions', 'updatetime' and 'buflisted', and 'filetype' with them.
@@ -125,27 +121,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		// The expired-wait block is replaced by its own head plus `return 0;`.
 		// It is matched by its ENDS rather than by one pattern: the Body is
 		// CursorHold handling that has nothing in common with the test above it.
-		if !e.Failed() {
-			t := e.Text()
-			m := expiredWait.FindSubmatchIndex(t)
-			if m == nil {
-				e.Refuse("inchar_loop -- the expired-wait test was not found")
-				return
-			}
-			ind := string(t[m[2]:m[3]])
-			tail := fmt.Sprintf("\n%s    before_blocking();\n%s    continue;\n%s}\n", ind, ind, ind)
-			z := bytes.Index(t[m[1]:], []byte(tail))
-			if z < 0 || bytes.Count(t, []byte(tail)) != 1 {
-				e.Refuse("inchar_loop -- the expired-wait block does not end in before_blocking(); continue;")
-				return
-			}
-			z += m[1]
-			head := fmt.Sprintf("%sif (wait_time <= 0 && did_call_wait_func)\n%s{\n%s    return 0;\n%s}\n", ind, ind, ind, ind)
-			Out := append([]byte{}, t[:m[0]]...)
-			Out = append(Out, head...)
-			e.Set(append(Out, t[z+len(tail):]...))
-			e.Say("CursorHold and before_blocking() after the idle wait")
-		}
+		e.Splice("            if (wait_time <= 0 && did_call_wait_func)\n",
+			"                before_blocking();\n                continue;\n            }\n",
+			"            if (wait_time <= 0 && did_call_wait_func)\n            {\n                return 0;\n            }\n",
+			"CursorHold and before_blocking() after the idle wait")
 		// Blocking now starts on the first wait with no timeout, so by the time
 		// the loop's exit test runs for one, it has blocked: did_start_blocking
 		// was TRUE there, and an interrupted indefinite wait must still return 0
@@ -212,13 +191,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 // stood.
 func Whim62BL(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nobufopts", text, w)
-	casePat := regexp.MustCompile(`(?m)^[ \t]*case[^\n]*\bBV_BL\b[^\n]*\n[ \t]*return \(char_u \*\)&\(curbuf->b_p_bl\);\n`)
-	if b := len(casePat.FindAll(e.Text(), -1)); b != 1 {
-		e.Refuse("b_p_bl's get_varp case matched %d times, expected 1", b)
-		return e.Done()
-	}
-	e.Set(casePat.ReplaceAll(e.Text(), nil))
-	e.Say("'buflisted''s get_varp case removed")
+	e.Cut(`(?m)^[ \t]*case[^\n]*\bBV_BL\b[^\n]*\n[ \t]*return \(char_u \*\)&\(curbuf->b_p_bl\);\n`, 1, "'buflisted''s get_varp case removed")
 	return e.Done()
 }
 

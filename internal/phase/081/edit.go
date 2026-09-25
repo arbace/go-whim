@@ -37,20 +37,12 @@ package p081
 // expected to differ written out, and everything else required identical.
 
 import (
-	"bytes"
 	"fmt"
 	"io"
-	"regexp"
+	"strings"
 
 	"github.com/arbace/go-whim/internal/cutil"
 	"github.com/arbace/go-whim/internal/edit"
-)
-
-var (
-	nextcmdCalls = regexp.MustCompile(`\bseparate_nextcmd\(([^;]*)\);`)
-	cmdArgtRow   = func(c string) *regexp.Regexp {
-		return regexp.MustCompile(`(?m)^    \[CMD_` + c + `\] = \{.*\(long_u\)\(([^)]*)\)`)
-	}
 )
 
 // Whim81 makes a command line one command: no bar separator and no trailing
@@ -59,22 +51,16 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("onecommand", text, w)
 
 	var calls []string
-	for _, m := range nextcmdCalls.FindAllSubmatch(text, -1) {
-		c := string(m[1])
-		if !bytes.HasPrefix([]byte(c), []byte("exarg_T")) {
+	for _, c := range e.Query(`\bseparate_nextcmd\(([^;]*)\);`, 1) {
+		if !strings.HasPrefix(c, "exarg_T") {
 			calls = append(calls, c)
 		}
 	}
-	if len(calls) != 1 || calls[0] != "&ea, FALSE" {
-		e.Refuse("separate_nextcmd is called as %s, expected once with FALSE", cutil.PyRepr(fmt.Sprint(calls)))
-		return e.Done()
-	}
+	e.Expect(len(calls) == 1 && calls[0] == "&ea, FALSE",
+		"separate_nextcmd is called as %s, expected once with FALSE", cutil.PyRepr(fmt.Sprint(calls)))
 	for _, c := range []string{"append", "insert", "change"} {
-		m := cmdArgtRow(c).FindSubmatch(text)
-		if m == nil || bytes.Contains(m[1], []byte("EX_EXTRA")) {
-			e.Refuse(":%s is not a command without EX_EXTRA", c)
-			return e.Done()
-		}
+		argt := e.Query(`(?m)^    \[CMD_`+c+`\] = \{.*\(long_u\)\(([^)]*)\)`, 1)
+		e.Expect(len(argt) > 0 && !strings.Contains(argt[0], "EX_EXTRA"), ":%s is not a command without EX_EXTRA", c)
 	}
 	e.Say("confirmed: one caller of separate_nextcmd, and :append, :insert, :change take no argument")
 
@@ -102,28 +88,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// character at all, and comment_start must have lost its last caller.
 	for _, p := range []struct{ Pat, What string }{{`'\|'`, "a bar"}, {`'"'`, "a quote"}} {
 		for _, fn := range []string{"separate_nextcmd", "ends_excmd", "ends_excmd2", "find_nextcmd", "check_nextcmd", "do_one_cmd"} {
-			if e.Failed() {
-				return e.Done()
-			}
-			Body, ok := e.BodyOf(fn)
-			if !ok {
-				e.Refuse("%s is not defined", fn)
-				return e.Done()
-			}
-			if regexp.MustCompile(p.Pat).Match(Body) {
-				e.Refuse("%s still tests for %s", fn, p.What)
-				return e.Done()
-			}
+			e.InFunction(fn, func(e *edit.E) { e.CountIs(p.Pat, 0, fn+" still tests for "+p.What) })
 		}
 	}
-	if !e.Failed() {
-		stripped := bytes.ReplaceAll(e.Text(), []byte("comment_start(char_u"), nil)
-		if bytes.Contains(stripped, []byte("comment_start(")) {
-			e.Refuse("comment_start still has a caller")
-			return e.Done()
-		}
-		e.Say("no command parser tests for a bar or a quote")
-	}
+	e.Expect(len(e.Query(`comment_start\(`, 0)) == len(e.Query(`comment_start\(char_u`, 0)), "comment_start still has a caller")
+	e.Say("no command parser tests for a bar or a quote")
 	return e.Done()
 }
 

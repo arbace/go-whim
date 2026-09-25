@@ -44,9 +44,7 @@ package p067
 // writes, and the pty check is what would catch the termcode fold going wrong.
 
 import (
-	"fmt"
 	"io"
-	"regexp"
 	"strings"
 
 	"github.com/arbace/go-whim/internal/edit"
@@ -58,9 +56,9 @@ import (
 // FALSE across THREE lines, so an anchor on `{TRUE,` found 13 and left the
 // terminal-specific ones behind, and a single-line pattern cannot see them at
 // all.
-var (
-	mouseNameOneLine   = regexp.MustCompile(`(?m)^[ \t]*\{TRUE,[^\n]*\(char_u \*\)\("(\w*(?:Mouse|Drag|Release|Wheel)\w*)"\)[^\n]*\n`)
-	mouseNameThreeLine = regexp.MustCompile(`(?m)^[ \t]*\{FALSE, [^\n]*\(char_u \*\)\("(\w*Mouse\w*)"\)[^\n]*\n`)
+const (
+	mouseNameOneLine   = `(?m)^[ \t]*\{TRUE,[^\n]*\(char_u \*\)\("(\w*(?:Mouse|Drag|Release|Wheel)\w*)"\)[^\n]*\n`
+	mouseNameThreeLine = `(?m)^[ \t]*\{FALSE, [^\n]*\(char_u \*\)\("(\w*Mouse\w*)"\)[^\n]*\n`
 )
 
 // writeOnlyStatics are file-scope variables that are written and never read:
@@ -96,22 +94,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.Lines(`old_mouse_row = mouse_row;`, 1, "saving the mouse row")
 	e.Lines(`old_mouse_col = mouse_col;`, 1, "saving the mouse column")
 
-	if !e.Failed() {
-		one := edit.Names_(mouseNameOneLine, e.Text())
-		if len(one) != 13 {
-			e.Refuse("key_names_table -- %d single-line mouse names, expected 13: %s", len(one), strings.Join(one, " "))
-		} else {
-			e.Cut(mouseNameOneLine.String(), 13, "the mouse key names: "+strings.Join(one, " "))
-		}
-	}
-	if !e.Failed() {
-		three := edit.Names_(mouseNameThreeLine, e.Text())
-		if len(three) != 5 {
-			e.Refuse("key_names_table -- %d three-line mouse names, expected 5: %s", len(three), strings.Join(three, " "))
-		} else {
-			e.Cut(mouseNameThreeLine.String(), 5, "the terminal-specific mouse names: "+strings.Join(three, " "))
-		}
-	}
+	one := e.Query(mouseNameOneLine, 1)
+	e.Expect(len(one) == 13, "key_names_table -- %d single-line mouse names, expected 13: %s", len(one), strings.Join(one, " "))
+	e.Cut(mouseNameOneLine, 13, "the mouse key names: "+strings.Join(one, " "))
+	three := e.Query(mouseNameThreeLine, 1)
+	e.Expect(len(three) == 5, "key_names_table -- %d three-line mouse names, expected 5: %s", len(three), strings.Join(three, " "))
+	e.Cut(mouseNameThreeLine, 5, "the terminal-specific mouse names: "+strings.Join(three, " "))
 	e.Cut(`(?m)^[ \t]*\{\(-\(\(KS_MOUSE\) \+ \(\(int\)\(\('X'\)\) << 8\)\)\),[^\n]*"\[MOUSE\]"\},\n`, 1,
 		"the [MOUSE] entry of the terminal string table")
 
@@ -153,7 +141,5 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.Lines(`was_safe = (?:is_safe|FALSE);`, 2, "its remaining writes")
 	return e.Done()
 }
-
-var _ = fmt.Sprintf
 
 func init() { edit.Register("whim67", Edit) }

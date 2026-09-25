@@ -59,9 +59,7 @@ package p064
 // 'textwidth', that gqq and gd do nothing, and that } no longer stops at .PP.
 
 import (
-	"bytes"
 	"io"
-	"regexp"
 
 	"github.com/arbace/go-whim/internal/edit"
 )
@@ -99,8 +97,6 @@ const newDispatch = `        case OP_COLON:
             op_colon(oap);
             break;
 `
-
-var noLeaderTest = regexp.MustCompile(`(?m)^[ \t]*if \(no_leader\)\n`)
 
 // Whim64 takes 'formatoptions' and everything only it reached: the comment
 // leader in open_line, auto-formatting, the gq operator, and the C-indenting
@@ -184,19 +180,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		for _, d := range internalFormatDecls {
 			e.Lines(d.pattern, 1, d.What)
 		}
-		if !e.Failed() {
-			t := e.Text()
-			m := noLeaderTest.FindIndex(t)
-			end := []byte("        if (leader_len == 0)\n        {\n            no_leader = TRUE;\n        }\n")
-			z := bytes.Index(t, end)
-			if m == nil || z < 0 || bytes.Count(t, end) != 1 {
-				e.Refuse("internal_format -- the leader lookup was not found once")
-				return
-			}
-			Out := append([]byte{}, t[:m[0]]...)
-			e.Set(append(Out, t[z+len(end):]...))
-			e.Say("wrapping a line looking up its leader ('c')")
-		}
+		e.Splice("        if (no_leader)\n", "        if (leader_len == 0)\n        {\n            no_leader = TRUE;\n        }\n", "",
+			"wrapping a line looking up its leader ('c')")
 		e.Literal("if (!(flags & INSCHAR_FORMAT) && leader_len == 0 && !has_format_option(FO_WRAP))",
 			"if (!(flags & INSCHAR_FORMAT) && p_paste)", 1, "wrapping only with 't', which 'paste' turns off")
 		e.Literal("while ((!fo_ins_blank && !has_format_option(FO_INS_VI)) || (flags & INSCHAR_FORMAT) || curwin->w_cursor.lnum != Insstart.lnum || curwin->w_cursor.col >= Insstart.col)",

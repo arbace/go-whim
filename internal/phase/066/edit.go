@@ -30,9 +30,7 @@ package p066
 import (
 	"fmt"
 	"io"
-	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
 	"github.com/arbace/go-whim/internal/edit"
 )
 
@@ -67,28 +65,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.DropIf(`(?m)^[ \t]*if \(cap->nchar == '\*'\)$`, 1, "[* and ]* spelled as [/ and ]/")
 		e.FoldAlways(`(?m)^[ \t]*if \(cap->nchar != 'm' && cap->nchar != 'M'\)$`, 1,
 			"a miss beeping, which only a method did not")
-		// The counted helpers cannot express "the second of two" -- they refuse
-		// on any count but the one given -- so the walk-Out is cut from a slice
-		// that STARTS at it, and only then is the head the single match the
-		// counted fold wants.
-		if !e.Failed() {
-			re := regexp.MustCompile(methodTest)
-			hits := re.FindAllIndex(e.Text(), -1)
-			if len(hits) != 2 {
-				e.Refuse("nv_bracket_block -- the method test matched %d times, expected 2", len(hits))
-				return
-			}
-			t := e.Text()
-			cut := edit.LastNewlineBefore(t, hits[1][0]) + 1
-			tail, err := cutil.DropIf(t[cut:], methodTest, 1)
-			if err != nil {
-				e.Refuse("walking out to a method start or end -- %v", err)
-				return
-			}
-			e.Set(append(append([]byte{}, t[:cut]...), tail...))
-			e.Say("walking out to a method start or end")
-		}
-		e.FoldNever(methodTest, 1, "a method's braces choosing the character to match")
+		// Both tests are never true now, and the second has no else: one
+		// counted fold takes the pair, keeping the first's else arm.
+		e.FoldNever(methodTest, 2, "a method's braces choosing the character to match, and walking out to a method start or end")
 		e.Lines(`prev_pos\.lnum = 0;`, 1, "the previous match, which only a method walk-out read")
 		e.Lines(`prev_pos = new_pos;`, 1, "remembering the previous match")
 	})

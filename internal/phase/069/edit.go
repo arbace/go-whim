@@ -77,27 +77,28 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// 'ADDR_ARGUMENTS' not handled in switch" -- seven of them, which is what
 	// the sweep kept reporting as "left alone" and could never converge on.  So
 	// each arm gets a constant Body instead.
-	arm := func(fn, old, new, what string, n int) {
-		e.InFunction(fn, func(e *edit.E) { e.Literal(old, new, n, what) })
-	}
-	arm("parse_cmd_address", w69lit3, w69lit4, "an argument range in a command line", 1)
-	arm("address_default_all", w69lit5, w69lit6, "an argument range with no range given", 1)
-	arm("default_address", w69lit7, w69lit8, "the default line for an argument range", 1)
+	e.InFunction("parse_cmd_address", func(e *edit.E) {
+		e.Literal(w69lit3, w69lit4, 1, "an argument range in a command line")
+	})
+	e.InFunction("address_default_all", func(e *edit.E) {
+		e.Literal(w69lit5, w69lit6, 1, "an argument range with no range given")
+	})
+	e.InFunction("default_address", func(e *edit.E) {
+		e.Literal(w69lit7, w69lit8, 1, "the default line for an argument range")
+	})
 	// THE TWO ARMS IN get_address ARE AT TWO DEPTHS.  The macro expander used
 	// to leave both at the same column, so one literal matched them; on a text
 	// that indents by structure they differ, and the arm is written with its
 	// own indentation carried through.  Both counts are what they were.
-	argArm := func(body, what string, n int) {
-		e.InFunction("get_address", func(e *edit.E) {
-			e.Sub(`(?m)^([ \t]*)case ADDR_ARGUMENTS:\n`+body,
-				"${1}case ADDR_ARGUMENTS:\n${1}    lnum = 0;\n${1}    break;\n", n, what)
-		})
-	}
-	argArm(`[ \t]*lnum = curwin->w_arg_idx \+ 1;\n[ \t]*break;\n`,
-		"an argument range parsed from an address", 2)
-	argArm(`[ \t]*lnum = \(\(curwin\)->w_alist->al_ga\.ga_len\);\n[ \t]*break;\n`,
-		"the last line of an argument range", 1)
-	arm("invalid_range", w69lit12, w69lit13, "an argument range checked for validity", 1)
+	e.InFunction("get_address", func(e *edit.E) {
+		e.Sub(`(?m)^([ \t]*)case ADDR_ARGUMENTS:\n[ \t]*lnum = curwin->w_arg_idx \+ 1;\n[ \t]*break;\n`,
+			"${1}case ADDR_ARGUMENTS:\n${1}    lnum = 0;\n${1}    break;\n", 2, "an argument range parsed from an address")
+		e.Sub(`(?m)^([ \t]*)case ADDR_ARGUMENTS:\n[ \t]*lnum = \(\(curwin\)->w_alist->al_ga\.ga_len\);\n[ \t]*break;\n`,
+			"${1}case ADDR_ARGUMENTS:\n${1}    lnum = 0;\n${1}    break;\n", 1, "the last line of an argument range")
+	})
+	e.InFunction("invalid_range", func(e *edit.E) {
+		e.Literal(w69lit12, w69lit13, 1, "an argument range checked for validity")
+	})
 
 	// 3b. the readers with live callers.  check_arg_idx() is called from six
 	// live functions, so its BODY folds and the calls go; editing_arg_idx() is

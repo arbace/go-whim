@@ -46,7 +46,6 @@ package p073
 
 import (
 	"io"
-	"regexp"
 
 	"github.com/arbace/go-whim/internal/edit"
 )
@@ -55,17 +54,15 @@ import (
 // OPENS BY PROVING THERE ARE NONE, because every replacement below assumes a
 // frame is a leaf -- if the tree really were linked somewhere, all fifteen
 // bodies would be wrong and the boundary would be the first thing to say so.
-var frameLinkWrite = regexp.MustCompile(`fr_(?:child|next|prev|parent)[ \t]*(?:=[^=]|\+\+|--)`)
+const frameLinkWrite = `fr_(?:child|next|prev|parent)[ \t]*(?:=[^=]|\+\+|--)`
 
 // Whim73 makes a frame a leaf: fifteen functions that recursed into children or
 // climbed to parents become constants, and the four tree pointers go.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("oneframe", text, w)
 
-	if k := len(frameLinkWrite.FindAll(text, -1)); k > 0 {
-		e.Refuse("the frame tree IS linked somewhere (%d writes) -- the invariant this phase rests on is false, and every replacement below would be wrong", k)
-		return e.Done()
-	}
+	k := len(e.Query(frameLinkWrite, 0))
+	e.Expect(k == 0, "the frame tree IS linked somewhere (%d writes) -- the invariant this phase rests on is false, and every replacement below would be wrong", k)
 	e.Say("confirmed: nothing writes fr_child, fr_next, fr_prev or fr_parent")
 
 	for _, f := range []struct{ Name, Body, What string }{

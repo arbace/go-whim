@@ -19,23 +19,6 @@ import (
 // two phases share stopped being either one's.  The phase it was written for is
 // named above each.
 
-// From phase 48.
-// inFunction applies edit to one file-scope definition's Body and splices it
-// back, which is what the heredoc's in_function() did.
-func InFunction(text []byte, name string, edit func([]byte) ([]byte, error)) ([]byte, error) {
-	a, z, ok := cutil.FindDefinition(text, cutil.Blank(text), name)
-	if !ok {
-		return nil, fmt.Errorf("%s is not defined at file scope", name)
-	}
-	Body, err := edit(text[a:z])
-	if err != nil {
-		return nil, err
-	}
-	Out := append([]byte{}, text[:a]...)
-	Out = append(Out, Body...)
-	return append(Out, text[z:]...), nil
-}
-
 // From phase 59.
 // key and kex spell the two ways this file writes a special key as an integer.
 // They are built rather than written Out because the C is a nest of escaped
@@ -43,17 +26,6 @@ func InFunction(text []byte, name string, edit func([]byte) ([]byte, error)) ([]
 // the wildcard trigger.
 func Key(a, b string) string {
 	return fmt.Sprintf(`\(-\(\('%s'\) \+ \(\(int\)\('%s'\) << 8\)\)\)`, a, b)
-}
-
-// From phase 67.
-// names returns the first capture of every match, which is how this phase builds
-// the report line that lists what it removed.
-func Names_(re *regexp.Regexp, text []byte) []string {
-	var Out []string
-	for _, m := range re.FindAllSubmatch(text, -1) {
-		Out = append(Out, string(m[1]))
-	}
-	return Out
 }
 
 // From phase 71.

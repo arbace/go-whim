@@ -34,7 +34,7 @@ import (
 // THE VERB SET, and its one rule.  Every ACT takes the number of times it
 // applies, just before the `what` it reports, and refuses on any other count:
 //
-//	text        Literal(old, new, n, what)   Rename(word, new, n, what)
+//	text        Literal(old, new, n, what)
 //	regex       Sub(re, repl, n, what)       Cut(re, n, what)       Lines(re, n, what)
 //	if          FoldNever(re, n, what)       FoldAlways(re, n, what)
 //	            DropIf(re, n, what)          FoldAlwaysElse(re, n, what)
@@ -50,8 +50,8 @@ import (
 // into the boundary.  The ASSERTIONS change nothing and report nothing --
 // CountIs(re, n, what), Expect(ok, format, ...), ConstOf(fn, value) -- the
 // QUERIES answer from the tree as it stands -- Mentions(name), Query(re,
-// group), BodyOf(fn), InnerBody(fn) -- and InFunction(fn, acts) is the one
-// scope.  Text and Set are the escape hatch, for a phase whose cut is a
+// group), BodyOf(fn), InnerBody(fn) -- and the SCOPES are InFunction(fn, acts) and
+// InTable(head, acts).  Text and Set are the escape hatch, for a phase whose cut is a
 // computation no verb says.
 type E struct {
 	Tag string
@@ -199,12 +199,6 @@ func (e *E) Literal(old, new string, n int, what string) {
 	e.Say(what)
 }
 
-// Rename rewrites the n whole-word occurrences of word as new -- `\bword\b`, so
-// `firstwin` is not the head of `firstwin_save` -- refusing on any other count.
-func (e *E) Rename(word, new string, n int, what string) {
-	e.Sub(`\b`+regexp.QuoteMeta(word)+`\b`, new, n, what)
-}
-
 // FoldNever takes the n `if`s the pattern matches whose condition can no longer
 // be true, keeping any else arm; DropIf takes ones whose condition is now
 // always true and that have no else, keeping nothing; FoldAlways keeps the
@@ -323,6 +317,43 @@ func (e *E) InFunction(name string, acts func(*E)) {
 		e.Die("%s is not defined at file scope", name)
 		return
 	}
+	inner := &E{Tag: e.Tag, buf: e.buf[a:z], W: e.W}
+	acts(inner)
+	if inner.Err != nil {
+		e.Err = inner.Err
+		return
+	}
+	out := append([]byte{}, e.buf[:a]...)
+	out = append(out, inner.buf...)
+	e.buf = append(out, e.buf[z:]...)
+}
+
+// InTable is InFunction for a file-scope table: the acts run against one
+// initialised object, from its head -- `static struct vimoption options[] =`,
+// literal, which must occur exactly once -- through the brace that closes its
+// initialiser, found by matching braces outside strings, and are spliced back.
+// A pattern over a table's rows is as easily matched outside it, by a call or
+// a prototype, as a pattern in a function's body is.
+func (e *E) InTable(head string, acts func(*E)) {
+	if e.Err != nil {
+		return
+	}
+	if k := countBytes(e.buf, head); k != 1 {
+		e.Die("%s occurs %d times, expected 1", cutil.PyRepr(head), k)
+		return
+	}
+	a := IndexFrom(e.buf, []byte(head), 0)
+	b := cutil.Blank(e.buf)
+	o := IndexFrom(b, []byte("{"), a+len(head))
+	c := -1
+	if o >= 0 {
+		c = cutil.Match(b, o)
+	}
+	if c < 0 {
+		e.Die("%s -- no initialiser, or an unbalanced one", cutil.PyRepr(head))
+		return
+	}
+	z := IndexFrom(e.buf, []byte("\n"), c) + 1
 	inner := &E{Tag: e.Tag, buf: e.buf[a:z], W: e.W}
 	acts(inner)
 	if inner.Err != nil {

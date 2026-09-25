@@ -64,7 +64,6 @@ package p072
 import (
 	"fmt"
 	"io"
-	"regexp"
 
 	"github.com/arbace/go-whim/internal/edit"
 )
@@ -165,17 +164,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	e.InFunction("win_ins_lines", func(e *edit.E) {
 		e.Literal(w72lit16, w72lit17, 1, "scrolling asking whether a window is below")
-	})
-	e.InFunction("win_ins_lines", func(e *edit.E) {
 		e.Literal(w72lit18, "", 1, "scrolling refusing when a window is below")
-	})
-	e.InFunction("win_ins_lines", func(e *edit.E) {
 		e.Literal(w72lit19, w72lit20, 1, "scrolling invalidating the window below")
 	})
 	e.InFunction("win_del_lines", func(e *edit.E) {
 		e.Literal(w72lit21, w72lit22, 1, "deleting lines asking whether a window is below")
-	})
-	e.InFunction("win_del_lines", func(e *edit.E) {
 		e.Literal(w72lit23, w72lit24, 1, "deleting lines invalidating the window below")
 	})
 	e.InFunction("win_do_lines", func(e *edit.E) {
@@ -203,13 +196,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// 7. what is left of the two lists
 	e.Lines(`static win_T[ \t]+\*firstwin;`, 1, "firstwin")
 	e.Lines(`static win_T[ \t]+\*lastwin;`, 1, "lastwin")
-	if !e.Failed() {
-		n := e.Mentions("firstwin") + e.Mentions("lastwin")
-		t := regexp.MustCompile(`\bfirstwin\b`).ReplaceAll(e.Text(), []byte("curwin"))
-		t = regexp.MustCompile(`\blastwin\b`).ReplaceAll(t, []byte("curwin"))
-		e.Set(t)
-		e.Say(fmt.Sprintf("the list heads read as layout state (%d mentions -> curwin)", n))
-	}
+	e.Sub(`\b(?:first|last)win\b`, "curwin", 35, "the list heads read as layout state (35 mentions -> curwin)")
 	return e.Done()
 }
 

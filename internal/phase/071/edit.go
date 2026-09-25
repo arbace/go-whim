@@ -52,11 +52,9 @@ package p071
 // can move; declared empty and left for the delta check to correct.
 
 import (
-	"bytes"
-	"fmt"
 	"io"
+	"strings"
 
-	"github.com/arbace/go-whim/internal/cutil"
 	"github.com/arbace/go-whim/internal/edit"
 )
 
@@ -79,23 +77,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.Body("buflist_findpat", w71lit7, "buflist_findpat matching against every buffer")
 	e.DropWalk("check_changed_any", edit.FwdWalk, w71lit8,
 		2, "counting the buffers to check, and re-adding the one already seeded")
-	e.DropWalk("open_buffer", fwdWalkCurbuf(), "", 1, "open_buffer looking for another loaded buffer")
+	e.DropWalk("open_buffer", strings.ReplaceAll(edit.FwdWalk, "(buf)", "(curbuf)"), "", 1, "open_buffer looking for another loaded buffer")
 
 	e.InFunction("open_buffer", func(e *edit.E) {
-		if e.Failed() {
-			return
-		}
-		Out, err := cutil.FoldAlways(e.Text(), `(?m)^[ \t]*if \(curbuf == NULL\)$`, 1)
-		if err != nil {
-			e.Refuse("%v", err)
-			return
-		}
-		e.Set(Out)
-	})
-	if !e.Failed() {
-		e.Say("open_buffer testing whether it found one")
-	}
-	e.InFunction("open_buffer", func(e *edit.E) {
+		e.FoldAlways(`(?m)^[ \t]*if \(curbuf == NULL\)$`, 1, "open_buffer testing whether it found one")
 		e.Literal(w71lit15, "", 1, "open_buffer carrying on in another buffer instead")
 	})
 	e.Body("compute_buffer_local_count", w71lit9, "computing a buffer address by walking to an offset")
@@ -121,56 +106,19 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal(w71lit18, w71lit19, 1, "set_curbuf entering a different buffer")
 	})
 	e.InFunction("close_buffer", func(e *edit.E) {
-		if e.Failed() {
-			return
-		}
-		Out, err := cutil.FoldNever(e.Text(), `(?m)^[ \t]*if \(wipe_buf && buf->b_nwindows <= 0 && \(buf->b_prev != NULL \|\| buf->b_next != NULL\)\)$`, 1)
-		if err != nil {
-			e.Refuse("%v", err)
-			return
-		}
-		e.Set(Out)
+		e.FoldNever(`(?m)^[ \t]*if \(wipe_buf && buf->b_nwindows <= 0 && \(buf->b_prev != NULL \|\| buf->b_next != NULL\)\)$`, 1,
+			"close_buffer unlinking a buffer that was never linked to another")
 	})
-	if !e.Failed() {
-		e.Say("close_buffer unlinking a buffer that was never linked to another")
-	}
 	e.InFunction("buflist_new", func(e *edit.E) {
 		e.Literal(w71lit20, "", 1, "buflist_new appending to the list")
 	})
 
 	// The wiped-fnum branch is cut from its head to the plain else after it.
-	if !e.Failed() {
-		t := e.Text()
-		if k := bytes.Count(t, []byte(w71OldReuseStart)); k != 1 {
-			e.Refuse("the wiped-fnum branch -- its head occurs %d times, expected 1", k)
-		} else {
-			i := bytes.Index(t, []byte(w71OldReuseStart))
-			j := bytes.Index(t[i:], []byte(w71OldReuseEnd))
-			if j < 0 {
-				e.Refuse("the wiped-fnum branch -- no plain `b_fnum = top_file_num++` else after it")
-			} else {
-				j += i
-				Out := append([]byte{}, t[:i]...)
-				Out = append(Out, w71lit13...)
-				e.Set(append(Out, t[j+len(w71OldReuseEnd):]...))
-				e.Say("buflist_new reusing a wiped fnum and re-sorting the list for it")
-			}
-		}
-	}
+	e.Splice(w71OldReuseStart, w71OldReuseEnd, w71lit13, "buflist_new reusing a wiped fnum and re-sorting the list for it")
 	// au_pending_free_buf, set_curbuf's valid flag, firstbuf, lastbuf and the
 	// buf_reuse pool are named by nothing now; the sweep takes them.
 	e.Literal(w71lit12, "", 1, "the buffer list pointers in buf_T")
 	return e.Done()
 }
-
-func fwdWalkCurbuf() string {
-	return regexpReplaceAll(edit.FwdWalk, "(buf)", "(curbuf)")
-}
-
-func regexpReplaceAll(s, old, new string) string {
-	return string(bytes.ReplaceAll([]byte(s), []byte(old), []byte(new)))
-}
-
-var _ = fmt.Sprintf
 
 func init() { edit.Register("whim71", Edit) }

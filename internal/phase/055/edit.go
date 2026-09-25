@@ -31,7 +31,6 @@ package p055
 // it (GOALS.md, *The inner sweeps*; internal/phase/STAGES.md) -- the stage's one sweep does its work.
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/arbace/go-whim/internal/edit"
@@ -46,12 +45,9 @@ const cdpathTest = ` || p == (char_u *)&p_cdpath)`
 // Whim55 stops 'cdpath' being completed as a directory list, so that the row
 // can go.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	Out, err := edit.Once(text, cdpathTest, `)`, "unusedopts   the cdpath completion test")
-	if err != nil {
-		return nil, err
-	}
-	fmt.Fprintln(w, "  unusedopts   'cdpath' is no longer completed as a directory list")
-	return Out, nil
+	e := edit.New("unusedopts", text, w)
+	e.Literal(cdpathTest, `)`, 1, "'cdpath' is no longer completed as a directory list")
+	return e.Done()
 }
 
 func init() { edit.Register("whim55", Edit) }

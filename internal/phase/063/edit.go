@@ -18,15 +18,11 @@ package p063
 // jumps back, '' still does, and :jumps is refused.
 
 import (
-	"bytes"
 	"fmt"
 	"io"
-	"regexp"
 
 	"github.com/arbace/go-whim/internal/edit"
 )
-
-var jumplistAppend = regexp.MustCompile(`(?m)^[ \t]*if \(\+\+curwin->w_jumplistlen > JUMPLISTSIZE\)$`)
 
 // Whim63 takes the jump list: :jumps and :clearjumps, CTRL-I and CTRL-O, and
 // every place a line or column change moved its marks.
@@ -45,20 +41,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// matched by its two ends because the Body is the whole of building a
 	// jump-list entry, which shares no shape with the test above it.
 	e.InFunction("setpcmark", func(e *edit.E) {
-		if e.Failed() {
-			return
-		}
-		t := e.Text()
-		m := jumplistAppend.FindIndex(t)
-		tail := []byte("fm->fname = NULL;\n")
-		z := bytes.Index(t, tail)
-		if m == nil || z < 0 || bytes.Count(t, tail) != 1 {
-			e.Refuse("setpcmark -- the jump-list append was not found once")
-			return
-		}
-		e.Say("setpcmark appending to the jump list")
-		Out := append([]byte{}, t[:m[0]]...)
-		e.Set(append(Out, t[z+len(tail):]...))
+		e.Splice("    if (++curwin->w_jumplistlen > JUMPLISTSIZE)\n", "fm->fname = NULL;\n", "",
+			"setpcmark appending to the jump list")
 	})
 
 	e.InFunction("nv_ctrlo", func(e *edit.E) {
