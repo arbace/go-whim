@@ -3,8 +3,8 @@
 **Status (2026-09-25): every item is done or declined.** 1-6 and 10 are done;
 7 is done as far as a rule reaches -- a pointer that never walks is a `*T`, and
 one that only walks forward, or never moves and is only indexed, is a slice (39
-classes) -- and its last part, the one class of every `char *`, is declined,
-the reasons in `doc/AGENDA.md`. 11 and 12, declined at first, are done since:
+classes) -- and its last part, the one class of every `char *`, is declined
+(below, *Declined: the C strings as Go slices*). 11 and 12, declined at first, are done since:
 `editor/` is `package editor` with its host behind a `Host` interface, and
 `crefactor/togo`'s instance pass makes the globals an `Editor`'s fields and
 the functions reaching them its methods -- an embeddable component, and the
@@ -436,3 +436,23 @@ Everything is under `/root/go-whim/.tmp/idiom/`, none of it tracked:
 - `vet.txt`, `sc.txt`, `sc-ng.txt`, `unused-params.txt`, `labels.txt`: raw
   outputs;
 - `/root/go-whim/.tmp/bin/staticcheck`: the linter.
+
+## Declined: the C strings as Go slices
+
+Item 7's last part. Every `char *` in the core is one pointer class, 1,561
+objects merged by flows -- `ml_get`, the option table, the buffers, the
+messages -- and a class has one representation, since a value can reach any
+member of it. And the class is used by identity, which a slice does not
+have: measured in `editor.go` (2026-09-25), 234 places order or subtract two
+pointers into one array (`p < end`, `p == q`, `p - line` as a column), which
+two Go slices cannot say, and 135 walk backwards (`p[-1]`, `p--`), which a
+slice cannot reach. The rule that makes a forward-only class a slice (39
+classes, 89 objects) does not reach it, and a string model that keeps an
+identity -- a base and an offset -- is `Ptr[byte]`, what the editor has.
+
+Revisit only as a redesign of the string representation, not as a generator
+rule: a context-sensitive analysis that splits the class by use (a slice
+where a string is only read forward, `Ptr` where it is walked or compared),
+or phases that rewrite the C's string handling to indices. A Java backend
+wants the same model anyway -- `byte[]` and an offset -- so keeping it costs
+the Java path nothing.
