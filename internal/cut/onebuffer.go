@@ -200,10 +200,6 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 			"do_ecmd naming a refused file the alternate"); err != nil {
 			return nil, err
 		}
-		if s, err = e.literal(s, "        int prev_alt_fnum = curwin->w_alt_fnum;\n", "",
-			"do_ecmd remembering the alternate", 1); err != nil {
-			return nil, err
-		}
 		if s, err = e.dropIf(s, `^[ \t]*if \(\(cmdmod\.cmod_flags & CMOD_KEEPALT\) == 0\)$`,
 			"do_ecmd making the old buffer the alternate"); err != nil {
 			return nil, err
@@ -240,11 +236,8 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		// xfname held the old short name for that alternate alone.
-		if s, err = e.literal(s, "    char_u *xfname;\n", "",
-			":file declaring the old short name", 1); err != nil {
-			return nil, err
-		}
+		// xfname held the old short name for that alternate alone; the
+		// sweep takes its declaration once this, its last write, is gone.
 		return e.literal(s, "    xfname = curbuf->b_fname;\n", "",
 			":file saving the old short name", 1)
 	})
@@ -315,12 +308,6 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	text, err = e.inFunction(text, "alist_add_list", func(s []byte) ([]byte, error) {
-		s, err := e.subOnce(s,
-			`(?m)^[ \t]*int flags = BLN_LISTED \| \(will_edit \? BLN_CURBUF : 0\);\n`,
-			"alist_add_list choosing buffer flags")
-		if err != nil {
-			return nil, err
-		}
 		return e.literal(s, ".ae_fnum = buflist_add(files[i], flags);", ".ae_fnum = 0;",
 			"alist_add_list making a buffer per argument", 1)
 	})
@@ -359,7 +346,7 @@ func OneBuffer(text []byte, w io.Writer) ([]byte, error) {
 		what, pattern string
 		want          int
 	}{
-		{"w_alt_fnum outside its field", `\bw_alt_fnum\b`, 1},
+		{"w_alt_fnum outside its field", `\bw_alt_fnum\b`, 2},
 		{"CMOD_KEEPALT or CMOD_HIDE outside their enumerators", `\bCMOD_(?:KEEPALT|HIDE)\b`, 2},
 		{"buflist_altfpos called", `\bbuflist_altfpos\(curwin\)|\bbuflist_altfpos\(oldwin\)`, 0},
 		{"nv_hat in the key table", `\{Ctrl_HAT, nv_hat`, 0},
