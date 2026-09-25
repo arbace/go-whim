@@ -227,10 +227,12 @@ whim-test-wide:  ## the optional wide suite: 240 cases in four groups (keys, Ex 
 
 # The Go packages' own tests, in both modules: `go test ./...` at the root
 # does not reach crefactor/, a module of its own, so it is run from there too.
+# vet's unreachable check is off in both: its three reports are in the forked
+# front end's upstream code (cc/cpp.go, cc/parser.go), kept as upstream wrote it.
 .PHONY: go-test
 go-test:  ## the Go tests of both modules: this one and crefactor/
-	@go vet ./... && go test ./...
-	@cd crefactor && go vet ./... && go test ./...
+	@go vet -unreachable=false ./... && go test ./...
+	@cd crefactor && go vet -unreachable=false ./... && go test ./...
 
 .PHONY: whim-editor-check
 whim-editor-check:  ## refuse if the tracked editor.go is not what internal/gen writes
