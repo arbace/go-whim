@@ -76,8 +76,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("do_ecmd", func(e *edit.E) {
 		e.Literal(w70lit3, w70lit4, "the reload path asking whether the file changed")
 	})
-	e.DeleteDefinition("handle_swap_exists", `handle_swap_exists, which swapped in a buffer on "quit"`)
-	e.DeleteDefinition("check_swap_exists_action", "check_swap_exists_action, which quit for it")
 	e.InFunction("do_ecmd", func(e *edit.E) {
 		e.Literal(w70lit5, w70lit6, ":edit arming the swap-file dialog")
 	})
@@ -96,8 +94,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("read_stdin", func(e *edit.E) {
 		e.Literal(w70lit12, "", "reading stdin answering it")
 	})
-	e.LinesT(`static int[ \t]+swap_exists_action[ \t]*=[ \t]*SEA_NONE[ \t]*;`, 1, "the swap-file action itself")
-	e.LinesT(`enum \{ SEA_(?:NONE|DIALOG|QUIT) = [0-9]+ \};`, 3, "the SEA_* actions")
 	e.InFunction("ml_open", func(e *edit.E) {
 		e.LinesT(`buf->b_may_swap = false;`, 1, "ml_open clearing b_may_swap")
 	})
@@ -119,9 +115,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Say("the first change to a buffer opening a swap file")
 	}
 	e.LinesT(`check_need_swap\(newfile\);`, 2, "the two calls that asked for a swap file")
-	e.DeleteDefinition("check_need_swap", "check_need_swap, which only reached ml_open_file")
-	e.DeleteDefinition("ml_open_file", "ml_open_file, whose body was one assignment")
-	e.LinesT(`bool[ \t]+b_may_swap;`, 1, "the b_may_swap field")
+	// handle_swap_exists(), check_swap_exists_action(), check_need_swap(),
+	// ml_open_file(), swap_exists_action, the SEA_* actions and the
+	// b_may_swap field are named by nothing live now; the sweep takes them.
 	return e.Done()
 }
 
