@@ -2568,6 +2568,7 @@ func (p *parser) declarator(ptr *Pointer, ds *DeclarationSpecifiers, declare boo
 	r = &Declarator{Pointer: ptr, DirectDeclarator: p.directDeclarator(declare), lexicalScope: (*lexicalScope)(p.scope)}
 	if ds != nil {
 		r.isTypename = ds.isTypedef
+		r.externSpec = ds.externSpec
 	}
 	if declare {
 		r.visible = visible(p.seq) // [0]6.2.1,7
@@ -3073,7 +3074,7 @@ func (p *parser) pointer(opt bool) (r *Pointer) {
 //		alignment-specifier declaration-specifiers_opt
 func (p *parser) declarationSpecifiers() (r *DeclarationSpecifiers, ok bool) {
 	var ds, prev *DeclarationSpecifiers
-	var isTypedef bool
+	var isTypedef, isExtern bool
 	acceptTypeName := true
 	for {
 		switch ch := p.rune(false); {
@@ -3102,6 +3103,9 @@ func (p *parser) declarationSpecifiers() (r *DeclarationSpecifiers, ok bool) {
 			isTypedef = true
 			fallthrough
 		case p.isStorageClassSpecifier(ch):
+			if ch == rune(EXTERN) {
+				isExtern = true
+			}
 			ds = &DeclarationSpecifiers{Case: DeclarationSpecifiersStorage, StorageClassSpecifier: p.storageClassSpecifier()}
 		case p.isTypeQualifier(ch):
 			ds = &DeclarationSpecifiers{Case: DeclarationSpecifiersTypeQual, TypeQualifier: p.typeQualifier(false)}
@@ -3122,6 +3126,7 @@ func (p *parser) declarationSpecifiers() (r *DeclarationSpecifiers, ok bool) {
 		}
 		prev = ds
 		r.isTypedef = isTypedef
+		r.externSpec = isExtern
 	}
 }
 
@@ -3958,21 +3963,34 @@ func (n *lexicalScope) LexicalScope() *Scope { return (*Scope)(n) }
 
 // Declares is the scope an identifier resolves to where it is written: the
 // innermost scope, from s outwards, holding a declarator, enumerator or
-// parameter of that name already visible at t.  An `extern` declarator names
-// the outer object, so it resolves outwards.  Nil when nothing declares it.
+// parameter of that name already visible at t.  An `extern` declarator in a
+// block names the object at file scope, so it resolves outwards -- to the file
+// scope when nothing between declares the name.  Nil when nothing declares it.
 //
 // It is the lookup the checker does, asked of the parse alone: the parser
 // builds the scopes, and nothing here needs a type.  (go-whim: added, for the
 // sweep, which must tell a local from the global it shadows.)
 func (s *Scope) Declares(t Token) *Scope {
 	nm := string(t.Src())
+	var file *Scope
+	for f := s; f != nil; f = f.Parent {
+		file = f
+	}
+	external := false
 	for ; s != nil; s = s.Parent {
 		for _, v := range s.Nodes[nm] {
 			switch x := v.(type) {
 			case *Declarator:
-				if t.seq >= int32(x.visible) && !x.isExtern {
-					return s
+				if t.seq < int32(x.visible) {
+					break
 				}
+				// externSpec is the parse's own record of `extern`; isExtern
+				// is the checker's, when the tree was checked.
+				if s != file && (x.externSpec || x.isExtern) {
+					external = true
+					break
+				}
+				return s
 			case *Enumerator:
 				if t.seq >= int32(x.visible) {
 					return s
@@ -3983,6 +4001,9 @@ func (s *Scope) Declares(t Token) *Scope {
 				}
 			}
 		}
+	}
+	if external {
+		return file
 	}
 	return nil
 }

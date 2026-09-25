@@ -234,13 +234,12 @@ func TestDirectives(t *testing.T) {
 	}
 }
 
-// BUG, not fixed here: a file-scope declaration of several declarators is
-// printed as adjacent lines, one per declarator, but a second print reads them
-// as separate external declarations and puts a blank line between each -- so
-// the fixed point takes two passes, where the package promises one.  In a
-// block the same split is a fixed point (TestOneSpelling).
+// A file-scope declaration of several declarators prints as one declaration
+// each, separated as any two file-scope declarations are, so a second print
+// -- which reads them as separate external declarations -- moves nothing.  It
+// printed them adjacent once, and the fixed point took two passes.  In a
+// block the split is a fixed point too (TestOneSpelling).
 func TestFixedPointFileScopeDeclarators(t *testing.T) {
-	t.Skip("cemit: `int a, b;` at file scope is not a one-pass fixed point; see the comment")
 	once := canon(t, "int a, *b;\n")
 	if twice := canon(t, once); twice != once {
 		t.Errorf("a second print moves the text:\n%s\n-- was --\n%s", twice, once)

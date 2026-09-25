@@ -1271,6 +1271,7 @@ type DeclarationSpecifiers struct {
 	AttributeSpecifierList *AttributeSpecifierList
 	typer
 	isTypedef             bool
+	externSpec            bool // go-whim: `extern` among the specifiers, as parsed
 	AlignmentSpecifier    *AlignmentSpecifier
 	Case                  DeclarationSpecifiersCase `PrettyPrint:"stringer,zero"`
 	DeclarationSpecifiers *DeclarationSpecifiers
@@ -1347,6 +1348,7 @@ type Declarator struct {
 	isAuto           bool
 	isConst          bool
 	isExtern         bool
+	externSpec       bool // go-whim: declared `extern`, as parsed (Scope.Declares)
 	isFuncDef        bool
 	isInline         bool
 	isNoreturn       bool

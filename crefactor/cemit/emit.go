@@ -198,7 +198,15 @@ func stripComments(src []byte) []byte {
 func (e *emitter) external(n *cc.ExternalDeclaration) {
 	switch n.Case {
 	case cc.ExternalDeclarationDecl:
-		for _, s := range e.declLines(n.Declaration) {
+		// ONE DECLARATION PER DECLARATOR, AND A BLANK LINE BETWEEN THEM, as
+		// between any two file-scope declarations: `int a, *b;` prints as the
+		// two it is, and printed again each one is its own external
+		// declaration, which File separates.  Adjacent, the second print moved
+		// the first's text.
+		for i, s := range e.declLines(n.Declaration) {
+			if i > 0 {
+				e.w("\n")
+			}
 			e.line(s)
 		}
 	case cc.ExternalDeclarationFuncDef:

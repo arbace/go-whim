@@ -188,13 +188,11 @@ f(int p)
 	}
 }
 
-// BUG, not fixed here: Declares promises that "an `extern` declarator names
-// the outer object, so it resolves outwards", asked "of the parse alone".  But
-// Declarator.isExtern is set by the type checker (check.go), never by Parse,
-// so on a parse -- which is what the sweep hands it -- a use through a block's
-// `extern int n;` resolves to the block, as if n were a local there.
+// A use through a block's `extern int n;` resolves to the file scope, asked of
+// the parse alone -- which is what the sweep hands Declares.  It resolved to
+// the block, as if n were a local there, while `extern` was known only to the
+// type checker (Declarator.isExtern); the parser records it now (externSpec).
 func TestScopeDeclaresExternInBlock(t *testing.T) {
-	t.Skip("cc: Declares on a parse alone resolves a block-scope extern to the block; see the comment")
 	ast := parseC(t, `
 int n = 1;
 int
