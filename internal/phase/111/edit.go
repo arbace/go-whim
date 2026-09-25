@@ -32,7 +32,7 @@ package p111
 // the narrower one that was false until now: the core no longer DECLARES a type shaped
 // like a libc struct, and its whole notion of time is one `long`.  `struct timeval`,
 // `elapsed_T`, `elapsed` and `musl_gettimeofday` are all at 0 above the boundary
-// afterwards; the host keeps its own `struct timeval`, for `select` and for the one
+// afterwards (the last three once the sweep has taken the uncalled elapsed()); the host keeps its own `struct timeval`, for `select` and for the one
 // `gettimeofday` call that is left in the file.
 //
 // WHAT `musl_now_ms()` RETURNS, AND IT IS A DECISION, NOT A DETAIL.  Milliseconds since
@@ -219,37 +219,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p.Sayf("%d string and character literals, NONE holding any of the seven names -- so every "+
 		"substitution below is over code", len(spans))
 
-	// ---- 4. the type and the function leave the core ---------------------
-	// The typedef, the prototype and ONE of the two blank lines around them.
-	// Deleting the five lines alone would leave a run of two blank lines,
-	// which no verification tier can see and which the arithmetic at the end
-	// refuses.
-	text, err = whim111Once(p, text, `
-typedef struct {
-    long        tv_sec;
-    long        tv_usec;
-} elapsed_T;
-
-static long elapsed(elapsed_T *start_tv);
-`, "", "the tagless struct and the prototype, which phase 109 wrote")
-	if err != nil {
-		return nil, err
-	}
-	text, err = whim111Once(p, text, `
-    static long
-elapsed(elapsed_T *start_tv)
-{
-    elapsed_T       now_tv;
-    musl_gettimeofday(&now_tv.tv_sec, &now_tv.tv_usec);
-    return (now_tv.tv_sec - start_tv->tv_sec) * 1000L + (now_tv.tv_usec - start_tv->tv_usec) / 1000L;
-}
-`, "", "elapsed(), whose entire body is one clock read and one subtraction")
-	if err != nil {
-		return nil, err
-	}
-	p.Say("`elapsed_T` and `elapsed()` leave the core: 6 lines of declaration and 7 of " +
-		"definition, with one blank line of each pair, so no run of two blank lines is left " +
-		"behind")
+	// ---- 4. the type and the function are the sweep's --------------------
+	// Once every reading below is `musl_now_ms() - X`, nothing calls elapsed(),
+	// and the typedef, the prototype and the definition go in the sweep.
 
 	// ---- 5. the four objects become `long` -------------------------------
 	// The declarator column is kept: this file aligns a declaration block and
@@ -388,10 +360,19 @@ musl_now_ms(void)
 	}
 	ncore := bytes.Join(L[:ndir[0]], []byte{'\n'})
 	nbelow := bytes.Join(L[ndir[0]:], []byte{'\n'})
-	for _, name := range []string{"elapsed_T", "elapsed", "now_tv", "musl_gettimeofday"} {
-		if n := p.Mentions(text, name); n != 0 {
-			return nil, p.Die("`%s` still occurs %d times in the file", name, n)
+	// What is left of the old clock is elapsed() and its type, uncalled: the
+	// typedef, the prototype and the definition, which the sweep takes.
+	for _, r := range []struct {
+		name string
+		want int
+	}{{"elapsed_T", 4}, {"elapsed", 2}, {"now_tv", 5}, {"musl_gettimeofday", 1}} {
+		if n := p.Mentions(text, r.name); n != r.want {
+			return nil, p.Die("`%s` occurs %d times in the file, where %d were expected -- the uncalled "+
+				"elapsed() and its type, which the sweep takes", r.name, n, r.want)
 		}
+	}
+	if bytes.Contains(text, []byte("elapsed(&")) {
+		return nil, p.Die("elapsed() is still called")
 	}
 	if whim111Timev.Match(ncore) {
 		return nil, p.Die("`struct timeval` is back above the boundary")
@@ -418,8 +399,8 @@ musl_now_ms(void)
 		return nil, p.Die("`elapsed_time`, which is inchar_loop's own `long` and not this phase's, is at "+
 			"%d and was at 3", n)
 	}
-	p.Sayf("the core has NO clock type and NO clock call of its own: elapsed_T, elapsed, "+
-		"now_tv, musl_gettimeofday and `struct timeval` are all at 0 above the boundary, "+
+	p.Sayf("the core has NO clock type and NO clock call of its own once the sweep has "+
+		"taken the uncalled elapsed(): `struct timeval` is at 0 above the boundary, "+
 		"musl_now_ms is 9 there and 1 below, and the file is %d lines against %d",
 		len(L)-1, len(lines)-1)
 	return text, nil
