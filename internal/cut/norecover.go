@@ -100,7 +100,10 @@ func NoRecover(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  norecover    -r and -L, the only two things that set recoverymode")
 
-	for _, name := range []string{"swapfile_info", "recover_names", "ml_recover"} {
+	// recover_names is the one reader of p_dir left, and dropoptions --strict
+	// refuses 'directory' later in this phase with no sweep between; the
+	// other two are the sweep's.
+	for _, name := range []string{"recover_names"} {
 		before := bytes.Count(text, []byte{'\n'})
 		var ok bool
 		if text, ok = cutil.DeleteDefinition(text, name); !ok {
