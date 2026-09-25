@@ -129,13 +129,18 @@ internal/          the Go: cc (the forked C front end), cemit (the canonical pri
                    blocks.go, every act counted; Ph, the driver of the phases
                    whose cut is a computation; and in shared.go what more than
                    one phase uses), steps (every transformation a phase names, as
-                   one table), build (the plan: what each phase does to the
-                   source, and the driver that runs it), cmdtab (the Ex command
+                   one table), build (whim's pipeline: the plan -- what each
+                   phase does to the source -- and the Config that tells the
+                   generic driver whim-vim.c, .cache/boundaries, vim's sweep,
+                   @state, @minmax and phase 80's delta.md), cmdtab (the Ex command
                    table: its names and the ex_cmdidxs block), score (bytes and
                    symbols, the input beside the product), ccx (the core's pointer casts and evaluation order),
                    reach (what nothing reaches, as a partition with gcc as its
                    control -- a reporter, `go tool whim reach FILE`; it deletes
                    nothing)
+internal/crefactor/ the generic C machinery, knowing no code base: pipeline
+                   (the driver -- Phase, Step, Plan, Run, Advance, Check,
+                   the snapshots, Seed -- told everything through a Config)
 internal/phase/    the phases: NNN/ (GOAL.md, and edit.go where its cut is a
                    program), registry.go (every phase with an edit.go,
                    blank-imported so it registers), STAGES.md (the record of
@@ -257,6 +262,13 @@ A phase is a function of the tree it is handed, so the pipeline is
 was the input boundary's digest and the implementation's together, so a moved
 `slim-vim.c` missed every entry by construction.
 
+- **The driver is generic, the plan is whim's.** `internal/crefactor/pipeline`
+  runs a plan (Run, the parallel Check, Advance, the snapshots, `--keep-going`)
+  and knows no code base; `internal/build` hands it a `pipeline.Config` -- the
+  plan, the op table (`internal/steps`), the work file `whim-vim.c`, `SnapDir`
+  `.cache/boundaries`, the sweep's options (`internal/whim`'s `Profile`), the
+  `@state`/`@minmax` arguments and phase 80's `delta.md` -- and keeps its old
+  names (`build.Run`, `Check`, `Advance`, `Options`) as wrappers.
 - **There are no stages.** Every phase is its steps, the sweep, and the
   canonical print; a `sweep` step inside a phase's steps is for an edit that
   reads its own earlier steps' text swept. `internal/phase/STAGES.md` is the
