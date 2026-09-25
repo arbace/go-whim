@@ -9,8 +9,9 @@ import (
 	"github.com/arbace/go-whim/internal/cc"
 )
 
-// A growarray's ga_data is a void *: C casts it to its element type where it
-// is used, and a translation into Go has to give the storage one type.
+// A growarray's storage (Profile.GrowArray.Data; vim's ga_data) is a void *:
+// C casts it to its element type where it is used, and a translation into Go
+// has to give the storage one type.
 // editor/crt.go's GaData[T] makes the storage at the first typed access and
 // panics if a growarray is later used as another type.  GrowArrays proves it
 // never is: every growarray object has at most one element type.
@@ -37,14 +38,17 @@ type gaWalk struct {
 	left   []Finding
 	fnType map[string]*cc.FunctionType
 	fn     string
+
+	ga                    GrowArray
+	allocators, byteFuncs map[string]bool
 }
 
-func isGarray(t cc.Type) bool {
+func (w *gaWalk) isGarray(t cc.Type) bool {
 	if t == nil || t.Kind() != cc.Struct {
 		return false
 	}
 	s := t.String()
-	return s == "garray_T" || strings.Contains(s, "struct growarray")
+	return w.ga.Type != "" && s == w.ga.Type || w.ga.Tag != "" && strings.Contains(s, "struct "+w.ga.Tag)
 }
 
 // elemName names an element type; the character types are one, bytes.
@@ -117,7 +121,7 @@ func (w *gaWalk) ptrKey(e cc.ExpressionNode) string {
 	case *cc.PostfixExpression:
 		switch x.Case {
 		case cc.PostfixExpressionCall:
-			if name := callee(x); allocators[name] {
+			if name := callee(x); w.allocators[name] {
 				return "new growarray in " + w.fn // a fresh object
 			} else if name != "" {
 				return "*" + name + "()" // what the function returns
@@ -160,9 +164,9 @@ func (w *gaWalk) flow(to string, e cc.ExpressionNode, where cc.Node) {
 	w.points[to][from] = true
 }
 
-func ptrToGarray(t cc.Type) bool {
+func (w *gaWalk) ptrToGarray(t cc.Type) bool {
 	p, ok := t.(*cc.PointerType)
-	return ok && isGarray(p.Elem())
+	return ok && w.isGarray(p.Elem())
 }
 
 // visit walks n with its ancestors, innermost last.
@@ -176,7 +180,7 @@ func (w *gaWalk) visit(n cc.Node, up []cc.Node) {
 	case *cc.PostfixExpression:
 		switch x.Case {
 		case cc.PostfixExpressionSelect, cc.PostfixExpressionPSelect:
-			if x.Token2.SrcStr() == "ga_data" {
+			if x.Token2.SrcStr() == w.ga.Data {
 				w.use(x, up)
 			}
 		case cc.PostfixExpressionCall:
@@ -185,29 +189,29 @@ func (w *gaWalk) visit(n cc.Node, up []cc.Node) {
 	case *cc.AssignmentExpression:
 		if x.Case == cc.AssignmentExpressionAssign {
 			lt := typeOf(x.UnaryExpression)
-			if ptrToGarray(lt) {
+			if w.ptrToGarray(lt) {
 				w.flow(w.ptrKey(x.UnaryExpression), x.AssignmentExpression, x)
 			}
-			if isGarray(lt) {
+			if w.isGarray(lt) {
 				w.left = append(w.left, Finding{w.fn, x.Token.Position().String(), "a growarray copied: " + srcOrdered(x)})
 			}
-			if memberName(x.UnaryExpression) == "ga_itemsize" {
+			if memberName(x.UnaryExpression) == w.ga.ItemSize {
 				w.itemsize(x.UnaryExpression, x.AssignmentExpression, x)
 			}
 		}
 	case *cc.JumpStatement:
 		if x.Case == cc.JumpStatementReturn && x.ExpressionList != nil {
-			if ft := w.fnType[w.fn]; ft != nil && ptrToGarray(ft.Result()) {
+			if ft := w.fnType[w.fn]; ft != nil && w.ptrToGarray(ft.Result()) {
 				w.flow("*"+w.fn+"()", x.ExpressionList, x)
 			}
 		}
 	case *cc.InitDeclarator:
 		if x.Initializer != nil && x.Initializer.AssignmentExpression != nil && w.fn != "" {
 			t := x.Declarator.Type()
-			if ptrToGarray(t) {
+			if w.ptrToGarray(t) {
 				w.flow("*"+w.fn+"."+x.Declarator.Name(), x.Initializer.AssignmentExpression, x)
 			}
-			if isGarray(t) {
+			if w.isGarray(t) {
 				w.left = append(w.left, Finding{w.fn, x.Declarator.Position().String(), "a growarray initialized from " + srcOrdered(x.Initializer)})
 			}
 		}
@@ -235,7 +239,7 @@ func sizeofType(e cc.ExpressionNode) cc.Type {
 
 func (w *gaWalk) itemsize(member, size cc.ExpressionNode, where cc.Node) {
 	t := sizeofType(size)
-	if t == nil && w.fn == "ga_init2" && strings.Contains(srcOrdered(size), "itemsize") {
+	if t == nil && w.fn == w.ga.Init && w.initSize() != "" && strings.Contains(srcOrdered(size), w.initSize()) {
 		return // its calls give the sizeof
 	}
 	if t == nil {
@@ -247,6 +251,15 @@ func (w *gaWalk) itemsize(member, size cc.ExpressionNode, where cc.Node) {
 		return
 	}
 	w.add(member, elemName(t), where)
+}
+
+// initSize names the parameter of GrowArray.Init that is the element size.
+func (w *gaWalk) initSize() string {
+	ft := w.fnType[w.ga.Init]
+	if ft == nil || w.ga.InitSize >= len(ft.Parameters()) {
+		return ""
+	}
+	return ft.Parameters()[w.ga.InitSize].Name()
 }
 
 // add records typ for the growarray whose member expression m is.
@@ -269,7 +282,7 @@ func (w *gaWalk) add(m cc.ExpressionNode, typ string, where cc.Node) {
 }
 
 // call records the growarray pointers a call hands to its parameters, and
-// ga_init2's itemsize.
+// the element size GrowArray.Init is given.
 func (w *gaWalk) call(x *cc.PostfixExpression) {
 	name := callee(x)
 	ft := w.fnType[name]
@@ -282,7 +295,7 @@ func (w *gaWalk) call(x *cc.PostfixExpression) {
 	}
 	ps := ft.Parameters()
 	for i, a := range args {
-		if i >= len(ps) || !ptrToGarray(ps[i].Type()) {
+		if i >= len(ps) || !w.ptrToGarray(ps[i].Type()) {
 			continue
 		}
 		pname := ""
@@ -291,15 +304,15 @@ func (w *gaWalk) call(x *cc.PostfixExpression) {
 		}
 		w.flow("*"+name+"."+pname, a, x)
 	}
-	if name == "ga_init2" && len(args) >= 2 {
-		if t := sizeofType(args[1]); t != nil {
+	if name == w.ga.Init && len(args) > w.ga.InitSize {
+		if t := sizeofType(args[w.ga.InitSize]); t != nil {
 			k := w.ptrKey(args[0])
 			w.uses = append(w.uses, gaUse{k, elemName(t), w.fn, x.Position().String()})
 		}
 	}
 }
 
-// use classifies one ga_data by what its value becomes.
+// use classifies one use of the storage by what its value becomes.
 func (w *gaWalk) use(m *cc.PostfixExpression, up []cc.Node) {
 	var child cc.Node = m
 	for i := len(up) - 1; i >= 0; i-- {
@@ -349,8 +362,8 @@ func (w *gaWalk) use(m *cc.PostfixExpression, up []cc.Node) {
 				break
 			}
 			name := callee(call)
-			if byteFuncs[name] {
-				w.add(m, "", m) // bytes, ga_grow's copy
+			if w.byteFuncs[name] {
+				w.add(m, "", m) // bytes, the grow's copy
 				return
 			}
 			ft := w.fnType[name]
@@ -370,7 +383,7 @@ func (w *gaWalk) use(m *cc.PostfixExpression, up []cc.Node) {
 		}
 		break
 	}
-	w.left = append(w.left, Finding{w.fn, m.Position().String(), "ga_data used as nothing this knows: " + srcOrdered(up[len(up)-1])})
+	w.left = append(w.left, Finding{w.fn, m.Position().String(), w.ga.Data + " used as nothing this knows: " + srcOrdered(up[len(up)-1])})
 }
 
 // countArgLists is how many ArgumentExpressionList nodes end the chain above,
@@ -391,12 +404,13 @@ func (w *gaWalk) target(m *cc.PostfixExpression, t cc.Type) {
 		w.add(m, elemName(pt.Elem()), m)
 		return
 	}
-	w.left = append(w.left, Finding{w.fn, m.Position().String(), "ga_data converted to a " + fmt.Sprint(t)})
+	w.left = append(w.left, Finding{w.fn, m.Position().String(), w.ga.Data + " converted to a " + fmt.Sprint(t)})
 }
 
 // GrowArrays partitions every growarray object by its element type.
-func GrowArrays(ast *cc.AST) Result {
-	w := &gaWalk{points: map[string]map[string]bool{}, fnType: map[string]*cc.FunctionType{}}
+func GrowArrays(ast *cc.AST, p Profile) Result {
+	w := &gaWalk{points: map[string]map[string]bool{}, fnType: map[string]*cc.FunctionType{},
+		ga: p.GrowArray, allocators: set(p.Allocators), byteFuncs: set(p.ByteFuncs)}
 	walk(ast.TranslationUnit, "", func(n cc.Node, fn string) {
 		if d, ok := n.(*cc.Declarator); ok {
 			if ft, ok := d.Type().(*cc.FunctionType); ok {
@@ -481,7 +495,7 @@ func GrowArrays(ast *cc.AST) Result {
 	}
 	res.Classes[fmt.Sprintf("growarray objects, each of one element type (%d; and %d pointers to them)", nobj, nptr)] = nobj
 	res.Classes["uses that give an element type: casts, conversions, itemsizes"] = typed
-	res.Classes["uses that give none: tests, stores of storage, ga_grow's copy"] = neutral
+	res.Classes["uses that give none: tests, stores of storage, "+w.ga.Grow+"'s copy"] = neutral
 	return res
 }
 

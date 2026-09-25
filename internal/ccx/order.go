@@ -27,17 +27,6 @@ func (e *effects) add(o *effects) {
 	e.calls = append(e.calls, o.calls...)
 }
 
-// pureCalls change no state a sibling operand can see: they read their
-// arguments and return a value.
-var pureCalls = map[string]bool{
-	"musl_strlen": true, "musl_strcmp": true, "musl_strncmp": true, "musl_strcasecmp": true, "musl_strncasecmp": true,
-	"musl_strchr": true, "musl_strrchr": true, "musl_strstr": true, "musl_strpbrk": true, "musl_memcmp": true,
-	"musl_isdigit": true, "musl_isalpha": true, "musl_isspace": true, "musl_isupper": true, "musl_islower": true,
-	"musl_isalnum": true, "musl_isxdigit": true, "musl_toupper": true, "musl_tolower": true, "musl_isprint": true,
-	"musl_iscntrl": true, "musl_ispunct": true, "musl_isgraph": true, "musl_atoi": true, "musl_strtol": true,
-	"gettext": true, "_": true,
-}
-
 // eff computes the effects of an expression, and reports every unsequenced
 // pair of operands whose effects collide.
 type orderCheck struct {
@@ -180,8 +169,8 @@ func children(n cc.Node) []cc.Node {
 }
 
 // Order finds every unsequenced pair of operands whose effects collide.
-func Order(ast *cc.AST) Result {
-	pureSet = PureFuncs(ast)
+func Order(ast *cc.AST, p Profile) Result {
+	pureSet = PureFuncs(ast, p.PureCalls)
 	np := 0
 	for _, v := range pureSet {
 		if v {

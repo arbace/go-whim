@@ -9,8 +9,9 @@ import (
 // variable by name (not through a pointer, not a global, not a static), and
 // every function they call is itself such a function.  Found to a fixpoint,
 // starting from every function and striking out, so recursion is allowed.
-// PureFuncs is the set of functions with no effect outside their frame.
-func PureFuncs(ast *cc.AST) map[string]bool {
+// PureFuncs is the set of functions with no effect outside their frame;
+// pureCalls are the ones known to have none, defined here or not.
+func PureFuncs(ast *cc.AST, pureCalls []string) map[string]bool {
 	type fnInfo struct {
 		writesOutside bool
 		calls         []string
@@ -61,7 +62,7 @@ func PureFuncs(ast *cc.AST) map[string]bool {
 	for k, fi := range info {
 		pure[k] = !fi.writesOutside
 	}
-	for k := range pureCalls {
+	for _, k := range pureCalls {
 		pure[k] = true
 	}
 	for changed := true; changed; {

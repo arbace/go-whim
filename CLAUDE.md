@@ -297,6 +297,11 @@ was the input boundary's digest and the implementation's together, so a moved
 - **The analysis tools report, they do not cut**: `go tool whim reach FILE` is
   what nothing reaches in a text, typed, with gcc as its control and struct
   casts held -- the survey instrument the sweep's closure grew from.
+  Like the sweep, `internal/reach`, `internal/ccx` and `internal/dead`'s
+  funcreach name nothing in vim: they are told it -- `ml_recover`, the
+  allocators, the functions of bytes, the growarray, the unions'
+  discriminants, `main` -- by `internal/whim/analysis.go` (`whim.Reach`,
+  `whim.CCX`, `whim.Dead`), which their callers pass in.
 
 ## The core and the host
 

@@ -17,6 +17,7 @@ import (
 	"os"
 
 	"github.com/arbace/go-whim/internal/ccx"
+	"github.com/arbace/go-whim/internal/whim"
 )
 
 // Run is the program, called as `go tool whim <name> ARGS`: args are its
@@ -36,19 +37,19 @@ func Run(args []string, errw io.Writer) int {
 	var r ccx.Result
 	switch osArgs[1] {
 	case "casts":
-		r = ccx.Casts(ast)
+		r = ccx.Casts(ast, whim.CCX)
 	case "order":
-		r = ccx.Order(ast)
+		r = ccx.Order(ast, whim.CCX)
 	case "funcs":
 		r = ccx.FuncCompares(ast)
 	case "gotos":
 		r = ccx.Gotos(ast)
 	case "voids":
-		r = ccx.VoidPtrs(ast)
+		r = ccx.VoidPtrs(ast, whim.CCX)
 	case "garrays":
-		r = ccx.GrowArrays(ast)
+		r = ccx.GrowArrays(ast, whim.CCX)
 	case "unions":
-		r = ccx.Unions(ast)
+		r = ccx.Unions(ast, whim.CCX)
 	default:
 		fmt.Fprintln(errw, "pre: no check", osArgs[1])
 		return 2

@@ -360,86 +360,57 @@ func (w *unionWalk) entry(funcs map[string]bool) map[string]guards {
 	return in
 }
 
-// A unionRule says which guards show each member of one union holds.
-type unionRule struct {
-	union  string
-	member map[string]*regexp.Regexp
-}
-
-func q(s string) string { return regexp.QuoteMeta(s) }
-
-// The discriminants.  attrentry_T.ae_u holds term in term_attr_table and cterm
-// in cterm_attr_table; which table a highlight reads is t_colors > 1.  The
-// regexp's saved positions are pos for a multi-line match (rex.reg_match ==
-// NULL) and ptr for a string.  A regstack item holds sesave in the states that
-// save a subexpression's start or end, regsave in the others.
-var unionRules = []unionRule{
-	{"ae_u", map[string]*regexp.Regexp{
-		"term":  regexp.MustCompile(`^(-` + q("t_colors>1") + `|\+` + q("table==&term_attr_table") + `|before:.*` + q("get_attr_entry(&term_attr_table,&") + `\{base\}\))$`),
-		"cterm": regexp.MustCompile(`^(\+` + q("t_colors>1") + `|\+` + q("table==&cterm_attr_table") + `|before:.*` + q("get_attr_entry(&cterm_attr_table,&") + `\{base\}\))$`),
-	}},
-	{"rs_u", map[string]*regexp.Regexp{
-		"pos": regexp.MustCompile(`^\+` + q("rex.reg_match==nullptr") + `$`),
-		"ptr": regexp.MustCompile(`^-` + q("rex.reg_match==nullptr") + `$`),
-	}},
-	{"se_u", map[string]*regexp.Regexp{
-		"pos": regexp.MustCompile(`^\+` + q("rex.reg_match==nullptr") + `$`),
-		"ptr": regexp.MustCompile(`^-` + q("rex.reg_match==nullptr") + `$`),
-	}},
-	{"rs_un", map[string]*regexp.Regexp{
-		"sesave":  regexp.MustCompile(`^(case:(RS_MOPEN|RS_MCLOSE)|after:.*regstack_push\((RS_MOPEN|RS_MCLOSE),.*)$`),
-		"regsave": regexp.MustCompile(`^(case:(RS_BRANCH|RS_BRCPLX_MORE|RS_BRCPLX_LONG|RS_BRCPLX_SHORT|RS_NOMATCH|RS_BEHIND1|RS_BEHIND2|RS_STAR_LONG|RS_STAR_SHORT)|after:.*regstack_push\((RS_BRANCH|RS_BRCPLX_MORE|RS_BRCPLX_LONG|RS_BRCPLX_SHORT|RS_NOMATCH|RS_BEHIND1|RS_STAR_LONG|RS_STAR_SHORT|rst\.minval<=rst\.maxval\?RS_STAR_LONG:RS_STAR_SHORT),.*)$`),
-	}},
-}
-
-// optKinds maps each option callback to the kinds of the rows that name it,
-// read from the options[] table: P_BOOL is boolean, P_NUM number, P_STRING
-// string.
-func optKinds(ast *cc.AST) map[string]map[string]bool {
+// kindsOf maps each callback a row of the kinded table names to the kinds of
+// the rows that name it.
+func kindsOf(ast *cc.AST, k *KindedUnion) map[string]map[string]bool {
 	r := map[string]map[string]bool{}
-	row := regexp.MustCompile(`P_(BOOL|NUM|STRING)\b`)
-	cb := regexp.MustCompile(`\b(did_set_\w+)\b`)
-	kind := map[string]string{"BOOL": "boolean", "NUM": "number", "STRING": "string"}
+	row := regexp.MustCompile(`(` + flagAlternatives(k) + `)\b`)
 	walk(ast.TranslationUnit, "", func(n cc.Node, fn string) {
 		d, ok := n.(*cc.InitDeclarator)
-		if !ok || d.Declarator == nil || d.Declarator.Name() != "options" || d.Initializer == nil {
+		if !ok || d.Declarator == nil || d.Declarator.Name() != k.Table || d.Initializer == nil {
 			return
 		}
 		for l := d.Initializer.InitializerList; l != nil; l = l.InitializerList {
 			t := srcOrdered(l.Initializer)
-			k := row.FindStringSubmatch(t)
-			if k == nil {
+			f := row.FindStringSubmatch(t)
+			if f == nil {
 				continue
 			}
-			for _, m := range cb.FindAllStringSubmatch(t, -1) {
+			for _, m := range k.Callback.FindAllStringSubmatch(t, -1) {
 				if r[m[1]] == nil {
 					r[m[1]] = map[string]bool{}
 				}
-				r[m[1]][kind[k[1]]] = true
+				r[m[1]][k.Kinds[f[1]]] = true
 			}
 		}
 	})
 	return r
 }
 
-// optSetters write the one member their kind of option holds, then call the
-// row's callback.
-var optSetters = map[string]string{"set_bool_option": "boolean", "set_num_option": "number", "did_set_string_option": "string"}
+// flagAlternatives is the kinded table's flags as a regexp's alternatives.
+func flagAlternatives(k *KindedUnion) string {
+	var fs []string
+	for f := range k.Kinds {
+		fs = append(fs, regexp.QuoteMeta(f))
+	}
+	sort.Strings(fs)
+	return strings.Join(fs, "|")
+}
 
-// kindOf is what an option's flags say its kind is where guards g hold: its
-// own flag tested, or both the others tested and clear.
-var optFlag = map[string]string{"boolean": "P_BOOL", "number": "P_NUM", "string": "P_STRING"}
-
-func impliesKind(g guards, kind string) bool {
+// impliesKind says the guards g hold only for a row of the kind: its own
+// flag tested, or all the others tested and clear.
+func impliesKind(g guards, kind string, k *KindedUnion) bool {
 	set := map[string]bool{}
 	for _, s := range g {
 		set[s] = true
 	}
-	if set["+flags&"+optFlag[kind]] {
-		return true
+	for f, kd := range k.Kinds {
+		if kd == kind && set["+"+k.Flags+"&"+f] {
+			return true
+		}
 	}
-	for k, f := range optFlag {
-		if k != kind && !set["-flags&"+f] {
+	for f, kd := range k.Kinds {
+		if kd != kind && !set["-"+k.Flags+"&"+f] {
 			return false
 		}
 	}
@@ -448,13 +419,13 @@ func impliesKind(g guards, kind string) bool {
 
 // runsOnlyFor says every path into fn, by its direct calls and theirs up to
 // depth, tests the option's kind to be kind first.
-func (w *unionWalk) runsOnlyFor(fn, kind string, depth int) bool {
+func (w *unionWalk) runsOnlyFor(fn, kind string, depth int, k *KindedUnion) bool {
 	sites := w.calls[fn]
 	if depth == 0 || len(sites) == 0 || w.uses[fn] != len(sites) {
 		return false
 	}
 	for _, s := range sites {
-		if !impliesKind(s.g, kind) && !w.runsOnlyFor(s.caller, kind, depth-1) {
+		if !impliesKind(s.g, kind, k) && !w.runsOnlyFor(s.caller, kind, depth-1, k) {
 			return false
 		}
 	}
@@ -462,8 +433,15 @@ func (w *unionWalk) runsOnlyFor(fn, kind string, depth int) bool {
 }
 
 // Unions partitions every union member access by the discriminant that says
-// the member holds there.
-func Unions(ast *cc.AST) Result {
+// the member holds there: what says so is the profile's (UnionProfile).
+func Unions(ast *cc.AST, p Profile) Result {
+	up := p.Unions
+	kinded := map[string]bool{}
+	var kinds map[string]map[string]bool
+	if up.Kinded != nil {
+		kinded = set(up.Kinded.Unions)
+		kinds = kindsOf(ast, up.Kinded)
+	}
 	w := &unionWalk{deadEnds: map[string][]span{}, loops: map[string][]span{}, calls: map[string][]callSite{}, uses: map[string]int{}, indirect: map[string]bool{}}
 	funcs := map[string]bool{}
 	walk(ast.TranslationUnit, "", func(n cc.Node, fn string) {
@@ -478,24 +456,23 @@ func Unions(ast *cc.AST) Result {
 		}
 	}
 	in := w.entry(funcs)
-	kinds := optKinds(ast)
 	res := Result{Title: "union members", Classes: map[string]int{}}
 	for _, a := range w.acc {
 		g := a.Guards.with(in[a.Fn]...)
 		class := ""
-		switch a.Union {
-		case "os_oldval", "os_newval":
-			if k, ok := optSetters[a.Fn]; ok && k == a.Member && w.runsOnlyFor(a.Fn, k, 4) {
-				class = "an option's old and new value, written by the setter of its kind"
+		switch {
+		case kinded[a.Union]:
+			if k, ok := up.Kinded.Setters[a.Fn]; ok && k == a.Member && w.runsOnlyFor(a.Fn, k, 4, up.Kinded) {
+				class = up.Kinded.Written
 			} else if ks := kinds[a.Fn]; len(ks) == 1 && ks[a.Member] && len(w.calls[a.Fn]) == 0 {
-				class = "an option's old and new value, read by a callback only rows of its kind name"
+				class = up.Kinded.Read
 			}
 		default:
-			for _, r := range unionRules {
-				if r.union != a.Union {
+			for _, r := range up.Rules {
+				if r.Union != a.Union {
 					continue
 				}
-				re := r.member[a.Member]
+				re := r.Member[a.Member]
 				if re != nil && strings.Contains(re.String(), `\{base\}`) {
 					// a local built for a table names itself when handed to it
 					v := strings.TrimSuffix(strings.TrimSuffix(a.Base, "."+a.Union), "->"+a.Union)
@@ -517,38 +494,40 @@ func Unions(ast *cc.AST) Result {
 		res.Classes[class]++
 	}
 
-	// Which table a highlight reads is t_colors > 1.
-	for name, want := range map[string]string{"syn_cterm_attr2entry": "+t_colors>1", "syn_term_attr2entry": "-t_colors>1"} {
-		for _, s := range w.calls[name] {
-			if !s.g.with(in[s.caller]...).has(regexp.MustCompile("^" + regexp.QuoteMeta(want) + "$")) {
-				res.Left = append(res.Left, Finding{s.caller, "", name + " called where t_colors does not name its table"})
+	// Each guarded call is made where its guard holds.
+	for _, gc := range up.Guarded.Funcs {
+		for _, s := range w.calls[gc.Func] {
+			if !s.g.with(in[s.caller]...).has(regexp.MustCompile("^" + regexp.QuoteMeta(gc.Guard) + "$")) {
+				res.Left = append(res.Left, Finding{s.caller, "", gc.Func + " called where " + up.Guarded.Var + " does not name its table"})
 				continue
 			}
-			res.Classes["a highlight table read where t_colors names it"]++
+			res.Classes[up.Guarded.Class]++
 		}
 	}
 
-	// A regstack item's state moves only within the class of its member.
-	sesave := regexp.MustCompile(`^(RS_MOPEN|RS_MCLOSE)$`)
-	for _, a := range w.assigns {
-		if !regexp.MustCompile(`(->|\.)rs_state$`).MatchString(a.lhs) {
-			continue
-		}
-		if a.fn == "regstack_push" && a.rhs == "state" {
-			res.Classes["a regstack item's state, set by the push that names it"]++
-			continue
-		}
-		ok := false
-		for _, s := range a.g {
-			if c, found := strings.CutPrefix(s, "case:"); found && sesave.MatchString(c) == sesave.MatchString(a.rhs) {
-				ok = true
+	// A state field moves only within the class of its member.
+	if st := up.State; st != nil {
+		lhs := regexp.MustCompile(`(->|\.)` + regexp.QuoteMeta(st.Member) + `$`)
+		for _, a := range w.assigns {
+			if !lhs.MatchString(a.lhs) {
+				continue
 			}
+			if a.fn == st.Push && a.rhs == st.Param {
+				res.Classes[st.Pushed]++
+				continue
+			}
+			ok := false
+			for _, s := range a.g {
+				if c, found := strings.CutPrefix(s, "case:"); found && st.Class.MatchString(c) == st.Class.MatchString(a.rhs) {
+					ok = true
+				}
+			}
+			if !ok {
+				res.Left = append(res.Left, Finding{a.fn, a.where, st.Member + " = " + a.rhs + " may change which member holds"})
+				continue
+			}
+			res.Classes[st.Moved]++
 		}
-		if !ok {
-			res.Left = append(res.Left, Finding{a.fn, a.where, "rs_state = " + a.rhs + " may change which member holds"})
-			continue
-		}
-		res.Classes["a regstack item's state, moved within its member's class"]++
 	}
 
 	// The discriminants do not change under the functions that read them.
@@ -596,11 +575,12 @@ func Unions(ast *cc.AST) Result {
 		}
 		return p
 	}
-	// A function that saves rex on entry and restores it before it returns
-	// leaves rex.reg_match as it found it, whatever it runs: a barrier.
+	// A function that saves a variable on entry and restores it before it
+	// returns leaves what is under it as it found it, whatever it runs: a
+	// barrier.
 	saves := map[string]int{}
 	for _, a := range w.assigns {
-		if (a.lhs == "rex_save" && a.rhs == "rex") || (a.lhs == "rex" && a.rhs == "rex_save") {
+		if sv := up.Saves; sv != nil && ((a.lhs == sv.Copy && a.rhs == sv.Var) || (a.lhs == sv.Var && a.rhs == sv.Copy)) {
 			saves[a.fn]++
 		}
 	}
@@ -610,14 +590,11 @@ func Unions(ast *cc.AST) Result {
 	}
 	// Each discriminant, its guards, and the last access each function makes
 	// under one.
-	vars := []struct {
-		v  string
-		re *regexp.Regexp
-	}{
-		{"t_colors", regexp.MustCompile(`^[+-]t_colors>1$`)},
-		{"rex.reg_match", regexp.MustCompile(`^[+-]rex\.reg_match==nullptr$`)},
-	}
-	for _, d := range vars {
+	for _, disc := range up.Discriminants {
+		d := struct {
+			v  string
+			re *regexp.Regexp
+		}{disc.Var, disc.Guard}
 		// every read under the discriminant, with where it is
 		reads := map[string][]int{}
 		for _, a := range w.acc {
@@ -625,8 +602,8 @@ func Unions(ast *cc.AST) Result {
 				reads[a.Fn] = append(reads[a.Fn], a.at)
 			}
 		}
-		for _, name := range []string{"syn_cterm_attr2entry", "syn_term_attr2entry"} {
-			for _, s := range w.calls[name] {
+		for _, gc := range up.Guarded.Funcs {
+			for _, s := range w.calls[gc.Func] {
 				if s.g.has(d.re) {
 					reads[s.caller] = append(reads[s.caller], s.at)
 				}
@@ -672,7 +649,7 @@ func Unions(ast *cc.AST) Result {
 		last := reads
 		var bs []string
 		for f, b := range barrier {
-			if b && d.v == "rex.reg_match" {
+			if b && up.Saves != nil && d.v == up.Saves.For {
 				bs = append(bs, f)
 			}
 		}
@@ -680,29 +657,31 @@ func Unions(ast *cc.AST) Result {
 		res.Classes[fmt.Sprintf("%s: %d functions read under it, and nothing they can call before such a read writes it%s", d.v, len(last), map[bool]string{true: " (saved and restored by " + strings.Join(bs, ", ") + ")", false: ""}[len(bs) > 0])] = 0
 	}
 
-	// Every option has one kind.
-	for _, n := range optRowsWithout(ast) {
-		res.Left = append(res.Left, Finding{"options", "", n})
+	// Every row of the kinded table has one kind.
+	if up.Kinded != nil {
+		for _, n := range rowsWithout(ast, up.Kinded) {
+			res.Left = append(res.Left, Finding{up.Kinded.Table, "", n})
+		}
 	}
 
 	sort.Slice(res.Left, func(i, j int) bool { return res.Left[i].Where < res.Left[j].Where })
 	return res
 }
 
-// optRowsWithout names the options[] rows with other than one of P_BOOL, P_NUM
-// and P_STRING.
-func optRowsWithout(ast *cc.AST) []string {
+// rowsWithout names the kinded table's rows with other than one of its
+// kinds' flags.
+func rowsWithout(ast *cc.AST, k *KindedUnion) []string {
 	var r []string
-	kind := regexp.MustCompile(`\bP_(BOOL|NUM|STRING)\b`)
+	kind := regexp.MustCompile(`\b(` + flagAlternatives(k) + `)\b`)
 	walk(ast.TranslationUnit, "", func(n cc.Node, fn string) {
 		d, ok := n.(*cc.InitDeclarator)
-		if !ok || d.Declarator == nil || d.Declarator.Name() != "options" || d.Initializer == nil {
+		if !ok || d.Declarator == nil || d.Declarator.Name() != k.Table || d.Initializer == nil {
 			return
 		}
 		for l := d.Initializer.InitializerList; l != nil; l = l.InitializerList {
 			t := srcOrdered(l.Initializer)
 			if k := len(kind.FindAllString(t, -1)); k != 1 && strings.HasPrefix(t, "{\"") {
-				r = append(r, fmt.Sprintf("an option row with %d kinds: %.40s", k, t))
+				r = append(r, fmt.Sprintf("a row with %d kinds: %.40s", k, t))
 			}
 		}
 	})

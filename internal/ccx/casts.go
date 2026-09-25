@@ -68,9 +68,6 @@ func srcText(n cc.Node) string {
 	return b.String()
 }
 
-// allocators are the calls whose result is fresh memory, returned as void *.
-var allocators = map[string]bool{"alloc": true, "alloc_clear": true, "lalloc": true, "lalloc_clear": true, "host_alloc": true}
-
 // callee names the function an expression calls, if it is a direct call.
 func callee(e cc.ExpressionNode) string {
 	for {
@@ -125,10 +122,6 @@ func memberName(e cc.ExpressionNode) string {
 	}
 }
 
-// byteFuncs take their pointer arguments as bytes: a cast of any pointer to
-// char * handed straight to one of them is a view of the object as bytes.
-var byteFuncs = map[string]bool{"musl_memmove": true, "musl_memcpy": true, "musl_memset": true, "musl_memcmp": true}
-
 // unparen strips parentheses from an expression.
 func unparen(e cc.ExpressionNode) cc.ExpressionNode {
 	for {
@@ -148,8 +141,12 @@ func unparen(e cc.ExpressionNode) cc.ExpressionNode {
 	}
 }
 
-// Casts classifies every pointer cast by what it converts.
-func Casts(ast *cc.AST) Result {
+// Casts classifies every pointer cast by what it converts.  A cast of any
+// pointer to char * handed straight to one of p.ByteFuncs is a view of the
+// object as bytes.
+func Casts(ast *cc.AST, p Profile) Result {
+	allocators, byteFuncs := set(p.Allocators), set(p.ByteFuncs)
+	growData := "growarray: " + p.GrowArray.Data + ", to the element type"
 	classes := map[string]int{}
 	var left []Finding
 	// the casts that are arguments of a function of bytes
@@ -215,8 +212,8 @@ func Casts(ast *cc.AST) Result {
 			classes["no change: to the type it already has"]++
 		case fe != nil && fe.Kind() == cc.Void && allocators[callee(x.CastExpression)]:
 			classes["allocation: void * from an allocator, to the type allocated"]++
-		case fe != nil && fe.Kind() == cc.Void && memberName(x.CastExpression) == "ga_data":
-			classes["growarray: ga_data, to the element type"]++
+		case fe != nil && fe.Kind() == cc.Void && p.GrowArray.Data != "" && memberName(x.CastExpression) == p.GrowArray.Data:
+			classes[growData]++
 		case te != nil && te.Kind() == cc.Void:
 			classes["to void *: handed to a function of bytes"]++
 		case fe != nil && fe.Kind() == cc.Void && isByte(te):

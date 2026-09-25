@@ -11,20 +11,26 @@ import (
 // VoidPtrs partitions every declaration whose type names a void *: a
 // parameter, a variable, a field, a function's result or a typedef, anywhere
 // in its type, a function pointer's parameters included.  What the emitter
-// can give a type is:
+// can give a type is, by the profile:
 //
-//	the functions of bytes (musl_memmove, memcpy, memset, memcmp): bytes
-//	the allocators and host_free: storage, typed where it is cast
+//	the functions of bytes (ByteFuncs): bytes
+//	the allocators and the frees: storage, typed where it is cast
 //
 // A prototype's parameters are its function's type, which is checked whole.
 //
-//	a growarray's ga_data: its element type (GrowArrays)
-var voidOwners = map[string]string{
-	"musl_memmove": "a function of bytes", "musl_memcpy": "a function of bytes",
-	"musl_memset": "a function of bytes", "musl_memcmp": "a function of bytes",
-	"lalloc": "an allocator", "lalloc_clear": "an allocator", "alloc": "an allocator", "alloc_clear": "an allocator",
-	"host_alloc": "an allocator", "host_free": "an allocator",
-	"ga_data": "a growarray's storage",
+//	a growarray's storage (GrowArray.Data): its element type (GrowArrays)
+func voidOwners(p Profile) map[string]string {
+	m := map[string]string{}
+	for _, n := range p.ByteFuncs {
+		m[n] = "a function of bytes"
+	}
+	for _, n := range append(append([]string{}, p.Allocators...), p.Frees...) {
+		m[n] = "an allocator"
+	}
+	if p.GrowArray.Data != "" {
+		m[p.GrowArray.Data] = "a growarray's storage"
+	}
+	return m
 }
 
 // namesVoidPtr says whether a type is, or points at, returns or takes a void
@@ -49,7 +55,8 @@ func namesVoidPtr(t cc.Type) bool {
 }
 
 // VoidPtrs partitions every declaration that names a void *.
-func VoidPtrs(ast *cc.AST) Result {
+func VoidPtrs(ast *cc.AST, p Profile) Result {
+	voidOwners := voidOwners(p)
 	res := Result{Title: "void pointers", Classes: map[string]int{}}
 	walk(ast.TranslationUnit, "", func(n cc.Node, fn string) {
 		d, ok := n.(*cc.Declarator)
