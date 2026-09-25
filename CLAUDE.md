@@ -25,7 +25,7 @@ slim-vim.c  --whim-->  whim-vim.c
   lines to 75,396. It is two arcs, a coda, an empty phase, five for the Go's
   sake and the headers last:
   - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
-    install, 84,111 lines at q82;
+    install, 84,025 lines at q82;
   - **phases 83-128** (`GOALS.md` Part II) turn it into an embeddable core:
     no filesystem, the host behind a line in the file, no libc the core names, the
     text a tree. `GOALS.md` Part II, *Phases 83 to 128 as they
@@ -191,7 +191,9 @@ src/               the input and the product: slim-vim.c (fetched, not tracked),
                    whim-vim.c (produced, tracked), their binaries slim-vim and
                    whim-vim, upstream.sha and slim.sha
 doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
-                   done, in order, and what was declined, with why)
+                   done, in order, and what was declined, with why), and
+                   PIPELINE-COMPACTION.md (which phases could be dropped, merged,
+                   split or reordered, measured byte for byte)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
