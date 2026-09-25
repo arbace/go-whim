@@ -283,7 +283,9 @@ func (f *fnEmit) conv(v val, to string) string {
 	case strings.HasPrefix(want, "Ptr[") && strings.HasPrefix(from, "*") && f.g.canon(elemOfGo(want)) == f.g.canon(elemOfGo(from)):
 		return "Addr(" + v.s + ")"
 	case strings.HasPrefix(want, "*") && strings.HasPrefix(from, "Ptr[") && f.g.canon(elemOfGo(want)) == f.g.canon(elemOfGo(from)):
-		return v.s + ".P()"
+		return elemRef(v.s)
+	case strings.HasPrefix(want, "*") && strings.HasPrefix(from, "[") && f.g.canon(elemOfGo(want)) == f.g.canon(elemOfGo(from)):
+		return "&" + v.s + "[0]" // an array decays to its first element's address
 	case strings.HasPrefix(want, "Ptr[") && strings.HasPrefix(from, "[") && f.g.canon(elemOfGo(want)) == f.g.canon(elemOfGo(from)):
 		return "View(" + v.s + "[:])"
 	case strings.HasPrefix(want, "func(") && strings.HasPrefix(from, "func("):
@@ -463,6 +465,46 @@ func (g *gen) funcSig(name string, ft *cc.FunctionType) string {
 		s += " " + r
 	}
 	return s
+}
+
+// elemRef is the Ptr s as a *T: the element it points at.  An element address
+// that went through a Ptr only to be read through is said as one --
+// View(a[:]).Add(k) is &a[k], and p.Add(k) is p.Ref(k).
+func elemRef(s string) string {
+	base, k := s, "0"
+	if strings.HasSuffix(s, ")") {
+		if i := openParen(s); i > 5 && s[i-4:i] == ".Add" {
+			base, k = s[:i-4], s[i+1:len(s)-1]
+		}
+	}
+	if strings.HasPrefix(base, "View(") && strings.HasSuffix(base, "[:])") && openParen(base) == 4 {
+		return "&" + base[5:len(base)-4] + "[" + k + "]"
+	}
+	if k == "0" {
+		return s + ".P()"
+	}
+	return base + ".Ref(" + k + ")"
+}
+
+// openParen is the index of the '(' that the ')' ending s closes, or -1 --
+// and -1 for text with a literal in it, whose brackets are not code.
+func openParen(s string) int {
+	if strings.ContainsAny(s, "\"'`") {
+		return -1
+	}
+	depth := 0
+	for i := len(s) - 1; i >= 0; i-- {
+		switch s[i] {
+		case ')', ']', '}':
+			depth++
+		case '(', '[', '{':
+			depth--
+			if depth == 0 {
+				return i
+			}
+		}
+	}
+	return -1
 }
 
 // deref is *s, folding *&x to x.

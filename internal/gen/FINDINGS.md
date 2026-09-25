@@ -252,9 +252,10 @@ re-transpiled by two agents, and the 187 rows of the Go option table were
 converted by rule. `any` and its type assertions are gone from the option
 code, and so are the seven helpers that emulated the casts (`f11_defnum`,
 `f12_allbuf_varp` and the rest). One pointer decision flipped with them:
-`getdigits()` and `check_string_option()` take a `Ptr[Ptr[byte]]` now, since an
+`getdigits()` and `check_string_option()` took a `Ptr[Ptr[byte]]`, since an
 option's string variable can be an element of `term_strings`, and their 22
-callers pass `Addr(&x)`. Measured: `--phase 152` is accepted and the control is
+callers passed `Addr(&x)` -- until the analysis stopped counting "points into
+an array" as walking, and both became a `*Ptr[byte]` again, passed `&x`. Measured: `--phase 152` is accepted and the control is
 refused. Phase 152's option probes, 151's `:set all&` and the numeric
 `'whichwrap'` and `'backspace'` draw the same bytes on the Go and C binaries.
 

@@ -53,7 +53,7 @@ A C identifier that is a Go keyword or predeclared name gets a trailing `_`
 | `usize` | `usize` (= `uint64`) |
 | an `enum` type | its underlying integer type |
 | `char *`, `char_u *` (a string) | `Ptr[byte]` |
-| `T *` for any other T | `*T` **or** `Ptr[T]` — as the skeleton says for fields, globals and parameters; for a local, `Ptr[T]` if the local is ever indexed, incremented, added to, subtracted, ordered with `<`, or assigned from something that is a `Ptr[T]`, else `*T` |
+| `T *` for any other T | `*T` **or** `Ptr[T]` — as the skeleton says for fields, globals and parameters; for a local, `Ptr[T]` if the local is ever indexed, incremented, added to, subtracted, ordered with `<`, or assigned from something that is a `Ptr[T]`, else `*T`. Pointing into an array does not make a `Ptr` by itself: only a pointer into an array that is also handed on as a `void *` (`memmove`, `memset`, a callback's cookie) is one, since what receives it may walk it |
 | `void *` | `any` |
 | a function pointer | a Go `func` value; NULL is `nil` |
 | `T a[N]` local | `Mk[T](N)` if it is ever used as a pointer (passed, walked, `strcpy`'d into — the usual case for `char buf[N]`), else `var a [N]T` |
@@ -88,7 +88,8 @@ is NULL.
 | `*p++` (read) | `c := p.Get(); p = p.Add(1)` — in that order |
 | `*p++ = c` | `p.Put(c); p = p.Add(1)` |
 | a `*T` where a `Ptr[T]` is required | `Addr(x)` — a one-element `Ptr`; **only** when the callee never looks past that element |
-| a `Ptr[T]` where a `*T` is required | `p.P()` |
+| a `Ptr[T]` where a `*T` is required | `p.P()`; `p.Ref(k)` for `p.Add(k)`, and `&a[k]` for an array's element |
+| an array where a `*T` is required | `&a[0]` |
 | `NULL` for `*T` / `any` / func | `nil` |
 | `NULL` for `Ptr[T]` | `Ptr[T]{}` |
 

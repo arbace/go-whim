@@ -8,7 +8,14 @@ second is done too: items 1 and 2 (lint) are 0 on vet, staticcheck and `gofmt
 survey did not: a comma expression whose value is a constant lost its effects,
 which silenced 28 of the regexp compiler's error exits in the Go. The third
 (truth values typed `bool`) is phase 166, and item 4 (locals where C declares them)
-is the generator's now. The
+is the generator's now. Item 7 is done in the part that is a
+rule: a pointer into an array that never walks is a plain `*T` (`&a[i]`,
+`p.Ref(k)`), unless it is also handed on as a `void *`, which may walk it
+unseen. That took the `Ptr` of another element type than `byte` from 320 to
+149, `Ptr[Ptr[byte]]` from 107 to 12, `Addr(` from 108 to 9 and `.P()` from
+462 to 86. The rest of it -- a forward-walking pointer as a resliced `[]T` --
+is not done: `Ptr[byte]` is C's string, compared and subtracted across the
+file, and one class. The
 throwaway instruments it names under `.tmp/idiom/` were not kept.
 
 2026-09-24. A read-only survey: no tracked file changed, nothing committed, and

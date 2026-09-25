@@ -4,13 +4,15 @@
 // from that the Go types, globals and function signatures every transpiling
 // agent writes against.
 //
-// A pointer is a CURSOR when anything it is ever connected to is indexed,
-// incremented, added to, subtracted, ordered, or handed an array or a pointer
-// into one.  "Connected" is a union-find over objects -- variables,
-// parameters, struct fields, function results -- joined by assignment,
-// initialisation, argument passing, return, the arms of ?:, casts and ==.  A
-// class with no such use is a plain *T.  char and unsigned char pointers are
-// always cursors: they are C strings.
+// A pointer is a CURSOR when anything it is ever connected to WALKS -- is
+// indexed, incremented, added to, subtracted or ordered -- or both points into
+// an array (an array, &a[i], p + k) and is handed on as a void *, where
+// memmove, memset or a callback may walk it unseen.  "Connected" is a
+// union-find over objects -- variables, parameters, struct fields, function
+// results -- joined by assignment, initialisation, argument passing, return,
+// the arms of ?:, casts and ==.  A class with no such use is a plain *T, even
+// when it points into an array: &a[i] kept and read through is &a[i] in Go.
+// char and unsigned char pointers are always cursors: they are C strings.
 package gen
 
 import (
@@ -23,12 +25,15 @@ import (
 
 type uf struct {
 	parent map[string]string
-	flag   map[string]string // root -> first reason it is a cursor
+	flag   map[string]string // root -> first reason it walks: a cursor
+	into   map[string]string // root -> first reason it points into an array
+	sink   map[string]string // root -> first place it is handed on as a void *
 	pun    map[string]string // root -> first reason it holds a non-char address
 }
 
 func newUF() *uf {
-	return &uf{parent: map[string]string{}, flag: map[string]string{}, pun: map[string]string{}}
+	return &uf{parent: map[string]string{}, flag: map[string]string{}, into: map[string]string{},
+		sink: map[string]string{}, pun: map[string]string{}}
 }
 
 func (u *uf) find(k string) string {
@@ -51,7 +56,7 @@ func (u *uf) union(a, b string) {
 		return
 	}
 	u.parent[ra] = rb
-	for _, m := range []map[string]string{u.flag} {
+	for _, m := range []map[string]string{u.flag, u.into, u.sink} {
 		if r, ok := m[ra]; ok {
 			if _, ok2 := m[rb]; !ok2 {
 				m[rb] = r
@@ -88,10 +93,39 @@ func (u *uf) mark(k, why string) {
 	}
 }
 
+// markInto records that a class holds a pointer into an array.  That alone
+// does not make it walk: &a[i] kept and read through is a plain *T.
+func (u *uf) markInto(k, why string) { u.markIn(u.into, k, why) }
+
+// markSink records that a class is handed on as a void * (memmove, memset,
+// a callback's cookie): whoever receives it may walk it, unseen.
+func (u *uf) markSink(k, why string) { u.markIn(u.sink, k, why) }
+
+func (u *uf) markIn(m map[string]string, k, why string) {
+	if k == "" {
+		return
+	}
+	r := u.find(k)
+	if _, ok := m[r]; !ok {
+		m[r] = why
+	}
+}
+
+// cursor: the class walks -- it is indexed, incremented, added to, subtracted
+// or ordered -- or it points into an array and goes where it may be walked
+// unseen, through a void *.  A class that only points into an array and is
+// read through is a plain *T.
 func (u *uf) cursor(k string) (bool, string) {
 	r := u.find(k)
-	why, ok := u.flag[r]
-	return ok, why
+	if why, ok := u.flag[r]; ok {
+		return ok, why
+	}
+	if in, ok := u.into[r]; ok {
+		if s, ok := u.sink[r]; ok {
+			return true, in + ", then " + s
+		}
+	}
+	return false, ""
 }
 
 // analysis state
@@ -103,6 +137,7 @@ type an struct {
 	decls   map[*cc.Declarator]string // key per declarator
 	statics []*staticLocal            // block-scope statics, hoisted to globals
 	addr    map[string]bool           // functions used as values
+	freeing bool                      // in vim_free's argument: a void * that walks nothing
 }
 
 type staticLocal struct {
@@ -274,6 +309,17 @@ func calleeDecl(n cc.ExpressionNode) *cc.Declarator {
 	}
 }
 
+// isParamRef: n names a parameter -- declared `T a[]`, it is a pointer all
+// the same, and indexing it walks it.
+func isParamRef(n cc.ExpressionNode) bool {
+	if p, ok := n.(*cc.PrimaryExpression); ok && p.Case == cc.PrimaryExpressionIdent {
+		if d, ok := p.ResolvedTo().(*cc.Declarator); ok {
+			return d.IsParam()
+		}
+	}
+	return false
+}
+
 // intoArray: the expression's value points into an array -- an array that
 // decays, pointer arithmetic, the address of an element.
 func (a *an) intoArray(n cc.ExpressionNode) (bool, string) {
@@ -417,6 +463,12 @@ func (a *an) flowT(dst string, dt cc.Type, src cc.ExpressionNode) {
 			a.edges = append(a.edges, [2]string{dst, o})
 		}
 	}
+	if dt != nil && dt.Decay().Kind() == cc.Ptr && dt.Decay().(*cc.PointerType).Elem().Kind() == cc.Void && !a.freeing {
+		// a pointer handed on as a void *: the receiver may walk it
+		if st := src.Type(); st != nil && st.Decay().Kind() == cc.Ptr {
+			a.u.markSink(a.obj(src), fmt.Sprintf("a void * at %d", src.Position().Line))
+		}
+	}
 	if dt != nil && !sameTarget(dt, src.Type()) {
 		// a void pointer, or a cast that changes what is pointed at: the
 		// two sides need not share a representation
@@ -426,7 +478,7 @@ func (a *an) flowT(dst string, dt cc.Type, src cc.ExpressionNode) {
 		}
 	}
 	if ok, why := a.intoArray(src); ok {
-		a.u.mark(dst, fmt.Sprintf("%s at %d", why, src.Position().Line))
+		a.u.markInto(dst, fmt.Sprintf("%s at %d", why, src.Position().Line))
 	}
 	// through ?: both arms
 	if c, ok := src.(*cc.ConditionalExpression); ok && c.Case == cc.ConditionalExpressionCond {
@@ -496,7 +548,7 @@ func (a *an) walk(n cc.Node) {
 	case *cc.PostfixExpression:
 		switch x.Case {
 		case cc.PostfixExpressionIndex:
-			if t := typeOf(x.PostfixExpression); t != nil && t.Kind() == cc.Ptr && t.Undecay().Kind() != cc.Array {
+			if t := typeOf(x.PostfixExpression); t != nil && t.Kind() == cc.Ptr && (t.Undecay().Kind() != cc.Array || isParamRef(x.PostfixExpression)) {
 				a.u.mark(a.objTyped(x.PostfixExpression), fmt.Sprintf("indexed at %d", x.Position().Line))
 			}
 		case cc.PostfixExpressionInc, cc.PostfixExpressionDec:
@@ -510,6 +562,7 @@ func (a *an) walk(n cc.Node) {
 					ps = ft.Parameters()
 				}
 				i := 0
+				a.freeing = d.Name() == "vim_free"
 				for l := x.ArgumentExpressionList; l != nil; l = l.ArgumentExpressionList {
 					var pt cc.Type
 					if i < len(ps) {
@@ -520,6 +573,7 @@ func (a *an) walk(n cc.Node) {
 					}
 					i++
 				}
+				a.freeing = false
 			}
 		}
 	case *cc.UnaryExpression:

@@ -752,7 +752,7 @@ type chartabsize_T struct {
 type optvar_T struct {
 	ov_int  *int32
 	ov_long *int64
-	ov_str  Ptr[Ptr[byte]]
+	ov_str  *Ptr[byte]
 	ov_win  int32
 }
 
@@ -2948,7 +2948,7 @@ var e_osc_response_timed_out = Mk[byte](44)                               // C: 
 var e_leadtab_requires_tab = Mk[byte](66)                                 // C: array of 66 char
 var buf_free_count int32
 var top_file_num int32
-var VIM_VERSION_DATE_ONLY = Mk[byte](12) // C: array of 12 const char
+var VIM_VERSION_DATE_ONLY [12]byte
 var VIM_VERSION_LONG_ONLY [22]byte
 var chartab_initialized int32
 var g_chartab [256]byte
@@ -3122,9 +3122,9 @@ var behind_pos regsave_T
 var bl_minval int64
 var bl_maxval int64
 var y_regs [37]yankreg_T
-var y_current Ptr[yankreg_T]
+var y_current *yankreg_T
 var y_append int32
-var y_previous Ptr[yankreg_T]
+var y_previous *yankreg_T
 var execreg_lastc int32
 var screen_attr int32
 var screen_char_attr int32
@@ -3160,7 +3160,7 @@ var builtin_terminals [3]builtin_tcap_T
 var need_gather int32
 var termleader = Mk[byte](257) // C: array of 257 char_u
 var term_props [7]termprop_T
-var out_buf = Mk[byte](8192) // C: array of 8192 char_u
+var out_buf [8192]byte
 var out_pos int32
 var send_t_RK int32
 var cursor_is_off int32
@@ -3473,7 +3473,7 @@ func init() {
 	copy(e_osc_response_timed_out.Slice(43), "E1568: OSC command response timed out: %.*s")
 	copy(e_leadtab_requires_tab.Slice(65), "E1572: 'listchars' field \"leadtab\" requires \"tab\" to be specified")
 	top_file_num = 1
-	copy(VIM_VERSION_DATE_ONLY.Slice(11), "2026 Feb 14")
+	copy(VIM_VERSION_DATE_ONLY[:], "2026 Feb 14")
 	VIM_VERSION_LONG_ONLY = [22]byte{'V', 'I', 'M', ' ', '-', ' ', 'V', 'i', ' ', 'I', 'M', 'p', 'r', 'o', 'v', 'e', 'd', ' ', '0' + VIM_VERSION_MAJOR, '.', '0' + VIM_VERSION_MINOR, NUL}
 	hisidx = [5]int32{-1, -1, -1, -1, -1}
 	history_names = [5]Ptr[byte]{
@@ -3505,7 +3505,7 @@ func init() {
 	highlight_tab.Set(10, keyvalue_T{key: HL_UNDERDOTTED, value: string_T{string_: S("underdotted"), length: 11}})
 	highlight_tab.Set(11, keyvalue_T{key: HL_UNDERDOUBLE, value: string_T{string_: S("underdouble"), length: 11}})
 	highlight_tab.Set(12, keyvalue_T{key: HL_UNDERLINE, value: string_T{string_: S("underline"), length: 9}})
-	highlight_index_tab = [13]*keyvalue_T{highlight_tab.P(), highlight_tab.Add(6).P(), highlight_tab.Add(12).P(), highlight_tab.Add(8).P(), highlight_tab.Add(11).P(), highlight_tab.Add(10).P(), highlight_tab.Add(9).P(), highlight_tab.Add(2).P(), highlight_tab.Add(5).P(), highlight_tab.Add(1).P(), highlight_tab.Add(3).P(), highlight_tab.Add(7).P(), highlight_tab.Add(4).P()}
+	highlight_index_tab = [13]*keyvalue_T{highlight_tab.P(), highlight_tab.Ref(6), highlight_tab.Ref(12), highlight_tab.Ref(8), highlight_tab.Ref(11), highlight_tab.Ref(10), highlight_tab.Ref(9), highlight_tab.Ref(2), highlight_tab.Ref(5), highlight_tab.Ref(1), highlight_tab.Ref(3), highlight_tab.Ref(7), highlight_tab.Ref(4)}
 	color_name_tab.Set(0, keyvalue_T{key: BLACK, value: string_T{string_: S("Black"), length: 5}})
 	color_name_tab.Set(1, keyvalue_T{key: BLUE, value: string_T{string_: S("Blue"), length: 4}})
 	color_name_tab.Set(2, keyvalue_T{key: BROWN, value: string_T{string_: S("Brown"), length: 5}})
@@ -4891,490 +4891,490 @@ func init() {
 		{Ctrl_A, NUL, OPF_CHANGE},
 		{Ctrl_X, NUL, OPF_CHANGE},
 	}
-	options.Set(0, S_vimoption{fullname: S("ambiwidth"), shortname: S("ambw"), flags: (P_STRING | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_ambw), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_ambiwidth, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(0, S_vimoption{fullname: S("ambiwidth"), shortname: S("ambw"), flags: (P_STRING | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_ambw, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_ambiwidth, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S("single"),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(1, S_vimoption{fullname: S("autoindent"), shortname: S("ai"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_ai, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16384, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(2, S_vimoption{fullname: S("background"), shortname: S("bg"), flags: ((P_STRING | P_VI_DEF) | P_RCLR) | P_HLONLY, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_bg), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_background, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(1, S_vimoption{fullname: S("autoindent"), shortname: S("ai"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_ai, ov_long: nil, ov_str: nil, ov_win: 0}, indir: 16384, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(2, S_vimoption{fullname: S("background"), shortname: S("bg"), flags: ((P_STRING | P_VI_DEF) | P_RCLR) | P_HLONLY, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_bg, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_background, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S("light"),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(3, S_vimoption{fullname: S("backspace"), shortname: S("bs"), flags: ((P_STRING | P_VIM) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_bs), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_backspace, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), S("indent,eol,start")}, def_num: [2]int64{}})
-	options.Set(4, S_vimoption{fullname: S("belloff"), shortname: S("bo"), flags: ((P_STRING | P_VI_DEF) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_bo), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_belloff, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(3, S_vimoption{fullname: S("backspace"), shortname: S("bs"), flags: ((P_STRING | P_VIM) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_bs, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_backspace, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), S("indent,eol,start")}, def_num: [2]int64{}})
+	options.Set(4, S_vimoption{fullname: S("belloff"), shortname: S("bo"), flags: ((P_STRING | P_VI_DEF) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_bo, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_belloff, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(5, S_vimoption{fullname: S("casemap"), shortname: S("cmp"), flags: ((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_cmp), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_casemap, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(5, S_vimoption{fullname: S("casemap"), shortname: S("cmp"), flags: ((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_cmp, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_casemap, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S("internal,keepascii"),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(6, S_vimoption{fullname: S("cmdheight"), shortname: S("ch"), flags: (P_NUM | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: &p_ch, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_cmdheight, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1, 0}})
-	options.Set(7, S_vimoption{fullname: S("columns"), shortname: S("co"), flags: (((P_NUM | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: nil, ov_long: &Columns, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{80, 0}})
-	options.Set(8, S_vimoption{fullname: S("compatible"), shortname: S("cp"), flags: P_BOOL | P_RALL, var_: optvar_T{ov_int: &p_cp, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_compatible, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(9, S_vimoption{fullname: S("copyindent"), shortname: S("ci"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_ci, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16393, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(10, S_vimoption{fullname: S("cpoptions"), shortname: S("cpo"), flags: ((P_STRING | P_VIM) | P_RALL) | P_FLAGLIST, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_cpo), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_cpoptions, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>;"), S("aABceFsz")}, def_num: [2]int64{}})
-	options.Set(11, S_vimoption{fullname: S("delcombine"), shortname: S("deco"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_deco, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(12, S_vimoption{fullname: S("display"), shortname: S("dy"), flags: (((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_RALL) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_dy), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_display, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(6, S_vimoption{fullname: S("cmdheight"), shortname: S("ch"), flags: (P_NUM | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: &p_ch, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_cmdheight, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1, 0}})
+	options.Set(7, S_vimoption{fullname: S("columns"), shortname: S("co"), flags: (((P_NUM | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: nil, ov_long: &Columns, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{80, 0}})
+	options.Set(8, S_vimoption{fullname: S("compatible"), shortname: S("cp"), flags: P_BOOL | P_RALL, var_: optvar_T{ov_int: &p_cp, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_compatible, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(9, S_vimoption{fullname: S("copyindent"), shortname: S("ci"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_ci, ov_long: nil, ov_str: nil, ov_win: 0}, indir: 16393, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(10, S_vimoption{fullname: S("cpoptions"), shortname: S("cpo"), flags: ((P_STRING | P_VIM) | P_RALL) | P_FLAGLIST, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_cpo, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_cpoptions, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>;"), S("aABceFsz")}, def_num: [2]int64{}})
+	options.Set(11, S_vimoption{fullname: S("delcombine"), shortname: S("deco"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_deco, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(12, S_vimoption{fullname: S("display"), shortname: S("dy"), flags: (((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_RALL) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_dy, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_display, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(13, S_vimoption{fullname: S("edcompatible"), shortname: S("ed"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_ed, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(14, S_vimoption{fullname: S("emoji"), shortname: S("emo"), flags: (P_BOOL | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: &p_emoji, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_ambiwidth, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(15, S_vimoption{fullname: S("errorbells"), shortname: S("eb"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_eb, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(16, S_vimoption{fullname: S("esckeys"), shortname: S("ek"), flags: P_BOOL | P_VIM, var_: optvar_T{ov_int: &p_ek, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{FALSE, TRUE}})
-	options.Set(17, S_vimoption{fullname: S("expandtab"), shortname: S("et"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_et, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16410, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(18, S_vimoption{fullname: S("fillchars"), shortname: S("fcs"), flags: ((((P_STRING | P_VI_DEF) | P_RALL) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_fcs), ov_win: 0}, indir: 12290, opt_did_set_cb: did_set_chars_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(13, S_vimoption{fullname: S("edcompatible"), shortname: S("ed"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_ed, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(14, S_vimoption{fullname: S("emoji"), shortname: S("emo"), flags: (P_BOOL | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: &p_emoji, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_ambiwidth, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(15, S_vimoption{fullname: S("errorbells"), shortname: S("eb"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_eb, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(16, S_vimoption{fullname: S("esckeys"), shortname: S("ek"), flags: P_BOOL | P_VIM, var_: optvar_T{ov_int: &p_ek, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{FALSE, TRUE}})
+	options.Set(17, S_vimoption{fullname: S("expandtab"), shortname: S("et"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_et, ov_long: nil, ov_str: nil, ov_win: 0}, indir: 16410, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(18, S_vimoption{fullname: S("fillchars"), shortname: S("fcs"), flags: ((((P_STRING | P_VI_DEF) | P_RALL) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_fcs, ov_win: 0}, indir: 12290, opt_did_set_cb: did_set_chars_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S("vert:|,fold:-,eob:~,lastline:@"),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(19, S_vimoption{fullname: S("gdefault"), shortname: S("gd"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_gd, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(20, S_vimoption{fullname: S("highlight"), shortname: S("hl"), flags: ((((P_STRING | P_VI_DEF) | P_RCLR) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_hl), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_highlight, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(19, S_vimoption{fullname: S("gdefault"), shortname: S("gd"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_gd, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(20, S_vimoption{fullname: S("highlight"), shortname: S("hl"), flags: ((((P_STRING | P_VI_DEF) | P_RCLR) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_hl, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_highlight, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S("8:SpecialKey,~:EndOfBuffer,@:NonText,d:Directory,e:ErrorMsg,i:IncSearch,l:Search,y:CurSearch,m:MoreMsg,M:ModeMsg,n:LineNr,a:LineNrAbove,b:LineNrBelow,N:CursorLineNr,G:CursorLineSign,O:CursorLineFold,r:Question,s:StatusLine,S:StatusLineNC,c:VertSplit,|:VertSplitNC,t:Title,v:Visual,V:VisualNOS,w:WarningMsg,W:WildMenu,f:Folded,F:FoldColumn,A:DiffAdd,C:DiffChange,D:DiffDelete,T:DiffText,E:DiffTextAdd,>:SignColumn,-:Conceal,B:SpellBad,P:SpellCap,R:SpellRare,L:SpellLocal,+:Pmenu,=:PmenuSel,k:PmenuMatch,<:PmenuMatchSel,[:PmenuKind,]:PmenuKindSel,{:PmenuExtra,}:PmenuExtraSel,x:PmenuSbar,X:PmenuThumb,j:PmenuBorder,H:PmenuShadow,p:Popup,J:PopupBorder,Q:PopupTitle,*:TabLine,#:TabLineSel,_:TabLineFill,!:CursorColumn,.:CursorLine,o:ColorColumn,q:QuickFixLine,z:StatusLineTerm,Z:StatusLineTermNC,g:MsgArea,h:ComplMatchIns,%:TabPanel,^:TabPanelSel,&:TabPanelFill,I:PreInsert"),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(21, S_vimoption{fullname: S("history"), shortname: S("hi"), flags: P_NUM | P_VIM, var_: optvar_T{ov_int: nil, ov_long: &p_hi, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{9999, 9999}})
-	options.Set(22, S_vimoption{fullname: S("hlsearch"), shortname: S("hls"), flags: (((P_BOOL | P_VI_DEF) | P_VIM) | P_RALL) | P_HLONLY, var_: optvar_T{ov_int: &p_hls, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_hlsearch, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(23, S_vimoption{fullname: S("ignorecase"), shortname: S("ic"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_ic, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_ignorecase, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(24, S_vimoption{fullname: S("incsearch"), shortname: S("is"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_is, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(25, S_vimoption{fullname: S("insertmode"), shortname: S("im"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_im, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_insertmode, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(26, S_vimoption{fullname: S("isfname"), shortname: S("isf"), flags: ((P_STRING | P_VI_DEF) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_isf), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_isopt, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(21, S_vimoption{fullname: S("history"), shortname: S("hi"), flags: P_NUM | P_VIM, var_: optvar_T{ov_int: nil, ov_long: &p_hi, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{9999, 9999}})
+	options.Set(22, S_vimoption{fullname: S("hlsearch"), shortname: S("hls"), flags: (((P_BOOL | P_VI_DEF) | P_VIM) | P_RALL) | P_HLONLY, var_: optvar_T{ov_int: &p_hls, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_hlsearch, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(23, S_vimoption{fullname: S("ignorecase"), shortname: S("ic"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_ic, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_ignorecase, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(24, S_vimoption{fullname: S("incsearch"), shortname: S("is"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_is, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(25, S_vimoption{fullname: S("insertmode"), shortname: S("im"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_im, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_insertmode, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(26, S_vimoption{fullname: S("isfname"), shortname: S("isf"), flags: ((P_STRING | P_VI_DEF) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_isf, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_isopt, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S("@,48-57,/,.,-,_,+,,,#,$,%,~,="),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(27, S_vimoption{fullname: S("isident"), shortname: S("isi"), flags: ((P_STRING | P_VI_DEF) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_isi), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_isopt, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(27, S_vimoption{fullname: S("isident"), shortname: S("isi"), flags: ((P_STRING | P_VI_DEF) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_isi, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_isopt, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S("@,48-57,_,192-255"),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(28, S_vimoption{fullname: S("iskeyword"), shortname: S("isk"), flags: (((P_STRING | P_ALLOCED) | P_VIM) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_isk), ov_win: 0}, indir: 16422, opt_did_set_cb: did_set_iskeyword, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("@,48-57,_"), S("@,48-57,_,192-255")}, def_num: [2]int64{}})
-	options.Set(29, S_vimoption{fullname: S("isprint"), shortname: S("isp"), flags: (((P_STRING | P_VI_DEF) | P_RALL) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_isp), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_isopt, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(28, S_vimoption{fullname: S("iskeyword"), shortname: S("isk"), flags: (((P_STRING | P_ALLOCED) | P_VIM) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_isk, ov_win: 0}, indir: 16422, opt_did_set_cb: did_set_iskeyword, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("@,48-57,_"), S("@,48-57,_,192-255")}, def_num: [2]int64{}})
+	options.Set(29, S_vimoption{fullname: S("isprint"), shortname: S("isp"), flags: (((P_STRING | P_VI_DEF) | P_RALL) | P_COMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_isp, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_isopt, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S("@,161-255"),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(30, S_vimoption{fullname: S("joinspaces"), shortname: S("js"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_js, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(31, S_vimoption{fullname: S("keymodel"), shortname: S("km"), flags: ((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_km), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_keymodel, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(30, S_vimoption{fullname: S("joinspaces"), shortname: S("js"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_js, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(31, S_vimoption{fullname: S("keymodel"), shortname: S("km"), flags: ((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_km, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_keymodel, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S("startsel"),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(32, S_vimoption{fullname: S("keyprotocol"), shortname: S("kpc"), flags: (((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_kpc), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_keyprotocol, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(32, S_vimoption{fullname: S("keyprotocol"), shortname: S("kpc"), flags: (((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_kpc, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_keyprotocol, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S("kitty:kitty,foot:kitty,ghostty:kitty,wezterm:kitty,xterm:mok2"),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(33, S_vimoption{fullname: S("laststatus"), shortname: S("ls"), flags: (P_NUM | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: &p_ls, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_laststatus, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1, 0}})
-	options.Set(34, S_vimoption{fullname: S("lazyredraw"), shortname: S("lz"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_lz, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(35, S_vimoption{fullname: S("lines"), shortname: Ptr[byte]{}, flags: (((P_NUM | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: nil, ov_long: &Rows, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{24, 0}})
-	options.Set(36, S_vimoption{fullname: S("list"), shortname: Ptr[byte]{}, flags: (P_BOOL | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8192, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(37, S_vimoption{fullname: S("listchars"), shortname: S("lcs"), flags: ((((P_STRING | P_VI_DEF) | P_RALL) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_lcs), ov_win: 0}, indir: 12289, opt_did_set_cb: did_set_chars_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(33, S_vimoption{fullname: S("laststatus"), shortname: S("ls"), flags: (P_NUM | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: &p_ls, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_laststatus, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1, 0}})
+	options.Set(34, S_vimoption{fullname: S("lazyredraw"), shortname: S("lz"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_lz, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(35, S_vimoption{fullname: S("lines"), shortname: Ptr[byte]{}, flags: (((P_NUM | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: nil, ov_long: &Rows, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{24, 0}})
+	options.Set(36, S_vimoption{fullname: S("list"), shortname: Ptr[byte]{}, flags: (P_BOOL | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: nil, ov_win: 1}, indir: 8192, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(37, S_vimoption{fullname: S("listchars"), shortname: S("lcs"), flags: ((((P_STRING | P_VI_DEF) | P_RALL) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_lcs, ov_win: 0}, indir: 12289, opt_did_set_cb: did_set_chars_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S("eol:$"),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(38, S_vimoption{fullname: S("magic"), shortname: Ptr[byte]{}, flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_magic, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(39, S_vimoption{fullname: S("matchpairs"), shortname: S("mps"), flags: (((P_STRING | P_ALLOCED) | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_mps), ov_win: 0}, indir: 16431, opt_did_set_cb: did_set_matchpairs, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(38, S_vimoption{fullname: S("magic"), shortname: Ptr[byte]{}, flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_magic, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(39, S_vimoption{fullname: S("matchpairs"), shortname: S("mps"), flags: (((P_STRING | P_ALLOCED) | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_mps, ov_win: 0}, indir: 16431, opt_did_set_cb: did_set_matchpairs, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S("(:),{:},[:]"),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(40, S_vimoption{fullname: S("matchtime"), shortname: S("mat"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_mat, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{5, 0}})
-	options.Set(41, S_vimoption{fullname: S("maxcombine"), shortname: S("mco"), flags: (P_NUM | P_VI_DEF) | P_CURSWANT, var_: optvar_T{ov_int: nil, ov_long: &p_mco, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_maxcombine, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{2, 0}})
-	options.Set(42, S_vimoption{fullname: S("maxmapdepth"), shortname: S("mmd"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_mmd, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1000, 0}})
-	options.Set(43, S_vimoption{fullname: S("maxmempattern"), shortname: S("mmp"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_mmp, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1000, 0}})
-	options.Set(44, S_vimoption{fullname: S("maxsearchcount"), shortname: S("msc"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_msc, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_maxsearchcount, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{99, 0}})
-	options.Set(45, S_vimoption{fullname: S("messagesopt"), shortname: S("mopt"), flags: ((((P_STRING | P_ALLOCED) | P_VI_DEF) | P_ONECOMMA) | P_COLON) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_mopt), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_messagesopt, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(40, S_vimoption{fullname: S("matchtime"), shortname: S("mat"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_mat, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{5, 0}})
+	options.Set(41, S_vimoption{fullname: S("maxcombine"), shortname: S("mco"), flags: (P_NUM | P_VI_DEF) | P_CURSWANT, var_: optvar_T{ov_int: nil, ov_long: &p_mco, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_maxcombine, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{2, 0}})
+	options.Set(42, S_vimoption{fullname: S("maxmapdepth"), shortname: S("mmd"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_mmd, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1000, 0}})
+	options.Set(43, S_vimoption{fullname: S("maxmempattern"), shortname: S("mmp"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_mmp, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1000, 0}})
+	options.Set(44, S_vimoption{fullname: S("maxsearchcount"), shortname: S("msc"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_msc, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_maxsearchcount, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{99, 0}})
+	options.Set(45, S_vimoption{fullname: S("messagesopt"), shortname: S("mopt"), flags: ((((P_STRING | P_ALLOCED) | P_VI_DEF) | P_ONECOMMA) | P_COLON) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_mopt, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_messagesopt, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S("hit-enter,history:500"),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(46, S_vimoption{fullname: S("modifiable"), shortname: S("ma"), flags: (P_BOOL | P_VI_DEF) | P_NOGLOB, var_: optvar_T{ov_int: &p_ma, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16428, opt_did_set_cb: did_set_modifiable, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(47, S_vimoption{fullname: S("modified"), shortname: S("mod"), flags: ((P_BOOL | P_NO_MKRC) | P_VI_DEF) | P_RSTAT, var_: optvar_T{ov_int: &p_mod, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16430, opt_did_set_cb: did_set_modified, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(48, S_vimoption{fullname: S("more"), shortname: Ptr[byte]{}, flags: P_BOOL | P_VIM, var_: optvar_T{ov_int: &p_more, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{FALSE, TRUE}})
-	options.Set(49, S_vimoption{fullname: S("nrformats"), shortname: S("nf"), flags: (((P_STRING | P_ALLOCED) | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_nf), ov_win: 0}, indir: 16432, opt_did_set_cb: did_set_nrformats, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(46, S_vimoption{fullname: S("modifiable"), shortname: S("ma"), flags: (P_BOOL | P_VI_DEF) | P_NOGLOB, var_: optvar_T{ov_int: &p_ma, ov_long: nil, ov_str: nil, ov_win: 0}, indir: 16428, opt_did_set_cb: did_set_modifiable, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(47, S_vimoption{fullname: S("modified"), shortname: S("mod"), flags: ((P_BOOL | P_NO_MKRC) | P_VI_DEF) | P_RSTAT, var_: optvar_T{ov_int: &p_mod, ov_long: nil, ov_str: nil, ov_win: 0}, indir: 16430, opt_did_set_cb: did_set_modified, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(48, S_vimoption{fullname: S("more"), shortname: Ptr[byte]{}, flags: P_BOOL | P_VIM, var_: optvar_T{ov_int: &p_more, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{FALSE, TRUE}})
+	options.Set(49, S_vimoption{fullname: S("nrformats"), shortname: S("nf"), flags: (((P_STRING | P_ALLOCED) | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_nf, ov_win: 0}, indir: 16432, opt_did_set_cb: did_set_nrformats, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S("bin,octal,hex"),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(50, S_vimoption{fullname: S("number"), shortname: S("nu"), flags: (P_BOOL | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8198, opt_did_set_cb: did_set_number_relativenumber, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(51, S_vimoption{fullname: S("osctimeoutlen"), shortname: S("ost"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ost, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_osctimeoutlen, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1000, 0}})
-	options.Set(52, S_vimoption{fullname: S("paste"), shortname: Ptr[byte]{}, flags: (P_BOOL | P_VI_DEF) | P_PRI_MKRC, var_: optvar_T{ov_int: &p_paste, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_paste, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(53, S_vimoption{fullname: S("pastetoggle"), shortname: S("pt"), flags: P_STRING | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_pt), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_pastetoggle, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(50, S_vimoption{fullname: S("number"), shortname: S("nu"), flags: (P_BOOL | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: nil, ov_win: 1}, indir: 8198, opt_did_set_cb: did_set_number_relativenumber, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(51, S_vimoption{fullname: S("osctimeoutlen"), shortname: S("ost"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ost, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_osctimeoutlen, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1000, 0}})
+	options.Set(52, S_vimoption{fullname: S("paste"), shortname: Ptr[byte]{}, flags: (P_BOOL | P_VI_DEF) | P_PRI_MKRC, var_: optvar_T{ov_int: &p_paste, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_paste, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(53, S_vimoption{fullname: S("pastetoggle"), shortname: S("pt"), flags: P_STRING | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_pt, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_pastetoggle, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(54, S_vimoption{fullname: S("preserveindent"), shortname: S("pi"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_pi, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16434, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(55, S_vimoption{fullname: S("quoteescape"), shortname: S("qe"), flags: (P_STRING | P_ALLOCED) | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_qe), ov_win: 0}, indir: 16435, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(54, S_vimoption{fullname: S("preserveindent"), shortname: S("pi"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_pi, ov_long: nil, ov_str: nil, ov_win: 0}, indir: 16434, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(55, S_vimoption{fullname: S("quoteescape"), shortname: S("qe"), flags: (P_STRING | P_ALLOCED) | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_qe, ov_win: 0}, indir: 16435, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S("\\"),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(56, S_vimoption{fullname: S("relativenumber"), shortname: S("rnu"), flags: (P_BOOL | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8199, opt_did_set_cb: did_set_number_relativenumber, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(57, S_vimoption{fullname: S("remap"), shortname: Ptr[byte]{}, flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_remap, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(58, S_vimoption{fullname: S("report"), shortname: Ptr[byte]{}, flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_report, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{2, 0}})
-	options.Set(59, S_vimoption{fullname: S("ruler"), shortname: S("ru"), flags: (P_BOOL | P_VIM) | P_RSTAT, var_: optvar_T{ov_int: &p_ru, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, TRUE}})
-	options.Set(60, S_vimoption{fullname: S("scroll"), shortname: S("scr"), flags: (P_NUM | P_NO_MKRC) | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8202, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(61, S_vimoption{fullname: S("scrolljump"), shortname: S("sj"), flags: (P_NUM | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: nil, ov_long: &p_sj, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1, 0}})
-	options.Set(62, S_vimoption{fullname: S("scrolloff"), shortname: S("so"), flags: ((P_NUM | P_VI_DEF) | P_VIM) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: &p_so, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 12301, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1, 0}})
-	options.Set(63, S_vimoption{fullname: S("scrolloffpad"), shortname: S("sop"), flags: ((P_NUM | P_VI_DEF) | P_VIM) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: &p_sop, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 12302, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(64, S_vimoption{fullname: S("selection"), shortname: S("sel"), flags: P_STRING | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_sel), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_selection, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(56, S_vimoption{fullname: S("relativenumber"), shortname: S("rnu"), flags: (P_BOOL | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: nil, ov_win: 1}, indir: 8199, opt_did_set_cb: did_set_number_relativenumber, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(57, S_vimoption{fullname: S("remap"), shortname: Ptr[byte]{}, flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_remap, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(58, S_vimoption{fullname: S("report"), shortname: Ptr[byte]{}, flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_report, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{2, 0}})
+	options.Set(59, S_vimoption{fullname: S("ruler"), shortname: S("ru"), flags: (P_BOOL | P_VIM) | P_RSTAT, var_: optvar_T{ov_int: &p_ru, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, TRUE}})
+	options.Set(60, S_vimoption{fullname: S("scroll"), shortname: S("scr"), flags: (P_NUM | P_NO_MKRC) | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: nil, ov_win: 1}, indir: 8202, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(61, S_vimoption{fullname: S("scrolljump"), shortname: S("sj"), flags: (P_NUM | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: nil, ov_long: &p_sj, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1, 0}})
+	options.Set(62, S_vimoption{fullname: S("scrolloff"), shortname: S("so"), flags: ((P_NUM | P_VI_DEF) | P_VIM) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: &p_so, ov_str: nil, ov_win: 0}, indir: 12301, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1, 0}})
+	options.Set(63, S_vimoption{fullname: S("scrolloffpad"), shortname: S("sop"), flags: ((P_NUM | P_VI_DEF) | P_VIM) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: &p_sop, ov_str: nil, ov_win: 0}, indir: 12302, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(64, S_vimoption{fullname: S("selection"), shortname: S("sel"), flags: P_STRING | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_sel, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_selection, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S("inclusive"),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(65, S_vimoption{fullname: S("selectmode"), shortname: S("slm"), flags: ((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_slm), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_selectmode, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(65, S_vimoption{fullname: S("selectmode"), shortname: S("slm"), flags: ((P_STRING | P_VI_DEF) | P_ONECOMMA) | P_NODUP, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_slm, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_selectmode, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(66, S_vimoption{fullname: S("shiftround"), shortname: S("sr"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_sr, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(67, S_vimoption{fullname: S("shiftwidth"), shortname: S("sw"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_sw, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16441, opt_did_set_cb: did_set_shiftwidth_tabstop, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{4, 0}})
-	options.Set(68, S_vimoption{fullname: S("shortmess"), shortname: S("shm"), flags: (P_STRING | P_VIM) | P_FLAGLIST, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_shm), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_shortmess, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("S"), S("filnxtToOS")}, def_num: [2]int64{}})
-	options.Set(69, S_vimoption{fullname: S("showcmd"), shortname: S("sc"), flags: P_BOOL | P_VIM, var_: optvar_T{ov_int: &p_sc, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{FALSE, TRUE}})
-	options.Set(70, S_vimoption{fullname: S("showcmdloc"), shortname: S("sloc"), flags: P_STRING | P_RSTAT, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_sloc), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_showcmdloc, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("last"), S("last")}, def_num: [2]int64{}})
-	options.Set(71, S_vimoption{fullname: S("showmatch"), shortname: S("sm"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_sm, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(72, S_vimoption{fullname: S("showmode"), shortname: S("smd"), flags: P_BOOL | P_VIM, var_: optvar_T{ov_int: &p_smd, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{FALSE, TRUE}})
-	options.Set(73, S_vimoption{fullname: S("sidescroll"), shortname: S("ss"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ss, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(74, S_vimoption{fullname: S("sidescrolloff"), shortname: S("siso"), flags: ((P_NUM | P_VI_DEF) | P_VIM) | P_RBUF, var_: optvar_T{ov_int: nil, ov_long: &p_siso, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 12300, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(75, S_vimoption{fullname: S("smartcase"), shortname: S("scs"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_scs, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(76, S_vimoption{fullname: S("smartindent"), shortname: S("si"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_si, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16437, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(77, S_vimoption{fullname: S("smarttab"), shortname: S("sta"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_sta, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(78, S_vimoption{fullname: S("smoothscroll"), shortname: S("sms"), flags: (P_BOOL | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8203, opt_did_set_cb: did_set_smoothscroll, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(79, S_vimoption{fullname: S("softtabstop"), shortname: S("sts"), flags: (P_NUM | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: nil, ov_long: &p_sts, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16439, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{4, 0}})
-	options.Set(80, S_vimoption{fullname: S("startofline"), shortname: S("sol"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_sol, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(81, S_vimoption{fullname: S("tabstop"), shortname: S("ts"), flags: (P_NUM | P_VI_DEF) | P_RBUF, var_: optvar_T{ov_int: nil, ov_long: &p_ts, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16445, opt_did_set_cb: did_set_shiftwidth_tabstop, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{4, 0}})
-	options.Set(82, S_vimoption{fullname: S("term"), shortname: Ptr[byte]{}, flags: ((((P_STRING | P_EXPAND) | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(66, S_vimoption{fullname: S("shiftround"), shortname: S("sr"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_sr, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(67, S_vimoption{fullname: S("shiftwidth"), shortname: S("sw"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_sw, ov_str: nil, ov_win: 0}, indir: 16441, opt_did_set_cb: did_set_shiftwidth_tabstop, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{4, 0}})
+	options.Set(68, S_vimoption{fullname: S("shortmess"), shortname: S("shm"), flags: (P_STRING | P_VIM) | P_FLAGLIST, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_shm, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_shortmess, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("S"), S("filnxtToOS")}, def_num: [2]int64{}})
+	options.Set(69, S_vimoption{fullname: S("showcmd"), shortname: S("sc"), flags: P_BOOL | P_VIM, var_: optvar_T{ov_int: &p_sc, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{FALSE, TRUE}})
+	options.Set(70, S_vimoption{fullname: S("showcmdloc"), shortname: S("sloc"), flags: P_STRING | P_RSTAT, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_sloc, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_showcmdloc, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S("last"), S("last")}, def_num: [2]int64{}})
+	options.Set(71, S_vimoption{fullname: S("showmatch"), shortname: S("sm"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_sm, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(72, S_vimoption{fullname: S("showmode"), shortname: S("smd"), flags: P_BOOL | P_VIM, var_: optvar_T{ov_int: &p_smd, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{FALSE, TRUE}})
+	options.Set(73, S_vimoption{fullname: S("sidescroll"), shortname: S("ss"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ss, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(74, S_vimoption{fullname: S("sidescrolloff"), shortname: S("siso"), flags: ((P_NUM | P_VI_DEF) | P_VIM) | P_RBUF, var_: optvar_T{ov_int: nil, ov_long: &p_siso, ov_str: nil, ov_win: 0}, indir: 12300, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(75, S_vimoption{fullname: S("smartcase"), shortname: S("scs"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_scs, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(76, S_vimoption{fullname: S("smartindent"), shortname: S("si"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_si, ov_long: nil, ov_str: nil, ov_win: 0}, indir: 16437, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(77, S_vimoption{fullname: S("smarttab"), shortname: S("sta"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_sta, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(78, S_vimoption{fullname: S("smoothscroll"), shortname: S("sms"), flags: (P_BOOL | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: nil, ov_win: 1}, indir: 8203, opt_did_set_cb: did_set_smoothscroll, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(79, S_vimoption{fullname: S("softtabstop"), shortname: S("sts"), flags: (P_NUM | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: nil, ov_long: &p_sts, ov_str: nil, ov_win: 0}, indir: 16439, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{4, 0}})
+	options.Set(80, S_vimoption{fullname: S("startofline"), shortname: S("sol"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_sol, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(81, S_vimoption{fullname: S("tabstop"), shortname: S("ts"), flags: (P_NUM | P_VI_DEF) | P_RBUF, var_: optvar_T{ov_int: nil, ov_long: &p_ts, ov_str: nil, ov_win: 0}, indir: 16445, opt_did_set_cb: did_set_shiftwidth_tabstop, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{4, 0}})
+	options.Set(82, S_vimoption{fullname: S("term"), shortname: Ptr[byte]{}, flags: ((((P_STRING | P_EXPAND) | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[0], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(83, S_vimoption{fullname: S("termsync"), shortname: S("tsy"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_tsy, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_termsync, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(84, S_vimoption{fullname: S("terse"), shortname: Ptr[byte]{}, flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_terse, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_terse, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(85, S_vimoption{fullname: S("textwidth"), shortname: S("tw"), flags: (((P_NUM | P_VI_DEF) | P_VIM) | P_RBUF) | P_HLONLY, var_: optvar_T{ov_int: nil, ov_long: &p_tw, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16446, opt_did_set_cb: did_set_textwidth, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(86, S_vimoption{fullname: S("tildeop"), shortname: S("top"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_to, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(87, S_vimoption{fullname: S("timeout"), shortname: S("to"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_timeout, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(88, S_vimoption{fullname: S("timeoutlen"), shortname: S("tm"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_tm, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1000, 0}})
-	options.Set(89, S_vimoption{fullname: S("ttimeout"), shortname: Ptr[byte]{}, flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_ttimeout, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(90, S_vimoption{fullname: S("ttimeoutlen"), shortname: S("ttm"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ttm, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{-1, 0}})
-	options.Set(91, S_vimoption{fullname: S("ttyfast"), shortname: S("tf"), flags: (P_BOOL | P_NO_MKRC) | P_VI_DEF, var_: optvar_T{ov_int: &p_tf, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(92, S_vimoption{fullname: S("ttyscroll"), shortname: S("tsl"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ttyscroll, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{999, 0}})
-	options.Set(93, S_vimoption{fullname: S("ttytype"), shortname: S("tty"), flags: ((((P_STRING | P_EXPAND) | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(83, S_vimoption{fullname: S("termsync"), shortname: S("tsy"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_tsy, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_termsync, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(84, S_vimoption{fullname: S("terse"), shortname: Ptr[byte]{}, flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_terse, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_terse, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(85, S_vimoption{fullname: S("textwidth"), shortname: S("tw"), flags: (((P_NUM | P_VI_DEF) | P_VIM) | P_RBUF) | P_HLONLY, var_: optvar_T{ov_int: nil, ov_long: &p_tw, ov_str: nil, ov_win: 0}, indir: 16446, opt_did_set_cb: did_set_textwidth, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(86, S_vimoption{fullname: S("tildeop"), shortname: S("top"), flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_to, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(87, S_vimoption{fullname: S("timeout"), shortname: S("to"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_timeout, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(88, S_vimoption{fullname: S("timeoutlen"), shortname: S("tm"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_tm, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{1000, 0}})
+	options.Set(89, S_vimoption{fullname: S("ttimeout"), shortname: Ptr[byte]{}, flags: (P_BOOL | P_VI_DEF) | P_VIM, var_: optvar_T{ov_int: &p_ttimeout, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(90, S_vimoption{fullname: S("ttimeoutlen"), shortname: S("ttm"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ttm, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{-1, 0}})
+	options.Set(91, S_vimoption{fullname: S("ttyfast"), shortname: S("tf"), flags: (P_BOOL | P_NO_MKRC) | P_VI_DEF, var_: optvar_T{ov_int: &p_tf, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(92, S_vimoption{fullname: S("ttyscroll"), shortname: S("tsl"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ttyscroll, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{999, 0}})
+	options.Set(93, S_vimoption{fullname: S("ttytype"), shortname: S("tty"), flags: ((((P_STRING | P_EXPAND) | P_NODEFAULT) | P_NO_MKRC) | P_VI_DEF) | P_RALL, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[0], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(94, S_vimoption{fullname: S("undolevels"), shortname: S("ul"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ul, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 20545, opt_did_set_cb: did_set_undolevels, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{9999, 0}})
-	options.Set(95, S_vimoption{fullname: S("verbose"), shortname: S("vbs"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_verbose, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(96, S_vimoption{fullname: S("virtualedit"), shortname: S("ve"), flags: ((((P_STRING | P_ONECOMMA) | P_NODUP) | P_VI_DEF) | P_VIM) | P_CURSWANT, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_ve), ov_win: 0}, indir: 12296, opt_did_set_cb: did_set_virtualedit, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), S("")}, def_num: [2]int64{}})
-	options.Set(97, S_vimoption{fullname: S("visualbell"), shortname: S("vb"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_vb, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(98, S_vimoption{fullname: S("weirdinvert"), shortname: S("wiv"), flags: (P_BOOL | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: &p_wiv, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_weirdinvert, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(99, S_vimoption{fullname: S("whichwrap"), shortname: S("ww"), flags: ((P_STRING | P_VIM) | P_ONECOMMA) | P_FLAGLIST, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Addr(&p_ww), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_whichwrap, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), S("b,s")}, def_num: [2]int64{}})
-	options.Set(100, S_vimoption{fullname: S("wincolor"), shortname: S("wcr"), flags: ((P_STRING | P_ALLOCED) | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8196, opt_did_set_cb: did_set_wincolor, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(94, S_vimoption{fullname: S("undolevels"), shortname: S("ul"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_ul, ov_str: nil, ov_win: 0}, indir: 20545, opt_did_set_cb: did_set_undolevels, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{9999, 0}})
+	options.Set(95, S_vimoption{fullname: S("verbose"), shortname: S("vbs"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_verbose, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(96, S_vimoption{fullname: S("virtualedit"), shortname: S("ve"), flags: ((((P_STRING | P_ONECOMMA) | P_NODUP) | P_VI_DEF) | P_VIM) | P_CURSWANT, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_ve, ov_win: 0}, indir: 12296, opt_did_set_cb: did_set_virtualedit, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), S("")}, def_num: [2]int64{}})
+	options.Set(97, S_vimoption{fullname: S("visualbell"), shortname: S("vb"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_vb, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(98, S_vimoption{fullname: S("weirdinvert"), shortname: S("wiv"), flags: (P_BOOL | P_VI_DEF) | P_RCLR, var_: optvar_T{ov_int: &p_wiv, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_weirdinvert, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(99, S_vimoption{fullname: S("whichwrap"), shortname: S("ww"), flags: ((P_STRING | P_VIM) | P_ONECOMMA) | P_FLAGLIST, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &p_ww, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_whichwrap, opt_expand_cb: nil, def_str: [2]Ptr[byte]{S(""), S("b,s")}, def_num: [2]int64{}})
+	options.Set(100, S_vimoption{fullname: S("wincolor"), shortname: S("wcr"), flags: ((P_STRING | P_ALLOCED) | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: nil, ov_win: 1}, indir: 8196, opt_did_set_cb: did_set_wincolor, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(101, S_vimoption{fullname: S("window"), shortname: S("wi"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_window, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_window, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(102, S_vimoption{fullname: S("winhighlight"), shortname: S("whl"), flags: ((((P_STRING | P_VI_DEF) | P_RALL) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8210, opt_did_set_cb: did_set_winhighlight, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(101, S_vimoption{fullname: S("window"), shortname: S("wi"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_window, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_window, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(102, S_vimoption{fullname: S("winhighlight"), shortname: S("whl"), flags: ((((P_STRING | P_VI_DEF) | P_RALL) | P_ONECOMMA) | P_NODUP) | P_COLON, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: nil, ov_win: 1}, indir: 8210, opt_did_set_cb: did_set_winhighlight, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(103, S_vimoption{fullname: S("wrap"), shortname: Ptr[byte]{}, flags: (P_BOOL | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 1}, indir: 8211, opt_did_set_cb: did_set_wrap, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(104, S_vimoption{fullname: S("wrapmargin"), shortname: S("wm"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_wm, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: 16450, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(105, S_vimoption{fullname: S("wrapscan"), shortname: S("ws"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_ws, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
-	options.Set(106, S_vimoption{fullname: S("writedelay"), shortname: S("wd"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_wd, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
-	options.Set(107, S_vimoption{fullname: S("t_AB"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(56), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(103, S_vimoption{fullname: S("wrap"), shortname: Ptr[byte]{}, flags: (P_BOOL | P_VI_DEF) | P_RWIN, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: nil, ov_win: 1}, indir: 8211, opt_did_set_cb: did_set_wrap, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(104, S_vimoption{fullname: S("wrapmargin"), shortname: S("wm"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_wm, ov_str: nil, ov_win: 0}, indir: 16450, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(105, S_vimoption{fullname: S("wrapscan"), shortname: S("ws"), flags: P_BOOL | P_VI_DEF, var_: optvar_T{ov_int: &p_ws, ov_long: nil, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{TRUE, 0}})
+	options.Set(106, S_vimoption{fullname: S("writedelay"), shortname: S("wd"), flags: P_NUM | P_VI_DEF, var_: optvar_T{ov_int: nil, ov_long: &p_wd, ov_str: nil, ov_win: 0}, indir: PV_NONE, opt_did_set_cb: nil, opt_expand_cb: nil, def_str: [2]Ptr[byte]{}, def_num: [2]int64{}})
+	options.Set(107, S_vimoption{fullname: S("t_AB"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[56], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(108, S_vimoption{fullname: S("t_AF"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(55), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(108, S_vimoption{fullname: S("t_AF"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[55], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(109, S_vimoption{fullname: S("t_AU"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(57), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(109, S_vimoption{fullname: S("t_AU"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[57], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(110, S_vimoption{fullname: S("t_AL"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(3), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(110, S_vimoption{fullname: S("t_AL"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[3], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(111, S_vimoption{fullname: S("t_al"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(2), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(111, S_vimoption{fullname: S("t_al"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[2], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(112, S_vimoption{fullname: S("t_bc"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(47), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(112, S_vimoption{fullname: S("t_bc"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[47], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(113, S_vimoption{fullname: S("t_BE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(82), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(113, S_vimoption{fullname: S("t_BE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[82], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(114, S_vimoption{fullname: S("t_BD"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(83), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(114, S_vimoption{fullname: S("t_BD"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[83], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(115, S_vimoption{fullname: S("t_cd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(8), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(115, S_vimoption{fullname: S("t_cd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[8], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(116, S_vimoption{fullname: S("t_ce"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(1), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(116, S_vimoption{fullname: S("t_ce"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[1], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(117, S_vimoption{fullname: S("t_Ce"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(28), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(117, S_vimoption{fullname: S("t_Ce"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[28], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(118, S_vimoption{fullname: S("t_CF"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(90), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(118, S_vimoption{fullname: S("t_CF"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[90], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(119, S_vimoption{fullname: S("t_cl"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(7), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(119, S_vimoption{fullname: S("t_cl"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[7], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(120, S_vimoption{fullname: S("t_cm"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(36), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(120, S_vimoption{fullname: S("t_cm"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[36], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(121, S_vimoption{fullname: S("t_Co"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(49), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(121, S_vimoption{fullname: S("t_Co"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[49], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(122, S_vimoption{fullname: S("t_CS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(48), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(122, S_vimoption{fullname: S("t_CS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[48], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(123, S_vimoption{fullname: S("t_Cs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(29), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(123, S_vimoption{fullname: S("t_Cs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[29], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(124, S_vimoption{fullname: S("t_cs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(6), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(124, S_vimoption{fullname: S("t_cs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[6], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(125, S_vimoption{fullname: S("t_CV"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(76), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(125, S_vimoption{fullname: S("t_CV"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[76], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(126, S_vimoption{fullname: S("t_da"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(10), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(126, S_vimoption{fullname: S("t_da"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[10], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(127, S_vimoption{fullname: S("t_db"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(11), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(127, S_vimoption{fullname: S("t_db"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[11], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(128, S_vimoption{fullname: S("t_DL"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(5), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(128, S_vimoption{fullname: S("t_DL"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[5], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(129, S_vimoption{fullname: S("t_dl"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(4), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(129, S_vimoption{fullname: S("t_dl"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[4], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(130, S_vimoption{fullname: S("t_ds"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(31), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(130, S_vimoption{fullname: S("t_ds"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[31], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(131, S_vimoption{fullname: S("t_Ds"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(32), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(131, S_vimoption{fullname: S("t_Ds"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[32], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(132, S_vimoption{fullname: S("t_fs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(65), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(132, S_vimoption{fullname: S("t_fs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[65], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(133, S_vimoption{fullname: S("t_fd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(88), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(133, S_vimoption{fullname: S("t_fd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[88], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(134, S_vimoption{fullname: S("t_fe"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(89), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(134, S_vimoption{fullname: S("t_fe"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[89], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(135, S_vimoption{fullname: S("t_IE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(61), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(135, S_vimoption{fullname: S("t_IE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[61], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(136, S_vimoption{fullname: S("t_IS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(60), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(136, S_vimoption{fullname: S("t_IS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[60], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(137, S_vimoption{fullname: S("t_ke"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(41), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(137, S_vimoption{fullname: S("t_ke"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[41], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(138, S_vimoption{fullname: S("t_ks"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(40), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(138, S_vimoption{fullname: S("t_ks"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[40], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(139, S_vimoption{fullname: S("t_le"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(58), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(139, S_vimoption{fullname: S("t_le"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[58], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(140, S_vimoption{fullname: S("t_mb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(54), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(140, S_vimoption{fullname: S("t_mb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[54], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(141, S_vimoption{fullname: S("t_md"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(21), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(141, S_vimoption{fullname: S("t_md"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[21], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(142, S_vimoption{fullname: S("t_me"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(19), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(142, S_vimoption{fullname: S("t_me"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[19], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(143, S_vimoption{fullname: S("t_mr"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(20), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(143, S_vimoption{fullname: S("t_mr"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[20], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(144, S_vimoption{fullname: S("t_ms"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(35), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(144, S_vimoption{fullname: S("t_ms"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[35], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(145, S_vimoption{fullname: S("t_nd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(59), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(145, S_vimoption{fullname: S("t_nd"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[59], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(146, S_vimoption{fullname: S("t_op"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(77), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(146, S_vimoption{fullname: S("t_op"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[77], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(147, S_vimoption{fullname: S("t_RI"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(38), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(147, S_vimoption{fullname: S("t_RI"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[38], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(148, S_vimoption{fullname: S("t_Ri"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(87), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(148, S_vimoption{fullname: S("t_Ri"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[87], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(149, S_vimoption{fullname: S("t_RK"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(44), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(149, S_vimoption{fullname: S("t_RK"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[44], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(150, S_vimoption{fullname: S("t_RT"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(85), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(150, S_vimoption{fullname: S("t_RT"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[85], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(151, S_vimoption{fullname: S("t_RV"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(69), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(151, S_vimoption{fullname: S("t_RV"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[69], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(152, S_vimoption{fullname: S("t_Sb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(51), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(152, S_vimoption{fullname: S("t_Sb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[51], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(153, S_vimoption{fullname: S("t_se"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(22), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(153, S_vimoption{fullname: S("t_se"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[22], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(154, S_vimoption{fullname: S("t_Sf"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(50), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(154, S_vimoption{fullname: S("t_Sf"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[50], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(155, S_vimoption{fullname: S("t_Si"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(86), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(155, S_vimoption{fullname: S("t_Si"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[86], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(156, S_vimoption{fullname: S("t_so"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(23), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(156, S_vimoption{fullname: S("t_so"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[23], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(157, S_vimoption{fullname: S("t_sr"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(37), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(157, S_vimoption{fullname: S("t_sr"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[37], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(158, S_vimoption{fullname: S("t_ST"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(84), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(158, S_vimoption{fullname: S("t_ST"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[84], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(159, S_vimoption{fullname: S("t_Te"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(33), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(159, S_vimoption{fullname: S("t_Te"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[33], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(160, S_vimoption{fullname: S("t_te"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(45), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(160, S_vimoption{fullname: S("t_te"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[45], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(161, S_vimoption{fullname: S("t_TE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(46), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(161, S_vimoption{fullname: S("t_TE"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[46], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(162, S_vimoption{fullname: S("t_ti"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(42), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(162, S_vimoption{fullname: S("t_ti"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[42], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(163, S_vimoption{fullname: S("t_TI"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(43), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(163, S_vimoption{fullname: S("t_TI"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[43], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(164, S_vimoption{fullname: S("t_Ts"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(34), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(164, S_vimoption{fullname: S("t_Ts"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[34], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(165, S_vimoption{fullname: S("t_ts"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(64), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(165, S_vimoption{fullname: S("t_ts"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[64], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(166, S_vimoption{fullname: S("t_ue"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(26), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(166, S_vimoption{fullname: S("t_ue"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[26], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(167, S_vimoption{fullname: S("t_us"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(27), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(167, S_vimoption{fullname: S("t_us"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[27], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(168, S_vimoption{fullname: S("t_Us"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(30), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(168, S_vimoption{fullname: S("t_Us"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[30], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(169, S_vimoption{fullname: S("t_ut"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(9), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(169, S_vimoption{fullname: S("t_ut"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[9], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(170, S_vimoption{fullname: S("t_vb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(39), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(170, S_vimoption{fullname: S("t_vb"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[39], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(171, S_vimoption{fullname: S("t_ve"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(13), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(171, S_vimoption{fullname: S("t_ve"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[13], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(172, S_vimoption{fullname: S("t_vi"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(12), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(172, S_vimoption{fullname: S("t_vi"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[12], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(173, S_vimoption{fullname: S("t_VS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(15), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(173, S_vimoption{fullname: S("t_VS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[15], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(174, S_vimoption{fullname: S("t_vs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(14), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(174, S_vimoption{fullname: S("t_vs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[14], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(175, S_vimoption{fullname: S("t_WS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(68), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(175, S_vimoption{fullname: S("t_WS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[68], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(176, S_vimoption{fullname: S("t_xn"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(53), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(176, S_vimoption{fullname: S("t_xn"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[53], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(177, S_vimoption{fullname: S("t_xs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(52), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(177, S_vimoption{fullname: S("t_xs"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[52], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(178, S_vimoption{fullname: S("t_ZH"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(24), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(178, S_vimoption{fullname: S("t_ZH"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[24], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(179, S_vimoption{fullname: S("t_ZR"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(25), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(179, S_vimoption{fullname: S("t_ZR"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[25], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(180, S_vimoption{fullname: S("t_8u"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(81), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(180, S_vimoption{fullname: S("t_8u"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[81], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(181, S_vimoption{fullname: S("t_xo"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(91), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(181, S_vimoption{fullname: S("t_xo"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[91], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(182, S_vimoption{fullname: S("t_BS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(92), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(182, S_vimoption{fullname: S("t_BS"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[92], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
-	options.Set(183, S_vimoption{fullname: S("t_ES"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: View(term_strings[:]).Add(93), ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
+	options.Set(183, S_vimoption{fullname: S("t_ES"), shortname: Ptr[byte]{}, flags: ((P_STRING | P_VI_DEF) | P_RALL) | P_SECURE, var_: optvar_T{ov_int: nil, ov_long: nil, ov_str: &term_strings[93], ov_win: 0}, indir: PV_NONE, opt_did_set_cb: did_set_term_option, opt_expand_cb: nil, def_str: [2]Ptr[byte]{
 		S(""),
 		{},
 	}, def_num: [2]int64{}})
@@ -6861,16 +6861,16 @@ func NGETTEXT(x Ptr[byte], xs Ptr[byte], n uint64) Ptr[byte] {
 }
 
 func optvar_int(p *int32) optvar_T {
-	var v optvar_T = optvar_T{ov_int: p, ov_long: nil, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}
+	var v optvar_T = optvar_T{ov_int: p, ov_long: nil, ov_str: nil, ov_win: 0}
 	return v
 }
 
 func optvar_long(p *int64) optvar_T {
-	var v optvar_T = optvar_T{ov_int: nil, ov_long: p, ov_str: Ptr[Ptr[byte]]{}, ov_win: 0}
+	var v optvar_T = optvar_T{ov_int: nil, ov_long: p, ov_str: nil, ov_win: 0}
 	return v
 }
 
-func optvar_str(p Ptr[Ptr[byte]]) optvar_T {
+func optvar_str(p *Ptr[byte]) optvar_T {
 	var v optvar_T = optvar_T{ov_int: nil, ov_long: nil, ov_str: p, ov_win: 0}
 	return v
 }
@@ -6881,7 +6881,7 @@ func optvar_none() optvar_T {
 }
 
 func optvar_is_null(v optvar_T) bool {
-	return (((v.ov_int == nil) && (v.ov_long == nil)) && v.ov_str.Nil()) && (v.ov_win == 0)
+	return (((v.ov_int == nil) && (v.ov_long == nil)) && (v.ov_str == nil)) && (v.ov_win == 0)
 }
 
 func do_outofmem_msg(size usize) {
@@ -7461,7 +7461,7 @@ func changed_common(lnum linenr_T, col colnr_T, lnume linenr_T, xtra int64) {
 	var wp *S_window_S
 	var i int32
 	var cols int32
-	var p Ptr[pos_T]
+	var p *pos_T
 	var add bool
 	changed()
 	if (cmdmod.cmod_flags & CMOD_KEEPJUMPS) == 0 {
@@ -7471,15 +7471,15 @@ func changed_common(lnum linenr_T, col colnr_T, lnume linenr_T, xtra int64) {
 			if curbuf.b_changelistlen == 0 {
 				add = true
 			} else {
-				p = View(curbuf.b_changelist[:]).Add(int(curbuf.b_changelistlen - 1))
-				if p.P().lnum != lnum {
+				p = &curbuf.b_changelist[int(curbuf.b_changelistlen-1)]
+				if p.lnum != lnum {
 					add = true
 				} else {
 					cols = comp_textwidth()
 					if cols == 0 {
 						cols = 79
 					}
-					add = (((p.P().col + cols) < col) || ((col + cols) < p.P().col))
+					add = (((p.col + cols) < col) || ((col + cols) < p.col))
 				}
 			}
 			if add {
@@ -8268,7 +8268,7 @@ func parse_isopt(var_ Ptr[byte], buf *S_file_buffer, only_check bool) bool {
 			p = p.Add(1)
 		}
 		if (uint32(p.Get()) - '0') < 10 {
-			c = int32(getdigits(Addr(&p)))
+			c = int32(getdigits(&p))
 		} else {
 			c = mb_ptr2char_adv(&p)
 		}
@@ -8276,7 +8276,7 @@ func parse_isopt(var_ Ptr[byte], buf *S_file_buffer, only_check bool) bool {
 		if (int32(p.Get()) == '-') && (int32(p.At(1)) != NUL) {
 			p = p.Add(1)
 			if (uint32(p.Get()) - '0') < 10 {
-				c2 = int32(getdigits(Addr(&p)))
+				c2 = int32(getdigits(&p))
 			} else {
 				c2 = mb_ptr2char_adv(&p)
 			}
@@ -9020,16 +9020,16 @@ func skiptowhite(p Ptr[byte]) Ptr[byte] {
 	return p
 }
 
-func getdigits(pp Ptr[Ptr[byte]]) int64 {
+func getdigits(pp *Ptr[byte]) int64 {
 	var p Ptr[byte]
 	var retval int64
-	p = pp.Get()
+	p = (*pp)
 	retval = musl_strtol(p, nil, 10)
 	if int32(p.Get()) == '-' {
 		p = p.Add(1)
 	}
 	p = skipdigits(p)
-	pp.Put(p)
+	*pp = p
 	return retval
 }
 
@@ -9383,8 +9383,8 @@ func get_histentry(hist_type int32) Ptr[S_hist_entry] {
 	return history[int(hist_type)]
 }
 
-func get_hisidx(hist_type int32) Ptr[int32] {
-	return View(hisidx[:]).Add(int(hist_type))
+func get_hisidx(hist_type int32) *int32 {
+	return &hisidx[int(hist_type)]
 }
 
 func hist_char2type(c int32) int32 {
@@ -9427,7 +9427,7 @@ func init_history() {
 		if hisidx[int(type_)] < 0 {
 			i = 0
 			for ; i < newlen; i++ {
-				clear_hist_entry(temp.Add(int(i)))
+				clear_hist_entry(temp.Ref(int(i)))
 			}
 		} else if newlen > hislen {
 			i_2 = 0
@@ -9436,7 +9436,7 @@ func init_history() {
 			}
 			j = i_2
 			for ; i_2 <= (newlen - (hislen - hisidx[int(type_)])); i_2++ {
-				clear_hist_entry(temp.Add(int(i_2)))
+				clear_hist_entry(temp.Ref(int(i_2)))
 			}
 			for {
 				if !(j < hislen) {
@@ -9470,12 +9470,12 @@ func init_history() {
 	hislen = newlen
 }
 
-func clear_hist_entry(hisptr Ptr[S_hist_entry]) {
-	hisptr.P().hisnum = 0
-	hisptr.P().viminfo = FALSE
-	hisptr.P().hisstr = Ptr[byte]{}
-	hisptr.P().hisstrlen = 0
-	hisptr.P().time_set = 0
+func clear_hist_entry(hisptr *S_hist_entry) {
+	hisptr.hisnum = 0
+	hisptr.viminfo = FALSE
+	hisptr.hisstr = Ptr[byte]{}
+	hisptr.hisstrlen = 0
+	hisptr.time_set = 0
 }
 
 func in_history(type_ int32, str Ptr[byte], move_to_front bool, sep int32, writing bool) bool {
@@ -9548,7 +9548,7 @@ func get_histtype(name Ptr[byte]) int32 {
 }
 
 func add_to_history(histype int32, new_entry Ptr[byte], new_entrylen usize, in_map bool, sep int32) {
-	var hisptr Ptr[S_hist_entry]
+	var hisptr *S_hist_entry
 	if hislen == 0 {
 		return
 	}
@@ -9557,7 +9557,7 @@ func add_to_history(histype int32, new_entry Ptr[byte], new_entrylen usize, in_m
 	}
 	if (histype == HIST_SEARCH) && in_map {
 		if (maptick == last_maptick) && (hisidx[HIST_SEARCH] >= 0) {
-			hisptr = history[HIST_SEARCH].Add(int(hisidx[HIST_SEARCH]))
+			hisptr = history[HIST_SEARCH].Ref(int(hisidx[HIST_SEARCH]))
 			clear_hist_entry(hisptr)
 			hisnum[int(histype)]--
 			hisidx[HIST_SEARCH]--
@@ -9574,14 +9574,14 @@ func add_to_history(histype int32, new_entry Ptr[byte], new_entrylen usize, in_m
 	if hisidx[int(histype)] == hislen {
 		hisidx[int(histype)] = 0
 	}
-	hisptr = history[int(histype)].Add(int(hisidx[int(histype)]))
-	hisptr.P().hisstr = vim_strnsave(new_entry, new_entrylen+2)
-	hisptr.P().hisstr.Set(int(new_entrylen+1), byte(sep))
-	hisptr.P().hisstrlen = new_entrylen
+	hisptr = history[int(histype)].Ref(int(hisidx[int(histype)]))
+	hisptr.hisstr = vim_strnsave(new_entry, new_entrylen+2)
+	hisptr.hisstr.Set(int(new_entrylen+1), byte(sep))
+	hisptr.hisstrlen = new_entrylen
 	hisnum[int(histype)]++
-	hisptr.P().hisnum = hisnum[int(histype)]
-	hisptr.P().viminfo = FALSE
-	hisptr.P().time_set = host_time()
+	hisptr.hisnum = hisnum[int(histype)]
+	hisptr.viminfo = FALSE
+	hisptr.time_set = host_time()
 	if (histype == HIST_SEARCH) && in_map {
 		last_maptick = maptick
 	}
@@ -14867,7 +14867,7 @@ func ex_substitute(eap *S_exarg) {
 	save_do_ask = ex_substitute_subflags.do_ask
 	cmd = skipwhite(cmd)
 	if (uint32(cmd.Get()) - '0') < 10 {
-		i = getdigits(Addr(&cmd))
+		i = getdigits(&cmd)
 		if (i <= 0) && (ex_substitute_subflags.do_error != 0) {
 			emsg(gettext_(e_positive_count_required))
 			return
@@ -16129,7 +16129,7 @@ func parse_cmd_address(eap *S_exarg, errormsg *Ptr[byte], silent bool) bool {
 	var need_check_cursor bool
 	var ret bool
 	var t1 int32
-	var fp Ptr[pos_T]
+	var fp *pos_T
 
 	address_count = 1
 	need_check_cursor = false
@@ -16170,12 +16170,12 @@ func parse_cmd_address(eap *S_exarg, errormsg *Ptr[byte], silent bool) bool {
 				if !check_mark(fp) {
 					goto theend
 				}
-				eap.line1 = fp.P().lnum
+				eap.line1 = fp.lnum
 				fp = getmark('>', false)
 				if !check_mark(fp) {
 					goto theend
 				}
-				eap.line2 = fp.P().lnum
+				eap.line2 = fp.lnum
 				eap.addr_count++
 			}
 		} else {
@@ -16386,7 +16386,7 @@ func get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T, skip bool, 
 	var n int64
 	var cmd Ptr[byte]
 	var pos pos_T
-	var fp Ptr[pos_T]
+	var fp *pos_T
 	var lnum linenr_T
 	var t1 Ptr[byte]
 	var flags int32
@@ -16443,7 +16443,7 @@ func get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T, skip bool, 
 					cmd = Ptr[byte]{}
 					goto error
 				}
-				lnum = fp.P().lnum
+				lnum = fp.lnum
 			}
 		case '/', '?':
 			t1 = cmd
@@ -16533,7 +16533,7 @@ func get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T, skip bool, 
 			cmd = cmd.Add(1)
 		default:
 			if (uint32(cmd.Get()) - '0') < 10 {
-				lnum = getdigits(Addr(&cmd))
+				lnum = getdigits(&cmd)
 			}
 		}
 		for {
@@ -16561,7 +16561,7 @@ func get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T, skip bool, 
 			if !((uint32(cmd.Get()) - '0') < 10) {
 				n = 1
 			} else {
-				n = getdigits(Addr(&cmd))
+				n = getdigits(&cmd)
 				if n == LONG_MAX {
 					emsg(gettext_(e_line_number_out_of_range))
 					cmd = Ptr[byte]{}
@@ -16872,10 +16872,10 @@ func ex_winsize(eap *S_exarg) {
 		emsg(iobuff_or(gettext_(e_invalid_argument_str)))
 		return
 	}
-	w = int32(getdigits(Addr(&arg)))
+	w = int32(getdigits(&arg))
 	arg = skipwhite(arg)
 	p = arg
-	h = int32(getdigits(Addr(&arg)))
+	h = int32(getdigits(&arg))
 	if (int32(p.Get()) != NUL) && (int32(arg.Get()) == NUL) {
 		set_shellsize(w, h, TRUE)
 	} else {
@@ -17051,7 +17051,7 @@ func ex_later(eap *S_exarg) {
 	if int32(p.Get()) == NUL {
 		count = 1
 	} else if musl_isdigit(int32(p.Get())) {
-		count = getdigits(Addr(&p))
+		count = getdigits(&p)
 		switch p.Get() {
 		case 's':
 			p = p.Add(1)
@@ -18086,17 +18086,17 @@ func cmdline_browse_history(c int32, firstc int32, curcmdstr *Ptr[byte], curcmds
 	for {
 		if ((((c == K_UP) || (c == K_S_UP)) || (c == Ctrl_P)) || (c == K_PAGEUP)) || (c == K_KPAGEUP) {
 			if hiscnt == get_hislen() {
-				hiscnt = get_hisidx(histype).Get()
-			} else if (hiscnt == 0) && (get_hisidx(histype).Get() != (get_hislen() - 1)) {
+				hiscnt = (*get_hisidx(histype))
+			} else if (hiscnt == 0) && ((*get_hisidx(histype)) != (get_hislen() - 1)) {
 				hiscnt = get_hislen() - 1
-			} else if hiscnt != (get_hisidx(histype).Get() + 1) {
+			} else if hiscnt != ((*get_hisidx(histype)) + 1) {
 				hiscnt--
 			} else {
 				hiscnt = orig_hiscnt
 				break
 			}
 		} else {
-			if hiscnt == get_hisidx(histype).Get() {
+			if hiscnt == (*get_hisidx(histype)) {
 				hiscnt = get_hislen()
 				break
 			}
@@ -19225,7 +19225,7 @@ func file_name_in_line(line Ptr[byte], col int32, options int32, count int64, re
 			}
 			p = skipwhite(p)
 			if musl_isdigit(int32(p.Get())) {
-				*file_lnum = int64(int32(getdigits(Addr(&p))))
+				*file_lnum = int64(int32(getdigits(&p)))
 			}
 		}
 	}
@@ -21253,7 +21253,7 @@ func lookup_color(idx int32, foreground bool, boldp *int32) int32 {
 func highlight_group_link(from_hg Ptr[byte], from_len int32, to_hg Ptr[byte], to_len int32, dodefault bool, forceit bool, init_ bool) {
 	var from_id int32
 	var to_id int32
-	var hlgroup Ptr[hl_group_T] = Ptr[hl_group_T]{}
+	var hlgroup *hl_group_T = nil
 	from_id = syn_check_group(from_hg, from_len)
 	if musl_strncmp(to_hg, S("NONE"), 4) == 0 {
 		to_id = 0
@@ -21261,22 +21261,22 @@ func highlight_group_link(from_hg Ptr[byte], from_len int32, to_hg Ptr[byte], to
 		to_id = syn_check_group(to_hg, to_len)
 	}
 	if from_id > 0 {
-		hlgroup = GaData[hl_group_T](&highlight_ga).Add(int(from_id - 1))
-		if dodefault && (forceit || (hlgroup.P().sg_deflink == 0)) {
-			hlgroup.P().sg_deflink = to_id
+		hlgroup = GaData[hl_group_T](&highlight_ga).Ref(int(from_id - 1))
+		if dodefault && (forceit || (hlgroup.sg_deflink == 0)) {
+			hlgroup.sg_deflink = to_id
 		}
 	}
-	if (from_id > 0) && (!init_ || (hlgroup.P().sg_set == 0)) {
+	if (from_id > 0) && (!init_ || (hlgroup.sg_set == 0)) {
 		if (((to_id > 0) && !forceit) && !init_) && hl_has_settings(from_id-1, (dodefault)) {
 			if GaData[estack_T](&exestack).Ref(int(exestack.ga_len-1)).es_name.Nil() && !dodefault {
 				emsg(gettext_(e_group_has_settings_highlight_link_ignored))
 			}
-		} else if (hlgroup.P().sg_link != to_id) || hlgroup.P().sg_cleared {
+		} else if (hlgroup.sg_link != to_id) || hlgroup.sg_cleared {
 			if !init_ {
-				hlgroup.P().sg_set |= SG_LINK
+				hlgroup.sg_set |= SG_LINK
 			}
-			hlgroup.P().sg_link = to_id
-			hlgroup.P().sg_cleared = false
+			hlgroup.sg_link = to_id
+			hlgroup.sg_cleared = false
 			redraw_all_later(UPD_SOME_VALID)
 			need_highlight_changed = TRUE
 		}
@@ -21752,7 +21752,7 @@ func do_highlight(line Ptr[byte], forceit bool, init_ bool) {
 			set_hl_attr(idx)
 		}
 	}
-	if did_change || (B2i(GaData[hl_group_T](&highlight_ga).Add(int(idx)).P() != &item_before) != 0) {
+	if did_change || (B2i(GaData[hl_group_T](&highlight_ga).Ref(int(idx)) != &item_before) != 0) {
 		if updating_screen == 0 {
 			redraw_all_later(UPD_NOT_VALID)
 		}
@@ -21794,7 +21794,7 @@ func get_attr_entry(table *S_growarray, aep *S_attr_entry) int32 {
 	table.ga_growsize = 7
 	i = 0
 	for ; i < table.ga_len; i++ {
-		taep = GaData[S_attr_entry](table).Add(int(i)).P()
+		taep = GaData[S_attr_entry](table).Ref(int(i))
 		if (int32(aep.ae_attr) == int32(taep.ae_attr)) && ((((((table == &term_attr_table) && (B2i(aep.ae_u.term.start.Nil()) == B2i(taep.ae_u.term.start.Nil()))) && (aep.ae_u.term.start.Nil() || (musl_strcmp(aep.ae_u.term.start, taep.ae_u.term.start) == 0))) && (B2i(aep.ae_u.term.stop.Nil()) == B2i(taep.ae_u.term.stop.Nil()))) && (aep.ae_u.term.stop.Nil() || (musl_strcmp(aep.ae_u.term.stop, taep.ae_u.term.stop) == 0))) || (((((table == &cterm_attr_table) && (int32(aep.ae_u.cterm.fg_color) == int32(taep.ae_u.cterm.fg_color))) && (int32(aep.ae_u.cterm.bg_color) == int32(taep.ae_u.cterm.bg_color))) && (int32(aep.ae_u.cterm.ul_color) == int32(taep.ae_u.cterm.ul_color))) && (int32(aep.ae_u.cterm.font) == int32(taep.ae_u.cterm.font)))) {
 			return i + (HL_ALL + 1)
 		}
@@ -21816,7 +21816,7 @@ func get_attr_entry(table *S_growarray, aep *S_attr_entry) int32 {
 	if !ga_grow(table, 1) {
 		return 0
 	}
-	taep = GaData[S_attr_entry](table).Add(int(table.ga_len)).P()
+	taep = GaData[S_attr_entry](table).Ref(int(table.ga_len))
 	*taep = S_attr_entry{}
 	taep.ae_attr = aep.ae_attr
 	if table == &term_attr_table {
@@ -22187,7 +22187,7 @@ func syn_term_attr2entry(attr int32) *S_attr_entry {
 	if attr >= term_attr_table.ga_len {
 		return nil
 	}
-	return GaData[S_attr_entry](&term_attr_table).Add(int(attr)).P()
+	return GaData[S_attr_entry](&term_attr_table).Ref(int(attr))
 }
 
 func syn_cterm_attr2entry(attr int32) *S_attr_entry {
@@ -22195,25 +22195,25 @@ func syn_cterm_attr2entry(attr int32) *S_attr_entry {
 	if attr >= cterm_attr_table.ga_len {
 		return nil
 	}
-	return GaData[S_attr_entry](&cterm_attr_table).Add(int(attr)).P()
+	return GaData[S_attr_entry](&cterm_attr_table).Ref(int(attr))
 }
 
 func highlight_list_one(id int32) {
-	var sgp Ptr[hl_group_T]
+	var sgp *hl_group_T
 	var didh int32 = FALSE
-	sgp = GaData[hl_group_T](&highlight_ga).Add(int(id - 1))
-	if message_filtered(sgp.P().sg_name) {
+	sgp = GaData[hl_group_T](&highlight_ga).Ref(int(id - 1))
+	if message_filtered(sgp.sg_name) {
 		return
 	}
-	didh = highlight_list_arg(id, didh, LIST_ATTR, sgp.P().sg_term, Ptr[byte]{}, S("term"))
-	didh = highlight_list_arg(id, didh, LIST_STRING, 0, sgp.P().sg_start, S("start"))
-	didh = highlight_list_arg(id, didh, LIST_STRING, 0, sgp.P().sg_stop, S("stop"))
-	didh = highlight_list_arg(id, didh, LIST_ATTR, sgp.P().sg_cterm, Ptr[byte]{}, S("cterm"))
-	didh = highlight_list_arg(id, didh, LIST_INT, sgp.P().sg_cterm_fg, Ptr[byte]{}, S("ctermfg"))
-	didh = highlight_list_arg(id, didh, LIST_INT, sgp.P().sg_cterm_bg, Ptr[byte]{}, S("ctermbg"))
-	didh = highlight_list_arg(id, didh, LIST_INT, sgp.P().sg_cterm_ul, Ptr[byte]{}, S("ctermul"))
-	didh = highlight_list_arg(id, didh, LIST_INT, sgp.P().sg_cterm_font, Ptr[byte]{}, S("ctermfont"))
-	if (sgp.P().sg_link != 0) && (got_int == 0) {
+	didh = highlight_list_arg(id, didh, LIST_ATTR, sgp.sg_term, Ptr[byte]{}, S("term"))
+	didh = highlight_list_arg(id, didh, LIST_STRING, 0, sgp.sg_start, S("start"))
+	didh = highlight_list_arg(id, didh, LIST_STRING, 0, sgp.sg_stop, S("stop"))
+	didh = highlight_list_arg(id, didh, LIST_ATTR, sgp.sg_cterm, Ptr[byte]{}, S("cterm"))
+	didh = highlight_list_arg(id, didh, LIST_INT, sgp.sg_cterm_fg, Ptr[byte]{}, S("ctermfg"))
+	didh = highlight_list_arg(id, didh, LIST_INT, sgp.sg_cterm_bg, Ptr[byte]{}, S("ctermbg"))
+	didh = highlight_list_arg(id, didh, LIST_INT, sgp.sg_cterm_ul, Ptr[byte]{}, S("ctermul"))
+	didh = highlight_list_arg(id, didh, LIST_INT, sgp.sg_cterm_font, Ptr[byte]{}, S("ctermfont"))
+	if (sgp.sg_link != 0) && (got_int == 0) {
 		syn_list_header(didh, 9999, id)
 		didh = TRUE
 		msg_puts_attr(S("links to"), highlight_attr[3])
@@ -22319,27 +22319,27 @@ func syn_list_header(did_header int32, outlen int32, id int32) bool {
 
 func set_hl_attr(idx int32) {
 	var at_en S_attr_entry
-	sgp := GaData[hl_group_T](&highlight_ga).Add(int(idx))
-	if !sgp.P().sg_name_u.Nil() && (musl_strcmp(sgp.P().sg_name_u, S("NORMAL")) == 0) {
+	var sgp *hl_group_T = GaData[hl_group_T](&highlight_ga).Ref(int(idx))
+	if !sgp.sg_name_u.Nil() && (musl_strcmp(sgp.sg_name_u, S("NORMAL")) == 0) {
 		return
 	}
-	if sgp.P().sg_start.Nil() && sgp.P().sg_stop.Nil() {
-		sgp.P().sg_term_attr = sgp.P().sg_term
+	if sgp.sg_start.Nil() && sgp.sg_stop.Nil() {
+		sgp.sg_term_attr = sgp.sg_term
 	} else {
-		at_en.ae_attr = int16(sgp.P().sg_term)
-		at_en.ae_u.term.start = sgp.P().sg_start
-		at_en.ae_u.term.stop = sgp.P().sg_stop
-		sgp.P().sg_term_attr = get_attr_entry(&term_attr_table, &at_en)
+		at_en.ae_attr = int16(sgp.sg_term)
+		at_en.ae_u.term.start = sgp.sg_start
+		at_en.ae_u.term.stop = sgp.sg_stop
+		sgp.sg_term_attr = get_attr_entry(&term_attr_table, &at_en)
 	}
-	if (((sgp.P().sg_cterm_fg == 0) && (sgp.P().sg_cterm_bg == 0)) && (sgp.P().sg_cterm_ul == 0)) && (sgp.P().sg_cterm_font == 0) {
-		sgp.P().sg_cterm_attr = sgp.P().sg_cterm
+	if (((sgp.sg_cterm_fg == 0) && (sgp.sg_cterm_bg == 0)) && (sgp.sg_cterm_ul == 0)) && (sgp.sg_cterm_font == 0) {
+		sgp.sg_cterm_attr = sgp.sg_cterm
 	} else {
-		at_en.ae_attr = int16(sgp.P().sg_cterm)
-		at_en.ae_u.cterm.fg_color = short_u(sgp.P().sg_cterm_fg)
-		at_en.ae_u.cterm.bg_color = short_u(sgp.P().sg_cterm_bg)
-		at_en.ae_u.cterm.ul_color = short_u(sgp.P().sg_cterm_ul)
-		at_en.ae_u.cterm.font = short_u(sgp.P().sg_cterm_font)
-		sgp.P().sg_cterm_attr = get_attr_entry(&cterm_attr_table, &at_en)
+		at_en.ae_attr = int16(sgp.sg_cterm)
+		at_en.ae_u.cterm.fg_color = short_u(sgp.sg_cterm_fg)
+		at_en.ae_u.cterm.bg_color = short_u(sgp.sg_cterm_bg)
+		at_en.ae_u.cterm.ul_color = short_u(sgp.sg_cterm_ul)
+		at_en.ae_u.cterm.font = short_u(sgp.sg_cterm_font)
+		sgp.sg_cterm_attr = get_attr_entry(&cterm_attr_table, &at_en)
 	}
 }
 
@@ -22432,20 +22432,20 @@ func syn_unadd_group() {
 
 func syn_id2attr(hl_id int32) int32 {
 	var attr int32
-	var sgp Ptr[hl_group_T]
+	var sgp *hl_group_T
 	hl_id = syn_get_final_id(hl_id)
-	sgp = GaData[hl_group_T](&highlight_ga).Add(int(hl_id - 1))
+	sgp = GaData[hl_group_T](&highlight_ga).Ref(int(hl_id - 1))
 	if t_colors > 1 {
-		attr = sgp.P().sg_cterm_attr
+		attr = sgp.sg_cterm_attr
 	} else {
-		attr = sgp.P().sg_term_attr
+		attr = sgp.sg_term_attr
 	}
 	return attr
 }
 
 func syn_get_final_id(hl_id int32) int32 {
 	var count int32
-	var sgp Ptr[hl_group_T]
+	var sgp *hl_group_T
 	if (hl_id > highlight_ga.ga_len) || (hl_id < 1) {
 		return 0
 	}
@@ -22456,15 +22456,15 @@ func syn_get_final_id(hl_id int32) int32 {
 			break
 		}
 		tmp := hl_id
-		sgp = GaData[hl_group_T](&highlight_ga).Add(int(hl_id - 1))
-		if (sgp.P().sg_link == 0) || (sgp.P().sg_link > highlight_ga.ga_len) {
+		sgp = GaData[hl_group_T](&highlight_ga).Ref(int(hl_id - 1))
+		if (sgp.sg_link == 0) || (sgp.sg_link > highlight_ga.ga_len) {
 			break
 		}
 		hl_id = syn_override(hl_id)
 		if tmp != hl_id {
 			continue
 		}
-		hl_id = sgp.P().sg_link
+		hl_id = sgp.sg_link
 	}
 	return syn_override(hl_id)
 }
@@ -22592,14 +22592,14 @@ func set_highlight_attr(arr Ptr[hl_override_T], len_ int32, update_ids bool) {
 
 	var i int32 = 0
 	for ; i < len_; i++ {
-		override := arr.Add(int(i))
+		var override *hl_override_T = arr.Ref(int(i))
 		var hlf int32 = -1
-		if override.P().from <= 0 {
-			hlf = -override.P().from
+		if override.from <= 0 {
+			hlf = -override.from
 		} else {
 			var k int32 = 0
 			for ; k < HLF_COUNT; k++ {
-				if override.P().from == highlight_ids[int(k)] {
+				if override.from == highlight_ids[int(k)] {
 					hlf = k
 					break
 				}
@@ -22609,20 +22609,20 @@ func set_highlight_attr(arr Ptr[hl_override_T], len_ int32, update_ids bool) {
 			}
 		}
 		if update_ids {
-			if override.P().to <= 0 {
-				if hlf == -override.P().to {
+			if override.to <= 0 {
+				if hlf == -override.to {
 					highlight_ids[int(hlf)] = -1
 				} else {
-					highlight_ids[int(hlf)] = highlight_ids[int(-override.P().to)]
+					highlight_ids[int(hlf)] = highlight_ids[int(-override.to)]
 				}
 			} else {
-				highlight_ids[int(hlf)] = override.P().to
+				highlight_ids[int(hlf)] = override.to
 			}
 		} else {
-			if override.P().to <= 0 {
-				attr = highlight_attr[int(-override.P().to)]
+			if override.to <= 0 {
+				attr = highlight_attr[int(-override.to)]
 			} else {
-				attr = syn_id2attr(override.P().to)
+				attr = syn_id2attr(override.to)
 			}
 			highlight_attr[int(hlf)] = attr
 		}
@@ -22661,7 +22661,7 @@ func parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byte]) Ptr[hl_ov
 	var i int32
 	var num int32
 	var n_colons int32
-	var override Ptr[hl_override_T]
+	var override *hl_override_T
 	var t1 int32
 	var fromname Ptr[byte]
 	var toname Ptr[byte]
@@ -22711,7 +22711,7 @@ func parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byte]) Ptr[hl_ov
 	for {
 		t1 = i
 		i++
-		override = arr.Add(int(t1))
+		override = arr.Ref(int(t1))
 		fromname = p
 		names = [2]*Ptr[byte]{&fromname, &toname}
 		lens = [2]*int32{&fromlen, &tolen}
@@ -22771,8 +22771,8 @@ func parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byte]) Ptr[hl_ov
 				}
 			}
 		}
-		override.P().from = fromid
-		override.P().to = toid
+		override.from = fromid
+		override.to = toid
 		if tmp.Nil() {
 			break
 		}
@@ -23427,12 +23427,12 @@ func validate_maphash() {
 	maphash_valid = TRUE
 }
 
-func map_free(mpp Ptr[*S_mapblock]) {
-	var mp *S_mapblock = mpp.Get()
+func map_free(mpp **S_mapblock) {
+	var mp *S_mapblock = (*mpp)
 	if mp.m_alt != nil {
 		mp.m_alt.m_alt = nil
 	}
-	mpp.Put(mp.m_next)
+	*mpp = mp.m_next
 }
 
 func map_mode_to_chars(mode int32) Ptr[byte] {
@@ -23526,7 +23526,7 @@ theend:
 	map_locked--
 }
 
-func map_add(map_table Ptr[*S_mapblock], abbr_table Ptr[*S_mapblock], keys Ptr[byte], rhs Ptr[byte], orig_rhs Ptr[byte], noremap int32, nowait bool, silent bool, mode int32, is_abbr bool, simplified bool) *S_mapblock {
+func map_add(map_table Ptr[*S_mapblock], abbr_table **S_mapblock, keys Ptr[byte], rhs Ptr[byte], orig_rhs Ptr[byte], noremap int32, nowait bool, silent bool, mode int32, is_abbr bool, simplified bool) *S_mapblock {
 	mp := new(S_mapblock)
 	if int32(keys.Get()) == Ctrl_C {
 		if map_table == View(curbuf.b_maphash[:]) {
@@ -23548,8 +23548,8 @@ func map_add(map_table Ptr[*S_mapblock], abbr_table Ptr[*S_mapblock], keys Ptr[b
 	mp.m_mode = mode
 	mp.m_simplified = (simplified)
 	if is_abbr {
-		mp.m_next = abbr_table.Get()
-		abbr_table.Put(mp)
+		mp.m_next = (*abbr_table)
+		*abbr_table = mp
 	} else {
 		var t1 int32
 		if (mp.m_mode & ((((MODE_NORMAL | MODE_VISUAL) | MODE_SELECT) | MODE_OP_PENDING) | MODE_TERMINAL)) != 0 {
@@ -23644,7 +23644,7 @@ func list_mappings(keyround int32, abbrev bool, haskey bool, keys Ptr[byte], key
 func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 	var keys Ptr[byte]
 	var mp *S_mapblock
-	var mpp Ptr[*S_mapblock]
+	var mpp **S_mapblock
 	var mp_result [2]*S_mapblock
 	var rhs Ptr[byte]
 	var p Ptr[byte]
@@ -23659,7 +23659,7 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 	var arg_buf Ptr[byte]
 	var retval int32
 	var do_backslash bool
-	var abbr_table Ptr[*S_mapblock]
+	var abbr_table **S_mapblock
 	var map_table Ptr[*S_mapblock]
 	var unique bool
 	var nowait bool
@@ -23705,7 +23705,7 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 	unmap_lhs_only = false
 	keys = arg
 	map_table = maphash
-	abbr_table = Addr(&first_abbr)
+	abbr_table = &first_abbr
 	if maptype == MAPTYPE_UNMAP_LHS {
 		unmap_lhs_only = true
 		maptype = MAPTYPE_UNMAP
@@ -23719,7 +23719,7 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 		if musl_strncmp(keys, S("<buffer>"), 8) == 0 {
 			keys = skipwhite(keys.Add(8))
 			map_table = View(curbuf.b_maphash[:])
-			abbr_table = Addr(&curbuf.b_first_abbr)
+			abbr_table = &curbuf.b_first_abbr
 			continue
 		}
 		if musl_strncmp(keys, S("<nowait>"), 8) == 0 {
@@ -23892,12 +23892,12 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 					}
 					mpp = abbr_table
 				} else {
-					mpp = map_table.Add(int(hash_2))
+					mpp = map_table.Ref(int(hash_2))
 				}
-				mp = mpp.Get()
-				for ; (mp != nil) && (got_int == 0); mp = mpp.Get() {
+				mp = (*mpp)
+				for ; (mp != nil) && (got_int == 0); mp = (*mpp) {
 					if (mp.m_mode & mode) == 0 {
-						mpp = Addr(&mp.m_next)
+						mpp = &mp.m_next
 						continue
 					}
 					if !haskey {
@@ -23921,7 +23921,7 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 						if musl_strncmp(p, keys, uint64(t4)) == 0 {
 							if maptype == MAPTYPE_UNMAP {
 								if (n != len_) && (((!abbrev || (round != 0)) || (n > len_)) || (int32(skipwhite(keys.Add(int(n))).Get()) != NUL)) {
-									mpp = Addr(&mp.m_next)
+									mpp = &mp.m_next
 									continue
 								}
 								if keyround1_simplified && !mp.m_simplified {
@@ -23935,7 +23935,7 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 									did_it = true
 								}
 							} else if n != len_ {
-								mpp = Addr(&mp.m_next)
+								mpp = &mp.m_next
 								continue
 							} else if unique {
 								if abbrev {
@@ -23977,14 +23977,14 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 							}
 							new_hash = t5
 							if !abbrev && (new_hash != hash_2) {
-								mpp.Put(mp.m_next)
+								*mpp = mp.m_next
 								mp.m_next = map_table.At(int(new_hash))
 								map_table.Set(int(new_hash), mp)
 								continue
 							}
 						}
 					}
-					mpp = Addr(&mp.m_next)
+					mpp = &mp.m_next
 				}
 			}
 		}
@@ -24084,7 +24084,7 @@ func is_map_locked() bool {
 
 func map_clear_mode(buf *S_file_buffer, mode int32, local bool, abbr bool) {
 	var mp *S_mapblock
-	var mpp Ptr[*S_mapblock]
+	var mpp **S_mapblock
 	var hash int32
 	var new_hash int32
 	if is_map_locked() {
@@ -24098,19 +24098,19 @@ func map_clear_mode(buf *S_file_buffer, mode int32, local bool, abbr bool) {
 				break
 			}
 			if local {
-				mpp = Addr(&buf.b_first_abbr)
+				mpp = &buf.b_first_abbr
 			} else {
-				mpp = Addr(&first_abbr)
+				mpp = &first_abbr
 			}
 		} else {
 			if local {
-				mpp = View(buf.b_maphash[:]).Add(int(hash))
+				mpp = &buf.b_maphash[int(hash)]
 			} else {
-				mpp = maphash.Add(int(hash))
+				mpp = maphash.Ref(int(hash))
 			}
 		}
-		for mpp.Get() != nil {
-			mp = mpp.Get()
+		for (*mpp) != nil {
+			mp = (*mpp)
 			if mp.m_mode&mode != 0 {
 				mp.m_mode &= ^mode
 				if mp.m_mode == 0 {
@@ -24125,7 +24125,7 @@ func map_clear_mode(buf *S_file_buffer, mode int32, local bool, abbr bool) {
 				}
 				new_hash = t1
 				if !abbr && (new_hash != hash) {
-					mpp.Put(mp.m_next)
+					*mpp = mp.m_next
 					if local {
 						mp.m_next = buf.b_maphash[int(new_hash)]
 						buf.b_maphash[int(new_hash)] = mp
@@ -24136,7 +24136,7 @@ func map_clear_mode(buf *S_file_buffer, mode int32, local bool, abbr bool) {
 					continue
 				}
 			}
-			mpp = Addr(&mp.m_next)
+			mpp = &mp.m_next
 		}
 	}
 }
@@ -24402,82 +24402,82 @@ func checkpcmark() {
 	curwin.w_prev_pcmark.lnum = 0
 }
 
-func movechangelist(count int32) Ptr[pos_T] {
+func movechangelist(count int32) *pos_T {
 	var n int32
 	if curbuf.b_changelistlen == 0 {
-		return Ptr[pos_T]{}
+		return nil
 	}
 	n = curwin.w_changelistidx
 	if (n + count) < 0 {
 		if n == 0 {
-			return Ptr[pos_T]{}
+			return nil
 		}
 		n = 0
 	} else if (n + count) >= curbuf.b_changelistlen {
 		if n == (curbuf.b_changelistlen - 1) {
-			return Ptr[pos_T]{}
+			return nil
 		}
 		n = curbuf.b_changelistlen - 1
 	} else {
 		n += count
 	}
 	curwin.w_changelistidx = n
-	return View(curbuf.b_changelist[:]).Add(int(n))
+	return &curbuf.b_changelist[int(n)]
 }
 
-func getmark_buf(buf *S_file_buffer, c int32, changefile bool) Ptr[pos_T] {
+func getmark_buf(buf *S_file_buffer, c int32, changefile bool) *pos_T {
 	return getmark_buf_fnum(buf, c, (changefile), nil)
 }
 
-func getmark(c int32, changefile bool) Ptr[pos_T] {
+func getmark(c int32, changefile bool) *pos_T {
 	return getmark_buf_fnum(curbuf, c, (changefile), nil)
 }
 
-func getmark_buf_fnum(buf *S_file_buffer, c int32, changefile bool, fnum *int32) Ptr[pos_T] {
-	var posp Ptr[pos_T]
-	var startp Ptr[pos_T]
-	var endp Ptr[pos_T]
-	posp = Ptr[pos_T]{}
+func getmark_buf_fnum(buf *S_file_buffer, c int32, changefile bool, fnum *int32) *pos_T {
+	var posp *pos_T
+	var startp *pos_T
+	var endp *pos_T
+	posp = nil
 	if c < 0 {
 		return posp
 	}
 	if c > '~' {
 	} else if (c == 39) || (c == '`') {
 		getmark_buf_fnum_pos_copy = curwin.w_pcmark
-		posp = Addr(&getmark_buf_fnum_pos_copy)
+		posp = &getmark_buf_fnum_pos_copy
 	} else if c == '"' {
-		posp = Addr(&buf.b_last_cursor)
+		posp = &buf.b_last_cursor
 	} else if c == '^' {
-		posp = Addr(&buf.b_last_insert)
+		posp = &buf.b_last_insert
 	} else if c == '.' {
-		posp = Addr(&buf.b_last_change)
+		posp = &buf.b_last_change
 	} else if c == '[' {
-		posp = Addr(&buf.b_op_start)
+		posp = &buf.b_op_start
 	} else if c == ']' {
-		posp = Addr(&buf.b_op_end)
+		posp = &buf.b_op_end
 	} else if (c == '<') || (c == '>') {
-		startp = Addr(&buf.b_visual.vi_start)
-		endp = Addr(&buf.b_visual.vi_end)
+		startp = &buf.b_visual.vi_start
+		endp = &buf.b_visual.vi_end
 		var t2 bool
-		if startp.P().lnum != endp.P().lnum {
-			t2 = startp.P().lnum < endp.P().lnum
+		if (*startp).lnum != (*endp).lnum {
+			t2 = (*startp).lnum < (*endp).lnum
 		} else {
 			var t1 bool
-			if startp.P().col != endp.P().col {
-				t1 = startp.P().col < endp.P().col
+			if (*startp).col != (*endp).col {
+				t1 = (*startp).col < (*endp).col
 			} else {
-				t1 = startp.P().coladd < endp.P().coladd
+				t1 = (*startp).coladd < (*endp).coladd
 			}
 			t2 = t1
 		}
-		if ((B2i((c == '<')) == B2i(t2)) || (endp.P().lnum == 0)) && (startp.P().lnum != 0) {
+		if ((B2i((c == '<')) == B2i(t2)) || (endp.lnum == 0)) && (startp.lnum != 0) {
 			posp = startp
 		} else {
 			posp = endp
 		}
 		if buf.b_visual.vi_mode == 'V' {
-			getmark_buf_fnum_pos_copy = *posp.P()
-			posp = Addr(&getmark_buf_fnum_pos_copy)
+			getmark_buf_fnum_pos_copy = (*posp)
+			posp = &getmark_buf_fnum_pos_copy
 			if c == '<' {
 				getmark_buf_fnum_pos_copy.col = 0
 			} else {
@@ -24486,15 +24486,15 @@ func getmark_buf_fnum(buf *S_file_buffer, c int32, changefile bool, fnum *int32)
 			getmark_buf_fnum_pos_copy.coladd = 0
 		}
 	} else if (uint32(c) - 'a') < 26 {
-		posp = View(buf.b_namedm[:]).Add(int(c - 'a'))
+		posp = View(buf.b_namedm[:]).Add(int(c - 'a')).P()
 	}
 	return posp
 }
 
-func getnextmark(startpos Ptr[pos_T], dir int32, begin_line bool) Ptr[pos_T] {
+func getnextmark(startpos *pos_T, dir int32, begin_line bool) *pos_T {
 	var i int32
-	var result Ptr[pos_T] = Ptr[pos_T]{}
-	var pos pos_T = *startpos.P()
+	var result *pos_T = nil
+	var pos pos_T = (*startpos)
 	if (dir == -1) && begin_line {
 		pos.col = 0
 	} else if (dir == FORWARD) && begin_line {
@@ -24504,17 +24504,17 @@ func getnextmark(startpos Ptr[pos_T], dir int32, begin_line bool) Ptr[pos_T] {
 	for ; i < (('z' - 'a') + 1); i++ {
 		if curbuf.b_namedm[int(i)].lnum > 0 {
 			if dir == FORWARD {
-				var t3 bool = result.Nil()
+				var t3 bool = result == nil
 				if !t3 {
 					var t2 bool
-					if curbuf.b_namedm[int(i)].lnum != result.P().lnum {
-						t2 = curbuf.b_namedm[int(i)].lnum < result.P().lnum
+					if curbuf.b_namedm[int(i)].lnum != (*result).lnum {
+						t2 = curbuf.b_namedm[int(i)].lnum < (*result).lnum
 					} else {
 						var t1 bool
-						if curbuf.b_namedm[int(i)].col != result.P().col {
-							t1 = curbuf.b_namedm[int(i)].col < result.P().col
+						if curbuf.b_namedm[int(i)].col != (*result).col {
+							t1 = curbuf.b_namedm[int(i)].col < (*result).col
 						} else {
-							t1 = curbuf.b_namedm[int(i)].coladd < result.P().coladd
+							t1 = curbuf.b_namedm[int(i)].coladd < (*result).coladd
 						}
 						t2 = t1
 					}
@@ -24537,20 +24537,20 @@ func getnextmark(startpos Ptr[pos_T], dir int32, begin_line bool) Ptr[pos_T] {
 					t6 = t5
 				}
 				if t6 {
-					result = View(curbuf.b_namedm[:]).Add(int(i))
+					result = &curbuf.b_namedm[int(i)]
 				}
 			} else {
-				var t9 bool = result.Nil()
+				var t9 bool = result == nil
 				if !t9 {
 					var t8 bool
-					if result.P().lnum != curbuf.b_namedm[int(i)].lnum {
-						t8 = result.P().lnum < curbuf.b_namedm[int(i)].lnum
+					if (*result).lnum != curbuf.b_namedm[int(i)].lnum {
+						t8 = (*result).lnum < curbuf.b_namedm[int(i)].lnum
 					} else {
 						var t7 bool
-						if result.P().col != curbuf.b_namedm[int(i)].col {
-							t7 = result.P().col < curbuf.b_namedm[int(i)].col
+						if (*result).col != curbuf.b_namedm[int(i)].col {
+							t7 = (*result).col < curbuf.b_namedm[int(i)].col
 						} else {
-							t7 = result.P().coladd < curbuf.b_namedm[int(i)].coladd
+							t7 = (*result).coladd < curbuf.b_namedm[int(i)].coladd
 						}
 						t8 = t7
 					}
@@ -24573,7 +24573,7 @@ func getnextmark(startpos Ptr[pos_T], dir int32, begin_line bool) Ptr[pos_T] {
 					t12 = t11
 				}
 				if t12 {
-					result = View(curbuf.b_namedm[:]).Add(int(i))
+					result = &curbuf.b_namedm[int(i)]
 				}
 			}
 		}
@@ -24581,18 +24581,18 @@ func getnextmark(startpos Ptr[pos_T], dir int32, begin_line bool) Ptr[pos_T] {
 	return result
 }
 
-func check_mark(pos Ptr[pos_T]) bool {
-	if pos.Nil() {
+func check_mark(pos *pos_T) bool {
+	if pos == nil {
 		emsg(gettext_(e_unknown_mark))
 		return false
 	}
-	if pos.P().lnum <= 0 {
-		if pos.P().lnum == 0 {
+	if pos.lnum <= 0 {
+		if pos.lnum == 0 {
 			emsg(gettext_(e_mark_not_set))
 		}
 		return false
 	}
-	if pos.P().lnum > curbuf.b_ml.ml_line_count {
+	if pos.lnum > curbuf.b_ml.ml_line_count {
 		emsg(gettext_(e_mark_has_invalid_line_number))
 		return false
 	}
@@ -24614,14 +24614,14 @@ func clrallmarks(buf *S_file_buffer) {
 	buf.b_changelistlen = 0
 }
 
-func mark_line(mp Ptr[pos_T], lead_len int32) Ptr[byte] {
+func mark_line(mp *pos_T, lead_len int32) Ptr[byte] {
 	var s Ptr[byte]
 	var p Ptr[byte]
 	var len_ int32
-	if (mp.P().lnum == 0) || (mp.P().lnum > curbuf.b_ml.ml_line_count) {
+	if (mp.lnum == 0) || (mp.lnum > curbuf.b_ml.ml_line_count) {
 		return vim_strsave(S("-invalid-"))
 	}
-	s = vim_strnsave(skipwhite(ml_get(mp.P().lnum)), usize(Columns*5))
+	s = vim_strnsave(skipwhite(ml_get(mp.lnum)), usize(Columns*5))
 	len_ = 0
 	p = s
 	for ; int32(p.Get()) != NUL; p = p.Add(int(utfc_ptr2len(p))) {
@@ -24637,53 +24637,53 @@ func mark_line(mp Ptr[pos_T], lead_len int32) Ptr[byte] {
 func ex_marks(eap *S_exarg) {
 	arg := eap.arg
 	var i int32
-	var posp Ptr[pos_T]
-	var startp Ptr[pos_T]
-	var endp Ptr[pos_T]
+	var posp *pos_T
+	var startp *pos_T
+	var endp *pos_T
 	if !arg.Nil() && (int32(arg.Get()) == NUL) {
 		arg = Ptr[byte]{}
 	}
-	show_one_mark(39, arg, Addr(&curwin.w_pcmark), Ptr[byte]{}, true)
+	show_one_mark(39, arg, &curwin.w_pcmark, Ptr[byte]{}, true)
 	i = 0
 	for ; i < (('z' - 'a') + 1); i++ {
-		show_one_mark(i+'a', arg, View(curbuf.b_namedm[:]).Add(int(i)), Ptr[byte]{}, true)
+		show_one_mark(i+'a', arg, &curbuf.b_namedm[int(i)], Ptr[byte]{}, true)
 	}
-	show_one_mark('"', arg, Addr(&curbuf.b_last_cursor), Ptr[byte]{}, true)
-	show_one_mark('[', arg, Addr(&curbuf.b_op_start), Ptr[byte]{}, true)
-	show_one_mark(']', arg, Addr(&curbuf.b_op_end), Ptr[byte]{}, true)
-	show_one_mark('^', arg, Addr(&curbuf.b_last_insert), Ptr[byte]{}, true)
-	show_one_mark('.', arg, Addr(&curbuf.b_last_change), Ptr[byte]{}, true)
-	startp = Addr(&curbuf.b_visual.vi_start)
-	endp = Addr(&curbuf.b_visual.vi_end)
+	show_one_mark('"', arg, &curbuf.b_last_cursor, Ptr[byte]{}, true)
+	show_one_mark('[', arg, &curbuf.b_op_start, Ptr[byte]{}, true)
+	show_one_mark(']', arg, &curbuf.b_op_end, Ptr[byte]{}, true)
+	show_one_mark('^', arg, &curbuf.b_last_insert, Ptr[byte]{}, true)
+	show_one_mark('.', arg, &curbuf.b_last_change, Ptr[byte]{}, true)
+	startp = &curbuf.b_visual.vi_start
+	endp = &curbuf.b_visual.vi_end
 	var t2 bool
-	if startp.P().lnum != endp.P().lnum {
-		t2 = startp.P().lnum < endp.P().lnum
+	if (*startp).lnum != (*endp).lnum {
+		t2 = (*startp).lnum < (*endp).lnum
 	} else {
 		var t1 bool
-		if startp.P().col != endp.P().col {
-			t1 = startp.P().col < endp.P().col
+		if (*startp).col != (*endp).col {
+			t1 = (*startp).col < (*endp).col
 		} else {
-			t1 = startp.P().coladd < endp.P().coladd
+			t1 = (*startp).coladd < (*endp).coladd
 		}
 		t2 = t1
 	}
-	if (t2 || (endp.P().lnum == 0)) && (startp.P().lnum != 0) {
+	if (t2 || (endp.lnum == 0)) && (startp.lnum != 0) {
 		posp = startp
 	} else {
 		posp = endp
 	}
 	show_one_mark('<', arg, posp, Ptr[byte]{}, true)
-	var t3 Ptr[pos_T]
+	var t3 *pos_T
 	if posp == startp {
 		t3 = endp
 	} else {
 		t3 = startp
 	}
 	show_one_mark('>', arg, t3, Ptr[byte]{}, true)
-	show_one_mark(-1, arg, Ptr[pos_T]{}, Ptr[byte]{}, false)
+	show_one_mark(-1, arg, nil, Ptr[byte]{}, false)
 }
 
-func show_one_mark(c int32, arg Ptr[byte], p Ptr[pos_T], name_arg Ptr[byte], current bool) {
+func show_one_mark(c int32, arg Ptr[byte], p *pos_T, name_arg Ptr[byte], current bool) {
 	name := name_arg
 	if c == -1 {
 		if show_one_mark_did_title {
@@ -24696,7 +24696,7 @@ func show_one_mark(c int32, arg Ptr[byte], p Ptr[pos_T], name_arg Ptr[byte], cur
 				emsg(iobuff_or(gettext_(e_no_marks_matching_str)))
 			}
 		}
-	} else if ((got_int == 0) && (arg.Nil() || !vim_strchr(arg, c).Nil())) && (p.P().lnum != 0) {
+	} else if ((got_int == 0) && (arg.Nil() || !vim_strchr(arg, c).Nil())) && (p.lnum != 0) {
 		if name.Nil() && current {
 			name = mark_line(p, 15)
 		}
@@ -24707,7 +24707,7 @@ func show_one_mark(c int32, arg Ptr[byte], p Ptr[pos_T], name_arg Ptr[byte], cur
 			}
 			msg_putchar(10)
 			if got_int == 0 {
-				vim_snprintf(IObuff, 1025, S(" %c %6ld %4d "), c, p.P().lnum, p.P().col)
+				vim_snprintf(IObuff, 1025, S(" %c %6ld %4d "), c, p.lnum, p.col)
 				msg_outtrans(IObuff)
 				if !name.Nil() {
 					var t1 int32
@@ -24808,7 +24808,7 @@ func ex_changes(eap *S_exarg) {
 			}
 			vim_snprintf(IObuff, 1025, S("%c %3d %5ld %4d "), t1, t2, curbuf.b_changelist[int(i)].lnum, curbuf.b_changelist[int(i)].col)
 			msg_outtrans(IObuff)
-			name = mark_line(View(curbuf.b_changelist[:]).Add(int(i)), 17)
+			name = mark_line(&curbuf.b_changelist[int(i)], 17)
 			msg_outtrans_attr(name, highlight_attr[3])
 			ui_breakcheck()
 		}
@@ -25054,7 +25054,7 @@ func mark_col_adjust(lnum linenr_T, mincol colnr_T, lnum_amount int64, col_amoun
 	}
 	i = 0
 	for ; i < (('z' - 'a') + 1); i++ {
-		posp = View(curbuf.b_namedm[:]).Add(int(i)).P()
+		posp = &curbuf.b_namedm[int(i)]
 		if (posp.lnum == lnum) && (posp.col >= mincol) {
 			posp.lnum += lnum_amount
 			if (col_amount < 0) && (posp.col <= int32(-col_amount)) {
@@ -25090,7 +25090,7 @@ func mark_col_adjust(lnum linenr_T, mincol colnr_T, lnum_amount int64, col_amoun
 	}
 	i = 0
 	for ; i < curbuf.b_changelistlen; i++ {
-		posp = View(curbuf.b_changelist[:]).Add(int(i)).P()
+		posp = &curbuf.b_changelist[int(i)]
 		if (posp.lnum == lnum) && (posp.col >= mincol) {
 			posp.lnum += lnum_amount
 			if (col_amount < 0) && (posp.col <= int32(-col_amount)) {
@@ -25336,18 +25336,18 @@ func next_search_hl_pos(shl *match_T, lnum linenr_T, match *S_matchitem, mincol 
 	var found int32 = -1
 	i = match.mit_pos_cur
 	for ; i < match.mit_pos_count; i++ {
-		pos := match.mit_pos_array.Add(int(i))
-		if pos.P().lnum == 0 {
+		var pos *llpos_T = match.mit_pos_array.Ref(int(i))
+		if pos.lnum == 0 {
 			break
 		}
-		if (pos.P().len_ == 0) && (pos.P().col < mincol) {
+		if (pos.len_ == 0) && (pos.col < mincol) {
 			continue
 		}
-		if pos.P().lnum == lnum {
+		if pos.lnum == lnum {
 			if found >= 0 {
-				if pos.P().col < match.mit_pos_array.Ref(int(found)).col {
-					tmp := *pos.P()
-					pos.Put(*match.mit_pos_array.Ref(int(found)))
+				if pos.col < match.mit_pos_array.Ref(int(found)).col {
+					tmp := (*pos)
+					*pos = *match.mit_pos_array.Ref(int(found))
 					match.mit_pos_array.Set(int(found), tmp)
 				}
 			} else {
@@ -26991,7 +26991,7 @@ func ml_append_int(buf *S_file_buffer, lnum linenr_T, line_arg Ptr[byte], len_ar
 		ml_find_line(buf, 0, ML_FLUSH)
 		stack_idx = buf.b_ml.ml_stack_top - 1
 		for ; stack_idx >= 0; stack_idx-- {
-			ip = buf.b_ml.ml_stack.Add(int(stack_idx)).P()
+			ip = buf.b_ml.ml_stack.Ref(int(stack_idx))
 			pb_idx = ip.ip_index
 			hp = ip.ip_block
 			pp = hp.bh_ptr
@@ -27170,7 +27170,7 @@ func ml_delete_int(buf *S_file_buffer, lnum linenr_T, flags int32) bool {
 		stack_idx = buf.b_ml.ml_stack_top - 1
 		for ; stack_idx >= 0; stack_idx-- {
 			buf.b_ml.ml_stack_top = 0
-			ip = buf.b_ml.ml_stack.Add(int(stack_idx)).P()
+			ip = buf.b_ml.ml_stack.Ref(int(stack_idx))
 			idx = ip.ip_index
 			hp = ip.ip_block
 			pp = hp.bh_ptr
@@ -27386,7 +27386,7 @@ func ml_find_line(buf *S_file_buffer, lnum linenr_T, action int32) *S_block_hdr 
 	if action == ML_FIND {
 		top = buf.b_ml.ml_stack_top - 1
 		for ; top >= 0; top-- {
-			ip = buf.b_ml.ml_stack.Add(int(top)).P()
+			ip = buf.b_ml.ml_stack.Ref(int(top))
 			if (ip.ip_low <= lnum) && (ip.ip_high >= lnum) {
 				bp = ip.ip_block
 				low = ip.ip_low
@@ -27424,7 +27424,7 @@ func ml_find_line(buf *S_file_buffer, lnum linenr_T, action int32) *S_block_hdr 
 		if top < 0 {
 			goto error_block
 		}
-		ip = buf.b_ml.ml_stack.Add(int(top)).P()
+		ip = buf.b_ml.ml_stack.Ref(int(top))
 		ip.ip_block = bp
 		ip.ip_low = low
 		ip.ip_high = high
@@ -27489,7 +27489,7 @@ func ml_lineadd(buf *S_file_buffer, count int32) {
 	var hp *S_block_hdr
 	idx = buf.b_ml.ml_stack_top - 1
 	for ; idx >= 0; idx-- {
-		ip = buf.b_ml.ml_stack.Add(int(idx)).P()
+		ip = buf.b_ml.ml_stack.Ref(int(idx))
 		hp = ip.ip_block
 		pp = hp.bh_ptr
 		if int32(hp.bh_id) != (('p' << 8) + 't') {
@@ -27937,11 +27937,11 @@ func messagesopt_changed() bool {
 			messages_flags_new |= MESSAGES_HIT_ENTER
 		} else if (musl_strncmp(p, S("wait:"), 5) == 0) && ((uint32(p.At(5)) - '0') < 10) {
 			p = p.Add(5)
-			messages_wait_new = int32(getdigits(Addr(&p)))
+			messages_wait_new = int32(getdigits(&p))
 			messages_flags_new |= MESSAGES_WAIT
 		} else if (musl_strncmp(p, S("history:"), 8) == 0) && ((uint32(p.At(8)) - '0') < 10) {
 			p = p.Add(8)
-			messages_history_new = int32(getdigits(Addr(&p)))
+			messages_history_new = int32(getdigits(&p))
 			messages_flags_new |= MESSAGES_HISTORY
 		}
 		if (int32(p.Get()) != ',') && (int32(p.Get()) != NUL) {
@@ -34088,7 +34088,7 @@ func nv_bracket_block(cap_ *S_cmdarg_S, old_pos *pos_T) {
 
 func nv_brackets(cap_ *S_cmdarg_S) {
 	var prev_pos pos_T
-	var pos Ptr[pos_T] = Ptr[pos_T]{}
+	var pos *pos_T = nil
 	var old_pos pos_T
 	var n int64
 	cap_.oap.motion_type = MCHAR
@@ -34100,10 +34100,10 @@ func nv_brackets(cap_ *S_cmdarg_S) {
 	} else if (cap_.nchar == 'p') || (cap_.nchar == 'P') {
 		nv_put_opt(cap_, true)
 	} else if (cap_.nchar == 39) || (cap_.nchar == '`') {
-		pos = Addr(&curwin.w_cursor)
+		pos = &curwin.w_cursor
 		n = cap_.count1
 		for ; n > 0; n-- {
-			prev_pos = *pos.P()
+			prev_pos = (*pos)
 			var t1 int32
 			if cap_.cmdchar == '[' {
 				t1 = -1
@@ -34111,12 +34111,12 @@ func nv_brackets(cap_ *S_cmdarg_S) {
 				t1 = FORWARD
 			}
 			pos = getnextmark(pos, t1, cap_.nchar == 39)
-			if pos.Nil() {
+			if pos == nil {
 				break
 			}
 		}
-		if pos.Nil() {
-			pos = Addr(&prev_pos)
+		if pos == nil {
+			pos = &prev_pos
 		}
 		nv_cursormark(cap_, B2i(cap_.nchar == 39), pos)
 	} else if (cap_.nchar >= K_RIGHTRELEASE) && (cap_.nchar <= K_LEFTMOUSE) {
@@ -34437,14 +34437,14 @@ func n_swapchar(cap_ *S_cmdarg_S) {
 	}
 }
 
-func nv_cursormark(cap_ *S_cmdarg_S, flag int32, pos Ptr[pos_T]) {
+func nv_cursormark(cap_ *S_cmdarg_S, flag int32, pos *pos_T) {
 	if !check_mark(pos) {
 		clearop(cap_.oap)
 	} else {
 		if (((cap_.cmdchar == 39) || (cap_.cmdchar == '`')) || (cap_.cmdchar == '[')) || (cap_.cmdchar == ']') {
 			setpcmark()
 		}
-		curwin.w_cursor = *pos.P()
+		curwin.w_cursor = (*pos)
 		if flag != 0 {
 			beginline(BL_WHITE | BL_FIX)
 		} else {
@@ -34523,7 +34523,7 @@ func nv_optrans(cap_ *S_cmdarg_S) {
 }
 
 func nv_gomark(cap_ *S_cmdarg_S) {
-	var pos Ptr[pos_T]
+	var pos *pos_T
 	var c int32
 	if cap_.cmdchar == 'g' {
 		c = cap_.extra_char
@@ -34539,12 +34539,12 @@ func nv_gomark(cap_ *S_cmdarg_S) {
 }
 
 func nv_pcmark(cap_ *S_cmdarg_S) {
-	var pos Ptr[pos_T]
+	var pos *pos_T
 	if checkclearopq(cap_.oap) {
 		return
 	}
 	pos = movechangelist(int32(cap_.count1))
-	if !pos.Nil() {
+	if pos != nil {
 		nv_cursormark(cap_, FALSE, pos)
 	} else {
 		if curbuf.b_changelistlen == 0 {
@@ -38339,7 +38339,7 @@ func set_init_expand_env() {
 	opt_idx = 0
 	for ; !istermoption_idx(opt_idx); opt_idx++ {
 		if ((options.Ref(int(opt_idx)).flags & P_GETTEXT) != 0) && !optvar_is_null(options.Ref(int(opt_idx)).var_) {
-			p = gettext_(options.Ref(int(opt_idx)).var_.ov_str.Get())
+			p = gettext_((*options.Ref(int(opt_idx)).var_.ov_str))
 		} else {
 			p = option_expand(opt_idx, Ptr[byte]{})
 		}
@@ -38349,7 +38349,7 @@ func set_init_expand_env() {
 			t1 = !p.Nil()
 		}
 		if t1 {
-			options.Ref(int(opt_idx)).var_.ov_str.Put(p)
+			*options.Ref(int(opt_idx)).var_.ov_str = p
 			options.Ref(int(opt_idx)).def_str[VI_DEFAULT] = p
 			options.Ref(int(opt_idx)).flags |= P_DEF_ALLOCED
 		}
@@ -38399,9 +38399,9 @@ func set_option_default(opt_idx int32, opt_flags int32, compatible int32) {
 				set_string_option_direct(Ptr[byte]{}, opt_idx, options.Ref(int(opt_idx)).def_str[int(dvi)], opt_flags, 0)
 			} else {
 				if ((opt_flags & OPT_FREE) != 0) && ((flags & P_ALLOCED) != 0) {
-					free_string_option(varp.ov_str.Get())
+					free_string_option((*varp.ov_str))
 				}
-				varp.ov_str.Put(options.Ref(int(opt_idx)).def_str[int(dvi)])
+				*varp.ov_str = options.Ref(int(opt_idx)).def_str[int(dvi)]
 				options.Ref(int(opt_idx)).flags &= 18446744073709551607
 			}
 		} else if flags&P_NUM != 0 {
@@ -38619,7 +38619,7 @@ func stropt_get_default_val(opt_idx int32, varp optvar_T, flags int32, cp_val in
 		t1 = VIM_DEFAULT
 	}
 	newval = options.Ref(int(opt_idx)).def_str[int(t1)]
-	if varp.ov_str == Addr(&p_bg) {
+	if varp.ov_str == &p_bg {
 		newval = term_bg_default()
 	}
 	if newval.Nil() {
@@ -38638,27 +38638,27 @@ func opt_backspace_nr2str(varp optvar_T, origval_p *Ptr[byte], origval_l_p *Ptr[
 	var i int32 = int32(getdigits(varp.ov_str))
 	switch i {
 	case 0:
-		varp.ov_str.Put(empty_option)
+		*varp.ov_str = empty_option
 	case 1:
-		varp.ov_str.Put(vim_strnsave(S("indent,eol"), 10))
+		*varp.ov_str = vim_strnsave(S("indent,eol"), 10)
 	case 2:
-		varp.ov_str.Put(vim_strnsave(S("indent,eol,start"), 16))
+		*varp.ov_str = vim_strnsave(S("indent,eol,start"), 16)
 	case 3:
-		varp.ov_str.Put(vim_strnsave(S("indent,eol,nostop"), 17))
+		*varp.ov_str = vim_strnsave(S("indent,eol,nostop"), 17)
 	}
 	if (*origval_p) == (*oldval_p) {
-		*origval_p = varp.ov_str.Get()
+		*origval_p = (*varp.ov_str)
 	}
 	if (*origval_l_p) == (*oldval_p) {
-		*origval_l_p = varp.ov_str.Get()
+		*origval_l_p = (*varp.ov_str)
 	}
 	if (*origval_g_p) == (*oldval_p) {
-		*origval_g_p = varp.ov_str.Get()
+		*origval_g_p = (*varp.ov_str)
 	}
-	*oldval_p = varp.ov_str.Get()
+	*oldval_p = (*varp.ov_str)
 }
 
-func opt_whichwrap_nr2str(argp Ptr[Ptr[byte]], whichwrap Ptr[byte]) Ptr[byte] {
+func opt_whichwrap_nr2str(argp *Ptr[byte], whichwrap Ptr[byte]) Ptr[byte] {
 	var len_ usize = 0
 	whichwrap.Put(NUL)
 	var i int32 = int32(getdigits(argp))
@@ -38966,10 +38966,10 @@ func stropt_get_newval(nextchar int32, opt_idx int32, argp *Ptr[byte], varp optv
 		newval = stropt_get_default_val(opt_idx, varp, flags, cp_val)
 	} else {
 		arg = arg.Add(1)
-		if (varp.ov_str == Addr(&p_bs)) && ((uint32(varp.ov_str.Get().Get()) - '0') < 10) {
+		if (varp.ov_str == &p_bs) && ((uint32((*varp.ov_str).Get()) - '0') < 10) {
 			opt_backspace_nr2str(varp, &origval, &origval_l, &origval_g, &oldval)
-		} else if (varp.ov_str == Addr(&p_ww)) && ((uint32(arg.Get()) - '0') < 10) {
-			t = opt_whichwrap_nr2str(Addr(&arg), whichwrap)
+		} else if (varp.ov_str == &p_ww) && ((uint32(arg.Get()) - '0') < 10) {
+			t = opt_whichwrap_nr2str(&arg, whichwrap)
 			save_arg = arg
 			arg = t
 		}
@@ -39029,23 +39029,23 @@ func do_set_option_string(opt_idx int32, opt_flags int32, argp *Ptr[byte], nextc
 	if ((opt_flags & (OPT_LOCAL | OPT_GLOBAL)) == 0) && ((options.Ref(int(opt_idx)).indir & PV_BOTH) != 0) {
 		varp = options.Ref(int(opt_idx)).var_
 	}
-	oldval = varp.ov_str.Get()
+	oldval = (*varp.ov_str)
 	if (opt_flags & (OPT_LOCAL | OPT_GLOBAL)) == 0 {
-		origval_l = get_varp_scope(options.Add(int(opt_idx)), OPT_LOCAL).ov_str.Get()
-		origval_g = get_varp_scope(options.Add(int(opt_idx)), OPT_GLOBAL).ov_str.Get()
+		origval_l = (*get_varp_scope(options.Add(int(opt_idx)), OPT_LOCAL).ov_str)
+		origval_g = (*get_varp_scope(options.Add(int(opt_idx)), OPT_GLOBAL).ov_str)
 		if ((options.Ref(int(opt_idx)).indir & PV_BOTH) != 0) && (origval_l == empty_option) {
 			origval_l = origval_g
 		}
 	}
 	if ((options.Ref(int(opt_idx)).indir & PV_BOTH) != 0) && ((opt_flags & OPT_LOCAL) != 0) {
-		origval = get_varp(options.Add(int(opt_idx))).ov_str.Get()
+		origval = (*get_varp(options.Add(int(opt_idx))).ov_str)
 	} else {
 		origval = oldval
 	}
 	newval = stropt_get_newval(nextchar, opt_idx, &arg, varp, &origval, &origval_l, &origval_g, &oldval, &op, int32(flags), cp_val)
-	varp.ov_str.Put(newval)
+	*varp.ov_str = newval
 	if newval.Nil() {
-		varp.ov_str.Put(empty_option)
+		*varp.ov_str = empty_option
 	}
 	p := &options.Ref(int(opt_idx)).flags
 	secure_saved := secure
@@ -39436,7 +39436,7 @@ func option_expand(opt_idx int32, val Ptr[byte]) Ptr[byte] {
 		return Ptr[byte]{}
 	}
 	if val.Nil() {
-		val = options.Ref(int(opt_idx)).var_.ov_str.Get()
+		val = (*options.Ref(int(opt_idx)).var_.ov_str)
 	}
 	var esc bool = false
 	var t1 Ptr[byte]
@@ -39473,7 +39473,7 @@ func check_options() {
 	}
 }
 
-func get_term_opt_idx(p Ptr[Ptr[byte]]) int32 {
+func get_term_opt_idx(p *Ptr[byte]) int32 {
 	var opt_idx int32 = 1
 	for ; !options.Ref(int(opt_idx)).fullname.Nil(); opt_idx++ {
 		if options.Ref(int(opt_idx)).var_.ov_str == p {
@@ -39483,7 +39483,7 @@ func get_term_opt_idx(p Ptr[Ptr[byte]]) int32 {
 	return -1
 }
 
-func set_term_option_alloced(p Ptr[Ptr[byte]]) int32 {
+func set_term_option_alloced(p *Ptr[byte]) int32 {
 	opt_idx := get_term_opt_idx(p)
 	if opt_idx >= 0 {
 		options.Ref(int(opt_idx)).flags |= P_ALLOCED
@@ -40110,7 +40110,7 @@ func get_term_code(tname Ptr[byte]) Ptr[byte] {
 	if opt_idx >= 0 {
 		varp = get_varp(options.Add(int(opt_idx)))
 		if !optvar_is_null(varp) {
-			return varp.ov_str.Get()
+			return (*varp.ov_str)
 		}
 		return Ptr[byte]{}
 	}
@@ -40246,7 +40246,7 @@ func optval_default(p Ptr[S_vimoption], varp optvar_T, compatible int32) bool {
 	if p.P().flags&P_BOOL != 0 {
 		return ((*varp.ov_int) == int32(p.P().def_num[int(dvi)]))
 	}
-	return (musl_strcmp(varp.ov_str.Get(), p.P().def_str[int(dvi)]) == 0)
+	return (musl_strcmp((*varp.ov_str), p.P().def_str[int(dvi)]) == 0)
 }
 
 func showoneopt(p Ptr[S_vimoption], opt_flags int32) {
@@ -40289,12 +40289,12 @@ func free_termoptions() {
 	for ; !p.P().fullname.Nil(); p = p.Add(1) {
 		if istermoption(p) {
 			if p.P().flags&P_ALLOCED != 0 {
-				free_string_option(p.P().var_.ov_str.Get())
+				free_string_option((*p.P().var_.ov_str))
 			}
 			if p.P().flags&P_DEF_ALLOCED != 0 {
 				free_string_option(p.P().def_str[VI_DEFAULT])
 			}
-			p.P().var_.ov_str.Put(empty_option)
+			*p.P().var_.ov_str = empty_option
 			p.P().def_str[VI_DEFAULT] = empty_option
 			p.P().flags &= 18446744073709551479
 		}
@@ -40305,12 +40305,12 @@ func free_termoptions() {
 func set_term_defaults() {
 	var p Ptr[S_vimoption] = options
 	for ; !p.P().fullname.Nil(); p = p.Add(1) {
-		if istermoption(p) && (p.P().def_str[VI_DEFAULT] != p.P().var_.ov_str.Get()) {
+		if istermoption(p) && (p.P().def_str[VI_DEFAULT] != (*p.P().var_.ov_str)) {
 			if p.P().flags&P_DEF_ALLOCED != 0 {
 				free_string_option(p.P().def_str[VI_DEFAULT])
 				p.P().flags &= 18446744073709551487
 			}
-			p.P().def_str[VI_DEFAULT] = p.P().var_.ov_str.Get()
+			p.P().def_str[VI_DEFAULT] = (*p.P().var_.ov_str)
 			if p.P().flags&P_ALLOCED != 0 {
 				p.P().flags |= P_DEF_ALLOCED
 				p.P().flags &= 18446744073709551607
@@ -40342,9 +40342,9 @@ func get_varp_allbuf(p Ptr[S_vimoption]) optvar_T {
 	case 8211:
 		return optvar_int(&curwin.w_allbuf_opt.wo_wrap)
 	case 8196:
-		return optvar_str(Addr(&curwin.w_allbuf_opt.wo_wcr))
+		return optvar_str(&curwin.w_allbuf_opt.wo_wcr)
 	case 8210:
-		return optvar_str(Addr(&curwin.w_allbuf_opt.wo_whl))
+		return optvar_str(&curwin.w_allbuf_opt.wo_whl)
 	}
 	return optvar_none()
 }
@@ -40367,11 +40367,11 @@ func get_varp_scope(p Ptr[S_vimoption], scope int32) optvar_T {
 		case 20545:
 			return optvar_long(&curbuf.b_p_ul)
 		case 12289:
-			return optvar_str(Addr(&curwin.w_onebuf_opt.wo_lcs))
+			return optvar_str(&curwin.w_onebuf_opt.wo_lcs)
 		case 12290:
-			return optvar_str(Addr(&curwin.w_onebuf_opt.wo_fcs))
+			return optvar_str(&curwin.w_onebuf_opt.wo_fcs)
 		case 12296:
-			return optvar_str(Addr(&curwin.w_onebuf_opt.wo_ve))
+			return optvar_str(&curwin.w_onebuf_opt.wo_ve)
 		}
 		return optvar_none()
 	}
@@ -40426,7 +40426,7 @@ func get_varp(p Ptr[S_vimoption]) optvar_T {
 	case 12289:
 		var t5 optvar_T
 		if int32(curwin.w_onebuf_opt.wo_lcs.Get()) != NUL {
-			t5 = optvar_str(Addr(&curwin.w_onebuf_opt.wo_lcs))
+			t5 = optvar_str(&curwin.w_onebuf_opt.wo_lcs)
 		} else {
 			t5 = p.P().var_
 		}
@@ -40434,7 +40434,7 @@ func get_varp(p Ptr[S_vimoption]) optvar_T {
 	case 12290:
 		var t6 optvar_T
 		if int32(curwin.w_onebuf_opt.wo_fcs.Get()) != NUL {
-			t6 = optvar_str(Addr(&curwin.w_onebuf_opt.wo_fcs))
+			t6 = optvar_str(&curwin.w_onebuf_opt.wo_fcs)
 		} else {
 			t6 = p.P().var_
 		}
@@ -40442,7 +40442,7 @@ func get_varp(p Ptr[S_vimoption]) optvar_T {
 	case 12296:
 		var t7 optvar_T
 		if int32(curwin.w_onebuf_opt.wo_ve.Get()) != NUL {
-			t7 = optvar_str(Addr(&curwin.w_onebuf_opt.wo_ve))
+			t7 = optvar_str(&curwin.w_onebuf_opt.wo_ve)
 		} else {
 			t7 = p.P().var_
 		}
@@ -40458,9 +40458,9 @@ func get_varp(p Ptr[S_vimoption]) optvar_T {
 	case 8211:
 		return optvar_int(&curwin.w_onebuf_opt.wo_wrap)
 	case 8196:
-		return optvar_str(Addr(&curwin.w_onebuf_opt.wo_wcr))
+		return optvar_str(&curwin.w_onebuf_opt.wo_wcr)
 	case 8210:
-		return optvar_str(Addr(&curwin.w_onebuf_opt.wo_whl))
+		return optvar_str(&curwin.w_onebuf_opt.wo_whl)
 	case 16384:
 		return optvar_int(&curbuf.b_p_ai)
 	case 16393:
@@ -40468,19 +40468,19 @@ func get_varp(p Ptr[S_vimoption]) optvar_T {
 	case 16410:
 		return optvar_int(&curbuf.b_p_et)
 	case 16422:
-		return optvar_str(Addr(&curbuf.b_p_isk))
+		return optvar_str(&curbuf.b_p_isk)
 	case 16431:
-		return optvar_str(Addr(&curbuf.b_p_mps))
+		return optvar_str(&curbuf.b_p_mps)
 	case 16428:
 		return optvar_int(&curbuf.b_p_ma)
 	case 16430:
 		return optvar_int(&curbuf.b_changed)
 	case 16432:
-		return optvar_str(Addr(&curbuf.b_p_nf))
+		return optvar_str(&curbuf.b_p_nf)
 	case 16434:
 		return optvar_int(&curbuf.b_p_pi)
 	case 16435:
-		return optvar_str(Addr(&curbuf.b_p_qe))
+		return optvar_str(&curbuf.b_p_qe)
 	case 16437:
 		return optvar_int(&curbuf.b_p_si)
 	case 16439:
@@ -40499,7 +40499,7 @@ func get_varp(p Ptr[S_vimoption]) optvar_T {
 	return optvar_long(&curbuf.b_p_wm)
 }
 
-func get_option_var(opt_idx int32) Ptr[Ptr[byte]] {
+func get_option_var(opt_idx int32) *Ptr[byte] {
 	return options.Ref(int(opt_idx)).var_.ov_str
 }
 
@@ -40553,11 +40553,11 @@ func check_win_options(win *S_window_S) {
 }
 
 func check_winopt(wop *winopt_T) {
-	check_string_option(Addr(&wop.wo_wcr))
-	check_string_option(Addr(&wop.wo_lcs))
-	check_string_option(Addr(&wop.wo_fcs))
-	check_string_option(Addr(&wop.wo_ve))
-	check_string_option(Addr(&wop.wo_whl))
+	check_string_option(&wop.wo_wcr)
+	check_string_option(&wop.wo_lcs)
+	check_string_option(&wop.wo_fcs)
+	check_string_option(&wop.wo_ve)
+	check_string_option(&wop.wo_whl)
 }
 
 func clear_winopt(wop *winopt_T) {
@@ -40634,12 +40634,12 @@ func option_value2string(opp Ptr[S_vimoption], scope int32) {
 	if opp.P().flags&P_NUM != 0 {
 		vim_snprintf(NameBuff, PATH_MAX, S("%ld"), (*varp.ov_long))
 	} else {
-		s := varp.ov_str.Get()
+		s := (*varp.ov_str)
 		if s.Nil() {
 			NameBuff.Set(0, NUL)
 		} else if opp.P().flags&P_EXPAND != 0 {
 			home_replace(nil, s, NameBuff, PATH_MAX, false)
-		} else if opp.P().var_.ov_str == Addr(&p_pt) {
+		} else if opp.P().var_.ov_str == &p_pt {
 			str2specialbuf(p_pt, NameBuff, PATH_MAX)
 		} else {
 			vim_strncpy(NameBuff, s, PATH_MAX-1)
@@ -40763,10 +40763,10 @@ func illegal_char(errbuf Ptr[byte], errbuflen usize, c int32) Ptr[byte] {
 }
 
 func check_buf_options(buf *S_file_buffer) {
-	check_string_option(Addr(&buf.b_p_mps))
-	check_string_option(Addr(&buf.b_p_isk))
-	check_string_option(Addr(&buf.b_p_nf))
-	check_string_option(Addr(&buf.b_p_qe))
+	check_string_option(&buf.b_p_mps)
+	check_string_option(&buf.b_p_isk)
+	check_string_option(&buf.b_p_nf)
+	check_string_option(&buf.b_p_qe)
 }
 
 func free_string_option(p Ptr[byte]) {
@@ -40776,14 +40776,14 @@ func clear_string_option(pp *Ptr[byte]) {
 	*pp = empty_option
 }
 
-func check_string_option(pp Ptr[Ptr[byte]]) {
-	if pp.Get().Nil() {
-		pp.Put(empty_option)
+func check_string_option(pp *Ptr[byte]) {
+	if (*pp).Nil() {
+		*pp = empty_option
 	}
 }
 
-func set_string_option_global(opt_idx int32, varp Ptr[Ptr[byte]]) {
-	var p Ptr[Ptr[byte]]
+func set_string_option_global(opt_idx int32, varp *Ptr[byte]) {
+	var p *Ptr[byte]
 	var s Ptr[byte]
 	if is_window_local_option(opt_idx) != 0 {
 		p = get_varp_allbuf(options.Add(int(opt_idx))).ov_str
@@ -40792,18 +40792,18 @@ func set_string_option_global(opt_idx int32, varp Ptr[Ptr[byte]]) {
 	}
 	var t1 bool = !is_global_option(opt_idx) && (p != varp)
 	if t1 {
-		s = vim_strsave(varp.Get())
+		s = vim_strsave((*varp))
 		t1 = !s.Nil()
 	}
 	if t1 {
-		free_string_option(p.Get())
-		p.Put(s)
+		free_string_option((*p))
+		*p = s
 	}
 }
 
 func set_string_option_direct(name Ptr[byte], opt_idx int32, val Ptr[byte], opt_flags int32, set_sid int32) {
 	var s Ptr[byte]
-	var varp Ptr[Ptr[byte]]
+	var varp *Ptr[byte]
 	both := (opt_flags & (OPT_LOCAL | OPT_GLOBAL)) == 0
 	idx := opt_idx
 	if idx == -1 {
@@ -40828,16 +40828,16 @@ func set_string_option_direct(name Ptr[byte], opt_idx int32, val Ptr[byte], opt_
 	}
 	varp = get_option_varp_scope(idx, t1).ov_str
 	if ((opt_flags & OPT_FREE) != 0) && ((get_option_flags(idx) & P_ALLOCED) != 0) {
-		free_string_option(varp.Get())
+		free_string_option((*varp))
 	}
-	varp.Put(s)
+	*varp = s
 	if both {
 		set_string_option_global(idx, varp)
 	}
 	set_option_flag(idx, P_ALLOCED)
 	if (is_global_local_option(idx) != 0) && both {
-		free_string_option(varp.Get())
-		varp.Put(empty_option)
+		free_string_option((*varp))
+		*varp = empty_option
 	}
 }
 
@@ -40854,7 +40854,7 @@ func set_string_option_direct_in_win(wp *S_window_S, name Ptr[byte], opt_idx int
 
 func set_string_option(opt_idx int32, value Ptr[byte], opt_flags int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte] {
 	var s Ptr[byte]
-	var varp Ptr[Ptr[byte]]
+	var varp *Ptr[byte]
 	var oldval Ptr[byte]
 	var errmsg Ptr[byte] = Ptr[byte]{}
 	var value_checked int32 = FALSE
@@ -40881,8 +40881,8 @@ func set_string_option(opt_idx int32, value Ptr[byte], opt_flags int32, errbuf P
 		t3 = opt_flags
 	}
 	varp = get_option_varp_scope(opt_idx, t3).ov_str
-	oldval = varp.Get()
-	varp.Put(s)
+	oldval = (*varp)
+	*varp = s
 	errmsg = did_set_string_option(opt_idx, varp, oldval, value, errbuf, errbuflen, opt_flags, OP_NONE, &value_checked)
 	if errmsg.Nil() {
 		did_set_option(opt_idx, opt_flags, true, value_checked)
@@ -40890,7 +40890,7 @@ func set_string_option(opt_idx int32, value Ptr[byte], opt_flags int32, errbuf P
 	return errmsg
 }
 
-func check_illegal_path_names(opt_idx int32, varp Ptr[Ptr[byte]]) bool {
+func check_illegal_path_names(opt_idx int32, varp *Ptr[byte]) bool {
 	var t2 bool = (get_option_flags(opt_idx) & P_NFNAME) != 0
 	if t2 {
 		var t1 Ptr[byte]
@@ -40899,9 +40899,9 @@ func check_illegal_path_names(opt_idx int32, varp Ptr[Ptr[byte]]) bool {
 		} else {
 			t1 = S("/\\*?[<>\r\n")
 		}
-		t2 = !musl_strpbrk(varp.Get(), t1).Nil()
+		t2 = !musl_strpbrk((*varp), t1).Nil()
 	}
-	return (t2 || (((get_option_flags(opt_idx) & P_NDNAME) != 0) && !musl_strpbrk(varp.Get(), S("*?[|;&<>\r\n")).Nil()))
+	return (t2 || (((get_option_flags(opt_idx) & P_NDNAME) != 0) && !musl_strpbrk((*varp), S("*?[|;&<>\r\n")).Nil()))
 }
 
 func did_set_opt_flags(val Ptr[byte], values Ptr[Ptr[byte]], flagp *uint32, list bool) Ptr[byte] {
@@ -41000,19 +41000,19 @@ func did_set_global_listfillchars(val Ptr[byte], opt_lcs bool, opt_flags int32, 
 func did_set_chars_option(args *optset_T) Ptr[byte] {
 	varp := args.os_varp.ov_str
 	var errmsg Ptr[byte] = Ptr[byte]{}
-	if (varp == Addr(&p_lcs)) || (varp == Addr(&p_fcs)) {
-		errmsg = did_set_global_listfillchars(varp.Get(), varp == Addr(&p_lcs), args.os_flags, args.os_errbuf, args.os_errbuflen)
-	} else if varp == Addr(&curwin.w_onebuf_opt.wo_lcs) {
-		errmsg = set_listchars_option(curwin, varp.Get(), true, args.os_errbuf, args.os_errbuflen)
-	} else if varp == Addr(&curwin.w_onebuf_opt.wo_fcs) {
-		errmsg = set_fillchars_option(curwin, varp.Get(), true, args.os_errbuf, args.os_errbuflen)
+	if (varp == &p_lcs) || (varp == &p_fcs) {
+		errmsg = did_set_global_listfillchars((*varp), varp == &p_lcs, args.os_flags, args.os_errbuf, args.os_errbuflen)
+	} else if varp == &curwin.w_onebuf_opt.wo_lcs {
+		errmsg = set_listchars_option(curwin, (*varp), true, args.os_errbuf, args.os_errbuflen)
+	} else if varp == &curwin.w_onebuf_opt.wo_fcs {
+		errmsg = set_fillchars_option(curwin, (*varp), true, args.os_errbuf, args.os_errbuflen)
 	}
 	return errmsg
 }
 
 func did_set_cpoptions(args *optset_T) Ptr[byte] {
 	varp := args.os_varp.ov_str
-	return did_set_option_listflag(varp.Get(), S("aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>#{|&/\\.;~"), args.os_errbuf, args.os_errbuflen)
+	return did_set_option_listflag((*varp), S("aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>#{|&/\\.;~"), args.os_errbuf, args.os_errbuflen)
 }
 
 func did_set_display(args *optset_T) Ptr[byte] {
@@ -41032,8 +41032,8 @@ func did_set_highlight(args *optset_T) Ptr[byte] {
 
 func did_set_iskeyword(args *optset_T) Ptr[byte] {
 	varp := args.os_varp.ov_str
-	if varp == Addr(&p_isk) {
-		if !check_isopt(varp.Get()) {
+	if varp == &p_isk {
+		if !check_isopt((*varp)) {
 			return e_invalid_argument
 		}
 	} else {
@@ -41071,7 +41071,7 @@ func did_set_keyprotocol(args *optset_T) Ptr[byte] {
 
 func did_set_matchpairs(args *optset_T) Ptr[byte] {
 	varp := args.os_varp.ov_str
-	var p Ptr[byte] = varp.Get()
+	var p Ptr[byte] = (*varp)
 	for ; int32(p.Get()) != NUL; p = p.Add(1) {
 		var x2 int32 = -1
 		var x3 int32 = -1
@@ -41104,7 +41104,7 @@ func did_set_messagesopt(args *optset_T) Ptr[byte] {
 
 func did_set_nrformats(args *optset_T) Ptr[byte] {
 	varp := args.os_varp.ov_str
-	return did_set_opt_strings(varp.Get(), p_nf_values, true)
+	return did_set_opt_strings((*varp), p_nf_values, true)
 }
 
 func did_set_pastetoggle(args *optset_T) Ptr[byte] {
@@ -41132,7 +41132,7 @@ func did_set_selectmode(args *optset_T) Ptr[byte] {
 
 func did_set_shortmess(args *optset_T) Ptr[byte] {
 	varp := args.os_varp.ov_str
-	return did_set_option_listflag(varp.Get(), S("rmfixlnwaWtToOsAIcCqFSu"), args.os_errbuf, args.os_errbuflen)
+	return did_set_option_listflag((*varp), S("rmfixlnwaWtToOsAIcCqFSu"), args.os_errbuf, args.os_errbuflen)
 }
 
 func did_set_showcmdloc(args *optset_T) Ptr[byte] {
@@ -41159,7 +41159,7 @@ func did_set_term_option(args *optset_T) Ptr[byte] {
 	if full_screen == 0 {
 		return Ptr[byte]{}
 	}
-	if varp == View(term_strings[:]).Add(49) {
+	if Addr(varp) == View(term_strings[:]).Add(49) {
 		colors := musl_atoi(term_strings[49])
 		if colors != t_colors {
 			t_colors = colors
@@ -41170,18 +41170,18 @@ func did_set_term_option(args *optset_T) Ptr[byte] {
 		}
 	}
 	ttest(false)
-	if varp == View(term_strings[:]).Add(19) {
+	if Addr(varp) == View(term_strings[:]).Add(19) {
 		out_str(term_strings[19])
 		redraw_later(UPD_CLEAR)
 	}
-	if (varp == View(term_strings[:]).Add(82)) && (termcap_active != 0) {
+	if (Addr(varp) == View(term_strings[:]).Add(82)) && (termcap_active != 0) {
 		if int32(term_strings[82].Get()) == NUL {
 			out_str(term_strings[83])
 		} else {
 			out_str(term_strings[82])
 		}
 	}
-	if (varp == View(term_strings[:]).Add(92)) || (varp == View(term_strings[:]).Add(93)) {
+	if (Addr(varp) == View(term_strings[:]).Add(92)) || (Addr(varp) == View(term_strings[:]).Add(93)) {
 		term_set_sync_output(TERM_SYNC_OUTPUT_OFF)
 	}
 	return Ptr[byte]{}
@@ -41209,7 +41209,7 @@ func did_set_virtualedit(args *optset_T) Ptr[byte] {
 
 func did_set_whichwrap(args *optset_T) Ptr[byte] {
 	varp := args.os_varp.ov_str
-	return did_set_option_listflag(varp.Get(), S("bshl<>[]~,"), args.os_errbuf, args.os_errbuflen)
+	return did_set_option_listflag((*varp), S("bshl<>[]~,"), args.os_errbuf, args.os_errbuflen)
 }
 
 func did_set_wincolor(args *optset_T) Ptr[byte] {
@@ -41221,12 +41221,12 @@ func did_set_winhighlight(args *optset_T) Ptr[byte] {
 	return update_winhighlight(curwin, args.os_newval.string_)
 }
 
-func did_set_string_option(opt_idx int32, varp Ptr[Ptr[byte]], oldval Ptr[byte], value Ptr[byte], errbuf Ptr[byte], errbuflen usize, opt_flags int32, op set_op_T, value_checked *int32) Ptr[byte] {
+func did_set_string_option(opt_idx int32, varp *Ptr[byte], oldval Ptr[byte], value Ptr[byte], errbuf Ptr[byte], errbuflen usize, opt_flags int32, op set_op_T, value_checked *int32) Ptr[byte] {
 	var errmsg Ptr[byte] = Ptr[byte]{}
 	var free_oldval long_u = (get_option_flags(opt_idx) & P_ALLOCED)
 	did_set_cb := get_option_did_set_cb(opt_idx)
 	var args optset_T
-	if varp == View(term_strings[:]) {
+	if Addr(varp) == View(term_strings[:]) {
 		opt_idx = findoption(S("term"))
 		if opt_idx >= 0 {
 			free_oldval = (get_option_flags(opt_idx) & P_ALLOCED)
@@ -41251,12 +41251,12 @@ func did_set_string_option(opt_idx int32, varp Ptr[Ptr[byte]], oldval Ptr[byte],
 		*value_checked = args.os_value_checked
 	}
 	if !errmsg.Nil() {
-		free_string_option(varp.Get())
-		varp.Put(oldval)
+		free_string_option((*varp))
+		*varp = oldval
 		if args.os_restore_chartab {
 			init_chartab()
 		}
-		if varp == Addr(&p_hl) {
+		if varp == &p_hl {
 			highlight_changed()
 		}
 	} else {
@@ -41266,8 +41266,8 @@ func did_set_string_option(opt_idx int32, varp Ptr[Ptr[byte]], oldval Ptr[byte],
 		set_option_flag(opt_idx, P_ALLOCED)
 		if ((opt_flags & (OPT_LOCAL | OPT_GLOBAL)) == 0) && (is_global_local_option(opt_idx) != 0) {
 			p := get_option_varp_scope(opt_idx, OPT_LOCAL).ov_str
-			free_string_option(p.Get())
-			p.Put(empty_option)
+			free_string_option((*p))
+			*p = empty_option
 		} else if ((opt_flags & OPT_LOCAL) == 0) && (opt_flags != OPT_GLOBAL) {
 			set_string_option_global(opt_idx, varp)
 		}
@@ -41904,11 +41904,11 @@ func read_limits(minval *int64, maxval *int64) int32 {
 		reverse = true
 	}
 	first_char = regparse
-	*minval = getdigits(Addr(&regparse))
+	*minval = getdigits(&regparse)
 	if int32(regparse.Get()) == ',' {
 		regparse = regparse.Add(1)
 		if vim_isdigit(int32(regparse.Get())) {
-			*maxval = getdigits(Addr(&regparse))
+			*maxval = getdigits(&regparse)
 		} else {
 			*maxval = (32767 << 16)
 		}
@@ -44216,15 +44216,15 @@ func reg_save_equal(save *regsave_T) bool {
 	return rex.input == save.rs_u.ptr
 }
 
-func save_se_multi(savep *save_se_T, posp Ptr[lpos_T]) {
-	savep.se_u.pos = *posp.P()
-	posp.P().lnum = rex.lnum
-	posp.P().col = int32(int64(rex.input.Sub(rex.line)))
+func save_se_multi(savep *save_se_T, posp *lpos_T) {
+	savep.se_u.pos = (*posp)
+	posp.lnum = rex.lnum
+	posp.col = int32(int64(rex.input.Sub(rex.line)))
 }
 
-func save_se_one(savep *save_se_T, pp Ptr[Ptr[byte]]) {
-	savep.se_u.ptr = pp.Get()
-	pp.Put(rex.input)
+func save_se_one(savep *save_se_T, pp *Ptr[byte]) {
+	savep.se_u.ptr = (*pp)
+	*pp = rex.input
 }
 
 func regrepeat(p Ptr[byte], maxcount int64) int32 {
@@ -44514,76 +44514,76 @@ func regrepeat(p Ptr[byte], maxcount int64) int32 {
 	return int32(count)
 }
 
-func regstack_star_top() Ptr[S_regstar_S] {
-	return GaData[S_regstar_S](&regstack_star).Add(int(regstack_star.ga_len - 1))
+func regstack_star_top() *S_regstar_S {
+	return GaData[S_regstar_S](&regstack_star).Ref(int(regstack_star.ga_len - 1))
 }
 
-func regstack_behind_top() Ptr[S_regbehind_S] {
-	return GaData[S_regbehind_S](&regstack_behind).Add(int(regstack_behind.ga_len - 1))
+func regstack_behind_top() *S_regbehind_S {
+	return GaData[S_regbehind_S](&regstack_behind).Ref(int(regstack_behind.ga_len - 1))
 }
 
-func regstack_push(state regstate_T, scan Ptr[byte]) Ptr[S_regitem_S] {
-	var rp Ptr[S_regitem_S]
+func regstack_push(state regstate_T, scan Ptr[byte]) *S_regitem_S {
+	var rp *S_regitem_S
 	if int64((uint32(regstack_bytes) >> 10)) >= p_mmp {
 		emsg(gettext_(e_pattern_uses_more_memory_than_maxmempattern))
-		return Ptr[S_regitem_S]{}
+		return nil
 	}
 	if !ga_grow(&regstack, 1) {
-		return Ptr[S_regitem_S]{}
+		return nil
 	}
-	rp = GaData[S_regitem_S](&regstack).Add(int(regstack.ga_len))
-	rp.P().rs_state = state
-	rp.P().rs_scan = scan
+	rp = GaData[S_regitem_S](&regstack).Ref(int(regstack.ga_len))
+	rp.rs_state = state
+	rp.rs_scan = scan
 	regstack.ga_len++
 	regstack_bytes += 40
 	return rp
 }
 
 func regstack_pop(scan *Ptr[byte]) {
-	var rp Ptr[S_regitem_S] = GaData[S_regitem_S](&regstack).Add(int(regstack.ga_len - 1))
-	*scan = rp.P().rs_scan
+	var rp *S_regitem_S = GaData[S_regitem_S](&regstack).Ref(int(regstack.ga_len - 1))
+	*scan = rp.rs_scan
 	regstack.ga_len--
 	regstack_bytes -= 40
 }
 
-func save_subexpr(bp Ptr[S_regbehind_S]) {
+func save_subexpr(bp *S_regbehind_S) {
 	var i int32
-	bp.P().save_need_clear_subexpr = rex.need_clear_subexpr
+	bp.save_need_clear_subexpr = rex.need_clear_subexpr
 	if rex.need_clear_subexpr != 0 {
 		return
 	}
 	i = 0
 	for ; i < NSUBEXP; i++ {
 		if rex.reg_match == nil {
-			bp.P().save_start[int(i)].se_u.pos = *rex.reg_startpos.Ref(int(i))
-			bp.P().save_end[int(i)].se_u.pos = *rex.reg_endpos.Ref(int(i))
+			bp.save_start[int(i)].se_u.pos = *rex.reg_startpos.Ref(int(i))
+			bp.save_end[int(i)].se_u.pos = *rex.reg_endpos.Ref(int(i))
 		} else {
-			bp.P().save_start[int(i)].se_u.ptr = rex.reg_startp.At(int(i))
-			bp.P().save_end[int(i)].se_u.ptr = rex.reg_endp.At(int(i))
+			bp.save_start[int(i)].se_u.ptr = rex.reg_startp.At(int(i))
+			bp.save_end[int(i)].se_u.ptr = rex.reg_endp.At(int(i))
 		}
 	}
 }
 
-func restore_subexpr(bp Ptr[S_regbehind_S]) {
+func restore_subexpr(bp *S_regbehind_S) {
 	var i int32
-	rex.need_clear_subexpr = bp.P().save_need_clear_subexpr
+	rex.need_clear_subexpr = bp.save_need_clear_subexpr
 	if rex.need_clear_subexpr != 0 {
 		return
 	}
 	i = 0
 	for ; i < NSUBEXP; i++ {
 		if rex.reg_match == nil {
-			rex.reg_startpos.Set(int(i), bp.P().save_start[int(i)].se_u.pos)
-			rex.reg_endpos.Set(int(i), bp.P().save_end[int(i)].se_u.pos)
+			rex.reg_startpos.Set(int(i), bp.save_start[int(i)].se_u.pos)
+			rex.reg_endpos.Set(int(i), bp.save_end[int(i)].se_u.pos)
 		} else {
-			rex.reg_startp.Set(int(i), bp.P().save_start[int(i)].se_u.ptr)
-			rex.reg_endp.Set(int(i), bp.P().save_end[int(i)].se_u.ptr)
+			rex.reg_startp.Set(int(i), bp.save_start[int(i)].se_u.ptr)
+			rex.reg_endp.Set(int(i), bp.save_end[int(i)].se_u.ptr)
 		}
 	}
 }
 
 func regmatch(scan Ptr[byte], timed_out *int32) int32 {
-	var pos Ptr[pos_T]
+	var pos *pos_T
 	var vcol long_u
 	var this_class int32
 	var this_class_2 int32
@@ -44607,7 +44607,7 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 	var next Ptr[byte]
 	var op int32
 	var c int32
-	var rp Ptr[S_regitem_S]
+	var rp *S_regitem_S
 	var no int32
 	var status int32
 	regstack.ga_len = 0
@@ -44670,18 +44670,18 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 						rex.line = reg_getline(rex.lnum)
 						rex.input = rex.line.Add(int(col))
 					}
-					if pos.Nil() || (pos.P().lnum <= 0) {
+					if (pos == nil) || (pos.lnum <= 0) {
 						status = RA_NOMATCH
 					} else {
 						var t2 colnr_T
-						if (pos.P().lnum == (rex.lnum + rex.reg_firstlnum)) && (pos.P().col == MAXCOL) {
-							t2 = reg_getline_len(pos.P().lnum - rex.reg_firstlnum)
+						if (pos.lnum == (rex.lnum + rex.reg_firstlnum)) && (pos.col == MAXCOL) {
+							t2 = reg_getline_len(pos.lnum - rex.reg_firstlnum)
 						} else {
-							t2 = pos.P().col
+							t2 = pos.col
 						}
 						pos_col := t2
 						var t6 bool
-						if pos.P().lnum == (rex.lnum + rex.reg_firstlnum) {
+						if pos.lnum == (rex.lnum + rex.reg_firstlnum) {
 							var t4 bool
 							if pos_col == int32(int64(rex.input.Sub(rex.line))) {
 								t4 = ((cmp == '<') || (cmp == '>'))
@@ -44697,7 +44697,7 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 							t6 = t4
 						} else {
 							var t5 bool
-							if pos.P().lnum < (rex.lnum + rex.reg_firstlnum) {
+							if pos.lnum < (rex.lnum + rex.reg_firstlnum) {
 								t5 = cmp != '>'
 							} else {
 								t5 = cmp != '<'
@@ -45037,32 +45037,32 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					no = op - MOPEN
 					cleanup_subexpr()
 					rp = regstack_push(RS_MOPEN, scan)
-					if rp.Nil() {
+					if rp == nil {
 						status = RA_FAIL
 					} else {
-						rp.P().rs_no = int16(no)
+						rp.rs_no = int16(no)
 						if rex.reg_match == nil {
-							save_se_multi(&rp.P().rs_un.sesave, rex.reg_startpos.Add(int(no)))
+							save_se_multi(&rp.rs_un.sesave, rex.reg_startpos.Ref(int(no)))
 						} else {
-							save_se_one(&rp.P().rs_un.sesave, rex.reg_startp.Add(int(no)))
+							save_se_one(&rp.rs_un.sesave, rex.reg_startp.Ref(int(no)))
 						}
 					}
 				case NOPEN, NCLOSE:
-					if regstack_push(RS_NOPEN, scan).Nil() {
+					if regstack_push(RS_NOPEN, scan) == nil {
 						status = RA_FAIL
 					}
 				case MCLOSE + 0, MCLOSE + 1, MCLOSE + 2, MCLOSE + 3, MCLOSE + 4, MCLOSE + 5, MCLOSE + 6, MCLOSE + 7, MCLOSE + 8, MCLOSE + 9:
 					no = op - MCLOSE
 					cleanup_subexpr()
 					rp = regstack_push(RS_MCLOSE, scan)
-					if rp.Nil() {
+					if rp == nil {
 						status = RA_FAIL
 					} else {
-						rp.P().rs_no = int16(no)
+						rp.rs_no = int16(no)
 						if rex.reg_match == nil {
-							save_se_multi(&rp.P().rs_un.sesave, rex.reg_endpos.Add(int(no)))
+							save_se_multi(&rp.rs_un.sesave, rex.reg_endpos.Ref(int(no)))
 						} else {
-							save_se_one(&rp.P().rs_un.sesave, rex.reg_endp.Add(int(no)))
+							save_se_one(&rp.rs_un.sesave, rex.reg_endp.Ref(int(no)))
 						}
 					}
 				case BACKREF + 1, BACKREF + 2, BACKREF + 3, BACKREF + 4, BACKREF + 5, BACKREF + 6, BACKREF + 7, BACKREF + 8, BACKREF + 9:
@@ -45100,7 +45100,7 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 						next = scan.Add(3)
 					} else {
 						rp = regstack_push(RS_BRANCH, scan)
-						if rp.Nil() {
+						if rp == nil {
 							status = RA_FAIL
 						} else {
 							status = RA_BREAK
@@ -45130,11 +45130,11 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					}
 					if int64(brace_count[int(no)]) <= t10 {
 						rp = regstack_push(RS_BRCPLX_MORE, scan)
-						if rp.Nil() {
+						if rp == nil {
 							status = RA_FAIL
 						} else {
-							rp.P().rs_no = int16(no)
-							reg_save(&rp.P().rs_un.regsave, &backpos)
+							rp.rs_no = int16(no)
+							reg_save(&rp.rs_un.regsave, &backpos)
 							next = scan.Add(3)
 						}
 						break
@@ -45142,21 +45142,21 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					if brace_min[int(no)] <= brace_max[int(no)] {
 						if int64(brace_count[int(no)]) <= brace_max[int(no)] {
 							rp = regstack_push(RS_BRCPLX_LONG, scan)
-							if rp.Nil() {
+							if rp == nil {
 								status = RA_FAIL
 							} else {
-								rp.P().rs_no = int16(no)
-								reg_save(&rp.P().rs_un.regsave, &backpos)
+								rp.rs_no = int16(no)
+								reg_save(&rp.rs_un.regsave, &backpos)
 								next = scan.Add(3)
 							}
 						}
 					} else {
 						if int64(brace_count[int(no)]) <= brace_min[int(no)] {
 							rp = regstack_push(RS_BRCPLX_SHORT, scan)
-							if rp.Nil() {
+							if rp == nil {
 								status = RA_FAIL
 							} else {
-								reg_save(&rp.P().rs_un.regsave, &backpos)
+								reg_save(&rp.rs_un.regsave, &backpos)
 							}
 						}
 					}
@@ -45216,10 +45216,10 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 								t13 = RS_STAR_SHORT
 							}
 							rp = regstack_push(t13, scan)
-							if rp.Nil() {
+							if rp == nil {
 								status = RA_FAIL
 							} else {
-								regstack_star_top().Put(rst)
+								*regstack_star_top() = rst
 								status = RA_BREAK
 							}
 						}
@@ -45228,11 +45228,11 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					}
 				case NOMATCH, MATCH, SUBPAT:
 					rp = regstack_push(RS_NOMATCH, scan)
-					if rp.Nil() {
+					if rp == nil {
 						status = RA_FAIL
 					} else {
-						rp.P().rs_no = int16(op)
-						reg_save(&rp.P().rs_un.regsave, &backpos)
+						rp.rs_no = int16(op)
+						reg_save(&rp.rs_un.regsave, &backpos)
 						next = scan.Add(3)
 					}
 				case BEHIND, NOBEHIND:
@@ -45245,12 +45245,12 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 						regstack_behind.ga_len++
 						regstack_bytes += 376
 						rp = regstack_push(RS_BEHIND1, scan)
-						if rp.Nil() {
+						if rp == nil {
 							status = RA_FAIL
 						} else {
 							save_subexpr(regstack_behind_top())
-							rp.P().rs_no = int16(op)
-							reg_save(&rp.P().rs_un.regsave, &backpos)
+							rp.rs_no = int16(op)
+							reg_save(&rp.rs_un.regsave, &backpos)
 						}
 					}
 				case BHPOS:
@@ -45343,25 +45343,25 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 			scan = next
 		}
 		for (regstack.ga_len > 0) && (status != RA_FAIL) {
-			rp = GaData[S_regitem_S](&regstack).Add(int(regstack.ga_len - 1))
-			switch rp.P().rs_state {
+			rp = GaData[S_regitem_S](&regstack).Ref(int(regstack.ga_len - 1))
+			switch rp.rs_state {
 			case RS_NOPEN:
 				regstack_pop(&scan)
 			case RS_MOPEN:
 				if status == RA_NOMATCH {
 					if rex.reg_match == nil {
-						rex.reg_startpos.Add(int(rp.P().rs_no)).Put(rp.P().rs_un.sesave.se_u.pos)
+						rex.reg_startpos.Add(int(rp.rs_no)).Put(rp.rs_un.sesave.se_u.pos)
 					} else {
-						rex.reg_startp.Add(int(rp.P().rs_no)).Put(rp.P().rs_un.sesave.se_u.ptr)
+						rex.reg_startp.Add(int(rp.rs_no)).Put(rp.rs_un.sesave.se_u.ptr)
 					}
 				}
 				regstack_pop(&scan)
 			case RS_MCLOSE:
 				if status == RA_NOMATCH {
 					if rex.reg_match == nil {
-						rex.reg_endpos.Add(int(rp.P().rs_no)).Put(rp.P().rs_un.sesave.se_u.pos)
+						rex.reg_endpos.Add(int(rp.rs_no)).Put(rp.rs_un.sesave.se_u.pos)
 					} else {
-						rex.reg_endp.Add(int(rp.P().rs_no)).Put(rp.P().rs_un.sesave.se_u.ptr)
+						rex.reg_endp.Add(int(rp.rs_no)).Put(rp.rs_un.sesave.se_u.ptr)
 					}
 				}
 				regstack_pop(&scan)
@@ -45370,28 +45370,28 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					regstack_pop(&scan)
 				} else {
 					if status != RA_BREAK {
-						reg_restore(&rp.P().rs_un.regsave, &backpos)
-						scan = rp.P().rs_scan
+						reg_restore(&rp.rs_un.regsave, &backpos)
+						scan = rp.rs_scan
 					}
 					if scan.Nil() || (int32(scan.Get()) != BRANCH) {
 						status = RA_NOMATCH
 						regstack_pop(&scan)
 					} else {
-						rp.P().rs_scan = regnext(scan)
-						reg_save(&rp.P().rs_un.regsave, &backpos)
+						rp.rs_scan = regnext(scan)
+						reg_save(&rp.rs_un.regsave, &backpos)
 						scan = scan.Add(3)
 					}
 				}
 			case RS_BRCPLX_MORE:
 				if status == RA_NOMATCH {
-					reg_restore(&rp.P().rs_un.regsave, &backpos)
-					brace_count[int(rp.P().rs_no)]--
+					reg_restore(&rp.rs_un.regsave, &backpos)
+					brace_count[int(rp.rs_no)]--
 				}
 				regstack_pop(&scan)
 			case RS_BRCPLX_LONG:
 				if status == RA_NOMATCH {
-					reg_restore(&rp.P().rs_un.regsave, &backpos)
-					brace_count[int(rp.P().rs_no)]--
+					reg_restore(&rp.rs_un.regsave, &backpos)
+					brace_count[int(rp.rs_no)]--
 					status = RA_CONT
 				}
 				regstack_pop(&scan)
@@ -45400,7 +45400,7 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 				}
 			case RS_BRCPLX_SHORT:
 				if status == RA_NOMATCH {
-					reg_restore(&rp.P().rs_un.regsave, &backpos)
+					reg_restore(&rp.rs_un.regsave, &backpos)
 				}
 				regstack_pop(&scan)
 				if status == RA_NOMATCH {
@@ -45409,7 +45409,7 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 				}
 			case RS_NOMATCH:
 				var t16 int32
-				if int32(rp.P().rs_no) == NOMATCH {
+				if int32(rp.rs_no) == NOMATCH {
 					t16 = RA_MATCH
 				} else {
 					t16 = RA_NOMATCH
@@ -45418,8 +45418,8 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					status = RA_NOMATCH
 				} else {
 					status = RA_CONT
-					if int32(rp.P().rs_no) != SUBPAT {
-						reg_restore(&rp.P().rs_un.regsave, &backpos)
+					if int32(rp.rs_no) != SUBPAT {
+						reg_restore(&rp.rs_un.regsave, &backpos)
 					}
 				}
 				regstack_pop(&scan)
@@ -45432,18 +45432,18 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					regstack_behind.ga_len--
 					regstack_bytes -= 376
 				} else {
-					reg_save(&regstack_behind_top().P().save_after, &backpos)
-					regstack_behind_top().P().save_behind = behind_pos
-					behind_pos = rp.P().rs_un.regsave
-					rp.P().rs_state = RS_BEHIND2
-					reg_restore(&rp.P().rs_un.regsave, &backpos)
-					scan = rp.P().rs_scan.Add(3).Add(4)
+					reg_save(&regstack_behind_top().save_after, &backpos)
+					regstack_behind_top().save_behind = behind_pos
+					behind_pos = rp.rs_un.regsave
+					rp.rs_state = RS_BEHIND2
+					reg_restore(&rp.rs_un.regsave, &backpos)
+					scan = rp.rs_scan.Add(3).Add(4)
 				}
 			case RS_BEHIND2:
 				if (status == RA_MATCH) && reg_save_equal(&behind_pos) {
-					behind_pos = regstack_behind_top().P().save_behind
-					if int32(rp.P().rs_no) == BEHIND {
-						reg_restore(&regstack_behind_top().P().save_after, &backpos)
+					behind_pos = regstack_behind_top().save_behind
+					if int32(rp.rs_no) == BEHIND {
+						reg_restore(&regstack_behind_top().save_after, &backpos)
 					} else {
 						status = RA_NOMATCH
 						restore_subexpr(regstack_behind_top())
@@ -45453,57 +45453,57 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					regstack_bytes -= 376
 				} else {
 					no = OK
-					limit = ((((int64(rp.P().rs_scan.At(3)) << 24) + (int64(rp.P().rs_scan.At(4)) << 16)) + (int64(rp.P().rs_scan.At(5)) << 8)) + int64(rp.P().rs_scan.At(6)))
+					limit = ((((int64(rp.rs_scan.At(3)) << 24) + (int64(rp.rs_scan.At(4)) << 16)) + (int64(rp.rs_scan.At(5)) << 8)) + int64(rp.rs_scan.At(6)))
 					if rex.reg_match == nil {
 						var t18 bool = limit > 0
 						if t18 {
 							var t17 int32
-							if rp.P().rs_un.regsave.rs_u.pos.lnum < behind_pos.rs_u.pos.lnum {
+							if rp.rs_un.regsave.rs_u.pos.lnum < behind_pos.rs_u.pos.lnum {
 								t17 = int32(musl_strlen(rex.line))
 							} else {
 								t17 = behind_pos.rs_u.pos.col
 							}
-							t18 = (int64(t17-rp.P().rs_un.regsave.rs_u.pos.col) >= limit)
+							t18 = (int64(t17-rp.rs_un.regsave.rs_u.pos.col) >= limit)
 						}
 						if t18 {
 							no = FAIL
-						} else if rp.P().rs_un.regsave.rs_u.pos.col == 0 {
-							var t19 bool = rp.P().rs_un.regsave.rs_u.pos.lnum < behind_pos.rs_u.pos.lnum
+						} else if rp.rs_un.regsave.rs_u.pos.col == 0 {
+							var t19 bool = rp.rs_un.regsave.rs_u.pos.lnum < behind_pos.rs_u.pos.lnum
 							if !t19 {
-								rp.P().rs_un.regsave.rs_u.pos.lnum--
-								t19 = reg_getline(rp.P().rs_un.regsave.rs_u.pos.lnum).Nil()
+								rp.rs_un.regsave.rs_u.pos.lnum--
+								t19 = reg_getline(rp.rs_un.regsave.rs_u.pos.lnum).Nil()
 							}
 							if t19 {
 								no = FAIL
 							} else {
-								reg_restore(&rp.P().rs_un.regsave, &backpos)
-								rp.P().rs_un.regsave.rs_u.pos.col = int32(musl_strlen(rex.line))
+								reg_restore(&rp.rs_un.regsave, &backpos)
+								rp.rs_un.regsave.rs_u.pos.col = int32(musl_strlen(rex.line))
 							}
 						} else {
-							line := reg_getline(rp.P().rs_un.regsave.rs_u.pos.lnum)
-							rp.P().rs_un.regsave.rs_u.pos.col -= utf_head_off(line, line.Add(int(rp.P().rs_un.regsave.rs_u.pos.col)).Add(-1)) + 1
+							line := reg_getline(rp.rs_un.regsave.rs_u.pos.lnum)
+							rp.rs_un.regsave.rs_u.pos.col -= utf_head_off(line, line.Add(int(rp.rs_un.regsave.rs_u.pos.col)).Add(-1)) + 1
 						}
 					} else {
-						if rp.P().rs_un.regsave.rs_u.ptr == rex.line {
+						if rp.rs_un.regsave.rs_u.ptr == rex.line {
 							no = FAIL
 						} else {
-							rp.P().rs_un.regsave.rs_u.ptr = rp.P().rs_un.regsave.rs_u.ptr.Add(-int((utf_head_off(rex.line, rp.P().rs_un.regsave.rs_u.ptr.Add(-1)) + 1)))
-							if (limit > 0) && (int64(behind_pos.rs_u.ptr.Sub(rp.P().rs_un.regsave.rs_u.ptr)) > limit) {
+							rp.rs_un.regsave.rs_u.ptr = rp.rs_un.regsave.rs_u.ptr.Add(-int((utf_head_off(rex.line, rp.rs_un.regsave.rs_u.ptr.Add(-1)) + 1)))
+							if (limit > 0) && (int64(behind_pos.rs_u.ptr.Sub(rp.rs_un.regsave.rs_u.ptr)) > limit) {
 								no = FAIL
 							}
 						}
 					}
 					if no == OK {
-						reg_restore(&rp.P().rs_un.regsave, &backpos)
-						scan = rp.P().rs_scan.Add(3).Add(4)
+						reg_restore(&rp.rs_un.regsave, &backpos)
+						scan = rp.rs_scan.Add(3).Add(4)
 						if status == RA_MATCH {
 							status = RA_NOMATCH
 							restore_subexpr(regstack_behind_top())
 						}
 					} else {
-						behind_pos = regstack_behind_top().P().save_behind
-						if int32(rp.P().rs_no) == NOBEHIND {
-							reg_restore(&regstack_behind_top().P().save_after, &backpos)
+						behind_pos = regstack_behind_top().save_behind
+						if int32(rp.rs_no) == NOBEHIND {
+							reg_restore(&regstack_behind_top().save_after, &backpos)
 							status = RA_MATCH
 						} else {
 							if status == RA_MATCH {
@@ -45525,13 +45525,13 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					break
 				}
 				if status != RA_BREAK {
-					reg_restore(&rp.P().rs_un.regsave, &backpos)
+					reg_restore(&rp.rs_un.regsave, &backpos)
 				}
 				for {
 					if status != RA_BREAK {
-						if rp.P().rs_state == RS_STAR_LONG {
-							rst_2.P().count--
-							if rst_2.P().count < rst_2.P().minval {
+						if rp.rs_state == RS_STAR_LONG {
+							rst_2.count--
+							if rst_2.count < rst_2.minval {
 								break
 							}
 							if rex.input == rex.line {
@@ -45550,10 +45550,10 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 								rex.input = rex.input.Add(-int((utf_head_off(rex.line, rex.input.Add(-1)) + 1)))
 							}
 						} else {
-							if (rst_2.P().count == rst_2.P().minval) || (regrepeat(rp.P().rs_scan.Add(3), 1) == 0) {
+							if (rst_2.count == rst_2.minval) || (regrepeat(rp.rs_scan.Add(3), 1) == 0) {
 								break
 							}
-							rst_2.P().count++
+							rst_2.count++
 						}
 						if got_int != 0 {
 							break
@@ -45561,9 +45561,9 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					} else {
 						status = RA_NOMATCH
 					}
-					if ((rst_2.P().nextb == NUL) || (int32(rex.input.Get()) == rst_2.P().nextb)) || (int32(rex.input.Get()) == rst_2.P().nextb_ic) {
-						reg_save(&rp.P().rs_un.regsave, &backpos)
-						scan = regnext(rp.P().rs_scan)
+					if ((rst_2.nextb == NUL) || (int32(rex.input.Get()) == rst_2.nextb)) || (int32(rex.input.Get()) == rst_2.nextb_ic) {
+						reg_save(&rp.rs_un.regsave, &backpos)
+						scan = regnext(rp.rs_scan)
 						status = RA_CONT
 						break
 					}
@@ -45575,7 +45575,7 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					status = RA_NOMATCH
 				}
 			}
-			if (status == RA_CONT) || (rp == GaData[S_regitem_S](&regstack).Add(int(regstack.ga_len-1))) {
+			if (status == RA_CONT) || (Addr(rp) == GaData[S_regitem_S](&regstack).Add(int(regstack.ga_len-1))) {
 				break
 			}
 		}
@@ -45627,8 +45627,8 @@ func bt_regexec_both(line Ptr[byte], startcol colnr_T, timed_out *int32) int64 {
 	var retval int64
 	var c int32
 	var c_2 int32
-	var start Ptr[lpos_T]
-	var end Ptr[lpos_T]
+	var start *lpos_T
+	var end *lpos_T
 
 	col = startcol
 	retval = 0
@@ -45752,9 +45752,9 @@ theend:
 	}
 	if retval > 0 {
 		if rex.reg_match == nil {
-			start = View(rex.reg_mmatch.startpos[:])
-			end = View(rex.reg_mmatch.endpos[:])
-			if (end.P().lnum < start.P().lnum) || ((end.P().lnum == start.P().lnum) && (end.P().col < start.P().col)) {
+			start = &rex.reg_mmatch.startpos[0]
+			end = &rex.reg_mmatch.endpos[0]
+			if (end.lnum < start.lnum) || ((end.lnum == start.lnum) && (end.col < start.col)) {
 				rex.reg_mmatch.endpos[0] = rex.reg_mmatch.startpos[0]
 			}
 			rex.reg_mmatch.rmm_matchcol = col
@@ -45891,7 +45891,7 @@ func get_yank_register(regname int32, writing int32) bool {
 	var i int32
 	var ret bool = false
 	y_append = FALSE
-	if (((regname == 0) || (regname == '"')) && (writing == 0)) && !y_previous.Nil() {
+	if (((regname == 0) || (regname == '"')) && (writing == 0)) && (y_previous != nil) {
 		y_current = y_previous
 		return (ret)
 	}
@@ -45908,7 +45908,7 @@ func get_yank_register(regname int32, writing int32) bool {
 	} else {
 		i = 0
 	}
-	y_current = View(y_regs[:]).Add(int(i))
+	y_current = &y_regs[int(i)]
 	if writing != 0 {
 		y_previous = y_current
 	}
@@ -45920,9 +45920,9 @@ func get_register(name int32, copy_ bool) *yankreg_T {
 	var i int32
 	get_yank_register(name, 0)
 	reg = new(yankreg_T)
-	*reg = *y_current.P()
+	*reg = (*y_current)
 	if copy_ {
-		if (reg.y_size == 0) || y_current.P().y_array.Nil() {
+		if (reg.y_size == 0) || y_current.y_array.Nil() {
 			reg.y_array = Ptr[string_T]{}
 		} else {
 			reg.y_array = Mk[string_T](int(reg.y_size))
@@ -45930,12 +45930,12 @@ func get_register(name int32, copy_ bool) *yankreg_T {
 		if !reg.y_array.Nil() {
 			i = 0
 			for ; int64(i) < reg.y_size; i++ {
-				reg.y_array.Ref(int(i)).string_ = vim_strnsave(y_current.P().y_array.Ref(int(i)).string_, y_current.P().y_array.Ref(int(i)).length)
-				reg.y_array.Ref(int(i)).length = y_current.P().y_array.Ref(int(i)).length
+				reg.y_array.Ref(int(i)).string_ = vim_strnsave(y_current.y_array.Ref(int(i)).string_, y_current.y_array.Ref(int(i)).length)
+				reg.y_array.Ref(int(i)).length = y_current.y_array.Ref(int(i)).length
 			}
 		}
 	} else {
-		y_current.P().y_array = Ptr[string_T]{}
+		y_current.y_array = Ptr[string_T]{}
 	}
 	return reg
 }
@@ -45943,13 +45943,13 @@ func get_register(name int32, copy_ bool) *yankreg_T {
 func put_register(name int32, reg *yankreg_T) {
 	get_yank_register(name, 0)
 	free_yank_all()
-	y_current.Put((*reg))
+	*y_current = (*reg)
 }
 
 func do_record(c int32) bool {
 	var p Ptr[byte]
-	var old_y_previous Ptr[yankreg_T]
-	var old_y_current Ptr[yankreg_T]
+	var old_y_previous *yankreg_T
+	var old_y_current *yankreg_T
 	var retval bool
 	if reg_recording == 0 {
 		if (c < 0) || (!((((uint32(c) - 'A') < 26) || ((uint32(c) - 'a') < 26)) || ((uint32(c) - '0') < 10)) && (c != '"')) {
@@ -45988,11 +45988,11 @@ func stuff_yank(regname int32, p Ptr[byte]) bool {
 	}
 	plen = musl_strlen(p)
 	get_yank_register(regname, TRUE)
-	if (y_append != 0) && !y_current.P().y_array.Nil() {
+	if (y_append != 0) && !y_current.y_array.Nil() {
 		var pp *string_T
 		var tmp Ptr[byte]
 		var tmplen usize
-		pp = y_current.P().y_array.Add(int(y_current.P().y_size - 1)).P()
+		pp = y_current.y_array.Ref(int(y_current.y_size - 1))
 		tmplen = pp.length + plen
 		tmp = Alloc(int(tmplen + 1))
 		musl_strcpy(tmp, pp.string_)
@@ -46001,11 +46001,11 @@ func stuff_yank(regname int32, p Ptr[byte]) bool {
 		pp.length = tmplen
 	} else {
 		free_yank_all()
-		y_current.P().y_array = Mk[string_T](1)
-		y_current.P().y_array.Ref(0).string_ = p
-		y_current.P().y_array.Ref(0).length = plen
-		y_current.P().y_size = 1
-		y_current.P().y_type = MCHAR
+		y_current.y_array = Mk[string_T](1)
+		y_current.y_array.Ref(0).string_ = p
+		y_current.y_array.Ref(0).length = plen
+		y_current.y_size = 1
+		y_current.y_type = MCHAR
 	}
 	return true
 }
@@ -46017,7 +46017,7 @@ func execreg_line_continuation(lines Ptr[string_T], idx *int64) Ptr[byte] {
 	var ga S_growarray
 	cmd_start := (*idx)
 	cmd_end := (*idx)
-	var tmp Ptr[string_T]
+	var tmp *string_T
 	var j int32
 	var str Ptr[byte]
 	ga_init2(&ga, 1, 400)
@@ -46031,12 +46031,12 @@ func execreg_line_continuation(lines Ptr[string_T], idx *int64) Ptr[byte] {
 			break
 		}
 	}
-	tmp = lines.Add(int(cmd_start))
-	ga_concat_len(&ga, tmp.P().string_, tmp.P().length)
+	tmp = lines.Ref(int(cmd_start))
+	ga_concat_len(&ga, tmp.string_, tmp.length)
 	j = int32(cmd_start + 1)
 	for ; int64(j) <= cmd_end; j++ {
-		tmp = lines.Add(int(j))
-		p_2 = skipwhite(tmp.P().string_)
+		tmp = lines.Ref(int(j))
+		p_2 = skipwhite(tmp.string_)
 		if int32(p_2.Get()) == 92 {
 			if ga.ga_len > 400 {
 				if ga.ga_len > 8000 {
@@ -46046,7 +46046,7 @@ func execreg_line_continuation(lines Ptr[string_T], idx *int64) Ptr[byte] {
 				}
 			}
 			p_2 = p_2.Add(1)
-			ga_concat_len(&ga, p_2, usize(int64(tmp.P().string_.Add(int(tmp.P().length)).Sub(p_2))))
+			ga_concat_len(&ga, p_2, usize(int64(tmp.string_.Add(int(tmp.length)).Sub(p_2))))
 		}
 	}
 	ga_append(&ga, NUL)
@@ -46100,7 +46100,7 @@ func do_execreg(regname int32, colon bool, addcr bool, silent bool) bool {
 		retval = (put_in_typebuf(p, false, (colon), (silent)))
 	} else {
 		get_yank_register(regname, FALSE)
-		if y_current.P().y_array.Nil() {
+		if y_current.y_array.Nil() {
 			return false
 		}
 		var t1 int32
@@ -46111,22 +46111,22 @@ func do_execreg(regname int32, colon bool, addcr bool, silent bool) bool {
 		}
 		remap = t1
 		put_reedit_in_typebuf((silent))
-		i = y_current.P().y_size
+		i = y_current.y_size
 		for {
 			i--
 			if !(i >= 0) {
 				break
 			}
-			if ((int32(y_current.P().y_type) == MLINE) || (i < (y_current.P().y_size - 1))) || addcr {
+			if ((int32(y_current.y_type) == MLINE) || (i < (y_current.y_size - 1))) || addcr {
 				if !ins_typebuf(S("\n"), remap, 0, true, B2i(silent)) {
 					return false
 				}
 			}
-			str = y_current.P().y_array.Ref(int(i)).string_
+			str = y_current.y_array.Ref(int(i)).string_
 			if colon && (i > 0) {
 				p = skipwhite(str)
 				if (int32(p.Get()) == 92) || (((int32(p.At(0)) == '"') && (int32(p.At(1)) == 92)) && (int32(p.At(2)) == (' '))) {
-					str = execreg_line_continuation(y_current.P().y_array, &i)
+					str = execreg_line_continuation(y_current.y_array, &i)
 				}
 			}
 			escaped = vim_strsave_escape_csi(str)
@@ -46234,18 +46234,18 @@ func insert_reg(regname int32, literally_arg int32) bool {
 		if get_yank_register(regname, FALSE) {
 			literally = TRUE
 		}
-		if y_current.P().y_array.Nil() {
+		if y_current.y_array.Nil() {
 			retval = false
 		} else {
 			i = 0
-			for ; i < y_current.P().y_size; i++ {
-				if (regname == '-') && (int32(y_current.P().y_type) == MCHAR) {
+			for ; i < y_current.y_size; i++ {
+				if (regname == '-') && (int32(y_current.y_type) == MCHAR) {
 					var dir int32 = -1
 					if (State & REPLACE_FLAG) != 0 {
 						if !u_save_cursor() {
 							return false
 						}
-						del_chars(int64(mb_charlen(y_current.P().y_array.Ref(0).string_)), true)
+						del_chars(int64(mb_charlen(y_current.y_array.Ref(0).string_)), true)
 						curpos = curwin.w_cursor
 						if !oneright() {
 							dir = FORWARD
@@ -46256,8 +46256,8 @@ func insert_reg(regname int32, literally_arg int32) bool {
 					AppendCharToRedobuff(regname)
 					do_put(regname, Ptr[byte]{}, dir, 1, PUT_CURSEND)
 				} else {
-					stuffescaped(y_current.P().y_array.Ref(int(i)).string_, literally)
-					if (int32(y_current.P().y_type) == MLINE) || (i < (y_current.P().y_size - 1)) {
+					stuffescaped(y_current.y_array.Ref(int(i)).string_, literally)
+					if (int32(y_current.y_type) == MLINE) || (i < (y_current.y_size - 1)) {
 						stuffcharReadbuff(10)
 					}
 				}
@@ -46352,13 +46352,13 @@ func cmdline_paste_reg(regname int32, literally_arg bool, remcr bool) bool {
 	if get_yank_register(regname, FALSE) {
 		literally = true
 	}
-	if y_current.P().y_array.Nil() {
+	if y_current.y_array.Nil() {
 		return false
 	}
 	i = 0
-	for ; i < y_current.P().y_size; i++ {
-		cmdline_paste_str(y_current.P().y_array.Ref(int(i)).string_, (literally))
-		if ((int32(y_current.P().y_type) == MLINE) || (i < (y_current.P().y_size - 1))) && !remcr {
+	for ; i < y_current.y_size; i++ {
+		cmdline_paste_str(y_current.y_array.Ref(int(i)).string_, (literally))
+		if ((int32(y_current.y_type) == MLINE) || (i < (y_current.y_size - 1))) && !remcr {
 			cmdline_paste_str(S("\r"), (literally))
 		}
 		ui_breakcheck()
@@ -46371,13 +46371,13 @@ func cmdline_paste_reg(regname int32, literally_arg bool, remcr bool) bool {
 
 func shift_delete_registers() {
 	var n int32
-	y_current = View(y_regs[:]).Add(9)
+	y_current = &y_regs[9]
 	free_yank_all()
 	n = 9
 	for ; n > 1; n-- {
 		y_regs[int(n)] = y_regs[int(n-1)]
 	}
-	y_current = View(y_regs[:]).Add(1)
+	y_current = &y_regs[1]
 	if y_append == 0 {
 		y_previous = y_current
 	}
@@ -46392,7 +46392,7 @@ func init_yank() {
 }
 
 func free_yank(n int64) {
-	if y_current.P().y_array.Nil() {
+	if y_current.y_array.Nil() {
 		return
 	}
 	var i int64 = n
@@ -46401,19 +46401,19 @@ func free_yank(n int64) {
 		if !(i >= 0) {
 			break
 		}
-		y_current.P().y_array.Ref(int(i)).string_ = Ptr[byte]{}
-		y_current.P().y_array.Ref(int(i)).length = 0
+		y_current.y_array.Ref(int(i)).string_ = Ptr[byte]{}
+		y_current.y_array.Ref(int(i)).length = 0
 	}
-	y_current.P().y_array = Ptr[string_T]{}
+	y_current.y_array = Ptr[string_T]{}
 }
 
 func free_yank_all() {
-	free_yank(y_current.P().y_size)
+	free_yank(y_current.y_size)
 }
 
 func op_yank(oap *S_oparg_S, deleting bool, mess bool) bool {
 	var y_idx int64
-	var curr Ptr[yankreg_T]
+	var curr *yankreg_T
 	var newreg yankreg_T
 	var lnum linenr_T
 	var yanktype int32
@@ -46442,8 +46442,8 @@ func op_yank(oap *S_oparg_S, deleting bool, mess bool) bool {
 		get_yank_register(oap.regname, TRUE)
 	}
 	curr = y_current
-	if (y_append != 0) && !y_current.P().y_array.Nil() {
-		y_current = Addr(&newreg)
+	if (y_append != 0) && !y_current.y_array.Nil() {
+		y_current = &newreg
 	} else {
 		free_yank_all()
 	}
@@ -46452,32 +46452,32 @@ func op_yank(oap *S_oparg_S, deleting bool, mess bool) bool {
 		yankendlnum--
 		yanklines--
 	}
-	y_current.P().y_size = yanklines
-	y_current.P().y_type = char_u(yanktype)
-	y_current.P().y_width = 0
-	y_current.P().y_array = Mk[string_T](int(yanklines))
+	y_current.y_size = yanklines
+	y_current.y_type = char_u(yanktype)
+	y_current.y_width = 0
+	y_current.y_array = Mk[string_T](int(yanklines))
 	y_idx = 0
 	lnum = oap.start.lnum
 	if oap.block_mode != 0 {
-		y_current.P().y_type = MBLOCK
-		y_current.P().y_width = oap.end_vcol - oap.start_vcol
-		if (curwin.w_curswant == MAXCOL) && (y_current.P().y_width > 0) {
-			y_current.P().y_width--
+		y_current.y_type = MBLOCK
+		y_current.y_width = oap.end_vcol - oap.start_vcol
+		if (curwin.w_curswant == MAXCOL) && (y_current.y_width > 0) {
+			y_current.y_width--
 		}
 	}
 	for {
 		if !(lnum <= yankendlnum) {
 			break
 		}
-		switch y_current.P().y_type {
+		switch y_current.y_type {
 		case MBLOCK:
 			block_prep(oap, &bd, lnum, FALSE)
 			if !yank_copy_line(&bd, y_idx, oap.excl_tr_ws) {
 				goto fail
 			}
 		case MLINE:
-			y_current.P().y_array.Ref(int(y_idx)).length = usize(ml_get_len(lnum))
-			y_current.P().y_array.Ref(int(y_idx)).string_ = vim_strnsave(ml_get(lnum), y_current.P().y_array.Ref(int(y_idx)).length)
+			y_current.y_array.Ref(int(y_idx)).length = usize(ml_get_len(lnum))
+			y_current.y_array.Ref(int(y_idx)).string_ = vim_strnsave(ml_get(lnum), y_current.y_array.Ref(int(y_idx)).length)
 		case MCHAR:
 			charwise_block_prep(oap.start, oap.end, &bd, lnum, oap.inclusive)
 			tmp = int32(musl_strlen(bd.textstart))
@@ -46492,37 +46492,37 @@ func op_yank(oap *S_oparg_S, deleting bool, mess bool) bool {
 		y_idx++
 	}
 	if curr != y_current {
-		new_ptr = Mk[string_T](int((curr.P().y_size + y_current.P().y_size)))
+		new_ptr = Mk[string_T](int((curr.y_size + y_current.y_size)))
 		j = 0
-		for ; j < curr.P().y_size; j++ {
-			new_ptr.Set(int(j), *curr.P().y_array.Ref(int(j)))
+		for ; j < curr.y_size; j++ {
+			new_ptr.Set(int(j), *curr.y_array.Ref(int(j)))
 		}
-		curr.P().y_array = new_ptr
+		curr.y_array = new_ptr
 		if yanktype == MLINE {
-			curr.P().y_type = MLINE
+			curr.y_type = MLINE
 		}
-		if (int32(curr.P().y_type) == MCHAR) && vim_strchr(p_cpo, CPO_REGAPPEND).Nil() {
-			pnew = Alloc(int((curr.P().y_array.Ref(int(curr.P().y_size-1)).length + y_current.P().y_array.Ref(0).length) + 1))
+		if (int32(curr.y_type) == MCHAR) && vim_strchr(p_cpo, CPO_REGAPPEND).Nil() {
+			pnew = Alloc(int((curr.y_array.Ref(int(curr.y_size-1)).length + y_current.y_array.Ref(0).length) + 1))
 			j--
-			musl_strcpy(pnew, curr.P().y_array.Ref(int(j)).string_)
-			musl_strcpy(pnew.Add(int(curr.P().y_array.Ref(int(j)).length)), y_current.P().y_array.Ref(0).string_)
-			curr.P().y_array.Ref(int(j)).string_ = pnew
-			curr.P().y_array.Ref(int(j)).length = curr.P().y_array.Ref(int(j)).length + y_current.P().y_array.Ref(0).length
+			musl_strcpy(pnew, curr.y_array.Ref(int(j)).string_)
+			musl_strcpy(pnew.Add(int(curr.y_array.Ref(int(j)).length)), y_current.y_array.Ref(0).string_)
+			curr.y_array.Ref(int(j)).string_ = pnew
+			curr.y_array.Ref(int(j)).length = curr.y_array.Ref(int(j)).length + y_current.y_array.Ref(0).length
 			j++
-			y_current.P().y_array.Ref(0).string_ = Ptr[byte]{}
-			y_current.P().y_array.Ref(0).length = 0
+			y_current.y_array.Ref(0).string_ = Ptr[byte]{}
+			y_current.y_array.Ref(0).length = 0
 			y_idx = 1
 		} else {
 			y_idx = 0
 		}
-		for y_idx < y_current.P().y_size {
+		for y_idx < y_current.y_size {
 			t1 = j
 			j++
 			t2 = y_idx
 			y_idx++
-			curr.P().y_array.Set(int(t1), *y_current.P().y_array.Ref(int(t2)))
+			curr.y_array.Set(int(t1), *y_current.y_array.Ref(int(t2)))
 		}
-		curr.P().y_size = j
+		curr.y_size = j
 		y_current = curr
 	}
 	if mess {
@@ -46570,7 +46570,7 @@ func yank_copy_line(bd *S_block_def, y_idx int64, exclude_trailing_space int32) 
 		bd.endspaces = 0
 	}
 	pnew = Alloc(int(((bd.startspaces + bd.endspaces) + bd.textlen) + 1))
-	y_current.P().y_array.Ref(int(y_idx)).string_ = pnew
+	y_current.y_array.Ref(int(y_idx)).string_ = pnew
 	Memset(pnew, (' '), int(uint64(bd.startspaces)))
 	pnew = pnew.Add(int(bd.startspaces))
 	Memmove(pnew, bd.textstart, int(uint64(bd.textlen)))
@@ -46585,7 +46585,7 @@ func yank_copy_line(bd *S_block_def, y_idx int64, exclude_trailing_space int32) 
 		}
 	}
 	pnew.Put(NUL)
-	y_current.P().y_array.Ref(int(y_idx)).length = uint64(int64(pnew.Sub(y_current.P().y_array.Ref(int(y_idx)).string_)))
+	y_current.y_array.Ref(int(y_idx)).length = uint64(int64(pnew.Sub(y_current.y_array.Ref(int(y_idx)).string_)))
 	return true
 }
 
@@ -46604,7 +46604,7 @@ func do_put(regname int32, expr_result Ptr[byte], dir int32, count int64, flags 
 	var y_width int64
 	var vcol colnr_T
 	var y_array Ptr[string_T]
-	var y_current_used Ptr[yankreg_T]
+	var y_current_used *yankreg_T
 	var nr_lines int64
 	var insert_string string_T
 	var allocated int32
@@ -46653,7 +46653,7 @@ func do_put(regname int32, expr_result Ptr[byte], dir int32, count int64, flags 
 	totlen = 0
 	y_width = 0
 	y_array = Ptr[string_T]{}
-	y_current_used = Ptr[yankreg_T]{}
+	y_current_used = nil
 	nr_lines = 0
 	allocated = FALSE
 	orig_start = curbuf.b_op_start
@@ -46702,10 +46702,10 @@ func do_put(regname int32, expr_result Ptr[byte], dir int32, count int64, flags 
 		y_array = Addr(&insert_string)
 	} else {
 		get_yank_register(regname, FALSE)
-		y_type = int32(y_current.P().y_type)
-		y_width = int64(y_current.P().y_width)
-		y_size = y_current.P().y_size
-		y_array = y_current.P().y_array
+		y_type = int32(y_current.y_type)
+		y_width = int64(y_current.y_width)
+		y_size = y_current.y_size
+		y_array = y_current.y_array
 		y_current_used = y_current
 	}
 	if y_type == MLINE {
@@ -47099,7 +47099,7 @@ func do_put(regname int32, expr_result Ptr[byte], dir int32, count int64, flags 
 			} else {
 				changed_lines(curbuf.b_op_start.lnum, 0, curbuf.b_op_start.lnum, nr_lines)
 			}
-			if !y_current_used.Nil() && ((y_current_used != y_current) || (y_current.P().y_array != y_array)) {
+			if (y_current_used != nil) && ((y_current_used != y_current) || (y_current.y_array != y_array)) {
 				emsg(gettext_(e_yank_register_changed_while_using_it))
 				goto end
 			}
@@ -47185,7 +47185,7 @@ func ex_display(eap *S_exarg) {
 	var n int32
 	var j int64
 	var p Ptr[byte]
-	var yb Ptr[yankreg_T]
+	var yb *yankreg_T
 	var name int32
 	var attr int32
 	arg := eap.arg
@@ -47213,21 +47213,21 @@ func ex_display(eap *S_exarg) {
 			continue
 		}
 		if i == -1 {
-			if !y_previous.Nil() {
+			if y_previous != nil {
 				yb = y_previous
 			} else {
-				yb = View(y_regs[:])
+				yb = &y_regs[0]
 			}
 		} else {
-			yb = View(y_regs[:]).Add(int(i))
+			yb = &y_regs[int(i)]
 		}
-		if !yb.P().y_array.Nil() {
+		if !yb.y_array.Nil() {
 			var do_show bool = false
 			j = 0
-			for ; !do_show && (j < yb.P().y_size); j++ {
-				do_show = !message_filtered(yb.P().y_array.Ref(int(j)).string_)
+			for ; !do_show && (j < yb.y_size); j++ {
+				do_show = !message_filtered(yb.y_array.Ref(int(j)).string_)
 			}
-			if do_show || (yb.P().y_size == 0) {
+			if do_show || (yb.y_size == 0) {
 				msg_putchar(10)
 				msg_puts(S("  "))
 				msg_putchar(type_)
@@ -47237,12 +47237,12 @@ func ex_display(eap *S_exarg) {
 				msg_puts(S("   "))
 				n = int32(Columns) - 11
 				j = 0
-				for ; (j < yb.P().y_size) && (n > 1); j++ {
+				for ; (j < yb.y_size) && (n > 1); j++ {
 					if j != 0 {
 						msg_puts_attr(S("^J"), attr)
 						n -= 2
 					}
-					p = yb.P().y_array.Ref(int(j)).string_
+					p = yb.y_array.Ref(int(j)).string_
 					for {
 						var t1 bool = int32(p.Get()) != NUL
 						if t1 {
@@ -47258,7 +47258,7 @@ func ex_display(eap *S_exarg) {
 						p = p.Add(1)
 					}
 				}
-				if (n > 1) && (int32(yb.P().y_type) == MLINE) {
+				if (n > 1) && (int32(yb.y_type) == MLINE) {
 					msg_puts_attr(S("^J"), attr)
 				}
 				out_flush()
@@ -47318,11 +47318,11 @@ func get_reg_type(regname int32, reglen *int64) char_u {
 		return MAUTO
 	}
 	get_yank_register(regname, FALSE)
-	if !y_current.P().y_array.Nil() {
-		if (reglen != nil) && (int32(y_current.P().y_type) == MBLOCK) {
-			*reglen = int64(y_current.P().y_width)
+	if !y_current.y_array.Nil() {
+		if (reglen != nil) && (int32(y_current.y_type) == MBLOCK) {
+			*reglen = int64(y_current.y_width)
 		}
-		return y_current.P().y_type
+		return y_current.y_type
 	}
 	return MAUTO
 }
@@ -49611,44 +49611,44 @@ func check_chars_options() Ptr[byte] {
 }
 
 func estack_init() {
-	var entry Ptr[estack_T]
+	var entry *estack_T
 	if !ga_grow(&exestack, 10) {
 		mch_exit(0)
 	}
-	entry = GaData[estack_T](&exestack).Add(int(exestack.ga_len))
-	entry.P().es_type = ETYPE_TOP
-	entry.P().es_name = Ptr[byte]{}
-	entry.P().es_lnum = 0
+	entry = GaData[estack_T](&exestack).Ref(int(exestack.ga_len))
+	entry.es_type = ETYPE_TOP
+	entry.es_name = Ptr[byte]{}
+	entry.es_lnum = 0
 	exestack.ga_len++
 }
 
-func estack_push(type_ etype_T, name Ptr[byte], lnum int64) Ptr[estack_T] {
-	var entry Ptr[estack_T]
+func estack_push(type_ etype_T, name Ptr[byte], lnum int64) *estack_T {
+	var entry *estack_T
 	if !ga_grow(&exestack, 1) {
-		return Ptr[estack_T]{}
+		return nil
 	}
-	entry = GaData[estack_T](&exestack).Add(int(exestack.ga_len))
-	entry.P().es_type = type_
-	entry.P().es_name = name
-	entry.P().es_lnum = lnum
+	entry = GaData[estack_T](&exestack).Ref(int(exestack.ga_len))
+	entry.es_type = type_
+	entry.es_name = name
+	entry.es_lnum = lnum
 	exestack.ga_len++
 	return entry
 }
 
-func estack_pop() Ptr[estack_T] {
+func estack_pop() *estack_T {
 	if exestack.ga_len == 0 {
-		return Ptr[estack_T]{}
+		return nil
 	}
 	exestack.ga_len--
-	return GaData[estack_T](&exestack).Add(int(exestack.ga_len))
+	return GaData[estack_T](&exestack).Ref(int(exestack.ga_len))
 }
 
 func estack_sfile(which estack_arg_T) Ptr[byte] {
-	var entry Ptr[estack_T] = GaData[estack_T](&exestack).Add(int(exestack.ga_len)).Add(-1)
-	if entry.P().es_name.Nil() {
+	var entry *estack_T = GaData[estack_T](&exestack).Add(int(exestack.ga_len)).Ref(-1)
+	if entry.es_name.Nil() {
 		return Ptr[byte]{}
 	}
-	return vim_strsave(entry.P().es_name)
+	return vim_strsave(entry.es_name)
 }
 
 func search_regcomp(pat Ptr[byte], patlen usize, used_pat *Ptr[byte], pat_save int32, pat_use int32, options int32, regmatch *regmmatch_T) bool {
@@ -51941,7 +51941,7 @@ func apply_builtin_tcap(term Ptr[byte], entries Ptr[tcap_entry_T], overwrite boo
 						}
 					}
 					term_strings[int(p.P().bt_entry)] = s
-					set_term_option_alloced(View(term_strings[:]).Add(int(p.P().bt_entry)))
+					set_term_option_alloced(&term_strings[int(p.P().bt_entry)])
 				} else {
 					term_strings[int(p.P().bt_entry)] = p.P().bt_string
 				}
@@ -52270,7 +52270,7 @@ func out_flush() {
 	}
 	len_ = out_pos
 	out_pos = 0
-	ui_write(out_buf, len_)
+	ui_write(View(out_buf[:]), len_)
 }
 
 func out_flush_cursor(force bool, clear_selection bool) {
@@ -52283,7 +52283,7 @@ func out_char(c uint32) {
 	}
 	var t1 int32 = out_pos
 	out_pos++
-	out_buf.Set(int(t1), byte(c))
+	out_buf[int(t1)] = byte(c)
 	if (out_pos >= OUT_SIZE) || (p_wd != 0) {
 		out_flush()
 	}
@@ -52292,7 +52292,7 @@ func out_char(c uint32) {
 func out_char_nf(c int32) int32 {
 	var t1 int32 = out_pos
 	out_pos++
-	out_buf.Set(int(t1), byte(uint32(c)))
+	out_buf[int(t1)] = byte(uint32(c))
 	if out_pos >= OUT_SIZE {
 		out_flush()
 	}
@@ -55508,18 +55508,18 @@ func get_undolevel() int64 {
 	return curbuf.b_p_ul
 }
 
-func u_save_line(ul Ptr[undoline_T], lnum linenr_T) bool {
+func u_save_line(ul *undoline_T, lnum linenr_T) bool {
 	line := ml_get(lnum)
-	ul.P().ul_textlen = ml_get_len(lnum)
+	ul.ul_textlen = ml_get_len(lnum)
 	if curbuf.b_ml.ml_line_len == 0 {
-		ul.P().ul_len = 1
-		ul.P().ul_line = vim_strsave(S(""))
+		ul.ul_len = 1
+		ul.ul_line = vim_strsave(S(""))
 	} else {
-		ul.P().ul_len = int64(curbuf.b_ml.ml_line_len)
-		ul.P().ul_line = vim_memsave(line, usize(ul.P().ul_len))
+		ul.ul_len = int64(curbuf.b_ml.ml_line_len)
+		ul.ul_line = vim_memsave(line, usize(ul.ul_len))
 	}
 	var t1 bool
-	if ul.P().ul_line.Nil() {
+	if ul.ul_line.Nil() {
 		t1 = false
 	} else {
 		t1 = true
@@ -55708,7 +55708,7 @@ func u_savecommon(top linenr_T, bot linenr_T, newbot linenr_T, reload bool) bool
 			}
 			t5 = lnum
 			lnum++
-			if !u_save_line(uep.ue_array.Add(int(i)), t5) {
+			if !u_save_line(uep.ue_array.Ref(int(i)), t5) {
 				u_freeentry(uep, i)
 				goto nomem
 			}
@@ -56180,7 +56180,7 @@ func u_undoredo(undo bool) {
 				if !(i >= 0) {
 					break
 				}
-				if !u_save_line(newarray.Add(int(i)), lnum) {
+				if !u_save_line(newarray.Ref(int(i)), lnum) {
 					do_outofmem_msg(0)
 				}
 				if curbuf.b_ml.ml_line_count == 1 {
@@ -56620,7 +56620,7 @@ func u_saveline(lnum linenr_T) {
 	} else {
 		curbuf.b_u_line_colnr = 0
 	}
-	if !u_save_line(Addr(&curbuf.b_u_line_ptr), lnum) {
+	if !u_save_line(&curbuf.b_u_line_ptr, lnum) {
 		do_outofmem_msg(0)
 	}
 }
@@ -56648,7 +56648,7 @@ func u_undoline() {
 	if !u_savecommon(curbuf.b_u_line_lnum-1, curbuf.b_u_line_lnum+1, 0, false) {
 		return
 	}
-	if !u_save_line(Addr(&oldp), curbuf.b_u_line_lnum) {
+	if !u_save_line(&oldp, curbuf.b_u_line_lnum) {
 		do_outofmem_msg(0)
 		return
 	}
@@ -56696,7 +56696,7 @@ func init_longVersion() {
 	msg := gettext_(S("%s (%s)"))
 	var len_ usize = (((musl_strlen(msg) + 22) - 1) + 12) - 1
 	longVersion = Alloc(int(len_))
-	vim_snprintf(longVersion, len_, msg, View(VIM_VERSION_LONG_ONLY[:]), VIM_VERSION_DATE_ONLY)
+	vim_snprintf(longVersion, len_, msg, View(VIM_VERSION_LONG_ONLY[:]), View(VIM_VERSION_DATE_ONLY[:]))
 }
 
 func win_valid(win *S_window_S) int32 {

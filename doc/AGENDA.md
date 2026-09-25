@@ -14,8 +14,8 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   one can be read from. It checks the Go editor against the C on the same
   cases, so a wider corpus widens both.
 - **The Go editor, the rest of idiomatic.** `doc/GO-IDIOMS.md`'s items 1-6 are
-  done (lint, dead code, `bool`, scoped locals, libc, key names). Left, in its
-  order: `Ptr[T]` where a plain slice or `*T` would do (item 7), a `goto` whose
+  done (lint, dead code, `bool`, scoped locals, libc, key names), and item 7's
+  `*T` for a pointer that never walks. Left, in its order: a `goto` whose
   target is `return x` as that `return` (10), the 824 globals as a struct
   (11), and the package structure (12). Each is checked by `make whim-test`,
   which runs the Go editor against the C.
