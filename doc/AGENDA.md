@@ -13,13 +13,6 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   `internal/harness`, its corpus and pty harness) covered and is where a wider
   one can be read from. It checks the Go editor against the C on the same
   cases, so a wider corpus widens both.
-- **The Go editor, the rest of idiomatic.** `doc/GO-IDIOMS.md`'s items 1-6 are
-  done (lint, dead code, `bool`, scoped locals, libc, key names), and item 7's
-  `*T` for a pointer that never walks, and item 10 (phase 168); 11 and 12
-  are declined (below). Left of item 7: a pointer that walks forward as a
-  resliced `[]T`, which for `Ptr[byte]` is a string model -- a redesign, not a
-  rule. It is checked by `make whim-test`, which runs the Go editor against
-  the C.
 - **The behaviour suite is timing-sensitive, rarely.** Under heavy CPU load the
   Go editor's output for `substitute` differed from itself 1 run in 300, on
   `main` as on a branch: a redraw depends on how much typeahead has arrived
@@ -43,6 +36,15 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 
 
 ## Declined, with the reason recorded
+
+**The C strings as Go slices** (`GO-IDIOMS.md` item 7, its last part). Every
+`char *` in the program is one pointer class, 1,561 objects merged by flows, and
+it is ordered and compared across pointers into one array: `p < end`, `p == q`,
+`p - s`. A slice has no such identity. The rule that makes a forward-only
+class a slice (39 classes, 89 objects) cannot reach it, and a string model
+that keeps an identity -- a base and an offset, which is `Ptr[byte]` -- is what
+the editor already has. Revisit only as a redesign of the string
+representation, not as a generator rule.
 
 **In-AST editing.** `doc/AST-EDITING.md`, and `GOALS.md`'s *What comes next*.
 Not on cost: `internal/cemit` joins the AST to the source text by byte offset, so

@@ -1,5 +1,11 @@
 # How the transpiled editor could be more idiomatic Go: a survey
 
+**Status (2026-09-25): every item is done or declined.** 1-6 and 10 are done;
+7 is done as far as a rule reaches -- a pointer that never walks is a `*T`, and
+one that only walks forward, or never moves and is only indexed, is a slice (39
+classes) -- and its last part, the one class of every `char *`, is declined
+with 11 and 12, the reasons in `doc/AGENDA.md`.
+
 **Since written:** its first recommendation is done -- `make whim-test` now runs
 the 44 cases on the Go editor against the C product, with the control, on every
 run (the finding below that it never did is the state it was written in). Its
