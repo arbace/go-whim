@@ -91,10 +91,7 @@ func NoCompl(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("nocompl: the CTRL-X dictionary/thesaurus arms are not "+
 			"where this expects (%d, %d)", n, n2)
 	}
-	var ok bool
-	if text, ok = cutil.DeleteDefinition(text, "has_compl_option"); !ok {
-		return nil, fmt.Errorf("nocompl: has_compl_option is not defined at file scope")
-	}
+	// has_compl_option itself is the sweep's once its two callers are gone.
 
 	// 'infercase' asked smartcase to stand down while completing.
 	text = bytes.Replace(text,
