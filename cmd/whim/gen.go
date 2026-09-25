@@ -48,9 +48,28 @@ func runGen(args []string) int {
 		fmt.Fprintln(os.Stderr, "whim gen: the generator refused editor.c")
 		return rc
 	}
+	// The same core in Java (doc/JAVA.md), tracked beside the Go and held to
+	// the same check: jeditor/Editor.java is what the Java backend writes, and
+	// the backend refuses nothing -- a refusal would be a method that throws.
+	jdir, err := os.MkdirTemp("", "jgen")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
+		return 1
+	}
+	defer os.RemoveAll(jdir)
+	javaOut := filepath.Join(out, "Editor.java")
+	if err := javaGen("editor.c", jdir, javaOut); err != nil {
+		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
+		return 1
+	}
+	if r, err := os.ReadFile(javaOut + ".refused"); err == nil && len(bytes.TrimSpace(r)) > 0 {
+		fmt.Fprintf(os.Stderr, "whim gen: the Java backend refused part of the core:\n%s", r)
+		return 1
+	}
 	files := []struct{ made, tracked string }{
 		{filepath.Join(out, "editor.go"), "editor/editor.go"},
 		{filepath.Join(out, "sigs.md"), "internal/gen/sigs.md"},
+		{javaOut, "jeditor/Editor.java"},
 	}
 	fail, changed := false, false
 	for _, f := range files {
@@ -64,7 +83,7 @@ func runGen(args []string) int {
 			continue
 		}
 		if check {
-			fmt.Printf("  %-12s is NOT what internal/gen writes from whim-vim.c.  Run: make editor/editor.go\n", filepath.Base(f.tracked))
+			fmt.Printf("  %-12s is NOT what the generator writes from whim-vim.c.  Run: make editor/editor.go\n", filepath.Base(f.tracked))
 			fail = true
 			continue
 		}
@@ -79,9 +98,12 @@ func runGen(args []string) int {
 		return 1
 	case check:
 		fmt.Printf("  %-12s is what internal/gen writes from whim-vim.c\n", "editor.go")
+		fmt.Printf("  %-12s is what the Java backend writes from whim-vim.c\n", "Editor.java")
 	case changed:
 		b, _ := os.ReadFile("editor/editor.go")
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.go", bytes.Count(b, []byte("\n")))
+		j, _ := os.ReadFile("jeditor/Editor.java")
+		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "Editor.java", bytes.Count(j, []byte("\n")))
 	default:
 		fmt.Printf("  %-12s current -- what internal/gen writes from whim-vim.c\n", "editor.go")
 	}

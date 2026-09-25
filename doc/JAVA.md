@@ -57,8 +57,9 @@ Java's own limits, which the emitter must respect:
   later, as the Go's `syscall` does) and `Whim.java` (the glue, a subclass of
   `Editor`, and the launcher's `main`) -- and `jeditor.go`, the Go that builds
   it: `Editor.java` generated from a `whim-vim.c`, compiled with the rest, and
-  a launcher script. `Editor.java` is not tracked yet (milestone 4); `make
-  bin/whim-java` writes it under `bin/java/`. *Milestone 3, as built*.
+  a launcher script. `Editor.java` is generated and tracked (`jeditor/Editor.java`,
+  milestone 4); `make bin/whim-java` compiles it under `bin/java/`. *Milestone
+  3, as built*.
 
 The JDK on the machine is 26.
 
@@ -87,7 +88,12 @@ Each is verified before the next starts.
    with milestone 2 the Java editor answers all 45 cases and all 240 wide
    ones exactly as the C does.
 4. **Kept current:** `make whim-build` writes `Editor.java` as it writes
-   `editor.go`, and a check refuses a stale one.
+   `editor.go`, and a check refuses a stale one. **Done**: `whim gen` writes
+   `jeditor/Editor.java` beside `editor/editor.go` from the same `editor.c`,
+   and refuses outright if the Java backend refused any part of the core;
+   `whim gen --check` (`make whim-editor-check`) refuses a stale one --
+   measured with a control, one byte of the tracked file changed. The build
+   writes it through `whim gen`, as it does `editor.go`.
 
 ## Milestone 1, as built
 

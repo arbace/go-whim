@@ -68,7 +68,7 @@ make whim-vim        # the C product's binary
 make slim-vim        # the input's binary, with the same one line
 make whim-build      # the 159 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same build, required to give the committed bytes back
-make whim-editor-check # refuse an editor/editor.go that is not what internal/gen writes
+make whim-editor-check # refuse an editor.go or Editor.java that is not what the generator writes
 make help            # every target, with a line each
 make editor.c        # whim-vim.c's core, cut at the line between core and host
 make editor/editor.go  # the core in Go, generated from editor.c
@@ -103,8 +103,9 @@ its `Exit`, and `Main` returns the code. `host_test.go` runs the editor so,
 in-process -- four at once, under the race detector, none seeing another's
 text.
 
-It follows the current core. `make whim-build` writes `editor.go` again after it
-produces `whim-vim.c`, and `make editor/editor.go` does it on its own.
+It follows the current core. `make whim-build` writes `editor.go` -- and the
+Java editor's `jeditor/Editor.java` -- again after it produces `whim-vim.c`, and
+`make editor/editor.go` does it on its own.
 `make whim-editor-check` refuses a committed file that is not what the program
 writes, and `make` builds it into `bin/whim`.
 
