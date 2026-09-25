@@ -103,7 +103,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 			ke("KE_X2MOUSE") + ke("KE_X2DRAG") + ke("KE_X2RELEASE") +
 			ke("KE_MOUSEMOVE") + `[ \t]*goto cmdline_not_changed;\n`,
 			"getcmdline_int()'s side-button cases"},
-		{`^[ \t]*int[ \t]+ignore_drag_release = TRUE;\n`, "ignore_drag_release"},
+		// Its declaration is the sweep's once nothing else names it.
 		{`^[ \t]*ignore_drag_release = TRUE;\n`, "ignore_drag_release's other assignment"},
 	} {
 		if text, err = cutCounted(text, "(?m)"+c.pat, "nomouse", c.what, 1); err != nil {
@@ -218,10 +218,6 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 		"nomouse", "did_set_ttymouse's call to check_mouse_termcode", 1); err != nil {
 		return nil, err
 	}
-	var ok bool
-	if text, ok = cutil.DeleteDefinition(text, "check_mouse_termcode"); !ok {
-		return nil, fmt.Errorf("nomouse: check_mouse_termcode is not defined at file scope")
-	}
 	fmt.Fprintln(w, "  nomouse      the two p_mouse readers an option row kept reachable")
 
 	if text, err = cutil.DropIf(text,
@@ -247,12 +243,6 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 			return nil, fmt.Errorf("nomouse: '%s' does not name its two handlers", name)
 		}
 	}
-	for _, name := range []string{"did_set_mouse", "expand_set_mouse", "did_set_mousemodel",
-		"expand_set_mousemodel", "did_set_ttymouse", "expand_set_ttymouse"} {
-		if text, ok = cutil.DeleteDefinition(text, name); !ok {
-			return nil, fmt.Errorf("nomouse: %s is not defined at file scope", name)
-		}
-	}
 	fmt.Fprintln(w, "  nomouse      the six option handlers their own rows kept reachable")
 
 	// WaitForCharOrMouse() has no mouse in it: the name is left over from the
@@ -268,6 +258,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	if anyMouse.Match(innerCopy) {
 		return nil, fmt.Errorf("nomouse: WaitForCharOrMouse does mention the mouse after all")
 	}
+	var ok bool
 	if text, ok = cutil.DeleteDefinition(text, "WaitForCharOrMouse"); !ok {
 		return nil, fmt.Errorf("nomouse: WaitForCharOrMouse would not delete")
 	}
