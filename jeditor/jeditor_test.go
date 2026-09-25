@@ -53,7 +53,7 @@ func TestLauncherBuildsAndRuns(t *testing.T) {
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("whim java: %v\n%s", err, out)
 	}
-	bin := filepath.Join(dir, "whim-java")
+	bin := filepath.Join(dir, "java", "whim-java") // with --out DIR, the launcher is DIR's
 	run := exec.Command(bin)
 	run.Stdin = strings.NewReader(":q!\r")
 	out, err := run.CombinedOutput()
@@ -63,11 +63,9 @@ func TestLauncherBuildsAndRuns(t *testing.T) {
 	} else if err != nil {
 		t.Fatal(err)
 	}
-	switch {
-	case code == 0:
-	case code == 70 && bytes.HasPrefix(out, []byte("whim-java: java.lang.UnsupportedOperationException: refused: ")):
-		t.Logf("the editor stops at a stub: %s", bytes.SplitN(out, []byte("\n"), 2)[0])
-	default:
+	// Every function of the core is written (JAVA.md, milestone 2): the
+	// editor starts, reads the keys and quits with 0.
+	if code != 0 {
 		t.Errorf("the launcher: status %d\n%s", code, out)
 	}
 }
