@@ -506,7 +506,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, p.Die("the output does not have the same eleven contiguous `#include` directives -- " +
 			"this phase adds DECLARATIONS and DEFINITIONS, never a directive")
 	}
-	p.Sayf("%d -> %d lines, the eleven #includes untouched at line %d, and no run of two "+
-		"blank lines", linesBefore, len(L)-1, boundary+1)
+	p.Sayf("%d -> %d lines before the canonical print, and the eleven #includes untouched "+
+		"at line %d", linesBefore, len(L)-1, boundary+1)
 	return []byte(t), nil
 }
