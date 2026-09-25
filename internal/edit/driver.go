@@ -30,6 +30,29 @@ import (
 // ORDER IS OUTPUT.  Each act prints when it succeeds and not before, in the
 // order it was asked for, because a phase program's log is what a human reads
 // when comparing two phase commits.
+//
+// THE VERB SET, and its one rule.  Every ACT takes the number of times it
+// applies, just before the `what` it reports, and refuses on any other count:
+//
+//	text        Literal(old, new, n, what)   Rename(word, new, n, what)
+//	regex       Sub(re, repl, n, what)       Cut(re, n, what)       Lines(re, n, what)
+//	if          FoldNever(re, n, what)       FoldAlways(re, n, what)
+//	            DropIf(re, n, what)          FoldAlwaysElse(re, n, what)
+//	span        Splice(from, through, with, what)
+//	definition  Body(fn, body, what)         DeleteDefinition(fn, what)
+//	block       DropBlocks(fn, re, n, what)  ReplaceBlock(fn, re, repl, what)
+//	            DropBareBlock(fn, stmt, what)
+//	walk        FoldWalk(fn, v, head, n, what)  DropWalk(fn, re, repl, n, what)
+//	            FoldWalks(re, ok, subst, what)
+//
+// A count is written, never inferred: these run on a tree every earlier phase
+// has touched, and "however many there are" carries a moved anchor silently
+// into the boundary.  The ASSERTIONS change nothing and report nothing --
+// CountIs(re, n, what), Expect(ok, format, ...), ConstOf(fn, value) -- the
+// QUERIES answer from the tree as it stands -- Mentions(name), Query(re,
+// group), BodyOf(fn), InnerBody(fn) -- and InFunction(fn, acts) is the one
+// scope.  Text and Set are the escape hatch, for a phase whose cut is a
+// computation no verb says.
 type E struct {
 	Tag string
 	buf []byte
@@ -59,13 +82,36 @@ func (e *E) Set(text []byte) { e.buf = text }
 // Failed says whether an act has already refused.
 func (e *E) Failed() bool { return e.Err != nil }
 
-func (e *E) Die(format string, a ...interface{}) {
+func (e *E) Die(format string, a ...any) {
 	if e.Err == nil {
 		e.Err = fmt.Errorf("  %-12s %s", e.Tag, fmt.Sprintf(format, a...))
 	}
 }
 
 func (e *E) Say(what string) { fmt.Fprintf(e.W, "  %-12s %s\n", e.Tag, what) }
+
+// Refuse stops the edit with a message of the phase's own wording, for the
+// assertions that are not a count of a pattern -- "do_exedit mentions n 4 times
+// after the title went, expected 3 (declaration, readonlymode save and
+// restore)".  CountIs would say the right thing about the wrong subject.
+func (e *E) Refuse(format string, a ...any) { e.Die(format, a...) }
+
+// Refused records the message and returns it, so a raw check reads as one line.
+func (e *E) Refused(format string, a ...any) error {
+	e.Die(format, a...)
+	_, err := e.Done()
+	return err
+}
+
+// Expect refuses, in the phase's own words, unless ok: the one-line form of
+// `if got != want { refuse }`, for an invariant that is not the count of a
+// pattern -- a name's mentions, the shape of the file's end.  It is skipped once
+// the edit has failed, like every act, so the first refusal is the one reported.
+func (e *E) Expect(ok bool, format string, a ...any) {
+	if e.Err == nil && !ok {
+		e.Die(format, a...)
+	}
+}
 
 // CountIs refuses unless the pattern matches exactly n times.  It reports
 // nothing: it is an assertion about the tree and not an act upon it.
@@ -81,6 +127,20 @@ func (e *E) CountIs(pattern string, n int, what string) {
 	if k := len(re.FindAll(e.buf, -1)); k != n {
 		e.Die("%s -- matched %d times, expected %d", what, k, n)
 	}
+}
+
+// Mentions counts whole-word occurrences of a name in the tree as it stands.
+func (e *E) Mentions(name string) int { return MentionCount(e.buf, name) }
+
+// Query returns the given capture group of every match of the pattern, in
+// order: the names a phase computes from the text rather than lists, and
+// reports as it cuts them.
+func (e *E) Query(pattern string, group int) []string {
+	var out []string
+	for _, m := range regexp.MustCompile(pattern).FindAllSubmatch(e.buf, -1) {
+		out = append(out, string(m[group]))
+	}
+	return out
 }
 
 // Sub rewrites the pattern's n matches, refusing on any other count.
@@ -104,43 +164,69 @@ func (e *E) Sub(pattern, repl string, n int, what string) {
 // Cut deletes the pattern's n matches, refusing on any other count.
 func (e *E) Cut(pattern string, n int, what string) { e.Sub(pattern, "", n, what) }
 
-// FoldNever takes an `if` whose condition can no longer be true, keeping the
-// else arm; DropIf takes one whose condition is now always true, keeping the
-// then arm.  Both refuse unless the condition occurs exactly once, because
-// these run on a tree every earlier phase has touched and an anchor that has
-// stopped matching means the phase is about to fold something else.
-func (e *E) FoldNever(pattern, what string) { e.fold(pattern, what, cutil.FoldNever) }
-
-// DropIf is FoldNever's twin; see there.
-func (e *E) DropIf(pattern, what string) { e.fold(pattern, what, cutil.DropIf) }
-
-// FoldAlways keeps the then arm of an `if` whose condition is now always true,
-// where DropIf removes the test and its braces.
-func (e *E) FoldAlways(pattern, what string) { e.fold(pattern, what, cutil.FoldAlways) }
-
-// FoldNeverCount, FoldAlwaysCount and DropIfCount hand the COUNT to cutil,
-// which folds the first match n times over, and are not FoldNeverN: that one
-// splits the text at the LAST match and folds the tail, so the fold sees a
-// slice whose head has been cut away and cutil's blank-line tidy -- which asks
-// whether the text BEFORE the fold ends in two newlines -- cannot see it.
-// Measured on whim79, where the two shapes differ by two blank lines in a
-// 74,000-line tree and by nothing else.  A phase whose Python passes n straight
-// to cutil.fold_never must use these.
-func (e *E) FoldNeverCount(pattern string, n int, what string) {
-	e.foldN(pattern, n, what, cutil.FoldNever)
+// Lines deletes n whole lines matching the pattern, which is Cut with the
+// indentation and the newline supplied -- `^[ \t]*<pattern>\n`.  Most of what
+// these phases remove is a statement on a line of its own, and writing that
+// wrapper at every call site is where a missing `^` or a missing `\n` turns a
+// line deletion into a text deletion that leaves a blank behind.
+func (e *E) Lines(pattern string, n int, what string) {
+	e.Cut(`(?m)^[ \t]*`+pattern+`\n`, n, what)
 }
 
-// FoldAlwaysCount is FoldNeverCount for the other arm.
-func (e *E) FoldAlwaysCount(pattern string, n int, what string) {
-	e.foldN(pattern, n, what, cutil.FoldAlways)
+// Literal replaces the n occurrences of old with new, refusing on any other
+// count.  It is Sub without a regular expression, for the many places where the
+// C being matched is full of parentheses and stars and the pattern would be
+// mostly backslashes.  The count is stated because these edits run on a tree
+// every earlier phase has touched: a phrase that has gone from two occurrences
+// to one has had a reader removed somewhere else, and rewriting "however many
+// there are" would carry that silently into the boundary.
+func (e *E) Literal(old, new string, n int, what string) {
+	if e.Err != nil {
+		return
+	}
+	k, norm := matchCount(e.buf, old)
+	if k != n {
+		e.Die("%s -- occurs %d times, expected %d", what, k, n)
+		return
+	}
+	e.buf = replaceMatched(e.buf, old, new, n, norm)
+	e.Say(what)
 }
 
-// DropIfCount is FoldNeverCount for a test that is now always true.
-func (e *E) DropIfCount(pattern string, n int, what string) {
-	e.foldN(pattern, n, what, cutil.DropIf)
+// Rename rewrites the n whole-word occurrences of word as new -- `\bword\b`, so
+// `firstwin` is not the head of `firstwin_save` -- refusing on any other count.
+func (e *E) Rename(word, new string, n int, what string) {
+	e.Sub(`\b`+regexp.QuoteMeta(word)+`\b`, new, n, what)
 }
 
-func (e *E) foldN(pattern string, n int, what string, f func([]byte, string, int) ([]byte, error)) {
+// FoldNever takes the n `if`s the pattern matches whose condition can no longer
+// be true, keeping any else arm; DropIf takes ones whose condition is now
+// always true and that have no else, keeping nothing; FoldAlways keeps the
+// then arm of those.  Each refuses unless the pattern matches exactly n times,
+// because these run on a tree every earlier phase has touched and an anchor
+// that has stopped matching means the phase is about to fold something else.
+//
+// With n above one, the first match is folded n times over (cutil's own
+// count).  The drivers used to keep a second shape, folding the LAST match each
+// time, because the two differed by blank lines before the canonical print;
+// every boundary is printed canonically now, and the two give the same phase
+// output at every site that used either (measured on phases 60, 62, 64 and 65).
+func (e *E) FoldNever(pattern string, n int, what string) {
+	e.fold(pattern, n, what, cutil.FoldNever)
+}
+
+// FoldAlways is FoldNever's twin for the then arm; see there.
+func (e *E) FoldAlways(pattern string, n int, what string) {
+	e.fold(pattern, n, what, cutil.FoldAlways)
+}
+
+// DropIf is FoldNever's twin for a test that is now always true and guards
+// nothing the tree still needs; see there.
+func (e *E) DropIf(pattern string, n int, what string) {
+	e.fold(pattern, n, what, cutil.DropIf)
+}
+
+func (e *E) fold(pattern string, n int, what string, f func([]byte, string, int) ([]byte, error)) {
 	if e.Err != nil {
 		return
 	}
@@ -148,31 +234,74 @@ func (e *E) foldN(pattern string, n int, what string, f func([]byte, string, int
 	if e.Err != nil {
 		return
 	}
-	Out, err := f(e.buf, pattern, n)
+	out, err := f(e.buf, pattern, n)
 	if err != nil {
 		e.Die("%s -- %v", what, err)
 		return
 	}
-	e.buf = Out
+	e.buf = out
 	e.Say(what)
 }
 
-func (e *E) fold(pattern, what string, f func([]byte, string, int) ([]byte, error)) {
+// FoldAlwaysElse turns `if (TRUE) { A } else { B }` into A, n times.
+// cutil.FoldAlways refuses an else arm, because a condition that has become
+// always-true makes its else unreachable and deciding that is this verb's
+// business, not a fold's.  A block with no else refuses, and so does an else
+// followed by another else.
+func (e *E) FoldAlwaysElse(pattern string, n int, what string) {
 	if e.Err != nil {
 		return
 	}
-	e.CountIs(pattern, 1, what)
-	if e.Err != nil {
-		return
-	}
-	Out, err := f(e.buf, pattern, 1)
+	re, err := regexp.Compile(pattern)
 	if err != nil {
 		e.Die("%s -- %v", what, err)
 		return
 	}
-	e.buf = Out
+	if ms := re.FindAllIndex(e.buf, -1); len(ms) != n {
+		e.Die("%s -- %d matches, expected %d", what, len(ms), n)
+		return
+	}
+	for i := 0; i < n; i++ {
+		t := e.buf
+		b := cutil.Blank(t)
+		k, o, c, head, err := cutil.Guarded(t, b, re.FindIndex(t))
+		if err != nil {
+			e.Die("%s -- %v", what, err)
+			return
+		}
+		if head != "if" {
+			e.Die("%s -- not a plain if: %s", what, cutil.PyRepr(head))
+			return
+		}
+		end := IndexFrom(t, []byte("\n"), c) + 1
+		m := elseLine.FindIndex(t[end:])
+		if m == nil {
+			e.Die("%s -- expected an else", what)
+			return
+		}
+		o2 := IndexFrom(b, []byte("{"), end+m[1])
+		if o2 < 0 {
+			e.Die("%s -- expected an else", what)
+			return
+		}
+		c2 := cutil.Match(b, o2)
+		after := IndexFrom(t, []byte("\n"), c2) + 1
+		if elseWord.Match(t[after:]) {
+			e.Die("%s -- the else is followed by another else", what)
+			return
+		}
+		body := t[IndexFrom(t, []byte("\n"), o)+1 : LastNewlineBefore(t, c)+1]
+		out := append([]byte{}, t[:k]...)
+		out = append(out, body...)
+		e.buf = append(out, t[after:]...)
+	}
 	e.Say(what)
 }
+
+var (
+	elseLine = regexp.MustCompile(`^[ \t]*else[ \t]*\n`)
+	elseWord = regexp.MustCompile(`^[ \t]*else\b`)
+)
 
 // InFunction runs the acts against ONE file-scope definition's Body and splices
 // it back, which is what every one of these heredocs spells in_function().
@@ -188,266 +317,61 @@ func (e *E) InFunction(name string, acts func(*E)) {
 		e.Die("%s is not defined at file scope", name)
 		return
 	}
-	Inner := &E{Tag: e.Tag, buf: e.buf[a:z], W: e.W}
-	acts(Inner)
-	if Inner.Err != nil {
-		e.Err = Inner.Err
+	inner := &E{Tag: e.Tag, buf: e.buf[a:z], W: e.W}
+	acts(inner)
+	if inner.Err != nil {
+		e.Err = inner.Err
 		return
 	}
-	Out := append([]byte{}, e.buf[:a]...)
-	Out = append(Out, Inner.buf...)
-	e.buf = append(Out, e.buf[z:]...)
+	out := append([]byte{}, e.buf[:a]...)
+	out = append(out, inner.buf...)
+	e.buf = append(out, e.buf[z:]...)
 }
 
-// Literal replaces the single occurrence of old with new, refusing on any other
-// count.  It is Sub without a regular expression, for the many places where the
-// C being matched is full of parentheses and stars and the pattern would be
-// mostly backslashes.
-func (e *E) Literal(old, new, what string) { e.LiteralN(old, new, 1, what) }
-
-// LiteralN is Literal for a phrase that occurs n times and must be rewritten at
-// every one of them.  The count is stated because these edits run on a tree
-// every earlier phase has touched: a phrase that has gone from two occurrences
-// to one has had a reader removed somewhere else, and rewriting "however many
-// there are" would carry that silently into the boundary.
-func (e *E) LiteralN(old, new string, n int, what string) {
-	if e.Err != nil {
-		return
-	}
-	k, norm := matchCount(e.buf, old)
-	if k != n {
-		e.Die("%s -- occurs %d times, expected %d", what, k, n)
-		return
-	}
-	e.buf = replaceMatched(e.buf, old, new, n, norm)
-	e.Say(what)
-}
-
-// Always keeps the Body of an `if` whose condition is now always true AND drops
-// the `else` that follows it, where cutil.FoldAlways refuses a block that has
-// one.
+// Splice replaces a span matched by its two ENDS -- from the start of from
+// through the end of through, both literal C -- with `with`.  Each end must
+// occur exactly once, from first; anything else refuses.
 //
-// The difference is the whole reason this exists: a condition that has become
-// always-true makes its else arm unreachable, so leaving the else behind would
-// keep code that can no longer run.  cutil.FoldAlways is right to refuse -- it
-// is written for the shape where there is nothing to decide -- and this is the
-// other shape, which whim57 met first and spelled Out by hand.  An `else if`
-// refuses, because what to do with the rest of the chain is a judgement and not
-// a rewrite.
-func (e *E) Always(pattern, what string) {
-	if e.Err != nil {
-		return
-	}
-	e.CountIs(pattern, 1, what)
-	if e.Err != nil {
-		return
-	}
-	re := regexp.MustCompile(pattern)
-	m := re.FindIndex(e.buf)
-	b := cutil.Blank(e.buf)
-	k, o, c, head, err := cutil.Guarded(e.buf, b, m)
-	if err != nil {
-		e.Die("%s -- %v", what, err)
-		return
-	}
-	if head != "if" {
-		e.Die("%s -- not a plain if", what)
-		return
-	}
-	end := IndexFrom(e.buf, []byte("\n"), c) + 1
-	Body := e.buf[IndexFrom(e.buf, []byte("\n"), o)+1 : LastNewlineBefore(e.buf, c)+1]
-	rest := e.buf[end:]
-	if elseIf := regexp.MustCompile(`^[ \t]*else[ \t]+if\b`); elseIf.Match(rest) {
-		e.Die("%s -- an else if follows", what)
-		return
-	}
-	if nxt := regexp.MustCompile(`^[ \t]*else\b`).FindIndex(rest); nxt != nil {
-		o2 := IndexFrom(b, []byte("{"), end+nxt[1])
-		c2 := cutil.Match(e.buf, o2)
-		end = IndexFrom(e.buf, []byte("\n"), c2) + 1
-	}
-	Out := append([]byte{}, e.buf[:k]...)
-	Out = append(Out, Body...)
-	e.buf = append(Out, e.buf[end:]...)
-	e.Say(what)
-}
-
-func LastNewlineBefore(text []byte, i int) int {
-	for j := i - 1; j >= 0; j-- {
-		if text[j] == '\n' {
-			return j
-		}
-	}
-	return -1
-}
-
-// FoldNeverN folds n occurrences of the same condition, taking the LAST one
-// each time.
-//
-// Why the last and not the first: cutil.FoldNever is written for a pattern that
-// occurs once, so folding several means narrowing the text until it does.
-// Splitting at the last match's line start leaves exactly one match in the tail
-// and none in the head, and does it without the head's offsets moving under the
-// next iteration -- which is the same reason CLAUDE.md gives for rewriting a
-// whole file in ONE pass rather than recomputing spans between two.
-func (e *E) FoldNeverN(pattern string, n int, what string) {
-	e.repeat(pattern, n, what, cutil.FoldNever)
-}
-
-// FoldAlwaysN is FoldNeverN for the other arm.
-func (e *E) FoldAlwaysN(pattern string, n int, what string) {
-	e.repeat(pattern, n, what, cutil.FoldAlways)
-}
-
-// FoldNeverRepeat and FoldAlwaysRepeat are FoldNeverN and FoldAlwaysN for the
-// phases that report the COUNT -- "writing a no-file buffer refused (3)".
-//
-// The difference is per phase and not per primitive: whim60's fold-several says
-// only what it did, whim62's says how many times.  Both are the heredoc's own
-// wording, and the report is the thing this port must reproduce, so the
-// distinction is kept rather than harmonised.
-func (e *E) FoldNeverRepeat(pattern string, n int, what string) {
-	e.repeatSay(pattern, n, what, cutil.FoldNever, true)
-}
-
-// FoldAlwaysRepeat is FoldNeverRepeat for the other arm.
-func (e *E) FoldAlwaysRepeat(pattern string, n int, what string) {
-	e.repeatSay(pattern, n, what, cutil.FoldAlways, true)
-}
-
-func (e *E) repeat(pattern string, n int, what string, f func([]byte, string, int) ([]byte, error)) {
-	e.repeatSay(pattern, n, what, f, false)
-}
-
-func (e *E) repeatSay(pattern string, n int, what string, f func([]byte, string, int) ([]byte, error), withCount bool) {
-	if e.Err != nil {
-		return
-	}
-	e.CountIs(pattern, n, what)
-	if e.Err != nil {
-		return
-	}
-	re := regexp.MustCompile(pattern)
-	for i := 0; i < n; i++ {
-		ms := re.FindAllIndex(e.buf, -1)
-		if len(ms) == 0 {
-			e.Die("%s -- ran out of matches after %d of %d", what, i, n)
-			return
-		}
-		var Out []byte
-		var err error
-		if len(ms) == 1 {
-			Out, err = f(e.buf, pattern, 1)
-		} else {
-			last := ms[len(ms)-1][0]
-			start := LastNewlineBefore(e.buf, last) + 1
-			var tail []byte
-			tail, err = f(e.buf[start:], pattern, 1)
-			if err == nil {
-				Out = append(append([]byte{}, e.buf[:start]...), tail...)
-			}
-		}
-		if err != nil {
-			e.Die("%s -- %v", what, err)
-			return
-		}
-		e.buf = Out
-	}
-	if withCount {
-		e.Say(fmt.Sprintf("%s (%d)", what, n))
-	} else {
-		e.Say(what)
-	}
-}
-
-// Refuse stops the edit with a message of the phase's own wording, for the
-// assertions that are not a count of a pattern -- "do_exedit mentions n 4 times
-// after the title went, expected 3 (declaration, readonlymode save and
-// restore)".  CountIs would say the right thing about the wrong subject.
-func (e *E) Refuse(format string, a ...interface{}) { e.Die(format, a...) }
-
-// Mentions counts whole-word occurrences of a name in the tree as it stands.
-func (e *E) Mentions(name string) int { return MentionCount(e.buf, name) }
-
-// Lines deletes n whole lines matching the pattern, which is Cut with the
-// indentation and the newline supplied -- `^[ \t]*<pattern>\n`.  Most of what
-// these phases remove is a statement on a line of its own, and writing that
-// wrapper at every call site is where a missing `^` or a missing `\n` turns a
-// line deletion into a text deletion that leaves a blank behind.
-func (e *E) Lines(pattern string, n int, what string) {
-	e.Cut(`(?m)^[ \t]*`+pattern+`\n`, n, what)
-}
-
-// The *Many variants annotate the report with the count ONLY when there is more
-// than one -- "remembering the first blank typed (2)", but plain when n is 1.
-//
-// That is a THIRD convention, after whim60's never and whim62's always, and all
-// three are in the phases as written.  They are kept apart rather than
-// harmonised because the report is what a port has to reproduce: choosing one
-// spelling for all of them would be a change to every phase log in the tree,
-// made silently, and invisible to every boundary.
-func (e *E) FoldNeverMany(pattern string, n int, what string) {
-	e.repeatSay(pattern, n, what, cutil.FoldNever, n > 1)
-}
-
-// FoldAlwaysMany is FoldNeverMany for the other arm.
-func (e *E) FoldAlwaysMany(pattern string, n int, what string) {
-	e.repeatSay(pattern, n, what, cutil.FoldAlways, n > 1)
-}
-
-// DropIfMany is FoldNeverMany for a test that is now always true.
-func (e *E) DropIfMany(pattern string, n int, what string) {
-	e.repeatSay(pattern, n, what, cutil.DropIf, n > 1)
-}
-
-// BodyTrue replaces a function's WHOLE Body with `return TRUE;`.
-//
-// Not a `return TRUE;` inserted at the top, which is the obvious shape and the
-// wrong one: leaving the old Body behind leaves unreachable code that NO
-// WARNING NAMES.  gcc reports an unused local and says nothing about a loop
-// that can never run, so the sweep would strip the locals and keep the walk
-// over the window list -- dead code that looks deliberate.
-func (e *E) BodyTrue(name, what string) {
-	e.InFunction(name, func(e *E) {
-		if e.Failed() {
-			return
-		}
-		i := IndexFrom(e.buf, []byte("{\n"), 0)
-		if i < 0 {
-			e.Die("%s -- no body", name)
-			return
-		}
-		head := append([]byte{}, e.buf[:i+2]...)
-		e.buf = append(head, []byte("    return TRUE;\n}\n")...)
-		e.Say(what)
-	})
-}
-
-// Splice replaces everything between two literal anchors -- inclusive of the
-// first, exclusive of the second -- with the given text.
+// It is for a span whose middle shares no shape with its ends: a test and the
+// last line of the body it guards, hundreds of lines of unrelated cases.  One
+// regular expression over the whole span would match anything; two anchors,
+// each counted, match what the phase was written against or refuse.  The ends
+// are literal because on canonical text a line is spelled one way, its
+// indentation included.
 //
 // TWO NARROW SPLICES ARE OFTEN RIGHT WHERE ONE WIDE ONE IS WRONG, which is
 // whim68's lesson: a single cut from aucmd_win[]'s search through `curbuf =
 // buf;` also swallows aco->save_curwin_id and aco->save_prevwin_id, which the
 // surviving else branch reads back through win_find_by_id() -- and it would
 // have COMPILED, restoring from uninitialised stack.
-func (e *E) Splice(from, to, with, what string) {
+func (e *E) Splice(from, through, with, what string) {
 	if e.Err != nil {
 		return
 	}
+	for _, end := range []struct{ s, which string }{{from, "its start"}, {through, "its end"}} {
+		if k := countBytes(e.buf, end.s); k != 1 {
+			e.Die("%s -- %s occurs %d times, expected 1", what, end.which, k)
+			return
+		}
+	}
 	a := IndexFrom(e.buf, []byte(from), 0)
-	b := IndexFrom(e.buf, []byte(to), 0)
-	if a < 0 || b < 0 || a >= b {
-		e.Die("%s", what)
+	z := IndexFrom(e.buf, []byte(through), 0) + len(through)
+	if z-len(through) < a+len(from) {
+		e.Die("%s -- its end comes before its start", what)
 		return
 	}
-	Out := append([]byte{}, e.buf[:a]...)
-	Out = append(Out, with...)
-	e.buf = append(Out, e.buf[b:]...)
+	out := append([]byte{}, e.buf[:a]...)
+	out = append(out, with...)
+	e.buf = append(out, e.buf[z:]...)
+	e.Say(what)
 }
 
-// Body replaces a function's whole Body with the given text, which is BodyTrue
-// generalised -- see there for why the whole Body and not an early return.
+// Body replaces a function's whole Body with the given text.
+//
+// The whole Body and not an early return: leaving the old Body behind leaves
+// unreachable code that NO WARNING NAMES.  gcc reports an unused local and says
+// nothing about a loop that can never run, so the old statements would stay --
+// dead code that looks deliberate.
 func (e *E) Body(name, newBody, what string) {
 	e.InFunction(name, func(e *E) {
 		if e.Failed() {
@@ -463,6 +387,23 @@ func (e *E) Body(name, newBody, what string) {
 		e.buf = append(head, []byte("}\n")...)
 		e.Say(what)
 	})
+}
+
+// DeleteDefinition removes a file-scope definition and says so, refusing if it
+// is not there.  The refusal names the function, because "not defined" about a
+// function the phase is removing on purpose is the case where an earlier phase
+// has already taken it and this one is about to claim work it did not do.
+func (e *E) DeleteDefinition(name, what string) {
+	if e.Failed() {
+		return
+	}
+	out, gone := cutil.DeleteDefinition(e.buf, name)
+	if !gone {
+		e.Refuse("%s is not defined", name)
+		return
+	}
+	e.buf = out
+	e.Say(what)
 }
 
 // DropBlocks deletes a brace-matched block n times, anchored on the line that
@@ -492,41 +433,9 @@ func (e *E) DropBlocks(fn, anchorRe string, n int, what string) {
 				e.Die("%s -- unbalanced block", what)
 				return
 			}
-			Out := append([]byte{}, e.buf[:k0]...)
-			e.buf = append(Out, e.buf[IndexFrom(e.buf, []byte("\n"), c)+1:]...)
+			out := append([]byte{}, e.buf[:k0]...)
+			e.buf = append(out, e.buf[IndexFrom(e.buf, []byte("\n"), c)+1:]...)
 		}
-	})
-	if !e.Failed() {
-		e.Say(what)
-	}
-}
-
-// DropIfIn and FoldAlwaysIn are FoldNeverIn's twins: fold inside one function
-// and report after, which is the shape several phases spell by calling
-// in_function() around a bare cutil call and say()ing outside it.
-func (e *E) DropIfIn(fn, pattern, what string, n int) { e.foldIn(fn, pattern, what, n, cutil.DropIf) }
-
-// FoldAlwaysIn is DropIfIn's twin for the other arm.
-func (e *E) FoldAlwaysIn(fn, pattern, what string, n int) {
-	e.foldIn(fn, pattern, what, n, cutil.FoldAlways)
-}
-
-// FoldNeverIn2 is the exported spelling of foldNeverIn.
-func (e *E) FoldNeverIn2(fn, pattern, what string, n int) {
-	e.foldIn(fn, pattern, what, n, cutil.FoldNever)
-}
-
-func (e *E) foldIn(fn, pattern, what string, n int, f func([]byte, string, int) ([]byte, error)) {
-	e.InFunction(fn, func(e *E) {
-		if e.Failed() {
-			return
-		}
-		Out, err := f(e.buf, pattern, n)
-		if err != nil {
-			e.Die("%s -- %v", what, err)
-			return
-		}
-		e.buf = Out
 	})
 	if !e.Failed() {
 		e.Say(what)
@@ -540,4 +449,13 @@ func (e *E) BodyOf(name string) ([]byte, bool) {
 		return nil, false
 	}
 	return e.buf[a:z], true
+}
+
+func LastNewlineBefore(text []byte, i int) int {
+	for j := i - 1; j >= 0; j-- {
+		if text[j] == '\n' {
+			return j
+		}
+	}
+	return -1
 }

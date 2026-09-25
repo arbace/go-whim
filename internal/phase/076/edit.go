@@ -99,10 +99,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	e.Say("confirmed: re_engine is written once, to BACKTRACKING_ENGINE, and only there")
 
-	e.FoldNeverIn2("vim_regexec_string", retryOther, "a failed match recompiling with the other engine", 1)
-	e.FoldNeverIn2("vim_regexec_multi", retryOther, "and the multi-line variant of the same", 1)
+	e.InFunction("vim_regexec_string", func(e *edit.E) { e.FoldNever(retryOther, 1, "a failed match recompiling with the other engine") })
+	e.InFunction("vim_regexec_multi", func(e *edit.E) { e.FoldNever(retryOther, 1, "and the multi-line variant of the same") })
 	e.InFunction("check_num_option_bounds", func(e *edit.E) {
-		e.Literal(w76lit2, "", "validating an option nothing can set")
+		e.Literal(w76lit2, "", 1, "validating an option nothing can set")
 	})
 	// p_re, which had no row to set it, and AUTOMATIC_ENGINE, the engine it
 	// chose between, are named by nothing now; the sweep takes them.

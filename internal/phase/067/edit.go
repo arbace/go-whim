@@ -85,7 +85,7 @@ var writeOnlyStatics = []struct {
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nomouse", text, w)
 
-	e.Literal(" || (is_mouse_key(n) && n != (-((KS_EXTRA) + ((int)(KE_LEFTMOUSE) << 8))))", "",
+	e.Literal(" || (is_mouse_key(n) && n != (-((KS_EXTRA) + ((int)(KE_LEFTMOUSE) << 8))))", "", 1,
 		"the input loop asking whether a key is a mouse key")
 	e.Lines(`reset_dragwin\(\);`, 2, "the two calls that forgot the dragged window")
 	e.Lines(`reset_held_button\(\);`, 1, "the call that forgot the held button")
@@ -118,20 +118,20 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("check_termcode", func(e *edit.E) {
 		// The whole `slen == 2 && ESC [` block existed to set that flag, and its
 		// only other arm counted the semicolons of a DEC mouse report.
-		e.DropIf(`(?m)^[ \t]*if \(slen == 2 && len > 2 && termcodes\[idx\]\.code\[0\] == ESC && termcodes\[idx\]\.code\[1\] == '\['\)$`,
+		e.DropIf(`(?m)^[ \t]*if \(slen == 2 && len > 2 && termcodes\[idx\]\.code\[0\] == ESC && termcodes\[idx\]\.code\[1\] == '\['\)$`, 1,
 			"deferring an ESC [ code in case a mouse code is longer")
-		e.FoldNever(`(?m)^[ \t]*if \(looks_like_mouse_start\)$`, "a deferred match winning over a real one")
-		e.Literal(" && mouse_index_found < 0", "", "the modifier scan waiting for a deferred mouse match")
-		e.FoldNever(`(?m)^[ \t]*else if \(idx == tc_len && mouse_index_found >= 0\)$`, "falling back to the deferred mouse match")
+		e.FoldNever(`(?m)^[ \t]*if \(looks_like_mouse_start\)$`, 1, "a deferred match winning over a real one")
+		e.Literal(" && mouse_index_found < 0", "", 1, "the modifier scan waiting for a deferred mouse match")
+		e.FoldNever(`(?m)^[ \t]*else if \(idx == tc_len && mouse_index_found >= 0\)$`, 1, "falling back to the deferred mouse match")
 		e.Cut(`(?m)^[ \t]*if \(key_name\[0\] == KS_MOUSE \|\| key_name\[0\] == KS_SGR_MOUSE \|\| key_name\[0\] == KS_SGR_MOUSE_RELEASE\)\n[ \t]*\{\n[ \t]*\}\n`, 1,
 			"a mouse report being handled by an empty block")
 	})
 
 	// the spell plumbing
-	e.Literal(", spellvars_T *spv __attribute__((unused)))", ")", "win_line's unused spell parameter")
-	e.Literal("win_line(wp, lnum, srow, wp->w_height, 0, &spv)", "win_line(wp, lnum, srow, wp->w_height, 0)", "the first win_line call")
+	e.Literal(", spellvars_T *spv __attribute__((unused)))", ")", 1, "win_line's unused spell parameter")
+	e.Literal("win_line(wp, lnum, srow, wp->w_height, 0, &spv)", "win_line(wp, lnum, srow, wp->w_height, 0)", 1, "the first win_line call")
 	e.Literal("win_line(wp, lnum, srow, wp->w_height, wp->w_lines[idx].wl_size, &spv)",
-		"win_line(wp, lnum, srow, wp->w_height, wp->w_lines[idx].wl_size)", "the second win_line call")
+		"win_line(wp, lnum, srow, wp->w_height, wp->w_lines[idx].wl_size)", 1, "the second win_line call")
 
 	// the write-only statics
 	for _, s := range writeOnlyStatics {

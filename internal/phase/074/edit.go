@@ -50,8 +50,10 @@ const markArm = `\(\(\(unsigned\)\(c\) - 'A' < 26\) \|\| \(\(unsigned\)\(c\) - '
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nofmark", text, w)
 
-	e.FoldNeverIn2("getmark_buf_fnum", `(?m)^[ \t]*else if `+markArm, "reading an uppercase or numbered mark", 1)
-	e.DropIfIn("setmark_pos", `(?m)^[ \t]*if `+markArm, "setting an uppercase or numbered mark", 1)
+	e.InFunction("getmark_buf_fnum", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*else if `+markArm, 1, "reading an uppercase or numbered mark")
+	})
+	e.InFunction("setmark_pos", func(e *edit.E) { e.DropIf(`(?m)^[ \t]*if `+markArm, 1, "setting an uppercase or numbered mark") })
 	e.Body("clrallmarks", w74lit2, "clrallmarks initialising the file marks once")
 	e.DropBlocks("ex_marks", `(?m)^[ \t]*for \(i = 0; i < \('z' - 'a' \+ 1\) \+ EXTRA_MARKS; \+\+i\)$`, 1,
 		":marks listing the file marks")

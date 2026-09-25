@@ -66,23 +66,23 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Sub(`(?m)^([ \t]*case 'U':\n)[ \t]*case '\?':\n[ \t]*case '@':\n`, "${1}", 1, "g? and g@ as operators")
 	})
 	e.InFunction("nv_search", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(cap->cmdchar == '\?' && cap->oap->op_type == OP_ROT13\)$`,
+		e.DropIf(`(?m)^[ \t]*if \(cap->cmdchar == '\?' && cap->oap->op_type == OP_ROT13\)$`, 1,
 			"g? reaching the operator with a search pending")
 	})
 	e.InFunction("do_pending_operator", func(e *edit.E) {
 		e.Lines(`case OP_ROT13:`, 1, "rot13 sharing the case-change dispatch")
 	})
 	e.InFunction("swapchar", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(c >= 0x80 && op_type == OP_ROT13\)$`, "rot13 refusing a multibyte character")
-		e.FoldNeverRepeat(`(?m)^[ \t]*if \(op_type == OP_ROT13\)$`, 2, "rot13 rotating a letter")
+		e.DropIf(`(?m)^[ \t]*if \(c >= 0x80 && op_type == OP_ROT13\)$`, 1, "rot13 refusing a multibyte character")
+		e.FoldNever(`(?m)^[ \t]*if \(op_type == OP_ROT13\)$`, 2, "rot13 rotating a letter")
 	})
 
 	// The operator function.
 	e.InFunction("do_pending_operator", func(e *edit.E) {
-		e.Literal(opFunctionCase, "", "g@ reaching the operator function")
+		e.Literal(opFunctionCase, "", 1, "g@ reaching the operator function")
 	})
 	e.InFunction("do_pending_operator", func(e *edit.E) {
-		e.Literal(" || oap->op_type == OP_FUNCTION", "", "the operator function deciding whether the motion is inclusive")
+		e.Literal(" || oap->op_type == OP_FUNCTION", "", 1, "the operator function deciding whether the motion is inclusive")
 	})
 
 	// An empty call.

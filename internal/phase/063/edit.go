@@ -66,7 +66,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"${1}clearopbeep(cap->oap);\n", 1, "CTRL-O walking back through the jump list")
 	})
 	e.InFunction("nv_pcmark", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(cap->cmdchar == TAB && mod_mask == MOD_MASK_CTRL\)$`,
+		e.DropIf(`(?m)^[ \t]*if \(cap->cmdchar == TAB && mod_mask == MOD_MASK_CTRL\)$`, 1,
 			"CTRL-Tab refused by the jump-list command")
 		e.Sub(`(?m)^([ \t]*)if \(cap->cmdchar == 'g'\)\n[ \t]*\{\n[ \t]*pos = movechangelist\(\(int\)cap->count1\);\n[ \t]*\}\n[ \t]*else\n[ \t]*\{\n[ \t]*pos = movemark\(\(int\)cap->count1\);\n[ \t]*\}\n`,
 			"${1}pos = movechangelist((int)cap->count1);\n", 1,
@@ -77,15 +77,15 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"a jump-list miss beeping")
 	})
 	e.InFunction("mark_adjust_internal", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*for \(i = 0; i < win->w_jumplistlen; \+\+i\)$`, "line changes moving jump-list marks")
+		e.DropIf(`(?m)^[ \t]*for \(i = 0; i < win->w_jumplistlen; \+\+i\)$`, 1, "line changes moving jump-list marks")
 		e.Cut(`(?m)^[ \t]*if \(\(cmdmod\.cmod_flags & CMOD_LOCKMARKS\) == 0\)\n[ \t]*\{\n[ \t]*\}\n`, 1,
 			"the now-empty 'lockmarks' test around them")
 	})
 	e.InFunction("mark_col_adjust", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*for \(i = 0; i < win->w_jumplistlen; \+\+i\)$`, "column changes moving jump-list marks")
+		e.DropIf(`(?m)^[ \t]*for \(i = 0; i < win->w_jumplistlen; \+\+i\)$`, 1, "column changes moving jump-list marks")
 	})
 	e.InFunction("mark_forget_file", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*for \(i = wp->w_jumplistlen - 1; i >= 0; --i\)$`, "a forgotten file leaving the jump list")
+		e.DropIf(`(?m)^[ \t]*for \(i = wp->w_jumplistlen - 1; i >= 0; --i\)$`, 1, "a forgotten file leaving the jump list")
 	})
 	e.InFunction("fmarks_check_names", func(e *edit.E) {
 		e.Cut(`(?m)^[ \t]*for \(\(wp\) = firstwin; \(wp\) != NULL; \(wp\) = \(wp\)->w_next\)\s*\n[ \t]*\{\n[ \t]*for \(i = 0; i < wp->w_jumplistlen; \+\+i\)\n[ \t]*\{\n[ \t]*fmarks_check_one\(&wp->w_jumplist\[i\], name, buf\);\n[ \t]*\}\n[ \t]*\}\n`,

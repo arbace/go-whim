@@ -346,7 +346,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	e.Say(fmt.Sprintf("%d rows and %d enumerators kept, each row with its shortest abbreviation",
 		len(minlen), len(minlen)))
 
-	e.Term(w80lit3, w80lit4, 1, "the row field that held the name length holds the shortest abbreviation")
+	e.Literal(w80lit3, w80lit4, 1, "the row field that held the name length holds the shortest abbreviation")
 	if loc := edit.W80Banner.FindIndex(e.Text()); loc == nil {
 		return nil, e.Refused("the ex_cmdidxs block is gone")
 	} else {
@@ -358,13 +358,13 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// ---- 3: find_ex_command ----------------------------------------------------
 	e.Lines(`int vim9 = FALSE;`, 1, "the Vim9 flag nothing sets")
-	e.FoldNever(`(?m)^[ \t]*if \(vim9 && eap->cmdidx != CMD_SIZE\)$`,
+	e.FoldNever(`(?m)^[ \t]*if \(vim9 && eap->cmdidx != CMD_SIZE\)$`, 1,
 		"the Vim9 whole-name check, the one reader of the name length")
-	e.Term("if (!vim9 && *eap->cmd == 'd' && ", "if (*eap->cmd == 'd' && ", 1,
+	e.Literal("if (!vim9 && *eap->cmd == 'd' && ", "if (*eap->cmd == 'd' && ", 1,
 		":dl and :dp outside Vim9, which is everywhere")
-	e.FoldNever(`(?m)^[ \t]*if \(eap->cmdidx == CMD_final && p - eap->cmd == 4 && !vim9\)$`,
+	e.FoldNever(`(?m)^[ \t]*if \(eap->cmdidx == CMD_final && p - eap->cmd == 4 && !vim9\)$`, 1,
 		":final is not a command")
-	e.FoldNever(`(?m)^[ \t]*if \(eap->cmdidx == CMD_horizontal && p - eap->cmd == 2\)$`,
+	e.FoldNever(`(?m)^[ \t]*if \(eap->cmdidx == CMD_horizontal && p - eap->cmd == 2\)$`, 1,
 		":horizontal is not a command")
 	if e.Failed() {
 		return e.Done()
@@ -374,9 +374,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			return nil, e.Refused("a live command starts with py or vim, and its name may need a digit")
 		}
 	}
-	e.FoldNever(`(?m)^[ \t]*if \(eap->cmd\[0\] == 'p' && eap->cmd\[1\] == 'y'\)$`,
+	e.FoldNever(`(?m)^[ \t]*if \(eap->cmd\[0\] == 'p' && eap->cmd\[1\] == 'y'\)$`, 1,
 		"no command left is spelled with a digit: not :py3")
-	e.FoldNever(`(?m)^[ \t]*if \(\*p == '9' && strncmp\(\(char \*\)\("vim9"\), \(char \*\)\(eap->cmd\), \(4\)\) == 0\)$`,
+	e.FoldNever(`(?m)^[ \t]*if \(\*p == '9' && strncmp\(\(char \*\)\("vim9"\), \(char \*\)\(eap->cmd\), \(4\)\) == 0\)$`, 1,
 		"and not :vim9cmd")
 	if e.Failed() {
 		return e.Done()
@@ -418,45 +418,45 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	e.Set([]byte(t[:a] + w80lit9 + t[z:]))
 	e.Say(fmt.Sprintf("the lookup: a prefix at least as long as the row says, over %d rows", len(minlen)))
-	e.Term(fmt.Sprintf(`vim_strchr((char_u *)"%s", *p)`, w80OldChars),
+	e.Literal(fmt.Sprintf(`vim_strchr((char_u *)"%s", *p)`, w80OldChars),
 		fmt.Sprintf(`vim_strchr((char_u *)"%s", *p)`, newChars), 1,
 		fmt.Sprintf("the one-character commands that exist: %s", newChars))
 
 	// ---- 4: do_one_cmd ---------------------------------------------------------
-	e.FoldNever(`(?m)^[ \t]*if \(ea\.cmdidx == CMD_wincmd && p != NULL\)$`, ":wincmd has no address type to find")
-	e.FoldAlwaysCount(`(?m)^[ \t]*if \(!\(\(int\)\(ea\.cmdidx\) < 0\)\)$`, 3, "a command index is never a user command")
-	e.Term("ea.cmd[0] == 78 && !((int)(ea.cmdidx) < 0))", "ea.cmd[0] == 78)", 1, "nor in the Ni! test")
-	e.Term("ea.cmdidx != CMD_checktime && ea.cmdidx != CMD_edit && ea.cmdidx != CMD_file && !((int)(ea.cmdidx) < 0) && curbuf_locked()",
+	e.FoldNever(`(?m)^[ \t]*if \(ea\.cmdidx == CMD_wincmd && p != NULL\)$`, 1, ":wincmd has no address type to find")
+	e.FoldAlways(`(?m)^[ \t]*if \(!\(\(int\)\(ea\.cmdidx\) < 0\)\)$`, 3, "a command index is never a user command")
+	e.Literal("ea.cmd[0] == 78 && !((int)(ea.cmdidx) < 0))", "ea.cmd[0] == 78)", 1, "nor in the Ni! test")
+	e.Literal("ea.cmdidx != CMD_checktime && ea.cmdidx != CMD_edit && ea.cmdidx != CMD_file && !((int)(ea.cmdidx) < 0) && curbuf_locked()",
 		"ea.cmdidx != CMD_edit && ea.cmdidx != CMD_file && curbuf_locked()", 1,
 		"nor in the locked-buffer exemptions, which lose :checktime")
-	e.Term("*ea.arg != NUL && (!((int)(ea.cmdidx) < 0) || *ea.arg != '=') && !((ea.argt",
+	e.Literal("*ea.arg != NUL && (!((int)(ea.cmdidx) < 0) || *ea.arg != '=') && !((ea.argt",
 		"*ea.arg != NUL && !((ea.argt", 1, "nor in the register argument test")
-	e.Term("(!((int)(ea.cmdidx) < 0) && ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput)",
+	e.Literal("(!((int)(ea.cmdidx) < 0) && ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput)",
 		"(ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput)", 1, "nor in which registers may be written")
-	e.FoldNever(`(?m)^[ \t]*if \(\(\(int\)\(eap->cmdidx\) < 0\)\)$`, "nor in a % range over windows")
+	e.FoldNever(`(?m)^[ \t]*if \(\(\(int\)\(eap->cmdidx\) < 0\)\)$`, 1, "nor in a % range over windows")
 
 	e.Lines(`ni = \(!\(\(int\)\(ea\.cmdidx\) < 0\) && \(cmdnames\[ea\.cmdidx\]\.cmd_func == ex_ni \|\| cmdnames\[ea\.cmdidx\]\.cmd_func == ex_script_ni\)\);`,
 		1, "the stub flag, which no row can raise")
 	// do_one_cmd's `int ni;` is named by nothing after the three terms below,
 	// and the sweep takes it.
-	e.Term("(!ni && ", "(", 4, "range, bang, extra-argument and required-argument checks apply to every command")
-	e.Term("&& !ni && ", "&& ", 2, "and the range and count checks")
-	e.Term("getargopt(&ea) == FAIL && !ni)", "getargopt(&ea) == FAIL)", 1, "and ++opt parsing")
+	e.Literal("(!ni && ", "(", 4, "range, bang, extra-argument and required-argument checks apply to every command")
+	e.Literal("&& !ni && ", "&& ", 2, "and the range and count checks")
+	e.Literal("getargopt(&ea) == FAIL && !ni)", "getargopt(&ea) == FAIL)", 1, "and ++opt parsing")
 
-	e.DropIf(`(?m)^    if \(ea\.cmdidx == CMD_if\)$`, ":if and the level it raised")
-	e.FoldNever(`(?m)^    if \(if_level\)$`, "the level is never raised")
+	e.DropIf(`(?m)^    if \(ea\.cmdidx == CMD_if\)$`, 1, ":if and the level it raised")
+	e.FoldNever(`(?m)^    if \(if_level\)$`, 1, "the level is never raised")
 	e.Lines(`ea\.skip = \(if_level > 0\);`, 1, "so nothing is skipped")
 	e.Lines(`if_level = 0;`, 1, "the reset")
 	// and the level itself, named by nothing now, goes to the sweep
 
-	e.FoldNever(`(?m)^[ \t]*if \(ea\.cmdidx == CMD_bang\)$`, ":! keeps no leading space")
-	e.Term("else if (ea.cmdidx == CMD_bang || ea.cmdidx == CMD_terminal || ea.cmdidx == CMD_global",
+	e.FoldNever(`(?m)^[ \t]*if \(ea\.cmdidx == CMD_bang\)$`, 1, ":! keeps no leading space")
+	e.Literal("else if (ea.cmdidx == CMD_bang || ea.cmdidx == CMD_terminal || ea.cmdidx == CMD_global",
 		"else if (ea.cmdidx == CMD_global", 1, "the commands that take the whole line are :g and :v")
-	e.Term("else if (*p == '\\n' && !(ea.argt & EX_EXPR_ARG))", "else if (*p == '\\n')", 1,
+	e.Literal("else if (*p == '\\n' && !(ea.argt & EX_EXPR_ARG))", "else if (*p == '\\n')", 1,
 		"and none takes an expression")
-	e.Term(" && (!(ea.argt & EX_BUFNAME) || *(p = skipdigits(ea.arg + 1)) == NUL || ((*p) == ' ' || (*p) == '\\t')))",
+	e.Literal(" && (!(ea.argt & EX_BUFNAME) || *(p = skipdigits(ea.arg + 1)) == NUL || ((*p) == ' ' || (*p) == '\\t')))",
 		")", 1, "a count is never a buffer name")
-	e.FoldNever(`(?m)^[ \t]*if \(ea\.cmdidx == CMD_try && cmdmod\.cmod_did_esilent > 0\)$`, ":try is not a command")
+	e.FoldNever(`(?m)^[ \t]*if \(ea\.cmdidx == CMD_try && cmdmod\.cmod_did_esilent > 0\)$`, 1, ":try is not a command")
 	if e.Failed() {
 		return e.Done()
 	}
@@ -471,14 +471,14 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		e.Set(append(append([]byte{}, cur[:a]...), cur[z:]...))
 	}
 	e.Say("ex_ni and ex_script_ni, which no row names")
-	e.FoldNever(`(?m)^[ \t]*if \(ea\.skip\)$`, "an empty command line is never skipped")
-	e.FoldAlwaysCount(`(?m)^[ \t]*if \(!ea\.skip\)$`, 3, "do_one_cmd: nothing is skipped")
-	e.Term("if (!ea.skip && (ea.argt & EX_RANGE))", "if (ea.argt & EX_RANGE)", 1, "nor a range check")
-	e.Term("eap->addr_type, eap->skip, silent,", "eap->addr_type, FALSE, silent,", 1, "nor an address")
-	e.FoldNeverCount(`(?m)^[ \t]*if \(eap->skip\)$`, 2, ":substitute is never skipped")
-	e.FoldAlwaysCount(`(?m)^[ \t]*if \(!eap->skip\)$`, 6, "nor its pattern, a range, or :match")
-	e.Term(w80lit6, w80lit7, 1, "nor :substitute's previous pattern")
-	e.Term("i <= 0 && !eap->skip && subflags.do_error", "i <= 0 && subflags.do_error", 1, "nor its count")
+	e.FoldNever(`(?m)^[ \t]*if \(ea\.skip\)$`, 1, "an empty command line is never skipped")
+	e.FoldAlways(`(?m)^[ \t]*if \(!ea\.skip\)$`, 3, "do_one_cmd: nothing is skipped")
+	e.Literal("if (!ea.skip && (ea.argt & EX_RANGE))", "if (ea.argt & EX_RANGE)", 1, "nor a range check")
+	e.Literal("eap->addr_type, eap->skip, silent,", "eap->addr_type, FALSE, silent,", 1, "nor an address")
+	e.FoldNever(`(?m)^[ \t]*if \(eap->skip\)$`, 2, ":substitute is never skipped")
+	e.FoldAlways(`(?m)^[ \t]*if \(!eap->skip\)$`, 6, "nor its pattern, a range, or :match")
+	e.Literal(w80lit6, w80lit7, 1, "nor :substitute's previous pattern")
+	e.Literal("i <= 0 && !eap->skip && subflags.do_error", "i <= 0 && subflags.do_error", 1, "nor its count")
 	if e.Failed() {
 		return e.Done()
 	}
@@ -487,11 +487,11 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 
 	// ---- 6: the filename and bar parsers ---------------------------------------
-	e.Term(" && eap->cmdidx != CMD_bang && eap->cmdidx != CMD_grep && eap->cmdidx != CMD_grepadd && eap->cmdidx != CMD_hardcopy && eap->cmdidx != CMD_lgrep && eap->cmdidx != CMD_lgrepadd && eap->cmdidx != CMD_lmake && eap->cmdidx != CMD_make && eap->cmdidx != CMD_terminal)",
+	e.Literal(" && eap->cmdidx != CMD_bang && eap->cmdidx != CMD_grep && eap->cmdidx != CMD_grepadd && eap->cmdidx != CMD_hardcopy && eap->cmdidx != CMD_lgrep && eap->cmdidx != CMD_lgrepadd && eap->cmdidx != CMD_lmake && eap->cmdidx != CMD_make && eap->cmdidx != CMD_terminal)",
 		")", 1, "expanded filenames are escaped for every command left")
-	e.Term("(eap->usefilter || eap->cmdidx == CMD_bang || eap->cmdidx == CMD_terminal) &&",
+	e.Literal("(eap->usefilter || eap->cmdidx == CMD_bang || eap->cmdidx == CMD_terminal) &&",
 		"eap->usefilter &&", 1, "and '!' only for a filter")
-	e.Term(" && (eap->cmdidx != CMD_redir || p != eap->arg + 1 || p[-1] != '@'))", ")", 1,
+	e.Literal(" && (eap->cmdidx != CMD_redir || p != eap->arg + 1 || p[-1] != '@'))", ")", 1,
 		"a double quote after :redir @ is a comment like any other")
 	if e.Failed() {
 		return e.Done()
@@ -503,18 +503,18 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			return nil, e.Refused("%s is not the constant 0", c)
 		}
 	}
-	e.FoldNever(`(?m)^[ \t]*if \(\(eap->cmdidx != CMD_pedit && ERROR_IF_POPUP_WINDOW\) \|\| ERROR_IF_TERM_POPUP_WINDOW\)$`,
+	e.FoldNever(`(?m)^[ \t]*if \(\(eap->cmdidx != CMD_pedit && ERROR_IF_POPUP_WINDOW\) \|\| ERROR_IF_TERM_POPUP_WINDOW\)$`, 1,
 		"no popup window refuses an edit")
-	e.FoldNever(`(?m)^[ \t]*if \(\(eap->cmdidx == CMD_new \|\| eap->cmdidx == CMD_vnew\) && \*eap->arg == NUL\)$`,
+	e.FoldNever(`(?m)^[ \t]*if \(\(eap->cmdidx == CMD_new \|\| eap->cmdidx == CMD_vnew\) && \*eap->arg == NUL\)$`, 1,
 		":new and :vnew are not commands")
-	e.FoldAlwaysElse(`(?m)^[ \t]*if \(\(eap->cmdidx != CMD_split && eap->cmdidx != CMD_vsplit\) \|\| \*eap->arg != NUL\)$`,
+	e.FoldAlwaysElse(`(?m)^[ \t]*if \(\(eap->cmdidx != CMD_split && eap->cmdidx != CMD_vsplit\) \|\| \*eap->arg != NUL\)$`, 1,
 		"and neither are :split and :vsplit, so every edit edits")
-	e.Term("if (eap->cmdidx == CMD_view || eap->cmdidx == CMD_sview)", "if (eap->cmdidx == CMD_view)", 1,
+	e.Literal("if (eap->cmdidx == CMD_view || eap->cmdidx == CMD_sview)", "if (eap->cmdidx == CMD_view)", 1,
 		":view is read-only and :sview is gone")
 
 	// ---- 8: the address types only stub rows had -------------------------------
-	e.FoldNever(`(?m)^[ \t]*if \(addr_type == ADDR_TABS_RELATIVE\)$`, "no relative tab page offset")
-	e.FoldNever(`(?m)^[ \t]*if \(addr_type == ADDR_LOADED_BUFFERS \|\| addr_type == ADDR_BUFFERS\)$`,
+	e.FoldNever(`(?m)^[ \t]*if \(addr_type == ADDR_TABS_RELATIVE\)$`, 1, "no relative tab page offset")
+	e.FoldNever(`(?m)^[ \t]*if \(addr_type == ADDR_LOADED_BUFFERS \|\| addr_type == ADDR_BUFFERS\)$`, 1,
 		"no buffer-number offset")
 	if e.Failed() {
 		return e.Done()
@@ -602,7 +602,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		i = k
 	}
 	e.Set([]byte(strings.Join(Out, "\n")))
-	e.Term(`"Cannot use EX_DFLALL with ADDR_NONE, ADDR_UNSIGNED or ADDR_QUICKFIX"`,
+	e.Literal(`"Cannot use EX_DFLALL with ADDR_NONE, ADDR_UNSIGNED or ADDR_QUICKFIX"`,
 		`"Cannot use EX_DFLALL with ADDR_NONE or ADDR_UNSIGNED"`, 1,
 		"the internal error that named the quickfix address type")
 	if e.Failed() {

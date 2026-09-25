@@ -53,24 +53,18 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// 1. the autocommand window, the last thing that could add a window
 	e.InFunction("aucmd_prepbuf", func(e *edit.E) {
-		e.Splice("    win_T *auc_win = NULL;\n", "    aco->save_curwin_id = curwin->w_id;\n",
-			"    if (win == NULL)\n    {\n        return;\n    }\n\n",
-			"aucmd_prepbuf -- the aucmd_win search was not found before the saved ids")
-		if !e.Failed() {
-			e.Say("aucmd_prepbuf building a window to run autocommands in")
-		}
-		e.Splice("    if (win != NULL)\n", "    curbuf = buf;\n", "    curwin = win;\n\n",
-			"aucmd_prepbuf -- the window choice was not found before curbuf = buf")
-		if !e.Failed() {
-			e.Say("aucmd_prepbuf choosing between that window and the real one")
-		}
+		e.Splice("    win_T *auc_win = NULL;\n", "        if (auc_win == NULL)\n        {\n            return;\n        }\n    }\n",
+			"    if (win == NULL)\n    {\n        return;\n    }\n",
+			"aucmd_prepbuf building a window to run autocommands in")
+		e.Splice("    if (win != NULL)\n", "        curwin = auc_win;\n    }\n", "    curwin = win;\n",
+			"aucmd_prepbuf choosing between that window and the real one")
 	})
 	// fold_never, not drop_if: this `if` HAS an else -- the same-window restore
 	// -- and DropIf refuses that shape on purpose, since deleting the if alone
 	// would orphan the else.  FoldNever keeps the else Body, which is what is
 	// left when the index can never be >= 0.
 	e.InFunction("aucmd_restbuf", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(aco->use_aucmd_win_idx >= 0\)$`, "aucmd_restbuf taking that window down again")
+		e.FoldNever(`(?m)^[ \t]*if \(aco->use_aucmd_win_idx >= 0\)$`, 1, "aucmd_restbuf taking that window down again")
 	})
 	// Both writes to use_aucmd_win_idx went with the branch above, and its only
 	// reader went with aucmd_restbuf's folded test, so the sweep takes the
@@ -88,9 +82,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"screenalloc allocating lines for them")
 
 	// 2. the invariant: one window, one tabpage
-	e.BodyTrue("one_window", "one_window() is constant TRUE")
-	e.BodyTrue("last_window", "last_window() is constant TRUE")
-	e.BodyTrue("only_one_window", "only_one_window() is constant TRUE")
+	e.Body("one_window", "    return TRUE;\n", "one_window() is constant TRUE")
+	e.Body("last_window", "    return TRUE;\n", "last_window() is constant TRUE")
+	e.Body("only_one_window", "    return TRUE;\n", "only_one_window() is constant TRUE")
 
 	// 3. what those tests guarded
 	e.InFunction("ex_quit", func(e *edit.E) {
@@ -98,36 +92,36 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"    wp = curwin;\n", 1, ":quit with a window count, of which there is one")
 	})
 	e.InFunction("ex_quit", func(e *edit.E) {
-		e.FoldAlways(`(?m)^[ \t]*if \(only_one_window\(\) && \(\(firstwin == lastwin\) \|\| eap->addr_count == 0\)\)$`,
+		e.FoldAlways(`(?m)^[ \t]*if \(only_one_window\(\) && \(\(firstwin == lastwin\) \|\| eap->addr_count == 0\)\)$`, 1,
 			":quit leaving the editor")
 	})
 	e.InFunction("ex_quit", func(e *edit.E) {
 		e.Lines(`win_close\(wp, TRUE\);`, 1, ":quit closing a window it can never reach")
 	})
 	e.InFunction("ex_exit", func(e *edit.E) {
-		e.FoldAlways(`(?m)^[ \t]*if \(only_one_window\(\)\)$`, ":xit leaving the editor")
+		e.FoldAlways(`(?m)^[ \t]*if \(only_one_window\(\)\)$`, 1, ":xit leaving the editor")
 	})
 	e.InFunction("ex_exit", func(e *edit.E) {
 		e.Lines(`win_close\(curwin, TRUE\);`, 1, ":xit closing a window it can never reach")
 	})
 	e.InFunction("do_exedit", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(old_curwin != NULL\)$`, ":edit closing the window it came from, which is never given one")
+		e.DropIf(`(?m)^[ \t]*if \(old_curwin != NULL\)$`, 1, ":edit closing the window it came from, which is never given one")
 	})
 	e.InFunction("set_curbuf", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(unload\)$`, "unloading a buffer closing the windows that show it")
+		e.DropIf(`(?m)^[ \t]*if \(unload\)$`, 1, "unloading a buffer closing the windows that show it")
 	})
 	// only_one_window() is TRUE, so these terms go rather than the tests.
 	e.InFunction("check_more", func(e *edit.E) {
-		e.Literal("only_one_window() && ", "", "check_more asking how many windows there are")
+		e.Literal("only_one_window() && ", "", 1, "check_more asking how many windows there are")
 	})
 	e.InFunction("before_quit_autocmds", func(e *edit.E) {
-		e.Literal(" && only_one_window()", "", "the quit autocommands asking how many windows there are")
+		e.Literal(" && only_one_window()", "", 1, "the quit autocommands asking how many windows there are")
 	})
 	e.InFunction("create_windows", func(e *edit.E) {
-		e.Literal("got_int || only_one_window()", "TRUE", "the swap-file quit asking how many windows there are")
+		e.Literal("got_int || only_one_window()", "TRUE", 1, "the swap-file quit asking how many windows there are")
 	})
 	e.InFunction("close_buffer", func(e *edit.E) {
-		e.LiteralN("abort_if_last && one_window()", "abort_if_last", 2,
+		e.Literal("abort_if_last && one_window()", "abort_if_last", 2,
 			"closing a buffer asking whether its window is the last")
 	})
 	return e.Done()

@@ -119,45 +119,68 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.Say("confirmed: first_autopat is only ever the all-NULL initialiser")
 
 	e.InFunction("close_buffer", func(e *edit.E) {
-		e.Literal(w75OldCb, w75NewCb, "close_buffer, whose abort label three gotos still target")
+		e.Literal(w75OldCb, w75NewCb, 1, "close_buffer, whose abort label three gotos still target")
 	})
-	e.FoldNeverIn2("buf_freeall", `(?m)^[ \t]*if \(apply_autocmds\(EVENT_BUFUNLOAD,`, "unloading a buffer asking the autocommands first", 1)
-	e.FoldNeverIn2("buf_freeall", `(?m)^[ \t]*if \(apply_autocmds\(EVENT_BUFWIPEOUT,`, "wiping a buffer asking them", 1)
-	e.FoldNeverIn2("buflist_new", `(?m)^[ \t]*if \(apply_autocmds\(EVENT_BUFNEW,`, "a new buffer announcing itself", 1)
-	e.FoldNeverIn2("readfile", `(?m)^[ \t]*if \(apply_autocmds_exarg\(EVENT_BUFREADCMD,`, "a read being handled by an autocommand instead", 1)
-	e.FoldNeverIn2("readfile", `(?m)^[ \t]*else if \(apply_autocmds_exarg\(EVENT_FILEREADCMD,`, "and the file-read variant of the same", 1)
-	e.FoldAlwaysIn("set_curbuf", `(?m)^[ \t]*if \(!apply_autocmds\(EVENT_BUFLEAVE,`, "leaving a buffer asking permission", 1)
-	e.FoldAlwaysIn("buf_write", `(?m)^[ \t]*if \(!\(did_cmd = apply_autocmds_exarg\(EVENT_FILEAPPENDCMD,`, "an autocommand taking over an append", 1)
-	e.FoldAlwaysIn("buf_write", `(?m)^[ \t]*if \(!\(did_cmd = apply_autocmds_exarg\(EVENT_FILEWRITECMD,`, "an autocommand taking over a write", 1)
-	e.FoldNeverIn2("ins_redraw", `(?m)^[ \t]*if \(ready && has_textchangedI\(\)`, "insert mode reporting a change", 1)
-	e.FoldNeverIn2("ins_redraw", `(?m)^[ \t]*if \(ready && has_textchangedP\(\)`, "and the popup-menu variant", 1)
-	e.FoldNeverIn2("do_one_cmd", `(?m)^[ \t]*if \(p != NULL && ea\.cmdidx == CMD_SIZE && !ea\.skip && [^\n]*has_cmdundefined\(\)\)$`,
-		"an unknown command being defined by an autocommand", 1)
+	e.InFunction("buf_freeall", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*if \(apply_autocmds\(EVENT_BUFUNLOAD,`, 1, "unloading a buffer asking the autocommands first")
+	})
+	e.InFunction("buf_freeall", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*if \(apply_autocmds\(EVENT_BUFWIPEOUT,`, 1, "wiping a buffer asking them")
+	})
+	e.InFunction("buflist_new", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*if \(apply_autocmds\(EVENT_BUFNEW,`, 1, "a new buffer announcing itself")
+	})
+	e.InFunction("readfile", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*if \(apply_autocmds_exarg\(EVENT_BUFREADCMD,`, 1, "a read being handled by an autocommand instead")
+	})
+	e.InFunction("readfile", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*else if \(apply_autocmds_exarg\(EVENT_FILEREADCMD,`, 1, "and the file-read variant of the same")
+	})
+	e.InFunction("set_curbuf", func(e *edit.E) {
+		e.FoldAlways(`(?m)^[ \t]*if \(!apply_autocmds\(EVENT_BUFLEAVE,`, 1, "leaving a buffer asking permission")
+	})
 	e.InFunction("buf_write", func(e *edit.E) {
-		e.Literal(w75lit4, "", "an autocommand taking over the whole write")
+		e.FoldAlways(`(?m)^[ \t]*if \(!\(did_cmd = apply_autocmds_exarg\(EVENT_FILEAPPENDCMD,`, 1, "an autocommand taking over an append")
+	})
+	e.InFunction("buf_write", func(e *edit.E) {
+		e.FoldAlways(`(?m)^[ \t]*if \(!\(did_cmd = apply_autocmds_exarg\(EVENT_FILEWRITECMD,`, 1, "an autocommand taking over a write")
+	})
+	e.InFunction("ins_redraw", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*if \(ready && has_textchangedI\(\)`, 1, "insert mode reporting a change")
+	})
+	e.InFunction("ins_redraw", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*if \(ready && has_textchangedP\(\)`, 1, "and the popup-menu variant")
+	})
+	e.InFunction("do_one_cmd", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*if \(p != NULL && ea\.cmdidx == CMD_SIZE && !ea\.skip && [^\n]*has_cmdundefined\(\)\)$`, 1, "an unknown command being defined by an autocommand")
+	})
+	e.InFunction("buf_write", func(e *edit.E) {
+		e.Literal(w75lit4, "", 1, "an autocommand taking over the whole write")
 	})
 	e.Body("ins_apply_autocmds", w75lit2, "ins_apply_autocmds, which dispatched and watched the tick")
 	e.InFunction("ui_focus_change", func(e *edit.E) {
-		e.Literal(w75lit5, "", "a focus change telling the autocommands")
+		e.Literal(w75lit5, "", 1, "a focus change telling the autocommands")
 	})
 	e.InFunction("open_buffer", func(e *edit.E) {
-		e.Literal(w75lit6, w75lit7, "open_buffer, keeping the flag clearing the autocmd call was wrapped around")
+		e.Literal(w75lit6, w75lit7, 1, "open_buffer, keeping the flag clearing the autocmd call was wrapped around")
 	})
 	e.DropBlocks("buf_write", `(?m)^[ \t]*if \(!got_int\)$`, 1, "the post-write announcements")
 	e.DropBlocks("set_termname", `(?m)^[ \t]*if \(curbuf->b_ml\.ml_mfp != NULL\)$`, 1, "a new terminal telling every buffer")
 	e.Lines(`ins_apply_autocmds\(EVENT_[A-Z]+\);`, 6, "the insert-mode dispatches")
-	e.FoldNeverIn2("ins_redraw", `(?m)^[ \t]*if \(ready && \(has_cursormovedI\(\)\)`, "insert mode reporting the cursor moved", 1)
+	e.InFunction("ins_redraw", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*if \(ready && \(has_cursormovedI\(\)\)`, 1, "insert mode reporting the cursor moved")
+	})
 	e.InFunction("free_buffer", func(e *edit.E) {
 		e.Lines(`aubuflocal_remove\(buf\);`, 1, "a freed buffer detaching its buffer-local patterns")
 	})
 	for _, ev := range []string{"VIMLEAVEPRE", "VIMLEAVE"} {
 		ev := ev
 		e.InFunction("getout", func(e *edit.E) {
-			e.Literal(fmt.Sprintf(w75lit14, ev), "", fmt.Sprintf("quitting unblocking autocommands to announce EVENT_%s", ev))
+			e.Literal(fmt.Sprintf(w75lit14, ev), "", 1, fmt.Sprintf("quitting unblocking autocommands to announce EVENT_%s", ev))
 		})
 	}
 	e.InFunction("do_one_cmd", func(e *edit.E) {
-		e.Literal(w75lit8, w75lit9, "asking whether the command came from an autocommand")
+		e.Literal(w75lit8, w75lit9, 1, "asking whether the command came from an autocommand")
 	})
 	// the command-line type: its one write goes, and the sweep takes the
 	// declaration
@@ -173,12 +196,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Say(fmt.Sprintf("the command-line triggers (%d)", n))
 	}
 	e.InFunction("buf_write", func(e *edit.E) {
-		e.Literal(w75lit10, "", "buf_write bracketing the write with an autocommand buffer swap")
+		e.Literal(w75lit10, "", 1, "buf_write bracketing the write with an autocommand buffer swap")
 	})
 	e.InFunction("buf_write", func(e *edit.E) {
-		e.Literal(w75lit11, w75lit12, "the write asking whether an autocommand had taken over")
+		e.Literal(w75lit11, w75lit12, 1, "the write asking whether an autocommand had taken over")
 	})
-	e.FoldNeverIn2("buf_write", `(?m)^[ \t]*if \(did_cmd\)$`, "and the arm only an autocommand-driven write could reach", 1)
+	e.InFunction("buf_write", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*if \(did_cmd\)$`, 1, "and the arm only an autocommand-driven write could reach")
+	})
 	// buf_write's aco, bufref and did_cmd are named by nothing now; the sweep
 	// takes them.
 	e.DropBareBlock("set_termname", "buf = curbuf;", "the husk the terminal notification left behind")

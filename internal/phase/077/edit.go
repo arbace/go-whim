@@ -77,9 +77,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Refuse("`ni` is no longer computed as \"the handler is ex_ni\"")
 		return e.Done()
 	}
-	e.FoldNeverIn2("do_one_cmd",
-		`(?m)^[ \t]*if \(\(ea\.argt & EX_BUFNAME\) && \*ea\.arg != NUL && ea\.addr_count == 0 && !\(\(int\)\(ea\.cmdidx\) < 0\)\)$`,
-		"naming a buffer by pattern for commands that cannot run", 1)
+	e.InFunction("do_one_cmd", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*if \(\(ea\.argt & EX_BUFNAME\) && \*ea\.arg != NUL && ea\.addr_count == 0 && !\(\(int\)\(ea\.cmdidx\) < 0\)\)$`, 1, "naming a buffer by pattern for commands that cannot run")
+	})
 	return e.Done()
 }
 

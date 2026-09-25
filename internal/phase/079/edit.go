@@ -147,81 +147,81 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	e.Say("confirmed: wc_use_keyname never dereferences its out-parameter")
 
-	e.FoldNever(`(?m)^[ \t]*if \(vim9script && \(flags & DOCMD_RANGEOK\) == 0\)$`,
+	e.FoldNever(`(?m)^[ \t]*if \(vim9script && \(flags & DOCMD_RANGEOK\) == 0\)$`, 1,
 		"scanning backwards for a colon to decide whether a range is allowed")
-	e.FoldNever(`(?m)^[ \t]*if \(vim9script && !may_have_range\)$`, "the Vim9 path through find_ex_command")
-	e.FoldNeverCount(`(?m)^[ \t]*if \(vim9script\)$`, 2, "two Vim9 checks in parse_command_modifiers")
-	e.FoldNever(`(?m)^[ \t]*if \(vim9script && has_cmdmod\(cmod, FALSE\)\)$`, "a command modifier without a command")
-	e.Term("(*p == '\"' && !vim9script && !(eap->argt & EX_NOTRLCOM)",
+	e.FoldNever(`(?m)^[ \t]*if \(vim9script && !may_have_range\)$`, 1, "the Vim9 path through find_ex_command")
+	e.FoldNever(`(?m)^[ \t]*if \(vim9script\)$`, 2, "two Vim9 checks in parse_command_modifiers")
+	e.FoldNever(`(?m)^[ \t]*if \(vim9script && has_cmdmod\(cmod, FALSE\)\)$`, 1, "a command modifier without a command")
+	e.Literal("(*p == '\"' && !vim9script && !(eap->argt & EX_NOTRLCOM)",
 		"(*p == '\"' && !(eap->argt & EX_NOTRLCOM)", 1,
 		"a double quote always starts a comment outside Vim9 script")
-	e.Term("(*p == '#' && vim9script && !(eap->argt & EX_NOTRLCOM) && p > eap->cmd && ((p[-1]) == ' ' || (p[-1]) == '\\t')) || (*p == '|' && eap->cmdidx != CMD_append",
+	e.Literal("(*p == '#' && vim9script && !(eap->argt & EX_NOTRLCOM) && p > eap->cmd && ((p[-1]) == ' ' || (p[-1]) == '\\t')) || (*p == '|' && eap->cmdidx != CMD_append",
 		"(*p == '|' && eap->cmdidx != CMD_append", 1, "and a hash never does")
 	// The three vim9script locals, in do_one_cmd, parse_command_modifiers and
 	// separate_nextcmd, are named by nothing now; the sweep takes them.
-	e.FoldAlways(`(?m)^[ \t]*if \(may_have_range\)$`, "skipping a range that is always allowed")
-	e.FoldNever(`(?m)^[ \t]*if \(!may_have_range\)$`, "the default address for a range that cannot be absent")
+	e.FoldAlways(`(?m)^[ \t]*if \(may_have_range\)$`, 1, "skipping a range that is always allowed")
+	e.FoldNever(`(?m)^[ \t]*if \(!may_have_range\)$`, 1, "the default address for a range that cannot be absent")
 	e.Lines(`may_have_range = TRUE;`, 1, "the flag nothing decides any more")
-	e.FoldNever(`(?m)^[ \t]*if \(in_vim9script\(\) && \*p == '\\'' && \(\(unsigned\)\(p\[1\]\) - '0' < 10\)\)$`,
+	e.FoldNever(`(?m)^[ \t]*if \(in_vim9script\(\) && \*p == '\\'' && \(\(unsigned\)\(p\[1\]\) - '0' < 10\)\)$`, 1,
 		"a digit separator in a Vim9 number literal")
-	e.FoldNever(`(?m)^[ \t]*if \(in_vim9script\(\) && \*p == '#'\)$`, "a hash comment ending a Vim9 command")
-	e.FoldNever(`(?m)^[ \t]*if \(in_vim9script\(\) && arg > arg_start && vim_strchr\(\(char_u \*\)"!&<", \*arg\) != NULL\)$`,
+	e.FoldNever(`(?m)^[ \t]*if \(in_vim9script\(\) && \*p == '#'\)$`, 1, "a hash comment ending a Vim9 command")
+	e.FoldNever(`(?m)^[ \t]*if \(in_vim9script\(\) && arg > arg_start && vim_strchr\(\(char_u \*\)"!&<", \*arg\) != NULL\)$`, 1,
 		"the Vim9 spacing rule for an unknown option")
-	e.FoldNeverCount(`(?m)^[ \t]*if \(in_vim9script\(\)\)$`, 8, "eight more Vim9 script branches")
-	e.Term("in_vim9script() ? GETLINE_CONCAT_CONTBAR : GETLINE_CONCAT_CONT", "GETLINE_CONCAT_CONT", 1,
+	e.FoldNever(`(?m)^[ \t]*if \(in_vim9script\(\)\)$`, 8, "eight more Vim9 script branches")
+	e.Literal("in_vim9script() ? GETLINE_CONCAT_CONTBAR : GETLINE_CONCAT_CONT", "GETLINE_CONCAT_CONT", 1,
 		"how a continuation line is joined")
-	e.FoldNever(`(?m)^[ \t]*if \(pum_under_menu\(row, col, TRUE\)\)$`, "skipping a cell the popup menu covers")
-	e.FoldNever(`(?m)^[ \t]*if \(pum_visible\(\) && \(State & MODE_CMDLINE\) == 0 && pum_under_menu\(row, col, FALSE\)\)$`,
+	e.FoldNever(`(?m)^[ \t]*if \(pum_under_menu\(row, col, TRUE\)\)$`, 1, "skipping a cell the popup menu covers")
+	e.FoldNever(`(?m)^[ \t]*if \(pum_visible\(\) && \(State & MODE_CMDLINE\) == 0 && pum_under_menu\(row, col, FALSE\)\)$`, 1,
 		"and the same test on the command line")
 	e.ConstOf("skip_for_popup", "FALSE")
 	if !e.Failed() {
 		e.Say("confirmed: skip_for_popup has collapsed to `return FALSE;`")
 	}
-	e.Term("may_trigger_safestate(ready && !ins_compl_active() && !pum_visible());",
+	e.Literal("may_trigger_safestate(ready && !ins_compl_active() && !pum_visible());",
 		"may_trigger_safestate(ready);", 1, "whether a state is safe no longer asks about completion")
-	e.FoldNeverCount(`(?m)^[ \t]*if \(pum_visible\(\)\)$`, 2, "two redraws deferred for the popup menu")
-	e.FoldNever(`(?m)^[ \t]*if \(!ignore_pum && pum_visible\(\)\)$`, "the ruler deferred for it")
-	e.FoldNever(`(?m)^[ \t]*if \(pum_redraw_in_same_position\(\)\)$`, "redrawing it in place")
-	e.Term(" || (!ignore_pum && pum_visible())", "", 1, "the status line deferred for it")
-	e.Term(" && !pum_visible())", ")", 1, "'relativenumber' redrawing around it")
-	e.Term(" && !ins_compl_active())", ")", 1, "'showmatch' suppressed during completion")
-	e.FoldNeverCount(`(?m)^[ \t]*if \(\(State & MODE_INSERT\) && ins_compl_win_active\(wp\) && \(in_curline \|\| ins_compl_lnum_in_range\(lnum\)\)\)$`, 2,
+	e.FoldNever(`(?m)^[ \t]*if \(pum_visible\(\)\)$`, 2, "two redraws deferred for the popup menu")
+	e.FoldNever(`(?m)^[ \t]*if \(!ignore_pum && pum_visible\(\)\)$`, 1, "the ruler deferred for it")
+	e.FoldNever(`(?m)^[ \t]*if \(pum_redraw_in_same_position\(\)\)$`, 1, "redrawing it in place")
+	e.Literal(" || (!ignore_pum && pum_visible())", "", 1, "the status line deferred for it")
+	e.Literal(" && !pum_visible())", ")", 1, "'relativenumber' redrawing around it")
+	e.Literal(" && !ins_compl_active())", ")", 1, "'showmatch' suppressed during completion")
+	e.FoldNever(`(?m)^[ \t]*if \(\(State & MODE_INSERT\) && ins_compl_win_active\(wp\) && \(in_curline \|\| ins_compl_lnum_in_range\(lnum\)\)\)$`, 2,
 		"two completion highlights in the line drawer")
-	e.Term(" && !at_ins_compl_key())", ")", 1, "a mapping suppressed by a completion key")
-	e.FoldNever(`(?m)^[ \t]*if \(redraw_this && char_cells == 2 && skip_for_popup\(row, col \+ coloff \+ 1\)\)$`,
+	e.Literal(" && !at_ins_compl_key())", ")", 1, "a mapping suppressed by a completion key")
+	e.FoldNever(`(?m)^[ \t]*if \(redraw_this && char_cells == 2 && skip_for_popup\(row, col \+ coloff \+ 1\)\)$`, 1,
 		"a double-width cell under the menu")
-	e.FoldNever(`(?m)^[ \t]*if \(redraw_this && skip_for_popup\(row, col \+ coloff\)\)$`, "and a single-width one")
-	e.Term(" && !skip_for_popup(row, col + coloff))", ")", 1, "clearing the next cell")
-	e.FoldAlways(`(?m)^[ \t]*if \(!skip_for_popup\(row, col \+ coloff\)\)$`, "drawing a screen line cell")
-	e.FoldAlways(`(?m)^[ \t]*if \(!skip_for_popup\(row, col - 1\)\)$`, "redrawing the cell to the left")
-	e.Term(" && !skip_for_popup(row, col))", ")", 3, "three more cells that are never covered")
-	e.FoldAlways(`(?m)^[ \t]*if \(!skip_for_popup\(r, c\)\)$`, "and filling a screen region")
-	e.FoldAlways(`(?m)^[ \t]*if \(quit_all \|\| \(check_more\(FALSE, forceit\) == OK\)\)$`, "the autocommand check before quitting")
-	e.FoldAlwaysCount(`(?m)^[ \t]*if \(check_more\(FALSE, eap->forceit\) == OK && only_one_window\(\)\)$`, 2,
+	e.FoldNever(`(?m)^[ \t]*if \(redraw_this && skip_for_popup\(row, col \+ coloff\)\)$`, 1, "and a single-width one")
+	e.Literal(" && !skip_for_popup(row, col + coloff))", ")", 1, "clearing the next cell")
+	e.FoldAlways(`(?m)^[ \t]*if \(!skip_for_popup\(row, col \+ coloff\)\)$`, 1, "drawing a screen line cell")
+	e.FoldAlways(`(?m)^[ \t]*if \(!skip_for_popup\(row, col - 1\)\)$`, 1, "redrawing the cell to the left")
+	e.Literal(" && !skip_for_popup(row, col))", ")", 3, "three more cells that are never covered")
+	e.FoldAlways(`(?m)^[ \t]*if \(!skip_for_popup\(r, c\)\)$`, 1, "and filling a screen region")
+	e.FoldAlways(`(?m)^[ \t]*if \(quit_all \|\| \(check_more\(FALSE, forceit\) == OK\)\)$`, 1, "the autocommand check before quitting")
+	e.FoldAlways(`(?m)^[ \t]*if \(check_more\(FALSE, eap->forceit\) == OK && only_one_window\(\)\)$`, 2,
 		"deciding to exit in :quit and :exit")
-	e.Term(" || check_more(TRUE, eap->forceit) == FAIL", "", 2, "refusing to quit with more files to edit")
-	e.Term("only_one_window() && check_changed_any", "check_changed_any", 2, "and asking whether this is the last window")
-	e.FoldNeverCount(`(?m)^[ \t]*if \(stl_connected\(wp\)\)$`, 2, "a status line joined to the one beside it")
-	e.FoldNever(`(?m)^[ \t]*if \(get_cellwidth\(ScreenLinesUC\[off\]\) > 1\)$`, "a character widened by 'setcellwidths'")
-	e.FoldNever(`(?m)^[ \t]*if \(wc_use_keyname\(varp, &wc\)\)$`, "showing a numeric option as a key name")
-	e.FoldNever(`(?m)^[ \t]*if \(wc != 0\)$`, "and showing it as a character")
-	e.FoldNever(`(?m)^[ \t]*if \(!check_can_set_curbuf_disabled\(\)\)$`, "refusing to change buffer in gf")
-	e.FoldNever(`(?m)^[ \t]*if \(\(is_other_file\(0, ffname\) && !check_can_set_curbuf_forceit\(eap->forceit\)\)\)$`, "and refusing in :edit")
-	e.Term(" && !bt_terminal(wp->w_buffer)", "", 1, "the [+] flag suppressed for a terminal buffer")
-	e.Term(" && !bt_quickfix(curbuf)", "", 1, "a quickfix buffer never being reusable")
-	e.Term(" && !has_insertcharpre()", "", 1, "the InsertCharPre fast path")
-	e.FoldNever(`(?m)^[ \t]*if \(!finish_op && \(has_cursormoved\(\)\) && !\(`, "tracking the cursor for CursorMoved")
-	e.FoldNever(`(?m)^[ \t]*if \(!finish_op && has_textchanged\(\) && `, "and the change tick for TextChanged")
-	e.DropIfCount(`(?m)^[ \t]*if \(need_check_timestamps\)$`, 3, "three checks for a file changed outside the editor")
+	e.Literal(" || check_more(TRUE, eap->forceit) == FAIL", "", 2, "refusing to quit with more files to edit")
+	e.Literal("only_one_window() && check_changed_any", "check_changed_any", 2, "and asking whether this is the last window")
+	e.FoldNever(`(?m)^[ \t]*if \(stl_connected\(wp\)\)$`, 2, "a status line joined to the one beside it")
+	e.FoldNever(`(?m)^[ \t]*if \(get_cellwidth\(ScreenLinesUC\[off\]\) > 1\)$`, 1, "a character widened by 'setcellwidths'")
+	e.FoldNever(`(?m)^[ \t]*if \(wc_use_keyname\(varp, &wc\)\)$`, 1, "showing a numeric option as a key name")
+	e.FoldNever(`(?m)^[ \t]*if \(wc != 0\)$`, 1, "and showing it as a character")
+	e.FoldNever(`(?m)^[ \t]*if \(!check_can_set_curbuf_disabled\(\)\)$`, 1, "refusing to change buffer in gf")
+	e.FoldNever(`(?m)^[ \t]*if \(\(is_other_file\(0, ffname\) && !check_can_set_curbuf_forceit\(eap->forceit\)\)\)$`, 1, "and refusing in :edit")
+	e.Literal(" && !bt_terminal(wp->w_buffer)", "", 1, "the [+] flag suppressed for a terminal buffer")
+	e.Literal(" && !bt_quickfix(curbuf)", "", 1, "a quickfix buffer never being reusable")
+	e.Literal(" && !has_insertcharpre()", "", 1, "the InsertCharPre fast path")
+	e.FoldNever(`(?m)^[ \t]*if \(!finish_op && \(has_cursormoved\(\)\) && !\(`, 1, "tracking the cursor for CursorMoved")
+	e.FoldNever(`(?m)^[ \t]*if \(!finish_op && has_textchanged\(\) && `, 1, "and the change tick for TextChanged")
+	e.DropIf(`(?m)^[ \t]*if \(need_check_timestamps\)$`, 3, "three checks for a file changed outside the editor")
 	e.Lines(`need_check_timestamps = TRUE;`, 1, "asking for one")
 	e.Lines(`need_redraw = check_timestamps\(FALSE\);`, 1, "the timestamp check on focus")
-	e.FoldNever(`(?m)^[ \t]*if \(need_redraw\)$`, "and the redraw it asked for")
+	e.FoldNever(`(?m)^[ \t]*if \(need_redraw\)$`, 1, "and the redraw it asked for")
 	e.Lines(`\(void\)append_arg_number\(curwin, \(char_u \*\)buffer \+ bufferlen, \(1024 \+ 1\) - bufferlen, !shortmess\(SHM_FILE\)\);`, 1,
 		"appending the argument-list position to the file message")
-	e.Term(w79lit1, w79lit2, 1, "reading a here-document for a command that cannot run")
+	e.Literal(w79lit1, w79lit2, 1, "reading a here-document for a command that cannot run")
 	e.Lines(`bom_count = bomb_size\(\);`, 1, "counting the byte order mark")
-	e.FoldNever(`(?m)^[ \t]*if \(dict == NULL && bom_count > 0\)$`, "and reporting it")
-	e.Term(w79lit3, w79lit4, 1, "the window-or-tab count for a bare range")
+	e.FoldNever(`(?m)^[ \t]*if \(dict == NULL && bom_count > 0\)$`, 1, "and reporting it")
+	e.Literal(w79lit3, w79lit4, 1, "the window-or-tab count for a bare range")
 	for _, f := range []struct {
 		fn, arg string
 		n       int
@@ -229,14 +229,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{"current_win_nr", "curwin", 3}, {"current_win_nr", "NULL", 3},
 		{"current_tab_nr", "curtab", 3}, {"current_tab_nr", "NULL", 3},
 	} {
-		e.Term(fmt.Sprintf("%s(%s)", f.fn, f.arg), "1", f.n,
+		e.Literal(fmt.Sprintf("%s(%s)", f.fn, f.arg), "1", f.n,
 			fmt.Sprintf("there is one window and one tabpage (%s(%s))", f.fn, f.arg))
 	}
-	e.Term(w79lit5, w79lit6, 1, "the minimum rows needed, without a tab line")
+	e.Literal(w79lit5, w79lit6, 1, "the minimum rows needed, without a tab line")
 	e.Lines(`total \+= tabline_height\(\);`, 1, "the tab line in the all-tabpages minimum")
-	e.Term("int row = tabline_height();", "int row = 0;", 1, "window layout starting at the top row")
-	e.Term("(Rows - p_ch - tabline_height())", "(Rows - p_ch)", 5, "five window heights with no tab line to subtract")
-	e.Term("tabline_height() + topframe->fr_height", "topframe->fr_height", 1, "and the 'cmdheight' consistency check")
+	e.Literal("int row = tabline_height();", "int row = 0;", 1, "window layout starting at the top row")
+	e.Literal("(Rows - p_ch - tabline_height())", "(Rows - p_ch)", 5, "five window heights with no tab line to subtract")
+	e.Literal("tabline_height() + topframe->fr_height", "topframe->fr_height", 1, "and the 'cmdheight' consistency check")
 	return e.Done()
 }
 

@@ -114,14 +114,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// 1. the constant tests, before anything renames what they compare.
 	// ONE_WINDOW, expanded at three sites and missed by phase 68, which only
 	// folded the one_window()/last_window()/only_one_window() functions.
-	e.LiteralN("(firstwin == lastwin)", "TRUE", 3, "ONE_WINDOW, expanded in place")
-	e.LiteralN("wp == firstwin", "TRUE", 2, "win_update asking whether this is the top window")
-	e.Literal("wp == lastwin", "wp == curwin", "win_redr_ruler asking for the bottom window")
+	e.Literal("(firstwin == lastwin)", "TRUE", 3, "ONE_WINDOW, expanded in place")
+	e.Literal("wp == firstwin", "TRUE", 2, "win_update asking whether this is the top window")
+	e.Literal("wp == lastwin", "wp == curwin", 1, "win_redr_ruler asking for the bottom window")
 
-	e.DropWalkIn("aucmd_prepbuf", `for \(\(win\) = firstwin; \(win\) != NULL; \(win\) = \(win\)->w_next\)`,
-		w72lit3, "aucmd_prepbuf searching for the window showing a buffer", 1)
-	e.DropWalkIn("can_unload_buffer", `for \(\(wp\) = firstwin; \(wp\) != NULL; \(wp\) = \(wp\)->w_next\)`,
-		w72lit4, "can_unload_buffer asking whether the buffer is on screen", 1)
+	e.DropWalk("aucmd_prepbuf", "for ((win) = firstwin; (win) != NULL; (win) = (win)->w_next)",
+		w72lit3, 1, "aucmd_prepbuf searching for the window showing a buffer")
+	e.DropWalk("can_unload_buffer", "for ((wp) = firstwin; (wp) != NULL; (wp) = (wp)->w_next)",
+		w72lit4, 1, "can_unload_buffer asking whether the buffer is on screen")
 	e.Lines(`borrow_stl_vsep_hl\(\);`, 2, "the two calls to the separator-highlight pass")
 	e.DeleteDefinition("borrow_stl_vsep_hl", "borrow_stl_vsep_hl, which had no window to borrow from")
 	e.Body("current_win_nr", w72lit5, "current_win_nr, which counted to the window")
@@ -133,13 +133,20 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.Body("win_valid_any_tab", w72lit8, "win_valid_any_tab, which walked every tabpage for it")
 	e.Body("win_find_by_id", w72lit9, "win_find_by_id, which walked the list by id")
 	e.Body("valid_tabpage", w72lit10, "valid_tabpage, which walked the tabpage list")
-	e.FoldNeverIn("goto_tabpage_tp", `(?m)^[ \t]*if \(tp != curtab && leave_tabpage\(`, "switching to another tabpage", 1)
-	e.FoldNeverIn("close_buffer", `(?m)^[ \t]*if \(is_curwin && curwin != win && win_valid\)$`, "closing a buffer from another window", 1)
-	e.FoldNeverIn("buf_freeall", `(?m)^[ \t]*if \(is_curwin && curwin != the_curwin && win_valid_any_tab\(the_curwin\)\)$`,
-		"freeing a buffer from another window", 1)
+	e.InFunction("goto_tabpage_tp", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*if \(tp != curtab && leave_tabpage\(`, 1, "switching to another tabpage")
+	})
+	e.InFunction("close_buffer", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*if \(is_curwin && curwin != win && win_valid\)$`, 1, "closing a buffer from another window")
+	})
+	e.InFunction("buf_freeall", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*if \(is_curwin && curwin != the_curwin && win_valid_any_tab\(the_curwin\)\)$`, 1, "freeing a buffer from another window")
+	})
 	e.Body("win_alloc_firstwin", w72lit11, "win_alloc_firstwin cloning an existing window")
 	e.Body("win_alloc_first", w72lit12, "the first tabpage being the head of a list")
-	e.FoldNeverIn("win_alloc", `(?m)^[ \t]*if \(!hidden\)$`, "win_alloc appending to the window list", 1)
+	e.InFunction("win_alloc", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*if \(!hidden\)$`, 1, "win_alloc appending to the window list")
+	})
 	e.Body("unuse_tabpage", w72lit13, "a tabpage remembering the ends of its window list")
 	e.Body("win_rest_invalid", w72lit14, "win_rest_invalid invalidating every window after one")
 
@@ -157,22 +164,22 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"every walk over the window list")
 
 	e.InFunction("win_ins_lines", func(e *edit.E) {
-		e.Literal(w72lit16, w72lit17, "scrolling asking whether a window is below")
+		e.Literal(w72lit16, w72lit17, 1, "scrolling asking whether a window is below")
 	})
 	e.InFunction("win_ins_lines", func(e *edit.E) {
-		e.Literal(w72lit18, "", "scrolling refusing when a window is below")
+		e.Literal(w72lit18, "", 1, "scrolling refusing when a window is below")
 	})
 	e.InFunction("win_ins_lines", func(e *edit.E) {
-		e.Literal(w72lit19, w72lit20, "scrolling invalidating the window below")
+		e.Literal(w72lit19, w72lit20, 1, "scrolling invalidating the window below")
 	})
 	e.InFunction("win_del_lines", func(e *edit.E) {
-		e.Literal(w72lit21, w72lit22, "deleting lines asking whether a window is below")
+		e.Literal(w72lit21, w72lit22, 1, "deleting lines asking whether a window is below")
 	})
 	e.InFunction("win_del_lines", func(e *edit.E) {
-		e.Literal(w72lit23, w72lit24, "deleting lines invalidating the window below")
+		e.Literal(w72lit23, w72lit24, 1, "deleting lines invalidating the window below")
 	})
 	e.InFunction("win_do_lines", func(e *edit.E) {
-		e.Literal(w72lit25, "", "'termfastscroll' refusing to scroll a window that has one below")
+		e.Literal(w72lit25, "", 1, "'termfastscroll' refusing to scroll a window that has one below")
 	})
 
 	for _, f := range []struct {

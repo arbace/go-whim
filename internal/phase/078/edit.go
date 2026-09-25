@@ -142,8 +142,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	e.Say(fmt.Sprintf("every call to the %d functions that do nothing (%d sites)", len(emptyFns), total))
 
-	e.FoldNeverIn2("getcmdline_int", `(?m)^[ \t]*if \(is_state\.winid != curwin->w_id\)$`,
-		"the command line re-initialising incremental search for another window", 2)
+	e.InFunction("getcmdline_int", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*if \(is_state\.winid != curwin->w_id\)$`, 2, "the command line re-initialising incremental search for another window")
+	})
 	e.InFunction("init_incsearch_state", func(e *edit.E) {
 		e.Lines(`is_state->winid = curwin->w_id;`, 1, "recording which window the search started in")
 	})

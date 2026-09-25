@@ -26,29 +26,29 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nolisp", text, w)
 
 	e.InFunction("open_line", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(leader == NULL && !use_indentexpr_for_lisp\(\) && curbuf->b_p_lisp && curbuf->b_p_ai\)$`,
+		e.DropIf(`(?m)^[ \t]*if \(leader == NULL && !use_indentexpr_for_lisp\(\) && curbuf->b_p_lisp && curbuf->b_p_ai\)$`, 1,
 			"a new line taking its indent from get_lisp_indent()")
 		e.Cut(`(?m)^[ \t]*if \(!p_paste\)\n[ \t]*\{\n[ \t]*\}\n`, 1,
 			"open_line's now-empty 'paste' test")
 	})
 	e.InFunction("buf_init_chartab", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(buf->b_p_lisp\)$`, "'-' as a keyword character")
+		e.DropIf(`(?m)^[ \t]*if \(buf->b_p_lisp\)$`, 1, "'-' as a keyword character")
 	})
 	e.InFunction("check_linecomment", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(curbuf->b_p_lisp\)$`, "a ';' starting a line comment")
+		e.FoldNever(`(?m)^[ \t]*if \(curbuf->b_p_lisp\)$`, 1, "a ';' starting a line comment")
 	})
 	e.InFunction("op_reindent", func(e *edit.E) {
-		e.Always(`(?m)^[ \t]*if \(i != oap->line_count - 1 \|\| oap->line_count == 1 \|\| how != get_lisp_indent\)$`,
+		e.FoldAlways(`(?m)^[ \t]*if \(i != oap->line_count - 1 \|\| oap->line_count == 1 \|\| how != get_lisp_indent\)$`, 1,
 			"= skipping the last line only for lisp")
 	})
 	e.InFunction("fix_indent", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(curbuf->b_p_lisp && curbuf->b_p_ai\)$`, "fix_indent re-indenting lisp")
+		e.DropIf(`(?m)^[ \t]*if \(curbuf->b_p_lisp && curbuf->b_p_ai\)$`, 1, "fix_indent re-indenting lisp")
 	})
 	e.InFunction("do_pending_operator", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(curbuf->b_p_lisp\)$`, "= indenting lisp")
+		e.DropIf(`(?m)^[ \t]*if \(curbuf->b_p_lisp\)$`, 1, "= indenting lisp")
 	})
 	e.InFunction("format_lines", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*else if \(curbuf->b_p_lisp\)$`, "gq indenting lisp")
+		e.FoldNever(`(?m)^[ \t]*else if \(curbuf->b_p_lisp\)$`, 1, "gq indenting lisp")
 	})
 
 	// findmatchlimit carried a lisp comment state through the whole scan, so
@@ -57,22 +57,22 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// named by nothing after that, go to the sweep.
 	e.InFunction("findmatchlimit", func(e *edit.E) {
 		e.Literal("if ((backwards && comment_dir) || lisp || skip_comments)",
-			"if ((backwards && comment_dir) || skip_comments)",
+			"if ((backwards && comment_dir) || skip_comments)", 1,
 			"% looking for a comment only for a comment direction or FM_SKIPCOMM")
-		e.DropIf(`(?m)^[ \t]*if \(lisp && comment_col != MAXCOL && pos\.col > \(colnr_T\)comment_col\)$`,
+		e.DropIf(`(?m)^[ \t]*if \(lisp && comment_col != MAXCOL && pos\.col > \(colnr_T\)comment_col\)$`, 1,
 			"% starting inside a lisp comment")
-		e.DropIf(`(?m)^[ \t]*if \(lispcomm && pos\.col < \(colnr_T\)comment_col\)$`,
+		e.DropIf(`(?m)^[ \t]*if \(lispcomm && pos\.col < \(colnr_T\)comment_col\)$`, 1,
 			"% stopping at a lisp comment backwards")
-		e.Literal("if (comment_dir || lisp || skip_comments)", "if (comment_dir || skip_comments)",
+		e.Literal("if (comment_dir || lisp || skip_comments)", "if (comment_dir || skip_comments)", 1,
 			"% rescanning a line for lisp")
-		e.FoldNever(`(?m)^[ \t]*if \(lisp && comment_col != MAXCOL\)$`,
+		e.FoldNever(`(?m)^[ \t]*if \(lisp && comment_col != MAXCOL\)$`, 1,
 			"% jumping to a lisp comment backwards")
 		e.Literal("if (linep[pos.col] == NUL || (lisp && comment_col != MAXCOL && pos.col == (colnr_T)comment_col))",
-			"if (linep[pos.col] == NUL)", "% ending a line at a lisp comment")
+			"if (linep[pos.col] == NUL)", 1, "% ending a line at a lisp comment")
 		e.Literal("if (pos.lnum == curbuf->b_ml.ml_line_count || lispcomm)",
-			"if (pos.lnum == curbuf->b_ml.ml_line_count)", "% stopping at a lisp comment forwards")
-		e.Literal("if (lisp || skip_comments)", "if (skip_comments)", "% scanning the next line for lisp")
-		e.DropIf(`(?m)^[ \t]*if \(curbuf->b_p_lisp && vim_strchr\(\(char_u \*\)"\{\}\(\)\[\]", c\) != NULL`,
+			"if (pos.lnum == curbuf->b_ml.ml_line_count)", 1, "% stopping at a lisp comment forwards")
+		e.Literal("if (lisp || skip_comments)", "if (skip_comments)", 1, "% scanning the next line for lisp")
+		e.DropIf(`(?m)^[ \t]*if \(curbuf->b_p_lisp && vim_strchr\(\(char_u \*\)"\{\}\(\)\[\]", c\) != NULL`, 1,
 			`% skipping #\( character literals`)
 	})
 	return e.Done()

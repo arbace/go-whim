@@ -56,16 +56,16 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"${1}nv_error${2}", 1, fmt.Sprintf("%s points at nv_error", m.What))
 	}
 	e.InFunction("nv_brackets", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*else if \(cap->nchar == '\[' \|\| cap->nchar == '\]'\)$`, "[[ ]] [] ][ by section")
+		e.FoldNever(`(?m)^[ \t]*else if \(cap->nchar == '\[' \|\| cap->nchar == '\]'\)$`, 1, "[[ ]] [] ][ by section")
 	})
-	e.Literal(`vim_strchr((char_u *)"{(*/#mM", cap->nchar)`, `vim_strchr((char_u *)"{(", cap->nchar)`,
+	e.Literal(`vim_strchr((char_u *)"{(*/#mM", cap->nchar)`, `vim_strchr((char_u *)"{(", cap->nchar)`, 1,
 		"[ no longer taking a comment, #if or method")
-	e.Literal(`vim_strchr((char_u *)"})*/#mM", cap->nchar)`, `vim_strchr((char_u *)"})", cap->nchar)`,
+	e.Literal(`vim_strchr((char_u *)"})*/#mM", cap->nchar)`, `vim_strchr((char_u *)"})", cap->nchar)`, 1,
 		"] no longer taking a comment, #if or method")
 
 	e.InFunction("nv_bracket_block", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(cap->nchar == '\*'\)$`, "[* and ]* spelled as [/ and ]/")
-		e.FoldAlways(`(?m)^[ \t]*if \(cap->nchar != 'm' && cap->nchar != 'M'\)$`,
+		e.DropIf(`(?m)^[ \t]*if \(cap->nchar == '\*'\)$`, 1, "[* and ]* spelled as [/ and ]/")
+		e.FoldAlways(`(?m)^[ \t]*if \(cap->nchar != 'm' && cap->nchar != 'M'\)$`, 1,
 			"a miss beeping, which only a method did not")
 		// The counted helpers cannot express "the second of two" -- they refuse
 		// on any count but the one given -- so the walk-Out is cut from a slice
@@ -88,7 +88,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			e.Set(append(append([]byte{}, t[:cut]...), tail...))
 			e.Say("walking out to a method start or end")
 		}
-		e.FoldNever(methodTest, "a method's braces choosing the character to match")
+		e.FoldNever(methodTest, 1, "a method's braces choosing the character to match")
 		e.Lines(`prev_pos\.lnum = 0;`, 1, "the previous match, which only a method walk-out read")
 		e.Lines(`prev_pos = new_pos;`, 1, "remembering the previous match")
 	})
@@ -100,8 +100,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"is and as, the sentence objects")
 	})
 
-	e.FoldNever(`(?m)^[ \t]*else if \(c == '\{' \|\| c == '\}'\)$`, "'{ and '} as line addresses")
-	e.FoldNever(`(?m)^[ \t]*else if \(c == '\(' \|\| c == '\)'\)$`, "'( and ') as line addresses")
+	e.FoldNever(`(?m)^[ \t]*else if \(c == '\{' \|\| c == '\}'\)$`, 1, "'{ and '} as line addresses")
+	e.FoldNever(`(?m)^[ \t]*else if \(c == '\(' \|\| c == '\)'\)$`, 1, "'( and ') as line addresses")
 	return e.Done()
 }
 

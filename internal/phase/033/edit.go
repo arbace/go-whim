@@ -53,7 +53,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			{"the quickfix commands answering not implemented",
 				`(?m)^[ \t]*if \(eap->cmdidx == CMD_cdo \|\| eap->cmdidx == CMD_ldo \|\| eap->cmdidx == CMD_cfdo \|\| eap->cmdidx == CMD_lfdo\)$`},
 		} {
-			e.FoldNever(f.pattern, f.What+": gone")
+			e.FoldNever(f.pattern, 1, f.What+": gone")
 		}
 	})
 	return e.Done()

@@ -57,7 +57,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// 1. one file argument, and the name still reaching curbuf
 	e.InFunction("command_line_scan", func(e *edit.E) {
-		e.Literal(w69OldArg, w69NewArg, "a second file argument, and the list that held them")
+		e.Literal(w69OldArg, w69NewArg, 1, "a second file argument, and the list that held them")
 	})
 
 	// 2. :next and :previous
@@ -78,7 +78,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// the sweep kept reporting as "left alone" and could never converge on.  So
 	// each arm gets a constant Body instead.
 	arm := func(fn, old, new, what string, n int) {
-		e.InFunction(fn, func(e *edit.E) { e.LiteralN(old, new, n, what) })
+		e.InFunction(fn, func(e *edit.E) { e.Literal(old, new, n, what) })
 	}
 	arm("parse_cmd_address", w69lit3, w69lit4, "an argument range in a command line", 1)
 	arm("address_default_all", w69lit5, w69lit6, "an argument range with no range given", 1)
@@ -105,7 +105,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// and now has none to build from.
 	e.Lines(`check_arg_idx\((?:win|curwin)\);`, 6, "the six calls that revalidated the argument index")
 	e.InFunction("eval_vars", func(e *edit.E) {
-		e.Literal(w69lit16, w69lit17, "## expanding to every file in the argument list")
+		e.Literal(w69lit16, w69lit17, 1, "## expanding to every file in the argument list")
 	})
 	e.InFunction("win_init_some", func(e *edit.E) {
 		e.Cut(`(?m)^[ \t]*newp->w_alist = oldp->w_alist;\n[ \t]*\+\+newp->w_alist->al_refcount;\n[ \t]*newp->w_arg_idx = oldp->w_arg_idx;\n`, 1,

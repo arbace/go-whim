@@ -38,78 +38,78 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			1, "a single match chosen by 'suffixes'")
 	})
 	e.InFunction("expand_wildcards", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(\*num_files > 1 && !got_int\)$`, "matches reordered by 'suffixes'")
+		e.DropIf(`(?m)^[ \t]*if \(\*num_files > 1 && !got_int\)$`, 1, "matches reordered by 'suffixes'")
 	})
 
 	// 'fileignorecase'
-	e.LiteralN("regmatch.rm_ic = p_fic;", "regmatch.rm_ic = FALSE;", 2,
+	e.Literal("regmatch.rm_ic = p_fic;", "regmatch.rm_ic = FALSE;", 2,
 		"file patterns ignoring case by 'fileignorecase'")
 	e.InFunction("fname_match", func(e *edit.E) {
-		e.Literal("rmp->rm_ic = p_fic || ignore_case;", "rmp->rm_ic = ignore_case;",
+		e.Literal("rmp->rm_ic = p_fic || ignore_case;", "rmp->rm_ic = ignore_case;", 1,
 			"buffer names ignoring case by 'fileignorecase'")
 	})
 	e.InFunction("vim_fnamecmp", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(p_fic\)$`, "vim_fnamecmp ignoring case")
+		e.DropIf(`(?m)^[ \t]*if \(p_fic\)$`, 1, "vim_fnamecmp ignoring case")
 	})
 	e.InFunction("vim_fnamencmp", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(p_fic\)$`, "vim_fnamencmp ignoring case")
+		e.DropIf(`(?m)^[ \t]*if \(p_fic\)$`, 1, "vim_fnamencmp ignoring case")
 	})
 
 	// 'autocompletedelay'
 	e.InFunction("inchar_loop", func(e *edit.E) {
-		e.Literal(" && !delay_pending", "", "blocking without waiting on the delay")
-		e.FoldNever(`(?m)^[ \t]*else if \(delay_pending\)$`, "waiting out the autocomplete delay")
-		e.DropIf(`(?m)^[ \t]*if \(delay_pending && acl_elapsed >= p_acl && maxlen >= 3 && !typebuf_changed\(tb_change_cnt\)\)$`,
+		e.Literal(" && !delay_pending", "", 1, "blocking without waiting on the delay")
+		e.FoldNever(`(?m)^[ \t]*else if \(delay_pending\)$`, 1, "waiting out the autocomplete delay")
+		e.DropIf(`(?m)^[ \t]*if \(delay_pending && acl_elapsed >= p_acl && maxlen >= 3 && !typebuf_changed\(tb_change_cnt\)\)$`, 1,
 			"the autocomplete delay expiring")
 	})
 
 	// 'verbosefile'
 	e.InFunction("redir_write", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(\*p_vfile != NUL && verbose_fd == NULL\)$`,
+		e.DropIf(`(?m)^[ \t]*if \(\*p_vfile != NUL && verbose_fd == NULL\)$`, 1,
 			"opening 'verbosefile' on first write")
-		e.FoldNeverN(`(?m)^[ \t]*if \(verbose_fd != NULL\)$`, 2, "writing to 'verbosefile'")
+		e.FoldNever(`(?m)^[ \t]*if \(verbose_fd != NULL\)$`, 2, "writing to 'verbosefile'")
 	})
 	e.InFunction("redirecting", func(e *edit.E) {
 		e.Sub(`return redir_fd != NULL \|\| \*p_vfile != NUL\s*;`, "return redir_fd != NULL;", 1,
 			"redirecting to 'verbosefile'")
 	})
 	e.InFunction("verbose_enter", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(\*p_vfile != NUL\)$`, "verbose_enter silencing for 'verbosefile'")
+		e.DropIf(`(?m)^[ \t]*if \(\*p_vfile != NUL\)$`, 1, "verbose_enter silencing for 'verbosefile'")
 	})
 	e.InFunction("verbose_leave", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(\*p_vfile != NUL\)$`, "verbose_leave silencing for 'verbosefile'")
+		e.DropIf(`(?m)^[ \t]*if \(\*p_vfile != NUL\)$`, 1, "verbose_leave silencing for 'verbosefile'")
 	})
 	e.Sub(`(?m)^[ \t]*verbose_(?:enter|leave)\(\);\n`, "", 4,
 		"calls to the emptied verbose_enter and verbose_leave")
 	e.InFunction("verbose_enter_scroll", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(\*p_vfile != NUL\)$`, "verbose_enter_scroll silencing for 'verbosefile'")
+		e.FoldNever(`(?m)^[ \t]*if \(\*p_vfile != NUL\)$`, 1, "verbose_enter_scroll silencing for 'verbosefile'")
 	})
 	e.InFunction("verbose_leave_scroll", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(\*p_vfile != NUL\)$`, "verbose_leave_scroll silencing for 'verbosefile'")
+		e.FoldNever(`(?m)^[ \t]*if \(\*p_vfile != NUL\)$`, 1, "verbose_leave_scroll silencing for 'verbosefile'")
 	})
 
 	// 'debug'
 	e.InFunction("emsg_not_now", func(e *edit.E) {
 		e.Literal("(emsg_off > 0 && vim_strchr(p_debug, 'm') == NULL && vim_strchr(p_debug, 't') == NULL)",
-			"(emsg_off > 0)", "'debug' m and t showing suppressed errors")
+			"(emsg_off > 0)", 1, "'debug' m and t showing suppressed errors")
 	})
 	e.InFunction("emsg_core", func(e *edit.E) {
-		e.Literal("if (!emsg_off || vim_strchr(p_debug, 't') != NULL)", "if (!emsg_off)",
+		e.Literal("if (!emsg_off || vim_strchr(p_debug, 't') != NULL)", "if (!emsg_off)", 1,
 			"'debug' t handling errors under emsg_off")
 	})
 	e.InFunction("vim_beep", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(vim_strchr\(p_debug, 'e'\) != NULL\)$`, "'debug' e showing Beep!")
+		e.DropIf(`(?m)^[ \t]*if \(vim_strchr\(p_debug, 'e'\) != NULL\)$`, 1, "'debug' e showing Beep!")
 	})
 
 	// 'formatprg' and 'equalprg'
 	e.InFunction("do_pending_operator", func(e *edit.E) {
-		e.Literal("if (oap->op_type == OP_INDENT && *get_equalprg() == NUL)", "if (oap->op_type == OP_INDENT)",
+		e.Literal("if (oap->op_type == OP_INDENT && *get_equalprg() == NUL)", "if (oap->op_type == OP_INDENT)", 1,
 			"= through 'equalprg'")
-		e.FoldNever(`(?m)^[ \t]*if \(\*p_fp != NUL \|\| \*curbuf->b_p_fp != NUL\)$`, "gq through 'formatprg'")
+		e.FoldNever(`(?m)^[ \t]*if \(\*p_fp != NUL \|\| \*curbuf->b_p_fp != NUL\)$`, 1, "gq through 'formatprg'")
 	})
 	e.InFunction("op_colon", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(oap->op_type == OP_INDENT\)$`, "op_colon building an 'equalprg' filter")
-		e.FoldNever(`(?m)^[ \t]*if \(oap->op_type == OP_FORMAT\)$`, "op_colon building a 'formatprg' filter")
+		e.FoldNever(`(?m)^[ \t]*if \(oap->op_type == OP_INDENT\)$`, 1, "op_colon building an 'equalprg' filter")
+		e.FoldNever(`(?m)^[ \t]*if \(oap->op_type == OP_FORMAT\)$`, 1, "op_colon building a 'formatprg' filter")
 	})
 	return e.Done()
 }

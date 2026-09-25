@@ -34,7 +34,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	for _, fn := range []string{"showruler", "redraw_cmd", "ui_focus_change", "main_loop"} {
 		fn := fn
 		e.InFunction(fn, func(e *edit.E) {
-			e.DropIf(titleWanted, fmt.Sprintf("%s updating the title", fn))
+			e.DropIf(titleWanted, 1, fmt.Sprintf("%s updating the title", fn))
 		})
 	}
 	for _, fn := range []string{"enter_buffer", "buf_name_changed", "do_ecmd", "set_termname", "set_shellsize_inner", "win_enter_ext"} {
@@ -45,7 +45,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	e.InFunction("do_exedit", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(n != curwin->w_arg_idx_invalid\)$`,
+		e.DropIf(`(?m)^[ \t]*if \(n != curwin->w_arg_idx_invalid\)$`, 1,
 			":edit updating the title when the argument index moved")
 		e.Cut(`(?m)^[ \t]*n = curwin->w_arg_idx_invalid;\n`, 1,
 			":edit remembering the argument index for the title")

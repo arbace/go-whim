@@ -32,9 +32,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	// the parameter is the key read here, never the caller's: a local
 	e.Literal("cmdline_handle_ctrl_bsl(int c, int *gotesc)\n{\n",
-		"cmdline_handle_ctrl_bsl(int *gotesc)\n{\n    int c;\n",
+		"cmdline_handle_ctrl_bsl(int *gotesc)\n{\n    int c;\n", 1,
 		"cmdline_handle_ctrl_bsl's c, a parameter overwritten before any read, is a local")
-	e.Literal("cmdline_handle_ctrl_bsl(c, &gotesc)", "cmdline_handle_ctrl_bsl(&gotesc)",
+	e.Literal("cmdline_handle_ctrl_bsl(c, &gotesc)", "cmdline_handle_ctrl_bsl(&gotesc)", 1,
 		"and its one caller stops passing it")
 	// one past a match at the end of the line, just before the loop is left
 	e.InFunction("next_search_hl", func(e *edit.E) {

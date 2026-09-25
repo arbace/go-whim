@@ -63,39 +63,39 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.Body("fname2fnum", "", "fname2fnum giving a file mark its own buffer")
 
 	e.InFunction("do_ecmd", func(e *edit.E) {
-		e.Literal(w70OldOpen, w70NewOpen, ":edit opening a second buffer")
+		e.Literal(w70OldOpen, w70NewOpen, 1, ":edit opening a second buffer")
 	})
 	e.InFunction("do_ecmd", func(e *edit.E) {
-		e.Literal(w70OldOldbuf, w70lit2, ":edit deciding the buffer was already loaded")
+		e.Literal(w70OldOldbuf, w70lit2, 1, ":edit deciding the buffer was already loaded")
 	})
 	// Brace-matched: the Body may be any length, which is the point.
 	e.InFunction("do_ecmd", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(buf != curbuf\)\n[ \t]*\{\n[ \t]*bufref_T[ \t]+save_au_new_curbuf;$`,
+		e.DropIf(`(?m)^[ \t]*if \(buf != curbuf\)\n[ \t]*\{\n[ \t]*bufref_T[ \t]+save_au_new_curbuf;$`, 1,
 			":edit leaving one buffer for another")
 	})
 	e.InFunction("do_ecmd", func(e *edit.E) {
-		e.Literal(w70lit3, w70lit4, "the reload path asking whether the file changed")
+		e.Literal(w70lit3, w70lit4, 1, "the reload path asking whether the file changed")
 	})
 	e.InFunction("do_ecmd", func(e *edit.E) {
-		e.Literal(w70lit5, w70lit6, ":edit arming the swap-file dialog")
+		e.Literal(w70lit5, w70lit6, 1, ":edit arming the swap-file dialog")
 	})
 	e.InFunction("do_ecmd", func(e *edit.E) {
-		e.Literal(w70lit7, "", ":edit answering it")
+		e.Literal(w70lit7, "", 1, ":edit answering it")
 	})
 	e.InFunction("readfile", func(e *edit.E) {
-		e.Literal(w70lit8, "", "reading a file abandoning it for a swap file")
+		e.Literal(w70lit8, "", 1, "reading a file abandoning it for a swap file")
 	})
 	e.InFunction("create_windows", func(e *edit.E) {
-		e.Literal(w70lit9, w70lit10, "the startup open arming and answering the dialog")
+		e.Literal(w70lit9, w70lit10, 1, "the startup open arming and answering the dialog")
 	})
 	e.InFunction("read_stdin", func(e *edit.E) {
-		e.Literal(w70lit11, "", "reading stdin arming the dialog")
+		e.Literal(w70lit11, "", 1, "reading stdin arming the dialog")
 	})
 	e.InFunction("read_stdin", func(e *edit.E) {
-		e.Literal(w70lit12, "", "reading stdin answering it")
+		e.Literal(w70lit12, "", 1, "reading stdin answering it")
 	})
 	e.InFunction("ml_open", func(e *edit.E) {
-		e.LinesT(`buf->b_may_swap = false;`, 1, "ml_open clearing b_may_swap")
+		e.Lines(`buf->b_may_swap = false;`, 1, "ml_open clearing b_may_swap")
 	})
 	// The fold and its report are separate in the phase: cutil.fold_never is
 	// called directly and say() follows outside in_function, so the message
@@ -114,7 +114,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if !e.Failed() {
 		e.Say("the first change to a buffer opening a swap file")
 	}
-	e.LinesT(`check_need_swap\(newfile\);`, 2, "the two calls that asked for a swap file")
+	e.Lines(`check_need_swap\(newfile\);`, 2, "the two calls that asked for a swap file")
 	// handle_swap_exists(), check_swap_exists_action(), check_need_swap(),
 	// ml_open_file(), swap_exists_action, the SEA_* actions and the
 	// b_may_swap field are named by nothing live now; the sweep takes them.

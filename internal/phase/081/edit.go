@@ -78,25 +78,25 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	e.Say("confirmed: one caller of separate_nextcmd, and :append, :insert, :change take no argument")
 
-	e.Term("        else if ((*p == '\"' && !(eap->argt & EX_NOTRLCOM) && ((eap->cmdidx != CMD_at && eap->cmdidx != CMD_star) || p != eap->arg)) || (*p == '|' && eap->cmdidx != CMD_append && eap->cmdidx != CMD_change && eap->cmdidx != CMD_insert) || *p == '\\n')",
+	e.Literal("        else if ((*p == '\"' && !(eap->argt & EX_NOTRLCOM) && ((eap->cmdidx != CMD_at && eap->cmdidx != CMD_star) || p != eap->arg)) || (*p == '|' && eap->cmdidx != CMD_append && eap->cmdidx != CMD_change && eap->cmdidx != CMD_insert) || *p == '\\n')",
 		"        else if (*p == '\\n')", 1, "separate_nextcmd splits at a newline and nothing else")
-	e.Term("if ((eap->argt & (EX_CTRLV | EX_XFILE)) || keep_backslash)",
+	e.Literal("if ((eap->argt & (EX_CTRLV | EX_XFILE)) || keep_backslash)",
 		"if (eap->argt & (EX_CTRLV | EX_XFILE))", 1, "its one caller never keeps a backslash")
-	e.FoldAlways(`(?m)^[ \t]*if \(!keep_backslash\)$`, "so a backslash before a newline always goes")
-	e.Term(w81lit1, "    return (c == NUL || c == '\\n');", 1, "ends_excmd: the end of the line")
-	e.Term(w81lit2, "    return (c == NUL || c == '\\n');", 1, "ends_excmd2: the same")
-	e.Term(w81lit3, w81lit4, 1, "find_nextcmd: the next line")
-	e.Term(w81lit5, w81lit6, 1, "check_nextcmd: the same")
-	e.Term("if (!(ea.argt & EX_EXTRA) && *ea.arg != NUL && *ea.arg != '\"' && (*ea.arg != '|' || (ea.argt & EX_TRLBAR) == 0))",
+	e.FoldAlways(`(?m)^[ \t]*if \(!keep_backslash\)$`, 1, "so a backslash before a newline always goes")
+	e.Literal(w81lit1, "    return (c == NUL || c == '\\n');", 1, "ends_excmd: the end of the line")
+	e.Literal(w81lit2, "    return (c == NUL || c == '\\n');", 1, "ends_excmd2: the same")
+	e.Literal(w81lit3, w81lit4, 1, "find_nextcmd: the next line")
+	e.Literal(w81lit5, w81lit6, 1, "check_nextcmd: the same")
+	e.Literal("if (!(ea.argt & EX_EXTRA) && *ea.arg != NUL && *ea.arg != '\"' && (*ea.arg != '|' || (ea.argt & EX_TRLBAR) == 0))",
 		"if (!(ea.argt & EX_EXTRA) && *ea.arg != NUL)", 1, "a bar or a quote after a command is trailing characters")
-	e.Term("if (*ea.cmd == NUL || comment_start(ea.cmd, starts_with_colon) || (ea.nextcmd = check_nextcmd(ea.cmd)) != NULL)",
+	e.Literal("if (*ea.cmd == NUL || comment_start(ea.cmd, starts_with_colon) || (ea.nextcmd = check_nextcmd(ea.cmd)) != NULL)",
 		"if (*ea.cmd == NUL || (ea.nextcmd = check_nextcmd(ea.cmd)) != NULL)", 1, "a line that is a comment is not empty")
-	e.DropIf(`(?m)^[ \t]*if \(comment_start\(eap->cmd, starts_with_colon\)\)$`, "the modifier parser skips no comment")
-	e.DropIf(`(?m)^[ \t]*if \(\*eap->cmd == ':'\)$`, "and records no colon")
-	e.Term("if ((*eap->cmd == '|' || (exmode_active && eap->cmd != (char_u *)exmode_plus + 1)))",
+	e.DropIf(`(?m)^[ \t]*if \(comment_start\(eap->cmd, starts_with_colon\)\)$`, 1, "the modifier parser skips no comment")
+	e.DropIf(`(?m)^[ \t]*if \(\*eap->cmd == ':'\)$`, 1, "and records no colon")
+	e.Literal("if ((*eap->cmd == '|' || (exmode_active && eap->cmd != (char_u *)exmode_plus + 1)))",
 		"if (exmode_active && eap->cmd != (char_u *)exmode_plus + 1)", 1, "`:|` no longer prints the line")
-	e.Term(w81lit7, w81lit8, 1, ":substitute takes no trailing comment")
-	e.FoldNever(`(?m)^[ \t]*if \(\*eap->arg == '\|'\)$`, ":append takes no text after a bar")
+	e.Literal(w81lit7, w81lit8, 1, ":substitute takes no trailing comment")
+	e.FoldNever(`(?m)^[ \t]*if \(\*eap->arg == '\|'\)$`, 1, ":append takes no text after a bar")
 
 	// The closing assertion: the six parsers must no longer mention either
 	// character at all, and comment_start must have lost its last caller.

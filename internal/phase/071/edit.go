@@ -70,16 +70,16 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.Body("anyBufIsChanged", w71lit4, "anyBufIsChanged, which asked every buffer")
 	e.Body("buflist_findname_stat", w71lit5, "buflist_findname_stat, which searched the list by name")
 
-	e.FoldWalk("ml_close_all", "buf", edit.FwdWalk, "ml_close_all closing every buffer", 1)
-	e.FoldWalk("ml_close_notmod", "buf", edit.FwdWalk, "ml_close_notmod closing every buffer", 1)
-	e.FoldWalk("shorten_fnames", "buf", edit.FwdWalk, "shorten_fnames shortening every name", 1)
-	e.FoldWalk("did_set_paste", "buf", edit.FwdWalk, "'paste' saving and restoring every buffer", 3)
-	e.FoldWalk("set_termname", "buf", edit.FwdWalk, "a new terminal notifying every buffer", 1)
-	e.DropWalk("getout", edit.FwdWalk, w71lit6, "quitting unloading every buffer, whose break bound to the walk", 1)
+	e.FoldWalk("ml_close_all", "buf", edit.FwdWalk, 1, "ml_close_all closing every buffer")
+	e.FoldWalk("ml_close_notmod", "buf", edit.FwdWalk, 1, "ml_close_notmod closing every buffer")
+	e.FoldWalk("shorten_fnames", "buf", edit.FwdWalk, 1, "shorten_fnames shortening every name")
+	e.FoldWalk("did_set_paste", "buf", edit.FwdWalk, 3, "'paste' saving and restoring every buffer")
+	e.FoldWalk("set_termname", "buf", edit.FwdWalk, 1, "a new terminal notifying every buffer")
+	e.DropWalk("getout", edit.FwdWalk, w71lit6, 1, "quitting unloading every buffer, whose break bound to the walk")
 	e.Body("buflist_findpat", w71lit7, "buflist_findpat matching against every buffer")
 	e.DropWalk("check_changed_any", edit.FwdWalk, w71lit8,
-		"counting the buffers to check, and re-adding the one already seeded", 2)
-	e.DropWalk("open_buffer", fwdWalkCurbuf(), "", "open_buffer looking for another loaded buffer", 1)
+		2, "counting the buffers to check, and re-adding the one already seeded")
+	e.DropWalk("open_buffer", fwdWalkCurbuf(), "", 1, "open_buffer looking for another loaded buffer")
 
 	e.InFunction("open_buffer", func(e *edit.E) {
 		if e.Failed() {
@@ -96,29 +96,29 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Say("open_buffer testing whether it found one")
 	}
 	e.InFunction("open_buffer", func(e *edit.E) {
-		e.Literal(w71lit15, "", "open_buffer carrying on in another buffer instead")
+		e.Literal(w71lit15, "", 1, "open_buffer carrying on in another buffer instead")
 	})
 	e.Body("compute_buffer_local_count", w71lit9, "computing a buffer address by walking to an offset")
 
 	e.InFunction("parse_cmd_address", func(e *edit.E) {
-		e.Literal(w71AddrPair1, w71NewPair1, "the default buffer range")
+		e.Literal(w71AddrPair1, w71NewPair1, 1, "the default buffer range")
 	})
 	e.InFunction("address_default_all", func(e *edit.E) {
-		e.Literal(w71AddrPair2, w71NewPair2, "the :% buffer range")
+		e.Literal(w71AddrPair2, w71NewPair2, 1, "the :% buffer range")
 	})
 	e.InFunction("get_address", func(e *edit.E) {
-		e.Literal(w71AddrPair3, w71NewPair3, "the $ of a buffer range")
+		e.Literal(w71AddrPair3, w71NewPair3, 1, "the $ of a buffer range")
 	})
 	e.InFunction("invalid_range", func(e *edit.E) {
-		e.Literal(w71AddrPair4, w71NewPair4, "validating a buffer range")
+		e.Literal(w71AddrPair4, w71NewPair4, 1, "validating a buffer range")
 	})
 
 	e.InFunction("free_buffer", func(e *edit.E) {
-		e.Literal(w71lit16, w71lit17, "free_buffer deferring onto a chain nothing ever drained")
+		e.Literal(w71lit16, w71lit17, 1, "free_buffer deferring onto a chain nothing ever drained")
 	})
-	e.Literal(w71lit10, w71lit11, "the mapping scan walking the list, still twice: curbuf then the globals")
+	e.Literal(w71lit10, w71lit11, 1, "the mapping scan walking the list, still twice: curbuf then the globals")
 	e.InFunction("set_curbuf", func(e *edit.E) {
-		e.Literal(w71lit18, w71lit19, "set_curbuf entering a different buffer")
+		e.Literal(w71lit18, w71lit19, 1, "set_curbuf entering a different buffer")
 	})
 	e.InFunction("close_buffer", func(e *edit.E) {
 		if e.Failed() {
@@ -135,7 +135,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Say("close_buffer unlinking a buffer that was never linked to another")
 	}
 	e.InFunction("buflist_new", func(e *edit.E) {
-		e.Literal(w71lit20, "", "buflist_new appending to the list")
+		e.Literal(w71lit20, "", 1, "buflist_new appending to the list")
 	})
 
 	// The wiped-fnum branch is cut from its head to the plain else after it.
@@ -159,7 +159,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	// au_pending_free_buf, set_curbuf's valid flag, firstbuf, lastbuf and the
 	// buf_reuse pool are named by nothing now; the sweep takes them.
-	e.Literal(w71lit12, "", "the buffer list pointers in buf_T")
+	e.Literal(w71lit12, "", 1, "the buffer list pointers in buf_T")
 	return e.Done()
 }
 
