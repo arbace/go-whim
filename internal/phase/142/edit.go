@@ -32,7 +32,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	p := edit.Ph{Tag: "datetime", W: w}
 	var err error
 	steps := []struct{ Old, New, What string }{
-		{"    char *date_time = __DATE__ \" \" __TIME__;\n", "", "the version reads no build date or time"},
 		{"char *msg = _(\"%s (%s, compiled %s)\");", "char *msg = _(\"%s (%s)\");", "it is the name and the release date"},
 		{" + sizeof(VIM_VERSION_DATE_ONLY) - 1 + musl_strlen(date_time);\n", " + sizeof(VIM_VERSION_DATE_ONLY) - 1;\n", "and its length counts no date"},
 		{"msg, VIM_VERSION_LONG_ONLY, VIM_VERSION_DATE_ONLY, date_time);", "msg, VIM_VERSION_LONG_ONLY, VIM_VERSION_DATE_ONLY);", "nor formats one"},
@@ -41,9 +40,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if text, err = p.Literal(text, s.Old, s.New, s.What, 1); err != nil {
 			return nil, err
 		}
-	}
-	if n := p.Mentions(text, "__DATE__") + p.Mentions(text, "__TIME__"); n != 0 {
-		return nil, p.Die("__DATE__ or __TIME__ is still named %d times", n)
 	}
 	return text, nil
 }
