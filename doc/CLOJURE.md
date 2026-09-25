@@ -74,6 +74,35 @@ of 1,470 methods and 821 fields to compile), or typed slot arrays per kind
 (`long-array`, `object-array`) behind accessor macros. Structs likewise:
 `deftype`s behind generated accessor interfaces, or slot arrays.
 
+## The contract between the generated code and the hand-written
+
+Fixed before milestones 1-3 start, so they can be written side by side:
+
+- **The generated namespace is `whim.editor`**, in `cljeditor/src/whim/editor.clj`
+  (written by `togo`'s Clojure backend; milestone 4 tracks it).
+- **It provides** `(new-editor host)`, an editor on `host` -- a
+  `whim.host.Host`, the Java editor's interface, unchanged -- with the C's
+  file-scope objects initialised; `(host-of ed)`, that host back; and every C
+  function of the core as a Clojure function of the same name taking the
+  editor first: `(vim_main ed argc argv)`, with `argv` a `whim.rt.Ptr` of
+  `whim.rt.BytePtr`, as the Java's.
+- **The C's host functions are `whim.cljhost`'s** (`cljeditor/src/whim/cljhost.clj`,
+  by hand), called as `(whim.cljhost/host_write ed p n)` and so on: the names
+  and C argument types of the Java editor's 17 abstract methods (`host_alloc`,
+  `host_exit`, `host_message`, `host_raise`, `host_time`, `host_write`,
+  `musl_delay`, `musl_get_winsize`, `musl_host_init`, `musl_now_ms`,
+  `musl_read_input`, `musl_suspend`, `musl_term_start`, `musl_term_stop`,
+  `musl_tty_keys`, `musl_wait_for_input`, `vim_snprintf`), the editor first.
+  `vim_snprintf`'s variadic arguments are one `Object` array, boxed as the
+  Java editor boxes them (Printf's rules). `whim.cljhost` reaches the core
+  functions its printf needs (`emsg`, `gettext_` ...) through
+  `requiring-resolve`, so the two namespaces do not require each other.
+- **The launcher** is `whim.cljmain/-main`: the terminal host
+  (`whim.host.Term`), `new-editor`, `vim_main`, its status the exit status.
+- **Primitive C types** are Clojure's: `long` for every integer (narrowed and
+  masked by the C type where C does), `boolean` for C's `bool`; pointers the
+  Java runtime's classes.
+
 ## Milestones
 
 Each verified before the next, as the Java's were.
