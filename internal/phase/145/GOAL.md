@@ -18,3 +18,5 @@ OSC response in two writes and then types, and requires the same output
 from both binaries. Two controls move: typing other text, and sending no
 response. Whether the pty delivers the two writes as two reads is up to the
 kernel, so for that path the byte-for-byte `else` is the evidence.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase carries the group 143-145 -- the steps of each, in order, then one sweep and one print. Each phase's own `GOAL.md` still says what its steps do; the merge moved no byte of the product (`whim-build-check`).

@@ -17,3 +17,5 @@ without their `!` being special, `:w !cmd` would write a file of that name.
 `:center` and `:right` — and **three behaviour cases**, `retab`, `sort_u` and
 `sort_n`, which used them. `:!` already differed from Phase 8. Measured: 116,892
 → **115,798 lines**.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 48, as the first of the group 44-48, which was one idea split for history's sake. There is no boundary q044 of its own any more; everything above still says what the steps do and why.

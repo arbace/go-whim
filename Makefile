@@ -150,10 +150,11 @@ src/whim-vim.c: src/slim-vim.c force
 # plan and internal/steps' transformations, every boundary printed canonically.  It
 # writes whim-vim.c (and editor.go after it), and keeps every boundary in
 # .cache/boundaries/.  It proves the text, not the behaviour.  Measured: 170
-# phases, 1,089 s, 75,396 lines.  whim-build-check, given those snapshots,
-# proves every phase from its own snapshot at once: 72 s at --jobs 32.
+# phases, 1,089 s, 75,396 lines, before the compaction to 155.
+# whim-build-check, given those snapshots, proves every phase from its own
+# snapshot at once: 74 s at --jobs 32.
 .PHONY: whim-build whim-build-check
-whim-build:  ## the 170 phases in one process: slim-vim.c -> whim-vim.c
+whim-build:  ## the 155 phases in one process: slim-vim.c -> whim-vim.c
 	@printf '\n\033[1m  whim-vim\033[0m  from slim-vim.c: an editor with no runtime\n'
 	@go tool whim build --out src/whim-vim.c
 	@$(call drop-stale,src/whim-vim)

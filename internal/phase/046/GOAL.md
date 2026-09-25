@@ -15,3 +15,5 @@ checks that `:q!` still quits and `:qa!` is not a command.
 
 **The five rows**, which succeeded run bare. Measured: 115,744 → **115,646
 lines**.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 48, as the first of the group 44-48, which was one idea split for history's sake. There is no boundary q046 of its own any more; everything above still says what the steps do and why.

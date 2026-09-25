@@ -5,6 +5,12 @@ The text after every phase -- the snapshots a whole `make whim-build` keeps in
 whim measure .cache/boundaries`.  The build's product was `whim-vim.c` byte for
 byte, and so was `q163`.
 
+**Since the compaction** (`doc/PIPELINE-COMPACTION.md`): 15 of these rows no
+longer have a snapshot of their own, and a whole build writes 155. The 8
+phases that edit nothing (82, 83, 84, 86, 99, 116, 123, 163) left the plan, so
+their rows equal the row before; 44-47, 143-144 and 153 run inside 48, 145 and
+154, so their rows are texts no build now stops at. The rest are unchanged.
+
 A row is the boundary AFTER that phase: after its sweep and canonical print,
 which every phase has now -- there are no stages, and every row parses.
 The columns are `internal/reach`'s entity counts, so a count means the same

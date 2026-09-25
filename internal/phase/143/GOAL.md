@@ -25,3 +25,5 @@ the input's block line for line. It diffs `regatom()` from input to output and
 requires every lost and gained line to be one the phase accounts for. Its
 probes cover `\%)`, `\%t)`, `\%f]`, `\%>`, `\_%)`, `\_[` and `.` before a
 composing character; each control moves.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 145, as the first of the group 143-145, which was one idea split for history's sake. There is no boundary q143 of its own any more; everything above still says what the steps do and why.

@@ -9,3 +9,5 @@ sweep takes all three.
 
 **None.** `:drop` already failed with no argument. Measured: 115,798 → **115,744
 lines**.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 48, as the first of the group 44-48, which was one idea split for history's sake. There is no boundary q045 of its own any more; everything above still says what the steps do and why.

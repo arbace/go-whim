@@ -16,7 +16,7 @@ nothing about what the editor does. `make` asks that repository for its head,
 fetches `slim-vim.c` and vim's `LICENSE` at exactly that commit, and records the
 commit in `src/upstream.sha`.
 
-**whim** (the `Makefile`, 170 phases) removes capability on purpose. **Phases 0-82** remove the runtime files, the eval layer,
+**whim** (the `Makefile`, phases 0-169, 155 of them run) removes capability on purpose. **Phases 0-82** remove the runtime files, the eval layer,
 windows beyond one, buffers beyond one, the command-line arguments and 489 Ex
 commands. **Phases 83-128** turn what is
 left into an embeddable core: the filesystem goes, the signals and the terminal
@@ -66,7 +66,7 @@ removed after `448e9a8`, the last commit that has it.
 make                 # fetch slim-vim.c if upstream moved, then bin/whim, the editor
 make whim-vim        # the C product's binary
 make slim-vim        # the input's binary, with the same one line
-make whim-build      # the 170 phases in one process: slim-vim.c -> whim-vim.c
+make whim-build      # the 155 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same build, required to give the committed bytes back
 make whim-editor-check # refuse an editor/editor.go that is not what internal/gen writes
 make help            # every target, with a line each

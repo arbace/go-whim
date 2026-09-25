@@ -21,7 +21,7 @@ slim-vim.c  --whim-->  whim-vim.c
   that repository's `main` points to, and records the commit in `src/upstream.sha`.
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
-- **whim** (the `Makefile`) removes capability on purpose, 170 phases from 180,870
+- **whim** (the `Makefile`) removes capability on purpose, phases 0-169 from 180,870
   lines to 75,396. It is two arcs, a coda, an empty phase, five for the Go's
   sake and the headers last:
   - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
@@ -212,7 +212,7 @@ the same `editor/editor.go` byte for byte either way.
 ```sh
 make                 # all: bin/whim, the editor (editor/ built), through whim-vim.c
                      # (produced only when slim-vim.c moved) and editor/editor.go
-make whim-build      # the 170 phases in one process: slim-vim.c -> whim-vim.c
+make whim-build      # the 155 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go that is not what internal/gen writes
 make whim-test        # the quick suite: 45 key sessions, required to behave as HEAD's does
@@ -232,7 +232,8 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time; `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 170 phases, **1,070 s**, 75,396 lines. A
+  before the reason. Measured: 170 phases, **1,070 s**, 75,396 lines (before
+  the compaction below; phase 54 alone is 40 s less since). A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -250,7 +251,8 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **72 s** with `--jobs 32`, against 1,089 s in
+  committed `whim-vim.c`. Measured: **74 s** with `--jobs 32`, 154 links, bound by
+  the machine's load and no longer by one link (phase 54 was 44 s alone), against 1,089 s in
   order; and a phase whose program was changed on purpose
   (a control) is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
@@ -290,7 +292,11 @@ ours belongs inside `.claude/`. Outside `make`, run with `TMPDIR=$PWD/.tmp`.
 ## The pipeline
 
 A phase is a function of the tree it is handed, so the pipeline is
-`p_N = f_N(p_{N-1})` -- 170 of them, in order. **There is no memoize**: its key
+`p_N = f_N(p_{N-1})` -- 155 of them, in order, numbered 0-169: 8 phases that
+edit nothing any more are records only (a `GOAL.md`, no plan entry), and 44-48,
+143-145 and 153-154 each run as one phase under the group's last number
+(`doc/PIPELINE-COMPACTION.md`). A gap in the numbers is nothing to the driver,
+which pairs plan entries by position. **There is no memoize**: its key
 was the input boundary's digest and the implementation's together, so a moved
 `slim-vim.c` missed every entry by construction.
 

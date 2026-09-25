@@ -280,25 +280,14 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "nocmdargs"},
 		}},
-	{N: 44, Name: "no filters, sorting or alignment",
+	// Phases 44-48, merged: Ex commands retired one by one, one idea split for history's sake.
+	{N: 48, Name: "no filters, sorting, alignment, `:drop`, `:wall` and the `:…all` commands, `:startinsert` and its kin, or `:noswapfile`",
 		Steps: []Step{
 			{Op: "retire", Args: []string{"!", "sort", "uniq", "retab", "left", "center", "right"}},
 			{Op: "edit", Args: []string{"whim44"}},
-		}},
-	{N: 45, Name: "no `:drop`",
-		Steps: []Step{
 			{Op: "retire", Args: []string{"drop"}},
-		}},
-	{N: 46, Name: "no `:wall`, `:qall`, `:quitall`, `:wqall` or `:xall`",
-		Steps: []Step{
 			{Op: "retire", Args: []string{"wall", "qall", "quitall", "wqall", "xall"}},
-		}},
-	{N: 47, Name: "no `:startinsert`, `:startreplace`, `:startgreplace` or `:stopinsert`",
-		Steps: []Step{
 			{Op: "retire", Args: []string{"startinsert", "startreplace", "startgreplace", "stopinsert"}},
-		}},
-	{N: 48, Name: "no `:noswapfile`",
-		Steps: []Step{
 			{Op: "retire", Args: []string{"noswapfile"}},
 			{Op: "edit", Args: []string{"whim48"}},
 		}},
@@ -720,16 +709,11 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim142"}},
 		}},
-	{N: 143, Name: "`regatom()` has no goto",
+	// Phases 143-145, merged: three functions lose their goto.
+	{N: 145, Name: "`regatom()`, `edit()` and `check_termcode()` have no goto",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim143"}},
-		}},
-	{N: 144, Name: "`edit()` has no goto",
-		Steps: []Step{
 			{Op: "edit", Args: []string{"whim144"}},
-		}},
-	{N: 145, Name: "`check_termcode()` has no goto",
-		Steps: []Step{
 			{Op: "edit", Args: []string{"whim145"}},
 		}},
 	{N: 146, Name: "a memline node names its block",
@@ -760,12 +744,10 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim152"}},
 		}},
-	{N: 153, Name: "`free_one_termoption()` compares without a cast",
+	// Phases 153-154, merged: one function, its cast and then its NULL write.
+	{N: 154, Name: "`free_one_termoption()` compares without a cast, and its NULL write is gone",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim153"}},
-		}},
-	{N: 154, Name: "the NULL write in `free_one_termoption()` is gone",
-		Steps: []Step{
 			{Op: "edit", Args: []string{"whim154"}},
 		}},
 	{N: 155, Name: "call arguments with effects are evaluated in gcc's order",

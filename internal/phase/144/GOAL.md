@@ -32,3 +32,5 @@ of the harness's reach:
 - `do_intr`'s, which needs an interrupt character other than CTRL-C.
 
 For those three, where their `continue` and `break` bind is the evidence.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 145, as the first of the group 143-145, which was one idea split for history's sake. There is no boundary q144 of its own any more; everything above still says what the steps do and why.

@@ -20,3 +20,5 @@ every row's variable is NULL or the address of a variable, the one caller
 passes `term_strings[KS_CCO]`, and nothing takes a slot's address as a
 string. Its probes reach `ttest()` through the terminal colour options, and
 each control moves.
+
+**Since merged** (2026-09-25, `doc/PIPELINE-COMPACTION.md` §3d): this phase's steps run in phase 154, as the first of the group 153-154, which was one idea split for history's sake. There is no boundary q153 of its own any more; everything above still says what the steps do and why.
