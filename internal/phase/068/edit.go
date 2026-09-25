@@ -73,16 +73,15 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.FoldNever(`(?m)^[ \t]*if \(aco->use_aucmd_win_idx >= 0\)$`, "aucmd_restbuf taking that window down again")
 	})
 	// Both writes to use_aucmd_win_idx went with the branch above, and its only
-	// reader went with aucmd_restbuf's folded test, so the field itself follows.
-	e.Cut(`(?m)^[ \t]*int[ \t]+use_aucmd_win_idx;\n`, 1, "aco_save_T's window index")
-	e.DeleteDefinition("win_alloc_popup_win", "win_alloc_popup_win, which only the autocommand window used")
-	e.DeleteDefinition("win_init_popup_win", "win_init_popup_win, the same")
-	e.Cut(`(?m)^static aucmdwin_T aucmd_win\[AUCMD_WIN_COUNT\];\n`, 1, "the aucmd_win[] table")
-	// Three places MANAGE that table without ever reading it -- the can_cindent
-	// shape again.  Each is guarded by auc_win != NULL, which nothing can make
-	// true now.
+	// reader went with aucmd_restbuf's folded test, so the sweep takes the
+	// field, as it takes win_alloc_popup_win() and win_init_popup_win(),
+	// which only the autocommand window used.
+	//
+	// Three places MANAGE the aucmd_win[] table without ever reading it -- the
+	// can_cindent shape again.  Each is guarded by auc_win != NULL, which
+	// nothing can make true now.  With them gone the sweep takes the table and
+	// autocmd_init(), whose body was the memset that zeroed it.
 	e.Lines(`autocmd_init\(\);`, 1, "the call that zeroed the table at startup")
-	e.DeleteDefinition("autocmd_init", "autocmd_init, whose body was that memset")
 	e.Cut(`(?m)^[ \t]*for \(int i = 0; i < AUCMD_WIN_COUNT; \+\+i\)\n[ \t]*\{\n[ \t]*if \(aucmd_win\[i\]\.auc_win != NULL\)\n[ \t]*\{\n[ \t]*win_free_lsize\(aucmd_win\[i\]\.auc_win\);\n[ \t]*\}\n[ \t]*\}\n`, 1,
 		"screenalloc freeing the line sizes of windows that do not exist")
 	e.Cut(`(?m)^[ \t]*for \(int i = 0; i < AUCMD_WIN_COUNT; \+\+i\)\n[ \t]*\{\n[ \t]*if \(aucmd_win\[i\]\.auc_win != NULL && aucmd_win\[i\]\.auc_win->w_lines == NULL && win_alloc_lines\(aucmd_win\[i\]\.auc_win\) == FAIL\)\n[ \t]*\{\n[ \t]*outofmem = TRUE;\n[ \t]*break;\n[ \t]*\}\n[ \t]*\}\n`, 1,
