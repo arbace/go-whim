@@ -65,6 +65,21 @@ expression is `int32` arithmetic, which wraps as C's does in practice. A
 character constant `'a'` is untyped in Go and fits wherever C used it.
 Integer division and `%` truncate in both languages.
 
+## Pointers that only walk forward: `[]T`
+
+A class of pointers that walks, but only ever forward by constants -- never
+compared with another pointer, subtracted, ordered, stepped back, indexed by a
+variable that might be negative, or had its own address taken -- is a Go slice:
+`[]T`, or `[]byte` for a C string, its NUL kept at the end. `*p` is `p[0]`,
+`p[k]` is `p[k]`, `p->x` is `p[0].x`, `p++` and `p += k` are `p = p[1:]` and
+`p = p[k:]`, and NULL is `nil`. Excluded as well: a class that reaches the
+hand-written runtime (`crtFuncs`), whose signatures are `Ptr`, and one that holds
+the element of a `T **`, since the address of a `Ptr` arrives there and
+`*Ptr[T]` is no `*[]T`. At the edges a `Ptr` becomes a slice with `p.Tail()`, a
+string literal with `[]byte("...\x00")`, a single `*T` with `One(p)`, and a slice
+a `Ptr` with `View(s)`. The analysis (`analyze.go`) records the uses a slice
+cannot express per class; `gen.forward` decides.
+
 ## Pointers: `Ptr[T]`
 
 `Ptr[T]` is a C pointer that may walk. It is a comparable value — `==` and

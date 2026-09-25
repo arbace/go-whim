@@ -12,8 +12,9 @@ import (
 
 // gen writes the skeleton: types.go, globals.go and sigs.md.
 type gen struct {
-	ast *cc.AST
-	a   *an
+	ast      *cc.AST
+	a        *an
+	crtRoots map[string]bool // the classes a slice cannot be: they reach the hand-written runtime, or hold a T **'s element; computed once
 
 	structName map[cc.Type]string // struct/union type -> Go type name
 	emitted    map[string]bool    // Go type names written
@@ -60,6 +61,37 @@ func GoName(s string) string {
 func (g *gen) cursor(key string) bool {
 	ok, _ := g.a.u.cursor(key)
 	return ok
+}
+
+// forward says a walking class only ever walks forward, by constants, and is
+// never compared with another pointer, subtracted, ordered or stepped back --
+// what a Go slice can express, `p[k]` and `p = p[k:]` -- and that it never
+// reaches the hand-written runtime, whose signatures are Ptr (crtFuncs).  Such
+// a class is a []T, not a Ptr[T].
+func (g *gen) forward(key string) bool {
+	if !g.cursor(key) || g.a.u.punned(key) {
+		return false
+	}
+	r := g.a.u.find(key)
+	if g.a.u.ident[r] != "" || g.a.u.varOff[r] != "" {
+		return false
+	}
+	if g.crtRoots == nil {
+		g.crtRoots = map[string]bool{}
+		for k := range g.a.u.parent {
+			// the element of a T **: an address of a pointer arrives there, from
+			// a class that may be a Ptr, and *Ptr[T] is no *[]T
+			if strings.HasPrefix(k, "elem:") {
+				g.crtRoots[g.a.u.find(k)] = true
+			}
+			for name := range crtFuncs {
+				if strings.HasPrefix(k, "param:"+name+":") || k == "ret:"+name {
+					g.crtRoots[g.a.u.find(k)] = true
+				}
+			}
+		}
+	}
+	return !g.crtRoots[r]
 }
 
 // scalar maps a C arithmetic type.
@@ -129,9 +161,15 @@ func (g *gen) goType(t cc.Type, key string) string {
 				// the C code keeps other things' addresses in it, cast
 				return "any"
 			}
+			if g.forward(key) {
+				return "[]byte" // a C string that only walks forward
+			}
 			return "Ptr[byte]"
 		}
 		inner := g.goType(e, "elem:"+key)
+		if g.forward(key) {
+			return "[]" + inner
+		}
 		if g.cursor(key) {
 			return "Ptr[" + inner + "]"
 		}

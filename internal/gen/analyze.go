@@ -29,11 +29,13 @@ type uf struct {
 	into   map[string]string // root -> first reason it points into an array
 	sink   map[string]string // root -> first place it is handed on as a void *
 	pun    map[string]string // root -> first reason it holds a non-char address
+	ident  map[string]string // root -> first use only a pointer can express: ordered, subtracted, compared with another, stepped back
+	varOff map[string]string // root -> first offset that is not a constant, and so may be negative
 }
 
 func newUF() *uf {
 	return &uf{parent: map[string]string{}, flag: map[string]string{}, into: map[string]string{},
-		sink: map[string]string{}, pun: map[string]string{}}
+		sink: map[string]string{}, pun: map[string]string{}, ident: map[string]string{}, varOff: map[string]string{}}
 }
 
 func (u *uf) find(k string) string {
@@ -56,7 +58,7 @@ func (u *uf) union(a, b string) {
 		return
 	}
 	u.parent[ra] = rb
-	for _, m := range []map[string]string{u.flag, u.into, u.sink} {
+	for _, m := range []map[string]string{u.flag, u.into, u.sink, u.ident, u.varOff} {
 		if r, ok := m[ra]; ok {
 			if _, ok2 := m[rb]; !ok2 {
 				m[rb] = r
@@ -95,6 +97,9 @@ func (u *uf) mark(k, why string) {
 
 // markInto records that a class holds a pointer into an array.  That alone
 // does not make it walk: &a[i] kept and read through is a plain *T.
+func (u *uf) markIdent(k, why string) { u.markIn(u.ident, k, why) }
+func (u *uf) markVar(k, why string)   { u.markIn(u.varOff, k, why) }
+
 func (u *uf) markInto(k, why string) { u.markIn(u.into, k, why) }
 
 // markSink records that a class is handed on as a void * (memmove, memset,
@@ -550,9 +555,17 @@ func (a *an) walk(n cc.Node) {
 		case cc.PostfixExpressionIndex:
 			if t := typeOf(x.PostfixExpression); t != nil && t.Kind() == cc.Ptr && (t.Undecay().Kind() != cc.Array || isParamRef(x.PostfixExpression)) {
 				a.u.mark(a.objTyped(x.PostfixExpression), fmt.Sprintf("indexed at %d", x.Position().Line))
+				if v := x.ExpressionList.Value(); v == nil || v == cc.Unknown {
+					a.u.markVar(a.objTyped(x.PostfixExpression), "variable index")
+				} else if iv, ok := v.(cc.Int64Value); ok && iv < 0 {
+					a.u.markIdent(a.objTyped(x.PostfixExpression), "negative index")
+				}
 			}
 		case cc.PostfixExpressionInc, cc.PostfixExpressionDec:
 			if isPtr(typeOf(x.PostfixExpression)) {
+				if x.Case == cc.PostfixExpressionDec {
+					a.u.markIdent(a.objTyped(x.PostfixExpression), "decremented")
+				}
 				a.u.mark(a.objTyped(x.PostfixExpression), fmt.Sprintf("incremented at %d", x.Position().Line))
 			}
 		case cc.PostfixExpressionCall:
@@ -577,8 +590,16 @@ func (a *an) walk(n cc.Node) {
 			}
 		}
 	case *cc.UnaryExpression:
+		// a pointer whose own address is taken goes, as a T **, to a class of
+		// its own: it stays a Ptr, which that class can hold
+		if x.Case == cc.UnaryExpressionAddrof && isPtr(typeOf(x.CastExpression)) {
+			a.u.markIdent(a.objTyped(x.CastExpression), "address taken")
+		}
 		if x.Case == cc.UnaryExpressionInc || x.Case == cc.UnaryExpressionDec {
 			if isPtr(typeOf(x.UnaryExpression)) {
+				if x.Case == cc.UnaryExpressionDec {
+					a.u.markIdent(a.objTyped(x.UnaryExpression), "decremented")
+				}
 				a.u.mark(a.objTyped(x.UnaryExpression), fmt.Sprintf("incremented at %d", x.Position().Line))
 			}
 		}
@@ -586,6 +607,15 @@ func (a *an) walk(n cc.Node) {
 		if x.Case == cc.AdditiveExpressionAdd || x.Case == cc.AdditiveExpressionSub {
 			if isPtr(typeOf(x.AdditiveExpression)) {
 				a.u.mark(a.objTyped(x.AdditiveExpression), fmt.Sprintf("arithmetic at %d", x.Position().Line))
+				switch {
+				case isPtr(typeOf(x.MultiplicativeExpression)):
+					a.u.markIdent(a.objTyped(x.AdditiveExpression), "subtracted")
+					a.u.markIdent(a.objTyped(x.MultiplicativeExpression), "subtracted")
+				case x.Case == cc.AdditiveExpressionSub:
+					a.u.markIdent(a.objTyped(x.AdditiveExpression), "stepped back")
+				case x.MultiplicativeExpression.Value() == nil || x.MultiplicativeExpression.Value() == cc.Unknown:
+					a.u.markVar(a.objTyped(x.AdditiveExpression), "variable offset")
+				}
 			}
 			if isPtr(typeOf(x.MultiplicativeExpression)) {
 				a.u.mark(a.objTyped(x.MultiplicativeExpression), fmt.Sprintf("arithmetic at %d", x.Position().Line))
@@ -595,12 +625,17 @@ func (a *an) walk(n cc.Node) {
 		if x.Case != cc.RelationalExpressionShift {
 			if isPtr(typeOf(x.RelationalExpression)) && isPtr(typeOf(x.ShiftExpression)) {
 				a.u.mark(a.objTyped(x.RelationalExpression), fmt.Sprintf("ordered at %d", x.Position().Line))
+				a.u.markIdent(a.objTyped(x.RelationalExpression), "ordered")
 				a.u.mark(a.objTyped(x.ShiftExpression), fmt.Sprintf("ordered at %d", x.Position().Line))
 			}
 		}
 	case *cc.EqualityExpression:
 		if x.Case != cc.EqualityExpressionRel {
 			if sameTarget(typeOf(x.EqualityExpression), typeOf(x.RelationalExpression)) {
+				if !isNullConst(x.EqualityExpression) && !isNullConst(x.RelationalExpression) {
+					a.u.markIdent(a.objTyped(x.EqualityExpression), "compared")
+					a.u.markIdent(a.objTyped(x.RelationalExpression), "compared")
+				}
 				a.u.union(a.objTyped(x.EqualityExpression), a.objTyped(x.RelationalExpression))
 			}
 		}
@@ -612,6 +647,11 @@ func (a *an) walk(n cc.Node) {
 			}
 		case cc.AssignmentExpressionAdd, cc.AssignmentExpressionSub:
 			if isPtr(typeOf(x.UnaryExpression)) {
+				if x.Case == cc.AssignmentExpressionSub {
+					a.u.markIdent(a.objTyped(x.UnaryExpression), "stepped back")
+				} else if v := x.AssignmentExpression.Value(); v == nil || v == cc.Unknown {
+					a.u.markVar(a.objTyped(x.UnaryExpression), "variable offset")
+				}
 				a.u.mark(a.objTyped(x.UnaryExpression), fmt.Sprintf("compound arithmetic at %d", x.Position().Line))
 			}
 		}

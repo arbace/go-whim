@@ -229,7 +229,7 @@ func (f *fnEmit) conv(v val, to string) string {
 		switch {
 		case strings.HasPrefix(want, "Ptr["):
 			return to + "{}"
-		case strings.HasPrefix(want, "*"), strings.HasPrefix(want, "func("), want == "any":
+		case strings.HasPrefix(want, "*"), strings.HasPrefix(want, "func("), want == "any", strings.HasPrefix(want, "[]"):
 			return "nil"
 		case isIntGo(want):
 			return "0"
@@ -286,6 +286,18 @@ func (f *fnEmit) conv(v val, to string) string {
 		return elemRef(v.s)
 	case strings.HasPrefix(want, "*") && strings.HasPrefix(from, "[") && f.g.canon(elemOfGo(want)) == f.g.canon(elemOfGo(from)):
 		return "&" + v.s + "[0]" // an array decays to its first element's address
+	case strings.HasPrefix(want, "[]") && strings.HasPrefix(from, "Ptr[") && f.g.canon(elemOfGo(want)) == f.g.canon(elemOfGo(from)):
+		// a C pointer into a slice that only walks forward from it
+		if strings.HasPrefix(v.s, "S(\"") && strings.HasSuffix(v.s, "\")") && want == "[]byte" {
+			return "[]byte(" + strings.TrimSuffix(strings.TrimPrefix(v.s, "S("), "\")") + "\\x00\")"
+		}
+		return v.s + ".Tail()"
+	case strings.HasPrefix(want, "[]") && strings.HasPrefix(from, "*") && f.g.canon(elemOfGo(want)) == f.g.canon(elemOfGo(from)):
+		return "One(" + v.s + ")"
+	case strings.HasPrefix(want, "[]") && strings.HasPrefix(from, "[") && !strings.HasPrefix(from, "[]") && f.g.canon(elemOfGo(want)) == f.g.canon(elemOfGo(from)):
+		return v.s + "[:]"
+	case strings.HasPrefix(want, "Ptr[") && strings.HasPrefix(from, "[]") && f.g.canon(elemOfGo(want)) == f.g.canon(elemOfGo(from)):
+		return "View(" + v.s + ")"
 	case strings.HasPrefix(want, "Ptr[") && strings.HasPrefix(from, "[") && f.g.canon(elemOfGo(want)) == f.g.canon(elemOfGo(from)):
 		return "View(" + v.s + "[:])"
 	case strings.HasPrefix(want, "func(") && strings.HasPrefix(from, "func("):
@@ -307,7 +319,7 @@ func (f *fnEmit) truth(v val) string {
 	switch {
 	case strings.HasPrefix(t, "Ptr["):
 		return "!" + v.s + ".Nil()"
-	case strings.HasPrefix(t, "*"), strings.HasPrefix(t, "func("), t == "any":
+	case strings.HasPrefix(t, "*"), strings.HasPrefix(t, "func("), t == "any", strings.HasPrefix(t, "[]"):
 		return v.s + " != nil"
 	case t == "bool":
 		return v.s
@@ -326,7 +338,7 @@ func (f *fnEmit) falsity(v val) string {
 	switch {
 	case strings.HasPrefix(t, "Ptr["):
 		return v.s + ".Nil()"
-	case strings.HasPrefix(t, "*"), strings.HasPrefix(t, "func("), t == "any":
+	case strings.HasPrefix(t, "*"), strings.HasPrefix(t, "func("), t == "any", strings.HasPrefix(t, "[]"):
 		return v.s + " == nil"
 	case t == "bool":
 		return "!" + v.s

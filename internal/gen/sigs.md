@@ -440,7 +440,7 @@ func shorten_fnames()
 func shorten_dir_len(str Ptr[byte], trim_len int32)
 func shorten_dir(str Ptr[byte])
 func home_replace(buf *S_file_buffer, src Ptr[byte], dst Ptr[byte], dstlen int32, one bool) usize
-func gettail(fname Ptr[byte]) Ptr[byte]
+func gettail(fname Ptr[byte]) []byte
 func get_past_head(path Ptr[byte]) Ptr[byte]
 func vim_ispathsep(c int32) bool
 func vim_ispathsep_nocolon(c int32) bool
@@ -873,13 +873,13 @@ func may_remove_shift_modifier(modifiers int32, key int32) int32
 func extract_modifiers(key int32, modp *int32, simplify int32, did_simplify *int32) int32
 func find_special_key_in_table(c int32) int32
 func cmp_key_name_entry(a *S_key_name_entry, b *S_key_name_entry) int32
-func key_name_bsearch(key *S_key_name_entry, base Ptr[S_key_name_entry], nel usize, cmp func(*S_key_name_entry, *S_key_name_entry) int32) Ptr[S_key_name_entry]
+func key_name_bsearch(key *S_key_name_entry, base Ptr[S_key_name_entry], nel usize, cmp func(*S_key_name_entry, *S_key_name_entry) int32) []S_key_name_entry
 func get_special_key_code(name Ptr[byte]) int32
 func get_real_state() int32
-func cmp_keyvalue_value_n(kv1 *keyvalue_T, kv2 Ptr[keyvalue_T]) int32
+func cmp_keyvalue_value_n(kv1 *keyvalue_T, kv2 []keyvalue_T) int32
 func cmp_keyvalue_value_i(kv1 *keyvalue_T, kv2 *keyvalue_T) int32
 func cmp_keyvalue_value_ni(kv1 *keyvalue_T, kv2 *keyvalue_T) int32
-func keyvalue_bsearch(key *keyvalue_T, base Ptr[keyvalue_T], nel usize, cmp func(*keyvalue_T, *keyvalue_T) int32) Ptr[keyvalue_T]
+func keyvalue_bsearch(key *keyvalue_T, base Ptr[keyvalue_T], nel usize, cmp func(*keyvalue_T, *keyvalue_T) int32) []keyvalue_T
 func adjust_plines_for_skipcol(wp *S_window_S) int32
 func plines_correct_topline(wp *S_window_S, lnum linenr_T, limit_winheight bool) int32
 func comp_botline(wp *S_window_S)
@@ -1106,7 +1106,7 @@ func set_init_2()
 func ex_set(eap *S_exarg)
 func get_option_prefix(argp *Ptr[byte]) set_prefix_T
 func parse_option_name(arg Ptr[byte], opt_idxp *int32, lenp *int32, keyp *int32) bool
-func get_opt_op(arg Ptr[byte]) set_op_T
+func get_opt_op(arg []byte) set_op_T
 func validate_opt_idx(opt_idx int32, opt_flags int32, flags long_u, errmsg *Ptr[byte], prefix set_prefix_T) bool
 func stropt_get_default_val(opt_idx int32, varp optvar_T, flags int32, cp_val int32) Ptr[byte]
 func opt_backspace_nr2str(varp optvar_T, origval_p *Ptr[byte], origval_l_p *Ptr[byte], origval_g_p *Ptr[byte], oldval_p *Ptr[byte])
@@ -1126,8 +1126,8 @@ func stropt_get_newval(nextchar int32, opt_idx int32, argp *Ptr[byte], varp optv
 func do_set_option_string(opt_idx int32, opt_flags int32, argp *Ptr[byte], nextchar int32, op_arg set_op_T, flags long_u, cp_val int32, varp_arg optvar_T, errbuf Ptr[byte], errbuflen usize, value_checked *int32, errmsg *Ptr[byte]) bool
 func do_set_option_bool(opt_idx int32, opt_flags int32, prefix set_prefix_T, flags long_u, varp optvar_T, nextchar int32, afterchar int32, cp_val int32) Ptr[byte]
 func do_set_option_numeric(opt_idx int32, opt_flags int32, argp *Ptr[byte], nextchar int32, op set_op_T, flags long_u, cp_val int32, varp optvar_T, errbuf Ptr[byte], errbuflen usize) Ptr[byte]
-func do_set_option_keycode(argp *Ptr[byte], key_name Ptr[byte], nextchar int32) Ptr[byte]
-func do_set_option_value(opt_idx int32, opt_flags int32, argp *Ptr[byte], prefix set_prefix_T, op set_op_T, flags long_u, varp optvar_T, key_name Ptr[byte], nextchar int32, afterchar int32, cp_val int32, stopopteval *int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte]
+func do_set_option_keycode(argp *Ptr[byte], key_name []byte, nextchar int32) Ptr[byte]
+func do_set_option_value(opt_idx int32, opt_flags int32, argp *Ptr[byte], prefix set_prefix_T, op set_op_T, flags long_u, varp optvar_T, key_name []byte, nextchar int32, afterchar int32, cp_val int32, stopopteval *int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte]
 func do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[byte], startarg *Ptr[byte], did_show *int32, stopopteval *int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte]
 func do_set(arg_start Ptr[byte], opt_flags int32) bool
 func did_set_option(opt_idx int32, opt_flags int32, new_value bool, value_checked int32)
@@ -1340,7 +1340,7 @@ func reg_restore(save *regsave_T, gap *S_growarray)
 func reg_save_equal(save *regsave_T) bool
 func save_se_multi(savep *save_se_T, posp *lpos_T)
 func save_se_one(savep *save_se_T, pp *Ptr[byte])
-func regrepeat(p Ptr[byte], maxcount int64) int32
+func regrepeat(p []byte, maxcount int64) int32
 func regstack_star_top() *S_regstar_S
 func regstack_behind_top() *S_regbehind_S
 func regstack_push(state regstate_T, scan Ptr[byte]) *S_regitem_S
@@ -1495,8 +1495,8 @@ func sort_strings(files Ptr[Ptr[byte]], count int32)
 func concat_str(str1 Ptr[byte], str2 Ptr[byte]) Ptr[byte]
 func set_rgb_term_prop()
 func init_term_props(all bool)
-func find_builtin_term(term Ptr[byte]) Ptr[tcap_entry_T]
-func apply_builtin_tcap(term Ptr[byte], entries Ptr[tcap_entry_T], overwrite bool)
+func find_builtin_term(term Ptr[byte]) []tcap_entry_T
+func apply_builtin_tcap(term Ptr[byte], entries []tcap_entry_T, overwrite bool)
 func apply_keyprotocol(term Ptr[byte], prot keyprot_T)
 func parse_builtin_tcap(term Ptr[byte])
 func set_color_count(nr int32)
@@ -1505,7 +1505,7 @@ func term_strings_not_set(idx int32) bool
 func report_term_error(error_msg Ptr[byte], term Ptr[byte])
 func match_keyprotocol(term Ptr[byte]) keyprot_T
 func set_termname(term Ptr[byte]) bool
-func add_termcap_entry(name Ptr[byte], force bool) bool
+func add_termcap_entry(name []byte, force bool) bool
 func term_is_builtin(name Ptr[byte]) bool
 func term_is_8bit(name Ptr[byte]) bool
 func term_7to8bit(p Ptr[byte]) int32
@@ -1556,35 +1556,35 @@ func scroll_region_set(wp *S_window_S, off int32)
 func scroll_region_reset()
 func clear_termcodes()
 func adjust_modlen(idx int32)
-func add_termcode(name Ptr[byte], string_ Ptr[byte], flags int32)
+func add_termcode(name []byte, string_ Ptr[byte], flags int32)
 func accept_modifiers_for_function_keys()
 func termcode_star(code Ptr[byte], len_ int32) int32
-func find_termcode(name Ptr[byte]) Ptr[byte]
-func del_termcode(name Ptr[byte])
+func find_termcode(name []byte) Ptr[byte]
+func del_termcode(name []byte)
 func del_termcode_idx(idx int32)
 func switch_to_8bit()
 func put_string_in_typebuf(offset int32, slen int32, string_ Ptr[byte], new_slen int32, buf Ptr[byte], bufsize int32, buflen *int32) bool
 func decode_modifiers(n int32) int32
 func modifiers2keycode(modifiers int32, key *int32, string_ Ptr[byte]) int32
-func handle_u7_response(arg Ptr[int32], tp Ptr[byte], csi_len int32)
-func handle_version_response(first int32, arg Ptr[int32], argc int32, tp Ptr[byte])
+func handle_u7_response(arg []int32, tp Ptr[byte], csi_len int32)
+func handle_version_response(first int32, arg []int32, argc int32, tp Ptr[byte])
 func add_key_to_buf(key int32, buf Ptr[byte]) int32
 func put_key_modifiers_in_typebuf(key_arg int32, modifiers_arg int32, csi_len int32, offset int32, buf Ptr[byte], bufsize int32, buflen *int32) int32
 func parse_csi_f_keys(arg int32) int32
-func handle_key_with_modifier(arg Ptr[int32], csi_len int32, offset int32, buf Ptr[byte], bufsize int32, buflen *int32, iskitty bool, trail int32) int32
-func handle_key_without_modifier(arg Ptr[int32], csi_len int32, offset int32, buf Ptr[byte], bufsize int32, buflen *int32, trail int32) int32
-func handle_csi_function_key(argc int32, arg Ptr[int32], trail int32, csi_len int32, key_name Ptr[byte], offset int32, buf Ptr[byte], bufsize int32, buflen *int32) int32
-func handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset int32, buf Ptr[byte], bufsize int32, buflen *int32, key_name Ptr[byte], slen *int32) int32
+func handle_key_with_modifier(arg []int32, csi_len int32, offset int32, buf Ptr[byte], bufsize int32, buflen *int32, iskitty bool, trail int32) int32
+func handle_key_without_modifier(arg []int32, csi_len int32, offset int32, buf Ptr[byte], bufsize int32, buflen *int32, trail int32) int32
+func handle_csi_function_key(argc int32, arg []int32, trail int32, csi_len int32, key_name []byte, offset int32, buf Ptr[byte], bufsize int32, buflen *int32) int32
+func handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset int32, buf Ptr[byte], bufsize int32, buflen *int32, key_name []byte, slen *int32) int32
 func check_for_color_response(resp Ptr[byte], len_ int32)
 func in_osc_sequence() bool
-func handle_osc(tp Ptr[byte], len_ int32, key_name Ptr[byte], slen *int32) bool
-func handle_dcs(tp Ptr[byte], argp Ptr[byte], len_ int32, key_name Ptr[byte], slen *int32) bool
+func handle_osc(tp Ptr[byte], len_ int32, key_name []byte, slen *int32) bool
+func handle_dcs(tp Ptr[byte], argp Ptr[byte], len_ int32, key_name []byte, slen *int32) bool
 func check_termcode(max_offset int32, buf Ptr[byte], bufsize int32, buflen *int32) int32
 func replace_termcodes(from Ptr[byte], bufp *Ptr[byte], sid_arg scid_T, flags int32, did_simplify *int32) Ptr[byte]
 func find_term_bykeys(src Ptr[byte], matchlen *int32) int32
 func gather_termleader()
 func show_termcodes(flags int32)
-func show_one_termcode(name Ptr[byte], code Ptr[byte], printit bool) int32
+func show_one_termcode(name []byte, code Ptr[byte], printit bool) int32
 func term_disable_dec()
 func sync_output_active() bool
 func term_set_sync_output(flags int32)
@@ -1720,5 +1720,5 @@ func command_line_scan(parmp *mparm_T)
 func create_windows(parmp *mparm_T)
 func exe_commands(parmp *mparm_T)
 func mainerr(n int32, str Ptr[byte])
-func vim_main(argc int32, argv Ptr[Ptr[byte]]) int32
+func vim_main(argc int32, argv []Ptr[byte]) int32
 ```

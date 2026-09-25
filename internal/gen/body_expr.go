@@ -370,6 +370,8 @@ func (f *fnEmit) path(e cc.ExpressionNode) string {
 				return b.s + "." + GoName(x.Token2.SrcStr())
 			case strings.HasPrefix(bt, "Ptr["):
 				return b.s + ".P()." + GoName(x.Token2.SrcStr())
+			case strings.HasPrefix(bt, "[]"):
+				return b.s + "[0]." + GoName(x.Token2.SrcStr())
 			}
 			f.no(x, "a -> on a %s", b.t)
 		case cc.PostfixExpressionCall:
@@ -395,6 +397,8 @@ func (f *fnEmit) path(e cc.ExpressionNode) string {
 				return "(*" + b.s + ")"
 			case strings.HasPrefix(bt, "Ptr["):
 				return b.s + ".P()"
+			case strings.HasPrefix(bt, "[]"):
+				return b.s + "[0]"
 			}
 		}
 	}
@@ -476,6 +480,8 @@ func (f *fnEmit) incdec(lv lvalue, inc bool, n cc.Node) {
 	switch {
 	case strings.HasPrefix(t, "Ptr["):
 		f.line("%s", lv.set(fmt.Sprintf("%s.Add(%d)", lv.get, d)))
+	case strings.HasPrefix(t, "[]") && inc:
+		f.line("%s", lv.set(lv.get+"[1:]")) // a slice walks forward by reslicing
 	case isIntGo(t):
 		if lv.op {
 			if inc {
@@ -515,6 +521,10 @@ func (f *fnEmit) assign(x *cc.AssignmentExpression) lvalue {
 			n = "-" + paren(n)
 		}
 		f.line("%s", lv.set(lv.get+".Add("+n+")"))
+		return lv
+	}
+	if strings.HasPrefix(lt, "[]") && op == "+" {
+		f.line("%s", lv.set(lv.get+"["+f.index(r)+":]")) // p += k walks a slice forward
 		return lv
 	}
 	if !isIntGo(lt) {
@@ -693,6 +703,13 @@ func (f *fnEmit) additive(x cc.ExpressionNode, op string, le, re cc.ExpressionNo
 			pe, ne = re, le
 		}
 		p, n := f.expr(pe), f.expr(ne)
+		if strings.HasPrefix(f.g.canon(p.t), "[]") && op == "+" {
+			// a slice that walks forward: p + k is p[k:]
+			return val{s: p.s + "[" + f.index(n) + ":]", t: p.t, c: x.Type()}
+		}
+		if strings.HasPrefix(f.g.canon(p.t), "[]") {
+			p = val{s: "View(" + p.s + ")", t: "Ptr[" + elemOfGo(p.t) + "]", c: p.c}
+		}
 		if !strings.HasPrefix(f.g.canon(p.t), "Ptr[") {
 			if strings.HasPrefix(f.g.canon(p.t), "[") {
 				p = val{s: "View(" + p.s + "[:])", t: "Ptr[" + elemOfGo(p.t) + "]", c: p.c}

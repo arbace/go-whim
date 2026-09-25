@@ -694,7 +694,7 @@ type S_cmdarg_S struct {
 
 type mparm_T struct {
 	argc             int32
-	argv             Ptr[Ptr[byte]]
+	argv             []Ptr[byte]
 	n_commands       int32
 	commands         [10]Ptr[byte]
 	want_full_screen bool
@@ -1129,7 +1129,7 @@ type tcap_entry_T struct {
 
 type builtin_tcap_T struct {
 	bitc_name  Ptr[byte]
-	bitc_table Ptr[tcap_entry_T]
+	bitc_table []tcap_entry_T
 }
 
 type termprop_T struct {
@@ -3237,7 +3237,7 @@ var deathtrap_entered int32                            // static in deathtrap()
 var vim_handle_signal_got_signal int32                 // static in vim_handle_signal()
 var vim_handle_signal_blocked bool                     // static in vim_handle_signal()
 var get_char_class_char_class_tab = Mk[keyvalue_T](19) // static in get_char_class() // C: array of 19 keyvalue_T
-var get_char_class_last_entry Ptr[keyvalue_T]          // static in get_char_class()
+var get_char_class_last_entry []keyvalue_T             // static in get_char_class()
 var init_class_tab_done bool                           // static in init_class_tab()
 var peekchr_after_slash int32                          // static in peekchr()
 var do_record_regname int32                            // static in do_record()
@@ -5818,8 +5818,8 @@ func init() {
 	builtin_256colors.Set(1, tcap_entry_T{bt_entry: 56, bt_string: S("\x1b[48;5;%dm")})
 	builtin_256colors.Set(2, tcap_entry_T{bt_entry: 55, bt_string: S("\x1b[38;5;%dm")})
 	builtin_terminals = [3]builtin_tcap_T{
-		{bitc_name: S("xterm-256color"), bitc_table: builtin_xterm},
-		{bitc_name: S("debug"), bitc_table: builtin_debug},
+		{bitc_name: S("xterm-256color"), bitc_table: builtin_xterm.Tail()},
+		{bitc_name: S("debug"), bitc_table: builtin_debug.Tail()},
 		{},
 	}
 	cmdnames = [98]S_cmdname{
@@ -13556,7 +13556,7 @@ func ins_bs(c int32, mode int32, inserted_space_p *int32) bool {
 			var want_vcol colnr_T
 			var line Ptr[byte]
 			var ptr Ptr[byte]
-			var cursor_ptr Ptr[byte]
+			var cursor_ptr []byte
 			var space_ptr Ptr[byte]
 			var space_vcol colnr_T = 0
 			var prev_space bool = false
@@ -13565,8 +13565,8 @@ func ins_bs(c int32, mode int32, inserted_space_p *int32) bool {
 			line = ml_get_curline()
 			ptr = line
 			space_ptr = ptr
-			cursor_ptr = line.Add(int(curwin.w_cursor.col))
-			for ptr.Lt(cursor_ptr) {
+			cursor_ptr = line.Add(int(curwin.w_cursor.col)).Tail()
+			for ptr.Lt(View(cursor_ptr)) {
 				cur_space := ((int32(ptr.Get()) == (' ')) || (int32(ptr.Get()) == 9))
 				if !prev_space && cur_space {
 					space_ptr = ptr
@@ -13673,7 +13673,7 @@ func bracketed_paste(mode paste_mode_T, drop bool, gap *S_growarray) int32 {
 	var c int32
 	var buf Ptr[byte] = Mk[byte](86)
 	var idx int32 = 0
-	end := find_termcode(S("PE"))
+	end := find_termcode([]byte("PE\x00"))
 	var ret_char int32 = -1
 	save_allow_keys := allow_keys
 	save_paste := p_paste
@@ -14322,14 +14322,14 @@ func ex_copy(line1 linenr_T, line2 linenr_T, n linenr_T) {
 }
 
 func do_fixdel(eap *S_exarg) {
-	var p Ptr[byte] = find_termcode(S("kb"))
+	var p Ptr[byte] = find_termcode([]byte("kb\x00"))
 	var t1 Ptr[byte]
 	if !p.Nil() && (int32(p.Get()) == DEL) {
 		t1 = S("\x08")
 	} else {
 		t1 = S("\x7f")
 	}
-	add_termcode(S("kD"), t1, FALSE)
+	add_termcode([]byte("kD\x00"), t1, FALSE)
 }
 
 func print_line_no_prefix(lnum linenr_T, use_number int32, list int32) {
@@ -19045,7 +19045,7 @@ func shorten_fnames() {
 }
 
 func shorten_dir_len(str Ptr[byte], trim_len int32) {
-	var tail Ptr[byte]
+	var tail []byte
 	var s Ptr[byte]
 	var d Ptr[byte]
 	var skip bool = false
@@ -19054,7 +19054,7 @@ func shorten_dir_len(str Ptr[byte], trim_len int32) {
 	d = str
 	s = str
 	for ; ; s = s.Add(1) {
-		if s.Ge(tail) {
+		if s.Ge(View(tail)) {
 			var t1 Ptr[byte] = d
 			d = d.Add(1)
 			t1.Put(s.Get())
@@ -19111,17 +19111,17 @@ func home_replace(buf *S_file_buffer, src Ptr[byte], dst Ptr[byte], dstlen int32
 	return len_
 }
 
-func gettail(fname Ptr[byte]) Ptr[byte] {
-	var p1 Ptr[byte]
+func gettail(fname Ptr[byte]) []byte {
+	var p1 []byte
 	var p2 Ptr[byte]
 	if fname.Nil() {
-		return S("")
+		return []byte("\x00")
 	}
 	p2 = get_past_head(fname)
-	p1 = p2
+	p1 = p2.Tail()
 	for p2.Get() != 0 {
 		if vim_ispathsep_nocolon(int32(p2.Get())) {
-			p1 = p2.Add(1)
+			p1 = p2.Add(1).Tail()
 		}
 		p2 = p2.Add(int(utfc_ptr2len(p2)))
 	}
@@ -20398,23 +20398,23 @@ func check_simplify_modifier(max_offset int32) int32 {
 	var len_ int32
 
 	var offset int32
-	var tp Ptr[byte]
+	var tp []byte
 	offset = 0
 	for ; offset < max_offset; offset++ {
 		if (offset + 3) >= typebuf.tb_len {
 			break
 		}
-		tp = typebuf.tb_buf.Add(int(typebuf.tb_off)).Add(int(offset))
-		if ((int32(tp.At(0)) == 0x80) || (int32(tp.At(0)) == CSI)) && (int32(tp.At(1)) == KS_MODIFIER) {
-			var modifier int32 = int32(tp.At(2))
-			var c int32 = int32(tp.At(3))
+		tp = typebuf.tb_buf.Add(int(typebuf.tb_off)).Add(int(offset)).Tail()
+		if ((int32(tp[0]) == 0x80) || (int32(tp[0]) == CSI)) && (int32(tp[1]) == KS_MODIFIER) {
+			var modifier int32 = int32(tp[2])
+			var c int32 = int32(tp[3])
 			new_c := merge_modifyOtherKeys(c, &modifier)
 			if new_c != c {
 				new_string = Mk[byte](21)
 				key_offset := offset
 				if offset == 0 {
 					vgetc_char = c
-					vgetc_mod_mask = int32(tp.At(2))
+					vgetc_mod_mask = int32(tp[2])
 				}
 				if new_c < 0 {
 					new_string.Set(0, 0x80)
@@ -20447,7 +20447,7 @@ func check_simplify_modifier(max_offset int32) int32 {
 						return -1
 					}
 				} else {
-					tp.Set(2, byte(modifier))
+					tp[2] = byte(modifier)
 					key_offset = offset + 3
 					if !put_string_in_typebuf(key_offset, 1, new_string, len_, Ptr[byte]{}, 0, nil) {
 						return -1
@@ -20476,7 +20476,7 @@ func key_protocol_enabled() bool {
 }
 
 func handle_mapping(keylenp *int32, timedout *int32, mapdepth *int32) int32 {
-	var s Ptr[byte]
+	var s []byte
 	var n int32
 
 	var mp *S_mapblock = nil
@@ -20524,8 +20524,8 @@ func handle_mapping(keylenp *int32, timedout *int32, mapdepth *int32) int32 {
 				}
 				keylen = mp.m_keylen
 				if (mlen == keylen) || ((mlen == typebuf.tb_len) && (typebuf.tb_len < keylen)) {
-					s = typebuf.tb_noremap.Add(int(typebuf.tb_off))
-					if ((int32(s.Get()) & ^RM_SIMPLIFIED) == RM_SCRIPT) && (((int32(mp.m_keys.At(0)) != 0x80) || (int32(mp.m_keys.At(1)) != KS_EXTRA)) || (int32(mp.m_keys.At(2)) != KE_SNR)) {
+					s = typebuf.tb_noremap.Add(int(typebuf.tb_off)).Tail()
+					if ((int32(s[0]) & ^RM_SIMPLIFIED) == RM_SCRIPT) && (((int32(mp.m_keys.At(0)) != 0x80) || (int32(mp.m_keys.At(1)) != KS_EXTRA)) || (int32(mp.m_keys.At(2)) != KE_SNR)) {
 						goto cont1
 					}
 					n = mlen
@@ -20534,9 +20534,9 @@ func handle_mapping(keylenp *int32, timedout *int32, mapdepth *int32) int32 {
 						if !(n >= 0) {
 							break
 						}
-						var t2 Ptr[byte] = s
-						s = s.Add(1)
-						if int32(t2.Get())&(RM_NONE|RM_ABBR) != 0 {
+						var t2 []byte = s
+						s = s[1:]
+						if int32(t2[0])&(RM_NONE|RM_ABBR) != 0 {
 							break
 						}
 					}
@@ -21299,7 +21299,7 @@ func highlight_set_termgui_attr(idx int32, key Ptr[byte], arg Ptr[byte], init_ b
 	var attr int32
 	var off usize
 	var target keyvalue_T
-	var entry Ptr[keyvalue_T]
+	var entry []keyvalue_T
 	attr = 0
 	off = 0
 	target.key = 0
@@ -21307,13 +21307,13 @@ func highlight_set_termgui_attr(idx int32, key Ptr[byte], arg Ptr[byte], init_ b
 	for int32(arg.At(int(off))) != NUL {
 		target.value.string_ = arg.Add(int(off))
 		entry = keyvalue_bsearch(&target, highlight_tab, 312/24, cmp_keyvalue_value_ni)
-		if entry.Nil() {
+		if entry == nil {
 			vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_illegal_value_str), arg)
 			emsg(iobuff_or(gettext_(e_illegal_value_str)))
 			return false
 		}
-		attr |= entry.P().key
-		off += entry.P().value.length
+		attr |= entry[0].key
+		off += entry[0].value.length
 		if int32(arg.At(int(off))) == ',' {
 			off++
 		}
@@ -21458,17 +21458,17 @@ func highlight_set_cterm_color(idx int32, key Ptr[byte], key_start Ptr[byte], ar
 	} else {
 		var bold int32 = MAYBE
 		var target keyvalue_T
-		var entry Ptr[keyvalue_T]
+		var entry []keyvalue_T
 		target.key = 0
 		target.value.string_ = arg
 		target.value.length = 0
 		entry = keyvalue_bsearch(&target, color_name_tab, 672/24, cmp_keyvalue_value_i)
-		if entry.Nil() {
+		if entry == nil {
 			vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_color_name_or_number_not_recognized_str), key_start)
 			emsg(iobuff_or(gettext_(e_color_name_or_number_not_recognized_str)))
 			return false
 		}
-		color = lookup_color(entry.P().key, int32(key.At(5)) == 'F', &bold)
+		color = lookup_color(entry[0].key, int32(key.At(5)) == 'F', &bold)
 		if bold == TRUE {
 			GaData[hl_group_T](&highlight_ga).Ref(int(idx)).sg_cterm |= HL_BOLD
 			GaData[hl_group_T](&highlight_ga).Ref(int(idx)).sg_cterm_bold = true
@@ -24224,7 +24224,7 @@ func check_map_keycodes() {
 									buf.Set(0, p.At(0))
 									buf.Set(1, p.At(1))
 									buf.Set(2, NUL)
-									add_termcap_entry(buf, false)
+									add_termcap_entry(buf.Tail(), false)
 								}
 								p = p.Add(1)
 							}
@@ -30514,22 +30514,22 @@ func cmp_key_name_entry(a *S_key_name_entry, b *S_key_name_entry) int32 {
 	return result
 }
 
-func key_name_bsearch(key *S_key_name_entry, base Ptr[S_key_name_entry], nel usize, cmp func(*S_key_name_entry, *S_key_name_entry) int32) Ptr[S_key_name_entry] {
-	var tryp Ptr[S_key_name_entry]
+func key_name_bsearch(key *S_key_name_entry, base Ptr[S_key_name_entry], nel usize, cmp func(*S_key_name_entry, *S_key_name_entry) int32) []S_key_name_entry {
+	var tryp []S_key_name_entry
 	var sign int32
 	for nel > 0 {
-		tryp = base.Add(int(nel / 2))
-		sign = cmp(key, tryp.P())
+		tryp = base.Add(int(nel / 2)).Tail()
+		sign = cmp(key, &tryp[0])
 		if sign < 0 {
 			nel /= 2
 		} else if sign > 0 {
-			base = tryp.Add(1)
+			base = View(tryp[1:])
 			nel -= (nel / 2) + 1
 		} else {
 			return tryp
 		}
 	}
-	return Ptr[S_key_name_entry]{}
+	return nil
 }
 
 func get_special_key_code(name Ptr[byte]) int32 {
@@ -30538,19 +30538,19 @@ func get_special_key_code(name Ptr[byte]) int32 {
 		string_.Set(0, name.At(2))
 		string_.Set(1, name.At(3))
 		string_.Set(2, NUL)
-		if add_termcap_entry(string_, false) {
+		if add_termcap_entry(string_.Tail(), false) {
 			return -(int32(name.At(2)) + (int32(name.At(3)) << 8))
 		}
 	} else {
 		var target S_key_name_entry
-		var entry Ptr[S_key_name_entry]
+		var entry []S_key_name_entry
 		target.enabled = TRUE
 		target.key = 0
 		target.name.string_ = name
 		target.name.length = 0
 		entry = key_name_bsearch(&target, key_names_table, 3744/32, cmp_key_name_entry)
-		if !entry.Nil() && (entry.P().enabled != 0) {
-			key := entry.P().key
+		if (entry != nil) && (entry[0].enabled != 0) {
+			key := entry[0].key
 			var t1 int32
 			if key == K_TAB {
 				t1 = TAB
@@ -30577,14 +30577,14 @@ func get_real_state() int32 {
 	return State
 }
 
-func cmp_keyvalue_value_n(kv1 *keyvalue_T, kv2 Ptr[keyvalue_T]) int32 {
+func cmp_keyvalue_value_n(kv1 *keyvalue_T, kv2 []keyvalue_T) int32 {
 	var t1 usize
-	if kv1.value.length > kv2.P().value.length {
+	if kv1.value.length > kv2[0].value.length {
 		t1 = kv1.value.length
 	} else {
-		t1 = kv2.P().value.length
+		t1 = kv2[0].value.length
 	}
-	return musl_strncmp(kv1.value.string_, kv2.P().value.string_, t1)
+	return musl_strncmp(kv1.value.string_, kv2[0].value.string_, t1)
 }
 
 func cmp_keyvalue_value_i(kv1 *keyvalue_T, kv2 *keyvalue_T) int32 {
@@ -30601,22 +30601,22 @@ func cmp_keyvalue_value_ni(kv1 *keyvalue_T, kv2 *keyvalue_T) int32 {
 	return vim_strnicmp_asc(kv1.value.string_, kv2.value.string_, t1)
 }
 
-func keyvalue_bsearch(key *keyvalue_T, base Ptr[keyvalue_T], nel usize, cmp func(*keyvalue_T, *keyvalue_T) int32) Ptr[keyvalue_T] {
-	var tryp Ptr[keyvalue_T]
+func keyvalue_bsearch(key *keyvalue_T, base Ptr[keyvalue_T], nel usize, cmp func(*keyvalue_T, *keyvalue_T) int32) []keyvalue_T {
+	var tryp []keyvalue_T
 	var sign int32
 	for nel > 0 {
-		tryp = base.Add(int(nel / 2))
-		sign = cmp(key, tryp.P())
+		tryp = base.Add(int(nel / 2)).Tail()
+		sign = cmp(key, &tryp[0])
 		if sign < 0 {
 			nel /= 2
 		} else if sign > 0 {
-			base = tryp.Add(1)
+			base = View(tryp[1:])
 			nel -= (nel / 2) + 1
 		} else {
 			return tryp
 		}
 	}
-	return Ptr[keyvalue_T]{}
+	return nil
 }
 
 func adjust_plines_for_skipcol(wp *S_window_S) int32 {
@@ -38545,14 +38545,14 @@ func parse_option_name(arg Ptr[byte], opt_idxp *int32, lenp *int32, keyp *int32)
 	return true
 }
 
-func get_opt_op(arg Ptr[byte]) set_op_T {
+func get_opt_op(arg []byte) set_op_T {
 	var op set_op_T = OP_NONE
-	if (int32(arg.Get()) != NUL) && (int32(arg.Add(1).Get()) == '=') {
-		if int32(arg.Get()) == '+' {
+	if (int32(arg[0]) != NUL) && (int32(arg[1:][0]) == '=') {
+		if int32(arg[0]) == '+' {
 			op = OP_ADDING
-		} else if int32(arg.Get()) == '^' {
+		} else if int32(arg[0]) == '^' {
 			op = OP_PREPENDING
-		} else if int32(arg.Get()) == '-' {
+		} else if int32(arg[0]) == '-' {
 			op = OP_REMOVING
 		}
 	}
@@ -39107,7 +39107,7 @@ skip:
 	return errmsg
 }
 
-func do_set_option_keycode(argp *Ptr[byte], key_name Ptr[byte], nextchar int32) Ptr[byte] {
+func do_set_option_keycode(argp *Ptr[byte], key_name []byte, nextchar int32) Ptr[byte] {
 	arg := (*argp)
 	var p Ptr[byte]
 	if nextchar == '&' {
@@ -39135,7 +39135,7 @@ func do_set_option_keycode(argp *Ptr[byte], key_name Ptr[byte], nextchar int32) 
 	return Ptr[byte]{}
 }
 
-func do_set_option_value(opt_idx int32, opt_flags int32, argp *Ptr[byte], prefix set_prefix_T, op set_op_T, flags long_u, varp optvar_T, key_name Ptr[byte], nextchar int32, afterchar int32, cp_val int32, stopopteval *int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte] {
+func do_set_option_value(opt_idx int32, opt_flags int32, argp *Ptr[byte], prefix set_prefix_T, op set_op_T, flags long_u, varp optvar_T, key_name []byte, nextchar int32, afterchar int32, cp_val int32, stopopteval *int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte] {
 	var value_checked int32
 	var errmsg Ptr[byte]
 	var arg Ptr[byte]
@@ -39209,7 +39209,7 @@ func do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[byte], starta
 	for (int32(arg.At(int(len_))) == (' ')) || (int32(arg.At(int(len_))) == 9) {
 		len_++
 	}
-	op = get_opt_op(arg.Add(int(len_)))
+	op = get_opt_op(arg.Add(int(len_)).Tail())
 	if op != OP_NONE {
 		len_++
 	}
@@ -39268,19 +39268,19 @@ func do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[byte], starta
 		if opt_idx >= 0 {
 			showoneopt(options.Add(int(opt_idx)), opt_flags)
 		} else {
-			p = find_termcode(key_name)
+			p = find_termcode(key_name.Tail())
 			if p.Nil() {
 				errmsg = e_key_code_not_set
 				goto skip
 			} else {
-				show_one_termcode(key_name, p, true)
+				show_one_termcode(key_name.Tail(), p, true)
 			}
 		}
 		if ((nextchar != '?') && (nextchar != NUL)) && !((afterchar == (' ')) || (afterchar == 9)) {
 			errmsg = e_trailing_characters
 		}
 	} else {
-		errmsg = do_set_option_value(opt_idx, opt_flags, &arg, prefix, op, flags, varp, key_name, nextchar, afterchar, cp_val, stopopteval, errbuf, errbuflen)
+		errmsg = do_set_option_value(opt_idx, opt_flags, &arg, prefix, op, flags, varp, key_name.Tail(), nextchar, afterchar, cp_val, stopopteval, errbuf, errbuflen)
 	}
 skip:
 	*argp = arg
@@ -40009,7 +40009,7 @@ func set_option_value(name Ptr[byte], number int64, string_ Ptr[byte], opt_flags
 				key_name.Set(0, KS_KEY)
 				key_name.Set(1, byte((key & 0xff)))
 			}
-			add_termcode(key_name, string_, FALSE)
+			add_termcode(key_name.Tail(), string_, FALSE)
 			if full_screen != 0 {
 				ttest(false)
 			}
@@ -40066,7 +40066,7 @@ func get_term_code(tname Ptr[byte]) Ptr[byte] {
 		}
 		return Ptr[byte]{}
 	}
-	return find_termcode(tname.Add(2))
+	return find_termcode(tname.Add(2).Tail())
 }
 
 func get_highlight_default() Ptr[byte] {
@@ -41393,8 +41393,8 @@ func get_stty() {
 	intr_char = info.interrupt
 	buf.Set(0, byte(info.backspace))
 	buf.Set(1, NUL)
-	add_termcode(S("kb"), buf, FALSE)
-	p = find_termcode(S("kD"))
+	add_termcode([]byte("kb\x00"), buf, FALSE)
+	p = find_termcode([]byte("kD\x00"))
 	if (!p.Nil() && (int32(p.At(0)) == int32(buf.At(0)))) && (int32(p.At(1)) == int32(buf.At(1))) {
 		do_fixdel(nil)
 	}
@@ -41495,19 +41495,19 @@ func backslash_trans(c int32) int32 {
 func get_char_class(pp *Ptr[byte]) int32 {
 	if (((int32((*pp).At(1)) == ':') && ((uint32((*pp).At(2)) - 'a') < 26)) && ((uint32((*pp).At(3)) - 'a') < 26)) && ((uint32((*pp).At(4)) - 'a') < 26) {
 		var target keyvalue_T
-		var entry Ptr[keyvalue_T]
+		var entry []keyvalue_T
 		target.key = 0
 		target.value.string_ = (*pp).Add(2)
 		target.value.length = 0
-		if !get_char_class_last_entry.Nil() && (cmp_keyvalue_value_n(&target, get_char_class_last_entry) == 0) {
+		if (get_char_class_last_entry != nil) && (cmp_keyvalue_value_n(&target, get_char_class_last_entry) == 0) {
 			entry = get_char_class_last_entry
 		} else {
-			entry = keyvalue_bsearch(&target, get_char_class_char_class_tab, 456/24, func(a0 *keyvalue_T, a1 *keyvalue_T) int32 { return cmp_keyvalue_value_n(a0, Addr(a1)) })
+			entry = keyvalue_bsearch(&target, get_char_class_char_class_tab, 456/24, func(a0 *keyvalue_T, a1 *keyvalue_T) int32 { return cmp_keyvalue_value_n(a0, One(a1)) })
 		}
-		if !entry.Nil() {
+		if entry != nil {
 			get_char_class_last_entry = entry
-			*pp = (*pp).Add(int(entry.P().value.length + 2))
-			return entry.P().key
+			*pp = (*pp).Add(int(entry[0].value.length + 2))
+			return entry[0].key
 		}
 	}
 	return CLASS_NONE
@@ -41695,17 +41695,17 @@ func peekchr() int32 {
 		}
 	case '$':
 		if reg_magic >= MAGIC_OFF {
-			p := regparse.Add(1)
+			var p []byte = regparse.Add(1).Tail()
 			is_magic_all := (reg_magic == MAGIC_ALL)
-			for (int32(p.At(0)) == 92) && (((((((int32(p.At(1)) == 'c') || (int32(p.At(1)) == 'C')) || (int32(p.At(1)) == 'm')) || (int32(p.At(1)) == 'M')) || (int32(p.At(1)) == 'v')) || (int32(p.At(1)) == 'V')) || (int32(p.At(1)) == 'Z')) {
-				if int32(p.At(1)) == 'v' {
+			for (int32(p[0]) == 92) && (((((((int32(p[1]) == 'c') || (int32(p[1]) == 'C')) || (int32(p[1]) == 'm')) || (int32(p[1]) == 'M')) || (int32(p[1]) == 'v')) || (int32(p[1]) == 'V')) || (int32(p[1]) == 'Z')) {
+				if int32(p[1]) == 'v' {
 					is_magic_all = true
-				} else if ((int32(p.At(1)) == 'm') || (int32(p.At(1)) == 'M')) || (int32(p.At(1)) == 'V') {
+				} else if ((int32(p[1]) == 'm') || (int32(p[1]) == 'M')) || (int32(p[1]) == 'V') {
 					is_magic_all = false
 				}
-				p = p.Add(2)
+				p = p[2:]
 			}
-			if (((int32(p.At(0)) == NUL) || ((int32(p.At(0)) == 92) && ((((int32(p.At(1)) == '|') || (int32(p.At(1)) == '&')) || (int32(p.At(1)) == ')')) || (int32(p.At(1)) == 'n')))) || (is_magic_all && (((int32(p.At(0)) == '|') || (int32(p.At(0)) == '&')) || (int32(p.At(0)) == ')')))) || (reg_magic == MAGIC_ALL) {
+			if (((int32(p[0]) == NUL) || ((int32(p[0]) == 92) && ((((int32(p[1]) == '|') || (int32(p[1]) == '&')) || (int32(p[1]) == ')')) || (int32(p[1]) == 'n')))) || (is_magic_all && (((int32(p[0]) == '|') || (int32(p[0]) == '&')) || (int32(p[0]) == ')')))) || (reg_magic == MAGIC_ALL) {
 				curchr = -220
 			}
 		}
@@ -44160,7 +44160,7 @@ func save_se_one(savep *save_se_T, pp *Ptr[byte]) {
 	*pp = rex.input
 }
 
-func regrepeat(p Ptr[byte], maxcount int64) int32 {
+func regrepeat(p []byte, maxcount int64) int32 {
 	var l int32
 	var len__2 int32
 
@@ -44170,15 +44170,15 @@ func regrepeat(p Ptr[byte], maxcount int64) int32 {
 	var mask int32
 	var testval int32 = 0
 	scan = rex.input
-	opnd = p.Add(3)
-	switch int32(p.Get()) {
+	opnd = View(p[3:])
+	switch int32(p[0]) {
 	case ANY, ANY + ADD_NL:
 		for count < maxcount {
 			for (int32(scan.Get()) != NUL) && (count < maxcount) {
 				count++
 				scan = scan.Add(int(utfc_ptr2len(scan)))
 			}
-			if (((!(rex.reg_match == nil) || !((int32(p.Get()) >= (ANY + ADD_NL)) && (int32(p.Get()) <= (NUPPER + ADD_NL)))) || (rex.lnum > rex.reg_maxline)) || rex.reg_line_lbr) || (count == maxcount) {
+			if (((!(rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (rex.lnum > rex.reg_maxline)) || rex.reg_line_lbr) || (count == maxcount) {
 				break
 			}
 			count++
@@ -44196,7 +44196,7 @@ func regrepeat(p Ptr[byte], maxcount int64) int32 {
 			if vim_isIDc(utf_ptr2char(scan)) && ((testval != 0) || !((uint32(scan.Get()) - '0') < 10)) {
 				scan = scan.Add(int(utfc_ptr2len(scan)))
 			} else if int32(scan.Get()) == NUL {
-				if ((!(rex.reg_match == nil) || !((int32(p.Get()) >= (ANY + ADD_NL)) && (int32(p.Get()) <= (NUPPER + ADD_NL)))) || (rex.lnum > rex.reg_maxline)) || rex.reg_line_lbr {
+				if ((!(rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (rex.lnum > rex.reg_maxline)) || rex.reg_line_lbr {
 					break
 				}
 				reg_nextline()
@@ -44204,7 +44204,7 @@ func regrepeat(p Ptr[byte], maxcount int64) int32 {
 				if got_int != 0 {
 					break
 				}
-			} else if (rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p.Get()) >= (ANY + ADD_NL)) && (int32(p.Get()) <= (NUPPER + ADD_NL))) {
+			} else if (rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
 				scan = scan.Add(1)
 			} else {
 				break
@@ -44219,7 +44219,7 @@ func regrepeat(p Ptr[byte], maxcount int64) int32 {
 			if vim_iswordp_buf(scan, rex.reg_buf) && ((testval != 0) || !((uint32(scan.Get()) - '0') < 10)) {
 				scan = scan.Add(int(utfc_ptr2len(scan)))
 			} else if int32(scan.Get()) == NUL {
-				if ((!(rex.reg_match == nil) || !((int32(p.Get()) >= (ANY + ADD_NL)) && (int32(p.Get()) <= (NUPPER + ADD_NL)))) || (rex.lnum > rex.reg_maxline)) || rex.reg_line_lbr {
+				if ((!(rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (rex.lnum > rex.reg_maxline)) || rex.reg_line_lbr {
 					break
 				}
 				reg_nextline()
@@ -44227,7 +44227,7 @@ func regrepeat(p Ptr[byte], maxcount int64) int32 {
 				if got_int != 0 {
 					break
 				}
-			} else if (rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p.Get()) >= (ANY + ADD_NL)) && (int32(p.Get()) <= (NUPPER + ADD_NL))) {
+			} else if (rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
 				scan = scan.Add(1)
 			} else {
 				break
@@ -44242,7 +44242,7 @@ func regrepeat(p Ptr[byte], maxcount int64) int32 {
 			if vim_isfilec(utf_ptr2char(scan)) && ((testval != 0) || !((uint32(scan.Get()) - '0') < 10)) {
 				scan = scan.Add(int(utfc_ptr2len(scan)))
 			} else if int32(scan.Get()) == NUL {
-				if ((!(rex.reg_match == nil) || !((int32(p.Get()) >= (ANY + ADD_NL)) && (int32(p.Get()) <= (NUPPER + ADD_NL)))) || (rex.lnum > rex.reg_maxline)) || rex.reg_line_lbr {
+				if ((!(rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (rex.lnum > rex.reg_maxline)) || rex.reg_line_lbr {
 					break
 				}
 				reg_nextline()
@@ -44250,7 +44250,7 @@ func regrepeat(p Ptr[byte], maxcount int64) int32 {
 				if got_int != 0 {
 					break
 				}
-			} else if (rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p.Get()) >= (ANY + ADD_NL)) && (int32(p.Get()) <= (NUPPER + ADD_NL))) {
+			} else if (rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
 				scan = scan.Add(1)
 			} else {
 				break
@@ -44263,7 +44263,7 @@ func regrepeat(p Ptr[byte], maxcount int64) int32 {
 	case SPRINT, SPRINT + ADD_NL:
 		for count < maxcount {
 			if int32(scan.Get()) == NUL {
-				if ((!(rex.reg_match == nil) || !((int32(p.Get()) >= (ANY + ADD_NL)) && (int32(p.Get()) <= (NUPPER + ADD_NL)))) || (rex.lnum > rex.reg_maxline)) || rex.reg_line_lbr {
+				if ((!(rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (rex.lnum > rex.reg_maxline)) || rex.reg_line_lbr {
 					break
 				}
 				reg_nextline()
@@ -44273,7 +44273,7 @@ func regrepeat(p Ptr[byte], maxcount int64) int32 {
 				}
 			} else if (B2i(vim_isprintc(utf_ptr2char(scan))) == 1) && ((testval != 0) || !((uint32(scan.Get()) - '0') < 10)) {
 				scan = scan.Add(int(utfc_ptr2len(scan)))
-			} else if (rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p.Get()) >= (ANY + ADD_NL)) && (int32(p.Get()) <= (NUPPER + ADD_NL))) {
+			} else if (rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
 				scan = scan.Add(1)
 			} else {
 				break
@@ -44281,7 +44281,7 @@ func regrepeat(p Ptr[byte], maxcount int64) int32 {
 			count++
 		}
 	case RE_WHITE, RE_WHITE + ADD_NL, NWHITE, NWHITE + ADD_NL, DIGIT, DIGIT + ADD_NL, NDIGIT, NDIGIT + ADD_NL, HEX, HEX + ADD_NL, NHEX, NHEX + ADD_NL, OCTAL, OCTAL + ADD_NL, NOCTAL, NOCTAL + ADD_NL, WORD, WORD + ADD_NL, NWORD, NWORD + ADD_NL, HEAD, HEAD + ADD_NL, NHEAD, NHEAD + ADD_NL, ALPHA, ALPHA + ADD_NL, NALPHA, NALPHA + ADD_NL, LOWER, LOWER + ADD_NL, NLOWER, NLOWER + ADD_NL, UPPER, UPPER + ADD_NL, NUPPER, NUPPER + ADD_NL:
-		switch int32(p.Get()) {
+		switch int32(p[0]) {
 		case RE_WHITE, RE_WHITE + ADD_NL:
 			mask = RI_WHITE
 			testval = mask
@@ -44330,7 +44330,7 @@ func regrepeat(p Ptr[byte], maxcount int64) int32 {
 		}
 		for count < maxcount {
 			if int32(scan.Get()) == NUL {
-				if ((!(rex.reg_match == nil) || !((int32(p.Get()) >= (ANY + ADD_NL)) && (int32(p.Get()) <= (NUPPER + ADD_NL)))) || (rex.lnum > rex.reg_maxline)) || rex.reg_line_lbr {
+				if ((!(rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (rex.lnum > rex.reg_maxline)) || rex.reg_line_lbr {
 					break
 				}
 				reg_nextline()
@@ -44347,7 +44347,7 @@ func regrepeat(p Ptr[byte], maxcount int64) int32 {
 					scan = scan.Add(int(l))
 				} else if (int32(class_tab[int(scan.Get())]) & mask) == testval {
 					scan = scan.Add(1)
-				} else if (rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p.Get()) >= (ANY + ADD_NL)) && (int32(p.Get()) <= (NUPPER + ADD_NL))) {
+				} else if (rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
 					scan = scan.Add(1)
 				} else {
 					break
@@ -44401,7 +44401,7 @@ func regrepeat(p Ptr[byte], maxcount int64) int32 {
 	case ANYBUT, ANYBUT + ADD_NL:
 		for count < maxcount {
 			if int32(scan.Get()) == NUL {
-				if ((!(rex.reg_match == nil) || !((int32(p.Get()) >= (ANY + ADD_NL)) && (int32(p.Get()) <= (NUPPER + ADD_NL)))) || (rex.lnum > rex.reg_maxline)) || rex.reg_line_lbr {
+				if ((!(rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (rex.lnum > rex.reg_maxline)) || rex.reg_line_lbr {
 					break
 				}
 				reg_nextline()
@@ -44409,7 +44409,7 @@ func regrepeat(p Ptr[byte], maxcount int64) int32 {
 				if got_int != 0 {
 					break
 				}
-			} else if (rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p.Get()) >= (ANY + ADD_NL)) && (int32(p.Get()) <= (NUPPER + ADD_NL))) {
+			} else if (rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
 				scan = scan.Add(1)
 			} else {
 				len__2 = utfc_ptr2len(scan)
@@ -45122,7 +45122,7 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 						rst.minval = bl_minval
 						rst.maxval = bl_maxval
 					}
-					rst.count = int64(regrepeat(scan.Add(3), rst.maxval))
+					rst.count = int64(regrepeat(scan.Add(3).Tail(), rst.maxval))
 					if got_int != 0 {
 						status = RA_FAIL
 						break
@@ -45483,7 +45483,7 @@ func regmatch(scan Ptr[byte], timed_out *int32) int32 {
 								rex.input = rex.input.Add(-int((utf_head_off(rex.line, rex.input.Add(-1)) + 1)))
 							}
 						} else {
-							if (rst_2.count == rst_2.minval) || (regrepeat(rp.rs_scan.Add(3), 1) == 0) {
+							if (rst_2.count == rst_2.minval) || (regrepeat(rp.rs_scan.Add(3).Tail(), 1) == 0) {
 								break
 							}
 							rst_2.count++
@@ -51840,7 +51840,7 @@ func init_term_props(all bool) {
 	set_rgb_term_prop()
 }
 
-func find_builtin_term(term Ptr[byte]) Ptr[tcap_entry_T] {
+func find_builtin_term(term Ptr[byte]) []tcap_entry_T {
 	var i int32 = 0
 	for ; ; i++ {
 		name := builtin_terminals[int(i)].bitc_name
@@ -51851,21 +51851,21 @@ func find_builtin_term(term Ptr[byte]) Ptr[tcap_entry_T] {
 			return builtin_terminals[int(i)].bitc_table
 		}
 	}
-	return Ptr[tcap_entry_T]{}
+	return nil
 }
 
-func apply_builtin_tcap(term Ptr[byte], entries Ptr[tcap_entry_T], overwrite bool) {
+func apply_builtin_tcap(term Ptr[byte], entries []tcap_entry_T, overwrite bool) {
 	var s Ptr[byte]
 	var t Ptr[byte]
 	var name Ptr[byte]
 
 	var term_8bit bool = (term_is_8bit(term))
 	p := entries
-	for ; (p.P().bt_entry != 0) && (p.P().bt_entry != BT_EXTRA_KEYS); p = p.Add(1) {
-		if p.P().bt_entry >= 0 {
-			if (term_strings[int(p.P().bt_entry)].Nil() || (term_strings[int(p.P().bt_entry)] == empty_option)) || overwrite {
-				if term_8bit && (term_7to8bit(p.P().bt_string) != 0) {
-					s = vim_strsave(p.P().bt_string)
+	for ; (p[0].bt_entry != 0) && (p[0].bt_entry != BT_EXTRA_KEYS); p = p[1:] {
+		if p[0].bt_entry >= 0 {
+			if (term_strings[int(p[0].bt_entry)].Nil() || (term_strings[int(p[0].bt_entry)] == empty_option)) || overwrite {
+				if term_8bit && (term_7to8bit(p[0].bt_string) != 0) {
+					s = vim_strsave(p[0].bt_string)
 					t = s
 					for ; t.Get() != 0; t = t.Add(1) {
 						if term_7to8bit(t) != 0 {
@@ -51873,18 +51873,18 @@ func apply_builtin_tcap(term Ptr[byte], entries Ptr[tcap_entry_T], overwrite boo
 							Memmove(t.Add(1), t.Add(2), int(musl_strlen(t.Add(2))+1))
 						}
 					}
-					term_strings[int(p.P().bt_entry)] = s
-					set_term_option_alloced(&term_strings[int(p.P().bt_entry)])
+					term_strings[int(p[0].bt_entry)] = s
+					set_term_option_alloced(&term_strings[int(p[0].bt_entry)])
 				} else {
-					term_strings[int(p.P().bt_entry)] = p.P().bt_string
+					term_strings[int(p[0].bt_entry)] = p[0].bt_string
 				}
 			}
 		} else {
 			name = Mk[byte](2)
-			name.Set(0, byte((-p.P().bt_entry & 0xff)))
-			name.Set(1, byte(((uint32(-p.P().bt_entry) >> 8) & 0xff)))
-			if find_termcode(name).Nil() || overwrite {
-				add_termcode(name, p.P().bt_string, B2i(term_8bit))
+			name.Set(0, byte((-p[0].bt_entry & 0xff)))
+			name.Set(1, byte(((uint32(-p[0].bt_entry) >> 8) & 0xff)))
+			if find_termcode(name.Tail()).Nil() || overwrite {
+				add_termcode(name.Tail(), p[0].bt_string, B2i(term_8bit))
 			}
 		}
 	}
@@ -51892,10 +51892,10 @@ func apply_builtin_tcap(term Ptr[byte], entries Ptr[tcap_entry_T], overwrite boo
 
 func apply_keyprotocol(term Ptr[byte], prot keyprot_T) {
 	if prot == KEYPROTOCOL_KITTY {
-		apply_builtin_tcap(term, builtin_kitty, true)
+		apply_builtin_tcap(term, builtin_kitty.Tail(), true)
 	}
 	if prot == KEYPROTOCOL_MOK2 {
-		apply_builtin_tcap(term, builtin_mok2, true)
+		apply_builtin_tcap(term, builtin_mok2.Tail(), true)
 	}
 	if prot != KEYPROTOCOL_NONE {
 		accept_modifiers_for_function_keys()
@@ -51904,7 +51904,7 @@ func apply_keyprotocol(term Ptr[byte], prot keyprot_T) {
 
 func parse_builtin_tcap(term Ptr[byte]) {
 	entries := find_builtin_term(term)
-	if !entries.Nil() {
+	if entries != nil {
 		apply_builtin_tcap(term, entries, false)
 	}
 }
@@ -51996,7 +51996,7 @@ func set_termname(term Ptr[byte]) bool {
 		term = term.Add(8)
 	}
 	termp := find_builtin_term(term)
-	if termp.Nil() {
+	if termp == nil {
 		report_term_error(error_msg, term)
 		screen_start()
 		wait_return(TRUE)
@@ -52006,7 +52006,7 @@ func set_termname(term Ptr[byte]) bool {
 	clear_termoptions()
 	parse_builtin_tcap(term)
 	if !musl_strstr(term, S("256color")).Nil() && (term_strings_not_set(KS_CCO) || (musl_atoi(term_strings[49]) < 256)) {
-		apply_builtin_tcap(term, builtin_256colors, true)
+		apply_builtin_tcap(term, builtin_256colors.Tail(), true)
 	}
 	kpc := match_keyprotocol(term)
 	apply_keyprotocol(term, kpc)
@@ -52019,23 +52019,23 @@ func set_termname(term Ptr[byte]) bool {
 		term_strings[69] = S("\x1b[>c")
 	}
 	get_stty()
-	bs_p = find_termcode(S("kb"))
-	del_p = find_termcode(S("kD"))
+	bs_p = find_termcode([]byte("kb\x00"))
+	del_p = find_termcode([]byte("kD\x00"))
 	if bs_p.Nil() || (int32(bs_p.Get()) == NUL) {
 		bs_p = S("\x08")
-		add_termcode(S("kb"), bs_p, FALSE)
+		add_termcode([]byte("kb\x00"), bs_p, FALSE)
 	}
 	if (del_p.Nil() || (int32(del_p.Get()) == NUL)) && (bs_p.Nil() || (int32(bs_p.Get()) != DEL)) {
-		add_termcode(S("kD"), S("\x7f"), FALSE)
+		add_termcode([]byte("kD\x00"), S("\x7f"), FALSE)
 	}
 	term_is_xterm = B2i(vim_is_xterm(term))
 	var name Ptr[byte] = Mk[byte](3)
 	name.Set(0, KS_EXTRA)
 	name.Set(1, KE_FOCUSGAINED)
 	name.Set(2, NUL)
-	add_termcode(name, S("\x1b[I"), FALSE)
+	add_termcode(name.Tail(), S("\x1b[I"), FALSE)
 	name.Set(1, KE_FOCUSLOST)
-	add_termcode(name, S("\x1b[O"), FALSE)
+	add_termcode(name.Tail(), S("\x1b[O"), FALSE)
 	need_gather = TRUE
 	focus_state = MAYBE
 	ttest(true)
@@ -52058,7 +52058,7 @@ func set_termname(term Ptr[byte]) bool {
 	return true
 }
 
-func add_termcap_entry(name Ptr[byte], force bool) bool {
+func add_termcap_entry(name []byte, force bool) bool {
 	var term Ptr[byte]
 	var key int32
 	if !force && !find_termcode(name).Nil() {
@@ -52072,19 +52072,19 @@ func add_termcap_entry(name Ptr[byte], force bool) bool {
 		term = term.Add(8)
 	}
 	termp := find_builtin_term(term)
-	if !termp.Nil() {
-		key = -(int32(name.At(0)) + (int32(name.At(1)) << 8))
-		termp = termp.Add(1)
-		for termp.P().bt_entry != 0 {
-			if termp.P().bt_entry == key {
-				add_termcode(name, termp.P().bt_string, B2i(term_is_8bit(term)))
+	if termp != nil {
+		key = -(int32(name[0]) + (int32(name[1]) << 8))
+		termp = termp[1:]
+		for termp[0].bt_entry != 0 {
+			if termp[0].bt_entry == key {
+				add_termcode(name, termp[0].bt_string, B2i(term_is_8bit(term)))
 				return true
 			}
-			termp = termp.Add(1)
+			termp = termp[1:]
 		}
 	}
 	if GaData[estack_T](&exestack).Ref(int(exestack.ga_len - 1)).es_name.Nil() {
-		vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_no_str_entry_in_termcap), name)
+		vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_no_str_entry_in_termcap), View(name[:]))
 		emsg(iobuff_or(gettext_(e_no_str_entry_in_termcap)))
 	}
 	return false
@@ -52129,13 +52129,13 @@ func tltoa(i uint64) Ptr[byte] {
 func tgoto(cm Ptr[byte], x int32, y int32) Ptr[byte] {
 	var p Ptr[byte]
 	var s Ptr[byte]
-	var e Ptr[byte]
+	var e []byte
 	if cm.Nil() {
 		return S("OOPS")
 	}
-	e = tgoto_buf.Add(29)
+	e = tgoto_buf.Add(29).Tail()
 	s = tgoto_buf
-	for ; s.Lt(e) && (cm.Get() != 0); cm = cm.Add(1) {
+	for ; s.Lt(View(e)) && (cm.Get() != 0); cm = cm.Add(1) {
 		if int32(cm.Get()) != '%' {
 			var t1 Ptr[byte] = s
 			s = s.Add(1)
@@ -52592,12 +52592,12 @@ func out_str_t_BE() {
 	var p Ptr[byte]
 	var t1 bool = term_strings[82].Nil() || (int32(term_strings[82].Get()) == NUL)
 	if !t1 {
-		p = find_termcode(S("PS"))
+		p = find_termcode([]byte("PS\x00"))
 		t1 = p.Nil()
 	}
 	var t2 bool = t1 || (int32(p.Get()) == NUL)
 	if !t2 {
-		p = find_termcode(S("PE"))
+		p = find_termcode([]byte("PE\x00"))
 		t2 = p.Nil()
 	}
 	if t2 || (int32(p.Get()) == NUL) {
@@ -52760,7 +52760,7 @@ func adjust_modlen(idx int32) {
 	}
 }
 
-func add_termcode(name Ptr[byte], string_ Ptr[byte], flags int32) {
+func add_termcode(name []byte, string_ Ptr[byte], flags int32) {
 	var new_tc Ptr[S_termcode]
 	var i int32
 	var j int32
@@ -52788,14 +52788,14 @@ func add_termcode(name Ptr[byte], string_ Ptr[byte], flags int32) {
 	}
 	i = 0
 	for ; i < tc_len; i++ {
-		if int32(termcodes.Ref(int(i)).name[0]) < int32(name.At(0)) {
+		if int32(termcodes.Ref(int(i)).name[0]) < int32(name[0]) {
 			continue
 		}
-		if int32(termcodes.Ref(int(i)).name[0]) == int32(name.At(0)) {
-			if int32(termcodes.Ref(int(i)).name[1]) < int32(name.At(1)) {
+		if int32(termcodes.Ref(int(i)).name[0]) == int32(name[0]) {
+			if int32(termcodes.Ref(int(i)).name[1]) < int32(name[1]) {
 				continue
 			}
-			if int32(termcodes.Ref(int(i)).name[1]) == int32(name.At(1)) {
+			if int32(termcodes.Ref(int(i)).name[1]) == int32(name[1]) {
 				var t1 bool = flags == ATC_FROM_TERM
 				if t1 {
 					j = termcode_star(termcodes.Ref(int(i)).code, termcodes.Ref(int(i)).len_)
@@ -52817,8 +52817,8 @@ func add_termcode(name Ptr[byte], string_ Ptr[byte], flags int32) {
 		}
 		break
 	}
-	termcodes.Ref(int(i)).name[0] = name.At(0)
-	termcodes.Ref(int(i)).name[1] = name.At(1)
+	termcodes.Ref(int(i)).name[0] = name[0]
+	termcodes.Ref(int(i)).name[1] = name[1]
 	termcodes.Ref(int(i)).code = s
 	termcodes.Ref(int(i)).len_ = len_
 	adjust_modlen(i)
@@ -52862,17 +52862,17 @@ func termcode_star(code Ptr[byte], len_ int32) int32 {
 	return 0
 }
 
-func find_termcode(name Ptr[byte]) Ptr[byte] {
+func find_termcode(name []byte) Ptr[byte] {
 	var i int32 = 0
 	for ; i < tc_len; i++ {
-		if (int32(termcodes.Ref(int(i)).name[0]) == int32(name.At(0))) && (int32(termcodes.Ref(int(i)).name[1]) == int32(name.At(1))) {
+		if (int32(termcodes.Ref(int(i)).name[0]) == int32(name[0])) && (int32(termcodes.Ref(int(i)).name[1]) == int32(name[1])) {
 			return termcodes.Ref(int(i)).code
 		}
 	}
 	return Ptr[byte]{}
 }
 
-func del_termcode(name Ptr[byte]) {
+func del_termcode(name []byte) {
 	var i int32
 	if termcodes.Nil() {
 		return
@@ -52880,7 +52880,7 @@ func del_termcode(name Ptr[byte]) {
 	need_gather = TRUE
 	i = 0
 	for ; i < tc_len; i++ {
-		if (int32(termcodes.Ref(int(i)).name[0]) == int32(name.At(0))) && (int32(termcodes.Ref(int(i)).name[1]) == int32(name.At(1))) {
+		if (int32(termcodes.Ref(int(i)).name[0]) == int32(name[0])) && (int32(termcodes.Ref(int(i)).name[1]) == int32(name[1])) {
 			del_termcode_idx(i)
 			return
 		}
@@ -52978,25 +52978,25 @@ func modifiers2keycode(modifiers int32, key *int32, string_ Ptr[byte]) int32 {
 	return new_slen
 }
 
-func handle_u7_response(arg Ptr[int32], tp Ptr[byte], csi_len int32) {
-	if (arg.At(0) == 2) && (arg.At(1) >= 2) {
+func handle_u7_response(arg []int32, tp Ptr[byte], csi_len int32) {
+	if (arg[0] == 2) && (arg[1] >= 2) {
 		var aw Ptr[byte] = Ptr[byte]{}
 		u7_status.tr_progress = STATUS_GOT
 		did_cursorhold = TRUE
-		if arg.At(1) == 2 {
+		if arg[1] == 2 {
 			aw = S("single")
-		} else if arg.At(1) == 3 {
+		} else if arg[1] == 3 {
 			aw = S("double")
 		}
 		if !aw.Nil() && (musl_strcmp(aw, p_ambw) != 0) {
 			set_option_value_give_err(S("ambw"), 0, aw, 0)
 			redraw_asap(UPD_CLEAR)
 		}
-	} else if arg.At(0) == 3 {
+	} else if arg[0] == 3 {
 		var value int32
 		xcc_status.tr_progress = STATUS_GOT
 		var t1 int32
-		if arg.At(1) == 1 {
+		if arg[1] == 1 {
 			t1 = TPR_YES
 		} else {
 			t1 = TPR_NO
@@ -53007,8 +53007,8 @@ func handle_u7_response(arg Ptr[int32], tp Ptr[byte], csi_len int32) {
 	}
 }
 
-func handle_version_response(first int32, arg Ptr[int32], argc int32, tp Ptr[byte]) {
-	version := arg.At(1)
+func handle_version_response(first int32, arg []int32, argc int32, tp Ptr[byte]) {
+	version := arg[1]
 	crv_status.tr_progress = STATUS_GOT
 	did_cursorhold = TRUE
 	init_term_props(false)
@@ -53019,27 +53019,27 @@ func handle_version_response(first int32, arg Ptr[int32], argc int32, tp Ptr[byt
 		version = 0
 	}
 	if (first == '>') && (argc == 3) {
-		if arg.At(0) == 77 {
+		if arg[0] == 77 {
 			term_props[TPR_MOUSE].tpr_status = TPR_MOUSE_SGR
 		}
-		if (((version == 100) || (version == 115)) && (arg.At(0) == 0)) && (arg.At(2) == 0) {
+		if (((version == 100) || (version == 115)) && (arg[0] == 0)) && (arg[2] == 0) {
 			may_adjust_color_count(256)
 			term_props[TPR_MOUSE].tpr_status = TPR_MOUSE_SGR
 		}
 		if version == 95 {
-			if (arg.At(0) == 1) && (arg.At(2) == 0) {
+			if (arg[0] == 1) && (arg[2] == 0) {
 				term_props[TPR_UNDERLINE_RGB].tpr_status = TPR_YES
 				term_props[TPR_MOUSE].tpr_status = TPR_MOUSE_SGR
 				term_props[TPR_DECRQM].tpr_status = TPR_NO
-			} else if (arg.At(0) == 0) && (arg.At(2) == 0) {
+			} else if (arg[0] == 0) && (arg[2] == 0) {
 				term_props[TPR_MOUSE].tpr_status = TPR_MOUSE_SGR
 				term_props[TPR_DECRQM].tpr_status = TPR_YES
-			} else if (arg.At(0) == 0) && (arg.At(2) == -1) {
+			} else if (arg[0] == 0) && (arg[2] == -1) {
 				term_props[TPR_UNDERLINE_RGB].tpr_status = TPR_YES
 			}
 		}
-		if arg.At(0) == 83 {
-			if arg.At(1) >= 40700 {
+		if arg[0] == 83 {
+			if arg[1] >= 40700 {
 				term_props[TPR_MOUSE].tpr_status = TPR_MOUSE_SGR
 			} else {
 				term_props[TPR_MOUSE].tpr_status = TPR_MOUSE_XTERM
@@ -53052,25 +53052,25 @@ func handle_version_response(first int32, arg Ptr[int32], argc int32, tp Ptr[byt
 				term_props[TPR_MOUSE].tpr_status = TPR_MOUSE_XTERM2
 			}
 		}
-		if arg.At(1) >= 2500 {
+		if arg[1] >= 2500 {
 			term_props[TPR_UNDERLINE_RGB].tpr_status = TPR_YES
-		} else if (version == 136) && (arg.At(2) == 0) {
+		} else if (version == 136) && (arg[2] == 0) {
 			term_props[TPR_UNDERLINE_RGB].tpr_status = TPR_YES
-			if arg.At(0) == 0 {
+			if arg[0] == 0 {
 				term_props[TPR_MOUSE].tpr_status = TPR_MOUSE_SGR
 			}
 		}
-		if ((arg.At(0) == 1) && (arg.At(1) >= 4000)) && (arg.At(1) <= 4009) {
+		if ((arg[0] == 1) && (arg[1] >= 4000)) && (arg[1] <= 4009) {
 			term_props[TPR_KITTY].tpr_status = TPR_YES
 			term_props[TPR_KITTY].tpr_set_by_termresponse = true
 			term_props[TPR_MOUSE].tpr_status = TPR_MOUSE_SGR
 			term_props[TPR_DECRQM].tpr_status = TPR_YES
 		}
-		if ((arg.At(0) == 1) && (version == 12700)) && (arg.At(2) == 0) {
+		if ((arg[0] == 1) && (version == 12700)) && (arg[2] == 0) {
 			term_props[TPR_MOUSE].tpr_status = TPR_MOUSE_SGR
 			term_props[TPR_DECRQM].tpr_status = TPR_YES
 		}
-		if (arg.At(0) == 83) && (arg.At(1) >= 30600) {
+		if (arg[0] == 83) && (arg[1] >= 30600) {
 			term_props[TPR_CURSOR_STYLE].tpr_status = TPR_NO
 			term_props[TPR_CURSOR_BLINK].tpr_status = TPR_NO
 			term_props[TPR_DECRQM].tpr_status = TPR_NO
@@ -53169,45 +53169,45 @@ func parse_csi_f_keys(arg int32) int32 {
 	return arg
 }
 
-func handle_key_with_modifier(arg Ptr[int32], csi_len int32, offset int32, buf Ptr[byte], bufsize int32, buflen *int32, iskitty bool, trail int32) int32 {
+func handle_key_with_modifier(arg []int32, csi_len int32, offset int32, buf Ptr[byte], bufsize int32, buflen *int32, iskitty bool, trail int32) int32 {
 	if (!iskitty && (((kitty_protocol_state == KKPS_INITIAL) || (kitty_protocol_state == KKPS_OFF)) || (kitty_protocol_state == KKPS_AFTER_T_TE))) && (term_props[TPR_KITTY].tpr_status != TPR_YES) {
 		seenModifyOtherKeys = TRUE
 	}
 	var t1 int32
 	if iskitty {
-		t1 = arg.At(0)
+		t1 = arg[0]
 	} else {
-		t1 = arg.At(2)
+		t1 = arg[2]
 	}
 	key := t1
-	modifiers := decode_modifiers(arg.At(1))
+	modifiers := decode_modifiers(arg[1])
 	if (((modifiers & MOD_MASK_SHIFT) != 0) && (key >= 'a')) && (key <= 'z') {
 		key += 'A' - 'a'
 	}
 	if key == ESC {
 		key = K_ESC
-	} else if ((arg.At(0) >= 11) && (arg.At(0) <= 24)) && (trail == '~') {
-		key = parse_csi_f_keys(arg.At(0))
+	} else if ((arg[0] >= 11) && (arg[0] <= 24)) && (trail == '~') {
+		key = parse_csi_f_keys(arg[0])
 	}
 	return put_key_modifiers_in_typebuf(key, modifiers, csi_len, offset, buf, bufsize, buflen)
 }
 
-func handle_key_without_modifier(arg Ptr[int32], csi_len int32, offset int32, buf Ptr[byte], bufsize int32, buflen *int32, trail int32) int32 {
+func handle_key_without_modifier(arg []int32, csi_len int32, offset int32, buf Ptr[byte], bufsize int32, buflen *int32, trail int32) int32 {
 	var string_ Ptr[byte] = Mk[byte](7)
 	var new_slen int32
-	if arg.At(0) == ESC {
+	if arg[0] == ESC {
 		string_.Set(0, 0x80)
 		string_.Set(1, KS_EXTRA)
 		string_.Set(2, KE_ESC)
 		new_slen = 3
-	} else if ((arg.At(0) >= 11) && (arg.At(0) <= 24)) && (trail == '~') {
-		key := parse_csi_f_keys(arg.At(0))
+	} else if ((arg[0] >= 11) && (arg[0] <= 24)) && (trail == '~') {
+		key := parse_csi_f_keys(arg[0])
 		string_.Set(0, 0x80)
 		string_.Set(1, byte((-key & 0xff)))
 		string_.Set(2, byte(((uint32(-key) >> 8) & 0xff)))
 		new_slen = 3
 	} else {
-		new_slen = add_key_to_buf(arg.At(0), string_)
+		new_slen = add_key_to_buf(arg[0], string_)
 	}
 	if !put_string_in_typebuf(offset, csi_len, string_, new_slen, buf, bufsize, buflen) {
 		return -1
@@ -53215,37 +53215,37 @@ func handle_key_without_modifier(arg Ptr[int32], csi_len int32, offset int32, bu
 	return (new_slen - csi_len) + offset
 }
 
-func handle_csi_function_key(argc int32, arg Ptr[int32], trail int32, csi_len int32, key_name Ptr[byte], offset int32, buf Ptr[byte], bufsize int32, buflen *int32) int32 {
-	key_name.Set(0, 'k')
+func handle_csi_function_key(argc int32, arg []int32, trail int32, csi_len int32, key_name []byte, offset int32, buf Ptr[byte], bufsize int32, buflen *int32) int32 {
+	key_name[0] = 'k'
 	switch trail {
 	case 'A':
-		key_name.Set(1, 'u')
+		key_name[1] = 'u'
 	case 'B':
-		key_name.Set(1, 'd')
+		key_name[1] = 'd'
 	case 'C':
-		key_name.Set(1, 'r')
+		key_name[1] = 'r'
 	case 'D':
-		key_name.Set(1, 'l')
+		key_name[1] = 'l'
 	case 'F':
-		key_name.Set(0, '@')
-		key_name.Set(1, '7')
+		key_name[0] = '@'
+		key_name[1] = '7'
 	case 'H':
-		key_name.Set(1, 'h')
+		key_name[1] = 'h'
 	case 'P':
-		key_name.Set(1, '1')
+		key_name[1] = '1'
 	case 'Q':
-		key_name.Set(1, '2')
+		key_name[1] = '2'
 	case 'R':
-		key_name.Set(1, '3')
+		key_name[1] = '3'
 	case 'S':
-		key_name.Set(1, '4')
+		key_name[1] = '4'
 	default:
 		return 0
 	}
-	key := -(int32(key_name.At(0)) + (int32(key_name.At(1)) << 8))
+	key := -(int32(key_name[0]) + (int32(key_name[1]) << 8))
 	var t1 int32
 	if argc == 2 {
-		t1 = decode_modifiers(arg.At(1))
+		t1 = decode_modifiers(arg[1])
 	} else {
 		t1 = 0
 	}
@@ -53254,7 +53254,7 @@ func handle_csi_function_key(argc int32, arg Ptr[int32], trail int32, csi_len in
 	return csi_len
 }
 
-func handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset int32, buf Ptr[byte], bufsize int32, buflen *int32, key_name Ptr[byte], slen *int32) int32 {
+func handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset int32, buf Ptr[byte], bufsize int32, buflen *int32, key_name []byte, slen *int32) int32 {
 	var first int32 = -1
 	var trail int32
 	var arg Ptr[int32] = Mk[int32](3)
@@ -53324,11 +53324,11 @@ func handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset int32, buf Ptr[
 			}
 			modify_otherkeys_state = t3
 		}
-		key_name.Set(0, 253)
-		key_name.Set(1, 53)
+		key_name[0] = 253
+		key_name[1] = 53
 		*slen = csi_len
 	} else if ((first == -1) && ((uint32(trail) - 'A') < 26)) && ((argc == 0) || ((argc == 2) && (arg.At(0) == 1))) {
-		res := handle_csi_function_key(argc, arg, trail, csi_len, key_name, offset, buf, bufsize, buflen)
+		res := handle_csi_function_key(argc, arg.Tail(), trail, csi_len, key_name, offset, buf, bufsize, buflen)
 		var t4 int32
 		if res <= 0 {
 			t4 = res
@@ -53337,19 +53337,19 @@ func handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset int32, buf Ptr[
 		}
 		return t4
 	} else if ((first == -1) && (argc == 2)) && (trail == 'R') {
-		handle_u7_response(arg, tp, csi_len)
-		key_name.Set(0, 253)
-		key_name.Set(1, 53)
+		handle_u7_response(arg.Tail(), tp, csi_len)
+		key_name[0] = 253
+		key_name[1] = 53
 		*slen = csi_len
 	} else if (first == '?') && (trail == 'c') {
 		*slen = csi_len
-		key_name.Set(0, 253)
-		key_name.Set(1, 53)
+		key_name[0] = 253
+		key_name[1] = 53
 	} else if (((first == '?') && (trail == 'y')) && (argc == 2)) && (arg.At(0) == 2026) {
 		setting := arg.At(1)
 		*slen = csi_len
-		key_name.Set(0, 253)
-		key_name.Set(1, 53)
+		key_name[0] = 253
+		key_name[1] = 53
 		if (setting >= 0) && (setting <= 4) {
 			switch arg.At(0) {
 			case 2026:
@@ -53359,21 +53359,21 @@ func handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset int32, buf Ptr[
 		}
 	} else if (((first == '?') && (argc == 1)) && (arg.At(0) == 1)) && (trail == 'z') {
 		*slen = csi_len
-		key_name.Set(0, 253)
-		key_name.Set(1, 53)
+		key_name[0] = 253
+		key_name[1] = 53
 		do_cmdline_cmd(S("stop"))
 	} else if (argc >= 3) && (arg.At(0) == 48) {
 		height := arg.At(1)
 		width := arg.At(2)
 		*slen = csi_len
-		key_name.Set(0, 253)
-		key_name.Set(1, 53)
+		key_name[0] = 253
+		key_name[1] = 53
 		set_shellsize(width, height, 1)
 	} else if ((int32(term_strings[69].Get()) != NUL) && ap.Gt(argp.Add(1))) && (trail == 'c') {
-		handle_version_response(first, arg, argc, tp)
+		handle_version_response(first, arg.Tail(), argc, tp)
 		*slen = csi_len
-		key_name.Set(0, 253)
-		key_name.Set(1, 53)
+		key_name[0] = 253
+		key_name[1] = 53
 	} else if ((first == '?') && (argc == 1)) && (trail == 'u') {
 		if arg.At(0) == '0' {
 			kitty_protocol_state = KKPS_OFF
@@ -53381,14 +53381,14 @@ func handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset int32, buf Ptr[
 			kitty_protocol_state = KKPS_ENABLED
 			seenModifyOtherKeys = FALSE
 		}
-		key_name.Set(0, 253)
-		key_name.Set(1, 53)
+		key_name[0] = 253
+		key_name[1] = 53
 		*slen = csi_len
 	} else if (((arg.At(0) == 27) && (argc == 3)) && (trail == '~')) || ((argc == 2) && ((trail == 'u') || (trail == '~'))) {
 		iskitty := (argc == 2) && ((trail == 'u') || (trail == '~'))
-		return len_ + handle_key_with_modifier(arg, csi_len, offset, buf, bufsize, buflen, (iskitty), trail)
+		return len_ + handle_key_with_modifier(arg.Tail(), csi_len, offset, buf, bufsize, buflen, (iskitty), trail)
 	} else if (argc == 1) && ((trail == 'u') || (trail == '~')) {
-		return len_ + handle_key_without_modifier(arg, csi_len, offset, buf, bufsize, buflen, trail)
+		return len_ + handle_key_without_modifier(arg.Tail(), csi_len, offset, buf, bufsize, buflen, trail)
 	}
 	return 0
 }
@@ -53396,10 +53396,10 @@ func handle_csi(tp Ptr[byte], len_ int32, argp Ptr[byte], offset int32, buf Ptr[
 func check_for_color_response(resp Ptr[byte], len_ int32) {
 	var i int32
 	var j int32
-	var argp Ptr[byte]
+	var argp []byte
 	j = 1 + B2i((int32(resp.At(0)) == ESC))
-	argp = resp.Add(int(j))
-	if (len_ >= (j + 3)) && (((int32(argp.At(0)) != '1') || ((int32(argp.At(1)) != '1') && (int32(argp.At(1)) != '0'))) || (int32(argp.At(2)) != ';')) {
+	argp = resp.Add(int(j)).Tail()
+	if (len_ >= (j + 3)) && (((int32(argp[0]) != '1') || ((int32(argp[1]) != '1') && (int32(argp[1]) != '0'))) || (int32(argp[2]) != ';')) {
 		i = 0
 	} else {
 		i = j
@@ -53415,7 +53415,7 @@ func check_for_color_response(resp Ptr[byte], len_ int32) {
 				t2 = t1
 			}
 			if t2 {
-				is_bg := int32(argp.At(1)) == '1'
+				is_bg := int32(argp[1]) == '1'
 				is_4digit := (((i - j) >= 21) && (int32(resp.At(int(j+11))) == '/')) && (int32(resp.At(int(j+16))) == '/')
 				if (((i - j) >= 15) && (musl_strncmp(resp.Add(int(j)).Add(3), S("rgb:"), 4) == 0)) && (is_4digit || ((int32(resp.At(int(j+9))) == '/') && (int32(resp.At(int(j+12))) == '/'))) {
 					tp_r := resp.Add(int(j)).Add(7)
@@ -53458,7 +53458,7 @@ func in_osc_sequence() bool {
 	return (osc_state.processing)
 }
 
-func handle_osc(tp Ptr[byte], len_ int32, key_name Ptr[byte], slen *int32) bool {
+func handle_osc(tp Ptr[byte], len_ int32, key_name []byte, slen *int32) bool {
 	var last_char char_u
 	if !osc_state.processing {
 		var cur int32 = 1 + B2i((int32(tp.At(0)) == ESC))
@@ -53473,7 +53473,7 @@ func handle_osc(tp Ptr[byte], len_ int32, key_name Ptr[byte], slen *int32) bool 
 	} else {
 		last_char = GaData[byte](&osc_state.buf).At(int(osc_state.buf.ga_len - 1))
 	}
-	key_name.Set(0, 253)
+	key_name[0] = 253
 	var i int32 = 0
 	for ; i < len_; i++ {
 		var t2 bool = int32(tp.At(int(i))) == 7
@@ -53488,7 +53488,7 @@ func handle_osc(tp Ptr[byte], len_ int32, key_name Ptr[byte], slen *int32) bool 
 		}
 		if t2 {
 			osc_state.processing = false
-			key_name.Set(1, 109)
+			key_name[1] = 109
 			ga_concat_len(&osc_state.buf, tp, usize((i+1)+B2i((int32(tp.At(int(i))) == ESC))))
 			ga_append(&osc_state.buf, NUL)
 			*slen = (i + 1) + B2i((int32(tp.At(int(i))) == ESC))
@@ -53500,7 +53500,7 @@ func handle_osc(tp Ptr[byte], len_ int32, key_name Ptr[byte], slen *int32) bool 
 			return true
 		}
 	}
-	key_name.Set(1, 53)
+	key_name[1] = 53
 	if (musl_now_ms() - osc_state.start_tv) >= p_ost {
 		vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_osc_response_timed_out), osc_state.buf.ga_len, osc_state.buf.ga_data)
 		emsg(iobuff_or(gettext_(e_osc_response_timed_out)))
@@ -53513,7 +53513,7 @@ func handle_osc(tp Ptr[byte], len_ int32, key_name Ptr[byte], slen *int32) bool 
 	return true
 }
 
-func handle_dcs(tp Ptr[byte], argp Ptr[byte], len_ int32, key_name Ptr[byte], slen *int32) bool {
+func handle_dcs(tp Ptr[byte], argp Ptr[byte], len_ int32, key_name []byte, slen *int32) bool {
 	var i int32
 	var j int32 = 1 + B2i((int32(tp.At(0)) == ESC))
 	if len_ < (j + 3) {
@@ -53524,8 +53524,8 @@ func handle_dcs(tp Ptr[byte], argp Ptr[byte], len_ int32, key_name Ptr[byte], sl
 		i = j
 		for ; i < len_; i++ {
 			if (((int32(tp.At(int(i))) == ESC) && ((i + 1) < len_)) && (int32(tp.At(int(i+1))) == 92)) || (int32(tp.At(int(i))) == STERM) {
-				key_name.Set(0, 253)
-				key_name.Set(1, 53)
+				key_name[0] = 253
+				key_name[1] = 53
 				*slen = (i + 1) + B2i((int32(tp.At(int(i))) == ESC))
 				break
 			}
@@ -53546,8 +53546,8 @@ func handle_dcs(tp Ptr[byte], argp Ptr[byte], len_ int32, key_name Ptr[byte], sl
 				break
 			}
 			if (((i - j) == 6) && (int32(tp.At(int(i))) == STERM)) || (((i - j) == 7) && (int32(tp.At(int(i))) == 92)) {
-				key_name.Set(0, 253)
-				key_name.Set(1, 53)
+				key_name[0] = 253
+				key_name[1] = 53
 				*slen = i + 1
 				break
 			}
@@ -53606,7 +53606,7 @@ func check_termcode(max_offset int32, buf Ptr[byte], bufsize int32, buflen *int3
 			key_name.Set(0, NUL)
 			key_name.Set(1, NUL)
 			modifiers = 0
-			if !handle_osc(tp, len_, key_name, &slen) {
+			if !handle_osc(tp, len_, key_name.Tail(), &slen) {
 				return -1
 			}
 		} else {
@@ -53723,16 +53723,16 @@ func check_termcode(max_offset int32, buf Ptr[byte], bufsize int32, buflen *int3
 				}
 				argp := t3
 				if (((int32(tp.At(0)) == ESC) && (len_ >= 3)) && (int32(tp.At(1)) == '[')) || ((int32(tp.At(0)) == CSI) && (len_ >= 2)) && !vim_strchr(S("0123456789>?ABCDEFHPQRS"), int32(argp.Get())).Nil() {
-					resp := handle_csi(tp, len_, argp, offset, buf, bufsize, buflen, key_name, &slen)
+					resp := handle_csi(tp, len_, argp, offset, buf, bufsize, buflen, key_name.Tail(), &slen)
 					if resp != 0 {
 						return resp
 					}
 				} else if (((int32(tp.At(0)) == ESC) && (len_ >= 2)) && (int32(tp.At(1)) == ']')) || (int32(tp.At(0)) == OSC) {
-					if !handle_osc(tp, len_, key_name, &slen) {
+					if !handle_osc(tp, len_, key_name.Tail(), &slen) {
 						return -1
 					}
 				} else if (((int32(tp.At(0)) == ESC) && (len_ >= 2)) && (int32(tp.At(1)) == 'P')) || (int32(tp.At(0)) == DCS) {
-					if !handle_dcs(tp, argp, len_, key_name, &slen) {
+					if !handle_dcs(tp, argp, len_, key_name.Tail(), &slen) {
 						return -1
 					}
 				}
@@ -54010,7 +54010,7 @@ func show_termcodes(flags int32) {
 		item_count = 0
 		i = 0
 		for ; i < tc_len; i++ {
-			len_ = show_one_termcode(View(termcodes.Ref(int(i)).name[:]), termcodes.Ref(int(i)).code, false)
+			len_ = show_one_termcode(termcodes.Ref(int(i)).name[:], termcodes.Ref(int(i)).code, false)
 			var t4 bool = (flags & OPT_ONECOLUMN) != 0
 			if !t4 {
 				var t3 bool
@@ -54058,7 +54058,7 @@ func show_termcodes(flags int32) {
 			i = row
 			for ; i < item_count; i += rows {
 				msg_col = col
-				show_one_termcode(View(termcodes.Ref(int(items.At(int(i)))).name[:]), termcodes.Ref(int(items.At(int(i)))).code, true)
+				show_one_termcode(termcodes.Ref(int(items.At(int(i)))).name[:], termcodes.Ref(int(items.At(int(i)))).code, true)
 				if run == 2 {
 					col += INC2
 				} else {
@@ -54071,10 +54071,10 @@ func show_termcodes(flags int32) {
 	}
 }
 
-func show_one_termcode(name Ptr[byte], code Ptr[byte], printit bool) int32 {
+func show_one_termcode(name []byte, code Ptr[byte], printit bool) int32 {
 	var p Ptr[byte]
 	var len_ int32
-	if int32(name.At(0)) > '~' {
+	if int32(name[0]) > '~' {
 		IObuff.Set(0, ' ')
 		IObuff.Set(1, ' ')
 		IObuff.Set(2, ' ')
@@ -54082,11 +54082,11 @@ func show_one_termcode(name Ptr[byte], code Ptr[byte], printit bool) int32 {
 	} else {
 		IObuff.Set(0, 't')
 		IObuff.Set(1, '_')
-		IObuff.Set(2, name.At(0))
-		IObuff.Set(3, name.At(1))
+		IObuff.Set(2, name[0])
+		IObuff.Set(3, name[1])
 	}
 	IObuff.Set(4, ' ')
-	p = get_special_key_name(-(int32(name.At(0)) + (int32(name.At(1)) << 8)), 0)
+	p = get_special_key_name(-(int32(name[0]) + (int32(name[1]) << 8)), 0)
 	if int32(p.At(1)) != 't' {
 		musl_strcpy(IObuff.Add(5), p)
 	} else {
@@ -57453,29 +57453,29 @@ func command_line_scan(parmp *mparm_T) {
 	argv := parmp.argv
 	var argv_idx int32
 	argc--
-	argv = argv.Add(1)
+	argv = argv[1:]
 	argv_idx = 1
 	for argc > 0 {
-		if int32(argv.At(0).At(0)) == '+' {
+		if int32(argv[0].At(0)) == '+' {
 			if parmp.n_commands >= MAX_ARG_CMDS {
 				mainerr(ME_EXTRA_CMD, Ptr[byte]{})
 			}
 			argv_idx = -1
-			if int32(argv.At(0).At(1)) == NUL {
+			if int32(argv[0].At(1)) == NUL {
 				var t1 int32 = parmp.n_commands
 				parmp.n_commands++
 				parmp.commands[int(t1)] = S("$")
 			} else {
 				var t2 int32 = parmp.n_commands
 				parmp.n_commands++
-				parmp.commands[int(t2)] = argv.At(0).Add(1)
+				parmp.commands[int(t2)] = argv[0].Add(1)
 			}
 		} else {
-			mainerr(ME_UNKNOWN_OPTION, argv.At(0))
+			mainerr(ME_UNKNOWN_OPTION, argv[0])
 		}
-		if (argv_idx <= 0) || (int32(argv.At(0).At(int(argv_idx))) == NUL) {
+		if (argv_idx <= 0) || (int32(argv[0].At(int(argv_idx))) == NUL) {
 			argc--
-			argv = argv.Add(1)
+			argv = argv[1:]
 			argv_idx = 1
 		}
 	}
@@ -57523,7 +57523,7 @@ func mainerr(n int32, str Ptr[byte]) {
 	mch_exit(1)
 }
 
-func vim_main(argc int32, argv Ptr[Ptr[byte]]) int32 {
+func vim_main(argc int32, argv []Ptr[byte]) int32 {
 	params = mparm_T{}
 	params.argc = argc
 	params.argv = argv

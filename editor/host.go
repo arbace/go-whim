@@ -1690,11 +1690,9 @@ func host_write(s Ptr[byte], len_ int32) int32 {
 // argv[argc] NULL), and vim_main's result as the exit status.
 func main() {
 	argc := len(os.Args)
-	argv := Mk[Ptr[byte]](argc + 1)
+	argv := make([]Ptr[byte], argc+1)
 	for i, a := range os.Args {
-		b := Mk[byte](len(a) + 1)
-		copy(b.Slice(len(a)), a)
-		argv.Set(i, b)
+		argv[i] = View([]byte(a + "\x00"))
 	}
 	os.Exit(int(vim_main(int32(argc), argv)))
 }

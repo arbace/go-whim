@@ -272,3 +272,21 @@ func (p Ptr[T]) GrowTo(n int) Ptr[T] {
 }
 
 // --- container_of: a key recovered as the struct it is inside -------------------
+
+// Tail is the C array p points into, from p on, as a Go slice: how a pointer
+// that only walks forward is held (a []T, walked with s = s[k:]).
+func (p Ptr[T]) Tail() []T {
+	if p.base == nil {
+		return nil
+	}
+	return p.slice()[p.i:]
+}
+
+// One is the one T that p points at, as a slice of it: a *T handed to code
+// that walks forward from it.
+func One[T any](p *T) []T {
+	if p == nil {
+		return nil
+	}
+	return unsafe.Slice(p, 1)
+}
