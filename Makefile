@@ -135,6 +135,12 @@ slim-vim: src/slim-vim  ## the input's binary, src/slim-vim, compiled with the o
 # and a fresh clone writes them at checkout time in arbitrary order, so an mtime
 # dependency would run a pass on a tree that is exactly right.  src/slim.sha records
 # the slim-vim.c the committed whim-vim.c was produced from.
+# The goals that cut editor.c and generate the editors themselves once
+# whim-vim.c is current -- `make` (all), bin/whim, editor.c, editor/editor.go.
+# When one is being made, whim-vim.c's rule builds without whim-build's own
+# editor step, or a build from a fresh clone cut and generated twice.
+editor-follows := $(if $(MAKECMDGOALS),$(filter all bin/whim editor.c editor/editor.go,$(MAKECMDGOALS)),all)
+
 src/whim-vim.c: src/slim-vim.c force
 	@set -e; \
 	live=`sha256sum src/slim-vim.c | cut -c1-64`; \
@@ -143,7 +149,7 @@ src/whim-vim.c: src/slim-vim.c force
 	    exit 0; \
 	fi; \
 	printf '  %-12s %s -- whim-vim.c must be produced\n' "slim-vim.c" "`echo $$live | cut -c1-12`"; \
-	$(MAKE) --no-print-directory whim-build; \
+	$(MAKE) --no-print-directory whim-build $(if $(editor-follows),WHIM_BUILD_EDITOR=no); \
 	echo "$$live" > src/slim.sha
 
 # The pipeline in one process: 164 phases, in order, in memory -- internal/build's
@@ -158,7 +164,7 @@ whim-build:  ## the 143 phases in one process: slim-vim.c -> whim-vim.c
 	@printf '\n\033[1m  whim-vim\033[0m  from slim-vim.c: an editor with no runtime\n'
 	@go tool whim build --out src/whim-vim.c
 	@$(call drop-stale,src/whim-vim)
-	@$(MAKE) --no-print-directory whim-editor
+	@$(if $(filter no,$(WHIM_BUILD_EDITOR)),,$(MAKE) --no-print-directory whim-editor)
 
 whim-build-check:  ## the same build, required to give the committed bytes back
 	@go tool whim build --check
