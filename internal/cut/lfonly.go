@@ -182,16 +182,8 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 			"buf_write choosing 'binary' or ++bin"); err != nil {
 			return nil, err
 		}
-		if s, err = e.subOnce(s, `^[ \t]*int[ \t]+write_bin;\n`,
-			"buf_write declaring write_bin"); err != nil {
-			return nil, err
-		}
 		if s, err = e.literal(s, "        fileformat = get_fileformat_force(buf, eap);\n", "",
 			"buf_write choosing a format", 1); err != nil {
-			return nil, err
-		}
-		if s, err = e.subOnce(s, `^[ \t]*int[ \t]+fileformat;\n`,
-			"buf_write declaring the format"); err != nil {
 			return nil, err
 		}
 		if s, err = e.foldNever(s, `^[ \t]*else if \(c == CAR && fileformat == EOL_MAC\)$`,
@@ -220,10 +212,6 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 
 	text, err = e.inFunction(text, "open_buffer", func(s []byte) ([]byte, error) {
 		var err error
-		if s, err = e.subCount(s, `^[ \t]*int[ \t]+save_bin = curbuf->b_p_bin;\n`,
-			"open_buffer saving 'binary'", 2); err != nil {
-			return nil, err
-		}
 		if s, err = e.subOnce(s,
 			`^[ \t]*if \(read_fifo\)\n[ \t]*\{\n[ \t]*curbuf->b_p_bin = TRUE;\n[ \t]*\}\n`,
 			"a fifo read as binary"); err != nil {
@@ -253,12 +241,8 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 
 	// 'endofline' and 'endoffile' had no initialiser in buf_copy_options():
 	// their only resets were the ones removed above.  droplocal wants an
-	// initialiser to recognise the shape, so their field and get_varp() case
-	// go here.
-	if text, err = e.subCount(text, `^[ \t]*int[ \t]+b_p_eo[lf];\n`,
-		"the 'endofline' and 'endoffile' fields", 2); err != nil {
-		return nil, err
-	}
+	// initialiser to recognise the shape, so their get_varp() case goes here,
+	// and the sweep takes the fields no one names after it.
 	if text, err = e.inFunction(text, "get_varp", func(s []byte) ([]byte, error) {
 		return e.subCount(s,
 			`^[ \t]*case \(idopt_T\)\(PV_BUF \+ \(int\)\(BV_EO[LF]\)\):\n`+
