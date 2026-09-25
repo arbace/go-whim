@@ -116,13 +116,30 @@ func Build(src, dir, name string) (string, error) {
 
 // Run is one session: its output and its exit status, or a hang.
 func Run(bin string, keys []byte) ([]byte, int, error) {
+	// THE KEYS ARE A FILE, NOT A PIPE.  The editor asks whether more typed input
+	// is waiting when it decides whether to redraw, and through a pipe the answer
+	// is how much the feeding goroutine has written by then: under load the
+	// screen came out different 1 run in 300.  A regular file holds every key
+	// from the start, so the answer is the same on every run: yes, until the end.
+	in, err := os.CreateTemp("", "keys.")
+	if err != nil {
+		return nil, -1, err
+	}
+	defer os.Remove(in.Name())
+	defer in.Close()
+	if _, err := in.Write(keys); err != nil {
+		return nil, -1, err
+	}
+	if _, err := in.Seek(0, 0); err != nil {
+		return nil, -1, err
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin)
-	cmd.Stdin = bytes.NewReader(keys)
+	cmd.Stdin = in
 	var out bytes.Buffer
 	cmd.Stdout, cmd.Stderr = &out, &out
-	err := cmd.Run()
+	err = cmd.Run()
 	if ctx.Err() != nil {
 		return out.Bytes(), -1, fmt.Errorf("no exit within 10 s")
 	}

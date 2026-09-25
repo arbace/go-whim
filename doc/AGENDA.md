@@ -13,12 +13,6 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   `internal/harness`, its corpus and pty harness) covered and is where a wider
   one can be read from. It checks the Go editor against the C on the same
   cases, so a wider corpus widens both.
-- **The behaviour suite is timing-sensitive, rarely.** Under heavy CPU load the
-  Go editor's output for `substitute` differed from itself 1 run in 300, on
-  `main` as on a branch: a redraw depends on how much typeahead has arrived
-  when the editor looks. `whim-test` can therefore fail once and pass on a
-  rerun. Feeding the keys so the typeahead is the same every run (all at once
-  before the editor reads, or one read per key) would make it exact.
 
 - **The generic C refactorings, separated from vim's** (`doc/VIM-VS-GENERIC.md`).
   12 phases are generic C, 93 mixed (most apply a generic kernel to targets vim
