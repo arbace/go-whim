@@ -28,12 +28,14 @@ package p092
 // 1. the `if (curbuf->b_ffname != NULL) {...} else if (read_stdin) {...}` pair,
 // as exact text with the blank line after it.  That is the entire cut: the two
 // arms hold all three calls into the read path.
-// 2. `int read_fifo = FALSE;` -- set nowhere once anchor 1 has gone, read twice.
+// 2. `read_fifo` -- set nowhere once anchor 1 has gone, read twice; its local
+// `int read_fifo = FALSE;` is left to the sweep.
 // 3. `else if (retval == OK && !read_stdin && !read_fifo)` -> `else if (retval ==
 // OK)`, which is where anchor 2's second reader was.
 // 4. the signature: `open_buffer(int read_stdin, exarg_T *eap, int flags_arg)` ->
-// `open_buffer(void)`, the `int flags = flags_arg;` local, and the four call
-// sites, every one of which already passes `FALSE, NULL, 0`.
+// `open_buffer(void)`, and the four call sites, every one of which already
+// passes `FALSE, NULL, 0`.  The `int flags = flags_arg;` local, unused, names a
+// parameter that is gone until the sweep takes it.
 //
 // ANCHOR 4 IS WHAT TAKES read_stdin TO ZERO, and it is measured rather than argued.
 // Without it `open_buffer` keeps three parameters that nothing reads, and THE SWEEP
@@ -83,7 +85,7 @@ var w92Before = map[string]int{
 }
 
 // w92After is what the sweep is handed, as a count rather than as trust.
-var w92After = map[string]int{"readfile": 3, "read_buffer": 15, "read_stdin": 20, "read_fifo": 4}
+var w92After = map[string]int{"readfile": 3, "read_buffer": 15, "read_stdin": 20, "read_fifo": 5}
 
 var w92Assign = regexp.MustCompile(`\bretval\b\s*=[^=]`)
 
@@ -139,11 +141,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"to read_buffer(), and the fifo test between them", 1); err != nil {
 		return nil, err
 	}
-	// ---- 2. read_fifo, written nowhere now ------------------------------------
-	if text, err = within(text, "open_buffer", w92lit1, "",
-		"the read_fifo local: anchor 1 was its only writer", 1); err != nil {
-		return nil, err
-	}
+	// ---- 2. read_fifo, written nowhere now: its local goes to the sweep -------
 	// ---- 3. the unchanged() test, where its second reader was -----------------
 	if text, err = within(text, "open_buffer", w92lit2, w92lit3,
 		"the unchanged() arm: !read_stdin and !read_fifo were both constantly true", 1); err != nil {
@@ -153,10 +151,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = within(text, "open_buffer", w92lit4, w92lit5,
 		"open_buffer(void): read_stdin, eap and flags_arg are read by nothing "+
 			"now, and there is no prototype to follow", 1); err != nil {
-		return nil, err
-	}
-	if text, err = within(text, "open_buffer", w92lit6, "",
-		"the flags local, which only the deleted arms passed on", 1); err != nil {
 		return nil, err
 	}
 	if k := strings.Count(string(text), "open_buffer(FALSE, NULL, 0)"); k != 4 {
@@ -174,7 +168,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("open_buffer no longer parses as a definition")
 	}
 	Body := text[a:z]
-	for _, gone := range []string{"read_stdin", "read_fifo", "eap", "flags", "readfile", "read_buffer"} {
+	// The read_fifo and flags locals are still declared here; the sweep takes
+	// both, unused.
+	for _, gone := range []string{"read_stdin", "eap", "readfile", "read_buffer"} {
 		if mentions(Body, gone) > 0 {
 			return nil, p.Die("%s is still named inside open_buffer", gone)
 		}
