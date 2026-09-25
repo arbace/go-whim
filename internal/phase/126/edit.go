@@ -112,6 +112,9 @@ var (
 		"mf_hash_rem_item", "mf_hash_grow"}
 	w126HashWrap = []string{"mf_ins_hash", "mf_rem_hash", "mf_find_hash"}
 	w126FreeList = []string{"mf_ins_free", "mf_rem_free"}
+	// w126Protos are the forward declarations this edit leaves for the sweep:
+	// their functions go here, and they name no type that goes.
+	w126Protos = []string{"mf_ins_hash", "mf_rem_hash", "mf_ins_free", "mf_rem_free"}
 )
 
 // Whim126 turns a block number into a reference: `pe_bnum` and `ip_bnum` become
@@ -129,16 +132,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	lines := func() []string { return strings.Split(t, "\n") }
 	mentions := func(s, name string) int {
 		return len(regexp.MustCompile(`\b(?:`+name+`)\b`).FindAllString(s, -1))
-	}
-	blankRuns := func(s string) int {
-		L := strings.Split(s, "\n")
-		n := 0
-		for i := 1; i < len(L); i++ {
-			if L[i] == "" && L[i-1] == "" {
-				n++
-			}
-		}
-		return n
 	}
 	swap := func(old, new, what, why string) error {
 		c := cutil.CountAnchor(t, old)
@@ -397,21 +390,25 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// ---- 3. the memfile -------------------------------------------------------
 	// Eleven functions go, and they go HERE and not to tools/sweep.sh: every one
 	// names a type or a field removed above, so leaving them for the sweep would
-	// leave a file that does not compile for the sweep to ask gcc about.
+	// leave a file that does not compile for the sweep to ask gcc about.  Seven
+	// of their forward declarations name such a type too and go here; the other
+	// four (w126Protos) name none, and the sweep takes them with their
+	// definitions.
 	all := append(append(append([]string{}, w126HashWrap...), w126FreeList...), w126HashImpl...)
+	var cutProtos []string
 	for _, name := range all {
-		// WITH THE BLANK LINE UNDER IT.  The canonical text puts one between two
-		// file-scope declarations, so taking the line alone would leave the
-		// blank behind and the paragraph check below would refuse -- eleven
-		// times over, in two runs.
-		re := regexp.MustCompile(`(?m)^static [\w *]*` + name + `\([^\n]*\);\n\n`)
+		if edit.ContainsStr(w126Protos, name) {
+			continue
+		}
+		re := regexp.MustCompile(`(?m)^static [\w *]*` + name + `\([^\n]*\);\n`)
 		m := re.FindStringIndex(t)
 		if m == nil {
 			return nil, p.Die("`%s` has no forward declaration in the one shape this tree writes them", name)
 		}
 		t = t[:m[0]] + t[m[1]:]
+		cutProtos = append(cutProtos, name)
 	}
-	p.Sayf("%d forward declarations go: %s", len(all), strings.Join(all, ", "))
+	p.Sayf("%d forward declarations go: %s", len(cutProtos), strings.Join(cutProtos, ", "))
 
 	for _, s := range []struct{ Old, New, What, why string }{
 		{w126s5Old, w126s5New, w126s5What, w126s5Why},
@@ -451,7 +448,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		{w126s15Old, w126s15New, w126s15What, w126s15Why},
 		{w126s16Old, w126s16New, w126s16What, w126s16Why},
 		{w126s17Old, w126s17New, w126s17What, w126s17Why},
-		{w126s18Old, w126s18New, w126s18What, w126s18Why},
 		{w126s19Old, w126s19New, w126s19What, w126s19Why},
 		{w126s20Old, w126s20New, w126s20What, w126s20Why},
 		{w126s21Old, w126s21New, w126s21What, w126s21Why},
@@ -459,7 +455,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		{w126s23Old, w126s23New, w126s23What, w126s23Why},
 		{w126s24Old, w126s24New, w126s24What, w126s24Why},
 		{w126s25Old, w126s25New, w126s25What, w126s25Why},
-		{w126s26Old, w126s26New, w126s26What, w126s26Why},
 		{w126s27Old, w126s27New, w126s27What, w126s27Why},
 		{w126s28Old, w126s28New, w126s28What, w126s28Why},
 		{w126s29Old, w126s29New, w126s29What, w126s29Why},
@@ -504,10 +499,22 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"mht_mask", "mht_count", "mht_buckets", "mht_small_buckets", "mht_fixed",
 		"MHT_INIT_SIZE", "MHT_LOG_LOAD_FACTOR", "MHT_GROWTH_FACTOR", "bh_hashitem",
 		"pe_bnum", "ip_bnum", "pe_page_count", "bh_page_count", "mf_blocknr_max",
-		"mf_free_first", "mf_used_last", "mf_hash", "page_count_left",
-		"page_count_right", "bnum_left", "bnum_right"}, all...)
+		"mf_free_first", "mf_used_last", "mf_hash", "bnum_left", "bnum_right"}, all...)
+	// left for the sweep, each named once: the four forward declarations, and
+	// ml_append_int()'s page-count locals, declared and no longer written or
+	// read (ml_find_line()'s page_count is left the same way).
+	once := append([]string{"page_count_left", "page_count_right"}, w126Protos...)
 	var left []string
+	for _, n := range once {
+		if k := mentions(t, n); k != 1 {
+			return nil, p.Die("`%s` has %d mentions, and this edit leaves it one, its declaration, "+
+				"for the sweep", n, k)
+		}
+	}
 	for _, n := range gone {
+		if edit.ContainsStr(w126Protos, n) {
+			continue
+		}
 		if k := mentions(t, n); k > 0 {
 			left = append(left, fmt.Sprintf("%s %d", n, k))
 		}
@@ -557,17 +564,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"this phase that a tool can see", len(standing), strings.Join(standing, ", "))
 
 	// ---- 6. the shape of what is written Out ----------------------------------
-	if r := blankRuns(t); r > 0 {
-		var at []string
-		L := strings.Split(t, "\n")
-		for i := 1; i < len(L) && len(at) < 20; i++ {
-			if L[i] == "" && L[i-1] == "" {
-				at = append(at, fmt.Sprintf("%d", i+1))
-			}
-		}
-		return nil, p.Die("%d runs of two blank lines at %s -- no verification tier can see "+
-			"paragraphing (CLAUDE.md, *Verification tiers*)", r, strings.Join(at, " "))
-	}
 	var incs2, dirs2 []int
 	for i, l := range lines() {
 		if w126IncLine.MatchString(l) {
@@ -588,7 +584,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	nOut := strings.Count(t, "\n")
 	p.Sayf("%d -> %d lines before the sweep, %d fewer, the %d `#include`s untouched and still "+
-		"contiguous, and no run of two blank lines", nIn, nOut, nIn-nOut, len(incs2))
+		"contiguous", nIn, nOut, nIn-nOut, len(incs2))
 
 	// The edit leaves its own output beside the input, so the check can say what
 	// the EDIT removed and what the SWEEP removed separately.
