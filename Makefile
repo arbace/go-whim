@@ -225,6 +225,13 @@ whim-test:  ## the quick suite: 45 key sessions, required to behave as HEAD's wh
 whim-test-wide:  ## the optional wide suite: 240 cases in four groups (keys, Ex commands, argv, a real terminal)
 	@go tool whim test --wide
 
+# The Go packages' own tests, in both modules: `go test ./...` at the root
+# does not reach crefactor/, a module of its own, so it is run from there too.
+.PHONY: go-test
+go-test:  ## the Go tests of both modules: this one and crefactor/
+	@go vet ./... && go test ./...
+	@cd crefactor && go vet ./... && go test ./...
+
 .PHONY: whim-editor-check
 whim-editor-check:  ## refuse if the tracked editor.go is not what internal/gen writes
 	$(cut-editor)

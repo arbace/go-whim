@@ -210,6 +210,7 @@ make whim-test        # the quick suite: 45 key sessions, required to behave as 
 make whim-test-wide   # the optional wide suite: 240 cases, keys, Ex commands, argv, a terminal
 make whim-vim        # the C product's binary
 make slim-vim        # the input's binary, with the same one line
+make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make score           # bytes to store and symbols to provide, input beside product
 make help            # every target, with a line each
 ```
