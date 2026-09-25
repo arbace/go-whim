@@ -30,57 +30,27 @@ var w103Ops = []w103Op{
 	{"cut", []string{"            case 2048:\n                win_resize_setting = setting;\n                term_set_win_resize(true);\n                break;\n", "1", "R3"}, 88},
 	{"sub", []string{"    else if (first == '?' && trail == 'y' && argc == 2 && (arg[0] == 2026 || arg[0] == 2048))\n", "    else if (first == '?' && trail == 'y' && argc == 2 && arg[0] == 2026)\n", "1", "R4"}, 94},
 	{"delfunc", []string{"did_set_termresize(optset_T *args __attribute__((unused)))", "R5"}, 100},
-	{"cut", []string{"static char *did_set_termresize(optset_T *args);\n", "1", "R5b"}, 101},
 	{"cut", []string{"    {\"termresize\", \"trz\", P_STRING | P_VI_DEF, (char_u *)&p_trz, PV_NONE, did_set_termresize, NULL, {(char_u *)\"\", (char_u *)0}},\n", "1", "R5c"}, 102},
-	{"cut", []string{"static char_u *p_trz;\n", "1", "R5d"}, 107},
 	{"cut", []string{"    term_set_win_resize(false);\n", "1", "R6"}, 108},
-	{"delfunc", []string{"term_set_win_resize(bool state)\n{", "R7"}, 109},
-	{"cut", []string{"static void term_set_win_resize(bool state);\n", "1", "R7b"}, 110},
-	{"cut", []string{"static int win_resize_setting = 0;\n", "1", "R7c"}, 111},
-	{"cut", []string{"static bool win_resize_enabled = false;\n", "1", "R7d"}, 112},
-	{"say", []string{"the 'termresize' option, term_set_win_resize(), win_resize_setting and win_resize_enabled are gone, and the CSI 48 arm is unconditional and always a full redraw"}, 113},
+	{"say", []string{"the 'termresize' option, term_set_win_resize(), win_resize_setting and win_resize_enabled lose every use, for the sweep to take, and the CSI 48 arm is unconditional and always a full redraw"}, 113},
 	{"delfunc", []string{"sig_winch(int sigarg __attribute__((unused)))", "W1"}, 118},
-	{"cut", []string{"static void sig_winch(int);\n", "1", "W1b"}, 119},
 	{"delfunc", []string{"set_sigwinch_handler(void)\n{", "W2"}, 120},
-	{"delfunc", []string{"resize_func(int check_only)", "W3"}, 121},
 	{"sub", []string{"    return inchar_loop(buf, maxlen, wtime, tb_change_cnt, WaitForChar, resize_func);\n", "    return inchar_loop(buf, maxlen, wtime, tb_change_cnt, WaitForChar, NULL);\n", "1", "W4"}, 124},
-	{"delfunc", []string{"handle_resize(void)\n{", "W5"}, 127},
-	{"cut", []string{"static void handle_resize(void);\n", "1", "W5b"}, 128},
-	{"cut", []string{"static volatile sig_atomic_t do_resize = FALSE;\n", "1", "W6"}, 129},
-	{"cut", []string{"            if (do_resize)\n            {\n                handle_resize();\n            }\n", "1", "W7"}, 130},
 	{"cut", []string{"    {SIGWINCH, \"WINCH\", FALSE},\n", "1", "W8"}, 136},
 	{"cut", []string{"    mch_signal(SIGWINCH, sig_winch);\n", "1", "W9"}, 137},
-	{"delfunc", []string{"mch_get_shellsize(void)\n{", "I1"}, 140},
 	{"sub", []string{"    int retval;\n    retval = mch_get_shellsize();\n", "    int     retval;\n    int     hrows = 0;\n    int     hcols = 0;\n\n        retval = FAIL;\n        if (musl_get_winsize(&hrows, &hcols) == OK)\n        {\n            Rows = hrows;\n            Columns = hcols;\n            limit_screen_size();\n            retval = OK;\n        }\n", "1", "I2"}, 144},
-	{"delfunc", []string{"catch_sigint(int sigarg __attribute__((unused)))\n{", "S1"}, 162},
-	{"cut", []string{"static void catch_sigint(int);\n", "1", "S1b"}, 163},
-	{"delfunc", []string{"sig_tstp(int sigarg __attribute__((unused)))\n{", "S2"}, 164},
-	{"cut", []string{"static void sig_tstp(int);\n", "1", "S2b"}, 165},
 	{"delfunc", []string{"sigcont_handler(int sigarg __attribute__((unused)))\n{", "S3"}, 166},
-	{"cut", []string{"static void sigcont_handler(int);\n", "2", "S3b"}, 169},
-	{"cut", []string{"static volatile sig_atomic_t sigcont_received;\n", "1", "S3c"}, 170},
 	{"sub", []string{"static struct signalinfo\n{\n    int sig;\n    char *name;\n    char deadly;\n} signal_info[] =\n{\n    {SIGHUP, \"HUP\", TRUE},\n    {SIGTERM, \"TERM\", TRUE},\n    {SIGINT, \"INT\", FALSE},\n    {SIGTSTP, \"TSTP\", FALSE},\n    {-1, \"Unknown!\", FALSE},\n};\n", "static struct signalinfo\n{\n    int     sig;\n    char    *name;\n} signal_info[] =\n{\n    {SIGHUP,        \"HUP\"},\n    {SIGTERM,       \"TERM\"},\n    {-1,            \"Unknown!\"}\n};\n", "1", "S4"}, 177},
-	{"delfunc", []string{"mch_signal(int sig, sighandler_T func)\n{", "S5"}, 201},
-	{"cut", []string{"static sighandler_T mch_signal(int sig, sighandler_T func);\n", "1", "S5b"}, 202},
 	{"delfunc", []string{"catch_signals(void (*func_deadly)(int), void (*func_other)(int))\n{", "S6"}, 203},
-	{"cut", []string{"static void catch_signals(void (*func_deadly)(int), void (*func_other)(int));\n", "1", "S6b"}, 204},
 	{"delfunc", []string{"\nset_signals(void)\n{", "S7"}, 206},
-	{"cut", []string{"static void set_signals(void);\n", "1", "S7b"}, 207},
 	{"delfunc", []string{"reset_signals(void)\n{", "S8"}, 208},
-	{"cut", []string{"static void reset_signals(void);\n", "1", "S8b"}, 209},
 	{"cut", []string{"    reset_signals();\n", "1", "S8c"}, 210},
-	{"delfunc", []string{"catch_int_signal(void)\n{", "S9"}, 211},
-	{"cut", []string{"static void catch_int_signal(void);\n", "1", "S9b"}, 212},
 	{"sub", []string{"    ignore_sigtstp = SIG_IGN == mch_signal(SIGTSTP, SIG_ERR);\n    set_signals();\n", "    musl_host_init();\n", "1", "S10"}, 213},
 	{"cut", []string{"    mch_signal(SIGHUP, SIG_IGN);\n", "1", "S11"}, 220},
-	{"cut", []string{"            if (got_tstp && !in_mch_suspend)\n            {\n                exarg_T ea;\n                ea.forceit = TRUE;\n                ex_stop(&ea);\n                got_tstp = FALSE;\n            }\n", "1", "S12"}, 221},
-	{"cut", []string{"static volatile sig_atomic_t got_tstp = FALSE;\n", "1", "S12b"}, 231},
 	{"cut", []string{"    if (ignore_sigtstp)\n    {\n        return;\n    }\n", "1", "S13"}, 234},
-	{"cut", []string{"static int ignore_sigtstp = FALSE;\n", "1", "S13b"}, 240},
-	{"say", []string{"mch_signal(), signal_info[]'s three non-deadly rows, catch_signals(), set_signals(), reset_signals(), catch_int_signal(), sig_winch, sig_tstp, catch_sigint and sigcont_handler are gone.  deathtrap and vim_handle_signal STAY and the host installs deathtrap for SIGHUP and SIGTERM -- which is what keeps the terminal restored and the message printed when the editor is killed"}, 241},
+	{"say", []string{"mch_signal(), signal_info[]'s three non-deadly rows, catch_signals(), set_signals(), reset_signals(), catch_int_signal(), sig_winch, sig_tstp, catch_sigint and sigcont_handler lose every use, and the sweep takes them.  deathtrap and vim_handle_signal STAY and the host installs deathtrap for SIGHUP and SIGTERM -- which is what keeps the terminal restored and the message printed when the editor is killed"}, 241},
 	{"sub", []string{"    static void\nmch_suspend(void)\n{\n    in_mch_suspend = TRUE;\n    out_flush();\n    settmode(TMODE_COOK);\n    out_flush();\n    sigcont_received = FALSE;\n    kill(0, SIGTSTP);\n    {\n        long wait_time;\n        for (wait_time = 0; !sigcont_received && wait_time <= 3L; wait_time++)\n        {\n            mch_delay(wait_time, 0);\n        }\n    }\n    in_mch_suspend = FALSE;\n    after_sigcont();\n}\n", "    static void\nmch_suspend(void)\n{\n    out_flush();\n    term_leave();\n    out_flush();\n\n    musl_suspend();\n\n    term_enter();\n}\n", "1", "Y1"}, 252},
 	{"delfunc", []string{"after_sigcont(void)\n{", "Y2"}, 289},
-	{"cut", []string{"static volatile sig_atomic_t in_mch_suspend = FALSE;\n", "1", "Y3"}, 290},
 	{"sub", []string{"static void settmode(tmode_T tmode);\n", "static void term_enter(void);\nstatic void term_leave(void);\nstatic void musl_host_init(void);\nstatic int musl_get_winsize(int *rows, int *cols);\nstatic void musl_term_start(void);\nstatic void musl_term_stop(void);\nstatic int musl_tty_keys(int fd, int *bs, int *intr, int *cr, int *nlcr);\nstatic void musl_delay(long ms, int interruptible);\nstatic int musl_wait_for_input(long ms);\nstatic int musl_read_input(char *buf, int len);\nstatic void musl_suspend(void);\n", "1", "M1"}, 293},
 	{"sub", []string{"static tmode_T cur_tmode = TMODE_COOK;", "static int      term_entered = FALSE;", "1", "M2"}, 305},
 	{"sub", []string{"    static void\nsettmode(tmode_T tmode)\n{\n    if (!full_screen)\n    {\n        return;\n    }\n    if (tmode != cur_tmode)\n    {\n        if (tmode != TMODE_RAW)\n        {\n        }\n        if (termcap_active && tmode != TMODE_SLEEP && cur_tmode != TMODE_SLEEP)\n        {\n            ;\n            if (tmode != TMODE_RAW)\n            {\n                out_str((term_strings[(int)(KS_CBD)]));\n                out_str_t_TE();\n            }\n            else\n            {\n                out_str_t_BE();\n                out_str_t_TI();\n            }\n        }\n        out_flush();\n        mch_settmode(tmode);\n        cur_tmode = tmode;\n        if (tmode == TMODE_RAW)\n        {\n        }\n        out_flush();\n    }\n}", "    static void\nterm_enter(void)\n{\n    if (!full_screen || term_entered)\n    {\n        return;\n    }\n\n    if (termcap_active)\n    {\n        out_str_t_BE();\n        out_str_t_TI();\n    }\n    out_flush();\n    musl_term_start();\n    term_entered = TRUE;\n    out_flush();\n}\n\n    static void\nterm_leave(void)\n{\n    if (!full_screen || !term_entered)\n    {\n        return;\n    }\n\n    if (termcap_active)\n    {\n        out_str( ( term_strings[(int)(KS_CBD)] ) );\n        out_str_t_TE();\n    }\n    out_flush();\n    musl_term_stop();\n    term_entered = FALSE;\n    out_flush();\n}", "1", "M3"}, 307},
@@ -89,14 +59,10 @@ var w103Ops = []w103Op{
 	{"sub", []string{"            full_screen = TRUE;\n            settmode(TMODE_COOK);\n            full_screen = was_full_screen;", "            full_screen = TRUE;\n            term_leave();\n            full_screen = was_full_screen;", "1", "M6"}, 390},
 	{"sub", []string{"    {\n        settmode(TMODE_COOK);\n        if (swapping_screen() && !newline_on_exit)", "    {\n        term_leave();\n\n        if (swapping_screen() && !newline_on_exit)", "1", "M7"}, 393},
 	{"sub", []string{"    settmode(TMODE_RAW);\n    if (need_wait_return || msg_didany)", "    term_enter();\n\n    if (need_wait_return || msg_didany)", "1", "M8"}, 396},
-	{"sub", []string{"    TMODE_COOK,\n    TMODE_SLEEP,\n    TMODE_RAW,\n} tmode_T;", "    TMODE_COOK,\n    TMODE_RAW,\n} tmode_T;", "1", "M9"}, 398},
 	{"sub", []string{"    tmode_T old_tmode;\n    int call_settmode;\n    if (flags & MCH_DELAY_IGNOREINPUT)\n    {\n        call_settmode = mch_cur_tmode == TMODE_RAW && (msec > 500 || (flags & MCH_DELAY_SETTMODE));\n        if (call_settmode)\n        {\n            old_tmode = mch_cur_tmode;\n            settmode(TMODE_SLEEP);\n        }\n        {\n            struct timespec ts;\n            ts.tv_sec = msec / 1000;\n            ts.tv_nsec = (msec % 1000) * 1000000;\n            (void)nanosleep(&ts, NULL);\n        }\n        if (call_settmode)\n        {\n            settmode(old_tmode);\n        }\n    }\n    else\n    {\n        WaitForChar(msec, NULL, FALSE);\n    }", "    if (flags & MCH_DELAY_IGNOREINPUT)\n    {\n        out_flush();\n        musl_delay(msec, TRUE);\n    }\n    else\n    {\n        WaitForChar(msec, NULL, FALSE);\n    }", "1", "D1"}, 405},
 	{"sub", []string{"    struct termios keys;\n    if (mch_tcgetattr(fd, &keys) != -1)\n    {\n        info->backspace = keys.c_cc[VERASE];\n        info->interrupt = keys.c_cc[VINTR];\n        if (keys.c_iflag & ICRNL)\n        {\n            info->enter = NL;\n        }\n        else\n        {\n            info->enter = CAR;\n        }\n        if (keys.c_oflag & ONLCR)\n        {\n            info->nl_does_cr = TRUE;\n        }\n        else\n        {\n            info->nl_does_cr = FALSE;\n        }\n        return OK;\n    }\n    return FAIL;", "    int bs = 0;\n    int intr = 0;\n    int cr = 0;\n    int nlcr = 0;\n\n    if (musl_tty_keys(fd, &bs, &intr, &cr, &nlcr) == OK)\n    {\n        info->backspace = (char_u)bs;\n        info->interrupt = (char_u)intr;\n        info->enter = cr ? NL : CAR;\n        info->nl_does_cr = nlcr ? TRUE : FALSE;\n        return OK;\n    }\n    return FAIL;", "1", "K2"}, 452},
 	{"sub", []string{"if ((mch_cur_tmode == TMODE_RAW || force) && RealWaitForChar(read_cmd_fd, 0L, NULL, NULL))", "if ((term_entered || force) && RealWaitForChar(read_cmd_fd, 0L, NULL, NULL))", "1", "K3"}, 490},
-	{"cut", []string{"static tmode_T mch_cur_tmode = TMODE_COOK;\n", "1", "K4"}, 493},
-	{"delfunc", []string{"mch_check_win(int argc __attribute__((unused)), char **argv __attribute__((unused)))", "T1"}, 515},
 	{"cut", []string{"    stdout_isatty = (mch_check_win(paramp->argc, paramp->argv) != FAIL);\n", "1", "T2"}, 517},
-	{"cut", []string{"static int stdout_isatty = TRUE;\n", "1", "T3"}, 519},
 	{"cut", []string{"            int out_redir = !stdout_isatty;\n", "1", "T4"}, 522},
 	{"sub", []string{"                if (out_redir)\n                {\n                    fprintf(stderr, \"%s\", (ms));\n                }\n                else\n                {\n                    msg(ms);\n                }\n", "                msg(ms);\n", "1", "T5"}, 523},
 	{"sub", []string{"                if (out_redir)\n                {\n                    got_int = FALSE;\n                    do_cmdline_cmd((char_u *)\"qa\");\n                }\n                else\n                {\n                    msg(_(\"Type  :qa  and press <Enter> to exit Vim\"));\n                }\n", "                msg(_(\"Type  :qa  and press <Enter> to exit Vim\"));\n", "1", "T6"}, 533},
@@ -110,16 +76,19 @@ var w103Ops = []w103Op{
 }
 
 // w103Gone are the names that must be at 0 mentions when the edit is done, and
-// w103Want the ones it leaves at a stated count with the reason.  Both are the
-// phase's own lists, lifted rather than retyped.
-var w103Gone = []string{"mch_signal", "set_signals", "reset_signals", "catch_signals", "catch_int_signal", "catch_sigint", "sig_tstp", "sigcont_handler", "sigcont_received", "after_sigcont", "in_mch_suspend", "ignore_sigtstp", "got_tstp", "sig_winch", "set_sigwinch_handler", "handle_resize", "do_resize", "mch_get_shellsize", "win_resize_setting", "win_resize_enabled", "term_set_win_resize", "did_set_termresize", "p_trz", "settmode", "mch_settmode", "mch_tcgetattr", "get_tty_fd", "mch_cur_tmode", "cur_tmode", "mch_check_win", "stdout_isatty", "did_read_something", "isatty", "out_redir"}
+// w103Want the ones it leaves at a stated count with the reason.  The functions,
+// prototypes and globals the phase leaves unreferenced -- mch_signal and the
+// rest of the signal plumbing, the resize negotiation, mch_check_win and
+// isatty's last caller, and their state -- are the sweep's, so they are in
+// neither list.
+var w103Gone = []string{"after_sigcont", "settmode", "mch_settmode", "mch_tcgetattr", "get_tty_fd", "cur_tmode", "did_read_something", "out_redir"}
 
 var w103Want = []struct {
 	Name string
 	want int
 	why  string
 }{
-	{"resize_func", 6, "inchar_loop's PARAMETER, which stays: the prototype, the definition and the three uses inside it.  The core passes NULL, and inchar_loop tests for it, so this is the interface and not a leftover"},
+	{"resize_func", 7, "inchar_loop's PARAMETER, which stays: the prototype, the definition and the three uses inside it -- and the name of the resize_func() nothing calls now, the sweep's.  The core passes NULL, and inchar_loop tests for it, so this is the interface and not a leftover"},
 	{"deathtrap", 4, "a prototype, the definition, and the TWO installations in musl_host_init() -- the host installs the core's handler for SIGHUP and SIGTERM rather than replacing it, and that is what keeps the terminal restored on a deadly signal"},
 	{"vim_handle_signal", 5, "a prototype, the definition, deathtrap's call and the two in ui_inchar -- untouched"},
 	{"signal_info", 4, "the struct tag, the array, and deathtrap's two reads.  Its five rows are two"},
@@ -133,7 +102,7 @@ var w103Want = []struct {
 	{"musl_delay", 3, "its prototype, its definition and mch_delay()'s one call"},
 	{"musl_tty_keys", 3, "its prototype, its definition and get_tty_info()'s one call"},
 	{"host_catch", 11, "its definition, eight installations in musl_host_init() and two in musl_suspend()"},
-	{"ioctl", 1, "the host's one TIOCGWINSZ (a mention in an #include line names a header, not the function)"},
+	{"ioctl", 2, "the host's one TIOCGWINSZ, and the one in mch_get_shellsize(), which nothing calls now and the sweep takes (a mention in an #include line names a header, not the function)"},
 	{"select", 1, "the host's one select(); there is no #include for it -- it arrives transitively through <sys/param.h> (GOALS.md II.4c)"},
 }
 

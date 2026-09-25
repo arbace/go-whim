@@ -273,7 +273,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 						"cuts between")
 				}
 				t = t[:i] + t[j:]
-			case "T1":
+			case "T2":
 				i := strings.Index(t, "RealWaitForChar(int fd, long msec, int *check_for_gpm")
 				j := strings.Index(t, "    static int\nno_Magic(int x)")
 				if i < 0 || j < 0 || i >= j {
