@@ -137,12 +137,8 @@ func KeepBytes(text []byte, w io.Writer) ([]byte, error) {
 		if err != nil {
 			return nil, err
 		}
-		s, err = e.keepThenChain(s, `^[ \t]*if \(pp == &eap->force_enc\)$`,
+		return e.keepThenChain(s, `^[ \t]*if \(pp == &eap->force_enc\)$`,
 			"++enc's value, the only one left to check")
-		if err != nil {
-			return nil, err
-		}
-		return e.subOnce(s, `^[ \t]*int[ \t]+bad_char_idx;\n`, "getargopt's ++bad index")
 	})
 	if err != nil {
 		return nil, err
