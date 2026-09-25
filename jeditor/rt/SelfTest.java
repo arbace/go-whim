@@ -15,6 +15,27 @@ public final class SelfTest {
         }
     }
 
+    /** A struct as the generated classes are: set() copies, zero() clears. */
+    private static final class Box implements Struct<Box> {
+        int v;
+
+        Box(int v) {
+            this.v = v;
+        }
+
+        @Override
+        public Box set(Box o) {
+            v = o.v;
+            return this;
+        }
+
+        @Override
+        public Box zero() {
+            v = 0;
+            return this;
+        }
+    }
+
     public static void main(String[] args) {
         // literals: NUL-terminated, interned
         BytePtr s = BytePtr.lit("abc");
@@ -80,6 +101,59 @@ public final class SelfTest {
         check(pp.get() == s && pp.add(1).get().get() == 'b', "a pointer to pointers");
         check(Ptr.eq(pp.add(1), new Ptr<BytePtr>(slots, 1)) && !Ptr.eq(pp, null), "Ptr equality");
         check(Ptr.one("o").get().equals("o") && Ptr.one(null) == null && Ptr.ref(null) == null, "one and ref");
+
+        // the functions of bytes in elements
+        IntPtr ip = IntPtr.alloc(5);
+        for (int k = 0; k < 5; k++) {
+            ip.set(k, k + 1);
+        }
+        Rt.memmove(ip.add(1), ip, 3); // overlapping
+        check(ip.at(0) == 1 && ip.at(1) == 1 && ip.at(3) == 3 && ip.at(4) == 5, "memmove of ints");
+        Rt.fill(ip, -1, 2);
+        check(ip.at(0) == -1 && ip.at(1) == -1 && ip.at(2) == 2, "a fill of ints");
+        Rt.zero(pp, 2);
+        check(pp.get() == null && pp.at(1) == null, "a fill of pointers with NULL");
+        Box[] boxes = {new Box(1), new Box(2), new Box(3)};
+        Ptr<Box> bx = new Ptr<>(boxes, 0);
+        Box first = boxes[0];
+        Rt.moveStructs(bx.add(1), bx, 2); // overlapping, from the end
+        check(boxes[0] == first && boxes[1].v == 1 && boxes[2].v == 2 && boxes[1] != boxes[0], "structs moved are copied");
+        Rt.moveStructs(bx, bx.add(1), 2);
+        check(boxes[0].v == 1 && boxes[1].v == 2, "structs moved the other way");
+        Rt.zeroStructs(bx.add(1), 2);
+        check(boxes[0].v == 1 && boxes[1].v == 0 && boxes[2].v == 0, "structs zeroed in place");
+
+        // the growarray's storage, typed where it is used
+        Object data = null;
+        IntPtr gi = Ga.ints(data, 3);
+        check(gi.len() == 3, "a growarray made at its first use");
+        gi.set(2, 7);
+        IntPtr gi2 = Ga.ints(gi, 6);
+        check(gi2.len() == 6 && gi2.at(2) == 7 && gi2 != gi, "a growarray grown keeps its elements");
+        check(Ga.ints(gi2, 4) == gi2, "a growarray large enough is itself");
+        Ptr<Box> gb = Ga.ptrs(null, 2, Box[]::new);
+        check(gb.len() == 2 && gb.get() == null, "a growarray of pointers");
+        Box kept = new Box(9);
+        gb.put(kept);
+        Ptr<Box> gb2 = Ga.ptrs(gb, 3, m -> {
+            Box[] a = new Box[m];
+            for (int k = 0; k < m; k++) {
+                a[k] = new Box(0);
+            }
+            return a;
+        });
+        check(gb2.get() == kept && gb2.at(2) != null, "a growarray of structs grown");
+        boolean threw = false;
+        try {
+            Ga.bytes(gi2, 1);
+        } catch (ClassCastException e) {
+            threw = true;
+        }
+        check(threw, "a growarray used as two element types");
+
+        // a void * read back
+        check(Rt.obj(bx.add(1)) == boxes[1] && Rt.obj(first) == first, "a void * as the one object");
+        check(Rt.ptr(first).get() == first && Rt.ptr(bx) == bx && Rt.ptr(null) == null, "a void * as a Ptr");
 
         if (failed > 0) {
             System.exit(1);

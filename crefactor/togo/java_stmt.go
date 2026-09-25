@@ -49,12 +49,13 @@ type jfn struct {
 	byDecl map[*cc.Declarator]*jlocal
 	taken  map[string]bool
 	tmp    int
-	cont   []string // per loop: what a continue is -- "continue", or "break cN"
-	ret    string   // the Java result type
+	cont   []string                   // per loop: what a continue is -- "continue", or "break cN"
+	gotoOK map[*cc.JumpStatement]bool // a goto whose labeled block is written
+	ret    string                     // the Java result type
 }
 
 func (j *jgen) newFn(name string, ft *cc.FunctionType) *jfn {
-	return &jfn{j: j, name: name, ft: ft, byDecl: map[*cc.Declarator]*jlocal{}, taken: map[string]bool{}}
+	return &jfn{j: j, name: name, ft: ft, byDecl: map[*cc.Declarator]*jlocal{}, taken: map[string]bool{}, gotoOK: map[*cc.JumpStatement]bool{}}
 }
 
 func (f *jfn) no(n cc.Node, format string, args ...any) {
@@ -164,7 +165,7 @@ func (f *jfn) declareLocal(d *cc.Declarator, t cc.Type, jt string) *jlocal {
 	case f.j.isBoxed(d):
 		l.boxed = true
 		l.init = "new " + raw(jt) + "[1]"
-	case t.Kind() == cc.Struct || t.Kind() == cc.Array:
+	case isAggr(t) || t.Kind() == cc.Array:
 		nw, why := f.j.jnew(t, jt)
 		if why != "" {
 			f.no(d, "%s", why)
@@ -214,10 +215,6 @@ func (j *jgen) method(fd *cc.FunctionDefinition) (src string, why string) {
 					f.taken[j.jName(x.Token.SrcStr())] = true
 				}
 			}
-		case *cc.JumpStatement:
-			if x.Case == cc.JumpStatementGoto {
-				f.no(x, "a goto")
-			}
 		}
 		walkChildrenFn(n, names)
 	}
@@ -255,6 +252,10 @@ func (j *jgen) method(fd *cc.FunctionDefinition) (src string, why string) {
 	var body strings.Builder
 	f.out = &body
 	f.indent = 2
+	if rb := j.runtimeBody(d.Name()); rb != nil {
+		// a rule of the runtime's, not a translation (Profile.RuntimeBodies)
+		return fmt.Sprintf("\n    %s %s(%s) {\n%s    }\n", f.ret, j.jName(d.Name()), strings.Join(ps, ", "), rb(f.ret)), ""
+	}
 	f.items(fd.CompoundStatement)
 	if f.ret != "void" && jcompleteItems(fd.CompoundStatement) {
 		f.stmt1("throw new IllegalStateException(%s)", javaQuote(d.Name()+": the end of a function with a result"))
@@ -271,22 +272,146 @@ func (j *jgen) method(fd *cc.FunctionDefinition) (src string, why string) {
 }
 
 // items writes a block's items, and none after one that cannot complete:
-// Java refuses them as unreachable, and they are dead in C too.
+// Java refuses them as unreachable, and they are dead in C too -- until a
+// label a goto reaches, which is live again.
+//
+// A goto is a labeled block: every goto is a forward jump to a label that
+// is an item of a block holding it, so the items from the first that holds
+// a goto to L up to L's are wrapped in `L_x: { ... }`, the goto is
+// `break L_x;`, and the label's statement follows the block.  Two such
+// blocks that would cross are made to nest by starting the later one where
+// the earlier one starts.
 func (f *jfn) items(cs *cc.CompoundStatement) {
+	var its []*cc.BlockItem
 	for l := cs.BlockItemList; l != nil; l = l.BlockItemList {
-		it := l.BlockItem
+		its = append(its, l.BlockItem)
+	}
+	type gblock struct {
+		labels     []string
+		start, end int // the block wraps its[start:end]; its[end] is the label's
+	}
+	var blocks []*gblock
+	for k, it := range its {
+		labels := itemLabels(it)
+		if len(labels) == 0 {
+			continue
+		}
+		start := -1
+		for _, lb := range labels {
+			for i := 0; i < k; i++ {
+				gs := gotosTo(its[i], lb)
+				if len(gs) > 0 && (start < 0 || i < start) {
+					start = i
+				}
+				for _, g := range gs {
+					f.gotoOK[g] = true
+				}
+			}
+		}
+		if start >= 0 {
+			blocks = append(blocks, &gblock{labels: labels, start: start, end: k})
+		}
+	}
+	// nest: a block starting inside an earlier one and ending after it
+	// starts where that one does
+	for changed := true; changed; {
+		changed = false
+		for _, a := range blocks {
+			for _, b := range blocks {
+				if a.start < b.start && b.start < a.end && a.end < b.end {
+					b.start = a.start
+					changed = true
+				}
+			}
+		}
+	}
+	live := true
+	for i, it := range its {
+		// open the blocks starting here, the one ending last outermost
+		var opening []*gblock
+		for _, b := range blocks {
+			if b.start == i {
+				opening = append(opening, b)
+			}
+		}
+		for x := 0; x < len(opening); x++ {
+			for y := x + 1; y < len(opening); y++ {
+				if opening[y].end > opening[x].end {
+					opening[x], opening[y] = opening[y], opening[x]
+				}
+			}
+		}
+		for _, b := range opening {
+			var ls []string
+			for _, lb := range b.labels {
+				ls = append(ls, gotoLabel(lb)+":")
+			}
+			f.line("%s {", strings.Join(ls, " "))
+			f.indent++
+		}
+		for _, b := range blocks {
+			if b.end == i {
+				live = true // reached by the block's break
+			}
+		}
 		switch it.Case {
 		case cc.BlockItemDecl:
-			f.declaration(it.Declaration, true)
+			f.declaration(it.Declaration, live)
 		case cc.BlockItemStmt:
-			f.stmt(it.Statement)
-			if !jcomplete(it.Statement) {
-				return
+			if live {
+				f.stmt(it.Statement)
+				if !jcomplete(it.Statement) {
+					live = false
+				}
 			}
 		default:
 			f.no(it, "a block item %v", it.Case)
 		}
+		// close the blocks whose label is next
+		closing := 0
+		for _, b := range blocks {
+			if b.end == i+1 {
+				closing++
+			}
+		}
+		for ; closing > 0; closing-- {
+			f.indent--
+			f.line("}")
+		}
 	}
+}
+
+// gotoLabel is a C label as Java's.
+func gotoLabel(name string) string { return "L_" + name }
+
+// itemLabels are the labels a block item's statement carries.
+func itemLabels(it *cc.BlockItem) []string {
+	if it.Case != cc.BlockItemStmt {
+		return nil
+	}
+	var ls []string
+	for st := it.Statement; st.Case == cc.StatementLabeled && st.LabeledStatement.Case == cc.LabeledStatementLabel; st = st.LabeledStatement.Statement {
+		ls = append(ls, st.LabeledStatement.Token.SrcStr())
+	}
+	return ls
+}
+
+// gotosTo are the gotos to label n holds.
+func gotosTo(n cc.Node, label string) []*cc.JumpStatement {
+	var gs []*cc.JumpStatement
+	var rec func(cc.Node)
+	rec = func(n cc.Node) {
+		if n == nil {
+			return
+		}
+		if j, ok := n.(*cc.JumpStatement); ok && j.Case == cc.JumpStatementGoto && j.Token2.SrcStr() == label {
+			gs = append(gs, j)
+			return
+		}
+		walkChildrenFn(n, rec)
+	}
+	rec(n)
+	return gs
 }
 
 // body writes a statement as the body of an if or a loop.
@@ -360,7 +485,7 @@ func (f *jfn) initInto(target string, t cc.Type, key string, in *cc.Initializer,
 				f.no(in, "an array initialized from an expression")
 			}
 			f.stmt1("Rt.init(%s, %s)", target, javaQuote(strings.TrimSuffix(string(sv), "\x00")))
-		case cc.Struct:
+		case cc.Struct, cc.Union:
 			v := f.exprTo(e, jt)
 			f.stmt1("%s.set(%s)", target, v.s)
 		default:
@@ -369,7 +494,7 @@ func (f *jfn) initInto(target string, t cc.Type, key string, in *cc.Initializer,
 		}
 		return
 	}
-	if !fresh && (t.Kind() == cc.Struct || t.Kind() == cc.Array) {
+	if !fresh && (isAggr(t) || t.Kind() == cc.Array) {
 		nw, why := f.j.jnew(t, jt)
 		if why != "" {
 			f.no(in, "%s", why)
@@ -377,11 +502,11 @@ func (f *jfn) initInto(target string, t cc.Type, key string, in *cc.Initializer,
 		f.stmt1("%s = %s", target, nw)
 	}
 	elided := func(item *cc.Initializer, it cc.Type) {
-		if item.Case != cc.InitializerExpr || (it.Kind() != cc.Struct && it.Kind() != cc.Array) {
+		if item.Case != cc.InitializerExpr || (!isAggr(it) && it.Kind() != cc.Array) {
 			return
 		}
 		e := item.AssignmentExpression
-		if it.Kind() == cc.Struct && e.Type() != nil && e.Type().Kind() == cc.Struct {
+		if isAggr(it) && e.Type() != nil && isAggr(e.Type()) {
 			return
 		}
 		if _, ok := unparenE(e).Value().(cc.StringValue); ok && it.Kind() == cc.Array {
@@ -390,7 +515,8 @@ func (f *jfn) initInto(target string, t cc.Type, key string, in *cc.Initializer,
 		f.no(in, "an initializer that elides its braces")
 	}
 	switch x := t.(type) {
-	case *cc.StructType:
+	case *cc.StructType, *cc.UnionType:
+		fs := members(x)
 		i := 0
 		for l := in.InitializerList; l != nil; l = l.InitializerList {
 			if d := f.designator(l); d != nil {
@@ -402,8 +528,8 @@ func (f *jfn) initInto(target string, t cc.Type, key string, in *cc.Initializer,
 					name = d.Token.SrcStr()
 				}
 				i = -1
-				for k := 0; k < x.NumFields(); k++ {
-					if x.FieldByIndex(k).Name() == name {
+				for k, fl := range fs {
+					if fl != nil && fl.Name() == name {
 						i = k
 					}
 				}
@@ -411,19 +537,23 @@ func (f *jfn) initInto(target string, t cc.Type, key string, in *cc.Initializer,
 					f.no(in, "no field %s", name)
 				}
 			}
-			fl := x.FieldByIndex(i)
-			if fl == nil {
+			if i >= len(fs) || fs[i] == nil {
 				f.no(in, "more initializers than fields")
 			}
+			fl := fs[i]
 			i++
 			if zeroInit(l.Initializer) {
 				continue
 			}
-			if f.j.bitfield[fl] {
+			if fl.IsBitfield() {
 				f.no(in, "a bitfield")
 			}
 			elided(l.Initializer, fl.Type())
-			f.initInto(target+"."+f.j.jName(fl.Name()), fl.Type(), fieldKey(fl), l.Initializer, true)
+			name := f.j.memberName(fl, i-1)
+			if f.j.boxedField[fieldKey(fl)] {
+				name += "[0]"
+			}
+			f.initInto(target+"."+name, fl.Type(), fieldKey(fl), l.Initializer, true)
 		}
 	case *cc.ArrayType:
 		i := int64(0)
@@ -446,8 +576,6 @@ func (f *jfn) initInto(target string, t cc.Type, key string, in *cc.Initializer,
 			elided(l.Initializer, x.Elem())
 			f.initInto(fmt.Sprintf("%s[%d]", target, k), x.Elem(), "elem:"+key, l.Initializer, true)
 		}
-	case *cc.UnionType:
-		f.no(in, "a union")
 	default:
 		n := 0
 		for l := in.InitializerList; l != nil; l = l.InitializerList {
@@ -717,7 +845,10 @@ func forUpdate(text string) (string, bool) {
 func (f *jfn) jump(j *cc.JumpStatement) {
 	switch j.Case {
 	case cc.JumpStatementGoto:
-		f.no(j, "a goto")
+		if !f.gotoOK[j] {
+			f.no(j, "a goto that is no forward jump to a label of a block holding it: %s", j.Token2.SrcStr())
+		}
+		f.stmt1("break %s", gotoLabel(j.Token2.SrcStr())) // out of the labeled block that ends at the label
 	case cc.JumpStatementBreak:
 		f.stmt1("break")
 	case cc.JumpStatementContinue:
@@ -737,7 +868,7 @@ func (f *jfn) jump(j *cc.JumpStatement) {
 		}
 		rt := f.ft.Result()
 		v := f.exprTo(j.ExpressionList, f.ret)
-		if rt.Kind() == cc.Struct {
+		if isAggr(rt) {
 			f.stmt1("return %s.copy()", v.s) // a struct is returned by value
 			return
 		}
@@ -792,13 +923,20 @@ func jcomplete(s *cc.Statement) bool {
 	return true
 }
 
+// jcompleteItems: the last statement completes, or a label after the last
+// that cannot -- which a goto's block's break reaches.
 func jcompleteItems(cs *cc.CompoundStatement) bool {
+	live := true
 	for l := cs.BlockItemList; l != nil; l = l.BlockItemList {
-		if it := l.BlockItem; it.Case == cc.BlockItemStmt && !jcomplete(it.Statement) {
-			return false
+		it := l.BlockItem
+		if len(itemLabels(it)) > 0 {
+			live = true
+		}
+		if live && it.Case == cc.BlockItemStmt && !jcomplete(it.Statement) {
+			live = false
 		}
 	}
-	return true
+	return live
 }
 
 // switchCompletes: the last group completes, or a break leaves the switch,
@@ -830,13 +968,20 @@ func liveBreak(s *cc.Statement) bool {
 	case cc.StatementJump:
 		return s.JumpStatement.Case == cc.JumpStatementBreak
 	case cc.StatementCompound:
+		live := true
 		for l := s.CompoundStatement.BlockItemList; l != nil; l = l.BlockItemList {
 			if it := l.BlockItem; it.Case == cc.BlockItemStmt {
+				if len(itemLabels(it)) > 0 {
+					live = true // a goto's label
+				}
+				if !live {
+					continue
+				}
 				if liveBreak(it.Statement) {
 					return true
 				}
 				if !jcomplete(it.Statement) {
-					return false
+					live = false
 				}
 			}
 		}

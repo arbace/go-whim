@@ -19,9 +19,11 @@ import (
 
 // javaHarnessC is the C side of the host, and main.
 const javaHarnessC = `#include <stdio.h>
+#include <stdarg.h>
 void run(void);
 void out(long long v) { printf("%lld\n", v); }
 void outs(const char *s) { printf("%s\n", s); }
+void outf(const char *fmt, ...) { va_list ap; va_start(ap, fmt); vprintf(fmt, ap); va_end(ap); printf("\n"); }
 int main(void) { run(); return 0; }
 `
 
@@ -33,6 +35,41 @@ public class Main {
         new Prog() {
             void out(long v) { System.out.println(v); }
             void outs(BytePtr s) { System.out.println(BytePtr.str(s)); }
+            // a printf of d, u, x, c, s and l, reading the arguments as the
+            // backend boxes them: an int an Integer, an unsigned int or a
+            // long a Long, a pointer its class
+            void outf(BytePtr fmt, Object... args) {
+                StringBuilder b = new StringBuilder();
+                String f = BytePtr.str(fmt);
+                int k = 0;
+                for (int i = 0; i < f.length(); i++) {
+                    char c = f.charAt(i);
+                    if (c != '%') {
+                        b.append(c);
+                        continue;
+                    }
+                    int l = 0;
+                    while (f.charAt(++i) == 'l') {
+                        l++;
+                    }
+                    char conv = f.charAt(i);
+                    Object a = conv == '%' ? null : args[k++];
+                    long v = conv == 's' || conv == '%' ? 0 : ((Number) a).longValue();
+                    switch (conv) {
+                    case 'd': b.append(l > 0 ? v : (int) v); break;
+                    case 'u': b.append(l > 0 ? Long.toUnsignedString(v) : Integer.toUnsignedString((int) v)); break;
+                    case 'x': b.append(l > 0 ? Long.toHexString(v) : Integer.toHexString((int) v)); break;
+                    case 'c': b.append((char) (v & 0xff)); break;
+                    case 's': b.append(BytePtr.str((BytePtr) a)); break;
+                    case '%': b.append('%'); break;
+                    default: throw new IllegalArgumentException(f);
+                    }
+                }
+                if (k != args.length) {
+                    throw new IllegalArgumentException("unused arguments: " + f);
+                }
+                System.out.println(b);
+            }
         }.run();
     }
 }
@@ -893,30 +930,574 @@ func TestJavaRuntime(t *testing.T) {
 }
 
 // What is refused is refused per function, with its reason, and the class
-// still compiles: the function is a stub that throws.
+// still compiles: the function is a stub that throws.  What is left to
+// refuse after milestone 2 is what the core does not do: floating point, a
+// variadic function of its own, and a goto that is no forward jump to a
+// label of a block holding it.
 func TestJavaRefuses(t *testing.T) {
 	requireTools(t)
 	const src = javaHost + `
-union u { int i; char c; };
-static int (*fp)(int);
-int twice(int x) { return 2 * x; }
-int viafp(int x) { fp = twice; return fp(x); }
-int viaunion(int x) { union u v; v.i = x; return v.c; }
-int viagoto(int x) { if (x) goto out; x = 5; out: return x; }
+int half(int x) { double d = x; return d / 2; }
+int first(int n, ...) { return n; }
+int back(int x) { again: x--; if (x > 0) goto again; return x; }
 int fine(int x) { return x + 1; }
 void run(void) { out(fine(1)); }
 `
 	dir := t.TempDir()
 	prog, refused := javaProgram(t, dir, src)
-	for _, want := range []string{"viafp: a function pointer", "viaunion: a union", "viagoto: a goto"} {
+	for _, want := range []string{"half: floating point", "first: a variadic function", "back: a goto that is no forward jump"} {
 		if !strings.Contains(refused, want) {
 			t.Errorf("no %q in the refusals:\n%s", want, refused)
 		}
 	}
-	if strings.Contains(refused, "fine:") || strings.Contains(refused, "twice:") {
+	if strings.Contains(refused, "fine:") || strings.Contains(refused, "run:") {
 		t.Errorf("a function refused that is not:\n%s", refused)
 	}
 	if got := javaOutput(t, dir, prog); got != "2\n" {
 		t.Errorf("the Java prints %q", got)
 	}
+}
+
+// --- milestone 2: the constructs the core needs beyond the slice ------------
+
+// A variadic call: the arguments past the parameters boxed as C promotes
+// them -- a char, short or int an Integer, an unsigned int zero-extended to
+// a Long, a long a Long, a pointer its class, an array the pointer it
+// decays to -- and read back by the host's printf.
+const javaVarargsC = javaHost + `void outf(const char *fmt, ...);
+static const char *names[] = { "zero", "one" };
+
+void run(void)
+{
+    unsigned char uc = 200;
+    signed char sc = -5;
+    short sh = -300;
+    unsigned short us = 65000;
+    unsigned int u = 4000000000u;
+    long l = -1234567890123L;
+    unsigned long ul = 18000000000000000000ul;
+    char buf[8] = "arr";
+    _Bool b = 1;
+    outf("%d %d %d %d", uc, sc, sh, us);
+    outf("%u %d %x", u, (int)u, u);
+    outf("%ld %lu %lx", l, ul, ul);
+    outf("%s %s %s", "lit", names[1], buf);
+    outf("%c%c%%", 'o', 'k');
+    outf("%d %d %d", b, uc > 100, 3 > 2 ? 7 : 8);
+    outf("%d", -uc);
+    outf("none");
+}
+`
+
+func TestJavaVarargs(t *testing.T) { javaSame(t, javaVarargsC) }
+
+// The growarray (Profile.GrowArray): a void * that holds storage typed where
+// the C casts it -- ints, structs, pointers, bytes, and read uncast where
+// it is converted -- grown by a rule of the runtime's (Profile.RuntimeBodies)
+// and not by the C's byte copy; with it the functions of bytes on what is
+// not bytes (ints, structs, pointers, a fill of 0xff through a struct of
+// scalars, memcmp of two structs), a void * that is not the growarray, and
+// compound literals.
+const javaGrowC = javaHost + `
+typedef unsigned long size_t;
+void *alloc(size_t n);
+void vim_free(void *p);
+void *memmove(void *d, const void *s, size_t n);
+void *memset(void *d, int c, size_t n);
+int memcmp(const void *a, const void *b, size_t n);
+
+typedef struct { int ga_len; int ga_maxlen; int ga_itemsize; int ga_growsize; void *ga_data; } garray_T;
+typedef struct pos { long lnum; int col; } pos_T;
+typedef struct item { int k; char name[8]; pos_T at; } item_T;
+struct holder { char *p; int n; };
+
+void ga_init(garray_T *gap, int itemsize, int growsize)
+{
+    gap->ga_data = 0;
+    gap->ga_maxlen = 0;
+    gap->ga_len = 0;
+    gap->ga_itemsize = itemsize;
+    gap->ga_growsize = growsize;
+}
+
+int ga_grow_inner(garray_T *gap, int n)
+{
+    if (n < gap->ga_growsize)
+        n = gap->ga_growsize;
+    size_t new_len = (size_t)gap->ga_itemsize * (gap->ga_len + n);
+    size_t old_len = (size_t)gap->ga_itemsize * gap->ga_maxlen;
+    char *pp = alloc(new_len);
+    if (gap->ga_data != 0)
+        memmove(pp, gap->ga_data, old_len);
+    vim_free(gap->ga_data);
+    gap->ga_maxlen = gap->ga_len + n;
+    gap->ga_data = pp;
+    return 1;
+}
+
+int ga_grow(garray_T *gap, int n)
+{
+    if (gap->ga_maxlen - gap->ga_len < n)
+        return ga_grow_inner(gap, n);
+    return 1;
+}
+
+void ga_clear(garray_T *gap)
+{
+    vim_free(gap->ga_data);
+    ga_init(gap, gap->ga_itemsize, gap->ga_growsize);
+}
+
+static garray_T ints, items, strs, bytes;
+
+void run(void)
+{
+    ga_init(&ints, sizeof(int), 4);
+    for (int i = 0; i < 10; i++)
+    {
+        ga_grow(&ints, 1);
+        ((int *)ints.ga_data)[ints.ga_len++] = i * i;
+    }
+    int *ip = (int *)ints.ga_data;
+    out(ip[9] + ip[3]);
+    memmove(ip + 1, ip, 5 * sizeof(int));
+    for (int i = 0; i < 7; i++)
+        out(ip[i]);
+    memset(ip, 0xff, 2 * sizeof(int));
+    out(ip[0]);
+    out(ip[2]);
+    memset(ip, 1, sizeof(int));
+    out(ip[0]);
+
+    ga_init(&items, sizeof(item_T), 2);
+    for (int i = 0; i < 5; i++)
+    {
+        ga_grow(&items, 1);
+        item_T *it = (item_T *)items.ga_data + items.ga_len;
+        it->k = i;
+        memmove(it->name, "it", 3);
+        it->name[2] = '0' + i;
+        it->at.lnum = i * 10;
+        items.ga_len++;
+    }
+    item_T *base = (item_T *)items.ga_data;
+    memmove(base, base + 2, 3 * sizeof(item_T));
+    base[0].k = 99;
+    out(base[0].k);
+    out(base[2].k);
+    outs(base[0].name);
+    out(base[0].at.lnum);
+    base[2].k = 77;
+    out(base[4].k);
+    memmove(base + 1, base, 3 * sizeof(item_T));
+    out(base[1].k);
+    out(base[2].k);
+    out(base[3].k);
+    item_T one = base[4];
+    out(memcmp(&one, &base[4], sizeof(item_T)) == 0);
+    one.at.col = 5;
+    out(memcmp(&one, &base[4], sizeof one) != 0);
+    memset(&one, 0, sizeof(one));
+    out(one.k + one.name[0] + one.at.lnum);
+    pos_T ps[3];
+    memset(ps, 0xff, sizeof(ps));
+    out(ps[1].lnum);
+    out(ps[2].col);
+    memset(ps, 0, sizeof(pos_T) * 2);
+    out(ps[1].lnum);
+    out(ps[2].col);
+
+    ga_init(&strs, sizeof(char *), 2);
+    ga_grow(&strs, 3);
+    ((char **)strs.ga_data)[0] = "a";
+    ((char **)strs.ga_data)[1] = "bb";
+    strs.ga_len = 2;
+    char **sp = (char **)strs.ga_data;
+    memmove(sp + 1, sp, sizeof(char *));
+    outs(sp[1]);
+    memset(sp, 0, 2 * sizeof(char *));
+    out(sp[0] == 0 && sp[1] == 0);
+
+    ga_init(&bytes, 1, 8);
+    ga_grow(&bytes, 4);
+    memmove((char *)bytes.ga_data, "abc", 4);
+    bytes.ga_len = 3;
+    outs(bytes.ga_data);
+    char *s = bytes.ga_data;
+    s[0] = 'A';
+    outs((char *)bytes.ga_data);
+    ga_clear(&bytes);
+    out(bytes.ga_data == 0);
+
+    void *vp = &base[1];
+    item_T *back = (item_T *)vp;
+    out(back->k);
+
+    struct holder h = { (char [4]){ 'x', 'y', 0 }, 2 };
+    outs(h.p);
+    pos_T q = (pos_T){ 3, 4 };
+    out(q.lnum + q.col);
+}
+`
+
+// javaGrowProfile is what javaGrowC's program is told: its allocators,
+// frees, functions of bytes and growarray, and ga_grow_inner's Java body.
+var javaGrowProfile = Profile{Allocators: []string{"alloc"}, Frees: []string{"vim_free"},
+	Bytes:     ByteFuncs{Move: []string{"memmove"}, Set: "memset", Cmp: "memcmp"},
+	GrowArray: GrowArray{Data: "ga_data", MaxLen: "ga_maxlen"},
+	RuntimeBodies: []RuntimeBody{{Name: "ga_grow_inner", Java: func(string) string {
+		return "        if (n < gap.ga_growsize) {\n            n = gap.ga_growsize;\n        }\n" +
+			"        gap.ga_maxlen = gap.ga_len + n;\n        return 1;\n"
+	}}}}
+
+// javaGrowHarnessC is the C side of javaGrowC's host: calloc and free.
+const javaGrowHarnessC = "#include <stdlib.h>\nvoid *alloc(unsigned long n) { return calloc(1, n); }\nvoid vim_free(void *p) { free(p); }\n" + javaHarnessC
+
+func TestJavaGrowArray(t *testing.T) {
+	prog := javaSameWith(t, javaGrowC, javaGrowProfile, javaGrowHarnessC)
+	for _, w := range []string{"GA_Ptr_S_item(", "GA_IntPtr(", "GA_BytePtr(", "Rt.moveStructs(", "Rt.memmove(", "Rt.fill(", "Rt.zero(", ".eq(", ".zero()"} {
+		if !strings.Contains(prog, w) {
+			t.Errorf("no %q in:\n%s", w, numbered(prog))
+		}
+	}
+}
+
+// Pointers to members, to functions, and unions: a scalar or pointer member
+// whose address is taken is a one-element array its pointer is over (and a
+// struct's copy copies its value, not the array); a function used as a value
+// is one field per function and interface, so that two of them compare as
+// C's do, called through the interface, adapted where the interface's
+// classes are not the method's; a union is a class with every member a
+// field, copied whole.
+const javaPointersC = javaHost + `
+typedef struct opts { int ts; long so; char *name; int flags[2]; } opts_T;
+typedef struct win { opts_T o; struct win *next; int id; } win_T;
+static win_T w1, w2;
+static int gval = 3;
+
+void setint(int *p, int v) { *p = v; }
+void setstr(char **pp, char *s) { *pp = s; }
+long *pick(win_T *wp, int local) { return local ? &wp->o.so : 0; }
+
+struct tab { const char *name; int *var; };
+static struct tab tabs[] = { { "ts", &w1.o.ts }, { "id", &w1.id }, { "g", &gval } };
+
+typedef int (*binop_T)(int, int);
+int add(int a, int b) { return a + b; }
+int sub(int a, int b) { return a - b; }
+int mul(int a, int b) { return a * b; }
+struct opdef { const char *name; binop_T fn; int (*alt)(int, int); };
+static struct opdef ops[] = { { "add", add, sub }, { "sub", sub, 0 }, { "mul", mul, add } };
+static binop_T current;
+int apply(binop_T f, int a, int b) { return f(a, b); }
+int apply2(int (*f)(int, int), int a, int b) { return (*f)(a, b); }
+binop_T choose(int k) { return k ? mul : add; }
+void visit(win_T *wp, void (*cb)(win_T *, int), int n)
+{
+    for (; wp != 0; wp = wp->next)
+        cb(wp, n);
+}
+void bump(win_T *wp, int n) { wp->id += n; }
+
+typedef union val { long number; int boolean; char *string; } val_T;
+typedef struct optset
+{
+    int kind;
+    val_T oldv;
+    val_T newv;
+    union
+    {
+        struct { short a, b; } pair;
+        long whole;
+    } u;
+} optset_T;
+
+long describe(optset_T *os)
+{
+    switch (os->kind)
+    {
+    case 0:
+        return os->oldv.number + os->newv.number;
+    case 1:
+        return os->oldv.boolean * 10 + os->newv.boolean;
+    }
+    return os->newv.string[1];
+}
+
+void run(void)
+{
+    setint(&w1.o.ts, 8);
+    setstr(&w1.o.name, "win1");
+    *pick(&w1, 1) = 9;
+    out(pick(&w1, 0) == 0);
+    setint(&w1.o.flags[1], 4);
+    out(w1.o.ts);
+    out(w1.o.so);
+    outs(w1.o.name);
+    out(w1.o.flags[1]);
+    w2 = w1;
+    w2.o.ts = 1;
+    int *tp = &w2.o.ts;
+    *tp += 1;
+    out(w1.o.ts);
+    out(w2.o.ts);
+    for (int i = 0; i < 3; i++)
+    {
+        *tabs[i].var += 100;
+        outs(tabs[i].name);
+    }
+    out(w1.o.ts);
+    out(w1.id);
+    out(gval);
+
+    current = add;
+    out(current == add);
+    out(current == ops[0].fn);
+    out(current != ops[1].fn);
+    out(ops[1].alt == 0);
+    out(choose(1) == mul);
+    out(choose(0) == ops[2].alt);
+    for (int i = 0; i < 3; i++)
+    {
+        out(ops[i].fn(7, 3));
+        if (ops[i].alt != 0)
+            out(ops[i].alt(7, 3));
+    }
+    out(apply(sub, 10, 4));
+    out(apply2(&mul, 6, 7));
+    out(apply(choose(1), 2, 5));
+    current = 0;
+    out(current == 0);
+    w1.next = &w2;
+    visit(&w1, bump, 5);
+    out(w1.id);
+    out(w2.id);
+
+    optset_T os = { 0 };
+    os.oldv.number = 5;
+    os.newv.number = 7;
+    out(describe(&os));
+    optset_T cp = os;
+    cp.newv.number = 1;
+    out(os.newv.number);
+    out(describe(&cp));
+    os.kind = 1;
+    os.oldv.boolean = 1;
+    os.newv.boolean = 0;
+    out(describe(&os));
+    os.u.pair.a = 3;
+    os.u.pair.b = 4;
+    out(os.u.pair.a + os.u.pair.b);
+    val_T v = { .string = "str" };
+    val_T n = { 42 };
+    os.newv = v;
+    os.kind = 2;
+    out(describe(&os));
+    out(n.number);
+}
+`
+
+func TestJavaPointers(t *testing.T) { javaSame(t, javaPointersC) }
+
+// goto: each a forward jump to a label of a block that holds it -- out of
+// nested loops, out of a switch and a loop inside it, past a label to the
+// next, into an empty statement at a loop's end, and two whose blocks would
+// cross -- a labeled block the goto breaks.
+const javaGotoC = javaHost + `
+static int grid[3][4] = { { 1, 2, 3, 4 }, { 5, 6, 7, 8 }, { 9, 10, 11, 12 } };
+
+int find(int v)
+{
+    int r = -1;
+    for (int i = 0; i < 3; i++)
+        for (int j = 0; j < 4; j++)
+            if (grid[i][j] == v)
+            {
+                r = i * 10 + j;
+                goto found;
+            }
+    out(-100);
+    return r;
+found:
+    out(r);
+    return r + 1000;
+}
+
+int classify(int n)
+{
+    int k = 0;
+    switch (n)
+    {
+    case 1:
+        k = 1;
+        goto done;
+    case 2:
+        while (1)
+        {
+            k++;
+            if (k > 5)
+                goto done;
+        }
+    default:
+        break;
+    }
+    k = -1;
+done:
+    return k;
+}
+
+int nested(int n)
+{
+    int t = 0;
+    while (n-- > 0)
+    {
+        if (n == 7)
+            goto skip;
+        if (n % 2)
+            goto odd;
+        t += 1;
+        goto next;
+    odd:
+        t += 100;
+    next:
+        t += 10;
+    skip:
+        ;
+    }
+    return t;
+}
+
+int crossing(int x)
+{
+    int r = 0;
+    if (x > 5)
+        goto la;
+    r += 1;
+    if (x > 2)
+        goto lb;
+    r += 2;
+la:
+    r += 4;
+    if (x > 7)
+        goto lb;
+    r += 16;
+lb:
+    r += 8;
+    return r;
+}
+
+void run(void)
+{
+    out(find(7));
+    out(find(12));
+    out(find(13));
+    for (int n = 0; n < 4; n++)
+        out(classify(n));
+    out(nested(10));
+    for (int x = 0; x < 10; x += 3)
+        out(crossing(x));
+}
+`
+
+func TestJavaGoto(t *testing.T) {
+	prog := javaSame(t, javaGotoC)
+	if strings.Contains(prog, "goto") || !strings.Contains(prog, "break L_found;") {
+		t.Errorf("the gotos are not labeled blocks:\n%s", numbered(prog))
+	}
+}
+
+// The control for milestone 2's constructs: one rule undone in each, which
+// must move the output -- an unsigned char passed to printf with its sign,
+// structs moved as references rather than copied, a member's address that
+// copies it, a union copied without one of its members, a function pointer
+// to another function, and a goto's break that leaves the wrong block.
+func TestJavaControl2(t *testing.T) {
+	requireTools(t)
+	for _, c := range []struct {
+		name, src string
+		prof      Profile
+		harness   string
+		from      *regexp.Regexp
+		repl      string
+	}{
+		{"variadic promotion", javaVarargsC, Profile{}, javaHarnessC, regexp.MustCompile(`\(uc & 0xff\)`), "uc"},
+		{"struct move", javaGrowC, javaGrowProfile, javaGrowHarnessC, regexp.MustCompile(`Rt\.moveStructs\(`), "Rt.memmove("},
+		{"member address", javaPointersC, Profile{}, javaHarnessC, regexp.MustCompile(`new IntPtr\(([\w.]+)\.ts, 0\)`), "new IntPtr(new int[] {$1.ts[0]}, 0)"},
+		{"union copy", javaPointersC, Profile{}, javaHarnessC, regexp.MustCompile(`\n\s+number = o\$\.number;`), ""},
+		{"function pointer", javaPointersC, Profile{}, javaHarnessC, regexp.MustCompile(`this::sub\b`), "this::mul"},
+		{"goto", javaGotoC, Profile{}, javaHarnessC, regexp.MustCompile(`break L_next;`), "break L_skip;"},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			dir := t.TempDir()
+			prog, refused := javaProgramWith(t, dir, c.src, c.prof)
+			if refused != "" {
+				t.Fatalf("refused:\n%s", refused)
+			}
+			wrong := c.from.ReplaceAllString(prog, c.repl)
+			if wrong == prog {
+				t.Fatalf("the control changed nothing:\n%s", numbered(prog))
+			}
+			want := cOutputWith(t, dir, c.src, c.harness)
+			if javaOutput(t, dir, prog) != want {
+				t.Fatalf("the right translation does not print what the C prints")
+			}
+			if javaOutput(t, dir, wrong) == want {
+				t.Errorf("the control: the wrong translation prints what the C prints")
+			}
+		})
+	}
+}
+
+// javaProgramWith is javaProgram told a profile.
+func javaProgramWith(t *testing.T, dir, src string, prof Profile) (string, string) {
+	c := filepath.Join(dir, "prog.c")
+	if err := os.WriteFile(c, []byte(src), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	out := filepath.Join(dir, "Prog.java")
+	if rc := Run([]string{c, dir, "-java", out}, io.Discard, prof); rc != 0 {
+		t.Fatalf("the generator refused: %d", rc)
+	}
+	b, err := os.ReadFile(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, _ := os.ReadFile(out + ".refused")
+	return string(b), string(r)
+}
+
+// cOutputWith is cOutput with the C side of the host given.
+func cOutputWith(t *testing.T, dir, src, harness string) string {
+	c := filepath.Join(dir, "prog.c")
+	h := filepath.Join(dir, "harness.c")
+	if err := os.WriteFile(c, []byte(src), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(h, []byte(harness), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	exe := filepath.Join(dir, "prog")
+	if o, err := exec.Command("gcc", "-w", "-O0", "-o", exe, c, h).CombinedOutput(); err != nil {
+		t.Fatalf("gcc: %v\n%s", err, o)
+	}
+	b, err := exec.Command(exe).Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(b)
+}
+
+// javaSameWith is javaSame told a profile and the C side of the host.
+func javaSameWith(t *testing.T, src string, prof Profile, harness string) string {
+	requireTools(t)
+	dir := t.TempDir()
+	prog, refused := javaProgramWith(t, dir, src, prof)
+	if refused != "" {
+		t.Fatalf("refused:\n%s\n%s", refused, numbered(prog))
+	}
+	want := cOutputWith(t, dir, src, harness)
+	if got := javaOutput(t, dir, prog); got != want {
+		t.Errorf("the Java prints\n%s\nthe C\n%s\n%s", diffLines(got, want), want, numbered(prog))
+	}
+	return prog
 }

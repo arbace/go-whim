@@ -63,15 +63,19 @@ type ByteFuncs struct {
 // GrowArray is a growable array whose storage member, a void *, the runtime
 // types at its first use: GaData[T](gap).
 type GrowArray struct {
-	Type string // the Go type a pointer to one is written as a pointer to
-	Data string // the member holding the storage
+	Type   string // the Go type a pointer to one is written as a pointer to
+	Data   string // the member holding the storage
+	MaxLen string // the member holding how many elements it has asked for (the Java's Ga)
 }
 
 // RuntimeBody is a function whose Go body is given: Body is it, for the Go
 // type the C gives its result ("" when the function is not in the C).
+// Java, when set, is the Java method's body -- its statements, the C's
+// parameter names in scope -- for the Java type the C gives its result.
 type RuntimeBody struct {
 	Name string
 	Body func(result string) string
+	Java func(result string) string
 }
 
 // profile is a Profile's lists as sets, for the lookups.

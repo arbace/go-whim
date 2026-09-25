@@ -45,17 +45,25 @@ import (
 
 // jgen is the Java backend's state for one translation unit.
 type jgen struct {
-	g       *gen
-	class   string
-	structs map[string]string // typeName -> Java class name
-	classes []string          // the struct classes' text, in the order met
-	anon    int
-	boxed   map[*cc.Declarator]bool // a scalar or pointer object whose address is taken
+	g           *gen
+	class       string
+	structs     map[string]string // typeName -> Java class name
+	classOrder  []string          // the struct classes, in the order met
+	classType   map[string]cc.Type
+	needEq      map[string]bool      // a class some code compares whole (memcmp)
+	boxedField  map[string]bool      // a member whose address is taken, by fieldKey
+	gaUsed      map[string]*gaHelper // the growarray's typed accessors, by the Java pointer type
+	ifaces      map[string]*jiface   // the functional interfaces, by their signature
+	ifaceByName map[string]*jiface
+	fnRefs      map[string]string // a function as a value of an interface -> its field
+	fnRefOrder  []string
+	fnRefText   map[string]string
+	anon        int
+	boxed       map[*cc.Declarator]bool // a scalar or pointer object whose address is taken
 	// ... and a file-scope one, by name: it may be declared more than once
 	boxedGlobal map[string]bool
 	enums       map[string]string // an enumerator used -> its declaration
 	defined     map[string]bool
-	bitfield    map[*cc.Field]bool
 }
 
 var javaReserved = map[string]bool{}
@@ -66,7 +74,7 @@ func init() {
 	interface long native new package private protected public return short static strictfp super switch
 	synchronized this throw throws transient try void volatile while true false null var yield record
 	sealed permits when module exports open opens requires uses provides to with transitive _
-	Object String Integer Long Short Byte Boolean Math System Arrays BytePtr ShortPtr IntPtr LongPtr BoolPtr Ptr Rt`) {
+	Object String Integer Long Short Byte Boolean Math System Arrays BytePtr ShortPtr IntPtr LongPtr BoolPtr Ptr Rt Ga Struct`) {
 		javaReserved[w] = true
 	}
 }
@@ -298,14 +306,15 @@ func (j *jgen) jt(t cc.Type, key string) (string, string) {
 		e := t.(*cc.PointerType).Elem()
 		switch e.Kind() {
 		case cc.Function:
-			return "", "a function pointer"
+			return j.fnIface(e.(*cc.FunctionType), "fp:"+key)
 		case cc.Void:
-			return "", "a void pointer"
-		case cc.Union:
-			return "", "a union"
+			// a void *: whatever it holds, as an Object -- the growarray's
+			// storage, typed where the C casts it (Ga), and the host's
+			// allocation
+			return "Object", ""
 		case cc.Array:
 			return "", "a pointer to an array"
-		case cc.Struct:
+		case cc.Struct, cc.Union:
 			n, why := j.structName(e)
 			if why != "" {
 				return "", why
@@ -333,12 +342,10 @@ func (j *jgen) jt(t cc.Type, key string) (string, string) {
 			return "", why
 		}
 		return inner + "[]", ""
-	case cc.Struct:
+	case cc.Struct, cc.Union:
 		return j.structName(t)
-	case cc.Union:
-		return "", "a union"
 	case cc.Function:
-		return "", "a function pointer"
+		return j.fnIface(t.(*cc.FunctionType), "fp:"+key)
 	}
 	return "", "a " + t.String()
 }
@@ -347,7 +354,7 @@ func (j *jgen) jt(t cc.Type, key string) (string, string) {
 // or a scalar's or pointer's zero.
 func (j *jgen) jnew(t cc.Type, jt string) (string, string) {
 	switch t.Kind() {
-	case cc.Struct:
+	case cc.Struct, cc.Union:
 		return "new " + jt + "()", ""
 	case cc.Array:
 		at := t.(*cc.ArrayType)
@@ -359,7 +366,7 @@ func (j *jgen) jnew(t cc.Type, jt string) (string, string) {
 			base = base[:len(base)-2]
 			et = a.Elem()
 		}
-		if et.Kind() == cc.Struct {
+		if et.Kind() == cc.Struct || et.Kind() == cc.Union {
 			if at.Elem().Kind() == cc.Array {
 				return "", "an array of arrays of structs"
 			}
@@ -375,21 +382,29 @@ func (j *jgen) jnew(t cc.Type, jt string) (string, string) {
 	return "null", ""
 }
 
-// structName is the Java class of a struct type, its class written the
-// first time it is met.
+// structName is the Java class of a struct or union type; its class is
+// written when the class is (classText), since what it holds -- a member
+// boxed, an eq() -- is known only when every method is.
 func (j *jgen) structName(t cc.Type) (string, string) {
-	if t.Kind() != cc.Struct {
-		return "", "a union"
+	if t.Kind() != cc.Struct && t.Kind() != cc.Union {
+		return "", "a " + t.String()
 	}
 	key := typeName(t)
 	if n, ok := j.structs[key]; ok {
 		return n, ""
 	}
-	var name string
-	st := t.(*cc.StructType)
+	var name, tag string
+	prefix := "S_"
+	switch x := t.(type) {
+	case *cc.StructType:
+		tag = tagStr(x.Tag())
+	case *cc.UnionType:
+		tag = tagStr(x.Tag())
+		prefix = "U_"
+	}
 	switch {
-	case tagStr(st.Tag()) != "":
-		name = "S_" + tagStr(st.Tag())
+	case tag != "":
+		name = prefix + tag
 	case t.Typedef() != nil:
 		name = "T_" + t.Typedef().Name()
 	default:
@@ -397,56 +412,135 @@ func (j *jgen) structName(t cc.Type) (string, string) {
 		name = fmt.Sprintf("A_%d", j.anon)
 	}
 	j.structs[key] = name
-	j.classes = append(j.classes, "") // its place, filled below
-	at := len(j.classes) - 1
-	j.classes[at] = j.structClass(name, st)
+	j.classOrder = append(j.classOrder, name)
+	j.classType[name] = t
 	return name, ""
 }
 
-// structClass is a struct's Java class: its members, set() -- C's
-// assignment, a copy of every member -- copy(), and array(n), n of them.
-func (j *jgen) structClass(name string, st *cc.StructType) string {
-	var b, set strings.Builder
-	fmt.Fprintf(&b, "    static final class %s {\n", name)
-	for i := 0; i < st.NumFields(); i++ {
-		fl := st.FieldByIndex(i)
+// members are a struct's or a union's fields.
+func members(t cc.Type) []*cc.Field {
+	var n int
+	var field func(int) *cc.Field
+	switch x := t.(type) {
+	case *cc.StructType:
+		n, field = x.NumFields(), x.FieldByIndex
+	case *cc.UnionType:
+		n, field = x.NumFields(), x.FieldByIndex
+	}
+	var fs []*cc.Field
+	for i := 0; i < n; i++ {
+		fs = append(fs, field(i))
+	}
+	return fs
+}
+
+// memberName is a member's Java name: its own, or _anonN for an unnamed one.
+func (j *jgen) memberName(fl *cc.Field, i int) string {
+	if fl.Name() == "" {
+		return fmt.Sprintf("_anon%d", i)
+	}
+	return j.jName(fl.Name())
+}
+
+// structClass is a struct's Java class -- the other object o$, a name no C
+// member has -- its members, set() -- C's
+// assignment, a copy of every member -- copy(), array(n), n of them, and
+// eq(), C's memcmp() == 0 of two, when some code compares them.  A union is
+// the same class: every member is a field of its own, as the Go's union is
+// (the C writes a member and reads that member back).  A scalar or pointer
+// member whose address is taken somewhere is a one-element array, as an
+// address-taken local is: &s->m is a pointer over that array.
+func (j *jgen) structClass(name string, t cc.Type) string {
+	var b, set, eq strings.Builder
+	fmt.Fprintf(&b, "    static final class %s implements Struct<%s> {\n", name, name)
+	if t.Kind() == cc.Union {
+		b.WriteString("        // C union: every member is its own field here\n")
+	}
+	for i, fl := range members(t) {
 		if fl == nil {
 			continue
 		}
-		fname := fl.Name()
-		if fname == "" {
-			fname = fmt.Sprintf("_anon%d", i)
-		}
-		fname = j.jName(fname)
-		if fl.IsBitfield() {
-			j.bitfield[fl] = true
-		}
+		fname := j.memberName(fl, i)
 		ft, why := j.jt(fl.Type(), fieldKey(fl))
 		if why != "" {
 			fmt.Fprintf(&b, "        Object %s; // C: %s -- %s\n", fname, fl.Type(), why)
-			fmt.Fprintf(&set, "            %s = o.%s;\n", fname, fname)
+			fmt.Fprintf(&set, "            %s = o$.%s;\n", fname, fname)
+			fmt.Fprintf(&eq, "            if (%s != o$.%s) {\n                return false;\n            }\n", fname, fname)
+			continue
+		}
+		if j.boxedField[fieldKey(fl)] {
+			fmt.Fprintf(&b, "        final %s[] %s = new %s[1];\n", ft, fname, raw(ft))
+			fmt.Fprintf(&set, "            %s[0] = o$.%s[0];\n", fname, fname)
+			eq.WriteString(eqStmt(fname+"[0]", "o$."+fname+"[0]", fl.Type(), ft, 0, "            "))
 			continue
 		}
 		switch fl.Type().Kind() {
-		case cc.Struct, cc.Array:
+		case cc.Struct, cc.Union, cc.Array:
 			nw, why := j.jnew(fl.Type(), ft)
 			if why != "" {
 				fmt.Fprintf(&b, "        Object %s; // C: %s -- %s\n", fname, fl.Type(), why)
-				fmt.Fprintf(&set, "            %s = o.%s;\n", fname, fname)
+				fmt.Fprintf(&set, "            %s = o$.%s;\n", fname, fname)
 				continue
 			}
 			fmt.Fprintf(&b, "        final %s %s = %s;\n", ft, fname, nw)
-			set.WriteString(copyStmt(fname, "o."+fname, fl.Type(), 0, "            "))
+			set.WriteString(copyStmt(fname, "o$."+fname, fl.Type(), 0, "            "))
 		default:
 			fmt.Fprintf(&b, "        %s %s;\n", ft, fname)
-			fmt.Fprintf(&set, "            %s = o.%s;\n", fname, fname)
+			fmt.Fprintf(&set, "            %s = o$.%s;\n", fname, fname)
 		}
+		eq.WriteString(eqStmt(fname, "o$."+fname, fl.Type(), ft, 0, "            "))
 	}
-	fmt.Fprintf(&b, "\n        %s set(%s o) {\n%s            return this;\n        }\n", name, name, set.String())
+	fmt.Fprintf(&b, "\n        public %s set(%s o$) {\n%s            return this;\n        }\n", name, name, set.String())
 	fmt.Fprintf(&b, "\n        %s copy() {\n            return new %s().set(this);\n        }\n", name, name)
+	fmt.Fprintf(&b, "\n        public %s zero() {\n            return set(new %s());\n        }\n", name, name)
 	fmt.Fprintf(&b, "\n        static %s[] array(int n) {\n            %s[] a = new %s[n];\n            for (int k = 0; k < n; k++) {\n                a[k] = new %s();\n            }\n            return a;\n        }\n", name, name, name, name)
+	if j.needEq[name] {
+		fmt.Fprintf(&b, "\n        boolean eq(%s o$) {\n%s            return true;\n        }\n", name, eq.String())
+	}
 	b.WriteString("    }\n")
 	return b.String()
+}
+
+// eqStmt is the statements that return false when two values of C type t,
+// Java type jt, differ: memcmp's answer on what C holds, member by member.
+func eqStmt(a, b string, t cc.Type, jt string, depth int, ind string) string {
+	neq := ""
+	switch t.Kind() {
+	case cc.Struct, cc.Union:
+		neq = "!" + a + ".eq(" + b + ")"
+	case cc.Array:
+		at := t.(*cc.ArrayType)
+		k := fmt.Sprintf("k$%d", depth)
+		return fmt.Sprintf("%sfor (int %s = 0; %s < %d; %s++) {\n%s%s}\n", ind, k, k, at.Len(), k,
+			eqStmt(a+"["+k+"]", b+"["+k+"]", at.Elem(), elemJ(jt), depth+1, ind+"    "), ind)
+	default:
+		neq = jnot(ptrEq(jt, a, b))
+	}
+	return fmt.Sprintf("%sif (%s) {\n%s    return false;\n%s}\n", ind, neq, ind, ind)
+}
+
+// eqClosure marks for an eq() every class a class that has one compares.
+func (j *jgen) eqClosure() {
+	for changed := true; changed; {
+		changed = false
+		for name := range j.needEq {
+			for _, fl := range members(j.classType[name]) {
+				if fl == nil {
+					continue
+				}
+				t := fl.Type()
+				for t.Kind() == cc.Array {
+					t = t.(*cc.ArrayType).Elem()
+				}
+				if t.Kind() == cc.Struct || t.Kind() == cc.Union {
+					if n, why := j.structName(t); why == "" && !j.needEq[n] {
+						j.needEq[n] = true
+						changed = true
+					}
+				}
+			}
+		}
+	}
 }
 
 // copyStmt copies a value of C type t from src into dst, which exists:
@@ -454,13 +548,13 @@ func (j *jgen) structClass(name string, st *cc.StructType) string {
 // element.
 func copyStmt(dst, src string, t cc.Type, depth int, ind string) string {
 	switch t.Kind() {
-	case cc.Struct:
+	case cc.Struct, cc.Union:
 		return ind + dst + ".set(" + src + ");\n"
 	case cc.Array:
 		at := t.(*cc.ArrayType)
 		switch at.Elem().Kind() {
-		case cc.Struct, cc.Array:
-			k := fmt.Sprintf("k%d", depth)
+		case cc.Struct, cc.Union, cc.Array:
+			k := fmt.Sprintf("k$%d", depth)
 			return fmt.Sprintf("%sfor (int %s = 0; %s < %d; %s++) {\n%s%s}\n", ind, k, k, at.Len(), k,
 				copyStmt(dst+"["+k+"]", src+"["+k+"]", at.Elem(), depth+1, ind+"    "), ind)
 		}
@@ -469,8 +563,9 @@ func copyStmt(dst, src string, t cc.Type, depth int, ind string) string {
 	return ind + dst + " = " + src + ";\n"
 }
 
-// boxes finds every scalar or pointer object whose address is taken: Java
-// has no address of a variable, so each is a one-element array.
+// boxes finds every scalar or pointer object whose address is taken -- a
+// variable, or a struct's member -- Java has no address of either, so each
+// is a one-element array.
 func (j *jgen) boxes() {
 	var rec func(cc.Node)
 	rec = func(n cc.Node) {
@@ -478,6 +573,13 @@ func (j *jgen) boxes() {
 			return
 		}
 		if u, ok := n.(*cc.UnaryExpression); ok && u.Case == cc.UnaryExpressionAddrof {
+			if m, ok := unparenE(u.CastExpression).(*cc.PostfixExpression); ok && (m.Case == cc.PostfixExpressionSelect || m.Case == cc.PostfixExpressionPSelect) {
+				if fl := m.Field(); fl != nil && fl.Type() != nil {
+					if _, sc := scalarKind(fl.Type()); sc || fl.Type().Kind() == cc.Ptr {
+						j.boxedField[fieldKey(fl)] = true
+					}
+				}
+			}
 			if p, ok := unparenE(u.CastExpression).(*cc.PrimaryExpression); ok && p.Case == cc.PrimaryExpressionIdent {
 				if d, ok := p.ResolvedTo().(*cc.Declarator); ok && d.Type() != nil {
 					if _, sc := scalarKind(d.Type()); sc || d.Type().Kind() == cc.Ptr {
@@ -511,7 +613,10 @@ func (j *jgen) isBoxed(d *cc.Declarator) bool {
 func (g *gen) writeJava(path string) error {
 	class := strings.TrimSuffix(filepath.Base(path), ".java")
 	j := &jgen{g: g, class: class, structs: map[string]string{}, boxed: map[*cc.Declarator]bool{}, boxedGlobal: map[string]bool{},
-		enums: map[string]string{}, defined: map[string]bool{}, bitfield: map[*cc.Field]bool{}}
+		enums: map[string]string{}, defined: map[string]bool{},
+		classType: map[string]cc.Type{}, needEq: map[string]bool{}, boxedField: map[string]bool{},
+		gaUsed: map[string]*gaHelper{}, ifaces: map[string]*jiface{}, ifaceByName: map[string]*jiface{},
+		fnRefs: map[string]string{}, fnRefText: map[string]string{}}
 	j.boxes()
 	for tu := g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
 		if ed := tu.ExternalDeclaration; ed.Case == cc.ExternalDeclarationFuncDef {
@@ -521,7 +626,7 @@ func (g *gen) writeJava(path string) error {
 
 	// the functions, written or refused
 	var methods, report strings.Builder
-	written, total := 0, 0
+	written, replaced, total := 0, 0, 0
 	rtWritten, rtTotal := 0, 0 // of the functions the Go's runtime replaces (Profile.Runtime)
 	whys := map[string]int{}
 	for tu := g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
@@ -531,9 +636,16 @@ func (g *gen) writeJava(path string) error {
 		}
 		fd := ed.FunctionDefinition
 		total++
-		inRt := g.p.runtime[fd.Declarator.Name()]
+		name := fd.Declarator.Name()
+		inRt := g.p.runtime[name]
 		if inRt {
 			rtTotal++
+		}
+		if j.replaced(name) {
+			// the Java runtime's: every call is written as its (BytePtr.alloc,
+			// Rt.memmove, ...), and no call reaches a method
+			replaced++
+			continue
 		}
 		src, why := j.method(fd)
 		if why != "" {
@@ -570,10 +682,16 @@ func (g *gen) writeJava(path string) error {
 	for _, f := range failed {
 		fmt.Fprintf(&report, "initial value of %s\n", f)
 	}
+	j.eqClosure()
+	var classes []string
+	for i := 0; i < len(j.classOrder); i++ {
+		name := j.classOrder[i]
+		classes = append(classes, j.structClass(name, j.classType[name]))
+	}
 
 	var b strings.Builder
 	fmt.Fprintf(&b, "// Code generated by `go tool whim skel -java` from a C translation unit; DO NOT EDIT.\n")
-	fmt.Fprintf(&b, "// %d of %d functions written; the rest are stubs that throw, with the reason.\n\n", written, total)
+	fmt.Fprintf(&b, "// %d of %d functions written, %d the runtime's; the rest are stubs that throw, with the reason.\n\n", written, total, replaced)
 	if g.p.JavaPackage != "" {
 		fmt.Fprintf(&b, "package %s;\n\n", g.p.JavaPackage)
 	}
@@ -595,10 +713,14 @@ func (g *gen) writeJava(path string) error {
 	if len(enums) > 0 {
 		b.WriteString("\n")
 	}
-	for _, c := range j.classes {
+	for _, c := range classes {
 		b.WriteString(c + "\n")
 	}
+	b.WriteString(j.ifaceDecls())
 	b.WriteString(fields)
+	for _, k := range j.fnRefOrder {
+		b.WriteString(j.fnRefText[k])
+	}
 	fmt.Fprintf(&b, "\n    public %s() {\n", class)
 	for i := range inits {
 		fmt.Fprintf(&b, "        initGlobals%d();\n", i)
@@ -611,6 +733,7 @@ func (g *gen) writeJava(path string) error {
 		b.WriteString("\n    // the host: declared, and not defined here\n")
 		b.WriteString(host.String())
 	}
+	b.WriteString(j.gaHelpers())
 	b.WriteString(methods.String())
 	b.WriteString("}\n")
 
@@ -624,9 +747,9 @@ func (g *gen) writeJava(path string) error {
 		}
 		return ks[a] < ks[b]
 	})
-	fmt.Fprintf(logw, "java: %d of %d functions written, %d refused", written, total, total-written)
+	fmt.Fprintf(logw, "java: %d of %d functions written, %d the Java runtime's, %d refused", written, total, replaced, total-written-replaced)
 	if rtTotal > 0 {
-		fmt.Fprintf(logw, "; of the %d the Go's runtime replaces, %d written", rtTotal, rtWritten)
+		fmt.Fprintf(logw, "; of the %d the Go's runtime replaces, %d written and %d the Java runtime's", rtTotal, rtWritten, replaced)
 	}
 	fmt.Fprintln(logw)
 	for _, k := range ks {
@@ -639,6 +762,14 @@ func (g *gen) writeJava(path string) error {
 		return err
 	}
 	return os.WriteFile(path, []byte(b.String()), 0o644)
+}
+
+// replaced says a function is the Java runtime's and not written: an
+// allocator or a function of bytes (Profile), whose calls the backend
+// writes as the runtime's, and which nothing takes the address of.
+func (j *jgen) replaced(name string) bool {
+	p := j.g.p
+	return (p.allocators[name] || p.byteMove(name) || name == p.Bytes.Set || name == p.Bytes.Cmp) && !j.g.a.addr[name]
 }
 
 // reasonKey is a refusal's reason without where it was met or the detail
@@ -679,9 +810,6 @@ func (j *jgen) sigWhy(name string, ft *cc.FunctionType) string {
 		if _, why := j.jt(t, fmt.Sprintf("param:%s:%d", name, i)); why != "" {
 			return why
 		}
-	}
-	if ft.IsVariadic() {
-		return "a variadic function"
 	}
 	if _, why := j.jt(ft.Result(), "ret:"+name); why != "" {
 		return why
@@ -751,7 +879,7 @@ func (j *jgen) fields() (string, []string, []string) {
 		switch {
 		case j.isBoxed(d):
 			fmt.Fprintf(&b, "    %s[] %s = new %s[1];\n", jt, name, raw(jt))
-		case t.Kind() == cc.Struct || t.Kind() == cc.Array:
+		case isAggr(t) || t.Kind() == cc.Array:
 			nw, why := j.jnew(t, jt)
 			if why != "" {
 				fmt.Fprintf(&b, "    Object %s; // C: %s -- %s\n", name, t, why)
@@ -864,3 +992,131 @@ func javaQuote(s string) string {
 	b.WriteByte('"')
 	return b.String()
 }
+
+// isAggr says t is a struct or a union: a class, assigned by set().
+func isAggr(t cc.Type) bool {
+	return t != nil && (t.Kind() == cc.Struct || t.Kind() == cc.Union)
+}
+
+// jiface is a functional interface: C's pointer to a function of one
+// signature, as Java writes it -- `interface FnN { R call(P0 a0, ...); }`.
+// Two C types that Java writes alike are one interface: Java's types are
+// nominal, C's function types are not.
+type jiface struct {
+	name   string
+	params []string
+	result string
+	sig    string
+}
+
+// fnIface is the functional interface of C function type ft, key the object
+// whose pointers' classes its parameters (key:i) and result (ret:key) take.
+func (j *jgen) fnIface(ft *cc.FunctionType, key string) (string, string) {
+	return j.fnIfaceK(ft, key, "ret:"+key)
+}
+
+// fnIfaceK is fnIface with the result's key given: a function's own
+// interface has param:f:i and ret:f.
+func (j *jgen) fnIfaceK(ft *cc.FunctionType, key, rkey string) (string, string) {
+	if ft.IsVariadic() {
+		return "", "a pointer to a variadic function"
+	}
+	var ps []string
+	for i, p := range ft.Parameters() {
+		if p.Type() == nil || p.Type().Kind() == cc.Void {
+			continue
+		}
+		t := p.Type()
+		if t.Kind() == cc.Array {
+			t = t.Decay()
+		}
+		s, why := j.jt(t, fmt.Sprintf("%s:%d", key, i))
+		if why != "" {
+			return "", why
+		}
+		ps = append(ps, s)
+	}
+	r, why := j.jt(ft.Result(), rkey)
+	if why != "" {
+		return "", why
+	}
+	sig := r + "(" + strings.Join(ps, ", ") + ")"
+	if f, ok := j.ifaces[sig]; ok {
+		return f.name, ""
+	}
+	f := &jiface{name: fmt.Sprintf("Fn%d", len(j.ifaces)+1), params: ps, result: r, sig: sig}
+	j.ifaces[sig] = f
+	j.ifaceByName[f.name] = f
+	return f.name, ""
+}
+
+// ifaceDecls declares the functional interfaces, in the order they were met.
+func (j *jgen) ifaceDecls() string {
+	fs := make([]*jiface, 0, len(j.ifaces))
+	for _, f := range j.ifaces {
+		fs = append(fs, f)
+	}
+	sort.Slice(fs, func(a, b int) bool {
+		return len(fs[a].name) < len(fs[b].name) || len(fs[a].name) == len(fs[b].name) && fs[a].name < fs[b].name
+	})
+	var b strings.Builder
+	for _, f := range fs {
+		var ps []string
+		for i, p := range f.params {
+			ps = append(ps, fmt.Sprintf("%s a%d", p, i))
+		}
+		fmt.Fprintf(&b, "    @FunctionalInterface\n    interface %s {\n        %s call(%s);\n    }\n\n", f.name, f.result, strings.Join(ps, ", "))
+	}
+	return b.String()
+}
+
+// runtimeBody is the Java body the profile gives a function, or nil.
+func (j *jgen) runtimeBody(name string) func(string) string {
+	for _, rb := range j.g.p.RuntimeBodies {
+		if rb.Name == name && rb.Java != nil {
+			return rb.Java
+		}
+	}
+	return nil
+}
+
+// gaHelpers are the growarray's typed accessors the methods use: each makes
+// or grows the storage as its type (Ga) and keeps it in the array.
+func (j *jgen) gaHelpers() string {
+	var ks []string
+	for k := range j.gaUsed {
+		ks = append(ks, k)
+	}
+	sort.Strings(ks)
+	var b strings.Builder
+	for _, to := range ks {
+		h := j.gaUsed[to]
+		var make string
+		switch to {
+		case "BytePtr":
+			make = "Ga.bytes(gap.%[1]s, gap.%[2]s)"
+		case "ShortPtr":
+			make = "Ga.shorts(gap.%[1]s, gap.%[2]s)"
+		case "IntPtr":
+			make = "Ga.ints(gap.%[1]s, gap.%[2]s)"
+		case "LongPtr":
+			make = "Ga.longs(gap.%[1]s, gap.%[2]s)"
+		case "BoolPtr":
+			make = "Ga.bools(gap.%[1]s, gap.%[2]s)"
+		default:
+			e := elemJ(to)
+			mk := raw(e) + "[]::new"
+			if _, ok := j.classType[e]; ok {
+				mk = e + "::array"
+			}
+			make = "Ga.ptrs(gap.%[1]s, gap.%[2]s, " + mk + ")"
+		}
+		make = fmt.Sprintf(make, j.jName(j.g.p.GrowArray.Data), j.jName(j.g.p.GrowArray.MaxLen))
+		fmt.Fprintf(&b, "\n    private static %s %s(%s gap) {\n        %s p = %s;\n        gap.%s = p;\n        return p;\n    }\n",
+			to, h.name, h.class, to, make, j.jName(j.g.p.GrowArray.Data))
+	}
+	return b.String()
+}
+
+// gaHelper is one typed accessor of the growarray's storage.
+type gaHelper struct{ name, class string }
