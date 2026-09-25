@@ -127,6 +127,16 @@ var w125Left = map[string]string{
 	"ML_APPEND_NEW":            "an enumerator nothing mentions",
 	"ML_LOCKED_POS":            "an enumerator nothing mentions",
 	"ML_LOCKED_DIRTY":          "an enumerator nothing mentions",
+	"b0p":                      "a local nothing reads",
+	"bnum2":                    "a local nothing reads",
+	"dirty":                    "a local nothing reads",
+	"lnum_left":                "a local nothing reads",
+	"lnum_right":               "a local nothing reads",
+	"mf_trans":                 "a member nothing names",
+	"mf_blocknr_min":           "a member nothing names",
+	"mf_neg_count":             "a member nothing names",
+	"pe_old_lnum":              "a member nothing names",
+	"mf_dont_release":          "a static object nothing reads",
 }
 
 // Whim125 takes the swap file's residue: four groups of bookkeeping that is
@@ -143,16 +153,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	mentions := func(name string) int {
 		return len(regexp.MustCompile(`\b(?:`+name+`)\b`).FindAllString(t, -1))
-	}
-	blankRuns := func(s string) int {
-		L := strings.Split(s, "\n")
-		n := 0
-		for i := 1; i < len(L); i++ {
-			if L[i] == "" && L[i-1] == "" {
-				n++
-			}
-		}
-		return n
 	}
 	lines := func() []string { return strings.Split(t, "\n") }
 	swap := func(old, new, what, why string, n int) error {
@@ -247,14 +247,11 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			return 0, err
 		}
 		L := lines()
-		if L[hi] != "" {
-			return 0, p.Die("`%s`'s definition is not followed by a blank line", name)
-		}
-		if err := drop(strings.Join(L[lo:hi+1], "\n")+"\n",
+		if err := drop(strings.Join(L[lo:hi], "\n")+"\n",
 			fmt.Sprintf("`%s`'s definition", name), why, 1); err != nil {
 			return 0, err
 		}
-		return hi + 1 - lo, nil
+		return hi - lo, nil
 	}
 	cutRange := func(lo, hi int, what, why string) (int, error) {
 		L := lines()
@@ -300,7 +297,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 
 	linesBefore := len(lines()) - 1
-	runsBefore := blankRuns(t)
 	dirRe := regexp.MustCompile(`^ *# *`)
 	var directivesBefore []int
 	for i, l := range lines() {
@@ -410,21 +406,15 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if len(outside) > 0 {
 		return nil, p.Die("ml_open() says `b0p` outside the preamble at %s", strings.Join(outside, " "))
 	}
-	b0declV, err := only(func(l string) bool {
+	if _, err := only(func(l string) bool {
 		return regexp.MustCompile(`^    ZERO_BL +\*b0p;$`).MatchString(l)
-	}, "ml_open()'s `b0p`", loOpen, hiOpen, 1)
-	if err != nil {
+	}, "ml_open()'s `b0p`", loOpen, hiOpen, 1); err != nil {
 		return nil, err
 	}
-	b0decl := b0declV[0]
 	npre, err := cutRange(start, stop, "ml_open()'s block-zero preamble",
 		"it is the only place in the file that allocates block zero, and every "+
 			"write to the header it then fills is inside it")
 	if err != nil {
-		return nil, err
-	}
-	if err := drop(L[b0decl]+"\n", "ml_open()'s `b0p` declaration",
-		"the preamble this edit has just taken was its only user", 2); err != nil {
 		return nil, err
 	}
 	p.Sayf("ml_open()'s block-zero preamble is %d lines and they are gone: the mf_new() that "+
@@ -710,9 +700,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"no block number in any build of whim-vim is ever negative", 1); err != nil {
 		return nil, err
 	}
-	if err := drop(w125lit22, "ml_find_line()'s `bnum2`", "its one use has gone", 1); err != nil {
-		return nil, err
-	}
 	if err := drop(w125lit23, "mf_trans_add()'s declaration", "", 1); err != nil {
 		return nil, err
 	}
@@ -747,9 +734,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		{w125lit27, "mf_open()'s initialisation of mf_blocknr_min"},
 		{w125lit28, "mf_open()'s initialisation of mf_neg_count"},
 		{w125lit29, "mf_close()'s free of mf_trans"},
-		{w125lit30, "the `mf_trans` field"},
-		{w125lit31, "the `mf_blocknr_min` field"},
-		{w125lit32, "the `mf_neg_count` field"},
 	} {
 		if err := drop(e.Old, e.What, "", 1); err != nil {
 			return nil, err
@@ -801,7 +785,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	cutAt(append(append([]int{}, cls["its declaration"]...), cls["a write"]...))
+	cutAt(cls["a write"])
 
 	// ==== PART 4 -- pe_old_lnum ================================================
 	cls, err = partition("pe_old_lnum", []w125Class{
@@ -815,9 +799,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"cannot see it -- that tool takes a field named nowhere outside its own type -- so "+
 		"the field goes in the EDIT, with its writes", len(cls["a write"]))
 	cutAt(cls["a write"])
-	if err := drop(w125lit41, "the `pe_old_lnum` field", "", 1); err != nil {
-		return nil, err
-	}
 	L = lines()
 	emptyRe := regexp.MustCompile(`^\s*if \(lnum_(left|right)( != 0)?\)$`)
 	var empties []int
@@ -851,12 +832,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, p.Die("`lnum_left` has %d mentions and `lnum_right` %d, and the branch this edit has "+
 			"just taken should leave each with its declaration and its one reset",
 			mentions("lnum_left"), mentions("lnum_right"))
-	}
-	if err := drop(w125lit43, "the `lnum_left` declaration", "", 1); err != nil {
-		return nil, err
-	}
-	if err := drop(w125lit44, "the `lnum_right` declaration", "", 1); err != nil {
-		return nil, err
 	}
 	if err := drop(w125lit45, "the reset of lnum_left and lnum_right", "", 1); err != nil {
 		return nil, err
@@ -897,10 +872,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"it is FALSE for ever, so the conjunct is the other operands", 1); err != nil {
 		return nil, err
 	}
-	if err := drop(w125lit46, "the `mf_dont_release` declaration",
-		"both of its readers have gone", 1); err != nil {
-		return nil, err
-	}
 
 	// ---- WHAT IS LEFT FOR THE SWEEP -------------------------------------------
 	var leftNames []string
@@ -919,16 +890,21 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		"write", len(w125Left), strings.Join(leftNames, ", "))
 
 	for _, name := range []string{"mf_dirty", "mfdirty_T", "MF_DIRTY_NO", "MF_DIRTY_YES",
-		"MF_DIRTY_YES_NOSYNC", "mf_sync", "mf_trans", "mf_trans_add", "mf_trans_del",
-		"mf_blocknr_min", "mf_neg_count", "pe_old_lnum", "mf_dont_release",
-		"lnum_left", "lnum_right", "bnum2", "newfile"} {
+		"MF_DIRTY_YES_NOSYNC", "mf_sync", "mf_trans_add", "mf_trans_del", "newfile"} {
 		if k := mentions(name); k != 0 {
 			return nil, p.Die("`%s` still has %d mentions and the edit owns every one of them", name, k)
 		}
 	}
-	if k := mentions("b0p"); k != 2 {
-		return nil, p.Die("`b0p` has %d mentions and the edit leaves two, both of them inside "+
-			"set_b0_fname(), which tools/deadsweep.py takes", k)
+	// the locals, members and object left for the sweep are named only where
+	// they are declared: nothing reads or writes them any more.  b0p is
+	// ml_open()'s declaration and two mentions inside set_b0_fname(), which the
+	// sweep takes too.
+	for name, k := range map[string]int{"bnum2": 1, "dirty": 1, "lnum_left": 1, "lnum_right": 1,
+		"mf_trans": 1, "mf_blocknr_min": 1, "mf_neg_count": 1, "pe_old_lnum": 1,
+		"mf_dont_release": 1, "b0p": 3} {
+		if n := mentions(name); n != k {
+			return nil, p.Die("`%s` has %d mentions, and the edit leaves %d", name, n, k)
+		}
 	}
 	for _, sig := range []string{"mf_new(memfile_T *mfp, int page_count)",
 		"ml_new_data(memfile_T *mfp, int page_count)",
@@ -945,23 +921,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 
-	// ---- the paragraphs the cuts emptied --------------------------------------
-	if runsBefore != 0 {
-		return nil, p.Die("the input already holds %d runs of two blank lines, and this file has none -- "+
-			"so the arithmetic below could not tell this edit's from the input's", runsBefore)
-	}
-	L = lines()
-	var made []int
-	for i := 1; i < len(L); i++ {
-		if L[i] == "" && L[i-1] == "" {
-			made = append(made, i)
-		}
-	}
-	cutAt(made)
-	p.Sayf("%d paragraphs were emptied outright and one blank line goes from each", len(made))
-	if r := blankRuns(t); r != 0 {
-		return nil, p.Die("the edit left %d runs of two blank lines", r)
-	}
 	L = lines()
 	var d2 []int
 	for i, l := range L {
@@ -986,7 +945,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, p.Die("%v", err)
 	}
 	p.Sayf("%d -> %d lines before the sweep, %d fewer, the %d `#include`s untouched and still "+
-		"contiguous, and no run of two blank lines",
+		"contiguous",
 		linesBefore, len(L)-1, linesBefore-(len(L)-1), len(d2))
 	return []byte(t), nil
 }
