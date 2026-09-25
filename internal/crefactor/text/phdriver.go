@@ -26,11 +26,10 @@ import (
 // the edit it serves; it is worth writing once here, because a Go file per
 // phase would otherwise repeat it forty-two times.
 //
-// It is deliberately a near-copy of internal/cut's `ed` rather than a shared
-// version of it: `ed` is reached by all 57 cutters, and hoisting it into a
-// third package to save this file would edit every one of them to save
-// forty lines.  If the two ever need to agree on something, agreeing by
-// copy is cheaper here than agreeing by dependency.
+// Its acts are counted.go's, which E and the cutters' own driver (`ed`, in
+// internal/cut) are written on too: one implementation of each counted act,
+// three ways of reporting it.  internal/cut's `ed` was a near-copy of this
+// until the verb set moved here.
 //
 // THE REPORT COLUMN IS THE PYTHON'S, exactly: `'  %-12s %s'`.  That is two
 // spaces, the tag padded to twelve, one space, the message -- which is the
@@ -63,29 +62,22 @@ func (p Ph) Die(format string, a ...any) error {
 // to cut something other than what it was written to cut -- which is worth a
 // refusal rather than a silent smaller cut.
 func (p Ph) Literal(text []byte, old, new string, n int, what string) ([]byte, error) {
-	k, norm := matchCount(text, old)
-	if k != n {
-		return nil, p.Die("%s -- occurs %d times, expected %d", what, k, n)
+	out, err := ReplaceLiteral(text, old, new, n)
+	if err != nil {
+		return nil, p.Die("%s -- %v", what, err)
 	}
 	p.Say(what)
-	return replaceMatched(text, old, new, k, norm), nil
+	return out, nil
 }
 
 // inFunction applies an edit to ONE function's text and splices it back, so a
 // pattern that would match elsewhere in the file cannot.
 func (p Ph) InFunction(text []byte, name string, edit func([]byte) ([]byte, error)) ([]byte, error) {
-	a, z, ok := FindDefinition(text, Blank(text), name)
-	if !ok {
+	out, found, err := InDefinition(text, name, edit)
+	if !found {
 		return nil, p.Die("%s is not defined", name)
 	}
-	seg, err := edit(text[a:z])
-	if err != nil {
-		return nil, err
-	}
-	Out := make([]byte, 0, len(text)-(z-a)+len(seg))
-	Out = append(Out, text[:a]...)
-	Out = append(Out, seg...)
-	return append(Out, text[z:]...), nil
+	return out, err
 }
 
 // mentions counts a name as a WHOLE WORD, which is how these blocks state

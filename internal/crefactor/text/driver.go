@@ -156,16 +156,12 @@ func (e *E) Sub(pattern, repl string, n int, what string) {
 	if e.Err != nil {
 		return
 	}
-	re, err := regexp.Compile(pattern)
+	out, err := ReplacePattern(e.buf, pattern, repl, n)
 	if err != nil {
 		e.Die("%s -- %v", what, err)
 		return
 	}
-	if k := len(re.FindAll(e.buf, -1)); k != n {
-		e.Die("%s -- matched %d times, expected %d", what, k, n)
-		return
-	}
-	e.buf = re.ReplaceAll(e.buf, []byte(repl))
+	e.buf = out
 	e.Say(what)
 }
 
@@ -192,12 +188,12 @@ func (e *E) Literal(old, new string, n int, what string) {
 	if e.Err != nil {
 		return
 	}
-	k, norm := matchCount(e.buf, old)
-	if k != n {
-		e.Die("%s -- occurs %d times, expected %d", what, k, n)
+	out, err := ReplaceLiteral(e.buf, old, new, n)
+	if err != nil {
+		e.Die("%s -- %v", what, err)
 		return
 	}
-	e.buf = replaceMatched(e.buf, old, new, n, norm)
+	e.buf = out
 	e.Say(what)
 }
 
@@ -314,20 +310,20 @@ func (e *E) InFunction(name string, acts func(*E)) {
 	if e.Err != nil {
 		return
 	}
-	a, z, ok := FindDefinition(e.buf, Blank(e.buf), name)
-	if !ok {
+	out, found, err := InDefinition(e.buf, name, func(seg []byte) ([]byte, error) {
+		inner := &E{Tag: e.Tag, buf: seg, W: e.W}
+		acts(inner)
+		return inner.buf, inner.Err
+	})
+	if !found {
 		e.Die("%s is not defined at file scope", name)
 		return
 	}
-	inner := &E{Tag: e.Tag, buf: e.buf[a:z], W: e.W}
-	acts(inner)
-	if inner.Err != nil {
-		e.Err = inner.Err
+	if err != nil {
+		e.Err = err
 		return
 	}
-	out := append([]byte{}, e.buf[:a]...)
-	out = append(out, inner.buf...)
-	e.buf = append(out, e.buf[z:]...)
+	e.buf = out
 }
 
 // InTable is InFunction for a file-scope table: the acts run against one
