@@ -44,9 +44,12 @@ Java's own limits, which the emitter must respect:
   class, the report), `java_expr.go` the expressions, `java_stmt.go` the
   statements and methods; `java_test.go` the tests.
 - `jeditor/rt/`: the runtime, by hand, package `whim.rt` -- `BytePtr`,
-  `ShortPtr`, `IntPtr`, `LongPtr`, `BoolPtr`, `Ptr<T>` and `Rt` (`memmove`,
-  `memset`, `memcmp`, a char array's initial value) -- as `editor/crt.go` is
-  the Go's, and `SelfTest.java`, its own test with no framework.
+  `ShortPtr`, `IntPtr`, `LongPtr`, `BoolPtr`, `Ptr<T>`, `Rt` (`memmove`,
+  `memset`, `memcmp` on bytes and in elements, a char array's initial value,
+  a `void *` read back), `Ga` (the growarray's storage, typed at its use) and
+  `Struct<T>` (what every struct class can do: `set`, `zero`) -- as
+  `editor/crt.go` is the Go's, and `SelfTest.java`, its own test with no
+  framework.
 - `jeditor/`: the rest of the editor in Java, by hand -- `host/` (package
   `whim.host`: the `Host` interface, `Exit`, `Printf` -- vim_snprintf --, and
   `Term` and `Signals`, the terminal host, which calls `ioctl`, `select`,
@@ -76,12 +79,13 @@ Each is verified before the next starts.
    (*The work list* below): the variadic call, the growarray, the functions
    of bytes on what is not bytes, the address of a member, function
    pointers, unions, the labeled-block `goto`. The measure: every function of
-   `editor.c` written, and `javac` compiling `Editor.java`.
+   `editor.c` written, and `javac` compiling `Editor.java`. **Done**; see
+   *Milestone 2, as built*.
 3. **The host and the launcher**, and `whim test` running the Java editor: the
-   45 cases, then `--wide`, required to answer as the C does. **The host, the
-   launcher and the suite's hookup are done** (*Milestone 3, as built*); the
-   editor answering as the C does waits on milestone 2: today every case
-   stops in `vim_main`, a stub.
+   45 cases, then `--wide`, required to answer as the C does. **Done**: the
+   host, the launcher and the suite's hookup (*Milestone 3, as built*), and
+   with milestone 2 the Java editor answers all 45 cases and all 240 wide
+   ones exactly as the C does.
 4. **Kept current:** `make whim-build` writes `Editor.java` as it writes
    `editor.go`, and a check refuses a stale one.
 
@@ -188,6 +192,134 @@ may uncover another in the same function:
 | 7 | a goto | 8 | the 49 gotos: a labeled block, `L: { ... break L; ... }` |
 
 and 5 compound literals among the initial values.
+
+## Milestone 2, as built
+
+**Measured on `editor.c`** (73,632 lines, 2026-09-25): of its **1,701**
+function definitions, **1,693 written, 8 the Java runtime's, 0 refused**, and
+no initial value refused. The 8 are the allocators (`alloc`, `alloc_clear`,
+`lalloc`, `lalloc_clear`) and `musl_memmove`, `musl_memcpy`, `musl_memset`,
+`musl_memcmp`: every call of them is written as the runtime's
+(`BytePtr.alloc`, `new S()`, `Rt.memmove`, ...), no call reaches a method,
+and none is written -- as the Go's runtime replaces them. Of the 18 the Go's
+runtime replaces, the Java writes the other 10: the 9 C string functions,
+translated, and `ga_grow_inner`, a rule of the profile's
+(`RuntimeBody.Java`, in `internal/whim/gen.go`).
+
+**It compiles and it is the editor.** `Editor.java` is 65,356 lines: 105
+struct and union classes, 11 functional interfaces, the fields and 165
+function-value fields, 15 `initGlobalsN` methods, the 17 abstract host
+methods -- unchanged from milestone 1, so `jeditor/Whim.java` is too -- 9
+growarray accessors and the 1,693 methods. `javac -Xlint:all` compiles it
+with the runtime in 3.2 s, no error, 63 warnings: 40 lossy compound
+assignments and 23 fall-throughs, C's own. The constant pool holds 18,355
+entries; no method is over 64 KB. `whim test --java`: the Java editor answers
+all **45** cases exactly as the C does, its control seen by 41 (the Go's
+too); `--wide --java`: all **240**, the control seen as the Go's is (94 keys,
+6 pty). The Java cases take 1.6 s and 7.3 s.
+
+**What each construct became**, and why:
+
+- **A variadic call** (`vim_snprintf`, 174 calls): the arguments past the
+  parameters as `Object...` receives them, C's default promotions and then
+  boxed, as the Go passes `...any` and as `host/Printf.java` reads them -- a
+  char, short or int an `Integer` (an unsigned char or short widened without
+  its sign first), an **unsigned int zero-extended to a `Long`**, so that it
+  reads back as C's would under `%u` and `%lu` alike, a long a `Long`, a
+  pointer its class, an array the pointer it decays to, NULL a null
+  `Object`. A constant is written as a number: `'o'` would box as a
+  `Character`.
+- **A `void *` is an `Object`.** The core has two: `host_alloc`'s result,
+  cast where it is used (`(BytePtr) host_alloc(n)`, so the host must return
+  a `BytePtr`), and the growarray's `ga_data`, which follows the Go's
+  `GaData[T]`: where the C casts it -- or converts it uncast, to a parameter
+  or a variable -- it is a static accessor of the Java type it becomes,
+  `GA_IntPtr(gap)`, `GA_Ptr_T_hl_group_T(gap)`, which asks `Ga` for storage
+  of that type as large as `ga_maxlen` (`Profile.GrowArray.MaxLen`), made at
+  the first typed use or grown there, and keeps it in `ga_data`. So
+  `ga_grow_inner` only sets `ga_maxlen`, and the next typed use grows the
+  storage (the Go grows it at once when it exists, which no C can tell). A
+  growarray used as two element types is a `ClassCastException`. An
+  `Object` read back as a plain struct takes the one object a `Ptr` in it
+  points at (`Rt.obj`), and as a `Ptr` wraps a plain one (`Rt.ptr`).
+- **memmove, memset and memcmp** in the elements the C's pointers point at
+  before their cast to bytes (`&a` of an array is the array's): on bytes as
+  before; on shorts, ints and longs `Rt.memmove` and `Rt.fill` with the
+  fill byte repeated through each element (`memset(p, 0xff, ...)` of ints is
+  -1s); on pointers a copy or a NULL fill of the references; on structs
+  `set()` element by element (`Rt.moveStructs`, from the end when the two
+  overlap that way, so each element keeps its own object), `zero()` for a
+  fill of 0, and member by member for a fill of another byte through a struct
+  of scalars (`lpos_T`, 0xff); memcmp of two structs, where only equality is
+  asked, `eq()`, written for the classes that are compared (one, `hl_group_T`,
+  and what it holds). The struct classes implement `whim.rt.Struct<T>` for
+  it.
+- **The address of a scalar or pointer member** (`&buf->b_p_ts`): the
+  member is a **one-element array in its struct**, as an address-taken local
+  is, and `&s->m` a pointer over it -- 73 members. Chosen over an
+  accessor-backed pointer class because the pointer classes stay the one
+  representation every other pointer to a scalar has (a `BytePtr`, an
+  `IntPtr` over an array), so `int *` from a member and from a local mix
+  freely, compare with `eq` and walk nowhere; the cost is `[0]` on every
+  read of those members. A struct's copy copies the value into its own
+  array.
+- **Function pointers**: a functional interface per Java signature,
+  `interface FnN { R call(...); }` -- two C function types that Java writes
+  alike are one interface, since Java's types are nominal -- keyed as the
+  Go's are (`fp:<object>`); a function used as a value is a field of the
+  class holding the method reference, **one per function and interface**
+  (`final Fn3 fp_ex_edit = this::ex_edit;`), so two uses of one function
+  are one object and compare equal with `==`, as C's pointers do (a method
+  reference made at each use would not). Where the analysis gave the
+  interface's parameters other classes than the method's (a plain struct
+  reference against a `Ptr`), the field holds an adapter lambda, as the Go
+  has a closure: one, `cmp_keyvalue_value_n` for `keyvalue_bsearch`. A call
+  through one is `fp.call(...)`; NULL is null. The tables `cmdnames`,
+  `nv_cmds` and `options` are initialised with the fields.
+- **Unions**: a class like a struct's (`U_<tag>`, or `T_`/`A_` as structs
+  are), **every member its own field**, as the Go's union is: the core
+  writes a member and reads that member back (the option callbacks' old and
+  new values, `ae_u`, the regexp engine's saved positions); `set()` copies
+  them all.
+- **goto**: all 49, in 8 functions, are forward jumps to a label that is an
+  item of a block holding the goto (verified: a goto that is not is refused,
+  by name). The items from the first that holds a goto to `L` up to `L`'s
+  are a **labeled block**, `L_x: { ... }`, the goto `break L_x;` and the
+  label's statement after the block -- 10 blocks. Two blocks that would
+  cross are nested by starting the later where the earlier starts. A label
+  makes what follows it reachable again, in the emitter's JLS 14.22 rule
+  too.
+- **Compound literals** (`(char_u [1]){NUL}` in `redobuff` and its four
+  kin): storage of their own, made where C evaluates them.
+- **A struct held plainly compared with a `Ptr` over structs** (`rp ==
+  &((regitem_T *)regstack.ga_data)[regstack.ga_len - 1]`, with `ga_len`
+  0): `Ptr.is(p, x)`, the element `p` points at is `x`, and a `p` outside
+  its array points at nothing -- converting `p` to a plain reference would
+  read `[-1]`. The only such comparison in the core; the first thing the
+  editor stopped at once every function was written.
+
+**The tests** (`crefactor/togo/java_test.go`), each a C program that names
+nothing in vim, translated with every function written, compiled, run, and
+required to print what gcc's build prints: `TestJavaVarargs` (every integer
+width, signed and not, pointers, arrays, characters, booleans, through the
+harness's own printf of `Object...`), `TestJavaGrowArray` (a growarray of
+ints, structs, pointers and bytes, typed, uncast and cleared, with its own
+`ga_grow_inner` rule; the functions of bytes on all of them, overlapping
+both ways; memcmp of structs; a `void *` there and back; compound literals;
+`Ptr.is`), `TestJavaPointers` (member addresses from code and from a table's
+initial value, a struct copied past them; tables of function pointers,
+calls, comparisons, NULL, `&f`, a function returning one; unions, anonymous
+and nested, designated and positional) and `TestJavaGoto` (out of nested
+loops, out of a switch and a loop in it, to the next label, to an empty
+statement at a loop's end, crossing blocks). **`TestJavaControl2`** undoes
+one rule per construct and requires the output to move: an unsigned char
+passed with its sign, structs moved as references, a member's address that
+copies it, a union copied without one member, a pointer to another
+function, a goto's break that leaves the wrong block -- all six move.
+`TestJavaRefuses` names what is left to refuse: floating point, a variadic
+definition, a goto that is no forward jump. `SelfTest.java` checks `Ga`,
+the element-wise functions, `Ptr.is` and `Rt.obj`/`Rt.ptr`. The Go does not
+move: `whim gen --check` is clean.
 
 ## Milestone 3, as built
 
@@ -300,45 +432,20 @@ pseudo-terminal, whose probe leads an orphaned process group), stderr and the
 exit status -- 4 runs of 4 alike. `jeditor/jeditor_test.go` requires `Cut` to
 give the Makefile's bytes, and `whim java` to build a launcher that runs.
 
-### How far today's Editor.java runs
+### How far Editor.java runs
 
-**Not past its first call.** The class loads and its state is made (the 12
-`initGlobals` methods run), and `vim_main` is a stub: *memmove, memset or
-memcmp of no bytes: of a pointer to mparm_T* -- its `CLEAR_FIELD(params)`.
-All 45 quick cases and all 240 wide ones stop there.
-
-**What milestone 2 must take first**, measured by building `whim-vim.c` with
-`-finstrument-functions` and recording each function's first call: the
-session `ihello<Esc>:q!` calls 696 functions of the C, 95 of them stubs in
-the Java, first these, in order:
-
-    vim_main           memset of mparm_T
-    musl_memset        (the call above)
-    estack_init        ga_data, the growarray
-    ga_grow_inner      host_alloc's void *
-    cmdline_init       memset of cmdline_info_T
-    alloc, lalloc, alloc_clear   the allocators' void *
-    check_buf_options  &buf->b_p_xx
-    set_option_default, get_varp_scope, get_varp   the address of a member
-    set_string_option_direct     vim_snprintf
-    get_varp_allbuf, check_winopt                  the address of a member
-    buf_init_chartab   memset of char_u[32]
-    parse_winhighlight ga_data
-    set_chars_option   memset of lcs_chars_T
-    screenalloc        memset of u8char_T *
-    syn_name2id_len, syn_add_group, syn_id2attr, syn_get_final_id   ga_data
-    screen_stop_highlight        a union
-
-The 45 quick cases together call 1,031 functions, 136 of them stubs: by the
-first reason each is refused, 34 a void pointer (the growarray and the
-allocators), 32 a variadic call (vim_snprintf), 26 memmove/memset/memcmp of
-no bytes, 21 the address of a member, 13 a function pointer, 7 a goto, 3 a
-union. So the order the work list gives is the order startup needs, except
-that the functions of bytes on what is not bytes and the address of a member
-come as early as the growarray. And the 10 refused initial values are
-left incomplete today, silently, with no stub to stop at: the tables
-`cmdnames`, `nv_cmds` and `options` stop at their first function pointer
-(`cmdnames[0]`'s name is written, and nothing after it), `redobuff` and its
-four kin keep a null where the C has a one-byte compound literal, and
-`filltab` and `lcstab` have no member addresses -- the editor reads all of
-them at startup, so they belong with the first.
+**Every case, as the C.** With milestone 1's `Editor.java` the class loaded
+and its state was made, and `vim_main` was a stub (its `CLEAR_FIELD(params)`,
+a memset of `mparm_T`); all 45 quick cases and all 240 wide ones stopped
+there. Tracing `whim-vim.c` built with `-finstrument-functions` gave
+milestone 2 its order: the session `ihello<Esc>:q!` called 95 stubs, first
+`vim_main`, `estack_init` and `ga_grow_inner` (the growarray),
+`cmdline_init` (memset), the allocators, the option functions (the address
+of a member), `set_string_option_direct` (vim_snprintf); the 45 cases 136
+stubs -- 34 a void pointer, 32 a variadic call, 26 the functions of bytes,
+21 the address of a member, 13 a function pointer, 7 a goto, 3 a union --
+and the refused initial values (`cmdnames`, `nv_cmds`, `options`,
+`redobuff` and its kin, `filltab`, `lcstab`) were read at startup. With
+every function written, the one thing left was `Ptr.is` (*Milestone 2, as
+built*); `whim test --java` and `--wide --java` then answer every case
+exactly as the C does.

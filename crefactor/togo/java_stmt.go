@@ -15,7 +15,9 @@ package togo
 //     written;
 //   - a condition or increment that does something first (an assignment, a
 //     call inside &&) is written before its test, and a continue that must
-//     reach it leaves a labeled block around the body: `c1: { ... break c1; ... }`.
+//     reach it leaves a labeled block around the body: `c1: { ... break c1; ... }`;
+//   - a goto, a forward jump to a label of a block holding it, leaves a
+//     labeled block that ends at the label: `L_x: { ... break L_x; ... }`.
 
 import (
 	"fmt"

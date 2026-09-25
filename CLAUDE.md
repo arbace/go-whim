@@ -100,9 +100,9 @@ slim-vim.c  --whim-->  whim-vim.c
   control, in about 4 s. **`--java`**, on either, adds the JAVA editor
   (`jeditor/`, built from the candidate): the same cases, required to answer as
   the C candidate does, with a control of its own (`" INSERT"` changed in the
-  generated `Editor.java`) that must move the Java editor's own answers; it
-  fails today, every case stopping at a stub in `vim_main` (`doc/JAVA.md`,
-  milestone 2). Both are exact under load (`internal/suite/stress_test.go`:
+  generated `Editor.java`) that must move the Java editor's own answers; the
+  Java editor answers all 45 and all 240 as the C does (`doc/JAVA.md`,
+  milestone 2), its control seen as the Go's is. Both are exact under load (`internal/suite/stress_test.go`:
   0 differing runs of 6,720 for the wide suite).
 
 ## What a file is called
@@ -212,8 +212,9 @@ internal/gen/      the generator of editor/editor.go (`go tool whim gen`; `whim
 jeditor/           the editor in Java (doc/JAVA.md), by hand but for Editor.java,
                    which the Java backend writes and which is not tracked yet:
                    rt/ the runtime it is written against (package whim.rt:
-                   BytePtr and its kin, Ptr<T>, Rt; SelfTest.java, which
-                   crefactor/togo's tests run); host/ (package whim.host) the
+                   BytePtr and its kin, Ptr<T>, Rt, Ga -- the growarray --
+                   and Struct; SelfTest.java, which crefactor/togo's tests
+                   run); host/ (package whim.host) the
                    Host interface, Exit, Printf (vim_snprintf, format.go's
                    port) and the terminal host Term and Signals (the Foreign
                    Function & Memory API and sun.misc.Signal); Whim.java the

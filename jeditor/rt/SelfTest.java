@@ -151,6 +151,10 @@ public final class SelfTest {
         }
         check(threw, "a growarray used as two element types");
 
+        // a struct held plainly against a Ptr over structs
+        check(Ptr.is(bx.add(1), boxes[1]) && !Ptr.is(bx, boxes[1]) && !Ptr.is(bx.add(-1), boxes[0])
+            && !Ptr.is(bx.add(3), boxes[0]) && Ptr.is(null, null) && !Ptr.is(bx, null), "Ptr.is");
+
         // a void * read back
         check(Rt.obj(bx.add(1)) == boxes[1] && Rt.obj(first) == first, "a void * as the one object");
         check(Rt.ptr(first).get() == first && Rt.ptr(bx) == bx && Rt.ptr(null) == null, "a void * as a Ptr");

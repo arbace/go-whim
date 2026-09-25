@@ -22,9 +22,14 @@ package togo
 //   - an array is a Java array, which decays into the pointer classes above
 //     over the same storage;
 //   - a struct is a class whose set() is C's assignment, a copy; its struct
-//     and array members are made with it;
-//   - a scalar or pointer object whose address is taken is a one-element
-//     array from its declaration on;
+//     and array members are made with it; a union is the same class, every
+//     member a field of its own, as the Go's;
+//   - a scalar or pointer object whose address is taken -- a variable or a
+//     struct's member -- is a one-element array from its declaration on;
+//   - a void * is an Object; the growarray's storage is typed where it is
+//     used by an accessor over the runtime's Ga, as the Go's GaData[T];
+//   - a pointer to a function is a functional interface per Java signature,
+//     a function used as a value one field holding its method reference;
 //   - the file-scope objects are the class's fields, the functions its
 //     methods, and the functions declared and not defined its abstract
 //     methods: the host.

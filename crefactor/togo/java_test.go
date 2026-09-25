@@ -996,8 +996,9 @@ func TestJavaVarargs(t *testing.T) { javaSame(t, javaVarargsC) }
 // it is converted -- grown by a rule of the runtime's (Profile.RuntimeBodies)
 // and not by the C's byte copy; with it the functions of bytes on what is
 // not bytes (ints, structs, pointers, a fill of 0xff through a struct of
-// scalars, memcmp of two structs), a void * that is not the growarray, and
-// compound literals.
+// scalars, memcmp of two structs), a void * that is not the growarray,
+// compound literals, and a struct held plainly compared with a pointer that
+// walks.
 const javaGrowC = javaHost + `
 typedef unsigned long size_t;
 void *alloc(size_t n);
@@ -1132,6 +1133,11 @@ void run(void)
     void *vp = &base[1];
     item_T *back = (item_T *)vp;
     out(back->k);
+    item_T *rp = &base[2];
+    rp->k = 5;
+    out(rp == &base[2]);
+    out(rp == &((item_T *)items.ga_data)[items.ga_len - 3]);
+    out(rp != &((item_T *)items.ga_data)[items.ga_len - 1]);
 
     struct holder h = { (char [4]){ 'x', 'y', 0 }, 2 };
     outs(h.p);
@@ -1155,7 +1161,7 @@ const javaGrowHarnessC = "#include <stdlib.h>\nvoid *alloc(unsigned long n) { re
 
 func TestJavaGrowArray(t *testing.T) {
 	prog := javaSameWith(t, javaGrowC, javaGrowProfile, javaGrowHarnessC)
-	for _, w := range []string{"GA_Ptr_S_item(", "GA_IntPtr(", "GA_BytePtr(", "Rt.moveStructs(", "Rt.memmove(", "Rt.fill(", "Rt.zero(", ".eq(", ".zero()"} {
+	for _, w := range []string{"Ptr.is(", "GA_Ptr_S_item(", "GA_IntPtr(", "GA_BytePtr(", "Rt.moveStructs(", "Rt.memmove(", "Rt.fill(", "Rt.zero(", ".eq(", ".zero()"} {
 		if !strings.Contains(prog, w) {
 			t.Errorf("no %q in:\n%s", w, numbered(prog))
 		}

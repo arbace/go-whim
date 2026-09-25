@@ -52,6 +52,17 @@ public final class Ptr<T> {
         return i - q.i;
     }
 
+    /**
+     * p == &amp;x for an x held as a plain reference: p points at x itself -- a
+     * pointer outside its array points at no object, and is not x.
+     */
+    public static boolean is(Ptr<?> p, Object x) {
+        if (p == null || x == null) {
+            return p == null && x == null;
+        }
+        return p.i >= 0 && p.i < p.a.length && p.a[p.i] == x;
+    }
+
     public static boolean eq(Ptr<?> p, Ptr<?> q) {
         return p == q || (p != null && q != null && p.a == q.a && p.i == q.i);
     }

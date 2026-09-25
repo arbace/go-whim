@@ -1061,6 +1061,16 @@ func (f *jfn) additive(x cc.ExpressionNode, op string, le, re cc.ExpressionNode)
 	return f.binary(x, op, le, re)
 }
 
+// isFnDesignator says e names a function, or takes its address.
+func isFnDesignator(e cc.ExpressionNode) bool {
+	e = unparenE(e)
+	if u, ok := e.(*cc.UnaryExpression); ok && u.Case == cc.UnaryExpressionAddrof {
+		e = unparenE(u.CastExpression)
+	}
+	p, ok := e.(*cc.PrimaryExpression)
+	return ok && p.Case == cc.PrimaryExpressionIdent && calleeNameOf(p) != ""
+}
+
 // ptrEq is a == b for two pointer values of Java type t.
 func ptrEq(t, a, b string) string {
 	switch {
@@ -1087,7 +1097,30 @@ func (f *jfn) compare(x cc.ExpressionNode, op string, le, re cc.ExpressionNode) 
 			}
 			return jval{s: s, t: "boolean", c: x.Type()}
 		}
-		l, r := f.expr(le), f.expr(re)
+		l, r := f.exprTo(le, ""), f.exprTo(re, "")
+		if isFnDesignator(re) {
+			r = f.exprTo(re, l.t)
+		} else if isFnDesignator(le) {
+			l = f.exprTo(le, r.t)
+		}
+		if op == "==" || op == "!=" {
+			// a struct held plainly and a Ptr over structs: the element the
+			// Ptr points at, if it points at one, is the object or it is not
+			var pv, ov jval
+			switch {
+			case strings.HasPrefix(l.t, "Ptr<") && elemJ(l.t) == r.t:
+				pv, ov = l, r
+			case strings.HasPrefix(r.t, "Ptr<") && elemJ(r.t) == l.t:
+				pv, ov = r, l
+			}
+			if pv.t != "" {
+				s := "Ptr.is(" + pv.s + ", " + ov.s + ")"
+				if op == "!=" {
+					s = "!" + s
+				}
+				return jval{s: s, t: "boolean", c: x.Type()}
+			}
+		}
 		t := l.t
 		if strings.HasSuffix(t, "[]") && !strings.HasSuffix(r.t, "[]") {
 			t = r.t
