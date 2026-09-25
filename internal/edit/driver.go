@@ -31,28 +31,31 @@ import (
 // order it was asked for, because a phase program's log is what a human reads
 // when comparing two phase commits.
 //
-// THE VERB SET, and its one rule.  Every ACT takes the number of times it
-// applies, just before the `what` it reports, and refuses on any other count:
+// THE VERB SET, and its one rule: an act that could match more than once
+// takes the number of times it applies, just before the `what` it reports,
+// and refuses on any other count; an act on one thing -- a span, a
+// definition, a block -- refuses unless there is exactly one.
 //
 //	text        Literal(old, new, n, what)
-//	regex       Sub(re, repl, n, what)       Cut(re, n, what)       Lines(re, n, what)
-//	if          FoldNever(re, n, what)       FoldAlways(re, n, what)
-//	            DropIf(re, n, what)          FoldAlwaysElse(re, n, what)
+//	regex       Sub(re, repl, n, what)         Cut(re, n, what)
+//	            Lines(re, n, what)
+//	if          FoldNever(re, n, what)         FoldAlways(re, n, what)
+//	            DropIf(re, n, what)            FoldAlwaysElse(re, n, what)
 //	span        Splice(from, through, with, what)
-//	definition  Body(fn, body, what)         DeleteDefinition(fn, what)
-//	block       DropBlocks(fn, re, n, what)  ReplaceBlock(fn, re, repl, what)
+//	definition  Body(fn, body, what)           DeleteDefinition(fn, what)
+//	block       DropBlocks(fn, re, n, what)    ReplaceBlock(fn, re, repl, what)
 //	            DropBareBlock(fn, stmt, what)
-//	walk        FoldWalk(fn, v, head, n, what)  DropWalk(fn, re, repl, n, what)
+//	walk        FoldWalk(fn, v, head, n, what) DropWalk(fn, head, repl, n, what)
 //	            FoldWalks(re, ok, subst, what)
 //
 // A count is written, never inferred: these run on a tree every earlier phase
 // has touched, and "however many there are" carries a moved anchor silently
-// into the boundary.  The ASSERTIONS change nothing and report nothing --
-// CountIs(re, n, what), Expect(ok, format, ...), ConstOf(fn, value) -- the
-// QUERIES answer from the tree as it stands -- Mentions(name), Query(re,
-// group), BodyOf(fn), InnerBody(fn) -- and the SCOPES are InFunction(fn, acts) and
-// InTable(head, acts).  Text and Set are the escape hatch, for a phase whose cut is a
-// computation no verb says.
+// into the boundary.  The ASSERTIONS change nothing and report nothing:
+// CountIs(re, n, what), Expect(ok, format, ...) and ConstOf(fn, value).  The
+// QUERIES answer from the tree as it stands: Mentions(name), Query(re, group),
+// BodyOf(fn) and InnerBody(fn).  The SCOPES are InFunction(fn, acts) and
+// InTable(head, acts).  Text and Set are the escape hatch, for a phase whose
+// cut is a computation no verb says.
 type E struct {
 	Tag string
 	buf []byte

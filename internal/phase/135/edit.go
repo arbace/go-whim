@@ -11,8 +11,6 @@ package p135
 // $state/old.c, for the check.
 
 import (
-	"bytes"
-	"fmt"
 	"io"
 
 	"github.com/arbace/go-whim/internal/edit"
@@ -71,25 +69,17 @@ const W135One = `typedef struct regprog
 // the backtracking fields, the five casts go, and bt_regprog_T is not a name
 // any more.  The layout of every field is what it was, so the code is too.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "regprog", W: w}
-	var err error
-	steps := []struct{ Old, New, What string }{
-		{w135Two, W135One, "regprog_T is the backtracking program: its five fields, then the engine's own"},
-		{"(((bt_regprog_T *)prog)->program)", "((prog)->program)", "prog_magic_wrong() reads the program without a cast"},
-		{"    return (regprog_T *)r;\n", "    return r;\n", "bt_regcomp() returns its program without one"},
-		{"prog = (bt_regprog_T *)rex.reg_mmatch->regprog;", "prog = rex.reg_mmatch->regprog;", "bt_regexec_both() takes the multi-line match's program as it is"},
-		{"prog = (bt_regprog_T *)rex.reg_match->regprog;", "prog = rex.reg_match->regprog;", "and the single-line match's"},
-	}
-	for _, s := range steps {
-		if text, err = p.Literal(text, s.Old, s.New, s.What, 1); err != nil {
-			return nil, err
-		}
-	}
-	n := bytes.Count(text, []byte("bt_regprog_T"))
-	if n != 4 {
-		return nil, p.Die("bt_regprog_T has %d mentions left to rename, and this phase was written against 4", n)
-	}
-	text = bytes.ReplaceAll(text, []byte("bt_regprog_T"), []byte("regprog_T"))
-	p.Say(fmt.Sprintf("the %d declarations that still said bt_regprog_T say regprog_T", n))
-	return text, nil
+	e := edit.New("regprog", text, w)
+	e.Literal(w135Two, W135One, 1,
+		"regprog_T is the backtracking program: its five fields, then the engine's own")
+	e.Literal("(((bt_regprog_T *)prog)->program)", "((prog)->program)", 1,
+		"prog_magic_wrong() reads the program without a cast")
+	e.Literal("    return (regprog_T *)r;\n", "    return r;\n", 1,
+		"bt_regcomp() returns its program without one")
+	e.Literal("prog = (bt_regprog_T *)rex.reg_mmatch->regprog;", "prog = rex.reg_mmatch->regprog;", 1,
+		"bt_regexec_both() takes the multi-line match's program as it is")
+	e.Literal("prog = (bt_regprog_T *)rex.reg_match->regprog;", "prog = rex.reg_match->regprog;", 1,
+		"and the single-line match's")
+	e.Literal("bt_regprog_T", "regprog_T", 4, "the 4 declarations that still said bt_regprog_T say regprog_T")
+	return e.Done()
 }

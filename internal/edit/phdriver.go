@@ -15,8 +15,11 @@ import (
 // alongside the zero ports in another; they collide in no name and differ in
 // shape -- `E` accumulates its error and halts, `ph` returns one -- so both are
 // here rather than one of the two being rewritten against the other's 40 call
-// sites.  A new Part II phase may use either.  Whichever it uses, the rule that
-// decides a port is tools/gocmp/editcmp.sh and not which driver it reads.
+// sites.  Since then E has become THE verb set (driver.go), and every phase
+// that is a sequence of acts is written against it; Ph is left to the phases
+// whose cut is a computation -- a partition derived from the text, a fixpoint,
+// a rewrite of lines -- which thread the text through their own code and want
+// an early return.  Its Literal takes its count before its `what`, as E's does.
 //
 // Each of those blocks opens with the same six helpers -- die, say, and some
 // subset of in_function, fold_never, fold_always and literal -- around a TAG
@@ -61,7 +64,7 @@ func (p Ph) Die(format string, a ...any) error {
 // has touched, so an anchor that has stopped matching means the phase is about
 // to cut something other than what it was written to cut -- which is worth a
 // refusal rather than a silent smaller cut.
-func (p Ph) Literal(text []byte, old, new, what string, n int) ([]byte, error) {
+func (p Ph) Literal(text []byte, old, new string, n int, what string) ([]byte, error) {
 	k, norm := matchCount(text, old)
 	if k != n {
 		return nil, p.Die("%s -- occurs %d times, expected %d", what, k, n)

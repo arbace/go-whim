@@ -160,11 +160,12 @@ func (e *E) ReplaceBlock(fn, anchorRe, repl, what string) {
 		if e.Failed() {
 			return
 		}
-		m := regexp.MustCompile(anchorRe).FindIndex(e.buf)
-		if m == nil {
-			e.Die("%s -- no line matches %s", what, cutil.PyRepr(anchorRe))
+		ms := regexp.MustCompile(anchorRe).FindAllIndex(e.buf, -1)
+		if len(ms) != 1 {
+			e.Die("%s -- %d lines match %s, expected 1", what, len(ms), cutil.PyRepr(anchorRe))
 			return
 		}
+		m := ms[0]
 		k := LastNewlineBefore(e.buf, m[0]) + 1
 		b := cutil.Blank(e.buf)
 		o := IndexFrom(e.buf, []byte("{"), m[0])
@@ -192,11 +193,11 @@ func (e *E) DropBareBlock(fn, stmt, what string) {
 			return
 		}
 		b := cutil.Blank(e.buf)
-		i := IndexFrom(e.buf, []byte(stmt), 0)
-		if i < 0 {
-			e.Die("%s -- %s is not in %s", what, cutil.PyRepr(stmt), fn)
+		if k := countBytes(e.buf, stmt); k != 1 {
+			e.Die("%s -- %s is in %s %d times, expected 1", what, cutil.PyRepr(stmt), fn, k)
 			return
 		}
+		i := IndexFrom(e.buf, []byte(stmt), 0)
 		depth, j := 0, i
 		for ; j >= 0; j-- {
 			if b[j] == '}' {
