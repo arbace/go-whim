@@ -66,39 +66,11 @@ import (
 	"github.com/arbace/go-whim/internal/edit"
 )
 
-// openLineDecls and internalFormatDecls are the declarations these two
-// functions lose, paired with the report line the heredoc printed for each.
-//
-// THE MESSAGES ARE MALFORMED AND THAT IS DELIBERATE.  The Python derived them
-// from the regular expression -- `d.split('\\*')[-1].split(' ')[-1]` and a
-// re.sub over the escapes -- and the derivation is sloppy: "open_line declaring
-// 0" twice, "open_line declaring NULL" twice, "open_line declaring
-// \t]+lead_len", "has_format_option (FO_INS_BLANK );" with the space the escape
-// left behind.  They are written Out here exactly as the derivation produces
-// them, because the report is what this port has to reproduce and tidying it
-// would change every phase log in the tree, silently, invisibly to the boundary.
-var openLineDecls = []struct{ pattern, What string }{
-	{`int[ \t]+extra_len = 0;`, "open_line declaring 0"},
-	{`int[ \t]+lead_len;`, `open_line declaring \t]+lead_len`},
-	{`int[ \t]+comment_start = 0;`, "open_line declaring 0"},
-	{`char_u[ \t]+\*lead_flags;`, "open_line declaring lead_flags"},
-	{`char_u[ \t]+\*leader = NULL;`, "open_line declaring NULL"},
-	{`char_u[ \t]+\*allocated = NULL;`, "open_line declaring NULL"},
-}
-
+// internalFormatDecls are the writes internal_format loses, paired with the
+// report line the heredoc printed for each.  The declarations they wrote,
+// and open_line's, are named by nothing after this phase and go to its sweep.
 var internalFormatDecls = []struct{ pattern, What string }{
-	{`int[ \t]+fo_ins_blank = has_format_option\(FO_INS_BLANK\);`, "internal_format: int fo_ins_blank = has_format_option (FO_INS_BLANK );"},
-	{`int[ \t]+fo_multibyte = has_format_option\(FO_MBYTE_BREAK\);`, "internal_format: int fo_multibyte = has_format_option (FO_MBYTE_BREAK );"},
-	{`int[ \t]+fo_rigor_tw = has_format_option\(FO_RIGOROUS_TW\);`, "internal_format: int fo_rigor_tw = has_format_option (FO_RIGOROUS_TW );"},
-	{`int[ \t]+fo_white_par = has_format_option\(FO_WHITE_PAR\);`, "internal_format: int fo_white_par = has_format_option (FO_WHITE_PAR );"},
-	{`colnr_T[ \t]+leader_len;`, "internal_format: colnr_T leader_len;"},
-	{`int[ \t]+no_leader = FALSE;`, "internal_format: int no_leader = FALSE;"},
-	{`int[ \t]+do_comments = \(flags & INSCHAR_DO_COM\);`, "internal_format: int do_comments = (flags & INSCHAR_DO_COM );"},
-	{`int[ \t]+did_do_comment = FALSE;`, "internal_format: int did_do_comment = FALSE;"},
-	{`int[ \t]+first_line = TRUE;`, "internal_format: int first_line = TRUE;"},
-	{`int[ \t]+skip_pos;`, "internal_format: int skip_pos;"},
 	{`skip_pos = 0;`, "internal_format: skip_pos = 0;"},
-	{`int[ \t]+wcc;`, "internal_format: int wcc;"},
 	{`wcc = 0;`, "internal_format: wcc = 0;"},
 }
 
@@ -161,30 +133,23 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		// extra_len sized the leader's allocation and nothing else
 		e.Lines(`extra_len = \(int\)strlen\(\(char \*\)\(p_extra\)\);`, 1,
 			"measuring the text after the cursor for the leader")
-		for _, d := range openLineDecls {
-			e.Lines(d.pattern, 1, d.What)
-		}
 	})
 	e.Literal("has_format_option(FO_RET_COMS) ? OPENLINE_DO_COM : 0", "0", "Enter in Insert mode repeating a leader ('r')")
 	e.Literal("has_format_option(FO_OPEN_COMS) ? OPENLINE_DO_COM : 0", "0", "o and O repeating a leader ('o')")
 
 	// insertchar: 'b' and 'l' off, no comment end to complete
 	e.InFunction("insertchar", func(e *edit.E) {
-		e.Lines(`int[ \t]+fo_ins_blank;`, 1, "insertchar declaring fo_ins_blank")
 		e.Lines(`fo_ins_blank = has_format_option\(FO_INS_BLANK\);`, 1, "insertchar asking for 'b'")
 		e.Literal(" && (curwin->w_cursor.lnum != Insstart.lnum || ((!has_format_option(FO_INS_LONG) || Insstart_textlen <= (colnr_T)textwidth) && (!fo_ins_blank || Insstart_blank_vcol <= (colnr_T)textwidth)))",
 			"", "wrapping a line that was already long when Insert began ('l', 'b')")
 		e.DropIf(`(?m)^[ \t]*if \(did_ai && c == end_comment_pending\)$`, "typing the last character of a comment end")
 		e.Lines(`end_comment_pending = NUL;`, 1, "insertchar clearing the pending comment end")
 	})
-	e.Lines(`static colnr_T[ \t]+Insstart_textlen;`, 1, "the length of the line Insert began on")
-	e.Lines(`static colnr_T[ \t]+Insstart_blank_vcol;`, 1, "the column of the first blank typed")
 	e.Lines(`Insstart_textlen = \(colnr_T\)linetabsize_str\(ml_get_curline\(\)\);`, 3, "measuring the line Insert began on")
 	e.Lines(`Insstart_blank_vcol = MAXCOL;`, 1, "resetting the first blank typed")
 	e.DropIfMany(`(?m)^[ \t]*if \(Insstart_blank_vcol == MAXCOL && curwin->w_cursor\.lnum == Insstart\.lnum\)$`, 2,
 		"remembering the first blank typed")
 	e.Lines(`end_comment_pending = NUL;`, 1, "ins_bs clearing the pending comment end")
-	e.Lines(`static int[ \t]+end_comment_pending[ \t]*=[ \t]*NUL[ \t]*;`, 1, "the pending comment end")
 
 	// 'a' and 'w': no auto-formatting
 	e.InFunction("stop_insert", func(e *edit.E) {
@@ -206,16 +171,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"a characterwise delete auto-formatting")
 	})
 	e.Lines(`auto_format\((?:FALSE|TRUE), (?:FALSE|TRUE)\);`, 15, "the other calls to auto_format")
-	for _, name := range []string{"auto_format", "check_auto_format", "paragraph_start"} {
-		e.DeleteDefinition(name, name+", which only a flag that is off reached")
-	}
 
 	// J: 'j', 'M' and 'B' off
 	e.InFunction("do_join", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*int[ \t]+remove_comments = \(use_formatoptions == TRUE\) && has_format_option\(FO_REMOVE_COMS\);\n`, 1,
-			"J asking for 'j'")
-		e.Lines(`int[ \t]+\*comments = NULL;`, 1, "J declaring the leader offsets")
-		e.Lines(`int[ \t]+prev_was_comment;`, 1, "J declaring prev_was_comment")
 		e.DropIfMany(`(?m)^[ \t]*if \(remove_comments\)$`, 4, "J removing comment leaders")
 		e.Literal(" && (!has_format_option(FO_MBYTE_JOIN) || (utf_ptr2char(curr) < 0x100 && endcurr1 < 0x100)) && (!has_format_option(FO_MBYTE_JOIN2) || (utf_ptr2char(curr) < 0x100 && !(utf_eat_space(endcurr1))) || (endcurr1 < 0x100 && !(utf_eat_space(utf_ptr2char(curr)))))",
 			"", "J inserting no space between multibyte characters ('M', 'B')")
@@ -259,9 +217,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.FoldAlways(`(?m)^[ \t]*if \(!\(flags & INSCHAR_COM_LIST\)\)$`, "a comment list keeping its indent")
 	})
 
-	// format_lines() and fmt_check_par() are NOT folded for the options: the
-	// operator section below deletes both outright, and folding a function that
-	// is about to go is work this phase would throw away.
+	// format_lines() and fmt_check_par() are NOT folded for the options: once
+	// the operator section below takes gq, nothing reaches them and the sweep
+	// takes both, so folding them is work this phase would throw away.
 
 	// the rest of 'comments'
 	e.InFunction("find_decl", func(e *edit.E) {
@@ -295,16 +253,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Cut(`(?m)^[ \t]*case 'd':\n[ \t]*case 'D':\n[ \t]*nv_gd\(oap, cap->nchar, \(int\)cap->count0\);\n[ \t]*break;\n`, 1, "gd and gD")
 	})
 
-	// The three go by hand rather than by sweep: comp_textwidth() loses its
-	// argument below, and format_lines() would still be calling it with one when
-	// the sweep compiles.
-	for _, name := range []string{"op_format", "format_lines", "fmt_check_par"} {
-		e.DeleteDefinition(name, name+", which only gq and gw reached")
-	}
-
 	// what only the formatter set: INSCHAR_FORMAT
 	e.InFunction("insertchar", func(e *edit.E) {
-		e.Lines(`int[ \t]+force_format = flags & INSCHAR_FORMAT;`, 1, "insertchar asking whether this is a whole-line format")
 		e.Literal("textwidth = comp_textwidth(force_format);", "textwidth = comp_textwidth();", "the width to wrap at")
 		e.Literal("if (textwidth > 0 && (force_format || (!((c) == ' ' || (c) == '\\t') && !((State & REPLACE_FLAG) && !(State & VREPLACE_FLAG) && *ml_get_cursor() != NUL))))",
 			"if (textwidth > 0 && !((c) == ' ' || (c) == '\\t') && !((State & REPLACE_FLAG) && !(State & VREPLACE_FLAG) && *ml_get_cursor() != NUL))",
@@ -374,8 +324,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("internal_format", func(e *edit.E) {
 		e.Lines(`set_can_cindent\(TRUE\);`, 1, "a wrapped line arming a reindent")
 	})
-	e.DeleteDefinition("set_can_cindent", "set_can_cindent, which only wrote a flag nothing read")
-	e.Lines(`static int[ \t]+can_cindent;`, 1, "can_cindent itself, written ten times and read none")
 
 	// cindent_on() is `return FALSE`; its two callers fold and the sweep takes it.
 	e.InFunction("ins_bs", func(e *edit.E) {
