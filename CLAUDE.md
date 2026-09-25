@@ -97,7 +97,12 @@ slim-vim.c  --whim-->  whim-vim.c
   keystroke cases of the archived suite with their startup arguments, every Ex
   command by name, 30 command lines, and 10 runs on a real pseudo-terminal of
   several sizes and TERMs -- held to the same two comparisons and the same
-  control, in about 4 s. Both are exact under load (`internal/suite/stress_test.go`:
+  control, in about 4 s. **`--java`**, on either, adds the JAVA editor
+  (`jeditor/`, built from the candidate): the same cases, required to answer as
+  the C candidate does, with a control of its own (`" INSERT"` changed in the
+  generated `Editor.java`) that must move the Java editor's own answers; it
+  fails today, every case stopping at a stub in `vim_main` (`doc/JAVA.md`,
+  milestone 2). Both are exact under load (`internal/suite/stress_test.go`:
   0 differing runs of 6,720 for the wide suite).
 
 ## What a file is called
@@ -204,9 +209,17 @@ internal/gen/      the generator of editor/editor.go (`go tool whim gen`; `whim
                    (whim.Gen), which cmd/whim hands it. Beside its docs:
                    pre/ (`whim pre`: crefactor/ccx's partitions on an
                    editor.c), sigs.md, CONVENTIONS.md and FINDINGS.md
-jeditor/rt/        the Java runtime the Java backend writes against, by hand
-                   (package whim.rt: BytePtr and its kin, Ptr<T>, Rt), and
-                   SelfTest.java, its test, which crefactor/togo's tests run
+jeditor/           the editor in Java (doc/JAVA.md), by hand but for Editor.java,
+                   which the Java backend writes and which is not tracked yet:
+                   rt/ the runtime it is written against (package whim.rt:
+                   BytePtr and its kin, Ptr<T>, Rt; SelfTest.java, which
+                   crefactor/togo's tests run); host/ (package whim.host) the
+                   Host interface, Exit, Printf (vim_snprintf, format.go's
+                   port) and the terminal host Term and Signals (the Foreign
+                   Function & Memory API and sun.misc.Signal); Whim.java the
+                   glue (Editor's subclass) and the launcher's main; and
+                   jeditor.go, the Go that builds it all (`go tool whim java`,
+                   make bin/whim-java: bin/java/classes and bin/whim-java)
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
                    binaries and the editor
 src/               the input and the product: slim-vim.c (fetched, not tracked),
@@ -241,6 +254,8 @@ make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go that is not what internal/gen writes
 make whim-test        # the quick suite: 45 key sessions, required to behave as HEAD's does
 make whim-test-wide   # the optional wide suite: 240 cases, keys, Ex commands, argv, a terminal
+make bin/whim-java    # the editor in Java: Editor.java generated, compiled, and a launcher
+make whim-test-java   # the quick suite with the Java editor too (whim test --java; --wide --java)
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make whim-vim        # the C product's binary
 make slim-vim        # the input's binary, with the same one line

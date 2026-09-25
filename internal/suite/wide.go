@@ -1,19 +1,17 @@
 package suite
 
 import (
-	"bytes"
 	_ "embed"
 	"fmt"
 	"io"
 	"os"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/arbace/go-whim/internal/cmdtab"
+	"github.com/arbace/go-whim/jeditor"
 )
 
 // The wide suite: what the quick one (cases.md) does not reach, run on demand
@@ -164,44 +162,11 @@ func runWide(bin string, c WideCase) ([]byte, int, error) {
 // compareWide runs every case on a and b, as many at once as there are
 // cores, and returns the cases whose output or status differ, by group.
 func compareWide(cases []WideCase, a, b string) (map[string][]string, error) {
-	type res struct {
-		c    WideCase
-		same bool
-		err  error
+	rs, err := compareEach(cases, a, b)
+	if err != nil {
+		return nil, err
 	}
-	results := make([]res, len(cases))
-	sem := make(chan struct{}, runtime.NumCPU())
-	var wg sync.WaitGroup
-	for i, c := range cases {
-		wg.Add(1)
-		go func(i int, c WideCase) {
-			defer wg.Done()
-			sem <- struct{}{}
-			defer func() { <-sem }()
-			oa, sa, err := runWide(a, c)
-			if err != nil {
-				results[i] = res{c: c, err: fmt.Errorf("%s %s on %s: %w", c.Group, c.Name, a, err)}
-				return
-			}
-			ob, sb, err := runWide(b, c)
-			if err != nil {
-				results[i] = res{c: c, same: false}
-				return
-			}
-			results[i] = res{c: c, same: sa == sb && bytes.Equal(oa, ob)}
-		}(i, c)
-	}
-	wg.Wait()
-	diff := map[string][]string{}
-	for _, r := range results {
-		if r.err != nil {
-			return nil, r.err
-		}
-		if !r.same {
-			diff[r.c.Group] = append(diff[r.c.Group], r.c.Name)
-		}
-	}
-	return diff, nil
+	return byGroup(rs), nil
 }
 
 var wideGroups = []string{"keys", "ex", "argv", "pty"}
@@ -209,13 +174,13 @@ var wideGroups = []string{"keys", "ex", "argv", "pty"}
 // Wide runs the wide suite: the candidate's C against rev's, and the Go editor
 // against the candidate's C, on every group, with the control required to be
 // seen.
-func Wide(w io.Writer, rev, candSrc string) error {
+func Wide(w io.Writer, rev, candSrc string, java jeditor.Gen) error {
 	start := time.Now()
 	cases, err := WideCases()
 	if err != nil {
 		return err
 	}
-	b, err := prepare(rev, candSrc)
+	b, err := prepare(rev, candSrc, java)
 	if err != nil {
 		return err
 	}
@@ -266,6 +231,11 @@ func Wide(w io.Writer, rev, candSrc string) error {
 	}
 	if fail {
 		return fmt.Errorf("suite: behaviour moved in the wide suite")
+	}
+	if java != nil {
+		if err := checkJava(w, "wide java", wideGroups, cases, b); err != nil {
+			return err
+		}
 	}
 	fmt.Fprintf(w, "  wide         %d cases in %d groups; %dms\n", len(cases), len(wideGroups), time.Since(start).Milliseconds())
 	return nil

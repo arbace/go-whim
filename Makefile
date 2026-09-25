@@ -249,10 +249,24 @@ bin/whim: editor/editor.go force  ## the editor binary alone, from editor/
 	@printf '  %-12s %s bytes, the core in Go (editor/)\n' "$@" \
 	    "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
 
+# The editor in Java (jeditor/, doc/JAVA.md): the core cut from whim-vim.c and
+# written as Editor.java by crefactor/togo's Java backend, compiled with javac
+# beside jeditor's runtime, host and glue into bin/java/classes, and bin/whim-java
+# a launcher script that runs it as a binary is run.  Not part of `all`: it
+# needs a JDK (22 or later, for the Foreign Function & Memory API).
+.PHONY: bin/whim-java
+bin/whim-java: force  ## the editor in Java: Editor.java generated, compiled, and a launcher
+	@go tool whim java
+
+.PHONY: whim-test-java
+whim-test-java:  ## the quick suite with the Java editor too, required to answer as the C does
+	@go tool whim test --java
+
 # ==== housekeeping
 .PHONY: clean
 clean:  ## remove the built binaries and editor.c
-	rm -f src/slim-vim src/whim-vim bin/whim editor.c
+	rm -f src/slim-vim src/whim-vim bin/whim bin/whim-java editor.c
+	rm -rf bin/java
 
 .PHONY: clean-cache
 clean-cache:  ## remove .cache/ (the Go build cache, the sweep's compiles, the stamps)

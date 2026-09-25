@@ -29,6 +29,7 @@ import (
 	"time"
 
 	"github.com/arbace/go-whim/internal/build"
+	"github.com/arbace/go-whim/jeditor"
 )
 
 //go:embed cases.md
@@ -221,12 +222,12 @@ const controlOld, controlNew = `_(" INSERT")`, `_(" INSERX")`
 
 // Check builds the reference from src/whim-vim.c at rev and the candidate from
 // candSrc, compares them on every case, and requires the control to be seen.
-func Check(w io.Writer, rev, candSrc string) error {
+func Check(w io.Writer, rev, candSrc string, java jeditor.Gen) error {
 	cases, err := Cases()
 	if err != nil {
 		return err
 	}
-	b, err := prepare(rev, candSrc)
+	b, err := prepare(rev, candSrc, java)
 	if err != nil {
 		return err
 	}
@@ -265,21 +266,31 @@ func Check(w io.Writer, rev, candSrc string) error {
 	}
 	fmt.Fprintf(w, "  test         the Go editor (editor/) answers all %d exactly as the C does; %dms\n",
 		len(cases), time.Since(goStart).Milliseconds())
-	return nil
+	if java == nil {
+		return nil
+	}
+	// THE JAVA EDITOR, asked for (--java): the same cases, as the C does.
+	wide := make([]WideCase, len(cases))
+	for i, c := range cases {
+		wide[i] = WideCase{Group: "keys", Name: c.Name, Keys: c.Keys}
+	}
+	return checkJava(w, "java", []string{"keys"}, wide, b)
 }
 
 // builds is what a run compares: the C of rev (the reference), the
 // candidate's C, the candidate with the control applied, and the Go editor as
-// editor/ stands -- in a directory the caller removes.
+// editor/ stands -- in a directory the caller removes; and, asked for, the Java
+// editor from the candidate and its control.
 type builds struct {
 	dir                   string
 	refSrc, candSrc       []byte
 	ref, cand, ctl, goBin string
+	javaBin, javaCtl      string
 }
 
 // prepare makes the four binaries, side by side: they are the cost of a run,
 // and independent.
-func prepare(rev, candSrc string) (*builds, error) {
+func prepare(rev, candSrc string, java jeditor.Gen) (*builds, error) {
 	dir, err := os.MkdirTemp("", "suite.")
 	if err != nil {
 		return nil, err
@@ -316,6 +327,9 @@ func prepare(rev, candSrc string) (*builds, error) {
 			}
 			return nil
 		},
+	}
+	if java != nil {
+		jobs = append(jobs, func() (err error) { b.javaBin, b.javaCtl, err = buildJava(java, candSrc, dir); return })
 	}
 	errs := make([]error, len(jobs))
 	var wg sync.WaitGroup
