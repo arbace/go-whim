@@ -15,7 +15,6 @@ import (
 	"fmt"
 	"io"
 	"regexp"
-	"strings"
 
 	"github.com/arbace/go-whim/internal/cutil"
 	"github.com/arbace/go-whim/internal/edit"
@@ -23,44 +22,17 @@ import (
 
 func init() { edit.Register("whim137", Edit) }
 
-var w137Tick = regexp.MustCompile(`( *)\(\((\w+)\)->b_ct_di\.di_tv\.vval\)( *)`)
+var w137Tick = regexp.MustCompile(`\(\((\w+)\)->b_ct_di\.di_tv\.vval\)`)
 
 // W137InitBody is init_changedtick()'s Body after this phase, inside its braces.
 const W137InitBody = `    buf->b_changedtick = 0;`
 
-// W137Tick is the rule for one read or write of the changedtick, exported so
-// the check applies the identical one: `((X)->b_ct_di.di_tv.vval)`, the
-// expansion of CHANGEDTICK(X), becomes `X->b_changedtick`, and the spaces the
-// expansion left around it become what the code around it would have had --
-// none after `(` or `++` or before `;` or `)`, one elsewhere, and an
-// indentation at the start of a line.
+// W137Tick is the rule for one read or write of the changedtick:
+// `((X)->b_ct_di.di_tv.vval)`, the expansion of CHANGEDTICK(X), becomes
+// `X->b_changedtick`. The spaces around it are the canonical print's.
 func W137Tick(text string) (string, int) {
-	n := 0
-	var b strings.Builder
-	last := 0
-	for _, m := range w137Tick.FindAllStringSubmatchIndex(text, -1) {
-		before := text[last:m[0]]
-		b.WriteString(before)
-		n++
-		lead := text[m[2]:m[3]]
-		x := text[m[4]:m[5]]
-		prev := strings.TrimRight(text[:m[0]], " ")
-		switch {
-		case m[0] == 0 || text[m[0]-1] == '\n':
-			b.WriteString(lead[:len(lead)-len(lead)%4])
-		case strings.HasSuffix(prev, "(") || strings.HasSuffix(prev, "++"):
-		default:
-			b.WriteString(" ")
-		}
-		b.WriteString(x + "->b_changedtick")
-		next := text[m[1]:]
-		if !strings.HasPrefix(next, ";") && !strings.HasPrefix(next, ")") {
-			b.WriteString(" ")
-		}
-		last = m[1]
-	}
-	b.WriteString(text[last:])
-	return b.String(), n
+	n := len(w137Tick.FindAllStringIndex(text, -1))
+	return w137Tick.ReplaceAllString(text, "${1}->b_changedtick"), n
 }
 
 // Whim137 makes the changedtick a number.
