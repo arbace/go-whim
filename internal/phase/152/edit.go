@@ -215,8 +215,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		if nv == "" {
 			return nil, p.Die("a row's variable %q with flags %q has no kind", v, strings.TrimSpace(flags))
 		}
-		lead := s[fs[3][0] : fs[3][0]+len(s[fs[3][0]:fs[3][1]])-len(strings.TrimLeft(s[fs[3][0]:fs[3][1]], " \n"))]
-		cuts = append(cuts, cut{fs[3][0], fs[3][1], lead + nv})
+		cuts = append(cuts, cut{fs[3][0], fs[3][1], nv})
 		rows++
 		k = re
 	}
