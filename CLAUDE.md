@@ -161,8 +161,10 @@ internal/phase/    the phases: NNN/ (GOAL.md, and edit.go where its cut is a
 editor/            the core in Go: editor.go GENERATED (make editor/editor.go; never edit it),
                    its runtime crt.go and host host.go by hand
 internal/gen/      the generator of editor/editor.go (`go tool whim gen`; `whim
-                   skel` runs it by hand, with -bodies for the bodies alone),
-                   told vim's names by internal/whim/gen.go (whim.Gen),
+                   skel` runs it by hand, with -bodies for the bodies alone):
+                   internal/crefactor/togo, the C-to-Go translator, which names
+                   nothing in vim, told vim's names by internal/whim/gen.go
+                   (whim.Gen) -- gen.go is that one line --
                    splice/ (`whim splice`: emitted bodies measured in a copy of
                    editor/), pre/ (`whim pre`: internal/ccx's partitions on an
                    editor.c), sigs.md, CONVENTIONS.md and FINDINGS.md

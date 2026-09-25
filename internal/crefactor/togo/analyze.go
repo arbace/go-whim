@@ -1,5 +1,6 @@
-// Package gen reads editor.c with modernc.org/cc/v4 and writes the shared
-// skeleton of its Go transpilation: which C pointers must become cursors
+// Package togo translates one C translation unit -- no preprocessor, no
+// libc: a core like editor.c -- to Go.  It reads it with modernc.org/cc/v4
+// and writes the shared skeleton of its Go transpilation: which C pointers must become cursors
 // (Ptr[T], a buffer and an offset) and which may stay plain Go pointers, and
 // from that the Go types, globals and function signatures every transpiling
 // agent writes against.
@@ -13,7 +14,12 @@
 // the arms of ?:, casts and ==.  A class with no such use is a plain *T, even
 // when it points into an array: &a[i] kept and read through is &a[i] in Go.
 // char and unsigned char pointers are always cursors: they are C strings.
-package gen
+//
+// It is told what it must know about the program rather than know it: a
+// Profile, the functions its hand-written runtime replaces and the names of
+// its allocators, functions of bytes and growable array.  It names nothing
+// in any program; internal/gen runs it on vim's core, told whim.Gen.
+package togo
 
 import (
 	"fmt"

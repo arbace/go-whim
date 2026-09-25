@@ -10,7 +10,6 @@ import (
 	"github.com/arbace/go-whim/internal/gen"
 	"github.com/arbace/go-whim/internal/gen/pre"
 	"github.com/arbace/go-whim/internal/gen/splice"
-	"github.com/arbace/go-whim/internal/whim"
 )
 
 // runGen writes editor/editor.go from editor.c, the core of whim-vim.c, and
@@ -39,7 +38,7 @@ func runGen(args []string) int {
 		return 1
 	}
 	defer os.RemoveAll(out)
-	if rc := gen.Run([]string{"editor.c", out, "-editor", filepath.Join(out, "editor.go")}, io.Discard, whim.Gen); rc != 0 {
+	if rc := gen.Run([]string{"editor.c", out, "-editor", filepath.Join(out, "editor.go")}, io.Discard); rc != 0 {
 		fmt.Fprintln(os.Stderr, "whim gen: the generator refused editor.c")
 		return rc
 	}
@@ -86,7 +85,7 @@ func runGen(args []string) int {
 // runSkel is the generator itself, for a run by hand: `whim skel <editor.c>
 // <outdir> [-bodies | -editor <editor.go>]` writes the skeleton, the facts and,
 // asked, the bodies or the whole editor.go into outdir.
-func runSkel(args []string) int { return gen.Run(args, os.Stderr, whim.Gen) }
+func runSkel(args []string) int { return gen.Run(args, os.Stderr) }
 
 // runSplice measures the emitted bodies against the hand-written editor:
 // `whim splice <editor-dir> <bodies.go> <out-dir>`.

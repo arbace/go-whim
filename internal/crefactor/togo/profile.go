@@ -1,4 +1,4 @@
-package gen
+package togo
 
 // Profile is what the generator is told about the C it translates rather
 // than knows: the functions the hand-written runtime replaces, the

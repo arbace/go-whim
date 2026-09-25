@@ -20,14 +20,16 @@ exactly as the C does.
 ## What the generator is told
 
 The rules below are the generator's; the names they apply to are vim's, and
-the generator is told them, one value, `whim.Gen` (`internal/whim/gen.go`,
-of type `gen.Profile`): the C functions `editor/crt.go` replaces, whose calls
+the generator -- `internal/crefactor/togo`, which `internal/gen` runs -- is
+told them, one value, `whim.Gen` (`internal/whim/gen.go`, of type
+`togo.Profile`): the C functions `editor/crt.go` replaces, whose calls
 are translated and whose bodies are not (`alloc*`, `musl_mem*`, `musl_str*`,
 `ga_grow_inner`), `ga_grow_inner`'s body, which is a rule of the runtime's;
 the allocators and `vim_free`; `musl_memmove`/`memcpy`/`memset`/`memcmp` as
 the functions of bytes; `garray_T` and its `ga_data`; `usize` as sizeof's
 type; the `varp` parameters that pun; `_` as `gettext_`; and `editor.go`'s
-header. Nothing in `internal/gen` names any of them. Three of them move
+header. Nothing in `togo` names any of them; its test translates a small C
+file told nothing at all. Three of them move
 nothing in today's core, measured by dropping each: `vim_free` (phase 132
 dropped its calls), the `varp` puns (no `char *` parameter is so named any
 more) and `usize` (an alias of `uint64`, which the emitter writes the same).

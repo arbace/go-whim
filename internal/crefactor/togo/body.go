@@ -1,4 +1,4 @@
-package gen
+package togo
 
 // body.go writes the functions' bodies: editor.c's statements and expressions
 // in Go, to internal/gen/CONVENTIONS.md, against the types, globals and signatures this

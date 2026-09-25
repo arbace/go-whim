@@ -3,7 +3,7 @@ package whim
 import (
 	"strings"
 
-	"github.com/arbace/go-whim/internal/gen"
+	"github.com/arbace/go-whim/internal/crefactor/togo"
 )
 
 // What the generator is told about the core it translates to Go
@@ -63,7 +63,7 @@ package main
 `
 
 // Gen is what internal/gen is told about editor.c.
-var Gen = gen.Profile{
+var Gen = togo.Profile{
 	Header: editorHeader,
 	// vim's _(), the identity once gettext went; _ is Go's blank.
 	Rename: map[string]string{"_": "gettext_"},
@@ -80,12 +80,12 @@ var Gen = gen.Profile{
 	},
 	// ga_grow_inner()'s body is the one rule of its own: it grows the
 	// storage with GaGrowTo, in elements of the storage's type.
-	RuntimeBodies: []gen.RuntimeBody{{Name: "ga_grow_inner", Body: gaGrowInnerFor}},
+	RuntimeBodies: []togo.RuntimeBody{{Name: "ga_grow_inner", Body: gaGrowInnerFor}},
 	Allocators:    allocators,
 	// vim_free: the garbage collector owns memory, and what is freed walks
 	// nothing.
 	Frees: []string{"vim_free"},
-	Bytes: gen.ByteFuncs{
+	Bytes: togo.ByteFuncs{
 		Move: []string{"musl_memmove", "musl_memcpy"},
 		Set:  "musl_memset",
 		Cmp:  "musl_memcmp",
@@ -93,7 +93,7 @@ var Gen = gen.Profile{
 	// size_t, since the core named no libc type.
 	SizeType: "usize",
 	// garray_T's ga_data, GaData[T] in editor/crt.go.
-	GrowArray: gen.GrowArray{Type: "garray_T", Data: "ga_data"},
+	GrowArray: togo.GrowArray{Type: "garray_T", Data: "ga_data"},
 	// an option's variable, of whatever type.
 	Puns: []string{"varp", "varp_arg"},
 }
