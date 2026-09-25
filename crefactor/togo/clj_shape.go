@@ -23,6 +23,7 @@ package togo
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 )
@@ -53,6 +54,7 @@ type shaper struct {
 	cur       int
 	pre       string // the groups' functions
 	all       bool   // every block is a state
+	why       string // why it is a state machine
 }
 
 // sloop is a natural loop: its head, the blocks it holds, and the
@@ -89,8 +91,10 @@ func (f *cfn) structure() (string, string, string) {
 	body := s.machineBody()
 	if s.cost(body) > f.c.splitAt() {
 		b := s.split()
+		f.why = s.why
 		return b, "split", s.pre
 	}
+	f.why = s.why
 	return s.entryLets(body), "machine", ""
 }
 
@@ -217,7 +221,7 @@ func (s *shaper) findLoops() {
 				ins++
 			}
 		}
-		if ins != 1 {
+		if ins != 1 && !(ins == 0 && h.id == 0) {
 			l.ok = false
 		}
 		changed := map[*lvar]bool{}
@@ -348,16 +352,21 @@ func (s *shaper) inline(b *lblock) bool {
 func (s *shaper) structured() (body string, ok bool) {
 	defer func() {
 		if r := recover(); r != nil {
-			if _, is := r.(errShape); !is {
+			e, is := r.(errShape)
+			if !is {
 				panic(r)
 			}
+			s.why = regexp.MustCompile(`block \d+ with \d+`).ReplaceAllString(e.why, "a block with")
 			body, ok = "", false
 		}
 	}()
 	for _, l := range s.loops {
 		if !l.ok {
-			return "", false
+			panic(errShape{"an irreducible loop"})
 		}
+	}
+	if l := s.loops[s.f.lf.blocks[0]]; l != nil {
+		return s.loopForm(l, &sctx{}), true // a function that starts with a loop
 	}
 	return s.emit(s.f.lf.blocks[0], &sctx{}), true
 }
@@ -548,7 +557,7 @@ func (s *shaper) edge(from, t *lblock, ctx *sctx) string {
 	if s.inline(t) {
 		return s.emit(t, ctx)
 	}
-	panic(errShape{fmt.Sprintf("a jump to block %d with %d ways in", t.id, s.edges[t])})
+	panic(errShape{fmt.Sprintf("a jump to block %d with %d ways in: a join whose arms change more than one variable it reads, or leave it", t.id, s.edges[t])})
 }
 
 // loopForm is loop l entered: the code after it where it leaves, or after

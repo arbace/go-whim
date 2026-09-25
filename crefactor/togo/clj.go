@@ -180,6 +180,7 @@ func (g *gen) writeClj(path string) error {
 	var fds []*cc.FunctionDefinition
 	written, replaced, total, structured, machine, split := 0, 0, 0, 0, 0, 0
 	whys := map[string]int{}
+	shapes := map[string]int{} // why a function is a state machine
 	for tu := g.ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
 		ed := tu.ExternalDeclaration
 		if ed.Case != cc.ExternalDeclarationFuncDef {
@@ -193,7 +194,7 @@ func (g *gen) writeClj(path string) error {
 			continue
 		}
 		fds = append(fds, fd)
-		src, why, mode := c.function(fd)
+		src, why, mode, shape := c.function(fd)
 		if why != "" {
 			fmt.Fprintf(&report, "%s: %s\n", name, why)
 			whys[reasonKey(why)]++
@@ -206,7 +207,9 @@ func (g *gen) writeClj(path string) error {
 			structured++
 		case "machine":
 			machine++
+			shapes[shape]++
 		case "split":
+			shapes[shape]++
 			machine++
 			split++
 		}
@@ -286,6 +289,20 @@ func (g *gen) writeClj(path string) error {
 		written, total, structured, machine, split, replaced, total-written-replaced)
 	for _, k := range ks {
 		fmt.Fprintf(logw, "  %5d  %s\n", whys[k], k)
+	}
+	fmt.Fprintf(logw, "clj: state machines, by the first thing that would not nest:\n")
+	var ss []string
+	for k := range shapes {
+		ss = append(ss, k)
+	}
+	sort.Slice(ss, func(a, b int) bool {
+		if shapes[ss[a]] != shapes[ss[b]] {
+			return shapes[ss[a]] > shapes[ss[b]]
+		}
+		return ss[a] < ss[b]
+	})
+	for _, k := range ss {
+		fmt.Fprintf(logw, "  %5d  %s\n", shapes[k], k)
 	}
 	if len(failed) > 0 {
 		fmt.Fprintf(logw, "clj: %d initial values refused\n", len(failed))

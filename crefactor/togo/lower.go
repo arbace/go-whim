@@ -106,6 +106,7 @@ type lblock struct {
 	preds []*lblock
 	label string // a C label, or what made the block: for reading
 	ended bool   // its terminator is set
+	head  bool   // a loop's head: the jump into it is kept, a block of its own
 }
 
 func (b *lblock) succs() []*lblock { return b.term.to }
@@ -534,6 +535,7 @@ func (f *lfn) iteration(s *cc.IterationStatement) {
 	switch s.Case {
 	case cc.IterationStatementWhile:
 		head, body, exit := f.newBlock("while"), f.newBlock("body"), f.newBlock("endwhile")
+		head.head = true
 		f.enter(head)
 		f.cond(s.ExpressionList, body, exit, s)
 		f.cur = body
@@ -542,6 +544,7 @@ func (f *lfn) iteration(s *cc.IterationStatement) {
 		f.cur = exit
 	case cc.IterationStatementDo:
 		body, test, exit := f.newBlock("do"), f.newBlock("dowhile"), f.newBlock("enddo")
+		body.head = true
 		f.enter(body)
 		f.loopBody(s.Statement, exit, test)
 		f.enter(test)
@@ -556,6 +559,7 @@ func (f *lfn) iteration(s *cc.IterationStatement) {
 			f.effect(s.ExpressionList)
 		}
 		head, body, next, exit := f.newBlock("for"), f.newBlock("body"), f.newBlock("next"), f.newBlock("endfor")
+		head.head = true
 		f.enter(head)
 		if cond == nil {
 			f.jump(body)
@@ -1072,7 +1076,7 @@ func (f *lfn) finish() {
 	// an empty block that only jumps is its target
 	target := func(b *lblock) *lblock {
 		seen := map[*lblock]bool{}
-		for len(b.steps) == 0 && b.term.kind == tGoto && !seen[b] {
+		for len(b.steps) == 0 && b.term.kind == tGoto && !seen[b] && !b.term.to[0].head {
 			seen[b] = true
 			b = b.term.to[0]
 		}

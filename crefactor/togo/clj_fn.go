@@ -58,6 +58,7 @@ type cfn struct {
 	ret          string // the Java result type
 	pre          []cbind
 	ntmp         int
+	why          string // why it is a state machine
 	nvarsCarried int
 	// what the blocks became
 	steps map[*lblock][]cbind
@@ -115,7 +116,7 @@ func (f *cfn) tmpName(base string) string {
 }
 
 // function writes one function definition.
-func (c *cgen) function(fd *cc.FunctionDefinition) (src string, why string, mode string) {
+func (c *cgen) function(fd *cc.FunctionDefinition) (src string, why string, mode string, shape string) {
 	d := fd.Declarator
 	defer func() {
 		if r := recover(); r != nil {
@@ -153,14 +154,14 @@ func (c *cgen) function(fd *cc.FunctionDefinition) (src string, why string, mode
 		f.vars[v] = cvr
 	}
 	if rb := c.runtimeBody(d.Name()); rb != nil {
-		return f.header(rb(f.ret)), "", "runtime"
+		return f.header(rb(f.ret)), "", "runtime", ""
 	}
 	// twice: the first learns the temporaries' types, in reverse postorder
 	f.printBlocks()
 	f.ntmp = 0
 	f.printBlocks()
 	body, mode, pre := f.structure()
-	return pre + f.header(body), "", mode
+	return pre + f.header(body), "", mode, f.why
 }
 
 // printBlocks prints every block's steps and terminator.
