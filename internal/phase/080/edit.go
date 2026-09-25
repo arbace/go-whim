@@ -327,7 +327,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 				fmt.Sprintf("sizeof(%q) - 1", name), strconv.Itoa(n), 1))
 		}
 	}
-	tabBody := edit.W80Blanks.ReplaceAllString(strings.Join(Body, "\n"), "\n\n")
+	tabBody := strings.Join(Body, "\n")
 	var enumBody []string
 	for _, line := range strings.Split(t[enumStart:enumEnd], "\n") {
 		r := edit.W80IdRe.FindStringSubmatch(line)
@@ -338,7 +338,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 		enumBody = append(enumBody, line)
 	}
-	enumText := edit.W80Blanks.ReplaceAllString(strings.Join(enumBody, "\n"), "\n\n")
+	enumText := strings.Join(enumBody, "\n")
 	if !(enumEnd < tabStart) {
 		return nil, e.Refused("the enum is not above the table")
 	}
@@ -437,13 +437,8 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	e.Lines(`ni = \(!\(\(int\)\(ea\.cmdidx\) < 0\) && \(cmdnames\[ea\.cmdidx\]\.cmd_func == ex_ni \|\| cmdnames\[ea\.cmdidx\]\.cmd_func == ex_script_ni\)\);`,
 		1, "the stub flag, which no row can raise")
-	// `int ni;` is do_one_cmd's; readfile has one too, and the residue told them
-	// apart by the padding that aligned the declaration.  The canonical text
-	// writes one space, so the function is the discriminator, and the count
-	// stays 1.
-	e.InFunction("do_one_cmd", func(e *edit.E) {
-		e.Lines(`int ni;`, 1, "and its declaration")
-	})
+	// do_one_cmd's `int ni;` is named by nothing after the three terms below,
+	// and the sweep takes it.
 	e.Term("(!ni && ", "(", 4, "range, bang, extra-argument and required-argument checks apply to every command")
 	e.Term("&& !ni && ", "&& ", 2, "and the range and count checks")
 	e.Term("getargopt(&ea) == FAIL && !ni)", "getargopt(&ea) == FAIL)", 1, "and ++opt parsing")
@@ -452,7 +447,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	e.FoldNever(`(?m)^    if \(if_level\)$`, "the level is never raised")
 	e.Lines(`ea\.skip = \(if_level > 0\);`, 1, "so nothing is skipped")
 	e.Lines(`if_level = 0;`, 1, "the reset")
-	e.Term(w80lit5, "", 1, "and the level")
+	// and the level itself, named by nothing now, goes to the sweep
 
 	e.FoldNever(`(?m)^[ \t]*if \(ea\.cmdidx == CMD_bang\)$`, ":! keeps no leading space")
 	e.Term("else if (ea.cmdidx == CMD_bang || ea.cmdidx == CMD_terminal || ea.cmdidx == CMD_global",
@@ -472,9 +467,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		a, z, ok := cutil.FindDefinition(cur, cutil.Blank(cur), fn)
 		if !ok {
 			return nil, e.Refused("%s is not defined", fn)
-		}
-		if a >= 2 && string(cur[a-2:a]) == "\n\n" && z < len(cur) && cur[z] == '\n' {
-			z++
 		}
 		e.Set(append(append([]byte{}, cur[:a]...), cur[z:]...))
 	}

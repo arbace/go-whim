@@ -11,7 +11,6 @@ const (
 	w80lit2  = "The lookup this phase writes: a prefix at least as long as the row says.\n\n    A name is letters only now -- the py3 and vim9 digit rules go with every row\n    that needed them -- so the word stops at the first character that is not one.\n    "
 	w80lit3  = "    size_t cmd_namelen;\n"
 	w80lit4  = "    int cmd_minlen;\n"
-	w80lit5  = "static int if_level = 0;\n"
 	w80lit6  = "    else if (!eap->skip)\n"
 	w80lit7  = "    else\n"
 	w80lit8  = "\n\n"

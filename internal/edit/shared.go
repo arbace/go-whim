@@ -869,7 +869,6 @@ var (
 	W80Chars  = regexp.MustCompile(`vim_strchr\(\(char_u \*\)"([^"]*)", \*p\) != NULL\)\n`)
 	W80Banner = regexp.MustCompile(`(?ms)^static const unsigned short cmdidxs1\[26\] =\n.*?^static const int command_count = \d+;\n`)
 	W80Num    = regexp.MustCompile(`\d+`)
-	W80Blanks = regexp.MustCompile(`\n\n+`)
 	W80Label  = regexp.MustCompile(`^([ \t]*)(case \w+:|default:)$`)
 	W80Case   = regexp.MustCompile(`^[ \t]*case (\w+):$`)
 	W80Fall   = regexp.MustCompile(`^[ \t]*(break;|goto \w+;|return\b.*;|\{)$`)
