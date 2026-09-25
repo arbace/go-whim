@@ -20,12 +20,18 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   resliced `[]T`, which for `Ptr[byte]` is a string model -- a redesign, not a
   rule. It is checked by `make whim-test`, which runs the Go editor against
   the C.
-- **A tighter verb set for phase edits** (`doc/DSL.md`). A separate language would
-  cover only 10-22% of the edit code; the savings come from one verb set in
-  `edit.E` (seven spellings of FoldNever today), verbs for what phases
-  hand-write, and moving the ~20 mostly-declarative phases onto them. The phases
-  are leaner now (the redundant-steps removals landed), so the census is worth
-  re-running before starting.
+- **Line anchors for the phase verbs** (`doc/DSL.md` §4, step 3; steps 1 and 2,
+  one verb set and the middle tier moved onto it, are done). 381 of the 449
+  pattern arguments the survey classified were a C line with its indentation
+  left open, `(?m)^[ \t]*...\n`; a `Line("maketitle();")` spelling of the same
+  regular expression would make most anchors literal C, and compiling to the
+  same expression makes each change identical by construction.
+- **The behaviour suite is timing-sensitive, rarely.** Under heavy CPU load the
+  Go editor's output for `substitute` differed from itself 1 run in 300, on
+  `main` as on a branch: a redraw depends on how much typeahead has arrived
+  when the editor looks. `whim-test` can therefore fail once and pass on a
+  rerun. Feeding the keys so the typeahead is the same every run (all at once
+  before the editor reads, or one read per key) would make it exact.
 
 ## Known stale, not yet scoped
 

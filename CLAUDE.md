@@ -118,7 +118,9 @@ cmd/whim/         the toolset, every tool a subcommand: go tool whim <subcommand
                    (README.md: each tool, and what each retired script became)
 internal/          the Go: cc (the forked C front end), cemit (the canonical printer), sweep, dead,
                    cut/cutil (the cutters), edit (what the phases' edits are
-                   written against: the driver, and in shared.go what more than
+                   written against: the one verb set, edit.E, in driver.go and
+                   blocks.go, every act counted; Ph, the driver of the phases
+                   whose cut is a computation; and in shared.go what more than
                    one phase uses), steps (every transformation a phase names, as
                    one table), build (the plan: what each phase does to the
                    source, and the driver that runs it), cmdtab (the Ex command
@@ -150,7 +152,7 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    done, in order), and three surveys: AST-EDITING.md (the phases
                    editing the AST: not taken, to revisit), GO-IDIOMS.md (how the Go
                    editor could be idiomatic, measured and ranked) and DSL.md (a language
-                   for phase edits: partially, as Go verbs)
+                   for phase edits: not a language but one Go verb set, since done)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go

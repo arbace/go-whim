@@ -3,6 +3,45 @@
 Survey, 2026-09-25. Main checkout at `ee05eee` with the working-tree changes
 
 **Since written:** the prototype it ran (`.tmp/dsl/`) is not tracked. Its remark that CLAUDE.md said 164 phases and no test suite was checked and is wrong: CLAUDE.md said neither.
+
+**Since written, the embedded half was done (steps 1 and 2 of §4).** The
+census was re-run first, on `986e8b9`, after the redundant-steps removals:
+
+- 111 phases have an edit program (099's went), **28,035 lines**, 18,996 of
+  them code: 1,198 fewer than below. By the markers alone, D0 13, D1 16 and
+  C 82, as before; the removals thinned the C tier's layout code and hand
+  deletions (`Lines` 133 -> 70 sites), not the tiers.
+- **55 `Text`/`Set` calls** (56 below), and 253 fold calls in 18 spellings.
+
+What changed:
+
+- **One verb set.** `edit.E` went from 51 exported methods to 34, and its
+  acts from 37 to 17. The folds are `FoldNever`, `FoldAlways`, `DropIf` and
+  `FoldAlwaysElse`. Every act that could match more than once takes its count
+  before its `what` (`Literal(old, new, n, what)`); `LiteralN`, `Term`,
+  `LinesT`, `BodyTrue`, `Always`, `DropWalkIn` and the *Count/N/Repeat/Many/In*
+  folds are gone. The last-match folds turned out to give the same phase
+  output as the first-match ones once every boundary is printed canonically,
+  so the drift §1.2 describes had no product behind it, only log lines.
+  `driver.go`'s doc comment is the list.
+- **Verbs for what phases hand-wrote:** `Splice` (two literal ends, each
+  counted once), `InTable` (a scope over an initialised table, as
+  `InFunction` is over a function), `Expect` (an invariant in the phase's own
+  words, one line), `Query` (a capture group of every match). `Rename` was
+  added and removed again: the one rename (072) is a counted `Sub`.
+- **Moved:** the 20 middle-tier phases but 054 (a query that prints, not an
+  edit) and 100-102 (assertion programs: their one act is a literal, and the
+  rest is preconditions that `Ph`'s early return serves as well); the
+  nineteen declarative phases written against `edit.Ph`; and the E phases
+  whose `Text`/`Set` was a splice, a fold or a count (44, 48, 55, 69, 70, 73,
+  75, 78, 81, 135). 137's layout function is the 18-count `Sub` measured in
+  §3.4.
+- **After:** 27,467 lines (18,432 code); by the markers D0 30, D1 14, C 67;
+  **16 `Text`/`Set` calls**, 14 of them in 080's command-table rebuild and
+  two reads for a computed count (075, 078).
+
+Not done: step 0 (`whim build --from N --to N` and a `cmp` against the
+committed `qN` served instead, with a control), and step 3 (line anchors).
 `git status` showed at the start (phase 166, `internal/sweep/prune.go`,
 `src/whim-vim.c`, the editor). **No tracked file was modified and nothing was
 committed.** No build that writes `.cache/boundaries` was run: four boundaries
