@@ -80,13 +80,23 @@ program run by hand, and `--keep D` every boundary.
 
 ## The Go editor
 
-`editor/` is the core, `editor.c`, in Go:
+`editor/` is the core, `editor.c`, in Go -- `package editor`, a library that
+runs one editor per process on a `Host`:
 - **`editor.go`**: **generated** by `go tool whim gen` (`internal/gen` on `modernc.org/cc/v4`):
   every C function a Go function with the same name and control flow, so the
   two read line for line;
 - **`crt.go`**: the C runtime it is written against, `Ptr[T]` for a C pointer
   that walks;
-- **`host.go`**: the host, from the Go runtime and standard library only.
+- **`host.go`**: the `Host` interface -- the terminal, the clock, input, the
+  signals, output and the exit, in Go types -- and `Main(host, args)`; the
+  core's C-shaped calls to the host are one line of glue each;
+- **`format.go`**: vim's printf, `vim_snprintf`, which needs no host;
+- **`term/`**: the host on a terminal, from the Go runtime and standard library
+  only, and **`cmd/whim/`** the launcher, `editor.Main(term.New(), os.Args)`.
+
+An embedding program writes its own `Host` and calls `Main`; a `Host` that
+must not end the process panics with `editor.Exit(code)` in its `Exit`, and
+`Main` returns the code (`host_test.go` runs the editor so, in-process).
 
 It follows the current core. `make whim-build` writes `editor.go` again after it
 produces `whim-vim.c`, and `make editor/editor.go` does it on its own.
@@ -127,7 +137,8 @@ crefactor/       the generic C refactoring library, a Go module of its own
                  decide -- pointer casts, evaluation order -- partitioned) and
                  dead (funcreach, gcc's unused warnings)
 internal/whim/   what that library is told about vim: roots, names, knobs
-editor/          the core transpiled into Go, with its runtime and host
+editor/          the core transpiled into Go, package editor: the runtime, the
+                 Host interface; term/ the terminal host, cmd/whim/ the launcher
 internal/gen/    the generator of editor/editor.go (go tool whim gen: crefactor/togo
                  with whim.Gen), splice/
                  (whim splice: the emitted bodies measured in a copy of

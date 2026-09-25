@@ -7,7 +7,7 @@
 // value: a C pointer is compared with == far more often than it is walked,
 // and a Ptr that held a slice could not be.  Everything unsafe here is the
 // arithmetic of an index into a Go allocation the Ptr keeps alive.
-package main
+package editor
 
 import (
 	"reflect"

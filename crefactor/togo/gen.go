@@ -488,7 +488,7 @@ func (g *gen) signature(d *cc.Declarator, who string) {
 // typesText is types.go: the aliases, the struct types and the constants.
 func (g *gen) typesText() string {
 	var b strings.Builder
-	b.WriteString("package main\n\n")
+	b.WriteString(g.p.pkg())
 	sort.Strings(g.aliases)
 	for _, l := range dedupe(g.aliases) {
 		b.WriteString(l + "\n")
@@ -509,7 +509,7 @@ func (g *gen) typesText() string {
 // static, hoisted as <function>_<name>, with its type.
 func (g *gen) globalsText() string {
 	var b strings.Builder
-	b.WriteString("package main\n\n")
+	b.WriteString(g.p.pkg())
 	for _, l := range dedupe(g.globals) {
 		b.WriteString(l + "\n")
 	}

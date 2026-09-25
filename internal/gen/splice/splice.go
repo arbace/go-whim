@@ -82,7 +82,15 @@ func Run(args []string, errw io.Writer) int {
 		handSrc[f.name] = string(hand[f.start:f.end])
 	}
 	check(os.MkdirAll(out, 0o755))
-	for _, n := range []string{"crt.go", "host.go"} {
+	// Every hand-written file of the package goes with the copy: the runtime,
+	// the host's glue, vim_snprintf, libc.  editor.go is the one written here.
+	hands, err := filepath.Glob(filepath.Join(dir, "*.go"))
+	check(err)
+	for _, path := range hands {
+		n := filepath.Base(path)
+		if n == "editor.go" || strings.HasSuffix(n, "_test.go") {
+			continue
+		}
 		b, err := os.ReadFile(filepath.Join(dir, n))
 		check(err)
 		check(os.WriteFile(filepath.Join(out, n), b, 0o644))

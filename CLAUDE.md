@@ -166,8 +166,11 @@ internal/phase/    the registry the phases' programs join (registry.go, query.go
                    prose, not a manifest a program reads) and boundaries.md
                    (every boundary's lines, entity counts, binary and nm -u, as
                    `go tool whim build --keep D` and `measure D` give them)
-editor/            the core in Go: editor.go GENERATED (make editor/editor.go; never edit it),
-                   its runtime crt.go and host host.go by hand
+editor/            the core in Go, package editor, a library: editor.go GENERATED
+                   (make editor/editor.go; never edit it); by hand, its runtime
+                   crt.go, format.go (vim_snprintf), and host.go -- the Host
+                   interface the core runs on and Main(host, args); term/ is
+                   the terminal host and cmd/whim/ the launcher bin/whim is
 internal/gen/      the generator of editor/editor.go (`go tool whim gen`; `whim
                    skel` runs it by hand, with -bodies for the bodies alone):
                    crefactor/togo, the C-to-Go translator, which names

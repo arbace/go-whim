@@ -9,6 +9,8 @@ package togo
 type Profile struct {
 	// Header opens the file -editor writes, the package clause included.
 	Header string
+	// Package is the Go package the files are in; "" is main.
+	Package string
 	// Rename maps a C identifier Go cannot spell as it is to its Go name --
 	// `_`, Go's blank -- before the reserved words' trailing underscore.
 	Rename map[string]string
@@ -94,4 +96,12 @@ func (p *profile) byteMove(name string) bool {
 		}
 	}
 	return false
+}
+
+// pkg is the package clause of every file the generator writes.
+func (p Profile) pkg() string {
+	if p.Package == "" {
+		return "package main\n\n"
+	}
+	return "package " + p.Package + "\n\n"
 }

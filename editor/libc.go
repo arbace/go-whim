@@ -7,7 +7,7 @@
 // A C string is the bytes before the first NUL.  One with no NUL in its
 // allocation is a read past the end in C; here it is a panic, as the
 // transpiled loop's out-of-range index was.
-package main
+package editor
 
 import "bytes"
 

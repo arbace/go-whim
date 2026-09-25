@@ -311,8 +311,8 @@ func prepare(rev, candSrc string) (*builds, error) {
 		func() (err error) { b.cand, err = Build(candSrc, dir, "cand"); return },
 		func() (err error) { b.ctl, err = Build(ctlSrc, dir, "control"); return },
 		func() error {
-			if out, err := exec.Command("go", "build", "-o", b.goBin, "./editor").CombinedOutput(); err != nil {
-				return fmt.Errorf("go build ./editor: %v\n%s", err, out)
+			if out, err := exec.Command("go", "build", "-o", b.goBin, "./editor/cmd/whim").CombinedOutput(); err != nil {
+				return fmt.Errorf("go build ./editor/cmd/whim: %v\n%s", err, out)
 			}
 			return nil
 		},

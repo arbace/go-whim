@@ -239,12 +239,12 @@ whim-editor-check:  ## refuse if the tracked editor.go is not what internal/gen 
 	$(cut-editor)
 	@go tool whim gen --check
 
-# The editor: editor/ built -- editor.go as internal/gen writes it from whim-vim.c,
-# crt.go and host.go.  Go's own build cache decides what compiles again, so the
+# The editor: editor/cmd/whim built -- package editor (editor.go as internal/gen
+# writes it from whim-vim.c, and its runtime and Host) on the terminal host.  Go's own build cache decides what compiles again, so the
 # rule runs every time and costs nothing when nothing moved.
 bin/whim: editor/editor.go force  ## the editor binary alone, from editor/
 	@mkdir -p bin
-	@go build -o $@ ./editor
+	@go build -o $@ ./editor/cmd/whim
 	@printf '  %-12s %s bytes, the core in Go (editor/)\n' "$@" \
 	    "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
 

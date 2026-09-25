@@ -21,9 +21,9 @@ func (g *gen) writeEditor(path string, skip map[string]bool) error {
 	}
 	var b strings.Builder
 	b.WriteString(g.p.Header)
-	b.WriteString(strings.TrimPrefix(g.typesText(), "package main\n\n"))
+	b.WriteString(strings.TrimPrefix(g.typesText(), g.p.pkg()))
 	b.WriteString("\n")
-	b.WriteString(strings.TrimPrefix(g.globalsText(), "package main\n\n"))
+	b.WriteString(strings.TrimPrefix(g.globalsText(), g.p.pkg()))
 	b.WriteString("\n// The initial values of the file-scope objects and the hoisted statics whose\n// C initializer is not all zeros.\nfunc init() {\n")
 	b.WriteString(inits)
 	b.WriteString("}\n\n")

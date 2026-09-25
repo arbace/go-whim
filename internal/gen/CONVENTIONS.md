@@ -10,7 +10,7 @@
 > generated part and `internal/gen/sigs.md` is the signature list the pass used.
 
 `editor.c` (the core of `whim-vim.c`, cut at its first `#include`) is being
-transpiled **by hand** into the Go package `editor/` (`package main`),
+transpiled **by hand** into the Go package `editor/` (`package editor`),
 **faithfully**: every C function becomes one Go function with the same name,
 the same parameters and the same control flow, so that the Go file can be read
 against the C one line by line. Idiomatic Go comes later, in phases; this pass

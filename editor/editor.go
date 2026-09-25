@@ -9,7 +9,7 @@
 //
 // Regenerate with make editor/editor.go (go tool whim gen).
 
-package main
+package editor
 
 type DATA_BL = S_data_block
 type DATA_LN = S_data_line

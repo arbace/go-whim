@@ -11,23 +11,20 @@ want the same thing: the state on an instance and the host behind an
 interface, produced by the generator. Measured on `editor/` (2026-09-25): 821
 package variables in `editor.go` and 32 in `host.go`, 14,728 references to
 them, 1,192 of 1,685 functions touching one directly; the core calls 17
-host-side functions, 16 of them the operating system's. In order, each step
+host-side functions, 16 of them the operating system's -- behind a `Host`
+interface since `editor/` became `package editor`. In order, each step
 held to `make whim-test` (and a Java editor, once there is one, to the same
 cases):
 
-1. **A package and a `Host` interface.** `editor/` becomes `package editor`,
-   importable; the launcher is a few lines of its own; the 16 OS calls go
-   through a `Host` in Go types, the terminal one in a package of its own.
-   One editor per process, as the C.
-2. **No `goto` in the C.** 163 in 34 functions: Go keeps them, Java has none
+1. **No `goto` in the C.** 163 in 34 functions: Go keeps them, Java has none
    and its labeled break and continue cannot jump backwards. Phases, as 129-168
    were for Go: what the target cannot say goes from the C.
-3. **An instance mode in `crefactor/togo`**: the globals as a struct, the
+2. **An instance mode in `crefactor/togo`**: the globals as a struct, the
    functions its methods, the function-pointer tables (24) taking it. A
    generic option, written once in the generator. This was declined while
    nothing needed several editors per process; an embeddable component and
    a Java class do.
-4. **A Java backend for `togo`**, from the same analysis -- which pointers walk
+3. **A Java backend for `togo`**, from the same analysis -- which pointers walk
    (`Ptr[byte]`, 2,212 in the Go, is `byte[]` and an offset), which ints are
    answers, which are unsigned (570 uses: `Integer.*Unsigned`), structs copied
    by value (99 types), function pointers as interfaces -- rather than a
