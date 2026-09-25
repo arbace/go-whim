@@ -21,7 +21,7 @@ order, each step
 held to `make whim-test` (and a Java editor, once there is one, to the same
 cases):
 
-1. **A Java backend for `togo`**, from the same analysis -- which pointers walk
+1. **A Java backend for `togo`** (`doc/JAVA.md`: the design and its four milestones), from the same analysis -- which pointers walk
    (`Ptr[byte]`, 2,212 in the Go, is `byte[]` and an offset), which ints are
    answers, which are unsigned (570 uses: `Integer.*Unsigned`), structs copied
    by value (99 types), function pointers as interfaces -- rather than a

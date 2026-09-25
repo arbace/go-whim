@@ -151,7 +151,8 @@ Makefile         the whole build: the input, the pipeline, the binaries, the edi
 doc/             GOALS.md (what holds for every phase), AGENDA.md (what is not
                  done, in order, and what was declined, with why), GO-IDIOMS.md (how
                  the Go editor could be idiomatic, measured and ranked; done or
-                 declined), and PIPELINE-COMPACTION.md (which phases could be dropped, merged,
+                 declined), JAVA.md (the Java backend: its design and milestones),
+                 and PIPELINE-COMPACTION.md (which phases could be dropped, merged,
                  split or reordered, measured byte for byte)
 src/             the input and the product, their binaries and digests:
                  whim-vim.c (the product, tracked; make editor.c cuts the core
