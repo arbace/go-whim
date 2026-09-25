@@ -62,6 +62,12 @@ func Run(args []string, errw io.Writer, prof Profile) int {
 			return 1
 		}
 	}
+	if len(osArgs) > 4 && osArgs[3] == "-clj" {
+		if err := g.writeClj(osArgs[4]); err != nil {
+			fmt.Fprintln(errw, "skel:", err)
+			return 1
+		}
+	}
 	if len(osArgs) > 4 && osArgs[3] == "-lowerc" {
 		if err := g.writeLoweredC(osArgs[1], osArgs[4]); err != nil {
 			fmt.Fprintln(errw, "skel:", err)

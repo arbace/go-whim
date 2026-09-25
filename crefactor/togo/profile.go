@@ -51,6 +51,18 @@ type Profile struct {
 	// JavaPackage is the package of the Java class -java writes; "" is the
 	// unnamed package.  The class is named after the file.
 	JavaPackage string
+
+	// CljNamespace is the namespace -clj writes; "" is whim.editor.
+	CljNamespace string
+	// CljHost is the namespace a function declared and not defined is
+	// called in, the editor first; "" is whim.cljhost.
+	CljHost string
+	// CljExports are file-scope objects the host reads: each a function of
+	// the editor of the same name.
+	CljExports []string
+	// CljSplit is the size, in the backend's guess at bytecode, past which a
+	// function is split into functions of its states (0: its default).
+	CljSplit int
 }
 
 // ByteFuncs are the program's memmove and memcpy (Memmove), memset
@@ -76,6 +88,10 @@ type RuntimeBody struct {
 	Name string
 	Body func(result string) string
 	Java func(result string) string
+	// Clj, when set, is the Clojure function's body -- one expression, the
+	// C's parameter names in scope -- for the Java type the C gives its
+	// result (the Clojure backend takes the Java's types).
+	Clj func(result string) string
 }
 
 // profile is a Profile's lists as sets, for the lookups.
