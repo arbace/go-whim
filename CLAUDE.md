@@ -233,7 +233,8 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    the Go editor could be idiomatic, measured and ranked; done or
                    declined), JAVA.md (the Java backend: its design and milestones),
                    PIPELINE-COMPACTION.md (which phases could be dropped, merged,
-                   split or reordered, measured byte for byte) and GO-LISP.md
+                   split or reordered, measured byte for byte), CLOJURE.md (the plan
+                   for a Clojure editor) and GO-LISP.md
                    (the Go editor in go-lisp syntax: an experiment, and make
                    editor.lgo)
 ```
