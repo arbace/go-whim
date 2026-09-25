@@ -42,8 +42,8 @@ slim-vim.c  --whim-->  whim-vim.c
     (165, named). With the generator's own fixes, `go vet`, staticcheck and
     `gofmt -s` are clean on `editor/`.
   - **phase 166** declares `bool` the 278 core functions whose every return
-    answers yes or no -- OK and FAIL included, OK being `true` -- and the 327
-    locals that only hold an answer; `f() == FAIL` is `!f()`. So the Go says
+    answers yes or no -- OK and FAIL included, OK being `true` -- and the
+    locals, struct members and parameters that only ever hold an answer; `f() == FAIL` is `!f()`. So the Go says
     `if f()` where it said `if f() != 0`.
   - **phase 167** names the 153 constant key codes (`K_DEL`, `K_IGNORE`) the
     preprocessor's removal left as arithmetic; the binary is byte-identical.
@@ -181,7 +181,7 @@ make help            # every target, with a line each
   after every phase** (there are no stages), and **the canonical print of what is left**
   (`internal/cemit`: one spelling per construct, and NO COMMENTS, of any kind),
   so every boundary that is C is in the one spelling phase 0 seeds with -- applied
-  in one process, in memory. Measured: 169 phases, **1,072 s**, 75,403 lines. A
+  in one process, in memory. Measured: 169 phases, **1,092 s**, 75,403 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`internal/sweep`'s `Prune`): the text parsed
@@ -199,7 +199,7 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **89 s** on 64 cores, against 1,072 s in
+  committed `whim-vim.c`. Measured: **77 s** on 64 cores, against 1,092 s in
   order; and a phase whose program was changed on purpose
   (a control) is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose

@@ -1325,3 +1325,28 @@ func declName(d *cc.Declarator) (cc.Token, bool) {
 // Walk calls f on every node under n, n included, in source order, and does
 // not descend below a node f returns false for.
 func Walk(n cc.Node, f func(cc.Node) bool) { walk(n, f) }
+
+// PositionalMembers is the name of every member of every struct or union
+// some brace initializer fills by position -- directly, or held by value
+// inside one that is (the sweep's own rule for which members it may not
+// delete).  A phase that retypes a member asks it: a value written by
+// position is one no assignment shows.
+func PositionalMembers(ast *cc.AST, path string, src []byte) map[string]bool {
+	a := &analysis{
+		src: src, blank: cutil.Blank(src), path: path,
+		byKey: map[string][]*ent{}, byName: map[string][]*ent{},
+		live: map[string]bool{}, named: map[string]bool{},
+		structs: map[string][]*ent{}, typedef: map[string]string{},
+	}
+	a.collect(ast)
+	a.positional(ast)
+	out := map[string]bool{}
+	for _, e := range a.ents {
+		if e.kind == 'S' && e.pinAll {
+			for _, m := range e.members {
+				out[m.name] = true
+			}
+		}
+	}
+	return out
+}

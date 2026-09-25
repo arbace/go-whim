@@ -1743,7 +1743,7 @@ typedef struct regprog
     unsigned regflags;
     unsigned re_engine;
     unsigned re_flags;
-    int re_in_use;
+    bool re_in_use;
     int regstart;
     char_u reganch;
     char_u *regmust;
@@ -1757,7 +1757,7 @@ typedef struct
     char_u *startp[NSUBEXP];
     char_u *endp[NSUBEXP];
     colnr_T rm_matchcol;
-    int rm_ic;
+    bool rm_ic;
 } regmatch_T;
 
 typedef struct
@@ -1818,7 +1818,7 @@ struct wininfo_S
     win_T *wi_win;
     pos_T wi_fpos;
     winopt_T wi_opt;
-    int wi_optset;
+    bool wi_optset;
 };
 
 typedef struct
@@ -1918,7 +1918,7 @@ typedef struct expand
     int xp_context;
     xp_prefix_T xp_prefix;
     int xp_backslash;
-    int xp_shell;
+    bool xp_shell;
     int xp_numfiles;
     char_u *xp_orig;
     char_u **xp_files;
@@ -1941,17 +1941,17 @@ typedef struct
     int cmdindent;
     char_u *cmdprompt;
     int cmdattr;
-    int overstrike;
+    bool overstrike;
     expand_T *xpc;
     int xp_context;
-    int cmdbuff_replaced;
+    bool cmdbuff_replaced;
 } cmdline_info_T;
 
 typedef struct
 {
     int cmod_flags;
     regmatch_T cmod_filter_regmatch;
-    int cmod_filter_force;
+    bool cmod_filter_force;
     int cmod_verbose;
     long cmod_verbose_save;
     int cmod_save_msg_silent;
@@ -2029,7 +2029,7 @@ typedef struct
 typedef struct
 {
     typebuf_T save_typebuf;
-    int typebuf_valid;
+    bool typebuf_valid;
     int old_char;
     int old_mod_mask;
     buffheader_T save_readbuf1;
@@ -2057,7 +2057,7 @@ struct mapblock
     char_u *m_orig_str;
     int m_keylen;
     int m_mode;
-    int m_simplified;
+    bool m_simplified;
     int m_noremap;
     char m_silent;
     char m_nowait;
@@ -2088,7 +2088,7 @@ typedef struct
     int backspace;
     int enter;
     int interrupt;
-    int nl_does_cr;
+    bool nl_does_cr;
 } ttyinfo_T;
 
 struct file_buffer
@@ -2399,7 +2399,7 @@ typedef struct
     char **argv;
     int n_commands;
     char_u *commands[MAX_ARG_CMDS];
-    int want_full_screen;
+    bool want_full_screen;
 } mparm_T;
 
 typedef struct
@@ -2430,9 +2430,9 @@ struct block_def
     colnr_T textcol;
     colnr_T start_vcol;
     colnr_T end_vcol;
-    int is_short;
-    int is_MAX;
-    int is_oneChar;
+    bool is_short;
+    bool is_MAX;
+    bool is_oneChar;
     int pre_whitesp;
     int pre_whitesp_c;
     colnr_T end_char_vcols;
@@ -2467,7 +2467,7 @@ typedef struct spat
 typedef struct
 {
     linenr_T sa_stop_lnum;
-    int sa_wrapped;
+    bool sa_wrapped;
 } searchit_arg_T;
 
 typedef enum
@@ -2579,7 +2579,7 @@ typedef struct
         char_u *string;
     } os_newval;
     int os_value_checked;
-    int os_restore_chartab;
+    bool os_restore_chartab;
     char *os_errbuf;
     usize os_errbuflen;
 } optset_T;
@@ -2803,7 +2803,7 @@ struct exarg
     char_u **cmdlinep;
     cmdidx_T cmdidx;
     long argt;
-    int forceit;
+    bool forceit;
     int addr_count;
     linenr_T line1;
     linenr_T line2;
@@ -2828,7 +2828,7 @@ static void mch_exit(int r);
 
 static bool get_tty_info(int fd, ttyinfo_T *info);
 
-static void *lalloc(usize size, int message);
+static void *lalloc(usize size, bool message);
 
 static void do_outofmem_msg(usize size);
 
@@ -2846,7 +2846,7 @@ static bool bufref_valid(bufref_T *bufref);
 
 static bool buf_valid(buf_T *buf);
 
-static bool close_buffer(win_T *win, buf_T *buf, int action, int abort_if_last, int ignore_abort, int set_context);
+static bool close_buffer(win_T *win, buf_T *buf, int action, bool abort_if_last, bool ignore_abort, bool set_context);
 
 static void buf_clear_file(buf_T *buf);
 
@@ -2858,11 +2858,11 @@ static bool curbuf_reusable(void);
 
 static buf_T *buflist_new(linenr_T lnum, int flags);
 
-static void free_buf_options(buf_T *buf, int free_p_ff);
+static void free_buf_options(buf_T *buf, bool free_p_ff);
 
 static buf_T *buflist_findnr(int nr);
 
-static void buflist_setfpos(buf_T *buf, win_T *win, linenr_T lnum, colnr_T col, int copy_options);
+static void buflist_setfpos(buf_T *buf, win_T *win, linenr_T lnum, colnr_T col, bool copy_options);
 
 static int col_print(char_u *buf, usize buflen, int col, int vcol);
 
@@ -2880,7 +2880,7 @@ static void changed_internal(void);
 
 static void changed_lines(linenr_T lnum, colnr_T col, linenr_T lnume, long xtra);
 
-static void unchanged(buf_T *buf, int ff, int always_inc_changedtick);
+static void unchanged(buf_T *buf, bool ff, bool always_inc_changedtick);
 
 static void ins_bytes_len(char_u *p, int len);
 
@@ -2888,11 +2888,11 @@ static void ins_char(int c);
 
 static void ins_char_bytes(char_u *buf, int charlen);
 
-static bool del_chars(long count, int fixpos);
+static bool del_chars(long count, bool fixpos);
 
-static bool del_bytes(long count, int fixpos_arg, int use_delcombine);
+static bool del_bytes(long count, bool fixpos_arg, bool use_delcombine);
 
-static bool buf_init_chartab(buf_T *buf, int global);
+static bool buf_init_chartab(buf_T *buf, bool global);
 
 static void trans_characters(char_u *buf, int bufsize);
 
@@ -2970,11 +2970,11 @@ static void clear_hist_entry(histentry_T *hisptr);
 
 static bool update_screen(int type_arg);
 
-static void win_redr_status(win_T *wp, int ignore_pum);
+static void win_redr_status(win_T *wp, bool ignore_pum);
 
-static void win_redr_ruler(win_T *wp, int always, int ignore_pum);
+static void win_redr_ruler(win_T *wp, bool always, bool ignore_pum);
 
-static void after_updating_screen(int may_resize_shell);
+static void after_updating_screen(bool may_resize_shell);
 
 static void redraw_later(int type);
 
@@ -2994,9 +2994,9 @@ static void redraw_statuslines(void);
 
 static void redraw_win_range_later(win_T *wp, linenr_T first, linenr_T last);
 
-static void ins_redraw(int ready);
+static void ins_redraw(bool ready);
 
-static void edit_putchar(int c, int highlight);
+static void edit_putchar(int c, bool highlight);
 
 static void edit_unputchar(void);
 
@@ -3010,7 +3010,7 @@ static bool stop_arrow(void);
 
 static char_u *add_char2buf(int c, char_u *s);
 
-static bool stuff_inserted(int c, long count, int no_esc);
+static bool stuff_inserted(int c, long count, bool no_esc);
 
 static string_T get_last_insert(void);
 
@@ -3020,7 +3020,7 @@ static int replace_push_mb(char_u *p);
 
 static void replace_join(int off);
 
-static int bracketed_paste(paste_mode_T mode, int drop, garray_T *gap);
+static int bracketed_paste(paste_mode_T mode, bool drop, garray_T *gap);
 
 static bool ins_eol(int c);
 
@@ -3044,23 +3044,23 @@ static char *ex_errmsg(char *msg, char_u *arg);
 
 static char *ex_range_without_command(exarg_T *eap);
 
-static bool parse_command_modifiers(exarg_T *eap, char **errormsg, cmdmod_T *cmod, int skip_only);
+static bool parse_command_modifiers(exarg_T *eap, char **errormsg, cmdmod_T *cmod, bool skip_only);
 
 static void apply_cmdmod(cmdmod_T *cmod);
 
 static void undo_cmdmod(cmdmod_T *cmod);
 
-static bool parse_cmd_address(exarg_T *eap, char **errormsg, int silent);
+static bool parse_cmd_address(exarg_T *eap, char **errormsg, bool silent);
 
 static char_u *find_ex_command(exarg_T *eap, int *full);
 
-static char_u *skip_range(char_u *cmd_start, int skip_star, int *ctx);
+static char_u *skip_range(char_u *cmd_start, bool skip_star, int *ctx);
 
-static linenr_T get_address(exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, int skip, int silent, int to_other_file, int address_count);
+static linenr_T get_address(exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, bool skip, bool silent, bool to_other_file, int address_count);
 
-static void separate_nextcmd(exarg_T *eap, int keep_backslash);
+static void separate_nextcmd(exarg_T *eap, bool keep_backslash);
 
-static char_u *skip_cmd_arg(char_u *p, int rembs);
+static char_u *skip_cmd_arg(char_u *p, bool rembs);
 
 static bool ends_excmd(int c);
 
@@ -3072,15 +3072,15 @@ static char_u *check_nextcmd(char_u *p);
 
 static void set_nextcmd(exarg_T *eap, char_u *arg);
 
-static void do_sleep(long msec, int hide_cursor);
+static void do_sleep(long msec, bool hide_cursor);
 
 static void ex_may_print(exarg_T *eap);
 
-static void redraw_cmd(int clear);
+static void redraw_cmd(bool clear);
 
-static void exec_normal_cmd(char_u *cmd, int remap, int silent);
+static void exec_normal_cmd(char_u *cmd, int remap, bool silent);
 
-static void exec_normal(int was_typed, int use_vpeekc, int may_use_terminal_loop);
+static void exec_normal(bool was_typed, bool use_vpeekc, bool may_use_terminal_loop);
 
 static void set_no_hlsearch(int flag);
 
@@ -3102,13 +3102,13 @@ static bool realloc_cmdbuff(int len);
 
 static void putcmdline(int c, int shift);
 
-static bool put_on_cmdline(char_u *str, int len, int redraw);
+static bool put_on_cmdline(char_u *str, int len, bool redraw);
 
-static void cmdline_paste_str(char_u *s, int literally);
+static void cmdline_paste_str(char_u *s, bool literally);
 
 static void redrawcmdline(void);
 
-static void redrawcmdline_ex(int do_compute_cmdrow);
+static void redrawcmdline_ex(bool do_compute_cmdrow);
 
 static void redrawcmd(void);
 
@@ -3116,7 +3116,7 @@ static void compute_cmdrow(void);
 
 static void cursorcmd(void);
 
-static void gotocmdline(int clr);
+static void gotocmdline(bool clr);
 
 static cmdline_info_T *get_cmdline_info(void);
 
@@ -3126,7 +3126,7 @@ static bool get_list_range(char_u **str, int *num1, int *num2);
 
 static void shorten_fnames(void);
 
-static usize home_replace(buf_T *buf, char_u *src, char_u *dst, int dstlen, int one);
+static usize home_replace(buf_T *buf, char_u *src, char_u *dst, int dstlen, bool one);
 
 static char_u *gettail(char_u *fname);
 
@@ -3170,13 +3170,13 @@ static bool start_redo_ins(void);
 
 static void stop_redo_ins(void);
 
-static bool ins_typebuf(char_u *str, int noremap, int offset, int nottyped, int silent);
+static bool ins_typebuf(char_u *str, int noremap, int offset, bool nottyped, int silent);
 
 static bool typebuf_typed(void);
 
 static void save_typeahead(tasave_T *tp);
 
-static void restore_typeahead(tasave_T *tp, int overwrite);
+static void restore_typeahead(tasave_T *tp, bool overwrite);
 
 static int merge_modifyOtherKeys(int c_arg, int *modifiers);
 
@@ -3196,7 +3196,7 @@ static int fix_input_buffer(char_u *buf, int len);
 
 static bool do_cmdkey_command(int key, int flags);
 
-static void do_highlight(char_u *line, int forceit, int init);
+static void do_highlight(char_u *line, bool forceit, bool init);
 
 static void restore_cterm_colors(void);
 
@@ -3230,7 +3230,7 @@ static int hlf_get_id(win_T *wp, int hlf);
 
 static long get_sw_value(buf_T *buf);
 
-static long get_sw_value_col(buf_T *buf, colnr_T col, int left);
+static long get_sw_value_col(buf_T *buf, colnr_T col, bool left);
 
 static long get_sts_value(void);
 
@@ -3238,7 +3238,7 @@ static int get_indent(void);
 
 static int get_indent_lnum(linenr_T lnum);
 
-static int get_indent_str(char_u *ptr, int ts, int no_ts);
+static int get_indent_str(char_u *ptr, int ts, bool no_ts);
 
 static bool set_indent(int size, int flags);
 
@@ -3248,7 +3248,7 @@ static bool may_do_si(void);
 
 static void ins_try_si(int c);
 
-static void change_indent(int type, int amount, int round, int replaced, int call_changed_bytes);
+static void change_indent(int type, int amount, bool round, int replaced, int call_changed_bytes);
 
 static bool copy_indent(int size, char_u *src);
 
@@ -3256,13 +3256,13 @@ static void fix_indent(void);
 
 static bool ctrl_x_mode_scroll(void);
 
-static void may_trigger_safestate(int safe);
+static void may_trigger_safestate(bool safe);
 
 static bool work_pending(void);
 
 static void may_trigger_deferred_events(void);
 
-static void main_loop(int cmdwin);
+static void main_loop(bool cmdwin);
 
 static void getout(int exitval);
 
@@ -3272,13 +3272,13 @@ static mapblock_T *get_buf_maphash_list(int state, int c);
 
 static int is_maphash_valid(void);
 
-static void map_clear_mode(buf_T *buf, int mode, int local, int abbr);
+static void map_clear_mode(buf_T *buf, int mode, bool local, bool abbr);
 
 static char_u *vim_strsave_escape_csi(char_u *p);
 
 static usize vim_unescape_csi(char_u *p);
 
-static void add_map(char_u *map, int mode, int nore);
+static void add_map(char_u *map, int mode, bool nore);
 
 static int setmark(int c);
 
@@ -3288,9 +3288,9 @@ static void setpcmark(void);
 
 static void checkpcmark(void);
 
-static pos_T *getmark(int c, int changefile);
+static pos_T *getmark(int c, bool changefile);
 
-static pos_T *getmark_buf_fnum(buf_T *buf, int c, int changefile, int *fnum);
+static pos_T *getmark_buf_fnum(buf_T *buf, int c, bool changefile, int *fnum);
 
 static bool check_mark(pos_T *pos);
 
@@ -3318,7 +3318,7 @@ static void get_search_match_hl(win_T *wp, match_T *search_hl, long col, int *ch
 
 static bool ml_open(buf_T *buf);
 
-static void ml_close(buf_T *buf, int del_file);
+static void ml_close(buf_T *buf, bool del_file);
 
 static char_u *ml_get(linenr_T lnum);
 
@@ -3336,7 +3336,7 @@ static colnr_T ml_get_cursor_len(void);
 
 static colnr_T ml_get_buf_len(buf_T *buf, linenr_T lnum);
 
-static char_u *ml_get_buf(buf_T *buf, linenr_T lnum, int will_change);
+static char_u *ml_get_buf(buf_T *buf, linenr_T lnum, bool will_change);
 
 static int ml_line_alloced(void);
 
@@ -3344,9 +3344,9 @@ static bool ml_append(linenr_T lnum, char_u *line, colnr_T len);
 
 static bool ml_append_flags(linenr_T lnum, char_u *line, colnr_T len, int flags);
 
-static bool ml_replace(linenr_T lnum, char_u *line, int copy);
+static bool ml_replace(linenr_T lnum, char_u *line, bool copy);
 
-static bool ml_replace_len(linenr_T lnum, char_u *line_arg, colnr_T len_arg, int has_props, int copy);
+static bool ml_replace_len(linenr_T lnum, char_u *line_arg, colnr_T len_arg, bool has_props, bool copy);
 
 static bool ml_delete(linenr_T lnum);
 
@@ -3376,9 +3376,9 @@ static int msg(char *s);
 
 static int msg_attr(char *s, int attr);
 
-static bool msg_attr_keep(char *s, int attr, int keep);
+static bool msg_attr_keep(char *s, int attr, bool keep);
 
-static char_u *msg_strtrunc(char_u *s, int force);
+static char_u *msg_strtrunc(char_u *s, bool force);
 
 static void trunc_string(char_u *s, char_u *buf, int room_in, int buflen);
 
@@ -3390,9 +3390,9 @@ static void iemsg(char *s);
 
 static void internal_error(char *where);
 
-static char *msg_trunc_attr(char *s, int force, int attr);
+static char *msg_trunc_attr(char *s, bool force, int attr);
 
-static char_u *msg_may_trunc(int force, char_u *s);
+static char_u *msg_may_trunc(bool force, char_u *s);
 
 static void wait_return(int redraw);
 
@@ -3414,9 +3414,9 @@ static int msg_outtrans_len(char_u *str, int len);
 
 static int msg_outtrans_len_attr(char_u *msgstr, int len, int attr);
 
-static int msg_outtrans_special(char_u *strstart, int from, int maxlen);
+static int msg_outtrans_special(char_u *strstart, bool from, int maxlen);
 
-static char_u *str2special(char_u **sp, int replace_spaces, int replace_others);
+static char_u *str2special(char_u **sp, bool replace_spaces, bool replace_others);
 
 static void msg_prt_line(char_u *s, int list);
 
@@ -3434,7 +3434,7 @@ static void sb_text_restart_cmdline(void);
 
 static void sb_text_end_cmdline(void);
 
-static void clear_sb_text(int all);
+static void clear_sb_text(bool all);
 
 static void msg_sb_eol(void);
 
@@ -3456,13 +3456,13 @@ static void verbose_enter_scroll(void);
 
 static void verbose_leave_scroll(void);
 
-static void give_warning(char_u *message, int hl);
+static void give_warning(char_u *message, bool hl);
 
-static void give_warning_with_source(char_u *message, int hl, int with_source);
+static void give_warning_with_source(char_u *message, bool hl, bool with_source);
 
 static void msg_advance(int col);
 
-static int plines_win(win_T *wp, linenr_T lnum, int limit_winheight);
+static int plines_win(win_T *wp, linenr_T lnum, bool limit_winheight);
 
 static int plines_win_nofold(win_T *wp, linenr_T lnum);
 
@@ -3478,7 +3478,7 @@ static char_u *skip_to_option_part(char_u *p);
 
 static void check_status(buf_T *buf);
 
-static int ask_yesno(char_u *str, int direct);
+static int ask_yesno(char_u *str, bool direct);
 
 static int get_keystroke(void);
 
@@ -3488,7 +3488,7 @@ static void beep_flush(void);
 
 static void vim_beep(unsigned val);
 
-static usize expand_env_esc(char_u *srcp, char_u *dst, int dstlen, char_u *esc_chars, int one, char_u *startstr);
+static usize expand_env_esc(char_u *srcp, char_u *dst, int dstlen, char_u *esc_chars, bool one, char_u *startstr);
 
 static void line_breakcheck(void);
 
@@ -3542,9 +3542,9 @@ static bool vim_isspace(int x);
 
 static char_u *get_special_key_name(int c, int modifiers);
 
-static int trans_special(char_u **srcp, char_u *dst, int flags, int escape_ks, int *did_simplify);
+static int trans_special(char_u **srcp, char_u *dst, int flags, bool escape_ks, int *did_simplify);
 
-static int special_to_buf(int key, int modifiers, int escape_ks, char_u *dst);
+static int special_to_buf(int key, int modifiers, bool escape_ks, char_u *dst);
 
 static int find_special_key(char_u **srcp, int *modp, int flags, int *did_simplify);
 
@@ -3564,7 +3564,7 @@ static int cmp_keyvalue_value_ni(keyvalue_T *kv1, keyvalue_T *kv2);
 
 static keyvalue_T *keyvalue_bsearch(keyvalue_T *key, keyvalue_T *base, usize nel, int (*cmp)(keyvalue_T *, keyvalue_T *));
 
-static int plines_correct_topline(win_T *wp, linenr_T lnum, int limit_winheight);
+static int plines_correct_topline(win_T *wp, linenr_T lnum, bool limit_winheight);
 
 static void set_valid_virtcol(win_T *wp, colnr_T vcol);
 
@@ -3614,13 +3614,13 @@ static int win_col_off2(win_T *wp);
 
 static int curwin_col_off2(void);
 
-static void curs_columns(int may_scroll);
+static void curs_columns(bool may_scroll);
 
 static void scroll_redraw(int up, long count);
 
-static void scrolldown(long line_count, int byfold);
+static void scrolldown(long line_count, bool byfold);
 
-static void scrollup(long line_count, int byfold);
+static void scrollup(long line_count, bool byfold);
 
 static void adjust_skipcol(void);
 
@@ -3628,17 +3628,17 @@ static void scrolldown_clamp(void);
 
 static void scrollup_clamp(void);
 
-static void scroll_cursor_top(int min_scroll, int always);
+static void scroll_cursor_top(int min_scroll, bool always);
 
 static void set_empty_rows(win_T *wp, int used);
 
-static void scroll_cursor_bot(int min_scroll, int set_topbot);
+static void scroll_cursor_bot(int min_scroll, bool set_topbot);
 
 static void scroll_cursor_halfway(int atend, int prefer_above);
 
 static void cursor_correct(void);
 
-static bool pagescroll(int dir, long count, int half);
+static bool pagescroll(int dir, long count, bool half);
 
 static int mb_get_class(char_u *p);
 
@@ -3704,7 +3704,7 @@ static char_u *mb_unescape(char_u **pp);
 
 static bool mb_lefthalve(int row, int col);
 
-static void normal_cmd(oparg_T *oap, int toplevel);
+static void normal_cmd(oparg_T *oap, bool toplevel);
 
 static void check_visual_highlight(void);
 
@@ -3756,9 +3756,9 @@ static void set_cursor_for_append_to_line(void);
 
 static int get_op_type(int char1, int char2);
 
-static void op_shift(oparg_T *oap, int curs_top, int amount);
+static void op_shift(oparg_T *oap, bool curs_top, int amount);
 
-static void shift_line(int left, int round, int amount, int call_changed_bytes);
+static void shift_line(bool left, int round, int amount, int call_changed_bytes);
 
 static bool op_delete(oparg_T *oap);
 
@@ -3766,7 +3766,7 @@ static bool swapchar(int op_type, pos_T *pos);
 
 static void adjust_cursor_eol(void);
 
-static bool do_join(long count, int insert_space, int save_undo, int use_formatoptions, int setmark);
+static bool do_join(long count, bool insert_space, bool save_undo, bool use_formatoptions, bool setmark);
 
 static void block_prep(oparg_T *oap, struct block_def *bdp, linenr_T lnum, int is_del);
 
@@ -3776,13 +3776,13 @@ static void clear_oparg(oparg_T *oap);
 
 static void cursor_pos_info(void);
 
-static void do_pending_operator(cmdarg_T *cap, int old_col, int gui_yank);
+static void do_pending_operator(cmdarg_T *cap, int old_col, bool gui_yank);
 
 static void set_string_default(char *name, char_u *val);
 
 static bool do_set(char_u *arg_start, int opt_flags);
 
-static void did_set_option(int opt_idx, int opt_flags, int new_value, int value_checked);
+static void did_set_option(int opt_idx, int opt_flags, bool new_value, int value_checked);
 
 static void check_options(void);
 
@@ -3960,29 +3960,29 @@ static long vim_regexec_multi(regmmatch_T *rmp, win_T *win, buf_T *buf, linenr_T
 
 static void reset_y_append(void);
 
-static bool valid_yank_reg(int regname, int writing);
+static bool valid_yank_reg(int regname, bool writing);
 
 static bool get_yank_register(int regname, int writing);
 
-static yankreg_T *get_register(int name, int copy);
+static yankreg_T *get_register(int name, bool copy);
 
 static void put_register(int name, yankreg_T *reg);
 
 static bool do_record(int c);
 
-static bool do_execreg(int regname, int colon, int addcr, int silent);
+static bool do_execreg(int regname, bool colon, bool addcr, bool silent);
 
 static bool insert_reg(int regname, int literally_arg);
 
-static bool get_spec_reg(int regname, char_u **argp, int *allocated, int errmsg);
+static bool get_spec_reg(int regname, char_u **argp, int *allocated, bool errmsg);
 
-static bool cmdline_paste_reg(int regname, int literally_arg, int remcr);
+static bool cmdline_paste_reg(int regname, bool literally_arg, bool remcr);
 
 static void shift_delete_registers(void);
 
 static void free_yank_all(void);
 
-static bool op_yank(oparg_T *oap, int deleting, int mess);
+static bool op_yank(oparg_T *oap, bool deleting, bool mess);
 
 static void do_put(int regname, char_u *expr_result, int dir, long count, int flags);
 
@@ -3996,7 +3996,7 @@ static char_u *estack_sfile(estack_arg_T which);
 
 static int get_win_attr(win_T *wp);
 
-static void win_draw_end(win_T *wp, int c1, int c2, int draw_margin, int row, int endrow, hlf_T hl);
+static void win_draw_end(win_T *wp, int c1, int c2, bool draw_margin, int row, int endrow, hlf_T hl);
 
 static void reset_screen_attr(void);
 
@@ -4022,11 +4022,11 @@ static void screen_char(unsigned off, int row, int col);
 
 static void screen_fill(int start_row, int end_row, int start_col, int end_col, int c1, int c2, int attr);
 
-static void check_for_delay(int check_msg_scroll);
+static void check_for_delay(bool check_msg_scroll);
 
-static bool screen_valid(int doclear);
+static bool screen_valid(bool doclear);
 
-static void screenalloc(int doclear);
+static void screenalloc(bool doclear);
 
 static void free_screenlines(void);
 
@@ -4042,21 +4042,21 @@ static void windgoto(int row, int col);
 
 static void setcursor(void);
 
-static void setcursor_mayforce(int force);
+static void setcursor_mayforce(bool force);
 
-static int win_ins_lines(win_T *wp, int row, int line_count, int invalid, int mayclear);
+static int win_ins_lines(win_T *wp, int row, int line_count, bool invalid, bool mayclear);
 
-static int win_del_lines(win_T *wp, int row, int line_count, int invalid, int mayclear, int clear_attr);
+static int win_del_lines(win_T *wp, int row, int line_count, bool invalid, bool mayclear, int clear_attr);
 
 static bool screen_ins_lines(int off, int row, int line_count, int end, int clear_attr, win_T *wp);
 
-static bool screen_del_lines(int off, int row, int line_count, int end, int force, int clear_attr, win_T *wp);
+static bool screen_del_lines(int off, int row, int line_count, int end, bool force, int clear_attr, win_T *wp);
 
 static bool skip_showmode(void);
 
 static int showmode(void);
 
-static void unshowmode(int force);
+static void unshowmode(bool force);
 
 static void clearmode(void);
 
@@ -4074,9 +4074,9 @@ static bool messaging(void);
 
 static void comp_col(void);
 
-static char *set_fillchars_option(win_T *wp, char_u *val, int apply, char *errbuf, usize errbuflen);
+static char *set_fillchars_option(win_T *wp, char_u *val, bool apply, char *errbuf, usize errbuflen);
 
-static char *set_listchars_option(win_T *wp, char_u *val, int apply, char *errbuf, usize errbuflen);
+static char *set_listchars_option(win_T *wp, char_u *val, bool apply, char *errbuf, usize errbuflen);
 
 static char *check_chars_options(void);
 
@@ -4114,7 +4114,7 @@ static pos_T *findmatchlimit(oparg_T *oap, int initc, int flags, int maxtravel);
 
 static void showmatch(int c);
 
-static bool current_search(long count, int forward);
+static bool current_search(long count, bool forward);
 
 static char_u *vim_strsave(char_u *string);
 
@@ -4122,7 +4122,7 @@ static char_u *vim_strnsave(char_u *string, usize len);
 
 static char_u *vim_strsave_escaped(char_u *string, char_u *esc_chars);
 
-static char_u *vim_strsave_escaped_ext(char_u *string, char_u *esc_chars, int cc, int bsl);
+static char_u *vim_strsave_escaped_ext(char_u *string, char_u *esc_chars, int cc, bool bsl);
 
 static char_u *vim_strnsave_up(char_u *string, usize len);
 
@@ -4150,13 +4150,13 @@ static keyprot_T match_keyprotocol(char_u *term);
 
 static bool set_termname(char_u *term);
 
-static bool add_termcap_entry(char_u *name, int force);
+static bool add_termcap_entry(char_u *name, bool force);
 
 static bool term_is_8bit(char_u *name);
 
 static void out_flush(void);
 
-static void out_flush_cursor(int force, int clear_selection);
+static void out_flush_cursor(bool force, bool clear_selection);
 
 static void out_char(unsigned c);
 
@@ -4186,7 +4186,7 @@ static void term_ul_color(int n);
 
 static char_u *term_bg_default(void);
 
-static void ttest(int pairs);
+static void ttest(bool pairs);
 
 static void check_shellsize(void);
 
@@ -4286,7 +4286,7 @@ static char_u *replace_termcodes(char_u *from, char_u **bufp, scid_T sid_arg, in
 
 static void show_termcodes(int flags);
 
-static int show_one_termcode(char_u *name, char_u *code, int printit);
+static int show_one_termcode(char_u *name, char_u *code, bool printit);
 
 static bool sync_output_active(void);
 
@@ -4294,19 +4294,19 @@ static void term_set_sync_output(int flags);
 
 static bool fwd_word(long count, int bigword, int eol);
 
-static bool bck_word(long count, int bigword, int stop);
+static bool bck_word(long count, int bigword, bool stop);
 
-static bool end_word(long count, int bigword, int stop, int empty);
+static bool end_word(long count, int bigword, bool stop, bool empty);
 
-static bool bckend_word(long count, int bigword, int eol);
+static bool bckend_word(long count, bool bigword, bool eol);
 
-static bool current_word(oparg_T *oap, long count, int include, int bigword);
+static bool current_word(oparg_T *oap, long count, bool include, bool bigword);
 
-static bool current_block(oparg_T *oap, long count, int include, int what, int other);
+static bool current_block(oparg_T *oap, long count, bool include, int what, int other);
 
-static bool current_quote(oparg_T *oap, long count, int include, int quotechar);
+static bool current_quote(oparg_T *oap, long count, bool include, int quotechar);
 
-static void internal_format(int textwidth, int second_indent, int flags, int format_only, int c);
+static void internal_format(int textwidth, int second_indent, int flags, bool format_only, int c);
 
 static int comp_textwidth(void);
 
@@ -4316,7 +4316,7 @@ static int ui_inchar(char_u *buf, int maxlen, long wtime, int tb_change_cnt);
 
 static int inchar_loop(char_u *buf, int maxlen, long wtime, int tb_change_cnt, int (*wait_func)(long wtime, int *interrupted, int ignore_input), int (*resize_func)(int check_only));
 
-static void ui_delay(long msec_arg, int ignoreinput);
+static void ui_delay(long msec_arg, bool ignoreinput);
 
 static void ui_suspend(void);
 
@@ -4328,19 +4328,19 @@ static void ui_new_shellsize(void);
 
 static void ui_breakcheck(void);
 
-static void ui_breakcheck_force(int force);
+static void ui_breakcheck_force(bool force);
 
 static bool vim_is_input_buf_empty(void);
 
 static garray_T *get_input_buf(void);
 
-static void set_input_buf(garray_T *gap, int overwrite);
+static void set_input_buf(garray_T *gap, bool overwrite);
 
 static void trash_input_buf(void);
 
 static int read_from_input_buf(char_u *buf, long maxlen);
 
-static void fill_input_buf(int exit_on_error);
+static void fill_input_buf(bool exit_on_error);
 
 static void read_error_exit(void);
 
@@ -4348,7 +4348,7 @@ static int check_col(int col);
 
 static int check_row(int row);
 
-static void ui_focus_change(int in_focus);
+static void ui_focus_change(bool in_focus);
 
 static bool u_save_cursor(void);
 
@@ -4360,15 +4360,15 @@ static bool u_inssub(linenr_T lnum);
 
 static bool u_savedel(linenr_T lnum, long nlines);
 
-static bool u_savecommon(linenr_T top, linenr_T bot, linenr_T newbot, int reload);
+static bool u_savecommon(linenr_T top, linenr_T bot, linenr_T newbot, bool reload);
 
 static void u_undo(int count);
 
 static void u_redo(int count);
 
-static void undo_time(long step, int sec, int file, int absolute);
+static void undo_time(long step, bool sec, bool file, bool absolute);
 
-static void u_sync(int force);
+static void u_sync(bool force);
 
 static void u_clearallandblockfree(buf_T *buf);
 
@@ -4428,11 +4428,11 @@ static void win_comp_scroll(win_T *wp);
 
 static void command_height(void);
 
-static void last_status(int morewin);
+static void last_status(bool morewin);
 
 static int statusline_height(win_T *wp);
 
-static int last_stl_height(int morewin);
+static int last_stl_height(bool morewin);
 
 static int min_rows(void);
 
@@ -5341,7 +5341,7 @@ alloc_clear(usize size)
 }
 
     static void *
-lalloc_clear(usize size, int message)
+lalloc_clear(usize size, bool message)
 {
     void *p;
     p = lalloc(size, message);
@@ -5350,7 +5350,7 @@ lalloc_clear(usize size, int message)
 }
 
     static void *
-lalloc(usize size, int message)
+lalloc(usize size, bool message)
 {
     if (size == 0)
     {
@@ -5513,7 +5513,7 @@ unblock_autocmds(void)
 {
 }
 
-static void free_buffer_stuff(buf_T *buf, int free_options);
+static void free_buffer_stuff(buf_T *buf, bool free_options);
 
 static int buf_free_count = 0;
 
@@ -5618,7 +5618,7 @@ can_unload_buffer(buf_T *buf)
 }
 
     static bool
-close_buffer(win_T *win, buf_T *buf, int action, int abort_if_last, int ignore_abort, int set_context)
+close_buffer(win_T *win, buf_T *buf, int action, bool abort_if_last, bool ignore_abort, bool set_context)
 {
     bool hiding_buf;
     bufref_T bufref;
@@ -5732,7 +5732,7 @@ clear_wininfo(buf_T *buf)
 }
 
     static void
-free_buffer_stuff(buf_T *buf, int free_options)
+free_buffer_stuff(buf_T *buf, bool free_options)
 {
     if (free_options)
     {
@@ -5821,7 +5821,7 @@ buflist_new(linenr_T lnum, int flags)
 }
 
     static void
-free_buf_options(buf_T *buf, int free_p_ff)
+free_buf_options(buf_T *buf, bool free_p_ff)
 {
     clear_string_option(&buf->b_p_mps);
     clear_string_option(&buf->b_p_isk);
@@ -5841,7 +5841,7 @@ buflist_findnr(int nr)
 }
 
     static void
-buflist_setfpos(buf_T *buf, win_T *win, linenr_T lnum, colnr_T col, int copy_options)
+buflist_setfpos(buf_T *buf, win_T *win, linenr_T lnum, colnr_T col, bool copy_options)
 {
     wininfo_T *wip;
     for ((wip) = (buf)->b_wininfo; (wip) != nullptr; (wip) = (wip)->wi_next)
@@ -5899,7 +5899,7 @@ buflist_setfpos(buf_T *buf, win_T *win, linenr_T lnum, colnr_T col, int copy_opt
 }
 
     static char_u *
-getaltfname(int errmsg)
+getaltfname(bool errmsg)
 {
     if (errmsg)
     {
@@ -5909,7 +5909,7 @@ getaltfname(int errmsg)
 }
 
     static void
-fileinfo(int fullname, int shorthelp, int dont_truncate)
+fileinfo(int fullname, bool shorthelp, bool dont_truncate)
 {
     char_u *name;
     char *buffer;
@@ -6303,7 +6303,7 @@ changed_lines(linenr_T lnum, colnr_T col, linenr_T lnume, long xtra)
 }
 
     static void
-unchanged(buf_T *buf, int ff, int always_inc_changedtick)
+unchanged(buf_T *buf, bool ff, bool always_inc_changedtick)
 {
     if (buf->b_changed)
     {
@@ -6463,7 +6463,7 @@ ins_str(char_u *s, usize slen)
 }
 
     static bool
-del_char(int fixpos)
+del_char(bool fixpos)
 {
     mb_adjust_cursor();
     if (*ml_get_cursor() == NUL)
@@ -6474,7 +6474,7 @@ del_char(int fixpos)
 }
 
     static bool
-del_chars(long count, int fixpos)
+del_chars(long count, bool fixpos)
 {
     long bytes = 0;
     long i;
@@ -6491,7 +6491,7 @@ del_chars(long count, int fixpos)
 }
 
     static bool
-del_bytes(long count, int fixpos_arg, int use_delcombine)
+del_bytes(long count, bool fixpos_arg, bool use_delcombine)
 {
     char_u *oldp;
     char_u *newp;
@@ -6901,7 +6901,7 @@ theend:
 }
 
     static bool
-truncate_line(int fixpos)
+truncate_line(bool fixpos)
 {
     char_u *newp;
     linenr_T lnum = curwin->w_cursor.lnum;
@@ -6932,7 +6932,7 @@ truncate_line(int fixpos)
 }
 
     static void
-del_lines(long nlines, int undo)
+del_lines(long nlines, bool undo)
 {
     long n;
     linenr_T first = curwin->w_cursor.lnum;
@@ -6962,7 +6962,7 @@ del_lines(long nlines, int undo)
     deleted_lines_mark(first, n);
 }
 
-static bool parse_isopt(char_u *var, buf_T *buf, int only_check);
+static bool parse_isopt(char_u *var, buf_T *buf, bool only_check);
 
 static int win_nolbr_chartabsize(chartabsize_T *cts, int *headp);
 
@@ -6989,7 +6989,7 @@ init_chartab(void)
 }
 
     static bool
-buf_init_chartab(buf_T *buf, int global)
+buf_init_chartab(buf_T *buf, bool global)
 {
     int c;
     char_u *p;
@@ -7059,7 +7059,7 @@ check_isopt(char_u *var)
 }
 
     static bool
-parse_isopt(char_u *var, buf_T *buf, int only_check)
+parse_isopt(char_u *var, buf_T *buf, bool only_check)
 {
     char_u *p = var;
     int c;
@@ -8043,7 +8043,7 @@ getdigits_quoted(char_u **pp)
 }
 
     static void
-vim_str2nr(char_u *start, int *prep, int *len, int what, varnumber_T *nptr, uvarnumber_T *unptr, int maxlen, int strict, int *overflow)
+vim_str2nr(char_u *start, int *prep, int *len, int what, varnumber_T *nptr, uvarnumber_T *unptr, int maxlen, bool strict, int *overflow)
 {
     char_u *ptr = start;
     int pre = 0;
@@ -8636,7 +8636,7 @@ clear_hist_entry(histentry_T *hisptr)
 }
 
     static bool
-in_history(int type, char_u *str, int move_to_front, int sep, int writing)
+in_history(int type, char_u *str, bool move_to_front, int sep, bool writing)
 {
     int i;
     int last_i = -1;
@@ -8718,7 +8718,7 @@ get_histtype(char_u *name)
 static int last_maptick = -1;
 
     static void
-add_to_history(int histype, char_u *new_entry, usize new_entrylen, int in_map, int sep)
+add_to_history(int histype, char_u *new_entry, usize new_entrylen, bool in_map, int sep)
 {
     histentry_T *hisptr;
     if (hislen == 0)
@@ -8937,7 +8937,7 @@ typedef struct
 enum { WL_START = 0 };
 
     static void
-handle_lnum_col(win_T *wp, winlinevars_T *wlv, int sign_present, int num_attr)
+handle_lnum_col(win_T *wp, winlinevars_T *wlv, bool sign_present, int num_attr)
 {
     bool has_cpo_n = vim_strchr(p_cpo, CPO_NUMCOL) != nullptr;
     int lnum_row = wlv->startrow + wlv->filler_lines;
@@ -8993,7 +8993,7 @@ handle_lnum_col(win_T *wp, winlinevars_T *wlv, int sign_present, int num_attr)
 }
 
     static void
-wlv_screen_line(win_T *wp, winlinevars_T *wlv, int clear_end)
+wlv_screen_line(win_T *wp, winlinevars_T *wlv, bool clear_end)
 {
     if (wlv->row == 0 && wp->w_skipcol > 0 && !(wp->w_onebuf_opt.wo_list && wp->w_lcs_chars.prec != 0))
     {
@@ -9034,7 +9034,7 @@ draw_screen_line(win_T *wp, winlinevars_T *wlv)
 }
 
     static void
-win_line_start(win_T *wp, winlinevars_T *wlv, int save_extra)
+win_line_start(win_T *wp, winlinevars_T *wlv, bool save_extra)
 {
     wlv->col = 0;
     wlv->off = (unsigned)(current_ScreenLine - ScreenLines);
@@ -10231,7 +10231,7 @@ statusline_row(win_T *wp)
 }
 
     static void
-win_redr_status(win_T *wp, int ignore_pum)
+win_redr_status(win_T *wp, bool ignore_pum)
 {
     int row;
     int fillchar;
@@ -10332,7 +10332,7 @@ win_redr_status(win_T *wp, int ignore_pum)
 }
 
     static void
-showruler(int always)
+showruler(bool always)
 {
     if (!always && !redrawing())
     {
@@ -10346,7 +10346,7 @@ showruler(int always)
 }
 
     static void
-win_redr_ruler(win_T *wp, int always, int ignore_pum)
+win_redr_ruler(win_T *wp, bool always, bool ignore_pum)
 {
     bool empty_line = FALSE;
     if (!p_ru)
@@ -10459,7 +10459,7 @@ win_redr_ruler(win_T *wp, int always, int ignore_pum)
 }
 
     static void
-after_updating_screen(int may_resize_shell)
+after_updating_screen(bool may_resize_shell)
 {
     updating_screen = FALSE;
 }
@@ -11481,13 +11481,13 @@ enum { BACKSPACE_LINE = 4 };
 
 static void ins_ctrl_v(void);
 
-static void insert_special(int, int, int);
+static void insert_special(int, bool, bool);
 
 static void redo_literal(int c);
 
-static void start_arrow_common(pos_T *end_insert_pos, int change);
+static void start_arrow_common(pos_T *end_insert_pos, bool change);
 
-static void stop_insert(pos_T *end_insert_pos, int esc, int nomove);
+static void stop_insert(pos_T *end_insert_pos, bool esc, bool nomove);
 
 static void mb_replace_pop_ins(int cc);
 
@@ -11501,7 +11501,7 @@ static void ins_reg(void);
 
 static void ins_ctrl_g(void);
 
-static bool ins_esc(long *count, int cmdchar, int nomove);
+static bool ins_esc(long *count, int cmdchar, bool nomove);
 
 static bool ins_start_select(int c);
 
@@ -11527,11 +11527,11 @@ static void ins_right(void);
 
 static void ins_s_right(void);
 
-static void ins_up(int startcol);
+static void ins_up(bool startcol);
 
 static void ins_pageup(void);
 
-static void ins_down(int startcol);
+static void ins_down(bool startcol);
 
 static void ins_pagedown(void);
 
@@ -11558,7 +11558,7 @@ static int ins_need_undo;
 static int dont_sync_undo = FALSE;
 
     static bool
-edit_esc(long *count, int cmdchar, int nomove, linenr_T *o_lnum)
+edit_esc(long *count, int cmdchar, bool nomove, linenr_T *o_lnum)
 {
     if (ins_at_eol && gchar_cursor() == NUL)
     {
@@ -11897,7 +11897,7 @@ enum { K_S_F11 = (-((KS_EXTRA) + ((int)(KE_S_F11) << 8))) };
 enum { K_S_F12 = (-((KS_EXTRA) + ((int)(KE_S_F12) << 8))) };
 
     static bool
-edit(int cmdchar, int startln, long count)
+edit(int cmdchar, bool startln, long count)
 {
     int c = 0;
     bool esc_now = FALSE;
@@ -12521,7 +12521,7 @@ edit(int cmdchar, int startln, long count)
 }
 
     static void
-ins_redraw(int ready)
+ins_redraw(bool ready)
 {
     if (char_avail())
     {
@@ -12630,7 +12630,7 @@ static int pc_row;
 static int pc_col;
 
     static void
-edit_putchar(int c, int highlight)
+edit_putchar(int c, bool highlight)
 {
     int attr;
     if (ScreenLines == nullptr)
@@ -12903,7 +12903,7 @@ get_literal(int noReduceKeys)
 }
 
     static void
-insert_special(int c, int allow_modmask, int ctrlv)
+insert_special(int c, bool allow_modmask, bool ctrlv)
 {
     char_u *p;
     int len;
@@ -13022,7 +13022,7 @@ start_arrow(pos_T *end_insert_pos)
 }
 
     static void
-start_arrow_with_change(pos_T *end_insert_pos, int end_change)
+start_arrow_with_change(pos_T *end_insert_pos, bool end_change)
 {
     start_arrow_common(end_insert_pos, end_change);
     if (!end_change)
@@ -13033,7 +13033,7 @@ start_arrow_with_change(pos_T *end_insert_pos, int end_change)
 }
 
     static void
-start_arrow_common(pos_T *end_insert_pos, int end_change)
+start_arrow_common(pos_T *end_insert_pos, bool end_change)
 {
     if (!arrow_used && end_change)
     {
@@ -13083,7 +13083,7 @@ stop_arrow(void)
 }
 
     static void
-stop_insert(pos_T *end_insert_pos, int esc, int nomove)
+stop_insert(pos_T *end_insert_pos, bool esc, bool nomove)
 {
     int cc;
     string_T inserted;
@@ -13310,7 +13310,7 @@ cursor_up_inner(win_T *wp, long n)
 }
 
     static bool
-cursor_up(long n, int upd_topline)
+cursor_up(long n, bool upd_topline)
 {
     linenr_T lnum = curwin->w_cursor.lnum;
     if (n > 0 && (lnum <= 1 || (n >= lnum && vim_strchr(p_cpo, CPO_MINUS) != nullptr)))
@@ -13343,7 +13343,7 @@ cursor_down_inner(win_T *wp, long n)
 }
 
     static bool
-cursor_down(long n, int upd_topline)
+cursor_down(long n, bool upd_topline)
 {
     linenr_T lnum = curwin->w_cursor.lnum;
     linenr_T line_count = curwin->w_buffer->b_ml.ml_line_count;
@@ -13361,7 +13361,7 @@ cursor_down(long n, int upd_topline)
 }
 
     static bool
-stuff_inserted(int c, long count, int no_esc)
+stuff_inserted(int c, long count, bool no_esc)
 {
     string_T insert;
     char_u last = ' ';
@@ -13742,7 +13742,7 @@ ins_ctrl_g(void)
 }
 
     static bool
-ins_esc(long *count, int cmdchar, int nomove)
+ins_esc(long *count, int cmdchar, bool nomove)
 {
     int temp;
     static bool disabled_redraw = FALSE;
@@ -14250,7 +14250,7 @@ ins_bs(int c, int mode, int *inserted_space_p)
 }
 
     static int
-bracketed_paste(paste_mode_T mode, int drop, garray_T *gap)
+bracketed_paste(paste_mode_T mode, bool drop, garray_T *gap)
 {
     int c;
     char_u buf[NUMBUFLEN + MB_MAXBYTES];
@@ -14485,7 +14485,7 @@ ins_s_right(void)
 }
 
     static void
-ins_up(int startcol)
+ins_up(bool startcol)
 {
     pos_T tpos;
     linenr_T old_topline = curwin->w_topline;
@@ -14530,7 +14530,7 @@ ins_pageup(void)
 }
 
     static void
-ins_down(int startcol)
+ins_down(bool startcol)
 {
     pos_T tpos;
     linenr_T old_topline = curwin->w_topline;
@@ -17087,7 +17087,7 @@ ex_range_without_command(exarg_T *eap)
 }
 
     static bool
-checkforcmd_opt(char_u **pp, char *cmd, int len, int noparen)
+checkforcmd_opt(char_u **pp, char *cmd, int len, bool noparen)
 {
     int i;
     for (i = 0; cmd[i] != NUL; ++i)
@@ -17112,7 +17112,7 @@ checkforcmd_noparen(char_u **pp, char *cmd, int len)
 }
 
     static bool
-parse_command_modifiers(exarg_T *eap, char **errormsg, cmdmod_T *cmod, int skip_only)
+parse_command_modifiers(exarg_T *eap, char **errormsg, cmdmod_T *cmod, bool skip_only)
 {
     char_u *orig_cmd = eap->cmd;
     char_u *cmd_start = nullptr;
@@ -17324,7 +17324,7 @@ undo_cmdmod(cmdmod_T *cmod)
 }
 
     static bool
-parse_cmd_address(exarg_T *eap, char **errormsg, int silent)
+parse_cmd_address(exarg_T *eap, char **errormsg, bool silent)
 {
     int address_count = 1;
     linenr_T lnum;
@@ -17553,7 +17553,7 @@ find_ex_command(exarg_T *eap, int *full)
 }
 
     static char_u *
-skip_range(char_u *cmd_start, int skip_star, int *ctx)
+skip_range(char_u *cmd_start, bool skip_star, int *ctx)
 {
     char_u *cmd = cmd_start;
     unsigned delim;
@@ -17664,7 +17664,7 @@ default_address(exarg_T *eap)
 }
 
     static linenr_T
-get_address(exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, int skip, int silent, int to_other_file, int address_count)
+get_address(exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, bool skip, bool silent, bool to_other_file, int address_count)
 {
     int c;
     int i;
@@ -18007,7 +18007,7 @@ correct_range(exarg_T *eap)
 }
 
     static void
-separate_nextcmd(exarg_T *eap, int keep_backslash)
+separate_nextcmd(exarg_T *eap, bool keep_backslash)
 {
     char_u *p;
     p = eap->arg;
@@ -18077,7 +18077,7 @@ getargcmd(char_u **argp)
 }
 
     static char_u *
-skip_cmd_arg(char_u *p, int rembs)
+skip_cmd_arg(char_u *p, bool rembs)
 {
     while (*p && !vim_isspace(*p))
     {
@@ -18165,7 +18165,7 @@ ex_highlight(exarg_T *eap)
 }
 
     static bool
-before_quit_autocmds(win_T *wp, int quit_all, int forceit)
+before_quit_autocmds(win_T *wp, bool quit_all, bool forceit)
 {
     if (!win_valid(wp) || curbuf_locked() || (wp->w_buffer->b_nwindows == 1 && wp->w_buffer->b_locked > 0))
     {
@@ -18259,7 +18259,7 @@ ex_equal(exarg_T *eap)
 }
 
     static void
-do_sleep(long msec, int hide_cursor)
+do_sleep(long msec, bool hide_cursor)
 {
     long done = 0;
     long wait_now;
@@ -18567,7 +18567,7 @@ ex_redraw(exarg_T *eap)
 }
 
     static void
-redraw_cmd(int clear)
+redraw_cmd(bool clear)
 {
     int save_RedrawingDisabled = RedrawingDisabled;
     RedrawingDisabled = 0;
@@ -18663,7 +18663,7 @@ update_topline_cursor(void)
     update_curswant();
 }
 
-    static int
+    static bool
 save_current_state(save_state_T *sst)
 {
     sst->save_msg_scroll = msg_scroll;
@@ -18768,14 +18768,14 @@ ex_normal(exarg_T *eap)
 }
 
     static void
-exec_normal_cmd(char_u *cmd, int remap, int silent)
+exec_normal_cmd(char_u *cmd, int remap, bool silent)
 {
     ins_typebuf(cmd, remap, 0, TRUE, silent);
     exec_normal(FALSE, FALSE, FALSE);
 }
 
     static void
-exec_normal(int was_typed, int use_vpeekc, int may_use_terminal_loop)
+exec_normal(bool was_typed, bool use_vpeekc, bool may_use_terminal_loop)
 {
     oparg_T oa;
     int c;
@@ -18815,7 +18815,7 @@ static int extra_char = NUL;
 
 static int extra_char_shift;
 
-static char_u *getcmdline_int(int firstc, long count, int indent, int clear_ccline);
+static char_u *getcmdline_int(int firstc, long count, int indent, bool clear_ccline);
 
 static int cmdline_charsize(int idx);
 
@@ -18835,7 +18835,7 @@ static void save_cmdline(cmdline_info_T *ccp);
 
 static void restore_cmdline(cmdline_info_T *ccp);
 
-static bool cmdline_paste(int regname, int literally, int remcr);
+static bool cmdline_paste(int regname, bool literally, bool remcr);
 
 static void redrawcmdprompt(void);
 
@@ -18918,8 +18918,8 @@ typedef struct
     viewstate_T old_viewstate;
     pos_T match_start;
     pos_T match_end;
-    int did_incsearch;
-    int incsearch_postponed;
+    bool did_incsearch;
+    bool incsearch_postponed;
     optmagic_T magic_overruled_save;
 } incsearch_state_T;
 
@@ -19101,7 +19101,7 @@ do_incsearch_highlighting(int firstc, int *search_delim, incsearch_state_T *is_s
 }
 
     static void
-finish_incsearch_highlighting(int gotesc, incsearch_state_T *is_state, int call_update_screen)
+finish_incsearch_highlighting(int gotesc, incsearch_state_T *is_state, bool call_update_screen)
 {
     if (!is_state->did_incsearch)
     {
@@ -19144,7 +19144,7 @@ may_do_incsearch_highlighting(int firstc, long count, incsearch_state_T *is_stat
     pos_T end_pos;
     int next_char;
     bool use_last_pat;
-    int did_do_incsearch = is_state->did_incsearch;
+    bool did_do_incsearch = is_state->did_incsearch;
     int search_delim;
     save_last_search_pattern();
     if (!do_incsearch_highlighting(firstc, &search_delim, is_state, &skiplen, &patlen))
@@ -19773,7 +19773,7 @@ getcmdline(int firstc, long count, int indent, getline_opt_T do_concat)
 }
 
     static char_u *
-getcmdline_int(int firstc, long count, int indent, int clear_ccline)
+getcmdline_int(int firstc, long count, int indent, bool clear_ccline)
 {
     static int depth = 0;
     int c = 0;
@@ -20395,7 +20395,7 @@ unputcmdline(void)
 }
 
     static bool
-put_on_cmdline(char_u *str, int len, int redraw)
+put_on_cmdline(char_u *str, int len, bool redraw)
 {
     bool retval;
     int i;
@@ -20537,7 +20537,7 @@ restore_cmdline(cmdline_info_T *ccp)
 }
 
     static bool
-cmdline_paste(int regname, int literally, int remcr)
+cmdline_paste(int regname, bool literally, bool remcr)
 {
     long i;
     char_u *arg;
@@ -20588,7 +20588,7 @@ cmdline_paste(int regname, int literally, int remcr)
 }
 
     static void
-cmdline_paste_str(char_u *s, int literally)
+cmdline_paste_str(char_u *s, bool literally)
 {
     int c;
     int cv;
@@ -20622,7 +20622,7 @@ redrawcmdline(void)
 }
 
     static void
-redrawcmdline_ex(int do_compute_cmdrow)
+redrawcmdline_ex(bool do_compute_cmdrow)
 {
     if (cmd_silent)
     {
@@ -20732,7 +20732,7 @@ cursorcmd(void)
 }
 
     static void
-gotocmdline(int clr)
+gotocmdline(bool clr)
 {
     msg_start();
     msg_col = 0;
@@ -20859,7 +20859,7 @@ shorten_dir(char_u *str)
 }
 
     static usize
-home_replace(buf_T *buf, char_u *src, char_u *dst, int dstlen, int one)
+home_replace(buf_T *buf, char_u *src, char_u *dst, int dstlen, bool one)
 {
     usize len;
     if (src == nullptr)
@@ -21100,7 +21100,7 @@ static char_u noremapbuf_init[(5 * (MAXMAPLEN + 3))];
 
 static usize last_recorded_len = 0;
 
-static int read_readbuf(buffheader_T *buf, int advance);
+static int read_readbuf(buffheader_T *buf, bool advance);
 
 static void init_typebuf(void);
 
@@ -21108,7 +21108,7 @@ static void may_sync_undo(void);
 
 static void free_typebuf(void);
 
-static int vgetorpeek(int);
+static int vgetorpeek(bool);
 
 static int inchar(char_u *buf, int maxlen, long wait_time);
 
@@ -21126,7 +21126,7 @@ free_buff(buffheader_T *buf)
 }
 
     static char_u *
-get_buffcont(buffheader_T *buffer, int dozero, usize *len)
+get_buffcont(buffheader_T *buffer, bool dozero, usize *len)
 {
     long_u count = 0;
     char_u *p = nullptr;
@@ -21336,7 +21336,7 @@ static buffheader_T readbuf2 =
 };
 
     static int
-read_readbuffers(int advance)
+read_readbuffers(bool advance)
 {
     int c;
     c = read_readbuf(&readbuf1, advance);
@@ -21348,7 +21348,7 @@ read_readbuffers(int advance)
 }
 
     static int
-read_readbuf(buffheader_T *buf, int advance)
+read_readbuf(buffheader_T *buf, bool advance)
 {
     char_u c;
     buffblock_T *curr;
@@ -21621,7 +21621,7 @@ stuffescaped(char_u *arg, int literally)
 }
 
     static int
-read_redo(int init, int old_redo)
+read_redo(bool init, bool old_redo)
 {
     static buffblock_T *bp;
     static char_u *p;
@@ -21688,7 +21688,7 @@ read_redo(int init, int old_redo)
 }
 
     static void
-copy_redo(int old_redo)
+copy_redo(bool old_redo)
 {
     int c;
     while ((c = read_redo(FALSE, old_redo)) != NUL)
@@ -21698,7 +21698,7 @@ copy_redo(int old_redo)
 }
 
     static bool
-start_redo(long count, int old_redo)
+start_redo(long count, bool old_redo)
 {
     int c;
     if (read_redo(TRUE, old_redo) == FAIL)
@@ -21791,7 +21791,7 @@ init_typebuf(void)
 }
 
     static bool
-ins_typebuf(char_u *str, int noremap, int offset, int nottyped, int silent)
+ins_typebuf(char_u *str, int noremap, int offset, bool nottyped, int silent)
 {
     char_u *s1;
     char_u *s2;
@@ -22168,7 +22168,7 @@ save_typeahead(tasave_T *tp)
 }
 
     static void
-restore_typeahead(tasave_T *tp, int overwrite)
+restore_typeahead(tasave_T *tp, bool overwrite)
 {
     if (tp->typebuf_valid)
     {
@@ -22875,7 +22875,7 @@ vungetc(int c)
 }
 
     static void
-check_end_reg_executing(int advance)
+check_end_reg_executing(bool advance)
 {
     if (reg_executing != 0 && (typebuf.tb_maplen == 0 || pending_end_reg_executing))
     {
@@ -22892,7 +22892,7 @@ check_end_reg_executing(int advance)
 }
 
     static int
-vgetorpeek(int advance)
+vgetorpeek(bool advance)
 {
     int c;
     int timedout = FALSE;
@@ -23540,13 +23540,13 @@ typedef struct
 {
     char_u *sg_name;
     char_u *sg_name_u;
-    int sg_cleared;
+    bool sg_cleared;
     int sg_term;
     char_u *sg_start;
     char_u *sg_stop;
     int sg_term_attr;
     int sg_cterm;
-    int sg_cterm_bold;
+    bool sg_cterm_bold;
     int sg_cterm_fg;
     int sg_cterm_bg;
     int sg_cterm_ul;
@@ -23659,7 +23659,7 @@ static int highlight_list_arg(int id, int didh, int type, int iarg, char_u *sarg
 
 static int syn_add_group(char_u *name);
 
-static bool hl_has_settings(int idx, int check_link);
+static bool hl_has_settings(int idx, bool check_link);
 
 static void highlight_clear(int idx);
 
@@ -23751,7 +23751,7 @@ static void resolve_fallback_fg_to_rgb(void);
 static void resolve_fallback_bg_to_rgb(void);
 
     static void
-init_highlight(int both, int reset)
+init_highlight(bool both, bool reset)
 {
     int i;
     char **pp;
@@ -23925,7 +23925,7 @@ static int color_numbers_8[28] =
 };
 
     static int
-lookup_color(int idx, int foreground, int *boldp)
+lookup_color(int idx, bool foreground, int *boldp)
 {
     int color = color_numbers_16[idx];
     char_u *p;
@@ -23979,7 +23979,7 @@ lookup_color(int idx, int foreground, int *boldp)
 }
 
     static void
-highlight_group_link(char_u *from_hg, int from_len, char_u *to_hg, int to_len, int dodefault, int forceit, int init)
+highlight_group_link(char_u *from_hg, int from_len, char_u *to_hg, int to_len, bool dodefault, bool forceit, bool init)
 {
     int from_id;
     int to_id;
@@ -24039,7 +24039,7 @@ highlight_reset_all(void)
 }
 
     static bool
-highlight_set_termgui_attr(int idx, char_u *key, char_u *arg, int init)
+highlight_set_termgui_attr(int idx, char_u *key, char_u *arg, bool init)
 {
     int attr;
     usize off;
@@ -24107,7 +24107,7 @@ hl_set_ctermfg_normal_group(int color, int bold)
 }
 
     static void
-highlight_set_ctermfg(int idx, int color, int is_normal_group)
+highlight_set_ctermfg(int idx, int color, bool is_normal_group)
 {
     ((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_cterm_fg = color + 1;
     if (is_normal_group)
@@ -24147,7 +24147,7 @@ hl_set_ctermbg_normal_group(int color)
 }
 
     static void
-highlight_set_ctermbg(int idx, int color, int is_normal_group)
+highlight_set_ctermbg(int idx, int color, bool is_normal_group)
 {
     ((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_cterm_bg = color + 1;
     if (is_normal_group)
@@ -24170,7 +24170,7 @@ hl_set_ctermul_normal_group(int color)
 }
 
     static void
-highlight_set_ctermul(int idx, int color, int is_normal_group)
+highlight_set_ctermul(int idx, int color, bool is_normal_group)
 {
     ((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_cterm_ul = color + 1;
     if (is_normal_group)
@@ -24180,7 +24180,7 @@ highlight_set_ctermul(int idx, int color, int is_normal_group)
 }
 
     static bool
-highlight_set_cterm_font(int idx, char_u *arg, int init)
+highlight_set_cterm_font(int idx, char_u *arg, bool init)
 {
     int font;
     if (init && (((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_set & SG_CTERM))
@@ -24208,7 +24208,7 @@ highlight_set_cterm_font(int idx, char_u *arg, int init)
 }
 
     static bool
-highlight_set_cterm_color(int idx, char_u *key, char_u *key_start, char_u *arg, int is_normal_group, int init)
+highlight_set_cterm_color(int idx, char_u *key, char_u *key_start, char_u *arg, bool is_normal_group, bool init)
 {
     int color;
     if (init && (((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_set & SG_CTERM))
@@ -24306,7 +24306,7 @@ highlight_set_cterm_color(int idx, char_u *key, char_u *key_start, char_u *arg, 
 }
 
     static bool
-highlight_set_startstop_termcode(int idx, char_u *key, char_u *arg, int init)
+highlight_set_startstop_termcode(int idx, char_u *key, char_u *arg, bool init)
 {
     int off;
     char_u buf[100];
@@ -24384,7 +24384,7 @@ highlight_set_startstop_termcode(int idx, char_u *key, char_u *arg, int init)
 }
 
     static void
-do_highlight(char_u *line, int forceit, int init)
+do_highlight(char_u *line, bool forceit, bool init)
 {
     char_u *name_end;
     char_u *linep;
@@ -24669,9 +24669,9 @@ restore_cterm_colors(void)
 }
 
     static bool
-hl_has_settings(int idx, int check_link)
+hl_has_settings(int idx, bool check_link)
 {
-    return ((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_cleared == 0 && (((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_term_attr != 0 || ((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_cterm_attr != 0 || ((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_cterm_fg != 0 || ((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_cterm_bg != 0 || ((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_cterm_font != 0 || (check_link && (((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_set & SG_LINK)));
+    return !((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_cleared && (((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_term_attr != 0 || ((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_cterm_attr != 0 || ((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_cterm_fg != 0 || ((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_cterm_bg != 0 || ((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_cterm_font != 0 || (check_link && (((hl_group_T *)((highlight_ga.ga_data)))[idx].sg_set & SG_LINK)));
 }
 
     static void
@@ -25068,7 +25068,7 @@ blend_cterm_colors(int popup_c, long popup_rgb, int under_c, long under_rgb, int
 }
 
     static int
-hl_blend_attr_common(int char_attr, int popup_attr, int blend, int blend_fg)
+hl_blend_attr_common(int char_attr, int popup_attr, int blend, bool blend_fg)
 {
     attrentry_T *char_aep = nullptr;
     attrentry_T *popup_aep;
@@ -25162,7 +25162,7 @@ hl_blend_attr_common(int char_attr, int popup_attr, int blend, int blend_fg)
 }
 
     static int
-hl_blend_attr(int char_attr, int popup_attr, int blend, int blend_fg)
+hl_blend_attr(int char_attr, int popup_attr, int blend, bool blend_fg)
 {
     if (blend >= 100 && blend_fg)
     {
@@ -26015,7 +26015,7 @@ get_sw_value(buf_T *buf)
 }
 
     static long
-get_sw_value_pos(buf_T *buf, pos_T *pos, int left)
+get_sw_value_pos(buf_T *buf, pos_T *pos, bool left)
 {
     pos_T save_cursor = curwin->w_cursor;
     long sw_value;
@@ -26026,7 +26026,7 @@ get_sw_value_pos(buf_T *buf, pos_T *pos, int left)
 }
 
     static long
-get_sw_value_indent(buf_T *buf, int left)
+get_sw_value_indent(buf_T *buf, bool left)
 {
     pos_T pos = curwin->w_cursor;
     pos.col = getwhitecols_curline();
@@ -26034,7 +26034,7 @@ get_sw_value_indent(buf_T *buf, int left)
 }
 
     static long
-get_sw_value_col(buf_T *buf, colnr_T col, int left)
+get_sw_value_col(buf_T *buf, colnr_T col, bool left)
 {
     return buf->b_p_sw ? buf->b_p_sw : buf->b_p_ts;
 }
@@ -26058,7 +26058,7 @@ get_indent_lnum(linenr_T lnum)
 }
 
     static int
-get_indent_str(char_u *ptr, int ts, int no_ts)
+get_indent_str(char_u *ptr, int ts, bool no_ts)
 {
     int count = 0;
     for (; *ptr; ++ptr)
@@ -26386,7 +26386,7 @@ ins_try_si(int c)
 }
 
     static void
-change_indent(int type, int amount, int round, int replaced, int call_changed_bytes)
+change_indent(int type, int amount, bool round, int replaced, int call_changed_bytes)
 {
     int vcol;
     int last_vcol;
@@ -26763,7 +26763,7 @@ map_mode_to_chars(int mode)
 }
 
     static void
-showmap(mapblock_T *mp, int local)
+showmap(mapblock_T *mp, bool local)
 {
     int len = 1;
     char_u *mapchars;
@@ -26832,7 +26832,7 @@ theend:
 }
 
     static mapblock_T *
-map_add(mapblock_T **map_table, mapblock_T **abbr_table, char_u *keys, char_u *rhs, char_u *orig_rhs, int noremap, int nowait, int silent, int mode, int is_abbr, int simplified)
+map_add(mapblock_T **map_table, mapblock_T **abbr_table, char_u *keys, char_u *rhs, char_u *orig_rhs, int noremap, bool nowait, bool silent, int mode, bool is_abbr, bool simplified)
 {
     mapblock_T *mp = (mapblock_T *)alloc_clear(sizeof(mapblock_T));
     if (*keys == Ctrl_C)
@@ -26874,7 +26874,7 @@ map_add(mapblock_T **map_table, mapblock_T **abbr_table, char_u *keys, char_u *r
 }
 
     static void
-list_mappings(int keyround, int abbrev, int haskey, char_u *keys, int keys_len, int mode, int *did_local)
+list_mappings(int keyround, bool abbrev, bool haskey, char_u *keys, int keys_len, int mode, int *did_local)
 {
     ++map_locked;
     if (p_verbose > 0 && keyround == 1)
@@ -26972,7 +26972,7 @@ list_mappings(int keyround, int abbrev, int haskey, char_u *keys, int keys_len, 
 }
 
     static int
-do_map(int maptype, char_u *arg, int mode, int abbrev)
+do_map(int maptype, char_u *arg, int mode, bool abbrev)
 {
     char_u *keys;
     mapblock_T *mp;
@@ -27408,7 +27408,7 @@ theend:
 }
 
     static int
-get_map_mode(char_u **cmdp, int forceit)
+get_map_mode(char_u **cmdp, bool forceit)
 {
     char_u *p;
     int modec;
@@ -27460,7 +27460,7 @@ get_map_mode(char_u **cmdp, int forceit)
 }
 
     static void
-map_clear(char_u *cmdp, char_u *arg, int forceit, int abbr)
+map_clear(char_u *cmdp, char_u *arg, bool forceit, bool abbr)
 {
     int mode;
     bool local;
@@ -27486,7 +27486,7 @@ is_map_locked(void)
 }
 
     static void
-map_clear_mode(buf_T *buf, int mode, int local, int abbr)
+map_clear_mode(buf_T *buf, int mode, bool local, bool abbr)
 {
     mapblock_T *mp;
     mapblock_T **mpp;
@@ -27718,7 +27718,7 @@ init_mappings(void)
 }
 
     static void
-add_map(char_u *map, int mode, int nore)
+add_map(char_u *map, int mode, bool nore)
 {
     char_u *s;
     char_u *cpo_save = p_cpo;
@@ -27729,7 +27729,7 @@ add_map(char_u *map, int mode, int nore)
 }
 
     static void
-do_exmap(exarg_T *eap, int isabbrev)
+do_exmap(exarg_T *eap, bool isabbrev)
 {
     int mode;
     char_u *cmdp;
@@ -27772,9 +27772,9 @@ ex_mapclear(exarg_T *eap)
 
 static char_u *mark_line(pos_T *mp, int lead_len);
 
-static void show_one_mark(int, char_u *, pos_T *, char_u *, int current);
+static void show_one_mark(int, char_u *, pos_T *, char_u *, bool current);
 
-static void mark_adjust_internal(linenr_T line1, linenr_T line2, long amount, long amount_after, int adjust_folds);
+static void mark_adjust_internal(linenr_T line1, linenr_T line2, long amount, long amount_after, bool adjust_folds);
 
     static int
 setmark(int c)
@@ -27904,19 +27904,19 @@ movechangelist(int count)
 }
 
     static pos_T *
-getmark_buf(buf_T *buf, int c, int changefile)
+getmark_buf(buf_T *buf, int c, bool changefile)
 {
     return getmark_buf_fnum(buf, c, changefile, nullptr);
 }
 
     static pos_T *
-getmark(int c, int changefile)
+getmark(int c, bool changefile)
 {
     return getmark_buf_fnum(curbuf, c, changefile, nullptr);
 }
 
     static pos_T *
-getmark_buf_fnum(buf_T *buf, int c, int changefile, int *fnum)
+getmark_buf_fnum(buf_T *buf, int c, bool changefile, int *fnum)
 {
     pos_T *posp;
     pos_T *startp;
@@ -27991,7 +27991,7 @@ getmark_buf_fnum(buf_T *buf, int c, int changefile, int *fnum)
 }
 
     static pos_T *
-getnextmark(pos_T *startpos, int dir, int begin_line)
+getnextmark(pos_T *startpos, int dir, bool begin_line)
 {
     int i;
     pos_T *result = nullptr;
@@ -28132,7 +28132,7 @@ ex_marks(exarg_T *eap)
 }
 
     static void
-show_one_mark(int c, char_u *arg, pos_T *p, char_u *name_arg, int current)
+show_one_mark(int c, char_u *arg, pos_T *p, char_u *name_arg, bool current)
 {
     static bool did_title = FALSE;
     char_u *name = name_arg;
@@ -28308,7 +28308,7 @@ mark_adjust_nofold(linenr_T line1, linenr_T line2, long amount, long amount_afte
 }
 
     static void
-mark_adjust_internal(linenr_T line1, linenr_T line2, long amount, long amount_after, int adjust_folds)
+mark_adjust_internal(linenr_T line1, linenr_T line2, long amount, long amount_after, bool adjust_folds)
 {
     int i;
     int fnum = curbuf->b_fnum;
@@ -29014,7 +29014,7 @@ match_add(win_T *wp, char_u *grp, char_u *pat, int prio, int id, char_u *conceal
 }
 
     static int
-match_delete(win_T *wp, int id, int perr)
+match_delete(win_T *wp, int id, bool perr)
 {
     matchitem_T *cur = wp->w_match_head;
     matchitem_T *prev = cur;
@@ -32967,7 +32967,7 @@ ml_open(buf_T *buf)
 }
 
     static void
-ml_close(buf_T *buf, int del_file)
+ml_close(buf_T *buf, bool del_file)
 {
     if (buf->b_ml.ml_root == nullptr)
     {
@@ -32979,7 +32979,7 @@ ml_close(buf_T *buf, int del_file)
 }
 
     static void
-ml_close_all(int del_file)
+ml_close_all(bool del_file)
 {
     buf_T *buf;
     buf = curbuf;
@@ -33072,7 +33072,7 @@ ml_get_invalid(buf_T *buf, linenr_T lnum)
 }
 
     static char_u *
-ml_get_buf(buf_T *buf, linenr_T lnum, int will_change)
+ml_get_buf(buf_T *buf, linenr_T lnum, bool will_change)
 {
     bhdr_T *hp;
     DATA_BL *dp;
@@ -33393,7 +33393,7 @@ ml_append_flags(linenr_T lnum, char_u *line, colnr_T len, int flags)
 }
 
     static bool
-ml_replace(linenr_T lnum, char_u *line, int copy)
+ml_replace(linenr_T lnum, char_u *line, bool copy)
 {
     colnr_T len = -1;
     if (line != nullptr)
@@ -33404,7 +33404,7 @@ ml_replace(linenr_T lnum, char_u *line, int copy)
 }
 
     static bool
-ml_replace_len(linenr_T lnum, char_u *line_arg, colnr_T len_arg, int has_props, int copy)
+ml_replace_len(linenr_T lnum, char_u *line_arg, colnr_T len_arg, bool has_props, bool copy)
 {
     char_u *line = line_arg;
     colnr_T len = len_arg;
@@ -33883,13 +33883,13 @@ static void hit_return_msg(void);
 
 static void msg_puts_attr_len(char *str, int maxlen, int attr);
 
-static void msg_puts_display(char_u *str, int maxlen, int attr, int recurse);
+static void msg_puts_display(char_u *str, int maxlen, int attr, bool recurse);
 
 static void msg_scroll_up(void);
 
 static void inc_msg_scrolled(void);
 
-static void store_sb_text(char_u **sb_str, char_u *s, int attr, int *sb_col, int finish);
+static void store_sb_text(char_u **sb_str, char_u *s, int attr, int *sb_col, bool finish);
 
 static void t_puts(int *t_col, char_u *t_s, char_u *s, int attr);
 
@@ -33897,7 +33897,7 @@ static bool do_more_prompt(int typed_char);
 
 static void msg_screen_putchar(int c, int attr);
 
-static void msg_moremsg(int full);
+static void msg_moremsg(bool full);
 
 static bool msg_check_screen(void);
 
@@ -33939,7 +33939,7 @@ msg_attr(char *s, int attr)
 }
 
     static bool
-msg_attr_keep(char *s, int attr, int keep)
+msg_attr_keep(char *s, int attr, bool keep)
 {
     static int entered = 0;
     bool retval;
@@ -33976,7 +33976,7 @@ msg_attr_keep(char *s, int attr, int keep)
 }
 
     static char_u *
-msg_strtrunc(char_u *s, int force)
+msg_strtrunc(char_u *s, bool force)
 {
     char_u *buf = nullptr;
     int len;
@@ -34355,7 +34355,7 @@ emsg_invreg(int name)
 }
 
     static char *
-msg_trunc_attr(char *s, int force, int attr)
+msg_trunc_attr(char *s, bool force, int attr)
 {
     int n;
     char *ts;
@@ -34372,7 +34372,7 @@ msg_trunc_attr(char *s, int force, int attr)
 }
 
     static char_u *
-msg_may_trunc(int force, char_u *s)
+msg_may_trunc(bool force, char_u *s)
 {
     int n;
     int room;
@@ -34914,7 +34914,7 @@ msg_outtrans_len_attr(char_u *msgstr, int len, int attr)
 }
 
     static int
-msg_outtrans_special(char_u *strstart, int from, int maxlen)
+msg_outtrans_special(char_u *strstart, bool from, int maxlen)
 {
     char_u *str = strstart;
     int retval = 0;
@@ -34949,7 +34949,7 @@ msg_outtrans_special(char_u *strstart, int from, int maxlen)
 }
 
     static char_u *
-str2special(char_u **sp, int replace_spaces, int replace_others)
+str2special(char_u **sp, bool replace_spaces, bool replace_others)
 {
     int c;
     static char_u buf[7];
@@ -35302,7 +35302,7 @@ msg_puts_attr_len(char *str, int maxlen, int attr)
 }
 
     static void
-msg_puts_display(char_u *str, int maxlen, int attr, int recurse)
+msg_puts_display(char_u *str, int maxlen, int attr, bool recurse)
 {
     char_u *s = str;
     char_u *t_s = str;
@@ -35526,7 +35526,7 @@ typedef enum
 static sb_clear_T do_clear_sb_text = SB_CLEAR_NONE;
 
     static void
-store_sb_text(char_u **sb_str, char_u *s, int attr, int *sb_col, int finish)
+store_sb_text(char_u **sb_str, char_u *s, int attr, int *sb_col, bool finish)
 {
     msgchunk_T *mp;
     if (do_clear_sb_text == SB_CLEAR_ALL || do_clear_sb_text == SB_CLEAR_CMDLINE_DONE)
@@ -35613,7 +35613,7 @@ sb_text_end_cmdline(void)
 }
 
     static void
-clear_sb_text(int all)
+clear_sb_text(bool all)
 {
     msgchunk_T *mp;
     msgchunk_T **lastp;
@@ -35673,7 +35673,7 @@ msg_sb_eol(void)
 }
 
     static msgchunk_T *
-disp_sb_line(int row, msgchunk_T *smp, int clear_to_eol)
+disp_sb_line(int row, msgchunk_T *smp, bool clear_to_eol)
 {
     msgchunk_T *mp = smp;
     char_u *p;
@@ -35928,7 +35928,7 @@ msg_screen_putchar(int c, int attr)
 }
 
     static void
-msg_moremsg(int full)
+msg_moremsg(bool full)
 {
     int attr;
     char_u *s = (char_u *)_("-- More --");
@@ -36063,13 +36063,13 @@ verbose_leave_scroll(void)
 }
 
     static void
-give_warning(char_u *message, int hl)
+give_warning(char_u *message, bool hl)
 {
     give_warning_with_source(message, hl, FALSE);
 }
 
     static void
-give_warning_with_source(char_u *message, int hl, int with_source)
+give_warning_with_source(char_u *message, bool hl, bool with_source)
 {
     if (msg_silent != 0)
     {
@@ -36143,7 +36143,7 @@ plines(linenr_T lnum)
 }
 
     static int
-plines_win(win_T *wp, linenr_T lnum, int limit_winheight)
+plines_win(win_T *wp, linenr_T lnum, bool limit_winheight)
 {
     int lines;
     if (wp->w_width == 0)
@@ -36310,7 +36310,7 @@ check_status(buf_T *buf)
 }
 
     static int
-ask_yesno(char_u *str, int direct)
+ask_yesno(char_u *str, bool direct)
 {
     int r = ' ';
     int save_State = State;
@@ -36530,7 +36530,7 @@ vim_beep(unsigned val)
 }
 
     static usize
-expand_env_esc(char_u *srcp, char_u *dst, int dstlen, char_u *esc_chars, int one, char_u *startstr)
+expand_env_esc(char_u *srcp, char_u *dst, int dstlen, char_u *esc_chars, bool one, char_u *startstr)
 {
     char_u *src;
     char_u *dst_start = dst;
@@ -36645,7 +36645,7 @@ trim_to_int(vimlong_T x)
     return x > INT_MAX ? INT_MAX : x < INT_MIN ? INT_MIN : x;
 }
 
-static bool coladvance2(pos_T *pos, int addspaces, int finetune, colnr_T wcol);
+static bool coladvance2(pos_T *pos, bool addspaces, int finetune, colnr_T wcol);
 
     static int
 virtual_active(void)
@@ -36719,7 +36719,7 @@ getvpos(pos_T *pos, colnr_T wantcol)
 }
 
     static bool
-coladvance2(pos_T *pos, int addspaces, int finetune, colnr_T wcol_arg)
+coladvance2(pos_T *pos, bool addspaces, int finetune, colnr_T wcol_arg)
 {
     colnr_T wcol = wcol_arg;
     int idx;
@@ -37887,7 +37887,7 @@ get_special_key_name(int c, int modifiers)
 }
 
     static int
-trans_special(char_u **srcp, char_u *dst, int flags, int escape_ks, int *did_simplify)
+trans_special(char_u **srcp, char_u *dst, int flags, bool escape_ks, int *did_simplify)
 {
     int modifiers = 0;
     int key;
@@ -37900,7 +37900,7 @@ trans_special(char_u **srcp, char_u *dst, int flags, int escape_ks, int *did_sim
 }
 
     static int
-special_to_buf(int key, int modifiers, int escape_ks, char_u *dst)
+special_to_buf(int key, int modifiers, bool escape_ks, char_u *dst)
 {
     int dlen = 0;
     if (modifiers != 0)
@@ -38365,7 +38365,7 @@ adjust_plines_for_skipcol(win_T *wp)
 }
 
     static int
-plines_correct_topline(win_T *wp, linenr_T lnum, int limit_winheight)
+plines_correct_topline(win_T *wp, linenr_T lnum, bool limit_winheight)
 {
     int n;
     n = plines_win(wp, lnum, FALSE);
@@ -39037,7 +39037,7 @@ curwin_col_off2(void)
 }
 
     static void
-curs_columns(int may_scroll)
+curs_columns(bool may_scroll)
 {
     long diff;
     int extra;
@@ -39391,7 +39391,7 @@ scroll_redraw(int up, long count)
 }
 
     static void
-scrolldown(long line_count, int byfold)
+scrolldown(long line_count, bool byfold)
 {
     long done = 0;
     int wrow;
@@ -39480,7 +39480,7 @@ scrolldown(long line_count, int byfold)
 }
 
     static void
-scrollup(long line_count, int byfold)
+scrollup(long line_count, bool byfold)
 {
     bool do_sms = curwin->w_onebuf_opt.wo_wrap && curwin->w_onebuf_opt.wo_sms;
     if (do_sms)
@@ -39689,7 +39689,7 @@ scrollup_clamp(void)
 }
 
     static void
-topline_back_winheight(lineoff_T *lp, int winheight)
+topline_back_winheight(lineoff_T *lp, bool winheight)
 {
     {
         --lp->lnum;
@@ -39727,7 +39727,7 @@ botline_forw(lineoff_T *lp)
 }
 
     static void
-scroll_cursor_top(int min_scroll, int always)
+scroll_cursor_top(int min_scroll, bool always)
 {
     int scrolled = 0;
     int extra = 0;
@@ -39840,7 +39840,7 @@ set_empty_rows(win_T *wp, int used)
 }
 
     static void
-scroll_cursor_bot(int min_scroll, int set_topbot)
+scroll_cursor_bot(int min_scroll, bool set_topbot)
 {
     int used;
     int scrolled = 0;
@@ -40353,7 +40353,7 @@ scroll_with_sms(int dir, long count, long *curscount)
 }
 
     static bool
-pagescroll(int dir, long count, int half)
+pagescroll(int dir, long count, bool half)
 {
     bool did_move = FALSE;
     int buflen = curbuf->b_ml.ml_line_count;
@@ -40572,7 +40572,7 @@ static void nv_esc(cmdarg_T *oap);
 
 static void nv_edit(cmdarg_T *cap);
 
-static void invoke_edit(cmdarg_T *cap, int repl, int cmd, int startln);
+static void invoke_edit(cmdarg_T *cap, bool repl, int cmd, bool startln);
 
 static void nv_object(cmdarg_T *cap);
 
@@ -40586,7 +40586,7 @@ static void nv_join(cmdarg_T *cap);
 
 static void nv_put(cmdarg_T *cap);
 
-static void nv_put_opt(cmdarg_T *cap, int fix_indent);
+static void nv_put_opt(cmdarg_T *cap, bool fix_indent);
 
 static void nv_open(cmdarg_T *cap);
 
@@ -41096,7 +41096,7 @@ check_text_or_curbuf_locked(oparg_T *oap)
 }
 
     static int
-normal_cmd_get_count(cmdarg_T *cap, int c, int toplevel, int set_prevcount, int *ctrl_w, int *need_flushbuf)
+normal_cmd_get_count(cmdarg_T *cap, int c, bool toplevel, bool set_prevcount, int *ctrl_w, int *need_flushbuf)
 {
 getcount:
     if (!(VIsual_active && VIsual_select))
@@ -41352,7 +41352,7 @@ normal_cmd_wait_for_msg(void)
 }
 
     static void
-normal_cmd(oparg_T *oap, int toplevel)
+normal_cmd(oparg_T *oap, bool toplevel)
 {
     cmdarg_T ca;
     int c;
@@ -45007,7 +45007,7 @@ nv_edit(cmdarg_T *cap)
 }
 
     static void
-invoke_edit(cmdarg_T *cap, int repl, int cmd, int startln)
+invoke_edit(cmdarg_T *cap, bool repl, int cmd, bool startln)
 {
     int restart_edit_save = 0;
     if (repl || !stuff_empty())
@@ -45170,7 +45170,7 @@ nv_put(cmdarg_T *cap)
 }
 
     static void
-nv_put_opt(cmdarg_T *cap, int fix_indent)
+nv_put_opt(cmdarg_T *cap, bool fix_indent)
 {
     int regname = 0;
     yankreg_T *reg1 = nullptr;
@@ -45395,7 +45395,7 @@ get_extra_op_char(int optype)
 }
 
     static void
-op_shift(oparg_T *oap, int curs_top, int amount)
+op_shift(oparg_T *oap, bool curs_top, int amount)
 {
     long i;
     int first_char;
@@ -45474,7 +45474,7 @@ op_shift(oparg_T *oap, int curs_top, int amount)
 }
 
     static vimlong_T
-get_new_sw_indent(int left, int round, vimlong_T amount, vimlong_T sw_val)
+get_new_sw_indent(bool left, int round, vimlong_T amount, vimlong_T sw_val)
 {
     vimlong_T count = get_indent();
     vimlong_T i;
@@ -45520,7 +45520,7 @@ get_new_sw_indent(int left, int round, vimlong_T amount, vimlong_T sw_val)
 }
 
     static void
-shift_line(int left, int round, int amount, int call_changed_bytes)
+shift_line(bool left, int round, int amount, int call_changed_bytes)
 {
     vimlong_T count;
     long sw_val = curbuf->b_p_sw;
@@ -45695,7 +45695,7 @@ shift_block(oparg_T *oap, int amount)
 }
 
     static void
-block_insert(oparg_T *oap, char_u *s, usize slen, int b_insert, struct block_def *bdp)
+block_insert(oparg_T *oap, char_u *s, usize slen, bool b_insert, struct block_def *bdp)
 {
     int ts_val;
     int count = 0;
@@ -46769,7 +46769,7 @@ adjust_cursor_eol(void)
 }
 
     static bool
-do_join(long count, int insert_space, int save_undo, int use_formatoptions, int setmark)
+do_join(long count, bool insert_space, bool save_undo, bool use_formatoptions, bool setmark)
 {
     char_u *curr = nullptr;
     char_u *curr_start = nullptr;
@@ -47843,7 +47843,7 @@ op_colon(oparg_T *oap)
 }
 
     static void
-get_op_vcol(oparg_T *oap, colnr_T redo_VIsual_vcol, int initial)
+get_op_vcol(oparg_T *oap, colnr_T redo_VIsual_vcol, bool initial)
 {
     colnr_T start;
     colnr_T end;
@@ -47914,7 +47914,7 @@ is_ex_cmdchar(cmdarg_T *cap)
 }
 
     static void
-do_pending_operator(cmdarg_T *cap, int old_col, int gui_yank)
+do_pending_operator(cmdarg_T *cap, int old_col, bool gui_yank)
 {
     oparg_T *oap = cap->oap;
     pos_T old_cursor;
@@ -48628,7 +48628,7 @@ static struct vimoption options[] =
 
 static void set_options_default(int opt_flags);
 
-static void set_string_default_esc(char *name, char_u *val, int escape);
+static void set_string_default_esc(char *name, char_u *val, bool escape);
 
 static char_u *find_dup_item(char_u *origval, char_u *newval, usize newvallen, long_u flags);
 
@@ -48642,7 +48642,7 @@ static char *set_bool_option(int opt_idx, optvar_T varp, int value, int opt_flag
 
 static char *set_num_option(int opt_idx, optvar_T varp, long value, char *errbuf, usize errbuflen, int opt_flags);
 
-static int find_key_option(char_u *arg_arg, int has_lt);
+static int find_key_option(char_u *arg_arg, bool has_lt);
 
 static void showoptions(int all, int opt_flags);
 
@@ -48795,7 +48795,7 @@ set_options_default(int opt_flags)
 }
 
     static void
-set_string_default_esc(char *name, char_u *val, int escape)
+set_string_default_esc(char *name, char_u *val, bool escape)
 {
     char_u *p;
     int opt_idx;
@@ -49992,7 +49992,7 @@ theend:
 }
 
     static void
-did_set_option(int opt_idx, int opt_flags, int new_value, int value_checked)
+did_set_option(int opt_idx, int opt_flags, bool new_value, int value_checked)
 {
     long_u *flagsp;
     long_u *flagsp_local = nullptr;
@@ -50959,7 +50959,7 @@ get_highlight_default(void)
 }
 
     static int
-find_key_option(char_u *arg_arg, int has_lt)
+find_key_option(char_u *arg_arg, bool has_lt)
 {
     int key = 0;
     int modifiers;
@@ -51797,9 +51797,9 @@ static char *(p_sloc_values[]) =
     nullptr,
 };
 
-static bool check_opt_strings(char_u *val, char **values, int list);
+static bool check_opt_strings(char_u *val, char **values, bool list);
 
-static bool opt_strings_flags(char_u *val, char **values, unsigned *flagp, int list);
+static bool opt_strings_flags(char_u *val, char **values, unsigned *flagp, bool list);
 
     static void
 didset_string_options(void)
@@ -51955,7 +51955,7 @@ check_illegal_path_names(int opt_idx, char_u **varp)
 }
 
     static char *
-did_set_opt_flags(char_u *val, char **values, unsigned *flagp, int list)
+did_set_opt_flags(char_u *val, char **values, unsigned *flagp, bool list)
 {
     if (!opt_strings_flags(val, values, flagp, list))
     {
@@ -51965,7 +51965,7 @@ did_set_opt_flags(char_u *val, char **values, unsigned *flagp, int list)
 }
 
     static char *
-did_set_opt_strings(char_u *val, char **values, int list)
+did_set_opt_strings(char_u *val, char **values, bool list)
 {
     return did_set_opt_flags(val, values, nullptr, list);
 }
@@ -52039,7 +52039,7 @@ did_set_casemap(optset_T *args)
 }
 
     static char *
-did_set_global_listfillchars(char_u *val, int opt_lcs, int opt_flags, char *errbuf, usize errbuflen)
+did_set_global_listfillchars(char_u *val, bool opt_lcs, int opt_flags, char *errbuf, usize errbuflen)
 {
     char *errmsg = nullptr;
     char_u **local_ptr = opt_lcs ? &curwin->w_onebuf_opt.wo_lcs : &curwin->w_onebuf_opt.wo_fcs;
@@ -52470,13 +52470,13 @@ did_set_string_option(int opt_idx, char_u **varp, char_u *oldval, char_u *value,
 }
 
     static bool
-check_opt_strings(char_u *val, char **values, int list)
+check_opt_strings(char_u *val, char **values, bool list)
 {
     return opt_strings_flags(val, values, nullptr, list);
 }
 
     static bool
-opt_strings_flags(char_u *val, char **values, unsigned *flagp, int list)
+opt_strings_flags(char_u *val, char **values, unsigned *flagp, bool list)
 {
     int i;
     int len;
@@ -52746,7 +52746,7 @@ mch_set_shellsize(void)
 }
 
     static void
-mch_breakcheck(int force)
+mch_breakcheck(bool force)
 {
     if ((term_entered || force) && RealWaitForChar(read_cmd_fd, 0L, nullptr, nullptr))
     {
@@ -53684,13 +53684,13 @@ typedef struct
     buf_T *reg_buf;
     linenr_T reg_firstlnum;
     linenr_T reg_maxline;
-    int reg_line_lbr;
+    bool reg_line_lbr;
     linenr_T lnum;
     char_u *line;
     char_u *input;
     int need_clear_subexpr;
     int reg_ic;
-    int reg_icombine;
+    bool reg_icombine;
     colnr_T reg_maxcol;
 } regexec_T;
 
@@ -55268,7 +55268,7 @@ seen_endbrace(int refnum)
 }
 
     static char_u *
-regatom_delim(int c, int delim_nl, int *flagp)
+regatom_delim(int c, bool delim_nl, int *flagp)
 {
     char_u *ret;
     int base = F_PCLOSE;
@@ -58887,7 +58887,7 @@ theend:
 }
 
     static int
-bt_regexec_nl(regmatch_T *rmp, char_u *line, colnr_T col, int line_lbr)
+bt_regexec_nl(regmatch_T *rmp, char_u *line, colnr_T col, bool line_lbr)
 {
     rex.reg_match = rmp;
     rex.reg_mmatch = nullptr;
@@ -58948,7 +58948,7 @@ vim_regfree(regprog_T *prog)
 }
 
     static bool
-vim_regexec_string(regmatch_T *rmp, char_u *line, colnr_T col, int nl)
+vim_regexec_string(regmatch_T *rmp, char_u *line, colnr_T col, bool nl)
 {
     int result;
     regexec_T rex_save;
@@ -59021,13 +59021,13 @@ static yankreg_T *y_previous = nullptr;
 
 static bool stuff_yank(int, char_u *);
 
-static void put_reedit_in_typebuf(int silent);
+static void put_reedit_in_typebuf(bool silent);
 
-static bool put_in_typebuf(char_u *s, int esc, int colon, int silent);
+static bool put_in_typebuf(char_u *s, bool esc, bool colon, bool silent);
 
 static bool yank_copy_line(struct block_def *bd, long y_idx, int exclude_trailing_space);
 
-static void dis_msg(char_u *p, int skip_esc);
+static void dis_msg(char_u *p, bool skip_esc);
 
     static void
 reset_y_append(void)
@@ -59036,7 +59036,7 @@ reset_y_append(void)
 }
 
     static bool
-valid_yank_reg(int regname, int writing)
+valid_yank_reg(int regname, bool writing)
 {
     if ((regname > 0 && ((((unsigned)(regname) - 'A' < 26) || ((unsigned)(regname) - 'a' < 26)) || ((unsigned)(regname) - '0' < 10))) || (!writing && vim_strchr((char_u *)"/#.%:", regname) != nullptr) || regname == '"' || regname == '-' || regname == '_')
     {
@@ -59092,7 +59092,7 @@ get_yank_register(int regname, int writing)
 }
 
     static yankreg_T *
-get_register(int name, int copy)
+get_register(int name, bool copy)
 {
     yankreg_T *reg;
     int i;
@@ -59269,7 +59269,7 @@ execreg_line_continuation(string_T *lines, long *idx)
 }
 
     static bool
-do_execreg(int regname, int colon, int addcr, int silent)
+do_execreg(int regname, bool colon, bool addcr, bool silent)
 {
     long i;
     char_u *p;
@@ -59369,7 +59369,7 @@ do_execreg(int regname, int colon, int addcr, int silent)
 }
 
     static void
-put_reedit_in_typebuf(int silent)
+put_reedit_in_typebuf(bool silent)
 {
     if (restart_edit == NUL)
     {
@@ -59408,7 +59408,7 @@ put_reedit_in_typebuf(int silent)
 }
 
     static bool
-put_in_typebuf(char_u *s, int esc, int colon, int silent)
+put_in_typebuf(char_u *s, bool esc, bool colon, bool silent)
 {
     bool retval = OK;
     put_reedit_in_typebuf(silent);
@@ -59523,7 +59523,7 @@ insert_reg(int regname, int literally_arg)
 }
 
     static bool
-get_spec_reg(int regname, char_u **argp, int *allocated, int errmsg)
+get_spec_reg(int regname, char_u **argp, int *allocated, bool errmsg)
 {
     int cnt;
     *argp = nullptr;
@@ -59596,10 +59596,10 @@ get_spec_reg(int regname, char_u **argp, int *allocated, int errmsg)
 }
 
     static bool
-cmdline_paste_reg(int regname, int literally_arg, int remcr)
+cmdline_paste_reg(int regname, bool literally_arg, bool remcr)
 {
     long i;
-    int literally = literally_arg;
+    bool literally = literally_arg;
     if (get_yank_register(regname, FALSE))
     {
         literally = TRUE;
@@ -59675,7 +59675,7 @@ free_yank_all(void)
 }
 
     static bool
-op_yank(oparg_T *oap, int deleting, int mess)
+op_yank(oparg_T *oap, bool deleting, bool mess)
 {
     long y_idx;
     yankreg_T *curr;
@@ -60665,7 +60665,7 @@ ex_display(exarg_T *eap)
 }
 
     static void
-dis_msg(char_u *p, int skip_esc)
+dis_msg(char_u *p, bool skip_esc)
 {
     int n;
     int l;
@@ -60721,13 +60721,13 @@ get_reg_type(int regname, long *reglen)
 
 static int screen_attr = 0;
 
-static bool screenclear2(int doclear);
+static bool screenclear2(bool doclear);
 
 static void lineclear(unsigned off, int width, int attr);
 
 static void lineinvalid(unsigned off, int width);
 
-static int win_do_lines(win_T *wp, int row, int line_count, int mayclear, int del, int clear_attr);
+static int win_do_lines(win_T *wp, int row, int line_count, bool mayclear, bool del, int clear_attr);
 
 static void win_rest_invalid(win_T *wp);
 
@@ -60773,7 +60773,7 @@ screen_fill_end(win_T *wp, int c1, int c2, int off, int width, int row, int endr
 }
 
     static void
-win_draw_end(win_T *wp, int c1, int c2, int draw_margin, int row, int endrow, hlf_T hl)
+win_draw_end(win_T *wp, int c1, int c2, bool draw_margin, int row, int endrow, hlf_T hl)
 {
     int n = 0;
     int attr = highlight_attr[(int)(hl)];
@@ -61548,7 +61548,7 @@ screen_char(unsigned off, int row, int col)
 }
 
     static void
-screen_draw_rectangle(int row, int col, int height, int width, int invert)
+screen_draw_rectangle(int row, int col, int height, int width, bool invert)
 {
     int r;
     int c;
@@ -61779,7 +61779,7 @@ screen_fill(int start_row, int end_row, int start_col, int end_col, int c1, int 
 }
 
     static void
-check_for_delay(int check_msg_scroll)
+check_for_delay(bool check_msg_scroll)
 {
     if ((emsg_on_display || (check_msg_scroll && msg_scroll)) && !did_wait_return && emsg_silent == 0 && !in_assert_fails)
     {
@@ -61804,14 +61804,14 @@ clear_TabPageIdxs(void)
 }
 
     static bool
-screen_valid(int doclear)
+screen_valid(bool doclear)
 {
     screenalloc(doclear);
     return (ScreenLines != nullptr);
 }
 
     static void
-screenalloc(int doclear)
+screenalloc(bool doclear)
 {
     int new_row;
     int old_row;
@@ -62007,7 +62007,7 @@ redraw_as_cleared(void)
 }
 
     static bool
-screenclear2(int doclear)
+screenclear2(bool doclear)
 {
     int i;
     bool did_clear = FALSE;
@@ -62325,7 +62325,7 @@ setcursor(void)
 }
 
     static void
-setcursor_mayforce(int force)
+setcursor_mayforce(bool force)
 {
     if (force || redrawing())
     {
@@ -62335,7 +62335,7 @@ setcursor_mayforce(int force)
 }
 
     static int
-win_ins_lines(win_T *wp, int row, int line_count, int invalid, int mayclear)
+win_ins_lines(win_T *wp, int row, int line_count, bool invalid, bool mayclear)
 {
     bool did_delete;
     int nextrow;
@@ -62390,7 +62390,7 @@ win_ins_lines(win_T *wp, int row, int line_count, int invalid, int mayclear)
 }
 
     static int
-win_del_lines(win_T *wp, int row, int line_count, int invalid, int mayclear, int clear_attr)
+win_del_lines(win_T *wp, int row, int line_count, bool invalid, bool mayclear, int clear_attr)
 {
     int retval;
     if (invalid)
@@ -62425,7 +62425,7 @@ win_del_lines(win_T *wp, int row, int line_count, int invalid, int mayclear, int
 }
 
     static int
-win_do_lines(win_T *wp, int row, int line_count, int mayclear, int del, int clear_attr)
+win_do_lines(win_T *wp, int row, int line_count, bool mayclear, bool del, int clear_attr)
 {
     bool retval;
     if (!redrawing() || line_count <= 0)
@@ -62668,7 +62668,7 @@ screen_ins_lines(int off, int row, int line_count, int end, int clear_attr, win_
 }
 
     static bool
-screen_del_lines(int off, int row, int line_count, int end, int force, int clear_attr, win_T *wp)
+screen_del_lines(int off, int row, int line_count, int end, bool force, int clear_attr, win_T *wp)
 {
     int j;
     int i;
@@ -63023,7 +63023,7 @@ msg_pos_mode(void)
 }
 
     static void
-unshowmode(int force)
+unshowmode(bool force)
 {
     if (!redrawing() || (!force && char_avail() && !KeyTyped))
     {
@@ -63272,7 +63272,7 @@ field_value_err(char *errbuf, usize errbuflen, char *fmt, char_u *field)
 }
 
     static char *
-set_chars_option(win_T *wp, char_u *value, int is_listchars, int apply, char *errbuf, usize errbuflen)
+set_chars_option(win_T *wp, char_u *value, bool is_listchars, bool apply, char *errbuf, usize errbuflen)
 {
     int round;
     int i;
@@ -63537,13 +63537,13 @@ set_chars_option(win_T *wp, char_u *value, int is_listchars, int apply, char *er
 }
 
     static char *
-set_fillchars_option(win_T *wp, char_u *val, int apply, char *errbuf, usize errbuflen)
+set_fillchars_option(win_T *wp, char_u *val, bool apply, char *errbuf, usize errbuflen)
 {
     return set_chars_option(wp, val, FALSE, apply, errbuf, errbuflen);
 }
 
     static char *
-set_listchars_option(win_T *wp, char_u *val, int apply, char *errbuf, usize errbuflen)
+set_listchars_option(win_T *wp, char_u *val, bool apply, char *errbuf, usize errbuflen)
 {
     return set_chars_option(wp, val, TRUE, apply, errbuf, errbuflen);
 }
@@ -63632,14 +63632,14 @@ typedef struct searchstat
 {
     int cur;
     int cnt;
-    int exact_match;
+    bool exact_match;
     int incomplete;
     int last_maxcount;
 } searchstat_T;
 
-static void cmdline_search_stat(int dirc, pos_T *pos, pos_T *cursor_pos, int show_top_bot_msg, char_u *msgbuf, usize msgbuflen, int recompute, int maxcount, long timeout);
+static void cmdline_search_stat(int dirc, pos_T *pos, pos_T *cursor_pos, bool show_top_bot_msg, char_u *msgbuf, usize msgbuflen, bool recompute, int maxcount, long timeout);
 
-static void update_search_stat(int dirc, pos_T *pos, pos_T *cursor_pos, searchstat_T *stat, int recompute, int maxcount, long timeout);
+static void update_search_stat(int dirc, pos_T *pos, pos_T *cursor_pos, searchstat_T *stat, bool recompute, int maxcount, long timeout);
 
 enum { SEARCH_STAT_DEF_TIMEOUT = 40L };
 
@@ -64832,7 +64832,7 @@ find_rawstring_end(char_u *linep, pos_T *startpos, pos_T *endpos)
 }
 
     static void
-find_mps_values(int *initc, int *findc, int *backwards, int switchit)
+find_mps_values(int *initc, int *findc, int *backwards, bool switchit)
 {
     char_u *ptr;
     ptr = curbuf->b_p_mps;
@@ -65550,7 +65550,7 @@ showmatch(int c)
 }
 
     static int
-is_zero_width(char_u *pattern, usize patternlen, int move, pos_T *cur, int direction)
+is_zero_width(char_u *pattern, usize patternlen, bool move, pos_T *cur, int direction)
 {
     regmmatch_T regmatch;
     int nmatched = 0;
@@ -65601,7 +65601,7 @@ is_zero_width(char_u *pattern, usize patternlen, int move, pos_T *cur, int direc
 }
 
     static bool
-current_search(long count, int forward)
+current_search(long count, bool forward)
 {
     pos_T start_pos;
     pos_T end_pos;
@@ -65728,7 +65728,7 @@ current_search(long count, int forward)
 }
 
     static void
-cmdline_search_stat(int dirc, pos_T *pos, pos_T *cursor_pos, int show_top_bot_msg, char_u *msgbuf, usize msgbuflen, int recompute, int maxcount, long timeout)
+cmdline_search_stat(int dirc, pos_T *pos, pos_T *cursor_pos, bool show_top_bot_msg, char_u *msgbuf, usize msgbuflen, bool recompute, int maxcount, long timeout)
 {
     searchstat_T stat;
     update_search_stat(dirc, pos, cursor_pos, &stat, recompute, maxcount, timeout);
@@ -65778,7 +65778,7 @@ cmdline_search_stat(int dirc, pos_T *pos, pos_T *cursor_pos, int show_top_bot_ms
 }
 
     static void
-update_search_stat(int dirc, pos_T *pos, pos_T *cursor_pos, searchstat_T *stat, int recompute, int maxcount, long timeout)
+update_search_stat(int dirc, pos_T *pos, pos_T *cursor_pos, searchstat_T *stat, bool recompute, int maxcount, long timeout)
 {
     int save_ws = p_ws;
     bool wraparound = FALSE;
@@ -65903,7 +65903,7 @@ vim_strsave_escaped(char_u *string, char_u *esc_chars)
 }
 
     static char_u *
-vim_strsave_escaped_ext(char_u *string, char_u *esc_chars, int cc, int bsl)
+vim_strsave_escaped_ext(char_u *string, char_u *esc_chars, int cc, bool bsl)
 {
     char_u *p;
     char_u *p2;
@@ -66137,7 +66137,7 @@ typedef struct
 
 typedef struct
 {
-    int processing;
+    bool processing;
     char_u start_char;
     garray_T buf;
     long start_tv;
@@ -66517,7 +66517,7 @@ static char_u termleader[256 + 1];
 typedef struct
 {
     char *tpr_name;
-    int tpr_set_by_termresponse;
+    bool tpr_set_by_termresponse;
     int tpr_status;
 } termprop_T;
 
@@ -66558,7 +66558,7 @@ set_rgb_term_prop(void)
 }
 
     static void
-init_term_props(int all)
+init_term_props(bool all)
 {
     int i;
     term_props[TPR_CURSOR_STYLE].tpr_name = "cursor_style";
@@ -66604,7 +66604,7 @@ find_builtin_term(char_u *term)
 }
 
     static void
-apply_builtin_tcap(char_u *term, tcap_entry_T *entries, int overwrite)
+apply_builtin_tcap(char_u *term, tcap_entry_T *entries, bool overwrite)
 {
     bool term_8bit = term_is_8bit(term);
     for (tcap_entry_T *p = entries; p->bt_entry != (int)KS_NAME && p->bt_entry != BT_EXTRA_KEYS; ++p)
@@ -66875,7 +66875,7 @@ set_termname(char_u *term)
 }
 
     static bool
-add_termcap_entry(char_u *name, int force)
+add_termcap_entry(char_u *name, bool force)
 {
     char_u *term;
     int key;
@@ -67048,7 +67048,7 @@ out_flush(void)
 }
 
     static void
-out_flush_cursor(int force, int clear_selection)
+out_flush_cursor(bool force, bool clear_selection)
 {
     ;
     out_flush();
@@ -67245,7 +67245,7 @@ term_bg_default(void)
 }
 
     static void
-ttest(int pairs)
+ttest(bool pairs)
 {
     check_options();
     if (*(term_strings[(int)(KS_CM)]) == NUL)
@@ -68273,7 +68273,7 @@ parse_csi_f_keys(int arg)
 }
 
     static int
-handle_key_with_modifier(int *arg, int csi_len, int offset, char_u *buf, int bufsize, int *buflen, int iskitty, int trail)
+handle_key_with_modifier(int *arg, int csi_len, int offset, char_u *buf, int bufsize, int *buflen, bool iskitty, int trail)
 {
     if (!iskitty && (kitty_protocol_state == KKPS_INITIAL || kitty_protocol_state == KKPS_OFF || kitty_protocol_state == KKPS_AFTER_T_TE) && term_props[TPR_KITTY].tpr_status != TPR_YES)
     {
@@ -69245,7 +69245,7 @@ show_termcodes(int flags)
 }
 
     static int
-show_one_termcode(char_u *name, char_u *code, int printit)
+show_one_termcode(char_u *name, char_u *code, bool printit)
 {
     char_u *p;
     int len;
@@ -69372,7 +69372,7 @@ term_set_sync_output(int flags)
 }
 
     static void
-internal_format(int textwidth, int second_indent, int flags, int format_only, int c)
+internal_format(int textwidth, int second_indent, int flags, bool format_only, int c)
 {
     int cc;
     int save_char = NUL;
@@ -69623,7 +69623,7 @@ fwd_word(long count, int bigword, int eol)
 }
 
     static bool
-bck_word(long count, int bigword, int stop)
+bck_word(long count, int bigword, bool stop)
 {
     int sclass;
     curwin->w_cursor.coladd = 0;
@@ -69662,7 +69662,7 @@ bck_word(long count, int bigword, int stop)
 }
 
     static bool
-end_word(long count, int bigword, int stop, int empty)
+end_word(long count, int bigword, bool stop, bool empty)
 {
     int sclass;
     curwin->w_cursor.coladd = 0;
@@ -69711,7 +69711,7 @@ end_word(long count, int bigword, int stop, int empty)
 }
 
     static bool
-bckend_word(long count, int bigword, int eol)
+bckend_word(long count, bool bigword, bool eol)
 {
     int sclass;
     int i;
@@ -69788,7 +69788,7 @@ back_in_line(void)
 }
 
     static bool
-current_word(oparg_T *oap, long count, int include, int bigword)
+current_word(oparg_T *oap, long count, bool include, bool bigword)
 {
     pos_T start_pos;
     pos_T pos;
@@ -69934,7 +69934,7 @@ current_word(oparg_T *oap, long count, int include, int bigword)
 }
 
     static bool
-current_block(oparg_T *oap, long count, int include, int what, int other)
+current_block(oparg_T *oap, long count, bool include, int what, int other)
 {
     pos_T old_pos;
     pos_T *pos = nullptr;
@@ -70141,7 +70141,7 @@ find_prev_quote(char_u *line, int col_start, int quotechar, char_u *escape)
 }
 
     static bool
-current_quote(oparg_T *oap, long count, int include, int quotechar)
+current_quote(oparg_T *oap, long count, bool include, int quotechar)
 {
     char_u *line = ml_get_curline();
     int col_end;
@@ -70474,7 +70474,7 @@ inchar_loop(char_u *buf, int maxlen, long wtime, int tb_change_cnt, int (*wait_f
 }
 
     static void
-ui_delay(long msec_arg, int ignoreinput)
+ui_delay(long msec_arg, bool ignoreinput)
 {
     long msec = msec_arg;
     mch_delay(msec, ignoreinput ? MCH_DELAY_IGNOREINPUT : 0);
@@ -70527,7 +70527,7 @@ ui_breakcheck(void)
 }
 
     static void
-ui_breakcheck_force(int force)
+ui_breakcheck_force(bool force)
 {
     static bool recursive = FALSE;
     int save_updating_screen = updating_screen;
@@ -70580,7 +70580,7 @@ get_input_buf(void)
 }
 
     static void
-set_input_buf(garray_T *gap, int overwrite)
+set_input_buf(garray_T *gap, bool overwrite)
 {
     if (gap == nullptr)
     {
@@ -70629,7 +70629,7 @@ read_from_input_buf(char_u *buf, long maxlen)
 }
 
     static void
-fill_input_buf(int exit_on_error)
+fill_input_buf(bool exit_on_error)
 {
     int len;
     int try;
@@ -70712,7 +70712,7 @@ check_row(int row)
 }
 
     static void
-ui_focus_change(int in_focus)
+ui_focus_change(bool in_focus)
 {
     static time_T last_time = (time_T)0;
     if (in_focus && last_time + 2 < host_time())
@@ -70727,9 +70727,9 @@ static void u_getbot(void);
 
 static void u_doit(int count);
 
-static void u_undoredo(int undo);
+static void u_undoredo(bool undo);
 
-static void u_undo_end(int did_undo, int absolute);
+static void u_undo_end(int did_undo, bool absolute);
 
 static void u_freeheader(buf_T *buf, u_header_T *uhp, u_header_T **uhpp);
 
@@ -70848,7 +70848,7 @@ u_save_line(undoline_T *ul, linenr_T lnum)
 }
 
     static bool
-u_savecommon(linenr_T top, linenr_T bot, linenr_T newbot, int reload)
+u_savecommon(linenr_T top, linenr_T bot, linenr_T newbot, bool reload)
 {
     linenr_T lnum;
     long i;
@@ -71172,7 +71172,7 @@ u_doit(int startcount)
 }
 
     static void
-undo_time(long step, int sec, int file, int absolute)
+undo_time(long step, bool sec, bool file, bool absolute)
 {
     long target;
     long closest;
@@ -71184,8 +71184,8 @@ undo_time(long step, int sec, int file, int absolute)
     int mark;
     int nomark = 0;
     int round;
-    int dosec = sec;
-    int dofile = file;
+    bool dosec = sec;
+    bool dofile = file;
     bool above = FALSE;
     bool did_undo = TRUE;
     if (text_locked())
@@ -71492,7 +71492,7 @@ target_zero:
 }
 
     static void
-u_undoredo(int undo)
+u_undoredo(bool undo)
 {
     undoline_T *newarray = nullptr;
     linenr_T oldsize;
@@ -71744,7 +71744,7 @@ u_undoredo(int undo)
 }
 
     static void
-u_undo_end(int did_undo, int absolute)
+u_undo_end(int did_undo, bool absolute)
 {
     char *msgstr;
     u_header_T *uhp;
@@ -71823,7 +71823,7 @@ u_undo_end(int did_undo, int absolute)
 }
 
     static void
-u_sync(int force)
+u_sync(bool force)
 {
     if (curbuf->b_u_synced || (!force && no_u_sync > 0))
     {
@@ -72381,11 +72381,11 @@ static void frame_setwidth(frame_T *curfrp, int width);
 
 static void win_fix_scroll(int resize);
 
-static void win_fix_cursor(int normal);
+static void win_fix_cursor(bool normal);
 
-static void frame_new_height(frame_T *topfrp, int height, int topfirst, int wfh, int set_ch);
+static void frame_new_height(frame_T *topfrp, int height, bool topfirst, bool wfh, bool set_ch);
 
-static void frame_new_width(frame_T *topfrp, int width, int leftfirst, int wfw);
+static void frame_new_width(frame_T *topfrp, int width, bool leftfirst, bool wfw);
 
 static bool win_alloc_firstwin(win_T *oldwin);
 
@@ -72397,13 +72397,13 @@ static int frame_minheight(frame_T *topfrp, win_T *next_curwin);
 
 static void frame_add_height(frame_T *frp, int n);
 
-static void last_status_rec(frame_T *fr, int statusline);
+static void last_status_rec(frame_T *fr, bool statusline);
 
 static bool frame_check_height(frame_T *topfrp, int height);
 
 static bool frame_check_width(frame_T *topfrp, int width);
 
-static win_T *win_alloc(win_T *after, int hidden);
+static win_T *win_alloc(win_T *after, bool hidden);
 
     static int
 win_valid(win_T *win)
@@ -72467,7 +72467,7 @@ may_make_initial_scroll_size_snapshot(void)
 static int min_set_ch = 1;
 
     static void
-frame_new_height(frame_T *topfrp, int height, int topfirst, int wfh, int set_ch)
+frame_new_height(frame_T *topfrp, int height, bool topfirst, bool wfh, bool set_ch)
 {
     if (set_ch)
     {
@@ -72485,7 +72485,7 @@ frame_new_height(frame_T *topfrp, int height, int topfirst, int wfh, int set_ch)
 }
 
     static void
-frame_new_width(frame_T *topfrp, int width, int leftfirst, int wfw)
+frame_new_width(frame_T *topfrp, int width, bool leftfirst, bool wfw)
 {
     win_T *wp;
     wp = topfrp->fr_win;
@@ -72593,7 +72593,7 @@ alloc_tabpage(void)
 }
 
     static win_T *
-win_alloc(win_T *after, int hidden)
+win_alloc(win_T *after, bool hidden)
 {
     win_T *new_wp;
     new_wp = (win_T *)alloc_clear(sizeof(win_T));
@@ -72875,7 +72875,7 @@ win_fix_scroll(int resize)
 }
 
     static void
-win_fix_cursor(int normal)
+win_fix_cursor(bool normal)
 {
     win_T *wp = curwin;
     if (skip_win_fix_cursor || !wp->w_do_win_fix_cursor || wp->w_buffer->b_ml.ml_line_count < wp->w_height)
@@ -73092,13 +73092,13 @@ frame_add_height(frame_T *frp, int n)
 }
 
     static void
-last_status(int morewin)
+last_status(bool morewin)
 {
     last_status_rec(topframe, last_stl_height(morewin) > 0);
 }
 
     static void
-last_status_rec(frame_T *fr, int statusline)
+last_status_rec(frame_T *fr, bool statusline)
 {
     win_T *wp;
     wp = fr->fr_win;
@@ -73134,7 +73134,7 @@ statusline_height(win_T *wp)
 }
 
     static int
-last_stl_height(int morewin)
+last_stl_height(bool morewin)
 {
     return (p_ls == 2 || (p_ls == 1 && (morewin || !TRUE))) ? STATUS_HEIGHT : 0;
 }
@@ -73285,7 +73285,7 @@ is_safe_now(void)
 }
 
     static void
-may_trigger_safestate(int safe)
+may_trigger_safestate(bool safe)
 {
 }
 
@@ -73310,7 +73310,7 @@ may_trigger_deferred_events(void)
 }
 
     static void
-main_loop(int cmdwin)
+main_loop(bool cmdwin)
 {
     oparg_T oa;
     oparg_T *prev_oap;
