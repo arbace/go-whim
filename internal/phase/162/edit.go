@@ -28,21 +28,14 @@ func init() { edit.Register("whim162", Edit) }
 // DOCMD_VERBOSE of them; getline_equal() is left with no caller and the sweep
 // takes it.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "getexline", W: w}
-	var err error
-	steps := []struct {
-		Old, New, What string
-		n              int
-	}{
-		{"enum { DOCMD_KEEPLINE = 0x20 };\n", "enum { DOCMD_KEEPLINE = 0x20 };\n\nenum { DOCMD_GETEXLINE = 0x40 };\n", "a flag says the lines come from getexline()", 1},
-		{"do_cmdline(nullptr, getexline, DOCMD_NOWAIT | DOCMD_VERBOSE);", "do_cmdline(nullptr, getexline, DOCMD_NOWAIT | DOCMD_VERBOSE | DOCMD_GETEXLINE);", "ex_at() sets it", 1},
-		{"do_cmdline(nullptr, getexline, flags);", "do_cmdline(nullptr, getexline, flags | DOCMD_GETEXLINE);", "nv_colon() sets it", 1},
-		{"getline_equal(fgetline, getexline)", "(flags & DOCMD_GETEXLINE)", "do_cmdline() tests it where it compared its getter with getexline", 4},
-	}
-	for _, st := range steps {
-		if text, err = p.Literal(text, st.Old, st.New, st.What, st.n); err != nil {
-			return nil, err
-		}
-	}
-	return text, nil
+	e := edit.New("getexline", text, w)
+	e.Literal("enum { DOCMD_KEEPLINE = 0x20 };\n", "enum { DOCMD_KEEPLINE = 0x20 };\n\nenum { DOCMD_GETEXLINE = 0x40 };\n", 1,
+		"a flag says the lines come from getexline()")
+	e.Literal("do_cmdline(nullptr, getexline, DOCMD_NOWAIT | DOCMD_VERBOSE);", "do_cmdline(nullptr, getexline, DOCMD_NOWAIT | DOCMD_VERBOSE | DOCMD_GETEXLINE);", 1,
+		"ex_at() sets it")
+	e.Literal("do_cmdline(nullptr, getexline, flags);", "do_cmdline(nullptr, getexline, flags | DOCMD_GETEXLINE);", 1,
+		"nv_colon() sets it")
+	e.Literal("getline_equal(fgetline, getexline)", "(flags & DOCMD_GETEXLINE)", 4,
+		"do_cmdline() tests it where it compared its getter with getexline")
+	return e.Done()
 }

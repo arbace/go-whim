@@ -35,7 +35,8 @@ func init() { edit.Register("whim129", Edit) }
 // and every writer are unchanged; only the declaration says what the storage
 // holds.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "emoji", W: w}
-	return p.Literal(text, "static char_u *p_emoji;\n", "static int p_emoji;\n",
-		"p_emoji is declared int, the type every boolean option's variable has", 1)
+	e := edit.New("emoji", text, w)
+	e.Literal("static char_u *p_emoji;\n", "static int p_emoji;\n", 1,
+		"p_emoji is declared int, the type every boolean option's variable has")
+	return e.Done()
 }

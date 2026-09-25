@@ -88,7 +88,13 @@ func (e *E) Die(format string, a ...any) {
 	}
 }
 
-func (e *E) Say(what string) { fmt.Fprintf(e.W, "  %-12s %s\n", e.Tag, what) }
+// Say reports an act, and says nothing once the edit has failed: a line after
+// the refusal would describe a tree that is never written.
+func (e *E) Say(what string) {
+	if e.Err == nil {
+		fmt.Fprintf(e.W, "  %-12s %s\n", e.Tag, what)
+	}
+}
 
 // Refuse stops the edit with a message of the phase's own wording, for the
 // assertions that are not a count of a pattern -- "do_exedit mentions n 4 times

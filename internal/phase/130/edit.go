@@ -14,7 +14,6 @@ package p130
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/cutil"
 	"github.com/arbace/go-whim/internal/edit"
 )
 
@@ -31,11 +30,8 @@ func init() { edit.Register("whim130", Edit) }
 // branch stays, dedented, and an `else if` becomes the `if`.  The Go
 // transpilation had to write each as `if false` (internal/gen/FINDINGS.md, 10).
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "sentinel", W: w}
-	Out, err := cutil.FoldNever(text, `if \([a-z]+ == \(pos_T \*\)-1\)`, 3)
-	if err != nil {
-		return nil, p.Die("%v", err)
-	}
-	p.Say("the three tests for (pos_T *)-1 fold away, each keeping the branch that runs")
-	return Out, nil
+	e := edit.New("sentinel", text, w)
+	e.FoldNever(`if \([a-z]+ == \(pos_T \*\)-1\)`, 3,
+		"the three tests for (pos_T *)-1 fold away, each keeping the branch that runs")
+	return e.Done()
 }

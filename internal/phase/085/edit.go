@@ -95,66 +95,45 @@ func init() { edit.Register("whim85", Edit) }
 // remain and the undefined symbol count does not move.  This phase is the
 // warnings, the pause and the flag -- not every isatty caller.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "nottywarn", W: w}
-	var err error
+	e := edit.New("nottywarn", text, w)
 
 	// ---- 0. the invariants the cut rests on ------------------------------
 	// Asserted rather than trusted from the survey: if an upstream gives
 	// tty_fail a second reader, or moves the pause Out of the branch, this
 	// fails loudly instead of taking a decision that is no longer the one
 	// written down.
-	for _, inv := range []struct {
-		Name string
-		want int
-	}{{"tty_fail", 3}, {"ui_delay(2005L", 1}} {
-		if err = p.Count(text, regexp.QuoteMeta(inv.Name), inv.want, inv.Name); err != nil {
-			return nil, err
-		}
-	}
-	if err = p.Count(text, `\bisatty\(`, 5, "isatty"); err != nil {
-		return nil, err
-	}
-	p.Say("tty_fail has its field, its one write and its one read; the 2005 ms pause is the only one")
+	e.CountIs(`tty_fail`, 3, "tty_fail")
+	e.CountIs(`ui_delay\(2005L`, 1, "ui_delay(2005L")
+	e.CountIs(`\bisatty\(`, 5, "isatty")
+	e.Say("tty_fail has its field, its one write and its one read; the 2005 ms pause is the only one")
 
 	// ---- 1. the warnings, the pause and the exit -------------------------
-	// One `else if` in a chain, so foldNever takes the whole branch and
+	// One `else if` in a chain, so FoldNever takes the whole branch and
 	// leaves the exmode_active one before it.
-	text, err = p.FoldNever(text, "check_tty",
-		`^[ \t]*else if \(parmp->want_full_screen && \(!stdout_isatty \|\| !input_isatty\)\)$`,
-		"both warnings, the flush, the --ttyfail exit and the two-second pause", 1)
-	if err != nil {
-		return nil, err
-	}
+	e.InFunction("check_tty", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*else if \(parmp->want_full_screen && \(!stdout_isatty \|\| !input_isatty\)\)$`, 1,
+			"both warnings, the flush, the --ttyfail exit and the two-second pause")
+	})
 
 	// ---- 2. the flag that asked for the exit -----------------------------
-	// The test can no longer be true -- there is no --ttyfail -- so foldNever
+	// The test can no longer be true -- there is no --ttyfail -- so FoldNever
 	// keeps what it chose between: the else branch, where an unrecognised
 	// word after `--` is ME_UNKNOWN_OPTION and a bare `--` sets had_minmin.
-	text, err = p.FoldNever(text, "command_line_scan",
-		`^[ \t]*if \(strncasecmp\(\(char \*\)\(argv\[0\] \+ argv_idx\), \(char \*\)\("ttyfail"\), \(7\)\) == 0\)$`,
-		"--ttyfail, which is now an unknown option like any other", 1)
-	if err != nil {
-		return nil, err
-	}
+	e.InFunction("command_line_scan", func(e *edit.E) {
+		e.FoldNever(`(?m)^[ \t]*if \(strncasecmp\(\(char \*\)\(argv\[0\] \+ argv_idx\), \(char \*\)\("ttyfail"\), \(7\)\) == 0\)$`, 1,
+			"--ttyfail, which is now an unknown option like any other")
+	})
 
 	// ---- 3. the argument check_tty no longer reads -----------------------
 	// The alternative is __attribute__((unused)) on a parameter nothing will
 	// ever read again, which is how slim MARKS an unused parameter and how
 	// whim 67 got rid of one.
-	text, err = p.Literal(text, "check_tty(mparm_T *parmp)\n", "check_tty(void)\n",
-		"check_tty takes nothing: its only use of parmp went with the branch", 1)
-	if err != nil {
-		return nil, err
-	}
-	text, err = p.Literal(text, "    check_tty(&params);\n", "    check_tty();\n",
-		"and its one caller", 1)
-	if err != nil {
-		return nil, err
-	}
+	e.Literal("check_tty(mparm_T *parmp)\n", "check_tty(void)\n", 1,
+		"check_tty takes nothing: its only use of parmp went with the branch")
+	e.Literal("    check_tty(&params);\n", "    check_tty();\n", 1, "and its one caller")
 
-	if err = p.Gone(text, "ttyfail", "not to a terminal",
-		"not from a terminal", "ui_delay(2005L"); err != nil {
-		return nil, err
+	for _, s := range []string{"ttyfail", "not to a terminal", "not from a terminal", "ui_delay(2005L"} {
+		e.CountIs(regexp.QuoteMeta(s), 0, s+" survives the edit")
 	}
-	return text, nil
+	return e.Done()
 }

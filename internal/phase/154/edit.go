@@ -35,6 +35,7 @@ func init() { edit.Register("whim154", Edit) }
 // free_one_termoption(), which nothing else calls.  What the editor does is
 // unchanged, but for the crash (internal/gen/FINDINGS.md).
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "nullwrite", W: w}
-	return p.Literal(text, W154Call, "\n", "ttest() no longer calls free_one_termoption(), whose one effect was a write through NULL", 1)
+	e := edit.New("nullwrite", text, w)
+	e.Literal(W154Call, "\n", 1, "ttest() no longer calls free_one_termoption(), whose one effect was a write through NULL")
+	return e.Done()
 }

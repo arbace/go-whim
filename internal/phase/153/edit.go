@@ -32,7 +32,8 @@ func init() { edit.Register("whim153", Edit) }
 // the latent NULL write included (internal/gen/FINDINGS.md).  The Go transpilation of
 // phase 152 already wrote it this way, since Go cannot compare the two types.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "termopt", W: w}
-	return p.Literal(text, "        if ((char_u *)p->var.ov_str == var)\n", "        if (p->var.ov_str == nullptr && var == nullptr)\n",
-		"free_one_termoption() compares the only way the two can be equal: both NULL", 1)
+	e := edit.New("termopt", text, w)
+	e.Literal("        if ((char_u *)p->var.ov_str == var)\n", "        if (p->var.ov_str == nullptr && var == nullptr)\n", 1,
+		"free_one_termoption() compares the only way the two can be equal: both NULL")
+	return e.Done()
 }

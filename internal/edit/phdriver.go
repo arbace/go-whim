@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"regexp"
 
 	"github.com/arbace/go-whim/internal/cutil"
 )
@@ -86,63 +85,6 @@ func (p Ph) InFunction(text []byte, name string, edit func([]byte) ([]byte, erro
 	Out = append(Out, text[:a]...)
 	Out = append(Out, seg...)
 	return append(Out, text[z:]...), nil
-}
-
-// foldNever folds a condition that can no longer be true, inside one function.
-func (p Ph) FoldNever(text []byte, fn, pattern, what string, n int) ([]byte, error) {
-	Out, err := p.InFunction(text, fn, func(seg []byte) ([]byte, error) {
-		got, err := cutil.FoldNever(seg, "(?m)"+pattern, n)
-		if err != nil {
-			return nil, p.Die("%s -- %v", what, err)
-		}
-		return got, nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	p.Say(what)
-	return Out, nil
-}
-
-// foldAlways folds a condition that is now always true, inside one function.
-func (p Ph) FoldAlways(text []byte, fn, pattern, what string, n int) ([]byte, error) {
-	Out, err := p.InFunction(text, fn, func(seg []byte) ([]byte, error) {
-		got, err := cutil.FoldAlways(seg, "(?m)"+pattern, n)
-		if err != nil {
-			return nil, p.Die("%s -- %v", what, err)
-		}
-		return got, nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	p.Say(what)
-	return Out, nil
-}
-
-// count is how the heredocs state an invariant before cutting: a name that
-// must appear exactly so many times, asserted rather than trusted from the
-// survey, so that an upstream which gave it another reader fails loudly
-// instead of letting the phase take a decision that is no longer the one
-// written down.
-func (p Ph) Count(text []byte, pattern string, want int, what string) error {
-	k := len(regexp.MustCompile(pattern).FindAll(text, -1))
-	if k != want {
-		return p.Die("%s appears %d times, expected %d", what, k, want)
-	}
-	return nil
-}
-
-// gone requires each name to have left the text, which is the last act of
-// most of these blocks: the cut is stated as a partition over the vocabulary
-// and not as a diff.
-func (p Ph) Gone(text []byte, names ...string) error {
-	for _, n := range names {
-		if bytes.Contains(text, []byte(n)) {
-			return p.Die("%s survives the edit", cutil.PyRepr(n))
-		}
-	}
-	return nil
 }
 
 // mentions counts a name as a WHOLE WORD, which is how these blocks state

@@ -13,7 +13,6 @@ package p148
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/cutil"
 	"github.com/arbace/go-whim/internal/edit"
 )
 
@@ -26,7 +25,8 @@ const W148LallocBody = `    if (size == 0)
         iemsg(e_internal_error_lalloc_zero);
     }
 
-    return host_alloc(size);`
+    return host_alloc(size);
+`
 
 // Whim148 makes allocation unable to fail.
 //
@@ -41,11 +41,8 @@ const W148LallocBody = `    if (size == 0)
 // failure branches after every allocation are dead (internal/gen/FINDINGS.md, 9): the
 // next phase folds them.  The Go transpilation had dropped them already.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "nofail", W: w}
-	Out, _, err := cutil.ReplaceBody(text, "lalloc", W148LallocBody)
-	if err != nil {
-		return nil, p.Die("lalloc: %v", err)
-	}
-	p.Say("lalloc() returns what host_alloc() gives, which is never NULL, after reporting a request for zero bytes")
-	return Out, nil
+	e := edit.New("nofail", text, w)
+	e.Body("lalloc", W148LallocBody,
+		"lalloc() returns what host_alloc() gives, which is never NULL, after reporting a request for zero bytes")
+	return e.Done()
 }

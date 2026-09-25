@@ -29,17 +29,12 @@ func init() { edit.Register("whim142", Edit) }
 // version is now its name and its release date, "(2026 Feb 14)", and the
 // binary is a function of the source alone.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "datetime", W: w}
-	var err error
-	steps := []struct{ Old, New, What string }{
-		{"char *msg = _(\"%s (%s, compiled %s)\");", "char *msg = _(\"%s (%s)\");", "it is the name and the release date"},
-		{" + sizeof(VIM_VERSION_DATE_ONLY) - 1 + musl_strlen(date_time);\n", " + sizeof(VIM_VERSION_DATE_ONLY) - 1;\n", "and its length counts no date"},
-		{"msg, VIM_VERSION_LONG_ONLY, VIM_VERSION_DATE_ONLY, date_time);", "msg, VIM_VERSION_LONG_ONLY, VIM_VERSION_DATE_ONLY);", "nor formats one"},
-	}
-	for _, s := range steps {
-		if text, err = p.Literal(text, s.Old, s.New, s.What, 1); err != nil {
-			return nil, err
-		}
-	}
-	return text, nil
+	e := edit.New("datetime", text, w)
+	e.Literal("char *msg = _(\"%s (%s, compiled %s)\");", "char *msg = _(\"%s (%s)\");", 1,
+		"it is the name and the release date")
+	e.Literal(" + sizeof(VIM_VERSION_DATE_ONLY) - 1 + musl_strlen(date_time);\n", " + sizeof(VIM_VERSION_DATE_ONLY) - 1;\n", 1,
+		"and its length counts no date")
+	e.Literal("msg, VIM_VERSION_LONG_ONLY, VIM_VERSION_DATE_ONLY, date_time);", "msg, VIM_VERSION_LONG_ONLY, VIM_VERSION_DATE_ONLY);", 1,
+		"nor formats one")
+	return e.Done()
 }

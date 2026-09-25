@@ -52,17 +52,12 @@ ml_get_invalid(buf_T *buf, linenr_T lnum)
 // paths return what it returns.  ml_get_buf()'s own buffer is then read by
 // nothing, and the sweep takes it.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "errorret", W: w}
-	var err error
-	steps := []struct{ Old, New, What string }{
-		{"        ml_flush_line(buf);\n" + W161Tail, "        ml_flush_line(buf);\n        return ml_get_invalid(buf, lnum);\n", "ml_get_buf() returns ml_get_invalid() for a line past the end"},
-		{"            goto errorret;\n", "            return ml_get_invalid(buf, lnum);\n", "and for a line it cannot find, with no goto"},
-		{"    static char_u *\nml_get_buf(buf_T *buf,", W161Func + "    static char_u *\nml_get_buf(buf_T *buf,", "ml_get_invalid() is the tail the goto jumped into"},
-	}
-	for _, st := range steps {
-		if text, err = p.Literal(text, st.Old, st.New, st.What, 1); err != nil {
-			return nil, err
-		}
-	}
-	return text, nil
+	e := edit.New("errorret", text, w)
+	e.Literal("        ml_flush_line(buf);\n"+W161Tail, "        ml_flush_line(buf);\n        return ml_get_invalid(buf, lnum);\n", 1,
+		"ml_get_buf() returns ml_get_invalid() for a line past the end")
+	e.Literal("            goto errorret;\n", "            return ml_get_invalid(buf, lnum);\n", 1,
+		"and for a line it cannot find, with no goto")
+	e.Literal("    static char_u *\nml_get_buf(buf_T *buf,", W161Func+"    static char_u *\nml_get_buf(buf_T *buf,", 1,
+		"ml_get_invalid() is the tail the goto jumped into")
+	return e.Done()
 }

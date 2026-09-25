@@ -27,21 +27,18 @@ func init() { edit.Register("whim157", Edit) }
 // functions and the two locals between them (nv_edit's reg1 and reg2) now
 // say yankreg_T *.  No code changes: the pointer is the same pointer.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "register", W: w}
-	var err error
-	steps := []struct{ Old, New, What string }{
-		{"static void *get_register(int name, int copy);\n\nstatic void put_register(int name, void *reg);\n",
-			"static yankreg_T *get_register(int name, int copy);\n\nstatic void put_register(int name, yankreg_T *reg);\n", "get_register() returns a yankreg_T * and put_register() takes one: the prototypes"},
-		{"    static void *\nget_register(", "    static yankreg_T *\nget_register(", "get_register()'s definition"},
-		{"    return (void *)reg;\n", "    return reg;\n", "which returns the register without a cast"},
-		{"put_register(int name, void *reg)\n", "put_register(int name, yankreg_T *reg)\n", "put_register()'s definition"},
-		{"    *y_current = *(yankreg_T *)reg;\n", "    *y_current = *reg;\n", "which copies it without a cast"},
-		{"    void *reg1 = nullptr;\n    void *reg2 = nullptr;\n", "    yankreg_T *reg1 = nullptr;\n    yankreg_T *reg2 = nullptr;\n", "and the two locals between them hold yankreg_T *"},
-	}
-	for _, st := range steps {
-		if text, err = p.Literal(text, st.Old, st.New, st.What, 1); err != nil {
-			return nil, err
-		}
-	}
-	return text, nil
+	e := edit.New("register", text, w)
+	e.Literal("static void *get_register(int name, int copy);\n\nstatic void put_register(int name, void *reg);\n", "static yankreg_T *get_register(int name, int copy);\n\nstatic void put_register(int name, yankreg_T *reg);\n", 1,
+		"get_register() returns a yankreg_T * and put_register() takes one: the prototypes")
+	e.Literal("    static void *\nget_register(", "    static yankreg_T *\nget_register(", 1,
+		"get_register()'s definition")
+	e.Literal("    return (void *)reg;\n", "    return reg;\n", 1,
+		"which returns the register without a cast")
+	e.Literal("put_register(int name, void *reg)\n", "put_register(int name, yankreg_T *reg)\n", 1,
+		"put_register()'s definition")
+	e.Literal("    *y_current = *(yankreg_T *)reg;\n", "    *y_current = *reg;\n", 1,
+		"which copies it without a cast")
+	e.Literal("    void *reg1 = nullptr;\n    void *reg2 = nullptr;\n", "    yankreg_T *reg1 = nullptr;\n    yankreg_T *reg2 = nullptr;\n", 1,
+		"and the two locals between them hold yankreg_T *")
+	return e.Done()
 }

@@ -14,7 +14,6 @@ package p140
 import (
 	"io"
 
-	"github.com/arbace/go-whim/internal/cutil"
 	"github.com/arbace/go-whim/internal/edit"
 )
 
@@ -39,7 +38,8 @@ const W140LookupBody = `    char_u      name_u[MAX_SYN_NAME + 1];
             return i + 1;
         }
     }
-    return 0;`
+    return 0;
+`
 
 // Whim140 finds a highlight group by name in the array that holds it.
 //
@@ -55,23 +55,13 @@ const W140LookupBody = `    char_u      name_u[MAX_SYN_NAME + 1];
 // syn_unadd_group() is the length going down.  highlight_ht was the last hash
 // table, and the sweep takes the hash table code with it.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "hlname", W: w}
-	Out, _, err := cutil.ReplaceBody(text, "syn_name2id_len", W140LookupBody)
-	if err != nil {
-		return nil, p.Die("syn_name2id_len: %v", err)
-	}
-	p.Say("syn_name2id_len() finds the group whose upper-cased name is the name, and gives its index + 1")
-	Out, _, err = cutil.ReplaceBody(Out, "syn_unadd_group", "    --highlight_ga.ga_len;")
-	if err != nil {
-		return nil, p.Die("syn_unadd_group: %v", err)
-	}
-	p.Say("syn_unadd_group() drops the last group")
-	steps := []struct {
-		Old, New, What string
-		n              int
-	}{
-		{"        hash_init(&highlight_ht);\n        highlight_ht_inited = true;\n", "", "syn_add_group() starts no table", 1},
-		{`    {
+	e := edit.New("hlname", text, w)
+	e.Body("syn_name2id_len", W140LookupBody,
+		"syn_name2id_len() finds the group whose upper-cased name is the name, and gives its index + 1")
+	e.Body("syn_unadd_group", "    --highlight_ga.ga_len;\n", "syn_unadd_group() drops the last group")
+	e.Literal("        hash_init(&highlight_ht);\n        highlight_ht_inited = true;\n", "", 1,
+		"syn_add_group() starts no table")
+	e.Literal(`    {
         hlname_T *hn;
         int len = (int)musl_strlen((char *)(name));
         hn = alloc(__builtin_offsetof(hlname_T, hn_key) + len + 1);
@@ -90,13 +80,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
         return 0;
     }
     vim_strup(name_up);
-`, "saves the upper-cased name on its own, with no id beside it", 1},
-		{"    hash_add(&highlight_ht, name_up, \"highlight\");\n", "", "and adds it to no table", 1},
-	}
-	for _, s := range steps {
-		if Out, err = p.Literal(Out, s.Old, s.New, s.What, s.n); err != nil {
-			return nil, err
-		}
-	}
-	return Out, nil
+`, 1,
+		"saves the upper-cased name on its own, with no id beside it")
+	e.Literal("    hash_add(&highlight_ht, name_up, \"highlight\");\n", "", 1,
+		"and adds it to no table")
+	return e.Done()
 }

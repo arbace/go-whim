@@ -34,6 +34,7 @@ const (
 // pointer has set.  The one union member read where its discriminant does not
 // say it holds (internal/ccx's Unions).  The test now asks t_colors first.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "font", W: w}
-	return p.Literal(text, W158Font, W158Guard, "screen_start_highlight() reads cterm.font only when t_colors > 1 says the entry is a cterm entry", 1)
+	e := edit.New("font", text, w)
+	e.Literal(W158Font, W158Guard, 1, "screen_start_highlight() reads cterm.font only when t_colors > 1 says the entry is a cterm entry")
+	return e.Done()
 }

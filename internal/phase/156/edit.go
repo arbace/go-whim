@@ -12,7 +12,6 @@ package p156
 
 import (
 	"io"
-	"strings"
 
 	"github.com/arbace/go-whim/internal/edit"
 )
@@ -33,17 +32,10 @@ const W156Sentinel = "((char_u *)-1)"
 // Here too: the sentinel is the address of reg_calc_size_node, a static byte
 // nothing reads or writes, and all fourteen uses compare with or assign it.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "calcsize", W: w}
-	s := string(text)
-	if n := strings.Count(s, W156Sentinel); n != 14 {
-		return nil, p.Die("the size pass's sentinel is written %d times, and this phase was written against 14", n)
-	}
-	s = strings.ReplaceAll(s, W156Sentinel, "reg_calc_size_node")
-	o, err := p.Literal([]byte(s), "static char_u *regcode;\n", "static char_u *regcode;\nstatic char_u reg_calc_size_node[1];\n",
-		"the size pass's node is a static byte, compared by address and never read", 1)
-	if err != nil {
-		return nil, err
-	}
-	p.Say("its fourteen uses compare with or assign the address of that byte, not (char_u *)-1")
-	return o, nil
+	e := edit.New("calcsize", text, w)
+	e.Literal("static char_u *regcode;\n", "static char_u *regcode;\nstatic char_u reg_calc_size_node[1];\n", 1,
+		"the size pass's node is a static byte, compared by address and never read")
+	e.Literal(W156Sentinel, "reg_calc_size_node", 14,
+		"its fourteen uses compare with or assign the address of that byte, not (char_u *)-1")
+	return e.Done()
 }

@@ -29,19 +29,16 @@ func init() { edit.Register("whim136", Edit) }
 // bt_regcomp() stops recording an engine; the sweep takes the table, the field
 // and regengine_T (internal/gen/FINDINGS.md, 4).
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "engine", W: w}
-	var err error
-	steps := []struct{ Old, New, What string }{
-		{"prog = bt_regengine.regcomp(expr, re_flags);", "prog = bt_regcomp(expr, re_flags);", "vim_regcomp() calls bt_regcomp()"},
-		{"prog->engine->regfree(prog);", "bt_regfree(prog);", "vim_regfree() calls bt_regfree()"},
-		{"rmp->regprog->engine->regexec_nl(rmp, line, col, nl);", "bt_regexec_nl(rmp, line, col, nl);", "vim_regexec_string() calls bt_regexec_nl()"},
-		{"rmp->regprog->engine->regexec_multi(rmp, win, buf, lnum, col, timed_out);", "bt_regexec_multi(rmp, win, buf, lnum, col, timed_out);", "vim_regexec_multi() calls bt_regexec_multi()"},
-		{"    r->engine = &bt_regengine;\n", "", "and a program records no engine"},
-	}
-	for _, s := range steps {
-		if text, err = p.Literal(text, s.Old, s.New, s.What, 1); err != nil {
-			return nil, err
-		}
-	}
-	return text, nil
+	e := edit.New("engine", text, w)
+	e.Literal("prog = bt_regengine.regcomp(expr, re_flags);", "prog = bt_regcomp(expr, re_flags);", 1,
+		"vim_regcomp() calls bt_regcomp()")
+	e.Literal("prog->engine->regfree(prog);", "bt_regfree(prog);", 1,
+		"vim_regfree() calls bt_regfree()")
+	e.Literal("rmp->regprog->engine->regexec_nl(rmp, line, col, nl);", "bt_regexec_nl(rmp, line, col, nl);", 1,
+		"vim_regexec_string() calls bt_regexec_nl()")
+	e.Literal("rmp->regprog->engine->regexec_multi(rmp, win, buf, lnum, col, timed_out);", "bt_regexec_multi(rmp, win, buf, lnum, col, timed_out);", 1,
+		"vim_regexec_multi() calls bt_regexec_multi()")
+	e.Literal("    r->engine = &bt_regengine;\n", "", 1,
+		"and a program records no engine")
+	return e.Done()
 }
