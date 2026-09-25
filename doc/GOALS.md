@@ -3923,8 +3923,7 @@ Not yet done, and each one only when it is asked for:
   again: `crefactor/cemit` joins the AST to the source text by byte offset, so a
   mutation that moves the tree leaves the text standing, and deleting a table row
   yields BYTE-IDENTICAL output — an edit that did nothing, which the product gate
-  cannot see. `doc/AST-EDITING.md` has the measurements and what would
-  unblock it. The cheap half of the idea stands: the AST as a LOCATOR, with the
+  cannot see (10 of 10 deletions, measured). The cheap half of the idea stands: the AST as a LOCATOR, with the
   text still doing the editing.
 - **The Go editor, idiomatic.** `doc/GO-IDIOMS.md` measured how far the
   generated Go is from idiomatic and ranked the work; `make whim-test` runs the

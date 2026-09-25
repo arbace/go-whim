@@ -182,8 +182,7 @@ src/               the input and the product: slim-vim.c (fetched, not tracked),
                    whim-vim.c (produced, tracked), their binaries slim-vim and
                    whim-vim, upstream.sha and slim.sha
 doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
-                   done, in order), and four surveys: AST-EDITING.md (the phases
-                   editing the AST: not taken, to revisit), GO-IDIOMS.md (how the Go
+                   done, in order), and three surveys: GO-IDIOMS.md (how the Go
                    editor could be idiomatic, measured and ranked), DSL.md (a language
                    for phase edits: not a language but one Go verb set, since done) and
                    VIM-VS-GENERIC.md (which steps are generic C, and how to separate them)

@@ -21,8 +21,7 @@ that keeps an identity -- a base and an offset, which is `Ptr[byte]` -- is what
 the editor already has. Revisit only as a redesign of the string
 representation, not as a generator rule.
 
-**In-AST editing.** `doc/AST-EDITING.md`, and `GOALS.md`'s *What comes next*.
-Not on cost: `crefactor/cemit` joins the AST to the source text by byte offset, so
+**In-AST editing** (`GOALS.md`'s *What comes next*). Not on cost: `crefactor/cemit` joins the AST to the source text by byte offset, so
 a mutation moves the tree while the text stands still, and deleting a table row
 gives BYTE-IDENTICAL output -- an edit that did nothing, which `whim-build-check`
 cannot see. 10 of 10 deletions did this. What survives the assessment is the

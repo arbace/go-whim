@@ -400,9 +400,10 @@ logic is Go written worse. Not a fit.
   that are real Go.
 
 The C analogue, patterns parsed by `crefactor/cc` and matched on the tree, is
-the *locator* half of `doc/AST-EDITING.md`'s recommended hybrid. That is
-possible for matching. For editing it is blocked by what that document measured
-(cemit maps tree to source by position).
+the *locator* half of the in-AST editing survey's recommended hybrid (since
+dropped; `GOALS.md`, *What comes next*). That is possible for matching. For
+editing it is blocked by what that survey measured (cemit maps tree to source
+by position).
 
 **Starlark** (`go.starlark.net`) is a deterministic, hermetic Python dialect
 used by Bazel and embedded from Go. It would give loops and conditions without
@@ -731,8 +732,8 @@ off.
   looser matching than the refusal discipline wants. Take comby's *holes* as a
   Go verb instead;
 - use Starlark or `text/template` as the phase language;
-- use an AST-mutating language (`doc/AST-EDITING.md`: blocked by cemit's
-  position mapping).
+- use an AST-mutating language (blocked by cemit's position mapping;
+  `GOALS.md`, *What comes next*).
 
 ---
 

@@ -135,8 +135,7 @@ internal/gen/    the generator of editor/editor.go (go tool whim gen: crefactor/
                  sigs.md, CONVENTIONS.md and FINDINGS.md
 Makefile         the whole build: the input, the pipeline, the binaries, the editor
 doc/             GOALS.md (what holds for every phase), AGENDA.md (what is not
-                 done, in order), and four surveys: AST-EDITING.md (the phases
-                 editing the AST: not taken, to revisit), GO-IDIOMS.md (how the Go
+                 done, in order), and three surveys: GO-IDIOMS.md (how the Go
                  editor could be idiomatic, measured and ranked), DSL.md (a language
                  for phase edits: partially, as Go verbs) and VIM-VS-GENERIC.md (which
                  steps are generic C, and how to separate them: done)
