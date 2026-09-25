@@ -241,7 +241,6 @@ func TestPureCond(t *testing.T) {
 // and xform's EmptyBlocks drops `if (tick(n)) { }` -- a side effect removed
 // in both.  `f()`, `f(1)` and `f(a, b)` are judged correctly.
 func TestPureCondCallOfOneName(t *testing.T) {
-	t.Skip("edit: PureCond takes `f(a)` for a cast and calls it pure; see the comment")
 	for _, cond := range []string{"f(a)", "x > 1 && check (y)"} {
 		if PureCond(cond) {
 			t.Errorf("PureCond(%q) = true, want false: it calls", cond)

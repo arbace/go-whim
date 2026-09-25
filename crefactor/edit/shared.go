@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strings"
 	"sync"
 )
 
@@ -189,9 +190,35 @@ func ContainsStr(xs []string, x string) bool {
 // no ++ or --.  Casts and sizeof read nothing a call could change; they are
 // allowed.  (From phase 134.)
 func PureCond(cond string) bool {
-	c := regexp.MustCompile(`\((?:const\s+)?(?:unsigned\s+)?[A-Za-z_]\w*\s*\**\s*\)`).ReplaceAllString(cond, "")
+	c := dropCasts(cond)
 	c = regexp.MustCompile(`\bsizeof\s*\(`).ReplaceAllString(c, "(")
 	return !callToken.MatchString(c) && !writeToken.MatchString(c)
+}
+
+// castRe is what a cast looks like: a parenthesised type name.  So does the
+// argument list of a call with one bare-name argument, `f(a)`.
+var castRe = regexp.MustCompile(`\((?:const\s+)?(?:unsigned\s+)?[A-Za-z_]\w*\s*\**\s*\)`)
+
+// dropCasts removes every cast from a condition.  A `(name)` is an argument
+// list, not a cast, when what precedes it (spaces aside) ends a name or an
+// expression -- a word character, `)` or `]` -- and it is kept, so that
+// PureCond sees the call.
+func dropCasts(cond string) string {
+	var b strings.Builder
+	last := 0
+	for _, m := range castRe.FindAllStringIndex(cond, -1) {
+		k := m[0]
+		for k > 0 && (cond[k-1] == ' ' || cond[k-1] == '\t') {
+			k--
+		}
+		if k > 0 && (IsWordByte(cond[k-1]) || cond[k-1] == ')' || cond[k-1] == ']') {
+			continue
+		}
+		b.WriteString(cond[last:m[0]])
+		last = m[1]
+	}
+	b.WriteString(cond[last:])
+	return b.String()
 }
 
 // From phase 071.
