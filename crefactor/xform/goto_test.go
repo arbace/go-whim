@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
@@ -745,6 +746,10 @@ func output(t *testing.T, src string) string {
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin)
 	cmd.Stderr = io.Discard
+	// and if this test process dies first -- a `go test` killed from outside
+	// -- the context never fires: the kernel kills the program with it, or a
+	// control that loops for ever outlives the test (one ran for three hours).
+	cmd.SysProcAttr = &syscall.SysProcAttr{Pdeathsig: syscall.SIGKILL}
 	out, err := cmd.Output()
 	if err != nil {
 		return fmt.Sprintf("the program fails: %v\n", err)
