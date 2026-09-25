@@ -355,7 +355,6 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 		for _, c := range []struct{ pat, what string }{
-			{`^[ \t]*vimconv_T[ \t]+vimconv;\n`, "mb_init's conversion"},
 			{`^[ \t]*vimconv\.vc_type = CONV_NONE;\n`, "mb_init clearing a conversion"},
 			{`^[ \t]*convert_setup\(&vimconv, NULL, NULL\);\n`, "mb_init setting up no conversion"},
 		} {
@@ -401,8 +400,6 @@ func NoConv(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 		for _, c := range []struct{ pat, what string }{
-			{`^[ \t]*vimconv_T[ \t]+vimconv;\n`, "utf_find_illegal's conversion"},
-			{`^[ \t]*char_u[ \t]+\*tofree = NULL;\n`, "utf_find_illegal's converted copy"},
 			{`^[ \t]*vimconv\.vc_type = CONV_NONE;\n`, "utf_find_illegal clearing a conversion"},
 			{`^[ \t]*vim_free\(tofree\);\n`, "utf_find_illegal freeing a converted copy"},
 			{`^[ \t]*convert_setup\(&vimconv, NULL, NULL\);\n`, "utf_find_illegal ending no conversion"},
