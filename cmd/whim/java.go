@@ -31,15 +31,17 @@ func javaGen(editorC, dir, javaOut string) error {
 //
 //	whim java [--out DIR] [FILE]
 //
-// FILE is src/whim-vim.c by default and DIR bin/java; the launcher is
-// bin/whim-java, beside DIR.
+// FILE is src/whim-vim.c by default and DIR lib/java, where the sources and
+// the classes go; the launcher is bin/whim-java -- or DIR/whim-java when DIR
+// is given, so a build elsewhere writes nothing under bin/.
 func runJava(args []string) int {
-	file, out := "src/whim-vim.c", filepath.Join("bin", "java")
+	file, out, link := "src/whim-vim.c", filepath.Join("lib", "java"), filepath.Join("bin", "whim-java")
 	for i := 0; i < len(args); i++ {
 		switch {
 		case args[i] == "--out" && i+1 < len(args):
 			i++
 			out = args[i]
+			link = filepath.Join(out, "whim-java")
 		case len(args[i]) > 0 && args[i][0] != '-':
 			file = args[i]
 		default:
@@ -51,7 +53,10 @@ func runJava(args []string) int {
 		fmt.Fprintf(os.Stderr, "whim java: %v\n", err)
 		return 1
 	}
-	link := filepath.Join(filepath.Dir(out), "whim-java")
+	if err := os.MkdirAll(filepath.Dir(link), 0o755); err != nil {
+		fmt.Fprintf(os.Stderr, "whim java: %v\n", err)
+		return 1
+	}
 	if _, err := jeditor.Build(javaGen, file, out, link, nil); err != nil {
 		fmt.Fprintf(os.Stderr, "whim java: %v\n", err)
 		return 1

@@ -221,7 +221,8 @@ jeditor/           the editor in Java (doc/JAVA.md), by hand but for Editor.java
                    Function & Memory API and sun.misc.Signal); Whim.java the
                    glue (Editor's subclass) and the launcher's main; and
                    jeditor.go, the Go that builds it all (`go tool whim java`,
-                   make bin/whim-java: bin/java/classes and bin/whim-java)
+                   make bin/whim-java: lib/java/classes and bin/whim-java; make
+                   jeditor.jar: the same as ./jeditor.jar)
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
                    binaries and the editor
 src/               the input and the product: slim-vim.c (fetched, not tracked),

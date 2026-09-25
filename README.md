@@ -90,7 +90,7 @@ make whim-test-wide  # the wide suite, 240 cases
 make whim-test-java  # the quick suite with the Java editor too
 make go-test         # the Go packages' tests, this module's and crefactor/'s
 make bin/whim-java   # the editor in Java, and a launcher: bin/whim-java [args]
-make jeditor.jar     # the same as one jar: java -jar bin/jeditor.jar [args]
+make jeditor.jar     # the same as one jar: java -jar jeditor.jar [args]
 make help            # every target, with a line each
 make editor.c        # whim-vim.c's core, cut at the line between core and host
 make editor/editor.go  # the core in Go, generated from editor.c
@@ -153,9 +153,10 @@ the Go (`doc/JAVA.md`):
   the terminal host, which calls `ioctl`, `select`, `read` and `write` through
   the Foreign Function & Memory API; **`Whim.java`** the glue and the launcher.
 
-`make bin/whim-java` builds it and a launcher script, `make jeditor.jar` the
-same as an executable jar (`java -jar bin/jeditor.jar`: its manifest grants the
-host its native access); `make whim-test-java` requires it to answer every case
+`make bin/whim-java` builds it into `lib/java/` and a launcher script,
+`bin/whim-java`; `make jeditor.jar` packs the same as an executable jar at the
+top of the tree (`java -jar jeditor.jar`: its manifest grants the host its
+native access); `make whim-test-java` requires it to answer every case
 as the C does, and it does -- 45 of 45, and 240 of 240 with `--wide`.
 
 ## Requirements

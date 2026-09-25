@@ -10,6 +10,11 @@
 /src/whim-vim
 /bin/
 
+# The Java editor's build: its sources and classes (make bin/whim-java), and
+# the same as one jar at the top (make jeditor.jar).
+/lib/
+/jeditor.jar
+
 # The core half of whim-vim.c, cut at the first #include by `make editor.c`.
 editor.c
 

@@ -58,7 +58,8 @@ Java's own limits, which the emitter must respect:
   `Editor`, and the launcher's `main`) -- and `jeditor.go`, the Go that builds
   it: `Editor.java` generated from a `whim-vim.c`, compiled with the rest, and
   a launcher script. `Editor.java` is generated and tracked (`jeditor/Editor.java`,
-  milestone 4); `make bin/whim-java` compiles it under `bin/java/`. *Milestone
+  milestone 4); `make bin/whim-java` compiles it under `lib/java/`, and `make jeditor.jar` packs the classes as
+  `./jeditor.jar`. *Milestone
   3, as built*.
 
 The JDK on the machine is 26.
@@ -408,7 +409,7 @@ not written when the editor ends with `System.exit`, and the JVM then prints
 its error on stdout. **`make bin/whim-java`** (`go tool whim java [--out DIR]
 [FILE]`) writes it: `editor.c` cut from `src/whim-vim.c`, `Editor.java`
 generated with the profile `whim gen` uses, compiled with the rest in 5.0 s
-(javac 2.5 s of it) into `bin/java/classes`, and `bin/whim-java`. JDK 26
+(javac 2.5 s of it) into `lib/java/classes`, and `bin/whim-java`. JDK 26
 compiles it with no error; under `-nowarn` the only warnings javac still
 prints are the nine mandatory ones for `sun.misc.Signal` above.
 
