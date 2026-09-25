@@ -247,8 +247,8 @@ func musl_fmtptr(dest Ptr[byte], v uint64) int32 {
 	return 18
 }
 
-func vim_snprintf(p0 Ptr[byte], p1 usize, p2 Ptr[byte], args ...any) int32 {
-	return vim_vsnprintf_typval(p0, p1, p2, args)
+func (ed *Editor) vim_snprintf(p0 Ptr[byte], p1 usize, p2 Ptr[byte], args ...any) int32 {
+	return ed.vim_vsnprintf_typval(p0, p1, p2, args)
 }
 
 func format_typeof(type_ Ptr[byte]) int32 {
@@ -345,16 +345,16 @@ func format_typename(type_ Ptr[byte]) Ptr[byte] {
 
 // hostFmtError is the vim_snprintf-into-IObuff-then-emsg pair every format
 // error makes.
-func hostFmtError(msg Ptr[byte], args ...any) {
-	vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(msg), args...)
-	emsg(iobuff_or(gettext_(msg)))
+func (ed *Editor) hostFmtError(msg Ptr[byte], args ...any) {
+	ed.vim_snprintf(ed.IObuff, ed.emsg_iobuff_room(), gettext_(msg), args...)
+	ed.emsg(ed.iobuff_or(gettext_(msg)))
 }
 
 // adjust_types: ap_types is a C array of `const char *` into fmt; here a Go
 // slice of them, nil for the C NULL array, Ptr{} for a NULL entry.
-func adjust_types(ap_types *[]Ptr[byte], arg int32, num_posarg *int32, type_ Ptr[byte]) int32 {
+func (ed *Editor) adjust_types(ap_types *[]Ptr[byte], arg int32, num_posarg *int32, type_ Ptr[byte]) int32 {
 	if arg <= 0 {
-		hostFmtError(e_invalid_format_specifier_str, type_)
+		ed.hostFmtError(e_invalid_format_specifier_str, type_)
 		return FAIL
 	}
 
@@ -380,15 +380,15 @@ func adjust_types(ap_types *[]Ptr[byte], arg int32, num_posarg *int32, type_ Ptr
 				switch pt.At(0) {
 				case 'd', 'i':
 				default:
-					vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_positional_num_field_spec_reused_str_str), arg, format_typename((*ap_types)[arg-1]), format_typename(type_))
-					emsg(iobuff_or(gettext_(e_positional_num_field_spec_reused_str_str)))
+					ed.vim_snprintf(ed.IObuff, ed.emsg_iobuff_room(), gettext_(e_positional_num_field_spec_reused_str_str), arg, format_typename((*ap_types)[arg-1]), format_typename(type_))
+					ed.emsg(ed.iobuff_or(gettext_(e_positional_num_field_spec_reused_str_str)))
 					return FAIL
 				}
 			}
 		} else {
 			if format_typeof(type_) != format_typeof((*ap_types)[arg-1]) {
-				vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_positional_arg_num_type_inconsistent_str_str), arg, format_typename(type_), format_typename((*ap_types)[arg-1]))
-				emsg(iobuff_or(gettext_(e_positional_arg_num_type_inconsistent_str_str)))
+				ed.vim_snprintf(ed.IObuff, ed.emsg_iobuff_room(), gettext_(e_positional_arg_num_type_inconsistent_str_str), arg, format_typename(type_), format_typename((*ap_types)[arg-1]))
+				ed.emsg(ed.iobuff_or(gettext_(e_positional_arg_num_type_inconsistent_str_str)))
 				return FAIL
 			}
 		}
@@ -398,7 +398,7 @@ func adjust_types(ap_types *[]Ptr[byte], arg int32, num_posarg *int32, type_ Ptr
 	return OK
 }
 
-func format_overflow_error(pstart Ptr[byte]) {
+func (ed *Editor) format_overflow_error(pstart Ptr[byte]) {
 	p := pstart
 	for hostIsDigit(p.Get()) {
 		p = p.Add(1)
@@ -406,11 +406,11 @@ func format_overflow_error(pstart Ptr[byte]) {
 	arglen := usize(p.Sub(pstart))
 	argcopy := Alloc(int(arglen + 1))
 	Memmove(argcopy, pstart, int(arglen))
-	vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(e_val_too_large), argcopy)
-	emsg(iobuff_or(gettext_(e_val_too_large)))
+	ed.vim_snprintf(ed.IObuff, ed.emsg_iobuff_room(), gettext_(ed.e_val_too_large), argcopy)
+	ed.emsg(ed.iobuff_or(gettext_(ed.e_val_too_large)))
 }
 
-func get_unsigned_int(pstart Ptr[byte], p *Ptr[byte], uj *uint32, overflow_err int32) int32 {
+func (ed *Editor) get_unsigned_int(pstart Ptr[byte], p *Ptr[byte], uj *uint32, overflow_err int32) int32 {
 	*uj = uint32(p.Get()) - '0'
 	*p = p.Add(1)
 
@@ -421,7 +421,7 @@ func get_unsigned_int(pstart Ptr[byte], p *Ptr[byte], uj *uint32, overflow_err i
 
 	if *uj > MAX_ALLOWED_STRING_WIDTH {
 		if overflow_err != 0 {
-			format_overflow_error(pstart)
+			ed.format_overflow_error(pstart)
 			return FAIL
 		}
 		*uj = MAX_ALLOWED_STRING_WIDTH
@@ -432,7 +432,7 @@ func get_unsigned_int(pstart Ptr[byte], p *Ptr[byte], uj *uint32, overflow_err i
 // hostTvs is `tvs != nullptr`: always false in this program.
 const hostTvs = 0
 
-func parse_fmt_types(ap_types *[]Ptr[byte], num_posarg *int32, fmt Ptr[byte]) int32 {
+func (ed *Editor) parse_fmt_types(ap_types *[]Ptr[byte], num_posarg *int32, fmt Ptr[byte]) int32 {
 	p := fmt
 	var arg Ptr[byte]
 	var any_pos, any_arg int32
@@ -445,7 +445,7 @@ func parse_fmt_types(ap_types *[]Ptr[byte], num_posarg *int32, fmt Ptr[byte]) in
 	// CHECK_POS_ARG
 	mixed := func() bool {
 		if any_pos != 0 && any_arg != 0 {
-			hostFmtError(e_cannot_mix_positional_and_non_positional_str, fmt)
+			ed.hostFmtError(e_cannot_mix_positional_and_non_positional_str, fmt)
 			return true
 		}
 		return false
@@ -480,11 +480,11 @@ func parse_fmt_types(ap_types *[]Ptr[byte], num_posarg *int32, fmt Ptr[byte]) in
 
 			if ptype.Get() == '$' {
 				if p.Get() == '0' {
-					hostFmtError(e_invalid_format_specifier_str, fmt)
+					ed.hostFmtError(e_invalid_format_specifier_str, fmt)
 					return fail()
 				}
 				var uj uint32
-				if get_unsigned_int(pstart, &p, &uj, hostTvs) == FAIL {
+				if ed.get_unsigned_int(pstart, &p, &uj, hostTvs) == FAIL {
 					return fail()
 				}
 				pos_arg = int32(uj)
@@ -504,11 +504,11 @@ func parse_fmt_types(ap_types *[]Ptr[byte], num_posarg *int32, fmt Ptr[byte]) in
 				p = p.Add(1)
 				if hostIsDigit(p.Get()) {
 					var uj uint32
-					if get_unsigned_int(arg.Add(1), &p, &uj, hostTvs) == FAIL {
+					if ed.get_unsigned_int(arg.Add(1), &p, &uj, hostTvs) == FAIL {
 						return fail()
 					}
 					if p.Get() != '$' {
-						hostFmtError(e_invalid_format_specifier_str, fmt)
+						ed.hostFmtError(e_invalid_format_specifier_str, fmt)
 						return fail()
 					}
 					p = p.Add(1)
@@ -516,7 +516,7 @@ func parse_fmt_types(ap_types *[]Ptr[byte], num_posarg *int32, fmt Ptr[byte]) in
 					if mixed() {
 						return fail()
 					}
-					if adjust_types(ap_types, int32(uj), num_posarg, arg) == FAIL {
+					if ed.adjust_types(ap_types, int32(uj), num_posarg, arg) == FAIL {
 						return fail()
 					}
 				} else {
@@ -528,11 +528,11 @@ func parse_fmt_types(ap_types *[]Ptr[byte], num_posarg *int32, fmt Ptr[byte]) in
 			} else if hostIsDigit(p.Get()) {
 				digstart := p
 				var uj uint32
-				if get_unsigned_int(digstart, &p, &uj, hostTvs) == FAIL {
+				if ed.get_unsigned_int(digstart, &p, &uj, hostTvs) == FAIL {
 					return fail()
 				}
 				if p.Get() == '$' {
-					hostFmtError(e_invalid_format_specifier_str, fmt)
+					ed.hostFmtError(e_invalid_format_specifier_str, fmt)
 					return fail()
 				}
 			}
@@ -544,7 +544,7 @@ func parse_fmt_types(ap_types *[]Ptr[byte], num_posarg *int32, fmt Ptr[byte]) in
 					p = p.Add(1)
 					if hostIsDigit(p.Get()) {
 						var uj uint32
-						if get_unsigned_int(arg.Add(1), &p, &uj, hostTvs) == FAIL {
+						if ed.get_unsigned_int(arg.Add(1), &p, &uj, hostTvs) == FAIL {
 							return fail()
 						}
 						if p.Get() == '$' {
@@ -553,11 +553,11 @@ func parse_fmt_types(ap_types *[]Ptr[byte], num_posarg *int32, fmt Ptr[byte]) in
 								return fail()
 							}
 							p = p.Add(1)
-							if adjust_types(ap_types, int32(uj), num_posarg, arg) == FAIL {
+							if ed.adjust_types(ap_types, int32(uj), num_posarg, arg) == FAIL {
 								return fail()
 							}
 						} else {
-							hostFmtError(e_invalid_format_specifier_str, fmt)
+							ed.hostFmtError(e_invalid_format_specifier_str, fmt)
 							return fail()
 						}
 					} else {
@@ -569,11 +569,11 @@ func parse_fmt_types(ap_types *[]Ptr[byte], num_posarg *int32, fmt Ptr[byte]) in
 				} else if hostIsDigit(p.Get()) {
 					digstart := p
 					var uj uint32
-					if get_unsigned_int(digstart, &p, &uj, hostTvs) == FAIL {
+					if ed.get_unsigned_int(digstart, &p, &uj, hostTvs) == FAIL {
 						return fail()
 					}
 					if p.Get() == '$' {
-						hostFmtError(e_invalid_format_specifier_str, fmt)
+						ed.hostFmtError(e_invalid_format_specifier_str, fmt)
 						return fail()
 					}
 				}
@@ -598,7 +598,7 @@ func parse_fmt_types(ap_types *[]Ptr[byte], num_posarg *int32, fmt Ptr[byte]) in
 			switch p.Get() {
 			case 'i', '*', 'd', 'u', 'o', 'D', 'U', 'O', 'x', 'X', 'b', 'B', 'c', 's', 'S', 'p':
 				if pos_arg != -1 {
-					if adjust_types(ap_types, pos_arg, num_posarg, ptype) == FAIL {
+					if ed.adjust_types(ap_types, pos_arg, num_posarg, ptype) == FAIL {
 						return fail()
 					}
 				} else {
@@ -609,7 +609,7 @@ func parse_fmt_types(ap_types *[]Ptr[byte], num_posarg *int32, fmt Ptr[byte]) in
 				}
 			default:
 				if pos_arg != -1 {
-					hostFmtError(e_cannot_mix_positional_and_non_positional_str, fmt)
+					ed.hostFmtError(e_cannot_mix_positional_and_non_positional_str, fmt)
 					return fail()
 				}
 			}
@@ -622,14 +622,14 @@ func parse_fmt_types(ap_types *[]Ptr[byte], num_posarg *int32, fmt Ptr[byte]) in
 
 	for arg_idx := int32(0); arg_idx < *num_posarg; arg_idx++ {
 		if (*ap_types)[arg_idx].Nil() {
-			hostFmtError(e_fmt_arg_nr_unused_str, arg_idx+1, fmt)
+			ed.hostFmtError(e_fmt_arg_nr_unused_str, arg_idx+1, fmt)
 			return fail()
 		}
 	}
 	return OK
 }
 
-func skip_to_arg(ap_types []Ptr[byte], ap *hostVa, arg_idx *int32, arg_cur *int32, fmt Ptr[byte]) {
+func (ed *Editor) skip_to_arg(ap_types []Ptr[byte], ap *hostVa, arg_idx *int32, arg_cur *int32, fmt Ptr[byte]) {
 	var arg_min int32
 
 	if *arg_cur+1 == *arg_idx {
@@ -648,8 +648,8 @@ func skip_to_arg(ap_types []Ptr[byte], ap *hostVa, arg_idx *int32, arg_cur *int3
 		// DEVIATION (bounds): C would read past the end of ap_types here;
 		// an index past it is treated as a NULL entry.
 		if ap_types == nil || int(*arg_cur) >= len(ap_types) || ap_types[*arg_cur].Nil() {
-			vim_snprintf(IObuff, emsg_iobuff_room(), e_aptypes_is_null_nr_str, *arg_cur, fmt)
-			iemsg(iobuff_or(e_aptypes_is_null_nr_str))
+			ed.vim_snprintf(ed.IObuff, ed.emsg_iobuff_room(), e_aptypes_is_null_nr_str, *arg_cur, fmt)
+			ed.iemsg(ed.iobuff_or(e_aptypes_is_null_nr_str))
 			return
 		}
 		p := ap_types[*arg_cur]
@@ -665,7 +665,7 @@ func skip_to_arg(ap_types []Ptr[byte], ap *hostVa, arg_idx *int32, arg_cur *int3
 	*arg_idx++
 }
 
-func vim_vsnprintf_typval(str Ptr[byte], str_m usize, fmt Ptr[byte], args []any) int32 {
+func (ed *Editor) vim_vsnprintf_typval(str Ptr[byte], str_m usize, fmt Ptr[byte], args []any) int32 {
 	var str_l usize
 	p := fmt
 	var arg_cur int32
@@ -673,7 +673,7 @@ func vim_vsnprintf_typval(str Ptr[byte], str_m usize, fmt Ptr[byte], args []any)
 	var arg_idx int32 = 1
 	var ap_types []Ptr[byte]
 
-	if parse_fmt_types(&ap_types, &num_posarg, fmt) == FAIL {
+	if ed.parse_fmt_types(&ap_types, &num_posarg, fmt) == FAIL {
 		return 0
 	}
 
@@ -730,7 +730,7 @@ func vim_vsnprintf_typval(str Ptr[byte], str_m usize, fmt Ptr[byte], args []any)
 		if ptype.Get() == '$' {
 			digstart := p
 			var uj uint32
-			if get_unsigned_int(digstart, &p, &uj, hostTvs) == FAIL {
+			if ed.get_unsigned_int(digstart, &p, &uj, hostTvs) == FAIL {
 				return int32(str_l)
 			}
 			pos_arg = int32(uj)
@@ -761,13 +761,13 @@ func vim_vsnprintf_typval(str Ptr[byte], str_m usize, fmt Ptr[byte], args []any)
 			p = p.Add(1)
 			if hostIsDigit(p.Get()) {
 				var uj uint32
-				if get_unsigned_int(digstart, &p, &uj, hostTvs) == FAIL {
+				if ed.get_unsigned_int(digstart, &p, &uj, hostTvs) == FAIL {
 					return int32(str_l)
 				}
 				arg_idx = int32(uj)
 				p = p.Add(1)
 			}
-			skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
+			ed.skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
 			j = ap.vaInt()
 			if j > MAX_ALLOWED_STRING_WIDTH {
 				j = MAX_ALLOWED_STRING_WIDTH
@@ -781,7 +781,7 @@ func vim_vsnprintf_typval(str Ptr[byte], str_m usize, fmt Ptr[byte], args []any)
 		} else if hostIsDigit(p.Get()) {
 			digstart := p
 			var uj uint32
-			if get_unsigned_int(digstart, &p, &uj, hostTvs) == FAIL {
+			if ed.get_unsigned_int(digstart, &p, &uj, hostTvs) == FAIL {
 				return int32(str_l)
 			}
 			min_field_width = usize(uj)
@@ -793,7 +793,7 @@ func vim_vsnprintf_typval(str Ptr[byte], str_m usize, fmt Ptr[byte], args []any)
 			if hostIsDigit(p.Get()) {
 				digstart := p
 				var uj uint32
-				if get_unsigned_int(digstart, &p, &uj, hostTvs) == FAIL {
+				if ed.get_unsigned_int(digstart, &p, &uj, hostTvs) == FAIL {
 					return int32(str_l)
 				}
 				precision = usize(uj)
@@ -803,13 +803,13 @@ func vim_vsnprintf_typval(str Ptr[byte], str_m usize, fmt Ptr[byte], args []any)
 				p = p.Add(1)
 				if hostIsDigit(p.Get()) {
 					var uj uint32
-					if get_unsigned_int(digstart, &p, &uj, hostTvs) == FAIL {
+					if ed.get_unsigned_int(digstart, &p, &uj, hostTvs) == FAIL {
 						return int32(str_l)
 					}
 					arg_idx = int32(uj)
 					p = p.Add(1)
 				}
-				skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
+				ed.skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
 				j = ap.vaInt()
 				if j > MAX_ALLOWED_STRING_WIDTH {
 					j = MAX_ALLOWED_STRING_WIDTH
@@ -858,13 +858,13 @@ func vim_vsnprintf_typval(str Ptr[byte], str_m usize, fmt Ptr[byte], args []any)
 			case '%':
 				str_arg = p
 			case 'c':
-				skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
+				ed.skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
 				j := ap.vaInt()
 				uchar_arg := Mk[byte](1)
 				uchar_arg.Put(byte(j))
 				str_arg = uchar_arg
 			case 's', 'S':
-				skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
+				ed.skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
 				str_arg = ap.vaString()
 				if str_arg.Nil() {
 					str_arg = S("[NULL]")
@@ -889,8 +889,8 @@ func vim_vsnprintf_typval(str Ptr[byte], str_m usize, fmt Ptr[byte], args []any)
 					var i usize
 					var cell int32
 					p1 := str_arg
-					for ; p1.Get() != 0; p1 = p1.Add(int(utfc_ptr2len(p1))) {
-						cell = utf_ptr2cells(p1)
+					for ; p1.Get() != 0; p1 = p1.Add(int(ed.utfc_ptr2len(p1))) {
+						cell = ed.utf_ptr2cells(p1)
 						if precision_specified != 0 && i+usize(cell) > precision {
 							break
 						}
@@ -917,13 +917,13 @@ func vim_vsnprintf_typval(str Ptr[byte], str_m usize, fmt Ptr[byte], args []any)
 
 			if fmt_spec == 'p' {
 				length_modifier = 0
-				skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
+				ed.skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
 				ptr_arg = ap.vaPointer()
 				if ptr_arg != 0 {
 					arg_sign = 1
 				}
 			} else if fmt_spec == 'b' || fmt_spec == 'B' {
-				skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
+				ed.skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
 				bin_arg = ap.vaUlong()
 				if bin_arg != 0 {
 					arg_sign = 1
@@ -931,7 +931,7 @@ func vim_vsnprintf_typval(str Ptr[byte], str_m usize, fmt Ptr[byte], args []any)
 			} else if fmt_spec == 'd' {
 				switch length_modifier {
 				case 0, 'h':
-					skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
+					ed.skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
 					int_arg = ap.vaInt()
 					if int_arg > 0 {
 						arg_sign = 1
@@ -939,7 +939,7 @@ func vim_vsnprintf_typval(str Ptr[byte], str_m usize, fmt Ptr[byte], args []any)
 						arg_sign = -1
 					}
 				case 'l':
-					skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
+					ed.skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
 					long_arg = ap.vaLong()
 					if long_arg > 0 {
 						arg_sign = 1
@@ -947,7 +947,7 @@ func vim_vsnprintf_typval(str Ptr[byte], str_m usize, fmt Ptr[byte], args []any)
 						arg_sign = -1
 					}
 				case 'L':
-					skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
+					ed.skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
 					llong_arg = ap.vaLong()
 					if llong_arg > 0 {
 						arg_sign = 1
@@ -958,19 +958,19 @@ func vim_vsnprintf_typval(str Ptr[byte], str_m usize, fmt Ptr[byte], args []any)
 			} else {
 				switch length_modifier {
 				case 0, 'h':
-					skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
+					ed.skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
 					uint_arg = ap.vaUint()
 					if uint_arg != 0 {
 						arg_sign = 1
 					}
 				case 'l':
-					skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
+					ed.skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
 					ulong_arg = ap.vaUlong()
 					if ulong_arg != 0 {
 						arg_sign = 1
 					}
 				case 'L':
-					skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
+					ed.skip_to_arg(ap_types, ap, &arg_idx, &arg_cur, fmt)
 					ullong_arg = ap.vaUlong()
 					if ullong_arg != 0 {
 						arg_sign = 1

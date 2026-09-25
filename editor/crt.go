@@ -11,6 +11,7 @@ package editor
 
 import (
 	"reflect"
+	"sync"
 	"unsafe"
 )
 
@@ -116,19 +117,22 @@ func (p Ptr[T]) Eq(q Ptr[T]) bool { return p == q }
 
 // --- strings ----------------------------------------------------------------
 
-var literals = map[string]Ptr[byte]{}
+// literals are the C string literals, shared by every Editor in the process
+// as a C program's .rodata is: read-only, so sharing is what C does.  Several
+// editors run at once, so the table is a sync.Map, and LoadOrStore keeps one
+// pointer per text even when two meet a literal together.
+var literals sync.Map // string -> Ptr[byte]
 
 // S is a C string literal: NUL-terminated, one allocation per distinct text,
 // so the same literal twice is the same pointer as it usually is in C.
 func S(s string) Ptr[byte] {
-	if p, ok := literals[s]; ok {
-		return p
+	if p, ok := literals.Load(s); ok {
+		return p.(Ptr[byte])
 	}
 	b := make([]byte, len(s)+1)
 	copy(b, s)
-	p := Ptr[byte]{&b[0], len(b), 0}
-	literals[s] = p
-	return p
+	p, _ := literals.LoadOrStore(s, Ptr[byte]{&b[0], len(b), 0})
+	return p.(Ptr[byte])
 }
 
 // GoString is the NUL-terminated bytes at p as a Go string (for the host).

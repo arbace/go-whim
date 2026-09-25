@@ -5,6 +5,7 @@ import (
 	"github.com/arbace/go-whim/crefactor/cc"
 	"go/format"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -34,6 +35,17 @@ func (g *gen) writeEditor(path string, skip map[string]bool) error {
 	src, err := format.Source([]byte(b.String()))
 	if err != nil {
 		return fmt.Errorf("the generated file is not Go: %v", err)
+	}
+	if o := g.p.Instance; o != nil {
+		name := filepath.Base(path)
+		o.Own = []string{name}
+		out, err := o.Rewrite(map[string][]byte{name: src})
+		if err != nil {
+			return err
+		}
+		if b, ok := out[name]; ok {
+			src = b
+		}
 	}
 	return os.WriteFile(path, src, 0o644)
 }

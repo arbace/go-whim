@@ -149,7 +149,9 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    whose cut is a computation; the counted acts both and
                    internal/cut's `ed` are written on (counted.go); and in
                    shared.go the generic helpers more than one phase uses.
-                   togo/: the C-to-Go translator internal/gen runs. Its tests
+                   togo/: the C-to-Go translator internal/gen runs, and its
+                   instance pass (instance.go: the state a struct's fields,
+                   the functions reaching it its methods). Its tests
                    run in it: `cd crefactor && go test ./...`
 internal/whim/     what the generic side is told about vim: profile.go (the
                    sweep), xform.go, analysis.go (dead's roots, reach's and ccx's
@@ -166,11 +168,15 @@ internal/phase/    the registry the phases' programs join (registry.go, query.go
                    prose, not a manifest a program reads) and boundaries.md
                    (every boundary's lines, entity counts, binary and nm -u, as
                    `go tool whim build --keep D` and `measure D` give them)
-editor/            the core in Go, package editor, a library: editor.go GENERATED
-                   (make editor/editor.go; never edit it); by hand, its runtime
-                   crt.go, format.go (vim_snprintf), and host.go -- the Host
-                   interface the core runs on and Main(host, args); term/ is
-                   the terminal host and cmd/whim/ the launcher bin/whim is
+editor/            the core in Go, package editor, a library of instances: an
+                   Editor's fields are the C's file-scope objects and the
+                   functions reaching them its methods (receiver ed); editor.go
+                   GENERATED (make editor/editor.go; never edit it); by hand,
+                   its runtime crt.go, format.go (vim_snprintf), and host.go --
+                   the Host interface an Editor runs on, editorHost (the
+                   host's state, which Editor embeds), New and Main(host,
+                   args); term/ is the terminal host and cmd/whim/ the
+                   launcher bin/whim is
 internal/gen/      the generator of editor/editor.go (`go tool whim gen`; `whim
                    skel` runs it by hand, with -bodies for the bodies alone):
                    crefactor/togo, the C-to-Go translator, which names

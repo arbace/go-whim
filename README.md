@@ -80,11 +80,14 @@ program run by hand, and `--keep D` every boundary.
 
 ## The Go editor
 
-`editor/` is the core, `editor.c`, in Go -- `package editor`, a library that
-runs one editor per process on a `Host`:
+`editor/` is the core, `editor.c`, in Go -- `package editor`, a library: an
+`Editor` is one editor, and a process holds as many as it makes, each on its
+own `Host`:
 - **`editor.go`**: **generated** by `go tool whim gen` (`internal/gen` on `modernc.org/cc/v4`):
   every C function a Go function with the same name and control flow, so the
-  two read line for line;
+  two read line for line; the C's file-scope objects are the fields of
+  `Editor`, and every function that reaches them is its method (`ed.x`,
+  `ed.f()`) -- `crefactor/togo`'s instance pass;
 - **`crt.go`**: the C runtime it is written against, `Ptr[T]` for a C pointer
   that walks;
 - **`host.go`**: the `Host` interface -- the terminal, the clock, input, the
@@ -94,9 +97,11 @@ runs one editor per process on a `Host`:
 - **`term/`**: the host on a terminal, from the Go runtime and standard library
   only, and **`cmd/whim/`** the launcher, `editor.Main(term.New(), os.Args)`.
 
-An embedding program writes its own `Host` and calls `Main`; a `Host` that
-must not end the process panics with `editor.Exit(code)` in its `Exit`, and
-`Main` returns the code (`host_test.go` runs the editor so, in-process).
+An embedding program writes its own `Host` and calls `Main` (or `New` and runs
+it); a `Host` that must not end the process panics with `editor.Exit(code)` in
+its `Exit`, and `Main` returns the code. `host_test.go` runs the editor so,
+in-process -- four at once, under the race detector, none seeing another's
+text.
 
 It follows the current core. `make whim-build` writes `editor.go` again after it
 produces `whim-vim.c`, and `make editor/editor.go` does it on its own.

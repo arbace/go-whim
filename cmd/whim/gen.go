@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/arbace/go-whim/crefactor/togo"
 	"github.com/arbace/go-whim/internal/gen/pre"
@@ -39,7 +40,12 @@ func runGen(args []string) int {
 		return 1
 	}
 	defer os.RemoveAll(out)
-	if rc := togo.Run([]string{"editor.c", out, "-editor", filepath.Join(out, "editor.go")}, io.Discard, whim.Gen); rc != 0 {
+	prof, err := genProfile()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
+		return 1
+	}
+	if rc := togo.Run([]string{"editor.c", out, "-editor", filepath.Join(out, "editor.go")}, io.Discard, prof); rc != 0 {
 		fmt.Fprintln(os.Stderr, "whim gen: the generator refused editor.c")
 		return rc
 	}
@@ -86,7 +92,47 @@ func runGen(args []string) int {
 // runSkel is the generator itself, for a run by hand: `whim skel <editor.c>
 // <outdir> [-bodies | -editor <editor.go>]` writes the skeleton, the facts and,
 // asked, the bodies or the whole editor.go into outdir.
-func runSkel(args []string) int { return togo.Run(args, os.Stderr, whim.Gen) }
+func runSkel(args []string) int {
+	prof, err := genProfile()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "whim skel: %v\n", err)
+		return 1
+	}
+	return togo.Run(args, os.Stderr, prof)
+}
+
+// genProfile is whim.Gen with what editor/'s hand-written files declare --
+// their methods on Editor and the fields of editorHost -- read from them now,
+// so the instance pass is told what the package has and not a list that
+// could fall behind it.
+func genProfile() (togo.Profile, error) {
+	p := whim.Gen
+	if p.Instance == nil {
+		return p, nil
+	}
+	paths, err := filepath.Glob("editor/*.go")
+	if err != nil {
+		return p, err
+	}
+	hand := map[string][]byte{}
+	for _, path := range paths {
+		n := filepath.Base(path)
+		if n == "editor.go" || strings.HasSuffix(n, "_test.go") {
+			continue
+		}
+		b, err := os.ReadFile(path)
+		if err != nil {
+			return p, err
+		}
+		hand[n] = b
+	}
+	inst := *p.Instance
+	if inst.Methods, inst.Fields, err = togo.HandNames(hand, inst.Type, inst.Embed); err != nil {
+		return p, err
+	}
+	p.Instance = &inst
+	return p, nil
+}
 
 // runSplice measures the emitted bodies against the hand-written editor:
 // `whim splice <editor-dir> <bodies.go> <out-dir>`.

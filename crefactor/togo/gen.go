@@ -444,7 +444,7 @@ func (g *gen) varLine(name string, t cc.Type, key, note string) string {
 		if at.Elem().Kind() == cc.Char || at.Elem().Kind() == cc.UChar {
 			elem = "byte"
 		}
-		return fmt.Sprintf("var %s = Mk[%s](%d)%s // C: %s", name, elem, at.Len(), c, t.String())
+		return fmt.Sprintf("var %s Ptr[%s] = Mk[%s](%d)%s // C: %s", name, elem, elem, at.Len(), c, t.String())
 	}
 	return fmt.Sprintf("var %s %s%s", name, g.goType(t, key), c)
 }

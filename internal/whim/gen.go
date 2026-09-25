@@ -66,6 +66,11 @@ package editor
 var Gen = togo.Profile{
 	Header:  editorHeader,
 	Package: "editor",
+	// The editor as an instance: its state an Editor's fields, the
+	// functions reaching it its methods, the receiver `ed`; the hand-written
+	// host's state is editorHost, which Editor embeds.  What the hand-written
+	// files declare is read from them when the generator runs (cmd/whim gen).
+	Instance: &togo.Instance{Type: "Editor", Receiver: "ed", Init: "initGlobals", Embed: "editorHost"},
 	// vim's _(), the identity once gettext went; _ is Go's blank.
 	Rename: map[string]string{"_": "gettext_"},
 	// The C functions editor/crt.go replaces: their calls are translated,

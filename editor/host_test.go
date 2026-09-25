@@ -2,6 +2,7 @@ package editor
 
 import (
 	"bytes"
+	"fmt"
 	"testing"
 )
 
@@ -38,8 +39,7 @@ func (f *fakeHost) ReadInput(buf []byte) int32 {
 
 // The editor runs in this process on a Host of the test's own: it types
 // text, draws it, and quits with its status handed back by Main -- not by
-// ending the process.  One run: the core's state is the package's, so a
-// process holds one editor (AGENDA.md, step 3, is the instance).
+// ending the process.
 func TestMainOnAFakeHost(t *testing.T) {
 	h := &fakeHost{keys: []byte("ihello, embedded\x1b:q!\r")}
 	status := Main(h, []string{"whim"})
@@ -48,5 +48,36 @@ func TestMainOnAFakeHost(t *testing.T) {
 	}
 	if !bytes.Contains(h.screen.Bytes(), []byte("hello, embedded")) {
 		t.Errorf("the screen never showed the typed text; it wrote %d bytes: %q", h.screen.Len(), h.screen.String())
+	}
+}
+
+// Editors are instances: several run at once in one process, each on its own
+// host, and none sees another's text.  Run under -race, a state still shared
+// through a package variable is a report.
+func TestEditorsAreInstances(t *testing.T) {
+	const n = 4
+	hosts := make([]*fakeHost, n)
+	status := make([]int, n)
+	done := make(chan int)
+	for i := range hosts {
+		hosts[i] = &fakeHost{keys: []byte(fmt.Sprintf("iediting number %d\x1b:q!\r", i))}
+		go func(i int) {
+			status[i] = Main(hosts[i], []string{"whim"})
+			done <- i
+		}(i)
+	}
+	for range hosts {
+		<-done
+	}
+	for i, h := range hosts {
+		if status[i] != 0 {
+			t.Errorf("editor %d: status %d; messages %q", i, status[i], h.msgs.String())
+		}
+		for j := range hosts {
+			has := bytes.Contains(h.screen.Bytes(), []byte(fmt.Sprintf("editing number %d", j)))
+			if has != (i == j) {
+				t.Errorf("editor %d's screen shows editor %d's text: %v", i, j, has)
+			}
+		}
 	}
 }

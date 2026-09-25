@@ -2,8 +2,10 @@
 // interface.  In whim-vim.c the host is everything from the first #include to
 // the end of the file, and the core calls it by name -- musl_read_input,
 // host_write and the rest.  Here the core (editor.go, generated) still calls
-// those names, and each is a line of glue to the Host an embedding program
-// hands Main: the C signature on this side, Go types on the Host's.
+// those names -- as methods of the Editor it is -- and each is a line of glue
+// to the Host an embedding program hands New or Main: the C signature on this
+// side, Go types on the Host's.  A process holds any number of Editors, each
+// on its own Host.
 //
 // The terminal host, the one bin/whim runs with, is package term.  vim's own
 // printf is the library's (format.go): it needs no operating system.
@@ -51,8 +53,20 @@ type Host interface {
 	Write(p []byte) int32
 }
 
-// host is the Host of the editor running in this process: one, as in the C.
-var host Host
+// editorHost is the state of an Editor that is the host's and not the C's:
+// the Host it runs on, and the arena's accounting.  Editor embeds it.
+type editorHost struct {
+	host            Host
+	host_arena_used usize
+}
+
+// New is an editor on h, its state as the C's file-scope objects start.
+func New(h Host) *Editor {
+	ed := &Editor{}
+	ed.host = h
+	ed.initGlobals()
+	return ed
+}
 
 // Exit is what a Host that must not end the process panics with in its Exit:
 // Main recovers it and returns the code.
@@ -71,20 +85,20 @@ func Main(h Host, args []string) (status int) {
 			status = int(code)
 		}
 	}()
-	host = h
+	ed := New(h)
 	argv := make([]Ptr[byte], len(args)+1)
 	for i, a := range args {
 		argv[i] = View([]byte(a + "\x00"))
 	}
-	return int(vim_main(int32(len(args)), argv))
+	return int(ed.vim_main(int32(len(args)), argv))
 }
 
 // The glue: the host functions the core calls, in the C's signatures.
 
-func musl_host_init() { host.Init(deathtrap) }
+func (ed *Editor) musl_host_init() { ed.host.Init(ed.deathtrap) }
 
-func musl_get_winsize(rows *int32, cols *int32) int32 {
-	r, c, ok := host.WinSize()
+func (ed *Editor) musl_get_winsize(rows *int32, cols *int32) int32 {
+	r, c, ok := ed.host.WinSize()
 	if !ok {
 		return FAIL
 	}
@@ -92,12 +106,12 @@ func musl_get_winsize(rows *int32, cols *int32) int32 {
 	return OK
 }
 
-func musl_term_start() { host.TermStart() }
+func (ed *Editor) musl_term_start() { ed.host.TermStart() }
 
-func musl_term_stop() { host.TermStop() }
+func (ed *Editor) musl_term_stop() { ed.host.TermStop() }
 
-func musl_tty_keys(fd int32, bs *int32, intr *int32, cr *int32, nlcr *int32) int32 {
-	e, i, icrnl, onlcr, ok := host.TTYKeys(fd)
+func (ed *Editor) musl_tty_keys(fd int32, bs *int32, intr *int32, cr *int32, nlcr *int32) int32 {
+	e, i, icrnl, onlcr, ok := ed.host.TTYKeys(fd)
 	if !ok {
 		return FAIL
 	}
@@ -105,47 +119,47 @@ func musl_tty_keys(fd int32, bs *int32, intr *int32, cr *int32, nlcr *int32) int
 	return OK
 }
 
-func musl_now_ms() int64 { return host.NowMs() }
+func (ed *Editor) musl_now_ms() int64 { return ed.host.NowMs() }
 
-func host_time() int64 { return host.Time() }
+func (ed *Editor) host_time() int64 { return ed.host.Time() }
 
-func musl_delay(ms int64, interruptible int32) { host.Delay(ms, interruptible != 0) }
+func (ed *Editor) musl_delay(ms int64, interruptible int32) { ed.host.Delay(ms, interruptible != 0) }
 
-func musl_wait_for_input(ms int64) int32 { return B2i(host.WaitForInput(ms)) }
+func (ed *Editor) musl_wait_for_input(ms int64) int32 { return B2i(ed.host.WaitForInput(ms)) }
 
 // musl_read_input hands the host no room for a negative length and answers
 // -1 for it, as read(2) of (size_t)len does; the host still takes the signals
 // it reads as input, as the C did before its read.
-func musl_read_input(buf Ptr[byte], len_ int32) int32 {
-	n := host.ReadInput(buf.Slice(int(max(len_, 0))))
+func (ed *Editor) musl_read_input(buf Ptr[byte], len_ int32) int32 {
+	n := ed.host.ReadInput(buf.Slice(int(max(len_, 0))))
 	if len_ < 0 {
 		return -1
 	}
 	return n
 }
 
-func host_raise(sig int32) { host.Raise(sig) }
+func (ed *Editor) host_raise(sig int32) { ed.host.Raise(sig) }
 
-func musl_suspend() { host.Suspend() }
+func (ed *Editor) musl_suspend() { ed.host.Suspend() }
 
-func host_exit(r int32) { host.Exit(r) }
+func (ed *Editor) host_exit(r int32) { ed.host.Exit(r) }
 
-func host_message(msg Ptr[byte], len_ int32, err int32) {
+func (ed *Editor) host_message(msg Ptr[byte], len_ int32, err int32) {
 	n := len_
 	if n < 0 {
 		n = int32(hostStrlen(msg))
 	}
-	host.Message(msg.Slice(int(n)), err != 0)
+	ed.host.Message(msg.Slice(int(n)), err != 0)
 }
 
-func host_write(s Ptr[byte], len_ int32) int32 {
+func (ed *Editor) host_write(s Ptr[byte], len_ int32) int32 {
 	if len_ < 0 {
 		return -1
 	}
 	if len_ == 0 {
 		return 0
 	}
-	return host.Write(s.Slice(int(len_)))
+	return ed.host.Write(s.Slice(int(len_)))
 }
 
 // The C host allocates from a static 1 GiB arena and never frees; the
@@ -153,15 +167,13 @@ func host_write(s Ptr[byte], len_ int32) int32 {
 // its exhaustion message) are kept.  They are the core's, not a Host's.
 const HOST_ARENA_BYTES = 1024 * 1024 * 1024
 
-var host_arena_used usize
-
-func host_arena_exhausted(n usize) {
+func (ed *Editor) host_arena_exhausted(n usize) {
 	m := "whim-vim: host arena exhausted: " + hostUtoa(HOST_ARENA_BYTES) + " bytes, " +
-		hostUtoa(host_arena_used) + " used, request " + hostUtoa(n) + "\n"
+		hostUtoa(ed.host_arena_used) + " used, request " + hostUtoa(n) + "\n"
 	b := Mk[byte](len(m) + 1)
 	copy(b.Slice(len(m)), m)
-	host_message(b, int32(len(m)), TRUE)
-	host_exit(1)
+	ed.host_message(b, int32(len(m)), TRUE)
+	ed.host_exit(1)
 }
 
 func hostUtoa(v usize) string {
@@ -180,11 +192,11 @@ func hostUtoa(v usize) string {
 }
 
 // host_alloc returns n zeroed bytes, a Ptr[byte] as `any`.
-func host_alloc(n usize) any {
+func (ed *Editor) host_alloc(n usize) any {
 	want := (n + 15) &^ usize(15) // alignof(max_align_t) is 16
-	if want < n || want > HOST_ARENA_BYTES-host_arena_used {
-		host_arena_exhausted(n)
+	if want < n || want > HOST_ARENA_BYTES-ed.host_arena_used {
+		ed.host_arena_exhausted(n)
 	}
-	host_arena_used += want
+	ed.host_arena_used += want
 	return Alloc(int(n))
 }

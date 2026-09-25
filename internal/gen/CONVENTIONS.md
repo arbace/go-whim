@@ -44,7 +44,14 @@ more) and `usize` (an alias of `uint64`, which the emitter writes the same).
 - `editor/globals.go` — every file-scope object with its Go type (no
   initializers), and every **block-scope `static`** hoisted to a global named
   `<function>_<name>` (e.g. `static int entered` in `deathtrap` is
-  `deathtrap_entered`).
+  `deathtrap_entered`).  In `editor.go` these are the **fields of `Editor`**, and every
+  function that reaches one, directly or through a call, is a **method** on
+  `*Editor` with the receiver `ed`: `ed.curbuf`, `ed.ml_get(lnum)`; a function
+  named as a value is the method value `ed.f`, bound to its editor. The
+  generator writes the package-level form and `crefactor/togo`'s instance pass
+  (`instance.go`) makes it an instance; a hand-written file of the package
+  that needs the state is a method too, and declares the host's own state in
+  `editorHost`, which `Editor` embeds.
 - `internal/gen/sigs.md` — **the Go signature of every function**. Copy yours
   verbatim; call everyone else's exactly as written there. A parameter's Go
   type was decided by a whole-file analysis you cannot redo from one chunk.

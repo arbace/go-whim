@@ -41,6 +41,12 @@ type Profile struct {
 	// Puns are parameter names: a char * parameter so named holds an
 	// object of whatever type, and its class is a pun.
 	Puns []string
+
+	// Instance, when set, is the instance pass applied to the file -editor
+	// writes: the state a struct's fields, the functions its methods
+	// (instance.go).  Own is that file; Fields and Methods are what the
+	// package's hand-written files declare (HandNames).
+	Instance *Instance
 }
 
 // ByteFuncs are the program's memmove and memcpy (Memmove), memset
