@@ -14,7 +14,6 @@ package p139
 import (
 	"fmt"
 	"io"
-	"regexp"
 
 	"github.com/arbace/go-whim/internal/edit"
 )
@@ -74,7 +73,8 @@ const W139SortBody = `    int         i;
         files[j] = s;
     }`
 
-var w139Site = regexp.MustCompile(`\((keyvalue_T|struct key_name_entry) \*\)musl_bsearch\(&target, &(\w+), \((sizeof\(\w+\) / sizeof\(\(\w+\)\[0\]\))\), sizeof\(\w+\[0\]\), (\w+)\)`)
+// w139Site is a search through musl_bsearch(), after the cast of its result.
+const w139Site = `musl_bsearch\(&target, &(\w+), \((sizeof\(\w+\) / sizeof\(\(\w+\)\[0\]\))\), sizeof\(\w+\[0\]\), (\w+)\)`
 
 // Whim139 sorts and searches typed arrays.
 //
@@ -88,66 +88,26 @@ var w139Site = regexp.MustCompile(`\((keyvalue_T|struct key_name_entry) \*\)musl
 // sort is an insertion sort; the sweep takes musl_qsort(), musl_bsearch() and
 // sort_compare().
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "typed", W: w}
-	var err error
+	e := edit.New("typed", text, w)
 	kvCast := "    keyvalue_T *kv1 = (keyvalue_T *)a;\n    keyvalue_T *kv2 = (keyvalue_T *)b;\n"
-	steps := []struct {
-		Old, New, What string
-		n              int
-	}{
-		{"(const void *a, const void *b);\n\nstatic int cmp_keyvalue_value_i(const void *a, const void *b);\n\nstatic int cmp_keyvalue_value_ni(const void *a, const void *b);\n",
-			"(keyvalue_T *kv1, keyvalue_T *kv2);\n\nstatic int cmp_keyvalue_value_i(keyvalue_T *kv1, keyvalue_T *kv2);\n\nstatic int cmp_keyvalue_value_ni(keyvalue_T *kv1, keyvalue_T *kv2);\n\nstatic keyvalue_T *keyvalue_bsearch(keyvalue_T *key, keyvalue_T *base, usize nel, int (*cmp)(keyvalue_T *, keyvalue_T *));\n",
-			"the keyvalue_T comparators take keyvalue_T: their prototypes, and the typed search's", 1},
-		{"(const void *a, const void *b)\n{\n" + kvCast, "(keyvalue_T *kv1, keyvalue_T *kv2)\n{\n", "their definitions, without the casts", 3},
-		{"cmp_key_name_entry(const void *a, const void *b)\n", "cmp_key_name_entry(struct key_name_entry *a, struct key_name_entry *b)\n", "the key name comparator takes a key_name_entry", 1},
-		{"((struct key_name_entry *)a)->name.string;", "a->name.string;", "and reads it without a cast", 1},
-		{"((struct key_name_entry *)b)->name.string;", "b->name.string;", "twice", 1},
-	}
-	for _, s := range steps {
-		if text, err = p.Literal(text, s.Old, s.New, s.What, s.n); err != nil {
-			return nil, err
-		}
-	}
+	e.Literal("(const void *a, const void *b);\n\nstatic int cmp_keyvalue_value_i(const void *a, const void *b);\n\nstatic int cmp_keyvalue_value_ni(const void *a, const void *b);\n", "(keyvalue_T *kv1, keyvalue_T *kv2);\n\nstatic int cmp_keyvalue_value_i(keyvalue_T *kv1, keyvalue_T *kv2);\n\nstatic int cmp_keyvalue_value_ni(keyvalue_T *kv1, keyvalue_T *kv2);\n\nstatic keyvalue_T *keyvalue_bsearch(keyvalue_T *key, keyvalue_T *base, usize nel, int (*cmp)(keyvalue_T *, keyvalue_T *));\n", 1,
+		"the keyvalue_T comparators take keyvalue_T: their prototypes, and the typed search's")
+	e.Literal("(const void *a, const void *b)\n{\n"+kvCast, "(keyvalue_T *kv1, keyvalue_T *kv2)\n{\n", 3,
+		"their definitions, without the casts")
+	e.Literal("cmp_key_name_entry(const void *a, const void *b)\n", "cmp_key_name_entry(struct key_name_entry *a, struct key_name_entry *b)\n", 1,
+		"the key name comparator takes a key_name_entry")
+	e.Literal("((struct key_name_entry *)a)->name.string;", "a->name.string;", 1,
+		"and reads it without a cast")
+	e.Literal("((struct key_name_entry *)b)->name.string;", "b->name.string;", 1,
+		"twice")
 	// the typed searches, each after the comparators of its type
-	anchor := func(after, what string) error {
-		re := regexp.MustCompile(`(?s)\n` + regexp.QuoteMeta(after) + `.*?\n\}\n`)
-		m := re.FindIndex(text)
-		if m == nil || len(re.FindAllIndex(text, -1)) != 1 {
-			return p.Die("%s: no single definition to follow", after)
-		}
-		fn := "keyvalue_bsearch"
-		t := "keyvalue_T"
-		if after == "cmp_key_name_entry(" {
-			fn, t = "key_name_bsearch", "struct key_name_entry"
-		}
-		ins := "\n" + W139Search(fn, t)
-		text = append(append(append([]byte{}, text[:m[1]]...), ins...), text[m[1]:]...)
-		p.Say(what)
-		return nil
-	}
-	if err := anchor("cmp_keyvalue_value_ni(", "keyvalue_bsearch() is musl_bsearch() on a keyvalue_T *"); err != nil {
-		return nil, err
-	}
-	if err := anchor("cmp_key_name_entry(", "key_name_bsearch() on a struct key_name_entry *"); err != nil {
-		return nil, err
-	}
-	n := 0
-	text = w139Site.ReplaceAllFunc(text, func(m []byte) []byte {
-		s := w139Site.FindSubmatch(m)
-		fn := "keyvalue_bsearch"
-		if string(s[1]) != "keyvalue_T" {
-			fn = "key_name_bsearch"
-		}
-		n++
-		return []byte(fmt.Sprintf("%s(&target, %s, %s, %s)", fn, s[2], s[3], s[4]))
-	})
-	if n != 4 {
-		return nil, p.Die("%d searches through musl_bsearch(), and this phase was written against 4", n)
-	}
-	p.Say("the four searches call them")
-	if text, err = p.Literal(text, "    musl_qsort((void *)files, (usize)count, sizeof(char_u *), sort_compare);\n", W139SortBody+"\n",
-		"sort_strings() sorts the pointers itself", 1); err != nil {
-		return nil, err
-	}
-	return text, nil
+	e.Sub(`(?s)\ncmp_keyvalue_value_ni\(.*?\n\}\n`, "${0}\n"+W139Search("keyvalue_bsearch", "keyvalue_T"), 1,
+		"keyvalue_bsearch() is musl_bsearch() on a keyvalue_T *")
+	e.Sub(`(?s)\ncmp_key_name_entry\(.*?\n\}\n`, "${0}\n"+W139Search("key_name_bsearch", "struct key_name_entry"), 1,
+		"key_name_bsearch() on a struct key_name_entry *")
+	e.Sub(`\(keyvalue_T \*\)`+w139Site, "keyvalue_bsearch(&target, ${1}, ${2}, ${3})", 3, "three of the four searches call keyvalue_bsearch()")
+	e.Sub(`\(struct key_name_entry \*\)`+w139Site, "key_name_bsearch(&target, ${1}, ${2}, ${3})", 1, "and one key_name_bsearch()")
+	e.Literal("    musl_qsort((void *)files, (usize)count, sizeof(char_u *), sort_compare);\n", W139SortBody+"\n", 1,
+		"sort_strings() sorts the pointers itself")
+	return e.Done()
 }

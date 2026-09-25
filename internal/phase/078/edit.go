@@ -70,10 +70,10 @@ package p078
 // fire.  Declared empty, left for the delta check to correct.
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"regexp"
+	"strings"
 
 	"github.com/arbace/go-whim/internal/cutil"
 	"github.com/arbace/go-whim/internal/edit"
@@ -90,57 +90,31 @@ var emptyFns = []string{
 	"set_init_3", "mch_new_shellsize", "mch_early_init",
 }
 
-// bodyIsEmpty says whether a definition's Body holds nothing but whitespace.
-func bodyIsEmpty(text []byte, name string) (bool, bool) {
-	a, z, ok := cutil.FindDefinition(text, cutil.Blank(text), name)
-	if !ok {
-		return false, false
-	}
-	Inner := text[a:z]
-	i := bytes.Index(Inner, []byte("{"))
-	j := bytes.LastIndex(Inner, []byte("}"))
-	if i < 0 || j <= i {
-		return false, false
-	}
-	return len(bytes.TrimSpace(Inner[i+1:j])) == 0, true
-}
-
 // Whim78 removes every call to fifteen functions that do nothing, and the
 // write-only state five more kept.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nostubs", text, w)
 
 	for _, fn := range emptyFns {
-		empty, found := bodyIsEmpty(text, fn)
-		if !found || !empty {
-			e.Refuse("%s is no longer empty -- removing its calls would change behaviour", fn)
-			return e.Done()
-		}
+		body, found := e.InnerBody(fn)
+		e.Expect(found && strings.TrimSpace(body) == "", "%s is no longer empty -- removing its calls would change behaviour", fn)
 	}
-	if empty, found := bodyIsEmpty(text, "nv_nop"); !found || !empty {
-		e.Refuse("nv_nop is no longer empty; it is the nv_cmds KE_NOP row and must stay empty")
-		return e.Done()
-	}
+	body, found := e.InnerBody("nv_nop")
+	e.Expect(found && strings.TrimSpace(body) == "", "nv_nop is no longer empty; it is the nv_cmds KE_NOP row and must stay empty")
 
-	total := 0
 	for _, fn := range emptyFns {
 		q := regexp.QuoteMeta(fn)
-		bare := regexp.MustCompile(`(?m)^[ \t]*(?:\(void\))?` + q + `\([^;\n]*\);[ \t]*\n`)
+		bare := `(?m)^[ \t]*(?:\(void\))?` + q + `\([^;\n]*\);\n`
 		allref := len(regexp.MustCompile(`\b`+q+`\b`).FindAll(cutil.Blank(e.Text()), -1))
-		nBare := len(bare.FindAll(e.Text(), -1))
+		nBare := len(e.Query(bare, 0))
 		// every mention that is not the prototype, the definition or a bare
 		// call is a use this phase cannot simply delete
-		nProto := len(regexp.MustCompile(`(?m)^static [^\n]*\b`+q+`\(`).FindAll(e.Text(), -1))
-		nDefn := len(regexp.MustCompile(`(?m)^`+q+`\(`).FindAll(e.Text(), -1))
-		if allref != nBare+nProto+nDefn {
-			e.Refuse("%s has %d mentions but only %d bare calls (+%d proto +%d defn) -- one is inside an expression and a line removal would corrupt it",
-				fn, allref, nBare, nProto, nDefn)
-			return e.Done()
-		}
-		e.Set(bare.ReplaceAll(e.Text(), nil))
-		total += nBare
+		nProto := len(e.Query(`(?m)^static [^\n]*\b`+q+`\(`, 0))
+		nDefn := len(e.Query(`(?m)^`+q+`\(`, 0))
+		e.Expect(allref == nBare+nProto+nDefn, "%s has %d mentions but only %d bare calls (+%d proto +%d defn) -- one is inside an expression and a line removal would corrupt it",
+			fn, allref, nBare, nProto, nDefn)
+		e.Cut(bare, nBare, fmt.Sprintf("the %d calls to %s, which does nothing", nBare, fn))
 	}
-	e.Say(fmt.Sprintf("every call to the %d functions that do nothing (%d sites)", len(emptyFns), total))
 
 	e.InFunction("getcmdline_int", func(e *edit.E) {
 		e.FoldNever(`(?m)^[ \t]*if \(is_state\.winid != curwin->w_id\)$`, 2, "the command line re-initialising incremental search for another window")

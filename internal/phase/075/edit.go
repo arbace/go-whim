@@ -107,15 +107,11 @@ func writesTo(text []byte, name string) []int {
 func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("noautocmd", text, w)
 
-	if len(edit.AutopatDecl.FindAll(text, -1)) != 1 {
-		e.Refuse("the first_autopat declaration is not where this phase expects it")
-		return e.Done()
-	}
-	if ws := writesTo(text, "first_autopat"); len(ws) != 1 {
-		e.Refuse("first_autopat is assigned in %d place(s), not just its all-NULL initialiser (lines %s) -- an autocommand CAN be registered and this whole phase is wrong",
-			len(ws), edit.JoinInts(ws))
-		return e.Done()
-	}
+	e.CountIs(`(?m)^static AutoPat \*first_autopat\[NUM_EVENTS\] =\n\{\n[ \t]*NULL,\n\};$`, 1,
+		"the first_autopat declaration is where this phase expects it")
+	ws := writesTo(e.Text(), "first_autopat")
+	e.Expect(len(ws) == 1, "first_autopat is assigned in %d place(s), not just its all-NULL initialiser (lines %s) -- an autocommand CAN be registered and this whole phase is wrong",
+		len(ws), edit.JoinInts(ws))
 	e.Say("confirmed: first_autopat is only ever the all-NULL initialiser")
 
 	e.InFunction("close_buffer", func(e *edit.E) {
@@ -123,8 +119,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	e.InFunction("buf_freeall", func(e *edit.E) {
 		e.FoldNever(`(?m)^[ \t]*if \(apply_autocmds\(EVENT_BUFUNLOAD,`, 1, "unloading a buffer asking the autocommands first")
-	})
-	e.InFunction("buf_freeall", func(e *edit.E) {
 		e.FoldNever(`(?m)^[ \t]*if \(apply_autocmds\(EVENT_BUFWIPEOUT,`, 1, "wiping a buffer asking them")
 	})
 	e.InFunction("buflist_new", func(e *edit.E) {
@@ -132,8 +126,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	e.InFunction("readfile", func(e *edit.E) {
 		e.FoldNever(`(?m)^[ \t]*if \(apply_autocmds_exarg\(EVENT_BUFREADCMD,`, 1, "a read being handled by an autocommand instead")
-	})
-	e.InFunction("readfile", func(e *edit.E) {
 		e.FoldNever(`(?m)^[ \t]*else if \(apply_autocmds_exarg\(EVENT_FILEREADCMD,`, 1, "and the file-read variant of the same")
 	})
 	e.InFunction("set_curbuf", func(e *edit.E) {
@@ -141,14 +133,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	e.InFunction("buf_write", func(e *edit.E) {
 		e.FoldAlways(`(?m)^[ \t]*if \(!\(did_cmd = apply_autocmds_exarg\(EVENT_FILEAPPENDCMD,`, 1, "an autocommand taking over an append")
-	})
-	e.InFunction("buf_write", func(e *edit.E) {
 		e.FoldAlways(`(?m)^[ \t]*if \(!\(did_cmd = apply_autocmds_exarg\(EVENT_FILEWRITECMD,`, 1, "an autocommand taking over a write")
 	})
 	e.InFunction("ins_redraw", func(e *edit.E) {
 		e.FoldNever(`(?m)^[ \t]*if \(ready && has_textchangedI\(\)`, 1, "insert mode reporting a change")
-	})
-	e.InFunction("ins_redraw", func(e *edit.E) {
 		e.FoldNever(`(?m)^[ \t]*if \(ready && has_textchangedP\(\)`, 1, "and the popup-menu variant")
 	})
 	e.InFunction("do_one_cmd", func(e *edit.E) {
@@ -173,12 +161,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("free_buffer", func(e *edit.E) {
 		e.Lines(`aubuflocal_remove\(buf\);`, 1, "a freed buffer detaching its buffer-local patterns")
 	})
-	for _, ev := range []string{"VIMLEAVEPRE", "VIMLEAVE"} {
-		ev := ev
-		e.InFunction("getout", func(e *edit.E) {
+	e.InFunction("getout", func(e *edit.E) {
+		for _, ev := range []string{"VIMLEAVEPRE", "VIMLEAVE"} {
 			e.Literal(fmt.Sprintf(w75lit14, ev), "", 1, fmt.Sprintf("quitting unblocking autocommands to announce EVENT_%s", ev))
-		})
-	}
+		}
+	})
 	e.InFunction("do_one_cmd", func(e *edit.E) {
 		e.Literal(w75lit8, w75lit9, 1, "asking whether the command came from an autocommand")
 	})
@@ -187,21 +174,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("getcmdline_int", func(e *edit.E) {
 		e.Lines(`cmdline_type = firstc == NUL \? '-' : firstc;`, 1, "the line that set the command-line type")
 	})
-	if !e.Failed() {
-		n := len(edit.BareDispatch.FindAll(e.Text(), -1))
-		e.Set(edit.BareDispatch.ReplaceAll(e.Text(), nil))
-		e.Say(fmt.Sprintf("every remaining bare dispatch (%d)", n))
-		n = len(edit.CmdTrigger.FindAll(e.Text(), -1))
-		e.Set(edit.CmdTrigger.ReplaceAll(e.Text(), nil))
-		e.Say(fmt.Sprintf("the command-line triggers (%d)", n))
-	}
+	e.Lines(`(?:\(void\))?apply_autocmds\w*\([^\n]*\);`, 49, "every remaining bare dispatch (49)")
+	e.Lines(`trigger_cmd_autocmd\([^\n]*\);`, 7, "the command-line triggers (7)")
 	e.InFunction("buf_write", func(e *edit.E) {
 		e.Literal(w75lit10, "", 1, "buf_write bracketing the write with an autocommand buffer swap")
-	})
-	e.InFunction("buf_write", func(e *edit.E) {
 		e.Literal(w75lit11, w75lit12, 1, "the write asking whether an autocommand had taken over")
-	})
-	e.InFunction("buf_write", func(e *edit.E) {
 		e.FoldNever(`(?m)^[ \t]*if \(did_cmd\)$`, 1, "and the arm only an autocommand-driven write could reach")
 	})
 	// buf_write's aco, bufref and did_cmd are named by nothing now; the sweep

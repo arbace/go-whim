@@ -12,11 +12,8 @@ package p146
 // $state/old.c, for the check.
 
 import (
-	"fmt"
 	"io"
-	"regexp"
 
-	"github.com/arbace/go-whim/internal/cutil"
 	"github.com/arbace/go-whim/internal/edit"
 )
 
@@ -44,7 +41,8 @@ const (
     hp->bh_data = dp;
     dp->db_line_count = 0;
 
-    return hp;`
+    return hp;
+`
 	W146NewPtr = `    PTR_BL      *pp;
     bhdr_T      *hp;
 
@@ -63,12 +61,8 @@ const (
     hp->bh_ptr = pp;
     pp->pb_count = 0;
 
-    return hp;`
-)
-
-var (
-	w146Paren = regexp.MustCompile(`\(\((PTR_BL|DATA_BL) \*\)\(([\w.>-]+)\)\)`)
-	w146Cast  = regexp.MustCompile(`\((PTR_BL|DATA_BL) \*\)\(([\w.>-]+)\)`)
+    return hp;
+`
 )
 
 // Whim146 makes a memline node name its block.
@@ -84,48 +78,20 @@ var (
 // cast was changes nothing.  The headers the blocks began with, pb_hdr and
 // db_hdr, are named by nothing then, and the sweep takes them.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	p := edit.Ph{Tag: "memnode", W: w}
-	var err error
-	steps := []struct{ Old, New, What string }{
-		{"struct block_hdr\n{\n    short_u     bh_id;\n};\n", "struct block_hdr\n{\n    short_u     bh_id;\n    struct pointer_block *bh_ptr;\n    struct data_block *bh_data;\n};\n", "a node is its tag and a pointer to its block"},
-		{"static_assert(sizeof(DATA_BL) == 16 + DB_LINE_MAX * sizeof(DATA_LN), \"a leaf is its tag, its count and its records\");",
-			"static_assert(sizeof(DATA_BL) == 8 + DB_LINE_MAX * sizeof(DATA_LN), \"a leaf is its count and its records\");", "a leaf is its count and its records"},
-	}
-	for _, s := range steps {
-		if text, err = p.Literal(text, s.Old, s.New, s.What, 1); err != nil {
-			return nil, err
-		}
-	}
-	if text, _, err = cutil.ReplaceBody(text, "ml_new_data", W146NewData); err != nil {
-		return nil, p.Die("ml_new_data: %v", err)
-	}
-	if text, _, err = cutil.ReplaceBody(text, "ml_new_ptr", W146NewPtr); err != nil {
-		return nil, p.Die("ml_new_ptr: %v", err)
-	}
-	p.Say("ml_new_data() and ml_new_ptr() allocate the block and its node, and the node names the block")
-	field := func(kind string) string {
-		if kind == "PTR_BL" {
-			return "bh_ptr"
-		}
-		return "bh_data"
-	}
-	n := 0
-	text = w146Paren.ReplaceAllFunc(text, func(m []byte) []byte {
-		s := w146Paren.FindSubmatch(m)
-		n++
-		return []byte(string(s[2]) + "->" + field(string(s[1])))
-	})
-	text = w146Cast.ReplaceAllFunc(text, func(m []byte) []byte {
-		s := w146Cast.FindSubmatch(m)
-		n++
-		return []byte(string(s[2]) + "->" + field(string(s[1])))
-	})
-	if n != 19 {
-		return nil, p.Die("%d casts from a node to its block, and this phase was written against 19", n)
-	}
-	p.Say(fmt.Sprintf("the %d casts from a node to its block read the node's pointer", n))
-	if k := len(regexp.MustCompile(`\((PTR_BL|DATA_BL|bhdr_T) \*\)`).FindAll(text, -1)); k != 4 {
-		return nil, p.Die("%d casts to a block or a node remain, where the four allocations -- two blocks, two nodes -- are 4", k)
-	}
-	return text, nil
+	e := edit.New("memnode", text, w)
+	e.Literal("struct block_hdr\n{\n    short_u     bh_id;\n};\n", "struct block_hdr\n{\n    short_u     bh_id;\n    struct pointer_block *bh_ptr;\n    struct data_block *bh_data;\n};\n", 1,
+		"a node is its tag and a pointer to its block")
+	e.Literal("static_assert(sizeof(DATA_BL) == 16 + DB_LINE_MAX * sizeof(DATA_LN), \"a leaf is its tag, its count and its records\");", "static_assert(sizeof(DATA_BL) == 8 + DB_LINE_MAX * sizeof(DATA_LN), \"a leaf is its count and its records\");", 1,
+		"a leaf is its count and its records")
+	e.Body("ml_new_data", W146NewData, "ml_new_data() allocates the block and its node, and the node names the block")
+	e.Body("ml_new_ptr", W146NewPtr, "and so does ml_new_ptr()")
+	// Every cast from a node to its block -- 19 -- reads the node's pointer: the
+	// parenthesised one first, so that the bare pattern does not take it from
+	// the inside.
+	e.Sub(`\(\(PTR_BL \*\)\(([\w.>-]+)\)\)`, "${1}->bh_ptr", 1, "a node cast to its pointer block reads bh_ptr, the parenthesised cast")
+	e.Sub(`\(PTR_BL \*\)\(([\w.>-]+)\)`, "${1}->bh_ptr", 7, "and the other seven")
+	e.Sub(`\(DATA_BL \*\)\(([\w.>-]+)\)`, "${1}->bh_data", 11, "a node cast to its data block reads bh_data, eleven times")
+	k := len(e.Query(`\((PTR_BL|DATA_BL|bhdr_T) \*\)`, 0))
+	e.Expect(k == 4, "%d casts to a block or a node remain, where the four allocations -- two blocks, two nodes -- are 4", k)
+	return e.Done()
 }

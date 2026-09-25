@@ -125,15 +125,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	for _, n := range edit.SortedKeys(w79Constants) {
 		e.ConstOf(n, w79Constants[n])
 	}
-	if e.Failed() {
-		return e.Done()
-	}
 	e.Say(fmt.Sprintf("confirmed: %d functions whose whole body is `return <constant>;`", len(w79Constants)))
 	for _, n := range edit.SortedKeys(w79Variable) {
 		e.ConstOf(n, w79Variable[n])
-	}
-	if e.Failed() {
-		return e.Done()
 	}
 	e.Say(fmt.Sprintf("confirmed: %d more return a VARIABLE and are left alone", len(w79Variable)))
 	// THE SIGNATURE IS NOT THE BODY.  `long *wcp` is in the parameter list of
@@ -141,10 +135,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// mentions wcp answers yes for ever and the check can never pass.  The
 	// Python asks the INNER Body -- from the `{` on its own line to the last
 	// `}` -- which is what innerBody reproduces.
-	if Body, ok := e.InnerBody("wc_use_keyname"); !ok || strings.Contains(Body, "wcp") {
-		e.Refuse("wc_use_keyname now mentions wcp -- it may write through the out-parameter")
-		return e.Done()
-	}
+	body, ok := e.InnerBody("wc_use_keyname")
+	e.Expect(ok && !strings.Contains(body, "wcp"), "wc_use_keyname now mentions wcp -- it may write through the out-parameter")
 	e.Say("confirmed: wc_use_keyname never dereferences its out-parameter")
 
 	e.FoldNever(`(?m)^[ \t]*if \(vim9script && \(flags & DOCMD_RANGEOK\) == 0\)$`, 1,
@@ -174,9 +166,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.FoldNever(`(?m)^[ \t]*if \(pum_visible\(\) && \(State & MODE_CMDLINE\) == 0 && pum_under_menu\(row, col, FALSE\)\)$`, 1,
 		"and the same test on the command line")
 	e.ConstOf("skip_for_popup", "FALSE")
-	if !e.Failed() {
-		e.Say("confirmed: skip_for_popup has collapsed to `return FALSE;`")
-	}
+	e.Say("confirmed: skip_for_popup has collapsed to `return FALSE;`")
 	e.Literal("may_trigger_safestate(ready && !ins_compl_active() && !pum_visible());",
 		"may_trigger_safestate(ready);", 1, "whether a state is safe no longer asks about completion")
 	e.FoldNever(`(?m)^[ \t]*if \(pum_visible\(\)\)$`, 2, "two redraws deferred for the popup menu")
