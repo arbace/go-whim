@@ -196,16 +196,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	state := args[0]
 	base := strings.Split(string(text), "\n")
 
-	blankRuns := func(lines []string) int {
-		n := 0
-		for i := 1; i < len(lines); i++ {
-			if lines[i] == "" && lines[i-1] == "" {
-				n++
-			}
-		}
-		return n
-	}
-
 	// ---- 0. the file this edit was written against ----------------------
 	// ELEVEN DIRECTIVES, every one an `#include` of a system header, on the
 	// first eleven lines -- what phase 104 left and what phases 106 and 109 each
@@ -266,12 +256,8 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, p.Die("`%s` is not in the input exactly once -- phase 106 put it below the last "+
 			"`#include` and the constants go beneath it", w110Typedef)
 	}
-	if k := blankRuns(base); k != 0 {
-		return nil, p.Die("the input already holds %d runs of two blank lines, and this edit "+
-			"empties whole paragraphs -- it can only preserve a zero", k)
-	}
 	p.Sayf("eleven directives, every one an `#include <...>` on the first eleven lines, "+
-		"the host block beginning exactly once, and not one run of two blank lines: %s",
+		"and the host block beginning exactly once: %s",
 		strings.Join(incNames, " "))
 
 	// ---- 1. the four kinds of thing that can move ------------------------
@@ -403,21 +389,23 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 
 	// build: the whole file, with funcs, objs and enums moved below the
 	// includes.
-	build := func(funcs, objs []string, moveEnums []int, consts bool) ([]string, int, map[int]bool, error) {
+	// It lays out nothing: no blank line is dropped, added or collapsed,
+	// because the canonical print that follows every phase re-lays the file.
+	build := func(funcs, objs []string, moveEnums []int, consts bool) ([]string, map[int]bool, error) {
 		drop := map[int]bool{}
-		for i := 0; i <= nInc; i++ { // the includes and the blank after them
+		for i := 0; i < nInc; i++ { // the includes
 			drop[i] = true
 		}
-		for i := p0 - 1; i < p0+3; i++ {
+		for i := p0; i < p0+3; i++ {
 			drop[i] = true
 		}
 		var items []w110Item
 		for _, n := range funcs {
 			s, e, err := fspan(n)
 			if err != nil {
-				return nil, 0, nil, err
+				return nil, nil, err
 			}
-			for i := s; i < e+2; i++ {
+			for i := s; i <= e; i++ {
 				drop[i] = true
 			}
 			items = append(items, w110Item{"f", s, base[s : e+1]})
@@ -425,7 +413,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		for _, n := range objs {
 			s, e, err := ospan(n)
 			if err != nil {
-				return nil, 0, nil, err
+				return nil, nil, err
 			}
 			drop[s] = true
 			items = append(items, w110Item{"o", s, base[s : e+1]})
@@ -433,7 +421,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		for _, st := range moveEnums {
 			s, e, err := espan(st)
 			if err != nil {
-				return nil, 0, nil, err
+				return nil, nil, err
 			}
 			for i := s; i <= e; i++ {
 				drop[i] = true
@@ -443,35 +431,22 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		sort.SliceStable(items, func(i, j int) bool { return items[i].at < items[j].at })
 
 		low := append([]string{}, base[0:nInc]...)
-		low = append(low, "")
 		if consts {
 			for _, c := range w110Consts {
 				low = append(low, fmt.Sprintf("static_assert(%s == %s, \"%s\");", c.val, c.Name, c.Name))
 			}
-			low = append(low, "")
 		}
 		for _, k := range []string{"e", "o"} {
-			got := 0
 			for _, it := range items {
-				if it.kind != k {
-					continue
+				if it.kind == k {
+					low = append(low, it.Body...)
 				}
-				got++
-				low = append(low, it.Body...)
-				if k == "e" {
-					low = append(low, "")
-				}
-			}
-			if got > 0 && k == "o" {
-				low = append(low, "")
 			}
 		}
 		low = append(low, base[p0:p0+3]...)
-		low = append(low, "")
 		for _, it := range items {
 			if it.kind == "f" {
 				low = append(low, it.Body...)
-				low = append(low, "")
 			}
 		}
 
@@ -497,23 +472,10 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			}
 			o = append(o, l)
 			if consts && l == w110Typedef {
-				o = append(o, "")
 				o = append(o, up...)
 			}
 		}
-		// A paragraph whose every line went leaves two blank lines meeting,
-		// and CLAUDE.md allows no run of two -- nor can any verification tier
-		// see one.
-		var r []string
-		collapsed := 0
-		for _, l := range o {
-			if l == "" && len(r) > 0 && r[len(r)-1] == "" {
-				collapsed++
-				continue
-			}
-			r = append(r, l)
-		}
-		return r, collapsed, drop, nil
+		return o, drop, nil
 	}
 
 	cut := func(L []string) string {
@@ -550,7 +512,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// declares: a thirteenth would mean the core still takes something from a
 	// header and phase 109 did not finish, and a missing one would mean this
 	// program declares something nobody needs.
-	l0, _, _, err := build(w110Variadic, nil, nil, false)
+	l0, _, err := build(w110Variadic, nil, nil, false)
 	if err != nil {
 		return nil, err
 	}
@@ -618,10 +580,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	}
 	var rounds []round
 	settled := false
-	var collapsed int
 	var L []string
 	for r := 0; r < 16; r++ {
-		Lr, _, drop, err := build(funcs, objs, moveEnums, true)
+		Lr, drop, err := build(funcs, objs, moveEnums, true)
 		if err != nil {
 			return nil, err
 		}
@@ -681,7 +642,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if !settled {
 		return nil, p.Die("the fixpoint did not settle in 16 rounds")
 	}
-	L, collapsed, _, err = build(funcs, objs, moveEnums, true)
+	L, _, err = build(funcs, objs, moveEnums, true)
 	if err != nil {
 		return nil, err
 	}
@@ -721,9 +682,6 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 		return nil, p.Die("%d lines above the boundary begin with a `#`, at %s",
 			len(hashes), strings.Join(at, " "))
-	}
-	if k := blankRuns(L); k != 0 {
-		return nil, p.Die("the output holds %d runs of two blank lines", k)
 	}
 	var incAt []int
 	for i, l := range L {
@@ -780,9 +738,9 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			p.Sayf("  round %d: %s", i, strings.Join(parts, " "))
 		}
 	}
-	p.Sayf("%d lines -> %d, %d blank line(s) collapsed where an emptied paragraph left "+
-		"two, the eleven `#include`s now at lines %d-%d, and NOTHING above them begins "+
-		"with a `#`", len(base)-1, len(L)-1, collapsed, incAt[0]+1, incAt[len(incAt)-1]+1)
+	p.Sayf("%d lines -> %d before the canonical print, the eleven `#include`s now at "+
+		"lines %d-%d, and NOTHING above them begins with a `#`",
+		len(base)-1, len(L)-1, incAt[0]+1, incAt[len(incAt)-1]+1)
 	p.Sayf("THE CUT IS %d LINES, COMPILES WITH 0 ERRORS AND NOTHING ABOVE IT IS DEAD, "+
 		"and its whole warning set is the boundary: %d names, every one `used but "+
 		"never defined` -- %s",
