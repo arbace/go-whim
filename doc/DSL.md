@@ -136,7 +136,7 @@ single cases up to 15.
 So a language whose default anchor is **a C line matched after the indentation**,
 with a regular expression as the exception, fits 85 % of what is written. On
 canonical text that anchor is exact, because the printer fixes spacing and
-indentation (`doc/REDUNDANT-STEPS.md` G1, v12).
+indentation (the redundant-steps survey, G1, v12, in git history at 6f8c1e9).
 
 ### 1.4 Which phases could be declarative
 
@@ -230,7 +230,7 @@ A language would not remove this code. It would push it into escape hatches.
 The part of it that is *accidental* is:
 
 - layout handling that the canonical print now makes redundant
-  (`REDUNDANT-STEPS.md`: about 35 blocks in 16 phases, about 300 hand
+  (the redundant-steps survey: about 35 blocks in 16 phases, about 300 hand
   deletions the sweep does anyway);
 - the Python port's precondition prose, 1,966 report/refusal lines in the C
   tier.

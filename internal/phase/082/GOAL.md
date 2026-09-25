@@ -3,9 +3,9 @@
 **Now a record: the phase changes nothing.** Its headers half went to phase 168,
 and its comments half is the canonical print's, which drops every comment at
 every boundary, so there is no comment left by the time it runs. It is
-`NoSource` in the plan and its edit program is gone (doc/REDUNDANT-STEPS.md:
-removing it leaves every boundary byte-identical). What follows is the record
-of when it did both.
+`NoSource` in the plan and its edit program is gone: removing it leaves every
+boundary byte-identical (the redundant-steps survey, in git history at
+`6f8c1e9`). What follows is the record of when it did both.
 
 `whim-vim.c` opened with the same 41 `#include`s as `slim-vim.c`, and eighty-one
 phases had taken away most of what they were for — the directory walker, the locale,

@@ -28,7 +28,7 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   cover only 10-22% of the edit code; the savings come from one verb set in
   `edit.E` (seven spellings of FoldNever today), verbs for what phases
   hand-write, and moving the ~20 mostly-declarative phases onto them. The phases
-  are leaner now (the REDUNDANT-STEPS removals landed), so the census is worth
+  are leaner now (the redundant-steps removals landed), so the census is worth
   re-running before starting.
 
 ## Known stale, not yet scoped
