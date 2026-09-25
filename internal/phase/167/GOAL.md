@@ -21,7 +21,7 @@ is not a constant, and stays as it is.
 with the one compile line is BYTE-IDENTICAL before and after
 (`SOURCE_DATE_EPOCH=0`).
 
-It is the survey's item 6 (the Go-idioms survey). The generator writes an
+It is the survey's item 6 (`doc/GO-IDIOMS.md`). The generator writes an
 enumerator as a Go constant, so the Go says `case K_INS, K_KINS:` where it said
 `case -('k' + (73 << 8)), -(KS_EXTRA + (79 << 8)):`.
 

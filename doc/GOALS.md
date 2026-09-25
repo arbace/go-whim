@@ -3920,9 +3920,9 @@ Not yet done, and each one only when it is asked for:
 - **Whatever the host still provides** that the core could own, measured each
   time as the core's libc surface (`make score`) and its boundary (`make
   editor.c`), and never assumed.
-- **The Go editor, idiomatic.** A survey measured how far the generated Go was
-  from idiomatic and ranked the work, and all of it is done or declined
-  (`AGENDA.md`); `make whim-test` runs the
+- **The Go editor, idiomatic.** `doc/GO-IDIOMS.md` measured how far the
+  generated Go was from idiomatic and ranked the work, and all of it is done
+  or declined (`AGENDA.md`); `make whim-test` runs the
   Go editor against the C on every case, so each step is checked.
 
 When Part I ended at phase 82 this list also held the file-lookup layer, state

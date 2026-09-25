@@ -5,7 +5,7 @@ vim leaves a function early with `goto theend;`, and `theend:` marks
 return: at the `goto`, `return ret;` returns what the label would, in the same
 state, because nothing runs in between. This phase writes the return at every
 such `goto`, and drops a label no `goto` reaches any more. It is
-the Go-idioms survey's item 10: the Go says `return retval` where it said
+`doc/GO-IDIOMS.md` item 10: the Go says `return retval` where it said
 `goto theend`, and a function left with no `goto` has its locals declared where
 C declares them, since `internal/gen` hoists them only in a function that
 jumps.

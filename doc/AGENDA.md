@@ -33,7 +33,7 @@ cases):
 
 ## Declined, with the reason recorded
 
-**The C strings as Go slices** (the rest of the Go-idioms survey's item 7). Every
+**The C strings as Go slices** (`GO-IDIOMS.md` item 7, its last part). Every
 `char *` in the program is one pointer class, 1,561 objects merged by flows, and
 it is ordered and compared across pointers into one array: `p < end`, `p == q`,
 `p - s`. A slice has no such identity. The rule that makes a forward-only
