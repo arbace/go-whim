@@ -18,8 +18,7 @@ import (
 )
 
 var (
-	optRowStart = `(?m)^[ \t]*\{"%s",`
-	reachedBy   = regexp.MustCompile(
+	reachedBy = regexp.MustCompile(
 		`\b(findoption|set_string_option_direct|set_option_value\w*|option_was_set)\s*\(`)
 	varOfRow  = regexp.MustCompile(`\(char_u \*\)&(\w+)`)
 	pvOfRow   = regexp.MustCompile(`PV_\w+`)
@@ -34,12 +33,11 @@ var (
 // local suppresses the PV_ guard, for a phase that has already removed the
 // buffer- or window-local field.
 func DropRow(text []byte, name string, strict, local bool) ([]byte, bool, error) {
-	re := regexp.MustCompile(fmt.Sprintf(optRowStart, regexp.QuoteMeta(name)))
-	loc := re.FindIndex(text)
-	if loc == nil {
+	spans := indentedLit(text, `{"`+name+`",`)
+	if len(spans) == 0 {
 		return text, false, nil
 	}
-	start := loc[0]
+	start := spans[0][0]
 
 	// THE ROW'S OWN EXTENT, computed before the guards, because every guard
 	// asks a question about "this row" and a fixed window of lines would ask
@@ -133,11 +131,7 @@ func DropRow(text []byte, name string, strict, local bool) ([]byte, bool, error)
 		}
 	}
 
-	end := edit.Match(edit.Blank(text), open)
-	if end < 0 {
-		return text, false, fmt.Errorf("dropoptions: the row for %s is not balanced", name)
-	}
-	end++
+	end := rowEnd + 1 // the same text, blanked above: its closing brace
 	for end < len(text) && (text[end] == ' ' || text[end] == '\t' || text[end] == ',') {
 		end++
 	}
@@ -169,12 +163,52 @@ func DropOptions(text []byte, names []string, strict, local bool) ([]byte, int, 
 	}
 	whitelisted := 0
 	for _, name := range names {
-		pat := regexp.MustCompile(`(?m)^[ \t]*"` + regexp.QuoteMeta(name) + `",\n`)
-		n := len(pat.FindAll(text, -1))
-		text = pat.ReplaceAll(text, nil)
-		whitelisted += n
+		spans := indentedLit(text, `"`+name+`",`+"\n")
+		if len(spans) == 0 {
+			continue
+		}
+		out := make([]byte, 0, len(text))
+		last := 0
+		for _, s := range spans {
+			out = append(out, text[last:s[0]]...)
+			last = s[1]
+		}
+		text = append(out, text[last:]...)
+		whitelisted += len(spans)
 	}
 	return text, whitelisted, nil
+}
+
+// indentedLit is every place lit begins a line after its indentation --
+// what `(?m)^[ \t]*` followed by the quoted literal matches -- as the span
+// from the line's start to the literal's end, in order.  It searches for the
+// literal and looks back to the line's start, where the regular expression,
+// with no literal to start from, ran its machine over the whole file for each
+// option: 38 s of phase 54's 44, measured.  Only the first occurrence on a
+// line can have nothing but blanks before it, so the spans are the regular
+// expression's matches, leftmost first and not overlapping.
+func indentedLit(text []byte, lit string) [][2]int {
+	var out [][2]int
+	needle := []byte(lit)
+	for from := 0; ; {
+		i := bytes.Index(text[from:], needle)
+		if i < 0 {
+			return out
+		}
+		i += from
+		ls := bytes.LastIndexByte(text[:i], '\n') + 1
+		blank := true
+		for _, c := range text[ls:i] {
+			if c != ' ' && c != '\t' {
+				blank = false
+				break
+			}
+		}
+		if blank {
+			out = append(out, [2]int{ls, i + len(needle)})
+		}
+		from = i + len(needle)
+	}
 }
 
 // lineAt returns the whole line containing the byte at pos, without its
