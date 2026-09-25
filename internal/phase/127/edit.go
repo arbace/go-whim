@@ -271,14 +271,15 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 		return "<file scope>"
 	}
-	// carry: the `ml_flags |=` statements inside [lo,hi], re-indented.  They are
-	// CARRIED and not written: ML_LOCKED_DIRTY and ML_LOCKED_POS are phase
-	// 125's to remove, and an edit that spelled them would break on it.
-	carry := func(lo, hi, indent int) []string {
+	// carry: the `ml_flags |=` statements inside [lo,hi], as they stand (the
+	// canonical print indents them).  They are CARRIED and not written:
+	// ML_LOCKED_DIRTY and ML_LOCKED_POS are phase 125's to remove, and an edit
+	// that spelled them would break on it.
+	carry := func(lo, hi int) []string {
 		var Out []string
 		for i := lo; i <= hi; i++ {
 			if edit.W127MlFlags.MatchString(lines[i]) {
-				Out = append(Out, strings.Repeat(" ", indent)+strings.TrimSpace(lines[i]))
+				Out = append(Out, lines[i])
 			}
 		}
 		return Out
@@ -601,12 +602,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, err
 	}
 	b = stmtEnd(k)
-	kept := carry(a, b, 12)
-	repl := append([]string{}, w127b12...)
-	if len(kept) > 0 {
-		repl = append(repl, "")
-		repl = append(repl, kept...)
-	}
+	repl := append(append([]string{}, w127b12...), carry(a, b)...)
 	lines = edit.W127Splice(lines, a, b+1, repl)
 	if lo, hi, err = fn("ml_flush_line"); err != nil {
 		return nil, err
@@ -625,6 +621,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	lines = edit.W127Splice(lines, a, a+1, nil)
 
 	// --- 10. ML_APPEND_MARK has no caller left -------------------------------
+	// Its enumerator is left for the sweep, which takes one nothing names.
 	markRe := regexp.MustCompile(`\bML_APPEND_MARK\b`)
 	var left []int
 	for i, l := range lines {
@@ -636,48 +633,19 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		return nil, die("ML_APPEND_MARK is still mentioned %d times and not only by its own "+
 			"enumerator, so the flag has a caller this edit did not see", len(left))
 	}
-	lines = edit.W127Splice(lines, left[0], left[0]+1, nil)
 
 	// --- 11. the locals the rewrite stopped using ----------------------------
-	// COMPUTED, not listed: a declaration whose name is left mentioned once in
-	// its own function is mentioned only by itself.
-	var droppedLocals []string
-	for _, name := range []string{"ml_open", "ml_get_buf", "ml_append_int", "ml_delete_int",
-		"ml_setmarked", "ml_firstmarked", "ml_clearmarked", "ml_flush_line", "ml_new_data"} {
-		for {
-			lo, hi, err = fn(name)
-			if err != nil {
-				return nil, err
-			}
-			Body := strings.Join(lines[lo:hi+1], "\n")
-			found := false
-			for i := lo; i <= hi; i++ {
-				m := edit.W127Decl.FindStringSubmatch(lines[i])
-				if m == nil {
-					continue
-				}
-				if edit.Contains(edit.W127NotDecl, strings.Fields(lines[i])[0]) {
-					continue
-				}
-				if mentions(Body, m[1]) == 1 {
-					droppedLocals = append(droppedLocals, name+":"+m[1])
-					lines = edit.W127Splice(lines, i, i+1, nil)
-					found = true
-					break
-				}
-			}
-			if !found {
-				break
-			}
-		}
-	}
-	say("%d locals the rewrite stopped using, found by counting their own name: %s",
-		len(droppedLocals), strings.Join(droppedLocals, " "))
+	// Each is left a declaration nothing else in its function names, which the
+	// sweep takes.
 
 	// --- the partition again, on the output ----------------------------------
 	t := strings.Join(lines, "\n")
 	for _, name := range w127Gone {
-		if k := mentions(t, name); k != 0 {
+		want := 0
+		if name == "ML_APPEND_MARK" {
+			want = 1 // its enumerator, the sweep's
+		}
+		if k := mentions(t, name); k != want {
 			return nil, die("%s survives the edit with %d mentions", name, k)
 		}
 	}
