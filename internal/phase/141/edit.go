@@ -53,7 +53,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		loopEnd += loopStart + len("\n        }\n        break;\n")
 		loop := s[loopStart:loopEnd]
 		rest := s[loopEnd:]
-		rest = strings.TrimPrefix(rest, "\n")
 		ms := w141Class.FindAllStringSubmatchIndex(rest, -1)
 		if len(ms) != 17 || ms[0][0] != 0 {
 			return nil, p.Die("regrepeat(): %d classes jump to do_class right after it, and this phase was written against 17", len(ms))
