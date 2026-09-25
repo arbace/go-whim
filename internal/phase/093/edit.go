@@ -59,9 +59,7 @@ package p093
 // THREE SITES HAVE AN `else` AND cutil.fold_always REFUSES THEM, by design: keeping
 // a body and dropping an else is not what it does.  fileinfo(), set_b0_fname() and
 // get_trans_bufname() use the local fold_always_else() below, which keeps the if
-// body dedented four columns -- right only because each of the three is written one
-// level inside its function, which was read and not assumed, phase 91's anchor 5
-// being what a wrong dedent costs.  And FOUR MORE are a function whose whole body is
+// body where it was; the canonical print re-indents it.  And FOUR MORE are a function whose whole body is
 // the `if`: buf_spname(), buf_get_fname(), check_fname() and getaltfname().
 // fold_always there leaves an unreachable `return buf->b_fname;` behind -- measured
 // -- which no sweep tool removes and which would keep `b_fname` alive for ever.
@@ -116,7 +114,7 @@ var w93Before = map[string]int{
 }
 
 var w93After = map[string]int{
-	"CMD_file": 0, "EX_XFILE": 1, "buflist_name_nr": 1, "readonlymode": 0,
+	"CMD_file": 0, "EX_XFILE": 1, "buflist_name_nr": 1, "readonlymode": 1,
 	"shorten_buf_fname": 1, "check_fname": 3, "buf_get_fname": 3,
 	"check_changed": 4, "no_write_message": 3, "p_ur": 2, "p_ro": 2,
 	"read_cmd_fd": 12, "vim_fsync": 3, "scriptin": 8, "redir_fd": 6,
@@ -208,7 +206,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 	// foldAlwaysElse keeps A of `if (TRUE) { A } else { B }` inside fn.
 	// cutil.FoldAlways refuses a block with an else, deliberately, and this is
-	// the shape three sites here have.  The Body is dedented four columns.
+	// the shape three sites here have.  The Body is kept as it is written; the
+	// canonical print re-indents it.
 	foldAlwaysElse := func(t []byte, fn, ifline, what string) ([]byte, error) {
 		Out, err := inFunction(t, fn, func(sb []byte) ([]byte, error) {
 			s := string(sb)
@@ -233,21 +232,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 				return nil, p.Die("%s -- unbalanced else block", what)
 			}
 			Body := s[strings.Index(s[o:], "\n")+o+1 : strings.LastIndex(s[:c], "\n")+1]
-			for _, l := range edit.W88Lines(Body) {
-				if !strings.HasPrefix(l, "    ") && strings.TrimSpace(l) != "" {
-					return nil, p.Die("%s -- the if body is not written one level in, and dedenting it "+
-						"would move code to a column it was never at", what)
-				}
-			}
-			var Out strings.Builder
-			for _, l := range edit.W88Lines(Body) {
-				if strings.HasPrefix(l, "    ") {
-					Out.WriteString(l[4:])
-				} else {
-					Out.WriteString(l)
-				}
-			}
-			return []byte(s[:i] + Out.String() + s[strings.Index(s[c2:], "\n")+c2+1:]), nil
+			return []byte(s[:i] + Body + s[strings.Index(s[c2:], "\n")+c2+1:]), nil
 		})
 		if err != nil {
 			return nil, err
@@ -372,7 +357,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	for _, e := range []struct{ Old, New, What string }{
-		{w93lit11, w93lit12, "the two locals the parameters fed, and the stat_T nothing fills now"},
 		{w93lit13, "", "the prologue and the lookup: fname_expand() on two NULLs, a stat() the " +
 			"`sfname == NULL` disjunct already short-circuited, and the search for " +
 			"an existing buffer of the same name, whose guard `ffname != NULL` is " +
@@ -398,12 +382,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	if !ok {
 		return nil, p.Die("buflist_new is not defined")
 	}
+	// The ffname, sfname and st locals are still declared, and nothing else
+	// in buflist_new names them; the sweep takes the three.
 	for _, gone := range []string{"ffname", "sfname", "st"} {
-		if mentions(text[a:z], gone) > 0 {
-			return nil, p.Die("%s is still named inside buflist_new", gone)
+		if mentions(text[a:z], gone) != 1 {
+			return nil, p.Die("%s is named inside buflist_new other than by its declaration", gone)
 		}
 	}
-	p.Say("buflist_new names nothing: ffname, sfname and st are gone from it")
+	p.Say("buflist_new names nothing: ffname, sfname and st are left as unused locals")
 
 	// ---- C. the sixteen folds, with the constant each takes -------------------
 	if text, err = fold(text, "open_buffer", "never",
@@ -534,11 +520,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"did_set_readonly's readonlymode write, with the `if` around it: C1 took "+
 			"the only reader, and an `if` with an empty body is not something any tool "+
 			"here removes", 1); err != nil {
-		return nil, err
-	}
-	if text, err = textEdit(text, w93lit45, "",
-		"and the definition of readonlymode, which phase 91 asserted at 5 "+
-			"mentions and phase 92 at 3", 1); err != nil {
 		return nil, err
 	}
 	if text, err = within(text, "buflist_new", w93lit21, "",
