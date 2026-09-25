@@ -385,9 +385,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("the xterm-family clause's block is not balanced")
 	}
 	end := cb + 1
-	if end < len(text) && text[end] == '\n' {
-		end++
-	}
 	Body := text[ob+1 : cb]
 	if bytes.Count(Body, []byte(";")) != 1 || !bytes.Contains(Body, []byte("return")) {
 		return nil, p.Die("the xterm-family clause does more than return a table, and this phase is "+
@@ -397,7 +394,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"against %s, and no row will carry that name: the clause can never fire again.  "+
 		"gcc has no warning for a condition that is false at run time and no tool in "+
 		"tools/sweep.sh reads one, so it is the edit's to take -- %d lines at line %d",
-		cutil.PyRepr(oldFallback), bytes.Count(text[start:end], []byte{'\n'}), lineOf(start))
+		cutil.PyRepr(oldFallback), bytes.Count(text[start:end], []byte{'\n'})+1, lineOf(start))
 
 	// ---- 4. the message that announces the fallback ----------------------
 	// The message and the name move together.  Nothing in the build checks
