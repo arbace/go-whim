@@ -108,6 +108,7 @@ var ops = map[string]Step{
 	"gototail":          Step(xform.GotoTail(whim.GotoTail)),
 	"gotobreak":         Step(xform.GotoBreak()),
 	"gotoloop":          Step(xform.GotoLoop()),
+	"gotoblock":         Step(xform.GotoBlock()),
 	"query-empty":       queryEmpty,
 	"query-dropoptions": queryDropOptions,
 }

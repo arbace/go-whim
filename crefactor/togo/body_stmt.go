@@ -498,6 +498,48 @@ func isConstTrue(e cc.ExpressionNode) bool {
 	return false
 }
 
+// isConstFalse says e is a constant zero with no effect: `while (0)`.
+func isConstFalse(e cc.ExpressionNode) bool {
+	if e == nil || hasEffect(e) {
+		return false
+	}
+	switch v := e.Value().(type) {
+	case cc.Int64Value:
+		return v == 0
+	case cc.UInt64Value:
+		return v == 0
+	}
+	return false
+}
+
+// once writes `do { body } while (0)`, C's block a break can leave, as Go's
+// `for { body; break }`: a break in the body leaves the for as it left the
+// do.  A continue, which in C tests the false condition and so leaves too, is
+// `break L` to the for labeled L -- labeled, since a switch in between would
+// take a bare break, and not a goto to its end, which Go refuses over a
+// declaration.  The body runs once, so it is no loop for the locals declared
+// in it: they are declared where C declares them.  The closing break is left
+// out after a body that ends in a jump of its own.
+func (f *fnEmit) once(body *cc.Statement) {
+	cont := ""
+	if hasContinue(body) {
+		lbl := f.newLabel("once")
+		f.line("%s:", lbl)
+		cont = "break " + lbl
+	}
+	f.line("for {")
+	f.cont = append(f.cont, cont)
+	f.pushBreakable(false)
+	text := f.capture(func() { f.body(body) })
+	f.popBreakable()
+	f.cont = f.cont[:len(f.cont)-1]
+	f.out.WriteString(text)
+	if !terminates(strings.Split(text, "\n")) {
+		f.line("\tbreak")
+	}
+	f.line("}")
+}
+
 func (f *fnEmit) iteration(s *cc.IterationStatement) {
 	switch s.Case {
 	case cc.IterationStatementWhile:
@@ -523,6 +565,10 @@ func (f *fnEmit) iteration(s *cc.IterationStatement) {
 		f.loopBody(s.Statement, "")
 		f.line("}")
 	case cc.IterationStatementDo:
+		if isConstFalse(s.ExpressionList) {
+			f.once(s.Statement)
+			return
+		}
 		cont := ""
 		if hasContinue(s.Statement) {
 			cont = f.newLabel("cont")
@@ -612,7 +658,9 @@ func (f *fnEmit) jump(j *cc.JumpStatement) {
 		if len(f.cont) == 0 {
 			f.no(j, "a continue outside a loop")
 		}
-		if c := f.cont[len(f.cont)-1]; c != "" {
+		if c := f.cont[len(f.cont)-1]; strings.HasPrefix(c, "break ") {
+			f.line("%s", c) // a do-while(0)'s: see once
+		} else if c != "" {
 			f.line("goto %s", c)
 		} else {
 			f.line("continue")

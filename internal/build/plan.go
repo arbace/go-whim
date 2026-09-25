@@ -819,4 +819,8 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "gotoloop", Args: []string{"--at-least", "2"}},
 		}},
+	{N: 173, Name: "a goto out of its block is a break",
+		Steps: []Step{
+			{Op: "gotoblock", Args: []string{"--at-least", "50"}},
+		}},
 }

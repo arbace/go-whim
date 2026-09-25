@@ -59,6 +59,15 @@ slim-vim.c  --whim-->  whim-vim.c
     return, or a void function's end -- over each of the 79 `goto`s that reach
     one (`crefactor/xform`'s `GotoTail`), and drops the 14 labels left
     unreached: 12 functions of the core and 2 of the host have no `goto` left.
+  - **phases 171-172** take the gotos a loop says: one to the statement after
+    its own loop or switch is `break;`, one to where control goes next anyway
+    is deleted (171, `GotoBreak`); a goto back to a label is a loop and
+    `continue;` (172, `GotoLoop`).
+  - **phase 173** (after the headers: it touches none) wraps the region a
+    forward `goto` leaves -- to a label of a block that holds it, no loop or
+    switch between -- in `do { ... } while (0);` and writes the goto `break;`
+    (`crefactor/xform`'s `GotoBlock`); togo writes that do-while as Go's
+    `for { ...; break }`. On q169: 71 gotos, 18 labels.
 
   Phase 83 is the line between the two arcs.
 
