@@ -60,25 +60,14 @@ var optreadersFolds = []struct {
 		"never", `^[ \t]*if \(p_shm_save != NULL\)$`, 1},
 }
 
-var optreadersDeletions = []struct {
-	what, pattern string
-	count         int
-}{
-	{"-p: the p_shm_save local", `(?m)^[ \t]*char_u[ \t]+\*p_shm_save = NULL;\n`, 1},
-	{"--not-a-term: the two prototypes",
-		`(?m)^static int is_not_a_term(?:_or_gui)?\(void\);\n`, 2},
-}
-
 // optreadersAfter is what must be LEFT, counted after every edit.
 var optreadersAfter = []struct {
 	what, pattern string
 	want          int
 }{
-	{"is_not_a_term", `\bis_not_a_term`, 0},
-	{"p_shm_save", `\bp_shm_save\b`, 0},
 	{"the clean field outside its declaration", `(?:\.|->)clean\b`, 0},
 	{"clean_arg", `\bclean_arg\b`, 0},
-	{"not_a_term outside its declaration", `\bnot_a_term\b`, 1},
+	{"not_a_term: its declaration, and the two readers the sweep takes", `\bnot_a_term\b`, 3},
 	{"no_swap_file outside its declaration", `\bno_swap_file\b`, 1},
 	{"WIN_TABS outside its enumerator", `\bWIN_TABS\b`, 1},
 	{"early_arg_scan outside its definition and prototype", `\bearly_arg_scan\(paramp\)`, 0},
@@ -110,25 +99,6 @@ func OptReaders(text []byte, w io.Writer) ([]byte, error) {
 			places = fmt.Sprintf(", %d places", f.count)
 		}
 		fmt.Fprintf(w, "  optreaders   %s%s\n", f.what, places)
-	}
-
-	for _, name := range []string{"is_not_a_term", "is_not_a_term_or_gui"} {
-		var ok bool
-		text, ok = cutil.DeleteDefinition(text, name)
-		if !ok {
-			return nil, fmt.Errorf("optreaders: %s is not defined at file scope", name)
-		}
-	}
-
-	for _, d := range optreadersDeletions {
-		re := regexp.MustCompile(d.pattern)
-		n := len(re.FindAll(text, -1))
-		if n != d.count {
-			return nil, fmt.Errorf("optreaders: %s -- expected %d, matched %d",
-				d.what, d.count, n)
-		}
-		text = re.ReplaceAll(text, nil)
-		fmt.Fprintf(w, "  optreaders   %s\n", d.what)
 	}
 
 	for _, a := range optreadersAfter {
