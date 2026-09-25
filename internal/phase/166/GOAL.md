@@ -56,3 +56,5 @@ before, and the Go editor answers all 45 as the C does.
 Not done: what the rule refuses by design keeps its `B2i` -- a variable also
 updated with `|=` (`area_highlighting`), a member some table fills by position,
 a parameter of a function taken by address.
+
+The transformation now lives in `internal/crefactor/xform` (`BoolRet`), with vim's knobs in `internal/whim/xform.go`.

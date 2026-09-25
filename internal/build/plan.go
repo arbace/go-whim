@@ -680,7 +680,7 @@ var Plan = []Phase{
 		}},
 	{N: 132, Name: "nothing frees",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim132"}},
+			{Op: "edit", Args: []string{"whim132", "--calls", "273", "--redirected", "3"}},
 		}},
 	{N: 133, Name: "one buffer needs no hash table",
 		Steps: []Step{
@@ -688,7 +688,7 @@ var Plan = []Phase{
 		}},
 	{N: 134, Name: "the empty blocks fold",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim134"}},
+			{Op: "edit", Args: []string{"whim134", "--at-least", "20"}},
 		}},
 	{N: 135, Name: "one regexp program type",
 		Steps: []Step{
@@ -748,7 +748,7 @@ var Plan = []Phase{
 		}},
 	{N: 149, Name: "the allocation-failure branches fold",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim149"}},
+			{Op: "edit", Args: []string{"whim149", "--at-least", "80"}},
 		}},
 	{N: 150, Name: "the regexp stack is three typed stacks",
 		Steps: []Step{
