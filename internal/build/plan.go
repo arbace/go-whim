@@ -811,4 +811,12 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "gototail", Args: []string{"--at-least", "52"}},
 		}},
+	{N: 171, Name: "a goto that is a break is break",
+		Steps: []Step{
+			{Op: "gotobreak", Args: []string{"--at-least", "5"}},
+		}},
+	{N: 172, Name: "a goto back is a loop",
+		Steps: []Step{
+			{Op: "gotoloop", Args: []string{"--at-least", "2"}},
+		}},
 }
