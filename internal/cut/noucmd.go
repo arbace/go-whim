@@ -90,10 +90,7 @@ func NoUcmd(text []byte, w io.Writer) ([]byte, error) {
 		"noucmd", "the buffer's table", 1); err != nil {
 		return nil, err
 	}
-	if text, err = cutCounted(text, `(?m)^[ \t]*garray_T b_ucmds;\n`,
-		"noucmd", "the b_ucmds field", 1); err != nil {
-		return nil, err
-	}
+	// The b_ucmds field itself is the sweep's once nothing names it.
 	fmt.Fprintln(w, "  noucmd       the per-buffer command table")
 
 	fmt.Fprintf(w, "  noucmd       %d do_ucmd/ucmds mentions left for the sweep\n",
