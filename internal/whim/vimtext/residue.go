@@ -1,17 +1,17 @@
-package edit
+package vimtext
 
 import (
 	"regexp"
 	"sort"
 
-	"github.com/arbace/go-whim/internal/cutil"
+	"github.com/arbace/go-whim/internal/crefactor/text"
 	"github.com/arbace/go-whim/internal/dead"
 )
 
 // coreRowRe is the one physical line of a designated cmdnames[] row.
 var coreRowRe = regexp.MustCompile(`(?m)^    \[CMD_\w+\] = \{.*$`)
 
-func CoreRows(text []byte) [][]byte { return coreRowRe.FindAll(text, -1) }
+func CoreRows(t []byte) [][]byte { return coreRowRe.FindAll(t, -1) }
 
 // zResidue is step 5 of phases 89, 90, 91 and 92, which those phases write the same
 // way because it is the same argument: THE TEXT THIS EDIT LEAVES DOES NOT
@@ -24,9 +24,9 @@ func CoreRows(text []byte) [][]byte { return coreRowRe.FindAll(text, -1) }
 // the dying names actually FOUND, sorted -- phase 91 reports that third one where
 // 89, 90 and 92 report the list they were given.  Each phase writes its own report
 // line, because the wording is the phase's.
-func CoreResidue(p Ph, text []byte, dying []string) (int, []string, []string, error) {
-	blanked := cutil.Blank(text)
-	defs := dead.FuncDefinitions(text, blanked)
+func CoreResidue(p text.Ph, t []byte, dying []string) (int, []string, []string, error) {
+	blanked := text.Blank(t)
+	defs := dead.FuncDefinitions(t, blanked)
 	type span struct {
 		a, z int
 		Name string
@@ -51,7 +51,7 @@ func CoreResidue(p Ph, text []byte, dying []string) (int, []string, []string, er
 	holders := map[string]bool{}
 	found := map[string]bool{}
 	for _, e := range dying {
-		for _, m := range regexp.MustCompile(`\b`+e+`\b`).FindAllIndex(text, -1) {
+		for _, m := range regexp.MustCompile(`\b`+e+`\b`).FindAllIndex(t, -1) {
 			left++
 			who := ""
 			for _, s := range spans {
@@ -72,7 +72,7 @@ func CoreResidue(p Ph, text []byte, dying []string) (int, []string, []string, er
 		names = append(names, fn)
 	}
 	sort.Strings(names)
-	survivors := CoreRows(text)
+	survivors := CoreRows(t)
 	for _, fn := range names {
 		re := regexp.MustCompile(`\b` + fn + `\b`)
 		for _, r := range survivors {

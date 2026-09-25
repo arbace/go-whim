@@ -15,7 +15,7 @@ import (
 // two phases share stopped being either one's.  The phase it was written for is
 // named above each.  What the phases share that DOES know vim -- the buffer
 // walks, the command table's shapes, the swap file's fields -- is in
-// internal/edit's shared.go.
+// internal/whim/vimtext.
 
 // From phase 71.
 // bindsToWalk names a `break` or `continue` in the Body that is not inside a

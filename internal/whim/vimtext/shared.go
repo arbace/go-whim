@@ -1,4 +1,4 @@
-package edit
+package vimtext
 
 import (
 	"fmt"
@@ -6,7 +6,8 @@ import (
 	"strings"
 )
 
-// What more than one phase uses.
+// What more than one phase uses that knows vim; the rest is in
+// internal/crefactor/text/shared.go.
 //
 // EVERY DECLARATION HERE WAS ONE PHASE'S, and is here because another phase
 // reached it: when each phase became a package of its own (internal/phase/NNN), a helper
