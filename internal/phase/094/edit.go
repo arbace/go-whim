@@ -121,7 +121,7 @@ var w94Before = map[string]int{
 
 var w94After = map[string]int{
 	"check_changed": 3, "not_exiting": 2,
-	"w_topline_was_set": 2, "wi_changelistidx": 1,
+	"w_topline_was_set": 3, "wi_changelistidx": 1,
 	"bufIsChanged": 10, "curbufIsChanged": 7, "bufIsChangedNotTerm": 3,
 	"curbuf_locked": 7, "text_locked": 6, "before_quit_autocmds": 2,
 	"p_ro": 2, "p_ur": 2, "read_cmd_fd": 12,
@@ -261,9 +261,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	for _, e := range []struct{ Old, What string }{
-		{w94lit3, "win_T.w_topline_was_set: its only reader is inside enter_buffer(), " +
-			"which the sweep takes -- so the field is write-only and nothing sees it"},
-		{w94lit4, "and its one surviving write, in set_topline()"},
+		{w94lit4, "win_T.w_topline_was_set's one surviving write, in set_topline(): its " +
+			"only reader is inside enter_buffer(), which the sweep takes, and the " +
+			"field, named by nothing after that, with it"},
 		{w94lit5, "wininfo_S.wi_changelistidx: its only reader is inside get_winopts(), " +
 			"swept with the rest of the island"},
 		{w94lit6, "and its one surviving write, in find_wininfo() -- which the sweep " +
