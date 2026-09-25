@@ -3,6 +3,7 @@ package build
 import (
 	"bytes"
 	"fmt"
+	"github.com/arbace/go-whim/internal/whim"
 	"io"
 	"os"
 	"path/filepath"
@@ -200,7 +201,7 @@ func RunPhase(p Phase, text []byte, scratch string, w io.Writer) ([]byte, error)
 			if err := os.WriteFile(path, text, 0o644); err != nil {
 				return nil, err
 			}
-			if _, err := sweep.Sweep(path, w); err != nil {
+			if _, err := sweep.Sweep(path, w, whim.Profile.Sweep); err != nil {
 				return nil, err
 			}
 			out, err := os.ReadFile(path)

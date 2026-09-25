@@ -51,7 +51,7 @@ var order = []string{
 
 var tools = map[string]tool{
 	"funcreach":   {runFuncreach, "funcreach <file> [--delete]"},
-	"sweep":       {runSweep, "sweep <file.c>"},
+	"sweep":       {runSweep, "sweep [--root NAME]... [--freeze NAME]... <file.c>"},
 	"score":       {runScore, "score"},
 	"cmdnames":    {runCmdnames, "cmdnames <file>"},
 	"cmdidxs":     {runCmdidxs, "cmdidxs <file> [--check|--update]"},

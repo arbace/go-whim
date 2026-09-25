@@ -40,8 +40,8 @@ import (
 // WHAT IS KEPT THAT IS NOT REACHED, the guards, each one a way deleting a
 // member or an enumerator would change something the closure cannot see:
 //
-//   - while ml_recover is defined a struct layout is a disk format, and no
-//     member goes;
+//   - while a FreezeLayoutIf function (vim: ml_recover) is defined a struct
+//     layout is a disk format, and no member goes;
 //   - a struct initialised by position -- a brace list with an element that
 //     names no member, `{STATUS_GET, -1}` -- keeps every member, since deleting
 //     one moves the values after it; and so does every struct such a struct
@@ -60,10 +60,22 @@ import (
 //
 // It loops, because deleting a local can orphan what only its initialiser
 // named; a second round finding nothing is the fixpoint.
-func Prune(src []byte, name string) ([]byte, Stats, error) {
+// Options is what the sweep must be told about the program it sweeps, rather
+// than know: nothing in this package names anything in any one program.
+type Options struct {
+	// Roots are the functions and objects reached whatever else is: the
+	// program's entry points.  A whole program has one, `main`.
+	Roots []string
+	// FreezeLayoutIf names functions whose presence makes every struct layout
+	// a format another program reads (vim's ml_recover reads swap files): while
+	// one is defined, no member of any struct goes.
+	FreezeLayoutIf []string
+}
+
+func Prune(src []byte, name string, opt Options) ([]byte, Stats, error) {
 	var total Stats
 	for round := 1; ; round++ {
-		out, st, err := pruneOnce(src, name)
+		out, st, err := pruneOnce(src, name, opt)
 		if err != nil {
 			return nil, total, fmt.Errorf("round %d: %w", round, err)
 		}
@@ -165,6 +177,7 @@ type local struct {
 }
 
 type analysis struct {
+	opt        Options
 	src, blank []byte
 	path       string
 
@@ -185,7 +198,7 @@ type analysis struct {
 
 var identRe = regexp.MustCompile(`[A-Za-z_][A-Za-z0-9_]*`)
 
-func pruneOnce(src []byte, path string) ([]byte, Stats, error) {
+func pruneOnce(src []byte, path string, opt Options) ([]byte, Stats, error) {
 	cfg, err := cc.NewConfig("linux", "amd64")
 	if err != nil {
 		return nil, Stats{}, err
@@ -204,6 +217,7 @@ func pruneOnce(src []byte, path string) ([]byte, Stats, error) {
 		live: map[string]bool{}, named: map[string]bool{},
 		structs: map[string][]*ent{}, typedef: map[string]string{},
 	}
+	a.opt = opt
 	a.collect(ast)
 	a.enumValues()
 	a.positional(ast)
@@ -229,7 +243,9 @@ func (a *analysis) add(e *ent) *ent {
 
 func (a *analysis) collect(ast *cc.AST) {
 	a.locals_(ast)
-	a.roots = append(a.roots, "o:main")
+	for _, r := range a.opt.Roots {
+		a.roots = append(a.roots, "o:"+r)
+	}
 	for tu := ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
 		ed := tu.ExternalDeclaration
 		if ed == nil || !a.inFile(ed) {
@@ -658,10 +674,14 @@ func (a *analysis) guards() bool {
 
 // positional marks every struct some brace initialiser fills by position.
 func (a *analysis) positional(ast *cc.AST) {
-	// While ml_recover is defined the editor reads swap files another vim wrote:
-	// a struct layout is a disk format, and no member of any struct goes.
-	for _, e := range a.byKey["o:ml_recover"] {
-		if e.kind == 'F' {
+	// While a FreezeLayoutIf function is defined, a struct layout is a format
+	// another program reads (vim's ml_recover: swap files another vim wrote),
+	// and no member of any struct goes.
+	for _, name := range a.opt.FreezeLayoutIf {
+		for _, e := range a.byKey["o:"+name] {
+			if e.kind != 'F' {
+				continue
+			}
 			for _, s := range a.ents {
 				if s.kind == 'S' {
 					s.pinAll = true
@@ -1343,8 +1363,9 @@ func Walk(n cc.Node, f func(cc.Node) bool) { walk(n, f) }
 // inside one that is (the sweep's own rule for which members it may not
 // delete).  A phase that retypes a member asks it: a value written by
 // position is one no assignment shows.
-func PositionalMembers(ast *cc.AST, path string, src []byte) map[string]bool {
+func PositionalMembers(ast *cc.AST, path string, src []byte, opt Options) map[string]bool {
 	a := &analysis{
+		opt: opt,
 		src: src, blank: cutil.Blank(src), path: path,
 		byKey: map[string][]*ent{}, byName: map[string][]*ent{},
 		live: map[string]bool{}, named: map[string]bool{},

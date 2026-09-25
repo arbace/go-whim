@@ -12,7 +12,7 @@ import (
 // prune runs Prune on src and fails the test on an error.
 func prune(t *testing.T, src string) string {
 	t.Helper()
-	out, _, err := Prune([]byte(src), "t.c")
+	out, _, err := Prune([]byte(src), "t.c", Options{Roots: []string{"main"}, FreezeLayoutIf: []string{"ml_recover"}})
 	if err != nil {
 		t.Fatalf("prune: %v", err)
 	}
@@ -221,4 +221,22 @@ int main(void) { return ml_recover(); }
 	out = prune(t, strings.ReplaceAll(src, "ml_recover", "ml_read"))
 	has(t, out, `b0_unused`, false)
 	compiles(t, out)
+}
+
+func TestPruneRoots(t *testing.T) {
+	// The roots are the caller's: a library with no main keeps what its
+	// entry points reach, and loses the rest.
+	src := `
+static int helper(void) { return 1; }
+static int unused(void) { return 2; }
+int api_entry(void) { return helper(); }
+`
+	out, _, err := Prune([]byte(src), "t.c", Options{Roots: []string{"api_entry"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	has(t, string(out), `helper`, true)
+	has(t, string(out), `unused`, false)
+	out, _, _ = Prune([]byte(src), "t.c", Options{Roots: []string{"main"}})
+	has(t, string(out), `api_entry`, false) // vim's root on a library takes everything
 }

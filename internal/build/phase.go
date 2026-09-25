@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"github.com/arbace/go-whim/internal/whim"
 	"io"
 	"os"
 	"path/filepath"
@@ -50,7 +51,7 @@ func finish(p Phase, text []byte, scratch string, w io.Writer) ([]byte, error) {
 	if err := os.WriteFile(path, text, 0o644); err != nil {
 		return nil, err
 	}
-	if _, err := sweep.Sweep(path, w); err != nil {
+	if _, err := sweep.Sweep(path, w, whim.Profile.Sweep); err != nil {
 		return nil, err
 	}
 	text, err := os.ReadFile(path)

@@ -20,13 +20,13 @@ import (
 const MaxRounds = 15
 
 // Sweep prunes the file at path in place and reports one line to w.
-func Sweep(path string, w io.Writer) (Stats, error) {
+func Sweep(path string, w io.Writer, opt Options) (Stats, error) {
 	src, err := os.ReadFile(path)
 	if err != nil {
 		return Stats{}, err
 	}
 	start := time.Now()
-	out, st, err := Prune(src, path)
+	out, st, err := Prune(src, path, opt)
 	if err != nil {
 		return st, fmt.Errorf("sweep: %w", err)
 	}

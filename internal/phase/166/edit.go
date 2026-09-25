@@ -5,6 +5,7 @@ package p166
 import (
 	"bytes"
 	"fmt"
+	"github.com/arbace/go-whim/internal/whim"
 	"io"
 	"sort"
 	"strings"
@@ -644,7 +645,7 @@ func memberCandidates(ast *cc.AST, path string, text []byte, cut int, host []byt
 		})
 		comparedWithCode(ed, member, func(s string) { get(s).bad = true })
 	}
-	for m := range sweep.PositionalMembers(ast, path, text) {
+	for m := range sweep.PositionalMembers(ast, path, text, whim.Profile.Sweep) {
 		get(m).bad = true
 	}
 	for m, f := range out {
