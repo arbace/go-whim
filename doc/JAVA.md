@@ -293,8 +293,11 @@ too); `--wide --java`: all **240**, the control seen as the Go's is (94 keys,
   are a **labeled block**, `L_x: { ... }`, the goto `break L_x;` and the
   label's statement after the block -- 10 blocks. Two blocks that would
   cross are nested by starting the later where the earlier starts. A label
-  makes what follows it reachable again, in the emitter's JLS 14.22 rule
-  too.
+  an earlier item of its block jumps to makes what follows it reachable
+  again, in the emitter's JLS 14.22 rule too; a label nothing jumps to does
+  not -- the code after a jump stays as dead as C has it, and nothing of it
+  is written (`TestJavaUnusedLabel`, which the old rule, any label live,
+  fails with javac's "unreachable statement").
 - **Compound literals** (`(char_u [1]){NUL}` in `redobuff` and its four
   kin): storage of their own, made where C evaluates them.
 - **A struct held plainly compared with a `Ptr` over structs** (`rp ==

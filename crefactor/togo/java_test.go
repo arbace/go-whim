@@ -1405,6 +1405,65 @@ void run(void)
 }
 `
 
+// A label nothing jumps to does not make the code after a jump live: it is as
+// dead in C, and Java proves it unreachable.  dead's then-branch ends in a
+// return and an unused label, so the if cannot complete, and neither can the
+// function -- the `return 3` and a closing throw after it would be refused by
+// javac.  A label a goto does reach (used) is live, as before.
+const javaDeadLabelC = javaHost + `
+int dead(int n)
+{
+    if (n > 0)
+    {
+        out(n);
+        return 1;
+    unused:
+        out(-1);
+    }
+    else
+    {
+        return 2;
+    }
+    return 3;
+}
+
+void tail(int n)
+{
+    out(n);
+    return;
+nothing:
+    out(-2);
+}
+
+int used(int n)
+{
+    if (n > 3)
+        goto big;
+    return n;
+big:
+    return n * 100;
+}
+
+void run(void)
+{
+    for (int n = -1; n < 3; n++)
+        out(dead(n));
+    tail(7);
+    out(used(2));
+    out(used(5));
+}
+`
+
+func TestJavaUnusedLabel(t *testing.T) {
+	prog := javaSame(t, javaDeadLabelC)
+	if strings.Contains(prog, "L_unused") || strings.Contains(prog, "L_nothing") {
+		t.Errorf("a label nothing jumps to is written:\n%s", numbered(prog))
+	}
+	if !strings.Contains(prog, "break L_big;") {
+		t.Errorf("the used label is not a labeled block:\n%s", numbered(prog))
+	}
+}
+
 func TestJavaGoto(t *testing.T) {
 	prog := javaSame(t, javaGotoC)
 	if strings.Contains(prog, "goto") || !strings.Contains(prog, "break L_found;") {

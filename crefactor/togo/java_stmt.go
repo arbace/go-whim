@@ -926,13 +926,24 @@ func jcomplete(s *cc.Statement) bool {
 }
 
 // jcompleteItems: the last statement completes, or a label after the last
-// that cannot -- which a goto's block's break reaches.
+// that cannot -- which a goto's block's break reaches.  Only a label an
+// earlier item of the block jumps to is reached: that goto is the block's
+// break (items).  A label nothing jumps to leaves the code after it as dead
+// as C has it, and items writes none of it -- so it must not count as live
+// here, or what follows is written where Java proves it unreachable.
 func jcompleteItems(cs *cc.CompoundStatement) bool {
-	live := true
+	var its []*cc.BlockItem
 	for l := cs.BlockItemList; l != nil; l = l.BlockItemList {
-		it := l.BlockItem
-		if len(itemLabels(it)) > 0 {
-			live = true
+		its = append(its, l.BlockItem)
+	}
+	live := true
+	for k, it := range its {
+		for _, lb := range itemLabels(it) {
+			for i := 0; i < k && !live; i++ {
+				if len(gotosTo(its[i], lb)) > 0 {
+					live = true
+				}
+			}
 		}
 		if live && it.Case == cc.BlockItemStmt && !jcomplete(it.Statement) {
 			live = false
