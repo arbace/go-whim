@@ -63,19 +63,19 @@ var (
 	mouseNameThreeLine = regexp.MustCompile(`(?m)^[ \t]*\{FALSE, [^\n]*\(char_u \*\)\("(\w*Mouse\w*)"\)[^\n]*\n`)
 )
 
-// writeOnlyStatics are file-scope variables that are written and never read,
-// each with its writes.  Where the write is a whole `if` Body or a whole
-// function, that goes too -- see the three cases below the loop.
+// writeOnlyStatics are file-scope variables that are written and never read:
+// their writes go here, and the declarations, named by nothing after that,
+// go to the sweep.  Where the write is a whole `if` Body or a whole
+// function, that goes too -- see the cases below the loop.
 var writeOnlyStatics = []struct {
-	decl, declWhat string
-	writes         string
-	n              int
-	writesWhat     string
+	writes     string
+	n          int
+	writesWhat string
 }{
-	{`static int[ \t]+did_check_timestamps[ \t]*=[ \t]*FALSE[ \t]*;`, "did_check_timestamps", `did_check_timestamps = FALSE;`, 3, "the three writes to it"},
-	{`static int[ \t]+did_emsg_syntax;`, "did_emsg_syntax", `did_emsg_syntax = (?:TRUE|FALSE);`, 2, "its two writes"},
-	{`static int[ \t]+typebuf_was_empty[ \t]*=[ \t]*FALSE[ \t]*;`, "typebuf_was_empty", `typebuf_was_empty = (?:TRUE|FALSE);`, 2, "its two writes"},
-	{`static volatile sig_atomic_t in_mch_delay = FALSE;`, "in_mch_delay", `in_mch_delay = (?:TRUE|FALSE);`, 2, "its two writes"},
+	{`did_check_timestamps = FALSE;`, 3, "the three writes to did_check_timestamps"},
+	{`did_emsg_syntax = (?:TRUE|FALSE);`, 2, "did_emsg_syntax's two writes"},
+	{`typebuf_was_empty = (?:TRUE|FALSE);`, 2, "typebuf_was_empty's two writes"},
+	{`in_mch_delay = (?:TRUE|FALSE);`, 2, "in_mch_delay's two writes"},
 }
 
 // Whim67 takes the mouse -- every key name, the deferred-match machinery in
@@ -89,16 +89,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"the input loop asking whether a key is a mouse key")
 	e.Lines(`reset_dragwin\(\);`, 2, "the two calls that forgot the dragged window")
 	e.Lines(`reset_held_button\(\);`, 1, "the call that forgot the held button")
-	e.DeleteDefinition("reset_dragwin", "reset_dragwin, which only cleared a dead pointer")
-	e.DeleteDefinition("reset_held_button", "reset_held_button, which only cleared a dead flag")
-	e.Lines(`static win_T \*dragwin = NULL;`, 1, "dragwin itself")
-	e.Lines(`static int[ \t]+held_button = MOUSE_RELEASE;`, 1, "held_button itself")
 	// mouse_row/col and old_mouse_row/col are a closed loop: saved here,
 	// restored there, read by nothing else.
-	e.Lines(`static int[ \t]+mouse_row;`, 1, "mouse_row")
-	e.Lines(`static int[ \t]+mouse_col;`, 1, "mouse_col")
-	e.Lines(`static int old_mouse_row;`, 1, "old_mouse_row")
-	e.Lines(`static int old_mouse_col;`, 1, "old_mouse_col")
 	e.Lines(`mouse_row = old_mouse_row;`, 1, "restoring the mouse row")
 	e.Lines(`mouse_col = old_mouse_col;`, 1, "restoring the mouse column")
 	e.Lines(`old_mouse_row = mouse_row;`, 1, "saving the mouse row")
@@ -124,8 +116,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"the [MOUSE] entry of the terminal string table")
 
 	e.InFunction("check_termcode", func(e *edit.E) {
-		e.Lines(`int mouse_index_found = -1;`, 1, "check_termcode remembering a deferred mouse match")
-		e.Lines(`int looks_like_mouse_start = FALSE;`, 1, "check_termcode deferring an ESC [ match")
 		// The whole `slen == 2 && ESC [` block existed to set that flag, and its
 		// only other arm counted the semicolons of a DEC mouse report.
 		e.DropIf(`(?m)^[ \t]*if \(slen == 2 && len > 2 && termcodes\[idx\]\.code\[0\] == ESC && termcodes\[idx\]\.code\[1\] == '\['\)$`,
@@ -139,38 +129,27 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// the spell plumbing
 	e.Literal(", spellvars_T *spv __attribute__((unused)))", ")", "win_line's unused spell parameter")
-	e.Lines(`spellvars_T spv;`, 1, "the spell variables win_update kept on the stack")
 	e.Literal("win_line(wp, lnum, srow, wp->w_height, 0, &spv)", "win_line(wp, lnum, srow, wp->w_height, 0)", "the first win_line call")
 	e.Literal("win_line(wp, lnum, srow, wp->w_height, wp->w_lines[idx].wl_size, &spv)",
 		"win_line(wp, lnum, srow, wp->w_height, wp->w_lines[idx].wl_size)", "the second win_line call")
-	e.Cut(`(?m)^typedef struct\n\{\n[ \t]*int[ \t]+spv_has_spell;\n\} spellvars_T;\n`, 1, "spellvars_T itself")
 
 	// the write-only statics
 	for _, s := range writeOnlyStatics {
-		e.Lines(s.decl, 1, s.declWhat)
 		e.Lines(s.writes, s.n, s.writesWhat)
 	}
-	e.Lines(`static int[ \t]+frame_locked = 0;`, 1, "frame_locked")
 	e.Lines(`frame_locked\+\+;`, 1, "the lock it took")
 	e.Lines(`frame_locked--;`, 1, "the lock it released")
-	e.Lines(`static int[ \t]+swap_exists_did_quit[ \t]*=[ \t]*FALSE[ \t]*;`, 1, "swap_exists_did_quit")
 	e.Lines(`swap_exists_did_quit = TRUE;`, 1, "its one write")
-	e.Lines(`static int[ \t]+did_swapwrite_msg[ \t]*=[ \t]*FALSE[ \t]*;`, 1, "did_swapwrite_msg")
 	e.Lines(`did_swapwrite_msg = FALSE;`, 1, "its one write")
-	e.Lines(`static int[ \t]+autocmd_nested = FALSE;`, 1, "autocmd_nested")
 	e.Lines(`autocmd_nested = ac->nested;`, 1, "its one write")
-	e.Lines(`static volatile sig_atomic_t oldtitle_outdated = FALSE;`, 1, "oldtitle_outdated")
 	e.Lines(`oldtitle_outdated = TRUE;`, 1, "its one write")
-	e.Lines(`static volatile sig_atomic_t deadly_signal = 0;`, 1, "deadly_signal")
 	e.Lines(`deadly_signal = sigarg;`, 1, "the signal number it recorded")
 	// mr_patternlen's two writes are a whole if/else, so the test goes with them.
 	e.Cut(`(?m)^[ \t]*if \(mr_pattern == NULL\)\n[ \t]*\{\n[ \t]*mr_patternlen = 0;\n[ \t]*\}\n[ \t]*else\n[ \t]*\{\n[ \t]*mr_patternlen = patlen;\n[ \t]*\}\n`, 1,
 		"mr_patternlen's if/else")
-	e.Lines(`static size_t[ \t]+mr_patternlen = 0;`, 1, "mr_patternlen")
 	// was_safe is a whole function Body, and that function has two callers.
 	e.Lines(`state_no_longer_safe\("(?:ins_typebuf\(\)|key typed)"\);`, 2, "the two calls that declared the state unsafe")
 	e.DeleteDefinition("state_no_longer_safe", "state_no_longer_safe, whose body was one write")
-	e.Lines(`static int[ \t]+was_safe = FALSE;`, 1, "was_safe")
 	e.Lines(`was_safe = (?:is_safe|FALSE);`, 2, "its remaining writes")
 	return e.Done()
 }
