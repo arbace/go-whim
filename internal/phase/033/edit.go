@@ -49,9 +49,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("ex_listdo", func(e *edit.E) {
 		for _, f := range []struct{ What, pattern string }{
 			{"the winfixbuf refusal for :ldo and :lfdo",
-				`(?m)^[ \t]*if \(\(eap->cmdidx == CMD_ldo \|\| eap->cmdidx == CMD_lfdo\) && !eap->forceit\)$`},
+				edit.Head("if ((eap->cmdidx == CMD_ldo || eap->cmdidx == CMD_lfdo) && !eap->forceit)")},
 			{"the quickfix commands answering not implemented",
-				`(?m)^[ \t]*if \(eap->cmdidx == CMD_cdo \|\| eap->cmdidx == CMD_ldo \|\| eap->cmdidx == CMD_cfdo \|\| eap->cmdidx == CMD_lfdo\)$`},
+				edit.Head("if (eap->cmdidx == CMD_cdo || eap->cmdidx == CMD_ldo || eap->cmdidx == CMD_cfdo || eap->cmdidx == CMD_lfdo)")},
 		} {
 			e.FoldNever(f.pattern, 1, f.What+": gone")
 		}

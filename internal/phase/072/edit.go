@@ -125,7 +125,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.DeleteDefinition("borrow_stl_vsep_hl", "borrow_stl_vsep_hl, which had no window to borrow from")
 	e.Body("current_win_nr", w72lit5, "current_win_nr, which counted to the window")
 	e.Body("current_tab_nr", w72lit5, "current_tab_nr, which counted to the tabpage")
-	e.ReplaceBlock("getout", `(?m)^[ \t]*for \(tp = first_tabpage; tp != NULL; tp = next_tp\)$`,
+	e.ReplaceBlock("getout", edit.Head("for (tp = first_tabpage; tp != NULL; tp = next_tp)"),
 		w72lit6, "quitting walking every window of every tabpage")
 	e.Body("create_windows", w72lit7, "the startup scan rewinding over the window list")
 	e.Body("win_valid", w72lit8, "win_valid, which walked the list for the window it was given")
@@ -136,15 +136,15 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.FoldNever(`(?m)^[ \t]*if \(tp != curtab && leave_tabpage\(`, 1, "switching to another tabpage")
 	})
 	e.InFunction("close_buffer", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(is_curwin && curwin != win && win_valid\)$`, 1, "closing a buffer from another window")
+		e.FoldNever(edit.Head("if (is_curwin && curwin != win && win_valid)"), 1, "closing a buffer from another window")
 	})
 	e.InFunction("buf_freeall", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(is_curwin && curwin != the_curwin && win_valid_any_tab\(the_curwin\)\)$`, 1, "freeing a buffer from another window")
+		e.FoldNever(edit.Head("if (is_curwin && curwin != the_curwin && win_valid_any_tab(the_curwin))"), 1, "freeing a buffer from another window")
 	})
 	e.Body("win_alloc_firstwin", w72lit11, "win_alloc_firstwin cloning an existing window")
 	e.Body("win_alloc_first", w72lit12, "the first tabpage being the head of a list")
 	e.InFunction("win_alloc", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(!hidden\)$`, 1, "win_alloc appending to the window list")
+		e.FoldNever(edit.Head("if (!hidden)"), 1, "win_alloc appending to the window list")
 	})
 	e.Body("unuse_tabpage", w72lit13, "a tabpage remembering the ends of its window list")
 	e.Body("win_rest_invalid", w72lit14, "win_rest_invalid invalidating every window after one")

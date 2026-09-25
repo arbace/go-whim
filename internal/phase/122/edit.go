@@ -107,11 +107,11 @@ func init() { edit.Register("whim122", Edit) }
 var (
 	w122SwitchC   = regexp.MustCompile(`\bswitch \(c\)`)
 	w122Label     = regexp.MustCompile(`(?m)^[ \t]*(case .*?|default):$`)
-	w122WantArg   = regexp.MustCompile(`(?m)^[ \t]*if \(want_argument\)$`)
+	w122WantArg   = regexp.MustCompile(edit.Head("if (want_argument)"))
 	w122SetWant   = regexp.MustCompile(`\n[ \t]*want_argument = FALSE;\n`)
 	w122OneDflt   = regexp.MustCompile(`(?s)\A\s*\n[ \t]*default:\n(.*)\z`)
 	w122ReadC     = regexp.MustCompile(`\n[ \t]*c = argv\[0\]\[argv_idx\+\+\];\n`)
-	w122DashArm   = regexp.MustCompile(`(?m)^[ \t]*else if \(argv\[0\]\[0\] == '-'\)$`)
+	w122DashArm   = regexp.MustCompile(edit.Head("else if (argv[0][0] == '-')"))
 	w122PlainElse = regexp.MustCompile(`\A\s*\n[ \t]*else\n`)
 	w122EnumPair  = regexp.MustCompile(`(?m)^enum \{ (ME_\w+) = (\d+) \};$`)
 	// The canonical text puts a blank line between two file-scope declarations,
@@ -121,7 +121,7 @@ var (
 	w122Table     = regexp.MustCompile(`(?ms)^static char \*\(main_errors\[\]\) =\n\{\n(.*?)^\};\n`)
 	w122ArgProto  = regexp.MustCompile(`(?m)^static void mainerr_arg_missing\([^)]*\);\n`)
 	w122EmptyName = `^[ \t]*if \(term != nullptr && \*term == NUL\)$`
-	w122GivenNone = regexp.MustCompile(`(?m)^[ \t]*if \(term == nullptr \|\| \*term == NUL\)$`)
+	w122GivenNone = regexp.MustCompile(edit.Head("if (term == nullptr || *term == NUL)"))
 	w122Assign    = regexp.MustCompile(`(?s)\A\s*\n[ \t]*term = (.*?);\n[ \t]*\z`)
 	w122TermDecl  = regexp.MustCompile(`(?m)^([ \t]*char_u +\*term) = name;$`)
 	w122TciProto  = regexp.MustCompile(`(?m)^static void termcapinit\([^)]*\);$`)
@@ -132,7 +132,7 @@ var (
 	w122FnName    = regexp.MustCompile(`\n[a-zA-Z_]\w*`)
 	w122Row       = regexp.MustCompile(`(?m)^[ \t]*\{\s*"([^"]*)"\s*,\s*\w+\s*\},$`)
 	w122Starting  = regexp.MustCompile(`(?m)^[ \t]*starting = ([^;]+);$`)
-	w122TermpNull = regexp.MustCompile(`(?m)^[ \t]*if \(termp == nullptr\)$`)
+	w122TermpNull = regexp.MustCompile(edit.Head("if (termp == nullptr)"))
 	w122NoScreen  = `^[ \t]*if \(starting != NO_SCREEN\)$`
 	w122FirstLit  = regexp.MustCompile(`"([^"]*)"`)
 	w122Requested = regexp.MustCompile(`\brequested\b`)

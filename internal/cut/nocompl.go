@@ -124,7 +124,7 @@ func NoCompl(text []byte, w io.Writer) ([]byte, error) {
 	if !found {
 		return nil, fmt.Errorf("nocompl: set_shellsize_inner is not defined at file scope")
 	}
-	fn2, err := cutil.DropIf(text[span[0]:span[1]], `(?m)^[ \t]*if \(pum_visible\(\)\)$`, 1)
+	fn2, err := cutil.DropIf(text[span[0]:span[1]], cutil.Head("if (pum_visible())"), 1)
 	if err != nil {
 		return nil, err
 	}

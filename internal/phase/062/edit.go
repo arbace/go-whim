@@ -49,7 +49,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal(" && (!(flags & CCGD_AW) || autowrite(buf, forceit) == FAIL))", ")", 1, "a changed buffer trying autowrite first")
 	})
 	e.InFunction("nv_gotofile", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(curbufIsChanged\(\) && curbuf->b_nwindows <= 1\)$`, 1, "gf writing the buffer first")
+		e.DropIf(edit.Head("if (curbufIsChanged() && curbuf->b_nwindows <= 1)"), 1, "gf writing the buffer first")
 	})
 	e.InFunction("do_bang", func(e *edit.E) {
 		e.Cut(edit.Line("if (addr_count == 0)", "{", "msg_scroll = FALSE;", "autowrite_all();", "msg_scroll = scroll_save;", "}"), 1, ":! writing all buffers first")
@@ -67,21 +67,21 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	e.InFunction("buf_write", func(e *edit.E) {
 		e.Literal(" && !bt_nofilename(buf)", "", 1, "a first :w naming the buffer unless 'buftype' forbids it")
-		e.FoldNever(`(?m)^[ \t]*if \(overwriting && bt_nofilename\(curbuf\)\)$`, 3, "writing a no-file buffer refused")
-		e.FoldNever(`(?m)^[ \t]*if \(nofile_err\)$`, 2, "the no-file refusal reported")
+		e.FoldNever(edit.Head("if (overwriting && bt_nofilename(curbuf))"), 3, "writing a no-file buffer refused")
+		e.FoldNever(edit.Head("if (nofile_err)"), 2, "the no-file refusal reported")
 		e.Literal(" || did_cmd || nofile_err)", " || did_cmd)", 1, "an autocommand check waiting on the no-file refusal")
 	})
 	e.InFunction("buf_copy_options", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(buf->b_p_bt\[0\] == 'h'\)$`, 1, "a help buffer's 'buftype' cleared on copy")
+		e.DropIf(edit.Head("if (buf->b_p_bt[0] == 'h')"), 1, "a help buffer's 'buftype' cleared on copy")
 	})
 	e.InFunction("changed", func(e *edit.E) {
 		e.Literal("if (curbuf->b_may_swap && !bt_dontwrite(curbuf))", "if (curbuf->b_may_swap)", 1, "the swap file opened only for a writable 'buftype'")
 	})
 	e.InFunction("readfile", func(e *edit.E) {
-		e.FoldAlways(`(?m)^[ \t]*if \(!bt_dontwrite\(curbuf\)\)$`, 2, "reading checking for a swap file only for a writable 'buftype'")
+		e.FoldAlways(edit.Head("if (!bt_dontwrite(curbuf))"), 2, "reading checking for a swap file only for a writable 'buftype'")
 	})
 	e.InFunction("open_buffer", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(bt_nofileread\(curbuf\)\)$`, 1, "a no-file 'buftype' skipping the read")
+		e.DropIf(edit.Head("if (bt_nofileread(curbuf))"), 1, "a no-file 'buftype' skipping the read")
 	})
 	e.InFunction("do_write", func(e *edit.E) {
 		e.Literal("(bt_dontwrite_msg(curbuf) || check_fname() == FAIL", "(check_fname() == FAIL", 1, ":w refused for 'buftype'")
@@ -93,7 +93,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal(" && !bt_nofilename(buf)", "", 1, "a no-file buffer's name not shortened")
 	})
 	e.InFunction("buf_spname", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(bt_nofilename\(buf\)\)$`, 1, "[Scratch] for a no-file buffer")
+		e.DropIf(edit.Head("if (bt_nofilename(buf))"), 1, "[Scratch] for a no-file buffer")
 	})
 	e.InFunction("edit", func(e *edit.E) {
 		e.Literal("if (!bt_prompt(curwin->w_buffer) && stop_insert_mode)", "if (stop_insert_mode)", 1, "leaving Insert mode differently in a prompt buffer")
@@ -104,7 +104,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// 'jumpoptions'
 	e.InFunction("setpcmark", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(jop_flags & JOP_STACK\)$`, 1, "the jump list as a stack")
+		e.DropIf(edit.Head("if (jop_flags & JOP_STACK)"), 1, "the jump list as a stack")
 	})
 	e.InFunction("cleanup_jumplist", func(e *edit.E) {
 		e.Literal("mustfree = !(jop_flags & JOP_STACK);", "mustfree = TRUE;", 1, "duplicate jumps kept for a stack")
@@ -140,26 +140,26 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		}
 	})
 	e.InFunction("check_num_option_bounds", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(p_ut < 0\)$`, 1, "'updatetime' kept non-negative")
+		e.DropIf(edit.Head("if (p_ut < 0)"), 1, "'updatetime' kept non-negative")
 	})
 
 	// 'buflisted'
 	e.InFunction("buf_freeall", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(\(flags & BFA_DEL\) && buf->b_p_bl\)$`, 1, "BufDelete for a listed buffer")
+		e.DropIf(edit.Head("if ((flags & BFA_DEL) && buf->b_p_bl)"), 1, "BufDelete for a listed buffer")
 	})
 	e.InFunction("buflist_findpat", func(e *edit.E) {
 		e.Literal("buf->b_p_bl == find_listed && ", "find_listed && ", 1, "a buffer search telling listed from unlisted")
 	})
 	e.InFunction("buflist_new", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(\(flags & BLN_LISTED\) && !buf->b_p_bl\)$`, 1, "an existing buffer becoming listed")
+		e.DropIf(edit.Head("if ((flags & BLN_LISTED) && !buf->b_p_bl)"), 1, "an existing buffer becoming listed")
 		e.Cut(edit.Line("buf->b_p_bl = (flags & BLN_LISTED) ? TRUE : FALSE;"), 1, "a new buffer recording whether it is listed")
-		e.DropIf(`(?m)^[ \t]*if \(flags & BLN_LISTED\)$`, 1, "BufAdd for a new listed buffer")
+		e.DropIf(edit.Head("if (flags & BLN_LISTED)"), 1, "BufAdd for a new listed buffer")
 	})
 	e.InFunction("close_buffer", func(e *edit.E) {
 		e.Cut(edit.Line("if (del_buf)", "{", "buf->b_p_bl = FALSE;", "}"), 1, "a deleted buffer becoming unlisted")
 	})
 	e.InFunction("set_rw_fname", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(curbuf->b_p_bl\)$`, 2, "BufDelete and BufAdd around a renamed listed buffer")
+		e.FoldNever(edit.Head("if (curbuf->b_p_bl)"), 2, "BufDelete and BufAdd around a renamed listed buffer")
 	})
 	e.InFunction("do_ecmd", func(e *edit.E) {
 		e.Cut(edit.Line("else", "{", "if (!curbuf->b_help)", "{", "set_buflisted(TRUE);", "}", "}"), 1, "an edited buffer becoming listed")
@@ -168,20 +168,20 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// 'filetype'
 	e.InFunction("enter_buffer", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(\*curbuf->b_p_ft == NUL\)$`, 1, "entering a buffer with no 'filetype' forgetting FileType")
+		e.DropIf(edit.Head("if (*curbuf->b_p_ft == NUL)"), 1, "entering a buffer with no 'filetype' forgetting FileType")
 	})
 	e.InFunction("do_ecmd", func(e *edit.E) {
 		e.Cut(edit.Line("curbuf->b_did_filetype = false;"), 1, ":edit forgetting FileType")
 	})
 	e.InFunction("readfile", func(e *edit.E) {
 		e.Cut(edit.Line("curbuf->b_au_did_filetype = false;"), 1, "reading forgetting FileType")
-		e.DropIf(`(?m)^[ \t]*if \(!curbuf->b_au_did_filetype && \*curbuf->b_p_ft != NUL\)$`, 1, "reading firing FileType")
+		e.DropIf(edit.Head("if (!curbuf->b_au_did_filetype && *curbuf->b_p_ft != NUL)"), 1, "reading firing FileType")
 	})
 	e.InFunction("did_set_string_option", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*else if \(varp == &\(curbuf->b_p_ft\)\)$`, 1, ":set ft= firing FileType")
+		e.FoldNever(edit.Head("else if (varp == &(curbuf->b_p_ft))"), 1, ":set ft= firing FileType")
 	})
 	e.InFunction("fix_help_buffer", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(strcmp\(\(char \*\)\(curbuf->b_p_ft\), \(char \*\)\("help"\)\) != 0\)$`, 1, "a help buffer setting 'filetype' to help")
+		e.DropIf(edit.Head(`if (strcmp((char *)(curbuf->b_p_ft), (char *)("help")) != 0)`), 1, "a help buffer setting 'filetype' to help")
 	})
 	return e.Done()
 }

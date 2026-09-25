@@ -47,21 +47,21 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("set_init_3", func(e *edit.E) {
 		e.Cut(edit.Line(`idx_srr = findoption((char_u *)"srr");`), 1,
 			"set_init_3 looking up 'shellredir'")
-		e.FoldNever(`(?m)^[ \t]*if \(idx_srr < 0\)$`, 1,
+		e.FoldNever(edit.Head("if (idx_srr < 0)"), 1,
 			"set_init_3 without a 'shellredir' row")
 		e.Cut(edit.Line("do_srr = !(options[idx_srr].flags & P_WAS_SET);"), 1,
 			"set_init_3 asking whether 'shellredir' was set")
 		e.Cut(edit.Line("p = get_isolated_shell_name();"), 1,
 			"set_init_3 naming the shell")
-		e.DropIf(`(?m)^[ \t]*if \(p != NULL\)$`, 1,
+		e.DropIf(edit.Head("if (p != NULL)"), 1,
 			"set_init_3 choosing 'shellredir' by shell")
 	})
 	e.InFunction("do_bang", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(\*p_shq != NUL\)$`, 1,
+		e.DropIf(edit.Head("if (*p_shq != NUL)"), 1,
 			"do_bang wrapping the command in 'shellquote'")
 	})
 	e.InFunction("vim_strsave_fnameescape", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(what == VSE_SHELL && csh_like_shell\(\) && p != NULL\)$`, 1,
+		e.DropIf(edit.Head("if (what == VSE_SHELL && csh_like_shell() && p != NULL)"), 1,
 			"filename escaping doubling ! for csh")
 	})
 
@@ -76,18 +76,18 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	e.InFunction("ExpandFromContext", func(e *edit.E) {
 		for _, c := range runtimeContexts {
-			e.FoldNever(fmt.Sprintf(`(?m)^[ \t]*if \(xp->xp_context == EXPAND_%s\)$`, c), 1,
+			e.FoldNever(fmt.Sprintf(edit.Head("if (xp->xp_context == EXPAND_%s)"), c), 1,
 				fmt.Sprintf("expanding runtime names for EXPAND_%s", c))
 		}
 	})
 	e.InFunction("set_context_in_set_cmd", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(options\[opt_idx\]\.var == \(char_u \*\)&p_ft\)$`, 1,
+		e.DropIf(edit.Head("if (options[opt_idx].var == (char_u *)&p_ft)"), 1,
 			":set ft= completing runtime file types")
-		e.FoldNever(`(?m)^[ \t]*if \(p == \(char_u \*\)&p_pp \|\| p == \(char_u \*\)&p_rtp\)$`, 1,
+		e.FoldNever(edit.Head("if (p == (char_u *)&p_pp || p == (char_u *)&p_rtp)"), 1,
 			"'packpath' and 'runtimepath' completing as directories")
 	})
 	e.InFunction("stropt_get_newval", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(varp == \(char_u \*\)&p_kp && \(\*arg == NUL \|\| \*arg == ' '\)\)$`, 1,
+		e.FoldNever(edit.Head("if (varp == (char_u *)&p_kp && (*arg == NUL || *arg == ' '))"), 1,
 			":set kp= defaulting to :help")
 	})
 

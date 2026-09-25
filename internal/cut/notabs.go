@@ -39,7 +39,7 @@ func NoTabs(text []byte, w io.Writer) ([]byte, error) {
 	e := ed{"notabs", w}
 	var err error
 
-	const tabMod = `(?m)^[ \t]*if \(checkforcmd_noparen\(&p, "tab", 3\)\)$`
+	var tabMod = cutil.Head(`if (checkforcmd_noparen(&p, "tab", 3))`)
 	if n := len(regexp.MustCompile(tabMod).FindAll(text, -1)); n != 1 {
 		return nil, fmt.Errorf("notabs: the :tab modifier is not where this expects")
 	}

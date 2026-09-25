@@ -224,7 +224,7 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nobackup     didset_string_options stops reading 'backupcopy'")
 
 	if text, err = cutil.DropIf(text,
-		`(?m)^[ \t]*else if \(\*arg == '>' && varp == \(char_u \*\)&p_bdir\)$`, 1); err != nil {
+		cutil.Head("else if (*arg == '>' && varp == (char_u *)&p_bdir)"), 1); err != nil {
 		return nil, err
 	}
 	if text, err = nobackupSub(text, "if (p == (char_u *)&p_bdir || p == (char_u *)&p_pp",
@@ -243,7 +243,7 @@ func NoBackup(text []byte, w io.Writer) ([]byte, error) {
 		}
 	}
 	if text, err = cutil.DropIf(text,
-		`(?m)^[ \t]*if \(dobackup && \*p_bsk != NUL && match_file_list\(p_bsk, sfname, ffname\)\)$`,
+		cutil.Head("if (dobackup && *p_bsk != NUL && match_file_list(p_bsk, sfname, ffname))"),
 		1); err != nil {
 		return nil, err
 	}

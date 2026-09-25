@@ -80,7 +80,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.DropWalk("open_buffer", strings.ReplaceAll(edit.FwdWalk, "(buf)", "(curbuf)"), "", 1, "open_buffer looking for another loaded buffer")
 
 	e.InFunction("open_buffer", func(e *edit.E) {
-		e.FoldAlways(`(?m)^[ \t]*if \(curbuf == NULL\)$`, 1, "open_buffer testing whether it found one")
+		e.FoldAlways(edit.Head("if (curbuf == NULL)"), 1, "open_buffer testing whether it found one")
 		e.Literal(w71lit15, "", 1, "open_buffer carrying on in another buffer instead")
 	})
 	e.Body("compute_buffer_local_count", w71lit9, "computing a buffer address by walking to an offset")
@@ -106,7 +106,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal(w71lit18, w71lit19, 1, "set_curbuf entering a different buffer")
 	})
 	e.InFunction("close_buffer", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(wipe_buf && buf->b_nwindows <= 0 && \(buf->b_prev != NULL \|\| buf->b_next != NULL\)\)$`, 1,
+		e.FoldNever(edit.Head("if (wipe_buf && buf->b_nwindows <= 0 && (buf->b_prev != NULL || buf->b_next != NULL))"), 1,
 			"close_buffer unlinking a buffer that was never linked to another")
 	})
 	e.InFunction("buflist_new", func(e *edit.E) {

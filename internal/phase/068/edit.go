@@ -64,7 +64,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// would orphan the else.  FoldNever keeps the else Body, which is what is
 	// left when the index can never be >= 0.
 	e.InFunction("aucmd_restbuf", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(aco->use_aucmd_win_idx >= 0\)$`, 1, "aucmd_restbuf taking that window down again")
+		e.FoldNever(edit.Head("if (aco->use_aucmd_win_idx >= 0)"), 1, "aucmd_restbuf taking that window down again")
 	})
 	// Both writes to use_aucmd_win_idx went with the branch above, and its only
 	// reader went with aucmd_restbuf's folded test, so the sweep takes the
@@ -92,23 +92,23 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"    wp = curwin;\n", 1, ":quit with a window count, of which there is one")
 	})
 	e.InFunction("ex_quit", func(e *edit.E) {
-		e.FoldAlways(`(?m)^[ \t]*if \(only_one_window\(\) && \(\(firstwin == lastwin\) \|\| eap->addr_count == 0\)\)$`, 1,
+		e.FoldAlways(edit.Head("if (only_one_window() && ((firstwin == lastwin) || eap->addr_count == 0))"), 1,
 			":quit leaving the editor")
 	})
 	e.InFunction("ex_quit", func(e *edit.E) {
 		e.Lines(`win_close\(wp, TRUE\);`, 1, ":quit closing a window it can never reach")
 	})
 	e.InFunction("ex_exit", func(e *edit.E) {
-		e.FoldAlways(`(?m)^[ \t]*if \(only_one_window\(\)\)$`, 1, ":xit leaving the editor")
+		e.FoldAlways(edit.Head("if (only_one_window())"), 1, ":xit leaving the editor")
 	})
 	e.InFunction("ex_exit", func(e *edit.E) {
 		e.Lines(`win_close\(curwin, TRUE\);`, 1, ":xit closing a window it can never reach")
 	})
 	e.InFunction("do_exedit", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(old_curwin != NULL\)$`, 1, ":edit closing the window it came from, which is never given one")
+		e.DropIf(edit.Head("if (old_curwin != NULL)"), 1, ":edit closing the window it came from, which is never given one")
 	})
 	e.InFunction("set_curbuf", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(unload\)$`, 1, "unloading a buffer closing the windows that show it")
+		e.DropIf(edit.Head("if (unload)"), 1, "unloading a buffer closing the windows that show it")
 	})
 	// only_one_window() is TRUE, so these terms go rather than the tests.
 	e.InFunction("check_more", func(e *edit.E) {

@@ -72,7 +72,7 @@ func NoOwner(text []byte, w io.Writer) ([]byte, error) {
 
 	var err error
 	text, err = cutil.DropIf(text,
-		`(?m)^[ \t]*if \(options\[opt_idx\]\.indir == \(idopt_T\)\(PV_BUF \+ \(int\)\(BV_ML\)\) && getuid\(\) == ROOT_UID\)$`, 1)
+		cutil.Head("if (options[opt_idx].indir == (idopt_T)(PV_BUF + (int)(BV_ML)) && getuid() == ROOT_UID)"), 1)
 	if err != nil {
 		return nil, err
 	}

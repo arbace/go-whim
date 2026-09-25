@@ -37,7 +37,7 @@ import (
 // methodTest is `if (cap->nchar == 'm' || cap->nchar == 'M')`, which appears
 // TWICE in nv_bracket_block: the head that picks the character to match, and
 // the half that walks Out to the method.
-const methodTest = `(?m)^[ \t]*if \(cap->nchar == 'm' \|\| cap->nchar == 'M'\)$`
+var methodTest = edit.Head("if (cap->nchar == 'm' || cap->nchar == 'M')")
 
 // Whim66 takes the sentence, paragraph and section motions, the bracket
 // commands that found a comment or a method, and the text objects for them.
@@ -54,7 +54,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"${1}nv_error${2}", 1, fmt.Sprintf("%s points at nv_error", m.What))
 	}
 	e.InFunction("nv_brackets", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*else if \(cap->nchar == '\[' \|\| cap->nchar == '\]'\)$`, 1, "[[ ]] [] ][ by section")
+		e.FoldNever(edit.Head("else if (cap->nchar == '[' || cap->nchar == ']')"), 1, "[[ ]] [] ][ by section")
 	})
 	e.Literal(`vim_strchr((char_u *)"{(*/#mM", cap->nchar)`, `vim_strchr((char_u *)"{(", cap->nchar)`, 1,
 		"[ no longer taking a comment, #if or method")
@@ -62,8 +62,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"] no longer taking a comment, #if or method")
 
 	e.InFunction("nv_bracket_block", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(cap->nchar == '\*'\)$`, 1, "[* and ]* spelled as [/ and ]/")
-		e.FoldAlways(`(?m)^[ \t]*if \(cap->nchar != 'm' && cap->nchar != 'M'\)$`, 1,
+		e.DropIf(edit.Head("if (cap->nchar == '*')"), 1, "[* and ]* spelled as [/ and ]/")
+		e.FoldAlways(edit.Head("if (cap->nchar != 'm' && cap->nchar != 'M')"), 1,
 			"a miss beeping, which only a method did not")
 		// Both tests are never true now, and the second has no else: one
 		// counted fold takes the pair, keeping the first's else arm.
@@ -79,8 +79,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"is and as, the sentence objects")
 	})
 
-	e.FoldNever(`(?m)^[ \t]*else if \(c == '\{' \|\| c == '\}'\)$`, 1, "'{ and '} as line addresses")
-	e.FoldNever(`(?m)^[ \t]*else if \(c == '\(' \|\| c == '\)'\)$`, 1, "'( and ') as line addresses")
+	e.FoldNever(edit.Head("else if (c == '{' || c == '}')"), 1, "'{ and '} as line addresses")
+	e.FoldNever(edit.Head("else if (c == '(' || c == ')')"), 1, "'( and ') as line addresses")
 	return e.Done()
 }
 

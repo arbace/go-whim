@@ -24,7 +24,7 @@ var nofencsEdits = []struct{ what, pat, repl string }{
 
 // tencCond is the head of the block did_set_encoding used to convert between
 // 'termencoding' and 'encoding'.
-const tencCond = `(?m)^[ \t]*if \(\(\(varp == &p_enc && \*p_tenc != NUL\) \|\| varp == &p_tenc\)\)$`
+var tencCond = cutil.Head("if (((varp == &p_enc && *p_tenc != NUL) || varp == &p_tenc))")
 
 // dropTencBlock needs BRACE MATCHING and not a regex, for the reason this tree
 // has now recorded three times: a lazy `(?:[^\n]*\n)*?\}` stops at the first

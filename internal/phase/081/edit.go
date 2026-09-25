@@ -68,7 +68,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"        else if (*p == '\\n')", 1, "separate_nextcmd splits at a newline and nothing else")
 	e.Literal("if ((eap->argt & (EX_CTRLV | EX_XFILE)) || keep_backslash)",
 		"if (eap->argt & (EX_CTRLV | EX_XFILE))", 1, "its one caller never keeps a backslash")
-	e.FoldAlways(`(?m)^[ \t]*if \(!keep_backslash\)$`, 1, "so a backslash before a newline always goes")
+	e.FoldAlways(edit.Head("if (!keep_backslash)"), 1, "so a backslash before a newline always goes")
 	e.Literal(w81lit1, "    return (c == NUL || c == '\\n');", 1, "ends_excmd: the end of the line")
 	e.Literal(w81lit2, "    return (c == NUL || c == '\\n');", 1, "ends_excmd2: the same")
 	e.Literal(w81lit3, w81lit4, 1, "find_nextcmd: the next line")
@@ -77,12 +77,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"if (!(ea.argt & EX_EXTRA) && *ea.arg != NUL)", 1, "a bar or a quote after a command is trailing characters")
 	e.Literal("if (*ea.cmd == NUL || comment_start(ea.cmd, starts_with_colon) || (ea.nextcmd = check_nextcmd(ea.cmd)) != NULL)",
 		"if (*ea.cmd == NUL || (ea.nextcmd = check_nextcmd(ea.cmd)) != NULL)", 1, "a line that is a comment is not empty")
-	e.DropIf(`(?m)^[ \t]*if \(comment_start\(eap->cmd, starts_with_colon\)\)$`, 1, "the modifier parser skips no comment")
-	e.DropIf(`(?m)^[ \t]*if \(\*eap->cmd == ':'\)$`, 1, "and records no colon")
+	e.DropIf(edit.Head("if (comment_start(eap->cmd, starts_with_colon))"), 1, "the modifier parser skips no comment")
+	e.DropIf(edit.Head("if (*eap->cmd == ':')"), 1, "and records no colon")
 	e.Literal("if ((*eap->cmd == '|' || (exmode_active && eap->cmd != (char_u *)exmode_plus + 1)))",
 		"if (exmode_active && eap->cmd != (char_u *)exmode_plus + 1)", 1, "`:|` no longer prints the line")
 	e.Literal(w81lit7, w81lit8, 1, ":substitute takes no trailing comment")
-	e.FoldNever(`(?m)^[ \t]*if \(\*eap->arg == '\|'\)$`, 1, ":append takes no text after a bar")
+	e.FoldNever(edit.Head("if (*eap->arg == '|')"), 1, ":append takes no text after a bar")
 
 	// The closing assertion: the six parsers must no longer mention either
 	// character at all, and comment_start must have lost its last caller.

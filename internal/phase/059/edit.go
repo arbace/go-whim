@@ -41,7 +41,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nocompletion", text, w)
 
 	e.InFunction("getcmdline_int", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(ccline\.cmdbuff_replaced && xpc\.xp_numfiles > 0\)$`, 1,
+		e.DropIf(edit.Head("if (ccline.cmdbuff_replaced && xpc.xp_numfiles > 0)"), 1,
 			"a replaced command line freeing its matches")
 		e.DropIf(fmt.Sprintf(`(?m)^[ \t]*if \(c == [ \t]*%s[ \t]*&& did_hist_navigate\)$`, kex("KE_WILD")), 1,
 			"a wildcard trigger after history navigation")
@@ -49,12 +49,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"history navigation remembered for the wildcard trigger")
 		e.DropIf(fmt.Sprintf(`(?m)^[ \t]*if \(c != p_wc && c == [ \t]*%s[ \t]*&& xpc\.xp_numfiles > 0\)$`, edit.Key("k", "B")), 1,
 			"S-Tab stepping back through matches")
-		e.DropIf(`(?m)^[ \t]*if \(\(did_wild_list\) && !key_is_wc && xpc\.xp_numfiles > 0\)$`, 1,
+		e.DropIf(edit.Head("if ((did_wild_list) && !key_is_wc && xpc.xp_numfiles > 0)"), 1,
 			"CTRL-E and CTRL-Y over a match list")
-		e.DropIf(`(?m)^[ \t]*if \(\(c == ESC \|\| c == Ctrl_C\) && \(wim_flags\[0\] & WIM_LIST\)\)$`, 1,
+		e.DropIf(edit.Head("if ((c == ESC || c == Ctrl_C) && (wim_flags[0] & WIM_LIST))"), 1,
 			"leaving a 'wildmode' list clearing 'hlsearch'")
 		e.Cut(`(?m)^[ \t]*end_wildmenu = \([^\n]*\);\n`, 1, "deciding the match list ends")
-		e.DropIf(`(?m)^[ \t]*if \(end_wildmenu\)$`, 1, "ending the match list")
+		e.DropIf(edit.Head("if (end_wildmenu)"), 1, "ending the match list")
 		e.DropIf(fmt.Sprintf(`(?m)^[ \t]*if \(\(c == p_wc && !gotesc && KeyTyped\) \|\| c == p_wcm \|\| c == [ \t]*%s[ \t]*\)$`, kex("KE_WILD")), 1,
 			"completing on 'wildchar', 'wildcharm' or the wildcard trigger")
 		e.DropIf(fmt.Sprintf(`(?m)^[ \t]*if \(c == [ \t]*%s[ \t]*&& KeyTyped\)$`, edit.Key("k", "B")), 1,
@@ -65,7 +65,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			1, "CTRL-A inserting every match")
 		e.Sub(`(?m)^([ \t]*)if \(nextwild\(&xpc, WILD_LONGEST, 0, firstc != '@'\) == FAIL\)\n[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n[ \t]*goto cmdline_changed;\n`,
 			"${1}break;\n", 1, "CTRL-L completing the longest match")
-		e.DropIf(`(?m)^[ \t]*if \(xpc\.xp_numfiles > 0\)$`, 1, "CTRL-N and CTRL-P stepping through matches")
+		e.DropIf(edit.Head("if (xpc.xp_numfiles > 0)"), 1, "CTRL-N and CTRL-P stepping through matches")
 		e.Cut(edit.Line("did_wild_list = FALSE;", "wim_index = 0;"), 1,
 			"leaving the command line resetting the match list")
 		e.Literal("may_trigger_safestate(xpc.xp_numfiles <= 0);", "may_trigger_safestate(TRUE);", 1,
@@ -97,34 +97,34 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		// would match anything.
 		e.Splice("    *matches = (char_u **)\"\";\n", "    return ret;\n", "",
 			"every completion context but files")
-		e.FoldAlways(`(?m)^[ \t]*if \(xp->xp_context == EXPAND_FILES \|\| xp->xp_context == EXPAND_DIRECTORIES \|\| xp->xp_context == EXPAND_FILES_IN_PATH \|\| xp->xp_context == EXPAND_FINDFUNC \|\| xp->xp_context == EXPAND_DIRS_IN_CDPATH\)$`, 1,
+		e.FoldAlways(edit.Head("if (xp->xp_context == EXPAND_FILES || xp->xp_context == EXPAND_DIRECTORIES || xp->xp_context == EXPAND_FILES_IN_PATH || xp->xp_context == EXPAND_FINDFUNC || xp->xp_context == EXPAND_DIRS_IN_CDPATH)"), 1,
 			"file expansion is the only context")
 	})
 
 	e.InFunction("ExpandOne", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(mode == WILD_NEXT \|\| mode == WILD_PREV \|\| mode == WILD_PAGEUP \|\| mode == WILD_PAGEDOWN\)$`, 1,
+		e.FoldNever(edit.Head("if (mode == WILD_NEXT || mode == WILD_PREV || mode == WILD_PAGEUP || mode == WILD_PAGEDOWN)"), 1,
 			"ExpandOne stepping through matches")
-		e.FoldNever(`(?m)^[ \t]*if \(mode == WILD_CANCEL\)$`, 1, "ExpandOne cancelling or applying a match")
-		e.FoldNever(`(?m)^[ \t]*if \(mode == WILD_FREE\)$`, 1, "ExpandOne only freeing")
-		e.FoldNever(`(?m)^[ \t]*if \(mode == WILD_LONGEST && xp->xp_numfiles > 0\)$`, 1, "ExpandOne finding the longest match")
-		e.FoldNever(`(?m)^[ \t]*if \(mode == WILD_ALL && xp->xp_numfiles > 0 && !got_int\)$`, 1, "ExpandOne joining every match")
-		e.FoldAlways(`(?m)^[ \t]*if \(mode == WILD_EXPAND_FREE \|\| mode == WILD_ALL\)$`, 1, "ExpandOne always cleaning up after expanding")
+		e.FoldNever(edit.Head("if (mode == WILD_CANCEL)"), 1, "ExpandOne cancelling or applying a match")
+		e.FoldNever(edit.Head("if (mode == WILD_FREE)"), 1, "ExpandOne only freeing")
+		e.FoldNever(edit.Head("if (mode == WILD_LONGEST && xp->xp_numfiles > 0)"), 1, "ExpandOne finding the longest match")
+		e.FoldNever(edit.Head("if (mode == WILD_ALL && xp->xp_numfiles > 0 && !got_int)"), 1, "ExpandOne joining every match")
+		e.FoldAlways(edit.Head("if (mode == WILD_EXPAND_FREE || mode == WILD_ALL)"), 1, "ExpandOne always cleaning up after expanding")
 	})
 
 	e.InFunction("didset_options2", func(e *edit.E) {
 		e.Cut(edit.Line("check_opt_wim();"), 1, "startup parsing 'wildmode' into flags nothing reads")
 	})
 	e.InFunction("expand_filename", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(p_wic\)$`, 1, "'wildignorecase' in filename globbing")
+		e.DropIf(edit.Head("if (p_wic)"), 1, "'wildignorecase' in filename globbing")
 	})
 	e.InFunction("expand_wildcards", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(\*p_wig\)$`, 1, "'wildignore' in filename globbing")
+		e.DropIf(edit.Head("if (*p_wig)"), 1, "'wildignore' in filename globbing")
 	})
 	e.InFunction("do_set_option_numeric", func(e *edit.E) {
 		e.FoldNever(`(?m)^[ \t]*else if \(\(\(long \*\)varp == &p_wc \|\| \(long \*\)varp == &p_wcm\)`, 1, ":set wc= accepting a key name")
 	})
 	e.InFunction("wc_use_keyname", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(\(\(long \*\)varp == &p_wc\) \|\| \(\(long \*\)varp == &p_wcm\)\)$`, 1, ":set wc? showing a key name")
+		e.FoldNever(edit.Head("if (((long *)varp == &p_wc) || ((long *)varp == &p_wcm))"), 1, ":set wc? showing a key name")
 	})
 	return e.Done()
 }

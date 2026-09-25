@@ -26,29 +26,29 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e := edit.New("nolisp", text, w)
 
 	e.InFunction("open_line", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(leader == NULL && !use_indentexpr_for_lisp\(\) && curbuf->b_p_lisp && curbuf->b_p_ai\)$`, 1,
+		e.DropIf(edit.Head("if (leader == NULL && !use_indentexpr_for_lisp() && curbuf->b_p_lisp && curbuf->b_p_ai)"), 1,
 			"a new line taking its indent from get_lisp_indent()")
 		e.Cut(edit.Line("if (!p_paste)", "{", "}"), 1,
 			"open_line's now-empty 'paste' test")
 	})
 	e.InFunction("buf_init_chartab", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(buf->b_p_lisp\)$`, 1, "'-' as a keyword character")
+		e.DropIf(edit.Head("if (buf->b_p_lisp)"), 1, "'-' as a keyword character")
 	})
 	e.InFunction("check_linecomment", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(curbuf->b_p_lisp\)$`, 1, "a ';' starting a line comment")
+		e.FoldNever(edit.Head("if (curbuf->b_p_lisp)"), 1, "a ';' starting a line comment")
 	})
 	e.InFunction("op_reindent", func(e *edit.E) {
-		e.FoldAlways(`(?m)^[ \t]*if \(i != oap->line_count - 1 \|\| oap->line_count == 1 \|\| how != get_lisp_indent\)$`, 1,
+		e.FoldAlways(edit.Head("if (i != oap->line_count - 1 || oap->line_count == 1 || how != get_lisp_indent)"), 1,
 			"= skipping the last line only for lisp")
 	})
 	e.InFunction("fix_indent", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(curbuf->b_p_lisp && curbuf->b_p_ai\)$`, 1, "fix_indent re-indenting lisp")
+		e.DropIf(edit.Head("if (curbuf->b_p_lisp && curbuf->b_p_ai)"), 1, "fix_indent re-indenting lisp")
 	})
 	e.InFunction("do_pending_operator", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(curbuf->b_p_lisp\)$`, 1, "= indenting lisp")
+		e.DropIf(edit.Head("if (curbuf->b_p_lisp)"), 1, "= indenting lisp")
 	})
 	e.InFunction("format_lines", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*else if \(curbuf->b_p_lisp\)$`, 1, "gq indenting lisp")
+		e.FoldNever(edit.Head("else if (curbuf->b_p_lisp)"), 1, "gq indenting lisp")
 	})
 
 	// findmatchlimit carried a lisp comment state through the whole scan, so
@@ -59,13 +59,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal("if ((backwards && comment_dir) || lisp || skip_comments)",
 			"if ((backwards && comment_dir) || skip_comments)", 1,
 			"% looking for a comment only for a comment direction or FM_SKIPCOMM")
-		e.DropIf(`(?m)^[ \t]*if \(lisp && comment_col != MAXCOL && pos\.col > \(colnr_T\)comment_col\)$`, 1,
+		e.DropIf(edit.Head("if (lisp && comment_col != MAXCOL && pos.col > (colnr_T)comment_col)"), 1,
 			"% starting inside a lisp comment")
-		e.DropIf(`(?m)^[ \t]*if \(lispcomm && pos\.col < \(colnr_T\)comment_col\)$`, 1,
+		e.DropIf(edit.Head("if (lispcomm && pos.col < (colnr_T)comment_col)"), 1,
 			"% stopping at a lisp comment backwards")
 		e.Literal("if (comment_dir || lisp || skip_comments)", "if (comment_dir || skip_comments)", 1,
 			"% rescanning a line for lisp")
-		e.FoldNever(`(?m)^[ \t]*if \(lisp && comment_col != MAXCOL\)$`, 1,
+		e.FoldNever(edit.Head("if (lisp && comment_col != MAXCOL)"), 1,
 			"% jumping to a lisp comment backwards")
 		e.Literal("if (linep[pos.col] == NUL || (lisp && comment_col != MAXCOL && pos.col == (colnr_T)comment_col))",
 			"if (linep[pos.col] == NUL)", 1, "% ending a line at a lisp comment")

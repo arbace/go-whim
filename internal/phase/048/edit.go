@@ -15,7 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/edit"
 )
 
-const noswapTest = `(?m)^[ \t]*if \(cmdmod\.cmod_flags & CMOD_NOSWAPFILE\)$`
+var noswapTest = edit.Head("if (cmdmod.cmod_flags & CMOD_NOSWAPFILE)")
 
 // Whim48 takes the :noswapfile modifier and everything that reads it.
 func Edit(text []byte, w io.Writer) ([]byte, error) {

@@ -152,8 +152,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("open_buffer", func(e *edit.E) {
 		e.Literal(w75lit6, w75lit7, 1, "open_buffer, keeping the flag clearing the autocmd call was wrapped around")
 	})
-	e.DropBlocks("buf_write", `(?m)^[ \t]*if \(!got_int\)$`, 1, "the post-write announcements")
-	e.DropBlocks("set_termname", `(?m)^[ \t]*if \(curbuf->b_ml\.ml_mfp != NULL\)$`, 1, "a new terminal telling every buffer")
+	e.DropBlocks("buf_write", edit.Head("if (!got_int)"), 1, "the post-write announcements")
+	e.DropBlocks("set_termname", edit.Head("if (curbuf->b_ml.ml_mfp != NULL)"), 1, "a new terminal telling every buffer")
 	e.Lines(`ins_apply_autocmds\(EVENT_[A-Z]+\);`, 6, "the insert-mode dispatches")
 	e.InFunction("ins_redraw", func(e *edit.E) {
 		e.FoldNever(`(?m)^[ \t]*if \(ready && \(has_cursormovedI\(\)\)`, 1, "insert mode reporting the cursor moved")
@@ -179,7 +179,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("buf_write", func(e *edit.E) {
 		e.Literal(w75lit10, "", 1, "buf_write bracketing the write with an autocommand buffer swap")
 		e.Literal(w75lit11, w75lit12, 1, "the write asking whether an autocommand had taken over")
-		e.FoldNever(`(?m)^[ \t]*if \(did_cmd\)$`, 1, "and the arm only an autocommand-driven write could reach")
+		e.FoldNever(edit.Head("if (did_cmd)"), 1, "and the arm only an autocommand-driven write could reach")
 	})
 	// buf_write's aco, bufref and did_cmd are named by nothing now; the sweep
 	// takes them.

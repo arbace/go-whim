@@ -114,10 +114,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		// if (lead_len > 0) of its own, which would throw every count after it.
 		e.DropIf(`(?m)^[ \t]*if \(lead_len > 0\)\n[ \t]*\{\n[ \t]*char_u[ \t]+\*lead_repl = NULL;$`, 1,
 			"copying, replacing and aligning a comment leader")
-		e.FoldNever(`(?m)^[ \t]*if \(flags & OPENLINE_DO_COM\)$`, 1, "a new line finding the leader to repeat")
+		e.FoldNever(edit.Head("if (flags & OPENLINE_DO_COM)"), 1, "a new line finding the leader to repeat")
 		e.Lines(`lead_len = 0;`, 1, "a new line with no leader")
-		e.FoldNever(`(?m)^[ \t]*if \(lead_len > 0\)$`, 1, "smartindent treating a comment line specially")
-		e.FoldNever(`(?m)^[ \t]*if \(lead_len\)$`, 1, "the new line starting with its leader")
+		e.FoldNever(edit.Head("if (lead_len > 0)"), 1, "smartindent treating a comment line specially")
+		e.FoldNever(edit.Head("if (lead_len)"), 1, "the new line starting with its leader")
 		e.Lines(`end_comment_pending = NUL;`, 2, "a new line clearing the pending comment end")
 		e.Literal("if (trunc_line && !(flags & OPENLINE_KEEPTRAIL))", "if (trunc_line)", 1,
 			"a broken line always losing its trailing blanks ('w')")
@@ -138,28 +138,28 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Lines(`fo_ins_blank = has_format_option\(FO_INS_BLANK\);`, 1, "insertchar asking for 'b'")
 		e.Literal(" && (curwin->w_cursor.lnum != Insstart.lnum || ((!has_format_option(FO_INS_LONG) || Insstart_textlen <= (colnr_T)textwidth) && (!fo_ins_blank || Insstart_blank_vcol <= (colnr_T)textwidth)))",
 			"", 1, "wrapping a line that was already long when Insert began ('l', 'b')")
-		e.DropIf(`(?m)^[ \t]*if \(did_ai && c == end_comment_pending\)$`, 1, "typing the last character of a comment end")
+		e.DropIf(edit.Head("if (did_ai && c == end_comment_pending)"), 1, "typing the last character of a comment end")
 		e.Lines(`end_comment_pending = NUL;`, 1, "insertchar clearing the pending comment end")
 	})
 	e.Lines(`Insstart_textlen = \(colnr_T\)linetabsize_str\(ml_get_curline\(\)\);`, 3, "measuring the line Insert began on")
 	e.Lines(`Insstart_blank_vcol = MAXCOL;`, 1, "resetting the first blank typed")
-	e.DropIf(`(?m)^[ \t]*if \(Insstart_blank_vcol == MAXCOL && curwin->w_cursor\.lnum == Insstart\.lnum\)$`, 2,
+	e.DropIf(edit.Head("if (Insstart_blank_vcol == MAXCOL && curwin->w_cursor.lnum == Insstart.lnum)"), 2,
 		"remembering the first blank typed")
 	e.Lines(`end_comment_pending = NUL;`, 1, "ins_bs clearing the pending comment end")
 
 	// 'a' and 'w': no auto-formatting
 	e.InFunction("stop_insert", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(!ins_need_undo && has_format_option\(FO_AUTO\)\)$`, 1, "leaving Insert mode auto-formatting")
+		e.DropIf(edit.Head("if (!ins_need_undo && has_format_option(FO_AUTO))"), 1, "leaving Insert mode auto-formatting")
 	})
 	e.InFunction("stop_insert", func(e *edit.E) {
 		e.Lines(`check_auto_format\(TRUE\);`, 1, "leaving Insert mode removing an auto-format space")
 	})
 	e.InFunction("ins_bs", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(has_format_option\(FO_AUTO\) && has_format_option\(FO_WHITE_PAR\)\)$`, 1,
+		e.DropIf(edit.Head("if (has_format_option(FO_AUTO) && has_format_option(FO_WHITE_PAR))"), 1,
 			"backspacing over a line break dropping a trailing space")
 	})
 	e.InFunction("do_pending_operator", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(oap->motion_type == MLINE && has_format_option\(FO_AUTO\) && u_save_cursor\(\) == OK\)$`, 1,
+		e.DropIf(edit.Head("if (oap->motion_type == MLINE && has_format_option(FO_AUTO) && u_save_cursor() == OK)"), 1,
 			"a linewise delete auto-formatting")
 	})
 	e.InFunction("op_delete", func(e *edit.E) {
@@ -170,7 +170,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// J: 'j', 'M' and 'B' off
 	e.InFunction("do_join", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(remove_comments\)$`, 4, "J removing comment leaders")
+		e.DropIf(edit.Head("if (remove_comments)"), 4, "J removing comment leaders")
 		e.Literal(" && (!has_format_option(FO_MBYTE_JOIN) || (utf_ptr2char(curr) < 0x100 && endcurr1 < 0x100)) && (!has_format_option(FO_MBYTE_JOIN2) || (utf_ptr2char(curr) < 0x100 && !(utf_eat_space(endcurr1))) || (endcurr1 < 0x100 && !(utf_eat_space(utf_ptr2char(curr)))))",
 			"", 1, "J inserting no space between multibyte characters ('M', 'B')")
 	})
@@ -186,20 +186,20 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"if (!(flags & INSCHAR_FORMAT) && p_paste)", 1, "wrapping only with 't', which 'paste' turns off")
 		e.Literal("while ((!fo_ins_blank && !has_format_option(FO_INS_VI)) || (flags & INSCHAR_FORMAT) || curwin->w_cursor.lnum != Insstart.lnum || curwin->w_cursor.col >= Insstart.col)",
 			"for (;;)", 1, "breaking only at blanks typed in this Insert ('v', 'b')")
-		e.DropIf(`(?m)^[ \t]*if \(wcc < 2\)$`, 1, "counting the blanks before a break")
-		e.DropIf(`(?m)^[ \t]*if \(has_format_option\(FO_PERIOD_ABBR\) && cc == '\.' && wcc < 2\)$`, 1, "not breaking after a period ('p')")
-		e.FoldNever(`(?m)^[ \t]*else if \(\(cc >= 0x100 \|\| !utf_allow_break_before\(cc\)\) && fo_multibyte\)$`, 1,
+		e.DropIf(edit.Head("if (wcc < 2)"), 1, "counting the blanks before a break")
+		e.DropIf(edit.Head("if (has_format_option(FO_PERIOD_ABBR) && cc == '.' && wcc < 2)"), 1, "not breaking after a period ('p')")
+		e.FoldNever(edit.Head("else if ((cc >= 0x100 || !utf_allow_break_before(cc)) && fo_multibyte)"), 1,
 			"breaking between multibyte characters ('m', ']')")
-		e.DropIf(`(?m)^[ \t]*if \(has_format_option\(FO_ONE_LETTER\)\)$`, 1, "not breaking after a one-letter word ('1')")
+		e.DropIf(edit.Head("if (has_format_option(FO_ONE_LETTER))"), 1, "not breaking after a one-letter word ('1')")
 		e.Cut(edit.Line("if (curwin->w_cursor.col < leader_len)", "{", "break;", "}"), 1, "not breaking inside the leader")
 		e.Literal(" && (!fo_white_par || curwin->w_cursor.col < startcol)", "", 1, "keeping a trailing blank ('w')")
-		e.FoldAlways(`(?m)^[ \t]*if \(!fo_white_par\)$`, 2, "removing the blanks at the break ('w')")
+		e.FoldAlways(edit.Head("if (!fo_white_par)"), 2, "removing the blanks at the break ('w')")
 		e.Literal("open_line(FORWARD, OPENLINE_DELSPACES + OPENLINE_MARKFIX + (fo_white_par ? OPENLINE_KEEPTRAIL : 0) + (do_comments ? OPENLINE_DO_COM : 0) + OPENLINE_FORMAT + ((flags & INSCHAR_COM_LIST) ? OPENLINE_COM_LIST : 0), ((flags & INSCHAR_COM_LIST) ? second_indent : old_indent), &did_do_comment);",
 			"open_line(FORWARD, OPENLINE_DELSPACES + OPENLINE_MARKFIX, old_indent, NULL);", 1, "the break opening a line with no leader")
-		e.DropIf(`(?m)^[ \t]*if \(did_do_comment\)$`, 1, "a leader found by the new line")
+		e.DropIf(edit.Head("if (did_do_comment)"), 1, "a leader found by the new line")
 		// second_indent is -1: ins_char() is the only caller left once the operator goes
-		e.DropIf(`(?m)^[ \t]*if \(first_line\)$`, 1, "the first broken line's second-line indent ('2', 'n')")
-		e.FoldAlways(`(?m)^[ \t]*if \(!\(flags & INSCHAR_COM_LIST\)\)$`, 1, "a comment list keeping its indent")
+		e.DropIf(edit.Head("if (first_line)"), 1, "the first broken line's second-line indent ('2', 'n')")
+		e.FoldAlways(edit.Head("if (!(flags & INSCHAR_COM_LIST))"), 1, "a comment list keeping its indent")
 	})
 
 	// format_lines() and fmt_check_par() are NOT folded for the options: once
@@ -208,15 +208,15 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// the rest of 'comments'
 	e.InFunction("find_decl", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(get_leader_len\(ml_get_curline\(\), NULL, FALSE, TRUE\) > 0\)$`, 1, "gd skipping comment lines")
+		e.DropIf(edit.Head("if (get_leader_len(ml_get_curline(), NULL, FALSE, TRUE) > 0)"), 1, "gd skipping comment lines")
 	})
 	e.InFunction("nv_percent", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(vim_strchr\(p_cpo, CPO_MATCH\) == NULL && buf_has_cstyle_comments\(\)\)$`, 1, "% skipping a // comment")
+		e.FoldNever(edit.Head("if (vim_strchr(p_cpo, CPO_MATCH) == NULL && buf_has_cstyle_comments())"), 1, "% skipping a // comment")
 	})
 
 	// 'paragraphs' and 'sections'
 	e.InFunction("startPS", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(\*s == '\.' && \(inmacro\(p_sections, s \+ 1\) \|\| \(!para && inmacro\(p_para, s \+ 1\)\)\)\)$`, 1,
+		e.DropIf(edit.Head("if (*s == '.' && (inmacro(p_sections, s + 1) || (!para && inmacro(p_para, s + 1))))"), 1,
 			"an nroff macro starting a paragraph or section")
 	})
 
@@ -226,7 +226,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"gq and gw as operators")
 	})
 	e.InFunction("nv_record", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(cap->oap->op_type == OP_FORMAT\)$`, 1, "gqq and gqgq doubling the operator")
+		e.DropIf(edit.Head("if (cap->oap->op_type == OP_FORMAT)"), 1, "gqq and gqgq doubling the operator")
 	})
 	e.InFunction("do_pending_operator", func(e *edit.E) {
 		e.Cut(edit.Line("case OP_FORMAT:", "{", "op_format(oap, FALSE);", "}", "break;", "case OP_FORMAT2:", "op_format(oap, TRUE);", "break;"), 1,
@@ -246,10 +246,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"wrapping only a character that was typed")
 		e.Literal("internal_format(textwidth, second_indent, flags, c == NUL, c);",
 			"internal_format(textwidth, second_indent, flags, FALSE, c);", 1, "the wrap never being a whole-line format")
-		e.DropIf(`(?m)^[ \t]*if \(c == NUL\)$`, 1, "insertchar called with no character to insert")
+		e.DropIf(edit.Head("if (c == NUL)"), 1, "insertchar called with no character to insert")
 	})
 	e.InFunction("comp_textwidth", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(ff && textwidth == 0\)$`, 1, "the width gq used when 'textwidth' is 0")
+		e.DropIf(edit.Head("if (ff && textwidth == 0)"), 1, "the width gq used when 'textwidth' is 0")
 		e.Literal("comp_textwidth(int ff)", "comp_textwidth(void)", 1, "comp_textwidth without its gq flag")
 	})
 	e.Literal("static int comp_textwidth(int ff);", "static int comp_textwidth(void);", 1, "comp_textwidth's prototype")
@@ -279,10 +279,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal(" || oap->op_type == OP_FILTER", "", 1, "a filter deciding whether the motion is inclusive")
 	})
 	e.InFunction("op_colon", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(oap->op_type != OP_COLON\)$`, 1, "the ! typed after an operator range")
+		e.DropIf(edit.Head("if (oap->op_type != OP_COLON)"), 1, "the ! typed after an operator range")
 	})
 	e.InFunction("do_bang", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(bangredo\)$`, 1, "the ! operator putting its command in the redo buffer")
+		e.DropIf(edit.Head("if (bangredo)"), 1, "the ! operator putting its command in the redo buffer")
 	})
 	// That block held the only `goto theend`, and a label with nothing jumping
 	// to it is a warning.  The free below it runs either way, so only the marker
@@ -297,13 +297,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// do_pending_operator's `oap->motion_type = MLINE`, which stays, and an
 	// unscoped drop would have had two matches to choose between.
 	e.InFunction("edit", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(inindent\(0\)\)$`, 1, "a space typed in the indent forbidding a reindent")
+		e.DropIf(edit.Head("if (inindent(0))"), 1, "a space typed in the indent forbidding a reindent")
 	})
 	e.InFunction("ins_bs", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(in_indent\)$`, 1, "a backspace in the indent forbidding a reindent")
+		e.DropIf(edit.Head("if (in_indent)"), 1, "a backspace in the indent forbidding a reindent")
 	})
 	e.InFunction("ins_tab", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(ind\)$`, 1, "a Tab in the indent forbidding a reindent")
+		e.DropIf(edit.Head("if (ind)"), 1, "a Tab in the indent forbidding a reindent")
 	})
 	e.Lines(`can_cindent = (?:TRUE|FALSE);`, 7, "the other places that armed or disarmed a reindent")
 	e.InFunction("internal_format", func(e *edit.E) {

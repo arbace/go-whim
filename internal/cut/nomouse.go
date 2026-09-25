@@ -139,7 +139,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	fmt.Fprintln(w, "  nomouse      the click that dismissed a `Press ENTER` prompt")
 
 	if text, err = cutil.DropIf(text,
-		`(?m)^[ \t]*if \(check_termcode_mouse\(tp, &slen, key_name, modifiers_start, idx, &modifiers\) == -1\)$`,
+		cutil.Head("if (check_termcode_mouse(tp, &slen, key_name, modifiers_start, idx, &modifiers) == -1)"),
 		1); err != nil {
 		return nil, err
 	}
@@ -211,7 +211,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 	// 'mouse'.  Both read p_mouse, so --strict refuses to drop the row; and
 	// the row is what keeps them reachable.  The circle is broken here, by
 	// hand, which is the honest place for it.
-	if text, err = cutil.DropIf(text, `(?m)^[ \t]*if \(varp == &p_mouse\)$`, 1); err != nil {
+	if text, err = cutil.DropIf(text, cutil.Head("if (varp == &p_mouse)"), 1); err != nil {
 		return nil, err
 	}
 	if text, err = cutCounted(text, cutil.Line("check_mouse_termcode();"),

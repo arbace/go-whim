@@ -21,7 +21,7 @@ import (
 
 var (
 	// titleWanted is the flag a change sets to ask for a title update.
-	titleWanted = `(?m)^[ \t]*if \(need_maketitle\)$`
+	titleWanted = edit.Head("if (need_maketitle)")
 	// restoreTitle is the call that puts the terminal's title back.
 	restoreTitle = edit.Line("mch_restore_title((SAVE_RESTORE_TITLE | SAVE_RESTORE_ICON));")
 )
@@ -45,7 +45,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	e.InFunction("do_exedit", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(n != curwin->w_arg_idx_invalid\)$`, 1,
+		e.DropIf(edit.Head("if (n != curwin->w_arg_idx_invalid)"), 1,
 			":edit updating the title when the argument index moved")
 		e.Cut(edit.Line("n = curwin->w_arg_idx_invalid;"), 1,
 			":edit remembering the argument index for the title")

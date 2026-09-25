@@ -35,12 +35,12 @@ var nosessionStubs = []struct{ name, body string }{
 }
 
 var nosessionDrops = []struct{ what, pat string }{
-	{"the legacy modifier", "(?m)^[ \\t]*if \\(checkforcmd_noparen\\(&eap->cmd, \"legacy\", 3\\)\\)$"},
-	{"the noautocmd modifier", "(?m)^[ \\t]*if \\(checkforcmd_noparen\\(&eap->cmd, \"noautocmd\", 3\\)\\)$"},
-	{"the sandbox modifier", "(?m)^[ \\t]*if \\(checkforcmd_noparen\\(&eap->cmd, \"sandbox\", 3\\)\\)$"},
-	{"the vim9cmd modifier", "(?m)^[ \\t]*if \\(checkforcmd_noparen\\(&eap->cmd, \"vim9cmd\", 4\\)\\)$"},
-	{"noautocmd saving 'eventignore'", "(?m)^[ \\t]*if \\(\\(cmod->cmod_flags & CMOD_NOAUTOCMD\\) && cmod->cmod_save_ei == NULL\\)$"},
-	{"noautocmd restoring 'eventignore'", "(?m)^[ \\t]*if \\(cmod->cmod_save_ei != NULL\\)$"},
+	{"the legacy modifier", cutil.Head(`if (checkforcmd_noparen(&eap->cmd, "legacy", 3))`)},
+	{"the noautocmd modifier", cutil.Head(`if (checkforcmd_noparen(&eap->cmd, "noautocmd", 3))`)},
+	{"the sandbox modifier", cutil.Head(`if (checkforcmd_noparen(&eap->cmd, "sandbox", 3))`)},
+	{"the vim9cmd modifier", cutil.Head(`if (checkforcmd_noparen(&eap->cmd, "vim9cmd", 4))`)},
+	{"noautocmd saving 'eventignore'", cutil.Head("if ((cmod->cmod_flags & CMOD_NOAUTOCMD) && cmod->cmod_save_ei == NULL)")},
+	{"noautocmd restoring 'eventignore'", cutil.Head("if (cmod->cmod_save_ei != NULL)")},
 }
 
 var nosessionLiteral = []struct{ what, old, new string }{
@@ -116,7 +116,7 @@ func NoSession(text []byte, w io.Writer) ([]byte, error) {
 	// `filetypedetect` group exists -- a group only :augroup or :autocmd made.
 	// The test is known now, and with it goes the last caller of do_doautocmd().
 	if text, err = cutil.FoldNever(text,
-		`(?m)^[ \t]*if \(au_has_group\(\(char_u \*\)"filetypedetect"\)\)$`, 2); err != nil {
+		cutil.Head(`if (au_has_group((char_u *)"filetypedetect"))`), 2); err != nil {
 		return nil, fmt.Errorf("nosession: filetype detection after a rename -- %v", err)
 	}
 	fmt.Fprintln(w, "  nosession    :write and :file no longer re-detect a filetype no "+
@@ -152,7 +152,7 @@ func NoSession(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("nosession: -S and -s are not both in the argument "+
 			"switch: %s", pyList(sortedKeys(held2)))
 	}
-	if fn, err = cutil.FoldNever(fn, `(?m)^[ \t]*if \(c == 'S'\)$`, 1); err != nil {
+	if fn, err = cutil.FoldNever(fn, cutil.Head("if (c == 'S')"), 1); err != nil {
 		return nil, fmt.Errorf("nosession: the session file becoming a :source -- %v", err)
 	}
 	fmt.Fprintln(w, "  nosession    -S, -s file, -w file and -W are unknown options")

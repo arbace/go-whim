@@ -125,7 +125,7 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	// The window- and tab-local directory restore.  Its guard can never be
 	// true: w_localdir and tp_localdir come only from :lcd and :tcd, and
 	// globaldir is assigned only inside this function.
-	if text, err = cutil.DropIf(text, `(?m)^[ \t]*if \(awp->w_localdir != NULL\)$`, 1); err != nil {
+	if text, err = cutil.DropIf(text, cutil.Head("if (awp->w_localdir != NULL)"), 1); err != nil {
 		return nil, err
 	}
 	if text, err = cutCounted(text, cutil.Line("win_fix_current_dir();"),
@@ -152,7 +152,7 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	// edit_buffers() returns to `cwd` between -o windows.  It is passed
 	// start_dir, which nothing assigns.  The free of it goes here, and the
 	// global is the sweep's.
-	if text, err = cutil.DropIf(text, `(?m)^[ \t]*if \(cwd != NULL\)$`, 1); err != nil {
+	if text, err = cutil.DropIf(text, cutil.Head("if (cwd != NULL)"), 1); err != nil {
 		return nil, err
 	}
 	for _, g := range []struct{ pat, what string }{

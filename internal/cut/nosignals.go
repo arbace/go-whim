@@ -128,7 +128,7 @@ func NoSignals(text []byte, w io.Writer) ([]byte, error) {
 	// Two can.  Left alone they would be a lie in the one function whose
 	// remaining job is to be trustworthy.
 	if text, err = cutil.DropIf(text,
-		`(?m)^[ \t]*if \(in_mch_delay && sigarg == SIGQUIT\)$`, 1); err != nil {
+		cutil.Head("if (in_mch_delay && sigarg == SIGQUIT)"), 1); err != nil {
 		return nil, err
 	}
 	early := regexp.MustCompile(

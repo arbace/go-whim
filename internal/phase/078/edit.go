@@ -117,7 +117,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	e.InFunction("getcmdline_int", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(is_state\.winid != curwin->w_id\)$`, 2, "the command line re-initialising incremental search for another window")
+		e.FoldNever(edit.Head("if (is_state.winid != curwin->w_id)"), 2, "the command line re-initialising incremental search for another window")
 	})
 	e.InFunction("init_incsearch_state", func(e *edit.E) {
 		e.Lines(`is_state->winid = curwin->w_id;`, 1, "recording which window the search started in")

@@ -40,7 +40,7 @@ import (
 
 var (
 	btEngineWrite = regexp.MustCompile(`(?m)^[ \t]*prog->re_engine = BACKTRACKING_ENGINE;[ \t]*$`)
-	retryOther    = `(?m)^[ \t]*if \(rmp->regprog->re_engine == AUTOMATIC_ENGINE && result == \(-1\)\)$`
+	retryOther    = edit.Head("if (rmp->regprog->re_engine == AUTOMATIC_ENGINE && result == (-1))")
 )
 
 // assignsTo is writesTo with `->name` fields included -- written the careful way

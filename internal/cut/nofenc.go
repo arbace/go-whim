@@ -137,7 +137,7 @@ func NoFenc(text []byte, w io.Writer) ([]byte, error) {
 				}
 			} else {
 				if text, err = dropIfBlock(text,
-					`(?m)^[ \t]*if \(gvarp == &p_fenc\)$`, e.what); err != nil {
+					cutil.Head("if (gvarp == &p_fenc)"), e.what); err != nil {
 					return nil, err
 				}
 			}

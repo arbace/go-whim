@@ -20,7 +20,7 @@ func NoInert(text []byte, w io.Writer) ([]byte, error) {
 
 	text, err = e.inFunction(text, "parse_command_modifiers", func(seg []byte) ([]byte, error) {
 		seg, err := cutil.DropIf(seg,
-			`(?m)^[ \t]*if \(checkforcmd_opt\(&eap->cmd, "browse", 3, TRUE\)\)$`, 1)
+			cutil.Head(`if (checkforcmd_opt(&eap->cmd, "browse", 3, TRUE))`), 1)
 		if err != nil {
 			return nil, err
 		}

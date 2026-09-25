@@ -53,8 +53,8 @@ var cindentLeft = regexp.MustCompile(`\b(?:get_c_indent|in_cinkeys)\b`)
 func NoCindent(text []byte, w io.Writer) ([]byte, error) {
 	var err error
 	for _, p := range []string{
-		`(?m)^[ \t]*if \(cindent_on\(\) && ctrl_x_mode_none\(\)\)$`,
-		`(?m)^[ \t]*if \(can_cindent && cindent_on\(\) && ctrl_x_mode_normal\(\)\)$`,
+		cutil.Head("if (cindent_on() && ctrl_x_mode_none())"),
+		cutil.Head("if (can_cindent && cindent_on() && ctrl_x_mode_normal())"),
 	} {
 		if text, err = cutil.DropIf(text, p, 1); err != nil {
 			return nil, err
@@ -73,7 +73,7 @@ func NoCindent(text []byte, w io.Writer) ([]byte, error) {
 		[]byte("if (lead_len == 0 && curbuf->b_p_cin && do_cindent && dir == FORWARD"),
 		[]byte("if (lead_len == 0 && dir == FORWARD"), 1)
 	if text, err = cutil.DropIf(text,
-		`(?m)^[ \t]*else if \(do_cindent \|\| \(curbuf->b_p_ai && use_indentexpr_for_lisp\(\)\)\)$`,
+		cutil.Head("else if (do_cindent || (curbuf->b_p_ai && use_indentexpr_for_lisp()))"),
 		1); err != nil {
 		return nil, err
 	}
@@ -121,7 +121,7 @@ func NoCindent(text []byte, w io.Writer) ([]byte, error) {
 		[]byte("                op_reindent(oap, get_indent);"), 1)
 
 	if text, err = cutil.DropIf(text,
-		`(?m)^[ \t]*if \(leader_len == 0 && curbuf->b_p_cin\)$`, 1); err != nil {
+		cutil.Head("if (leader_len == 0 && curbuf->b_p_cin)"), 1); err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  nocindent    preprocs_left, fix_indent, completion, `=` and the "+

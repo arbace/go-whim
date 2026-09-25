@@ -114,7 +114,7 @@ func NoRecover(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	if text, err = cutil.DropIf(text,
-		`(?m)^[ \t]*if \(recoverymode && params\.fname == NULL\)$`, 2); err != nil {
+		cutil.Head("if (recoverymode && params.fname == NULL)"), 2); err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  norecover    the two `-r with no file` arms of main and vim_main2")
@@ -127,7 +127,7 @@ func NoRecover(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  norecover    reading stdin stops asking whether this is a recovery")
 
-	if text, err = keepElse(text, `(?m)^[ \t]*if \(recoverymode\)$`,
+	if text, err = keepElse(text, cutil.Head("if (recoverymode)"),
 		"the recovery arm of create_windows", w); err != nil {
 		return nil, err
 	}
@@ -140,11 +140,11 @@ func NoRecover(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("norecover: readfile's `reading from stdin` message is not " +
 			"where this expects")
 	}
-	if text, err = unwrapIf(text, `(?m)^[ \t]*if \(!recoverymode\)$`,
+	if text, err = unwrapIf(text, cutil.Head("if (!recoverymode)"),
 		"readfile's redraw and line count", w); err != nil {
 		return nil, err
 	}
-	if text, err = unwrapIf(text, `(?m)^[ \t]*if \(!\(recoverymode && error\)\)$`,
+	if text, err = unwrapIf(text, cutil.Head("if (!(recoverymode && error))"),
 		"readfile's return value", w); err != nil {
 		return nil, err
 	}

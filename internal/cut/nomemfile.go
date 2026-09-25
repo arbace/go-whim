@@ -236,7 +236,7 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  nomemfile    the machine name in block zero; uname goes with it")
 
-	if text, err = cutil.DropIf(text, `(?m)^[ \t]*if \(other && !emsg_silent\)$`, 1); err != nil {
+	if text, err = cutil.DropIf(text, cutil.Head("if (other && !emsg_silent)"), 1); err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  nomemfile    check_overwrite's `is another vim editing this` "+

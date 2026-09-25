@@ -20,7 +20,7 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   resliced `[]T`, which for `Ptr[byte]` is a string model -- a redesign, not a
   rule. It is checked by `make whim-test`, which runs the Go editor against
   the C.
-- **Line anchors for the phase verbs** (`edit.Line`/`cutil.Line` exist; 116 anchors converted) (`doc/DSL.md` §4, step 3; steps 1 and 2,
+- **Line anchors for the phase verbs** (`Line` and `Head` in `edit`/`cutil`; 360 anchors converted) (`doc/DSL.md` §4, step 3; steps 1 and 2,
   one verb set and the middle tier moved onto it, are done). 381 of the 449
   pattern arguments the survey classified were a C line with its indentation
   left open, `(?m)^[ \t]*...\n`; a `Line("maketitle();")` spelling of the same

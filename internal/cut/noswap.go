@@ -96,7 +96,7 @@ func NoSwap(text []byte, w io.Writer) ([]byte, error) {
 	// 'updatecount' is the third and is safe: p_uc is a long, so an orphan
 	// reads as 0 -- which is exactly "never create a swap file".
 	if text, err = cutil.DropIf(text,
-		`(?m)^[ \t]*if \(\(flags & MFS_FLUSH\) && \*p_sws != NUL\)$`, 1); err != nil {
+		cutil.Head("if ((flags & MFS_FLUSH) && *p_sws != NUL)"), 1); err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  noswap       mf_sync's fsync/sync tail, the last reader of p_sws")

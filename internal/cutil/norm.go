@@ -284,3 +284,10 @@ func Line(lines ...string) string {
 	}
 	return b.String()
 }
+
+// Head is one whole C line after its indentation, up to the end of the line
+// and not past it: the head of a statement a fold takes, `if (x)` of
+// `if (x)\n{...}`.  Head("if (ind)") is `(?m)^[ \t]*if \(ind\)$`.
+func Head(line string) string {
+	return `(?m)^[ \t]*` + regexp.QuoteMeta(line) + `$`
+}

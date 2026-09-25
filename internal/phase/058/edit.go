@@ -53,19 +53,19 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// CTRL-^: consumed, and nothing to toggle.
 	e.InFunction("edit", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(curbuf->b_p_iminsert == B_IMODE_LMAP\)$`, 1,
+		e.DropIf(edit.Head("if (curbuf->b_p_iminsert == B_IMODE_LMAP)"), 1,
 			"Insert mode starting with language mappings")
 		e.Sub(`(?m)^([ \t]*case Ctrl_HAT:\n)[ \t]*ins_ctrl_hat\(\);\n`, "${1}", 1,
 			"CTRL-^ in Insert mode toggling nothing")
 	})
 	e.InFunction("getcmdline_int", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(firstc == '/' \|\| firstc == '\?' \|\| firstc == '@'\)$`, 1,
+		e.DropIf(edit.Head("if (firstc == '/' || firstc == '?' || firstc == '@')"), 1,
 			"a search line starting with language mappings")
 		e.Sub(`(?m)^([ \t]*case Ctrl_HAT:\n)[ \t]*cmdline_toggle_langmap\([^\n]*\);\n`, "${1}", 1,
 			"CTRL-^ on the command line toggling nothing")
 	})
 	e.InFunction("ex_append", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(curbuf->b_p_iminsert == B_IMODE_LMAP\)$`, 1,
+		e.DropIf(edit.Head("if (curbuf->b_p_iminsert == B_IMODE_LMAP)"), 1,
 			":append starting with language mappings")
 	})
 	e.InFunction("ins_insert", func(e *edit.E) {
@@ -73,9 +73,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"<Insert> keeping the language-mapping flag")
 	})
 	e.InFunction("normal_cmd_get_more_chars", func(e *edit.E) {
-		e.DropIf(`(?m)^[ \t]*if \(lang && curbuf->b_p_iminsert == B_IMODE_LMAP\)$`, 1,
+		e.DropIf(edit.Head("if (lang && curbuf->b_p_iminsert == B_IMODE_LMAP)"), 1,
 			"r, f and t reading through language mappings")
-		e.DropIf(`(?m)^[ \t]*if \(langmap_active\)$`, 1,
+		e.DropIf(edit.Head("if (langmap_active)"), 1,
 			"r, f and t restoring after language mappings")
 	})
 	e.InFunction("handle_mapping", func(e *edit.E) {
@@ -88,10 +88,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"the cursor placed while waiting in language-mapping state")
 	})
 	e.InFunction("get_map_mode", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*else if \(modec == 'l'\)$`, 1, "the 'l' map mode")
+		e.FoldNever(edit.Head("else if (modec == 'l')"), 1, "the 'l' map mode")
 	})
 	e.InFunction("map_mode_to_chars", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*else if \(mode & MODE_LANGMAP\)$`, 1, "listing a mapping as 'l'")
+		e.FoldNever(edit.Head("else if (mode & MODE_LANGMAP)"), 1, "listing a mapping as 'l'")
 	})
 	e.InFunction("win_redr_status", func(e *edit.E) {
 		e.DropIf(`(?m)^[ \t]*if \(\(NameBufflen = get_keymap_str\(wp, \(char_u \*\)"<%s>", NameBuff, PATH_MAX\)\) > 0`, 1,

@@ -107,7 +107,7 @@ func NoCmdArgs(text []byte, w io.Writer) ([]byte, error) {
 	}
 	fmt.Fprintln(w, "  nocmdargs    --cmd in the option switch")
 
-	fn, err = cutil.FoldAlways(fn, `(?m)^[ \t]*if \(!want_argument\)$`, 1)
+	fn, err = cutil.FoldAlways(fn, cutil.Head("if (!want_argument)"), 1)
 	if err != nil {
 		return nil, fmt.Errorf("nocmdargs: -- asking whether it wants an argument -- %v", err)
 	}

@@ -12,17 +12,17 @@ import (
 
 var abbrFolds = []struct{ what, pattern string }{
 	{"insert mode: ESC expanding an abbreviation first",
-		`(?m)^[ \t]*if \(echeck_abbr\(ESC \+ ABBR_OFF\)\)$`},
+		cutil.Head("if (echeck_abbr(ESC + ABBR_OFF))")},
 	{"insert mode: CTRL-O expanding an abbreviation first",
-		`(?m)^[ \t]*if \(echeck_abbr\(Ctrl_O \+ ABBR_OFF\)\)$`},
+		cutil.Head("if (echeck_abbr(Ctrl_O + ABBR_OFF))")},
 	{"insert mode: CTRL-L under 'insertmode'",
-		`(?m)^[ \t]*if \(echeck_abbr\(Ctrl_L \+ ABBR_OFF\)\)$`},
+		cutil.Head("if (echeck_abbr(Ctrl_L + ABBR_OFF))")},
 	{"insert mode: Tab expanding an abbreviation first",
-		`(?m)^[ \t]*if \(echeck_abbr\(TAB \+ ABBR_OFF\)\)$`},
+		cutil.Head("if (echeck_abbr(TAB + ABBR_OFF))")},
 	{"insert mode: Enter expanding an abbreviation first",
-		`(?m)^[ \t]*if \(echeck_abbr\(c \+ ABBR_OFF\)\)$`},
+		cutil.Head("if (echeck_abbr(c + ABBR_OFF))")},
 	{"the command line: a special key expanding an abbreviation",
-		`(?m)^[ \t]*if \(ccheck_abbr\(c \+ ABBR_OFF\)\)$`},
+		cutil.Head("if (ccheck_abbr(c + ABBR_OFF))")},
 }
 
 var abbrLiteral = []struct{ what, old, new string }{

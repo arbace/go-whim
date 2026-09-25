@@ -111,7 +111,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// One `else if` in a chain, so FoldNever takes the whole branch and
 	// leaves the exmode_active one before it.
 	e.InFunction("check_tty", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*else if \(parmp->want_full_screen && \(!stdout_isatty \|\| !input_isatty\)\)$`, 1,
+		e.FoldNever(edit.Head("else if (parmp->want_full_screen && (!stdout_isatty || !input_isatty))"), 1,
 			"both warnings, the flush, the --ttyfail exit and the two-second pause")
 	})
 
@@ -120,7 +120,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// keeps what it chose between: the else branch, where an unrecognised
 	// word after `--` is ME_UNKNOWN_OPTION and a bare `--` sets had_minmin.
 	e.InFunction("command_line_scan", func(e *edit.E) {
-		e.FoldNever(`(?m)^[ \t]*if \(strncasecmp\(\(char \*\)\(argv\[0\] \+ argv_idx\), \(char \*\)\("ttyfail"\), \(7\)\) == 0\)$`, 1,
+		e.FoldNever(edit.Head(`if (strncasecmp((char *)(argv[0] + argv_idx), (char *)("ttyfail"), (7)) == 0)`), 1,
 			"--ttyfail, which is now an unknown option like any other")
 	})
 

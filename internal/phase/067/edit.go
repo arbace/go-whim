@@ -106,11 +106,11 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("check_termcode", func(e *edit.E) {
 		// The whole `slen == 2 && ESC [` block existed to set that flag, and its
 		// only other arm counted the semicolons of a DEC mouse report.
-		e.DropIf(`(?m)^[ \t]*if \(slen == 2 && len > 2 && termcodes\[idx\]\.code\[0\] == ESC && termcodes\[idx\]\.code\[1\] == '\['\)$`, 1,
+		e.DropIf(edit.Head("if (slen == 2 && len > 2 && termcodes[idx].code[0] == ESC && termcodes[idx].code[1] == '[')"), 1,
 			"deferring an ESC [ code in case a mouse code is longer")
-		e.FoldNever(`(?m)^[ \t]*if \(looks_like_mouse_start\)$`, 1, "a deferred match winning over a real one")
+		e.FoldNever(edit.Head("if (looks_like_mouse_start)"), 1, "a deferred match winning over a real one")
 		e.Literal(" && mouse_index_found < 0", "", 1, "the modifier scan waiting for a deferred mouse match")
-		e.FoldNever(`(?m)^[ \t]*else if \(idx == tc_len && mouse_index_found >= 0\)$`, 1, "falling back to the deferred mouse match")
+		e.FoldNever(edit.Head("else if (idx == tc_len && mouse_index_found >= 0)"), 1, "falling back to the deferred mouse match")
 		e.Cut(edit.Line("if (key_name[0] == KS_MOUSE || key_name[0] == KS_SGR_MOUSE || key_name[0] == KS_SGR_MOUSE_RELEASE)", "{", "}"), 1,
 			"a mouse report being handled by an empty block")
 	})

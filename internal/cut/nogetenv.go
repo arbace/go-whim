@@ -110,7 +110,7 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	if text, err = cutil.DropIf(text,
-		`(?m)^[ \t]*if \(\(char_u \*\)getenv\(\(char \*\)\(\(char_u \*\)"VIM_POSIX"\)\) != NULL\)$`,
+		cutil.Head(`if ((char_u *)getenv((char *)((char_u *)"VIM_POSIX")) != NULL)`),
 		1); err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 		"nogetenv", "the two DOSO_VIMRC arms of do_source_ext", 1); err != nil {
 		return nil, err
 	}
-	if text, err = cutil.DropIf(text, `(?m)^[ \t]*if \(varp == &p_rtp\)$`, 1); err != nil {
+	if text, err = cutil.DropIf(text, cutil.Head("if (varp == &p_rtp)"), 1); err != nil {
 		return nil, err
 	}
 	fmt.Fprintln(w, "  nogetenv     $VIM, $VIMRUNTIME and $MYVIMDIR stop being published")
@@ -162,7 +162,7 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 		"nogetenv", "the EXPAND_ENV_VARS completion row", 1); err != nil {
 		return nil, err
 	}
-	if text, err = cutil.DropIf(text, `(?m)^[ \t]*if \(\*xp->xp_pattern == '\$'\)$`, 1); err != nil {
+	if text, err = cutil.DropIf(text, cutil.Head("if (*xp->xp_pattern == '$')"), 1); err != nil {
 		return nil, err
 	}
 	if text, err = cutCounted(text,

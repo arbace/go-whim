@@ -55,13 +55,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	e.InFunction("setmark_pos", func(e *edit.E) { e.DropIf(`(?m)^[ \t]*if `+markArm, 1, "setting an uppercase or numbered mark") })
 	e.Body("clrallmarks", w74lit2, "clrallmarks initialising the file marks once")
-	e.DropBlocks("ex_marks", `(?m)^[ \t]*for \(i = 0; i < \('z' - 'a' \+ 1\) \+ EXTRA_MARKS; \+\+i\)$`, 1,
+	e.DropBlocks("ex_marks", edit.Head("for (i = 0; i < ('z' - 'a' + 1) + EXTRA_MARKS; ++i)"), 1,
 		":marks listing the file marks")
 	e.Body("ex_delmarks", w74lit3, ":delmarks clearing an uppercase or numbered mark")
 	for _, fn := range []string{"mark_adjust_internal", "mark_col_adjust"} {
-		e.DropBlocks(fn, `(?m)^[ \t]*if \(namedfm\[i\]\.fmark\.fnum == fnum\)$`, 2,
+		e.DropBlocks(fn, edit.Head("if (namedfm[i].fmark.fnum == fnum)"), 2,
 			fmt.Sprintf("adjusting the file marks in %s", fn))
-		e.DropBlocks(fn, `(?m)^[ \t]*for \(i = \('z' - 'a' \+ 1\); i < \('z' - 'a' \+ 1\) \+ EXTRA_MARKS; i\+\+\)$`, 1,
+		e.DropBlocks(fn, edit.Head("for (i = ('z' - 'a' + 1); i < ('z' - 'a' + 1) + EXTRA_MARKS; i++)"), 1,
 			fmt.Sprintf("and the loop over the numbered marks in %s", fn))
 	}
 	// fmarks_check_names existed to reattach a file mark to a buffer by name;
