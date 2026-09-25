@@ -89,8 +89,9 @@ func runGen(args []string) int {
 }
 
 // runSkel is the generator itself, for a run by hand: `whim skel <editor.c>
-// <outdir> [-bodies | -editor <editor.go>]` writes the skeleton, the facts and,
-// asked, the bodies or the whole editor.go into outdir.
+// <outdir> [-bodies | -editor <editor.go> | -java <Class.java>]` writes the
+// skeleton, the facts and, asked, the bodies, the whole editor.go, or the
+// Java class (doc/JAVA.md) and beside it what it refuses, into outdir.
 func runSkel(args []string) int {
 	prof, err := genProfile()
 	if err != nil {

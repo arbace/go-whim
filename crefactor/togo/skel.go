@@ -32,7 +32,7 @@ func Run(args []string, errw io.Writer, prof Profile) int {
 	logw = errw
 	osArgs := append([]string{"run"}, args...)
 	if len(osArgs) < 3 {
-		fmt.Fprintln(errw, "usage: skel <editor.c> <outdir> [-bodies | -editor <editor.go>]")
+		fmt.Fprintln(errw, "usage: skel <editor.c> <outdir> [-bodies | -editor <editor.go> | -java <Class.java>]")
 		return 2
 	}
 	ast, err := parse(osArgs[1])
@@ -52,6 +52,12 @@ func Run(args []string, errw io.Writer, prof Profile) int {
 	}
 	if len(osArgs) > 4 && osArgs[3] == "-editor" {
 		if err := g.writeEditor(osArgs[4], p.runtime); err != nil {
+			fmt.Fprintln(errw, "skel:", err)
+			return 1
+		}
+	}
+	if len(osArgs) > 4 && osArgs[3] == "-java" {
+		if err := g.writeJava(osArgs[4]); err != nil {
 			fmt.Fprintln(errw, "skel:", err)
 			return 1
 		}

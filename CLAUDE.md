@@ -169,7 +169,9 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    shared.go the generic helpers more than one phase uses.
                    togo/: the C-to-Go translator internal/gen runs, and its
                    instance pass (instance.go: the state a struct's fields,
-                   the functions reaching it its methods). Its tests
+                   the functions reaching it its methods), and its Java
+                   backend (java*.go: `whim skel ... -java F.java`,
+                   doc/JAVA.md). Its tests
                    run in it: `cd crefactor && go test ./...`
 internal/whim/     what the generic side is told about vim: profile.go (the
                    sweep), xform.go, analysis.go (dead's roots, reach's and ccx's
@@ -202,6 +204,9 @@ internal/gen/      the generator of editor/editor.go (`go tool whim gen`; `whim
                    (whim.Gen), which cmd/whim hands it. Beside its docs:
                    pre/ (`whim pre`: crefactor/ccx's partitions on an
                    editor.c), sigs.md, CONVENTIONS.md and FINDINGS.md
+jeditor/rt/        the Java runtime the Java backend writes against, by hand
+                   (package whim.rt: BytePtr and its kin, Ptr<T>, Rt), and
+                   SelfTest.java, its test, which crefactor/togo's tests run
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
                    binaries and the editor
 src/               the input and the product: slim-vim.c (fetched, not tracked),

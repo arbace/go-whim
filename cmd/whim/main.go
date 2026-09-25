@@ -116,7 +116,7 @@ var tools = map[string]tool{
 	"parse":       {runParse, "parse <file.c>"},
 	"fieldref":    {runFieldRef, "fieldref <file.c>"},
 	"gen":         {runGen, "gen [--check]"},
-	"skel":        {runSkel, "skel <editor.c> <outdir> [-bodies | -editor <editor.go>]"},
+	"skel":        {runSkel, "skel <editor.c> <outdir> [-bodies | -editor <editor.go> | -java <Class.java>]"},
 	"pre":         {runPre, "pre casts|order|unions|garrays|voids|gotos|funcs <editor.c>"},
 	"test":        {runTest, "test [--wide] [--ref REV] [FILE]"},
 	"measure":     {runMeasure, "measure <dir of qNNN.c>"},

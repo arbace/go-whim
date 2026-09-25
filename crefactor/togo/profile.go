@@ -47,6 +47,10 @@ type Profile struct {
 	// (instance.go).  Own is that file; Fields and Methods are what the
 	// package's hand-written files declare (HandNames).
 	Instance *Instance
+
+	// JavaPackage is the package of the Java class -java writes; "" is the
+	// unnamed package.  The class is named after the file.
+	JavaPackage string
 }
 
 // ByteFuncs are the program's memmove and memcpy (Memmove), memset

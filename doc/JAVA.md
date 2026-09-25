@@ -37,10 +37,16 @@ Java's own limits, which the emitter must respect:
 ## Where it lives
 
 - `crefactor/togo/java*.go`: the backend, in the same package as the analysis
-  it reads (`an`, the pointer classes, `gen`'s collection). A mode of `Run`:
-  `whim skel <editor.c> <dir> -java <dir>`.
-- `jeditor/rt/`: the runtime, by hand -- `BytePtr` and its kin, the unsigned
-  helpers, `memmove` and the rest -- as `editor/crt.go` is the Go's.
+  it reads (`an`, the pointer classes). A mode of `Run`:
+  `whim skel <editor.c> <dir> -java <dir>/Editor.java` writes the class,
+  named after the file, and beside it `Editor.java.refused`, every function
+  refused with its reason. `java.go` is the frame (types, struct classes, the
+  class, the report), `java_expr.go` the expressions, `java_stmt.go` the
+  statements and methods; `java_test.go` the tests.
+- `jeditor/rt/`: the runtime, by hand, package `whim.rt` -- `BytePtr`,
+  `ShortPtr`, `IntPtr`, `LongPtr`, `BoolPtr`, `Ptr<T>` and `Rt` (`memmove`,
+  `memset`, `memcmp`, a char array's initial value) -- as `editor/crt.go` is
+  the Go's, and `SelfTest.java`, its own test with no framework.
 - `jeditor/`: the generated `Editor.java`, the host interface and the terminal
   host (the Foreign Function & Memory API, JDK 22 and later, calls `ioctl`,
   `select` and `read` as the Go's `syscall` does), and the launcher.
@@ -59,12 +65,117 @@ Each is verified before the next starts.
    `javac`, and require the Java to print what the gcc-built C prints -- with
    a wrong translation as a control. And a coverage report on `editor.c`:
    functions written, and the refusals by reason -- the measure of the work
-   left.
-2. **The rest of the constructs** the coverage report names, by frequency:
-   function pointers, unions, the labeled-block `goto`, the growarray, the
-   variadic call, the 64 KB split. The measure: every function of `editor.c`
-   written, and `javac` compiling `Editor.java`.
+   left. **Done**; see *Milestone 1, as built*.
+2. **The rest of the constructs** the coverage report names, by frequency
+   (*The work list* below): the variadic call, the growarray, the functions
+   of bytes on what is not bytes, the address of a member, function
+   pointers, unions, the labeled-block `goto`. The measure: every function of
+   `editor.c` written, and `javac` compiling `Editor.java`.
 3. **The host and the launcher**, and `whim test` running the Java editor: the
    45 cases, then `--wide`, required to answer as the C does.
 4. **Kept current:** `make whim-build` writes `Editor.java` as it writes
    `editor.go`, and a check refuses a stale one.
+
+## Milestone 1, as built
+
+**The tests** (`crefactor/togo/java_test.go`, skipped without `gcc`, `javac`
+or `java`): five C programs that name nothing in vim -- the integer types and
+their conversions, control flow, C strings and arrays, structs, and what a
+profile tells (allocators, frees, the functions of bytes) -- each translated
+with every function written, compiled with the runtime, run, and required to
+print what the gcc-built C prints. The C calls two host functions it only
+declares, `out` and `outs`; the C harness defines them with `printf`, the
+Java one as the abstract class's methods. The unsigned cases include
+wraparound, division and remainder, comparison with a negative int, right
+shifts of every width, widening and narrowing of unsigned char and short, and
+compound assignments through pointers. The **control** undoes one rule at a
+time in the generated Java -- unsigned division as Java's signed `/`, `>>>`
+as `>>`, an unsigned char widened with its sign, a struct assigned by
+reference instead of `set` -- and each must move the output: all four do.
+Another test requires a function pointer, a union and a goto refused by name,
+with the rest of the class compiling and running; and `SelfTest.java`, the
+runtime's own, is run by another.
+
+**Measured on `editor.c`** (73,632 lines, 2026-09-25): of its **1,701**
+function definitions, **1,457 written and 244 refused**. Of the **1,683** the
+Go translates -- the other 18 its runtime replaces (`Profile.Runtime`) --
+**1,448 written, 235 refused**; of those 18 the Java writes the 9 C string
+functions and refuses the 9 that handle a `void *` (the allocators,
+`musl_mem*`, `ga_grow_inner`). Of the file-scope objects, 10 initial values
+are refused: 3 tables of function pointers (`cmdnames`, `nv_cmds`,
+`options`), 5 compound literals (`redobuff` and its kin) and 2 addresses of
+members (`filltab`, `lcstab`).
+
+**It compiles.** `Editor.java` is 47,022 lines -- 98 struct classes, the
+fields, 12 `initGlobalsN` methods, 17 abstract host methods, the 1,457
+methods and 244 stubs, each a refused function's signature and a body that
+throws `UnsupportedOperationException("refused: <why>")`, so that its callers
+compile. `javac -Xlint:all` compiles it with the runtime in 2.5 s, no error,
+46 warnings: 26 lossy compound assignments (C's truncation, meant) and 20
+fall-throughs (C's, meant). Neither limit was reached: no method is over
+64 KB, and the constant pool holds. What compiles is not yet shown to be the
+editor: that is milestone 3, when the host runs it.
+
+**How the slice maps C**, and where it departs from the table above:
+
+- An integer is the Java primitive of its size, holding its bits; `_Bool` is
+  `boolean`, and a comparison is a `boolean` until an int is wanted
+  (`c ? 1 : 0`). Every integer constant is written as its value in its C
+  type: C's constant arithmetic is not Java's.
+- **Every pointer to a scalar is a runtime pointer class, whether it walks
+  or not** -- the analysis decides nothing there, since Java has no other
+  address of a scalar. It decides only for pointers to structs: a plain
+  reference to the struct's class, or a `Ptr<S>` over an `S[]` when the
+  class walks. A pointer to a pointer is a `Ptr<...>` over the slots.
+- **An array is always a Java array** -- `byte[]`, `int[]`, `S[]`,
+  `BytePtr[]` -- never a `BytePtr` variable; it decays into a pointer over the
+  same storage (`new BytePtr(a, 0)`), so `buf[i]` is Java's own index and
+  a pointer into it compares equal to the array's.
+- NULL is `null`; the pointer classes are immutable values, `p++` is
+  `p = p.add(1)`, and `==` is `BytePtr.eq(p, q)`.
+- **Every local is declared at the method's top**, with its zero or its
+  storage: Java refuses a read it cannot prove assigned, and C's local in a
+  loop keeps its value from one turn to the next (at -O0), which one
+  declaration does too. A braced initializer makes the object anew where C
+  has it, since C zeroes what the list leaves out.
+- A scalar or pointer whose address is taken -- local, parameter, global or
+  static -- is a one-element array from its declaration on; a parameter is
+  copied into one as the method starts.
+- Java refuses a statement it proves unreachable and a method that may end
+  without a return: the backend computes Java's rule (JLS 14.22) on the C,
+  writes nothing after a statement that cannot complete (dead in C too), and
+  ends a method that can fall off its end with a `throw`.
+- A condition or an increment that does something first is written before
+  its test; a `continue` that must reach it leaves a labeled block around
+  the body, `c1: { ... break c1; ... }`. No `goto` is written: the eight
+  functions that have one are refused, for milestone 2.
+- The initial values are written into `initGlobalsN` methods of at most 400
+  lines each, which the design above foresaw for the 64 KB limit.
+- The profile's allocators, frees and functions of bytes (on bytes) are in
+  already: `(T *)alloc(sizeof(T))` is `new S_T()`, `k * sizeof(T)` an
+  `S_T.array(k)` walked by a `Ptr`, bytes a `BytePtr.alloc(n)`; a free is
+  nothing. An allocator is sized by its first argument, as the profile
+  says, and an uncast one takes its type from its destination.
+- A function declared and not defined is the host's: an abstract method, so
+  the class is abstract, and the host a subclass.
+- Struct classes are named `S_<tag>`, `T_<typedef>` for a typedef of an
+  anonymous struct, `A_<n>` for one with neither. The class is in the unnamed
+  package unless `Profile.JavaPackage` names one.
+
+### The work list for milestone 2
+
+The 235 refusals of the 1,683, by reason, most frequent first -- each function
+counted once, for the first construct that stopped it, so fixing one reason
+may uncover another in the same function:
+
+| # | reason | functions | what it takes |
+|--:|---|--:|---|
+| 1 | a variadic call | 75 | every one is `vim_snprintf`: `Object...` and a formatter, as the Go's `format.go` |
+| 2 | a void pointer | 49 | 48 are the growarray's `ga_data`, 1 `host_alloc`'s signature: the growarray, typed at its first use as the Go's `GaData[T]` |
+| 3 | memmove, memset or memcmp of no bytes | 34 | on structs, ints, arrays of them: element copies, `set(new S())`, `Arrays.fill` |
+| 4 | the address of a member | 31 | `&buf->b_p_xx` handed on as an `int *` or `char_u **`: a member whose address is taken as a one-element array, as a local's is (and 2 initial values) |
+| 5 | a function pointer | 20 | a functional interface per signature and method references (and the 3 tables' initial values) |
+| 6 | a union | 18 | the option callbacks' old and new values, `attrentry_T`'s `ae_u`, the regexp engine's saved positions |
+| 7 | a goto | 8 | the 49 gotos: a labeled block, `L: { ... break L; ... }` |
+
+and 5 compound literals among the initial values.
