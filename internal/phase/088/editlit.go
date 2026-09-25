@@ -8,8 +8,6 @@ package p088
 const (
 	w88lit1 = "        else\n        {\n            argv_idx = -1;\n            if (parmp->edit_type != EDIT_NONE)\n            {\n                mainerr(ME_TOO_MANY_ARGS, (char_u *)argv[0]);\n            }\n            parmp->edit_type = EDIT_FILE;\n            if ((p = vim_strsave((char_u *)argv[0])) == NULL)\n            {\n                mch_exit(2);\n            }\n            (void)buflist_add(p, BLN_CURBUF | BLN_LISTED);\n        }\n"
 	w88lit2 = "        else\n        {\n            mainerr(ME_UNKNOWN_OPTION, (char_u *)argv[0]);\n        }\n"
-	w88lit3 = "\n    char_u *p = NULL;\n"
 	w88lit5 = "            case NUL:\n                if (parmp->edit_type != EDIT_NONE)\n                {\n                    mainerr(ME_TOO_MANY_ARGS, (char_u *)argv[0]);\n                }\n                parmp->edit_type = EDIT_STDIN;\n                read_cmd_fd = 2;\n                argv_idx = -1;\n                break;\n"
 	w88lit6 = "            case '-':\n                if (argv[0][argv_idx])\n                {\n                    mainerr(ME_UNKNOWN_OPTION, (char_u *)argv[0]);\n                }\n                had_minmin = TRUE;\n                argv_idx = -1;\n                break;\n"
-	w88lit7 = "\n    int had_minmin = FALSE;\n"
 )

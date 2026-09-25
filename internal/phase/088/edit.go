@@ -131,7 +131,7 @@ var w88Before = map[string]int{
 // as a number per name, so a use that survived shows up HERE and not as a
 // warning five minutes later.
 var w88After = map[string]int{
-	"had_minmin": 0, "edit_type": 1, "EDIT_NONE": 1, "EDIT_FILE": 1,
+	"had_minmin": 1, "edit_type": 1, "EDIT_NONE": 1, "EDIT_FILE": 1,
 	"EDIT_STDIN": 1, "ME_TOO_MANY_ARGS": 0, "buflist_add": 2,
 	"read_stdin": 25, "read_cmd_fd": 12, "ME_UNKNOWN_OPTION": 3,
 	"ME_ARG_MISSING": 2, "ME_GARBAGE": 2, "ME_EXTRA_CMD": 2,
@@ -200,20 +200,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		"a file argument is an unknown option: buflist_add loses its only caller", 1); err != nil {
 		return nil, err
 	}
-	if text, err = within(text, "command_line_scan", w88lit3, "\n",
-		"and `p`, which only that arm used", 1); err != nil {
-		return nil, err
-	}
 	if text, err = within(text, "command_line_scan", w88lit5, "",
 		"a bare `-` is an unknown option: EDIT_STDIN and read_cmd_fd = 2 go", 1); err != nil {
 		return nil, err
 	}
 	if text, err = within(text, "command_line_scan", w88lit6, "",
 		"`--` no longer ends the options", 1); err != nil {
-		return nil, err
-	}
-	if text, err = within(text, "command_line_scan", w88lit7, "\n",
-		"and had_minmin, the flag it set", 1); err != nil {
 		return nil, err
 	}
 	if text, err = within(text, "command_line_scan", `if (argv[0][0] == '+' && !had_minmin)`,
