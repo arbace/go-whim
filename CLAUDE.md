@@ -144,9 +144,10 @@ src/               the input and the product: slim-vim.c (fetched, not tracked),
                    whim-vim.c (produced, tracked), their binaries slim-vim and
                    whim-vim, upstream.sha and slim.sha
 doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
-                   done, in order), and two surveys: AST-EDITING.md (the phases
-                   editing the AST: not taken, to revisit) and GO-IDIOMS.md (how the Go
-                   editor could be idiomatic, measured and ranked)
+                   done, in order), and three surveys: AST-EDITING.md (the phases
+                   editing the AST: not taken, to revisit), GO-IDIOMS.md (how the Go
+                   editor could be idiomatic, measured and ranked) and REDUNDANT-STEPS.md
+                   (which steps the canonical print and the sweep made unnecessary)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go

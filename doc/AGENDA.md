@@ -23,6 +23,14 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   (`editor/libc.go`), and the key codes have their names (phase 167). Each step is checked
   by `make whim-test`, which runs the Go editor against the C.
 
+- **The steps the canonical print and the sweep made redundant.**
+  `doc/REDUNDANT-STEPS.md` measured them, each byte-identical when removed:
+  whole phases that do nothing (82, 99), three plan steps, five shared helpers
+  doing layout the canonical print redoes (about 130 call sites), and about 300
+  hand deletions the sweep would make anyway. Its order: the no-op phases and
+  steps first, then the helpers, then the per-phase deletions, one commit each,
+  held by `make whim-build-check`.
+
 ## Known stale, not yet scoped
 
 
