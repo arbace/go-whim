@@ -8443,57 +8443,37 @@ func (ed *Editor) del_bytes(count int64, fixpos_arg bool, use_delcombine bool) b
 
 func (ed *Editor) open_line(dir int32, flags int32, second_line_indent int32, did_do_comment *int32) bool {
 	var saved_line Ptr[byte]
-	var next_line Ptr[byte]
-	var p_extra Ptr[byte]
-	var less_cols int32
-	var less_cols_off int32
+	var next_line Ptr[byte] = Ptr[byte]{}
+	var p_extra Ptr[byte] = Ptr[byte]{}
+	var less_cols int32 = 0
+	var less_cols_off int32 = 0
 	var old_cursor pos_T
-	var newcol int32
-	var newindent int32
+	var newcol int32 = 0
+	var newindent int32 = 0
 	var n int32
-	var trunc_line bool
-	var retval bool
+	var trunc_line bool = false
+	var retval bool = false
 	var p Ptr[byte]
-	var saved_char int32
+	var saved_char int32 = NUL
 	var pos *pos_T
-	var do_si bool
-	var no_si bool
-	var first_char int32
+	var do_si bool = (ed.may_do_si())
+	var no_si bool = false
+	var first_char int32 = NUL
 	var vreplace_mode int32
 	var did_append bool
-	var saved_pi int32
-	var len_ colnr_T
-	var len__2 colnr_T
-	var ptr Ptr[byte]
-	var last_char char_u
-	var was_backslashed bool
-	var sw int32
-	var len__3 colnr_T
-
-	next_line = Ptr[byte]{}
-	p_extra = Ptr[byte]{}
-	less_cols = 0
-	less_cols_off = 0
-	newcol = 0
-	newindent = 0
-	trunc_line = false
-	retval = false
-	saved_char = NUL
-	do_si = (ed.may_do_si())
-	no_si = false
-	first_char = NUL
-	saved_pi = ed.curbuf.b_p_pi
-	len_ = ed.ml_get_curline_len()
+	saved_pi := ed.curbuf.b_p_pi
+	len_ := ed.ml_get_curline_len()
 	saved_line = vim_strnsave(ed.ml_get_curline(), usize(len_))
 	if ed.State&VREPLACE_FLAG != 0 {
 		if ed.curwin.w_cursor.lnum < int64(ed.orig_line_count) {
-			len__2 = ed.ml_get_len(ed.curwin.w_cursor.lnum + 1)
+			len__2 := ed.ml_get_len(ed.curwin.w_cursor.lnum + 1)
 			next_line = vim_strnsave(ed.ml_get(ed.curwin.w_cursor.lnum+1), usize(len__2))
 		} else {
 			next_line = vim_strsave(S(""))
 		}
 		if next_line.Nil() {
-			goto theend
+			ed.curbuf.b_p_pi = saved_pi
+			return (retval)
 		}
 		ed.replace_push(NUL)
 		ed.replace_push(NUL)
@@ -8526,6 +8506,8 @@ func (ed *Editor) open_line(dir int32, flags int32, second_line_indent int32, di
 			newindent = second_line_indent
 		}
 		if ((!trunc_line && do_si) && (int32(saved_line.Get()) != NUL)) && (p_extra.Nil() || (first_char != '{')) {
+			var ptr Ptr[byte]
+			var last_char char_u
 			old_cursor = ed.curwin.w_cursor
 			ptr = saved_line
 			if dir == FORWARD {
@@ -8563,7 +8545,7 @@ func (ed *Editor) open_line(dir int32, flags int32, second_line_indent int32, di
 				}
 			} else {
 				if int32(ptr.At(0)) == '#' {
-					was_backslashed = false
+					var was_backslashed bool = false
 					for ((int32(ptr.At(0)) == '#') || was_backslashed) && (ed.curwin.w_cursor.lnum < ed.curbuf.b_ml.ml_line_count) {
 						if (ptr.Get() != 0) && (int32(ptr.At(int(musl_strlen(ptr)-1))) == 92) {
 							was_backslashed = true
@@ -8618,7 +8600,8 @@ func (ed *Editor) open_line(dir int32, flags int32, second_line_indent int32, di
 	}
 	if ((ed.State & VREPLACE_FLAG) == 0) || (old_cursor.lnum >= int64(ed.orig_line_count)) {
 		if !ed.ml_append(ed.curwin.w_cursor.lnum, p_extra, 0) {
-			goto theend
+			ed.curbuf.b_p_pi = saved_pi
+			return (retval)
 		}
 		ed.mark_adjust(ed.curwin.w_cursor.lnum+1, 9223372036854775807, 1, 0)
 		did_append = true
@@ -8636,7 +8619,7 @@ func (ed *Editor) open_line(dir int32, flags int32, second_line_indent int32, di
 	if (newindent != 0) || (ed.did_si != 0) {
 		ed.curwin.w_cursor.lnum++
 		if ed.did_si != 0 {
-			sw = int32(get_sw_value(ed.curbuf))
+			sw := int32(get_sw_value(ed.curbuf))
 			if ed.p_sr != 0 {
 				newindent -= newindent % sw
 			}
@@ -8697,7 +8680,7 @@ func (ed *Editor) open_line(dir int32, flags int32, second_line_indent int32, di
 		ed.State = vreplace_mode
 	}
 	if ed.State&VREPLACE_FLAG != 0 {
-		len__3 = ed.ml_get_curline_len()
+		len__3 := ed.ml_get_curline_len()
 		p_extra = vim_strnsave(ed.ml_get_curline(), usize(len__3))
 		ed.ml_replace(ed.curwin.w_cursor.lnum, next_line, false)
 		ed.curwin.w_cursor.col = 0
@@ -8706,7 +8689,6 @@ func (ed *Editor) open_line(dir int32, flags int32, second_line_indent int32, di
 		next_line = Ptr[byte]{}
 	}
 	retval = true
-theend:
 	ed.curbuf.b_p_pi = saved_pi
 	return (retval)
 }
@@ -15239,77 +15221,44 @@ func (ed *Editor) check_regexp_delim(c int32) bool {
 }
 
 func (ed *Editor) ex_substitute(eap *S_exarg) {
+	var copycol colnr_T
+	var matchcol colnr_T
+	var new_end Ptr[byte]
+	var lastone bool
+	var copy_len usize
+	var needed_size usize
+	var do_again bool
+	var sub_firstlnum linenr_T
+	var tmp string_T
+	var p1 Ptr[byte]
+	var n usize
+	var new_line string_T
+
 	var lnum linenr_T
-	var i int64
+	var i int64 = 0
 	var regmatch regmmatch_T
 	var save_do_all int32
 	var save_do_ask int32
-	var sub Ptr[byte]
+	var sub Ptr[byte] = Ptr[byte]{}
 	var pat string_T
 	var delimiter int32
 	var sublen usize
-	var got_quit bool
-	var got_match bool
+	var got_quit bool = false
+	var got_match bool = false
 	var which_pat int32
 	var cmd Ptr[byte]
 	var p Ptr[byte]
 	var save_State int32
-	var first_line linenr_T
-	var last_line linenr_T
-	var old_line_count linenr_T
+	var first_line linenr_T = 0
+	var last_line linenr_T = 0
+	old_line_count := ed.curbuf.b_ml.ml_line_count
 	var line2 linenr_T
 	var nmatch int64
 	var sub_firstline string_T
-	var endcolumn bool
-	var old_cursor pos_T
+	var endcolumn bool = false
+	old_cursor := ed.curwin.w_cursor
 	var start_nsubs int32
-	var keeppatterns int32
-	var t1 Ptr[byte]
-	var t2 Ptr[byte]
-	var t3 Ptr[byte]
-	var joined_lines_count linenr_T
-	var buf Ptr[byte]
-	var copycol colnr_T
-	var matchcol colnr_T
-	var prev_matchcol colnr_T
-	var new_start string_T
-	var new_start_size usize
-	var new_end Ptr[byte]
-	var did_sub bool
-	var lastone bool
-	var copy_len usize
-	var needed_size usize
-	var nmatch_tl int64
-	var do_again bool
-	var skip_match bool
-	var sub_firstlnum linenr_T
-	var did_split bool
-	var tmp string_T
-	var p1 Ptr[byte]
-	var n usize
-	var typed int32
-	var orig_line string_T
-	var len_change int32
-	var save_p_lz int32
-	var save_RedrawingDisabled int32
-	var new_line string_T
-	var t4 int32
-	var lastlnum linenr_T
-	var t5 int32
-	var plen colnr_T
-	var t6 bool
-
-	i = 0
-	sub = Ptr[byte]{}
-	pat = string_T{}
-	got_quit = false
-	got_match = false
-	first_line = 0
-	last_line = 0
-	old_line_count = ed.curbuf.b_ml.ml_line_count
-	endcolumn = false
-	old_cursor = ed.curwin.w_cursor
-	keeppatterns = ed.cmdmod.cmod_flags & CMOD_KEEPPATTERNS
+	keeppatterns := ed.cmdmod.cmod_flags & CMOD_KEEPPATTERNS
 	cmd = eap.arg
 	if ed.global_busy == 0 {
 		ed.sub_nsubs = 0
@@ -15336,19 +15285,19 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 			}
 			pat.string_ = S("")
 			pat.length = 0
-			t1 = cmd
+			var t1 Ptr[byte] = cmd
 			cmd = cmd.Add(1)
 			delimiter = int32(t1.Get())
 		} else {
 			which_pat = RE_LAST
-			t2 = cmd
+			var t2 Ptr[byte] = cmd
 			cmd = cmd.Add(1)
 			delimiter = int32(t2.Get())
 			pat.string_ = cmd
 			cmd = ed.skip_regexp_ex(cmd, delimiter, ed.magic_isset(), &eap.arg, nil, nil)
 			pat.length = uint64(int64(cmd.Sub(pat.string_)))
 			if int32(cmd.At(0)) == delimiter {
-				t3 = cmd
+				var t3 Ptr[byte] = cmd
 				cmd = cmd.Add(1)
 				t3.Put(NUL)
 			}
@@ -15376,6 +15325,7 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 		endcolumn = (ed.curwin.w_curswant == MAXCOL)
 	}
 	if ((!pat.string_.Nil() && (musl_strcmp(pat.string_, S("\\n")) == 0)) && (int32(sub.Get()) == NUL)) && ((int32(cmd.Get()) == NUL) || ((int32(cmd.At(1)) == NUL) && ((((int32(cmd.Get()) == 'g') || (int32(cmd.Get()) == 'l')) || (int32(cmd.Get()) == 'p')) || (int32(cmd.Get()) == '#')))) {
+		var joined_lines_count linenr_T
 		ed.curwin.w_cursor.lnum = eap.line1
 		if int32(cmd.Get()) == 'l' {
 			eap.flags = EXFLAG_LIST
@@ -15459,7 +15409,7 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 			ed.emsg(gettext_(ed.e_positive_count_required))
 			return
 		} else if i >= INT_MAX {
-			buf = Mk[byte](20)
+			var buf Ptr[byte] = Mk[byte](20)
 			ed.vim_snprintf(buf, 20, S("%ld"), i)
 			ed.vim_snprintf(ed.IObuff, ed.emsg_iobuff_room(), gettext_(ed.e_val_too_large), buf)
 			ed.emsg(ed.iobuff_or(gettext_(ed.e_val_too_large)))
@@ -15511,13 +15461,13 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 	for ; (lnum <= line2) && !got_quit; lnum++ {
 		nmatch = ed.vim_regexec_multi(&regmatch, ed.curwin, ed.curbuf, lnum, 0, nil)
 		if nmatch != 0 {
-			prev_matchcol = MAXCOL
-			new_start = string_T{}
-			new_start_size = 0
-			did_sub = false
-			nmatch_tl = 0
-			skip_match = false
-			did_split = false
+			var prev_matchcol colnr_T = MAXCOL
+			var new_start string_T
+			var new_start_size usize = 0
+			var did_sub bool = false
+			var nmatch_tl int64 = 0
+			var skip_match bool = false
+			var did_split bool = false
 			sub_firstlnum = lnum
 			copycol = 0
 			matchcol = 0
@@ -15542,244 +15492,248 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 				}
 				ed.curwin.w_cursor.lnum = lnum
 				do_again = false
-				if ((matchcol == prev_matchcol) && (regmatch.endpos[0].lnum == 0)) && (matchcol == regmatch.endpos[0].col) {
-					if int32(sub_firstline.string_.At(int(matchcol))) == NUL {
-						skip_match = true
-					} else {
-						matchcol += ed.utfc_ptr2len(sub_firstline.string_.Add(int(matchcol)))
+				for {
+					if ((matchcol == prev_matchcol) && (regmatch.endpos[0].lnum == 0)) && (matchcol == regmatch.endpos[0].col) {
+						if int32(sub_firstline.string_.At(int(matchcol))) == NUL {
+							skip_match = true
+						} else {
+							matchcol += ed.utfc_ptr2len(sub_firstline.string_.Add(int(matchcol)))
+						}
+						break
 					}
-					goto skip
-				}
-				matchcol = regmatch.endpos[0].col
-				prev_matchcol = matchcol
-				if ed.ex_substitute_subflags.do_count != 0 {
-					if nmatch > 1 {
-						matchcol = int32(sub_firstline.length)
-						nmatch = 1
+					matchcol = regmatch.endpos[0].col
+					prev_matchcol = matchcol
+					if ed.ex_substitute_subflags.do_count != 0 {
+						if nmatch > 1 {
+							matchcol = int32(sub_firstline.length)
+							nmatch = 1
+							skip_match = true
+						}
+						ed.sub_nsubs++
+						did_sub = true
+						break
+					}
+					if ed.ex_substitute_subflags.do_ask != 0 {
+						var typed int32 = 0
+						save_State = ed.State
+						ed.State = MODE_CONFIRM
+						ed.curwin.w_cursor.col = regmatch.startpos[0].col
+						if !ed.vim_strchr(ed.p_cpo, CPO_UNDO).Nil() {
+							ed.no_u_sync++
+						}
+						for ed.ex_substitute_subflags.do_ask != 0 {
+							var orig_line string_T
+							var len_change int32 = 0
+							save_p_lz := ed.p_lz
+							save_RedrawingDisabled := ed.RedrawingDisabled
+							ed.RedrawingDisabled = 0
+							ed.p_lz = FALSE
+							if !new_start.string_.Nil() {
+								orig_line.length = usize(ed.ml_get_len(lnum))
+								orig_line.string_ = vim_strnsave(ed.ml_get(lnum), orig_line.length)
+								new_line.string_ = concat_str(new_start.string_, sub_firstline.string_.Add(int(copycol)))
+								if new_line.string_.Nil() {
+									orig_line.string_ = Ptr[byte]{}
+									orig_line.length = 0
+								} else {
+									new_line.length = new_start.length + (sub_firstline.length - uint64(copycol))
+									len_change = int32(new_line.length) - int32(orig_line.length)
+									ed.curwin.w_cursor.col += len_change
+									ed.ml_replace(lnum, new_line.string_, false)
+								}
+							}
+							ed.search_match_lines = regmatch.endpos[0].lnum - regmatch.startpos[0].lnum
+							ed.search_match_endcol = regmatch.endpos[0].col + len_change
+							if (ed.search_match_lines == 0) && (ed.search_match_endcol == 0) {
+								ed.search_match_endcol = 1
+							}
+							ed.highlight_match = TRUE
+							ed.update_topline()
+							ed.validate_cursor()
+							ed.update_screen(UPD_SOME_VALID)
+							ed.highlight_match = FALSE
+							ed.redraw_later(UPD_SOME_VALID)
+							if int64(ed.msg_row) == (ed.Rows - 1) {
+								ed.msg_didout = FALSE
+							}
+							ed.msg_starthere()
+							i = int64(ed.msg_scroll)
+							ed.msg_scroll = 0
+							ed.msg_no_more = TRUE
+							ed.vim_snprintf(ed.IObuff, ed.iobuff_room(), gettext_(S("replace with %s (y/n/a/q/l/^E/^Y)?")), sub)
+							ed.msg_attr(ed.iobuff_or(gettext_(S("replace with %s (y/n/a/q/l/^E/^Y)?"))), ed.highlight_attr[17])
+							ed.msg_no_more = FALSE
+							ed.msg_scroll = int32(i)
+							ed.showruler(true)
+							ed.windgoto(ed.msg_row, ed.cmdline_col_off+ed.msg_col)
+							ed.RedrawingDisabled = save_RedrawingDisabled
+							ed.no_mapping++
+							ed.allow_keys++
+							typed = ed.plain_vgetc()
+							ed.allow_keys--
+							ed.no_mapping--
+							ed.msg_didout = FALSE
+							ed.msg_col = 0
+							ed.gotocmdline(true)
+							ed.p_lz = save_p_lz
+							if !orig_line.string_.Nil() {
+								ed.ml_replace(lnum, orig_line.string_, false)
+							}
+							ed.need_wait_return = FALSE
+							if (((typed == 'q') || (typed == ESC)) || (typed == Ctrl_C)) || (typed == ed.intr_char) {
+								got_quit = true
+								break
+							}
+							if typed == 'n' {
+								break
+							}
+							if typed == 'y' {
+								break
+							}
+							if typed == 'l' {
+								ed.ex_substitute_subflags.do_all = FALSE
+								line2 = lnum
+								break
+							}
+							if typed == 'a' {
+								ed.ex_substitute_subflags.do_ask = FALSE
+								break
+							}
+							if typed == Ctrl_E {
+								ed.scrollup_clamp()
+							} else if typed == Ctrl_Y {
+								ed.scrolldown_clamp()
+							}
+						}
+						ed.State = save_State
+						if !ed.vim_strchr(ed.p_cpo, CPO_UNDO).Nil() {
+							ed.no_u_sync--
+						}
+						if typed == 'n' {
+							if nmatch > 1 {
+								matchcol = int32(sub_firstline.length)
+								skip_match = true
+							}
+							break
+						}
+						if got_quit {
+							break
+						}
+					}
+					ed.curwin.w_cursor.col = regmatch.startpos[0].col
+					var t4 int32
+					if ed.magic_isset() != 0 {
+						t4 = REGSUB_MAGIC
+					} else {
+						t4 = 0
+					}
+					sublen = uint64(ed.vim_regsub_multi(&regmatch, sub_firstlnum-regmatch.startpos[0].lnum, sub, sub_firstline.string_, 0, REGSUB_BACKSLASH|t4))
+					if nmatch > ((ed.curbuf.b_ml.ml_line_count - sub_firstlnum) + 1) {
+						nmatch = (ed.curbuf.b_ml.ml_line_count - sub_firstlnum) + 1
 						skip_match = true
+						if nmatch < 0 {
+							break
+						}
+					}
+					if nmatch == 1 {
+						tmp.string_ = sub_firstline.string_
+						tmp.length = sub_firstline.length
+					} else {
+						var lastlnum linenr_T = (sub_firstlnum + nmatch) - 1
+						tmp.string_ = ed.ml_get(lastlnum)
+						tmp.length = usize(ed.ml_get_len(lastlnum))
+						nmatch_tl += nmatch - 1
+					}
+					copy_len = uint64((regmatch.startpos[0].col - copycol))
+					needed_size = ((copy_len + (tmp.length - uint64(regmatch.endpos[0].col))) + sublen) + 1
+					if new_start.string_.Nil() {
+						new_start_size = needed_size + 50
+						new_start.string_ = Alloc(int(new_start_size))
+						new_start.string_.Put(NUL)
+						new_start.length = 0
+					} else {
+						needed_size += new_start.length
+						if needed_size > new_start_size {
+							new_start_size = needed_size + 50
+							p1 = Alloc(int(new_start_size))
+							Memmove(p1, new_start.string_, int(new_start.length+1))
+							new_start.string_ = p1
+						}
+					}
+					Memmove(new_start.string_.Add(int(new_start.length)), sub_firstline.string_.Add(int(copycol)), int(copy_len))
+					new_start.length += copy_len
+					new_end = new_start.string_.Add(int(new_start.length))
+					if (new_start_size - copy_len) < sublen {
+						sublen = (new_start_size - copy_len) - 1
+					}
+					var t5 int32
+					if ed.magic_isset() != 0 {
+						t5 = REGSUB_MAGIC
+					} else {
+						t5 = 0
+					}
+					n = uint64(ed.vim_regsub_multi(&regmatch, sub_firstlnum-regmatch.startpos[0].lnum, sub, new_end, int32(sublen), (REGSUB_COPY|REGSUB_BACKSLASH)|t5))
+					if n > 0 {
+						new_start.length += n - 1
 					}
 					ed.sub_nsubs++
 					did_sub = true
-					goto skip
-				}
-				if ed.ex_substitute_subflags.do_ask != 0 {
-					typed = 0
-					save_State = ed.State
-					ed.State = MODE_CONFIRM
-					ed.curwin.w_cursor.col = regmatch.startpos[0].col
-					if !ed.vim_strchr(ed.p_cpo, CPO_UNDO).Nil() {
-						ed.no_u_sync++
-					}
-					for ed.ex_substitute_subflags.do_ask != 0 {
-						orig_line = string_T{}
-						len_change = 0
-						save_p_lz = ed.p_lz
-						save_RedrawingDisabled = ed.RedrawingDisabled
-						ed.RedrawingDisabled = 0
-						ed.p_lz = FALSE
-						if !new_start.string_.Nil() {
-							orig_line.length = usize(ed.ml_get_len(lnum))
-							orig_line.string_ = vim_strnsave(ed.ml_get(lnum), orig_line.length)
-							new_line.string_ = concat_str(new_start.string_, sub_firstline.string_.Add(int(copycol)))
-							if new_line.string_.Nil() {
-								orig_line.string_ = Ptr[byte]{}
-								orig_line.length = 0
-							} else {
-								new_line.length = new_start.length + (sub_firstline.length - uint64(copycol))
-								len_change = int32(new_line.length) - int32(orig_line.length)
-								ed.curwin.w_cursor.col += len_change
-								ed.ml_replace(lnum, new_line.string_, false)
-							}
-						}
-						ed.search_match_lines = regmatch.endpos[0].lnum - regmatch.startpos[0].lnum
-						ed.search_match_endcol = regmatch.endpos[0].col + len_change
-						if (ed.search_match_lines == 0) && (ed.search_match_endcol == 0) {
-							ed.search_match_endcol = 1
-						}
-						ed.highlight_match = TRUE
-						ed.update_topline()
-						ed.validate_cursor()
-						ed.update_screen(UPD_SOME_VALID)
-						ed.highlight_match = FALSE
-						ed.redraw_later(UPD_SOME_VALID)
-						if int64(ed.msg_row) == (ed.Rows - 1) {
-							ed.msg_didout = FALSE
-						}
-						ed.msg_starthere()
-						i = int64(ed.msg_scroll)
-						ed.msg_scroll = 0
-						ed.msg_no_more = TRUE
-						ed.vim_snprintf(ed.IObuff, ed.iobuff_room(), gettext_(S("replace with %s (y/n/a/q/l/^E/^Y)?")), sub)
-						ed.msg_attr(ed.iobuff_or(gettext_(S("replace with %s (y/n/a/q/l/^E/^Y)?"))), ed.highlight_attr[17])
-						ed.msg_no_more = FALSE
-						ed.msg_scroll = int32(i)
-						ed.showruler(true)
-						ed.windgoto(ed.msg_row, ed.cmdline_col_off+ed.msg_col)
-						ed.RedrawingDisabled = save_RedrawingDisabled
-						ed.no_mapping++
-						ed.allow_keys++
-						typed = ed.plain_vgetc()
-						ed.allow_keys--
-						ed.no_mapping--
-						ed.msg_didout = FALSE
-						ed.msg_col = 0
-						ed.gotocmdline(true)
-						ed.p_lz = save_p_lz
-						if !orig_line.string_.Nil() {
-							ed.ml_replace(lnum, orig_line.string_, false)
-						}
-						ed.need_wait_return = FALSE
-						if (((typed == 'q') || (typed == ESC)) || (typed == Ctrl_C)) || (typed == ed.intr_char) {
-							got_quit = true
-							break
-						}
-						if typed == 'n' {
-							break
-						}
-						if typed == 'y' {
-							break
-						}
-						if typed == 'l' {
+					ed.curwin.w_cursor.col = 0
+					if nmatch > 1 {
+						sub_firstlnum += nmatch - 1
+						sub_firstline.length = usize(ed.ml_get_len(sub_firstlnum))
+						sub_firstline.string_ = vim_strnsave(ed.ml_get(sub_firstlnum), sub_firstline.length)
+						if sub_firstlnum <= line2 {
+							do_again = true
+						} else {
 							ed.ex_substitute_subflags.do_all = FALSE
-							line2 = lnum
-							break
-						}
-						if typed == 'a' {
-							ed.ex_substitute_subflags.do_ask = FALSE
-							break
-						}
-						if typed == Ctrl_E {
-							ed.scrollup_clamp()
-						} else if typed == Ctrl_Y {
-							ed.scrolldown_clamp()
 						}
 					}
-					ed.State = save_State
-					if !ed.vim_strchr(ed.p_cpo, CPO_UNDO).Nil() {
-						ed.no_u_sync--
+					copycol = regmatch.endpos[0].col
+					if skip_match {
+						sub_firstline.string_ = vim_strnsave(S(""), 0)
+						sub_firstline.length = 0
+						copycol = 0
 					}
-					if typed == 'n' {
-						if nmatch > 1 {
-							matchcol = int32(sub_firstline.length)
-							skip_match = true
-						}
-						goto skip
-					}
-					if got_quit {
-						goto skip
-					}
-				}
-				ed.curwin.w_cursor.col = regmatch.startpos[0].col
-				if ed.magic_isset() != 0 {
-					t4 = REGSUB_MAGIC
-				} else {
-					t4 = 0
-				}
-				sublen = uint64(ed.vim_regsub_multi(&regmatch, sub_firstlnum-regmatch.startpos[0].lnum, sub, sub_firstline.string_, 0, REGSUB_BACKSLASH|t4))
-				if nmatch > ((ed.curbuf.b_ml.ml_line_count - sub_firstlnum) + 1) {
-					nmatch = (ed.curbuf.b_ml.ml_line_count - sub_firstlnum) + 1
-					skip_match = true
-					if nmatch < 0 {
-						goto skip
-					}
-				}
-				if nmatch == 1 {
-					tmp.string_ = sub_firstline.string_
-					tmp.length = sub_firstline.length
-				} else {
-					lastlnum = (sub_firstlnum + nmatch) - 1
-					tmp.string_ = ed.ml_get(lastlnum)
-					tmp.length = usize(ed.ml_get_len(lastlnum))
-					nmatch_tl += nmatch - 1
-				}
-				copy_len = uint64((regmatch.startpos[0].col - copycol))
-				needed_size = ((copy_len + (tmp.length - uint64(regmatch.endpos[0].col))) + sublen) + 1
-				if new_start.string_.Nil() {
-					new_start_size = needed_size + 50
-					new_start.string_ = Alloc(int(new_start_size))
-					new_start.string_.Put(NUL)
-					new_start.length = 0
-				} else {
-					needed_size += new_start.length
-					if needed_size > new_start_size {
-						new_start_size = needed_size + 50
-						p1 = Alloc(int(new_start_size))
-						Memmove(p1, new_start.string_, int(new_start.length+1))
-						new_start.string_ = p1
-					}
-				}
-				Memmove(new_start.string_.Add(int(new_start.length)), sub_firstline.string_.Add(int(copycol)), int(copy_len))
-				new_start.length += copy_len
-				new_end = new_start.string_.Add(int(new_start.length))
-				if (new_start_size - copy_len) < sublen {
-					sublen = (new_start_size - copy_len) - 1
-				}
-				if ed.magic_isset() != 0 {
-					t5 = REGSUB_MAGIC
-				} else {
-					t5 = 0
-				}
-				n = uint64(ed.vim_regsub_multi(&regmatch, sub_firstlnum-regmatch.startpos[0].lnum, sub, new_end, int32(sublen), (REGSUB_COPY|REGSUB_BACKSLASH)|t5))
-				if n > 0 {
-					new_start.length += n - 1
-				}
-				ed.sub_nsubs++
-				did_sub = true
-				ed.curwin.w_cursor.col = 0
-				if nmatch > 1 {
-					sub_firstlnum += nmatch - 1
-					sub_firstline.length = usize(ed.ml_get_len(sub_firstlnum))
-					sub_firstline.string_ = vim_strnsave(ed.ml_get(sub_firstlnum), sub_firstline.length)
-					if sub_firstlnum <= line2 {
-						do_again = true
-					} else {
-						ed.ex_substitute_subflags.do_all = FALSE
-					}
-				}
-				copycol = regmatch.endpos[0].col
-				if skip_match {
-					sub_firstline.string_ = vim_strnsave(S(""), 0)
-					sub_firstline.length = 0
-					copycol = 0
-				}
-				p1 = new_end
-				for ; p1.Get() != 0; p1 = p1.Add(1) {
-					if (int32(p1.At(0)) == 92) && (int32(p1.At(1)) != NUL) {
-						n = (new_start.length - uint64(int64(p1.Sub(new_start.string_))))
-						Memmove(p1, p1.Add(1), int(n+1))
-						new_start.length--
-					} else if int32(p1.Get()) == CAR {
-						if ed.u_inssub(lnum) {
-							plen = int32((int64(p1.Sub(new_start.string_)) + 1))
-							p1.Put(NUL)
-							ed.ml_append(lnum-1, new_start.string_, plen)
-							ed.mark_adjust(lnum+1, 9223372036854775807, 1, 0)
-							if ed.ex_substitute_subflags.do_ask != 0 {
-								ed.appended_lines(lnum-1, 1)
-							} else {
-								if first_line == 0 {
-									first_line = lnum
+					p1 = new_end
+					for ; p1.Get() != 0; p1 = p1.Add(1) {
+						if (int32(p1.At(0)) == 92) && (int32(p1.At(1)) != NUL) {
+							n = (new_start.length - uint64(int64(p1.Sub(new_start.string_))))
+							Memmove(p1, p1.Add(1), int(n+1))
+							new_start.length--
+						} else if int32(p1.Get()) == CAR {
+							if ed.u_inssub(lnum) {
+								var plen colnr_T = int32((int64(p1.Sub(new_start.string_)) + 1))
+								p1.Put(NUL)
+								ed.ml_append(lnum-1, new_start.string_, plen)
+								ed.mark_adjust(lnum+1, 9223372036854775807, 1, 0)
+								if ed.ex_substitute_subflags.do_ask != 0 {
+									ed.appended_lines(lnum-1, 1)
+								} else {
+									if first_line == 0 {
+										first_line = lnum
+									}
+									last_line = lnum + 1
 								}
-								last_line = lnum + 1
+								sub_firstlnum++
+								lnum++
+								line2++
+								did_split = true
+								ed.curwin.w_cursor.lnum++
+								n = new_start.length - uint64(plen)
+								Memmove(new_start.string_, p1.Add(1), int(n+1))
+								new_start.length = n
+								p1 = new_start.string_.Add(-1)
 							}
-							sub_firstlnum++
-							lnum++
-							line2++
-							did_split = true
-							ed.curwin.w_cursor.lnum++
-							n = new_start.length - uint64(plen)
-							Memmove(new_start.string_, p1.Add(1), int(n+1))
-							new_start.length = n
-							p1 = new_start.string_.Add(-1)
+						} else {
+							p1 = p1.Add(int(ed.utfc_ptr2len(p1) - 1))
 						}
-					} else {
-						p1 = p1.Add(int(ed.utfc_ptr2len(p1) - 1))
 					}
+					break
 				}
-			skip:
 				lastone = (((((skip_match || (ed.got_int != 0)) || got_quit) || (lnum > line2)) || !((ed.ex_substitute_subflags.do_all != 0) || do_again)) || (((int32(sub_firstline.string_.At(int(matchcol))) == NUL) && (nmatch <= 1)) && (re_multiline(regmatch.regprog) == 0)))
 				nmatch = -1
-				t6 = (lastone || (nmatch_tl > 0)) || ((ed.ex_substitute_subflags.do_ask != 0) && did_split)
+				var t6 bool = (lastone || (nmatch_tl > 0)) || ((ed.ex_substitute_subflags.do_ask != 0) && did_split)
 				if !t6 {
 					nmatch = ed.vim_regexec_multi(&regmatch, ed.curwin, ed.curbuf, sub_firstlnum, matchcol, nil)
 					t6 = nmatch == 0
@@ -16262,24 +16216,15 @@ func (ed *Editor) do_one_cmd(cmdlinep *Ptr[byte], flags int32, fgetline func(int
 	var p Ptr[byte]
 	var lnum linenr_T
 	var n int64
-	var errormsg Ptr[byte]
-	var after_modifier Ptr[byte]
+	var errormsg Ptr[byte] = Ptr[byte]{}
+	var after_modifier Ptr[byte] = Ptr[byte]{}
 	var ea S_exarg
 	var save_cmdmod cmdmod_T
-	var save_reg_executing int32
-	var save_pending_end_reg_executing int32
+	save_reg_executing := ed.reg_executing
+	save_pending_end_reg_executing := ed.pending_end_reg_executing
 	var cmd Ptr[byte]
-	var sourcing int32
-	var did_append_cmd bool
-	var t1 bool
-	var t2 Ptr[byte]
-
-	errormsg = Ptr[byte]{}
-	after_modifier = Ptr[byte]{}
-	save_reg_executing = ed.reg_executing
-	save_pending_end_reg_executing = ed.pending_end_reg_executing
-	sourcing = flags & DOCMD_VERBOSE
-	did_append_cmd = false
+	sourcing := flags & DOCMD_VERBOSE
+	var did_append_cmd bool = false
 	ea = S_exarg{}
 	ea.line1 = 1
 	ea.line2 = 1
@@ -16287,195 +16232,197 @@ func (ed *Editor) do_one_cmd(cmdlinep *Ptr[byte], flags int32, fgetline func(int
 		ed.quitmore--
 	}
 	save_cmdmod = ed.cmdmod
-	if (int32((*cmdlinep).At(0)) == '#') && (int32((*cmdlinep).At(1)) == '!') {
-		goto doend
-	}
-	ea.cmd = (*cmdlinep)
-	ea.cmdlinep = cmdlinep
-	ea.ea_getline = fgetline
-	if !ed.parse_command_modifiers(&ea, &errormsg, &ed.cmdmod, false) {
-		goto doend
-	}
-	ed.apply_cmdmod(&ed.cmdmod)
-	after_modifier = ea.cmd
-	cmd = ea.cmd
-	ea.cmd = ed.skip_range(ea.cmd, true, nil)
-	p = ed.find_ex_command(&ea, nil)
-	ea.cmd = cmd
-	if ea.cmdidx != CMD_SIZE {
-		ea.addr_type = ed.cmdnames[int(ea.cmdidx)].cmd_addr_type
-	} else {
-		ea.addr_type = ADDR_LINES
-	}
-	if !ed.parse_cmd_address(&ea, &errormsg, false) {
-		goto doend
-	}
-	ea.cmd = skipwhite(ea.cmd)
-	for int32(ea.cmd.Get()) == ':' {
-		ea.cmd = skipwhite(ea.cmd.Add(1))
-	}
-	t1 = int32(ea.cmd.Get()) == NUL
-	if !t1 {
-		ea.nextcmd = check_nextcmd(ea.cmd)
-		t1 = !ea.nextcmd.Nil()
-	}
-	if t1 {
-		errormsg = ed.ex_range_without_command(&ea)
-		goto doend
-	}
-	if p.Nil() {
-		errormsg = gettext_(ed.e_ambiguous_use_of_user_defined_command)
-		goto doend
-	}
-	if ((int32(p.Get()) == '!') && (int32(ea.cmd.At(1)) == 0151)) && (int32(ea.cmd.At(0)) == 78) {
-		errormsg = ed.uc_fun_cmd()
-		goto doend
-	}
-	if ea.cmdidx == CMD_SIZE {
-		musl_strcpy(ed.IObuff, gettext_(ed.e_not_an_editor_command))
-		if sourcing == 0 {
-			if !after_modifier.Nil() {
-				ed.append_command(after_modifier)
-			} else {
-				ed.append_command((*cmdlinep))
-			}
-			did_append_cmd = true
+	for {
+		if (int32((*cmdlinep).At(0)) == '#') && (int32((*cmdlinep).At(1)) == '!') {
+			break
 		}
-		errormsg = ed.IObuff
-		goto doend
-	}
-	if (((int32(p.Get()) == '!') && (ea.cmdidx != CMD_substitute)) && (ea.cmdidx != CMD_smagic)) && (ea.cmdidx != CMD_snomagic) {
-		p = p.Add(1)
-		ea.forceit = true
-	} else {
-		ea.forceit = false
-	}
-	ea.argt = int64(ed.cmdnames[int(ea.cmdidx)].cmd_argt)
-	if (ed.curbuf.b_p_ma == 0) && ((ea.argt & EX_MODIFY) != 0) {
-		errormsg = gettext_(ed.e_cannot_make_changes_modifiable_is_off)
-		goto doend
-	}
-	if ed.text_locked() && ((ea.argt & EX_LOCK_OK) == 0) {
-		errormsg = gettext_(ed.get_text_locked_msg())
-		goto doend
-	}
-	if ((ea.argt & (EX_CMDWIN | EX_LOCK_OK)) == 0) && ed.curbuf_locked() {
-		goto doend
-	}
-	if ((ea.argt & EX_RANGE) == 0) && (ea.addr_count > 0) {
-		errormsg = gettext_(ed.e_no_range_allowed)
-		goto doend
-	}
-	if ((ea.argt & EX_BANG) == 0) && ea.forceit {
-		errormsg = gettext_(ed.e_no_bang_allowed)
-		goto doend
-	}
-	if ea.argt&EX_RANGE != 0 {
-		if (ed.global_busy == 0) && (ea.line1 > ea.line2) {
-			if ed.msg_silent == 0 {
-				if sourcing != 0 {
-					errormsg = gettext_(ed.e_backwards_range_given)
-					goto doend
+		ea.cmd = (*cmdlinep)
+		ea.cmdlinep = cmdlinep
+		ea.ea_getline = fgetline
+		if !ed.parse_command_modifiers(&ea, &errormsg, &ed.cmdmod, false) {
+			break
+		}
+		ed.apply_cmdmod(&ed.cmdmod)
+		after_modifier = ea.cmd
+		cmd = ea.cmd
+		ea.cmd = ed.skip_range(ea.cmd, true, nil)
+		p = ed.find_ex_command(&ea, nil)
+		ea.cmd = cmd
+		if ea.cmdidx != CMD_SIZE {
+			ea.addr_type = ed.cmdnames[int(ea.cmdidx)].cmd_addr_type
+		} else {
+			ea.addr_type = ADDR_LINES
+		}
+		if !ed.parse_cmd_address(&ea, &errormsg, false) {
+			break
+		}
+		ea.cmd = skipwhite(ea.cmd)
+		for int32(ea.cmd.Get()) == ':' {
+			ea.cmd = skipwhite(ea.cmd.Add(1))
+		}
+		var t1 bool = int32(ea.cmd.Get()) == NUL
+		if !t1 {
+			ea.nextcmd = check_nextcmd(ea.cmd)
+			t1 = !ea.nextcmd.Nil()
+		}
+		if t1 {
+			errormsg = ed.ex_range_without_command(&ea)
+			break
+		}
+		if p.Nil() {
+			errormsg = gettext_(ed.e_ambiguous_use_of_user_defined_command)
+			break
+		}
+		if ((int32(p.Get()) == '!') && (int32(ea.cmd.At(1)) == 0151)) && (int32(ea.cmd.At(0)) == 78) {
+			errormsg = ed.uc_fun_cmd()
+			break
+		}
+		if ea.cmdidx == CMD_SIZE {
+			musl_strcpy(ed.IObuff, gettext_(ed.e_not_an_editor_command))
+			if sourcing == 0 {
+				if !after_modifier.Nil() {
+					ed.append_command(after_modifier)
+				} else {
+					ed.append_command((*cmdlinep))
 				}
-				if ed.ask_yesno(gettext_(S("Backwards range given, OK to swap")), false) != 'y' {
-					goto doend
-				}
+				did_append_cmd = true
 			}
-			lnum = ea.line1
-			ea.line1 = ea.line2
-			ea.line2 = lnum
+			errormsg = ed.IObuff
+			break
 		}
-		errormsg = ed.invalid_range(&ea)
-		if !errormsg.Nil() {
-			goto doend
+		if (((int32(p.Get()) == '!') && (ea.cmdidx != CMD_substitute)) && (ea.cmdidx != CMD_smagic)) && (ea.cmdidx != CMD_snomagic) {
+			p = p.Add(1)
+			ea.forceit = true
+		} else {
+			ea.forceit = false
 		}
-	}
-	if (ea.addr_type == ADDR_OTHER) && (ea.addr_count == 0) {
-		ea.line2 = 1
-	}
-	correct_range(&ea)
-	ea.arg = skipwhite(p)
-	if (ea.cmdidx == CMD_lshift) || (ea.cmdidx == CMD_rshift) {
-		ea.amount = 1
-		for int32(ea.arg.Get()) == int32(ea.cmd.Get()) {
-			ea.arg = ea.arg.Add(1)
-			ea.amount++
+		ea.argt = int64(ed.cmdnames[int(ea.cmdidx)].cmd_argt)
+		if (ed.curbuf.b_p_ma == 0) && ((ea.argt & EX_MODIFY) != 0) {
+			errormsg = gettext_(ed.e_cannot_make_changes_modifiable_is_off)
+			break
 		}
-		ea.arg = skipwhite(ea.arg)
-	}
-	if ea.argt&EX_CMDARG != 0 {
-		ea.do_ecmd_cmd = ed.getargcmd(&ea.arg)
-	}
-	if ea.argt&EX_TRLBAR != 0 {
-		ed.separate_nextcmd(&ea, false)
-	} else if (ea.cmdidx == CMD_global) || (ea.cmdidx == CMD_vglobal) {
-		p = ea.arg
-		for ; p.Get() != 0; p = p.Add(1) {
-			if (int32(p.Get()) == 92) && (int32(p.At(1)) == 10) {
-				Memmove(p, p.Add(1), int(musl_strlen(p.Add(1))+1))
-			} else if int32(p.Get()) == 10 {
-				ea.nextcmd = p.Add(1)
-				p.Put(NUL)
+		if ed.text_locked() && ((ea.argt & EX_LOCK_OK) == 0) {
+			errormsg = gettext_(ed.get_text_locked_msg())
+			break
+		}
+		if ((ea.argt & (EX_CMDWIN | EX_LOCK_OK)) == 0) && ed.curbuf_locked() {
+			break
+		}
+		if ((ea.argt & EX_RANGE) == 0) && (ea.addr_count > 0) {
+			errormsg = gettext_(ed.e_no_range_allowed)
+			break
+		}
+		if ((ea.argt & EX_BANG) == 0) && ea.forceit {
+			errormsg = gettext_(ed.e_no_bang_allowed)
+			break
+		}
+		if ea.argt&EX_RANGE != 0 {
+			if (ed.global_busy == 0) && (ea.line1 > ea.line2) {
+				if ed.msg_silent == 0 {
+					if sourcing != 0 {
+						errormsg = gettext_(ed.e_backwards_range_given)
+						break
+					}
+					if ed.ask_yesno(gettext_(S("Backwards range given, OK to swap")), false) != 'y' {
+						break
+					}
+				}
+				lnum = ea.line1
+				ea.line1 = ea.line2
+				ea.line2 = lnum
+			}
+			errormsg = ed.invalid_range(&ea)
+			if !errormsg.Nil() {
 				break
 			}
 		}
-	}
-	if ((ea.argt & EX_DFLALL) != 0) && (ea.addr_count == 0) {
-		ed.address_default_all(&ea)
-	}
-	if (((ea.argt & EX_REGSTR) != 0) && (int32(ea.arg.Get()) != NUL)) && !(((ea.argt & EX_COUNT) != 0) && ((uint32(ea.arg.Get()) - '0') < 10)) {
-		if (int32(ea.arg.Get()) == '*') || (int32(ea.arg.Get()) == '+') {
-			errormsg = gettext_(ed.e_invalid_register_name)
-			goto doend
+		if (ea.addr_type == ADDR_OTHER) && (ea.addr_count == 0) {
+			ea.line2 = 1
 		}
-		if ed.valid_yank_reg(int32(ea.arg.Get()), ((ea.cmdidx != CMD_put) && (ea.cmdidx != CMD_iput))) {
-			t2 = ea.arg
-			ea.arg = ea.arg.Add(1)
-			ea.regname = int32(t2.Get())
+		correct_range(&ea)
+		ea.arg = skipwhite(p)
+		if (ea.cmdidx == CMD_lshift) || (ea.cmdidx == CMD_rshift) {
+			ea.amount = 1
+			for int32(ea.arg.Get()) == int32(ea.cmd.Get()) {
+				ea.arg = ea.arg.Add(1)
+				ea.amount++
+			}
 			ea.arg = skipwhite(ea.arg)
 		}
-	}
-	if ((ea.argt & EX_COUNT) != 0) && ((uint32(ea.arg.Get()) - '0') < 10) {
-		n = getdigits_quoted(&ea.arg)
-		ea.arg = skipwhite(ea.arg)
-		if (n <= 0) && ((ea.argt & EX_ZEROR) == 0) {
-			errormsg = gettext_(ed.e_positive_count_required)
-			goto doend
+		if ea.argt&EX_CMDARG != 0 {
+			ea.do_ecmd_cmd = ed.getargcmd(&ea.arg)
 		}
-		if ea.addr_type != ADDR_LINES {
-			ea.line2 = n
-			if ea.addr_count == 0 {
-				ea.addr_count = 1
+		if ea.argt&EX_TRLBAR != 0 {
+			ed.separate_nextcmd(&ea, false)
+		} else if (ea.cmdidx == CMD_global) || (ea.cmdidx == CMD_vglobal) {
+			p = ea.arg
+			for ; p.Get() != 0; p = p.Add(1) {
+				if (int32(p.Get()) == 92) && (int32(p.At(1)) == 10) {
+					Memmove(p, p.Add(1), int(musl_strlen(p.Add(1))+1))
+				} else if int32(p.Get()) == 10 {
+					ea.nextcmd = p.Add(1)
+					p.Put(NUL)
+					break
+				}
 			}
-		} else {
-			ea.line1 = ea.line2
-			if ea.line2 >= (LONG_MAX - (n - 1)) {
-				ea.line2 = LONG_MAX
+		}
+		if ((ea.argt & EX_DFLALL) != 0) && (ea.addr_count == 0) {
+			ed.address_default_all(&ea)
+		}
+		if (((ea.argt & EX_REGSTR) != 0) && (int32(ea.arg.Get()) != NUL)) && !(((ea.argt & EX_COUNT) != 0) && ((uint32(ea.arg.Get()) - '0') < 10)) {
+			if (int32(ea.arg.Get()) == '*') || (int32(ea.arg.Get()) == '+') {
+				errormsg = gettext_(ed.e_invalid_register_name)
+				break
+			}
+			if ed.valid_yank_reg(int32(ea.arg.Get()), ((ea.cmdidx != CMD_put) && (ea.cmdidx != CMD_iput))) {
+				var t2 Ptr[byte] = ea.arg
+				ea.arg = ea.arg.Add(1)
+				ea.regname = int32(t2.Get())
+				ea.arg = skipwhite(ea.arg)
+			}
+		}
+		if ((ea.argt & EX_COUNT) != 0) && ((uint32(ea.arg.Get()) - '0') < 10) {
+			n = getdigits_quoted(&ea.arg)
+			ea.arg = skipwhite(ea.arg)
+			if (n <= 0) && ((ea.argt & EX_ZEROR) == 0) {
+				errormsg = gettext_(ed.e_positive_count_required)
+				break
+			}
+			if ea.addr_type != ADDR_LINES {
+				ea.line2 = n
+				if ea.addr_count == 0 {
+					ea.addr_count = 1
+				}
 			} else {
-				ea.line2 += n - 1
-			}
-			ea.addr_count++
-			if ea.line2 > ed.curbuf.b_ml.ml_line_count {
-				ea.line2 = ed.curbuf.b_ml.ml_line_count
+				ea.line1 = ea.line2
+				if ea.line2 >= (LONG_MAX - (n - 1)) {
+					ea.line2 = LONG_MAX
+				} else {
+					ea.line2 += n - 1
+				}
+				ea.addr_count++
+				if ea.line2 > ed.curbuf.b_ml.ml_line_count {
+					ea.line2 = ed.curbuf.b_ml.ml_line_count
+				}
 			}
 		}
+		if ea.argt&EX_FLAGS != 0 {
+			ed.get_flags(&ea)
+		}
+		if ((ea.argt & EX_EXTRA) == 0) && (int32(ea.arg.Get()) != NUL) {
+			errormsg = ed.ex_errmsg(ed.e_trailing_characters_str, ea.arg)
+			break
+		}
+		if ((ea.argt & EX_NEEDARG) != 0) && (int32(ea.arg.Get()) == NUL) {
+			errormsg = gettext_(ed.e_argument_required)
+			break
+		}
+		ed.cmdnames[int(ea.cmdidx)].cmd_func(&ea)
+		if !ea.errmsg.Nil() {
+			errormsg = ea.errmsg
+		}
+		break
 	}
-	if ea.argt&EX_FLAGS != 0 {
-		ed.get_flags(&ea)
-	}
-	if ((ea.argt & EX_EXTRA) == 0) && (int32(ea.arg.Get()) != NUL) {
-		errormsg = ed.ex_errmsg(ed.e_trailing_characters_str, ea.arg)
-		goto doend
-	}
-	if ((ea.argt & EX_NEEDARG) != 0) && (int32(ea.arg.Get()) == NUL) {
-		errormsg = gettext_(ed.e_argument_required)
-		goto doend
-	}
-	ed.cmdnames[int(ea.cmdidx)].cmd_func(&ea)
-	if !ea.errmsg.Nil() {
-		errormsg = ea.errmsg
-	}
-doend:
 	if ed.curwin.w_cursor.lnum == 0 {
 		ed.curwin.w_cursor.lnum = 1
 		ed.curwin.w_cursor.col = 0
@@ -16968,6 +16915,8 @@ func (ed *Editor) default_address(eap *S_exarg) linenr_T {
 }
 
 func (ed *Editor) get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T, skip bool, silent bool, to_other_file bool, address_count int32) linenr_T {
+	var flags int32
+
 	var c int32
 	var i int32
 	var n int64
@@ -16975,13 +16924,6 @@ func (ed *Editor) get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T
 	var pos pos_T
 	var fp *pos_T
 	var lnum linenr_T
-	var t1 Ptr[byte]
-	var flags int32
-	var t2 linenr_T
-	var t3 int32
-	var t4 int32
-	var t5 Ptr[byte]
-
 	cmd = skipwhite((*ptr))
 	lnum = LONG_MAX
 	for {
@@ -16996,7 +16938,8 @@ func (ed *Editor) get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T
 			case ADDR_NONE, ADDR_UNSIGNED:
 				ed.addr_error(addr_type)
 				cmd = Ptr[byte]{}
-				goto error
+				*ptr = cmd
+				return lnum
 			}
 		case '$':
 			cmd = cmd.Add(1)
@@ -17008,18 +16951,21 @@ func (ed *Editor) get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T
 			case ADDR_NONE, ADDR_UNSIGNED:
 				ed.addr_error(addr_type)
 				cmd = Ptr[byte]{}
-				goto error
+				*ptr = cmd
+				return lnum
 			}
 		case 39:
 			cmd = cmd.Add(1)
 			if int32(cmd.Get()) == NUL {
 				cmd = Ptr[byte]{}
-				goto error
+				*ptr = cmd
+				return lnum
 			}
 			if addr_type != ADDR_LINES {
 				ed.addr_error(addr_type)
 				cmd = Ptr[byte]{}
-				goto error
+				*ptr = cmd
+				return lnum
 			}
 			if skip {
 				cmd = cmd.Add(1)
@@ -17028,18 +16974,20 @@ func (ed *Editor) get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T
 				cmd = cmd.Add(1)
 				if !ed.check_mark(fp) {
 					cmd = Ptr[byte]{}
-					goto error
+					*ptr = cmd
+					return lnum
 				}
 				lnum = fp.lnum
 			}
 		case '/', '?':
-			t1 = cmd
+			var t1 Ptr[byte] = cmd
 			cmd = cmd.Add(1)
 			c = int32(t1.Get())
 			if addr_type != ADDR_LINES {
 				ed.addr_error(addr_type)
 				cmd = Ptr[byte]{}
-				goto error
+				*ptr = cmd
+				return lnum
 			}
 			if skip {
 				cmd = ed.skip_regexp(cmd, c, ed.magic_isset())
@@ -17049,6 +16997,7 @@ func (ed *Editor) get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T
 			} else {
 				pos = ed.curwin.w_cursor
 				if (lnum > 0) && (lnum != LONG_MAX) {
+					var t2 linenr_T
 					if lnum > ed.curbuf.b_ml.ml_line_count {
 						t2 = ed.curbuf.b_ml.ml_line_count
 					} else {
@@ -17062,6 +17011,7 @@ func (ed *Editor) get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T
 					ed.curwin.w_cursor.col = 0
 				}
 				ed.searchcmdlen = 0
+				var t3 int32
 				if silent {
 					t3 = SEARCH_KEEP
 				} else {
@@ -17071,7 +17021,8 @@ func (ed *Editor) get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T
 				if ed.do_search(nil, c, c, cmd, musl_strlen(cmd), 1, flags, nil) == 0 {
 					ed.curwin.w_cursor = pos
 					cmd = Ptr[byte]{}
-					goto error
+					*ptr = cmd
+					return lnum
 				}
 				lnum = ed.curwin.w_cursor.lnum
 				ed.curwin.w_cursor = pos
@@ -17082,7 +17033,8 @@ func (ed *Editor) get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T
 			if addr_type != ADDR_LINES {
 				ed.addr_error(addr_type)
 				cmd = Ptr[byte]{}
-				goto error
+				*ptr = cmd
+				return lnum
 			}
 			if int32(cmd.Get()) == '&' {
 				i = RE_SUBST
@@ -17091,7 +17043,8 @@ func (ed *Editor) get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T
 			} else {
 				ed.emsg(gettext_(ed.e_backslash_should_be_followed_by))
 				cmd = Ptr[byte]{}
-				goto error
+				*ptr = cmd
+				return lnum
 			}
 			if !skip {
 				if lnum != LONG_MAX {
@@ -17105,6 +17058,7 @@ func (ed *Editor) get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T
 					pos.col = 0
 				}
 				pos.coladd = 0
+				var t4 int32
 				if int32(cmd.Get()) == '?' {
 					t4 = -1
 				} else {
@@ -17114,7 +17068,8 @@ func (ed *Editor) get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T
 					lnum = pos.lnum
 				} else {
 					cmd = Ptr[byte]{}
-					goto error
+					*ptr = cmd
+					return lnum
 				}
 			}
 			cmd = cmd.Add(1)
@@ -17141,7 +17096,7 @@ func (ed *Editor) get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T
 			if (uint32(cmd.Get()) - '0') < 10 {
 				i = '+'
 			} else {
-				t5 = cmd
+				var t5 Ptr[byte] = cmd
 				cmd = cmd.Add(1)
 				i = int32(t5.Get())
 			}
@@ -17152,7 +17107,8 @@ func (ed *Editor) get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T
 				if n == LONG_MAX {
 					ed.emsg(gettext_(ed.e_line_number_out_of_range))
 					cmd = Ptr[byte]{}
-					goto error
+					*ptr = cmd
+					return lnum
 				}
 			}
 			if i == '-' {
@@ -17161,7 +17117,8 @@ func (ed *Editor) get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T
 				if (lnum >= 0) && (n >= (LONG_MAX - lnum)) {
 					ed.emsg(gettext_(ed.e_line_number_out_of_range))
 					cmd = Ptr[byte]{}
-					goto error
+					*ptr = cmd
+					return lnum
 				}
 				lnum += n
 			}
@@ -17170,7 +17127,6 @@ func (ed *Editor) get_address(eap *S_exarg, ptr *Ptr[byte], addr_type cmd_addr_T
 			break
 		}
 	}
-error:
 	*ptr = cmd
 	return lnum
 }
@@ -18645,23 +18601,11 @@ func (ed *Editor) cmdline_insert_reg(gotesc *int32) int32 {
 }
 
 func (ed *Editor) cmdline_browse_history(c int32, firstc int32, curcmdstr *Ptr[byte], curcmdstrlen *usize, histype int32, hiscnt_p *int32, xp *S_expand) int32 {
-	var orig_hiscnt int32
-	var hiscnt int32
-	var lookfor Ptr[byte]
-	var lookforlen usize
+	var orig_hiscnt int32 = (*hiscnt_p)
+	hiscnt := orig_hiscnt
+	lookfor := (*curcmdstr)
+	lookforlen := (*curcmdstrlen)
 	var res int32
-	var p Ptr[byte]
-	var plen usize
-	var old_firstc int32
-	var t1 bool
-	var i int32
-	var j int32
-	var len_ usize
-
-	orig_hiscnt = (*hiscnt_p)
-	hiscnt = orig_hiscnt
-	lookfor = (*curcmdstr)
-	lookforlen = (*curcmdstrlen)
 	if (ed.get_hislen() == 0) || (firstc == NUL) {
 		return CMDLINE_NOT_CHANGED
 	}
@@ -18705,6 +18649,9 @@ func (ed *Editor) cmdline_browse_history(c int32, firstc int32, curcmdstr *Ptr[b
 		}
 	}
 	if hiscnt != orig_hiscnt {
+		var p Ptr[byte]
+		var plen usize
+		var old_firstc int32
 		ed.dealloc_cmdbuff()
 		xp.xp_context = EXPAND_NOTHING
 		if hiscnt == ed.get_hislen() {
@@ -18714,12 +18661,15 @@ func (ed *Editor) cmdline_browse_history(c int32, firstc int32, curcmdstr *Ptr[b
 			p = ed.get_histentry(histype).Ref(int(hiscnt)).hisstr
 			plen = ed.get_histentry(histype).Ref(int(hiscnt)).hisstrlen
 		}
-		t1 = (histype == HIST_SEARCH) && (p != lookfor)
+		var t1 bool = (histype == HIST_SEARCH) && (p != lookfor)
 		if t1 {
 			old_firstc = int32(p.At(int(plen + 1)))
 			t1 = old_firstc != firstc
 		}
 		if t1 {
+			var i int32
+			var j int32
+			var len_ usize
 			i = 0
 			for ; i <= 1; i++ {
 				len_ = 0
@@ -18746,7 +18696,10 @@ func (ed *Editor) cmdline_browse_history(c int32, firstc int32, curcmdstr *Ptr[b
 					ed.alloc_cmdbuff(len_)
 					if ed.ccline.cmdbuff.Nil() {
 						res = GOTO_NORMAL_MODE
-						goto done
+						*curcmdstr = lookfor
+						*curcmdstrlen = lookforlen
+						*hiscnt_p = hiscnt
+						return res
 					}
 				}
 			}
@@ -18757,7 +18710,10 @@ func (ed *Editor) cmdline_browse_history(c int32, firstc int32, curcmdstr *Ptr[b
 			ed.alloc_cmdbuff(plen)
 			if ed.ccline.cmdbuff.Nil() {
 				res = GOTO_NORMAL_MODE
-				goto done
+				*curcmdstr = lookfor
+				*curcmdstrlen = lookforlen
+				*hiscnt_p = hiscnt
+				return res
 			}
 			musl_strcpy(ed.ccline.cmdbuff, p)
 			ed.ccline.cmdlen = int32(plen)
@@ -18765,11 +18721,13 @@ func (ed *Editor) cmdline_browse_history(c int32, firstc int32, curcmdstr *Ptr[b
 		}
 		ed.redrawcmd()
 		res = CMDLINE_CHANGED
-		goto done
+		*curcmdstr = lookfor
+		*curcmdstrlen = lookforlen
+		*hiscnt_p = hiscnt
+		return res
 	}
 	ed.beep_flush()
 	res = CMDLINE_NOT_CHANGED
-done:
 	*curcmdstr = lookfor
 	*curcmdstrlen = lookforlen
 	*hiscnt_p = hiscnt
@@ -18863,293 +18821,295 @@ func (ed *Editor) getcmdline_int(firstc int32, count int64, indent int32, clear_
 		ed.ccline = cmdline_info_T{}
 	}
 	ed.init_incsearch_state(&is_state)
-	if !ed.init_ccline(firstc, indent) {
-		goto theend
-	}
-	if ed.getcmdline_int_depth == 50 {
-		ed.emsg(gettext_(ed.e_command_too_recursive))
-		goto theend
-	}
-	ExpandInit(&xpc)
-	ed.ccline.xpc = &xpc
-	ed.clear_cmdline_orig()
-	if ed.cmd_silent == 0 {
-		i = ed.msg_scrolled
-		ed.msg_scrolled = 0
-		ed.gotocmdline(true)
-		ed.msg_scrolled += i
-		ed.redrawcmdprompt()
-		ed.set_cmdspos()
-	}
-	xpc.xp_context = EXPAND_NOTHING
-	xpc.xp_backslash = XP_BS_NONE
-	xpc.xp_shell = false
-	ed.msg_scroll = FALSE
-	ed.State = MODE_CMDLINE
-	ed.term_enter()
-	ed.init_history()
-	hiscnt = ed.get_hislen()
-	histype = hist_char2type(firstc)
-	if ed.did_emsg != 0 {
-		ed.redrawcmd()
-	}
-	ed.did_emsg = FALSE
-	ed.got_int = FALSE
 	for {
-		trigger_cmdlinechanged = true
-		prev_cmdpos = ed.ccline.cmdpos
-		prev_cmdbuff = Ptr[byte]{}
-		ed.quit_more = FALSE
-		ed.did_emsg = FALSE
-		if ((ed.ex_normal_busy == 0) && ed.stuff_empty()) && (ed.typebuf.tb_len == 0) {
-			some_key_typed = true
-		}
-		may_trigger_safestate(true)
-		if !ed.ccline.cmdbuff.Nil() {
-			prev_cmdbuff = vim_strsave(ed.ccline.cmdbuff)
-		}
-		for {
-			ed.cursorcmd()
-			c = ed.safe_vgetc()
-			if !((c == K_IGNORE) || (c == K_NOP)) {
-				break
-			}
-		}
-		ed.ccline.cmdbuff_replaced = false
-		if (c == K_COMMAND) || (c == K_SCRIPT_COMMAND) {
-			clen = ed.ccline.cmdlen
-			cc_count = ed.aucmd_cmdline_changed_count
-			if ed.do_cmdkey_command(c, DOCMD_NOWAIT) {
-				if (clen == ed.ccline.cmdlen) || (cc_count != ed.aucmd_cmdline_changed_count) {
-					trigger_cmdlinechanged = false
-				}
-				goto cmdline_changed
-			}
-		}
-		if ed.KeyTyped != 0 {
-			some_key_typed = true
-		}
-		if ((c == Ctrl_C) || (c == ed.intr_char)) && (ed.global_busy == 0) {
-			ed.got_int = FALSE
-		}
-		if ((((((((((!lookfor.Nil() && (c != K_S_DOWN)) && (c != K_S_UP)) && (c != K_DOWN)) && (c != K_UP)) && (c != K_PAGEDOWN)) && (c != K_PAGEUP)) && (c != K_KPAGEDOWN)) && (c != K_KPAGEUP)) && (c != K_LEFT)) && (c != K_RIGHT)) && ((xpc.xp_numfiles > 0) || ((c != Ctrl_P) && (c != Ctrl_N))) {
-			lookfor = Ptr[byte]{}
-			lookforlen = 0
-		}
-		if c == Ctrl_BSL {
-			res = ed.cmdline_handle_ctrl_bsl(&gotesc)
-			if res == CMDLINE_CHANGED {
-				goto cmdline_changed
-			} else if res == CMDLINE_NOT_CHANGED {
-				goto cmdline_not_changed
-			} else if res == GOTO_NORMAL_MODE {
-				goto returncmd
-			}
-			c = Ctrl_BSL
-		}
-		if (((c == 10) || (c == 13)) || (c == K_KENTER)) || ((c == ESC) && ((ed.KeyTyped == 0) || !ed.vim_strchr(ed.p_cpo, CPO_ESC).Nil())) {
-			gotesc = FALSE
-			if ed.cmd_silent == 0 {
-				ed.windgoto(ed.msg_row, ed.cmdline_col_off)
-				ed.out_flush()
-			}
+		if !ed.init_ccline(firstc, indent) {
 			break
 		}
-		gotesc = FALSE
-		if (c == NUL) || (c == -(KS_ZERO + (88 << 8))) {
-			c = NL
+		if ed.getcmdline_int_depth == 50 {
+			ed.emsg(gettext_(ed.e_command_too_recursive))
+			break
 		}
-		do_abbr = true
-		if (wild_type == WILD_CANCEL) || (wild_type == WILD_APPLY) {
+		ExpandInit(&xpc)
+		ed.ccline.xpc = &xpc
+		ed.clear_cmdline_orig()
+		if ed.cmd_silent == 0 {
+			i = ed.msg_scrolled
+			ed.msg_scrolled = 0
+			ed.gotocmdline(true)
+			ed.msg_scrolled += i
+			ed.redrawcmdprompt()
+			ed.set_cmdspos()
+		}
+		xpc.xp_context = EXPAND_NOTHING
+		xpc.xp_backslash = XP_BS_NONE
+		xpc.xp_shell = false
+		ed.msg_scroll = FALSE
+		ed.State = MODE_CMDLINE
+		ed.term_enter()
+		ed.init_history()
+		hiscnt = ed.get_hislen()
+		histype = hist_char2type(firstc)
+		if ed.did_emsg != 0 {
+			ed.redrawcmd()
+		}
+		ed.did_emsg = FALSE
+		ed.got_int = FALSE
+		for {
+			trigger_cmdlinechanged = true
+			prev_cmdpos = ed.ccline.cmdpos
+			prev_cmdbuff = Ptr[byte]{}
+			ed.quit_more = FALSE
+			ed.did_emsg = FALSE
+			if ((ed.ex_normal_busy == 0) && ed.stuff_empty()) && (ed.typebuf.tb_len == 0) {
+				some_key_typed = true
+			}
+			may_trigger_safestate(true)
+			if !ed.ccline.cmdbuff.Nil() {
+				prev_cmdbuff = vim_strsave(ed.ccline.cmdbuff)
+			}
+			for {
+				ed.cursorcmd()
+				c = ed.safe_vgetc()
+				if !((c == K_IGNORE) || (c == K_NOP)) {
+					break
+				}
+			}
+			ed.ccline.cmdbuff_replaced = false
+			if (c == K_COMMAND) || (c == K_SCRIPT_COMMAND) {
+				clen = ed.ccline.cmdlen
+				cc_count = ed.aucmd_cmdline_changed_count
+				if ed.do_cmdkey_command(c, DOCMD_NOWAIT) {
+					if (clen == ed.ccline.cmdlen) || (cc_count != ed.aucmd_cmdline_changed_count) {
+						trigger_cmdlinechanged = false
+					}
+					goto cmdline_changed
+				}
+			}
+			if ed.KeyTyped != 0 {
+				some_key_typed = true
+			}
+			if ((c == Ctrl_C) || (c == ed.intr_char)) && (ed.global_busy == 0) {
+				ed.got_int = FALSE
+			}
+			if ((((((((((!lookfor.Nil() && (c != K_S_DOWN)) && (c != K_S_UP)) && (c != K_DOWN)) && (c != K_UP)) && (c != K_PAGEDOWN)) && (c != K_PAGEUP)) && (c != K_KPAGEDOWN)) && (c != K_KPAGEUP)) && (c != K_LEFT)) && (c != K_RIGHT)) && ((xpc.xp_numfiles > 0) || ((c != Ctrl_P) && (c != Ctrl_N))) {
+				lookfor = Ptr[byte]{}
+				lookforlen = 0
+			}
+			if c == Ctrl_BSL {
+				res = ed.cmdline_handle_ctrl_bsl(&gotesc)
+				if res == CMDLINE_CHANGED {
+					goto cmdline_changed
+				} else if res == CMDLINE_NOT_CHANGED {
+					goto cmdline_not_changed
+				} else if res == GOTO_NORMAL_MODE {
+					break
+				}
+				c = Ctrl_BSL
+			}
+			if (((c == 10) || (c == 13)) || (c == K_KENTER)) || ((c == ESC) && ((ed.KeyTyped == 0) || !ed.vim_strchr(ed.p_cpo, CPO_ESC).Nil())) {
+				gotesc = FALSE
+				if ed.cmd_silent == 0 {
+					ed.windgoto(ed.msg_row, ed.cmdline_col_off)
+					ed.out_flush()
+				}
+				break
+			}
+			gotesc = FALSE
+			if (c == NUL) || (c == -(KS_ZERO + (88 << 8))) {
+				c = NL
+			}
+			do_abbr = true
+			if (wild_type == WILD_CANCEL) || (wild_type == WILD_APPLY) {
+				if (ed.KeyTyped != 0) || (ed.vpeekc() == NUL) {
+					ed.may_do_incsearch_highlighting(firstc, count, &is_state)
+				}
+				wild_type = 0
+				goto cmdline_not_changed
+			}
+			switch c {
+			case K_BS, Ctrl_H, K_DEL, K_KDEL, Ctrl_W:
+				res = ed.cmdline_erase_chars(c, indent, &is_state)
+				if res == CMDLINE_NOT_CHANGED {
+					goto cmdline_not_changed
+				} else if res == GOTO_NORMAL_MODE {
+					goto returncmd
+				}
+				goto cmdline_changed
+			case K_INS, K_KINS:
+				ed.ccline.overstrike = !ed.ccline.overstrike
+				ed.status_redraw_curbuf()
+				ed.redraw_statuslines()
+				goto cmdline_not_changed
+			case Ctrl_HAT:
+				goto cmdline_not_changed
+			case Ctrl_U:
+				j = ed.ccline.cmdpos
+				ed.ccline.cmdlen -= j
+				ed.ccline.cmdpos = 0
+				i = ed.ccline.cmdpos
+				for i < ed.ccline.cmdlen {
+					t1 = i
+					i++
+					t2 = j
+					j++
+					ed.ccline.cmdbuff.Set(int(t1), ed.ccline.cmdbuff.At(int(t2)))
+				}
+				ed.ccline.cmdbuff.Set(int(ed.ccline.cmdlen), NUL)
+				if ed.ccline.cmdlen == 0 {
+					is_state.search_start = is_state.save_cursor
+				}
+				ed.redrawcmd()
+				goto cmdline_changed
+			case ESC, Ctrl_C:
+				gotesc = TRUE
+				goto returncmd
+			case Ctrl_R:
+				res = ed.cmdline_insert_reg(&gotesc)
+				if res == GOTO_NORMAL_MODE {
+					goto returncmd
+				}
+				if res == CMDLINE_CHANGED {
+					goto cmdline_changed
+				}
+				goto cmdline_not_changed
+			case K_RIGHT, K_TC_PCT_i, K_C_RIGHT:
+				for {
+					if ed.ccline.cmdpos >= ed.ccline.cmdlen {
+						break
+					}
+					i = ed.cmdline_charsize(ed.ccline.cmdpos)
+					if (ed.KeyTyped != 0) && (int64(ed.ccline.cmdspos+i) >= (int64(ed.cmdline_width) * ed.Rows)) {
+						break
+					}
+					ed.ccline.cmdspos += i
+					ed.ccline.cmdpos += ed.utfc_ptr2len(ed.ccline.cmdbuff.Add(int(ed.ccline.cmdpos)))
+					if !((((c == K_TC_PCT_i) || (c == K_C_RIGHT)) || ((ed.mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL)) != 0)) && (int32(ed.ccline.cmdbuff.At(int(ed.ccline.cmdpos))) != (' '))) {
+						break
+					}
+				}
+				ed.set_cmdspos_cursor()
+				goto cmdline_not_changed
+			case K_LEFT, K_TC_HASH_4, K_C_LEFT:
+				if ed.ccline.cmdpos == 0 {
+					goto cmdline_not_changed
+				}
+				for {
+					ed.ccline.cmdpos--
+					ed.ccline.cmdpos -= ed.utf_head_off(ed.ccline.cmdbuff, ed.ccline.cmdbuff.Add(int(ed.ccline.cmdpos)))
+					ed.ccline.cmdspos -= ed.cmdline_charsize(ed.ccline.cmdpos)
+					if !(((ed.ccline.cmdpos > 0) && (((c == K_TC_HASH_4) || (c == K_C_LEFT)) || ((ed.mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL)) != 0))) && (int32(ed.ccline.cmdbuff.At(int(ed.ccline.cmdpos-1))) != (' '))) {
+						break
+					}
+				}
+				ed.set_cmdspos_cursor()
+				goto cmdline_not_changed
+			case K_IGNORE:
+				goto cmdline_not_changed
+			case -(KS_SELECT + (88 << 8)):
+				goto cmdline_not_changed
+			case Ctrl_B, K_HOME, K_KHOME, K_TC_HASH_2, K_C_HOME:
+				ed.ccline.cmdpos = 0
+				ed.set_cmdspos()
+				goto cmdline_not_changed
+			case Ctrl_E, K_END, K_KEND, K_TC_STAR_7, K_C_END:
+				ed.ccline.cmdpos = ed.ccline.cmdlen
+				ed.set_cmdspos_cursor()
+				goto cmdline_not_changed
+			case Ctrl_L:
+				if ed.may_add_char_to_search(firstc, &c, &is_state) {
+					goto cmdline_not_changed
+				}
+			case Ctrl_N, Ctrl_P:
+				fallthrough
+			case K_UP, K_DOWN, K_S_UP, K_S_DOWN, K_PAGEUP, K_KPAGEUP, K_PAGEDOWN, K_KPAGEDOWN:
+				res = ed.cmdline_browse_history(c, firstc, &lookfor, &lookforlen, histype, &hiscnt, &xpc)
+				if res == CMDLINE_CHANGED {
+					goto cmdline_changed
+				} else if res == GOTO_NORMAL_MODE {
+					goto returncmd
+				}
+				goto cmdline_not_changed
+			case Ctrl_G, Ctrl_T:
+				if !ed.may_adjust_incsearch_highlighting(firstc, count, &is_state, c) {
+					goto cmdline_not_changed
+				}
+			case Ctrl_V, Ctrl_Q:
+				ed.putcmdline('^', TRUE)
+				c = ed.get_literal(ed.mod_mask & MOD_MASK_SHIFT)
+				do_abbr = false
+				ed.extra_char = NUL
+				if ed.utf_iscomposing(c) && (ed.cmd_silent == 0) {
+					ed.draw_cmdline(ed.ccline.cmdpos, ed.ccline.cmdlen-ed.ccline.cmdpos)
+					ed.msg_putchar(' ')
+					ed.cursorcmd()
+				}
+			case K_PASTESTART:
+				ed.bracketed_paste(PASTE_CMDLINE, false, nil)
+				goto cmdline_changed
+			default:
+				if c == ed.intr_char {
+					gotesc = TRUE
+					goto returncmd
+				}
+				if !(c < 0) {
+					ed.mod_mask = 0x0
+				}
+			}
+			if (do_abbr && ((c < 0) || !ed.vim_iswordc(c))) && (c == Ctrl_RSB) {
+				goto cmdline_changed
+			}
+			if (c < 0) || (ed.mod_mask != 0) {
+				ed.put_on_cmdline(ed.get_special_key_name(c, ed.mod_mask), -1, true)
+			} else {
+				j = utf_char2bytes(c, ed.IObuff)
+				ed.IObuff.Set(int(j), NUL)
+				ed.put_on_cmdline(ed.IObuff, j, true)
+			}
+			goto cmdline_changed
+		cmdline_not_changed:
+			if ed.ccline.cmdpos != prev_cmdpos {
+				prev_cmdpos = ed.ccline.cmdpos
+			}
+			if !is_state.incsearch_postponed {
+				continue
+			}
+		cmdline_changed:
 			if (ed.KeyTyped != 0) || (ed.vpeekc() == NUL) {
 				ed.may_do_incsearch_highlighting(firstc, count, &is_state)
 			}
-			wild_type = 0
-			goto cmdline_not_changed
+			if trigger_cmdlinechanged && ((ed.ccline.cmdpos != prev_cmdpos) || (!prev_cmdbuff.Nil() && (musl_strcmp(prev_cmdbuff, ed.ccline.cmdbuff) != 0))) {
+			}
 		}
-		switch c {
-		case K_BS, Ctrl_H, K_DEL, K_KDEL, Ctrl_W:
-			res = ed.cmdline_erase_chars(c, indent, &is_state)
-			if res == CMDLINE_NOT_CHANGED {
-				goto cmdline_not_changed
-			} else if res == GOTO_NORMAL_MODE {
-				goto returncmd
-			}
-			goto cmdline_changed
-		case K_INS, K_KINS:
-			ed.ccline.overstrike = !ed.ccline.overstrike
-			ed.status_redraw_curbuf()
-			ed.redraw_statuslines()
-			goto cmdline_not_changed
-		case Ctrl_HAT:
-			goto cmdline_not_changed
-		case Ctrl_U:
-			j = ed.ccline.cmdpos
-			ed.ccline.cmdlen -= j
-			ed.ccline.cmdpos = 0
-			i = ed.ccline.cmdpos
-			for i < ed.ccline.cmdlen {
-				t1 = i
-				i++
-				t2 = j
-				j++
-				ed.ccline.cmdbuff.Set(int(t1), ed.ccline.cmdbuff.At(int(t2)))
-			}
-			ed.ccline.cmdbuff.Set(int(ed.ccline.cmdlen), NUL)
-			if ed.ccline.cmdlen == 0 {
-				is_state.search_start = is_state.save_cursor
-			}
-			ed.redrawcmd()
-			goto cmdline_changed
-		case ESC, Ctrl_C:
-			gotesc = TRUE
-			goto returncmd
-		case Ctrl_R:
-			res = ed.cmdline_insert_reg(&gotesc)
-			if res == GOTO_NORMAL_MODE {
-				goto returncmd
-			}
-			if res == CMDLINE_CHANGED {
-				goto cmdline_changed
-			}
-			goto cmdline_not_changed
-		case K_RIGHT, K_TC_PCT_i, K_C_RIGHT:
-			for {
-				if ed.ccline.cmdpos >= ed.ccline.cmdlen {
-					break
+	returncmd:
+		ExpandCleanup(&xpc)
+		ed.ccline.xpc = nil
+		ed.clear_cmdline_orig()
+		ed.finish_incsearch_highlighting(gotesc, &is_state, false)
+		if !ed.ccline.cmdbuff.Nil() {
+			if ((ed.ccline.cmdlen != 0) && (firstc != NUL)) && (some_key_typed || (histype == HIST_SEARCH)) {
+				if histype == HIST_SEARCH {
+					t3 = firstc
+				} else {
+					t3 = NUL
 				}
-				i = ed.cmdline_charsize(ed.ccline.cmdpos)
-				if (ed.KeyTyped != 0) && (int64(ed.ccline.cmdspos+i) >= (int64(ed.cmdline_width) * ed.Rows)) {
-					break
-				}
-				ed.ccline.cmdspos += i
-				ed.ccline.cmdpos += ed.utfc_ptr2len(ed.ccline.cmdbuff.Add(int(ed.ccline.cmdpos)))
-				if !((((c == K_TC_PCT_i) || (c == K_C_RIGHT)) || ((ed.mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL)) != 0)) && (int32(ed.ccline.cmdbuff.At(int(ed.ccline.cmdpos))) != (' '))) {
-					break
+				ed.add_to_history(histype, ed.ccline.cmdbuff, usize(ed.ccline.cmdlen), true, t3)
+				if firstc == ':' {
+					ed.new_last_cmdline = vim_strnsave(ed.ccline.cmdbuff, usize(ed.ccline.cmdlen))
 				}
 			}
-			ed.set_cmdspos_cursor()
-			goto cmdline_not_changed
-		case K_LEFT, K_TC_HASH_4, K_C_LEFT:
-			if ed.ccline.cmdpos == 0 {
-				goto cmdline_not_changed
-			}
-			for {
-				ed.ccline.cmdpos--
-				ed.ccline.cmdpos -= ed.utf_head_off(ed.ccline.cmdbuff, ed.ccline.cmdbuff.Add(int(ed.ccline.cmdpos)))
-				ed.ccline.cmdspos -= ed.cmdline_charsize(ed.ccline.cmdpos)
-				if !(((ed.ccline.cmdpos > 0) && (((c == K_TC_HASH_4) || (c == K_C_LEFT)) || ((ed.mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL)) != 0))) && (int32(ed.ccline.cmdbuff.At(int(ed.ccline.cmdpos-1))) != (' '))) {
-					break
-				}
-			}
-			ed.set_cmdspos_cursor()
-			goto cmdline_not_changed
-		case K_IGNORE:
-			goto cmdline_not_changed
-		case -(KS_SELECT + (88 << 8)):
-			goto cmdline_not_changed
-		case Ctrl_B, K_HOME, K_KHOME, K_TC_HASH_2, K_C_HOME:
-			ed.ccline.cmdpos = 0
-			ed.set_cmdspos()
-			goto cmdline_not_changed
-		case Ctrl_E, K_END, K_KEND, K_TC_STAR_7, K_C_END:
-			ed.ccline.cmdpos = ed.ccline.cmdlen
-			ed.set_cmdspos_cursor()
-			goto cmdline_not_changed
-		case Ctrl_L:
-			if ed.may_add_char_to_search(firstc, &c, &is_state) {
-				goto cmdline_not_changed
-			}
-		case Ctrl_N, Ctrl_P:
-			fallthrough
-		case K_UP, K_DOWN, K_S_UP, K_S_DOWN, K_PAGEUP, K_KPAGEUP, K_PAGEDOWN, K_KPAGEDOWN:
-			res = ed.cmdline_browse_history(c, firstc, &lookfor, &lookforlen, histype, &hiscnt, &xpc)
-			if res == CMDLINE_CHANGED {
-				goto cmdline_changed
-			} else if res == GOTO_NORMAL_MODE {
-				goto returncmd
-			}
-			goto cmdline_not_changed
-		case Ctrl_G, Ctrl_T:
-			if !ed.may_adjust_incsearch_highlighting(firstc, count, &is_state, c) {
-				goto cmdline_not_changed
-			}
-		case Ctrl_V, Ctrl_Q:
-			ed.putcmdline('^', TRUE)
-			c = ed.get_literal(ed.mod_mask & MOD_MASK_SHIFT)
-			do_abbr = false
-			ed.extra_char = NUL
-			if ed.utf_iscomposing(c) && (ed.cmd_silent == 0) {
-				ed.draw_cmdline(ed.ccline.cmdpos, ed.ccline.cmdlen-ed.ccline.cmdpos)
-				ed.msg_putchar(' ')
-				ed.cursorcmd()
-			}
-		case K_PASTESTART:
-			ed.bracketed_paste(PASTE_CMDLINE, false, nil)
-			goto cmdline_changed
-		default:
-			if c == ed.intr_char {
-				gotesc = TRUE
-				goto returncmd
-			}
-			if !(c < 0) {
-				ed.mod_mask = 0x0
+			if gotesc != 0 {
+				ed.abandon_cmdline()
 			}
 		}
-		if (do_abbr && ((c < 0) || !ed.vim_iswordc(c))) && (c == Ctrl_RSB) {
-			goto cmdline_changed
+		ed.msg_check()
+		ed.msg_scroll = save_msg_scroll
+		if some_key_typed {
+			ed.need_wait_return = FALSE
 		}
-		if (c < 0) || (ed.mod_mask != 0) {
-			ed.put_on_cmdline(ed.get_special_key_name(c, ed.mod_mask), -1, true)
-		} else {
-			j = utf_char2bytes(c, ed.IObuff)
-			ed.IObuff.Set(int(j), NUL)
-			ed.put_on_cmdline(ed.IObuff, j, true)
-		}
-		goto cmdline_changed
-	cmdline_not_changed:
-		if ed.ccline.cmdpos != prev_cmdpos {
-			prev_cmdpos = ed.ccline.cmdpos
-		}
-		if !is_state.incsearch_postponed {
-			continue
-		}
-	cmdline_changed:
-		if (ed.KeyTyped != 0) || (ed.vpeekc() == NUL) {
-			ed.may_do_incsearch_highlighting(firstc, count, &is_state)
-		}
-		if trigger_cmdlinechanged && ((ed.ccline.cmdpos != prev_cmdpos) || (!prev_cmdbuff.Nil() && (musl_strcmp(prev_cmdbuff, ed.ccline.cmdbuff) != 0))) {
-		}
+		ed.State = save_State
+		ed.sb_text_end_cmdline()
+		break
 	}
-returncmd:
-	ExpandCleanup(&xpc)
-	ed.ccline.xpc = nil
-	ed.clear_cmdline_orig()
-	ed.finish_incsearch_highlighting(gotesc, &is_state, false)
-	if !ed.ccline.cmdbuff.Nil() {
-		if ((ed.ccline.cmdlen != 0) && (firstc != NUL)) && (some_key_typed || (histype == HIST_SEARCH)) {
-			if histype == HIST_SEARCH {
-				t3 = firstc
-			} else {
-				t3 = NUL
-			}
-			ed.add_to_history(histype, ed.ccline.cmdbuff, usize(ed.ccline.cmdlen), true, t3)
-			if firstc == ':' {
-				ed.new_last_cmdline = vim_strnsave(ed.ccline.cmdbuff, usize(ed.ccline.cmdlen))
-			}
-		}
-		if gotesc != 0 {
-			ed.abandon_cmdline()
-		}
-	}
-	ed.msg_check()
-	ed.msg_scroll = save_msg_scroll
-	if some_key_typed {
-		ed.need_wait_return = FALSE
-	}
-	ed.State = save_State
-	ed.sb_text_end_cmdline()
-theend:
 	p = ed.ccline.cmdbuff
 	ed.getcmdline_int_depth--
 	if did_save_ccline {
@@ -20529,40 +20489,35 @@ func (ed *Editor) del_typebuf(len_ int32, offset int32) {
 }
 
 func (ed *Editor) gotchars_add_byte(state *gotchars_state_T, byte_ char_u) bool {
-	var c int32
-	var t1 usize
-	var retval bool
-	var in_special bool
-	var in_mbyte bool
-	var t2 int32
-	var t3 int32
-	var t4 int32
-
-	t1 = state.buflen
+	var t1 usize = state.buflen
 	state.buflen++
 	state.buf[int(t1)] = byte_
-	c = int32(state.buf[int(t1)])
-	retval = false
-	in_special = state.pending_special > 0
-	in_mbyte = state.pending_mbyte > 0
+	var c int32 = int32(state.buf[int(t1)])
+	var retval bool = false
+	in_special := state.pending_special > 0
+	in_mbyte := state.pending_mbyte > 0
 	if in_special {
 		state.pending_special--
 	} else if c == 0x80 {
 		state.pending_special = 2
 	}
 	if state.pending_special > 0 {
-		goto ret_false
+		state.prev_c = c
+		return (retval)
 	}
 	if in_mbyte {
 		state.pending_mbyte--
 	} else {
 		if in_special {
 			if state.prev_c == KS_MODIFIER {
-				goto ret_false
+				state.prev_c = c
+				return (retval)
 			}
+			var t3 int32
 			if state.prev_c == KS_SPECIAL {
 				t3 = 0x80
 			} else {
+				var t2 int32
 				if state.prev_c == KS_ZERO {
 					t2 = -(KS_ZERO + (88 << 8))
 				} else {
@@ -20575,6 +20530,7 @@ func (ed *Editor) gotchars_add_byte(state *gotchars_state_T, byte_ char_u) bool 
 				state.buflen = 0
 			}
 		}
+		var t4 int32
 		if (c < 0) || (c > 255) {
 			t4 = 1
 		} else {
@@ -20583,10 +20539,10 @@ func (ed *Editor) gotchars_add_byte(state *gotchars_state_T, byte_ char_u) bool 
 		state.pending_mbyte = uint32(t4 - 1)
 	}
 	if state.pending_mbyte > 0 {
-		goto ret_false
+		state.prev_c = c
+		return (retval)
 	}
 	retval = true
-ret_false:
 	state.prev_c = c
 	return (retval)
 }
@@ -23243,32 +23199,19 @@ func (ed *Editor) pop_highlight_overrides() {
 }
 
 func (ed *Editor) parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byte]) Ptr[hl_override_T] {
-	var p Ptr[byte]
-	var arr Ptr[hl_override_T]
-	var i int32
-	var num int32
-	var n_colons int32
-	var override *hl_override_T
-	var t1 int32
-	var fromname Ptr[byte]
 	var toname Ptr[byte]
 	var tmp Ptr[byte]
-	var names [2]*Ptr[byte]
 	var fromlen int32
 	var tolen int32
-	var lens [2]*int32
 	var fromid int32
 	var toid int32
-	var ids [2]*int32
-	var k int32
-	var name Ptr[byte]
-	var nlen int32
 	var hlf int32
 
-	p = opt
-	i = 0
-	num = 1
-	n_colons = 0
+	p := opt
+	var arr Ptr[hl_override_T]
+	var i int32 = 0
+	var num int32 = 1
+	var n_colons int32 = 0
 	if int32(p.Get()) == NUL {
 		return Ptr[hl_override_T]{}
 	}
@@ -23296,24 +23239,27 @@ func (ed *Editor) parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byt
 	arr = Mk[hl_override_T](int(num))
 	p = opt
 	for {
-		t1 = i
+		var t1 int32 = i
 		i++
-		override = arr.Ref(int(t1))
-		fromname = p
-		names = [2]*Ptr[byte]{&fromname, &toname}
-		lens = [2]*int32{&fromlen, &tolen}
-		ids = [2]*int32{&fromid, &toid}
+		var override *hl_override_T = arr.Ref(int(t1))
+		fromname := p
+		var names [2]*Ptr[byte] = [2]*Ptr[byte]{&fromname, &toname}
+		var lens [2]*int32 = [2]*int32{&fromlen, &tolen}
+		var ids [2]*int32 = [2]*int32{&fromid, &toid}
 		p = ed.vim_strchr(p, ':')
 		if p.Nil() {
-			goto fail
+			*errmsg = ed.e_invalid_argument
+			return Ptr[hl_override_T]{}
 		}
 		fromlen = int32(int64(p.Sub(fromname)))
 		if fromlen == 0 {
-			goto fail
+			*errmsg = ed.e_invalid_argument
+			return Ptr[hl_override_T]{}
 		}
 		p = p.Add(1)
 		if int32(p.Get()) == NUL {
-			goto fail
+			*errmsg = ed.e_invalid_argument
+			return Ptr[hl_override_T]{}
 		}
 		toname = p
 		tmp = ed.vim_strchr(p, ',')
@@ -23325,15 +23271,17 @@ func (ed *Editor) parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byt
 			p = tmp
 		}
 		if tolen == 0 {
-			goto fail
+			*errmsg = ed.e_invalid_argument
+			return Ptr[hl_override_T]{}
 		}
-		k = 0
+		var k int32 = 0
 		for ; k < 2; k++ {
-			name = (*names[int(k)])
-			nlen = (*lens[int(k)])
+			name := (*names[int(k)])
+			nlen := (*lens[int(k)])
 			if int32(name.Get()) == '!' {
 				if nlen != 2 {
-					goto fail
+					*errmsg = ed.e_invalid_argument
+					return Ptr[hl_override_T]{}
 				}
 				hlf = 0
 				for ; hlf < 70; hlf++ {
@@ -23342,16 +23290,19 @@ func (ed *Editor) parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byt
 					}
 				}
 				if hlf >= HLF_COUNT {
-					goto fail
+					*errmsg = ed.e_invalid_argument
+					return Ptr[hl_override_T]{}
 				}
 				*ids[int(k)] = -hlf
 			} else {
 				if ed.syn_check_group(name, nlen) == 0 {
-					goto fail
+					*errmsg = ed.e_invalid_argument
+					return Ptr[hl_override_T]{}
 				}
 				*ids[int(k)] = ed.syn_namen2id(name, nlen)
 				if (*ids[int(k)]) == 0 {
-					goto fail
+					*errmsg = ed.e_invalid_argument
+					return Ptr[hl_override_T]{}
 				}
 				if (ids[int(k)] == &fromid) && (musl_strcmp(GaData[hl_group_T](&ed.highlight_ga).Ref(int((*ids[int(k)])-1)).sg_name_u, S("NORMAL")) == 0) {
 					*ids[int(k)] = -HLF_WIN
@@ -23366,9 +23317,6 @@ func (ed *Editor) parse_winhighlight(opt Ptr[byte], len_ *int32, errmsg *Ptr[byt
 	}
 	*len_ = num
 	return arr
-fail:
-	*errmsg = ed.e_invalid_argument
-	return Ptr[hl_override_T]{}
 }
 
 func (ed *Editor) update_winhighlight(wp *S_window_S, opt Ptr[byte]) Ptr[byte] {
@@ -24056,10 +24004,8 @@ func map_mode_to_chars(mode int32) Ptr[byte] {
 }
 
 func (ed *Editor) showmap(mp *S_mapblock, local bool) {
-	var len_ int32
+	var len_ int32 = 1
 	var mapchars Ptr[byte]
-
-	len_ = 1
 	if ed.message_filtered(mp.m_keys) && ed.message_filtered(mp.m_str) {
 		return
 	}
@@ -24067,7 +24013,8 @@ func (ed *Editor) showmap(mp *S_mapblock, local bool) {
 	if (ed.msg_didout != 0) || (ed.msg_silent != 0) {
 		ed.msg_putchar(10)
 		if ed.got_int != 0 {
-			goto theend
+			ed.map_locked--
+			return
 		}
 	}
 	mapchars = map_mode_to_chars(mp.m_mode)
@@ -24109,7 +24056,6 @@ func (ed *Editor) showmap(mp *S_mapblock, local bool) {
 	}
 	ed.msg_clr_eos()
 	ed.out_flush()
-theend:
 	ed.map_locked--
 }
 
@@ -27139,11 +27085,9 @@ func (ed *Editor) mb_off_next(base Ptr[byte], p Ptr[byte]) int32 {
 }
 
 func (ed *Editor) utf_find_illegal() {
-	var pos pos_T
+	pos := ed.curwin.w_cursor
 	var p Ptr[byte]
 	var len_ int32
-
-	pos = ed.curwin.w_cursor
 	ed.curwin.w_cursor.coladd = 0
 	for {
 		p = ed.ml_get_cursor()
@@ -27152,7 +27096,7 @@ func (ed *Editor) utf_find_illegal() {
 			if (int32(p.Get()) >= 0x80) && ((len_ == 1) || (utf_char2len(ed.utf_ptr2char(p)) != len_)) {
 				ed.curwin.w_cursor.col += int32(int64(p.Sub(ed.ml_get_cursor())))
 				ed.curwin.w_set_curswant = true
-				goto theend
+				return
 			}
 			p = p.Add(int(len_))
 		}
@@ -27164,7 +27108,6 @@ func (ed *Editor) utf_find_illegal() {
 	}
 	ed.curwin.w_cursor = pos
 	ed.beep_flush()
-theend:
 }
 
 func (ed *Editor) mb_adjust_cursor() {
@@ -27915,7 +27858,6 @@ func (ed *Editor) ml_find_line(buf *S_file_buffer, lnum linenr_T, action int32) 
 	var high linenr_T
 	var top int32
 	var idx int32
-
 	if buf.b_ml.ml_locked != nil {
 		if (((action & 0x10) != 0) && (buf.b_ml.ml_locked_low <= lnum)) && (buf.b_ml.ml_locked_high >= lnum) {
 			if action == ML_INSERT {
@@ -27973,11 +27915,11 @@ func (ed *Editor) ml_find_line(buf *S_file_buffer, lnum linenr_T, action int32) 
 		pp = hp.bh_ptr
 		if int32(hp.bh_id) != (('p' << 8) + 't') {
 			ed.iemsg(ed.e_pointer_block_id_wrong)
-			goto error_block
+			break
 		}
 		top = ml_add_stack(buf)
 		if top < 0 {
-			goto error_block
+			break
 		}
 		ip = &buf.b_ml.ml_stack[int(top)]
 		ip.ip_block = bp
@@ -28003,7 +27945,7 @@ func (ed *Editor) ml_find_line(buf *S_file_buffer, lnum linenr_T, action int32) 
 			} else {
 				ed.iemsg(ed.e_line_count_wrong_in_block)
 			}
-			goto error_block
+			break
 		}
 		if action == ML_DELETE {
 			pp.pb_pointer[int(idx)].pe_line_count--
@@ -28011,7 +27953,6 @@ func (ed *Editor) ml_find_line(buf *S_file_buffer, lnum linenr_T, action int32) 
 			pp.pb_pointer[int(idx)].pe_line_count++
 		}
 	}
-error_block:
 	if action == ML_DELETE {
 		ed.ml_lineadd(buf, 1)
 	} else if action == ML_INSERT {
@@ -32960,44 +32901,44 @@ func (ed *Editor) check_text_or_curbuf_locked(oap *S_oparg_S) bool {
 }
 
 func (ed *Editor) normal_cmd_get_count(cap_ *S_cmdarg_S, c int32, toplevel bool, set_prevcount bool, ctrl_w *int32, need_flushbuf *int32) int32 {
-	var t1 int64
-
-getcount:
-	if !((ed.VIsual_active != 0) && (ed.VIsual_select != 0)) {
-		for ((c >= '1') && (c <= '9')) || ((cap_.count0 != 0) && (((c == K_DEL) || (c == K_KDEL)) || (c == '0'))) {
-			if (c == K_DEL) || (c == K_KDEL) {
-				cap_.count0 /= 10
-				ed.del_from_showcmd(4)
-			} else if cap_.count0 > 99999999 {
-				cap_.count0 = 999999999
-			} else {
-				cap_.count0 = (cap_.count0 * 10) + int64((c - '0'))
+	for {
+		if !((ed.VIsual_active != 0) && (ed.VIsual_select != 0)) {
+			for ((c >= '1') && (c <= '9')) || ((cap_.count0 != 0) && (((c == K_DEL) || (c == K_KDEL)) || (c == '0'))) {
+				if (c == K_DEL) || (c == K_KDEL) {
+					cap_.count0 /= 10
+					ed.del_from_showcmd(4)
+				} else if cap_.count0 > 99999999 {
+					cap_.count0 = 999999999
+				} else {
+					cap_.count0 = (cap_.count0 * 10) + int64((c - '0'))
+				}
+				if (*ctrl_w) != 0 {
+					ed.no_mapping++
+					ed.allow_keys++
+				}
+				ed.no_zero_mapping++
+				c = ed.plain_vgetc()
+				ed.no_zero_mapping--
+				if (*ctrl_w) != 0 {
+					ed.no_mapping--
+					ed.allow_keys--
+				}
+				(*need_flushbuf) |= B2i(ed.add_to_showcmd(c))
 			}
-			if (*ctrl_w) != 0 {
+			if ((c == Ctrl_W) && ((*ctrl_w) == 0)) && (cap_.oap.op_type == OP_NOP) {
+				*ctrl_w = TRUE
+				cap_.opcount = cap_.count0
+				cap_.count0 = 0
 				ed.no_mapping++
 				ed.allow_keys++
-			}
-			ed.no_zero_mapping++
-			c = ed.plain_vgetc()
-			ed.no_zero_mapping--
-			if (*ctrl_w) != 0 {
+				c = ed.plain_vgetc()
 				ed.no_mapping--
 				ed.allow_keys--
+				(*need_flushbuf) |= B2i(ed.add_to_showcmd(c))
+				continue
 			}
-			(*need_flushbuf) |= B2i(ed.add_to_showcmd(c))
 		}
-		if ((c == Ctrl_W) && ((*ctrl_w) == 0)) && (cap_.oap.op_type == OP_NOP) {
-			*ctrl_w = TRUE
-			cap_.opcount = cap_.count0
-			cap_.count0 = 0
-			ed.no_mapping++
-			ed.allow_keys++
-			c = ed.plain_vgetc()
-			ed.no_mapping--
-			ed.allow_keys--
-			(*need_flushbuf) |= B2i(ed.add_to_showcmd(c))
-			goto getcount
-		}
+		break
 	}
 	if c == K_CURSORHOLD {
 		cap_.oap.prev_opcount = cap_.opcount
@@ -33014,6 +32955,7 @@ getcount:
 		}
 	}
 	cap_.opcount = cap_.count0
+	var t1 int64
 	if cap_.count0 == 0 {
 		t1 = 1
 	} else {
@@ -33174,21 +33116,14 @@ func (ed *Editor) normal_cmd_wait_for_msg() {
 func (ed *Editor) normal_cmd(oap *S_oparg_S, toplevel bool) {
 	var ca S_cmdarg_S
 	var c int32
-	var ctrl_w int32
-	var old_col int32
-	var need_flushbuf int32
+	var ctrl_w int32 = FALSE
+	var old_col int32 = ed.curwin.w_curswant
+	var need_flushbuf int32 = FALSE
 	var old_pos pos_T
 	var mapped_len int32
 	var idx int32
-	var set_prevcount bool
-	var save_did_cursorhold int32
-	var len_ int32
-
-	ctrl_w = FALSE
-	old_col = ed.curwin.w_curswant
-	need_flushbuf = FALSE
-	set_prevcount = false
-	save_did_cursorhold = ed.did_cursorhold
+	var set_prevcount bool = false
+	save_did_cursorhold := ed.did_cursorhold
 	ca = S_cmdarg_S{}
 	ca.oap = oap
 	ca.opcount = ed.opcount
@@ -33214,7 +33149,7 @@ func (ed *Editor) normal_cmd(oap *S_oparg_S, toplevel bool) {
 		c = -(KS_ZERO + (88 << 8))
 	}
 	if ((ed.VIsual_active != 0) && (ed.VIsual_select != 0)) && (((ed.vim_isprintc(c) || (c == NL)) || (c == CAR)) || (c == K_KENTER)) {
-		len_ = ed.ins_char_typebuf(ed.vgetc_char, ed.vgetc_mod_mask)
+		var len_ int32 = ed.ins_char_typebuf(ed.vgetc_char, ed.vgetc_mod_mask)
 		if ed.KeyTyped != 0 {
 			ed.ungetchars(len_)
 		}
@@ -33238,82 +33173,84 @@ func (ed *Editor) normal_cmd(oap *S_oparg_S, toplevel bool) {
 		ca.cmdchar = c
 	}
 	idx = ed.find_command(ca.cmdchar)
-	if idx < 0 {
-		ed.clearopbeep(oap)
-		goto normal_end
-	}
-	if ((int32(ed.nv_cmds[int(idx)].cmd_flags) & NV_NCW) != 0) && ed.check_text_or_curbuf_locked(oap) {
-		goto normal_end
-	}
-	if ed.VIsual_active != 0 {
-		if ((ed.km_stopsel != 0) && ((int32(ed.nv_cmds[int(idx)].cmd_flags) & NV_STS) != 0)) && ((ed.mod_mask & MOD_MASK_SHIFT) == 0) {
-			ed.end_visual_mode()
-			ed.redraw_curbuf_later(UPD_INVERTED)
+	for {
+		if idx < 0 {
+			ed.clearopbeep(oap)
+			break
 		}
-		if ed.km_startsel != 0 {
+		if ((int32(ed.nv_cmds[int(idx)].cmd_flags) & NV_NCW) != 0) && ed.check_text_or_curbuf_locked(oap) {
+			break
+		}
+		if ed.VIsual_active != 0 {
+			if ((ed.km_stopsel != 0) && ((int32(ed.nv_cmds[int(idx)].cmd_flags) & NV_STS) != 0)) && ((ed.mod_mask & MOD_MASK_SHIFT) == 0) {
+				ed.end_visual_mode()
+				ed.redraw_curbuf_later(UPD_INVERTED)
+			}
+			if ed.km_startsel != 0 {
+				if int32(ed.nv_cmds[int(idx)].cmd_flags)&NV_SS != 0 {
+					ed.unshift_special(&ca)
+					idx = ed.find_command(ca.cmdchar)
+					if idx < 0 {
+						ed.clearopbeep(oap)
+						break
+					}
+				} else if ((int32(ed.nv_cmds[int(idx)].cmd_flags) & NV_SSS) != 0) && ((ed.mod_mask & MOD_MASK_SHIFT) != 0) {
+					ed.mod_mask &= ^MOD_MASK_SHIFT
+				}
+			}
+		}
+		if ed.normal_cmd_needs_more_chars(&ca, ed.nv_cmds[int(idx)].cmd_flags) {
+			idx = ed.normal_cmd_get_more_chars(idx, &ca, &need_flushbuf)
+		}
+		if need_flushbuf != 0 {
+			ed.out_flush()
+		}
+		if ca.cmdchar != K_IGNORE {
+			if ed.ex_normal_busy != 0 {
+				ed.did_cursorhold = save_did_cursorhold
+			} else {
+				ed.did_cursorhold = FALSE
+			}
+		}
+		ed.State = MODE_NORMAL
+		if (ca.nchar == ESC) || (ca.extra_char == ESC) {
+			ed.clearop(oap)
+			if (ed.restart_edit == 0) && ed.goto_im() {
+				ed.restart_edit = 'a'
+			}
+			break
+		}
+		if ca.cmdchar != K_IGNORE {
+			ed.msg_didout = FALSE
+			ed.msg_col = 0
+		}
+		old_pos = ed.curwin.w_cursor
+		if (ed.VIsual_active == 0) && (ed.km_startsel != 0) {
 			if int32(ed.nv_cmds[int(idx)].cmd_flags)&NV_SS != 0 {
+				ed.start_selection()
 				ed.unshift_special(&ca)
 				idx = ed.find_command(ca.cmdchar)
-				if idx < 0 {
-					ed.clearopbeep(oap)
-					goto normal_end
-				}
 			} else if ((int32(ed.nv_cmds[int(idx)].cmd_flags) & NV_SSS) != 0) && ((ed.mod_mask & MOD_MASK_SHIFT) != 0) {
+				ed.start_selection()
 				ed.mod_mask &= ^MOD_MASK_SHIFT
 			}
 		}
-	}
-	if ed.normal_cmd_needs_more_chars(&ca, ed.nv_cmds[int(idx)].cmd_flags) {
-		idx = ed.normal_cmd_get_more_chars(idx, &ca, &need_flushbuf)
-	}
-	if need_flushbuf != 0 {
-		ed.out_flush()
-	}
-	if ca.cmdchar != K_IGNORE {
-		if ed.ex_normal_busy != 0 {
-			ed.did_cursorhold = save_did_cursorhold
-		} else {
-			ed.did_cursorhold = FALSE
+		ca.arg = int32(ed.nv_cmds[int(idx)].cmd_arg)
+		ed.nv_cmds[int(idx)].cmd_func(&ca)
+		if ((ed.finish_op == 0) && (oap.op_type == 0)) && ((idx < 0) || ((int32(ed.nv_cmds[int(idx)].cmd_flags) & NV_KEEPREG) == 0)) {
+			ed.clearop(oap)
 		}
-	}
-	ed.State = MODE_NORMAL
-	if (ca.nchar == ESC) || (ca.extra_char == ESC) {
-		ed.clearop(oap)
-		if (ed.restart_edit == 0) && ed.goto_im() {
-			ed.restart_edit = 'a'
+		if ed.normal_cmd_old_mapped_len > 0 {
+			ed.normal_cmd_old_mapped_len = ed.typebuf_maplen()
 		}
-		goto normal_end
-	}
-	if ca.cmdchar != K_IGNORE {
-		ed.msg_didout = FALSE
-		ed.msg_col = 0
-	}
-	old_pos = ed.curwin.w_cursor
-	if (ed.VIsual_active == 0) && (ed.km_startsel != 0) {
-		if int32(ed.nv_cmds[int(idx)].cmd_flags)&NV_SS != 0 {
-			ed.start_selection()
-			ed.unshift_special(&ca)
-			idx = ed.find_command(ca.cmdchar)
-		} else if ((int32(ed.nv_cmds[int(idx)].cmd_flags) & NV_SSS) != 0) && ((ed.mod_mask & MOD_MASK_SHIFT) != 0) {
-			ed.start_selection()
-			ed.mod_mask &= ^MOD_MASK_SHIFT
+		if (ca.cmdchar != K_IGNORE) && (ca.cmdchar != K_MOUSEMOVE) {
+			ed.do_pending_operator(&ca, old_col, false)
 		}
+		if ed.normal_cmd_need_to_wait_for_msg(&ca, &old_pos) {
+			ed.normal_cmd_wait_for_msg()
+		}
+		break
 	}
-	ca.arg = int32(ed.nv_cmds[int(idx)].cmd_arg)
-	ed.nv_cmds[int(idx)].cmd_func(&ca)
-	if ((ed.finish_op == 0) && (oap.op_type == 0)) && ((idx < 0) || ((int32(ed.nv_cmds[int(idx)].cmd_flags) & NV_KEEPREG) == 0)) {
-		ed.clearop(oap)
-	}
-	if ed.normal_cmd_old_mapped_len > 0 {
-		ed.normal_cmd_old_mapped_len = ed.typebuf_maplen()
-	}
-	if (ca.cmdchar != K_IGNORE) && (ca.cmdchar != K_MOUSEMOVE) {
-		ed.do_pending_operator(&ca, old_col, false)
-	}
-	if ed.normal_cmd_need_to_wait_for_msg(&ca, &old_pos) {
-		ed.normal_cmd_wait_for_msg()
-	}
-normal_end:
 	ed.msg_nowait = FALSE
 	if oap.op_type == OP_NOP {
 		ed.finish_op = FALSE
@@ -36675,15 +36612,8 @@ func (ed *Editor) op_delete(oap *S_oparg_S) bool {
 	var newp Ptr[byte]
 	var oldp Ptr[byte]
 	var bd S_block_def
-	var old_lcount linenr_T
-	var did_yank bool
-	var msg_silent_save int32
-	var endcol int32
-	var len_ int32
-	var curpos pos_T
-
-	old_lcount = ed.curbuf.b_ml.ml_line_count
-	did_yank = false
+	old_lcount := ed.curbuf.b_ml.ml_line_count
+	var did_yank bool = false
 	if ed.curbuf.b_ml.ml_flags&ML_EMPTY != 0 {
 		return true
 	}
@@ -36708,173 +36638,176 @@ func (ed *Editor) op_delete(oap *S_oparg_S) bool {
 			oap.motion_type = MLINE
 		}
 	}
-	if (((oap.motion_type == MCHAR) && (oap.line_count == 1)) && (oap.op_type == OP_DELETE)) && (int32(ed.ml_get(oap.start.lnum).Get()) == NUL) {
-		if ed.virtual_op != 0 {
-			goto setmarks
-		}
-		if !ed.vim_strchr(ed.p_cpo, CPO_EMPTYREGION).Nil() {
-			ed.beep_flush()
-		}
-		return true
-	}
-	if oap.regname != '_' {
-		if oap.regname != 0 {
-			if !ed.valid_yank_reg(oap.regname, true) {
+	for {
+		if (((oap.motion_type == MCHAR) && (oap.line_count == 1)) && (oap.op_type == OP_DELETE)) && (int32(ed.ml_get(oap.start.lnum).Get()) == NUL) {
+			if ed.virtual_op != 0 {
+				break
+			}
+			if !ed.vim_strchr(ed.p_cpo, CPO_EMPTYREGION).Nil() {
 				ed.beep_flush()
-				return true
 			}
-			ed.get_yank_register(oap.regname, TRUE)
-			if ed.op_yank(oap, true, false) {
-				did_yank = true
-			}
-		} else {
-			ed.reset_y_append()
+			return true
 		}
-		if ((oap.motion_type == MLINE) || (oap.line_count > 1)) || (oap.use_reg_one != 0) {
-			ed.shift_delete_registers()
-			if ed.op_yank(oap, true, false) {
-				did_yank = true
-			}
-		}
-		if ((oap.regname == 0) && (oap.motion_type != MLINE)) && (oap.line_count == 1) {
-			oap.regname = '-'
-			ed.get_yank_register(oap.regname, TRUE)
-			if ed.op_yank(oap, true, false) {
-				did_yank = true
-			}
-			oap.regname = 0
-		}
-		if !did_yank {
-			msg_silent_save = ed.msg_silent
-			ed.msg_silent = 0
-			n = ed.ask_yesno(gettext_(S("cannot yank; delete anyway")), true)
-			ed.msg_silent = msg_silent_save
-			if n != 'y' {
-				ed.emsg(gettext_(ed.e_command_aborted))
-				return false
-			}
-		}
-	}
-	if oap.block_mode != 0 {
-		if !ed.u_save((oap.start.lnum - 1), (oap.end.lnum + 1)) {
-			return false
-		}
-		lnum = ed.curwin.w_cursor.lnum
-		for ; lnum <= oap.end.lnum; lnum++ {
-			ed.block_prep(oap, &bd, lnum, TRUE)
-			if bd.textlen == 0 {
-				continue
-			}
-			if lnum == ed.curwin.w_cursor.lnum {
-				ed.curwin.w_cursor.col = bd.textcol + bd.startspaces
-				ed.curwin.w_cursor.coladd = 0
-			}
-			n = (bd.textlen - bd.startspaces) - bd.endspaces
-			oldp = ed.ml_get(lnum)
-			newp = Alloc(int((ed.ml_get_len(lnum) + 1) - n))
-			Memmove(newp, oldp, int(uint64(bd.textcol)))
-			Memset(newp.Add(int(bd.textcol)), (' '), int(uint64((bd.startspaces + bd.endspaces))))
-			musl_strcpy(newp.Add(int(bd.textcol)).Add(int(bd.startspaces)).Add(int(bd.endspaces)), oldp.Add(int(bd.textcol)).Add(int(bd.textlen)))
-			ed.ml_replace(lnum, newp, false)
-		}
-		ed.check_cursor_col()
-		ed.changed_lines(ed.curwin.w_cursor.lnum, ed.curwin.w_cursor.col, oap.end.lnum+1, 0)
-		oap.line_count = 0
-	} else if oap.motion_type == MLINE {
-		if oap.op_type == OP_CHANGE {
-			if oap.line_count > 1 {
-				lnum = ed.curwin.w_cursor.lnum
-				ed.curwin.w_cursor.lnum++
-				ed.del_lines((oap.line_count - 1), true)
-				ed.curwin.w_cursor.lnum = lnum
-			}
-			if !ed.u_save_cursor() {
-				return false
-			}
-			if ed.curbuf.b_p_ai != 0 {
-				ed.beginline(BL_WHITE)
-				ed.did_ai = TRUE
-				ed.ai_col = ed.curwin.w_cursor.col
+		if oap.regname != '_' {
+			if oap.regname != 0 {
+				if !ed.valid_yank_reg(oap.regname, true) {
+					ed.beep_flush()
+					return true
+				}
+				ed.get_yank_register(oap.regname, TRUE)
+				if ed.op_yank(oap, true, false) {
+					did_yank = true
+				}
 			} else {
-				ed.beginline(0)
+				ed.reset_y_append()
 			}
-			ed.truncate_line(false)
-			if oap.line_count > 1 {
-				ed.u_clearline()
+			if ((oap.motion_type == MLINE) || (oap.line_count > 1)) || (oap.use_reg_one != 0) {
+				ed.shift_delete_registers()
+				if ed.op_yank(oap, true, false) {
+					did_yank = true
+				}
 			}
-		} else {
-			ed.del_lines(oap.line_count, true)
-			ed.beginline(BL_WHITE | BL_FIX)
-			ed.u_clearline()
+			if ((oap.regname == 0) && (oap.motion_type != MLINE)) && (oap.line_count == 1) {
+				oap.regname = '-'
+				ed.get_yank_register(oap.regname, TRUE)
+				if ed.op_yank(oap, true, false) {
+					did_yank = true
+				}
+				oap.regname = 0
+			}
+			if !did_yank {
+				msg_silent_save := ed.msg_silent
+				ed.msg_silent = 0
+				n = ed.ask_yesno(gettext_(S("cannot yank; delete anyway")), true)
+				ed.msg_silent = msg_silent_save
+				if n != 'y' {
+					ed.emsg(gettext_(ed.e_command_aborted))
+					return false
+				}
+			}
 		}
-	} else {
-		if ed.virtual_op != 0 {
-			endcol = 0
-			if ed.gchar_pos(&oap.start) == 9 {
+		if oap.block_mode != 0 {
+			if !ed.u_save((oap.start.lnum - 1), (oap.end.lnum + 1)) {
+				return false
+			}
+			lnum = ed.curwin.w_cursor.lnum
+			for ; lnum <= oap.end.lnum; lnum++ {
+				ed.block_prep(oap, &bd, lnum, TRUE)
+				if bd.textlen == 0 {
+					continue
+				}
+				if lnum == ed.curwin.w_cursor.lnum {
+					ed.curwin.w_cursor.col = bd.textcol + bd.startspaces
+					ed.curwin.w_cursor.coladd = 0
+				}
+				n = (bd.textlen - bd.startspaces) - bd.endspaces
+				oldp = ed.ml_get(lnum)
+				newp = Alloc(int((ed.ml_get_len(lnum) + 1) - n))
+				Memmove(newp, oldp, int(uint64(bd.textcol)))
+				Memset(newp.Add(int(bd.textcol)), (' '), int(uint64((bd.startspaces + bd.endspaces))))
+				musl_strcpy(newp.Add(int(bd.textcol)).Add(int(bd.startspaces)).Add(int(bd.endspaces)), oldp.Add(int(bd.textcol)).Add(int(bd.textlen)))
+				ed.ml_replace(lnum, newp, false)
+			}
+			ed.check_cursor_col()
+			ed.changed_lines(ed.curwin.w_cursor.lnum, ed.curwin.w_cursor.col, oap.end.lnum+1, 0)
+			oap.line_count = 0
+		} else if oap.motion_type == MLINE {
+			if oap.op_type == OP_CHANGE {
+				if oap.line_count > 1 {
+					lnum = ed.curwin.w_cursor.lnum
+					ed.curwin.w_cursor.lnum++
+					ed.del_lines((oap.line_count - 1), true)
+					ed.curwin.w_cursor.lnum = lnum
+				}
 				if !ed.u_save_cursor() {
 					return false
 				}
-				if oap.line_count == 1 {
-					endcol = ed.getviscol2(oap.end.col, oap.end.coladd)
+				if ed.curbuf.b_p_ai != 0 {
+					ed.beginline(BL_WHITE)
+					ed.did_ai = TRUE
+					ed.ai_col = ed.curwin.w_cursor.col
+				} else {
+					ed.beginline(0)
 				}
-				ed.coladvance_force(ed.getviscol2(oap.start.col, oap.start.coladd))
-				oap.start = ed.curwin.w_cursor
-				if oap.line_count == 1 {
-					ed.coladvance(endcol)
-					oap.end.col = ed.curwin.w_cursor.col
-					oap.end.coladd = ed.curwin.w_cursor.coladd
+				ed.truncate_line(false)
+				if oap.line_count > 1 {
+					ed.u_clearline()
+				}
+			} else {
+				ed.del_lines(oap.line_count, true)
+				ed.beginline(BL_WHITE | BL_FIX)
+				ed.u_clearline()
+			}
+		} else {
+			if ed.virtual_op != 0 {
+				var endcol int32 = 0
+				if ed.gchar_pos(&oap.start) == 9 {
+					if !ed.u_save_cursor() {
+						return false
+					}
+					if oap.line_count == 1 {
+						endcol = ed.getviscol2(oap.end.col, oap.end.coladd)
+					}
+					ed.coladvance_force(ed.getviscol2(oap.start.col, oap.start.coladd))
+					oap.start = ed.curwin.w_cursor
+					if oap.line_count == 1 {
+						ed.coladvance(endcol)
+						oap.end.col = ed.curwin.w_cursor.col
+						oap.end.coladd = ed.curwin.w_cursor.coladd
+						ed.curwin.w_cursor = oap.start
+					}
+				}
+				if (ed.gchar_pos(&oap.end) == 9) && (oap.end.coladd < oap.inclusive) {
+					if !ed.u_save((oap.end.lnum - 1), (oap.end.lnum + 1)) {
+						return false
+					}
+					ed.curwin.w_cursor = oap.end
+					ed.coladvance_force(ed.getviscol2(oap.end.col, oap.end.coladd))
+					oap.end = ed.curwin.w_cursor
 					ed.curwin.w_cursor = oap.start
 				}
+				ed.mb_adjust_opend(oap)
 			}
-			if (ed.gchar_pos(&oap.end) == 9) && (oap.end.coladd < oap.inclusive) {
-				if !ed.u_save((oap.end.lnum - 1), (oap.end.lnum + 1)) {
+			if oap.line_count == 1 {
+				if !ed.u_save_cursor() {
 					return false
 				}
-				ed.curwin.w_cursor = oap.end
-				ed.coladvance_force(ed.getviscol2(oap.end.col, oap.end.coladd))
-				oap.end = ed.curwin.w_cursor
-				ed.curwin.w_cursor = oap.start
+				if ((!ed.vim_strchr(ed.p_cpo, CPO_DOLLAR).Nil() && (oap.op_type == OP_CHANGE)) && (oap.end.lnum == ed.curwin.w_cursor.lnum)) && (oap.is_VIsual == 0) {
+					ed.display_dollar(oap.end.col - B2i(oap.inclusive == 0))
+				}
+				n = ((oap.end.col - oap.start.col) + 1) - B2i(oap.inclusive == 0)
+				if ed.virtual_op != 0 {
+					var len_ int32 = ed.ml_get_curline_len()
+					if ((oap.end.coladd != 0) && (oap.end.col >= (len_ - 1))) && !((oap.start.coladd != 0) && (oap.end.col >= (len_ - 1))) {
+						n++
+					}
+					if (n == 0) && (oap.start.coladd != oap.end.coladd) {
+						n = 1
+					}
+					if ed.gchar_cursor() != NUL {
+						ed.curwin.w_cursor.coladd = 0
+					}
+				}
+				ed.del_bytes(int64(n), ed.virtual_op == 0, (oap.op_type == OP_DELETE) && (oap.is_VIsual == 0))
+			} else {
+				var curpos pos_T
+				if !ed.u_save((ed.curwin.w_cursor.lnum - 1), (ed.curwin.w_cursor.lnum + oap.line_count)) {
+					return false
+				}
+				ed.truncate_line(true)
+				curpos = ed.curwin.w_cursor
+				ed.curwin.w_cursor.lnum++
+				ed.del_lines((oap.line_count - 2), false)
+				n = ((oap.end.col + 1) - B2i(oap.inclusive == 0))
+				ed.curwin.w_cursor.col = 0
+				ed.del_bytes(int64(n), ed.virtual_op == 0, (oap.op_type == OP_DELETE) && (oap.is_VIsual == 0))
+				ed.curwin.w_cursor = curpos
+				ed.do_join(2, false, false, false, false)
 			}
-			ed.mb_adjust_opend(oap)
 		}
-		if oap.line_count == 1 {
-			if !ed.u_save_cursor() {
-				return false
-			}
-			if ((!ed.vim_strchr(ed.p_cpo, CPO_DOLLAR).Nil() && (oap.op_type == OP_CHANGE)) && (oap.end.lnum == ed.curwin.w_cursor.lnum)) && (oap.is_VIsual == 0) {
-				ed.display_dollar(oap.end.col - B2i(oap.inclusive == 0))
-			}
-			n = ((oap.end.col - oap.start.col) + 1) - B2i(oap.inclusive == 0)
-			if ed.virtual_op != 0 {
-				len_ = ed.ml_get_curline_len()
-				if ((oap.end.coladd != 0) && (oap.end.col >= (len_ - 1))) && !((oap.start.coladd != 0) && (oap.end.col >= (len_ - 1))) {
-					n++
-				}
-				if (n == 0) && (oap.start.coladd != oap.end.coladd) {
-					n = 1
-				}
-				if ed.gchar_cursor() != NUL {
-					ed.curwin.w_cursor.coladd = 0
-				}
-			}
-			ed.del_bytes(int64(n), ed.virtual_op == 0, (oap.op_type == OP_DELETE) && (oap.is_VIsual == 0))
-		} else {
-			if !ed.u_save((ed.curwin.w_cursor.lnum - 1), (ed.curwin.w_cursor.lnum + oap.line_count)) {
-				return false
-			}
-			ed.truncate_line(true)
-			curpos = ed.curwin.w_cursor
-			ed.curwin.w_cursor.lnum++
-			ed.del_lines((oap.line_count - 2), false)
-			n = ((oap.end.col + 1) - B2i(oap.inclusive == 0))
-			ed.curwin.w_cursor.col = 0
-			ed.del_bytes(int64(n), ed.virtual_op == 0, (oap.op_type == OP_DELETE) && (oap.is_VIsual == 0))
-			ed.curwin.w_cursor = curpos
-			ed.do_join(2, false, false, false, false)
-		}
+		ed.msgmore(ed.curbuf.b_ml.ml_line_count - old_lcount)
+		break
 	}
-	ed.msgmore(ed.curbuf.b_ml.ml_line_count - old_lcount)
-setmarks:
 	if (ed.cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0 {
 		if oap.block_mode != 0 {
 			ed.curbuf.b_op_end.lnum = oap.end.lnum
@@ -37872,52 +37805,18 @@ func (ed *Editor) do_addsub(op_type int32, pos *pos_T, length int32, Prenum1 lin
 	var do_alpha bool
 	var do_unsigned bool
 	var do_blank bool
-	var blank_unsigned bool
+	var blank_unsigned bool = false
 	var firstdigit int32
 	var subtract int32
-	var negative int32
-	var was_positive bool
-	var visual int32
-	var did_change bool
-	var save_cursor pos_T
-	var maxlen int32
+	var negative int32 = FALSE
+	var was_positive bool = true
+	visual := ed.VIsual_active
+	var did_change bool = false
+	save_cursor := ed.curwin.w_cursor
+	var maxlen int32 = 0
 	var startpos pos_T
 	var endpos pos_T
-	var save_coladd colnr_T
-	var mb_len int32
-	var t1 int32
-	var t2 int32
-	var buf1 Ptr[byte]
-	var buf1len int32
-	var buf2 Ptr[byte]
-	var buf2len int32
-	var save_pos pos_T
-	var i int32
-	var t3 int32
-	var overflow int32
-	var t4 int32
-	var t5 int32
-	var t6 int32
-	var t7 Ptr[byte]
-	var t8 Ptr[byte]
-	var t9 Ptr[byte]
-	var bit int32
-	var bits int32
-	var t10 int32
-	var t11 byte
-	var t12 int32
-	var t13 Ptr[byte]
-	var bytes_after int32
-	var t14 int32
-
-	blank_unsigned = false
-	negative = FALSE
-	was_positive = true
-	visual = ed.VIsual_active
-	did_change = false
-	save_cursor = ed.curwin.w_cursor
-	maxlen = 0
-	save_coladd = 0
+	var save_coladd colnr_T = 0
 	do_hex = !ed.vim_strchr(ed.curbuf.b_p_nf, 'x').Nil()
 	do_oct = !ed.vim_strchr(ed.curbuf.b_p_nf, 'o').Nil()
 	do_bin = !ed.vim_strchr(ed.curbuf.b_p_nf, 'b').Nil()
@@ -37932,313 +37831,327 @@ func (ed *Editor) do_addsub(op_type int32, pos *pos_T, length int32, Prenum1 lin
 	ptr = ed.ml_get(pos.lnum)
 	linelen = ed.ml_get_len(pos.lnum)
 	col = pos.col
-	if (col + B2i(!(save_coladd == 0))) >= linelen {
-		goto theend
-	}
-	if ed.VIsual_active == 0 {
-		if do_bin {
-			for (col > 0) && vim_isbdigit(int32(ptr.At(int(col)))) {
+	for {
+		if (col + B2i(!(save_coladd == 0))) >= linelen {
+			break
+		}
+		if ed.VIsual_active == 0 {
+			if do_bin {
+				for (col > 0) && vim_isbdigit(int32(ptr.At(int(col)))) {
+					col--
+					col -= ed.utf_head_off(ptr, ptr.Add(int(col)))
+				}
+			}
+			if do_hex {
+				for (col > 0) && vim_isxdigit(int32(ptr.At(int(col)))) {
+					col--
+					col -= ed.utf_head_off(ptr, ptr.Add(int(col)))
+				}
+			}
+			if (do_bin && do_hex) && !(((((col > 0) && ((int32(ptr.At(int(col))) == 'X') || (int32(ptr.At(int(col))) == 'x'))) && (int32(ptr.At(int(col-1))) == '0')) && (ed.utf_head_off(ptr, ptr.Add(int(col)).Add(-1)) == 0)) && vim_isxdigit(int32(ptr.At(int(col+1))))) {
+				col = pos.col
+				for (col > 0) && vim_isdigit(int32(ptr.At(int(col)))) {
+					col--
+					col -= ed.utf_head_off(ptr, ptr.Add(int(col)))
+				}
+			}
+			if (((((do_hex && (col > 0)) && ((int32(ptr.At(int(col))) == 'X') || (int32(ptr.At(int(col))) == 'x'))) && (int32(ptr.At(int(col-1))) == '0')) && (ed.utf_head_off(ptr, ptr.Add(int(col)).Add(-1)) == 0)) && vim_isxdigit(int32(ptr.At(int(col+1))))) || (((((do_bin && (col > 0)) && ((int32(ptr.At(int(col))) == 'B') || (int32(ptr.At(int(col))) == 'b'))) && (int32(ptr.At(int(col-1))) == '0')) && (ed.utf_head_off(ptr, ptr.Add(int(col)).Add(-1)) == 0)) && vim_isbdigit(int32(ptr.At(int(col+1))))) {
 				col--
 				col -= ed.utf_head_off(ptr, ptr.Add(int(col)))
-			}
-		}
-		if do_hex {
-			for (col > 0) && vim_isxdigit(int32(ptr.At(int(col)))) {
-				col--
-				col -= ed.utf_head_off(ptr, ptr.Add(int(col)))
-			}
-		}
-		if (do_bin && do_hex) && !(((((col > 0) && ((int32(ptr.At(int(col))) == 'X') || (int32(ptr.At(int(col))) == 'x'))) && (int32(ptr.At(int(col-1))) == '0')) && (ed.utf_head_off(ptr, ptr.Add(int(col)).Add(-1)) == 0)) && vim_isxdigit(int32(ptr.At(int(col+1))))) {
-			col = pos.col
-			for (col > 0) && vim_isdigit(int32(ptr.At(int(col)))) {
-				col--
-				col -= ed.utf_head_off(ptr, ptr.Add(int(col)))
-			}
-		}
-		if (((((do_hex && (col > 0)) && ((int32(ptr.At(int(col))) == 'X') || (int32(ptr.At(int(col))) == 'x'))) && (int32(ptr.At(int(col-1))) == '0')) && (ed.utf_head_off(ptr, ptr.Add(int(col)).Add(-1)) == 0)) && vim_isxdigit(int32(ptr.At(int(col+1))))) || (((((do_bin && (col > 0)) && ((int32(ptr.At(int(col))) == 'B') || (int32(ptr.At(int(col))) == 'b'))) && (int32(ptr.At(int(col-1))) == '0')) && (ed.utf_head_off(ptr, ptr.Add(int(col)).Add(-1)) == 0)) && vim_isbdigit(int32(ptr.At(int(col+1))))) {
-			col--
-			col -= ed.utf_head_off(ptr, ptr.Add(int(col)))
-		} else {
-			col = pos.col
-			for ((int32(ptr.At(int(col))) != NUL) && !vim_isdigit(int32(ptr.At(int(col))))) && !(do_alpha && (((uint32(ptr.At(int(col))) - 'A') < 26) || ((uint32(ptr.At(int(col))) - 'a') < 26))) {
-				col += ed.utfc_ptr2len(ptr.Add(int(col)))
-			}
-			for ((col > 0) && vim_isdigit(int32(ptr.At(int(col-1))))) && !(do_alpha && (((uint32(ptr.At(int(col))) - 'A') < 26) || ((uint32(ptr.At(int(col))) - 'a') < 26))) {
-				col--
-				col -= ed.utf_head_off(ptr, ptr.Add(int(col)))
-			}
-		}
-	}
-	if visual != 0 {
-		for (((int32(ptr.At(int(col))) != NUL) && (length > 0)) && !vim_isdigit(int32(ptr.At(int(col))))) && !(do_alpha && (((uint32(ptr.At(int(col))) - 'A') < 26) || ((uint32(ptr.At(int(col))) - 'a') < 26))) {
-			mb_len = ed.utfc_ptr2len(ptr.Add(int(col)))
-			col += mb_len
-			length -= mb_len
-		}
-		if length == 0 {
-			goto theend
-		}
-		if (((col > pos.col) && (int32(ptr.At(int(col-1))) == '-')) && (ed.utf_head_off(ptr, ptr.Add(int(col)).Add(-1)) == 0)) && !do_unsigned {
-			if (do_blank && (col >= 2)) && !((int32(ptr.At(int(col-2))) == (' ')) || (int32(ptr.At(int(col-2))) == 9)) {
-				blank_unsigned = true
 			} else {
-				negative = TRUE
-				was_positive = false
-			}
-		}
-	}
-	firstdigit = int32(ptr.At(int(col)))
-	if !((uint32(firstdigit) - '0') < 10) && !(do_alpha && (((uint32(firstdigit) - 'A') < 26) || ((uint32(firstdigit) - 'a') < 26))) {
-		ed.beep_flush()
-		goto theend
-	}
-	if do_alpha && (((uint32(firstdigit) - 'A') < 26) || ((uint32(firstdigit) - 'a') < 26)) {
-		if op_type == OP_NR_SUB {
-			if firstdigit < 'a' {
-				t1 = firstdigit - 'A'
-			} else {
-				t1 = firstdigit - 'a'
-			}
-			if int64(t1) < Prenum1 {
-				if musl_isupper(int32(byte(firstdigit))) {
-					firstdigit = 'A'
-				} else {
-					firstdigit = 'a'
+				col = pos.col
+				for ((int32(ptr.At(int(col))) != NUL) && !vim_isdigit(int32(ptr.At(int(col))))) && !(do_alpha && (((uint32(ptr.At(int(col))) - 'A') < 26) || ((uint32(ptr.At(int(col))) - 'a') < 26))) {
+					col += ed.utfc_ptr2len(ptr.Add(int(col)))
 				}
-			} else {
-				firstdigit -= int32(Prenum1)
-			}
-		} else {
-			if firstdigit < 'a' {
-				t2 = firstdigit - 'A'
-			} else {
-				t2 = firstdigit - 'a'
-			}
-			if int64((26-t2)-1) < Prenum1 {
-				if musl_isupper(int32(byte(firstdigit))) {
-					firstdigit = 'Z'
-				} else {
-					firstdigit = 'z'
-				}
-			} else {
-				firstdigit += int32(Prenum1)
-			}
-		}
-		ed.curwin.w_cursor.col = col
-		if !did_change {
-			startpos = ed.curwin.w_cursor
-		}
-		did_change = true
-		ed.del_char(false)
-		ed.ins_char(firstdigit)
-		endpos = ed.curwin.w_cursor
-		ed.curwin.w_cursor.col = col
-	} else {
-		buf2 = Mk[byte](65)
-		if ((((col > 0) && (int32(ptr.At(int(col-1))) == '-')) && (ed.utf_head_off(ptr, ptr.Add(int(col)).Add(-1)) == 0)) && (visual == 0)) && !do_unsigned {
-			if (do_blank && (col >= 2)) && !((int32(ptr.At(int(col-2))) == (' ')) || (int32(ptr.At(int(col-2))) == 9)) {
-				blank_unsigned = true
-			} else {
-				col--
-				negative = TRUE
-			}
-		}
-		if (visual != 0) && (ed.VIsual_mode != 'V') {
-			if ed.curbuf.b_visual.vi_curswant == MAXCOL {
-				t3 = linelen - col
-			} else {
-				t3 = length
-			}
-			maxlen = t3
-		}
-		overflow = FALSE
-		if do_bin {
-			t4 = STR2NR_BIN
-		} else {
-			t4 = 0
-		}
-		if do_oct {
-			t5 = STR2NR_OCT
-		} else {
-			t5 = 0
-		}
-		if do_hex {
-			t6 = STR2NR_HEX
-		} else {
-			t6 = 0
-		}
-		vim_str2nr(ptr.Add(int(col)), &pre, &length, ((0+t4)+t5)+t6, nil, &n, maxlen, false, &overflow)
-		if (pre != 0) && (negative != 0) {
-			col++
-			length--
-			negative = FALSE
-		}
-		subtract = FALSE
-		if op_type == OP_NR_SUB {
-			subtract ^= TRUE
-		}
-		if negative != 0 {
-			subtract ^= TRUE
-		}
-		oldn = n
-		if overflow == 0 {
-			if subtract != 0 {
-				n -= uint64(Prenum1)
-			} else {
-				n += uint64(Prenum1)
-			}
-		}
-		if pre == 0 {
-			if subtract != 0 {
-				if n > oldn {
-					n = 1 + (n ^ 18446744073709551615)
-					negative ^= TRUE
-				}
-			} else {
-				if n < oldn {
-					n = (n ^ 18446744073709551615)
-					negative ^= TRUE
+				for ((col > 0) && vim_isdigit(int32(ptr.At(int(col-1))))) && !(do_alpha && (((uint32(ptr.At(int(col))) - 'A') < 26) || ((uint32(ptr.At(int(col))) - 'a') < 26))) {
+					col--
+					col -= ed.utf_head_off(ptr, ptr.Add(int(col)))
 				}
 			}
-			if n == 0 {
-				negative = FALSE
+		}
+		if visual != 0 {
+			for (((int32(ptr.At(int(col))) != NUL) && (length > 0)) && !vim_isdigit(int32(ptr.At(int(col))))) && !(do_alpha && (((uint32(ptr.At(int(col))) - 'A') < 26) || ((uint32(ptr.At(int(col))) - 'a') < 26))) {
+				mb_len := ed.utfc_ptr2len(ptr.Add(int(col)))
+				col += mb_len
+				length -= mb_len
 			}
-		}
-		if (do_unsigned || blank_unsigned) && (negative != 0) {
-			if subtract != 0 {
-				n = 0
-			} else {
-				n = 18446744073709551615
-			}
-			negative = FALSE
-		}
-		if (((visual != 0) && !was_positive) && (negative == 0)) && (col > 0) {
-			col--
-			length++
-		}
-		ed.curwin.w_cursor.col = col
-		if !did_change {
-			startpos = ed.curwin.w_cursor
-		}
-		did_change = true
-		todel = length
-		c = ed.gchar_cursor()
-		if c == '-' {
-			length--
-		}
-		save_pos = ed.curwin.w_cursor
-		i = 0
-		for ; i < todel; i++ {
-			if (c < 0x100) && musl_isalpha(int32(byte(c))) {
-				if musl_isupper(int32(byte(c))) {
-					ed.do_addsub_hexupper = true
-				} else {
-					ed.do_addsub_hexupper = false
-				}
-			}
-			ed.inc_cursor()
-			c = ed.gchar_cursor()
-		}
-		ed.curwin.w_cursor = save_pos
-		buf1 = Alloc(int(length + NUMBUFLEN))
-		ptr = buf1
-		if (negative != 0) && ((visual == 0) || was_positive) {
-			t7 = ptr
-			ptr = ptr.Add(1)
-			t7.Put('-')
-		}
-		if pre != 0 {
-			t8 = ptr
-			ptr = ptr.Add(1)
-			t8.Put('0')
-			length--
-		}
-		if (((pre == 'b') || (pre == 'B')) || (pre == 'x')) || (pre == 'X') {
-			t9 = ptr
-			ptr = ptr.Add(1)
-			t9.Put(byte(pre))
-			length--
-		}
-		if (pre == 'b') || (pre == 'B') {
-			bit = 0
-			bits = 8 * 8
-			bit = bits
-			for ; bit > 0; bit-- {
-				if (n>>(bit-1))&0x1 != 0 {
-					break
-				}
-			}
-			buf2len = 0
-			for ; (bit > 0) && (buf2len < (NUMBUFLEN - 1)); bit-- {
-				t10 = buf2len
-				buf2len++
-				if ((n >> (bit - 1)) & 0x1) != 0 {
-					t11 = '1'
-				} else {
-					t11 = '0'
-				}
-				buf2.Set(int(t10), t11)
-			}
-			buf2.Set(int(buf2len), NUL)
-		} else if pre == 0 {
-			buf2len = ed.vim_snprintf(buf2, NUMBUFLEN, S("%llu"), n)
-		} else if pre == '0' {
-			buf2len = ed.vim_snprintf(buf2, NUMBUFLEN, S("%llo"), n)
-		} else if (pre != 0) && ed.do_addsub_hexupper {
-			buf2len = ed.vim_snprintf(buf2, NUMBUFLEN, S("%llX"), n)
-		} else {
-			buf2len = ed.vim_snprintf(buf2, NUMBUFLEN, S("%llx"), n)
-		}
-		length -= buf2len
-		if (firstdigit == '0') && !(do_oct && (pre == 0)) {
-			for {
-				t12 = length
-				length--
-				if !(t12 > 0) {
-					break
-				}
-				t13 = ptr
-				ptr = ptr.Add(1)
-				t13.Put('0')
-			}
-		}
-		ptr.Put(NUL)
-		buf1len = int32(int64(ptr.Sub(buf1)))
-		musl_strcpy(buf1.Add(int(buf1len)), buf2)
-		buf1len += buf2len
-		save_pos = ed.curwin.w_cursor
-		if todel > 0 {
-			ed.inc_cursor()
-		}
-		ed.ins_str(buf1, uint64(buf1len))
-		if todel > 0 {
-			bytes_after = ed.ml_get_curline_len() - ed.curwin.w_cursor.col
-			ed.curwin.w_cursor = save_pos
-			ed.del_char(false)
-			ed.curwin.w_cursor.col = ed.ml_get_curline_len() - bytes_after
-			todel--
-		}
-		for {
-			t14 = todel
-			todel--
-			if !(t14 > 0) {
+			if length == 0 {
 				break
 			}
+			if (((col > pos.col) && (int32(ptr.At(int(col-1))) == '-')) && (ed.utf_head_off(ptr, ptr.Add(int(col)).Add(-1)) == 0)) && !do_unsigned {
+				if (do_blank && (col >= 2)) && !((int32(ptr.At(int(col-2))) == (' ')) || (int32(ptr.At(int(col-2))) == 9)) {
+					blank_unsigned = true
+				} else {
+					negative = TRUE
+					was_positive = false
+				}
+			}
+		}
+		firstdigit = int32(ptr.At(int(col)))
+		if !((uint32(firstdigit) - '0') < 10) && !(do_alpha && (((uint32(firstdigit) - 'A') < 26) || ((uint32(firstdigit) - 'a') < 26))) {
+			ed.beep_flush()
+			break
+		}
+		if do_alpha && (((uint32(firstdigit) - 'A') < 26) || ((uint32(firstdigit) - 'a') < 26)) {
+			if op_type == OP_NR_SUB {
+				var t1 int32
+				if firstdigit < 'a' {
+					t1 = firstdigit - 'A'
+				} else {
+					t1 = firstdigit - 'a'
+				}
+				if int64(t1) < Prenum1 {
+					if musl_isupper(int32(byte(firstdigit))) {
+						firstdigit = 'A'
+					} else {
+						firstdigit = 'a'
+					}
+				} else {
+					firstdigit -= int32(Prenum1)
+				}
+			} else {
+				var t2 int32
+				if firstdigit < 'a' {
+					t2 = firstdigit - 'A'
+				} else {
+					t2 = firstdigit - 'a'
+				}
+				if int64((26-t2)-1) < Prenum1 {
+					if musl_isupper(int32(byte(firstdigit))) {
+						firstdigit = 'Z'
+					} else {
+						firstdigit = 'z'
+					}
+				} else {
+					firstdigit += int32(Prenum1)
+				}
+			}
+			ed.curwin.w_cursor.col = col
+			if !did_change {
+				startpos = ed.curwin.w_cursor
+			}
+			did_change = true
 			ed.del_char(false)
+			ed.ins_char(firstdigit)
+			endpos = ed.curwin.w_cursor
+			ed.curwin.w_cursor.col = col
+		} else {
+			var buf1 Ptr[byte]
+			var buf1len int32
+			var buf2 Ptr[byte] = Mk[byte](65)
+			var buf2len int32
+			var save_pos pos_T
+			var i int32
+			if ((((col > 0) && (int32(ptr.At(int(col-1))) == '-')) && (ed.utf_head_off(ptr, ptr.Add(int(col)).Add(-1)) == 0)) && (visual == 0)) && !do_unsigned {
+				if (do_blank && (col >= 2)) && !((int32(ptr.At(int(col-2))) == (' ')) || (int32(ptr.At(int(col-2))) == 9)) {
+					blank_unsigned = true
+				} else {
+					col--
+					negative = TRUE
+				}
+			}
+			if (visual != 0) && (ed.VIsual_mode != 'V') {
+				var t3 int32
+				if ed.curbuf.b_visual.vi_curswant == MAXCOL {
+					t3 = linelen - col
+				} else {
+					t3 = length
+				}
+				maxlen = t3
+			}
+			var overflow int32 = FALSE
+			var t4 int32
+			if do_bin {
+				t4 = STR2NR_BIN
+			} else {
+				t4 = 0
+			}
+			var t5 int32
+			if do_oct {
+				t5 = STR2NR_OCT
+			} else {
+				t5 = 0
+			}
+			var t6 int32
+			if do_hex {
+				t6 = STR2NR_HEX
+			} else {
+				t6 = 0
+			}
+			vim_str2nr(ptr.Add(int(col)), &pre, &length, ((0+t4)+t5)+t6, nil, &n, maxlen, false, &overflow)
+			if (pre != 0) && (negative != 0) {
+				col++
+				length--
+				negative = FALSE
+			}
+			subtract = FALSE
+			if op_type == OP_NR_SUB {
+				subtract ^= TRUE
+			}
+			if negative != 0 {
+				subtract ^= TRUE
+			}
+			oldn = n
+			if overflow == 0 {
+				if subtract != 0 {
+					n -= uint64(Prenum1)
+				} else {
+					n += uint64(Prenum1)
+				}
+			}
+			if pre == 0 {
+				if subtract != 0 {
+					if n > oldn {
+						n = 1 + (n ^ 18446744073709551615)
+						negative ^= TRUE
+					}
+				} else {
+					if n < oldn {
+						n = (n ^ 18446744073709551615)
+						negative ^= TRUE
+					}
+				}
+				if n == 0 {
+					negative = FALSE
+				}
+			}
+			if (do_unsigned || blank_unsigned) && (negative != 0) {
+				if subtract != 0 {
+					n = 0
+				} else {
+					n = 18446744073709551615
+				}
+				negative = FALSE
+			}
+			if (((visual != 0) && !was_positive) && (negative == 0)) && (col > 0) {
+				col--
+				length++
+			}
+			ed.curwin.w_cursor.col = col
+			if !did_change {
+				startpos = ed.curwin.w_cursor
+			}
+			did_change = true
+			todel = length
+			c = ed.gchar_cursor()
+			if c == '-' {
+				length--
+			}
+			save_pos = ed.curwin.w_cursor
+			i = 0
+			for ; i < todel; i++ {
+				if (c < 0x100) && musl_isalpha(int32(byte(c))) {
+					if musl_isupper(int32(byte(c))) {
+						ed.do_addsub_hexupper = true
+					} else {
+						ed.do_addsub_hexupper = false
+					}
+				}
+				ed.inc_cursor()
+				c = ed.gchar_cursor()
+			}
+			ed.curwin.w_cursor = save_pos
+			buf1 = Alloc(int(length + NUMBUFLEN))
+			ptr = buf1
+			if (negative != 0) && ((visual == 0) || was_positive) {
+				var t7 Ptr[byte] = ptr
+				ptr = ptr.Add(1)
+				t7.Put('-')
+			}
+			if pre != 0 {
+				var t8 Ptr[byte] = ptr
+				ptr = ptr.Add(1)
+				t8.Put('0')
+				length--
+			}
+			if (((pre == 'b') || (pre == 'B')) || (pre == 'x')) || (pre == 'X') {
+				var t9 Ptr[byte] = ptr
+				ptr = ptr.Add(1)
+				t9.Put(byte(pre))
+				length--
+			}
+			if (pre == 'b') || (pre == 'B') {
+				var bit int32 = 0
+				var bits int32 = 8 * 8
+				bit = bits
+				for ; bit > 0; bit-- {
+					if (n>>(bit-1))&0x1 != 0 {
+						break
+					}
+				}
+				buf2len = 0
+				for ; (bit > 0) && (buf2len < (NUMBUFLEN - 1)); bit-- {
+					var t10 int32 = buf2len
+					buf2len++
+					var t11 byte
+					if ((n >> (bit - 1)) & 0x1) != 0 {
+						t11 = '1'
+					} else {
+						t11 = '0'
+					}
+					buf2.Set(int(t10), t11)
+				}
+				buf2.Set(int(buf2len), NUL)
+			} else if pre == 0 {
+				buf2len = ed.vim_snprintf(buf2, NUMBUFLEN, S("%llu"), n)
+			} else if pre == '0' {
+				buf2len = ed.vim_snprintf(buf2, NUMBUFLEN, S("%llo"), n)
+			} else if (pre != 0) && ed.do_addsub_hexupper {
+				buf2len = ed.vim_snprintf(buf2, NUMBUFLEN, S("%llX"), n)
+			} else {
+				buf2len = ed.vim_snprintf(buf2, NUMBUFLEN, S("%llx"), n)
+			}
+			length -= buf2len
+			if (firstdigit == '0') && !(do_oct && (pre == 0)) {
+				for {
+					var t12 int32 = length
+					length--
+					if !(t12 > 0) {
+						break
+					}
+					var t13 Ptr[byte] = ptr
+					ptr = ptr.Add(1)
+					t13.Put('0')
+				}
+			}
+			ptr.Put(NUL)
+			buf1len = int32(int64(ptr.Sub(buf1)))
+			musl_strcpy(buf1.Add(int(buf1len)), buf2)
+			buf1len += buf2len
+			save_pos = ed.curwin.w_cursor
+			if todel > 0 {
+				ed.inc_cursor()
+			}
+			ed.ins_str(buf1, uint64(buf1len))
+			if todel > 0 {
+				bytes_after := ed.ml_get_curline_len() - ed.curwin.w_cursor.col
+				ed.curwin.w_cursor = save_pos
+				ed.del_char(false)
+				ed.curwin.w_cursor.col = ed.ml_get_curline_len() - bytes_after
+				todel--
+			}
+			for {
+				var t14 int32 = todel
+				todel--
+				if !(t14 > 0) {
+					break
+				}
+				ed.del_char(false)
+			}
+			endpos = ed.curwin.w_cursor
+			if did_change && (ed.curwin.w_cursor.col != 0) {
+				ed.curwin.w_cursor.col--
+			}
 		}
-		endpos = ed.curwin.w_cursor
-		if did_change && (ed.curwin.w_cursor.col != 0) {
-			ed.curwin.w_cursor.col--
+		if did_change && ((ed.cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0) {
+			ed.curbuf.b_op_start = startpos
+			ed.curbuf.b_op_end = endpos
+			if ed.curbuf.b_op_end.col > 0 {
+				ed.curbuf.b_op_end.col--
+			}
 		}
+		break
 	}
-	if did_change && ((ed.cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0) {
-		ed.curbuf.b_op_start = startpos
-		ed.curbuf.b_op_end = endpos
-		if ed.curbuf.b_op_end.col > 0 {
-			ed.curbuf.b_op_end.col--
-		}
-	}
-theend:
 	if visual != 0 {
 		ed.curwin.w_cursor = save_cursor
 	} else if did_change {
@@ -39486,71 +39399,61 @@ func (ed *Editor) stropt_remove_dupflags(newval Ptr[byte], flags int32) {
 }
 
 func (ed *Editor) stropt_get_newval(nextchar int32, opt_idx int32, argp *Ptr[byte], varp optvar_T, origval_arg *Ptr[byte], origval_l_arg *Ptr[byte], origval_g_arg *Ptr[byte], oldval_arg *Ptr[byte], op_arg *set_op_T, flags int32, cp_val int32) Ptr[byte] {
-	var arg Ptr[byte]
-	var origval Ptr[byte]
-	var origval_l Ptr[byte]
-	var origval_g Ptr[byte]
-	var oldval Ptr[byte]
-	var op set_op_T
-	var save_arg Ptr[byte]
+	arg := (*argp)
+	origval := (*origval_arg)
+	origval_l := (*origval_l_arg)
+	origval_g := (*origval_g_arg)
+	oldval := (*oldval_arg)
+	op := (*op_arg)
+	var save_arg Ptr[byte] = Ptr[byte]{}
 	var newval Ptr[byte]
-	var s Ptr[byte]
-	var whichwrap Ptr[byte]
-	var t Ptr[byte]
-	var len_ int32
-
-	arg = (*argp)
-	origval = (*origval_arg)
-	origval_l = (*origval_l_arg)
-	origval_g = (*origval_g_arg)
-	oldval = (*oldval_arg)
-	op = (*op_arg)
-	save_arg = Ptr[byte]{}
-	s = Ptr[byte]{}
-	whichwrap = Mk[byte](80)
-	if nextchar == '&' {
-		newval = ed.stropt_get_default_val(opt_idx, varp, flags, cp_val)
-	} else {
-		arg = arg.Add(1)
-		if (varp.ov_str == &ed.p_bs) && ((uint32((*varp.ov_str).Get()) - '0') < 10) {
-			ed.opt_backspace_nr2str(varp, &origval, &origval_l, &origval_g, &oldval)
-		} else if (varp.ov_str == &ed.p_ww) && ((uint32(arg.Get()) - '0') < 10) {
-			t = opt_whichwrap_nr2str(&arg, whichwrap)
-			save_arg = arg
-			arg = t
-		}
-		newval = ed.stropt_copy_value(origval, &arg, op, flags)
-		if (op == OP_NONE) || ((flags & P_COMMA) != 0) {
-			newval = ed.stropt_expand_envvar(opt_idx, origval, newval, op)
-			if newval.Nil() {
-				goto done
-			}
-		}
-		if ((((flags & P_COMMA) != 0) && ((int64(flags) & P_COLON) != 0)) && (op != OP_NONE)) && ed.stropt_handle_keymatch(origval, newval, op, flags) {
+	var s Ptr[byte] = Ptr[byte]{}
+	var whichwrap Ptr[byte] = Mk[byte](80)
+	for {
+		if nextchar == '&' {
+			newval = ed.stropt_get_default_val(opt_idx, varp, flags, cp_val)
 		} else {
-			len_ = 0
-			if (op == OP_REMOVING) || ((flags & P_NODUP) != 0) {
-				len_ = int32(musl_strlen(newval))
-				s = find_dup_item(origval, newval, usize(len_), long_u(flags))
-				if ((op == OP_ADDING) || (op == OP_PREPENDING)) && !s.Nil() {
-					op = OP_NONE
-					musl_strcpy(newval, origval)
-				}
-				if s.Nil() {
-					s = origval.Add(int(int32(musl_strlen(origval))))
+			arg = arg.Add(1)
+			if (varp.ov_str == &ed.p_bs) && ((uint32((*varp.ov_str).Get()) - '0') < 10) {
+				ed.opt_backspace_nr2str(varp, &origval, &origval_l, &origval_g, &oldval)
+			} else if (varp.ov_str == &ed.p_ww) && ((uint32(arg.Get()) - '0') < 10) {
+				t := opt_whichwrap_nr2str(&arg, whichwrap)
+				save_arg = arg
+				arg = t
+			}
+			newval = ed.stropt_copy_value(origval, &arg, op, flags)
+			if (op == OP_NONE) || ((flags & P_COMMA) != 0) {
+				newval = ed.stropt_expand_envvar(opt_idx, origval, newval, op)
+				if newval.Nil() {
+					break
 				}
 			}
-			if (op == OP_ADDING) || (op == OP_PREPENDING) {
-				stropt_concat_with_comma(origval, newval, op, flags)
-			} else if op == OP_REMOVING {
-				stropt_remove_val(origval, newval, flags, s, len_)
+			if ((((flags & P_COMMA) != 0) && ((int64(flags) & P_COLON) != 0)) && (op != OP_NONE)) && ed.stropt_handle_keymatch(origval, newval, op, flags) {
+			} else {
+				var len_ int32 = 0
+				if (op == OP_REMOVING) || ((flags & P_NODUP) != 0) {
+					len_ = int32(musl_strlen(newval))
+					s = find_dup_item(origval, newval, usize(len_), long_u(flags))
+					if ((op == OP_ADDING) || (op == OP_PREPENDING)) && !s.Nil() {
+						op = OP_NONE
+						musl_strcpy(newval, origval)
+					}
+					if s.Nil() {
+						s = origval.Add(int(int32(musl_strlen(origval))))
+					}
+				}
+				if (op == OP_ADDING) || (op == OP_PREPENDING) {
+					stropt_concat_with_comma(origval, newval, op, flags)
+				} else if op == OP_REMOVING {
+					stropt_remove_val(origval, newval, flags, s, len_)
+				}
+			}
+			if flags&P_FLAGLIST != 0 {
+				ed.stropt_remove_dupflags(newval, flags)
 			}
 		}
-		if flags&P_FLAGLIST != 0 {
-			ed.stropt_remove_dupflags(newval, flags)
-		}
+		break
 	}
-done:
 	if !save_arg.Nil() {
 		arg = save_arg
 	}
@@ -39648,19 +39551,16 @@ func (ed *Editor) do_set_option_bool(opt_idx int32, opt_flags int32, prefix set_
 }
 
 func (ed *Editor) do_set_option_numeric(opt_idx int32, opt_flags int32, argp *Ptr[byte], nextchar int32, op set_op_T, flags long_u, cp_val int32, varp optvar_T, errbuf Ptr[byte], errbuflen usize) Ptr[byte] {
-	var arg Ptr[byte]
+	arg := (*argp)
 	var value varnumber_T
 	var i int32
-	var errmsg Ptr[byte]
-	var t1 int32
-
-	arg = (*argp)
-	errmsg = Ptr[byte]{}
+	var errmsg Ptr[byte] = Ptr[byte]{}
 	if (opt_idx < 0) || optvar_is_null(varp) {
 		return Ptr[byte]{}
 	}
 	arg = arg.Add(1)
 	if nextchar == '&' {
+		var t1 int32
 		if ((flags & P_VI_DEF) != 0) || (cp_val != 0) {
 			t1 = VI_DEFAULT
 		} else {
@@ -39671,11 +39571,13 @@ func (ed *Editor) do_set_option_numeric(opt_idx int32, opt_flags int32, argp *Pt
 		vim_str2nr(arg, nil, &i, (((STR2NR_BIN + STR2NR_OCT) + STR2NR_HEX) + STR2NR_OOCT), &value, nil, 0, true, nil)
 		if (i == 0) || ((int32(arg.At(int(i))) != NUL) && !((int32(arg.At(int(i))) == (' ')) || (int32(arg.At(int(i))) == 9))) {
 			errmsg = ed.e_number_required_after_equal
-			goto skip
+			*argp = arg
+			return errmsg
 		}
 	} else {
 		errmsg = ed.e_number_required_after_equal
-		goto skip
+		*argp = arg
+		return errmsg
 	}
 	if op == OP_ADDING {
 		value = (*varp.ov_long) + value
@@ -39686,10 +39588,10 @@ func (ed *Editor) do_set_option_numeric(opt_idx int32, opt_flags int32, argp *Pt
 	}
 	if (varp.ov_long == &ed.curwin.w_onebuf_opt.wo_sop) && (value < -1) {
 		errmsg = ed.e_invalid_argument
-		goto skip
+		*argp = arg
+		return errmsg
 	}
 	errmsg = ed.set_num_option(opt_idx, varp, value, errbuf, errbuflen, opt_flags)
-skip:
 	*argp = arg
 	return errmsg
 }
@@ -39723,47 +39625,48 @@ func (ed *Editor) do_set_option_keycode(argp *Ptr[byte], key_name []byte, nextch
 }
 
 func (ed *Editor) do_set_option_value(opt_idx int32, opt_flags int32, argp *Ptr[byte], prefix set_prefix_T, op set_op_T, flags long_u, varp optvar_T, key_name []byte, nextchar int32, afterchar int32, cp_val int32, stopopteval *int32, errbuf Ptr[byte], errbuflen usize) Ptr[byte] {
-	var value_checked int32
-	var errmsg Ptr[byte]
-	var arg Ptr[byte]
-
-	value_checked = FALSE
-	errmsg = Ptr[byte]{}
-	arg = (*argp)
+	var value_checked int32 = FALSE
+	var errmsg Ptr[byte] = Ptr[byte]{}
+	arg := (*argp)
 	if flags&P_BOOL != 0 {
 		errmsg = ed.do_set_option_bool(opt_idx, opt_flags, prefix, flags, varp, nextchar, afterchar, cp_val)
 		if !errmsg.Nil() {
-			goto skip
+			*argp = arg
+			return errmsg
 		}
 	} else {
 		if ed.vim_strchr(S("=:&<"), nextchar).Nil() || (prefix != PREFIX_NONE) {
 			errmsg = ed.e_invalid_argument
-			goto skip
+			*argp = arg
+			return errmsg
 		}
 		if flags&P_NUM != 0 {
 			errmsg = ed.do_set_option_numeric(opt_idx, opt_flags, &arg, nextchar, op, flags, cp_val, varp, errbuf, errbuflen)
 			if !errmsg.Nil() {
-				goto skip
+				*argp = arg
+				return errmsg
 			}
 		} else if opt_idx >= 0 {
 			if !ed.do_set_option_string(opt_idx, opt_flags, &arg, nextchar, op, flags, cp_val, varp, errbuf, errbuflen, &value_checked, &errmsg) {
 				if !errmsg.Nil() {
-					goto skip
+					*argp = arg
+					return errmsg
 				}
 				*stopopteval = TRUE
-				goto skip
+				*argp = arg
+				return errmsg
 			}
 		} else {
 			errmsg = ed.do_set_option_keycode(&arg, key_name, nextchar)
 			if !errmsg.Nil() {
-				goto skip
+				*argp = arg
+				return errmsg
 			}
 		}
 	}
 	if opt_idx >= 0 {
 		ed.did_set_option(opt_idx, opt_flags, op == OP_NONE, value_checked)
 	}
-skip:
 	*argp = arg
 	return errmsg
 }
@@ -39775,17 +39678,12 @@ func (ed *Editor) do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[
 	var op set_op_T
 	var flags long_u
 	var varp optvar_T
-	var key_name Ptr[byte]
+	var key_name Ptr[byte] = Mk[byte](2)
 	var nextchar int32
 	var afterchar int32
-	var errmsg Ptr[byte]
+	var errmsg Ptr[byte] = Ptr[byte]{}
 	var key int32
 	var len_ int32
-	var cp_val int32
-	var p Ptr[byte]
-
-	key_name = Mk[byte](2)
-	errmsg = Ptr[byte]{}
 	prefix = get_option_prefix(argp)
 	arg = (*argp)
 	key = 0
@@ -39803,14 +39701,16 @@ func (ed *Editor) do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[
 	nextchar = int32(arg.At(int(len_)))
 	if (opt_idx == -1) && (key == 0) {
 		errmsg = ed.e_unknown_option
-		goto skip
+		*argp = arg
+		return errmsg
 	}
 	if opt_idx >= 0 {
 		if optvar_is_null(ed.options.Ref(int(opt_idx)).var_) {
 			if ed.vim_strchr(S("=:!&<"), nextchar).Nil() && (((ed.options.Ref(int(opt_idx)).flags & P_BOOL) == 0) || (nextchar == '?')) {
 				errmsg = ed.e_option_not_supported
 			}
-			goto skip
+			*argp = arg
+			return errmsg
 		}
 		flags = ed.options.Ref(int(opt_idx)).flags
 		varp = ed.get_varp_scope(ed.options.Add(int(opt_idx)), opt_flags)
@@ -39826,9 +39726,10 @@ func (ed *Editor) do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[
 		}
 	}
 	if !ed.validate_opt_idx(opt_idx, opt_flags, flags, &errmsg, prefix) {
-		goto skip
+		*argp = arg
+		return errmsg
 	}
-	cp_val = ed.p_cp
+	cp_val := ed.p_cp
 	if !ed.vim_strchr(S("?=:!&"), nextchar).Nil() {
 		arg = arg.Add(int(len_))
 		if ((nextchar == '&') && (int32(arg.At(1)) == 'v')) && (int32(arg.At(2)) == 'i') {
@@ -39842,7 +39743,8 @@ func (ed *Editor) do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[
 		}
 		if (!ed.vim_strchr(S("?!&<"), nextchar).Nil() && (int32(arg.At(1)) != NUL)) && !((int32(arg.At(1)) == (' ')) || (int32(arg.At(1)) == 9)) {
 			errmsg = ed.e_trailing_characters
-			goto skip
+			*argp = arg
+			return errmsg
 		}
 	}
 	if (nextchar == '?') || (((prefix == PREFIX_NONE) && ed.vim_strchr(S("=:&<"), nextchar).Nil()) && ((flags & P_BOOL) == 0)) {
@@ -39855,10 +39757,11 @@ func (ed *Editor) do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[
 		if opt_idx >= 0 {
 			ed.showoneopt(ed.options.Add(int(opt_idx)), opt_flags)
 		} else {
-			p = ed.find_termcode(key_name.Tail())
+			var p Ptr[byte] = ed.find_termcode(key_name.Tail())
 			if p.Nil() {
 				errmsg = ed.e_key_code_not_set
-				goto skip
+				*argp = arg
+				return errmsg
 			} else {
 				ed.show_one_termcode(key_name.Tail(), p, true)
 			}
@@ -39869,7 +39772,6 @@ func (ed *Editor) do_set_option(opt_flags int32, argp *Ptr[byte], arg_start Ptr[
 	} else {
 		errmsg = ed.do_set_option_value(opt_idx, opt_flags, &arg, prefix, op, flags, varp, key_name.Tail(), nextchar, afterchar, cp_val, stopopteval, errbuf, errbuflen)
 	}
-skip:
 	*argp = arg
 	return errmsg
 }
@@ -44471,19 +44373,12 @@ func (ed *Editor) reg(paren int32, flagp *int32) Ptr[byte] {
 	var ret Ptr[byte]
 	var br Ptr[byte]
 	var ender Ptr[byte]
-	var parno int32
+	var parno int32 = 0
 	var flags int32
-	var t1 Ptr[byte]
-	var t2 int32
-	var t3 int32
-	var t4 Ptr[byte]
-	var t5 Ptr[byte]
-	var t6 Ptr[byte]
-
-	parno = 0
 	*flagp = HASWIDTH
 	if paren == REG_PAREN {
 		if ed.regnpar >= NSUBEXP {
+			var t1 Ptr[byte]
 			if ed.reg_magic == MAGIC_ALL {
 				t1 = S("")
 			} else {
@@ -44511,7 +44406,8 @@ func (ed *Editor) reg(paren int32, flagp *int32) Ptr[byte] {
 	br = ed.regbranch(&flags)
 	if br.Nil() {
 		ret = Ptr[byte]{}
-		goto theend
+		ed.bt_reg_parse_depth--
+		return ret
 	}
 	if !ret.Nil() {
 		ed.regtail(ret, br)
@@ -44527,7 +44423,8 @@ func (ed *Editor) reg(paren int32, flagp *int32) Ptr[byte] {
 		br = ed.regbranch(&flags)
 		if br.Nil() || (ed.reg_toolong != 0) {
 			ret = Ptr[byte]{}
-			goto theend
+			ed.bt_reg_parse_depth--
+			return ret
 		}
 		ed.regtail(ret, br)
 		if (flags & HASWIDTH) == 0 {
@@ -44535,9 +44432,11 @@ func (ed *Editor) reg(paren int32, flagp *int32) Ptr[byte] {
 		}
 		(*flagp) |= flags & ((SPSTART | HASNL) | HASLOOKBH)
 	}
+	var t3 int32
 	if paren == REG_PAREN {
 		t3 = MCLOSE + parno
 	} else {
+		var t2 int32
 		if paren == REG_NPAREN {
 			t2 = NCLOSE
 		} else {
@@ -44553,6 +44452,7 @@ func (ed *Editor) reg(paren int32, flagp *int32) Ptr[byte] {
 	}
 	if (paren != REG_NOPAREN) && (ed.getchr() != -215) {
 		if paren == REG_NPAREN {
+			var t4 Ptr[byte]
 			if ed.reg_magic == MAGIC_ALL {
 				t4 = S("")
 			} else {
@@ -44562,8 +44462,10 @@ func (ed *Editor) reg(paren int32, flagp *int32) Ptr[byte] {
 			ed.emsg(ed.iobuff_or(gettext_(ed.e_unmatched_str_percent_open)))
 			ed.rc_did_emsg = TRUE
 			ret = Ptr[byte]{}
-			goto theend
+			ed.bt_reg_parse_depth--
+			return ret
 		} else {
+			var t5 Ptr[byte]
 			if ed.reg_magic == MAGIC_ALL {
 				t5 = S("")
 			} else {
@@ -44573,10 +44475,12 @@ func (ed *Editor) reg(paren int32, flagp *int32) Ptr[byte] {
 			ed.emsg(ed.iobuff_or(gettext_(ed.e_unmatched_str_open)))
 			ed.rc_did_emsg = TRUE
 			ret = Ptr[byte]{}
-			goto theend
+			ed.bt_reg_parse_depth--
+			return ret
 		}
 	} else if (paren == REG_NOPAREN) && (ed.peekchr() != NUL) {
 		if ed.curchr == -215 {
+			var t6 Ptr[byte]
 			if ed.reg_magic == MAGIC_ALL {
 				t6 = S("")
 			} else {
@@ -44586,18 +44490,19 @@ func (ed *Editor) reg(paren int32, flagp *int32) Ptr[byte] {
 			ed.emsg(ed.iobuff_or(gettext_(ed.e_unmatched_str_close)))
 			ed.rc_did_emsg = TRUE
 			ret = Ptr[byte]{}
-			goto theend
+			ed.bt_reg_parse_depth--
+			return ret
 		} else {
 			ed.emsg(gettext_(ed.e_trailing_characters))
 			ed.rc_did_emsg = TRUE
 			ret = Ptr[byte]{}
-			goto theend
+			ed.bt_reg_parse_depth--
+			return ret
 		}
 	}
 	if paren == REG_PAREN {
 		ed.had_endbrace[int(parno)] = TRUE
 	}
-theend:
 	ed.bt_reg_parse_depth--
 	return ret
 }
@@ -46143,15 +46048,8 @@ func (ed *Editor) regtry(prog *S_regprog, col colnr_T, timed_out *int32) int64 {
 func (ed *Editor) bt_regexec_both(line Ptr[byte], startcol colnr_T, timed_out *int32) int64 {
 	var prog *S_regprog
 	var s Ptr[byte]
-	var col colnr_T
-	var retval int64
-	var c int32
-	var c_2 int32
-	var start *lpos_T
-	var end *lpos_T
-
-	col = startcol
-	retval = 0
+	col := startcol
+	var retval int64 = 0
 	if ed.regstack.ga_data == nil {
 		ga_init2(&ed.regstack, 40, REGSTACK_INITIAL/40)
 		ga_grow(&ed.regstack, REGSTACK_INITIAL/40)
@@ -46174,93 +46072,95 @@ func (ed *Editor) bt_regexec_both(line Ptr[byte], startcol colnr_T, timed_out *i
 		ed.rex.reg_startp = View(ed.rex.reg_match.startp[:])
 		ed.rex.reg_endp = View(ed.rex.reg_match.endp[:])
 	}
-	if (prog == nil) || line.Nil() {
-		ed.iemsg(ed.e_null_argument)
-		goto theend
-	}
-	if ed.prog_magic_wrong() {
-		goto theend
-	}
-	if (ed.rex.reg_maxcol > 0) && (col >= ed.rex.reg_maxcol) {
-		goto theend
-	}
-	if prog.regflags&RF_ICASE != 0 {
-		ed.rex.reg_ic = TRUE
-	} else if prog.regflags&RF_NOICASE != 0 {
-		ed.rex.reg_ic = FALSE
-	}
-	if prog.regflags&RF_ICOMBINE != 0 {
-		ed.rex.reg_icombine = true
-	}
-	if !prog.regmust.Nil() {
-		c = ed.utf_ptr2char(prog.regmust)
-		s = line.Add(int(col))
-		if ed.rex.reg_ic == 0 {
-			for {
-				s = ed.vim_strchr(s, c)
-				if s.Nil() {
-					break
+	for {
+		if (prog == nil) || line.Nil() {
+			ed.iemsg(ed.e_null_argument)
+			break
+		}
+		if ed.prog_magic_wrong() {
+			break
+		}
+		if (ed.rex.reg_maxcol > 0) && (col >= ed.rex.reg_maxcol) {
+			break
+		}
+		if prog.regflags&RF_ICASE != 0 {
+			ed.rex.reg_ic = TRUE
+		} else if prog.regflags&RF_NOICASE != 0 {
+			ed.rex.reg_ic = FALSE
+		}
+		if prog.regflags&RF_ICOMBINE != 0 {
+			ed.rex.reg_icombine = true
+		}
+		if !prog.regmust.Nil() {
+			var c int32 = ed.utf_ptr2char(prog.regmust)
+			s = line.Add(int(col))
+			if ed.rex.reg_ic == 0 {
+				for {
+					s = ed.vim_strchr(s, c)
+					if s.Nil() {
+						break
+					}
+					if ed.cstrncmp(s, prog.regmust, &prog.regmlen) == 0 {
+						break
+					}
+					s = s.Add(int(ed.utfc_ptr2len(s)))
 				}
-				if ed.cstrncmp(s, prog.regmust, &prog.regmlen) == 0 {
-					break
+			} else {
+				for {
+					s = ed.cstrchr(s, c)
+					if s.Nil() {
+						break
+					}
+					if ed.cstrncmp(s, prog.regmust, &prog.regmlen) == 0 {
+						break
+					}
+					s = s.Add(int(ed.utfc_ptr2len(s)))
 				}
-				s = s.Add(int(ed.utfc_ptr2len(s)))
+			}
+			if s.Nil() {
+				break
+			}
+		}
+		ed.rex.line = line
+		ed.rex.lnum = 0
+		ed.reg_toolong = FALSE
+		if prog.reganch != 0 {
+			var c_2 int32 = ed.utf_ptr2char(ed.rex.line.Add(int(col)))
+			if ((prog.regstart == NUL) || (prog.regstart == c_2)) || ((ed.rex.reg_ic != 0) && ((ed.utf_fold(prog.regstart) == ed.utf_fold(c_2)) || (((c_2 < 255) && (prog.regstart < 255)) && (ed.vim_tolower(prog.regstart) == ed.vim_tolower(c_2))))) {
+				retval = ed.regtry(prog, col, timed_out)
+			} else {
+				retval = 0
 			}
 		} else {
-			for {
-				s = ed.cstrchr(s, c)
-				if s.Nil() {
-					break
+			for ed.got_int == 0 {
+				if prog.regstart != NUL {
+					s = ed.cstrchr(ed.rex.line.Add(int(col)), prog.regstart)
+					if s.Nil() {
+						retval = 0
+						break
+					}
+					col = int32(int64(s.Sub(ed.rex.line)))
 				}
-				if ed.cstrncmp(s, prog.regmust, &prog.regmlen) == 0 {
-					break
-				}
-				s = s.Add(int(ed.utfc_ptr2len(s)))
-			}
-		}
-		if s.Nil() {
-			goto theend
-		}
-	}
-	ed.rex.line = line
-	ed.rex.lnum = 0
-	ed.reg_toolong = FALSE
-	if prog.reganch != 0 {
-		c_2 = ed.utf_ptr2char(ed.rex.line.Add(int(col)))
-		if ((prog.regstart == NUL) || (prog.regstart == c_2)) || ((ed.rex.reg_ic != 0) && ((ed.utf_fold(prog.regstart) == ed.utf_fold(c_2)) || (((c_2 < 255) && (prog.regstart < 255)) && (ed.vim_tolower(prog.regstart) == ed.vim_tolower(c_2))))) {
-			retval = ed.regtry(prog, col, timed_out)
-		} else {
-			retval = 0
-		}
-	} else {
-		for ed.got_int == 0 {
-			if prog.regstart != NUL {
-				s = ed.cstrchr(ed.rex.line.Add(int(col)), prog.regstart)
-				if s.Nil() {
+				if (ed.rex.reg_maxcol > 0) && (col >= ed.rex.reg_maxcol) {
 					retval = 0
 					break
 				}
-				col = int32(int64(s.Sub(ed.rex.line)))
+				retval = ed.regtry(prog, col, timed_out)
+				if retval > 0 {
+					break
+				}
+				if ed.rex.lnum != 0 {
+					ed.rex.lnum = 0
+					ed.rex.line = ed.reg_getline(0)
+				}
+				if int32(ed.rex.line.At(int(col))) == NUL {
+					break
+				}
+				col += ed.utfc_ptr2len(ed.rex.line.Add(int(col)))
 			}
-			if (ed.rex.reg_maxcol > 0) && (col >= ed.rex.reg_maxcol) {
-				retval = 0
-				break
-			}
-			retval = ed.regtry(prog, col, timed_out)
-			if retval > 0 {
-				break
-			}
-			if ed.rex.lnum != 0 {
-				ed.rex.lnum = 0
-				ed.rex.line = ed.reg_getline(0)
-			}
-			if int32(ed.rex.line.At(int(col))) == NUL {
-				break
-			}
-			col += ed.utfc_ptr2len(ed.rex.line.Add(int(col)))
 		}
+		break
 	}
-theend:
 	if ed.reg_tofreelen > 400 {
 		ed.reg_tofree = Ptr[byte]{}
 	}
@@ -46272,8 +46172,8 @@ theend:
 	}
 	if retval > 0 {
 		if ed.rex.reg_match == nil {
-			start = &ed.rex.reg_mmatch.startpos[0]
-			end = &ed.rex.reg_mmatch.endpos[0]
+			var start *lpos_T = &ed.rex.reg_mmatch.startpos[0]
+			var end *lpos_T = &ed.rex.reg_mmatch.endpos[0]
 			if (end.lnum < start.lnum) || ((end.lnum == start.lnum) && (end.col < start.col)) {
 				ed.rex.reg_mmatch.endpos[0] = ed.rex.reg_mmatch.startpos[0]
 			}
@@ -46932,25 +46832,17 @@ func (ed *Editor) free_yank_all() {
 }
 
 func (ed *Editor) op_yank(oap *S_oparg_S, deleting bool, mess bool) bool {
+	var tmp int32
+
 	var y_idx int64
 	var curr *yankreg_T
 	var newreg yankreg_T
 	var lnum linenr_T
-	var yanktype int32
-	var yanklines int64
-	var yankendlnum linenr_T
+	yanktype := oap.motion_type
+	yanklines := oap.line_count
+	yankendlnum := oap.end.lnum
 	var pnew Ptr[byte]
 	var bd S_block_def
-	var tmp int32
-	var new_ptr Ptr[string_T]
-	var j int64
-	var t1 int64
-	var t2 int64
-	var namebuf Ptr[byte]
-
-	yanktype = oap.motion_type
-	yanklines = oap.line_count
-	yankendlnum = oap.end.lnum
 	if (oap.regname != 0) && !ed.valid_yank_reg(oap.regname, true) {
 		ed.beep_flush()
 		return false
@@ -46993,7 +46885,9 @@ func (ed *Editor) op_yank(oap *S_oparg_S, deleting bool, mess bool) bool {
 		case MBLOCK:
 			ed.block_prep(oap, &bd, lnum, FALSE)
 			if !ed.yank_copy_line(&bd, y_idx, oap.excl_tr_ws) {
-				goto fail
+				ed.free_yank(y_idx + 1)
+				ed.y_current = curr
+				return false
 			}
 		case MLINE:
 			ed.y_current.y_array.Ref(int(y_idx)).length = usize(ed.ml_get_len(lnum))
@@ -47005,13 +46899,17 @@ func (ed *Editor) op_yank(oap *S_oparg_S, deleting bool, mess bool) bool {
 				bd.textlen = tmp
 			}
 			if !ed.yank_copy_line(&bd, y_idx, FALSE) {
-				goto fail
+				ed.free_yank(y_idx + 1)
+				ed.y_current = curr
+				return false
 			}
 		}
 		lnum++
 		y_idx++
 	}
 	if curr != ed.y_current {
+		var new_ptr Ptr[string_T]
+		var j int64
 		new_ptr = Mk[string_T](int((curr.y_size + ed.y_current.y_size)))
 		j = 0
 		for ; j < curr.y_size; j++ {
@@ -47036,9 +46934,9 @@ func (ed *Editor) op_yank(oap *S_oparg_S, deleting bool, mess bool) bool {
 			y_idx = 0
 		}
 		for y_idx < ed.y_current.y_size {
-			t1 = j
+			var t1 int64 = j
 			j++
-			t2 = y_idx
+			var t2 int64 = y_idx
 			y_idx++
 			curr.y_array.Set(int(t1), *ed.y_current.y_array.Ref(int(t2)))
 		}
@@ -47050,7 +46948,7 @@ func (ed *Editor) op_yank(oap *S_oparg_S, deleting bool, mess bool) bool {
 			yanklines = 0
 		}
 		if yanklines > ed.p_report {
-			namebuf = Mk[byte](100)
+			var namebuf Ptr[byte] = Mk[byte](100)
 			if oap.regname == NUL {
 				namebuf.Put(NUL)
 			} else {
@@ -47078,10 +46976,6 @@ func (ed *Editor) op_yank(oap *S_oparg_S, deleting bool, mess bool) bool {
 		}
 	}
 	return true
-fail:
-	ed.free_yank(y_idx + 1)
-	ed.y_current = curr
-	return false
 }
 
 func (ed *Editor) yank_copy_line(bd *S_block_def, y_idx int64, exclude_trailing_space int32) bool {
@@ -47212,472 +47106,474 @@ func (ed *Editor) do_put(regname int32, expr_result Ptr[byte], dir int32, count 
 	} else if ed.get_spec_reg(regname, &insert_string.string_, &allocated, true) && insert_string.string_.Nil() {
 		return
 	}
-	if !ed.u_save(ed.curwin.w_cursor.lnum, ed.curwin.w_cursor.lnum+1) {
-		goto end
-	}
-	if !insert_string.string_.Nil() {
-		insert_string.length = musl_strlen(insert_string.string_)
-		y_type = MCHAR
-		y_size = 1
-		y_array = Addr(&insert_string)
-	} else {
-		ed.get_yank_register(regname, FALSE)
-		y_type = int32(ed.y_current.y_type)
-		y_width = int64(ed.y_current.y_width)
-		y_size = ed.y_current.y_size
-		y_array = ed.y_current.y_array
-		y_current_used = ed.y_current
-	}
-	if y_type == MLINE {
-		if flags&PUT_LINE_SPLIT != 0 {
-			if !ed.u_save_cursor() {
-				goto end
-			}
-			p = ed.ml_get_cursor()
-			p_orig = p
-			plen = usize(ed.ml_get_cursor_len())
-			if (dir == FORWARD) && (int32(p.Get()) != NUL) {
-				p = p.Add(int(ed.utfc_ptr2len(p)))
-			}
-			ptr = vim_strnsave(p, plen-uint64(int64(p.Sub(p_orig))))
-			ed.ml_append(ed.curwin.w_cursor.lnum, ptr, 0)
-			oldp = ed.ml_get_curline()
-			p = oldp.Add(int(ed.curwin.w_cursor.col))
-			if (dir == FORWARD) && (int32(p.Get()) != NUL) {
-				p = p.Add(int(ed.utfc_ptr2len(p)))
-			}
-			ptr = vim_strnsave(oldp, uint64(int64(p.Sub(oldp))))
-			ed.ml_replace(ed.curwin.w_cursor.lnum, ptr, false)
-			nr_lines++
-			dir = FORWARD
+	for {
+		if !ed.u_save(ed.curwin.w_cursor.lnum, ed.curwin.w_cursor.lnum+1) {
+			break
 		}
-		if flags&PUT_LINE_FORWARD != 0 {
-			ed.curwin.w_cursor = ed.curbuf.b_visual.vi_end
-			dir = FORWARD
-		}
-		ed.curbuf.b_op_start = ed.curwin.w_cursor
-		ed.curbuf.b_op_end = ed.curwin.w_cursor
-	}
-	if flags&PUT_LINE != 0 {
-		y_type = MLINE
-	}
-	if (y_size == 0) || y_array.Nil() {
-		if regname == 0 {
-			t4 = S("\"")
+		if !insert_string.string_.Nil() {
+			insert_string.length = musl_strlen(insert_string.string_)
+			y_type = MCHAR
+			y_size = 1
+			y_array = Addr(&insert_string)
 		} else {
-			t4 = ed.transchar(regname)
+			ed.get_yank_register(regname, FALSE)
+			y_type = int32(ed.y_current.y_type)
+			y_width = int64(ed.y_current.y_width)
+			y_size = ed.y_current.y_size
+			y_array = ed.y_current.y_array
+			y_current_used = ed.y_current
 		}
-		ed.vim_snprintf(ed.IObuff, ed.emsg_iobuff_room(), gettext_(ed.e_nothing_in_register_str), t4)
-		ed.emsg(ed.iobuff_or(gettext_(ed.e_nothing_in_register_str)))
-		goto end
-	}
-	if y_type == MBLOCK {
-		lnum = (ed.curwin.w_cursor.lnum + y_size) + 1
-		if lnum > ed.curbuf.b_ml.ml_line_count {
-			lnum = ed.curbuf.b_ml.ml_line_count + 1
-		}
-		if !ed.u_save(ed.curwin.w_cursor.lnum-1, lnum) {
-			goto end
-		}
-	} else if y_type == MLINE {
-		lnum = ed.curwin.w_cursor.lnum
-		if dir == FORWARD {
-			lnum++
-		}
-		if (ed.curbuf.b_ml.ml_line_count == 1) && (int32(ed.ml_get(1).Get()) == NUL) {
-			t5 = B2i(ed.u_save(0, 2))
-		} else {
-			t5 = B2i(ed.u_save(lnum-1, lnum))
-		}
-		if t5 == 0 {
-			goto end
-		}
-	} else if !ed.u_save_cursor() {
-		goto end
-	}
-	if (cur_ve_flags == VE_ALL) && (y_type == MCHAR) {
-		if ed.gchar_cursor() == TAB {
-			viscol = ed.getviscol()
-			ts = int32(ed.curbuf.b_p_ts)
-			if dir == FORWARD {
-				t6 = (ts - (viscol % ts)) != 1
-			} else {
-				t6 = ed.curwin.w_cursor.coladd > 0
-			}
-			if t6 {
-				ed.coladvance_force(viscol)
-			} else {
-				ed.curwin.w_cursor.coladd = 0
-			}
-		} else if (ed.curwin.w_cursor.coladd > 0) || (ed.gchar_cursor() == NUL) {
-			ed.coladvance_force(ed.getviscol() + B2i((dir == FORWARD)))
-		}
-	}
-	lnum = ed.curwin.w_cursor.lnum
-	col = ed.curwin.w_cursor.col
-	if y_type == MBLOCK {
-		incr = 0
-		c = ed.gchar_cursor()
-		endcol2 = 0
-		if (dir == FORWARD) && (c != NUL) {
-			if cur_ve_flags == VE_ALL {
-				ed.getvcol(ed.curwin, &ed.curwin.w_cursor, &col, nil, &endcol2, 0)
-			} else {
-				ed.getvcol(ed.curwin, &ed.curwin.w_cursor, nil, nil, &col, 0)
-			}
-			ed.curwin.w_cursor.col += ed.utfc_ptr2len(ed.ml_get_cursor())
-			col++
-		} else {
-			ed.getvcol(ed.curwin, &ed.curwin.w_cursor, &col, nil, &endcol2, 0)
-		}
-		col += ed.curwin.w_cursor.coladd
-		if (cur_ve_flags == VE_ALL) && ((ed.curwin.w_cursor.coladd > 0) || (endcol2 == ed.curwin.w_cursor.col)) {
-			if (dir == FORWARD) && (c == NUL) {
-				col++
-			}
-			if ((dir != FORWARD) && (c != NUL)) && (ed.curwin.w_cursor.coladd > 0) {
-				ed.curwin.w_cursor.col++
-			}
-			if c == TAB {
-				if (dir == -1) && (ed.curwin.w_cursor.col != 0) {
-					ed.curwin.w_cursor.col--
-				}
-				if (dir == FORWARD) && ((col - 1) == endcol2) {
-					ed.curwin.w_cursor.col++
-				}
-			}
-		}
-		ed.curwin.w_cursor.coladd = 0
-		bd.textcol = 0
-		i = 0
-		for ; i < y_size; i++ {
-			spaces = 0
-			bd.startspaces = 0
-			bd.endspaces = 0
-			vcol = 0
-			delcount = 0
-			if ed.curwin.w_cursor.lnum > ed.curbuf.b_ml.ml_line_count {
-				if !ed.ml_append(ed.curbuf.b_ml.ml_line_count, S(""), 1) {
+		if y_type == MLINE {
+			if flags&PUT_LINE_SPLIT != 0 {
+				if !ed.u_save_cursor() {
 					break
 				}
+				p = ed.ml_get_cursor()
+				p_orig = p
+				plen = usize(ed.ml_get_cursor_len())
+				if (dir == FORWARD) && (int32(p.Get()) != NUL) {
+					p = p.Add(int(ed.utfc_ptr2len(p)))
+				}
+				ptr = vim_strnsave(p, plen-uint64(int64(p.Sub(p_orig))))
+				ed.ml_append(ed.curwin.w_cursor.lnum, ptr, 0)
+				oldp = ed.ml_get_curline()
+				p = oldp.Add(int(ed.curwin.w_cursor.col))
+				if (dir == FORWARD) && (int32(p.Get()) != NUL) {
+					p = p.Add(int(ed.utfc_ptr2len(p)))
+				}
+				ptr = vim_strnsave(oldp, uint64(int64(p.Sub(oldp))))
+				ed.ml_replace(ed.curwin.w_cursor.lnum, ptr, false)
 				nr_lines++
+				dir = FORWARD
 			}
-			oldp = ed.ml_get_curline()
-			oldlen = ed.ml_get_curline_len()
-			init_chartabsize_arg(&cts, ed.curwin, ed.curwin.w_cursor.lnum, 0, oldp, oldp)
-			for (cts.cts_vcol < col) && (int32(cts.cts_ptr.Get()) != NUL) {
-				incr = ed.lbr_chartabsize_adv(&cts)
-				cts.cts_vcol += incr
-			}
-			vcol = cts.cts_vcol
-			ptr = cts.cts_ptr
-			bd.textcol = int32(int64(ptr.Sub(oldp)))
-			shortline = byte(B2i((vcol < col) || ((vcol == col) && (ptr.Get() == 0))))
-			if vcol < col {
-				bd.startspaces = col - vcol
-			} else if vcol > col {
-				bd.endspaces = vcol - col
-				bd.startspaces = incr - bd.endspaces
-				bd.textcol--
-				delcount = 1
-				bd.textcol -= ed.utf_head_off(oldp, oldp.Add(int(bd.textcol)))
-				if int32(oldp.At(int(bd.textcol))) != TAB {
-					delcount = 0
-					bd.endspaces = 0
-				}
-			}
-			yanklen = int32(y_array.Ref(int(i)).length)
-			if (flags & PUT_BLOCK_INNER) == 0 {
-				spaces = int32(y_width + 1)
-				init_chartabsize_arg(&cts, ed.curwin, 0, 0, y_array.Ref(int(i)).string_, y_array.Ref(int(i)).string_)
-				for int32(cts.cts_ptr.Get()) != NUL {
-					spaces -= ed.lbr_chartabsize_adv(&cts)
-					cts.cts_vcol = 0
-				}
-				if spaces < 0 {
-					spaces = 0
-				}
-			}
-			if ((yanklen + spaces) != 0) && (count > int64(((INT_MAX - (bd.startspaces + bd.endspaces)) / (yanklen + spaces)))) {
-				ed.emsg(gettext_(ed.e_resulting_text_too_long))
-				break
-			}
-			totlen = int32(((count * int64((yanklen + spaces))) + int64(bd.startspaces)) + int64(bd.endspaces))
-			newp = Alloc(int((totlen + oldlen) + 1))
-			ptr = newp
-			Memmove(ptr, oldp, int(uint64(bd.textcol)))
-			ptr = ptr.Add(int(bd.textcol))
-			Memset(ptr, (' '), int(uint64(bd.startspaces)))
-			ptr = ptr.Add(int(bd.startspaces))
-			j = 0
-			for ; j < count; j++ {
-				Memmove(ptr, y_array.Ref(int(i)).string_, int(uint64(yanklen)))
-				ptr = ptr.Add(int(yanklen))
-				if ((j < (count - 1)) || (shortline == 0)) && (spaces > 0) {
-					Memset(ptr, (' '), int(uint64(spaces)))
-					ptr = ptr.Add(int(spaces))
-				} else {
-					totlen -= spaces
-				}
-			}
-			Memset(ptr, (' '), int(uint64(bd.endspaces)))
-			ptr = ptr.Add(int(bd.endspaces))
-			Memmove(ptr, oldp.Add(int(bd.textcol)).Add(int(delcount)), int(uint64((((oldlen - bd.textcol) - delcount) + 1))))
-			ed.ml_replace(ed.curwin.w_cursor.lnum, newp, false)
-			ed.curwin.w_cursor.lnum++
-			if i == 0 {
-				ed.curwin.w_cursor.col += bd.startspaces
-			}
-		}
-		ed.changed_lines(lnum, 0, ed.curwin.w_cursor.lnum-nr_lines, nr_lines)
-		ed.curbuf.b_op_start = ed.curwin.w_cursor
-		ed.curbuf.b_op_start.lnum = lnum
-		ed.curbuf.b_op_end.lnum = ed.curwin.w_cursor.lnum - 1
-		ed.curbuf.b_op_end.col = (bd.textcol + totlen) - 1
-		if ed.curbuf.b_op_end.col < 0 {
-			ed.curbuf.b_op_end.col = 0
-		}
-		ed.curbuf.b_op_end.coladd = 0
-		if flags&PUT_CURSEND != 0 {
-			ed.curwin.w_cursor = ed.curbuf.b_op_end
-			ed.curwin.w_cursor.col++
-			len_ = ed.ml_get_curline_len()
-			if ed.curwin.w_cursor.col > len_ {
-				ed.curwin.w_cursor.col = len_
-			}
-		} else {
-			ed.curwin.w_cursor.lnum = lnum
-		}
-	} else {
-		yanklen = int32(y_array.Ref(0).length)
-		if y_type == MCHAR {
-			if (dir == FORWARD) && (ed.gchar_cursor() != NUL) {
-				bytelen = ed.utfc_ptr2len(ed.ml_get_cursor())
-				col += bytelen
-				if yanklen != 0 {
-					ed.curwin.w_cursor.col += bytelen
-					ed.curbuf.b_op_end.col += bytelen
-				}
+			if flags&PUT_LINE_FORWARD != 0 {
+				ed.curwin.w_cursor = ed.curbuf.b_visual.vi_end
+				dir = FORWARD
 			}
 			ed.curbuf.b_op_start = ed.curwin.w_cursor
-		} else if dir == -1 {
-			lnum--
+			ed.curbuf.b_op_end = ed.curwin.w_cursor
 		}
-		new_cursor = ed.curwin.w_cursor
-		if (y_type == MCHAR) && (y_size == 1) {
-			end_lnum = 0
-			start_lnum = lnum
-			first_byte_off = 0
-			if ed.VIsual_active != 0 {
-				end_lnum = ed.curbuf.b_visual.vi_end.lnum
-				if end_lnum < ed.curbuf.b_visual.vi_start.lnum {
-					end_lnum = ed.curbuf.b_visual.vi_start.lnum
+		if flags&PUT_LINE != 0 {
+			y_type = MLINE
+		}
+		if (y_size == 0) || y_array.Nil() {
+			if regname == 0 {
+				t4 = S("\"")
+			} else {
+				t4 = ed.transchar(regname)
+			}
+			ed.vim_snprintf(ed.IObuff, ed.emsg_iobuff_room(), gettext_(ed.e_nothing_in_register_str), t4)
+			ed.emsg(ed.iobuff_or(gettext_(ed.e_nothing_in_register_str)))
+			break
+		}
+		if y_type == MBLOCK {
+			lnum = (ed.curwin.w_cursor.lnum + y_size) + 1
+			if lnum > ed.curbuf.b_ml.ml_line_count {
+				lnum = ed.curbuf.b_ml.ml_line_count + 1
+			}
+			if !ed.u_save(ed.curwin.w_cursor.lnum-1, lnum) {
+				break
+			}
+		} else if y_type == MLINE {
+			lnum = ed.curwin.w_cursor.lnum
+			if dir == FORWARD {
+				lnum++
+			}
+			if (ed.curbuf.b_ml.ml_line_count == 1) && (int32(ed.ml_get(1).Get()) == NUL) {
+				t5 = B2i(ed.u_save(0, 2))
+			} else {
+				t5 = B2i(ed.u_save(lnum-1, lnum))
+			}
+			if t5 == 0 {
+				break
+			}
+		} else if !ed.u_save_cursor() {
+			break
+		}
+		if (cur_ve_flags == VE_ALL) && (y_type == MCHAR) {
+			if ed.gchar_cursor() == TAB {
+				viscol = ed.getviscol()
+				ts = int32(ed.curbuf.b_p_ts)
+				if dir == FORWARD {
+					t6 = (ts - (viscol % ts)) != 1
+				} else {
+					t6 = ed.curwin.w_cursor.coladd > 0
 				}
-				if end_lnum > start_lnum {
-					pos.lnum = lnum
-					pos.col = col
-					pos.coladd = 0
-					ed.getvcol(ed.curwin, &pos, nil, &vcol, nil, 0)
+				if t6 {
+					ed.coladvance_force(viscol)
+				} else {
+					ed.curwin.w_cursor.coladd = 0
+				}
+			} else if (ed.curwin.w_cursor.coladd > 0) || (ed.gchar_cursor() == NUL) {
+				ed.coladvance_force(ed.getviscol() + B2i((dir == FORWARD)))
+			}
+		}
+		lnum = ed.curwin.w_cursor.lnum
+		col = ed.curwin.w_cursor.col
+		if y_type == MBLOCK {
+			incr = 0
+			c = ed.gchar_cursor()
+			endcol2 = 0
+			if (dir == FORWARD) && (c != NUL) {
+				if cur_ve_flags == VE_ALL {
+					ed.getvcol(ed.curwin, &ed.curwin.w_cursor, &col, nil, &endcol2, 0)
+				} else {
+					ed.getvcol(ed.curwin, &ed.curwin.w_cursor, nil, nil, &col, 0)
+				}
+				ed.curwin.w_cursor.col += ed.utfc_ptr2len(ed.ml_get_cursor())
+				col++
+			} else {
+				ed.getvcol(ed.curwin, &ed.curwin.w_cursor, &col, nil, &endcol2, 0)
+			}
+			col += ed.curwin.w_cursor.coladd
+			if (cur_ve_flags == VE_ALL) && ((ed.curwin.w_cursor.coladd > 0) || (endcol2 == ed.curwin.w_cursor.col)) {
+				if (dir == FORWARD) && (c == NUL) {
+					col++
+				}
+				if ((dir != FORWARD) && (c != NUL)) && (ed.curwin.w_cursor.coladd > 0) {
+					ed.curwin.w_cursor.col++
+				}
+				if c == TAB {
+					if (dir == -1) && (ed.curwin.w_cursor.col != 0) {
+						ed.curwin.w_cursor.col--
+					}
+					if (dir == FORWARD) && ((col - 1) == endcol2) {
+						ed.curwin.w_cursor.col++
+					}
 				}
 			}
-			if (count == 0) || (yanklen == 0) {
-				if ed.VIsual_active != 0 {
-					lnum = end_lnum
-				}
-			} else if count > int64(INT_MAX/yanklen) {
-				ed.emsg(gettext_(ed.e_resulting_text_too_long))
-			} else {
-				totlen = int32(count * int64(yanklen))
-				for {
-					oldp = ed.ml_get(lnum)
-					oldlen = ed.ml_get_len(lnum)
-					if lnum > start_lnum {
-						pos_2.lnum = lnum
-						if ed.getvpos(&pos_2, vcol) {
-							col = pos_2.col
-						} else {
-							col = MAXCOL
-						}
-					}
-					if (ed.VIsual_active != 0) && (col > oldlen) {
-						lnum++
-						goto cont7
-					}
-					newp = Alloc(int((totlen + oldlen) + 1))
-					Memmove(newp, oldp, int(uint64(col)))
-					ptr = newp.Add(int(col))
-					i = 0
-					for ; i < count; i++ {
-						Memmove(ptr, y_array.Ref(0).string_, int(uint64(yanklen)))
-						ptr = ptr.Add(int(yanklen))
-					}
-					Memmove(ptr, oldp.Add(int(col)), int(uint64((oldlen-col))+1))
-					first_byte_off = ed.utf_head_off(newp, ptr.Add(-1))
-					ed.ml_replace(lnum, newp, false)
-					ed.inserted_bytes(lnum, col, totlen)
-					if lnum == ed.curwin.w_cursor.lnum {
-						ed.changed_cline_bef_curs()
-						ed.invalidate_botline()
-						ed.curwin.w_cursor.col += (totlen - 1)
-					}
-					if ed.VIsual_active != 0 {
-						lnum++
-					}
-				cont7:
-					if !((ed.VIsual_active != 0) && (lnum <= end_lnum)) {
+			ed.curwin.w_cursor.coladd = 0
+			bd.textcol = 0
+			i = 0
+			for ; i < y_size; i++ {
+				spaces = 0
+				bd.startspaces = 0
+				bd.endspaces = 0
+				vcol = 0
+				delcount = 0
+				if ed.curwin.w_cursor.lnum > ed.curbuf.b_ml.ml_line_count {
+					if !ed.ml_append(ed.curbuf.b_ml.ml_line_count, S(""), 1) {
 						break
 					}
-				}
-			}
-			ed.curbuf.b_op_end = ed.curwin.w_cursor
-			ed.curbuf.b_op_end.col -= first_byte_off
-			if (totlen != 0) && ((ed.restart_edit != 0) || ((flags & PUT_CURSEND) != 0)) {
-				ed.curwin.w_cursor.col++
-			} else {
-				ed.curwin.w_cursor.col -= first_byte_off
-			}
-		} else {
-			new_lnum = new_cursor.lnum
-			orig_indent = 0
-			indent_diff = 0
-			first_indent = true
-			lendiff = 0
-			if flags&PUT_FIXINDENT != 0 {
-				orig_indent = ed.get_indent()
-			}
-			cnt = 1
-			for ; cnt <= count; cnt++ {
-				i = 0
-				if y_type == MCHAR {
-					lnum = new_cursor.lnum
-					ptr = ed.ml_get(lnum).Add(int(col))
-					totlen = int32(y_array.Ref(int(y_size - 1)).length)
-					newp = Alloc(int(((ed.ml_get_len(lnum) - col) + totlen) + 1))
-					musl_strcpy(newp, y_array.Ref(int(y_size-1)).string_)
-					musl_strcpy(newp.Add(int(totlen)), ptr)
-					ed.ml_append(lnum, newp, 0)
-					new_lnum++
-					oldp = ed.ml_get(lnum)
-					newp = Alloc(int((col + yanklen) + 1))
-					Memmove(newp, oldp, int(uint64(col)))
-					Memmove(newp.Add(int(col)), y_array.Ref(0).string_, int(uint64((yanklen + 1))))
-					ed.ml_replace(lnum, newp, false)
-					ed.curwin.w_cursor.lnum = lnum
-					i = 1
-				}
-				for ; i < y_size; i++ {
-					if (y_type != MCHAR) || (i < (y_size - 1)) {
-						if !ed.ml_append(lnum, y_array.Ref(int(i)).string_, 0) {
-							goto error
-						}
-						new_lnum++
-					}
-					lnum++
 					nr_lines++
-					if flags&PUT_FIXINDENT != 0 {
-						old_pos = ed.curwin.w_cursor
-						ed.curwin.w_cursor.lnum = lnum
-						ptr = ed.ml_get(lnum)
-						if (cnt == count) && (i == (y_size - 1)) {
-							lendiff = ed.ml_get_len(lnum)
-						}
-						if (int32(ptr.Get()) == '#') && (ed.preprocs_left() != 0) {
-							indent = 0
-						} else if int32(ptr.Get()) == NUL {
-							indent = 0
-						} else if first_indent {
-							indent_diff = orig_indent - ed.get_indent()
-							indent = orig_indent
-							first_indent = false
-						} else {
-							indent = ed.get_indent() + indent_diff
-							if indent < 0 {
-								indent = 0
-							}
-						}
-						ed.set_indent(indent, 0)
-						ed.curwin.w_cursor = old_pos
-						if (cnt == count) && (i == (y_size - 1)) {
-							lendiff -= ed.ml_get_len(lnum)
-						}
+				}
+				oldp = ed.ml_get_curline()
+				oldlen = ed.ml_get_curline_len()
+				init_chartabsize_arg(&cts, ed.curwin, ed.curwin.w_cursor.lnum, 0, oldp, oldp)
+				for (cts.cts_vcol < col) && (int32(cts.cts_ptr.Get()) != NUL) {
+					incr = ed.lbr_chartabsize_adv(&cts)
+					cts.cts_vcol += incr
+				}
+				vcol = cts.cts_vcol
+				ptr = cts.cts_ptr
+				bd.textcol = int32(int64(ptr.Sub(oldp)))
+				shortline = byte(B2i((vcol < col) || ((vcol == col) && (ptr.Get() == 0))))
+				if vcol < col {
+					bd.startspaces = col - vcol
+				} else if vcol > col {
+					bd.endspaces = vcol - col
+					bd.startspaces = incr - bd.endspaces
+					bd.textcol--
+					delcount = 1
+					bd.textcol -= ed.utf_head_off(oldp, oldp.Add(int(bd.textcol)))
+					if int32(oldp.At(int(bd.textcol))) != TAB {
+						delcount = 0
+						bd.endspaces = 0
 					}
 				}
-				if cnt == 1 {
-					new_lnum = lnum
+				yanklen = int32(y_array.Ref(int(i)).length)
+				if (flags & PUT_BLOCK_INNER) == 0 {
+					spaces = int32(y_width + 1)
+					init_chartabsize_arg(&cts, ed.curwin, 0, 0, y_array.Ref(int(i)).string_, y_array.Ref(int(i)).string_)
+					for int32(cts.cts_ptr.Get()) != NUL {
+						spaces -= ed.lbr_chartabsize_adv(&cts)
+						cts.cts_vcol = 0
+					}
+					if spaces < 0 {
+						spaces = 0
+					}
+				}
+				if ((yanklen + spaces) != 0) && (count > int64(((INT_MAX - (bd.startspaces + bd.endspaces)) / (yanklen + spaces)))) {
+					ed.emsg(gettext_(ed.e_resulting_text_too_long))
+					break
+				}
+				totlen = int32(((count * int64((yanklen + spaces))) + int64(bd.startspaces)) + int64(bd.endspaces))
+				newp = Alloc(int((totlen + oldlen) + 1))
+				ptr = newp
+				Memmove(ptr, oldp, int(uint64(bd.textcol)))
+				ptr = ptr.Add(int(bd.textcol))
+				Memset(ptr, (' '), int(uint64(bd.startspaces)))
+				ptr = ptr.Add(int(bd.startspaces))
+				j = 0
+				for ; j < count; j++ {
+					Memmove(ptr, y_array.Ref(int(i)).string_, int(uint64(yanklen)))
+					ptr = ptr.Add(int(yanklen))
+					if ((j < (count - 1)) || (shortline == 0)) && (spaces > 0) {
+						Memset(ptr, (' '), int(uint64(spaces)))
+						ptr = ptr.Add(int(spaces))
+					} else {
+						totlen -= spaces
+					}
+				}
+				Memset(ptr, (' '), int(uint64(bd.endspaces)))
+				ptr = ptr.Add(int(bd.endspaces))
+				Memmove(ptr, oldp.Add(int(bd.textcol)).Add(int(delcount)), int(uint64((((oldlen - bd.textcol) - delcount) + 1))))
+				ed.ml_replace(ed.curwin.w_cursor.lnum, newp, false)
+				ed.curwin.w_cursor.lnum++
+				if i == 0 {
+					ed.curwin.w_cursor.col += bd.startspaces
 				}
 			}
-		error:
-			if y_type == MLINE {
-				ed.curbuf.b_op_start.col = 0
-				if dir == FORWARD {
-					ed.curbuf.b_op_start.lnum++
-				}
-			}
-			ed.mark_adjust(ed.curbuf.b_op_start.lnum+int64(B2i((y_type == MCHAR))), 9223372036854775807, nr_lines, 0)
-			if y_type == MCHAR {
-				ed.changed_lines(ed.curwin.w_cursor.lnum, col, ed.curwin.w_cursor.lnum+1, nr_lines)
-			} else {
-				ed.changed_lines(ed.curbuf.b_op_start.lnum, 0, ed.curbuf.b_op_start.lnum, nr_lines)
-			}
-			if (y_current_used != nil) && ((y_current_used != ed.y_current) || (ed.y_current.y_array != y_array)) {
-				ed.emsg(gettext_(ed.e_yank_register_changed_while_using_it))
-				goto end
-			}
-			ed.curbuf.b_op_end.lnum = new_lnum
-			if 0 > (int32(y_array.Ref(int(y_size-1)).length) - lendiff) {
-				t8 = 0
-			} else {
-				t8 = (int32(y_array.Ref(int(y_size-1)).length) - lendiff)
-			}
-			col = t8
-			if col > 1 {
-				ed.curbuf.b_op_end.col = col - 1
-				if y_array.Ref(int(y_size-1)).length > 0 {
-					ed.curbuf.b_op_end.col -= ed.utf_head_off(y_array.Ref(int(y_size-1)).string_, y_array.Ref(int(y_size-1)).string_.Add(int(y_array.Ref(int(y_size-1)).length)).Add(-1))
-				}
-			} else {
+			ed.changed_lines(lnum, 0, ed.curwin.w_cursor.lnum-nr_lines, nr_lines)
+			ed.curbuf.b_op_start = ed.curwin.w_cursor
+			ed.curbuf.b_op_start.lnum = lnum
+			ed.curbuf.b_op_end.lnum = ed.curwin.w_cursor.lnum - 1
+			ed.curbuf.b_op_end.col = (bd.textcol + totlen) - 1
+			if ed.curbuf.b_op_end.col < 0 {
 				ed.curbuf.b_op_end.col = 0
 			}
-			if flags&PUT_CURSLINE != 0 {
-				ed.curwin.w_cursor.lnum = lnum
-				ed.beginline(BL_WHITE | BL_FIX)
-			} else if flags&PUT_CURSEND != 0 {
-				if y_type == MLINE {
-					if lnum >= ed.curbuf.b_ml.ml_line_count {
-						ed.curwin.w_cursor.lnum = ed.curbuf.b_ml.ml_line_count
-					} else {
-						ed.curwin.w_cursor.lnum = lnum + 1
-					}
-					ed.curwin.w_cursor.col = 0
-				} else {
-					ed.curwin.w_cursor.lnum = new_lnum
-					ed.curwin.w_cursor.col = col
-					ed.curbuf.b_op_end = ed.curwin.w_cursor
-					if col > 1 {
-						ed.curbuf.b_op_end.col = col - 1
-					}
+			ed.curbuf.b_op_end.coladd = 0
+			if flags&PUT_CURSEND != 0 {
+				ed.curwin.w_cursor = ed.curbuf.b_op_end
+				ed.curwin.w_cursor.col++
+				len_ = ed.ml_get_curline_len()
+				if ed.curwin.w_cursor.col > len_ {
+					ed.curwin.w_cursor.col = len_
 				}
-			} else if y_type == MLINE {
-				ed.curwin.w_cursor.col = 0
-				if dir == FORWARD {
-					ed.curwin.w_cursor.lnum++
-				}
-				ed.beginline(BL_WHITE | BL_FIX)
 			} else {
-				ed.curwin.w_cursor = new_cursor
+				ed.curwin.w_cursor.lnum = lnum
+			}
+		} else {
+			yanklen = int32(y_array.Ref(0).length)
+			if y_type == MCHAR {
+				if (dir == FORWARD) && (ed.gchar_cursor() != NUL) {
+					bytelen = ed.utfc_ptr2len(ed.ml_get_cursor())
+					col += bytelen
+					if yanklen != 0 {
+						ed.curwin.w_cursor.col += bytelen
+						ed.curbuf.b_op_end.col += bytelen
+					}
+				}
+				ed.curbuf.b_op_start = ed.curwin.w_cursor
+			} else if dir == -1 {
+				lnum--
+			}
+			new_cursor = ed.curwin.w_cursor
+			if (y_type == MCHAR) && (y_size == 1) {
+				end_lnum = 0
+				start_lnum = lnum
+				first_byte_off = 0
+				if ed.VIsual_active != 0 {
+					end_lnum = ed.curbuf.b_visual.vi_end.lnum
+					if end_lnum < ed.curbuf.b_visual.vi_start.lnum {
+						end_lnum = ed.curbuf.b_visual.vi_start.lnum
+					}
+					if end_lnum > start_lnum {
+						pos.lnum = lnum
+						pos.col = col
+						pos.coladd = 0
+						ed.getvcol(ed.curwin, &pos, nil, &vcol, nil, 0)
+					}
+				}
+				if (count == 0) || (yanklen == 0) {
+					if ed.VIsual_active != 0 {
+						lnum = end_lnum
+					}
+				} else if count > int64(INT_MAX/yanklen) {
+					ed.emsg(gettext_(ed.e_resulting_text_too_long))
+				} else {
+					totlen = int32(count * int64(yanklen))
+					for {
+						oldp = ed.ml_get(lnum)
+						oldlen = ed.ml_get_len(lnum)
+						if lnum > start_lnum {
+							pos_2.lnum = lnum
+							if ed.getvpos(&pos_2, vcol) {
+								col = pos_2.col
+							} else {
+								col = MAXCOL
+							}
+						}
+						if (ed.VIsual_active != 0) && (col > oldlen) {
+							lnum++
+							goto cont7
+						}
+						newp = Alloc(int((totlen + oldlen) + 1))
+						Memmove(newp, oldp, int(uint64(col)))
+						ptr = newp.Add(int(col))
+						i = 0
+						for ; i < count; i++ {
+							Memmove(ptr, y_array.Ref(0).string_, int(uint64(yanklen)))
+							ptr = ptr.Add(int(yanklen))
+						}
+						Memmove(ptr, oldp.Add(int(col)), int(uint64((oldlen-col))+1))
+						first_byte_off = ed.utf_head_off(newp, ptr.Add(-1))
+						ed.ml_replace(lnum, newp, false)
+						ed.inserted_bytes(lnum, col, totlen)
+						if lnum == ed.curwin.w_cursor.lnum {
+							ed.changed_cline_bef_curs()
+							ed.invalidate_botline()
+							ed.curwin.w_cursor.col += (totlen - 1)
+						}
+						if ed.VIsual_active != 0 {
+							lnum++
+						}
+					cont7:
+						if !((ed.VIsual_active != 0) && (lnum <= end_lnum)) {
+							break
+						}
+					}
+				}
+				ed.curbuf.b_op_end = ed.curwin.w_cursor
+				ed.curbuf.b_op_end.col -= first_byte_off
+				if (totlen != 0) && ((ed.restart_edit != 0) || ((flags & PUT_CURSEND) != 0)) {
+					ed.curwin.w_cursor.col++
+				} else {
+					ed.curwin.w_cursor.col -= first_byte_off
+				}
+			} else {
+				new_lnum = new_cursor.lnum
+				orig_indent = 0
+				indent_diff = 0
+				first_indent = true
+				lendiff = 0
+				if flags&PUT_FIXINDENT != 0 {
+					orig_indent = ed.get_indent()
+				}
+				cnt = 1
+				for ; cnt <= count; cnt++ {
+					i = 0
+					if y_type == MCHAR {
+						lnum = new_cursor.lnum
+						ptr = ed.ml_get(lnum).Add(int(col))
+						totlen = int32(y_array.Ref(int(y_size - 1)).length)
+						newp = Alloc(int(((ed.ml_get_len(lnum) - col) + totlen) + 1))
+						musl_strcpy(newp, y_array.Ref(int(y_size-1)).string_)
+						musl_strcpy(newp.Add(int(totlen)), ptr)
+						ed.ml_append(lnum, newp, 0)
+						new_lnum++
+						oldp = ed.ml_get(lnum)
+						newp = Alloc(int((col + yanklen) + 1))
+						Memmove(newp, oldp, int(uint64(col)))
+						Memmove(newp.Add(int(col)), y_array.Ref(0).string_, int(uint64((yanklen + 1))))
+						ed.ml_replace(lnum, newp, false)
+						ed.curwin.w_cursor.lnum = lnum
+						i = 1
+					}
+					for ; i < y_size; i++ {
+						if (y_type != MCHAR) || (i < (y_size - 1)) {
+							if !ed.ml_append(lnum, y_array.Ref(int(i)).string_, 0) {
+								goto error
+							}
+							new_lnum++
+						}
+						lnum++
+						nr_lines++
+						if flags&PUT_FIXINDENT != 0 {
+							old_pos = ed.curwin.w_cursor
+							ed.curwin.w_cursor.lnum = lnum
+							ptr = ed.ml_get(lnum)
+							if (cnt == count) && (i == (y_size - 1)) {
+								lendiff = ed.ml_get_len(lnum)
+							}
+							if (int32(ptr.Get()) == '#') && (ed.preprocs_left() != 0) {
+								indent = 0
+							} else if int32(ptr.Get()) == NUL {
+								indent = 0
+							} else if first_indent {
+								indent_diff = orig_indent - ed.get_indent()
+								indent = orig_indent
+								first_indent = false
+							} else {
+								indent = ed.get_indent() + indent_diff
+								if indent < 0 {
+									indent = 0
+								}
+							}
+							ed.set_indent(indent, 0)
+							ed.curwin.w_cursor = old_pos
+							if (cnt == count) && (i == (y_size - 1)) {
+								lendiff -= ed.ml_get_len(lnum)
+							}
+						}
+					}
+					if cnt == 1 {
+						new_lnum = lnum
+					}
+				}
+			error:
+				if y_type == MLINE {
+					ed.curbuf.b_op_start.col = 0
+					if dir == FORWARD {
+						ed.curbuf.b_op_start.lnum++
+					}
+				}
+				ed.mark_adjust(ed.curbuf.b_op_start.lnum+int64(B2i((y_type == MCHAR))), 9223372036854775807, nr_lines, 0)
+				if y_type == MCHAR {
+					ed.changed_lines(ed.curwin.w_cursor.lnum, col, ed.curwin.w_cursor.lnum+1, nr_lines)
+				} else {
+					ed.changed_lines(ed.curbuf.b_op_start.lnum, 0, ed.curbuf.b_op_start.lnum, nr_lines)
+				}
+				if (y_current_used != nil) && ((y_current_used != ed.y_current) || (ed.y_current.y_array != y_array)) {
+					ed.emsg(gettext_(ed.e_yank_register_changed_while_using_it))
+					break
+				}
+				ed.curbuf.b_op_end.lnum = new_lnum
+				if 0 > (int32(y_array.Ref(int(y_size-1)).length) - lendiff) {
+					t8 = 0
+				} else {
+					t8 = (int32(y_array.Ref(int(y_size-1)).length) - lendiff)
+				}
+				col = t8
+				if col > 1 {
+					ed.curbuf.b_op_end.col = col - 1
+					if y_array.Ref(int(y_size-1)).length > 0 {
+						ed.curbuf.b_op_end.col -= ed.utf_head_off(y_array.Ref(int(y_size-1)).string_, y_array.Ref(int(y_size-1)).string_.Add(int(y_array.Ref(int(y_size-1)).length)).Add(-1))
+					}
+				} else {
+					ed.curbuf.b_op_end.col = 0
+				}
+				if flags&PUT_CURSLINE != 0 {
+					ed.curwin.w_cursor.lnum = lnum
+					ed.beginline(BL_WHITE | BL_FIX)
+				} else if flags&PUT_CURSEND != 0 {
+					if y_type == MLINE {
+						if lnum >= ed.curbuf.b_ml.ml_line_count {
+							ed.curwin.w_cursor.lnum = ed.curbuf.b_ml.ml_line_count
+						} else {
+							ed.curwin.w_cursor.lnum = lnum + 1
+						}
+						ed.curwin.w_cursor.col = 0
+					} else {
+						ed.curwin.w_cursor.lnum = new_lnum
+						ed.curwin.w_cursor.col = col
+						ed.curbuf.b_op_end = ed.curwin.w_cursor
+						if col > 1 {
+							ed.curbuf.b_op_end.col = col - 1
+						}
+					}
+				} else if y_type == MLINE {
+					ed.curwin.w_cursor.col = 0
+					if dir == FORWARD {
+						ed.curwin.w_cursor.lnum++
+					}
+					ed.beginline(BL_WHITE | BL_FIX)
+				} else {
+					ed.curwin.w_cursor = new_cursor
+				}
 			}
 		}
-	}
-	ed.msgmore(nr_lines)
-	ed.curwin.w_set_curswant = true
-	len__2 = ed.ml_get_curline_len()
-	if ed.curwin.w_cursor.col > len__2 {
-		if cur_ve_flags == VE_ALL {
-			ed.curwin.w_cursor.coladd = ed.curwin.w_cursor.col - len__2
+		ed.msgmore(nr_lines)
+		ed.curwin.w_set_curswant = true
+		len__2 = ed.ml_get_curline_len()
+		if ed.curwin.w_cursor.col > len__2 {
+			if cur_ve_flags == VE_ALL {
+				ed.curwin.w_cursor.coladd = ed.curwin.w_cursor.col - len__2
+			}
+			ed.curwin.w_cursor.col = len__2
 		}
-		ed.curwin.w_cursor.col = len__2
+		break
 	}
-end:
 	if ed.cmdmod.cmod_flags&CMOD_LOCKMARKS != 0 {
 		ed.curbuf.b_op_start = orig_start
 		ed.curbuf.b_op_end = orig_end
@@ -48558,6 +48454,8 @@ func (ed *Editor) space_to_screenline(off int32, attr int32) {
 }
 
 func (ed *Editor) screen_fill(start_row int32, end_row int32, start_col int32, end_col int32, c1 int32, c2 int32, attr int32) {
+	var k int32
+
 	var row int32
 	var col int32
 	var off int32
@@ -48565,17 +48463,7 @@ func (ed *Editor) screen_fill(start_row int32, end_row int32, start_col int32, e
 	var did_delete bool
 	var c int32
 	var norm_term bool
-	var force_next bool
-	var left_attr int32
-	var right_attr int32
-	var t1 int32
-	var t2 int32
-	var t3 bool
-	var soff int32
-	var underlying_attr int32
-	var k int32
-
-	force_next = false
+	var force_next bool = false
 	if end_row > ed.screen_Rows {
 		end_row = ed.screen_Rows
 	}
@@ -48589,11 +48477,11 @@ func (ed *Editor) screen_fill(start_row int32, end_row int32, start_col int32, e
 	row = start_row
 	for ; row < end_row; row++ {
 		if (start_col > 0) && (ed.mb_fix_col(start_col, row) != start_col) {
-			left_attr = int32(ed.ScreenAttrs.At(int((ed.LineOffset[int(row)] + uint32(start_col)) - 1)))
+			var left_attr int32 = int32(ed.ScreenAttrs.At(int((ed.LineOffset[int(row)] + uint32(start_col)) - 1)))
 			ed.screen_puts_len(S(" "), 1, row, start_col-1, left_attr)
 		}
 		if (end_col < ed.screen_Columns) && (ed.mb_fix_col(end_col, row) != end_col) {
-			right_attr = int32(ed.ScreenAttrs.At(int(ed.LineOffset[int(row)] + uint32(end_col))))
+			var right_attr int32 = int32(ed.ScreenAttrs.At(int(ed.LineOffset[int(row)] + uint32(end_col))))
 			ed.screen_puts_len(S(" "), 1, row, end_col, right_attr)
 		}
 		did_delete = false
@@ -48615,7 +48503,7 @@ func (ed *Editor) screen_fill(start_row int32, end_row int32, start_col int32, e
 				ed.screen_start()
 				col = end_col - col
 				for {
-					t1 = col
+					var t1 int32 = col
 					col--
 					if !(t1 != 0) {
 						break
@@ -48630,71 +48518,74 @@ func (ed *Editor) screen_fill(start_row int32, end_row int32, start_col int32, e
 		c = c1
 		col = start_col
 		for ; col < end_col; col++ {
-			t3 = int32(ed.ScreenLines.At(int(off))) != c
-			if !t3 {
-				if c >= 0x80 {
-					t2 = c
-				} else {
-					t2 = 0
-				}
-				t3 = (int32(ed.ScreenLinesUC.At(int(off))) != t2)
-			}
-			if ((t3 || (int32(ed.ScreenAttrs.At(int(off))) != attr)) || (ed.must_redraw == UPD_CLEAR)) || force_next {
-				if (((((ed.screen_pum_blend > 0) && (c == (' '))) && (ed.pum_bg_attrs != nil)) && (row >= ed.pum_bg_top)) && (row < ed.pum_bg_bot)) && (col < ed.pum_bg_cols) {
-					soff = ((row - ed.pum_bg_top) * ed.pum_bg_cols) + col
-					if ((((ed.pum_bg_linesUC != nil) && (col > start_col)) && (ed.pum_bg_linesUC[int(soff)] == 0)) && (ed.pum_bg_linesUC[int(soff-1)] != 0)) && (ed.utf_char2cells(int32(ed.pum_bg_linesUC[int(soff-1)])) == 2) {
-						ed.ScreenLines.Set(int(off), 0)
-						if !ed.ScreenLinesUC.Nil() {
-							ed.ScreenLinesUC.Set(int(off), 0)
-						}
-						ed.ScreenAttrs.Set(int(off), ed.ScreenAttrs.At(int(off-1)))
-						goto next_col
+			for {
+				var t3 bool = int32(ed.ScreenLines.At(int(off))) != c
+				if !t3 {
+					var t2 int32
+					if c >= 0x80 {
+						t2 = c
+					} else {
+						t2 = 0
 					}
-					underlying_attr = int32(ed.pum_bg_attrs[int(soff)])
-					if (ed.pum_bg_linesUC != nil) && ((((ed.pum_bg_linesUC[int(soff)] != 0) && (ed.utf_char2cells(int32(ed.pum_bg_linesUC[int(soff)])) == 2)) && ((col + 1) >= end_col)) || (((((col == start_col) && (ed.pum_bg_linesUC[int(soff)] == 0)) && (col > 0)) && (ed.pum_bg_linesUC[int(soff-1)] != 0)) && (ed.utf_char2cells(int32(ed.pum_bg_linesUC[int(soff-1)])) == 2))) {
-						ed.ScreenLines.Set(int(off), ' ')
-						if !ed.ScreenLinesUC.Nil() {
-							ed.ScreenLinesUC.Set(int(off), 0)
+					t3 = (int32(ed.ScreenLinesUC.At(int(off))) != t2)
+				}
+				if ((t3 || (int32(ed.ScreenAttrs.At(int(off))) != attr)) || (ed.must_redraw == UPD_CLEAR)) || force_next {
+					if (((((ed.screen_pum_blend > 0) && (c == (' '))) && (ed.pum_bg_attrs != nil)) && (row >= ed.pum_bg_top)) && (row < ed.pum_bg_bot)) && (col < ed.pum_bg_cols) {
+						soff := ((row - ed.pum_bg_top) * ed.pum_bg_cols) + col
+						if ((((ed.pum_bg_linesUC != nil) && (col > start_col)) && (ed.pum_bg_linesUC[int(soff)] == 0)) && (ed.pum_bg_linesUC[int(soff-1)] != 0)) && (ed.utf_char2cells(int32(ed.pum_bg_linesUC[int(soff-1)])) == 2) {
+							ed.ScreenLines.Set(int(off), 0)
+							if !ed.ScreenLinesUC.Nil() {
+								ed.ScreenLinesUC.Set(int(off), 0)
+							}
+							ed.ScreenAttrs.Set(int(off), ed.ScreenAttrs.At(int(off-1)))
+							break
+						}
+						var underlying_attr int32 = int32(ed.pum_bg_attrs[int(soff)])
+						if (ed.pum_bg_linesUC != nil) && ((((ed.pum_bg_linesUC[int(soff)] != 0) && (ed.utf_char2cells(int32(ed.pum_bg_linesUC[int(soff)])) == 2)) && ((col + 1) >= end_col)) || (((((col == start_col) && (ed.pum_bg_linesUC[int(soff)] == 0)) && (col > 0)) && (ed.pum_bg_linesUC[int(soff-1)] != 0)) && (ed.utf_char2cells(int32(ed.pum_bg_linesUC[int(soff-1)])) == 2))) {
+							ed.ScreenLines.Set(int(off), ' ')
+							if !ed.ScreenLinesUC.Nil() {
+								ed.ScreenLinesUC.Set(int(off), 0)
+							}
+							ed.ScreenAttrs.Set(int(off), sattr_T(ed.hl_pum_blend_attr(underlying_attr, attr, ed.screen_pum_blend)))
+							ed.screen_char(uint32(off), row, col)
+							break
+						}
+						ed.ScreenLines.Set(int(off), ed.pum_bg_lines[int(soff)])
+						if (ed.pum_bg_linesUC != nil) && !ed.ScreenLinesUC.Nil() {
+							ed.ScreenLinesUC.Set(int(off), ed.pum_bg_linesUC[int(soff)])
+							k = 0
+							for ; k < MAX_MCO; k++ {
+								if !ed.pum_bg_linesC[int(k)].Nil() && !ed.ScreenLinesC[int(k)].Nil() {
+									ed.ScreenLinesC[int(k)].Set(int(off), ed.pum_bg_linesC[int(k)].At(int(soff)))
+								}
+							}
 						}
 						ed.ScreenAttrs.Set(int(off), sattr_T(ed.hl_pum_blend_attr(underlying_attr, attr, ed.screen_pum_blend)))
 						ed.screen_char(uint32(off), row, col)
-						goto next_col
+						break
 					}
-					ed.ScreenLines.Set(int(off), ed.pum_bg_lines[int(soff)])
-					if (ed.pum_bg_linesUC != nil) && !ed.ScreenLinesUC.Nil() {
-						ed.ScreenLinesUC.Set(int(off), ed.pum_bg_linesUC[int(soff)])
-						k = 0
-						for ; k < MAX_MCO; k++ {
-							if !ed.pum_bg_linesC[int(k)].Nil() && !ed.ScreenLinesC[int(k)].Nil() {
-								ed.ScreenLinesC[int(k)].Set(int(off), ed.pum_bg_linesC[int(k)].At(int(soff)))
-							}
+					if ed.term_is_xterm != 0 {
+						if (int32(ed.ScreenLines.At(int(off))) != (' ')) && ((int32(ed.ScreenAttrs.At(int(off))) > HL_ALL) || (int32(ed.ScreenAttrs.At(int(off)))&HL_BOLD != 0)) {
+							force_next = true
+						} else {
+							force_next = false
 						}
 					}
-					ed.ScreenAttrs.Set(int(off), sattr_T(ed.hl_pum_blend_attr(underlying_attr, attr, ed.screen_pum_blend)))
-					ed.screen_char(uint32(off), row, col)
-					goto next_col
-				}
-				if ed.term_is_xterm != 0 {
-					if (int32(ed.ScreenLines.At(int(off))) != (' ')) && ((int32(ed.ScreenAttrs.At(int(off))) > HL_ALL) || (int32(ed.ScreenAttrs.At(int(off)))&HL_BOLD != 0)) {
-						force_next = true
+					ed.ScreenLines.Set(int(off), byte(c))
+					if c >= 0x80 {
+						ed.ScreenLinesUC.Set(int(off), u8char_T(c))
+						ed.ScreenLinesC[0].Set(int(off), 0)
+						ed.ScreenLines.Set(int(off), 0x80)
 					} else {
-						force_next = false
+						ed.ScreenLinesUC.Set(int(off), 0)
+					}
+					ed.ScreenAttrs.Set(int(off), sattr_T(attr))
+					if !did_delete || (c != (' ')) {
+						ed.screen_char(uint32(off), row, col)
 					}
 				}
-				ed.ScreenLines.Set(int(off), byte(c))
-				if c >= 0x80 {
-					ed.ScreenLinesUC.Set(int(off), u8char_T(c))
-					ed.ScreenLinesC[0].Set(int(off), 0)
-					ed.ScreenLines.Set(int(off), 0x80)
-				} else {
-					ed.ScreenLinesUC.Set(int(off), 0)
-				}
-				ed.ScreenAttrs.Set(int(off), sattr_T(attr))
-				if !did_delete || (c != (' ')) {
-					ed.screen_char(uint32(off), row, col)
-				}
+				break
 			}
-		next_col:
 			ed.ScreenCols.Set(int(off), -1)
 			off++
 			if col == start_col {
@@ -48746,158 +48637,145 @@ func (ed *Editor) screenalloc(doclear bool) {
 	var new_row int32
 	var old_row int32
 	var wp *S_window_S
-	var outofmem bool
+	var outofmem bool = false
 	var len_ int32
 	var new_ScreenLines Ptr[byte]
-	var new_ScreenLinesUC Ptr[u8char_T]
+	var new_ScreenLinesUC Ptr[u8char_T] = Ptr[u8char_T]{}
 	var new_ScreenLinesC [6]Ptr[u8char_T]
-	var new_ScreenLines2 Ptr[byte]
+	var new_ScreenLines2 Ptr[byte] = Ptr[byte]{}
 	var new_ScreenAttrs Ptr[sattr_T]
 	var new_ScreenCols Ptr[colnr_T]
 	var new_LineOffset []uint32
 	var new_LineWraps Ptr[byte]
 	var new_TabPageIdxs []int16
-	var retry_count int32
+	var retry_count int32 = 0
 	var found_null bool
-	var i int32
-	var i_2 int32
-	var i_3 int32
-	var i_4 int32
-	var i_5 int32
-	var i_6 int32
-	var t1 bool
-
-	outofmem = false
-	new_ScreenLinesUC = Ptr[u8char_T]{}
-	new_ScreenLines2 = Ptr[byte]{}
-	retry_count = 0
-retry:
-	if (((((((!ed.ScreenLines.Nil() && (ed.Rows == int64(ed.screen_Rows))) && (ed.Columns == int64(ed.screen_Columns))) && !ed.ScreenLinesUC.Nil()) && ed.ScreenLines2.Nil()) && (ed.p_mco == int64(ed.Screen_mco))) || (ed.Rows == 0)) || (ed.Columns == 0)) || ((ed.full_screen == 0) && ed.ScreenLines.Nil()) {
-		return
-	}
-	if ed.screenalloc_entered {
-		return
-	}
-	ed.screenalloc_entered = true
-	ed.RedrawingDisabled++
-	ed.win_new_shellsize()
-	ed.comp_col()
-	wp = ed.curwin
-	win_free_lsize(wp)
-	new_ScreenLines = Alloc(int(1 * uint64(((ed.Rows + 1) * ed.Columns))))
-	new_ScreenLinesC = [6]Ptr[u8char_T]{}
-	new_ScreenLinesUC = Mk[u8char_T](int(((ed.Rows + 1) * ed.Columns)))
-	i = 0
-	for ; int64(i) < ed.p_mco; i++ {
-		new_ScreenLinesC[int(i)] = Mk[u8char_T](int(((ed.Rows + 1) * ed.Columns)))
-	}
-	new_ScreenAttrs = Mk[sattr_T](int(((ed.Rows + 1) * ed.Columns)))
-	new_ScreenCols = Mk[colnr_T](int(((ed.Rows + 1) * ed.Columns)))
-	new_LineOffset = make([]uint32, int(ed.Rows))
-	new_LineWraps = Alloc(int(1 * uint64(ed.Rows)))
-	new_TabPageIdxs = make([]int16, int(ed.Columns))
-	wp = ed.curwin
-	if !ed.win_alloc_lines(wp) {
-		outofmem = true
-		goto give_up
-	}
-give_up:
-	found_null = false
-	i_2 = 0
-	for ; int64(i_2) < ed.p_mco; i_2++ {
-		if new_ScreenLinesC[int(i_2)].Nil() {
-			found_null = true
-			break
+	for {
+		if (((((((!ed.ScreenLines.Nil() && (ed.Rows == int64(ed.screen_Rows))) && (ed.Columns == int64(ed.screen_Columns))) && !ed.ScreenLinesUC.Nil()) && ed.ScreenLines2.Nil()) && (ed.p_mco == int64(ed.Screen_mco))) || (ed.Rows == 0)) || (ed.Columns == 0)) || ((ed.full_screen == 0) && ed.ScreenLines.Nil()) {
+			return
 		}
-	}
-	if ((((((new_ScreenLines.Nil() || (new_ScreenLinesUC.Nil() || found_null)) || new_ScreenAttrs.Nil()) || new_ScreenCols.Nil()) || (new_LineOffset == nil)) || new_LineWraps.Nil()) || (new_TabPageIdxs == nil)) || outofmem {
-		if !ed.ScreenLines.Nil() || !ed.screenalloc_done_outofmem_msg {
-			ed.do_outofmem_msg(uint64(((ed.Rows + 1) * ed.Columns)))
-			ed.screenalloc_done_outofmem_msg = true
+		if ed.screenalloc_entered {
+			return
 		}
-		new_ScreenLines = Ptr[byte]{}
-		new_ScreenLinesUC = Ptr[u8char_T]{}
-		i_3 = 0
-		for ; int64(i_3) < ed.p_mco; i_3++ {
-			new_ScreenLinesC[int(i_3)] = Ptr[u8char_T]{}
+		ed.screenalloc_entered = true
+		ed.RedrawingDisabled++
+		ed.win_new_shellsize()
+		ed.comp_col()
+		wp = ed.curwin
+		win_free_lsize(wp)
+		new_ScreenLines = Alloc(int(1 * uint64(((ed.Rows + 1) * ed.Columns))))
+		new_ScreenLinesC = [6]Ptr[u8char_T]{}
+		new_ScreenLinesUC = Mk[u8char_T](int(((ed.Rows + 1) * ed.Columns)))
+		var i int32 = 0
+		for ; int64(i) < ed.p_mco; i++ {
+			new_ScreenLinesC[int(i)] = Mk[u8char_T](int(((ed.Rows + 1) * ed.Columns)))
 		}
-		new_ScreenLines2 = Ptr[byte]{}
-		new_ScreenAttrs = Ptr[sattr_T]{}
-		new_ScreenCols = Ptr[colnr_T]{}
-		new_LineOffset = nil
-		new_LineWraps = Ptr[byte]{}
-		new_TabPageIdxs = nil
-	} else {
-		ed.screenalloc_done_outofmem_msg = false
-		new_row = 0
-		for ; int64(new_row) < ed.Rows; new_row++ {
-			new_LineOffset[int(new_row)] = uint32(int64(new_row) * ed.Columns)
-			new_LineWraps.Set(int(new_row), FALSE)
-			Memset(new_ScreenLines.Add(int(int64(new_row)*ed.Columns)), (' '), int((uint64(ed.Columns) * 1)))
-			Zero(new_ScreenLinesUC.Add(int(int64(new_row)*ed.Columns)), int(uint64(ed.Columns)))
-			i_4 = 0
-			for ; int64(i_4) < ed.p_mco; i_4++ {
-				Zero(new_ScreenLinesC[int(i_4)].Add(int(int64(new_row)*ed.Columns)), int(uint64(ed.Columns)))
+		new_ScreenAttrs = Mk[sattr_T](int(((ed.Rows + 1) * ed.Columns)))
+		new_ScreenCols = Mk[colnr_T](int(((ed.Rows + 1) * ed.Columns)))
+		new_LineOffset = make([]uint32, int(ed.Rows))
+		new_LineWraps = Alloc(int(1 * uint64(ed.Rows)))
+		new_TabPageIdxs = make([]int16, int(ed.Columns))
+		wp = ed.curwin
+		if !ed.win_alloc_lines(wp) {
+			outofmem = true
+		}
+		found_null = false
+		var i_2 int32 = 0
+		for ; int64(i_2) < ed.p_mco; i_2++ {
+			if new_ScreenLinesC[int(i_2)].Nil() {
+				found_null = true
+				break
 			}
-			Zero(new_ScreenAttrs.Add(int(int64(new_row)*ed.Columns)), int(uint64(ed.Columns)))
-			Zero(new_ScreenCols.Add(int(int64(new_row)*ed.Columns)), int(uint64(ed.Columns)))
-			if !doclear {
-				old_row = int32(int64(new_row) + (int64(ed.screen_Rows) - ed.Rows))
-				if (old_row >= 0) && !ed.ScreenLines.Nil() {
-					if int64(ed.screen_Columns) < ed.Columns {
-						len_ = ed.screen_Columns
-					} else {
-						len_ = int32(ed.Columns)
-					}
-					if !ed.ScreenLinesUC.Nil() && (ed.p_mco == int64(ed.Screen_mco)) {
-						Memmove(new_ScreenLines.Add(int(new_LineOffset[int(new_row)])), ed.ScreenLines.Add(int(ed.LineOffset[int(old_row)])), int(uint64(len_)*1))
-					}
-					if !ed.ScreenLinesUC.Nil() && (ed.p_mco == int64(ed.Screen_mco)) {
-						Memmove(new_ScreenLinesUC.Add(int(new_LineOffset[int(new_row)])), ed.ScreenLinesUC.Add(int(ed.LineOffset[int(old_row)])), int(uint64(len_)))
-						i_5 = 0
-						for ; int64(i_5) < ed.p_mco; i_5++ {
-							Memmove(new_ScreenLinesC[int(i_5)].Add(int(new_LineOffset[int(new_row)])), ed.ScreenLinesC[int(i_5)].Add(int(ed.LineOffset[int(old_row)])), int(uint64(len_)))
+		}
+		if ((((((new_ScreenLines.Nil() || (new_ScreenLinesUC.Nil() || found_null)) || new_ScreenAttrs.Nil()) || new_ScreenCols.Nil()) || (new_LineOffset == nil)) || new_LineWraps.Nil()) || (new_TabPageIdxs == nil)) || outofmem {
+			if !ed.ScreenLines.Nil() || !ed.screenalloc_done_outofmem_msg {
+				ed.do_outofmem_msg(uint64(((ed.Rows + 1) * ed.Columns)))
+				ed.screenalloc_done_outofmem_msg = true
+			}
+			new_ScreenLines = Ptr[byte]{}
+			new_ScreenLinesUC = Ptr[u8char_T]{}
+			var i_3 int32 = 0
+			for ; int64(i_3) < ed.p_mco; i_3++ {
+				new_ScreenLinesC[int(i_3)] = Ptr[u8char_T]{}
+			}
+			new_ScreenLines2 = Ptr[byte]{}
+			new_ScreenAttrs = Ptr[sattr_T]{}
+			new_ScreenCols = Ptr[colnr_T]{}
+			new_LineOffset = nil
+			new_LineWraps = Ptr[byte]{}
+			new_TabPageIdxs = nil
+		} else {
+			ed.screenalloc_done_outofmem_msg = false
+			new_row = 0
+			for ; int64(new_row) < ed.Rows; new_row++ {
+				new_LineOffset[int(new_row)] = uint32(int64(new_row) * ed.Columns)
+				new_LineWraps.Set(int(new_row), FALSE)
+				Memset(new_ScreenLines.Add(int(int64(new_row)*ed.Columns)), (' '), int((uint64(ed.Columns) * 1)))
+				Zero(new_ScreenLinesUC.Add(int(int64(new_row)*ed.Columns)), int(uint64(ed.Columns)))
+				var i_4 int32 = 0
+				for ; int64(i_4) < ed.p_mco; i_4++ {
+					Zero(new_ScreenLinesC[int(i_4)].Add(int(int64(new_row)*ed.Columns)), int(uint64(ed.Columns)))
+				}
+				Zero(new_ScreenAttrs.Add(int(int64(new_row)*ed.Columns)), int(uint64(ed.Columns)))
+				Zero(new_ScreenCols.Add(int(int64(new_row)*ed.Columns)), int(uint64(ed.Columns)))
+				if !doclear {
+					old_row = int32(int64(new_row) + (int64(ed.screen_Rows) - ed.Rows))
+					if (old_row >= 0) && !ed.ScreenLines.Nil() {
+						if int64(ed.screen_Columns) < ed.Columns {
+							len_ = ed.screen_Columns
+						} else {
+							len_ = int32(ed.Columns)
 						}
+						if !ed.ScreenLinesUC.Nil() && (ed.p_mco == int64(ed.Screen_mco)) {
+							Memmove(new_ScreenLines.Add(int(new_LineOffset[int(new_row)])), ed.ScreenLines.Add(int(ed.LineOffset[int(old_row)])), int(uint64(len_)*1))
+						}
+						if !ed.ScreenLinesUC.Nil() && (ed.p_mco == int64(ed.Screen_mco)) {
+							Memmove(new_ScreenLinesUC.Add(int(new_LineOffset[int(new_row)])), ed.ScreenLinesUC.Add(int(ed.LineOffset[int(old_row)])), int(uint64(len_)))
+							var i_5 int32 = 0
+							for ; int64(i_5) < ed.p_mco; i_5++ {
+								Memmove(new_ScreenLinesC[int(i_5)].Add(int(new_LineOffset[int(new_row)])), ed.ScreenLinesC[int(i_5)].Add(int(ed.LineOffset[int(old_row)])), int(uint64(len_)))
+							}
+						}
+						Memmove(new_ScreenAttrs.Add(int(new_LineOffset[int(new_row)])), ed.ScreenAttrs.Add(int(ed.LineOffset[int(old_row)])), int(uint64(len_)))
+						Memmove(new_ScreenCols.Add(int(new_LineOffset[int(new_row)])), ed.ScreenCols.Add(int(ed.LineOffset[int(old_row)])), int(uint64(len_)))
 					}
-					Memmove(new_ScreenAttrs.Add(int(new_LineOffset[int(new_row)])), ed.ScreenAttrs.Add(int(ed.LineOffset[int(old_row)])), int(uint64(len_)))
-					Memmove(new_ScreenCols.Add(int(new_LineOffset[int(new_row)])), ed.ScreenCols.Add(int(ed.LineOffset[int(old_row)])), int(uint64(len_)))
 				}
 			}
+			ed.current_ScreenLine = new_ScreenLines.Add(int(ed.Rows * ed.Columns))
 		}
-		ed.current_ScreenLine = new_ScreenLines.Add(int(ed.Rows * ed.Columns))
-	}
-	ed.free_screenlines()
-	ed.ScreenLines = new_ScreenLines
-	ed.ScreenLinesUC = new_ScreenLinesUC
-	i_6 = 0
-	for ; int64(i_6) < ed.p_mco; i_6++ {
-		ed.ScreenLinesC[int(i_6)] = new_ScreenLinesC[int(i_6)]
-	}
-	ed.Screen_mco = int32(ed.p_mco)
-	ed.ScreenLines2 = new_ScreenLines2
-	ed.ScreenAttrs = new_ScreenAttrs
-	ed.ScreenCols = new_ScreenCols
-	ed.LineOffset = new_LineOffset
-	ed.LineWraps = new_LineWraps
-	ed.TabPageIdxs = new_TabPageIdxs
-	ed.screen_Rows = int32(ed.Rows)
-	ed.screen_Columns = int32(ed.Columns)
-	ed.set_must_redraw(UPD_CLEAR)
-	if doclear {
-		ed.screenclear2(true)
-	}
-	ed.clear_TabPageIdxs()
-	ed.screenalloc_entered = false
-	if ed.RedrawingDisabled > 0 {
-		ed.RedrawingDisabled--
-	}
-	t1 = ed.starting == 0
-	if t1 {
-		retry_count++
-		t1 = retry_count <= 3
-	}
-	if t1 {
-		goto retry
+		ed.free_screenlines()
+		ed.ScreenLines = new_ScreenLines
+		ed.ScreenLinesUC = new_ScreenLinesUC
+		var i_6 int32 = 0
+		for ; int64(i_6) < ed.p_mco; i_6++ {
+			ed.ScreenLinesC[int(i_6)] = new_ScreenLinesC[int(i_6)]
+		}
+		ed.Screen_mco = int32(ed.p_mco)
+		ed.ScreenLines2 = new_ScreenLines2
+		ed.ScreenAttrs = new_ScreenAttrs
+		ed.ScreenCols = new_ScreenCols
+		ed.LineOffset = new_LineOffset
+		ed.LineWraps = new_LineWraps
+		ed.TabPageIdxs = new_TabPageIdxs
+		ed.screen_Rows = int32(ed.Rows)
+		ed.screen_Columns = int32(ed.Columns)
+		ed.set_must_redraw(UPD_CLEAR)
+		if doclear {
+			ed.screenclear2(true)
+		}
+		ed.clear_TabPageIdxs()
+		ed.screenalloc_entered = false
+		if ed.RedrawingDisabled > 0 {
+			ed.RedrawingDisabled--
+		}
+		var t1 bool = ed.starting == 0
+		if t1 {
+			retry_count++
+			t1 = retry_count <= 3
+		}
+		if !t1 {
+			break
+		}
 	}
 }
 
@@ -56323,33 +56201,17 @@ func (ed *Editor) undo_time(step int64, sec bool, file bool, absolute bool) {
 	var target int64
 	var closest int64
 	var closest_start int64
-	var closest_seq int64
+	var closest_seq int64 = 0
 	var val int64
-	var uhp *S_u_header
+	var uhp *S_u_header = nil
 	var last *S_u_header
 	var mark int32
-	var nomark int32
+	var nomark int32 = 0
 	var round int32
-	var dosec bool
-	var dofile bool
-	var above bool
-	var did_undo bool
-	var t1 bool
-	var t2 bool
-	var t3 bool
-	var t4 bool
-	var t5 bool
-	var t6 bool
-	var t7 bool
-	var t8 bool
-
-	closest_seq = 0
-	uhp = nil
-	nomark = 0
-	dosec = (sec)
-	dofile = (file)
-	above = false
-	did_undo = true
+	var dosec bool = (sec)
+	var dofile bool = (file)
+	var above bool = false
+	var did_undo bool = true
 	if ed.text_locked() {
 		ed.text_locked_msg()
 		return
@@ -56414,122 +56276,130 @@ func (ed *Editor) undo_time(step int64, sec bool, file bool, absolute bool) {
 	}
 	closest_start = closest
 	closest_seq = ed.curbuf.b_u_seq_cur
-	if target == 0 {
-		mark = ed.lastmark
-		goto target_zero
-	}
-	round = 1
-	for ; round <= 2; round++ {
-		ed.lastmark++
-		mark = ed.lastmark
-		ed.lastmark++
-		nomark = ed.lastmark
-		if ed.curbuf.b_u_curhead == nil {
-			uhp = ed.curbuf.b_u_newhead
-		} else {
-			uhp = ed.curbuf.b_u_curhead
-		}
-		for uhp != nil {
-			uhp.uh_walk = mark
-			if dosec {
-				val = uhp.uh_time
-			} else if dofile {
-				val = uhp.uh_save_nr
-			} else {
-				val = uhp.uh_seq
-			}
-			if (round == 1) && !(dofile && (val == 0)) {
-				if step < 0 {
-					t1 = uhp.uh_seq <= ed.curbuf.b_u_seq_cur
-				} else {
-					t1 = uhp.uh_seq > ed.curbuf.b_u_seq_cur
-				}
-				t8 = t1
-				if t8 {
-					if dosec && (val == closest) {
-						if step < 0 {
-							t2 = uhp.uh_seq < closest_seq
-						} else {
-							t2 = uhp.uh_seq > closest_seq
-						}
-						t7 = t2
-					} else {
-						t6 = closest == closest_start
-						if !t6 {
-							if val > target {
-								if closest > target {
-									t3 = (val - target) <= (closest - target)
-								} else {
-									t3 = (val - target) <= (target - closest)
-								}
-								t5 = t3
-							} else {
-								if closest > target {
-									t4 = (target - val) <= (closest - target)
-								} else {
-									t4 = (target - val) <= (target - closest)
-								}
-								t5 = t4
-							}
-							t6 = t5
-						}
-						t7 = t6
-					}
-					t8 = t7
-				}
-				if t8 {
-					closest = val
-					closest_seq = uhp.uh_seq
-				}
-			}
-			if (target == val) && !dosec {
-				target = uhp.uh_seq
-				break
-			}
-			if ((uhp.uh_prev != nil) && (uhp.uh_prev.uh_walk != nomark)) && (uhp.uh_prev.uh_walk != mark) {
-				uhp = uhp.uh_prev
-			} else if ((uhp.uh_alt_next != nil) && (uhp.uh_alt_next.uh_walk != nomark)) && (uhp.uh_alt_next.uh_walk != mark) {
-				uhp = uhp.uh_alt_next
-			} else if (((uhp.uh_next != nil) && (uhp.uh_alt_prev == nil)) && (uhp.uh_next.uh_walk != nomark)) && (uhp.uh_next.uh_walk != mark) {
-				if uhp == ed.curbuf.b_u_curhead {
-					uhp.uh_walk = nomark
-				}
-				uhp = uhp.uh_next
-			} else {
-				uhp.uh_walk = nomark
-				if uhp.uh_alt_prev != nil {
-					uhp = uhp.uh_alt_prev
-				} else {
-					uhp = uhp.uh_next
-				}
-			}
-		}
-		if uhp != nil {
+	for {
+		if target == 0 {
+			mark = ed.lastmark
 			break
 		}
-		if absolute {
-			ed.vim_snprintf(ed.IObuff, ed.emsg_iobuff_room(), gettext_(ed.e_undo_number_nr_not_found), step)
-			ed.emsg(ed.iobuff_or(gettext_(ed.e_undo_number_nr_not_found)))
-			return
-		}
-		if closest == closest_start {
-			if !ed.shortmess(SHM_UNDO) {
-				if step < 0 {
-					ed.msg(gettext_(S("Already at oldest change")))
+		round = 1
+		for ; round <= 2; round++ {
+			ed.lastmark++
+			mark = ed.lastmark
+			ed.lastmark++
+			nomark = ed.lastmark
+			if ed.curbuf.b_u_curhead == nil {
+				uhp = ed.curbuf.b_u_newhead
+			} else {
+				uhp = ed.curbuf.b_u_curhead
+			}
+			for uhp != nil {
+				uhp.uh_walk = mark
+				if dosec {
+					val = uhp.uh_time
+				} else if dofile {
+					val = uhp.uh_save_nr
 				} else {
-					ed.msg(gettext_(S("Already at newest change")))
+					val = uhp.uh_seq
+				}
+				if (round == 1) && !(dofile && (val == 0)) {
+					var t1 bool
+					if step < 0 {
+						t1 = uhp.uh_seq <= ed.curbuf.b_u_seq_cur
+					} else {
+						t1 = uhp.uh_seq > ed.curbuf.b_u_seq_cur
+					}
+					var t8 bool = t1
+					if t8 {
+						var t7 bool
+						if dosec && (val == closest) {
+							var t2 bool
+							if step < 0 {
+								t2 = uhp.uh_seq < closest_seq
+							} else {
+								t2 = uhp.uh_seq > closest_seq
+							}
+							t7 = t2
+						} else {
+							var t6 bool = closest == closest_start
+							if !t6 {
+								var t5 bool
+								if val > target {
+									var t3 bool
+									if closest > target {
+										t3 = (val - target) <= (closest - target)
+									} else {
+										t3 = (val - target) <= (target - closest)
+									}
+									t5 = t3
+								} else {
+									var t4 bool
+									if closest > target {
+										t4 = (target - val) <= (closest - target)
+									} else {
+										t4 = (target - val) <= (target - closest)
+									}
+									t5 = t4
+								}
+								t6 = t5
+							}
+							t7 = t6
+						}
+						t8 = t7
+					}
+					if t8 {
+						closest = val
+						closest_seq = uhp.uh_seq
+					}
+				}
+				if (target == val) && !dosec {
+					target = uhp.uh_seq
+					break
+				}
+				if ((uhp.uh_prev != nil) && (uhp.uh_prev.uh_walk != nomark)) && (uhp.uh_prev.uh_walk != mark) {
+					uhp = uhp.uh_prev
+				} else if ((uhp.uh_alt_next != nil) && (uhp.uh_alt_next.uh_walk != nomark)) && (uhp.uh_alt_next.uh_walk != mark) {
+					uhp = uhp.uh_alt_next
+				} else if (((uhp.uh_next != nil) && (uhp.uh_alt_prev == nil)) && (uhp.uh_next.uh_walk != nomark)) && (uhp.uh_next.uh_walk != mark) {
+					if uhp == ed.curbuf.b_u_curhead {
+						uhp.uh_walk = nomark
+					}
+					uhp = uhp.uh_next
+				} else {
+					uhp.uh_walk = nomark
+					if uhp.uh_alt_prev != nil {
+						uhp = uhp.uh_alt_prev
+					} else {
+						uhp = uhp.uh_next
+					}
 				}
 			}
-			return
+			if uhp != nil {
+				break
+			}
+			if absolute {
+				ed.vim_snprintf(ed.IObuff, ed.emsg_iobuff_room(), gettext_(ed.e_undo_number_nr_not_found), step)
+				ed.emsg(ed.iobuff_or(gettext_(ed.e_undo_number_nr_not_found)))
+				return
+			}
+			if closest == closest_start {
+				if !ed.shortmess(SHM_UNDO) {
+					if step < 0 {
+						ed.msg(gettext_(S("Already at oldest change")))
+					} else {
+						ed.msg(gettext_(S("Already at newest change")))
+					}
+				}
+				return
+			}
+			target = closest_seq
+			dosec = false
+			dofile = false
+			if step < 0 {
+				above = true
+			}
 		}
-		target = closest_seq
-		dosec = false
-		dofile = false
-		if step < 0 {
-			above = true
-		}
+		break
 	}
-target_zero:
 	if (uhp != nil) || (target == 0) {
 		for ed.got_int == 0 {
 			uhp = ed.curbuf.b_u_curhead

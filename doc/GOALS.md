@@ -2229,6 +2229,9 @@ declared `delta.md`.
 - [Phase 168 — a goto whose label returns is that return](../internal/phase/168/GOAL.md)
 - [Phase 169 — the system headers nothing needs](../internal/phase/169/GOAL.md)
 - [Phase 170 — a goto whose label marks a short tail is that tail](../internal/phase/170/GOAL.md)
+- [Phase 171 — a goto that is a break is break](../internal/phase/171/GOAL.md)
+- [Phase 172 — a goto back is a loop](../internal/phase/172/GOAL.md)
+- [Phase 173 — a goto out of its block is a break](../internal/phase/173/GOAL.md)
 
 ## Appendix to Part II — the plan phases 83 onwards were built from
 

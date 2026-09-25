@@ -57,3 +57,5 @@ kept while one of its gotos is held; a computed goto's function left; each
 program compiled silently by gcc under `-Wall -Wextra` and printing what the
 original prints; and a control: `break` written for the held two-level goto
 is caught by that comparison.
+
+**In the chain** (after phase 170, measured by the whole build): 4 gotos are `break;`, 1 is deleted, and 6 are held for leaving more than one loop or switch -- the 18 held on q169 less the 12 that phase 170 had already taken; 2 labels go. 75,504 lines.

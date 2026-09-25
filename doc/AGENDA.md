@@ -14,27 +14,14 @@ them, 1,192 of 1,685 functions touching one directly; the core calls 17
 host-side functions, 16 of them the operating system's. Done: `editor/` is
 `package editor` with its host behind a `Host` interface, and the generator's
 instance pass makes the state an `Editor`'s fields (1,470 methods, 215
-functions left plain); several run at once in one process. In order, each step
+functions left plain); several run at once in one process. And the C's gotos
+went where a generic rule takes them: phases 170-173 leave 49 of 185, each
+one out of a loop or switch -- the backend says those as labeled breaks. In
+order, each step
 held to `make whim-test` (and a Java editor, once there is one, to the same
 cases):
 
-1. **No `goto` in the C.** Classified (2026-09-25): 158 in 32 functions of
-   `editor.c` (the Go's other 5 are `togo`'s own, for a `continue` in a
-   `do`-while). All flow is reducible; no goto enters a block, loop or switch,
-   or skips a declaration used after its label. 156 jump forward to a label
-   in an enclosing block -- Java's `L: { ... break L; }` -- and 2 backward, as
-   retry loops. Four generic `crefactor/xform` steps take 109, each a phase:
-   a short tail copied over the goto (52, phase 168's rule widened), a loop's
-   own exit as `break` and a goto to the next statement deleted (5), a retry
-   as a loop (2), a forward exit through no loop or switch as `do { } while
-   (0)` and `break` (50, with a `togo` rule printing that as `for { ...;
-   break }`). The last 49 are per site -- 30 of them `getcmdline_int`'s
-   command-line loop, a state variable -- and pay only if the rule is "no
-   goto in the C" rather than "none the target cannot say": a Java backend
-   can lower every forward goto as a labeled break. The first is done:
-   phase 170 copies the short tails (all 52, and the host's 27), leaving 106
-   gotos in 20 functions of the core.
-2. **A Java backend for `togo`**, from the same analysis -- which pointers walk
+1. **A Java backend for `togo`**, from the same analysis -- which pointers walk
    (`Ptr[byte]`, 2,212 in the Go, is `byte[]` and an offset), which ints are
    answers, which are unsigned (570 uses: `Integer.*Unsigned`), structs copied
    by value (99 types), function pointers as interfaces -- rather than a

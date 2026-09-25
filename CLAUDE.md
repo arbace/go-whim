@@ -21,8 +21,8 @@ slim-vim.c  --whim-->  whim-vim.c
   that repository's `main` points to, and records the commit in `src/upstream.sha`.
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
-- **whim** (the `Makefile`) removes capability on purpose, phases 0-170 from 180,870
-  lines to 75,507. It is two arcs, a coda, an empty phase, five for the Go's
+- **whim** (the `Makefile`) removes capability on purpose, phases 0-173 from 180,870
+  lines to 75,539. It is two arcs, a coda, an empty phase, five for the Go's
   sake, the headers, and the gotos:
   - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
     install, 84,025 lines at q82;
@@ -62,12 +62,15 @@ slim-vim.c  --whim-->  whim-vim.c
   - **phases 171-172** take the gotos a loop says: one to the statement after
     its own loop or switch is `break;`, one to where control goes next anyway
     is deleted (171, `GotoBreak`); a goto back to a label is a loop and
-    `continue;` (172, `GotoLoop`).
+    `continue;` (172, `GotoLoop`): 4 breaks, 1 deleted, 2 loops.
   - **phase 173** (after the headers: it touches none) wraps the region a
     forward `goto` leaves -- to a label of a block that holds it, no loop or
     switch between -- in `do { ... } while (0);` and writes the goto `break;`
     (`crefactor/xform`'s `GotoBlock`); togo writes that do-while as Go's
-    `for { ...; break }`. On q169: 71 gotos, 18 labels.
+    `for { ...; break }`. After 170-172: 50 gotos, 11 labels. The C keeps 49
+    gotos, all in the core (185 before 170): each leaves a loop or switch and
+    needs a flag or a state variable, which a Java backend need not have (a
+    labeled break says them). The Go keeps 54 in 10 functions, from 163 in 34.
 
   Phase 83 is the line between the two arcs.
 
@@ -225,7 +228,7 @@ the same `editor/editor.go` byte for byte either way.
 ```sh
 make                 # all: bin/whim, the editor (editor/ built), through whim-vim.c
                      # (produced only when slim-vim.c moved) and editor/editor.go
-make whim-build      # the 156 phases in one process: slim-vim.c -> whim-vim.c
+make whim-build      # the 159 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go that is not what internal/gen writes
 make whim-test        # the quick suite: 45 key sessions, required to behave as HEAD's does
@@ -245,8 +248,7 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time; `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 170 phases, **1,070 s**, 75,396 lines (before
-  the compaction below; phase 54 alone is 40 s less since). A
+  before the reason. Measured: 159 phases, **981 s**, 75,539 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -264,7 +266,7 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **74 s** with `--jobs 32`, 154 links, bound by
+  committed `whim-vim.c`. Measured: **62 s** with `--jobs 32`, 158 links, bound by
   the machine's load and no longer by one link (phase 54 was 44 s alone), against 1,089 s in
   order; and a phase whose program was changed on purpose
   (a control) is named and fails the check. That is
@@ -305,7 +307,7 @@ ours belongs inside `.claude/`. Outside `make`, run with `TMPDIR=$PWD/.tmp`.
 ## The pipeline
 
 A phase is a function of the tree it is handed, so the pipeline is
-`p_N = f_N(p_{N-1})` -- 156 of them, in order, numbered 0-170: 8 phases that
+`p_N = f_N(p_{N-1})` -- 159 of them, in order, numbered 0-173: 8 phases that
 edit nothing any more are records only (a `GOAL.md`, no plan entry), and 44-48,
 143-145 and 153-154 each run as one phase under the group's last number
 (`doc/PIPELINE-COMPACTION.md`). A gap in the numbers is nothing to the driver,
@@ -357,7 +359,7 @@ design.
 
 ## Adding a phase
 
-`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 171.
+`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 174.
 The pipeline's goal is met; a phase now is for the Go editor, where the C is
 the cause of what the generator cannot make idiomatic. What a new one takes:
 `internal/phase/NNN/` with `GOAL.md`, and `edit.go` in package `pNNN` registering

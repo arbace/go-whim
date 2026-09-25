@@ -74,3 +74,5 @@ each program compiled silently by gcc under `-Wall -Wextra` and printing what
 the original prints; and a control: a retry wrapped although a `while` inside
 it takes the `continue` -- the program then loops for ever, which the
 comparison catches.
+
+**In the chain** (after 170-171, measured by the whole build): the same 2 backward gotos are loops, 1 as a do-while and 1 as `for (;;)`, none held. 75,506 lines.

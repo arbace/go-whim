@@ -6615,7 +6615,8 @@ open_line(int dir, int flags, int second_line_indent, int *did_do_comment)
         }
         if (next_line == nullptr)
         {
-            goto theend;
+            curbuf->b_p_pi = saved_pi;
+            return retval;
         }
         replace_push(NUL);
         replace_push(NUL);
@@ -6781,7 +6782,8 @@ open_line(int dir, int flags, int second_line_indent, int *did_do_comment)
     {
         if (!ml_append(curwin->w_cursor.lnum, p_extra, (colnr_T)0))
         {
-            goto theend;
+            curbuf->b_p_pi = saved_pi;
+            return retval;
         }
         mark_adjust(curwin->w_cursor.lnum + 1, (linenr_T)LONG_MAX, 1L, 0L);
         did_append = TRUE;
@@ -6895,7 +6897,6 @@ open_line(int dir, int flags, int second_line_indent, int *did_do_comment)
         next_line = nullptr;
     }
     retval = OK;
-theend:
     curbuf->b_p_pi = saved_pi;
     return retval;
 }
@@ -15833,290 +15834,293 @@ ex_substitute(exarg_T *eap)
                 }
                 curwin->w_cursor.lnum = lnum;
                 do_again = FALSE;
-                if (matchcol == prev_matchcol && regmatch.endpos[0].lnum == 0 && matchcol == regmatch.endpos[0].col)
+                do
                 {
-                    if (sub_firstline.string[matchcol] == NUL)
+                    if (matchcol == prev_matchcol && regmatch.endpos[0].lnum == 0 && matchcol == regmatch.endpos[0].col)
                     {
-                        skip_match = TRUE;
+                        if (sub_firstline.string[matchcol] == NUL)
+                        {
+                            skip_match = TRUE;
+                        }
+                        else
+                        {
+                            matchcol += utfc_ptr2len(sub_firstline.string + matchcol);
+                        }
+                        break;
                     }
-                    else
-                    {
-                        matchcol += utfc_ptr2len(sub_firstline.string + matchcol);
-                    }
-                    goto skip;
-                }
-                matchcol = regmatch.endpos[0].col;
-                prev_matchcol = matchcol;
-                if (subflags.do_count)
-                {
-                    if (nmatch > 1)
-                    {
-                        matchcol = (colnr_T)sub_firstline.length;
-                        nmatch = 1;
-                        skip_match = TRUE;
-                    }
-                    sub_nsubs++;
-                    did_sub = TRUE;
-                    goto skip;
-                }
-                if (subflags.do_ask)
-                {
-                    int typed = 0;
-                    save_State = State;
-                    State = MODE_CONFIRM;
-                    curwin->w_cursor.col = regmatch.startpos[0].col;
-                    if (vim_strchr(p_cpo, CPO_UNDO) != nullptr)
-                    {
-                        ++no_u_sync;
-                    }
-                    while (subflags.do_ask)
-                    {
-                        string_T orig_line =
-                        {
-                            nullptr,
-                            0,
-                        };
-                        int len_change = 0;
-                        int save_p_lz = p_lz;
-                        int save_RedrawingDisabled = RedrawingDisabled;
-                        RedrawingDisabled = 0;
-                        p_lz = FALSE;
-                        if (new_start.string != nullptr)
-                        {
-                            orig_line.length = ml_get_len(lnum);
-                            orig_line.string = vim_strnsave(ml_get(lnum), orig_line.length);
-                            string_T new_line;
-                            new_line.string = concat_str(new_start.string, sub_firstline.string + copycol);
-                            if (new_line.string == nullptr)
-                            {
-                                (orig_line.string) = nullptr;
-                                orig_line.length = 0;
-                            }
-                            else
-                            {
-                                new_line.length = new_start.length + (sub_firstline.length - copycol);
-                                len_change = (int)new_line.length - (int)orig_line.length;
-                                curwin->w_cursor.col += len_change;
-                                ml_replace(lnum, new_line.string, FALSE);
-                            }
-                        }
-                        search_match_lines = regmatch.endpos[0].lnum - regmatch.startpos[0].lnum;
-                        search_match_endcol = regmatch.endpos[0].col + len_change;
-                        if (search_match_lines == 0 && search_match_endcol == 0)
-                        {
-                            search_match_endcol = 1;
-                        }
-                        highlight_match = TRUE;
-                        update_topline();
-                        validate_cursor();
-                        update_screen(UPD_SOME_VALID);
-                        highlight_match = FALSE;
-                        redraw_later(UPD_SOME_VALID);
-                        if (msg_row == Rows - 1)
-                        {
-                            msg_didout = FALSE;
-                        }
-                        msg_starthere();
-                        i = msg_scroll;
-                        msg_scroll = 0;
-                        msg_no_more = TRUE;
-                        vim_snprintf((char *)IObuff, iobuff_room(), _("replace with %s (y/n/a/q/l/^E/^Y)?"), sub);
-                        msg_attr(iobuff_or(_("replace with %s (y/n/a/q/l/^E/^Y)?")), highlight_attr[(int)(HLF_R)]);
-                        msg_no_more = FALSE;
-                        msg_scroll = i;
-                        showruler(TRUE);
-                        windgoto(msg_row, cmdline_col_off + msg_col);
-                        RedrawingDisabled = save_RedrawingDisabled;
-                        ++no_mapping;
-                        ++allow_keys;
-                        typed = plain_vgetc();
-                        --allow_keys;
-                        --no_mapping;
-                        msg_didout = FALSE;
-                        msg_col = 0;
-                        gotocmdline(TRUE);
-                        p_lz = save_p_lz;
-                        if (orig_line.string != nullptr)
-                        {
-                            ml_replace(lnum, orig_line.string, FALSE);
-                        }
-                        need_wait_return = FALSE;
-                        if (typed == 'q' || typed == ESC || typed == Ctrl_C || typed == intr_char)
-                        {
-                            got_quit = TRUE;
-                            break;
-                        }
-                        if (typed == 'n')
-                        {
-                            break;
-                        }
-                        if (typed == 'y')
-                        {
-                            break;
-                        }
-                        if (typed == 'l')
-                        {
-                            subflags.do_all = FALSE;
-                            line2 = lnum;
-                            break;
-                        }
-                        if (typed == 'a')
-                        {
-                            subflags.do_ask = FALSE;
-                            break;
-                        }
-                        if (typed == Ctrl_E)
-                        {
-                            scrollup_clamp();
-                        }
-                        else if (typed == Ctrl_Y)
-                        {
-                            scrolldown_clamp();
-                        }
-                    }
-                    State = save_State;
-                    if (vim_strchr(p_cpo, CPO_UNDO) != nullptr)
-                    {
-                        --no_u_sync;
-                    }
-                    if (typed == 'n')
+                    matchcol = regmatch.endpos[0].col;
+                    prev_matchcol = matchcol;
+                    if (subflags.do_count)
                     {
                         if (nmatch > 1)
                         {
                             matchcol = (colnr_T)sub_firstline.length;
+                            nmatch = 1;
                             skip_match = TRUE;
                         }
-                        goto skip;
+                        sub_nsubs++;
+                        did_sub = TRUE;
+                        break;
                     }
-                    if (got_quit)
+                    if (subflags.do_ask)
                     {
-                        goto skip;
-                    }
-                }
-                curwin->w_cursor.col = regmatch.startpos[0].col;
-                sublen = (usize)vim_regsub_multi(&regmatch, sub_firstlnum - regmatch.startpos[0].lnum, sub, sub_firstline.string, 0, REGSUB_BACKSLASH | (magic_isset() ? REGSUB_MAGIC : 0));
-                if (nmatch > curbuf->b_ml.ml_line_count - sub_firstlnum + 1)
-                {
-                    nmatch = curbuf->b_ml.ml_line_count - sub_firstlnum + 1;
-                    skip_match = TRUE;
-                    if (nmatch < 0)
-                    {
-                        goto skip;
-                    }
-                }
-                if (nmatch == 1)
-                {
-                    tmp.string = sub_firstline.string;
-                    tmp.length = sub_firstline.length;
-                }
-                else
-                {
-                    linenr_T lastlnum = sub_firstlnum + nmatch - 1;
-                    tmp.string = ml_get(lastlnum);
-                    tmp.length = ml_get_len(lastlnum);
-                    nmatch_tl += nmatch - 1;
-                }
-                copy_len = (usize)(regmatch.startpos[0].col - copycol);
-                needed_size = copy_len + (tmp.length - (usize)regmatch.endpos[0].col) + sublen + 1;
-                if (new_start.string == nullptr)
-                {
-                    new_start_size = needed_size + 50;
-                    new_start.string = alloc_clear(new_start_size);
-                    *new_start.string = NUL;
-                    new_start.length = 0;
-                }
-                else
-                {
-                    needed_size += new_start.length;
-                    if (needed_size > new_start_size)
-                    {
-                        new_start_size = needed_size + 50;
-                        p1 = alloc_clear(new_start_size);
-                        musl_memmove((char *)(p1), (char *)(new_start.string), new_start.length + 1);
-                        new_start.string = p1;
-                    }
-                }
-                musl_memmove((char *)(new_start.string + new_start.length), (char *)(sub_firstline.string + copycol), copy_len);
-                new_start.length += copy_len;
-                new_end = new_start.string + new_start.length;
-                if (new_start_size - copy_len < sublen)
-                {
-                    sublen = new_start_size - copy_len - 1;
-                }
-                n = (usize)vim_regsub_multi(&regmatch, sub_firstlnum - regmatch.startpos[0].lnum, sub, new_end, (int)sublen, REGSUB_COPY | REGSUB_BACKSLASH | (magic_isset() ? REGSUB_MAGIC : 0));
-                if (n > 0)
-                {
-                    new_start.length += n - 1;
-                }
-                sub_nsubs++;
-                did_sub = TRUE;
-                curwin->w_cursor.col = 0;
-                if (nmatch > 1)
-                {
-                    sub_firstlnum += nmatch - 1;
-                    sub_firstline.length = ml_get_len(sub_firstlnum);
-                    sub_firstline.string = vim_strnsave(ml_get(sub_firstlnum), sub_firstline.length);
-                    if (sub_firstlnum <= line2)
-                    {
-                        do_again = TRUE;
-                    }
-                    else
-                    {
-                        subflags.do_all = FALSE;
-                    }
-                }
-                copycol = regmatch.endpos[0].col;
-                if (skip_match)
-                {
-                    sub_firstline.string = vim_strnsave((char_u *)"", 0);
-                    sub_firstline.length = 0;
-                    copycol = 0;
-                }
-                for (p1 = new_end; *p1; ++p1)
-                {
-                    if (p1[0] == '\\' && p1[1] != NUL)
-                    {
-                        n = (usize)(new_start.length - (p1 - new_start.string));
-                        musl_memmove((char *)(p1), (char *)(p1 + 1), n + 1);
-                        --new_start.length;
-                    }
-                    else if (*p1 == CAR)
-                    {
-                        if (u_inssub(lnum))
+                        int typed = 0;
+                        save_State = State;
+                        State = MODE_CONFIRM;
+                        curwin->w_cursor.col = regmatch.startpos[0].col;
+                        if (vim_strchr(p_cpo, CPO_UNDO) != nullptr)
                         {
-                            colnr_T plen = (colnr_T)(p1 - new_start.string + 1);
-                            *p1 = NUL;
-                            ml_append(lnum - 1, new_start.string, plen);
-                            mark_adjust(lnum + 1, (linenr_T)LONG_MAX, 1L, 0L);
-                            if (subflags.do_ask)
+                            ++no_u_sync;
+                        }
+                        while (subflags.do_ask)
+                        {
+                            string_T orig_line =
                             {
-                                appended_lines(lnum - 1, 1L);
-                            }
-                            else
+                                nullptr,
+                                0,
+                            };
+                            int len_change = 0;
+                            int save_p_lz = p_lz;
+                            int save_RedrawingDisabled = RedrawingDisabled;
+                            RedrawingDisabled = 0;
+                            p_lz = FALSE;
+                            if (new_start.string != nullptr)
                             {
-                                if (first_line == 0)
+                                orig_line.length = ml_get_len(lnum);
+                                orig_line.string = vim_strnsave(ml_get(lnum), orig_line.length);
+                                string_T new_line;
+                                new_line.string = concat_str(new_start.string, sub_firstline.string + copycol);
+                                if (new_line.string == nullptr)
                                 {
-                                    first_line = lnum;
+                                    (orig_line.string) = nullptr;
+                                    orig_line.length = 0;
                                 }
-                                last_line = lnum + 1;
+                                else
+                                {
+                                    new_line.length = new_start.length + (sub_firstline.length - copycol);
+                                    len_change = (int)new_line.length - (int)orig_line.length;
+                                    curwin->w_cursor.col += len_change;
+                                    ml_replace(lnum, new_line.string, FALSE);
+                                }
                             }
-                            ++sub_firstlnum;
-                            ++lnum;
-                            ++line2;
-                            did_split = true;
-                            ++curwin->w_cursor.lnum;
-                            n = new_start.length - (usize)plen;
-                            musl_memmove((char *)(new_start.string), (char *)(p1 + 1), n + 1);
-                            new_start.length = n;
-                            p1 = new_start.string - 1;
+                            search_match_lines = regmatch.endpos[0].lnum - regmatch.startpos[0].lnum;
+                            search_match_endcol = regmatch.endpos[0].col + len_change;
+                            if (search_match_lines == 0 && search_match_endcol == 0)
+                            {
+                                search_match_endcol = 1;
+                            }
+                            highlight_match = TRUE;
+                            update_topline();
+                            validate_cursor();
+                            update_screen(UPD_SOME_VALID);
+                            highlight_match = FALSE;
+                            redraw_later(UPD_SOME_VALID);
+                            if (msg_row == Rows - 1)
+                            {
+                                msg_didout = FALSE;
+                            }
+                            msg_starthere();
+                            i = msg_scroll;
+                            msg_scroll = 0;
+                            msg_no_more = TRUE;
+                            vim_snprintf((char *)IObuff, iobuff_room(), _("replace with %s (y/n/a/q/l/^E/^Y)?"), sub);
+                            msg_attr(iobuff_or(_("replace with %s (y/n/a/q/l/^E/^Y)?")), highlight_attr[(int)(HLF_R)]);
+                            msg_no_more = FALSE;
+                            msg_scroll = i;
+                            showruler(TRUE);
+                            windgoto(msg_row, cmdline_col_off + msg_col);
+                            RedrawingDisabled = save_RedrawingDisabled;
+                            ++no_mapping;
+                            ++allow_keys;
+                            typed = plain_vgetc();
+                            --allow_keys;
+                            --no_mapping;
+                            msg_didout = FALSE;
+                            msg_col = 0;
+                            gotocmdline(TRUE);
+                            p_lz = save_p_lz;
+                            if (orig_line.string != nullptr)
+                            {
+                                ml_replace(lnum, orig_line.string, FALSE);
+                            }
+                            need_wait_return = FALSE;
+                            if (typed == 'q' || typed == ESC || typed == Ctrl_C || typed == intr_char)
+                            {
+                                got_quit = TRUE;
+                                break;
+                            }
+                            if (typed == 'n')
+                            {
+                                break;
+                            }
+                            if (typed == 'y')
+                            {
+                                break;
+                            }
+                            if (typed == 'l')
+                            {
+                                subflags.do_all = FALSE;
+                                line2 = lnum;
+                                break;
+                            }
+                            if (typed == 'a')
+                            {
+                                subflags.do_ask = FALSE;
+                                break;
+                            }
+                            if (typed == Ctrl_E)
+                            {
+                                scrollup_clamp();
+                            }
+                            else if (typed == Ctrl_Y)
+                            {
+                                scrolldown_clamp();
+                            }
+                        }
+                        State = save_State;
+                        if (vim_strchr(p_cpo, CPO_UNDO) != nullptr)
+                        {
+                            --no_u_sync;
+                        }
+                        if (typed == 'n')
+                        {
+                            if (nmatch > 1)
+                            {
+                                matchcol = (colnr_T)sub_firstline.length;
+                                skip_match = TRUE;
+                            }
+                            break;
+                        }
+                        if (got_quit)
+                        {
+                            break;
                         }
                     }
+                    curwin->w_cursor.col = regmatch.startpos[0].col;
+                    sublen = (usize)vim_regsub_multi(&regmatch, sub_firstlnum - regmatch.startpos[0].lnum, sub, sub_firstline.string, 0, REGSUB_BACKSLASH | (magic_isset() ? REGSUB_MAGIC : 0));
+                    if (nmatch > curbuf->b_ml.ml_line_count - sub_firstlnum + 1)
+                    {
+                        nmatch = curbuf->b_ml.ml_line_count - sub_firstlnum + 1;
+                        skip_match = TRUE;
+                        if (nmatch < 0)
+                        {
+                            break;
+                        }
+                    }
+                    if (nmatch == 1)
+                    {
+                        tmp.string = sub_firstline.string;
+                        tmp.length = sub_firstline.length;
+                    }
                     else
                     {
-                        p1 += utfc_ptr2len(p1) - 1;
+                        linenr_T lastlnum = sub_firstlnum + nmatch - 1;
+                        tmp.string = ml_get(lastlnum);
+                        tmp.length = ml_get_len(lastlnum);
+                        nmatch_tl += nmatch - 1;
+                    }
+                    copy_len = (usize)(regmatch.startpos[0].col - copycol);
+                    needed_size = copy_len + (tmp.length - (usize)regmatch.endpos[0].col) + sublen + 1;
+                    if (new_start.string == nullptr)
+                    {
+                        new_start_size = needed_size + 50;
+                        new_start.string = alloc_clear(new_start_size);
+                        *new_start.string = NUL;
+                        new_start.length = 0;
+                    }
+                    else
+                    {
+                        needed_size += new_start.length;
+                        if (needed_size > new_start_size)
+                        {
+                            new_start_size = needed_size + 50;
+                            p1 = alloc_clear(new_start_size);
+                            musl_memmove((char *)(p1), (char *)(new_start.string), new_start.length + 1);
+                            new_start.string = p1;
+                        }
+                    }
+                    musl_memmove((char *)(new_start.string + new_start.length), (char *)(sub_firstline.string + copycol), copy_len);
+                    new_start.length += copy_len;
+                    new_end = new_start.string + new_start.length;
+                    if (new_start_size - copy_len < sublen)
+                    {
+                        sublen = new_start_size - copy_len - 1;
+                    }
+                    n = (usize)vim_regsub_multi(&regmatch, sub_firstlnum - regmatch.startpos[0].lnum, sub, new_end, (int)sublen, REGSUB_COPY | REGSUB_BACKSLASH | (magic_isset() ? REGSUB_MAGIC : 0));
+                    if (n > 0)
+                    {
+                        new_start.length += n - 1;
+                    }
+                    sub_nsubs++;
+                    did_sub = TRUE;
+                    curwin->w_cursor.col = 0;
+                    if (nmatch > 1)
+                    {
+                        sub_firstlnum += nmatch - 1;
+                        sub_firstline.length = ml_get_len(sub_firstlnum);
+                        sub_firstline.string = vim_strnsave(ml_get(sub_firstlnum), sub_firstline.length);
+                        if (sub_firstlnum <= line2)
+                        {
+                            do_again = TRUE;
+                        }
+                        else
+                        {
+                            subflags.do_all = FALSE;
+                        }
+                    }
+                    copycol = regmatch.endpos[0].col;
+                    if (skip_match)
+                    {
+                        sub_firstline.string = vim_strnsave((char_u *)"", 0);
+                        sub_firstline.length = 0;
+                        copycol = 0;
+                    }
+                    for (p1 = new_end; *p1; ++p1)
+                    {
+                        if (p1[0] == '\\' && p1[1] != NUL)
+                        {
+                            n = (usize)(new_start.length - (p1 - new_start.string));
+                            musl_memmove((char *)(p1), (char *)(p1 + 1), n + 1);
+                            --new_start.length;
+                        }
+                        else if (*p1 == CAR)
+                        {
+                            if (u_inssub(lnum))
+                            {
+                                colnr_T plen = (colnr_T)(p1 - new_start.string + 1);
+                                *p1 = NUL;
+                                ml_append(lnum - 1, new_start.string, plen);
+                                mark_adjust(lnum + 1, (linenr_T)LONG_MAX, 1L, 0L);
+                                if (subflags.do_ask)
+                                {
+                                    appended_lines(lnum - 1, 1L);
+                                }
+                                else
+                                {
+                                    if (first_line == 0)
+                                    {
+                                        first_line = lnum;
+                                    }
+                                    last_line = lnum + 1;
+                                }
+                                ++sub_firstlnum;
+                                ++lnum;
+                                ++line2;
+                                did_split = true;
+                                ++curwin->w_cursor.lnum;
+                                n = new_start.length - (usize)plen;
+                                musl_memmove((char *)(new_start.string), (char *)(p1 + 1), n + 1);
+                                new_start.length = n;
+                                p1 = new_start.string - 1;
+                            }
+                        }
+                        else
+                        {
+                            p1 += utfc_ptr2len(p1) - 1;
+                        }
                     }
                 }
-            skip:
+                while (0);
                 lastone = (skip_match || got_int || got_quit || lnum > line2 || !(subflags.do_all || do_again) || (sub_firstline.string[matchcol] == NUL && nmatch <= 1 && !re_multiline(regmatch.regprog)));
                 nmatch = -1;
                 if (lastone || nmatch_tl > 0 || (subflags.do_ask && did_split) || (nmatch = vim_regexec_multi(&regmatch, curwin, curbuf, sub_firstlnum, matchcol, nullptr)) == 0 || regmatch.startpos[0].lnum > 0)
@@ -16773,244 +16777,247 @@ do_one_cmd(char_u **cmdlinep, int flags, char_u *(*fgetline)(int, int, getline_o
         --quitmore;
     }
     save_cmdmod = cmdmod;
-    if ((*cmdlinep)[0] == '#' && (*cmdlinep)[1] == '!')
+    do
     {
-        goto doend;
-    }
-    ea.cmd = *cmdlinep;
-    ea.cmdlinep = cmdlinep;
-    ea.ea_getline = fgetline;
-    if (!parse_command_modifiers(&ea, &errormsg, &cmdmod, FALSE))
-    {
-        goto doend;
-    }
-    apply_cmdmod(&cmdmod);
-    after_modifier = ea.cmd;
-    cmd = ea.cmd;
-    ea.cmd = skip_range(ea.cmd, TRUE, nullptr);
-    p = find_ex_command(&ea, nullptr);
-    ea.cmd = cmd;
-    if (ea.cmdidx != CMD_SIZE)
-    {
-        ea.addr_type = cmdnames[(int)ea.cmdidx].cmd_addr_type;
-    }
-    else
-    {
-        ea.addr_type = ADDR_LINES;
-    }
-    if (!parse_cmd_address(&ea, &errormsg, FALSE))
-    {
-        goto doend;
-    }
-    ea.cmd = skipwhite(ea.cmd);
-    while (*ea.cmd == ':')
-    {
-        ea.cmd = skipwhite(ea.cmd + 1);
-    }
-    if (*ea.cmd == NUL || (ea.nextcmd = check_nextcmd(ea.cmd)) != nullptr)
-    {
-        errormsg = ex_range_without_command(&ea);
-        goto doend;
-    }
-    if (p == nullptr)
-    {
-        errormsg = _(e_ambiguous_use_of_user_defined_command);
-        goto doend;
-    }
-    if (*p == '!' && ea.cmd[1] == 0151 && ea.cmd[0] == 78)
-    {
-        errormsg = uc_fun_cmd();
-        goto doend;
-    }
-    if (ea.cmdidx == CMD_SIZE)
-    {
-        musl_strcpy((char *)(IObuff), (char *)(_(e_not_an_editor_command)));
-        if (!sourcing)
+        if ((*cmdlinep)[0] == '#' && (*cmdlinep)[1] == '!')
         {
-            if (after_modifier != nullptr)
-            {
-                append_command(after_modifier);
-            }
-            else
-            {
-                append_command(*cmdlinep);
-            }
-            did_append_cmd = TRUE;
+            break;
         }
-        errormsg = (char *)IObuff;
-        goto doend;
-    }
-    if (*p == '!' && ea.cmdidx != CMD_substitute && ea.cmdidx != CMD_smagic && ea.cmdidx != CMD_snomagic)
-    {
-        ++p;
-        ea.forceit = TRUE;
-    }
-    else
-    {
-        ea.forceit = FALSE;
-    }
-    ea.argt = (long)cmdnames[(int)ea.cmdidx].cmd_argt;
-    if (!curbuf->b_p_ma && (ea.argt & EX_MODIFY))
-    {
-        errormsg = _(e_cannot_make_changes_modifiable_is_off);
-        goto doend;
-    }
-    if (text_locked() && !(ea.argt & EX_LOCK_OK))
-    {
-        errormsg = _(get_text_locked_msg());
-        goto doend;
-    }
-    if (!(ea.argt & (EX_CMDWIN | EX_LOCK_OK)) && curbuf_locked())
-    {
-        goto doend;
-    }
-    if (!(ea.argt & EX_RANGE) && ea.addr_count > 0)
-    {
-        errormsg = _(e_no_range_allowed);
-        goto doend;
-    }
-    if (!(ea.argt & EX_BANG) && ea.forceit)
-    {
-        errormsg = _(e_no_bang_allowed);
-        goto doend;
-    }
-    if (ea.argt & EX_RANGE)
-    {
-        if (!global_busy && ea.line1 > ea.line2)
+        ea.cmd = *cmdlinep;
+        ea.cmdlinep = cmdlinep;
+        ea.ea_getline = fgetline;
+        if (!parse_command_modifiers(&ea, &errormsg, &cmdmod, FALSE))
         {
-            if (msg_silent == 0)
-            {
-                if (sourcing)
-                {
-                    errormsg = _(e_backwards_range_given);
-                    goto doend;
-                }
-                if (ask_yesno((char_u *)_("Backwards range given, OK to swap"), FALSE) != 'y')
-                {
-                    goto doend;
-                }
-            }
-            lnum = ea.line1;
-            ea.line1 = ea.line2;
-            ea.line2 = lnum;
+            break;
         }
-        if ((errormsg = invalid_range(&ea)) != nullptr)
+        apply_cmdmod(&cmdmod);
+        after_modifier = ea.cmd;
+        cmd = ea.cmd;
+        ea.cmd = skip_range(ea.cmd, TRUE, nullptr);
+        p = find_ex_command(&ea, nullptr);
+        ea.cmd = cmd;
+        if (ea.cmdidx != CMD_SIZE)
         {
-            goto doend;
-        }
-    }
-    if ((ea.addr_type == ADDR_OTHER) && ea.addr_count == 0)
-    {
-        ea.line2 = 1;
-    }
-    correct_range(&ea);
-    ea.arg = skipwhite(p);
-    if (ea.cmdidx == CMD_lshift || ea.cmdidx == CMD_rshift)
-    {
-        ea.amount = 1;
-        while (*ea.arg == *ea.cmd)
-        {
-            ++ea.arg;
-            ++ea.amount;
-        }
-        ea.arg = skipwhite(ea.arg);
-    }
-    if (ea.argt & EX_CMDARG)
-    {
-        ea.do_ecmd_cmd = getargcmd(&ea.arg);
-    }
-    if (ea.argt & EX_TRLBAR)
-    {
-        separate_nextcmd(&ea, FALSE);
-    }
-    else if (ea.cmdidx == CMD_global || ea.cmdidx == CMD_vglobal)
-    {
-        for (p = ea.arg; *p; ++p)
-        {
-            if (*p == '\\' && p[1] == '\n')
-            {
-                musl_memmove((char *)((p)), (char *)((p + 1)), musl_strlen((char *)(p + 1)) + 1);
-            }
-            else if (*p == '\n')
-            {
-                ea.nextcmd = p + 1;
-                *p = NUL;
-                break;
-            }
-        }
-    }
-    if ((ea.argt & EX_DFLALL) && ea.addr_count == 0)
-    {
-        address_default_all(&ea);
-    }
-    if ((ea.argt & EX_REGSTR) && *ea.arg != NUL && !((ea.argt & EX_COUNT) && ((unsigned)(*ea.arg) - '0' < 10)))
-    {
-        if (*ea.arg == '*' || *ea.arg == '+')
-        {
-            errormsg = _(e_invalid_register_name);
-            goto doend;
-        }
-        if (valid_yank_reg(*ea.arg, (ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput)))
-        {
-            ea.regname = *ea.arg++;
-            ea.arg = skipwhite(ea.arg);
-        }
-    }
-    if ((ea.argt & EX_COUNT) && ((unsigned)(*ea.arg) - '0' < 10))
-    {
-        n = getdigits_quoted(&ea.arg);
-        ea.arg = skipwhite(ea.arg);
-        if (n <= 0 && (ea.argt & EX_ZEROR) == 0)
-        {
-            errormsg = _(e_positive_count_required);
-            goto doend;
-        }
-        if (ea.addr_type != ADDR_LINES)
-        {
-            ea.line2 = n;
-            if (ea.addr_count == 0)
-            {
-                ea.addr_count = 1;
-            }
+            ea.addr_type = cmdnames[(int)ea.cmdidx].cmd_addr_type;
         }
         else
         {
-            ea.line1 = ea.line2;
-            if (ea.line2 >= LONG_MAX - (n - 1))
+            ea.addr_type = ADDR_LINES;
+        }
+        if (!parse_cmd_address(&ea, &errormsg, FALSE))
+        {
+            break;
+        }
+        ea.cmd = skipwhite(ea.cmd);
+        while (*ea.cmd == ':')
+        {
+            ea.cmd = skipwhite(ea.cmd + 1);
+        }
+        if (*ea.cmd == NUL || (ea.nextcmd = check_nextcmd(ea.cmd)) != nullptr)
+        {
+            errormsg = ex_range_without_command(&ea);
+            break;
+        }
+        if (p == nullptr)
+        {
+            errormsg = _(e_ambiguous_use_of_user_defined_command);
+            break;
+        }
+        if (*p == '!' && ea.cmd[1] == 0151 && ea.cmd[0] == 78)
+        {
+            errormsg = uc_fun_cmd();
+            break;
+        }
+        if (ea.cmdidx == CMD_SIZE)
+        {
+            musl_strcpy((char *)(IObuff), (char *)(_(e_not_an_editor_command)));
+            if (!sourcing)
             {
-                ea.line2 = LONG_MAX;
+                if (after_modifier != nullptr)
+                {
+                    append_command(after_modifier);
+                }
+                else
+                {
+                    append_command(*cmdlinep);
+                }
+                did_append_cmd = TRUE;
+            }
+            errormsg = (char *)IObuff;
+            break;
+        }
+        if (*p == '!' && ea.cmdidx != CMD_substitute && ea.cmdidx != CMD_smagic && ea.cmdidx != CMD_snomagic)
+        {
+            ++p;
+            ea.forceit = TRUE;
+        }
+        else
+        {
+            ea.forceit = FALSE;
+        }
+        ea.argt = (long)cmdnames[(int)ea.cmdidx].cmd_argt;
+        if (!curbuf->b_p_ma && (ea.argt & EX_MODIFY))
+        {
+            errormsg = _(e_cannot_make_changes_modifiable_is_off);
+            break;
+        }
+        if (text_locked() && !(ea.argt & EX_LOCK_OK))
+        {
+            errormsg = _(get_text_locked_msg());
+            break;
+        }
+        if (!(ea.argt & (EX_CMDWIN | EX_LOCK_OK)) && curbuf_locked())
+        {
+            break;
+        }
+        if (!(ea.argt & EX_RANGE) && ea.addr_count > 0)
+        {
+            errormsg = _(e_no_range_allowed);
+            break;
+        }
+        if (!(ea.argt & EX_BANG) && ea.forceit)
+        {
+            errormsg = _(e_no_bang_allowed);
+            break;
+        }
+        if (ea.argt & EX_RANGE)
+        {
+            if (!global_busy && ea.line1 > ea.line2)
+            {
+                if (msg_silent == 0)
+                {
+                    if (sourcing)
+                    {
+                        errormsg = _(e_backwards_range_given);
+                        break;
+                    }
+                    if (ask_yesno((char_u *)_("Backwards range given, OK to swap"), FALSE) != 'y')
+                    {
+                        break;
+                    }
+                }
+                lnum = ea.line1;
+                ea.line1 = ea.line2;
+                ea.line2 = lnum;
+            }
+            if ((errormsg = invalid_range(&ea)) != nullptr)
+            {
+                break;
+            }
+        }
+        if ((ea.addr_type == ADDR_OTHER) && ea.addr_count == 0)
+        {
+            ea.line2 = 1;
+        }
+        correct_range(&ea);
+        ea.arg = skipwhite(p);
+        if (ea.cmdidx == CMD_lshift || ea.cmdidx == CMD_rshift)
+        {
+            ea.amount = 1;
+            while (*ea.arg == *ea.cmd)
+            {
+                ++ea.arg;
+                ++ea.amount;
+            }
+            ea.arg = skipwhite(ea.arg);
+        }
+        if (ea.argt & EX_CMDARG)
+        {
+            ea.do_ecmd_cmd = getargcmd(&ea.arg);
+        }
+        if (ea.argt & EX_TRLBAR)
+        {
+            separate_nextcmd(&ea, FALSE);
+        }
+        else if (ea.cmdidx == CMD_global || ea.cmdidx == CMD_vglobal)
+        {
+            for (p = ea.arg; *p; ++p)
+            {
+                if (*p == '\\' && p[1] == '\n')
+                {
+                    musl_memmove((char *)((p)), (char *)((p + 1)), musl_strlen((char *)(p + 1)) + 1);
+                }
+                else if (*p == '\n')
+                {
+                    ea.nextcmd = p + 1;
+                    *p = NUL;
+                    break;
+                }
+            }
+        }
+        if ((ea.argt & EX_DFLALL) && ea.addr_count == 0)
+        {
+            address_default_all(&ea);
+        }
+        if ((ea.argt & EX_REGSTR) && *ea.arg != NUL && !((ea.argt & EX_COUNT) && ((unsigned)(*ea.arg) - '0' < 10)))
+        {
+            if (*ea.arg == '*' || *ea.arg == '+')
+            {
+                errormsg = _(e_invalid_register_name);
+                break;
+            }
+            if (valid_yank_reg(*ea.arg, (ea.cmdidx != CMD_put && ea.cmdidx != CMD_iput)))
+            {
+                ea.regname = *ea.arg++;
+                ea.arg = skipwhite(ea.arg);
+            }
+        }
+        if ((ea.argt & EX_COUNT) && ((unsigned)(*ea.arg) - '0' < 10))
+        {
+            n = getdigits_quoted(&ea.arg);
+            ea.arg = skipwhite(ea.arg);
+            if (n <= 0 && (ea.argt & EX_ZEROR) == 0)
+            {
+                errormsg = _(e_positive_count_required);
+                break;
+            }
+            if (ea.addr_type != ADDR_LINES)
+            {
+                ea.line2 = n;
+                if (ea.addr_count == 0)
+                {
+                    ea.addr_count = 1;
+                }
             }
             else
             {
-                ea.line2 += n - 1;
-            }
-            ++ea.addr_count;
-            if (ea.line2 > curbuf->b_ml.ml_line_count)
-            {
-                ea.line2 = curbuf->b_ml.ml_line_count;
+                ea.line1 = ea.line2;
+                if (ea.line2 >= LONG_MAX - (n - 1))
+                {
+                    ea.line2 = LONG_MAX;
+                }
+                else
+                {
+                    ea.line2 += n - 1;
+                }
+                ++ea.addr_count;
+                if (ea.line2 > curbuf->b_ml.ml_line_count)
+                {
+                    ea.line2 = curbuf->b_ml.ml_line_count;
+                }
             }
         }
+        if (ea.argt & EX_FLAGS)
+        {
+            get_flags(&ea);
+        }
+        if (!(ea.argt & EX_EXTRA) && *ea.arg != NUL)
+        {
+            errormsg = ex_errmsg(e_trailing_characters_str, ea.arg);
+            break;
+        }
+        if ((ea.argt & EX_NEEDARG) && *ea.arg == NUL)
+        {
+            errormsg = _(e_argument_required);
+            break;
+        }
+        (cmdnames[ea.cmdidx].cmd_func)(&ea);
+        if (ea.errmsg != nullptr)
+        {
+            errormsg = ea.errmsg;
+        }
     }
-    if (ea.argt & EX_FLAGS)
-    {
-        get_flags(&ea);
-    }
-    if (!(ea.argt & EX_EXTRA) && *ea.arg != NUL)
-    {
-        errormsg = ex_errmsg(e_trailing_characters_str, ea.arg);
-        goto doend;
-    }
-    if ((ea.argt & EX_NEEDARG) && *ea.arg == NUL)
-    {
-        errormsg = _(e_argument_required);
-        goto doend;
-    }
-    (cmdnames[ea.cmdidx].cmd_func)(&ea);
-    if (ea.errmsg != nullptr)
-    {
-        errormsg = ea.errmsg;
-    }
-doend:
+    while (0);
     if (curwin->w_cursor.lnum == 0)
     {
         curwin->w_cursor.lnum = 1;
@@ -17694,7 +17701,8 @@ get_address(exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, bool skip, bool si
             case ADDR_UNSIGNED:
                 addr_error(addr_type);
                 cmd = nullptr;
-                goto error;
+                *ptr = cmd;
+                return lnum;
             }
             break;
         case '$':
@@ -17712,20 +17720,23 @@ get_address(exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, bool skip, bool si
             case ADDR_UNSIGNED:
                 addr_error(addr_type);
                 cmd = nullptr;
-                goto error;
+                *ptr = cmd;
+                return lnum;
             }
             break;
         case '\'':
             if (*++cmd == NUL)
             {
                 cmd = nullptr;
-                goto error;
+                *ptr = cmd;
+                return lnum;
             }
             if (addr_type != ADDR_LINES)
             {
                 addr_error(addr_type);
                 cmd = nullptr;
-                goto error;
+                *ptr = cmd;
+                return lnum;
             }
             if (skip)
             {
@@ -17738,7 +17749,8 @@ get_address(exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, bool skip, bool si
                 if (!check_mark(fp))
                 {
                     cmd = nullptr;
-                    goto error;
+                    *ptr = cmd;
+                    return lnum;
                 }
                 lnum = fp->lnum;
             }
@@ -17750,7 +17762,8 @@ get_address(exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, bool skip, bool si
             {
                 addr_error(addr_type);
                 cmd = nullptr;
-                goto error;
+                *ptr = cmd;
+                return lnum;
             }
             if (skip)
             {
@@ -17782,7 +17795,8 @@ get_address(exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, bool skip, bool si
                 {
                     curwin->w_cursor = pos;
                     cmd = nullptr;
-                    goto error;
+                    *ptr = cmd;
+                    return lnum;
                 }
                 lnum = curwin->w_cursor.lnum;
                 curwin->w_cursor = pos;
@@ -17795,7 +17809,8 @@ get_address(exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, bool skip, bool si
             {
                 addr_error(addr_type);
                 cmd = nullptr;
-                goto error;
+                *ptr = cmd;
+                return lnum;
             }
             if (*cmd == '&')
             {
@@ -17809,7 +17824,8 @@ get_address(exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, bool skip, bool si
             {
                 emsg(_(e_backslash_should_be_followed_by));
                 cmd = nullptr;
-                goto error;
+                *ptr = cmd;
+                return lnum;
             }
             if (!skip)
             {
@@ -17837,7 +17853,8 @@ get_address(exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, bool skip, bool si
                 else
                 {
                     cmd = nullptr;
-                    goto error;
+                    *ptr = cmd;
+                    return lnum;
                 }
             }
             ++cmd;
@@ -17891,7 +17908,8 @@ get_address(exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, bool skip, bool si
                 {
                     emsg(_(e_line_number_out_of_range));
                     cmd = nullptr;
-                    goto error;
+                    *ptr = cmd;
+                    return lnum;
                 }
             }
             if (i == '-')
@@ -17904,14 +17922,14 @@ get_address(exarg_T *eap, char_u **ptr, cmd_addr_T addr_type, bool skip, bool si
                 {
                     emsg(_(e_line_number_out_of_range));
                     cmd = nullptr;
-                    goto error;
+                    *ptr = cmd;
+                    return lnum;
                 }
                 lnum += n;
             }
         }
     }
     while (*cmd == '/' || *cmd == '?');
-error:
     *ptr = cmd;
     return lnum;
 }
@@ -19709,7 +19727,10 @@ cmdline_browse_history(int c, int firstc, char_u **curcmdstr, usize *curcmdstrle
                     if (ccline.cmdbuff == nullptr)
                     {
                         res = GOTO_NORMAL_MODE;
-                        goto done;
+                        *curcmdstr = lookfor;
+                        *curcmdstrlen = lookforlen;
+                        *hiscnt_p = hiscnt;
+                        return res;
                     }
                 }
             }
@@ -19722,18 +19743,23 @@ cmdline_browse_history(int c, int firstc, char_u **curcmdstr, usize *curcmdstrle
             if (ccline.cmdbuff == nullptr)
             {
                 res = GOTO_NORMAL_MODE;
-                goto done;
+                *curcmdstr = lookfor;
+                *curcmdstrlen = lookforlen;
+                *hiscnt_p = hiscnt;
+                return res;
             }
             musl_strcpy((char *)(ccline.cmdbuff), (char *)(p));
             ccline.cmdpos = ccline.cmdlen = (int)plen;
         }
         redrawcmd();
         res = CMDLINE_CHANGED;
-        goto done;
+        *curcmdstr = lookfor;
+        *curcmdstrlen = lookforlen;
+        *hiscnt_p = hiscnt;
+        return res;
     }
     beep_flush();
     res = CMDLINE_NOT_CHANGED;
-done:
     *curcmdstr = lookfor;
     *curcmdstrlen = lookforlen;
     *hiscnt_p = hiscnt;
@@ -19806,370 +19832,373 @@ getcmdline_int(int firstc, long count, int indent, bool clear_ccline)
         musl_memset((&(ccline)), (0), (sizeof(ccline)));
     }
     init_incsearch_state(&is_state);
-    if (!init_ccline(firstc, indent))
+    do
     {
-        goto theend;
-    }
-    if (depth == 50)
-    {
-        emsg(_(e_command_too_recursive));
-        goto theend;
-    }
-    ExpandInit(&xpc);
-    ccline.xpc = &xpc;
-    clear_cmdline_orig();
-    if (!cmd_silent)
-    {
-        i = msg_scrolled;
-        msg_scrolled = 0;
-        gotocmdline(TRUE);
-        msg_scrolled += i;
-        redrawcmdprompt();
-        set_cmdspos();
-    }
-    xpc.xp_context = EXPAND_NOTHING;
-    xpc.xp_backslash = XP_BS_NONE;
-    xpc.xp_shell = FALSE;
-    msg_scroll = FALSE;
-    State = MODE_CMDLINE;
-    term_enter();
-    init_history();
-    hiscnt = get_hislen();
-    histype = hist_char2type(firstc);
-    if (did_emsg)
-    {
-        redrawcmd();
-    }
-    did_emsg = FALSE;
-    got_int = FALSE;
-    for (;;)
-    {
-        bool trigger_cmdlinechanged = TRUE;
-        int prev_cmdpos = ccline.cmdpos;
-        (prev_cmdbuff) = nullptr;
-        quit_more = FALSE;
-        did_emsg = FALSE;
-        if (ex_normal_busy == 0 && stuff_empty() && typebuf.tb_len == 0)
+        if (!init_ccline(firstc, indent))
         {
-            some_key_typed = TRUE;
-        }
-        may_trigger_safestate(TRUE);
-        if (ccline.cmdbuff != nullptr)
-        {
-            prev_cmdbuff = vim_strsave(ccline.cmdbuff);
-        }
-        do
-        {
-            cursorcmd();
-            c = safe_vgetc();
-        }
-        while (c == K_IGNORE || c == K_NOP);
-        ccline.cmdbuff_replaced = FALSE;
-        if (c == K_COMMAND || c == K_SCRIPT_COMMAND)
-        {
-            int clen = ccline.cmdlen;
-            int cc_count = aucmd_cmdline_changed_count;
-            if (do_cmdkey_command(c, DOCMD_NOWAIT))
-            {
-                if (clen == ccline.cmdlen || cc_count != aucmd_cmdline_changed_count)
-                {
-                    trigger_cmdlinechanged = FALSE;
-                }
-                goto cmdline_changed;
-            }
-        }
-        if (KeyTyped)
-        {
-            some_key_typed = TRUE;
-        }
-        if ((c == Ctrl_C || c == intr_char) && !global_busy)
-        {
-            got_int = FALSE;
-        }
-        if (lookfor != nullptr && c != K_S_DOWN && c != K_S_UP && c != K_DOWN && c != K_UP && c != K_PAGEDOWN && c != K_PAGEUP && c != K_KPAGEDOWN && c != K_KPAGEUP && c != K_LEFT && c != K_RIGHT && (xpc.xp_numfiles > 0 || (c != Ctrl_P && c != Ctrl_N)))
-        {
-            (lookfor) = nullptr;
-            lookforlen = 0;
-        }
-        if (c == Ctrl_BSL)
-        {
-            res = cmdline_handle_ctrl_bsl(&gotesc);
-            if (res == CMDLINE_CHANGED)
-            {
-                goto cmdline_changed;
-            }
-            else if (res == CMDLINE_NOT_CHANGED)
-            {
-                goto cmdline_not_changed;
-            }
-            else if (res == GOTO_NORMAL_MODE)
-            {
-                goto returncmd;
-            }
-            c = Ctrl_BSL;
-        }
-        if (c == '\n' || c == '\r' || c == K_KENTER || (c == ESC && (!KeyTyped || vim_strchr(p_cpo, CPO_ESC) != nullptr)))
-        {
-            gotesc = FALSE;
-            if (!cmd_silent)
-            {
-                windgoto(msg_row, cmdline_col_off);
-                out_flush();
-            }
             break;
         }
-        gotesc = FALSE;
-        if (c == NUL || c == (-((KS_ZERO) + ((int)(('X')) << 8))))
+        if (depth == 50)
         {
-            c = NL;
+            emsg(_(e_command_too_recursive));
+            break;
         }
-        do_abbr = TRUE;
-        if (wild_type == WILD_CANCEL || wild_type == WILD_APPLY)
+        ExpandInit(&xpc);
+        ccline.xpc = &xpc;
+        clear_cmdline_orig();
+        if (!cmd_silent)
         {
+            i = msg_scrolled;
+            msg_scrolled = 0;
+            gotocmdline(TRUE);
+            msg_scrolled += i;
+            redrawcmdprompt();
+            set_cmdspos();
+        }
+        xpc.xp_context = EXPAND_NOTHING;
+        xpc.xp_backslash = XP_BS_NONE;
+        xpc.xp_shell = FALSE;
+        msg_scroll = FALSE;
+        State = MODE_CMDLINE;
+        term_enter();
+        init_history();
+        hiscnt = get_hislen();
+        histype = hist_char2type(firstc);
+        if (did_emsg)
+        {
+            redrawcmd();
+        }
+        did_emsg = FALSE;
+        got_int = FALSE;
+        for (;;)
+        {
+            bool trigger_cmdlinechanged = TRUE;
+            int prev_cmdpos = ccline.cmdpos;
+            (prev_cmdbuff) = nullptr;
+            quit_more = FALSE;
+            did_emsg = FALSE;
+            if (ex_normal_busy == 0 && stuff_empty() && typebuf.tb_len == 0)
+            {
+                some_key_typed = TRUE;
+            }
+            may_trigger_safestate(TRUE);
+            if (ccline.cmdbuff != nullptr)
+            {
+                prev_cmdbuff = vim_strsave(ccline.cmdbuff);
+            }
+            do
+            {
+                cursorcmd();
+                c = safe_vgetc();
+            }
+            while (c == K_IGNORE || c == K_NOP);
+            ccline.cmdbuff_replaced = FALSE;
+            if (c == K_COMMAND || c == K_SCRIPT_COMMAND)
+            {
+                int clen = ccline.cmdlen;
+                int cc_count = aucmd_cmdline_changed_count;
+                if (do_cmdkey_command(c, DOCMD_NOWAIT))
+                {
+                    if (clen == ccline.cmdlen || cc_count != aucmd_cmdline_changed_count)
+                    {
+                        trigger_cmdlinechanged = FALSE;
+                    }
+                    goto cmdline_changed;
+                }
+            }
+            if (KeyTyped)
+            {
+                some_key_typed = TRUE;
+            }
+            if ((c == Ctrl_C || c == intr_char) && !global_busy)
+            {
+                got_int = FALSE;
+            }
+            if (lookfor != nullptr && c != K_S_DOWN && c != K_S_UP && c != K_DOWN && c != K_UP && c != K_PAGEDOWN && c != K_PAGEUP && c != K_KPAGEDOWN && c != K_KPAGEUP && c != K_LEFT && c != K_RIGHT && (xpc.xp_numfiles > 0 || (c != Ctrl_P && c != Ctrl_N)))
+            {
+                (lookfor) = nullptr;
+                lookforlen = 0;
+            }
+            if (c == Ctrl_BSL)
+            {
+                res = cmdline_handle_ctrl_bsl(&gotesc);
+                if (res == CMDLINE_CHANGED)
+                {
+                    goto cmdline_changed;
+                }
+                else if (res == CMDLINE_NOT_CHANGED)
+                {
+                    goto cmdline_not_changed;
+                }
+                else if (res == GOTO_NORMAL_MODE)
+                {
+                    break;
+                }
+                c = Ctrl_BSL;
+            }
+            if (c == '\n' || c == '\r' || c == K_KENTER || (c == ESC && (!KeyTyped || vim_strchr(p_cpo, CPO_ESC) != nullptr)))
+            {
+                gotesc = FALSE;
+                if (!cmd_silent)
+                {
+                    windgoto(msg_row, cmdline_col_off);
+                    out_flush();
+                }
+                break;
+            }
+            gotesc = FALSE;
+            if (c == NUL || c == (-((KS_ZERO) + ((int)(('X')) << 8))))
+            {
+                c = NL;
+            }
+            do_abbr = TRUE;
+            if (wild_type == WILD_CANCEL || wild_type == WILD_APPLY)
+            {
+                if (KeyTyped || vpeekc() == NUL)
+                {
+                    may_do_incsearch_highlighting(firstc, count, &is_state);
+                }
+                wild_type = 0;
+                goto cmdline_not_changed;
+            }
+            switch (c)
+            {
+            case K_BS:
+            case Ctrl_H:
+            case K_DEL:
+            case K_KDEL:
+            case Ctrl_W:
+                res = cmdline_erase_chars(c, indent, &is_state);
+                if (res == CMDLINE_NOT_CHANGED)
+                {
+                    goto cmdline_not_changed;
+                }
+                else if (res == GOTO_NORMAL_MODE)
+                {
+                    goto returncmd;
+                }
+                goto cmdline_changed;
+            case K_INS:
+            case K_KINS:
+                ccline.overstrike = !ccline.overstrike;
+                status_redraw_curbuf();
+                redraw_statuslines();
+                goto cmdline_not_changed;
+            case Ctrl_HAT:
+                goto cmdline_not_changed;
+            case Ctrl_U:
+                j = ccline.cmdpos;
+                ccline.cmdlen -= j;
+                i = ccline.cmdpos = 0;
+                while (i < ccline.cmdlen)
+                {
+                    ccline.cmdbuff[i++] = ccline.cmdbuff[j++];
+                }
+                ccline.cmdbuff[ccline.cmdlen] = NUL;
+                if (ccline.cmdlen == 0)
+                {
+                    is_state.search_start = is_state.save_cursor;
+                }
+                redrawcmd();
+                goto cmdline_changed;
+            case ESC:
+            case Ctrl_C:
+                gotesc = TRUE;
+                goto returncmd;
+            case Ctrl_R:
+                res = cmdline_insert_reg(&gotesc);
+                if (res == GOTO_NORMAL_MODE)
+                {
+                    goto returncmd;
+                }
+                if (res == CMDLINE_CHANGED)
+                {
+                    goto cmdline_changed;
+                }
+                goto cmdline_not_changed;
+            case K_RIGHT:
+            case K_TC_PCT_i:
+            case K_C_RIGHT:
+                do
+                {
+                    if (ccline.cmdpos >= ccline.cmdlen)
+                    {
+                        break;
+                    }
+                    i = cmdline_charsize(ccline.cmdpos);
+                    if (KeyTyped && ccline.cmdspos + i >= cmdline_width * Rows)
+                    {
+                        break;
+                    }
+                    ccline.cmdspos += i;
+                    ccline.cmdpos += utfc_ptr2len(ccline.cmdbuff + ccline.cmdpos);
+                }
+                while ((c == K_TC_PCT_i || c == K_C_RIGHT || (mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL))) && ccline.cmdbuff[ccline.cmdpos] != ' ');
+                set_cmdspos_cursor();
+                goto cmdline_not_changed;
+            case K_LEFT:
+            case K_TC_HASH_4:
+            case K_C_LEFT:
+                if (ccline.cmdpos == 0)
+                {
+                    goto cmdline_not_changed;
+                }
+                do
+                {
+                    --ccline.cmdpos;
+                    ccline.cmdpos -= utf_head_off(ccline.cmdbuff, ccline.cmdbuff + ccline.cmdpos);
+                    ccline.cmdspos -= cmdline_charsize(ccline.cmdpos);
+                }
+                while (ccline.cmdpos > 0 && (c == K_TC_HASH_4 || c == K_C_LEFT || (mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL))) && ccline.cmdbuff[ccline.cmdpos - 1] != ' ');
+                set_cmdspos_cursor();
+                goto cmdline_not_changed;
+            case K_IGNORE:
+                goto cmdline_not_changed;
+            case (-((KS_SELECT) + ((int)(('X')) << 8))):
+                goto cmdline_not_changed;
+            case Ctrl_B:
+            case K_HOME:
+            case K_KHOME:
+            case K_TC_HASH_2:
+            case K_C_HOME:
+                ccline.cmdpos = 0;
+                set_cmdspos();
+                goto cmdline_not_changed;
+            case Ctrl_E:
+            case K_END:
+            case K_KEND:
+            case K_TC_STAR_7:
+            case K_C_END:
+                ccline.cmdpos = ccline.cmdlen;
+                set_cmdspos_cursor();
+                goto cmdline_not_changed;
+            case Ctrl_L:
+                if (may_add_char_to_search(firstc, &c, &is_state))
+                {
+                    goto cmdline_not_changed;
+                }
+                break;
+            case Ctrl_N:
+            case Ctrl_P:
+                ;
+            case K_UP:
+            case K_DOWN:
+            case K_S_UP:
+            case K_S_DOWN:
+            case K_PAGEUP:
+            case K_KPAGEUP:
+            case K_PAGEDOWN:
+            case K_KPAGEDOWN:
+                res = cmdline_browse_history(c, firstc, &lookfor, &lookforlen, histype, &hiscnt, &xpc);
+                if (res == CMDLINE_CHANGED)
+                {
+                    goto cmdline_changed;
+                }
+                else if (res == GOTO_NORMAL_MODE)
+                {
+                    goto returncmd;
+                }
+                goto cmdline_not_changed;
+            case Ctrl_G:
+            case Ctrl_T:
+                if (!may_adjust_incsearch_highlighting(firstc, count, &is_state, c))
+                {
+                    goto cmdline_not_changed;
+                }
+                break;
+            case Ctrl_V:
+            case Ctrl_Q:
+                {
+                    putcmdline('^', TRUE);
+                    c = get_literal(mod_mask & MOD_MASK_SHIFT);
+                    do_abbr = FALSE;
+                    extra_char = NUL;
+                    if (utf_iscomposing(c) && !cmd_silent)
+                    {
+                        draw_cmdline(ccline.cmdpos, ccline.cmdlen - ccline.cmdpos);
+                        msg_putchar(' ');
+                        cursorcmd();
+                    }
+                }
+                break;
+            case K_PASTESTART:
+                bracketed_paste(PASTE_CMDLINE, FALSE, nullptr);
+                goto cmdline_changed;
+            default:
+                if (c == intr_char)
+                {
+                    gotesc = TRUE;
+                    goto returncmd;
+                }
+                if (!((c) < 0))
+                {
+                    mod_mask = 0x0;
+                }
+                break;
+            }
+            if (do_abbr && (((c) < 0) || !vim_iswordc(c)) && c == Ctrl_RSB)
+            {
+                goto cmdline_changed;
+            }
+            if (((c) < 0) || mod_mask != 0)
+            {
+                put_on_cmdline(get_special_key_name(c, mod_mask), -1, TRUE);
+            }
+            else
+            {
+                j = utf_char2bytes(c, IObuff);
+                IObuff[j] = NUL;
+                put_on_cmdline(IObuff, j, TRUE);
+            }
+            goto cmdline_changed;
+        cmdline_not_changed:
+            if (ccline.cmdpos != prev_cmdpos)
+            {
+                prev_cmdpos = ccline.cmdpos;
+            }
+            if (!is_state.incsearch_postponed)
+            {
+                continue;
+            }
+        cmdline_changed:
             if (KeyTyped || vpeekc() == NUL)
             {
                 may_do_incsearch_highlighting(firstc, count, &is_state);
             }
-            wild_type = 0;
-            goto cmdline_not_changed;
+            if (trigger_cmdlinechanged && (ccline.cmdpos != prev_cmdpos || (prev_cmdbuff != nullptr && musl_strcmp((char *)(prev_cmdbuff), (char *)(ccline.cmdbuff)) != 0)))
+            {
+            }
         }
-        switch (c)
+    returncmd:
+        ExpandCleanup(&xpc);
+        ccline.xpc = nullptr;
+        clear_cmdline_orig();
+        finish_incsearch_highlighting(gotesc, &is_state, FALSE);
+        if (ccline.cmdbuff != nullptr)
         {
-        case K_BS:
-        case Ctrl_H:
-        case K_DEL:
-        case K_KDEL:
-        case Ctrl_W:
-            res = cmdline_erase_chars(c, indent, &is_state);
-            if (res == CMDLINE_NOT_CHANGED)
+            if (ccline.cmdlen && firstc != NUL && (some_key_typed || histype == HIST_SEARCH))
             {
-                goto cmdline_not_changed;
-            }
-            else if (res == GOTO_NORMAL_MODE)
-            {
-                goto returncmd;
-            }
-            goto cmdline_changed;
-        case K_INS:
-        case K_KINS:
-            ccline.overstrike = !ccline.overstrike;
-            status_redraw_curbuf();
-            redraw_statuslines();
-            goto cmdline_not_changed;
-        case Ctrl_HAT:
-            goto cmdline_not_changed;
-        case Ctrl_U:
-            j = ccline.cmdpos;
-            ccline.cmdlen -= j;
-            i = ccline.cmdpos = 0;
-            while (i < ccline.cmdlen)
-            {
-                ccline.cmdbuff[i++] = ccline.cmdbuff[j++];
-            }
-            ccline.cmdbuff[ccline.cmdlen] = NUL;
-            if (ccline.cmdlen == 0)
-            {
-                is_state.search_start = is_state.save_cursor;
-            }
-            redrawcmd();
-            goto cmdline_changed;
-        case ESC:
-        case Ctrl_C:
-            gotesc = TRUE;
-            goto returncmd;
-        case Ctrl_R:
-            res = cmdline_insert_reg(&gotesc);
-            if (res == GOTO_NORMAL_MODE)
-            {
-                goto returncmd;
-            }
-            if (res == CMDLINE_CHANGED)
-            {
-                goto cmdline_changed;
-            }
-            goto cmdline_not_changed;
-        case K_RIGHT:
-        case K_TC_PCT_i:
-        case K_C_RIGHT:
-            do
-            {
-                if (ccline.cmdpos >= ccline.cmdlen)
+                add_to_history(histype, ccline.cmdbuff, ccline.cmdlen, TRUE, histype == HIST_SEARCH ? firstc : NUL);
+                if (firstc == ':')
                 {
-                    break;
-                }
-                i = cmdline_charsize(ccline.cmdpos);
-                if (KeyTyped && ccline.cmdspos + i >= cmdline_width * Rows)
-                {
-                    break;
-                }
-                ccline.cmdspos += i;
-                ccline.cmdpos += utfc_ptr2len(ccline.cmdbuff + ccline.cmdpos);
-            }
-            while ((c == K_TC_PCT_i || c == K_C_RIGHT || (mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL))) && ccline.cmdbuff[ccline.cmdpos] != ' ');
-            set_cmdspos_cursor();
-            goto cmdline_not_changed;
-        case K_LEFT:
-        case K_TC_HASH_4:
-        case K_C_LEFT:
-            if (ccline.cmdpos == 0)
-            {
-                goto cmdline_not_changed;
-            }
-            do
-            {
-                --ccline.cmdpos;
-                ccline.cmdpos -= utf_head_off(ccline.cmdbuff, ccline.cmdbuff + ccline.cmdpos);
-                ccline.cmdspos -= cmdline_charsize(ccline.cmdpos);
-            }
-            while (ccline.cmdpos > 0 && (c == K_TC_HASH_4 || c == K_C_LEFT || (mod_mask & (MOD_MASK_SHIFT | MOD_MASK_CTRL))) && ccline.cmdbuff[ccline.cmdpos - 1] != ' ');
-            set_cmdspos_cursor();
-            goto cmdline_not_changed;
-        case K_IGNORE:
-            goto cmdline_not_changed;
-        case (-((KS_SELECT) + ((int)(('X')) << 8))):
-            goto cmdline_not_changed;
-        case Ctrl_B:
-        case K_HOME:
-        case K_KHOME:
-        case K_TC_HASH_2:
-        case K_C_HOME:
-            ccline.cmdpos = 0;
-            set_cmdspos();
-            goto cmdline_not_changed;
-        case Ctrl_E:
-        case K_END:
-        case K_KEND:
-        case K_TC_STAR_7:
-        case K_C_END:
-            ccline.cmdpos = ccline.cmdlen;
-            set_cmdspos_cursor();
-            goto cmdline_not_changed;
-        case Ctrl_L:
-            if (may_add_char_to_search(firstc, &c, &is_state))
-            {
-                goto cmdline_not_changed;
-            }
-            break;
-        case Ctrl_N:
-        case Ctrl_P:
-            ;
-        case K_UP:
-        case K_DOWN:
-        case K_S_UP:
-        case K_S_DOWN:
-        case K_PAGEUP:
-        case K_KPAGEUP:
-        case K_PAGEDOWN:
-        case K_KPAGEDOWN:
-            res = cmdline_browse_history(c, firstc, &lookfor, &lookforlen, histype, &hiscnt, &xpc);
-            if (res == CMDLINE_CHANGED)
-            {
-                goto cmdline_changed;
-            }
-            else if (res == GOTO_NORMAL_MODE)
-            {
-                goto returncmd;
-            }
-            goto cmdline_not_changed;
-        case Ctrl_G:
-        case Ctrl_T:
-            if (!may_adjust_incsearch_highlighting(firstc, count, &is_state, c))
-            {
-                goto cmdline_not_changed;
-            }
-            break;
-        case Ctrl_V:
-        case Ctrl_Q:
-            {
-                putcmdline('^', TRUE);
-                c = get_literal(mod_mask & MOD_MASK_SHIFT);
-                do_abbr = FALSE;
-                extra_char = NUL;
-                if (utf_iscomposing(c) && !cmd_silent)
-                {
-                    draw_cmdline(ccline.cmdpos, ccline.cmdlen - ccline.cmdpos);
-                    msg_putchar(' ');
-                    cursorcmd();
+                    new_last_cmdline = vim_strnsave(ccline.cmdbuff, ccline.cmdlen);
                 }
             }
-            break;
-        case K_PASTESTART:
-            bracketed_paste(PASTE_CMDLINE, FALSE, nullptr);
-            goto cmdline_changed;
-        default:
-            if (c == intr_char)
+            if (gotesc)
             {
-                gotesc = TRUE;
-                goto returncmd;
-            }
-            if (!((c) < 0))
-            {
-                mod_mask = 0x0;
-            }
-            break;
-        }
-        if (do_abbr && (((c) < 0) || !vim_iswordc(c)) && c == Ctrl_RSB)
-        {
-            goto cmdline_changed;
-        }
-        if (((c) < 0) || mod_mask != 0)
-        {
-            put_on_cmdline(get_special_key_name(c, mod_mask), -1, TRUE);
-        }
-        else
-        {
-            j = utf_char2bytes(c, IObuff);
-            IObuff[j] = NUL;
-            put_on_cmdline(IObuff, j, TRUE);
-        }
-        goto cmdline_changed;
-    cmdline_not_changed:
-        if (ccline.cmdpos != prev_cmdpos)
-        {
-            prev_cmdpos = ccline.cmdpos;
-        }
-        if (!is_state.incsearch_postponed)
-        {
-            continue;
-        }
-    cmdline_changed:
-        if (KeyTyped || vpeekc() == NUL)
-        {
-            may_do_incsearch_highlighting(firstc, count, &is_state);
-        }
-        if (trigger_cmdlinechanged && (ccline.cmdpos != prev_cmdpos || (prev_cmdbuff != nullptr && musl_strcmp((char *)(prev_cmdbuff), (char *)(ccline.cmdbuff)) != 0)))
-        {
-        }
-    }
-returncmd:
-    ExpandCleanup(&xpc);
-    ccline.xpc = nullptr;
-    clear_cmdline_orig();
-    finish_incsearch_highlighting(gotesc, &is_state, FALSE);
-    if (ccline.cmdbuff != nullptr)
-    {
-        if (ccline.cmdlen && firstc != NUL && (some_key_typed || histype == HIST_SEARCH))
-        {
-            add_to_history(histype, ccline.cmdbuff, ccline.cmdlen, TRUE, histype == HIST_SEARCH ? firstc : NUL);
-            if (firstc == ':')
-            {
-                new_last_cmdline = vim_strnsave(ccline.cmdbuff, ccline.cmdlen);
+                abandon_cmdline();
             }
         }
-        if (gotesc)
+        msg_check();
+        msg_scroll = save_msg_scroll;
+        if (some_key_typed)
         {
-            abandon_cmdline();
+            need_wait_return = FALSE;
         }
+        State = save_State;
+        sb_text_end_cmdline();
     }
-    msg_check();
-    msg_scroll = save_msg_scroll;
-    if (some_key_typed)
-    {
-        need_wait_return = FALSE;
-    }
-    State = save_State;
-    sb_text_end_cmdline();
-theend:
+    while (0);
     {
         char_u *p = ccline.cmdbuff;
         --depth;
@@ -22004,7 +22033,8 @@ gotchars_add_byte(gotchars_state_T *state, char_u byte)
     }
     if (state->pending_special > 0)
     {
-        goto ret_false;
+        state->prev_c = c;
+        return retval;
     }
     if (in_mbyte)
     {
@@ -22016,7 +22046,8 @@ gotchars_add_byte(gotchars_state_T *state, char_u byte)
         {
             if (state->prev_c == KS_MODIFIER)
             {
-                goto ret_false;
+                state->prev_c = c;
+                return retval;
             }
             c = ((state->prev_c) == KS_SPECIAL ? (0x80) : (state->prev_c) == KS_ZERO ? (-((KS_ZERO) + ((int)(('X')) << 8))) : (-((state->prev_c) + ((int)(c) << 8))));
             if (c == K_FOCUSGAINED || c == K_FOCUSLOST || c == K_COMPLETE_DELAY)
@@ -22028,10 +22059,10 @@ gotchars_add_byte(gotchars_state_T *state, char_u byte)
     }
     if (state->pending_mbyte > 0)
     {
-        goto ret_false;
+        state->prev_c = c;
+        return retval;
     }
     retval = TRUE;
-ret_false:
     state->prev_c = c;
     return retval;
 }
@@ -25867,17 +25898,20 @@ parse_winhighlight(char_u *opt, int *len, char **errmsg)
         p = vim_strchr(p, ':');
         if (p == nullptr)
         {
-            goto fail;
+            *errmsg = e_invalid_argument;
+            return nullptr;
         }
         fromlen = p - fromname;
         if (fromlen == 0)
         {
-            goto fail;
+            *errmsg = e_invalid_argument;
+            return nullptr;
         }
         p++;
         if (*p == NUL)
         {
-            goto fail;
+            *errmsg = e_invalid_argument;
+            return nullptr;
         }
         toname = p;
         tmp = vim_strchr(p, ',');
@@ -25892,7 +25926,8 @@ parse_winhighlight(char_u *opt, int *len, char **errmsg)
         }
         if (tolen == 0)
         {
-            goto fail;
+            *errmsg = e_invalid_argument;
+            return nullptr;
         }
         for (int k = 0; k < 2; k++)
         {
@@ -25903,7 +25938,8 @@ parse_winhighlight(char_u *opt, int *len, char **errmsg)
                 int hlf;
                 if (nlen != 2)
                 {
-                    goto fail;
+                    *errmsg = e_invalid_argument;
+                    return nullptr;
                 }
                 for (hlf = 0; hlf < (int)HLF_COUNT; ++hlf)
                 {
@@ -25914,7 +25950,8 @@ parse_winhighlight(char_u *opt, int *len, char **errmsg)
                 }
                 if (hlf >= HLF_COUNT)
                 {
-                    goto fail;
+                    *errmsg = e_invalid_argument;
+                    return nullptr;
                 }
                 *ids[k] = -hlf;
             }
@@ -25922,12 +25959,14 @@ parse_winhighlight(char_u *opt, int *len, char **errmsg)
             {
                 if (syn_check_group(name, nlen) == 0)
                 {
-                    goto fail;
+                    *errmsg = e_invalid_argument;
+                    return nullptr;
                 }
                 *ids[k] = syn_namen2id(name, nlen);
                 if (*ids[k] == 0)
                 {
-                    goto fail;
+                    *errmsg = e_invalid_argument;
+                    return nullptr;
                 }
                 if (ids[k] == &fromid && musl_strcmp((char *)(((hl_group_T *)((highlight_ga.ga_data)))[*ids[k] - 1].sg_name_u), (char *)("NORMAL")) == 0)
                 {
@@ -25944,9 +25983,6 @@ parse_winhighlight(char_u *opt, int *len, char **errmsg)
     }
     *len = num;
     return arr;
-fail:
-    *errmsg = e_invalid_argument;
-    return nullptr;
 }
 
     static char *
@@ -26777,7 +26813,8 @@ showmap(mapblock_T *mp, bool local)
         msg_putchar('\n');
         if (got_int)
         {
-            goto theend;
+            --map_locked;
+            return;
         }
     }
     mapchars = map_mode_to_chars(mp->m_mode);
@@ -26827,7 +26864,6 @@ showmap(mapblock_T *mp, bool local)
     }
     msg_clr_eos();
     out_flush();
-theend:
     --map_locked;
 }
 
@@ -32710,7 +32746,7 @@ utf_find_illegal(void)
             {
                 curwin->w_cursor.col += (colnr_T)(p - ml_get_cursor());
                 curwin->w_set_curswant = TRUE;
-                goto theend;
+                return;
             }
             p += len;
         }
@@ -32723,8 +32759,6 @@ utf_find_illegal(void)
     }
     curwin->w_cursor = pos;
     beep_flush();
-theend:
-    ;
 }
 
     static void
@@ -33772,11 +33806,11 @@ ml_find_line(buf_T *buf, linenr_T lnum, int action)
         if (hp->bh_id != (('p' << 8) + 't'))
         {
             iemsg(e_pointer_block_id_wrong);
-            goto error_block;
+            break;
         }
         if ((top = ml_add_stack(buf)) < 0)
         {
-            goto error_block;
+            break;
         }
         ip = &(buf->b_ml.ml_stack[top]);
         ip->ip_block = bp;
@@ -33806,7 +33840,7 @@ ml_find_line(buf_T *buf, linenr_T lnum, int action)
             {
                 iemsg(e_line_count_wrong_in_block);
             }
-            goto error_block;
+            break;
         }
         if (action == ML_DELETE)
         {
@@ -33817,7 +33851,6 @@ ml_find_line(buf_T *buf, linenr_T lnum, int action)
             pp->pb_pointer[idx].pe_line_count++;
         }
     }
-error_block:
     if (action == ML_DELETE)
     {
         ml_lineadd(buf, 1);
@@ -41095,54 +41128,57 @@ check_text_or_curbuf_locked(oparg_T *oap)
     static int
 normal_cmd_get_count(cmdarg_T *cap, int c, bool toplevel, bool set_prevcount, int *ctrl_w, int *need_flushbuf)
 {
-getcount:
-    if (!(VIsual_active && VIsual_select))
+    for (;;)
     {
-        while ((c >= '1' && c <= '9') || (cap->count0 != 0 && (c == K_DEL || c == K_KDEL || c == '0')))
+        if (!(VIsual_active && VIsual_select))
         {
-            if (c == K_DEL || c == K_KDEL)
+            while ((c >= '1' && c <= '9') || (cap->count0 != 0 && (c == K_DEL || c == K_KDEL || c == '0')))
             {
-                cap->count0 /= 10;
-                del_from_showcmd(4);
+                if (c == K_DEL || c == K_KDEL)
+                {
+                    cap->count0 /= 10;
+                    del_from_showcmd(4);
+                }
+                else if (cap->count0 > 99999999L)
+                {
+                    cap->count0 = 999999999L;
+                }
+                else
+                {
+                    cap->count0 = cap->count0 * 10 + (c - '0');
+                }
+                if (*ctrl_w)
+                {
+                    ++no_mapping;
+                    ++allow_keys;
+                }
+                ++no_zero_mapping;
+                c = plain_vgetc();
+                ;
+                --no_zero_mapping;
+                if (*ctrl_w)
+                {
+                    --no_mapping;
+                    --allow_keys;
+                }
+                *need_flushbuf |= add_to_showcmd(c);
             }
-            else if (cap->count0 > 99999999L)
+            if (c == Ctrl_W && !*ctrl_w && cap->oap->op_type == OP_NOP)
             {
-                cap->count0 = 999999999L;
-            }
-            else
-            {
-                cap->count0 = cap->count0 * 10 + (c - '0');
-            }
-            if (*ctrl_w)
-            {
+                *ctrl_w = TRUE;
+                cap->opcount = cap->count0;
+                cap->count0 = 0;
                 ++no_mapping;
                 ++allow_keys;
-            }
-            ++no_zero_mapping;
-            c = plain_vgetc();
-            ;
-            --no_zero_mapping;
-            if (*ctrl_w)
-            {
+                c = plain_vgetc();
+                ;
                 --no_mapping;
                 --allow_keys;
+                *need_flushbuf |= add_to_showcmd(c);
+                continue;
             }
-            *need_flushbuf |= add_to_showcmd(c);
         }
-        if (c == Ctrl_W && !*ctrl_w && cap->oap->op_type == OP_NOP)
-        {
-            *ctrl_w = TRUE;
-            cap->opcount = cap->count0;
-            cap->count0 = 0;
-            ++no_mapping;
-            ++allow_keys;
-            c = plain_vgetc();
-            ;
-            --no_mapping;
-            --allow_keys;
-            *need_flushbuf |= add_to_showcmd(c);
-            goto getcount;
-        }
+        break;
     }
     if (c == K_CURSORHOLD)
     {
@@ -41428,108 +41464,111 @@ normal_cmd(oparg_T *oap, bool toplevel)
         ca.cmdchar = c;
     }
     idx = find_command(ca.cmdchar);
-    if (idx < 0)
+    do
     {
-        clearopbeep(oap);
-        goto normal_end;
-    }
-    if ((nv_cmds[idx].cmd_flags & NV_NCW) && check_text_or_curbuf_locked(oap))
-    {
-        goto normal_end;
-    }
-    if (VIsual_active)
-    {
-        if (km_stopsel && (nv_cmds[idx].cmd_flags & NV_STS) && !(mod_mask & MOD_MASK_SHIFT))
+        if (idx < 0)
         {
-            end_visual_mode();
-            redraw_curbuf_later(UPD_INVERTED);
+            clearopbeep(oap);
+            break;
         }
-        if (km_startsel)
+        if ((nv_cmds[idx].cmd_flags & NV_NCW) && check_text_or_curbuf_locked(oap))
+        {
+            break;
+        }
+        if (VIsual_active)
+        {
+            if (km_stopsel && (nv_cmds[idx].cmd_flags & NV_STS) && !(mod_mask & MOD_MASK_SHIFT))
+            {
+                end_visual_mode();
+                redraw_curbuf_later(UPD_INVERTED);
+            }
+            if (km_startsel)
+            {
+                if (nv_cmds[idx].cmd_flags & NV_SS)
+                {
+                    unshift_special(&ca);
+                    idx = find_command(ca.cmdchar);
+                    if (idx < 0)
+                    {
+                        clearopbeep(oap);
+                        break;
+                    }
+                }
+                else if ((nv_cmds[idx].cmd_flags & NV_SSS) && (mod_mask & MOD_MASK_SHIFT))
+                {
+                    mod_mask &= ~MOD_MASK_SHIFT;
+                }
+            }
+        }
+        if (normal_cmd_needs_more_chars(&ca, nv_cmds[idx].cmd_flags))
+        {
+            idx = normal_cmd_get_more_chars(idx, &ca, &need_flushbuf);
+        }
+        if (need_flushbuf)
+        {
+            out_flush();
+        }
+        if (ca.cmdchar != K_IGNORE)
+        {
+            if (ex_normal_busy)
+            {
+                did_cursorhold = save_did_cursorhold;
+            }
+            else
+            {
+                did_cursorhold = FALSE;
+            }
+        }
+        State = MODE_NORMAL;
+        if (ca.nchar == ESC || ca.extra_char == ESC)
+        {
+            clearop(oap);
+            if (restart_edit == 0 && goto_im())
+            {
+                restart_edit = 'a';
+            }
+            break;
+        }
+        if (ca.cmdchar != K_IGNORE)
+        {
+            msg_didout = FALSE;
+            msg_col = 0;
+        }
+        old_pos = curwin->w_cursor;
+        if (!VIsual_active && km_startsel)
         {
             if (nv_cmds[idx].cmd_flags & NV_SS)
             {
+                start_selection();
                 unshift_special(&ca);
                 idx = find_command(ca.cmdchar);
-                if (idx < 0)
-                {
-                    clearopbeep(oap);
-                    goto normal_end;
-                }
             }
             else if ((nv_cmds[idx].cmd_flags & NV_SSS) && (mod_mask & MOD_MASK_SHIFT))
             {
+                start_selection();
                 mod_mask &= ~MOD_MASK_SHIFT;
             }
         }
-    }
-    if (normal_cmd_needs_more_chars(&ca, nv_cmds[idx].cmd_flags))
-    {
-        idx = normal_cmd_get_more_chars(idx, &ca, &need_flushbuf);
-    }
-    if (need_flushbuf)
-    {
-        out_flush();
-    }
-    if (ca.cmdchar != K_IGNORE)
-    {
-        if (ex_normal_busy)
+        ca.arg = nv_cmds[idx].cmd_arg;
+        (nv_cmds[idx].cmd_func)(&ca);
+        if (!finish_op && !oap->op_type && (idx < 0 || !(nv_cmds[idx].cmd_flags & NV_KEEPREG)))
         {
-            did_cursorhold = save_did_cursorhold;
+            clearop(oap);
         }
-        else
+        if (old_mapped_len > 0)
         {
-            did_cursorhold = FALSE;
+            old_mapped_len = typebuf_maplen();
         }
-    }
-    State = MODE_NORMAL;
-    if (ca.nchar == ESC || ca.extra_char == ESC)
-    {
-        clearop(oap);
-        if (restart_edit == 0 && goto_im())
+        if (ca.cmdchar != K_IGNORE && ca.cmdchar != K_MOUSEMOVE)
         {
-            restart_edit = 'a';
+            do_pending_operator(&ca, old_col, FALSE);
         }
-        goto normal_end;
-    }
-    if (ca.cmdchar != K_IGNORE)
-    {
-        msg_didout = FALSE;
-        msg_col = 0;
-    }
-    old_pos = curwin->w_cursor;
-    if (!VIsual_active && km_startsel)
-    {
-        if (nv_cmds[idx].cmd_flags & NV_SS)
+        if (normal_cmd_need_to_wait_for_msg(&ca, &old_pos))
         {
-            start_selection();
-            unshift_special(&ca);
-            idx = find_command(ca.cmdchar);
-        }
-        else if ((nv_cmds[idx].cmd_flags & NV_SSS) && (mod_mask & MOD_MASK_SHIFT))
-        {
-            start_selection();
-            mod_mask &= ~MOD_MASK_SHIFT;
+            normal_cmd_wait_for_msg();
         }
     }
-    ca.arg = nv_cmds[idx].cmd_arg;
-    (nv_cmds[idx].cmd_func)(&ca);
-    if (!finish_op && !oap->op_type && (idx < 0 || !(nv_cmds[idx].cmd_flags & NV_KEEPREG)))
-    {
-        clearop(oap);
-    }
-    if (old_mapped_len > 0)
-    {
-        old_mapped_len = typebuf_maplen();
-    }
-    if (ca.cmdchar != K_IGNORE && ca.cmdchar != K_MOUSEMOVE)
-    {
-        do_pending_operator(&ca, old_col, FALSE);
-    }
-    if (normal_cmd_need_to_wait_for_msg(&ca, &old_pos))
-    {
-        normal_cmd_wait_for_msg();
-    }
-normal_end:
+    while (0);
     msg_nowait = FALSE;
     if (oap->op_type == OP_NOP)
     {
@@ -45839,223 +45878,226 @@ op_delete(oparg_T *oap)
             oap->motion_type = MLINE;
         }
     }
-    if (oap->motion_type == MCHAR && oap->line_count == 1 && oap->op_type == OP_DELETE && *ml_get(oap->start.lnum) == NUL)
+    do
     {
-        if (virtual_op)
+        if (oap->motion_type == MCHAR && oap->line_count == 1 && oap->op_type == OP_DELETE && *ml_get(oap->start.lnum) == NUL)
         {
-            goto setmarks;
-        }
-        if (vim_strchr(p_cpo, CPO_EMPTYREGION) != nullptr)
-        {
-            beep_flush();
-        }
-        return OK;
-    }
-    if (oap->regname != '_')
-    {
-        if (oap->regname != 0)
-        {
-            if (!valid_yank_reg(oap->regname, TRUE))
+            if (virtual_op)
+            {
+                break;
+            }
+            if (vim_strchr(p_cpo, CPO_EMPTYREGION) != nullptr)
             {
                 beep_flush();
-                return OK;
             }
-            get_yank_register(oap->regname, TRUE);
-            if (op_yank(oap, TRUE, FALSE))
-            {
-                did_yank = TRUE;
-            }
+            return OK;
         }
-        else
+        if (oap->regname != '_')
         {
-            reset_y_append();
-        }
-        if (oap->motion_type == MLINE || oap->line_count > 1 || oap->use_reg_one)
-        {
-            shift_delete_registers();
-            if (op_yank(oap, TRUE, FALSE))
+            if (oap->regname != 0)
             {
-                did_yank = TRUE;
-            }
-        }
-        if ((oap->regname == 0) && oap->motion_type != MLINE && oap->line_count == 1)
-        {
-            oap->regname = '-';
-            get_yank_register(oap->regname, TRUE);
-            if (op_yank(oap, TRUE, FALSE))
-            {
-                did_yank = TRUE;
-            }
-            oap->regname = 0;
-        }
-        if (!did_yank)
-        {
-            int msg_silent_save = msg_silent;
-            msg_silent = 0;
-            n = ask_yesno((char_u *)_("cannot yank; delete anyway"), TRUE);
-            msg_silent = msg_silent_save;
-            if (n != 'y')
-            {
-                emsg(_(e_command_aborted));
-                return FAIL;
-            }
-        }
-    }
-    if (oap->block_mode)
-    {
-        if (!u_save((linenr_T)(oap->start.lnum - 1), (linenr_T)(oap->end.lnum + 1)))
-        {
-            return FAIL;
-        }
-        for (lnum = curwin->w_cursor.lnum; lnum <= oap->end.lnum; ++lnum)
-        {
-            block_prep(oap, &bd, lnum, TRUE);
-            if (bd.textlen == 0)
-            {
-                continue;
-            }
-            if (lnum == curwin->w_cursor.lnum)
-            {
-                curwin->w_cursor.col = bd.textcol + bd.startspaces;
-                curwin->w_cursor.coladd = 0;
-            }
-            n = bd.textlen - bd.startspaces - bd.endspaces;
-            oldp = ml_get(lnum);
-            newp = alloc(ml_get_len(lnum) + 1 - n);
-            musl_memmove((char *)(newp), (char *)(oldp), (usize)bd.textcol);
-            musl_memset((newp + bd.textcol), (' '), ((usize)(bd.startspaces + bd.endspaces)));
-            musl_strcpy((char *)(newp + bd.textcol + bd.startspaces + bd.endspaces), (char *)(oldp + bd.textcol + bd.textlen));
-            ml_replace(lnum, newp, FALSE);
-        }
-        check_cursor_col();
-        changed_lines(curwin->w_cursor.lnum, curwin->w_cursor.col, oap->end.lnum + 1, 0L);
-        oap->line_count = 0;
-    }
-    else if (oap->motion_type == MLINE)
-    {
-        if (oap->op_type == OP_CHANGE)
-        {
-            if (oap->line_count > 1)
-            {
-                lnum = curwin->w_cursor.lnum;
-                ++curwin->w_cursor.lnum;
-                del_lines((long)(oap->line_count - 1), TRUE);
-                curwin->w_cursor.lnum = lnum;
-            }
-            if (!u_save_cursor())
-            {
-                return FAIL;
-            }
-            if (curbuf->b_p_ai)
-            {
-                beginline(BL_WHITE);
-                did_ai = TRUE;
-                ai_col = curwin->w_cursor.col;
+                if (!valid_yank_reg(oap->regname, TRUE))
+                {
+                    beep_flush();
+                    return OK;
+                }
+                get_yank_register(oap->regname, TRUE);
+                if (op_yank(oap, TRUE, FALSE))
+                {
+                    did_yank = TRUE;
+                }
             }
             else
             {
-                beginline(0);
+                reset_y_append();
             }
-            truncate_line(FALSE);
-            if (oap->line_count > 1)
+            if (oap->motion_type == MLINE || oap->line_count > 1 || oap->use_reg_one)
             {
+                shift_delete_registers();
+                if (op_yank(oap, TRUE, FALSE))
+                {
+                    did_yank = TRUE;
+                }
+            }
+            if ((oap->regname == 0) && oap->motion_type != MLINE && oap->line_count == 1)
+            {
+                oap->regname = '-';
+                get_yank_register(oap->regname, TRUE);
+                if (op_yank(oap, TRUE, FALSE))
+                {
+                    did_yank = TRUE;
+                }
+                oap->regname = 0;
+            }
+            if (!did_yank)
+            {
+                int msg_silent_save = msg_silent;
+                msg_silent = 0;
+                n = ask_yesno((char_u *)_("cannot yank; delete anyway"), TRUE);
+                msg_silent = msg_silent_save;
+                if (n != 'y')
+                {
+                    emsg(_(e_command_aborted));
+                    return FAIL;
+                }
+            }
+        }
+        if (oap->block_mode)
+        {
+            if (!u_save((linenr_T)(oap->start.lnum - 1), (linenr_T)(oap->end.lnum + 1)))
+            {
+                return FAIL;
+            }
+            for (lnum = curwin->w_cursor.lnum; lnum <= oap->end.lnum; ++lnum)
+            {
+                block_prep(oap, &bd, lnum, TRUE);
+                if (bd.textlen == 0)
+                {
+                    continue;
+                }
+                if (lnum == curwin->w_cursor.lnum)
+                {
+                    curwin->w_cursor.col = bd.textcol + bd.startspaces;
+                    curwin->w_cursor.coladd = 0;
+                }
+                n = bd.textlen - bd.startspaces - bd.endspaces;
+                oldp = ml_get(lnum);
+                newp = alloc(ml_get_len(lnum) + 1 - n);
+                musl_memmove((char *)(newp), (char *)(oldp), (usize)bd.textcol);
+                musl_memset((newp + bd.textcol), (' '), ((usize)(bd.startspaces + bd.endspaces)));
+                musl_strcpy((char *)(newp + bd.textcol + bd.startspaces + bd.endspaces), (char *)(oldp + bd.textcol + bd.textlen));
+                ml_replace(lnum, newp, FALSE);
+            }
+            check_cursor_col();
+            changed_lines(curwin->w_cursor.lnum, curwin->w_cursor.col, oap->end.lnum + 1, 0L);
+            oap->line_count = 0;
+        }
+        else if (oap->motion_type == MLINE)
+        {
+            if (oap->op_type == OP_CHANGE)
+            {
+                if (oap->line_count > 1)
+                {
+                    lnum = curwin->w_cursor.lnum;
+                    ++curwin->w_cursor.lnum;
+                    del_lines((long)(oap->line_count - 1), TRUE);
+                    curwin->w_cursor.lnum = lnum;
+                }
+                if (!u_save_cursor())
+                {
+                    return FAIL;
+                }
+                if (curbuf->b_p_ai)
+                {
+                    beginline(BL_WHITE);
+                    did_ai = TRUE;
+                    ai_col = curwin->w_cursor.col;
+                }
+                else
+                {
+                    beginline(0);
+                }
+                truncate_line(FALSE);
+                if (oap->line_count > 1)
+                {
+                    u_clearline();
+                }
+            }
+            else
+            {
+                del_lines(oap->line_count, TRUE);
+                beginline(BL_WHITE | BL_FIX);
                 u_clearline();
             }
         }
         else
         {
-            del_lines(oap->line_count, TRUE);
-            beginline(BL_WHITE | BL_FIX);
-            u_clearline();
-        }
-    }
-    else
-    {
-        if (virtual_op)
-        {
-            int endcol = 0;
-            if (gchar_pos(&oap->start) == '\t')
+            if (virtual_op)
+            {
+                int endcol = 0;
+                if (gchar_pos(&oap->start) == '\t')
+                {
+                    if (!u_save_cursor())
+                    {
+                        return FAIL;
+                    }
+                    if (oap->line_count == 1)
+                    {
+                        endcol = getviscol2(oap->end.col, oap->end.coladd);
+                    }
+                    coladvance_force(getviscol2(oap->start.col, oap->start.coladd));
+                    oap->start = curwin->w_cursor;
+                    if (oap->line_count == 1)
+                    {
+                        coladvance(endcol);
+                        oap->end.col = curwin->w_cursor.col;
+                        oap->end.coladd = curwin->w_cursor.coladd;
+                        curwin->w_cursor = oap->start;
+                    }
+                }
+                if (gchar_pos(&oap->end) == '\t' && (int)oap->end.coladd < oap->inclusive)
+                {
+                    if (!u_save((linenr_T)(oap->end.lnum - 1), (linenr_T)(oap->end.lnum + 1)))
+                    {
+                        return FAIL;
+                    }
+                    curwin->w_cursor = oap->end;
+                    coladvance_force(getviscol2(oap->end.col, oap->end.coladd));
+                    oap->end = curwin->w_cursor;
+                    curwin->w_cursor = oap->start;
+                }
+                mb_adjust_opend(oap);
+            }
+            if (oap->line_count == 1)
             {
                 if (!u_save_cursor())
                 {
                     return FAIL;
                 }
-                if (oap->line_count == 1)
+                if (vim_strchr(p_cpo, CPO_DOLLAR) != nullptr && oap->op_type == OP_CHANGE && oap->end.lnum == curwin->w_cursor.lnum && !oap->is_VIsual)
                 {
-                    endcol = getviscol2(oap->end.col, oap->end.coladd);
+                    display_dollar(oap->end.col - !oap->inclusive);
                 }
-                coladvance_force(getviscol2(oap->start.col, oap->start.coladd));
-                oap->start = curwin->w_cursor;
-                if (oap->line_count == 1)
+                n = oap->end.col - oap->start.col + 1 - !oap->inclusive;
+                if (virtual_op)
                 {
-                    coladvance(endcol);
-                    oap->end.col = curwin->w_cursor.col;
-                    oap->end.coladd = curwin->w_cursor.coladd;
-                    curwin->w_cursor = oap->start;
+                    int len = ml_get_curline_len();
+                    if (oap->end.coladd != 0 && (int)oap->end.col >= len - 1 && !(oap->start.coladd && (int)oap->end.col >= len - 1))
+                    {
+                        n++;
+                    }
+                    if (n == 0 && oap->start.coladd != oap->end.coladd)
+                    {
+                        n = 1;
+                    }
+                    if (gchar_cursor() != NUL)
+                    {
+                        curwin->w_cursor.coladd = 0;
+                    }
                 }
+                (void)del_bytes((long)n, !virtual_op, oap->op_type == OP_DELETE && !oap->is_VIsual);
             }
-            if (gchar_pos(&oap->end) == '\t' && (int)oap->end.coladd < oap->inclusive)
+            else
             {
-                if (!u_save((linenr_T)(oap->end.lnum - 1), (linenr_T)(oap->end.lnum + 1)))
+                pos_T curpos;
+                if (!u_save((linenr_T)(curwin->w_cursor.lnum - 1), (linenr_T)(curwin->w_cursor.lnum + oap->line_count)))
                 {
                     return FAIL;
                 }
-                curwin->w_cursor = oap->end;
-                coladvance_force(getviscol2(oap->end.col, oap->end.coladd));
-                oap->end = curwin->w_cursor;
-                curwin->w_cursor = oap->start;
+                truncate_line(TRUE);
+                curpos = curwin->w_cursor;
+                ++curwin->w_cursor.lnum;
+                del_lines((long)(oap->line_count - 2), FALSE);
+                n = (oap->end.col + 1 - !oap->inclusive);
+                curwin->w_cursor.col = 0;
+                (void)del_bytes((long)n, !virtual_op, oap->op_type == OP_DELETE && !oap->is_VIsual);
+                curwin->w_cursor = curpos;
+                (void)do_join(2, FALSE, FALSE, FALSE, FALSE);
             }
-            mb_adjust_opend(oap);
         }
-        if (oap->line_count == 1)
-        {
-            if (!u_save_cursor())
-            {
-                return FAIL;
-            }
-            if (vim_strchr(p_cpo, CPO_DOLLAR) != nullptr && oap->op_type == OP_CHANGE && oap->end.lnum == curwin->w_cursor.lnum && !oap->is_VIsual)
-            {
-                display_dollar(oap->end.col - !oap->inclusive);
-            }
-            n = oap->end.col - oap->start.col + 1 - !oap->inclusive;
-            if (virtual_op)
-            {
-                int len = ml_get_curline_len();
-                if (oap->end.coladd != 0 && (int)oap->end.col >= len - 1 && !(oap->start.coladd && (int)oap->end.col >= len - 1))
-                {
-                    n++;
-                }
-                if (n == 0 && oap->start.coladd != oap->end.coladd)
-                {
-                    n = 1;
-                }
-                if (gchar_cursor() != NUL)
-                {
-                    curwin->w_cursor.coladd = 0;
-                }
-            }
-            (void)del_bytes((long)n, !virtual_op, oap->op_type == OP_DELETE && !oap->is_VIsual);
-        }
-        else
-        {
-            pos_T curpos;
-            if (!u_save((linenr_T)(curwin->w_cursor.lnum - 1), (linenr_T)(curwin->w_cursor.lnum + oap->line_count)))
-            {
-                return FAIL;
-            }
-            truncate_line(TRUE);
-            curpos = curwin->w_cursor;
-            ++curwin->w_cursor.lnum;
-            del_lines((long)(oap->line_count - 2), FALSE);
-            n = (oap->end.col + 1 - !oap->inclusive);
-            curwin->w_cursor.col = 0;
-            (void)del_bytes((long)n, !virtual_op, oap->op_type == OP_DELETE && !oap->is_VIsual);
-            curwin->w_cursor = curpos;
-            (void)do_join(2, FALSE, FALSE, FALSE, FALSE);
-        }
+        msgmore(curbuf->b_ml.ml_line_count - old_lcount);
     }
-    msgmore(curbuf->b_ml.ml_line_count - old_lcount);
-setmarks:
+    while (0);
     if ((cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0)
     {
         if (oap->block_mode)
@@ -47228,354 +47270,357 @@ do_addsub(int op_type, pos_T *pos, int length, linenr_T Prenum1)
     ptr = ml_get(pos->lnum);
     linelen = ml_get_len(pos->lnum);
     col = pos->col;
-    if (col + !!save_coladd >= linelen)
+    do
     {
-        goto theend;
-    }
-    if (!VIsual_active)
-    {
-        if (do_bin)
+        if (col + !!save_coladd >= linelen)
         {
-            while (col > 0 && vim_isbdigit(ptr[col]))
+            break;
+        }
+        if (!VIsual_active)
+        {
+            if (do_bin)
+            {
+                while (col > 0 && vim_isbdigit(ptr[col]))
+                {
+                    --col;
+                    col -= utf_head_off(ptr, ptr + col);
+                }
+            }
+            if (do_hex)
+            {
+                while (col > 0 && vim_isxdigit(ptr[col]))
+                {
+                    --col;
+                    col -= utf_head_off(ptr, ptr + col);
+                }
+            }
+            if (do_bin && do_hex && !((col > 0 && (ptr[col] == 'X' || ptr[col] == 'x') && ptr[col - 1] == '0' && (!utf_head_off(ptr, ptr + col - 1)) && vim_isxdigit(ptr[col + 1]))))
+            {
+                col = pos->col;
+                while (col > 0 && vim_isdigit(ptr[col]))
+                {
+                    col--;
+                    col -= utf_head_off(ptr, ptr + col);
+                }
+            }
+            if ((do_hex && col > 0 && (ptr[col] == 'X' || ptr[col] == 'x') && ptr[col - 1] == '0' && (!utf_head_off(ptr, ptr + col - 1)) && vim_isxdigit(ptr[col + 1])) || (do_bin && col > 0 && (ptr[col] == 'B' || ptr[col] == 'b') && ptr[col - 1] == '0' && (!utf_head_off(ptr, ptr + col - 1)) && vim_isbdigit(ptr[col + 1])))
             {
                 --col;
                 col -= utf_head_off(ptr, ptr + col);
-            }
-        }
-        if (do_hex)
-        {
-            while (col > 0 && vim_isxdigit(ptr[col]))
-            {
-                --col;
-                col -= utf_head_off(ptr, ptr + col);
-            }
-        }
-        if (do_bin && do_hex && !((col > 0 && (ptr[col] == 'X' || ptr[col] == 'x') && ptr[col - 1] == '0' && (!utf_head_off(ptr, ptr + col - 1)) && vim_isxdigit(ptr[col + 1]))))
-        {
-            col = pos->col;
-            while (col > 0 && vim_isdigit(ptr[col]))
-            {
-                col--;
-                col -= utf_head_off(ptr, ptr + col);
-            }
-        }
-        if ((do_hex && col > 0 && (ptr[col] == 'X' || ptr[col] == 'x') && ptr[col - 1] == '0' && (!utf_head_off(ptr, ptr + col - 1)) && vim_isxdigit(ptr[col + 1])) || (do_bin && col > 0 && (ptr[col] == 'B' || ptr[col] == 'b') && ptr[col - 1] == '0' && (!utf_head_off(ptr, ptr + col - 1)) && vim_isbdigit(ptr[col + 1])))
-        {
-            --col;
-            col -= utf_head_off(ptr, ptr + col);
-        }
-        else
-        {
-            col = pos->col;
-            while (ptr[col] != NUL && !vim_isdigit(ptr[col]) && !(do_alpha && (((unsigned)(ptr[col]) - 'A' < 26) || ((unsigned)(ptr[col]) - 'a' < 26))))
-            {
-                col += utfc_ptr2len(ptr + col);
-            }
-            while (col > 0 && vim_isdigit(ptr[col - 1]) && !(do_alpha && (((unsigned)(ptr[col]) - 'A' < 26) || ((unsigned)(ptr[col]) - 'a' < 26))))
-            {
-                --col;
-                col -= utf_head_off(ptr, ptr + col);
-            }
-        }
-    }
-    if (visual)
-    {
-        while (ptr[col] != NUL && length > 0 && !vim_isdigit(ptr[col]) && !(do_alpha && (((unsigned)(ptr[col]) - 'A' < 26) || ((unsigned)(ptr[col]) - 'a' < 26))))
-        {
-            int mb_len = utfc_ptr2len(ptr + col);
-            col += mb_len;
-            length -= mb_len;
-        }
-        if (length == 0)
-        {
-            goto theend;
-        }
-        if (col > pos->col && ptr[col - 1] == '-' && (!utf_head_off(ptr, ptr + col - 1)) && !do_unsigned)
-        {
-            if (do_blank && col >= 2 && !((ptr[col - 2]) == ' ' || (ptr[col - 2]) == '\t'))
-            {
-                blank_unsigned = TRUE;
             }
             else
             {
-                negative = TRUE;
-                was_positive = FALSE;
+                col = pos->col;
+                while (ptr[col] != NUL && !vim_isdigit(ptr[col]) && !(do_alpha && (((unsigned)(ptr[col]) - 'A' < 26) || ((unsigned)(ptr[col]) - 'a' < 26))))
+                {
+                    col += utfc_ptr2len(ptr + col);
+                }
+                while (col > 0 && vim_isdigit(ptr[col - 1]) && !(do_alpha && (((unsigned)(ptr[col]) - 'A' < 26) || ((unsigned)(ptr[col]) - 'a' < 26))))
+                {
+                    --col;
+                    col -= utf_head_off(ptr, ptr + col);
+                }
             }
         }
-    }
-    firstdigit = ptr[col];
-    if (!((unsigned)(firstdigit) - '0' < 10) && !(do_alpha && (((unsigned)(firstdigit) - 'A' < 26) || ((unsigned)(firstdigit) - 'a' < 26))))
-    {
-        beep_flush();
-        goto theend;
-    }
-    if (do_alpha && (((unsigned)(firstdigit) - 'A' < 26) || ((unsigned)(firstdigit) - 'a' < 26)))
-    {
-        if (op_type == OP_NR_SUB)
+        if (visual)
         {
-            if (((firstdigit) < 'a' ? (firstdigit) - 'A' : (firstdigit) - 'a') < Prenum1)
+            while (ptr[col] != NUL && length > 0 && !vim_isdigit(ptr[col]) && !(do_alpha && (((unsigned)(ptr[col]) - 'A' < 26) || ((unsigned)(ptr[col]) - 'a' < 26))))
             {
-                if ((musl_isupper((unsigned char)(firstdigit))))
+                int mb_len = utfc_ptr2len(ptr + col);
+                col += mb_len;
+                length -= mb_len;
+            }
+            if (length == 0)
+            {
+                break;
+            }
+            if (col > pos->col && ptr[col - 1] == '-' && (!utf_head_off(ptr, ptr + col - 1)) && !do_unsigned)
+            {
+                if (do_blank && col >= 2 && !((ptr[col - 2]) == ' ' || (ptr[col - 2]) == '\t'))
                 {
-                    firstdigit = 'A';
+                    blank_unsigned = TRUE;
                 }
                 else
                 {
-                    firstdigit = 'a';
+                    negative = TRUE;
+                    was_positive = FALSE;
                 }
             }
-            else
-            {
-                firstdigit -= Prenum1;
-            }
         }
-        else
+        firstdigit = ptr[col];
+        if (!((unsigned)(firstdigit) - '0' < 10) && !(do_alpha && (((unsigned)(firstdigit) - 'A' < 26) || ((unsigned)(firstdigit) - 'a' < 26))))
         {
-            if (26 - ((firstdigit) < 'a' ? (firstdigit) - 'A' : (firstdigit) - 'a') - 1 < Prenum1)
+            beep_flush();
+            break;
+        }
+        if (do_alpha && (((unsigned)(firstdigit) - 'A' < 26) || ((unsigned)(firstdigit) - 'a' < 26)))
+        {
+            if (op_type == OP_NR_SUB)
             {
-                if ((musl_isupper((unsigned char)(firstdigit))))
+                if (((firstdigit) < 'a' ? (firstdigit) - 'A' : (firstdigit) - 'a') < Prenum1)
                 {
-                    firstdigit = 'Z';
+                    if ((musl_isupper((unsigned char)(firstdigit))))
+                    {
+                        firstdigit = 'A';
+                    }
+                    else
+                    {
+                        firstdigit = 'a';
+                    }
                 }
                 else
                 {
-                    firstdigit = 'z';
+                    firstdigit -= Prenum1;
                 }
             }
             else
             {
-                firstdigit += Prenum1;
-            }
-        }
-        curwin->w_cursor.col = col;
-        if (!did_change)
-        {
-            startpos = curwin->w_cursor;
-        }
-        did_change = TRUE;
-        (void)del_char(FALSE);
-        ins_char(firstdigit);
-        endpos = curwin->w_cursor;
-        curwin->w_cursor.col = col;
-    }
-    else
-    {
-        char_u *buf1;
-        int buf1len;
-        char_u buf2[NUMBUFLEN];
-        int buf2len;
-        pos_T save_pos;
-        int i;
-        if (col > 0 && ptr[col - 1] == '-' && (!utf_head_off(ptr, ptr + col - 1)) && !visual && !do_unsigned)
-        {
-            if (do_blank && col >= 2 && !((ptr[col - 2]) == ' ' || (ptr[col - 2]) == '\t'))
-            {
-                blank_unsigned = TRUE;
-            }
-            else
-            {
-                --col;
-                negative = TRUE;
-            }
-        }
-        if (visual && VIsual_mode != 'V')
-        {
-            maxlen = (curbuf->b_visual.vi_curswant == MAXCOL ? linelen - col : length);
-        }
-        int overflow = FALSE;
-        vim_str2nr(ptr + col, &pre, &length, 0 + (do_bin ? STR2NR_BIN : 0) + (do_oct ? STR2NR_OCT : 0) + (do_hex ? STR2NR_HEX : 0), nullptr, &n, maxlen, FALSE, &overflow);
-        if (pre && negative)
-        {
-            ++col;
-            --length;
-            negative = FALSE;
-        }
-        subtract = FALSE;
-        if (op_type == OP_NR_SUB)
-        {
-            subtract ^= TRUE;
-        }
-        if (negative)
-        {
-            subtract ^= TRUE;
-        }
-        oldn = n;
-        if (!overflow)
-        {
-            if (subtract)
-            {
-                n -= (uvarnumber_T)Prenum1;
-            }
-            else
-            {
-                n += (uvarnumber_T)Prenum1;
-            }
-        }
-        if (!pre)
-        {
-            if (subtract)
-            {
-                if (n > oldn)
+                if (26 - ((firstdigit) < 'a' ? (firstdigit) - 'A' : (firstdigit) - 'a') - 1 < Prenum1)
                 {
-                    n = 1 + (n ^ (uvarnumber_T)-1);
-                    negative ^= TRUE;
+                    if ((musl_isupper((unsigned char)(firstdigit))))
+                    {
+                        firstdigit = 'Z';
+                    }
+                    else
+                    {
+                        firstdigit = 'z';
+                    }
                 }
-            }
-            else
-            {
-                if (n < oldn)
+                else
                 {
-                    n = (n ^ (uvarnumber_T)-1);
-                    negative ^= TRUE;
+                    firstdigit += Prenum1;
                 }
             }
-            if (n == 0)
+            curwin->w_cursor.col = col;
+            if (!did_change)
             {
+                startpos = curwin->w_cursor;
+            }
+            did_change = TRUE;
+            (void)del_char(FALSE);
+            ins_char(firstdigit);
+            endpos = curwin->w_cursor;
+            curwin->w_cursor.col = col;
+        }
+        else
+        {
+            char_u *buf1;
+            int buf1len;
+            char_u buf2[NUMBUFLEN];
+            int buf2len;
+            pos_T save_pos;
+            int i;
+            if (col > 0 && ptr[col - 1] == '-' && (!utf_head_off(ptr, ptr + col - 1)) && !visual && !do_unsigned)
+            {
+                if (do_blank && col >= 2 && !((ptr[col - 2]) == ' ' || (ptr[col - 2]) == '\t'))
+                {
+                    blank_unsigned = TRUE;
+                }
+                else
+                {
+                    --col;
+                    negative = TRUE;
+                }
+            }
+            if (visual && VIsual_mode != 'V')
+            {
+                maxlen = (curbuf->b_visual.vi_curswant == MAXCOL ? linelen - col : length);
+            }
+            int overflow = FALSE;
+            vim_str2nr(ptr + col, &pre, &length, 0 + (do_bin ? STR2NR_BIN : 0) + (do_oct ? STR2NR_OCT : 0) + (do_hex ? STR2NR_HEX : 0), nullptr, &n, maxlen, FALSE, &overflow);
+            if (pre && negative)
+            {
+                ++col;
+                --length;
                 negative = FALSE;
             }
-        }
-        if ((do_unsigned || blank_unsigned) && negative)
-        {
-            if (subtract)
+            subtract = FALSE;
+            if (op_type == OP_NR_SUB)
             {
-                n = (uvarnumber_T)0;
+                subtract ^= TRUE;
             }
-            else
+            if (negative)
             {
-                n = (uvarnumber_T)(-1);
+                subtract ^= TRUE;
             }
-            negative = FALSE;
-        }
-        if (visual && !was_positive && !negative && col > 0)
-        {
-            col--;
-            length++;
-        }
-        curwin->w_cursor.col = col;
-        if (!did_change)
-        {
-            startpos = curwin->w_cursor;
-        }
-        did_change = TRUE;
-        todel = length;
-        c = gchar_cursor();
-        if (c == '-')
-        {
-            --length;
-        }
-        save_pos = curwin->w_cursor;
-        for (i = 0; i < todel; ++i)
-        {
-            if (c < 0x100 && (musl_isalpha((unsigned char)(c))))
+            oldn = n;
+            if (!overflow)
             {
-                if ((musl_isupper((unsigned char)(c))))
+                if (subtract)
                 {
-                    hexupper = TRUE;
+                    n -= (uvarnumber_T)Prenum1;
                 }
                 else
                 {
-                    hexupper = FALSE;
+                    n += (uvarnumber_T)Prenum1;
                 }
             }
-            inc_cursor();
-            c = gchar_cursor();
-        }
-        curwin->w_cursor = save_pos;
-        buf1 = alloc(length + NUMBUFLEN);
-        ptr = buf1;
-        if (negative && (!visual || was_positive))
-        {
-            *ptr++ = '-';
-        }
-        if (pre)
-        {
-            *ptr++ = '0';
-            --length;
-        }
-        if (pre == 'b' || pre == 'B' || pre == 'x' || pre == 'X')
-        {
-            *ptr++ = pre;
-            --length;
-        }
-        if (pre == 'b' || pre == 'B')
-        {
-            int bit = 0;
-            int bits = sizeof(uvarnumber_T) * 8;
-            for (bit = bits; bit > 0; bit--)
+            if (!pre)
             {
-                if ((n >> (bit - 1)) & 0x1)
+                if (subtract)
                 {
-                    break;
+                    if (n > oldn)
+                    {
+                        n = 1 + (n ^ (uvarnumber_T)-1);
+                        negative ^= TRUE;
+                    }
+                }
+                else
+                {
+                    if (n < oldn)
+                    {
+                        n = (n ^ (uvarnumber_T)-1);
+                        negative ^= TRUE;
+                    }
+                }
+                if (n == 0)
+                {
+                    negative = FALSE;
                 }
             }
-            for (buf2len = 0; bit > 0 && buf2len < (NUMBUFLEN - 1); bit--)
+            if ((do_unsigned || blank_unsigned) && negative)
             {
-                buf2[buf2len++] = ((n >> (bit - 1)) & 0x1) ? '1' : '0';
+                if (subtract)
+                {
+                    n = (uvarnumber_T)0;
+                }
+                else
+                {
+                    n = (uvarnumber_T)(-1);
+                }
+                negative = FALSE;
             }
-            buf2[buf2len] = NUL;
-        }
-        else if (pre == 0)
-        {
-            buf2len = vim_snprintf((char *)buf2, NUMBUFLEN, "%llu", n);
-        }
-        else if (pre == '0')
-        {
-            buf2len = vim_snprintf((char *)buf2, NUMBUFLEN, "%llo", n);
-        }
-        else if (pre && hexupper)
-        {
-            buf2len = vim_snprintf((char *)buf2, NUMBUFLEN, "%llX", n);
-        }
-        else
-        {
-            buf2len = vim_snprintf((char *)buf2, NUMBUFLEN, "%llx", n);
-        }
-        length -= buf2len;
-        if (firstdigit == '0' && !(do_oct && pre == 0))
-        {
-            while (length-- > 0)
+            if (visual && !was_positive && !negative && col > 0)
+            {
+                col--;
+                length++;
+            }
+            curwin->w_cursor.col = col;
+            if (!did_change)
+            {
+                startpos = curwin->w_cursor;
+            }
+            did_change = TRUE;
+            todel = length;
+            c = gchar_cursor();
+            if (c == '-')
+            {
+                --length;
+            }
+            save_pos = curwin->w_cursor;
+            for (i = 0; i < todel; ++i)
+            {
+                if (c < 0x100 && (musl_isalpha((unsigned char)(c))))
+                {
+                    if ((musl_isupper((unsigned char)(c))))
+                    {
+                        hexupper = TRUE;
+                    }
+                    else
+                    {
+                        hexupper = FALSE;
+                    }
+                }
+                inc_cursor();
+                c = gchar_cursor();
+            }
+            curwin->w_cursor = save_pos;
+            buf1 = alloc(length + NUMBUFLEN);
+            ptr = buf1;
+            if (negative && (!visual || was_positive))
+            {
+                *ptr++ = '-';
+            }
+            if (pre)
             {
                 *ptr++ = '0';
+                --length;
+            }
+            if (pre == 'b' || pre == 'B' || pre == 'x' || pre == 'X')
+            {
+                *ptr++ = pre;
+                --length;
+            }
+            if (pre == 'b' || pre == 'B')
+            {
+                int bit = 0;
+                int bits = sizeof(uvarnumber_T) * 8;
+                for (bit = bits; bit > 0; bit--)
+                {
+                    if ((n >> (bit - 1)) & 0x1)
+                    {
+                        break;
+                    }
+                }
+                for (buf2len = 0; bit > 0 && buf2len < (NUMBUFLEN - 1); bit--)
+                {
+                    buf2[buf2len++] = ((n >> (bit - 1)) & 0x1) ? '1' : '0';
+                }
+                buf2[buf2len] = NUL;
+            }
+            else if (pre == 0)
+            {
+                buf2len = vim_snprintf((char *)buf2, NUMBUFLEN, "%llu", n);
+            }
+            else if (pre == '0')
+            {
+                buf2len = vim_snprintf((char *)buf2, NUMBUFLEN, "%llo", n);
+            }
+            else if (pre && hexupper)
+            {
+                buf2len = vim_snprintf((char *)buf2, NUMBUFLEN, "%llX", n);
+            }
+            else
+            {
+                buf2len = vim_snprintf((char *)buf2, NUMBUFLEN, "%llx", n);
+            }
+            length -= buf2len;
+            if (firstdigit == '0' && !(do_oct && pre == 0))
+            {
+                while (length-- > 0)
+                {
+                    *ptr++ = '0';
+                }
+            }
+            *ptr = NUL;
+            buf1len = (int)(ptr - buf1);
+            musl_strcpy((char *)(buf1 + buf1len), (char *)(buf2));
+            buf1len += buf2len;
+            save_pos = curwin->w_cursor;
+            if (todel > 0)
+            {
+                inc_cursor();
+            }
+            ins_str(buf1, (usize)buf1len);
+            if (todel > 0)
+            {
+                int bytes_after = ml_get_curline_len() - curwin->w_cursor.col;
+                curwin->w_cursor = save_pos;
+                (void)del_char(FALSE);
+                curwin->w_cursor.col = ml_get_curline_len() - bytes_after;
+                --todel;
+            }
+            while (todel-- > 0)
+            {
+                (void)del_char(FALSE);
+            }
+            endpos = curwin->w_cursor;
+            if (did_change && curwin->w_cursor.col)
+            {
+                --curwin->w_cursor.col;
             }
         }
-        *ptr = NUL;
-        buf1len = (int)(ptr - buf1);
-        musl_strcpy((char *)(buf1 + buf1len), (char *)(buf2));
-        buf1len += buf2len;
-        save_pos = curwin->w_cursor;
-        if (todel > 0)
+        if (did_change && (cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0)
         {
-            inc_cursor();
-        }
-        ins_str(buf1, (usize)buf1len);
-        if (todel > 0)
-        {
-            int bytes_after = ml_get_curline_len() - curwin->w_cursor.col;
-            curwin->w_cursor = save_pos;
-            (void)del_char(FALSE);
-            curwin->w_cursor.col = ml_get_curline_len() - bytes_after;
-            --todel;
-        }
-        while (todel-- > 0)
-        {
-            (void)del_char(FALSE);
-        }
-        endpos = curwin->w_cursor;
-        if (did_change && curwin->w_cursor.col)
-        {
-            --curwin->w_cursor.col;
+            curbuf->b_op_start = startpos;
+            curbuf->b_op_end = endpos;
+            if (curbuf->b_op_end.col > 0)
+            {
+                --curbuf->b_op_end.col;
+            }
         }
     }
-    if (did_change && (cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0)
-    {
-        curbuf->b_op_start = startpos;
-        curbuf->b_op_end = endpos;
-        if (curbuf->b_op_end.col > 0)
-        {
-            --curbuf->b_op_end.col;
-        }
-    }
-theend:
+    while (0);
     if (visual)
     {
         curwin->w_cursor = save_cursor;
@@ -49451,68 +49496,71 @@ stropt_get_newval(int nextchar, int opt_idx, char_u **argp, optvar_T varp, char_
     char_u *newval;
     char_u *s = nullptr;
     char_u whichwrap[80];
-    if (nextchar == '&')
+    do
     {
-        newval = stropt_get_default_val(opt_idx, varp, flags, cp_val);
-    }
-    else
-    {
-        ++arg;
-        if (varp.ov_str == &p_bs && ((unsigned)(**varp.ov_str) - '0' < 10))
+        if (nextchar == '&')
         {
-            opt_backspace_nr2str(varp, &origval, &origval_l, &origval_g, &oldval);
-        }
-        else if (varp.ov_str == &p_ww && ((unsigned)(*arg) - '0' < 10))
-        {
-            char_u *t = opt_whichwrap_nr2str(&arg, whichwrap);
-            save_arg = arg;
-            arg = t;
-        }
-        newval = stropt_copy_value(origval, &arg, op, flags);
-        if (op == OP_NONE || (flags & P_COMMA))
-        {
-            newval = stropt_expand_envvar(opt_idx, origval, newval, op);
-            if (newval == nullptr)
-            {
-                goto done;
-            }
-        }
-        if ((flags & P_COMMA) && (flags & P_COLON) && op != OP_NONE && stropt_handle_keymatch(origval, newval, op, flags))
-        {
-            ;
+            newval = stropt_get_default_val(opt_idx, varp, flags, cp_val);
         }
         else
         {
-            int len = 0;
-            if (op == OP_REMOVING || (flags & P_NODUP))
+            ++arg;
+            if (varp.ov_str == &p_bs && ((unsigned)(**varp.ov_str) - '0' < 10))
             {
-                len = (int)musl_strlen((char *)(newval));
-                s = find_dup_item(origval, newval, len, flags);
-                if ((op == OP_ADDING || op == OP_PREPENDING) && s != nullptr)
+                opt_backspace_nr2str(varp, &origval, &origval_l, &origval_g, &oldval);
+            }
+            else if (varp.ov_str == &p_ww && ((unsigned)(*arg) - '0' < 10))
+            {
+                char_u *t = opt_whichwrap_nr2str(&arg, whichwrap);
+                save_arg = arg;
+                arg = t;
+            }
+            newval = stropt_copy_value(origval, &arg, op, flags);
+            if (op == OP_NONE || (flags & P_COMMA))
+            {
+                newval = stropt_expand_envvar(opt_idx, origval, newval, op);
+                if (newval == nullptr)
                 {
-                    op = OP_NONE;
-                    musl_strcpy((char *)(newval), (char *)(origval));
+                    break;
                 }
-                if (s == nullptr)
+            }
+            if ((flags & P_COMMA) && (flags & P_COLON) && op != OP_NONE && stropt_handle_keymatch(origval, newval, op, flags))
+            {
+                ;
+            }
+            else
+            {
+                int len = 0;
+                if (op == OP_REMOVING || (flags & P_NODUP))
                 {
-                    s = origval + (int)musl_strlen((char *)(origval));
+                    len = (int)musl_strlen((char *)(newval));
+                    s = find_dup_item(origval, newval, len, flags);
+                    if ((op == OP_ADDING || op == OP_PREPENDING) && s != nullptr)
+                    {
+                        op = OP_NONE;
+                        musl_strcpy((char *)(newval), (char *)(origval));
+                    }
+                    if (s == nullptr)
+                    {
+                        s = origval + (int)musl_strlen((char *)(origval));
+                    }
+                }
+                if (op == OP_ADDING || op == OP_PREPENDING)
+                {
+                    stropt_concat_with_comma(origval, newval, op, flags);
+                }
+                else if (op == OP_REMOVING)
+                {
+                    stropt_remove_val(origval, newval, flags, s, len);
                 }
             }
-            if (op == OP_ADDING || op == OP_PREPENDING)
+            if (flags & P_FLAGLIST)
             {
-                stropt_concat_with_comma(origval, newval, op, flags);
+                stropt_remove_dupflags(newval, flags);
             }
-            else if (op == OP_REMOVING)
-            {
-                stropt_remove_val(origval, newval, flags, s, len);
-            }
-        }
-        if (flags & P_FLAGLIST)
-        {
-            stropt_remove_dupflags(newval, flags);
         }
     }
-done:
+    while (0);
     if (save_arg != nullptr)
     {
         arg = save_arg;
@@ -49639,13 +49687,15 @@ do_set_option_numeric(int opt_idx, int opt_flags, char_u **argp, int nextchar, s
         if (i == 0 || (arg[i] != NUL && !((arg[i]) == ' ' || (arg[i]) == '\t')))
         {
             errmsg = e_number_required_after_equal;
-            goto skip;
+            *argp = arg;
+            return errmsg;
         }
     }
     else
     {
         errmsg = e_number_required_after_equal;
-        goto skip;
+        *argp = arg;
+        return errmsg;
     }
     if (op == OP_ADDING)
     {
@@ -49662,10 +49712,10 @@ do_set_option_numeric(int opt_idx, int opt_flags, char_u **argp, int nextchar, s
     if (varp.ov_long == &curwin->w_onebuf_opt.wo_sop && value < -1)
     {
         errmsg = e_invalid_argument;
-        goto skip;
+        *argp = arg;
+        return errmsg;
     }
     errmsg = set_num_option(opt_idx, varp, value, errbuf, errbuflen, opt_flags);
-skip:
     *argp = arg;
     return errmsg;
 }
@@ -49717,7 +49767,8 @@ do_set_option_value(int opt_idx, int opt_flags, char_u **argp, set_prefix_T pref
         errmsg = do_set_option_bool(opt_idx, opt_flags, prefix, flags, varp, nextchar, afterchar, cp_val);
         if (errmsg != nullptr)
         {
-            goto skip;
+            *argp = arg;
+            return errmsg;
         }
     }
     else
@@ -49725,14 +49776,16 @@ do_set_option_value(int opt_idx, int opt_flags, char_u **argp, set_prefix_T pref
         if (vim_strchr((char_u *)"=:&<", nextchar) == nullptr || prefix != PREFIX_NONE)
         {
             errmsg = e_invalid_argument;
-            goto skip;
+            *argp = arg;
+            return errmsg;
         }
         if (flags & P_NUM)
         {
             errmsg = do_set_option_numeric(opt_idx, opt_flags, &arg, nextchar, op, flags, cp_val, varp, errbuf, errbuflen);
             if (errmsg != nullptr)
             {
-                goto skip;
+                *argp = arg;
+                return errmsg;
             }
         }
         else if (opt_idx >= 0)
@@ -49741,10 +49794,12 @@ do_set_option_value(int opt_idx, int opt_flags, char_u **argp, set_prefix_T pref
             {
                 if (errmsg != nullptr)
                 {
-                    goto skip;
+                    *argp = arg;
+                    return errmsg;
                 }
                 *stopopteval = TRUE;
-                goto skip;
+                *argp = arg;
+                return errmsg;
             }
         }
         else
@@ -49752,7 +49807,8 @@ do_set_option_value(int opt_idx, int opt_flags, char_u **argp, set_prefix_T pref
             errmsg = do_set_option_keycode(&arg, key_name, nextchar);
             if (errmsg != nullptr)
             {
-                goto skip;
+                *argp = arg;
+                return errmsg;
             }
         }
     }
@@ -49760,7 +49816,6 @@ do_set_option_value(int opt_idx, int opt_flags, char_u **argp, set_prefix_T pref
     {
         did_set_option(opt_idx, opt_flags, op == OP_NONE, value_checked);
     }
-skip:
     *argp = arg;
     return errmsg;
 }
@@ -49801,7 +49856,8 @@ do_set_option(int opt_flags, char_u **argp, char_u *arg_start, char_u **startarg
     if (opt_idx == -1 && key == 0)
     {
         errmsg = e_unknown_option;
-        goto skip;
+        *argp = arg;
+        return errmsg;
     }
     if (opt_idx >= 0)
     {
@@ -49811,7 +49867,8 @@ do_set_option(int opt_flags, char_u **argp, char_u *arg_start, char_u **startarg
             {
                 errmsg = e_option_not_supported;
             }
-            goto skip;
+            *argp = arg;
+            return errmsg;
         }
         flags = options[opt_idx].flags;
         varp = get_varp_scope(&(options[opt_idx]), opt_flags);
@@ -49833,7 +49890,8 @@ do_set_option(int opt_flags, char_u **argp, char_u *arg_start, char_u **startarg
     }
     if (!validate_opt_idx(opt_idx, opt_flags, flags, &errmsg, prefix))
     {
-        goto skip;
+        *argp = arg;
+        return errmsg;
     }
     int cp_val = p_cp;
     if (vim_strchr((char_u *)"?=:!&", nextchar) != nullptr)
@@ -49855,7 +49913,8 @@ do_set_option(int opt_flags, char_u **argp, char_u *arg_start, char_u **startarg
         if (vim_strchr((char_u *)"?!&<", nextchar) != nullptr && arg[1] != NUL && !((arg[1]) == ' ' || (arg[1]) == '\t'))
         {
             errmsg = e_trailing_characters;
-            goto skip;
+            *argp = arg;
+            return errmsg;
         }
     }
     if (nextchar == '?' || (prefix == PREFIX_NONE && vim_strchr((char_u *)"=:&<", nextchar) == nullptr && !(flags & P_BOOL)))
@@ -49880,7 +49939,8 @@ do_set_option(int opt_flags, char_u **argp, char_u *arg_start, char_u **startarg
             if (p == nullptr)
             {
                 errmsg = e_key_code_not_set;
-                goto skip;
+                *argp = arg;
+                return errmsg;
             }
             else
             {
@@ -49896,7 +49956,6 @@ do_set_option(int opt_flags, char_u **argp, char_u *arg_start, char_u **startarg
     {
         errmsg = do_set_option_value(opt_idx, opt_flags, &arg, prefix, op, flags, varp, key_name, nextchar, afterchar, cp_val, stopopteval, errbuf, errbuflen);
     }
-skip:
     *argp = arg;
     return errmsg;
 }
@@ -56450,7 +56509,8 @@ reg(int paren, int *flagp)
     if (br == nullptr)
     {
         ret = nullptr;
-        goto theend;
+        --bt_reg_parse_depth;
+        return ret;
     }
     if (ret != nullptr)
     {
@@ -56472,7 +56532,8 @@ reg(int paren, int *flagp)
         if (br == nullptr || reg_toolong)
         {
             ret = nullptr;
-            goto theend;
+            --bt_reg_parse_depth;
+            return ret;
         }
         regtail(ret, br);
         if (!(flags & HASWIDTH))
@@ -56495,7 +56556,8 @@ reg(int paren, int *flagp)
             emsg(iobuff_or(_(e_unmatched_str_percent_open)));
             rc_did_emsg = TRUE;
             ret = nullptr;
-            goto theend;
+            --bt_reg_parse_depth;
+            return ret;
         }
         else
         {
@@ -56503,7 +56565,8 @@ reg(int paren, int *flagp)
             emsg(iobuff_or(_(e_unmatched_str_open)));
             rc_did_emsg = TRUE;
             ret = nullptr;
-            goto theend;
+            --bt_reg_parse_depth;
+            return ret;
         }
     }
     else if (paren == REG_NOPAREN && peekchr() != NUL)
@@ -56514,21 +56577,22 @@ reg(int paren, int *flagp)
             emsg(iobuff_or(_(e_unmatched_str_close)));
             rc_did_emsg = TRUE;
             ret = nullptr;
-            goto theend;
+            --bt_reg_parse_depth;
+            return ret;
         }
         else
         {
             emsg(_(e_trailing_characters));
             rc_did_emsg = TRUE;
             ret = nullptr;
-            goto theend;
+            --bt_reg_parse_depth;
+            return ret;
         }
     }
     if (paren == REG_PAREN)
     {
         had_endbrace[parno] = TRUE;
     }
-theend:
     --bt_reg_parse_depth;
     return ret;
 }
@@ -58734,116 +58798,119 @@ bt_regexec_both(char_u *line, colnr_T startcol, int *timed_out)
         rex.reg_startp = rex.reg_match->startp;
         rex.reg_endp = rex.reg_match->endp;
     }
-    if (prog == nullptr || line == nullptr)
+    do
     {
-        iemsg(e_null_argument);
-        goto theend;
-    }
-    if (prog_magic_wrong())
-    {
-        goto theend;
-    }
-    if (rex.reg_maxcol > 0 && col >= rex.reg_maxcol)
-    {
-        goto theend;
-    }
-    if (prog->regflags & RF_ICASE)
-    {
-        rex.reg_ic = TRUE;
-    }
-    else if (prog->regflags & RF_NOICASE)
-    {
-        rex.reg_ic = FALSE;
-    }
-    if (prog->regflags & RF_ICOMBINE)
-    {
-        rex.reg_icombine = TRUE;
-    }
-    if (prog->regmust != nullptr)
-    {
-        int c;
-        c = utf_ptr2char(prog->regmust);
-        s = line + col;
-        if (!rex.reg_ic)
+        if (prog == nullptr || line == nullptr)
         {
-            while ((s = vim_strchr(s, c)) != nullptr)
+            iemsg(e_null_argument);
+            break;
+        }
+        if (prog_magic_wrong())
+        {
+            break;
+        }
+        if (rex.reg_maxcol > 0 && col >= rex.reg_maxcol)
+        {
+            break;
+        }
+        if (prog->regflags & RF_ICASE)
+        {
+            rex.reg_ic = TRUE;
+        }
+        else if (prog->regflags & RF_NOICASE)
+        {
+            rex.reg_ic = FALSE;
+        }
+        if (prog->regflags & RF_ICOMBINE)
+        {
+            rex.reg_icombine = TRUE;
+        }
+        if (prog->regmust != nullptr)
+        {
+            int c;
+            c = utf_ptr2char(prog->regmust);
+            s = line + col;
+            if (!rex.reg_ic)
             {
-                if (cstrncmp(s, prog->regmust, &prog->regmlen) == 0)
+                while ((s = vim_strchr(s, c)) != nullptr)
                 {
-                    break;
+                    if (cstrncmp(s, prog->regmust, &prog->regmlen) == 0)
+                    {
+                        break;
+                    }
+                    s += utfc_ptr2len(s);
                 }
-                s += utfc_ptr2len(s);
+            }
+            else
+            {
+                while ((s = cstrchr(s, c)) != nullptr)
+                {
+                    if (cstrncmp(s, prog->regmust, &prog->regmlen) == 0)
+                    {
+                        break;
+                    }
+                    s += utfc_ptr2len(s);
+                }
+            }
+            if (s == nullptr)
+            {
+                break;
+            }
+        }
+        rex.line = line;
+        rex.lnum = 0;
+        reg_toolong = FALSE;
+        if (prog->reganch)
+        {
+            int c;
+            c = utf_ptr2char(rex.line + col);
+            if (prog->regstart == NUL || prog->regstart == c || (rex.reg_ic && (((utf_fold(prog->regstart) == utf_fold(c))) || (c < 255 && prog->regstart < 255 && vim_tolower(prog->regstart) == vim_tolower(c)))))
+            {
+                retval = regtry(prog, col, timed_out);
+            }
+            else
+            {
+                retval = 0;
             }
         }
         else
         {
-            while ((s = cstrchr(s, c)) != nullptr)
+            while (!got_int)
             {
-                if (cstrncmp(s, prog->regmust, &prog->regmlen) == 0)
+                if (prog->regstart != NUL)
                 {
-                    break;
+                    s = cstrchr(rex.line + col, prog->regstart);
+                    if (s == nullptr)
+                    {
+                        retval = 0;
+                        break;
+                    }
+                    col = (int)(s - rex.line);
                 }
-                s += utfc_ptr2len(s);
-            }
-        }
-        if (s == nullptr)
-        {
-            goto theend;
-        }
-    }
-    rex.line = line;
-    rex.lnum = 0;
-    reg_toolong = FALSE;
-    if (prog->reganch)
-    {
-        int c;
-        c = utf_ptr2char(rex.line + col);
-        if (prog->regstart == NUL || prog->regstart == c || (rex.reg_ic && (((utf_fold(prog->regstart) == utf_fold(c))) || (c < 255 && prog->regstart < 255 && vim_tolower(prog->regstart) == vim_tolower(c)))))
-        {
-            retval = regtry(prog, col, timed_out);
-        }
-        else
-        {
-            retval = 0;
-        }
-    }
-    else
-    {
-        while (!got_int)
-        {
-            if (prog->regstart != NUL)
-            {
-                s = cstrchr(rex.line + col, prog->regstart);
-                if (s == nullptr)
+                if (rex.reg_maxcol > 0 && col >= rex.reg_maxcol)
                 {
                     retval = 0;
                     break;
                 }
-                col = (int)(s - rex.line);
+                retval = regtry(prog, col, timed_out);
+                if (retval > 0)
+                {
+                    break;
+                }
+                if (rex.lnum != 0)
+                {
+                    rex.lnum = 0;
+                    rex.line = reg_getline((linenr_T)0);
+                }
+                if (rex.line[col] == NUL)
+                {
+                    break;
+                }
+                col += utfc_ptr2len(rex.line + col);
             }
-            if (rex.reg_maxcol > 0 && col >= rex.reg_maxcol)
-            {
-                retval = 0;
-                break;
-            }
-            retval = regtry(prog, col, timed_out);
-            if (retval > 0)
-            {
-                break;
-            }
-            if (rex.lnum != 0)
-            {
-                rex.lnum = 0;
-                rex.line = reg_getline((linenr_T)0);
-            }
-            if (rex.line[col] == NUL)
-            {
-                break;
-            }
-            col += utfc_ptr2len(rex.line + col);
         }
     }
-theend:
+    while (0);
     if (reg_tofreelen > 400)
     {
         (reg_tofree) = nullptr;
@@ -59731,7 +59798,9 @@ op_yank(oparg_T *oap, bool deleting, bool mess)
             block_prep(oap, &bd, lnum, FALSE);
             if (!yank_copy_line(&bd, y_idx, oap->excl_tr_ws))
             {
-                goto fail;
+                free_yank(y_idx + 1);
+                y_current = curr;
+                return FAIL;
             }
             break;
         case MLINE:
@@ -59749,7 +59818,9 @@ op_yank(oparg_T *oap, bool deleting, bool mess)
                 }
                 if (!yank_copy_line(&bd, y_idx, FALSE))
                 {
-                    goto fail;
+                    free_yank(y_idx + 1);
+                    y_current = curr;
+                    return FAIL;
                 }
                 break;
             }
@@ -59838,10 +59909,6 @@ op_yank(oparg_T *oap, bool deleting, bool mess)
         }
     }
     return OK;
-fail:
-    free_yank(y_idx + 1);
-    y_current = curr;
-    return FAIL;
 }
 
     static bool
@@ -59922,595 +59989,598 @@ do_put(int regname, char_u *expr_result, int dir, long count, int flags)
     {
         return;
     }
-    if (!u_save(curwin->w_cursor.lnum, curwin->w_cursor.lnum + 1))
+    do
     {
-        goto end;
-    }
-    if (insert_string.string != nullptr)
-    {
-        insert_string.length = musl_strlen((char *)(insert_string.string));
-        y_type = MCHAR;
+        if (!u_save(curwin->w_cursor.lnum, curwin->w_cursor.lnum + 1))
         {
-            y_size = 1;
-            y_array = &insert_string;
+            break;
         }
-    }
-    else
-    {
-        get_yank_register(regname, FALSE);
-        y_type = y_current->y_type;
-        y_width = y_current->y_width;
-        y_size = y_current->y_size;
-        y_array = y_current->y_array;
-        y_current_used = y_current;
-    }
-    if (y_type == MLINE)
-    {
-        if (flags & PUT_LINE_SPLIT)
+        if (insert_string.string != nullptr)
         {
-            char_u *p_orig;
-            char_u *p;
-            usize plen;
-            if (!u_save_cursor())
+            insert_string.length = musl_strlen((char *)(insert_string.string));
+            y_type = MCHAR;
             {
-                goto end;
+                y_size = 1;
+                y_array = &insert_string;
             }
-            p_orig = p = ml_get_cursor();
-            plen = ml_get_cursor_len();
-            if (dir == FORWARD && *p != NUL)
-            {
-                p += utfc_ptr2len(p);
-            }
-            ptr = vim_strnsave(p, plen - (usize)(p - p_orig));
-            ml_append(curwin->w_cursor.lnum, ptr, (colnr_T)0);
-            oldp = ml_get_curline();
-            p = oldp + curwin->w_cursor.col;
-            if (dir == FORWARD && *p != NUL)
-            {
-                p += utfc_ptr2len(p);
-            }
-            ptr = vim_strnsave(oldp, (usize)(p - oldp));
-            ml_replace(curwin->w_cursor.lnum, ptr, FALSE);
-            ++nr_lines;
-            dir = FORWARD;
-        }
-        if (flags & PUT_LINE_FORWARD)
-        {
-            curwin->w_cursor = curbuf->b_visual.vi_end;
-            dir = FORWARD;
-        }
-        curbuf->b_op_start = curwin->w_cursor;
-        curbuf->b_op_end = curwin->w_cursor;
-    }
-    if (flags & PUT_LINE)
-    {
-        y_type = MLINE;
-    }
-    if (y_size == 0 || y_array == nullptr)
-    {
-        vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_nothing_in_register_str), regname == 0 ? (char_u *)"\"" : transchar(regname));
-        emsg(iobuff_or(_(e_nothing_in_register_str)));
-        goto end;
-    }
-    if (y_type == MBLOCK)
-    {
-        lnum = curwin->w_cursor.lnum + y_size + 1;
-        if (lnum > curbuf->b_ml.ml_line_count)
-        {
-            lnum = curbuf->b_ml.ml_line_count + 1;
-        }
-        if (!u_save(curwin->w_cursor.lnum - 1, lnum))
-        {
-            goto end;
-        }
-    }
-    else if (y_type == MLINE)
-    {
-        lnum = curwin->w_cursor.lnum;
-        if (dir == FORWARD)
-        {
-            ++lnum;
-        }
-        if (!((curbuf->b_ml.ml_line_count == 1 && *ml_get((linenr_T)1) == NUL) ? u_save(0, 2) : u_save(lnum - 1, lnum)))
-        {
-            goto end;
-        }
-    }
-    else if (!u_save_cursor())
-    {
-        goto end;
-    }
-    if (cur_ve_flags == VE_ALL && y_type == MCHAR)
-    {
-        if (gchar_cursor() == TAB)
-        {
-            int viscol = getviscol();
-            int ts = curbuf->b_p_ts;
-            if (dir == FORWARD ? ts - (viscol % ts) != 1 : curwin->w_cursor.coladd > 0)
-            {
-                coladvance_force(viscol);
-            }
-            else
-            {
-                curwin->w_cursor.coladd = 0;
-            }
-        }
-        else if (curwin->w_cursor.coladd > 0 || gchar_cursor() == NUL)
-        {
-            coladvance_force(getviscol() + (dir == FORWARD));
-        }
-    }
-    lnum = curwin->w_cursor.lnum;
-    col = curwin->w_cursor.col;
-    if (y_type == MBLOCK)
-    {
-        int delcount;
-        int incr = 0;
-        struct block_def bd;
-        long j;
-        int c = gchar_cursor();
-        colnr_T endcol2 = 0;
-        if (dir == FORWARD && c != NUL)
-        {
-            if (cur_ve_flags == VE_ALL)
-            {
-                getvcol(curwin, &curwin->w_cursor, &col, nullptr, &endcol2, 0);
-            }
-            else
-            {
-                getvcol(curwin, &curwin->w_cursor, nullptr, nullptr, &col, 0);
-            }
-            curwin->w_cursor.col += utfc_ptr2len(ml_get_cursor());
-            ++col;
         }
         else
         {
-            getvcol(curwin, &curwin->w_cursor, &col, nullptr, &endcol2, 0);
+            get_yank_register(regname, FALSE);
+            y_type = y_current->y_type;
+            y_width = y_current->y_width;
+            y_size = y_current->y_size;
+            y_array = y_current->y_array;
+            y_current_used = y_current;
         }
-        col += curwin->w_cursor.coladd;
-        if (cur_ve_flags == VE_ALL && (curwin->w_cursor.coladd > 0 || endcol2 == curwin->w_cursor.col))
+        if (y_type == MLINE)
         {
-            if (dir == FORWARD && c == NUL)
+            if (flags & PUT_LINE_SPLIT)
             {
-                ++col;
-            }
-            if (dir != FORWARD && c != NUL && curwin->w_cursor.coladd > 0)
-            {
-                ++curwin->w_cursor.col;
-            }
-            if (c == TAB)
-            {
-                if (dir == (-1) && curwin->w_cursor.col)
-                {
-                    curwin->w_cursor.col--;
-                }
-                if (dir == FORWARD && col - 1 == endcol2)
-                {
-                    curwin->w_cursor.col++;
-                }
-            }
-        }
-        curwin->w_cursor.coladd = 0;
-        bd.textcol = 0;
-        for (i = 0; i < y_size; ++i)
-        {
-            int spaces = 0;
-            char shortline;
-            chartabsize_T cts;
-            bd.startspaces = 0;
-            bd.endspaces = 0;
-            vcol = 0;
-            delcount = 0;
-            if (curwin->w_cursor.lnum > curbuf->b_ml.ml_line_count)
-            {
-                if (!ml_append(curbuf->b_ml.ml_line_count, (char_u *)"", (colnr_T)1))
+                char_u *p_orig;
+                char_u *p;
+                usize plen;
+                if (!u_save_cursor())
                 {
                     break;
                 }
+                p_orig = p = ml_get_cursor();
+                plen = ml_get_cursor_len();
+                if (dir == FORWARD && *p != NUL)
+                {
+                    p += utfc_ptr2len(p);
+                }
+                ptr = vim_strnsave(p, plen - (usize)(p - p_orig));
+                ml_append(curwin->w_cursor.lnum, ptr, (colnr_T)0);
+                oldp = ml_get_curline();
+                p = oldp + curwin->w_cursor.col;
+                if (dir == FORWARD && *p != NUL)
+                {
+                    p += utfc_ptr2len(p);
+                }
+                ptr = vim_strnsave(oldp, (usize)(p - oldp));
+                ml_replace(curwin->w_cursor.lnum, ptr, FALSE);
                 ++nr_lines;
+                dir = FORWARD;
             }
-            oldp = ml_get_curline();
-            oldlen = ml_get_curline_len();
-            init_chartabsize_arg(&cts, curwin, curwin->w_cursor.lnum, 0, oldp, oldp);
-            while (cts.cts_vcol < col && *cts.cts_ptr != NUL)
+            if (flags & PUT_LINE_FORWARD)
             {
-                incr = lbr_chartabsize_adv(&cts);
-                cts.cts_vcol += incr;
+                curwin->w_cursor = curbuf->b_visual.vi_end;
+                dir = FORWARD;
             }
-            vcol = cts.cts_vcol;
-            ptr = cts.cts_ptr;
-            bd.textcol = (colnr_T)(ptr - oldp);
-            shortline = (vcol < col) || (vcol == col && !*ptr);
-            if (vcol < col)
+            curbuf->b_op_start = curwin->w_cursor;
+            curbuf->b_op_end = curwin->w_cursor;
+        }
+        if (flags & PUT_LINE)
+        {
+            y_type = MLINE;
+        }
+        if (y_size == 0 || y_array == nullptr)
+        {
+            vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_nothing_in_register_str), regname == 0 ? (char_u *)"\"" : transchar(regname));
+            emsg(iobuff_or(_(e_nothing_in_register_str)));
+            break;
+        }
+        if (y_type == MBLOCK)
+        {
+            lnum = curwin->w_cursor.lnum + y_size + 1;
+            if (lnum > curbuf->b_ml.ml_line_count)
             {
-                bd.startspaces = col - vcol;
+                lnum = curbuf->b_ml.ml_line_count + 1;
             }
-            else if (vcol > col)
+            if (!u_save(curwin->w_cursor.lnum - 1, lnum))
             {
-                bd.endspaces = vcol - col;
-                bd.startspaces = incr - bd.endspaces;
-                --bd.textcol;
-                delcount = 1;
-                bd.textcol -= utf_head_off(oldp, oldp + bd.textcol);
-                if (oldp[bd.textcol] != TAB)
-                {
-                    delcount = 0;
-                    bd.endspaces = 0;
-                }
-            }
-            yanklen = (int)y_array[i].length;
-            if ((flags & PUT_BLOCK_INNER) == 0)
-            {
-                spaces = y_width + 1;
-                init_chartabsize_arg(&cts, curwin, 0, 0, y_array[i].string, y_array[i].string);
-                while (*cts.cts_ptr != NUL)
-                {
-                    spaces -= lbr_chartabsize_adv(&cts);
-                    cts.cts_vcol = 0;
-                }
-                if (spaces < 0)
-                {
-                    spaces = 0;
-                }
-            }
-            if (yanklen + spaces != 0 && count > ((INT_MAX - (bd.startspaces + bd.endspaces)) / (yanklen + spaces)))
-            {
-                emsg(_(e_resulting_text_too_long));
                 break;
             }
-            totlen = count * (yanklen + spaces) + bd.startspaces + bd.endspaces;
-            newp = alloc(totlen + oldlen + 1);
-            ptr = newp;
-            musl_memmove((char *)(ptr), (char *)(oldp), (usize)bd.textcol);
-            ptr += bd.textcol;
-            musl_memset((ptr), (' '), ((usize)bd.startspaces));
-            ptr += bd.startspaces;
-            for (j = 0; j < count; ++j)
+        }
+        else if (y_type == MLINE)
+        {
+            lnum = curwin->w_cursor.lnum;
+            if (dir == FORWARD)
             {
-                musl_memmove((char *)(ptr), (char *)(y_array[i].string), (usize)yanklen);
-                ptr += yanklen;
-                if ((j < count - 1 || !shortline) && spaces > 0)
+                ++lnum;
+            }
+            if (!((curbuf->b_ml.ml_line_count == 1 && *ml_get((linenr_T)1) == NUL) ? u_save(0, 2) : u_save(lnum - 1, lnum)))
+            {
+                break;
+            }
+        }
+        else if (!u_save_cursor())
+        {
+            break;
+        }
+        if (cur_ve_flags == VE_ALL && y_type == MCHAR)
+        {
+            if (gchar_cursor() == TAB)
+            {
+                int viscol = getviscol();
+                int ts = curbuf->b_p_ts;
+                if (dir == FORWARD ? ts - (viscol % ts) != 1 : curwin->w_cursor.coladd > 0)
                 {
-                    musl_memset((ptr), (' '), ((usize)spaces));
-                    ptr += spaces;
+                    coladvance_force(viscol);
                 }
                 else
                 {
-                    totlen -= spaces;
+                    curwin->w_cursor.coladd = 0;
                 }
             }
-            musl_memset((ptr), (' '), ((usize)bd.endspaces));
-            ptr += bd.endspaces;
-            musl_memmove((char *)(ptr), (char *)(oldp + bd.textcol + delcount), (usize)(oldlen - bd.textcol - delcount + 1));
-            ml_replace(curwin->w_cursor.lnum, newp, FALSE);
-            ++curwin->w_cursor.lnum;
-            if (i == 0)
+            else if (curwin->w_cursor.coladd > 0 || gchar_cursor() == NUL)
             {
-                curwin->w_cursor.col += bd.startspaces;
+                coladvance_force(getviscol() + (dir == FORWARD));
             }
         }
-        changed_lines(lnum, 0, curwin->w_cursor.lnum - nr_lines, nr_lines);
-        curbuf->b_op_start = curwin->w_cursor;
-        curbuf->b_op_start.lnum = lnum;
-        curbuf->b_op_end.lnum = curwin->w_cursor.lnum - 1;
-        curbuf->b_op_end.col = bd.textcol + totlen - 1;
-        if (curbuf->b_op_end.col < 0)
+        lnum = curwin->w_cursor.lnum;
+        col = curwin->w_cursor.col;
+        if (y_type == MBLOCK)
         {
-            curbuf->b_op_end.col = 0;
-        }
-        curbuf->b_op_end.coladd = 0;
-        if (flags & PUT_CURSEND)
-        {
-            colnr_T len;
-            curwin->w_cursor = curbuf->b_op_end;
-            curwin->w_cursor.col++;
-            len = ml_get_curline_len();
-            if (curwin->w_cursor.col > len)
+            int delcount;
+            int incr = 0;
+            struct block_def bd;
+            long j;
+            int c = gchar_cursor();
+            colnr_T endcol2 = 0;
+            if (dir == FORWARD && c != NUL)
             {
-                curwin->w_cursor.col = len;
-            }
-        }
-        else
-        {
-            curwin->w_cursor.lnum = lnum;
-        }
-    }
-    else
-    {
-        pos_T new_cursor;
-        yanklen = (int)y_array[0].length;
-        if (y_type == MCHAR)
-        {
-            if (dir == FORWARD && gchar_cursor() != NUL)
-            {
-                int bytelen = utfc_ptr2len(ml_get_cursor());
-                col += bytelen;
-                if (yanklen)
+                if (cur_ve_flags == VE_ALL)
                 {
-                    curwin->w_cursor.col += bytelen;
-                    curbuf->b_op_end.col += bytelen;
+                    getvcol(curwin, &curwin->w_cursor, &col, nullptr, &endcol2, 0);
                 }
-            }
-            curbuf->b_op_start = curwin->w_cursor;
-        }
-        else if (dir == (-1))
-        {
-            --lnum;
-        }
-        new_cursor = curwin->w_cursor;
-        if (y_type == MCHAR && y_size == 1)
-        {
-            linenr_T end_lnum = 0;
-            linenr_T start_lnum = lnum;
-            int first_byte_off = 0;
-            if (VIsual_active)
-            {
-                end_lnum = curbuf->b_visual.vi_end.lnum;
-                if (end_lnum < curbuf->b_visual.vi_start.lnum)
+                else
                 {
-                    end_lnum = curbuf->b_visual.vi_start.lnum;
+                    getvcol(curwin, &curwin->w_cursor, nullptr, nullptr, &col, 0);
                 }
-                if (end_lnum > start_lnum)
-                {
-                    pos_T pos;
-                    pos.lnum = lnum;
-                    pos.col = col;
-                    pos.coladd = 0;
-                    getvcol(curwin, &pos, nullptr, &vcol, nullptr, 0);
-                }
-            }
-            if (count == 0 || yanklen == 0)
-            {
-                if (VIsual_active)
-                {
-                    lnum = end_lnum;
-                }
-            }
-            else if (count > INT_MAX / yanklen)
-            {
-                emsg(_(e_resulting_text_too_long));
+                curwin->w_cursor.col += utfc_ptr2len(ml_get_cursor());
+                ++col;
             }
             else
             {
-                totlen = count * yanklen;
-                do
+                getvcol(curwin, &curwin->w_cursor, &col, nullptr, &endcol2, 0);
+            }
+            col += curwin->w_cursor.coladd;
+            if (cur_ve_flags == VE_ALL && (curwin->w_cursor.coladd > 0 || endcol2 == curwin->w_cursor.col))
+            {
+                if (dir == FORWARD && c == NUL)
                 {
-                    oldp = ml_get(lnum);
-                    oldlen = ml_get_len(lnum);
-                    if (lnum > start_lnum)
+                    ++col;
+                }
+                if (dir != FORWARD && c != NUL && curwin->w_cursor.coladd > 0)
+                {
+                    ++curwin->w_cursor.col;
+                }
+                if (c == TAB)
+                {
+                    if (dir == (-1) && curwin->w_cursor.col)
                     {
-                        pos_T pos;
-                        pos.lnum = lnum;
-                        if (getvpos(&pos, vcol))
-                        {
-                            col = pos.col;
-                        }
-                        else
-                        {
-                            col = MAXCOL;
-                        }
+                        curwin->w_cursor.col--;
                     }
-                    if (VIsual_active && col > oldlen)
+                    if (dir == FORWARD && col - 1 == endcol2)
                     {
-                        lnum++;
-                        continue;
-                    }
-                    newp = alloc(totlen + oldlen + 1);
-                    musl_memmove((char *)(newp), (char *)(oldp), (usize)col);
-                    ptr = newp + col;
-                    for (i = 0; i < count; ++i)
-                    {
-                        musl_memmove((char *)(ptr), (char *)(y_array[0].string), (usize)yanklen);
-                        ptr += yanklen;
-                    }
-                    musl_memmove((char *)(ptr), (char *)(oldp + col), (usize)(oldlen - col) + 1);
-                    first_byte_off = utf_head_off(newp, ptr - 1);
-                    ml_replace(lnum, newp, FALSE);
-                    inserted_bytes(lnum, col, totlen);
-                    if (lnum == curwin->w_cursor.lnum)
-                    {
-                        changed_cline_bef_curs();
-                        invalidate_botline();
-                        curwin->w_cursor.col += (colnr_T)(totlen - 1);
-                    }
-                    if (VIsual_active)
-                    {
-                        lnum++;
+                        curwin->w_cursor.col++;
                     }
                 }
-                while (VIsual_active && lnum <= end_lnum);
             }
-            curbuf->b_op_end = curwin->w_cursor;
-            curbuf->b_op_end.col -= first_byte_off;
-            if (totlen && (restart_edit != 0 || (flags & PUT_CURSEND)))
+            curwin->w_cursor.coladd = 0;
+            bd.textcol = 0;
+            for (i = 0; i < y_size; ++i)
             {
-                ++curwin->w_cursor.col;
-            }
-            else
-            {
-                curwin->w_cursor.col -= first_byte_off;
-            }
-        }
-        else
-        {
-            linenr_T new_lnum = new_cursor.lnum;
-            int indent;
-            int orig_indent = 0;
-            int indent_diff = 0;
-            bool first_indent = TRUE;
-            int lendiff = 0;
-            long cnt;
-            if (flags & PUT_FIXINDENT)
-            {
-                orig_indent = get_indent();
-            }
-            for (cnt = 1; cnt <= count; ++cnt)
-            {
-                i = 0;
-                if (y_type == MCHAR)
+                int spaces = 0;
+                char shortline;
+                chartabsize_T cts;
+                bd.startspaces = 0;
+                bd.endspaces = 0;
+                vcol = 0;
+                delcount = 0;
+                if (curwin->w_cursor.lnum > curbuf->b_ml.ml_line_count)
                 {
-                    lnum = new_cursor.lnum;
-                    ptr = ml_get(lnum) + col;
-                    totlen = (int)y_array[y_size - 1].length;
-                    newp = alloc(ml_get_len(lnum) - col + totlen + 1);
-                    musl_strcpy((char *)(newp), (char *)(y_array[y_size - 1].string));
-                    musl_strcpy((char *)(newp + totlen), (char *)(ptr));
-                    ml_append(lnum, newp, (colnr_T)0);
-                    ++new_lnum;
-                    oldp = ml_get(lnum);
-                    newp = alloc(col + yanklen + 1);
-                    musl_memmove((char *)(newp), (char *)(oldp), (usize)col);
-                    musl_memmove((char *)(newp + col), (char *)(y_array[0].string), (usize)(yanklen + 1));
-                    ml_replace(lnum, newp, FALSE);
-                    curwin->w_cursor.lnum = lnum;
-                    i = 1;
-                }
-                for (; i < y_size; ++i)
-                {
-                    if (y_type != MCHAR || i < y_size - 1)
+                    if (!ml_append(curbuf->b_ml.ml_line_count, (char_u *)"", (colnr_T)1))
                     {
-                        if (!ml_append(lnum, y_array[i].string, (colnr_T)0))
-                        {
-                            goto error;
-                        }
-                        new_lnum++;
+                        break;
                     }
-                    lnum++;
                     ++nr_lines;
-                    if (flags & PUT_FIXINDENT)
+                }
+                oldp = ml_get_curline();
+                oldlen = ml_get_curline_len();
+                init_chartabsize_arg(&cts, curwin, curwin->w_cursor.lnum, 0, oldp, oldp);
+                while (cts.cts_vcol < col && *cts.cts_ptr != NUL)
+                {
+                    incr = lbr_chartabsize_adv(&cts);
+                    cts.cts_vcol += incr;
+                }
+                vcol = cts.cts_vcol;
+                ptr = cts.cts_ptr;
+                bd.textcol = (colnr_T)(ptr - oldp);
+                shortline = (vcol < col) || (vcol == col && !*ptr);
+                if (vcol < col)
+                {
+                    bd.startspaces = col - vcol;
+                }
+                else if (vcol > col)
+                {
+                    bd.endspaces = vcol - col;
+                    bd.startspaces = incr - bd.endspaces;
+                    --bd.textcol;
+                    delcount = 1;
+                    bd.textcol -= utf_head_off(oldp, oldp + bd.textcol);
+                    if (oldp[bd.textcol] != TAB)
                     {
-                        pos_T old_pos = curwin->w_cursor;
-                        curwin->w_cursor.lnum = lnum;
-                        ptr = ml_get(lnum);
-                        if (cnt == count && i == y_size - 1)
-                        {
-                            lendiff = ml_get_len(lnum);
-                        }
-                        if (*ptr == '#' && preprocs_left())
-                        {
-                            indent = 0;
-                        }
-                        else if (*ptr == NUL)
-                        {
-                            indent = 0;
-                        }
-                        else if (first_indent)
-                        {
-                            indent_diff = orig_indent - get_indent();
-                            indent = orig_indent;
-                            first_indent = FALSE;
-                        }
-                        else if ((indent = get_indent() + indent_diff) < 0)
-                        {
-                            indent = 0;
-                        }
-                        (void)set_indent(indent, 0);
-                        curwin->w_cursor = old_pos;
-                        if (cnt == count && i == y_size - 1)
-                        {
-                            lendiff -= ml_get_len(lnum);
-                        }
+                        delcount = 0;
+                        bd.endspaces = 0;
                     }
                 }
-                if (cnt == 1)
+                yanklen = (int)y_array[i].length;
+                if ((flags & PUT_BLOCK_INNER) == 0)
                 {
-                    new_lnum = lnum;
-                }
-            }
-        error:
-            if (y_type == MLINE)
-            {
-                curbuf->b_op_start.col = 0;
-                if (dir == FORWARD)
-                {
-                    curbuf->b_op_start.lnum++;
-                }
-            }
-            mark_adjust(curbuf->b_op_start.lnum + (y_type == MCHAR), (linenr_T)LONG_MAX, nr_lines, 0L);
-            if (y_type == MCHAR)
-            {
-                changed_lines(curwin->w_cursor.lnum, col, curwin->w_cursor.lnum + 1, nr_lines);
-            }
-            else
-            {
-                changed_lines(curbuf->b_op_start.lnum, 0, curbuf->b_op_start.lnum, nr_lines);
-            }
-            if (y_current_used != nullptr && (y_current_used != y_current || y_current->y_array != y_array))
-            {
-                emsg(_(e_yank_register_changed_while_using_it));
-                goto end;
-            }
-            curbuf->b_op_end.lnum = new_lnum;
-            col = (((0) > ((colnr_T)y_array[y_size - 1].length - lendiff)) ? (0) : ((colnr_T)y_array[y_size - 1].length - lendiff));
-            if (col > 1)
-            {
-                curbuf->b_op_end.col = col - 1;
-                if (y_array[y_size - 1].length > 0)
-                {
-                    curbuf->b_op_end.col -= utf_head_off(y_array[y_size - 1].string, y_array[y_size - 1].string + y_array[y_size - 1].length - 1);
-                }
-            }
-            else
-            {
-                curbuf->b_op_end.col = 0;
-            }
-            if (flags & PUT_CURSLINE)
-            {
-                curwin->w_cursor.lnum = lnum;
-                beginline(BL_WHITE | BL_FIX);
-            }
-            else if (flags & PUT_CURSEND)
-            {
-                if (y_type == MLINE)
-                {
-                    if (lnum >= curbuf->b_ml.ml_line_count)
+                    spaces = y_width + 1;
+                    init_chartabsize_arg(&cts, curwin, 0, 0, y_array[i].string, y_array[i].string);
+                    while (*cts.cts_ptr != NUL)
                     {
-                        curwin->w_cursor.lnum = curbuf->b_ml.ml_line_count;
+                        spaces -= lbr_chartabsize_adv(&cts);
+                        cts.cts_vcol = 0;
+                    }
+                    if (spaces < 0)
+                    {
+                        spaces = 0;
+                    }
+                }
+                if (yanklen + spaces != 0 && count > ((INT_MAX - (bd.startspaces + bd.endspaces)) / (yanklen + spaces)))
+                {
+                    emsg(_(e_resulting_text_too_long));
+                    break;
+                }
+                totlen = count * (yanklen + spaces) + bd.startspaces + bd.endspaces;
+                newp = alloc(totlen + oldlen + 1);
+                ptr = newp;
+                musl_memmove((char *)(ptr), (char *)(oldp), (usize)bd.textcol);
+                ptr += bd.textcol;
+                musl_memset((ptr), (' '), ((usize)bd.startspaces));
+                ptr += bd.startspaces;
+                for (j = 0; j < count; ++j)
+                {
+                    musl_memmove((char *)(ptr), (char *)(y_array[i].string), (usize)yanklen);
+                    ptr += yanklen;
+                    if ((j < count - 1 || !shortline) && spaces > 0)
+                    {
+                        musl_memset((ptr), (' '), ((usize)spaces));
+                        ptr += spaces;
                     }
                     else
                     {
-                        curwin->w_cursor.lnum = lnum + 1;
+                        totlen -= spaces;
                     }
-                    curwin->w_cursor.col = 0;
                 }
-                else
+                musl_memset((ptr), (' '), ((usize)bd.endspaces));
+                ptr += bd.endspaces;
+                musl_memmove((char *)(ptr), (char *)(oldp + bd.textcol + delcount), (usize)(oldlen - bd.textcol - delcount + 1));
+                ml_replace(curwin->w_cursor.lnum, newp, FALSE);
+                ++curwin->w_cursor.lnum;
+                if (i == 0)
                 {
-                    curwin->w_cursor.lnum = new_lnum;
-                    curwin->w_cursor.col = col;
-                    curbuf->b_op_end = curwin->w_cursor;
-                    if (col > 1)
-                    {
-                        curbuf->b_op_end.col = col - 1;
-                    }
+                    curwin->w_cursor.col += bd.startspaces;
                 }
             }
-            else if (y_type == MLINE)
+            changed_lines(lnum, 0, curwin->w_cursor.lnum - nr_lines, nr_lines);
+            curbuf->b_op_start = curwin->w_cursor;
+            curbuf->b_op_start.lnum = lnum;
+            curbuf->b_op_end.lnum = curwin->w_cursor.lnum - 1;
+            curbuf->b_op_end.col = bd.textcol + totlen - 1;
+            if (curbuf->b_op_end.col < 0)
             {
-                curwin->w_cursor.col = 0;
-                if (dir == FORWARD)
+                curbuf->b_op_end.col = 0;
+            }
+            curbuf->b_op_end.coladd = 0;
+            if (flags & PUT_CURSEND)
+            {
+                colnr_T len;
+                curwin->w_cursor = curbuf->b_op_end;
+                curwin->w_cursor.col++;
+                len = ml_get_curline_len();
+                if (curwin->w_cursor.col > len)
                 {
-                    ++curwin->w_cursor.lnum;
+                    curwin->w_cursor.col = len;
                 }
-                beginline(BL_WHITE | BL_FIX);
             }
             else
             {
-                curwin->w_cursor = new_cursor;
+                curwin->w_cursor.lnum = lnum;
             }
         }
-    }
-    msgmore(nr_lines);
-    curwin->w_set_curswant = true;
-    int len = ml_get_curline_len();
-    if (curwin->w_cursor.col > len)
-    {
-        if (cur_ve_flags == VE_ALL)
+        else
         {
-            curwin->w_cursor.coladd = curwin->w_cursor.col - len;
+            pos_T new_cursor;
+            yanklen = (int)y_array[0].length;
+            if (y_type == MCHAR)
+            {
+                if (dir == FORWARD && gchar_cursor() != NUL)
+                {
+                    int bytelen = utfc_ptr2len(ml_get_cursor());
+                    col += bytelen;
+                    if (yanklen)
+                    {
+                        curwin->w_cursor.col += bytelen;
+                        curbuf->b_op_end.col += bytelen;
+                    }
+                }
+                curbuf->b_op_start = curwin->w_cursor;
+            }
+            else if (dir == (-1))
+            {
+                --lnum;
+            }
+            new_cursor = curwin->w_cursor;
+            if (y_type == MCHAR && y_size == 1)
+            {
+                linenr_T end_lnum = 0;
+                linenr_T start_lnum = lnum;
+                int first_byte_off = 0;
+                if (VIsual_active)
+                {
+                    end_lnum = curbuf->b_visual.vi_end.lnum;
+                    if (end_lnum < curbuf->b_visual.vi_start.lnum)
+                    {
+                        end_lnum = curbuf->b_visual.vi_start.lnum;
+                    }
+                    if (end_lnum > start_lnum)
+                    {
+                        pos_T pos;
+                        pos.lnum = lnum;
+                        pos.col = col;
+                        pos.coladd = 0;
+                        getvcol(curwin, &pos, nullptr, &vcol, nullptr, 0);
+                    }
+                }
+                if (count == 0 || yanklen == 0)
+                {
+                    if (VIsual_active)
+                    {
+                        lnum = end_lnum;
+                    }
+                }
+                else if (count > INT_MAX / yanklen)
+                {
+                    emsg(_(e_resulting_text_too_long));
+                }
+                else
+                {
+                    totlen = count * yanklen;
+                    do
+                    {
+                        oldp = ml_get(lnum);
+                        oldlen = ml_get_len(lnum);
+                        if (lnum > start_lnum)
+                        {
+                            pos_T pos;
+                            pos.lnum = lnum;
+                            if (getvpos(&pos, vcol))
+                            {
+                                col = pos.col;
+                            }
+                            else
+                            {
+                                col = MAXCOL;
+                            }
+                        }
+                        if (VIsual_active && col > oldlen)
+                        {
+                            lnum++;
+                            continue;
+                        }
+                        newp = alloc(totlen + oldlen + 1);
+                        musl_memmove((char *)(newp), (char *)(oldp), (usize)col);
+                        ptr = newp + col;
+                        for (i = 0; i < count; ++i)
+                        {
+                            musl_memmove((char *)(ptr), (char *)(y_array[0].string), (usize)yanklen);
+                            ptr += yanklen;
+                        }
+                        musl_memmove((char *)(ptr), (char *)(oldp + col), (usize)(oldlen - col) + 1);
+                        first_byte_off = utf_head_off(newp, ptr - 1);
+                        ml_replace(lnum, newp, FALSE);
+                        inserted_bytes(lnum, col, totlen);
+                        if (lnum == curwin->w_cursor.lnum)
+                        {
+                            changed_cline_bef_curs();
+                            invalidate_botline();
+                            curwin->w_cursor.col += (colnr_T)(totlen - 1);
+                        }
+                        if (VIsual_active)
+                        {
+                            lnum++;
+                        }
+                    }
+                    while (VIsual_active && lnum <= end_lnum);
+                }
+                curbuf->b_op_end = curwin->w_cursor;
+                curbuf->b_op_end.col -= first_byte_off;
+                if (totlen && (restart_edit != 0 || (flags & PUT_CURSEND)))
+                {
+                    ++curwin->w_cursor.col;
+                }
+                else
+                {
+                    curwin->w_cursor.col -= first_byte_off;
+                }
+            }
+            else
+            {
+                linenr_T new_lnum = new_cursor.lnum;
+                int indent;
+                int orig_indent = 0;
+                int indent_diff = 0;
+                bool first_indent = TRUE;
+                int lendiff = 0;
+                long cnt;
+                if (flags & PUT_FIXINDENT)
+                {
+                    orig_indent = get_indent();
+                }
+                for (cnt = 1; cnt <= count; ++cnt)
+                {
+                    i = 0;
+                    if (y_type == MCHAR)
+                    {
+                        lnum = new_cursor.lnum;
+                        ptr = ml_get(lnum) + col;
+                        totlen = (int)y_array[y_size - 1].length;
+                        newp = alloc(ml_get_len(lnum) - col + totlen + 1);
+                        musl_strcpy((char *)(newp), (char *)(y_array[y_size - 1].string));
+                        musl_strcpy((char *)(newp + totlen), (char *)(ptr));
+                        ml_append(lnum, newp, (colnr_T)0);
+                        ++new_lnum;
+                        oldp = ml_get(lnum);
+                        newp = alloc(col + yanklen + 1);
+                        musl_memmove((char *)(newp), (char *)(oldp), (usize)col);
+                        musl_memmove((char *)(newp + col), (char *)(y_array[0].string), (usize)(yanklen + 1));
+                        ml_replace(lnum, newp, FALSE);
+                        curwin->w_cursor.lnum = lnum;
+                        i = 1;
+                    }
+                    for (; i < y_size; ++i)
+                    {
+                        if (y_type != MCHAR || i < y_size - 1)
+                        {
+                            if (!ml_append(lnum, y_array[i].string, (colnr_T)0))
+                            {
+                                goto error;
+                            }
+                            new_lnum++;
+                        }
+                        lnum++;
+                        ++nr_lines;
+                        if (flags & PUT_FIXINDENT)
+                        {
+                            pos_T old_pos = curwin->w_cursor;
+                            curwin->w_cursor.lnum = lnum;
+                            ptr = ml_get(lnum);
+                            if (cnt == count && i == y_size - 1)
+                            {
+                                lendiff = ml_get_len(lnum);
+                            }
+                            if (*ptr == '#' && preprocs_left())
+                            {
+                                indent = 0;
+                            }
+                            else if (*ptr == NUL)
+                            {
+                                indent = 0;
+                            }
+                            else if (first_indent)
+                            {
+                                indent_diff = orig_indent - get_indent();
+                                indent = orig_indent;
+                                first_indent = FALSE;
+                            }
+                            else if ((indent = get_indent() + indent_diff) < 0)
+                            {
+                                indent = 0;
+                            }
+                            (void)set_indent(indent, 0);
+                            curwin->w_cursor = old_pos;
+                            if (cnt == count && i == y_size - 1)
+                            {
+                                lendiff -= ml_get_len(lnum);
+                            }
+                        }
+                    }
+                    if (cnt == 1)
+                    {
+                        new_lnum = lnum;
+                    }
+                }
+            error:
+                if (y_type == MLINE)
+                {
+                    curbuf->b_op_start.col = 0;
+                    if (dir == FORWARD)
+                    {
+                        curbuf->b_op_start.lnum++;
+                    }
+                }
+                mark_adjust(curbuf->b_op_start.lnum + (y_type == MCHAR), (linenr_T)LONG_MAX, nr_lines, 0L);
+                if (y_type == MCHAR)
+                {
+                    changed_lines(curwin->w_cursor.lnum, col, curwin->w_cursor.lnum + 1, nr_lines);
+                }
+                else
+                {
+                    changed_lines(curbuf->b_op_start.lnum, 0, curbuf->b_op_start.lnum, nr_lines);
+                }
+                if (y_current_used != nullptr && (y_current_used != y_current || y_current->y_array != y_array))
+                {
+                    emsg(_(e_yank_register_changed_while_using_it));
+                    break;
+                }
+                curbuf->b_op_end.lnum = new_lnum;
+                col = (((0) > ((colnr_T)y_array[y_size - 1].length - lendiff)) ? (0) : ((colnr_T)y_array[y_size - 1].length - lendiff));
+                if (col > 1)
+                {
+                    curbuf->b_op_end.col = col - 1;
+                    if (y_array[y_size - 1].length > 0)
+                    {
+                        curbuf->b_op_end.col -= utf_head_off(y_array[y_size - 1].string, y_array[y_size - 1].string + y_array[y_size - 1].length - 1);
+                    }
+                }
+                else
+                {
+                    curbuf->b_op_end.col = 0;
+                }
+                if (flags & PUT_CURSLINE)
+                {
+                    curwin->w_cursor.lnum = lnum;
+                    beginline(BL_WHITE | BL_FIX);
+                }
+                else if (flags & PUT_CURSEND)
+                {
+                    if (y_type == MLINE)
+                    {
+                        if (lnum >= curbuf->b_ml.ml_line_count)
+                        {
+                            curwin->w_cursor.lnum = curbuf->b_ml.ml_line_count;
+                        }
+                        else
+                        {
+                            curwin->w_cursor.lnum = lnum + 1;
+                        }
+                        curwin->w_cursor.col = 0;
+                    }
+                    else
+                    {
+                        curwin->w_cursor.lnum = new_lnum;
+                        curwin->w_cursor.col = col;
+                        curbuf->b_op_end = curwin->w_cursor;
+                        if (col > 1)
+                        {
+                            curbuf->b_op_end.col = col - 1;
+                        }
+                    }
+                }
+                else if (y_type == MLINE)
+                {
+                    curwin->w_cursor.col = 0;
+                    if (dir == FORWARD)
+                    {
+                        ++curwin->w_cursor.lnum;
+                    }
+                    beginline(BL_WHITE | BL_FIX);
+                }
+                else
+                {
+                    curwin->w_cursor = new_cursor;
+                }
+            }
         }
-        curwin->w_cursor.col = len;
+        msgmore(nr_lines);
+        curwin->w_set_curswant = true;
+        int len = ml_get_curline_len();
+        if (curwin->w_cursor.col > len)
+        {
+            if (cur_ve_flags == VE_ALL)
+            {
+                curwin->w_cursor.coladd = curwin->w_cursor.col - len;
+            }
+            curwin->w_cursor.col = len;
+        }
     }
-end:
+    while (0);
     if (cmdmod.cmod_flags & CMOD_LOCKMARKS)
     {
         curbuf->b_op_start = orig_start;
@@ -61669,79 +61739,82 @@ screen_fill(int start_row, int end_row, int start_col, int end_col, int c1, int 
         c = c1;
         for (col = start_col; col < end_col; ++col)
         {
-            if ((ScreenLines[off] != c || ((int)ScreenLinesUC[off] != (c >= 0x80 ? c : 0)) || ScreenAttrs[off] != attr || must_redraw == UPD_CLEAR || force_next))
+            do
             {
-                if (screen_pum_blend > 0 && c == ' ' && pum_bg_attrs != nullptr && row >= pum_bg_top && row < pum_bg_bot && col < pum_bg_cols)
+                if ((ScreenLines[off] != c || ((int)ScreenLinesUC[off] != (c >= 0x80 ? c : 0)) || ScreenAttrs[off] != attr || must_redraw == UPD_CLEAR || force_next))
                 {
-                    int soff = (row - pum_bg_top) * pum_bg_cols + col;
-                    if (pum_bg_linesUC != nullptr && col > start_col && pum_bg_linesUC[soff] == 0 && pum_bg_linesUC[soff - 1] != 0 && utf_char2cells(pum_bg_linesUC[soff - 1]) == 2)
+                    if (screen_pum_blend > 0 && c == ' ' && pum_bg_attrs != nullptr && row >= pum_bg_top && row < pum_bg_bot && col < pum_bg_cols)
                     {
-                        ScreenLines[off] = 0;
-                        if (ScreenLinesUC != nullptr)
+                        int soff = (row - pum_bg_top) * pum_bg_cols + col;
+                        if (pum_bg_linesUC != nullptr && col > start_col && pum_bg_linesUC[soff] == 0 && pum_bg_linesUC[soff - 1] != 0 && utf_char2cells(pum_bg_linesUC[soff - 1]) == 2)
                         {
-                            ScreenLinesUC[off] = 0;
+                            ScreenLines[off] = 0;
+                            if (ScreenLinesUC != nullptr)
+                            {
+                                ScreenLinesUC[off] = 0;
+                            }
+                            ScreenAttrs[off] = ScreenAttrs[off - 1];
+                            break;
                         }
-                        ScreenAttrs[off] = ScreenAttrs[off - 1];
-                        goto next_col;
-                    }
-                    int underlying_attr = pum_bg_attrs[soff];
-                    if (pum_bg_linesUC != nullptr && ((pum_bg_linesUC[soff] != 0 && utf_char2cells(pum_bg_linesUC[soff]) == 2 && col + 1 >= end_col) || (col == start_col && pum_bg_linesUC[soff] == 0 && col > 0 && pum_bg_linesUC[soff - 1] != 0 && utf_char2cells(pum_bg_linesUC[soff - 1]) == 2)))
-                    {
-                        ScreenLines[off] = ' ';
-                        if (ScreenLinesUC != nullptr)
+                        int underlying_attr = pum_bg_attrs[soff];
+                        if (pum_bg_linesUC != nullptr && ((pum_bg_linesUC[soff] != 0 && utf_char2cells(pum_bg_linesUC[soff]) == 2 && col + 1 >= end_col) || (col == start_col && pum_bg_linesUC[soff] == 0 && col > 0 && pum_bg_linesUC[soff - 1] != 0 && utf_char2cells(pum_bg_linesUC[soff - 1]) == 2)))
                         {
-                            ScreenLinesUC[off] = 0;
+                            ScreenLines[off] = ' ';
+                            if (ScreenLinesUC != nullptr)
+                            {
+                                ScreenLinesUC[off] = 0;
+                            }
+                            ScreenAttrs[off] = hl_pum_blend_attr(underlying_attr, attr, screen_pum_blend);
+                            screen_char(off, row, col);
+                            break;
+                        }
+                        ScreenLines[off] = pum_bg_lines[soff];
+                        if (pum_bg_linesUC != nullptr && ScreenLinesUC != nullptr)
+                        {
+                            int k;
+                            ScreenLinesUC[off] = pum_bg_linesUC[soff];
+                            for (k = 0; k < MAX_MCO; ++k)
+                            {
+                                if (pum_bg_linesC[k] != nullptr && ScreenLinesC[k] != nullptr)
+                                {
+                                    ScreenLinesC[k][off] = pum_bg_linesC[k][soff];
+                                }
+                            }
                         }
                         ScreenAttrs[off] = hl_pum_blend_attr(underlying_attr, attr, screen_pum_blend);
                         screen_char(off, row, col);
-                        goto next_col;
+                        break;
                     }
-                    ScreenLines[off] = pum_bg_lines[soff];
-                    if (pum_bg_linesUC != nullptr && ScreenLinesUC != nullptr)
+                    if (term_is_xterm)
                     {
-                        int k;
-                        ScreenLinesUC[off] = pum_bg_linesUC[soff];
-                        for (k = 0; k < MAX_MCO; ++k)
+                        if (ScreenLines[off] != ' ' && (ScreenAttrs[off] > HL_ALL || ScreenAttrs[off] & HL_BOLD))
                         {
-                            if (pum_bg_linesC[k] != nullptr && ScreenLinesC[k] != nullptr)
-                            {
-                                ScreenLinesC[k][off] = pum_bg_linesC[k][soff];
-                            }
+                            force_next = TRUE;
+                        }
+                        else
+                        {
+                            force_next = FALSE;
                         }
                     }
-                    ScreenAttrs[off] = hl_pum_blend_attr(underlying_attr, attr, screen_pum_blend);
-                    screen_char(off, row, col);
-                    goto next_col;
-                }
-                if (term_is_xterm)
-                {
-                    if (ScreenLines[off] != ' ' && (ScreenAttrs[off] > HL_ALL || ScreenAttrs[off] & HL_BOLD))
+                    ScreenLines[off] = c;
+                    if (c >= 0x80)
                     {
-                        force_next = TRUE;
+                        ScreenLinesUC[off] = c;
+                        ScreenLinesC[0][off] = 0;
+                        ScreenLines[off] = 0x80;
                     }
                     else
                     {
-                        force_next = FALSE;
+                        ScreenLinesUC[off] = 0;
+                    }
+                    ScreenAttrs[off] = attr;
+                    if (!did_delete || c != ' ')
+                    {
+                        screen_char(off, row, col);
                     }
                 }
-                ScreenLines[off] = c;
-                if (c >= 0x80)
-                {
-                    ScreenLinesUC[off] = c;
-                    ScreenLinesC[0][off] = 0;
-                    ScreenLines[off] = 0x80;
-                }
-                else
-                {
-                    ScreenLinesUC[off] = 0;
-                }
-                ScreenAttrs[off] = attr;
-                if (!did_delete || c != ' ')
-                {
-                    screen_char(off, row, col);
-                }
             }
-        next_col:
+            while (0);
             ScreenCols[off] = -1;
             ++off;
             if (col == start_col)
@@ -61825,147 +61898,144 @@ screenalloc(bool doclear)
     static bool done_outofmem_msg = FALSE;
     int retry_count = 0;
     bool found_null;
-retry:
-    if ((ScreenLines != nullptr && Rows == screen_Rows && Columns == screen_Columns && (ScreenLinesUC != nullptr) && !(ScreenLines2 != nullptr) && p_mco == Screen_mco) || Rows == 0 || Columns == 0 || (!full_screen && ScreenLines == nullptr))
+    do
     {
-        return;
-    }
-    if (entered)
-    {
-        return;
-    }
-    entered = TRUE;
-    ++RedrawingDisabled;
-    win_new_shellsize();
-    comp_col();
-    wp = curwin;
-    win_free_lsize(wp);
-    new_ScreenLines = (schar_T *)lalloc(sizeof(schar_T) * ((Rows + 1) * Columns), FALSE);
-    musl_memset((new_ScreenLinesC), (0), (sizeof(u8char_T *) * MAX_MCO));
-    new_ScreenLinesUC = (u8char_T *)lalloc(sizeof(u8char_T) * ((Rows + 1) * Columns), FALSE);
-    for (int i = 0; i < p_mco; ++i)
-    {
-        new_ScreenLinesC[i] = (u8char_T *)lalloc_clear(sizeof(u8char_T) * ((Rows + 1) * Columns), FALSE);
-    }
-    new_ScreenAttrs = (sattr_T *)lalloc(sizeof(sattr_T) * ((Rows + 1) * Columns), FALSE);
-    new_ScreenCols = (colnr_T *)lalloc_clear(sizeof(colnr_T) * ((Rows + 1) * Columns), FALSE);
-    new_LineOffset = (unsigned *)lalloc(sizeof(unsigned) * (Rows), FALSE);
-    new_LineWraps = (char_u *)lalloc(sizeof(char_u) * (Rows), FALSE);
-    new_TabPageIdxs = (short *)lalloc(sizeof(short) * (Columns), FALSE);
-    wp = curwin;
-    if (!win_alloc_lines(wp))
-    {
-        outofmem = TRUE;
-        goto give_up;
-    }
-give_up:
-    found_null = FALSE;
-    for (int i = 0; i < p_mco; ++i)
-    {
-        if (new_ScreenLinesC[i] == nullptr)
+        if ((ScreenLines != nullptr && Rows == screen_Rows && Columns == screen_Columns && (ScreenLinesUC != nullptr) && !(ScreenLines2 != nullptr) && p_mco == Screen_mco) || Rows == 0 || Columns == 0 || (!full_screen && ScreenLines == nullptr))
         {
-            found_null = TRUE;
-            break;
+            return;
         }
-    }
-    if (new_ScreenLines == nullptr || ((new_ScreenLinesUC == nullptr || found_null)) || new_ScreenAttrs == nullptr || new_ScreenCols == nullptr || new_LineOffset == nullptr || new_LineWraps == nullptr || new_TabPageIdxs == nullptr || outofmem)
-    {
-        if (ScreenLines != nullptr || !done_outofmem_msg)
+        if (entered)
         {
-            do_outofmem_msg((long_u)((Rows + 1) * Columns));
-            done_outofmem_msg = TRUE;
+            return;
         }
-        (new_ScreenLines) = nullptr;
-        (new_ScreenLinesUC) = nullptr;
+        entered = TRUE;
+        ++RedrawingDisabled;
+        win_new_shellsize();
+        comp_col();
+        wp = curwin;
+        win_free_lsize(wp);
+        new_ScreenLines = (schar_T *)lalloc(sizeof(schar_T) * ((Rows + 1) * Columns), FALSE);
+        musl_memset((new_ScreenLinesC), (0), (sizeof(u8char_T *) * MAX_MCO));
+        new_ScreenLinesUC = (u8char_T *)lalloc(sizeof(u8char_T) * ((Rows + 1) * Columns), FALSE);
         for (int i = 0; i < p_mco; ++i)
         {
-            (new_ScreenLinesC[i]) = nullptr;
+            new_ScreenLinesC[i] = (u8char_T *)lalloc_clear(sizeof(u8char_T) * ((Rows + 1) * Columns), FALSE);
         }
-        (new_ScreenLines2) = nullptr;
-        (new_ScreenAttrs) = nullptr;
-        (new_ScreenCols) = nullptr;
-        (new_LineOffset) = nullptr;
-        (new_LineWraps) = nullptr;
-        (new_TabPageIdxs) = nullptr;
-    }
-    else
-    {
-        done_outofmem_msg = FALSE;
-        for (new_row = 0; new_row < Rows; ++new_row)
+        new_ScreenAttrs = (sattr_T *)lalloc(sizeof(sattr_T) * ((Rows + 1) * Columns), FALSE);
+        new_ScreenCols = (colnr_T *)lalloc_clear(sizeof(colnr_T) * ((Rows + 1) * Columns), FALSE);
+        new_LineOffset = (unsigned *)lalloc(sizeof(unsigned) * (Rows), FALSE);
+        new_LineWraps = (char_u *)lalloc(sizeof(char_u) * (Rows), FALSE);
+        new_TabPageIdxs = (short *)lalloc(sizeof(short) * (Columns), FALSE);
+        wp = curwin;
+        if (!win_alloc_lines(wp))
         {
-            new_LineOffset[new_row] = new_row * Columns;
-            new_LineWraps[new_row] = FALSE;
-            (void)musl_memset((new_ScreenLines + new_row * Columns), (' '), ((usize)Columns * sizeof(schar_T)));
-            (void)musl_memset((new_ScreenLinesUC + new_row * Columns), (0), ((usize)Columns * sizeof(u8char_T)));
+            outofmem = TRUE;
+        }
+        found_null = FALSE;
+        for (int i = 0; i < p_mco; ++i)
+        {
+            if (new_ScreenLinesC[i] == nullptr)
+            {
+                found_null = TRUE;
+                break;
+            }
+        }
+        if (new_ScreenLines == nullptr || ((new_ScreenLinesUC == nullptr || found_null)) || new_ScreenAttrs == nullptr || new_ScreenCols == nullptr || new_LineOffset == nullptr || new_LineWraps == nullptr || new_TabPageIdxs == nullptr || outofmem)
+        {
+            if (ScreenLines != nullptr || !done_outofmem_msg)
+            {
+                do_outofmem_msg((long_u)((Rows + 1) * Columns));
+                done_outofmem_msg = TRUE;
+            }
+            (new_ScreenLines) = nullptr;
+            (new_ScreenLinesUC) = nullptr;
             for (int i = 0; i < p_mco; ++i)
             {
-                (void)musl_memset((new_ScreenLinesC[i] + new_row * Columns), (0), ((usize)Columns * sizeof(u8char_T)));
+                (new_ScreenLinesC[i]) = nullptr;
             }
-            (void)musl_memset((new_ScreenAttrs + new_row * Columns), (0), ((usize)Columns * sizeof(sattr_T)));
-            (void)musl_memset((new_ScreenCols + new_row * Columns), (0), ((usize)Columns * sizeof(colnr_T)));
-            if (!doclear)
+            (new_ScreenLines2) = nullptr;
+            (new_ScreenAttrs) = nullptr;
+            (new_ScreenCols) = nullptr;
+            (new_LineOffset) = nullptr;
+            (new_LineWraps) = nullptr;
+            (new_TabPageIdxs) = nullptr;
+        }
+        else
+        {
+            done_outofmem_msg = FALSE;
+            for (new_row = 0; new_row < Rows; ++new_row)
             {
-                old_row = new_row + (screen_Rows - Rows);
-                if (old_row >= 0 && ScreenLines != nullptr)
+                new_LineOffset[new_row] = new_row * Columns;
+                new_LineWraps[new_row] = FALSE;
+                (void)musl_memset((new_ScreenLines + new_row * Columns), (' '), ((usize)Columns * sizeof(schar_T)));
+                (void)musl_memset((new_ScreenLinesUC + new_row * Columns), (0), ((usize)Columns * sizeof(u8char_T)));
+                for (int i = 0; i < p_mco; ++i)
                 {
-                    if (screen_Columns < Columns)
+                    (void)musl_memset((new_ScreenLinesC[i] + new_row * Columns), (0), ((usize)Columns * sizeof(u8char_T)));
+                }
+                (void)musl_memset((new_ScreenAttrs + new_row * Columns), (0), ((usize)Columns * sizeof(sattr_T)));
+                (void)musl_memset((new_ScreenCols + new_row * Columns), (0), ((usize)Columns * sizeof(colnr_T)));
+                if (!doclear)
+                {
+                    old_row = new_row + (screen_Rows - Rows);
+                    if (old_row >= 0 && ScreenLines != nullptr)
                     {
-                        len = screen_Columns;
-                    }
-                    else
-                    {
-                        len = Columns;
-                    }
-                    if (!(ScreenLinesUC == nullptr) && p_mco == Screen_mco)
-                    {
-                        musl_memmove((char *)(new_ScreenLines + new_LineOffset[new_row]), (char *)(ScreenLines + LineOffset[old_row]), (usize)len * sizeof(schar_T));
-                    }
-                    if (ScreenLinesUC != nullptr && p_mco == Screen_mco)
-                    {
-                        musl_memmove((char *)(new_ScreenLinesUC + new_LineOffset[new_row]), (char *)(ScreenLinesUC + LineOffset[old_row]), (usize)len * sizeof(u8char_T));
-                        for (int i = 0; i < p_mco; ++i)
+                        if (screen_Columns < Columns)
                         {
-                            musl_memmove((char *)(new_ScreenLinesC[i] + new_LineOffset[new_row]), (char *)(ScreenLinesC[i] + LineOffset[old_row]), (usize)len * sizeof(u8char_T));
+                            len = screen_Columns;
                         }
+                        else
+                        {
+                            len = Columns;
+                        }
+                        if (!(ScreenLinesUC == nullptr) && p_mco == Screen_mco)
+                        {
+                            musl_memmove((char *)(new_ScreenLines + new_LineOffset[new_row]), (char *)(ScreenLines + LineOffset[old_row]), (usize)len * sizeof(schar_T));
+                        }
+                        if (ScreenLinesUC != nullptr && p_mco == Screen_mco)
+                        {
+                            musl_memmove((char *)(new_ScreenLinesUC + new_LineOffset[new_row]), (char *)(ScreenLinesUC + LineOffset[old_row]), (usize)len * sizeof(u8char_T));
+                            for (int i = 0; i < p_mco; ++i)
+                            {
+                                musl_memmove((char *)(new_ScreenLinesC[i] + new_LineOffset[new_row]), (char *)(ScreenLinesC[i] + LineOffset[old_row]), (usize)len * sizeof(u8char_T));
+                            }
+                        }
+                        musl_memmove((char *)(new_ScreenAttrs + new_LineOffset[new_row]), (char *)(ScreenAttrs + LineOffset[old_row]), (usize)len * sizeof(sattr_T));
+                        musl_memmove((char *)(new_ScreenCols + new_LineOffset[new_row]), (char *)(ScreenCols + LineOffset[old_row]), (usize)len * sizeof(colnr_T));
                     }
-                    musl_memmove((char *)(new_ScreenAttrs + new_LineOffset[new_row]), (char *)(ScreenAttrs + LineOffset[old_row]), (usize)len * sizeof(sattr_T));
-                    musl_memmove((char *)(new_ScreenCols + new_LineOffset[new_row]), (char *)(ScreenCols + LineOffset[old_row]), (usize)len * sizeof(colnr_T));
                 }
             }
+            current_ScreenLine = new_ScreenLines + Rows * Columns;
         }
-        current_ScreenLine = new_ScreenLines + Rows * Columns;
+        free_screenlines();
+        ScreenLines = new_ScreenLines;
+        ScreenLinesUC = new_ScreenLinesUC;
+        for (int i = 0; i < p_mco; ++i)
+        {
+            ScreenLinesC[i] = new_ScreenLinesC[i];
+        }
+        Screen_mco = p_mco;
+        ScreenLines2 = new_ScreenLines2;
+        ScreenAttrs = new_ScreenAttrs;
+        ScreenCols = new_ScreenCols;
+        LineOffset = new_LineOffset;
+        LineWraps = new_LineWraps;
+        TabPageIdxs = new_TabPageIdxs;
+        screen_Rows = Rows;
+        screen_Columns = Columns;
+        set_must_redraw(UPD_CLEAR);
+        if (doclear)
+        {
+            screenclear2(TRUE);
+        }
+        clear_TabPageIdxs();
+        entered = FALSE;
+        if (RedrawingDisabled > 0)
+        {
+            --RedrawingDisabled;
+        }
     }
-    free_screenlines();
-    ScreenLines = new_ScreenLines;
-    ScreenLinesUC = new_ScreenLinesUC;
-    for (int i = 0; i < p_mco; ++i)
-    {
-        ScreenLinesC[i] = new_ScreenLinesC[i];
-    }
-    Screen_mco = p_mco;
-    ScreenLines2 = new_ScreenLines2;
-    ScreenAttrs = new_ScreenAttrs;
-    ScreenCols = new_ScreenCols;
-    LineOffset = new_LineOffset;
-    LineWraps = new_LineWraps;
-    TabPageIdxs = new_TabPageIdxs;
-    screen_Rows = Rows;
-    screen_Columns = Columns;
-    set_must_redraw(UPD_CLEAR);
-    if (doclear)
-    {
-        screenclear2(TRUE);
-    }
-    clear_TabPageIdxs();
-    entered = FALSE;
-    if (RedrawingDisabled > 0)
-    {
-        --RedrawingDisabled;
-    }
-    if (starting == 0 && ++retry_count <= 3)
-    {
-        goto retry;
-    }
+    while (starting == 0 && ++retry_count <= 3);
 }
 
     static void
@@ -71277,114 +71347,117 @@ undo_time(long step, bool sec, bool file, bool absolute)
     }
     closest_start = closest;
     closest_seq = curbuf->b_u_seq_cur;
-    if (target == 0)
+    do
     {
-        mark = lastmark;
-        goto target_zero;
-    }
-    for (round = 1; round <= 2; ++round)
-    {
-        mark = ++lastmark;
-        nomark = ++lastmark;
-        if (curbuf->b_u_curhead == nullptr)
+        if (target == 0)
         {
-            uhp = curbuf->b_u_newhead;
-        }
-        else
-        {
-            uhp = curbuf->b_u_curhead;
-        }
-        while (uhp != nullptr)
-        {
-            uhp->uh_walk = mark;
-            if (dosec)
-            {
-                val = (long)(uhp->uh_time);
-            }
-            else if (dofile)
-            {
-                val = uhp->uh_save_nr;
-            }
-            else
-            {
-                val = uhp->uh_seq;
-            }
-            if (round == 1 && !(dofile && val == 0))
-            {
-                if ((step < 0 ? uhp->uh_seq <= curbuf->b_u_seq_cur : uhp->uh_seq > curbuf->b_u_seq_cur) && ((dosec && val == closest) ? (step < 0 ? uhp->uh_seq < closest_seq : uhp->uh_seq > closest_seq) : closest == closest_start || (val > target ? (closest > target ? val - target <= closest - target : val - target <= target - closest) : (closest > target ? target - val <= closest - target : target - val <= target - closest))))
-                {
-                    closest = val;
-                    closest_seq = uhp->uh_seq;
-                }
-            }
-            if (target == val && !dosec)
-            {
-                target = uhp->uh_seq;
-                break;
-            }
-            if (uhp->uh_prev != nullptr && uhp->uh_prev->uh_walk != nomark && uhp->uh_prev->uh_walk != mark)
-            {
-                uhp = uhp->uh_prev;
-            }
-            else if (uhp->uh_alt_next != nullptr && uhp->uh_alt_next->uh_walk != nomark && uhp->uh_alt_next->uh_walk != mark)
-            {
-                uhp = uhp->uh_alt_next;
-            }
-            else if (uhp->uh_next != nullptr && uhp->uh_alt_prev == nullptr && uhp->uh_next->uh_walk != nomark && uhp->uh_next->uh_walk != mark)
-            {
-                if (uhp == curbuf->b_u_curhead)
-                {
-                    uhp->uh_walk = nomark;
-                }
-                uhp = uhp->uh_next;
-            }
-            else
-            {
-                uhp->uh_walk = nomark;
-                if (uhp->uh_alt_prev != nullptr)
-                {
-                    uhp = uhp->uh_alt_prev;
-                }
-                else
-                {
-                    uhp = uhp->uh_next;
-                }
-            }
-        }
-        if (uhp != nullptr)
-        {
+            mark = lastmark;
             break;
         }
-        if (absolute)
+        for (round = 1; round <= 2; ++round)
         {
-            vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_undo_number_nr_not_found), step);
-            emsg(iobuff_or(_(e_undo_number_nr_not_found)));
-            return;
-        }
-        if (closest == closest_start)
-        {
-            if (!shortmess(SHM_UNDO))
+            mark = ++lastmark;
+            nomark = ++lastmark;
+            if (curbuf->b_u_curhead == nullptr)
             {
-                if (step < 0)
+                uhp = curbuf->b_u_newhead;
+            }
+            else
+            {
+                uhp = curbuf->b_u_curhead;
+            }
+            while (uhp != nullptr)
+            {
+                uhp->uh_walk = mark;
+                if (dosec)
                 {
-                    msg(_("Already at oldest change"));
+                    val = (long)(uhp->uh_time);
+                }
+                else if (dofile)
+                {
+                    val = uhp->uh_save_nr;
                 }
                 else
                 {
-                    msg(_("Already at newest change"));
+                    val = uhp->uh_seq;
+                }
+                if (round == 1 && !(dofile && val == 0))
+                {
+                    if ((step < 0 ? uhp->uh_seq <= curbuf->b_u_seq_cur : uhp->uh_seq > curbuf->b_u_seq_cur) && ((dosec && val == closest) ? (step < 0 ? uhp->uh_seq < closest_seq : uhp->uh_seq > closest_seq) : closest == closest_start || (val > target ? (closest > target ? val - target <= closest - target : val - target <= target - closest) : (closest > target ? target - val <= closest - target : target - val <= target - closest))))
+                    {
+                        closest = val;
+                        closest_seq = uhp->uh_seq;
+                    }
+                }
+                if (target == val && !dosec)
+                {
+                    target = uhp->uh_seq;
+                    break;
+                }
+                if (uhp->uh_prev != nullptr && uhp->uh_prev->uh_walk != nomark && uhp->uh_prev->uh_walk != mark)
+                {
+                    uhp = uhp->uh_prev;
+                }
+                else if (uhp->uh_alt_next != nullptr && uhp->uh_alt_next->uh_walk != nomark && uhp->uh_alt_next->uh_walk != mark)
+                {
+                    uhp = uhp->uh_alt_next;
+                }
+                else if (uhp->uh_next != nullptr && uhp->uh_alt_prev == nullptr && uhp->uh_next->uh_walk != nomark && uhp->uh_next->uh_walk != mark)
+                {
+                    if (uhp == curbuf->b_u_curhead)
+                    {
+                        uhp->uh_walk = nomark;
+                    }
+                    uhp = uhp->uh_next;
+                }
+                else
+                {
+                    uhp->uh_walk = nomark;
+                    if (uhp->uh_alt_prev != nullptr)
+                    {
+                        uhp = uhp->uh_alt_prev;
+                    }
+                    else
+                    {
+                        uhp = uhp->uh_next;
+                    }
                 }
             }
-            return;
-        }
-        target = closest_seq;
-        dosec = FALSE;
-        dofile = FALSE;
-        if (step < 0)
-        {
-            above = TRUE;
+            if (uhp != nullptr)
+            {
+                break;
+            }
+            if (absolute)
+            {
+                vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_undo_number_nr_not_found), step);
+                emsg(iobuff_or(_(e_undo_number_nr_not_found)));
+                return;
+            }
+            if (closest == closest_start)
+            {
+                if (!shortmess(SHM_UNDO))
+                {
+                    if (step < 0)
+                    {
+                        msg(_("Already at oldest change"));
+                    }
+                    else
+                    {
+                        msg(_("Already at newest change"));
+                    }
+                }
+                return;
+            }
+            target = closest_seq;
+            dosec = FALSE;
+            dofile = FALSE;
+            if (step < 0)
+            {
+                above = TRUE;
+            }
         }
     }
-target_zero:
+    while (0);
     if (uhp != nullptr || target == 0)
     {
         while (!got_int)
@@ -74050,12 +74123,18 @@ parse_fmt_types(const char ***ap_types, int *num_posarg, const char *fmt)
                 {
                     vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_invalid_format_specifier_str), fmt);
                     emsg(iobuff_or(_(e_invalid_format_specifier_str)));
-                    goto error;
+                    host_free((char **)*ap_types);
+                    *ap_types = nullptr;
+                    *num_posarg = 0;
+                    return FAIL;
                 }
                 unsigned int uj;
                 if (get_unsigned_int(pstart, &p, &uj, FALSE) == FAIL)
                 {
-                    goto error;
+                    host_free((char **)*ap_types);
+                    *ap_types = nullptr;
+                    *num_posarg = 0;
+                    return FAIL;
                 }
                 pos_arg = uj;
                 any_pos = 1;
@@ -74063,7 +74142,10 @@ parse_fmt_types(const char ***ap_types, int *num_posarg, const char *fmt)
                 {
                     vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_cannot_mix_positional_and_non_positional_str), fmt);
                     emsg(iobuff_or(_(e_cannot_mix_positional_and_non_positional_str)));
-                    goto error;
+                    host_free((char **)*ap_types);
+                    *ap_types = nullptr;
+                    *num_posarg = 0;
+                    return FAIL;
                 }
                 ;
                 ++p;
@@ -74095,13 +74177,19 @@ parse_fmt_types(const char ***ap_types, int *num_posarg, const char *fmt)
                     unsigned int uj;
                     if (get_unsigned_int(arg + 1, &p, &uj, FALSE) == FAIL)
                     {
-                        goto error;
+                        host_free((char **)*ap_types);
+                        *ap_types = nullptr;
+                        *num_posarg = 0;
+                        return FAIL;
                     }
                     if (*p != '$')
                     {
                         vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_invalid_format_specifier_str), fmt);
                         emsg(iobuff_or(_(e_invalid_format_specifier_str)));
-                        goto error;
+                        host_free((char **)*ap_types);
+                        *ap_types = nullptr;
+                        *num_posarg = 0;
+                        return FAIL;
                     }
                     else
                     {
@@ -74111,12 +74199,18 @@ parse_fmt_types(const char ***ap_types, int *num_posarg, const char *fmt)
                         {
                             vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_cannot_mix_positional_and_non_positional_str), fmt);
                             emsg(iobuff_or(_(e_cannot_mix_positional_and_non_positional_str)));
-                            goto error;
+                            host_free((char **)*ap_types);
+                            *ap_types = nullptr;
+                            *num_posarg = 0;
+                            return FAIL;
                         }
                         ;
                         if (adjust_types(ap_types, uj, num_posarg, arg) == FAIL)
                         {
-                            goto error;
+                            host_free((char **)*ap_types);
+                            *ap_types = nullptr;
+                            *num_posarg = 0;
+                            return FAIL;
                         }
                     }
                 }
@@ -74127,7 +74221,10 @@ parse_fmt_types(const char ***ap_types, int *num_posarg, const char *fmt)
                     {
                         vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_cannot_mix_positional_and_non_positional_str), fmt);
                         emsg(iobuff_or(_(e_cannot_mix_positional_and_non_positional_str)));
-                        goto error;
+                        host_free((char **)*ap_types);
+                        *ap_types = nullptr;
+                        *num_posarg = 0;
+                        return FAIL;
                     }
                     ;
                 }
@@ -74138,13 +74235,19 @@ parse_fmt_types(const char ***ap_types, int *num_posarg, const char *fmt)
                 unsigned int uj;
                 if (get_unsigned_int(digstart, &p, &uj, FALSE) == FAIL)
                 {
-                    goto error;
+                    host_free((char **)*ap_types);
+                    *ap_types = nullptr;
+                    *num_posarg = 0;
+                    return FAIL;
                 }
                 if (*p == '$')
                 {
                     vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_invalid_format_specifier_str), fmt);
                     emsg(iobuff_or(_(e_invalid_format_specifier_str)));
-                    goto error;
+                    host_free((char **)*ap_types);
+                    *ap_types = nullptr;
+                    *num_posarg = 0;
+                    return FAIL;
                 }
             }
             if (*p == '.')
@@ -74158,7 +74261,10 @@ parse_fmt_types(const char ***ap_types, int *num_posarg, const char *fmt)
                         unsigned int uj;
                         if (get_unsigned_int(arg + 1, &p, &uj, FALSE) == FAIL)
                         {
-                            goto error;
+                            host_free((char **)*ap_types);
+                            *ap_types = nullptr;
+                            *num_posarg = 0;
+                            return FAIL;
                         }
                         if (*p == '$')
                         {
@@ -74167,20 +74273,29 @@ parse_fmt_types(const char ***ap_types, int *num_posarg, const char *fmt)
                             {
                                 vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_cannot_mix_positional_and_non_positional_str), fmt);
                                 emsg(iobuff_or(_(e_cannot_mix_positional_and_non_positional_str)));
-                                goto error;
+                                host_free((char **)*ap_types);
+                                *ap_types = nullptr;
+                                *num_posarg = 0;
+                                return FAIL;
                             }
                             ;
                             ++p;
                             if (adjust_types(ap_types, uj, num_posarg, arg) == FAIL)
                             {
-                                goto error;
+                                host_free((char **)*ap_types);
+                                *ap_types = nullptr;
+                                *num_posarg = 0;
+                                return FAIL;
                             }
                         }
                         else
                         {
                             vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_invalid_format_specifier_str), fmt);
                             emsg(iobuff_or(_(e_invalid_format_specifier_str)));
-                            goto error;
+                            host_free((char **)*ap_types);
+                            *ap_types = nullptr;
+                            *num_posarg = 0;
+                            return FAIL;
                         }
                     }
                     else
@@ -74190,7 +74305,10 @@ parse_fmt_types(const char ***ap_types, int *num_posarg, const char *fmt)
                         {
                             vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_cannot_mix_positional_and_non_positional_str), fmt);
                             emsg(iobuff_or(_(e_cannot_mix_positional_and_non_positional_str)));
-                            goto error;
+                            host_free((char **)*ap_types);
+                            *ap_types = nullptr;
+                            *num_posarg = 0;
+                            return FAIL;
                         }
                         ;
                     }
@@ -74201,13 +74319,19 @@ parse_fmt_types(const char ***ap_types, int *num_posarg, const char *fmt)
                     unsigned int uj;
                     if (get_unsigned_int(digstart, &p, &uj, FALSE) == FAIL)
                     {
-                        goto error;
+                        host_free((char **)*ap_types);
+                        *ap_types = nullptr;
+                        *num_posarg = 0;
+                        return FAIL;
                     }
                     if (*p == '$')
                     {
                         vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_invalid_format_specifier_str), fmt);
                         emsg(iobuff_or(_(e_invalid_format_specifier_str)));
-                        goto error;
+                        host_free((char **)*ap_types);
+                        *ap_types = nullptr;
+                        *num_posarg = 0;
+                        return FAIL;
                     }
                 }
             }
@@ -74218,7 +74342,10 @@ parse_fmt_types(const char ***ap_types, int *num_posarg, const char *fmt)
                 {
                     vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_cannot_mix_positional_and_non_positional_str), fmt);
                     emsg(iobuff_or(_(e_cannot_mix_positional_and_non_positional_str)));
-                    goto error;
+                    host_free((char **)*ap_types);
+                    *ap_types = nullptr;
+                    *num_posarg = 0;
+                    return FAIL;
                 }
                 ;
                 ptype = p;
@@ -74254,7 +74381,10 @@ parse_fmt_types(const char ***ap_types, int *num_posarg, const char *fmt)
                 {
                     if (adjust_types(ap_types, pos_arg, num_posarg, ptype) == FAIL)
                     {
-                        goto error;
+                        host_free((char **)*ap_types);
+                        *ap_types = nullptr;
+                        *num_posarg = 0;
+                        return FAIL;
                     }
                 }
                 else
@@ -74264,7 +74394,10 @@ parse_fmt_types(const char ***ap_types, int *num_posarg, const char *fmt)
                     {
                         vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_cannot_mix_positional_and_non_positional_str), fmt);
                         emsg(iobuff_or(_(e_cannot_mix_positional_and_non_positional_str)));
-                        goto error;
+                        host_free((char **)*ap_types);
+                        *ap_types = nullptr;
+                        *num_posarg = 0;
+                        return FAIL;
                     }
                     ;
                 }
@@ -74274,7 +74407,10 @@ parse_fmt_types(const char ***ap_types, int *num_posarg, const char *fmt)
                 {
                     vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_cannot_mix_positional_and_non_positional_str), fmt);
                     emsg(iobuff_or(_(e_cannot_mix_positional_and_non_positional_str)));
-                    goto error;
+                    host_free((char **)*ap_types);
+                    *ap_types = nullptr;
+                    *num_posarg = 0;
+                    return FAIL;
                 }
             }
             if (*p != NUL)
@@ -74289,15 +74425,13 @@ parse_fmt_types(const char ***ap_types, int *num_posarg, const char *fmt)
         {
             vim_snprintf((char *)IObuff, emsg_iobuff_room(), _(e_fmt_arg_nr_unused_str), arg_idx + 1, fmt);
             emsg(iobuff_or(_(e_fmt_arg_nr_unused_str)));
-            goto error;
+            host_free((char **)*ap_types);
+            *ap_types = nullptr;
+            *num_posarg = 0;
+            return FAIL;
         }
     }
     return OK;
-error:
-    host_free((char **)*ap_types);
-    *ap_types = nullptr;
-    *num_posarg = 0;
-    return FAIL;
 }
 
     static void
@@ -74435,7 +74569,9 @@ vim_vsnprintf_typval(char *str, usize str_m, const char *fmt, va_list ap_start)
                 unsigned int uj;
                 if (get_unsigned_int(digstart, &p, &uj, FALSE) == FAIL)
                 {
-                    goto error;
+                    host_free((char *)ap_types);
+                    va_end(ap);
+                    return (int)str_l;
                 }
                 pos_arg = uj;
                 ++p;
@@ -74475,7 +74611,9 @@ vim_vsnprintf_typval(char *str, usize str_m, const char *fmt, va_list ap_start)
                     unsigned int uj;
                     if (get_unsigned_int(digstart, &p, &uj, FALSE) == FAIL)
                     {
-                        goto error;
+                        host_free((char *)ap_types);
+                        va_end(ap);
+                        return (int)str_l;
                     }
                     arg_idx = uj;
                     ++p;
@@ -74501,7 +74639,9 @@ vim_vsnprintf_typval(char *str, usize str_m, const char *fmt, va_list ap_start)
                 unsigned int uj;
                 if (get_unsigned_int(digstart, &p, &uj, FALSE) == FAIL)
                 {
-                    goto error;
+                    host_free((char *)ap_types);
+                    va_end(ap);
+                    return (int)str_l;
                 }
                 min_field_width = uj;
             }
@@ -74515,7 +74655,9 @@ vim_vsnprintf_typval(char *str, usize str_m, const char *fmt, va_list ap_start)
                     unsigned int uj;
                     if (get_unsigned_int(digstart, &p, &uj, FALSE) == FAIL)
                     {
-                        goto error;
+                        host_free((char *)ap_types);
+                        va_end(ap);
+                        return (int)str_l;
                     }
                     precision = uj;
                 }
@@ -74529,7 +74671,9 @@ vim_vsnprintf_typval(char *str, usize str_m, const char *fmt, va_list ap_start)
                         unsigned int uj;
                         if (get_unsigned_int(digstart, &p, &uj, FALSE) == FAIL)
                         {
-                            goto error;
+                            host_free((char *)ap_types);
+                            va_end(ap);
+                            return (int)str_l;
                         }
                         arg_idx = uj;
                         ++p;
@@ -74960,7 +75104,6 @@ vim_vsnprintf_typval(char *str, usize str_m, const char *fmt, va_list ap_start)
     {
         str[str_l <= str_m - 1 ? str_l : str_m - 1] = '\0';
     }
-error:
     host_free((char *)ap_types);
     va_end(ap);
     return (int)str_l;

@@ -569,7 +569,7 @@ func TestGotoTail(t *testing.T) {
 		}
 	}
 	// the gcc control: both compile silently, and print the same
-	if behaves(t, gotoTailSrc) != behaves(t, got) {
+	if tailOutput(t, gotoTailSrc) != tailOutput(t, got) {
 		t.Errorf("the rewritten program prints something else")
 	}
 	refuses(t, GotoTail(GotoTailKnobs{Tail: 3}), gotoTailSrc, "fewer than the 7", "--at-least", "7")
@@ -588,7 +588,7 @@ func TestGotoTail(t *testing.T) {
 // dropped, compile as silently -- and print something else, which the comparison above sees.
 // shadow's copy reads the inner r, cast's the inner T.
 func TestGotoTailWrong(t *testing.T) {
-	want := behaves(t, gotoTailSrc)
+	want := tailOutput(t, gotoTailSrc)
 	for _, wrong := range []struct{ fn, with string }{
 		{"shadow", "{ note(r); return r; }"},
 		{"cast", "{ k++; return (T)k * 2; }"},
@@ -599,16 +599,16 @@ func TestGotoTailWrong(t *testing.T) {
 		src = src[:g] + wrong.with + src[g+len("goto out;"):]
 		l := g + strings.Index(src[g:], "\nout:\n")
 		src = src[:l] + src[l+len("\nout:"):]
-		if behaves(t, src) == want {
+		if tailOutput(t, src) == want {
 			t.Errorf("%s: copying its tail over its goto prints the same, so the test would not see a wrong rewrite", wrong.fn)
 		}
 	}
 }
 
-// behaves compiles src with gcc under the sweep's warnings, requires it to
+// tailOutput compiles src with gcc under the sweep's warnings, requires it to
 // print nothing, runs it and returns what it prints.  With no gcc the test is
 // skipped.
-func behaves(t *testing.T, src string) string {
+func tailOutput(t *testing.T, src string) string {
 	t.Helper()
 	if _, err := exec.LookPath("gcc"); err != nil {
 		t.Skip("no gcc")
