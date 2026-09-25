@@ -104,8 +104,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("check_num_option_bounds", func(e *edit.E) {
 		e.Literal(w76lit2, "", "validating an option nothing can set")
 	})
-	e.Lines(`static long[ \t]+p_re;`, 1, "'regexpengine', which had no row to set it")
-	e.Lines(`enum \{ AUTOMATIC_ENGINE = 0 \};`, 1, "the engine it chose between")
+	// p_re, which had no row to set it, and AUTOMATIC_ENGINE, the engine it
+	// chose between, are named by nothing now; the sweep takes them.
 	return e.Done()
 }
 

@@ -159,11 +159,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("do_one_cmd", func(e *edit.E) {
 		e.Literal(w75lit8, w75lit9, "asking whether the command came from an autocommand")
 	})
+	// the command-line type: its one write goes, and the sweep takes the
+	// declaration
 	e.InFunction("getcmdline_int", func(e *edit.E) {
-		e.Lines(`int[ \t]+cmdline_type;`, 1, "the command-line type")
-	})
-	e.InFunction("getcmdline_int", func(e *edit.E) {
-		e.Lines(`cmdline_type = firstc == NUL \? '-' : firstc;`, 1, "and the line that set it")
+		e.Lines(`cmdline_type = firstc == NUL \? '-' : firstc;`, 1, "the line that set the command-line type")
 	})
 	if !e.Failed() {
 		n := len(edit.BareDispatch.FindAll(e.Text(), -1))
@@ -176,15 +175,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("buf_write", func(e *edit.E) {
 		e.Literal(w75lit10, "", "buf_write bracketing the write with an autocommand buffer swap")
 	})
-	e.InFunction("buf_write", func(e *edit.E) { e.Lines(`aco_save_T[ \t]+aco;`, 1, "its saved window") })
-	e.InFunction("buf_write", func(e *edit.E) { e.Lines(`bufref_T[ \t]+bufref;`, 1, "its buffer reference") })
 	e.InFunction("buf_write", func(e *edit.E) {
 		e.Literal(w75lit11, w75lit12, "the write asking whether an autocommand had taken over")
 	})
 	e.FoldNeverIn2("buf_write", `(?m)^[ \t]*if \(did_cmd\)$`, "and the arm only an autocommand-driven write could reach", 1)
-	e.InFunction("buf_write", func(e *edit.E) {
-		e.Lines(`int[ \t]+did_cmd = FALSE;`, 1, "and the flag no autocommand can set")
-	})
+	// buf_write's aco, bufref and did_cmd are named by nothing now; the sweep
+	// takes them.
 	e.DropBareBlock("set_termname", "buf = curbuf;", "the husk the terminal notification left behind")
 	return e.Done()
 }
