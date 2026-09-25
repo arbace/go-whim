@@ -128,7 +128,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	nInc := edit.IncludeCount(text) // the headers it was handed (phase 168 drops the unused)
 	p := edit.Ph{Tag: "attrs", W: w}
 
-
 	// ---- 0. the file this edit was written against ----------------------------
 	// `[[fallthrough]]` is a STATEMENT and not a directive, so this phase must
 	// leave the eleven exactly where it found them.
