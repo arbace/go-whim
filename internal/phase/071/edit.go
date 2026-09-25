@@ -116,13 +116,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("free_buffer", func(e *edit.E) {
 		e.Literal(w71lit16, w71lit17, "free_buffer deferring onto a chain nothing ever drained")
 	})
-	e.Lines(`static buf_T[ \t]+\*au_pending_free_buf[ \t]*=[ \t]*NULL[ \t]*;`, 1, "that chain")
 	e.Literal(w71lit10, w71lit11, "the mapping scan walking the list, still twice: curbuf then the globals")
 	e.InFunction("set_curbuf", func(e *edit.E) {
 		e.Literal(w71lit18, w71lit19, "set_curbuf entering a different buffer")
-	})
-	e.InFunction("set_curbuf", func(e *edit.E) {
-		e.Lines(`int[ \t]+valid;`, 1, "its validity flag")
 	})
 	e.InFunction("close_buffer", func(e *edit.E) {
 		if e.Failed() {
@@ -161,12 +157,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			}
 		}
 	}
-	e.Lines(`static buf_T[ \t]+\*firstbuf[ \t]*=[ \t]*NULL[ \t]*;`, 1, "firstbuf")
-	e.Lines(`static buf_T[ \t]+\*lastbuf[ \t]*=[ \t]*NULL[ \t]*;`, 1, "lastbuf")
-	// The canonical text writes an aggregate initialiser one element per line,
-	// with the brace under the `=` and a comma after the last element, so the
-	// pool's declaration is nine lines rather than one.  Still one site.
-	e.Lines(`static garray_T buf_reuse[ \t]*=\n\{\n[ \t]*0,\n[ \t]*0,\n[ \t]*0,\n[ \t]*0,\n[ \t]*NULL,\n\}[ \t]*;`, 1, "the wiped-fnum pool")
+	// au_pending_free_buf, set_curbuf's valid flag, firstbuf, lastbuf and the
+	// buf_reuse pool are named by nothing now; the sweep takes them.
 	e.Literal(w71lit12, "", "the buffer list pointers in buf_T")
 	return e.Done()
 }
