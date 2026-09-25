@@ -46,6 +46,11 @@ int main(void)
 
 func analyze(t *testing.T, src string) (*Closure, string) {
 	t.Helper()
+	return analyzeWith(t, src, Options{})
+}
+
+func analyzeWith(t *testing.T, src string, opt Options) (*Closure, string) {
+	t.Helper()
 	dir := t.TempDir()
 	path := filepath.Join(dir, "t.c")
 	if err := os.WriteFile(path, []byte(src), 0o644); err != nil {
@@ -55,7 +60,7 @@ func analyze(t *testing.T, src string) (*Closure, string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return Analyze(ast, path, []byte(src)), path
+	return Analyze(ast, path, []byte(src), opt), path
 }
 
 func ids(es []*Entity) string {
@@ -94,6 +99,25 @@ func TestClosure(t *testing.T) {
 	// of the instrument, never a silent pass.
 	if !strings.Contains(why[".left"], "designator") {
 		t.Errorf("the designator was not refused: %v", why)
+	}
+}
+
+// A layout is frozen only by what the closure is told: the same text, told
+// that dead_callee's definition means its structs are read from disk, keeps
+// every member it would otherwise delete, and says which function froze it.
+func TestFreezeLayoutIf(t *testing.T) {
+	c, _ := analyzeWith(t, small, Options{FreezeLayoutIf: []string{"no_such_function", "dead_callee"}})
+	why := map[string]string{}
+	for _, f := range c.Partition().Left {
+		why[f.Fn] = f.What
+	}
+	for _, m := range []string{"M:pair.right_dead", "M:req_T.start_dead"} {
+		if want := "unreachable, but dead_callee is defined: " + WhyFrozen; why[m] != want {
+			t.Errorf("%s: %q, want %q", m, why[m], want)
+		}
+	}
+	if !strings.HasPrefix(why["N:RED"], WhyRenumbers) {
+		t.Errorf("an enumerator is no layout: %s", why["N:RED"])
 	}
 }
 

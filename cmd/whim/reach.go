@@ -7,6 +7,7 @@ import (
 
 	"github.com/arbace/go-whim/internal/ccx"
 	"github.com/arbace/go-whim/internal/reach"
+	"github.com/arbace/go-whim/internal/whim"
 )
 
 // runReach reports what in a translation unit nothing reaches, as a partition
@@ -43,7 +44,7 @@ func runReach(args []string) int {
 		fmt.Fprintf(os.Stderr, "whim reach: %s does not parse, and a closure has nothing to say about it: %v\n", path, err)
 		return 1
 	}
-	c := reach.Analyze(ast, path, src)
+	c := reach.Analyze(ast, path, src, whim.Reach)
 	kinds := map[string][2]int{}
 	for _, e := range c.Entities {
 		k := kinds[e.Kind]

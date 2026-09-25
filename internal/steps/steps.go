@@ -223,7 +223,7 @@ func funcReach(t []byte, args []string, w io.Writer) ([]byte, error) {
 			del = true
 		}
 	}
-	defs, reachable, deadNames, deadLines := dead.FuncReach(t)
+	defs, reachable, deadNames, deadLines := dead.FuncReach(t, whim.Dead.Roots)
 	if len(defs) < dead.MinDefinitions {
 		return nil, fmt.Errorf("funcreach: only %d definitions found, which cannot be right "+
 			"for this file -- the shape it matches has changed, and acting on the "+

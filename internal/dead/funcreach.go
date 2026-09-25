@@ -79,7 +79,8 @@ func FuncDefinitions(text, blanked []byte) FuncDefs {
 }
 
 // FuncReach returns the definitions, the reachable set and the dead names in
-// sorted order.
+// sorted order.  roots are the program's entry points -- a program's, not this
+// package's: whim tells it vim's, main (internal/whim, Dead).
 //
 // Reachability from roots, not reference counting.  A prototype names a
 // function and does not use it, and this file has nearly two thousand of them
@@ -91,7 +92,7 @@ func FuncDefinitions(text, blanked []byte) FuncDefs {
 // live body counts as reached, even where it might be a variable of the same
 // name.  Over-keeping is recoverable; the other error deletes something that
 // runs.
-func FuncReach(text []byte) (defs FuncDefs, reachable int, deadNames []string, deadLines int) {
+func FuncReach(text []byte, roots []string) (defs FuncDefs, reachable int, deadNames []string, deadLines int) {
 	blanked := cutil.Blank(text)
 	defs = FuncDefinitions(text, blanked)
 
@@ -129,16 +130,19 @@ func FuncReach(text []byte) (defs FuncDefs, reachable int, deadNames []string, d
 	cleaned = attrLine.ReplaceAll(cleaned, nil)
 	cleaned = protoTwoLine.ReplaceAll(cleaned, nil)
 
-	roots := map[string]bool{"main": true}
+	from := map[string]bool{}
+	for _, r := range roots {
+		from[r] = true
+	}
 	for _, m := range identRe.FindAll(cleaned, -1) {
 		if _, ok := defs[string(m)]; ok {
-			roots[string(m)] = true
+			from[string(m)] = true
 		}
 	}
 
 	seen := map[string]bool{}
 	var stack []string
-	for r := range roots {
+	for r := range from {
 		if _, ok := defs[r]; ok {
 			stack = append(stack, r)
 		}

@@ -46,8 +46,6 @@ type PunStats struct {
 	RoundTrip     []string // both ToVoid and FromVoid
 }
 
-var allocators = map[string]bool{"alloc": true, "alloc_clear": true, "lalloc": true, "lalloc_clear": true, "host_alloc": true}
-
 type fielded interface {
 	NumFields() int
 	FieldByIndex(int) *cc.Field
@@ -126,6 +124,10 @@ func (c *Closure) punned(ast *cc.AST, path string, fieldKey map[int]string) []st
 	pun := map[int]bool{}
 	pairs := map[string]bool{}
 	fromVoid, fromAlloc, toVoid := map[int]bool{}, map[int]bool{}, map[int]bool{}
+	allocators := map[string]bool{}
+	for _, a := range c.opt.Allocators {
+		allocators[a] = true
+	}
 	walk(ast.TranslationUnit, func(n cc.Node) {
 		x, ok := n.(*cc.CastExpression)
 		if !ok || x.Case != cc.CastExpressionCast || x.Position().Filename != path {

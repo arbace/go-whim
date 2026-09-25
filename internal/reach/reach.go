@@ -50,6 +50,19 @@ const (
 	ClassReached  = "reachable from a root"
 )
 
+// Options is what the closure is told about the program rather than knows:
+// nothing in this package names anything in it.  whim tells it vim's
+// (internal/whim, Reach).
+type Options struct {
+	// FreezeLayoutIf names the functions whose definition means the program
+	// still reads its structs from disk, so that a struct layout is a file
+	// format: while one is defined, no member is deleted (WhyFrozen).
+	FreezeLayoutIf []string
+	// Allocators are the calls whose void * result is fresh memory: a cast
+	// of one is an allocation, not a pun (PunStats.FromAllocator).
+	Allocators []string
+}
+
 // Entity is one thing the closure can keep or not.
 type Entity struct {
 	Kind string // F O P T S E M N
@@ -98,9 +111,12 @@ type Closure struct {
 	// renumbers: enumerator key -> the live enumerator whose implicit value
 	// deleting it would move.
 	renumbers map[string]string
-	// mlRecover: the text still reads swap files, so a struct layout is a
-	// disk format.
-	mlRecover bool
+	// frozenBy: the first of Options.FreezeLayoutIf the text defines -- it
+	// still reads its structs from disk, so a struct layout is a disk
+	// format; "" when it defines none.
+	frozenBy string
+	// opt is what the closure was told, for the planted copy's.
+	opt Options
 	// memberDecl: member key -> its StructDeclaration's span and how many
 	// members that declaration declares.
 	memberDecl map[string][3]int
@@ -119,10 +135,11 @@ type span struct {
 }
 
 // Analyze builds the closure of one parsed translation unit.  path is the
-// name the file was parsed under and src its bytes.
-func Analyze(ast *cc.AST, path string, src []byte) *Closure {
+// name the file was parsed under and src its bytes; opt is what the closure
+// is told about the program.
+func Analyze(ast *cc.AST, path string, src []byte, opt Options) *Closure {
 	c := &Closure{
-		Path: path, byKey: map[string]*Entity{}, Cut: -1,
+		Path: path, byKey: map[string]*Entity{}, Cut: -1, opt: opt,
 		Roots:  map[string][]string{},
 		placed: map[string][]int{}, members: map[int][]string{}, structOf: map[string]int{}, renumbers: map[string]string{},
 		memberDecl: map[string][3]int{},
@@ -194,8 +211,11 @@ func Analyze(ast *cc.AST, path string, src []byte) *Closure {
 		if ext {
 			c.root(ClassExternal, e)
 		}
-		if nm == "ml_recover" && kind == "F" {
-			c.mlRecover = true
+	}
+	for _, nm := range opt.FreezeLayoutIf {
+		if e := c.byKey["n:"+nm]; e != nil && e.Kind == "F" {
+			c.frozenBy = nm
+			break
 		}
 	}
 	name := func(nm string) *Entity { return c.byKey["n:"+nm] }
@@ -658,7 +678,7 @@ func (c *Closure) Partition() ccx.Result {
 // and a finding says what it would not touch and why.
 const (
 	WhyUnreachable = "unreachable"
-	WhyRecover     = "unreachable, but ml_recover is defined: a struct layout is a disk format"
+	WhyFrozen      = "a struct layout is a disk format" // Why says which function froze it
 	WhyPositional  = "unreachable, but initialised by position: deleting it moves or drops an initialiser"
 	WhyRenumbers   = "unreachable, but deleting it renumbers a live enumerator"
 )
@@ -667,8 +687,8 @@ const (
 // particulars.
 func (c *Closure) Why(e *Entity) string {
 	switch {
-	case e.Kind == "M" && c.mlRecover:
-		return WhyRecover
+	case e.Kind == "M" && c.frozenBy != "":
+		return fmt.Sprintf("unreachable, but %s is defined: %s", c.frozenBy, WhyFrozen)
 	case e.Kind == "M" && c.Moves(e) > 0:
 		return fmt.Sprintf("%s (%d elements from line %d)", WhyPositional, c.Moves(e), c.firstMoved(e))
 	case e.Kind == "N" && c.renumbers[e.key] != "":

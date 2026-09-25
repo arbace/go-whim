@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/internal/dead"
+	"github.com/arbace/go-whim/internal/whim"
 )
 
 // runFuncreach is the one dead-code tool left from the sweep's six: the
@@ -14,13 +15,24 @@ import (
 // internal/sweep's closure, and the other five went with the loop that ran
 // them.
 //
+// Its roots are vim's, main (internal/whim, Dead); --root NAME, given once
+// or more, reads another program's instead.
+//
 // Its <100-definition floor exits 1 with a message on stderr: finding fewer
 // means the shape it matches has changed, and acting on the answer would
 // delete most of the program.
 func runFuncreach(args []string) int {
 	del := false
+	roots := whim.Dead.Roots
+	var named []string
 	var files []string
-	for _, a := range args {
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		if a == "--root" && i+1 < len(args) {
+			i++
+			named = append(named, args[i])
+			continue
+		}
 		if strings.HasPrefix(a, "--") {
 			if a == "--delete" {
 				del = true
@@ -29,8 +41,11 @@ func runFuncreach(args []string) int {
 		}
 		files = append(files, a)
 	}
+	if named != nil {
+		roots = named
+	}
 	if len(files) == 0 {
-		fmt.Fprintln(os.Stderr, "usage: whim funcreach <file> [--delete]")
+		fmt.Fprintln(os.Stderr, "usage: whim funcreach [--root NAME]... <file> [--delete]")
 		return 1
 	}
 	text, err := os.ReadFile(files[0])
@@ -38,7 +53,7 @@ func runFuncreach(args []string) int {
 		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
 		return 1
 	}
-	defs, reachable, deadNames, deadLines := dead.FuncReach(text)
+	defs, reachable, deadNames, deadLines := dead.FuncReach(text, roots)
 	if len(defs) < dead.MinDefinitions {
 		fmt.Fprintf(os.Stderr, "funcreach: only %d definitions found, which cannot be right "+
 			"for this file -- the shape it matches has changed, and acting "+

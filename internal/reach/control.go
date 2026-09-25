@@ -181,7 +181,7 @@ func Planted(c *Closure, src []byte, gccBefore []gccUnused, dir string) (ccx.Res
 	if err != nil {
 		return res, fmt.Errorf("the planted copy does not parse: %v", err)
 	}
-	pc := Analyze(ast, path, append(append([]byte{}, src...), plant...))
+	pc := Analyze(ast, path, append(append([]byte{}, src...), plant...), c.opt)
 	before := map[string]bool{}
 	for _, e := range c.Unreachable() {
 		before[e.ID] = true

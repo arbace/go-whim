@@ -15,6 +15,7 @@ import (
 	"github.com/arbace/go-whim/internal/ccx"
 	"github.com/arbace/go-whim/internal/reach"
 	"github.com/arbace/go-whim/internal/score"
+	"github.com/arbace/go-whim/internal/whim"
 )
 
 // runMeasure counts every boundary a `whim build --keep D` left in D, one
@@ -77,7 +78,7 @@ func measureOne(path string, compile bool) string {
 		return fmt.Sprintf("%s    %-8d %-58s %-9s %-5s no -- %s", phase, lines, "", bin, nmu, firstLine(err.Error()))
 	}
 	n := map[string]int{}
-	for _, e := range reach.Analyze(ast, path, src).Entities {
+	for _, e := range reach.Analyze(ast, path, src, whim.Reach).Entities {
 		n[e.Kind]++
 	}
 	return fmt.Sprintf("%s    %-8d %-6d %-5d %-4d %-5d %-4d %-4d %-6d %-6d %-9s %-5s yes",
