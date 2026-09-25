@@ -105,6 +105,7 @@ var ops = map[string]Step{
 
 	"cemit":             Step(pipeline.Canonical),
 	"includes":          Step(xform.Includes(whim.Includes)),
+	"gototail":          Step(xform.GotoTail(whim.GotoTail)),
 	"query-empty":       queryEmpty,
 	"query-dropoptions": queryDropOptions,
 }

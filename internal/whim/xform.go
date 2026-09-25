@@ -63,6 +63,12 @@ var Includes = xform.Silent{
 	Flags: []string{"-fsyntax-only", "-O0", "-Wall", "-Wextra", "-Wno-unused-parameter"},
 }
 
+// GotoTail is phase 170's bound: a label's tail is copied over a goto when
+// it is at most three statements before its return.  Three is the longest
+// straight tail a goto of the core reaches (a history browser's three
+// stores), and each copy costs its length.
+var GotoTail = xform.GotoTailKnobs{Tail: 3}
+
 // Own114 is phase 114's: abs and labs, the two libc functions the core called
 // without a body of its own, become musl's, written above musl_bsearch with
 // the other <stdlib.h> functions the core owns.

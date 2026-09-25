@@ -21,9 +21,9 @@ slim-vim.c  --whim-->  whim-vim.c
   that repository's `main` points to, and records the commit in `src/upstream.sha`.
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
-- **whim** (the `Makefile`) removes capability on purpose, phases 0-169 from 180,870
-  lines to 75,396. It is two arcs, a coda, an empty phase, five for the Go's
-  sake and the headers last:
+- **whim** (the `Makefile`) removes capability on purpose, phases 0-170 from 180,870
+  lines to 75,507. It is two arcs, a coda, an empty phase, five for the Go's
+  sake, the headers, and the gotos:
   - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
     install, 84,025 lines at q82;
   - **phases 83-128** (`GOALS.md` Part II) turn it into an embeddable core:
@@ -50,11 +50,15 @@ slim-vim.c  --whim-->  whim-vim.c
   - **phase 168** writes `return x;` for each of the 19 `goto`s whose label
     marks `return x;`, and drops the 7 labels left unreached; so 7 more Go
     functions have no `goto`, and their locals are declared where C declares them.
-  - **phase 169**, last, drops every system header nothing needs, in one step:
+  - **phase 169** drops every system header nothing needs, in one step:
     each `#include` is tried and kept out while the file compiles silently.
     Phases 82, 99 and 104 once did it piecemeal, and the phases between them
     asserted the counts it left; now they assert only that every directive is a
     contiguous `#include` and that they add and remove none.
+  - **phase 170** copies a label's tail -- at most three statements and the
+    return, or a void function's end -- over each of the 79 `goto`s that reach
+    one (`crefactor/xform`'s `GotoTail`), and drops the 14 labels left
+    unreached: 12 functions of the core and 2 of the host have no `goto` left.
 
   Phase 83 is the line between the two arcs.
 
@@ -212,7 +216,7 @@ the same `editor/editor.go` byte for byte either way.
 ```sh
 make                 # all: bin/whim, the editor (editor/ built), through whim-vim.c
                      # (produced only when slim-vim.c moved) and editor/editor.go
-make whim-build      # the 155 phases in one process: slim-vim.c -> whim-vim.c
+make whim-build      # the 156 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go that is not what internal/gen writes
 make whim-test        # the quick suite: 45 key sessions, required to behave as HEAD's does
@@ -292,7 +296,7 @@ ours belongs inside `.claude/`. Outside `make`, run with `TMPDIR=$PWD/.tmp`.
 ## The pipeline
 
 A phase is a function of the tree it is handed, so the pipeline is
-`p_N = f_N(p_{N-1})` -- 155 of them, in order, numbered 0-169: 8 phases that
+`p_N = f_N(p_{N-1})` -- 156 of them, in order, numbered 0-170: 8 phases that
 edit nothing any more are records only (a `GOAL.md`, no plan entry), and 44-48,
 143-145 and 153-154 each run as one phase under the group's last number
 (`doc/PIPELINE-COMPACTION.md`). A gap in the numbers is nothing to the driver,
@@ -344,7 +348,7 @@ design.
 
 ## Adding a phase
 
-`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 170.
+`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 171.
 The pipeline's goal is met; a phase now is for the Go editor, where the C is
 the cause of what the generator cannot make idiomatic. What a new one takes:
 `internal/phase/NNN/` with `GOAL.md`, and `edit.go` in package `pNNN` registering

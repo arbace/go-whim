@@ -807,4 +807,8 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "includes"},
 		}},
+	{N: 170, Name: "a goto whose label marks a short tail is that tail",
+		Steps: []Step{
+			{Op: "gototail", Args: []string{"--at-least", "52"}},
+		}},
 }

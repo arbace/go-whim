@@ -1,6 +1,6 @@
 # Phase 169 — the system headers nothing needs
 
-The last phase, and the only one that removes an `#include`. The file opens
+The only phase that removes an `#include`. The file opens
 with the 41 `#include`s slim-vim.c has. Each phase before this one takes away
 some of what they were for: the directory walker, the locale, the password
 file, dlopen, setjmp, the maths library, the ctype functions (97-98), the stdio
@@ -20,7 +20,7 @@ candidates are tried one at a time in parallel, then all together. If the set
 fails together -- two headers each covering for the other -- they are removed
 one by one from the bottom, each kept only while the build stays silent.
 
-**Why last, and all together.** Phases 82, 99 and 104 each used to drop the
+**Why late, and all together.** Phases 82, 99 and 104 each used to drop the
 headers that had just become unused, and about twenty phases between asserted
 the count they were handed: eighteen, twelve, eleven. The dropping is one rule,
 so it runs once, here. The phases before it now assert only what does not

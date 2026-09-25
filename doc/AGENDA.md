@@ -31,8 +31,9 @@ cases):
    break }`). The last 49 are per site -- 30 of them `getcmdline_int`'s
    command-line loop, a state variable -- and pay only if the rule is "no
    goto in the C" rather than "none the target cannot say": a Java backend
-   can lower every forward goto as a labeled break. Held until the pipeline
-   compaction lands, so the phases go in with their final numbers.
+   can lower every forward goto as a labeled break. The first is done:
+   phase 170 copies the short tails (all 52, and the host's 27), leaving 106
+   gotos in 20 functions of the core.
 2. **A Java backend for `togo`**, from the same analysis -- which pointers walk
    (`Ptr[byte]`, 2,212 in the Go, is `byte[]` and an offset), which ints are
    answers, which are unsigned (570 uses: `Integer.*Unsigned`), structs copied
