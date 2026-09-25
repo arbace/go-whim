@@ -17,8 +17,33 @@ unseen. That took the `Ptr` of another element type than `byte` from 320 to
 is not done: `Ptr[byte]` is C's string, compared and subtracted across the
 file, and one class. Item 10 is phase 168: a `goto` whose label marks
 `return x` is that return, 19 of them, and seven functions with no `goto` left
-have their locals where C declares them. The
-throwaway instruments it names under `.tmp/idiom/` were not kept.
+have their locals where C declares them. Items 11 and 12 are declined,
+measured on `editor/` as it stands after phase 168 (a throwaway `go/types`
+counter):
+
+- **11, the globals as an `Editor` struct.** It is mechanical, but it is not
+  readable: `editor.go` names its 854 package variables 14,720 times on
+  11,795 of its 57,554 lines, and calls its functions 11,560 times; every one
+  would become `e.x` or `e.f(...)`, a fifth of the file rewritten to say the
+  same thing, and the line-for-line match with `editor.c` that
+  `CONVENTIONS.md` keeps would go with it. What it buys is several editors in
+  one process, which neither the host nor the C core has any use for: the C is
+  one editor per process too, and the Go follows the C.
+- **12, `package editor` and a `Host` interface.** The seam is small: the core
+  calls 16 host functions at 33 sites, plus `vim_snprintf` at 174, and the host
+  names 19 of the core's names -- all but `vim_main` and `deathtrap` from
+  `vim_snprintf`'s formatter, which is vim's code living in `host.go` only
+  because the generator refuses a variadic function. But a package split makes
+  every name that crosses it exported, so the generator would need a name map
+  for the host calls and wrappers for `vim_main` and `deathtrap`, and what the
+  survey says it unlocks -- in-process tests with a fake host -- does not
+  follow without item 11: the globals are set once by `init()`, and
+  `host_exit` ends the process, so a test binary could run one session. The
+  suite already runs the Go editor as a process against the C
+  (`whim test`), which is the check this would have provided. Splitting
+  `editor.go` into files is cosmetic, as the survey says.
+
+The throwaway instruments it names under `.tmp/idiom/` were not kept.
 
 2026-09-24. A read-only survey: no tracked file changed, nothing committed, and
 no `whim build` was run. It covers `editor/editor.go` as tracked at `de80df5`

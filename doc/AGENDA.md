@@ -15,9 +15,11 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   cases, so a wider corpus widens both.
 - **The Go editor, the rest of idiomatic.** `doc/GO-IDIOMS.md`'s items 1-6 are
   done (lint, dead code, `bool`, scoped locals, libc, key names), and item 7's
-  `*T` for a pointer that never walks, and item 10 (phase 168). Left, in its
-  order: the 824 globals as a struct (11), and the package structure (12).
-  Each is checked by `make whim-test`, which runs the Go editor against the C.
+  `*T` for a pointer that never walks, and item 10 (phase 168); 11 and 12
+  are declined (below). Left of item 7: a pointer that walks forward as a
+  resliced `[]T`, which for `Ptr[byte]` is a string model -- a redesign, not a
+  rule. It is checked by `make whim-test`, which runs the Go editor against
+  the C.
 - **A tighter verb set for phase edits** (`doc/DSL.md`). A separate language would
   cover only 10-22% of the edit code; the savings come from one verb set in
   `edit.E` (seven spellings of FoldNever today), verbs for what phases
@@ -36,3 +38,10 @@ a mutation moves the tree while the text stands still, and deleting a table row
 gives BYTE-IDENTICAL output -- an edit that did nothing, which `whim-build-check`
 cannot see. 10 of 10 deletions did this. What survives the assessment is the
 cheap half: **the AST as a locator, with the text still doing the editing**.
+
+**The Go editor's globals as a struct, and a package split** (`GO-IDIOMS.md`
+items 11 and 12). The struct would rewrite 14,720 references to 854 package
+variables and 11,560 calls, on a fifth of `editor.go`, to buy several editors
+per process, which nothing needs; the split's payoff, in-process tests with a
+fake host, needs the struct first, and `whim test` already runs the Go
+editor against the C.
