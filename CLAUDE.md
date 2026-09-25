@@ -86,7 +86,7 @@ digest each, read by `make`.
 
 **A phase is a directory, `internal/phase/NNN/`**, its number in three digits so that they
 sort: `GOAL.md`, which opens `# Phase N — …` and says what the phase removes,
-why and what was measured, and -- for the 108 phases whose cut is a program of
+why and what was measured, and -- for the 110 phases whose cut is a program of
 its own -- `edit.go`, which makes that directory **a Go package**, `pNNN`
 (`editlit.go` beside it where the literals are long). The other phases are plan
 steps only (`internal/steps`). An edit registers itself with `internal/edit` in

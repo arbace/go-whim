@@ -70,7 +70,6 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "nonfa"},
 			{Op: "dropoptions", Args: []string{"regexpengine"}},
-			{Op: "funcreach", Args: []string{"--delete"}},
 		}},
 	{N: 6, Name: "the editor stops writing shell scripts, and stops drawing a menu",
 		Steps: []Step{
@@ -158,7 +157,6 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "norecover"},
 			{Op: "nomemfile"},
-			{Op: "sweep"},
 			{Op: "dropoptions", Args: []string{"--strict", "directory", "maxmem", "maxmemtot"}},
 		}},
 	{N: 22, Name: "the working directory is where it started",
@@ -339,7 +337,6 @@ var Plan = []Phase{
 			{Op: "noconv"},
 			{Op: "dropoptions", Args: []string{"encoding"}},
 			{Op: "dropoptions", Args: []string{"--local", "makeencoding"}},
-			{Op: "sweep"},
 			{Op: "droplocal", Args: []string{"b_p_menc"}},
 		}},
 	{N: 54, Name: "no option without a variable",
@@ -500,10 +497,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim81"}},
 		}},
-	{N: 82, Name: "every comment",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim82"}},
-		}},
+	{N: 82, Name: "every comment", NoSource: true},
 	{N: 83, Name: "the core's compile line, and the baselines it is measured against", NoSource: true},
 	{N: 84, Name: "the stack protector goes", NoSource: true},
 	{N: 85, Name: "the core stops diagnosing its own terminal",
@@ -565,10 +559,7 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim98"}},
 		}},
-	{N: 99, Name: "the includes nothing names",
-		Steps: []Step{
-			{Op: "edit", Args: []string{"whim99"}},
-		}},
+	{N: 99, Name: "the includes nothing names", NoSource: true},
 	{N: 100, Name: "the deadly ladder that cannot run",
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim100"}},

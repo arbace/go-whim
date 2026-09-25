@@ -24,8 +24,9 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   by `make whim-test`, which runs the Go editor against the C.
 
 - **The steps the canonical print and the sweep made redundant.**
-  `doc/REDUNDANT-STEPS.md` measured them, each byte-identical when removed:
-  whole phases that do nothing (82, 99), three plan steps, five shared helpers
+  `doc/REDUNDANT-STEPS.md` measured them, each byte-identical when removed.
+  Done: the phases that did nothing (82, 99, now `NoSource`) and the three plan
+  steps (funcreach at 5, the inner sweeps at 21 and 53). Left: five shared helpers
   doing layout the canonical print redoes (about 130 call sites), and about 300
   hand deletions the sweep would make anyway. Its order: the no-op phases and
   steps first, then the helpers, then the per-phase deletions, one commit each,

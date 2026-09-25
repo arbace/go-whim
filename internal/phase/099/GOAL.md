@@ -1,9 +1,10 @@
 # Phase 99 — the includes nothing names
 
-**Since phase 168:** the six headers are shown unused here and dropped there,
-with every other unused header, last and at once. This phase still removes the
-`stat_T` typedef, and still refuses when anything names what the six supply. What
-follows is the record of when the six went here.
+**Now a record: the phase changes nothing.** Its six headers went to phase 168,
+which drops every unused header last, and the `stat_T` typedef it removed is
+one the sweep takes by itself now: nothing names it. It is `NoSource` in the
+plan and its edit program is gone (doc/REDUNDANT-STEPS.md: removing it leaves
+every boundary byte-identical). What follows is the record of when it did both.
 
 `internal/phase/099/edit.go` and `internal/phase/099/check.go`, `stage 99`, `package includes`.
 `whim-vim.c` inherited **eighteen** preprocessor directives from `whim-vim.c`, every
