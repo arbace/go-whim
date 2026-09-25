@@ -8,5 +8,5 @@ var w119Go = []string{"int getpid(void);", "int kill(int pid, int sig);"}
 
 const (
 	w119Proto = "static void host_raise(int sig);"
-	w119Def   = "    static void\nhost_raise(int sig)\n{\n    kill(getpid(), sig);\n}\n\n"
+	w119Def   = "    static void\nhost_raise(int sig)\n{\n    kill(getpid(), sig);\n}\n"
 )

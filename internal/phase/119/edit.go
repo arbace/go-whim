@@ -408,11 +408,8 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			"caller of mch_get_pid()"); err != nil {
 		return nil, err
 	}
-	if err := swap(strings.Join(L[gpLo:gpHi], "\n")+"\n\n", "", "mch_get_pid()'s definition",
-		"its one caller has just gone, and its body is the only other place the core says "+
-			"`getpid`"); err != nil {
-		return nil, err
-	}
+	// mch_get_pid() is uncalled now, and its body, the only other place the
+	// core says `getpid`, goes with it in the sweep.
 
 	// ---- 4. kill is MOVED -----------------------------------------------------
 	if err := swap(fmt.Sprintf("%skill(getpid(), %s);\n", indent, deferred),
@@ -474,7 +471,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	for _, r := range []struct {
 		Name         string
 		ncore, nhost int
-	}{{"getpid", 0, 1}, {"kill", 0, 2}, {"mch_get_pid", 1, 0}} {
+	}{{"getpid", 1, 1}, {"kill", 0, 2}, {"mch_get_pid", 2, 0}} {
 		if mentions(core, r.Name) != r.ncore || mentions(host, r.Name) != r.nhost {
 			return nil, p.Die("`%s` ends at %d mentions above the boundary and %d below, expected %d and "+
 				"%d", r.Name, mentions(core, r.Name), mentions(host, r.Name), r.ncore, r.nhost)
@@ -605,8 +602,8 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 			"this phase adds a DECLARATION and a DEFINITION, never a directive")
 	}
 	p.Sayf("%d -> %d lines before the sweep, the eleven #includes untouched at line %d, and no "+
-		"run of two blank lines.  tools/deadprotos.py and tools/deadfields.py are left "+
-		"`static long mch_get_pid(void);` and `b0_pid` to find",
+		"run of two blank lines.  The sweep is left mch_get_pid(), its prototype and "+
+		"`b0_pid` to find",
 		linesBefore, len(L)-1, boundary+1)
 	return []byte(t), nil
 }
