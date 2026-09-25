@@ -31,6 +31,12 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   steps first, then the helpers, then the per-phase deletions, one commit each,
   held by `make whim-build-check`.
 
+- **A tighter verb set for phase edits** (`doc/DSL.md`). A separate language would
+  cover only 10-22% of the edit code; the savings come from one verb set in
+  `edit.E` (seven spellings of FoldNever today), verbs for what phases
+  hand-write, and moving the ~20 mostly-declarative phases onto them. Best done
+  together with the REDUNDANT-STEPS removals, which touch the same phases.
+
 ## Known stale, not yet scoped
 
 

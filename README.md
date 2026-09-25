@@ -126,10 +126,11 @@ internal/gen/    the generator of editor/editor.go (go tool whim gen), splice/
                  sigs.md, CONVENTIONS.md and FINDINGS.md
 Makefile         the whole build: the input, the pipeline, the binaries, the editor
 doc/             GOALS.md (what holds for every phase), AGENDA.md (what is not
-                 done, in order), and three surveys: AST-EDITING.md (the phases
+                 done, in order), and four surveys: AST-EDITING.md (the phases
                  editing the AST: not taken, to revisit), GO-IDIOMS.md (how the Go
-                 editor could be idiomatic, measured and ranked) and REDUNDANT-STEPS.md
-                 (which steps the canonical print and the sweep made unnecessary)
+                 editor could be idiomatic, measured and ranked), REDUNDANT-STEPS.md
+                 (which steps the canonical print and the sweep made unnecessary) and DSL.md
+                 (a language for phase edits: partially, as Go verbs)
 src/             the input and the product, their binaries and digests:
                  whim-vim.c (the product, tracked; make editor.c cuts the core
                  out of it), slim-vim.c (the input, fetched, not tracked),
