@@ -179,14 +179,14 @@ func NoIdent(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = cutCounted(text,
 		`(?m)^    case '\]':\n[ \t]*case Ctrl_RSB:\n(?:[^\n]*\n)*?`+
 			`[ \t]*do_nv_ident\(Ctrl_RSB, NUL\);\n`+
-			`[ \t]*postponed_split = 0;\n[ \t]*break;\n\n?`,
+			`[ \t]*postponed_split = 0;\n[ \t]*break;\n`,
 		"noident", "do_window's CTRL-W ]", 1); err != nil {
 		return nil, err
 	}
 	if text, err = cutCounted(text,
 		`(?m)^[ \t]*case '\]':\n[ \t]*case Ctrl_RSB:\n(?:[^\n]*\n)*?`+
 			`[ \t]*do_nv_ident\('g', xchar\);\n`+
-			`[ \t]*postponed_split = 0;\n[ \t]*break;\n\n?`,
+			`[ \t]*postponed_split = 0;\n[ \t]*break;\n`,
 		"noident", "do_window's CTRL-W g]", 1); err != nil {
 		return nil, err
 	}

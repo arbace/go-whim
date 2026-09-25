@@ -145,13 +145,15 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return len(regexp.MustCompile(`\b`+name+`\b`).FindAll(t, -1))
 	}
 	textEdit := func(t []byte, old, new, what string, n int) ([]byte, error) {
-		k := strings.Count(string(t), old)
+		// exact first, then modulo whitespace: a fold earlier in this phase keeps a
+		// body at its old indentation, and the canonical print re-indents it
+		k := cutil.CountAnchorB(t, old)
 		if k != n {
 			return nil, p.Die("%s -- the text occurs %d times, expected %d: %s",
 				what, k, n, cutil.PyRepr(edit.CoreHead(old, 70)))
 		}
 		p.Say(what)
-		return []byte(strings.ReplaceAll(string(t), old, new)), nil
+		return cutil.ReplaceAnchorB(t, old, []byte(new), n), nil
 	}
 
 	// ---- 0. the shape every anchor below was counted against ------------------

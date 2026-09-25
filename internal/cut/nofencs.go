@@ -52,12 +52,6 @@ func dropTencBlock(text []byte) ([]byte, error) {
 	for end < len(text) && (text[end] == ' ' || text[end] == '\t') {
 		end++
 	}
-	if end < len(text) && text[end] == '\n' {
-		end++
-	}
-	if end < len(text) && text[end] == '\n' {
-		end++
-	}
 	out := make([]byte, 0, len(text))
 	out = append(out, text[:m[0]]...)
 	return append(out, text[end:]...), nil

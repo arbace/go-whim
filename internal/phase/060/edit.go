@@ -57,7 +57,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// 'autocompletedelay'
 	e.InFunction("inchar_loop", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*bool delay_pending = [^;]*;\n[ \t]*long acl_elapsed = [^\n]*;\n\n?`, 1,
+		e.Cut(`(?m)^[ \t]*bool delay_pending = [^;]*;\n[ \t]*long acl_elapsed = [^\n]*;\n`, 1,
 			"an autocomplete delay that is never pending")
 		e.Literal(" && !delay_pending", "", "blocking without waiting on the delay")
 		e.FoldNever(`(?m)^[ \t]*else if \(delay_pending\)$`, "waiting out the autocomplete delay")

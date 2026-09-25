@@ -83,43 +83,12 @@ func DropIf(s []byte, pattern string, count int) ([]byte, error) {
 		if end < len(s) && s[end] == '\n' {
 			end++
 		}
-		if end < len(s) && s[end] == '\n' {
-			end++
-		}
 		out := make([]byte, 0, len(s))
 		out = append(out, s[:m[0]]...)
 		out = append(out, s[end:]...)
 		s = out
 	}
 	return s, nil
-}
-
-// Dedent4 strips one four-space level, line by line.
-func Dedent4(body []byte) []byte {
-	var out []byte
-	for _, line := range splitKeepEnds(body) {
-		if bytes.HasPrefix(line, []byte("    ")) {
-			out = append(out, line[4:]...)
-		} else {
-			out = append(out, line...)
-		}
-	}
-	return out
-}
-
-func splitKeepEnds(b []byte) [][]byte {
-	var out [][]byte
-	start := 0
-	for i := 0; i < len(b); i++ {
-		if b[i] == '\n' {
-			out = append(out, b[start:i+1])
-			start = i + 1
-		}
-	}
-	if start < len(b) {
-		out = append(out, b[start:])
-	}
-	return out
 }
 
 // guarded returns the line start, the opening brace, the closing brace, and
@@ -193,7 +162,7 @@ func FoldAlways(s []byte, pattern string, count int) ([]byte, error) {
 			}
 			bodyStart := o + bytes.IndexByte(s[o:], '\n') + 1
 			bodyEnd := bytes.LastIndexByte(s[:c], '\n') + 1
-			body := Dedent4(s[bodyStart:bodyEnd])
+			body := s[bodyStart:bodyEnd]
 			out := make([]byte, 0, len(s))
 			out = append(out, s[:k]...)
 			out = append(out, body...)
@@ -213,10 +182,7 @@ var elseHead = regexp.MustCompile(`^([ \t]*)else\b([ \t]+if\b)?`)
 //	if (F) { A } else if (X) { B }   -> if (X) { B }
 //	... else if (F) { A } ...        -> ... ...
 func FoldNever(s []byte, pattern string, count int) ([]byte, error) {
-	tidy := func(before, after []byte) []byte {
-		if bytes.HasSuffix(before, []byte("\n\n")) && bytes.HasPrefix(after, []byte("\n")) {
-			after = after[1:]
-		}
+	join := func(before, after []byte) []byte {
 		out := make([]byte, 0, len(before)+len(after))
 		out = append(out, before...)
 		return append(out, after...)
@@ -240,7 +206,7 @@ func FoldNever(s []byte, pattern string, count int) ([]byte, error) {
 			}
 			nxt := elseHead.FindSubmatchIndex(rest)
 			if nxt == nil {
-				return tidy(s[:k], rest), nil
+				return join(s[:k], rest), nil
 			}
 			if nxt[4] >= 0 { // `else if`
 				out := make([]byte, 0, len(s))
@@ -256,7 +222,7 @@ func FoldNever(s []byte, pattern string, count int) ([]byte, error) {
 			}
 			bodyStart := o2 + bytes.IndexByte(s[o2:], '\n') + 1
 			bodyEnd := bytes.LastIndexByte(s[:c2], '\n') + 1
-			body := Dedent4(s[bodyStart:bodyEnd])
+			body := s[bodyStart:bodyEnd]
 			after := c2 + bytes.IndexByte(s[c2:], '\n') + 1
 			out := make([]byte, 0, len(s))
 			out = append(out, s[:k]...)

@@ -38,14 +38,14 @@ var (
 var nofloatCuts = []struct{ what, pat string }{
 	{"format_typeof's float arm",
 		`(?m)^    case 'f':\n    case 'F':\n    case 'e':\n    case 'E':\n` +
-			`    case 'g':\n    case 'G':\n        return TYPE_FLOAT;\n\n?`},
+			`    case 'g':\n    case 'G':\n        return TYPE_FLOAT;\n`},
 	{"the argument walker's six labels",
 		`(?m)^[ \t]*case 'f':\n[ \t]*case 'F':\n[ \t]*case 'e':\n` +
 			`[ \t]*case 'E':\n[ \t]*case 'g':\n[ \t]*case 'G':\n`},
 	{"format_typename's float arm",
 		`(?m)^[ \t]*case TYPE_FLOAT:\n[ \t]*return typename_float;\n`},
 	{"the va_arg walker's float arm",
-		`(?m)^[ \t]*case TYPE_FLOAT:\n[ \t]*va_arg\(\*ap, double\);\n[ \t]*break;\n\n?`},
+		`(?m)^[ \t]*case TYPE_FLOAT:\n[ \t]*va_arg\(\*ap, double\);\n[ \t]*break;\n`},
 }
 
 // checkNoFloatFormats refuses to cut unless nothing can reach the branch being
@@ -118,9 +118,6 @@ func NoFloat(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("nofloat: the float conversion case is not where this expects")
 	}
 	end := c + bytes.IndexByte(text[c:], '\n') + 1
-	if end < len(text) && text[end] == '\n' {
-		end++
-	}
 	fmt.Fprintf(w, "  nofloat      the %%f conversion, %d lines nothing can reach\n",
 		bytes.Count(text[k:end], []byte{'\n'}))
 	var buf []byte

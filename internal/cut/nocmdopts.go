@@ -48,7 +48,7 @@ var nocmdoptsElsewhere = []struct {
 	{"mparm_T's evim_mode field", `(?m)^[ \t]*int[ \t]*evim_mode;\n`, "", 1},
 	{"the startup tag jump, which nothing can now ask for",
 		`(?m)[ \t]*if \(params\.tagname != NULL\)\n[ \t]*\{\n(?:[^\n]*\n)*?` +
-			`[ \t]*do_cmdline_cmd\(IObuff\);\n(?:[^\n]*\n)*?^[ \t]{4}\}\n\n?`, "", 1},
+			`[ \t]*do_cmdline_cmd\(IObuff\);\n(?:[^\n]*\n)*?^[ \t]{4}\}\n`, "", 1},
 	{"exe_pre_commands testing for one",
 		`(?m)[ \t]*if \(parmp->tagname == NULL && curwin->w_cursor\.lnum <= 1\)\n` +
 			`([ \t]*\{\n[ \t]*curwin->w_cursor\.lnum = 0;\n[ \t]*\}\n)`,
@@ -67,7 +67,7 @@ var nocmdoptsElsewhere = []struct {
 	{"restricted mode in do_bang and ex_stop",
 		`(?m)check_restricted\(\) \|\| check_secure\(\)`, "check_secure()", 1},
 	{"ex_stop's restricted check",
-		`(?m)[ \t]*if \(check_restricted\(\)\)\n[ \t]*\{\n[ \t]*return;\n[ \t]*\}\n\n?`, "", 1},
+		`(?m)[ \t]*if \(check_restricted\(\)\)\n[ \t]*\{\n[ \t]*return;\n[ \t]*\}\n`, "", 1},
 	{"the EX_RESTRICT gate, which no live command reaches",
 		`(?m)[ \t]*if \(restricted != 0 && \(ea\.argt & EX_RESTRICT\)\)\n` +
 			`[ \t]*\{\n(?:[^\n]*\n)*?[ \t]*\}\n`, "", 1},

@@ -248,7 +248,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.FoldNever(`(?m)^[ \t]*else if \(\(cc >= 0x100 \|\| !utf_allow_break_before\(cc\)\) && fo_multibyte\)$`,
 			"breaking between multibyte characters ('m', ']')")
 		e.DropIf(`(?m)^[ \t]*if \(has_format_option\(FO_ONE_LETTER\)\)$`, "not breaking after a one-letter word ('1')")
-		e.Cut(`(?m)^[ \t]*if \(curwin->w_cursor\.col < leader_len\)\n[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n\n?`, 1, "not breaking inside the leader")
+		e.Cut(`(?m)^[ \t]*if \(curwin->w_cursor\.col < leader_len\)\n[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n`, 1, "not breaking inside the leader")
 		e.Literal(" && (!fo_white_par || curwin->w_cursor.col < startcol)", "", "keeping a trailing blank ('w')")
 		e.FoldAlwaysMany(`(?m)^[ \t]*if \(!fo_white_par\)$`, 2, "removing the blanks at the break ('w')")
 		e.Literal("open_line(FORWARD, OPENLINE_DELSPACES + OPENLINE_MARKFIX + (fo_white_par ? OPENLINE_KEEPTRAIL : 0) + (do_comments ? OPENLINE_DO_COM : 0) + OPENLINE_FORMAT + ((flags & INSCHAR_COM_LIST) ? OPENLINE_COM_LIST : 0), ((flags & INSCHAR_COM_LIST) ? second_indent : old_indent), &did_do_comment);",
@@ -292,7 +292,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 
 	// gd and gD
 	e.InFunction("nv_g_cmd", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*case 'd':\n[ \t]*case 'D':\n[ \t]*nv_gd\(oap, cap->nchar, \(int\)cap->count0\);\n[ \t]*break;\n\n?`, 1, "gd and gD")
+		e.Cut(`(?m)^[ \t]*case 'd':\n[ \t]*case 'D':\n[ \t]*nv_gd\(oap, cap->nchar, \(int\)cap->count0\);\n[ \t]*break;\n`, 1, "gd and gD")
 	})
 
 	// The three go by hand rather than by sweep: comp_textwidth() loses its

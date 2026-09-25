@@ -154,7 +154,7 @@ func NoGetEnv(text []byte, w io.Writer) ([]byte, error) {
 		`(?m)[ \t]*if \(is_vimrc == DOSO_VIMRC\)\n[ \t]*\{\n`+
 			`[ \t]*vimrc_found\(fname_exp, \(char_u \*\)"MYVIMRC"\);\n[ \t]*\}\n`+
 			`[ \t]*else if \(is_vimrc == DOSO_GVIMRC\)\n[ \t]*\{\n`+
-			`[ \t]*vimrc_found\(fname_exp, \(char_u \*\)"MYGVIMRC"\);\n[ \t]*\}\n\n?`,
+			`[ \t]*vimrc_found\(fname_exp, \(char_u \*\)"MYGVIMRC"\);\n[ \t]*\}\n`,
 		"nogetenv", "the two DOSO_VIMRC arms of do_source_ext", 1); err != nil {
 		return nil, err
 	}

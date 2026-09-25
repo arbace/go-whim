@@ -28,7 +28,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("open_line", func(e *edit.E) {
 		e.DropIf(`(?m)^[ \t]*if \(leader == NULL && !use_indentexpr_for_lisp\(\) && curbuf->b_p_lisp && curbuf->b_p_ai\)$`,
 			"a new line taking its indent from get_lisp_indent()")
-		e.Cut(`(?m)^[ \t]*if \(!p_paste\)\n[ \t]*\{\n[ \t]*\}\n\n?`, 1,
+		e.Cut(`(?m)^[ \t]*if \(!p_paste\)\n[ \t]*\{\n[ \t]*\}\n`, 1,
 			"open_line's now-empty 'paste' test")
 	})
 	e.InFunction("buf_init_chartab", func(e *edit.E) {

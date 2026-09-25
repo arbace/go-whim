@@ -255,7 +255,7 @@ func (e *E) Always(pattern, what string) {
 		return
 	}
 	end := IndexFrom(e.buf, []byte("\n"), c) + 1
-	Body := cutil.Dedent4(e.buf[IndexFrom(e.buf, []byte("\n"), o)+1 : LastNewlineBefore(e.buf, c)+1])
+	Body := e.buf[IndexFrom(e.buf, []byte("\n"), o)+1 : LastNewlineBefore(e.buf, c)+1]
 	rest := e.buf[end:]
 	if elseIf := regexp.MustCompile(`^[ \t]*else[ \t]+if\b`); elseIf.Match(rest) {
 		e.Die("%s -- an else if follows", what)

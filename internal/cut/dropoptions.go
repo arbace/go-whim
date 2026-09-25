@@ -141,9 +141,6 @@ func DropRow(text []byte, name string, strict, local bool) ([]byte, bool, error)
 	for end < len(text) && (text[end] == ' ' || text[end] == '\t' || text[end] == ',') {
 		end++
 	}
-	if end < len(text) && text[end] == '\n' {
-		end++
-	}
 	out := make([]byte, 0, len(text))
 	out = append(out, text[:start]...)
 	out = append(out, text[end:]...)

@@ -445,8 +445,8 @@ func foldControls(body string) (string, int, error) {
 			end = c2 + strings.IndexByte(body[c2:], '\n') + 1
 		}
 		if head == "if" {
-			kept := string(cutil.Dedent4([]byte(
-				body[o+strings.IndexByte(body[o:], '\n')+1 : strings.LastIndexByte(body[:c], '\n')+1])))
+			kept := string([]byte(
+				body[o+strings.IndexByte(body[o:], '\n')+1 : strings.LastIndexByte(body[:c], '\n')+1]))
 			body = body[:k] + kept + body[end:]
 		} else {
 			lineEnd := mm[0] + strings.IndexByte(body[mm[0]:], '\n')

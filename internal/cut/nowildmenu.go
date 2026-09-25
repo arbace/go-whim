@@ -81,9 +81,6 @@ func (c *wmCut) blockEnd(closing int) int {
 	if end < len(c.text) && c.text[end] == '\n' {
 		end++
 	}
-	if end < len(c.text) && c.text[end] == '\n' {
-		end++
-	}
 	return end
 }
 
@@ -114,7 +111,7 @@ func (c *wmCut) unwrapIf(pat string, count int, what string) error {
 		if !ok {
 			return fmt.Errorf("nowildmenu: %s -- no more blocks to unwrap", what)
 		}
-		body := cutil.Dedent4(c.text[opening+bytes.IndexByte(c.text[opening:], '\n')+1 : bytes.LastIndexByte(c.text[:closing], '\n')+1])
+		body := c.text[opening+bytes.IndexByte(c.text[opening:], '\n')+1 : bytes.LastIndexByte(c.text[:closing], '\n')+1]
 		end := closing + 1
 		for end < len(c.text) && (c.text[end] == ' ' || c.text[end] == '\t') {
 			end++
@@ -149,7 +146,7 @@ func (c *wmCut) keepElse(pat, what string) error {
 	if eclose < 0 {
 		return fmt.Errorf("nowildmenu: %s -- the else branch is unbalanced", what)
 	}
-	body := cutil.Dedent4(c.text[opening+bytes.IndexByte(c.text[opening:], '\n')+1 : bytes.LastIndexByte(c.text[:eclose], '\n')+1])
+	body := c.text[opening+bytes.IndexByte(c.text[opening:], '\n')+1 : bytes.LastIndexByte(c.text[:eclose], '\n')+1]
 	end := eclose + 1
 	for end < len(c.text) && (c.text[end] == ' ' || c.text[end] == '\t') {
 		end++
@@ -221,7 +218,7 @@ func NoWildMenu(text []byte, w io.Writer) ([]byte, error) {
 				"xp->xp_numfiles > 1", 1, "the match-count threshold")
 		},
 		func() error {
-			return c.sub(`^[ \t]*int show_menu = p_wmnu[^\n]*\n\n?`, "", 2,
+			return c.sub(`^[ \t]*int show_menu = p_wmnu[^\n]*\n`, "", 2,
 				"the two `show_menu` locals")
 		},
 		func() error {
@@ -253,22 +250,22 @@ func NoWildMenu(text []byte, w io.Writer) ([]byte, error) {
 		},
 		func() error {
 			return c.sub(`^[ \t]*if \(pum_visible\(\)\)\n[ \t]*\{\n`+
-				`[ \t]*cmdline_pum_display\(\);\n[ \t]*\}\n\n?`, "", 1,
+				`[ \t]*cmdline_pum_display\(\);\n[ \t]*\}\n`, "", 1,
 				"the command-line popup redraw")
 		},
 		func() error {
 			return c.sub(`^[ \t]*if \(cmdline_pum_active\(\)\)\n[ \t]*\{\n`+
-				`[ \t]*cmdline_pum_remove\(&ccline, FALSE\);\n[ \t]*\}\n\n?`, "", 2,
+				`[ \t]*cmdline_pum_remove\(&ccline, FALSE\);\n[ \t]*\}\n`, "", 2,
 				"the two popup removals in getcmdline_int")
 		},
 		func() error {
 			return c.sub(`^[ \t]*if \(cmdline_match_array != NULL\)\n[ \t]*\{\n`+
-				`[ \t]*cmdline_pum_remove\(get_cmdline_info\(\), FALSE\);\n[ \t]*\}\n\n?`, "", 1,
+				`[ \t]*cmdline_pum_remove\(get_cmdline_info\(\), FALSE\);\n[ \t]*\}\n`, "", 1,
 				"the popup removal in ExpandOne")
 		},
 		func() error {
 			return c.sub(`^[ \t]*if \(cmdline_pum_active\(\)\)\n[ \t]*\{\n`+
-				`[ \t]*cmdline_pum_cleanup\(&ccline\);\n[ \t]*\}\n\n?`, "", 1,
+				`[ \t]*cmdline_pum_cleanup\(&ccline\);\n[ \t]*\}\n`, "", 1,
 				"the CTRL-A popup cleanup")
 		},
 		func() error {
@@ -280,7 +277,7 @@ func NoWildMenu(text []byte, w io.Writer) ([]byte, error) {
 				1, "the popup teardown on any other key")
 		},
 		func() error {
-			return c.sub(`^[ \t]*int skip_pum_redraw = FALSE;\n\n?`, "", 1,
+			return c.sub(`^[ \t]*int skip_pum_redraw = FALSE;\n`, "", 1,
 				"the popup redraw flag")
 		},
 		func() error {

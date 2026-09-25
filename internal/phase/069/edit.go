@@ -108,7 +108,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal(w69lit16, w69lit17, "## expanding to every file in the argument list")
 	})
 	e.InFunction("win_init_some", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*newp->w_alist = oldp->w_alist;\n[ \t]*\+\+newp->w_alist->al_refcount;\n[ \t]*newp->w_arg_idx = oldp->w_arg_idx;\n\n?`, 1,
+		e.Cut(`(?m)^[ \t]*newp->w_alist = oldp->w_alist;\n[ \t]*\+\+newp->w_alist->al_refcount;\n[ \t]*newp->w_arg_idx = oldp->w_arg_idx;\n`, 1,
 			"a new window inheriting the argument list")
 	})
 	e.Lines(`curwin->w_arg_idx = -1;`, 1, "the index a swap-file quit invalidated")
@@ -129,14 +129,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// These are the last two mentions, and without them alist_init,
 	// global_alist, alist_T and aentry_T all lose their readers.
 	e.InFunction("common_init_2", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*alist_init\(&global_alist\);\n[ \t]*global_alist\.id = 0;\n\n?`, 1, "the argument list set up at startup")
+		e.Cut(`(?m)^[ \t]*alist_init\(&global_alist\);\n[ \t]*global_alist\.id = 0;\n`, 1, "the argument list set up at startup")
 	})
 	e.InFunction("win_alloc_firstwin", func(e *edit.E) {
 		e.Lines(`curwin->w_alist = &global_alist;`, 1, "the one window pointing at it")
 	})
 
 	// and the count message, which one file argument can never satisfy
-	e.Cut(`(?m)^[ \t]*if \(\(global_alist\.al_ga\.ga_len\) > 1 && !silent_mode\)\n[ \t]*\{\n[ \t]*printf\(_\("%d files to edit\\n"\), \(global_alist\.al_ga\.ga_len\)\);\n[ \t]*\}\n\n?`, 1,
+	e.Cut(`(?m)^[ \t]*if \(\(global_alist\.al_ga\.ga_len\) > 1 && !silent_mode\)\n[ \t]*\{\n[ \t]*printf\(_\("%d files to edit\\n"\), \(global_alist\.al_ga\.ga_len\)\);\n[ \t]*\}\n`, 1,
 		"the \"N files to edit\" message at startup")
 	return e.Done()
 }

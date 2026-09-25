@@ -102,7 +102,7 @@ func NoCindent(text []byte, w io.Writer) ([]byte, error) {
 
 	// want_cindent is (get_can_cindent() && cindent_on()), so it is FALSE.
 	for _, c := range []struct{ pat, what string }{
-		{`(?m)^[ \t]*want_cindent = \(get_can_cindent\(\) && cindent_on\(\)\);\n\n?`,
+		{`(?m)^[ \t]*want_cindent = \(get_can_cindent\(\) && cindent_on\(\)\);\n`,
 			"ins_compl_stop's want_cindent"},
 		{`(?m)[ \t]*if \(want_cindent\)\n[ \t]*\{\n` +
 			`[ \t]*do_c_expr_indent\(\);\n[ \t]*want_cindent = FALSE;\n[ \t]*\}\n`,

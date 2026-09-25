@@ -24,9 +24,9 @@ var (
 	ucmdFindA = regexp.MustCompile(`(?m)^[ \t]*p = find_ucmd\(eap, p, NULL, xp, complp\);\n`)
 	ucmdFindB = regexp.MustCompile(`(?m)^[ \t]*p = find_ucmd\(eap, p, full, NULL, NULL\);\n`)
 	ucmdCtx   = regexp.MustCompile(
-		`(?m)^[ \t]*case CMD_command:\n[ \t]*return set_context_in_user_cmd\(xp, arg\);\n\n?` +
+		`(?m)^[ \t]*case CMD_command:\n[ \t]*return set_context_in_user_cmd\(xp, arg\);\n` +
 			`[ \t]*case CMD_delcommand:\n[ \t]*xp->xp_context = EXPAND_USER_COMMANDS;\n` +
-			`[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n\n?`)
+			`[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n`)
 	ucmdLeft = regexp.MustCompile(`\b(?:do_ucmd|ucmds)\b`)
 )
 
@@ -45,7 +45,7 @@ func NoUcmd(text []byte, w io.Writer) ([]byte, error) {
 	if c < 0 {
 		return nil, fmt.Errorf("noucmd: the user-command dispatch is unbalanced")
 	}
-	body := cutil.Dedent4(text[o+bytes.IndexByte(text[o:], '\n')+1 : bytes.LastIndexByte(text[:c], '\n')+1])
+	body := text[o+bytes.IndexByte(text[o:], '\n')+1 : bytes.LastIndexByte(text[:c], '\n')+1]
 	end := c + bytes.IndexByte(text[c:], '\n') + 1
 	var buf []byte
 	buf = append(buf, text[:k]...)

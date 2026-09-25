@@ -125,12 +125,6 @@ func noencDropIfBlock(text []byte, pat, what string) ([]byte, error) {
 	for end < len(text) && (text[end] == ' ' || text[end] == '\t') {
 		end++
 	}
-	if end < len(text) && text[end] == '\n' {
-		end++
-	}
-	if end < len(text) && text[end] == '\n' {
-		end++
-	}
 	out := make([]byte, 0, len(text))
 	out = append(out, text[:m[0]]...)
 	return append(out, text[end:]...), nil
@@ -203,11 +197,11 @@ func NoEnc(text []byte, w io.Writer) ([]byte, error) {
 	if c3 < 0 {
 		return nil, fmt.Errorf("noenc: the latin1 arm is unbalanced")
 	}
-	body := cutil.Dedent4(text[o1+bytes.IndexByte(text[o1:], '\n')+1 : bytes.LastIndexByte(text[:c1], '\n')+1])
+	body := text[o1+bytes.IndexByte(text[o1:], '\n')+1 : bytes.LastIndexByte(text[:c1], '\n')+1]
 	buf = nil
 	buf = append(buf, text[:k]...)
 	buf = append(buf, body...)
-	text = append(buf, bytes.TrimLeft(text[c3+1:], "\n")...)
+	text = append(buf, text[c3+1:]...)
 	fmt.Fprintln(w, "  noenc        the latin1 and DBCS character paths lose their only caller")
 
 	if !bytes.Contains(text, []byte(dropFencs)) {

@@ -56,7 +56,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.DropIf(`(?m)^[ \t]*if \(curbufIsChanged\(\) && curbuf->b_nwindows <= 1\)$`, "gf writing the buffer first")
 	})
 	e.InFunction("do_bang", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*if \(addr_count == 0\)\n[ \t]*\{\n[ \t]*msg_scroll = FALSE;\n[ \t]*autowrite_all\(\);\n[ \t]*msg_scroll = scroll_save;\n[ \t]*\}\n\n?`, 1, ":! writing all buffers first")
+		e.Cut(`(?m)^[ \t]*if \(addr_count == 0\)\n[ \t]*\{\n[ \t]*msg_scroll = FALSE;\n[ \t]*autowrite_all\(\);\n[ \t]*msg_scroll = scroll_save;\n[ \t]*\}\n`, 1, ":! writing all buffers first")
 	})
 	e.InFunction("ex_stop", func(e *edit.E) {
 		e.Cut(`(?m)^[ \t]*if \(!eap->forceit\)\n[ \t]*\{\n[ \t]*autowrite_all\(\);\n[ \t]*\}\n`, 1, ":stop writing all buffers first")
@@ -153,7 +153,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.Literal(" || (wtime < 0 && !did_start_blocking))", ")", "an interrupted indefinite wait returning instead of blocking again")
 	})
 	e.InFunction("gotchars", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*for \(i = 0; i < state\.buflen; \+\+i\)\n[ \t]*\{\n[ \t]*updatescript\(state\.buf\[i\]\);\n[ \t]*\}\n\n?`, 1, "typed characters passed to a script file and a swap sync that are both gone")
+		e.Cut(`(?m)^[ \t]*for \(i = 0; i < state\.buflen; \+\+i\)\n[ \t]*\{\n[ \t]*updatescript\(state\.buf\[i\]\);\n[ \t]*\}\n`, 1, "typed characters passed to a script file and a swap sync that are both gone")
 	})
 	e.InFunction("wait_return", func(e *edit.E) {
 		for _, line := range []string{"save_scriptout = scriptout;", "scriptout = NULL;", "scriptout = save_scriptout;"} {
@@ -192,10 +192,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.DropIf(`(?m)^[ \t]*if \(\*curbuf->b_p_ft == NUL\)$`, "entering a buffer with no 'filetype' forgetting FileType")
 	})
 	e.InFunction("do_ecmd", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*curbuf->b_did_filetype = false;\n\n?`, 1, ":edit forgetting FileType")
+		e.Cut(`(?m)^[ \t]*curbuf->b_did_filetype = false;\n`, 1, ":edit forgetting FileType")
 	})
 	e.InFunction("readfile", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*curbuf->b_au_did_filetype = false;\n\n?`, 1, "reading forgetting FileType")
+		e.Cut(`(?m)^[ \t]*curbuf->b_au_did_filetype = false;\n`, 1, "reading forgetting FileType")
 		e.DropIf(`(?m)^[ \t]*if \(!curbuf->b_au_did_filetype && \*curbuf->b_p_ft != NUL\)$`, "reading firing FileType")
 	})
 	e.InFunction("did_set_string_option", func(e *edit.E) {

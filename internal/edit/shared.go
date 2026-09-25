@@ -498,7 +498,7 @@ func (e *E) FoldWalk(fn, v, head, what string, n int) {
 				e.Die("%s -- the body has a `%s;` that binds to the walk being removed, not to anything inside it", what, bad)
 				return
 			}
-			Body := cutil.Dedent4(raw)
+			Body := raw
 			end := IndexFrom(e.buf, []byte("\n"), c) + 1
 			Out := append([]byte{}, e.buf[:m[0]]...)
 			Out = append(Out, e.buf[m[2]:m[3]]...)
@@ -588,7 +588,7 @@ func (e *E) FoldWalks(headRe string, ok func([]string) bool, subst func([]string
 				g[k] = string(e.buf[m[2*k]:m[2*k+1]])
 			}
 		}
-		Body := cutil.Dedent4(raw)
+		Body := raw
 		end := IndexFrom(e.buf, []byte("\n"), c) + 1
 		Out := append([]byte{}, e.buf[:m[0]]...)
 		Out = append(Out, e.buf[m[2]:m[3]]...)
@@ -824,7 +824,7 @@ func (e *E) FoldAlwaysElse(pattern, what string) {
 	}
 	bodyStart := strings.Index(t[o:], "\n") + o + 1
 	bodyEnd := strings.LastIndex(t[:c], "\n") + 1
-	Body := cutil.Dedent4([]byte(t[bodyStart:bodyEnd]))
+	Body := []byte(t[bodyStart:bodyEnd])
 	e.Say(what)
 	e.buf = []byte(t[:k] + string(Body) + t[strings.Index(t[c2:], "\n")+c2+1:])
 }

@@ -286,7 +286,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		Inner := s[o+1+mm[2] : o+1+mm[3]]
 		k := bytes.LastIndexByte(s[:bytes.LastIndexByte(s[:i], '\n')], '\n') + 1
 		end := c + bytes.IndexByte(s[c:], '\n') + 1
-		ded := cutil.Dedent4(append(bytes.TrimRight(Inner, " \n"), '\n'))
+		ded := append(bytes.TrimRight(Inner, " \n"), '\n')
 		Out = append([]byte(nil), s[:k+1]...)
 		Out = append(Out, ded...)
 		Out = append(Out, s[end:]...)

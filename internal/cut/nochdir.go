@@ -132,7 +132,7 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 	if text, err = cutil.DropIf(text, `(?m)^[ \t]*if \(awp->w_localdir != NULL\)$`, 1); err != nil {
 		return nil, err
 	}
-	if text, err = cutCounted(text, `(?m)^[ \t]*win_fix_current_dir\(\);\n\n?`,
+	if text, err = cutCounted(text, `(?m)^[ \t]*win_fix_current_dir\(\);\n`,
 		"nochdir", "its unconditional call", 1); err != nil {
 		return nil, err
 	}
@@ -161,7 +161,7 @@ func NoChdir(text []byte, w io.Writer) ([]byte, error) {
 		return nil, err
 	}
 	for _, g := range []struct{ pat, what string }{
-		{`(?m)^static char_u \*start_dir = NULL;\n\n?`, "start_dir itself"},
+		{`(?m)^static char_u \*start_dir = NULL;\n`, "start_dir itself"},
 		{`(?m)^[ \t]*vim_free\(start_dir\);\n`, "the free of it"},
 	} {
 		if text, err = cutCounted(text, g.pat, "nochdir", "start_dir -- "+g.what, 1); err != nil {

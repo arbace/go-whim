@@ -246,7 +246,7 @@ var (
 			`[ \t]*\}\n` +
 			`[ \t]*\}\n`)
 	complkeysPumArm = regexp.MustCompile(
-		`[ \t]*if \(pum_visible\(\)\)\n[ \t]*\{\n[ \t]*goto docomplete;\n[ \t]*\}\n\n?`)
+		`[ \t]*if \(pum_visible\(\)\)\n[ \t]*\{\n[ \t]*goto docomplete;\n[ \t]*\}\n`)
 )
 
 // NoComplKeys takes the completion keys away.

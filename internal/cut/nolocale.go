@@ -14,7 +14,7 @@ var nolocaleEdits = []struct {
 	what, pat, repl string
 	want            int
 }{
-	{"the setlocale at startup", `(?m)^[ \t]*init_locale\(\);\n\n?`, "", 1},
+	{"the setlocale at startup", `(?m)^[ \t]*init_locale\(\);\n`, "", 1},
 	// NOT a deletion.  set_init_default_encoding() did three things: ask the
 	// locale, re-initialise the multibyte layer for whatever it answered, and
 	// write that back as the option's default.  Only the first is locale.  The
@@ -28,7 +28,7 @@ var nolocaleEdits = []struct {
 	{"'encoding' defaults to utf-8 instead of latin1",
 		`(?m)(\{"encoding",[^\n]* \{\(char_u \*\))"latin1"`, `${1}"utf-8"`, 1},
 	{"locale-aware collation in :sort",
-		`(?m)[ \t]*if \(sort_lc\)\n[ \t]*\{\n[ \t]*return strcoll\([^\n]*\n[ \t]*\}\n\n?`, "", 1},
+		`(?m)[ \t]*if \(sort_lc\)\n[ \t]*\{\n[ \t]*return strcoll\([^\n]*\n[ \t]*\}\n`, "", 1},
 	{"the $LANG-gated maintainer line in :messages",
 		`(?m)[ \t]*s = \(char_u \*\)getenv\(\(char \*\)\(\(char_u \*\)"LANG"\)\);\n` +
 			`[ \t]*if \(s != NULL && \*s != NUL\)\n[ \t]*\{\n[ \t]*msg_attr\([^\n]*\n[ \t]*\}\n`, "", 1},

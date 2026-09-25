@@ -103,7 +103,7 @@ var nofencEdits = []struct {
 	{"the local that asked which encoding option was being set",
 		`(?m)^[ \t]*char_u[ \t]*\*\*gvarp;\n`, "", 1},
 	{"its one assignment",
-		`(?m)^[ \t]*gvarp = \(char_u \*\*\)get_option_varp_scope\(args->os_idx, OPT_GLOBAL\);\n\n?`,
+		`(?m)^[ \t]*gvarp = \(char_u \*\*\)get_option_varp_scope\(args->os_idx, OPT_GLOBAL\);\n`,
 		"", 1},
 }
 
@@ -127,9 +127,6 @@ func dropIfBlock(text []byte, pat, what string) ([]byte, error) {
 	}
 	end := closing + 1
 	for end < len(text) && (text[end] == ' ' || text[end] == '\t') {
-		end++
-	}
-	if end < len(text) && text[end] == '\n' {
 		end++
 	}
 	out := make([]byte, 0, len(text))

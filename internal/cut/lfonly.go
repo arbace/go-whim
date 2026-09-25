@@ -43,7 +43,7 @@ func (e ed) keepThen(seg []byte, pattern, what string) ([]byte, error) {
 	if c2 < 0 {
 		return nil, fmt.Errorf("%s: %s -- the else block is unbalanced", e.tool, what)
 	}
-	body := cutil.Dedent4(seg[o+bytes.IndexByte(seg[o:], '\n')+1 : bytes.LastIndexByte(seg[:c], '\n')+1])
+	body := seg[o+bytes.IndexByte(seg[o:], '\n')+1 : bytes.LastIndexByte(seg[:c], '\n')+1]
 	e.say(what)
 	out := make([]byte, 0, len(seg))
 	out = append(out, seg[:k]...)
@@ -220,7 +220,7 @@ func LfOnly(text []byte, w io.Writer) ([]byte, error) {
 
 	text, err = e.inFunction(text, "open_buffer", func(s []byte) ([]byte, error) {
 		var err error
-		if s, err = e.subCount(s, `^[ \t]*int[ \t]+save_bin = curbuf->b_p_bin;\n\n?`,
+		if s, err = e.subCount(s, `^[ \t]*int[ \t]+save_bin = curbuf->b_p_bin;\n`,
 			"open_buffer saving 'binary'", 2); err != nil {
 			return nil, err
 		}

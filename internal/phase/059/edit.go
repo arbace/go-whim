@@ -66,9 +66,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"completing on 'wildchar', 'wildcharm' or the wildcard trigger")
 		e.DropIf(fmt.Sprintf(`(?m)^[ \t]*if \(c == [ \t]*%s[ \t]*&& KeyTyped\)$`, edit.Key("k", "B")),
 			"S-Tab completing backwards")
-		e.Cut(`(?m)^[ \t]*case Ctrl_D:\n[ \t]*if \(showmatches\(&xpc, TRUE\) == EXPAND_NOTHING\)\n[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n\n?[ \t]*redrawcmd\(\);\n[ \t]*continue;\n\n?`,
+		e.Cut(`(?m)^[ \t]*case Ctrl_D:\n[ \t]*if \(showmatches\(&xpc, TRUE\) == EXPAND_NOTHING\)\n[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n[ \t]*redrawcmd\(\);\n[ \t]*continue;\n`,
 			1, "CTRL-D listing matches")
-		e.Cut(`(?m)^[ \t]*case Ctrl_A:\n[ \t]*if \(nextwild\(&xpc, WILD_ALL, 0, firstc != '@'\) == FAIL\)\n[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n[ \t]*xpc\.xp_context = EXPAND_NOTHING;\n[ \t]*did_wild_list = FALSE;\n[ \t]*goto cmdline_changed;\n\n?`,
+		e.Cut(`(?m)^[ \t]*case Ctrl_A:\n[ \t]*if \(nextwild\(&xpc, WILD_ALL, 0, firstc != '@'\) == FAIL\)\n[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n[ \t]*xpc\.xp_context = EXPAND_NOTHING;\n[ \t]*did_wild_list = FALSE;\n[ \t]*goto cmdline_changed;\n`,
 			1, "CTRL-A inserting every match")
 		e.Sub(`(?m)^([ \t]*)if \(nextwild\(&xpc, WILD_LONGEST, 0, firstc != '@'\) == FAIL\)\n[ \t]*\{\n[ \t]*break;\n[ \t]*\}\n[ \t]*goto cmdline_changed;\n`,
 			"${1}break;\n", 1, "CTRL-L completing the longest match")
@@ -145,7 +145,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 
 	e.InFunction("didset_options2", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*check_opt_wim\(\);\n\n?`, 1, "startup parsing 'wildmode' into flags nothing reads")
+		e.Cut(`(?m)^[ \t]*check_opt_wim\(\);\n`, 1, "startup parsing 'wildmode' into flags nothing reads")
 	})
 	e.InFunction("expand_filename", func(e *edit.E) {
 		e.DropIf(`(?m)^[ \t]*if \(p_wic\)$`, "'wildignorecase' in filename globbing")

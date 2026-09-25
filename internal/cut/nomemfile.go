@@ -285,7 +285,7 @@ func NoMemfile(text []byte, w io.Writer) ([]byte, error) {
 	buf = nil
 	buf = append(buf, text[:span[0]]...)
 	buf = append(buf, fn[:fk]...)
-	buf = append(buf, bytes.TrimLeft(fn[fend:], "\n")...)
+	buf = append(buf, fn[fend:]...)
 	text = append(buf, text[span[1]:]...)
 	fmt.Fprintln(w, "  nomemfile    preserve_exit stops announcing what it cannot preserve")
 

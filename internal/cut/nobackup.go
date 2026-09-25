@@ -33,15 +33,12 @@ func nobackupBlock(text []byte, anchor, what string, keepBody bool) ([]byte, int
 	if regexp.MustCompile(`^[ \t]*\n[ \t]*else\b`).Match(tail) {
 		return nil, 0, fmt.Errorf("nobackup: %s -- has an else", what)
 	}
-	if end < len(text) && text[end] == '\n' {
-		end++
-	}
 	n := bytes.Count(text[k:end], []byte{'\n'})
 	k = bytes.LastIndexByte(text[:k], '\n') + 1
 	out := make([]byte, 0, len(text))
 	out = append(out, text[:k]...)
 	if keepBody {
-		body := cutil.Dedent4(text[o+bytes.IndexByte(text[o:], '\n')+1 : bytes.LastIndexByte(text[:c], '\n')+1])
+		body := text[o+bytes.IndexByte(text[o:], '\n')+1 : bytes.LastIndexByte(text[:c], '\n')+1]
 		out = append(out, body...)
 	}
 	return append(out, text[end:]...), n, nil

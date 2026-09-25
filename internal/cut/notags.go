@@ -29,7 +29,7 @@ var notagsEdits = []struct {
 	{"help-tag completion on the command line",
 		`(?m)[ \t]*if \(xp->xp_context == EXPAND_HELP\)\n[ \t]*\{\n` +
 			`[ \t]*if \(find_help_tags\([^\n]*\n[ \t]*\{\n[ \t]*return OK;\n[ \t]*\}\n` +
-			`[ \t]*return FAIL;\n[ \t]*\}\n\n?`, "", 1},
+			`[ \t]*return FAIL;\n[ \t]*\}\n`, "", 1},
 	{"the ten command cases that asked for a tag context",
 		`(?m)(?:[ \t]*case CMD_(?:tag|stag|ptag|ltag|tselect|stselect|ptselect|tjump|stjump|ptjump):\n)+` +
 			`[ \t]*if \(vim_strchr\(p_wop, WOP_TAGFILE\) != NULL\)\n` +
@@ -37,7 +37,7 @@ var notagsEdits = []struct {
 			`[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n`, "", 1},
 	{"CTRL-X CTRL-] tag completion in insert mode",
 		`(?m)[ \t]*case \(5 \+ CTRL_X_WANT_IDENT\):\n` +
-			`[ \t]*get_next_tag_completion\(\);\n[ \t]*break;\n\n?`, "", 1},
+			`[ \t]*get_next_tag_completion\(\);\n[ \t]*break;\n`, "", 1},
 	{"-complete=tag as a name :command accepts",
 		`(?m)[ \t]*\{\(EXPAND_TAGS\), \{\(\(char_u \*\)"tag"\),[^\n]*\n`, "", 1},
 }

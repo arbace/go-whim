@@ -54,7 +54,7 @@ var atStartEdits = []struct{ pat, what string }{
 	// say so -- but the length it was measured for is gone.
 	{`(?m)^[ \t]*int[ \t]*startstr_len = 0;\n`, "startstr_len's declaration"},
 	{`(?m)^[ \t]*if \(startstr != NULL\)\n` +
-		`[ \t]*\{\n[ \t]*startstr_len = \(int\)strlen\(\(char \*\)\(startstr\)\);\n[ \t]*\}\n\n?`, "startstr_len's one assignment"},
+		`[ \t]*\{\n[ \t]*startstr_len = \(int\)strlen\(\(char \*\)\(startstr\)\);\n[ \t]*\}\n`, "startstr_len's one assignment"},
 }
 
 var (
@@ -121,7 +121,7 @@ func NoHome(text []byte, w io.Writer) ([]byte, error) {
 	if c3 < 0 {
 		return nil, fmt.Errorf("nohome: expand_env_esc's ~user arm is unbalanced")
 	}
-	body := cutil.Dedent4(text[o1+bytes.IndexByte(text[o1:], '\n')+1 : bytes.LastIndexByte(text[:c1], '\n')+1])
+	body := text[o1+bytes.IndexByte(text[o1:], '\n')+1 : bytes.LastIndexByte(text[:c1], '\n')+1]
 	var buf []byte
 	buf = append(buf, text[:k]...)
 	buf = append(buf, body...)

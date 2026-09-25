@@ -53,7 +53,7 @@ func (e ed) keepThenChain(seg []byte, pattern, what string) ([]byte, error) {
 	if head != "if" {
 		return nil, fmt.Errorf("%s: %s -- not a plain if", e.tool, what)
 	}
-	body := cutil.Dedent4(seg[o+bytes.IndexByte(seg[o:], '\n')+1 : bytes.LastIndexByte(seg[:c], '\n')+1])
+	body := seg[o+bytes.IndexByte(seg[o:], '\n')+1 : bytes.LastIndexByte(seg[:c], '\n')+1]
 	end := c + bytes.IndexByte(seg[c:], '\n') + 1
 	for {
 		nxt := elseHere.FindIndex(seg[end:])

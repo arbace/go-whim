@@ -36,7 +36,7 @@ var (
 	anyMouse      = regexp.MustCompile(`(?i)mouse`)
 	insScrollCase = regexp.MustCompile(
 		`(?m)[ \t]*case \(-\(\(KS_EXTRA\) \+ \(\(int\)\(KE_MOUSE(?:DOWN|UP|LEFT|RIGHT)\) << 8\)\)\):\n` +
-			`[ \t]*ins_mousescroll\([^;]*\);\n[ \t]*break;\n\n?`)
+			`[ \t]*ins_mousescroll\([^;]*\);\n[ \t]*break;\n`)
 )
 
 // NoMouse removes the mouse.
@@ -67,7 +67,7 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 		insCases.WriteString(ke(k))
 	}
 	if text, err = cutCounted(text,
-		"(?m)"+insCases.String()+`[ \t]*ins_mouse\(c\);\n[ \t]*break;\n\n?`,
+		"(?m)"+insCases.String()+`[ \t]*ins_mouse\(c\);\n[ \t]*break;\n`,
 		"nomouse", "edit()'s mouse cases", 1); err != nil {
 		return nil, err
 	}
@@ -79,13 +79,13 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 
 	for _, c := range []struct{ pat, what string }{
 		{ke("KE_MIDDLEDRAG") + ke("KE_MIDDLERELEASE") +
-			`[ \t]*goto cmdline_not_changed;\n\n?`,
+			`[ \t]*goto cmdline_not_changed;\n`,
 			"getcmdline_int()'s middle drag and release"},
 		{ke("KE_MIDDLEMOUSE") +
 			`[ \t]*if \(!mouse_has\(MOUSE_COMMAND\)\)\n[ \t]*\{\n` +
 			`[ \t]*goto cmdline_not_changed;\n[ \t]*\}\n` +
 			`[ \t]*cmdline_paste\(0, TRUE, TRUE\);\n` +
-			`[ \t]*redrawcmd\(\);\n[ \t]*goto cmdline_changed;\n\n?`,
+			`[ \t]*redrawcmd\(\);\n[ \t]*goto cmdline_changed;\n`,
 			"getcmdline_int()'s middle-click paste"},
 		{ke("KE_LEFTDRAG") + ke("KE_LEFTRELEASE") +
 			ke("KE_RIGHTDRAG") + ke("KE_RIGHTRELEASE") +
@@ -94,14 +94,14 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 			`[ \t]*__attribute__\(\(fallthrough\)\);\n` +
 			ke("KE_LEFTMOUSE") + ke("KE_RIGHTMOUSE") +
 			`[ \t]*cmdline_left_right_mouse\(c, &ignore_drag_release\);\n` +
-			`[ \t]*goto cmdline_not_changed;\n\n?`,
+			`[ \t]*goto cmdline_not_changed;\n`,
 			"getcmdline_int()'s click and drag"},
 		{ke("KE_MOUSEDOWN") + ke("KE_MOUSEUP") + ke("KE_MOUSELEFT") +
-			ke("KE_MOUSERIGHT") + `[ \t]*goto cmdline_not_changed;\n\n?`,
+			ke("KE_MOUSERIGHT") + `[ \t]*goto cmdline_not_changed;\n`,
 			"getcmdline_int()'s scroll cases"},
 		{ke("KE_X1MOUSE") + ke("KE_X1DRAG") + ke("KE_X1RELEASE") +
 			ke("KE_X2MOUSE") + ke("KE_X2DRAG") + ke("KE_X2RELEASE") +
-			ke("KE_MOUSEMOVE") + `[ \t]*goto cmdline_not_changed;\n\n?`,
+			ke("KE_MOUSEMOVE") + `[ \t]*goto cmdline_not_changed;\n`,
 			"getcmdline_int()'s side-button cases"},
 		{`^[ \t]*int[ \t]+ignore_drag_release = TRUE;\n`, "ignore_drag_release"},
 		{`^[ \t]*ignore_drag_release = TRUE;\n`, "ignore_drag_release's other assignment"},
@@ -160,9 +160,6 @@ func NoMouse(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("nomouse: set_termname()'s mouse block is unbalanced")
 	}
 	end := c + bytes.IndexByte(text[c:], '\n') + 1
-	if end < len(text) && text[end] == '\n' {
-		end++
-	}
 	if !bytes.Contains(text[k:end], []byte("check_mouse_termcode")) {
 		return nil, fmt.Errorf("nomouse: set_termname()'s mouse block is not where this expects")
 	}

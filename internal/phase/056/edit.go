@@ -68,10 +68,10 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	// Completion for commands that are ex_ni, and for :set ft=.
 	e.InFunction("set_context_by_cmdname", func(e *edit.E) {
 		for _, c := range exNiCompletions {
-			e.Cut(fmt.Sprintf(`(?m)^[ \t]*case CMD_%s:\n[ \t]*xp->xp_context = EXPAND_\w+;\n[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n\n?`, c),
+			e.Cut(fmt.Sprintf(`(?m)^[ \t]*case CMD_%s:\n[ \t]*xp->xp_context = EXPAND_\w+;\n[ \t]*xp->xp_pattern = arg;\n[ \t]*break;\n`, c),
 				1, fmt.Sprintf("completing :%s, which is ex_ni", c))
 		}
-		e.Cut(`(?m)^[ \t]*case CMD_runtime:\n[ \t]*set_context_in_runtime_cmd\(xp, arg\);\n[ \t]*break;\n\n?`,
+		e.Cut(`(?m)^[ \t]*case CMD_runtime:\n[ \t]*set_context_in_runtime_cmd\(xp, arg\);\n[ \t]*break;\n`,
 			1, "completing :runtime, which is ex_ni")
 	})
 	e.InFunction("ExpandFromContext", func(e *edit.E) {

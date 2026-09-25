@@ -78,7 +78,7 @@ func NoCompl(text []byte, w io.Writer) ([]byte, error) {
 	if text, hit = replaceFirst(regexp.MustCompile(
 		`(?m)[ \t]*if \(c == Ctrl_T && ctrl_x_mode_thesaurus\(\)\)\n[ \t]*\{\n`+
 			`[ \t]*if \(has_compl_option\(FALSE\)\)\n[ \t]*\{\n`+
-			`[ \t]*goto docomplete;\n[ \t]*\}\n[ \t]*break;\n[ \t]*\}\n\n?`), text, ""); hit {
+			`[ \t]*goto docomplete;\n[ \t]*\}\n[ \t]*break;\n[ \t]*\}\n`), text, ""); hit {
 		n = 1
 	}
 	if text, hit = replaceFirst(regexp.MustCompile(

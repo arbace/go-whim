@@ -34,7 +34,7 @@ func keepBodyAt(text, blanked []byte, k, endAfter int) []byte {
 		return nil
 	}
 	_ = endAfter
-	body := cutil.Dedent4(text[o+bytes.IndexByte(text[o:], '\n')+1 : bytes.LastIndexByte(text[:c], '\n')+1])
+	body := text[o+bytes.IndexByte(text[o:], '\n')+1 : bytes.LastIndexByte(text[:c], '\n')+1]
 	end := c + bytes.IndexByte(text[c:], '\n') + 1
 	lineStart := bytes.LastIndexByte(text[:k], '\n') + 1
 	out := make([]byte, 0, len(text))
@@ -63,7 +63,7 @@ func NoOwner(text []byte, w io.Writer) ([]byte, error) {
 	if c < 0 {
 		return nil, fmt.Errorf("noowner: the mode masking is not where this expects")
 	}
-	body := cutil.Dedent4(text[o+bytes.IndexByte(text[o:], '\n')+1 : bytes.LastIndexByte(text[:c], '\n')+1])
+	body := text[o+bytes.IndexByte(text[o:], '\n')+1 : bytes.LastIndexByte(text[:c], '\n')+1]
 	if !bytes.Contains(body, []byte("perm &= 0777;")) {
 		return nil, fmt.Errorf("noowner: the mode masking is not where this expects")
 	}
@@ -112,7 +112,7 @@ func NoOwner(text []byte, w io.Writer) ([]byte, error) {
 	if c2 < 0 {
 		return nil, fmt.Errorf("noowner: the get_user_name else arm is unbalanced")
 	}
-	body = cutil.Dedent4(text[o+bytes.IndexByte(text[o:], '\n')+1 : bytes.LastIndexByte(text[:c], '\n')+1])
+	body = text[o+bytes.IndexByte(text[o:], '\n')+1 : bytes.LastIndexByte(text[:c], '\n')+1]
 	end := c2 + bytes.IndexByte(text[c2:], '\n') + 1
 	lineStart := bytes.LastIndexByte(text[:k], '\n') + 1
 	var buf []byte

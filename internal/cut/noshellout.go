@@ -16,7 +16,7 @@ var shelloutStubs = []struct{ name, body string }{
 	{"get_cmd_output", "    return NULL;"},
 }
 
-var delTempDir = regexp.MustCompile(`(?m)^[ \t]*vim_deltempdir\(\);[ \t]*\n\n?`)
+var delTempDir = regexp.MustCompile(`(?m)^[ \t]*vim_deltempdir\(\);[ \t]*\n`)
 
 // NoShellOut takes away every way to hand work to a shell.
 //

@@ -133,7 +133,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.FoldNever(`(?m)^[ \t]*if \(looks_like_mouse_start\)$`, "a deferred match winning over a real one")
 		e.Literal(" && mouse_index_found < 0", "", "the modifier scan waiting for a deferred mouse match")
 		e.FoldNever(`(?m)^[ \t]*else if \(idx == tc_len && mouse_index_found >= 0\)$`, "falling back to the deferred mouse match")
-		e.Cut(`(?m)^[ \t]*if \(key_name\[0\] == KS_MOUSE \|\| key_name\[0\] == KS_SGR_MOUSE \|\| key_name\[0\] == KS_SGR_MOUSE_RELEASE\)\n[ \t]*\{\n[ \t]*\}\n\n?`, 1,
+		e.Cut(`(?m)^[ \t]*if \(key_name\[0\] == KS_MOUSE \|\| key_name\[0\] == KS_SGR_MOUSE \|\| key_name\[0\] == KS_SGR_MOUSE_RELEASE\)\n[ \t]*\{\n[ \t]*\}\n`, 1,
 			"a mouse report being handled by an empty block")
 	})
 
@@ -143,7 +143,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.Literal("win_line(wp, lnum, srow, wp->w_height, 0, &spv)", "win_line(wp, lnum, srow, wp->w_height, 0)", "the first win_line call")
 	e.Literal("win_line(wp, lnum, srow, wp->w_height, wp->w_lines[idx].wl_size, &spv)",
 		"win_line(wp, lnum, srow, wp->w_height, wp->w_lines[idx].wl_size)", "the second win_line call")
-	e.Cut(`(?m)^typedef struct\n\{\n[ \t]*int[ \t]+spv_has_spell;\n\} spellvars_T;\n\n?`, 1, "spellvars_T itself")
+	e.Cut(`(?m)^typedef struct\n\{\n[ \t]*int[ \t]+spv_has_spell;\n\} spellvars_T;\n`, 1, "spellvars_T itself")
 
 	// the write-only statics
 	for _, s := range writeOnlyStatics {

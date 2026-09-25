@@ -78,7 +78,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	})
 	e.InFunction("mark_adjust_internal", func(e *edit.E) {
 		e.DropIf(`(?m)^[ \t]*for \(i = 0; i < win->w_jumplistlen; \+\+i\)$`, "line changes moving jump-list marks")
-		e.Cut(`(?m)^[ \t]*if \(\(cmdmod\.cmod_flags & CMOD_LOCKMARKS\) == 0\)\n[ \t]*\{\n[ \t]*\}\n\n?`, 1,
+		e.Cut(`(?m)^[ \t]*if \(\(cmdmod\.cmod_flags & CMOD_LOCKMARKS\) == 0\)\n[ \t]*\{\n[ \t]*\}\n`, 1,
 			"the now-empty 'lockmarks' test around them")
 	})
 	e.InFunction("mark_col_adjust", func(e *edit.E) {
@@ -88,14 +88,14 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.DropIf(`(?m)^[ \t]*for \(i = wp->w_jumplistlen - 1; i >= 0; --i\)$`, "a forgotten file leaving the jump list")
 	})
 	e.InFunction("fmarks_check_names", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*for \(\(wp\) = firstwin; \(wp\) != NULL; \(wp\) = \(wp\)->w_next\)\s*\n[ \t]*\{\n[ \t]*for \(i = 0; i < wp->w_jumplistlen; \+\+i\)\n[ \t]*\{\n[ \t]*fmarks_check_one\(&wp->w_jumplist\[i\], name, buf\);\n[ \t]*\}\n[ \t]*\}\n\n?`,
+		e.Cut(`(?m)^[ \t]*for \(\(wp\) = firstwin; \(wp\) != NULL; \(wp\) = \(wp\)->w_next\)\s*\n[ \t]*\{\n[ \t]*for \(i = 0; i < wp->w_jumplistlen; \+\+i\)\n[ \t]*\{\n[ \t]*fmarks_check_one\(&wp->w_jumplist\[i\], name, buf\);\n[ \t]*\}\n[ \t]*\}\n`,
 			1, "a named buffer resolving jump-list file names")
 	})
 	e.InFunction("win_init", func(e *edit.E) {
 		e.Cut(`(?m)^[ \t]*copy_jumplist\(oldp, newp\);\n`, 1, "a new window copying the jump list")
 	})
 	e.InFunction("win_free", func(e *edit.E) {
-		e.Cut(`(?m)^[ \t]*free_jumplist\(wp\);\n\n?`, 1, "a closed window freeing the jump list")
+		e.Cut(`(?m)^[ \t]*free_jumplist\(wp\);\n`, 1, "a closed window freeing the jump list")
 	})
 	return e.Done()
 }

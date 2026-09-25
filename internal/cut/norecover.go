@@ -53,7 +53,7 @@ func unwrapIf(text []byte, pattern, what string, w io.Writer) ([]byte, error) {
 	if regexp.MustCompile(`^[ \t]*\n[ \t]*else\b`).Match(tail) {
 		return nil, fmt.Errorf("norecover: %s -- the block has an else", what)
 	}
-	body := cutil.Dedent4(text[o+bytes.IndexByte(text[o:], '\n')+1 : bytes.LastIndexByte(text[:c], '\n')+1])
+	body := text[o+bytes.IndexByte(text[o:], '\n')+1 : bytes.LastIndexByte(text[:c], '\n')+1]
 	end := c + bytes.IndexByte(text[c:], '\n') + 1
 	fmt.Fprintf(w, "  norecover    %s, %d lines that always ran\n",
 		what, bytes.Count(text[k:end], []byte{'\n'}))
@@ -79,7 +79,7 @@ func keepElse(text []byte, pattern, what string, w io.Writer) ([]byte, error) {
 	if c2 < 0 {
 		return nil, fmt.Errorf("norecover: %s -- the else block is unbalanced", what)
 	}
-	body := cutil.Dedent4(text[o2+bytes.IndexByte(text[o2:], '\n')+1 : bytes.LastIndexByte(text[:c2], '\n')+1])
+	body := text[o2+bytes.IndexByte(text[o2:], '\n')+1 : bytes.LastIndexByte(text[:c2], '\n')+1]
 	end := c2 + bytes.IndexByte(text[c2:], '\n') + 1
 	fmt.Fprintf(w, "  norecover    %s, and the %d lines it guarded\n",
 		what, bytes.Count(text[k:c], []byte{'\n'})+1)
@@ -93,7 +93,7 @@ func keepElse(text []byte, pattern, what string, w io.Writer) ([]byte, error) {
 func NoRecover(text []byte, w io.Writer) ([]byte, error) {
 	text, err := cutCounted(text,
 		`(?m)[ \t]*case 'r':\n[ \t]*case 'L':\n`+
-			`[ \t]*recoverymode = 1;\n[ \t]*break;\n\n?`,
+			`[ \t]*recoverymode = 1;\n[ \t]*break;\n`,
 		"norecover", "-r and -L in command_line_scan", 1)
 	if err != nil {
 		return nil, err
