@@ -112,8 +112,8 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			"a new window inheriting the argument list")
 	})
 	e.Lines(`curwin->w_arg_idx = -1;`, 1, "the index a swap-file quit invalidated")
-	e.Cut(`(?m)^[ \t]*alist_T[ \t]+\*w_alist;\n[ \t]*int[ \t]+w_arg_idx;\n[ \t]*bool[ \t]+w_arg_idx_invalid;\n`, 1,
-		"the window's argument-list fields")
+	// The window's argument-list fields are named by nothing after this, and
+	// the sweep takes them.
 
 	// main() takes the first entry's name into params.fname and never reads it:
 	// the WHOLE guarded assignment goes, not just the line, or alist_name
