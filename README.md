@@ -1,216 +1,87 @@
 # go-whim
 
-One pipeline that takes vim apart on purpose, written in Go -- and the editor
-it leaves, three times over: in C, in Go and in Java, each required to answer
+A pipeline, written in Go, that takes vim apart on purpose -- and the editor it
+leaves, three times over: in C, in Go and in Java, each required to answer
 every test case as the others do.
 
 ```
-slim-vim.c  ──────── 0-82 ────────▶  q82  ──────── 83-173 ────────▶  whim-vim.c
-(input)              an editor with no           an embeddable editor core:
-                     runtime to install          no filesystem, no libc it did
-                                                 not vendor, the text a tree
-
-whim-vim.c's core ── crefactor/togo ──┬──▶ editor/    the core in Go
-                                      └──▶ jeditor/   the core in Java
+slim-vim.c ──── whim: phases, in order ────▶ whim-vim.c   an embeddable editor core
+                                                  │
+                  crefactor/togo ─────────────────┼──▶ editor/    the core in Go
+                                                  └──▶ jeditor/   the core in Java
 ```
 
-**The input is one file.** `slim-vim.c` is vim 9.2 as a single translation unit —
-no preprocessor, no comments, every body braced — produced by
-[arbace/slim-vim](https://github.com/arbace/slim-vim), whose own pipeline changes
-nothing about what the editor does. `make` asks that repository for its head,
-fetches `slim-vim.c` and vim's `LICENSE` at exactly that commit, and records the
-commit in `src/upstream.sha`.
+**The input** is `slim-vim.c`: vim 9.2 as one C translation unit, without
+preprocessor or comments, from [arbace/slim-vim](https://github.com/arbace/slim-vim).
+`make` fetches it, and vim's `LICENSE`, at that repository's head.
 
-**whim** (the `Makefile`, phases 0-173, 143 of them run) removes capability on purpose. **Phases 0-82** remove the runtime files, the eval layer,
-windows beyond one, buffers beyond one, the command-line arguments and 489 Ex
-commands. **Phases 83-128** turn what is
-left into an embeddable core: the filesystem goes, the signals and the terminal
-cross to a host block at the bottom of the same file, the libc that is pure
-computation is vendored, the core names no libc function at all, and the memline
-stops being pages and becomes a tree, measured with an instrument that reads the
-screen. **Phases 129-162** take out of
-the core what transpiling it to Go (`editor/`, `internal/gen/FINDINGS.md`) had to work
-around; all but one change nothing the editor does, and 142 drops the build
-date from the version line. **Phases 164-173** are for the translations: the
-dead code the Go's linters found, `bool` for the functions that answer yes or
-no, named key codes, the system headers nothing needs, and the `goto`s -- 185
-down to 49, each of those left out of a loop or switch, which Java says as a
-labeled break.
+**The pipeline** removes capability on purpose, one phase at a time: first
+whatever needs a runtime installed; then the filesystem, the libc the core
+names and the host, which crosses to a block at the bottom of the file; then
+what translating the core to Go and Java had to work around. Each phase is its
+steps, then a reachability sweep, then one canonical print, and
+`make whim-build` runs them all in one process in about fifteen minutes. The
+product, `src/whim-vim.c`, is tracked, and `make whim-build-check` requires it
+back byte for byte.
 
-**A phase is a function of the tree it is handed**, so the pipeline is its 143
-phases in order -- numbered 0-173: phases that edit nothing any more are
-records only, and phases with one purpose run as one (`doc/PIPELINE-COMPACTION.md`)
--- and it runs as one program: `make whim-build` applies them in
-memory and produces `whim-vim.c` in about fifteen minutes. Every phase is its steps, then
-the sweep -- one reachability closure over the parsed text, cutting what `main`
-cannot reach -- then the one canonical print. What answers for it
-is that the product is tracked — `make whim-build-check` requires the committed
-bytes back from the committed input.
+**The translations** are written by `crefactor/togo` from the core's C, not
+from each other: `editor/editor.go` and `jeditor/Editor.java` are generated,
+tracked, and refused by `make whim-editor-check` when stale.
 
-**Two test suites.** `make whim-test` is the quick one: 45 key sessions, each
-required to print the same screens from the working tree's build as from HEAD's,
-and from the Go editor as from the C, with a control that must move them; about
-five seconds. `make whim-test-wide` is the optional wide one: 240 cases in four
-groups -- keystrokes with startup arguments, every Ex command, command lines,
-and a real terminal -- held to the same comparisons. With `--java`
-(`make whim-test-java`, `go tool whim test --wide --java`) the Java editor is
-held to them too, with a control of its own. `make go-test` runs the Go
-packages' own tests, in both modules. The suite each phase was verified with while it was written -- check
-programs, and deltas declared in advance against recorded baselines -- was
-removed after `448e9a8`, the last commit that has it.
-
-## Documents
-
-- **`internal/phase/NNN/`** — one directory per phase, numbered in three digits:
-  **`GOAL.md`** — what it removes, why, and what was measured — and, where the
-  cut is a program, **`edit.go`**, which makes it a Go package of its own.
-- **`doc/GOALS.md`** — what holds for every phase. **Part I** is phases 0-82, **Part
-  II** phases 83 onwards with the core's own charter and rules; each has an index
-  of its phases, Part II's *Adding a phase* is the process for the next one, and
-  its appendix is the plan phases 83 onwards were built from (sections II.1-II.6).
-- **`internal/gen/FINDINGS.md`** — what transpiling the core to Go found, and which phase
-  took each finding out of the C; `internal/gen/CONVENTIONS.md` is how the C is written in
-  Go.
-- **`doc/JAVA.md`** — the Java editor: what Java needs that Go did not, the
-  design, and its four milestones, each as built.
-- **`CLAUDE.md`** — the working guide: the build, the pipeline, and what to know
-  before changing anything shared.
+**The tests**: `make whim-test` runs 45 key sessions on the C and the Go editor
+and requires the same screens, with a control that must move them;
+`make whim-test-wide` does the same with 240 cases; `make whim-test-java`
+holds the Java editor to them too. `make go-test` runs the Go packages' tests.
 
 ## Use
 
 ```sh
-make                 # fetch slim-vim.c if upstream moved, then bin/whim, the editor
-make whim-vim        # the C product's binary
-make slim-vim        # the input's binary, with the same one line
-make whim-build      # the 143 phases in one process: slim-vim.c -> whim-vim.c
-make whim-build-check  # the same build, required to give the committed bytes back
-make whim-editor-check # refuse an editor.go or Editor.java that is not what the generator writes
-make whim-test       # the quick suite: the C against HEAD's, the Go editor against the C
-make whim-test-wide  # the wide suite, 240 cases
-make whim-test-java  # the quick suite with the Java editor too
-make go-test         # the Go packages' tests, this module's and crefactor/'s
-make bin/whim-java   # the editor in Java, and a launcher: bin/whim-java [args]
-make jeditor.jar     # the same as one jar: java -jar jeditor.jar [args]
-make help            # every target, with a line each
-make editor.c        # whim-vim.c's core, cut at the line between core and host
-make editor/editor.go  # the core in Go, generated from editor.c
-make score           # bytes to store and libc symbols to provide, input and product
+make                   # fetch the input if it moved, build the Go editor, bin/whim
+make whim-build        # the pipeline: slim-vim.c -> whim-vim.c, editor.go, Editor.java
+make whim-build-check  # the same, required to give the committed bytes back
+make whim-editor-check # refuse a stale editor.go or Editor.java
+make whim-test         # the quick suite; whim-test-wide, whim-test-java
+make go-test           # the Go packages' tests
+make whim-vim          # the C editor's binary
+make bin/whim-java     # the Java editor, and a launcher: bin/whim-java [args]
+make jeditor.jar       # the same as one jar: java -jar jeditor.jar [args]
+make help              # every target
 ```
 
-`go tool whim build --to N --work D` leaves the tree after phase N for a phase
-program run by hand, and `--keep D` every boundary.
+## The editors
 
-## The Go editor
-
-`editor/` is the core, `editor.c`, in Go -- `package editor`, a library: an
-`Editor` is one editor, and a process holds as many as it makes, each on its
-own `Host`:
-- **`editor.go`**: **generated** by `go tool whim gen` (`internal/gen` on `modernc.org/cc/v4`):
-  every C function a Go function with the same name and control flow, so the
-  two read line for line; the C's file-scope objects are the fields of
-  `Editor`, and every function that reaches them is its method (`ed.x`,
-  `ed.f()`) -- `crefactor/togo`'s instance pass;
-- **`crt.go`**: the C runtime it is written against, `Ptr[T]` for a C pointer
-  that walks;
-- **`host.go`**: the `Host` interface -- the terminal, the clock, input, the
-  signals, output and the exit, in Go types -- and `Main(host, args)`; the
-  core's C-shaped calls to the host are one line of glue each;
-- **`format.go`**: vim's printf, `vim_snprintf`, which needs no host;
-- **`term/`**: the host on a terminal, from the Go runtime and standard library
-  only, and **`cmd/whim/`** the launcher, `editor.Main(term.New(), os.Args)`.
-
-An embedding program writes its own `Host` and calls `Main` (or `New` and runs
-it); a `Host` that must not end the process panics with `editor.Exit(code)` in
-its `Exit`, and `Main` returns the code. `host_test.go` runs the editor so,
-in-process -- four at once, under the race detector, none seeing another's
-text.
-
-It follows the current core. `make whim-build` writes `editor.go` -- and the
-Java editor's `jeditor/Editor.java` -- again after it produces `whim-vim.c`, and
-`make editor/editor.go` does it on its own.
-`make whim-editor-check` refuses a committed file that is not what the program
-writes, and `make` builds it into `bin/whim`.
-
-The Go is faithful, not yet idiomatic. The phases from 129 on removed from the C
-what it had to work around, and the generator and phases 164-168 then made the
-Go lint-clean and closer to idiomatic Go; `make whim-test` checks the Go editor
-against the C on every run.
-
-## The Java editor
-
-`jeditor/` is the same core in Java, written by `crefactor/togo`'s Java backend
-from the same `editor.c` and the same analysis as the Go -- not translated from
-the Go (`doc/JAVA.md`):
-- **`Editor.java`**: **generated** by `go tool whim gen` beside `editor.go`,
-  tracked, and held to `make whim-editor-check`: every C function a method of
-  `Editor`, a C pointer that walks a `BytePtr` (an array and an offset) or its
-  kin, the unsigned arithmetic by Java's unsigned helpers, the structs classes
-  copied as C copies them, the function pointers interfaces, the 49 gotos
-  labeled blocks;
-- **`rt/`**: the runtime it is written against -- `BytePtr` and its kin,
-  `Ptr<T>`, the growarray;
-- **`host/`**: the `Host` interface, vim's printf ported from `format.go`, and
-  the terminal host, which calls `ioctl`, `select`, `read` and `write` through
-  the Foreign Function & Memory API; **`Whim.java`** the glue and the launcher.
-
-`make bin/whim-java` builds it into `lib/java/` and a launcher script,
-`bin/whim-java`; `make jeditor.jar` packs the same as an executable jar at the
-top of the tree (`java -jar jeditor.jar`: its manifest grants the host its
-native access); `make whim-test-java` requires it to answer every case
-as the C does, and it does -- 45 of 45, and 240 of 240 with `--wide`.
+- **C**, `src/whim-vim.c`: the core, then the host from its first `#include` on.
+- **Go**, `editor/`: `package editor`, a library. An `Editor` is one editor on a
+  `Host` (the terminal, the clock, input, signals, output); a process holds as
+  many as it makes. `editor/term` is the terminal host, `editor/cmd/whim` the
+  launcher behind `bin/whim`.
+- **Java**, `jeditor/`: the same shape -- `Editor.java` on a `Host`, a runtime
+  (`rt/`, a C pointer as an array and an offset), and a terminal host through
+  the Foreign Function & Memory API.
 
 ## Requirements
 
-Linux, **Go 1.27**, **gcc** that links a static binary against **musl** (every
-binary is built `-O0 -fno-stack-protector -static -no-pie -s`), `git`,
-`curl`, and binutils (`readelf`, `nm`, `objcopy`, `strings`). Measured on Alpine
-Linux with gcc 15.2 and musl. The C front end is a fork of `modernc.org/cc/v4`
-carried as source in `crefactor/cc`, so nothing is downloaded to build it; `make`
-fetches `slim-vim.c`, and after that needs no network. The Java editor also
-needs a **JDK 22 or later** (the Foreign Function & Memory API); measured with
-OpenJDK 26. Nothing else needs Java.
-
-There is no Python in this repository and no agent: every phase is a program,
-and a phase that refuses stops the pass with its own report.
+Linux, **Go 1.27**, **gcc** linking statically against **musl**, `git`, `curl`,
+and binutils; measured on Alpine Linux. The Java editor also needs a **JDK 22
+or later**. The C front end is a fork of `modernc.org/cc/v4` carried as source,
+so after fetching the input nothing needs the network.
 
 ## Layout
 
 ```
-cmd/whim/        the toolset, every tool a subcommand: go tool whim <subcommand>
-internal/        the cutters, the plan (internal/build), and the phases:
-                 internal/phase/NNN/ (GOAL.md, and edit.go where its cut is a
-                 program) and internal/phase/STAGES.md, the record of the
-                 stages there were
-crefactor/       the generic C refactoring library, a Go module of its own
-                 that knows no code base: cc (the forked C front end), cemit
-                 (the canonical printer), sweep, pipeline (the driver), edit
-                 (the text verbs phases are written in), xform (generic
-                 transformations), togo (the C-to-Go translator), reach (the
-                 dead-code reporter), ccx (what C leaves a translation to
-                 decide -- pointer casts, evaluation order -- partitioned) and
-                 dead (funcreach, gcc's unused warnings)
-internal/whim/   what that library is told about vim: roots, names, knobs
-editor/          the core transpiled into Go, package editor: the runtime, the
-                 Host interface; term/ the terminal host, cmd/whim/ the launcher
-jeditor/         the core in Java: Editor.java (generated, tracked), rt/ the
-                 runtime, host/ the Host, vim's printf and the terminal host,
-                 Whim.java the glue and launcher, jeditor.go the Go that builds it
-internal/gen/    the generator of editor/editor.go (go tool whim gen: crefactor/togo
-                 with whim.Gen), pre/ (whim pre: ccx's reports on an editor.c),
-                 sigs.md, CONVENTIONS.md and FINDINGS.md
-Makefile         the whole build: the input, the pipeline, the binaries, the editor
-doc/             GOALS.md (what holds for every phase), AGENDA.md (what is not
-                 done, in order, and what was declined, with why), GO-IDIOMS.md (how
-                 the Go editor could be idiomatic, measured and ranked; done or
-                 declined), JAVA.md (the Java backend: its design and milestones),
-                 and PIPELINE-COMPACTION.md (which phases could be dropped, merged,
-                 split or reordered, measured byte for byte)
-src/             the input and the product, their binaries and digests:
-                 whim-vim.c (the product, tracked; make editor.c cuts the core
-                 out of it), slim-vim.c (the input, fetched, not tracked),
-                 upstream.sha (the arbace/slim-vim commit slim-vim.c was
-                 fetched from), slim.sha (slim-vim.c's digest, from which
-                 whim-vim.c was produced), and the binaries slim-vim, whim-vim
+cmd/whim/        the toolset: go tool whim <subcommand>
+internal/        the plan, the phases (internal/phase/NNN/: GOAL.md, edit.go)
+                 and what the generic library is told about vim (internal/whim)
+crefactor/       the generic C refactoring library, a Go module of its own:
+                 the C front end, the canonical printer, the sweep, the driver,
+                 the transforms, the analyses, and togo, the C-to-Go-and-Java
+                 translator
+editor/          the editor in Go          jeditor/   the editor in Java
+src/             the input (fetched) and the product (tracked)
+doc/             GOALS.md (what holds for every phase), AGENDA.md (what is
+                 not done), JAVA.md, GO-IDIOMS.md, PIPELINE-COMPACTION.md
+CLAUDE.md        the working guide: the build, the pipeline, what to know
+                 before changing anything shared
 ```
 
 ## License
