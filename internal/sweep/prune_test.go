@@ -208,3 +208,17 @@ int main(int argc, char **argv)
 	has(t, out, `int used = 2;`, true)
 	compiles(t, out)
 }
+
+func TestPruneRecoverKeepsMembers(t *testing.T) {
+	// A struct layout is a disk format while ml_recover is defined.
+	src := `
+struct block0 { int b0_id; int b0_unused; };
+int ml_recover(void) { struct block0 b; b.b0_id = 1; return b.b0_id; }
+int main(void) { return ml_recover(); }
+`
+	out := prune(t, src)
+	has(t, out, `int b0_unused;`, true)
+	out = prune(t, strings.ReplaceAll(src, "ml_recover", "ml_read"))
+	has(t, out, `b0_unused`, false)
+	compiles(t, out)
+}

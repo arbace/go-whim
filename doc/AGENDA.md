@@ -27,6 +27,18 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   rerun. Feeding the keys so the typeahead is the same every run (all at once
   before the editor reads, or one read per key) would make it exact.
 
+- **The generic C refactorings, separated from vim's** (`doc/VIM-VS-GENERIC.md`).
+  12 phases are generic C, 93 mixed (most apply a generic kernel to targets vim
+  chooses), 57 vim-specific. The proposal: a library `internal/crefactor/`
+  (printer, sweep, text verbs, transformations, analysis, pipeline, Go
+  generation) and a vim side holding the plan, the cutters and one `Profile`
+  value that passes in what the library must not hard-code: the sweep's roots,
+  where the core ends, the truth constants, the allocator and free functions.
+  Nine steps, each byte-identical under `whim-build-check`, about 8-11 days;
+  the first is the sweep's roots as a parameter. Also found: the canonical
+  printer drops `#define` and resolves `#if` silently, and phases 164 and 168
+  each have their own test of whether a statement ends in a jump.
+
 ## Known stale, not yet scoped
 
 

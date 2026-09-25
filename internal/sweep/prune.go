@@ -658,6 +658,18 @@ func (a *analysis) guards() bool {
 
 // positional marks every struct some brace initialiser fills by position.
 func (a *analysis) positional(ast *cc.AST) {
+	// While ml_recover is defined the editor reads swap files another vim wrote:
+	// a struct layout is a disk format, and no member of any struct goes.
+	for _, e := range a.byKey["o:ml_recover"] {
+		if e.kind == 'F' {
+			for _, s := range a.ents {
+				if s.kind == 'S' {
+					s.pinAll = true
+				}
+			}
+			return
+		}
+	}
 	var mark func(key string)
 	marked := map[*ent]bool{}
 	mark = func(key string) {

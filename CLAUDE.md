@@ -149,10 +149,11 @@ src/               the input and the product: slim-vim.c (fetched, not tracked),
                    whim-vim.c (produced, tracked), their binaries slim-vim and
                    whim-vim, upstream.sha and slim.sha
 doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
-                   done, in order), and three surveys: AST-EDITING.md (the phases
+                   done, in order), and four surveys: AST-EDITING.md (the phases
                    editing the AST: not taken, to revisit), GO-IDIOMS.md (how the Go
-                   editor could be idiomatic, measured and ranked) and DSL.md (a language
-                   for phase edits: not a language but one Go verb set, since done)
+                   editor could be idiomatic, measured and ranked), DSL.md (a language
+                   for phase edits: not a language but one Go verb set, since done) and
+                   VIM-VS-GENERIC.md (which steps are generic C, and how to separate them)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
@@ -186,7 +187,7 @@ make help            # every target, with a line each
   after every phase** (there are no stages), and **the canonical print of what is left**
   (`internal/cemit`: one spelling per construct, and NO COMMENTS, of any kind),
   so every boundary that is C is in the one spelling phase 0 seeds with -- applied
-  in one process, in memory. Measured: 170 phases, **1,089 s**, 75,396 lines. A
+  in one process, in memory. Measured: 170 phases, **1,070 s**, 75,396 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`internal/sweep`'s `Prune`): the text parsed
