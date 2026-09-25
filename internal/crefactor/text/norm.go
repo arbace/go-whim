@@ -178,11 +178,13 @@ func ReplaceFirst(src, old, new []byte) []byte {
 	return append(out, src[b:]...)
 }
 
-// Contains reports whether a literal occurs, modulo whitespace.
-func Contains(src, needle []byte) bool { return len(Normalize(src).Spans(needle)) > 0 }
+// ContainsNorm reports whether a literal occurs, modulo whitespace.  (Contains,
+// in shared.go, is membership of a slice.)
+func ContainsNorm(src, needle []byte) bool { return len(Normalize(src).Spans(needle)) > 0 }
 
-// Index is where a literal first occurs, as a source offset, or -1.
-func Index(src, needle []byte) int {
+// IndexNorm is where a literal first occurs, modulo whitespace, as a source
+// offset, or -1.
+func IndexNorm(src, needle []byte) int {
 	spans := Normalize(src).Spans(needle)
 	if len(spans) == 0 {
 		return -1
@@ -190,12 +192,13 @@ func Index(src, needle []byte) int {
 	return spans[0][0]
 }
 
-// IndexFrom is Index, starting the search at a source offset.
-func IndexFrom(src, needle []byte, from int) int {
+// IndexNormFrom is IndexNorm, starting the search at a source offset.  (The
+// exact search is IndexFrom, in anchor.go.)
+func IndexNormFrom(src, needle []byte, from int) int {
 	if from < 0 || from > len(src) {
 		return -1
 	}
-	i := Index(src[from:], needle)
+	i := IndexNorm(src[from:], needle)
 	if i < 0 {
 		return -1
 	}

@@ -1,11 +1,9 @@
-package edit
+package text
 
 import (
 	"fmt"
 	"regexp"
 	"strings"
-
-	"github.com/arbace/go-whim/internal/cutil"
 )
 
 // The structural verbs: blocks found by brace matching and cut or rewritten
@@ -43,9 +41,9 @@ func (e *E) FoldWalk(fn, v, to, head string, n int, what string) {
 		}
 		for i := 0; i < n; i++ {
 			m := pat.FindSubmatchIndex(e.buf)
-			b := cutil.Blank(e.buf)
+			b := Blank(e.buf)
 			o := IndexFrom(e.buf, []byte("{"), m[0])
-			c := cutil.Match(b, o)
+			c := Match(b, o)
 			raw := e.buf[IndexFrom(e.buf, []byte("\n"), o)+1 : LastNewlineBefore(e.buf, c)+1]
 			if bad := BindsToWalk(raw); bad != "" {
 				e.Die("%s -- the body has a `%s;` that binds to the walk being removed, not to anything inside it", what, bad)
@@ -81,9 +79,9 @@ func (e *E) DropWalk(fn, head, repl string, n int, what string) {
 		}
 		for i := 0; i < n; i++ {
 			m := pat.FindIndex(e.buf)
-			b := cutil.Blank(e.buf)
+			b := Blank(e.buf)
 			o := IndexFrom(e.buf, []byte("{"), m[0])
-			c := cutil.Match(b, o)
+			c := Match(b, o)
 			end := IndexFrom(e.buf, []byte("\n"), c) + 1
 			out := append([]byte{}, e.buf[:m[0]]...)
 			out = append(out, repl...)
@@ -123,9 +121,9 @@ func (e *E) FoldWalks(headRe string, ok func([]string) bool, subst func([]string
 	total := len(ms)
 	for i := len(ms) - 1; i >= 0; i-- {
 		m := ms[i]
-		b := cutil.Blank(e.buf)
+		b := Blank(e.buf)
 		o := IndexFrom(e.buf, []byte("{"), m[0])
-		c := cutil.Match(b, o)
+		c := Match(b, o)
 		if c < 0 {
 			e.Die("%s -- unbalanced block", what)
 			return
@@ -165,14 +163,14 @@ func (e *E) ReplaceBlock(fn, anchorRe, repl, what string) {
 		}
 		ms := regexp.MustCompile(anchorRe).FindAllIndex(e.buf, -1)
 		if len(ms) != 1 {
-			e.Die("%s -- %d lines match %s, expected 1", what, len(ms), cutil.PyRepr(anchorRe))
+			e.Die("%s -- %d lines match %s, expected 1", what, len(ms), PyRepr(anchorRe))
 			return
 		}
 		m := ms[0]
 		k := LastNewlineBefore(e.buf, m[0]) + 1
-		b := cutil.Blank(e.buf)
+		b := Blank(e.buf)
 		o := IndexFrom(e.buf, []byte("{"), m[0])
-		c := cutil.Match(b, o)
+		c := Match(b, o)
 		if c < 0 {
 			e.Die("%s -- unbalanced block", what)
 			return
@@ -195,9 +193,9 @@ func (e *E) DropBareBlock(fn, stmt, what string) {
 		if e.Failed() {
 			return
 		}
-		b := cutil.Blank(e.buf)
+		b := Blank(e.buf)
 		if k := countBytes(e.buf, stmt); k != 1 {
-			e.Die("%s -- %s is in %s %d times, expected 1", what, cutil.PyRepr(stmt), fn, k)
+			e.Die("%s -- %s is in %s %d times, expected 1", what, PyRepr(stmt), fn, k)
 			return
 		}
 		i := IndexFrom(e.buf, []byte(stmt), 0)
@@ -216,7 +214,7 @@ func (e *E) DropBareBlock(fn, stmt, what string) {
 			e.Die("%s -- no enclosing block", what)
 			return
 		}
-		c := cutil.Match(b, j)
+		c := Match(b, j)
 		if c < 0 {
 			e.Die("%s -- unbalanced block", what)
 			return
@@ -230,7 +228,7 @@ func (e *E) DropBareBlock(fn, stmt, what string) {
 			if len(line) > 60 {
 				line = line[:60]
 			}
-			e.Die("%s -- the block still does real work: %s", what, cutil.PyRepr(line))
+			e.Die("%s -- the block still does real work: %s", what, PyRepr(line))
 			return
 		}
 		k := LastNewlineBefore(e.buf, j) + 1

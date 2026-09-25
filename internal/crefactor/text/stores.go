@@ -1,11 +1,9 @@
-package edit
+package text
 
 import (
 	"bytes"
 	"regexp"
 	"strings"
-
-	"github.com/arbace/go-whim/internal/cutil"
 )
 
 var (
@@ -43,7 +41,7 @@ func DeadStores(core []byte) ([]byte, []string) {
 		depth, open := 0, -1
 		for k, l := range lines {
 			Body[k] = -1
-			b := cutil.Blank([]byte(l))
+			b := Blank([]byte(l))
 			if depth == 0 && strings.TrimSpace(l) == "{" && k > 0 && strings.HasSuffix(lines[k-1], ")") {
 				open = k
 			}

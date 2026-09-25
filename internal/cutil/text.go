@@ -17,7 +17,7 @@ func Body(s []byte, name string) (opening, closing int, found, balanced bool) {
 
 func CollapseWS(s []byte) []byte { return text.CollapseWS(s) }
 
-func Contains(src, needle []byte) bool { return text.Contains(src, needle) }
+func Contains(src, needle []byte) bool { return text.ContainsNorm(src, needle) }
 
 func Count(src, needle []byte) int { return text.Count(src, needle) }
 
@@ -57,9 +57,9 @@ func HasDefinition(s []byte, name string) bool { return text.HasDefinition(s, na
 
 func Head(line string) string { return text.Head(line) }
 
-func Index(src, needle []byte) int { return text.Index(src, needle) }
+func Index(src, needle []byte) int { return text.IndexNorm(src, needle) }
 
-func IndexFrom(src, needle []byte, from int) int { return text.IndexFrom(src, needle, from) }
+func IndexFrom(src, needle []byte, from int) int { return text.IndexNormFrom(src, needle, from) }
 
 func Line(lines ...string) string { return text.Line(lines...) }
 

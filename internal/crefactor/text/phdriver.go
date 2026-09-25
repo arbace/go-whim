@@ -1,11 +1,9 @@
-package edit
+package text
 
 import (
 	"bytes"
 	"fmt"
 	"io"
-
-	"github.com/arbace/go-whim/internal/cutil"
 )
 
 // ph is the driver every Part II edit heredoc writes for itself at the top.
@@ -76,7 +74,7 @@ func (p Ph) Literal(text []byte, old, new string, n int, what string) ([]byte, e
 // inFunction applies an edit to ONE function's text and splices it back, so a
 // pattern that would match elsewhere in the file cannot.
 func (p Ph) InFunction(text []byte, name string, edit func([]byte) ([]byte, error)) ([]byte, error) {
-	a, z, ok := cutil.FindDefinition(text, cutil.Blank(text), name)
+	a, z, ok := FindDefinition(text, Blank(text), name)
 	if !ok {
 		return nil, p.Die("%s is not defined", name)
 	}

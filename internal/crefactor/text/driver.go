@@ -1,11 +1,9 @@
-package edit
+package text
 
 import (
 	"fmt"
 	"io"
 	"regexp"
-
-	"github.com/arbace/go-whim/internal/cutil"
 )
 
 // An E is one phase's edit in progress: the tree, the tag its report lines
@@ -216,18 +214,18 @@ func (e *E) Literal(old, new string, n int, what string) {
 // every boundary is printed canonically now, and the two give the same phase
 // output at every site that used either (measured on phases 60, 62, 64 and 65).
 func (e *E) FoldNever(pattern string, n int, what string) {
-	e.fold(pattern, n, what, cutil.FoldNever)
+	e.fold(pattern, n, what, FoldNever)
 }
 
 // FoldAlways is FoldNever's twin for the then arm; see there.
 func (e *E) FoldAlways(pattern string, n int, what string) {
-	e.fold(pattern, n, what, cutil.FoldAlways)
+	e.fold(pattern, n, what, FoldAlways)
 }
 
 // DropIf is FoldNever's twin for a test that is now always true and guards
 // nothing the tree still needs; see there.
 func (e *E) DropIf(pattern string, n int, what string) {
-	e.fold(pattern, n, what, cutil.DropIf)
+	e.fold(pattern, n, what, DropIf)
 }
 
 func (e *E) fold(pattern string, n int, what string, f func([]byte, string, int) ([]byte, error)) {
@@ -248,7 +246,7 @@ func (e *E) fold(pattern string, n int, what string, f func([]byte, string, int)
 }
 
 // FoldAlwaysElse turns `if (TRUE) { A } else { B }` into A, n times.
-// cutil.FoldAlways refuses an else arm, because a condition that has become
+// FoldAlways refuses an else arm, because a condition that has become
 // always-true makes its else unreachable and deciding that is this verb's
 // business, not a fold's.  A block with no else refuses, and so does an else
 // followed by another else.
@@ -267,14 +265,14 @@ func (e *E) FoldAlwaysElse(pattern string, n int, what string) {
 	}
 	for i := 0; i < n; i++ {
 		t := e.buf
-		b := cutil.Blank(t)
-		k, o, c, head, err := cutil.Guarded(t, b, re.FindIndex(t))
+		b := Blank(t)
+		k, o, c, head, err := Guarded(t, b, re.FindIndex(t))
 		if err != nil {
 			e.Die("%s -- %v", what, err)
 			return
 		}
 		if head != "if" {
-			e.Die("%s -- not a plain if: %s", what, cutil.PyRepr(head))
+			e.Die("%s -- not a plain if: %s", what, PyRepr(head))
 			return
 		}
 		end := IndexFrom(t, []byte("\n"), c) + 1
@@ -288,7 +286,7 @@ func (e *E) FoldAlwaysElse(pattern string, n int, what string) {
 			e.Die("%s -- expected an else", what)
 			return
 		}
-		c2 := cutil.Match(b, o2)
+		c2 := Match(b, o2)
 		after := IndexFrom(t, []byte("\n"), c2) + 1
 		if elseWord.Match(t[after:]) {
 			e.Die("%s -- the else is followed by another else", what)
@@ -316,7 +314,7 @@ func (e *E) InFunction(name string, acts func(*E)) {
 	if e.Err != nil {
 		return
 	}
-	a, z, ok := cutil.FindDefinition(e.buf, cutil.Blank(e.buf), name)
+	a, z, ok := FindDefinition(e.buf, Blank(e.buf), name)
 	if !ok {
 		e.Die("%s is not defined at file scope", name)
 		return
@@ -343,18 +341,18 @@ func (e *E) InTable(head string, acts func(*E)) {
 		return
 	}
 	if k := countBytes(e.buf, head); k != 1 {
-		e.Die("%s occurs %d times, expected 1", cutil.PyRepr(head), k)
+		e.Die("%s occurs %d times, expected 1", PyRepr(head), k)
 		return
 	}
 	a := IndexFrom(e.buf, []byte(head), 0)
-	b := cutil.Blank(e.buf)
+	b := Blank(e.buf)
 	o := IndexFrom(b, []byte("{"), a+len(head))
 	c := -1
 	if o >= 0 {
-		c = cutil.Match(b, o)
+		c = Match(b, o)
 	}
 	if c < 0 {
-		e.Die("%s -- no initialiser, or an unbalanced one", cutil.PyRepr(head))
+		e.Die("%s -- no initialiser, or an unbalanced one", PyRepr(head))
 		return
 	}
 	z := IndexFrom(e.buf, []byte("\n"), c) + 1
@@ -438,7 +436,7 @@ func (e *E) DeleteDefinition(name, what string) {
 	if e.Failed() {
 		return
 	}
-	out, gone := cutil.DeleteDefinition(e.buf, name)
+	out, gone := DeleteDefinition(e.buf, name)
 	if !gone {
 		e.Refuse("%s is not defined", name)
 		return
@@ -466,10 +464,10 @@ func (e *E) DropBlocks(fn, anchorRe string, n int, what string) {
 		}
 		for i := 0; i < n; i++ {
 			m := rx.FindIndex(e.buf)
-			b := cutil.Blank(e.buf)
+			b := Blank(e.buf)
 			k0 := LastNewlineBefore(e.buf, m[0]) + 1
 			o := IndexFrom(e.buf, []byte("{"), m[0])
-			c := cutil.Match(b, o)
+			c := Match(b, o)
 			if c < 0 {
 				e.Die("%s -- unbalanced block", what)
 				return
@@ -485,7 +483,7 @@ func (e *E) DropBlocks(fn, anchorRe string, n int, what string) {
 
 // BodyOf returns the text of a file-scope definition, or "" and false.
 func (e *E) BodyOf(name string) ([]byte, bool) {
-	a, z, ok := cutil.FindDefinition(e.buf, cutil.Blank(e.buf), name)
+	a, z, ok := FindDefinition(e.buf, Blank(e.buf), name)
 	if !ok {
 		return nil, false
 	}
