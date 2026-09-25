@@ -614,7 +614,7 @@ var Plan = []Phase{
 		}},
 	{N: 114, Name: "`abs` and `labs`, the two the core took on trust",
 		Steps: []Step{
-			{Op: "edit", Args: []string{"whim114"}},
+			{Op: "edit", Args: []string{"whim114", "abs=1", "labs=2"}},
 		}},
 	{N: 115, Name: "the clock crosses the boundary",
 		Steps: []Step{

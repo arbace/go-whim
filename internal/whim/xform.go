@@ -62,3 +62,15 @@ var Includes = xform.Silent{
 	Cmd:   "gcc",
 	Flags: []string{"-fsyntax-only", "-O0", "-Wall", "-Wextra", "-Wno-unused-parameter"},
 }
+
+// Own114 is phase 114's: abs and labs, the two libc functions the core called
+// without a body of its own, become musl's, written above musl_bsearch with
+// the other <stdlib.h> functions the core owns.
+var Own114 = xform.OwnKnobs{
+	Prefix: "musl_",
+	Funcs: []xform.OwnFunc{
+		{Name: "abs", Proto: "int abs(int n);", Def: "    static int\nmusl_abs(int a)\n{\n    return a > 0 ? a : -a;\n}\n\n"},
+		{Name: "labs", Proto: "long labs(long n);", Def: "    static long\nmusl_labs(long a)\n{\n    return a > 0 ? a : -a;\n}\n\n"},
+	},
+	Before: "    static void *\nmusl_bsearch(",
+}
