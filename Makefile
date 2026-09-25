@@ -276,6 +276,25 @@ jeditor.jar: bin/whim-java  ## the editor in Java as one jar: java -jar jeditor.
 	@printf '  %-12s %s bytes, the core in Java (jeditor/): java -jar %s\n' "$@" \
 	    "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" "$@"
 
+# The editor in Clojure (cljeditor/, doc/CLOJURE.md): the core cut from
+# whim-vim.c and written as the namespace whim.editor by crefactor/togo's
+# Clojure backend, AOT-compiled with cljeditor's glue and launcher on
+# jeditor's runtime and host into lib/clj/classes, merged with Clojure's jars
+# into lib/clj/whim-clj.jar, its AOT cache trained (JDK 25 and later), and
+# bin/whim-clj a launcher script that runs it as a binary is run.  Not part of
+# `all`: it needs a JDK (22 or later) and the `clojure` command, whose jars it
+# copies.  CLJ_EDITOR=F compiles the namespace in F instead of generating one.
+.PHONY: bin/whim-clj
+bin/whim-clj: force  ## the editor in Clojure: whim.editor generated, AOT-compiled, and a launcher
+	@go tool whim clj $(if $(CLJ_EDITOR),--editor $(CLJ_EDITOR))
+
+# cljeditor.jar is the same as one executable jar at the top of the tree:
+# `java -jar cljeditor.jar [args]` (Main-Class whim.cljmain, and the native
+# access granted in its manifest, as jeditor.jar's).
+.PHONY: cljeditor.jar
+cljeditor.jar: force  ## the editor in Clojure as one jar: java -jar cljeditor.jar [args]
+	@go tool whim clj $(if $(CLJ_EDITOR),--editor $(CLJ_EDITOR)) --jar $@
+
 # editor.lgo is the Go editor as ONE go-lisp file (doc/GO-LISP.md): editor/'s
 # files merged into one Go file (whim gocat), converted by go-lisp's golisp,
 # then compiled by go-lisp's go as the proof it is a package.  It needs the
@@ -307,11 +326,15 @@ editor.lgo:  ## the Go editor as one go-lisp file, compiled (needs go-lisp: GOLI
 whim-test-java:  ## the quick suite with the Java editor too, required to answer as the C does
 	@go tool whim test --java
 
+.PHONY: whim-test-clj
+whim-test-clj:  ## the quick suite with the Clojure editor too, required to answer as the C does
+	@go tool whim test $(if $(CLJ_EDITOR),--clojure-editor $(CLJ_EDITOR),--clojure)
+
 # ==== housekeeping
 .PHONY: clean
 clean:  ## remove the built binaries and editor.c
-	rm -f src/slim-vim src/whim-vim bin/whim bin/whim-java jeditor.jar editor.lgo editor.c
-	rm -rf lib/java
+	rm -f src/slim-vim src/whim-vim bin/whim bin/whim-java bin/whim-clj jeditor.jar cljeditor.jar editor.lgo editor.c
+	rm -rf lib/java lib/clj
 
 .PHONY: clean-cache
 clean-cache:  ## remove .cache/ (the Go build cache, the sweep's compiles, the stamps)

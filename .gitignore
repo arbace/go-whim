@@ -10,10 +10,12 @@
 /src/whim-vim
 /bin/
 
-# The Java editor's build: its sources and classes (make bin/whim-java), and
-# the same as one jar at the top (make jeditor.jar).
+# The Java and Clojure editors' builds: their sources and classes (make
+# bin/whim-java, bin/whim-clj), and the same as one jar at the top (make
+# jeditor.jar, cljeditor.jar).
 /lib/
 /jeditor.jar
+/cljeditor.jar
 
 # The Go editor as one go-lisp file (make editor.lgo, doc/GO-LISP.md).
 /editor.lgo

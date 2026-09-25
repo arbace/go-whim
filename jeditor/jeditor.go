@@ -145,9 +145,24 @@ func Compile(editorJava, dir, launcher string) (string, error) {
 // WriteSources writes the embedded Java sources under dir and returns their
 // paths.
 func WriteSources(dir string) ([]string, error) {
+	return writeSources(dir, func(string) bool { return true })
+}
+
+// WriteRuntime writes the runtime (rt/, package whim.rt) and the host (host/,
+// package whim.host) under dir and returns their paths: the Java sources
+// without the glue, Whim.java, which needs a generated Editor.java -- what
+// another editor on the JVM (cljeditor/, the editor in Clojure) is written
+// against.
+func WriteRuntime(dir string) ([]string, error) {
+	return writeSources(dir, func(p string) bool {
+		return strings.HasPrefix(p, "rt/") || strings.HasPrefix(p, "host/")
+	})
+}
+
+func writeSources(dir string, want func(string) bool) ([]string, error) {
 	var out []string
 	err := fs.WalkDir(sources, ".", func(p string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
+		if err != nil || d.IsDir() || !want(p) {
 			return err
 		}
 		b, err := sources.ReadFile(p)
@@ -202,14 +217,15 @@ func WriteLauncher(path, classes string) (string, error) {
 	var b strings.Builder
 	b.WriteString("#!/bin/sh\n# The editor in Java (jeditor/): written by jeditor.WriteLauncher.\n")
 	fmt.Fprintf(&b, "exec %s %s -cp %s -Dwhim.argv0=\"$0\" Whim \"$@\"\n",
-		shellQuote(java), strings.Join(JVMFlags, " "), shellQuote(abs))
+		ShellQuote(java), strings.Join(JVMFlags, " "), ShellQuote(abs))
 	if err := os.WriteFile(path, []byte(b.String()), 0o755); err != nil {
 		return "", err
 	}
 	return path, nil
 }
 
-func shellQuote(s string) string {
+// ShellQuote is s as one word of a shell command.
+func ShellQuote(s string) string {
 	if s != "" && strings.Trim(s, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/._-+=:") == "" {
 		return s
 	}

@@ -102,7 +102,11 @@ slim-vim.c  --whim-->  whim-vim.c
   the C candidate does, with a control of its own (`" INSERT"` changed in the
   generated `Editor.java`) that must move the Java editor's own answers; the
   Java editor answers all 45 and all 240 as the C does (`doc/JAVA.md`,
-  milestone 2), its control seen as the Go's is. Both are exact under load (`internal/suite/stress_test.go`:
+  milestone 2), its control seen as the Go's is. **`--clojure`** adds the
+  CLOJURE editor (`cljeditor/`) the same way, its control `" INSERT"` changed
+  in the generated `editor.clj`; it waits on the Clojure backend
+  (`doc/CLOJURE.md`, milestones 1-2), and `--clojure-editor F` runs it on a
+  namespace written already. Both suites are exact under load (`internal/suite/stress_test.go`:
   0 differing runs of 6,720 for the wide suite).
 
 ## What a file is called
@@ -223,6 +227,18 @@ jeditor/           the editor in Java (doc/JAVA.md), by hand but for Editor.java
                    jeditor.go, the Go that builds it all (`go tool whim java`,
                    make bin/whim-java: lib/java/classes and bin/whim-java; make
                    jeditor.jar: the same as ./jeditor.jar)
+cljeditor/         the editor in Clojure (doc/CLOJURE.md), all by hand but the
+                   namespace whim.editor, which the Clojure backend writes (not
+                   yet merged, and not tracked): src/whim/cljhost.clj the glue
+                   (the C's 17 host functions, the editor first, to jeditor's
+                   Host and Printf through interop), src/whim/cljmain.clj the
+                   launcher's -main; cljeditor.go the Go that builds it (`go
+                   tool whim clj`, make bin/whim-clj: AOT-compiled on jeditor's
+                   rt/ and host/ into lib/clj/, merged with Clojure's jars into
+                   lib/clj/whim-clj.jar, an AOT cache trained, and bin/whim-clj;
+                   make cljeditor.jar); testdata/standin/ a hand-written
+                   stand-in for whim.editor, which its tests and the suite's
+                   (TestClojureStandIn) build and run
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
                    binaries and the editor
 src/               the input and the product: slim-vim.c (fetched, not tracked),
@@ -262,6 +278,8 @@ make whim-test        # the quick suite: 45 key sessions, required to behave as 
 make whim-test-wide   # the optional wide suite: 240 cases, keys, Ex commands, argv, a terminal
 make bin/whim-java    # the editor in Java: Editor.java generated, compiled, and a launcher
 make whim-test-java   # the quick suite with the Java editor too (whim test --java; --wide --java)
+make bin/whim-clj     # the editor in Clojure: whim.editor generated, AOT-compiled, a launcher (CLJ_EDITOR=F: F's)
+make whim-test-clj    # the quick suite with the Clojure editor too (whim test --clojure; --wide --clojure)
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP=.../golisp; doc/GO-LISP.md)
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make whim-vim        # the C product's binary

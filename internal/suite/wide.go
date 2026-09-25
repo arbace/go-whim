@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/arbace/go-whim/internal/cmdtab"
-	"github.com/arbace/go-whim/jeditor"
 )
 
 // The wide suite: what the quick one (cases.md) does not reach, run on demand
@@ -174,13 +173,13 @@ var wideGroups = []string{"keys", "ex", "argv", "pty"}
 // Wide runs the wide suite: the candidate's C against rev's, and the Go editor
 // against the candidate's C, on every group, with the control required to be
 // seen.
-func Wide(w io.Writer, rev, candSrc string, java jeditor.Gen) error {
+func Wide(w io.Writer, rev, candSrc string, jvm JVM) error {
 	start := time.Now()
 	cases, err := WideCases()
 	if err != nil {
 		return err
 	}
-	b, err := prepare(rev, candSrc, java)
+	b, err := prepare(rev, candSrc, jvm)
 	if err != nil {
 		return err
 	}
@@ -232,8 +231,8 @@ func Wide(w io.Writer, rev, candSrc string, java jeditor.Gen) error {
 	if fail {
 		return fmt.Errorf("suite: behaviour moved in the wide suite")
 	}
-	if java != nil {
-		if err := checkJava(w, "wide java", wideGroups, cases, b); err != nil {
+	for _, e := range b.jvm {
+		if err := checkJVM(w, e.label("wide "), wideGroups, cases, b, e); err != nil {
 			return err
 		}
 	}

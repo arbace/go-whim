@@ -45,6 +45,9 @@ make go-test           # the Go packages' tests
 make whim-vim          # the C editor's binary
 make bin/whim-java     # the Java editor, and a launcher: bin/whim-java [args]
 make jeditor.jar       # the same as one jar: java -jar jeditor.jar [args]
+make bin/whim-clj      # the Clojure editor (doc/CLOJURE.md), and a launcher: bin/whim-clj [args]
+make cljeditor.jar     # the same as one jar: java -jar cljeditor.jar [args]
+make whim-test-clj     # the quick suite with the Clojure editor too
 make editor.lgo        # the Go editor as one go-lisp file (doc/GO-LISP.md)
 make help              # every target
 ```
@@ -59,12 +62,17 @@ make help              # every target
 - **Java**, `jeditor/`: the same shape -- `Editor.java` on a `Host`, a runtime
   (`rt/`, a C pointer as an array and an offset), and a terminal host through
   the Foreign Function & Memory API.
+- **Clojure**, `cljeditor/` (in progress, doc/CLOJURE.md): the namespace
+  `whim.editor`, generated, on the Java editor's runtime and host through
+  interop; the glue (`whim.cljhost`), the launcher and the build are written,
+  the backend that writes the core is not merged yet.
 
 ## Requirements
 
 Linux, **Go 1.27**, **gcc** linking statically against **musl**, `git`, `curl`,
 and binutils; measured on Alpine Linux. The Java editor also needs a **JDK 22
-or later**. The C front end is a fork of `modernc.org/cc/v4` carried as source,
+or later**; the Clojure editor the **`clojure`** command too (Clojure 1.12, whose jars
+it copies), and starts fastest on a JDK 25 or later (an AOT cache). The C front end is a fork of `modernc.org/cc/v4` carried as source,
 so after fetching the input nothing needs the network.
 
 ## Layout
@@ -78,6 +86,7 @@ crefactor/       the generic C refactoring library, a Go module of its own:
                  the transforms, the analyses, and togo, the C-to-Go-and-Java
                  translator
 editor/          the editor in Go          jeditor/   the editor in Java
+cljeditor/       the editor in Clojure: the glue, the launcher, the build
 src/             the input (fetched) and the product (tracked)
 doc/             GOALS.md (what holds for every phase), AGENDA.md (what is
                  not done), JAVA.md, GO-IDIOMS.md, PIPELINE-COMPACTION.md,

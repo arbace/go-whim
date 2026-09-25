@@ -28,6 +28,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/arbace/go-whim/cljeditor"
 	"github.com/arbace/go-whim/internal/build"
 	"github.com/arbace/go-whim/jeditor"
 )
@@ -140,8 +141,9 @@ func RunArgs(bin string, args []string, keys []byte) ([]byte, int, error) {
 	cmd := exec.Command(bin, args...)
 	cmd.Stdin = in
 	// ITS OWN PROCESS GROUP.  `:suspend` and `:stop` signal the editor's whole group,
-	// and in ours that stops the test and the shell that ran it.
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	// and in ours that stops the test and the shell that ran it.  And it dies
+	// with us (Pdeathsig): a test killed from outside leaves no editor running.
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true, Pdeathsig: syscall.SIGKILL}
 	// The output is a file as well: the child is reaped here, by wait4, and no
 	// goroutine copying a pipe is left waiting on it.
 	out, err := os.CreateTemp("", "out.")
@@ -222,12 +224,12 @@ const controlOld, controlNew = `_(" INSERT")`, `_(" INSERX")`
 
 // Check builds the reference from src/whim-vim.c at rev and the candidate from
 // candSrc, compares them on every case, and requires the control to be seen.
-func Check(w io.Writer, rev, candSrc string, java jeditor.Gen) error {
+func Check(w io.Writer, rev, candSrc string, jvm JVM) error {
 	cases, err := Cases()
 	if err != nil {
 		return err
 	}
-	b, err := prepare(rev, candSrc, java)
+	b, err := prepare(rev, candSrc, jvm)
 	if err != nil {
 		return err
 	}
@@ -266,31 +268,42 @@ func Check(w io.Writer, rev, candSrc string, java jeditor.Gen) error {
 	}
 	fmt.Fprintf(w, "  test         the Go editor (editor/) answers all %d exactly as the C does; %dms\n",
 		len(cases), time.Since(goStart).Milliseconds())
-	if java == nil {
-		return nil
-	}
-	// THE JAVA EDITOR, asked for (--java): the same cases, as the C does.
+	// THE EDITORS ON THE JVM, asked for (--java, --clojure): the same cases,
+	// as the C does.
 	wide := make([]WideCase, len(cases))
 	for i, c := range cases {
 		wide[i] = WideCase{Group: "keys", Name: c.Name, Keys: c.Keys}
 	}
-	return checkJava(w, "java", []string{"keys"}, wide, b)
+	for _, e := range b.jvm {
+		if err := checkJVM(w, e.label(""), []string{"keys"}, wide, b, e); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// JVM is the editors on the JVM a run adds, each built from the candidate
+// when its generator is given: the Java editor (--java) and the Clojure
+// editor (--clojure).
+type JVM struct {
+	Java    jeditor.Gen
+	Clojure cljeditor.Gen
 }
 
 // builds is what a run compares: the C of rev (the reference), the
 // candidate's C, the candidate with the control applied, and the Go editor as
-// editor/ stands -- in a directory the caller removes; and, asked for, the Java
-// editor from the candidate and its control.
+// editor/ stands -- in a directory the caller removes; and, asked for, the
+// editors on the JVM from the candidate, each with its control.
 type builds struct {
 	dir                   string
 	refSrc, candSrc       []byte
 	ref, cand, ctl, goBin string
-	javaBin, javaCtl      string
+	jvm                   []*jvmEditor
 }
 
 // prepare makes the four binaries, side by side: they are the cost of a run,
 // and independent.
-func prepare(rev, candSrc string, java jeditor.Gen) (*builds, error) {
+func prepare(rev, candSrc string, jvm JVM) (*builds, error) {
 	dir, err := os.MkdirTemp("", "suite.")
 	if err != nil {
 		return nil, err
@@ -328,8 +341,12 @@ func prepare(rev, candSrc string, java jeditor.Gen) (*builds, error) {
 			return nil
 		},
 	}
-	if java != nil {
-		jobs = append(jobs, func() (err error) { b.javaBin, b.javaCtl, err = buildJava(java, candSrc, dir); return })
+	var java, clj *jvmEditor
+	if jvm.Java != nil {
+		jobs = append(jobs, func() (err error) { java, err = buildJava(jvm.Java, candSrc, dir); return })
+	}
+	if jvm.Clojure != nil {
+		jobs = append(jobs, func() (err error) { clj, err = buildClojure(jvm.Clojure, candSrc, dir); return })
 	}
 	errs := make([]error, len(jobs))
 	var wg sync.WaitGroup
@@ -344,6 +361,11 @@ func prepare(rev, candSrc string, java jeditor.Gen) (*builds, error) {
 	for _, err := range errs {
 		if err != nil {
 			return fail(err)
+		}
+	}
+	for _, e := range []*jvmEditor{java, clj} {
+		if e != nil {
+			b.jvm = append(b.jvm, e)
 		}
 	}
 	return b, nil

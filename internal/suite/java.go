@@ -16,44 +16,69 @@ import (
 	"github.com/arbace/go-whim/jeditor"
 )
 
-// THE JAVA EDITOR (jeditor/, doc/JAVA.md), on demand: `whim test --java`.
-// The candidate's core is written as Editor.java by the Java backend,
-// compiled with jeditor's runtime, host and glue, and run on the same cases
-// as the Go editor, required to answer exactly as the C candidate does.
+// THE EDITORS ON THE JVM, on demand: the Java editor (jeditor/,
+// doc/JAVA.md), `whim test --java`, and the Clojure editor (cljeditor/,
+// doc/CLOJURE.md), `whim test --clojure` (clojure.go).  The candidate's core
+// is written by the backend (Editor.java, whim/editor.clj), compiled with
+// the editor's runtime, host and glue, and run on the same cases as the Go
+// editor, required to answer exactly as the C candidate does.
 //
 // ITS OWN CONTROL.  The C control is " INSERT" spelled " INSERX" in the C;
-// the Java's is the same string changed in the generated Editor.java, and it
-// must move at least one case of the JAVA editor's own answers -- not the
-// C's, which an editor that answers nothing would differ from anyway.  So an
+// each JVM editor's is the same string changed in its generated file, and it
+// must move at least one case of THAT editor's own answers -- not the C's,
+// which an editor that answers nothing would differ from anyway.  So an
 // editor that stops before it draws cannot pass as having seen it.
 
 // javaControl changes the Java's copy of the C control's string.
 const javaControlOld, javaControlNew = `" INSERT"`, `" INSERX"`
 
-// buildJava builds the Java editor from candSrc, and its control, under dir:
-// the two launchers.
-func buildJava(gen jeditor.Gen, candSrc, dir string) (bin, ctl string, err error) {
+// A jvmEditor is an editor on the JVM the suite built from the candidate,
+// and its control: the Java's or the Clojure's.
+type jvmEditor struct {
+	name, where string         // "Java", "jeditor/"
+	file        string         // the generated file its control changes
+	launcher    string         // the name its launcher reports a failure under
+	frame       *regexp.Regexp // a frame of the core; its function the first group
+	bin, ctl    string         // the two launchers
+}
+
+// buildJava builds the Java editor from candSrc, and its control, under dir.
+func buildJava(gen jeditor.Gen, candSrc, dir string) (*jvmEditor, error) {
+	e := &jvmEditor{name: "Java", where: "jeditor/", file: "Editor.java", launcher: "whim-java",
+		frame: regexp.MustCompile(`^\tat (?:Editor|Whim)\.([A-Za-z0-9_$]+)\(`)}
 	jdir, cdir := filepath.Join(dir, "java"), filepath.Join(dir, "java-control")
-	bin, err = jeditor.Build(gen, candSrc, jdir, filepath.Join(dir, "whim-java"), nil)
+	bin, err := jeditor.Build(gen, candSrc, jdir, filepath.Join(dir, "whim-java"), nil)
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
 	src, err := os.ReadFile(filepath.Join(jdir, "src", "Editor.java"))
 	if err != nil {
-		return "", "", err
+		return nil, err
 	}
+	ctlSrc, err := writeControl(src, "Editor.java", filepath.Join(cdir, "src"))
+	if err != nil {
+		return nil, err
+	}
+	ctl, err := jeditor.Compile(ctlSrc, cdir, filepath.Join(dir, "whim-java-control"))
+	if err != nil {
+		return nil, err
+	}
+	e.bin, e.ctl = bin, ctl
+	return e, nil
+}
+
+// writeControl writes src, the generated file name, with the control applied,
+// into dir, and returns its path; an error unless the control's string is in
+// it exactly once.
+func writeControl(src []byte, name, dir string) (string, error) {
 	if n := bytes.Count(src, []byte(javaControlOld)); n != 1 {
-		return "", "", fmt.Errorf("suite: the control string %s is in Editor.java %d times, not once", javaControlOld, n)
+		return "", fmt.Errorf("suite: the control string %s is in %s %d times, not once", javaControlOld, name, n)
 	}
-	if err := os.MkdirAll(filepath.Join(cdir, "src"), 0o755); err != nil {
-		return "", "", err
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return "", err
 	}
-	ctlSrc := filepath.Join(cdir, "src", "Editor.java")
-	if err := os.WriteFile(ctlSrc, bytes.Replace(src, []byte(javaControlOld), []byte(javaControlNew), 1), 0o644); err != nil {
-		return "", "", err
-	}
-	ctl, err = jeditor.Compile(ctlSrc, cdir, filepath.Join(dir, "whim-java-control"))
-	return bin, ctl, err
+	p := filepath.Join(dir, name)
+	return p, os.WriteFile(p, bytes.Replace(src, []byte(javaControlOld), []byte(javaControlNew), 1), 0o644)
 }
 
 // A result is one case run on two editors.
@@ -113,25 +138,33 @@ func byGroup(rs []result) map[string][]string {
 	return diff
 }
 
-// thrown is the Java launcher's report of what stopped the editor: the
-// exception, and the first frame of the core it came from.
-var thrown = regexp.MustCompile(`whim-java: ([^\n]*)\n(?:\tat (?:Editor|Whim)\.([A-Za-z0-9_$]+)\()?`)
+// thrown is what an editor on the JVM reports when an exception stops it, as
+// its launcher prints it: its name and a colon ("whim-java: "), the
+// exception, and the first frames, a line each.
+func thrown(launcher string) *regexp.Regexp {
+	return regexp.MustCompile(regexp.QuoteMeta(launcher) + `: ([^\n]*)\n((?:\tat [^\n]*(?:\n|$))*)`)
+}
 
-// failures counts what stopped the Java editor in the cases it differs on:
-// "vim_main: refused: ..." and the like, most frequent first.
-func failures(rs []result) []string {
+// failures counts what stopped the editor e in the cases it differs on: the
+// exception and the first frame of the core among those printed --
+// "vim_main: refused: ..." and the like -- most frequent first.
+func failures(rs []result, e *jvmEditor) []string {
+	re := thrown(e.launcher)
 	count := map[string]int{}
 	for _, r := range rs {
 		if r.same {
 			continue
 		}
-		m := thrown.FindSubmatch(r.outB)
+		m := re.FindSubmatch(r.outB)
 		if m == nil {
 			continue
 		}
 		key := string(m[1])
-		if len(m[2]) > 0 {
-			key = string(m[2]) + ": " + key
+		for _, f := range strings.Split(string(m[2]), "\n") {
+			if fm := e.frame.FindStringSubmatch(f); fm != nil {
+				key = fm[1] + ": " + key
+				break
+			}
 		}
 		count[key]++
 	}
@@ -152,16 +185,16 @@ func failures(rs []result) []string {
 	return out
 }
 
-// checkJava runs the cases on the Java editor against the C candidate, and
-// on the Java's control against the Java, and reports per group; an error
-// when the Java differs or its control went unseen.
-func checkJava(w io.Writer, label string, groups []string, cases []WideCase, b *builds) error {
+// checkJVM runs the cases on the editor e against the C candidate, and on
+// e's control against e, and reports per group; an error when e differs or
+// its control went unseen.
+func checkJVM(w io.Writer, label string, groups []string, cases []WideCase, b *builds, e *jvmEditor) error {
 	start := time.Now()
-	diffRes, err := compareEach(cases, b.cand, b.javaBin)
+	diffRes, err := compareEach(cases, b.cand, e.bin)
 	if err != nil {
 		return err
 	}
-	seenRes, err := compareEach(cases, b.javaBin, b.javaCtl)
+	seenRes, err := compareEach(cases, e.bin, e.ctl)
 	if err != nil {
 		return err
 	}
@@ -181,22 +214,23 @@ func checkJava(w io.Writer, label string, groups []string, cases []WideCase, b *
 		line := fmt.Sprintf("  %-12s %3d cases", head, count[g])
 		if len(diff[g]) > 0 {
 			fail = true
-			line += fmt.Sprintf(": the Java editor differs from the C on %d: %s", len(diff[g]), abbrev(diff[g], 12))
+			line += fmt.Sprintf(": the %s editor differs from the C on %d: %s", e.name, len(diff[g]), abbrev(diff[g], 12))
 		} else {
-			line += ": the Java editor (jeditor/) answers all exactly as the C does"
+			line += fmt.Sprintf(": the %s editor (%s) answers all exactly as the C does", e.name, e.where)
 		}
 		line += fmt.Sprintf("; its control seen by %d", len(seen[g]))
 		fmt.Fprintln(w, line)
 	}
-	for _, f := range failures(diffRes) {
+	for _, f := range failures(diffRes, e) {
 		fmt.Fprintf(w, "  %-12s %s\n", label, f)
 	}
 	fmt.Fprintf(w, "  %-12s %dms\n", label, time.Since(start).Milliseconds())
 	if fail {
-		return fmt.Errorf("suite: the Java editor differs from the C")
+		return fmt.Errorf("suite: the %s editor differs from the C", e.name)
 	}
 	if nSeen == 0 {
-		return fmt.Errorf("suite: THE JAVA CONTROL WENT UNSEEN -- %s changed to %s in Editor.java and no case of the Java editor noticed", javaControlOld, javaControlNew)
+		return fmt.Errorf("suite: THE %s CONTROL WENT UNSEEN -- %s changed to %s in %s and no case of the %s editor noticed",
+			strings.ToUpper(e.name), javaControlOld, javaControlNew, e.file, e.name)
 	}
 	return nil
 }
@@ -207,4 +241,10 @@ func abbrev(names []string, n int) string {
 		return strings.Join(names, " ")
 	}
 	return strings.Join(names[:n], " ") + fmt.Sprintf(" and %d more", len(names)-n)
+}
+
+// label is how e's lines are headed: its launcher's name without "whim-"
+// ("java", "clj"), after prefix ("wide ") when there is one.
+func (e *jvmEditor) label(prefix string) string {
+	return prefix + strings.TrimPrefix(e.launcher, "whim-")
 }
