@@ -168,10 +168,11 @@ skeleton. It applies `internal/gen/CONVENTIONS.md` to the AST, using the skeleto
 pointer analysis for every `*T` against `Ptr[T]`. A function containing a
 construct it has no rule for is left out and listed in `bodies.txt` with the
 reason, so every function it writes is whole. `internal/gen/splice <editor-dir>
-<bodies.go> <out-dir>` measures the result: it puts every emitted function in
-place of the hand-written one in a copy of `editor/`, builds it, and takes
-back the hand-written body of any function the compiler rejects, until the
-copy builds.
+<bodies.go> <out-dir>` measured the result: it put every emitted function in
+place of the hand-written one in a copy of `editor/`, built it, and took
+back the hand-written body of any function the compiler rejected, until the
+copy built. (Retired 2026-09-25: every function of `editor.go` is emitted, so
+there is no hand-written body left to measure one against.)
 
 Measured on phase 162's core:
 - the emitter writes all 1,693 functions it is asked for. The runtime's own

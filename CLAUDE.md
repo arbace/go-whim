@@ -200,8 +200,7 @@ internal/gen/      the generator of editor/editor.go (`go tool whim gen`; `whim
                    crefactor/togo, the C-to-Go translator, which names
                    nothing in vim, told vim's names by internal/whim/gen.go
                    (whim.Gen), which cmd/whim hands it. Beside its docs:
-                   splice/ (`whim splice`: emitted bodies measured in a copy of
-                   editor/), pre/ (`whim pre`: crefactor/ccx's partitions on an
+                   pre/ (`whim pre`: crefactor/ccx's partitions on an
                    editor.c), sigs.md, CONVENTIONS.md and FINDINGS.md
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
                    binaries and the editor

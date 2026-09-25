@@ -19,7 +19,7 @@ commit that has them.
 | `go tool whim score` | bytes to store and symbols to provide, slim-vim beside whim-vim, both built with the one line (`internal/score`) |
 | `go tool whim cmdidxs`, `cmdnames` | the Ex command table: its names, and the ex_cmdidxs block derived from them (`internal/cmdtab`) |
 | `go tool whim gen` | editor/editor.go (and internal/gen/sigs.md) from editor.c, written only when it differs; `--check` refuses a stale one (`internal/gen`) |
-| `go tool whim skel`, `splice`, `pre` | the generator by hand (`-bodies` for the bodies alone), the emitted bodies measured in a copy of editor/, and crefactor/ccx's partitions on an editor.c |
+| `go tool whim skel`, `pre` | the generator by hand (`-bodies` for the bodies alone), and crefactor/ccx's partitions on an editor.c |
 
 `go tool whim` with no argument lists the rest: the dead-code tools one at a
 time and every cutter a phase names, each runnable on a file by hand. Every one

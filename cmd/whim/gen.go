@@ -10,7 +10,6 @@ import (
 
 	"github.com/arbace/go-whim/crefactor/togo"
 	"github.com/arbace/go-whim/internal/gen/pre"
-	"github.com/arbace/go-whim/internal/gen/splice"
 	"github.com/arbace/go-whim/internal/whim"
 )
 
@@ -133,10 +132,6 @@ func genProfile() (togo.Profile, error) {
 	p.Instance = &inst
 	return p, nil
 }
-
-// runSplice measures the emitted bodies against the hand-written editor:
-// `whim splice <editor-dir> <bodies.go> <out-dir>`.
-func runSplice(args []string) int { return splice.Run(args, os.Stderr) }
 
 // runPre runs one of internal/ccx's partitions on an editor.c:
 // `whim pre casts|order|unions|garrays|voids|gotos|funcs <editor.c>`.

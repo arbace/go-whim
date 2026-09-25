@@ -145,9 +145,7 @@ internal/whim/   what that library is told about vim: roots, names, knobs
 editor/          the core transpiled into Go, package editor: the runtime, the
                  Host interface; term/ the terminal host, cmd/whim/ the launcher
 internal/gen/    the generator of editor/editor.go (go tool whim gen: crefactor/togo
-                 with whim.Gen), splice/
-                 (whim splice: the emitted bodies measured in a copy of
-                 editor/), pre/ (whim pre: ccx's reports on an editor.c),
+                 with whim.Gen), pre/ (whim pre: ccx's reports on an editor.c),
                  sigs.md, CONVENTIONS.md and FINDINGS.md
 Makefile         the whole build: the input, the pipeline, the binaries, the editor
 doc/             GOALS.md (what holds for every phase), AGENDA.md (what is not
