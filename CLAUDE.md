@@ -155,8 +155,10 @@ internal/whim/     what the generic side is told about vim: profile.go (the
                    sweep), xform.go, analysis.go (dead's roots, reach's and ccx's
                    names), gen.go (togo's profile, whim.Gen),
                    and vimtext/ (what more than one phase uses that knows vim: the
-                   buffer walks, Key, the command table's shapes and residue
-                   check, the W80-W127 helpers)
+                   buffer walks, Key, the command table's residue check, the
+                   prototype and #include shapes phases 118-119 share, and the
+                   Python-port helpers of 126-128; a shape one phase alone uses
+                   is in that phase's shapes.go)
 internal/phase/    the registry the phases' programs join (registry.go, query.go),
                    and the phases: NNN/ (GOAL.md, and edit.go where its cut is a
                    program; cmd/whim/phases.go imports each blank), STAGES.md (the record of
@@ -208,9 +210,9 @@ make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go that is not what internal/gen writes
 make whim-test        # the quick suite: 45 key sessions, required to behave as HEAD's does
 make whim-test-wide   # the optional wide suite: 240 cases, keys, Ex commands, argv, a terminal
+make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make whim-vim        # the C product's binary
 make slim-vim        # the input's binary, with the same one line
-make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make score           # bytes to store and symbols to provide, input beside product
 make help            # every target, with a line each
 ```

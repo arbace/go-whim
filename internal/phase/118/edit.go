@@ -118,7 +118,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		t = edit.ReplaceAnchor(t, old, new, 1)
 		return nil
 	}
-	shortName := func(l string) string { return vimtext.W119Name.ReplaceAllString(l, "$1") }
+	shortName := func(l string) string { return vimtext.DeclNameRe.ReplaceAllString(l, "$1") }
 
 	L := strings.Split(t, "\n")
 	linesBefore := len(L) - 1
@@ -126,7 +126,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// ---- 0. the boundary -----------------------------------------------------
 	var directives []int
 	for i, l := range L {
-		if vimtext.W119Dir.MatchString(l) {
+		if vimtext.DirectiveRe.MatchString(l) {
 			directives = append(directives, i)
 		}
 	}
@@ -140,7 +140,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		}
 	}
 	for _, i := range directives {
-		if !vimtext.W119Inc.MatchString(L[i]) {
+		if !vimtext.SystemIncludeRe.MatchString(L[i]) {
 			return nil, p.Die("a directive is not an `#include <...>` of a system header, and no phase may " +
 				"add one")
 		}
@@ -169,7 +169,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		for j > 0 && L[j] == "" {
 			j--
 		}
-		if j < 0 || !vimtext.W119IsDecl(L[j]) {
+		if j < 0 || !vimtext.IsPrototypeLine(L[j]) {
 			break
 		}
 		lo = j
@@ -179,7 +179,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		for j < boundary-1 && L[j] == "" {
 			j++
 		}
-		if j >= boundary || !vimtext.W119IsDecl(L[j]) {
+		if j >= boundary || !vimtext.IsPrototypeLine(L[j]) {
 			break
 		}
 		hi = j
@@ -308,7 +308,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	L = strings.Split(t, "\n")
 	bnd := -1
 	for i, l := range L {
-		if vimtext.W119Dir.MatchString(l) {
+		if vimtext.DirectiveRe.MatchString(l) {
 			bnd = i
 			break
 		}
@@ -375,7 +375,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	L = strings.Split(t, "\n")
 	boundary = -1
 	for i, l := range L {
-		if vimtext.W119Dir.MatchString(l) {
+		if vimtext.DirectiveRe.MatchString(l) {
 			boundary = i
 			break
 		}
@@ -402,7 +402,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	have := append([]string{}, L[lo:lo+len(blockAfter)]...)
 	if strings.Join(have, "\x00") != strings.Join(blockAfter, "\x00") {
 		return nil, p.Die("the ordinary declarations left above the boundary are %s and the input's "+
-			"block minus the three is %s", vimtext.W119Or(have), vimtext.W119Or(blockAfter))
+			"block minus the three is %s", vimtext.JoinOrNone(have), vimtext.JoinOrNone(blockAfter))
 	}
 	if L[lo-1] != "" || L[lo+len(blockAfter)] != "" {
 		return nil, p.Die("what is left of the block is not a paragraph of its own")
@@ -412,7 +412,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// declaration's shape exactly, and what tells them apart is the line above.
 	var stray []string
 	for i := 0; i < boundary; i++ {
-		if vimtext.W119IsDecl(L[i]) && (L[i-1] == "" || vimtext.W119IsDecl(L[i-1])) &&
+		if vimtext.IsPrototypeLine(L[i]) && (L[i-1] == "" || vimtext.IsPrototypeLine(L[i-1])) &&
 			!(lo <= i && i < lo+len(blockAfter)) {
 			stray = append(stray, fmt.Sprintf("%d:%s", i+1, L[i]))
 		}
@@ -493,7 +493,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	// moved is asserted by content above.
 	var d []int
 	for i, l := range L {
-		if vimtext.W119Dir.MatchString(l) {
+		if vimtext.DirectiveRe.MatchString(l) {
 			d = append(d, i)
 		}
 	}

@@ -199,7 +199,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 		sort.Strings(ek)
 		if strings.Join(gk, "\x00") != strings.Join(ek, "\x00") {
 			return p.Die("`%s` is said in %s and this phase accounts for %s -- %s",
-				name, vimtext.W126PyList(gk), vimtext.W126PyList(ek), what)
+				name, vimtext.PyList(gk), vimtext.PyList(ek), what)
 		}
 		var parts []string
 		for _, k := range gk {
@@ -367,7 +367,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	if strings.Join(insIn, ",") != "mf_get,mf_new" || strings.Join(remIn, ",") != "mf_free,mf_get" {
 		return nil, p.Die("the hash is inserted into from %s and removed from from %s, and this phase "+
 			"rests on mf_new() and mf_get() being the only insertions and mf_free() and "+
-			"mf_get() the only removals", vimtext.W126PyList(insIn), vimtext.W126PyList(remIn))
+			"mf_get() the only removals", vimtext.PyList(insIn), vimtext.PyList(remIn))
 	}
 	p.Sayf("THE HASH HOLDS EVERY LIVE BLOCK: it is inserted into by %s and removed from by "+
 		"%s, and mf_get() does both in one breath to move a block to the head of the used "+
@@ -483,7 +483,7 @@ func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
 	for _, old := range []string{w126pc1, w126pc2, w126pc3} {
 		if edit.CountAnchor(t, old) < 1 {
 			return nil, p.Die("a page-count store this phase accounts for is not there: %s",
-				vimtext.W126PyRepr(old))
+				vimtext.PyReprMultiline(old))
 		}
 		t = regexp.MustCompile(`\n *`+regexp.QuoteMeta(strings.TrimRight(old, "\n"))).
 			ReplaceAllString(t, "")

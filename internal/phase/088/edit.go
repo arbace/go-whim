@@ -100,7 +100,6 @@ import (
 
 	"github.com/arbace/go-whim/crefactor/edit"
 	"github.com/arbace/go-whim/internal/phase"
-	"github.com/arbace/go-whim/internal/whim/vimtext"
 )
 
 func init() { phase.Register("whim88", Edit) }
@@ -243,7 +242,7 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		return nil, p.Die("main_errors[] is not where it was")
 	}
 	whole := string(text[tm[0]:tm[1]])
-	rows := vimtext.W88Lines(string(text[tm[2]:tm[3]]))
+	rows := splitLinesKeep(string(text[tm[2]:tm[3]]))
 	if len(rows) != len(pairs)+1 {
 		return nil, p.Die("main_errors[] has %d rows for %d enumerators; this phase only knows the "+
 			"shape where the one extra row is the unreachable one whim left", len(rows), len(pairs))
