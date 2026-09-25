@@ -161,17 +161,10 @@ func NoIdent(text []byte, w io.Writer) ([]byte, error) {
 		return nil, fmt.Errorf("noident: the CTRL-] and K rows are not where this expects")
 	}
 
-	// TWO SPELLINGS, TRIED IN ORDER, as the Python tries them: the first
-	// writes the label as `case ]:` with no quotes, which is what an earlier
-	// expander produced.
 	if text, hit = replaceFirst(regexp.MustCompile(
-		`(    case '\*':\n    case '#':\n    case POUND:\n)    case Ctrl_RSB:\n    case \]:\n`),
+		`(\n[ \t]*case POUND:\n)[ \t]*case Ctrl_RSB:\n[ \t]*case '\]':\n`),
 		text, "${1}"); !hit {
-		if text, hit = replaceFirst(regexp.MustCompile(
-			`(\n[ \t]*case POUND:\n)[ \t]*case Ctrl_RSB:\n[ \t]*case '\]':\n`),
-			text, "${1}"); !hit {
-			return nil, fmt.Errorf("noident: nv_g_cmd's tag cases are not where this expects")
-		}
+		return nil, fmt.Errorf("noident: nv_g_cmd's tag cases are not where this expects")
 	}
 	fmt.Fprintln(w, "  noident      K and CTRL-] answer nv_error, and g] leaves nv_g_cmd")
 
