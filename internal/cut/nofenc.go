@@ -54,13 +54,6 @@ var nofencEdits = []struct {
 			`[ \t]*\{\n[ \t]*convert_setup\(&vimconv, p_enc, curbuf->b_p_fenc\);\n[ \t]*\}\n`,
 		"", 1},
 	{"buf_write writing a BOM it no longer makes", "", "", 0},
-	// What the two options leave behind once nothing compares them: the
-	// remembered copies, written on every read and looked at by nobody.  A
-	// struct field is not a variable, so no warning reports it and the sweep
-	// cannot see it -- which is why these are listed rather than swept.
-	{"the remembered BOM and encoding a file was read with",
-		`(?m)^[ \t]*char_u[ \t]*\*b_start_fenc;\n`, "", 1},
-	{"them, in buf_T", `(?m)^[ \t]*int[ \t]*b_start_bomb;\n`, "", 1},
 	{"freeing the remembered encoding",
 		`(?m)^[ \t]* vim_free\(buf->b_start_fenc\);\n[ \t]* \(buf->b_start_fenc\) = NULL;\n`,
 		"", 1},
@@ -92,17 +85,13 @@ var nofencEdits = []struct {
 			`[ \t]*;\n` +
 			`[ \t]*\}\n[ \t]*b0_fenc = vim_strnsave\(p, b0p->b0_fname \+ fnsize - p\);\n[ \t]*\}\n?`,
 		"", 1},
-	{"the local it was read into", `(?m)^[ \t]*char_u[ \t]*\*b0_fenc = NULL;\n`, "", 1},
 	{"a recovered swap file restoring one",
 		`(?m)[ \t]*if \(b0_fenc != NULL\)\n[ \t]*\{\n` +
 			`[ \t]*set_option_value_give_err\(\(char_u \*\)"fenc",[^\n]*\n` +
 			`[ \t]*vim_free\(b0_fenc\);\n[ \t]*\}\n`, "", 1},
 	// gvarp existed to ask which of the three encoding options was being set.
-	// There is one.  -Wunused-but-set-variable is not a shape deadsweep
-	// deletes, so it goes here.
-	{"the local that asked which encoding option was being set",
-		`(?m)^[ \t]*char_u[ \t]*\*\*gvarp;\n`, "", 1},
-	{"its one assignment",
+	// There is one, so its assignment goes; the declaration left is the sweep's.
+	{"gvarp's one assignment",
 		`(?m)^[ \t]*gvarp = \(char_u \*\*\)get_option_varp_scope\(args->os_idx, OPT_GLOBAL\);\n`,
 		"", 1},
 }
