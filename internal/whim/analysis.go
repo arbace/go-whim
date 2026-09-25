@@ -1,10 +1,11 @@
 package whim
 
 import (
+	"bytes"
 	"regexp"
 
-	"github.com/arbace/go-whim/internal/ccx"
-	"github.com/arbace/go-whim/internal/reach"
+	"github.com/arbace/go-whim/crefactor/ccx"
+	"github.com/arbace/go-whim/crefactor/reach"
 )
 
 // What the analysis tools are told about vim (doc/VIM-VS-GENERIC.md, step 7):
@@ -19,9 +20,15 @@ var allocators = []string{"alloc", "alloc_clear", "lalloc", "lalloc_clear"}
 // byteFuncs are the functions of bytes the core calls: musl's, since phase 98.
 var byteFuncs = []string{"musl_memmove", "musl_memcpy", "musl_memset", "musl_memcmp"}
 
-// Dead is what internal/dead's funcreach is told: vim's one entry point.  It
-// was hard-coded in internal/dead/funcreach.go.
-var Dead = struct{ Roots []string }{Roots: []string{"main"}}
+// Dead is what crefactor/dead's funcreach is told: vim's one entry point,
+// and the floor its answer is checked against -- funcreach.py's: fewer
+// definitions than this in vim's file means the shape funcreach matches has
+// changed, and acting on the answer would delete most of the program.  Both
+// were hard-coded in internal/dead/funcreach.go.
+var Dead = struct {
+	Roots          []string
+	MinDefinitions int
+}{Roots: []string{"main"}, MinDefinitions: 100}
 
 // Reach is what internal/reach's closure is told: ml_recover, whose
 // definition means the editor still reads swap files, so a struct layout is a
@@ -30,6 +37,20 @@ var Dead = struct{ Roots []string }{Roots: []string{"main"}}
 var Reach = reach.Options{
 	FreezeLayoutIf: []string{"ml_recover"},
 	Allocators:     append(append([]string{}, allocators...), "host_alloc"),
+	Core:           reachCore,
+}
+
+// reachCore is where whim-vim.c's core ends for the closure: the start of
+// the line of the first #include, the host's first line (CLAUDE.md, The core
+// and the host).
+func reachCore(src []byte) int {
+	if i := bytes.Index(src, []byte("\n#include")); i >= 0 {
+		return i + 1
+	}
+	if bytes.HasPrefix(src, []byte("#include")) {
+		return 0
+	}
+	return -1
 }
 
 // q is a literal in a regexp.

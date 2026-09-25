@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/arbace/go-whim/internal/ccx"
+	"github.com/arbace/go-whim/crefactor/ccx"
 )
 
 // small is one translation unit with every kind live and every kind dead, a

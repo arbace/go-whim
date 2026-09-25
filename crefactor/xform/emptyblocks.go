@@ -51,7 +51,7 @@ func EmptyBlocksFold(core []byte) ([]byte, int) {
 	n := 0
 	for {
 		changed := false
-		for _, m := range edit.W134Empty.FindAllSubmatchIndex(core, -1) {
+		for _, m := range edit.EmptyGuardedBlock.FindAllSubmatchIndex(core, -1) {
 			head := string(core[m[4]:m[5]])
 			after := core[m[1]:]
 			var cond string
@@ -62,7 +62,7 @@ func EmptyBlocksFold(core []byte) ([]byte, int) {
 			default: // else if
 				cond = head[9 : len(head)-1]
 			}
-			if head != "else" && (!edit.W134Pure(cond) || edit.W134Else.Match(after)) {
+			if head != "else" && (!edit.PureCond(cond) || edit.ElseLine.Match(after)) {
 				continue
 			}
 			core = append(append([]byte{}, core[:m[0]]...), core[m[1]:]...)

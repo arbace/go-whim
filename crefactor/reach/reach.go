@@ -31,13 +31,12 @@
 package reach
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
 	"sort"
 
 	"github.com/arbace/go-whim/crefactor/cc"
-	"github.com/arbace/go-whim/internal/ccx"
+	"github.com/arbace/go-whim/crefactor/ccx"
 	"modernc.org/token"
 )
 
@@ -61,6 +60,10 @@ type Options struct {
 	// Allocators are the calls whose void * result is fresh memory: a cast
 	// of one is an allocation, not a pun (PunStats.FromAllocator).
 	Allocators []string
+	// Core says where the program's core ends and its host begins: the offset
+	// of the first line that is the host's, or -1 when all of it is core.  A
+	// name used across that line is a root (ClassCut).  Nil is no cut.
+	Core func(src []byte) int
 }
 
 // Entity is one thing the closure can keep or not.
@@ -144,10 +147,8 @@ func Analyze(ast *cc.AST, path string, src []byte, opt Options) *Closure {
 		placed: map[string][]int{}, members: map[int][]string{}, structOf: map[string]int{}, renumbers: map[string]string{},
 		memberDecl: map[string][3]int{},
 	}
-	if i := bytes.Index(src, []byte("\n#include")); i >= 0 {
-		c.Cut = i + 1
-	} else if bytes.HasPrefix(src, []byte("#include")) {
-		c.Cut = 0
+	if opt.Core != nil {
+		c.Cut = opt.Core(src)
 	}
 	inFile := func(n interface{ Position() token.Position }) bool { return n.Position().Filename == path }
 	edges := map[string]map[string]bool{}

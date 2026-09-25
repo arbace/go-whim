@@ -8,8 +8,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/arbace/go-whim/crefactor/dead"
 	"github.com/arbace/go-whim/crefactor/edit"
-	"github.com/arbace/go-whim/internal/dead"
 )
 
 const signalTable = `{

@@ -14,7 +14,7 @@ var (
 // DeadStores takes Out every local that is only ever given a value: a variable
 // declared inside a function Body, alone on its line, whose every other mention up to
 // the end of the function is a statement of its own, `name = E;`, where E -- and
-// the initialiser, if it has one -- only reads (W134Pure).  Such a variable
+// the initialiser, if it has one -- only reads (PureCond).  Such a variable
 // holds a value nothing reads, and none of its lines does anything else.
 //
 // gcc calls it "set but not used", and the sweep, which takes what gcc calls
@@ -63,7 +63,7 @@ func DeadStores(core []byte) ([]byte, []string) {
 				continue
 			}
 			name := m[2]
-			if m[3] != "" && !W134Pure(m[3]) {
+			if m[3] != "" && !PureCond(m[3]) {
 				continue
 			}
 			word := regexp.MustCompile(`\b` + name + `\b`)
@@ -78,7 +78,7 @@ func DeadStores(core []byte) ([]byte, []string) {
 					continue
 				}
 				s := store.FindStringSubmatch(lines[j])
-				if s == nil || !W134Pure(s[1]) || len(word.FindAllStringIndex(lines[j], -1)) != 1 {
+				if s == nil || !PureCond(s[1]) || len(word.FindAllStringIndex(lines[j], -1)) != 1 {
 					ok = false
 					continue
 				}

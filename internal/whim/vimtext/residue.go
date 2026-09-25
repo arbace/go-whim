@@ -4,8 +4,8 @@ import (
 	"regexp"
 	"sort"
 
+	"github.com/arbace/go-whim/crefactor/dead"
 	"github.com/arbace/go-whim/crefactor/edit"
-	"github.com/arbace/go-whim/internal/dead"
 )
 
 // coreRowRe is the one physical line of a designated cmdnames[] row.

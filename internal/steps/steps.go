@@ -21,11 +21,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/arbace/go-whim/crefactor/dead"
 	"github.com/arbace/go-whim/crefactor/pipeline"
 	"github.com/arbace/go-whim/crefactor/xform"
 	"github.com/arbace/go-whim/internal/cmdtab"
 	"github.com/arbace/go-whim/internal/cut"
-	"github.com/arbace/go-whim/internal/dead"
 	"github.com/arbace/go-whim/internal/phase"
 	"github.com/arbace/go-whim/internal/whim"
 )
@@ -224,7 +224,7 @@ func funcReach(t []byte, args []string, w io.Writer) ([]byte, error) {
 		}
 	}
 	defs, reachable, deadNames, deadLines := dead.FuncReach(t, whim.Dead.Roots)
-	if len(defs) < dead.MinDefinitions {
+	if len(defs) < whim.Dead.MinDefinitions {
 		return nil, fmt.Errorf("funcreach: only %d definitions found, which cannot be right "+
 			"for this file -- the shape it matches has changed, and acting on the "+
 			"answer would delete most of the program", len(defs))

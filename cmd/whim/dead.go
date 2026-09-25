@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/arbace/go-whim/internal/dead"
+	"github.com/arbace/go-whim/crefactor/dead"
 	"github.com/arbace/go-whim/internal/whim"
 )
 
@@ -54,7 +54,7 @@ func runFuncreach(args []string) int {
 		return 1
 	}
 	defs, reachable, deadNames, deadLines := dead.FuncReach(text, roots)
-	if len(defs) < dead.MinDefinitions {
+	if len(defs) < whim.Dead.MinDefinitions {
 		fmt.Fprintf(os.Stderr, "funcreach: only %d definitions found, which cannot be right "+
 			"for this file -- the shape it matches has changed, and acting "+
 			"on the answer would delete most of the program\n", len(defs))

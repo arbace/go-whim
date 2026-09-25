@@ -6,8 +6,8 @@ import (
 	"io"
 	"regexp"
 
+	"github.com/arbace/go-whim/crefactor/dead"
 	"github.com/arbace/go-whim/crefactor/edit"
-	"github.com/arbace/go-whim/internal/dead"
 )
 
 // nocomplStubs are the predicates the whole subsystem hangs from, plus the

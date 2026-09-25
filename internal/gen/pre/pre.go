@@ -16,7 +16,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/arbace/go-whim/internal/ccx"
+	"github.com/arbace/go-whim/crefactor/ccx"
 	"github.com/arbace/go-whim/internal/whim"
 )
 

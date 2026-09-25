@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/arbace/go-whim/crefactor/cc"
-	"github.com/arbace/go-whim/internal/ccx"
-	"github.com/arbace/go-whim/internal/dead"
+	"github.com/arbace/go-whim/crefactor/ccx"
+	"github.com/arbace/go-whim/crefactor/dead"
 )
 
 // The control is gcc.  A closure that reports nothing is indistinguishable

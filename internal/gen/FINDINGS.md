@@ -122,7 +122,7 @@ whose one effect was that write; the sweep takes the function. Doing what vim
 meant, clearing `t_Co` on a terminal with neither `t_AB` nor `t_Sb`, would
 change behaviour and would need a declared delta.
 
-7's `ga_data` needs no phase. `internal/ccx`'s `GrowArrays` shows that every
+7's `ga_data` needs no phase. `crefactor/ccx`'s `GrowArrays` shows that every
 growarray object has one element type, which is what `GaData[T]` assumes and
 panics without.
 
@@ -134,7 +134,7 @@ Not yet a phase:
 
 `editor.go` was written by hand. An emitter that writes it from `editor.c`
 needs every construct to have a rule it can apply without reading the code
-around it. `internal/gen/pre` runs `internal/ccx`'s partitions on an `editor.c`. On phase
+around it. `internal/gen/pre` runs `crefactor/ccx`'s partitions on an `editor.c`. On phase
 162's core:
 
 | `internal/gen/pre` | What it shows | Left |

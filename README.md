@@ -114,9 +114,7 @@ and a phase that refuses stops the pass with its own report.
 
 ```
 cmd/whim/        the toolset, every tool a subcommand: go tool whim <subcommand>
-internal/        the cutters, the plan (internal/build), the dead-code reporter (reach), ccx:
-                 what the core's C leaves a translation to decide -- pointer
-                 casts, evaluation order -- partitioned, and the phases:
+internal/        the cutters, the plan (internal/build), and the phases:
                  internal/phase/NNN/ (GOAL.md, and edit.go where its cut is a
                  program) and internal/phase/STAGES.md, the record of the
                  stages there were
@@ -124,7 +122,10 @@ crefactor/       the generic C refactoring library, a Go module of its own
                  that knows no code base: cc (the forked C front end), cemit
                  (the canonical printer), sweep, pipeline (the driver), edit
                  (the text verbs phases are written in), xform (generic
-                 transformations), togo (the C-to-Go translator)
+                 transformations), togo (the C-to-Go translator), reach (the
+                 dead-code reporter), ccx (what C leaves a translation to
+                 decide -- pointer casts, evaluation order -- partitioned) and
+                 dead (funcreach, gcc's unused warnings)
 internal/whim/   what that library is told about vim: roots, names, knobs
 editor/          the core transpiled into Go, with its runtime and host
 internal/gen/    the generator of editor/editor.go (go tool whim gen: crefactor/togo

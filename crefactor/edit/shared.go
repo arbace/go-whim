@@ -185,24 +185,27 @@ func ContainsStr(xs []string, x string) bool {
 	return false
 }
 
-// From phase 134.
-// W134Pure: a condition that only reads -- no call, no assignment, no ++ or --.
-// Casts and sizeof read nothing a call could change; they are allowed.
-func W134Pure(cond string) bool {
+// PureCond reports whether a condition only reads -- no call, no assignment,
+// no ++ or --.  Casts and sizeof read nothing a call could change; they are
+// allowed.  (From phase 134.)
+func PureCond(cond string) bool {
 	c := regexp.MustCompile(`\((?:const\s+)?(?:unsigned\s+)?[A-Za-z_]\w*\s*\**\s*\)`).ReplaceAllString(cond, "")
 	c = regexp.MustCompile(`\bsizeof\s*\(`).ReplaceAllString(c, "(")
-	return !W134Fn.MatchString(c) && !W134Write.MatchString(c)
+	return !callToken.MatchString(c) && !writeToken.MatchString(c)
 }
 
 // From phase 071.
 var EnclosingLoop = regexp.MustCompile(`\b(for|while|switch|do)\b`)
 
-// From phase 134.
+// From phase 134: EmptyGuardedBlock is an `if`, `else if` or `else` whose
+// block is empty (its indentation, head and the block's indentation as
+// groups); ElseLine is a line that begins with `else`; callToken and
+// writeToken are what makes a condition not PureCond.
 var (
-	W134Empty = regexp.MustCompile(`(?m)^([ \t]*)(if \(.*\)|else if \(.*\)|else)\n([ \t]*)\{\n[ \t]*\}\n`)
-	W134Fn    = regexp.MustCompile(`[A-Za-z_]\w*\s*\(`)
-	W134Write = regexp.MustCompile(`(^|[^=!<>])=($|[^=])|\+\+|--`)
-	W134Else  = regexp.MustCompile(`^[ \t]*else\b`)
+	EmptyGuardedBlock = regexp.MustCompile(`(?m)^([ \t]*)(if \(.*\)|else if \(.*\)|else)\n([ \t]*)\{\n[ \t]*\}\n`)
+	callToken         = regexp.MustCompile(`[A-Za-z_]\w*\s*\(`)
+	writeToken        = regexp.MustCompile(`(^|[^=!<>])=($|[^=])|\+\+|--`)
+	ElseLine          = regexp.MustCompile(`^[ \t]*else\b`)
 )
 
 // From phase 075.

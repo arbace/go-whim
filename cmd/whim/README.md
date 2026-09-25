@@ -14,12 +14,12 @@ commit that has them.
 | `go tool whim sweep` | the sweep on one file: one reachability closure over its parse, and everything it did not reach cut out (`crefactor/sweep`) |
 | `go tool whim cemit` | one file in the canonical C23 form (`crefactor/cemit`), `--check` to ask whether it already is |
 | `go tool whim parse` | the front end's smoke test, and the proof that the PATCHED `crefactor/cc` is what got linked |
-| `go tool whim reach` | what nothing reaches in a text, as a partition with gcc as its control (`internal/reach`); it deletes nothing |
+| `go tool whim reach` | what nothing reaches in a text, as a partition with gcc as its control (`crefactor/reach`); it deletes nothing |
 | `go tool whim measure` | one row per boundary a `build --keep D` left: lines, entity counts, binary, undefined symbols (`internal/phase/boundaries.md`) |
 | `go tool whim score` | bytes to store and symbols to provide, slim-vim beside whim-vim, both built with the one line (`internal/score`) |
 | `go tool whim cmdidxs`, `cmdnames` | the Ex command table: its names, and the ex_cmdidxs block derived from them (`internal/cmdtab`) |
 | `go tool whim gen` | editor/editor.go (and internal/gen/sigs.md) from editor.c, written only when it differs; `--check` refuses a stale one (`internal/gen`) |
-| `go tool whim skel`, `splice`, `pre` | the generator by hand (`-bodies` for the bodies alone), the emitted bodies measured in a copy of editor/, and internal/ccx's partitions on an editor.c |
+| `go tool whim skel`, `splice`, `pre` | the generator by hand (`-bodies` for the bodies alone), the emitted bodies measured in a copy of editor/, and crefactor/ccx's partitions on an editor.c |
 
 `go tool whim` with no argument lists the rest: the dead-code tools one at a
 time and every cutter a phase names, each runnable on a file by hand. Every one
@@ -52,7 +52,7 @@ too, with the test suite; `448e9a8` is the last commit that has it.
 | `score.sh` | `tools/st.sh score` (`internal/verify`'s `Score`), which `make score` runs | `016ce45` |
 | `canon.sh` | `tools/st.sh canon FILE [--once]` (`internal/canon`'s `Run`; `check.Canon` from a check) | `942db23` |
 | `internal/phase/NNN/make.sh`, `edit.sh`, `check.sh` | `internal/phase/NNN/edit.go` and `check.go`, package `pNNN` | `f0a58b9` |
-| `deadsweep.py`, `deadprotos.py`, `typereach.py`, `funcreach.py`, `deadfields.py`, `deadenums.py`, `orphanopts.py`, `nvidxcheck.py` | `whimtools` of the same name (`nvidx` for the last), in `internal/dead` | before the split |
+| `deadsweep.py`, `deadprotos.py`, `typereach.py`, `funcreach.py`, `deadfields.py`, `deadenums.py`, `orphanopts.py`, `nvidxcheck.py` | `whimtools` of the same name (`nvidx` for the last), in `internal/dead` (now `crefactor/dead`) | before the split |
 | `canon.py`, `cutil.py` and the canonicaliser's pieces (`brace.py`, `onestmt.py`, `onedecl.py`, `forcomma.py`) | `internal/canon`, `internal/cutil` (now `crefactor/edit`) | before the split |
 | `behaviour.py`, `exsweep.py`, `termcheck.py`, `clicheck.py`, `starcheck.py`, `complcheck.py`, `termrestore.py`, `muslcase.py`, `muslctype.py`, `create_cmdidxs.py` | `whimtools` of the same name (`cmdidxs` for the last), in `internal/harness` | before the split |
 | `zscreen.py`, `zstream.py`, `zrec.py`, `zcases.py`, `zexcmds.py`, `zargv.py`, `zpty.py`, `zmemline.py`, `ztermcheck.py`, `zhostonly.py`, `zcompare.py` | `internal/harness`'s `z*.go`, each also a `whimtools` subcommand where it has a command line | before the split |
@@ -64,4 +64,4 @@ too, with the test suite; `448e9a8` is the last commit that has it.
 | `st.sh`, `gobuild.sh` | `go tool whim <subcommand>`: `go.mod` declares `cmd/whim` (renamed from `cmd/whimtools`) as a tool, and Go builds and caches it | the commit that made the toolset a go tool |
 | `tools/musl-ctype.txt`, `tools/musl-case.txt`, and `tools/` itself | `internal/phase/098/musl-ctype.md` and `musl-case.md`, embedded in phase 98's edit (the fenced block, byte for byte); this file moved to `cmd/whim/README.md` | the commit that embedded them |
 | `internal/canon` and the subcommands `canon`, `blankruns`, `joinparens`, `splitheads`, `brace`, `onestmt`, `onedecl`, `forcomma` | nothing: `crefactor/cemit` is the one canonical printer, run at the end of every phase (`go tool whim cemit` by hand); the sweep stopped running these | the commit that removed them, after 38be391 |
-| the subcommands `deadsweep`, `deadprotos`, `typereach`, `deadfields`, `deadenums`, and `crefactor/sweep`'s `WHIM_CLOSURE` switch | `crefactor/sweep`'s closure (`Prune`), which replaced the six-tool loop; `funcreach` stays, a step some phases run mid-edit, and `internal/dead` keeps it, `FuncDefinitions` and the gcc warnings `reach` uses as its control | the commit that replaced the sweep |
+| the subcommands `deadsweep`, `deadprotos`, `typereach`, `deadfields`, `deadenums`, and `crefactor/sweep`'s `WHIM_CLOSURE` switch | `crefactor/sweep`'s closure (`Prune`), which replaced the six-tool loop; `funcreach` stays, a step some phases run mid-edit, and `crefactor/dead` keeps it, `FuncDefinitions` and the gcc warnings `reach` uses as its control | the commit that replaced the sweep |

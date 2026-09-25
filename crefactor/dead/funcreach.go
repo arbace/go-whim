@@ -184,10 +184,3 @@ func DeleteFuncs(text []byte, defs FuncDefs, deadNames []string) []byte {
 	}
 	return text
 }
-
-// MinDefinitions is funcreach.py's floor.  Finding fewer than this many
-// definitions means the shape it matches has changed, and acting on the
-// answer would delete most of the program.  The Python exits 1 with a message
-// and tools/sweep.sh carries on regardless, because pass() masks the status --
-// it is a warning, not a stop.
-const MinDefinitions = 100

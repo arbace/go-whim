@@ -11,9 +11,9 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/arbace/go-whim/crefactor/ccx"
+	"github.com/arbace/go-whim/crefactor/reach"
 	"github.com/arbace/go-whim/internal/build"
-	"github.com/arbace/go-whim/internal/ccx"
-	"github.com/arbace/go-whim/internal/reach"
 	"github.com/arbace/go-whim/internal/score"
 	"github.com/arbace/go-whim/internal/whim"
 )

@@ -12,8 +12,10 @@ is told about vim lives in `internal/whim` (`profile.go`, `xform.go`,
 `analysis.go`, `gen.go`) and `internal/whim/vimtext`. The forwarding layers the move
 left (`internal/edit`, `internal/cutil`, `internal/gen`'s wrapper) are retired:
 the phases import `crefactor/edit`, `internal/whim/vimtext` and the registry,
-`internal/phase`, by their own names. reach, ccx and dead take their names as options
-but stay in whim's module.
+`internal/phase`, by their own names. reach, ccx and dead take their names as options and
+have since moved into the module too, reach's core/host cut and funcreach's
+floor lifted into `whim.Reach` and `whim.Dead`; the phase-numbered helpers
+the library carried (`W134*`) have descriptive names.
 
 **Since written:** two side findings were checked. Its claim that CLAUDE.md still said 164 phases, no test suite and a `Sweep` field is wrong: CLAUDE.md says none of those. Its finding that the sweep documented an `ml_recover` guard it did not implement was right, and the guard is implemented now: phases 1-18 had been deleting struct members while the editor could still read a swap file. The throwaway instruments it names under `.tmp/survey/` are not tracked.
 
@@ -296,7 +298,7 @@ Python-port residue, not vim.
 | blocks.go | Gv | `FoldWalk` writes `v = curbuf;` (blocks.go:16, 54). Parameter: the binding expression. `ReplaceBlock`, `DropBareBlock`, `InnerBody` and `ConstOf` are G |
 | stores.go | G | `DeadStores`: set-but-not-used locals, to a fixpoint |
 | residue.go | V | the `cmdnames[]` row shape `^    \[CMD_\w+\] = \{` (residue.go:12-14) |
-| shared.go | mixed | **G**: Key, CountNewlines, JoinInts, SortedKeys, Contains, First, IndexOf, Uniq, ContainsStr, CoreHead, CoreCalls/CoreCallRe, W134Pure (:314), W134Empty/Fn/Write/Else (:330-335), EnclosingLoop, BareDeclOnly, IncludeCount, MentionCount, WithoutIncludes, Line, Head. **V**: BindsToWalk/FwdWalk/BwdWalk (`firstbuf`/`b_next`, `lastbuf`/`b_prev`, :33, :321-324); W119* (`mch_get_pid`, `b0_pid`, `long_to_char`, `kill(getpid()`, :231-240); W127* (`ml_flags`, `dl_text`, `dp*`, :303-308); W80* (`cmdnames`, `CMD_index`, `CMD_SIZE`, `cmdidxs1/2`, `command_count`, `vim_strchr`, `ea.skip`, `vim9`, :349-365); W88Lines and W126Py* are port helpers |
+| shared.go | mixed | **G**: Key, CountNewlines, JoinInts, SortedKeys, Contains, First, IndexOf, Uniq, ContainsStr, CoreHead, CoreCalls/CoreCallRe, W134Pure (:314), W134Empty/Fn/Write/Else (:330-335) (since renamed PureCond, EmptyGuardedBlock, callToken, writeToken, ElseLine), EnclosingLoop, BareDeclOnly, IncludeCount, MentionCount, WithoutIncludes, Line, Head. **V**: BindsToWalk/FwdWalk/BwdWalk (`firstbuf`/`b_next`, `lastbuf`/`b_prev`, :33, :321-324); W119* (`mch_get_pid`, `b0_pid`, `long_to_char`, `kill(getpid()`, :231-240); W127* (`ml_flags`, `dl_text`, `dp*`, :303-308); W80* (`cmdnames`, `CMD_index`, `CMD_SIZE`, `cmdidxs1/2`, `command_count`, `vim_strchr`, `ea.skip`, `vim9`, :349-365); W88Lines and W126Py* are port helpers |
 
 ### internal/cut (54 files): V, with generic helpers
 

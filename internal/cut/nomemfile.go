@@ -6,8 +6,8 @@ import (
 	"io"
 	"regexp"
 
+	"github.com/arbace/go-whim/crefactor/dead"
 	"github.com/arbace/go-whim/crefactor/edit"
-	"github.com/arbace/go-whim/internal/dead"
 )
 
 // The four replacement bodies are generated from the Python module's own

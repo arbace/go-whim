@@ -124,22 +124,23 @@ through to. arbace/slim-vim keeps both, for its own pipeline.
 ```
 cmd/whim/         the toolset, every tool a subcommand: go tool whim <subcommand>
                    (README.md: each tool, and what each retired script became)
-internal/          whim's Go: dead, cut (the cutters), steps (every transformation a phase names, as
+internal/          whim's Go: cut (the cutters), steps (every transformation a phase names, as
                    one table), build (whim's pipeline: the plan -- what each
                    phase does to the source -- and the Config that tells the
                    generic driver whim-vim.c, .cache/boundaries, vim's sweep,
                    @state, @minmax and phase 80's delta.md), cmdtab (the Ex command
                    table: its names and the ex_cmdidxs block), score (bytes and
-                   symbols, the input beside the product), ccx (the core's pointer casts and evaluation order),
-                   reach (what nothing reaches, as a partition with gcc as its
-                   control -- a reporter, `go tool whim reach FILE`; it deletes
-                   nothing)
+                   symbols, the input beside the product)
 crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    (github.com/arbace/go-whim/crefactor, its own go.mod; this
                    module requires it and replaces it with ./crefactor), knowing
                    no code base: it cannot import this module, so the boundary of
                    doc/VIM-VS-GENERIC.md §4 is the compiler's. cc/: the forked C
                    front end. cemit/: the canonical printer. sweep/: the closure.
+                   reach/: what nothing reaches, as a partition with gcc as its
+                   control -- a reporter, `go tool whim reach FILE`; it deletes
+                   nothing. ccx/: a core's pointer casts and evaluation order,
+                   partitioned. dead/: funcreach and gcc's unused warnings.
                    pipeline/: the driver -- Phase, Step, Plan, Run, Advance,
                    Check, the snapshots, Seed -- told everything through a
                    Config. xform/: the generic transforms. edit/: the C-text
@@ -171,7 +172,7 @@ internal/gen/      the generator of editor/editor.go (`go tool whim gen`; `whim
                    nothing in vim, told vim's names by internal/whim/gen.go
                    (whim.Gen), which cmd/whim hands it. Beside its docs:
                    splice/ (`whim splice`: emitted bodies measured in a copy of
-                   editor/), pre/ (`whim pre`: internal/ccx's partitions on an
+                   editor/), pre/ (`whim pre`: crefactor/ccx's partitions on an
                    editor.c), sigs.md, CONVENTIONS.md and FINDINGS.md
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
                    binaries and the editor
@@ -305,11 +306,12 @@ was the input boundary's digest and the implementation's together, so a moved
 - **The analysis tools report, they do not cut**: `go tool whim reach FILE` is
   what nothing reaches in a text, typed, with gcc as its control and struct
   casts held -- the survey instrument the sweep's closure grew from.
-  Like the sweep, `internal/reach`, `internal/ccx` and `internal/dead`'s
+  Like the sweep, `crefactor/reach`, `crefactor/ccx` and `crefactor/dead`'s
   funcreach name nothing in vim: they are told it -- `ml_recover`, the
   allocators, the functions of bytes, the growarray, the unions'
   discriminants, `main` -- by `internal/whim/analysis.go` (`whim.Reach`,
-  `whim.CCX`, `whim.Dead`), which their callers pass in.
+  `whim.CCX`, `whim.Dead`), which their callers pass in -- reach's core/host
+  cut and funcreach's floor of 100 definitions among them.
 
 ## The core and the host
 
