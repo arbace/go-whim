@@ -3925,8 +3925,9 @@ Not yet done, and each one only when it is asked for:
   yields BYTE-IDENTICAL output — an edit that did nothing, which the product gate
   cannot see (10 of 10 deletions, measured). The cheap half of the idea stands: the AST as a LOCATOR, with the
   text still doing the editing.
-- **The Go editor, idiomatic.** `doc/GO-IDIOMS.md` measured how far the
-  generated Go is from idiomatic and ranked the work; `make whim-test` runs the
+- **The Go editor, idiomatic.** A survey measured how far the generated Go was
+  from idiomatic and ranked the work, and all of it is done or declined
+  (`AGENDA.md`); `make whim-test` runs the
   Go editor against the C on every case, so each step is checked.
 
 When Part I ended at phase 82 this list also held the file-lookup layer, state

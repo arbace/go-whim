@@ -7,6 +7,5 @@
 // memline flags and data blocks, 128's local declarations.
 //
 // It is the old internal/edit/shared.go's vim half, and residue.go, split off
-// when the rest moved to crefactor/edit (doc/VIM-VS-GENERIC.md section 4,
-// migration step 4).  The phases import it by its own name.
+// when the rest moved to crefactor/edit.  The phases import it by its own name.
 package vimtext

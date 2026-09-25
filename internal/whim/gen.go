@@ -6,8 +6,8 @@ import (
 	"github.com/arbace/go-whim/crefactor/togo"
 )
 
-// What the generator is told about the core it translates to Go
-// (doc/VIM-VS-GENERIC.md, step 8): editor/crt.go's contract with vim's
+// What the generator is told about the core it translates to Go:
+// editor/crt.go's contract with vim's
 // core.  internal/gen hard-coded all of it before -- in skel.go, editor.go,
 // gen.go, analyze.go and body_expr.go -- and names none of it now.
 

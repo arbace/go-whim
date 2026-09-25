@@ -1,8 +1,7 @@
 // Package whim is what the pipeline knows about vim that the generic C
-// machinery must be told rather than know (doc/VIM-VS-GENERIC.md): one value,
-// Profile, that the vim side hands to the library.  It grows as the library
-// is separated, one knob at a time; each knob names the file that used to
-// hard-code it.
+// machinery, crefactor, must be told rather than know: Profile and the
+// values beside it, which the vim side hands to the library.  Each knob names
+// the file that used to hard-code it.
 package whim
 
 import "github.com/arbace/go-whim/crefactor/sweep"

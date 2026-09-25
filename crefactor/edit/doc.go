@@ -10,8 +10,8 @@
 // string literal in it names an identifier of the program being edited: what
 // an edit is about -- a function, a variable, a table -- is always the
 // caller's argument.  Nothing here imports the vim side of the tree
-// (internal/whim, internal/phase, internal/cut, internal/cmdtab);
-// doc/VIM-VS-GENERIC.md section 4 is the layout this is part of.
+// (internal/whim, internal/phase, internal/cut, internal/cmdtab), and as a
+// module of its own it cannot.
 //
 // It was internal/cutil, the port of tools/cutil.py -- the substrate the text
 // tools stood on -- and the generic half of internal/edit; both are gone, and

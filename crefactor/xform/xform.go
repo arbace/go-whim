@@ -1,6 +1,6 @@
 // Package xform is the generic C transformations the pipeline's phases were
-// written as (doc/VIM-VS-GENERIC.md, section 3): each one a Step built from
-// its knobs by a constructor, on the canonical text of one translation unit.
+// written as: each one a Step built from its knobs by a constructor, on the
+// canonical text of one translation unit.
 //
 // A transformation knows C and nothing of the code base it is run on: what a
 // code base calls its truth constants, its no-op functions, its allocators or

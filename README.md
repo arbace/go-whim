@@ -94,8 +94,8 @@ produces `whim-vim.c`, and `make editor/editor.go` does it on its own.
 writes, and `make` builds it into `bin/whim`.
 
 The Go is faithful, not yet idiomatic. The phases from 129 on removed from the C
-what it had to work around; making the Go idiomatic comes next -- `doc/GO-IDIOMS.md`
-is the measured survey of how, and `make whim-test` checks the Go editor
+what it had to work around, and the generator and phases 164-168 then made the
+Go lint-clean and closer to idiomatic Go; `make whim-test` checks the Go editor
 against the C on every run.
 
 ## Requirements
@@ -135,10 +135,7 @@ internal/gen/    the generator of editor/editor.go (go tool whim gen: crefactor/
                  sigs.md, CONVENTIONS.md and FINDINGS.md
 Makefile         the whole build: the input, the pipeline, the binaries, the editor
 doc/             GOALS.md (what holds for every phase), AGENDA.md (what is not
-                 done, in order), and three surveys: GO-IDIOMS.md (how the Go
-                 editor could be idiomatic, measured and ranked), DSL.md (a language
-                 for phase edits: partially, as Go verbs) and VIM-VS-GENERIC.md (which
-                 steps are generic C, and how to separate them: done)
+                 done, in order, and what was declined, with why)
 src/             the input and the product, their binaries and digests:
                  whim-vim.c (the product, tracked; make editor.c cuts the core
                  out of it), slim-vim.c (the input, fetched, not tracked),

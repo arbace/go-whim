@@ -8,7 +8,7 @@ import (
 	"github.com/arbace/go-whim/crefactor/reach"
 )
 
-// What the analysis tools are told about vim (doc/VIM-VS-GENERIC.md, step 7):
+// What the analysis tools are told about vim:
 // internal/dead's funcreach, internal/reach's closure and internal/ccx's
 // checks.  Each of them hard-coded these names before; none of them names
 // anything in vim now.

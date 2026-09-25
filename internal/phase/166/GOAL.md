@@ -41,7 +41,7 @@ so `if f() != 0` becomes `if f()` and `retval = B2i(f())` becomes
 fixed Go body takes its result type from the C, and a `bool` used as an offset
 converts with `B2i`.
 
-It is the survey's third recommendation (`doc/GO-IDIOMS.md`, item 3): the C
+It is the survey's third recommendation (the Go-idioms survey, item 3): the C
 phase the survey asked for, since the generator follows the C's types.
 
 **Measured:** 279 functions, 331 locals, 26 members and 279 parameters, 1,276

@@ -134,8 +134,8 @@ internal/          whim's Go: cut (the cutters), steps (every transformation a p
 crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    (github.com/arbace/go-whim/crefactor, its own go.mod; this
                    module requires it and replaces it with ./crefactor), knowing
-                   no code base: it cannot import this module, so the boundary of
-                   doc/VIM-VS-GENERIC.md §4 is the compiler's. cc/: the forked C
+                   no code base: it cannot import this module, so the boundary
+                   between generic C and vim is the compiler's. cc/: the forked C
                    front end. cemit/: the canonical printer. sweep/: the closure.
                    reach/: what nothing reaches, as a partition with gcc as its
                    control -- a reporter, `go tool whim reach FILE`; it deletes
@@ -182,10 +182,7 @@ src/               the input and the product: slim-vim.c (fetched, not tracked),
                    whim-vim.c (produced, tracked), their binaries slim-vim and
                    whim-vim, upstream.sha and slim.sha
 doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
-                   done, in order), and three surveys: GO-IDIOMS.md (how the Go
-                   editor could be idiomatic, measured and ranked), DSL.md (a language
-                   for phase edits: not a language but one Go verb set, since done) and
-                   VIM-VS-GENERIC.md (which steps are generic C, and how to separate them)
+                   done, in order, and what was declined, with why)
 ```
 
 **The toolset is `go tool whim`**: `go.mod` declares `cmd/whim` as a tool, so Go
@@ -331,9 +328,8 @@ design.
 ## Adding a phase
 
 `GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 170.
-The pipeline's goal is met; what comes now is the Go editor idiomatic
-(`doc/GO-IDIOMS.md`), by the generator where it can and by a phase where the C
-is the cause. What a new one takes:
+The pipeline's goal is met; a phase now is for the Go editor, where the C is
+the cause of what the generator cannot make idiomatic. What a new one takes:
 `internal/phase/NNN/` with `GOAL.md`, and `edit.go` in package `pNNN` registering
 itself if its cut is a program (a line in `cmd/whim/phases.go`); and an entry at
 the end of `internal/build`'s `Plan` naming its steps (the sweep follows
