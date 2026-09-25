@@ -46,21 +46,21 @@ package p096
 // deletes, and is read once.  Afterwards it is a local that is READ AND NEVER
 // WRITTEN: gcc has no warning for that, tools/deadsweep.py acts on warnings, and
 // leaving it would mean `inchar()` returns an uninitialised value on a path the
-// compiler thinks exists.  `return retesc;` becomes `return FALSE;` and the
-// declaration goes.  This is phase 90's `usefilter` judgement in this phase's shape.
+// compiler thinks exists.  `return retesc;` becomes `return FALSE;`, and the
+// declaration, unused then, is the sweep's.  This is phase 90's `usefilter` judgement in this phase's shape.
 //
 // `did_return` is the same shape one level down: the `if (!did_return)` block the
 // redir_write extra removes is its only reader, and an `if` with an empty body is
 // not something any tool here removes either, so the block goes whole with
-// cutil.drop_if and the variable's two lines go with it.
+// cutil.drop_if, its one write goes, and the sweep takes the declaration.
 //
 // THE RECOMMENDED EXTRA IS TAKEN: `redir_write()` IS A NO-OP AFTERWARDS.  After B it
 // is `{ char_u *s = str; static int cur_col = 0; if (redir_off) return; }` -- the
 // sweep takes the two variables and leaves a function with five callers that cannot
 // do anything.  Leaving it is the "concept the table has and the code does not" that
-// phase 18 argued against, so it goes with its five call sites, and
+// phase 18 argued against, so its five call sites go and the sweep takes it, and
 // `redir_off` -- then written five times and read never, a file-scope static no
-// warning covers -- goes with them.
+// warning covers -- loses its writes, and the sweep its declaration.
 //
 // A SECOND EXTRA IS DECLINED AND IS A QUESTION FOR THE USER, not an oversight.  After
 // this phase `typedef struct stat stat_T;` has no user and `#include <sys/stat.h>`
@@ -100,8 +100,8 @@ var w96Before = map[string]int{
 }
 
 var w96After = map[string]int{
-	"redirecting": 2, "closescript": 2, "vim_fsync": 2, "using_script": 1,
-	"redir_write": 0, "redir_off": 0, "did_return": 0, "retesc": 0, "script_char": 0,
+	"redirecting": 3, "closescript": 2, "vim_fsync": 2, "using_script": 1,
+	"redir_write": 2, "redir_off": 2, "did_return": 1, "retesc": 1, "script_char": 1,
 	"scriptin": 4, "curscript": 7,
 	"may_sync_undo": 3, "is_safe_now": 3,
 	"ui_write": 3, "mch_write": 2, "read_cmd_fd": 12,
@@ -231,8 +231,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{w96lit5, w96lit6, "inchar: `retesc` is read and never written now -- no warning covers " +
 			"that, and the value it would return is uninitialised, so the read " +
 			"becomes the FALSE it was initialised to"},
-		{w96lit7, "", "and its declaration goes with it"},
-		{w96lit8, "", "and the script_char local itself, which nothing writes now"},
 	} {
 		if text, err = textEdit(text, e.Old, e.New, e.What, 1); err != nil {
 			return nil, err
@@ -248,22 +246,12 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	}
 
 	// ---- B. redir_fd is NULL for ever -----------------------------------------
-	// THE TWO PATTERNS DIFFER ONLY IN INDENTATION, and that is deliberate: a
-	// single pattern with a count of two would fold two different shapes with one
-	// rule.
+	// redir_write's own `if (redirecting())` is not folded: its five calls go
+	// below, and the sweep takes the function whole.
 	if text, err = fold(text, "undo_cmdmod", "never", `(?m)^        if \(redirecting\(\)\)$`,
 		"undo_cmdmod: `redirecting()` is FALSE, so unwinding :silent never resets "+
 			"msg_col for a redirection that is not happening", 1); err != nil {
 		return nil, err
-	}
-	if text, err = fold(text, "redir_write", "never", `(?m)^    if \(redirecting\(\)\)$`,
-		"redir_write: the same constant takes the whole body -- the fputs() and "+
-			"putc() block, which is putc's only caller and fputs's only NAMED one", 1); err != nil {
-		return nil, err
-	}
-	if k := mentions(text, "redirecting"); k != 2 {
-		return nil, p.Die("redirecting has %d mentions after both callers were folded, expected 2 -- "+
-			"its prototype and its definition, for the sweep", k)
 	}
 
 	// ---- the recommended extra: the no-op that is left ------------------------
@@ -282,46 +270,31 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		{w96lit9, "emsg_core's two calls that echoed the error's source line", 2},
 		{w96lit10, "emsg_core's call that echoed the message itself", 1},
 		{w96lit11, "msg_puts_attr_len's call, which was every message the editor prints", 1},
-		{w96lit12, "redir_write's prototype", 1},
 	} {
 		if text, err = textEdit(text, e.Old, "", e.What, e.n); err != nil {
 			return nil, err
 		}
 	}
-	var removed bool
-	if text, removed = cutil.DeleteDefinition(text, "redir_write"); !removed {
-		return nil, p.Die("redir_write has no definition to remove")
+	if k := mentions(text, "redir_write"); k != 2 {
+		return nil, p.Die("redir_write has %d mentions, expected 2 -- its prototype and its "+
+			"definition, uncalled now and the sweep's", k)
 	}
-	if k := mentions(text, "redir_write"); k != 0 {
-		return nil, p.Die("redir_write still has %d mentions", k)
-	}
-	p.Say("redir_write itself, which could no longer do anything: five call sites and the " +
-		"definition")
 
-	// A local draws -Wunused-but-set-variable, which the sweep may act on; a
-	// FILE-SCOPE static draws NOTHING AT ALL -- phase 93's `readonlymode` in this
-	// phase's shape -- so both go here rather than being left to a tool.
-	for _, e := range []struct{ Old, What string }{
-		{w96lit13, "msg_end's `did_return`, written once and read never now"},
-		{w96lit14, "and its one write"},
-	} {
-		if text, err = textEdit(text, e.Old, "", e.What, 1); err != nil {
-			return nil, err
-		}
+	// The sweep deletes declarations, never statements: the writes go here, and
+	// the two declarations, unused then, are the sweep's.
+	if text, err = textEdit(text, w96lit14, "",
+		"msg_end's `did_return`'s one write: it is read never now", 1); err != nil {
+		return nil, err
 	}
 	if k := len(w96RedirOff.FindAll(text, -1)); k != 5 {
 		return nil, p.Die("redir_off has %d writes, expected 5 -- a phase written from a description "+
 			"of four would leave one behind", k)
 	}
 	text = w96RedirOff.ReplaceAll(text, nil)
-	if text, err = textEdit(text, w96lit15, "",
-		"and redir_off: FIVE writes, not four, and no reader at all -- a "+
-			"file-scope static that is assigned and never read draws no warning, "+
-			"and tools/deadsweep.py acts on warnings", 1); err != nil {
-		return nil, err
-	}
-	if mentions(text, "redir_off") > 0 || mentions(text, "did_return") > 0 {
-		return nil, p.Die("redir_off or did_return survives")
+	p.Say("and redir_off's FIVE writes, not four: it has no reader at all")
+	if mentions(text, "redir_off") != 2 || mentions(text, "did_return") != 1 {
+		return nil, p.Die("redir_off or did_return is named other than by its declaration " +
+			"(and, for redir_off, uncalled redir_write's read)")
 	}
 
 	// ---- C. ui_write's console ------------------------------------------------
@@ -343,8 +316,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, p.Die("%s has %d mentions after the cut, expected %d", name, k, w96After[name])
 		}
 	}
-	p.Say("the cut is done: redirecting, closescript and vim_fsync at two mentions each " +
-		"-- a prototype and a definition -- and using_script at ONE, its definition " +
+	p.Say("the cut is done: closescript and vim_fsync at two mentions each " +
+		"-- a prototype and a definition -- redirecting at three, uncalled redir_write's " +
+		"call the third, and using_script at ONE, its definition " +
 		"alone, having never had a prototype; scriptin 4 and curscript 7, every one of " +
 		"them inside a function the sweep now reads as unreachable; may_sync_undo and " +
 		"is_safe_now SURVIVING at three; and read_cmd_fd 12, still the terminal's")
