@@ -1,14 +1,15 @@
 # go-whim
 
 A pipeline, written in Go, that takes vim apart on purpose -- and the editor it
-leaves, three times over: in C, in Go and in Java, each required to answer
-every test case as the others do.
+leaves, four times over: in C, in Go, in Java and in Clojure, each required
+to answer every test case as the others do.
 
 ```
 slim-vim.c ──── whim: phases, in order ────▶ whim-vim.c   an embeddable editor core
                                                   │
                   crefactor/togo ─────────────────┼──▶ editor/    the core in Go
-                                                  └──▶ jeditor/   the core in Java
+                                                  ├──▶ jeditor/   the core in Java
+                                                  └──▶ cljeditor/ the core in Clojure
 ```
 
 **The input** is `slim-vim.c`: vim 9.2 as one C translation unit, without
@@ -25,21 +26,22 @@ product, `src/whim-vim.c`, is tracked, and `make whim-build-check` requires it
 back byte for byte.
 
 **The translations** are written by `crefactor/togo` from the core's C, not
-from each other: `editor/editor.go` and `jeditor/Editor.java` are generated,
-tracked, and refused by `make whim-editor-check` when stale.
+from each other: `editor/editor.go`, `jeditor/Editor.java` and
+`cljeditor/src/whim/editor.clj` are generated, tracked, and refused by
+`make whim-editor-check` when stale.
 
 **The tests**: `make whim-test` runs 45 key sessions on the C and the Go editor
 and requires the same screens, with a control that must move them;
-`make whim-test-wide` does the same with 240 cases; `make whim-test-java`
-holds the Java editor to them too. `make go-test` runs the Go packages' tests.
+`make whim-test-wide` does the same with 240 cases; `make whim-test-java` and
+`make whim-test-clj` hold the Java and the Clojure editors to them too. `make go-test` runs the Go packages' tests.
 
 ## Use
 
 ```sh
 make                   # fetch the input if it moved, build the Go editor, bin/whim
-make whim-build        # the pipeline: slim-vim.c -> whim-vim.c, editor.go, Editor.java
+make whim-build        # the pipeline: slim-vim.c -> whim-vim.c and the three translations
 make whim-build-check  # the same, required to give the committed bytes back
-make whim-editor-check # refuse a stale editor.go or Editor.java
+make whim-editor-check # refuse a stale editor.go, Editor.java or editor.clj
 make whim-test         # the quick suite; whim-test-wide, whim-test-java
 make go-test           # the Go packages' tests
 make whim-vim          # the C editor's binary
@@ -62,10 +64,10 @@ make help              # every target
 - **Java**, `jeditor/`: the same shape -- `Editor.java` on a `Host`, a runtime
   (`rt/`, a C pointer as an array and an offset), and a terminal host through
   the Foreign Function & Memory API.
-- **Clojure**, `cljeditor/` (in progress, doc/CLOJURE.md): the namespace
-  `whim.editor`, generated, on the Java editor's runtime and host through
-  interop; the glue (`whim.cljhost`), the launcher and the build are written,
-  the backend that writes the core is not merged yet.
+- **Clojure**, `cljeditor/`: the namespace `whim.editor`, generated from basic
+  blocks (structured `let`/`loop` where the C's flow nests, a `loop`/`case`
+  state machine where it does not), on the Java editor's runtime and host
+  through interop; `whim.cljhost` the glue, `whim.cljmain` the launcher.
 
 ## Requirements
 

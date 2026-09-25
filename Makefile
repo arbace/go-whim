@@ -242,7 +242,7 @@ go-test:  ## the Go tests of both modules: this one and crefactor/
 	@cd crefactor && go vet -unreachable=false ./... && go test ./...
 
 .PHONY: whim-editor-check
-whim-editor-check:  ## refuse if the tracked editor.go or Editor.java is not what the generator writes
+whim-editor-check:  ## refuse if a tracked editor.go, Editor.java or editor.clj is not what the generator writes
 	$(cut-editor)
 	@go tool whim gen --check
 

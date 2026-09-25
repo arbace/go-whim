@@ -277,7 +277,7 @@ make                 # all: bin/whim, the editor (editor/ built), through whim-v
                      # (produced only when slim-vim.c moved) and editor/editor.go
 make whim-build      # the 143 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
-make whim-editor-check # refuse a tracked editor.go or Editor.java that is not what the generator writes
+make whim-editor-check # refuse a tracked editor.go, Editor.java or editor.clj that is not what the generator writes
 make whim-test        # the quick suite: 45 key sessions, required to behave as HEAD's does
 make whim-test-wide   # the optional wide suite: 240 cases, keys, Ex commands, argv, a terminal
 make bin/whim-java    # the editor in Java: Editor.java generated, compiled, and a launcher
@@ -335,7 +335,8 @@ make help            # every target, with a line each
   could start a build. The binary is `bin/whim`. **`jeditor/Editor.java` is
   generated and tracked the same way**, by the same `whim gen`, from the same
   `editor.c` (`crefactor/togo`'s Java backend), held to the same check, and
-  refused outright if the backend refused any part of the core.
+  refused outright if the backend refused any part of the core -- **and so is
+  `cljeditor/src/whim/editor.clj`**, the Clojure backend's.
 
 - **The compile line is one line**, `gcc -O0 -fno-stack-protector -static -no-pie
   -s`, for the input, the product and every boundary: an ordinary static

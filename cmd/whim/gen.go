@@ -66,10 +66,28 @@ func runGen(args []string) int {
 		fmt.Fprintf(os.Stderr, "whim gen: the Java backend refused part of the core:\n%s", r)
 		return 1
 	}
+	// And in Clojure (doc/CLOJURE.md), the same way: whim.editor is what the
+	// Clojure backend writes, refusing nothing.
+	cdir, err := os.MkdirTemp("", "cljgen")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "whim: %v\n", err)
+		return 1
+	}
+	defer os.RemoveAll(cdir)
+	cljOut := filepath.Join(out, "editor.clj")
+	if err := cljGen("editor.c", cdir, cljOut); err != nil {
+		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
+		return 1
+	}
+	if r, err := os.ReadFile(cljOut + ".refused"); err == nil && len(bytes.TrimSpace(r)) > 0 {
+		fmt.Fprintf(os.Stderr, "whim gen: the Clojure backend refused part of the core:\n%s", r)
+		return 1
+	}
 	files := []struct{ made, tracked string }{
 		{filepath.Join(out, "editor.go"), "editor/editor.go"},
 		{filepath.Join(out, "sigs.md"), "internal/gen/sigs.md"},
 		{javaOut, "jeditor/Editor.java"},
+		{cljOut, "cljeditor/src/whim/editor.clj"},
 	}
 	fail, changed := false, false
 	for _, f := range files {
@@ -99,11 +117,14 @@ func runGen(args []string) int {
 	case check:
 		fmt.Printf("  %-12s is what internal/gen writes from whim-vim.c\n", "editor.go")
 		fmt.Printf("  %-12s is what the Java backend writes from whim-vim.c\n", "Editor.java")
+		fmt.Printf("  %-12s is what the Clojure backend writes from whim-vim.c\n", "editor.clj")
 	case changed:
 		b, _ := os.ReadFile("editor/editor.go")
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.go", bytes.Count(b, []byte("\n")))
 		j, _ := os.ReadFile("jeditor/Editor.java")
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "Editor.java", bytes.Count(j, []byte("\n")))
+		c, _ := os.ReadFile("cljeditor/src/whim/editor.clj")
+		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.clj", bytes.Count(c, []byte("\n")))
 	default:
 		fmt.Printf("  %-12s current -- what internal/gen writes from whim-vim.c\n", "editor.go")
 	}
