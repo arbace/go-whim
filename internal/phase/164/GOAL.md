@@ -18,3 +18,5 @@ and two tags, the Latin-1 case tables among them.
 **Measured:** on the product before it, 18 runs go and 0 are held. `go vet
 ./editor` goes from 17 findings to 0. `whim-test`: 45/45 as the commit before,
 and the Go editor answers all 45 as the C does.
+
+The transformation now lives in `internal/crefactor/xform` (`DeadStmt`).

@@ -34,3 +34,5 @@ to 185. In `editor/editor.go`: `goto` 182 → 163, labels 37 → 30, functions w
 a `goto` 41 → 34, and 74 lines fewer, the locals of the seven functions no
 longer hoisted. `whim-test`: 45/45 as the commit before, and the Go editor
 answers all 45 as the C does.
+
+The transformation now lives in `internal/crefactor/xform` (`GotoReturn`).
