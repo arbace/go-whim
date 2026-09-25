@@ -27,7 +27,8 @@ func parse(path string) (*cc.AST, error) {
 // logw is where the generator's progress lines go: Run's errw.
 var logw io.Writer = os.Stderr
 
-func Run(args []string, errw io.Writer) int {
+func Run(args []string, errw io.Writer, prof Profile) int {
+	p := prof.sets()
 	logw = errw
 	osArgs := append([]string{"run"}, args...)
 	if len(osArgs) < 3 {
@@ -39,24 +40,24 @@ func Run(args []string, errw io.Writer) int {
 		fmt.Fprintln(errw, err)
 		return 1
 	}
-	a := &an{u: newUF(), fnDecls: map[string]*cc.Declarator{}, decls: map[*cc.Declarator]string{}, addr: map[string]bool{}}
+	a := &an{u: newUF(), fnDecls: map[string]*cc.Declarator{}, decls: map[*cc.Declarator]string{}, addr: map[string]bool{}, frees: p.frees}
 	for tu := ast.TranslationUnit; tu != nil; tu = tu.TranslationUnit {
 		a.walk(tu.ExternalDeclaration)
 	}
-	g := newGen(ast, a)
+	g := newGen(ast, a, p)
 	g.collect()
 	if err := g.write(osArgs[2]); err != nil {
 		fmt.Fprintln(errw, err)
 		return 1
 	}
 	if len(osArgs) > 4 && osArgs[3] == "-editor" {
-		if err := g.writeEditor(osArgs[4], crtFuncs); err != nil {
+		if err := g.writeEditor(osArgs[4], p.runtime); err != nil {
 			fmt.Fprintln(errw, "skel:", err)
 			return 1
 		}
 	}
 	if len(osArgs) > 3 && osArgs[3] == "-bodies" {
-		if err := g.writeBodies(osArgs[2], crtFuncs); err != nil {
+		if err := g.writeBodies(osArgs[2], p.runtime); err != nil {
 			fmt.Fprintln(errw, err)
 			return 1
 		}
@@ -77,15 +78,3 @@ func Run(args []string, errw io.Writer) int {
 		len(a.u.parent), len(facts), len(a.statics), len(a.addr))
 	return 0
 }
-
-// crtFuncs are the C functions editor/crt.go replaces: their calls are
-// translated, their bodies are not (internal/gen/CONVENTIONS.md).  ga_grow_inner()'s
-// body is the one rule of its own: it grows the storage with GaGrowTo, in
-// elements of the storage's type.
-var crtFuncs = map[string]bool{"alloc": true, "alloc_clear": true, "lalloc": true, "lalloc_clear": true,
-	"musl_memmove": true, "musl_memcpy": true, "musl_memset": true, "musl_memcmp": true,
-	"ga_grow_inner": true,
-	// the C string functions: editor/libc.go, on Go's byte functions
-	"musl_strlen": true, "musl_strcpy": true, "musl_strncpy": true, "musl_strcat": true,
-	"musl_strcmp": true, "musl_strncmp": true, "musl_strchr": true, "musl_strstr": true,
-	"musl_strpbrk": true}

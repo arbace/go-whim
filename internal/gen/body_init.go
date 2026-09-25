@@ -49,7 +49,7 @@ func (g *gen) initializers() (string, []string) {
 			if d.IsTypename() || d.Type().Kind() == cc.Function {
 				continue
 			}
-			one(GoName(d.Name()), "global:"+d.Name(), d, id.Initializer)
+			one(g.goName(d.Name()), "global:"+d.Name(), d, id.Initializer)
 		}
 	}
 	for _, s := range g.a.statics {

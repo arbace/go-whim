@@ -14,6 +14,7 @@ import (
 type gen struct {
 	ast      *cc.AST
 	a        *an
+	p        *profile        // what the generator is told about the C (Profile)
 	crtRoots map[string]bool // the classes a slice cannot be: they reach the hand-written runtime, or hold a T **'s element; computed once
 
 	structName map[cc.Type]string // struct/union type -> Go type name
@@ -30,8 +31,8 @@ type gen struct {
 	aliasOf    map[string]string // a type alias's name -> what it is
 }
 
-func newGen(ast *cc.AST, a *an) *gen {
-	return &gen{ast: ast, a: a, structName: map[cc.Type]string{}, emitted: map[string]bool{},
+func newGen(ast *cc.AST, a *an, p *profile) *gen {
+	return &gen{ast: ast, a: a, p: p, structName: map[cc.Type]string{}, emitted: map[string]bool{},
 		seenEnum: map[*cc.EnumType]bool{}, globalName: map[string]string{}}
 }
 
@@ -47,10 +48,11 @@ func init() {
 	}
 }
 
-// GoName is a C identifier as a Go one: reserved words get a trailing underscore.
-func GoName(s string) string {
-	if s == "_" {
-		return "gettext_" // vim's _(), the identity once gettext went; _ is Go's blank
+// goName is a C identifier as a Go one: the profile's renames first (`_` is
+// Go's blank), and reserved words get a trailing underscore.
+func (g *gen) goName(s string) string {
+	if r, ok := g.p.Rename[s]; ok {
+		return r
 	}
 	if goReserved[s] {
 		return s + "_"
@@ -67,7 +69,7 @@ func (g *gen) cursor(key string) bool {
 // never moves at all and is only indexed -- and is
 // never compared with another pointer, subtracted, ordered or stepped back --
 // what a Go slice can express, `p[k]` and `p = p[k:]` -- and that it never
-// reaches the hand-written runtime, whose signatures are Ptr (crtFuncs).  Such
+// reaches the hand-written runtime, whose signatures are Ptr (Profile.Runtime).  Such
 // a class is a []T, not a Ptr[T].
 func (g *gen) forward(key string) bool {
 	if !g.cursor(key) || g.a.u.punned(key) {
@@ -91,7 +93,7 @@ func (g *gen) forward(key string) bool {
 			if strings.HasPrefix(k, "elem:") {
 				g.crtRoots[g.a.u.find(k)] = true
 			}
-			for name := range crtFuncs {
+			for name := range g.p.runtime {
 				if strings.HasPrefix(k, "param:"+name+":") || k == "ret:"+name {
 					g.crtRoots[g.a.u.find(k)] = true
 				}
@@ -149,7 +151,7 @@ func (g *gen) goType(t cc.Type, key string) string {
 			// expanded below: the pointer kind is the object's
 		default:
 			if s := scalar(t); s != "" {
-				return GoName(td.Name())
+				return g.goName(td.Name())
 			}
 		}
 	}
@@ -239,10 +241,10 @@ func (g *gen) structType(t cc.Type) string {
 		// named by its tag; a typedef of it is an alias
 		name = "S_" + tag
 		if td != nil {
-			g.aliases = append(g.aliases, fmt.Sprintf("type %s = %s", GoName(td.Name()), name))
+			g.aliases = append(g.aliases, fmt.Sprintf("type %s = %s", g.goName(td.Name()), name))
 		}
 	case td != nil:
-		name = GoName(td.Name())
+		name = g.goName(td.Name())
 	default:
 		// anonymous and not typedef'd: an inline literal type
 		return g.structBody(t)
@@ -298,7 +300,7 @@ func (g *gen) structBody(t cc.Type) string {
 		if f.IsBitfield() {
 			note += fmt.Sprintf(" // C bitfield :%d", f.ValueBits())
 		}
-		fmt.Fprintf(&b, "\t%s %s%s\n", GoName(fname), gt, note)
+		fmt.Fprintf(&b, "\t%s %s%s\n", g.goName(fname), gt, note)
 	}
 	b.WriteString("}")
 	return b.String()
@@ -320,7 +322,7 @@ func (g *gen) enum(e *cc.EnumType) {
 	}
 	g.seenEnum[e] = true
 	for _, en := range e.Enumerators() {
-		g.consts = append(g.consts, fmt.Sprintf("\t%s = %s", GoName(en.Token.SrcStr()), enumValue(en)))
+		g.consts = append(g.consts, fmt.Sprintf("\t%s = %s", g.goName(en.Token.SrcStr()), enumValue(en)))
 	}
 }
 
@@ -354,7 +356,7 @@ func (g *gen) collect() {
 	}
 	// hoisted block-scope statics
 	for _, s := range g.a.statics {
-		name := GoName(s.fn + "_" + s.d.Name())
+		name := g.goName(s.fn + "_" + s.d.Name())
 		key := fmt.Sprintf("static:%s.%s", s.fn, s.d.Name())
 		g.globalName[key] = name
 		g.globals = append(g.globals, g.varLine(name, s.d.Type(), key, "static in "+s.fn+"()"))
@@ -402,7 +404,7 @@ func (g *gen) declaration(d *cc.Declaration, fnSeen map[string]bool) {
 			}
 		default:
 			key := "global:" + dd.Name()
-			name := GoName(dd.Name())
+			name := g.goName(dd.Name())
 			g.globalName[key] = name
 			g.globals = append(g.globals, g.varLine(name, t, key, ""))
 		}
@@ -411,7 +413,7 @@ func (g *gen) declaration(d *cc.Declaration, fnSeen map[string]bool) {
 
 func (g *gen) typedef(d *cc.Declarator) {
 	t := d.Type()
-	name := GoName(d.Name())
+	name := g.goName(d.Name())
 	switch t.Kind() {
 	case cc.Struct, cc.Union:
 		g.structType(t)
@@ -463,17 +465,17 @@ func (g *gen) signature(d *cc.Declarator, who string) {
 			pn = fmt.Sprintf("p%d", i)
 		}
 		pk := fmt.Sprintf("param:%s:%d", d.Name(), i)
-		if (pn == "varp" || pn == "varp_arg") && isCharPtr(p.Type()) {
-			// an option's variable, of whatever type: see the puns in facts.json
-			g.a.u.markPun(pk, "named varp")
+		if g.p.puns[pn] && isCharPtr(p.Type()) {
+			// an object of whatever type (Profile.Puns): see the puns in facts.json
+			g.a.u.markPun(pk, "named "+pn)
 		}
-		ps = append(ps, GoName(pn)+" "+g.goType(p.Type(), pk))
+		ps = append(ps, g.goName(pn)+" "+g.goType(p.Type(), pk))
 	}
 	if ft.IsVariadic() {
 		ps = append(ps, "args ...any")
 	}
 	r := g.goType(ft.Result(), "ret:"+d.Name())
-	s := fmt.Sprintf("func %s(%s)", GoName(d.Name()), strings.Join(ps, ", "))
+	s := fmt.Sprintf("func %s(%s)", g.goName(d.Name()), strings.Join(ps, ", "))
 	if r != "" {
 		s += " " + r
 	}

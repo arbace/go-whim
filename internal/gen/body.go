@@ -105,12 +105,12 @@ func (g *gen) canon(t string) string {
 	return t
 }
 
-func isIntGo(t string) bool {
+func (f *fnEmit) isIntGo(t string) bool {
 	switch t {
-	case "byte", "int8", "int16", "uint16", "int32", "uint32", "int64", "uint64", "usize":
+	case "byte", "int8", "int16", "uint16", "int32", "uint32", "int64", "uint64":
 		return true
 	}
-	return false
+	return t == f.g.sizeType()
 }
 
 // objType is the Go type of an object: a pointer takes its kind from the
@@ -231,17 +231,17 @@ func (f *fnEmit) conv(v val, to string) string {
 			return to + "{}"
 		case strings.HasPrefix(want, "*"), strings.HasPrefix(want, "func("), want == "any", strings.HasPrefix(want, "[]"):
 			return "nil"
-		case isIntGo(want):
+		case f.isIntGo(want):
 			return "0"
 		}
 	}
-	if v.boolean && isIntGo(want) {
+	if v.boolean && f.isIntGo(want) {
 		if want == "int32" {
 			return "B2i(" + v.s + ")"
 		}
 		return to + "(B2i(" + v.s + "))"
 	}
-	if from == "bool" && isIntGo(want) {
+	if from == "bool" && f.isIntGo(want) {
 		if want == "int32" {
 			return "B2i(" + v.s + ")"
 		}
@@ -259,7 +259,7 @@ func (f *fnEmit) conv(v val, to string) string {
 	if v.konst && v.hasCv && v.cv == 0 && (strings.HasPrefix(want, "Ptr[") || strings.HasPrefix(want, "*")) {
 		return f.conv(val{s: "nil", t: to, null: true}, to) // a 0 is a null pointer constant
 	}
-	if v.konst && (isIntGo(want) || want == "bool") {
+	if v.konst && (f.isIntGo(want) || want == "bool") {
 		if k, ok := ikOf[want]; ok && v.hasCv && !k.signed && v.cv < 0 {
 			// a negative constant made unsigned: its value, as C converts it
 			u := uint64(v.cv)
@@ -268,13 +268,13 @@ func (f *fnEmit) conv(v val, to string) string {
 			}
 			return strconv.FormatUint(u, 10)
 		}
-		if want == "usize" && v.hasCv && v.cv < 0 {
+		if want == f.g.sizeType() && v.hasCv && v.cv < 0 {
 			return strconv.FormatUint(uint64(v.cv), 10)
 		}
 		return v.s
 	}
 	switch {
-	case isIntGo(want) && (isIntGo(from) || v.konst):
+	case f.isIntGo(want) && (f.isIntGo(from) || v.konst):
 		return to + "(" + v.s + ")"
 	case want == "any":
 		return v.s
@@ -406,7 +406,7 @@ func (f *fnEmit) newTemp(typ string) string {
 }
 
 func (f *fnEmit) declare(d *cc.Declarator, typ string) *local {
-	name := GoName(d.Name())
+	name := f.g.goName(d.Name())
 	base := name
 	for i := 2; f.taken[name]; i++ {
 		name = fmt.Sprintf("%s_%d", base, i)
@@ -428,7 +428,7 @@ func (f *fnEmit) ident(x *cc.PrimaryExpression) val {
 			return val{s: l.name, t: l.typ, c: t}
 		}
 		if ft, ok := t.(*cc.FunctionType); ok {
-			return val{s: GoName(d.Name()), t: f.g.funcSig(d.Name(), ft), c: t}
+			return val{s: f.g.goName(d.Name()), t: f.g.funcSig(d.Name(), ft), c: t}
 		}
 		key := f.g.a.declKey(d)
 		if strings.HasPrefix(key, "static:") {
@@ -444,14 +444,14 @@ func (f *fnEmit) ident(x *cc.PrimaryExpression) val {
 					key = fmt.Sprintf("param:%s:%d", f.name, i)
 				}
 			}
-			return val{s: GoName(d.Name()), t: f.g.goType(t, key), c: t}
+			return val{s: f.g.goName(d.Name()), t: f.g.goType(t, key), c: t}
 		}
 		if strings.HasPrefix(key, "global:") {
-			return val{s: GoName(d.Name()), t: f.objType(t, key), c: t}
+			return val{s: f.g.goName(d.Name()), t: f.objType(t, key), c: t}
 		}
 		f.no(x, "a name with no declaration here: %s (%s)", d.Name(), key)
 	case *cc.Enumerator:
-		return val{s: GoName(x.Token.SrcStr()), t: "int32", c: x.Type(), konst: true}
+		return val{s: f.g.goName(x.Token.SrcStr()), t: "int32", c: x.Type(), konst: true}
 	}
 	f.no(x, "an identifier resolved to %T", x.ResolvedTo())
 	return val{}

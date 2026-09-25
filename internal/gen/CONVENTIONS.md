@@ -17,6 +17,21 @@ against the C one line by line. Idiomatic Go comes later, in phases; this pass
 must first be *right*. When in doubt, choose the translation that behaves
 exactly as the C does.
 
+## What the generator is told
+
+The rules below are the generator's; the names they apply to are vim's, and
+the generator is told them, one value, `whim.Gen` (`internal/whim/gen.go`,
+of type `gen.Profile`): the C functions `editor/crt.go` replaces, whose calls
+are translated and whose bodies are not (`alloc*`, `musl_mem*`, `musl_str*`,
+`ga_grow_inner`), `ga_grow_inner`'s body, which is a rule of the runtime's;
+the allocators and `vim_free`; `musl_memmove`/`memcpy`/`memset`/`memcmp` as
+the functions of bytes; `garray_T` and its `ga_data`; `usize` as sizeof's
+type; the `varp` parameters that pun; `_` as `gettext_`; and `editor.go`'s
+header. Nothing in `internal/gen` names any of them. Three of them move
+nothing in today's core, measured by dropping each: `vim_free` (phase 132
+dropped its calls), the `varp` puns (no `char *` parameter is so named any
+more) and `usize` (an alias of `uint64`, which the emitter writes the same).
+
 ## What is fixed, and must not be changed
 
 - `editor/crt.go` — the C runtime: `Ptr[T]`, allocation, `mem*`, `qsort`,
@@ -75,7 +90,7 @@ address taken, is a Go slice:
 `[]T`, or `[]byte` for a C string, its NUL kept at the end. `*p` is `p[0]`,
 `p[k]` is `p[k]`, `p->x` is `p[0].x`, `p++` and `p += k` are `p = p[1:]` and
 `p = p[k:]`, and NULL is `nil`. Excluded as well: a class that reaches the
-hand-written runtime (`crtFuncs`), whose signatures are `Ptr`, and one that holds
+hand-written runtime (the profile's `Runtime`), whose signatures are `Ptr`, and one that holds
 the element of a `T **`, since the address of a `Ptr` arrives there and
 `*Ptr[T]` is no `*[]T`. At the edges a `Ptr` becomes a slice with `p.Tail()`, a
 string literal with `[]byte("...\x00")`, a single `*T` with `One(p)`, and a slice

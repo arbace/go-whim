@@ -146,7 +146,8 @@ type an struct {
 	decls   map[*cc.Declarator]string // key per declarator
 	statics []*staticLocal            // block-scope statics, hoisted to globals
 	addr    map[string]bool           // functions used as values
-	freeing bool                      // in vim_free's argument: a void * that walks nothing
+	freeing bool                      // in a free's argument (Profile.Frees): a void * that walks nothing
+	frees   map[string]bool           // Profile.Frees
 }
 
 type staticLocal struct {
@@ -580,7 +581,7 @@ func (a *an) walk(n cc.Node) {
 					ps = ft.Parameters()
 				}
 				i := 0
-				a.freeing = d.Name() == "vim_free"
+				a.freeing = a.frees[d.Name()]
 				for l := x.ArgumentExpressionList; l != nil; l = l.ArgumentExpressionList {
 					var pt cc.Type
 					if i < len(ps) {

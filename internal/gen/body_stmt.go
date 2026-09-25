@@ -11,9 +11,10 @@ import (
 	"github.com/arbace/go-whim/internal/cc"
 )
 
-// the names every function body sees besides its own: the runtime's and Go's
+// the names every function body sees besides its own: the runtime's and Go's,
+// and the size type (Profile.SizeType)
 var runtimeNames = strings.Fields(`Ptr Mk View Addr S Alloc Realloc Memmove Memset Zero Memcmp B2i GaData GaGrowTo GoString
-	int int8 int16 int32 int64 uint16 uint32 uint64 byte bool usize any nil new len cap true false`)
+	int int8 int16 int32 int64 uint16 uint32 uint64 byte bool any nil new len cap true false`)
 
 // condition is e as a Go bool, what it does written before it.
 func (f *fnEmit) condition(e cc.ExpressionNode) string {
@@ -221,7 +222,7 @@ func (f *fnEmit) initValue(typ string, t cc.Type, key string, in *cc.Initializer
 				f.no(in, "more initializers than fields")
 			}
 			ft := f.g.goType(fl.Type(), fieldKey(fl))
-			parts = append(parts, GoName(fl.Name())+": "+f.initValue(ft, fl.Type(), fieldKey(fl), l.Initializer))
+			parts = append(parts, f.g.goName(fl.Name())+": "+f.initValue(ft, fl.Type(), fieldKey(fl), l.Initializer))
 			i++
 		}
 	case *cc.ArrayType:
@@ -662,6 +663,7 @@ func (g *gen) emitFunction(fd *cc.FunctionDefinition) (src string, why string) {
 	for _, n := range runtimeNames {
 		f.taken[n] = true
 	}
+	f.taken[g.sizeType()] = true
 	// every name the body refers to that is not its own
 	walkChildrenFn(fd.CompoundStatement, func(n cc.Node) {})
 	var names func(cc.Node)
@@ -675,10 +677,10 @@ func (g *gen) emitFunction(fd *cc.FunctionDefinition) (src string, why string) {
 				switch d := x.ResolvedTo().(type) {
 				case *cc.Declarator:
 					if !d.IsParam() && d.StorageDuration() != cc.Automatic {
-						f.taken[GoName(x.Token.SrcStr())] = true
+						f.taken[g.goName(x.Token.SrcStr())] = true
 					}
 				case *cc.Enumerator:
-					f.taken[GoName(x.Token.SrcStr())] = true
+					f.taken[g.goName(x.Token.SrcStr())] = true
 				}
 			}
 		case *cc.JumpStatement:
@@ -700,8 +702,8 @@ func (g *gen) emitFunction(fd *cc.FunctionDefinition) (src string, why string) {
 			pn = fmt.Sprintf("p%d", i)
 		}
 		pk := fmt.Sprintf("param:%s:%d", d.Name(), i)
-		ps = append(ps, GoName(pn)+" "+g.goType(p.Type(), pk))
-		f.taken[GoName(pn)] = true
+		ps = append(ps, g.goName(pn)+" "+g.goType(p.Type(), pk))
+		f.taken[g.goName(pn)] = true
 	}
 	if ft.IsVariadic() {
 		f.no(d, "a variadic function")
@@ -716,7 +718,7 @@ func (g *gen) emitFunction(fd *cc.FunctionDefinition) (src string, why string) {
 	f.block(fd.CompoundStatement)
 	rt := g.goType(ft.Result(), "ret:"+d.Name())
 	var b strings.Builder
-	fmt.Fprintf(&b, "func %s(%s)", GoName(d.Name()), strings.Join(ps, ", "))
+	fmt.Fprintf(&b, "func %s(%s)", g.goName(d.Name()), strings.Join(ps, ", "))
 	if rt != "" {
 		b.WriteString(" " + rt)
 	}
