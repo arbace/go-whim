@@ -18,9 +18,21 @@ functions left plain); several run at once in one process. In order, each step
 held to `make whim-test` (and a Java editor, once there is one, to the same
 cases):
 
-1. **No `goto` in the C.** 163 in 34 functions: Go keeps them, Java has none
-   and its labeled break and continue cannot jump backwards. Phases, as 129-168
-   were for Go: what the target cannot say goes from the C.
+1. **No `goto` in the C.** Classified (2026-09-25): 158 in 32 functions of
+   `editor.c` (the Go's other 5 are `togo`'s own, for a `continue` in a
+   `do`-while). All flow is reducible; no goto enters a block, loop or switch,
+   or skips a declaration used after its label. 156 jump forward to a label
+   in an enclosing block -- Java's `L: { ... break L; }` -- and 2 backward, as
+   retry loops. Four generic `crefactor/xform` steps take 109, each a phase:
+   a short tail copied over the goto (52, phase 168's rule widened), a loop's
+   own exit as `break` and a goto to the next statement deleted (5), a retry
+   as a loop (2), a forward exit through no loop or switch as `do { } while
+   (0)` and `break` (50, with a `togo` rule printing that as `for { ...;
+   break }`). The last 49 are per site -- 30 of them `getcmdline_int`'s
+   command-line loop, a state variable -- and pay only if the rule is "no
+   goto in the C" rather than "none the target cannot say": a Java backend
+   can lower every forward goto as a labeled break. Held until the pipeline
+   compaction lands, so the phases go in with their final numbers.
 2. **A Java backend for `togo`**, from the same analysis -- which pointers walk
    (`Ptr[byte]`, 2,212 in the Go, is `byte[]` and an offset), which ints are
    answers, which are unsigned (570 uses: `Integer.*Unsigned`), structs copied
