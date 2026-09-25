@@ -32,8 +32,8 @@ var (
 // every call passes nullptr, do_one_cmd() and :append's reader only pass it
 // on, and neither getter left -- getexline(), getcmdkeycmd() -- reads it: a
 // parameter that is always nullptr and read by nothing.  It goes from the
-// getter's type, from the functions that pass it and from exarg_T.  With it
-// goes find_func_t, a typedef nothing names.  What is left of void * in the
+// getter's type, from the functions that pass it and from exarg_T (whose
+// member, and find_func_t, a typedef nothing names, the sweep takes).  What is left of void * in the
 // core is the functions of bytes, the allocators and a growarray's storage
 // (internal/ccx's VoidPtrs).
 func Edit(text []byte, w io.Writer) ([]byte, error) {
@@ -41,9 +41,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	var err error
 	if n := regexp.MustCompile(`\bcookie\b`).FindAll(text, -1); len(n) != 19 {
 		return nil, p.Die("cookie is named %d times; this phase was written against 19", len(n))
-	}
-	if text, err = p.LiteralOrGone(text, "typedef long (*find_func_t)(const char *line, long line_len, char *buffer, long buffer_size, void *priv);\n", "", "find_func_t, a typedef nothing names, goes", 1, "find_func_t"); err != nil {
-		return nil, err
 	}
 	if text, err = p.Literal(text, "(int, void *, int, getline_opt_T)", "(int, int, getline_opt_T)", "a line getter takes no cookie: its type", 9); err != nil {
 		return nil, err
@@ -64,7 +61,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		Old, New, What string
 		n              int
 	}{
-		{"    void *cookie;\n", "", "exarg_T holds none", 1},
 		{"eap->ea_getline(NUL, eap->cookie, indent, ", "eap->ea_getline(NUL, indent, ", ":append's reader passes none", 1},
 		{"getline_equal(fgetline, cookie, getexline)", "getline_equal(fgetline, getexline)", "getline_equal() is asked without one", 4},
 		{"fgetline(':', cookie, 0, ", "fgetline(':', 0, ", "do_cmdline() gets its next line without one", 1},
@@ -76,8 +72,9 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 			return nil, err
 		}
 	}
-	if m := regexp.MustCompile(`\bcookie\b`).Find(text); m != nil {
-		return nil, p.Die("cookie is still named")
+	// exarg_T's own member is left, named by nothing now: the sweep takes it.
+	if n := len(regexp.MustCompile(`\bcookie\b`).FindAll(text, -1)); n != 1 {
+		return nil, p.Die("cookie is still named %d times, beside exarg_T's member", n-1)
 	}
 	return text, nil
 }
