@@ -174,7 +174,6 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 	e.InFunction("win_do_lines", func(e *edit.E) {
 		e.Literal(w72lit25, "", "'termfastscroll' refusing to scroll a window that has one below")
 	})
-	e.Lines(`win_T[ \t]+\*w_next;`, 1, "the window list pointer in win_T")
 
 	for _, f := range []struct {
 		fn, v string
@@ -190,15 +189,13 @@ func Edit(text []byte, w io.Writer) ([]byte, error) {
 		e.InFunction(f.fn, func(e *edit.E) {
 			e.Lines(f.v+` = curtab;`, f.n, fmt.Sprintf("the tabpage %s no longer walks", f.fn))
 		})
-		e.InFunction(f.fn, func(e *edit.E) {
-			e.Lines(`tabpage_T[ \t]+\*`+f.v+`;`, 1, "and the variable that held it")
-		})
 	}
+	// The variables those writes held, win_T's w_next and first_tabpage are
+	// named by nothing now; the sweep takes them.
 
 	// 7. what is left of the two lists
 	e.Lines(`static win_T[ \t]+\*firstwin;`, 1, "firstwin")
 	e.Lines(`static win_T[ \t]+\*lastwin;`, 1, "lastwin")
-	e.Lines(`static tabpage_T[ \t]+\*first_tabpage;`, 1, "first_tabpage")
 	if !e.Failed() {
 		n := e.Mentions("firstwin") + e.Mentions("lastwin")
 		t := regexp.MustCompile(`\bfirstwin\b`).ReplaceAll(e.Text(), []byte("curwin"))
