@@ -1,49 +1,36 @@
-# Phase 168 — the system headers nothing needs
+# Phase 168 — a goto whose label returns is that return
 
-The last phase, and the only one that removes an `#include`. The file opens
-with the 41 `#include`s slim-vim.c has. Each phase before this one takes away
-some of what they were for: the directory walker, the locale, the password
-file, dlopen, setjmp, the maths library, the ctype functions (97-98), the stdio
-stream (104). A header that supplies nothing the file names -- no function, no
-type, no constant -- is a dependency on the host that buys nothing. This phase
-drops every such header at once. It is the `includes` step, which phase 82 used
-to run.
+vim leaves a function early with `goto theend;`, and `theend:` marks
+`return ret;`. Where the label marks nothing but the return, the jump is the
+return: at the `goto`, `return ret;` returns what the label would, in the same
+state, because nothing runs in between. This phase writes the return at every
+such `goto`, and drops a label no `goto` reaches any more. It is
+`doc/GO-IDIOMS.md` item 10: the Go says `return retval` where it said
+`goto theend`, and a function left with no `goto` has its locals declared where
+C declares them, since `internal/gen` hoists them only in a function that
+jumps.
 
-**The set is computed, not listed.** A header's name says what it is for, not
-what this file uses from it. `<sys/types.h>` may be the only thing declaring a
-type the code names, and musl's headers include one another, so one that looks
-dead can be carrying another. So each `#include` is tried: delete it and
-require the compile to stay SILENT under `-Wall -Wextra`. gcc compiles C23,
-where a call to an undeclared function is an error and an unknown type is an
-error, so "silent" means "nothing this header provided was used". The
-candidates are tried one at a time in parallel, then all together. If the set
-fails together -- two headers each covering for the other -- they are removed
-one by one from the bottom, each kept only while the build stays silent.
+**The rule is general, and the tree only locates.** `cc.Parse` finds each
+label whose statement -- through any further labels -- is a `return`, and each
+`goto` to it; the text of the return is copied over the text of the `goto`.
+One thing could make the copy mean something else: a name in the returned
+expression that is another object at the `goto` than at the label. So a `goto`
+is held when a name in the expression is declared in any inner block of the
+function, where it might shadow, or at the function's top after the `goto` or
+after the label. A label that still has a `goto` stays. When a label goes and
+the statement before it always jumps, nothing reaches its return any more, and
+the return goes with it (phase 164's rule).
 
-**Why last, and all together.** Phases 82, 99 and 104 each used to drop the
-headers that had just become unused, and about twenty phases between asserted
-the count they were handed: eighteen, twelve, eleven. The dropping is one rule,
-so it runs once, here. The phases before it now assert only what does not
-depend on it: every directive is an `#include` of a system header, the
-directives are one contiguous block, and a phase adds and removes none (phase
-147 excepted, which needs `<fcntl.h>` and puts it beside `<termios.h>`).
+**It changes no behaviour, and the binary may differ**: gcc at `-O0` compiles
+a return in each place where there was one jump to a shared one.
 
-**Measured:** it drops 31 of the 41 headers where 82, 99 and 104 between them
-dropped 29, leaving 10 `#include`s instead of 12. The two more are `<stdlib.h>`
-and `<stdint.h>`: when those phases ran, each still carried something, and by
-the end everything it declared arrives through the headers that remain. The
-file compiles silently without them, and the binary is BYTE-IDENTICAL to the one
-the twelve gave (`SOURCE_DATE_EPOCH=0`, the one compile line). Every phase from
-82 to 165 was checked against its new input -- the committed boundary with all
-41 headers in place -- and gives the committed boundary with all 41 in place,
-once the five phases below were fixed.
-
-**What moving it cost the phases before it.** Beyond the directive counts, a
-header's `#include` line spells words (`select`, `time`, `ioctl`), and mention
-counts saw them. So every mention count skips `#include` lines now
-(`edit.MentionCount`): a directive names a header, not an identifier. Two
-counts that had counted a kept header's line on purpose drop by one: 103's
-`ioctl` and 115's `time`. Phases 106 and 110 found the block by its fixed size
-(the typedef on line 13, the first twelve lines lifted), and now use the size
-they were handed. Phase 147 moves `<fcntl.h>` beside `<termios.h>` instead of
-adding it.
+**Measured:** on the product before it, 19 `goto`s become returns in 7
+functions (`do_map`'s eight `goto theend`, `match_keyprotocol`'s four,
+`ml_append_int`'s three, and one each in `ml_delete_int`, `do_join`, `do_set`
+and `vim_regsub_both`, whose label marks `return (int)((dst - dest) + 1)`),
+0 are held, and
+7 labels go; 0 returns become unreachable. `whim-vim.c`'s `goto`s go from 204
+to 185. In `editor/editor.go`: `goto` 182 → 163, labels 37 → 30, functions with
+a `goto` 41 → 34, and 74 lines fewer, the locals of the seven functions no
+longer hoisted. `whim-test`: 45/45 as the commit before, and the Go editor
+answers all 45 as the C does.

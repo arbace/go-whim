@@ -15,7 +15,9 @@ unseen. That took the `Ptr` of another element type than `byte` from 320 to
 149, `Ptr[Ptr[byte]]` from 107 to 12, `Addr(` from 108 to 9 and `.P()` from
 462 to 86. The rest of it -- a forward-walking pointer as a resliced `[]T` --
 is not done: `Ptr[byte]` is C's string, compared and subtracted across the
-file, and one class. The
+file, and one class. Item 10 is phase 168: a `goto` whose label marks
+`return x` is that return, 19 of them, and seven functions with no `goto` left
+have their locals where C declares them. The
 throwaway instruments it names under `.tmp/idiom/` were not kept.
 
 2026-09-24. A read-only survey: no tracked file changed, nothing committed, and

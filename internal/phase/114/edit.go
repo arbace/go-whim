@@ -106,7 +106,7 @@ const w114Anchor = "    static void *\nmusl_bsearch("
 // gcc lowers both to inline arithmetic, so the phase's whole value is that the
 // core stops depending on behaviour nothing states.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 168 drops the unused)
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 169 drops the unused)
 	p := edit.Ph{Tag: "arith", W: w}
 
 	mentions := edit.MentionCount

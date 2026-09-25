@@ -27079,7 +27079,7 @@ do_map(int maptype, char_u *arg, int mode, bool abbrev)
     if (maptype == MAPTYPE_UNMAP && !haskey)
     {
         retval = 1;
-        goto theend;
+        return retval;
     }
     if (haskey)
     {
@@ -27133,7 +27133,7 @@ do_map(int maptype, char_u *arg, int mode, bool abbrev)
             if (len > MAXMAPLEN)
             {
                 retval = 1;
-                goto theend;
+                return retval;
             }
             if (abbrev && maptype != MAPTYPE_UNMAP)
             {
@@ -27162,14 +27162,14 @@ do_map(int maptype, char_u *arg, int mode, bool abbrev)
                 if (last && n > 2 && same >= 0 && same < n - 1)
                 {
                     retval = 1;
-                    goto theend;
+                    return retval;
                 }
                 for (n = 0; n < len; ++n)
                 {
                     if (((keys[n]) == ' ' || (keys[n]) == '\t'))
                     {
                         retval = 1;
-                        goto theend;
+                        return retval;
                     }
                 }
             }
@@ -27213,7 +27213,7 @@ do_map(int maptype, char_u *arg, int mode, bool abbrev)
                             emsg(iobuff_or(_(e_global_mapping_already_exists_for_str)));
                         }
                         retval = 5;
-                        goto theend;
+                        return retval;
                     }
                 }
             }
@@ -27308,7 +27308,7 @@ do_map(int maptype, char_u *arg, int mode, bool abbrev)
                                     emsg(iobuff_or(_(e_mapping_already_exists_for_str)));
                                 }
                                 retval = 5;
-                                goto theend;
+                                return retval;
                             }
                             else
                             {
@@ -27385,7 +27385,7 @@ do_map(int maptype, char_u *arg, int mode, bool abbrev)
                     msg(_("No mapping found"));
                 }
             }
-            goto theend;
+            return retval;
         }
         if (did_it)
         {
@@ -27395,7 +27395,7 @@ do_map(int maptype, char_u *arg, int mode, bool abbrev)
         if (mp_result[keyround - 1] == nullptr)
         {
             retval = 4;
-            goto theend;
+            return retval;
         }
     }
     if (mp_result[0] != nullptr && mp_result[1] != nullptr)
@@ -27403,7 +27403,6 @@ do_map(int maptype, char_u *arg, int mode, bool abbrev)
         mp_result[0]->m_alt = mp_result[1];
         mp_result[1]->m_alt = mp_result[0];
     }
-theend:
     return retval;
 }
 
@@ -33162,7 +33161,7 @@ ml_append_int(buf_T *buf, linenr_T lnum, char_u *line_arg, colnr_T len_arg, int 
     text = ml_alloc_line(line, len);
     if ((hp = ml_find_line(buf, lnum == 0 ? (linenr_T)1 : lnum, ML_INSERT)) == nullptr)
     {
-        goto theend;
+        return ret;
     }
     buf->b_ml.ml_flags &= ~ML_EMPTY;
     if (lnum == 0)
@@ -33181,7 +33180,7 @@ ml_append_int(buf_T *buf, linenr_T lnum, char_u *line_arg, colnr_T len_arg, int 
         --(buf->b_ml.ml_locked_high);
         if ((hp = ml_find_line(buf, lnum + 1, ML_INSERT)) == nullptr)
         {
-            goto theend;
+            return ret;
         }
         db_idx = -1;
         line_count = buf->b_ml.ml_locked_high - buf->b_ml.ml_locked_low;
@@ -33280,7 +33279,7 @@ ml_append_int(buf_T *buf, linenr_T lnum, char_u *line_arg, colnr_T len_arg, int 
             if (hp->bh_id != (('p' << 8) + 't'))
             {
                 iemsg(e_pointer_block_id_wrong_three);
-                goto theend;
+                return ret;
             }
             if (pp->pb_count < PB_COUNT_MAX)
             {
@@ -33358,7 +33357,6 @@ ml_append_int(buf_T *buf, linenr_T lnum, char_u *line_arg, colnr_T len_arg, int 
         }
     }
     ret = OK;
-theend:
     return ret;
 }
 
@@ -33487,7 +33485,7 @@ ml_delete_int(buf_T *buf, linenr_T lnum, int flags)
             if (hp->bh_id != (('p' << 8) + 't'))
             {
                 iemsg(e_pointer_block_id_wrong_four);
-                goto theend;
+                return ret;
             }
             count = --(pp->pb_count);
             if (count == 0)
@@ -33519,7 +33517,6 @@ ml_delete_int(buf_T *buf, linenr_T lnum, int flags)
         --(dp->db_line_count);
     }
     ret = OK;
-theend:
     return ret;
 }
 
@@ -46834,7 +46831,7 @@ do_join(long count, bool insert_space, bool save_undo, bool use_formatoptions, b
         if (got_int)
         {
             ret = FAIL;
-            goto theend;
+            return ret;
         }
     }
     col = sumsize - currsize - spaces[count - 1];
@@ -46880,7 +46877,6 @@ do_join(long count, bool insert_space, bool save_undo, bool use_formatoptions, b
     check_cursor_col();
     curwin->w_cursor.coladd = 0;
     curwin->w_set_curswant = true;
-theend:
     return ret;
 }
 
@@ -49915,7 +49911,7 @@ do_set(char_u *arg_start, int opt_flags)
     {
         showoptions(0, opt_flags);
         did_show = TRUE;
-        goto theend;
+        return OK;
     }
     while (*arg != NUL)
     {
@@ -49987,7 +49983,6 @@ do_set(char_u *arg_start, int opt_flags)
         }
         arg = skipwhite(arg);
     }
-theend:
     return OK;
 }
 
@@ -54576,7 +54571,7 @@ vim_regsub_both(char_u *source, char_u *dest, int destlen, int flags)
                             {
                                 iemsg(e_damaged_match_string);
                             }
-                            goto exit;
+                            return (int)((dst - dest) + 1);
                         }
                         else
                         {
@@ -54641,7 +54636,6 @@ vim_regsub_both(char_u *source, char_u *dest, int destlen, int flags)
     {
         *dst = NUL;
     }
-exit:
     return (int)((dst - dest) + 1);
 }
 
@@ -66738,7 +66732,7 @@ match_keyprotocol(char_u *term)
         char_u *colon = vim_strchr(buf, ':');
         if (colon == nullptr || colon == buf || colon[1] == NUL)
         {
-            goto theend;
+            return ret;
         }
         *colon = NUL;
         keyprot_T prot;
@@ -66756,7 +66750,7 @@ match_keyprotocol(char_u *term)
         }
         else
         {
-            goto theend;
+            return ret;
         }
         regmatch_T regmatch;
         musl_memset((&(regmatch)), (0), (sizeof(regmatch)));
@@ -66764,18 +66758,17 @@ match_keyprotocol(char_u *term)
         regmatch.regprog = vim_regcomp(buf, RE_MAGIC);
         if (regmatch.regprog == nullptr)
         {
-            goto theend;
+            return ret;
         }
         bool match = term != nullptr && vim_regexec(&regmatch, term, (colnr_T)0);
         vim_regfree(regmatch.regprog);
         if (match)
         {
             ret = prot;
-            goto theend;
+            return ret;
         }
     }
     ret = KEYPROTOCOL_NONE;
-theend:
     return ret;
 }
 

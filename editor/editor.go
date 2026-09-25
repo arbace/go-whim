@@ -23642,6 +23642,13 @@ func list_mappings(keyround int32, abbrev bool, haskey bool, keys Ptr[byte], key
 }
 
 func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
+	var round int32
+	var num_rounds int32
+	var first bool
+	var last bool
+	var keys_unescaped Ptr[byte]
+	var keys_unescaped_len usize
+
 	var keys Ptr[byte]
 	var mp *S_mapblock
 	var mpp **S_mapblock
@@ -23649,60 +23656,26 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 	var rhs Ptr[byte]
 	var p Ptr[byte]
 	var n int32
-	var len_ int32
+	var len_ int32 = 0
 	var hasarg bool
 	var haskey bool
 	var do_print bool
 	var keyround int32
-	var keys_buf Ptr[byte]
-	var alt_keys_buf Ptr[byte]
-	var arg_buf Ptr[byte]
-	var retval int32
+	var keys_buf Ptr[byte] = Ptr[byte]{}
+	var alt_keys_buf Ptr[byte] = Ptr[byte]{}
+	var arg_buf Ptr[byte] = Ptr[byte]{}
+	var retval int32 = 0
 	var do_backslash bool
 	var abbr_table **S_mapblock
 	var map_table Ptr[*S_mapblock]
-	var unique bool
-	var nowait bool
-	var silent bool
-	var special bool
-	var did_simplify int32
-	var unmap_lhs_only bool
+	var unique bool = false
+	var nowait bool = false
+	var silent bool = false
+	var special bool = false
+	var did_simplify int32 = FALSE
+	var unmap_lhs_only bool = false
 	var noremap int32
 	var orig_rhs Ptr[byte]
-	var t1 Ptr[byte]
-	var new_keys Ptr[byte]
-	var flags int32
-	var t2 int32
-	var did_it bool
-	var did_local int32
-	var keyround1_simplified bool
-	var round int32
-	var num_rounds int32
-	var first bool
-	var last bool
-	var same int32
-	var keys_unescaped Ptr[byte]
-	var keys_unescaped_len usize
-	var hash int32
-	var t3 int32
-	var hash_2 int32
-	var t4 int32
-	var newstr Ptr[byte]
-	var new_hash int32
-	var t5 int32
-
-	mp_result = [2]*S_mapblock{}
-	len_ = 0
-	keys_buf = Ptr[byte]{}
-	alt_keys_buf = Ptr[byte]{}
-	arg_buf = Ptr[byte]{}
-	retval = 0
-	unique = false
-	nowait = false
-	silent = false
-	special = false
-	did_simplify = FALSE
-	unmap_lhs_only = false
 	keys = arg
 	map_table = maphash
 	abbr_table = &first_abbr
@@ -23754,7 +23727,7 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 		p = p.Add(1)
 	}
 	if int32(p.Get()) != NUL {
-		t1 = p
+		var t1 Ptr[byte] = p
 		p = p.Add(1)
 		t1.Put(NUL)
 	}
@@ -23765,10 +23738,11 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 	do_print = !haskey || ((maptype != MAPTYPE_UNMAP) && !hasarg)
 	if (maptype == MAPTYPE_UNMAP) && !haskey {
 		retval = 1
-		goto theend
+		return retval
 	}
 	if haskey {
-		flags = REPTERM_FROM_PART | REPTERM_DO_LT
+		var new_keys Ptr[byte]
+		var flags int32 = REPTERM_FROM_PART | REPTERM_DO_LT
 		if special {
 			flags |= REPTERM_SPECIAL
 		}
@@ -23783,6 +23757,7 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 		if musl_strcasecmp(rhs, S("<nop>")) == 0 {
 			rhs = S("")
 		} else {
+			var t2 int32
 			if special {
 				t2 = REPTERM_SPECIAL
 			} else {
@@ -23793,9 +23768,9 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 	}
 	keyround = 1
 	for ; keyround <= 2; keyround++ {
-		did_it = false
-		did_local = FALSE
-		keyround1_simplified = (keyround == 1) && (did_simplify != 0)
+		var did_it bool = false
+		var did_local int32 = FALSE
+		keyround1_simplified := (keyround == 1) && (did_simplify != 0)
 		if keyround == 2 {
 			if alt_keys_buf.Nil() {
 				break
@@ -23808,10 +23783,10 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 			len_ = int32(musl_strlen(keys))
 			if len_ > MAXMAPLEN {
 				retval = 1
-				goto theend
+				return retval
 			}
 			if abbrev && (maptype != MAPTYPE_UNMAP) {
-				same = -1
+				var same int32 = -1
 				keys_unescaped = Mk[byte](51)
 				Memmove(keys_unescaped, keys, int(uint64((len_ + 1))))
 				keys_unescaped_len = vim_unescape_csi(keys_unescaped)
@@ -23830,13 +23805,13 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 				}
 				if ((last && (n > 2)) && (same >= 0)) && (same < (n - 1)) {
 					retval = 1
-					goto theend
+					return retval
 				}
 				n = 0
 				for ; n < len_; n++ {
 					if (int32(keys.At(int(n))) == (' ')) || (int32(keys.At(int(n))) == 9) {
 						retval = 1
-						goto theend
+						return retval
 					}
 				}
 			}
@@ -23848,7 +23823,7 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 			msg_start()
 		}
 		if (((unique && (map_table == View(curbuf.b_maphash[:]))) && haskey) && hasarg) && (maptype != MAPTYPE_UNMAP) {
-			hash = 0
+			var hash int32 = 0
 			for ; (hash < 256) && (got_int == 0); hash++ {
 				if abbrev {
 					if hash != 0 {
@@ -23868,7 +23843,7 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 							emsg(iobuff_or(gettext_(e_global_mapping_already_exists_for_str)))
 						}
 						retval = 5
-						goto theend
+						return retval
 					}
 				}
 			}
@@ -23876,6 +23851,7 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 		if ((map_table != View(curbuf.b_maphash[:])) && !hasarg) && (maptype != MAPTYPE_UNMAP) {
 			list_mappings(keyround, (abbrev), (haskey), keys, len_, mode, &did_local)
 		}
+		var t3 int32
 		if (maptype == MAPTYPE_UNMAP) && !unmap_lhs_only {
 			t3 = 2
 		} else {
@@ -23884,7 +23860,7 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 		num_rounds = t3
 		round = 0
 		for ; ((round < num_rounds) && !did_it) && (got_int == 0); round++ {
-			hash_2 = 0
+			var hash_2 int32 = 0
 			for ; (hash_2 < 256) && (got_int == 0); hash_2++ {
 				if abbrev {
 					if hash_2 > 0 {
@@ -23913,6 +23889,7 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 							n = mp.m_keylen
 							p = mp.m_keys
 						}
+						var t4 int32
 						if n < len_ {
 							t4 = n
 						} else {
@@ -23946,11 +23923,11 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 									emsg(iobuff_or(gettext_(e_mapping_already_exists_for_str)))
 								}
 								retval = 5
-								goto theend
+								return retval
 							} else {
 								mp.m_mode &= ^mode
 								if (mp.m_mode == 0) && !did_it {
-									newstr = vim_strsave(rhs)
+									newstr := vim_strsave(rhs)
 									if mp.m_alt != nil {
 										mp.m_alt.m_alt = nil
 										mp.m_alt = mp.m_alt.m_alt
@@ -23970,12 +23947,13 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 								map_free(mpp)
 								continue
 							}
+							var t5 int32
 							if (mp.m_mode & ((((MODE_NORMAL | MODE_VISUAL) | MODE_SELECT) | MODE_OP_PENDING) | MODE_TERMINAL)) != 0 {
 								t5 = int32(mp.m_keys.At(0))
 							} else {
 								t5 = (int32(mp.m_keys.At(0)) ^ 0x80)
 							}
-							new_hash = t5
+							new_hash := t5
 							if !abbrev && (new_hash != hash_2) {
 								*mpp = mp.m_next
 								mp.m_next = map_table.At(int(new_hash))
@@ -24010,7 +23988,7 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 					msg(gettext_(S("No mapping found")))
 				}
 			}
-			goto theend
+			return retval
 		}
 		if did_it {
 			continue
@@ -24018,14 +23996,13 @@ func do_map(maptype int32, arg Ptr[byte], mode int32, abbrev bool) int32 {
 		mp_result[int(keyround-1)] = map_add(map_table, abbr_table, keys, rhs, orig_rhs, noremap, (nowait), (silent), mode, (abbrev), (keyround1_simplified))
 		if mp_result[int(keyround-1)] == nil {
 			retval = 4
-			goto theend
+			return retval
 		}
 	}
 	if (mp_result[0] != nil) && (mp_result[1] != nil) {
 		mp_result[0].m_alt = mp_result[1]
 		mp_result[1].m_alt = mp_result[0]
 	}
-theend:
 	return retval
 }
 
@@ -26863,8 +26840,8 @@ func ml_line_alloced() int32 {
 }
 
 func ml_append_int(buf *S_file_buffer, lnum linenr_T, line_arg Ptr[byte], len_arg colnr_T, flags int32) bool {
-	var line Ptr[byte]
-	var len_ colnr_T
+	line := line_arg
+	len_ := len_arg
 	var i int32
 	var line_count int32
 	var text Ptr[byte]
@@ -26873,28 +26850,7 @@ func ml_append_int(buf *S_file_buffer, lnum linenr_T, line_arg Ptr[byte], len_ar
 	var dp *S_data_block
 	var pp *S_pointer_block
 	var ip *S_info_pointer
-	var ret bool
-	var t1 linenr_T
-	var line_count_left int64
-	var line_count_right int64
-	var hp_left *S_block_hdr
-	var hp_right *S_block_hdr
-	var hp_new *S_block_hdr
-	var lines_moved int32
-	var total_moved int32
-	var dp_right *S_data_block
-	var dp_left *S_data_block
-	var stack_idx int32
-	var in_left bool
-	var lineadd int32
-	var bp_left *S_block_hdr
-	var bp_right *S_block_hdr
-	var pb_idx int32
-	var pp_new *S_pointer_block
-
-	line = line_arg
-	len_ = len_arg
-	ret = false
+	var ret bool = false
 	if (lnum > buf.b_ml.ml_line_count) || (buf.b_ml.ml_root == nil) {
 		return false
 	}
@@ -26905,6 +26861,7 @@ func ml_append_int(buf *S_file_buffer, lnum linenr_T, line_arg Ptr[byte], len_ar
 		len_ = int32(musl_strlen(line)) + 1
 	}
 	text = ml_alloc_line(line, len_)
+	var t1 linenr_T
 	if lnum == 0 {
 		t1 = 1
 	} else {
@@ -26912,7 +26869,7 @@ func ml_append_int(buf *S_file_buffer, lnum linenr_T, line_arg Ptr[byte], len_ar
 	}
 	hp = ml_find_line(buf, t1, ML_INSERT)
 	if hp == nil {
-		goto theend
+		return (ret)
 	}
 	buf.b_ml.ml_flags &= ^ML_EMPTY
 	if lnum == 0 {
@@ -26927,7 +26884,7 @@ func ml_append_int(buf *S_file_buffer, lnum linenr_T, line_arg Ptr[byte], len_ar
 		buf.b_ml.ml_locked_high--
 		hp = ml_find_line(buf, lnum+1, ML_INSERT)
 		if hp == nil {
-			goto theend
+			return (ret)
 		}
 		db_idx = -1
 		line_count = int32(buf.b_ml.ml_locked_high - buf.b_ml.ml_locked_low)
@@ -26943,7 +26900,22 @@ func ml_append_int(buf *S_file_buffer, lnum linenr_T, line_arg Ptr[byte], len_ar
 		dp.db_line[int(db_idx+1)].dl_marked = FALSE
 		dp.db_line_count++
 	} else {
-		total_moved = 0
+		var line_count_left int64
+		var line_count_right int64
+		var hp_left *S_block_hdr
+		var hp_right *S_block_hdr
+		var hp_new *S_block_hdr
+		var lines_moved int32
+		var total_moved int32 = 0
+		var dp_right *S_data_block
+		var dp_left *S_data_block
+		var stack_idx int32
+		var in_left bool
+		var lineadd int32
+		var bp_left *S_block_hdr
+		var bp_right *S_block_hdr
+		var pb_idx int32
+		var pp_new *S_pointer_block
 		if db_idx < 0 {
 			lines_moved = 0
 			in_left = true
@@ -26997,7 +26969,7 @@ func ml_append_int(buf *S_file_buffer, lnum linenr_T, line_arg Ptr[byte], len_ar
 			pp = hp.bh_ptr
 			if int32(hp.bh_id) != (('p' << 8) + 't') {
 				iemsg(e_pointer_block_id_wrong_three)
-				goto theend
+				return (ret)
 			}
 			if int32(pp.pb_count) < PB_COUNT_MAX {
 				if (pb_idx + 1) < int32(pp.pb_count) {
@@ -27066,7 +27038,6 @@ func ml_append_int(buf *S_file_buffer, lnum linenr_T, line_arg Ptr[byte], len_ar
 		}
 	}
 	ret = true
-theend:
 	return (ret)
 }
 
@@ -27140,9 +27111,7 @@ func ml_delete_int(buf *S_file_buffer, lnum linenr_T, flags int32) bool {
 	var idx int32
 	var stack_idx int32
 	var i bool
-	var ret bool
-
-	ret = false
+	var ret bool = false
 	if (lowest_marked != 0) && (lowest_marked > lnum) {
 		lowest_marked--
 	}
@@ -27176,7 +27145,7 @@ func ml_delete_int(buf *S_file_buffer, lnum linenr_T, flags int32) bool {
 			pp = hp.bh_ptr
 			if int32(hp.bh_id) != (('p' << 8) + 't') {
 				iemsg(e_pointer_block_id_wrong_four)
-				goto theend
+				return (ret)
 			}
 			pp.pb_count--
 			count = int32(pp.pb_count)
@@ -27201,7 +27170,6 @@ func ml_delete_int(buf *S_file_buffer, lnum linenr_T, flags int32) bool {
 		dp.db_line_count--
 	}
 	ret = true
-theend:
 	return (ret)
 }
 
@@ -36957,30 +36925,21 @@ func adjust_cursor_eol() {
 }
 
 func do_join(count int64, insert_space bool, save_undo bool, use_formatoptions bool, setmark bool) bool {
-	var curr Ptr[byte]
-	var curr_start Ptr[byte]
+	var spaces_removed int32
+
+	var curr Ptr[byte] = Ptr[byte]{}
+	var curr_start Ptr[byte] = Ptr[byte]{}
 	var cend Ptr[byte]
 	var newp Ptr[byte]
 	var newp_len usize
 	var spaces Ptr[byte]
-	var endcurr1 int32
-	var endcurr2 int32
-	var currsize int32
-	var sumsize int32
+	var endcurr1 int32 = NUL
+	var endcurr2 int32 = NUL
+	var currsize int32 = 0
+	var sumsize int32 = 0
 	var t linenr_T
-	var col colnr_T
-	var ret bool
-	var spaces_removed int32
-	var t1 colnr_T
-
-	curr = Ptr[byte]{}
-	curr_start = Ptr[byte]{}
-	endcurr1 = NUL
-	endcurr2 = NUL
-	currsize = 0
-	sumsize = 0
-	col = 0
-	ret = true
+	var col colnr_T = 0
+	var ret bool = true
 	if save_undo && !u_save((curwin.w_cursor.lnum-1), (curwin.w_cursor.lnum+count)) {
 		return false
 	}
@@ -37022,7 +36981,7 @@ func do_join(count int64, insert_space bool, save_undo bool, use_formatoptions b
 		line_breakcheck()
 		if got_int != 0 {
 			ret = false
-			goto theend
+			return (ret)
 		}
 	}
 	col = (sumsize - currsize) - int32(spaces.At(int(count-1)))
@@ -37060,6 +37019,7 @@ func do_join(count int64, insert_space bool, save_undo bool, use_formatoptions b
 	curwin.w_cursor.lnum++
 	del_lines(count-1, false)
 	curwin.w_cursor.lnum = t
+	var t1 colnr_T
 	if !vim_strchr(p_cpo, CPO_JOINCOL).Nil() {
 		t1 = currsize
 	} else {
@@ -37069,7 +37029,6 @@ func do_join(count int64, insert_space bool, save_undo bool, use_formatoptions b
 	check_cursor_col()
 	curwin.w_cursor.coladd = 0
 	curwin.w_set_curswant = true
-theend:
 	return (ret)
 }
 
@@ -39329,21 +39288,15 @@ skip:
 }
 
 func do_set(arg_start Ptr[byte], opt_flags int32) bool {
-	var arg Ptr[byte]
-	var i int32
-	var did_show int32
-	var stopopteval int32
-	var errmsg Ptr[byte]
 	var errbuf Ptr[byte]
-	var startarg Ptr[byte]
-	var t1 Ptr[byte]
 
-	arg = arg_start
-	did_show = FALSE
+	arg := arg_start
+	var i int32
+	var did_show int32 = FALSE
 	if int32(arg.Get()) == NUL {
 		showoptions(0, opt_flags)
 		did_show = TRUE
-		goto theend
+		return true
 	}
 	for int32(arg.Get()) != NUL {
 		if (musl_strncmp(arg, S("all"), 3) == 0) && !(((uint32(arg.At(3)) - 'A') < 26) || ((uint32(arg.At(3)) - 'a') < 26)) {
@@ -39364,10 +39317,10 @@ func do_set(arg_start Ptr[byte], opt_flags int32) bool {
 			did_show = TRUE
 			arg = arg.Add(7)
 		} else {
-			stopopteval = FALSE
-			errmsg = Ptr[byte]{}
+			var stopopteval int32 = FALSE
+			var errmsg Ptr[byte] = Ptr[byte]{}
 			errbuf = Mk[byte](80)
-			startarg = arg
+			startarg := arg
 			errmsg = do_set_option(opt_flags, &arg, arg_start, &startarg, &did_show, &stopopteval, errbuf, ERR_BUFLEN)
 			if stopopteval != 0 {
 				break
@@ -39375,7 +39328,7 @@ func do_set(arg_start Ptr[byte], opt_flags int32) bool {
 			i = 0
 			for ; i < 2; i++ {
 				for (int32(arg.Get()) != NUL) && !((int32(arg.Get()) == (' ')) || (int32(arg.Get()) == 9)) {
-					t1 = arg
+					var t1 Ptr[byte] = arg
 					arg = arg.Add(1)
 					if (int32(t1.Get()) == 92) && (int32(arg.Get()) != NUL) {
 						arg = arg.Add(1)
@@ -39402,7 +39355,6 @@ func do_set(arg_start Ptr[byte], opt_flags int32) bool {
 		}
 		arg = skipwhite(arg)
 	}
-theend:
 	return true
 }
 
@@ -42415,38 +42367,20 @@ func vim_regsub_multi(rmp *regmmatch_T, lnum linenr_T, source Ptr[byte], dest Pt
 }
 
 func vim_regsub_both(source Ptr[byte], dest Ptr[byte], destlen int32, flags int32) int32 {
+	var l int32
+	var charlen_2 int32
+
 	var src Ptr[byte]
 	var dst Ptr[byte]
 	var s Ptr[byte]
 	var c int32
 	var cc int32
-	var no int32
-	var func_all func(*int32, int32)
-	var func_one func(*int32, int32)
-	var clnum linenr_T
-	var len_ int32
-	var copy_ int32
-	var t1 Ptr[byte]
-	var t2 Ptr[byte]
-	var t3 Ptr[byte]
-	var t4 Ptr[byte]
-	var t5 Ptr[byte]
-	var t6 Ptr[byte]
-	var t7 Ptr[byte]
-	var t8 Ptr[byte]
-	var t9 Ptr[byte]
-	var totlen int32
-	var charlen int32
-	var clen int32
-	var l int32
-	var charlen_2 int32
-
-	no = -1
-	func_all = nil
-	func_one = nil
-	clnum = 0
-	len_ = 0
-	copy_ = flags & REGSUB_COPY
+	var no int32 = -1
+	var func_all func(*int32, int32) = nil
+	var func_one func(*int32, int32) = nil
+	var clnum linenr_T = 0
+	var len_ int32 = 0
+	copy_ := flags & REGSUB_COPY
 	if source.Nil() || dest.Nil() {
 		iemsg(e_null_argument)
 		return 0
@@ -42459,7 +42393,7 @@ func vim_regsub_both(source Ptr[byte], dest Ptr[byte], destlen int32, flags int3
 	if (int32(source.At(0)) == 92) && (int32(source.At(1)) == '=') {
 	} else {
 		for {
-			t1 = src
+			var t1 Ptr[byte] = src
 			src = src.Add(1)
 			c = int32(t1.Get())
 			if !(c != NUL) {
@@ -42472,11 +42406,11 @@ func vim_regsub_both(source Ptr[byte], dest Ptr[byte], destlen int32, flags int3
 					src = src.Add(1)
 					no = 0
 				} else if ('0' <= int32(src.Get())) && (int32(src.Get()) <= '9') {
-					t2 = src
+					var t2 Ptr[byte] = src
 					src = src.Add(1)
 					no = int32(t2.Get()) - '0'
 				} else if !vim_strchr(S("uUlLeE"), int32(src.Get())).Nil() {
-					t3 = src
+					var t3 Ptr[byte] = src
 					src = src.Add(1)
 					switch t3.Get() {
 					case 'u':
@@ -42505,17 +42439,17 @@ func vim_regsub_both(source Ptr[byte], dest Ptr[byte], destlen int32, flags int3
 							iemsg(S("vim_regsub_both(): not enough space"))
 							return 0
 						}
-						t4 = dst
+						var t4 Ptr[byte] = dst
 						dst = dst.Add(1)
 						t4.Put(byte(c))
-						t5 = dst
+						var t5 Ptr[byte] = dst
 						dst = dst.Add(1)
-						t6 = src
+						var t6 Ptr[byte] = src
 						src = src.Add(1)
 						t5.Put(t6.Get())
-						t7 = dst
+						var t7 Ptr[byte] = dst
 						dst = dst.Add(1)
-						t8 = src
+						var t8 Ptr[byte] = src
 						src = src.Add(1)
 						t7.Put(t8.Get())
 					} else {
@@ -42549,7 +42483,7 @@ func vim_regsub_both(source Ptr[byte], dest Ptr[byte], destlen int32, flags int3
 							}
 							dst = dst.Add(1)
 						}
-						t9 = src
+						var t9 Ptr[byte] = src
 						src = src.Add(1)
 						c = int32(t9.Get())
 					}
@@ -42564,8 +42498,8 @@ func vim_regsub_both(source Ptr[byte], dest Ptr[byte], destlen int32, flags int3
 				} else {
 					cc = c
 				}
-				totlen = utfc_ptr2len(src.Add(-1))
-				charlen = utf_char2len(cc)
+				totlen := utfc_ptr2len(src.Add(-1))
+				charlen := utf_char2len(cc)
 				if copy_ != 0 {
 					if dst.Add(int(charlen)).Gt(dest.Add(int(destlen))) {
 						iemsg(S("vim_regsub_both(): not enough space"))
@@ -42574,7 +42508,7 @@ func vim_regsub_both(source Ptr[byte], dest Ptr[byte], destlen int32, flags int3
 					utf_char2bytes(cc, dst)
 				}
 				dst = dst.Add(int(charlen - 1))
-				clen = utf_ptr2len(src.Add(-1))
+				clen := utf_ptr2len(src.Add(-1))
 				if clen < totlen {
 					if copy_ != 0 {
 						if dst.Add(int(totlen)).Add(-int(clen)).Gt(dest.Add(int(destlen))) {
@@ -42637,7 +42571,7 @@ func vim_regsub_both(source Ptr[byte], dest Ptr[byte], destlen int32, flags int3
 							if copy_ != 0 {
 								iemsg(e_damaged_match_string)
 							}
-							goto exit
+							return int32((int64(dst.Sub(dest)) + 1))
 						} else {
 							if ((flags & REGSUB_BACKSLASH) != 0) && ((int32(s.Get()) == CAR) || (int32(s.Get()) == 92)) {
 								if copy_ != 0 {
@@ -42685,7 +42619,6 @@ func vim_regsub_both(source Ptr[byte], dest Ptr[byte], destlen int32, flags int3
 	if copy_ != 0 {
 		dst.Put(NUL)
 	}
-exit:
 	return int32((int64(dst.Sub(dest)) + 1))
 }
 
@@ -52012,24 +51945,18 @@ func report_term_error(error_msg Ptr[byte], term Ptr[byte]) {
 }
 
 func match_keyprotocol(term Ptr[byte]) keyprot_T {
-	var len_ int32
-	var buf Ptr[byte]
-	var ret keyprot_T
-	var p Ptr[byte]
-	var colon Ptr[byte]
 	var prot keyprot_T
 	var regmatch regmatch_T
-	var match bool
 
-	len_ = int32(musl_strlen(p_kpc)) + 1
-	buf = Alloc(int(len_))
-	ret = KEYPROTOCOL_FAIL
-	p = p_kpc
+	len_ := int32(musl_strlen(p_kpc)) + 1
+	buf := Alloc(int(len_))
+	var ret keyprot_T = KEYPROTOCOL_FAIL
+	p := p_kpc
 	for int32(p.Get()) != NUL {
 		copy_option_part(&p, buf, len_, S(","))
-		colon = vim_strchr(buf, ':')
+		colon := vim_strchr(buf, ':')
 		if (colon.Nil() || (colon == buf)) || (int32(colon.At(1)) == NUL) {
-			goto theend
+			return ret
 		}
 		colon.Put(NUL)
 		if musl_strcmp(colon.Add(1), S("none")) == 0 {
@@ -52039,23 +51966,22 @@ func match_keyprotocol(term Ptr[byte]) keyprot_T {
 		} else if musl_strcmp(colon.Add(1), S("kitty")) == 0 {
 			prot = KEYPROTOCOL_KITTY
 		} else {
-			goto theend
+			return ret
 		}
 		regmatch = regmatch_T{}
 		regmatch.rm_ic = true
 		regmatch.regprog = vim_regcomp(buf, RE_MAGIC)
 		if regmatch.regprog == nil {
-			goto theend
+			return ret
 		}
-		match = !term.Nil() && vim_regexec(&regmatch, term, 0)
+		match := !term.Nil() && vim_regexec(&regmatch, term, 0)
 		vim_regfree(regmatch.regprog)
 		if match {
 			ret = prot
-			goto theend
+			return ret
 		}
 	}
 	ret = KEYPROTOCOL_NONE
-theend:
 	return ret
 }
 

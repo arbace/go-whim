@@ -823,7 +823,11 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim167"}},
 		}},
-	{N: 168, Name: "the system headers nothing needs",
+	{N: 168, Name: "a goto whose label returns is that return",
+		Steps: []Step{
+			{Op: "edit", Args: []string{"whim168"}},
+		}},
+	{N: 169, Name: "the system headers nothing needs",
 		Steps: []Step{
 			{Op: "includes"},
 		}},

@@ -122,7 +122,7 @@ const whim113New = `    if (msg_use_printf())
 // Whim113 folds msg_puts_attr_len()'s never-taken arm into one host_message()
 // call.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 168 drops the unused)
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 169 drops the unused)
 	p := edit.Ph{Tag: "msgfold", W: w}
 	linesBefore := p.Lines(text)
 

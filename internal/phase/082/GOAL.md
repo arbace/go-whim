@@ -1,6 +1,6 @@
 # Phase 82 — every comment
 
-**Now a record: the phase changes nothing.** Its headers half went to phase 168,
+**Now a record: the phase changes nothing.** Its headers half went to phase 169,
 and its comments half is the canonical print's, which drops every comment at
 every boundary, so there is no comment left by the time it runs. It is
 `NoSource` in the plan and its edit program is gone: removing it leaves every

@@ -15,10 +15,9 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
   cases, so a wider corpus widens both.
 - **The Go editor, the rest of idiomatic.** `doc/GO-IDIOMS.md`'s items 1-6 are
   done (lint, dead code, `bool`, scoped locals, libc, key names), and item 7's
-  `*T` for a pointer that never walks. Left, in its order: a `goto` whose
-  target is `return x` as that `return` (10), the 824 globals as a struct
-  (11), and the package structure (12). Each is checked by `make whim-test`,
-  which runs the Go editor against the C.
+  `*T` for a pointer that never walks, and item 10 (phase 168). Left, in its
+  order: the 824 globals as a struct (11), and the package structure (12).
+  Each is checked by `make whim-test`, which runs the Go editor against the C.
 - **A tighter verb set for phase edits** (`doc/DSL.md`). A separate language would
   cover only 10-22% of the edit code; the savings come from one verb set in
   `edit.E` (seven spellings of FoldNever today), verbs for what phases

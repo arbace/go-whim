@@ -137,7 +137,7 @@ func w115Code(lines [][]byte) []byte {
 // host_time() below the line, `long time(long *tp);` leaves the core's
 // prototype block and a static_assert stronger than it replaces it.
 func Edit(text []byte, w io.Writer) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 168 drops the unused)
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 169 drops the unused)
 	p := edit.Ph{Tag: "wallclock", W: w}
 	t := text
 

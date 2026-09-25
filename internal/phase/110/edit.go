@@ -188,7 +188,7 @@ type w110Enum struct {
 // header-supplied constants become enumerators asserted from below, and the
 // formatter's private island follows the four `va_list` functions down.
 func Edit(text []byte, w io.Writer, args []string) ([]byte, error) {
-	nInc := edit.IncludeCount(text) // the headers it was handed (phase 168 drops the unused)
+	nInc := edit.IncludeCount(text) // the headers it was handed (phase 169 drops the unused)
 	p := edit.Ph{Tag: "boundary", W: w}
 	if len(args) != 1 {
 		return nil, p.Die("usage: edit whim110 <file> <state-dir>")

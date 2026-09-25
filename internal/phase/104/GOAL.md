@@ -1,6 +1,6 @@
 # Phase 104 — the messages are the editor's, the writing is the host's
 
-**Since phase 168:** `<stdio.h>` is left unused here and dropped there, with every
+**Since phase 169:** `<stdio.h>` is left unused here and dropped there, with every
 other unused header, last and at once; the directive count below is the record
 of when it went here.
 
