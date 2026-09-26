@@ -34,7 +34,7 @@ type Gen func(editorC, dir, javaOut string) error
 // the # being insignificant to C.
 var includeLine = regexp.MustCompile(`^ *# *include `)
 
-// Cut is the core half of a whim-vim.c, as `make editor.c` cuts it: every
+// Cut is the core half of a whim-vim.c, as `make src/editor.c` cuts it: every
 // line before the first #include, trailing blank lines dropped; and an error
 // when what is left holds a directive, since the core has none.
 func Cut(c []byte) ([]byte, error) {

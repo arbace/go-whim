@@ -140,7 +140,7 @@ slim-vim: src/slim-vim  ## the input's binary, src/slim-vim, compiled with the o
 # whim-vim.c is current -- `make` (all), bin/whim, src/editor.c, editor/editor.go.
 # When one is being made, whim-vim.c's rule builds without whim-build's own
 # editor step, or a build from a fresh clone cut and generated twice.
-editor-follows := $(if $(MAKECMDGOALS),$(filter all bin/whim editor.c src/editor.c editor/editor.go,$(MAKECMDGOALS)),all)
+editor-follows := $(if $(MAKECMDGOALS),$(filter all bin/whim src/editor.c editor/editor.go,$(MAKECMDGOALS)),all)
 
 src/whim-vim.c: src/slim-vim.c force
 	@set -e; \
@@ -207,11 +207,9 @@ define cut-editor
 	    "`grep -c '' src/whim-vim.c | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
 endef
 
-.PHONY: src/editor.c editor.c
+.PHONY: src/editor.c
 src/editor.c: src/whim-vim.c  ## the core, cut from whim-vim.c at its first #include
 	$(cut-editor)
-
-editor.c: src/editor.c  ## the same: make editor.c writes src/editor.c
 
 # editor/editor.go is GENERATED: internal/gen writes it whole from src/editor.c
 # (go tool whim gen), and it is tracked, so it must be what the program writes

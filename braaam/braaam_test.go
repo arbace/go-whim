@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-// Cut is `make editor.c`: the same bytes as the Makefile's awk, on the
+// Cut is `make src/editor.c`: the same bytes as the Makefile's awk, on the
 // tracked product.
 func TestCutIsTheMakefiles(t *testing.T) {
 	src := filepath.Join("..", "src", "whim-vim.c")
