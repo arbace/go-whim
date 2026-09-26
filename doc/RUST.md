@@ -1,5 +1,9 @@
 # The editor in Rust: a plan
 
+**A preliminary plan, not scheduled** (2026-09-26): there is no intention to
+translate the editor to Rust. It is kept as what was measured and how it
+would be done, should that change.
+
 Written 2026-09-26, when the core's C was translated to Go, Java and Clojure,
 each answering every case of `whim test` as the C does, and a Haskell editor
 was planned (`doc/HASKELL.md`). A Rust editor is held to the same test:

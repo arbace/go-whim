@@ -255,7 +255,8 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    PIPELINE-COMPACTION.md (which phases could be dropped, merged,
                    split or reordered, measured byte for byte), CLOJURE.md (the
                    Clojure editor), HASKELL.md and
-                   RUST.md (plans for a Haskell and a Rust editor) and GO-LISP.md
+                   RUST.md (preliminary plans for a Haskell and a Rust editor, not
+                   scheduled) and GO-LISP.md
                    (the Go editor in go-lisp syntax: an experiment, and make
                    editor.lgo)
 ```
