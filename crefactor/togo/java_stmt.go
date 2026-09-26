@@ -30,6 +30,7 @@ type jlocal struct {
 	name, typ string
 	boxed     bool   // a one-element array: its address is taken
 	init      string // its declaration's initial value; "" for a parameter
+	scoped    bool   // declared where C declares it, not at the method's top
 }
 
 // ref is the local as an lvalue.
@@ -54,6 +55,16 @@ type jfn struct {
 	cont   []string                   // per loop: what a continue is -- "continue", or "break cN"
 	gotoOK map[*cc.JumpStatement]bool // a goto whose labeled block is written
 	ret    string                     // the Java result type
+	// hoistAll: the method has a goto, so every local is at its top -- a
+	// goto is a labeled block, and a local declared inside one is out of
+	// scope after it, where C's is not
+	hoistAll bool
+}
+
+// a declaration written where C declares it, with its zero, which the next
+// statement may merge with (items)
+type jpending struct {
+	name, typ, line string
 }
 
 func (j *jgen) newFn(name string, ft *cc.FunctionType) *jfn {
@@ -148,7 +159,7 @@ func (f *jfn) hoisted() string {
 	var b strings.Builder
 	ind := strings.Repeat("    ", f.indent)
 	for _, l := range f.locals {
-		if l.init == "" {
+		if l.init == "" || l.scoped {
 			continue
 		}
 		t := l.typ
@@ -221,6 +232,7 @@ func (j *jgen) method(fd *cc.FunctionDefinition) (src string, why string) {
 		walkChildrenFn(n, names)
 	}
 	names(fd.CompoundStatement)
+	f.hoistAll = hasGoto(fd.CompoundStatement)
 	var ps []string
 	var boxes []string
 	for i, p := range ft.Parameters() {
@@ -328,6 +340,7 @@ func (f *jfn) items(cs *cc.CompoundStatement) {
 		}
 	}
 	live := true
+	var run jrun
 	for i, it := range its {
 		// open the blocks starting here, the one ending last outermost
 		var opening []*gblock
@@ -358,13 +371,20 @@ func (f *jfn) items(cs *cc.CompoundStatement) {
 		}
 		switch it.Case {
 		case cc.BlockItemDecl:
-			f.declaration(it.Declaration, live)
+			if len(run.pend) == 0 {
+				run.start = f.out.Len()
+			}
+			run.pend = append(run.pend, f.declaration(it.Declaration, live, false)...)
 		case cc.BlockItemStmt:
 			if live {
+				mark := f.out.Len()
 				f.stmt(it.Statement)
+				f.merge(&run, mark)
 				if !jcomplete(it.Statement) {
 					live = false
 				}
+			} else {
+				run.pend = nil
 			}
 		default:
 			f.no(it, "a block item %v", it.Case)
@@ -451,12 +471,20 @@ func (f *jfn) stmt(s *cc.Statement) {
 	}
 }
 
-// declaration declares a block's locals at the method's top and, when live,
-// writes their initializers where C has them.
-func (f *jfn) declaration(d *cc.Declaration, live bool) {
+// declaration declares a block's locals and, when live, writes their
+// initializers where C has them.  A local is declared where C declares it --
+// with its initializer, or its zero -- unless the method has a goto
+// (hoistAll), the declaration is a case's (atSwitch), it is not reached, or
+// it has no initializer inside a loop: C at -O0 keeps such a local's value
+// from one iteration to the next, and a Java declaration in the body would
+// zero it each time.  Those are declared at the method's top, as the Go
+// declares them (body_stmt.go).  It returns the locals declared here with
+// their zeros, which a statement after them may merge with (merge).
+func (f *jfn) declaration(d *cc.Declaration, live, atSwitch bool) []*jpending {
 	if d.Case != cc.DeclarationDecl {
-		return
+		return nil
 	}
+	var pend []*jpending
 	for l := d.InitDeclaratorList; l != nil; l = l.InitDeclaratorList {
 		id := l.InitDeclarator
 		dd := id.Declarator
@@ -467,10 +495,115 @@ func (f *jfn) declaration(d *cc.Declaration, live bool) {
 		key := f.j.g.a.declKey(dd)
 		jt := f.jt(t, key, "a local", dd.Name())
 		lc := f.declareLocal(dd, t, jt)
-		if live && id.Initializer != nil {
-			f.initInto(lc.ref(), t, key, id.Initializer, false)
+		if !live || f.hoistAll || atSwitch || id.Initializer == nil && len(f.cont) > 0 {
+			if live && id.Initializer != nil {
+				f.initInto(lc.ref(), t, key, id.Initializer, false)
+			}
+			continue
+		}
+		lc.scoped = true
+		decl := jt
+		if lc.boxed {
+			decl += "[]"
+		}
+		scalar := !lc.boxed && !isAggr(t) && t.Kind() != cc.Array
+		if scalar && id.Initializer != nil && id.Initializer.Case == cc.InitializerExpr {
+			v := f.exprTo(id.Initializer.AssignmentExpression, jt)
+			f.stmt1("%s %s = %s", decl, lc.name, f.conv(v, jt, t))
+			continue
+		}
+		at := f.out.Len()
+		f.stmt1("%s %s = %s", decl, lc.name, lc.init)
+		if id.Initializer != nil {
+			f.initInto(lc.ref(), t, key, id.Initializer, !lc.boxed)
+			continue
+		}
+		if scalar {
+			pend = append(pend, &jpending{name: lc.name, typ: decl, line: f.out.String()[at:]})
 		}
 	}
+	return pend
+}
+
+// jrun is the declarations a block has just written with their zeros: the
+// text from start on is theirs, and a statement after them may merge with
+// one (merge).
+type jrun struct {
+	start int
+	pend  []*jpending
+}
+
+// merge takes the statement written from mark on into the run r of
+// declarations before it when that statement is one line assigning one of
+// them a value that does not read it -- `int n = 0;` ... `n = e;` is
+// `int n = e;`, written in the statement's place, and the run goes on --
+// and ends the run otherwise.  Between the declaration and the statement
+// there are only other declarations, which read nothing of it.
+func (f *jfn) merge(r *jrun, mark int) {
+	if len(r.pend) == 0 {
+		return
+	}
+	text := f.out.String()
+	st := text[mark:]
+	for i, p := range r.pend {
+		ind := p.line[:len(p.line)-len(strings.TrimLeft(p.line, " "))]
+		rest, ok := strings.CutPrefix(st, ind+p.name+" = ")
+		if !ok || !strings.HasSuffix(rest, ";\n") || strings.Count(st, "\n") != 1 || jmentions(rest, p.name) {
+			continue
+		}
+		region := text[r.start:mark]
+		k := strings.Index(region, p.line)
+		if k < 0 || (k > 0 && region[k-1] != '\n') {
+			break
+		}
+		region = region[:k] + region[k+len(p.line):]
+		f.out.Reset()
+		f.out.WriteString(text[:r.start])
+		f.out.WriteString(region)
+		f.out.WriteString(ind + p.typ + " " + p.name + " = " + rest)
+		r.pend = append(r.pend[:i:i], r.pend[i+1:]...)
+		return
+	}
+	r.pend = nil
+}
+
+// jmentions says the Java text s holds the name n as a word.
+func jmentions(s, n string) bool {
+	for i := strings.Index(s, n); i >= 0; {
+		before := i == 0 || !isWordByte(s[i-1])
+		after := i+len(n) >= len(s) || !isWordByte(s[i+len(n)])
+		if before && after {
+			return true
+		}
+		j := strings.Index(s[i+1:], n)
+		if j < 0 {
+			break
+		}
+		i += 1 + j
+	}
+	return false
+}
+
+func isWordByte(c byte) bool {
+	return c == '_' || c == '$' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9'
+}
+
+// hasGoto says n holds a goto.
+func hasGoto(n cc.Node) bool {
+	found := false
+	var rec func(cc.Node)
+	rec = func(n cc.Node) {
+		if found || n == nil {
+			return
+		}
+		if j, ok := n.(*cc.JumpStatement); ok && j.Case == cc.JumpStatementGoto {
+			found = true
+			return
+		}
+		walkChildrenFn(n, rec)
+	}
+	rec(n)
+	return found
 }
 
 // initInto writes the statements that give target, an object of C type t,
@@ -679,7 +812,7 @@ func (f *jfn) switchStmt(s *cc.SelectionStatement) {
 		it := l.BlockItem
 		if it.Case == cc.BlockItemDecl {
 			f.indent++
-			f.declaration(it.Declaration, live)
+			f.declaration(it.Declaration, live, true) // a case's: C's case is no scope, Java's switch is one
 			f.indent--
 			continue
 		}
@@ -779,14 +912,22 @@ func (f *jfn) iteration(s *cc.IterationStatement) {
 			f.line("} while (false);") // the condition is never reached
 		}
 	case cc.IterationStatementFor, cc.IterationStatementForDecl:
+		// the start: in the for's header when it is one statement
+		// expression or one declaration, before the loop otherwise
 		cond, post := s.ExpressionList2, s.ExpressionList3
+		initText := ""
 		if s.Case == cc.IterationStatementForDecl {
-			f.declaration(s.Declaration, true)
+			initText = f.capture(func() { f.declaration(s.Declaration, true, false) })
 			cond, post = s.ExpressionList, s.ExpressionList2
 		} else if s.ExpressionList != nil {
-			f.exprStmt(s.ExpressionList)
+			initText = f.capture(func() { f.exprStmt(s.ExpressionList) })
+		}
+		init, oneInit := forUpdate(initText)
+		if strings.Count(initText, "\n") > 1 && s.Case == cc.IterationStatementForDecl {
+			oneInit = false // two declarations are not one for's start
 		}
 		if cond != nil && isConstFalse(cond) {
+			f.out.WriteString(initText)
 			return
 		}
 		c, pre := "", ""
@@ -801,15 +942,20 @@ func (f *jfn) iteration(s *cc.IterationStatement) {
 		f.indent--
 		update, simple := forUpdate(postText)
 		if pre == "" && simple {
-			if c == "" && update == "" {
+			if !oneInit {
+				f.out.WriteString(initText)
+				init = ""
+			}
+			if c == "" && update == "" && init == "" {
 				f.line("for (;;) {")
 			} else {
-				f.line("for (; %s; %s) {", c, update)
+				f.line("for (%s; %s; %s) {", init, c, update)
 			}
 			f.loopBody(s.Statement, "continue")
 			f.line("}")
 			return
 		}
+		f.out.WriteString(initText)
 		f.line("for (;;) {")
 		if c != "" {
 			f.out.WriteString(pre)

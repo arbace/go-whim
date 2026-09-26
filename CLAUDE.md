@@ -262,7 +262,7 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    JAVA-IDIOMS.md and CLOJURE-IDIOMS.md (how the Java and the
                    Clojure editors could be idiomatic, measured and ranked;
                    surveys; done: CLOJURE-IDIOMS.md's item 0 and
-                   JAVA-IDIOMS.md's items 1, 2 and 4's masks),
+                   JAVA-IDIOMS.md's items 1-3 and 4's masks),
                    PIPELINE-COMPACTION.md (which phases could be dropped, merged,
                    split or reordered, measured byte for byte), CLOJURE.md (the
                    Clojure editor), HASKELL.md and

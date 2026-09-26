@@ -157,6 +157,19 @@ Lines over 120 columns 1,095 -> 905; breaking them is not done.
 
 ### 3. Locals at the top, and the loop's start before the loop
 
+**Done**: the Go's rule (`declaration` in `java_stmt.go`): a local is
+declared where C declares it, with its initializer or its zero; one declared
+with its zero is merged with a later one-line assignment to it when only
+declarations are between (`merge`); a `for`'s start, an expression or one
+declaration, is in its header. At the top still: the methods with a `goto`,
+a `case`'s own locals, one declared without a value inside a loop
+(`TestJavaLocals`, whose control -- that rule off -- prints what the C does
+not). Zero declarations 3,449 -> 2,409 (2,060 of them C locals assigned
+later, 349 temporaries); `for (;` 491 -> 113; `Editor.java` 65,599 ->
+63,667 lines. Not done: JLS 16's definite assignment, which would drop the
+zero of a local every path assigns before reading.
+
+
 - **The pattern:** every local is declared at the method's top with its
   zero (`java_stmt.go:147`): **4,039 declarations** open their methods, 3,449
   of them `= 0`, `= null` or `= false` in 840 methods, which the body then

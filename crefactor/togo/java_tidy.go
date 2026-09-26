@@ -335,7 +335,7 @@ func jredundant(toks []jtok, o, c int, match []int, cast, gone []bool) bool {
 	if p >= 0 {
 		s := toks[p].s
 		switch {
-		case s == "(" || s == "[" || s == "," || s == "{" || s == "return" || s == "throw" || s == "->" || s == "else":
+		case s == "(" || s == "[" || s == "," || s == "{" || s == ";" || s == "return" || s == "throw" || s == "->" || s == "else":
 			// an argument, an index, a whole expression
 		case s == "case":
 			if prec <= 2 {

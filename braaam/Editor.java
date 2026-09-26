@@ -15834,16 +15834,14 @@ public abstract class Editor {
     }
 
     long musl_strlen(BytePtr s) {
-        BytePtr a = null;
-        a = s;
+        BytePtr a = s;
         for (; s.get() != 0; s = s.add(1)) {
         }
         return s.sub(a);
     }
 
     BytePtr musl_strcpy(BytePtr dest, BytePtr src) {
-        BytePtr d = null;
-        d = dest;
+        BytePtr d = dest;
         while (true) {
             d.put(src.get());
             if (!((int) d.get() != 0)) {
@@ -15856,12 +15854,11 @@ public abstract class Editor {
     }
 
     BytePtr musl_strncpy(BytePtr dest, BytePtr src, long n) {
-        BytePtr d = null;
         BytePtr t1 = null;
         BytePtr t2 = null;
         BytePtr t3 = null;
-        d = dest;
-        for (; (n != 0) && src.get() != 0; n--) {
+        BytePtr d = dest;
+        for (; n != 0 && src.get() != 0; n--) {
             t1 = d;
             d = d.add(1);
             t2 = src;
@@ -15882,57 +15879,50 @@ public abstract class Editor {
     }
 
     int musl_strcmp(BytePtr l, BytePtr r) {
-        for (; ((int) l.get() == (int) r.get()) && l.get() != 0; l = l.add(1), r = r.add(1)) {
+        for (; (int) l.get() == (int) r.get() && l.get() != 0; l = l.add(1), r = r.add(1)) {
         }
         return (l.get() & 0xff) - (r.get() & 0xff);
     }
 
     int musl_strncmp(BytePtr ls, BytePtr rs, long n) {
-        BytePtr l = null;
-        BytePtr r = null;
         long t1 = 0;
-        l = ls;
-        r = rs;
+        BytePtr l = ls;
+        BytePtr r = rs;
         t1 = n;
         n--;
         if (t1 == 0) {
             return 0;
         }
-        for (; (l.get() != 0 && r.get() != 0 && n != 0) && (l.get() & 0xff) == (r.get() & 0xff); l = l.add(1), r = r.add(1), n--) {
+        for (; l.get() != 0 && r.get() != 0 && n != 0 && (l.get() & 0xff) == (r.get() & 0xff); l = l.add(1), r = r.add(1), n--) {
         }
         return (l.get() & 0xff) - (r.get() & 0xff);
     }
 
     int musl_strcasecmp(BytePtr ls, BytePtr rs) {
-        BytePtr l = null;
-        BytePtr r = null;
-        l = ls;
-        r = rs;
-        for (; (l.get() != 0 && r.get() != 0) && (Integer.compareUnsigned((l.get() & 0xff) - 'A', 26) < 0 ? (l.get() & 0xff) | 32 : l.get() & 0xff) == (Integer.compareUnsigned((r.get() & 0xff) - 'A', 26) < 0 ? (r.get() & 0xff) | 32 : r.get() & 0xff); l = l.add(1), r = r.add(1)) {
+        BytePtr l = ls;
+        BytePtr r = rs;
+        for (; l.get() != 0 && r.get() != 0 && (Integer.compareUnsigned((l.get() & 0xff) - 'A', 26) < 0 ? (l.get() & 0xff) | 32 : l.get() & 0xff) == (Integer.compareUnsigned((r.get() & 0xff) - 'A', 26) < 0 ? (r.get() & 0xff) | 32 : r.get() & 0xff); l = l.add(1), r = r.add(1)) {
         }
         return (Integer.compareUnsigned((l.get() & 0xff) - 'A', 26) < 0 ? (l.get() & 0xff) | 32 : l.get() & 0xff) - (Integer.compareUnsigned((r.get() & 0xff) - 'A', 26) < 0 ? (r.get() & 0xff) | 32 : r.get() & 0xff);
     }
 
     int musl_strncasecmp(BytePtr ls, BytePtr rs, long n) {
-        BytePtr l = null;
-        BytePtr r = null;
         long t1 = 0;
-        l = ls;
-        r = rs;
+        BytePtr l = ls;
+        BytePtr r = rs;
         t1 = n;
         n--;
         if (t1 == 0) {
             return 0;
         }
-        for (; (l.get() != 0 && r.get() != 0 && n != 0) && (Integer.compareUnsigned((l.get() & 0xff) - 'A', 26) < 0 ? (l.get() & 0xff) | 32 : l.get() & 0xff) == (Integer.compareUnsigned((r.get() & 0xff) - 'A', 26) < 0 ? (r.get() & 0xff) | 32 : r.get() & 0xff); l = l.add(1), r = r.add(1), n--) {
+        for (; l.get() != 0 && r.get() != 0 && n != 0 && (Integer.compareUnsigned((l.get() & 0xff) - 'A', 26) < 0 ? (l.get() & 0xff) | 32 : l.get() & 0xff) == (Integer.compareUnsigned((r.get() & 0xff) - 'A', 26) < 0 ? (r.get() & 0xff) | 32 : r.get() & 0xff); l = l.add(1), r = r.add(1), n--) {
         }
         return (Integer.compareUnsigned((l.get() & 0xff) - 'A', 26) < 0 ? (l.get() & 0xff) | 32 : l.get() & 0xff) - (Integer.compareUnsigned((r.get() & 0xff) - 'A', 26) < 0 ? (r.get() & 0xff) | 32 : r.get() & 0xff);
     }
 
     BytePtr musl_strchr(BytePtr s, int c) {
-        byte ch = 0;
-        ch = (byte) c;
-        for (; (s.get() != 0) && (s.get() & 0xff) != (ch & 0xff); s = s.add(1)) {
+        byte ch = (byte) c;
+        for (; s.get() != 0 && (s.get() & 0xff) != (ch & 0xff); s = s.add(1)) {
         }
         if ((s.get() & 0xff) == (ch & 0xff)) {
             return s;
@@ -15946,8 +15936,7 @@ public abstract class Editor {
             return h;
         }
         for (; h.get() != 0; h = h.add(1)) {
-            i = 0L;
-            for (; (n.at((int) i) != 0) && (int) h.at((int) i) == (int) n.at((int) i); i++) {
+            for (i = 0L; n.at((int) i) != 0 && (int) h.at((int) i) == (int) n.at((int) i); i++) {
             }
             if (n.at((int) i) == 0) {
                 return h;
@@ -15959,8 +15948,7 @@ public abstract class Editor {
     BytePtr musl_strpbrk(BytePtr s, BytePtr b) {
         BytePtr c = null;
         for (; s.get() != 0; s = s.add(1)) {
-            c = b;
-            for (; c.get() != 0; c = c.add(1)) {
+            for (c = b; c.get() != 0; c = c.add(1)) {
                 if ((int) s.get() == (int) c.get()) {
                     return s;
                 }
@@ -16020,11 +16008,9 @@ public abstract class Editor {
     }
 
     int musl_atoi(BytePtr s) {
+        BytePtr t1 = null;
         int n = 0;
         int neg = 0;
-        BytePtr t1 = null;
-        n = 0;
-        neg = 0;
         while (musl_isspace((int) s.get())) {
             s = s.add(1);
         }
@@ -16043,11 +16029,9 @@ public abstract class Editor {
     }
 
     long musl_atol(BytePtr s) {
-        long n = 0;
-        int neg = 0;
         BytePtr t1 = null;
-        n = 0L;
-        neg = 0;
+        long n = 0L;
+        int neg = 0;
         while (musl_isspace((int) s.get())) {
             s = s.add(1);
         }
@@ -16066,19 +16050,13 @@ public abstract class Editor {
     }
 
     long musl_strtol(BytePtr s, Ptr<BytePtr> end, int base) {
-        BytePtr p = null;
-        long n = 0;
+        BytePtr t1 = null;
+        BytePtr p = s;
+        long n = 0L;
         long lim = 0;
         int neg = 0;
         int any = 0;
         int over = 0;
-        long d = 0;
-        BytePtr t1 = null;
-        p = s;
-        n = 0L;
-        neg = 0;
-        any = 0;
-        over = 0;
         while (musl_isspace((int) p.get())) {
             p = p.add(1);
         }
@@ -16092,7 +16070,7 @@ public abstract class Editor {
         while (base == 10 && musl_isdigit((int) p.get())) {
             t1 = p;
             p = p.add(1);
-            d = (long) ((int) t1.get() - '0');
+            long d = (long) ((int) t1.get() - '0');
             any = 1;
             if (over != 0 || Long.compareUnsigned(n, Long.divideUnsigned(lim - d, 10L)) > 0) {
                 over = 1;
@@ -16127,28 +16105,24 @@ public abstract class Editor {
 
     T_optvar_T optvar_int(IntPtr p) {
         T_optvar_T v = new T_optvar_T();
-        v = new T_optvar_T();
         v.ov_int = p;
         return v.copy();
     }
 
     T_optvar_T optvar_long(LongPtr p) {
         T_optvar_T v = new T_optvar_T();
-        v = new T_optvar_T();
         v.ov_long = p;
         return v.copy();
     }
 
     T_optvar_T optvar_str(Ptr<BytePtr> p) {
         T_optvar_T v = new T_optvar_T();
-        v = new T_optvar_T();
         v.ov_str = p;
         return v.copy();
     }
 
     T_optvar_T optvar_none() {
         T_optvar_T v = new T_optvar_T();
-        v = new T_optvar_T();
         return v.copy();
     }
 
@@ -16170,8 +16144,7 @@ public abstract class Editor {
     }
 
     BytePtr vim_memsave(BytePtr p, long len) {
-        BytePtr ret = null;
-        ret = BytePtr.alloc(len);
+        BytePtr ret = BytePtr.alloc(len);
         Rt.memmove(ret, p, len);
         return ret;
     }
@@ -16183,8 +16156,7 @@ public abstract class Editor {
     void ga_clear_strings(S_growarray gap) {
         int i = 0;
         if (gap.ga_data != null) {
-            i = 0;
-            for (; i < gap.ga_len; i++) {
+            for (i = 0; i < gap.ga_len; i++) {
             }
         }
         ga_clear(gap);
@@ -16267,9 +16239,8 @@ public abstract class Editor {
     }
 
     boolean open_buffer() {
-        boolean retval = false;
+        boolean retval = true;
         T_bufref_T old_curbuf = new T_bufref_T();
-        retval = true;
         if (!ml_open(curbuf)) {
             close_buffer(curwin, curbuf, 0, false, false, false);
             emsg(gettext_(new BytePtr(e_cannot_allocate_any_buffer_exiting, 0)));
@@ -16320,8 +16291,7 @@ public abstract class Editor {
     }
 
     boolean can_unload_buffer(S_file_buffer buf) {
-        boolean can_unload = false;
-        can_unload = buf.b_locked == 0;
+        boolean can_unload = buf.b_locked == 0;
         if (can_unload && updating_screen != 0) {
             if (curwin.w_buffer == buf) {
                 can_unload = false;
@@ -16340,16 +16310,11 @@ public abstract class Editor {
     boolean close_buffer(S_window_S win, S_file_buffer buf, int action, boolean abort_if_last, boolean ignore_abort, boolean set_context) {
         boolean hiding_buf = false;
         T_bufref_T bufref = new T_bufref_T();
-        boolean unload_buf = false;
-        boolean wipe_buf = false;
-        boolean del_buf = false;
-        boolean win_valid = false;
-        boolean closed_popup = false;
-        unload_buf = action != 0;
-        wipe_buf = action == DOBUF_WIPE || action == DOBUF_WIPE_REUSE;
-        del_buf = action == DOBUF_DEL || wipe_buf;
-        win_valid = win_valid_any_tab(win);
-        closed_popup = win != null && !win_valid && false;
+        boolean unload_buf = action != 0;
+        boolean wipe_buf = action == DOBUF_WIPE || action == DOBUF_WIPE_REUSE;
+        boolean del_buf = action == DOBUF_DEL || wipe_buf;
+        boolean win_valid = win_valid_any_tab(win);
+        boolean closed_popup = win != null && !win_valid && false;
         if ((del_buf || wipe_buf) && !can_unload_buffer(buf)) {
             return false;
         }
@@ -16398,9 +16363,8 @@ public abstract class Editor {
     }
 
     boolean buf_freeall(S_file_buffer buf, int flags) {
-        boolean is_curbuf = false;
+        boolean is_curbuf = buf == curbuf;
         T_bufref_T bufref = new T_bufref_T();
-        is_curbuf = buf == curbuf;
         buf.b_locked++;
         buf.b_locked_split++;
         set_bufref(bufref, buf);
@@ -16454,12 +16418,10 @@ public abstract class Editor {
     }
 
     S_file_buffer buflist_new(long lnum, int flags) {
-        S_file_buffer buf = null;
-        T_bufref_T bufref = new T_bufref_T();
         int t1 = 0;
-        T_bufref_T bufref_2 = new T_bufref_T();
-        buf = null;
+        S_file_buffer buf = null;
         if ((flags & BLN_CURBUF) != 0 && curbuf_reusable()) {
+            T_bufref_T bufref = new T_bufref_T();
             buf = curbuf;
             set_bufref(bufref, buf);
             buf_freeall(buf, BFA_WIPE | BFA_DEL);
@@ -16501,6 +16463,7 @@ public abstract class Editor {
         buf_clear_file(buf);
         clrallmarks(buf);
         if ((flags & BLN_DUMMY) == 0) {
+            T_bufref_T bufref_2 = new T_bufref_T();
             set_bufref(bufref_2, buf);
         }
         return buf;
@@ -16523,8 +16486,7 @@ public abstract class Editor {
 
     void buflist_setfpos(S_file_buffer buf, S_window_S win, long lnum, int col, boolean copy_options) {
         S_wininfo_S wip = null;
-        wip = buf.b_wininfo;
-        for (; wip != null; wip = wip.wi_next) {
+        for (wip = buf.b_wininfo; wip != null; wip = wip.wi_next) {
             if (wip.wi_win == win) {
                 break;
             }
@@ -16572,15 +16534,10 @@ public abstract class Editor {
     }
 
     void fileinfo(int fullname, boolean shorthelp, boolean dont_truncate) {
-        BytePtr name = null;
-        BytePtr buffer = null;
-        long bufferlen = 0;
         long t1 = 0;
-        BytePtr new_msg = null;
-        int n = 0;
-        BytePtr p = null;
-        bufferlen = 0L;
-        buffer = BytePtr.alloc(1025L);
+        BytePtr name = null;
+        long bufferlen = 0L;
+        BytePtr buffer = BytePtr.alloc(1025L);
         if (fullname > 1) {
             bufferlen = safelen_result(buffer, 1025L, vim_snprintf(buffer, 1025L, BytePtr.lit("buf %d: "), curbuf.b_fnum));
         }
@@ -16589,7 +16546,7 @@ public abstract class Editor {
         buffer.set((int) t1, (byte) '"');
         name = buf_spname(curbuf);
         bufferlen += safelen_result(buffer.add((int) bufferlen), 1025L - bufferlen, vim_snprintf(buffer.add((int) bufferlen), 1025L - bufferlen, BytePtr.lit("%s"), name));
-        new_msg = (curbuf.b_flags & BF_NEW) != 0 ? new_file_message() : BytePtr.lit("");
+        BytePtr new_msg = (curbuf.b_flags & BF_NEW) != 0 ? new_file_message() : BytePtr.lit("");
         bufferlen += safelen_result(buffer.add((int) bufferlen), 1025L - bufferlen, vim_snprintf(buffer.add((int) bufferlen), 1025L - bufferlen, BytePtr.lit("\"%s%s%s%s%s"), curbufIsChanged() != 0 ? (shortmess(SHM_MOD) ? BytePtr.lit(" [+]") : gettext_(BytePtr.lit(" [Modified]"))) : BytePtr.lit(" "), (curbuf.b_flags & BF_NOTEDITED) != 0 ? gettext_(BytePtr.lit("[Not edited]")) : BytePtr.lit(""), new_msg, (curbuf.b_flags & BF_READERR) != 0 ? gettext_(BytePtr.lit("[Read errors]")) : BytePtr.lit(""), curbufIsChanged() != 0 || (curbuf.b_flags & (BF_NOTEDITED + BF_NEW + BF_READERR)) != 0 ? BytePtr.lit(" ") : BytePtr.lit("")));
         if ((curbuf.b_ml.ml_flags & ML_EMPTY) != 0) {
             bufferlen += safelen_result(buffer.add((int) bufferlen), 1025L - bufferlen, vim_snprintf(buffer.add((int) bufferlen), 1025L - bufferlen, BytePtr.lit("%s"), gettext_(new BytePtr(no_lines_msg, 0))));
@@ -16601,13 +16558,14 @@ public abstract class Editor {
             bufferlen += (long) col_print(buffer.add((int) bufferlen), 1025L - bufferlen, curwin.w_cursor.col[0] + 1, curwin.w_virtcol[0] + 1);
         }
         if (dont_truncate) {
+            int n = 0;
             msg_start();
             n = msg_scroll;
             msg_scroll = TRUE;
             msg(buffer);
             msg_scroll = n;
         } else {
-            p = msg_trunc_attr(buffer, false, 0);
+            BytePtr p = msg_trunc_attr(buffer, false, 0);
             if (restart_edit != 0 || (msg_scrolled != 0 && need_wait_return == 0)) {
                 set_keep_msg(p, 0);
             }
@@ -16624,8 +16582,6 @@ public abstract class Editor {
     int get_rel_pos(S_window_S wp, BytePtr buf, int buflen) {
         long above = 0;
         long below = 0;
-        int perc = 0;
-        byte[] tmp = new byte[8];
         if (buflen < 3) {
             return 0;
         }
@@ -16637,7 +16593,8 @@ public abstract class Editor {
         if (above <= 0L) {
             return (int) safelen_result(buf, (long) buflen, vim_snprintf(buf, (long) buflen, BytePtr.lit("%s"), gettext_(BytePtr.lit("Top"))));
         }
-        perc = calc_percentage(above, above + below);
+        int perc = calc_percentage(above, above + below);
+        byte[] tmp = new byte[8];
         vim_snprintf(new BytePtr(tmp, 0), 8L, gettext_(BytePtr.lit("%d%%")), perc);
         return (int) safelen_result(buf, (long) buflen, vim_snprintf(buf, (long) buflen, gettext_(BytePtr.lit("%3s")), new BytePtr(tmp, 0)));
     }
@@ -16678,7 +16635,6 @@ public abstract class Editor {
         int cols = 0;
         T_pos_T p = null;
         boolean add = false;
-        long last = 0;
         changed();
         if ((cmdmod.cmod_flags & CMOD_KEEPJUMPS) == 0) {
             curbuf.b_last_change.lnum[0] = lnum;
@@ -16723,7 +16679,7 @@ public abstract class Editor {
         }
         wp = curwin;
         if (wp.w_buffer == curbuf) {
-            last = lnume + xtra - 1L;
+            long last = lnume + xtra - 1L;
             if (redraw_not_allowed == 0 && wp.w_redr_type < UPD_VALID) {
                 wp.w_redr_type = UPD_VALID;
             }
@@ -16745,8 +16701,7 @@ public abstract class Editor {
                     approximate_botline_win(wp);
                 }
             }
-            i = 0;
-            for (; i < wp.w_lines_valid; i++) {
+            for (i = 0; i < wp.w_lines_valid; i++) {
                 if (wp.w_lines.at(i).wl_valid != 0) {
                     if (wp.w_lines.at(i).wl_lnum >= lnum) {
                         if (wp.w_lines.at(i).wl_lnum < lnume || i == 0) {
@@ -16858,8 +16813,7 @@ public abstract class Editor {
     void ins_bytes_len(BytePtr p, int len) {
         int i = 0;
         int n = 0;
-        i = 0;
-        for (; i < len; i += n) {
+        for (i = 0; i < len; i += n) {
             n = utfc_ptr2len_len(p.add(i), len - i);
             ins_char_bytes(p.add(i), n);
         }
@@ -16867,8 +16821,7 @@ public abstract class Editor {
 
     void ins_char(int c) {
         byte[] buf = new byte[22];
-        int n = 0;
-        n = utf_char2bytes(c, new BytePtr(buf, 0));
+        int n = utf_char2bytes(c, new BytePtr(buf, 0));
         if (buf[0] == 0) {
             buf[0] = (byte) '\n';
         }
@@ -16876,6 +16829,7 @@ public abstract class Editor {
     }
 
     void ins_char_bytes(BytePtr buf, int charlen) {
+        int t1 = 0;
         int newlen = 0;
         int oldlen = 0;
         BytePtr p = null;
@@ -16883,13 +16837,8 @@ public abstract class Editor {
         BytePtr oldp = null;
         int linelen = 0;
         int col = 0;
-        long lnum = 0;
+        long lnum = curwin.w_cursor.lnum[0];
         int i = 0;
-        int new_vcol = 0;
-        int[] vcol = new int[1];
-        int old_list = 0;
-        int t1 = 0;
-        lnum = curwin.w_cursor.lnum[0];
         if (virtual_active() != 0 && curwin.w_cursor.coladd > 0) {
             coladvance_force(getviscol());
         }
@@ -16900,8 +16849,9 @@ public abstract class Editor {
         newlen = charlen;
         if ((State & REPLACE_FLAG) != 0) {
             if ((State & VREPLACE_FLAG) != 0) {
-                new_vcol = 0;
-                old_list = curwin.w_onebuf_opt.wo_list[0];
+                int new_vcol = 0;
+                int[] vcol = new int[1];
+                int old_list = curwin.w_onebuf_opt.wo_list[0];
                 if (old_list != 0 && vim_strchr(p_cpo[0], CPO_LISTWM) == null) {
                     curwin.w_onebuf_opt.wo_list[0] = FALSE;
                 }
@@ -16922,8 +16872,7 @@ public abstract class Editor {
                 oldlen = utfc_ptr2len(oldp.add(col));
             }
             replace_push(NUL);
-            i = 0;
-            for (; i < oldlen; i++) {
+            for (i = 0; i < oldlen; i++) {
                 i += replace_push_mb(oldp.add(col).add(i)) - 1;
             }
         }
@@ -16955,8 +16904,7 @@ public abstract class Editor {
         BytePtr newp = null;
         int oldlen = 0;
         int col = 0;
-        long lnum = 0;
-        lnum = curwin.w_cursor.lnum[0];
+        long lnum = curwin.w_cursor.lnum[0];
         if (virtual_active() != 0 && curwin.w_cursor.coladd > 0) {
             coladvance_force(getviscol());
         }
@@ -16983,14 +16931,11 @@ public abstract class Editor {
     }
 
     boolean del_chars(long count, boolean fixpos) {
-        long bytes = 0;
+        long bytes = 0L;
         long i = 0;
-        BytePtr p = null;
         int l = 0;
-        bytes = 0L;
-        p = ml_get_cursor();
-        i = 0L;
-        for (; (i < count) && p.get() != NUL; i++) {
+        BytePtr p = ml_get_cursor();
+        for (i = 0L; i < count && p.get() != NUL; i++) {
             l = utfc_ptr2len(p);
             bytes += (long) l;
             p = p.add(l);
@@ -16999,22 +16944,15 @@ public abstract class Editor {
     }
 
     boolean del_bytes(long count, boolean fixpos_arg, boolean use_delcombine) {
-        BytePtr oldp = null;
         BytePtr newp = null;
-        int oldlen = 0;
         int newlen = 0;
-        long lnum = 0;
-        int col = 0;
+        long lnum = curwin.w_cursor.lnum[0];
+        int col = curwin.w_cursor.col[0];
         boolean alloc_newp = false;
         long movelen = 0;
-        int fixpos = 0;
-        int[] cc = new int[6];
-        int n = 0;
-        lnum = curwin.w_cursor.lnum[0];
-        col = curwin.w_cursor.col[0];
-        fixpos = fixpos_arg ? 1 : 0;
-        oldp = ml_get(lnum);
-        oldlen = ml_get_len(lnum);
+        int fixpos = fixpos_arg ? 1 : 0;
+        BytePtr oldp = ml_get(lnum);
+        int oldlen = ml_get_len(lnum);
         if (col >= oldlen) {
             return false;
         }
@@ -17027,6 +16965,8 @@ public abstract class Editor {
             return false;
         }
         if (p_deco[0] != 0 && use_delcombine && (long) utfc_ptr2len(oldp.add(col)) >= count) {
+            int[] cc = new int[6];
+            int n = 0;
             utfc_ptr2char(oldp.add(col), new IntPtr(cc, 0));
             if (cc[0] != NUL) {
                 n = col;
@@ -17080,39 +17020,19 @@ public abstract class Editor {
         boolean trunc_line = false;
         boolean retval = false;
         BytePtr p = null;
-        int saved_char = 0;
+        int saved_char = NUL;
         T_pos_T pos = null;
-        boolean do_si = false;
+        boolean do_si = may_do_si();
         boolean no_si = false;
-        int first_char = 0;
+        int first_char = NUL;
         int vreplace_mode = 0;
         boolean did_append = false;
-        int saved_pi = 0;
-        int len = 0;
-        int len_2 = 0;
-        BytePtr ptr = null;
-        byte last_char = 0;
-        boolean was_backslashed = false;
-        int sw = 0;
-        int len_3 = 0;
-        next_line = null;
-        p_extra = null;
-        less_cols = 0;
-        less_cols_off = 0;
-        newcol = 0;
-        newindent = 0;
-        trunc_line = false;
-        retval = false;
-        saved_char = NUL;
-        do_si = may_do_si();
-        no_si = false;
-        first_char = NUL;
-        saved_pi = curbuf.b_p_pi[0];
-        len = ml_get_curline_len();
+        int saved_pi = curbuf.b_p_pi[0];
+        int len = ml_get_curline_len();
         saved_line = vim_strnsave(ml_get_curline(), (long) len);
         if ((State & VREPLACE_FLAG) != 0) {
             if (curwin.w_cursor.lnum[0] < (long) orig_line_count) {
-                len_2 = ml_get_len(curwin.w_cursor.lnum[0] + 1L);
+                int len_2 = ml_get_len(curwin.w_cursor.lnum[0] + 1L);
                 next_line = vim_strnsave(ml_get(curwin.w_cursor.lnum[0] + 1L), (long) len_2);
             } else {
                 next_line = vim_strsave(BytePtr.lit(""));
@@ -17152,6 +17072,8 @@ public abstract class Editor {
                 newindent = second_line_indent;
             }
             if (!trunc_line && do_si && saved_line.get() != NUL && (p_extra == null || first_char != '{')) {
+                BytePtr ptr = null;
+                byte last_char = 0;
                 old_cursor.set(curwin.w_cursor);
                 ptr = saved_line;
                 if (dir == FORWARD) {
@@ -17189,7 +17111,7 @@ public abstract class Editor {
                     }
                 } else {
                     if (ptr.at(0) == '#') {
-                        was_backslashed = false;
+                        boolean was_backslashed = false;
                         while ((ptr.at(0) == '#' || was_backslashed) && curwin.w_cursor.lnum[0] < curbuf.b_ml.ml_line_count) {
                             if (ptr.get() != 0 && ptr.at((int) (musl_strlen(ptr) - 1L)) == '\\') {
                                 was_backslashed = true;
@@ -17263,7 +17185,7 @@ public abstract class Editor {
         if (newindent != 0 || did_si != 0) {
             curwin.w_cursor.lnum[0]++;
             if (did_si != 0) {
-                sw = (int) get_sw_value(curbuf);
+                int sw = (int) get_sw_value(curbuf);
                 if (p_sr[0] != 0) {
                     newindent -= newindent % sw;
                 }
@@ -17278,8 +17200,7 @@ public abstract class Editor {
             less_cols -= curwin.w_cursor.col[0];
             ai_col = curwin.w_cursor.col[0];
             if ((State & REPLACE_FLAG) != 0 && (State & VREPLACE_FLAG) == 0) {
-                n = 0;
-                for (; n < curwin.w_cursor.col[0]; n++) {
+                for (n = 0; n < curwin.w_cursor.col[0]; n++) {
                     replace_push(NUL);
                 }
             }
@@ -17324,7 +17245,7 @@ public abstract class Editor {
             State = vreplace_mode;
         }
         if ((State & VREPLACE_FLAG) != 0) {
-            len_3 = ml_get_curline_len();
+            int len_3 = ml_get_curline_len();
             p_extra = vim_strnsave(ml_get_curline(), (long) len_3);
             ml_replace(curwin.w_cursor.lnum[0], next_line, false);
             curwin.w_cursor.col[0] = 0;
@@ -17339,13 +17260,10 @@ public abstract class Editor {
 
     boolean truncate_line(boolean fixpos) {
         BytePtr newp = null;
-        long lnum = 0;
-        int col = 0;
-        BytePtr old_line = null;
+        long lnum = curwin.w_cursor.lnum[0];
+        int col = curwin.w_cursor.col[0];
         int deleted = 0;
-        lnum = curwin.w_cursor.lnum[0];
-        col = curwin.w_cursor.col[0];
-        old_line = ml_get(lnum);
+        BytePtr old_line = ml_get(lnum);
         if (col == 0) {
             newp = vim_strsave(BytePtr.lit(""));
         } else {
@@ -17365,16 +17283,14 @@ public abstract class Editor {
 
     void del_lines(long nlines, boolean undo) {
         long n = 0;
-        long first = 0;
-        first = curwin.w_cursor.lnum[0];
+        long first = curwin.w_cursor.lnum[0];
         if (nlines <= 0L) {
             return;
         }
         if (undo && !u_savedel(first, nlines)) {
             return;
         }
-        n = 0L;
-        for (; n < nlines; ) {
+        for (n = 0L; n < nlines; ) {
             if ((curbuf.b_ml.ml_flags & ML_EMPTY) != 0) {
                 break;
             }
@@ -17394,13 +17310,13 @@ public abstract class Editor {
     }
 
     boolean buf_init_chartab(S_file_buffer buf, boolean global) {
-        int c = 0;
-        BytePtr p = null;
-        int i = 0;
         int t1 = 0;
         int t2 = 0;
         int t3 = 0;
         int t4 = 0;
+        int c = 0;
+        BytePtr p = null;
+        int i = 0;
         if (global) {
             c = 0;
             while (c < ' ') {
@@ -17424,16 +17340,14 @@ public abstract class Editor {
                     g_chartab[t4] = (byte) ((dy_flags[0] & DY_UHEX) != 0 ? 4 : 2);
                 }
             }
-            c = 1;
-            for (; c < 256; c++) {
+            for (c = 1; c < 256; c++) {
                 if (c >= 160) {
                     g_chartab[c] |= CT_FNAME_CHAR;
                 }
             }
         }
         Rt.memset(new BytePtr(buf.b_chartab, 0), 0, 32L);
-        i = global ? 0 : 3;
-        for (; i <= 3; i++) {
+        for (i = global ? 0 : 3; i <= 3; i++) {
             if (i == 0) {
                 p = p_isi[0];
             } else if (i == 1) {
@@ -17457,12 +17371,12 @@ public abstract class Editor {
 
     boolean parse_isopt(BytePtr var_, S_file_buffer buf, boolean only_check) {
         BytePtr[] p = new BytePtr[1];
+        p[0] = var_;
         int c = 0;
         int c2 = 0;
         boolean tilde = false;
         boolean do_isalpha = false;
         boolean trail_comma = false;
-        p[0] = var_;
         while (p[0].get() != 0) {
             tilde = false;
             do_isalpha = false;
@@ -17543,12 +17457,10 @@ public abstract class Editor {
     }
 
     void trans_characters(BytePtr buf, int bufsize) {
-        int len = 0;
-        int room = 0;
         BytePtr trs = null;
         int trs_len = 0;
-        len = (int) musl_strlen(buf);
-        room = bufsize - len;
+        int len = (int) musl_strlen(buf);
+        int room = bufsize - len;
         while (buf.get() != 0) {
             trs_len = utfc_ptr2len(buf);
             if (trs_len > 1) {
@@ -17576,7 +17488,6 @@ public abstract class Editor {
 
     BytePtr transchar_buf(S_file_buffer buf, int c) {
         int i = 0;
-        i = 0;
         if (c < 0) {
             transchar_charbuf[0] = (byte) '~';
             transchar_charbuf[1] = (byte) '@';
@@ -17621,7 +17532,6 @@ public abstract class Editor {
 
     void transchar_hex(BytePtr buf, int c) {
         int i = 0;
-        i = 0;
         buf.set(0, (byte) '<');
         if (c > 255) {
             i++;
@@ -17675,10 +17585,8 @@ public abstract class Editor {
     }
 
     int vim_strnsize(BytePtr s, int len) {
-        int size = 0;
         boolean t1 = false;
-        int l = 0;
-        size = 0;
+        int size = 0;
         while (true) {
             t1 = s.get() != NUL;
             if (t1) {
@@ -17688,7 +17596,7 @@ public abstract class Editor {
             if (!t1) {
                 break;
             }
-            l = utfc_ptr2len(s);
+            int l = utfc_ptr2len(s);
             size += ptr2cells(s);
             s = s.add(l);
             len -= l - 1;
@@ -17697,9 +17605,8 @@ public abstract class Editor {
     }
 
     int chartabsize(BytePtr p, int col) {
-        int ts = 0;
         if (p.get() == TAB && (curwin.w_onebuf_opt.wo_list[0] == 0 || curwin.w_lcs_chars.tab1 != 0)) {
-            ts = (int) curbuf.b_p_ts[0];
+            int ts = (int) curbuf.b_p_ts[0];
             return ts - col % ts;
         } else {
             return ptr2cells(p);
@@ -17747,9 +17654,8 @@ public abstract class Editor {
     }
 
     void win_linetabsize_cts(T_chartabsize_T cts, int len) {
-        long vcol = 0;
-        vcol = (long) cts.cts_vcol;
-        for (; (cts.cts_ptr.get() != NUL) && (len == MAXCOL || cts.cts_ptr.lt(cts.cts_line.add(len))); cts.cts_ptr = cts.cts_ptr.add(utfc_ptr2len(cts.cts_ptr))) {
+        long vcol = (long) cts.cts_vcol;
+        for (; cts.cts_ptr.get() != NUL && (len == MAXCOL || cts.cts_ptr.lt(cts.cts_line.add(len))); cts.cts_ptr = cts.cts_ptr.add(utfc_ptr2len(cts.cts_ptr))) {
             vcol += (long) win_lbr_chartabsize(cts, null, null);
             if (vcol > MAXCOL) {
                 cts.cts_vcol = MAXCOL;
@@ -17784,8 +17690,7 @@ public abstract class Editor {
     }
 
     boolean vim_iswordp_buf(BytePtr p, S_file_buffer buf) {
-        int c = 0;
-        c = p.get() & 0xff;
+        int c = p.get() & 0xff;
         if ((int) mb_bytelen_tab[c] > 1) {
             c = utf_ptr2char(p);
         }
@@ -17819,12 +17724,11 @@ public abstract class Editor {
     }
 
     int lbr_chartabsize(T_chartabsize_T cts) {
-        int ts = 0;
         if (curwin.w_onebuf_opt.wo_wrap[0] != 0) {
             return win_nolbr_chartabsize(cts, null);
         }
         if (cts.cts_ptr.get() == TAB && (curwin.w_onebuf_opt.wo_list[0] == 0 || curwin.w_lcs_chars.tab1 != 0)) {
-            ts = (int) curbuf.b_p_ts[0];
+            int ts = (int) curbuf.b_p_ts[0];
             return ts - cts.cts_vcol % ts;
         } else {
             return ptr2cells(cts.cts_ptr);
@@ -17832,25 +17736,20 @@ public abstract class Editor {
     }
 
     int lbr_chartabsize_adv(T_chartabsize_T cts) {
-        int retval = 0;
-        retval = lbr_chartabsize(cts);
+        int retval = lbr_chartabsize(cts);
         cts.cts_ptr = cts.cts_ptr.add(utfc_ptr2len(cts.cts_ptr));
         return retval;
     }
 
     int win_lbr_chartabsize(T_chartabsize_T cts, IntPtr headp, IntPtr tailp) {
-        S_window_S wp = null;
-        BytePtr s = null;
-        int vcol = 0;
-        int ts = 0;
-        wp = cts.cts_win;
-        s = cts.cts_ptr;
-        vcol = cts.cts_vcol;
+        S_window_S wp = cts.cts_win;
+        BytePtr s = cts.cts_ptr;
+        int vcol = cts.cts_vcol;
         if (wp.w_onebuf_opt.wo_wrap[0] != 0) {
             return win_nolbr_chartabsize(cts, headp);
         }
         if (s.get() == TAB && (wp.w_onebuf_opt.wo_list[0] == 0 || wp.w_lcs_chars.tab1 != 0)) {
-            ts = (int) wp.w_buffer.b_p_ts[0];
+            int ts = (int) wp.w_buffer.b_p_ts[0];
             return ts - vcol % ts;
         } else {
             return ptr2cells(s);
@@ -17858,13 +17757,10 @@ public abstract class Editor {
     }
 
     int win_nolbr_chartabsize(T_chartabsize_T cts, IntPtr headp) {
-        S_window_S wp = null;
-        BytePtr s = null;
-        int col = 0;
+        S_window_S wp = cts.cts_win;
+        BytePtr s = cts.cts_ptr;
+        int col = cts.cts_vcol;
         int n = 0;
-        wp = cts.cts_win;
-        s = cts.cts_ptr;
-        col = cts.cts_vcol;
         if (s.get() == TAB && (wp.w_onebuf_opt.wo_list[0] == 0 || wp.w_lcs_chars.tab1 != 0)) {
             n = (int) wp.w_buffer.b_p_ts[0];
             return n - col % n;
@@ -17900,19 +17796,15 @@ public abstract class Editor {
     }
 
     void getvcol(S_window_S wp, T_pos_T pos, IntPtr start, IntPtr cursor, IntPtr end, int flags) {
-        int vcol = 0;
         BytePtr ptr = null;
         BytePtr line = null;
         int incr = 0;
         int[] head = new int[1];
         int[] tail = new int[1];
-        int ts = 0;
+        int ts = (int) wp.w_buffer.b_p_ts[0];
         int c = 0;
         T_chartabsize_T cts = new T_chartabsize_T();
-        BytePtr next_ptr = null;
-        BytePtr next_ptr_2 = null;
-        ts = (int) wp.w_buffer.b_p_ts[0];
-        vcol = 0;
+        int vcol = 0;
         ptr = ml_get_buf(wp.w_buffer, pos.lnum[0], false);
         line = ptr;
         init_chartabsize_arg(cts, wp, pos.lnum[0], 0, line, line);
@@ -17938,7 +17830,7 @@ public abstract class Editor {
                         head[0] = 1;
                     }
                 }
-                next_ptr = ptr.add(utfc_ptr2len(ptr));
+                BytePtr next_ptr = ptr.add(utfc_ptr2len(ptr));
                 if (next_ptr.sub(line) > ((long) pos.col[0])) {
                     break;
                 }
@@ -17955,7 +17847,7 @@ public abstract class Editor {
                     incr = 1;
                     break;
                 }
-                next_ptr_2 = cts.cts_ptr.add(utfc_ptr2len(cts.cts_ptr));
+                BytePtr next_ptr_2 = cts.cts_ptr.add(utfc_ptr2len(cts.cts_ptr));
                 if (next_ptr_2.sub(line) > ((long) pos.col[0])) {
                     break;
                 }
@@ -17984,9 +17876,8 @@ public abstract class Editor {
     }
 
     int getvcol_nolist(T_pos_T posp) {
-        int list_save = 0;
+        int list_save = curwin.w_onebuf_opt.wo_list[0];
         int[] vcol = new int[1];
-        list_save = curwin.w_onebuf_opt.wo_list[0];
         curwin.w_onebuf_opt.wo_list[0] = FALSE;
         if (posp.coladd != 0) {
             getvvcol(curwin, posp, null, new IntPtr(vcol, 0), null, 0);
@@ -18002,14 +17893,13 @@ public abstract class Editor {
         int coladd = 0;
         int endadd = 0;
         BytePtr ptr = null;
-        int c = 0;
         if (virtual_active() != 0) {
             getvcol(wp, pos, new IntPtr(col, 0), null, null, flags);
             coladd = pos.coladd;
             endadd = 0;
             ptr = ml_get_buf(wp.w_buffer, pos.lnum[0], false);
             if (pos.col[0] < ml_get_buf_len(wp.w_buffer, pos.lnum[0])) {
-                c = utf_ptr2char(ptr.add(pos.col[0]));
+                int c = utf_ptr2char(ptr.add(pos.col[0]));
                 if (c != TAB && vim_isprintc(c)) {
                     endadd = char2cells(c) - 1;
                     if (coladd > endadd) {
@@ -18063,8 +17953,7 @@ public abstract class Editor {
     }
 
     BytePtr skipwhite(BytePtr q) {
-        BytePtr p = null;
-        p = q;
+        BytePtr p = q;
         while (p.get() == ' ' || p.get() == '\t') {
             p = p.add(1);
         }
@@ -18080,8 +17969,7 @@ public abstract class Editor {
     }
 
     BytePtr skipdigits(BytePtr q) {
-        BytePtr p = null;
-        p = q;
+        BytePtr p = q;
         while (Integer.compareUnsigned((p.get() & 0xff) - '0', 10) < 0) {
             p = p.add(1);
         }
@@ -18158,10 +18046,8 @@ public abstract class Editor {
     }
 
     long getdigits(Ptr<BytePtr> pp) {
-        BytePtr p = null;
-        long retval = 0;
-        p = pp.get();
-        retval = musl_strtol(p, null, 10);
+        BytePtr p = pp.get();
+        long retval = musl_strtol(p, null, 10);
         if (p.get() == '-') {
             p = p.add(1);
         }
@@ -18171,10 +18057,8 @@ public abstract class Editor {
     }
 
     long getdigits_quoted(Ptr<BytePtr> pp) {
-        BytePtr p = null;
-        long retval = 0;
-        p = pp.get();
-        retval = 0L;
+        BytePtr p = pp.get();
+        long retval = 0L;
         if (p.get() == '-') {
             p = p.add(1);
         }
@@ -18198,24 +18082,19 @@ public abstract class Editor {
     }
 
     void vim_str2nr(BytePtr start, IntPtr prep, IntPtr len, int what, LongPtr nptr, LongPtr unptr, int maxlen, boolean strict, IntPtr overflow) {
-        BytePtr ptr = null;
-        int pre = 0;
-        boolean negative = false;
-        long un = 0;
-        int n = 0;
         int t1 = 0;
         int t2 = 0;
         int t3 = 0;
         int t4 = 0;
         int t5 = 0;
         int t6 = 0;
-        long digit = 0;
         int t7 = 0;
         int t8 = 0;
-        ptr = start;
-        pre = 0;
-        negative = false;
-        un = 0L;
+        BytePtr ptr = start;
+        int pre = 0;
+        boolean negative = false;
+        long un = 0L;
+        int n = 0;
         if (len != null) {
             len.put(0);
         }
@@ -18234,8 +18113,7 @@ public abstract class Editor {
             } else {
                 pre = 0;
                 if ((what & STR2NR_OCT) != 0) {
-                    n = 1;
-                    for (; (n != maxlen) && Integer.compareUnsigned((ptr.at(n) & 0xff) - '0', 10) < 0; n++) {
+                    for (n = 1; n != maxlen && Integer.compareUnsigned((ptr.at(n) & 0xff) - '0', 10) < 0; n++) {
                         if ((ptr.at(n) & 0xff) > '7') {
                             pre = 0;
                             break;
@@ -18332,7 +18210,7 @@ public abstract class Editor {
             }
         } else {
             while (Integer.compareUnsigned((ptr.get() & 0xff) - '0', 10) < 0) {
-                digit = (long) ((ptr.get() & 0xff) - '0');
+                long digit = (long) ((ptr.get() & 0xff) - '0');
                 if (Long.compareUnsigned(un, 1844674407370955161L) < 0 || (un == 1844674407370955161L && Long.compareUnsigned(digit, 5L) <= 0)) {
                     un = 10L * un + digit;
                 } else {
@@ -18414,9 +18292,6 @@ public abstract class Editor {
 
     BytePtr skip_string(BytePtr p) {
         int i = 0;
-        BytePtr delim = null;
-        BytePtr paren = null;
-        long delim_len = 0;
         for (; ; p = p.add(1)) {
             if (p.at(0) == '\'') {
                 if (p.at(1) == NUL) {
@@ -18434,8 +18309,7 @@ public abstract class Editor {
                     continue;
                 }
             } else if (p.at(0) == '"') {
-                p = p.add(1);
-                for (; p.at(0) != 0; p = p.add(1)) {
+                for (p = p.add(1); p.at(0) != 0; p = p.add(1)) {
                     if (p.at(0) == '\\' && p.at(1) != NUL) {
                         p = p.add(1);
                     } else if (p.at(0) == '"') {
@@ -18446,12 +18320,11 @@ public abstract class Editor {
                     continue;
                 }
             } else if (p.at(0) == 'R' && p.at(1) == '"') {
-                delim = p.add(2);
-                paren = vim_strchr(delim, '(');
+                BytePtr delim = p.add(2);
+                BytePtr paren = vim_strchr(delim, '(');
                 if (paren != null) {
-                    delim_len = paren.sub(delim);
-                    p = p.add(3);
-                    for (; p.get() != 0; p = p.add(1)) {
+                    long delim_len = paren.sub(delim);
+                    for (p = p.add(3); p.get() != 0; p = p.add(1)) {
                         if (p.at(0) == ')' && musl_strncmp(p.add(1), delim, delim_len) == 0 && p.at((int) (delim_len + 1L)) == '"') {
                             p = p.add((int) (delim_len + 1L));
                             break;
@@ -18471,8 +18344,7 @@ public abstract class Editor {
     }
 
     int check_linecomment(BytePtr line) {
-        BytePtr p = null;
-        p = line;
+        BytePtr p = line;
         for (; p.get() != NUL; p = p.add(1)) {
             p = skip_string(p);
             if (p.get() == NUL) {
@@ -18560,33 +18432,29 @@ public abstract class Editor {
     }
 
     void init_history() {
-        int newlen = 0;
-        Ptr<S_hist_entry> temp = null;
-        int type = 0;
         int i = 0;
         int i_2 = 0;
         int j = 0;
         int i_3 = 0;
         int j_2 = 0;
-        newlen = (int) p_hi[0];
+        Ptr<S_hist_entry> temp = null;
+        int type = 0;
+        int newlen = (int) p_hi[0];
         if (newlen == hislen) {
             return;
         }
-        type = 0;
-        for (; type < HIST_COUNT; type++) {
+        for (type = 0; type < HIST_COUNT; type++) {
             if (newlen > 0) {
                 temp = new Ptr<S_hist_entry>(S_hist_entry.array(newlen), 0);
             } else {
                 temp = null;
             }
             if (hisidx[type] < 0) {
-                i = 0;
-                for (; i < newlen; i++) {
+                for (i = 0; i < newlen; i++) {
                     clear_hist_entry(temp.at(i));
                 }
             } else if (newlen > hislen) {
-                i_2 = 0;
-                for (; i_2 <= hisidx[type]; i_2++) {
+                for (i_2 = 0; i_2 <= hisidx[type]; i_2++) {
                     temp.at(i_2).set(history[type].at(i_2));
                 }
                 j = i_2;
@@ -18598,8 +18466,7 @@ public abstract class Editor {
                 }
             } else {
                 j_2 = hisidx[type];
-                i_3 = newlen - 1;
-                for (; ; i_3--) {
+                for (i_3 = newlen - 1; ; i_3--) {
                     if (i_3 >= 0) {
                         temp.at(i_3).set(history[type].at(j_2));
                     } else {
@@ -18630,10 +18497,9 @@ public abstract class Editor {
 
     boolean in_history(int type, BytePtr str, boolean move_to_front, int sep, boolean writing) {
         int i = 0;
-        int last_i = 0;
+        int last_i = -1;
         BytePtr p = null;
         long len = 0;
-        last_i = -1;
         if (hisidx[type] < 0) {
             return false;
         }
@@ -18679,13 +18545,11 @@ public abstract class Editor {
 
     int get_histtype(BytePtr name) {
         int i = 0;
-        int len = 0;
-        len = (int) musl_strlen(name);
+        int len = (int) musl_strlen(name);
         if (len == 0) {
             return hist_char2type(get_cmdline_firstc());
         }
-        i = 0;
-        for (; history_names[i] != null; i++) {
+        for (i = 0; history_names[i] != null; i++) {
             if (musl_strncasecmp(name, history_names[i], (long) len) == 0) {
                 return i;
             }
@@ -18737,23 +18601,20 @@ public abstract class Editor {
     }
 
     void ex_history(S_exarg eap) {
+        int len = 0;
         Ptr<S_hist_entry> hist = null;
-        int histype1 = 0;
-        int histype2 = 0;
+        int histype1 = HIST_CMD;
+        int histype2 = HIST_CMD;
         int[] hisidx1 = new int[1];
+        hisidx1[0] = 1;
         int[] hisidx2 = new int[1];
+        hisidx2[0] = -1;
         int idx = 0;
         int i = 0;
         int j = 0;
         int k = 0;
         BytePtr[] end = new BytePtr[1];
-        BytePtr arg = null;
-        int len = 0;
-        histype1 = HIST_CMD;
-        histype2 = HIST_CMD;
-        hisidx1[0] = 1;
-        hisidx2[0] = -1;
-        arg = eap.arg[0];
+        BytePtr arg = eap.arg[0];
         if (hislen == 0) {
             msg(gettext_(BytePtr.lit("'history' option is zero")));
             return;
@@ -18793,7 +18654,7 @@ public abstract class Editor {
             }
             return;
         }
-        for (; (got_int == 0) && histype1 <= histype2; histype1++) {
+        for (; got_int == 0 && histype1 <= histype2; histype1++) {
             vim_snprintf(IObuff, 1025L, BytePtr.lit("\n      #  %s history"), history_names[histype1]);
             msg_puts_title(IObuff);
             idx = hisidx[histype1];
@@ -18807,8 +18668,7 @@ public abstract class Editor {
                 k = -k > hislen ? 0 : hist.at((hislen + k + idx + 1) % hislen).hisnum;
             }
             if (idx >= 0 && j <= k) {
-                i = idx + 1;
-                for (; got_int == 0; i++) {
+                for (i = idx + 1; got_int == 0; i++) {
                     if (i == hislen) {
                         i = 0;
                     }
@@ -18842,15 +18702,12 @@ public abstract class Editor {
     }
 
     void handle_lnum_col(S_window_S wp, T_winlinevars_T wlv, boolean sign_present, int num_attr) {
-        boolean has_cpo_n = false;
-        int lnum_row = 0;
-        long num = 0;
-        BytePtr fmt = null;
-        has_cpo_n = vim_strchr(p_cpo[0], CPO_NUMCOL) != null;
-        lnum_row = wlv.startrow + wlv.filler_lines;
+        boolean has_cpo_n = vim_strchr(p_cpo[0], CPO_NUMCOL) != null;
+        int lnum_row = wlv.startrow + wlv.filler_lines;
         if ((wp.w_onebuf_opt.wo_nu[0] != 0 || wp.w_onebuf_opt.wo_rnu[0] != 0) && (wlv.row <= lnum_row || !has_cpo_n) && !(has_cpo_n && wp.w_skipcol > 0 && wlv.lnum == wp.w_topline)) {
             if (wlv.row == lnum_row && (wp.w_skipcol == 0 || wlv.row > 0 || (wp.w_onebuf_opt.wo_nu[0] != 0 && wp.w_onebuf_opt.wo_rnu[0] != 0))) {
-                fmt = BytePtr.lit("%*ld ");
+                long num = 0;
+                BytePtr fmt = BytePtr.lit("%*ld ");
                 if (wp.w_onebuf_opt.wo_nu[0] != 0 && wp.w_onebuf_opt.wo_rnu[0] == 0) {
                     num = wlv.lnum;
                 } else {
@@ -18862,8 +18719,7 @@ public abstract class Editor {
                 }
                 vim_snprintf(new BytePtr(wlv.extra, 0), 86L, fmt, 7, num);
                 if (wp.w_skipcol > 0 && wlv.startrow == 0) {
-                    wlv.p_extra[0] = new BytePtr(wlv.extra, 0);
-                    for (; wlv.p_extra[0].get() == ' '; wlv.p_extra[0] = wlv.p_extra[0].add(1)) {
+                    for (wlv.p_extra[0] = new BytePtr(wlv.extra, 0); wlv.p_extra[0].get() == ' '; wlv.p_extra[0] = wlv.p_extra[0].add(1)) {
                         wlv.p_extra[0].put((byte) '-');
                     }
                 }
@@ -18886,22 +18742,17 @@ public abstract class Editor {
     }
 
     void wlv_screen_line(S_window_S wp, T_winlinevars_T wlv, boolean clear_end) {
-        int off = 0;
-        int max_off = 0;
-        int skip = 0;
-        int i = 0;
         if (wlv.row == 0 && wp.w_skipcol > 0 && !(wp.w_onebuf_opt.wo_list[0] != 0 && wp.w_lcs_chars.prec[0] != 0)) {
-            off = (int) current_ScreenLine.sub(ScreenLines);
-            max_off = off + screen_Columns;
-            skip = 0;
+            int off = (int) current_ScreenLine.sub(ScreenLines);
+            int max_off = off + screen_Columns;
+            int skip = 0;
             if (wp.w_onebuf_opt.wo_nu[0] != 0 && wp.w_onebuf_opt.wo_rnu[0] != 0) {
                 while (skip < wp.w_width && Integer.compareUnsigned((ScreenLines.at(off) & 0xff) - '0', 10) < 0) {
                     off++;
                     skip++;
                 }
             }
-            i = 0;
-            for (; (i < 3) && i + skip < wp.w_width; i++) {
+            for (int i = 0; i < 3 && i + skip < wp.w_width; i++) {
                 if (utf_off2cells(off, max_off) > 1) {
                     ScreenLines.set(off + 1, (byte) ' ');
                 }
@@ -18961,13 +18812,20 @@ public abstract class Editor {
     }
 
     int win_line(S_window_S wp, long lnum, int startrow, int endrow, int number_only) {
+        int i = 0;
+        int t1 = 0;
+        int t2 = 0;
+        BytePtr t3 = null;
+        int i_2 = 0;
+        boolean t4 = false;
+        boolean t5 = false;
         T_winlinevars_T wlv = new T_winlinevars_T();
         int c = 0;
         BytePtr[] line = new BytePtr[1];
         BytePtr ptr = null;
-        boolean in_curline = false;
-        int lcs_eol_one = 0;
-        int lcs_prec_todo = 0;
+        boolean in_curline = wp == curwin && lnum == curwin.w_cursor.lnum[0];
+        int lcs_eol_one = wp.w_lcs_chars.eol[0];
+        int lcs_prec_todo = wp.w_lcs_chars.prec[0];
         int n_attr = 0;
         int saved_attr2 = 0;
         int n_attr3 = 0;
@@ -18978,17 +18836,19 @@ public abstract class Editor {
         T_pos_T pos = new T_pos_T();
         long v = 0;
         boolean attr_pri = false;
-        int area_highlighting = 0;
+        int area_highlighting = FALSE;
         int vi_attr = 0;
         int[] area_attr = new int[1];
+        area_attr[0] = 0;
         int[] search_attr = new int[1];
+        search_attr[0] = 0;
         boolean extra_check = false;
         int multi_attr = 0;
-        int mb_l = 0;
+        int mb_l = 1;
         int mb_c = 0;
         boolean mb_utf8 = false;
         int[] u8cc = new int[6];
-        int trailcol = 0;
+        int trailcol = MAXCOL;
         int leadcol = 0;
         boolean in_multispace = false;
         int multispace_pos = 0;
@@ -18996,61 +18856,8 @@ public abstract class Editor {
         int num_attr = 0;
         int did_line_attr = 0;
         int[] match_conc = new int[1];
-        int[] on_last_col = new int[1];
-        T_pos_T top = null;
-        T_pos_T bot = null;
-        int skipcol_in_text_prop_above = 0;
-        BytePtr prev_ptr = null;
-        T_chartabsize_T cts = new T_chartabsize_T();
-        int charsize = 0;
-        int[] head = new int[1];
-        int[] has_match_conc = new int[1];
-        IntPtr area_attr_p = null;
-        BytePtr prev_ptr_2 = null;
-        int i = 0;
-        int t1 = 0;
-        int t2 = 0;
-        int tab_len = 0;
-        long vcol_adjusted = 0;
-        int lcs_tab1 = 0;
-        int lcs_tab2 = 0;
-        int lcs_tab3 = 0;
-        BytePtr t3 = null;
-        boolean prevcol_hl_flag = false;
-        int n = 0;
-        int lcs_ext = 0;
-        int i_2 = 0;
-        boolean t4 = false;
-        boolean t5 = false;
-        c = 0;
-        in_curline = wp == curwin && lnum == curwin.w_cursor.lnum[0];
-        lcs_eol_one = wp.w_lcs_chars.eol[0];
-        lcs_prec_todo = wp.w_lcs_chars.prec[0];
-        n_attr = 0;
-        saved_attr2 = 0;
-        n_attr3 = 0;
-        saved_attr3 = 0;
-        skip_cells = 0;
-        skipped_cells = 0;
-        lnum_in_visual_area = false;
-        attr_pri = false;
-        area_highlighting = FALSE;
-        vi_attr = 0;
-        area_attr[0] = 0;
-        search_attr[0] = 0;
-        extra_check = false;
-        multi_attr = 0;
-        mb_l = 1;
-        mb_c = 0;
-        mb_utf8 = false;
-        trailcol = MAXCOL;
-        leadcol = 0;
-        in_multispace = false;
-        multispace_pos = 0;
-        sign_present = false;
-        num_attr = 0;
-        did_line_attr = 0;
         match_conc[0] = 0;
+        int[] on_last_col = new int[1];
         on_last_col[0] = FALSE;
         if (startrow > endrow) {
             return startrow;
@@ -19064,6 +18871,8 @@ public abstract class Editor {
         wlv.tocol[0] = MAXCOL;
         if (number_only == 0) {
             if (VIsual_active != 0 && wp.w_buffer == curwin.w_buffer) {
+                T_pos_T top = null;
+                T_pos_T bot = null;
                 if ((curwin.w_cursor.lnum[0] != VIsual.lnum[0] ? curwin.w_cursor.lnum[0] < VIsual.lnum[0] : (curwin.w_cursor.col[0] != VIsual.col[0] ? curwin.w_cursor.col[0] < VIsual.col[0] : curwin.w_cursor.coladd < VIsual.coladd)) || (curwin.w_cursor.lnum[0] == VIsual.lnum[0] && curwin.w_cursor.col[0] == VIsual.col[0] && curwin.w_cursor.coladd == VIsual.coladd)) {
                     top = curwin.w_cursor;
                     bot = VIsual;
@@ -19163,15 +18972,17 @@ public abstract class Editor {
             wlv.win_attr = get_win_attr(wp);
             area_highlighting = TRUE;
         }
-        skipcol_in_text_prop_above = 0;
+        int skipcol_in_text_prop_above = 0;
         if (wp.w_onebuf_opt.wo_wrap[0] != 0) {
             v = (long) (startrow == 0 ? wp.w_skipcol - skipcol_in_text_prop_above : 0);
         } else {
             v = (long) wp.w_leftcol;
         }
         if (v > 0L && number_only == 0) {
-            prev_ptr = ptr;
-            charsize = 0;
+            BytePtr prev_ptr = ptr;
+            T_chartabsize_T cts = new T_chartabsize_T();
+            int charsize = 0;
+            int[] head = new int[1];
             head[0] = 0;
             init_chartabsize_arg(cts, wp, lnum, (int) wlv.vcol, line[0], ptr);
             cts.cts_max_head_vcol = (int) v;
@@ -19229,6 +19040,7 @@ public abstract class Editor {
         }
         win_line_start(wp, wlv, false);
         for (;;) {
+            int[] has_match_conc = new int[1];
             has_match_conc[0] = 0;
             if (wlv.draw_state != WL_START + 1 + 1 + 1) {
                 if (wlv.draw_state == WL_START + 1 - 1 && wlv.n_extra == 0) {
@@ -19263,7 +19075,7 @@ public abstract class Editor {
                 break;
             }
             if (wlv.draw_state == WL_START + 1 + 1 + 1 && (area_highlighting != 0 || extra_check)) {
-                area_attr_p = new IntPtr(area_attr, 0);
+                IntPtr area_attr_p = new IntPtr(area_attr, 0);
                 if (wlv.vcol == (long) wlv.fromcol[0] || (wlv.vcol + 1L == (long) wlv.fromcol[0] && ((wlv.n_extra == 0 && utf_ptr2cells(ptr) > 1) || (wlv.n_extra > 0 && wlv.p_extra[0] != null && utf_ptr2cells(wlv.p_extra[0]) > 1)))) {
                     area_attr_p.put(vi_attr);
                 } else if (area_attr_p.get() != 0 && wlv.vcol == (long) wlv.tocol[0]) {
@@ -19343,7 +19155,7 @@ public abstract class Editor {
                 }
                 wlv.n_extra--;
             } else {
-                prev_ptr_2 = ptr;
+                BytePtr prev_ptr_2 = ptr;
                 c = ptr.get() & 0xff;
                 if (c == NUL) {
                     skip_cells = 0;
@@ -19358,8 +19170,7 @@ public abstract class Editor {
                     }
                     mb_utf8 = true;
                     if (utf_iscomposing(mb_c)) {
-                        i = Screen_mco - 1;
-                        for (; i > 0; i--) {
+                        for (i = Screen_mco - 1; i > 0; i--) {
                             u8cc[i] = u8cc[i - 1];
                         }
                         u8cc[0] = mb_c;
@@ -19472,11 +19283,11 @@ public abstract class Editor {
                 }
                 if (!vim_isprintc(c) && !(c >= 128)) {
                     if (c == TAB && (wp.w_onebuf_opt.wo_list[0] == 0 || wp.w_lcs_chars.tab1 != 0)) {
-                        tab_len = 0;
-                        vcol_adjusted = wlv.vcol - (long) wlv.vcol_off_tp;
-                        lcs_tab1 = wp.w_lcs_chars.tab1;
-                        lcs_tab2 = wp.w_lcs_chars.tab2[0];
-                        lcs_tab3 = wp.w_lcs_chars.tab3;
+                        int tab_len = 0;
+                        long vcol_adjusted = wlv.vcol - (long) wlv.vcol_off_tp;
+                        int lcs_tab1 = wp.w_lcs_chars.tab1;
+                        int lcs_tab2 = wp.w_lcs_chars.tab2[0];
+                        int lcs_tab3 = wp.w_lcs_chars.tab3;
                         if (wp.w_onebuf_opt.wo_list[0] != 0 && wp.w_lcs_chars.leadtab1 != NUL && ptr.lt(line[0].add(leadcol))) {
                             lcs_tab1 = wp.w_lcs_chars.leadtab1;
                             lcs_tab2 = wp.w_lcs_chars.leadtab2[0];
@@ -19591,9 +19402,9 @@ public abstract class Editor {
                 }
             }
             if ((c == NUL || did_line_attr == 1) && wlv.eol_hl_off == 0) {
-                prevcol_hl_flag = get_prevcol_hl_flag(wp, screen_search_hl, ptr.sub(line[0]) - (long) (c == NUL ? 1 : 0));
+                boolean prevcol_hl_flag = get_prevcol_hl_flag(wp, screen_search_hl, ptr.sub(line[0]) - (long) (c == NUL ? 1 : 0));
                 if (wp.w_lcs_chars.eol[0] == lcs_eol_one && ((area_attr[0] != 0 && wlv.vcol == (long) wlv.fromcol[0] && (VIsual_mode != Ctrl_V || lnum == VIsual.lnum[0] || lnum == curwin.w_cursor.lnum[0]) && c == NUL) || (prevcol_hl_flag && did_line_attr <= 1))) {
-                    n = 0;
+                    int n = 0;
                     if (wlv.col >= wp.w_width) {
                         n = -1;
                     }
@@ -19624,7 +19435,7 @@ public abstract class Editor {
                 }
                 break;
             }
-            lcs_ext = get_lcs_ext(wp);
+            int lcs_ext = get_lcs_ext(wp);
             if (lcs_ext != NUL && wlv.draw_state == WL_START + 1 + 1 + 1 && wlv.col == wp.w_width - 1 && (ptr.get() != NUL || lcs_eol_one > 0 || (wlv.n_extra > 0 && (wlv.c_extra != NUL || wlv.p_extra[0].get() != NUL)))) {
                 c = lcs_ext;
                 wlv.char_attr[0] = hl_combine_attr(wlv.win_attr, highlight_attr[HLF_AT]);
@@ -19644,8 +19455,7 @@ public abstract class Editor {
                     if ((c & 255) == 0) {
                         ScreenLines.set(wlv.off, (byte) -128);
                     }
-                    i_2 = 0;
-                    for (; i_2 < Screen_mco; i_2++) {
+                    for (i_2 = 0; i_2 < Screen_mco; i_2++) {
                         ScreenLinesC[i_2].set(wlv.off, u8cc[i_2]);
                         if (u8cc[i_2] == 0) {
                             break;
@@ -19749,15 +19559,11 @@ public abstract class Editor {
     }
 
     boolean update_screen(int type_arg) {
-        int type = 0;
+        int type = type_arg;
         S_window_S wp = null;
         boolean no_update = false;
-        int save_pum_will_redraw = 0;
+        int save_pum_will_redraw = pum_will_redraw;
         boolean override_success = false;
-        boolean hid_cursor = false;
-        type = type_arg;
-        no_update = false;
-        save_pum_will_redraw = pum_will_redraw;
         if (!screen_valid(true)) {
             return false;
         }
@@ -19783,7 +19589,7 @@ public abstract class Editor {
             return false;
         }
         updating_screen = TRUE;
-        hid_cursor = !sync_output_active();
+        boolean hid_cursor = !sync_output_active();
         if (hid_cursor) {
             cursor_off();
         }
@@ -19890,17 +19696,11 @@ public abstract class Editor {
     }
 
     void win_redr_status(S_window_S wp, boolean ignore_pum) {
+        int t1 = 0;
         int row = 0;
         int fillchar = 0;
         int[] attr = new int[1];
         int i = 0;
-        BytePtr p = null;
-        int plen = 0;
-        int this_ru_col = 0;
-        int n = 0;
-        int t1 = 0;
-        int width = 0;
-        int r = 0;
         if (win_redr_status_busy) {
             return;
         }
@@ -19912,6 +19712,10 @@ public abstract class Editor {
         } else if (!redrawing()) {
             wp.w_redr_status = true;
         } else {
+            BytePtr p = null;
+            int plen = 0;
+            int this_ru_col = 0;
+            int n = 0;
             fillchar = fillchar_status(new IntPtr(attr, 0), wp);
             get_trans_bufname(wp.w_buffer);
             p = NameBuff;
@@ -19938,8 +19742,7 @@ public abstract class Editor {
                 plen = 1;
             } else {
                 plen = mb_string2cells(p, -1);
-                i = 0;
-                for (; (p.at(i) != NUL) && plen >= this_ru_col - 1; i += utfc_ptr2len(p.add(i))) {
+                for (i = 0; p.at(i) != NUL && plen >= this_ru_col - 1; i += utfc_ptr2len(p.add(i))) {
                     plen -= utf_ptr2cells(p.add(i));
                 }
                 if (i > 0) {
@@ -19950,14 +19753,13 @@ public abstract class Editor {
             }
             screen_puts(p, row, wp.w_wincol, attr[0]);
             screen_fill(row, row + 1, plen + wp.w_wincol, this_ru_col + wp.w_wincol, fillchar, fillchar, attr[0]);
-            i = 1;
-            for (; i < wp.w_status_height; i++) {
+            for (i = 1; i < wp.w_status_height; i++) {
                 screen_fill(row + i, row + i + 1, wp.w_wincol, wp.w_wincol + wp.w_width, fillchar, fillchar, attr[0]);
             }
             win_redr_ruler(wp, true, ignore_pum);
             if (p_sc[0] != 0 && p_sloc[0].get() == 's') {
                 n = this_ru_col - plen - 2;
-                width = 10 < n ? 10 : n;
+                int width = 10 < n ? 10 : n;
                 if (width > 0) {
                     screen_puts_len(new BytePtr(showcmd_buf, 0), width, row, wp.w_wincol + this_ru_col - width - 1, attr[0]);
                 }
@@ -19965,9 +19767,8 @@ public abstract class Editor {
             }
         }
         if (wp.w_vsep_width != 0 && wp.w_status_height != 0 && redrawing()) {
-            i = 0;
-            for (; i < wp.w_status_height; i++) {
-                r = row + i;
+            for (i = 0; i < wp.w_status_height; i++) {
+                int r = row + i;
                 fillchar = fillchar_vsep(new IntPtr(attr, 0), wp, r);
                 screen_putchar(fillchar, r, wp.w_wincol + wp.w_width, attr[0]);
             }
@@ -19987,21 +19788,6 @@ public abstract class Editor {
 
     void win_redr_ruler(S_window_S wp, boolean always, boolean ignore_pum) {
         boolean empty_line = false;
-        int row = 0;
-        int fillchar = 0;
-        int[] attr = new int[1];
-        int off = 0;
-        int width = 0;
-        int[] virtcol = new int[1];
-        byte[] buffer = new byte[70];
-        int bufferlen = 0;
-        byte[] rel_pos = new byte[70];
-        int rel_poslen = 0;
-        int this_ru_col = 0;
-        int n1 = 0;
-        int n2 = 0;
-        boolean override_success = false;
-        empty_line = false;
         if (p_ru[0] == 0) {
             return;
         }
@@ -20018,7 +19804,20 @@ public abstract class Editor {
         }
         validate_virtcol_win(wp);
         if (redraw_cmdline != 0 || always || wp.w_cursor.lnum[0] != wp.w_ru_cursor.lnum[0] || wp.w_cursor.col[0] != wp.w_ru_cursor.col[0] || wp.w_virtcol[0] != wp.w_ru_virtcol || wp.w_cursor.coladd != wp.w_ru_cursor.coladd || wp.w_topline != wp.w_ru_topline || wp.w_buffer.b_ml.ml_line_count != wp.w_ru_line_count || (empty_line ? 1 : 0) != (wp.w_ru_empty ? 1 : 0)) {
-            override_success = push_highlight_overrides(wp.w_hl, wp.w_hl_len);
+            int row = 0;
+            int fillchar = 0;
+            int[] attr = new int[1];
+            int off = 0;
+            int width = 0;
+            int[] virtcol = new int[1];
+            byte[] buffer = new byte[70];
+            int bufferlen = 0;
+            byte[] rel_pos = new byte[70];
+            int rel_poslen = 0;
+            int this_ru_col = 0;
+            int n1 = 0;
+            int n2 = 0;
+            boolean override_success = push_highlight_overrides(wp.w_hl, wp.w_hl_len);
             cursor_off();
             if (wp.w_status_height != 0) {
                 row = statusline_row(wp);
@@ -20058,8 +19857,7 @@ public abstract class Editor {
                 bufferlen += vim_snprintf(new BytePtr(buffer, 0).add(bufferlen), (long) (RULER_BUF_LEN - bufferlen), BytePtr.lit("%s"), new BytePtr(rel_pos, 0));
             }
             n1 = 0;
-            n2 = 0;
-            for (; buffer[n1] != NUL; n1 += utfc_ptr2len(new BytePtr(buffer, 0).add(n1))) {
+            for (n2 = 0; buffer[n1] != NUL; n1 += utfc_ptr2len(new BytePtr(buffer, 0).add(n1))) {
                 n2 += utf_ptr2cells(new BytePtr(buffer, 0).add(n1));
                 if (this_ru_col + n2 > width) {
                     bufferlen = n1;
@@ -20092,12 +19890,20 @@ public abstract class Editor {
     }
 
     void win_update(S_window_S wp) {
-        S_file_buffer buf = null;
+        int t1 = 0;
+        int t2 = 0;
+        int[] t = new int[1];
+        int xtra_rows = 0;
+        long l = 0;
+        long t3 = 0;
+        int t4 = 0;
+        int t5 = 0;
+        S_file_buffer buf = wp.w_buffer;
         int type = 0;
         int top_end = 0;
-        int mid_start = 0;
+        int mid_start = 999;
         int mid_end = 0;
-        int bot_start = 0;
+        int bot_start = 999;
         boolean scrolled_down = false;
         boolean scrolled_for_mod = false;
         boolean top_to_mod = false;
@@ -20109,56 +19915,11 @@ public abstract class Editor {
         boolean didline = false;
         int i = 0;
         long j = 0;
-        long old_botline = 0;
-        long mod_top = 0;
-        long mod_bot = 0;
+        long old_botline = wp.w_botline;
+        long mod_top = 0L;
+        long mod_bot = 0L;
         int save_got_int = 0;
         boolean override_success = false;
-        int w = 0;
-        int width1 = 0;
-        int width2 = 0;
-        int add = 0;
-        S_matchitem cur = null;
-        int t1 = 0;
-        int t2 = 0;
-        long from = 0;
-        long to_ = 0;
-        int[] fromc = new int[1];
-        int[] toc = new int[1];
-        T_pos_T pos = new T_pos_T();
-        boolean cursor_above = false;
-        int[] t = new int[1];
-        int old_cline_height = 0;
-        int old_rows = 0;
-        int new_rows = 0;
-        int xtra_rows = 0;
-        long l = 0;
-        int x = 0;
-        long t3 = 0;
-        int t4 = 0;
-        boolean is_curline = false;
-        int t5 = 0;
-        int scr_row = 0;
-        int symbol = 0;
-        int charlen = 0;
-        byte[] fillbuf = new byte[12];
-        int start_col = 0;
-        int symbol_2 = 0;
-        S_window_S wwp = null;
-        boolean b = false;
-        buf = wp.w_buffer;
-        top_end = 0;
-        mid_start = 999;
-        mid_end = 0;
-        bot_start = 999;
-        scrolled_down = false;
-        scrolled_for_mod = false;
-        top_to_mod = false;
-        eof = false;
-        didline = false;
-        old_botline = wp.w_botline;
-        mod_top = 0L;
-        mod_bot = 0L;
         if (did_update_one_window == 0) {
             did_update_one_window = TRUE;
             start_search_hl();
@@ -20180,10 +19941,10 @@ public abstract class Editor {
         override_success = push_highlight_overrides(wp.w_hl, wp.w_hl_len);
         init_search_hl(wp, screen_search_hl);
         if (wp.w_skipcol > 0 && wp.w_width > win_col_off(wp)) {
-            w = 0;
-            width1 = wp.w_width - win_col_off(wp);
-            width2 = width1 + win_col_off2(wp);
-            add = width1;
+            int w = 0;
+            int width1 = wp.w_width - win_col_off(wp);
+            int width2 = width1 + win_col_off2(wp);
+            int add = width1;
             while (w < wp.w_skipcol) {
                 if (w > 0) {
                     add = width2;
@@ -20210,7 +19971,7 @@ public abstract class Editor {
             if (screen_search_hl.rm.regprog != null && re_multiline(screen_search_hl.rm.regprog) != 0) {
                 top_to_mod = true;
             } else {
-                cur = wp.w_match_head;
+                S_matchitem cur = wp.w_match_head;
                 while (cur != null) {
                     if (cur.mit_match.regprog != null && re_multiline(cur.mit_match.regprog) != 0) {
                         top_to_mod = true;
@@ -20238,8 +19999,7 @@ public abstract class Editor {
         search_hl_has_cursor_lnum = 0L;
         if (type == UPD_REDRAW_TOP) {
             j = 0L;
-            i = 0;
-            for (; i < wp.w_lines_valid; i++) {
+            for (i = 0; i < wp.w_lines_valid; i++) {
                 j += wp.w_lines.at(i).wl_size & 0xffffL;
                 if (j >= (long) wp.w_upd_rows) {
                     top_end = (int) j;
@@ -20273,8 +20033,7 @@ public abstract class Editor {
                                 if (wp.w_lines_valid > wp.w_height) {
                                     wp.w_lines_valid = wp.w_height;
                                 }
-                                idx = wp.w_lines_valid;
-                                for (; ((long) idx - j) >= 0L; idx--) {
+                                for (idx = wp.w_lines_valid; (long) idx - j >= 0L; idx--) {
                                     wp.w_lines.at(idx).set(wp.w_lines.at((int) ((long) idx - j)));
                                 }
                                 while (idx >= 0) {
@@ -20295,8 +20054,7 @@ public abstract class Editor {
             } else {
                 j = -1L;
                 row = 0;
-                i = 0;
-                for (; (i < wp.w_lines_valid) && (long) i < Rows[0]; i++) {
+                for (i = 0; i < wp.w_lines_valid && (long) i < Rows[0]; i++) {
                     if (wp.w_lines.at(i).wl_valid != 0 && wp.w_lines.at(i).wl_lnum == wp.w_topline) {
                         j = (long) i;
                         break;
@@ -20354,6 +20112,8 @@ public abstract class Editor {
             type = UPD_NOT_VALID;
         }
         if ((VIsual_active != 0 && buf == curwin.w_buffer) || (wp.w_old_cursor_lnum[0] != 0L && type != UPD_NOT_VALID)) {
+            long from = 0;
+            long to_ = 0;
             if (VIsual_active != 0) {
                 if (VIsual_mode != (int) wp.w_old_visual_mode || type == UPD_INVERTED_ALL) {
                     if (curwin.w_cursor.lnum[0] < VIsual.lnum[0]) {
@@ -20402,15 +20162,17 @@ public abstract class Editor {
                     }
                 }
                 if (VIsual_mode == Ctrl_V) {
+                    int[] fromc = new int[1];
+                    int[] toc = new int[1];
                     getvcols(wp, VIsual, curwin.w_cursor, new IntPtr(fromc, 0), new IntPtr(toc, 0), GETVCOL_END_EXCL_LBR);
                     toc[0]++;
                     if (curwin.w_curswant == MAXCOL) {
                         if ((get_ve_flags() & VE_BLOCK) != 0) {
-                            cursor_above = curwin.w_cursor.lnum[0] < VIsual.lnum[0];
+                            T_pos_T pos = new T_pos_T();
+                            boolean cursor_above = curwin.w_cursor.lnum[0] < VIsual.lnum[0];
                             toc[0] = 0;
                             pos.coladd = 0;
-                            pos.lnum[0] = curwin.w_cursor.lnum[0];
-                            for (; (cursor_above ? pos.lnum[0] <= VIsual.lnum[0] : pos.lnum[0] >= VIsual.lnum[0]); pos.lnum[0] += (long) (cursor_above ? 1 : -1)) {
+                            for (pos.lnum[0] = curwin.w_cursor.lnum[0]; cursor_above ? pos.lnum[0] <= VIsual.lnum[0] : pos.lnum[0] >= VIsual.lnum[0]; pos.lnum[0] += (long) (cursor_above ? 1 : -1)) {
                                 pos.col[0] = ml_get_buf_len(wp.w_buffer, pos.lnum[0]);
                                 getvvcol(wp, pos, null, null, new IntPtr(t, 0), 0);
                                 if (toc[0] < t[0]) {
@@ -20516,11 +20278,10 @@ public abstract class Editor {
                 }
                 if (!scrolled_for_mod && mod_bot != LONG_MAX && lnum >= mod_top && lnum < (mod_bot > (mod_top + 1L) ? mod_bot : mod_top + 1L) && (!scrolled_down || row >= top_end)) {
                     scrolled_for_mod = true;
-                    old_cline_height = 0;
-                    old_rows = 0;
-                    new_rows = 0;
-                    i = idx;
-                    for (; i < wp.w_lines_valid; i++) {
+                    int old_cline_height = 0;
+                    int old_rows = 0;
+                    int new_rows = 0;
+                    for (i = idx; i < wp.w_lines_valid; i++) {
                         if (wp.w_lines.at(i).wl_valid != 0 && wp.w_lines.at(i).wl_lnum == mod_bot) {
                             break;
                         }
@@ -20533,8 +20294,7 @@ public abstract class Editor {
                         bot_start = 0;
                     } else {
                         j = (long) idx;
-                        l = lnum;
-                        for (; l < mod_bot; l++) {
+                        for (l = lnum; l < mod_bot; l++) {
                             if (dollar_vcol >= 0 && wp == curwin && old_cline_height > 0 && l == wp.w_cursor.lnum[0]) {
                                 new_rows += old_cline_height;
                             } else {
@@ -20572,7 +20332,7 @@ public abstract class Editor {
                         }
                         if (mod_bot != LONG_MAX && (long) i != j) {
                             if (j < (long) i) {
-                                x = row + new_rows;
+                                int x = row + new_rows;
                                 for (;;) {
                                     if (i >= wp.w_lines_valid) {
                                         wp.w_lines_valid = (int) j;
@@ -20597,8 +20357,7 @@ public abstract class Editor {
                                 if (wp.w_lines_valid > wp.w_height) {
                                     wp.w_lines_valid = wp.w_height;
                                 }
-                                i = wp.w_lines_valid;
-                                for (; ((long) i - j) >= (long) idx; i--) {
+                                for (i = wp.w_lines_valid; (long) i - j >= (long) idx; i--) {
                                     wp.w_lines.at(i).set(wp.w_lines.at((int) ((long) i - j)));
                                 }
                                 while (i >= idx) {
@@ -20619,7 +20378,7 @@ public abstract class Editor {
                 }
                 wp.w_lines.at(idx).wl_lnum = lnum;
                 wp.w_lines.at(idx).wl_valid = (byte) TRUE;
-                is_curline = wp == curwin && lnum == wp.w_cursor.lnum[0];
+                boolean is_curline = wp == curwin && lnum == wp.w_cursor.lnum[0];
                 if (row > wp.w_height || (long) (row + wp.w_winrow) >= Rows[0]) {
                     if (dollar_vcol == -1 || !is_curline) {
                         wp.w_lines.at(idx).wl_size = (short) plines_win(wp, lnum, true);
@@ -20661,17 +20420,18 @@ public abstract class Editor {
             if (lnum == wp.w_topline) {
                 wp.w_botline = lnum + 1L;
             } else if ((dy_flags[0] & DY_TRUNCATE) != 0) {
-                scr_row = wp.w_winrow + wp.w_height - 1;
-                symbol = wp.w_fill_chars.lastline[0];
-                charlen = utf_char2bytes(symbol, new BytePtr(fillbuf, 0));
+                int scr_row = wp.w_winrow + wp.w_height - 1;
+                int symbol = wp.w_fill_chars.lastline[0];
+                byte[] fillbuf = new byte[12];
+                int charlen = utf_char2bytes(symbol, new BytePtr(fillbuf, 0));
                 utf_char2bytes(symbol, new BytePtr(fillbuf, charlen));
                 screen_puts_len(new BytePtr(fillbuf, 0), (wp.w_width > 2 ? 2 : wp.w_width) * charlen, scr_row, wp.w_wincol, highlight_attr[HLF_AT]);
                 screen_fill(scr_row, scr_row + 1, wp.w_wincol + 2, wp.w_wincol + wp.w_width, symbol, ' ', highlight_attr[HLF_AT]);
                 set_empty_rows(wp, srow);
                 wp.w_botline = lnum;
             } else if ((dy_flags[0] & DY_LASTLINE) != 0) {
-                start_col = wp.w_wincol + wp.w_width - 3;
-                symbol_2 = wp.w_fill_chars.lastline[0];
+                int start_col = wp.w_wincol + wp.w_width - 3;
+                int symbol_2 = wp.w_fill_chars.lastline[0];
                 screen_fill(wp.w_winrow + wp.w_height - 1, wp.w_winrow + wp.w_height, start_col < wp.w_wincol ? wp.w_wincol : start_col, wp.w_wincol + wp.w_width, symbol_2, symbol_2, highlight_attr[HLF_AT]);
                 set_empty_rows(wp, srow);
                 wp.w_botline = lnum;
@@ -20696,11 +20456,12 @@ public abstract class Editor {
         if (dollar_vcol == -1 || !(wp == curwin)) {
             wp.w_valid |= VALID_BOTLINE;
             if (wp == curwin && wp.w_botline != old_botline && !win_update_recursive) {
+                S_window_S wwp = null;
                 win_update_recursive = true;
                 curwin.w_valid &= ~VALID_TOPLINE;
                 update_topline();
                 if (wp.w_redr_type != 0) {
-                    b = curbuf.b_mod_set;
+                    boolean b = curbuf.b_mod_set;
                     curbuf.b_mod_set = false;
                     j = curbuf.b_mod_xlines;
                     curbuf.b_mod_xlines = 0L;
@@ -20727,7 +20488,7 @@ public abstract class Editor {
 
     int redraw_asap(int type) {
         int rows = 0;
-        int cols = 0;
+        int cols = screen_Columns;
         int r = 0;
         int ret = 0;
         BytePtr screenline = null;
@@ -20735,10 +20496,6 @@ public abstract class Editor {
         int i = 0;
         IntPtr screenlineUC = null;
         IntPtr[] screenlineC = new IntPtr[6];
-        int off = 0;
-        cols = screen_Columns;
-        ret = 0;
-        screenlineUC = null;
         redraw_later(type);
         if (msg_scrolled != 0 || (State != MODE_NORMAL && State != (4096 | MODE_NORMAL)) || exiting != 0) {
             return ret;
@@ -20750,32 +20507,27 @@ public abstract class Editor {
             ret = 2;
         }
         screenlineUC = IntPtr.alloc(rows * cols);
-        i = 0;
-        for (; ((long) i) < p_mco[0]; i++) {
+        for (i = 0; (long) i < p_mco[0]; i++) {
             screenlineC[i] = IntPtr.alloc(rows * cols);
         }
         if (ret != 2) {
-            r = 0;
-            for (; r < rows; r++) {
+            for (r = 0; r < rows; r++) {
                 Rt.memmove(screenline.add(r * cols), ScreenLines.add(LineOffset.at(cmdline_row + r)), (long) cols * 1L);
                 Rt.memmove(screenattr.add(r * cols), ScreenAttrs.add(LineOffset.at(cmdline_row + r)), (int) (long) cols);
                 Rt.memmove(screenlineUC.add(r * cols), ScreenLinesUC.add(LineOffset.at(cmdline_row + r)), (int) (long) cols);
-                i = 0;
-                for (; ((long) i) < p_mco[0]; i++) {
+                for (i = 0; (long) i < p_mco[0]; i++) {
                     Rt.memmove(screenlineC[i].add(r * cols), ScreenLinesC[i].add(LineOffset.at(cmdline_row + r)), (int) (long) cols);
                 }
             }
             update_screen(0);
             ret = 3;
             if (must_redraw == 0) {
-                off = (int) current_ScreenLine.sub(ScreenLines);
-                r = 0;
-                for (; r < rows; r++) {
+                int off = (int) current_ScreenLine.sub(ScreenLines);
+                for (r = 0; r < rows; r++) {
                     Rt.memmove(current_ScreenLine, screenline.add(r * cols), (long) cols * 1L);
                     Rt.memmove(ScreenAttrs.add(off), screenattr.add(r * cols), (int) (long) cols);
                     Rt.memmove(ScreenLinesUC.add(off), screenlineUC.add(r * cols), (int) (long) cols);
-                    i = 0;
-                    for (; ((long) i) < p_mco[0]; i++) {
+                    for (i = 0; (long) i < p_mco[0]; i++) {
                         Rt.memmove(ScreenLinesC[i].add(off), screenlineC[i].add(r * cols), (int) (long) cols);
                     }
                     screen_line(curwin, cmdline_row + r, 0, cols, cols, -1, 0);
@@ -20783,8 +20535,7 @@ public abstract class Editor {
                 ret = 4;
             }
         }
-        i = 0;
-        for (; ((long) i) < p_mco[0]; i++) {
+        for (i = 0; (long) i < p_mco[0]; i++) {
         }
         setcursor();
         return ret;
@@ -20812,8 +20563,7 @@ public abstract class Editor {
     }
 
     void redraw_all_later(int type) {
-        S_window_S wp = null;
-        wp = curwin;
+        S_window_S wp = curwin;
         redraw_win_later(wp, type);
         set_must_redraw(type);
     }
@@ -20829,8 +20579,7 @@ public abstract class Editor {
     }
 
     void redraw_buf_later(S_file_buffer buf, int type) {
-        S_window_S wp = null;
-        wp = curwin;
+        S_window_S wp = curwin;
         if (wp.w_buffer == buf) {
             redraw_win_later(wp, type);
         }
@@ -20843,8 +20592,7 @@ public abstract class Editor {
     }
 
     void status_redraw_all() {
-        S_window_S wp = null;
-        wp = curwin;
+        S_window_S wp = curwin;
         if (wp.w_status_height != 0) {
             wp.w_redr_status = true;
             redraw_later(UPD_VALID);
@@ -20853,8 +20601,7 @@ public abstract class Editor {
     }
 
     void status_redraw_curbuf() {
-        S_window_S wp = null;
-        wp = curwin;
+        S_window_S wp = curwin;
         if (wp.w_status_height != 0 && wp.w_buffer == curbuf) {
             wp.w_redr_status = true;
             redraw_later(UPD_VALID);
@@ -20865,11 +20612,9 @@ public abstract class Editor {
     }
 
     void redraw_statuslines() {
-        S_window_S wp = null;
-        boolean ret = false;
-        wp = curwin;
+        S_window_S wp = curwin;
         if (wp.w_redr_status) {
-            ret = push_highlight_overrides(wp.w_hl, wp.w_hl_len);
+            boolean ret = push_highlight_overrides(wp.w_hl, wp.w_hl_len);
             win_redr_status(wp, false);
             if (ret) {
                 pop_highlight_overrides();
@@ -20922,33 +20667,21 @@ public abstract class Editor {
 
     boolean edit(int cmdchar, boolean startln, long count_arg) {
         long[] count = new long[] {count_arg};
+        boolean t1 = false;
+        T_bufref_T save_curbuf = new T_bufref_T();
         int c = 0;
         boolean esc_now = false;
         BytePtr ptr = null;
         int lastc = 0;
         int mincol = 0;
         int i = 0;
-        boolean did_backspace = false;
-        long old_topline = 0;
+        boolean did_backspace = true;
+        long old_topline = 0L;
         int[] inserted_space = new int[1];
-        int replaceState = 0;
-        boolean nomove = false;
-        boolean ins_just_started = false;
-        T_pos_T save_cursor = new T_pos_T();
-        int save_state = 0;
-        boolean t1 = false;
-        T_string_T inserted = new T_string_T();
-        T_bufref_T save_curbuf = new T_bufref_T();
-        long tick = 0;
-        c = 0;
-        esc_now = false;
-        lastc = 0;
-        did_backspace = true;
-        old_topline = 0L;
         inserted_space[0] = FALSE;
-        replaceState = REPLACE_FLAG | MODE_INSERT;
-        nomove = false;
-        ins_just_started = true;
+        int replaceState = REPLACE_FLAG | MODE_INSERT;
+        boolean nomove = false;
+        boolean ins_just_started = true;
         did_restart_edit = restart_edit;
         check_for_delay(true);
         update_Insstart_orig = TRUE;
@@ -20957,12 +20690,13 @@ public abstract class Editor {
             return false;
         }
         if (cmdchar != 'r' && cmdchar != 'v') {
+            T_pos_T save_cursor = new T_pos_T();
             save_cursor.set(curwin.w_cursor);
             if (need_highlight_changed != 0) {
                 highlight_changed();
             }
             if (!(curwin.w_cursor.lnum[0] == save_cursor.lnum[0] && curwin.w_cursor.col[0] == save_cursor.col[0] && curwin.w_cursor.coladd == save_cursor.coladd) && save_cursor.lnum[0] <= curbuf.b_ml.ml_line_count) {
-                save_state = State;
+                int save_state = State;
                 curwin.w_cursor.set(save_cursor);
                 State = MODE_INSERT;
                 check_cursor_col();
@@ -21053,6 +20787,7 @@ public abstract class Editor {
         if (p_smd[0] != 0 && msg_silent == 0) {
             showmode();
         }
+        T_string_T inserted = new T_string_T();
         inserted.set(get_inserted());
         new_insert_skip = (int) inserted.length;
         old_indent = 0;
@@ -21278,7 +21013,7 @@ public abstract class Editor {
                     break;
                 case K_COMMAND:
                 case K_SCRIPT_COMMAND:
-                    tick = curbuf.b_changedtick;
+                    long tick = curbuf.b_changedtick;
                     set_bufref(save_curbuf, curbuf);
                     do_cmdkey_command(c, 0);
                     if (curbuf.b_u_synced || (bufref_valid(save_curbuf) && curbuf == save_curbuf.br_buf && tick != curbuf.b_changedtick)) {
@@ -21452,7 +21187,6 @@ public abstract class Editor {
     void ins_ctrl_v() {
         int c = 0;
         boolean did_putchar = false;
-        did_putchar = false;
         ins_redraw(false);
         if (redrawing() && !char_avail()) {
             edit_putchar('^', true);
@@ -21469,16 +21203,11 @@ public abstract class Editor {
     }
 
     int decodeModifyOtherKeys(int c) {
-        BytePtr p = null;
+        BytePtr p = typebuf.tb_buf.add(typebuf.tb_off);
         int idx = 0;
         int form = 0;
         int argidx = 0;
         int[] arg = new int[2];
-        boolean kitty_no_mods = false;
-        p = typebuf.tb_buf.add(typebuf.tb_off);
-        form = 0;
-        argidx = 0;
-        arg = new int[2];
         if (typebuf.tb_len >= 4 && (c == CSI || (c == ESC && p.get() == '['))) {
             idx = p.get() == '[' ? 1 : 0;
             if (p.at(idx) == '2' && p.at(idx + 1) == '7' && p.at(idx + 2) == ';' && kitty_protocol_state != KKPS_ENABLED) {
@@ -21495,7 +21224,7 @@ public abstract class Editor {
                 }
                 idx++;
             }
-            kitty_no_mods = argidx == 0 && kitty_protocol_state == KKPS_ENABLED;
+            boolean kitty_no_mods = argidx == 0 && kitty_protocol_state == KKPS_ENABLED;
             if (idx < typebuf.tb_len && (p.at(idx) & 0xff) == (form == 1 ? '~' : 'u') && (argidx == 1 || kitty_no_mods)) {
                 typebuf.tb_off += idx + 1;
                 typebuf.tb_len -= idx + 1;
@@ -21546,17 +21275,15 @@ public abstract class Editor {
     }
 
     void display_dollar(int col_arg) {
-        int col = 0;
+        int col = col_arg < 0 ? 0 : col_arg;
         int save_col = 0;
-        BytePtr p = null;
-        col = col_arg < 0 ? 0 : col_arg;
         if (!redrawing()) {
             return;
         }
         cursor_off();
         save_col = curwin.w_cursor.col[0];
         curwin.w_cursor.col[0] = col;
-        p = ml_get_curline();
+        BytePtr p = ml_get_curline();
         curwin.w_cursor.col[0] -= utf_head_off(p, p.add(col));
         curs_columns(false);
         if (curwin.w_wcol < curwin.w_width) {
@@ -21576,8 +21303,7 @@ public abstract class Editor {
 
     void truncate_spaces(BytePtr line, long len) {
         int i = 0;
-        i = (int) len - 1;
-        for (; (i >= 0) && (line.at(i) == ' ' || line.at(i) == '\t'); i--) {
+        for (i = (int) len - 1; i >= 0 && (line.at(i) == ' ' || line.at(i) == '\t'); i--) {
             if ((State & REPLACE_FLAG) != 0) {
                 replace_join(0);
             }
@@ -21597,13 +21323,11 @@ public abstract class Editor {
     }
 
     boolean del_char_after_col(int limit_col) {
-        int ecol = 0;
-        int l = 0;
         if (limit_col >= 0) {
-            ecol = curwin.w_cursor.col[0] + 1;
+            int ecol = curwin.w_cursor.col[0] + 1;
             mb_adjust_cursor();
             while (curwin.w_cursor.col[0] < limit_col) {
-                l = utf_ptr2len(ml_get_cursor());
+                int l = utf_ptr2len(ml_get_cursor());
                 if (l == 0) {
                     break;
                 }
@@ -21626,9 +21350,6 @@ public abstract class Editor {
         boolean hex = false;
         boolean octal = false;
         int unicode = 0;
-        hex = false;
-        octal = false;
-        unicode = 0;
         if (got_int != 0) {
             return Ctrl_C;
         }
@@ -21731,16 +21452,10 @@ public abstract class Editor {
     }
 
     void insertchar(int c, int flags, int second_indent) {
-        int textwidth = 0;
-        byte[] buf = new byte[101];
-        int i = 0;
-        int virtcol = 0;
         boolean t1 = false;
         boolean t2 = false;
         int t3 = 0;
-        int cc = 0;
-        byte[] buf_2 = new byte[22];
-        textwidth = comp_textwidth();
+        int textwidth = comp_textwidth();
         if (textwidth > 0 && !(c == ' ' || c == '\t') && !((State & REPLACE_FLAG) != 0 && (State & VREPLACE_FLAG) == 0 && ml_get_cursor().get() != NUL)) {
             internal_format(textwidth, second_indent, flags, false, c);
         }
@@ -21749,7 +21464,9 @@ public abstract class Editor {
         can_si = FALSE;
         can_si_back = FALSE;
         if (!(c < ' ' || c >= DEL || c == '0' || c == '^') && utf_char2len(c) == 1 && vpeekc() != NUL && (State & REPLACE_FLAG) == 0) {
-            virtcol = 0;
+            byte[] buf = new byte[101];
+            int i = 0;
+            int virtcol = 0;
             buf[0] = (byte) c;
             i = 1;
             if (textwidth > 0) {
@@ -21785,8 +21502,10 @@ public abstract class Editor {
                 AppendToRedobuffLit(new BytePtr(buf, 0).add(i), -1);
             }
         } else {
+            int cc = 0;
             cc = utf_char2len(c);
             if (cc > 1) {
+                byte[] buf_2 = new byte[22];
                 utf_char2bytes(c, new BytePtr(buf_2, 0));
                 buf_2[cc] = (byte) NUL;
                 ins_char_bytes(new BytePtr(buf_2, 0), cc);
@@ -21864,22 +21583,20 @@ public abstract class Editor {
     void stop_insert(T_pos_T end_insert_pos, boolean esc, boolean nomove) {
         int cc = 0;
         T_string_T inserted = new T_string_T();
-        int added = 0;
-        T_pos_T tpos = new T_pos_T();
-        int prev_col = 0;
-        int strip_col = 0;
         stop_redo_ins();
         replace_flush();
         inserted.set(get_inserted());
-        added = inserted.string[0] == null ? 0 : (int) inserted.length - new_insert_skip;
+        int added = inserted.string[0] == null ? 0 : (int) inserted.length - new_insert_skip;
         if (did_restart_edit == 0 || added > 0) {
             last_insert.set(inserted);
             last_insert_skip = added < 0 ? 0 : new_insert_skip;
         }
         if (arrow_used == 0 && end_insert_pos != null) {
             if (!nomove && did_ai != 0 && (esc || (vim_strchr(p_cpo[0], CPO_INDENT) == null && curwin.w_cursor.lnum[0] != end_insert_pos.lnum[0])) && end_insert_pos.lnum[0] <= curbuf.b_ml.ml_line_count) {
+                T_pos_T tpos = new T_pos_T();
                 tpos.set(curwin.w_cursor);
-                prev_col = end_insert_pos.col[0];
+                int prev_col = end_insert_pos.col[0];
+                int strip_col = 0;
                 curwin.w_cursor.set(end_insert_pos);
                 check_cursor_col();
                 strip_col = curwin.w_cursor.col[0];
@@ -21929,9 +21646,9 @@ public abstract class Editor {
     }
 
     void set_last_insert(int c) {
-        BytePtr s = null;
         BytePtr t1 = null;
         BytePtr t2 = null;
+        BytePtr s = null;
         last_insert.string[0] = BytePtr.alloc(MB_MAXBYTES * 3 + 5);
         s = last_insert.string[0];
         if (c < ' ' || c == DEL) {
@@ -21949,16 +21666,14 @@ public abstract class Editor {
     }
 
     BytePtr add_char2buf(int c, BytePtr s) {
-        byte[] temp = new byte[22];
-        int i = 0;
-        int len = 0;
         BytePtr t1 = null;
         BytePtr t2 = null;
         BytePtr t3 = null;
         BytePtr t4 = null;
-        len = utf_char2bytes(c, new BytePtr(temp, 0));
-        i = 0;
-        for (; i < len; i++) {
+        byte[] temp = new byte[22];
+        int i = 0;
+        int len = utf_char2bytes(c, new BytePtr(temp, 0));
+        for (i = 0; i < len; i++) {
             c = temp[i] & 0xff;
             if (c == 128) {
                 t1 = s;
@@ -21980,15 +21695,14 @@ public abstract class Editor {
     }
 
     void beginline(int flags) {
-        BytePtr ptr = null;
         if ((flags & BL_SOL) != 0 && p_sol[0] == 0) {
             coladvance(curwin.w_curswant);
         } else {
             curwin.w_cursor.col[0] = 0;
             curwin.w_cursor.coladd = 0;
             if ((flags & (BL_WHITE | BL_SOL)) != 0) {
-                ptr = ml_get_curline();
-                for (; (ptr.get() == ' ' || ptr.get() == '\t') && !((flags & BL_FIX) != 0 && ptr.at(1) == NUL); ptr = ptr.add(1)) {
+                BytePtr ptr = null;
+                for (ptr = ml_get_curline(); (ptr.get() == ' ' || ptr.get() == '\t') && !((flags & BL_FIX) != 0 && ptr.at(1) == NUL); ptr = ptr.add(1)) {
                     curwin.w_cursor.col[0]++;
                 }
             }
@@ -22000,8 +21714,8 @@ public abstract class Editor {
     boolean oneright() {
         BytePtr ptr = null;
         int l = 0;
-        T_pos_T prevpos = new T_pos_T();
         if (virtual_active() != 0) {
+            T_pos_T prevpos = new T_pos_T();
             prevpos.set(curwin.w_cursor);
             ptr = ml_get_cursor();
             coladvance(getviscol() + (ptr.get() != TAB && vim_isprintc(utf_ptr2char(ptr)) ? ptr2cells(ptr) : 1));
@@ -22023,16 +21737,14 @@ public abstract class Editor {
     }
 
     boolean oneleft() {
-        int v = 0;
-        BytePtr ptr = null;
         if (virtual_active() != 0) {
-            v = getviscol();
+            int v = getviscol();
             if (v == 0) {
                 return false;
             }
             coladvance(v - 1);
             if (curwin.w_cursor.coladd == 1) {
-                ptr = ml_get_cursor();
+                BytePtr ptr = ml_get_cursor();
                 if (ptr.get() != TAB && vim_isprintc(utf_ptr2char(ptr)) && ptr2cells(ptr) > 1) {
                     curwin.w_cursor.coladd = 0;
                 }
@@ -22052,8 +21764,7 @@ public abstract class Editor {
     }
 
     void cursor_up_inner(S_window_S wp, long n) {
-        long lnum = 0;
-        lnum = wp.w_cursor.lnum[0];
+        long lnum = wp.w_cursor.lnum[0];
         if (n >= lnum) {
             lnum = 1L;
         } else {
@@ -22063,8 +21774,7 @@ public abstract class Editor {
     }
 
     boolean cursor_up(long n, boolean upd_topline) {
-        long lnum = 0;
-        lnum = curwin.w_cursor.lnum[0];
+        long lnum = curwin.w_cursor.lnum[0];
         if (n > 0L && (lnum <= 1L || (n >= lnum && vim_strchr(p_cpo[0], CPO_MINUS) != null))) {
             return false;
         }
@@ -22077,10 +21787,8 @@ public abstract class Editor {
     }
 
     void cursor_down_inner(S_window_S wp, long n) {
-        long lnum = 0;
-        long line_count = 0;
-        lnum = wp.w_cursor.lnum[0];
-        line_count = wp.w_buffer.b_ml.ml_line_count;
+        long lnum = wp.w_cursor.lnum[0];
+        long line_count = wp.w_buffer.b_ml.ml_line_count;
         if (lnum + n >= line_count) {
             lnum = line_count;
         } else {
@@ -22090,10 +21798,8 @@ public abstract class Editor {
     }
 
     boolean cursor_down(long n, boolean upd_topline) {
-        long lnum = 0;
-        long line_count = 0;
-        lnum = curwin.w_cursor.lnum[0];
-        line_count = curwin.w_buffer.b_ml.ml_line_count;
+        long lnum = curwin.w_cursor.lnum[0];
+        long line_count = curwin.w_buffer.b_ml.ml_line_count;
         if (n > 0L && (lnum >= line_count || (lnum + n > line_count && vim_strchr(p_cpo[0], CPO_MINUS) != null))) {
             return false;
         }
@@ -22107,10 +21813,7 @@ public abstract class Editor {
 
     boolean stuff_inserted(int c, long count, boolean no_esc) {
         T_string_T insert = new T_string_T();
-        byte last = 0;
-        BytePtr p = null;
-        BytePtr p_2 = null;
-        last = (byte) ' ';
+        byte last = (byte) ' ';
         insert.set(get_last_insert());
         if (insert.string[0] == null) {
             emsg(gettext_(new BytePtr(e_no_inserted_text_yet, 0)));
@@ -22120,8 +21823,8 @@ public abstract class Editor {
             stuffcharReadbuff(c);
         }
         if (Long.compareUnsigned(insert.length, 0L) > 0) {
-            p = insert.string[0].add((int) insert.length).add(-1);
-            for (; p.ge(insert.string[0]); p = p.add(-1)) {
+            BytePtr p = null;
+            for (p = insert.string[0].add((int) insert.length).add(-1); p.ge(insert.string[0]); p = p.add(-1)) {
                 if (p.get() == ESC) {
                     insert.length = p.sub(insert.string[0]);
                     break;
@@ -22129,7 +21832,7 @@ public abstract class Editor {
             }
         }
         if (Long.compareUnsigned(insert.length, 0L) > 0) {
-            p_2 = insert.string[0].add((int) insert.length).add(-1);
+            BytePtr p_2 = insert.string[0].add((int) insert.length).add(-1);
             if ((p_2.get() == '0' || p_2.get() == '^') && (no_esc || (insert.string[0].get() == Ctrl_D && count > 1L))) {
                 last = p_2.get();
                 insert.length--;
@@ -22157,7 +21860,6 @@ public abstract class Editor {
 
     T_string_T get_last_insert() {
         T_string_T insert = new T_string_T();
-        insert = new T_string_T();
         if (last_insert.string[0] != null) {
             insert.string[0] = last_insert.string[0].add(last_insert_skip);
             insert.length = last_insert.length - (long) last_insert_skip;
@@ -22167,8 +21869,8 @@ public abstract class Editor {
 
     BytePtr get_last_insert_save() {
         T_string_T insert = new T_string_T();
-        BytePtr s = null;
         insert.set(get_last_insert());
+        BytePtr s = null;
         if (insert.string[0] == null) {
             return null;
         }
@@ -22202,11 +21904,9 @@ public abstract class Editor {
     }
 
     int replace_push_mb(BytePtr p) {
-        int l = 0;
+        int l = utfc_ptr2len(p);
         int j = 0;
-        l = utfc_ptr2len(p);
-        j = l - 1;
-        for (; j >= 0; j--) {
+        for (j = l - 1; j >= 0; j--) {
             replace_push(p.at(j) & 0xff);
         }
         return l;
@@ -22221,9 +21921,9 @@ public abstract class Editor {
     }
 
     void replace_join(int off) {
-        int i = 0;
         int t1 = 0;
         boolean t2 = false;
+        int i = 0;
         i = (int) replace_stack_nr;
         for (;;) {
             i--;
@@ -22246,8 +21946,7 @@ public abstract class Editor {
 
     void replace_pop_ins() {
         int cc = 0;
-        int oldState = 0;
-        oldState = State;
+        int oldState = State;
         State = MODE_NORMAL;
         while (true) {
             cc = replace_pop();
@@ -22268,8 +21967,7 @@ public abstract class Editor {
         n = (int) mb_bytelen_tab[cc];
         if (n > 1) {
             buf[0] = (byte) cc;
-            i = 1;
-            for (; i < n; i++) {
+            for (i = 1; i < n; i++) {
                 buf[i] = (byte) replace_pop();
             }
             ins_bytes_len(new BytePtr(buf, 0), n);
@@ -22287,15 +21985,13 @@ public abstract class Editor {
                 break;
             }
             buf[0] = (byte) c;
-            i = 1;
-            for (; i < n; i++) {
+            for (i = 1; i < n; i++) {
                 buf[i] = (byte) replace_pop();
             }
             if (utf_iscomposing(utf_ptr2char(new BytePtr(buf, 0)))) {
                 ins_bytes_len(new BytePtr(buf, 0), n);
             } else {
-                i = n - 1;
-                for (; i >= 0; i--) {
+                for (i = n - 1; i >= 0; i--) {
                     replace_push(buf[i] & 0xff);
                 }
                 break;
@@ -22310,7 +22006,6 @@ public abstract class Editor {
     }
 
     void replace_do_bs(int limit_col) {
-        int cc = 0;
         int orig_len = 0;
         int ins_len = 0;
         int orig_vcols = 0;
@@ -22318,9 +22013,7 @@ public abstract class Editor {
         BytePtr p = null;
         int i = 0;
         int vcol = 0;
-        orig_len = 0;
-        orig_vcols = 0;
-        cc = replace_pop();
+        int cc = replace_pop();
         if (cc > 0) {
             if ((State & VREPLACE_FLAG) != 0) {
                 getvcol(curwin, curwin.w_cursor, null, new IntPtr(start_vcol, 0), null, 0);
@@ -22336,8 +22029,7 @@ public abstract class Editor {
                 p = ml_get_cursor();
                 ins_len = ml_get_cursor_len() - orig_len;
                 vcol = start_vcol[0];
-                i = 0;
-                for (; i < ins_len; i++) {
+                for (i = 0; i < ins_len; i++) {
                     vcol += chartabsize(p.add(i), vcol);
                     i += utfc_ptr2len(p.add(i)) - 1;
                 }
@@ -22359,10 +22051,7 @@ public abstract class Editor {
         boolean need_redraw = false;
         int regname = 0;
         int literally = 0;
-        int vis_active = 0;
-        need_redraw = false;
-        literally = 0;
-        vis_active = VIsual_active;
+        int vis_active = VIsual_active;
         pc_status = PC_STATUS_UNSET;
         if (redrawing() && !char_avail()) {
             ins_redraw(false);
@@ -22435,8 +22124,7 @@ public abstract class Editor {
     }
 
     boolean ins_esc(LongPtr count, int cmdchar, boolean nomove) {
-        int temp = 0;
-        temp = curwin.w_cursor.col[0];
+        int temp = curwin.w_cursor.col[0];
         if (ins_esc_disabled_redraw) {
             if (RedrawingDisabled > 0) {
                 RedrawingDisabled--;
@@ -22504,7 +22192,6 @@ public abstract class Editor {
     }
 
     boolean ins_start_select(int c) {
-        byte[] buf = new byte[4];
         if (km_startsel == 0) {
             return false;
         }
@@ -22527,6 +22214,7 @@ public abstract class Editor {
                 start_selection();
                 stuffcharReadbuff(Ctrl_O);
                 if (mod_mask[0] != 0) {
+                    byte[] buf = new byte[4];
                     buf[0] = (byte) -128;
                     buf[1] = (byte) KS_MODIFIER;
                     buf[2] = (byte) mod_mask[0];
@@ -22638,22 +22326,6 @@ public abstract class Editor {
         int oldState = 0;
         int[] cpc = new int[6];
         boolean call_fix_indent = false;
-        int vcol = 0;
-        int want_vcol = 0;
-        BytePtr line = null;
-        BytePtr ptr = null;
-        BytePtr cursor_ptr = null;
-        BytePtr space_ptr = null;
-        int space_vcol = 0;
-        boolean prev_space = false;
-        int want_col = 0;
-        boolean cur_space = false;
-        int size = 0;
-        int cclass = 0;
-        int prev_cclass = 0;
-        temp = 0;
-        did_backspace = false;
-        call_fix_indent = false;
         if ((curbuf.b_ml.ml_line_count == 1L && ml_get(1L).get() == NUL) || ((curwin.w_cursor.lnum[0] == 1L && curwin.w_cursor.col[0] == 0) || (!can_bs(BS_START) && (arrow_used != 0 || (curwin.w_cursor.lnum[0] == Insstart_orig.lnum[0] && curwin.w_cursor.col[0] <= Insstart_orig.col[0]))) || (!can_bs(BS_INDENT) && arrow_used == 0 && ai_col > 0 && curwin.w_cursor.col[0] <= ai_col) || (!can_bs(BS_EOL) && curwin.w_cursor.col[0] == 0))) {
             vim_beep(BO_BS);
             return false;
@@ -22725,16 +22397,22 @@ public abstract class Editor {
                 curwin.w_cursor.col[0] = save_col;
             }
             if (mode == BACKSPACE_CHAR && ((p_sta[0] != 0 && in_indent) || (get_sts_value() != 0L && curwin.w_cursor.col[0] > 0 && (ml_get_cursor().add(-1).get() == TAB || (ml_get_cursor().add(-1).get() == ' ' && (inserted_space_p.get() == 0 || arrow_used != 0)))))) {
-                vcol = 0;
-                space_vcol = 0;
-                prev_space = false;
+                int vcol = 0;
+                int want_vcol = 0;
+                BytePtr line = null;
+                BytePtr ptr = null;
+                BytePtr cursor_ptr = null;
+                BytePtr space_ptr = null;
+                int space_vcol = 0;
+                boolean prev_space = false;
+                int want_col = 0;
                 inserted_space_p.put(FALSE);
                 line = ml_get_curline();
                 ptr = line;
                 space_ptr = ptr;
                 cursor_ptr = line.add(curwin.w_cursor.col[0]);
                 while (ptr.lt(cursor_ptr)) {
-                    cur_space = ptr.get() == ' ' || ptr.get() == '\t';
+                    boolean cur_space = ptr.get() == ' ' || ptr.get() == '\t';
                     if (!prev_space && cur_space) {
                         space_ptr = ptr;
                         space_vcol = vcol;
@@ -22750,7 +22428,7 @@ public abstract class Editor {
                     want_vcol -= want_vcol % (int) get_sts_value();
                 }
                 while (true) {
-                    size = chartabsize(space_ptr, space_vcol);
+                    int size = chartabsize(space_ptr, space_vcol);
                     if (space_vcol + size > want_vcol) {
                         break;
                     }
@@ -22775,8 +22453,8 @@ public abstract class Editor {
                     }
                 }
             } else {
-                cclass = 0;
-                prev_cclass = 0;
+                int cclass = 0;
+                int prev_cclass = 0;
                 cclass = mb_get_class(ml_get_cursor());
                 do {
                     dec_cursor();
@@ -22831,15 +22509,10 @@ public abstract class Editor {
         int c = 0;
         byte[] buf = new byte[86];
         int idx = 0;
-        BytePtr end = null;
-        int ret_char = 0;
-        int save_allow_keys = 0;
-        int save_paste = 0;
-        idx = 0;
-        end = find_termcode(BytePtr.lit("PE"));
-        ret_char = -1;
-        save_allow_keys = allow_keys;
-        save_paste = p_paste[0];
+        BytePtr end = find_termcode(BytePtr.lit("PE"));
+        int ret_char = -1;
+        int save_allow_keys = allow_keys;
+        int save_paste = p_paste[0];
         if (end != null && Long.compareUnsigned(musl_strlen(end), NUMBUFLEN) >= 0) {
             end = null;
         }
@@ -22907,8 +22580,7 @@ public abstract class Editor {
 
     void ins_left() {
         T_pos_T tpos = new T_pos_T();
-        boolean end_change = false;
-        end_change = dont_sync_undo == FALSE;
+        boolean end_change = dont_sync_undo == FALSE;
         undisplay_dollar();
         tpos.set(curwin.w_cursor);
         if (oneleft()) {
@@ -22953,8 +22625,7 @@ public abstract class Editor {
     }
 
     void ins_s_left() {
-        boolean end_change = false;
-        end_change = dont_sync_undo == FALSE;
+        boolean end_change = dont_sync_undo == FALSE;
         undisplay_dollar();
         if (curwin.w_cursor.lnum[0] > 1L || curwin.w_cursor.col[0] > 0) {
             start_arrow_with_change(curwin.w_cursor, end_change);
@@ -22970,8 +22641,7 @@ public abstract class Editor {
     }
 
     void ins_right() {
-        boolean end_change = false;
-        end_change = dont_sync_undo == FALSE;
+        boolean end_change = dont_sync_undo == FALSE;
         undisplay_dollar();
         if (gchar_cursor() != NUL || virtual_active() != 0) {
             start_arrow_with_change(curwin.w_cursor, end_change);
@@ -22996,8 +22666,7 @@ public abstract class Editor {
     }
 
     void ins_s_right() {
-        boolean end_change = false;
-        end_change = dont_sync_undo == FALSE;
+        boolean end_change = dont_sync_undo == FALSE;
         undisplay_dollar();
         if (curwin.w_cursor.lnum[0] < curbuf.b_ml.ml_line_count || gchar_cursor() != NUL) {
             start_arrow_with_change(curwin.w_cursor, end_change);
@@ -23014,8 +22683,7 @@ public abstract class Editor {
 
     void ins_up(boolean startcol) {
         T_pos_T tpos = new T_pos_T();
-        long old_topline = 0;
-        old_topline = curwin.w_topline;
+        long old_topline = curwin.w_topline;
         undisplay_dollar();
         tpos.set(curwin.w_cursor);
         if (cursor_up(1L, true)) {
@@ -23047,8 +22715,7 @@ public abstract class Editor {
 
     void ins_down(boolean startcol) {
         T_pos_T tpos = new T_pos_T();
-        long old_topline = 0;
-        old_topline = curwin.w_topline;
+        long old_topline = curwin.w_topline;
         undisplay_dollar();
         tpos.set(curwin.w_cursor);
         if (cursor_down(1L, true)) {
@@ -23079,23 +22746,9 @@ public abstract class Editor {
     }
 
     boolean ins_tab() {
-        boolean ind = false;
         int i = 0;
         int temp = 0;
-        BytePtr ptr = null;
-        BytePtr saved_line = null;
-        T_pos_T pos = new T_pos_T();
-        T_pos_T fpos = new T_pos_T();
-        T_pos_T cursor = null;
-        int[] want_vcol = new int[1];
-        int[] vcol = new int[1];
-        int change_col = 0;
-        int save_list = 0;
-        BytePtr tab = null;
-        T_chartabsize_T cts = new T_chartabsize_T();
-        int len = 0;
-        int repl_off = 0;
-        ind = inindent(0);
+        boolean ind = inindent(0);
         if (curbuf.b_p_et[0] == 0 && !(p_sta[0] != 0 && ind && curbuf.b_p_ts[0] != get_sw_value(curbuf)) && get_sts_value() == 0L) {
             return true;
         }
@@ -23131,14 +22784,21 @@ public abstract class Editor {
             }
         }
         if (curbuf.b_p_et[0] == 0 && (get_sts_value() != 0 || (p_sta[0] != 0 && ind))) {
-            saved_line = null;
-            change_col = -1;
-            save_list = curwin.w_onebuf_opt.wo_list[0];
-            tab = BytePtr.lit("\t");
+            BytePtr ptr = null;
+            BytePtr saved_line = null;
+            T_pos_T pos = new T_pos_T();
+            T_pos_T fpos = new T_pos_T();
+            T_pos_T cursor = null;
+            int[] want_vcol = new int[1];
+            int[] vcol = new int[1];
+            int change_col = -1;
+            int save_list = curwin.w_onebuf_opt.wo_list[0];
+            BytePtr tab = BytePtr.lit("\t");
+            T_chartabsize_T cts = new T_chartabsize_T();
             if ((State & VREPLACE_FLAG) != 0) {
                 pos.set(curwin.w_cursor);
                 cursor = pos;
-                len = ml_get_curline_len();
+                int len = ml_get_curline_len();
                 saved_line = vim_strnsave(ml_get_curline(), (long) len);
                 ptr = saved_line.add(pos.col[0]);
             } else {
@@ -23180,7 +22840,7 @@ public abstract class Editor {
             }
             vcol[0] = cts.cts_vcol;
             if (change_col >= 0) {
-                repl_off = 0;
+                int repl_off = 0;
                 init_chartabsize_arg(cts, curwin, 0L, vcol[0], ptr, ptr);
                 while (cts.cts_vcol < want_vcol[0] && cts.cts_ptr.get() == ' ') {
                     cts.cts_vcol += lbr_chartabsize(cts);
@@ -23268,9 +22928,7 @@ public abstract class Editor {
     }
 
     int ins_ctrl_ey(int tc) {
-        int c = 0;
-        long tw_save = 0;
-        c = tc;
+        int c = tc;
         if (ctrl_x_mode_scroll()) {
             if (c == Ctrl_Y) {
                 scrolldown_clamp();
@@ -23281,6 +22939,7 @@ public abstract class Editor {
         } else {
             c = ins_copychar(curwin.w_cursor.lnum[0] + (long) (c == Ctrl_Y ? -1 : 1));
             if (c != NUL) {
+                long tw_save = 0;
                 if (c < 256 && !musl_isalnum((byte) c & 0xff)) {
                     AppendToRedobuff(BytePtr.lit("\026"));
                 }
@@ -23306,7 +22965,11 @@ public abstract class Editor {
     }
 
     void do_ascii(S_exarg eap) {
-        int c = 0;
+        int t1 = 0;
+        int t2 = 0;
+        int t3 = 0;
+        int t4 = 0;
+        int t5 = 0;
         int cval = 0;
         byte[] buf1 = new byte[20];
         byte[] buf2 = new byte[20];
@@ -23314,13 +22977,7 @@ public abstract class Editor {
         int[] cc = new int[6];
         int ci = 0;
         int len = 0;
-        int t1 = 0;
-        int t2 = 0;
-        int t3 = 0;
-        int t4 = 0;
-        int t5 = 0;
-        ci = 0;
-        c = utfc_ptr2char(ml_get_cursor(), new IntPtr(cc, 0));
+        int c = utfc_ptr2char(ml_get_cursor(), new IntPtr(cc, 0));
         if (c == NUL) {
             msg(BytePtr.lit("NUL"));
             return;
@@ -23380,7 +23037,6 @@ public abstract class Editor {
         long extra = 0;
         long num_lines = 0;
         long last_line = 0;
-        int len = 0;
         if (dest >= line1 && dest < line2) {
             emsg(gettext_(new BytePtr(e_cannot_move_range_of_lines_into_itself, 0)));
             return false;
@@ -23398,9 +23054,8 @@ public abstract class Editor {
             return false;
         }
         extra = 0L;
-        l = line1;
-        for (; l <= line2; l++) {
-            len = ml_get_len(l + extra);
+        for (l = line1; l <= line2; l++) {
+            int len = ml_get_len(l + extra);
             str = vim_strnsave(ml_get(l + extra), (long) len);
             ml_append(dest + l - line1, str, 0);
             if (dest < line1) {
@@ -23430,8 +23085,7 @@ public abstract class Editor {
         if (!u_save(line1 + extra - 1L, line2 + extra + 1L)) {
             return false;
         }
-        l = line1;
-        for (; l <= line2; l++) {
+        for (l = line1; l <= line2; l++) {
             ml_delete_flags(line1 + extra, ML_DEL_MESSAGE);
         }
         if (global_busy == 0 && num_lines > p_report[0]) {
@@ -23457,10 +23111,8 @@ public abstract class Editor {
     }
 
     void ex_copy(long line1, long line2, long n) {
-        long count = 0;
         BytePtr p = null;
-        int len = 0;
-        count = line2 - line1 + 1L;
+        long count = line2 - line1 + 1L;
         if ((cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0) {
             curbuf.b_op_start.lnum[0] = n + 1L;
             curbuf.b_op_end.lnum[0] = n + count;
@@ -23472,7 +23124,7 @@ public abstract class Editor {
         }
         curwin.w_cursor.lnum[0] = n;
         while (line1 <= line2) {
-            len = ml_get_len(line1);
+            int len = ml_get_len(line1);
             p = vim_strnsave(ml_get(line1), (long) len);
             ml_append(curwin.w_cursor.lnum[0], p, 0);
             if (line1 == n) {
@@ -23495,8 +23147,7 @@ public abstract class Editor {
     }
 
     void do_fixdel(S_exarg eap) {
-        BytePtr p = null;
-        p = find_termcode(BytePtr.lit("kb"));
+        BytePtr p = find_termcode(BytePtr.lit("kb"));
         add_termcode(BytePtr.lit("kD"), p != null && p.get() == DEL ? BytePtr.lit("\010") : BytePtr.lit("\177"), FALSE);
     }
 
@@ -23522,16 +23173,11 @@ public abstract class Editor {
     void ex_append(S_exarg eap) {
         BytePtr theline = null;
         boolean did_undo = false;
-        long lnum = 0;
+        long lnum = eap.line2;
         int indent = 0;
         BytePtr p = null;
         int vcol = 0;
-        int empty = 0;
-        int save_State = 0;
-        did_undo = false;
-        lnum = eap.line2;
-        indent = 0;
-        empty = curbuf.b_ml.ml_flags & ML_EMPTY;
+        int empty = curbuf.b_ml.ml_flags & ML_EMPTY;
         if (eap.forceit) {
             curbuf.b_p_ai[0] = curbuf.b_p_ai[0] == 0 ? 1 : 0;
         }
@@ -23573,7 +23219,7 @@ public abstract class Editor {
                 }
                 eap.nextcmd = p;
             } else {
-                save_State = State;
+                int save_State = State;
                 State = MODE_CMDLINE;
                 theline = eap.ea_getline.call(NUL, indent, GETLINE_CONCAT_CONT);
                 State = save_State;
@@ -23586,8 +23232,7 @@ public abstract class Editor {
                 append_indent = indent;
             }
             vcol = 0;
-            p = theline;
-            for (; indent > vcol; p = p.add(1)) {
+            for (p = theline; indent > vcol; p = p.add(1)) {
                 if (p.get() == ' ') {
                     vcol++;
                 } else if (p.get() == TAB) {
@@ -23642,8 +23287,7 @@ public abstract class Editor {
         if ((eap.forceit ? (curbuf.b_p_ai[0] == 0 ? 1 : 0) : curbuf.b_p_ai[0]) != 0) {
             append_indent = get_indent_lnum(eap.line1);
         }
-        lnum = eap.line2;
-        for (; lnum >= eap.line1; lnum--) {
+        for (lnum = eap.line2; lnum >= eap.line1; lnum--) {
             if ((curbuf.b_ml.ml_flags & ML_EMPTY) != 0) {
                 break;
             }
@@ -23665,9 +23309,7 @@ public abstract class Editor {
         long curs = 0;
         long i = 0;
         int j = 0;
-        long lnum = 0;
-        minus = 0;
-        lnum = eap.line2;
+        long lnum = eap.line2;
         if (eap.forceit) {
             bigness = Rows[0] - 1L;
         } else if (false) {
@@ -23702,8 +23344,7 @@ public abstract class Editor {
             }
         }
         if (kind.get() == '-' || kind.get() == '+') {
-            x = kind.add(1);
-            for (; (x.get() & 0xff) == (kind.get() & 0xff); x = x.add(1)) {
+            for (x = kind.add(1); (x.get() & 0xff) == (kind.get() & 0xff); x = x.add(1)) {
             }
         }
         switch (kind.get() & 0xff) {
@@ -23750,20 +23391,17 @@ public abstract class Editor {
         } else if (curs < 1L) {
             curs = 1L;
         }
-        i = start;
-        for (; i <= end; i++) {
+        for (i = start; i <= end; i++) {
             if (minus != 0 && i == lnum) {
                 msg_putchar('\n');
-                j = 1;
-                for (; ((long) j) < Columns[0]; j++) {
+                for (j = 1; (long) j < Columns[0]; j++) {
                     msg_putchar('-');
                 }
             }
             print_line(i, eap.flags & EXFLAG_NR, eap.flags & EXFLAG_LIST);
             if (minus != 0 && i == lnum) {
                 msg_putchar('\n');
-                j = 1;
-                for (; ((long) j) < Columns[0]; j++) {
+                for (j = 1; (long) j < Columns[0]; j++) {
                     msg_putchar('-');
                 }
             }
@@ -23775,9 +23413,8 @@ public abstract class Editor {
     }
 
     BytePtr skip_substitute(BytePtr start, int delimiter) {
-        BytePtr p = null;
         BytePtr t1 = null;
-        p = start;
+        BytePtr p = start;
         while (p.at(0) != 0) {
             if ((p.at(0) & 0xff) == delimiter) {
                 t1 = p;
@@ -23802,8 +23439,24 @@ public abstract class Editor {
     }
 
     void ex_substitute(S_exarg eap) {
+        BytePtr t1 = null;
+        BytePtr t2 = null;
+        BytePtr t3 = null;
+        int copycol = 0;
+        int matchcol = 0;
+        BytePtr new_end = null;
+        boolean lastone = false;
+        long copy_len = 0;
+        long needed_size = 0;
+        boolean do_again = false;
+        long sub_firstlnum = 0;
+        T_string_T tmp = new T_string_T();
+        BytePtr p1 = null;
+        long n = 0;
+        T_string_T new_line = new T_string_T();
+        boolean t4 = false;
         long lnum = 0;
-        long i = 0;
+        long i = 0L;
         T_regmmatch_T regmatch = new T_regmmatch_T();
         int save_do_all = 0;
         int save_do_ask = 0;
@@ -23817,59 +23470,17 @@ public abstract class Editor {
         BytePtr[] cmd = new BytePtr[1];
         BytePtr p = null;
         int save_State = 0;
-        long first_line = 0;
-        long last_line = 0;
-        long old_line_count = 0;
+        long first_line = 0L;
+        long last_line = 0L;
+        long old_line_count = curbuf.b_ml.ml_line_count;
         long line2 = 0;
         long nmatch = 0;
         T_string_T sub_firstline = new T_string_T();
         boolean endcolumn = false;
         T_pos_T old_cursor = new T_pos_T();
-        int start_nsubs = 0;
-        int keeppatterns = 0;
-        BytePtr t1 = null;
-        BytePtr t2 = null;
-        BytePtr t3 = null;
-        long joined_lines_count = 0;
-        byte[] buf = new byte[20];
-        int copycol = 0;
-        int matchcol = 0;
-        int prev_matchcol = 0;
-        T_string_T new_start = new T_string_T();
-        long new_start_size = 0;
-        BytePtr new_end = null;
-        boolean did_sub = false;
-        boolean lastone = false;
-        long copy_len = 0;
-        long needed_size = 0;
-        long nmatch_tl = 0;
-        boolean do_again = false;
-        boolean skip_match = false;
-        long sub_firstlnum = 0;
-        boolean did_split = false;
-        T_string_T tmp = new T_string_T();
-        BytePtr p1 = null;
-        long n = 0;
-        int typed = 0;
-        T_string_T orig_line = new T_string_T();
-        int len_change = 0;
-        int save_p_lz = 0;
-        int save_RedrawingDisabled = 0;
-        T_string_T new_line = new T_string_T();
-        long lastlnum = 0;
-        int plen = 0;
-        boolean t4 = false;
-        i = 0L;
-        sub = null;
-        pat = new T_string_T();
-        got_quit = false;
-        got_match = false;
-        first_line = 0L;
-        last_line = 0L;
-        old_line_count = curbuf.b_ml.ml_line_count;
-        endcolumn = false;
         old_cursor.set(curwin.w_cursor);
-        keeppatterns = cmdmod.cmod_flags & CMOD_KEEPPATTERNS;
+        int start_nsubs = 0;
+        int keeppatterns = cmdmod.cmod_flags & CMOD_KEEPPATTERNS;
         cmd[0] = eap.arg[0];
         if (global_busy == 0) {
             sub_nsubs = 0L;
@@ -23936,6 +23547,7 @@ public abstract class Editor {
             endcolumn = curwin.w_curswant == MAXCOL;
         }
         if (pat.string[0] != null && musl_strcmp(pat.string[0], BytePtr.lit("\\n")) == 0 && sub.get() == NUL && (cmd[0].get() == NUL || (cmd[0].at(1) == NUL && (cmd[0].get() == 'g' || cmd[0].get() == 'l' || cmd[0].get() == 'p' || cmd[0].get() == '#')))) {
+            long joined_lines_count = 0;
             curwin.w_cursor.lnum[0] = eap.line1;
             if (cmd[0].get() == 'l') {
                 eap.flags = EXFLAG_LIST;
@@ -24019,6 +23631,7 @@ public abstract class Editor {
                 emsg(gettext_(new BytePtr(e_positive_count_required, 0)));
                 return;
             } else if (i >= INT_MAX) {
+                byte[] buf = new byte[20];
                 vim_snprintf(new BytePtr(buf, 0), 20L, BytePtr.lit("%ld"), i);
                 vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(new BytePtr(e_val_too_large, 0)), new BytePtr(buf, 0));
                 emsg(iobuff_or(gettext_(new BytePtr(e_val_too_large, 0))));
@@ -24066,17 +23679,16 @@ public abstract class Editor {
             }
         }
         line2 = eap.line2;
-        lnum = eap.line1;
-        for (; (lnum <= line2) && !got_quit; lnum++) {
+        for (lnum = eap.line1; lnum <= line2 && !got_quit; lnum++) {
             nmatch = vim_regexec_multi(regmatch, curwin, curbuf, lnum, 0, null);
             if (nmatch != 0) {
-                prev_matchcol = MAXCOL;
-                new_start = new T_string_T();
-                new_start_size = 0L;
-                did_sub = false;
-                nmatch_tl = 0L;
-                skip_match = false;
-                did_split = false;
+                int prev_matchcol = MAXCOL;
+                T_string_T new_start = new T_string_T();
+                long new_start_size = 0L;
+                boolean did_sub = false;
+                long nmatch_tl = 0L;
+                boolean skip_match = false;
+                boolean did_split = false;
                 sub_firstlnum = lnum;
                 copycol = 0;
                 matchcol = 0;
@@ -24123,7 +23735,7 @@ public abstract class Editor {
                             break;
                         }
                         if (ex_substitute_subflags.do_ask != 0) {
-                            typed = 0;
+                            int typed = 0;
                             save_State = State;
                             State = MODE_CONFIRM;
                             curwin.w_cursor.col[0] = regmatch.startpos[0].col;
@@ -24131,10 +23743,10 @@ public abstract class Editor {
                                 no_u_sync++;
                             }
                             while (ex_substitute_subflags.do_ask != 0) {
-                                orig_line = new T_string_T();
-                                len_change = 0;
-                                save_p_lz = p_lz[0];
-                                save_RedrawingDisabled = RedrawingDisabled;
+                                T_string_T orig_line = new T_string_T();
+                                int len_change = 0;
+                                int save_p_lz = p_lz[0];
+                                int save_RedrawingDisabled = RedrawingDisabled;
                                 RedrawingDisabled = 0;
                                 p_lz[0] = FALSE;
                                 if (new_start.string[0] != null) {
@@ -24242,7 +23854,7 @@ public abstract class Editor {
                             tmp.string[0] = sub_firstline.string[0];
                             tmp.length = sub_firstline.length;
                         } else {
-                            lastlnum = sub_firstlnum + nmatch - 1L;
+                            long lastlnum = sub_firstlnum + nmatch - 1L;
                             tmp.string[0] = ml_get(lastlnum);
                             tmp.length = (long) ml_get_len(lastlnum);
                             nmatch_tl += nmatch - 1L;
@@ -24292,15 +23904,14 @@ public abstract class Editor {
                             sub_firstline.length = 0L;
                             copycol = 0;
                         }
-                        p1 = new_end;
-                        for (; p1.get() != 0; p1 = p1.add(1)) {
+                        for (p1 = new_end; p1.get() != 0; p1 = p1.add(1)) {
                             if (p1.at(0) == '\\' && p1.at(1) != NUL) {
                                 n = new_start.length - p1.sub(new_start.string[0]);
                                 Rt.memmove(p1, p1.add(1), n + 1L);
                                 new_start.length--;
                             } else if (p1.get() == CAR) {
                                 if (u_inssub(lnum)) {
-                                    plen = (int) (p1.sub(new_start.string[0]) + 1L);
+                                    int plen = (int) (p1.sub(new_start.string[0]) + 1L);
                                     p1.put((byte) NUL);
                                     ml_append(lnum - 1L, new_start.string[0], plen);
                                     mark_adjust(lnum + 1L, LONG_MAX, 1L, 0L);
@@ -24349,8 +23960,7 @@ public abstract class Editor {
                                 if (!u_savedel(lnum, nmatch_tl)) {
                                     break;
                                 }
-                                i = 0L;
-                                for (; i < nmatch_tl; i++) {
+                                for (i = 0L; i < nmatch_tl; i++) {
                                     ml_delete(lnum);
                                 }
                                 if (copycol > 0) {
@@ -24450,9 +24060,9 @@ public abstract class Editor {
     }
 
     boolean do_sub_msg(int count_only) {
-        BytePtr msg_single = null;
-        BytePtr msg_plural = null;
         if (((sub_nsubs > p_report[0] && (KeyTyped != 0 || sub_nlines > 1L || p_report[0] < 1L)) || count_only != 0) && messaging()) {
+            BytePtr msg_single = null;
+            BytePtr msg_plural = null;
             if (got_int != 0) {
                 musl_strcpy(new BytePtr(msg_buf, 0), gettext_(BytePtr.lit("(Interrupted) ")));
             } else {
@@ -24484,6 +24094,7 @@ public abstract class Editor {
     }
 
     void ex_global(S_exarg eap) {
+        BytePtr t1 = null;
         long lnum = 0;
         int ndone = 0;
         int type = 0;
@@ -24495,8 +24106,6 @@ public abstract class Editor {
         T_regmmatch_T regmatch = new T_regmmatch_T();
         int match = 0;
         int which_pat = 0;
-        BytePtr t1 = null;
-        ndone = 0;
         if (global_busy != 0 && (eap.line1 != 1L || eap.line2 != curbuf.b_ml.ml_line_count)) {
             emsg(gettext_(new BytePtr(e_cannot_do_global_recursive_with_range, 0)));
             return;
@@ -24550,8 +24159,7 @@ public abstract class Editor {
                 global_exe_one(cmd, lnum);
             }
         } else {
-            lnum = eap.line1;
-            for (; (lnum <= eap.line2) && got_int == 0; lnum++) {
+            for (lnum = eap.line1; lnum <= eap.line2 && got_int == 0; lnum++) {
                 match = (int) vim_regexec_multi(regmatch, curwin, curbuf, lnum, 0, null);
                 if (regmatch.regprog == null) {
                     break;
@@ -24581,11 +24189,10 @@ public abstract class Editor {
     }
 
     void global_exe(BytePtr cmd) {
-        long old_lcount = 0;
-        S_file_buffer old_buf = null;
-        long lnum = 0;
         boolean t1 = false;
-        old_buf = curbuf;
+        long old_lcount = 0;
+        S_file_buffer old_buf = curbuf;
+        long lnum = 0;
         setpcmark();
         msg_didout = TRUE;
         sub_nsubs = 0L;
@@ -24625,8 +24232,8 @@ public abstract class Editor {
     }
 
     BytePtr skip_vimgrep_pat_ext(BytePtr p, Ptr<BytePtr> s, IntPtr flags, Ptr<BytePtr> nulp, IntPtr cp) {
-        int c = 0;
         BytePtr t1 = null;
+        int c = 0;
         if (vim_isIDc(p.get() & 0xff)) {
             if (s != null) {
                 s.put(p);
@@ -24701,21 +24308,16 @@ public abstract class Editor {
     }
 
     boolean do_cmdline(BytePtr cmdline, Fn1 fgetline, int flags) {
+        boolean t1 = false;
+        int t2 = 0;
         BytePtr next_cmdline = null;
         BytePtr[] cmdline_copy = new BytePtr[1];
+        cmdline_copy[0] = null;
         boolean used_getline = false;
         int msg_didout_before_start = 0;
         int count = 0;
         boolean did_inc_RedrawingDisabled = false;
-        boolean retval = false;
-        boolean t1 = false;
-        int t2 = 0;
-        cmdline_copy[0] = null;
-        used_getline = false;
-        msg_didout_before_start = 0;
-        count = 0;
-        did_inc_RedrawingDisabled = false;
-        retval = true;
+        boolean retval = true;
         if (do_cmdline_call_depth >= 200) {
             emsg(gettext_(new BytePtr(e_command_too_recursive, 0)));
             return false;
@@ -24807,26 +24409,21 @@ public abstract class Editor {
     }
 
     BytePtr do_one_cmd(Ptr<BytePtr> cmdlinep, int flags, Fn1 fgetline) {
+        boolean t1 = false;
+        BytePtr t2 = null;
         BytePtr p = null;
         long lnum = 0;
         long n = 0;
         BytePtr[] errormsg = new BytePtr[1];
+        errormsg[0] = null;
         BytePtr after_modifier = null;
         S_exarg ea = new S_exarg();
         T_cmdmod_T save_cmdmod = new T_cmdmod_T();
-        int save_reg_executing = 0;
-        int save_pending_end_reg_executing = 0;
+        int save_reg_executing = reg_executing;
+        int save_pending_end_reg_executing = pending_end_reg_executing;
         BytePtr cmd = null;
-        int sourcing = 0;
+        int sourcing = flags & DOCMD_VERBOSE;
         boolean did_append_cmd = false;
-        boolean t1 = false;
-        BytePtr t2 = null;
-        errormsg[0] = null;
-        after_modifier = null;
-        save_reg_executing = reg_executing;
-        save_pending_end_reg_executing = pending_end_reg_executing;
-        sourcing = flags & DOCMD_VERBOSE;
-        did_append_cmd = false;
         ea.zero();
         ea.line1 = 1L;
         ea.line2 = 1L;
@@ -24957,8 +24554,7 @@ public abstract class Editor {
             if ((ea.argt & EX_TRLBAR) != 0) {
                 separate_nextcmd(ea, false);
             } else if (ea.cmdidx[0] == CMD_global || ea.cmdidx[0] == CMD_vglobal) {
-                p = ea.arg[0];
-                for (; p.get() != 0; p = p.add(1)) {
+                for (p = ea.arg[0]; p.get() != 0; p = p.add(1)) {
                     if (p.get() == '\\' && p.at(1) == '\n') {
                         Rt.memmove(p, p.add(1), musl_strlen(p.add(1)) + 1L);
                     } else if (p.get() == '\n') {
@@ -25055,7 +24651,6 @@ public abstract class Editor {
 
     BytePtr ex_range_without_command(S_exarg eap) {
         BytePtr errormsg = null;
-        errormsg = null;
         if (eap.addr_count != 0) {
             if (eap.line2 > curbuf.b_ml.ml_line_count) {
                 if (vim_strchr(p_cpo[0], CPO_MINUS) != null) {
@@ -25080,8 +24675,7 @@ public abstract class Editor {
 
     boolean checkforcmd_opt(Ptr<BytePtr> pp, BytePtr cmd, int len, boolean noparen) {
         int i = 0;
-        i = 0;
-        for (; ((int) cmd.at(i)) != NUL; i++) {
+        for (i = 0; (int) cmd.at(i) != NUL; i++) {
             if ((cmd.at(i) & 0xff) != (pp.get().at(i) & 0xff)) {
                 break;
             }
@@ -25098,16 +24692,11 @@ public abstract class Editor {
     }
 
     boolean parse_command_modifiers(S_exarg eap, Ptr<BytePtr> errormsg, T_cmdmod_T cmod, boolean skip_only) {
-        BytePtr orig_cmd = null;
-        BytePtr cmd_start = null;
-        boolean has_visual_range = false;
         BytePtr[] p = new BytePtr[1];
         BytePtr[] reg_pat = new BytePtr[1];
-        BytePtr[] nulp = new BytePtr[1];
-        int[] c = new int[1];
-        orig_cmd = eap.cmd[0];
-        cmd_start = null;
-        has_visual_range = false;
+        BytePtr orig_cmd = eap.cmd[0];
+        BytePtr cmd_start = null;
+        boolean has_visual_range = false;
         cmod.zero();
         cmod.cmod_flags = sticky_cmdmod_flags;
         if (musl_strncmp(eap.cmd[0], BytePtr.lit("'<,'>"), 5L) == 0) {
@@ -25143,7 +24732,9 @@ public abstract class Editor {
                     cmod.cmod_flags |= CMOD_KEEPJUMPS;
                     continue;
                 case 'f':
+                    BytePtr[] nulp = new BytePtr[1];
                     nulp[0] = null;
+                    int[] c = new int[1];
                     c[0] = 0;
                     if (!checkforcmd_noparen(new Ptr<BytePtr>(p, 0), BytePtr.lit("filter"), 4) || p[0].get() == NUL || ends_excmd(p[0].get() & 0xff)) {
                         break;
@@ -25355,11 +24946,10 @@ public abstract class Editor {
     }
 
     void append_command(BytePtr cmd) {
-        long len = 0;
+        long len = musl_strlen(IObuff);
         BytePtr[] s = new BytePtr[1];
-        BytePtr[] d = new BytePtr[1];
-        len = musl_strlen(IObuff);
         s[0] = cmd;
+        BytePtr[] d = new BytePtr[1];
         if (Long.compareUnsigned(len, 925L) > 0) {
             d[0] = IObuff.add(1025).add(-100);
             d[0] = d[0].add(-utf_head_off(IObuff, d[0]));
@@ -25395,9 +24985,8 @@ public abstract class Editor {
 
     BytePtr find_ex_command(S_exarg eap, IntPtr full) {
         int len = 0;
-        BytePtr p = null;
         int i = 0;
-        p = eap.cmd[0];
+        BytePtr p = eap.cmd[0];
         if (one_letter_cmd(p, new IntPtr(eap.cmdidx, 0))) {
             p = p.add(1);
             if (full != null) {
@@ -25412,8 +25001,7 @@ public abstract class Editor {
             }
             len = (int) p.sub(eap.cmd[0]);
             if (eap.cmd[0].get() == 'd' && (p.at(-1) == 'l' || p.at(-1) == 'p')) {
-                i = 0;
-                for (; i < len; i++) {
+                for (i = 0; i < len; i++) {
                     if ((eap.cmd[0].at(i) & 0xff) != (BytePtr.lit("delete").at(i) & 0xff)) {
                         break;
                     }
@@ -25427,8 +25015,7 @@ public abstract class Editor {
                     }
                 }
             }
-            eap.cmdidx[0] = 0;
-            for (; eap.cmdidx[0] < CMD_SIZE; eap.cmdidx[0] = eap.cmdidx[0] + 1) {
+            for (eap.cmdidx[0] = 0; eap.cmdidx[0] < CMD_SIZE; eap.cmdidx[0] = eap.cmdidx[0] + 1) {
                 if (len >= cmdnames[eap.cmdidx[0]].cmd_minlen && musl_strncmp(cmdnames[eap.cmdidx[0]].cmd_name, eap.cmd[0], (long) len) == 0) {
                     break;
                 }
@@ -25449,12 +25036,10 @@ public abstract class Editor {
     }
 
     BytePtr skip_range(BytePtr cmd_start, boolean skip_star, IntPtr ctx) {
-        BytePtr cmd = null;
-        int delim = 0;
-        BytePtr p = null;
         BytePtr t1 = null;
         BytePtr t2 = null;
-        cmd = cmd_start;
+        BytePtr cmd = cmd_start;
+        int delim = 0;
         while (vim_strchr(BytePtr.lit(" \t0123456789.$%'/?-+,;\\"), cmd.get() & 0xff) != null) {
             if (cmd.get() == '\\') {
                 if (cmd.at(1) == '?' || cmd.at(1) == '/' || cmd.at(1) == '&') {
@@ -25463,7 +25048,7 @@ public abstract class Editor {
                     break;
                 }
             } else if (cmd.get() == '\'') {
-                p = cmd;
+                BytePtr p = cmd;
                 while (p.gt(cmd_start)) {
                     p = p.add(-1);
                     if (!(p.get() == ' ' || p.get() == '\t')) {
@@ -25514,8 +25099,7 @@ public abstract class Editor {
     }
 
     long default_address(S_exarg eap) {
-        long lnum = 0;
-        lnum = 0L;
+        long lnum = 0L;
         switch (eap.addr_type) {
             case ADDR_LINES:
             case ADDR_OTHER:
@@ -25538,6 +25122,9 @@ public abstract class Editor {
     }
 
     long get_address(S_exarg eap, Ptr<BytePtr> ptr, int addr_type, boolean skip, boolean silent, boolean to_other_file, int address_count) {
+        BytePtr t1 = null;
+        int flags = 0;
+        BytePtr t2 = null;
         int c = 0;
         int i = 0;
         long n = 0;
@@ -25545,9 +25132,6 @@ public abstract class Editor {
         T_pos_T pos = new T_pos_T();
         T_pos_T fp = null;
         long lnum = 0;
-        BytePtr t1 = null;
-        int flags = 0;
-        BytePtr t2 = null;
         cmd[0] = skipwhite(ptr.get());
         lnum = LONG_MAX;
         do {
@@ -25821,8 +25405,7 @@ public abstract class Editor {
     }
 
     void separate_nextcmd(S_exarg eap, boolean keep_backslash) {
-        BytePtr p = null;
-        p = eap.arg[0];
+        BytePtr p = eap.arg[0];
         for (; p.get() != 0; p = p.add(utfc_ptr2len(p))) {
             if (p.get() == Ctrl_V) {
                 if ((eap.argt & EX_CTRLV) != 0) {
@@ -25850,11 +25433,9 @@ public abstract class Editor {
     }
 
     BytePtr getargcmd(Ptr<BytePtr> argp) {
-        BytePtr arg = null;
-        BytePtr command = null;
         BytePtr t1 = null;
-        arg = argp.get();
-        command = null;
+        BytePtr arg = argp.get();
+        BytePtr command = null;
         if (arg.get() == '+') {
             arg = arg.add(1);
             if (vim_isspace(arg.get() & 0xff) || arg.get() == NUL) {
@@ -25893,8 +25474,7 @@ public abstract class Editor {
     }
 
     boolean ends_excmd2(BytePtr cmd_start, BytePtr cmd) {
-        int c = 0;
-        c = cmd.get() & 0xff;
+        int c = cmd.get() & 0xff;
         return c == NUL || c == '\n';
     }
 
@@ -25909,8 +25489,7 @@ public abstract class Editor {
     }
 
     BytePtr check_nextcmd(BytePtr p) {
-        BytePtr s = null;
-        s = skipwhite(p);
+        BytePtr s = skipwhite(p);
         if (s.get() == '\n') {
             return s.add(1);
         } else {
@@ -25919,8 +25498,7 @@ public abstract class Editor {
     }
 
     void set_nextcmd(S_exarg eap, BytePtr arg) {
-        BytePtr p = null;
-        p = skipwhite(arg);
+        BytePtr p = skipwhite(arg);
         p = check_nextcmd(p);
         if (eap.nextcmd == null) {
             eap.nextcmd = p;
@@ -26009,11 +25587,9 @@ public abstract class Editor {
     }
 
     void do_sleep(long msec, boolean hide_cursor) {
-        long done = 0;
+        long done = 0L;
         long wait_now = 0;
-        long start_tv = 0;
-        done = 0L;
-        start_tv = musl_now_ms();
+        long start_tv = musl_now_ms();
         if (hide_cursor) {
             cursor_sleep();
         } else {
@@ -26038,8 +25614,8 @@ public abstract class Editor {
         int w = 0;
         int h = 0;
         BytePtr[] arg = new BytePtr[1];
-        BytePtr p = null;
         arg[0] = eap.arg[0];
+        BytePtr p = null;
         if (!musl_isdigit(arg[0].get() & 0xff)) {
             vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(new BytePtr(e_invalid_argument_str, 0)), arg[0]);
             emsg(iobuff_or(gettext_(new BytePtr(e_invalid_argument_str, 0))));
@@ -26116,8 +25692,7 @@ public abstract class Editor {
     }
 
     void ex_copymove(S_exarg eap) {
-        long n = 0;
-        n = get_address(eap, new Ptr<BytePtr>(eap.arg, 0), eap.addr_type, false, false, false, 1);
+        long n = get_address(eap, new Ptr<BytePtr>(eap.arg, 0), eap.addr_type, false, false, false, 1);
         if (eap.arg[0] == null) {
             eap.nextcmd = null;
             return;
@@ -26146,8 +25721,7 @@ public abstract class Editor {
     }
 
     void ex_submagic(S_exarg eap) {
-        int saved = 0;
-        saved = magic_overruled;
+        int saved = magic_overruled;
         magic_overruled = eap.cmdidx[0] == CMD_smagic ? OPTION_MAGIC_ON : OPTION_MAGIC_OFF;
         ex_substitute(eap);
         magic_overruled = saved;
@@ -26172,9 +25746,7 @@ public abstract class Editor {
 
     void ex_at(S_exarg eap) {
         int c = 0;
-        int prev_len = 0;
-        int save_efr = 0;
-        prev_len = typebuf.tb_len;
+        int prev_len = typebuf.tb_len;
         curwin.w_cursor.lnum[0] = eap.line2;
         check_cursor_col();
         c = eap.arg[0].get() & 0xff;
@@ -26185,7 +25757,7 @@ public abstract class Editor {
             beep_flush();
             return;
         }
-        save_efr = exec_from_reg;
+        int save_efr = exec_from_reg;
         exec_from_reg = TRUE;
         while (!stuff_empty() || typebuf.tb_len > prev_len) {
             do_cmdline(null, fp_getexline, DOCMD_NOWAIT | DOCMD_VERBOSE | DOCMD_GETEXLINE);
@@ -26206,13 +25778,10 @@ public abstract class Editor {
     }
 
     void ex_later(S_exarg eap) {
-        long count = 0;
+        long count = 0L;
         boolean sec = false;
         boolean file = false;
         BytePtr[] p = new BytePtr[1];
-        count = 0L;
-        sec = false;
-        file = false;
         p[0] = eap.arg[0];
         if (p[0].get() == NUL) {
             count = 1L;
@@ -26257,11 +25826,9 @@ public abstract class Editor {
     }
 
     void redraw_cmd(boolean clear) {
-        int save_RedrawingDisabled = 0;
-        int save_p_lz = 0;
-        save_RedrawingDisabled = RedrawingDisabled;
+        int save_RedrawingDisabled = RedrawingDisabled;
         RedrawingDisabled = 0;
-        save_p_lz = p_lz[0];
+        int save_p_lz = p_lz[0];
         p_lz[0] = FALSE;
         validate_cursor();
         update_topline();
@@ -26282,8 +25849,6 @@ public abstract class Editor {
     }
 
     void ex_redrawstatus(S_exarg eap) {
-        int save_RedrawingDisabled = 0;
-        int save_p_lz = 0;
         if (eap.forceit) {
             status_redraw_all();
         } else {
@@ -26293,9 +25858,9 @@ public abstract class Editor {
         if (msg_scrolled != 0 && (State & MODE_CMDLINE) != 0) {
             return;
         }
-        save_RedrawingDisabled = RedrawingDisabled;
+        int save_RedrawingDisabled = RedrawingDisabled;
         RedrawingDisabled = 0;
-        save_p_lz = p_lz[0];
+        int save_p_lz = p_lz[0];
         p_lz[0] = FALSE;
         if ((State & MODE_CMDLINE) != 0) {
             redraw_statuslines();
@@ -26370,17 +25935,15 @@ public abstract class Editor {
     }
 
     void ex_normal(S_exarg eap) {
-        T_save_state_T save_state = new T_save_state_T();
-        BytePtr arg = null;
-        int l = 0;
-        BytePtr p = null;
-        int len = 0;
         int t1 = 0;
         int t2 = 0;
         int t3 = 0;
         int t4 = 0;
         long t5 = 0;
-        arg = null;
+        T_save_state_T save_state = new T_save_state_T();
+        BytePtr arg = null;
+        int l = 0;
+        BytePtr p = null;
         if (ex_normal_lock > 0) {
             emsg(gettext_(new BytePtr(e_not_allowed_here, 0)));
             return;
@@ -26389,11 +25952,9 @@ public abstract class Editor {
             emsg(gettext_(new BytePtr(e_recursive_use_of_normal_too_deep, 0)));
             return;
         }
-        len = 0;
-        p = eap.arg[0];
-        for (; p.get() != NUL; p = p.add(1)) {
-            l = utfc_ptr2len(p) - 1;
-            for (; l > 0; l--) {
+        int len = 0;
+        for (p = eap.arg[0]; p.get() != NUL; p = p.add(1)) {
+            for (l = utfc_ptr2len(p) - 1; l > 0; l--) {
                 p = p.add(1);
                 if ((p.get() & 0xff) == 128) {
                     len += 2;
@@ -26403,13 +25964,11 @@ public abstract class Editor {
         if (len > 0) {
             arg = BytePtr.alloc(musl_strlen(eap.arg[0]) + (long) len + 1L);
             len = 0;
-            p = eap.arg[0];
-            for (; p.get() != NUL; p = p.add(1)) {
+            for (p = eap.arg[0]; p.get() != NUL; p = p.add(1)) {
                 t1 = len;
                 len++;
                 arg.set(t1, p.get());
-                l = utfc_ptr2len(p) - 1;
-                for (; l > 0; l--) {
+                for (l = utfc_ptr2len(p) - 1; l > 0; l--) {
                     t2 = len;
                     len++;
                     p = p.add(1);
@@ -26450,10 +26009,10 @@ public abstract class Editor {
     }
 
     void exec_normal(boolean was_typed, boolean use_vpeekc, boolean may_use_terminal_loop) {
-        S_oparg_S oa = new S_oparg_S();
-        int c = 0;
         boolean t1 = false;
         boolean t2 = false;
+        S_oparg_S oa = new S_oparg_S();
+        int c = 0;
         clear_oparg(oa);
         finish_op = FALSE;
         while (true) {
@@ -26552,6 +26111,9 @@ public abstract class Editor {
     }
 
     boolean parse_pattern_and_range(T_pos_T incsearch_start, IntPtr search_delim, IntPtr skiplen, IntPtr patlen) {
+        boolean t1 = false;
+        BytePtr t2 = null;
+        int t3 = 0;
         BytePtr cmd = null;
         BytePtr p = null;
         BytePtr end = null;
@@ -26562,15 +26124,8 @@ public abstract class Editor {
         int delim = 0;
         boolean use_last_pat = false;
         int[] magic = new int[1];
-        BytePtr[] dummy = new BytePtr[1];
-        boolean t1 = false;
-        BytePtr t2 = null;
-        int t3 = 0;
-        byte c = 0;
-        boolean empty = false;
-        boolean reverse_match = false;
-        delim_optional = false;
         magic[0] = 0;
+        BytePtr[] dummy = new BytePtr[1];
         skiplen.put(0);
         patlen.put(ccline.cmdlen);
         search_first_line = 0L;
@@ -26585,8 +26140,7 @@ public abstract class Editor {
         if (vim_strchr(BytePtr.lit("sgvlu"), cmd.get() & 0xff) == null) {
             return false;
         }
-        p = cmd;
-        for (; (Integer.compareUnsigned((p.get() & 0xff) - 'A', 26) < 0 || Integer.compareUnsigned((p.get() & 0xff) - 'a', 26) < 0); p = p.add(1)) {
+        for (p = cmd; Integer.compareUnsigned((p.get() & 0xff) - 'A', 26) < 0 || Integer.compareUnsigned((p.get() & 0xff) - 'a', 26) < 0; p = p.add(1)) {
         }
         if (skipwhite(p).get() == NUL) {
             return false;
@@ -26645,7 +26199,8 @@ public abstract class Editor {
             return false;
         }
         if (!use_last_pat) {
-            c = end.get();
+            byte c = end.get();
+            boolean empty = false;
             end.put((byte) NUL);
             empty = empty_pattern_magic(p, end.sub(p), magic[0]);
             end.put(c);
@@ -26659,7 +26214,7 @@ public abstract class Editor {
         curwin.w_cursor.set(incsearch_start);
         parse_cmd_address(ea, new Ptr<BytePtr>(dummy, 0), true);
         if (ea.addr_count > 0) {
-            reverse_match = ea.line2 < ea.line1;
+            boolean reverse_match = ea.line2 < ea.line1;
             search_first_line = reverse_match ? ea.line2 : ea.line1;
             search_last_line = reverse_match ? ea.line1 : ea.line2;
         } else if (cmd.at(0) == 's' && cmd.at(1) != 'o') {
@@ -26672,7 +26227,6 @@ public abstract class Editor {
 
     boolean do_incsearch_highlighting(int firstc, IntPtr search_delim, T_incsearch_state_T is_state, IntPtr skiplen, IntPtr patlen) {
         boolean retval = false;
-        retval = false;
         skiplen.put(0);
         patlen.put(ccline.cmdlen);
         if (p_is[0] == 0 || cmd_silent != 0) {
@@ -26727,11 +26281,8 @@ public abstract class Editor {
         T_pos_T end_pos = new T_pos_T();
         int next_char = 0;
         boolean use_last_pat = false;
-        boolean did_do_incsearch = false;
+        boolean did_do_incsearch = is_state.did_incsearch;
         int[] search_delim = new int[1];
-        int search_flags = 0;
-        T_pos_T save_pos = new T_pos_T();
-        did_do_incsearch = is_state.did_incsearch;
         save_last_search_pattern();
         if (!do_incsearch_highlighting(firstc, new IntPtr(search_delim, 0), is_state, new IntPtr(skiplen, 0), new IntPtr(patlen, 0))) {
             restore_last_search_pattern();
@@ -26763,7 +26314,7 @@ public abstract class Editor {
             set_no_hlsearch(TRUE);
             redraw_all_later(UPD_SOME_VALID);
         } else {
-            search_flags = SEARCH_OPT + SEARCH_NOOF + SEARCH_PEEK;
+            int search_flags = SEARCH_OPT + SEARCH_NOOF + SEARCH_PEEK;
             cursor_off();
             out_flush();
             emsg_off++;
@@ -26798,6 +26349,7 @@ public abstract class Editor {
         changed_cline_bef_curs();
         update_topline();
         if (found != 0) {
+            T_pos_T save_pos = new T_pos_T();
             save_pos.set(curwin.w_cursor);
             is_state.match_start.set(curwin.w_cursor);
             set_search_match(curwin.w_cursor);
@@ -26840,20 +26392,16 @@ public abstract class Editor {
         T_pos_T t = new T_pos_T();
         BytePtr[] pat = new BytePtr[1];
         BytePtr[] dircp = new BytePtr[1];
+        dircp[0] = null;
         BytePtr[] searchstr = new BytePtr[1];
         BytePtr[] strcopy = new BytePtr[1];
+        strcopy[0] = null;
         long[] searchstrlen = new long[1];
         long[] patlen_s = new long[1];
         S_soffset offset = new S_soffset();
-        int search_flags = 0;
+        int search_flags = SEARCH_NOOF;
         int i = 0;
         int[] search_delim = new int[1];
-        T_pos_T match_start = new T_pos_T();
-        T_pos_T match_end = new T_pos_T();
-        long off = 0;
-        dircp[0] = null;
-        strcopy[0] = null;
-        search_flags = SEARCH_NOOF;
         save_last_search_pattern();
         if (!do_incsearch_highlighting(firstc, new IntPtr(search_delim, 0), is_state, new IntPtr(skiplen, 0), new IntPtr(patlen, 0))) {
             restore_last_search_pattern();
@@ -26889,9 +26437,11 @@ public abstract class Editor {
             dircp[0].put((byte) search_delim[0]);
         }
         if (i != 0) {
+            T_pos_T match_start = new T_pos_T();
             match_start.set(is_state.match_start);
+            T_pos_T match_end = new T_pos_T();
             match_end.set(is_state.match_end);
-            off = offset.off;
+            long off = offset.off;
             is_state.search_start.set(match_start);
             if (offset.line == 0 && (offset.end != 0 || off != 0L)) {
                 if (offset.end != 0) {
@@ -26950,7 +26500,6 @@ public abstract class Editor {
         int[] skiplen = new int[1];
         int[] patlen = new int[1];
         int[] search_delim = new int[1];
-        int save_c = 0;
         save_last_search_pattern();
         if (!do_incsearch_highlighting(firstc, new IntPtr(search_delim, 0), is_state, new IntPtr(skiplen, 0), new IntPtr(patlen, 0))) {
             restore_last_search_pattern();
@@ -26969,7 +26518,7 @@ public abstract class Editor {
                     c.put('\\');
                 }
                 if (utf_char2len(c.get()) != utfc_ptr2len(ml_get_cursor())) {
-                    save_c = c.get();
+                    int save_c = c.get();
                     while (utf_char2len(c.get()) != utfc_ptr2len(ml_get_cursor())) {
                         curwin.w_cursor.col[0] += utf_char2len(c.get());
                         c.put(gchar_cursor());
@@ -27006,11 +26555,10 @@ public abstract class Editor {
     }
 
     int cmdline_erase_chars(int c, int indent, T_incsearch_state_T isp) {
-        int i = 0;
-        int j = 0;
-        BytePtr p = null;
         int t1 = 0;
         int t2 = 0;
+        int i = 0;
+        int j = 0;
         if (c == K_KDEL) {
             c = K_DEL;
         }
@@ -27021,6 +26569,7 @@ public abstract class Editor {
             ccline.cmdpos += mb_off_next(ccline.cmdbuff, ccline.cmdbuff.add(ccline.cmdpos));
         }
         if (ccline.cmdpos > 0) {
+            BytePtr p = null;
             j = ccline.cmdpos;
             p = ccline.cmdbuff.add(j);
             p = mb_prevptr(ccline.cmdbuff, p);
@@ -27069,7 +26618,6 @@ public abstract class Editor {
         int i = 0;
         int c = 0;
         boolean literally = false;
-        literally = false;
         putcmdline('"', TRUE);
         no_mapping++;
         allow_keys++;
@@ -27094,22 +26642,13 @@ public abstract class Editor {
     }
 
     int cmdline_browse_history(int c, int firstc, Ptr<BytePtr> curcmdstr, LongPtr curcmdstrlen, int histype, IntPtr hiscnt_p, S_expand xp) {
-        int orig_hiscnt = 0;
-        int hiscnt = 0;
-        BytePtr lookfor = null;
-        long lookforlen = 0;
-        int res = 0;
-        BytePtr p = null;
-        long plen = 0;
-        int old_firstc = 0;
         boolean t1 = false;
-        int i = 0;
-        int j = 0;
-        long len = 0;
+        int orig_hiscnt = 0;
         orig_hiscnt = hiscnt_p.get();
-        hiscnt = orig_hiscnt;
-        lookfor = curcmdstr.get();
-        lookforlen = curcmdstrlen.get();
+        int hiscnt = orig_hiscnt;
+        BytePtr lookfor = curcmdstr.get();
+        long lookforlen = curcmdstrlen.get();
+        int res = 0;
         if (get_hislen() == 0 || firstc == NUL) {
             return CMDLINE_NOT_CHANGED;
         }
@@ -27153,6 +26692,9 @@ public abstract class Editor {
             }
         }
         if (hiscnt != orig_hiscnt) {
+            BytePtr p = null;
+            long plen = 0;
+            int old_firstc = 0;
             dealloc_cmdbuff();
             xp.xp_context = EXPAND_NOTHING;
             if (hiscnt == get_hislen()) {
@@ -27168,11 +26710,12 @@ public abstract class Editor {
                 t1 = old_firstc != firstc;
             }
             if (t1) {
-                i = 0;
-                for (; i <= 1; i++) {
+                int i = 0;
+                int j = 0;
+                long len = 0;
+                for (i = 0; i <= 1; i++) {
                     len = 0L;
-                    j = 0;
-                    for (; p.at(j) != NUL; j++) {
+                    for (j = 0; p.at(j) != NUL; j++) {
                         if ((p.at(j) & 0xff) == old_firstc && (j == 0 || p.at(j - 1) != '\\')) {
                             if (i > 0) {
                                 ccline.cmdbuff.set((int) len, (byte) firstc);
@@ -27676,8 +27219,7 @@ public abstract class Editor {
         } else {
             m = MAXCOL;
         }
-        i = 0;
-        for (; (i < ccline.cmdlen) && i < ccline.cmdpos; i++) {
+        for (i = 0; i < ccline.cmdlen && i < ccline.cmdpos; i++) {
             c = cmdline_charsize(i);
             correct_cmdspos(i, c);
             ccline.cmdspos += c;
@@ -27721,7 +27263,6 @@ public abstract class Editor {
     boolean realloc_cmdbuff(int len) {
         BytePtr p = null;
         int plen = 0;
-        int i = 0;
         if (len < ccline.cmdbufflen) {
             return true;
         }
@@ -27736,7 +27277,7 @@ public abstract class Editor {
         Rt.memmove(ccline.cmdbuff, p, (long) ccline.cmdlen);
         ccline.cmdbuff.set(ccline.cmdlen, (byte) NUL);
         if (ccline.xpc != null && ccline.xpc.xp_pattern != null && ccline.xpc.xp_context != EXPAND_NOTHING && ccline.xpc.xp_context != -2) {
-            i = (int) ccline.xpc.xp_pattern.sub(p);
+            int i = (int) ccline.xpc.xp_pattern.sub(p);
             if (i >= 0 && i <= ccline.cmdlen) {
                 ccline.xpc.xp_pattern = ccline.cmdbuff.add(i);
             }
@@ -27797,12 +27338,10 @@ public abstract class Editor {
                 ccline.cmdlen += len;
             } else {
                 m = 0;
-                i = 0;
-                for (; i < len; i += utfc_ptr2len(str.add(i))) {
+                for (i = 0; i < len; i += utfc_ptr2len(str.add(i))) {
                     m++;
                 }
-                i = ccline.cmdpos;
-                for (; (i < ccline.cmdlen) && m > 0; i += utfc_ptr2len(ccline.cmdbuff.add(i))) {
+                for (i = ccline.cmdpos; i < ccline.cmdlen && m > 0; i += utfc_ptr2len(ccline.cmdbuff.add(i))) {
                     m--;
                 }
                 if (i < ccline.cmdlen) {
@@ -27849,8 +27388,7 @@ public abstract class Editor {
             } else {
                 m = MAXCOL;
             }
-            i = 0;
-            for (; i < len; i++) {
+            for (i = 0; i < len; i++) {
                 c = cmdline_charsize(ccline.cmdpos);
                 correct_cmdspos(ccline.cmdpos, c);
                 if (ccline.cmdspos + c < m) {
@@ -27891,8 +27429,6 @@ public abstract class Editor {
         BytePtr[] arg = new BytePtr[1];
         BytePtr p = null;
         int[] allocated = new int[1];
-        BytePtr w = null;
-        int len = 0;
         if (regname != Ctrl_F && regname != Ctrl_P && regname != Ctrl_W && regname != Ctrl_A && regname != Ctrl_L && !valid_yank_reg(regname, false)) {
             return false;
         }
@@ -27909,8 +27445,9 @@ public abstract class Editor {
             }
             p = arg[0];
             if (p_is[0] != 0 && regname == Ctrl_W) {
-                w = ccline.cmdbuff.add(ccline.cmdpos);
-                for (; w.gt(ccline.cmdbuff); ) {
+                BytePtr w = null;
+                int len = 0;
+                for (w = ccline.cmdbuff.add(ccline.cmdpos); w.gt(ccline.cmdbuff); ) {
                     len = utf_head_off(ccline.cmdbuff, w.add(-1)) + 1;
                     if (!vim_iswordc(utf_ptr2char(w.add(-len)))) {
                         break;
@@ -27980,16 +27517,14 @@ public abstract class Editor {
                 ccline.cmdindent--;
             }
         } else {
-            i = ccline.cmdindent;
-            for (; i > 0; i--) {
+            for (i = ccline.cmdindent; i > 0; i--) {
                 msg_putchar(' ');
             }
         }
     }
 
     void redrawcmd() {
-        int save_in_echowindow = 0;
-        save_in_echowindow = in_echowindow;
+        int save_in_echowindow = in_echowindow;
         if (cmd_silent != 0) {
             return;
         }
@@ -28057,7 +27592,6 @@ public abstract class Editor {
         int[] len = new int[1];
         boolean first = false;
         long[] num = new long[1];
-        first = false;
         str.put(skipwhite(str.get()));
         if (str.get().get() == '-' || vim_isdigit(str.get().get() & 0xff)) {
             vim_str2nr(str.get(), null, new IntPtr(len, 0), 0, new LongPtr(num, 0), null, 0, false, null);
@@ -28093,22 +27627,16 @@ public abstract class Editor {
     }
 
     void shorten_dir_len(BytePtr str, int trim_len) {
-        BytePtr tail = null;
-        BytePtr s = null;
-        BytePtr d = null;
-        boolean skip = false;
-        int dirchunk_len = 0;
         BytePtr t1 = null;
         BytePtr t2 = null;
         BytePtr t3 = null;
-        int l = 0;
         BytePtr t4 = null;
-        skip = false;
-        dirchunk_len = 0;
-        tail = gettail(str);
-        d = str;
-        s = str;
-        for (; ; s = s.add(1)) {
+        BytePtr s = null;
+        boolean skip = false;
+        int dirchunk_len = 0;
+        BytePtr tail = gettail(str);
+        BytePtr d = str;
+        for (s = str; ; s = s.add(1)) {
             if (s.ge(tail)) {
                 t1 = d;
                 d = d.add(1);
@@ -28132,7 +27660,7 @@ public abstract class Editor {
                         skip = true;
                     }
                 }
-                l = utfc_ptr2len(s);
+                int l = utfc_ptr2len(s);
                 while (true) {
                     l--;
                     if (!(l > 0)) {
@@ -28172,9 +27700,7 @@ public abstract class Editor {
         if (fname == null) {
             return BytePtr.lit("");
         }
-        p2 = get_past_head(fname);
-        p1 = p2;
-        for (; p2.get() != 0; ) {
+        for (p2 = get_past_head(fname), p1 = p2; p2.get() != 0; ) {
             if (vim_ispathsep_nocolon(p2.get() & 0xff)) {
                 p1 = p2.add(1);
             }
@@ -28184,8 +27710,7 @@ public abstract class Editor {
     }
 
     BytePtr get_past_head(BytePtr path) {
-        BytePtr retval = null;
-        retval = path;
+        BytePtr retval = path;
         while (vim_ispathsep(retval.get() & 0xff)) {
             retval = retval.add(1);
         }
@@ -28219,16 +27744,10 @@ public abstract class Editor {
     }
 
     BytePtr file_name_in_line(BytePtr line, int col, int options, long count, BytePtr rel_fname, LongPtr file_lnum) {
-        BytePtr ptr = null;
         int len = 0;
-        boolean in_type = false;
+        boolean in_type = true;
         boolean is_url = false;
-        BytePtr[] p = new BytePtr[1];
-        BytePtr match_text = null;
-        long match_textlen = 0;
-        in_type = true;
-        is_url = false;
-        ptr = line.add(col);
+        BytePtr ptr = line.add(col);
         while (ptr.get() != NUL && !vim_isfilec(ptr.get() & 0xff)) {
             ptr = ptr.add(utfc_ptr2len(ptr));
         }
@@ -28266,8 +27785,9 @@ public abstract class Editor {
             len--;
         }
         if (file_lnum != null) {
-            match_text = BytePtr.lit(" line ");
-            match_textlen = 6L;
+            BytePtr[] p = new BytePtr[1];
+            BytePtr match_text = BytePtr.lit(" line ");
+            long match_textlen = 6L;
             p[0] = ptr.add(len);
             if (musl_strncmp(p[0], match_text, match_textlen) == 0) {
                 p[0] = p[0].add((int) match_textlen);
@@ -28305,8 +27825,7 @@ public abstract class Editor {
     void free_buff(S_buffheader buf) {
         S_buffblock p = null;
         S_buffblock np = null;
-        p = buf.bh_first.b_next;
-        for (; p != null; p = np) {
+        for (p = buf.bh_first.b_next; p != null; p = np) {
             np = p.b_next;
         }
         buf.bh_first.b_next = null;
@@ -28314,20 +27833,16 @@ public abstract class Editor {
     }
 
     BytePtr get_buffcont(S_buffheader buffer, boolean dozero, LongPtr len) {
-        long count = 0;
+        boolean t1 = false;
+        BytePtr t2 = null;
+        BytePtr t3 = null;
+        long count = 0L;
         BytePtr p = null;
         BytePtr p2 = null;
         BytePtr str = null;
         S_buffblock bp = null;
-        long i = 0;
-        boolean t1 = false;
-        BytePtr t2 = null;
-        BytePtr t3 = null;
-        count = 0L;
-        p = null;
-        i = 0L;
-        bp = buffer.bh_first.b_next;
-        for (; bp != null; bp = bp.b_next) {
+        long i = 0L;
+        for (bp = buffer.bh_first.b_next; bp != null; bp = bp.b_next) {
             count += bp.b_strlen;
         }
         t1 = Long.compareUnsigned(count, 0L) > 0 || dozero;
@@ -28337,10 +27852,8 @@ public abstract class Editor {
         }
         if (t1) {
             p2 = p;
-            bp = buffer.bh_first.b_next;
-            for (; bp != null; bp = bp.b_next) {
-                str = bp.b_str;
-                for (; str.get() != 0; ) {
+            for (bp = buffer.bh_first.b_next; bp != null; bp = bp.b_next) {
+                for (str = bp.b_str; str.get() != 0; ) {
                     t2 = p2;
                     p2 = p2.add(1);
                     t3 = str;
@@ -28358,9 +27871,8 @@ public abstract class Editor {
     }
 
     BytePtr get_recorded() {
-        BytePtr p = null;
         long[] len = new long[1];
-        p = get_buffcont(recordbuff, true, new LongPtr(len, 0));
+        BytePtr p = get_buffcont(recordbuff, true, new LongPtr(len, 0));
         if (p == null) {
             return null;
         }
@@ -28377,19 +27889,15 @@ public abstract class Editor {
 
     T_string_T get_inserted() {
         long[] len = new long[1];
-        BytePtr str = null;
-        T_string_T ret = new T_string_T();
         len[0] = 0L;
-        str = get_buffcont(redobuff, false, new LongPtr(len, 0));
-        ret = new T_string_T();
+        BytePtr str = get_buffcont(redobuff, false, new LongPtr(len, 0));
+        T_string_T ret = new T_string_T();
         ret.string[0] = str;
         ret.length = len[0];
         return ret.copy();
     }
 
     void add_buff(S_buffheader buf, BytePtr s, long slen) {
-        long len = 0;
-        S_buffblock p = null;
         if (slen < 0L) {
             slen = musl_strlen(s);
         }
@@ -28413,6 +27921,8 @@ public abstract class Editor {
             buf.bh_curr.b_strlen += slen;
             buf.bh_space -= slen;
         } else {
+            long len = 0;
+            S_buffblock p = null;
             if (slen < MINIMAL_SIZE) {
                 len = MINIMAL_SIZE;
             } else {
@@ -28444,8 +27954,7 @@ public abstract class Editor {
 
     void add_num_buff(S_buffheader buf, long n) {
         byte[] number = new byte[32];
-        int numberlen = 0;
-        numberlen = vim_snprintf(new BytePtr(number, 0), 32L, BytePtr.lit("%ld"), n);
+        int numberlen = vim_snprintf(new BytePtr(number, 0), 32L, BytePtr.lit("%ld"), n);
         add_buff(buf, new BytePtr(number, 0), (long) numberlen);
     }
 
@@ -28460,8 +27969,7 @@ public abstract class Editor {
         } else {
             len = utf_char2bytes(c, new BytePtr(bytes, 0));
         }
-        i = 0;
-        for (; i < len; i++) {
+        for (i = 0; i < len; i++) {
             if (!(c < 0)) {
                 c = bytes[i] & 0xff;
             }
@@ -28481,8 +27989,7 @@ public abstract class Editor {
     }
 
     int read_readbuffers(boolean advance) {
-        int c = 0;
-        c = read_readbuf(readbuf1, advance);
+        int c = read_readbuf(readbuf1, advance);
         if (c == NUL) {
             c = read_readbuf(readbuf2, advance);
         }
@@ -28586,9 +28093,9 @@ public abstract class Editor {
 
     void AppendToRedobuffLit(BytePtr str, int len) {
         BytePtr[] s = new BytePtr[1];
+        s[0] = str;
         int c = 0;
         BytePtr start = null;
-        s[0] = str;
         if (block_redo != 0) {
             return;
         }
@@ -28711,8 +28218,7 @@ public abstract class Editor {
             } else {
                 n = 1;
             }
-            i = 0;
-            for (; ; i++) {
+            for (i = 0; ; i++) {
                 if (c == 128) {
                     c = (read_redo_p.at(1) & 0xff) == KS_SPECIAL ? 128 : ((read_redo_p.at(1) & 0xff) == KS_ZERO ? -(KS_ZERO + ('X' << 8)) : -((read_redo_p.at(1) & 0xff) + ((read_redo_p.at(2) & 0xff) << 8)));
                     read_redo_p = read_redo_p.add(2);
@@ -28835,7 +28341,6 @@ public abstract class Editor {
         int newoff = 0;
         int val = 0;
         int nrm = 0;
-        int extra = 0;
         init_typebuf();
         typebuf.tb_change_cnt++;
         if (typebuf.tb_change_cnt == 0) {
@@ -28849,6 +28354,7 @@ public abstract class Editor {
             typebuf.tb_off = (typebuf.tb_buflen - addlen - 3 * (MAXMAPLEN + 4)) / 2;
             Rt.memmove(typebuf.tb_buf.add(typebuf.tb_off), str, (long) addlen);
         } else {
+            int extra = 0;
             newoff = MAXMAPLEN + 4;
             extra = addlen + newoff + 4 * (MAXMAPLEN + 4);
             if (typebuf.tb_len > (2147483647 - extra)) {
@@ -28884,8 +28390,7 @@ public abstract class Editor {
         } else {
             nrm = noremap;
         }
-        i = 0;
-        for (; i < addlen; i++) {
+        for (i = 0; i < addlen; i++) {
             nrm--;
             typebuf.tb_noremap.set(typebuf.tb_off + i + offset, (byte) (nrm >= 0 ? val : RM_YES));
         }
@@ -28904,8 +28409,7 @@ public abstract class Editor {
 
     int ins_char_typebuf(int c, int modifiers) {
         byte[] buf = new byte[67];
-        int len = 0;
-        len = special_to_buf(c, modifiers, true, new BytePtr(buf, 0));
+        int len = special_to_buf(c, modifiers, true, new BytePtr(buf, 0));
         buf[len] = (byte) NUL;
         ins_typebuf(new BytePtr(buf, 0), KeyNoremap, 0, KeyTyped == 0, cmd_silent);
         return len;
@@ -28969,18 +28473,14 @@ public abstract class Editor {
     }
 
     boolean gotchars_add_byte(T_gotchars_state_T state, byte byte_) {
-        int c = 0;
         long t1 = 0;
-        boolean retval = false;
-        boolean in_special = false;
-        boolean in_mbyte = false;
         t1 = state.buflen;
         state.buflen++;
         state.buf[(int) t1] = byte_;
-        c = state.buf[(int) t1] & 0xff;
-        retval = false;
-        in_special = Integer.compareUnsigned(state.pending_special, 0) > 0;
-        in_mbyte = Integer.compareUnsigned(state.pending_mbyte, 0) > 0;
+        int c = state.buf[(int) t1] & 0xff;
+        boolean retval = false;
+        boolean in_special = Integer.compareUnsigned(state.pending_special, 0) > 0;
+        boolean in_mbyte = Integer.compareUnsigned(state.pending_mbyte, 0) > 0;
         if (in_special) {
             state.pending_special--;
         } else if (c == 128) {
@@ -29015,12 +28515,10 @@ public abstract class Editor {
     }
 
     void gotchars(BytePtr chars, int len) {
-        BytePtr s = null;
-        int todo = 0;
         int t1 = 0;
         BytePtr t2 = null;
-        s = chars;
-        todo = len;
+        BytePtr s = chars;
+        int todo = len;
         while (true) {
             t1 = todo;
             todo--;
@@ -29045,7 +28543,6 @@ public abstract class Editor {
 
     void gotchars_ignore() {
         byte[] nop_buf = new byte[3];
-        nop_buf = new byte[3];
         nop_buf[0] = (byte) -128;
         nop_buf[1] = (byte) KS_EXTRA;
         nop_buf[2] = (byte) KE_IGNORE;
@@ -29134,8 +28631,7 @@ public abstract class Editor {
     }
 
     int merge_modifyOtherKeys(int c_arg, IntPtr modifiers) {
-        int c = 0;
-        c = c_arg;
+        int c = c_arg;
         if ((modifiers.get() & MOD_MASK_CTRL) != 0) {
             if ((c >= '`' && c <= 127) || (c >= '@' && c <= '_')) {
                 c &= 31;
@@ -29161,17 +28657,12 @@ public abstract class Editor {
     }
 
     void add_byte_to_showcmd(byte byte_) {
-        BytePtr[] ptr = new BytePtr[1];
-        int modifiers = 0;
-        int c = 0;
-        BytePtr mb_ptr = null;
         BytePtr t1 = null;
         int t2 = 0;
-        int[] modifiers_after = new int[1];
-        int mod_c = 0;
         BytePtr t3 = null;
-        modifiers = 0;
-        c = NUL;
+        BytePtr[] ptr = new BytePtr[1];
+        int modifiers = 0;
+        int c = NUL;
         if (p_sc[0] == 0 || msg_silent != 0) {
             return;
         }
@@ -29186,7 +28677,7 @@ public abstract class Editor {
             ptr[0] = ptr[0].add(3);
         }
         if (ptr[0].get() != NUL) {
-            mb_ptr = mb_unescape(new Ptr<BytePtr>(ptr, 0));
+            BytePtr mb_ptr = mb_unescape(new Ptr<BytePtr>(ptr, 0));
             if (mb_ptr != null) {
                 t2 = utf_ptr2char(mb_ptr);
             } else {
@@ -29196,8 +28687,9 @@ public abstract class Editor {
             }
             c = t2;
             if (c <= 127) {
+                int[] modifiers_after = new int[1];
                 modifiers_after[0] = modifiers;
-                mod_c = merge_modifyOtherKeys(c, new IntPtr(modifiers_after, 0));
+                int mod_c = merge_modifyOtherKeys(c, new IntPtr(modifiers_after, 0));
                 if (modifiers_after[0] == 0) {
                     modifiers = 0;
                     c = mod_c;
@@ -29225,8 +28717,6 @@ public abstract class Editor {
         int n = 0;
         byte[] buf = new byte[22];
         int i = 0;
-        boolean did_inc = false;
-        int save_allow_keys = 0;
         if (can_get_old_char()) {
             c = old_char;
             old_char = -1;
@@ -29237,7 +28727,7 @@ public abstract class Editor {
             vgetc_char = 0;
             last_recorded_len -= vgetc_last_vgetc_recorded_len;
             for (;;) {
-                did_inc = false;
+                boolean did_inc = false;
                 if (mod_mask[0] != 0) {
                     no_mapping++;
                     allow_keys++;
@@ -29249,7 +28739,7 @@ public abstract class Editor {
                     allow_keys--;
                 }
                 if (c == 128) {
-                    save_allow_keys = allow_keys;
+                    int save_allow_keys = allow_keys;
                     no_mapping++;
                     allow_keys = 0;
                     c2 = vgetorpeek(true);
@@ -29272,8 +28762,7 @@ public abstract class Editor {
                 if (n > 1) {
                     no_mapping++;
                     buf[0] = (byte) c;
-                    i = 1;
-                    for (; i < n; i++) {
+                    for (i = 1; i < n; i++) {
                         buf[i] = (byte) vgetorpeek(true);
                         if ((buf[i] & 0xff) == 128) {
                             c = vgetorpeek(true);
@@ -29383,8 +28872,7 @@ public abstract class Editor {
     }
 
     int safe_vgetc() {
-        int c = 0;
-        c = vgetc();
+        int c = vgetc();
         if (c == NUL) {
             c = get_keystroke();
         }
@@ -29400,8 +28888,7 @@ public abstract class Editor {
     }
 
     int plain_vgetc() {
-        int c = 0;
-        c = plain_vgetc_nopaste();
+        int c = plain_vgetc_nopaste();
         if (c == K_PASTESTART) {
             c = bracketed_paste(PASTE_ONE_CHAR, false, null);
         }
@@ -29424,27 +28911,22 @@ public abstract class Editor {
     }
 
     int check_simplify_modifier(int max_offset) {
-        int offset = 0;
-        BytePtr tp = null;
-        int[] modifier = new int[1];
-        int c = 0;
-        int new_c = 0;
         byte[] new_string = new byte[21];
         int len = 0;
-        int key_offset = 0;
-        int i = 0;
-        offset = 0;
-        for (; offset < max_offset; offset++) {
+        int offset = 0;
+        BytePtr tp = null;
+        for (offset = 0; offset < max_offset; offset++) {
             if (offset + 3 >= typebuf.tb_len) {
                 break;
             }
             tp = typebuf.tb_buf.add(typebuf.tb_off).add(offset);
             if (((tp.at(0) & 0xff) == 128 || (tp.at(0) & 0xff) == CSI) && (tp.at(1) & 0xff) == KS_MODIFIER) {
+                int[] modifier = new int[1];
                 modifier[0] = tp.at(2) & 0xff;
-                c = tp.at(3) & 0xff;
-                new_c = merge_modifyOtherKeys(c, new IntPtr(modifier, 0));
+                int c = tp.at(3) & 0xff;
+                int new_c = merge_modifyOtherKeys(c, new IntPtr(modifier, 0));
                 if (new_c != c) {
-                    key_offset = offset;
+                    int key_offset = offset;
                     if (offset == 0) {
                         vgetc_char = c;
                         vgetc_mod_mask = tp.at(2) & 0xff;
@@ -29468,8 +28950,7 @@ public abstract class Editor {
                             return -1;
                         }
                     }
-                    i = 0;
-                    for (; i < len; i++) {
+                    for (int i = 0; i < len; i++) {
                         typebuf.tb_noremap.set(typebuf.tb_off + key_offset + i, (byte) ((typebuf.tb_noremap.at(typebuf.tb_off + key_offset + i) & 0xff) | RM_SIMPLIFIED));
                     }
                     return len;
@@ -29480,12 +28961,14 @@ public abstract class Editor {
     }
 
     boolean key_protocol_enabled() {
-        int using_mok = 0;
-        using_mok = modify_otherkeys_state != MOKS_INITIAL ? (modify_otherkeys_state == MOKS_ENABLED ? 1 : 0) : seenModifyOtherKeys;
+        int using_mok = modify_otherkeys_state != MOKS_INITIAL ? (modify_otherkeys_state == MOKS_ENABLED ? 1 : 0) : seenModifyOtherKeys;
         return using_mok != 0 || kitty_protocol_state == KKPS_ENABLED;
     }
 
     int handle_mapping(IntPtr keylenp, IntPtr timedout, IntPtr mapdepth) {
+        BytePtr s = null;
+        int n = 0;
+        BytePtr t2 = null;
         S_mapblock mp = null;
         S_mapblock mp2 = null;
         S_mapblock mp_match = null;
@@ -29494,28 +28977,11 @@ public abstract class Editor {
         int want_termcode = 0;
         int tb_c1 = 0;
         int mlen = 0;
-        int keylen = 0;
+        int keylen = keylenp.get();
         boolean i = false;
-        int local_State = 0;
+        int local_State = get_real_state();
         boolean is_plug_map = false;
-        boolean in_osc = false;
-        int c2 = 0;
-        BytePtr[] p1 = new BytePtr[1];
-        BytePtr p2 = null;
-        BytePtr s = null;
-        int n = 0;
-        BytePtr t2 = null;
-        int save_keylen = 0;
-        BytePtr map_str = null;
-        int noremap = 0;
-        mp = null;
-        mp_match_len = 0;
-        max_mlen = 0;
-        want_termcode = 0;
-        keylen = keylenp.get();
-        local_State = get_real_state();
-        is_plug_map = false;
-        in_osc = in_osc_sequence();
+        boolean in_osc = in_osc_sequence();
         if (!in_osc && typebuf.tb_len >= 3 && (typebuf.tb_buf.at(typebuf.tb_off) & 0xff) == 128 && (typebuf.tb_buf.at(typebuf.tb_off + 1) & 0xff) == KS_EXTRA && typebuf.tb_buf.at(typebuf.tb_off + 2) == KE_PLUG) {
             is_plug_map = true;
         }
@@ -29535,15 +29001,15 @@ public abstract class Editor {
                 }
                 c1: {
                     if ((mp.m_keys.at(0) & 0xff) == tb_c1 && (mp.m_mode & local_State) != 0 && !(mp.m_simplified && key_protocol_enabled() && typebuf.tb_maplen == 0 && (typebuf.tb_noremap.at(typebuf.tb_off) & 0xff & RM_SIMPLIFIED) == 0)) {
-                        mlen = 1;
-                        for (; mlen < typebuf.tb_len; mlen++) {
-                            c2 = typebuf.tb_buf.at(typebuf.tb_off + mlen) & 0xff;
+                        for (mlen = 1; mlen < typebuf.tb_len; mlen++) {
+                            int c2 = typebuf.tb_buf.at(typebuf.tb_off + mlen) & 0xff;
                             if ((mp.m_keys.at(mlen) & 0xff) != c2) {
                                 break;
                             }
                         }
+                        BytePtr[] p1 = new BytePtr[1];
                         p1[0] = mp.m_keys;
-                        p2 = mb_unescape(new Ptr<BytePtr>(p1, 0));
+                        BytePtr p2 = mb_unescape(new Ptr<BytePtr>(p1, 0));
                         if (p2 != null && (int) mb_bytelen_tab[tb_c1] > utfc_ptr2len(p2)) {
                             mlen = 0;
                         }
@@ -29603,8 +29069,7 @@ public abstract class Editor {
             }
         }
         if (!in_osc && p_pt[0].get() != NUL && mp == null && (State & (MODE_INSERT | MODE_NORMAL)) != 0) {
-            mlen = 0;
-            for (; (mlen < typebuf.tb_len) && p_pt[0].at(mlen) != 0; mlen++) {
+            for (mlen = 0; mlen < typebuf.tb_len && p_pt[0].at(mlen) != 0; mlen++) {
                 if ((p_pt[0].at(mlen) & 0xff) != (typebuf.tb_buf.at(typebuf.tb_off + mlen) & 0xff)) {
                     break;
                 }
@@ -29634,7 +29099,7 @@ public abstract class Editor {
             }
         }
         if (in_osc || ((mp == null || max_mlen + want_termcode > mp_match_len || (mp_match_len == 1 && mp.m_keys.get() == ESC && timedout.get() == 0)) && keylen != -2)) {
-            save_keylen = keylen;
+            int save_keylen = keylen;
             if (in_osc || no_mapping == 0 || allow_keys != 0) {
                 if (in_osc || ((typebuf.tb_maplen == 0 || (p_remap[0] != 0 && (typebuf.tb_noremap.at(typebuf.tb_off) & 0xff & ~RM_SIMPLIFIED) == RM_YES)) && timedout.get() == 0)) {
                     keylen = check_termcode(max_mlen + 1, null, 0, null);
@@ -29673,6 +29138,7 @@ public abstract class Editor {
             }
         }
         if (keylen >= 0 && keylen <= typebuf.tb_len) {
+            BytePtr map_str = null;
             if (keylen > typebuf.tb_maplen) {
                 gotchars(typebuf.tb_buf.add(typebuf.tb_off).add(typebuf.tb_maplen), keylen - typebuf.tb_maplen);
             }
@@ -29699,6 +29165,7 @@ public abstract class Editor {
             if (map_str == null) {
                 i = false;
             } else {
+                int noremap = 0;
                 if (mp.m_noremap != REMAP_YES) {
                     noremap = mp.m_noremap;
                 } else if (musl_strncmp(map_str, mp.m_keys, (long) keylen) == 0 || (mp.m_alt != null && musl_strncmp(map_str, mp.m_alt.m_keys, (long) mp.m_alt.m_keylen) == 0)) {
@@ -29736,9 +29203,18 @@ public abstract class Editor {
     }
 
     int vgetorpeek(boolean advance) {
+        long wait_time = 0;
+        int showcmd_idx = 0;
+        boolean t1 = false;
+        BytePtr ptr = null;
+        T_chartabsize_T cts = new T_chartabsize_T();
+        int t2 = 0;
+        int t3 = 0;
         int c = 0;
         int[] timedout = new int[1];
+        timedout[0] = FALSE;
         int[] mapdepth = new int[1];
+        mapdepth[0] = 0;
         boolean mode_deleted = false;
         int new_wcol = 0;
         int new_wrow = 0;
@@ -29746,20 +29222,6 @@ public abstract class Editor {
         int old_wcol = 0;
         int old_wrow = 0;
         int wait_tb_len = 0;
-        long wait_time = 0;
-        int[] keylen = new int[1];
-        int showcmd_idx = 0;
-        int result = 0;
-        boolean t1 = false;
-        int col = 0;
-        BytePtr ptr = null;
-        T_chartabsize_T cts = new T_chartabsize_T();
-        boolean showing_partial = false;
-        int t2 = 0;
-        int t3 = 0;
-        timedout[0] = FALSE;
-        mapdepth[0] = 0;
-        mode_deleted = false;
         if (vgetc_busy > 0 && ex_normal_busy == 0) {
             return NUL;
         }
@@ -29788,6 +29250,7 @@ public abstract class Editor {
                 }
             } else {
                 for (;;) {
+                    int[] keylen = new int[1];
                     keylen[0] = 0;
                     check_end_reg_executing(advance);
                     if (typebuf.tb_maplen != 0) {
@@ -29810,7 +29273,7 @@ public abstract class Editor {
                         cmd_silent = FALSE;
                         break;
                     } else if (typebuf.tb_len > 0) {
-                        result = handle_mapping(new IntPtr(keylen, 0), new IntPtr(timedout, 0), new IntPtr(mapdepth, 0));
+                        int result = handle_mapping(new IntPtr(keylen, 0), new IntPtr(timedout, 0), new IntPtr(mapdepth, 0));
                         if (result == map_result_retry) {
                             continue;
                         }
@@ -29843,7 +29306,7 @@ public abstract class Editor {
                         t1 = c == 0;
                     }
                     if (t1) {
-                        col = 0;
+                        int col = 0;
                         if (mode_displayed != 0) {
                             unshowmode(true);
                             mode_deleted = true;
@@ -29895,8 +29358,7 @@ public abstract class Editor {
                     if (c < 0) {
                         continue;
                     }
-                    n = 1;
-                    for (; n <= c; n++) {
+                    for (n = 1; n <= c; n++) {
                         typebuf.tb_noremap.set(typebuf.tb_off + n, (byte) RM_YES);
                     }
                     typebuf.tb_len += c;
@@ -29924,7 +29386,7 @@ public abstract class Editor {
                         setcursor();
                     }
                     showcmd_idx = 0;
-                    showing_partial = false;
+                    boolean showing_partial = false;
                     if (typebuf.tb_len > 0 && advance) {
                         if ((State & (MODE_NORMAL | MODE_INSERT)) != 0 && State != (8192 | MODE_NORMAL)) {
                             if ((State & MODE_INSERT) != 0 && ptr2cells(typebuf.tb_buf.add(typebuf.tb_off).add(typebuf.tb_len).add(-1)) == 1) {
@@ -30026,12 +29488,9 @@ public abstract class Editor {
     }
 
     int inchar(BytePtr buf, int maxlen, long wait_time) {
-        int len = 0;
-        int tb_change_cnt = 0;
-        byte[] dum = new byte[154];
         boolean t1 = false;
-        len = 0;
-        tb_change_cnt = typebuf.tb_change_cnt;
+        int len = 0;
+        int tb_change_cnt = typebuf.tb_change_cnt;
         if (wait_time == -1L || wait_time > 100L) {
             cursor_on();
             out_flush_cursor(false, false);
@@ -30041,6 +29500,7 @@ public abstract class Editor {
         }
         undo_off = FALSE;
         if (got_int != 0) {
+            byte[] dum = new byte[154];
             for (;;) {
                 len = ui_inchar(new BytePtr(dum, 0), MAXMAPLEN * 3 + 3, 0L, 0);
                 if (len == 0 || (len == 1 && dum[0] == Ctrl_C)) {
@@ -30069,8 +29529,7 @@ public abstract class Editor {
 
     int fix_input_buffer(BytePtr buf, int len) {
         int i = 0;
-        BytePtr p = null;
-        p = buf;
+        BytePtr p = buf;
         i = len;
         for (;;) {
             i--;
@@ -30097,13 +29556,10 @@ public abstract class Editor {
 
     BytePtr getcmdkeycmd(int promptc, int indent, int do_concat) {
         S_growarray line_ga = new S_growarray();
-        int c1 = 0;
+        int c1 = -1;
         int c2 = 0;
         int cmod = 0;
         boolean aborted = false;
-        c1 = -1;
-        cmod = 0;
-        aborted = false;
         ga_init2(line_ga, 1L, 32);
         no_mapping++;
         got_int = FALSE;
@@ -30165,8 +29621,7 @@ public abstract class Editor {
     }
 
     boolean do_cmdkey_command(int key, int flags) {
-        boolean res = false;
-        res = do_cmdline(null, fp_getcmdkeycmd, flags);
+        boolean res = do_cmdline(null, fp_getcmdkeycmd, flags);
         return res;
     }
 
@@ -30176,8 +29631,7 @@ public abstract class Editor {
         if (both) {
             init_highlight_had_both = true;
             pp = new Ptr<BytePtr>(highlight_init_both, 0);
-            i = 0;
-            for (; pp.at(i) != null; i++) {
+            for (i = 0; pp.at(i) != null; i++) {
                 do_highlight(pp.at(i), reset, true);
             }
         } else if (!init_highlight_had_both) {
@@ -30188,8 +29642,7 @@ public abstract class Editor {
         } else {
             pp = new Ptr<BytePtr>(highlight_init_dark, 0);
         }
-        i = 0;
-        for (; pp.at(i) != null; i++) {
+        for (i = 0; pp.at(i) != null; i++) {
             do_highlight(pp.at(i), reset, true);
         }
         if (t_colors < 8) {
@@ -30205,9 +29658,8 @@ public abstract class Editor {
     }
 
     int lookup_color(int idx, boolean foreground, IntPtr boldp) {
-        int color = 0;
+        int color = color_numbers_16[idx];
         BytePtr p = null;
-        color = color_numbers_16[idx];
         if (color < 0) {
             return -1;
         }
@@ -30241,11 +29693,9 @@ public abstract class Editor {
     }
 
     void highlight_group_link(BytePtr from_hg, int from_len, BytePtr to_hg, int to_len, boolean dodefault, boolean forceit, boolean init) {
-        int from_id = 0;
         int to_id = 0;
         T_hl_group_T hlgroup = null;
-        hlgroup = null;
-        from_id = syn_check_group(from_hg, from_len);
+        int from_id = syn_check_group(from_hg, from_len);
         if (musl_strncmp(to_hg, BytePtr.lit("NONE"), 4L) == 0) {
             to_id = 0;
         } else {
@@ -30277,8 +29727,7 @@ public abstract class Editor {
     void highlight_reset_all() {
         int idx = 0;
         restore_cterm_colors();
-        idx = 0;
-        for (; idx < highlight_ga.ga_len; idx++) {
+        for (idx = 0; idx < highlight_ga.ga_len; idx++) {
             highlight_clear(idx);
         }
         init_highlight(true, true);
@@ -30287,12 +29736,10 @@ public abstract class Editor {
     }
 
     boolean highlight_set_termgui_attr(int idx, BytePtr key, BytePtr arg, boolean init) {
-        int attr = 0;
-        long off = 0;
         T_keyvalue_T target = new T_keyvalue_T();
         Ptr<T_keyvalue_T> entry = null;
-        attr = 0;
-        off = 0L;
+        int attr = 0;
+        long off = 0L;
         target.key = 0;
         target.value.length = 0L;
         while (arg.at((int) off) != NUL) {
@@ -30345,11 +29792,10 @@ public abstract class Editor {
     }
 
     void hl_set_ctermbg_normal_group(int color) {
-        int dark = 0;
         cterm_normal_bg_color = color + 1;
         set_must_redraw(UPD_CLEAR);
         if (color >= 0) {
-            dark = -1;
+            int dark = -1;
             if (termcap_active != 0) {
                 term_bg_color(color);
             }
@@ -30408,9 +29854,6 @@ public abstract class Editor {
 
     boolean highlight_set_cterm_color(int idx, BytePtr key, BytePtr key_start, BytePtr arg, boolean is_normal_group, boolean init) {
         int color = 0;
-        int[] bold = new int[1];
-        T_keyvalue_T target = new T_keyvalue_T();
-        Ptr<T_keyvalue_T> entry = null;
         if (init && (GA_Ptr_T_hl_group_T(highlight_ga).at(idx).sg_set & SG_CTERM) != 0) {
             return false;
         }
@@ -30445,7 +29888,10 @@ public abstract class Editor {
                 return false;
             }
         } else {
+            int[] bold = new int[1];
             bold[0] = MAYBE;
+            T_keyvalue_T target = new T_keyvalue_T();
+            Ptr<T_keyvalue_T> entry = null;
             target.key = 0;
             target.value.string[0] = arg;
             target.value.length = 0L;
@@ -30474,13 +29920,13 @@ public abstract class Editor {
     }
 
     boolean highlight_set_startstop_termcode(int idx, BytePtr key, BytePtr arg, boolean init) {
+        int t1 = 0;
+        BytePtr t2 = null;
         int off = 0;
         byte[] buf = new byte[100];
         int len = 0;
         BytePtr tname = null;
         BytePtr[] p = new BytePtr[1];
-        int t1 = 0;
-        BytePtr t2 = null;
         if (!init) {
             GA_Ptr_T_hl_group_T(highlight_ga).at(idx).sg_set |= SG_TERM;
         }
@@ -30488,8 +29934,7 @@ public abstract class Editor {
             off = 0;
             buf[0] = (byte) 0;
             while (arg.at(off) != NUL) {
-                len = 0;
-                for (; (arg.at(off + len) != 0) && arg.at(off + len) != ','; len++) {
+                for (len = 0; arg.at(off + len) != 0 && arg.at(off + len) != ','; len++) {
                 }
                 tname = vim_strnsave(arg.add(off), (long) len);
                 p[0] = get_term_code(tname);
@@ -30509,8 +29954,7 @@ public abstract class Editor {
             }
         } else {
             p[0] = arg;
-            off = 0;
-            for (; (off < 94) && p[0].get() != 0; ) {
+            for (off = 0; off < 94 && p[0].get() != 0; ) {
                 len = trans_special(new Ptr<BytePtr>(p, 0), new BytePtr(buf, 0).add(off), FSK_SIMPLIFY, false, null);
                 if (len > 0) {
                     off += len;
@@ -30554,23 +29998,8 @@ public abstract class Editor {
         boolean dolink = false;
         boolean error = false;
         boolean is_normal_group = false;
-        BytePtr from_start = null;
-        BytePtr from_end = null;
-        int from_len = 0;
-        BytePtr to_start = null;
-        BytePtr to_end = null;
-        int to_len = 0;
-        key = null;
-        arg = null;
-        did_change = false;
-        dodefault = false;
-        doclear = false;
-        dolink = false;
-        error = false;
-        is_normal_group = false;
         if (!init && ends_excmd2(line.add(-1), line)) {
-            i = 1L;
-            for (; (i <= (long) highlight_ga.ga_len) && got_int == 0; i++) {
+            for (i = 1L; i <= (long) highlight_ga.ga_len && got_int == 0; i++) {
                 highlight_list_one((int) i);
             }
             return;
@@ -30600,10 +30029,12 @@ public abstract class Editor {
             return;
         }
         if (dolink) {
-            from_start = linep;
-            from_end = skiptowhite(from_start);
-            to_start = skipwhite(from_end);
-            to_end = skiptowhite(to_start);
+            BytePtr from_start = linep;
+            int from_len = 0;
+            int to_len = 0;
+            BytePtr from_end = skiptowhite(from_start);
+            BytePtr to_start = skipwhite(from_end);
+            BytePtr to_end = skiptowhite(to_start);
             if (ends_excmd2(line, from_start) || ends_excmd2(line, to_start)) {
                 vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(new BytePtr(e_not_enough_arguments_highlight_link_str, 0)), from_start);
                 emsg(iobuff_or(gettext_(new BytePtr(e_not_enough_arguments_highlight_link_str, 0))));
@@ -30790,8 +30221,7 @@ public abstract class Editor {
         S_attr_entry taep = null;
         table.ga_itemsize = 24;
         table.ga_growsize = 7;
-        i = 0;
-        for (; i < table.ga_len; i++) {
+        for (i = 0; i < table.ga_len; i++) {
             taep = GA_Ptr_S_attr_entry(table).at(i);
             if ((int) aep.ae_attr == (int) taep.ae_attr && ((table == term_attr_table && (aep.ae_u.term.start == null ? 1 : 0) == (taep.ae_u.term.start == null ? 1 : 0) && (aep.ae_u.term.start == null || musl_strcmp(aep.ae_u.term.start, taep.ae_u.term.start) == 0) && (aep.ae_u.term.stop == null ? 1 : 0) == (taep.ae_u.term.stop == null ? 1 : 0) && (aep.ae_u.term.stop == null || musl_strcmp(aep.ae_u.term.stop, taep.ae_u.term.stop) == 0)) || (table == cterm_attr_table && (aep.ae_u.cterm.fg_color & 0xffff) == (taep.ae_u.cterm.fg_color & 0xffff) && (aep.ae_u.cterm.bg_color & 0xffff) == (taep.ae_u.cterm.bg_color & 0xffff) && (aep.ae_u.cterm.ul_color & 0xffff) == (taep.ae_u.cterm.ul_color & 0xffff) && (aep.ae_u.cterm.font & 0xffff) == (taep.ae_u.cterm.font & 0xffff)))) {
                 return i + (HL_ALL + 1);
@@ -30805,8 +30235,7 @@ public abstract class Editor {
             get_attr_entry_recursive = true;
             clear_hl_tables();
             set_must_redraw(UPD_CLEAR);
-            i = 0;
-            for (; i < highlight_ga.ga_len; i++) {
+            for (i = 0; i < highlight_ga.ga_len; i++) {
                 set_hl_attr(i);
             }
             get_attr_entry_recursive = false;
@@ -30840,8 +30269,7 @@ public abstract class Editor {
 
     void clear_hl_tables() {
         int i = 0;
-        i = 0;
-        for (; i < term_attr_table.ga_len; i++) {
+        for (i = 0; i < term_attr_table.ga_len; i++) {
         }
         ga_clear(term_attr_table);
         ga_clear(cterm_attr_table);
@@ -30851,7 +30279,6 @@ public abstract class Editor {
         S_attr_entry char_aep = null;
         S_attr_entry prim_aep = null;
         S_attr_entry new_en = new S_attr_entry();
-        char_aep = null;
         if (char_attr == 0) {
             return prim_attr;
         }
@@ -30919,9 +30346,6 @@ public abstract class Editor {
     }
 
     void cterm_idx_to_rgb(int idx, IntPtr r, IntPtr g, IntPtr b) {
-        long rgb = 0;
-        int n = 0;
-        int v = 0;
         if (idx < 0 || idx > 255) {
             b.put(0);
             g.put(b.get());
@@ -30929,17 +30353,17 @@ public abstract class Editor {
             return;
         }
         if (idx < 16) {
-            rgb = cterm_color_16[idx];
+            long rgb = cterm_color_16[idx];
             r.put((int) ((rgb >>> 16) & 255L));
             g.put((int) ((rgb >>> 8) & 255L));
             b.put((int) (rgb & 255L));
         } else if (idx < 232) {
-            n = idx - 16;
+            int n = idx - 16;
             r.put(cterm_idx_to_rgb_cube[n / 36 % 6]);
             g.put(cterm_idx_to_rgb_cube[n / 6 % 6]);
             b.put(cterm_idx_to_rgb_cube[n % 6]);
         } else {
-            v = 8 + (idx - 232) * 10;
+            int v = 8 + (idx - 232) * 10;
             b.put(v);
             g.put(b.get());
             r.put(g.get());
@@ -30948,33 +30372,22 @@ public abstract class Editor {
 
     int rgb_to_cterm_idx(int r, int g, int b) {
         int best = 0;
-        long best_d = 0;
+        long best_d = -1L;
         int i = 0;
-        int n = 0;
-        int cr = 0;
-        int cg = 0;
-        int cb = 0;
-        long d = 0;
-        int v = 0;
-        long d_2 = 0;
-        best = 0;
-        best_d = -1L;
-        i = 16;
-        for (; i < 232; i++) {
-            n = i - 16;
-            cr = rgb_to_cterm_idx_cube[n / 36 % 6];
-            cg = rgb_to_cterm_idx_cube[n / 6 % 6];
-            cb = rgb_to_cterm_idx_cube[n % 6];
-            d = (long) ((cr - r) * (cr - r) + (cg - g) * (cg - g) + (cb - b) * (cb - b));
+        for (i = 16; i < 232; i++) {
+            int n = i - 16;
+            int cr = rgb_to_cterm_idx_cube[n / 36 % 6];
+            int cg = rgb_to_cterm_idx_cube[n / 6 % 6];
+            int cb = rgb_to_cterm_idx_cube[n % 6];
+            long d = (long) ((cr - r) * (cr - r) + (cg - g) * (cg - g) + (cb - b) * (cb - b));
             if (best_d < 0L || d < best_d) {
                 best_d = d;
                 best = i;
             }
         }
-        i = 232;
-        for (; i < 256; i++) {
-            v = 8 + (i - 232) * 10;
-            d_2 = (long) ((v - r) * (v - r) + (v - g) * (v - g) + (v - b) * (v - b));
+        for (i = 232; i < 256; i++) {
+            int v = 8 + (i - 232) * 10;
+            long d_2 = (long) ((v - r) * (v - r) + (v - g) * (v - g) + (v - b) * (v - b));
             if (d_2 < best_d) {
                 best_d = d_2;
                 best = i;
@@ -31003,14 +30416,12 @@ public abstract class Editor {
     }
 
     void resolve_fallback_fg_to_rgb() {
-        long fgcolor_or_gui_fgcolor = 0;
-        fgcolor_or_gui_fgcolor = 33554431L;
+        long fgcolor_or_gui_fgcolor = 33554431L;
         fallback_fg_rgb = resolve_fallback_color(cterm_normal_fg_color, fgcolor_or_gui_fgcolor, (long) (p_bg[0].get() == 'l' ? 0 : 16777215));
     }
 
     void resolve_fallback_bg_to_rgb() {
-        long bgcolor_or_gui_bgcolor = 0;
-        bgcolor_or_gui_bgcolor = 33554431L;
+        long bgcolor_or_gui_bgcolor = 33554431L;
         fallback_bg_rgb = resolve_fallback_color(cterm_normal_bg_color, bgcolor_or_gui_bgcolor, (long) (p_bg[0].get() == 'l' ? 16777215 : 0));
     }
 
@@ -31052,12 +30463,6 @@ public abstract class Editor {
         S_attr_entry popup_aep = null;
         S_attr_entry new_en = new S_attr_entry();
         S_attr_entry tmp_en = new S_attr_entry();
-        long popup_bg_rgb = 0;
-        int under_fg = 0;
-        long under_fg_rgb = 0;
-        int under_bg = 0;
-        long under_bg_rgb = 0;
-        char_aep = null;
         if (t_colors > 1) {
             if (char_attr > HL_ALL) {
                 char_aep = syn_cterm_attr2entry(char_attr);
@@ -31079,7 +30484,7 @@ public abstract class Editor {
                 popup_aep = syn_cterm_attr2entry(popup_attr);
             }
             if (popup_aep != null) {
-                popup_bg_rgb = 33554431L;
+                long popup_bg_rgb = 33554431L;
                 if ((popup_bg_rgb == 33554431L || popup_bg_rgb == 33554430L) && popup_aep.ae_u.cterm.bg_color == 0) {
                     popup_bg_rgb = fallback_bg_rgb;
                 }
@@ -31095,12 +30500,12 @@ public abstract class Editor {
                     new_en.ae_u.cterm.ul_color = popup_aep.ae_u.cterm.ul_color;
                     new_en.ae_u.cterm.font = popup_aep.ae_u.cterm.font;
                 } else {
-                    under_fg = char_aep != null ? char_aep.ae_u.cterm.fg_color & 0xffff : 0;
-                    under_fg_rgb = 33554431L;
+                    int under_fg = char_aep != null ? char_aep.ae_u.cterm.fg_color & 0xffff : 0;
+                    long under_fg_rgb = 33554431L;
                     new_en.ae_u.cterm.fg_color = (short) blend_cterm_colors(popup_aep.ae_u.cterm.bg_color & 0xffff, popup_bg_rgb, under_fg, under_fg_rgb, (int) fallback_fg_rgb, blend);
                 }
-                under_bg = char_aep != null ? char_aep.ae_u.cterm.bg_color & 0xffff : 0;
-                under_bg_rgb = 33554431L;
+                int under_bg = char_aep != null ? char_aep.ae_u.cterm.bg_color & 0xffff : 0;
+                long under_bg_rgb = 33554431L;
                 new_en.ae_u.cterm.bg_color = (short) blend_cterm_colors(popup_aep.ae_u.cterm.bg_color & 0xffff, popup_bg_rgb, under_bg, under_bg_rgb, (int) fallback_bg_rgb, blend);
             }
             return get_attr_entry(cterm_attr_table, new_en);
@@ -31160,10 +30565,8 @@ public abstract class Editor {
     }
 
     void highlight_list_one(int id) {
-        T_hl_group_T sgp = null;
-        int didh = 0;
-        didh = FALSE;
-        sgp = GA_Ptr_T_hl_group_T(highlight_ga).at(id - 1);
+        int didh = FALSE;
+        T_hl_group_T sgp = GA_Ptr_T_hl_group_T(highlight_ga).at(id - 1);
         if (message_filtered(sgp.sg_name)) {
             return;
         }
@@ -31188,17 +30591,15 @@ public abstract class Editor {
     }
 
     BytePtr highlight_arg_to_string(int type, int iarg, BytePtr sarg, BytePtr buf) {
-        long buflen = 0;
-        int i = 0;
         if (type == LIST_INT) {
             vim_snprintf(buf, MAX_ATTR_LEN, BytePtr.lit("%d"), iarg - 1);
         } else if (type == LIST_STRING) {
             return sarg;
         } else {
+            long buflen = 0;
             buf.set(0, (byte) NUL);
             buflen = 0L;
-            i = 0;
-            for (; i < 13; i++) {
+            for (int i = 0; i < 13; i++) {
                 if ((iarg & highlight_index_tab[i].key) != 0) {
                     if (Long.compareUnsigned(buflen, 0L) > 0) {
                         musl_strcpy(buf.add((int) buflen), BytePtr.lit(","));
@@ -31236,12 +30637,9 @@ public abstract class Editor {
     }
 
     boolean syn_list_header(int did_header, int outlen, int id) {
-        int endcol = 0;
-        boolean newline = false;
+        int endcol = 19;
+        boolean newline = true;
         int name_col = 0;
-        endcol = 19;
-        newline = true;
-        name_col = 0;
         if (did_header == 0) {
             msg_putchar('\n');
             if (got_int != 0) {
@@ -31279,8 +30677,7 @@ public abstract class Editor {
 
     void set_hl_attr(int idx) {
         S_attr_entry at_en = new S_attr_entry();
-        T_hl_group_T sgp = null;
-        sgp = GA_Ptr_T_hl_group_T(highlight_ga).at(idx);
+        T_hl_group_T sgp = GA_Ptr_T_hl_group_T(highlight_ga).at(idx);
         if (sgp.sg_name_u != null && musl_strcmp(sgp.sg_name_u, BytePtr.lit("NORMAL")) == 0) {
             return;
         }
@@ -31305,10 +30702,8 @@ public abstract class Editor {
     }
 
     int syn_override(int id) {
-        int k = 0;
         if (overrides != null && overrides.arr != null) {
-            k = 0;
-            for (; k < overrides.len; k++) {
+            for (int k = 0; k < overrides.len; k++) {
                 if (overrides.arr.at(k).from == id) {
                     return overrides.arr.at(k).to_;
                 }
@@ -31326,8 +30721,7 @@ public abstract class Editor {
         Rt.memmove(new BytePtr(name_u, 0), name, (long) len);
         name_u[len] = (byte) NUL;
         vim_strup(new BytePtr(name_u, 0));
-        i = 0;
-        for (; i < highlight_ga.ga_len; i++) {
+        for (i = 0; i < highlight_ga.ga_len; i++) {
             if (musl_strcmp(GA_Ptr_T_hl_group_T(highlight_ga).at(i).sg_name_u, new BytePtr(name_u, 0)) == 0) {
                 return i + 1;
             }
@@ -31357,8 +30751,7 @@ public abstract class Editor {
     int syn_add_group(BytePtr name) {
         BytePtr p = null;
         BytePtr name_up = null;
-        p = name;
-        for (; p.get() != NUL; p = p.add(1)) {
+        for (p = name; p.get() != NUL; p = p.add(1)) {
             if (!vim_isprintc(p.get() & 0xff)) {
                 emsg(gettext_(new BytePtr(e_unprintable_character_in_group_name, 0)));
                 return 0;
@@ -31408,7 +30801,6 @@ public abstract class Editor {
     int syn_get_final_id(int hl_id) {
         int count = 0;
         T_hl_group_T sgp = null;
-        int tmp = 0;
         if (hl_id > highlight_ga.ga_len || hl_id < 1) {
             return 0;
         }
@@ -31419,7 +30811,7 @@ public abstract class Editor {
                 break;
             }
             c1: {
-                tmp = hl_id;
+                int tmp = hl_id;
                 sgp = GA_Ptr_T_hl_group_T(highlight_ga).at(hl_id - 1);
                 if (sgp.sg_link == 0 || sgp.sg_link > highlight_ga.ga_len) {
                     break;
@@ -31443,17 +30835,14 @@ public abstract class Editor {
         BytePtr end = null;
         int id = 0;
         S_window_S wp = null;
-        BytePtr errmsg = null;
         need_highlight_changed = FALSE;
-        hlf = 0;
-        for (; hlf < HLF_COUNT; hlf++) {
+        for (hlf = 0; hlf < HLF_COUNT; hlf++) {
             highlight_attr[hlf] = 0;
             highlight_attr_raw[hlf] = 0;
             highlight_ids[hlf] = 0;
         }
         default_hl = get_highlight_default();
-        i = 0;
-        for (; i < 2; i++) {
+        for (i = 0; i < 2; i++) {
             if (i != 0) {
                 if (default_hl != null && p_hl[0] != null && musl_strcmp(default_hl, p_hl[0]) == 0) {
                     continue;
@@ -31466,8 +30855,7 @@ public abstract class Editor {
                 continue;
             }
             while (p.get() != 0) {
-                hlf = 0;
-                for (; hlf < HLF_COUNT; hlf++) {
+                for (hlf = 0; hlf < HLF_COUNT; hlf++) {
                     if (hl_flags[hlf] == (p.get() & 0xff)) {
                         break;
                     }
@@ -31478,7 +30866,7 @@ public abstract class Editor {
                 }
                 attr = 0;
                 id = 0;
-                for (; (p.get() != 0) && p.get() != ','; p = p.add(1)) {
+                for (; p.get() != 0 && p.get() != ','; p = p.add(1)) {
                     if (p.get() == ' ' || p.get() == '\t') {
                         continue;
                     }
@@ -31546,7 +30934,7 @@ public abstract class Editor {
             }
         }
         wp = curwin;
-        errmsg = update_winhighlight(wp, wp.w_onebuf_opt.wo_whl[0]);
+        BytePtr errmsg = update_winhighlight(wp, wp.w_onebuf_opt.wo_whl[0]);
         if (errmsg != null) {
             emsg(gettext_(errmsg));
         }
@@ -31554,12 +30942,10 @@ public abstract class Editor {
     }
 
     void update_highlight_overrides(Ptr<T_hl_override_T> old, Ptr<T_hl_override_T> hl_new, int newlen) {
-        S_hl_overrides_S set = null;
         if (old == null) {
             return;
         }
-        set = overrides;
-        for (; set != null; set = set.next) {
+        for (S_hl_overrides_S set = overrides; set != null; set = set.next) {
             if (Ptr.eq(set.arr, old)) {
                 set.arr = hl_new;
                 set.len = newlen;
@@ -31568,20 +30954,14 @@ public abstract class Editor {
     }
 
     void set_highlight_attr(Ptr<T_hl_override_T> arr, int len, boolean update_ids) {
-        int i = 0;
-        T_hl_override_T override = null;
-        int hlf = 0;
         int attr = 0;
-        int k = 0;
-        i = 0;
-        for (; i < len; i++) {
-            override = arr.at(i);
-            hlf = -1;
+        for (int i = 0; i < len; i++) {
+            T_hl_override_T override = arr.at(i);
+            int hlf = -1;
             if (override.from <= 0) {
                 hlf = -override.from;
             } else {
-                k = 0;
-                for (; k < HLF_COUNT; k++) {
+                for (int k = 0; k < HLF_COUNT; k++) {
                     if (override.from == highlight_ids[k]) {
                         hlf = k;
                         break;
@@ -31613,11 +30993,10 @@ public abstract class Editor {
     }
 
     boolean push_highlight_overrides(Ptr<T_hl_override_T> arr, int len) {
-        S_hl_overrides_S set = null;
         if (overrides != null && Ptr.eq(overrides.arr, arr)) {
             return false;
         }
-        set = new S_hl_overrides_S();
+        S_hl_overrides_S set = new S_hl_overrides_S();
         set.arr = arr;
         set.len = len;
         set.next = overrides;
@@ -31631,8 +31010,7 @@ public abstract class Editor {
     }
 
     void pop_highlight_overrides() {
-        S_hl_overrides_S set = null;
-        set = overrides;
+        S_hl_overrides_S set = overrides;
         if (overrides == null) {
             return;
         }
@@ -31641,31 +31019,19 @@ public abstract class Editor {
     }
 
     Ptr<T_hl_override_T> parse_winhighlight(BytePtr opt, IntPtr len, Ptr<BytePtr> errmsg) {
-        BytePtr p = null;
-        Ptr<T_hl_override_T> arr = null;
-        int i = 0;
-        int num = 0;
-        int n_colons = 0;
-        T_hl_override_T override = null;
         int t1 = 0;
-        BytePtr[] fromname = new BytePtr[1];
         BytePtr[] toname = new BytePtr[1];
         BytePtr tmp = null;
-        Ptr<BytePtr>[] names = new Ptr[2];
         int[] fromlen = new int[1];
         int[] tolen = new int[1];
-        IntPtr[] lens = new IntPtr[2];
         int[] fromid = new int[1];
         int[] toid = new int[1];
-        IntPtr[] ids = new IntPtr[2];
-        int k = 0;
-        BytePtr name = null;
-        int nlen = 0;
         int hlf = 0;
-        p = opt;
-        i = 0;
-        num = 1;
-        n_colons = 0;
+        BytePtr p = opt;
+        Ptr<T_hl_override_T> arr = null;
+        int i = 0;
+        int num = 1;
+        int n_colons = 0;
         if (p.get() == NUL) {
             return null;
         }
@@ -31695,15 +31061,16 @@ public abstract class Editor {
         while (true) {
             t1 = i;
             i++;
-            override = arr.at(t1);
+            T_hl_override_T override = arr.at(t1);
+            BytePtr[] fromname = new BytePtr[1];
             fromname[0] = p;
-            names = new Ptr[2];
+            Ptr<BytePtr>[] names = new Ptr[2];
             names[0] = new Ptr<BytePtr>(fromname, 0);
             names[1] = new Ptr<BytePtr>(toname, 0);
-            lens = new IntPtr[2];
+            IntPtr[] lens = new IntPtr[2];
             lens[0] = new IntPtr(fromlen, 0);
             lens[1] = new IntPtr(tolen, 0);
-            ids = new IntPtr[2];
+            IntPtr[] ids = new IntPtr[2];
             ids[0] = new IntPtr(fromid, 0);
             ids[1] = new IntPtr(toid, 0);
             p = vim_strchr(p, ':');
@@ -31734,17 +31101,15 @@ public abstract class Editor {
                 errmsg.put(new BytePtr(e_invalid_argument, 0));
                 return null;
             }
-            k = 0;
-            for (; k < 2; k++) {
-                name = names[k].get();
-                nlen = lens[k].get();
+            for (int k = 0; k < 2; k++) {
+                BytePtr name = names[k].get();
+                int nlen = lens[k].get();
                 if (name.get() == '!') {
                     if (nlen != 2) {
                         errmsg.put(new BytePtr(e_invalid_argument, 0));
                         return null;
                     }
-                    hlf = 0;
-                    for (; hlf < HLF_COUNT; hlf++) {
+                    for (hlf = 0; hlf < HLF_COUNT; hlf++) {
                         if (hl_flags[hlf] == (name.at(1) & 0xff)) {
                             break;
                         }
@@ -31781,11 +31146,10 @@ public abstract class Editor {
 
     BytePtr update_winhighlight(S_window_S wp, BytePtr opt) {
         BytePtr[] err = new BytePtr[1];
-        Ptr<T_hl_override_T> arr = null;
-        int[] num = new int[1];
         err[0] = null;
+        int[] num = new int[1];
         num[0] = 1;
-        arr = parse_winhighlight(opt, new IntPtr(num, 0), new Ptr<BytePtr>(err, 0));
+        Ptr<T_hl_override_T> arr = parse_winhighlight(opt, new IntPtr(num, 0), new Ptr<BytePtr>(err, 0));
         if (arr == null && err[0] != null) {
             return err[0];
         }
@@ -31812,9 +31176,8 @@ public abstract class Editor {
     }
 
     BytePtr update_wincolor(S_window_S wp, BytePtr opt) {
-        BytePtr str = null;
+        BytePtr str = opt.get() == NUL ? BytePtr.lit("") : BytePtr.alloc(4L + musl_strlen(opt));
         BytePtr errmsg = null;
-        str = opt.get() == NUL ? BytePtr.lit("") : BytePtr.alloc(4L + musl_strlen(opt));
         if (str == null) {
             return new BytePtr(e_out_of_memory, 0);
         }
@@ -31834,8 +31197,8 @@ public abstract class Editor {
 
     long get_sw_value_pos(S_file_buffer buf, T_pos_T pos, boolean left) {
         T_pos_T save_cursor = new T_pos_T();
-        long sw_value = 0;
         save_cursor.set(curwin.w_cursor);
+        long sw_value = 0;
         curwin.w_cursor.set(pos);
         sw_value = get_sw_value_col(buf, get_nolist_virtcol(), left);
         curwin.w_cursor.set(save_cursor);
@@ -31867,7 +31230,6 @@ public abstract class Editor {
 
     int get_indent_str(BytePtr ptr, int ts, boolean no_ts) {
         int count = 0;
-        count = 0;
         for (; ptr.get() != 0; ptr = ptr.add(1)) {
             if (ptr.get() == TAB) {
                 if (!no_ts) {
@@ -31885,18 +31247,6 @@ public abstract class Editor {
     }
 
     boolean set_indent(int size, int flags) {
-        BytePtr p = null;
-        BytePtr newline = null;
-        BytePtr oldline = null;
-        BytePtr s = null;
-        int todo = 0;
-        int ind_len = 0;
-        int line_len = 0;
-        boolean doit = false;
-        int ind_done = 0;
-        int tab_pad = 0;
-        boolean retval = false;
-        int orig_char_len = 0;
         BytePtr t1 = null;
         BytePtr t2 = null;
         BytePtr t3 = null;
@@ -31904,14 +31254,18 @@ public abstract class Editor {
         BytePtr t5 = null;
         BytePtr t6 = null;
         BytePtr t7 = null;
-        int old_offset = 0;
-        int new_offset = 0;
-        doit = false;
-        ind_done = 0;
-        retval = false;
-        orig_char_len = -1;
-        todo = size;
-        ind_len = 0;
+        BytePtr p = null;
+        BytePtr newline = null;
+        BytePtr oldline = null;
+        BytePtr s = null;
+        int line_len = 0;
+        boolean doit = false;
+        int ind_done = 0;
+        int tab_pad = 0;
+        boolean retval = false;
+        int orig_char_len = -1;
+        int todo = size;
+        int ind_len = 0;
         oldline = ml_get_curline();
         p = oldline;
         line_len = ml_get_curline_len() + 1;
@@ -32040,8 +31394,8 @@ public abstract class Editor {
         }
         Rt.memmove(s, p, (long) line_len);
         if ((flags & SIN_UNDO) == 0 || u_savesub(curwin.w_cursor.lnum[0])) {
-            old_offset = (int) p.sub(oldline);
-            new_offset = (int) s.sub(newline);
+            int old_offset = (int) p.sub(oldline);
+            int new_offset = (int) s.sub(newline);
             ml_replace(curwin.w_cursor.lnum[0], newline, false);
             if ((flags & SIN_CHANGED) != 0) {
                 changed_bytes(curwin.w_cursor.lnum[0], 0);
@@ -32062,9 +31416,7 @@ public abstract class Editor {
     boolean inindent(int extra) {
         BytePtr ptr = null;
         int col = 0;
-        col = 0;
-        ptr = ml_get_curline();
-        for (; (ptr.get() == ' ' || ptr.get() == '\t'); col++) {
+        for (col = 0, ptr = ml_get_curline(); ptr.get() == ' ' || ptr.get() == '\t'; col++) {
             ptr = ptr.add(1);
         }
         if (col >= curwin.w_cursor.col[0] + extra) {
@@ -32083,13 +31435,13 @@ public abstract class Editor {
     }
 
     void ins_try_si(int c) {
+        boolean t1 = false;
+        boolean t2 = false;
         T_pos_T pos = null;
         T_pos_T old_pos = new T_pos_T();
         BytePtr ptr = null;
         int i = 0;
         boolean temp = false;
-        boolean t1 = false;
-        boolean t2 = false;
         if (((did_si != 0 || can_si_back != 0) && c == '{') || (can_si != 0 && c == '}' && inindent(0))) {
             t1 = c == '}';
             if (t1) {
@@ -32169,15 +31521,8 @@ public abstract class Editor {
         int orig_col = 0;
         BytePtr new_line = null;
         BytePtr orig_line = null;
-        int len = 0;
-        int save_State = 0;
-        T_chartabsize_T cts = new T_chartabsize_T();
-        long ptrlen = 0;
-        int len_2 = 0;
-        orig_col = 0;
-        orig_line = null;
         if ((State & VREPLACE_FLAG) != 0) {
-            len = ml_get_curline_len();
+            int len = ml_get_curline_len();
             orig_line = vim_strnsave(ml_get_curline(), (long) len);
             orig_col = curwin.w_cursor.col[0];
         }
@@ -32199,7 +31544,7 @@ public abstract class Editor {
         if (type == INDENT_SET) {
             set_indent(amount, call_changed_bytes != 0 ? SIN_CHANGED : 0);
         } else {
-            save_State = State;
+            int save_State = State;
             if ((State & VREPLACE_FLAG) != 0) {
                 State = MODE_INSERT;
             }
@@ -32215,6 +31560,7 @@ public abstract class Editor {
         } else if ((State & MODE_INSERT) == 0) {
             new_cursor_col = curwin.w_cursor.col[0];
         } else {
+            T_chartabsize_T cts = new T_chartabsize_T();
             vcol = get_indent() - vcol;
             curwin.w_virtcol[0] = vcol < 0 ? 0 : vcol;
             last_vcol = 0;
@@ -32236,6 +31582,7 @@ public abstract class Editor {
                 curwin.w_cursor.col[0] = new_cursor_col;
                 i = curwin.w_virtcol[0] - vcol;
                 ptr = BytePtr.alloc((long) (i + 1));
+                long ptrlen = 0;
                 new_cursor_col += i;
                 ptr.set(i, (byte) NUL);
                 ptrlen = (long) i;
@@ -32290,7 +31637,7 @@ public abstract class Editor {
             if (orig_line == null) {
                 return;
             }
-            len_2 = ml_get_curline_len();
+            int len_2 = ml_get_curline_len();
             new_line = vim_strnsave(ml_get_curline(), (long) len_2);
             new_line.set(curwin.w_cursor.col[0], (byte) NUL);
             ml_replace(curwin.w_cursor.lnum[0], orig_line, false);
@@ -32301,6 +31648,10 @@ public abstract class Editor {
     }
 
     boolean copy_indent(int size, BytePtr src) {
+        BytePtr t1 = null;
+        BytePtr t2 = null;
+        BytePtr t3 = null;
+        BytePtr t4 = null;
         BytePtr p = null;
         BytePtr line = null;
         BytePtr s = null;
@@ -32310,15 +31661,7 @@ public abstract class Editor {
         int tab_pad = 0;
         int ind_done = 0;
         int round = 0;
-        BytePtr t1 = null;
-        BytePtr t2 = null;
-        BytePtr t3 = null;
-        BytePtr t4 = null;
-        p = null;
-        line = null;
-        line_len = 0;
-        round = 1;
-        for (; round <= 2; round++) {
+        for (round = 1; round <= 2; round++) {
             todo = size;
             ind_len = 0;
             ind_done = 0;
@@ -32416,8 +31759,7 @@ public abstract class Editor {
     }
 
     void map_free(Ptr<S_mapblock> mpp) {
-        S_mapblock mp = null;
-        mp = mpp.get();
+        S_mapblock mp = mpp.get();
         if (mp.m_alt != null) {
             mp.m_alt.m_alt = null;
         }
@@ -32458,9 +31800,8 @@ public abstract class Editor {
     }
 
     void showmap(S_mapblock mp, boolean local) {
-        int len = 0;
+        int len = 1;
         BytePtr mapchars = null;
-        len = 1;
         if (message_filtered(mp.m_keys) && message_filtered(mp.m_str)) {
             return;
         }
@@ -32512,9 +31853,7 @@ public abstract class Editor {
     }
 
     S_mapblock map_add(Ptr<S_mapblock> map_table, Ptr<S_mapblock> abbr_table, BytePtr keys, BytePtr rhs, BytePtr orig_rhs, int noremap, boolean nowait, boolean silent, int mode, boolean is_abbr, boolean simplified) {
-        S_mapblock mp = null;
-        int n = 0;
-        mp = new S_mapblock();
+        S_mapblock mp = new S_mapblock();
         if (keys.get() == Ctrl_C) {
             if (Ptr.eq(map_table, new Ptr<S_mapblock>(curbuf.b_maphash, 0))) {
                 curbuf.b_mapped_ctrl_c |= mode;
@@ -32538,7 +31877,7 @@ public abstract class Editor {
             mp.m_next[0] = abbr_table.get();
             abbr_table.put(mp);
         } else {
-            n = (mp.m_mode & (MODE_NORMAL | MODE_VISUAL | MODE_SELECT | MODE_OP_PENDING | MODE_TERMINAL)) != 0 ? mp.m_keys.at(0) & 0xff : (mp.m_keys.at(0) & 0xff) ^ 128;
+            int n = (mp.m_mode & (MODE_NORMAL | MODE_VISUAL | MODE_SELECT | MODE_OP_PENDING | MODE_TERMINAL)) != 0 ? mp.m_keys.at(0) & 0xff : (mp.m_keys.at(0) & 0xff) ^ 128;
             mp.m_next[0] = map_table.at(n);
             map_table.set(n, mp);
         }
@@ -32546,20 +31885,14 @@ public abstract class Editor {
     }
 
     void list_mappings(int keyround, boolean abbrev, boolean haskey, BytePtr keys, int keys_len, int mode, IntPtr did_local) {
-        BytePtr name = null;
-        byte[] buf = new byte[200];
-        BytePtr name_2 = null;
-        byte[] buf_2 = new byte[200];
-        int hash = 0;
         S_mapblock mp = null;
-        int n = 0;
         map_locked++;
         if (p_verbose[0] > 0L && keyround == 1) {
             if (seenModifyOtherKeys != 0) {
                 msg_puts(gettext_(BytePtr.lit("Seen modifyOtherKeys: true\n")));
             }
             if (modify_otherkeys_state != MOKS_INITIAL) {
-                name = gettext_(BytePtr.lit("Unknown"));
+                BytePtr name = gettext_(BytePtr.lit("Unknown"));
                 switch (modify_otherkeys_state) {
                     case MOKS_INITIAL:
                         break;
@@ -32576,11 +31909,12 @@ public abstract class Editor {
                         name = gettext_(BytePtr.lit("Cleared"));
                         break;
                 }
+                byte[] buf = new byte[200];
                 vim_snprintf(new BytePtr(buf, 0), 200L, gettext_(BytePtr.lit("modifyOtherKeys detected: %s\n")), name);
                 msg_puts(new BytePtr(buf, 0));
             }
             if (kitty_protocol_state != KKPS_INITIAL) {
-                name_2 = gettext_(BytePtr.lit("Unknown"));
+                BytePtr name_2 = gettext_(BytePtr.lit("Unknown"));
                 switch (kitty_protocol_state) {
                     case KKPS_INITIAL:
                         break;
@@ -32597,12 +31931,12 @@ public abstract class Editor {
                         name_2 = gettext_(BytePtr.lit("Cleared"));
                         break;
                 }
+                byte[] buf_2 = new byte[200];
                 vim_snprintf(new BytePtr(buf_2, 0), 200L, gettext_(BytePtr.lit("Kitty keyboard protocol: %s\n")), name_2);
                 msg_puts(new BytePtr(buf_2, 0));
             }
         }
-        hash = 0;
-        for (; (hash < 256) && got_int == 0; hash++) {
+        for (int hash = 0; hash < 256 && got_int == 0; hash++) {
             if (abbrev) {
                 if (hash != 0) {
                     break;
@@ -32611,13 +31945,13 @@ public abstract class Editor {
             } else {
                 mp = curbuf.b_maphash[hash];
             }
-            for (; (mp != null) && got_int == 0; mp = mp.m_next[0]) {
+            for (; mp != null && got_int == 0; mp = mp.m_next[0]) {
                 if (!mp.m_simplified && (mp.m_mode & mode) != 0) {
                     if (!haskey) {
                         showmap(mp, true);
                         did_local.put(TRUE);
                     } else {
-                        n = mp.m_keylen;
+                        int n = mp.m_keylen;
                         if (musl_strncmp(mp.m_keys, keys, (long) (n < keys_len ? n : keys_len)) == 0) {
                             showmap(mp, true);
                             did_local.put(TRUE);
@@ -32630,7 +31964,13 @@ public abstract class Editor {
     }
 
     int do_map(int maptype, BytePtr arg, int mode, boolean abbrev) {
-        BytePtr keys = null;
+        BytePtr t1 = null;
+        int round = 0;
+        int num_rounds = 0;
+        boolean first = false;
+        boolean last = false;
+        byte[] keys_unescaped = new byte[51];
+        long keys_unescaped_len = 0;
         S_mapblock mp = null;
         Ptr<S_mapblock> mpp = null;
         S_mapblock[] mp_result = new S_mapblock[2];
@@ -32643,52 +31983,25 @@ public abstract class Editor {
         boolean do_print = false;
         int keyround = 0;
         BytePtr[] keys_buf = new BytePtr[1];
+        keys_buf[0] = null;
         BytePtr[] alt_keys_buf = new BytePtr[1];
+        alt_keys_buf[0] = null;
         BytePtr[] arg_buf = new BytePtr[1];
+        arg_buf[0] = null;
         int retval = 0;
         boolean do_backslash = false;
-        Ptr<S_mapblock> abbr_table = null;
-        Ptr<S_mapblock> map_table = null;
         boolean unique = false;
         boolean nowait = false;
         boolean silent = false;
         boolean special = false;
         int[] did_simplify = new int[1];
+        did_simplify[0] = FALSE;
         boolean unmap_lhs_only = false;
         int noremap = 0;
         BytePtr orig_rhs = null;
-        BytePtr t1 = null;
-        BytePtr new_keys = null;
-        int flags = 0;
-        boolean did_it = false;
-        int[] did_local = new int[1];
-        boolean keyround1_simplified = false;
-        int round = 0;
-        int num_rounds = 0;
-        boolean first = false;
-        boolean last = false;
-        int same = 0;
-        byte[] keys_unescaped = new byte[51];
-        long keys_unescaped_len = 0;
-        int hash = 0;
-        int hash_2 = 0;
-        BytePtr newstr = null;
-        int new_hash = 0;
-        mp_result = new S_mapblock[2];
-        len = 0;
-        keys_buf[0] = null;
-        alt_keys_buf[0] = null;
-        arg_buf[0] = null;
-        retval = 0;
-        unique = false;
-        nowait = false;
-        silent = false;
-        special = false;
-        did_simplify[0] = FALSE;
-        unmap_lhs_only = false;
-        keys = arg;
-        map_table = new Ptr<S_mapblock>(maphash, 0);
-        abbr_table = new Ptr<S_mapblock>(first_abbr, 0);
+        BytePtr keys = arg;
+        Ptr<S_mapblock> map_table = new Ptr<S_mapblock>(maphash, 0);
+        Ptr<S_mapblock> abbr_table = new Ptr<S_mapblock>(first_abbr, 0);
         if (maptype == MAPTYPE_UNMAP_LHS) {
             unmap_lhs_only = true;
             maptype = MAPTYPE_UNMAP;
@@ -32751,7 +32064,8 @@ public abstract class Editor {
             return retval;
         }
         if (haskey) {
-            flags = REPTERM_FROM_PART | REPTERM_DO_LT;
+            BytePtr new_keys = null;
+            int flags = REPTERM_FROM_PART | REPTERM_DO_LT;
             if (special) {
                 flags |= REPTERM_SPECIAL;
             }
@@ -32769,11 +32083,11 @@ public abstract class Editor {
                 rhs = replace_termcodes(rhs, new Ptr<BytePtr>(arg_buf, 0), 0, REPTERM_DO_LT | (special ? REPTERM_SPECIAL : 0), null);
             }
         }
-        keyround = 1;
-        for (; keyround <= 2; keyround++) {
-            did_it = false;
+        for (keyround = 1; keyround <= 2; keyround++) {
+            boolean did_it = false;
+            int[] did_local = new int[1];
             did_local[0] = FALSE;
-            keyround1_simplified = keyround == 1 && did_simplify[0] != 0;
+            boolean keyround1_simplified = keyround == 1 && did_simplify[0] != 0;
             if (keyround == 2) {
                 if (alt_keys_buf[0] == null) {
                     break;
@@ -32789,7 +32103,7 @@ public abstract class Editor {
                     return retval;
                 }
                 if (abbrev && maptype != MAPTYPE_UNMAP) {
-                    same = -1;
+                    int same = -1;
                     Rt.memmove(new BytePtr(keys_unescaped, 0), keys, (long) (len + 1));
                     keys_unescaped_len = vim_unescape_csi(new BytePtr(keys_unescaped, 0));
                     p = new BytePtr(keys_unescaped, 0);
@@ -32809,8 +32123,7 @@ public abstract class Editor {
                         retval = 1;
                         return retval;
                     }
-                    n = 0;
-                    for (; n < len; n++) {
+                    for (n = 0; n < len; n++) {
                         if (keys.at(n) == ' ' || keys.at(n) == '\t') {
                             retval = 1;
                             return retval;
@@ -32825,8 +32138,7 @@ public abstract class Editor {
                 msg_start();
             }
             if (unique && Ptr.eq(map_table, new Ptr<S_mapblock>(curbuf.b_maphash, 0)) && haskey && hasarg && maptype != MAPTYPE_UNMAP) {
-                hash = 0;
-                for (; (hash < 256) && got_int == 0; hash++) {
+                for (int hash = 0; hash < 256 && got_int == 0; hash++) {
                     if (abbrev) {
                         if (hash != 0) {
                             break;
@@ -32835,7 +32147,7 @@ public abstract class Editor {
                     } else {
                         mp = maphash[hash];
                     }
-                    for (; (mp != null) && got_int == 0; mp = mp.m_next[0]) {
+                    for (; mp != null && got_int == 0; mp = mp.m_next[0]) {
                         if ((mp.m_mode & mode) != 0 && mp.m_keylen == len && musl_strncmp(mp.m_keys, keys, (long) len) == 0) {
                             if (abbrev) {
                                 vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(new BytePtr(e_global_abbreviation_already_exists_for_str, 0)), mp.m_keys);
@@ -32854,10 +32166,8 @@ public abstract class Editor {
                 list_mappings(keyround, abbrev, haskey, keys, len, mode, new IntPtr(did_local, 0));
             }
             num_rounds = maptype == MAPTYPE_UNMAP && !unmap_lhs_only ? 2 : 1;
-            round = 0;
-            for (; (round < num_rounds && !did_it) && got_int == 0; round++) {
-                hash_2 = 0;
-                for (; (hash_2 < 256) && got_int == 0; hash_2++) {
+            for (round = 0; round < num_rounds && !did_it && got_int == 0; round++) {
+                for (int hash_2 = 0; hash_2 < 256 && got_int == 0; hash_2++) {
                     if (abbrev) {
                         if (hash_2 > 0) {
                             break;
@@ -32866,8 +32176,7 @@ public abstract class Editor {
                     } else {
                         mpp = map_table.add(hash_2);
                     }
-                    mp = mpp.get();
-                    for (; (mp != null) && got_int == 0; mp = mpp.get()) {
+                    for (mp = mpp.get(); mp != null && got_int == 0; mp = mpp.get()) {
                         if ((mp.m_mode & mode) == 0) {
                             mpp = new Ptr<S_mapblock>(mp.m_next, 0);
                             continue;
@@ -32917,7 +32226,7 @@ public abstract class Editor {
                                 } else {
                                     mp.m_mode &= ~mode;
                                     if (mp.m_mode == 0 && !did_it) {
-                                        newstr = vim_strsave(rhs);
+                                        BytePtr newstr = vim_strsave(rhs);
                                         if (mp.m_alt != null) {
                                             mp.m_alt.m_alt = null;
                                             mp.m_alt = mp.m_alt.m_alt;
@@ -32937,7 +32246,7 @@ public abstract class Editor {
                                     map_free(mpp);
                                     continue;
                                 }
-                                new_hash = (mp.m_mode & (MODE_NORMAL | MODE_VISUAL | MODE_SELECT | MODE_OP_PENDING | MODE_TERMINAL)) != 0 ? mp.m_keys.at(0) & 0xff : (mp.m_keys.at(0) & 0xff) ^ 128;
+                                int new_hash = (mp.m_mode & (MODE_NORMAL | MODE_VISUAL | MODE_SELECT | MODE_OP_PENDING | MODE_TERMINAL)) != 0 ? mp.m_keys.at(0) & 0xff : (mp.m_keys.at(0) & 0xff) ^ 128;
                                 if (!abbrev && new_hash != hash_2) {
                                     mpp.put(mp.m_next[0]);
                                     mp.m_next[0] = map_table.at(new_hash);
@@ -32991,11 +32300,10 @@ public abstract class Editor {
     }
 
     int get_map_mode(Ptr<BytePtr> cmdp, boolean forceit) {
-        BytePtr p = null;
+        BytePtr t1 = null;
         int modec = 0;
         int mode = 0;
-        BytePtr t1 = null;
-        p = cmdp.get();
+        BytePtr p = cmdp.get();
         t1 = p;
         p = p.add(1);
         modec = t1.get() & 0xff;
@@ -33028,8 +32336,7 @@ public abstract class Editor {
     void map_clear(BytePtr cmdp_arg, BytePtr arg, boolean forceit, boolean abbr) {
         BytePtr[] cmdp = new BytePtr[] {cmdp_arg};
         int mode = 0;
-        boolean local = false;
-        local = musl_strcmp(arg, BytePtr.lit("<buffer>")) == 0;
+        boolean local = musl_strcmp(arg, BytePtr.lit("<buffer>")) == 0;
         if (!local && arg.get() != NUL) {
             emsg(gettext_(new BytePtr(e_invalid_argument, 0)));
             return;
@@ -33055,8 +32362,7 @@ public abstract class Editor {
             return;
         }
         validate_maphash();
-        hash = 0;
-        for (; hash < 256; hash++) {
+        for (hash = 0; hash < 256; hash++) {
             if (abbr) {
                 if (hash > 0) {
                     break;
@@ -33100,19 +32406,16 @@ public abstract class Editor {
     }
 
     BytePtr vim_strsave_escape_csi(BytePtr p) {
-        BytePtr res = null;
-        BytePtr s = null;
-        BytePtr d = null;
         BytePtr t1 = null;
         BytePtr t2 = null;
         BytePtr t3 = null;
         BytePtr t4 = null;
         BytePtr t5 = null;
         BytePtr t6 = null;
-        res = BytePtr.alloc(musl_strlen(p) * 4L + 1L);
-        d = res;
-        s = p;
-        for (; s.get() != NUL; ) {
+        BytePtr s = null;
+        BytePtr res = BytePtr.alloc(musl_strlen(p) * 4L + 1L);
+        BytePtr d = res;
+        for (s = p; s.get() != NUL; ) {
             if ((s.at(0) & 0xff) == 128 && s.at(1) != NUL && s.at(2) != NUL) {
                 t1 = d;
                 d = d.add(1);
@@ -33139,14 +32442,12 @@ public abstract class Editor {
     }
 
     long vim_unescape_csi(BytePtr p) {
-        BytePtr s = null;
-        BytePtr d = null;
         BytePtr t1 = null;
         BytePtr t2 = null;
         BytePtr t3 = null;
         BytePtr t4 = null;
-        s = p;
-        d = p;
+        BytePtr s = p;
+        BytePtr d = p;
         while (s.get() != NUL) {
             if ((s.at(0) & 0xff) == 128 && (s.at(1) & 0xff) == KS_SPECIAL && s.at(2) == 'X') {
                 t1 = d;
@@ -33180,12 +32481,9 @@ public abstract class Editor {
         S_file_buffer bp = null;
         validate_maphash();
         estack_push(ETYPE_INTERNAL, BytePtr.lit("mappings"), 0L);
-        bp = curbuf;
-        for (; ; bp = null) {
-            abbr = 0;
-            for (; abbr <= 1; abbr++) {
-                hash = 0;
-                for (; hash < 256; hash++) {
+        for (bp = curbuf; ; bp = null) {
+            for (abbr = 0; abbr <= 1; abbr++) {
+                for (hash = 0; hash < 256; hash++) {
                     if (abbr != 0) {
                         if (hash != 0) {
                             break;
@@ -33203,8 +32501,7 @@ public abstract class Editor {
                         }
                     }
                     for (; mp != null; mp = mp.m_next[0]) {
-                        i = 0;
-                        for (; i <= 1; i++) {
+                        for (i = 0; i <= 1; i++) {
                             if (i == 0) {
                                 p = mp.m_keys;
                             } else {
@@ -33235,17 +32532,14 @@ public abstract class Editor {
     }
 
     void init_mappings() {
-        int i = 0;
-        i = 0;
-        for (; i < 4; i++) {
+        for (int i = 0; i < 4; i++) {
             add_map(vimrc_mappings[i].arg, vimrc_mappings[i].mode, false);
         }
     }
 
     void add_map(BytePtr map, int mode, boolean nore) {
         BytePtr s = null;
-        BytePtr cpo_save = null;
-        cpo_save = p_cpo[0];
+        BytePtr cpo_save = p_cpo[0];
         p_cpo[0] = empty_option;
         s = vim_strsave(map);
         do_map(nore ? MAPTYPE_NOREMAP : MAPTYPE_MAP, s, mode, false);
@@ -33385,10 +32679,9 @@ public abstract class Editor {
     }
 
     T_pos_T getmark_buf_fnum(S_file_buffer buf, int c, boolean changefile, IntPtr fnum) {
-        T_pos_T posp = null;
         T_pos_T startp = null;
         T_pos_T endp = null;
-        posp = null;
+        T_pos_T posp = null;
         if (c < 0) {
             return posp;
         }
@@ -33434,15 +32727,13 @@ public abstract class Editor {
         int i = 0;
         T_pos_T result = null;
         T_pos_T pos = new T_pos_T();
-        result = null;
         pos.set(startpos);
         if (dir == -1 && begin_line) {
             pos.col[0] = 0;
         } else if (dir == FORWARD && begin_line) {
             pos.col[0] = MAXCOL;
         }
-        i = 0;
-        for (; i < 'z' - 'a' + 1; i++) {
+        for (i = 0; i < 'z' - 'a' + 1; i++) {
             if (curbuf.b_namedm[i].lnum[0] > 0L) {
                 if (dir == FORWARD) {
                     if ((result == null || (curbuf.b_namedm[i].lnum[0] != result.lnum[0] ? curbuf.b_namedm[i].lnum[0] < result.lnum[0] : (curbuf.b_namedm[i].col[0] != result.col[0] ? curbuf.b_namedm[i].col[0] < result.col[0] : curbuf.b_namedm[i].coladd < result.coladd))) && (pos.lnum[0] != curbuf.b_namedm[i].lnum[0] ? pos.lnum[0] < curbuf.b_namedm[i].lnum[0] : (pos.col[0] != curbuf.b_namedm[i].col[0] ? pos.col[0] < curbuf.b_namedm[i].col[0] : pos.coladd < curbuf.b_namedm[i].coladd))) {
@@ -33478,8 +32769,7 @@ public abstract class Editor {
 
     void clrallmarks(S_file_buffer buf) {
         int i = 0;
-        i = 0;
-        for (; i < 'z' - 'a' + 1; i++) {
+        for (i = 0; i < 'z' - 'a' + 1; i++) {
             buf.b_namedm[i].lnum[0] = 0L;
         }
         buf.b_op_start.lnum[0] = 0L;
@@ -33501,8 +32791,7 @@ public abstract class Editor {
         }
         s = vim_strnsave(skipwhite(ml_get(mp.lnum[0])), Columns[0] * 5L);
         len = 0;
-        p = s;
-        for (; p.get() != NUL; p = p.add(utfc_ptr2len(p))) {
+        for (p = s; p.get() != NUL; p = p.add(utfc_ptr2len(p))) {
             len += ptr2cells(p);
             if ((long) len >= Columns[0] - (long) lead_len) {
                 break;
@@ -33513,18 +32802,16 @@ public abstract class Editor {
     }
 
     void ex_marks(S_exarg eap) {
-        BytePtr arg = null;
+        BytePtr arg = eap.arg[0];
         int i = 0;
         T_pos_T posp = null;
         T_pos_T startp = null;
         T_pos_T endp = null;
-        arg = eap.arg[0];
         if (arg != null && arg.get() == NUL) {
             arg = null;
         }
         show_one_mark('\'', arg, curwin.w_pcmark, null, true);
-        i = 0;
-        for (; i < 'z' - 'a' + 1; i++) {
+        for (i = 0; i < 'z' - 'a' + 1; i++) {
             show_one_mark(i + 'a', arg, curbuf.b_namedm[i], null, true);
         }
         show_one_mark('"', arg, curbuf.b_last_cursor, null, true);
@@ -33545,8 +32832,7 @@ public abstract class Editor {
     }
 
     void show_one_mark(int c, BytePtr arg, T_pos_T p, BytePtr name_arg, boolean current) {
-        BytePtr name = null;
-        name = name_arg;
+        BytePtr name = name_arg;
         if (c == -1) {
             if (show_one_mark_did_title) {
                 show_one_mark_did_title = false;
@@ -33592,8 +32878,7 @@ public abstract class Editor {
         } else if (eap.arg[0].get() == NUL) {
             emsg(gettext_(new BytePtr(e_argument_required, 0)));
         } else {
-            p = eap.arg[0];
-            for (; p.get() != NUL; p = p.add(1)) {
+            for (p = eap.arg[0]; p.get() != NUL; p = p.add(1)) {
                 if (Integer.compareUnsigned((p.get() & 0xff) - 'a', 26) < 0) {
                     if (p.at(1) == '-') {
                         from = p.get() & 0xff;
@@ -33608,8 +32893,7 @@ public abstract class Editor {
                         to_ = p.get() & 0xff;
                         from = to_;
                     }
-                    i = from;
-                    for (; i <= to_; i++) {
+                    for (i = from; i <= to_; i++) {
                         curbuf.b_namedm[i - 'a'].lnum[0] = 0L;
                     }
                 } else {
@@ -33651,8 +32935,7 @@ public abstract class Editor {
         int i = 0;
         BytePtr name = null;
         msg_puts_title(gettext_(BytePtr.lit("\nchange line  col text")));
-        i = 0;
-        for (; (i < curbuf.b_changelistlen) && got_int == 0; i++) {
+        for (i = 0; i < curbuf.b_changelistlen && got_int == 0; i++) {
             if (curbuf.b_changelist[i].lnum[0] != 0L) {
                 msg_putchar('\n');
                 if (got_int != 0) {
@@ -33681,19 +32964,15 @@ public abstract class Editor {
 
     void mark_adjust_internal(long line1, long line2, long amount, long amount_after, boolean adjust_folds) {
         int i = 0;
-        int fnum = 0;
+        int fnum = curbuf.b_fnum;
         LongPtr lp = null;
         S_window_S win = null;
         S_wininfo_S wip = null;
-        T_pos_T posp = null;
-        T_pos_T posp_2 = null;
-        fnum = curbuf.b_fnum;
         if (line2 < line1 && amount_after == 0L) {
             return;
         }
         if ((cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0) {
-            i = 0;
-            for (; i < 'z' - 'a' + 1; i++) {
+            for (i = 0; i < 'z' - 'a' + 1; i++) {
                 lp = new LongPtr(curbuf.b_namedm[i].lnum, 0);
                 if (lp.get() >= line1 && lp.get() <= line2) {
                     if (amount == LONG_MAX) {
@@ -33737,8 +33016,7 @@ public abstract class Editor {
                     lp.put(lp.get() + amount_after);
                 }
             }
-            i = 0;
-            for (; i < curbuf.b_changelistlen; i++) {
+            for (i = 0; i < curbuf.b_changelistlen; i++) {
                 lp = new LongPtr(curbuf.b_changelist[i].lnum, 0);
                 if (lp.get() >= line1 && lp.get() <= line2) {
                     if (amount == LONG_MAX) {
@@ -33806,8 +33084,7 @@ public abstract class Editor {
         win = curwin;
         if (win.w_buffer == curbuf) {
             if ((cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0) {
-                i = 0;
-                for (; i < win.w_tagstacklen; i++) {
+                for (i = 0; i < win.w_tagstacklen; i++) {
                     if (win.w_tagstack[i].fmark.fnum == fnum) {
                         lp = new LongPtr(win.w_tagstack[i].fmark.mark.lnum, 0);
                         if (lp.get() >= line1 && lp.get() <= line2) {
@@ -33858,7 +33135,7 @@ public abstract class Editor {
                 } else if (amount_after != 0 && win.w_topline > line2) {
                     win.w_topline += amount_after;
                 }
-                posp = win.w_cursor;
+                T_pos_T posp = win.w_cursor;
                 if (posp.lnum[0] >= line1 && posp.lnum[0] <= line2) {
                     if (amount == LONG_MAX) {
                         posp.lnum[0] = line1 - 1L > 1L ? line1 - 1L : 1L;
@@ -33871,9 +33148,8 @@ public abstract class Editor {
                 }
             }
         }
-        wip = curbuf.b_wininfo;
-        for (; wip != null; wip = wip.wi_next) {
-            posp_2 = wip.wi_fpos;
+        for (wip = curbuf.b_wininfo; wip != null; wip = wip.wi_next) {
+            T_pos_T posp_2 = wip.wi_fpos;
             if (posp_2.lnum[0] >= line1 && posp_2.lnum[0] <= line2) {
                 if (amount == LONG_MAX) {
                     posp_2.lnum[0] = line1 - 1L > 1L ? line1 - 1L : 1L;
@@ -33889,15 +33165,13 @@ public abstract class Editor {
 
     void mark_col_adjust(long lnum, int mincol, long lnum_amount, long col_amount, int spaces_removed) {
         int i = 0;
-        int fnum = 0;
+        int fnum = curbuf.b_fnum;
         S_window_S win = null;
         T_pos_T posp = null;
-        fnum = curbuf.b_fnum;
         if ((col_amount == 0L && lnum_amount == 0L) || (cmdmod.cmod_flags & CMOD_LOCKMARKS) != 0) {
             return;
         }
-        i = 0;
-        for (; i < 'z' - 'a' + 1; i++) {
+        for (i = 0; i < 'z' - 'a' + 1; i++) {
             posp = curbuf.b_namedm[i];
             if (posp.lnum[0] == lnum && posp.col[0] >= mincol) {
                 posp.lnum[0] += lnum_amount;
@@ -33932,8 +33206,7 @@ public abstract class Editor {
                 posp.col[0] += col_amount;
             }
         }
-        i = 0;
-        for (; i < curbuf.b_changelistlen; i++) {
+        for (i = 0; i < curbuf.b_changelistlen; i++) {
             posp = curbuf.b_changelist[i];
             if (posp.lnum[0] == lnum && posp.col[0] >= mincol) {
                 posp.lnum[0] += lnum_amount;
@@ -34003,8 +33276,7 @@ public abstract class Editor {
         }
         win = curwin;
         if (win.w_buffer == curbuf) {
-            i = 0;
-            for (; i < win.w_tagstacklen; i++) {
+            for (i = 0; i < win.w_tagstacklen; i++) {
                 if (win.w_tagstack[i].fmark.fnum == fnum) {
                     posp = win.w_tagstack[i].fmark.mark;
                     if (posp.lnum[0] == lnum && posp.col[0] >= mincol) {
@@ -34042,17 +33314,14 @@ public abstract class Editor {
     }
 
     int match_add(S_window_S wp, BytePtr grp, BytePtr pat, int prio, int id, BytePtr conceal_char) {
+        int t1 = 0;
+        boolean t2 = false;
         S_matchitem cur = null;
         S_matchitem prev = null;
         S_matchitem m = null;
         int hlg_id = 0;
         S_regprog regprog = null;
-        int rtype = 0;
-        int t1 = 0;
-        boolean t2 = false;
-        m = null;
-        regprog = null;
-        rtype = UPD_SOME_VALID;
+        int rtype = UPD_SOME_VALID;
         if (grp.get() == NUL || (pat != null && pat.get() == NUL)) {
             return -1;
         }
@@ -34066,8 +33335,7 @@ public abstract class Editor {
             wp.w_next_match_id++;
             id = t1;
         } else {
-            cur = wp.w_match_head;
-            for (; cur != null; cur = cur.mit_next) {
+            for (cur = wp.w_match_head; cur != null; cur = cur.mit_next) {
                 if (cur.mit_id == id) {
                     vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(new BytePtr(e_id_already_taken_nr, 0)), id);
                     emsg(iobuff_or(gettext_(new BytePtr(e_id_already_taken_nr, 0))));
@@ -34119,12 +33387,9 @@ public abstract class Editor {
     }
 
     int match_delete(S_window_S wp, int id, boolean perr) {
-        S_matchitem cur = null;
-        S_matchitem prev = null;
-        int rtype = 0;
-        cur = wp.w_match_head;
-        prev = cur;
-        rtype = UPD_SOME_VALID;
+        S_matchitem cur = wp.w_match_head;
+        S_matchitem prev = cur;
+        int rtype = UPD_SOME_VALID;
         if (id < 1) {
             if ((perr ? 1 : 0) == TRUE) {
                 vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(new BytePtr(e_invalid_id_nr_must_be_greater_than_or_equal_to_one_2, 0)), id);
@@ -34158,8 +33423,7 @@ public abstract class Editor {
     }
 
     void init_search_hl(S_window_S wp, T_match_T search_hl) {
-        S_matchitem cur = null;
-        cur = wp.w_match_head;
+        S_matchitem cur = wp.w_match_head;
         while (cur != null) {
             cur.mit_hl.rm.set(cur.mit_match);
             if (cur.mit_hlg_id == 0) {
@@ -34180,15 +33444,9 @@ public abstract class Editor {
 
     int next_search_hl_pos(T_match_T shl, long lnum, S_matchitem match, int mincol) {
         int i = 0;
-        int found = 0;
-        T_llpos_T pos = null;
-        T_llpos_T tmp = new T_llpos_T();
-        int start = 0;
-        int end = 0;
-        found = -1;
-        i = match.mit_pos_cur;
-        for (; i < match.mit_pos_count; i++) {
-            pos = match.mit_pos_array.at(i);
+        int found = -1;
+        for (i = match.mit_pos_cur; i < match.mit_pos_count; i++) {
+            T_llpos_T pos = match.mit_pos_array.at(i);
             if (pos.lnum == 0L) {
                 break;
             }
@@ -34198,6 +33456,7 @@ public abstract class Editor {
             if (pos.lnum == lnum) {
                 if (found >= 0) {
                     if (pos.col < match.mit_pos_array.at(found).col) {
+                        T_llpos_T tmp = new T_llpos_T();
                         tmp.set(pos);
                         pos.set(match.mit_pos_array.at(found));
                         match.mit_pos_array.at(found).set(tmp);
@@ -34209,8 +33468,8 @@ public abstract class Editor {
         }
         match.mit_pos_cur = 0;
         if (found >= 0) {
-            start = match.mit_pos_array.at(found).col == 0 ? 0 : match.mit_pos_array.at(found).col - 1;
-            end = match.mit_pos_array.at(found).col == 0 ? MAXCOL : start + match.mit_pos_array.at(found).len;
+            int start = match.mit_pos_array.at(found).col == 0 ? 0 : match.mit_pos_array.at(found).col - 1;
+            int end = match.mit_pos_array.at(found).col == 0 ? MAXCOL : start + match.mit_pos_array.at(found).len;
             shl.lnum = lnum;
             shl.rm.startpos[0].lnum = 0L;
             shl.rm.startpos[0].col = start;
@@ -34225,14 +33484,12 @@ public abstract class Editor {
     }
 
     void next_search_hl(S_window_S win, T_match_T search_hl, T_match_T shl, long lnum, int mincol, S_matchitem cur) {
+        BytePtr ml = null;
         long l = 0;
         int matchcol = 0;
         long nmatched = 0;
-        int called_emsg_before = 0;
+        int called_emsg_before = called_emsg;
         int[] timed_out = new int[1];
-        BytePtr ml = null;
-        boolean regprog_is_copy = false;
-        called_emsg_before = called_emsg;
         timed_out[0] = FALSE;
         if ((lnum < search_first_line || lnum > search_last_line) && cur == null) {
             shl.lnum = 0L;
@@ -34262,7 +33519,7 @@ public abstract class Editor {
             }
             shl.lnum = lnum;
             if (shl.rm.regprog != null) {
-                regprog_is_copy = !(shl == search_hl) && cur != null && shl == cur.mit_hl && cur.mit_match.regprog == cur.mit_hl.rm.regprog;
+                boolean regprog_is_copy = !(shl == search_hl) && cur != null && shl == cur.mit_hl && cur.mit_match.regprog == cur.mit_hl.rm.regprog;
                 nmatched = vim_regexec_multi(shl.rm, win, shl.buf, lnum, matchcol, new IntPtr(timed_out, 0));
                 if (regprog_is_copy) {
                     cur.mit_match.regprog = cur.mit_hl.rm.regprog;
@@ -34294,13 +33551,11 @@ public abstract class Editor {
     }
 
     void prepare_search_hl(S_window_S wp, T_match_T search_hl, long lnum) {
-        S_matchitem cur = null;
         T_match_T shl = null;
-        int shl_flag = 0;
         boolean pos_inprogress = false;
         int n = 0;
-        cur = wp.w_match_head;
-        shl_flag = 0;
+        S_matchitem cur = wp.w_match_head;
+        int shl_flag = 0;
         while (cur != null || shl_flag == FALSE) {
             if (shl_flag == FALSE) {
                 shl = search_hl;
@@ -34336,8 +33591,7 @@ public abstract class Editor {
     }
 
     void check_cur_search_hl(S_window_S wp, T_match_T shl) {
-        long linecount = 0;
-        linecount = shl.rm.endpos[0].lnum - shl.rm.startpos[0].lnum;
+        long linecount = shl.rm.endpos[0].lnum - shl.rm.startpos[0].lnum;
         if (wp.w_cursor.lnum[0] >= shl.lnum && wp.w_cursor.lnum[0] <= shl.lnum + linecount && (wp.w_cursor.lnum[0] > shl.lnum || wp.w_cursor.col[0] >= shl.rm.startpos[0].col) && (wp.w_cursor.lnum[0] < shl.lnum + linecount || wp.w_cursor.col[0] < shl.rm.endpos[0].col)) {
             shl.has_cursor = (byte) TRUE;
         } else {
@@ -34346,13 +33600,10 @@ public abstract class Editor {
     }
 
     boolean prepare_search_hl_line(S_window_S wp, long lnum, int mincol, Ptr<BytePtr> line, T_match_T search_hl, IntPtr search_attr) {
-        S_matchitem cur = null;
         T_match_T shl = null;
-        int shl_flag = 0;
         boolean area_highlighting = false;
-        area_highlighting = false;
-        cur = wp.w_match_head;
-        shl_flag = 0;
+        S_matchitem cur = wp.w_match_head;
+        int shl_flag = 0;
         while (cur != null || shl_flag == FALSE) {
             if (shl_flag == FALSE) {
                 shl = search_hl;
@@ -34405,16 +33656,11 @@ public abstract class Editor {
     }
 
     int update_search_hl(S_window_S wp, long lnum, int col, Ptr<BytePtr> line, T_match_T search_hl, IntPtr has_match_conc, IntPtr match_conc, int did_line_attr, int lcs_eol_one, IntPtr on_last_col) {
-        S_matchitem cur = null;
         T_match_T shl = null;
-        int shl_flag = 0;
         boolean pos_inprogress = false;
         int search_attr = 0;
-        int next_col = 0;
-        BytePtr p = null;
-        search_attr = 0;
-        cur = wp.w_match_head;
-        shl_flag = 0;
+        S_matchitem cur = wp.w_match_head;
+        int shl_flag = 0;
         while (cur != null || shl_flag == FALSE) {
             if (shl_flag == FALSE && (cur == null || cur.mit_priority > SEARCH_HL_PRIORITY)) {
                 shl = search_hl;
@@ -34428,7 +33674,7 @@ public abstract class Editor {
             pos_inprogress = true;
             while (shl.rm.regprog != null || (cur != null && pos_inprogress)) {
                 if (shl.startcol != MAXCOL && col >= shl.startcol && col < shl.endcol) {
-                    next_col = col + utfc_ptr2len(line.get().add(col));
+                    int next_col = col + utfc_ptr2len(line.get().add(col));
                     if (shl.endcol < next_col) {
                         shl.endcol = next_col;
                     }
@@ -34455,7 +33701,7 @@ public abstract class Editor {
                             check_cur_search_hl(wp, shl);
                         }
                         if (shl.startcol == shl.endcol) {
-                            p = line.get().add(shl.endcol);
+                            BytePtr p = line.get().add(shl.endcol);
                             if (p.get() == NUL) {
                                 shl.endcol++;
                             } else {
@@ -34495,11 +33741,9 @@ public abstract class Editor {
     }
 
     boolean get_prevcol_hl_flag(S_window_S wp, T_match_T search_hl, long curcol) {
-        long prevcol = 0;
+        long prevcol = curcol;
         boolean prevcol_hl_flag = false;
         S_matchitem cur = null;
-        prevcol = curcol;
-        prevcol_hl_flag = false;
         if ((long) (wp.w_onebuf_opt.wo_wrap[0] != 0 ? wp.w_skipcol : wp.w_leftcol) > prevcol) {
             prevcol++;
         }
@@ -34519,11 +33763,9 @@ public abstract class Editor {
     }
 
     void get_search_match_hl(S_window_S wp, T_match_T search_hl, long col, IntPtr char_attr) {
-        S_matchitem cur = null;
         T_match_T shl = null;
+        S_matchitem cur = wp.w_match_head;
         int shl_flag = 0;
-        cur = wp.w_match_head;
-        shl_flag = 0;
         while (cur != null || shl_flag == FALSE) {
             if (shl_flag == FALSE && ((cur != null && cur.mit_priority > SEARCH_HL_PRIORITY) || cur == null)) {
                 shl = search_hl;
@@ -34546,7 +33788,6 @@ public abstract class Editor {
         BytePtr end = null;
         int c = 0;
         int id = 0;
-        g = null;
         if (eap.line2 <= 3L) {
             id = (int) eap.line2;
         } else {
@@ -34588,8 +33829,7 @@ public abstract class Editor {
     BytePtr mb_init() {
         int i = 0;
         int n = 0;
-        i = 0;
-        for (; i < 256; i++) {
+        for (i = 0; i < 256; i++) {
             n = (int) utf8len_tab[i];
             mb_bytelen_tab[i] = (byte) n;
         }
@@ -34676,9 +33916,7 @@ public abstract class Editor {
     int mb_string2cells(BytePtr p, int len) {
         int i = 0;
         int clen = 0;
-        clen = 0;
-        i = 0;
-        for (; (len < 0 || i < len) && p.at(i) != NUL; i += utfc_ptr2len(p.add(i))) {
+        for (i = 0; (len < 0 || i < len) && p.at(i) != NUL; i += utfc_ptr2len(p.add(i))) {
             clen += utf_ptr2cells(p.add(i));
         }
         return clen;
@@ -34743,7 +33981,6 @@ public abstract class Editor {
     int utf_ptr2char_and_len_len(BytePtr p, int size, IntPtr lenp) {
         int len = 0;
         int c = 0;
-        int i = 0;
         if (size < 1) {
             lenp.put(1);
             return NUL;
@@ -34758,8 +33995,8 @@ public abstract class Editor {
             return p.at(0) & 0xff;
         }
         if (len > size) {
-            i = 1;
-            for (; i < size; i++) {
+            int i = 0;
+            for (i = 1; i < size; i++) {
                 if ((p.at(i) & 0xff & 192) != 128) {
                     lenp.put(1);
                     return p.at(0) & 0xff;
@@ -34825,9 +34062,9 @@ public abstract class Editor {
     }
 
     int utf_safe_read_char_adv(Ptr<BytePtr> s, LongPtr n) {
+        BytePtr t1 = null;
         int c = 0;
         int k = 0;
-        BytePtr t1 = null;
         if (n.get() == 0L) {
             return 0;
         }
@@ -34850,28 +34087,24 @@ public abstract class Editor {
     }
 
     int mb_ptr2char_adv(Ptr<BytePtr> pp) {
-        int c = 0;
-        c = utf_ptr2char(pp.get());
+        int c = utf_ptr2char(pp.get());
         pp.put(pp.get().add(utfc_ptr2len(pp.get())));
         return c;
     }
 
     int mb_cptr2char_adv(Ptr<BytePtr> pp) {
-        int c = 0;
-        c = utf_ptr2char(pp.get());
+        int c = utf_ptr2char(pp.get());
         pp.put(pp.get().add(utf_ptr2len(pp.get())));
         return c;
     }
 
     int utfc_ptr2char(BytePtr p, IntPtr pcc) {
+        int t1 = 0;
         int[] len = new int[1];
-        int c = 0;
         int cc = 0;
         int[] cc_len = new int[1];
         int i = 0;
-        int t1 = 0;
-        i = 0;
-        c = utf_ptr2char_and_len(p, new IntPtr(len, 0));
+        int c = utf_ptr2char_and_len(p, new IntPtr(len, 0));
         if ((len[0] > 1 || (p.get() & 0xff) < 128) && (p.at(len[0]) & 0xff) >= 128) {
             cc = utf_ptr2char_and_len(p.add(len[0]), new IntPtr(cc_len, 0));
             if (utf_iscomposinglike_char(c, cc)) {
@@ -34900,14 +34133,12 @@ public abstract class Editor {
     }
 
     int utfc_ptr2char_len(BytePtr p, IntPtr pcc, int maxlen) {
+        int t1 = 0;
         int[] len = new int[1];
-        int c = 0;
         int cc = 0;
         int[] cc_len = new int[1];
         int i = 0;
-        int t1 = 0;
-        i = 0;
-        c = utf_ptr2char_and_len_len(p, maxlen, new IntPtr(len, 0));
+        int c = utf_ptr2char_and_len_len(p, maxlen, new IntPtr(len, 0));
         if ((len[0] > 1 || (p.get() & 0xff) < 128) && len[0] < maxlen && (p.at(len[0]) & 0xff) >= 128) {
             cc = utf_ptr2char_and_len_len(p.add(len[0]), maxlen - len[0], new IntPtr(cc_len, 0));
             if (cc_len[0] <= maxlen - len[0] && utf_iscomposinglike_char(c, cc)) {
@@ -34936,11 +34167,9 @@ public abstract class Editor {
     }
 
     int utfc_char2bytes(int off, BytePtr buf) {
-        int len = 0;
         int i = 0;
-        len = utf_char2bytes(ScreenLinesUC.at(off), buf);
-        i = 0;
-        for (; i < Screen_mco; i++) {
+        int len = utf_char2bytes(ScreenLinesUC.at(off), buf);
+        for (i = 0; i < Screen_mco; i++) {
             if (ScreenLinesC[i].at(off) == 0) {
                 break;
             }
@@ -34960,8 +34189,7 @@ public abstract class Editor {
         int c = 0;
         int cc = 0;
         int[] cc_len = new int[1];
-        int b0 = 0;
-        b0 = p.get() & 0xff;
+        int b0 = p.get() & 0xff;
         if (b0 == NUL) {
             return 0;
         }
@@ -35102,10 +34330,8 @@ public abstract class Editor {
 
     int utf_class_buf(int c, S_file_buffer buf) {
         int bot = 0;
-        int top = 0;
+        int top = 70;
         int mid = 0;
-        bot = 0;
-        top = 70;
         if (c < 256) {
             if (c == ' ' || c == '\t' || c == NUL || c == 160) {
                 return 0;
@@ -35136,13 +34362,10 @@ public abstract class Editor {
     }
 
     int utf_convert(int a, Ptr<T_convertStruct> table, int tableSize) {
-        int start = 0;
         int mid = 0;
-        int end = 0;
-        int entries = 0;
-        entries = (int) Long.divideUnsigned((long) tableSize, 16L);
-        start = 0;
-        end = entries;
+        int entries = (int) Long.divideUnsigned((long) tableSize, 16L);
+        int start = 0;
+        int end = entries;
         while (start < end) {
             mid = (end + start) / 2;
             if (table.at(mid).rangeEnd < a) {
@@ -35278,21 +34501,17 @@ public abstract class Editor {
     }
 
     void show_utf8() {
-        int len = 0;
         int rlen = 0;
-        BytePtr line = null;
         int clen = 0;
         int i = 0;
-        rlen = 0;
-        line = ml_get_cursor();
-        len = utfc_ptr2len(line);
+        BytePtr line = ml_get_cursor();
+        int len = utfc_ptr2len(line);
         if (len == 0) {
             msg(BytePtr.lit("NUL"));
             return;
         }
         clen = 0;
-        i = 0;
-        for (; i < len; i++) {
+        for (i = 0; i < len; i++) {
             if (clen == 0) {
                 if (i > 0) {
                     musl_strcpy(IObuff.add(rlen), BytePtr.lit("+ "));
@@ -35318,10 +34537,8 @@ public abstract class Editor {
         if ((p.get() & 0xff) < 128) {
             return 0;
         }
-        q = p;
-        for (; ; q = q.add(-1)) {
-            s = q;
-            for (; (s.at(1) & 0xff & 192) == 128; s = s.add(1)) {
+        for (q = p; ; q = q.add(-1)) {
+            for (s = q; (s.at(1) & 0xff & 192) == 128; s = s.add(1)) {
             }
             while (q.gt(base) && (q.get() & 0xff & 192) == 128) {
                 q = q.add(-1);
@@ -35343,16 +34560,14 @@ public abstract class Editor {
     }
 
     void mb_copy_char(Ptr<BytePtr> fp, Ptr<BytePtr> tp) {
-        int l = 0;
-        l = utfc_ptr2len(fp.get());
+        int l = utfc_ptr2len(fp.get());
         Rt.memmove(tp.get(), fp.get(), (long) l);
         tp.put(tp.get().add(l));
         fp.put(fp.get().add(l));
     }
 
     int mb_off_next(BytePtr base, BytePtr p) {
-        int head_off = 0;
-        head_off = utf_head_off(base, p);
+        int head_off = utf_head_off(base, p);
         if (head_off == 0) {
             return 0;
         }
@@ -35361,9 +34576,9 @@ public abstract class Editor {
 
     void utf_find_illegal() {
         T_pos_T pos = new T_pos_T();
+        pos.set(curwin.w_cursor);
         BytePtr p = null;
         int len = 0;
-        pos.set(curwin.w_cursor);
         curwin.w_cursor.coladd = 0;
         for (;;) {
             p = ml_get_cursor();
@@ -35413,30 +34628,25 @@ public abstract class Editor {
     }
 
     int mb_charlen(BytePtr str) {
-        BytePtr p = null;
+        BytePtr p = str;
         int count = 0;
-        p = str;
         if (p == null) {
             return 0;
         }
-        count = 0;
-        for (; p.get() != NUL; count++) {
+        for (count = 0; p.get() != NUL; count++) {
             p = p.add(utfc_ptr2len(p));
         }
         return count;
     }
 
     BytePtr mb_unescape(Ptr<BytePtr> pp) {
-        int n = 0;
-        int m = 0;
-        BytePtr str = null;
         int t1 = 0;
         int t2 = 0;
         int t3 = 0;
-        m = 0;
-        str = pp.get();
-        n = 0;
-        for (; (str.at(n) != NUL) && m < 4; n++) {
+        int n = 0;
+        int m = 0;
+        BytePtr str = pp.get();
+        for (n = 0; str.at(n) != NUL && m < 4; n++) {
             if ((str.at(n) & 0xff) == 128 && (str.at(n + 1) & 0xff) == KS_SPECIAL && str.at(n + 2) == 'X') {
                 t1 = m;
                 m++;
@@ -35489,16 +34699,14 @@ public abstract class Editor {
         }
         if (hp.bh_id == ('p' << 8) + 't') {
             pp = hp.bh_ptr;
-            i = 0;
-            for (; i < (pp.pb_count & 0xffff); i++) {
+            for (i = 0; i < (pp.pb_count & 0xffff); i++) {
                 ml_free_tree(pp.pb_pointer[i].pe_block);
             }
         }
     }
 
     BytePtr ml_alloc_line(BytePtr line, int len) {
-        BytePtr text = null;
-        text = BytePtr.alloc((long) len);
+        BytePtr text = BytePtr.alloc((long) len);
         Rt.memmove(text, line, (long) len);
         return text;
     }
@@ -35507,7 +34715,6 @@ public abstract class Editor {
         S_block_hdr hp = null;
         S_pointer_block pp = null;
         S_data_block dp = null;
-        hp = null;
         buf.b_ml.ml_stack_size = 0;
         buf.b_ml.ml_root = null;
         buf.b_ml.ml_stack = null;
@@ -35540,14 +34747,12 @@ public abstract class Editor {
     }
 
     void ml_close_all(boolean del_file) {
-        S_file_buffer buf = null;
-        buf = curbuf;
+        S_file_buffer buf = curbuf;
         ml_close(buf, del_file && ((buf.b_flags & BF_PRESERVED) == 0 || vim_strchr(p_cpo[0], CPO_PRESERVE) == null));
     }
 
     void ml_close_notmod() {
-        S_file_buffer buf = null;
-        buf = curbuf;
+        S_file_buffer buf = curbuf;
         if (bufIsChanged(buf) == 0) {
             ml_close(buf, true);
         }
@@ -35608,7 +34813,6 @@ public abstract class Editor {
     BytePtr ml_get_buf(S_file_buffer buf, long lnum, boolean will_change) {
         S_block_hdr hp = null;
         S_data_block dp = null;
-        int idx = 0;
         if (lnum > buf.b_ml.ml_line_count) {
             if (ml_get_buf_recursive == 0) {
                 ml_get_buf_recursive++;
@@ -35628,6 +34832,7 @@ public abstract class Editor {
             return BytePtr.lit("");
         }
         if (buf.b_ml.ml_line_lnum != lnum) {
+            int idx = 0;
             ml_flush_line(buf);
             hp = ml_find_line(buf, lnum, ML_FIND);
             if (hp == null) {
@@ -35657,8 +34862,8 @@ public abstract class Editor {
     }
 
     boolean ml_append_int(S_file_buffer buf, long lnum, BytePtr line_arg, int len_arg, int flags) {
-        BytePtr line = null;
-        int len = 0;
+        BytePtr line = line_arg;
+        int len = len_arg;
         int i = 0;
         int line_count = 0;
         BytePtr text = null;
@@ -35668,25 +34873,6 @@ public abstract class Editor {
         S_pointer_block pp = null;
         S_info_pointer ip = null;
         boolean ret = false;
-        long line_count_left = 0;
-        long line_count_right = 0;
-        S_block_hdr hp_left = null;
-        S_block_hdr hp_right = null;
-        S_block_hdr hp_new = null;
-        int lines_moved = 0;
-        int total_moved = 0;
-        S_data_block dp_right = null;
-        S_data_block dp_left = null;
-        int stack_idx = 0;
-        boolean in_left = false;
-        int lineadd = 0;
-        S_block_hdr bp_left = null;
-        S_block_hdr bp_right = null;
-        int pb_idx = 0;
-        S_pointer_block pp_new = null;
-        line = line_arg;
-        len = len_arg;
-        ret = false;
         if (lnum > buf.b_ml.ml_line_count || buf.b_ml.ml_root == null) {
             return false;
         }
@@ -35730,7 +34916,22 @@ public abstract class Editor {
             dp.db_line[db_idx + 1].dl_marked = (byte) FALSE;
             dp.db_line_count++;
         } else {
-            total_moved = 0;
+            long line_count_left = 0;
+            long line_count_right = 0;
+            S_block_hdr hp_left = null;
+            S_block_hdr hp_right = null;
+            S_block_hdr hp_new = null;
+            int lines_moved = 0;
+            int total_moved = 0;
+            S_data_block dp_right = null;
+            S_data_block dp_left = null;
+            int stack_idx = 0;
+            boolean in_left = false;
+            int lineadd = 0;
+            S_block_hdr bp_left = null;
+            S_block_hdr bp_right = null;
+            int pb_idx = 0;
+            S_pointer_block pp_new = null;
             if (db_idx < 0) {
                 lines_moved = 0;
                 in_left = true;
@@ -35776,8 +34977,7 @@ public abstract class Editor {
             lineadd = buf.b_ml.ml_locked_lineadd;
             buf.b_ml.ml_locked_lineadd = 0;
             ml_find_line(buf, 0L, ML_FLUSH);
-            stack_idx = buf.b_ml.ml_stack_top - 1;
-            for (; stack_idx >= 0; stack_idx--) {
+            for (stack_idx = buf.b_ml.ml_stack_top - 1; stack_idx >= 0; stack_idx--) {
                 ip = buf.b_ml.ml_stack.at(stack_idx);
                 pb_idx = ip.ip_index;
                 hp = ip.ip_block;
@@ -35835,13 +35035,11 @@ public abstract class Editor {
                 pp.pb_pointer[pb_idx].pe_block = bp_left;
                 pp.pb_pointer[pb_idx].pe_line_count = line_count_left;
                 line_count_right = 0L;
-                i = 0;
-                for (; i < (pp_new.pb_count & 0xffff); i++) {
+                for (i = 0; i < (pp_new.pb_count & 0xffff); i++) {
                     line_count_right += pp_new.pb_pointer[i].pe_line_count;
                 }
                 line_count_left = 0L;
-                i = 0;
-                for (; i < (pp.pb_count & 0xffff); i++) {
+                for (i = 0; i < (pp.pb_count & 0xffff); i++) {
                     line_count_left += pp.pb_pointer[i].pe_line_count;
                 }
                 bp_left = hp;
@@ -35878,8 +35076,7 @@ public abstract class Editor {
     }
 
     boolean ml_replace(long lnum, BytePtr line, boolean copy) {
-        int len = 0;
-        len = -1;
+        int len = -1;
         if (line != null) {
             len = (int) musl_strlen(line);
         }
@@ -35887,10 +35084,8 @@ public abstract class Editor {
     }
 
     boolean ml_replace_len(long lnum, BytePtr line_arg, int len_arg, boolean has_props, boolean copy) {
-        BytePtr line = null;
-        int len = 0;
-        line = line_arg;
-        len = len_arg;
+        BytePtr line = line_arg;
+        int len = len_arg;
         if (line == null) {
             return false;
         }
@@ -35924,7 +35119,6 @@ public abstract class Editor {
         int stack_idx = 0;
         boolean i = false;
         boolean ret = false;
-        ret = false;
         if (lowest_marked != 0 && lowest_marked > lnum) {
             lowest_marked--;
         }
@@ -35949,8 +35143,7 @@ public abstract class Editor {
         buf.b_ml.ml_line_count--;
         if (count == 1) {
             buf.b_ml.ml_locked = null;
-            stack_idx = buf.b_ml.ml_stack_top - 1;
-            for (; stack_idx >= 0; stack_idx--) {
+            for (stack_idx = buf.b_ml.ml_stack_top - 1; stack_idx >= 0; stack_idx--) {
                 buf.b_ml.ml_stack_top = 0;
                 ip = buf.b_ml.ml_stack.at(stack_idx);
                 idx = ip.ip_index;
@@ -36023,15 +35216,13 @@ public abstract class Editor {
         if (curbuf.b_ml.ml_root == null) {
             return 0L;
         }
-        lnum = lowest_marked;
-        for (; lnum <= curbuf.b_ml.ml_line_count; ) {
+        for (lnum = lowest_marked; lnum <= curbuf.b_ml.ml_line_count; ) {
             hp = ml_find_line(curbuf, lnum, ML_FIND);
             if (hp == null) {
                 return 0L;
             }
             dp = hp.bh_data;
-            i = (int) (lnum - curbuf.b_ml.ml_locked_low);
-            for (; lnum <= curbuf.b_ml.ml_locked_high; i++, lnum++) {
+            for (i = (int) (lnum - curbuf.b_ml.ml_locked_low); lnum <= curbuf.b_ml.ml_locked_high; i++, lnum++) {
                 if (dp.db_line[i].dl_marked != 0) {
                     dp.db_line[i].dl_marked = (byte) FALSE;
                     lowest_marked = lnum + 1L;
@@ -36050,15 +35241,13 @@ public abstract class Editor {
         if (curbuf.b_ml.ml_root == null) {
             return;
         }
-        lnum = lowest_marked;
-        for (; lnum <= curbuf.b_ml.ml_line_count; ) {
+        for (lnum = lowest_marked; lnum <= curbuf.b_ml.ml_line_count; ) {
             hp = ml_find_line(curbuf, lnum, ML_FIND);
             if (hp == null) {
                 return;
             }
             dp = hp.bh_data;
-            i = (int) (lnum - curbuf.b_ml.ml_locked_low);
-            for (; lnum <= curbuf.b_ml.ml_locked_high; i++, lnum++) {
+            for (i = (int) (lnum - curbuf.b_ml.ml_locked_low); lnum <= curbuf.b_ml.ml_locked_high; i++, lnum++) {
                 if (dp.db_line[i].dl_marked != 0) {
                     dp.db_line[i].dl_marked = (byte) FALSE;
                 }
@@ -36100,10 +35289,8 @@ public abstract class Editor {
     }
 
     S_block_hdr ml_new_data() {
-        S_data_block dp = null;
-        S_block_hdr hp = null;
-        dp = new S_data_block();
-        hp = new S_block_hdr();
+        S_data_block dp = new S_data_block();
+        S_block_hdr hp = new S_block_hdr();
         hp.bh_id = (short) (('d' << 8) + 'a');
         hp.bh_data = dp;
         dp.db_line_count = 0L;
@@ -36111,10 +35298,8 @@ public abstract class Editor {
     }
 
     S_block_hdr ml_new_ptr() {
-        S_pointer_block pp = null;
-        S_block_hdr hp = null;
-        pp = new S_pointer_block();
-        hp = new S_block_hdr();
+        S_pointer_block pp = new S_pointer_block();
+        S_block_hdr hp = new S_block_hdr();
         hp.bh_id = (short) (('p' << 8) + 't');
         hp.bh_ptr = pp;
         pp.pb_count = (short) 0;
@@ -36154,8 +35339,7 @@ public abstract class Editor {
         low = 1L;
         high = buf.b_ml.ml_line_count;
         if (action == ML_FIND) {
-            top = buf.b_ml.ml_stack_top - 1;
-            for (; top >= 0; top--) {
+            for (top = buf.b_ml.ml_stack_top - 1; top >= 0; top--) {
                 ip = buf.b_ml.ml_stack.at(top);
                 if (ip.ip_low <= lnum && ip.ip_high >= lnum) {
                     bp = ip.ip_block;
@@ -36199,8 +35383,7 @@ public abstract class Editor {
             ip.ip_low = low;
             ip.ip_high = high;
             ip.ip_index = -1;
-            idx = 0;
-            for (; idx < (pp.pb_count & 0xffff); idx++) {
+            for (idx = 0; idx < (pp.pb_count & 0xffff); idx++) {
                 t = pp.pb_pointer[idx].pe_line_count;
                 low += t;
                 if (low > lnum) {
@@ -36236,9 +35419,8 @@ public abstract class Editor {
     }
 
     int ml_add_stack(S_file_buffer buf) {
-        int top = 0;
         Ptr<S_info_pointer> newstack = null;
-        top = buf.b_ml.ml_stack_top;
+        int top = buf.b_ml.ml_stack_top;
         if (top == buf.b_ml.ml_stack_size) {
             newstack = new Ptr<S_info_pointer>(S_info_pointer.array(buf.b_ml.ml_stack_size + STACK_INCR), 0);
             if (top > 0) {
@@ -36256,8 +35438,7 @@ public abstract class Editor {
         S_info_pointer ip = null;
         S_pointer_block pp = null;
         S_block_hdr hp = null;
-        idx = buf.b_ml.ml_stack_top - 1;
-        for (; idx >= 0; idx--) {
+        for (idx = buf.b_ml.ml_stack_top - 1; idx >= 0; idx--) {
             ip = buf.b_ml.ml_stack.at(idx);
             hp = ip.ip_block;
             pp = hp.bh_ptr;
@@ -36281,7 +35462,6 @@ public abstract class Editor {
     boolean msg_attr_keep(BytePtr s, int attr, boolean keep) {
         boolean retval = false;
         BytePtr buf = null;
-        buf = null;
         if (emsg_on_display == 0 && message_filtered(s)) {
             return true;
         }
@@ -36312,7 +35492,6 @@ public abstract class Editor {
         BytePtr buf = null;
         int len = 0;
         int room = 0;
-        buf = null;
         if ((msg_scroll == 0 && need_wait_return == 0 && shortmess(SHM_TRUNCALL) && msg_silent == 0) || force) {
             len = vim_strsize(s);
             if (msg_scrolled != 0) {
@@ -36330,14 +35509,12 @@ public abstract class Editor {
     }
 
     void trunc_string(BytePtr s, BytePtr buf, int room_in, int buflen) {
-        long room = 0;
+        long room = (long) (room_in - 3);
         long half = 0;
-        long len = 0;
+        long len = 0L;
         int e = 0;
         int i = 0;
         int n = 0;
-        room = (long) (room_in - 3);
-        len = 0L;
         if (s.get() == NUL) {
             if (buflen > 0) {
                 buf.put((byte) NUL);
@@ -36348,8 +35525,7 @@ public abstract class Editor {
             room = 0L;
         }
         half = Long.divideUnsigned(room, 2L);
-        e = 0;
-        for (; (Long.compareUnsigned(len, half) < 0) && e < buflen; e++) {
+        for (e = 0; Long.compareUnsigned(len, half) < 0 && e < buflen; e++) {
             if (s.at(e) == NUL) {
                 buf.set(e, (byte) NUL);
                 return;
@@ -36446,8 +35622,7 @@ public abstract class Editor {
     }
 
     long append_room(BytePtr str, long str_m) {
-        long len = 0;
-        len = musl_strlen(str);
+        long len = musl_strlen(str);
         if (Long.compareUnsigned(str_m, len) <= 0) {
             return 0L;
         }
@@ -36472,9 +35647,8 @@ public abstract class Editor {
     BytePtr get_emsg_source() {
         BytePtr Buf = null;
         BytePtr p = null;
-        BytePtr sname = null;
         if (exestack.ga_data != null && exestack.ga_len > 0 && GA_Ptr_T_estack_T(exestack).at(exestack.ga_len - 1).es_name != null && other_sourcing_name()) {
-            sname = estack_sfile(ESTACK_NONE);
+            BytePtr sname = estack_sfile(ESTACK_NONE);
             if (sname == null) {
                 sname = GA_Ptr_T_estack_T(exestack).at(exestack.ga_len - 1).es_name;
             }
@@ -36617,23 +35791,20 @@ public abstract class Editor {
     }
 
     BytePtr msg_may_trunc(boolean force, BytePtr s) {
-        int n = 0;
-        int room = 0;
         boolean t1 = false;
-        int size = 0;
-        room = (int) (Rows[0] - (long) cmdline_row - 1L) * cmdline_width + sc_col - 1;
+        int n = 0;
+        int room = (int) (Rows[0] - (long) cmdline_row - 1L) * cmdline_width + sc_col - 1;
         t1 = room > 0 && (force || shortmess(SHM_TRUNC));
         if (t1) {
             n = (int) musl_strlen(s) - room;
             t1 = n > 0;
         }
         if (t1) {
-            size = vim_strsize(s);
+            int size = vim_strsize(s);
             if (size <= room) {
                 return s;
             }
-            n = 0;
-            for (; size >= room; ) {
+            for (n = 0; size >= room; ) {
                 size -= utf_ptr2cells(s.add(n));
                 n += utfc_ptr2len(s.add(n));
             }
@@ -36699,9 +35870,6 @@ public abstract class Editor {
         int messages_flags_new = 0;
         int messages_wait_new = 0;
         int messages_history_new = 0;
-        messages_flags_new = 0;
-        messages_wait_new = 0;
-        messages_history_new = 0;
         p[0] = p_mopt[0];
         while (p[0].get() != NUL) {
             if (musl_strncmp(p[0], BytePtr.lit("hit-enter"), 9L) == 0) {
@@ -36745,10 +35913,8 @@ public abstract class Editor {
     void ex_messages(S_exarg eap) {
         S_msg_hist p = null;
         int c = 0;
-        int keep = 0;
-        c = 0;
         if (musl_strcmp(eap.arg[0], BytePtr.lit("clear")) == 0) {
-            keep = (int) (eap.addr_count == 0 ? 0L : eap.line2);
+            int keep = (int) (eap.addr_count == 0 ? 0L : eap.line2);
             while (msg_hist_len > keep) {
                 delete_first_msg();
             }
@@ -36761,15 +35927,14 @@ public abstract class Editor {
         msg_hist_off = TRUE;
         p = first_msg_hist;
         if (eap.addr_count != 0) {
-            for (; (p != null) && got_int == 0; p = p.next) {
+            for (; p != null && got_int == 0; p = p.next) {
                 c++;
             }
             c -= eap.line2;
-            p = first_msg_hist;
-            for (; (p != null && got_int == 0) && c > 0; p = p.next, c--) {
+            for (p = first_msg_hist; p != null && got_int == 0 && c > 0; p = p.next, c--) {
             }
         }
-        for (; (p != null) && got_int == 0; p = p.next) {
+        for (; p != null && got_int == 0; p = p.next) {
             if (p.msg != null) {
                 msg_attr(p.msg, p.attr);
             }
@@ -36885,8 +36050,7 @@ public abstract class Editor {
     }
 
     void hit_return_msg() {
-        int save_p_more = 0;
-        save_p_more = p_more[0];
+        int save_p_more = p_more[0];
         p_more[0] = FALSE;
         if (msg_didout != 0) {
             msg_putchar('\n');
@@ -36951,8 +36115,8 @@ public abstract class Editor {
     }
 
     void msg_putchar_attr(int c, int attr) {
-        byte[] buf = new byte[22];
         int t1 = 0;
+        byte[] buf = new byte[22];
         if (c < 0) {
             buf[0] = (byte) -128;
             buf[1] = (byte) (c == 128 ? KS_SPECIAL : (c == NUL ? KS_ZERO : -c & 255));
@@ -36979,16 +36143,12 @@ public abstract class Editor {
 
     int msg_outtrans_len_attr(BytePtr msgstr, int len, int attr) {
         int retval = 0;
-        BytePtr str = null;
-        BytePtr plain_start = null;
+        BytePtr str = msgstr;
+        BytePtr plain_start = msgstr;
         BytePtr s = null;
         int mb_l = 0;
         int c = 0;
-        int save_got_int = 0;
-        retval = 0;
-        str = msgstr;
-        plain_start = msgstr;
-        save_got_int = got_int;
+        int save_got_int = got_int;
         got_int = FALSE;
         if (attr == 0) {
             attr = highlight_attr[HLF_MSG];
@@ -37048,13 +36208,11 @@ public abstract class Editor {
 
     int msg_outtrans_special(BytePtr strstart, boolean from, int maxlen) {
         BytePtr[] str = new BytePtr[1];
+        str[0] = strstart;
         int retval = 0;
         BytePtr text = null;
-        int attr = 0;
         int len = 0;
-        str[0] = strstart;
-        retval = 0;
-        attr = highlight_attr[HLF_8];
+        int attr = highlight_attr[HLF_8];
         while (str[0].get() != NUL) {
             if ((BytePtr.eq(str[0], strstart) || str[0].at(1) == NUL) && str[0].get() == ' ') {
                 text = BytePtr.lit("<Space>");
@@ -37077,15 +36235,10 @@ public abstract class Editor {
 
     BytePtr str2special(Ptr<BytePtr> sp, boolean replace_spaces, boolean replace_others) {
         int c = 0;
-        BytePtr str = null;
+        BytePtr str = sp.get();
         int modifiers = 0;
         boolean special = false;
-        BytePtr p = null;
-        BytePtr p_2 = null;
-        str = sp.get();
-        modifiers = 0;
-        special = false;
-        p = mb_unescape(sp);
+        BytePtr p = mb_unescape(sp);
         if (p != null) {
             return p;
         }
@@ -37105,6 +36258,7 @@ public abstract class Editor {
             }
         }
         if (!(c < 0) && (int) mb_bytelen_tab[c] > 1) {
+            BytePtr p_2 = null;
             sp.put(str);
             p_2 = mb_unescape(sp);
             if (p_2 != null) {
@@ -37126,9 +36280,8 @@ public abstract class Editor {
     void str2specialbuf(BytePtr sp_arg, BytePtr buf, int len) {
         BytePtr[] sp = new BytePtr[] {sp_arg};
         BytePtr s = null;
-        long buf_len = 0;
+        long buf_len = 0L;
         long s_len = 0;
-        buf_len = 0L;
         buf.put((byte) NUL);
         while (sp[0].get() != 0) {
             s = str2special(new Ptr<BytePtr>(sp, 0), false, false);
@@ -37143,6 +36296,13 @@ public abstract class Editor {
     }
 
     void msg_prt_line(BytePtr s, int list) {
+        BytePtr t1 = null;
+        BytePtr t2 = null;
+        boolean t3 = false;
+        boolean t4 = false;
+        BytePtr t5 = null;
+        int t6 = 0;
+        int t7 = 0;
         int c = 0;
         int col = 0;
         int n_extra = 0;
@@ -37157,27 +36317,6 @@ public abstract class Editor {
         int multispace_pos = 0;
         int l = 0;
         byte[] buf = new byte[22];
-        BytePtr t1 = null;
-        int len = 0;
-        BytePtr t2 = null;
-        int lcs_tab1 = 0;
-        int lcs_tab2 = 0;
-        int lcs_tab3 = 0;
-        boolean t3 = false;
-        boolean t4 = false;
-        BytePtr t5 = null;
-        int t6 = 0;
-        int t7 = 0;
-        col = 0;
-        n_extra = 0;
-        c_extra = 0;
-        c_final = 0;
-        p_extra = null;
-        attr = 0;
-        trail = null;
-        lead = null;
-        in_multispace = false;
-        multispace_pos = 0;
         if (curwin.w_onebuf_opt.wo_list[0] != 0) {
             list = TRUE;
         }
@@ -37220,7 +36359,7 @@ public abstract class Editor {
                     if (l >= MB_MAXBYTES) {
                         musl_strcpy(new BytePtr(buf, 0), BytePtr.lit("?"));
                     } else if (curwin.w_lcs_chars.nbsp[0] != NUL && list != 0 && (utf_ptr2char(s) == 160 || utf_ptr2char(s) == 8239)) {
-                        len = utf_char2bytes(curwin.w_lcs_chars.nbsp[0], new BytePtr(buf, 0));
+                        int len = utf_char2bytes(curwin.w_lcs_chars.nbsp[0], new BytePtr(buf, 0));
                         buf[len] = (byte) NUL;
                     } else {
                         Rt.memmove(new BytePtr(buf, 0), s, (long) l);
@@ -37247,9 +36386,9 @@ public abstract class Editor {
                             c_extra = ' ';
                             c_final = NUL;
                         } else {
-                            lcs_tab1 = curwin.w_lcs_chars.tab1;
-                            lcs_tab2 = curwin.w_lcs_chars.tab2[0];
-                            lcs_tab3 = curwin.w_lcs_chars.tab3;
+                            int lcs_tab1 = curwin.w_lcs_chars.tab1;
+                            int lcs_tab2 = curwin.w_lcs_chars.tab2[0];
+                            int lcs_tab3 = curwin.w_lcs_chars.tab3;
                             if (lead != null && s.le(lead) && curwin.w_lcs_chars.leadtab1 != NUL) {
                                 lcs_tab1 = curwin.w_lcs_chars.leadtab1;
                                 lcs_tab2 = curwin.w_lcs_chars.leadtab2[0];
@@ -37380,24 +36519,21 @@ public abstract class Editor {
     }
 
     void msg_puts_display(BytePtr str, int maxlen, int attr, boolean recurse) {
-        BytePtr s = null;
-        BytePtr t_s = null;
+        BytePtr s = str;
+        BytePtr t_s = str;
         int[] t_col = new int[1];
+        t_col[0] = 0;
         int l = 0;
         int cw = 0;
         BytePtr[] sb_str = new BytePtr[1];
+        sb_str[0] = str;
         int[] sb_col = new int[1];
+        sb_col[0] = msg_col;
         boolean wrap = false;
         boolean did_last_char = false;
-        int wrap_col = 0;
-        s = str;
-        t_s = str;
-        t_col[0] = 0;
-        sb_str[0] = str;
-        sb_col[0] = msg_col;
         did_wait_return = FALSE;
         while ((maxlen < 0 || (int) s.sub(str) < maxlen) && s.get() != NUL) {
-            wrap_col = cmdline_width - 1;
+            int wrap_col = cmdline_width - 1;
             if (!recurse && (long) msg_row >= Rows[0] - 1L && (s.get() == '\n' || ((s.get() != '\r' && msg_col + t_col[0] >= wrap_col) || (s.get() == TAB && msg_col + t_col[0] >= (wrap_col & -8)) || (utf_ptr2cells(s) > 1 && msg_col + t_col[0] >= wrap_col - 1)))) {
                 if (t_col[0] > 0) {
                     t_puts(new IntPtr(t_col, 0), t_s, s, attr);
@@ -37570,7 +36706,6 @@ public abstract class Editor {
 
     void sb_text_restart_cmdline() {
         S_msgchunk_S tofree = null;
-        S_msgchunk_S tofree_next = null;
         do_clear_sb_text = SB_CLEAR_CMDLINE_BUSY;
         if (last_msgchunk[0] == null || last_msgchunk[0].sb_eol != 0) {
             return;
@@ -37581,7 +36716,7 @@ public abstract class Editor {
             last_msgchunk[0].sb_next = null;
         }
         while (tofree != null) {
-            tofree_next = tofree.sb_next;
+            S_msgchunk_S tofree_next = tofree.sb_next;
             tofree = tofree_next;
         }
     }
@@ -37608,8 +36743,7 @@ public abstract class Editor {
     }
 
     void show_sb_text() {
-        S_msgchunk_S mp = null;
-        mp = msg_sb_start(last_msgchunk[0]);
+        S_msgchunk_S mp = msg_sb_start(last_msgchunk[0]);
         if (mp == null || mp.sb_prev[0] == null) {
             vim_beep(BO_MESS);
         } else {
@@ -37619,8 +36753,7 @@ public abstract class Editor {
     }
 
     S_msgchunk_S msg_sb_start(S_msgchunk_S mps) {
-        S_msgchunk_S mp = null;
-        mp = mps;
+        S_msgchunk_S mp = mps;
         while (mp != null && mp.sb_prev[0] != null && mp.sb_prev[0].sb_eol == 0) {
             mp = mp.sb_prev[0];
         }
@@ -37634,9 +36767,8 @@ public abstract class Editor {
     }
 
     S_msgchunk_S disp_sb_line(int row, S_msgchunk_S smp, boolean clear_to_eol) {
-        S_msgchunk_S mp = null;
+        S_msgchunk_S mp = smp;
         BytePtr p = null;
-        mp = smp;
         for (;;) {
             msg_row = row;
             msg_col = mp.sb_msg_col;
@@ -37675,27 +36807,21 @@ public abstract class Editor {
     }
 
     boolean do_more_prompt(int typed_char) {
-        int used_typed_char = 0;
-        int oldState = 0;
+        int used_typed_char = typed_char;
+        int oldState = State;
         int c = 0;
         int toscroll = 0;
         S_msgchunk_S mp_last = null;
         S_msgchunk_S mp = null;
         int i = 0;
-        int msg_attr = 0;
-        boolean did_clear = false;
-        used_typed_char = typed_char;
-        oldState = State;
-        mp_last = null;
-        msg_attr = highlight_attr[HLF_MSG];
+        int msg_attr = highlight_attr[HLF_MSG];
         if (do_more_prompt_entered || (State == (8192 | MODE_NORMAL) && typed_char == 0)) {
             return false;
         }
         do_more_prompt_entered = true;
         if (typed_char == 'G') {
             mp_last = msg_sb_start(last_msgchunk[0]);
-            i = 0;
-            for (; ((long) i < Rows[0] - 2L && mp_last != null) && mp_last.sb_prev[0] != null; i++) {
+            for (i = 0; (long) i < Rows[0] - 2L && mp_last != null && mp_last.sb_prev[0] != null; i++) {
                 mp_last = msg_sb_start(mp_last.sb_prev[0]);
             }
         }
@@ -37774,13 +36900,11 @@ public abstract class Editor {
                     } else {
                         mp = null;
                     }
-                    i = 0;
-                    for (; ((long) i < Rows[0] - 2L && mp != null) && mp.sb_prev[0] != null; i++) {
+                    for (i = 0; (long) i < Rows[0] - 2L && mp != null && mp.sb_prev[0] != null; i++) {
                         mp = msg_sb_start(mp.sb_prev[0]);
                     }
                     if (mp != null && mp.sb_prev[0] != null) {
-                        i = 0;
-                        for (; i > toscroll; i--) {
+                        for (i = 0; i > toscroll; i--) {
                             if (mp == null || mp.sb_prev[0] == null) {
                                 break;
                             }
@@ -37794,9 +36918,8 @@ public abstract class Editor {
                         if (toscroll == -1 && screen_ins_lines(0, 0, 1, (int) Rows[0], 0, null)) {
                             disp_sb_line(0, mp, false);
                         } else {
-                            did_clear = screenclear();
-                            i = 0;
-                            for (; (mp != null) && (long) i < Rows[0] - 1L; i++) {
+                            boolean did_clear = screenclear();
+                            for (i = 0; mp != null && (long) i < Rows[0] - 1L; i++) {
                                 mp = disp_sb_line(i, mp, !did_clear);
                                 msg_scrolled++;
                             }
@@ -37842,10 +36965,8 @@ public abstract class Editor {
     }
 
     void msg_moremsg(boolean full) {
-        int attr = 0;
-        BytePtr s = null;
-        s = gettext_(BytePtr.lit("-- More --"));
-        attr = highlight_attr[HLF_M];
+        BytePtr s = gettext_(BytePtr.lit("-- More --"));
+        int attr = highlight_attr[HLF_M];
         screen_puts(s, (int) Rows[0] - 1, cmdline_col_off, attr);
         if (full) {
             screen_puts(gettext_(BytePtr.lit(" SPACE/d/j: screen/page/line down, b/u/k: up, q: quit ")), (int) Rows[0] - 1, cmdline_col_off + vim_strsize(s), attr);
@@ -37889,7 +37010,6 @@ public abstract class Editor {
     }
 
     void msg_clr_eos_force() {
-        int msg_attr = 0;
         if (msg_use_printf()) {
             if (full_screen != 0) {
                 if (term_strings[KS_CD].get() != 0) {
@@ -37899,7 +37019,7 @@ public abstract class Editor {
                 }
             }
         } else {
-            msg_attr = highlight_attr[HLF_MSG];
+            int msg_attr = highlight_attr[HLF_MSG];
             screen_fill(msg_row, msg_row + 1, cmdline_col_off + msg_col, cmdline_col_off + cmdline_width, ' ', ' ', msg_attr);
             screen_fill(msg_row + 1, (int) Rows[0], cmdline_col_off, cmdline_col_off + cmdline_width, ' ', ' ', msg_attr);
         }
@@ -38007,11 +37127,10 @@ public abstract class Editor {
     }
 
     int plines_win_nofold(S_window_S wp, long lnum) {
-        BytePtr s = null;
         long col = 0;
         int width = 0;
         T_chartabsize_T cts = new T_chartabsize_T();
-        s = ml_get_buf(wp.w_buffer, lnum, false);
+        BytePtr s = ml_get_buf(wp.w_buffer, lnum, false);
         init_chartabsize_arg(cts, wp, lnum, 0, s, s);
         if (s.get() == NUL) {
             return 1;
@@ -38039,7 +37158,6 @@ public abstract class Editor {
         int width = 0;
         BytePtr line = null;
         T_chartabsize_T cts = new T_chartabsize_T();
-        lines = 0;
         if (wp.w_onebuf_opt.wo_wrap[0] == 0) {
             return lines + 1;
         }
@@ -38069,7 +37187,6 @@ public abstract class Editor {
 
     int plines_m_win(S_window_S wp, long first, long last, int max) {
         int count = 0;
-        count = 0;
         while (first <= last && count < max) {
             count += plines_win(wp, first, false);
             first++;
@@ -38112,8 +37229,7 @@ public abstract class Editor {
     }
 
     void check_status(S_file_buffer buf) {
-        S_window_S wp = null;
-        wp = curwin;
+        S_window_S wp = curwin;
         if (wp.w_buffer == buf && wp.w_status_height != 0) {
             wp.w_redr_status = true;
             set_must_redraw(UPD_VALID);
@@ -38121,10 +37237,8 @@ public abstract class Editor {
     }
 
     int ask_yesno(BytePtr str, boolean direct) {
-        int r = 0;
-        int save_State = 0;
-        r = ' ';
-        save_State = State;
+        int r = ' ';
+        int save_State = State;
         if (exiting != 0) {
             term_enter();
         }
@@ -38155,19 +37269,13 @@ public abstract class Editor {
 
     int get_keystroke() {
         BytePtr buf = null;
-        int buflen = 0;
+        int buflen = 150;
         int maxlen = 0;
         int[] len = new int[1];
-        int n = 0;
-        int save_mapped_ctrl_c = 0;
-        int waited = 0;
-        BytePtr t_buf = null;
-        int t_buflen = 0;
-        buf = null;
-        buflen = 150;
         len[0] = 0;
-        save_mapped_ctrl_c = mapped_ctrl_c;
-        waited = 0;
+        int n = 0;
+        int save_mapped_ctrl_c = mapped_ctrl_c;
+        int waited = 0;
         mod_mask[0] = 0;
         mapped_ctrl_c = FALSE;
         for (;;) {
@@ -38177,8 +37285,8 @@ public abstract class Editor {
             if (buf == null) {
                 buf = BytePtr.alloc((long) buflen);
             } else if (maxlen < 10) {
-                t_buf = buf;
-                t_buflen = buflen;
+                BytePtr t_buf = buf;
+                int t_buflen = buflen;
                 buflen += 100;
                 buf = (BytePtr) host_alloc((long) buflen);
                 Rt.memmove(buf, t_buf, (long) t_buflen);
@@ -38296,14 +37404,12 @@ public abstract class Editor {
     }
 
     long expand_env_esc(BytePtr srcp, BytePtr dst, int dstlen, BytePtr esc_chars, boolean one, BytePtr startstr) {
-        BytePtr src = null;
-        BytePtr dst_start = null;
         BytePtr t1 = null;
         BytePtr t2 = null;
         BytePtr t3 = null;
         BytePtr t4 = null;
-        dst_start = dst;
-        src = skipwhite(srcp);
+        BytePtr dst_start = dst;
+        BytePtr src = skipwhite(srcp);
         dstlen--;
         while (src.get() != 0 && dstlen > 0) {
             if (src.at(0) == '\\' && src.at(1) != NUL) {
@@ -38328,9 +37434,8 @@ public abstract class Editor {
     }
 
     void prepare_to_exit() {
-        int was_full_screen = 0;
         windgoto((int) Rows[0] - 1, cmdline_col_off);
-        was_full_screen = full_screen;
+        int was_full_screen = full_screen;
         full_screen = TRUE;
         term_leave();
         full_screen = was_full_screen;
@@ -38380,8 +37485,7 @@ public abstract class Editor {
     }
 
     boolean vim_append_digit_long(LongPtr value, int digit) {
-        long x = 0;
-        x = value.get();
+        long x = value.get();
         if (x > ((LONG_MAX - (long) digit) / 10L)) {
             return false;
         }
@@ -38394,8 +37498,7 @@ public abstract class Editor {
     }
 
     int virtual_active() {
-        int cur_ve_flags = 0;
-        cur_ve_flags = get_ve_flags();
+        int cur_ve_flags = get_ve_flags();
         if (cur_ve_flags == VE_ALL || ((cur_ve_flags & VE_INSERT) != 0 && (State & MODE_INSERT) != 0)) {
             return TRUE;
         }
@@ -38412,8 +37515,7 @@ public abstract class Editor {
     }
 
     boolean coladvance_force(int wcol) {
-        boolean rc = false;
-        rc = coladvance2(curwin.w_cursor, true, FALSE, wcol);
+        boolean rc = coladvance2(curwin.w_cursor, true, FALSE, wcol);
         if (wcol == MAXCOL) {
             curwin.w_valid &= ~VALID_VIRTCOL;
         } else {
@@ -38433,8 +37535,7 @@ public abstract class Editor {
     }
 
     boolean coladvance(int wantcol) {
-        boolean rc = false;
-        rc = getvpos(curwin.w_cursor, wantcol);
+        boolean rc = getvpos(curwin.w_cursor, wantcol);
         if (wantcol == MAXCOL || (rc ? 1 : 0) == FAIL) {
             curwin.w_valid &= ~VALID_VIRTCOL;
         } else if (ml_get_cursor().get() != TAB) {
@@ -38448,34 +37549,15 @@ public abstract class Editor {
     }
 
     boolean coladvance2(T_pos_T pos, boolean addspaces, int finetune, int wcol_arg) {
-        int wcol = 0;
-        int idx = 0;
-        BytePtr line = null;
-        int linelen = 0;
-        int col = 0;
-        int csize = 0;
-        boolean one_more = false;
-        int width = 0;
-        T_chartabsize_T cts = new T_chartabsize_T();
-        int correct = 0;
-        BytePtr newline = null;
-        int t = 0;
-        int correct_2 = 0;
-        BytePtr newline_2 = null;
-        int t_2 = 0;
-        int s = 0;
-        int v = 0;
         int t1 = 0;
         int t2 = 0;
-        int[] scol = new int[1];
-        int[] ecol = new int[1];
-        int b = 0;
-        wcol = wcol_arg;
-        col = 0;
-        csize = 0;
-        one_more = (State & MODE_INSERT) != 0 || restart_edit != NUL || (VIsual_active != 0 && p_sel[0].get() != 'o') || ((get_ve_flags() & VE_ONEMORE) != 0 && wcol < MAXCOL);
-        line = ml_get_buf(curbuf, pos.lnum[0], false);
-        linelen = ml_get_buf_len(curbuf, pos.lnum[0]);
+        int wcol = wcol_arg;
+        int idx = 0;
+        int col = 0;
+        int csize = 0;
+        boolean one_more = (State & MODE_INSERT) != 0 || restart_edit != NUL || (VIsual_active != 0 && p_sel[0].get() != 'o') || ((get_ve_flags() & VE_ONEMORE) != 0 && wcol < MAXCOL);
+        BytePtr line = ml_get_buf(curbuf, pos.lnum[0], false);
+        int linelen = ml_get_buf_len(curbuf, pos.lnum[0]);
         if (wcol >= MAXCOL) {
             idx = linelen - 1 + (one_more ? 1 : 0);
             col = wcol;
@@ -38486,7 +37568,8 @@ public abstract class Editor {
                 }
             }
         } else {
-            width = curwin.w_width - win_col_off(curwin);
+            int width = curwin.w_width - win_col_off(curwin);
+            T_chartabsize_T cts = new T_chartabsize_T();
             if (finetune != 0 && curwin.w_onebuf_opt.wo_wrap[0] != 0 && curwin.w_width != 0 && wcol >= width && width > 0) {
                 csize = linetabsize_eol(curwin, pos.lnum[0]);
                 if (csize > 0) {
@@ -38509,17 +37592,16 @@ public abstract class Editor {
             }
             if (virtual_active() != 0 && addspaces && wcol >= 0 && ((col != wcol && col != wcol + 1) || csize > 1)) {
                 if (line.at(idx) == NUL) {
-                    correct = wcol - col;
-                    newline = BytePtr.alloc((long) (idx + correct + 1));
+                    int correct = wcol - col;
+                    BytePtr newline = BytePtr.alloc((long) (idx + correct + 1));
+                    int t = 0;
                     if (newline == null) {
                         return false;
                     }
-                    t = 0;
-                    for (; t < idx; t++) {
+                    for (t = 0; t < idx; t++) {
                         newline.set(t, line.at(t));
                     }
-                    t = 0;
-                    for (; t < correct; t++) {
+                    for (t = 0; t < correct; t++) {
                         newline.set(t + idx, (byte) ' ');
                     }
                     newline.set(idx + correct, (byte) NUL);
@@ -38528,21 +37610,22 @@ public abstract class Editor {
                     idx += correct;
                     col = wcol;
                 } else {
-                    correct_2 = wcol - col - csize + 1;
-                    s = 0;
+                    int correct_2 = wcol - col - csize + 1;
+                    BytePtr newline_2 = null;
+                    int t_2 = 0;
+                    int s = 0;
+                    int v = 0;
                     if (-correct_2 > csize) {
                         return false;
                     }
                     newline_2 = BytePtr.alloc((long) (linelen + csize));
-                    t_2 = 0;
-                    for (; t_2 < linelen; t_2++) {
+                    for (t_2 = 0; t_2 < linelen; t_2++) {
                         if (t_2 != idx) {
                             t1 = s;
                             s++;
                             newline_2.set(t1, line.at(t_2));
                         } else {
-                            v = 0;
-                            for (; v < csize; v++) {
+                            for (v = 0; v < csize; v++) {
                                 t2 = s;
                                 s++;
                                 newline_2.set(t2, (byte) ' ');
@@ -38566,11 +37649,13 @@ public abstract class Editor {
         if (finetune != 0) {
             if (wcol == MAXCOL) {
                 if (!one_more) {
+                    int[] scol = new int[1];
+                    int[] ecol = new int[1];
                     getvcol(curwin, pos, new IntPtr(scol, 0), null, new IntPtr(ecol, 0), 0);
                     pos.coladd = ecol[0] - scol[0];
                 }
             } else {
-                b = wcol - col;
+                int b = wcol - col;
                 if (b > 0 && b < MAXCOL - 2 * curwin.w_width) {
                     pos.coladd = b;
                 }
@@ -38590,11 +37675,10 @@ public abstract class Editor {
 
     int inc(T_pos_T lp) {
         BytePtr p = null;
-        int l = 0;
         if (lp.col[0] != MAXCOL) {
             p = ml_get_pos(lp);
             if (p.get() != NUL) {
-                l = utfc_ptr2len(p);
+                int l = utfc_ptr2len(p);
                 lp.col[0] += l;
                 return p.at(l) != NUL ? 0 : 2;
             }
@@ -38656,10 +37740,8 @@ public abstract class Editor {
     }
 
     long get_cursor_rel_lnum(S_window_S wp, long lnum) {
-        long cursor = 0;
-        long retval = 0;
-        cursor = wp.w_cursor.lnum[0];
-        retval = 0L;
+        long cursor = wp.w_cursor.lnum[0];
+        long retval = 0L;
         retval = lnum - cursor;
         return retval;
     }
@@ -38691,16 +37773,10 @@ public abstract class Editor {
     }
 
     void check_cursor_col_win(S_window_S win) {
-        int len = 0;
-        int oldcol = 0;
-        int oldcoladd = 0;
-        int cur_ve_flags = 0;
-        int[] cs = new int[1];
-        int[] ce = new int[1];
-        oldcol = win.w_cursor.col[0];
-        oldcoladd = win.w_cursor.col[0] + win.w_cursor.coladd;
-        cur_ve_flags = get_ve_flags();
-        len = ml_get_buf_len(win.w_buffer, win.w_cursor.lnum[0]);
+        int oldcol = win.w_cursor.col[0];
+        int oldcoladd = win.w_cursor.col[0] + win.w_cursor.coladd;
+        int cur_ve_flags = get_ve_flags();
+        int len = ml_get_buf_len(win.w_buffer, win.w_cursor.lnum[0]);
         if (len == 0) {
             win.w_cursor.col[0] = 0;
         } else if (win.w_cursor.col[0] >= len) {
@@ -38719,6 +37795,8 @@ public abstract class Editor {
             if (oldcoladd > win.w_cursor.col[0]) {
                 win.w_cursor.coladd = oldcoladd - win.w_cursor.col[0];
                 if (win.w_cursor.col[0] + 1 < len) {
+                    int[] cs = new int[1];
+                    int[] ce = new int[1];
                     getvcol(win, win.w_cursor, new IntPtr(cs, 0), null, new IntPtr(ce, 0), 0);
                     if (win.w_cursor.coladd > (ce[0] - cs[0])) {
                         win.w_cursor.coladd = ce[0] - cs[0];
@@ -38736,13 +37814,12 @@ public abstract class Editor {
     }
 
     void check_visual_pos() {
-        int len = 0;
         if (VIsual.lnum[0] > curbuf.b_ml.ml_line_count) {
             VIsual.lnum[0] = curbuf.b_ml.ml_line_count;
             VIsual.col[0] = 0;
             VIsual.coladd = 0;
         } else {
-            len = ml_get_len(VIsual.lnum[0]);
+            int len = ml_get_len(VIsual.lnum[0]);
             if (VIsual.col[0] > len) {
                 VIsual.col[0] = len;
                 VIsual.coladd = 0;
@@ -38758,19 +37835,14 @@ public abstract class Editor {
 
     boolean set_leftcol(int leftcol) {
         boolean retval = false;
-        long lastcol = 0;
-        long siso = 0;
-        int[] s = new int[1];
-        int[] e = new int[1];
-        retval = false;
         if (curwin.w_leftcol == leftcol) {
             return false;
         }
         curwin.w_leftcol = leftcol;
         changed_cline_bef_curs();
-        lastcol = (long) (curwin.w_leftcol + curwin.w_width - curwin_col_off() - 1);
+        long lastcol = (long) (curwin.w_leftcol + curwin.w_width - curwin_col_off() - 1);
         validate_virtcol();
-        siso = get_sidescrolloff_value();
+        long siso = get_sidescrolloff_value();
         if (curwin.w_virtcol[0] > ((int) (lastcol - siso))) {
             retval = true;
             coladvance((int) (lastcol - siso));
@@ -38778,6 +37850,8 @@ public abstract class Editor {
             retval = true;
             coladvance((int) ((long) curwin.w_leftcol + siso));
         }
+        int[] s = new int[1];
+        int[] e = new int[1];
         getvvcol(curwin, curwin.w_cursor, new IntPtr(s, 0), null, new IntPtr(e, 0), 0);
         if (e[0] > ((int) lastcol)) {
             retval = true;
@@ -38797,13 +37871,11 @@ public abstract class Editor {
     }
 
     int copy_option_part(Ptr<BytePtr> option, BytePtr buf, int maxlen, BytePtr sep_chars) {
-        int len = 0;
-        BytePtr p = null;
         int t1 = 0;
         BytePtr t2 = null;
         int t3 = 0;
-        len = 0;
-        p = option.get();
+        int len = 0;
+        BytePtr p = option.get();
         if (p.get() == '.') {
             t1 = len;
             len++;
@@ -38838,8 +37910,7 @@ public abstract class Editor {
     int name_to_mod_mask(int c) {
         int i = 0;
         c = c < 'a' || c > 'z' ? c : c - ('a' - 'A');
-        i = 0;
-        for (; ((int) mod_mask_table[i].mod_mask) != 0; i++) {
+        for (i = 0; (int) mod_mask_table[i].mod_mask != 0; i++) {
             if (c == (mod_mask_table[i].name & 0xff)) {
                 return (int) mod_mask_table[i].mod_flag;
             }
@@ -38860,8 +37931,7 @@ public abstract class Editor {
         }
         key0 = -key & 255;
         key1 = (-key >>> 8) & 255;
-        i = 0;
-        for (; modifier_keys_table[i] != NUL; i += MOD_KEYS_ENTRY_SIZE) {
+        for (i = 0; modifier_keys_table[i] != NUL; i += MOD_KEYS_ENTRY_SIZE) {
             if (key0 == (modifier_keys_table[i + 3] & 0xff) && key1 == (modifier_keys_table[i + 4] & 0xff) && (modifiers.get() & (modifier_keys_table[i] & 0xff)) != 0) {
                 modifiers.put(modifiers.get() & ~(modifier_keys_table[i] & 0xff));
                 return -((modifier_keys_table[i + 1] & 0xff) + ((modifier_keys_table[i + 2] & 0xff) << 8));
@@ -38909,10 +37979,6 @@ public abstract class Editor {
     }
 
     BytePtr get_special_key_name(int c, int modifiers) {
-        int i = 0;
-        int idx = 0;
-        int len = 0;
-        int table_idx = 0;
         int t1 = 0;
         int t2 = 0;
         int t3 = 0;
@@ -38920,19 +37986,20 @@ public abstract class Editor {
         int t5 = 0;
         int t6 = 0;
         int t7 = 0;
-        BytePtr s = null;
         int t8 = 0;
         BytePtr t9 = null;
-        T_string_T s_2 = null;
         int t10 = 0;
+        int i = 0;
+        int idx = 0;
+        int len = 0;
+        int table_idx = 0;
         get_special_key_name_string[0] = (byte) '<';
         idx = 1;
         if (c < 0 && (-c & 255) == KS_KEY) {
             c = (-c >>> 8) & 255;
         }
         if (c < 0) {
-            i = 0;
-            for (; modifier_keys_table[i] != 0; i += MOD_KEYS_ENTRY_SIZE) {
+            for (i = 0; modifier_keys_table[i] != 0; i += MOD_KEYS_ENTRY_SIZE) {
                 if ((-c & 255) == (modifier_keys_table[i + 1] & 0xff) && ((-c >>> 8) & 255) == (modifier_keys_table[i + 2] & 0xff)) {
                     modifiers |= modifier_keys_table[i] & 0xff;
                     c = -((modifier_keys_table[i + 3] & 0xff) + ((modifier_keys_table[i + 4] & 0xff) << 8));
@@ -38952,8 +38019,7 @@ public abstract class Editor {
                 modifiers |= MOD_MASK_CTRL;
             }
         }
-        i = 0;
-        for (; mod_mask_table[i].name != 'A'; i++) {
+        for (i = 0; mod_mask_table[i].name != 'A'; i++) {
             if ((modifiers & (int) mod_mask_table[i].mod_mask) == (int) mod_mask_table[i].mod_flag) {
                 t1 = idx;
                 idx++;
@@ -38986,7 +38052,7 @@ public abstract class Editor {
                 } else if (len > 1) {
                     idx += utf_char2bytes(c, new BytePtr(get_special_key_name_string, 0).add(idx));
                 } else {
-                    s = transchar(c);
+                    BytePtr s = transchar(c);
                     while (s.get() != 0) {
                         t8 = idx;
                         idx++;
@@ -38997,7 +38063,7 @@ public abstract class Editor {
                 }
             }
         } else {
-            s_2 = key_names_table[table_idx].name;
+            T_string_T s_2 = key_names_table[table_idx].name;
             if (Long.compareUnsigned(s_2.length + (long) idx + 2L, MAX_KEY_NAME_LEN) <= 0) {
                 musl_strcpy(new BytePtr(get_special_key_name_string, 0).add(idx), s_2.string[0]);
                 idx += (int) s_2.length;
@@ -39012,9 +38078,8 @@ public abstract class Editor {
 
     int trans_special(Ptr<BytePtr> srcp, BytePtr dst, int flags, boolean escape_ks, IntPtr did_simplify) {
         int[] modifiers = new int[1];
-        int key = 0;
         modifiers[0] = 0;
-        key = find_special_key(srcp, new IntPtr(modifiers, 0), flags, did_simplify);
+        int key = find_special_key(srcp, new IntPtr(modifiers, 0), flags, did_simplify);
         if (key == 0) {
             return 0;
         }
@@ -39022,14 +38087,13 @@ public abstract class Editor {
     }
 
     int special_to_buf(int key, int modifiers, boolean escape_ks, BytePtr dst) {
-        int dlen = 0;
         int t1 = 0;
         int t2 = 0;
         int t3 = 0;
         int t4 = 0;
         int t5 = 0;
         int t6 = 0;
-        dlen = 0;
+        int dlen = 0;
         if (modifiers != 0) {
             t1 = dlen;
             dlen++;
@@ -39062,17 +38126,14 @@ public abstract class Editor {
     int find_special_key(Ptr<BytePtr> srcp, IntPtr modp, int flags, IntPtr did_simplify) {
         BytePtr last_dash = null;
         BytePtr end_of_name = null;
-        BytePtr src = null;
         BytePtr bp = null;
-        int in_string = 0;
+        int in_string = flags & FSK_IN_STRING;
         int[] modifiers = new int[1];
         int bit = 0;
         int key = 0;
         long[] n = new long[1];
         int[] l = new int[1];
-        int off = 0;
-        in_string = flags & FSK_IN_STRING;
-        src = srcp.get();
+        BytePtr src = srcp.get();
         if (src.at(0) != '<') {
             return 0;
         }
@@ -39080,8 +38141,7 @@ public abstract class Editor {
             src = src.add(1);
         }
         last_dash = src;
-        bp = src.add(1);
-        for (; (bp.get() == '-') || vim_isNormalIDc(bp.get() & 0xff); bp = bp.add(1)) {
+        for (bp = src.add(1); bp.get() == '-' || vim_isNormalIDc(bp.get() & 0xff); bp = bp.add(1)) {
             if (bp.get() == '-') {
                 last_dash = bp;
                 if (bp.at(1) != NUL) {
@@ -39108,8 +38168,7 @@ public abstract class Editor {
         if (bp.get() == '>') {
             end_of_name = bp.add(1);
             modifiers[0] = 0;
-            bp = src.add(1);
-            for (; bp.lt(last_dash); bp = bp.add(1)) {
+            for (bp = src.add(1); bp.lt(last_dash); bp = bp.add(1)) {
                 if (bp.get() != '-') {
                     bit = name_to_mod_mask(bp.get() & 0xff);
                     if (bit == 0) {
@@ -39127,7 +38186,7 @@ public abstract class Editor {
                     }
                     key = (int) n[0];
                 } else {
-                    off = 1;
+                    int off = 1;
                     if (in_string != 0 && last_dash.at(1) == '\\' && last_dash.at(2) == '"') {
                         off = 2;
                     }
@@ -39203,8 +38262,7 @@ public abstract class Editor {
     }
 
     int extract_modifiers(int key, IntPtr modp, int simplify, IntPtr did_simplify) {
-        int modifiers = 0;
-        modifiers = modp.get();
+        int modifiers = modp.get();
         if ((modifiers & MOD_MASK_SHIFT) != 0 && (Integer.compareUnsigned(key - 'A', 26) < 0 || Integer.compareUnsigned(key - 'a', 26) < 0)) {
             key = key < 'a' || key > 'z' ? key : key - ('a' - 'A');
             if (simplify != 0 || modifiers == MOD_MASK_SHIFT || modifiers == (MOD_MASK_SHIFT | MOD_MASK_ALT) || modifiers == (MOD_MASK_SHIFT | MOD_MASK_META)) {
@@ -39237,8 +38295,7 @@ public abstract class Editor {
 
     int find_special_key_in_table(int c) {
         int i = 0;
-        i = 0;
-        for (; i < 117; i++) {
+        for (i = 0; i < 117; i++) {
             if (c == key_names_table[i].key && key_names_table[i].is_alt == 0) {
                 return key_names_table[i].enabled != 0 ? i : -1;
             }
@@ -39247,12 +38304,9 @@ public abstract class Editor {
     }
 
     int cmp_key_name_entry(S_key_name_entry a, S_key_name_entry b) {
-        BytePtr p1 = null;
-        BytePtr p2 = null;
+        BytePtr p1 = a.name.string[0];
+        BytePtr p2 = b.name.string[0];
         int result = 0;
-        p1 = a.name.string[0];
-        p2 = b.name.string[0];
-        result = 0;
         if (BytePtr.eq(p1, p2)) {
             return 0;
         }
@@ -39295,11 +38349,8 @@ public abstract class Editor {
     }
 
     int get_special_key_code(BytePtr name) {
-        byte[] string = new byte[3];
-        S_key_name_entry target = new S_key_name_entry();
-        Ptr<S_key_name_entry> entry = null;
-        int key = 0;
         if (name.at(0) == 't' && name.at(1) == '_' && name.at(2) != NUL && name.at(3) != NUL) {
+            byte[] string = new byte[3];
             string[0] = name.at(2);
             string[1] = name.at(3);
             string[2] = (byte) NUL;
@@ -39307,13 +38358,15 @@ public abstract class Editor {
                 return -((name.at(2) & 0xff) + ((name.at(3) & 0xff) << 8));
             }
         } else {
+            S_key_name_entry target = new S_key_name_entry();
+            Ptr<S_key_name_entry> entry = null;
             target.enabled = TRUE;
             target.key = 0;
             target.name.string[0] = name;
             target.name.length = 0L;
             entry = key_name_bsearch(target, new Ptr<S_key_name_entry>(key_names_table, 0), 117L, fp_cmp_key_name_entry);
             if (entry != null && entry.get().enabled != 0) {
-                key = entry.get().key;
+                int key = entry.get().key;
                 return key == K_TAB ? TAB : key;
             }
         }
@@ -39365,13 +38418,11 @@ public abstract class Editor {
     }
 
     int adjust_plines_for_skipcol(S_window_S wp) {
-        int width = 0;
-        int w2 = 0;
         if (wp.w_skipcol == 0) {
             return 0;
         }
-        width = wp.w_width - win_col_off(wp);
-        w2 = width + win_col_off2(wp);
+        int width = wp.w_width - win_col_off(wp);
+        int w2 = width + win_col_off2(wp);
         if (wp.w_skipcol >= width && w2 > 0) {
             return (wp.w_skipcol - width) / w2 + 1;
         }
@@ -39379,8 +38430,7 @@ public abstract class Editor {
     }
 
     int plines_correct_topline(S_window_S wp, long lnum, boolean limit_winheight) {
-        int n = 0;
-        n = plines_win(wp, lnum, false);
+        int n = plines_win(wp, lnum, false);
         if (lnum == wp.w_topline) {
             n -= adjust_plines_for_skipcol(wp);
         }
@@ -39396,8 +38446,6 @@ public abstract class Editor {
         int done = 0;
         int i = 0;
         boolean use_cache = false;
-        boolean valid = false;
-        i = 0;
         check_cursor_moved(wp);
         use_cache = redrawing() && !wp.w_buffer.b_mod_set && dollar_vcol == -1 && wp.w_skipcol == 0 && wp.w_lines_valid > 0 && wp.w_lines.at(0).wl_lnum <= wp.w_topline;
         if ((wp.w_valid & VALID_CROW) != 0) {
@@ -39413,7 +38461,7 @@ public abstract class Editor {
             }
         }
         for (; lnum <= wp.w_buffer.b_ml.ml_line_count; i++) {
-            valid = false;
+            boolean valid = false;
             if (use_cache && i < wp.w_lines_valid) {
                 if (wp.w_lines.at(i).wl_lnum < lnum || wp.w_lines.at(i).wl_valid == 0) {
                     continue;
@@ -39468,10 +38516,8 @@ public abstract class Editor {
     }
 
     int skipcol_from_plines(S_window_S wp, int plines_off) {
-        int width1 = 0;
+        int width1 = wp.w_width - win_col_off(wp);
         int skipcol = 0;
-        width1 = wp.w_width - win_col_off(wp);
-        skipcol = 0;
         if (plines_off > 0) {
             skipcol += width1;
         }
@@ -39513,18 +38559,9 @@ public abstract class Editor {
         int n = 0;
         boolean check_topline = false;
         boolean check_botline = false;
-        LongPtr so_ptr = null;
-        int save_so = 0;
+        LongPtr so_ptr = curwin.w_onebuf_opt.wo_so[0] >= 0L ? new LongPtr(curwin.w_onebuf_opt.wo_so, 0) : new LongPtr(p_so, 0);
+        int save_so = (int) so_ptr.get();
         boolean eof_pressure = false;
-        long old_topline = 0;
-        int[] vcol = new int[1];
-        int overlap = 0;
-        int min_scroll = 0;
-        T_lineoff_T loff = new T_lineoff_T();
-        check_topline = false;
-        check_botline = false;
-        so_ptr = curwin.w_onebuf_opt.wo_so[0] >= 0L ? new LongPtr(curwin.w_onebuf_opt.wo_so, 0) : new LongPtr(p_so, 0);
-        save_so = (int) so_ptr.get();
         if (skip_update_topline != 0) {
             return;
         }
@@ -39543,7 +38580,7 @@ public abstract class Editor {
             so_ptr.put((long) (mouse_dragging - 1));
         }
         eof_pressure = scrolloffpad_eof_pressure(curwin.w_cursor.lnum[0], so_ptr.get());
-        old_topline = curwin.w_topline;
+        long old_topline = curwin.w_topline;
         if (curbuf.b_ml.ml_line_count == 1L && ml_get(1L).get() == NUL) {
             if (curwin.w_topline != 1L) {
                 redraw_later(UPD_NOT_VALID);
@@ -39560,6 +38597,8 @@ public abstract class Editor {
                 } else if (check_top_offset()) {
                     check_topline = true;
                 } else if (curwin.w_skipcol > 0 && curwin.w_cursor.lnum[0] == curwin.w_topline) {
+                    int[] vcol = new int[1];
+                    int overlap = 0;
                     getvvcol(curwin, curwin.w_cursor, new IntPtr(vcol, 0), null, null, 0);
                     overlap = sms_marker_overlap(curwin, -1);
                     if (curwin.w_skipcol + overlap > vcol[0]) {
@@ -39573,7 +38612,7 @@ public abstract class Editor {
                     halfheight = 2;
                 }
                 n = (int) (curwin.w_topline + so_ptr.get() - curwin.w_cursor.lnum[0]);
-                min_scroll = scrolljump_value();
+                int min_scroll = scrolljump_value();
                 if (eof_pressure) {
                     scroll_cursor_halfway(TRUE, TRUE);
                 } else if (n >= halfheight && min_scroll < halfheight) {
@@ -39593,6 +38632,7 @@ public abstract class Editor {
             if (curwin.w_botline <= curbuf.b_ml.ml_line_count || use_scrolloffpad()) {
                 if (curwin.w_cursor.lnum[0] < curwin.w_botline) {
                     if (curwin.w_cursor.lnum[0] >= curwin.w_botline - so_ptr.get()) {
+                        T_lineoff_T loff = new T_lineoff_T();
                         n = eof_pressure ? 0 : curwin.w_empty_rows;
                         loff.lnum = curwin.w_cursor.lnum[0];
                         loff.height = 0;
@@ -39650,8 +38690,7 @@ public abstract class Editor {
     boolean check_top_offset() {
         T_lineoff_T loff = new T_lineoff_T();
         int n = 0;
-        long so = 0;
-        so = get_scrolloff_value();
+        long so = get_scrolloff_value();
         if (curwin.w_cursor.lnum[0] < curwin.w_topline + so) {
             loff.lnum = curwin.w_cursor.lnum[0];
             n = 0;
@@ -39769,14 +38808,11 @@ public abstract class Editor {
 
     void curs_rows(S_window_S wp) {
         long lnum = 0;
-        int i = 0;
-        boolean all_invalid = false;
         boolean valid = false;
-        all_invalid = !redrawing() || wp.w_lines_valid == 0 || wp.w_lines.at(0).wl_lnum > wp.w_topline;
-        i = 0;
+        boolean all_invalid = !redrawing() || wp.w_lines_valid == 0 || wp.w_lines.at(0).wl_lnum > wp.w_topline;
+        int i = 0;
         wp.w_cline_row = 0;
-        lnum = wp.w_topline;
-        for (; lnum < wp.w_cursor.lnum[0]; i++) {
+        for (lnum = wp.w_topline; lnum < wp.w_cursor.lnum[0]; i++) {
             valid = false;
             if (!all_invalid && i < wp.w_lines_valid) {
                 if (wp.w_lines.at(i).wl_lnum < lnum || wp.w_lines.at(i).wl_valid == 0) {
@@ -39876,6 +38912,8 @@ public abstract class Editor {
     }
 
     void curs_columns(boolean may_scroll) {
+        boolean t1 = false;
+        boolean t2 = false;
         long diff = 0;
         int extra = 0;
         long off_left = 0;
@@ -39888,15 +38926,9 @@ public abstract class Editor {
         int[] startcol = new int[1];
         int[] endcol = new int[1];
         int prev_skipcol = 0;
-        long so = 0;
-        long siso = 0;
+        long so = get_scrolloff_value();
+        long siso = get_sidescrolloff_value();
         boolean did_sub_skipcol = false;
-        boolean t1 = false;
-        boolean t2 = false;
-        width2 = 0;
-        so = get_scrolloff_value();
-        siso = get_sidescrolloff_value();
-        did_sub_skipcol = false;
         update_topline();
         if ((curwin.w_valid & VALID_CROW) == 0) {
             curs_rows(curwin);
@@ -40055,26 +39087,18 @@ public abstract class Editor {
     }
 
     void cursor_correct_sms() {
-        long so = 0;
-        int width1 = 0;
-        int width2 = 0;
-        int so_cols = 0;
-        int space_cols = 0;
-        int overlap = 0;
-        int top = 0;
-        int bot = 0;
-        int size = 0;
-        int col = 0;
-        boolean rc = false;
         if (curwin.w_onebuf_opt.wo_sms[0] == 0 || curwin.w_onebuf_opt.wo_wrap[0] == 0 || curwin.w_cursor.lnum[0] != curwin.w_topline) {
             return;
         }
-        so = get_scrolloff_value();
-        width1 = curwin.w_width - curwin_col_off();
-        width2 = width1 + curwin_col_off2();
-        so_cols = (int) (so == 0L ? 0L : (long) width1 + (so - 1L) * (long) width2);
-        space_cols = (curwin.w_height - 1) * width2;
-        size = so == 0L ? 0 : linetabsize_eol(curwin, curwin.w_topline);
+        long so = get_scrolloff_value();
+        int width1 = curwin.w_width - curwin_col_off();
+        int width2 = width1 + curwin_col_off2();
+        int so_cols = (int) (so == 0L ? 0L : (long) width1 + (so - 1L) * (long) width2);
+        int space_cols = (curwin.w_height - 1) * width2;
+        int overlap = 0;
+        int top = 0;
+        int bot = 0;
+        int size = so == 0L ? 0 : linetabsize_eol(curwin, curwin.w_topline);
         if (curwin.w_topline == 1L && curwin.w_skipcol == 0) {
             so_cols = 0;
         } else if (so_cols > (space_cols / 2)) {
@@ -40090,7 +39114,7 @@ public abstract class Editor {
         top = curwin.w_skipcol + (so_cols != 0 ? so_cols : overlap);
         bot = curwin.w_skipcol + width1 + (curwin.w_height - 1) * width2 - so_cols;
         validate_virtcol();
-        col = curwin.w_virtcol[0];
+        int col = curwin.w_virtcol[0];
         if (col < top) {
             if (col < width1) {
                 col += width1;
@@ -40104,6 +39128,7 @@ public abstract class Editor {
             }
         }
         if (col != curwin.w_virtcol[0]) {
+            boolean rc = false;
             curwin.w_curswant = col;
             rc = coladvance(curwin.w_curswant);
             curwin.w_valid &= ~(VALID_WROW | VALID_WCOL | VALID_CHEIGHT | VALID_CROW | VALID_VIRTCOL);
@@ -40121,12 +39146,9 @@ public abstract class Editor {
     }
 
     void scroll_redraw(int up, long count) {
-        long prev_topline = 0;
-        int prev_skipcol = 0;
-        long prev_lnum = 0;
-        prev_topline = curwin.w_topline;
-        prev_skipcol = curwin.w_skipcol;
-        prev_lnum = curwin.w_cursor.lnum[0];
+        long prev_topline = curwin.w_topline;
+        int prev_skipcol = curwin.w_skipcol;
+        long prev_lnum = curwin.w_cursor.lnum[0];
         if (up != 0) {
             scrollup(count, true);
         } else {
@@ -40158,27 +39180,19 @@ public abstract class Editor {
     }
 
     void scrolldown(long line_count, boolean byfold) {
-        long done = 0;
+        long t1 = 0;
+        long done = 0L;
         int wrow = 0;
         boolean moved = false;
-        boolean do_sms = false;
+        boolean do_sms = curwin.w_onebuf_opt.wo_wrap[0] != 0 && curwin.w_onebuf_opt.wo_sms[0] != 0;
         int width1 = 0;
         int width2 = 0;
-        int todo = 0;
-        int size = 0;
-        long t1 = 0;
-        done = 0L;
-        moved = false;
-        do_sms = curwin.w_onebuf_opt.wo_wrap[0] != 0 && curwin.w_onebuf_opt.wo_sms[0] != 0;
-        width1 = 0;
-        width2 = 0;
         if (do_sms) {
             width1 = curwin.w_width - curwin_col_off();
             width2 = width1 + curwin_col_off2();
         }
         validate_cursor();
-        todo = (int) line_count;
-        for (; todo > 0; todo--) {
+        for (int todo = (int) line_count; todo > 0; todo--) {
             if (curwin.w_topline == 1L && (!do_sms || curwin.w_skipcol < width1)) {
                 break;
             }
@@ -40194,7 +39208,7 @@ public abstract class Editor {
                 curwin.w_topline--;
                 curwin.w_skipcol = 0;
                 if (do_sms) {
-                    size = linetabsize_eol(curwin, curwin.w_topline);
+                    int size = linetabsize_eol(curwin, curwin.w_topline);
                     if (size > width1) {
                         curwin.w_skipcol = width1;
                         size -= width1;
@@ -40236,28 +39250,19 @@ public abstract class Editor {
     }
 
     void scrollup(long line_count, boolean byfold) {
-        boolean do_sms = false;
-        int width1 = 0;
-        int width2 = 0;
-        int size = 0;
-        int prev_skipcol = 0;
-        int todo = 0;
-        long lnum = 0;
-        int add = 0;
-        do_sms = curwin.w_onebuf_opt.wo_wrap[0] != 0 && curwin.w_onebuf_opt.wo_sms[0] != 0;
+        boolean do_sms = curwin.w_onebuf_opt.wo_wrap[0] != 0 && curwin.w_onebuf_opt.wo_sms[0] != 0;
         if (do_sms) {
-            width1 = curwin.w_width - curwin_col_off();
-            width2 = width1 + curwin_col_off2();
-            size = 0;
-            prev_skipcol = curwin.w_skipcol;
+            int width1 = curwin.w_width - curwin_col_off();
+            int width2 = width1 + curwin_col_off2();
+            int size = 0;
+            int prev_skipcol = curwin.w_skipcol;
             if (do_sms) {
                 size = linetabsize_eol(curwin, curwin.w_topline);
             }
-            todo = (int) line_count;
-            for (; todo > 0; todo--) {
-                lnum = curwin.w_topline;
+            for (int todo = (int) line_count; todo > 0; todo--) {
+                long lnum = curwin.w_topline;
                 if (lnum == curwin.w_topline && do_sms) {
-                    add = curwin.w_skipcol > 0 ? width2 : width1;
+                    int add = curwin.w_skipcol > 0 ? width2 : width1;
                     curwin.w_skipcol += add;
                     if (curwin.w_skipcol >= size) {
                         if (lnum == curbuf.b_ml.ml_line_count) {
@@ -40303,27 +39308,20 @@ public abstract class Editor {
     }
 
     void adjust_skipcol() {
-        int width1 = 0;
-        int width2 = 0;
-        long so = 0;
-        int scrolloff_cols = 0;
+        if (curwin.w_onebuf_opt.wo_wrap[0] == 0 || curwin.w_onebuf_opt.wo_sms[0] == 0 || curwin.w_cursor.lnum[0] != curwin.w_topline) {
+            return;
+        }
+        int width1 = curwin.w_width - curwin_col_off();
+        if (width1 <= 0) {
+            return;
+        }
+        int width2 = width1 + curwin_col_off2();
+        long so = get_scrolloff_value();
+        int scrolloff_cols = (int) (so == 0L ? 0L : (long) width1 + (so - 1L) * (long) width2);
         boolean scrolled = false;
         int row = 0;
         int overlap = 0;
         int col = 0;
-        int size = 0;
-        if (curwin.w_onebuf_opt.wo_wrap[0] == 0 || curwin.w_onebuf_opt.wo_sms[0] == 0 || curwin.w_cursor.lnum[0] != curwin.w_topline) {
-            return;
-        }
-        width1 = curwin.w_width - curwin_col_off();
-        if (width1 <= 0) {
-            return;
-        }
-        width2 = width1 + curwin_col_off2();
-        so = get_scrolloff_value();
-        scrolloff_cols = (int) (so == 0L ? 0L : (long) width1 + (so - 1L) * (long) width2);
-        scrolled = false;
-        row = 0;
         validate_cheight();
         if (curwin.w_cline_height == curwin.w_height && plines_win(curwin, curwin.w_cursor.lnum[0], false) <= curwin.w_height) {
             reset_skipcol();
@@ -40346,7 +39344,7 @@ public abstract class Editor {
         }
         col = curwin.w_virtcol[0] + scrolloff_cols;
         if (scrolloff_cols > 0) {
-            size = linetabsize_eol(curwin, curwin.w_topline);
+            int size = linetabsize_eol(curwin, curwin.w_topline);
             size = width1 + width2 * ((size - width1 + width2 - 1) / width2);
             while (col > size) {
                 col -= width2;
@@ -40439,19 +39437,10 @@ public abstract class Editor {
         int i = 0;
         long top = 0;
         long bot = 0;
-        long old_topline = 0;
-        int old_skipcol = 0;
+        long old_topline = curwin.w_topline;
+        int old_skipcol = curwin.w_skipcol;
         long new_topline = 0;
-        int off = 0;
-        int width1 = 0;
-        int width2 = 0;
-        int plines_off = 0;
-        int skipcol = 0;
-        scrolled = 0;
-        extra = 0;
-        old_topline = curwin.w_topline;
-        old_skipcol = curwin.w_skipcol;
-        off = (int) get_scrolloff_value();
+        int off = (int) get_scrolloff_value();
         if (mouse_dragging > 0) {
             off = mouse_dragging - 1;
         }
@@ -40497,9 +39486,10 @@ public abstract class Editor {
             } else if (curwin.w_topline == curwin.w_cursor.lnum[0]) {
                 validate_virtcol();
                 if (curwin.w_skipcol >= curwin.w_virtcol[0]) {
-                    width1 = curwin.w_width - curwin_col_off();
-                    width2 = width1 + curwin_col_off2();
-                    plines_off = 0;
+                    int width1 = curwin.w_width - curwin_col_off();
+                    int width2 = width1 + curwin_col_off2();
+                    int plines_off = 0;
+                    int skipcol = 0;
                     if (width2 > 0 && curwin.w_virtcol[0] >= width1) {
                         plines_off = (curwin.w_virtcol[0] - width1) / width2 + 1;
                     }
@@ -40531,39 +39521,19 @@ public abstract class Editor {
         int extra = 0;
         int i = 0;
         long line_count = 0;
-        long old_topline = 0;
-        int old_skipcol = 0;
+        long old_topline = curwin.w_topline;
+        int old_skipcol = curwin.w_skipcol;
         T_lineoff_T loff = new T_lineoff_T();
         T_lineoff_T boff = new T_lineoff_T();
-        long old_botline = 0;
-        long old_valid = 0;
-        int old_empty_rows = 0;
-        long cln = 0;
-        long so = 0;
-        boolean do_sms = false;
-        long cln_last = 0;
-        int plines_offset = 0;
-        int upto_cursor = 0;
-        int top_plines = 0;
-        int width1 = 0;
-        int width2 = 0;
-        int skip_lines = 0;
-        long loff_lnum_before = 0;
-        long boff_lnum_before = 0;
-        boolean eof_pressure = false;
-        scrolled = 0;
-        extra = 0;
-        old_topline = curwin.w_topline;
-        old_skipcol = curwin.w_skipcol;
-        old_botline = curwin.w_botline;
-        old_valid = (long) curwin.w_valid;
-        old_empty_rows = curwin.w_empty_rows;
-        so = get_scrolloff_value();
-        do_sms = curwin.w_onebuf_opt.wo_wrap[0] != 0 && curwin.w_onebuf_opt.wo_sms[0] != 0;
-        cln = curwin.w_cursor.lnum[0];
+        long old_botline = curwin.w_botline;
+        long old_valid = (long) curwin.w_valid;
+        int old_empty_rows = curwin.w_empty_rows;
+        long so = get_scrolloff_value();
+        boolean do_sms = curwin.w_onebuf_opt.wo_wrap[0] != 0 && curwin.w_onebuf_opt.wo_sms[0] != 0;
+        long cln = curwin.w_cursor.lnum[0];
         if (set_topbot) {
             used = 0;
-            cln_last = cln;
+            long cln_last = cln;
             curwin.w_botline = cln_last + 1L;
             loff.lnum = cln_last + 1L;
             while (true) {
@@ -40574,7 +39544,7 @@ public abstract class Editor {
                 if (used + loff.height > curwin.w_height) {
                     if (do_sms) {
                         if (used < curwin.w_height) {
-                            plines_offset = used + loff.height - curwin.w_height;
+                            int plines_offset = used + loff.height - curwin.w_height;
                             used = curwin.w_height;
                             curwin.w_topline = loff.lnum;
                             curwin.w_skipcol = skipcol_from_plines(curwin, plines_offset);
@@ -40601,7 +39571,7 @@ public abstract class Editor {
         validate_cheight();
         used = curwin.w_cline_height;
         if (do_sms && (dy_flags[0] & DY_LASTLINE) != 0) {
-            upto_cursor = plines_win_col(curwin, cln, (long) curwin.w_cursor.col[0]);
+            int upto_cursor = plines_win_col(curwin, cln, (long) curwin.w_cursor.col[0]);
             if (upto_cursor < used) {
                 used = upto_cursor;
             }
@@ -40612,11 +39582,11 @@ public abstract class Editor {
                 scrolled -= curwin.w_empty_rows;
             }
             if (do_sms) {
-                top_plines = plines_win(curwin, curwin.w_topline, false);
-                width1 = curwin.w_width - curwin_col_off();
+                int top_plines = plines_win(curwin, curwin.w_topline, false);
+                int width1 = curwin.w_width - curwin_col_off();
                 if (width1 > 0) {
-                    width2 = width1 + curwin_col_off2();
-                    skip_lines = 0;
+                    int width2 = width1 + curwin_col_off2();
+                    int skip_lines = 0;
                     if (curwin.w_skipcol > width1) {
                         skip_lines += (curwin.w_skipcol - width1) / width2 + 1;
                     } else if (curwin.w_skipcol > 0) {
@@ -40635,7 +39605,7 @@ public abstract class Editor {
             if ((((scrolled <= 0 || scrolled >= min_scroll) && (long) extra >= (mouse_dragging > 0 ? (long) (mouse_dragging - 1) : so)) || boff.lnum + 1L > curbuf.b_ml.ml_line_count) && loff.lnum <= curwin.w_botline) {
                 break;
             }
-            loff_lnum_before = loff.lnum;
+            long loff_lnum_before = loff.lnum;
             topline_back(loff);
             if (loff.height == MAXCOL) {
                 used = MAXCOL;
@@ -40652,7 +39622,7 @@ public abstract class Editor {
                 }
             }
             if (boff.lnum < curbuf.b_ml.ml_line_count) {
-                boff_lnum_before = boff.lnum;
+                long boff_lnum_before = boff.lnum;
                 botline_forw(boff);
                 used += boff.height;
                 if (used > curwin.w_height) {
@@ -40676,8 +39646,7 @@ public abstract class Editor {
         } else {
             line_count = 0L;
             boff.lnum = curwin.w_topline - 1L;
-            i = 0;
-            for (; (i < scrolled) && boff.lnum < curwin.w_botline; ) {
+            for (i = 0; i < scrolled && boff.lnum < curwin.w_botline; ) {
                 botline_forw(boff);
                 i += boff.height;
                 line_count++;
@@ -40686,7 +39655,7 @@ public abstract class Editor {
                 line_count = 9999L;
             }
         }
-        eof_pressure = scrolloffpad_eof_pressure(cln, so);
+        boolean eof_pressure = scrolloffpad_eof_pressure(cln, so);
         if (line_count >= (long) curwin.w_height && line_count > ((long) min_scroll)) {
             scroll_cursor_halfway(eof_pressure ? 1 : 0, TRUE);
         } else if (line_count > 0L) {
@@ -40715,18 +39684,12 @@ public abstract class Editor {
         int used = 0;
         T_lineoff_T loff = new T_lineoff_T();
         T_lineoff_T boff = new T_lineoff_T();
-        int want_height = 0;
-        boolean do_sms = false;
-        boolean done = false;
-        int round = 0;
-        above = 0;
-        skipcol = 0;
-        below = 0;
         boff.lnum = curwin.w_cursor.lnum[0];
         loff.lnum = boff.lnum;
         used = plines(loff.lnum);
         topline = loff.lnum;
-        do_sms = curwin.w_onebuf_opt.wo_wrap[0] != 0 && curwin.w_onebuf_opt.wo_sms[0] != 0;
+        int want_height = 0;
+        boolean do_sms = curwin.w_onebuf_opt.wo_wrap[0] != 0 && curwin.w_onebuf_opt.wo_sms[0] != 0;
         if (do_sms) {
             if (atend != 0) {
                 want_height = (curwin.w_height - used) / 2;
@@ -40756,9 +39719,8 @@ public abstract class Editor {
                 topline = loff.lnum;
                 continue;
             }
-            done = false;
-            round = 1;
-            for (; round <= 2; round++) {
+            boolean done = false;
+            for (int round = 1; round <= 2; round++) {
                 if (prefer_above != 0 ? round == 2 && below < above : round == 1 && below <= above) {
                     if (boff.lnum < curbuf.b_ml.ml_line_count) {
                         botline_forw(boff);
@@ -40812,16 +39774,11 @@ public abstract class Editor {
         long topline = 0;
         int below = 0;
         long botline = 0;
-        int above_wanted = 0;
-        int below_wanted = 0;
         long cln = 0;
         int max_off = 0;
-        long so = 0;
-        above = 0;
-        below = 0;
-        so = get_scrolloff_value();
-        above_wanted = (int) so;
-        below_wanted = (int) so;
+        long so = get_scrolloff_value();
+        int above_wanted = (int) so;
+        int below_wanted = (int) so;
         if (mouse_dragging > 0) {
             above_wanted = mouse_dragging - 1;
             below_wanted = mouse_dragging - 1;
@@ -40877,19 +39834,14 @@ public abstract class Editor {
 
     int get_scroll_overlap(int dir) {
         T_lineoff_T loff = new T_lineoff_T();
-        int min_height = 0;
-        int h1 = 0;
-        int h2 = 0;
-        int h3 = 0;
-        int h4 = 0;
-        min_height = curwin.w_height - 2;
+        int min_height = curwin.w_height - 2;
         validate_botline();
         if ((dir == -1 && curwin.w_topline == 1L) || (dir == FORWARD && curwin.w_botline > curbuf.b_ml.ml_line_count)) {
             return min_height + 2;
         }
         loff.lnum = dir == FORWARD ? curwin.w_botline : curwin.w_topline - 1L;
         loff.height = plines(loff.lnum);
-        h1 = loff.height;
+        int h1 = loff.height;
         if (h1 > min_height) {
             return min_height + 2;
         }
@@ -40898,7 +39850,7 @@ public abstract class Editor {
         } else {
             botline_forw(loff);
         }
-        h2 = loff.height;
+        int h2 = loff.height;
         if (h2 == MAXCOL || h2 + h1 > min_height) {
             return min_height + 2;
         }
@@ -40907,7 +39859,7 @@ public abstract class Editor {
         } else {
             botline_forw(loff);
         }
-        h3 = loff.height;
+        int h3 = loff.height;
         if (h3 == MAXCOL || h3 + h2 > min_height) {
             return min_height + 2;
         }
@@ -40916,7 +39868,7 @@ public abstract class Editor {
         } else {
             botline_forw(loff);
         }
-        h4 = loff.height;
+        int h4 = loff.height;
         if (h4 == MAXCOL || h4 + h3 + h2 > min_height || h3 + h2 + h1 > min_height) {
             return min_height + 1;
         } else {
@@ -40925,24 +39877,18 @@ public abstract class Editor {
     }
 
     boolean scroll_with_sms(int dir, long count, LongPtr curscount) {
-        int prev_sms = 0;
-        int prev_skipcol = 0;
-        long prev_topline = 0;
-        int fixdir = 0;
-        int width1 = 0;
-        int width2 = 0;
-        prev_sms = curwin.w_onebuf_opt.wo_sms[0];
-        prev_skipcol = curwin.w_skipcol;
-        prev_topline = curwin.w_topline;
+        int prev_sms = curwin.w_onebuf_opt.wo_sms[0];
+        int prev_skipcol = curwin.w_skipcol;
+        long prev_topline = curwin.w_topline;
         curwin.w_onebuf_opt.wo_sms[0] = TRUE;
         scroll_redraw(dir == FORWARD ? 1 : 0, count);
         if (prev_sms == 0 && curwin.w_skipcol > 0) {
-            fixdir = dir;
+            int fixdir = dir;
             if (musl_labs(curwin.w_topline - prev_topline) > ((long) (dir == -1 ? 1 : 0))) {
                 fixdir = dir * -1;
             }
-            width1 = curwin.w_width - curwin_col_off();
-            width2 = width1 + curwin_col_off2();
+            int width1 = curwin.w_width - curwin_col_off();
+            int width2 = width1 + curwin_col_off2();
             count = (long) (1 + (curwin.w_skipcol - width1 - 1) / width2);
             if (fixdir == FORWARD) {
                 count = (long) (1 + (linetabsize_eol(curwin, curwin.w_topline) - curwin.w_skipcol - width1 + width2 - 1) / width2);
@@ -40957,31 +39903,22 @@ public abstract class Editor {
     boolean pagescroll(int dir, long count_arg, boolean half) {
         long[] count = new long[] {count_arg};
         boolean did_move = false;
-        int buflen = 0;
-        int prev_col = 0;
-        int prev_curswant = 0;
-        long prev_lnum = 0;
+        int buflen = (int) curbuf.b_ml.ml_line_count;
+        int prev_col = curwin.w_cursor.col[0];
+        int prev_curswant = curwin.w_curswant;
+        long prev_lnum = curwin.w_cursor.lnum[0];
         S_oparg_S oa = new S_oparg_S();
         S_cmdarg_S ca = new S_cmdarg_S();
-        long[] curscount = new long[1];
-        int n = 0;
-        long lnum = 0;
-        did_move = false;
-        buflen = (int) curbuf.b_ml.ml_line_count;
-        prev_col = curwin.w_cursor.col[0];
-        prev_curswant = curwin.w_curswant;
-        prev_lnum = curwin.w_cursor.lnum[0];
-        oa = new S_oparg_S();
-        ca = new S_cmdarg_S();
         ca.oap = oa;
         if (half) {
             if (count[0] != 0) {
                 curwin.w_onebuf_opt.wo_scr[0] = (long) curwin.w_height < count[0] ? (long) curwin.w_height : count[0];
             }
             count[0] = (long) curwin.w_height < curwin.w_onebuf_opt.wo_scr[0] ? (long) curwin.w_height : curwin.w_onebuf_opt.wo_scr[0];
+            long[] curscount = new long[1];
             curscount[0] = count[0];
             if (dir == FORWARD && curwin.w_topline + (long) curwin.w_height + count[0] > ((long) buflen)) {
-                n = plines_correct_topline(curwin, curwin.w_topline, false);
+                int n = plines_correct_topline(curwin, curwin.w_topline, false);
                 if ((long) n - count[0] < (long) curwin.w_height && curwin.w_topline < (long) buflen) {
                     n += plines_m_win(curwin, curwin.w_topline + 1L, (long) buflen, (int) ((long) curwin.w_height + count[0]));
                 }
@@ -41007,7 +39944,7 @@ public abstract class Editor {
             did_move = scroll_with_sms(dir, count[0], new LongPtr(count, 0));
             if (did_move) {
                 validate_botline();
-                lnum = dir == FORWARD ? curwin.w_topline : curwin.w_botline - 1L;
+                long lnum = dir == FORWARD ? curwin.w_topline : curwin.w_botline - 1L;
                 curwin.w_cursor.lnum[0] = lnum > 1L ? lnum : 1L;
             }
         }
@@ -41150,16 +40087,12 @@ public abstract class Editor {
     }
 
     int normal_cmd_get_more_chars(int idx_arg, S_cmdarg_S cap, IntPtr need_flushbuf) {
-        int idx = 0;
+        int idx = idx_arg;
         int c = 0;
         IntPtr cp = null;
         boolean repl = false;
         boolean lit = false;
         boolean lang = false;
-        long towait = 0;
-        idx = idx_arg;
-        repl = false;
-        lit = false;
         no_mapping++;
         allow_keys++;
         did_cursorhold = TRUE;
@@ -41207,7 +40140,7 @@ public abstract class Editor {
             } else if ((cap.nchar[0] == 'n' || cap.nchar[0] == 'N') && cap.cmdchar == 'g') {
                 cap.oap.op_type = get_op_type(cp.get(), NUL);
             } else if (cp.get() == Ctrl_BSL) {
-                towait = p_ttm[0] >= 0L ? p_ttm[0] : p_tm[0];
+                long towait = p_ttm[0] >= 0L ? p_ttm[0] : p_tm[0];
                 while (true) {
                     c = vpeekc();
                     if (!(c <= 0 && towait > 0L)) {
@@ -41260,14 +40193,12 @@ public abstract class Editor {
     }
 
     void normal_cmd_wait_for_msg() {
-        int save_State = 0;
-        BytePtr kmsg = null;
-        save_State = State;
+        int save_State = State;
         if (restart_edit != 0) {
             State = MODE_INSERT;
         }
         if (must_redraw != 0 && keep_msg != null && emsg_on_display == 0) {
-            kmsg = keep_msg;
+            BytePtr kmsg = keep_msg;
             keep_msg = null;
             setcursor();
             update_screen(0);
@@ -41291,19 +40222,15 @@ public abstract class Editor {
         S_cmdarg_S ca = new S_cmdarg_S();
         int c = 0;
         int[] ctrl_w = new int[1];
-        int old_col = 0;
+        ctrl_w[0] = FALSE;
+        int old_col = curwin.w_curswant;
         int[] need_flushbuf = new int[1];
+        need_flushbuf[0] = FALSE;
         T_pos_T old_pos = new T_pos_T();
         int mapped_len = 0;
         int idx = 0;
         boolean set_prevcount = false;
-        int save_did_cursorhold = 0;
-        int len = 0;
-        ctrl_w[0] = FALSE;
-        old_col = curwin.w_curswant;
-        need_flushbuf[0] = FALSE;
-        set_prevcount = false;
-        save_did_cursorhold = did_cursorhold;
+        int save_did_cursorhold = did_cursorhold;
         ca.zero();
         ca.oap = oap;
         ca.opcount = opcount;
@@ -41329,7 +40256,7 @@ public abstract class Editor {
             c = -(KS_ZERO + ('X' << 8));
         }
         if (VIsual_active != 0 && VIsual_select != 0 && (vim_isprintc(c) || c == NL || c == CAR || c == K_KENTER)) {
-            len = ins_char_typebuf(vgetc_char, vgetc_mod_mask);
+            int len = ins_char_typebuf(vgetc_char, vgetc_mod_mask);
             if (KeyTyped != 0) {
                 ungetchars(len);
             }
@@ -41516,19 +40443,16 @@ public abstract class Editor {
     }
 
     int find_ident_at_pos(S_window_S wp, long lnum, int startcol, Ptr<BytePtr> text, IntPtr textcol, int find_type) {
-        BytePtr ptr = null;
         int[] col = new int[1];
+        col[0] = 0;
         int i = 0;
         int this_class = 0;
         int prev_class = 0;
         int[] prevcol = new int[1];
         int[] bn = new int[1];
-        col[0] = 0;
-        this_class = 0;
         bn[0] = 0;
-        ptr = ml_get_buf(wp.w_buffer, lnum, false);
-        i = (find_type & FIND_IDENT) != 0 ? 0 : 1;
-        for (; i < 2; i++) {
+        BytePtr ptr = ml_get_buf(wp.w_buffer, lnum, false);
+        for (i = (find_type & FIND_IDENT) != 0 ? 0 : 1; i < 2; i++) {
             col[0] = startcol;
             while (ptr.at(col[0]) != NUL) {
                 if ((find_type & FIND_EVAL) != 0 && ptr.at(col[0]) == ']') {
@@ -41685,22 +40609,16 @@ public abstract class Editor {
     }
 
     void clear_showcmd() {
-        boolean cursor_bot = false;
-        long lines = 0;
-        int[] leftcol = new int[1];
-        int[] rightcol = new int[1];
-        long top = 0;
-        long bot = 0;
-        BytePtr s = null;
-        BytePtr e = null;
-        int l = 0;
-        int bytes = 0;
-        int chars = 0;
         if (p_sc[0] == 0) {
             return;
         }
         if (VIsual_active != 0 && stuff_empty() && typebuf.tb_len == 0) {
-            cursor_bot = VIsual.lnum[0] != curwin.w_cursor.lnum[0] ? VIsual.lnum[0] < curwin.w_cursor.lnum[0] : (VIsual.col[0] != curwin.w_cursor.col[0] ? VIsual.col[0] < curwin.w_cursor.col[0] : VIsual.coladd < curwin.w_cursor.coladd);
+            boolean cursor_bot = VIsual.lnum[0] != curwin.w_cursor.lnum[0] ? VIsual.lnum[0] < curwin.w_cursor.lnum[0] : (VIsual.col[0] != curwin.w_cursor.col[0] ? VIsual.col[0] < curwin.w_cursor.col[0] : VIsual.coladd < curwin.w_cursor.coladd);
+            long lines = 0;
+            int[] leftcol = new int[1];
+            int[] rightcol = new int[1];
+            long top = 0;
+            long bot = 0;
             if (cursor_bot) {
                 top = VIsual.lnum[0];
                 bot = curwin.w_cursor.lnum[0];
@@ -41715,8 +40633,11 @@ public abstract class Editor {
             } else if (VIsual_mode == 'V' || VIsual.lnum[0] != curwin.w_cursor.lnum[0]) {
                 vim_snprintf(new BytePtr(showcmd_buf, 0), SHOWCMD_COLS + 1 + 30, BytePtr.lit("%ld"), lines);
             } else {
-                bytes = 0;
-                chars = 0;
+                BytePtr s = null;
+                BytePtr e = null;
+                int l = 0;
+                int bytes = 0;
+                int chars = 0;
                 if (cursor_bot) {
                     s = ml_get_pos(VIsual);
                     e = ml_get_cursor();
@@ -41754,13 +40675,13 @@ public abstract class Editor {
     }
 
     boolean add_to_showcmd(int c) {
+        int t1 = 0;
         BytePtr p = null;
         int old_len = 0;
         int extra_len = 0;
         int overflow = 0;
         int i = 0;
         byte[] mbyte_buf = new byte[21];
-        int t1 = 0;
         if (p_sc[0] == 0 || msg_silent != 0) {
             return false;
         }
@@ -41769,8 +40690,7 @@ public abstract class Editor {
             showcmd_visual = FALSE;
         }
         if (c < 0) {
-            i = 0;
-            for (; add_to_showcmd_ignore[i] != 0; i++) {
+            for (i = 0; add_to_showcmd_ignore[i] != 0; i++) {
                 if (add_to_showcmd_ignore[i] == c) {
                     return false;
                 }
@@ -41840,8 +40760,7 @@ public abstract class Editor {
     }
 
     void display_showcmd() {
-        int len = 0;
-        len = vim_strsize(new BytePtr(showcmd_buf, 0));
+        int len = vim_strsize(new BytePtr(showcmd_buf, 0));
         showcmd_update_clear_state();
         cursor_off();
         if (p_sloc[0].get() == 's') {
@@ -41907,20 +40826,15 @@ public abstract class Editor {
     }
 
     boolean nv_screengo(S_oparg_S oap, int dir, long dist) {
-        int linelen = 0;
-        boolean retval = false;
+        long t1 = 0;
+        int linelen = linetabsize_no_outer(curwin, curwin.w_cursor.lnum[0]);
+        boolean retval = true;
         boolean atend = false;
         int n = 0;
         int col_off1 = 0;
         int col_off2 = 0;
         int width1 = 0;
         int width2 = 0;
-        long t1 = 0;
-        int virtcol = 0;
-        int c = 0;
-        linelen = linetabsize_no_outer(curwin, curwin.w_cursor.lnum[0]);
-        retval = true;
-        atend = false;
         oap.motion_type = MCHAR;
         oap.inclusive = curwin.w_curswant == MAXCOL ? 1 : 0;
         col_off1 = curwin_col_off();
@@ -42001,6 +40915,8 @@ public abstract class Editor {
             coladvance(curwin.w_curswant);
         }
         if (curwin.w_cursor.col[0] > 0 && curwin.w_onebuf_opt.wo_wrap[0] != 0) {
+            int virtcol = 0;
+            int c = 0;
             validate_virtcol();
             virtcol = curwin.w_virtcol[0];
             c = utf_ptr2char(ml_get_cursor());
@@ -42025,9 +40941,8 @@ public abstract class Editor {
     }
 
     boolean nv_z_get_count(S_cmdarg_S cap, IntPtr nchar_arg) {
-        int nchar = 0;
+        int nchar = nchar_arg.get();
         long[] n = new long[1];
-        nchar = nchar_arg.get();
         if (checkclearop(cap.oap)) {
             return false;
         }
@@ -42066,9 +40981,8 @@ public abstract class Editor {
         long n = 0;
         int[] col = new int[1];
         int[] nchar = new int[1];
-        long siso = 0;
         nchar[0] = cap.nchar[0];
-        siso = get_sidescrolloff_value();
+        long siso = get_sidescrolloff_value();
         if (Integer.compareUnsigned(nchar[0] - '0', 10) < 0 && !nv_z_get_count(cap, new IntPtr(nchar, 0))) {
             return;
         }
@@ -42188,9 +41102,8 @@ public abstract class Editor {
     void nv_colon(S_cmdarg_S cap) {
         int old_p_im = 0;
         boolean cmd_result = false;
-        boolean is_cmdkey = false;
+        boolean is_cmdkey = cap.cmdchar == K_COMMAND || cap.cmdchar == K_SCRIPT_COMMAND;
         int flags = 0;
-        is_cmdkey = cap.cmdchar == K_COMMAND || cap.cmdchar == K_SCRIPT_COMMAND;
         if (VIsual_active != 0 && !is_cmdkey) {
             nv_operator(cap);
             return;
@@ -42281,7 +41194,16 @@ public abstract class Editor {
     }
 
     void nv_ident(S_cmdarg_S cap) {
+        boolean t1 = false;
+        int t2 = 0;
+        BytePtr t3 = null;
+        int i = 0;
+        BytePtr t4 = null;
+        BytePtr t5 = null;
+        BytePtr t6 = null;
+        BytePtr t7 = null;
         BytePtr[] ptr = new BytePtr[1];
+        ptr[0] = null;
         BytePtr buf = null;
         long bufsize = 0;
         long buflen = 0;
@@ -42290,17 +41212,6 @@ public abstract class Editor {
         int cmdchar = 0;
         boolean g_cmd = false;
         BytePtr aux_ptr = null;
-        boolean t1 = false;
-        int t2 = 0;
-        BytePtr t3 = null;
-        int i = 0;
-        int len = 0;
-        BytePtr t4 = null;
-        BytePtr t5 = null;
-        BytePtr t6 = null;
-        BytePtr t7 = null;
-        ptr[0] = null;
-        n = 0;
         if (cap.cmdchar == 'g') {
             cmdchar = cap.nchar[0];
             g_cmd = true;
@@ -42348,9 +41259,8 @@ public abstract class Editor {
                 p = p.add(1);
                 t3.put((byte) '\\');
             }
-            len = utfc_ptr2len(ptr[0]) - 1;
-            i = 0;
-            for (; (i < len) && n >= 1; i++, n--) {
+            int len = utfc_ptr2len(ptr[0]) - 1;
+            for (i = 0; i < len && n >= 1; i++, n--) {
                 t4 = p;
                 p = p.add(1);
                 t5 = ptr[0];
@@ -42382,7 +41292,6 @@ public abstract class Editor {
         int used = 0;
         long n = 0;
         int half = 0;
-        used = 0;
         cap.oap.motion_type = MLINE;
         setpcmark();
         if (cap.cmdchar == 'L') {
@@ -42397,8 +41306,7 @@ public abstract class Editor {
             if (cap.cmdchar == 'M') {
                 validate_botline();
                 half = (curwin.w_height - curwin.w_empty_rows + 1) / 2;
-                n = 0L;
-                for (; (curwin.w_topline + n) < curbuf.b_ml.ml_line_count; n++) {
+                for (n = 0L; curwin.w_topline + n < curbuf.b_ml.ml_line_count; n++) {
                     used += plines(curwin.w_topline + n);
                     if (used >= half) {
                         break;
@@ -42437,8 +41345,7 @@ public abstract class Editor {
         if (virtual_active() != 0) {
             past_line = 0;
         }
-        n = cap.count1;
-        for (; n > 0L; n--) {
+        for (n = cap.count1; n > 0L; n--) {
             if ((past_line == 0 && !oneright()) || (past_line != 0 && ml_get_cursor().get() == NUL)) {
                 if (((cap.cmdchar == ' ' && vim_strchr(p_ww[0], 's') != null) || (cap.cmdchar == 'l' && vim_strchr(p_ww[0], 'l') != null) || (cap.cmdchar == K_RIGHT && vim_strchr(p_ww[0], '>') != null)) && curwin.w_cursor.lnum[0] < curbuf.b_ml.ml_line_count) {
                     if (cap.oap.op_type != OP_NOP && cap.oap.inclusive == 0 && !(ml_get(curwin.w_cursor.lnum[0]).get() == NUL)) {
@@ -42475,7 +41382,6 @@ public abstract class Editor {
 
     void nv_left(S_cmdarg_S cap) {
         long n = 0;
-        BytePtr cp = null;
         if ((mod_mask[0] & (MOD_MASK_SHIFT | MOD_MASK_CTRL)) != 0) {
             if ((mod_mask[0] & MOD_MASK_CTRL) != 0) {
                 cap.arg = 1;
@@ -42485,15 +41391,14 @@ public abstract class Editor {
         }
         cap.oap.motion_type = MCHAR;
         cap.oap.inclusive = FALSE;
-        n = cap.count1;
-        for (; n > 0L; n--) {
+        for (n = cap.count1; n > 0L; n--) {
             if (!oneleft()) {
                 if ((((cap.cmdchar == K_BS || cap.cmdchar == Ctrl_H) && vim_strchr(p_ww[0], 'b') != null) || (cap.cmdchar == 'h' && vim_strchr(p_ww[0], 'h') != null) || (cap.cmdchar == K_LEFT && vim_strchr(p_ww[0], '<') != null)) && curwin.w_cursor.lnum[0] > 1L) {
                     curwin.w_cursor.lnum[0]--;
                     coladvance(MAXCOL);
                     curwin.w_set_curswant = true;
                     if ((cap.oap.op_type == OP_DELETE || cap.oap.op_type == OP_CHANGE) && !(ml_get(curwin.w_cursor.lnum[0]).get() == NUL)) {
-                        cp = ml_get_cursor();
+                        BytePtr cp = ml_get_cursor();
                         if (cp.get() != NUL) {
                             curwin.w_cursor.col[0] += utfc_ptr2len(cp);
                         }
@@ -42557,9 +41462,8 @@ public abstract class Editor {
     }
 
     void nv_search(S_cmdarg_S cap) {
-        S_oparg_S oap = null;
+        S_oparg_S oap = cap.oap;
         T_pos_T save_cursor = new T_pos_T();
-        oap = cap.oap;
         save_cursor.set(curwin.w_cursor);
         cap.searchbuf = getcmdline(cap.cmdchar, cap.count1, 0, 0);
         if (cap.searchbuf == null) {
@@ -42571,11 +41475,10 @@ public abstract class Editor {
 
     void nv_next(S_cmdarg_S cap) {
         T_pos_T old = new T_pos_T();
-        int[] wrapped = new int[1];
-        int i = 0;
         old.set(curwin.w_cursor);
+        int[] wrapped = new int[1];
         wrapped[0] = FALSE;
-        i = normal_search(cap, 0, null, 0L, SEARCH_MARK | cap.arg, new IntPtr(wrapped, 0));
+        int i = normal_search(cap, 0, null, 0L, SEARCH_MARK | cap.arg, new IntPtr(wrapped, 0));
         if (i == 1 && wrapped[0] == 0 && (old.lnum[0] == curwin.w_cursor.lnum[0] && old.col[0] == curwin.w_cursor.col[0] && old.coladd == curwin.w_cursor.coladd)) {
             cap.count1 += 1L;
             normal_search(cap, 0, null, 0L, SEARCH_MARK | cap.arg, null);
@@ -42618,9 +41521,6 @@ public abstract class Editor {
     void nv_csearch(S_cmdarg_S cap) {
         boolean t_cmd = false;
         boolean cursor_dec = false;
-        int[] scol = new int[1];
-        int[] ecol = new int[1];
-        cursor_dec = false;
         if (p_sel[0].get() == 'e' && VIsual_active != 0 && VIsual_mode == 'v' && VIsual_select_exclu_adj != 0) {
             unadjust_for_sel();
             cursor_dec = true;
@@ -42640,6 +41540,8 @@ public abstract class Editor {
         }
         curwin.w_set_curswant = true;
         if (gchar_cursor() == TAB && virtual_active() != 0 && cap.arg == FORWARD && (t_cmd || cap.oap.op_type != OP_NOP)) {
+            int[] scol = new int[1];
+            int[] ecol = new int[1];
             getvcol(curwin, curwin.w_cursor, new IntPtr(scol, 0), null, new IntPtr(ecol, 0), 0);
             curwin.w_cursor.coladd = ecol[0] - scol[0];
         } else {
@@ -42651,12 +41553,8 @@ public abstract class Editor {
     void nv_bracket_block(S_cmdarg_S cap, T_pos_T old_pos) {
         T_pos_T new_pos = new T_pos_T();
         T_pos_T pos = null;
-        long n = 0;
-        int findc = 0;
-        new_pos = new T_pos_T();
-        pos = null;
-        findc = cap.nchar[0];
-        n = cap.count1;
+        int findc = cap.nchar[0];
+        long n = cap.count1;
         for (; n > 0L; n--) {
             pos = findmatchlimit(cap.oap, findc, cap.cmdchar == '[' ? FM_BACKWARD : FM_FORWARD, 0);
             if (pos == null) {
@@ -42683,7 +41581,6 @@ public abstract class Editor {
         T_pos_T pos = null;
         T_pos_T old_pos = new T_pos_T();
         long n = 0;
-        pos = null;
         cap.oap.motion_type = MCHAR;
         cap.oap.inclusive = FALSE;
         old_pos.set(curwin.w_cursor);
@@ -42694,8 +41591,7 @@ public abstract class Editor {
             nv_put_opt(cap, true);
         } else if (cap.nchar[0] == '\'' || cap.nchar[0] == '`') {
             pos = curwin.w_cursor;
-            n = cap.count1;
-            for (; n > 0L; n--) {
+            for (n = cap.count1; n > 0L; n--) {
                 prev_pos.set(pos);
                 pos = getnextmark(pos, cap.cmdchar == '[' ? -1 : FORWARD, cap.nchar[0] == '\'');
                 if (pos == null) {
@@ -42714,7 +41610,6 @@ public abstract class Editor {
 
     void nv_percent(S_cmdarg_S cap) {
         T_pos_T pos = null;
-        int flags = 0;
         cap.oap.inclusive = TRUE;
         if (cap.count0 != 0) {
             if (cap.count0 > 100L) {
@@ -42736,7 +41631,7 @@ public abstract class Editor {
                 beginline(BL_SOL | BL_FIX);
             }
         } else {
-            flags = 0;
+            int flags = 0;
             cap.oap.motion_type = MCHAR;
             cap.oap.use_reg_one = TRUE;
             pos = findmatchlimit(cap.oap, NUL, flags, 0);
@@ -42782,8 +41677,6 @@ public abstract class Editor {
     void nv_replace(S_cmdarg_S cap) {
         int had_ctrl_v = 0;
         long n = 0;
-        int old_State = 0;
-        int c = 0;
         if (checkclearop(cap.oap)) {
             return;
         }
@@ -42847,18 +41740,17 @@ public abstract class Editor {
         } else {
             prep_redo(cap.oap.regname, cap.count1, NUL, 'r', NUL, had_ctrl_v, cap.nchar[0]);
             curbuf.b_op_start.set(curwin.w_cursor);
-            old_State = State;
+            int old_State = State;
             if (cap.ncharC1 != 0) {
                 AppendCharToRedobuff(cap.ncharC1);
             }
             if (cap.ncharC2 != 0) {
                 AppendCharToRedobuff(cap.ncharC2);
             }
-            n = cap.count1;
-            for (; n > 0L; n--) {
+            for (n = cap.count1; n > 0L; n--) {
                 State = REPLACE_FLAG | MODE_INSERT;
                 if (cap.nchar[0] == Ctrl_E || cap.nchar[0] == Ctrl_Y) {
-                    c = ins_copychar(curwin.w_cursor.lnum[0] + (long) (cap.nchar[0] == Ctrl_Y ? -1 : 1));
+                    int c = ins_copychar(curwin.w_cursor.lnum[0] + (long) (cap.nchar[0] == Ctrl_Y ? -1 : 1));
                     if (c != NUL) {
                         ins_char(c);
                     } else {
@@ -42972,7 +41864,6 @@ public abstract class Editor {
         long n = 0;
         T_pos_T startpos = new T_pos_T();
         int did_change = 0;
-        did_change = 0;
         if (checkclearopq(cap.oap)) {
             return;
         }
@@ -42985,8 +41876,7 @@ public abstract class Editor {
             return;
         }
         startpos.set(curwin.w_cursor);
-        n = cap.count1;
-        for (; n > 0L; n--) {
+        for (n = cap.count1; n > 0L; n--) {
             did_change |= swapchar(cap.oap.op_type, curwin.w_cursor) ? 1 : 0;
             inc_cursor();
             if (gchar_cursor() == NUL) {
@@ -43143,7 +42033,6 @@ public abstract class Editor {
     }
 
     void nv_visual(S_cmdarg_S cap) {
-        T_pos_T tmp_cursor = new T_pos_T();
         boolean t1 = false;
         if (cap.cmdchar == Ctrl_Q) {
             cap.cmdchar = Ctrl_V;
@@ -43196,6 +42085,7 @@ public abstract class Editor {
                     curwin.w_curswant = MAXCOL;
                     coladvance(MAXCOL);
                 } else if (VIsual_mode == Ctrl_V) {
+                    T_pos_T tmp_cursor = new T_pos_T();
                     tmp_cursor.set(curwin.w_cursor);
                     curwin.w_cursor.set(VIsual);
                     update_curswant_force();
@@ -43314,19 +42204,15 @@ public abstract class Editor {
     void nv_g_home_m_cmd(S_cmdarg_S cap) {
         int i = 0;
         boolean flag = false;
-        int width1 = 0;
-        int width2 = 0;
-        int virtcol = 0;
-        int overlap = 0;
-        flag = false;
         if (cap.nchar[0] == '^') {
             flag = true;
         }
         cap.oap.motion_type = MCHAR;
         cap.oap.inclusive = FALSE;
         if (curwin.w_onebuf_opt.wo_wrap[0] != 0 && curwin.w_width != 0) {
-            width1 = curwin.w_width - curwin_col_off();
-            width2 = width1 + curwin_col_off2();
+            int width1 = curwin.w_width - curwin_col_off();
+            int width2 = width1 + curwin_col_off2();
+            int virtcol = 0;
             validate_virtcol();
             virtcol = curwin.w_virtcol[0];
             i = 0;
@@ -43334,7 +42220,7 @@ public abstract class Editor {
                 i = (virtcol - width1) / width2 * width2 + width1;
             }
             if (curwin.w_skipcol > 0 && curwin.w_cursor.lnum[0] == curwin.w_topline) {
-                overlap = sms_marker_overlap(curwin, curwin.w_width - width2);
+                int overlap = sms_marker_overlap(curwin, curwin.w_width - width2);
                 if (overlap > 0 && i == curwin.w_skipcol) {
                     i += overlap;
                 }
@@ -43377,17 +42263,10 @@ public abstract class Editor {
     }
 
     void nv_g_dollar_cmd(S_cmdarg_S cap) {
-        S_oparg_S oap = null;
+        S_oparg_S oap = cap.oap;
         int i = 0;
-        int col_off = 0;
+        int col_off = curwin_col_off();
         boolean flag = false;
-        int width1 = 0;
-        int width2 = 0;
-        int virtcol = 0;
-        int[] vcol = new int[1];
-        oap = cap.oap;
-        col_off = curwin_col_off();
-        flag = false;
         if (cap.nchar[0] == K_END || cap.nchar[0] == K_KEND) {
             flag = true;
         }
@@ -43396,8 +42275,9 @@ public abstract class Editor {
         if (curwin.w_onebuf_opt.wo_wrap[0] != 0 && curwin.w_width != 0) {
             curwin.w_curswant = MAXCOL;
             if (cap.count1 == 1L) {
-                width1 = curwin.w_width - col_off;
-                width2 = width1 + curwin_col_off2();
+                int width1 = curwin.w_width - col_off;
+                int width2 = width1 + curwin_col_off2();
+                int virtcol = 0;
                 validate_virtcol();
                 virtcol = curwin.w_virtcol[0];
                 i = width1 - 1;
@@ -43421,6 +42301,7 @@ public abstract class Editor {
             i = curwin.w_leftcol + curwin.w_width - col_off - 1;
             coladvance(i);
             if (curwin.w_cursor.col[0] > 0 && utf_ptr2cells(ml_get_cursor()) > 1) {
+                int[] vcol = new int[1];
                 getvvcol(curwin, curwin.w_cursor, null, null, new IntPtr(vcol, 0), 0);
                 if (vcol[0] >= curwin.w_leftcol + curwin.w_width - col_off) {
                     curwin.w_cursor.col[0]--;
@@ -43454,9 +42335,8 @@ public abstract class Editor {
     }
 
     void nv_g_cmd(S_cmdarg_S cap) {
-        S_oparg_S oap = null;
+        S_oparg_S oap = cap.oap;
         int i = 0;
-        oap = cap.oap;
         switch (cap.nchar[0]) {
             case Ctrl_A:
             case Ctrl_X:
@@ -43688,8 +42568,8 @@ public abstract class Editor {
     }
 
     void nv_redo_or_register(S_cmdarg_S cap) {
-        int reg = 0;
         if (VIsual_select != 0 && VIsual_active != 0) {
+            int reg = 0;
             no_mapping++;
             allow_keys++;
             reg = plain_vgetc();
@@ -43731,8 +42611,7 @@ public abstract class Editor {
     }
 
     void nv_operator(S_cmdarg_S cap) {
-        int op_type = 0;
-        op_type = get_op_type(cap.cmdchar, cap.nchar[0]);
+        int op_type = get_op_type(cap.cmdchar, cap.nchar[0]);
         if (op_type == cap.oap.op_type) {
             nv_lineop(cap);
         } else if (!checkclearop(cap.oap)) {
@@ -43791,7 +42670,6 @@ public abstract class Editor {
         boolean word_end = false;
         boolean flag = false;
         T_pos_T startpos = new T_pos_T();
-        flag = false;
         startpos.set(curwin.w_cursor);
         if (cap.cmdchar == 'e' || cap.cmdchar == 'E') {
             word_end = true;
@@ -43937,13 +42815,11 @@ public abstract class Editor {
     }
 
     void nv_esc(S_cmdarg_S cap) {
-        boolean no_reason = false;
-        BytePtr ms = null;
-        no_reason = cap.oap.op_type == OP_NOP && cap.opcount == 0L && cap.count0 == 0L && cap.oap.regname == 0 && p_im[0] == 0;
+        boolean no_reason = cap.oap.op_type == OP_NOP && cap.opcount == 0L && cap.count0 == 0L && cap.oap.regname == 0 && p_im[0] == 0;
         if (cap.arg != 0) {
             if (restart_edit == 0 && VIsual_active == 0 && no_reason) {
                 if (anyBufIsChanged() != 0) {
-                    ms = gettext_(BytePtr.lit("Type  :qa!  and press <Enter> to abandon all changes and exit Vim"));
+                    BytePtr ms = gettext_(BytePtr.lit("Type  :qa!  and press <Enter> to abandon all changes and exit Vim"));
                     msg(ms);
                 } else {
                     msg(gettext_(BytePtr.lit("Type  :qa  and press <Enter> to exit Vim")));
@@ -43971,10 +42847,9 @@ public abstract class Editor {
     }
 
     void set_cursor_for_append_to_line() {
-        int save_State = 0;
         curwin.w_set_curswant = true;
         if (get_ve_flags() == VE_ALL) {
-            save_State = State;
+            int save_State = State;
             State = MODE_INSERT;
             coladvance(MAXCOL);
             State = save_State;
@@ -43984,11 +42859,7 @@ public abstract class Editor {
     }
 
     void nv_edit(S_cmdarg_S cap) {
-        T_pos_T old_pos = new T_pos_T();
-        T_pos_T old_visual = new T_pos_T();
-        int old_visual_mode = 0;
         long t1 = 0;
-        int save_State = 0;
         if (cap.cmdchar == K_INS || cap.cmdchar == K_KINS) {
             cap.cmdchar = 'i';
         }
@@ -44003,9 +42874,11 @@ public abstract class Editor {
                 bracketed_paste(PASTE_INSERT, true, null);
             }
         } else if (cap.cmdchar == K_PASTESTART && VIsual_active != 0) {
+            T_pos_T old_pos = new T_pos_T();
             old_pos.set(curwin.w_cursor);
+            T_pos_T old_visual = new T_pos_T();
             old_visual.set(VIsual);
-            old_visual_mode = VIsual_mode;
+            int old_visual_mode = VIsual_mode;
             if (VIsual_mode == 'V' || curwin.w_cursor.lnum[0] != VIsual.lnum[0]) {
                 shift_delete_registers();
                 cap.oap.regname = '1';
@@ -44057,7 +42930,7 @@ public abstract class Editor {
                     break;
             }
             if (curwin.w_cursor.coladd != 0 && cap.cmdchar != 'A') {
-                save_State = State;
+                int save_State = State;
                 State = MODE_INSERT;
                 coladvance(getviscol());
                 State = save_State;
@@ -44070,7 +42943,6 @@ public abstract class Editor {
 
     void invoke_edit(S_cmdarg_S cap, boolean repl, int cmd, boolean startln) {
         int restart_edit_save = 0;
-        restart_edit_save = 0;
         if (repl || !stuff_empty()) {
             restart_edit_save = restart_edit;
         } else {
@@ -44170,8 +43042,7 @@ public abstract class Editor {
     }
 
     void nv_halfpage(S_cmdarg_S cap) {
-        int dir = 0;
-        dir = cap.cmdchar == Ctrl_D ? FORWARD : -1;
+        int dir = cap.cmdchar == Ctrl_D ? FORWARD : -1;
         if (!checkclearop(cap.oap)) {
             pagescroll(dir, cap.count0, true);
         }
@@ -44207,18 +43078,11 @@ public abstract class Editor {
         int regname = 0;
         T_yankreg_T reg1 = null;
         T_yankreg_T reg2 = null;
-        int empty = 0;
+        int empty = FALSE;
         boolean was_visual = false;
         int dir = 0;
         int flags = 0;
         boolean keep_registers = false;
-        regname = 0;
-        reg1 = null;
-        reg2 = null;
-        empty = FALSE;
-        was_visual = false;
-        flags = 0;
-        keep_registers = false;
         if (cap.oap.op_type != OP_NOP) {
             clearopbeep(cap.oap);
             return;
@@ -44320,8 +43184,7 @@ public abstract class Editor {
         if (char1 == 'z' && char2 == 'y') {
             return OP_YANK;
         }
-        i = 0;
-        for (; ; i++) {
+        for (i = 0; ; i++) {
             if ((int) opchars[i][0] == char1 && (int) opchars[i][1] == char2) {
                 break;
             }
@@ -44349,10 +43212,6 @@ public abstract class Editor {
         long i = 0;
         int first_char = 0;
         int block_col = 0;
-        BytePtr op = null;
-        BytePtr msg_line_single = null;
-        BytePtr msg_line_plural = null;
-        block_col = 0;
         if (!u_save(oap.start.lnum[0] - 1L, oap.end.lnum[0] + 1L)) {
             return;
         }
@@ -44388,6 +43247,9 @@ public abstract class Editor {
             curwin.w_cursor.lnum[0]--;
         }
         if (oap.line_count > p_report[0]) {
+            BytePtr op = null;
+            BytePtr msg_line_single = null;
+            BytePtr msg_line_plural = null;
             if (oap.op_type == OP_RSHIFT) {
                 op = BytePtr.lit(">");
             } else {
@@ -44409,10 +43271,9 @@ public abstract class Editor {
     }
 
     long get_new_sw_indent(boolean left, int round, long amount, long sw_val) {
-        long count = 0;
+        long count = (long) get_indent();
         long i = 0;
         long j = 0;
-        count = (long) get_indent();
         if (round != 0) {
             i = (long) trim_to_int(count) / sw_val;
             j = (long) trim_to_int(count) % sw_val;
@@ -44443,10 +43304,8 @@ public abstract class Editor {
 
     void shift_line(boolean left, int round, int amount, int call_changed_bytes) {
         long count = 0;
-        long sw_val = 0;
-        long ts_val = 0;
-        sw_val = curbuf.b_p_sw[0];
-        ts_val = curbuf.b_p_ts[0];
+        long sw_val = curbuf.b_p_sw[0];
+        long ts_val = curbuf.b_p_ts[0];
         if (sw_val != 0L) {
             count = get_new_sw_indent(left, round, (long) amount, sw_val);
         } else {
@@ -44460,39 +43319,21 @@ public abstract class Editor {
     }
 
     void shift_block(S_oparg_S oap, int amount) {
-        boolean left = false;
-        int oldstate = 0;
+        boolean left = oap.op_type == OP_LSHIFT;
+        int oldstate = State;
         int total = 0;
         BytePtr newp = null;
         BytePtr oldp = null;
         long newlen = 0;
         long oldlen = 0;
-        int oldcol = 0;
-        int sw_val = 0;
-        int ts_val = 0;
+        int oldcol = curwin.w_cursor.col[0];
+        int sw_val = (int) get_sw_value_indent(curbuf, left);
+        int ts_val = (int) curbuf.b_p_ts[0];
         S_block_def bd = new S_block_def();
         int incr = 0;
         int ws_vcol = 0;
         int added = 0;
         long new_line_len = 0;
-        int tabs = 0;
-        int spaces = 0;
-        T_chartabsize_T cts = new T_chartabsize_T();
-        int destination_col = 0;
-        BytePtr verbatim_copy_end = null;
-        int verbatim_copy_width = 0;
-        long fill = 0;
-        long block_space_width = 0;
-        long shift_amount = 0;
-        BytePtr non_white = null;
-        int non_white_col = 0;
-        long fixedlen = 0;
-        T_chartabsize_T cts_2 = new T_chartabsize_T();
-        left = oap.op_type == OP_LSHIFT;
-        oldstate = State;
-        oldcol = curwin.w_cursor.col[0];
-        sw_val = (int) get_sw_value_indent(curbuf, left);
-        ts_val = (int) curbuf.b_p_ts[0];
         State = MODE_INSERT;
         block_prep(oap, bd, curwin.w_cursor.lnum[0], TRUE);
         if (bd.is_short) {
@@ -44505,8 +43346,9 @@ public abstract class Editor {
         oldp = ml_get_curline();
         oldlen = (long) ml_get_curline_len();
         if (!left) {
-            tabs = 0;
-            spaces = 0;
+            int tabs = 0;
+            int spaces = 0;
+            T_chartabsize_T cts = new T_chartabsize_T();
             total += bd.pre_whitesp;
             ws_vcol = bd.start_vcol - bd.pre_whitesp;
             if (bd.startspaces != 0) {
@@ -44518,7 +43360,7 @@ public abstract class Editor {
                 }
             }
             init_chartabsize_arg(cts, curwin, curwin.w_cursor.lnum[0], bd.start_vcol, bd.textstart, bd.textstart);
-            for (; (cts.cts_ptr.get() == ' ' || cts.cts_ptr.get() == '\t'); ) {
+            for (; cts.cts_ptr.get() == ' ' || cts.cts_ptr.get() == '\t'; ) {
                 incr = lbr_chartabsize_adv(cts);
                 total += incr;
                 cts.cts_vcol += incr;
@@ -44543,7 +43385,16 @@ public abstract class Editor {
             Rt.memset(newp.add((int) newlen), ' ', (long) spaces);
             musl_strcpy(newp.add((int) newlen).add(spaces), bd.textstart);
         } else {
-            non_white = bd.textstart;
+            int destination_col = 0;
+            BytePtr verbatim_copy_end = null;
+            int verbatim_copy_width = 0;
+            long fill = 0;
+            long block_space_width = 0;
+            long shift_amount = 0;
+            BytePtr non_white = bd.textstart;
+            int non_white_col = 0;
+            long fixedlen = 0;
+            T_chartabsize_T cts_2 = new T_chartabsize_T();
             if (bd.startspaces != 0) {
                 non_white = non_white.add(utfc_ptr2len(non_white));
             }
@@ -44603,13 +43454,9 @@ public abstract class Editor {
         BytePtr newp = null;
         BytePtr oldp = null;
         long lnum = 0;
-        int oldstate = 0;
-        count = 0;
-        spaces = 0;
-        oldstate = State;
+        int oldstate = State;
         State = MODE_INSERT;
-        lnum = oap.start.lnum[0] + 1L;
-        for (; lnum <= oap.end.lnum[0]; lnum++) {
+        for (lnum = oap.start.lnum[0] + 1L; lnum <= oap.end.lnum[0]; lnum++) {
             block_prep(oap, bdp, lnum, TRUE);
             if (bdp.is_short && b_insert) {
                 continue;
@@ -44682,20 +43529,15 @@ public abstract class Editor {
     }
 
     boolean op_delete(S_oparg_S oap) {
+        T_pos_T curpos = new T_pos_T();
         int n = 0;
         long lnum = 0;
         BytePtr ptr = null;
         BytePtr newp = null;
         BytePtr oldp = null;
         S_block_def bd = new S_block_def();
-        long old_lcount = 0;
+        long old_lcount = curbuf.b_ml.ml_line_count;
         boolean did_yank = false;
-        int msg_silent_save = 0;
-        int endcol = 0;
-        int len = 0;
-        T_pos_T curpos = new T_pos_T();
-        old_lcount = curbuf.b_ml.ml_line_count;
-        did_yank = false;
         if ((curbuf.b_ml.ml_flags & ML_EMPTY) != 0) {
             return true;
         }
@@ -44758,7 +43600,7 @@ public abstract class Editor {
                     oap.regname = 0;
                 }
                 if (!did_yank) {
-                    msg_silent_save = msg_silent;
+                    int msg_silent_save = msg_silent;
                     msg_silent = 0;
                     n = ask_yesno(gettext_(BytePtr.lit("cannot yank; delete anyway")), true);
                     msg_silent = msg_silent_save;
@@ -44772,8 +43614,7 @@ public abstract class Editor {
                 if (!u_save(oap.start.lnum[0] - 1L, oap.end.lnum[0] + 1L)) {
                     return false;
                 }
-                lnum = curwin.w_cursor.lnum[0];
-                for (; lnum <= oap.end.lnum[0]; lnum++) {
+                for (lnum = curwin.w_cursor.lnum[0]; lnum <= oap.end.lnum[0]; lnum++) {
                     block_prep(oap, bd, lnum, TRUE);
                     if (bd.textlen == 0) {
                         continue;
@@ -44822,7 +43663,7 @@ public abstract class Editor {
                 }
             } else {
                 if (virtual_op != 0) {
-                    endcol = 0;
+                    int endcol = 0;
                     if (gchar_pos(oap.start) == '\t') {
                         if (!u_save_cursor()) {
                             return false;
@@ -44859,7 +43700,7 @@ public abstract class Editor {
                     }
                     n = oap.end.col[0] - oap.start.col[0] + 1 - (oap.inclusive == 0 ? 1 : 0);
                     if (virtual_op != 0) {
-                        len = ml_get_curline_len();
+                        int len = ml_get_curline_len();
                         if (oap.end.coladd != 0 && oap.end.col[0] >= len - 1 && !(oap.start.coladd != 0 && oap.end.col[0] >= len - 1)) {
                             n++;
                         }
@@ -44916,8 +43757,7 @@ public abstract class Editor {
     }
 
     void replace_character(int c) {
-        int n = 0;
-        n = State;
+        int n = State;
         State = REPLACE_FLAG | MODE_INSERT;
         ins_char(c);
         State = n;
@@ -44925,6 +43765,8 @@ public abstract class Editor {
     }
 
     boolean op_replace(S_oparg_S oap, int c) {
+        T_pos_T vpos = new T_pos_T();
+        long t1 = 0;
         int n = 0;
         int numc = 0;
         int num_chars = 0;
@@ -44935,15 +43777,6 @@ public abstract class Editor {
         S_block_def bd = new S_block_def();
         BytePtr after_p = null;
         boolean had_ctrl_v_cr = false;
-        T_pos_T vpos = new T_pos_T();
-        long t1 = 0;
-        boolean done = false;
-        int new_byte_len = 0;
-        int old_byte_len = 0;
-        int end_vcol = 0;
-        int virtcols = 0;
-        after_p = null;
-        had_ctrl_v_cr = false;
         if ((curbuf.b_ml.ml_flags & ML_EMPTY) != 0 || oap.empty != 0) {
             return true;
         }
@@ -45034,11 +43867,11 @@ public abstract class Editor {
                 dec(oap.end);
             }
             while ((curwin.w_cursor.lnum[0] != oap.end.lnum[0] ? curwin.w_cursor.lnum[0] < oap.end.lnum[0] : (curwin.w_cursor.col[0] != oap.end.col[0] ? curwin.w_cursor.col[0] < oap.end.col[0] : curwin.w_cursor.coladd < oap.end.coladd)) || (curwin.w_cursor.lnum[0] == oap.end.lnum[0] && curwin.w_cursor.col[0] == oap.end.col[0] && curwin.w_cursor.coladd == oap.end.coladd)) {
-                done = false;
+                boolean done = false;
                 n = gchar_cursor();
                 if (n != NUL) {
-                    new_byte_len = utf_char2len(c);
-                    old_byte_len = utfc_ptr2len(ml_get_cursor());
+                    int new_byte_len = utf_char2len(c);
+                    int old_byte_len = utfc_ptr2len(ml_get_cursor());
                     if (new_byte_len > 1 || old_byte_len > 1) {
                         if (curwin.w_cursor.lnum[0] == oap.end.lnum[0]) {
                             oap.end.col[0] += new_byte_len - old_byte_len;
@@ -45047,7 +43880,7 @@ public abstract class Editor {
                         done = true;
                     } else {
                         if (n == TAB) {
-                            end_vcol = 0;
+                            int end_vcol = 0;
                             if (curwin.w_cursor.lnum[0] == oap.end.lnum[0]) {
                                 end_vcol = getviscol2(oap.end.col[0], oap.end.coladd);
                             }
@@ -45063,7 +43896,7 @@ public abstract class Editor {
                     }
                 }
                 if (!done && virtual_op != 0 && curwin.w_cursor.lnum[0] == oap.end.lnum[0]) {
-                    virtcols = oap.end.coladd;
+                    int virtcols = oap.end.coladd;
                     if (curwin.w_cursor.lnum[0] == oap.start.lnum[0] && oap.start.col[0] == oap.end.col[0] && oap.start.coladd != 0) {
                         virtcols -= oap.start.coladd;
                     }
@@ -45096,11 +43929,10 @@ public abstract class Editor {
     }
 
     void op_tilde(S_oparg_S oap) {
+        int one_change = 0;
         T_pos_T pos = new T_pos_T();
         S_block_def bd = new S_block_def();
-        int did_change = 0;
-        int one_change = 0;
-        did_change = FALSE;
+        int did_change = FALSE;
         if (!u_save(oap.start.lnum[0] - 1L, oap.end.lnum[0] + 1L)) {
             return;
         }
@@ -45156,11 +43988,8 @@ public abstract class Editor {
     int swapchars(int op_type, T_pos_T pos, int length) {
         int todo = 0;
         int did_change = 0;
-        int len = 0;
-        did_change = 0;
-        todo = length;
-        for (; todo > 0; todo--) {
-            len = utfc_ptr2len(ml_get_pos(pos));
+        for (todo = length; todo > 0; todo--) {
+            int len = utfc_ptr2len(ml_get_pos(pos));
             if (len > 0) {
                 todo -= len - 1;
             }
@@ -45173,12 +44002,10 @@ public abstract class Editor {
     }
 
     boolean swapchar(int op_type, T_pos_T pos) {
-        int c = 0;
         int nc = 0;
-        T_pos_T sp = new T_pos_T();
-        T_pos_T sp_2 = new T_pos_T();
-        c = gchar_pos(pos);
+        int c = gchar_pos(pos);
         if ((op_type == OP_UPPER || op_type == OP_NOP || op_type == OP_TILDE) && c == 223) {
+            T_pos_T sp = new T_pos_T();
             sp.set(curwin.w_cursor);
             curwin.w_cursor.set(pos);
             del_char(false);
@@ -45198,6 +44025,7 @@ public abstract class Editor {
         }
         if (nc != c) {
             if (c >= 128 || nc >= 128) {
+                T_pos_T sp_2 = new T_pos_T();
                 sp_2.set(curwin.w_cursor);
                 curwin.w_cursor.set(pos);
                 del_bytes((long) utf_ptr2len(ml_get_cursor()), false, false);
@@ -45212,7 +44040,8 @@ public abstract class Editor {
     }
 
     void op_insert(S_oparg_S oap, long count1) {
-        long pre_textlen = 0;
+        boolean t2 = false;
+        long pre_textlen = 0L;
         int ind_pre_col = 0;
         int ind_post_col = 0;
         int ind_pre_vcol = 0;
@@ -45221,27 +44050,12 @@ public abstract class Editor {
         int i = 0;
         T_pos_T t1 = new T_pos_T();
         T_pos_T start_insert = new T_pos_T();
-        int old_ve_flags = 0;
-        int ins_len = 0;
-        BytePtr firstline = null;
-        BytePtr ins_text = null;
-        S_block_def bd2 = new S_block_def();
-        boolean did_indent = false;
-        long len = 0;
-        long add = 0;
-        int offset = 0;
-        int t = 0;
-        boolean t2 = false;
-        pre_textlen = 0L;
-        ind_pre_col = 0;
-        ind_pre_vcol = 0;
-        ind_post_vcol = 0;
         bd.is_MAX = curwin.w_curswant == MAXCOL;
         curwin.w_cursor.lnum[0] = oap.start.lnum[0];
         update_screen(UPD_INVERTED);
         if (oap.block_mode != 0) {
             if (curwin.w_cursor.coladd > 0) {
-                old_ve_flags = curwin.w_onebuf_opt.wo_ve_flags[0];
+                int old_ve_flags = curwin.w_onebuf_opt.wo_ve_flags[0];
                 if (!u_save_cursor()) {
                     return;
                 }
@@ -45270,8 +44084,7 @@ public abstract class Editor {
                     if (!u_save_cursor()) {
                         return;
                     }
-                    i = 0;
-                    for (; i < bd.endspaces; i++) {
+                    for (i = 0; i < bd.endspaces; i++) {
                         ins_char(' ');
                     }
                     bd.textlen += bd.endspaces;
@@ -45294,8 +44107,14 @@ public abstract class Editor {
             return;
         }
         if (oap.block_mode != 0) {
-            did_indent = false;
-            offset = 0;
+            int ins_len = 0;
+            BytePtr firstline = null;
+            BytePtr ins_text = null;
+            S_block_def bd2 = new S_block_def();
+            boolean did_indent = false;
+            long len = 0;
+            long add = 0;
+            int offset = 0;
             ind_post_col = getwhitecols_curline();
             if (curbuf.b_op_start.col[0] > ind_pre_col && ind_post_col > ind_pre_col) {
                 bd.textcol += ind_post_col - ind_pre_col;
@@ -45304,7 +44123,7 @@ public abstract class Editor {
                 did_indent = true;
             }
             if (oap.start.lnum[0] == curbuf.b_op_start_orig.lnum[0] && !bd.is_MAX && !did_indent) {
-                t = getviscol2(curbuf.b_op_start_orig.col[0], curbuf.b_op_start_orig.coladd);
+                int t = getviscol2(curbuf.b_op_start_orig.col[0], curbuf.b_op_start_orig.coladd);
                 if (oap.op_type == OP_INSERT && oap.start.col[0] + oap.start.coladd != curbuf.b_op_start_orig.col[0] + curbuf.b_op_start_orig.coladd) {
                     oap.start.col[0] = curbuf.b_op_start_orig.col[0];
                     pre_textlen -= (long) (t - oap.start_vcol[0]);
@@ -45377,24 +44196,18 @@ public abstract class Editor {
     }
 
     boolean op_change(S_oparg_S oap) {
-        int l = 0;
+        T_pos_T vpos = new T_pos_T();
+        long newlen = 0;
         boolean retval = false;
         long linenr = 0;
-        long pre_textlen = 0;
-        long pre_indent = 0;
+        long pre_textlen = 0L;
+        long pre_indent = 0L;
         BytePtr firstline = null;
         BytePtr ins_text = null;
         BytePtr newp = null;
         BytePtr oldp = null;
         S_block_def bd = new S_block_def();
-        int save_finish_op = 0;
-        int ins_len = 0;
-        long new_indent = 0;
-        T_pos_T vpos = new T_pos_T();
-        long newlen = 0;
-        pre_textlen = 0L;
-        pre_indent = 0L;
-        l = oap.start.col[0];
+        int l = oap.start.col[0];
         if (oap.motion_type == MLINE) {
             l = 0;
             can_si = may_do_si() ? 1 : 0;
@@ -45421,14 +44234,15 @@ public abstract class Editor {
         if (oap.motion_type == MLINE) {
             fix_indent();
         }
-        save_finish_op = finish_op;
+        int save_finish_op = finish_op;
         finish_op = FALSE;
         retval = edit(NUL, false, 1L);
         finish_op = save_finish_op;
         if (oap.block_mode != 0 && oap.start.lnum[0] != oap.end.lnum[0] && got_int == 0) {
+            int ins_len = 0;
             firstline = ml_get(oap.start.lnum[0]);
             if (bd.textcol > ((int) pre_indent)) {
-                new_indent = (long) getwhitecols(firstline);
+                long new_indent = (long) getwhitecols(firstline);
                 pre_textlen += new_indent - pre_indent;
                 bd.textcol += new_indent - pre_indent;
             }
@@ -45437,8 +44251,7 @@ public abstract class Editor {
                 ins_text = BytePtr.alloc((long) (ins_len + 1));
                 if (ins_text != null) {
                     vim_strncpy(ins_text, firstline.add(bd.textcol), (long) ins_len);
-                    linenr = oap.start.lnum[0] + 1L;
-                    for (; linenr <= oap.end.lnum[0]; linenr++) {
+                    for (linenr = oap.start.lnum[0] + 1L; linenr <= oap.end.lnum[0]; linenr++) {
                         block_prep(oap, bd, linenr, TRUE);
                         if (!bd.is_short || virtual_op != 0) {
                             if (bd.is_short) {
@@ -45467,51 +44280,40 @@ public abstract class Editor {
     }
 
     void adjust_cursor_eol() {
-        int cur_ve_flags = 0;
-        boolean adj_cursor = false;
-        int[] scol = new int[1];
-        int[] ecol = new int[1];
-        cur_ve_flags = get_ve_flags();
-        adj_cursor = curwin.w_cursor.col[0] > 0 && gchar_cursor() == NUL && (cur_ve_flags & VE_ONEMORE) == 0 && (cur_ve_flags & VE_ALL) == 0 && !(restart_edit != 0 || (State & MODE_INSERT) != 0);
+        int cur_ve_flags = get_ve_flags();
+        boolean adj_cursor = curwin.w_cursor.col[0] > 0 && gchar_cursor() == NUL && (cur_ve_flags & VE_ONEMORE) == 0 && (cur_ve_flags & VE_ALL) == 0 && !(restart_edit != 0 || (State & MODE_INSERT) != 0);
         if (!adj_cursor) {
             return;
         }
         dec_cursor();
         if (cur_ve_flags == VE_ALL) {
+            int[] scol = new int[1];
+            int[] ecol = new int[1];
             getvcol(curwin, curwin.w_cursor, new IntPtr(scol, 0), null, new IntPtr(ecol, 0), 0);
             curwin.w_cursor.coladd = ecol[0] - scol[0] + 1;
         }
     }
 
     boolean do_join(long count, boolean insert_space, boolean save_undo, boolean use_formatoptions, boolean setmark) {
+        int spaces_removed = 0;
         BytePtr curr = null;
         BytePtr curr_start = null;
         BytePtr cend = null;
         BytePtr newp = null;
         long newp_len = 0;
         BytePtr spaces = null;
-        int endcurr1 = 0;
-        int endcurr2 = 0;
+        int endcurr1 = NUL;
+        int endcurr2 = NUL;
         int currsize = 0;
         int sumsize = 0;
         long t = 0;
         int col = 0;
-        boolean ret = false;
-        int spaces_removed = 0;
-        curr = null;
-        curr_start = null;
-        endcurr1 = NUL;
-        endcurr2 = NUL;
-        currsize = 0;
-        sumsize = 0;
-        col = 0;
-        ret = true;
+        boolean ret = true;
         if (save_undo && !u_save(curwin.w_cursor.lnum[0] - 1L, curwin.w_cursor.lnum[0] + count)) {
             return false;
         }
         spaces = BytePtr.alloc(count);
-        t = 0L;
-        for (; t < count; t++) {
+        for (t = 0L; t < count; t++) {
             curr_start = ml_get(curwin.w_cursor.lnum[0] + t);
             curr = curr_start;
             if (t == 0L && setmark && (cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0) {
@@ -45555,8 +44357,7 @@ public abstract class Editor {
         newp = BytePtr.alloc(newp_len);
         cend = newp.add(sumsize);
         cend.put((byte) 0);
-        t = count - 1L;
-        for (; ; t--) {
+        for (t = count - 1L; ; t--) {
             cend = cend.add(-currsize);
             Rt.memmove(cend, curr, (long) currsize);
             if ((spaces.at((int) t) & 0xff) > 0) {
@@ -45600,7 +44401,6 @@ public abstract class Editor {
         BytePtr prev_pstart = null;
         BytePtr prev_pend = null;
         T_chartabsize_T cts = new T_chartabsize_T();
-        incr = 0;
         bdp.startspaces = 0;
         bdp.endspaces = 0;
         bdp.textlen = 0;
@@ -45697,15 +44497,11 @@ public abstract class Editor {
 
     void charwise_block_prep(T_pos_T start, T_pos_T end, S_block_def bdp, long lnum, int inclusive) {
         int startcol = 0;
-        int endcol = 0;
+        int endcol = MAXCOL;
         int[] cs = new int[1];
         int[] ce = new int[1];
-        BytePtr p = null;
-        int plen = 0;
-        startcol = 0;
-        endcol = MAXCOL;
-        plen = ml_get_len(lnum);
-        p = ml_get(lnum);
+        int plen = ml_get_len(lnum);
+        BytePtr p = ml_get(lnum);
         bdp.startspaces = 0;
         bdp.endspaces = 0;
         bdp.is_oneChar = false;
@@ -45756,12 +44552,7 @@ public abstract class Editor {
         T_pos_T pos = new T_pos_T();
         S_block_def bd = new S_block_def();
         int change_cnt = 0;
-        long amount = 0;
-        boolean one_change = false;
-        int length = 0;
-        T_pos_T startpos = new T_pos_T();
-        change_cnt = 0;
-        amount = Prenum1;
+        long amount = Prenum1;
         if (VIsual_active == 0) {
             pos.set(curwin.w_cursor);
             if (!u_save_cursor()) {
@@ -45772,6 +44563,9 @@ public abstract class Editor {
                 changed_lines(pos.lnum[0], 0, pos.lnum[0] + 1L, 0L);
             }
         } else {
+            boolean one_change = false;
+            int length = 0;
+            T_pos_T startpos = new T_pos_T();
             if (!u_save(oap.start.lnum[0] - 1L, oap.end.lnum[0] + 1L)) {
                 return;
             }
@@ -45832,6 +44626,19 @@ public abstract class Editor {
 
     boolean do_addsub(int op_type, T_pos_T pos, int length_arg, long Prenum1) {
         int[] length = new int[] {length_arg};
+        BytePtr buf1 = null;
+        int buf1len = 0;
+        byte[] buf2 = new byte[65];
+        int buf2len = 0;
+        T_pos_T save_pos = new T_pos_T();
+        int i = 0;
+        BytePtr t1 = null;
+        BytePtr t2 = null;
+        BytePtr t3 = null;
+        int t4 = 0;
+        int t5 = 0;
+        BytePtr t6 = null;
+        int t7 = 0;
         int col = 0;
         int[] pre = new int[1];
         long[] n = new long[1];
@@ -45840,56 +44647,25 @@ public abstract class Editor {
         int linelen = 0;
         int c = 0;
         int todel = 0;
-        boolean do_hex = false;
-        boolean do_oct = false;
-        boolean do_bin = false;
-        boolean do_alpha = false;
-        boolean do_unsigned = false;
-        boolean do_blank = false;
         boolean blank_unsigned = false;
         int firstdigit = 0;
         int subtract = 0;
-        int negative = 0;
-        boolean was_positive = false;
-        int visual = 0;
+        int negative = FALSE;
+        boolean was_positive = true;
+        int visual = VIsual_active;
         boolean did_change = false;
         T_pos_T save_cursor = new T_pos_T();
+        save_cursor.set(curwin.w_cursor);
         int maxlen = 0;
         T_pos_T startpos = new T_pos_T();
         T_pos_T endpos = new T_pos_T();
         int save_coladd = 0;
-        int mb_len = 0;
-        BytePtr buf1 = null;
-        int buf1len = 0;
-        byte[] buf2 = new byte[65];
-        int buf2len = 0;
-        T_pos_T save_pos = new T_pos_T();
-        int i = 0;
-        int[] overflow = new int[1];
-        BytePtr t1 = null;
-        BytePtr t2 = null;
-        BytePtr t3 = null;
-        int bit = 0;
-        int bits = 0;
-        int t4 = 0;
-        int t5 = 0;
-        BytePtr t6 = null;
-        int bytes_after = 0;
-        int t7 = 0;
-        blank_unsigned = false;
-        negative = FALSE;
-        was_positive = true;
-        visual = VIsual_active;
-        did_change = false;
-        save_cursor.set(curwin.w_cursor);
-        maxlen = 0;
-        save_coladd = 0;
-        do_hex = vim_strchr(curbuf.b_p_nf[0], 'x') != null;
-        do_oct = vim_strchr(curbuf.b_p_nf[0], 'o') != null;
-        do_bin = vim_strchr(curbuf.b_p_nf[0], 'b') != null;
-        do_alpha = vim_strchr(curbuf.b_p_nf[0], 'p') != null;
-        do_unsigned = vim_strchr(curbuf.b_p_nf[0], 'u') != null;
-        do_blank = vim_strchr(curbuf.b_p_nf[0], 'k') != null;
+        boolean do_hex = vim_strchr(curbuf.b_p_nf[0], 'x') != null;
+        boolean do_oct = vim_strchr(curbuf.b_p_nf[0], 'o') != null;
+        boolean do_bin = vim_strchr(curbuf.b_p_nf[0], 'b') != null;
+        boolean do_alpha = vim_strchr(curbuf.b_p_nf[0], 'p') != null;
+        boolean do_unsigned = vim_strchr(curbuf.b_p_nf[0], 'u') != null;
+        boolean do_blank = vim_strchr(curbuf.b_p_nf[0], 'k') != null;
         if (virtual_active() != 0) {
             save_coladd = pos.coladd;
             pos.coladd = 0;
@@ -45938,7 +44714,7 @@ public abstract class Editor {
             }
             if (visual != 0) {
                 while (ptr.at(col) != NUL && length[0] > 0 && !vim_isdigit(ptr.at(col) & 0xff) && !(do_alpha && (Integer.compareUnsigned((ptr.at(col) & 0xff) - 'A', 26) < 0 || Integer.compareUnsigned((ptr.at(col) & 0xff) - 'a', 26) < 0))) {
-                    mb_len = utfc_ptr2len(ptr.add(col));
+                    int mb_len = utfc_ptr2len(ptr.add(col));
                     col += mb_len;
                     length[0] -= mb_len;
                 }
@@ -46002,6 +44778,7 @@ public abstract class Editor {
                 if (visual != 0 && VIsual_mode != 'V') {
                     maxlen = curbuf.b_visual.vi_curswant == MAXCOL ? linelen - col : length[0];
                 }
+                int[] overflow = new int[1];
                 overflow[0] = FALSE;
                 vim_str2nr(ptr.add(col), new IntPtr(pre, 0), new IntPtr(length, 0), 0 + (do_bin ? STR2NR_BIN : 0) + (do_oct ? STR2NR_OCT : 0) + (do_hex ? STR2NR_HEX : 0), null, new LongPtr(n, 0), maxlen, false, new IntPtr(overflow, 0));
                 if (pre[0] != 0 && negative != 0) {
@@ -46063,8 +44840,7 @@ public abstract class Editor {
                     length[0]--;
                 }
                 save_pos.set(curwin.w_cursor);
-                i = 0;
-                for (; i < todel; i++) {
+                for (i = 0; i < todel; i++) {
                     if (c < 256 && musl_isalpha((byte) c & 0xff)) {
                         if (musl_isupper((byte) c & 0xff)) {
                             do_addsub_hexupper = true;
@@ -46096,16 +44872,14 @@ public abstract class Editor {
                     length[0]--;
                 }
                 if (pre[0] == 'b' || pre[0] == 'B') {
-                    bit = 0;
-                    bits = 64;
-                    bit = bits;
-                    for (; bit > 0; bit--) {
+                    int bit = 0;
+                    int bits = 64;
+                    for (bit = bits; bit > 0; bit--) {
                         if (((n[0] >>> (bit - 1)) & 1L) != 0) {
                             break;
                         }
                     }
-                    buf2len = 0;
-                    for (; (bit > 0) && buf2len < NUMBUFLEN - 1; bit--) {
+                    for (buf2len = 0; bit > 0 && buf2len < NUMBUFLEN - 1; bit--) {
                         t4 = buf2len;
                         buf2len++;
                         buf2[t4] = (byte) (((n[0] >>> (bit - 1)) & 1L) != 0 ? '1' : '0');
@@ -46143,7 +44917,7 @@ public abstract class Editor {
                 }
                 ins_str(buf1, (long) buf1len);
                 if (todel > 0) {
-                    bytes_after = ml_get_curline_len() - curwin.w_cursor.col[0];
+                    int bytes_after = ml_get_curline_len() - curwin.w_cursor.col[0];
                     curwin.w_cursor.set(save_pos);
                     del_char(false);
                     curwin.w_cursor.col[0] = ml_get_curline_len() - bytes_after;
@@ -46186,14 +44960,10 @@ public abstract class Editor {
 
     long line_count_info(BytePtr line, LongPtr wc, LongPtr cc, long limit, int eol_size) {
         long i = 0;
-        long words = 0;
-        long chars = 0;
+        long words = 0L;
+        long chars = 0L;
         int is_word = 0;
-        words = 0L;
-        chars = 0L;
-        is_word = 0;
-        i = 0L;
-        for (; (i < limit) && line.at((int) i) != NUL; ) {
+        for (i = 0L; i < limit && line.at((int) i) != NUL; ) {
             if (is_word != 0) {
                 if (vim_isspace(line.at((int) i) & 0xff)) {
                     words++;
@@ -46222,32 +44992,23 @@ public abstract class Editor {
         byte[] buf1 = new byte[50];
         byte[] buf2 = new byte[40];
         long lnum = 0;
-        long byte_count = 0;
-        long byte_count_cursor = 0;
+        long byte_count = 0L;
+        long byte_count_cursor = 0L;
         long[] char_count = new long[1];
+        char_count[0] = 0L;
         long[] char_count_cursor = new long[1];
+        char_count_cursor[0] = 0L;
         long[] word_count = new long[1];
+        word_count[0] = 0L;
         long[] word_count_cursor = new long[1];
+        word_count_cursor[0] = 0L;
         int eol_size = 0;
-        long last_check = 0;
-        long line_count_selected = 0;
+        long last_check = 100000L;
+        long line_count_selected = 0L;
         T_pos_T min_pos = new T_pos_T();
         T_pos_T max_pos = new T_pos_T();
         S_oparg_S oparg = new S_oparg_S();
         S_block_def bd = new S_block_def();
-        BytePtr s = null;
-        long len = 0;
-        int start_col = 0;
-        int end_col = 0;
-        int vcol = 0;
-        byte_count = 0L;
-        byte_count_cursor = 0L;
-        char_count[0] = 0L;
-        char_count_cursor[0] = 0L;
-        word_count[0] = 0L;
-        word_count_cursor[0] = 0L;
-        last_check = 100000L;
-        line_count_selected = 0L;
         if ((curbuf.b_ml.ml_flags & ML_EMPTY) != 0) {
             msg(gettext_(new BytePtr(no_lines_msg, 0)));
             return;
@@ -46280,8 +45041,7 @@ public abstract class Editor {
                 }
                 line_count_selected = max_pos.lnum[0] - min_pos.lnum[0] + 1L;
             }
-            lnum = 1L;
-            for (; lnum <= curbuf.b_ml.ml_line_count; lnum++) {
+            for (lnum = 1L; lnum <= curbuf.b_ml.ml_line_count; lnum++) {
                 if (byte_count > last_check) {
                     ui_breakcheck();
                     if (got_int != 0) {
@@ -46290,8 +45050,8 @@ public abstract class Editor {
                     last_check = byte_count + 100000L;
                 }
                 if (VIsual_active != 0 && lnum >= min_pos.lnum[0] && lnum <= max_pos.lnum[0]) {
-                    s = null;
-                    len = 0L;
+                    BytePtr s = null;
+                    long len = 0L;
                     switch (VIsual_mode) {
                         case Ctrl_V:
                             virtual_op = virtual_active();
@@ -46305,8 +45065,8 @@ public abstract class Editor {
                             len = MAXCOL;
                             break;
                         case 'v':
-                            start_col = lnum == min_pos.lnum[0] ? min_pos.col[0] : 0;
-                            end_col = lnum == max_pos.lnum[0] ? max_pos.col[0] - start_col + 1 : MAXCOL;
+                            int start_col = lnum == min_pos.lnum[0] ? min_pos.col[0] : 0;
+                            int end_col = lnum == max_pos.lnum[0] ? max_pos.col[0] - start_col + 1 : MAXCOL;
                             s = ml_get(lnum).add(start_col);
                             len = (long) end_col;
                             break;
@@ -46339,7 +45099,7 @@ public abstract class Editor {
                 p = ml_get_curline();
                 validate_virtcol();
                 col_print(new BytePtr(buf1, 0), 50L, curwin.w_cursor.col[0] + 1, curwin.w_virtcol[0] + 1);
-                vcol = linetabsize_str(p);
+                int vcol = linetabsize_str(p);
                 col_print(new BytePtr(buf2, 0), 40L, ml_get_curline_len(), vcol);
                 if (char_count_cursor[0] == byte_count_cursor && char_count[0] == byte_count) {
                     vim_snprintf(IObuff, 1025L, gettext_(BytePtr.lit("Col %s of %s; Line %ld of %ld; Word %lld of %lld; Byte %lld of %lld")), new BytePtr(buf1, 0), new BytePtr(buf2, 0), curwin.w_cursor.lnum[0], curbuf.b_ml.ml_line_count, word_count_cursor[0], word_count[0], byte_count_cursor, byte_count);
@@ -46405,8 +45165,7 @@ public abstract class Editor {
         if (curwin.w_curswant == MAXCOL) {
             curwin.w_cursor.col[0] = MAXCOL;
             oap.end_vcol[0] = 0;
-            curwin.w_cursor.lnum[0] = oap.start.lnum[0];
-            for (; curwin.w_cursor.lnum[0] <= oap.end.lnum[0]; curwin.w_cursor.lnum[0]++) {
+            for (curwin.w_cursor.lnum[0] = oap.start.lnum[0]; curwin.w_cursor.lnum[0] <= oap.end.lnum[0]; curwin.w_cursor.lnum[0]++) {
                 getvvcol(curwin, curwin.w_cursor, null, null, new IntPtr(end, 0), 0);
                 if (end[0] > oap.end_vcol[0]) {
                     oap.end_vcol[0] = end[0];
@@ -46428,21 +45187,14 @@ public abstract class Editor {
     }
 
     void do_pending_operator(S_cmdarg_S cap, int old_col, boolean gui_yank) {
-        S_oparg_S oap = null;
+        S_oparg_S oap = cap.oap;
         T_pos_T old_cursor = new T_pos_T();
         boolean empty_region_error = false;
         int restart_edit_save = 0;
         boolean include_line_break = false;
-        boolean redo_yank = false;
-        int opchar = 0;
-        int extra_opchar = 0;
-        int nchar = 0;
-        int l = 0;
-        oap = cap.oap;
-        include_line_break = false;
         old_cursor.set(curwin.w_cursor);
         if ((finish_op != 0 || VIsual_active != 0) && oap.op_type != OP_NOP) {
-            redo_yank = vim_strchr(p_cpo[0], CPO_YANK) != null && !gui_yank;
+            boolean redo_yank = vim_strchr(p_cpo[0], CPO_YANK) != null && !gui_yank;
             oap.is_VIsual = VIsual_active;
             if (oap.motion_force == 'V') {
                 oap.motion_type = MLINE;
@@ -46571,9 +45323,9 @@ public abstract class Editor {
                     if (cap.cmdchar == 'g' && (cap.nchar[0] == 'n' || cap.nchar[0] == 'N')) {
                         prep_redo(oap.regname, cap.count0, get_op_char(oap.op_type), get_extra_op_char(oap.op_type), oap.motion_force, cap.cmdchar, cap.nchar[0]);
                     } else if (!is_ex_cmdchar(cap)) {
-                        opchar = get_op_char(oap.op_type);
-                        extra_opchar = get_extra_op_char(oap.op_type);
-                        nchar = oap.op_type == OP_REPLACE ? cap.nchar[0] : NUL;
+                        int opchar = get_op_char(oap.op_type);
+                        int extra_opchar = get_extra_op_char(oap.op_type);
+                        int nchar = oap.op_type == OP_REPLACE ? cap.nchar[0] : NUL;
                         if (nchar == -1) {
                             nchar = CAR;
                         } else if (nchar == -2) {
@@ -46621,7 +45373,7 @@ public abstract class Editor {
                 }
             }
             if (oap.inclusive != 0) {
-                l = utfc_ptr2len(ml_get_pos(oap.end));
+                int l = utfc_ptr2len(ml_get_pos(oap.end));
                 if (l > 1) {
                     oap.end.col[0] += l - 1;
                 }
@@ -46778,10 +45530,8 @@ public abstract class Editor {
     }
 
     void pbyte(T_pos_T lp, int c) {
-        BytePtr p = null;
-        int len = 0;
-        p = ml_get_buf(curbuf, lp.lnum[0], true);
-        len = curbuf.b_ml.ml_line_len;
+        BytePtr p = ml_get_buf(curbuf, lp.lnum[0], true);
+        int len = curbuf.b_ml.ml_line_len;
         if (lp.col[0] >= len) {
             lp.col[0] = len > 1 ? len - 2 : 0;
         }
@@ -46789,11 +45539,10 @@ public abstract class Editor {
     }
 
     void set_init_expand_env() {
+        boolean t1 = false;
         int opt_idx = 0;
         BytePtr p = null;
-        boolean t1 = false;
-        opt_idx = 0;
-        for (; !istermoption_idx(opt_idx); opt_idx++) {
+        for (opt_idx = 0; !istermoption_idx(opt_idx); opt_idx++) {
             if ((options[opt_idx].flags[0] & P_GETTEXT) != 0 && !optvar_is_null(options[opt_idx].var_.copy())) {
                 p = gettext_(options[opt_idx].var_.ov_str.get());
             } else {
@@ -46829,15 +45578,13 @@ public abstract class Editor {
     }
 
     void set_option_default(int opt_idx, int opt_flags, int compatible) {
+        LongPtr t1 = null;
+        IntPtr t2 = null;
         T_optvar_T varp = new T_optvar_T();
         int dvi = 0;
         long flags = 0;
         LongPtr flagsp = null;
-        boolean both = false;
-        long def_val = 0;
-        LongPtr t1 = null;
-        IntPtr t2 = null;
-        both = (opt_flags & (OPT_LOCAL | OPT_GLOBAL)) == 0;
+        boolean both = (opt_flags & (OPT_LOCAL | OPT_GLOBAL)) == 0;
         varp.set(get_varp_scope(new Ptr<S_vimoption>(options, opt_idx), both ? OPT_LOCAL : opt_flags));
         flags = options[opt_idx].flags[0];
         if (!optvar_is_null(varp.copy())) {
@@ -46856,7 +45603,7 @@ public abstract class Editor {
                 if (options[opt_idx].indir == PV_WIN + WV_SCROLL) {
                     win_comp_scroll(curwin);
                 } else {
-                    def_val = options[opt_idx].def_num[dvi];
+                    long def_val = options[opt_idx].def_num[dvi];
                     if (LongPtr.eq(varp.ov_long, new LongPtr(curwin.w_onebuf_opt.wo_so, 0)) || LongPtr.eq(varp.ov_long, new LongPtr(curwin.w_onebuf_opt.wo_siso, 0)) || LongPtr.eq(varp.ov_long, new LongPtr(curwin.w_onebuf_opt.wo_sop, 0))) {
                         varp.ov_long.put(-1L);
                     } else {
@@ -46886,8 +45633,7 @@ public abstract class Editor {
     void set_options_default(int opt_flags) {
         int i = 0;
         S_window_S wp = null;
-        i = 0;
-        for (; !istermoption_idx(i); i++) {
+        for (i = 0; !istermoption_idx(i); i++) {
             if ((options[i].flags[0] & P_NODEFAULT) == 0) {
                 set_option_default(i, opt_flags, p_cp[0]);
             }
@@ -46922,12 +45668,10 @@ public abstract class Editor {
     BytePtr find_dup_item(BytePtr origval, BytePtr newval, long newvallen, long flags) {
         int bs = 0;
         BytePtr s = null;
-        bs = 0;
         if (origval == null) {
             return null;
         }
-        s = origval;
-        for (; s.get() != NUL; s = s.add(1)) {
+        for (s = origval; s.get() != NUL; s = s.add(1)) {
             if (((flags & P_COMMA) == 0 || BytePtr.eq(s, origval) || (s.at(-1) == ',' && (bs & 1) == 0)) && musl_strncmp(s, newval, newvallen) == 0 && ((flags & P_COMMA) == 0 || s.at((int) newvallen) == ',' || s.at((int) newvallen) == NUL)) {
                 return s;
             }
@@ -46941,16 +45685,14 @@ public abstract class Editor {
     }
 
     void set_number_default(BytePtr name, long val) {
-        int opt_idx = 0;
-        opt_idx = findoption(name);
+        int opt_idx = findoption(name);
         if (opt_idx >= 0) {
             options[opt_idx].def_num[VI_DEFAULT] = val;
         }
     }
 
     void set_init_2() {
-        int idx = 0;
-        idx = findoption(BytePtr.lit("scroll"));
+        int idx = findoption(BytePtr.lit("scroll"));
         if (idx >= 0 && (options[idx].flags[0] & P_WAS_SET) == 0) {
             set_option_default(idx, OPT_LOCAL, p_cp[0]);
         }
@@ -46968,7 +45710,6 @@ public abstract class Editor {
 
     void ex_set(S_exarg eap) {
         int flags = 0;
-        flags = 0;
         if (eap.forceit) {
             flags |= OPT_ONECOLUMN;
         }
@@ -46976,10 +45717,8 @@ public abstract class Editor {
     }
 
     int get_option_prefix(Ptr<BytePtr> argp) {
-        int prefix = 0;
-        BytePtr arg = null;
-        prefix = PREFIX_NONE;
-        arg = argp.get();
+        int prefix = PREFIX_NONE;
+        BytePtr arg = argp.get();
         if (musl_strncmp(arg, BytePtr.lit("no"), 2L) == 0 && musl_strncmp(arg, BytePtr.lit("novice"), 6L) != 0) {
             prefix = PREFIX_NO;
             arg = arg.add(2);
@@ -46992,12 +45731,10 @@ public abstract class Editor {
     }
 
     boolean parse_option_name(BytePtr arg, IntPtr opt_idxp, IntPtr lenp, IntPtr keyp) {
+        int t1 = 0;
         int key = 0;
         int len = 0;
         int opt_idx = 0;
-        int t1 = 0;
-        int nextchar = 0;
-        key = 0;
         if (arg.get() == '<') {
             opt_idx = -1;
             if (arg.at(1) == 't' && arg.at(2) == '_' && arg.at(3) != 0 && arg.at(4) != 0) {
@@ -47022,6 +45759,7 @@ public abstract class Editor {
                 key = find_key_option(arg.add(1), true);
             }
         } else {
+            int nextchar = 0;
             len = 0;
             if (arg.at(0) == 't' && arg.at(1) == '_' && arg.at(2) != 0 && arg.at(3) != 0) {
                 len = 4;
@@ -47045,8 +45783,7 @@ public abstract class Editor {
     }
 
     int get_opt_op(BytePtr arg) {
-        int op = 0;
-        op = OP_NONE;
+        int op = OP_NONE;
         if (arg.get() != NUL && arg.add(1).get() == '=') {
             if (arg.get() == '+') {
                 op = OP_ADDING;
@@ -47070,16 +45807,14 @@ public abstract class Editor {
     }
 
     BytePtr stropt_get_default_val(int opt_idx, T_optvar_T varp, int flags, int cp_val) {
-        BytePtr newval = null;
-        BytePtr s = null;
-        newval = options[opt_idx].def_str[(flags & P_VI_DEF) != 0 || cp_val != 0 ? VI_DEFAULT : VIM_DEFAULT];
+        BytePtr newval = options[opt_idx].def_str[(flags & P_VI_DEF) != 0 || cp_val != 0 ? VI_DEFAULT : VIM_DEFAULT];
         if (Ptr.eq(varp.ov_str, new Ptr<BytePtr>(p_bg, 0))) {
             newval = term_bg_default();
         }
         if (newval == null) {
             newval = empty_option;
         } else {
-            s = option_expand(opt_idx, newval);
+            BytePtr s = option_expand(opt_idx, newval);
             if (s == null) {
                 s = newval;
             }
@@ -47089,8 +45824,7 @@ public abstract class Editor {
     }
 
     void opt_backspace_nr2str(T_optvar_T varp, Ptr<BytePtr> origval_p, Ptr<BytePtr> origval_l_p, Ptr<BytePtr> origval_g_p, Ptr<BytePtr> oldval_p) {
-        int i = 0;
-        i = (int) getdigits(varp.ov_str);
+        int i = (int) getdigits(varp.ov_str);
         switch (i) {
             case 0:
                 varp.ov_str.put(empty_option);
@@ -47118,11 +45852,9 @@ public abstract class Editor {
     }
 
     BytePtr opt_whichwrap_nr2str(Ptr<BytePtr> argp, BytePtr whichwrap) {
-        long len = 0;
-        int i = 0;
-        len = 0L;
+        long len = 0L;
         whichwrap.put((byte) NUL);
-        i = (int) getdigits(argp);
+        int i = (int) getdigits(argp);
         if ((i & 1) != 0) {
             musl_strcpy(whichwrap, BytePtr.lit("b,"));
             len += 2L;
@@ -47150,16 +45882,13 @@ public abstract class Editor {
     }
 
     BytePtr stropt_copy_value(BytePtr origval, Ptr<BytePtr> argp, int op, int flags) {
-        BytePtr arg = null;
-        int newlen = 0;
-        BytePtr newval = null;
-        BytePtr s = null;
         int i = 0;
         BytePtr t1 = null;
         BytePtr t2 = null;
-        arg = argp.get();
-        s = null;
-        newlen = (int) musl_strlen(arg) + 1;
+        BytePtr arg = argp.get();
+        BytePtr newval = null;
+        BytePtr s = null;
+        int newlen = (int) musl_strlen(arg) + 1;
         if (op != OP_NONE) {
             newlen += (int) musl_strlen(origval) + 1;
         }
@@ -47188,13 +45917,11 @@ public abstract class Editor {
     }
 
     BytePtr stropt_expand_envvar(int opt_idx, BytePtr origval, BytePtr newval, int op) {
-        BytePtr s = null;
-        int newlen = 0;
-        s = option_expand(opt_idx, newval);
+        BytePtr s = option_expand(opt_idx, newval);
         if (s == null) {
             return newval;
         }
-        newlen = (int) musl_strlen(s) + 1;
+        int newlen = (int) musl_strlen(s) + 1;
         if (op != OP_NONE) {
             newlen += (int) musl_strlen(origval) + 1;
         }
@@ -47205,9 +45932,7 @@ public abstract class Editor {
 
     void stropt_concat_with_comma(BytePtr origval, BytePtr newval, int op, int flags) {
         int len = 0;
-        boolean comma = false;
-        len = 0;
-        comma = (flags & P_COMMA) != 0 && origval.get() != NUL && newval.get() != NUL;
+        boolean comma = (flags & P_COMMA) != 0 && origval.get() != NUL && newval.get() != NUL;
         if (op == OP_ADDING) {
             len = (int) musl_strlen(origval);
             if (comma && len > 1 && (flags & P_ONECOMMA) == P_ONECOMMA && origval.at(len - 1) == ',' && origval.at(len - 2) != '\\') {
@@ -47242,12 +45967,10 @@ public abstract class Editor {
     }
 
     BytePtr find_key_item(BytePtr src, BytePtr key, int keylen, IntPtr itemlenp) {
-        BytePtr p = null;
-        BytePtr end = null;
-        p = src;
+        BytePtr p = src;
         while (p.get() != NUL) {
             if ((BytePtr.eq(p, src) || p.add(-1).get() == ',') && musl_strncmp(p, key, (long) keylen) == 0) {
-                end = vim_strchr(p, ',');
+                BytePtr end = vim_strchr(p, ',');
                 if (end == null) {
                     end = p.add((int) musl_strlen(p));
                 }
@@ -47272,14 +45995,13 @@ public abstract class Editor {
     void remove_key_item(BytePtr str, BytePtr key, int keylen, BytePtr skip) {
         int[] itemlen = new int[1];
         BytePtr found = null;
-        BytePtr next = null;
         while (true) {
             found = find_key_item(str, key, keylen, new IntPtr(itemlen, 0));
             if (!(found != null)) {
                 break;
             }
             if (BytePtr.eq(found, skip)) {
-                next = found.add(itemlen[0]);
+                BytePtr next = found.add(itemlen[0]);
                 if (next.get() == ',') {
                     next = next.add(1);
                 }
@@ -47293,9 +46015,8 @@ public abstract class Editor {
     }
 
     void append_item(BytePtr str, BytePtr item, int item_len) {
-        int len = 0;
         int t1 = 0;
-        len = (int) musl_strlen(str);
+        int len = (int) musl_strlen(str);
         if (len > 0) {
             t1 = len;
             len++;
@@ -47306,10 +46027,8 @@ public abstract class Editor {
     }
 
     void prepend_item(BytePtr str, BytePtr item, int item_len) {
-        int len = 0;
-        int comma = 0;
-        len = (int) musl_strlen(str);
-        comma = len > 0 ? 1 : 0;
+        int len = (int) musl_strlen(str);
+        int comma = len > 0 ? 1 : 0;
         Rt.memmove(str.add(item_len).add(comma), str, (long) len + 1L);
         Rt.memmove(str, item, (long) item_len);
         if (comma != 0) {
@@ -47318,31 +46037,24 @@ public abstract class Editor {
     }
 
     boolean stropt_handle_keymatch(BytePtr origval, BytePtr newval, int op, int flags) {
+        int[] old_itemlen = new int[1];
         BytePtr p = null;
         BytePtr item_start = null;
-        BytePtr newval_copy = null;
-        int item_len = 0;
-        BytePtr colon = null;
-        int keylen = 0;
-        int[] old_itemlen = new int[1];
-        BytePtr found = null;
-        BytePtr found_2 = null;
-        BytePtr found_3 = null;
         if (vim_strchr(newval, ':') == null && vim_strchr(newval, ',') == null) {
             return false;
         }
-        newval_copy = vim_strsave(newval);
+        BytePtr newval_copy = vim_strsave(newval);
         musl_strcpy(newval, origval);
         item_start = newval_copy;
         for (;;) {
             p = vim_strchr(item_start, ',');
-            item_len = p == null ? (int) musl_strlen(item_start) : (int) p.sub(item_start);
+            int item_len = p == null ? (int) musl_strlen(item_start) : (int) p.sub(item_start);
             if (item_len > 0) {
-                colon = vim_strchr(item_start, ':');
+                BytePtr colon = vim_strchr(item_start, ':');
                 if (colon != null && colon.lt(item_start.add(item_len))) {
-                    keylen = (int) colon.sub(item_start) + 1;
+                    int keylen = (int) colon.sub(item_start) + 1;
                     if (op == OP_ADDING || op == OP_PREPENDING) {
-                        found = find_key_item(newval, item_start, keylen, new IntPtr(old_itemlen, 0));
+                        BytePtr found = find_key_item(newval, item_start, keylen, new IntPtr(old_itemlen, 0));
                         if (found != null) {
                             if (old_itemlen[0] == item_len && musl_strncmp(found, item_start, (long) item_len) == 0) {
                                 remove_key_item(newval, item_start, keylen, found);
@@ -47366,7 +46078,7 @@ public abstract class Editor {
                     }
                 } else {
                     if (op == OP_ADDING || op == OP_PREPENDING) {
-                        found_2 = find_dup_item(newval, item_start, (long) item_len, P_COMMA);
+                        BytePtr found_2 = find_dup_item(newval, item_start, (long) item_len, P_COMMA);
                         if (found_2 == null) {
                             if (op == OP_PREPENDING) {
                                 prepend_item(newval, item_start, item_len);
@@ -47375,7 +46087,7 @@ public abstract class Editor {
                             }
                         }
                     } else if (op == OP_REMOVING) {
-                        found_3 = find_dup_item(newval, item_start, (long) item_len, P_COMMA);
+                        BytePtr found_3 = find_dup_item(newval, item_start, (long) item_len, P_COMMA);
                         if (found_3 != null) {
                             remove_comma_item(newval, found_3, item_len);
                         }
@@ -47391,8 +46103,7 @@ public abstract class Editor {
     }
 
     void stropt_remove_dupflags(BytePtr newval, int flags) {
-        BytePtr s = null;
-        s = newval;
+        BytePtr s = newval;
         while (s.get() != 0) {
             if ((flags & P_ONECOMMA) != 0) {
                 if (s.get() != ',' && s.add(1).get() == ',' && vim_strchr(s.add(2), s.get() & 0xff) != null) {
@@ -47411,25 +46122,20 @@ public abstract class Editor {
 
     BytePtr stropt_get_newval(int nextchar, int opt_idx, Ptr<BytePtr> argp, T_optvar_T varp, Ptr<BytePtr> origval_arg, Ptr<BytePtr> origval_l_arg, Ptr<BytePtr> origval_g_arg, Ptr<BytePtr> oldval_arg, IntPtr op_arg, int flags, int cp_val) {
         BytePtr[] arg = new BytePtr[1];
+        arg[0] = argp.get();
         BytePtr[] origval = new BytePtr[1];
+        origval[0] = origval_arg.get();
         BytePtr[] origval_l = new BytePtr[1];
+        origval_l[0] = origval_l_arg.get();
         BytePtr[] origval_g = new BytePtr[1];
+        origval_g[0] = origval_g_arg.get();
         BytePtr[] oldval = new BytePtr[1];
-        int op = 0;
+        oldval[0] = oldval_arg.get();
+        int op = op_arg.get();
         BytePtr save_arg = null;
         BytePtr newval = null;
         BytePtr s = null;
         byte[] whichwrap = new byte[80];
-        BytePtr t = null;
-        int len = 0;
-        arg[0] = argp.get();
-        origval[0] = origval_arg.get();
-        origval_l[0] = origval_l_arg.get();
-        origval_g[0] = origval_g_arg.get();
-        oldval[0] = oldval_arg.get();
-        op = op_arg.get();
-        save_arg = null;
-        s = null;
         do {
             if (nextchar == '&') {
                 newval = stropt_get_default_val(opt_idx, varp.copy(), flags, cp_val);
@@ -47438,7 +46144,7 @@ public abstract class Editor {
                 if (Ptr.eq(varp.ov_str, new Ptr<BytePtr>(p_bs, 0)) && Integer.compareUnsigned((varp.ov_str.get().get() & 0xff) - '0', 10) < 0) {
                     opt_backspace_nr2str(varp.copy(), new Ptr<BytePtr>(origval, 0), new Ptr<BytePtr>(origval_l, 0), new Ptr<BytePtr>(origval_g, 0), new Ptr<BytePtr>(oldval, 0));
                 } else if (Ptr.eq(varp.ov_str, new Ptr<BytePtr>(p_ww, 0)) && Integer.compareUnsigned((arg[0].get() & 0xff) - '0', 10) < 0) {
-                    t = opt_whichwrap_nr2str(new Ptr<BytePtr>(arg, 0), new BytePtr(whichwrap, 0));
+                    BytePtr t = opt_whichwrap_nr2str(new Ptr<BytePtr>(arg, 0), new BytePtr(whichwrap, 0));
                     save_arg = arg[0];
                     arg[0] = t;
                 }
@@ -47451,7 +46157,7 @@ public abstract class Editor {
                 }
                 if ((flags & P_COMMA) != 0 && ((long) flags & P_COLON) != 0 && op != OP_NONE && stropt_handle_keymatch(origval[0], newval, op, flags)) {
                 } else {
-                    len = 0;
+                    int len = 0;
                     if (op == OP_REMOVING || (flags & P_NODUP) != 0) {
                         len = (int) musl_strlen(newval);
                         s = find_dup_item(origval[0], newval, (long) len, (long) flags);
@@ -47488,21 +46194,19 @@ public abstract class Editor {
 
     boolean do_set_option_string(int opt_idx, int opt_flags, Ptr<BytePtr> argp, int nextchar, int op_arg, long flags, int cp_val, T_optvar_T varp_arg, BytePtr errbuf, long errbuflen, IntPtr value_checked, Ptr<BytePtr> errmsg) {
         BytePtr[] arg = new BytePtr[1];
+        arg[0] = argp.get();
         int[] op = new int[1];
+        op[0] = op_arg;
         T_optvar_T varp = new T_optvar_T();
+        varp.set(varp_arg);
         BytePtr[] oldval = new BytePtr[1];
+        oldval[0] = null;
         BytePtr newval = null;
         BytePtr[] origval = new BytePtr[1];
-        BytePtr[] origval_l = new BytePtr[1];
-        BytePtr[] origval_g = new BytePtr[1];
-        LongPtr p = null;
-        int secure_saved = 0;
-        arg[0] = argp.get();
-        op[0] = op_arg;
-        varp.set(varp_arg);
-        oldval[0] = null;
         origval[0] = null;
+        BytePtr[] origval_l = new BytePtr[1];
         origval_l[0] = null;
+        BytePtr[] origval_g = new BytePtr[1];
         origval_g[0] = null;
         if ((opt_flags & (OPT_LOCAL | OPT_GLOBAL)) == 0 && (options[opt_idx].indir & PV_BOTH) != 0) {
             varp.set(options[opt_idx].var_);
@@ -47525,8 +46229,8 @@ public abstract class Editor {
         if (newval == null) {
             varp.ov_str.put(empty_option);
         }
-        p = new LongPtr(options[opt_idx].flags, 0);
-        secure_saved = secure;
+        LongPtr p = new LongPtr(options[opt_idx].flags, 0);
+        int secure_saved = secure;
         if (op[0] != OP_NONE && (p.get() & P_INSECURE) != 0) {
             secure = 1;
         }
@@ -47562,12 +46266,10 @@ public abstract class Editor {
     }
 
     BytePtr do_set_option_numeric(int opt_idx, int opt_flags, Ptr<BytePtr> argp, int nextchar, int op, long flags, int cp_val, T_optvar_T varp, BytePtr errbuf, long errbuflen) {
-        BytePtr arg = null;
+        BytePtr arg = argp.get();
         long[] value = new long[1];
         int[] i = new int[1];
         BytePtr errmsg = null;
-        arg = argp.get();
-        errmsg = null;
         if (opt_idx < 0 || optvar_is_null(varp.copy())) {
             return null;
         }
@@ -47604,17 +46306,15 @@ public abstract class Editor {
     }
 
     BytePtr do_set_option_keycode(Ptr<BytePtr> argp, BytePtr key_name, int nextchar) {
-        BytePtr arg = null;
+        BytePtr arg = argp.get();
         BytePtr p = null;
-        arg = argp.get();
         if (nextchar == '&') {
             if (!add_termcap_entry(key_name, true)) {
                 return new BytePtr(e_not_found_in_termcap, 0);
             }
         } else {
             arg = arg.add(1);
-            p = arg;
-            for (; (p.get() != 0) && !(p.get() == ' ' || p.get() == '\t'); p = p.add(1)) {
+            for (p = arg; p.get() != 0 && !(p.get() == ' ' || p.get() == '\t'); p = p.add(1)) {
                 if (p.get() == '\\' && p.at(1) != NUL) {
                     p = p.add(1);
                 }
@@ -47634,10 +46334,10 @@ public abstract class Editor {
 
     BytePtr do_set_option_value(int opt_idx, int opt_flags, Ptr<BytePtr> argp, int prefix, int op, long flags, T_optvar_T varp, BytePtr key_name, int nextchar, int afterchar, int cp_val, IntPtr stopopteval, BytePtr errbuf, long errbuflen) {
         int[] value_checked = new int[1];
-        BytePtr[] errmsg = new BytePtr[1];
-        BytePtr[] arg = new BytePtr[1];
         value_checked[0] = FALSE;
+        BytePtr[] errmsg = new BytePtr[1];
         errmsg[0] = null;
+        BytePtr[] arg = new BytePtr[1];
         arg[0] = argp.get();
         if ((flags & P_BOOL) != 0) {
             errmsg[0] = do_set_option_bool(opt_idx, opt_flags, prefix, flags, varp.copy(), nextchar, afterchar, cp_val);
@@ -47685,7 +46385,6 @@ public abstract class Editor {
     BytePtr do_set_option(int opt_flags, Ptr<BytePtr> argp, BytePtr arg_start, Ptr<BytePtr> startarg, IntPtr did_show, IntPtr stopopteval, BytePtr errbuf, long errbuflen) {
         int[] opt_idx = new int[1];
         BytePtr[] arg = new BytePtr[1];
-        int prefix = 0;
         int op = 0;
         long flags = 0;
         T_optvar_T varp = new T_optvar_T();
@@ -47693,12 +46392,10 @@ public abstract class Editor {
         int nextchar = 0;
         int afterchar = 0;
         BytePtr[] errmsg = new BytePtr[1];
+        errmsg[0] = null;
         int[] key = new int[1];
         int[] len = new int[1];
-        int cp_val = 0;
-        BytePtr p = null;
-        errmsg[0] = null;
-        prefix = get_option_prefix(argp);
+        int prefix = get_option_prefix(argp);
         arg[0] = argp.get();
         key[0] = 0;
         if (!parse_option_name(arg[0], new IntPtr(opt_idx, 0), new IntPtr(len, 0), new IntPtr(key, 0))) {
@@ -47743,7 +46440,7 @@ public abstract class Editor {
             argp.put(arg[0]);
             return errmsg[0];
         }
-        cp_val = p_cp[0];
+        int cp_val = p_cp[0];
         if (vim_strchr(BytePtr.lit("?=:!&"), nextchar) != null) {
             arg[0] = arg[0].add(len[0]);
             if (nextchar == '&' && arg[0].at(1) == 'v' && arg[0].at(2) == 'i') {
@@ -47771,7 +46468,7 @@ public abstract class Editor {
             if (opt_idx[0] >= 0) {
                 showoneopt(new Ptr<S_vimoption>(options, opt_idx[0]), opt_flags);
             } else {
-                p = find_termcode(new BytePtr(key_name, 0));
+                BytePtr p = find_termcode(new BytePtr(key_name, 0));
                 if (p == null) {
                     errmsg[0] = new BytePtr(e_key_code_not_set, 0);
                     argp.put(arg[0]);
@@ -47791,15 +46488,12 @@ public abstract class Editor {
     }
 
     boolean do_set(BytePtr arg_start, int opt_flags) {
+        byte[] errbuf = new byte[80];
+        BytePtr t1 = null;
         BytePtr[] arg = new BytePtr[1];
+        arg[0] = arg_start;
         int i = 0;
         int[] did_show = new int[1];
-        int[] stopopteval = new int[1];
-        BytePtr errmsg = null;
-        byte[] errbuf = new byte[80];
-        BytePtr[] startarg = new BytePtr[1];
-        BytePtr t1 = null;
-        arg[0] = arg_start;
         did_show[0] = FALSE;
         if (arg[0].get() == NUL) {
             showoptions(0, opt_flags);
@@ -47825,15 +46519,16 @@ public abstract class Editor {
                 did_show[0] = TRUE;
                 arg[0] = arg[0].add(7);
             } else {
+                int[] stopopteval = new int[1];
                 stopopteval[0] = FALSE;
-                errmsg = null;
+                BytePtr errmsg = null;
+                BytePtr[] startarg = new BytePtr[1];
                 startarg[0] = arg[0];
                 errmsg = do_set_option(opt_flags, new Ptr<BytePtr>(arg, 0), arg_start, new Ptr<BytePtr>(startarg, 0), new IntPtr(did_show, 0), new IntPtr(stopopteval, 0), new BytePtr(errbuf, 0), ERR_BUFLEN);
                 if (stopopteval[0] != 0) {
                     break;
                 }
-                i = 0;
-                for (; i < 2; i++) {
+                for (i = 0; i < 2; i++) {
                     while (arg[0].get() != NUL && !(arg[0].get() == ' ' || arg[0].get() == '\t')) {
                         t1 = arg[0];
                         arg[0] = arg[0].add(1);
@@ -47868,9 +46563,7 @@ public abstract class Editor {
     void did_set_option(int opt_idx, int opt_flags, boolean new_value, int value_checked) {
         LongPtr flagsp = null;
         LongPtr flagsp_local = null;
-        boolean both = false;
-        flagsp_local = null;
-        both = (opt_flags & (OPT_LOCAL | OPT_GLOBAL)) == 0;
+        boolean both = (opt_flags & (OPT_LOCAL | OPT_GLOBAL)) == 0;
         options[opt_idx].flags[0] |= P_WAS_SET;
         flagsp = new LongPtr(options[opt_idx].flags, 0);
         if (both) {
@@ -47890,7 +46583,6 @@ public abstract class Editor {
     }
 
     BytePtr option_expand(int opt_idx, BytePtr val) {
-        boolean esc = false;
         if ((options[opt_idx].flags[0] & P_EXPAND) == 0 || optvar_is_null(options[opt_idx].var_.copy())) {
             return null;
         }
@@ -47900,7 +46592,7 @@ public abstract class Editor {
         if (val == null) {
             val = options[opt_idx].var_.ov_str.get();
         }
-        esc = false;
+        boolean esc = false;
         expand_env_esc(val, NameBuff, PATH_MAX, esc ? BytePtr.lit(" \t") : null, false, null);
         if (musl_strcmp(NameBuff, val) == 0) {
             return null;
@@ -47922,8 +46614,7 @@ public abstract class Editor {
 
     void check_options() {
         int opt_idx = 0;
-        opt_idx = 0;
-        for (; options[opt_idx].fullname != null; opt_idx++) {
+        for (opt_idx = 0; options[opt_idx].fullname != null; opt_idx++) {
             if ((options[opt_idx].flags[0] & P_STRING) != 0 && !optvar_is_null(options[opt_idx].var_.copy())) {
                 check_string_option(get_varp(new Ptr<S_vimoption>(options, opt_idx)).ov_str);
             }
@@ -47932,8 +46623,7 @@ public abstract class Editor {
 
     int get_term_opt_idx(Ptr<BytePtr> p) {
         int opt_idx = 0;
-        opt_idx = 1;
-        for (; options[opt_idx].fullname != null; opt_idx++) {
+        for (opt_idx = 1; options[opt_idx].fullname != null; opt_idx++) {
             if (Ptr.eq(options[opt_idx].var_.ov_str, p)) {
                 return opt_idx;
             }
@@ -47942,8 +46632,7 @@ public abstract class Editor {
     }
 
     int set_term_option_alloced(Ptr<BytePtr> p) {
-        int opt_idx = 0;
-        opt_idx = get_term_opt_idx(p);
+        int opt_idx = get_term_opt_idx(p);
         if (opt_idx >= 0) {
             options[opt_idx].flags[0] |= P_ALLOCED;
         }
@@ -47955,10 +46644,8 @@ public abstract class Editor {
     }
 
     BytePtr did_set_cmdheight(T_optset_T args) {
-        long old_value = 0;
+        long old_value = args.os_oldval.number;
         BytePtr errmsg = null;
-        old_value = args.os_oldval.number;
-        errmsg = null;
         if (p_ch[0] < MIN_CMDHEIGHT) {
             errmsg = new BytePtr(e_argument_must_be_positive, 0);
             p_ch[0] = MIN_CMDHEIGHT;
@@ -48105,7 +46792,6 @@ public abstract class Editor {
 
     BytePtr did_set_maxsearchcount(T_optset_T args) {
         BytePtr errmsg = null;
-        errmsg = null;
         if (p_msc[0] <= 0L) {
             errmsg = new BytePtr(e_argument_must_be_positive, 0);
         } else if (p_msc[0] > MAX_SEARCH_COUNT) {
@@ -48119,7 +46805,6 @@ public abstract class Editor {
 
     BytePtr did_set_shiftwidth_tabstop(T_optset_T args) {
         BytePtr errmsg = null;
-        errmsg = null;
         if (curbuf.b_p_ts[0] <= 0L) {
             errmsg = new BytePtr(e_argument_must_be_positive, 0);
             curbuf.b_p_ts[0] = 8L;
@@ -48160,8 +46845,7 @@ public abstract class Editor {
     }
 
     BytePtr did_set_terse(T_optset_T args) {
-        BytePtr p = null;
-        p = vim_strchr(p_shm[0], SHM_SEARCH);
+        BytePtr p = vim_strchr(p_shm[0], SHM_SEARCH);
         if (p_terse[0] != 0 && p == null) {
             musl_strcpy(IObuff, p_shm[0]);
             musl_strcat(IObuff, BytePtr.lit("s"));
@@ -48174,7 +46858,6 @@ public abstract class Editor {
 
     BytePtr did_set_textwidth(T_optset_T args) {
         BytePtr errmsg = null;
-        errmsg = null;
         if (curbuf.b_p_tw[0] < 0L) {
             errmsg = new BytePtr(e_argument_must_be_positive, 0);
             curbuf.b_p_tw[0] = 0L;
@@ -48199,8 +46882,7 @@ public abstract class Editor {
     }
 
     BytePtr did_set_undolevels(T_optset_T args) {
-        LongPtr pp = null;
-        pp = args.os_varp.ov_long;
+        LongPtr pp = args.os_varp.ov_long;
         if (LongPtr.eq(pp, new LongPtr(p_ul, 0))) {
             update_global_undolevels(args.os_newval.number, args.os_oldval.number);
         } else if (LongPtr.eq(pp, new LongPtr(curbuf.b_p_ul, 0))) {
@@ -48238,12 +46920,9 @@ public abstract class Editor {
     }
 
     BytePtr set_bool_option(int opt_idx, T_optvar_T varp, int value, int opt_flags) {
-        int old_value = 0;
-        BytePtr errmsg = null;
         IntPtr t1 = null;
-        T_optset_T args = new T_optset_T();
-        old_value = varp.ov_int.get();
-        errmsg = null;
+        int old_value = varp.ov_int.get();
+        BytePtr errmsg = null;
         if (secure != 0 && (options[opt_idx].flags[0] & P_SECURE) != 0) {
             return new BytePtr(e_not_allowed_here, 0);
         }
@@ -48253,6 +46932,7 @@ public abstract class Editor {
             t1.put(value);
         }
         if (options[opt_idx].opt_did_set_cb != null) {
+            T_optset_T args = new T_optset_T();
             args.zero();
             args.os_varp.set(varp);
             args.os_flags = opt_flags;
@@ -48361,18 +47041,12 @@ public abstract class Editor {
     }
 
     BytePtr set_num_option(int opt_idx, T_optvar_T varp, long value, BytePtr errbuf, long errbuflen, int opt_flags) {
-        BytePtr errmsg = null;
-        long old_value = 0;
-        long old_Rows = 0;
-        long old_Columns = 0;
-        LongPtr pp = null;
         LongPtr t1 = null;
-        T_optset_T args = new T_optset_T();
-        errmsg = null;
-        old_value = varp.ov_long.get();
-        old_Rows = Rows[0];
-        old_Columns = Columns[0];
-        pp = varp.ov_long;
+        BytePtr errmsg = null;
+        long old_value = varp.ov_long.get();
+        long old_Rows = Rows[0];
+        long old_Columns = Columns[0];
+        LongPtr pp = varp.ov_long;
         if (secure != 0 && (options[opt_idx].flags[0] & P_SECURE) != 0) {
             return new BytePtr(e_not_allowed_here, 0);
         }
@@ -48382,6 +47056,7 @@ public abstract class Editor {
             t1.put(value);
         }
         if (options[opt_idx].opt_did_set_cb != null) {
+            T_optset_T args = new T_optset_T();
             args.zero();
             args.os_varp.set(varp);
             args.os_flags = opt_flags;
@@ -48403,10 +47078,8 @@ public abstract class Editor {
     }
 
     void check_redraw(long flags) {
-        boolean doclear = false;
-        boolean all = false;
-        doclear = (flags & P_RCLR) == P_RCLR;
-        all = (flags & P_RALL) == P_RALL || doclear;
+        boolean doclear = (flags & P_RCLR) == P_RCLR;
+        boolean all = (flags & P_RALL) == P_RALL || doclear;
         if ((flags & P_RSTAT) != 0 || all) {
             status_redraw_all();
         }
@@ -48432,19 +47105,15 @@ public abstract class Editor {
         BytePtr s = null;
         BytePtr p = null;
         boolean is_term_opt = false;
-        int last_opt_idx = 0;
-        int tab_idx = 0;
         if ((int) findoption_quick_tab[1] == 0) {
-            last_opt_idx = 0;
-            for (; options[last_opt_idx].fullname != null; last_opt_idx++) {
+            int last_opt_idx = 0;
+            for (last_opt_idx = 0; options[last_opt_idx].fullname != null; last_opt_idx++) {
             }
-            tab_idx = 1;
-            for (; tab_idx < 27; tab_idx++) {
+            for (int tab_idx = 1; tab_idx < 27; tab_idx++) {
                 findoption_quick_tab[tab_idx] = (short) last_opt_idx;
             }
             p = options[0].fullname;
-            opt_idx = 1;
-            for (; opt_idx < last_opt_idx; opt_idx++) {
+            for (opt_idx = 1; opt_idx < last_opt_idx; opt_idx++) {
                 s = options[opt_idx].fullname;
                 if ((int) s.at(0) != (int) p.at(0)) {
                     if ((int) s.at(0) == 't' && (int) s.at(1) == '_') {
@@ -48519,23 +47188,20 @@ public abstract class Editor {
     }
 
     BytePtr set_option_value(BytePtr name, long number, BytePtr string, int opt_flags) {
-        int opt_idx = 0;
+        boolean t1 = false;
         T_optvar_T varp = new T_optvar_T();
         long flags = 0;
-        int errbuflen = 0;
-        int key = 0;
-        boolean t1 = false;
-        byte[] key_name = new byte[2];
-        int idx = 0;
-        errbuflen = ERR_BUFLEN;
-        opt_idx = findoption(name);
+        int errbuflen = ERR_BUFLEN;
+        int opt_idx = findoption(name);
         if (opt_idx < 0) {
+            int key = 0;
             t1 = musl_strlen(name) == 4L && name.at(0) == 't' && name.at(1) == '_';
             if (t1) {
                 key = find_key_option(name, false);
                 t1 = key != 0;
             }
             if (t1) {
+                byte[] key_name = new byte[2];
                 if (key < 0) {
                     key_name[0] = (byte) (-key & 255);
                     key_name[1] = (byte) ((-key >>> 8) & 255);
@@ -48560,8 +47226,8 @@ public abstract class Editor {
             varp.set(get_varp_scope(new Ptr<S_vimoption>(options, opt_idx), opt_flags));
             if (!optvar_is_null(varp.copy())) {
                 if (number == 0L && string != null) {
-                    idx = 0;
-                    for (; string.at(idx) == '0'; idx++) {
+                    int idx = 0;
+                    for (idx = 0; string.at(idx) == '0'; idx++) {
                     }
                     if (string.at(idx) != NUL || idx == 0) {
                         vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(new BytePtr(e_number_required_after_str_equal_str, 0)), name, string);
@@ -48580,8 +47246,7 @@ public abstract class Editor {
     }
 
     void set_option_value_give_err(BytePtr name, long number, BytePtr string, int opt_flags) {
-        BytePtr errmsg = null;
-        errmsg = set_option_value(name, number, string, opt_flags);
+        BytePtr errmsg = set_option_value(name, number, string, opt_flags);
         if (errmsg != null) {
             emsg(gettext_(errmsg));
         }
@@ -48605,8 +47270,7 @@ public abstract class Editor {
     }
 
     BytePtr get_highlight_default() {
-        int i = 0;
-        i = findoption(BytePtr.lit("hl"));
+        int i = findoption(BytePtr.lit("hl"));
         if (i >= 0) {
             return options[i].def_str[VI_DEFAULT];
         }
@@ -48617,7 +47281,6 @@ public abstract class Editor {
         int key = 0;
         int[] modifiers = new int[1];
         BytePtr[] arg = new BytePtr[1];
-        key = 0;
         arg[0] = arg_arg;
         if (arg[0].at(0) == 't' && arg[0].at(1) == '_' && arg[0].at(2) != 0 && arg[0].at(3) != 0) {
             if (!has_lt || arg[0].at(4) == '>') {
@@ -48635,11 +47298,11 @@ public abstract class Editor {
     }
 
     void showoptions(int all, int opt_flags) {
+        int t1 = 0;
         Ptr<S_vimoption> p = null;
         int col = 0;
         boolean isterm = false;
         T_optvar_T varp = new T_optvar_T();
-        Ptr<Ptr<S_vimoption>> items = null;
         int item_count = 0;
         int run = 0;
         int row = 0;
@@ -48647,8 +47310,7 @@ public abstract class Editor {
         int cols = 0;
         int i = 0;
         int len = 0;
-        int t1 = 0;
-        items = new Ptr<Ptr<S_vimoption>>(new Ptr[185], 0);
+        Ptr<Ptr<S_vimoption>> items = new Ptr<Ptr<S_vimoption>>(new Ptr[185], 0);
         if (all == 2) {
             msg_puts_title(gettext_(BytePtr.lit("\n--- Terminal codes ---")));
         } else if ((opt_flags & OPT_GLOBAL) != 0) {
@@ -48658,11 +47320,9 @@ public abstract class Editor {
         } else {
             msg_puts_title(gettext_(BytePtr.lit("\n--- Options ---")));
         }
-        run = 1;
-        for (; (run <= 2) && got_int == 0; run++) {
+        for (run = 1; run <= 2 && got_int == 0; run++) {
             item_count = 0;
-            p = new Ptr<S_vimoption>(options, 0);
-            for (; p.get().fullname != null; p = p.add(1)) {
+            for (p = new Ptr<S_vimoption>(options, 0); p.get().fullname != null; p = p.add(1)) {
                 if (message_filtered(p.get().fullname)) {
                     continue;
                 }
@@ -48700,15 +47360,13 @@ public abstract class Editor {
             } else {
                 rows = item_count;
             }
-            row = 0;
-            for (; (row < rows) && got_int == 0; row++) {
+            for (row = 0; row < rows && got_int == 0; row++) {
                 msg_putchar('\n');
                 if (got_int != 0) {
                     break;
                 }
                 col = 0;
-                i = row;
-                for (; i < item_count; i += rows) {
+                for (i = row; i < item_count; i += rows) {
                     msg_col = col;
                     showoneopt(items.at(i), opt_flags);
                     col += INC;
@@ -48761,8 +47419,7 @@ public abstract class Editor {
 
     void free_termoptions() {
         Ptr<S_vimoption> p = null;
-        p = new Ptr<S_vimoption>(options, 0);
-        for (; p.get().fullname != null; p = p.add(1)) {
+        for (p = new Ptr<S_vimoption>(options, 0); p.get().fullname != null; p = p.add(1)) {
             if (istermoption(p)) {
                 if ((p.get().flags[0] & P_ALLOCED) != 0) {
                     free_string_option(p.get().var_.ov_str.get());
@@ -48780,8 +47437,7 @@ public abstract class Editor {
 
     void set_term_defaults() {
         Ptr<S_vimoption> p = null;
-        p = new Ptr<S_vimoption>(options, 0);
-        for (; p.get().fullname != null; p = p.add(1)) {
+        for (p = new Ptr<S_vimoption>(options, 0); p.get().fullname != null; p = p.add(1)) {
             if (istermoption(p) && !BytePtr.eq(p.get().def_str[VI_DEFAULT], p.get().var_.ov_str.get())) {
                 if ((p.get().flags[0] & P_DEF_ALLOCED) != 0) {
                     free_string_option(p.get().def_str[VI_DEFAULT]);
@@ -48943,8 +47599,7 @@ public abstract class Editor {
     }
 
     void after_copy_winopt(S_window_S wp) {
-        BytePtr errmsg = null;
-        errmsg = update_winhighlight(wp, wp.w_onebuf_opt.wo_whl[0]);
+        BytePtr errmsg = update_winhighlight(wp, wp.w_onebuf_opt.wo_whl[0]);
         if (errmsg != null) {
             emsg(gettext_(errmsg));
         }
@@ -49005,13 +47660,10 @@ public abstract class Editor {
     }
 
     void buf_copy_options(S_file_buffer buf, int flags) {
-        boolean should_copy = false;
+        boolean should_copy = true;
         BytePtr save_p_isk = null;
         boolean dont_do_help = false;
         boolean did_isk = false;
-        should_copy = true;
-        save_p_isk = null;
-        did_isk = false;
         if (p_cpo[0] != null) {
             if ((vim_strchr(p_cpo[0], CPO_BUFOPTGLOB) == null || (flags & BCO_ENTER) == 0) && (buf.b_p_initialized || ((flags & BCO_ENTER) == 0 && vim_strchr(p_cpo[0], CPO_BUFOPT) != null))) {
                 should_copy = false;
@@ -49070,12 +47722,11 @@ public abstract class Editor {
 
     void option_value2string(Ptr<S_vimoption> opp, int scope) {
         T_optvar_T varp = new T_optvar_T();
-        BytePtr s = null;
         varp.set(get_varp_scope(opp, scope));
         if ((opp.get().flags[0] & P_NUM) != 0) {
             vim_snprintf(NameBuff, PATH_MAX, BytePtr.lit("%ld"), varp.ov_long.get());
         } else {
-            s = varp.ov_str.get();
+            BytePtr s = varp.ov_str.get();
             if (s == null) {
                 NameBuff.set(0, (byte) NUL);
             } else if ((opp.get().flags[0] & P_EXPAND) != 0) {
@@ -49093,8 +47744,7 @@ public abstract class Editor {
     }
 
     boolean option_was_set(BytePtr name) {
-        int idx = 0;
-        idx = findoption(name);
+        int idx = findoption(name);
         if (idx < 0) {
             return false;
         }
@@ -49105,8 +47755,7 @@ public abstract class Editor {
     }
 
     boolean reset_option_was_set(BytePtr name) {
-        int idx = 0;
-        idx = findoption(name);
+        int idx = findoption(name);
         if (idx < 0) {
             return false;
         }
@@ -49116,8 +47765,7 @@ public abstract class Editor {
 
     void compatible_set() {
         int opt_idx = 0;
-        opt_idx = 0;
-        for (; !istermoption_idx(opt_idx); opt_idx++) {
+        for (opt_idx = 0; !istermoption_idx(opt_idx); opt_idx++) {
             if (((options[opt_idx].flags[0] & P_VIM) != 0 && p_cp[0] != 0) || ((options[opt_idx].flags[0] & P_VI_DEF) == 0 && p_cp[0] == 0)) {
                 set_option_default(opt_idx, OPT_FREE, p_cp[0]);
             }
@@ -49204,9 +47852,9 @@ public abstract class Editor {
     }
 
     void set_string_option_global(int opt_idx, Ptr<BytePtr> varp) {
+        boolean t1 = false;
         Ptr<BytePtr> p = null;
         BytePtr s = null;
-        boolean t1 = false;
         if (is_window_local_option(opt_idx) != 0) {
             p = get_varp_allbuf(new Ptr<S_vimoption>(options, opt_idx)).ov_str;
         } else {
@@ -49226,10 +47874,8 @@ public abstract class Editor {
     void set_string_option_direct(BytePtr name, int opt_idx, BytePtr val, int opt_flags, int set_sid) {
         BytePtr s = null;
         Ptr<BytePtr> varp = null;
-        boolean both = false;
-        int idx = 0;
-        both = (opt_flags & (OPT_LOCAL | OPT_GLOBAL)) == 0;
-        idx = opt_idx;
+        boolean both = (opt_flags & (OPT_LOCAL | OPT_GLOBAL)) == 0;
+        int idx = opt_idx;
         if (idx == -1) {
             idx = findoption(name);
             if (idx < 0) {
@@ -49260,8 +47906,7 @@ public abstract class Editor {
     }
 
     void set_string_option_direct_in_win(S_window_S wp, BytePtr name, int opt_idx, BytePtr val, int opt_flags, int set_sid) {
-        S_window_S save_curwin = null;
-        save_curwin = curwin;
+        S_window_S save_curwin = curwin;
         block_autocmds();
         curwin = wp;
         curbuf = curwin.w_buffer;
@@ -49277,7 +47922,6 @@ public abstract class Editor {
         BytePtr oldval = null;
         BytePtr errmsg = null;
         int[] value_checked = new int[1];
-        errmsg = null;
         value_checked[0] = FALSE;
         if (is_hidden_option(opt_idx)) {
             return null;
@@ -49310,8 +47954,7 @@ public abstract class Editor {
 
     BytePtr did_set_option_listflag(BytePtr val, BytePtr flags, BytePtr errbuf, long errbuflen) {
         BytePtr s = null;
-        s = val;
-        for (; s.get() != 0; s = s.add(1)) {
+        for (s = val; s.get() != 0; s = s.add(1)) {
             if (vim_strchr(flags, s.get() & 0xff) == null) {
                 return illegal_char(errbuf, errbuflen, s.get() & 0xff);
             }
@@ -49358,10 +48001,7 @@ public abstract class Editor {
 
     BytePtr did_set_global_listfillchars(BytePtr val, boolean opt_lcs, int opt_flags, BytePtr errbuf, long errbuflen) {
         BytePtr errmsg = null;
-        Ptr<BytePtr> local_ptr = null;
-        S_window_S wp = null;
-        errmsg = null;
-        local_ptr = opt_lcs ? new Ptr<BytePtr>(curwin.w_onebuf_opt.wo_lcs, 0) : new Ptr<BytePtr>(curwin.w_onebuf_opt.wo_fcs, 0);
+        Ptr<BytePtr> local_ptr = opt_lcs ? new Ptr<BytePtr>(curwin.w_onebuf_opt.wo_lcs, 0) : new Ptr<BytePtr>(curwin.w_onebuf_opt.wo_fcs, 0);
         if (opt_lcs) {
             errmsg = set_listchars_option(curwin, val, local_ptr.get().get() == NUL || (opt_flags & OPT_GLOBAL) == 0, errbuf, errbuflen);
         } else {
@@ -49370,6 +48010,7 @@ public abstract class Editor {
         if (errmsg != null) {
             return errmsg;
         }
+        S_window_S wp = null;
         if ((opt_flags & OPT_GLOBAL) == 0) {
             clear_string_option(local_ptr);
         }
@@ -49388,10 +48029,8 @@ public abstract class Editor {
     }
 
     BytePtr did_set_chars_option(T_optset_T args) {
-        Ptr<BytePtr> varp = null;
+        Ptr<BytePtr> varp = args.os_varp.ov_str;
         BytePtr errmsg = null;
-        varp = args.os_varp.ov_str;
-        errmsg = null;
         if (Ptr.eq(varp, new Ptr<BytePtr>(p_lcs, 0)) || Ptr.eq(varp, new Ptr<BytePtr>(p_fcs, 0))) {
             errmsg = did_set_global_listfillchars(varp.get(), Ptr.eq(varp, new Ptr<BytePtr>(p_lcs, 0)), args.os_flags, args.os_errbuf, args.os_errbuflen);
         } else if (Ptr.eq(varp, new Ptr<BytePtr>(curwin.w_onebuf_opt.wo_lcs, 0))) {
@@ -49403,8 +48042,7 @@ public abstract class Editor {
     }
 
     BytePtr did_set_cpoptions(T_optset_T args) {
-        Ptr<BytePtr> varp = null;
-        varp = args.os_varp.ov_str;
+        Ptr<BytePtr> varp = args.os_varp.ov_str;
         return did_set_option_listflag(varp.get(), BytePtr.lit("aAbBcCdDeEfFgHiIjJkKlLmMnoOpPqrRsStuvwWxXyZz$!%*-+<>#{|&/\\.;~"), args.os_errbuf, args.os_errbuflen);
     }
 
@@ -49424,8 +48062,7 @@ public abstract class Editor {
     }
 
     BytePtr did_set_iskeyword(T_optset_T args) {
-        Ptr<BytePtr> varp = null;
-        varp = args.os_varp.ov_str;
+        Ptr<BytePtr> varp = args.os_varp.ov_str;
         if (Ptr.eq(varp, new Ptr<BytePtr>(p_isk, 0))) {
             if (!check_isopt(varp.get())) {
                 return new BytePtr(e_invalid_argument, 0);
@@ -49454,10 +48091,8 @@ public abstract class Editor {
     }
 
     BytePtr did_set_keyprotocol(T_optset_T args) {
-        BytePtr term = null;
-        int kpc = 0;
-        term = term_strings[KS_NAME];
-        kpc = match_keyprotocol(term);
+        BytePtr term = term_strings[KS_NAME];
+        int kpc = match_keyprotocol(term);
         if (kpc == KEYPROTOCOL_FAIL) {
             return new BytePtr(e_invalid_argument, 0);
         }
@@ -49466,16 +48101,12 @@ public abstract class Editor {
     }
 
     BytePtr did_set_matchpairs(T_optset_T args) {
-        Ptr<BytePtr> varp = null;
-        BytePtr p = null;
-        int x2 = 0;
-        int x3 = 0;
         BytePtr t1 = null;
-        varp = args.os_varp.ov_str;
-        p = varp.get();
-        for (; p.get() != NUL; p = p.add(1)) {
-            x2 = -1;
-            x3 = -1;
+        Ptr<BytePtr> varp = args.os_varp.ov_str;
+        BytePtr p = null;
+        for (p = varp.get(); p.get() != NUL; p = p.add(1)) {
+            int x2 = -1;
+            int x3 = -1;
             p = p.add(utfc_ptr2len(p));
             if (p.get() != NUL) {
                 t1 = p;
@@ -49504,8 +48135,7 @@ public abstract class Editor {
     }
 
     BytePtr did_set_nrformats(T_optset_T args) {
-        Ptr<BytePtr> varp = null;
-        varp = args.os_varp.ov_str;
+        Ptr<BytePtr> varp = args.os_varp.ov_str;
         return did_set_opt_strings(varp.get(), new Ptr<BytePtr>(p_nf_values, 0), true);
     }
 
@@ -49533,14 +48163,12 @@ public abstract class Editor {
     }
 
     BytePtr did_set_shortmess(T_optset_T args) {
-        Ptr<BytePtr> varp = null;
-        varp = args.os_varp.ov_str;
+        Ptr<BytePtr> varp = args.os_varp.ov_str;
         return did_set_option_listflag(varp.get(), BytePtr.lit("rmfixlnwaWtToOsAIcCqFSu"), args.os_errbuf, args.os_errbuflen);
     }
 
     BytePtr did_set_showcmdloc(T_optset_T args) {
-        BytePtr errmsg = null;
-        errmsg = did_set_opt_strings(p_sloc[0], new Ptr<BytePtr>(p_sloc_values, 0), false);
+        BytePtr errmsg = did_set_opt_strings(p_sloc[0], new Ptr<BytePtr>(p_sloc_values, 0), false);
         if (errmsg == null) {
             comp_col();
         }
@@ -49559,14 +48187,12 @@ public abstract class Editor {
     }
 
     BytePtr did_set_term_option(T_optset_T args) {
-        Ptr<BytePtr> varp = null;
-        int colors = 0;
-        varp = args.os_varp.ov_str;
+        Ptr<BytePtr> varp = args.os_varp.ov_str;
         if (full_screen == 0) {
             return null;
         }
         if (Ptr.eq(varp, new Ptr<BytePtr>(term_strings, KS_CCO))) {
-            colors = musl_atoi(term_strings[KS_CCO]);
+            int colors = musl_atoi(term_strings[KS_CCO]);
             if (colors != t_colors) {
                 t_colors = colors;
                 if (t_colors <= 1) {
@@ -49594,10 +48220,8 @@ public abstract class Editor {
     }
 
     BytePtr did_set_virtualedit(T_optset_T args) {
-        BytePtr ve = null;
-        IntPtr flags = null;
-        ve = p_ve[0];
-        flags = new IntPtr(ve_flags, 0);
+        BytePtr ve = p_ve[0];
+        IntPtr flags = new IntPtr(ve_flags, 0);
         if ((args.os_flags & OPT_LOCAL) != 0) {
             ve = curwin.w_onebuf_opt.wo_ve[0];
             flags = new IntPtr(curwin.w_onebuf_opt.wo_ve_flags, 0);
@@ -49616,8 +48240,7 @@ public abstract class Editor {
     }
 
     BytePtr did_set_whichwrap(T_optset_T args) {
-        Ptr<BytePtr> varp = null;
-        varp = args.os_varp.ov_str;
+        Ptr<BytePtr> varp = args.os_varp.ov_str;
         return did_set_option_listflag(varp.get(), BytePtr.lit("bshl<>[]~,"), args.os_errbuf, args.os_errbuflen);
     }
 
@@ -49632,13 +48255,9 @@ public abstract class Editor {
 
     BytePtr did_set_string_option(int opt_idx, Ptr<BytePtr> varp, BytePtr oldval, BytePtr value, BytePtr errbuf, long errbuflen, int opt_flags, int op, IntPtr value_checked) {
         BytePtr errmsg = null;
-        long free_oldval = 0;
-        Fn6 did_set_cb = null;
+        long free_oldval = get_option_flags(opt_idx) & P_ALLOCED;
+        Fn6 did_set_cb = get_option_did_set_cb(opt_idx);
         T_optset_T args = new T_optset_T();
-        Ptr<BytePtr> p = null;
-        errmsg = null;
-        free_oldval = get_option_flags(opt_idx) & P_ALLOCED;
-        did_set_cb = get_option_did_set_cb(opt_idx);
         if (Ptr.eq(varp, new Ptr<BytePtr>(term_strings, KS_NAME))) {
             opt_idx = findoption(BytePtr.lit("term"));
             if (opt_idx >= 0) {
@@ -49678,7 +48297,7 @@ public abstract class Editor {
             }
             set_option_flag(opt_idx, P_ALLOCED);
             if ((opt_flags & (OPT_LOCAL | OPT_GLOBAL)) == 0 && is_global_local_option(opt_idx) != 0) {
-                p = get_option_varp_scope(opt_idx, OPT_LOCAL).ov_str;
+                Ptr<BytePtr> p = get_option_varp_scope(opt_idx, OPT_LOCAL).ov_str;
                 free_string_option(p.get());
                 p.put(empty_option);
             } else if ((opt_flags & OPT_LOCAL) == 0 && opt_flags != OPT_GLOBAL) {
@@ -49702,10 +48321,8 @@ public abstract class Editor {
         int i = 0;
         int len = 0;
         int new_flags = 0;
-        new_flags = 0;
         while (val.get() != 0) {
-            i = 0;
-            for (; ; i++) {
+            for (i = 0; ; i++) {
                 if (values.at(i) == null) {
                     return false;
                 }
@@ -49751,8 +48368,7 @@ public abstract class Editor {
         deathtrap_entered++;
         block_autocmds();
         v_dying = deathtrap_entered;
-        i = 0;
-        for (; signal_info[i].sig != -1; i++) {
+        for (i = 0; signal_info[i].sig != -1; i++) {
             if (sigarg == signal_info[i].sig) {
                 break;
             }
@@ -49867,12 +48483,12 @@ public abstract class Editor {
 
     boolean get_tty_info(int fd, T_ttyinfo_T info) {
         int[] bs = new int[1];
-        int[] intr = new int[1];
-        int[] cr = new int[1];
-        int[] nlcr = new int[1];
         bs[0] = 0;
+        int[] intr = new int[1];
         intr[0] = 0;
+        int[] cr = new int[1];
         cr[0] = 0;
+        int[] nlcr = new int[1];
         nlcr[0] = 0;
         if (musl_tty_keys(fd, new IntPtr(bs, 0), new IntPtr(intr, 0), new IntPtr(cr, 0), new IntPtr(nlcr, 0)) == OK) {
             info.backspace = (byte) bs[0] & 0xff;
@@ -49950,9 +48566,9 @@ public abstract class Editor {
     }
 
     int get_char_class(Ptr<BytePtr> pp) {
-        T_keyvalue_T target = new T_keyvalue_T();
-        Ptr<T_keyvalue_T> entry = null;
         if (pp.get().at(1) == ':' && Integer.compareUnsigned((pp.get().at(2) & 0xff) - 'a', 26) < 0 && Integer.compareUnsigned((pp.get().at(3) & 0xff) - 'a', 26) < 0 && Integer.compareUnsigned((pp.get().at(4) & 0xff) - 'a', 26) < 0) {
+            T_keyvalue_T target = new T_keyvalue_T();
+            Ptr<T_keyvalue_T> entry = null;
             target.key = 0;
             target.value.string[0] = pp.get().add(2);
             target.value.length = 0L;
@@ -49975,8 +48591,7 @@ public abstract class Editor {
         if (init_class_tab_done) {
             return;
         }
-        i = 0;
-        for (; i < 256; i++) {
+        for (i = 0; i < 256; i++) {
             if (i >= '0' && i <= '7') {
                 class_tab[i] = (short) (RI_DIGIT + RI_HEX + RI_OCTAL + RI_WORD);
             } else if (i >= '8' && i <= '9') {
@@ -50006,10 +48621,8 @@ public abstract class Editor {
 
     int get_coll_element(Ptr<BytePtr> pp) {
         int c = 0;
-        int l = 0;
-        BytePtr p = null;
-        l = 1;
-        p = pp.get();
+        int l = 1;
+        BytePtr p = pp.get();
         if (p.at(0) != NUL && p.at(1) == '.' && p.at(2) != NUL) {
             l = utfc_ptr2len(p.add(2));
             if (p.at(l + 2) == '.' && p.at(l + 3) == ']') {
@@ -50065,10 +48678,8 @@ public abstract class Editor {
 
     BytePtr skip_regexp_ex(BytePtr startp, int dirc, int magic, Ptr<BytePtr> newp, IntPtr dropped, IntPtr magic_val) {
         int mymagic = 0;
-        BytePtr p = null;
-        long startplen = 0;
-        p = startp;
-        startplen = 0L;
+        BytePtr p = startp;
+        long startplen = 0L;
         if (magic != 0) {
             mymagic = MAGIC_ON;
         } else {
@@ -50132,9 +48743,6 @@ public abstract class Editor {
     }
 
     int peekchr() {
-        BytePtr p = null;
-        boolean is_magic_all = false;
-        int c = 0;
         if (curchr != -1) {
             return curchr;
         }
@@ -50187,8 +48795,8 @@ public abstract class Editor {
                 break;
             case '$':
                 if (reg_magic >= MAGIC_OFF) {
-                    p = regparse[0].add(1);
-                    is_magic_all = reg_magic == MAGIC_ALL;
+                    BytePtr p = regparse[0].add(1);
+                    boolean is_magic_all = reg_magic == MAGIC_ALL;
                     while (p.at(0) == '\\' && (p.at(1) == 'c' || p.at(1) == 'C' || p.at(1) == 'm' || p.at(1) == 'M' || p.at(1) == 'v' || p.at(1) == 'V' || p.at(1) == 'Z')) {
                         if (p.at(1) == 'v') {
                             is_magic_all = true;
@@ -50203,7 +48811,7 @@ public abstract class Editor {
                 }
                 break;
             case '\\':
-                c = regparse[0].at(1) & 0xff;
+                int c = regparse[0].at(1) & 0xff;
                 if (c == NUL) {
                     curchr = '\\';
                 } else if (c <= '~' && META_flags[c] != 0) {
@@ -50259,12 +48867,9 @@ public abstract class Editor {
     }
 
     void skipchr_keepstart() {
-        int as = 0;
-        int pr = 0;
-        int prpr = 0;
-        as = prev_at_start;
-        pr = prevchr;
-        prpr = prevprevchr;
+        int as = prev_at_start;
+        int pr = prevchr;
+        int prpr = prevprevchr;
         skipchr();
         at_start = as;
         prevchr = pr;
@@ -50272,8 +48877,7 @@ public abstract class Editor {
     }
 
     int getchr() {
-        int chr = 0;
-        chr = peekchr();
+        int chr = peekchr();
         skipchr();
         return chr;
     }
@@ -50288,12 +48892,10 @@ public abstract class Editor {
     }
 
     long gethexchrs(int maxinputlen) {
-        long nr = 0;
+        long nr = 0L;
         int c = 0;
         int i = 0;
-        nr = 0L;
-        i = 0;
-        for (; i < maxinputlen; i++) {
+        for (i = 0; i < maxinputlen; i++) {
             c = regparse[0].at(0) & 0xff;
             if (!vim_isxdigit(c)) {
                 break;
@@ -50309,12 +48911,10 @@ public abstract class Editor {
     }
 
     long getdecchrs() {
-        long nr = 0;
+        long nr = 0L;
         int c = 0;
         int i = 0;
-        nr = 0L;
-        i = 0;
-        for (; ; i++) {
+        for (i = 0; ; i++) {
             c = regparse[0].at(0) & 0xff;
             if (c < '0' || c > '9') {
                 break;
@@ -50331,12 +48931,10 @@ public abstract class Editor {
     }
 
     long getoctchrs() {
-        long nr = 0;
+        long nr = 0L;
         int c = 0;
         int i = 0;
-        nr = 0L;
-        i = 0;
-        for (; (i < 3) && Long.compareUnsigned(nr, 32L) < 0; i++) {
+        for (i = 0; i < 3 && Long.compareUnsigned(nr, 32L) < 0; i++) {
             c = regparse[0].at(0) & 0xff;
             if (c < '0' || c > '7') {
                 break;
@@ -50355,7 +48953,6 @@ public abstract class Editor {
         boolean reverse = false;
         BytePtr first_char = null;
         long tmp = 0;
-        reverse = false;
         if (regparse[0].get() == '-') {
             regparse[0] = regparse[0].add(1);
             reverse = true;
@@ -50397,12 +48994,10 @@ public abstract class Editor {
     }
 
     void reg_getline_common(long lnum, int flags, Ptr<BytePtr> line, IntPtr length) {
-        int get_line = 0;
-        int get_length = 0;
+        int get_line = flags & RGLF_LINE;
+        int get_length = flags & RGLF_LENGTH;
         long firstlnum = 0;
         long maxline = 0;
-        get_line = flags & RGLF_LINE;
-        get_length = flags & RGLF_LENGTH;
         firstlnum = rex.reg_firstlnum + lnum;
         maxline = rex.reg_maxline;
         if (firstlnum < 1L) {
@@ -50455,7 +49050,7 @@ public abstract class Editor {
         T_pos_T bot = new T_pos_T();
         long lnum = 0;
         int col = 0;
-        S_window_S wp = null;
+        S_window_S wp = rex.reg_win == null ? curwin : rex.reg_win;
         int mode = 0;
         int[] start = new int[1];
         int[] end = new int[1];
@@ -50463,7 +49058,6 @@ public abstract class Editor {
         int[] end2 = new int[1];
         int cols = 0;
         int curswant = 0;
-        wp = rex.reg_win == null ? curwin : rex.reg_win;
         if (!(rex.reg_buf == curbuf) || VIsual.lnum[0] == 0L || !(rex.reg_match == null)) {
             return false;
         }
@@ -50523,8 +49117,7 @@ public abstract class Editor {
     }
 
     boolean prog_magic_wrong() {
-        S_regprog prog = null;
-        prog = rex.reg_match == null ? rex.reg_mmatch.regprog : rex.reg_match.regprog;
+        S_regprog prog = rex.reg_match == null ? rex.reg_mmatch.regprog : rex.reg_match.regprog;
         if ((prog.program.get() & 0xff) != REGMAGIC) {
             iemsg(new BytePtr(e_corrupted_regexp_program, 0));
             return true;
@@ -50566,12 +49159,10 @@ public abstract class Editor {
     }
 
     int match_with_backref(long start_lnum, int start_col, long end_lnum, int end_col, IntPtr bytelen) {
-        long clnum = 0;
-        int ccol = 0;
+        long clnum = start_lnum;
+        int ccol = start_col;
         int[] len = new int[1];
         BytePtr p = null;
-        clnum = start_lnum;
-        ccol = start_col;
         if (bytelen != null) {
             bytelen.put(0);
         }
@@ -50643,24 +49234,14 @@ public abstract class Editor {
     }
 
     int cstrncmp(BytePtr s1, BytePtr s2, IntPtr n) {
-        int result = 0;
-        BytePtr p = null;
-        int n2 = 0;
-        int n1 = 0;
         int t1 = 0;
-        BytePtr[] str1 = new BytePtr[1];
-        BytePtr[] str2 = new BytePtr[1];
-        int c1 = 0;
-        int c2 = 0;
-        int[] c11 = new int[1];
-        int[] c12 = new int[1];
-        int[] junk = new int[1];
+        int result = 0;
         if (rex.reg_ic == 0) {
             result = musl_strncmp(s1, s2, (long) n.get());
         } else {
-            p = s1;
-            n2 = 0;
-            n1 = n.get();
+            BytePtr p = s1;
+            int n2 = 0;
+            int n1 = n.get();
             while (n1 > 0 && p.get() != NUL) {
                 n1 -= utfc_ptr2len(p);
                 p = p.add(utfc_ptr2len(p));
@@ -50682,6 +49263,13 @@ public abstract class Editor {
             }
         }
         if (result != 0 && rex.reg_icombine) {
+            BytePtr[] str1 = new BytePtr[1];
+            BytePtr[] str2 = new BytePtr[1];
+            int c1 = 0;
+            int c2 = 0;
+            int[] c11 = new int[1];
+            int[] c12 = new int[1];
+            int[] junk = new int[1];
             str1[0] = s1;
             str2[0] = s2;
             c2 = 0;
@@ -50711,7 +49299,6 @@ public abstract class Editor {
         BytePtr p = null;
         int cc = 0;
         int lc = 0;
-        int uc = 0;
         if (rex.reg_ic == 0) {
             return vim_strchr(s, c);
         }
@@ -50729,9 +49316,8 @@ public abstract class Editor {
                 return vim_strchr(s, c);
             }
         }
-        p = s;
-        for (; p.get() != NUL; p = p.add(utfc_ptr2len(p))) {
-            uc = utf_ptr2char(p);
+        for (p = s; p.get() != NUL; p = p.add(utfc_ptr2len(p))) {
+            int uc = utf_ptr2char(p);
             if (c > 128 || uc > 128) {
                 if ((uc < 128 || uc != (p.get() & 0xff)) && utf_fold(uc) == lc) {
                     return p;
@@ -50752,34 +49338,26 @@ public abstract class Editor {
     }
 
     BytePtr regtilde(BytePtr source, int magic) {
-        BytePtr newsub = null;
-        BytePtr p = null;
-        long newsublen = 0;
-        byte[] tilde = new byte[3];
-        long tildelen = 0;
-        boolean error = false;
-        long prefixlen = 0;
-        BytePtr postfix = null;
         long postfixlen = 0;
         long tmpsublen = 0;
         BytePtr tmpsub = null;
-        newsub = source;
-        newsublen = 0L;
-        tilde = new byte[3];
+        BytePtr newsub = source;
+        BytePtr p = null;
+        long newsublen = 0L;
+        byte[] tilde = new byte[3];
         tilde[0] = (byte) '~';
-        tildelen = 1L;
-        error = false;
+        long tildelen = 1L;
+        boolean error = false;
         if (magic == 0) {
             tilde[0] = (byte) '\\';
             tilde[1] = (byte) '~';
             tilde[2] = (byte) NUL;
             tildelen = 2L;
         }
-        p = newsub;
-        for (; p.get() != 0; p = p.add(1)) {
+        for (p = newsub; p.get() != 0; p = p.add(1)) {
             if (musl_strncmp(p, new BytePtr(tilde, 0), tildelen) == 0) {
-                prefixlen = p.sub(newsub);
-                postfix = p.add((int) tildelen);
+                long prefixlen = p.sub(newsub);
+                BytePtr postfix = p.add((int) tildelen);
                 if (newsublen == 0L) {
                     newsublen = musl_strlen(newsub);
                 }
@@ -50830,8 +49408,7 @@ public abstract class Editor {
     int vim_regsub_multi(T_regmmatch_T rmp, long lnum, BytePtr source, BytePtr dest, int destlen, int flags) {
         int result = 0;
         T_regexec_T rex_save = new T_regexec_T();
-        int rex_in_use_save = 0;
-        rex_in_use_save = rex_in_use;
+        int rex_in_use_save = rex_in_use;
         if (rex_in_use != 0) {
             rex_save.set(rex);
         }
@@ -50851,17 +49428,6 @@ public abstract class Editor {
     }
 
     int vim_regsub_both(BytePtr source, BytePtr dest, int destlen, int flags) {
-        BytePtr src = null;
-        BytePtr dst = null;
-        BytePtr s = null;
-        int c = 0;
-        int[] cc = new int[1];
-        int no = 0;
-        Fn10 func_all = null;
-        Fn10 func_one = null;
-        long clnum = 0;
-        int len = 0;
-        int copy = 0;
         BytePtr t1 = null;
         BytePtr t2 = null;
         BytePtr t3 = null;
@@ -50871,17 +49437,19 @@ public abstract class Editor {
         BytePtr t7 = null;
         BytePtr t8 = null;
         BytePtr t9 = null;
-        int totlen = 0;
-        int charlen = 0;
-        int clen = 0;
         int l = 0;
         int charlen_2 = 0;
-        no = -1;
-        func_all = null;
-        func_one = null;
-        clnum = 0L;
-        len = 0;
-        copy = flags & REGSUB_COPY;
+        BytePtr src = null;
+        BytePtr dst = null;
+        BytePtr s = null;
+        int c = 0;
+        int[] cc = new int[1];
+        int no = -1;
+        Fn10 func_all = null;
+        Fn10 func_one = null;
+        long clnum = 0L;
+        int len = 0;
+        int copy = flags & REGSUB_COPY;
         if (source == null || dest == null) {
             iemsg(new BytePtr(e_null_argument, 0));
             return 0;
@@ -51004,8 +49572,8 @@ public abstract class Editor {
                     } else {
                         cc[0] = c;
                     }
-                    totlen = utfc_ptr2len(src.add(-1));
-                    charlen = utf_char2len(cc[0]);
+                    int totlen = utfc_ptr2len(src.add(-1));
+                    int charlen = utf_char2len(cc[0]);
                     if (copy != 0) {
                         if (dst.add(charlen).gt(dest.add(destlen))) {
                             iemsg(BytePtr.lit("vim_regsub_both(): not enough space"));
@@ -51014,7 +49582,7 @@ public abstract class Editor {
                         utf_char2bytes(cc[0], dst);
                     }
                     dst = dst.add(charlen - 1);
-                    clen = utf_ptr2len(src.add(-1));
+                    int clen = utf_ptr2len(src.add(-1));
                     if (clen < totlen) {
                         if (copy != 0) {
                             if (dst.add(totlen).add(-clen).gt(dest.add(destlen))) {
@@ -51184,11 +49752,10 @@ public abstract class Editor {
     }
 
     BytePtr regnode(int op) {
-        BytePtr ret = null;
         BytePtr t1 = null;
         BytePtr t2 = null;
         BytePtr t3 = null;
-        ret = regcode;
+        BytePtr ret = regcode;
         if (BytePtr.eq(ret, new BytePtr(reg_calc_size_node, 0))) {
             regsize += 3L;
         } else {
@@ -51277,11 +49844,11 @@ public abstract class Editor {
     }
 
     void reginsert(int op, BytePtr opnd) {
+        BytePtr t1 = null;
+        BytePtr t2 = null;
         BytePtr src = null;
         BytePtr dst = null;
         BytePtr place = null;
-        BytePtr t1 = null;
-        BytePtr t2 = null;
         if (BytePtr.eq(regcode, new BytePtr(reg_calc_size_node, 0))) {
             regsize += 3L;
             return;
@@ -51305,12 +49872,12 @@ public abstract class Editor {
     }
 
     void reginsert_nr(int op, long val, BytePtr opnd) {
-        BytePtr src = null;
-        BytePtr dst = null;
-        BytePtr place = null;
         BytePtr t1 = null;
         BytePtr t2 = null;
         BytePtr t3 = null;
+        BytePtr src = null;
+        BytePtr dst = null;
+        BytePtr place = null;
         if (BytePtr.eq(regcode, new BytePtr(reg_calc_size_node, 0))) {
             regsize += 7L;
             return;
@@ -51337,12 +49904,12 @@ public abstract class Editor {
     }
 
     void reginsert_limits(int op, long minval, long maxval, BytePtr opnd) {
-        BytePtr src = null;
-        BytePtr dst = null;
-        BytePtr place = null;
         BytePtr t1 = null;
         BytePtr t2 = null;
         BytePtr t3 = null;
+        BytePtr src = null;
+        BytePtr dst = null;
+        BytePtr place = null;
         if (BytePtr.eq(regcode, new BytePtr(reg_calc_size_node, 0))) {
             regsize += 11L;
             return;
@@ -51371,10 +49938,9 @@ public abstract class Editor {
     }
 
     boolean seen_endbrace(int refnum) {
-        BytePtr p = null;
         if (had_endbrace[refnum] == 0) {
-            p = regparse[0];
-            for (; p.get() != NUL; p = p.add(1)) {
+            BytePtr p = null;
+            for (p = regparse[0]; p.get() != NUL; p = p.add(1)) {
                 if (p.at(0) == '@' && p.at(1) == '<' && (p.at(2) == '!' || p.at(2) == '=')) {
                     break;
                 }
@@ -51390,9 +49956,8 @@ public abstract class Editor {
 
     BytePtr regatom_delim(int c, boolean delim_nl, IntPtr flagp) {
         BytePtr ret = null;
-        int base = 0;
+        int base = F_PCLOSE;
         int idx = 0;
-        base = F_PCLOSE;
         if (c == 'f' || c == 't') {
             if (c == 't') {
                 base = T_PCLOSE;
@@ -51430,31 +49995,17 @@ public abstract class Editor {
     }
 
     BytePtr regatom(IntPtr flagp) {
-        BytePtr ret = null;
-        int[] flags = new int[1];
-        int c = 0;
-        int sw = 0;
-        BytePtr p = null;
-        int extra = 0;
-        boolean delim_nl = false;
-        int save_prev_at_start = 0;
         BytePtr lp = null;
         BytePtr t1 = null;
         int refnum = 0;
         BytePtr lastbranch = null;
-        BytePtr lastnode = null;
         BytePtr br = null;
         long i = 0;
-        long n = 0;
         int cmp = 0;
-        boolean cur = false;
-        boolean got_digit = false;
         BytePtr t2 = null;
         BytePtr t3 = null;
-        int[] vcol = new int[1];
         BytePtr t4 = null;
         BytePtr lp_2 = null;
-        int startc = 0;
         int endc = 0;
         BytePtr t5 = null;
         BytePtr t6 = null;
@@ -51465,9 +50016,14 @@ public abstract class Editor {
         BytePtr t8 = null;
         int len_2 = 0;
         int l = 0;
-        extra = 0;
-        delim_nl = false;
-        save_prev_at_start = prev_at_start;
+        BytePtr ret = null;
+        int[] flags = new int[1];
+        int c = 0;
+        int sw = 0;
+        BytePtr p = null;
+        int extra = 0;
+        boolean delim_nl = false;
+        int save_prev_at_start = prev_at_start;
         flagp.put(WORST);
         c = getchr();
         sw = c;
@@ -51708,7 +50264,7 @@ public abstract class Editor {
                                 rc_did_emsg = TRUE;
                                 return null;
                             }
-                            lastnode = null;
+                            BytePtr lastnode = null;
                             ret = null;
                             while (true) {
                                 c = getchr();
@@ -51749,8 +50305,7 @@ public abstract class Editor {
                             if (!BytePtr.eq(ret, new BytePtr(reg_calc_size_node, 0))) {
                                 regtail(lastnode, br);
                                 regtail(lastbranch, br);
-                                br = ret;
-                                for (; !BytePtr.eq(br, lastnode); ) {
+                                for (br = ret; !BytePtr.eq(br, lastnode); ) {
                                     if ((br.get() & 0xff) == BRANCH) {
                                         regtail(br, lastbranch);
                                         if (reg_toolong != 0) {
@@ -51828,9 +50383,9 @@ public abstract class Editor {
                             }
                         default:
                             if (Integer.compareUnsigned(c - '0', 10) < 0 || c == '<' || c == '>' || c == '\'' || c == '.') {
-                                n = 0L;
-                                cur = false;
-                                got_digit = false;
+                                long n = 0L;
+                                boolean cur = false;
+                                boolean got_digit = false;
                                 cmp = c;
                                 if (cmp == '<' || cmp == '>') {
                                     c = getchr();
@@ -51881,6 +50436,7 @@ public abstract class Editor {
                                         ret = regnode(RE_COL);
                                     } else {
                                         if (cur) {
+                                            int[] vcol = new int[1];
                                             vcol[0] = 0;
                                             getvvcol(curwin, curwin.w_cursor, null, null, new IntPtr(vcol, 0), 0);
                                             vcol[0]++;
@@ -51908,7 +50464,7 @@ public abstract class Editor {
                 case '[' - 256:
                     lp_2 = skip_anyof(regparse[0]);
                     if (lp_2.get() == ']') {
-                        startc = -1;
+                        int startc = -1;
                         if (regparse[0].get() == '^') {
                             ret = regnode(ANYBUT + extra);
                             regparse[0] = regparse[0].add(1);
@@ -52012,16 +50568,14 @@ public abstract class Editor {
                                         }
                                         break;
                                     case CLASS_ALNUM:
-                                        cu = 1;
-                                        for (; cu < 128; cu++) {
+                                        for (cu = 1; cu < 128; cu++) {
                                             if (musl_isalnum(cu)) {
                                                 regmbc(cu);
                                             }
                                         }
                                         break;
                                     case CLASS_ALPHA:
-                                        cu = 1;
-                                        for (; cu < 128; cu++) {
+                                        for (cu = 1; cu < 128; cu++) {
                                             if (musl_isalpha(cu)) {
                                                 regmbc(cu);
                                             }
@@ -52032,71 +50586,62 @@ public abstract class Editor {
                                         regc('\t');
                                         break;
                                     case CLASS_CNTRL:
-                                        cu = 1;
-                                        for (; cu <= 127; cu++) {
+                                        for (cu = 1; cu <= 127; cu++) {
                                             if (musl_iscntrl(cu)) {
                                                 regmbc(cu);
                                             }
                                         }
                                         break;
                                     case CLASS_DIGIT:
-                                        cu = 1;
-                                        for (; cu <= 127; cu++) {
+                                        for (cu = 1; cu <= 127; cu++) {
                                             if (Integer.compareUnsigned(cu - '0', 10) < 0) {
                                                 regmbc(cu);
                                             }
                                         }
                                         break;
                                     case CLASS_GRAPH:
-                                        cu = 1;
-                                        for (; cu <= 127; cu++) {
+                                        for (cu = 1; cu <= 127; cu++) {
                                             if (musl_isgraph(cu)) {
                                                 regmbc(cu);
                                             }
                                         }
                                         break;
                                     case CLASS_LOWER:
-                                        cu = 1;
-                                        for (; cu <= 255; cu++) {
+                                        for (cu = 1; cu <= 255; cu++) {
                                             if (vim_islower(cu) && cu != 170 && cu != 186) {
                                                 regmbc(cu);
                                             }
                                         }
                                         break;
                                     case CLASS_PRINT:
-                                        cu = 1;
-                                        for (; cu <= 255; cu++) {
+                                        for (cu = 1; cu <= 255; cu++) {
                                             if (vim_isprintc(cu)) {
                                                 regmbc(cu);
                                             }
                                         }
                                         break;
                                     case CLASS_PUNCT:
-                                        cu = 1;
-                                        for (; cu < 128; cu++) {
+                                        for (cu = 1; cu < 128; cu++) {
                                             if (musl_ispunct(cu)) {
                                                 regmbc(cu);
                                             }
                                         }
                                         break;
                                     case CLASS_SPACE:
-                                        cu = 9;
-                                        for (; cu <= 13; cu++) {
+                                        for (cu = 9; cu <= 13; cu++) {
                                             regc(cu);
                                         }
                                         regc(' ');
                                         break;
                                     case CLASS_UPPER:
-                                        cu = 1;
-                                        for (; cu <= 255; cu++) {
+                                        for (cu = 1; cu <= 255; cu++) {
                                             if (vim_isupper(cu)) {
                                                 regmbc(cu);
                                             }
                                         }
                                         break;
                                     case CLASS_XDIGIT:
-                                        cu = 1;
-                                        for (; cu <= 255; cu++) {
+                                        for (cu = 1; cu <= 255; cu++) {
                                             if (vim_isxdigit(cu)) {
                                                 regmbc(cu);
                                             }
@@ -52115,24 +50660,21 @@ public abstract class Editor {
                                         regc('\33');
                                         break;
                                     case CLASS_IDENT:
-                                        cu = 1;
-                                        for (; cu <= 255; cu++) {
+                                        for (cu = 1; cu <= 255; cu++) {
                                             if (vim_isIDc(cu)) {
                                                 regmbc(cu);
                                             }
                                         }
                                         break;
                                     case CLASS_KEYWORD:
-                                        cu = 1;
-                                        for (; cu <= 255; cu++) {
+                                        for (cu = 1; cu <= 255; cu++) {
                                             if (reg_iswordc(cu)) {
                                                 regmbc(cu);
                                             }
                                         }
                                         break;
                                     case CLASS_FNAME:
-                                        cu = 1;
-                                        for (; cu <= 255; cu++) {
+                                        for (cu = 1; cu <= 255; cu++) {
                                             if (vim_isfilec(cu)) {
                                                 regmbc(cu);
                                             }
@@ -52180,8 +50722,7 @@ public abstract class Editor {
                         break;
                     }
                     ret = regnode(EXACTLY);
-                    len_2 = 0;
-                    for (; (c != NUL) && (len_2 == 0 || (re_multi_type(peekchr()) == NOT_MULTI && one_exactly == 0 && !(c < 0))); len_2++) {
+                    for (len_2 = 0; c != NUL && (len_2 == 0 || (re_multi_type(peekchr()) == NOT_MULTI && one_exactly == 0 && !(c < 0))); len_2++) {
                         c = no_Magic(c);
                         regmbc(c);
                         for (;;) {
@@ -52208,15 +50749,12 @@ public abstract class Editor {
     }
 
     BytePtr regpiece(IntPtr flagp) {
-        BytePtr ret = null;
         int op = 0;
         BytePtr next = null;
         int[] flags = new int[1];
         long[] minval = new long[1];
         long[] maxval = new long[1];
-        int lop = 0;
-        long nr = 0;
-        ret = regatom(new IntPtr(flags, 0));
+        BytePtr ret = regatom(new IntPtr(flags, 0));
         if (ret == null) {
             return null;
         }
@@ -52252,8 +50790,8 @@ public abstract class Editor {
                 flagp.put(WORST | HASWIDTH | (flags[0] & (HASNL | HASLOOKBH)));
                 break;
             case '@' - 256:
-                lop = END;
-                nr = getdecchrs();
+                int lop = END;
+                long nr = getdecchrs();
                 switch (no_Magic(getchr())) {
                     case '=':
                         lop = MATCH;
@@ -52347,10 +50885,7 @@ public abstract class Editor {
         BytePtr chain = null;
         BytePtr latest = null;
         int[] flags = new int[1];
-        boolean cont = false;
-        first = null;
-        chain = null;
-        cont = true;
+        boolean cont = true;
         flagp.put(WORST);
         while (cont) {
             switch (peekchr()) {
@@ -52421,7 +50956,6 @@ public abstract class Editor {
         BytePtr chain = null;
         BytePtr latest = null;
         int[] flags = new int[1];
-        chain = null;
         flagp.put(WORST | HASNL);
         ret = regnode(BRANCH);
         for (;;) {
@@ -52454,7 +50988,6 @@ public abstract class Editor {
         BytePtr ender = null;
         int parno = 0;
         int[] flags = new int[1];
-        parno = 0;
         flagp.put(HASWIDTH);
         if (paren == REG_PAREN) {
             if (regnpar >= NSUBEXP) {
@@ -52508,8 +51041,7 @@ public abstract class Editor {
         }
         ender = regnode(paren == REG_PAREN ? MCLOSE + parno : (paren == REG_NPAREN ? NCLOSE : END));
         regtail(ret, ender);
-        br = ret;
-        for (; br != null; br = regnext(br)) {
+        for (br = ret; br != null; br = regnext(br)) {
             regoptail(br, ender);
         }
         if (paren != REG_NOPAREN && getchr() != ')' - 256) {
@@ -52557,7 +51089,6 @@ public abstract class Editor {
         BytePtr longest = null;
         int len = 0;
         int[] flags = new int[1];
-        long scanlen = 0;
         if (expr == null) {
             iemsg(new BytePtr(e_null_argument, 0));
             rc_did_emsg = TRUE;
@@ -52608,6 +51139,7 @@ public abstract class Editor {
                 r.regstart = utf_ptr2char(regnext(scan).add(3));
             }
             if (((flags[0] & SPSTART) != 0 || (scan.get() & 0xff) == BOW || (scan.get() & 0xff) == EOW) && (flags[0] & HASNL) == 0) {
+                long scanlen = 0;
                 longest = null;
                 len = 0;
                 for (; scan != null; scan = regnext(scan)) {
@@ -52627,9 +51159,8 @@ public abstract class Editor {
     }
 
     int coll_get_char() {
-        long nr = 0;
         BytePtr t1 = null;
-        nr = -1L;
+        long nr = -1L;
         t1 = regparse[0];
         regparse[0] = regparse[0].add(1);
         switch (t1.get() & 0xff) {
@@ -52704,22 +51235,13 @@ public abstract class Editor {
     }
 
     int regrepeat(BytePtr p, long maxcount) {
-        long count = 0;
-        BytePtr scan = null;
-        BytePtr opnd = null;
+        int l = 0;
+        int len_2 = 0;
+        long count = 0L;
         int mask = 0;
         int testval = 0;
-        int l = 0;
-        int cu = 0;
-        int cl = 0;
-        int i = 0;
-        int len = 0;
-        int cf = 0;
-        int len_2 = 0;
-        count = 0L;
-        testval = 0;
-        scan = rex.input;
-        opnd = p.add(3);
+        BytePtr scan = rex.input;
+        BytePtr opnd = p.add(3);
         switch (p.get() & 0xff) {
             case ANY:
             case ANY + ADD_NL:
@@ -52987,6 +51509,8 @@ public abstract class Editor {
                 }
                 break;
             case EXACTLY:
+                int cu = 0;
+                int cl = 0;
                 if (rex.reg_ic != 0) {
                     cu = vim_toupper(opnd.get() & 0xff);
                     cl = vim_tolower(opnd.get() & 0xff);
@@ -53003,15 +51527,16 @@ public abstract class Editor {
                 }
                 break;
             case MULTIBYTECODE:
-                cf = 0;
+                int i = 0;
+                int len = 0;
+                int cf = 0;
                 len = utfc_ptr2len(opnd);
                 if (len > 1) {
                     if (rex.reg_ic != 0) {
                         cf = utf_fold(utf_ptr2char(opnd));
                     }
                     while (count < maxcount && utfc_ptr2len(scan) >= len) {
-                        i = 0;
-                        for (; i < len; i++) {
+                        for (i = 0; i < len; i++) {
                             if ((opnd.at(i) & 0xff) != (scan.at(i) & 0xff)) {
                                 break;
                             }
@@ -53106,8 +51631,7 @@ public abstract class Editor {
     }
 
     void regstack_pop(Ptr<BytePtr> scan) {
-        S_regitem_S rp = null;
-        rp = GA_Ptr_S_regitem_S(regstack).at(regstack.ga_len - 1);
+        S_regitem_S rp = GA_Ptr_S_regitem_S(regstack).at(regstack.ga_len - 1);
         scan.put(rp.rs_scan);
         regstack.ga_len--;
         regstack_bytes -= 40L;
@@ -53119,8 +51643,7 @@ public abstract class Editor {
         if (rex.need_clear_subexpr != 0) {
             return;
         }
-        i = 0;
-        for (; i < NSUBEXP; i++) {
+        for (i = 0; i < NSUBEXP; i++) {
             if (rex.reg_match == null) {
                 bp.save_start[i].se_u.pos.set(rex.reg_startpos.at(i));
                 bp.save_end[i].se_u.pos.set(rex.reg_endpos.at(i));
@@ -53137,8 +51660,7 @@ public abstract class Editor {
         if (rex.need_clear_subexpr != 0) {
             return;
         }
-        i = 0;
-        for (; i < NSUBEXP; i++) {
+        for (i = 0; i < NSUBEXP; i++) {
             if (rex.reg_match == null) {
                 rex.reg_startpos.at(i).set(bp.save_start[i].se_u.pos);
                 rex.reg_endpos.at(i).set(bp.save_end[i].se_u.pos);
@@ -53151,27 +51673,13 @@ public abstract class Editor {
 
     int regmatch(BytePtr scan_arg, IntPtr timed_out) {
         BytePtr[] scan = new BytePtr[] {scan_arg};
-        BytePtr next = null;
-        int op = 0;
-        int c = 0;
-        S_regitem_S rp = null;
-        int no = 0;
-        int status = 0;
-        int mark = 0;
-        int cmp = 0;
         T_pos_T pos = null;
-        long col = 0;
-        int pos_col = 0;
-        S_window_S wp = null;
-        long lnum = 0;
         long vcol = 0;
         int this_class = 0;
         int this_class_2 = 0;
         int prev_class = 0;
         int[] len = new int[1];
         BytePtr opnd = null;
-        BytePtr q = null;
-        int len_2 = 0;
         int i = 0;
         int i_2 = 0;
         int[] len_3 = new int[1];
@@ -53181,23 +51689,19 @@ public abstract class Editor {
         int i_3 = 0;
         Ptr<S_backpos_S> bp = null;
         int[] len_4 = new int[1];
-        int r = 0;
         S_regstar_S rst = new S_regstar_S();
         S_regstar_S t1 = null;
-        boolean till = false;
-        int idx = 0;
-        boolean with_nl = false;
         int oc = 0;
         int cc = 0;
-        int level = 0;
-        BytePtr s = null;
-        long save_lnum = 0;
-        int save_col = 0;
         S_regbehind_S t2 = null;
         long limit = 0;
         boolean t3 = false;
-        BytePtr line = null;
-        S_regstar_S rst_2 = null;
+        BytePtr next = null;
+        int op = 0;
+        int c = 0;
+        S_regitem_S rp = null;
+        int no = 0;
+        int status = 0;
         regstack.ga_len = 0;
         regstack_star.ga_len = 0;
         regstack_behind.ga_len = 0;
@@ -53249,9 +51753,9 @@ public abstract class Editor {
                             }
                             break;
                         case RE_MARK:
-                            mark = scan[0].add(3).at(0) & 0xff;
-                            cmp = scan[0].add(3).at(1) & 0xff;
-                            col = rex.reg_match == null ? rex.input.sub(rex.line) : 0L;
+                            int mark = scan[0].add(3).at(0) & 0xff;
+                            int cmp = scan[0].add(3).at(1) & 0xff;
+                            long col = rex.reg_match == null ? rex.input.sub(rex.line) : 0L;
                             pos = getmark_buf(rex.reg_buf, mark, false);
                             if (rex.reg_match == null) {
                                 rex.line = reg_getline(rex.lnum);
@@ -53260,7 +51764,7 @@ public abstract class Editor {
                             if (pos == null || pos.lnum[0] <= 0L) {
                                 status = RA_NOMATCH;
                             } else {
-                                pos_col = pos.lnum[0] == rex.lnum + rex.reg_firstlnum && pos.col[0] == MAXCOL ? reg_getline_len(pos.lnum[0] - rex.reg_firstlnum) : pos.col[0];
+                                int pos_col = pos.lnum[0] == rex.lnum + rex.reg_firstlnum && pos.col[0] == MAXCOL ? reg_getline_len(pos.lnum[0] - rex.reg_firstlnum) : pos.col[0];
                                 if (pos.lnum[0] == rex.lnum + rex.reg_firstlnum ? (pos_col == (int) rex.input.sub(rex.line) ? cmp == '<' || cmp == '>' : (pos_col < (int) rex.input.sub(rex.line) ? cmp != '>' : cmp != '<')) : (pos.lnum[0] < rex.lnum + rex.reg_firstlnum ? cmp != '>' : cmp != '<')) {
                                     status = RA_NOMATCH;
                                 }
@@ -53282,8 +51786,8 @@ public abstract class Editor {
                             }
                             break;
                         case RE_VCOL:
-                            wp = rex.reg_win == null ? curwin : rex.reg_win;
-                            lnum = rex.reg_match == null ? rex.reg_firstlnum + rex.lnum : 1L;
+                            S_window_S wp = rex.reg_win == null ? curwin : rex.reg_win;
+                            long lnum = rex.reg_match == null ? rex.reg_firstlnum + rex.lnum : 1L;
                             if (rex.reg_match == null && (lnum <= 0L || lnum > wp.w_buffer.b_ml.ml_line_count)) {
                                 lnum = 1L;
                             }
@@ -53528,21 +52032,20 @@ public abstract class Editor {
                             break;
                         case ANYOF:
                         case ANYBUT:
-                            q = scan[0].add(3);
+                            BytePtr q = scan[0].add(3);
                             if (c == NUL) {
                                 status = RA_NOMATCH;
                             } else if ((cstrchr(q, c) == null ? 1 : 0) == (op == ANYOF ? 1 : 0)) {
                                 status = RA_NOMATCH;
                             } else {
-                                len_2 = 0;
+                                int len_2 = 0;
                                 len_2 = utfc_ptr2len(q) - utf_ptr2len(q);
                                 rex.input = rex.input.add(utf_ptr2len(rex.input));
                                 q = q.add(utf_ptr2len(q));
                                 if (len_2 == 0) {
                                     break;
                                 }
-                                i = 0;
-                                for (; i < len_2; i++) {
+                                for (i = 0; i < len_2; i++) {
                                     if ((q.at(i) & 0xff) != (rex.input.at(i) & 0xff)) {
                                         status = RA_NOMATCH;
                                         break;
@@ -53562,8 +52065,7 @@ public abstract class Editor {
                             opndc = utf_ptr2char(opnd_2);
                             if (utf_iscomposing(opndc)) {
                                 status = RA_NOMATCH;
-                                i_2 = 0;
-                                for (; rex.input.at(i_2) != NUL; i_2 += utf_ptr2len(rex.input.add(i_2))) {
+                                for (i_2 = 0; rex.input.at(i_2) != NUL; i_2 += utf_ptr2len(rex.input.add(i_2))) {
                                     inpc = utf_ptr2char(rex.input.add(i_2));
                                     if (!utf_iscomposing(inpc)) {
                                         if (i_2 > 0) {
@@ -53592,8 +52094,7 @@ public abstract class Editor {
                             break;
                         case BACK:
                             bp = GA_Ptr_S_backpos_S(backpos);
-                            i_3 = 0;
-                            for (; i_3 < backpos.ga_len; i_3++) {
+                            for (i_3 = 0; i_3 < backpos.ga_len; i_3++) {
                                 if (BytePtr.eq(bp.at(i_3).bp_scan, scan[0])) {
                                     break;
                                 }
@@ -53697,7 +52198,7 @@ public abstract class Editor {
                                             status = RA_NOMATCH;
                                         }
                                     } else {
-                                        r = match_with_backref(rex.reg_startpos.at(no).lnum, rex.reg_startpos.at(no).col, rex.reg_endpos.at(no).lnum, rex.reg_endpos.at(no).col, new IntPtr(len_4, 0));
+                                        int r = match_with_backref(rex.reg_startpos.at(no).lnum, rex.reg_startpos.at(no).col, rex.reg_endpos.at(no).lnum, rex.reg_endpos.at(no).col, new IntPtr(len_4, 0));
                                         if (r != RA_MATCH) {
                                             status = r;
                                         }
@@ -53898,13 +52399,13 @@ public abstract class Editor {
                         case T_QCLOSE_NL:
                         case T_RCLOSE_NL:
                         case T_ACLOSE_NL:
-                            till = op >= T_PCLOSE;
-                            idx = op - (till ? T_PCLOSE : F_PCLOSE);
-                            with_nl = idx >= DELIM_NL;
-                            level = 1;
-                            s = rex.input;
-                            save_lnum = rex.lnum;
-                            save_col = (int) rex.input.sub(rex.line);
+                            boolean till = op >= T_PCLOSE;
+                            int idx = op - (till ? T_PCLOSE : F_PCLOSE);
+                            boolean with_nl = idx >= DELIM_NL;
+                            int level = 1;
+                            BytePtr s = rex.input;
+                            long save_lnum = rex.lnum;
+                            int save_col = (int) rex.input.sub(rex.line);
                             if (with_nl) {
                                 idx -= DELIM_NL;
                             }
@@ -54090,7 +52591,7 @@ public abstract class Editor {
                                         rp.rs_un.regsave.rs_u.pos.col = (int) musl_strlen(rex.line);
                                     }
                                 } else {
-                                    line = reg_getline(rp.rs_un.regsave.rs_u.pos.lnum);
+                                    BytePtr line = reg_getline(rp.rs_un.regsave.rs_u.pos.lnum);
                                     rp.rs_un.regsave.rs_u.pos.col -= utf_head_off(line, line.add(rp.rs_un.regsave.rs_u.pos.col).add(-1)) + 1;
                                 }
                             } else {
@@ -54129,7 +52630,7 @@ public abstract class Editor {
                         break;
                     case RS_STAR_LONG:
                     case RS_STAR_SHORT:
-                        rst_2 = regstack_star_top();
+                        S_regstar_S rst_2 = regstack_star_top();
                         if (status == RA_MATCH) {
                             regstack_pop(new Ptr<BytePtr>(scan, 0));
                             regstack_star.ga_len--;
@@ -54234,16 +52735,12 @@ public abstract class Editor {
     }
 
     long bt_regexec_both(BytePtr line, int startcol, IntPtr timed_out) {
-        S_regprog prog = null;
-        BytePtr s = null;
-        int col = 0;
-        long retval = 0;
         int c = 0;
         int c_2 = 0;
-        T_lpos_T start = null;
-        T_lpos_T end = null;
-        col = startcol;
-        retval = 0L;
+        S_regprog prog = null;
+        BytePtr s = null;
+        int col = startcol;
+        long retval = 0L;
         if (regstack.ga_data == null) {
             ga_init2(regstack, 40L, 51);
             ga_grow(regstack, 51);
@@ -54365,8 +52862,8 @@ public abstract class Editor {
         }
         if (retval > 0L) {
             if (rex.reg_match == null) {
-                start = rex.reg_mmatch.startpos[0];
-                end = rex.reg_mmatch.endpos[0];
+                T_lpos_T start = rex.reg_mmatch.startpos[0];
+                T_lpos_T end = rex.reg_mmatch.endpos[0];
                 if (end.lnum < start.lnum || (end.lnum == start.lnum && end.col < start.col)) {
                     rex.reg_mmatch.endpos[0].set(rex.reg_mmatch.startpos[0]);
                 }
@@ -54400,8 +52897,7 @@ public abstract class Editor {
     }
 
     boolean re_num_cmp(long val, BytePtr scan) {
-        long n = 0;
-        n = ((scan.at(3) & 0xffL) << 24) + ((scan.at(4) & 0xffL) << 16) + ((scan.at(5) & 0xffL) << 8) + (scan.at(6) & 0xffL);
+        long n = ((scan.at(3) & 0xffL) << 24) + ((scan.at(4) & 0xffL) << 16) + ((scan.at(5) & 0xffL) << 8) + (scan.at(6) & 0xffL);
         if (scan.at(7) == '>') {
             return Long.compareUnsigned(val, n) > 0;
         }
@@ -54413,9 +52909,7 @@ public abstract class Editor {
 
     S_regprog vim_regcomp(BytePtr expr_arg, int re_flags) {
         S_regprog prog = null;
-        BytePtr expr = null;
-        prog = null;
-        expr = expr_arg;
+        BytePtr expr = expr_arg;
         rex.reg_buf = curbuf;
         prog = bt_regcomp(expr, re_flags);
         if (prog != null) {
@@ -54434,8 +52928,7 @@ public abstract class Editor {
     boolean vim_regexec_string(T_regmatch_T rmp, BytePtr line, int col, boolean nl) {
         int result = 0;
         T_regexec_T rex_save = new T_regexec_T();
-        int rex_in_use_save = 0;
-        rex_in_use_save = rex_in_use;
+        int rex_in_use_save = rex_in_use;
         if (rmp.regprog.re_in_use) {
             emsg(gettext_(new BytePtr(e_cannot_use_pattern_recursively, 0)));
             return false;
@@ -54465,8 +52958,7 @@ public abstract class Editor {
     long vim_regexec_multi(T_regmmatch_T rmp, S_window_S win, S_file_buffer buf, long lnum, int col, IntPtr timed_out) {
         int result = 0;
         T_regexec_T rex_save = new T_regexec_T();
-        int rex_in_use_save = 0;
-        rex_in_use_save = rex_in_use;
+        int rex_in_use_save = rex_in_use;
         if (rmp.regprog.re_in_use) {
             emsg(gettext_(new BytePtr(e_cannot_use_pattern_recursively, 0)));
             return FALSE;
@@ -54502,7 +52994,6 @@ public abstract class Editor {
     boolean get_yank_register(int regname, int writing) {
         int i = 0;
         boolean ret = false;
-        ret = false;
         y_append = FALSE;
         if ((regname == 0 || regname == '"') && writing == 0 && y_previous != null) {
             y_current = y_previous;
@@ -54541,8 +53032,7 @@ public abstract class Editor {
                 reg.y_array = new Ptr<T_string_T>(T_string_T.array((int) reg.y_size), 0);
             }
             if (reg.y_array != null) {
-                i = 0;
-                for (; ((long) i) < reg.y_size; i++) {
+                for (i = 0; (long) i < reg.y_size; i++) {
                     reg.y_array.at(i).string[0] = vim_strnsave(y_current.y_array.at(i).string[0], y_current.y_array.at(i).length);
                     reg.y_array.at(i).length = y_current.y_array.at(i).length;
                 }
@@ -54593,9 +53083,6 @@ public abstract class Editor {
 
     boolean stuff_yank(int regname, BytePtr p) {
         long plen = 0;
-        T_string_T pp = null;
-        BytePtr tmp = null;
-        long tmplen = 0;
         if (regname != 0 && !valid_yank_reg(regname, true)) {
             return false;
         }
@@ -54605,9 +53092,9 @@ public abstract class Editor {
         plen = musl_strlen(p);
         get_yank_register(regname, TRUE);
         if (y_append != 0 && y_current.y_array != null) {
-            pp = y_current.y_array.at((int) (y_current.y_size - 1L));
-            tmplen = pp.length + plen;
-            tmp = BytePtr.alloc(tmplen + 1L);
+            T_string_T pp = y_current.y_array.at((int) (y_current.y_size - 1L));
+            long tmplen = pp.length + plen;
+            BytePtr tmp = BytePtr.alloc(tmplen + 1L);
             musl_strcpy(tmp, pp.string[0]);
             musl_strcpy(tmp.add((int) pp.length), p);
             pp.string[0] = tmp;
@@ -54624,16 +53111,14 @@ public abstract class Editor {
     }
 
     BytePtr execreg_line_continuation(Ptr<T_string_T> lines, LongPtr idx) {
+        BytePtr p = null;
+        BytePtr p_2 = null;
         S_growarray ga = new S_growarray();
-        long cmd_start = 0;
-        long cmd_end = 0;
+        long cmd_start = idx.get();
+        long cmd_end = idx.get();
         T_string_T tmp = null;
         int j = 0;
         BytePtr str = null;
-        BytePtr p = null;
-        BytePtr p_2 = null;
-        cmd_start = idx.get();
-        cmd_end = idx.get();
         ga_init2(ga, 1L, 400);
         while (true) {
             cmd_start--;
@@ -54647,8 +53132,7 @@ public abstract class Editor {
         }
         tmp = lines.at((int) cmd_start);
         ga_concat_len(ga, tmp.string[0], tmp.length);
-        j = (int) (cmd_start + 1L);
-        for (; ((long) j) <= cmd_end; j++) {
+        for (j = (int) (cmd_start + 1L); (long) j <= cmd_end; j++) {
             tmp = lines.at(j);
             p_2 = skipwhite(tmp.string[0]);
             if (p_2.get() == '\\') {
@@ -54671,13 +53155,12 @@ public abstract class Editor {
     }
 
     boolean do_execreg(int regname, boolean colon, boolean addcr, boolean silent) {
-        long[] i = new long[1];
-        BytePtr p = null;
-        boolean retval = false;
-        int remap = 0;
         BytePtr escaped = null;
         BytePtr str = null;
-        retval = true;
+        long[] i = new long[1];
+        BytePtr p = null;
+        boolean retval = true;
+        int remap = 0;
         if (regname == '@') {
             if (execreg_lastc == NUL) {
                 emsg(gettext_(new BytePtr(e_no_previously_used_register, 0)));
@@ -54753,11 +53236,10 @@ public abstract class Editor {
     }
 
     void put_reedit_in_typebuf(boolean silent) {
-        byte[] buf = new byte[11];
         if (restart_edit == NUL) {
             return;
         }
-        buf = new byte[11];
+        byte[] buf = new byte[11];
         buf[0] = (byte) -128;
         buf[1] = (byte) KS_EXTRA;
         buf[2] = (byte) KE_COMMAND;
@@ -54781,14 +53263,13 @@ public abstract class Editor {
     }
 
     boolean put_in_typebuf(BytePtr s, boolean esc, boolean colon, boolean silent) {
-        boolean retval = false;
-        BytePtr p = null;
-        retval = true;
+        boolean retval = true;
         put_reedit_in_typebuf(silent);
         if (colon) {
             retval = ins_typebuf(BytePtr.lit("\n"), -1, 0, true, silent ? 1 : 0);
         }
         if ((retval ? 1 : 0) == OK) {
+            BytePtr p = null;
             if (esc) {
                 p = vim_strsave_escape_csi(s);
             } else {
@@ -54807,15 +53288,12 @@ public abstract class Editor {
     }
 
     boolean insert_reg(int regname, int literally_arg) {
+        T_pos_T curpos = new T_pos_T();
         long i = 0;
-        boolean retval = false;
+        boolean retval = true;
         BytePtr[] arg = new BytePtr[1];
         int[] allocated = new int[1];
-        int literally = 0;
-        int dir = 0;
-        T_pos_T curpos = new T_pos_T();
-        retval = true;
-        literally = literally_arg;
+        int literally = literally_arg;
         ui_breakcheck();
         if (got_int != 0) {
             return false;
@@ -54837,10 +53315,9 @@ public abstract class Editor {
             if (y_current.y_array == null) {
                 retval = false;
             } else {
-                i = 0L;
-                for (; i < y_current.y_size; i++) {
+                for (i = 0L; i < y_current.y_size; i++) {
                     if (regname == '-' && y_current.y_type == MCHAR) {
-                        dir = -1;
+                        int dir = -1;
                         if ((State & REPLACE_FLAG) != 0) {
                             if (!u_save_cursor()) {
                                 return false;
@@ -54932,16 +53409,14 @@ public abstract class Editor {
 
     boolean cmdline_paste_reg(int regname, boolean literally_arg, boolean remcr) {
         long i = 0;
-        boolean literally = false;
-        literally = literally_arg;
+        boolean literally = literally_arg;
         if (get_yank_register(regname, FALSE)) {
             literally = true;
         }
         if (y_current.y_array == null) {
             return false;
         }
-        i = 0L;
-        for (; i < y_current.y_size; i++) {
+        for (i = 0L; i < y_current.y_size; i++) {
             cmdline_paste_str(y_current.y_array.at((int) i).string[0], literally);
             if ((y_current.y_type == MLINE || i < y_current.y_size - 1L) && !remcr) {
                 cmdline_paste_str(BytePtr.lit("\015"), literally);
@@ -54958,8 +53433,7 @@ public abstract class Editor {
         int n = 0;
         y_current = y_regs[9];
         free_yank_all();
-        n = 9;
-        for (; n > 1; n--) {
+        for (n = 9; n > 1; n--) {
             y_regs[n].set(y_regs[n - 1]);
         }
         y_current = y_regs[1];
@@ -54971,17 +53445,16 @@ public abstract class Editor {
 
     void init_yank() {
         int i = 0;
-        i = 0;
-        for (; i < NUM_REGISTERS; i++) {
+        for (i = 0; i < NUM_REGISTERS; i++) {
             y_regs[i].y_array = null;
         }
     }
 
     void free_yank(long n) {
-        long i = 0;
         if (y_current.y_array == null) {
             return;
         }
+        long i = 0;
         i = n;
         for (;;) {
             i--;
@@ -54999,24 +53472,18 @@ public abstract class Editor {
     }
 
     boolean op_yank(S_oparg_S oap, boolean deleting, boolean mess) {
+        int tmp = 0;
+        long t1 = 0;
+        long t2 = 0;
         long y_idx = 0;
         T_yankreg_T curr = null;
         T_yankreg_T newreg = new T_yankreg_T();
         long lnum = 0;
-        int yanktype = 0;
-        long yanklines = 0;
-        long yankendlnum = 0;
+        int yanktype = oap.motion_type;
+        long yanklines = oap.line_count;
+        long yankendlnum = oap.end.lnum[0];
         BytePtr pnew = null;
         S_block_def bd = new S_block_def();
-        int tmp = 0;
-        Ptr<T_string_T> new_ptr = null;
-        long j = 0;
-        long t1 = 0;
-        long t2 = 0;
-        byte[] namebuf = new byte[100];
-        yanktype = oap.motion_type;
-        yanklines = oap.line_count;
-        yankendlnum = oap.end.lnum[0];
         if (oap.regname != 0 && !valid_yank_reg(oap.regname, true)) {
             beep_flush();
             return false;
@@ -55080,9 +53547,9 @@ public abstract class Editor {
             }
         }
         if (!(curr == y_current)) {
-            new_ptr = new Ptr<T_string_T>(T_string_T.array((int) (curr.y_size + y_current.y_size)), 0);
-            j = 0L;
-            for (; j < curr.y_size; j++) {
+            long j = 0;
+            Ptr<T_string_T> new_ptr = new Ptr<T_string_T>(T_string_T.array((int) (curr.y_size + y_current.y_size)), 0);
+            for (j = 0L; j < curr.y_size; j++) {
                 new_ptr.at((int) j).set(curr.y_array.at((int) j));
             }
             curr.y_array = new_ptr;
@@ -55118,6 +53585,7 @@ public abstract class Editor {
                 yanklines = 0L;
             }
             if (yanklines > p_report[0]) {
+                byte[] namebuf = new byte[100];
                 if (oap.regname == NUL) {
                     namebuf[0] = (byte) NUL;
                 } else {
@@ -55149,7 +53617,6 @@ public abstract class Editor {
 
     boolean yank_copy_line(S_block_def bd, long y_idx, int exclude_trailing_space) {
         BytePtr pnew = null;
-        int s = 0;
         if (exclude_trailing_space != 0) {
             bd.endspaces = 0;
         }
@@ -55162,7 +53629,7 @@ public abstract class Editor {
         Rt.memset(pnew, ' ', (long) bd.endspaces);
         pnew = pnew.add(bd.endspaces);
         if (exclude_trailing_space != 0) {
-            s = bd.textlen + bd.endspaces;
+            int s = bd.textlen + bd.endspaces;
             while (s > 0 && (bd.textstart.add(s).add(-1).get() == ' ' || bd.textstart.add(s).add(-1).get() == '\t')) {
                 s = s - utf_head_off(bd.textstart, bd.textstart.add(s).add(-1)) - 1;
                 pnew = pnew.add(-1);
@@ -55376,8 +53843,7 @@ public abstract class Editor {
                 }
                 curwin.w_cursor.coladd = 0;
                 bd.textcol = 0;
-                i = 0L;
-                for (; i < y_size; i++) {
+                for (i = 0L; i < y_size; i++) {
                     spaces = 0;
                     bd.startspaces = 0;
                     bd.endspaces = 0;
@@ -55436,8 +53902,7 @@ public abstract class Editor {
                     ptr = ptr.add(bd.textcol);
                     Rt.memset(ptr, ' ', (long) bd.startspaces);
                     ptr = ptr.add(bd.startspaces);
-                    j = 0L;
-                    for (; j < count; j++) {
+                    for (j = 0L; j < count; j++) {
                         Rt.memmove(ptr, y_array.at((int) i).string[0], (long) yanklen);
                         ptr = ptr.add(yanklen);
                         if ((j < count - 1L || shortline == 0) && spaces > 0) {
@@ -55533,8 +53998,7 @@ public abstract class Editor {
                             newp = BytePtr.alloc((long) (totlen + oldlen + 1));
                             Rt.memmove(newp, oldp, (long) col[0]);
                             ptr = newp.add(col[0]);
-                            i = 0L;
-                            for (; i < count; i++) {
+                            for (i = 0L; i < count; i++) {
                                 Rt.memmove(ptr, y_array.at(0).string[0], (long) yanklen);
                                 ptr = ptr.add(yanklen);
                             }
@@ -55569,8 +54033,7 @@ public abstract class Editor {
                         orig_indent = get_indent();
                     }
                     L_error: {
-                        cnt = 1L;
-                        for (; cnt <= count; cnt++) {
+                        for (cnt = 1L; cnt <= count; cnt++) {
                             i = 0L;
                             if (y_type == MCHAR) {
                                 lnum = new_cursor.lnum[0];
@@ -55720,6 +54183,7 @@ public abstract class Editor {
     }
 
     void ex_display(S_exarg eap) {
+        boolean t1 = false;
         int i = 0;
         int n = 0;
         long j = 0;
@@ -55727,21 +54191,17 @@ public abstract class Editor {
         T_yankreg_T yb = null;
         int name = 0;
         int attr = 0;
-        BytePtr arg = null;
+        BytePtr arg = eap.arg[0];
         int clen = 0;
         int type = 0;
         T_string_T insert = new T_string_T();
-        boolean do_show = false;
-        boolean t1 = false;
-        arg = eap.arg[0];
         silence_w23_w24_msg++;
         if (arg != null && arg.get() == NUL) {
             arg = null;
         }
         attr = highlight_attr[HLF_8];
         msg_puts_title(gettext_(BytePtr.lit("\nType Name Content")));
-        i = -1;
-        for (; (i < NUM_REGISTERS) && got_int == 0; i++) {
+        for (i = -1; i < NUM_REGISTERS && got_int == 0; i++) {
             name = get_register_name(i);
             switch (get_reg_type(name, null) & 0xff) {
                 case MLINE:
@@ -55767,9 +54227,8 @@ public abstract class Editor {
                 yb = y_regs[i];
             }
             if (yb.y_array != null) {
-                do_show = false;
-                j = 0L;
-                for (; (!do_show) && j < yb.y_size; j++) {
+                boolean do_show = false;
+                for (j = 0L; !do_show && j < yb.y_size; j++) {
                     do_show = !message_filtered(yb.y_array.at((int) j).string[0]);
                 }
                 if (do_show || yb.y_size == 0L) {
@@ -55781,8 +54240,7 @@ public abstract class Editor {
                     msg_putchar(name);
                     msg_puts(BytePtr.lit("   "));
                     n = (int) Columns[0] - 11;
-                    j = 0L;
-                    for (; (j < yb.y_size) && n > 1; j++) {
+                    for (j = 0L; j < yb.y_size && n > 1; j++) {
                         if (j != 0) {
                             msg_puts_attr(BytePtr.lit("^J"), attr);
                             n -= 2;
@@ -55829,11 +54287,10 @@ public abstract class Editor {
     }
 
     void dis_msg(BytePtr p, boolean skip_esc) {
-        int n = 0;
-        int l = 0;
         boolean t1 = false;
         BytePtr t2 = null;
-        n = (int) Columns[0] - 6;
+        int l = 0;
+        int n = (int) Columns[0] - 6;
         while (true) {
             t1 = p.get() != NUL && !(p.get() == ESC && skip_esc && p.add(1).get() == NUL);
             if (t1) {
@@ -55885,10 +54342,8 @@ public abstract class Editor {
     }
 
     int get_win_attr(S_window_S wp) {
-        int win_attr = 0;
-        boolean override_success = false;
-        win_attr = wp.w_hlfwin_id;
-        override_success = push_highlight_overrides(wp.w_hl, wp.w_hl_len);
+        int win_attr = wp.w_hlfwin_id;
+        boolean override_success = push_highlight_overrides(wp.w_hl, wp.w_hl_len);
         if (win_attr != 0) {
             if (win_attr != -1) {
                 win_attr = syn_id2attr(win_attr);
@@ -55903,8 +54358,7 @@ public abstract class Editor {
     }
 
     int screen_fill_end(S_window_S wp, int c1, int c2, int off, int width, int row, int endrow, int attr) {
-        int nn = 0;
-        nn = off + width;
+        int nn = off + width;
         if (nn > wp.w_width) {
             nn = wp.w_width;
         }
@@ -55914,13 +54368,9 @@ public abstract class Editor {
 
     void win_draw_end(S_window_S wp, int c1, int c2, boolean draw_margin, int row, int endrow, int hl) {
         int n = 0;
-        int attr = 0;
-        int win_attr = 0;
-        boolean override_success = false;
-        n = 0;
-        attr = highlight_attr[hl];
-        win_attr = get_win_attr(wp);
-        override_success = push_highlight_overrides(wp.w_hl, wp.w_hl_len);
+        int attr = highlight_attr[hl];
+        int win_attr = get_win_attr(wp);
+        boolean override_success = push_highlight_overrides(wp.w_hl, wp.w_hl_len);
         attr = hl_combine_attr(win_attr, attr);
         if (draw_margin) {
             if ((wp.w_onebuf_opt.wo_nu[0] != 0 || wp.w_onebuf_opt.wo_rnu[0] != 0) && vim_strchr(p_cpo[0], CPO_NUMCOL) == null) {
@@ -55936,8 +54386,7 @@ public abstract class Editor {
 
     boolean comp_char_differs(int off_from, int off_to) {
         int i = 0;
-        i = 0;
-        for (; i < Screen_mco; i++) {
+        for (i = 0; i < Screen_mco; i++) {
             if (ScreenLinesC[i].at(off_from) != ScreenLinesC[i].at(off_to)) {
                 return true;
             }
@@ -55960,6 +54409,10 @@ public abstract class Editor {
     }
 
     void screen_line(S_window_S wp, int row, int coloff, int endcol, int clear_width, int last_vcol, int flags) {
+        int i = 0;
+        int t1 = 0;
+        int t2 = 0;
+        int t3 = 0;
         int off_from = 0;
         int off_to = 0;
         int max_off_from = 0;
@@ -55971,16 +54424,7 @@ public abstract class Editor {
         boolean redraw_next = false;
         boolean clear_next = false;
         int char_cells = 0;
-        boolean override_success = false;
-        int i = 0;
-        int t1 = 0;
-        int t2 = 0;
-        int t3 = 0;
-        int c = 0;
-        col = 0;
-        force = false;
-        clear_next = false;
-        override_success = push_highlight_overrides(wp.w_hl, wp.w_hl_len);
+        boolean override_success = push_highlight_overrides(wp.w_hl, wp.w_hl_len);
         if ((long) row >= Rows[0]) {
             row = (int) (Rows[0] - 1L);
         }
@@ -56021,8 +54465,7 @@ public abstract class Editor {
                 ScreenLines.set(off_to, ScreenLines.at(off_from));
                 ScreenLinesUC.set(off_to, ScreenLinesUC.at(off_from));
                 if (ScreenLinesUC.at(off_from) != 0) {
-                    i = 0;
-                    for (; i < Screen_mco; i++) {
+                    for (i = 0; i < Screen_mco; i++) {
                         ScreenLinesC[i].set(off_to, ScreenLinesC[i].at(off_from));
                     }
                 }
@@ -56094,7 +54537,7 @@ public abstract class Editor {
         }
         if (clear_width > 0) {
             if (coloff + col < curwin.w_wincol + topframe.fr_width) {
-                c = fillchar_vsep(new IntPtr(hl, 0), wp, row);
+                int c = fillchar_vsep(new IntPtr(hl, 0), wp, row);
                 if ((ScreenLines.at(off_to) & 0xff) != ((byte) c & 0xff) || ScreenLinesUC.at(off_to) != (c >= 128 ? c : 0) || (ScreenAttrs.at(off_to) & 0xffff) != hl[0]) {
                     ScreenLines.set(off_to, (byte) c);
                     ScreenAttrs.set(off_to, (short) hl[0]);
@@ -56117,44 +54560,36 @@ public abstract class Editor {
     }
 
     void draw_vsep_win(S_window_S wp, int row) {
-        int content_end = 0;
-        int start_row = 0;
-        int r = 0;
         int[] hl = new int[1];
-        int c = 0;
-        int[] hl_2 = new int[1];
-        int c_2 = 0;
-        int r_2 = 0;
         if (wp.w_vsep_width == 0) {
             return;
         }
-        content_end = wp.w_winrow + wp.w_height;
-        start_row = row == 0 ? wp.w_winrow : wp.w_winrow + row;
-        r = start_row;
-        for (; r < content_end; r++) {
-            c = fillchar_vsep(new IntPtr(hl, 0), wp, r);
+        int content_end = wp.w_winrow + wp.w_height;
+        int start_row = row == 0 ? wp.w_winrow : wp.w_winrow + row;
+        for (int r = start_row; r < content_end; r++) {
+            int c = fillchar_vsep(new IntPtr(hl, 0), wp, r);
             screen_fill(r, r + 1, wp.w_wincol + wp.w_width, wp.w_wincol + wp.w_width + 1, c, ' ', hl[0]);
         }
         if (wp.w_status_height != 0) {
-            c_2 = fillchar_vsep(new IntPtr(hl_2, 0), wp, content_end);
-            r_2 = content_end;
-            for (; r_2 < content_end + wp.w_status_height; r_2++) {
+            int[] hl_2 = new int[1];
+            int c_2 = fillchar_vsep(new IntPtr(hl_2, 0), wp, content_end);
+            for (int r_2 = content_end; r_2 < content_end + wp.w_status_height; r_2++) {
                 screen_fill(r_2, r_2 + 1, wp.w_wincol + wp.w_width, wp.w_wincol + wp.w_width + 1, c_2, ' ', hl_2[0]);
             }
         }
     }
 
     void screen_putchar(int c, int row, int col, int attr) {
-        byte[] buf = new byte[22];
         int t1 = 0;
+        byte[] buf = new byte[22];
         t1 = utf_char2bytes(c, new BytePtr(buf, 0));
         buf[t1] = (byte) NUL;
         screen_puts(new BytePtr(buf, 0), row, col, attr);
     }
 
     void screen_getbytes(int row, int col, BytePtr bytes, IntPtr attrp) {
-        int off = 0;
         int t1 = 0;
+        int off = 0;
         if (ScreenLines == null || row >= screen_Rows || col >= screen_Columns) {
             return;
         }
@@ -56172,8 +54607,7 @@ public abstract class Editor {
 
     boolean screen_comp_differs(int off, IntPtr u8cc) {
         int i = 0;
-        i = 0;
-        for (; i < Screen_mco; i++) {
+        for (i = 0; i < Screen_mco; i++) {
             if (ScreenLinesC[i].at(off) != u8cc.at(i)) {
                 return true;
             }
@@ -56189,33 +54623,21 @@ public abstract class Editor {
     }
 
     void screen_puts_len(BytePtr text, int textlen, int row, int col, int attr_arg) {
-        int attr = 0;
+        int i = 0;
+        int attr = attr_arg;
         int off = 0;
-        BytePtr ptr = null;
-        int len = 0;
+        BytePtr ptr = text;
+        int len = textlen;
         int c = 0;
         int max_off = 0;
-        int mbyte_blen = 0;
-        int mbyte_cells = 0;
+        int mbyte_blen = 1;
+        int mbyte_cells = 1;
         int u8c = 0;
         int[] u8cc = new int[6];
         boolean clear_next_cell = false;
         boolean force_redraw_this = false;
         boolean force_redraw_next = false;
         boolean need_redraw = false;
-        int cell_attr = 0;
-        int soff = 0;
-        int n = 0;
-        int i = 0;
-        int ci = 0;
-        attr = attr_arg;
-        ptr = text;
-        len = textlen;
-        mbyte_blen = 1;
-        mbyte_cells = 1;
-        u8c = 0;
-        clear_next_cell = false;
-        force_redraw_next = false;
         if (ScreenLines == null || row >= screen_Rows || row < 0 || col >= screen_Columns || col < 0) {
             return;
         }
@@ -56239,15 +54661,15 @@ public abstract class Editor {
             }
             force_redraw_this = force_redraw_next;
             force_redraw_next = false;
-            cell_attr = attr;
+            int cell_attr = attr;
             if (screen_pum_blend > 0 && pum_bg_attrs != null && row >= pum_bg_top && row < pum_bg_bot && col < pum_bg_cols) {
-                soff = (row - pum_bg_top) * pum_bg_cols + col;
+                int soff = (row - pum_bg_top) * pum_bg_cols + col;
                 cell_attr = hl_blend_attr(pum_bg_attrs.at(soff) & 0xffff, attr, screen_pum_blend, false);
             }
             need_redraw = (ScreenLines.at(off) & 0xff) != c || (mbyte_cells == 2 && ScreenLines.at(off + 1) != 0) || false || (ScreenLinesUC.at(off) != (c < 128 && u8cc[0] == 0 ? 0 : u8c) || (ScreenLinesUC.at(off) != 0 && screen_comp_differs(off, new IntPtr(u8cc, 0)))) || (ScreenAttrs.at(off) & 0xffff) != cell_attr;
             if (need_redraw || force_redraw_this) {
                 if (need_redraw && ScreenLines.at(off) != ' ' && term_is_xterm != 0) {
-                    n = ScreenAttrs.at(off) & 0xffff;
+                    int n = ScreenAttrs.at(off) & 0xffff;
                     if (n > HL_ALL) {
                         n = syn_attr2attr(n);
                     }
@@ -56267,8 +54689,7 @@ public abstract class Editor {
                     ScreenLinesUC.set(off, 0);
                 } else {
                     ScreenLinesUC.set(off, u8c);
-                    i = 0;
-                    for (; i < Screen_mco; i++) {
+                    for (i = 0; i < Screen_mco; i++) {
                         ScreenLinesC[i].set(off, u8cc[i]);
                         if (u8cc[i] == 0) {
                             break;
@@ -56278,8 +54699,7 @@ public abstract class Editor {
                 if (mbyte_cells == 2) {
                     ScreenLines.set(off + 1, (byte) 0);
                     ScreenLinesUC.set(off + 1, 0);
-                    ci = 0;
-                    for (; ci < Screen_mco; ci++) {
+                    for (int ci = 0; ci < Screen_mco; ci++) {
                         ScreenLinesC[ci].set(off + 1, 0);
                     }
                     ScreenAttrs.set(off + 1, (short) cell_attr);
@@ -56319,7 +54739,6 @@ public abstract class Editor {
 
     void screen_start_highlight(int attr) {
         S_attr_entry aep = null;
-        aep = null;
         screen_attr = attr;
         if (full_screen == 0) {
             return;
@@ -56397,11 +54816,10 @@ public abstract class Editor {
 
     void screen_stop_highlight() {
         boolean do_ME = false;
-        int is_under = 0;
-        S_attr_entry aep = null;
-        do_ME = false;
         if (screen_attr != 0) {
+            int is_under = 0;
             if (screen_attr > HL_ALL) {
+                S_attr_entry aep = null;
                 if (t_colors > 1) {
                     aep = syn_cterm_attr2entry(screen_attr);
                     if (aep != null && (aep.ae_u.cterm.fg_color != 0 || aep.ae_u.cterm.bg_color != 0)) {
@@ -56495,9 +54913,8 @@ public abstract class Editor {
     }
 
     void screen_char(int off, int row, int col) {
-        int attr = 0;
-        byte[] buf = new byte[22];
         int t1 = 0;
+        int attr = 0;
         if (row >= screen_Rows || col >= screen_Columns) {
             return;
         }
@@ -56519,6 +54936,7 @@ public abstract class Editor {
             screen_start_highlight(attr);
         }
         if (ScreenLinesUC.at(off) != 0) {
+            byte[] buf = new byte[22];
             if (utf_ambiguous_width(ScreenLinesUC.at(off))) {
                 if (p_ambw[0].get() == 'd') {
                     out_str(BytePtr.lit("  "));
@@ -56548,12 +54966,10 @@ public abstract class Editor {
         if (invert) {
             screen_char_attr = HL_INVERSE;
         }
-        r = row;
-        for (; r < row + height; r++) {
+        for (r = row; r < row + height; r++) {
             off = LineOffset.at(r);
             max_off = off + screen_Columns;
-            c = col;
-            for (; c < col + width; c++) {
+            for (c = col; c < col + width; c++) {
                 screen_char(off + c, r, c);
                 if (utf_off2cells(off + c, max_off) > 1) {
                     c++;
@@ -56584,6 +55000,8 @@ public abstract class Editor {
     }
 
     void screen_fill(int start_row, int end_row, int start_col, int end_col, int c1, int c2, int attr) {
+        int t1 = 0;
+        int k = 0;
         int row = 0;
         int col = 0;
         int off = 0;
@@ -56592,13 +55010,6 @@ public abstract class Editor {
         int c = 0;
         boolean norm_term = false;
         boolean force_next = false;
-        int left_attr = 0;
-        int right_attr = 0;
-        int t1 = 0;
-        int soff = 0;
-        int underlying_attr = 0;
-        int k = 0;
-        force_next = false;
         if (end_row > screen_Rows) {
             end_row = screen_Rows;
         }
@@ -56609,14 +55020,13 @@ public abstract class Editor {
             return;
         }
         norm_term = !(t_colors > 1);
-        row = start_row;
-        for (; row < end_row; row++) {
+        for (row = start_row; row < end_row; row++) {
             if (start_col > 0 && mb_fix_col(start_col, row) != start_col) {
-                left_attr = ScreenAttrs.at(LineOffset.at(row) + start_col - 1) & 0xffff;
+                int left_attr = ScreenAttrs.at(LineOffset.at(row) + start_col - 1) & 0xffff;
                 screen_puts_len(BytePtr.lit(" "), 1, row, start_col - 1, left_attr);
             }
             if (end_col < screen_Columns && mb_fix_col(end_col, row) != end_col) {
-                right_attr = ScreenAttrs.at(LineOffset.at(row) + end_col) & 0xffff;
+                int right_attr = ScreenAttrs.at(LineOffset.at(row) + end_col) & 0xffff;
                 screen_puts_len(BytePtr.lit(" "), 1, row, end_col, right_attr);
             }
             did_delete = false;
@@ -56651,12 +55061,11 @@ public abstract class Editor {
             }
             off = LineOffset.at(row) + start_col;
             c = c1;
-            col = start_col;
-            for (; col < end_col; col++) {
+            for (col = start_col; col < end_col; col++) {
                 do {
                     if ((ScreenLines.at(off) & 0xff) != c || ScreenLinesUC.at(off) != (c >= 128 ? c : 0) || (ScreenAttrs.at(off) & 0xffff) != attr || must_redraw == UPD_CLEAR || force_next) {
                         if (screen_pum_blend > 0 && c == ' ' && pum_bg_attrs != null && row >= pum_bg_top && row < pum_bg_bot && col < pum_bg_cols) {
-                            soff = (row - pum_bg_top) * pum_bg_cols + col;
+                            int soff = (row - pum_bg_top) * pum_bg_cols + col;
                             if (pum_bg_linesUC != null && col > start_col && pum_bg_linesUC.at(soff) == 0 && pum_bg_linesUC.at(soff - 1) != 0 && utf_char2cells(pum_bg_linesUC.at(soff - 1)) == 2) {
                                 ScreenLines.set(off, (byte) 0);
                                 if (ScreenLinesUC != null) {
@@ -56665,7 +55074,7 @@ public abstract class Editor {
                                 ScreenAttrs.set(off, ScreenAttrs.at(off - 1));
                                 break;
                             }
-                            underlying_attr = pum_bg_attrs.at(soff) & 0xffff;
+                            int underlying_attr = pum_bg_attrs.at(soff) & 0xffff;
                             if (pum_bg_linesUC != null && ((pum_bg_linesUC.at(soff) != 0 && utf_char2cells(pum_bg_linesUC.at(soff)) == 2 && col + 1 >= end_col) || (col == start_col && pum_bg_linesUC.at(soff) == 0 && col > 0 && pum_bg_linesUC.at(soff - 1) != 0 && utf_char2cells(pum_bg_linesUC.at(soff - 1)) == 2))) {
                                 ScreenLines.set(off, (byte) ' ');
                                 if (ScreenLinesUC != null) {
@@ -56678,8 +55087,7 @@ public abstract class Editor {
                             ScreenLines.set(off, pum_bg_lines.at(soff));
                             if (pum_bg_linesUC != null && ScreenLinesUC != null) {
                                 ScreenLinesUC.set(off, pum_bg_linesUC.at(soff));
-                                k = 0;
-                                for (; k < MAX_MCO; k++) {
+                                for (k = 0; k < MAX_MCO; k++) {
                                     if (pum_bg_linesC[k] != null && ScreenLinesC[k] != null) {
                                         ScreenLinesC[k].set(off, pum_bg_linesC[k].at(soff));
                                     }
@@ -56747,8 +55155,7 @@ public abstract class Editor {
 
     void clear_TabPageIdxs() {
         int scol = 0;
-        scol = 0;
-        for (; ((long) scol) < Columns[0]; scol++) {
+        for (scol = 0; (long) scol < Columns[0]; scol++) {
             TabPageIdxs.set(scol, (short) 0);
         }
     }
@@ -56759,6 +55166,7 @@ public abstract class Editor {
     }
 
     void screenalloc(boolean doclear) {
+        boolean t1 = false;
         int new_row = 0;
         int old_row = 0;
         S_window_S wp = null;
@@ -56775,17 +55183,6 @@ public abstract class Editor {
         ShortPtr new_TabPageIdxs = null;
         int retry_count = 0;
         boolean found_null = false;
-        boolean t1 = false;
-        int i = 0;
-        int i_2 = 0;
-        int i_3 = 0;
-        int i_4 = 0;
-        int i_5 = 0;
-        int i_6 = 0;
-        outofmem = false;
-        new_ScreenLinesUC = null;
-        new_ScreenLines2 = null;
-        retry_count = 0;
         do {
             if ((ScreenLines != null && Rows[0] == (long) screen_Rows && Columns[0] == (long) screen_Columns && ScreenLinesUC != null && !(ScreenLines2 != null) && p_mco[0] == (long) Screen_mco) || Rows[0] == 0L || Columns[0] == 0L || (full_screen == 0 && ScreenLines == null)) {
                 return;
@@ -56802,8 +55199,7 @@ public abstract class Editor {
             new_ScreenLines = BytePtr.alloc((int) (1L * ((Rows[0] + 1L) * Columns[0])));
             Rt.zero(new Ptr<IntPtr>(new_ScreenLinesC, 0), 6);
             new_ScreenLinesUC = IntPtr.alloc((int) ((Rows[0] + 1L) * Columns[0]));
-            i = 0;
-            for (; ((long) i) < p_mco[0]; i++) {
+            for (int i = 0; (long) i < p_mco[0]; i++) {
                 new_ScreenLinesC[i] = IntPtr.alloc((int) ((Rows[0] + 1L) * Columns[0]));
             }
             new_ScreenAttrs = ShortPtr.alloc((int) ((Rows[0] + 1L) * Columns[0]));
@@ -56816,8 +55212,7 @@ public abstract class Editor {
                 outofmem = true;
             }
             found_null = false;
-            i_2 = 0;
-            for (; ((long) i_2) < p_mco[0]; i_2++) {
+            for (int i_2 = 0; (long) i_2 < p_mco[0]; i_2++) {
                 if (new_ScreenLinesC[i_2] == null) {
                     found_null = true;
                     break;
@@ -56830,8 +55225,7 @@ public abstract class Editor {
                 }
                 new_ScreenLines = null;
                 new_ScreenLinesUC = null;
-                i_3 = 0;
-                for (; ((long) i_3) < p_mco[0]; i_3++) {
+                for (int i_3 = 0; (long) i_3 < p_mco[0]; i_3++) {
                     new_ScreenLinesC[i_3] = null;
                 }
                 new_ScreenLines2 = null;
@@ -56842,14 +55236,12 @@ public abstract class Editor {
                 new_TabPageIdxs = null;
             } else {
                 screenalloc_done_outofmem_msg = false;
-                new_row = 0;
-                for (; ((long) new_row) < Rows[0]; new_row++) {
+                for (new_row = 0; (long) new_row < Rows[0]; new_row++) {
                     new_LineOffset.set(new_row, (int) ((long) new_row * Columns[0]));
                     new_LineWraps.set(new_row, (byte) FALSE);
                     Rt.memset(new_ScreenLines.add((int) ((long) new_row * Columns[0])), ' ', Columns[0] * 1L);
                     Rt.fill(new_ScreenLinesUC.add((int) ((long) new_row * Columns[0])), 0, (int) Columns[0]);
-                    i_4 = 0;
-                    for (; ((long) i_4) < p_mco[0]; i_4++) {
+                    for (int i_4 = 0; (long) i_4 < p_mco[0]; i_4++) {
                         Rt.fill(new_ScreenLinesC[i_4].add((int) ((long) new_row * Columns[0])), 0, (int) Columns[0]);
                     }
                     Rt.fill(new_ScreenAttrs.add((int) ((long) new_row * Columns[0])), (short) 0, (int) Columns[0]);
@@ -56867,8 +55259,7 @@ public abstract class Editor {
                             }
                             if (ScreenLinesUC != null && p_mco[0] == (long) Screen_mco) {
                                 Rt.memmove(new_ScreenLinesUC.add(new_LineOffset.at(new_row)), ScreenLinesUC.add(LineOffset.at(old_row)), (int) (long) len);
-                                i_5 = 0;
-                                for (; ((long) i_5) < p_mco[0]; i_5++) {
+                                for (int i_5 = 0; (long) i_5 < p_mco[0]; i_5++) {
                                     Rt.memmove(new_ScreenLinesC[i_5].add(new_LineOffset.at(new_row)), ScreenLinesC[i_5].add(LineOffset.at(old_row)), (int) (long) len);
                                 }
                             }
@@ -56882,8 +55273,7 @@ public abstract class Editor {
             free_screenlines();
             ScreenLines = new_ScreenLines;
             ScreenLinesUC = new_ScreenLinesUC;
-            i_6 = 0;
-            for (; ((long) i_6) < p_mco[0]; i_6++) {
+            for (int i_6 = 0; (long) i_6 < p_mco[0]; i_6++) {
                 ScreenLinesC[i_6] = new_ScreenLinesC[i_6];
             }
             Screen_mco = (int) p_mco[0];
@@ -56915,8 +55305,7 @@ public abstract class Editor {
     void free_screenlines() {
         int i = 0;
         ScreenLinesUC = null;
-        i = 0;
-        for (; i < Screen_mco; i++) {
+        for (i = 0; i < Screen_mco; i++) {
             ScreenLinesC[i] = null;
         }
         ScreenLines2 = null;
@@ -56941,14 +55330,12 @@ public abstract class Editor {
     boolean screenclear2(boolean doclear) {
         int i = 0;
         boolean did_clear = false;
-        did_clear = false;
         if (starting == NO_SCREEN || ScreenLines == null) {
             return false;
         }
         screen_attr = -1;
         screen_stop_highlight();
-        i = 0;
-        for (; ((long) i) < Rows[0]; i++) {
+        for (i = 0; (long) i < Rows[0]; i++) {
             lineclear(LineOffset.at(i), (int) Columns[0], 0);
             LineWraps.set(i, (byte) FALSE);
         }
@@ -56958,8 +55345,7 @@ public abstract class Editor {
             clear_cmdline = FALSE;
             mode_displayed = FALSE;
         } else {
-            i = 0;
-            for (; ((long) i) < Rows[0]; i++) {
+            for (i = 0; (long) i < Rows[0]; i++) {
                 lineinvalid(LineOffset.at(i), (int) Columns[0]);
             }
             clear_cmdline = TRUE;
@@ -56994,15 +55380,12 @@ public abstract class Editor {
     }
 
     void linecopy(int to_, int from, S_window_S wp) {
-        int off_to = 0;
-        int off_from = 0;
-        int i = 0;
-        off_to = LineOffset.at(to_) + wp.w_wincol;
-        off_from = LineOffset.at(from) + wp.w_wincol;
+        int off_to = LineOffset.at(to_) + wp.w_wincol;
+        int off_from = LineOffset.at(from) + wp.w_wincol;
         Rt.memmove(ScreenLines.add(off_to), ScreenLines.add(off_from), (long) wp.w_width * 1L);
+        int i = 0;
         Rt.memmove(ScreenLinesUC.add(off_to), ScreenLinesUC.add(off_from), wp.w_width);
-        i = 0;
-        for (; ((long) i) < p_mco[0]; i++) {
+        for (i = 0; (long) i < p_mco[0]; i++) {
             Rt.memmove(ScreenLinesC[i].add(off_to), ScreenLinesC[i].add(off_from), wp.w_width);
         }
         Rt.memmove(ScreenAttrs.add(off_to), ScreenAttrs.add(off_from), wp.w_width);
@@ -57019,6 +55402,12 @@ public abstract class Editor {
     }
 
     void windgoto(int row, int col) {
+        ShortPtr t1 = null;
+        boolean t2 = false;
+        ShortPtr t3 = null;
+        boolean t4 = false;
+        int t5 = 0;
+        int t6 = 0;
         ShortPtr p = null;
         int i = 0;
         int plan = 0;
@@ -57028,13 +55417,6 @@ public abstract class Editor {
         BytePtr bs = null;
         int goto_cost = 0;
         int attr = 0;
-        ShortPtr t1 = null;
-        boolean t2 = false;
-        ShortPtr t3 = null;
-        boolean t4 = false;
-        int t5 = 0;
-        int off = 0;
-        int t6 = 0;
         if (ScreenLines == null) {
             return;
         }
@@ -57134,8 +55516,7 @@ public abstract class Editor {
                         cost = 999;
                     }
                 }
-                i = wouldbe_col;
-                for (; i < col; i++) {
+                for (i = wouldbe_col; i < col; i++) {
                     if (ScreenLinesUC.at(LineOffset.at(row) + i) != 0) {
                         cost = 999;
                         break;
@@ -57179,7 +55560,7 @@ public abstract class Editor {
                             out_char(term_strings[KS_ND].get() & 0xff);
                         }
                     } else {
-                        off = LineOffset.at(row) + screen_cur_col;
+                        int off = LineOffset.at(row) + screen_cur_col;
                         while (true) {
                             t6 = i;
                             i--;
@@ -57343,9 +55724,7 @@ public abstract class Editor {
         int cursor_col = 0;
         int type = 0;
         boolean result_empty = false;
-        boolean can_ce = false;
-        cursor_col = 0;
-        can_ce = can_clear(term_strings[KS_CE]);
+        boolean can_ce = can_clear(term_strings[KS_CE]);
         if (!screen_valid(true) || line_count <= 0 || (long) line_count > p_ttyscroll[0] || (long) end > Rows[0]) {
             return false;
         }
@@ -57388,8 +55767,7 @@ public abstract class Editor {
         }
         row += off;
         end += off;
-        i = 0;
-        for (; i < line_count; i++) {
+        for (i = 0; i < line_count; i++) {
             if (wp != null && wp.w_width != topframe.fr_width) {
                 j = end - 1 - i;
                 while (true) {
@@ -57437,8 +55815,7 @@ public abstract class Editor {
             term_append_lines(line_count);
             screen_start();
         } else {
-            i = 0;
-            for (; i < line_count; i++) {
+            for (i = 0; i < line_count; i++) {
                 if (type == USE_T_AL) {
                     if (i != 0 && cursor_row != 0) {
                         windgoto(cursor_row, cursor_col);
@@ -57451,8 +55828,7 @@ public abstract class Editor {
             }
         }
         if (type == USE_T_SR && term_strings[KS_DA].get() != 0) {
-            i = 0;
-            for (; i < line_count; i++) {
+            for (i = 0; i < line_count; i++) {
                 windgoto(off + i, cursor_col);
                 out_str(term_strings[KS_CE]);
                 screen_start();
@@ -57471,7 +55847,6 @@ public abstract class Editor {
         boolean result_empty = false;
         boolean can_delete = false;
         int type = 0;
-        cursor_col = 0;
         if (!screen_valid(true) || line_count <= 0 || (!force && (long) line_count > p_ttyscroll[0]) || (long) end > Rows[0]) {
             return false;
         }
@@ -57509,8 +55884,7 @@ public abstract class Editor {
         }
         row += off;
         end += off;
-        i = 0;
-        for (; i < line_count; i++) {
+        for (i = 0; i < line_count; i++) {
             if (wp != null && wp.w_width != topframe.fr_width) {
                 j = row + i;
                 while (true) {
@@ -57591,8 +55965,7 @@ public abstract class Editor {
             }
         }
         if (term_strings[KS_DB].get() != 0 && (type == USE_T_DL || type == USE_T_CDL)) {
-            i = line_count;
-            for (; i > 0; i--) {
+            for (i = line_count; i > 0; i--) {
                 windgoto(cursor_end - i, cursor_col);
                 out_str(term_strings[KS_CE]);
                 screen_start();
@@ -57612,15 +55985,11 @@ public abstract class Editor {
     int showmode() {
         int need_clear = 0;
         int length = 0;
-        boolean do_mode = false;
         int attr = 0;
         int nwr_save = 0;
         int sub_attr = 0;
         boolean show_ruler_with_pum = false;
-        BytePtr p = null;
-        length = 0;
-        show_ruler_with_pum = false;
-        do_mode = p_smd[0] != 0 && msg_silent == 0 && ((State & MODE_INSERT) != 0 || restart_edit != NUL || VIsual_active != 0);
+        boolean do_mode = p_smd[0] != 0 && msg_silent == 0 && ((State & MODE_INSERT) != 0 || restart_edit != NUL || VIsual_active != 0);
         if (do_mode || reg_recording != 0) {
             if (skip_showmode()) {
                 return 0;
@@ -57679,6 +56048,7 @@ public abstract class Editor {
                         msg_puts_attr(gettext_(BytePtr.lit(" (paste)")), attr);
                     }
                     if (VIsual_active != 0) {
+                        BytePtr p = null;
                         switch ((VIsual_select != 0 ? 4 : 0) + (VIsual_mode == Ctrl_V ? 1 : 0) * 2 + (VIsual_mode == 'V' ? 1 : 0)) {
                             case 0:
                                 p = BytePtr.lit(" VISUAL");
@@ -57750,10 +56120,8 @@ public abstract class Editor {
     }
 
     void clearmode() {
-        int save_msg_row = 0;
-        int save_msg_col = 0;
-        save_msg_row = msg_row;
-        save_msg_col = msg_col;
+        int save_msg_row = msg_row;
+        int save_msg_col = msg_col;
         msg_pos_mode();
         if (reg_recording != 0) {
             recording_mode(highlight_attr[HLF_CM]);
@@ -57764,11 +56132,11 @@ public abstract class Editor {
     }
 
     void recording_mode(int attr) {
-        byte[] s = new byte[4];
         msg_puts_attr(gettext_(BytePtr.lit("recording")), attr);
         if (shortmess(SHM_RECORDING)) {
             return;
         }
+        byte[] s = new byte[4];
         vim_snprintf(new BytePtr(s, 0), 4L, BytePtr.lit(" @%c"), reg_recording);
         msg_puts_attr(new BytePtr(s, 0), attr);
     }
@@ -57784,8 +56152,7 @@ public abstract class Editor {
 
     int fillchar_status(IntPtr attr, S_window_S wp) {
         int fill = 0;
-        boolean override_success = false;
-        override_success = push_highlight_overrides(wp.w_hl, wp.w_hl_len);
+        boolean override_success = push_highlight_overrides(wp.w_hl, wp.w_hl_len);
         if (wp == curwin) {
             attr.put(highlight_attr[HLF_S]);
             fill = wp.w_fill_chars.stl[0];
@@ -57810,8 +56177,7 @@ public abstract class Editor {
     }
 
     int fillchar_vsep(IntPtr attr, S_window_S wp, int row) {
-        boolean override_success = false;
-        override_success = push_highlight_overrides(wp.w_hl, wp.w_hl_len);
+        boolean override_success = push_highlight_overrides(wp.w_hl, wp.w_hl_len);
         if (vsep_row_is_curwin(wp, row)) {
             attr.put(highlight_attr[HLF_C]);
         } else {
@@ -57840,8 +56206,7 @@ public abstract class Editor {
     }
 
     void comp_col() {
-        boolean last_has_status = false;
-        last_has_status = last_stl_height(false) > 0;
+        boolean last_has_status = last_stl_height(false) > 0;
         sc_col = 0;
         ru_col = 0;
         if (p_ru[0] != 0) {
@@ -57867,15 +56232,12 @@ public abstract class Editor {
     }
 
     int get_encoded_char_adv(Ptr<BytePtr> p) {
-        BytePtr s = null;
-        long num = 0;
-        int bytes = 0;
-        int n = 0;
-        s = p.get();
+        BytePtr s = p.get();
         if (s.at(0) == '\\' && (s.at(1) == 'x' || s.at(1) == 'u' || s.at(1) == 'U')) {
-            num = 0L;
-            bytes = s.at(1) == 'x' ? 1 : (s.at(1) == 'u' ? 2 : 4);
-            for (; bytes > 0; bytes--) {
+            long num = 0L;
+            int bytes = 0;
+            int n = 0;
+            for (bytes = s.at(1) == 'x' ? 1 : (s.at(1) == 'u' ? 2 : 4); bytes > 0; bytes--) {
                 p.put(p.get().add(2));
                 n = hexhex2nr(p.get());
                 if (n < 0) {
@@ -57898,6 +56260,8 @@ public abstract class Editor {
     }
 
     BytePtr set_chars_option(S_window_S wp, BytePtr value, boolean is_listchars, boolean apply, BytePtr errbuf, long errbuflen) {
+        int t1 = 0;
+        int t2 = 0;
         int round = 0;
         int i = 0;
         int entries = 0;
@@ -57911,19 +56275,6 @@ public abstract class Editor {
         int multispace_len = 0;
         int lead_multispace_len = 0;
         Ptr<S_charstab> tab = null;
-        boolean has_tab = false;
-        boolean has_leadtab = false;
-        int multispace_pos = 0;
-        int t1 = 0;
-        int multispace_pos_2 = 0;
-        int t2 = 0;
-        c1 = 0;
-        c2 = 0;
-        c3 = 0;
-        last_multispace = null;
-        last_lmultispace = null;
-        multispace_len = 0;
-        lead_multispace_len = 0;
         if (is_listchars) {
             tab = new Ptr<S_charstab>(lcstab, 0);
             lcs_chars.zero();
@@ -57938,14 +56289,12 @@ public abstract class Editor {
                 value = p_fcs[0];
             }
         }
-        round = 0;
-        for (; round <= (apply ? 1 : 0); round++) {
-            has_tab = false;
-            has_leadtab = false;
+        for (round = 0; round <= (apply ? 1 : 0); round++) {
+            boolean has_tab = false;
+            boolean has_leadtab = false;
             if (round > 0) {
                 if (is_listchars) {
-                    i = 0;
-                    for (; i < entries; i++) {
+                    for (i = 0; i < entries; i++) {
                         if (tab.at(i).cp != null) {
                             tab.at(i).cp.put(NUL);
                         }
@@ -57984,8 +56333,7 @@ public abstract class Editor {
             }
             p = value;
             while (p.get() != 0) {
-                i = 0;
-                for (; i < entries; i++) {
+                for (i = 0; i < entries; i++) {
                     if (!(musl_strncmp(p, tab.at(i).name.string[0], tab.at(i).name.length) == 0 && p.at((int) tab.at(i).name.length) == ':')) {
                         continue;
                     }
@@ -58005,7 +56353,7 @@ public abstract class Editor {
                                 return field_value_err(errbuf, errbuflen, new BytePtr(e_wrong_number_of_characters_for_field_str, 0), tab.at(i).name.string[0]);
                             }
                         } else {
-                            multispace_pos = 0;
+                            int multispace_pos = 0;
                             while (s[0].get() != NUL && s[0].get() != ',') {
                                 c1 = get_encoded_char_adv(new Ptr<BytePtr>(s, 0));
                                 if (BytePtr.eq(p, last_multispace) && lcs_chars.multispace != null) {
@@ -58033,7 +56381,7 @@ public abstract class Editor {
                                 return field_value_err(errbuf, errbuflen, new BytePtr(e_wrong_number_of_characters_for_field_str, 0), tab.at(i).name.string[0]);
                             }
                         } else {
-                            multispace_pos_2 = 0;
+                            int multispace_pos_2 = 0;
                             while (s[0].get() != NUL && s[0].get() != ',') {
                                 c1 = get_encoded_char_adv(new Ptr<BytePtr>(s, 0));
                                 if (BytePtr.eq(p, last_lmultispace) && lcs_chars.leadmultispace != null) {
@@ -58176,8 +56524,7 @@ public abstract class Editor {
     }
 
     BytePtr estack_sfile(int which) {
-        T_estack_T entry = null;
-        entry = GA_Ptr_T_estack_T(exestack).add(exestack.ga_len).at(-1);
+        T_estack_T entry = GA_Ptr_T_estack_T(exestack).add(exestack.ga_len).at(-1);
         if (entry.es_name == null) {
             return null;
         }
@@ -58186,10 +56533,10 @@ public abstract class Editor {
 
     boolean search_regcomp(BytePtr pat, long patlen, Ptr<BytePtr> used_pat, int pat_save, int pat_use, int options, T_regmmatch_T regmatch) {
         int magic = 0;
-        int i = 0;
         rc_did_emsg = FALSE;
         magic = magic_isset();
         if (pat == null || pat.get() == NUL) {
+            int i = 0;
             if (pat_use == RE_LAST) {
                 i = last_idx;
             } else {
@@ -58286,8 +56633,7 @@ public abstract class Editor {
     }
 
     int ignorecase_opt(BytePtr pat, int ic_in, int scs) {
-        int ic = 0;
-        ic = ic_in;
+        int ic = ic_in;
         if (ic != 0 && no_smartcase == 0 && scs != 0) {
             ic = !pat_has_uppercase(pat) ? 1 : 0;
         }
@@ -58296,10 +56642,9 @@ public abstract class Editor {
     }
 
     boolean pat_has_uppercase(BytePtr pat) {
-        BytePtr p = null;
-        int[] magic_val = new int[1];
         int l = 0;
-        p = pat;
+        BytePtr p = pat;
+        int[] magic_val = new int[1];
         magic_val[0] = MAGIC_ON;
         skip_regexp_ex(pat, NUL, magic_isset(), null, null, new IntPtr(magic_val, 0));
         while (p.get() != NUL) {
@@ -58357,6 +56702,8 @@ public abstract class Editor {
     }
 
     int searchit(S_window_S win, S_file_buffer buf, T_pos_T pos, T_pos_T end_pos, int dir, BytePtr pat, long patlen, long count, int options, int pat_use, T_searchit_arg_T extra_arg) {
+        boolean t1 = false;
+        boolean t2 = false;
         int found = 0;
         long lnum = 0;
         int col = 0;
@@ -58373,22 +56720,14 @@ public abstract class Editor {
         boolean match_ok = false;
         long nmatched = 0;
         int submatch = 0;
-        boolean first_match = false;
-        int called_emsg_before = 0;
+        boolean first_match = true;
+        int called_emsg_before = called_emsg;
         boolean break_loop = false;
-        long stop_lnum = 0;
+        long stop_lnum = 0L;
         int[] unused_timeout_flag = new int[1];
-        IntPtr timed_out = null;
-        boolean search_from_match_end = false;
-        boolean t1 = false;
-        boolean t2 = false;
-        submatch = 0;
-        first_match = true;
-        called_emsg_before = called_emsg;
-        break_loop = false;
-        stop_lnum = 0L;
         unused_timeout_flag[0] = FALSE;
-        timed_out = new IntPtr(unused_timeout_flag, 0);
+        IntPtr timed_out = new IntPtr(unused_timeout_flag, 0);
+        boolean search_from_match_end = false;
         if (!search_regcomp(pat, patlen, null, RE_SEARCH, pat_use, options & (SEARCH_HIS + SEARCH_KEEP), regmatch)) {
             if ((options & SEARCH_MSG) != 0 && rc_did_emsg == 0) {
                 vim_snprintf(IObuff, emsg_iobuff_room(), gettext_(new BytePtr(e_invalid_search_string_str, 0)), mr_pattern);
@@ -58440,9 +56779,8 @@ public abstract class Editor {
             } else {
                 lnum = pos.lnum[0];
             }
-            loop = 0;
-            for (; loop <= 1; loop++) {
-                for (; (lnum > 0L) && lnum <= buf.b_ml.ml_line_count; lnum += (long) dir, at_first_line = false) {
+            for (loop = 0; loop <= 1; loop++) {
+                for (; lnum > 0L && lnum <= buf.b_ml.ml_line_count; lnum += (long) dir, at_first_line = false) {
                     if (stop_lnum != 0L && (dir == FORWARD ? lnum > stop_lnum : lnum < stop_lnum)) {
                         break;
                     }
@@ -58655,12 +56993,10 @@ public abstract class Editor {
     }
 
     int parse_search_pattern_offset(Ptr<BytePtr> pat, LongPtr patlen, int search_delim, int options, Ptr<BytePtr> strcopy, Ptr<BytePtr> searchstr, LongPtr searchstrlen, Ptr<BytePtr> dircp, S_soffset offset) {
+        BytePtr t1 = null;
         int cmdlen = 0;
         BytePtr p = null;
         BytePtr ps = null;
-        long len = 0;
-        BytePtr t1 = null;
-        cmdlen = 0;
         if (pat.get() == null || pat.get().get() == NUL) {
             return 0;
         }
@@ -58670,7 +57006,7 @@ public abstract class Editor {
         dircp.put(null);
         p = skip_regexp_ex(pat.get(), search_delim, magic_isset(), strcopy, null, null);
         if (!BytePtr.eq(strcopy.get(), ps)) {
-            len = musl_strlen(strcopy.get());
+            long len = musl_strlen(strcopy.get());
             cmdlen += (int) (patlen.get() - len);
             pat.put(strcopy.get());
             patlen.put(len);
@@ -58866,8 +57202,7 @@ public abstract class Editor {
                 }
                 if (spats[0].off.line == 0 && spats[0].off.off != 0 && pos.col[0] < MAXCOL - 2) {
                     if (spats[0].off.off > 0L) {
-                        c = spats[0].off.off;
-                        for (; c != 0; c--) {
+                        for (c = spats[0].off.off; c != 0; c--) {
                             if (decl(pos) == -1) {
                                 break;
                             }
@@ -58877,8 +57212,7 @@ public abstract class Editor {
                             pos.col[0] = MAXCOL;
                         }
                     } else {
-                        c = spats[0].off.off;
-                        for (; c != 0; c++) {
+                        for (c = spats[0].off.off; c != 0; c++) {
                             if (incl(pos) == -1) {
                                 break;
                             }
@@ -58977,18 +57311,14 @@ public abstract class Editor {
     }
 
     boolean searchc(S_cmdarg_S cap, int t_cmd) {
-        int c = 0;
-        int dir = 0;
-        long count = 0;
+        long t1 = 0;
+        int c = cap.nchar[0];
+        int dir = cap.arg;
+        long count = cap.count1;
         int col = 0;
         BytePtr p = null;
         int len = 0;
-        boolean stop = false;
-        long t1 = 0;
-        c = cap.nchar[0];
-        dir = cap.arg;
-        count = cap.count1;
-        stop = true;
+        boolean stop = true;
         if (c != NUL) {
             if (KeyStuffed == 0) {
                 lastc[0] = (byte) c;
@@ -59086,18 +57416,13 @@ public abstract class Editor {
         long delim_len = 0;
         long lnum = 0;
         boolean found = false;
-        BytePtr line = null;
-        found = false;
-        p = linep.add(startpos.col[0]).add(1);
-        for (; (p.get() != 0) && p.get() != '('; p = p.add(1)) {
+        for (p = linep.add(startpos.col[0]).add(1); p.get() != 0 && p.get() != '('; p = p.add(1)) {
         }
         delim_len = p.sub(linep) - (long) startpos.col[0] - 1L;
         delim_copy = vim_strnsave(linep.add(startpos.col[0]).add(1), delim_len);
-        lnum = startpos.lnum[0];
-        for (; lnum <= endpos.lnum[0]; lnum++) {
-            line = ml_get(lnum);
-            p = line.add(lnum == startpos.lnum[0] ? startpos.col[0] + 1 : 0);
-            for (; p.get() != 0; p = p.add(1)) {
+        for (lnum = startpos.lnum[0]; lnum <= endpos.lnum[0]; lnum++) {
+            BytePtr line = ml_get(lnum);
+            for (p = line.add(lnum == startpos.lnum[0] ? startpos.col[0] + 1 : 0); p.get() != 0; p = p.add(1)) {
                 if (lnum == endpos.lnum[0] && (int) p.sub(line) >= endpos.col[0]) {
                     break;
                 }
@@ -59114,9 +57439,8 @@ public abstract class Editor {
     }
 
     void find_mps_values(IntPtr initc, IntPtr findc, IntPtr backwards, boolean switchit) {
-        BytePtr ptr = null;
         BytePtr prev = null;
-        ptr = curbuf.b_p_mps[0];
+        BytePtr ptr = curbuf.b_p_mps[0];
         while (ptr.get() != NUL) {
             if (utf_ptr2char(ptr) == initc.get()) {
                 if (switchit) {
@@ -59151,12 +57475,19 @@ public abstract class Editor {
 
     T_pos_T findmatchlimit(S_oparg_S oap, int initc_arg, int flags, int maxtravel) {
         int[] initc = new int[] {initc_arg};
+        boolean t1 = false;
+        int t2 = 0;
+        boolean t3 = false;
+        int col_2 = 0;
+        int[] col_3 = new int[1];
         int[] findc = new int[1];
+        findc[0] = 0;
         int c = 0;
         int count = 0;
         int[] backwards = new int[1];
+        backwards[0] = FALSE;
         boolean raw_string = false;
-        int inquote = 0;
+        int inquote = FALSE;
         BytePtr linep = null;
         BytePtr ptr = null;
         int do_quotes = 0;
@@ -59171,30 +57502,9 @@ public abstract class Editor {
         boolean cpo_bsl = false;
         int match_escaped = 0;
         int dir = 0;
-        int comment_col = 0;
-        boolean skip_comments = false;
+        int comment_col = MAXCOL;
+        boolean skip_comments = (flags & FM_SKIPCOMM) != 0;
         boolean in_block_comment = false;
-        int[] col = new int[1];
-        int bslcnt = 0;
-        boolean t1 = false;
-        int t2 = 0;
-        boolean t3 = false;
-        int col_2 = 0;
-        int[] col_3 = new int[1];
-        int bslcnt_2 = 0;
-        findc[0] = 0;
-        count = 0;
-        backwards[0] = FALSE;
-        raw_string = false;
-        inquote = FALSE;
-        hash_dir = 0;
-        comment_dir = 0;
-        traveled = 0;
-        ignore_cend = false;
-        match_escaped = 0;
-        comment_col = MAXCOL;
-        skip_comments = (flags & FM_SKIPCOMM) != 0;
-        in_block_comment = false;
         findmatchlimit_pos.set(curwin.w_cursor);
         findmatchlimit_pos.coladd = 0;
         linep = ml_get(findmatchlimit_pos.lnum[0]);
@@ -59276,9 +57586,9 @@ public abstract class Editor {
                             return null;
                         }
                     } else if (!cpo_bsl) {
-                        bslcnt = 0;
-                        col[0] = findmatchlimit_pos.col[0];
-                        for (; check_prevcol(linep, col[0], '\\', new IntPtr(col, 0)); ) {
+                        int[] col = new int[1];
+                        int bslcnt = 0;
+                        for (col[0] = findmatchlimit_pos.col[0]; check_prevcol(linep, col[0], '\\', new IntPtr(col, 0)); ) {
                             bslcnt++;
                         }
                         match_escaped = bslcnt & 1;
@@ -59476,8 +57786,7 @@ public abstract class Editor {
                 do_quotes = 0;
             } else if (do_quotes == -1) {
                 at_start = do_quotes;
-                ptr = linep;
-                for (; ptr.get() != 0; ptr = ptr.add(1)) {
+                for (ptr = linep; ptr.get() != 0; ptr = ptr.add(1)) {
                     if (BytePtr.eq(ptr, linep.add(findmatchlimit_pos.col[0]).add(backwards[0]))) {
                         at_start = do_quotes & 1;
                     }
@@ -59532,8 +57841,7 @@ public abstract class Editor {
                     break;
                 case '"':
                     if (do_quotes != 0) {
-                        col_2 = findmatchlimit_pos.col[0] - 1;
-                        for (; col_2 >= 0; col_2--) {
+                        for (col_2 = findmatchlimit_pos.col[0] - 1; col_2 >= 0; col_2--) {
                             if (linep.at(col_2) != '\\') {
                                 break;
                             }
@@ -59571,10 +57879,9 @@ public abstract class Editor {
                         break;
                     }
                     if ((inquote == 0 || start_in_quotes == TRUE) && (c == initc[0] || c == findc[0])) {
-                        bslcnt_2 = 0;
+                        int bslcnt_2 = 0;
                         if (!cpo_bsl) {
-                            col_3[0] = findmatchlimit_pos.col[0];
-                            for (; check_prevcol(linep, col_3[0], '\\', new IntPtr(col_3, 0)); ) {
+                            for (col_3[0] = findmatchlimit_pos.col[0]; check_prevcol(linep, col_3[0], '\\', new IntPtr(col_3, 0)); ) {
                                 bslcnt_2++;
                             }
                         }
@@ -59607,13 +57914,9 @@ public abstract class Editor {
         long save_siso = 0;
         int save_dollar_vcol = 0;
         BytePtr p = null;
-        LongPtr so = null;
-        LongPtr siso = null;
-        boolean col_visible = false;
-        so = curwin.w_onebuf_opt.wo_so[0] >= 0L ? new LongPtr(curwin.w_onebuf_opt.wo_so, 0) : new LongPtr(p_so, 0);
-        siso = curwin.w_onebuf_opt.wo_siso[0] >= 0L ? new LongPtr(curwin.w_onebuf_opt.wo_siso, 0) : new LongPtr(p_siso, 0);
-        p = curbuf.b_p_mps[0];
-        for (; p.get() != NUL; p = p.add(1)) {
+        LongPtr so = curwin.w_onebuf_opt.wo_so[0] >= 0L ? new LongPtr(curwin.w_onebuf_opt.wo_so, 0) : new LongPtr(p_so, 0);
+        LongPtr siso = curwin.w_onebuf_opt.wo_siso[0] >= 0L ? new LongPtr(curwin.w_onebuf_opt.wo_siso, 0) : new LongPtr(p_siso, 0);
+        for (p = curbuf.b_p_mps[0]; p.get() != NUL; p = p.add(1)) {
             p = p.add(utfc_ptr2len(p) + 1);
             if (utf_ptr2char(p) == c) {
                 break;
@@ -59637,7 +57940,7 @@ public abstract class Editor {
         if (curwin.w_onebuf_opt.wo_wrap[0] == 0) {
             getvcol(curwin, lpos, null, new IntPtr(vcol, 0), null, 0);
         }
-        col_visible = curwin.w_onebuf_opt.wo_wrap[0] != 0 || (vcol[0] >= curwin.w_leftcol && vcol[0] < curwin.w_leftcol + curwin.w_width);
+        boolean col_visible = curwin.w_onebuf_opt.wo_wrap[0] != 0 || (vcol[0] >= curwin.w_leftcol && vcol[0] < curwin.w_leftcol + curwin.w_width);
         if (!col_visible) {
             return;
         }
@@ -59672,14 +57975,10 @@ public abstract class Editor {
     int is_zero_width(BytePtr pattern, long patternlen, boolean move, T_pos_T cur, int direction) {
         T_regmmatch_T regmatch = new T_regmmatch_T();
         int nmatched = 0;
-        int result = 0;
+        int result = -1;
         T_pos_T pos = new T_pos_T();
-        int called_emsg_before = 0;
+        int called_emsg_before = called_emsg;
         int flag = 0;
-        nmatched = 0;
-        result = -1;
-        called_emsg_before = called_emsg;
-        flag = 0;
         if (pattern == null) {
             pattern = spats[last_idx].pat;
             patternlen = spats[last_idx].patlen;
@@ -59720,14 +58019,12 @@ public abstract class Editor {
         int i = 0;
         int dir = 0;
         int result = 0;
-        byte old_p_ws = 0;
+        byte old_p_ws = (byte) p_ws[0];
         int flags = 0;
         T_pos_T save_VIsual = new T_pos_T();
+        save_VIsual.set(VIsual);
         int zero_width = 0;
         boolean skip_first_backward = false;
-        old_p_ws = (byte) p_ws[0];
-        flags = 0;
-        save_VIsual.set(VIsual);
         if (VIsual_active != 0 && p_sel[0].get() == 'e' && (VIsual.lnum[0] != curwin.w_cursor.lnum[0] ? VIsual.lnum[0] < curwin.w_cursor.lnum[0] : (VIsual.col[0] != curwin.w_cursor.col[0] ? VIsual.col[0] < curwin.w_cursor.col[0] : VIsual.coladd < curwin.w_cursor.coladd))) {
             dec_cursor();
         }
@@ -59745,8 +58042,7 @@ public abstract class Editor {
         if (zero_width == -1) {
             return false;
         }
-        i = 0;
-        for (; i < 2; i++) {
+        for (i = 0; i < 2; i++) {
             if (forward) {
                 if (i == 0 && skip_first_backward) {
                     continue;
@@ -59813,12 +58109,12 @@ public abstract class Editor {
 
     void cmdline_search_stat(int dirc, T_pos_T pos, T_pos_T cursor_pos, boolean show_top_bot_msg, BytePtr msgbuf, long msgbuflen, boolean recompute, int maxcount, long timeout) {
         S_searchstat stat = new S_searchstat();
-        byte[] t = new byte[16];
-        long len = 0;
         update_search_stat(dirc, pos, cursor_pos, stat, recompute, maxcount, timeout);
         if (stat.cur <= 0) {
             return;
         }
+        byte[] t = new byte[16];
+        long len = 0;
         if (stat.incomplete == 1) {
             len = (long) vim_snprintf(new BytePtr(t, 0), SEARCH_STAT_BUF_LEN, BytePtr.lit("[?/??]"));
         } else if (stat.cnt > maxcount && stat.cur > maxcount) {
@@ -59847,13 +58143,9 @@ public abstract class Editor {
     }
 
     void update_search_stat(int dirc, T_pos_T pos, T_pos_T cursor_pos, S_searchstat stat, boolean recompute, int maxcount, long timeout) {
-        int save_ws = 0;
+        int save_ws = p_ws[0];
         boolean wraparound = false;
         T_pos_T p = new T_pos_T();
-        boolean done_search = false;
-        T_pos_T endpos = new T_pos_T();
-        save_ws = p_ws[0];
-        wraparound = false;
         p.set(pos);
         stat.zero();
         if (dirc == 0 && !recompute && !(update_search_stat_lastpos.lnum[0] == 0L && update_search_stat_lastpos.col[0] == 0 && update_search_stat_lastpos.coladd == 0)) {
@@ -59879,8 +58171,8 @@ public abstract class Editor {
         if (update_search_stat_lastpos.lnum[0] == cursor_pos.lnum[0] && update_search_stat_lastpos.col[0] == cursor_pos.col[0] && update_search_stat_lastpos.coladd == cursor_pos.coladd && !wraparound && (dirc == 0 || dirc == '/' ? update_search_stat_cur < update_search_stat_cnt : update_search_stat_cur > 1)) {
             update_search_stat_cur += dirc == 0 ? 0 : (dirc == '/' ? 1 : -1);
         } else {
-            done_search = false;
-            endpos = new T_pos_T();
+            boolean done_search = false;
+            T_pos_T endpos = new T_pos_T();
             p_ws[0] = FALSE;
             while (got_int == 0 && searchit(curwin, curbuf, update_search_stat_lastpos, endpos, FORWARD, null, 0L, 1L, SEARCH_KEEP, RE_LAST, null) != FAIL) {
                 done_search = true;
@@ -59917,17 +58209,14 @@ public abstract class Editor {
     }
 
     BytePtr vim_strsave(BytePtr string) {
-        BytePtr p = null;
-        long len = 0;
-        len = musl_strlen(string) + 1L;
-        p = BytePtr.alloc(len);
+        long len = musl_strlen(string) + 1L;
+        BytePtr p = BytePtr.alloc(len);
         Rt.memmove(p, string, len);
         return p;
     }
 
     BytePtr vim_strnsave(BytePtr string, long len) {
-        BytePtr p = null;
-        p = BytePtr.alloc(len + 1L);
+        BytePtr p = BytePtr.alloc(len + 1L);
         musl_strncpy(p, string, len);
         p.set((int) len, (byte) NUL);
         return p;
@@ -59938,16 +58227,14 @@ public abstract class Editor {
     }
 
     BytePtr vim_strsave_escaped_ext(BytePtr string, BytePtr esc_chars, int cc, boolean bsl) {
+        BytePtr t1 = null;
+        BytePtr t2 = null;
         BytePtr p = null;
         BytePtr p2 = null;
         BytePtr escaped_string = null;
-        int length = 0;
         int l = 0;
-        BytePtr t1 = null;
-        BytePtr t2 = null;
-        length = 1;
-        p = string;
-        for (; p.get() != 0; p = p.add(1)) {
+        int length = 1;
+        for (p = string; p.get() != 0; p = p.add(1)) {
             l = utfc_ptr2len(p);
             if (l > 1) {
                 length += l;
@@ -59961,8 +58248,7 @@ public abstract class Editor {
         }
         escaped_string = BytePtr.alloc(Integer.toUnsignedLong(length));
         p2 = escaped_string;
-        p = string;
-        for (; p.get() != 0; p = p.add(1)) {
+        for (p = string; p.get() != 0; p = p.add(1)) {
             l = utfc_ptr2len(p);
             if (l > 1) {
                 Rt.memmove(p2, p, (long) l);
@@ -59984,16 +58270,15 @@ public abstract class Editor {
     }
 
     BytePtr vim_strnsave_up(BytePtr string, long len) {
-        BytePtr p1 = null;
-        p1 = vim_strnsave(string, len);
+        BytePtr p1 = vim_strnsave(string, len);
         vim_strup(p1);
         return p1;
     }
 
     void vim_strup(BytePtr p) {
+        BytePtr t1 = null;
         BytePtr p2 = null;
         int c = 0;
-        BytePtr t1 = null;
         if (p == null) {
             return;
         }
@@ -60010,8 +58295,7 @@ public abstract class Editor {
     }
 
     void del_trailing_spaces(BytePtr ptr) {
-        BytePtr q = null;
-        q = ptr.add((int) musl_strlen(ptr));
+        BytePtr q = ptr.add((int) musl_strlen(ptr));
         while (true) {
             q = q.add(-1);
             if (!(q.gt(ptr) && (q.at(0) == ' ' || q.at(0) == '\t') && q.at(-1) != '\\' && q.at(-1) != Ctrl_V)) {
@@ -60027,10 +58311,8 @@ public abstract class Editor {
     }
 
     void vim_strcat(BytePtr to_, BytePtr from, long tosize) {
-        long tolen = 0;
-        long fromlen = 0;
-        tolen = musl_strlen(to_);
-        fromlen = musl_strlen(from);
+        long tolen = musl_strlen(to_);
+        long fromlen = musl_strlen(from);
         if (Long.compareUnsigned(tolen + fromlen + 1L, tosize) > 0) {
             Rt.memmove(to_.add((int) tolen), from, tosize - tolen - 1L);
             to_.set((int) (tosize - 1L), (byte) NUL);
@@ -60041,7 +58323,6 @@ public abstract class Editor {
 
     int vim_strnicmp_asc(BytePtr s1, BytePtr s2, long len) {
         int i = 0;
-        i = 0;
         while (Long.compareUnsigned(len, 0L) > 0) {
             i = ((int) s1.get() < 'A' || (int) s1.get() > 'Z' ? (int) s1.get() : (int) s1.get() + ('a' - 'A')) - ((int) s2.get() < 'A' || (int) s2.get() > 'Z' ? (int) s2.get() : (int) s2.get() + ('a' - 'A'));
             if (i != 0) {
@@ -60058,16 +58339,14 @@ public abstract class Editor {
     }
 
     BytePtr vim_strchr(BytePtr string, int c) {
-        BytePtr p = null;
         int b = 0;
-        int l = 0;
-        p = string;
+        BytePtr p = string;
         if (c > 0 && c < 128) {
             return vim_strbyte(string, c);
         }
         if (c >= 128) {
             while (p.get() != NUL) {
-                l = utfc_ptr2len(p);
+                int l = utfc_ptr2len(p);
                 if (utf_ptr2char(p) == c && l > 1) {
                     return p;
                 }
@@ -60099,11 +58378,9 @@ public abstract class Editor {
         int i = 0;
         int j = 0;
         BytePtr s = null;
-        i = 1;
-        for (; i < count; i++) {
+        for (i = 1; i < count; i++) {
             s = files.at(i);
-            j = i;
-            for (; (j > 0) && musl_strcmp(files.at(j - 1), s) > 0; j--) {
+            for (j = i; j > 0 && musl_strcmp(files.at(j - 1), s) > 0; j--) {
                 files.set(j, files.at(j - 1));
             }
             files.set(j, s);
@@ -60111,10 +58388,8 @@ public abstract class Editor {
     }
 
     BytePtr concat_str(BytePtr str1, BytePtr str2) {
-        BytePtr dest = null;
-        long l = 0;
-        l = str1 == null ? 0L : musl_strlen(str1);
-        dest = BytePtr.alloc(l + (str2 == null ? 0L : musl_strlen(str2)) + 1L);
+        long l = str1 == null ? 0L : musl_strlen(str1);
+        BytePtr dest = BytePtr.alloc(l + (str2 == null ? 0L : musl_strlen(str2)) + 1L);
         if (str1 == null) {
             dest.put((byte) NUL);
         } else {
@@ -60146,8 +58421,7 @@ public abstract class Editor {
         term_props[TPR_DECRQM].tpr_set_by_termresponse = true;
         term_props[TPR_RGB].tpr_name = BytePtr.lit("rgb");
         term_props[TPR_RGB].tpr_set_by_termresponse = false;
-        i = 0;
-        for (; i < TPR_COUNT; i++) {
+        for (i = 0; i < TPR_COUNT; i++) {
             if (all || term_props[i].tpr_set_by_termresponse) {
                 term_props[i].tpr_status = TPR_UNKNOWN;
             }
@@ -60156,11 +58430,8 @@ public abstract class Editor {
     }
 
     Ptr<T_tcap_entry_T> find_builtin_term(BytePtr term) {
-        int i = 0;
-        BytePtr name = null;
-        i = 0;
-        for (; ; i++) {
-            name = builtin_terminals[i].bitc_name;
+        for (int i = 0; ; i++) {
+            BytePtr name = builtin_terminals[i].bitc_name;
             if (name == null) {
                 break;
             }
@@ -60172,20 +58443,16 @@ public abstract class Editor {
     }
 
     void apply_builtin_tcap(BytePtr term, Ptr<T_tcap_entry_T> entries, boolean overwrite) {
-        boolean term_8bit = false;
-        Ptr<T_tcap_entry_T> p = null;
         BytePtr s = null;
         BytePtr t = null;
         byte[] name = new byte[2];
-        term_8bit = term_is_8bit(term);
-        p = entries;
-        for (; (p.get().bt_entry != KS_NAME) && p.get().bt_entry != BT_EXTRA_KEYS; p = p.add(1)) {
+        boolean term_8bit = term_is_8bit(term);
+        for (Ptr<T_tcap_entry_T> p = entries; p.get().bt_entry != KS_NAME && p.get().bt_entry != BT_EXTRA_KEYS; p = p.add(1)) {
             if (p.get().bt_entry >= 0) {
                 if (term_strings[p.get().bt_entry] == null || BytePtr.eq(term_strings[p.get().bt_entry], empty_option) || overwrite) {
                     if (term_8bit && term_7to8bit(p.get().bt_string) != 0) {
                         s = vim_strsave(p.get().bt_string);
-                        t = s;
-                        for (; t.get() != 0; t = t.add(1)) {
+                        for (t = s; t.get() != 0; t = t.add(1)) {
                             if (term_7to8bit(t) != 0) {
                                 t.put((byte) term_7to8bit(t));
                                 Rt.memmove(t.add(1), t.add(2), musl_strlen(t.add(2)) + 1L);
@@ -60220,8 +58487,7 @@ public abstract class Editor {
     }
 
     void parse_builtin_tcap(BytePtr term) {
-        Ptr<T_tcap_entry_T> entries = null;
-        entries = find_builtin_term(term);
+        Ptr<T_tcap_entry_T> entries = find_builtin_term(term);
         if (entries != null) {
             apply_builtin_tcap(term, entries, false);
         }
@@ -60263,21 +58529,16 @@ public abstract class Editor {
     }
 
     int match_keyprotocol(BytePtr term) {
-        int len = 0;
-        BytePtr buf = null;
-        int ret = 0;
-        BytePtr[] p = new BytePtr[1];
-        BytePtr colon = null;
         int prot = 0;
         T_regmatch_T regmatch = new T_regmatch_T();
-        boolean match = false;
-        len = (int) musl_strlen(p_kpc[0]) + 1;
-        buf = BytePtr.alloc((long) len);
-        ret = KEYPROTOCOL_FAIL;
+        int len = (int) musl_strlen(p_kpc[0]) + 1;
+        BytePtr buf = BytePtr.alloc((long) len);
+        int ret = KEYPROTOCOL_FAIL;
+        BytePtr[] p = new BytePtr[1];
         p[0] = p_kpc[0];
         while (p[0].get() != NUL) {
             copy_option_part(new Ptr<BytePtr>(p, 0), buf, len, BytePtr.lit(","));
-            colon = vim_strchr(buf, ':');
+            BytePtr colon = vim_strchr(buf, ':');
             if (colon == null || BytePtr.eq(colon, buf) || colon.at(1) == NUL) {
                 return ret;
             }
@@ -60297,7 +58558,7 @@ public abstract class Editor {
             if (regmatch.regprog == null) {
                 return ret;
             }
-            match = term != null && vim_regexec(regmatch, term, 0);
+            boolean match = term != null && vim_regexec(regmatch, term, 0);
             vim_regfree(regmatch.regprog);
             if (match) {
                 ret = prot;
@@ -60314,17 +58575,11 @@ public abstract class Editor {
         BytePtr error_msg = null;
         BytePtr bs_p = null;
         BytePtr del_p = null;
-        Ptr<T_tcap_entry_T> termp = null;
-        int kpc = 0;
-        byte[] name = new byte[3];
-        width = 0;
-        height = 0;
-        error_msg = null;
         detected_8bit = FALSE;
         if (term_is_builtin(term)) {
             term = term.add(8);
         }
-        termp = find_builtin_term(term);
+        Ptr<T_tcap_entry_T> termp = find_builtin_term(term);
         if (termp == null) {
             report_term_error(error_msg, term);
             screen_start();
@@ -60337,7 +58592,7 @@ public abstract class Editor {
         if (musl_strstr(term, BytePtr.lit("256color")) != null && (term_strings_not_set(KS_CCO) || musl_atoi(term_strings[KS_CCO]) < 256)) {
             apply_builtin_tcap(term, new Ptr<T_tcap_entry_T>(builtin_256colors, 0), true);
         }
-        kpc = match_keyprotocol(term);
+        int kpc = match_keyprotocol(term);
         apply_keyprotocol(term, kpc);
         if (musl_strcmp(term, BytePtr.lit("pcterm")) == 0) {
             term_strings[KS_CCS] = BytePtr.lit("yes");
@@ -60358,6 +58613,7 @@ public abstract class Editor {
             add_termcode(BytePtr.lit("kD"), BytePtr.lit("\177"), FALSE);
         }
         term_is_xterm = vim_is_xterm(term) ? 1 : 0;
+        byte[] name = new byte[3];
         name[0] = (byte) KS_EXTRA;
         name[1] = (byte) KE_FOCUSGAINED;
         name[2] = (byte) NUL;
@@ -60389,7 +58645,6 @@ public abstract class Editor {
     boolean add_termcap_entry(BytePtr name, boolean force) {
         BytePtr term = null;
         int key = 0;
-        Ptr<T_tcap_entry_T> termp = null;
         if (!force && find_termcode(name) != null) {
             return true;
         }
@@ -60400,7 +58655,7 @@ public abstract class Editor {
         if (term_is_builtin(term)) {
             term = term.add(8);
         }
-        termp = find_builtin_term(term);
+        Ptr<T_tcap_entry_T> termp = find_builtin_term(term);
         if (termp != null) {
             key = -((name.at(0) & 0xff) + ((name.at(1) & 0xff) << 8));
             termp = termp.add(1);
@@ -60442,8 +58697,7 @@ public abstract class Editor {
     }
 
     BytePtr tltoa(long i) {
-        BytePtr p = null;
-        p = new BytePtr(tltoa_buf, 0).add(15);
+        BytePtr p = new BytePtr(tltoa_buf, 0).add(15);
         p.put((byte) '\0');
         do {
             p = p.add(-1);
@@ -60454,20 +58708,19 @@ public abstract class Editor {
     }
 
     BytePtr tgoto(BytePtr cm, int x, int y) {
-        BytePtr p = null;
-        BytePtr s = null;
-        BytePtr e = null;
         BytePtr t1 = null;
         BytePtr t2 = null;
         BytePtr t3 = null;
         BytePtr t4 = null;
         BytePtr t5 = null;
+        BytePtr p = null;
+        BytePtr s = null;
+        BytePtr e = null;
         if (cm == null) {
             return BytePtr.lit("OOPS");
         }
         e = new BytePtr(tgoto_buf, 0).add(29);
-        s = new BytePtr(tgoto_buf, 0);
-        for (; s.lt(e) && cm.get() != 0; cm = cm.add(1)) {
+        for (s = new BytePtr(tgoto_buf, 0); s.lt(e) && cm.get() != 0; cm = cm.add(1)) {
             if ((int) cm.get() != '%') {
                 t1 = s;
                 s = s.add(1);
@@ -60512,8 +58765,7 @@ public abstract class Editor {
     }
 
     void termcapinit() {
-        BytePtr term = null;
-        term = BytePtr.lit("xterm-256color");
+        BytePtr term = BytePtr.lit("xterm-256color");
         set_string_option_direct(BytePtr.lit("term"), -1, term, OPT_FREE, 0);
         set_string_default(BytePtr.lit("term"), term);
         set_string_default(BytePtr.lit("ttytype"), term);
@@ -60559,12 +58811,10 @@ public abstract class Editor {
     }
 
     void out_str_nf(BytePtr s) {
-        BytePtr p = null;
         if (out_pos > (OUT_SIZE - MAX_ESC_SEQ_LEN)) {
             out_flush();
         }
-        p = s;
-        for (; p.get() != NUL; p = p.add(1)) {
+        for (BytePtr p = s; p.get() != NUL; p = p.add(1)) {
             out_char_nf(p.get() & 0xff);
         }
         if (p_wd[0] != 0) {
@@ -60629,23 +58879,19 @@ public abstract class Editor {
     }
 
     void term_font(int n) {
-        byte[] buf = new byte[20];
         if (term_strings[KS_CF].get() != 0) {
+            byte[] buf = new byte[20];
             vim_snprintf(new BytePtr(buf, 0), 20L, term_strings[KS_CF], 9 + n);
             out_str(new BytePtr(buf, 0));
         }
     }
 
     void term_color(BytePtr s, int n) {
-        byte[] buf = new byte[20];
-        int i = 0;
         boolean t1 = false;
         boolean t2 = false;
         boolean t3 = false;
-        BytePtr format = null;
-        BytePtr lead = null;
-        BytePtr tail = null;
-        i = (s.get() & 0xff) == CSI ? 1 : 2;
+        byte[] buf = new byte[20];
+        int i = (s.get() & 0xff) == CSI ? 1 : 2;
         t3 = n >= 8 && t_colors >= 16;
         if (t3) {
             t2 = s.at(0) == ESC && s.at(1) == '[';
@@ -60660,9 +58906,9 @@ public abstract class Editor {
             t3 = t2;
         }
         if (t3 && s.at(i) != NUL && (musl_strcmp(s.add(i).add(1), BytePtr.lit("%p1%dm")) == 0 || musl_strcmp(s.add(i).add(1), BytePtr.lit("%dm")) == 0) && (s.at(i) == '3' || s.at(i) == '4')) {
-            format = BytePtr.lit("%s%s%%dm");
-            lead = i == 2 ? BytePtr.lit("\033[") : BytePtr.lit("\233");
-            tail = s.at(i) == '3' ? (n >= 16 ? BytePtr.lit("38;5;") : BytePtr.lit("9")) : (n >= 16 ? BytePtr.lit("48;5;") : BytePtr.lit("10"));
+            BytePtr format = BytePtr.lit("%s%s%%dm");
+            BytePtr lead = i == 2 ? BytePtr.lit("\033[") : BytePtr.lit("\233");
+            BytePtr tail = s.at(i) == '3' ? (n >= 16 ? BytePtr.lit("38;5;") : BytePtr.lit("9")) : (n >= 16 ? BytePtr.lit("48;5;") : BytePtr.lit("10"));
             vim_snprintf(new BytePtr(buf, 0), 20L, format, lead, tail);
             out_str(tgoto(new BytePtr(buf, 0), 0, n >= 16 ? n : n - 8));
         } else {
@@ -60896,9 +59142,9 @@ public abstract class Editor {
     }
 
     void out_str_t_BE() {
-        BytePtr p = null;
         boolean t1 = false;
         boolean t2 = false;
+        BytePtr p = null;
         t1 = term_strings[KS_CBE] == null || term_strings[KS_CBE].get() == NUL;
         if (!t1) {
             p = find_termcode(BytePtr.lit("PS"));
@@ -61058,9 +59304,8 @@ public abstract class Editor {
     }
 
     void adjust_modlen(int idx) {
-        int j = 0;
         termcodes.at(idx).modlen = 0;
-        j = termcode_star(termcodes.at(idx).code, termcodes.at(idx).len);
+        int j = termcode_star(termcodes.at(idx).code, termcodes.at(idx).len);
         if (j <= 0) {
             return;
         }
@@ -61071,12 +59316,12 @@ public abstract class Editor {
     }
 
     void add_termcode(BytePtr name, BytePtr string, int flags) {
+        boolean t1 = false;
         Ptr<S_termcode> new_tc = null;
         int i = 0;
         int j = 0;
         BytePtr s = null;
         int len = 0;
-        boolean t1 = false;
         if (string == null || string.get() == NUL) {
             del_termcode(name);
             return;
@@ -61091,14 +59336,12 @@ public abstract class Editor {
         if (tc_len == tc_max_len) {
             tc_max_len += 20;
             new_tc = new Ptr<S_termcode>(S_termcode.array(tc_max_len), 0);
-            i = 0;
-            for (; i < tc_len; i++) {
+            for (i = 0; i < tc_len; i++) {
                 new_tc.at(i).set(termcodes.at(i));
             }
             termcodes = new_tc;
         }
-        i = 0;
-        for (; i < tc_len; i++) {
+        for (i = 0; i < tc_len; i++) {
             if ((termcodes.at(i).name[0] & 0xff) < (name.at(0) & 0xff)) {
                 continue;
             }
@@ -61122,8 +59365,7 @@ public abstract class Editor {
                     }
                 }
             }
-            j = tc_len;
-            for (; j > i; j--) {
+            for (j = tc_len; j > i; j--) {
                 termcodes.at(j).set(termcodes.at(j - 1));
             }
             break;
@@ -61138,25 +59380,20 @@ public abstract class Editor {
 
     void accept_modifiers_for_function_keys() {
         T_regmatch_T regmatch = new T_regmatch_T();
-        int i = 0;
-        BytePtr s = null;
-        long len = 0;
-        BytePtr ns = null;
         regmatch.zero();
         regmatch.rm_ic = true;
         regmatch.regprog = vim_regcomp(BytePtr.lit("^\033[\\d\\+\\~$"), RE_MAGIC);
-        i = 0;
-        for (; i < tc_len; i++) {
+        for (int i = 0; i < tc_len; i++) {
             if (regmatch.regprog == null) {
                 return;
             }
             if (termcodes.at(i).name[0] == 'P' && (termcodes.at(i).name[1] == 'S' || termcodes.at(i).name[1] == 'E')) {
                 continue;
             }
-            s = termcodes.at(i).code;
+            BytePtr s = termcodes.at(i).code;
             if (s != null && vim_regexec(regmatch, s, 0)) {
-                len = musl_strlen(s);
-                ns = BytePtr.alloc(len + 3L);
+                long len = musl_strlen(s);
+                BytePtr ns = BytePtr.alloc(len + 3L);
                 Rt.memmove(ns, s, len - 1L);
                 Rt.memmove(ns.add((int) len).add(-1), BytePtr.lit(";*~"), 4L);
                 termcodes.at(i).code = ns;
@@ -61180,8 +59417,7 @@ public abstract class Editor {
 
     BytePtr find_termcode(BytePtr name) {
         int i = 0;
-        i = 0;
-        for (; i < tc_len; i++) {
+        for (i = 0; i < tc_len; i++) {
             if ((termcodes.at(i).name[0] & 0xff) == (name.at(0) & 0xff) && (termcodes.at(i).name[1] & 0xff) == (name.at(1) & 0xff)) {
                 return termcodes.at(i).code;
             }
@@ -61195,8 +59431,7 @@ public abstract class Editor {
             return;
         }
         need_gather = TRUE;
-        i = 0;
-        for (; i < tc_len; i++) {
+        for (i = 0; i < tc_len; i++) {
             if ((termcodes.at(i).name[0] & 0xff) == (name.at(0) & 0xff) && (termcodes.at(i).name[1] & 0xff) == (name.at(1) & 0xff)) {
                 del_termcode_idx(i);
                 return;
@@ -61207,8 +59442,7 @@ public abstract class Editor {
     void del_termcode_idx(int idx) {
         int i = 0;
         tc_len--;
-        i = idx;
-        for (; i < tc_len; i++) {
+        for (i = idx; i < tc_len; i++) {
             termcodes.at(i).set(termcodes.at(i + 1));
         }
     }
@@ -61217,8 +59451,7 @@ public abstract class Editor {
         int i = 0;
         int c = 0;
         if (!term_is_8bit(term_strings[KS_NAME])) {
-            i = 0;
-            for (; i < tc_len; i++) {
+            for (i = 0; i < tc_len; i++) {
                 c = term_7to8bit(termcodes.at(i).code);
                 if (c != 0) {
                     Rt.memmove(termcodes.at(i).code.add(1), termcodes.at(i).code.add(2), musl_strlen(termcodes.at(i).code.add(2)) + 1L);
@@ -61231,8 +59464,7 @@ public abstract class Editor {
     }
 
     boolean put_string_in_typebuf(int offset, int slen, BytePtr string, int new_slen, BytePtr buf, int bufsize, IntPtr buflen) {
-        int extra = 0;
-        extra = new_slen - slen;
+        int extra = new_slen - slen;
         string.set(new_slen, (byte) NUL);
         if (buf == null) {
             if (extra < 0) {
@@ -61259,10 +59491,8 @@ public abstract class Editor {
     }
 
     int decode_modifiers(int n) {
-        int code = 0;
+        int code = n - 1;
         int modifiers = 0;
-        code = n - 1;
-        modifiers = 0;
         if ((code & 1) != 0) {
             modifiers |= MOD_MASK_SHIFT;
         }
@@ -61280,11 +59510,10 @@ public abstract class Editor {
 
     int modifiers2keycode(int modifiers_arg, IntPtr key, BytePtr string) {
         int[] modifiers = new int[] {modifiers_arg};
-        int new_slen = 0;
         int t1 = 0;
         int t2 = 0;
         int t3 = 0;
-        new_slen = 0;
+        int new_slen = 0;
         if (modifiers[0] == 0) {
             return 0;
         }
@@ -61304,10 +59533,8 @@ public abstract class Editor {
     }
 
     void handle_u7_response(IntPtr arg, BytePtr tp, int csi_len) {
-        BytePtr aw = null;
-        int value = 0;
         if (arg.at(0) == 2 && arg.at(1) >= 2) {
-            aw = null;
+            BytePtr aw = null;
             u7_status.tr_progress = STATUS_GOT;
             did_cursorhold = TRUE;
             if (arg.at(1) == 2) {
@@ -61320,6 +59547,7 @@ public abstract class Editor {
                 redraw_asap(UPD_CLEAR);
             }
         } else if (arg.at(0) == 3) {
+            int value = 0;
             xcc_status.tr_progress = STATUS_GOT;
             value = arg.at(1) == 1 ? TPR_YES : TPR_NO;
             term_props[TPR_CURSOR_STYLE].tpr_status = value;
@@ -61328,8 +59556,7 @@ public abstract class Editor {
     }
 
     void handle_version_response(int first, IntPtr arg, int argc, BytePtr tp) {
-        int version = 0;
-        version = arg.at(1);
+        int version = arg.at(1);
         crv_status.tr_progress = STATUS_GOT;
         did_cursorhold = TRUE;
         init_term_props(false);
@@ -61409,11 +59636,10 @@ public abstract class Editor {
     }
 
     int add_key_to_buf(int key, BytePtr buf) {
-        int idx = 0;
         int t1 = 0;
         int t2 = 0;
         int t3 = 0;
-        idx = 0;
+        int idx = 0;
         if (key < 0) {
             t1 = idx;
             idx++;
@@ -61432,14 +59658,12 @@ public abstract class Editor {
 
     int put_key_modifiers_in_typebuf(int key_arg, int modifiers_arg, int csi_len, int offset, BytePtr buf, int bufsize, IntPtr buflen) {
         int[] key = new int[1];
-        int modifiers = 0;
-        byte[] string = new byte[8];
-        int new_slen = 0;
         key[0] = key_arg;
-        modifiers = modifiers_arg;
+        int modifiers = modifiers_arg;
         key[0] = may_adjust_key_for_ctrl(modifiers, key[0]);
         modifiers = may_remove_shift_modifier(modifiers, key[0]);
-        new_slen = modifiers2keycode(modifiers, new IntPtr(key, 0), new BytePtr(string, 0));
+        byte[] string = new byte[8];
+        int new_slen = modifiers2keycode(modifiers, new IntPtr(key, 0), new BytePtr(string, 0));
         if (key[0] > 1114111) {
             return -1;
         }
@@ -61453,7 +59677,6 @@ public abstract class Editor {
 
     int parse_csi_f_keys(int arg) {
         byte[] key_name = new byte[2];
-        key_name = new byte[2];
         switch (arg) {
             case 11:
                 key_name[0] = (byte) 'k';
@@ -61511,13 +59734,11 @@ public abstract class Editor {
     }
 
     int handle_key_with_modifier(IntPtr arg, int csi_len, int offset, BytePtr buf, int bufsize, IntPtr buflen, boolean iskitty, int trail) {
-        int key = 0;
-        int modifiers = 0;
         if (!iskitty && (kitty_protocol_state == KKPS_INITIAL || kitty_protocol_state == KKPS_OFF || kitty_protocol_state == KKPS_AFTER_T_TE) && term_props[TPR_KITTY].tpr_status != TPR_YES) {
             seenModifyOtherKeys = TRUE;
         }
-        key = iskitty ? arg.at(0) : arg.at(2);
-        modifiers = decode_modifiers(arg.at(1));
+        int key = iskitty ? arg.at(0) : arg.at(2);
+        int modifiers = decode_modifiers(arg.at(1));
         if ((modifiers & MOD_MASK_SHIFT) != 0 && key >= 'a' && key <= 'z') {
             key += 'A' - 'a';
         }
@@ -61532,14 +59753,13 @@ public abstract class Editor {
     int handle_key_without_modifier(IntPtr arg, int csi_len, int offset, BytePtr buf, int bufsize, IntPtr buflen, int trail) {
         byte[] string = new byte[7];
         int new_slen = 0;
-        int key = 0;
         if (arg.at(0) == ESC) {
             string[0] = (byte) -128;
             string[1] = (byte) KS_EXTRA;
             string[2] = (byte) KE_ESC;
             new_slen = 3;
         } else if (arg.at(0) >= 11 && arg.at(0) <= 24 && trail == '~') {
-            key = parse_csi_f_keys(arg.at(0));
+            int key = parse_csi_f_keys(arg.at(0));
             string[0] = (byte) -128;
             string[1] = (byte) (-key & 255);
             string[2] = (byte) ((-key >>> 8) & 255);
@@ -61554,8 +59774,6 @@ public abstract class Editor {
     }
 
     int handle_csi_function_key(int argc, IntPtr arg, int trail, int csi_len, BytePtr key_name, int offset, BytePtr buf, int bufsize, IntPtr buflen) {
-        int key = 0;
-        int modifiers = 0;
         key_name.set(0, (byte) 'k');
         switch (trail) {
             case 'A':
@@ -61592,33 +59810,24 @@ public abstract class Editor {
             default:
                 return 0;
         }
-        key = -((key_name.at(0) & 0xff) + ((key_name.at(1) & 0xff) << 8));
-        modifiers = argc == 2 ? decode_modifiers(arg.at(1)) : 0;
+        int key = -((key_name.at(0) & 0xff) + ((key_name.at(1) & 0xff) << 8));
+        int modifiers = argc == 2 ? decode_modifiers(arg.at(1)) : 0;
         put_key_modifiers_in_typebuf(key, modifiers, csi_len, offset, buf, bufsize, buflen);
         return csi_len;
     }
 
     int handle_csi(BytePtr tp, int len, BytePtr argp, int offset, BytePtr buf, int bufsize, IntPtr buflen, BytePtr key_name, IntPtr slen) {
-        int first = 0;
-        int trail = 0;
-        int[] arg = new int[3];
-        int argc = 0;
-        BytePtr ap = null;
-        int csi_len = 0;
         BytePtr t1 = null;
         int t2 = 0;
-        int res = 0;
-        int setting = 0;
-        int height = 0;
-        int width = 0;
-        boolean iskitty = false;
-        first = -1;
-        arg = new int[3];
+        int first = -1;
+        int trail = 0;
+        int[] arg = new int[3];
         arg[0] = -1;
         arg[1] = -1;
         arg[2] = -1;
-        argc = 0;
-        ap = argp;
+        int argc = 0;
+        BytePtr ap = argp;
+        int csi_len = 0;
         if (!(Integer.compareUnsigned((ap.get() & 0xff) - '0', 10) < 0)) {
             t1 = ap;
             ap = ap.add(1);
@@ -61629,8 +59838,7 @@ public abstract class Editor {
             first = -1;
             ap = ap.add(-1);
         } else {
-            argc = 0;
-            for (; argc < 3; ) {
+            for (argc = 0; argc < 3; ) {
                 if (ap.ge(tp.add(len))) {
                     return -1;
                 }
@@ -61677,7 +59885,7 @@ public abstract class Editor {
             key_name.set(1, (byte) KE_IGNORE);
             slen.put(csi_len);
         } else if (first == -1 && Integer.compareUnsigned(trail - 'A', 26) < 0 && (argc == 0 || (argc == 2 && arg[0] == 1))) {
-            res = handle_csi_function_key(argc, new IntPtr(arg, 0), trail, csi_len, key_name, offset, buf, bufsize, buflen);
+            int res = handle_csi_function_key(argc, new IntPtr(arg, 0), trail, csi_len, key_name, offset, buf, bufsize, buflen);
             return res <= 0 ? res : len + res;
         } else if (first == -1 && argc == 2 && trail == 'R') {
             handle_u7_response(new IntPtr(arg, 0), tp, csi_len);
@@ -61689,7 +59897,7 @@ public abstract class Editor {
             key_name.set(0, (byte) KS_EXTRA);
             key_name.set(1, (byte) KE_IGNORE);
         } else if (first == '?' && trail == 'y' && argc == 2 && arg[0] == 2026) {
-            setting = arg[1];
+            int setting = arg[1];
             slen.put(csi_len);
             key_name.set(0, (byte) KS_EXTRA);
             key_name.set(1, (byte) KE_IGNORE);
@@ -61707,8 +59915,8 @@ public abstract class Editor {
             key_name.set(1, (byte) KE_IGNORE);
             do_cmdline_cmd(BytePtr.lit("stop"));
         } else if (argc >= 3 && arg[0] == 48) {
-            height = arg[1];
-            width = arg[2];
+            int height = arg[1];
+            int width = arg[2];
             slen.put(csi_len);
             key_name.set(0, (byte) KS_EXTRA);
             key_name.set(1, (byte) KE_IGNORE);
@@ -61729,7 +59937,7 @@ public abstract class Editor {
             key_name.set(1, (byte) KE_IGNORE);
             slen.put(csi_len);
         } else if ((arg[0] == 27 && argc == 3 && trail == '~') || (argc == 2 && (trail == 'u' || trail == '~'))) {
-            iskitty = argc == 2 && (trail == 'u' || trail == '~');
+            boolean iskitty = argc == 2 && (trail == 'u' || trail == '~');
             return len + handle_key_with_modifier(new IntPtr(arg, 0), csi_len, offset, buf, bufsize, buflen, iskitty, trail);
         } else if (argc == 1 && (trail == 'u' || trail == '~')) {
             return len + handle_key_without_modifier(new IntPtr(arg, 0), csi_len, offset, buf, bufsize, buflen, trail);
@@ -61739,30 +59947,21 @@ public abstract class Editor {
 
     void check_for_color_response(BytePtr resp, int len) {
         int i = 0;
-        int j = 0;
-        BytePtr argp = null;
-        boolean is_bg = false;
-        boolean is_4digit = false;
-        BytePtr tp_r = null;
-        BytePtr tp_g = null;
-        BytePtr tp_b = null;
-        BytePtr new_bg_val = null;
-        j = 1 + (resp.at(0) == ESC ? 1 : 0);
-        argp = resp.add(j);
+        int j = 1 + (resp.at(0) == ESC ? 1 : 0);
+        BytePtr argp = resp.add(j);
         if (len >= j + 3 && (argp.at(0) != '1' || (argp.at(1) != '1' && argp.at(1) != '0') || argp.at(2) != ';')) {
             i = 0;
         } else {
-            i = j;
-            for (; i < len; i++) {
+            for (i = j; i < len; i++) {
                 if (resp.at(i) == '\7' || ((resp.at(0) & 0xff) == OSC ? (resp.at(i) & 0xff) == STERM : resp.at(i) == ESC && i + 1 < len && resp.at(i + 1) == '\\')) {
-                    is_bg = argp.at(1) == '1';
-                    is_4digit = i - j >= 21 && resp.at(j + 11) == '/' && resp.at(j + 16) == '/';
+                    boolean is_bg = argp.at(1) == '1';
+                    boolean is_4digit = i - j >= 21 && resp.at(j + 11) == '/' && resp.at(j + 16) == '/';
                     if (i - j >= 15 && musl_strncmp(resp.add(j).add(3), BytePtr.lit("rgb:"), 4L) == 0 && (is_4digit || (resp.at(j + 9) == '/' && resp.at(j + 12) == '/'))) {
-                        tp_r = resp.add(j).add(7);
-                        tp_g = resp.add(j).add(is_4digit ? 12 : 10);
-                        tp_b = resp.add(j).add(is_4digit ? 17 : 13);
+                        BytePtr tp_r = resp.add(j).add(7);
+                        BytePtr tp_g = resp.add(j).add(is_4digit ? 12 : 10);
+                        BytePtr tp_b = resp.add(j).add(is_4digit ? 17 : 13);
                         if (is_bg) {
-                            new_bg_val = 3 * '6' < (tp_r.get() & 0xff) + (tp_g.get() & 0xff) + (tp_b.get() & 0xff) ? BytePtr.lit("light") : BytePtr.lit("dark");
+                            BytePtr new_bg_val = 3 * '6' < (tp_r.get() & 0xff) + (tp_g.get() & 0xff) + (tp_b.get() & 0xff) ? BytePtr.lit("light") : BytePtr.lit("dark");
                             if (!option_was_set(BytePtr.lit("bg")) && musl_strcmp(p_bg[0], new_bg_val) != 0) {
                                 set_option_value_give_err(BytePtr.lit("bg"), 0L, new_bg_val, 0);
                                 reset_option_was_set(BytePtr.lit("bg"));
@@ -61782,11 +59981,8 @@ public abstract class Editor {
 
     boolean handle_osc(BytePtr tp, int len, BytePtr key_name, IntPtr slen) {
         byte last_char = 0;
-        int cur = 0;
-        int i = 0;
-        byte savebg = 0;
         if (!osc_state.processing) {
-            cur = 1 + (tp.at(0) == ESC ? 1 : 0);
+            int cur = 1 + (tp.at(0) == ESC ? 1 : 0);
             if (len < cur + 1 + ((tp.at(0) & 0xff) != OSC ? 1 : 0)) {
                 return false;
             }
@@ -61799,8 +59995,7 @@ public abstract class Editor {
             last_char = GA_BytePtr(osc_state.buf).at(osc_state.buf.ga_len - 1);
         }
         key_name.set(0, (byte) KS_EXTRA);
-        i = 0;
-        for (; i < len; i++) {
+        for (int i = 0; i < len; i++) {
             if (tp.at(i) == '\7' || ((osc_state.start_char & 0xff) == OSC ? (tp.at(i) & 0xff) == STERM : (tp.at(i) == ESC && i + 1 < len && tp.at(i + 1) == '\\') || (i == 0 && tp.at(i) == '\\' && last_char == ESC))) {
                 osc_state.processing = false;
                 key_name.set(1, (byte) KE_OSC);
@@ -61808,7 +60003,7 @@ public abstract class Editor {
                 ga_append(osc_state.buf, NUL);
                 slen.put(i + 1 + (tp.at(i) == ESC ? 1 : 0));
                 check_for_color_response(GA_BytePtr(osc_state.buf), osc_state.buf.ga_len - 1);
-                savebg = p_bg[0].get();
+                byte savebg = p_bg[0].get();
                 if ((p_bg[0].get() & 0xff) != (savebg & 0xff)) {
                     redraw_asap(UPD_CLEAR);
                 }
@@ -61830,15 +60025,13 @@ public abstract class Editor {
 
     boolean handle_dcs(BytePtr tp, BytePtr argp, int len, BytePtr key_name, IntPtr slen) {
         int i = 0;
-        int j = 0;
-        j = 1 + (tp.at(0) == ESC ? 1 : 0);
+        int j = 1 + (tp.at(0) == ESC ? 1 : 0);
         if (len < j + 3) {
             i = len;
         } else if ((argp.at(1) != '+' && argp.at(1) != '$') || (argp.at(2) != 'r' && argp.at(2) != 'R')) {
             i = 0;
         } else if (argp.at(1) == '+') {
-            i = j;
-            for (; i < len; i++) {
+            for (i = j; i < len; i++) {
                 if ((tp.at(i) == ESC && i + 1 < len && tp.at(i + 1) == '\\') || (tp.at(i) & 0xff) == STERM) {
                     key_name.set(0, (byte) KS_EXTRA);
                     key_name.set(1, (byte) KE_IGNORE);
@@ -61847,8 +60040,7 @@ public abstract class Editor {
                 }
             }
         } else {
-            i = j + 3;
-            for (; i < len; i++) {
+            for (i = j + 3; i < len; i++) {
                 if (i - j == 3 && !musl_isdigit(tp.at(i) & 0xff)) {
                     break;
                 }
@@ -61876,9 +60068,14 @@ public abstract class Editor {
     }
 
     int check_termcode(int max_offset, BytePtr buf, int bufsize, IntPtr buflen) {
+        int n = 0;
+        int t1 = 0;
+        int t2 = 0;
+        int t3 = 0;
         BytePtr tp = null;
         BytePtr p = null;
         int[] slen = new int[1];
+        slen[0] = 0;
         int modslen = 0;
         int len = 0;
         int retval = 0;
@@ -61892,26 +60089,11 @@ public abstract class Editor {
         int i = 0;
         int j = 0;
         int idx = 0;
-        boolean cpo_koffset = false;
-        int keypad_index_found = 0;
-        int keypad_slen_found = 0;
-        boolean is_keypad = false;
-        int n = 0;
-        BytePtr argp = null;
-        int resp = 0;
-        int t1 = 0;
-        int t2 = 0;
-        int t3 = 0;
-        slen[0] = 0;
-        retval = 0;
-        modifiers_start = null;
-        idx = 0;
-        cpo_koffset = vim_strchr(p_cpo[0], CPO_KOFFSET) != null;
+        boolean cpo_koffset = vim_strchr(p_cpo[0], CPO_KOFFSET) != null;
         if (need_gather != 0) {
             gather_termleader();
         }
-        offset = 0;
-        for (; offset < max_offset; offset++) {
+        for (offset = 0; offset < max_offset; offset++) {
             if (buf == null) {
                 if (offset >= typebuf.tb_len) {
                     break;
@@ -61939,8 +60121,7 @@ public abstract class Editor {
                 }
             } else {
                 i = tp.get() & 0xff;
-                p = new BytePtr(termleader, 0);
-                for (; (p.get() != 0) && (p.get() & 0xff) != i; p = p.add(1)) {
+                for (p = new BytePtr(termleader, 0); p.get() != 0 && (p.get() & 0xff) != i; p = p.add(1)) {
                 }
                 if (p.get() == NUL) {
                     continue;
@@ -61952,11 +60133,10 @@ public abstract class Editor {
                 key_name[0] = (byte) NUL;
                 key_name[1] = (byte) NUL;
                 modifiers = 0;
-                keypad_index_found = -1;
-                keypad_slen_found = 0;
-                idx = 0;
-                for (; idx < tc_len; idx++) {
-                    is_keypad = false;
+                int keypad_index_found = -1;
+                int keypad_slen_found = 0;
+                for (idx = 0; idx < tc_len; idx++) {
+                    boolean is_keypad = false;
                     slen[0] = termcodes.at(idx).len;
                     modifiers_start = null;
                     if (cpo_koffset && offset != 0 && len < slen[0]) {
@@ -61995,8 +60175,7 @@ public abstract class Editor {
                             } else if (termcodes.at(idx).code.at(modslen) == '@' && (tp.at(modslen) != '1' || tp.at(modslen + 1) != ';')) {
                                 continue;
                             } else {
-                                j = slen[0] - 2;
-                                for (; (j < len) && (musl_isdigit(tp.at(j) & 0xff) || tp.at(j) == '-' || tp.at(j) == ';'); j++) {
+                                for (j = slen[0] - 2; j < len && (musl_isdigit(tp.at(j) & 0xff) || tp.at(j) == '-' || tp.at(j) == ';'); j++) {
                                 }
                                 j++;
                                 if (len < j) {
@@ -62031,9 +60210,9 @@ public abstract class Editor {
                     slen[0] = keypad_slen_found;
                 }
                 if (key_name[0] == NUL) {
-                    argp = tp.at(0) == ESC ? tp.add(2) : tp.add(1);
+                    BytePtr argp = tp.at(0) == ESC ? tp.add(2) : tp.add(1);
                     if (((tp.at(0) == ESC && len >= 3 && tp.at(1) == '[') || ((tp.at(0) & 0xff) == CSI && len >= 2)) && vim_strchr(BytePtr.lit("0123456789>?ABCDEFHPQRS"), argp.get() & 0xff) != null) {
-                        resp = handle_csi(tp, len, argp, offset, buf, bufsize, buflen, new BytePtr(key_name, 0), new IntPtr(slen, 0));
+                        int resp = handle_csi(tp, len, argp, offset, buf, bufsize, buflen, new BytePtr(key_name, 0), new IntPtr(slen, 0));
                         if (resp != 0) {
                             return resp;
                         }
@@ -62096,21 +60275,10 @@ public abstract class Editor {
     }
 
     BytePtr replace_termcodes(BytePtr from, Ptr<BytePtr> bufp, int sid_arg, int flags, IntPtr did_simplify) {
-        int i = 0;
-        int slen = 0;
-        int key = 0;
-        long dlen = 0;
-        BytePtr[] src = new BytePtr[1];
-        boolean do_backslash = false;
-        boolean do_special = false;
-        boolean do_key_code = false;
-        BytePtr result = null;
-        S_growarray ga = new S_growarray();
         long t1 = 0;
         long t2 = 0;
         long t3 = 0;
         long t4 = 0;
-        int fsk_flags = 0;
         int[] len = new int[1];
         long t5 = 0;
         long t6 = 0;
@@ -62120,10 +60288,16 @@ public abstract class Editor {
         long t10 = 0;
         long t11 = 0;
         long t12 = 0;
-        dlen = 0L;
-        do_backslash = vim_strchr(p_cpo[0], CPO_BSLASH) == null;
-        do_special = vim_strchr(p_cpo[0], CPO_SPECI) == null || (flags & REPTERM_SPECIAL) != 0;
-        do_key_code = vim_strchr(p_cpo[0], CPO_KEYCODE) == null;
+        int i = 0;
+        int slen = 0;
+        int key = 0;
+        long dlen = 0L;
+        BytePtr[] src = new BytePtr[1];
+        BytePtr result = null;
+        S_growarray ga = new S_growarray();
+        boolean do_backslash = vim_strchr(p_cpo[0], CPO_BSLASH) == null;
+        boolean do_special = vim_strchr(p_cpo[0], CPO_SPECI) == null || (flags & REPTERM_SPECIAL) != 0;
+        boolean do_key_code = vim_strchr(p_cpo[0], CPO_KEYCODE) == null;
         src[0] = from;
         ga_init2(ga, 1L, 100);
         if (!ga_grow(ga, (int) (musl_strlen(src[0]) * 6L + 1L))) {
@@ -62151,7 +60325,7 @@ public abstract class Editor {
         }
         while (src[0].get() != NUL) {
             if (do_special && ((flags & REPTERM_DO_LT) != 0 || musl_strncmp(src[0], BytePtr.lit("<lt>"), 4L) != 0)) {
-                fsk_flags = FSK_KEYCODE | ((flags & REPTERM_NO_SIMPLIFY) != 0 ? 0 : FSK_SIMPLIFY) | ((flags & REPTERM_FROM_PART) != 0 ? FSK_FROM_PART : 0);
+                int fsk_flags = FSK_KEYCODE | ((flags & REPTERM_NO_SIMPLIFY) != 0 ? 0 : FSK_SIMPLIFY) | ((flags & REPTERM_FROM_PART) != 0 ? FSK_FROM_PART : 0);
                 slen = trans_special(new Ptr<BytePtr>(src, 0), result.add((int) dlen), fsk_flags, true, did_simplify);
                 if (slen > 0) {
                     dlen += (long) slen;
@@ -62186,8 +60360,7 @@ public abstract class Editor {
                     break;
                 }
             }
-            i = utfc_ptr2len(src[0]);
-            for (; i > 0; i--) {
+            for (i = utfc_ptr2len(src[0]); i > 0; i--) {
                 if ((src[0].get() & 0xff) == 128) {
                     t9 = dlen;
                     dlen++;
@@ -62217,23 +60390,19 @@ public abstract class Editor {
     int find_term_bykeys(BytePtr src, IntPtr matchlen) {
         int i = 0;
         int j = 0;
-        int len = 0;
-        int found = 0;
-        int foundlen = 0;
+        int len = (int) musl_strlen(src);
+        int found = -1;
+        int foundlen = 1;
         int slen = 0;
         int modslen = 0;
         int thislen = 0;
-        len = (int) musl_strlen(src);
-        found = -1;
-        foundlen = 1;
         if (need_gather != 0) {
             gather_termleader();
         }
         if (src.get() == NUL || vim_strchr(new BytePtr(termleader, 0), src.get() & 0xff) == null) {
             return -1;
         }
-        i = 0;
-        for (; i < tc_len; i++) {
+        for (i = 0; i < tc_len; i++) {
             slen = termcodes.at(i).len;
             modslen = termcodes.at(i).modlen;
             if (modslen > 0) {
@@ -62246,8 +60415,7 @@ public abstract class Editor {
                     } else if (termcodes.at(i).code.at(modslen) == '@' && (src.at(modslen) != '1' || src.at(modslen + 1) != ';')) {
                         continue;
                     } else {
-                        j = slen - 2;
-                        for (; (j < len) && (musl_isdigit(src.at(j) & 0xff) || src.at(j) == '-' || src.at(j) == ';'); j++) {
+                        for (j = slen - 2; j < len && (musl_isdigit(src.at(j) & 0xff) || src.at(j) == '-' || src.at(j) == ';'); j++) {
                         }
                         j++;
                         if (len < j) {
@@ -62277,13 +60445,11 @@ public abstract class Editor {
     }
 
     void gather_termleader() {
+        int t1 = 0;
         int i = 0;
         int len = 0;
-        int t1 = 0;
-        len = 0;
         termleader[len] = (byte) NUL;
-        i = 0;
-        for (; i < tc_len; i++) {
+        for (i = 0; i < tc_len; i++) {
             if (vim_strchr(new BytePtr(termleader, 0), termcodes.at(i).code.at(0) & 0xff) == null) {
                 t1 = len;
                 len++;
@@ -62295,6 +60461,7 @@ public abstract class Editor {
     }
 
     void show_termcodes(int flags) {
+        int t1 = 0;
         int col = 0;
         IntPtr items = null;
         int item_count = 0;
@@ -62304,17 +60471,14 @@ public abstract class Editor {
         int cols = 0;
         int i = 0;
         int len = 0;
-        int t1 = 0;
         if (tc_len == 0) {
             return;
         }
         items = IntPtr.alloc(tc_len);
         msg_puts_title(gettext_(BytePtr.lit("\n--- Terminal keys ---")));
-        run = (flags & OPT_ONECOLUMN) != 0 ? 3 : 1;
-        for (; (run <= 3) && got_int == 0; run++) {
+        for (run = (flags & OPT_ONECOLUMN) != 0 ? 3 : 1; run <= 3 && got_int == 0; run++) {
             item_count = 0;
-            i = 0;
-            for (; i < tc_len; i++) {
+            for (i = 0; i < tc_len; i++) {
                 len = show_one_termcode(new BytePtr(termcodes.at(i).name, 0), termcodes.at(i).code, false);
                 if ((flags & OPT_ONECOLUMN) != 0 || (len <= INC3 - TERMCODE_GAP ? run == 1 : (len <= INC2 - TERMCODE_GAP ? run == 2 : run == 3))) {
                     t1 = item_count;
@@ -62331,15 +60495,13 @@ public abstract class Editor {
             } else {
                 rows = item_count;
             }
-            row = 0;
-            for (; (row < rows) && got_int == 0; row++) {
+            for (row = 0; row < rows && got_int == 0; row++) {
                 msg_putchar('\n');
                 if (got_int != 0) {
                     break;
                 }
                 col = 0;
-                i = row;
-                for (; i < item_count; i += rows) {
+                for (i = row; i < item_count; i += rows) {
                     msg_col = col;
                     show_one_termcode(new BytePtr(termcodes.at(items.at(i)).name, 0), termcodes.at(items.at(i)).code, true);
                     if (run == 2) {
@@ -62355,9 +60517,9 @@ public abstract class Editor {
     }
 
     int show_one_termcode(BytePtr name, BytePtr code, boolean printit) {
+        int t1 = 0;
         BytePtr p = null;
         int len = 0;
-        int t1 = 0;
         if ((name.at(0) & 0xff) > '~') {
             IObuff.set(0, (byte) ' ');
             IObuff.set(1, (byte) ' ');
@@ -62409,12 +60571,10 @@ public abstract class Editor {
     }
 
     void term_set_sync_output(int flags) {
-        boolean allowed = false;
-        boolean in_gui = false;
         int t1 = 0;
         boolean t2 = false;
-        in_gui = false;
-        allowed = p_tsy[0] != 0 && (sync_output_setting == 1 || sync_output_setting == 2);
+        boolean in_gui = false;
+        boolean allowed = p_tsy[0] != 0 && (sync_output_setting == 1 || sync_output_setting == 2);
         if ((flags & TERM_SYNC_OUTPUT_FLUSH) != 0) {
             if (allowed && !in_gui && sync_output_state > 0 && term_strings[KS_ESU].get() != NUL && term_strings[KS_BSU].get() != NUL) {
                 out_str_nf(term_strings[KS_ESU]);
@@ -62460,24 +60620,17 @@ public abstract class Editor {
     }
 
     void internal_format(int textwidth, int second_indent, int flags, boolean format_only, int c) {
-        int cc = 0;
-        int save_char = 0;
-        boolean haveto_redraw = false;
-        int safe_tw = 0;
         int startcol = 0;
         int wantcol = 0;
         int foundcol = 0;
-        int end_foundcol = 0;
         int len = 0;
         int virtcol = 0;
-        int orig_col = 0;
-        BytePtr saved_text = null;
         int end_col = 0;
         boolean first_pass = false;
-        int len_2 = 0;
-        save_char = NUL;
-        haveto_redraw = false;
-        safe_tw = trim_to_int(8L * (long) textwidth);
+        int cc = 0;
+        int save_char = NUL;
+        boolean haveto_redraw = false;
+        int safe_tw = trim_to_int(8L * (long) textwidth);
         if (curbuf.b_p_ai[0] == 0 && (State & VREPLACE_FLAG) == 0) {
             cc = gchar_cursor();
             if (cc == ' ' || cc == '\t') {
@@ -62486,9 +60639,9 @@ public abstract class Editor {
             }
         }
         while (got_int == 0) {
-            end_foundcol = 0;
-            orig_col = 0;
-            saved_text = null;
+            int end_foundcol = 0;
+            int orig_col = 0;
+            BytePtr saved_text = null;
             if (curwin.w_cursor.col[0] < safe_tw) {
                 virtcol = get_nolist_virtcol() + char2cells(c != NUL ? c : gchar_cursor());
                 if (virtcol <= textwidth) {
@@ -62558,7 +60711,7 @@ public abstract class Editor {
                 startcol = 0;
             }
             if ((State & VREPLACE_FLAG) != 0) {
-                len_2 = ml_get_cursor_len();
+                int len_2 = ml_get_cursor_len();
                 saved_text = vim_strnsave(ml_get_cursor(), (long) len_2);
                 curwin.w_cursor.col[0] = orig_col;
                 if (saved_text == null) {
@@ -62598,8 +60751,7 @@ public abstract class Editor {
     }
 
     int comp_textwidth() {
-        int textwidth = 0;
-        textwidth = (int) curbuf.b_p_tw[0];
+        int textwidth = (int) curbuf.b_p_tw[0];
         if (textwidth == 0 && curbuf.b_p_wm[0] != 0) {
             textwidth = (int) ((long) curwin.w_width - curbuf.b_p_wm[0]);
             if (curwin.w_onebuf_opt.wo_nu[0] != 0 || curwin.w_onebuf_opt.wo_rnu[0] != 0) {
@@ -62613,8 +60765,7 @@ public abstract class Editor {
     }
 
     int cls() {
-        int c = 0;
-        c = gchar_cursor();
+        int c = gchar_cursor();
         if (c == ' ' || c == '\t' || c == NUL) {
             return 0;
         }
@@ -62792,8 +60943,7 @@ public abstract class Editor {
     }
 
     void back_in_line() {
-        int sclass = 0;
-        sclass = cls();
+        int sclass = cls();
         for (;;) {
             if (curwin.w_cursor.col[0] == 0) {
                 break;
@@ -62809,10 +60959,8 @@ public abstract class Editor {
     boolean current_word(S_oparg_S oap, long count, boolean include, boolean bigword) {
         T_pos_T start_pos = new T_pos_T();
         T_pos_T pos = new T_pos_T();
-        boolean inclusive = false;
+        boolean inclusive = true;
         boolean include_white = false;
-        inclusive = true;
-        include_white = false;
         cls_bigword = bigword ? 1 : 0;
         start_pos.lnum[0] = 0L;
         start_pos.col[0] = 0;
@@ -62912,6 +61060,9 @@ public abstract class Editor {
     }
 
     boolean current_block(S_oparg_S oap, long count, boolean include, int what, int other) {
+        long t1 = 0;
+        long t2 = 0;
+        boolean t3 = false;
         T_pos_T old_pos = new T_pos_T();
         T_pos_T pos = null;
         T_pos_T start_pos = new T_pos_T();
@@ -62920,11 +61071,6 @@ public abstract class Editor {
         T_pos_T old_end = new T_pos_T();
         BytePtr save_cpo = null;
         boolean sol = false;
-        long t1 = 0;
-        long t2 = 0;
-        boolean t3 = false;
-        pos = null;
-        sol = false;
         old_pos.set(curwin.w_cursor);
         old_end.set(curwin.w_cursor);
         old_start.set(old_end);
@@ -63284,8 +61430,7 @@ public abstract class Editor {
     }
 
     void add_time(BytePtr buf, long buflen, long tt) {
-        long seconds = 0;
-        seconds = host_time() - tt;
+        long seconds = host_time() - tt;
         vim_snprintf(buf, buflen, NGETTEXT(BytePtr.lit("%ld second ago"), BytePtr.lit("%ld seconds ago"), seconds), seconds);
     }
 
@@ -63295,7 +61440,6 @@ public abstract class Editor {
 
     int ui_inchar(BytePtr buf, int maxlen, long wtime, int tb_change_cnt) {
         int retval = 0;
-        retval = 0;
         if (wtime == -1L || wtime > 100L) {
             vim_handle_signal(-2);
             if (((mapped_ctrl_c | curbuf.b_mapped_ctrl_c) & get_real_state()) != 0) {
@@ -63313,14 +61457,11 @@ public abstract class Editor {
     int inchar_loop(BytePtr buf, int maxlen, long wtime, int tb_change_cnt, Fn7 wait_func, Fn8 resize_func) {
         int len = 0;
         int[] interrupted = new int[1];
+        interrupted[0] = FALSE;
         boolean did_call_wait_func = false;
         long wait_time = 0;
-        long elapsed_time = 0;
-        long start_tv = 0;
-        interrupted[0] = FALSE;
-        did_call_wait_func = false;
-        elapsed_time = 0L;
-        start_tv = musl_now_ms();
+        long elapsed_time = 0L;
+        long start_tv = musl_now_ms();
         for (;;) {
             if (resize_func != null) {
                 resize_func.call(FALSE);
@@ -63357,8 +61498,7 @@ public abstract class Editor {
     }
 
     void ui_delay(long msec_arg, boolean ignoreinput) {
-        long msec = 0;
-        msec = msec_arg;
+        long msec = msec_arg;
         mch_delay(msec, ignoreinput ? MCH_DELAY_IGNOREINPUT : 0);
     }
 
@@ -63367,12 +61507,11 @@ public abstract class Editor {
     }
 
     boolean ui_get_shellsize() {
-        boolean retval = false;
         int[] hrows = new int[1];
-        int[] hcols = new int[1];
         hrows[0] = 0;
+        int[] hcols = new int[1];
         hcols[0] = 0;
-        retval = false;
+        boolean retval = false;
         if (musl_get_winsize(new IntPtr(hrows, 0), new IntPtr(hcols, 0)) == OK) {
             Rows[0] = (long) hrows[0];
             Columns[0] = (long) hcols[0];
@@ -63399,8 +61538,7 @@ public abstract class Editor {
     }
 
     void ui_breakcheck_force(boolean force) {
-        int save_updating_screen = 0;
-        save_updating_screen = updating_screen;
+        int save_updating_screen = updating_screen;
         if (ui_breakcheck_force_recursive) {
             return;
         }
@@ -63424,8 +61562,7 @@ public abstract class Editor {
     }
 
     S_growarray get_input_buf() {
-        S_growarray gap = null;
-        gap = new S_growarray();
+        S_growarray gap = new S_growarray();
         gap.ga_data = BytePtr.alloc((long) (inbufcount + 1));
         Rt.memmove(GA_BytePtr(gap), new BytePtr(inbuf, 0), (long) inbufcount);
         gap.ga_len = inbufcount;
@@ -63471,14 +61608,12 @@ public abstract class Editor {
     void fill_input_buf(boolean exit_on_error) {
         int len = 0;
         int try_ = 0;
-        long readlen = 0;
         if (vim_is_input_buf_full()) {
             return;
         }
         len = 0;
-        try_ = 0;
-        for (; try_ < 100; try_++) {
-            readlen = (long) (INBUFLEN - inbufcount);
+        for (try_ = 0; try_ < 100; try_++) {
+            long readlen = (long) (INBUFLEN - inbufcount);
             len = musl_read_input(new BytePtr(inbuf, 0).add(inbufcount), (int) readlen);
             if (len > 0 || got_int != 0) {
                 break;
@@ -63595,8 +61730,7 @@ public abstract class Editor {
     }
 
     boolean u_save_line(T_undoline_T ul, long lnum) {
-        BytePtr line = null;
-        line = ml_get(lnum);
+        BytePtr line = ml_get(lnum);
         ul.ul_textlen = ml_get_len(lnum);
         if (curbuf.b_ml.ml_line_len == 0) {
             ul.ul_len = 1L;
@@ -63708,8 +61842,7 @@ public abstract class Editor {
             if (size == 1L) {
                 uep = u_get_headentry();
                 prev_uep = null;
-                i = 0L;
-                for (; i < 10L; i++) {
+                for (i = 0L; i < 10L; i++) {
                     if (uep == null) {
                         break;
                     }
@@ -63756,8 +61889,7 @@ public abstract class Editor {
             if (size > 0L) {
                 uep.ue_array = new Ptr<T_undoline_T>(T_undoline_T.array((int) size), 0);
                 i = 0L;
-                lnum = top + 1L;
-                for (; i < size; i++) {
+                for (lnum = top + 1L; i < size; i++) {
                     fast_breakcheck();
                     if (got_int != 0) {
                         u_freeentry(uep, i);
@@ -63809,9 +61941,8 @@ public abstract class Editor {
     }
 
     void u_doit(int startcount) {
-        int count = 0;
         int t1 = 0;
-        count = startcount;
+        int count = startcount;
         if (!undo_allowed()) {
             return;
         }
@@ -63869,24 +62000,17 @@ public abstract class Editor {
         long target = 0;
         long closest = 0;
         long closest_start = 0;
-        long closest_seq = 0;
+        long closest_seq = 0L;
         long val = 0;
         S_u_header uhp = null;
         S_u_header last = null;
         int mark = 0;
         int nomark = 0;
         int round = 0;
-        boolean dosec = false;
-        boolean dofile = false;
+        boolean dosec = sec;
+        boolean dofile = file;
         boolean above = false;
-        boolean did_undo = false;
-        closest_seq = 0L;
-        uhp = null;
-        nomark = 0;
-        dosec = sec;
-        dofile = file;
-        above = false;
-        did_undo = true;
+        boolean did_undo = true;
         if (text_locked()) {
             text_locked_msg();
             return;
@@ -63956,8 +62080,7 @@ public abstract class Editor {
                 mark = lastmark;
                 break;
             }
-            round = 1;
-            for (; round <= 2; round++) {
+            for (round = 1; round <= 2; round++) {
                 lastmark++;
                 mark = lastmark;
                 lastmark++;
@@ -64114,8 +62237,9 @@ public abstract class Editor {
         long top = 0;
         long bot = 0;
         long lnum = 0;
-        long newlnum = 0;
+        long newlnum = LONG_MAX;
         T_pos_T new_curpos = new T_pos_T();
+        new_curpos.set(curwin.w_cursor);
         long i = 0;
         S_u_entry uep = null;
         S_u_entry nuep = null;
@@ -64125,13 +62249,7 @@ public abstract class Editor {
         T_pos_T[] namedm = T_pos_T.array(26);
         T_visualinfo_T visualinfo = new T_visualinfo_T();
         boolean empty_buffer = false;
-        S_u_header curhead = null;
-        BytePtr p = null;
-        newarray = null;
-        newlnum = LONG_MAX;
-        new_curpos.set(curwin.w_cursor);
-        newlist = null;
-        curhead = curbuf.b_u_curhead;
+        S_u_header curhead = curbuf.b_u_curhead;
         block_autocmds();
         old_flags = curhead.uh_flags;
         new_flags = (curbuf.b_changed[0] != 0 ? UH_CHANGED : 0) + ((curbuf.b_ml.ml_flags & ML_EMPTY) != 0 ? UH_EMPTYBUF : 0);
@@ -64142,8 +62260,7 @@ public abstract class Editor {
         curbuf.b_op_start.col[0] = 0;
         curbuf.b_op_end.lnum[0] = 0L;
         curbuf.b_op_end.col[0] = 0;
-        uep = curhead.uh_entry;
-        for (; uep != null; uep = nuep) {
+        for (uep = curhead.uh_entry; uep != null; uep = nuep) {
             top = uep.ue_top;
             bot = uep.ue_bot;
             if (bot == 0L) {
@@ -64162,9 +62279,8 @@ public abstract class Editor {
                 new_curpos.set(curhead.uh_cursor);
                 newlnum = -1L;
             } else if (top < newlnum) {
-                i = 0L;
-                for (; (i < newsize) && i < oldsize; i++) {
-                    p = ml_get(top + 1L + i);
+                for (i = 0L; i < newsize && i < oldsize; i++) {
+                    BytePtr p = ml_get(top + 1L + i);
                     if ((long) curbuf.b_ml.ml_line_len != uep.ue_array.at((int) i).ul_len || Rt.memcmp(uep.ue_array.at((int) i).ul_line, p, (long) curbuf.b_ml.ml_line_len) != 0) {
                         break;
                     }
@@ -64202,8 +62318,7 @@ public abstract class Editor {
             check_cursor_lnum();
             if (newsize != 0) {
                 lnum = top;
-                i = 0L;
-                for (; i < newsize; i++, lnum++) {
+                for (i = 0L; i < newsize; i++, lnum++) {
                     if (empty_buffer && lnum == 0L) {
                         ml_replace_len(1L, uep.ue_array.at((int) i).ul_line, (int) uep.ue_array.at((int) i).ul_len, true, true);
                     } else {
@@ -64258,8 +62373,7 @@ public abstract class Editor {
         } else {
             unchanged(curbuf, false, true);
         }
-        i = 0L;
-        for (; i < 'z' - 'a' + 1; i++) {
+        for (i = 0L; i < 'z' - 'a' + 1; i++) {
             if (curhead.uh_namedm[(int) i].lnum[0] != 0L) {
                 curbuf.b_namedm[(int) i].set(curhead.uh_namedm[(int) i]);
             }
@@ -64375,16 +62489,13 @@ public abstract class Editor {
     }
 
     void ex_undolist(S_exarg eap) {
+        int t1 = 0;
         S_growarray ga = new S_growarray();
         S_u_header uhp = null;
         int mark = 0;
         int nomark = 0;
-        int changes = 0;
+        int changes = 1;
         int len = 0;
-        int n = 0;
-        int t1 = 0;
-        int i = 0;
-        changes = 1;
         lastmark++;
         mark = lastmark;
         lastmark++;
@@ -64400,7 +62511,7 @@ public abstract class Editor {
                 add_time(IObuff.add(len), (long) (1025 - len), uhp.uh_time);
                 len += (int) musl_strlen(IObuff.add(len));
                 if (uhp.uh_save_nr > 0L) {
-                    n = len >= 33 ? 0 : 33 - len;
+                    int n = len >= 33 ? 0 : 33 - len;
                     len += vim_snprintf(IObuff.add(len), (long) (1025 - len), BytePtr.lit("%*.*s  %3ld"), n, n, BytePtr.lit(" "), uhp.uh_save_nr);
                 }
                 t1 = ga.ga_len;
@@ -64429,11 +62540,11 @@ public abstract class Editor {
         if (ga.ga_len == 0) {
             msg(gettext_(BytePtr.lit("Nothing to undo")));
         } else {
+            int i = 0;
             sort_strings(GA_Ptr_BytePtr(ga), ga.ga_len);
             msg_start();
             msg_puts_attr(gettext_(BytePtr.lit("number changes  when               saved")), highlight_attr[HLF_T]);
-            i = 0;
-            for (; (i < ga.ga_len) && got_int == 0; i++) {
+            for (i = 0; i < ga.ga_len && got_int == 0; i++) {
                 msg_putchar('\n');
                 if (got_int != 0) {
                     break;
@@ -64472,9 +62583,8 @@ public abstract class Editor {
     }
 
     void u_getbot() {
-        S_u_entry uep = null;
         long extra = 0;
-        uep = u_get_headentry();
+        S_u_entry uep = u_get_headentry();
         if (uep == null) {
             return;
         }
@@ -64507,8 +62617,7 @@ public abstract class Editor {
         if (uhp.uh_prev == null) {
             buf.b_u_newhead = uhp.uh_next;
         } else {
-            uhap = uhp.uh_prev;
-            for (; uhap != null; uhap = uhap.uh_alt_next) {
+            for (uhap = uhp.uh_prev; uhap != null; uhap = uhap.uh_alt_next) {
                 uhap.uh_next = uhp.uh_next;
             }
         }
@@ -64550,8 +62659,7 @@ public abstract class Editor {
         if (uhpp != null && uhp == uhpp.get()) {
             uhpp.put(null);
         }
-        uep = uhp.uh_entry;
-        for (; uep != null; uep = nuep) {
+        for (uep = uhp.uh_entry; uep != null; uep = nuep) {
             nuep = uep.ue_next;
             u_freeentry(uep, uep.ue_size);
         }
@@ -64663,8 +62771,7 @@ public abstract class Editor {
 
     BytePtr uc_fun_cmd() {
         int i = 0;
-        i = 0;
-        for (; uc_fun_cmd_fcmd[i] != 0; i++) {
+        for (i = 0; uc_fun_cmd_fcmd[i] != 0; i++) {
             IObuff.set(i, (byte) ((uc_fun_cmd_fcmd[i] & 0xff) - 64));
         }
         IObuff.set(i, (byte) NUL);
@@ -64672,13 +62779,11 @@ public abstract class Editor {
     }
 
     void init_longVersion() {
-        BytePtr msg = null;
-        long len = 0;
         if (longVersion != null) {
             return;
         }
-        msg = gettext_(BytePtr.lit("%s (%s)"));
-        len = musl_strlen(msg) + 22L - 1L + 12L - 1L;
+        BytePtr msg = gettext_(BytePtr.lit("%s (%s)"));
+        long len = musl_strlen(msg) + 22L - 1L + 12L - 1L;
         longVersion = BytePtr.alloc(len);
         vim_snprintf(longVersion, len, msg, new BytePtr(VIM_VERSION_LONG_ONLY, 0), new BytePtr(VIM_VERSION_DATE_ONLY, 0));
     }
@@ -64712,8 +62817,7 @@ public abstract class Editor {
     }
 
     void snapshot_windows_scroll_size() {
-        S_window_S wp = null;
-        wp = curwin;
+        S_window_S wp = curwin;
         wp.w_last_topline = wp.w_topline;
         wp.w_last_leftcol = wp.w_leftcol;
         wp.w_last_skipcol = wp.w_skipcol;
@@ -64729,11 +62833,9 @@ public abstract class Editor {
     }
 
     void frame_new_height(S_frame_S topfrp, int height, boolean topfirst, boolean wfh, boolean set_ch) {
-        int new_ch = 0;
-        int save_ch = 0;
         if (set_ch) {
-            new_ch = (int) ((long) min_set_ch > (p_ch[0] + (long) topfrp.fr_height - (long) height) ? (long) min_set_ch : p_ch[0] + (long) topfrp.fr_height - (long) height);
-            save_ch = min_set_ch;
+            int new_ch = (int) ((long) min_set_ch > (p_ch[0] + (long) topfrp.fr_height - (long) height) ? (long) min_set_ch : p_ch[0] + (long) topfrp.fr_height - (long) height);
+            int save_ch = min_set_ch;
             if ((long) new_ch != p_ch[0]) {
                 set_option_value(BytePtr.lit("cmdheight"), (long) new_ch, null, 0);
             }
@@ -64745,8 +62847,7 @@ public abstract class Editor {
     }
 
     void frame_new_width(S_frame_S topfrp, int width, boolean leftfirst, boolean wfw) {
-        S_window_S wp = null;
-        wp = topfrp.fr_win;
+        S_window_S wp = topfrp.fr_win;
         wp.w_vsep_width = 0;
         win_new_width(wp, width - wp.w_vsep_width);
         topfrp.fr_width = width;
@@ -64805,8 +62906,7 @@ public abstract class Editor {
     }
 
     void new_frame(S_window_S wp) {
-        S_frame_S frp = null;
-        frp = new S_frame_S();
+        S_frame_S frp = new S_frame_S();
         wp.w_frame = frp;
         frp.fr_layout = (byte) FR_LEAF;
         frp.fr_win = wp;
@@ -64820,15 +62920,13 @@ public abstract class Editor {
     }
 
     S_tabpage_S alloc_tabpage() {
-        S_tabpage_S tp = null;
-        tp = new S_tabpage_S();
+        S_tabpage_S tp = new S_tabpage_S();
         tp.tp_ch_used = p_ch[0];
         return tp;
     }
 
     S_window_S win_alloc(S_window_S after, boolean hidden) {
-        S_window_S new_wp = null;
-        new_wp = new S_window_S();
+        S_window_S new_wp = new S_window_S();
         if (!win_alloc_lines(new_wp)) {
             return null;
         }
@@ -64865,8 +62963,7 @@ public abstract class Editor {
     }
 
     void shell_new_rows() {
-        int h = 0;
-        h = (int) (Rows[0] - p_ch[0]);
+        int h = (int) (Rows[0] - p_ch[0]);
         if (curwin == null) {
             return;
         }
@@ -64887,11 +62984,10 @@ public abstract class Editor {
     }
 
     void shell_new_columns() {
-        int w = 0;
         if (curwin == null) {
             return;
         }
-        w = (int) Columns[0];
+        int w = (int) Columns[0];
         frame_new_width(topframe, w, false, true);
         if (!frame_check_width(topframe, w)) {
             frame_new_width(topframe, w, false, false);
@@ -64908,16 +63004,15 @@ public abstract class Editor {
 
     void win_comp_pos() {
         int[] row = new int[1];
-        int[] col = new int[1];
         row[0] = 0;
+        int[] col = new int[1];
         col[0] = 0;
         frame_comp_pos(topframe, new IntPtr(row, 0), new IntPtr(col, 0));
     }
 
     void frame_comp_pos(S_frame_S topfrp, IntPtr row, IntPtr col) {
-        S_window_S wp = null;
         int h = 0;
-        wp = topfrp.fr_win;
+        S_window_S wp = topfrp.fr_win;
         if (wp != null) {
             if (wp.w_winrow != row.get() || wp.w_wincol != col.get()) {
                 wp.w_winrow = row.get();
@@ -65002,23 +63097,19 @@ public abstract class Editor {
     }
 
     void win_fix_scroll(int resize) {
-        S_window_S wp = null;
-        int diff = 0;
-        T_pos_T cursor = new T_pos_T();
-        long topline = 0;
-        int skipcol = 0;
         if (p_spk.get() == 'c') {
             return;
         }
         skip_update_topline = TRUE;
-        wp = curwin;
+        S_window_S wp = curwin;
         if (wp.w_height != wp.w_prev_height) {
             wp.w_do_win_fix_cursor = true;
             if (p_spk.get() == 's' && wp.w_winrow != wp.w_prev_winrow && wp.w_botline - 1L <= wp.w_buffer.b_ml.ml_line_count) {
-                diff = wp.w_winrow - wp.w_prev_winrow + (wp.w_height - wp.w_prev_height);
+                int diff = wp.w_winrow - wp.w_prev_winrow + (wp.w_height - wp.w_prev_height);
+                T_pos_T cursor = new T_pos_T();
                 cursor.set(wp.w_cursor);
-                topline = wp.w_topline;
-                skipcol = wp.w_skipcol;
+                long topline = wp.w_topline;
+                int skipcol = wp.w_skipcol;
                 wp.w_cursor.lnum[0] = wp.w_botline - 1L;
                 if (diff > 0) {
                     cursor_down_inner(wp, (long) diff);
@@ -65049,27 +63140,21 @@ public abstract class Editor {
     }
 
     void win_fix_cursor(boolean normal) {
-        S_window_S wp = null;
-        long so = 0;
-        long lnum = 0;
-        long top = 0;
-        long bot = 0;
-        long nlnum = 0;
-        wp = curwin;
+        S_window_S wp = curwin;
         if (skip_win_fix_cursor != 0 || !wp.w_do_win_fix_cursor || wp.w_buffer.b_ml.ml_line_count < (long) wp.w_height) {
             return;
         }
         wp.w_do_win_fix_cursor = false;
-        so = (long) (wp.w_height / 2) < get_scrolloff_value() ? (long) (wp.w_height / 2) : get_scrolloff_value();
-        lnum = wp.w_cursor.lnum[0];
+        long so = (long) (wp.w_height / 2) < get_scrolloff_value() ? (long) (wp.w_height / 2) : get_scrolloff_value();
+        long lnum = wp.w_cursor.lnum[0];
         wp.w_cursor.lnum[0] = wp.w_topline;
         cursor_down_inner(wp, so);
-        top = wp.w_cursor.lnum[0];
+        long top = wp.w_cursor.lnum[0];
         wp.w_cursor.lnum[0] = wp.w_botline - 1L;
         cursor_up_inner(wp, so);
-        bot = wp.w_cursor.lnum[0];
+        long bot = wp.w_cursor.lnum[0];
         wp.w_cursor.lnum[0] = lnum;
-        nlnum = 0L;
+        long nlnum = 0L;
         if (lnum > bot && wp.w_botline - wp.w_buffer.b_ml.ml_line_count != 1L) {
             nlnum = bot;
         } else if (lnum < top && wp.w_topline != 1L) {
@@ -65088,8 +63173,7 @@ public abstract class Editor {
     }
 
     void win_new_height(S_window_S wp, int height) {
-        int prev_height = 0;
-        prev_height = wp.w_height;
+        int prev_height = wp.w_height;
         if (height < 0) {
             height = 0;
         }
@@ -65122,11 +63206,7 @@ public abstract class Editor {
         long lnum = 0;
         int sline = 0;
         int line_size = 0;
-        int height = 0;
-        int rows = 0;
-        int want_row = 0;
-        int skipcol = 0;
-        height = wp.w_height;
+        int height = wp.w_height;
         if (height > 0 && ((long) height < wp.w_buffer.b_ml.ml_line_count || wp.w_topline > 1L)) {
             lnum = wp.w_cursor.lnum[0];
             if (lnum < 1L) {
@@ -65136,17 +63216,17 @@ public abstract class Editor {
             line_size = plines_win_col(wp, lnum, (long) wp.w_cursor.col[0]) - 1;
             sline = wp.w_wrow - line_size;
             if (sline >= 0) {
-                rows = plines_win(wp, lnum, false);
+                int rows = plines_win(wp, lnum, false);
                 if (sline > (wp.w_height - rows)) {
                     sline = wp.w_height - rows;
                     wp.w_wrow -= rows - line_size;
                 }
             }
             if (sline < 0) {
-                want_row = wp.w_wrow;
+                int want_row = wp.w_wrow;
                 wp.w_wrow = line_size;
                 if (wp.w_wrow >= wp.w_height && wp.w_width - win_col_off(wp) > 0) {
-                    skipcol = wp.w_width - win_col_off(wp);
+                    int skipcol = wp.w_width - win_col_off(wp);
                     wp.w_wrow--;
                     while (wp.w_wrow > want_row) {
                         skipcol += wp.w_width - win_col_off(wp) + win_col_off2(wp);
@@ -65200,13 +63280,10 @@ public abstract class Editor {
     }
 
     void command_height() {
-        int old_p_ch = 0;
-        S_frame_S frp = null;
-        int h = 0;
-        old_p_ch = (int) curtab.tp_ch_used;
-        frp = curwin.w_frame;
+        int old_p_ch = (int) curtab.tp_ch_used;
+        S_frame_S frp = curwin.w_frame;
         if (p_ch[0] > ((long) old_p_ch) && command_frame_height != 0) {
-            h = (int) (p_ch[0] - (long) old_p_ch < (long) (frp.fr_height - frame_minheight(frp, null)) ? p_ch[0] - (long) old_p_ch : (long) (frp.fr_height - frame_minheight(frp, null)));
+            int h = (int) (p_ch[0] - (long) old_p_ch < (long) (frp.fr_height - frame_minheight(frp, null)) ? p_ch[0] - (long) old_p_ch : (long) (frp.fr_height - frame_minheight(frp, null)));
             frame_add_height(frp, -h);
             old_p_ch += h;
         }
@@ -65234,8 +63311,7 @@ public abstract class Editor {
     }
 
     void last_status_rec(S_frame_S fr, boolean statusline) {
-        S_window_S wp = null;
-        wp = fr.fr_win;
+        S_window_S wp = fr.fr_win;
         if (wp.w_status_height != 0 && !statusline) {
             win_new_height(wp, wp.w_height + wp.w_status_height);
             wp.w_status_height = 0;
@@ -65256,8 +63332,7 @@ public abstract class Editor {
     }
 
     int statusline_height(S_window_S wp) {
-        int stl_height = 0;
-        stl_height = 1;
+        int stl_height = 1;
         return stl_height;
     }
 
@@ -65337,12 +63412,10 @@ public abstract class Editor {
     }
 
     void common_init_1() {
-        int i = 0;
         boolean t1 = false;
         estack_init();
         cmdline_init();
-        i = 0;
-        for (; i < 256; i++) {
+        for (int i = 0; i < 256; i++) {
             mb_bytelen_tab[i] = (byte) 1;
         }
         IObuff = BytePtr.alloc(1025L);
@@ -65391,9 +63464,7 @@ public abstract class Editor {
 
     void main_loop(boolean cmdwin) {
         S_oparg_S oa = new S_oparg_S();
-        S_oparg_S prev_oap = null;
-        BytePtr p = null;
-        prev_oap = current_oap;
+        S_oparg_S prev_oap = current_oap;
         current_oap = oa;
         clear_oparg(oa);
         while (!cmdwin) {
@@ -65433,7 +63504,7 @@ public abstract class Editor {
                 }
                 redraw_statuslines();
                 if (keep_msg != null) {
-                    p = vim_strsave(keep_msg);
+                    BytePtr p = vim_strsave(keep_msg);
                     msg_hist_off = TRUE;
                     msg_attr(p, keep_msg_attr);
                     msg_hist_off = FALSE;
@@ -65460,15 +63531,14 @@ public abstract class Editor {
     }
 
     void getout(int exitval) {
-        S_file_buffer buf = null;
-        T_bufref_T bufref = new T_bufref_T();
-        T_bufref_T bufref_2 = new T_bufref_T();
         exiting = TRUE;
         windgoto((int) Rows[0] - 1, 0);
         if (v_dying <= 1) {
+            S_file_buffer buf = null;
             if (curwin.w_buffer != null && buf_valid(curwin.w_buffer)) {
                 buf = curwin.w_buffer;
                 if (buf.b_changedtick != -1L) {
+                    T_bufref_T bufref = new T_bufref_T();
                     set_bufref(bufref, buf);
                     if (bufref_valid(bufref)) {
                         buf.b_changedtick = -1L;
@@ -65476,6 +63546,7 @@ public abstract class Editor {
                 }
             }
             if (curbuf.b_ml.ml_root != null) {
+                T_bufref_T bufref_2 = new T_bufref_T();
                 set_bufref(bufref_2, curbuf);
             }
         }
@@ -65489,13 +63560,11 @@ public abstract class Editor {
     }
 
     void command_line_scan(T_mparm_T parmp) {
-        int argc = 0;
-        Ptr<BytePtr> argv = null;
-        int argv_idx = 0;
         int t1 = 0;
         int t2 = 0;
-        argc = parmp.argc;
-        argv = parmp.argv;
+        int argc = parmp.argc;
+        Ptr<BytePtr> argv = parmp.argv;
+        int argv_idx = 0;
         argc--;
         argv = argv.add(1);
         argv_idx = 1;
@@ -65544,8 +63613,7 @@ public abstract class Editor {
             curwin.w_cursor.lnum[0] = 0L;
         }
         estack_push(ETYPE_ARGS, BytePtr.lit("command line"), 0L);
-        i = 0;
-        for (; i < parmp.n_commands; i++) {
+        for (i = 0; i < parmp.n_commands; i++) {
             do_cmdline_cmd(parmp.commands[i]);
         }
         estack_pop();

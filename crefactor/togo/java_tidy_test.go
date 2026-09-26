@@ -17,6 +17,7 @@ func TestJtidy(t *testing.T) {
 		{"n = (long) ((int) len);", "n = (long) (int) len;"},
 		{"b = !(p.eq(q));", "b = !p.eq(q);"},
 		{"v = (c ? a : b);", "v = c ? a : b;"},
+		{"for (i = 0; (i < n) && (p != null); i++) {", "for (i = 0; i < n && p != null; i++) {"},
 		// needed
 		{"y = a - (b - c);", "y = a - (b - c);"},
 		{"y = (a + b) * c;", "y = (a + b) * c;"},

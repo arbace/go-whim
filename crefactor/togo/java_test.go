@@ -1679,3 +1679,53 @@ func TestJavaMasks(t *testing.T) {
 		}
 	}
 }
+
+// Locals are declared where C declares them: with their initializer, with
+// the value the next statement assigns, a for's in its header -- but one
+// declared without a value inside a loop stays at the method's top, since
+// C at -O0 keeps its value from one iteration to the next.
+const javaLocalsC = javaHost + `static const char *skip(const char *q)
+{
+    const char *p;
+    p = q;
+    while (*p == ' ')
+        p++;
+    return p;
+}
+
+long sum(int n)
+{
+    long s = 0;
+    for (int i = 0; i < n; i++)
+        s += i;
+    return s;
+}
+
+int keep(void)
+{
+    int n = 0;
+    for (int i = 0; i < 3; i++)
+    {
+        int last;
+        if (i == 0)
+            last = 7;
+        n += last;
+    }
+    return n;
+}
+
+void run(void) { outs(skip("  x")); out(sum(4)); out(keep()); }
+`
+
+func TestJavaLocals(t *testing.T) {
+	prog := javaSame(t, javaLocalsC)
+	for _, re := range []string{
+		`(?s)BytePtr skip\(BytePtr q\) \{\n\s+BytePtr p = q;\n\s+while`,
+		`(?s)long sum\(int n\) \{\n\s+long s = 0L;\n\s+for \(int i = 0; i < n; i\+\+\) \{`,
+		`(?s)int keep\(\) \{\n\s+int last = 0;\n\s+int n = 0;`,
+	} {
+		if !regexp.MustCompile(re).MatchString(prog) {
+			t.Errorf("no %s in\n%s", re, numbered(prog))
+		}
+	}
+}

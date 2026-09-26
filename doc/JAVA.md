@@ -160,11 +160,18 @@ editor: that is milestone 3, when the host runs it.
   a pointer into it compares equal to the array's.
 - NULL is `null`; the pointer classes are immutable values, `p++` is
   `p = p.add(1)`, and `==` is `BytePtr.eq(p, q)`.
-- **Every local is declared at the method's top**, with its zero or its
-  storage: Java refuses a read it cannot prove assigned, and C's local in a
-  loop keeps its value from one turn to the next (at -O0), which one
-  declaration does too. A braced initializer makes the object anew where C
-  has it, since C zeroes what the list leaves out.
+- **A local is declared where C declares it**, with its initializer, or
+  its zero or its storage -- merged with the assignment after it when that
+  is the next thing written (`BytePtr p = q;`), and in a `for`'s header when
+  it is the loop's start (`for (int i = 0; ...)`) -- as the Go's are
+  (`doc/JAVA-IDIOMS.md`, item 3). **At the method's top** instead, with its
+  zero or its storage, when the method has a `goto` (a labeled block would
+  end its scope), when it is a `case`'s own, and when it is declared without
+  a value inside a loop: C's keeps its value from one turn to the next (at
+  -O0), which a declaration in the body would not. Java refuses a read it
+  cannot prove assigned, so every declaration has a value. A braced
+  initializer makes the object anew where C has it, since C zeroes what the
+  list leaves out.
 - A scalar or pointer whose address is taken -- local, parameter, global or
   static -- is a one-element array from its declaration on; a parameter is
   copied into one as the method starts.
