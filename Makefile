@@ -20,10 +20,11 @@
 # whim-build-check requires the committed whim-vim.c back, byte for byte, from
 # the committed slim-vim.c.  448e9a8 is the last commit with the old suite.
 #
-#   make                 fetch if the upstream moved, then bin/whim: the editor, the
-#                        core in Go (editor/) built with its runtime and host
-#   make whim-build      the 164 phases in one process: slim-vim.c -> whim-vim.c,
-#                        about eighteen minutes, no cache and no checks
+#   make                 fetch if the upstream moved, then every editor: bin/whim
+#                        (the core in Go), src/whim-vim and src/slim-vim, bin/braaam
+#                        and braaam.jar (Java), bin/vijure and vijure.jar (Clojure)
+#   make whim-build      the 143 phases in one process: slim-vim.c -> whim-vim.c,
+#                        about fifteen minutes, no cache and no checks
 #   make whim-build-check  the same build, required to give the committed bytes back
 #   make whim-vim        the C product's binary
 #   make slim-vim        the input's binary
@@ -52,7 +53,7 @@ LDFLAGS = -static -no-pie -s
 .DEFAULT_GOAL := all
 
 .PHONY: all
-all: bin/whim  ## the editor: fetch if the upstream moved, then bin/whim
+all: bin/whim src/whim-vim src/slim-vim bin/braaam braaam.jar bin/vijure vijure.jar  ## everything: fetch if the upstream moved, then the four editors and the jars
 
 # --- help -----------------------------------------------------------------
 # Every target worth asking for carries its own one-line description, as a `##`
@@ -263,7 +264,7 @@ bin/whim: editor/editor.go force  ## the editor binary alone, from editor/
 # a launcher script that runs it as a binary is run.  Not part of `all`: it
 # needs a JDK (22 or later, for the Foreign Function & Memory API).
 .PHONY: bin/braaam
-bin/braaam: force  ## the editor in Java: Editor.java generated, compiled, and a launcher
+bin/braaam: src/whim-vim.c force  ## the editor in Java: Editor.java generated, compiled, and a launcher
 	@go tool whim java
 
 # braaam.jar is the same classes as one executable jar, at the top of the
@@ -287,15 +288,15 @@ braaam.jar: bin/braaam  ## the editor in Java as one jar: java -jar braaam.jar [
 # `all`: it needs a JDK (22 or later) and the `clojure` command, whose jars it
 # copies.  CLJ_EDITOR=F compiles the namespace in F instead of generating one.
 .PHONY: bin/vijure
-bin/vijure: force  ## the editor in Clojure: whim.editor generated, AOT-compiled, and a launcher
+bin/vijure: src/whim-vim.c force  ## the editor in Clojure: whim.editor generated, AOT-compiled, and a launcher
 	@go tool whim clj $(if $(CLJ_EDITOR),--editor $(CLJ_EDITOR))
 
 # vijure.jar is the same as one executable jar at the top of the tree:
 # `java -jar vijure.jar [args]` (Main-Class whim.cljmain, and the native
 # access granted in its manifest, as braaam.jar's).
 .PHONY: vijure.jar
-vijure.jar: force  ## the editor in Clojure as one jar: java -jar vijure.jar [args]
-	@go tool whim clj $(if $(CLJ_EDITOR),--editor $(CLJ_EDITOR)) --jar $@
+vijure.jar: bin/vijure  ## the editor in Clojure as one jar: java -jar vijure.jar [args]
+	@go tool whim clj --pack $@
 
 # editor.lgo is the Go editor as ONE go-lisp file (doc/GO-LISP.md): editor/'s
 # files merged into one Go file (whim gocat), converted by go-lisp's golisp,

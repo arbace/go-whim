@@ -276,8 +276,10 @@ the same `editor/editor.go` byte for byte either way.
 ## Build
 
 ```sh
-make                 # all: bin/whim, the editor (editor/ built), through whim-vim.c
-                     # (produced only when slim-vim.c moved) and editor/editor.go
+make                 # all: through whim-vim.c (produced only when slim-vim.c moved)
+                     # and the generated editors, bin/whim (the Go editor), the
+                     # C binaries src/whim-vim and src/slim-vim, bin/braaam and
+                     # braaam.jar, bin/vijure and vijure.jar (packed from its build)
 make whim-build      # the 143 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go, Editor.java or editor.clj that is not what the generator writes

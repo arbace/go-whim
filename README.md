@@ -38,7 +38,9 @@ and requires the same screens, with a control that must move them;
 ## Use
 
 ```sh
-make                   # fetch the input if it moved, build the Go editor, bin/whim
+make                   # fetch the input if it moved, then every editor: bin/whim,
+                       # src/whim-vim, src/slim-vim, bin/braaam and braaam.jar,
+                       # bin/vijure and vijure.jar
 make whim-build        # the pipeline: slim-vim.c -> whim-vim.c and the three translations
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a stale editor.go, Editor.java or editor.clj
@@ -72,8 +74,9 @@ make help              # every target
 ## Requirements
 
 Linux, **Go 1.27**, **gcc** linking statically against **musl**, `git`, `curl`,
-and binutils; measured on Alpine Linux. The Java editor also needs a **JDK 22
-or later**; the Clojure editor the **`clojure`** command too (Clojure 1.12, whose jars
+and binutils; measured on Alpine Linux. `make` builds the Java and the
+Clojure editors too, so it also needs a **JDK 22 or later** and the
+**`clojure`** command (Clojure 1.12, whose jars
 it copies), and starts fastest on a JDK 25 or later (an AOT cache). The C front end is a fork of `modernc.org/cc/v4` carried as source,
 so after fetching the input nothing needs the network.
 

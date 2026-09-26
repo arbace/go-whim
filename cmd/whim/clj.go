@@ -44,15 +44,18 @@ func copyGen(file string) vijure.Gen {
 // launcher that runs it as a binary.
 //
 //	whim clj [--out DIR] [--editor editor.clj] [--jar FILE] [FILE]
+//	whim clj [--out DIR] --pack FILE
 //
 // FILE is src/whim-vim.c by default and DIR lib/vijure, where the sources, the
 // classes and Clojure's jars go; the launcher is bin/vijure -- or
 // DIR/vijure when DIR is given.  --editor compiles the namespace in that
 // file instead of generating one (FILE is then not read); --jar also writes
-// the whole as one executable jar.
+// the whole as one executable jar.  --pack writes that jar from DIR's build
+// as it stands, building nothing: what make vijure.jar does after make
+// bin/vijure, so the editor is built once.
 func runClj(args []string) int {
 	file, out, link := "src/whim-vim.c", filepath.Join("lib", "vijure"), filepath.Join("bin", "vijure")
-	editor, jar := "", ""
+	editor, jar, pack := "", "", ""
 	for i := 0; i < len(args); i++ {
 		switch {
 		case args[i] == "--out" && i+1 < len(args):
@@ -65,16 +68,33 @@ func runClj(args []string) int {
 		case args[i] == "--jar" && i+1 < len(args):
 			i++
 			jar = args[i]
+		case args[i] == "--pack" && i+1 < len(args):
+			i++
+			pack = args[i]
 		case len(args[i]) > 0 && args[i][0] != '-':
 			file = args[i]
 		default:
-			fmt.Fprintln(os.Stderr, "usage: whim clj [--out DIR] [--editor editor.clj] [--jar FILE] [FILE]")
+			fmt.Fprintln(os.Stderr, "usage: whim clj [--out DIR] [--editor editor.clj] [--jar FILE] [FILE] | [--out DIR] --pack FILE")
 			return 2
 		}
 	}
 	fail := func(err error) int {
 		fmt.Fprintf(os.Stderr, "whim clj: %v\n", err)
 		return 1
+	}
+	if pack != "" {
+		if _, err := os.Stat(filepath.Join(out, "classes")); err != nil {
+			return fail(fmt.Errorf("--pack: no build in %s to pack (make bin/vijure first): %w", out, err))
+		}
+		if err := vijure.Jar(out, pack); err != nil {
+			return fail(err)
+		}
+		st, err := os.Stat(pack)
+		if err != nil {
+			return fail(err)
+		}
+		fmt.Printf("  %-12s %d bytes, the core in Clojure (vijure/): java -jar %s\n", pack, st.Size(), pack)
+		return 0
 	}
 	if err := os.MkdirAll(out, 0o755); err != nil {
 		return fail(err)
