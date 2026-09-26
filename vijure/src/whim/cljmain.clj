@@ -72,7 +72,7 @@
   first frames, braaam's report."
   [^Throwable t]
   (binding [*out* *err*]
-    (println (str "whim-clj: " t))
+    (println (str "vijure: " t))
     (doseq [^StackTraceElement f (take 24 (.getStackTrace t))]
       (println (str "\tat " f)))
     (flush)))
@@ -84,7 +84,7 @@
   C process's could grow: vim recurses, and a Clojure frame is larger than a
   compiled C one."
   [& args]
-  (let [argv (into [(.getBytes (System/getProperty "whim.argv0" "whim-clj") (native-charset))]
+  (let [argv (into [(.getBytes (System/getProperty "whim.argv0" "vijure") (native-charset))]
                    (arg-bytes (vec args)))
         status (int-array 1)
         core (Thread. nil

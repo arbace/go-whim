@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-// The Clojure editor's hookup, on cljeditor's stand-in namespace (no
+// The Clojure editor's hookup, on vijure's stand-in namespace (no
 // editor, but every host function reached through the glue): the stand-in
 // and its control built as `whim test --clojure` builds them, the control
 // required to move its answers on the cases that type an i, and the
@@ -21,7 +21,7 @@ func TestClojureStandIn(t *testing.T) {
 			t.Skipf("no %s", tool)
 		}
 	}
-	src, err := os.ReadFile(filepath.Join("..", "..", "cljeditor", "testdata", "standin", "whim", "editor.clj"))
+	src, err := os.ReadFile(filepath.Join("..", "..", "vijure", "testdata", "standin", "whim", "editor.clj"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +37,7 @@ func TestClojureStandIn(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	e := &jvmEditor{name: "Clojure", where: "cljeditor/", file: "editor.clj", launcher: "whim-clj",
+	e := &jvmEditor{name: "Clojure", where: "vijure/", file: "editor.clj", launcher: "vijure",
 		frame: regexp.MustCompile(`^\tat whim\.editor\$([A-Za-z0-9_]+)`)}
 	if _, err := compileClojure(e, cljOut, ctlSrc, dir); err != nil {
 		t.Fatal(err)
@@ -62,7 +62,7 @@ func TestClojureStandIn(t *testing.T) {
 	if code != 70 || len(got) != 1 || got[0] != want {
 		t.Errorf("status %d, failures %q; want 70 and %q\n%s", code, got, want, out)
 	}
-	if !strings.Contains(e.label("wide "), "wide clj") {
+	if !strings.Contains(e.label("wide "), "wide vijure") {
 		t.Errorf("label %q", e.label("wide "))
 	}
 }

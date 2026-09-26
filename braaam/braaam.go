@@ -151,7 +151,7 @@ func WriteSources(dir string) ([]string, error) {
 // WriteRuntime writes the runtime (rt/, package whim.rt) and the host (host/,
 // package whim.host) under dir and returns their paths: the Java sources
 // without the glue, Whim.java, which needs a generated Editor.java -- what
-// another editor on the JVM (cljeditor/, the editor in Clojure) is written
+// another editor on the JVM (vijure/, the editor in Clojure) is written
 // against.
 func WriteRuntime(dir string) ([]string, error) {
 	return writeSources(dir, func(p string) bool {

@@ -87,7 +87,7 @@ func runGen(args []string) int {
 		{filepath.Join(out, "editor.go"), "editor/editor.go"},
 		{filepath.Join(out, "sigs.md"), "internal/gen/sigs.md"},
 		{javaOut, "braaam/Editor.java"},
-		{cljOut, "cljeditor/src/whim/editor.clj"},
+		{cljOut, "vijure/src/whim/editor.clj"},
 	}
 	fail, changed := false, false
 	for _, f := range files {
@@ -123,7 +123,7 @@ func runGen(args []string) int {
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.go", bytes.Count(b, []byte("\n")))
 		j, _ := os.ReadFile("braaam/Editor.java")
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "Editor.java", bytes.Count(j, []byte("\n")))
-		c, _ := os.ReadFile("cljeditor/src/whim/editor.clj")
+		c, _ := os.ReadFile("vijure/src/whim/editor.clj")
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.clj", bytes.Count(c, []byte("\n")))
 	default:
 		fmt.Printf("  %-12s current -- what internal/gen writes from whim-vim.c\n", "editor.go")

@@ -6,12 +6,12 @@ import (
 	"regexp"
 	"sync"
 
-	"github.com/arbace/go-whim/cljeditor"
+	"github.com/arbace/go-whim/vijure"
 )
 
-// THE CLOJURE EDITOR (cljeditor/, doc/CLOJURE.md), on demand: `whim test
+// THE CLOJURE EDITOR (vijure/, doc/CLOJURE.md), on demand: `whim test
 // --clojure`.  The candidate's core is written as the namespace whim.editor
-// by the Clojure backend, AOT-compiled with cljeditor's glue and launcher on
+// by the Clojure backend, AOT-compiled with vijure's glue and launcher on
 // the Java editor's runtime and host, and held to what the Java editor is
 // (java.go): every case answered as the C candidate answers it, and a
 // control of its own -- " INSERT" changed in the generated editor.clj --
@@ -19,11 +19,11 @@ import (
 
 // buildClojure builds the Clojure editor from candSrc, and its control,
 // under dir: the namespace generated once, the two compiled side by side.
-func buildClojure(gen cljeditor.Gen, candSrc, dir string) (*jvmEditor, error) {
-	e := &jvmEditor{name: "Clojure", where: "cljeditor/", file: "editor.clj", launcher: "whim-clj",
+func buildClojure(gen vijure.Gen, candSrc, dir string) (*jvmEditor, error) {
+	e := &jvmEditor{name: "Clojure", where: "vijure/", file: "editor.clj", launcher: "vijure",
 		frame: regexp.MustCompile(`^\tat whim\.editor\$([A-Za-z0-9_]+)`)}
 	cdir, ctlDir := filepath.Join(dir, "clj"), filepath.Join(dir, "clj-control")
-	cljOut, err := cljeditor.Generate(gen, candSrc, cdir)
+	cljOut, err := vijure.Generate(gen, candSrc, cdir)
 	if err != nil {
 		return nil, err
 	}
@@ -46,11 +46,11 @@ func compileClojure(e *jvmEditor, cljOut, ctlSrc, dir string) (*jvmEditor, error
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		e.bin, errBin = cljeditor.Compile(cljOut, filepath.Dir(cljOut), filepath.Join(dir, "whim-clj"))
+		e.bin, errBin = vijure.Compile(cljOut, filepath.Dir(cljOut), filepath.Join(dir, "vijure"))
 	}()
 	go func() {
 		defer wg.Done()
-		e.ctl, errCtl = cljeditor.Compile(ctlSrc, filepath.Dir(ctlSrc), filepath.Join(dir, "whim-clj-control"))
+		e.ctl, errCtl = vijure.Compile(ctlSrc, filepath.Dir(ctlSrc), filepath.Join(dir, "vijure-control"))
 	}()
 	wg.Wait()
 	if errBin != nil {

@@ -17,7 +17,7 @@ import (
 )
 
 // THE EDITORS ON THE JVM, on demand: the Java editor (braaam/,
-// doc/JAVA.md), `whim test --java`, and the Clojure editor (cljeditor/,
+// doc/JAVA.md), `whim test --java`, and the Clojure editor (vijure/,
 // doc/CLOJURE.md), `whim test --clojure` (clojure.go).  The candidate's core
 // is written by the backend (Editor.java, whim/editor.clj), compiled with
 // the editor's runtime, host and glue, and run on the same cases as the Go
@@ -244,7 +244,7 @@ func abbrev(names []string, n int) string {
 }
 
 // label is how e's lines are headed: its launcher's name without "whim-"
-// ("java", "clj"), after prefix ("wide ") when there is one.
+// ("braaam", "vijure"), after prefix ("wide ") when there is one.
 func (e *jvmEditor) label(prefix string) string {
 	return prefix + strings.TrimPrefix(e.launcher, "whim-")
 }

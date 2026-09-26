@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/arbace/go-whim/crefactor/togo"
 	"github.com/arbace/go-whim/braaam"
+	"github.com/arbace/go-whim/crefactor/togo"
 )
 
 // javaGen is the Java backend as `whim skel <editor.c> <dir> -java <out>`

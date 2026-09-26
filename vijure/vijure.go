@@ -1,17 +1,17 @@
-// Package cljeditor builds the editor in Clojure: the core, the namespace
+// Package vijure builds the editor in Clojure: the core, the namespace
 // whim.editor (src/whim/editor.clj), written by crefactor/togo's Clojure
 // backend from the core half of a whim-vim.c, and beside it the Clojure kept
 // here by hand -- the glue (src/whim/cljhost.clj: the C's host functions) and
 // the launcher (src/whim/cljmain.clj) -- on the Java editor's runtime and
 // host (braaam/rt, braaam/host, compiled with javac), AOT-compiled with
 // Clojure's own jars into a directory of classes, and a launcher script that
-// runs it as a binary is run: `whim-clj [args]`.  doc/CLOJURE.md is the
+// runs it as a binary is run: `vijure [args]`.  doc/CLOJURE.md is the
 // design, and its contract says what the generated namespace provides.
 //
 // The Clojure sources are embedded, as braaam's Java are; Clojure itself is
 // what the `clojure` command's classpath names (its jars, from ~/.m2), copied
 // beside the classes so that the build runs without it.
-package cljeditor
+package vijure
 
 import (
 	"archive/zip"
@@ -41,7 +41,7 @@ type Gen func(editorC, dir, cljOut string) error
 
 // ErrNoBackend is what Build says when the generator wrote nothing: the
 // toolset it was handed has no Clojure backend (`whim skel ... -clj`).
-var ErrNoBackend = errors.New("cljeditor: the generator wrote no whim/editor.clj -- this toolset has no Clojure backend yet (`whim skel <editor.c> <dir> -clj <out.clj>`, doc/CLOJURE.md milestones 1-2); hand a generated editor.clj to `whim clj --editor FILE` or `whim test --clojure-editor FILE` instead")
+var ErrNoBackend = errors.New("vijure: the generator wrote no whim/editor.clj -- this toolset has no Clojure backend yet (`whim skel <editor.c> <dir> -clj <out.clj>`, doc/CLOJURE.md milestones 1-2); hand a generated editor.clj to `whim clj --editor FILE` or `whim test --clojure-editor FILE` instead")
 
 // Main is the launcher's class, whim.cljmain's :gen-class.
 const Main = "whim.cljmain"
@@ -121,8 +121,8 @@ func Generate(gen Gen, src, dir string) (string, error) {
 
 // Compile compiles editorClj, the namespace whim.editor, with the embedded
 // sources and the Java runtime and host into dir/classes, copies Clojure's
-// jars into dir/lib, merges the two into one executable jar (dir/whim-clj.jar),
-// trains its AOT cache (dir/whim-clj.aot) and writes the launcher at the path
+// jars into dir/lib, merges the two into one executable jar (dir/vijure.jar),
+// trains its AOT cache (dir/vijure.aot) and writes the launcher at the path
 // launcher, which it returns.  A reflection warning anywhere -- the
 // generated namespace's or the glue's -- is refused: a reflective call is
 // orders of magnitude slower, and the contract is that there is none.
@@ -218,7 +218,7 @@ func AOT(srcDir, classes string, jars []string) error {
 // writes its cache beside the deps.edn it reads.
 func ClojureJars(dir string) ([]string, error) {
 	if _, err := exec.LookPath("clojure"); err != nil {
-		return nil, fmt.Errorf("cljeditor: no `clojure` command to find Clojure's jars with: %w", err)
+		return nil, fmt.Errorf("vijure: no `clojure` command to find Clojure's jars with: %w", err)
 	}
 	proj := filepath.Join(dir, "deps")
 	if err := os.MkdirAll(proj, 0o755); err != nil {
@@ -280,7 +280,7 @@ var JVMFlags = braaam.JVMFlags
 
 // JarName and CacheName are the editor as one jar and its AOT cache, in the
 // build's directory: what the launcher runs.
-const JarName, CacheName = "whim-clj.jar", "whim-clj.aot"
+const JarName, CacheName = "vijure.jar", "vijure.aot"
 
 // TrainingKeys are the keys of the run that writes the AOT cache: into
 // insert mode, a word, out, and :q! -- the editor's start, its drawing and its
@@ -344,7 +344,7 @@ func WriteLauncher(path, dir string) (string, error) {
 		flags = append(flags, "-XX:AOTCache="+braaam.ShellQuote(cache), "-Xlog:aot=off,cds=off")
 	}
 	var b strings.Builder
-	b.WriteString("#!/bin/sh\n# The editor in Clojure (cljeditor/): written by cljeditor.WriteLauncher.\n")
+	b.WriteString("#!/bin/sh\n# The editor in Clojure (vijure/): written by vijure.WriteLauncher.\n")
 	fmt.Fprintf(&b, "exec %s %s -cp %s -Dwhim.argv0=\"$0\" %s \"$@\"\n",
 		braaam.ShellQuote(java), strings.Join(flags, " "), braaam.ShellQuote(filepath.Join(abs, JarName)), Main)
 	if err := os.WriteFile(path, []byte(b.String()), 0o755); err != nil {

@@ -276,23 +276,23 @@ braaam.jar: bin/braaam  ## the editor in Java as one jar: java -jar braaam.jar [
 	@printf '  %-12s %s bytes, the core in Java (braaam/): java -jar %s\n' "$@" \
 	    "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" "$@"
 
-# The editor in Clojure (cljeditor/, doc/CLOJURE.md): the core cut from
+# The editor in Clojure (vijure/, doc/CLOJURE.md): the core cut from
 # whim-vim.c and written as the namespace whim.editor by crefactor/togo's
-# Clojure backend, AOT-compiled with cljeditor's glue and launcher on
-# braaam's runtime and host into lib/clj/classes, merged with Clojure's jars
-# into lib/clj/whim-clj.jar, its AOT cache trained (JDK 25 and later), and
-# bin/whim-clj a launcher script that runs it as a binary is run.  Not part of
+# Clojure backend, AOT-compiled with vijure's glue and launcher on
+# braaam's runtime and host into lib/vijure/classes, merged with Clojure's jars
+# into lib/vijure/vijure.jar, its AOT cache trained (JDK 25 and later), and
+# bin/vijure a launcher script that runs it as a binary is run.  Not part of
 # `all`: it needs a JDK (22 or later) and the `clojure` command, whose jars it
 # copies.  CLJ_EDITOR=F compiles the namespace in F instead of generating one.
-.PHONY: bin/whim-clj
-bin/whim-clj: force  ## the editor in Clojure: whim.editor generated, AOT-compiled, and a launcher
+.PHONY: bin/vijure
+bin/vijure: force  ## the editor in Clojure: whim.editor generated, AOT-compiled, and a launcher
 	@go tool whim clj $(if $(CLJ_EDITOR),--editor $(CLJ_EDITOR))
 
-# cljeditor.jar is the same as one executable jar at the top of the tree:
-# `java -jar cljeditor.jar [args]` (Main-Class whim.cljmain, and the native
+# vijure.jar is the same as one executable jar at the top of the tree:
+# `java -jar vijure.jar [args]` (Main-Class whim.cljmain, and the native
 # access granted in its manifest, as braaam.jar's).
-.PHONY: cljeditor.jar
-cljeditor.jar: force  ## the editor in Clojure as one jar: java -jar cljeditor.jar [args]
+.PHONY: vijure.jar
+vijure.jar: force  ## the editor in Clojure as one jar: java -jar vijure.jar [args]
 	@go tool whim clj $(if $(CLJ_EDITOR),--editor $(CLJ_EDITOR)) --jar $@
 
 # editor.lgo is the Go editor as ONE go-lisp file (doc/GO-LISP.md): editor/'s
@@ -337,8 +337,8 @@ whim-test-clj:  ## the quick suite with the Clojure editor too, required to answ
 # ==== housekeeping
 .PHONY: clean
 clean:  ## remove the built binaries and editor.c
-	rm -f src/slim-vim src/whim-vim bin/whim bin/braaam bin/whim-clj braaam.jar cljeditor.jar editor.lgo editor.c
-	rm -rf lib/braaam lib/clj
+	rm -f src/slim-vim src/whim-vim bin/whim bin/braaam bin/vijure braaam.jar vijure.jar editor.lgo editor.c
+	rm -rf lib/braaam lib/vijure
 
 .PHONY: clean-cache
 clean-cache:  ## remove .cache/ (the Go build cache, the sweep's compiles, the stamps)

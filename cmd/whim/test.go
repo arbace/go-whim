@@ -13,7 +13,7 @@ import (
 // the same, with a control the corpus must see.  --java adds the Java editor
 // (braaam/, doc/JAVA.md), built from FILE, to the quick suite or the wide
 // one: the same cases, required to answer as the C does, with a control of
-// its own.  --clojure adds the Clojure editor (cljeditor/, doc/CLOJURE.md)
+// its own.  --clojure adds the Clojure editor (vijure/, doc/CLOJURE.md)
 // the same way; --clojure-editor F adds it with the namespace in F rather
 // than one generated from FILE.
 //

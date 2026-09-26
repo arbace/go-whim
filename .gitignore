@@ -11,11 +11,11 @@
 /bin/
 
 # The Java and Clojure editors' builds: their sources and classes (make
-# bin/braaam, bin/whim-clj), and the same as one jar at the top (make
-# braaam.jar, cljeditor.jar).
+# bin/braaam, bin/vijure), and the same as one jar at the top (make
+# braaam.jar, vijure.jar).
 /lib/
 /braaam.jar
-/cljeditor.jar
+/vijure.jar
 
 # The Go editor as one go-lisp file (make editor.lgo, doc/GO-LISP.md).
 /editor.lgo

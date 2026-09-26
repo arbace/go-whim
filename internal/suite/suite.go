@@ -28,9 +28,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/arbace/go-whim/cljeditor"
-	"github.com/arbace/go-whim/internal/build"
 	"github.com/arbace/go-whim/braaam"
+	"github.com/arbace/go-whim/internal/build"
+	"github.com/arbace/go-whim/vijure"
 )
 
 //go:embed cases.md
@@ -287,7 +287,7 @@ func Check(w io.Writer, rev, candSrc string, jvm JVM) error {
 // editor (--clojure).
 type JVM struct {
 	Java    braaam.Gen
-	Clojure cljeditor.Gen
+	Clojure vijure.Gen
 }
 
 // builds is what a run compares: the C of rev (the reference), the

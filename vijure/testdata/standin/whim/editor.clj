@@ -1,5 +1,5 @@
 (ns whim.editor
-  "A STAND-IN for the generated core, for cljeditor's and the suite's tests:
+  "A STAND-IN for the generated core, for vijure's and the suite's tests:
   it provides what doc/CLOJURE.md's contract says the generated namespace
   provides -- new-editor, host-of, vim_main and the core functions the glue
   reaches by name -- and calls the host functions (whim.cljhost) as the core

@@ -9,7 +9,7 @@ slim-vim.c ──── whim: phases, in order ────▶ whim-vim.c   an e
                                                   │
                   crefactor/togo ─────────────────┼──▶ editor/    the core in Go
                                                   ├──▶ braaam/   the core in Java
-                                                  └──▶ cljeditor/ the core in Clojure
+                                                  └──▶ vijure/ the core in Clojure
 ```
 
 **The input** is `slim-vim.c`: vim 9.2 as one C translation unit, without
@@ -27,7 +27,7 @@ back byte for byte.
 
 **The translations** are written by `crefactor/togo` from the core's C, not
 from each other: `editor/editor.go`, `braaam/Editor.java` and
-`cljeditor/src/whim/editor.clj` are generated, tracked, and refused by
+`vijure/src/whim/editor.clj` are generated, tracked, and refused by
 `make whim-editor-check` when stale.
 
 **The tests**: `make whim-test` runs 45 key sessions on the C and the Go editor
@@ -47,8 +47,8 @@ make go-test           # the Go packages' tests
 make whim-vim          # the C editor's binary
 make bin/braaam        # the Java editor, and a launcher: bin/braaam [args]
 make braaam.jar        # the same as one jar: java -jar braaam.jar [args]
-make bin/whim-clj      # the Clojure editor (doc/CLOJURE.md), and a launcher: bin/whim-clj [args]
-make cljeditor.jar     # the same as one jar: java -jar cljeditor.jar [args]
+make bin/vijure        # the Clojure editor (doc/CLOJURE.md), and a launcher: bin/vijure [args]
+make vijure.jar        # the same as one jar: java -jar vijure.jar [args]
 make whim-test-clj     # the quick suite with the Clojure editor too
 make editor.lgo        # the Go editor as one go-lisp file (doc/GO-LISP.md)
 make help              # every target
@@ -64,7 +64,7 @@ make help              # every target
 - **Java**, **braaam** (`braaam/`): the same shape -- `Editor.java` on a `Host`, a runtime
   (`rt/`, a C pointer as an array and an offset), and a terminal host through
   the Foreign Function & Memory API.
-- **Clojure**, `cljeditor/`: the namespace `whim.editor`, generated from basic
+- **Clojure**, **vijure** (`vijure/`): the namespace `whim.editor`, generated from basic
   blocks (structured `let`/`loop` where the C's flow nests, a `loop`/`case`
   state machine where it does not), on the Java editor's runtime and host
   through interop; `whim.cljhost` the glue, `whim.cljmain` the launcher.
@@ -88,7 +88,7 @@ crefactor/       the generic C refactoring library, a Go module of its own:
                  the transforms, the analyses, and togo, the C-to-Go-and-Java
                  translator
 editor/          the editor in Go          braaam/   the editor in Java
-cljeditor/       the editor in Clojure: the glue, the launcher, the build
+vijure/       the editor in Clojure: the glue, the launcher, the build
 src/             the input (fetched) and the product (tracked)
 doc/             GOALS.md (what holds for every phase), AGENDA.md (what is
                  not done), JAVA.md, GO-IDIOMS.md, PIPELINE-COMPACTION.md,

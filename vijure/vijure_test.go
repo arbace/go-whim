@@ -1,4 +1,4 @@
-package cljeditor
+package vijure
 
 import (
 	"archive/zip"
@@ -70,7 +70,7 @@ func run(t *testing.T, bin string, keys string, args ...string) (string, string,
 func TestStandInRuns(t *testing.T) {
 	needTools(t)
 	dir := t.TempDir()
-	bin, err := Compile(standIn, filepath.Join(dir, "clj"), filepath.Join(dir, "whim-clj"))
+	bin, err := Compile(standIn, filepath.Join(dir, "clj"), filepath.Join(dir, "vijure"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,7 +107,7 @@ func TestStandInRuns(t *testing.T) {
 		{"iE", 3, ""}, // host_exit through the terminal host
 		{"P", 0, "E1504: Positional argument 1 type used inconsistently: int/string\n"},
 		{"A", 1, "whim-vim: host arena exhausted: 1073741824 bytes, 112 used, request 2147483648\n"},
-		{"T", 70, "whim-clj: java.lang.IllegalStateException: the stand-in was told to throw\n\tat whim.editor$vim_main"},
+		{"T", 70, "vijure: java.lang.IllegalStateException: the stand-in was told to throw\n\tat whim.editor$vim_main"},
 	}
 	for _, c := range cases {
 		_, errOut, code := run(t, bin, c.keys)
@@ -116,7 +116,7 @@ func TestStandInRuns(t *testing.T) {
 		}
 	}
 
-	jar := filepath.Join(dir, "cljeditor.jar")
+	jar := filepath.Join(dir, "vijure.jar")
 	if err := Jar(filepath.Join(dir, "clj"), jar); err != nil {
 		t.Fatal(err)
 	}
@@ -150,7 +150,7 @@ func TestReflectionRefused(t *testing.T) {
 	if err := os.WriteFile(ns, b, 0o644); err != nil {
 		t.Fatal(err)
 	}
-	_, err = Compile(ns, filepath.Join(dir, "clj"), filepath.Join(dir, "whim-clj"))
+	_, err = Compile(ns, filepath.Join(dir, "clj"), filepath.Join(dir, "vijure"))
 	if err == nil || !strings.Contains(err.Error(), "Reflection warning") || !strings.Contains(err.Error(), "length") {
 		t.Errorf("a reflective call was not refused: %v", err)
 	}

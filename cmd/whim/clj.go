@@ -6,14 +6,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/arbace/go-whim/cljeditor"
 	"github.com/arbace/go-whim/crefactor/togo"
+	"github.com/arbace/go-whim/vijure"
 )
 
 // cljGen is the Clojure backend as `whim skel <editor.c> <dir> -clj <out>`
-// runs it, with the profile `whim gen` uses: what cljeditor.Build and the
+// runs it, with the profile `whim gen` uses: what vijure.Build and the
 // suite's --clojure are handed.  A toolset without the backend writes no
-// file, which cljeditor.Build reports as cljeditor.ErrNoBackend.
+// file, which vijure.Build reports as vijure.ErrNoBackend.
 func cljGen(editorC, dir, cljOut string) error {
 	prof, err := genProfile()
 	if err != nil {
@@ -28,7 +28,7 @@ func cljGen(editorC, dir, cljOut string) error {
 
 // copyGen is a Gen that generates nothing: it copies the namespace in file,
 // written already -- `whim clj --editor` and `whim test --clojure-editor`.
-func copyGen(file string) cljeditor.Gen {
+func copyGen(file string) vijure.Gen {
 	return func(_, _, cljOut string) error {
 		b, err := os.ReadFile(file)
 		if err != nil {
@@ -38,27 +38,27 @@ func copyGen(file string) cljeditor.Gen {
 	}
 }
 
-// runClj builds the editor in Clojure (cljeditor/) from a whim-vim.c: the
+// runClj builds the editor in Clojure (vijure/) from a whim-vim.c: the
 // core cut from it and written as the namespace whim.editor, AOT-compiled
 // with the glue, the launcher and the Java editor's runtime and host, and a
 // launcher that runs it as a binary.
 //
 //	whim clj [--out DIR] [--editor editor.clj] [--jar FILE] [FILE]
 //
-// FILE is src/whim-vim.c by default and DIR lib/clj, where the sources, the
-// classes and Clojure's jars go; the launcher is bin/whim-clj -- or
-// DIR/whim-clj when DIR is given.  --editor compiles the namespace in that
+// FILE is src/whim-vim.c by default and DIR lib/vijure, where the sources, the
+// classes and Clojure's jars go; the launcher is bin/vijure -- or
+// DIR/vijure when DIR is given.  --editor compiles the namespace in that
 // file instead of generating one (FILE is then not read); --jar also writes
 // the whole as one executable jar.
 func runClj(args []string) int {
-	file, out, link := "src/whim-vim.c", filepath.Join("lib", "clj"), filepath.Join("bin", "whim-clj")
+	file, out, link := "src/whim-vim.c", filepath.Join("lib", "vijure"), filepath.Join("bin", "vijure")
 	editor, jar := "", ""
 	for i := 0; i < len(args); i++ {
 		switch {
 		case args[i] == "--out" && i+1 < len(args):
 			i++
 			out = args[i]
-			link = filepath.Join(out, "whim-clj")
+			link = filepath.Join(out, "vijure")
 		case args[i] == "--editor" && i+1 < len(args):
 			i++
 			editor = args[i]
@@ -84,27 +84,27 @@ func runClj(args []string) int {
 	}
 	var err error
 	if editor != "" {
-		_, err = cljeditor.Compile(editor, out, link)
+		_, err = vijure.Compile(editor, out, link)
 	} else {
-		_, err = cljeditor.Build(cljGen, file, out, link, nil)
+		_, err = vijure.Build(cljGen, file, out, link, nil)
 	}
 	if err != nil {
 		return fail(err)
 	}
 	cache := "no AOT cache: this JDK wrote none (JDK 25 and later do)"
-	if _, err := os.Stat(filepath.Join(out, cljeditor.CacheName)); err == nil {
-		cache = "its AOT cache " + filepath.Join(out, cljeditor.CacheName)
+	if _, err := os.Stat(filepath.Join(out, vijure.CacheName)); err == nil {
+		cache = "its AOT cache " + filepath.Join(out, vijure.CacheName)
 	}
-	fmt.Printf("  %-12s the core in Clojure (cljeditor/): %s, %s\n", link, filepath.Join(out, cljeditor.JarName), cache)
+	fmt.Printf("  %-12s the core in Clojure (vijure/): %s, %s\n", link, filepath.Join(out, vijure.JarName), cache)
 	if jar != "" {
-		if err := cljeditor.Jar(out, jar); err != nil {
+		if err := vijure.Jar(out, jar); err != nil {
 			return fail(err)
 		}
 		st, err := os.Stat(jar)
 		if err != nil {
 			return fail(err)
 		}
-		fmt.Printf("  %-12s %d bytes, the core in Clojure (cljeditor/): java -jar %s\n", jar, st.Size(), jar)
+		fmt.Printf("  %-12s %d bytes, the core in Clojure (vijure/): java -jar %s\n", jar, st.Size(), jar)
 	}
 	return 0
 }
