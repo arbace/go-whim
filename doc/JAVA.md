@@ -405,7 +405,12 @@ that the JVM is the process its caller started (its pid, its process group,
 its signals), with `--enable-native-access=ALL-UNNAMED` (without it the JVM
 prints a warning on the editor's screen), `-XX:-UsePerfData` (no hsperfdata
 file in /tmp for every run), `-XX:+UseSerialGC -XX:TieredStopAtLevel=1`
-(measured, a run to the stub: 215 ms without them, 188 ms with). An AppCDS
+(measured, a run to the stub: 215 ms without them, 188 ms with), and
+`-XX:-DontCompileHugeMethods`: HotSpot does not compile a method over 8,000
+bytes of bytecode, and `regmatch` is one (in the Clojure editor, 60 hot
+functions are); a heavy session, 5,000 lines and three substitutions, took
+1.5 s without it and 1.0 s with it (`whim test`'s heavy case, which times
+every editor and fails one over 25 times the C's time). An AppCDS
 archive (`-XX:+AutoCreateSharedArchive`) was tried and dropped: the archive is
 not written when the editor ends with `System.exit`, and the JVM then prints
 its error on stdout. **`make bin/braaam`** (`go tool whim java [--out DIR]

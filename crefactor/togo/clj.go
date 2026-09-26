@@ -227,7 +227,7 @@ func (g *gen) writeClj(path string) error {
 	fmt.Fprintf(&b, ";; %d of %d functions written (%d structured, %d state machines), %d the runtime's; the rest are stubs that throw, with the reason.\n\n",
 		written, total, structured, machine, replaced)
 	fmt.Fprintf(&b, "(ns %s\n  (:require [%s])\n  (:import [whim.rt BytePtr ShortPtr IntPtr LongPtr BoolPtr Ptr Rt Ga Struct]))\n\n", ns, host)
-	b.WriteString("(set! *warn-on-reflection* true)\n(set! *unchecked-math* true)\n\n")
+	b.WriteString("(set! *warn-on-reflection* true)\n(set! *unchecked-math* :warn-on-boxed)\n\n")
 	b.WriteString(cljPrelude)
 	// the functions a function calls before it where they can be: a
 	// namespace's top-level forms are one method of its class when it is

@@ -6,7 +6,7 @@
   (:import [whim.rt BytePtr ShortPtr IntPtr LongPtr BoolPtr Ptr Rt Ga Struct]))
 
 (set! *warn-on-reflection* true)
-(set! *unchecked-math* true)
+(set! *unchecked-math* :warn-on-boxed)
 
 ;; C's conversion of a long to each integer type narrower than 64 bits.
 (defmacro ^:private i8 [x] `(long (unchecked-byte ~x)))

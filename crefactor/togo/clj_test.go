@@ -339,8 +339,8 @@ func TestCljControl(t *testing.T) {
 		from      *regexp.Regexp
 		repl      string
 	}{
-		{"unsigned range", javaIntsC, regexp.MustCompile(`\(u32 `), "(identity "},
-		{"signed range", javaIntsC, regexp.MustCompile(`\(i16 `), "(identity "},
+		{"unsigned range", javaIntsC, regexp.MustCompile(`\(u32 `), "(long "},
+		{"signed range", javaIntsC, regexp.MustCompile(`\(i16 `), "(long "},
 		{"unsigned widening", javaStringsC, regexp.MustCompile(`\(bit-and (\((?:aget|\.at|\.get) [^()]*\)) 0xff\)`), "(long $1)"},
 		{"unsigned division", javaIntsC, regexp.MustCompile(`Long/divideUnsigned`), "quot"},
 		{"struct copy", javaStructsC, regexp.MustCompile(`\(\.copy `), "(identity "},

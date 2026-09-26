@@ -11,7 +11,7 @@
            (whim.rt BytePtr IntPtr Ptr)))
 
 (set! *warn-on-reflection* true)
-(set! *unchecked-math* true)
+(set! *unchecked-math* :warn-on-boxed)
 
 (deftype Editor [^Host host ^BytePtr iobuff])
 

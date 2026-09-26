@@ -237,5 +237,5 @@ func Wide(w io.Writer, rev, candSrc string, jvm JVM) error {
 		}
 	}
 	fmt.Fprintf(w, "  wide         %d cases in %d groups; %dms\n", len(cases), len(wideGroups), time.Since(start).Milliseconds())
-	return nil
+	return checkHeavy(w, rev, b)
 }

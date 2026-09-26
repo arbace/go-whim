@@ -17,7 +17,7 @@
            (whim.rt BytePtr IntPtr)))
 
 (set! *warn-on-reflection* true)
-(set! *unchecked-math* true)
+(set! *unchecked-math* :warn-on-boxed)
 
 ;; --- the core, reached by name
 

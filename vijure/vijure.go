@@ -189,8 +189,12 @@ var CompileFlags = []string{
 
 // AOT compiles the namespaces under srcDir, from whim.cljmain down -- it
 // requires whim.editor and whim.cljhost -- into classes, with
-// *warn-on-reflection* and *unchecked-math* on, and refuses a reflection
-// warning.
+// *warn-on-reflection* on and *unchecked-math* :warn-on-boxed (unchecked,
+// and warning of math on boxed numbers), and refuses a reflection, boxed-math
+// or auto-boxing warning: each is a slow path the contract says there is none
+// of (0 of each measured when the refusal was added, doc/CLOJURE-IDIOMS.md).
+// Every namespace sets both itself as well, which is what counts for its own
+// forms.
 func AOT(srcDir, classes string, jars []string) error {
 	if err := os.MkdirAll(classes, 0o755); err != nil {
 		return err
@@ -198,13 +202,15 @@ func AOT(srcDir, classes string, jars []string) error {
 	cp := strings.Join(append([]string{srcDir, classes}, jars...), string(os.PathListSeparator))
 	args := append([]string{"-Xss1g", "-cp", cp, "-Dclojure.compile.path=" + classes}, CompileFlags...)
 	args = append(args, "clojure.main", "-e",
-		"(set! *warn-on-reflection* true) (set! *unchecked-math* true) (compile '"+Main+")")
+		"(set! *warn-on-reflection* true) (set! *unchecked-math* :warn-on-boxed) (compile '"+Main+")")
 	out, err := command("java", args...).CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("the Clojure compiler: %v\n%s", err, out)
 	}
-	if bytes.Contains(out, []byte("Reflection warning")) {
-		return fmt.Errorf("the Clojure compiler warns of reflection, which the contract refuses:\n%s", out)
+	for _, w := range []string{"Reflection warning", "Boxed math warning", "Auto-boxing loop arg"} {
+		if bytes.Contains(out, []byte(w)) {
+			return fmt.Errorf("the Clojure compiler warns (%s), which the contract refuses:\n%s", w, out)
+		}
 	}
 	if _, err := os.Stat(filepath.Join(classes, "whim", "cljmain.class")); err != nil {
 		return fmt.Errorf("the Clojure compiler wrote no %s class: %v\n%s", Main, err, out)

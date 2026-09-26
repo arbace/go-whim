@@ -87,6 +87,15 @@ moves one byte of one screen is seen):
 
 ### 0. Speed: the huge-method limit (found on the way; a prerequisite)
 
+**Done**: `-XX:-DontCompileHugeMethods` is in `braaam.JVMFlags`, which both
+launchers and vijure's AOT training use; `whim test` ends with a heavy case
+of 5,000 lines (`internal/suite/heavy.go`), timed on every editor and
+JUDGED after all -- an editor over 25 times the C's time fails the run,
+which the flag's removal does (vijure 54.8 times; 8.8-10.3 with it); and
+the Clojure build refuses boxed-math and auto-boxing warnings as it refuses
+reflection (0 of each), with a test and a control.
+
+
 - **The pattern.** HotSpot does not compile a method whose bytecode is over
   8,000 bytes (`-XX:+DontCompileHugeMethods`, the default); it runs
   interpreted forever. Measured on the AOT classes: **80 methods of

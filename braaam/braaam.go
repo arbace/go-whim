@@ -192,6 +192,13 @@ func writeSources(dir string, want func(string) bool) ([]string, error) {
 //   - -XX:+UseSerialGC and -XX:TieredStopAtLevel=1: a short-lived,
 //     single-threaded program starts faster with them (measured in
 //     doc/JAVA.md).
+//   - -XX:-DontCompileHugeMethods: HotSpot never compiles a method of more
+//     than 8,000 bytes of bytecode by default, and the generated editors
+//     have hot ones that big (the Java editor regmatch, the Clojure editor 60
+//     of its editing functions); interpreted forever, a heavy session took
+//     the Clojure editor 21 s where it takes 3.7 s with the flag, and the
+//     Java 1.5 s where it takes 1.0 (doc/CLOJURE-IDIOMS.md, item 0; whim
+//     test's heavy case, which reports the time).
 //   - -Xss is not needed: the core runs on a thread of its own with a stack
 //     of 1 GiB (Whim.main).
 var JVMFlags = []string{
@@ -199,6 +206,7 @@ var JVMFlags = []string{
 	"-XX:-UsePerfData",
 	"-XX:+UseSerialGC",
 	"-XX:TieredStopAtLevel=1",
+	"-XX:-DontCompileHugeMethods",
 }
 
 // WriteLauncher writes path, a shell script that runs the editor in classes

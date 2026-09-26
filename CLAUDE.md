@@ -108,7 +108,13 @@ slim-vim.c  --whim-->  whim-vim.c
   (`doc/CLOJURE.md`, milestones 1-2); the Clojure editor answers all 45 and
   all 240 as the C does, and `--clojure-editor F` runs it on a namespace
   written already. Both suites are exact under load (`internal/suite/stress_test.go`:
-  0 differing runs of 6,720 for the wide suite).
+  0 differing runs of 6,720 for the wide suite). **Both end with the heavy
+  case** (`internal/suite/heavy.go`), the one that times: 5,000 lines, three
+  substitutions and a `:g`, run on every editor of the run one at a time,
+  required to answer as the reference does, each time reported beside the
+  C's, and an editor over 25 times the C's time failing the run -- measured,
+  Go 0.6, Java 2.3, Clojure 9-10, and the Clojure 55 with the JIT's
+  huge-method limit left on, which is what it refuses.
 
 ## What a file is called
 
@@ -255,7 +261,7 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    declined), JAVA.md (the Java backend: its design and milestones),
                    JAVA-IDIOMS.md and CLOJURE-IDIOMS.md (how the Java and the
                    Clojure editors could be idiomatic, measured and ranked;
-                   surveys, nothing done),
+                   surveys, only CLOJURE-IDIOMS.md's item 0 done),
                    PIPELINE-COMPACTION.md (which phases could be dropped, merged,
                    split or reordered, measured byte for byte), CLOJURE.md (the
                    Clojure editor), HASKELL.md and

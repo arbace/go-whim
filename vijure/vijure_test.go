@@ -156,6 +156,27 @@ func TestReflectionRefused(t *testing.T) {
 	}
 }
 
+// Math on a boxed number in the namespace is refused, the compiler's warning
+// quoted: the arithmetic is primitive, and a change that boxes it is slower
+// where nothing in the suite would see it.
+func TestBoxedMathRefused(t *testing.T) {
+	needTools(t)
+	b, err := os.ReadFile(standIn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dir := t.TempDir()
+	ns := filepath.Join(dir, "editor.clj")
+	b = append(b, "\n(defn boxed [x] (inc x))\n"...)
+	if err := os.WriteFile(ns, b, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	_, err = Compile(ns, filepath.Join(dir, "clj"), filepath.Join(dir, "vijure"))
+	if err == nil || !strings.Contains(err.Error(), "Boxed math warning") || !strings.Contains(err.Error(), "inc") {
+		t.Errorf("boxed math was not refused: %v", err)
+	}
+}
+
 // A generator that writes nothing -- a toolset without the Clojure backend
 // -- is named, not taken for an empty namespace.
 func TestNoBackend(t *testing.T) {

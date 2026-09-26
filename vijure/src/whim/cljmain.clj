@@ -13,7 +13,7 @@
   (:gen-class))
 
 (set! *warn-on-reflection* true)
-(set! *unchecked-math* true)
+(set! *unchecked-math* :warn-on-boxed)
 
 (defn run
   "Run a new editor on h with the command line args -- a sequence of byte

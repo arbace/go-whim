@@ -121,6 +121,11 @@ func Run(bin string, keys []byte) ([]byte, int, error) { return RunArgs(bin, nil
 
 // RunArgs is Run with the editor's command-line arguments.
 func RunArgs(bin string, args []string, keys []byte) ([]byte, int, error) {
+	return runLimit(bin, args, keys, 10*time.Second)
+}
+
+// runLimit is RunArgs with the time after which the editor is killed.
+func runLimit(bin string, args []string, keys []byte, limit time.Duration) ([]byte, int, error) {
 	// THE KEYS ARE A FILE, NOT A PIPE.  The editor asks whether more typed input
 	// is waiting when it decides whether to redraw, and through a pipe the answer
 	// is how much the feeding goroutine has written by then: under load the
@@ -156,7 +161,7 @@ func RunArgs(bin string, args []string, keys []byte) ([]byte, int, error) {
 	if err := cmd.Start(); err != nil {
 		return nil, -1, err
 	}
-	code, err := reap(cmd.Process.Pid, 10*time.Second)
+	code, err := reap(cmd.Process.Pid, limit)
 	b, rerr := os.ReadFile(out.Name())
 	if err != nil {
 		return b, -1, err
@@ -279,7 +284,7 @@ func Check(w io.Writer, rev, candSrc string, jvm JVM) error {
 			return err
 		}
 	}
-	return nil
+	return checkHeavy(w, rev, b)
 }
 
 // JVM is the editors on the JVM a run adds, each built from the candidate

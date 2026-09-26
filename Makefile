@@ -281,8 +281,11 @@ bin/braaam: src/whim-vim.c force  ## the editor in Java: Editor.java generated, 
 # braaam.jar is the same classes as one executable jar, at the top of the
 # tree: `java -jar braaam.jar [args]`.  Its manifest names the main class and
 # grants the terminal host its native access (Enable-Native-Access, JDK 22 and
-# later), so no flag is needed; the launcher's -XX flags only tune a short run
-# and have no manifest form, so java -jar runs without them.
+# later), so no flag is needed.  The launcher's -XX flags have no manifest
+# form, so java -jar runs without them -- -XX:-DontCompileHugeMethods among
+# them, which only a heavy session feels: `java -XX:-DontCompileHugeMethods
+# -jar braaam.jar` for one (whim test's heavy case: 1.5 times faster here, 5.7
+# times for vijure.jar).
 .PHONY: braaam.jar
 braaam.jar: bin/braaam  ## the editor in Java as one jar: java -jar braaam.jar [args]
 	@printf 'Main-Class: Whim\nEnable-Native-Access: ALL-UNNAMED\n' > lib/braaam/manifest.txt
@@ -308,7 +311,8 @@ bin/vijure: src/whim-vim.c force  ## the editor in Clojure: whim.editor generate
 
 # vijure.jar is the same as one executable jar at the top of the tree:
 # `java -jar vijure.jar [args]` (Main-Class whim.cljmain, and the native
-# access granted in its manifest, as braaam.jar's).
+# access granted in its manifest, as braaam.jar's; and, as braaam.jar,
+# without the launcher's -XX flags).
 .PHONY: vijure.jar
 vijure.jar: bin/vijure  ## the editor in Clojure as one jar: java -jar vijure.jar [args]
 	@go tool whim clj --pack $@
