@@ -27,8 +27,8 @@
 #   make whim-build-check  the same build, required to give the committed bytes back
 #   make whim-vim        the C product's binary
 #   make slim-vim        the input's binary
-#   make editor.c        the core, cut from whim-vim.c at its first #include
-#   make editor/editor.go  the core in Go, generated from editor.c
+#   make src/editor.c    the core, cut from whim-vim.c at its first #include
+#   make editor/editor.go  the core in Go, generated from src/editor.c
 #   make help            every target, with a line each
 
 # Every temporary a recipe makes -- mktemp, Go's os.MkdirTemp, a build's work
@@ -135,11 +135,11 @@ slim-vim: src/slim-vim  ## the input's binary, src/slim-vim, compiled with the o
 # and a fresh clone writes them at checkout time in arbitrary order, so an mtime
 # dependency would run a pass on a tree that is exactly right.  src/slim.sha records
 # the slim-vim.c the committed whim-vim.c was produced from.
-# The goals that cut editor.c and generate the editors themselves once
-# whim-vim.c is current -- `make` (all), bin/whim, editor.c, editor/editor.go.
+# The goals that cut src/editor.c and generate the editors themselves once
+# whim-vim.c is current -- `make` (all), bin/whim, src/editor.c, editor/editor.go.
 # When one is being made, whim-vim.c's rule builds without whim-build's own
 # editor step, or a build from a fresh clone cut and generated twice.
-editor-follows := $(if $(MAKECMDGOALS),$(filter all bin/whim editor.c editor/editor.go,$(MAKECMDGOALS)),all)
+editor-follows := $(if $(MAKECMDGOALS),$(filter all bin/whim editor.c src/editor.c editor/editor.go,$(MAKECMDGOALS)),all)
 
 src/whim-vim.c: src/slim-vim.c force
 	@set -e; \
@@ -195,28 +195,30 @@ whim-vim: src/whim-vim  ## the C product's binary, src/whim-vim, compiled with t
 # whim-vim.c's own rule they would start a build.
 define cut-editor
 	@awk '/^ *# *include / { exit } { a[NR] = $$0; if (NF) last = NR } \
-	      END { for (i = 1; i <= last; i++) print a[i] }' src/whim-vim.c > editor.c
-	@if grep -q '^ *#' editor.c; then \
-	    echo "  editor.c     REFUSED -- the cut holds a directive, so it found the wrong line:"; \
-	    grep -n '^ *#' editor.c | head -3 | sed 's/^/               /'; \
-	    rm -f editor.c; exit 1; \
+	      END { for (i = 1; i <= last; i++) print a[i] }' src/whim-vim.c > src/editor.c
+	@if grep -q '^ *#' src/editor.c; then \
+	    echo "  src/editor.c REFUSED -- the cut holds a directive, so it found the wrong line:"; \
+	    grep -n '^ *#' src/editor.c | head -3 | sed 's/^/               /'; \
+	    rm -f src/editor.c; exit 1; \
 	 fi
-	@printf '  %-12s %s lines, cut at the first #include of %s\n' editor.c \
-	    "`grep -c '' editor.c | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
+	@printf '  %-12s %s lines, cut at the first #include of %s\n' src/editor.c \
+	    "`grep -c '' src/editor.c | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
 	    "`grep -c '' src/whim-vim.c | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
 endef
 
-.PHONY: editor.c
-editor.c: src/whim-vim.c  ## the core, cut from whim-vim.c at its first #include
+.PHONY: src/editor.c editor.c
+src/editor.c: src/whim-vim.c  ## the core, cut from whim-vim.c at its first #include
 	$(cut-editor)
 
-# editor/editor.go is GENERATED: internal/gen writes it whole from editor.c
+editor.c: src/editor.c  ## the same: make editor.c writes src/editor.c
+
+# editor/editor.go is GENERATED: internal/gen writes it whole from src/editor.c
 # (go tool whim gen), and it is tracked, so it must be what the program writes
 # from the tracked whim-vim.c.  It is written only when that differs, so a current
 # file keeps its mtime.  whim-build writes it after producing whim-vim.c;
 # whim-editor-check refuses a stale one.
 .PHONY: editor/editor.go
-editor/editor.go: editor.c  ## the core in Go, generated whole from editor.c
+editor/editor.go: src/editor.c  ## the core in Go, generated whole from src/editor.c
 	@go tool whim gen
 
 .PHONY: whim-editor
@@ -336,8 +338,8 @@ whim-test-clj:  ## the quick suite with the Clojure editor too, required to answ
 
 # ==== housekeeping
 .PHONY: clean
-clean:  ## remove the built binaries and editor.c
-	rm -f src/slim-vim src/whim-vim bin/whim bin/braaam bin/vijure braaam.jar vijure.jar editor.lgo editor.c
+clean:  ## remove the built binaries and src/editor.c
+	rm -f src/slim-vim src/whim-vim bin/whim bin/braaam bin/vijure braaam.jar vijure.jar editor.lgo src/editor.c
 	rm -rf lib/braaam lib/vijure
 
 .PHONY: clean-cache

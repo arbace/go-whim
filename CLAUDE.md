@@ -246,8 +246,9 @@ vijure/         the editor in Clojure (doc/CLOJURE.md), all by hand but the
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
                    binaries and the editor
 src/               the input and the product: slim-vim.c (fetched, not tracked),
-                   whim-vim.c (produced, tracked), their binaries slim-vim and
-                   whim-vim, upstream.sha and slim.sha
+                   whim-vim.c (produced, tracked), editor.c (its core, cut by
+                   make; not tracked), their binaries slim-vim and whim-vim,
+                   upstream.sha and slim.sha
 doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    done, in order, and what was declined, with why), GO-IDIOMS.md (how
                    the Go editor could be idiomatic, measured and ranked; done or
@@ -410,8 +411,8 @@ was the input boundary's digest and the implementation's together, so a moved
 ## The core and the host
 
 `whim-vim.c`'s ten `#include`s are not at the top: **the first one is the line
-between the editor core and its host**, marked by nothing else. `make editor.c`
-cuts there: a complete translation unit with 0 preprocessor lines, 0 errors under
+between the editor core and its host**, marked by nothing else. `make src/editor.c`
+(or `make editor.c`) cuts there, into `src/editor.c`: a complete translation unit with 0 preprocessor lines, 0 errors under
 `-fsyntax-only`, and an interface of exactly the names the host defines --
 computed, never listed. The core names no libc function at all, holds no file
 descriptor of its own, and uses no floating point. `GOALS.md` §II.4 is the

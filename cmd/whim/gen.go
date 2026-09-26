@@ -13,9 +13,9 @@ import (
 	"github.com/arbace/go-whim/internal/whim"
 )
 
-// runGen writes editor/editor.go from editor.c, the core of whim-vim.c, and
+// runGen writes editor/editor.go from src/editor.c, the core of whim-vim.c, and
 // internal/gen/sigs.md beside it -- or, with --check, refuses when either is
-// not what internal/gen writes.  make cuts editor.c first (`make
+// not what internal/gen writes.  make cuts src/editor.c first (`make
 // editor/editor.go`, `make whim-editor-check`); this never runs make, so a
 // check cannot start a build.  crt.go and host.go are not generated: they are
 // the runtime and the host.  Each file is written only when it differs, so a
@@ -29,8 +29,8 @@ func runGen(args []string) int {
 		fmt.Fprintln(os.Stderr, "usage: whim gen [--check]")
 		return 2
 	}
-	if _, err := os.Stat("editor.c"); err != nil {
-		fmt.Println("whim gen: no editor.c; make cuts it from whim-vim.c: make editor/editor.go")
+	if _, err := os.Stat("src/editor.c"); err != nil {
+		fmt.Println("whim gen: no src/editor.c; make cuts it from whim-vim.c: make editor/editor.go")
 		return 1
 	}
 	out, err := os.MkdirTemp("", "gen")
@@ -44,7 +44,7 @@ func runGen(args []string) int {
 		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
 		return 1
 	}
-	if rc := togo.Run([]string{"editor.c", out, "-editor", filepath.Join(out, "editor.go")}, io.Discard, prof); rc != 0 {
+	if rc := togo.Run([]string{"src/editor.c", out, "-editor", filepath.Join(out, "editor.go")}, io.Discard, prof); rc != 0 {
 		fmt.Fprintln(os.Stderr, "whim gen: the generator refused editor.c")
 		return rc
 	}
@@ -58,7 +58,7 @@ func runGen(args []string) int {
 	}
 	defer os.RemoveAll(jdir)
 	javaOut := filepath.Join(out, "Editor.java")
-	if err := javaGen("editor.c", jdir, javaOut); err != nil {
+	if err := javaGen("src/editor.c", jdir, javaOut); err != nil {
 		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
 		return 1
 	}
@@ -75,7 +75,7 @@ func runGen(args []string) int {
 	}
 	defer os.RemoveAll(cdir)
 	cljOut := filepath.Join(out, "editor.clj")
-	if err := cljGen("editor.c", cdir, cljOut); err != nil {
+	if err := cljGen("src/editor.c", cdir, cljOut); err != nil {
 		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
 		return 1
 	}

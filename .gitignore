@@ -20,8 +20,8 @@
 # The Go editor as one go-lisp file (make editor.lgo, doc/GO-LISP.md).
 /editor.lgo
 
-# The core half of whim-vim.c, cut at the first #include by `make editor.c`.
-editor.c
+# The core half of whim-vim.c, cut at the first #include by `make src/editor.c`.
+/src/editor.c
 
 # The baselines the removed test suite recorded (448e9a8 and before).  Nothing
 # reads them any more.
