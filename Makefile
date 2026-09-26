@@ -177,7 +177,7 @@ bin/whim-vim: src/whim-vim.c  ## the C product's binary, compiled with the one l
 	     "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
 	     "$$((`date +%s` - t0))"
 
-# ==== the editor
+# ==== the core, and its translations
 # whim-vim.c is one translation unit with two parts: above, the core editor, with
 # no preprocessor syntax at all; below, the host, beginning with the #includes --
 # and that first directive IS the boundary, marked by nothing else (GOALS.md
@@ -214,7 +214,7 @@ src/editor.c: src/whim-vim.c  ## the core, cut from whim-vim.c at its first #inc
 # file keeps its mtime.  whim-build writes it after producing whim-vim.c;
 # whim-editor-check refuses a stale one.
 .PHONY: editor/editor.go
-editor/editor.go: src/editor.c  ## the core in Go, generated whole from src/editor.c
+editor/editor.go: src/editor.c  ## the translations, generated from src/editor.c: editor.go, Editor.java, editor.clj
 	@go tool whim gen
 
 .PHONY: whim-editor
@@ -222,76 +222,20 @@ whim-editor:
 	$(cut-editor)
 	@go tool whim gen
 
-.PHONY: whim-test
-whim-test:  ## the quick suite: 45 key sessions, required to behave as HEAD's whim-vim.c does
-	@go tool whim test
-
-.PHONY: whim-test-wide
-whim-test-wide:  ## the optional wide suite: 240 cases in four groups (keys, Ex commands, argv, a real terminal)
-	@go tool whim test --wide
-
-# The Go packages' own tests, in both modules: `go test ./...` at the root
-# does not reach crefactor/, a module of its own, so it is run from there too.
-# vet's unreachable check is off in both: its three reports are in the forked
-# front end's upstream code (cc/cpp.go, cc/parser.go), kept as upstream wrote it.
-.PHONY: go-test
-go-test:  ## the Go tests of both modules: this one and crefactor/
-	@go vet -unreachable=false ./... && go test ./...
-	@cd crefactor && go vet -unreachable=false ./... && go test ./...
-
 .PHONY: whim-editor-check
 whim-editor-check:  ## refuse if a tracked editor.go, Editor.java or editor.clj is not what the generator writes
 	$(cut-editor)
 	@go tool whim gen --check
 
+# ==== the editor in Go
 # The editor: editor/cmd/whim built -- package editor (editor.go as internal/gen
 # writes it from whim-vim.c, and its runtime and Host) on the terminal host.  Go's own build cache decides what compiles again, so the
 # rule runs every time and costs nothing when nothing moved.
-bin/whim: editor/editor.go force  ## the editor binary alone, from editor/
+bin/whim: editor/editor.go force  ## the editor in Go: editor/ built, and its binary
 	@mkdir -p bin
 	@go build -o $@ ./editor/cmd/whim
 	@printf '  %-12s %s bytes, the core in Go (editor/)\n' "$@" \
 	    "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
-
-# The editor in Java (braaam/, doc/JAVA.md): the core cut from whim-vim.c and
-# written as Editor.java by crefactor/togo's Java backend, compiled with javac
-# beside braaam's runtime, host and glue into lib/braaam/classes, and bin/braaam
-# a launcher script that runs it as a binary is run.  Not part of `all`: it
-# needs a JDK (22 or later, for the Foreign Function & Memory API).
-.PHONY: bin/braaam
-bin/braaam: src/whim-vim.c force  ## the editor in Java: Editor.java generated, compiled, and a launcher
-	@go tool whim java
-
-# braaam.jar is the same classes as one executable jar, at the top of the
-# tree: `java -jar braaam.jar [args]`.  Its manifest names the main class and
-# grants the terminal host its native access (Enable-Native-Access, JDK 22 and
-# later), so no flag is needed; the launcher's -XX flags only tune a short run
-# and have no manifest form, so java -jar runs without them.
-.PHONY: braaam.jar
-braaam.jar: bin/braaam  ## the editor in Java as one jar: java -jar braaam.jar [args]
-	@printf 'Main-Class: Whim\nEnable-Native-Access: ALL-UNNAMED\n' > lib/braaam/manifest.txt
-	@jar --create --file $@ --manifest lib/braaam/manifest.txt -C lib/braaam/classes .
-	@printf '  %-12s %s bytes, the core in Java (braaam/): java -jar %s\n' "$@" \
-	    "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" "$@"
-
-# The editor in Clojure (vijure/, doc/CLOJURE.md): the core cut from
-# whim-vim.c and written as the namespace whim.editor by crefactor/togo's
-# Clojure backend, AOT-compiled with vijure's glue and launcher on
-# braaam's runtime and host into lib/vijure/classes, merged with Clojure's jars
-# into lib/vijure/vijure.jar, its AOT cache trained (JDK 25 and later), and
-# bin/vijure a launcher script that runs it as a binary is run.  Not part of
-# `all`: it needs a JDK (22 or later) and the `clojure` command, whose jars it
-# copies.  CLJ_EDITOR=F compiles the namespace in F instead of generating one.
-.PHONY: bin/vijure
-bin/vijure: src/whim-vim.c force  ## the editor in Clojure: whim.editor generated, AOT-compiled, and a launcher
-	@go tool whim clj $(if $(CLJ_EDITOR),--editor $(CLJ_EDITOR))
-
-# vijure.jar is the same as one executable jar at the top of the tree:
-# `java -jar vijure.jar [args]` (Main-Class whim.cljmain, and the native
-# access granted in its manifest, as braaam.jar's).
-.PHONY: vijure.jar
-vijure.jar: bin/vijure  ## the editor in Clojure as one jar: java -jar vijure.jar [args]
-	@go tool whim clj --pack $@
 
 # editor.lgo is the Go editor as ONE go-lisp file (doc/GO-LISP.md): editor/'s
 # files merged into one Go file (whim gocat), converted by go-lisp's golisp,
@@ -324,13 +268,72 @@ editor.lgo:  ## the Go editor as one go-lisp file, compiled (needs go-lisp: GOLI
 	 printf '  %-12s %s lines, the Go editor in go-lisp, one file; go-lisp compiles it\n' $@ \
 	    "`grep -c '' $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
 
+# ==== the editor in Java
+# The editor in Java (braaam/, doc/JAVA.md): the core cut from whim-vim.c and
+# written as Editor.java by crefactor/togo's Java backend, compiled with javac
+# beside braaam's runtime, host and glue into lib/braaam/classes, and bin/braaam
+# a launcher script that runs it as a binary is run.  It needs a JDK (22 or
+# later, for the Foreign Function & Memory API).
+.PHONY: bin/braaam
+bin/braaam: src/whim-vim.c force  ## the editor in Java: Editor.java generated, compiled, and a launcher
+	@go tool whim java
+
+# braaam.jar is the same classes as one executable jar, at the top of the
+# tree: `java -jar braaam.jar [args]`.  Its manifest names the main class and
+# grants the terminal host its native access (Enable-Native-Access, JDK 22 and
+# later), so no flag is needed; the launcher's -XX flags only tune a short run
+# and have no manifest form, so java -jar runs without them.
+.PHONY: braaam.jar
+braaam.jar: bin/braaam  ## the editor in Java as one jar: java -jar braaam.jar [args]
+	@printf 'Main-Class: Whim\nEnable-Native-Access: ALL-UNNAMED\n' > lib/braaam/manifest.txt
+	@jar --create --file $@ --manifest lib/braaam/manifest.txt -C lib/braaam/classes .
+	@printf '  %-12s %s bytes, the core in Java (braaam/): java -jar %s\n' "$@" \
+	    "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" "$@"
+
 .PHONY: whim-test-java
 whim-test-java:  ## the quick suite with the Java editor too, required to answer as the C does
 	@go tool whim test --java
 
+# ==== the editor in Clojure
+# The editor in Clojure (vijure/, doc/CLOJURE.md): the core cut from
+# whim-vim.c and written as the namespace whim.editor by crefactor/togo's
+# Clojure backend, AOT-compiled with vijure's glue and launcher on
+# braaam's runtime and host into lib/vijure/classes, merged with Clojure's jars
+# into lib/vijure/vijure.jar, its AOT cache trained (JDK 25 and later), and
+# bin/vijure a launcher script that runs it as a binary is run.  It needs a
+# JDK (22 or later) and the `clojure` command, whose jars it copies.  CLJ_EDITOR=F compiles the namespace in F instead of generating one.
+.PHONY: bin/vijure
+bin/vijure: src/whim-vim.c force  ## the editor in Clojure: whim.editor generated, AOT-compiled, and a launcher
+	@go tool whim clj $(if $(CLJ_EDITOR),--editor $(CLJ_EDITOR))
+
+# vijure.jar is the same as one executable jar at the top of the tree:
+# `java -jar vijure.jar [args]` (Main-Class whim.cljmain, and the native
+# access granted in its manifest, as braaam.jar's).
+.PHONY: vijure.jar
+vijure.jar: bin/vijure  ## the editor in Clojure as one jar: java -jar vijure.jar [args]
+	@go tool whim clj --pack $@
+
 .PHONY: whim-test-clj
 whim-test-clj:  ## the quick suite with the Clojure editor too, required to answer as the C does
 	@go tool whim test $(if $(CLJ_EDITOR),--clojure-editor $(CLJ_EDITOR),--clojure)
+
+# ==== the tests
+.PHONY: whim-test
+whim-test:  ## the quick suite: 45 key sessions, required to behave as HEAD's whim-vim.c does
+	@go tool whim test
+
+.PHONY: whim-test-wide
+whim-test-wide:  ## the optional wide suite: 240 cases in four groups (keys, Ex commands, argv, a real terminal)
+	@go tool whim test --wide
+
+# The Go packages' own tests, in both modules: `go test ./...` at the root
+# does not reach crefactor/, a module of its own, so it is run from there too.
+# vet's unreachable check is off in both: its three reports are in the forked
+# front end's upstream code (cc/cpp.go, cc/parser.go), kept as upstream wrote it.
+.PHONY: go-test
+go-test:  ## the Go tests of both modules: this one and crefactor/
+	@go vet -unreachable=false ./... && go test ./...
+	@cd crefactor && go vet -unreachable=false ./... && go test ./...
 
 # ==== housekeeping
 .PHONY: clean
