@@ -253,6 +253,8 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    done, in order, and what was declined, with why), GO-IDIOMS.md (how
                    the Go editor could be idiomatic, measured and ranked; done or
                    declined), JAVA.md (the Java backend: its design and milestones),
+                   JAVA-IDIOMS.md (how the Java editor could be idiomatic,
+                   measured and ranked; a survey, nothing done),
                    PIPELINE-COMPACTION.md (which phases could be dropped, merged,
                    split or reordered, measured byte for byte), CLOJURE.md (the
                    Clojure editor), HASKELL.md and
