@@ -1171,6 +1171,17 @@ func (f *jfn) compare(x cc.ExpressionNode, op string, le, re cc.ExpressionNode) 
 	}
 	k := usualK(kl, kr)
 	a, b := f.convK(l, k), f.convK(r, k)
+	if op == "==" || op == "!=" {
+		// an unsigned byte or short compared for equality with a constant
+		// its signed Java value cannot confuse -- 0 to 127, 0 to 32,767 --
+		// is compared as it is held, without the mask that widens it: `p.get()
+		// == NUL` is the test `(p.get() & 0xff) == NUL` is
+		if s, ok := unmasked(l, kl, r); ok {
+			a, b = s, f.convK(r, jInt)
+		} else if s, ok := unmasked(r, kr, l); ok {
+			a, b = f.convK(l, jInt), s
+		}
+	}
 	if !k.signed && op != "==" && op != "!=" {
 		cls := "Integer"
 		if k.size == 8 {
@@ -1179,6 +1190,21 @@ func (f *jfn) compare(x cc.ExpressionNode, op string, le, re cc.ExpressionNode) 
 		return jval{s: cls + ".compareUnsigned(" + a + ", " + b + ") " + op + " 0", t: "boolean", c: x.Type()}
 	}
 	return jval{s: jparen(a) + " " + op + " " + jparen(b), t: "boolean", c: x.Type()}
+}
+
+// unmasked is v, an unsigned byte or short as Java holds it, when the
+// constant c it is compared with is one its signed value cannot confuse.
+func unmasked(v jval, kv jk, c jval) (string, bool) {
+	if kv.signed || kv.boolean || !c.konst || c.null || c.cv < 0 {
+		return "", false
+	}
+	switch {
+	case kv.size == 1 && v.t == "byte" && c.cv <= 0x7f:
+	case kv.size == 2 && v.t == "short" && c.cv <= 0x7fff:
+	default:
+		return "", false
+	}
+	return v.s, true
 }
 
 // logical is && or ||; what the right side does happens only when C would

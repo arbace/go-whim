@@ -1605,7 +1605,7 @@ void run(void)
 func TestJavaNames(t *testing.T) {
 	prog := javaSame(t, javaNamesC)
 	for _, want := range []string{
-		"case ESC:", "case K_INS:", `case '\\':`, `case '\t':`, "case ('z' - 'a') + 1:",
+		"case ESC:", "case K_INS:", `case '\\':`, `case '\t':`, "case 'z' - 'a' + 1:",
 		"P_BOOL | P_VI_DEF", "= P_RCLR;", "= BIGL;", "BIGL + 1L",
 		"(byte) M_SHIFT", "(byte) '&'", `(byte) '\\'`, "2147483647",
 	} {
@@ -1647,6 +1647,35 @@ func TestJconst(t *testing.T) {
 		got, ok := jconst(c.s, names)
 		if ok != c.ok || ok && got != c.want {
 			t.Errorf("jconst(%q) = %v, %v; want %v, %v", c.s, got, ok, c.want, c.ok)
+		}
+	}
+}
+
+// An unsigned byte compared for equality with a constant from 0 to 127 is
+// compared as Java holds it; with a constant over 127 its mask stays, since
+// the byte's signed value would differ.
+const javaMasksC = javaHost + `enum { NUL = 0 };
+static unsigned char bytes[] = { 'a', 200, 0 };
+
+int count(unsigned char *p)
+{
+    int n = 0;
+    for (; *p != NUL; p++)
+    {
+        if (*p == 'a') n += 1;
+        if (*p == 200) n += 10;
+    }
+    return n;
+}
+
+void run(void) { out(count(bytes)); }
+`
+
+func TestJavaMasks(t *testing.T) {
+	prog := javaSame(t, javaMasksC)
+	for _, want := range []string{"!= NUL", "== 'a'", "& 0xff) == 200"} {
+		if !strings.Contains(prog, want) {
+			t.Errorf("no %q in\n%s", want, numbered(prog))
 		}
 	}
 }

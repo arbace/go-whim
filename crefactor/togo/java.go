@@ -768,7 +768,7 @@ func (g *gen) writeJava(path string) error {
 	if err := os.WriteFile(path+".refused", []byte(report.String()), 0o644); err != nil {
 		return err
 	}
-	return os.WriteFile(path, []byte(b.String()), 0o644)
+	return os.WriteFile(path, []byte(jtidyFile(b.String())), 0o644)
 }
 
 // replaced says a function is the Java runtime's and not written: an

@@ -122,6 +122,18 @@ move the pool); a changed flag and a changed comparison are each refused.
 
 ### 2. Parentheses
 
+**Done**: `jtidy` (`crefactor/togo/java_tidy.go`) takes the finished
+`Editor.java` a line at a time and drops a pair of grouping parentheses
+where Java's precedence gives the same tree without them, keeping those a
+reader wants (a `&&` inside a `||`, a bitwise operator beside another or
+beside arithmetic or a shift, a shift beside arithmetic, a comparison beside
+another) and leaving a line it cannot read. 13,669 pairs gone (`(` 52,154 ->
+38,485). The proof: the Java with and without the pass, `whim java
+--same-classes`, **140 of 140 classes byte for byte the same**; the control
+(a right operand of equal precedence unwrapped, `a - (b - c)`) is refused.
+Lines over 120 columns 1,095 -> 905; breaking them is not done.
+
+
 - **The pattern:** 23,779 parenthesised expressions. By Java's precedence
   (the counter's table): 8,003 are the syntax of an `if`, `while` or `switch`,
   4,105 are needed, and **11,127 are not** -- 8,014 around an operand that
@@ -177,6 +189,14 @@ move the pool); a changed flag and a changed comparison are each refused.
   1,278 early declarations go, and the Java reads like the C's scoping.
 
 ### 4. Bytes: `(p.get() & 0xff) == NUL`
+
+**Done** in part: an unsigned byte or short compared for equality with a
+constant from 0 to 127 (0 to 32,767) is compared as Java holds it, `p.get()
+== NUL` (`unmasked`, `java_expr.go`); a constant over 127 keeps the mask
+(`TestJavaMasks`). `& 0xff` 2,139 -> 816, `& 0xffff` 101 -> 88. The bytecode
+changes, so the suites are the proof (`whim test --java`, `--wide
+--java`). The runtime's `u()` is not done.
+
 
 - **The pattern:** a C `char_u` is a Java `byte` holding its bits, so each
   read that widens it is masked: `& 0xff` **2,184 times** (1,147 on a
