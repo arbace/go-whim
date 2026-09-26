@@ -94,7 +94,8 @@ editor/          the editor in Go          braaam/   the editor in Java
 vijure/       the editor in Clojure: the glue, the launcher, the build
 src/             the input (fetched) and the product (tracked)
 doc/             GOALS.md (what holds for every phase), AGENDA.md (what is
-                 not done), JAVA.md, GO-IDIOMS.md, PIPELINE-COMPACTION.md,
+                 not done), JAVA.md, GO-IDIOMS.md, JAVA-IDIOMS.md,
+                 CLOJURE-IDIOMS.md, PIPELINE-COMPACTION.md,
                  GO-LISP.md, CLOJURE.md, HASKELL.md, RUST.md (preliminary plans, not scheduled)
 CLAUDE.md        the working guide: the build, the pipeline, what to know
                  before changing anything shared
