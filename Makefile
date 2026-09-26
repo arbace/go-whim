@@ -298,24 +298,28 @@ cljeditor.jar: force  ## the editor in Clojure as one jar: java -jar cljeditor.j
 # editor.lgo is the Go editor as ONE go-lisp file (doc/GO-LISP.md): editor/'s
 # files merged into one Go file (whim gocat), converted by go-lisp's golisp,
 # then compiled by go-lisp's go as the proof it is a package.  It needs the
-# go-lisp toolchain, which is not this repository's: GOLISP names its golisp
-# tool, and the go beside it compiles.  Not tracked, not part of `all`.
+# go-lisp toolchain, which is not this repository's: GOLISP_ROOT names it, and
+# its `go tool golisp` converts -- or GOLISP names a golisp binary, and the go
+# beside it compiles.  Not tracked, not part of `all`.
 GOLISP ?= golisp
+GOLISP_ROOT ?=
 .PHONY: editor.lgo
-editor.lgo:  ## the Go editor as one go-lisp file, compiled (needs go-lisp: GOLISP=.../golisp)
-	@golisp=`command -v $(GOLISP) 2>/dev/null`; \
-	 if [ -z "$$golisp" ]; then \
-	    echo "  editor.lgo   needs go-lisp's golisp tool: make editor.lgo GOLISP=/path/to/go-lisp/bin/golisp (doc/GO-LISP.md)"; \
-	    exit 1; \
+editor.lgo:  ## the Go editor as one go-lisp file, compiled (needs go-lisp: GOLISP_ROOT=.../go-lisp)
+	@if [ -n "$(GOLISP_ROOT)" ]; then \
+	    golisp="$(GOLISP_ROOT)/bin/go tool golisp"; gobin="$(GOLISP_ROOT)/bin/go"; \
+	    [ -x "$$gobin" ] || { echo "  editor.lgo   GOLISP_ROOT=$(GOLISP_ROOT) has no bin/go (doc/GO-LISP.md)"; exit 1; }; \
+	 else \
+	    golisp=`command -v $(GOLISP) 2>/dev/null`; gobin="`dirname "$$golisp" 2>/dev/null`/go"; \
+	    [ -n "$$golisp" ] || { echo "  editor.lgo   needs go-lisp: make editor.lgo GOLISP_ROOT=/path/to/go-lisp (doc/GO-LISP.md)"; exit 1; }; \
 	 fi; \
 	 set -e; \
 	 go tool whim gocat editor > $(TMPDIR)/editor-all.go; \
-	 "$$golisp" go2lisp $(TMPDIR)/editor-all.go > $@.tmp; \
+	 GOTOOLCHAIN=local $$golisp go2lisp $(TMPDIR)/editor-all.go > $@.tmp; \
 	 rm -f $(TMPDIR)/editor-all.go; \
 	 check=`mktemp -d`; \
 	 cp $@.tmp $$check/editor.lgo; \
 	 printf 'module lgocheck\n\ngo 1.27\n' > $$check/go.mod; \
-	 (cd $$check && GOTOOLCHAIN=local GOFLAGS= "`dirname $$golisp`/go" build ./...) \
+	 (cd $$check && GOTOOLCHAIN=local GOFLAGS= "$$gobin" build ./...) \
 	    || { echo "  editor.lgo   REFUSED -- go-lisp's go does not compile it"; rm -rf $$check $@.tmp; exit 1; }; \
 	 rm -rf $$check; \
 	 mv $@.tmp $@; \

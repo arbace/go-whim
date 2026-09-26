@@ -284,7 +284,7 @@ make bin/whim-java    # the editor in Java: Editor.java generated, compiled, and
 make whim-test-java   # the quick suite with the Java editor too (whim test --java; --wide --java)
 make bin/whim-clj     # the editor in Clojure: whim.editor generated, AOT-compiled, a launcher (CLJ_EDITOR=F: F's)
 make whim-test-clj    # the quick suite with the Clojure editor too (whim test --clojure; --wide --clojure)
-make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP=.../golisp; doc/GO-LISP.md)
+make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
 make whim-vim        # the C product's binary
 make slim-vim        # the input's binary, with the same one line

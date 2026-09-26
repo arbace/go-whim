@@ -20,10 +20,14 @@ against go-whim `2b35fb0`:
    (`src/cmd/dist/buildtool.go`) it builds, in 38 s, bootstrapped from Go
    1.27.1. `make.bash` does not install the `golisp` tool, although its own
    documentation says `go tool golisp`; `go build -o bin/golisp
-   ./cmd/compile/golisp` in the fork's `src/` does. Both are fixed upstream in
-   [arbace/go-lisp#1](https://github.com/arbace/go-lisp/pull/1): `cmd/dist`
-   bootstraps `internal/golisp`, and `go tool golisp` builds the tool on first
-   use, as `go tool` does the other tools make.bash leaves unbuilt.
+   ./cmd/compile/golisp` in the fork's `src/` does. Both are fixed upstream:
+   [arbace/go-lisp#1](https://github.com/arbace/go-lisp/pull/1), merged
+   2026-09-26 (`b335a27a`) and tidied after (`ee0852c8`: the bootstrap entry
+   sorted, the `go tool` hook one line), so `cmd/dist` bootstraps
+   `internal/golisp` and `go tool golisp` builds the tool on first use, as
+   `go tool` does the other tools make.bash leaves unbuilt. Verified on a
+   fresh clone of the `go-lisp` branch, with no patch: make.bash in 38 s,
+   `go tool golisp run`, and `make editor.lgo GOLISP_ROOT=...`.
 2. **go-whim builds and tests under it, unchanged**: both modules build and
    vet (`GOTOOLCHAIN=local`; `go.mod`'s `go 1.27.1` is accepted), and `whim
    test` passes.
@@ -69,20 +73,15 @@ against go-whim `2b35fb0`:
 ## Reproduce
 
 ```sh
-# the branch of arbace/go-lisp#1 has both fixes; once it is merged, the
-# go-lisp branch does
-git clone --depth 1 --branch fix-bootstrap-and-go-tool https://github.com/arbace/go-lisp.git .tmp/go-lisp
+git clone --depth 1 --branch go-lisp https://github.com/arbace/go-lisp.git .tmp/go-lisp
 (cd .tmp/go-lisp/src && GOROOT_BOOTSTRAP=$(go env GOROOT) ./make.bash)
-(cd .tmp/go-lisp/src && ../bin/go build -o ../bin/golisp ./cmd/compile/golisp)
-make editor.lgo GOLISP=$PWD/.tmp/go-lisp/bin/golisp
+make editor.lgo GOLISP_ROOT=$PWD/.tmp/go-lisp
 ```
 
-(`make editor.lgo` runs the `golisp` binary it is given; with the fix, `go tool
-golisp` also works, and builds it on first use.)
-
-`make editor.lgo` writes `./editor.lgo` (untracked) and compiles it with the
-`go` beside `GOLISP`, refusing a file that does not compile; without a
-`golisp` it says what it needs. To run the suites on it, as in (5): in a
-worktree, replace `editor/`'s non-test `.go` files by `editor.lgo`, put the
-go-lisp `bin/` first on `PATH` with `GOTOOLCHAIN=local`, and run `go tool whim
-test` (and `--wide`).
+`make editor.lgo` writes `./editor.lgo` (untracked), converting with the
+toolchain's `go tool golisp` and compiling with its `go`, and refuses a file
+that does not compile; `GOLISP=path/to/golisp` works too, with the `go`
+beside it. Without either it says what it needs. To run the suites on it, as
+in (5): in a worktree, replace `editor/`'s non-test `.go` files by
+`editor.lgo`, put the go-lisp `bin/` first on `PATH` with `GOTOOLCHAIN=local`,
+and run `go tool whim test` (and `--wide`).
