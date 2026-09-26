@@ -247,8 +247,8 @@ Makefile           the whole build: fetches the input, runs the pipeline, builds
                    binaries and the editor
 src/               the input and the product: slim-vim.c (fetched, not tracked),
                    whim-vim.c (produced, tracked), editor.c (its core, cut by
-                   make; not tracked), their binaries slim-vim and whim-vim,
-                   upstream.sha and slim.sha
+                   make; not tracked), upstream.sha and slim.sha; their
+                   binaries are bin/slim-vim and bin/whim-vim
 doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    done, in order, and what was declined, with why), GO-IDIOMS.md (how
                    the Go editor could be idiomatic, measured and ranked; done or
@@ -278,7 +278,7 @@ the same `editor/editor.go` byte for byte either way.
 ```sh
 make                 # all: through whim-vim.c (produced only when slim-vim.c moved)
                      # and the generated editors, bin/whim (the Go editor), the
-                     # C binaries src/whim-vim and src/slim-vim, bin/braaam and
+                     # C binaries bin/whim-vim and bin/slim-vim, bin/braaam and
                      # braaam.jar, bin/vijure and vijure.jar (packed from its build)
 make whim-build      # the 143 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
@@ -291,8 +291,8 @@ make bin/vijure       # the editor in Clojure: whim.editor generated, AOT-compil
 make whim-test-clj    # the quick suite with the Clojure editor too (whim test --clojure; --wide --clojure)
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)
 make go-test          # the Go packages' tests, this module's and crefactor/'s (go test ./... skips it)
-make whim-vim        # the C product's binary
-make slim-vim        # the input's binary, with the same one line
+make bin/whim-vim    # the C product's binary
+make bin/slim-vim    # the input's binary, with the same one line
 make score           # bytes to store and symbols to provide, input beside product
 make help            # every target, with a line each
 ```
@@ -391,11 +391,11 @@ was the input boundary's digest and the implementation's together, so a moved
   record of the schedule there was, and of the measurement that retired it.
 - `go tool whim build --to N --work D` leaves the tree after phase N; `--keep D` writes every boundary, and `go tool whim measure
   D` counts them (`internal/phase/boundaries.md`).
-- **A binary is only ever the build of its source as it stands.** `slim-vim` and
-  `whim-vim` stamp the digest of the `.c` they were built from
+- **A binary is only ever the build of its source as it stands.** `bin/slim-vim`
+  and `bin/whim-vim` stamp the digest of the `src/*.c` they were built from
   (`.cache/stamps/`); as make starts, and whenever a rule rewrites a source, a
   binary whose source no longer matches its stamp is deleted and not rebuilt --
-  `make slim-vim` or `make whim-vim` builds it again.
+  `make bin/slim-vim` or `make bin/whim-vim` builds it again.
 - **A phase touches no shared state**: its scratch and its sweep's file are
   temporary directories of its own, which is what lets the check run phases side
   by side. Two WHOLE builds in one checkout would still both write

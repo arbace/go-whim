@@ -39,14 +39,14 @@ and requires the same screens, with a control that must move them;
 
 ```sh
 make                   # fetch the input if it moved, then every editor: bin/whim,
-                       # src/whim-vim, src/slim-vim, bin/braaam and braaam.jar,
+                       # bin/whim-vim, bin/slim-vim, bin/braaam and braaam.jar,
                        # bin/vijure and vijure.jar
 make whim-build        # the pipeline: slim-vim.c -> whim-vim.c and the three translations
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a stale editor.go, Editor.java or editor.clj
 make whim-test         # the quick suite; whim-test-wide, whim-test-java
 make go-test           # the Go packages' tests
-make whim-vim          # the C editor's binary
+make bin/whim-vim      # the C editor's binary
 make bin/braaam        # the Java editor, and a launcher: bin/braaam [args]
 make braaam.jar        # the same as one jar: java -jar braaam.jar [args]
 make bin/vijure        # the Clojure editor (doc/CLOJURE.md), and a launcher: bin/vijure [args]

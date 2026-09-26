@@ -5,9 +5,7 @@
 # tree.
 /src/slim-vim.c
 
-# The binaries: the input's and the C product's, and the editor's, the core in Go.
-/src/slim-vim
-/src/whim-vim
+# The binaries: the input's and the C product's, and the editors'.
 /bin/
 
 # The Java and Clojure editors' builds: their sources and classes (make

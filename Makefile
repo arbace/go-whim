@@ -21,13 +21,13 @@
 # the committed slim-vim.c.  448e9a8 is the last commit with the old suite.
 #
 #   make                 fetch if the upstream moved, then every editor: bin/whim
-#                        (the core in Go), src/whim-vim and src/slim-vim, bin/braaam
+#                        (the core in Go), bin/whim-vim and bin/slim-vim, bin/braaam
 #                        and braaam.jar (Java), bin/vijure and vijure.jar (Clojure)
 #   make whim-build      the 143 phases in one process: slim-vim.c -> whim-vim.c,
 #                        about fifteen minutes, no cache and no checks
 #   make whim-build-check  the same build, required to give the committed bytes back
-#   make whim-vim        the C product's binary
-#   make slim-vim        the input's binary
+#   make bin/whim-vim    the C product's binary
+#   make bin/slim-vim    the input's binary
 #   make src/editor.c    the core, cut from whim-vim.c at its first #include
 #   make editor/editor.go  the core in Go, generated from src/editor.c
 #   make help            every target, with a line each
@@ -53,7 +53,7 @@ LDFLAGS = -static -no-pie -s
 .DEFAULT_GOAL := all
 
 .PHONY: all
-all: bin/whim src/whim-vim src/slim-vim bin/braaam braaam.jar bin/vijure vijure.jar  ## everything: fetch if the upstream moved, then the four editors and the jars
+all: bin/whim bin/whim-vim bin/slim-vim bin/braaam braaam.jar bin/vijure vijure.jar  ## everything: fetch if the upstream moved, then the four editors and the jars
 
 # --- help -----------------------------------------------------------------
 # Every target worth asking for carries its own one-line description, as a `##`
@@ -70,11 +70,12 @@ help:
 	@printf '\n    %-22s %s\n\n' "make -n <target>" "what a target would run, without running it"
 
 # --- a binary is only ever the build of its source as it stands ----------
-# slim-vim and whim-vim each record, when built, the digest of the .c they were
-# built from (.cache/stamps/<binary>.sha).  A binary whose source no longer has
-# that digest -- fetched, produced again, checked out, edited by hand -- is
-# DELETED, and never rebuilt behind anyone's back: `make slim-vim` or `make
-# whim-vim` builds it again when it is wanted.  A binary with no stamp was built
+# bin/slim-vim and bin/whim-vim each record, when built, the digest of the .c
+# they were built from, src/slim-vim.c and src/whim-vim.c
+# (.cache/stamps/<binary>.sha).  A binary whose source no longer has that digest
+# -- fetched, produced again, checked out, edited by hand -- is DELETED, and
+# never rebuilt behind anyone's back: `make bin/slim-vim` or `make bin/whim-vim`
+# builds it again when it is wanted.  A binary with no stamp was built
 # from nobody knows what, and goes the same way.
 #
 # Checked twice: as make reads this file, which catches every change made
@@ -82,16 +83,16 @@ help:
 # (slim-vim.c's fetch, whim-build), since by then the first check has happened.
 STAMPS = .cache/stamps
 
-# $(call drop-stale,BINARY), a shell command: remove BINARY when BINARY.c is not
-# what its stamp says it was built from, and say so.
-drop-stale = if [ -e $(1) ] && [ "`sha256sum $(1).c 2>/dev/null | cut -c1-64`" != "`cat $(STAMPS)/$(notdir $(1)).sha 2>/dev/null`" ]; then rm -f $(1); printf '  %-12s %s\n' "stale" "$(1).c is not what $(1) was built from -- removed; make $(notdir $(1)) builds it again"; fi
+# $(call drop-stale,BINARY,SOURCE), a shell command: remove BINARY when SOURCE is
+# not what its stamp says it was built from, and say so.
+drop-stale = if [ -e $(1) ] && [ "`sha256sum $(2) 2>/dev/null | cut -c1-64`" != "`cat $(STAMPS)/$(notdir $(1)).sha 2>/dev/null`" ]; then rm -f $(1); printf '  %-12s %s\n' "stale" "$(2) is not what $(1) was built from -- removed; make $(1) builds it again"; fi
 
-# $(call stamp,BINARY), a shell command: record the digest of BINARY.c, which
-# BINARY was just built from.
-stamp = mkdir -p $(STAMPS) && sha256sum $(1).c | cut -c1-64 > $(STAMPS)/$(notdir $(1)).sha
+# $(call stamp,BINARY,SOURCE), a shell command: record the digest of SOURCE,
+# which BINARY was just built from.
+stamp = mkdir -p $(STAMPS) && sha256sum $(2) | cut -c1-64 > $(STAMPS)/$(notdir $(1)).sha
 
 empty :=
-$(foreach b,src/slim-vim src/whim-vim,$(eval _stale := $(shell $(call drop-stale,$(b))))$(if $(_stale),$(info $(empty)  $(_stale))))
+$(foreach b,slim-vim whim-vim,$(eval _stale := $(shell $(call drop-stale,bin/$(b),src/$(b).c)))$(if $(_stale),$(info $(empty)  $(_stale))))
 
 # ==== the input
 # It cannot be a timestamp -- a clone writes every file at checkout time in
@@ -119,17 +120,15 @@ src/slim-vim.c: force  ## fetch the input at arbace/slim-vim's head, if it moved
 	rm -rf "$$tmp"; \
 	echo "$$live" > src/upstream.sha; \
 	printf '  %-12s %s lines, sha256 %s\n' "$@" "`grep -c '' $@`" "`sha256sum $@ | cut -c1-12`"; \
-	$(call drop-stale,src/slim-vim)
+	$(call drop-stale,bin/slim-vim,src/slim-vim.c)
 
-src/slim-vim: src/slim-vim.c
+bin/slim-vim: src/slim-vim.c  ## the input's binary, compiled with the one line
+	@mkdir -p bin
 	@printf '  %-12s %s\n' "compiling" "$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<"
-	@t0=`date +%s`; $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< && $(call stamp,$@); \
+	@t0=`date +%s`; $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< && $(call stamp,$@,$<); \
 	 printf '  %-12s %s bytes, static, not PIE, %ss\n' "$@" \
 	     "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
 	     "$$((`date +%s` - t0))"
-
-.PHONY: slim-vim
-slim-vim: src/slim-vim  ## the input's binary, src/slim-vim, compiled with the one line
 
 # ==== the product
 # whim-vim.c is keyed on slim-vim.c's content, not on mtimes: both are tracked,
@@ -164,21 +163,19 @@ src/whim-vim.c: src/slim-vim.c force
 whim-build:  ## the 143 phases in one process: slim-vim.c -> whim-vim.c
 	@printf '\n\033[1m  whim-vim\033[0m  from slim-vim.c: an editor with no runtime\n'
 	@go tool whim build --out src/whim-vim.c
-	@$(call drop-stale,src/whim-vim)
+	@$(call drop-stale,bin/whim-vim,src/whim-vim.c)
 	@$(if $(filter no,$(WHIM_BUILD_EDITOR)),,$(MAKE) --no-print-directory whim-editor)
 
 whim-build-check:  ## the same build, required to give the committed bytes back
 	@go tool whim build --check
 
-src/whim-vim: src/whim-vim.c
+bin/whim-vim: src/whim-vim.c  ## the C product's binary, compiled with the one line
+	@mkdir -p bin
 	@printf '  %-12s %s\n' "compiling" "$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $<"
-	@t0=`date +%s`; $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< && $(call stamp,$@); \
+	@t0=`date +%s`; $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $< && $(call stamp,$@,$<); \
 	 printf '  %-12s %s bytes, static, not PIE, %ss\n' "$@" \
 	     "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
 	     "$$((`date +%s` - t0))"
-
-.PHONY: whim-vim
-whim-vim: src/whim-vim  ## the C product's binary, src/whim-vim, compiled with the one line
 
 # ==== the editor
 # whim-vim.c is one translation unit with two parts: above, the core editor, with
@@ -338,7 +335,7 @@ whim-test-clj:  ## the quick suite with the Clojure editor too, required to answ
 # ==== housekeeping
 .PHONY: clean
 clean:  ## remove the built binaries and src/editor.c
-	rm -f src/slim-vim src/whim-vim bin/whim bin/braaam bin/vijure braaam.jar vijure.jar editor.lgo src/editor.c
+	rm -f bin/slim-vim bin/whim-vim bin/whim bin/braaam bin/vijure braaam.jar vijure.jar editor.lgo src/editor.c
 	rm -rf lib/braaam lib/vijure
 
 .PHONY: clean-cache
