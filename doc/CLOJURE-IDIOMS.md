@@ -348,6 +348,11 @@ What `check_cursor_lnum` (8677) becomes with the rules of this item alone:
 
 ### 5. Struct members whose address is taken
 
+**Done in part: phase 174** takes `pos_T.lnum` and `.col` out of it (the
+C's 11 `&pos.lnum`s and its two columns): `(aget ... 0)` 10,786 -> 8,997.
+The other members stay boxed.
+
+
 - **The pattern.** A member whose address C takes is a one-element array in
   its `deftype` (`^longs lnum` in `T_pos_T`), read `(aget ^longs (.-lnum
   ^T_pos_T p) 0)`: **68 members, their address taken at 91 sites, read that

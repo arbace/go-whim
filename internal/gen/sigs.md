@@ -630,6 +630,8 @@ func ex_delmarks(eap *S_exarg)
 func ex_changes(eap *S_exarg)
 func mark_adjust(line1 linenr_T, line2 linenr_T, amount int64, amount_after int64)
 func mark_adjust_nofold(line1 linenr_T, line2 linenr_T, amount int64, amount_after int64)
+func one_adjust(lnum linenr_T, line1 linenr_T, line2 linenr_T, amount int64, amount_after int64) linenr_T
+func one_adjust_nodel(lnum linenr_T, line1 linenr_T, line2 linenr_T, amount int64, amount_after int64) linenr_T
 func mark_adjust_internal(line1 linenr_T, line2 linenr_T, amount int64, amount_after int64, adjust_folds bool)
 func mark_col_adjust(lnum linenr_T, mincol colnr_T, lnum_amount int64, col_amount int64, spaces_removed int32)
 func set_last_cursor(win *S_window_S)

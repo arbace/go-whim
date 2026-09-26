@@ -786,4 +786,8 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "gotoblock", Args: []string{"--at-least", "50"}},
 		}},
+	{N: 174, Name: "no address of a position's line or column",
+		Steps: []Step{
+			{Op: "edit", Args: []string{"whim174"}},
+		}},
 }

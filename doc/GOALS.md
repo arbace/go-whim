@@ -2232,6 +2232,7 @@ declared `delta.md`.
 - [Phase 171 — a goto that is a break is break](../internal/phase/171/GOAL.md)
 - [Phase 172 — a goto back is a loop](../internal/phase/172/GOAL.md)
 - [Phase 173 — a goto out of its block is a break](../internal/phase/173/GOAL.md)
+- [Phase 174 — no address of a position's line or column](../internal/phase/174/GOAL.md)
 
 ## Appendix to Part II — the plan phases 83 onwards were built from
 

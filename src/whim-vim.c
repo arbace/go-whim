@@ -28342,12 +28342,47 @@ mark_adjust_nofold(linenr_T line1, linenr_T line2, long amount, long amount_afte
     mark_adjust_internal(line1, line2, amount, amount_after, FALSE);
 }
 
+    static linenr_T
+one_adjust(linenr_T lnum, linenr_T line1, linenr_T line2, long amount, long amount_after)
+{
+    if (lnum >= line1 && lnum <= line2)
+    {
+        if (amount == LONG_MAX)
+        {
+            return 0;
+        }
+        return lnum + amount;
+    }
+    if (amount_after && lnum > line2)
+    {
+        return lnum + amount_after;
+    }
+    return lnum;
+}
+
+    static linenr_T
+one_adjust_nodel(linenr_T lnum, linenr_T line1, linenr_T line2, long amount, long amount_after)
+{
+    if (lnum >= line1 && lnum <= line2)
+    {
+        if (amount == LONG_MAX)
+        {
+            return line1;
+        }
+        return lnum + amount;
+    }
+    if (amount_after && lnum > line2)
+    {
+        return lnum + amount_after;
+    }
+    return lnum;
+}
+
     static void
 mark_adjust_internal(linenr_T line1, linenr_T line2, long amount, long amount_after, bool adjust_folds)
 {
     int i;
     int fnum = curbuf->b_fnum;
-    linenr_T *lp;
     win_T *win;
     wininfo_T *wip;
     static pos_T initpos =
@@ -28364,206 +28399,26 @@ mark_adjust_internal(linenr_T line1, linenr_T line2, long amount, long amount_af
     {
         for (i = 0; i < ('z' - 'a' + 1); i++)
         {
-            {
-                lp = &(curbuf->b_namedm[i].lnum);
-                if (*lp >= line1 && *lp <= line2)
-                {
-                    if (amount == LONG_MAX)
-                    {
-                        *lp = 0;
-                    }
-                    else
-                    {
-                        *lp += amount;
-                    }
-                }
-                else if (amount_after && *lp > line2)
-                {
-                    *lp += amount_after;
-                }
-            }
-            ;
+            curbuf->b_namedm[i].lnum = one_adjust(curbuf->b_namedm[i].lnum, line1, line2, amount, amount_after);
         }
-        {
-            lp = &(curbuf->b_last_insert.lnum);
-            if (*lp >= line1 && *lp <= line2)
-            {
-                if (amount == LONG_MAX)
-                {
-                    *lp = 0;
-                }
-                else
-                {
-                    *lp += amount;
-                }
-            }
-            else if (amount_after && *lp > line2)
-            {
-                *lp += amount_after;
-            }
-        }
-        ;
-        {
-            lp = &(curbuf->b_last_change.lnum);
-            if (*lp >= line1 && *lp <= line2)
-            {
-                if (amount == LONG_MAX)
-                {
-                    *lp = 0;
-                }
-                else
-                {
-                    *lp += amount;
-                }
-            }
-            else if (amount_after && *lp > line2)
-            {
-                *lp += amount_after;
-            }
-        }
-        ;
+        curbuf->b_last_insert.lnum = one_adjust(curbuf->b_last_insert.lnum, line1, line2, amount, amount_after);
+        curbuf->b_last_change.lnum = one_adjust(curbuf->b_last_change.lnum, line1, line2, amount, amount_after);
         if (!(((curbuf->b_last_cursor).lnum == (initpos).lnum) && ((curbuf->b_last_cursor).col == (initpos).col) && ((curbuf->b_last_cursor).coladd == (initpos).coladd)))
         {
-            {
-                lp = &(curbuf->b_last_cursor.lnum);
-                if (*lp >= line1 && *lp <= line2)
-                {
-                    if (amount == LONG_MAX)
-                    {
-                        *lp = 0;
-                    }
-                    else
-                    {
-                        *lp += amount;
-                    }
-                }
-                else if (amount_after && *lp > line2)
-                {
-                    *lp += amount_after;
-                }
-            }
-            ;
+            curbuf->b_last_cursor.lnum = one_adjust(curbuf->b_last_cursor.lnum, line1, line2, amount, amount_after);
         }
         for (i = 0; i < curbuf->b_changelistlen; ++i)
         {
-            {
-                lp = &(curbuf->b_changelist[i].lnum);
-                if (*lp >= line1 && *lp <= line2)
-                {
-                    if (amount == LONG_MAX)
-                    {
-                        *lp = line1;
-                    }
-                    else
-                    {
-                        *lp += amount;
-                    }
-                }
-                else if (amount_after && *lp > line2)
-                {
-                    *lp += amount_after;
-                }
-            }
-            ;
+            curbuf->b_changelist[i].lnum = one_adjust_nodel(curbuf->b_changelist[i].lnum, line1, line2, amount, amount_after);
         }
-        {
-            lp = &(curbuf->b_visual.vi_start.lnum);
-            if (*lp >= line1 && *lp <= line2)
-            {
-                if (amount == LONG_MAX)
-                {
-                    *lp = line1;
-                }
-                else
-                {
-                    *lp += amount;
-                }
-            }
-            else if (amount_after && *lp > line2)
-            {
-                *lp += amount_after;
-            }
-        }
-        ;
-        {
-            lp = &(curbuf->b_visual.vi_end.lnum);
-            if (*lp >= line1 && *lp <= line2)
-            {
-                if (amount == LONG_MAX)
-                {
-                    *lp = line1;
-                }
-                else
-                {
-                    *lp += amount;
-                }
-            }
-            else if (amount_after && *lp > line2)
-            {
-                *lp += amount_after;
-            }
-        }
-        ;
+        curbuf->b_visual.vi_start.lnum = one_adjust_nodel(curbuf->b_visual.vi_start.lnum, line1, line2, amount, amount_after);
+        curbuf->b_visual.vi_end.lnum = one_adjust_nodel(curbuf->b_visual.vi_end.lnum, line1, line2, amount, amount_after);
     }
-    {
-        lp = &(curwin->w_pcmark.lnum);
-        if (*lp >= line1 && *lp <= line2)
-        {
-            if (amount == LONG_MAX)
-            {
-                *lp = 0;
-            }
-            else
-            {
-                *lp += amount;
-            }
-        }
-        else if (amount_after && *lp > line2)
-        {
-            *lp += amount_after;
-        }
-    }
-    ;
-    {
-        lp = &(curwin->w_prev_pcmark.lnum);
-        if (*lp >= line1 && *lp <= line2)
-        {
-            if (amount == LONG_MAX)
-            {
-                *lp = 0;
-            }
-            else
-            {
-                *lp += amount;
-            }
-        }
-        else if (amount_after && *lp > line2)
-        {
-            *lp += amount_after;
-        }
-    }
-    ;
+    curwin->w_pcmark.lnum = one_adjust(curwin->w_pcmark.lnum, line1, line2, amount, amount_after);
+    curwin->w_prev_pcmark.lnum = one_adjust(curwin->w_prev_pcmark.lnum, line1, line2, amount, amount_after);
     if (saved_cursor.lnum != 0)
     {
-        {
-            lp = &(saved_cursor.lnum);
-            if (*lp >= line1 && *lp <= line2)
-            {
-                if (amount == LONG_MAX)
-                {
-                    *lp = line1;
-                }
-                else
-                {
-                    *lp += amount;
-                }
-            }
-            else if (amount_after && *lp > line2)
-            {
-                *lp += amount_after;
-            }
-        }
-        ;
+        saved_cursor.lnum = one_adjust_nodel(saved_cursor.lnum, line1, line2, amount, amount_after);
     }
     win = curwin;
     if (win->w_buffer == curbuf)
@@ -28574,68 +28429,14 @@ mark_adjust_internal(linenr_T line1, linenr_T line2, long amount, long amount_af
             {
                 if (win->w_tagstack[i].fmark.fnum == fnum)
                 {
-                    {
-                        lp = &(win->w_tagstack[i].fmark.mark.lnum);
-                        if (*lp >= line1 && *lp <= line2)
-                        {
-                            if (amount == LONG_MAX)
-                            {
-                                *lp = line1;
-                            }
-                            else
-                            {
-                                *lp += amount;
-                            }
-                        }
-                        else if (amount_after && *lp > line2)
-                        {
-                            *lp += amount_after;
-                        }
-                    }
-                    ;
+                    win->w_tagstack[i].fmark.mark.lnum = one_adjust_nodel(win->w_tagstack[i].fmark.mark.lnum, line1, line2, amount, amount_after);
                 }
             }
         }
         if (win->w_old_cursor_lnum != 0)
         {
-            {
-                lp = &(win->w_old_cursor_lnum);
-                if (*lp >= line1 && *lp <= line2)
-                {
-                    if (amount == LONG_MAX)
-                    {
-                        *lp = line1;
-                    }
-                    else
-                    {
-                        *lp += amount;
-                    }
-                }
-                else if (amount_after && *lp > line2)
-                {
-                    *lp += amount_after;
-                }
-            }
-            ;
-            {
-                lp = &(win->w_old_visual_lnum);
-                if (*lp >= line1 && *lp <= line2)
-                {
-                    if (amount == LONG_MAX)
-                    {
-                        *lp = line1;
-                    }
-                    else
-                    {
-                        *lp += amount;
-                    }
-                }
-                else if (amount_after && *lp > line2)
-                {
-                    *lp += amount_after;
-                }
-            }
-            ;
+            win->w_old_cursor_lnum = one_adjust_nodel(win->w_old_cursor_lnum, line1, line2, amount, amount_after);
+            win->w_old_visual_lnum = one_adjust_nodel(win->w_old_visual_lnum, line1, line2, amount, amount_after);
         }
         if (win != curwin)
         {
@@ -47800,7 +47601,13 @@ cursor_pos_info(void)
         {
             if (VIsual_mode == Ctrl_V && curwin->w_curswant < MAXCOL)
             {
-                getvcols(curwin, &min_pos, &max_pos, &min_pos.col, &max_pos.col, 0);
+                {
+                    colnr_T min_col;
+                    colnr_T max_col;
+                    getvcols(curwin, &min_pos, &max_pos, &min_col, &max_col, 0);
+                    min_pos.col = min_col;
+                    max_pos.col = max_col;
+                }
                 vim_snprintf((char *)buf1, sizeof(buf1), _("%ld Cols; "), (long)(oparg.end_vcol - oparg.start_vcol + 1));
             }
             else

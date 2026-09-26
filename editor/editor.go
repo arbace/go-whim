@@ -25341,10 +25341,35 @@ func (ed *Editor) mark_adjust_nofold(line1 linenr_T, line2 linenr_T, amount int6
 	ed.mark_adjust_internal(line1, line2, amount, amount_after, false)
 }
 
+func one_adjust(lnum linenr_T, line1 linenr_T, line2 linenr_T, amount int64, amount_after int64) linenr_T {
+	if (lnum >= line1) && (lnum <= line2) {
+		if amount == LONG_MAX {
+			return 0
+		}
+		return lnum + amount
+	}
+	if (amount_after != 0) && (lnum > line2) {
+		return lnum + amount_after
+	}
+	return lnum
+}
+
+func one_adjust_nodel(lnum linenr_T, line1 linenr_T, line2 linenr_T, amount int64, amount_after int64) linenr_T {
+	if (lnum >= line1) && (lnum <= line2) {
+		if amount == LONG_MAX {
+			return line1
+		}
+		return lnum + amount
+	}
+	if (amount_after != 0) && (lnum > line2) {
+		return lnum + amount_after
+	}
+	return lnum
+}
+
 func (ed *Editor) mark_adjust_internal(line1 linenr_T, line2 linenr_T, amount int64, amount_after int64, adjust_folds bool) {
 	var i int32
 	fnum := ed.curbuf.b_fnum
-	var lp *linenr_T
 	var win *S_window_S
 	var wip *S_wininfo_S
 	if (line2 < line1) && (amount_after == 0) {
@@ -25353,114 +25378,24 @@ func (ed *Editor) mark_adjust_internal(line1 linenr_T, line2 linenr_T, amount in
 	if (ed.cmdmod.cmod_flags & CMOD_LOCKMARKS) == 0 {
 		i = 0
 		for ; i < (('z' - 'a') + 1); i++ {
-			lp = &ed.curbuf.b_namedm[int(i)].lnum
-			if ((*lp) >= line1) && ((*lp) <= line2) {
-				if amount == LONG_MAX {
-					*lp = 0
-				} else {
-					(*lp) += amount
-				}
-			} else if (amount_after != 0) && ((*lp) > line2) {
-				(*lp) += amount_after
-			}
+			ed.curbuf.b_namedm[int(i)].lnum = one_adjust(ed.curbuf.b_namedm[int(i)].lnum, line1, line2, amount, amount_after)
 		}
-		lp = &ed.curbuf.b_last_insert.lnum
-		if ((*lp) >= line1) && ((*lp) <= line2) {
-			if amount == LONG_MAX {
-				*lp = 0
-			} else {
-				(*lp) += amount
-			}
-		} else if (amount_after != 0) && ((*lp) > line2) {
-			(*lp) += amount_after
-		}
-		lp = &ed.curbuf.b_last_change.lnum
-		if ((*lp) >= line1) && ((*lp) <= line2) {
-			if amount == LONG_MAX {
-				*lp = 0
-			} else {
-				(*lp) += amount
-			}
-		} else if (amount_after != 0) && ((*lp) > line2) {
-			(*lp) += amount_after
-		}
+		ed.curbuf.b_last_insert.lnum = one_adjust(ed.curbuf.b_last_insert.lnum, line1, line2, amount, amount_after)
+		ed.curbuf.b_last_change.lnum = one_adjust(ed.curbuf.b_last_change.lnum, line1, line2, amount, amount_after)
 		if !(((ed.curbuf.b_last_cursor.lnum == ed.mark_adjust_internal_initpos.lnum) && (ed.curbuf.b_last_cursor.col == ed.mark_adjust_internal_initpos.col)) && (ed.curbuf.b_last_cursor.coladd == ed.mark_adjust_internal_initpos.coladd)) {
-			lp = &ed.curbuf.b_last_cursor.lnum
-			if ((*lp) >= line1) && ((*lp) <= line2) {
-				if amount == LONG_MAX {
-					*lp = 0
-				} else {
-					(*lp) += amount
-				}
-			} else if (amount_after != 0) && ((*lp) > line2) {
-				(*lp) += amount_after
-			}
+			ed.curbuf.b_last_cursor.lnum = one_adjust(ed.curbuf.b_last_cursor.lnum, line1, line2, amount, amount_after)
 		}
 		i = 0
 		for ; i < ed.curbuf.b_changelistlen; i++ {
-			lp = &ed.curbuf.b_changelist[int(i)].lnum
-			if ((*lp) >= line1) && ((*lp) <= line2) {
-				if amount == LONG_MAX {
-					*lp = line1
-				} else {
-					(*lp) += amount
-				}
-			} else if (amount_after != 0) && ((*lp) > line2) {
-				(*lp) += amount_after
-			}
+			ed.curbuf.b_changelist[int(i)].lnum = one_adjust_nodel(ed.curbuf.b_changelist[int(i)].lnum, line1, line2, amount, amount_after)
 		}
-		lp = &ed.curbuf.b_visual.vi_start.lnum
-		if ((*lp) >= line1) && ((*lp) <= line2) {
-			if amount == LONG_MAX {
-				*lp = line1
-			} else {
-				(*lp) += amount
-			}
-		} else if (amount_after != 0) && ((*lp) > line2) {
-			(*lp) += amount_after
-		}
-		lp = &ed.curbuf.b_visual.vi_end.lnum
-		if ((*lp) >= line1) && ((*lp) <= line2) {
-			if amount == LONG_MAX {
-				*lp = line1
-			} else {
-				(*lp) += amount
-			}
-		} else if (amount_after != 0) && ((*lp) > line2) {
-			(*lp) += amount_after
-		}
+		ed.curbuf.b_visual.vi_start.lnum = one_adjust_nodel(ed.curbuf.b_visual.vi_start.lnum, line1, line2, amount, amount_after)
+		ed.curbuf.b_visual.vi_end.lnum = one_adjust_nodel(ed.curbuf.b_visual.vi_end.lnum, line1, line2, amount, amount_after)
 	}
-	lp = &ed.curwin.w_pcmark.lnum
-	if ((*lp) >= line1) && ((*lp) <= line2) {
-		if amount == LONG_MAX {
-			*lp = 0
-		} else {
-			(*lp) += amount
-		}
-	} else if (amount_after != 0) && ((*lp) > line2) {
-		(*lp) += amount_after
-	}
-	lp = &ed.curwin.w_prev_pcmark.lnum
-	if ((*lp) >= line1) && ((*lp) <= line2) {
-		if amount == LONG_MAX {
-			*lp = 0
-		} else {
-			(*lp) += amount
-		}
-	} else if (amount_after != 0) && ((*lp) > line2) {
-		(*lp) += amount_after
-	}
+	ed.curwin.w_pcmark.lnum = one_adjust(ed.curwin.w_pcmark.lnum, line1, line2, amount, amount_after)
+	ed.curwin.w_prev_pcmark.lnum = one_adjust(ed.curwin.w_prev_pcmark.lnum, line1, line2, amount, amount_after)
 	if ed.saved_cursor.lnum != 0 {
-		lp = &ed.saved_cursor.lnum
-		if ((*lp) >= line1) && ((*lp) <= line2) {
-			if amount == LONG_MAX {
-				*lp = line1
-			} else {
-				(*lp) += amount
-			}
-		} else if (amount_after != 0) && ((*lp) > line2) {
-			(*lp) += amount_after
-		}
+		ed.saved_cursor.lnum = one_adjust_nodel(ed.saved_cursor.lnum, line1, line2, amount, amount_after)
 	}
 	win = ed.curwin
 	if win.w_buffer == ed.curbuf {
@@ -25468,40 +25403,13 @@ func (ed *Editor) mark_adjust_internal(line1 linenr_T, line2 linenr_T, amount in
 			i = 0
 			for ; i < win.w_tagstacklen; i++ {
 				if win.w_tagstack[int(i)].fmark.fnum == fnum {
-					lp = &win.w_tagstack[int(i)].fmark.mark.lnum
-					if ((*lp) >= line1) && ((*lp) <= line2) {
-						if amount == LONG_MAX {
-							*lp = line1
-						} else {
-							(*lp) += amount
-						}
-					} else if (amount_after != 0) && ((*lp) > line2) {
-						(*lp) += amount_after
-					}
+					win.w_tagstack[int(i)].fmark.mark.lnum = one_adjust_nodel(win.w_tagstack[int(i)].fmark.mark.lnum, line1, line2, amount, amount_after)
 				}
 			}
 		}
 		if win.w_old_cursor_lnum != 0 {
-			lp = &win.w_old_cursor_lnum
-			if ((*lp) >= line1) && ((*lp) <= line2) {
-				if amount == LONG_MAX {
-					*lp = line1
-				} else {
-					(*lp) += amount
-				}
-			} else if (amount_after != 0) && ((*lp) > line2) {
-				(*lp) += amount_after
-			}
-			lp = &win.w_old_visual_lnum
-			if ((*lp) >= line1) && ((*lp) <= line2) {
-				if amount == LONG_MAX {
-					*lp = line1
-				} else {
-					(*lp) += amount
-				}
-			} else if (amount_after != 0) && ((*lp) > line2) {
-				(*lp) += amount_after
-			}
+			win.w_old_cursor_lnum = one_adjust_nodel(win.w_old_cursor_lnum, line1, line2, amount, amount_after)
+			win.w_old_visual_lnum = one_adjust_nodel(win.w_old_visual_lnum, line1, line2, amount, amount_after)
 		}
 		if win != ed.curwin {
 			if (win.w_topline >= line1) && (win.w_topline <= line2) {
@@ -38316,7 +38224,11 @@ func (ed *Editor) cursor_pos_info() {
 		}
 		if ed.VIsual_active != 0 {
 			if (ed.VIsual_mode == Ctrl_V) && (ed.curwin.w_curswant < MAXCOL) {
-				ed.getvcols(ed.curwin, &min_pos, &max_pos, &min_pos.col, &max_pos.col, 0)
+				var min_col colnr_T
+				var max_col colnr_T
+				ed.getvcols(ed.curwin, &min_pos, &max_pos, &min_col, &max_col, 0)
+				min_pos.col = min_col
+				max_pos.col = max_col
 				ed.vim_snprintf(buf1, 50, gettext_(S("%ld Cols; ")), int64(((oparg.end_vcol - oparg.start_vcol) + 1)))
 			} else {
 				buf1.Set(0, NUL)

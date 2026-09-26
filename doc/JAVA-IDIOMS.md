@@ -288,7 +288,8 @@ changes, so the suites are the proof (`whim test --java`, `--wide
   times). Of 105 `Ptr<>` parameters, 96 never walk (`char_u **arg`, which
   the callee advances).
 - **What it becomes, in three parts:**
-  1. **A C phase for `mark_adjust_internal` and `cursor_pos_info`** (15
+  1. **Done: phase 174** -- `pos_T.lnum` and `.col` unboxed, the `[0]`
+     reads 7,032 -> 4,874. **A C phase for `mark_adjust_internal` and `cursor_pos_info`** (15
      address sites): the macro as a function of the value, `x =
      one_adjust(x, line1, line2, amount, amount_after)`, and the two columns
      through locals.
