@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/arbace/go-whim/jeditor"
+	"github.com/arbace/go-whim/braaam"
 )
 
-// termProbe compiles jeditor's host with testdata/TermProbe.java and returns
+// termProbe compiles braaam's host with testdata/TermProbe.java and returns
 // a launcher that runs the probe as the editor's launcher runs the editor.
 func termProbe(t *testing.T) string {
 	for _, tool := range []string{"javac", "java"} {
@@ -19,7 +19,7 @@ func termProbe(t *testing.T) string {
 		}
 	}
 	dir := t.TempDir()
-	files, err := jeditor.WriteSources(filepath.Join(dir, "src"))
+	files, err := braaam.WriteSources(filepath.Join(dir, "src"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +36,7 @@ func termProbe(t *testing.T) string {
 		t.Fatalf("javac: %v\n%s", err, out)
 	}
 	bin := filepath.Join(dir, "probe")
-	if _, err := jeditor.WriteLauncher(bin, classes); err != nil {
+	if _, err := braaam.WriteLauncher(bin, classes); err != nil {
 		t.Fatal(err)
 	}
 	b, err := os.ReadFile(bin)

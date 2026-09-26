@@ -1,15 +1,15 @@
-// Package jeditor builds the editor in Java: the core, Editor.java, written
+// Package braaam builds the editor in Java: the core, Editor.java, written
 // by crefactor/togo's Java backend from the core half of a whim-vim.c, and
 // beside it the Java sources kept here by hand -- the runtime (rt/, package
 // whim.rt), the host (host/, package whim.host: the Host interface, the
 // terminal host, vim_snprintf) and the glue and launcher (Whim.java) --
 // compiled with javac into a directory of classes, and a launcher script that
-// runs it as a binary is run: `whim-java [args]`.  doc/JAVA.md is the design.
+// runs it as a binary is run: `braaam [args]`.  doc/JAVA.md is the design.
 //
 // The Java sources are embedded, so a build needs no checkout beside it; the
 // generator is handed in (Gen), since it is cmd/whim's profile that says
 // what the core's names are.
-package jeditor
+package braaam
 
 import (
 	"bytes"
@@ -48,11 +48,11 @@ func Cut(c []byte) ([]byte, error) {
 			last = i
 		}
 		if strings.HasPrefix(strings.TrimLeft(l, " "), "#") {
-			return nil, fmt.Errorf("jeditor: the cut holds a directive at line %d, so it found the wrong line", i+1)
+			return nil, fmt.Errorf("braaam: the cut holds a directive at line %d, so it found the wrong line", i+1)
 		}
 	}
 	if last < 0 {
-		return nil, fmt.Errorf("jeditor: no core before the first #include")
+		return nil, fmt.Errorf("braaam: no core before the first #include")
 	}
 	var b bytes.Buffer
 	for _, l := range lines[:last+1] {
@@ -215,7 +215,7 @@ func WriteLauncher(path, classes string) (string, error) {
 		return "", err
 	}
 	var b strings.Builder
-	b.WriteString("#!/bin/sh\n# The editor in Java (jeditor/): written by jeditor.WriteLauncher.\n")
+	b.WriteString("#!/bin/sh\n# The editor in Java (braaam/): written by braaam.WriteLauncher.\n")
 	fmt.Fprintf(&b, "exec %s %s -cp %s -Dwhim.argv0=\"$0\" Whim \"$@\"\n",
 		ShellQuote(java), strings.Join(JVMFlags, " "), ShellQuote(abs))
 	if err := os.WriteFile(path, []byte(b.String()), 0o755); err != nil {

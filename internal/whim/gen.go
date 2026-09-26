@@ -48,7 +48,7 @@ func gaGrowInnerFor(result string) string {
 }
 
 // gaGrowInnerJava is ga_grow_inner()'s body in Java: what the Go's is,
-// without the growth -- the Java's Ga (jeditor/rt) grows the storage at its
+// without the growth -- the Java's Ga (braaam/rt) grows the storage at its
 // next typed access to ga_maxlen elements, which is where it learns their
 // type.
 func gaGrowInnerJava(result string) string {

@@ -1,6 +1,6 @@
 (ns whim.cljmain
   "The editor in Clojure as a program: the generated core (whim.editor) on
-  the terminal host, as bin/whim is the Go editor and jeditor/Whim.java's
+  the terminal host, as bin/whim is the Go editor and braaam/Whim.java's
   main the Java one.  run is the editor on any host; -main is the launcher's
   entry, AOT-compiled with :gen-class."
   (:require [whim.cljhost]
@@ -69,7 +69,7 @@
 
 (defn- report
   "The editor failed: say where, as a crash would -- the exception and the
-  first frames, whim-java's report."
+  first frames, braaam's report."
   [^Throwable t]
   (binding [*out* *err*]
     (println (str "whim-clj: " t))

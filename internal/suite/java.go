@@ -13,10 +13,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/arbace/go-whim/jeditor"
+	"github.com/arbace/go-whim/braaam"
 )
 
-// THE EDITORS ON THE JVM, on demand: the Java editor (jeditor/,
+// THE EDITORS ON THE JVM, on demand: the Java editor (braaam/,
 // doc/JAVA.md), `whim test --java`, and the Clojure editor (cljeditor/,
 // doc/CLOJURE.md), `whim test --clojure` (clojure.go).  The candidate's core
 // is written by the backend (Editor.java, whim/editor.clj), compiled with
@@ -35,7 +35,7 @@ const javaControlOld, javaControlNew = `" INSERT"`, `" INSERX"`
 // A jvmEditor is an editor on the JVM the suite built from the candidate,
 // and its control: the Java's or the Clojure's.
 type jvmEditor struct {
-	name, where string         // "Java", "jeditor/"
+	name, where string         // "Java", "braaam/"
 	file        string         // the generated file its control changes
 	launcher    string         // the name its launcher reports a failure under
 	frame       *regexp.Regexp // a frame of the core; its function the first group
@@ -43,11 +43,11 @@ type jvmEditor struct {
 }
 
 // buildJava builds the Java editor from candSrc, and its control, under dir.
-func buildJava(gen jeditor.Gen, candSrc, dir string) (*jvmEditor, error) {
-	e := &jvmEditor{name: "Java", where: "jeditor/", file: "Editor.java", launcher: "whim-java",
+func buildJava(gen braaam.Gen, candSrc, dir string) (*jvmEditor, error) {
+	e := &jvmEditor{name: "Java", where: "braaam/", file: "Editor.java", launcher: "braaam",
 		frame: regexp.MustCompile(`^\tat (?:Editor|Whim)\.([A-Za-z0-9_$]+)\(`)}
 	jdir, cdir := filepath.Join(dir, "java"), filepath.Join(dir, "java-control")
-	bin, err := jeditor.Build(gen, candSrc, jdir, filepath.Join(dir, "whim-java"), nil)
+	bin, err := braaam.Build(gen, candSrc, jdir, filepath.Join(dir, "braaam"), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func buildJava(gen jeditor.Gen, candSrc, dir string) (*jvmEditor, error) {
 	if err != nil {
 		return nil, err
 	}
-	ctl, err := jeditor.Compile(ctlSrc, cdir, filepath.Join(dir, "whim-java-control"))
+	ctl, err := braaam.Compile(ctlSrc, cdir, filepath.Join(dir, "braaam-control"))
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func byGroup(rs []result) map[string][]string {
 }
 
 // thrown is what an editor on the JVM reports when an exception stops it, as
-// its launcher prints it: its name and a colon ("whim-java: "), the
+// its launcher prints it: its name and a colon ("braaam: "), the
 // exception, and the first frames, a line each.
 func thrown(launcher string) *regexp.Regexp {
 	return regexp.MustCompile(regexp.QuoteMeta(launcher) + `: ([^\n]*)\n((?:\tat [^\n]*(?:\n|$))*)`)

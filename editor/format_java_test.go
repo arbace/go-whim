@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/arbace/go-whim/jeditor"
+	"github.com/arbace/go-whim/braaam"
 )
 
 // A printfCase is one call of vim_snprintf: the format, the size handed to
@@ -73,7 +73,7 @@ var printfErrors = map[string]string{
 	"%1$*1$s":   "emsg E1502: Positional argument 1 used as field width reused as different type: int/string",
 }
 
-// javaPrintf runs editor/testdata/PrintfProbe.java, with jeditor's runtime and
+// javaPrintf runs editor/testdata/PrintfProbe.java, with braaam's runtime and
 // host, on the cases, and returns what it prints.
 func javaPrintf(t *testing.T, input string) string {
 	for _, tool := range []string{"javac", "java"} {
@@ -82,7 +82,7 @@ func javaPrintf(t *testing.T, input string) string {
 		}
 	}
 	dir := t.TempDir()
-	files, err := jeditor.WriteSources(filepath.Join(dir, "src"))
+	files, err := braaam.WriteSources(filepath.Join(dir, "src"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,7 +106,7 @@ func javaPrintf(t *testing.T, input string) string {
 	return string(out)
 }
 
-// jeditor's vim_snprintf (host/Printf.java) prints exactly what the Go's
+// braaam's vim_snprintf (host/Printf.java) prints exactly what the Go's
 // (format.go) prints, byte for byte, the return value too, on a table of
 // formats: flags, widths and precisions given and taken from arguments,
 // every length and conversion, positional arguments, NULL strings, the

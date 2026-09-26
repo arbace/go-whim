@@ -1,5 +1,7 @@
 # The editor in Java: design and milestones
 
+The Java editor is called **braaam** (`braaam/`; `bin/braaam`, `braaam.jar`).
+
 `AGENDA.md`'s one queued item. The C core (`editor.c`) is translated to Java by a
 second backend of `crefactor/togo`, from the same analysis the Go is written
 from -- not by translating the Go -- and held to the same test: `whim test`
@@ -43,23 +45,23 @@ Java's own limits, which the emitter must respect:
   refused with its reason. `java.go` is the frame (types, struct classes, the
   class, the report), `java_expr.go` the expressions, `java_stmt.go` the
   statements and methods; `java_test.go` the tests.
-- `jeditor/rt/`: the runtime, by hand, package `whim.rt` -- `BytePtr`,
+- `braaam/rt/`: the runtime, by hand, package `whim.rt` -- `BytePtr`,
   `ShortPtr`, `IntPtr`, `LongPtr`, `BoolPtr`, `Ptr<T>`, `Rt` (`memmove`,
   `memset`, `memcmp` on bytes and in elements, a char array's initial value,
   a `void *` read back), `Ga` (the growarray's storage, typed at its use) and
   `Struct<T>` (what every struct class can do: `set`, `zero`) -- as
   `editor/crt.go` is the Go's, and `SelfTest.java`, its own test with no
   framework.
-- `jeditor/`: the rest of the editor in Java, by hand -- `host/` (package
+- `braaam/`: the rest of the editor in Java, by hand -- `host/` (package
   `whim.host`: the `Host` interface, `Exit`, `Printf` -- vim_snprintf --, and
   `Term` and `Signals`, the terminal host, which calls `ioctl`, `select`,
   `read` and `write` through the Foreign Function & Memory API, JDK 22 and
   later, as the Go's `syscall` does) and `Whim.java` (the glue, a subclass of
-  `Editor`, and the launcher's `main`) -- and `jeditor.go`, the Go that builds
+  `Editor`, and the launcher's `main`) -- and `braaam.go`, the Go that builds
   it: `Editor.java` generated from a `whim-vim.c`, compiled with the rest, and
-  a launcher script. `Editor.java` is generated and tracked (`jeditor/Editor.java`,
-  milestone 4); `make bin/whim-java` compiles it under `lib/java/`, and `make jeditor.jar` packs the classes as
-  `./jeditor.jar`. *Milestone
+  a launcher script. `Editor.java` is generated and tracked (`braaam/Editor.java`,
+  milestone 4); `make bin/braaam` compiles it under `lib/braaam/`, and `make braaam.jar` packs the classes as
+  `./braaam.jar`. *Milestone
   3, as built*.
 
 The JDK on the machine is 26.
@@ -90,7 +92,7 @@ Each is verified before the next starts.
    ones exactly as the C does.
 4. **Kept current:** `make whim-build` writes `Editor.java` as it writes
    `editor.go`, and a check refuses a stale one. **Done**: `whim gen` writes
-   `jeditor/Editor.java` beside `editor/editor.go` from the same `editor.c`,
+   `braaam/Editor.java` beside `editor/editor.go` from the same `editor.c`,
    and refuses outright if the Java backend refused any part of the core;
    `whim gen --check` (`make whim-editor-check`) refuses a stale one --
    measured with a control, one byte of the tracked file changed. The build
@@ -216,7 +218,7 @@ translated, and `ga_grow_inner`, a rule of the profile's
 **It compiles and it is the editor.** `Editor.java` is 65,356 lines: 105
 struct and union classes, 11 functional interfaces, the fields and 165
 function-value fields, 15 `initGlobalsN` methods, the 17 abstract host
-methods -- unchanged from milestone 1, so `jeditor/Whim.java` is too -- 9
+methods -- unchanged from milestone 1, so `braaam/Whim.java` is too -- 9
 growarray accessors and the 1,693 methods. `javac -Xlint:all` compiles it
 with the runtime in 3.2 s, no error, 63 warnings: 40 lossy compound
 assignments and 23 fall-throughs, C's own. The constant pool holds 18,355
@@ -345,7 +347,7 @@ Written 2026-09-25, beside milestone 2 (in progress in `crefactor/togo`), on an
 | `Whim.java` | `host.go`'s glue, `New`, `Main` | `final class Whim extends Editor`: each of the 17 abstract host methods, in the C's signature, a line of glue to the Host -- in the unnamed package, since `Editor` and its package-private methods are; `host_alloc` with the arena's accounting (1 GiB, 16-byte rounding, the exhaustion message) returning `BytePtr.alloc(n)` as the `Object` the core casts; `main(Host, byte[][])` and the launcher's `main(String[])` |
 | `host/Printf.java` | `format.go` | vim_snprintf, line for line, given the core's `gettext_`, `emsg`, `iemsg`, `IObuff`, `emsg_iobuff_room`, `iobuff_or`, `e_val_too_large`, `utfc_ptr2len` and `utf_ptr2cells` through an interface, `Printf.Core`, which `Whim` implements -- so it runs, and is tested, without an `Editor` |
 | `host/Term.java`, `host/Signals.java` | `term/term.go` | the terminal host |
-| `jeditor.go` | `cmd/whim/main.go`, `make bin/whim` | the build: `Cut` (the Makefile's cut of `editor.c`), `Build` (cut, generate, compile, launcher), `Compile`, `WriteSources` (the Java sources are embedded) and `WriteLauncher` |
+| `braaam.go` | `cmd/whim/main.go`, `make bin/whim` | the build: `Cut` (the Makefile's cut of `editor.c`), `Build` (cut, generate, compile, launcher), `Compile`, `WriteSources` (the Java sources are embedded) and `WriteLauncher` |
 
 **The arguments of vim_snprintf**, which milestone 2 writes as `Object...`:
 an `Integer`, `Short` or `Long` sign-extends and a `Byte`, `Character` or
@@ -406,10 +408,10 @@ file in /tmp for every run), `-XX:+UseSerialGC -XX:TieredStopAtLevel=1`
 (measured, a run to the stub: 215 ms without them, 188 ms with). An AppCDS
 archive (`-XX:+AutoCreateSharedArchive`) was tried and dropped: the archive is
 not written when the editor ends with `System.exit`, and the JVM then prints
-its error on stdout. **`make bin/whim-java`** (`go tool whim java [--out DIR]
+its error on stdout. **`make bin/braaam`** (`go tool whim java [--out DIR]
 [FILE]`) writes it: `editor.c` cut from `src/whim-vim.c`, `Editor.java`
 generated with the profile `whim gen` uses, compiled with the rest in 5.0 s
-(javac 2.5 s of it) into `lib/java/classes`, and `bin/whim-java`. JDK 26
+(javac 2.5 s of it) into `lib/braaam/classes`, and `bin/braaam`. JDK 26
 compiles it with no error; under `-nowarn` the only warnings javac still
 prints are the nine mandatory ones for `sun.misc.Signal` above.
 
@@ -439,7 +441,7 @@ file: the size, the modes, input with and without a timeout, SIGWINCH raised
 and SIGWINCH, SIGINT, SIGTSTP and SIGTERM delivered by kill(1), a delay, a
 suspend (stopped and continued on the file; discarded by the kernel on the
 pseudo-terminal, whose probe leads an orphaned process group), stderr and the
-exit status -- 4 runs of 4 alike. `jeditor/jeditor_test.go` requires `Cut` to
+exit status -- 4 runs of 4 alike. `braaam/braaam_test.go` requires `Cut` to
 give the Makefile's bytes, and `whim java` to build a launcher that runs.
 
 ### How far Editor.java runs

@@ -49,7 +49,7 @@ func runGen(args []string) int {
 		return rc
 	}
 	// The same core in Java (doc/JAVA.md), tracked beside the Go and held to
-	// the same check: jeditor/Editor.java is what the Java backend writes, and
+	// the same check: braaam/Editor.java is what the Java backend writes, and
 	// the backend refuses nothing -- a refusal would be a method that throws.
 	jdir, err := os.MkdirTemp("", "jgen")
 	if err != nil {
@@ -86,7 +86,7 @@ func runGen(args []string) int {
 	files := []struct{ made, tracked string }{
 		{filepath.Join(out, "editor.go"), "editor/editor.go"},
 		{filepath.Join(out, "sigs.md"), "internal/gen/sigs.md"},
-		{javaOut, "jeditor/Editor.java"},
+		{javaOut, "braaam/Editor.java"},
 		{cljOut, "cljeditor/src/whim/editor.clj"},
 	}
 	fail, changed := false, false
@@ -121,7 +121,7 @@ func runGen(args []string) int {
 	case changed:
 		b, _ := os.ReadFile("editor/editor.go")
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.go", bytes.Count(b, []byte("\n")))
-		j, _ := os.ReadFile("jeditor/Editor.java")
+		j, _ := os.ReadFile("braaam/Editor.java")
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "Editor.java", bytes.Count(j, []byte("\n")))
 		c, _ := os.ReadFile("cljeditor/src/whim/editor.clj")
 		fmt.Printf("  %-12s %d lines, generated from whim-vim.c\n", "editor.clj", bytes.Count(c, []byte("\n")))

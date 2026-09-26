@@ -1,4 +1,4 @@
-package jeditor
+package braaam
 
 import (
 	"bytes"
@@ -53,7 +53,7 @@ func TestLauncherBuildsAndRuns(t *testing.T) {
 	if out, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("whim java: %v\n%s", err, out)
 	}
-	bin := filepath.Join(dir, "java", "whim-java") // with --out DIR, the launcher is DIR's
+	bin := filepath.Join(dir, "java", "braaam") // with --out DIR, the launcher is DIR's
 	run := exec.Command(bin)
 	run.Stdin = strings.NewReader(":q!\r")
 	out, err := run.CombinedOutput()

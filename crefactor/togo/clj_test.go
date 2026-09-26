@@ -17,7 +17,7 @@ import (
 
 // The Clojure backend on C that is not vim: each program's functions are
 // lowered and written as one namespace, whim.editor, which is loaded with the
-// runtime (jeditor/rt) by clojure.main -- *warn-on-reflection* on, a
+// runtime (braaam/rt) by clojure.main -- *warn-on-reflection* on, a
 // reflection warning a failure -- and run; it must print what the gcc-built
 // C prints.  The C calls host functions it only declares -- out(v) prints a
 // number, outs(s) a string, outf(fmt, ...) a printf -- which the C harness

@@ -3,7 +3,7 @@ import whim.host.Host;
 import whim.host.Term;
 
 /**
- * The terminal host (jeditor/host/Term.java) driven by hand, one line of
+ * The terminal host (braaam/host/Term.java) driven by hand, one line of
  * output per thing it is asked: what java_test.go's TestJavaTermHost runs on a
  * pseudo-terminal and on a file, and compares with what the C host answers.
  */

@@ -11,7 +11,7 @@ import (
 )
 
 // The Java backend on C that is not vim: each program's functions are
-// translated to one Java class, compiled with the runtime (jeditor/rt) and
+// translated to one Java class, compiled with the runtime (braaam/rt) and
 // run, and must print what the gcc-built C prints.  The C calls two host
 // functions it only declares -- out(v) prints a number, outs(s) a string --
 // which the C harness defines with printf and the Java one as the abstract
@@ -762,8 +762,8 @@ func requireTools(t *testing.T) {
 	}
 }
 
-// runtimeDir is the Java runtime, jeditor/rt, from crefactor/togo.
-var runtimeDir = filepath.Join("..", "..", "jeditor", "rt")
+// runtimeDir is the Java runtime, braaam/rt, from crefactor/togo.
+var runtimeDir = filepath.Join("..", "..", "braaam", "rt")
 
 // javaProgram translates src (and nothing else) to Prog.java and returns it,
 // with the refusals.
@@ -915,7 +915,7 @@ func TestJavaControl(t *testing.T) {
 	}
 }
 
-// The runtime's own test: jeditor/rt/SelfTest.java.
+// The runtime's own test: braaam/rt/SelfTest.java.
 func TestJavaRuntime(t *testing.T) {
 	requireTools(t)
 	dir := t.TempDir()

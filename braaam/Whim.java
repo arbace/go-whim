@@ -122,7 +122,7 @@ final class Whim extends Editor implements Printf.Core {
      */
     public static void main(String[] args) throws InterruptedException {
         byte[][] argv = new byte[args.length + 1][];
-        argv[0] = System.getProperty("whim.argv0", "whim-java").getBytes(nativeCharset());
+        argv[0] = System.getProperty("whim.argv0", "braaam").getBytes(nativeCharset());
         System.arraycopy(argBytes(args), 0, argv, 1, args.length);
         int[] status = {0};
         Thread core = new Thread(null, () -> {
@@ -130,7 +130,7 @@ final class Whim extends Editor implements Printf.Core {
                 status[0] = main(new Term(), argv);
             } catch (Throwable t) {
                 // the editor failed: say where, as a crash would, and fail
-                System.err.println("whim-java: " + t);
+                System.err.println("braaam: " + t);
                 StackTraceElement[] st = t.getStackTrace();
                 for (int i = 0; i < Math.min(st.length, 12); i++) {
                     System.err.println("\tat " + st[i]);

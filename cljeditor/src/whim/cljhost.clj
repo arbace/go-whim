@@ -1,5 +1,5 @@
 (ns whim.cljhost
-  "The C's host functions for the editor in Clojure: jeditor/Whim.java's glue,
+  "The C's host functions for the editor in Clojure: braaam/Whim.java's glue,
   as functions of the editor.  The generated core (whim.editor, written by
   crefactor/togo's Clojure backend) calls each as the C calls it --
   (whim.cljhost/host_write ed p n) -- and each is a line of glue to the

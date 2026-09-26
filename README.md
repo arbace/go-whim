@@ -8,7 +8,7 @@ to answer every test case as the others do.
 slim-vim.c ──── whim: phases, in order ────▶ whim-vim.c   an embeddable editor core
                                                   │
                   crefactor/togo ─────────────────┼──▶ editor/    the core in Go
-                                                  ├──▶ jeditor/   the core in Java
+                                                  ├──▶ braaam/   the core in Java
                                                   └──▶ cljeditor/ the core in Clojure
 ```
 
@@ -26,7 +26,7 @@ product, `src/whim-vim.c`, is tracked, and `make whim-build-check` requires it
 back byte for byte.
 
 **The translations** are written by `crefactor/togo` from the core's C, not
-from each other: `editor/editor.go`, `jeditor/Editor.java` and
+from each other: `editor/editor.go`, `braaam/Editor.java` and
 `cljeditor/src/whim/editor.clj` are generated, tracked, and refused by
 `make whim-editor-check` when stale.
 
@@ -45,8 +45,8 @@ make whim-editor-check # refuse a stale editor.go, Editor.java or editor.clj
 make whim-test         # the quick suite; whim-test-wide, whim-test-java
 make go-test           # the Go packages' tests
 make whim-vim          # the C editor's binary
-make bin/whim-java     # the Java editor, and a launcher: bin/whim-java [args]
-make jeditor.jar       # the same as one jar: java -jar jeditor.jar [args]
+make bin/braaam        # the Java editor, and a launcher: bin/braaam [args]
+make braaam.jar        # the same as one jar: java -jar braaam.jar [args]
 make bin/whim-clj      # the Clojure editor (doc/CLOJURE.md), and a launcher: bin/whim-clj [args]
 make cljeditor.jar     # the same as one jar: java -jar cljeditor.jar [args]
 make whim-test-clj     # the quick suite with the Clojure editor too
@@ -61,7 +61,7 @@ make help              # every target
   `Host` (the terminal, the clock, input, signals, output); a process holds as
   many as it makes. `editor/term` is the terminal host, `editor/cmd/whim` the
   launcher behind `bin/whim`.
-- **Java**, `jeditor/`: the same shape -- `Editor.java` on a `Host`, a runtime
+- **Java**, **braaam** (`braaam/`): the same shape -- `Editor.java` on a `Host`, a runtime
   (`rt/`, a C pointer as an array and an offset), and a terminal host through
   the Foreign Function & Memory API.
 - **Clojure**, `cljeditor/`: the namespace `whim.editor`, generated from basic
@@ -87,7 +87,7 @@ crefactor/       the generic C refactoring library, a Go module of its own:
                  the C front end, the canonical printer, the sweep, the driver,
                  the transforms, the analyses, and togo, the C-to-Go-and-Java
                  translator
-editor/          the editor in Go          jeditor/   the editor in Java
+editor/          the editor in Go          braaam/   the editor in Java
 cljeditor/       the editor in Clojure: the glue, the launcher, the build
 src/             the input (fetched) and the product (tracked)
 doc/             GOALS.md (what holds for every phase), AGENDA.md (what is

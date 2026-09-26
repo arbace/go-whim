@@ -30,7 +30,7 @@ import (
 
 	"github.com/arbace/go-whim/cljeditor"
 	"github.com/arbace/go-whim/internal/build"
-	"github.com/arbace/go-whim/jeditor"
+	"github.com/arbace/go-whim/braaam"
 )
 
 //go:embed cases.md
@@ -286,7 +286,7 @@ func Check(w io.Writer, rev, candSrc string, jvm JVM) error {
 // when its generator is given: the Java editor (--java) and the Clojure
 // editor (--clojure).
 type JVM struct {
-	Java    jeditor.Gen
+	Java    braaam.Gen
 	Clojure cljeditor.Gen
 }
 

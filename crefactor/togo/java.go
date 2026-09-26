@@ -4,7 +4,7 @@ package togo
 // class the translation unit becomes and the report of what it refuses.  It
 // reads the same analysis the Go is written from (an, the pointer classes)
 // and writes one Java source file against the hand-written runtime in
-// jeditor/rt (package whim.rt): BytePtr and its kin, Ptr<T>, Rt.
+// braaam/rt (package whim.rt): BytePtr and its kin, Ptr<T>, Rt.
 // doc/JAVA.md is the design.
 //
 // The mapping, in short:

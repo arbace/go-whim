@@ -255,31 +255,31 @@ bin/whim: editor/editor.go force  ## the editor binary alone, from editor/
 	@printf '  %-12s %s bytes, the core in Go (editor/)\n' "$@" \
 	    "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
 
-# The editor in Java (jeditor/, doc/JAVA.md): the core cut from whim-vim.c and
+# The editor in Java (braaam/, doc/JAVA.md): the core cut from whim-vim.c and
 # written as Editor.java by crefactor/togo's Java backend, compiled with javac
-# beside jeditor's runtime, host and glue into lib/java/classes, and bin/whim-java
+# beside braaam's runtime, host and glue into lib/braaam/classes, and bin/braaam
 # a launcher script that runs it as a binary is run.  Not part of `all`: it
 # needs a JDK (22 or later, for the Foreign Function & Memory API).
-.PHONY: bin/whim-java
-bin/whim-java: force  ## the editor in Java: Editor.java generated, compiled, and a launcher
+.PHONY: bin/braaam
+bin/braaam: force  ## the editor in Java: Editor.java generated, compiled, and a launcher
 	@go tool whim java
 
-# jeditor.jar is the same classes as one executable jar, at the top of the
-# tree: `java -jar jeditor.jar [args]`.  Its manifest names the main class and
+# braaam.jar is the same classes as one executable jar, at the top of the
+# tree: `java -jar braaam.jar [args]`.  Its manifest names the main class and
 # grants the terminal host its native access (Enable-Native-Access, JDK 22 and
 # later), so no flag is needed; the launcher's -XX flags only tune a short run
 # and have no manifest form, so java -jar runs without them.
-.PHONY: jeditor.jar
-jeditor.jar: bin/whim-java  ## the editor in Java as one jar: java -jar jeditor.jar [args]
-	@printf 'Main-Class: Whim\nEnable-Native-Access: ALL-UNNAMED\n' > lib/java/manifest.txt
-	@jar --create --file $@ --manifest lib/java/manifest.txt -C lib/java/classes .
-	@printf '  %-12s %s bytes, the core in Java (jeditor/): java -jar %s\n' "$@" \
+.PHONY: braaam.jar
+braaam.jar: bin/braaam  ## the editor in Java as one jar: java -jar braaam.jar [args]
+	@printf 'Main-Class: Whim\nEnable-Native-Access: ALL-UNNAMED\n' > lib/braaam/manifest.txt
+	@jar --create --file $@ --manifest lib/braaam/manifest.txt -C lib/braaam/classes .
+	@printf '  %-12s %s bytes, the core in Java (braaam/): java -jar %s\n' "$@" \
 	    "`stat -c%s $@ | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" "$@"
 
 # The editor in Clojure (cljeditor/, doc/CLOJURE.md): the core cut from
 # whim-vim.c and written as the namespace whim.editor by crefactor/togo's
 # Clojure backend, AOT-compiled with cljeditor's glue and launcher on
-# jeditor's runtime and host into lib/clj/classes, merged with Clojure's jars
+# braaam's runtime and host into lib/clj/classes, merged with Clojure's jars
 # into lib/clj/whim-clj.jar, its AOT cache trained (JDK 25 and later), and
 # bin/whim-clj a launcher script that runs it as a binary is run.  Not part of
 # `all`: it needs a JDK (22 or later) and the `clojure` command, whose jars it
@@ -290,7 +290,7 @@ bin/whim-clj: force  ## the editor in Clojure: whim.editor generated, AOT-compil
 
 # cljeditor.jar is the same as one executable jar at the top of the tree:
 # `java -jar cljeditor.jar [args]` (Main-Class whim.cljmain, and the native
-# access granted in its manifest, as jeditor.jar's).
+# access granted in its manifest, as braaam.jar's).
 .PHONY: cljeditor.jar
 cljeditor.jar: force  ## the editor in Clojure as one jar: java -jar cljeditor.jar [args]
 	@go tool whim clj $(if $(CLJ_EDITOR),--editor $(CLJ_EDITOR)) --jar $@
@@ -337,8 +337,8 @@ whim-test-clj:  ## the quick suite with the Clojure editor too, required to answ
 # ==== housekeeping
 .PHONY: clean
 clean:  ## remove the built binaries and editor.c
-	rm -f src/slim-vim src/whim-vim bin/whim bin/whim-java bin/whim-clj jeditor.jar cljeditor.jar editor.lgo editor.c
-	rm -rf lib/java lib/clj
+	rm -f src/slim-vim src/whim-vim bin/whim bin/braaam bin/whim-clj braaam.jar cljeditor.jar editor.lgo editor.c
+	rm -rf lib/braaam lib/clj
 
 .PHONY: clean-cache
 clean-cache:  ## remove .cache/ (the Go build cache, the sweep's compiles, the stamps)

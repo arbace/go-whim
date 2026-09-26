@@ -8,7 +8,7 @@ import whim.host.Printf;
 import whim.rt.BytePtr;
 
 /**
- * jeditor's vim_snprintf (whim.host.Printf) on the cases format_java_test.go
+ * braaam's vim_snprintf (whim.host.Printf) on the cases format_java_test.go
  * writes to stdin, one per block -- F <hex of the format>, M <size>, then A
  * lines for the arguments and E -- printing for each what the Go test prints
  * for editor/format.go's: the return value, the buffer's bytes in hex, and

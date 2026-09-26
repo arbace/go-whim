@@ -11,7 +11,7 @@ import (
 // internal/suite/cases.md on the editor built from src/whim-vim.c at REV
 // (default HEAD) and from FILE (default src/whim-vim.c), which must behave
 // the same, with a control the corpus must see.  --java adds the Java editor
-// (jeditor/, doc/JAVA.md), built from FILE, to the quick suite or the wide
+// (braaam/, doc/JAVA.md), built from FILE, to the quick suite or the wide
 // one: the same cases, required to answer as the C does, with a control of
 // its own.  --clojure adds the Clojure editor (cljeditor/, doc/CLOJURE.md)
 // the same way; --clojure-editor F adds it with the namespace in F rather

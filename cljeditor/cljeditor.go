@@ -3,12 +3,12 @@
 // backend from the core half of a whim-vim.c, and beside it the Clojure kept
 // here by hand -- the glue (src/whim/cljhost.clj: the C's host functions) and
 // the launcher (src/whim/cljmain.clj) -- on the Java editor's runtime and
-// host (jeditor/rt, jeditor/host, compiled with javac), AOT-compiled with
+// host (braaam/rt, braaam/host, compiled with javac), AOT-compiled with
 // Clojure's own jars into a directory of classes, and a launcher script that
 // runs it as a binary is run: `whim-clj [args]`.  doc/CLOJURE.md is the
 // design, and its contract says what the generated namespace provides.
 //
-// The Clojure sources are embedded, as jeditor's Java are; Clojure itself is
+// The Clojure sources are embedded, as braaam's Java are; Clojure itself is
 // what the `clojure` command's classpath names (its jars, from ~/.m2), copied
 // beside the classes so that the build runs without it.
 package cljeditor
@@ -29,7 +29,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/arbace/go-whim/jeditor"
+	"github.com/arbace/go-whim/braaam"
 )
 
 //go:embed src/whim/cljhost.clj src/whim/cljmain.clj
@@ -88,7 +88,7 @@ func Generate(gen Gen, src, dir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	core, err := jeditor.Cut(c)
+	core, err := braaam.Cut(c)
 	if err != nil {
 		return "", err
 	}
@@ -102,7 +102,7 @@ func Generate(gen Gen, src, dir string) (string, error) {
 	cljOut := filepath.Join(dir, "editor.clj")
 	os.Remove(cljOut)
 	// The generator's by-products go in a directory of their own, removed
-	// after, as jeditor's do.
+	// after, as braaam's do.
 	scratch, err := os.MkdirTemp("", "cljgen.")
 	if err != nil {
 		return "", err
@@ -143,8 +143,8 @@ func Compile(editorClj, dir, launcher string) (string, error) {
 	if err := os.WriteFile(filepath.Join(srcDir, "whim", "editor.clj"), ns, 0o644); err != nil {
 		return "", err
 	}
-	// the Java runtime and host, as jeditor compiles them
-	java, err := jeditor.WriteRuntime(filepath.Join(dir, "java"))
+	// the Java runtime and host, as braaam compiles them
+	java, err := braaam.WriteRuntime(filepath.Join(dir, "java"))
 	if err != nil {
 		return "", err
 	}
@@ -272,11 +272,11 @@ func WriteSources(dir string) ([]string, error) {
 	return out, err
 }
 
-// JVMFlags are the launcher's options to the JVM: jeditor's, for the same
+// JVMFlags are the launcher's options to the JVM: braaam's, for the same
 // reasons (the terminal host's native access, no hsperfdata, a short run's
 // collector and compiler).  The stack is the core thread's own, 1 GiB
 // (whim.cljmain).
-var JVMFlags = jeditor.JVMFlags
+var JVMFlags = braaam.JVMFlags
 
 // JarName and CacheName are the editor as one jar and its AOT cache, in the
 // build's directory: what the launcher runs.
@@ -341,12 +341,12 @@ func WriteLauncher(path, dir string) (string, error) {
 	}
 	flags := append([]string{}, JVMFlags...)
 	if cache := filepath.Join(abs, CacheName); fileExists(cache) {
-		flags = append(flags, "-XX:AOTCache="+jeditor.ShellQuote(cache), "-Xlog:aot=off,cds=off")
+		flags = append(flags, "-XX:AOTCache="+braaam.ShellQuote(cache), "-Xlog:aot=off,cds=off")
 	}
 	var b strings.Builder
 	b.WriteString("#!/bin/sh\n# The editor in Clojure (cljeditor/): written by cljeditor.WriteLauncher.\n")
 	fmt.Fprintf(&b, "exec %s %s -cp %s -Dwhim.argv0=\"$0\" %s \"$@\"\n",
-		jeditor.ShellQuote(java), strings.Join(flags, " "), jeditor.ShellQuote(filepath.Join(abs, JarName)), Main)
+		braaam.ShellQuote(java), strings.Join(flags, " "), braaam.ShellQuote(filepath.Join(abs, JarName)), Main)
 	if err := os.WriteFile(path, []byte(b.String()), 0o755); err != nil {
 		return "", err
 	}
