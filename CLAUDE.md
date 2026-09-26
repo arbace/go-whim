@@ -261,7 +261,8 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    declined), JAVA.md (the Java backend: its design and milestones),
                    JAVA-IDIOMS.md and CLOJURE-IDIOMS.md (how the Java and the
                    Clojure editors could be idiomatic, measured and ranked;
-                   surveys, only CLOJURE-IDIOMS.md's item 0 done),
+                   surveys; done: CLOJURE-IDIOMS.md's item 0 and
+                   JAVA-IDIOMS.md's item 1),
                    PIPELINE-COMPACTION.md (which phases could be dropped, merged,
                    split or reordered, measured byte for byte), CLOJURE.md (the
                    Clojure editor), HASKELL.md and
@@ -296,6 +297,7 @@ make whim-test        # the quick suite: 45 key sessions, required to behave as 
 make whim-test-wide   # the optional wide suite: 240 cases, keys, Ex commands, argv, a terminal
 make bin/braaam       # the editor in Java: Editor.java generated, compiled, and a launcher
 make whim-test-java   # the quick suite with the Java editor too (whim test --java; --wide --java)
+go tool whim java --same-classes  # HEAD's Editor.java and the tree's compile to the same code: a spelling change's proof
 make bin/vijure       # the editor in Clojure: whim.editor generated, AOT-compiled, a launcher (CLJ_EDITOR=F: F's)
 make whim-test-clj    # the quick suite with the Clojure editor too (whim test --clojure; --wide --clojure)
 make editor.lgo       # the Go editor as one go-lisp file, compiled (GOLISP_ROOT=.../go-lisp; doc/GO-LISP.md)

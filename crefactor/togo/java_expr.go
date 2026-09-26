@@ -21,7 +21,8 @@ type jval struct {
 	t     string
 	c     cc.Type
 	konst bool
-	named bool
+	named bool // s is a Java constant expression, of the value jn
+	jn    jnum
 	null  bool
 	cv    int64
 	kind  *jk // the C kind of a value made here from Java text, whose c is nil
@@ -127,8 +128,13 @@ func (f *jfn) convK(v jval, k jk) string {
 		return f.truth(v)
 	}
 	if v.konst {
-		if v.named && k.size == 4 && int64(int32(v.cv)) == v.cv {
-			return v.s
+		if v.named && v.jn.size != 0 {
+			switch {
+			case (k.size == 4 || k.size == 8) && v.jn.size <= k.size && v.jn.v == jwant(v.cv, k):
+				return v.s // Java widens an int to a long
+			case (k.size == 1 || k.size == 2) && v.jn.size == 4 && jwant(v.jn.v, k) == jwant(v.cv, k):
+				return "(" + k.java() + ") " + jparen(v.s) // javac folds the cast
+			}
 		}
 		return jlit(v.cv, k)
 	}
@@ -295,9 +301,13 @@ func (f *jfn) index(v jval) string { return f.convK(v, jInt) }
 func (f *jfn) expr(e cc.ExpressionNode) jval { return f.exprTo(e, "") }
 
 // exprTo is expr told the Java type the value goes to, for what has no type
-// of its own (a null).  Every integer constant is written as its value: the
-// C arithmetic that made it is not Java's.
+// of its own (a null).  An integer constant is written as the C spells it
+// when Java's value of that is the C's (constText), and as its value
+// otherwise: the C arithmetic that made it is not always Java's.
 func (f *jfn) exprTo(e cc.ExpressionNode, to string) jval {
+	if x, ok := e.(*cc.ConstantExpression); ok {
+		e = x.ConditionalExpression // a case label's, a bound's: what it holds
+	}
 	if isNullConst(e) && e.Type() != nil && e.Type().Kind() == cc.Ptr {
 		return jval{s: "null", t: to, c: e.Type(), null: true}
 	}
@@ -318,6 +328,9 @@ func (f *jfn) exprTo(e cc.ExpressionNode, to string) jval {
 				if x.Case == cc.PrimaryExpressionChar || x.Case == cc.PrimaryExpressionIdent {
 					return f.primary(x, to)
 				}
+			}
+			if n, s, ok := f.constText(e, k, cv, to); ok {
+				return jval{s: s, t: k.java(), c: e.Type(), konst: true, named: true, jn: n, cv: cv}
 			}
 			return jval{s: jlit(cv, k), t: k.java(), c: e.Type(), konst: true, cv: cv}
 		}
@@ -421,8 +434,10 @@ func (f *jfn) primary(x *cc.PrimaryExpression, to string) jval {
 		default:
 			f.no(x, "floating point")
 		}
-		if x.Case == cc.PrimaryExpressionChar && cv >= 0x20 && cv < 0x7f && cv != '\'' && cv != '\\' {
-			return jval{s: "'" + string(rune(cv)) + "'", t: k.java(), c: x.Type(), konst: true, named: true, cv: cv}
+		if x.Case == cc.PrimaryExpressionChar {
+			if lit, ok := jcharLit(cv); ok {
+				return jval{s: lit, t: k.java(), c: x.Type(), konst: true, named: true, jn: jnum{cv, 4}, cv: cv}
+			}
 		}
 		return jval{s: jlit(cv, k), t: k.java(), c: x.Type(), konst: true, cv: cv}
 	case cc.PrimaryExpressionString:
@@ -433,7 +448,7 @@ func (f *jfn) primary(x *cc.PrimaryExpression, to string) jval {
 		return jval{s: "BytePtr.lit(" + javaQuote(strings.TrimSuffix(string(sv), "\x00")) + ")", t: "BytePtr", c: x.Type()}
 	case cc.PrimaryExpressionExpr:
 		v := f.exprTo(x.ExpressionList, to)
-		if !v.null && !v.named {
+		if !v.null && (!v.named || jparen(v.s) != v.s) {
 			v.s = jparen(v.s)
 		}
 		return v
@@ -490,8 +505,13 @@ func (f *jfn) identTo(x *cc.PrimaryExpression, to string) jval {
 		case cc.UInt64Value:
 			cv = int64(v)
 		}
+		if _, had := f.j.enums[name]; !had {
+			f.j.newEnums = append(f.j.newEnums, name)
+		}
 		f.j.enums[name] = fmt.Sprintf("    static final %s %s = %s;\n", k.java(), name, jlit(cv, k))
-		return jval{s: name, t: k.java(), c: x.Type(), konst: true, named: k.size == 4, cv: cv}
+		jn := jnum{jwant(cv, k), max(k.size, 4)}
+		f.j.enumVal[name] = jn
+		return jval{s: name, t: k.java(), c: x.Type(), konst: true, named: !k.boolean, jn: jn, cv: cv}
 	}
 	f.no(x, "an identifier resolved to %T", x.ResolvedTo())
 	return jval{}

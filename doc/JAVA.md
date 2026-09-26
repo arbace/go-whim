@@ -142,8 +142,13 @@ editor: that is milestone 3, when the host runs it.
 
 - An integer is the Java primitive of its size, holding its bits; `_Bool` is
   `boolean`, and a comparison is a `boolean` until an int is wanted
-  (`c ? 1 : 0`). Every integer constant is written as its value in its C
-  type: C's constant arithmetic is not Java's.
+  (`c ? 1 : 0`). An integer constant is written as the C spells it --
+  `case ESC:`, `P_BOOL | P_VI_DEF`, `'\\'` -- where Java's value of that
+  spelling is the C's, which the backend checks by evaluating it by Java's
+  rules (`java_const.go`), and as its value in its C type where it is not:
+  C's constant arithmetic is not Java's. javac folds either to the same
+  code, which `whim java --same-classes` proves (`doc/JAVA-IDIOMS.md`,
+  item 1).
 - **Every pointer to a scalar is a runtime pointer class, whether it walks
   or not** -- the analysis decides nothing there, since Java has no other
   address of a scalar. It decides only for pointers to structs: a plain

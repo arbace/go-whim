@@ -68,6 +68,8 @@ type jgen struct {
 	// ... and a file-scope one, by name: it may be declared more than once
 	boxedGlobal map[string]bool
 	enums       map[string]string // an enumerator used -> its declaration
+	newEnums    []string          // enums' names in the order they were added, for constText to undo
+	enumVal     map[string]jnum   // an enumerator used -> its field's value
 	defined     map[string]bool
 }
 
@@ -618,7 +620,7 @@ func (j *jgen) isBoxed(d *cc.Declarator) bool {
 func (g *gen) writeJava(path string) error {
 	class := strings.TrimSuffix(filepath.Base(path), ".java")
 	j := &jgen{g: g, class: class, structs: map[string]string{}, boxed: map[*cc.Declarator]bool{}, boxedGlobal: map[string]bool{},
-		enums: map[string]string{}, defined: map[string]bool{},
+		enums: map[string]string{}, enumVal: map[string]jnum{}, defined: map[string]bool{},
 		classType: map[string]cc.Type{}, needEq: map[string]bool{}, boxedField: map[string]bool{},
 		gaUsed: map[string]*gaHelper{}, ifaces: map[string]*jiface{}, ifaceByName: map[string]*jiface{},
 		fnRefs: map[string]string{}, fnRefText: map[string]string{}}

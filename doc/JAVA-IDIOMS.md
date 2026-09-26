@@ -75,6 +75,18 @@ make it a check.
 
 ### 1. Constants written as their values
 
+**Done**: the backend writes a constant as the C spells it where `jconst`
+(`crefactor/togo/java_const.go`), an evaluator of Java's constant
+expressions, gives the C's value for it, and the value otherwise -- a
+case label, a flag word, a character with its escape (`'\\'`), a name
+through a cast in a byte or short table (`(byte) M_SHIFT`). Numeric case
+labels 961 -> 26 (the C's own numbers); bare numbers 21,650 -> 18,646, the
+rest the C's own numbers, most of them in its tables. `whim java
+--same-classes` (`braaam/same.go`) is the proof: 139 of 140 classes byte
+for byte the same, `Editor.class` the same code (its new constant fields
+move the pool); a changed flag and a changed comparison are each refused.
+
+
 - **The pattern:** the backend writes "every integer constant as its value in
   its C type" (`JAVA.md`, *Milestone 1*), because C's constant arithmetic is
   not Java's. The rule reaches further than its reason:

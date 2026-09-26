@@ -1566,3 +1566,87 @@ func javaSameWith(t *testing.T, src string, prof Profile, harness string) string
 	}
 	return prog
 }
+
+// Constants are written as the C spells them where Java's value of that
+// spelling is the C's: a case label, a flag word, a character that needs
+// its escape, a byte table's names; and as the value where it is not -- an
+// unsigned division, which Java would write as a call.
+const javaNamesC = javaHost + `enum { ESC = 27, K_INS = -18795 };
+enum { P_BOOL = 0x01, P_VI_DEF = 0x400, P_RCLR = 0x7000 };
+enum : long { BIGL = 1L << 40 };
+enum : unsigned { UMAX = 0xffffffffu };
+enum { M_SHIFT = 2 };
+struct opt { unsigned long flags; long big; };
+static struct opt opts[] = { { P_BOOL | P_VI_DEF, BIGL }, { P_RCLR, BIGL + 1 } };
+static unsigned char table[] = { M_SHIFT, '&', '\\' };
+
+int kind(int c)
+{
+    switch (c)
+    {
+    case ESC: return 1;
+    case K_INS: return 2;
+    case '\\': return 3;
+    case '\t': return 4;
+    case 'z' - 'a' + 1: return 5;
+    }
+    return 0;
+}
+
+void run(void)
+{
+    out(kind(27)); out(kind(-18795)); out(kind(92)); out(kind(9)); out(kind(26)); out(kind(0));
+    out(opts[0].flags); out(opts[1].flags); out(opts[0].big); out(opts[1].big);
+    out(table[0]); out(table[1]); out(table[2]);
+    out(UMAX / 2u);
+}
+`
+
+func TestJavaNames(t *testing.T) {
+	prog := javaSame(t, javaNamesC)
+	for _, want := range []string{
+		"case ESC:", "case K_INS:", `case '\\':`, `case '\t':`, "case ('z' - 'a') + 1:",
+		"P_BOOL | P_VI_DEF", "= P_RCLR;", "= BIGL;", "BIGL + 1L",
+		"(byte) M_SHIFT", "(byte) '&'", `(byte) '\\'`, "2147483647",
+	} {
+		if !strings.Contains(prog, want) {
+			t.Errorf("no %q in\n%s", want, numbered(prog))
+		}
+	}
+}
+
+// jconst is Java's constant arithmetic, not C's.
+func TestJconst(t *testing.T) {
+	names := map[string]jnum{"A": {4, 4}, "L": {1 << 40, 8}}
+	for _, c := range []struct {
+		s    string
+		want jnum
+		ok   bool
+	}{
+		{"A | 3", jnum{7, 4}, true},
+		{"(A + 1) * 2", jnum{10, 4}, true},
+		{"2147483647 + 1", jnum{-2147483648, 4}, true},
+		{"2147483647L + 1", jnum{2147483648, 8}, true},
+		{"L + A", jnum{1<<40 + 4, 8}, true},
+		{"-1 >>> 28", jnum{15, 4}, true},
+		{"-1L >>> 60", jnum{15, 8}, true},
+		{"1 << 33", jnum{2, 4}, true},
+		{"(byte) 200", jnum{-56, 4}, true},
+		{"(char) -1", jnum{65535, 4}, true},
+		{"'\\\\'", jnum{92, 4}, true},
+		{"'\\033'", jnum{27, 4}, true},
+		{"A > 3 ? 1 : 2", jnum{1, 4}, true},
+		{"A > 3 ? 1 : 2L", jnum{1, 8}, true},
+		{"-7 / 2", jnum{-3, 4}, true},
+		{"-7 % 2", jnum{-1, 4}, true},
+		{"1 / 0", jnum{}, false},
+		{"Integer.divideUnsigned(A, 2)", jnum{}, false},
+		{"B + 1", jnum{}, false},
+		{"x.y", jnum{}, false},
+	} {
+		got, ok := jconst(c.s, names)
+		if ok != c.ok || ok && got != c.want {
+			t.Errorf("jconst(%q) = %v, %v; want %v, %v", c.s, got, ok, c.want, c.ok)
+		}
+	}
+}
