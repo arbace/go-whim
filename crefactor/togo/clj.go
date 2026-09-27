@@ -72,7 +72,7 @@ type cgen struct {
 	j           *jgen // the Java backend's decisions
 	ns, hostNS  string
 	hostFns     map[string]bool
-	preds       map[string]bool // the functions that are questions (clj_names.go)
+	preds       map[string]bool   // the functions that are questions (clj_names.go)
 	slots       map[string]*cslot // by the analysis's key
 	slotOrder   []*cslot
 	nL, nZ, nO  int
