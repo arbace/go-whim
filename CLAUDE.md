@@ -268,9 +268,8 @@ vijure/         the editor in Clojure (doc/CLOJURE.md), all by hand but the
 Makefile           the whole build: fetches the input, runs the pipeline, builds the
                    binaries and the editor
 src/               the input and the product: slim-vim.c (fetched, not tracked),
-                   whim-vim.c (produced, tracked), editor.c (its core, cut by
-                   make; not tracked), upstream.sha and slim.sha; their
-                   binaries are bin/slim-vim and bin/whim-vim
+                   whim-vim.c (produced, tracked), upstream.sha and slim.sha;
+                   their binaries are bin/slim-vim and bin/whim-vim
 doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    done, in order, and what was declined, with why), GO-IDIOMS.md (how
                    the Go editor could be idiomatic, measured and ranked; done or
@@ -359,14 +358,15 @@ make help            # every target, with a line each
   input it runs the pipeline in order, which writes them. It proves the text,
   not the editor; `make whim-test` is what sees the editor (see *What this is*).
 
-- **`editor/editor.go` is generated** (`go tool whim gen`, `internal/gen` on the cut
-  `editor.c`) and tracked. `whim-build` writes it after producing `whim-vim.c`;
+- **`editor/editor.go` is generated** (`go tool whim gen`, `internal/gen` on the
+  core it cuts from `src/whim-vim.c` into a directory of its own -- nothing is
+  written under `src/`) and tracked. `whim-build` writes it after producing `whim-vim.c`;
   `make editor/editor.go` writes it on its own; `whim-editor-check` refuses a
   tracked file that is not what the program writes. `go tool whim gen` writes only
   when the content differs and never runs make: through `whim-vim.c`'s rule it
   could start a build. The binary is `bin/whim`. **`braaam/Editor.java` is
   generated and tracked the same way**, by the same `whim gen`, from the same
-  `editor.c` (`crefactor/togo`'s Java backend), held to the same check, and
+  core (`crefactor/togo`'s Java backend), held to the same check, and
   refused outright if the backend refused any part of the core -- **and so is
   `vijure/src/whim/editor.clj`**, the Clojure backend's.
 
@@ -440,8 +440,9 @@ was the input boundary's digest and the implementation's together, so a moved
 ## The core and the host
 
 `whim-vim.c`'s ten `#include`s are not at the top: **the first one is the line
-between the editor core and its host**, marked by nothing else. `make src/editor.c`
-cuts there: a complete translation unit with 0 preprocessor lines, 0 errors under
+between the editor core and its host**, marked by nothing else. `internal/whim`'s
+`Cut` cuts there -- every translation cuts the core for itself (`whim gen`,
+`whim java`, `whim clj`), and `go tool whim cut` prints it: a complete translation unit with 0 preprocessor lines, 0 errors under
 `-fsyntax-only`, and an interface of exactly the names the host defines --
 computed, never listed. The core names no libc function at all, holds no file
 descriptor of its own, and uses no floating point. `GOALS.md` §II.4 is the

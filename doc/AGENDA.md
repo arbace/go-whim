@@ -9,14 +9,6 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 Each moves method sizes: `whim test --java --clojure`'s heavy case, which
 times every editor, is judged with the suites.
 
-1. **`src/editor.c` goes.** Only `whim gen` reads it (the Go editor, and the
-   tracked Editor.java and editor.clj); `whim java` and `whim clj` cut the
-   core from `whim-vim.c` themselves (`braaam.Cut`), and the Makefile's awk
-   recipe is a second implementation of the one cut. `whim gen` reads
-   `src/whim-vim.c` and cuts with the Go `Cut`, moved out of braaam; the
-   `src/editor.c` target, recipe and file go; `go tool whim cut` prints the
-   core for reading.
-
 ## Known stale, not yet scoped
 
 - **The `insert` case is timed for the editors on the JVM.** Its keys end in

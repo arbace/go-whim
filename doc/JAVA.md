@@ -359,7 +359,7 @@ Written 2026-09-25, beside milestone 2 (in progress in `crefactor/togo`), on an
 | `Whim.java` | `host.go`'s glue, `New`, `Main` | `final class Whim extends Editor`: each of the 17 abstract host methods, in the C's signature, a line of glue to the Host -- in the unnamed package, since `Editor` and its package-private methods are; `host_alloc` with the arena's accounting (1 GiB, 16-byte rounding, the exhaustion message) returning `BytePtr.alloc(n)` as the `Object` the core casts; `main(Host, byte[][])` and the launcher's `main(String[])` |
 | `host/Printf.java` | `format.go` | vim_snprintf, line for line, given the core's `gettext_`, `emsg`, `iemsg`, `IObuff`, `emsg_iobuff_room`, `iobuff_or`, `e_val_too_large`, `utfc_ptr2len` and `utf_ptr2cells` through an interface, `Printf.Core`, which `Whim` implements -- so it runs, and is tested, without an `Editor` |
 | `host/Term.java`, `host/Signals.java` | `term/term.go` | the terminal host |
-| `braaam.go` | `cmd/whim/main.go`, `make bin/whim` | the build: `Cut` (the Makefile's cut of `editor.c`), `Build` (cut, generate, compile, launcher), `Compile`, `WriteSources` (the Java sources are embedded) and `WriteLauncher` |
+| `braaam.go` | `cmd/whim/main.go`, `make bin/whim` | the build: `Build` (the core cut by `internal/whim`'s `Cut`, generated, compiled, a launcher), `Compile`, `WriteSources` (the Java sources are embedded) and `WriteLauncher` |
 
 **The arguments of vim_snprintf**, which milestone 2 writes as `Object...`:
 an `Integer`, `Short` or `Long` sign-extends and a `Byte`, `Character` or

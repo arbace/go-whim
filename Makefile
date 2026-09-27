@@ -23,13 +23,12 @@
 #   make                 fetch if the upstream moved, then every editor: bin/whim
 #                        (the core in Go), bin/whim-vim and bin/slim-vim, bin/braaam
 #                        and braaam.jar (Java), bin/vijure and vijure.jar (Clojure)
-#   make whim-build      the 143 phases in one process: slim-vim.c -> whim-vim.c,
+#   make whim-build      the 145 phases in one process: slim-vim.c -> whim-vim.c,
 #                        about fifteen minutes, no cache and no checks
 #   make whim-build-check  the same build, required to give the committed bytes back
 #   make bin/whim-vim    the C product's binary
 #   make bin/slim-vim    the input's binary
-#   make src/editor.c    the core, cut from whim-vim.c at its first #include
-#   make editor/editor.go  the core in Go, generated from src/editor.c
+#   make editor/editor.go  the translations, generated from whim-vim.c's core
 #   make help            every target, with a line each
 
 # Every temporary a recipe makes -- mktemp, Go's os.MkdirTemp, a build's work
@@ -135,11 +134,11 @@ bin/slim-vim: src/slim-vim.c  ## the input's binary, compiled with the one line
 # and a fresh clone writes them at checkout time in arbitrary order, so an mtime
 # dependency would run a pass on a tree that is exactly right.  src/slim.sha records
 # the slim-vim.c the committed whim-vim.c was produced from.
-# The goals that cut src/editor.c and generate the editors themselves once
-# whim-vim.c is current -- `make` (all), bin/whim, src/editor.c, editor/editor.go.
-# When one is being made, whim-vim.c's rule builds without whim-build's own
-# editor step, or a build from a fresh clone cut and generated twice.
-editor-follows := $(if $(MAKECMDGOALS),$(filter all bin/whim src/editor.c editor/editor.go,$(MAKECMDGOALS)),all)
+# The goals that generate the editors themselves once whim-vim.c is current --
+# `make` (all), bin/whim, editor/editor.go.  When one is being made,
+# whim-vim.c's rule builds without whim-build's own editor step, or a build
+# from a fresh clone generated twice.
+editor-follows := $(if $(MAKECMDGOALS),$(filter all bin/whim editor/editor.go,$(MAKECMDGOALS)),all)
 
 src/whim-vim.c: src/slim-vim.c force
 	@set -e; \
@@ -152,15 +151,15 @@ src/whim-vim.c: src/slim-vim.c force
 	$(MAKE) --no-print-directory whim-build $(if $(editor-follows),WHIM_BUILD_EDITOR=no); \
 	echo "$$live" > src/slim.sha
 
-# The pipeline in one process: 164 phases, in order, in memory -- internal/build's
+# The pipeline in one process: 145 phases, in order, in memory -- internal/build's
 # plan and internal/steps' transformations, every boundary printed canonically.  It
 # writes whim-vim.c (and editor.go after it), and keeps every boundary in
-# .cache/boundaries/.  It proves the text, not the behaviour.  Measured: 170
-# 143 phases, 920 s, 75,539 lines.
+# .cache/boundaries/.  It proves the text, not the behaviour.  Measured:
+# 145 phases, 958 s, 75,381 lines.
 # whim-build-check, given those snapshots, proves every phase from its own
 # snapshot at once: 65 s at --jobs 32.
 .PHONY: whim-build whim-build-check
-whim-build:  ## the 143 phases in one process: slim-vim.c -> whim-vim.c
+whim-build:  ## the 145 phases in one process: slim-vim.c -> whim-vim.c
 	@printf '\n\033[1m  whim-vim\033[0m  from slim-vim.c: an editor with no runtime\n'
 	@go tool whim build --out src/whim-vim.c
 	@$(call drop-stale,bin/whim-vim,src/whim-vim.c)
@@ -181,50 +180,31 @@ bin/whim-vim: src/whim-vim.c  ## the C product's binary, compiled with the one l
 # whim-vim.c is one translation unit with two parts: above, the core editor, with
 # no preprocessor syntax at all; below, the host, beginning with the #includes --
 # and that first directive IS the boundary, marked by nothing else (GOALS.md
-# II.4c).  The cut stops at the first `^ *# *include ` (whitespace after `#` is
-# insignificant to C) and drops trailing blank lines, and it REFUSES a result that
-# holds a directive: the defining property of the upper part is that it has none,
-# so a cut that produced one found the wrong line.  editor.c does not compile on
-# its own -- the core calls the musl_ functions the host defines below -- and is
-# not meant to; it must parse.
+# II.4c).  Every translation is written from the core, and each cuts it for
+# itself (internal/whim's Cut: everything before the first `^ *# *include `,
+# trailing blank lines dropped, a result holding a directive refused): `whim gen`
+# for editor.go and the tracked Editor.java and editor.clj, `whim java` and
+# `whim clj` for their builds.  Nothing is written under src/; `go tool whim cut`
+# prints the core, to read.
 #
-# A canned recipe: editor.c's rule runs it after whim-vim.c is current, and
-# whim-editor and whim-editor-check run it on whim-vim.c as it stands -- through
-# whim-vim.c's own rule they would start a build.
-define cut-editor
-	@awk '/^ *# *include / { exit } { a[NR] = $$0; if (NF) last = NR } \
-	      END { for (i = 1; i <= last; i++) print a[i] }' src/whim-vim.c > src/editor.c
-	@if grep -q '^ *#' src/editor.c; then \
-	    echo "  src/editor.c REFUSED -- the cut holds a directive, so it found the wrong line:"; \
-	    grep -n '^ *#' src/editor.c | head -3 | sed 's/^/               /'; \
-	    rm -f src/editor.c; exit 1; \
-	 fi
-	@printf '  %-12s %s lines, cut at the first #include of %s\n' src/editor.c \
-	    "`grep -c '' src/editor.c | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`" \
-	    "`grep -c '' src/whim-vim.c | sed -e :a -e 's/\(.*[0-9]\)\([0-9]\{3\}\)/\1,\2/;ta'`"
-endef
-
-.PHONY: src/editor.c
-src/editor.c: src/whim-vim.c  ## the core, cut from whim-vim.c at its first #include
-	$(cut-editor)
-
-# editor/editor.go is GENERATED: internal/gen writes it whole from src/editor.c
-# (go tool whim gen), and it is tracked, so it must be what the program writes
-# from the tracked whim-vim.c.  It is written only when that differs, so a current
-# file keeps its mtime.  whim-build writes it after producing whim-vim.c;
-# whim-editor-check refuses a stale one.
+# editor/editor.go is GENERATED, and so are braaam/Editor.java and
+# vijure/src/whim/editor.clj: `go tool whim gen` writes them whole from
+# whim-vim.c's core, and they are tracked, so they must be what the program
+# writes from the tracked whim-vim.c.  Each is written only when that differs, so
+# a current file keeps its mtime.  whim-build writes them after producing
+# whim-vim.c; whim-editor-check refuses a stale one.  whim-editor and
+# whim-editor-check run on whim-vim.c as it stands: through whim-vim.c's own rule
+# they would start a build.
 .PHONY: editor/editor.go
-editor/editor.go: src/editor.c  ## the translations, generated from src/editor.c: editor.go, Editor.java, editor.clj
+editor/editor.go: src/whim-vim.c  ## the translations, generated from whim-vim.c's core: editor.go, Editor.java, editor.clj
 	@go tool whim gen
 
 .PHONY: whim-editor
 whim-editor:
-	$(cut-editor)
 	@go tool whim gen
 
 .PHONY: whim-editor-check
 whim-editor-check:  ## refuse if a tracked editor.go, Editor.java or editor.clj is not what the generator writes
-	$(cut-editor)
 	@go tool whim gen --check
 
 # ==== the editor in Go
@@ -341,8 +321,8 @@ go-test:  ## the Go tests of both modules: this one and crefactor/
 
 # ==== housekeeping
 .PHONY: clean
-clean:  ## remove the built binaries and src/editor.c
-	rm -f bin/slim-vim bin/whim-vim bin/whim bin/braaam bin/vijure braaam.jar vijure.jar editor.lgo src/editor.c
+clean:  ## remove the built binaries and jars
+	rm -f bin/slim-vim bin/whim-vim bin/whim bin/braaam bin/vijure braaam.jar vijure.jar editor.lgo
 	rm -rf lib/braaam lib/vijure
 
 .PHONY: clean-cache

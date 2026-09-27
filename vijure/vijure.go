@@ -20,6 +20,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
+	"github.com/arbace/go-whim/internal/whim"
 	"io"
 	"io/fs"
 	"os"
@@ -88,7 +89,7 @@ func Generate(gen Gen, src, dir string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	core, err := braaam.Cut(c)
+	core, err := whim.Cut(c)
 	if err != nil {
 		return "", err
 	}

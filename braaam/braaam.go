@@ -12,14 +12,13 @@
 package braaam
 
 import (
-	"bytes"
 	"embed"
 	"fmt"
+	"github.com/arbace/go-whim/internal/whim"
 	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strings"
 )
 
@@ -30,38 +29,6 @@ var sources embed.FS
 // <editorC> <dir> -java <javaOut>` does.
 type Gen func(editorC, dir, javaOut string) error
 
-// includeLine is where the core ends: the first #include, whitespace after
-// the # being insignificant to C.
-var includeLine = regexp.MustCompile(`^ *# *include `)
-
-// Cut is the core half of a whim-vim.c, as `make src/editor.c` cuts it: every
-// line before the first #include, trailing blank lines dropped; and an error
-// when what is left holds a directive, since the core has none.
-func Cut(c []byte) ([]byte, error) {
-	lines := strings.SplitAfter(string(c), "\n")
-	last := -1
-	for i, l := range lines {
-		if includeLine.MatchString(l) {
-			break
-		}
-		if strings.TrimSpace(l) != "" {
-			last = i
-		}
-		if strings.HasPrefix(strings.TrimLeft(l, " "), "#") {
-			return nil, fmt.Errorf("braaam: the cut holds a directive at line %d, so it found the wrong line", i+1)
-		}
-	}
-	if last < 0 {
-		return nil, fmt.Errorf("braaam: no core before the first #include")
-	}
-	var b bytes.Buffer
-	for _, l := range lines[:last+1] {
-		b.WriteString(strings.TrimSuffix(l, "\n"))
-		b.WriteByte('\n')
-	}
-	return b.Bytes(), nil
-}
-
 // Build is the editor in Java from the C file src, in dir: dir/src/ the
 // sources, dir/classes/ what javac made of them, and the launcher
 // at the path launcher, which it returns.  edit, when not nil, is applied to the
@@ -71,7 +38,7 @@ func Build(gen Gen, src, dir, launcher string, edit func([]byte) ([]byte, error)
 	if err != nil {
 		return "", err
 	}
-	core, err := Cut(c)
+	core, err := whim.Cut(c)
 	if err != nil {
 		return "", err
 	}

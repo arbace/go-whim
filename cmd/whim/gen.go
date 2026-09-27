@@ -13,25 +13,26 @@ import (
 	"github.com/arbace/go-whim/internal/whim"
 )
 
-// runGen writes editor/editor.go from src/editor.c, the core of whim-vim.c, and
-// internal/gen/sigs.md beside it -- or, with --check, refuses when either is
-// not what internal/gen writes.  make cuts src/editor.c first (`make
-// editor/editor.go`, `make whim-editor-check`); this never runs make, so a
-// check cannot start a build.  crt.go and host.go are not generated: they are
-// the runtime and the host.  Each file is written only when it differs, so a
-// current one keeps its mtime.
+// runGen writes editor/editor.go, braaam/Editor.java and
+// vijure/src/whim/editor.clj from the core of src/whim-vim.c (or FILE), and
+// internal/gen/sigs.md beside them -- or, with --check, refuses when any is
+// not what the generator writes.  It cuts the core itself (whim.Cut), as `whim
+// java` and `whim clj` do, into a directory of its own: nothing is written
+// under src/.  It never runs make, so a check cannot start a build.  crt.go
+// and host.go are not generated: they are the runtime and the host.  Each
+// file is written only when it differs, so a current one keeps its mtime.
 func runGen(args []string) int {
-	check := false
-	switch {
-	case len(args) == 1 && args[0] == "--check":
-		check = true
-	case len(args) != 0:
-		fmt.Fprintln(os.Stderr, "usage: whim gen [--check]")
-		return 2
-	}
-	if _, err := os.Stat("src/editor.c"); err != nil {
-		fmt.Println("whim gen: no src/editor.c; make cuts it from whim-vim.c: make editor/editor.go")
-		return 1
+	check, file := false, "src/whim-vim.c"
+	for _, a := range args {
+		switch {
+		case a == "--check":
+			check = true
+		case len(a) > 0 && a[0] != '-':
+			file = a
+		default:
+			fmt.Fprintln(os.Stderr, "usage: whim gen [--check] [FILE]")
+			return 2
+		}
 	}
 	out, err := os.MkdirTemp("", "gen")
 	if err != nil {
@@ -39,13 +40,18 @@ func runGen(args []string) int {
 		return 1
 	}
 	defer os.RemoveAll(out)
+	editorC, err := cutCore(file, out)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
+		return 1
+	}
 	prof, err := genProfile()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
 		return 1
 	}
-	if rc := togo.Run([]string{"src/editor.c", out, "-editor", filepath.Join(out, "editor.go")}, io.Discard, prof); rc != 0 {
-		fmt.Fprintln(os.Stderr, "whim gen: the generator refused editor.c")
+	if rc := togo.Run([]string{editorC, out, "-editor", filepath.Join(out, "editor.go")}, io.Discard, prof); rc != 0 {
+		fmt.Fprintln(os.Stderr, "whim gen: the generator refused the core")
 		return rc
 	}
 	// The same core in Java (doc/JAVA.md), tracked beside the Go and held to
@@ -58,7 +64,7 @@ func runGen(args []string) int {
 	}
 	defer os.RemoveAll(jdir)
 	javaOut := filepath.Join(out, "Editor.java")
-	if err := javaGen("src/editor.c", jdir, javaOut); err != nil {
+	if err := javaGen(editorC, jdir, javaOut); err != nil {
 		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
 		return 1
 	}
@@ -75,7 +81,7 @@ func runGen(args []string) int {
 	}
 	defer os.RemoveAll(cdir)
 	cljOut := filepath.Join(out, "editor.clj")
-	if err := cljGen("src/editor.c", cdir, cljOut); err != nil {
+	if err := cljGen(editorC, cdir, cljOut); err != nil {
 		fmt.Fprintf(os.Stderr, "whim gen: %v\n", err)
 		return 1
 	}
@@ -182,3 +188,60 @@ func genProfile() (togo.Profile, error) {
 // runPre runs one of internal/ccx's partitions on an editor.c:
 // `whim pre casts|order|unions|garrays|voids|gotos|funcs <editor.c>`.
 func runPre(args []string) int { return pre.Run(args, os.Stderr) }
+
+// cutCore cuts the core of the whim-vim.c at file into dir/editor.c, says
+// so, and returns the path.
+func cutCore(file, dir string) (string, error) {
+	c, err := os.ReadFile(file)
+	if err != nil {
+		return "", err
+	}
+	core, err := whim.Cut(c)
+	if err != nil {
+		return "", fmt.Errorf("%s: %v", file, err)
+	}
+	p := filepath.Join(dir, "editor.c")
+	if err := os.WriteFile(p, core, 0o644); err != nil {
+		return "", err
+	}
+	fmt.Printf("  %-12s %s lines, cut at the first #include of %s\n", "core", commas(bytes.Count(core, []byte("\n"))), commas(bytes.Count(c, []byte("\n"))))
+	return p, nil
+}
+
+// commas is n with a comma every three digits.
+func commas(n int) string {
+	s := fmt.Sprint(n)
+	for i := len(s) - 3; i > 0; i -= 3 {
+		s = s[:i] + "," + s[i:]
+	}
+	return s
+}
+
+// runCut prints the core of a whim-vim.c -- src/whim-vim.c, or FILE -- on
+// stdout: what every translation is written from, to read, or to hand
+// `whim skel` and `whim pre`.
+//
+//	whim cut [FILE]
+func runCut(args []string) int {
+	file := "src/whim-vim.c"
+	switch len(args) {
+	case 0:
+	case 1:
+		file = args[0]
+	default:
+		fmt.Fprintln(os.Stderr, "usage: whim cut [FILE]")
+		return 2
+	}
+	c, err := os.ReadFile(file)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "whim cut: %v\n", err)
+		return 1
+	}
+	core, err := whim.Cut(c)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "whim cut: %s: %v\n", file, err)
+		return 1
+	}
+	os.Stdout.Write(core)
+	return 0
+}
