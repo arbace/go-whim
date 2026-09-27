@@ -748,6 +748,26 @@ func (f *fnEmit) compare(x cc.ExpressionNode, op string, le, re cc.ExpressionNod
 		if strings.HasPrefix(f.g.canon(r.t), "Ptr[") {
 			t = r.t
 		}
+		if op == "==" || op == "!=" {
+			// a plain pointer and a walking one: whether the Ptr is at that
+			// element -- Addr would make the *T an allocation of its own,
+			// never == to a Ptr into the array it is in
+			lt, rt := f.g.canon(l.t), f.g.canon(r.t)
+			var ptr, star val
+			switch {
+			case strings.HasPrefix(lt, "Ptr[") && strings.HasPrefix(rt, "*") && f.g.canon(elemOfGo(lt)) == f.g.canon(elemOfGo(rt)):
+				ptr, star = l, r
+			case strings.HasPrefix(rt, "Ptr[") && strings.HasPrefix(lt, "*") && f.g.canon(elemOfGo(rt)) == f.g.canon(elemOfGo(lt)):
+				ptr, star = r, l
+			}
+			if ptr.t != "" {
+				s := "PtrIs(" + ptr.s + ", " + star.s + ")"
+				if op == "!=" {
+					s = "!" + s
+				}
+				return val{s: s, t: "bool", c: x.Type(), boolean: true}
+			}
+		}
 		a, b := f.conv(l, t), f.conv(r, t)
 		if op == "==" || op == "!=" {
 			return val{s: a + " " + op + " " + b, t: "bool", c: x.Type(), boolean: true}

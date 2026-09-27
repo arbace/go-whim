@@ -97,7 +97,7 @@ slim-vim.c  --whim-->  whim-vim.c
   baselines and `make whim-verify`) was removed after `448e9a8`, the last commit
   that has it. What proves a change now is two things: `make whim-build-check`,
   the committed product back byte for byte, which sees the text; and `make
-  whim-test` (`internal/suite`), which sees the editor -- 45 key sessions
+  whim-test` (`internal/suite`), which sees the editor -- 51 key sessions
   (`internal/suite/cases.md`) fed from a file on stdin, so that a run's output
   never depends on timing, to a build of the working tree's
   `src/whim-vim.c` and to one of HEAD's, required to print the same screens and
@@ -105,8 +105,10 @@ slim-vim.c  --whim-->  whim-vim.c
   move at least one of them, and a case that runs out of keys before its `:q!`
   refused. Then the same cases on the GO editor (`editor/` built), required to
   answer exactly as the C candidate does -- the one check that `editor.go` is
-  the editor and not only what `internal/gen` writes (the same control moves 41
-  of the 45 there). About 5 s, the four builds side by side. **`make
+  the editor and not only what `internal/gen` writes (the same control moves 47
+  of the 51 there; six cases of the regex engine -- alternation, groups,
+  counts, back-references, look-behind, classes -- since the Go editor
+  was found matching no `\|` in `doc/PARALLEL-SUBSTITUTE.md`). About 5 s, the four builds side by side. **`make
   whim-test-wide`** is optional and wider: 240 cases in four groups -- the 102
   keystroke cases of the archived suite with their startup arguments, every Ex
   command by name, 30 command lines, and 10 runs on a real pseudo-terminal of
@@ -115,11 +117,11 @@ slim-vim.c  --whim-->  whim-vim.c
   (`braaam/`, built from the candidate): the same cases, required to answer as
   the C candidate does, with a control of its own (`" INSERT"` changed in the
   generated `Editor.java`) that must move the Java editor's own answers; the
-  Java editor answers all 45 and all 240 as the C does (`doc/JAVA.md`,
+  Java editor answers all 51 and all 240 as the C does (`doc/JAVA.md`,
   milestone 2), its control seen as the Go's is. **`--clojure`** adds the
   CLOJURE editor (`vijure/`) the same way, its control `" INSERT"` changed
   in the generated `editor.clj`, written by `crefactor/togo`'s Clojure backend
-  (`doc/CLOJURE.md`, milestones 1-2); the Clojure editor answers all 45 and
+  (`doc/CLOJURE.md`, milestones 1-2); the Clojure editor answers all 51 and
   all 240 as the C does, and `--clojure-editor F` runs it on a namespace
   written already. Both suites are exact under load (`internal/suite/stress_test.go`:
   0 differing runs of 6,720 for the wide suite). **Both end with the heavy
@@ -285,7 +287,9 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    scheduled), IR.md (where a feature goes in the chain,
                    and an intermediate representation: an assessment),
                    IR-SCHEMA.md (that representation sketched against togo:
-                   what is shared and duplicated, a schema, a migration path) and GO-LISP.md
+                   what is shared and duplicated, a schema, a migration path),
+                   PARALLEL-SUBSTITUTE.md (how much of a :%s is matching,
+                   measured on every editor, and what stands in the way) and GO-LISP.md
                    (the Go editor in go-lisp syntax: an experiment, and make
                    editor.lgo)
 ```
@@ -311,7 +315,7 @@ make                 # all: through whim-vim.c (produced only when slim-vim.c mo
 make whim-build      # the 145 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go, Editor.java or editor.clj that is not what the generator writes
-make whim-test        # the quick suite: 45 key sessions, required to behave as HEAD's does
+make whim-test        # the quick suite: 51 key sessions, required to behave as HEAD's does
 make whim-test-wide   # the optional wide suite: 240 cases, keys, Ex commands, argv, a terminal
 make bin/braaam       # the editor in Java: Editor.java generated, compiled, and a launcher
 make whim-test-java   # the quick suite with the Java editor too (whim test --java; --wide --java)

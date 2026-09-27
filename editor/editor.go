@@ -41536,7 +41536,7 @@ func (ed *Editor) did_set_term_option(args *optset_T) Ptr[byte] {
 	if ed.full_screen == 0 {
 		return Ptr[byte]{}
 	}
-	if Addr(varp) == View(ed.term_strings[:]).Add(49) {
+	if PtrIs(View(ed.term_strings[:]).Add(49), varp) {
 		colors := musl_atoi(ed.term_strings[49])
 		if colors != ed.t_colors {
 			ed.t_colors = colors
@@ -41547,18 +41547,18 @@ func (ed *Editor) did_set_term_option(args *optset_T) Ptr[byte] {
 		}
 	}
 	ed.ttest(false)
-	if Addr(varp) == View(ed.term_strings[:]).Add(19) {
+	if PtrIs(View(ed.term_strings[:]).Add(19), varp) {
 		ed.out_str(ed.term_strings[19])
 		ed.redraw_later(UPD_CLEAR)
 	}
-	if (Addr(varp) == View(ed.term_strings[:]).Add(82)) && (ed.termcap_active != 0) {
+	if PtrIs(View(ed.term_strings[:]).Add(82), varp) && (ed.termcap_active != 0) {
 		if int32(ed.term_strings[82].Get()) == NUL {
 			ed.out_str(ed.term_strings[83])
 		} else {
 			ed.out_str(ed.term_strings[82])
 		}
 	}
-	if (Addr(varp) == View(ed.term_strings[:]).Add(92)) || (Addr(varp) == View(ed.term_strings[:]).Add(93)) {
+	if PtrIs(View(ed.term_strings[:]).Add(92), varp) || PtrIs(View(ed.term_strings[:]).Add(93), varp) {
 		ed.term_set_sync_output(TERM_SYNC_OUTPUT_OFF)
 	}
 	return Ptr[byte]{}
@@ -41603,7 +41603,7 @@ func (ed *Editor) did_set_string_option(opt_idx int32, varp *Ptr[byte], oldval P
 	var free_oldval long_u = (ed.get_option_flags(opt_idx) & P_ALLOCED)
 	did_set_cb := ed.get_option_did_set_cb(opt_idx)
 	var args optset_T
-	if Addr(varp) == View(ed.term_strings[:]) {
+	if PtrIs(View(ed.term_strings[:]), varp) {
 		opt_idx = ed.findoption(S("term"))
 		if opt_idx >= 0 {
 			free_oldval = (ed.get_option_flags(opt_idx) & P_ALLOCED)
@@ -45936,7 +45936,7 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					status = RA_NOMATCH
 				}
 			}
-			if (status == RA_CONT) || (Addr(rp) == GaData[S_regitem_S](&ed.regstack).Add(int(ed.regstack.ga_len-1))) {
+			if (status == RA_CONT) || PtrIs(GaData[S_regitem_S](&ed.regstack).Add(int(ed.regstack.ga_len-1)), rp) {
 				break
 			}
 		}

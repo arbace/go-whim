@@ -51,6 +51,20 @@ func (p Ptr[T]) slice() []T {
 	return unsafe.Slice(p.base, p.n)
 }
 
+// PtrIs is p == q, a walking pointer against a plain one: q is the element
+// p is at, or both are NULL.  Two Ptr compare with == (the same element of the
+// same allocation); a *T made a Ptr by Addr would be an allocation of its
+// own, never == to a Ptr into the array it is an element of.
+func PtrIs[T any](p Ptr[T], q *T) bool {
+	if p.base == nil || q == nil {
+		return p.base == nil && q == nil
+	}
+	if p.i < 0 || p.i >= p.n {
+		return false // one past the end: no element, so not q
+	}
+	return &unsafe.Slice(p.base, p.n)[p.i] == q
+}
+
 // Nil is p == NULL.
 func (p Ptr[T]) Nil() bool { return p.base == nil }
 

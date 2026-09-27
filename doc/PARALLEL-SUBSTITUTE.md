@@ -1,5 +1,12 @@
 # PARALLEL-SUBSTITUTE.md -- how much of a :%s is matching, and what stands in the way
 
+**Since fixed** (2026-09-27): the Go editor's failure on `\|` and repeated
+groups was the Go printer comparing a plain pointer with a walking one by
+value (`Addr(rp) == GaData(...).Add(n)`, never true) -- `regmatch`'s test
+that it is back at the item it pushed, and five tests of a terminal option's
+variable. It writes `PtrIs(p, q)` now, and six regex cases joined the
+quick suite; see the commit that fixed it.
+
 2026-09-27. A survey; nothing in it is built. It measures what `doc/IR.md`'s
 proposal for `:%s/.../.../g` on many cores rests on: (1) a phase that makes the
 regex engine's state a parameter, (2) a phase that splits `ex_substitute` into

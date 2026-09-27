@@ -9,6 +9,19 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 Each moves method sizes: `whim test --java --clojure`'s heavy case, which
 times every editor, is judged with the suites.
 
+1. **vijure's regex matcher, unboxed** (`doc/PARALLEL-SUBSTITUTE.md`): on a
+   500,000-line `:%s` it is 22 times the C on `[ab]\+c` and 15 on
+   `\v(a|b)+c`, mostly boxing (`Numbers.num`) in `regmatch`'s split groups; a
+   matcher as fast as the Java's would gain about 13 times on one core -- what
+   64 cores would give. Measure with the survey's workloads.
+2. **The parallel `:%s`** (`doc/IR.md`, `doc/PARALLEL-SUBSTITUTE.md`): worth it
+   only for regex-heavy patterns on large buffers (7.8-13 times at 16 cores;
+   literal and dense patterns 1.3-4.3). First cases that cross chunk
+   boundaries and one per condition that forces the sequential path (`c`,
+   multi-line patterns, `\%#`, `\%V` ...); then the two C phases (the regex
+   state a parameter: `rex` and kin, 40 functions; `ex_substitute`'s loop split,
+   431 of its 805 lines, `match_lines` about 60) and the per-target bodies.
+
 ## Known stale, not yet scoped
 
 - **The `insert` case is timed for the editors on the JVM.** Its keys end in

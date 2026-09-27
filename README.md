@@ -30,7 +30,7 @@ from each other: `editor/editor.go`, `braaam/Editor.java` and
 `vijure/src/whim/editor.clj` are generated, tracked, and refused by
 `make whim-editor-check` when stale.
 
-**The tests**: `make whim-test` runs 45 key sessions on the C and the Go editor
+**The tests**: `make whim-test` runs 51 key sessions on the C and the Go editor
 and requires the same screens, with a control that must move them;
 `make whim-test-wide` does the same with 240 cases; `make whim-test-java` and
 `make whim-test-clj` hold the Java and the Clojure editors to them too. `make go-test` runs the Go packages' tests.
@@ -98,7 +98,8 @@ doc/             GOALS.md (what holds for every phase), AGENDA.md (what is
                  CLOJURE-IDIOMS.md, PIPELINE-COMPACTION.md,
                  GO-LISP.md, CLOJURE.md, HASKELL.md, RUST.md (preliminary plans, not scheduled),
                  IR.md (where a feature goes; an intermediate representation),
-                 IR-SCHEMA.md (that representation sketched)
+                 IR-SCHEMA.md (that representation sketched),
+                 PARALLEL-SUBSTITUTE.md (how much of a :%s is matching)
 CLAUDE.md        the working guide: the build, the pipeline, what to know
                  before changing anything shared
 ```

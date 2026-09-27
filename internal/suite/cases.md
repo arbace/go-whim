@@ -43,6 +43,12 @@ search_back	ifoo bar foo baz foo\e$?foo\rx:q!\r
 star	ione two one three one\egg0*x:q!\r
 substitute	ia-b-c\ra-b\e:%s/-/+/g\r:q!\r
 substitute_count	ia a a\ra a\e:%s/a/b/\r:q!\r
+regex_branch	iabc xbbc zzz abbc\ra c ac\e:%s/a\\|c/X/g\r:q!\r
+regex_group	iabc xbbc zbbbc\e:s/\\(b\\)\\+c/[&]/g\r/\\v(a|b)+c\rx:q!\r
+regex_count	iab abb abbb ababab\e:s/\\(ab\\)\\{2}/X/g\r:s/b\\{2,}/Y/g\r:q!\r
+regex_backref	iaa ab bb abab\e:s/\\(\\w\\)\\1/<\\1>/g\r:s/\\v(ab)\\1/=/\r:q!\r
+regex_behind	ifoobar bar xbar\e:s/\\(foo\\)\\@<=bar/X/g\r:s/\\v(x)@<!bar/Y/g\r:q!\r
+regex_class	iA1 b2 C3 d4\e:s/[a-z]\\d/_/g\r:s/\\u\\d/#/g\r:q!\r
 global	ikeep\rdrop\rkeep\rdrop\e:g/drop/d\r:q!\r
 vglobal	ikeep\rdrop\rkeep\e:v/keep/d\r:q!\r
 move_copy	i1\r2\r3\e:1m$\r:1t0\r:q!\r
