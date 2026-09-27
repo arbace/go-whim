@@ -210,6 +210,8 @@ func wlv_screen_line(wp *S_window_S, wlv *winlinevars_T, clear_end bool)
 func draw_screen_line(wp *S_window_S, wlv *winlinevars_T)
 func win_line_start(wp *S_window_S, wlv *winlinevars_T, save_extra bool)
 func win_line_continue(wlv *winlinevars_T)
+func mb_ptr2char_adv__p_extra(s0__ *winlinevars_T) int32
+func get_search_match_hl__char_attr(wp *S_window_S, search_hl *match_T, col int64, s3__ *winlinevars_T)
 func win_line(wp *S_window_S, lnum linenr_T, startrow int32, endrow int32, number_only int32) int32
 func update_screen(type_arg int32) bool
 func statusline_row(wp *S_window_S) int32
@@ -334,6 +336,7 @@ func undo_cmdmod(cmod *cmdmod_T)
 func parse_cmd_address(eap *S_exarg, errormsg *Ptr[byte], silent bool) bool
 func append_command(cmd Ptr[byte])
 func one_letter_cmd(p Ptr[byte], idx *cmdidx_T) bool
+func one_letter_cmd__cmdidx(p Ptr[byte], s1__ *S_exarg) bool
 func find_ex_command(eap *S_exarg, full *int32) Ptr[byte]
 func skip_range(cmd_start Ptr[byte], skip_star bool, ctx *int32) Ptr[byte]
 func addr_error(addr_type cmd_addr_T)
@@ -1351,6 +1354,7 @@ func save_subexpr(bp *S_regbehind_S)
 func restore_subexpr(bp *S_regbehind_S)
 func regmatch(scan Ptr[byte], timed_out *int32) int32
 func regtry(prog *S_regprog, col colnr_T, timed_out *int32) int64
+func cstrncmp__regmlen(s1 Ptr[byte], s2 Ptr[byte], s2__ *S_regprog) int32
 func bt_regexec_both(line Ptr[byte], startcol colnr_T, timed_out *int32) int64
 func bt_regexec_nl(rmp *regmatch_T, line Ptr[byte], col colnr_T, line_lbr bool) int32
 func bt_regexec_multi(rmp *regmmatch_T, win *S_window_S, buf *S_file_buffer, lnum linenr_T, col colnr_T, timed_out *int32) int64

@@ -402,7 +402,11 @@ keeps the C name a grep. `TestCljNames`.
 
 **Done in part: phase 174** takes `pos_T.lnum` and `.col` out of it (the
 C's 11 `&pos.lnum`s and its two columns): `(aget ... 0)` 10,786 -> 8,997.
-The other members stay boxed.
+The other members stay boxed. **Phase 175** is the rule in general,
+provably safe sites only: 4 more members (`regmlen`, `char_attr`, `p_extra`,
+`cmdidx`); the rest are the option table's pointers (kept by design), members
+whose address a local pointer keeps (`cp = &cap->nchar`), and callees whose
+reach -- vim's error paths into the redraw -- names the member.
 
 
 - **The pattern.** A member whose address C takes is a one-element array in

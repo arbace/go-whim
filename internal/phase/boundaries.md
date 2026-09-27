@@ -11,7 +11,7 @@ longer have a snapshot of their own. The 8 phases that edit nothing (82, 83,
 and the 14 same-purpose groups of §3d each run as one phase under their last
 number -- 39, 44-47, 51-52, 72, 100-101, 105-106, 117-118, 121, 143-144, 148,
 151, 153, 164 and 166-167 run inside the phase after them, so their rows are
-texts no build now stops at. The rest are unchanged. (Phases 170-174 came
+texts no build now stops at. The rest are unchanged. (Phases 170-175 came
 after this table was measured.)
 
 A row is the boundary AFTER that phase: after its sweep and canonical print,

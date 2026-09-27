@@ -10399,6 +10399,19 @@ func win_line_continue(wlv *winlinevars_T) {
 	}
 }
 
+func (ed *Editor) mb_ptr2char_adv__p_extra(s0__ *winlinevars_T) int32 {
+	p_extra0__ := s0__.p_extra
+	r__ := ed.mb_ptr2char_adv(&p_extra0__)
+	s0__.p_extra = p_extra0__
+	return r__
+}
+
+func get_search_match_hl__char_attr(wp *S_window_S, search_hl *match_T, col int64, s3__ *winlinevars_T) {
+	char_attr3__ := s3__.char_attr
+	get_search_match_hl(wp, search_hl, col, &char_attr3__)
+	s3__.char_attr = char_attr3__
+}
+
 func (ed *Editor) win_line(wp *S_window_S, lnum linenr_T, startrow int32, endrow int32, number_only int32) int32 {
 	var i int32
 	var i_2 int32
@@ -10784,7 +10797,7 @@ func (ed *Editor) win_line(wp *S_window_S, lnum linenr_T, startrow int32, endrow
 				transchar_hex(View(wlv.extra[:]), mb_c)
 				wlv.p_extra = View(wlv.extra[:])
 				c = int32(wlv.p_extra.Get())
-				mb_c = ed.mb_ptr2char_adv(&wlv.p_extra)
+				mb_c = ed.mb_ptr2char_adv__p_extra(&wlv)
 				mb_utf8 = (c >= 0x80)
 				wlv.n_extra = int32(musl_strlen(wlv.p_extra))
 				wlv.c_extra = NUL
@@ -11041,7 +11054,7 @@ func (ed *Editor) win_line(wp *S_window_S, lnum linenr_T, startrow int32, endrow
 					ed.ScreenLinesUC.Set(int(wlv.off), 0)
 				}
 				if area_attr == 0 {
-					get_search_match_hl(wp, &ed.screen_search_hl, int64(ptr.Sub(line)), &wlv.char_attr)
+					get_search_match_hl__char_attr(wp, &ed.screen_search_hl, int64(ptr.Sub(line)), &wlv)
 				}
 				ed.ScreenAttrs.Set(int(wlv.off), sattr_T(wlv.char_attr))
 				ed.ScreenCols.Set(int(wlv.off), colnr_T(wlv.vcol))
@@ -16780,12 +16793,19 @@ func one_letter_cmd(p Ptr[byte], idx *cmdidx_T) bool {
 	return false
 }
 
+func one_letter_cmd__cmdidx(p Ptr[byte], s1__ *S_exarg) bool {
+	cmdidx1__ := s1__.cmdidx
+	var r__ bool = (one_letter_cmd(p, &cmdidx1__))
+	s1__.cmdidx = cmdidx1__
+	return (r__)
+}
+
 func (ed *Editor) find_ex_command(eap *S_exarg, full *int32) Ptr[byte] {
 	var len_ int32
 	var p Ptr[byte]
 	var i int32
 	p = eap.cmd
-	if one_letter_cmd(p, &eap.cmdidx) {
+	if one_letter_cmd__cmdidx(p, eap) {
 		p = p.Add(1)
 		if full != nil {
 			*full = TRUE
@@ -45961,6 +45981,13 @@ func (ed *Editor) regtry(prog *S_regprog, col colnr_T, timed_out *int32) int64 {
 	return 1 + ed.rex.lnum
 }
 
+func (ed *Editor) cstrncmp__regmlen(s1 Ptr[byte], s2 Ptr[byte], s2__ *S_regprog) int32 {
+	regmlen2__ := s2__.regmlen
+	r__ := ed.cstrncmp(s1, s2, &regmlen2__)
+	s2__.regmlen = regmlen2__
+	return r__
+}
+
 func (ed *Editor) bt_regexec_both(line Ptr[byte], startcol colnr_T, timed_out *int32) int64 {
 	var prog *S_regprog
 	var s Ptr[byte]
@@ -46016,7 +46043,7 @@ func (ed *Editor) bt_regexec_both(line Ptr[byte], startcol colnr_T, timed_out *i
 					if s.Nil() {
 						break
 					}
-					if ed.cstrncmp(s, prog.regmust, &prog.regmlen) == 0 {
+					if ed.cstrncmp__regmlen(s, prog.regmust, prog) == 0 {
 						break
 					}
 					s = s.Add(int(ed.utfc_ptr2len(s)))
@@ -46027,7 +46054,7 @@ func (ed *Editor) bt_regexec_both(line Ptr[byte], startcol colnr_T, timed_out *i
 					if s.Nil() {
 						break
 					}
-					if ed.cstrncmp(s, prog.regmust, &prog.regmlen) == 0 {
+					if ed.cstrncmp__regmlen(s, prog.regmust, prog) == 0 {
 						break
 					}
 					s = s.Add(int(ed.utfc_ptr2len(s)))

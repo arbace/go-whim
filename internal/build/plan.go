@@ -790,4 +790,8 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim174"}},
 		}},
+	{N: 175, Name: "a member's address a call hands back is a local's",
+		Steps: []Step{
+			{Op: "memberout"},
+		}},
 }

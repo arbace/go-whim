@@ -9081,6 +9081,23 @@ win_line_continue(winlinevars_T *wlv)
 }
 
     static int
+mb_ptr2char_adv__p_extra(winlinevars_T *s0__)
+{
+    typeof(s0__->p_extra) p_extra0__ = s0__->p_extra;
+    int r__ = mb_ptr2char_adv(&p_extra0__);
+    s0__->p_extra = p_extra0__;
+    return r__;
+}
+
+    static void
+get_search_match_hl__char_attr(win_T *wp, match_T *search_hl, long col, winlinevars_T *s3__)
+{
+    typeof(s3__->char_attr) char_attr3__ = s3__->char_attr;
+    get_search_match_hl(wp, search_hl, col, &char_attr3__);
+    s3__->char_attr = char_attr3__;
+}
+
+    static int
 win_line(win_T *wp, linenr_T lnum, int startrow, int endrow, int number_only)
 {
     winlinevars_T wlv;
@@ -9560,7 +9577,7 @@ win_line(win_T *wp, linenr_T lnum, int startrow, int endrow, int number_only)
                 transchar_hex(wlv.extra, mb_c);
                 wlv.p_extra = wlv.extra;
                 c = *wlv.p_extra;
-                mb_c = mb_ptr2char_adv(&wlv.p_extra);
+                mb_c = mb_ptr2char_adv__p_extra(&wlv);
                 mb_utf8 = (c >= 0x80);
                 wlv.n_extra = (int)musl_strlen((char *)(wlv.p_extra));
                 wlv.c_extra = NUL;
@@ -9872,7 +9889,7 @@ win_line(win_T *wp, linenr_T lnum, int startrow, int endrow, int number_only)
                 }
                 if (area_attr == 0)
                 {
-                    get_search_match_hl(wp, &screen_search_hl, (long)(ptr - line), &wlv.char_attr);
+                    get_search_match_hl__char_attr(wp, &screen_search_hl, (long)(ptr - line), &wlv);
                 }
                 ScreenAttrs[wlv.off] = wlv.char_attr;
                 ScreenCols[wlv.off] = wlv.vcol;
@@ -17485,6 +17502,15 @@ one_letter_cmd(char_u *p, cmdidx_T *idx)
     return FALSE;
 }
 
+    static bool
+one_letter_cmd__cmdidx(char_u *p, exarg_T *s1__)
+{
+    typeof(s1__->cmdidx) cmdidx1__ = s1__->cmdidx;
+    bool r__ = one_letter_cmd(p, &cmdidx1__);
+    s1__->cmdidx = cmdidx1__;
+    return r__;
+}
+
     static char_u *
 find_ex_command(exarg_T *eap, int *full)
 {
@@ -17492,7 +17518,7 @@ find_ex_command(exarg_T *eap, int *full)
     char_u *p;
     int i;
     p = eap->cmd;
-    if (one_letter_cmd(p, &eap->cmdidx))
+    if (one_letter_cmd__cmdidx(p, eap))
     {
         ++p;
         if (full != nullptr)
@@ -58571,6 +58597,15 @@ regtry(regprog_T *prog, colnr_T col, int *timed_out)
     return 1 + rex.lnum;
 }
 
+    static int
+cstrncmp__regmlen(char_u *s1, char_u *s2, regprog_T *s2__)
+{
+    typeof(s2__->regmlen) regmlen2__ = s2__->regmlen;
+    int r__ = cstrncmp(s1, s2, &regmlen2__);
+    s2__->regmlen = regmlen2__;
+    return r__;
+}
+
     static long
 bt_regexec_both(char_u *line, colnr_T startcol, int *timed_out)
 {
@@ -58641,7 +58676,7 @@ bt_regexec_both(char_u *line, colnr_T startcol, int *timed_out)
             {
                 while ((s = vim_strchr(s, c)) != nullptr)
                 {
-                    if (cstrncmp(s, prog->regmust, &prog->regmlen) == 0)
+                    if (cstrncmp__regmlen(s, prog->regmust, prog) == 0)
                     {
                         break;
                     }
@@ -58652,7 +58687,7 @@ bt_regexec_both(char_u *line, colnr_T startcol, int *timed_out)
             {
                 while ((s = cstrchr(s, c)) != nullptr)
                 {
-                    if (cstrncmp(s, prog->regmust, &prog->regmlen) == 0)
+                    if (cstrncmp__regmlen(s, prog->regmust, prog) == 0)
                     {
                         break;
                     }
