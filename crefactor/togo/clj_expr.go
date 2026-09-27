@@ -890,7 +890,7 @@ func (f *cfn) lval(e cc.ExpressionNode) clv {
 				if sc && k.boolean {
 					v = "(boolean " + v + ")"
 				}
-				return cbind{"_", "(.set_" + name + " " + obj + " " + v + ")"}
+				return cbind{"_", "(.set-" + name + " " + obj + " " + v + ")"}
 			}}
 		case cc.PostfixExpressionIndex:
 			base, ix := f.indexOperands(x)
@@ -1919,7 +1919,7 @@ func (f *cfn) fill(x *cc.PostfixExpression, d, c cv, e cc.Type, nb cc.Expression
 				if fk.boolean {
 					v = "(boolean " + v + ")"
 				}
-				sets = append(sets, "(.set_"+name+" "+obj+" "+v+")")
+				sets = append(sets, "(.set-"+name+" "+obj+" "+v+")")
 			}
 		}
 		return cv{s: "(let [" + pt + " " + tagged(p) + "] (dotimes [" + k + " " + n + "] " + strings.Join(sets, " ") + ") " + pt + ")", t: p.t, c: x.Type(), typed: true}

@@ -17,7 +17,7 @@
 
 (defn run
   "Run a new editor on h with the command line args -- a sequence of byte
-  arrays, args[0] the program's name -- and return its exit status: vim_main's,
+  arrays, args[0] the program's name -- and return its exit status: vim-main's,
   or the code of a whim.host.Exit thrown by h.  The arguments are bytes, as
   C's are."
   ^long [^Host h args]
@@ -26,7 +26,7 @@
       (dorun (map-indexed (fn [i ^bytes a]
                             (aset argv (int i) (BytePtr. (Arrays/copyOf a (inc (alength a))) 0)))
                           args))
-      (long (ed/vim_main (ed/new-editor h) (count args) (Ptr. argv 0))))
+      (long (ed/vim-main (ed/new-editor h) (count args) (Ptr. argv 0))))
     (catch Exit e
       (long (.-code e)))))
 

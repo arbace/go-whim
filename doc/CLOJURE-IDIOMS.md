@@ -326,6 +326,22 @@ control -- the loop exits' arms misnumbered -- fails all 45 cases.
 
 ### 3. Names
 
+**Done** (`clj_names.go`): functions, locals, file-scope objects, members
+and the host's functions in kebab-case (`ml-get-buf`, `(.-w-cursor wp)`,
+`(.set-lnum p v)`, `whim.cljhost/vim-snprintf`); a leading or trailing
+underscore stays (`inc_`, `_anon0`), and a converted name clojure.core has
+(all 679 of its public vars, checked on the converted name) takes one. **89
+questions end in `?`** (`buf-valid?`, `musl-isdigit?`, `input-available?`):
+a `bool` result, no store but to plain locals, no call but to such
+functions (a fixpoint), none through a pointer or to the host -- the
+survey's 88 and one. Clojure munges a hyphen back, so every class, field
+and method keeps its Java name; an interface's methods are declared with
+the underscores (a method's name may not hold a hyphen) and called with the
+hyphens. The enumerators keep the C's names (constants), the struct types
+theirs (classes). A `;; C: ml_get_buf` line above each renamed `defn` (1,530)
+keeps the C name a grep. `TestCljNames`.
+
+
 - **The pattern.** Every name is the C's: 1,509 of the 1,675 function names
   have an underscore (`ml_get_buf`); struct types are `S_file_buffer` and
   `T_pos_T` behind interfaces `I_S_file_buffer`; members keep C's prefixes

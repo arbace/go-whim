@@ -2,7 +2,7 @@
   "The C's host functions for the editor in Clojure: braaam/Whim.java's glue,
   as functions of the editor.  The generated core (whim.editor, written by
   crefactor/togo's Clojure backend) calls each as the C calls it --
-  (whim.cljhost/host_write ed p n) -- and each is a line of glue to the
+  (whim.cljhost/host-write ed p n) -- and each is a line of glue to the
   whim.host.Host the editor was made on, (whim.editor/host-of ed): the Java
   editor's interface and its terminal host, used through interop unchanged.
   vim's printf is whim.host.Printf, handed the core's functions it needs.
@@ -36,10 +36,10 @@
 (def ^:private gettext_* (core-fn 'whim.editor/gettext_))
 (def ^:private emsg* (core-fn 'whim.editor/emsg))
 (def ^:private iemsg* (core-fn 'whim.editor/iemsg))
-(def ^:private emsg_iobuff_room* (core-fn 'whim.editor/emsg_iobuff_room))
-(def ^:private iobuff_or* (core-fn 'whim.editor/iobuff_or))
-(def ^:private utfc_ptr2len* (core-fn 'whim.editor/utfc_ptr2len))
-(def ^:private utf_ptr2cells* (core-fn 'whim.editor/utf_ptr2cells))
+(def ^:private emsg-iobuff-room* (core-fn 'whim.editor/emsg-iobuff-room))
+(def ^:private iobuff-or* (core-fn 'whim.editor/iobuff-or))
+(def ^:private utfc-ptr2len* (core-fn 'whim.editor/utfc-ptr2len))
+(def ^:private utf-ptr2cells* (core-fn 'whim.editor/utf-ptr2cells))
 
 (defn- bytes-ptr
   "A byte array or a BytePtr, as the BytePtr it decays to."
@@ -50,7 +50,7 @@
   "The core's file-scope object sym on ed: whim.editor/<sym> is a function of
   the editor that gives it, or -- for a constant the editors share -- the
   value itself.  Only the printf's error paths read one (IObuff and
-  e_val_too_large)."
+  e-val-too-large)."
   [sym ed]
   (let [v (deref (or (requiring-resolve sym)
                      (throw (IllegalStateException. (str "whim.cljhost: the core has no " sym)))))]
@@ -64,7 +64,7 @@
 ;; --- the glue: the host functions the core calls, the editor first, in the
 ;; C's argument types (every integer a long, a pointer the runtime's class)
 
-(defn musl_host_init
+(defn musl-host-init
   "Start catching the signals: SIGHUP and SIGTERM call the core's deathtrap
   on the thread running the core."
   [ed]
@@ -72,7 +72,7 @@
                      (accept [_ sig] (deathtrap* ed (long sig)))))
   nil)
 
-(defn musl_get_winsize
+(defn musl-get-winsize
   "The terminal's size into rows and cols: OK (1), or FAIL (0) when it has none."
   ^long [ed ^IntPtr rows ^IntPtr cols]
   (if-let [^ints ws (.winSize (host ed))]
@@ -81,15 +81,15 @@
         1)
     0))
 
-(defn musl_term_start [ed]
+(defn musl-term-start [ed]
   (.termStart (host ed))
   nil)
 
-(defn musl_term_stop [ed]
+(defn musl-term-stop [ed]
   (.termStop (host ed))
   nil)
 
-(defn musl_tty_keys
+(defn musl-tty-keys
   "The terminal on fd's erase and interrupt characters, and whether it maps CR
   to NL on input and NL to CR-NL on output: OK, or FAIL when fd is none."
   [ed fd ^IntPtr bs ^IntPtr intr ^IntPtr cr ^IntPtr nlcr]
@@ -101,20 +101,20 @@
         1)
     0))
 
-(defn musl_now_ms ^long [ed]
+(defn musl-now-ms ^long [ed]
   (.nowMs (host ed)))
 
-(defn host_time ^long [ed]
+(defn host-time ^long [ed]
   (.time (host ed)))
 
-(defn musl_delay [ed ^long ms ^long interruptible]
+(defn musl-delay [ed ^long ms ^long interruptible]
   (.delay (host ed) ms (not (zero? interruptible)))
   nil)
 
-(defn musl_wait_for_input ^long [ed ^long ms]
+(defn musl-wait-for-input ^long [ed ^long ms]
   (if (.waitForInput (host ed) ms) 1 0))
 
-(defn musl_read_input
+(defn musl-read-input
   "Read up to len bytes into buf.  The host gets no room for a negative
   length, and -1 is the answer for it, as read(2) of (size_t)len gives; the
   host still takes the signals it reads as input, as the C did before its
@@ -123,22 +123,22 @@
   (let [n (.readInput (host ed) (.-a buf) (.-i buf) (int (max len 0)))]
     (if (neg? len) -1 n)))
 
-(defn host_raise [ed ^long sig]
+(defn host-raise [ed ^long sig]
   (.raise (host ed) (int sig))
   nil)
 
-(defn musl_suspend [ed]
+(defn musl-suspend [ed]
   (.suspend (host ed))
   nil)
 
-(defn host_exit
+(defn host-exit
   "End the editor with r: the terminal host ends the process, a host that
   must not throws whim.host.Exit, which whim.cljmain/run catches."
   [ed ^long r]
   (.exit (host ed) (int r))
   nil)
 
-(defn host_message
+(defn host-message
   "Write msg, len bytes of it or up to its NUL when len is negative, to the
   error stream when err."
   [ed ^BytePtr msg ^long len ^long err]
@@ -146,7 +146,7 @@
     (.message (host ed) (.-a msg) (.-i msg) n (not (zero? err))))
   nil)
 
-(defn host_write ^long [ed ^BytePtr s ^long len]
+(defn host-write ^long [ed ^BytePtr s ^long len]
   (cond
     (neg? len) -1
     (zero? len) 0
@@ -177,10 +177,10 @@
         b (BytePtr/alloc (inc (count m)))]
     (dotimes [i (count m)]
       (.set b (int i) (byte (int (.charAt m i)))))
-    (host_message ed b (count m) 1)
-    (host_exit ed 1)))
+    (host-message ed b (count m) 1)
+    (host-exit ed 1)))
 
-(defn host_alloc
+(defn host-alloc
   "n zeroed bytes, a BytePtr as Object: the storage a C allocation is."
   [ed ^long n]
   (let [a (arena ed)
@@ -192,7 +192,7 @@
     (aset a 0 (+ used want))
     (BytePtr/alloc n)))
 
-;; --- vim_snprintf, whim.host.Printf given what it needs of the core
+;; --- vim-snprintf, whim.host.Printf given what it needs of the core
 
 (defn- printf-core
   "What the formatter needs of the editor ed: Printf.Core, by the core's
@@ -203,15 +203,15 @@
     (error [_ msg] (emsg* ed msg) nil)
     (internalError [_ msg] (iemsg* ed msg) nil)
     (iobuff [_] (bytes-ptr (core-object 'whim.editor/IObuff ed)))
-    (emsgIobuffRoom [_] (long (emsg_iobuff_room* ed)))
-    (iobuffOr [_ s] (iobuff_or* ed s))
-    (eValTooLarge [_] (bytes-ptr (core-object 'whim.editor/e_val_too_large ed)))
-    (utfcPtr2len [_ p] (int (utfc_ptr2len* ed p)))
-    (utfPtr2cells [_ p] (int (utf_ptr2cells* ed p)))))
+    (emsgIobuffRoom [_] (long (emsg-iobuff-room* ed)))
+    (iobuffOr [_ s] (iobuff-or* ed s))
+    (eValTooLarge [_] (bytes-ptr (core-object 'whim.editor/e-val-too-large ed)))
+    (utfcPtr2len [_ p] (int (utfc-ptr2len* ed p)))
+    (utfPtr2cells [_ p] (int (utf-ptr2cells* ed p)))))
 
-(defn vim_snprintf
-  "vim's printf into str, at most str_m bytes of it: the length the whole
+(defn vim-snprintf
+  "vim's printf into str, at most str-m bytes of it: the length the whole
   would have.  args is the variadic arguments as one Object array, boxed as
   the Java editor boxes them (whim.host.Printf says how each is read)."
-  [ed ^BytePtr str str_m ^BytePtr fmt ^objects args]
-  (.snprintf (Printf. (printf-core ed)) str (long str_m) fmt args))
+  [ed ^BytePtr str str-m ^BytePtr fmt ^objects args]
+  (.snprintf (Printf. (printf-core ed)) str (long str-m) fmt args))

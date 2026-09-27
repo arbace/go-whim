@@ -79,13 +79,13 @@ func gaGrowInnerClj(result string) string {
 	if result == "boolean" {
 		fail, ok = "false", "true"
 	}
-	return `(let [n (if (< n (.ga_growsize gap)) (.ga_growsize gap) n)
-      n (if (< n (quot (.ga_len gap) 2)) (quot (.ga_len gap) 2) n)]
-  (if (and (> n 0) (pos? (Long/compareUnsigned (+ (.ga_len gap) n) (Long/divideUnsigned -1 (.ga_itemsize gap)))))
+	return `(let [n (if (< n (.ga-growsize gap)) (.ga-growsize gap) n)
+      n (if (< n (quot (.ga-len gap) 2)) (quot (.ga-len gap) 2) n)]
+  (if (and (> n 0) (pos? (Long/compareUnsigned (+ (.ga-len gap) n) (Long/divideUnsigned -1 (.ga-itemsize gap)))))
     ` + fail + `
     (do ;; C allocates, copies and clears the storage here; Ga does it at the
         ;; next typed access, in elements of the storage's type.
-        (.set_ga_maxlen gap (+ (.ga_len gap) n))
+        (.set-ga-maxlen gap (+ (.ga-len gap) n))
         ` + ok + `)))`
 }
 

@@ -9,8 +9,8 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 Each moves method sizes: `whim test --java --clojure`'s heavy case, which
 times every editor, is judged with the suites.
 
-1. **vijure: kebab-case names and `?` predicates**, then address-taken
-   members and constants as shared data, in the survey's order.
+1. **vijure: address-taken members, then constants as shared data**
+   (`CLOJURE-IDIOMS.md` items 5 and 4), in the survey's order.
 
 ## Known stale, not yet scoped
 

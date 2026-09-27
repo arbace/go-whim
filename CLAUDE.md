@@ -248,7 +248,7 @@ braaam/           the editor in Java (doc/JAVA.md), by hand but for Editor.java,
 vijure/         the editor in Clojure (doc/CLOJURE.md), all by hand but the
                    namespace whim.editor, which the Clojure backend writes (not
                    tracked): src/whim/cljhost.clj the glue
-                   (the C's 17 host functions, the editor first, to braaam's
+                   (the C's 17 host functions, in kebab-case, the editor first, to braaam's
                    Host and Printf through interop), src/whim/cljmain.clj the
                    launcher's -main; vijure.go the Go that builds it (`go
                    tool whim clj`, make bin/vijure: AOT-compiled on braaam's
@@ -269,7 +269,7 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    declined), JAVA.md (the Java backend: its design and milestones),
                    JAVA-IDIOMS.md and CLOJURE-IDIOMS.md (how the Java and the
                    Clojure editors could be idiomatic, measured and ranked;
-                   surveys; done: CLOJURE-IDIOMS.md's items 0-2 and
+                   surveys; done: CLOJURE-IDIOMS.md's items 0-3 and
                    JAVA-IDIOMS.md's items 1-3, 4's masks and 6.1 (phase 174)),
                    PIPELINE-COMPACTION.md (which phases could be dropped, merged,
                    split or reordered, measured byte for byte), CLOJURE.md (the

@@ -13,7 +13,7 @@ package togo
 //
 //   - a struct or union is a deftype whose scalar and pointer members are
 //     mutable fields behind an interface of accessors, (.m s) and
-//     (.set_m s v), and whose struct, array and boxed members are final
+//     (.set-m s v), and whose struct, array and boxed members are final
 //     fields, (.-m s); it is a whim.rt.Struct (set, zero) for the runtime
 //     and has copy and, where compared, eq;
 //   - the editor is a deftype of three typed slot arrays, longs for the
@@ -72,6 +72,7 @@ type cgen struct {
 	j           *jgen // the Java backend's decisions
 	ns, hostNS  string
 	hostFns     map[string]bool
+	preds       map[string]bool // the functions that are questions (clj_names.go)
 	slots       map[string]*cslot // by the analysis's key
 	slotOrder   []*cslot
 	nL, nZ, nO  int
@@ -94,21 +95,37 @@ type cslot struct {
 	in    *cc.Initializer
 }
 
-// cljName is a C identifier as a Clojure symbol: the profile's renames, then
-// a trailing underscore for what Clojure has already.
+// cljName is a C identifier as a Clojure symbol: the profile's renames,
+// the underscores between its letters hyphens (clj_names.go), then a
+// trailing underscore for what Clojure has already.
 func (c *cgen) cljName(s string) string {
 	if r, ok := c.g.p.Rename[s]; ok {
 		s = r
 	}
-	if cljReserved[s] {
+	s = kebab(s)
+	if cljReserved[s] || cljCore[s] {
 		return s + "_"
 	}
 	return s
 }
 
-func (c *cgen) fnName(s string) string    { return c.cljName(s) }
+// fnName is a function's name: a question's ends in ?.
+func (c *cgen) fnName(s string) string {
+	if c.preds[s] {
+		return c.cljName(s) + "?"
+	}
+	return c.cljName(s)
+}
+
 func (c *cgen) localName(s string) string { return c.cljName(s) }
-func (c *cgen) enumName(s string) string  { return c.cljName(s) }
+
+// enumName is an enumerator's name: the C's, a constant's.
+func (c *cgen) enumName(s string) string {
+	if cljReserved[s] || cljCore[s] {
+		return s + "_"
+	}
+	return s
+}
 
 // memberName is a member's name in its deftype: its own, _anonN for an
 // unnamed one, with a trailing underscore for a name the deftype's own
@@ -160,6 +177,7 @@ func (g *gen) writeClj(path string) error {
 			j.defined[ed.FunctionDefinition.Declarator.Name()] = true
 		}
 	}
+	c.preds = c.predicates()
 	var hostNames []string
 	for name := range g.a.fnDecls {
 		p := g.p
@@ -385,7 +403,7 @@ func (c *cgen) allocSlots() {
 	}
 	add := func(d *cc.Declarator, name, key string, in *cc.Initializer) {
 		t := d.Type()
-		s := &cslot{name: name, key: key, c: t, d: d, in: in, boxed: c.j.isBoxed(d)}
+		s := &cslot{name: kebab(name), key: key, c: t, d: d, in: in, boxed: c.j.isBoxed(d)}
 		jt, why := c.j.jt(t, key)
 		if why != "" {
 			jt = "Object"
@@ -694,7 +712,7 @@ func (c *cgen) gaHelpers() string {
 			mk = "(Ga/ptrs (.%[1]s gap) (.%[2]s gap) mk-" + h.name + ")"
 		}
 		mk = fmt.Sprintf(mk, data, maxlen)
-		fmt.Fprintf(&b, "(defn- %s ^%s [^%s gap]\n  (let [p %s]\n    (.set_%s gap p)\n    p))\n\n", h.name, cljHint(to), h.class, mk, data)
+		fmt.Fprintf(&b, "(defn- %s ^%s [^%s gap]\n  (let [p %s]\n    (.set-%s gap p)\n    p))\n\n", h.name, cljHint(to), h.class, mk, data)
 	}
 	return b.String()
 }
@@ -764,13 +782,14 @@ func (c *cgen) structType(f *cfn, name string, t cc.Type) string {
 			continue
 		}
 		m := c.memberName(fl)
+		jm := strings.ReplaceAll(m, "-", "_") // an interface's method: Java's name, which a call munges to
 		key := fieldKey(fl)
 		ft, why := j.jt(fl.Type(), key)
 		if why != "" {
 			// what no code reads: kept, as an Object
 			fields = append(fields, "^:unsynchronized-mutable "+m)
-			iface = append(iface, "("+m+" [])", "(set_"+m+" [v])")
-			meths = append(meths, fmt.Sprintf("(%s [_] %s) (set_%s [_ v__] (set! %s v__) nil)", m, m, m, m))
+			iface = append(iface, "("+jm+" [])", "(set_"+jm+" [v])")
+			meths = append(meths, fmt.Sprintf("(%s [_] %s) (set_%s [_ v__] (set! %s v__) nil)", jm, m, jm, m))
 			set = append(set, fmt.Sprintf("(set! %s (.%s o__))", m, m))
 			zero = append(zero, fmt.Sprintf("(set! %s nil)", m))
 			ctor = append(ctor, "nil")
@@ -796,21 +815,21 @@ func (c *cgen) structType(f *cfn, name string, t cc.Type) string {
 			switch {
 			case scalar && k.boolean:
 				fields = append(fields, "^:unsynchronized-mutable ^boolean "+m)
-				iface = append(iface, "(^boolean "+m+" [])", "(set_"+m+" [^boolean v])")
+				iface = append(iface, "(^boolean "+jm+" [])", "(set_"+jm+" [^boolean v])")
 				zero = append(zero, fmt.Sprintf("(set! %s (boolean false))", m))
 				ctor = append(ctor, "false")
 			case scalar:
 				fields = append(fields, "^:unsynchronized-mutable ^long "+m)
-				iface = append(iface, "(^long "+m+" [])", "(set_"+m+" [^long v])")
+				iface = append(iface, "(^long "+jm+" [])", "(set_"+jm+" [^long v])")
 				zero = append(zero, fmt.Sprintf("(set! %s 0)", m))
 				ctor = append(ctor, "0")
 			default:
 				fields = append(fields, "^:unsynchronized-mutable "+m)
-				iface = append(iface, "("+m+" [])", "(set_"+m+" [v])")
+				iface = append(iface, "("+jm+" [])", "(set_"+jm+" [v])")
 				zero = append(zero, fmt.Sprintf("(set! %s nil)", m))
 				ctor = append(ctor, "nil")
 			}
-			meths = append(meths, fmt.Sprintf("(%s [_] %s) (set_%s [_ v__] (set! %s v__) nil)", m, m, m, m))
+			meths = append(meths, fmt.Sprintf("(%s [_] %s) (set_%s [_ v__] (set! %s v__) nil)", jm, m, jm, m))
 			set = append(set, fmt.Sprintf("(set! %s (.%s o__))", m, m))
 			eq = append(eq, eqForm(m, fmt.Sprintf("(.%s o__)", m), fl.Type(), ft, f))
 		}

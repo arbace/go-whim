@@ -295,7 +295,7 @@ func (f *cfn) memberPlace(obj cv, fl *cc.Field) cplace {
 		if sc && k.boolean {
 			v = "(boolean " + v + ")"
 		}
-		return "(.set_" + name + " " + o + " " + v + ")"
+		return "(.set-" + name + " " + o + " " + v + ")"
 	}}
 }
 
@@ -613,6 +613,9 @@ func (f *cfn) header(body string) string {
 		ret = "^" + h + " "
 	}
 	var b strings.Builder
+	if c.fnName(f.name) != f.name {
+		fmt.Fprintf(&b, ";; C: %s\n", f.name) // the C's name, for a grep
+	}
 	fmt.Fprintf(&b, "(defn %s %s[^Editor ed%s]\n", c.fnName(f.name), ret, strings.Join(append([]string{""}, ps...), " "))
 	if len(starts) > 0 {
 		fmt.Fprintf(&b, "  (let [%s]\n", bindText(starts, "\n        "))

@@ -221,7 +221,7 @@ var cljGrowProfile = Profile{Allocators: []string{"alloc"}, Frees: []string{"vim
 	Bytes:     ByteFuncs{Move: []string{"memmove"}, Set: "memset", Cmp: "memcmp"},
 	GrowArray: GrowArray{Data: "ga_data", MaxLen: "ga_maxlen"},
 	RuntimeBodies: []RuntimeBody{{Name: "ga_grow_inner", Clj: func(string) string {
-		return "(let [n (if (< n (.ga_growsize gap)) (.ga_growsize gap) n)]\n  (.set_ga_maxlen gap (+ (.ga_len gap) n))\n  1)"
+		return "(let [n (if (< n (.ga-growsize gap)) (.ga-growsize gap) n)]\n  (.set-ga-maxlen gap (+ (.ga-len gap) n))\n  1)"
 	}}}}
 
 func TestCljGrowArray(t *testing.T) {
@@ -507,4 +507,40 @@ void run(void) { out(fine(1)); }
 	if got := cljOutput(t, cp, dir, prog); got != "2\n" {
 		t.Errorf("the Clojure prints %q", got)
 	}
+}
+
+// Names as Clojure writes them: a C name's underscores between letters are
+// hyphens, a function that answers and stores nothing ends in ?, and one
+// that stores -- a global, through a pointer, or by calling one that does
+// -- does not; a name clojure.core has takes an underscore; an enumerator
+// keeps the C's.  The C's name is a comment above the defn.
+const cljNamesC = javaHost + `enum { MAX_N = 3 };
+static int calls_made;
+
+_Bool is_small(int n) { return n < MAX_N; }
+_Bool both_small(int a, int b) { return is_small(a) && is_small(b); }
+_Bool counts(int n) { calls_made++; return n > 0; }
+_Bool calls_counts(int n) { return counts(n); }
+_Bool sets_through(int *p) { *p = 1; return 1; }
+int bit_and(int a, int b) { return a & b; }
+
+void run(void)
+{
+    int x = 0;
+    out(is_small(2) + both_small(1, 5) + counts(4) + calls_counts(-1) + sets_through(&x) + x);
+    out(bit_and(6, 3) + calls_made);
+}
+`
+
+func TestCljNames(t *testing.T) {
+	prog := cljSame(t, cljNamesC, Profile{}, javaHarnessC)
+	cljMatch(t, prog,
+		`;; C: is_small\n\(defn is-small\? `,
+		`(?s)\(defn both-small\? .*\(is-small\? ed a\)`,
+		`\(defn counts `,
+		`\(defn calls-counts `,
+		`\(defn sets-through `,
+		`\(defn bit-and_ `,
+		`\(e MAX_N\)`,
+		`\(g ed calls-made\)`)
 }

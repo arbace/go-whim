@@ -85,12 +85,14 @@ Fixed before milestones 1-3 start, so they can be written side by side:
 - **It provides** `(new-editor host)`, an editor on `host` -- a
   `whim.host.Host`, the Java editor's interface, unchanged -- with the C's
   file-scope objects initialised; `(host-of ed)`, that host back; and every C
-  function of the core as a Clojure function of the same name taking the
-  editor first: `(vim_main ed argc argv)`, with `argv` a `whim.rt.Ptr` of
+  function of the core as a Clojure function of its name in kebab-case
+  (`doc/CLOJURE-IDIOMS.md` item 3: the underscores between letters hyphens,
+  a question -- a `bool` result, no store -- ending in `?`) taking the
+  editor first: `(vim-main ed argc argv)`, with `argv` a `whim.rt.Ptr` of
   `whim.rt.BytePtr`, as the Java's.
 - **The C's host functions are `whim.cljhost`'s** (`vijure/src/whim/cljhost.clj`,
-  by hand), called as `(whim.cljhost/host_write ed p n)` and so on: the names
-  and C argument types of the Java editor's 17 abstract methods (`host_alloc`,
+  by hand), called as `(whim.cljhost/host-write ed p n)` and so on: the names,
+  in kebab-case, and C argument types of the Java editor's 17 abstract methods (`host_alloc`,
   `host_exit`, `host_message`, `host_raise`, `host_time`, `host_write`,
   `musl_delay`, `musl_get_winsize`, `musl_host_init`, `musl_now_ms`,
   `musl_read_input`, `musl_suspend`, `musl_term_start`, `musl_term_stop`,
@@ -100,7 +102,7 @@ Fixed before milestones 1-3 start, so they can be written side by side:
   functions its printf needs (`emsg`, `gettext_` ...) through
   `requiring-resolve`, so the two namespaces do not require each other.
 - **The launcher** is `whim.cljmain/-main`: the terminal host
-  (`whim.host.Term`), `new-editor`, `vim_main`, its status the exit status.
+  (`whim.host.Term`), `new-editor`, `vim-main`, its status the exit status.
 - **Primitive C types** are Clojure's: `long` for every integer (narrowed and
   masked by the C type where C does), `boolean` for C's `bool`; pointers the
   Java runtime's classes.
@@ -246,15 +248,15 @@ an exception read back).
 for the merge to check:
 
 - `(new-editor host)`, `(host-of ed)` returning the `whim.host.Host`, and
-  `(vim_main ed argc argv)`, `argc` a long, `argv` a `whim.rt.Ptr` of
+  `(vim-main ed argc argv)`, `argc` a long, `argv` a `whim.rt.Ptr` of
   `BytePtr`s ending in nil; its value a number, the exit status.
 - As core functions of the editor first, resolved by name: `deathtrap`
   `(ed sig)`, `gettext_` `(ed BytePtr) -> BytePtr`, `emsg` and `iemsg` `(ed
-  BytePtr)`, `emsg_iobuff_room` `(ed) -> number`, `iobuff_or` `(ed BytePtr) ->
-  BytePtr`, `utfc_ptr2len` and `utf_ptr2cells` `(ed BytePtr) -> number`.
+  BytePtr)`, `emsg-iobuff-room` `(ed) -> number`, `iobuff-or` `(ed BytePtr) ->
+  BytePtr`, `utfc-ptr2len` and `utf-ptr2cells` `(ed BytePtr) -> number`.
 - **The file-scope objects `IObuff` and `e_val_too_large`** -- the contract
   says nothing of the state's form -- as a var `whim.editor/IObuff`
-  (`e_val_too_large`) holding either a function of the editor that returns
+  (`e-val-too-large`) holding either a function of the editor that returns
   the object, or the object itself (a constant the editors share); a
   `BytePtr` or a `byte[]`. Only the printf's error paths read them.
 - The host functions called with the C's argument types as the contract has
@@ -368,8 +370,9 @@ reused, not re-derived), on the same runtime classes.
 
 **Structs: a deftype behind an interface of accessors** (`definterface
 I_S_pos`), its scalar and pointer members mutable fields read `(.lnum p)` and
-written `(.set_lnum p v)`, its struct, array and boxed members final fields
-`(.-w_cursor wp)`; it is a `whim.rt.Struct` (`set`, `zero`, for
+written `(.set-lnum p v)`, its struct, array and boxed members final fields
+`(.-w-cursor wp)` (the interface declares `set_lnum`: a method's name may not
+hold a hyphen, and Clojure munges the call's to it); it is a `whim.rt.Struct` (`set`, `zero`, for
 `Rt/moveStructs` and `zeroStructs`) with `copy` and, where some code compares
 it, `eq`; `new-S_x` and `array-S_x` make them. A union is the same, every
 member its own field. **Why a deftype, measured**: a loop of 10^8
