@@ -14666,42 +14666,7 @@
         ^ints len_3 (aget fo__ 16)
         ^ints len_4 (aget fo__ 17)
         ^S_regstar_S rst (aget fo__ 18)]
-    (loop [st st0__
-           ^BytePtr next_ (aget fo__ 1)
-           op (aget fl__ 0)
-           c (aget fl__ 1)
-           ^S_regitem_S rp (aget fo__ 2)
-           no (aget fl__ 2)
-           status (aget fl__ 3)
-           cmp (aget fl__ 4)
-           ^T_pos_T pos (aget fo__ 3)
-           col (aget fl__ 5)
-           ^S_window_S wp (aget fo__ 4)
-           lnum (aget fl__ 6)
-           this-class (aget fl__ 7)
-           ^BytePtr opnd (aget fo__ 5)
-           ^BytePtr q (aget fo__ 6)
-           len_2 (aget fl__ 8)
-           i (aget fl__ 9)
-           i_2 (aget fl__ 10)
-           ^BytePtr opnd_2 (aget fo__ 7)
-           opndc (aget fl__ 11)
-           inpc (aget fl__ 12)
-           i_3 (aget fl__ 13)
-           ^Ptr bp (aget fo__ 8)
-           r (aget fl__ 14)
-           till (aget fo__ 9)
-           idx (aget fl__ 15)
-           with-nl (aget fo__ 10)
-           oc (aget fl__ 16)
-           cc (aget fl__ 17)
-           level (aget fl__ 18)
-           ^BytePtr s (aget fo__ 11)
-           save-lnum (aget fl__ 19)
-           save-col (aget fl__ 20)
-           limit (aget fl__ 21)
-           t37 (aget fo__ 12)
-           ^S_regstar_S rst_2 (aget fo__ 13)]
+    (loop [st st0__]
       (case st
         0
           (do (.set-ga-len (g ed regstack) 0)
@@ -14709,68 +14674,52 @@
               (.set-ga-len (g ed regstack-behind) 0)
               (g! ed regstack-bytes 0)
               (.set-ga-len (g ed backpos) 0)
-              (recur 1 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+              (recur 1))
         1
           (do (fast-breakcheck ed)
-              (recur 2 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+              (recur 2))
         2
           (if (or (not (zero? (g ed got-int))) (nil? (aget scan 0)))
-            (recur 289 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 3 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+            (recur 289)
+            (recur 3))
         3
-          (let [status (e RA_CONT)
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                status (aget fl__ 3)
+                status (e RA_CONT)
                 ^BytePtr next_ (regnext ed (aget scan 0))
                 op (bit-and (.get ^BytePtr (aget scan 0)) 0xff)]
             (if (and (not (.reg-line-lbr (g ed rex))) (>= op 50) (<= op 78) (nil? (.reg-match (g ed rex))) (== (bit-and (.get ^BytePtr (.input (g ed rex))) 0xff) (e NUL)) (<= (.lnum (g ed rex)) (.reg-maxline (g ed rex))))
-              (recur 286 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 4 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
+              (do (aset fo__ 1 next_)
+                  (aset fl__ 0 op)
+                  (aset fl__ 3 status)
+                  (recur 286))
+              (do (aset fo__ 1 next_)
+                  (aset fl__ 0 op)
+                  (aset fl__ 3 status)
+                  (recur 4))))
         4
-          (if (and (.reg-line-lbr (g ed rex)) (>= op 50) (<= op 78) (== (bit-and (.get ^BytePtr (.input (g ed rex))) 0xff) 10))
-            (recur 285 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 5 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                status (aget fl__ 3)]
+            (if (and (.reg-line-lbr (g ed rex)) (>= op 50) (<= op 78) (== (bit-and (.get ^BytePtr (.input (g ed rex))) 0xff) 10))
+              (recur 285)
+              (recur 5)))
         5
-          (if (and (>= op 50) (<= op 78))
-            (recur 6 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 7 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                status (aget fl__ 3)]
+            (if (and (>= op 50) (<= op 78))
+              (recur 6)
+              (recur 7)))
         6
-          (let [op (i32 (- op (e ADD_NL)))]
-            (recur 7 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        (do (aset fo__ 1 next_)
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                status (aget fl__ 3)
+                op (i32 (- op (e ADD_NL)))]
             (aset fl__ 0 op)
-            (aset fl__ 1 c)
-            (aset fo__ 2 rp)
-            (aset fl__ 2 no)
-            (aset fl__ 3 status)
-            (aset fl__ 4 cmp)
-            (aset fo__ 3 pos)
-            (aset fl__ 5 col)
-            (aset fo__ 4 wp)
-            (aset fl__ 6 lnum)
-            (aset fl__ 7 this-class)
-            (aset fo__ 5 opnd)
-            (aset fo__ 6 q)
-            (aset fl__ 8 len_2)
-            (aset fl__ 9 i)
-            (aset fl__ 10 i_2)
-            (aset fo__ 7 opnd_2)
-            (aset fl__ 11 opndc)
-            (aset fl__ 12 inpc)
-            (aset fl__ 13 i_3)
-            (aset fo__ 8 bp)
-            (aset fl__ 14 r)
-            (aset fo__ 9 (Boolean/valueOf (boolean till)))
-            (aset fl__ 15 idx)
-            (aset fo__ 10 (Boolean/valueOf (boolean with-nl)))
-            (aset fl__ 16 oc)
-            (aset fl__ 17 cc)
-            (aset fl__ 18 level)
-            (aset fo__ 11 s)
-            (aset fl__ 19 save-lnum)
-            (aset fl__ 20 save-col)
-            (aset fl__ 21 limit)
-            (aset fo__ 12 (Boolean/valueOf (boolean t37)))
-            (aset fo__ 13 rst_2)
-            st)))))
+            (recur 7))
+        st))))
 
 (defn- regmatch__1 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
   (let [^objects scan (aget fo__ 14)
@@ -14778,315 +14727,366 @@
         ^ints len_3 (aget fo__ 16)
         ^ints len_4 (aget fo__ 17)
         ^S_regstar_S rst (aget fo__ 18)]
-    (loop [st st0__
-           ^BytePtr next_ (aget fo__ 1)
-           op (aget fl__ 0)
-           c (aget fl__ 1)
-           ^S_regitem_S rp (aget fo__ 2)
-           no (aget fl__ 2)
-           status (aget fl__ 3)
-           cmp (aget fl__ 4)
-           ^T_pos_T pos (aget fo__ 3)
-           col (aget fl__ 5)
-           ^S_window_S wp (aget fo__ 4)
-           lnum (aget fl__ 6)
-           this-class (aget fl__ 7)
-           ^BytePtr opnd (aget fo__ 5)
-           ^BytePtr q (aget fo__ 6)
-           len_2 (aget fl__ 8)
-           i (aget fl__ 9)
-           i_2 (aget fl__ 10)
-           ^BytePtr opnd_2 (aget fo__ 7)
-           opndc (aget fl__ 11)
-           inpc (aget fl__ 12)
-           i_3 (aget fl__ 13)
-           ^Ptr bp (aget fo__ 8)
-           r (aget fl__ 14)
-           till (aget fo__ 9)
-           idx (aget fl__ 15)
-           with-nl (aget fo__ 10)
-           oc (aget fl__ 16)
-           cc (aget fl__ 17)
-           level (aget fl__ 18)
-           ^BytePtr s (aget fo__ 11)
-           save-lnum (aget fl__ 19)
-           save-col (aget fl__ 20)
-           limit (aget fl__ 21)
-           t37 (aget fo__ 12)
-           ^S_regstar_S rst_2 (aget fo__ 13)]
+    (loop [st st0__]
       (case st
         7
-          (let [c (long (utf-ptr2char ed (.input (g ed rex))))]
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                c (aget fl__ 1)
+                status (aget fl__ 3)
+                c (long (utf-ptr2char ed (.input (g ed rex))))]
             (case op
               1
-                (recur 283 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 283))
               2
-                (recur 281 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 281))
               201
-                (recur 279 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 279))
               202
-                (recur 277 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 277))
               203
-                (recur 275 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 275))
               207
-                (recur 269 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 269))
               208
-                (recur 267 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 267))
               204
-                (recur 265 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 265))
               205
-                (recur 263 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 263))
               206
-                (recur 259 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 259))
               15
-                (recur 253 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 253))
               16
-                (recur 249 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 249))
               20
-                (recur 246 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 246))
               23
-                (recur 243 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 243))
               24
-                (recur 240 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 240))
               25
-                (recur 237 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 237))
               26
-                (recur 234 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 234))
               27
-                (recur 231 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 231))
               28
-                (recur 228 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 228))
               29
-                (recur 225 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 225))
               30
-                (recur 222 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 222))
               31
-                (recur 219 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 219))
               32
-                (recur 216 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 216))
               33
-                (recur 213 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 213))
               34
-                (recur 210 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 210))
               35
-                (recur 207 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 207))
               36
-                (recur 204 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 204))
               37
-                (recur 201 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 201))
               38
-                (recur 198 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 198))
               39
-                (recur 195 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 195))
               40
-                (recur 192 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 192))
               41
-                (recur 189 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 189))
               42
-                (recur 186 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 186))
               43
-                (recur 183 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 183))
               44
-                (recur 180 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 180))
               45
-                (recur 177 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 177))
               46
-                (recur 174 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 174))
               47
-                (recur 171 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 171))
               48
-                (recur 168 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 168))
               5
-                (recur 157 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 157))
               21
-                (recur 146 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 146))
               22
-                (recur 146 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 146))
               200
-                (recur 133 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 133))
               209
-                (recur 130 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 130))
               6
-                (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 287))
               4
-                (recur 118 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 118))
               80
-                (recur 113 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 113))
               81
-                (recur 113 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 113))
               82
-                (recur 113 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 113))
               83
-                (recur 113 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 113))
               84
-                (recur 113 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 113))
               85
-                (recur 113 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 113))
               86
-                (recur 113 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 113))
               87
-                (recur 113 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 113))
               88
-                (recur 113 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 113))
               89
-                (recur 113 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 113))
               150
-                (recur 111 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 111))
               151
-                (recur 111 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 111))
               90
-                (recur 106 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 106))
               91
-                (recur 106 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 106))
               92
-                (recur 106 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 106))
               93
-                (recur 106 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 106))
               94
-                (recur 106 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 106))
               95
-                (recur 106 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 106))
               96
-                (recur 106 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 106))
               97
-                (recur 106 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 106))
               98
-                (recur 106 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 106))
               99
-                (recur 106 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 106))
               101
-                (recur 93 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 93))
               102
-                (recur 93 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 93))
               103
-                (recur 93 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 93))
               104
-                (recur 93 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 93))
               105
-                (recur 93 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 93))
               106
-                (recur 93 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 93))
               107
-                (recur 93 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 93))
               108
-                (recur 93 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 93))
               109
-                (recur 93 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 93))
               3
-                (recur 88 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 88))
               17
-                (recur 83 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 83))
               140
-                (recur 70 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 70))
               141
-                (recur 70 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 70))
               142
-                (recur 70 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 70))
               143
-                (recur 70 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 70))
               144
-                (recur 70 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 70))
               145
-                (recur 70 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 70))
               146
-                (recur 70 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 70))
               147
-                (recur 70 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 70))
               148
-                (recur 70 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 70))
               149
-                (recur 70 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 70))
               14
-                (recur 49 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 49))
               7
-                (recur 49 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 49))
               8
-                (recur 49 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 49))
               10
-                (recur 46 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 46))
               9
-                (recur 46 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 46))
               13
-                (recur 46 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 46))
               11
-                (recur 39 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 39))
               12
-                (recur 39 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 39))
               19
-                (recur 34 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 34))
               18
-                (recur 29 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 29))
               0
-                (recur 28 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 28))
               180
-                (recur 9 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 9))
               181
-                (recur 9 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 9))
               182
-                (recur 9 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 9))
               183
-                (recur 9 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 9))
               184
-                (recur 9 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 9))
               185
-                (recur 9 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 9))
               186
-                (recur 9 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 9))
               187
-                (recur 9 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 9))
               190
-                (recur 9 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 9))
               191
-                (recur 9 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 9))
               192
-                (recur 9 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 9))
               193
-                (recur 9 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 9))
               194
-                (recur 9 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 9))
               195
-                (recur 9 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 9))
               196
-                (recur 9 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+                (do (aset fl__ 1 c)
+                    (recur 9))
               197
-                (recur 9 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 8 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        (do (aset fo__ 1 next_)
-            (aset fl__ 0 op)
-            (aset fl__ 1 c)
-            (aset fo__ 2 rp)
-            (aset fl__ 2 no)
-            (aset fl__ 3 status)
-            (aset fl__ 4 cmp)
-            (aset fo__ 3 pos)
-            (aset fl__ 5 col)
-            (aset fo__ 4 wp)
-            (aset fl__ 6 lnum)
-            (aset fl__ 7 this-class)
-            (aset fo__ 5 opnd)
-            (aset fo__ 6 q)
-            (aset fl__ 8 len_2)
-            (aset fl__ 9 i)
-            (aset fl__ 10 i_2)
-            (aset fo__ 7 opnd_2)
-            (aset fl__ 11 opndc)
-            (aset fl__ 12 inpc)
-            (aset fl__ 13 i_3)
-            (aset fo__ 8 bp)
-            (aset fl__ 14 r)
-            (aset fo__ 9 (Boolean/valueOf (boolean till)))
-            (aset fl__ 15 idx)
-            (aset fo__ 10 (Boolean/valueOf (boolean with-nl)))
-            (aset fl__ 16 oc)
-            (aset fl__ 17 cc)
-            (aset fl__ 18 level)
-            (aset fo__ 11 s)
-            (aset fl__ 19 save-lnum)
-            (aset fl__ 20 save-col)
-            (aset fl__ 21 limit)
-            (aset fo__ 12 (Boolean/valueOf (boolean t37)))
-            (aset fo__ 13 rst_2)
-            st)))))
+                (do (aset fl__ 1 c)
+                    (recur 9))
+              (do (aset fl__ 1 c)
+                  (recur 8))))
+        st))))
 
 (defn- regmatch__2 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
   (let [^objects scan (aget fo__ 14)
@@ -15094,49 +15094,27 @@
         ^ints len_3 (aget fo__ 16)
         ^ints len_4 (aget fo__ 17)
         ^S_regstar_S rst (aget fo__ 18)]
-    (loop [st st0__
-           ^BytePtr next_ (aget fo__ 1)
-           op (aget fl__ 0)
-           c (aget fl__ 1)
-           ^S_regitem_S rp (aget fo__ 2)
-           no (aget fl__ 2)
-           status (aget fl__ 3)
-           cmp (aget fl__ 4)
-           ^T_pos_T pos (aget fo__ 3)
-           col (aget fl__ 5)
-           ^S_window_S wp (aget fo__ 4)
-           lnum (aget fl__ 6)
-           this-class (aget fl__ 7)
-           ^BytePtr opnd (aget fo__ 5)
-           ^BytePtr q (aget fo__ 6)
-           len_2 (aget fl__ 8)
-           i (aget fl__ 9)
-           i_2 (aget fl__ 10)
-           ^BytePtr opnd_2 (aget fo__ 7)
-           opndc (aget fl__ 11)
-           inpc (aget fl__ 12)
-           i_3 (aget fl__ 13)
-           ^Ptr bp (aget fo__ 8)
-           r (aget fl__ 14)
-           till (aget fo__ 9)
-           idx (aget fl__ 15)
-           with-nl (aget fo__ 10)
-           oc (aget fl__ 16)
-           cc (aget fl__ 17)
-           level (aget fl__ 18)
-           ^BytePtr s (aget fo__ 11)
-           save-lnum (aget fl__ 19)
-           save-col (aget fl__ 20)
-           limit (aget fl__ 21)
-           t37 (aget fo__ 12)
-           ^S_regstar_S rst_2 (aget fo__ 13)]
+    (loop [st st0__]
       (case st
         8
-          (do (iemsg ed (BytePtr. (g ed e-corrupted-regexp-program) 0))
-              (let [status (e RA_FAIL)]
-                (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (iemsg ed (BytePtr. (g ed e-corrupted-regexp-program) 0))
+            (let [status (e RA_FAIL)]
+              (aset fl__ 3 status)
+              (recur 287)))
         9
-          (let [till (>= op (e T_PCLOSE))
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                status (aget fl__ 3)
+                till (boolean (aget fo__ 9))
+                idx (aget fl__ 15)
+                with-nl (boolean (aget fo__ 10))
+                level (aget fl__ 18)
+                ^BytePtr s (aget fo__ 11)
+                save-lnum (aget fl__ 19)
+                save-col (aget fl__ 20)
+                till (>= op (e T_PCLOSE))
                 idx (i32 (- op (if till (e T_PCLOSE) (e F_PCLOSE))))
                 with-nl (>= idx (e DELIM_NL))
                 level 1
@@ -15144,152 +15122,419 @@
                 save-lnum (.lnum (g ed rex))
                 save-col (i32 (.sub ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex))))]
             (if with-nl
-              (recur 10 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 11 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
+              (do (aset fo__ 9 (Boolean/valueOf (boolean till)))
+                  (aset fl__ 15 idx)
+                  (aset fo__ 10 (Boolean/valueOf (boolean with-nl)))
+                  (aset fl__ 18 level)
+                  (aset fo__ 11 s)
+                  (aset fl__ 19 save-lnum)
+                  (aset fl__ 20 save-col)
+                  (recur 10))
+              (do (aset fo__ 9 (Boolean/valueOf (boolean till)))
+                  (aset fl__ 15 idx)
+                  (aset fo__ 10 (Boolean/valueOf (boolean with-nl)))
+                  (aset fl__ 18 level)
+                  (aset fo__ 11 s)
+                  (aset fl__ 19 save-lnum)
+                  (aset fl__ 20 save-col)
+                  (recur 11))))
         10
-          (let [idx (i32 (- idx (e DELIM_NL)))]
-            (recur 11 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        11
-          (let [oc (long (.at (BytePtr/lit "([{<") idx))
-                cc (long (.at (BytePtr/lit ")]}>") idx))]
-            (recur 12 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        12
-          (if (== (bit-and (.get s) 0xff) (e NUL))
-            (recur 21 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 13 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        13
-          (if (== (bit-and (.get s) 0xff) oc)
-            (recur 16 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 14 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        14
-          (if (== (bit-and (.get s) 0xff) cc)
-            (recur 15 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 17 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        15
-          (let [level (i32 (dec level))]
-            (recur 17 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        16
-          (let [level (i32 (inc level))]
-            (recur 17 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        17
-          (if (< (bit-and (.get s) 0xff) 128)
-            (recur 19 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 18 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        18
-          (let [t35 (long (utfc-ptr2len ed s))
-                ^BytePtr s (.add s t35)]
-            (recur 20 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        19
-          (let [^BytePtr s (.add s 1)]
-            (recur 20 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        20
-          (if (< level 1)
-            (recur 23 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 12 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        21
-          (if (or (not with-nl) (not (nil? (.reg-match (g ed rex)))) (.reg-line-lbr (g ed rex)) (>= (.lnum (g ed rex)) (.reg-maxline (g ed rex))))
-            (recur 23 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 22 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        22
-          (do (reg-nextline ed)
-              (let [^BytePtr s (.input (g ed rex))]
-                (if (zero? (g ed got-int))
-                  (recur 12 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                  (recur 23 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))))
-        23
-          (if (>= level 1)
-            (recur 25 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 24 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        24
-          (do (.set-input (g ed rex) (if till (.add s (- 1)) s))
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        25
-          (if (and (nil? (.reg-match (g ed rex))) (not (== (.lnum (g ed rex)) save-lnum)))
-            (recur 26 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 27 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        26
-          (do (.set-lnum (g ed rex) save-lnum)
-              (.set-line (g ed rex) (reg-getline ed (.lnum (g ed rex))))
-              (recur 27 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        27
-          (do (.set-input (g ed rex) (.add ^BytePtr (.line (g ed rex)) save-col))
-              (let [status (e RA_NOMATCH)]
-                (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        28
-          (let [status (e RA_MATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        29
-          (if (and (or (not (== c (e NUL))) (not (nil? (.reg-match (g ed rex)))) (> (.lnum (g ed rex)) (.reg-maxline (g ed rex))) (.reg-line-lbr (g ed rex))) (or (not (== c 10)) (not (.reg-line-lbr (g ed rex)))))
-            (recur 33 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 30 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        30
-          (if (.reg-line-lbr (g ed rex))
-            (recur 32 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 31 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        31
-          (do (reg-nextline ed)
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        32
-          (let [t34 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t34))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        33
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        34
-          (if (nil? (.reg-match (g ed rex)))
-            (recur 37 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 35 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        35
-          (if (BytePtr/eq ^BytePtr (.ptr ^A_5 (.-rs-u (g ed behind-pos))) ^BytePtr (.input (g ed rex)))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 36 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        36
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        37
-          (if (or (not (== (.col ^T_lpos_T (.-pos ^A_5 (.-rs-u (g ed behind-pos)))) (i32 (.sub ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex)))))) (not (== (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u (g ed behind-pos)))) (.lnum (g ed rex)))))
-            (recur 38 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        38
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        (do (aset fo__ 1 next_)
-            (aset fl__ 0 op)
-            (aset fl__ 1 c)
-            (aset fo__ 2 rp)
-            (aset fl__ 2 no)
-            (aset fl__ 3 status)
-            (aset fl__ 4 cmp)
-            (aset fo__ 3 pos)
-            (aset fl__ 5 col)
-            (aset fo__ 4 wp)
-            (aset fl__ 6 lnum)
-            (aset fl__ 7 this-class)
-            (aset fo__ 5 opnd)
-            (aset fo__ 6 q)
-            (aset fl__ 8 len_2)
-            (aset fl__ 9 i)
-            (aset fl__ 10 i_2)
-            (aset fo__ 7 opnd_2)
-            (aset fl__ 11 opndc)
-            (aset fl__ 12 inpc)
-            (aset fl__ 13 i_3)
-            (aset fo__ 8 bp)
-            (aset fl__ 14 r)
-            (aset fo__ 9 (Boolean/valueOf (boolean till)))
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                till (boolean (aget fo__ 9))
+                idx (aget fl__ 15)
+                with-nl (boolean (aget fo__ 10))
+                level (aget fl__ 18)
+                ^BytePtr s (aget fo__ 11)
+                save-lnum (aget fl__ 19)
+                save-col (aget fl__ 20)
+                idx (i32 (- idx (e DELIM_NL)))]
             (aset fl__ 15 idx)
-            (aset fo__ 10 (Boolean/valueOf (boolean with-nl)))
+            (recur 11))
+        11
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                till (boolean (aget fo__ 9))
+                idx (aget fl__ 15)
+                with-nl (boolean (aget fo__ 10))
+                oc (aget fl__ 16)
+                cc (aget fl__ 17)
+                level (aget fl__ 18)
+                ^BytePtr s (aget fo__ 11)
+                save-lnum (aget fl__ 19)
+                save-col (aget fl__ 20)
+                oc (long (.at (BytePtr/lit "([{<") idx))
+                cc (long (.at (BytePtr/lit ")]}>") idx))]
             (aset fl__ 16 oc)
             (aset fl__ 17 cc)
+            (recur 12))
+        12
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                till (boolean (aget fo__ 9))
+                with-nl (boolean (aget fo__ 10))
+                oc (aget fl__ 16)
+                cc (aget fl__ 17)
+                level (aget fl__ 18)
+                ^BytePtr s (aget fo__ 11)
+                save-lnum (aget fl__ 19)
+                save-col (aget fl__ 20)]
+            (if (== (bit-and (.get s) 0xff) (e NUL))
+              (recur 21)
+              (recur 13)))
+        13
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                till (boolean (aget fo__ 9))
+                with-nl (boolean (aget fo__ 10))
+                oc (aget fl__ 16)
+                cc (aget fl__ 17)
+                level (aget fl__ 18)
+                ^BytePtr s (aget fo__ 11)
+                save-lnum (aget fl__ 19)
+                save-col (aget fl__ 20)]
+            (if (== (bit-and (.get s) 0xff) oc)
+              (recur 16)
+              (recur 14)))
+        14
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                till (boolean (aget fo__ 9))
+                with-nl (boolean (aget fo__ 10))
+                oc (aget fl__ 16)
+                cc (aget fl__ 17)
+                level (aget fl__ 18)
+                ^BytePtr s (aget fo__ 11)
+                save-lnum (aget fl__ 19)
+                save-col (aget fl__ 20)]
+            (if (== (bit-and (.get s) 0xff) cc)
+              (recur 15)
+              (recur 17)))
+        15
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                till (boolean (aget fo__ 9))
+                with-nl (boolean (aget fo__ 10))
+                oc (aget fl__ 16)
+                cc (aget fl__ 17)
+                level (aget fl__ 18)
+                ^BytePtr s (aget fo__ 11)
+                save-lnum (aget fl__ 19)
+                save-col (aget fl__ 20)
+                level (i32 (dec level))]
             (aset fl__ 18 level)
+            (recur 17))
+        16
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                till (boolean (aget fo__ 9))
+                with-nl (boolean (aget fo__ 10))
+                oc (aget fl__ 16)
+                cc (aget fl__ 17)
+                level (aget fl__ 18)
+                ^BytePtr s (aget fo__ 11)
+                save-lnum (aget fl__ 19)
+                save-col (aget fl__ 20)
+                level (i32 (inc level))]
+            (aset fl__ 18 level)
+            (recur 17))
+        17
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                till (boolean (aget fo__ 9))
+                with-nl (boolean (aget fo__ 10))
+                oc (aget fl__ 16)
+                cc (aget fl__ 17)
+                level (aget fl__ 18)
+                ^BytePtr s (aget fo__ 11)
+                save-lnum (aget fl__ 19)
+                save-col (aget fl__ 20)]
+            (if (< (bit-and (.get s) 0xff) 128)
+              (recur 19)
+              (recur 18)))
+        18
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                till (boolean (aget fo__ 9))
+                with-nl (boolean (aget fo__ 10))
+                oc (aget fl__ 16)
+                cc (aget fl__ 17)
+                level (aget fl__ 18)
+                ^BytePtr s (aget fo__ 11)
+                save-lnum (aget fl__ 19)
+                save-col (aget fl__ 20)
+                t35 (long (utfc-ptr2len ed s))
+                ^BytePtr s (.add s t35)]
             (aset fo__ 11 s)
-            (aset fl__ 19 save-lnum)
-            (aset fl__ 20 save-col)
-            (aset fl__ 21 limit)
-            (aset fo__ 12 (Boolean/valueOf (boolean t37)))
-            (aset fo__ 13 rst_2)
-            st)))))
+            (recur 20))
+        19
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                till (boolean (aget fo__ 9))
+                with-nl (boolean (aget fo__ 10))
+                oc (aget fl__ 16)
+                cc (aget fl__ 17)
+                level (aget fl__ 18)
+                ^BytePtr s (aget fo__ 11)
+                save-lnum (aget fl__ 19)
+                save-col (aget fl__ 20)
+                ^BytePtr s (.add s 1)]
+            (aset fo__ 11 s)
+            (recur 20))
+        20
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                till (boolean (aget fo__ 9))
+                with-nl (boolean (aget fo__ 10))
+                oc (aget fl__ 16)
+                cc (aget fl__ 17)
+                level (aget fl__ 18)
+                ^BytePtr s (aget fo__ 11)
+                save-lnum (aget fl__ 19)
+                save-col (aget fl__ 20)]
+            (if (< level 1)
+              (recur 23)
+              (recur 12)))
+        21
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                till (boolean (aget fo__ 9))
+                with-nl (boolean (aget fo__ 10))
+                oc (aget fl__ 16)
+                cc (aget fl__ 17)
+                level (aget fl__ 18)
+                ^BytePtr s (aget fo__ 11)
+                save-lnum (aget fl__ 19)
+                save-col (aget fl__ 20)]
+            (if (or (not with-nl) (not (nil? (.reg-match (g ed rex)))) (.reg-line-lbr (g ed rex)) (>= (.lnum (g ed rex)) (.reg-maxline (g ed rex))))
+              (recur 23)
+              (recur 22)))
+        22
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                till (boolean (aget fo__ 9))
+                with-nl (boolean (aget fo__ 10))
+                oc (aget fl__ 16)
+                cc (aget fl__ 17)
+                level (aget fl__ 18)
+                ^BytePtr s (aget fo__ 11)
+                save-lnum (aget fl__ 19)
+                save-col (aget fl__ 20)]
+            (reg-nextline ed)
+            (let [^BytePtr s (.input (g ed rex))]
+              (if (zero? (g ed got-int))
+                (do (aset fo__ 11 s)
+                    (recur 12))
+                (do (aset fo__ 11 s)
+                    (recur 23)))))
+        23
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                till (boolean (aget fo__ 9))
+                level (aget fl__ 18)
+                ^BytePtr s (aget fo__ 11)
+                save-lnum (aget fl__ 19)
+                save-col (aget fl__ 20)]
+            (if (>= level 1)
+              (recur 25)
+              (recur 24)))
+        24
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                till (boolean (aget fo__ 9))
+                ^BytePtr s (aget fo__ 11)]
+            (.set-input (g ed rex) (if till (.add s (- 1)) s))
+            (recur 287))
+        25
+          (let [^BytePtr next_ (aget fo__ 1)
+                save-lnum (aget fl__ 19)
+                save-col (aget fl__ 20)]
+            (if (and (nil? (.reg-match (g ed rex))) (not (== (.lnum (g ed rex)) save-lnum)))
+              (recur 26)
+              (recur 27)))
+        26
+          (let [^BytePtr next_ (aget fo__ 1)
+                save-lnum (aget fl__ 19)
+                save-col (aget fl__ 20)]
+            (.set-lnum (g ed rex) save-lnum)
+            (.set-line (g ed rex) (reg-getline ed (.lnum (g ed rex))))
+            (recur 27))
+        27
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                save-col (aget fl__ 20)]
+            (.set-input (g ed rex) (.add ^BytePtr (.line (g ed rex)) save-col))
+            (let [status (e RA_NOMATCH)]
+              (aset fl__ 3 status)
+              (recur 287)))
+        28
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_MATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        29
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (and (or (not (== c (e NUL))) (not (nil? (.reg-match (g ed rex)))) (> (.lnum (g ed rex)) (.reg-maxline (g ed rex))) (.reg-line-lbr (g ed rex))) (or (not (== c 10)) (not (.reg-line-lbr (g ed rex)))))
+              (recur 33)
+              (recur 30)))
+        30
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (.reg-line-lbr (g ed rex))
+              (recur 32)
+              (recur 31)))
+        31
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (reg-nextline ed)
+            (recur 287))
+        32
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t34 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t34))
+            (recur 287))
+        33
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        34
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (nil? (.reg-match (g ed rex)))
+              (recur 37)
+              (recur 35)))
+        35
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (BytePtr/eq ^BytePtr (.ptr ^A_5 (.-rs-u (g ed behind-pos))) ^BytePtr (.input (g ed rex)))
+              (recur 287)
+              (recur 36)))
+        36
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        37
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (or (not (== (.col ^T_lpos_T (.-pos ^A_5 (.-rs-u (g ed behind-pos)))) (i32 (.sub ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex)))))) (not (== (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u (g ed behind-pos)))) (.lnum (g ed rex)))))
+              (recur 38)
+              (recur 287)))
+        38
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        39
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                status (aget fl__ 3)]
+            (if (>= (bit-shift-right (u32 (g ed regstack-bytes)) 10) (aget (g ed p-mmp) 0))
+              (recur 45)
+              (recur 40)))
+        40
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                status (aget fl__ 3)]
+            (if (ga-grow ed (g ed regstack-behind) 1)
+              (recur 41)
+              (recur 44)))
+        41
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                ^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (.set-ga-len (g ed regstack-behind) (i32 (inc (.ga-len (g ed regstack-behind)))))
+            (g! ed regstack-bytes (i32 (+ (g ed regstack-bytes) 376)))
+            (let [^S_regitem_S rp (regstack-push ed (e RS_BEHIND1) (aget scan 0))]
+              (if (nil? rp)
+                (do (aset fo__ 2 rp)
+                    (recur 43))
+                (do (aset fo__ 2 rp)
+                    (recur 42)))))
+        42
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                ^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (save-subexpr ed (regstack-behind-top ed))
+            (.set-rs-no rp (i16 op))
+            (reg-save ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
+            (recur 287))
+        43
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_FAIL)]
+            (aset fl__ 3 status)
+            (recur 287))
+        44
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_FAIL)]
+            (aset fl__ 3 status)
+            (recur 287))
+        45
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (emsg ed (gettext_ ed (BytePtr. (g ed e-pattern-uses-more-memory-than-maxmempattern) 0)))
+            (let [status (e RA_FAIL)]
+              (aset fl__ 3 status)
+              (recur 287)))
+        46
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                ^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regitem_S rp (regstack-push ed (e RS_NOMATCH) (aget scan 0))]
+            (if (nil? rp)
+              (do (aset fo__ 2 rp)
+                  (recur 48))
+              (do (aset fo__ 2 rp)
+                  (recur 47))))
+        47
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                ^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (.set-rs-no rp (i16 op))
+            (reg-save ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
+            (let [^BytePtr next_ (.add ^BytePtr (aget scan 0) 3)]
+              (aset fo__ 1 next_)
+              (recur 287)))
+        48
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_FAIL)]
+            (aset fl__ 3 status)
+            (recur 287))
+        49
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)]
+            (if (== (bit-and (.get next_) 0xff) (e EXACTLY))
+              (recur 51)
+              (recur 50)))
+        50
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)]
+            (.set-nextb rst (e NUL))
+            (.set-nextb-ic rst (e NUL))
+            (recur 56))
+        51
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)]
+            (.set-nextb rst (bit-and (.get (.add next_ 3)) 0xff))
+            (if (zero? (.reg-ic (g ed rex)))
+              (recur 52)
+              (recur 53)))
+        st))))
 
 (defn- regmatch__3 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
   (let [^objects scan (aget fo__ 14)
@@ -15297,211 +15542,307 @@
         ^ints len_3 (aget fo__ 16)
         ^ints len_4 (aget fo__ 17)
         ^S_regstar_S rst (aget fo__ 18)]
-    (loop [st st0__
-           ^BytePtr next_ (aget fo__ 1)
-           op (aget fl__ 0)
-           c (aget fl__ 1)
-           ^S_regitem_S rp (aget fo__ 2)
-           no (aget fl__ 2)
-           status (aget fl__ 3)
-           cmp (aget fl__ 4)
-           ^T_pos_T pos (aget fo__ 3)
-           col (aget fl__ 5)
-           ^S_window_S wp (aget fo__ 4)
-           lnum (aget fl__ 6)
-           this-class (aget fl__ 7)
-           ^BytePtr opnd (aget fo__ 5)
-           ^BytePtr q (aget fo__ 6)
-           len_2 (aget fl__ 8)
-           i (aget fl__ 9)
-           i_2 (aget fl__ 10)
-           ^BytePtr opnd_2 (aget fo__ 7)
-           opndc (aget fl__ 11)
-           inpc (aget fl__ 12)
-           i_3 (aget fl__ 13)
-           ^Ptr bp (aget fo__ 8)
-           r (aget fl__ 14)
-           till (aget fo__ 9)
-           idx (aget fl__ 15)
-           with-nl (aget fo__ 10)
-           oc (aget fl__ 16)
-           cc (aget fl__ 17)
-           level (aget fl__ 18)
-           ^BytePtr s (aget fo__ 11)
-           save-lnum (aget fl__ 19)
-           save-col (aget fl__ 20)
-           limit (aget fl__ 21)
-           t37 (aget fo__ 12)
-           ^S_regstar_S rst_2 (aget fo__ 13)]
+    (loop [st st0__]
       (case st
-        39
-          (if (>= (bit-shift-right (u32 (g ed regstack-bytes)) 10) (aget (g ed p-mmp) 0))
-            (recur 45 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 40 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        40
-          (if (ga-grow ed (g ed regstack-behind) 1)
-            (recur 41 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 44 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        41
-          (do (.set-ga-len (g ed regstack-behind) (i32 (inc (.ga-len (g ed regstack-behind)))))
-              (g! ed regstack-bytes (i32 (+ (g ed regstack-bytes) 376)))
-              (let [^S_regitem_S rp (regstack-push ed (e RS_BEHIND1) (aget scan 0))]
-                (if (nil? rp)
-                  (recur 43 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                  (recur 42 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))))
-        42
-          (do (save-subexpr ed (regstack-behind-top ed))
-              (.set-rs-no rp (i16 op))
-              (reg-save ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        43
-          (let [status (e RA_FAIL)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        44
-          (let [status (e RA_FAIL)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        45
-          (do (emsg ed (gettext_ ed (BytePtr. (g ed e-pattern-uses-more-memory-than-maxmempattern) 0)))
-              (let [status (e RA_FAIL)]
-                (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        46
-          (let [^S_regitem_S rp (regstack-push ed (e RS_NOMATCH) (aget scan 0))]
-            (if (nil? rp)
-              (recur 48 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 47 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        47
-          (do (.set-rs-no rp (i16 op))
-              (reg-save ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
-              (let [^BytePtr next_ (.add ^BytePtr (aget scan 0) 3)]
-                (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        48
-          (let [status (e RA_FAIL)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        49
-          (if (== (bit-and (.get next_) 0xff) (e EXACTLY))
-            (recur 51 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 50 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        50
-          (do (.set-nextb rst (e NUL))
-              (.set-nextb-ic rst (e NUL))
-              (recur 56 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        51
-          (do (.set-nextb rst (bit-and (.get (.add next_ 3)) 0xff))
-              (if (zero? (.reg-ic (g ed rex)))
-                (recur 52 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                (recur 53 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
         52
-          (do (.set-nextb-ic rst (.nextb rst))
-              (recur 56 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)]
+            (.set-nextb-ic rst (.nextb rst))
+            (recur 56))
         53
-          (if (vim-isupper? ed (.nextb rst))
-            (recur 55 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 54 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)]
+            (if (vim-isupper? ed (.nextb rst))
+              (recur 55)
+              (recur 54)))
         54
-          (do (.set-nextb-ic rst (long (vim-toupper ed (.nextb rst))))
-              (recur 56 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)]
+            (.set-nextb-ic rst (long (vim-toupper ed (.nextb rst))))
+            (recur 56))
         55
-          (do (.set-nextb-ic rst (long (vim-tolower ed (.nextb rst))))
-              (recur 56 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)]
+            (.set-nextb-ic rst (long (vim-tolower ed (.nextb rst))))
+            (recur 56))
         56
-          (if (== op (e BRACE_SIMPLE))
-            (recur 57 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 58 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)]
+            (if (== op (e BRACE_SIMPLE))
+              (recur 57)
+              (recur 58)))
         57
-          (do (.set-minval rst (g ed bl-minval))
-              (.set-maxval rst (g ed bl-maxval))
-              (recur 59 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)]
+            (.set-minval rst (g ed bl-minval))
+            (.set-maxval rst (g ed bl-maxval))
+            (recur 59))
         58
-          (do (.set-minval rst (if (== op (e STAR)) 0 1))
-              (.set-maxval rst 2147418112)
-              (recur 59 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)]
+            (.set-minval rst (if (== op (e STAR)) 0 1))
+            (.set-maxval rst 2147418112)
+            (recur 59))
         59
-          (do (.set-count_ rst (long (regrepeat ed (.add ^BytePtr (aget scan 0) 3) (.maxval rst))))
-              (if (zero? (g ed got-int))
-                (recur 60 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                (recur 69 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
+          (let [^BytePtr next_ (aget fo__ 1)]
+            (.set-count_ rst (long (regrepeat ed (.add ^BytePtr (aget scan 0) 3) (.maxval rst))))
+            (if (zero? (g ed got-int))
+              (recur 60)
+              (recur 69)))
         60
-          (if (if (<= (.minval rst) (.maxval rst)) (>= (.count_ rst) (.minval rst)) (>= (.count_ rst) (.maxval rst)))
-            (recur 62 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 61 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)]
+            (if (if (<= (.minval rst) (.maxval rst)) (>= (.count_ rst) (.minval rst)) (>= (.count_ rst) (.maxval rst)))
+              (recur 62)
+              (recur 61)))
         61
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
         62
-          (if (>= (bit-shift-right (u32 (g ed regstack-bytes)) 10) (aget (g ed p-mmp) 0))
-            (recur 68 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 63 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)]
+            (if (>= (bit-shift-right (u32 (g ed regstack-bytes)) 10) (aget (g ed p-mmp) 0))
+              (recur 68)
+              (recur 63)))
         63
-          (if (ga-grow ed (g ed regstack-star) 1)
-            (recur 64 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 67 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)]
+            (if (ga-grow ed (g ed regstack-star) 1)
+              (recur 64)
+              (recur 67)))
         64
-          (do (.set-ga-len (g ed regstack-star) (i32 (inc (.ga-len (g ed regstack-star)))))
-              (g! ed regstack-bytes (i32 (+ (g ed regstack-bytes) 32)))
-              (let [^S_regitem_S rp (regstack-push ed (if (<= (.minval rst) (.maxval rst)) (e RS_STAR_LONG) (e RS_STAR_SHORT)) (aget scan 0))]
-                (if (nil? rp)
-                  (recur 66 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                  (recur 65 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))))
+          (let [^BytePtr next_ (aget fo__ 1)
+                ^S_regitem_S rp (aget fo__ 2)]
+            (.set-ga-len (g ed regstack-star) (i32 (inc (.ga-len (g ed regstack-star)))))
+            (g! ed regstack-bytes (i32 (+ (g ed regstack-bytes) 32)))
+            (let [^S_regitem_S rp (regstack-push ed (if (<= (.minval rst) (.maxval rst)) (e RS_STAR_LONG) (e RS_STAR_SHORT)) (aget scan 0))]
+              (if (nil? rp)
+                (do (aset fo__ 2 rp)
+                    (recur 66))
+                (do (aset fo__ 2 rp)
+                    (recur 65)))))
         65
-          (let [^S_regstar_S t33 (regstack-star-top ed)
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                ^S_regstar_S t33 (regstack-star-top ed)
                 _ (.set t33 rst)
                 status (e RA_BREAK)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+            (aset fl__ 3 status)
+            (recur 287))
         66
-          (let [status (e RA_FAIL)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_FAIL)]
+            (aset fl__ 3 status)
+            (recur 287))
         67
-          (let [status (e RA_FAIL)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_FAIL)]
+            (aset fl__ 3 status)
+            (recur 287))
         68
-          (do (emsg ed (gettext_ ed (BytePtr. (g ed e-pattern-uses-more-memory-than-maxmempattern) 0)))
-              (let [status (e RA_FAIL)]
-                (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (emsg ed (gettext_ ed (BytePtr. (g ed e-pattern-uses-more-memory-than-maxmempattern) 0)))
+            (let [status (e RA_FAIL)]
+              (aset fl__ 3 status)
+              (recur 287)))
         69
-          (let [status (e RA_FAIL)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_FAIL)]
+            (aset fl__ 3 status)
+            (recur 287))
         70
-          (let [no (i32 (- op (e BRACE_COMPLEX)))]
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                no (i32 (- op (e BRACE_COMPLEX)))]
             (aset (g ed brace-count) no (unchecked-int (inc (long (aget (g ed brace-count) no)))))
             (if (<= (long (aget (g ed brace-count) no)) (if (<= (aget (g ed brace-min) no) (aget (g ed brace-max) no)) (aget (g ed brace-min) no) (aget (g ed brace-max) no)))
-              (recur 80 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 71 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        (do (aset fo__ 1 next_)
-            (aset fl__ 0 op)
-            (aset fl__ 1 c)
-            (aset fo__ 2 rp)
-            (aset fl__ 2 no)
+              (do (aset fl__ 2 no)
+                  (recur 80))
+              (do (aset fl__ 2 no)
+                  (recur 71))))
+        71
+          (let [^BytePtr next_ (aget fo__ 1)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (if (<= (aget (g ed brace-min) no) (aget (g ed brace-max) no))
+              (recur 76)
+              (recur 72)))
+        72
+          (let [^BytePtr next_ (aget fo__ 1)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (if (<= (long (aget (g ed brace-count) no)) (aget (g ed brace-min) no))
+              (recur 73)
+              (recur 287)))
+        73
+          (let [^BytePtr next_ (aget fo__ 1)
+                ^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regitem_S rp (regstack-push ed (e RS_BRCPLX_SHORT) (aget scan 0))]
+            (if (nil? rp)
+              (do (aset fo__ 2 rp)
+                  (recur 75))
+              (do (aset fo__ 2 rp)
+                  (recur 74))))
+        74
+          (let [^BytePtr next_ (aget fo__ 1)
+                ^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (reg-save ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
+            (recur 287))
+        75
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_FAIL)]
             (aset fl__ 3 status)
-            (aset fl__ 4 cmp)
-            (aset fo__ 3 pos)
-            (aset fl__ 5 col)
-            (aset fo__ 4 wp)
-            (aset fl__ 6 lnum)
-            (aset fl__ 7 this-class)
-            (aset fo__ 5 opnd)
-            (aset fo__ 6 q)
-            (aset fl__ 8 len_2)
-            (aset fl__ 9 i)
-            (aset fl__ 10 i_2)
-            (aset fo__ 7 opnd_2)
-            (aset fl__ 11 opndc)
-            (aset fl__ 12 inpc)
-            (aset fl__ 13 i_3)
-            (aset fo__ 8 bp)
-            (aset fl__ 14 r)
-            (aset fo__ 9 (Boolean/valueOf (boolean till)))
-            (aset fl__ 15 idx)
-            (aset fo__ 10 (Boolean/valueOf (boolean with-nl)))
-            (aset fl__ 16 oc)
-            (aset fl__ 17 cc)
-            (aset fl__ 18 level)
-            (aset fo__ 11 s)
-            (aset fl__ 19 save-lnum)
-            (aset fl__ 20 save-col)
-            (aset fl__ 21 limit)
-            (aset fo__ 12 (Boolean/valueOf (boolean t37)))
-            (aset fo__ 13 rst_2)
-            st)))))
+            (recur 287))
+        76
+          (let [^BytePtr next_ (aget fo__ 1)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (if (<= (long (aget (g ed brace-count) no)) (aget (g ed brace-max) no))
+              (recur 77)
+              (recur 287)))
+        77
+          (let [^BytePtr next_ (aget fo__ 1)
+                ^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                ^S_regitem_S rp (regstack-push ed (e RS_BRCPLX_LONG) (aget scan 0))]
+            (if (nil? rp)
+              (do (aset fo__ 2 rp)
+                  (recur 79))
+              (do (aset fo__ 2 rp)
+                  (recur 78))))
+        78
+          (let [^BytePtr next_ (aget fo__ 1)
+                ^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (.set-rs-no rp (i16 no))
+            (reg-save ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
+            (let [^BytePtr next_ (.add ^BytePtr (aget scan 0) 3)]
+              (aset fo__ 1 next_)
+              (recur 287)))
+        79
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_FAIL)]
+            (aset fl__ 3 status)
+            (recur 287))
+        80
+          (let [^BytePtr next_ (aget fo__ 1)
+                ^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                ^S_regitem_S rp (regstack-push ed (e RS_BRCPLX_MORE) (aget scan 0))]
+            (if (nil? rp)
+              (do (aset fo__ 2 rp)
+                  (recur 82))
+              (do (aset fo__ 2 rp)
+                  (recur 81))))
+        81
+          (let [^BytePtr next_ (aget fo__ 1)
+                ^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (.set-rs-no rp (i16 no))
+            (reg-save ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
+            (let [^BytePtr next_ (.add ^BytePtr (aget scan 0) 3)]
+              (aset fo__ 1 next_)
+              (recur 287)))
+        82
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_FAIL)]
+            (aset fl__ 3 status)
+            (recur 287))
+        83
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (== (bit-and (.get next_) 0xff) (e BRACE_SIMPLE))
+              (recur 87)
+              (recur 84)))
+        84
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (and (>= (bit-and (.get next_) 0xff) (e BRACE_COMPLEX)) (< (bit-and (.get next_) 0xff) 150))
+              (recur 86)
+              (recur 85)))
+        85
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (internal-error ed (BytePtr/lit "BRACE_LIMITS"))
+            (let [status (e RA_FAIL)]
+              (aset fl__ 3 status)
+              (recur 287)))
+        86
+          (let [^BytePtr next_ (aget fo__ 1)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                no (i32 (- (bit-and (.get next_) 0xff) (e BRACE_COMPLEX)))]
+            (aset (g ed brace-min) no (+ (bit-shift-left (bit-and (.at ^BytePtr (aget scan 0) 3) 0xff) 24) (bit-shift-left (bit-and (.at ^BytePtr (aget scan 0) 4) 0xff) 16) (bit-shift-left (bit-and (.at ^BytePtr (aget scan 0) 5) 0xff) 8) (bit-and (.at ^BytePtr (aget scan 0) 6) 0xff)))
+            (aset (g ed brace-max) no (+ (bit-shift-left (bit-and (.at (.add ^BytePtr (aget scan 0) 4) 3) 0xff) 24) (bit-shift-left (bit-and (.at (.add ^BytePtr (aget scan 0) 4) 4) 0xff) 16) (bit-shift-left (bit-and (.at (.add ^BytePtr (aget scan 0) 4) 5) 0xff) 8) (bit-and (.at (.add ^BytePtr (aget scan 0) 4) 6) 0xff)))
+            (aset (g ed brace-count) no (unchecked-int 0))
+            (aset fl__ 2 no)
+            (recur 287))
+        87
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (g! ed bl-minval (+ (bit-shift-left (bit-and (.at ^BytePtr (aget scan 0) 3) 0xff) 24) (bit-shift-left (bit-and (.at ^BytePtr (aget scan 0) 4) 0xff) 16) (bit-shift-left (bit-and (.at ^BytePtr (aget scan 0) 5) 0xff) 8) (bit-and (.at ^BytePtr (aget scan 0) 6) 0xff)))
+            (g! ed bl-maxval (+ (bit-shift-left (bit-and (.at (.add ^BytePtr (aget scan 0) 4) 3) 0xff) 24) (bit-shift-left (bit-and (.at (.add ^BytePtr (aget scan 0) 4) 4) 0xff) 16) (bit-shift-left (bit-and (.at (.add ^BytePtr (aget scan 0) 4) 5) 0xff) 8) (bit-and (.at (.add ^BytePtr (aget scan 0) 4) 6) 0xff)))
+            (recur 287))
+        88
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (== (bit-and (.get next_) 0xff) (e BRANCH))
+              (recur 89)
+              (recur 92)))
+        89
+          (let [^BytePtr next_ (aget fo__ 1)
+                ^S_regitem_S rp (aget fo__ 2)
+                ^S_regitem_S rp (regstack-push ed (e RS_BRANCH) (aget scan 0))]
+            (if (nil? rp)
+              (do (aset fo__ 2 rp)
+                  (recur 91))
+              (do (aset fo__ 2 rp)
+                  (recur 90))))
+        90
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_BREAK)]
+            (aset fl__ 3 status)
+            (recur 287))
+        91
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_FAIL)]
+            (aset fl__ 3 status)
+            (recur 287))
+        92
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                ^BytePtr next_ (.add ^BytePtr (aget scan 0) 3)]
+            (aset fo__ 1 next_)
+            (recur 287))
+        93
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                no (i32 (- op (e BACKREF)))]
+            (cleanup-subexpr ed)
+            (if (nil? (.reg-match (g ed rex)))
+              (do (aset fl__ 2 no)
+                  (recur 94))
+              (do (aset fl__ 2 no)
+                  (recur 101))))
+        st))))
 
 (defn- regmatch__4 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
   (let [^objects scan (aget fo__ 14)
@@ -15509,198 +15850,347 @@
         ^ints len_3 (aget fo__ 16)
         ^ints len_4 (aget fo__ 17)
         ^S_regstar_S rst (aget fo__ 18)]
-    (loop [st st0__
-           ^BytePtr next_ (aget fo__ 1)
-           op (aget fl__ 0)
-           c (aget fl__ 1)
-           ^S_regitem_S rp (aget fo__ 2)
-           no (aget fl__ 2)
-           status (aget fl__ 3)
-           cmp (aget fl__ 4)
-           ^T_pos_T pos (aget fo__ 3)
-           col (aget fl__ 5)
-           ^S_window_S wp (aget fo__ 4)
-           lnum (aget fl__ 6)
-           this-class (aget fl__ 7)
-           ^BytePtr opnd (aget fo__ 5)
-           ^BytePtr q (aget fo__ 6)
-           len_2 (aget fl__ 8)
-           i (aget fl__ 9)
-           i_2 (aget fl__ 10)
-           ^BytePtr opnd_2 (aget fo__ 7)
-           opndc (aget fl__ 11)
-           inpc (aget fl__ 12)
-           i_3 (aget fl__ 13)
-           ^Ptr bp (aget fo__ 8)
-           r (aget fl__ 14)
-           till (aget fo__ 9)
-           idx (aget fl__ 15)
-           with-nl (aget fo__ 10)
-           oc (aget fl__ 16)
-           cc (aget fl__ 17)
-           level (aget fl__ 18)
-           ^BytePtr s (aget fo__ 11)
-           save-lnum (aget fl__ 19)
-           save-col (aget fl__ 20)
-           limit (aget fl__ 21)
-           t37 (aget fo__ 12)
-           ^S_regstar_S rst_2 (aget fo__ 13)]
+    (loop [st st0__]
       (case st
-        71
-          (if (<= (aget (g ed brace-min) no) (aget (g ed brace-max) no))
-            (recur 76 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 72 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        72
-          (if (<= (long (aget (g ed brace-count) no)) (aget (g ed brace-min) no))
-            (recur 73 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        73
-          (let [^S_regitem_S rp (regstack-push ed (e RS_BRCPLX_SHORT) (aget scan 0))]
-            (if (nil? rp)
-              (recur 75 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 74 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        74
-          (do (reg-save ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        75
-          (let [status (e RA_FAIL)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        76
-          (if (<= (long (aget (g ed brace-count) no)) (aget (g ed brace-max) no))
-            (recur 77 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        77
-          (let [^S_regitem_S rp (regstack-push ed (e RS_BRCPLX_LONG) (aget scan 0))]
-            (if (nil? rp)
-              (recur 79 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 78 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        78
-          (do (.set-rs-no rp (i16 no))
-              (reg-save ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
-              (let [^BytePtr next_ (.add ^BytePtr (aget scan 0) 3)]
-                (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        79
-          (let [status (e RA_FAIL)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        80
-          (let [^S_regitem_S rp (regstack-push ed (e RS_BRCPLX_MORE) (aget scan 0))]
-            (if (nil? rp)
-              (recur 82 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 81 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        81
-          (do (.set-rs-no rp (i16 no))
-              (reg-save ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
-              (let [^BytePtr next_ (.add ^BytePtr (aget scan 0) 3)]
-                (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        82
-          (let [status (e RA_FAIL)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        83
-          (if (== (bit-and (.get next_) 0xff) (e BRACE_SIMPLE))
-            (recur 87 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 84 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        84
-          (if (and (>= (bit-and (.get next_) 0xff) (e BRACE_COMPLEX)) (< (bit-and (.get next_) 0xff) 150))
-            (recur 86 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 85 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        85
-          (do (internal-error ed (BytePtr/lit "BRACE_LIMITS"))
-              (let [status (e RA_FAIL)]
-                (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        86
-          (let [no (i32 (- (bit-and (.get next_) 0xff) (e BRACE_COMPLEX)))]
-            (aset (g ed brace-min) no (+ (bit-shift-left (bit-and (.at ^BytePtr (aget scan 0) 3) 0xff) 24) (bit-shift-left (bit-and (.at ^BytePtr (aget scan 0) 4) 0xff) 16) (bit-shift-left (bit-and (.at ^BytePtr (aget scan 0) 5) 0xff) 8) (bit-and (.at ^BytePtr (aget scan 0) 6) 0xff)))
-            (aset (g ed brace-max) no (+ (bit-shift-left (bit-and (.at (.add ^BytePtr (aget scan 0) 4) 3) 0xff) 24) (bit-shift-left (bit-and (.at (.add ^BytePtr (aget scan 0) 4) 4) 0xff) 16) (bit-shift-left (bit-and (.at (.add ^BytePtr (aget scan 0) 4) 5) 0xff) 8) (bit-and (.at (.add ^BytePtr (aget scan 0) 4) 6) 0xff)))
-            (aset (g ed brace-count) no (unchecked-int 0))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        87
-          (do (g! ed bl-minval (+ (bit-shift-left (bit-and (.at ^BytePtr (aget scan 0) 3) 0xff) 24) (bit-shift-left (bit-and (.at ^BytePtr (aget scan 0) 4) 0xff) 16) (bit-shift-left (bit-and (.at ^BytePtr (aget scan 0) 5) 0xff) 8) (bit-and (.at ^BytePtr (aget scan 0) 6) 0xff)))
-              (g! ed bl-maxval (+ (bit-shift-left (bit-and (.at (.add ^BytePtr (aget scan 0) 4) 3) 0xff) 24) (bit-shift-left (bit-and (.at (.add ^BytePtr (aget scan 0) 4) 4) 0xff) 16) (bit-shift-left (bit-and (.at (.add ^BytePtr (aget scan 0) 4) 5) 0xff) 8) (bit-and (.at (.add ^BytePtr (aget scan 0) 4) 6) 0xff)))
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        88
-          (if (== (bit-and (.get next_) 0xff) (e BRANCH))
-            (recur 89 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 92 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        89
-          (let [^S_regitem_S rp (regstack-push ed (e RS_BRANCH) (aget scan 0))]
-            (if (nil? rp)
-              (recur 91 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 90 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        90
-          (let [status (e RA_BREAK)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        91
-          (let [status (e RA_FAIL)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        92
-          (let [^BytePtr next_ (.add ^BytePtr (aget scan 0) 3)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        93
-          (let [no (i32 (- op (e BACKREF)))]
-            (cleanup-subexpr ed)
-            (if (nil? (.reg-match (g ed rex)))
-              (recur 94 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 101 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
         94
-          (if (or (< (.lnum ^T_lpos_T (.at ^Ptr (.reg-startpos (g ed rex)) no)) 0) (< (.lnum ^T_lpos_T (.at ^Ptr (.reg-endpos (g ed rex)) no)) 0))
-            (recur 100 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 95 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (if (or (< (.lnum ^T_lpos_T (.at ^Ptr (.reg-startpos (g ed rex)) no)) 0) (< (.lnum ^T_lpos_T (.at ^Ptr (.reg-endpos (g ed rex)) no)) 0))
+              (recur 100)
+              (recur 95)))
         95
-          (if (and (== (.lnum ^T_lpos_T (.at ^Ptr (.reg-startpos (g ed rex)) no)) (.lnum (g ed rex))) (== (.lnum ^T_lpos_T (.at ^Ptr (.reg-endpos (g ed rex)) no)) (.lnum (g ed rex))))
-            (recur 98 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 96 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^BytePtr next_ (aget fo__ 1)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (if (and (== (.lnum ^T_lpos_T (.at ^Ptr (.reg-startpos (g ed rex)) no)) (.lnum (g ed rex))) (== (.lnum ^T_lpos_T (.at ^Ptr (.reg-endpos (g ed rex)) no)) (.lnum (g ed rex))))
+              (recur 98)
+              (recur 96)))
         96
-          (let [r (long (match-with-backref ed (.lnum ^T_lpos_T (.at ^Ptr (.reg-startpos (g ed rex)) no)) (.col ^T_lpos_T (.at ^Ptr (.reg-startpos (g ed rex)) no)) (.lnum ^T_lpos_T (.at ^Ptr (.reg-endpos (g ed rex)) no)) (.col ^T_lpos_T (.at ^Ptr (.reg-endpos (g ed rex)) no)) (IntPtr. len_4 0)))]
+          (let [^BytePtr next_ (aget fo__ 1)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                r (aget fl__ 14)
+                r (long (match-with-backref ed (.lnum ^T_lpos_T (.at ^Ptr (.reg-startpos (g ed rex)) no)) (.col ^T_lpos_T (.at ^Ptr (.reg-startpos (g ed rex)) no)) (.lnum ^T_lpos_T (.at ^Ptr (.reg-endpos (g ed rex)) no)) (.col ^T_lpos_T (.at ^Ptr (.reg-endpos (g ed rex)) no)) (IntPtr. len_4 0)))]
             (if (== r (e RA_MATCH))
-              (recur 105 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 97 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
+              (do (aset fl__ 14 r)
+                  (recur 105))
+              (do (aset fl__ 14 r)
+                  (recur 97))))
         97
-          (let [status r]
-            (recur 105 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        98
-          (do (aset len_4 0 (unchecked-int (- (.col ^T_lpos_T (.at ^Ptr (.reg-endpos (g ed rex)) no)) (.col ^T_lpos_T (.at ^Ptr (.reg-startpos (g ed rex)) no)))))
-              (if (== (long (cstrncmp ed (.add ^BytePtr (.line (g ed rex)) (.col ^T_lpos_T (.at ^Ptr (.reg-startpos (g ed rex)) no))) (.input (g ed rex)) (IntPtr. len_4 0))) 0)
-                (recur 105 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                (recur 99 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        99
-          (let [status (e RA_NOMATCH)]
-            (recur 105 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        (do (aset fo__ 1 next_)
-            (aset fl__ 0 op)
-            (aset fl__ 1 c)
-            (aset fo__ 2 rp)
-            (aset fl__ 2 no)
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                r (aget fl__ 14)
+                status r]
             (aset fl__ 3 status)
-            (aset fl__ 4 cmp)
-            (aset fo__ 3 pos)
-            (aset fl__ 5 col)
-            (aset fo__ 4 wp)
-            (aset fl__ 6 lnum)
-            (aset fl__ 7 this-class)
-            (aset fo__ 5 opnd)
-            (aset fo__ 6 q)
-            (aset fl__ 8 len_2)
-            (aset fl__ 9 i)
-            (aset fl__ 10 i_2)
-            (aset fo__ 7 opnd_2)
-            (aset fl__ 11 opndc)
-            (aset fl__ 12 inpc)
+            (recur 105))
+        98
+          (let [^BytePtr next_ (aget fo__ 1)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (aset len_4 0 (unchecked-int (- (.col ^T_lpos_T (.at ^Ptr (.reg-endpos (g ed rex)) no)) (.col ^T_lpos_T (.at ^Ptr (.reg-startpos (g ed rex)) no)))))
+            (if (== (long (cstrncmp ed (.add ^BytePtr (.line (g ed rex)) (.col ^T_lpos_T (.at ^Ptr (.reg-startpos (g ed rex)) no))) (.input (g ed rex)) (IntPtr. len_4 0))) 0)
+              (recur 105)
+              (recur 99)))
+        99
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 105))
+        100
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (aset len_4 0 (unchecked-int 0))
+            (recur 105))
+        101
+          (let [^BytePtr next_ (aget fo__ 1)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (if (or (nil? (.at ^Ptr (.reg-startp (g ed rex)) no)) (nil? (.at ^Ptr (.reg-endp (g ed rex)) no)))
+              (recur 104)
+              (recur 102)))
+        102
+          (let [^BytePtr next_ (aget fo__ 1)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (aset len_4 0 (unchecked-int (.sub ^BytePtr (.at ^Ptr (.reg-endp (g ed rex)) no) ^BytePtr (.at ^Ptr (.reg-startp (g ed rex)) no))))
+            (if (== (long (cstrncmp ed (.at ^Ptr (.reg-startp (g ed rex)) no) (.input (g ed rex)) (IntPtr. len_4 0))) 0)
+              (recur 105)
+              (recur 103)))
+        103
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 105))
+        104
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (aset len_4 0 (unchecked-int 0))
+            (recur 105))
+        105
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) (long (aget len_4 0))))
+            (recur 287))
+        106
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                ^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                no (i32 (- op (e MCLOSE)))
+                _ (cleanup-subexpr ed)
+                ^S_regitem_S rp (regstack-push ed (e RS_MCLOSE) (aget scan 0))]
+            (if (nil? rp)
+              (do (aset fo__ 2 rp)
+                  (aset fl__ 2 no)
+                  (recur 110))
+              (do (aset fo__ 2 rp)
+                  (aset fl__ 2 no)
+                  (recur 107))))
+        107
+          (let [^BytePtr next_ (aget fo__ 1)
+                ^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (.set-rs-no rp (i16 no))
+            (if (nil? (.reg-match (g ed rex)))
+              (recur 109)
+              (recur 108)))
+        108
+          (let [^BytePtr next_ (aget fo__ 1)
+                ^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (save-se-one ed (.-sesave ^A_6 (.-rs-un rp)) (.add ^Ptr (.reg-endp (g ed rex)) no))
+            (recur 287))
+        109
+          (let [^BytePtr next_ (aget fo__ 1)
+                ^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (save-se-multi ed (.-sesave ^A_6 (.-rs-un rp)) (Ptr/ref (.add ^Ptr (.reg-endpos (g ed rex)) no)))
+            (recur 287))
+        110
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_FAIL)]
+            (aset fl__ 3 status)
+            (recur 287))
+        111
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (nil? (regstack-push ed (e RS_NOPEN) (aget scan 0)))
+              (recur 112)
+              (recur 287)))
+        112
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_FAIL)]
+            (aset fl__ 3 status)
+            (recur 287))
+        113
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                ^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                no (i32 (- op (e MOPEN)))
+                _ (cleanup-subexpr ed)
+                ^S_regitem_S rp (regstack-push ed (e RS_MOPEN) (aget scan 0))]
+            (if (nil? rp)
+              (do (aset fo__ 2 rp)
+                  (aset fl__ 2 no)
+                  (recur 117))
+              (do (aset fo__ 2 rp)
+                  (aset fl__ 2 no)
+                  (recur 114))))
+        114
+          (let [^BytePtr next_ (aget fo__ 1)
+                ^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (.set-rs-no rp (i16 no))
+            (if (nil? (.reg-match (g ed rex)))
+              (recur 116)
+              (recur 115)))
+        115
+          (let [^BytePtr next_ (aget fo__ 1)
+                ^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (save-se-one ed (.-sesave ^A_6 (.-rs-un rp)) (.add ^Ptr (.reg-startp (g ed rex)) no))
+            (recur 287))
+        116
+          (let [^BytePtr next_ (aget fo__ 1)
+                ^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (save-se-multi ed (.-sesave ^A_6 (.-rs-un rp)) (Ptr/ref (.add ^Ptr (.reg-startpos (g ed rex)) no)))
+            (recur 287))
+        117
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_FAIL)]
+            (aset fl__ 3 status)
+            (recur 287))
+        118
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_3 (aget fl__ 13)
+                ^Ptr bp (aget fo__ 8)
+                ^Ptr bp (GA_Ptr_S_backpos_S (g ed backpos))
+                i_3 0]
             (aset fl__ 13 i_3)
             (aset fo__ 8 bp)
-            (aset fl__ 14 r)
-            (aset fo__ 9 (Boolean/valueOf (boolean till)))
-            (aset fl__ 15 idx)
-            (aset fo__ 10 (Boolean/valueOf (boolean with-nl)))
-            (aset fl__ 16 oc)
-            (aset fl__ 17 cc)
-            (aset fl__ 18 level)
-            (aset fo__ 11 s)
-            (aset fl__ 19 save-lnum)
-            (aset fl__ 20 save-col)
-            (aset fl__ 21 limit)
-            (aset fo__ 12 (Boolean/valueOf (boolean t37)))
-            (aset fo__ 13 rst_2)
-            st)))))
+            (recur 119))
+        119
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_3 (aget fl__ 13)
+                ^Ptr bp (aget fo__ 8)]
+            (if (< i_3 (.ga-len (g ed backpos)))
+              (recur 120)
+              (recur 122)))
+        120
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_3 (aget fl__ 13)
+                ^Ptr bp (aget fo__ 8)]
+            (if (BytePtr/eq ^BytePtr (.bp-scan ^S_backpos_S (.at bp i_3)) ^BytePtr (aget scan 0))
+              (recur 122)
+              (recur 121)))
+        121
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_3 (aget fl__ 13)
+                ^Ptr bp (aget fo__ 8)
+                i_3 (i32 (inc i_3))]
+            (aset fl__ 13 i_3)
+            (recur 119))
+        122
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_3 (aget fl__ 13)
+                ^Ptr bp (aget fo__ 8)]
+            (if (== i_3 (.ga-len (g ed backpos)))
+              (recur 125)
+              (recur 123)))
+        123
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_3 (aget fl__ 13)
+                ^Ptr bp (aget fo__ 8)]
+            (if (reg-save-equal? ed (.-bp-pos ^S_backpos_S (.at bp i_3)))
+              (recur 124)
+              (recur 128)))
+        124
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_3 (aget fl__ 13)
+                ^Ptr bp (aget fo__ 8)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 128))
+        125
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_3 (aget fl__ 13)
+                ^Ptr bp (aget fo__ 8)]
+            (if (zero? (if (< (i32 (- (.ga-maxlen (g ed backpos)) (.ga-len (g ed backpos)))) 1) (if (ga-grow-inner ed (g ed backpos) 1) 1 0) (e OK)))
+              (recur 127)
+              (recur 126)))
+        126
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_3 (aget fl__ 13)
+                ^Ptr bp (aget fo__ 8)
+                ^Ptr bp (GA_Ptr_S_backpos_S (g ed backpos))]
+            (.set-bp-scan ^S_backpos_S (.at bp i_3) (aget scan 0))
+            (.set-ga-len (g ed backpos) (i32 (inc (.ga-len (g ed backpos)))))
+            (aset fo__ 8 bp)
+            (recur 128))
+        127
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_3 (aget fl__ 13)
+                ^Ptr bp (aget fo__ 8)
+                status (e RA_FAIL)]
+            (aset fl__ 3 status)
+            (recur 128))
+        128
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_3 (aget fl__ 13)
+                ^Ptr bp (aget fo__ 8)]
+            (if (and (not (== status (e RA_FAIL))) (not (== status (e RA_NOMATCH))))
+              (recur 129)
+              (recur 287)))
+        129
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_3 (aget fl__ 13)
+                ^Ptr bp (aget fo__ 8)]
+            (reg-save ed (.-bp-pos ^S_backpos_S (.at bp i_3)) (g ed backpos))
+            (recur 287))
+        130
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (recur 131))
+        131
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (utf-iscomposing? ed (long (utf-ptr2char ed (.input (g ed rex)))))
+              (recur 132)
+              (recur 287)))
+        132
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t32 (long (utf-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t32))
+            (recur 131))
+        133
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                ^BytePtr opnd_2 (aget fo__ 7)
+                opndc (aget fl__ 11)
+                opndc 0
+                ^BytePtr opnd_2 (.add ^BytePtr (aget scan 0) 3)]
+            (aset len_3 0 (unchecked-int (long (utfc-ptr2len ed opnd_2))))
+            (if (< (long (aget len_3 0)) 2)
+              (do (aset fo__ 7 opnd_2)
+                  (aset fl__ 11 opndc)
+                  (recur 145))
+              (do (aset fo__ 7 opnd_2)
+                  (aset fl__ 11 opndc)
+                  (recur 134))))
+        134
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                ^BytePtr opnd_2 (aget fo__ 7)
+                opndc (aget fl__ 11)
+                opndc (long (utf-ptr2char ed opnd_2))]
+            (if (utf-iscomposing? ed opndc)
+              (do (aset fl__ 11 opndc)
+                  (recur 137))
+              (do (aset fl__ 11 opndc)
+                  (recur 135))))
+        135
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                ^BytePtr opnd_2 (aget fo__ 7)]
+            (if (== (long (cstrncmp ed opnd_2 (.input (g ed rex)) (IntPtr. len_3 0))) 0)
+              (recur 144)
+              (recur 136)))
+        136
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        st))))
 
 (defn- regmatch__5 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
   (let [^objects scan (aget fo__ 14)
@@ -15708,200 +16198,345 @@
         ^ints len_3 (aget fo__ 16)
         ^ints len_4 (aget fo__ 17)
         ^S_regstar_S rst (aget fo__ 18)]
-    (loop [st st0__
-           ^BytePtr next_ (aget fo__ 1)
-           op (aget fl__ 0)
-           c (aget fl__ 1)
-           ^S_regitem_S rp (aget fo__ 2)
-           no (aget fl__ 2)
-           status (aget fl__ 3)
-           cmp (aget fl__ 4)
-           ^T_pos_T pos (aget fo__ 3)
-           col (aget fl__ 5)
-           ^S_window_S wp (aget fo__ 4)
-           lnum (aget fl__ 6)
-           this-class (aget fl__ 7)
-           ^BytePtr opnd (aget fo__ 5)
-           ^BytePtr q (aget fo__ 6)
-           len_2 (aget fl__ 8)
-           i (aget fl__ 9)
-           i_2 (aget fl__ 10)
-           ^BytePtr opnd_2 (aget fo__ 7)
-           opndc (aget fl__ 11)
-           inpc (aget fl__ 12)
-           i_3 (aget fl__ 13)
-           ^Ptr bp (aget fo__ 8)
-           r (aget fl__ 14)
-           till (aget fo__ 9)
-           idx (aget fl__ 15)
-           with-nl (aget fo__ 10)
-           oc (aget fl__ 16)
-           cc (aget fl__ 17)
-           level (aget fl__ 18)
-           ^BytePtr s (aget fo__ 11)
-           save-lnum (aget fl__ 19)
-           save-col (aget fl__ 20)
-           limit (aget fl__ 21)
-           t37 (aget fo__ 12)
-           ^S_regstar_S rst_2 (aget fo__ 13)]
+    (loop [st st0__]
       (case st
-        100
-          (do (aset len_4 0 (unchecked-int 0))
-              (recur 105 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        101
-          (if (or (nil? (.at ^Ptr (.reg-startp (g ed rex)) no)) (nil? (.at ^Ptr (.reg-endp (g ed rex)) no)))
-            (recur 104 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 102 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        102
-          (do (aset len_4 0 (unchecked-int (.sub ^BytePtr (.at ^Ptr (.reg-endp (g ed rex)) no) ^BytePtr (.at ^Ptr (.reg-startp (g ed rex)) no))))
-              (if (== (long (cstrncmp ed (.at ^Ptr (.reg-startp (g ed rex)) no) (.input (g ed rex)) (IntPtr. len_4 0))) 0)
-                (recur 105 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                (recur 103 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        103
-          (let [status (e RA_NOMATCH)]
-            (recur 105 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        104
-          (do (aset len_4 0 (unchecked-int 0))
-              (recur 105 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        105
-          (do (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) (long (aget len_4 0))))
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        106
-          (let [no (i32 (- op (e MCLOSE)))
-                _ (cleanup-subexpr ed)
-                ^S_regitem_S rp (regstack-push ed (e RS_MCLOSE) (aget scan 0))]
-            (if (nil? rp)
-              (recur 110 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 107 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        107
-          (do (.set-rs-no rp (i16 no))
-              (if (nil? (.reg-match (g ed rex)))
-                (recur 109 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                (recur 108 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        108
-          (do (save-se-one ed (.-sesave ^A_6 (.-rs-un rp)) (.add ^Ptr (.reg-endp (g ed rex)) no))
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        109
-          (do (save-se-multi ed (.-sesave ^A_6 (.-rs-un rp)) (Ptr/ref (.add ^Ptr (.reg-endpos (g ed rex)) no)))
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        110
-          (let [status (e RA_FAIL)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        111
-          (if (nil? (regstack-push ed (e RS_NOPEN) (aget scan 0)))
-            (recur 112 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        112
-          (let [status (e RA_FAIL)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        113
-          (let [no (i32 (- op (e MOPEN)))
-                _ (cleanup-subexpr ed)
-                ^S_regitem_S rp (regstack-push ed (e RS_MOPEN) (aget scan 0))]
-            (if (nil? rp)
-              (recur 117 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 114 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        114
-          (do (.set-rs-no rp (i16 no))
-              (if (nil? (.reg-match (g ed rex)))
-                (recur 116 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                (recur 115 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        115
-          (do (save-se-one ed (.-sesave ^A_6 (.-rs-un rp)) (.add ^Ptr (.reg-startp (g ed rex)) no))
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        116
-          (do (save-se-multi ed (.-sesave ^A_6 (.-rs-un rp)) (Ptr/ref (.add ^Ptr (.reg-startpos (g ed rex)) no)))
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        117
-          (let [status (e RA_FAIL)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        118
-          (let [^Ptr bp (GA_Ptr_S_backpos_S (g ed backpos))
-                i_3 0]
-            (recur 119 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        119
-          (if (< i_3 (.ga-len (g ed backpos)))
-            (recur 120 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 122 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        120
-          (if (BytePtr/eq ^BytePtr (.bp-scan ^S_backpos_S (.at bp i_3)) ^BytePtr (aget scan 0))
-            (recur 122 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 121 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        121
-          (let [i_3 (i32 (inc i_3))]
-            (recur 119 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        122
-          (if (== i_3 (.ga-len (g ed backpos)))
-            (recur 125 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 123 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        123
-          (if (reg-save-equal? ed (.-bp-pos ^S_backpos_S (.at bp i_3)))
-            (recur 124 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 128 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        124
-          (let [status (e RA_NOMATCH)]
-            (recur 128 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        125
-          (if (zero? (if (< (i32 (- (.ga-maxlen (g ed backpos)) (.ga-len (g ed backpos)))) 1) (if (ga-grow-inner ed (g ed backpos) 1) 1 0) (e OK)))
-            (recur 127 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 126 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        126
-          (let [^Ptr bp (GA_Ptr_S_backpos_S (g ed backpos))]
-            (.set-bp-scan ^S_backpos_S (.at bp i_3) (aget scan 0))
-            (.set-ga-len (g ed backpos) (i32 (inc (.ga-len (g ed backpos)))))
-            (recur 128 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        127
-          (let [status (e RA_FAIL)]
-            (recur 128 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        128
-          (if (and (not (== status (e RA_FAIL))) (not (== status (e RA_NOMATCH))))
-            (recur 129 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        129
-          (do (reg-save ed (.-bp-pos ^S_backpos_S (.at bp i_3)) (g ed backpos))
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        130
-          (recur 131 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-        131
-          (if (utf-iscomposing? ed (long (utf-ptr2char ed (.input (g ed rex)))))
-            (recur 132 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        (do (aset fo__ 1 next_)
-            (aset fl__ 0 op)
-            (aset fl__ 1 c)
-            (aset fo__ 2 rp)
-            (aset fl__ 2 no)
+        137
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_2 (aget fl__ 10)
+                opndc (aget fl__ 11)
+                status (e RA_NOMATCH)
+                i_2 0]
             (aset fl__ 3 status)
-            (aset fl__ 4 cmp)
-            (aset fo__ 3 pos)
-            (aset fl__ 5 col)
-            (aset fo__ 4 wp)
-            (aset fl__ 6 lnum)
-            (aset fl__ 7 this-class)
-            (aset fo__ 5 opnd)
-            (aset fo__ 6 q)
-            (aset fl__ 8 len_2)
-            (aset fl__ 9 i)
             (aset fl__ 10 i_2)
-            (aset fo__ 7 opnd_2)
-            (aset fl__ 11 opndc)
-            (aset fl__ 12 inpc)
-            (aset fl__ 13 i_3)
-            (aset fo__ 8 bp)
-            (aset fl__ 14 r)
-            (aset fo__ 9 (Boolean/valueOf (boolean till)))
-            (aset fl__ 15 idx)
-            (aset fo__ 10 (Boolean/valueOf (boolean with-nl)))
-            (aset fl__ 16 oc)
-            (aset fl__ 17 cc)
-            (aset fl__ 18 level)
-            (aset fo__ 11 s)
-            (aset fl__ 19 save-lnum)
-            (aset fl__ 20 save-col)
-            (aset fl__ 21 limit)
-            (aset fo__ 12 (Boolean/valueOf (boolean t37)))
-            (aset fo__ 13 rst_2)
-            st)))))
+            (recur 138))
+        138
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_2 (aget fl__ 10)
+                opndc (aget fl__ 11)]
+            (if (== (bit-and (.at ^BytePtr (.input (g ed rex)) i_2) 0xff) (e NUL))
+              (recur 144)
+              (recur 139)))
+        139
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_2 (aget fl__ 10)
+                opndc (aget fl__ 11)
+                inpc (aget fl__ 12)
+                inpc (long (utf-ptr2char ed (.add ^BytePtr (.input (g ed rex)) i_2)))]
+            (if (utf-iscomposing? ed inpc)
+              (do (aset fl__ 12 inpc)
+                  (recur 140))
+              (do (aset fl__ 12 inpc)
+                  (recur 142))))
+        140
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_2 (aget fl__ 10)
+                opndc (aget fl__ 11)
+                inpc (aget fl__ 12)]
+            (if (== opndc inpc)
+              (recur 141)
+              (recur 143)))
+        141
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_2 (aget fl__ 10)]
+            (aset len_3 0 (unchecked-int (+ i_2 (long (utfc-ptr2len ed (.add ^BytePtr (.input (g ed rex)) i_2))))))
+            (let [status (e RA_MATCH)]
+              (aset fl__ 3 status)
+              (recur 144)))
+        142
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_2 (aget fl__ 10)
+                opndc (aget fl__ 11)]
+            (if (> i_2 0)
+              (recur 144)
+              (recur 143)))
+        143
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                i_2 (aget fl__ 10)
+                opndc (aget fl__ 11)
+                t31 (long (utf-ptr2len ed (.add ^BytePtr (.input (g ed rex)) i_2)))
+                i_2 (i32 (+ i_2 t31))]
+            (aset fl__ 10 i_2)
+            (recur 138))
+        144
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) (long (aget len_3 0))))
+            (recur 287))
+        145
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        146
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                c (aget fl__ 1)
+                status (aget fl__ 3)
+                ^BytePtr q (aget fo__ 6)
+                ^BytePtr q (.add ^BytePtr (aget scan 0) 3)]
+            (if (== c (e NUL))
+              (do (aset fo__ 6 q)
+                  (recur 156))
+              (do (aset fo__ 6 q)
+                  (recur 147))))
+        147
+          (let [^BytePtr next_ (aget fo__ 1)
+                op (aget fl__ 0)
+                c (aget fl__ 1)
+                status (aget fl__ 3)
+                ^BytePtr q (aget fo__ 6)]
+            (if (== (if (nil? (cstrchr ed q c)) 1 0) (if (== op (e ANYOF)) 1 0))
+              (recur 155)
+              (recur 148)))
+        148
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                ^BytePtr q (aget fo__ 6)
+                len_2 (aget fl__ 8)
+                len_2 0
+                len_2 (i32 (- (long (utfc-ptr2len ed q)) (long (utf-ptr2len ed q))))
+                t29 (long (utf-ptr2len ed (.input (g ed rex))))
+                _ (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t29))
+                t30 (long (utf-ptr2len ed q))
+                ^BytePtr q (.add q t30)]
+            (if (== len_2 0)
+              (do (aset fo__ 6 q)
+                  (aset fl__ 8 len_2)
+                  (recur 287))
+              (do (aset fo__ 6 q)
+                  (aset fl__ 8 len_2)
+                  (recur 149))))
+        149
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                ^BytePtr q (aget fo__ 6)
+                len_2 (aget fl__ 8)
+                i (aget fl__ 9)
+                i 0]
+            (aset fl__ 9 i)
+            (recur 150))
+        150
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                ^BytePtr q (aget fo__ 6)
+                len_2 (aget fl__ 8)
+                i (aget fl__ 9)]
+            (if (< i len_2)
+              (recur 151)
+              (recur 154)))
+        151
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                ^BytePtr q (aget fo__ 6)
+                len_2 (aget fl__ 8)
+                i (aget fl__ 9)]
+            (if (== (bit-and (.at q i) 0xff) (bit-and (.at ^BytePtr (.input (g ed rex)) i) 0xff))
+              (recur 152)
+              (recur 153)))
+        152
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                ^BytePtr q (aget fo__ 6)
+                len_2 (aget fl__ 8)
+                i (aget fl__ 9)
+                i (i32 (inc i))]
+            (aset fl__ 9 i)
+            (recur 150))
+        153
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                len_2 (aget fl__ 8)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 154))
+        154
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                len_2 (aget fl__ 8)]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) len_2))
+            (recur 287))
+        155
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        156
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        157
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                ^BytePtr opnd (aget fo__ 5)
+                ^BytePtr opnd (.add ^BytePtr (aget scan 0) 3)]
+            (if (and (not (== (bit-and (.get opnd) 0xff) (bit-and (.get ^BytePtr (.input (g ed rex))) 0xff))) (zero? (.reg-ic (g ed rex))))
+              (do (aset fo__ 5 opnd)
+                  (recur 167))
+              (do (aset fo__ 5 opnd)
+                  (recur 158))))
+        158
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                ^BytePtr opnd (aget fo__ 5)]
+            (if (== (bit-and (.get opnd) 0xff) (e NUL))
+              (recur 287)
+              (recur 159)))
+        159
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                ^BytePtr opnd (aget fo__ 5)]
+            (if (and (== (bit-and (.at opnd 1) 0xff) (e NUL)) (zero? (.reg-ic (g ed rex))))
+              (recur 162)
+              (recur 160)))
+        160
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                ^BytePtr opnd (aget fo__ 5)]
+            (aset len 0 (unchecked-int (long (musl-strlen ed opnd))))
+            (if (== (long (cstrncmp ed opnd (.input (g ed rex)) (IntPtr. len 0))) 0)
+              (recur 163)
+              (recur 161)))
+        161
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 163))
+        162
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (aset len 0 (unchecked-int 1))
+            (recur 163))
+        163
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (and (not (== status (e RA_NOMATCH))) (utf-iscomposing? ed (long (utf-ptr2char ed (.add ^BytePtr (.input (g ed rex)) (long (aget len 0)))))) (not (.reg-icombine (g ed rex))) (not (== (bit-and (.get next_) 0xff) (e RE_COMPOSING))))
+              (recur 164)
+              (recur 165)))
+        164
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 165))
+        165
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (== status (e RA_NOMATCH))
+              (recur 287)
+              (recur 166)))
+        166
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) (long (aget len 0))))
+            (recur 287))
+        167
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        168
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (or (== c (e NUL)) (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_UPPER))))))
+              (recur 170)
+              (recur 169)))
+        169
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t28 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t28))
+            (recur 287))
+        170
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        171
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_UPPER)))))
+              (recur 172)
+              (recur 173)))
+        172
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t27 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t27))
+            (recur 287))
+        173
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        174
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (or (== c (e NUL)) (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_LOWER))))))
+              (recur 176)
+              (recur 175)))
+        175
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t26 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t26))
+            (recur 287))
+        176
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        177
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_LOWER)))))
+              (recur 178)
+              (recur 179)))
+        178
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t25 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t25))
+            (recur 287))
+        179
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        180
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (or (== c (e NUL)) (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_ALPHA))))))
+              (recur 182)
+              (recur 181)))
+        181
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t24 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t24))
+            (recur 287))
+        st))))
 
 (defn- regmatch__6 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
   (let [^objects scan (aget fo__ 14)
@@ -15909,206 +16544,311 @@
         ^ints len_3 (aget fo__ 16)
         ^ints len_4 (aget fo__ 17)
         ^S_regstar_S rst (aget fo__ 18)]
-    (loop [st st0__
-           ^BytePtr next_ (aget fo__ 1)
-           op (aget fl__ 0)
-           c (aget fl__ 1)
-           ^S_regitem_S rp (aget fo__ 2)
-           no (aget fl__ 2)
-           status (aget fl__ 3)
-           cmp (aget fl__ 4)
-           ^T_pos_T pos (aget fo__ 3)
-           col (aget fl__ 5)
-           ^S_window_S wp (aget fo__ 4)
-           lnum (aget fl__ 6)
-           this-class (aget fl__ 7)
-           ^BytePtr opnd (aget fo__ 5)
-           ^BytePtr q (aget fo__ 6)
-           len_2 (aget fl__ 8)
-           i (aget fl__ 9)
-           i_2 (aget fl__ 10)
-           ^BytePtr opnd_2 (aget fo__ 7)
-           opndc (aget fl__ 11)
-           inpc (aget fl__ 12)
-           i_3 (aget fl__ 13)
-           ^Ptr bp (aget fo__ 8)
-           r (aget fl__ 14)
-           till (aget fo__ 9)
-           idx (aget fl__ 15)
-           with-nl (aget fo__ 10)
-           oc (aget fl__ 16)
-           cc (aget fl__ 17)
-           level (aget fl__ 18)
-           ^BytePtr s (aget fo__ 11)
-           save-lnum (aget fl__ 19)
-           save-col (aget fl__ 20)
-           limit (aget fl__ 21)
-           t37 (aget fo__ 12)
-           ^S_regstar_S rst_2 (aget fo__ 13)]
+    (loop [st st0__]
       (case st
-        132
-          (let [t32 (long (utf-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t32))
-            (recur 131 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        133
-          (let [opndc 0
-                ^BytePtr opnd_2 (.add ^BytePtr (aget scan 0) 3)]
-            (aset len_3 0 (unchecked-int (long (utfc-ptr2len ed opnd_2))))
-            (if (< (long (aget len_3 0)) 2)
-              (recur 145 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 134 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        134
-          (let [opndc (long (utf-ptr2char ed opnd_2))]
-            (if (utf-iscomposing? ed opndc)
-              (recur 137 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 135 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        135
-          (if (== (long (cstrncmp ed opnd_2 (.input (g ed rex)) (IntPtr. len_3 0))) 0)
-            (recur 144 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 136 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        136
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        137
-          (let [status (e RA_NOMATCH)
-                i_2 0]
-            (recur 138 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        138
-          (if (== (bit-and (.at ^BytePtr (.input (g ed rex)) i_2) 0xff) (e NUL))
-            (recur 144 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 139 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        139
-          (let [inpc (long (utf-ptr2char ed (.add ^BytePtr (.input (g ed rex)) i_2)))]
-            (if (utf-iscomposing? ed inpc)
-              (recur 140 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 142 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        140
-          (if (== opndc inpc)
-            (recur 141 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 143 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        141
-          (do (aset len_3 0 (unchecked-int (+ i_2 (long (utfc-ptr2len ed (.add ^BytePtr (.input (g ed rex)) i_2))))))
-              (let [status (e RA_MATCH)]
-                (recur 144 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        142
-          (if (> i_2 0)
-            (recur 144 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 143 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        143
-          (let [t31 (long (utf-ptr2len ed (.add ^BytePtr (.input (g ed rex)) i_2)))
-                i_2 (i32 (+ i_2 t31))]
-            (recur 138 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        144
-          (do (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) (long (aget len_3 0))))
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        145
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        146
-          (let [^BytePtr q (.add ^BytePtr (aget scan 0) 3)]
-            (if (== c (e NUL))
-              (recur 156 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 147 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        147
-          (if (== (if (nil? (cstrchr ed q c)) 1 0) (if (== op (e ANYOF)) 1 0))
-            (recur 155 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 148 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        148
-          (let [len_2 0
-                len_2 (i32 (- (long (utfc-ptr2len ed q)) (long (utf-ptr2len ed q))))
-                t29 (long (utf-ptr2len ed (.input (g ed rex))))
-                _ (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t29))
-                t30 (long (utf-ptr2len ed q))
-                ^BytePtr q (.add q t30)]
-            (if (== len_2 0)
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 149 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        149
-          (let [i 0]
-            (recur 150 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        150
-          (if (< i len_2)
-            (recur 151 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 154 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        151
-          (if (== (bit-and (.at q i) 0xff) (bit-and (.at ^BytePtr (.input (g ed rex)) i) 0xff))
-            (recur 152 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 153 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        152
-          (let [i (i32 (inc i))]
-            (recur 150 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        153
-          (let [status (e RA_NOMATCH)]
-            (recur 154 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        154
-          (do (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) len_2))
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        155
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        156
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        157
-          (let [^BytePtr opnd (.add ^BytePtr (aget scan 0) 3)]
-            (if (and (not (== (bit-and (.get opnd) 0xff) (bit-and (.get ^BytePtr (.input (g ed rex))) 0xff))) (zero? (.reg-ic (g ed rex))))
-              (recur 167 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 158 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        158
-          (if (== (bit-and (.get opnd) 0xff) (e NUL))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 159 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        159
-          (if (and (== (bit-and (.at opnd 1) 0xff) (e NUL)) (zero? (.reg-ic (g ed rex))))
-            (recur 162 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 160 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        160
-          (do (aset len 0 (unchecked-int (long (musl-strlen ed opnd))))
-              (if (== (long (cstrncmp ed opnd (.input (g ed rex)) (IntPtr. len 0))) 0)
-                (recur 163 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                (recur 161 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        161
-          (let [status (e RA_NOMATCH)]
-            (recur 163 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        162
-          (do (aset len 0 (unchecked-int 1))
-              (recur 163 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        (do (aset fo__ 1 next_)
-            (aset fl__ 0 op)
-            (aset fl__ 1 c)
-            (aset fo__ 2 rp)
-            (aset fl__ 2 no)
+        182
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
             (aset fl__ 3 status)
-            (aset fl__ 4 cmp)
-            (aset fo__ 3 pos)
-            (aset fl__ 5 col)
-            (aset fo__ 4 wp)
-            (aset fl__ 6 lnum)
-            (aset fl__ 7 this-class)
-            (aset fo__ 5 opnd)
-            (aset fo__ 6 q)
-            (aset fl__ 8 len_2)
-            (aset fl__ 9 i)
-            (aset fl__ 10 i_2)
-            (aset fo__ 7 opnd_2)
-            (aset fl__ 11 opndc)
-            (aset fl__ 12 inpc)
-            (aset fl__ 13 i_3)
-            (aset fo__ 8 bp)
-            (aset fl__ 14 r)
-            (aset fo__ 9 (Boolean/valueOf (boolean till)))
-            (aset fl__ 15 idx)
-            (aset fo__ 10 (Boolean/valueOf (boolean with-nl)))
-            (aset fl__ 16 oc)
-            (aset fl__ 17 cc)
-            (aset fl__ 18 level)
-            (aset fo__ 11 s)
-            (aset fl__ 19 save-lnum)
-            (aset fl__ 20 save-col)
-            (aset fl__ 21 limit)
-            (aset fo__ 12 (Boolean/valueOf (boolean t37)))
-            (aset fo__ 13 rst_2)
-            st)))))
+            (recur 287))
+        183
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_ALPHA)))))
+              (recur 184)
+              (recur 185)))
+        184
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t23 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t23))
+            (recur 287))
+        185
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        186
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (or (== c (e NUL)) (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_HEAD))))))
+              (recur 188)
+              (recur 187)))
+        187
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t22 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t22))
+            (recur 287))
+        188
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        189
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_HEAD)))))
+              (recur 190)
+              (recur 191)))
+        190
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t21 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t21))
+            (recur 287))
+        191
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        192
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (or (== c (e NUL)) (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_WORD))))))
+              (recur 194)
+              (recur 193)))
+        193
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t20 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t20))
+            (recur 287))
+        194
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        195
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_WORD)))))
+              (recur 196)
+              (recur 197)))
+        196
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t19 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t19))
+            (recur 287))
+        197
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        198
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (or (== c (e NUL)) (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_OCTAL))))))
+              (recur 200)
+              (recur 199)))
+        199
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t18 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t18))
+            (recur 287))
+        200
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        201
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_OCTAL)))))
+              (recur 202)
+              (recur 203)))
+        202
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t17 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t17))
+            (recur 287))
+        203
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        204
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (or (== c (e NUL)) (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_HEX))))))
+              (recur 206)
+              (recur 205)))
+        205
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t16 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t16))
+            (recur 287))
+        206
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        207
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_HEX)))))
+              (recur 208)
+              (recur 209)))
+        208
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t15 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t15))
+            (recur 287))
+        209
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        210
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (or (== c (e NUL)) (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_DIGIT))))))
+              (recur 212)
+              (recur 211)))
+        211
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t14 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t14))
+            (recur 287))
+        212
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        213
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_DIGIT)))))
+              (recur 214)
+              (recur 215)))
+        214
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t13 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t13))
+            (recur 287))
+        215
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        216
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (or (== c (e NUL)) (== c 32) (== c 9))
+              (recur 218)
+              (recur 217)))
+        217
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t12 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t12))
+            (recur 287))
+        218
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        219
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (or (== c 32) (== c 9))
+              (recur 220)
+              (recur 221)))
+        220
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t11 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t11))
+            (recur 287))
+        221
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        222
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (or (< (u32 (- (bit-and (.get ^BytePtr (.input (g ed rex))) 0xff) 48)) 10) (not (vim-isprintc? ed (long (utf-ptr2char ed (.input (g ed rex)))))))
+              (recur 224)
+              (recur 223)))
+        223
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t10 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t10))
+            (recur 287))
+        224
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        225
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (vim-isprintc? ed (long (utf-ptr2char ed (.input (g ed rex)))))
+              (recur 226)
+              (recur 227)))
+        226
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t9 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t9))
+            (recur 287))
+        227
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        228
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (or (< (u32 (- (bit-and (.get ^BytePtr (.input (g ed rex))) 0xff) 48)) 10) (not (vim-isfilec? ed c)))
+              (recur 230)
+              (recur 229)))
+        229
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t8 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t8))
+            (recur 287))
+        st))))
 
 (defn- regmatch__7 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
   (let [^objects scan (aget fo__ 14)
@@ -16116,203 +16856,325 @@
         ^ints len_3 (aget fo__ 16)
         ^ints len_4 (aget fo__ 17)
         ^S_regstar_S rst (aget fo__ 18)]
-    (loop [st st0__
-           ^BytePtr next_ (aget fo__ 1)
-           op (aget fl__ 0)
-           c (aget fl__ 1)
-           ^S_regitem_S rp (aget fo__ 2)
-           no (aget fl__ 2)
-           status (aget fl__ 3)
-           cmp (aget fl__ 4)
-           ^T_pos_T pos (aget fo__ 3)
-           col (aget fl__ 5)
-           ^S_window_S wp (aget fo__ 4)
-           lnum (aget fl__ 6)
-           this-class (aget fl__ 7)
-           ^BytePtr opnd (aget fo__ 5)
-           ^BytePtr q (aget fo__ 6)
-           len_2 (aget fl__ 8)
-           i (aget fl__ 9)
-           i_2 (aget fl__ 10)
-           ^BytePtr opnd_2 (aget fo__ 7)
-           opndc (aget fl__ 11)
-           inpc (aget fl__ 12)
-           i_3 (aget fl__ 13)
-           ^Ptr bp (aget fo__ 8)
-           r (aget fl__ 14)
-           till (aget fo__ 9)
-           idx (aget fl__ 15)
-           with-nl (aget fo__ 10)
-           oc (aget fl__ 16)
-           cc (aget fl__ 17)
-           level (aget fl__ 18)
-           ^BytePtr s (aget fo__ 11)
-           save-lnum (aget fl__ 19)
-           save-col (aget fl__ 20)
-           limit (aget fl__ 21)
-           t37 (aget fo__ 12)
-           ^S_regstar_S rst_2 (aget fo__ 13)]
+    (loop [st st0__]
       (case st
-        163
-          (if (and (not (== status (e RA_NOMATCH))) (utf-iscomposing? ed (long (utf-ptr2char ed (.add ^BytePtr (.input (g ed rex)) (long (aget len 0)))))) (not (.reg-icombine (g ed rex))) (not (== (bit-and (.get next_) 0xff) (e RE_COMPOSING))))
-            (recur 164 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 165 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        164
-          (let [status (e RA_NOMATCH)]
-            (recur 165 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        165
-          (if (== status (e RA_NOMATCH))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 166 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        166
-          (do (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) (long (aget len 0))))
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        167
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        168
-          (if (or (== c (e NUL)) (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_UPPER))))))
-            (recur 170 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 169 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        169
-          (let [t28 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t28))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        170
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        171
-          (if (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_UPPER)))))
-            (recur 172 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 173 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        172
-          (let [t27 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t27))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        173
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        174
-          (if (or (== c (e NUL)) (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_LOWER))))))
-            (recur 176 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 175 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        175
-          (let [t26 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t26))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        176
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        177
-          (if (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_LOWER)))))
-            (recur 178 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 179 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        178
-          (let [t25 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t25))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        179
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        180
-          (if (or (== c (e NUL)) (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_ALPHA))))))
-            (recur 182 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 181 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        181
-          (let [t24 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t24))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        182
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        183
-          (if (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_ALPHA)))))
-            (recur 184 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 185 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        184
-          (let [t23 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t23))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        185
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        186
-          (if (or (== c (e NUL)) (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_HEAD))))))
-            (recur 188 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 187 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        187
-          (let [t22 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t22))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        188
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        189
-          (if (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_HEAD)))))
-            (recur 190 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 191 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        190
-          (let [t21 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t21))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        191
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        192
-          (if (or (== c (e NUL)) (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_WORD))))))
-            (recur 194 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 193 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        193
-          (let [t20 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t20))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        194
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        195
-          (if (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_WORD)))))
-            (recur 196 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 197 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        196
-          (let [t19 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t19))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        (do (aset fo__ 1 next_)
-            (aset fl__ 0 op)
-            (aset fl__ 1 c)
-            (aset fo__ 2 rp)
-            (aset fl__ 2 no)
+        230
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
             (aset fl__ 3 status)
-            (aset fl__ 4 cmp)
-            (aset fo__ 3 pos)
-            (aset fl__ 5 col)
-            (aset fo__ 4 wp)
+            (recur 287))
+        231
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (vim-isfilec? ed c)
+              (recur 232)
+              (recur 233)))
+        232
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t7 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t7))
+            (recur 287))
+        233
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        234
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (or (< (u32 (- (bit-and (.get ^BytePtr (.input (g ed rex))) 0xff) 48)) 10) (not (vim-iswordp-buf ed (.input (g ed rex)) (.reg-buf (g ed rex)))))
+              (recur 236)
+              (recur 235)))
+        235
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t6 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t6))
+            (recur 287))
+        236
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        237
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (vim-iswordp-buf ed (.input (g ed rex)) (.reg-buf (g ed rex)))
+              (recur 238)
+              (recur 239)))
+        238
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t5 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t5))
+            (recur 287))
+        239
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        240
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (or (< (u32 (- (bit-and (.get ^BytePtr (.input (g ed rex))) 0xff) 48)) 10) (not (vim-isIDc? ed c)))
+              (recur 242)
+              (recur 241)))
+        241
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t4 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t4))
+            (recur 287))
+        242
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        243
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (vim-isIDc? ed c)
+              (recur 244)
+              (recur 245)))
+        244
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t3 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t3))
+            (recur 287))
+        245
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        246
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (== c (e NUL))
+              (recur 248)
+              (recur 247)))
+        247
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t2 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t2))
+            (recur 287))
+        248
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        249
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (BytePtr/eq ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex)))
+              (recur 252)
+              (recur 250)))
+        250
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                this-class_2 (long (mb-get-class-buf ed (.input (g ed rex)) (.reg-buf (g ed rex))))
+                prev-class (long (reg-prev-class ed))]
+            (if (or (== this-class_2 prev-class) (== prev-class 0) (== prev-class 1))
+              (recur 251)
+              (recur 287)))
+        251
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        252
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        253
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (== c (e NUL))
+              (recur 258)
+              (recur 254)))
+        254
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                this-class (aget fl__ 7)
+                this-class (long (mb-get-class-buf ed (.input (g ed rex)) (.reg-buf (g ed rex))))]
+            (if (<= this-class 1)
+              (do (aset fl__ 7 this-class)
+                  (recur 257))
+              (do (aset fl__ 7 this-class)
+                  (recur 255))))
+        255
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                this-class (aget fl__ 7)]
+            (if (== (long (reg-prev-class ed)) this-class)
+              (recur 256)
+              (recur 287)))
+        256
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        257
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        258
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        259
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                ^S_window_S wp (aget fo__ 4)
+                lnum (aget fl__ 6)
+                ^S_window_S wp (if (nil? (.reg-win (g ed rex))) (g ed curwin) (.reg-win (g ed rex)))
+                lnum (if (nil? (.reg-match (g ed rex))) (+ (.reg-firstlnum (g ed rex)) (.lnum (g ed rex))) 1)]
+            (if (and (nil? (.reg-match (g ed rex))) (or (<= lnum 0) (> lnum (.ml-line-count ^S_memline (.-b-ml ^S_file_buffer (.w-buffer wp))))))
+              (do (aset fo__ 4 wp)
+                  (aset fl__ 6 lnum)
+                  (recur 260))
+              (do (aset fo__ 4 wp)
+                  (aset fl__ 6 lnum)
+                  (recur 261))))
+        260
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                ^S_window_S wp (aget fo__ 4)
+                lnum (aget fl__ 6)
+                lnum 1]
             (aset fl__ 6 lnum)
-            (aset fl__ 7 this-class)
-            (aset fo__ 5 opnd)
-            (aset fo__ 6 q)
-            (aset fl__ 8 len_2)
-            (aset fl__ 9 i)
-            (aset fl__ 10 i_2)
-            (aset fo__ 7 opnd_2)
-            (aset fl__ 11 opndc)
-            (aset fl__ 12 inpc)
-            (aset fl__ 13 i_3)
-            (aset fo__ 8 bp)
-            (aset fl__ 14 r)
-            (aset fo__ 9 (Boolean/valueOf (boolean till)))
-            (aset fl__ 15 idx)
-            (aset fo__ 10 (Boolean/valueOf (boolean with-nl)))
-            (aset fl__ 16 oc)
-            (aset fl__ 17 cc)
-            (aset fl__ 18 level)
-            (aset fo__ 11 s)
-            (aset fl__ 19 save-lnum)
-            (aset fl__ 20 save-col)
-            (aset fl__ 21 limit)
-            (aset fo__ 12 (Boolean/valueOf (boolean t37)))
-            (aset fo__ 13 rst_2)
-            st)))))
+            (recur 261))
+        261
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                ^S_window_S wp (aget fo__ 4)
+                lnum (aget fl__ 6)
+                vcol (long (win-linetabsize ed wp lnum (.line (g ed rex)) (i32 (.sub ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex))))))]
+            (if (re-num-cmp? ed (+ vcol 1) (aget scan 0))
+              (recur 287)
+              (recur 262)))
+        262
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        263
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (re-num-cmp? ed (+ (.sub ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex))) 1) (aget scan 0))
+              (recur 287)
+              (recur 264)))
+        264
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        265
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (or (not (nil? (.reg-match (g ed rex)))) (not (re-num-cmp? ed (+ (.lnum (g ed rex)) (.reg-firstlnum (g ed rex))) (aget scan 0))))
+              (recur 266)
+              (recur 287)))
+        266
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        267
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (reg-match-visual ed)
+              (recur 287)
+              (recur 268)))
+        268
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        269
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                cmp (aget fl__ 4)
+                ^T_pos_T pos (aget fo__ 3)
+                col (aget fl__ 5)
+                mark (bit-and (.at (.add ^BytePtr (aget scan 0) 3) 0) 0xff)
+                cmp (bit-and (.at (.add ^BytePtr (aget scan 0) 3) 1) 0xff)
+                col (if (nil? (.reg-match (g ed rex))) (.sub ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex))) 0)
+                ^T_pos_T pos (getmark-buf ed (.reg-buf (g ed rex)) mark false)]
+            (if (nil? (.reg-match (g ed rex)))
+              (do (aset fl__ 4 cmp)
+                  (aset fo__ 3 pos)
+                  (aset fl__ 5 col)
+                  (recur 270))
+              (do (aset fl__ 4 cmp)
+                  (aset fo__ 3 pos)
+                  (aset fl__ 5 col)
+                  (recur 271))))
+        270
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                cmp (aget fl__ 4)
+                ^T_pos_T pos (aget fo__ 3)
+                col (aget fl__ 5)]
+            (.set-line (g ed rex) (reg-getline ed (.lnum (g ed rex))))
+            (.set-input (g ed rex) (.add ^BytePtr (.line (g ed rex)) col))
+            (recur 271))
+        271
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                cmp (aget fl__ 4)
+                ^T_pos_T pos (aget fo__ 3)]
+            (if (or (nil? pos) (<= (.lnum pos) 0))
+              (recur 274)
+              (recur 272)))
+        272
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                cmp (aget fl__ 4)
+                ^T_pos_T pos (aget fo__ 3)
+                pos-col (if (and (== (.lnum pos) (+ (.lnum (g ed rex)) (.reg-firstlnum (g ed rex)))) (== (.col pos) (e MAXCOL))) (long (reg-getline-len ed (- (.lnum pos) (.reg-firstlnum (g ed rex))))) (.col pos))]
+            (if (if (== (.lnum pos) (+ (.lnum (g ed rex)) (.reg-firstlnum (g ed rex)))) (if (== pos-col (i32 (.sub ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex))))) (or (== cmp 60) (== cmp 62)) (if (< pos-col (i32 (.sub ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex))))) (not (== cmp 62)) (not (== cmp 60)))) (if (< (.lnum pos) (+ (.lnum (g ed rex)) (.reg-firstlnum (g ed rex)))) (not (== cmp 62)) (not (== cmp 60))))
+              (recur 273)
+              (recur 287)))
+        273
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        274
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        st))))
 
 (defn- regmatch__8 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
   (let [^objects scan (aget fo__ 14)
@@ -16320,203 +17182,283 @@
         ^ints len_3 (aget fo__ 16)
         ^ints len_4 (aget fo__ 17)
         ^S_regstar_S rst (aget fo__ 18)]
-    (loop [st st0__
-           ^BytePtr next_ (aget fo__ 1)
-           op (aget fl__ 0)
-           c (aget fl__ 1)
-           ^S_regitem_S rp (aget fo__ 2)
-           no (aget fl__ 2)
-           status (aget fl__ 3)
-           cmp (aget fl__ 4)
-           ^T_pos_T pos (aget fo__ 3)
-           col (aget fl__ 5)
-           ^S_window_S wp (aget fo__ 4)
-           lnum (aget fl__ 6)
-           this-class (aget fl__ 7)
-           ^BytePtr opnd (aget fo__ 5)
-           ^BytePtr q (aget fo__ 6)
-           len_2 (aget fl__ 8)
-           i (aget fl__ 9)
-           i_2 (aget fl__ 10)
-           ^BytePtr opnd_2 (aget fo__ 7)
-           opndc (aget fl__ 11)
-           inpc (aget fl__ 12)
-           i_3 (aget fl__ 13)
-           ^Ptr bp (aget fo__ 8)
-           r (aget fl__ 14)
-           till (aget fo__ 9)
-           idx (aget fl__ 15)
-           with-nl (aget fo__ 10)
-           oc (aget fl__ 16)
-           cc (aget fl__ 17)
-           level (aget fl__ 18)
-           ^BytePtr s (aget fo__ 11)
-           save-lnum (aget fl__ 19)
-           save-col (aget fl__ 20)
-           limit (aget fl__ 21)
-           t37 (aget fo__ 12)
-           ^S_regstar_S rst_2 (aget fo__ 13)]
+    (loop [st st0__]
       (case st
-        197
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        198
-          (if (or (== c (e NUL)) (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_OCTAL))))))
-            (recur 200 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 199 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        199
-          (let [t18 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t18))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        200
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        201
-          (if (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_OCTAL)))))
-            (recur 202 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 203 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        202
-          (let [t17 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t17))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        203
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        204
-          (if (or (== c (e NUL)) (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_HEX))))))
-            (recur 206 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 205 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        205
-          (let [t16 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t16))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        206
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        207
-          (if (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_HEX)))))
-            (recur 208 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 209 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        208
-          (let [t15 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t15))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        209
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        210
-          (if (or (== c (e NUL)) (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_DIGIT))))))
-            (recur 212 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 211 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        211
-          (let [t14 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t14))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        212
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        213
-          (if (and (< c 256) (not (zero? (bit-and (long (aget (g ed class-tab) c)) (e RI_DIGIT)))))
-            (recur 214 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 215 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        214
-          (let [t13 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t13))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        215
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        216
-          (if (or (== c (e NUL)) (== c 32) (== c 9))
-            (recur 218 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 217 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        217
-          (let [t12 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t12))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        218
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        219
-          (if (or (== c 32) (== c 9))
-            (recur 220 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 221 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        220
-          (let [t11 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t11))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        221
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        222
-          (if (or (< (u32 (- (bit-and (.get ^BytePtr (.input (g ed rex))) 0xff) 48)) 10) (not (vim-isprintc? ed (long (utf-ptr2char ed (.input (g ed rex)))))))
-            (recur 224 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 223 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        223
-          (let [t10 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t10))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        224
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        225
-          (if (vim-isprintc? ed (long (utf-ptr2char ed (.input (g ed rex)))))
-            (recur 226 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 227 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        226
-          (let [t9 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t9))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        227
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        228
-          (if (or (< (u32 (- (bit-and (.get ^BytePtr (.input (g ed rex))) 0xff) 48)) 10) (not (vim-isfilec? ed c)))
-            (recur 230 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 229 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        229
-          (let [t8 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t8))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        230
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        (do (aset fo__ 1 next_)
-            (aset fl__ 0 op)
-            (aset fl__ 1 c)
-            (aset fo__ 2 rp)
-            (aset fl__ 2 no)
+        275
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (or (nil? (.reg-win (g ed rex))) (not (== (+ (.lnum (g ed rex)) (.reg-firstlnum (g ed rex))) (.lnum ^T_pos_T (.-w-cursor ^S_window_S (.reg-win (g ed rex)))))) (not (== (i32 (.sub ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex)))) (.col ^T_pos_T (.-w-cursor ^S_window_S (.reg-win (g ed rex)))))))
+              (recur 276)
+              (recur 287)))
+        276
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
             (aset fl__ 3 status)
-            (aset fl__ 4 cmp)
-            (aset fo__ 3 pos)
-            (aset fl__ 5 col)
-            (aset fo__ 4 wp)
-            (aset fl__ 6 lnum)
-            (aset fl__ 7 this-class)
-            (aset fo__ 5 opnd)
-            (aset fo__ 6 q)
-            (aset fl__ 8 len_2)
-            (aset fl__ 9 i)
-            (aset fl__ 10 i_2)
-            (aset fo__ 7 opnd_2)
-            (aset fl__ 11 opndc)
-            (aset fl__ 12 inpc)
-            (aset fl__ 13 i_3)
-            (aset fo__ 8 bp)
-            (aset fl__ 14 r)
-            (aset fo__ 9 (Boolean/valueOf (boolean till)))
-            (aset fl__ 15 idx)
-            (aset fo__ 10 (Boolean/valueOf (boolean with-nl)))
-            (aset fl__ 16 oc)
-            (aset fl__ 17 cc)
-            (aset fl__ 18 level)
-            (aset fo__ 11 s)
-            (aset fl__ 19 save-lnum)
-            (aset fl__ 20 save-col)
-            (aset fl__ 21 limit)
-            (aset fo__ 12 (Boolean/valueOf (boolean t37)))
-            (aset fo__ 13 rst_2)
-            st)))))
+            (recur 287))
+        277
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (or (not (== (.lnum (g ed rex)) (.reg-maxline (g ed rex)))) (not (== c (e NUL))))
+              (recur 278)
+              (recur 287)))
+        278
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        279
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (or (not (== (.lnum (g ed rex)) 0)) (not (BytePtr/eq ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex)))) (and (nil? (.reg-match (g ed rex))) (> (.reg-firstlnum (g ed rex)) 1)))
+              (recur 280)
+              (recur 287)))
+        280
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        281
+          (let [^BytePtr next_ (aget fo__ 1)
+                c (aget fl__ 1)
+                status (aget fl__ 3)]
+            (if (== c (e NUL))
+              (recur 287)
+              (recur 282)))
+        282
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        283
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (BytePtr/eq ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex)))
+              (recur 287)
+              (recur 284)))
+        284
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 287))
+        285
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)
+                t1 (long (utfc-ptr2len ed (.input (g ed rex))))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t1))
+            (recur 287))
+        286
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (reg-nextline ed)
+            (recur 287))
+        287
+          (let [^BytePtr next_ (aget fo__ 1)
+                status (aget fl__ 3)]
+            (if (== status (e RA_CONT))
+              (recur 288)
+              (recur 290)))
+        288
+          (let [^BytePtr next_ (aget fo__ 1)]
+            (aset scan 0 next_)
+            (recur 2))
+        289
+          (let [status (aget fl__ 3)
+                status (e RA_FAIL)]
+            (aset fl__ 3 status)
+            (recur 290))
+        290
+          (let [status (aget fl__ 3)]
+            (recur 291))
+        291
+          (let [status (aget fl__ 3)]
+            (if (and (> (.ga-len (g ed regstack)) 0) (not (== status (e RA_FAIL))))
+              (recur 292)
+              (recur 382)))
+        292
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regitem_S rp (Ptr/ref (.add (GA_Ptr_S_regitem_S (g ed regstack)) (i32 (- (.ga-len (g ed regstack)) 1))))]
+            (case (.rs-state rp)
+              0
+                (do (aset fo__ 2 rp)
+                    (recur 379))
+              1
+                (do (aset fo__ 2 rp)
+                    (recur 374))
+              2
+                (do (aset fo__ 2 rp)
+                    (recur 369))
+              3
+                (do (aset fo__ 2 rp)
+                    (recur 362))
+              4
+                (do (aset fo__ 2 rp)
+                    (recur 359))
+              5
+                (do (aset fo__ 2 rp)
+                    (recur 355))
+              6
+                (do (aset fo__ 2 rp)
+                    (recur 351))
+              7
+                (do (aset fo__ 2 rp)
+                    (recur 345))
+              8
+                (do (aset fo__ 2 rp)
+                    (recur 342))
+              9
+                (do (aset fo__ 2 rp)
+                    (recur 315))
+              10
+                (do (aset fo__ 2 rp)
+                    (recur 293))
+              11
+                (do (aset fo__ 2 rp)
+                    (recur 293))
+              (do (aset fo__ 2 rp)
+                  (recur 380))))
+        293
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regstar_S rst_2 (aget fo__ 13)
+                ^S_regstar_S rst_2 (regstack-star-top ed)]
+            (if (== status (e RA_MATCH))
+              (do (aset fo__ 13 rst_2)
+                  (recur 314))
+              (do (aset fo__ 13 rst_2)
+                  (recur 294))))
+        294
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regstar_S rst_2 (aget fo__ 13)]
+            (if (== status (e RA_BREAK))
+              (recur 296)
+              (recur 295)))
+        295
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regstar_S rst_2 (aget fo__ 13)]
+            (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
+            (recur 296))
+        296
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regstar_S rst_2 (aget fo__ 13)]
+            (recur 297))
+        297
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regstar_S rst_2 (aget fo__ 13)]
+            (if (== status (e RA_BREAK))
+              (recur 298)
+              (recur 299)))
+        298
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regstar_S rst_2 (aget fo__ 13)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 309))
+        299
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regstar_S rst_2 (aget fo__ 13)]
+            (if (== (.rs-state rp) (e RS_STAR_LONG))
+              (recur 302)
+              (recur 300)))
+        300
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regstar_S rst_2 (aget fo__ 13)]
+            (if (or (== (.count_ rst_2) (.minval rst_2)) (== (long (regrepeat ed (.add ^BytePtr (.rs-scan rp) 3) 1)) 0))
+              (recur 312)
+              (recur 301)))
+        301
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regstar_S rst_2 (aget fo__ 13)]
+            (.set-count_ rst_2 (inc (.count_ rst_2)))
+            (recur 308))
+        302
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regstar_S rst_2 (aget fo__ 13)]
+            (.set-count_ rst_2 (dec (.count_ rst_2)))
+            (if (< (.count_ rst_2) (.minval rst_2))
+              (recur 312)
+              (recur 303)))
+        303
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regstar_S rst_2 (aget fo__ 13)]
+            (if (BytePtr/eq ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex)))
+              (recur 305)
+              (recur 304)))
+        304
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regstar_S rst_2 (aget fo__ 13)
+                t40 (i32 (+ (long (utf-head-off ed (.line (g ed rex)) (.add ^BytePtr (.input (g ed rex)) (- 1)))) 1))]
+            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) (- t40)))
+            (recur 308))
+        305
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regstar_S rst_2 (aget fo__ 13)]
+            (if (== (.lnum (g ed rex)) 0)
+              (recur 311)
+              (recur 306)))
+        306
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regstar_S rst_2 (aget fo__ 13)]
+            (.set-lnum (g ed rex) (dec (.lnum (g ed rex))))
+            (.set-line (g ed rex) (reg-getline ed (.lnum (g ed rex))))
+            (if (nil? (.line (g ed rex)))
+              (recur 312)
+              (recur 307)))
+        307
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regstar_S rst_2 (aget fo__ 13)]
+            (.set-input (g ed rex) (.add ^BytePtr (.line (g ed rex)) (long (reg-getline-len ed (.lnum (g ed rex))))))
+            (fast-breakcheck ed)
+            (recur 308))
+        308
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regstar_S rst_2 (aget fo__ 13)]
+            (if (zero? (g ed got-int))
+              (recur 309)
+              (recur 312)))
+        309
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                ^S_regstar_S rst_2 (aget fo__ 13)]
+            (if (or (== (.nextb rst_2) (e NUL)) (== (bit-and (.get ^BytePtr (.input (g ed rex))) 0xff) (.nextb rst_2)) (== (bit-and (.get ^BytePtr (.input (g ed rex))) 0xff) (.nextb-ic rst_2)))
+              (recur 310)
+              (recur 297)))
+        310
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (reg-save ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
+            (aset scan 0 (regnext ed (.rs-scan rp)))
+            (let [status (e RA_CONT)]
+              (aset fl__ 3 status)
+              (recur 312)))
+        311
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 312))
+        st))))
 
 (defn- regmatch__9 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
   (let [^objects scan (aget fo__ 14)
@@ -16524,200 +17466,310 @@
         ^ints len_3 (aget fo__ 16)
         ^ints len_4 (aget fo__ 17)
         ^S_regstar_S rst (aget fo__ 18)]
-    (loop [st st0__
-           ^BytePtr next_ (aget fo__ 1)
-           op (aget fl__ 0)
-           c (aget fl__ 1)
-           ^S_regitem_S rp (aget fo__ 2)
-           no (aget fl__ 2)
-           status (aget fl__ 3)
-           cmp (aget fl__ 4)
-           ^T_pos_T pos (aget fo__ 3)
-           col (aget fl__ 5)
-           ^S_window_S wp (aget fo__ 4)
-           lnum (aget fl__ 6)
-           this-class (aget fl__ 7)
-           ^BytePtr opnd (aget fo__ 5)
-           ^BytePtr q (aget fo__ 6)
-           len_2 (aget fl__ 8)
-           i (aget fl__ 9)
-           i_2 (aget fl__ 10)
-           ^BytePtr opnd_2 (aget fo__ 7)
-           opndc (aget fl__ 11)
-           inpc (aget fl__ 12)
-           i_3 (aget fl__ 13)
-           ^Ptr bp (aget fo__ 8)
-           r (aget fl__ 14)
-           till (aget fo__ 9)
-           idx (aget fl__ 15)
-           with-nl (aget fo__ 10)
-           oc (aget fl__ 16)
-           cc (aget fl__ 17)
-           level (aget fl__ 18)
-           ^BytePtr s (aget fo__ 11)
-           save-lnum (aget fl__ 19)
-           save-col (aget fl__ 20)
-           limit (aget fl__ 21)
-           t37 (aget fo__ 12)
-           ^S_regstar_S rst_2 (aget fo__ 13)]
+    (loop [st st0__]
       (case st
-        231
-          (if (vim-isfilec? ed c)
-            (recur 232 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 233 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        232
-          (let [t7 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t7))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        233
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        234
-          (if (or (< (u32 (- (bit-and (.get ^BytePtr (.input (g ed rex))) 0xff) 48)) 10) (not (vim-iswordp-buf ed (.input (g ed rex)) (.reg-buf (g ed rex)))))
-            (recur 236 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 235 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        235
-          (let [t6 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t6))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        236
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        237
-          (if (vim-iswordp-buf ed (.input (g ed rex)) (.reg-buf (g ed rex)))
-            (recur 238 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 239 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        238
-          (let [t5 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t5))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        239
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        240
-          (if (or (< (u32 (- (bit-and (.get ^BytePtr (.input (g ed rex))) 0xff) 48)) 10) (not (vim-isIDc? ed c)))
-            (recur 242 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 241 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        241
-          (let [t4 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t4))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        242
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        243
-          (if (vim-isIDc? ed c)
-            (recur 244 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 245 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        244
-          (let [t3 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t3))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        245
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        246
-          (if (== c (e NUL))
-            (recur 248 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 247 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        247
-          (let [t2 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t2))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        248
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        249
-          (if (BytePtr/eq ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex)))
-            (recur 252 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 250 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        250
-          (let [this-class_2 (long (mb-get-class-buf ed (.input (g ed rex)) (.reg-buf (g ed rex))))
-                prev-class (long (reg-prev-class ed))]
-            (if (or (== this-class_2 prev-class) (== prev-class 0) (== prev-class 1))
-              (recur 251 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        251
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        252
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        253
-          (if (== c (e NUL))
-            (recur 258 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 254 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        254
-          (let [this-class (long (mb-get-class-buf ed (.input (g ed rex)) (.reg-buf (g ed rex))))]
-            (if (<= this-class 1)
-              (recur 257 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 255 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        255
-          (if (== (long (reg-prev-class ed)) this-class)
-            (recur 256 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        256
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        257
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        258
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        259
-          (let [^S_window_S wp (if (nil? (.reg-win (g ed rex))) (g ed curwin) (.reg-win (g ed rex)))
-                lnum (if (nil? (.reg-match (g ed rex))) (+ (.reg-firstlnum (g ed rex)) (.lnum (g ed rex))) 1)]
-            (if (and (nil? (.reg-match (g ed rex))) (or (<= lnum 0) (> lnum (.ml-line-count ^S_memline (.-b-ml ^S_file_buffer (.w-buffer wp))))))
-              (recur 260 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 261 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        260
-          (let [lnum 1]
-            (recur 261 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        261
-          (let [vcol (long (win-linetabsize ed wp lnum (.line (g ed rex)) (i32 (.sub ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex))))))]
-            (if (re-num-cmp? ed (+ vcol 1) (aget scan 0))
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 262 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        262
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        (do (aset fo__ 1 next_)
-            (aset fl__ 0 op)
-            (aset fl__ 1 c)
-            (aset fo__ 2 rp)
+        312
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (if (== status (e RA_CONT))
+              (recur 380)
+              (recur 313)))
+        313
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (regstack-pop ed (Ptr. scan 0))
+            (.set-ga-len (g ed regstack-star) (i32 (dec (.ga-len (g ed regstack-star)))))
+            (g! ed regstack-bytes (i32 (- (g ed regstack-bytes) 32)))
+            (let [status (e RA_NOMATCH)]
+              (aset fl__ 3 status)
+              (recur 380)))
+        314
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (regstack-pop ed (Ptr. scan 0))
+            (.set-ga-len (g ed regstack-star) (i32 (dec (.ga-len (g ed regstack-star)))))
+            (g! ed regstack-bytes (i32 (- (g ed regstack-bytes) 32)))
+            (recur 380))
+        315
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (if (and (== status (e RA_MATCH)) (reg-save-equal? ed (g ed behind-pos)))
+              (recur 338)
+              (recur 316)))
+        316
+          (let [^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                limit (aget fl__ 21)
+                no (e OK)
+                limit (+ (bit-shift-left (bit-and (.at ^BytePtr (.rs-scan rp) 3) 0xff) 24) (bit-shift-left (bit-and (.at ^BytePtr (.rs-scan rp) 4) 0xff) 16) (bit-shift-left (bit-and (.at ^BytePtr (.rs-scan rp) 5) 0xff) 8) (bit-and (.at ^BytePtr (.rs-scan rp) 6) 0xff))]
+            (if (nil? (.reg-match (g ed rex)))
+              (do (aset fl__ 2 no)
+                  (aset fl__ 21 limit)
+                  (recur 321))
+              (do (aset fl__ 2 no)
+                  (aset fl__ 21 limit)
+                  (recur 317))))
+        317
+          (let [^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                limit (aget fl__ 21)]
+            (if (BytePtr/eq ^BytePtr (.ptr ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))) ^BytePtr (.line (g ed rex)))
+              (recur 320)
+              (recur 318)))
+        318
+          (let [^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                limit (aget fl__ 21)
+                t39 (i32 (+ (long (utf-head-off ed (.line (g ed rex)) (.add ^BytePtr (.ptr ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))) (- 1)))) 1))]
+            (.set-ptr ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))) (.add ^BytePtr (.ptr ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))) (- t39)))
+            (if (and (> limit 0) (> (.sub ^BytePtr (.ptr ^A_5 (.-rs-u (g ed behind-pos))) ^BytePtr (.ptr ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))))) limit))
+              (recur 319)
+              (recur 330)))
+        319
+          (let [^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                no (e FAIL)]
             (aset fl__ 2 no)
+            (recur 330))
+        320
+          (let [^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                no (e FAIL)]
+            (aset fl__ 2 no)
+            (recur 330))
+        321
+          (let [^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                limit (aget fl__ 21)]
+            (if (and (> limit 0) (>= (i32 (- (if (< (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))))) (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u (g ed behind-pos))))) (i32 (long (musl-strlen ed (.line (g ed rex))))) (.col ^T_lpos_T (.-pos ^A_5 (.-rs-u (g ed behind-pos))))) (.col ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))))))) limit))
+              (recur 329)
+              (recur 322)))
+        322
+          (let [^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (if (== (.col ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))))) 0)
+              (recur 324)
+              (recur 323)))
+        323
+          (let [^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                ^BytePtr line (reg-getline ed (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))))))
+                t38 (i32 (+ (long (utf-head-off ed line (.add (.add line (.col ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))))) (- 1)))) 1))]
+            (.set-col ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))) (i32 (- (.col ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))))) t38)))
+            (recur 330))
+        324
+          (let [^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                t37 (boolean (aget fo__ 12))
+                t37 (< (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))))) (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u (g ed behind-pos)))))]
+            (if t37
+              (do (aset fo__ 12 (Boolean/valueOf (boolean t37)))
+                  (recur 326))
+              (do (aset fo__ 12 (Boolean/valueOf (boolean t37)))
+                  (recur 325))))
+        325
+          (let [^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                t37 (boolean (aget fo__ 12))]
+            (.set-lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))) (dec (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))))))
+            (let [t37 (nil? (reg-getline ed (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))))))]
+              (aset fo__ 12 (Boolean/valueOf (boolean t37)))
+              (recur 326)))
+        326
+          (let [^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                t37 (boolean (aget fo__ 12))]
+            (if t37
+              (recur 328)
+              (recur 327)))
+        327
+          (let [^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
+            (.set-col ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))) (i32 (long (musl-strlen ed (.line (g ed rex))))))
+            (recur 330))
+        328
+          (let [^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                no (e FAIL)]
+            (aset fl__ 2 no)
+            (recur 330))
+        329
+          (let [^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)
+                no (e FAIL)]
+            (aset fl__ 2 no)
+            (recur 330))
+        330
+          (let [^S_regitem_S rp (aget fo__ 2)
+                no (aget fl__ 2)
+                status (aget fl__ 3)]
+            (if (== no (e OK))
+              (recur 336)
+              (recur 331)))
+        331
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (.set (g ed behind-pos) (.-save-behind ^S_regbehind_S (regstack-behind-top ed)))
+            (if (== (.rs-no rp) (e NOBEHIND))
+              (recur 334)
+              (recur 332)))
+        332
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (if (== status (e RA_MATCH))
+              (recur 333)
+              (recur 335)))
+        333
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (restore-subexpr ed (regstack-behind-top ed))
             (aset fl__ 3 status)
-            (aset fl__ 4 cmp)
-            (aset fo__ 3 pos)
-            (aset fl__ 5 col)
-            (aset fo__ 4 wp)
-            (aset fl__ 6 lnum)
-            (aset fl__ 7 this-class)
-            (aset fo__ 5 opnd)
-            (aset fo__ 6 q)
-            (aset fl__ 8 len_2)
-            (aset fl__ 9 i)
-            (aset fl__ 10 i_2)
-            (aset fo__ 7 opnd_2)
-            (aset fl__ 11 opndc)
-            (aset fl__ 12 inpc)
-            (aset fl__ 13 i_3)
-            (aset fo__ 8 bp)
-            (aset fl__ 14 r)
-            (aset fo__ 9 (Boolean/valueOf (boolean till)))
-            (aset fl__ 15 idx)
-            (aset fo__ 10 (Boolean/valueOf (boolean with-nl)))
-            (aset fl__ 16 oc)
-            (aset fl__ 17 cc)
-            (aset fl__ 18 level)
-            (aset fo__ 11 s)
-            (aset fl__ 19 save-lnum)
-            (aset fl__ 20 save-col)
-            (aset fl__ 21 limit)
-            (aset fo__ 12 (Boolean/valueOf (boolean t37)))
-            (aset fo__ 13 rst_2)
-            st)))))
+            (recur 335))
+        334
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (reg-restore ed (.-save-after ^S_regbehind_S (regstack-behind-top ed)) (g ed backpos))
+            (let [status (e RA_MATCH)]
+              (aset fl__ 3 status)
+              (recur 335)))
+        335
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (regstack-pop ed (Ptr. scan 0))
+            (.set-ga-len (g ed regstack-behind) (i32 (dec (.ga-len (g ed regstack-behind)))))
+            (g! ed regstack-bytes (i32 (- (g ed regstack-bytes) 376)))
+            (recur 380))
+        336
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
+            (aset scan 0 (.add (.add ^BytePtr (.rs-scan rp) 3) 4))
+            (if (== status (e RA_MATCH))
+              (recur 337)
+              (recur 380)))
+        337
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (restore-subexpr ed (regstack-behind-top ed))
+            (aset fl__ 3 status)
+            (recur 380))
+        338
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (.set (g ed behind-pos) (.-save-behind ^S_regbehind_S (regstack-behind-top ed)))
+            (if (== (.rs-no rp) (e BEHIND))
+              (recur 340)
+              (recur 339)))
+        339
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (restore-subexpr ed (regstack-behind-top ed))
+            (aset fl__ 3 status)
+            (recur 341))
+        340
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (reg-restore ed (.-save-after ^S_regbehind_S (regstack-behind-top ed)) (g ed backpos))
+            (recur 341))
+        341
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (regstack-pop ed (Ptr. scan 0))
+            (.set-ga-len (g ed regstack-behind) (i32 (dec (.ga-len (g ed regstack-behind)))))
+            (g! ed regstack-bytes (i32 (- (g ed regstack-bytes) 376)))
+            (recur 380))
+        342
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (if (== status (e RA_NOMATCH))
+              (recur 344)
+              (recur 343)))
+        343
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (reg-save ed (.-save-after ^S_regbehind_S (regstack-behind-top ed)) (g ed backpos))
+            (let [^S_regbehind_S t36 (regstack-behind-top ed)]
+              (.set ^T_regsave_T (.-save-behind t36) (g ed behind-pos))
+              (.set (g ed behind-pos) (.-regsave ^A_6 (.-rs-un rp)))
+              (.set-rs-state rp (e RS_BEHIND2))
+              (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
+              (aset scan 0 (.add (.add ^BytePtr (.rs-scan rp) 3) 4))
+              (recur 380)))
+        344
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (regstack-pop ed (Ptr. scan 0))
+            (.set-ga-len (g ed regstack-behind) (i32 (dec (.ga-len (g ed regstack-behind)))))
+            (g! ed regstack-bytes (i32 (- (g ed regstack-bytes) 376)))
+            (recur 380))
+        345
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (if (== status (if (== (.rs-no rp) (e NOMATCH)) (e RA_MATCH) (e RA_NOMATCH)))
+              (recur 348)
+              (recur 346)))
+        346
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                status (e RA_CONT)]
+            (if (== (.rs-no rp) (e SUBPAT))
+              (do (aset fl__ 3 status)
+                  (recur 349))
+              (do (aset fl__ 3 status)
+                  (recur 347))))
+        347
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
+            (recur 349))
+        348
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (aset fl__ 3 status)
+            (recur 349))
+        349
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (regstack-pop ed (Ptr. scan 0))
+            (if (== status (e RA_CONT))
+              (recur 350)
+              (recur 380)))
+        350
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (aset scan 0 (regnext ed (aget scan 0)))
+            (recur 380))
+        351
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (if (== status (e RA_NOMATCH))
+              (recur 352)
+              (recur 353)))
+        352
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
+            (recur 353))
+        st))))
 
 (defn- regmatch__10 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
   (let [^objects scan (aget fo__ 14)
@@ -16725,971 +17777,264 @@
         ^ints len_3 (aget fo__ 16)
         ^ints len_4 (aget fo__ 17)
         ^S_regstar_S rst (aget fo__ 18)]
-    (loop [st st0__
-           ^BytePtr next_ (aget fo__ 1)
-           op (aget fl__ 0)
-           c (aget fl__ 1)
-           ^S_regitem_S rp (aget fo__ 2)
-           no (aget fl__ 2)
-           status (aget fl__ 3)
-           cmp (aget fl__ 4)
-           ^T_pos_T pos (aget fo__ 3)
-           col (aget fl__ 5)
-           ^S_window_S wp (aget fo__ 4)
-           lnum (aget fl__ 6)
-           this-class (aget fl__ 7)
-           ^BytePtr opnd (aget fo__ 5)
-           ^BytePtr q (aget fo__ 6)
-           len_2 (aget fl__ 8)
-           i (aget fl__ 9)
-           i_2 (aget fl__ 10)
-           ^BytePtr opnd_2 (aget fo__ 7)
-           opndc (aget fl__ 11)
-           inpc (aget fl__ 12)
-           i_3 (aget fl__ 13)
-           ^Ptr bp (aget fo__ 8)
-           r (aget fl__ 14)
-           till (aget fo__ 9)
-           idx (aget fl__ 15)
-           with-nl (aget fo__ 10)
-           oc (aget fl__ 16)
-           cc (aget fl__ 17)
-           level (aget fl__ 18)
-           ^BytePtr s (aget fo__ 11)
-           save-lnum (aget fl__ 19)
-           save-col (aget fl__ 20)
-           limit (aget fl__ 21)
-           t37 (aget fo__ 12)
-           ^S_regstar_S rst_2 (aget fo__ 13)]
+    (loop [st st0__]
       (case st
-        263
-          (if (re-num-cmp? ed (+ (.sub ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex))) 1) (aget scan 0))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 264 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        264
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        265
-          (if (or (not (nil? (.reg-match (g ed rex)))) (not (re-num-cmp? ed (+ (.lnum (g ed rex)) (.reg-firstlnum (g ed rex))) (aget scan 0))))
-            (recur 266 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        266
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        267
-          (if (reg-match-visual ed)
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 268 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        268
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        269
-          (let [mark (bit-and (.at (.add ^BytePtr (aget scan 0) 3) 0) 0xff)
-                cmp (bit-and (.at (.add ^BytePtr (aget scan 0) 3) 1) 0xff)
-                col (if (nil? (.reg-match (g ed rex))) (.sub ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex))) 0)
-                ^T_pos_T pos (getmark-buf ed (.reg-buf (g ed rex)) mark false)]
-            (if (nil? (.reg-match (g ed rex)))
-              (recur 270 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 271 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        270
-          (do (.set-line (g ed rex) (reg-getline ed (.lnum (g ed rex))))
-              (.set-input (g ed rex) (.add ^BytePtr (.line (g ed rex)) col))
-              (recur 271 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        271
-          (if (or (nil? pos) (<= (.lnum pos) 0))
-            (recur 274 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 272 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        272
-          (let [pos-col (if (and (== (.lnum pos) (+ (.lnum (g ed rex)) (.reg-firstlnum (g ed rex)))) (== (.col pos) (e MAXCOL))) (long (reg-getline-len ed (- (.lnum pos) (.reg-firstlnum (g ed rex))))) (.col pos))]
-            (if (if (== (.lnum pos) (+ (.lnum (g ed rex)) (.reg-firstlnum (g ed rex)))) (if (== pos-col (i32 (.sub ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex))))) (or (== cmp 60) (== cmp 62)) (if (< pos-col (i32 (.sub ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex))))) (not (== cmp 62)) (not (== cmp 60)))) (if (< (.lnum pos) (+ (.lnum (g ed rex)) (.reg-firstlnum (g ed rex)))) (not (== cmp 62)) (not (== cmp 60))))
-              (recur 273 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        273
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        274
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        275
-          (if (or (nil? (.reg-win (g ed rex))) (not (== (+ (.lnum (g ed rex)) (.reg-firstlnum (g ed rex))) (.lnum ^T_pos_T (.-w-cursor ^S_window_S (.reg-win (g ed rex)))))) (not (== (i32 (.sub ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex)))) (.col ^T_pos_T (.-w-cursor ^S_window_S (.reg-win (g ed rex)))))))
-            (recur 276 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        276
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        277
-          (if (or (not (== (.lnum (g ed rex)) (.reg-maxline (g ed rex)))) (not (== c (e NUL))))
-            (recur 278 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        278
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        279
-          (if (or (not (== (.lnum (g ed rex)) 0)) (not (BytePtr/eq ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex)))) (and (nil? (.reg-match (g ed rex))) (> (.reg-firstlnum (g ed rex)) 1)))
-            (recur 280 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        280
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        281
-          (if (== c (e NUL))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 282 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        282
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        283
-          (if (BytePtr/eq ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex)))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 284 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        284
-          (let [status (e RA_NOMATCH)]
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        285
-          (let [t1 (long (utfc-ptr2len ed (.input (g ed rex))))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) t1))
-            (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        286
-          (do (reg-nextline ed)
-              (recur 287 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        287
-          (if (== status (e RA_CONT))
-            (recur 288 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 290 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        288
-          (do (aset scan 0 next_)
-              (recur 2 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        289
-          (let [status (e RA_FAIL)]
-            (recur 290 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        290
-          (recur 291 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-        291
-          (if (and (> (.ga-len (g ed regstack)) 0) (not (== status (e RA_FAIL))))
-            (recur 292 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 382 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        (do (aset fo__ 1 next_)
-            (aset fl__ 0 op)
-            (aset fl__ 1 c)
-            (aset fo__ 2 rp)
-            (aset fl__ 2 no)
-            (aset fl__ 3 status)
-            (aset fl__ 4 cmp)
-            (aset fo__ 3 pos)
-            (aset fl__ 5 col)
-            (aset fo__ 4 wp)
-            (aset fl__ 6 lnum)
-            (aset fl__ 7 this-class)
-            (aset fo__ 5 opnd)
-            (aset fo__ 6 q)
-            (aset fl__ 8 len_2)
-            (aset fl__ 9 i)
-            (aset fl__ 10 i_2)
-            (aset fo__ 7 opnd_2)
-            (aset fl__ 11 opndc)
-            (aset fl__ 12 inpc)
-            (aset fl__ 13 i_3)
-            (aset fo__ 8 bp)
-            (aset fl__ 14 r)
-            (aset fo__ 9 (Boolean/valueOf (boolean till)))
-            (aset fl__ 15 idx)
-            (aset fo__ 10 (Boolean/valueOf (boolean with-nl)))
-            (aset fl__ 16 oc)
-            (aset fl__ 17 cc)
-            (aset fl__ 18 level)
-            (aset fo__ 11 s)
-            (aset fl__ 19 save-lnum)
-            (aset fl__ 20 save-col)
-            (aset fl__ 21 limit)
-            (aset fo__ 12 (Boolean/valueOf (boolean t37)))
-            (aset fo__ 13 rst_2)
-            st)))))
-
-(defn- regmatch__11 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^objects scan (aget fo__ 14)
-        ^ints len (aget fo__ 15)
-        ^ints len_3 (aget fo__ 16)
-        ^ints len_4 (aget fo__ 17)
-        ^S_regstar_S rst (aget fo__ 18)]
-    (loop [st st0__
-           ^BytePtr next_ (aget fo__ 1)
-           op (aget fl__ 0)
-           c (aget fl__ 1)
-           ^S_regitem_S rp (aget fo__ 2)
-           no (aget fl__ 2)
-           status (aget fl__ 3)
-           cmp (aget fl__ 4)
-           ^T_pos_T pos (aget fo__ 3)
-           col (aget fl__ 5)
-           ^S_window_S wp (aget fo__ 4)
-           lnum (aget fl__ 6)
-           this-class (aget fl__ 7)
-           ^BytePtr opnd (aget fo__ 5)
-           ^BytePtr q (aget fo__ 6)
-           len_2 (aget fl__ 8)
-           i (aget fl__ 9)
-           i_2 (aget fl__ 10)
-           ^BytePtr opnd_2 (aget fo__ 7)
-           opndc (aget fl__ 11)
-           inpc (aget fl__ 12)
-           i_3 (aget fl__ 13)
-           ^Ptr bp (aget fo__ 8)
-           r (aget fl__ 14)
-           till (aget fo__ 9)
-           idx (aget fl__ 15)
-           with-nl (aget fo__ 10)
-           oc (aget fl__ 16)
-           cc (aget fl__ 17)
-           level (aget fl__ 18)
-           ^BytePtr s (aget fo__ 11)
-           save-lnum (aget fl__ 19)
-           save-col (aget fl__ 20)
-           limit (aget fl__ 21)
-           t37 (aget fo__ 12)
-           ^S_regstar_S rst_2 (aget fo__ 13)]
-      (case st
-        292
-          (let [^S_regitem_S rp (Ptr/ref (.add (GA_Ptr_S_regitem_S (g ed regstack)) (i32 (- (.ga-len (g ed regstack)) 1))))]
-            (case (.rs-state rp)
-              0
-                (recur 379 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              1
-                (recur 374 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              2
-                (recur 369 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              3
-                (recur 362 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              4
-                (recur 359 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              5
-                (recur 355 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              6
-                (recur 351 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              7
-                (recur 345 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              8
-                (recur 342 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              9
-                (recur 315 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              10
-                (recur 293 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              11
-                (recur 293 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        293
-          (let [^S_regstar_S rst_2 (regstack-star-top ed)]
-            (if (== status (e RA_MATCH))
-              (recur 314 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 294 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        294
-          (if (== status (e RA_BREAK))
-            (recur 296 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 295 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        295
-          (do (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
-              (recur 296 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        296
-          (recur 297 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-        297
-          (if (== status (e RA_BREAK))
-            (recur 298 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 299 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        298
-          (let [status (e RA_NOMATCH)]
-            (recur 309 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        299
-          (if (== (.rs-state rp) (e RS_STAR_LONG))
-            (recur 302 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 300 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        300
-          (if (or (== (.count_ rst_2) (.minval rst_2)) (== (long (regrepeat ed (.add ^BytePtr (.rs-scan rp) 3) 1)) 0))
-            (recur 312 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 301 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        301
-          (do (.set-count_ rst_2 (inc (.count_ rst_2)))
-              (recur 308 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        302
-          (do (.set-count_ rst_2 (dec (.count_ rst_2)))
-              (if (< (.count_ rst_2) (.minval rst_2))
-                (recur 312 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                (recur 303 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        303
-          (if (BytePtr/eq ^BytePtr (.input (g ed rex)) ^BytePtr (.line (g ed rex)))
-            (recur 305 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 304 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        304
-          (let [t40 (i32 (+ (long (utf-head-off ed (.line (g ed rex)) (.add ^BytePtr (.input (g ed rex)) (- 1)))) 1))]
-            (.set-input (g ed rex) (.add ^BytePtr (.input (g ed rex)) (- t40)))
-            (recur 308 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        305
-          (if (== (.lnum (g ed rex)) 0)
-            (recur 311 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 306 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        306
-          (do (.set-lnum (g ed rex) (dec (.lnum (g ed rex))))
-              (.set-line (g ed rex) (reg-getline ed (.lnum (g ed rex))))
-              (if (nil? (.line (g ed rex)))
-                (recur 312 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                (recur 307 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        307
-          (do (.set-input (g ed rex) (.add ^BytePtr (.line (g ed rex)) (long (reg-getline-len ed (.lnum (g ed rex))))))
-              (fast-breakcheck ed)
-              (recur 308 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        308
-          (if (zero? (g ed got-int))
-            (recur 309 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 312 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        309
-          (if (or (== (.nextb rst_2) (e NUL)) (== (bit-and (.get ^BytePtr (.input (g ed rex))) 0xff) (.nextb rst_2)) (== (bit-and (.get ^BytePtr (.input (g ed rex))) 0xff) (.nextb-ic rst_2)))
-            (recur 310 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 297 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        310
-          (do (reg-save ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
-              (aset scan 0 (regnext ed (.rs-scan rp)))
-              (let [status (e RA_CONT)]
-                (recur 312 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        311
-          (let [status (e RA_NOMATCH)]
-            (recur 312 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        312
-          (if (== status (e RA_CONT))
-            (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 313 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        313
-          (do (regstack-pop ed (Ptr. scan 0))
-              (.set-ga-len (g ed regstack-star) (i32 (dec (.ga-len (g ed regstack-star)))))
-              (g! ed regstack-bytes (i32 (- (g ed regstack-bytes) 32)))
-              (let [status (e RA_NOMATCH)]
-                (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        314
-          (do (regstack-pop ed (Ptr. scan 0))
-              (.set-ga-len (g ed regstack-star) (i32 (dec (.ga-len (g ed regstack-star)))))
-              (g! ed regstack-bytes (i32 (- (g ed regstack-bytes) 32)))
-              (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        (do (aset fo__ 1 next_)
-            (aset fl__ 0 op)
-            (aset fl__ 1 c)
-            (aset fo__ 2 rp)
-            (aset fl__ 2 no)
-            (aset fl__ 3 status)
-            (aset fl__ 4 cmp)
-            (aset fo__ 3 pos)
-            (aset fl__ 5 col)
-            (aset fo__ 4 wp)
-            (aset fl__ 6 lnum)
-            (aset fl__ 7 this-class)
-            (aset fo__ 5 opnd)
-            (aset fo__ 6 q)
-            (aset fl__ 8 len_2)
-            (aset fl__ 9 i)
-            (aset fl__ 10 i_2)
-            (aset fo__ 7 opnd_2)
-            (aset fl__ 11 opndc)
-            (aset fl__ 12 inpc)
-            (aset fl__ 13 i_3)
-            (aset fo__ 8 bp)
-            (aset fl__ 14 r)
-            (aset fo__ 9 (Boolean/valueOf (boolean till)))
-            (aset fl__ 15 idx)
-            (aset fo__ 10 (Boolean/valueOf (boolean with-nl)))
-            (aset fl__ 16 oc)
-            (aset fl__ 17 cc)
-            (aset fl__ 18 level)
-            (aset fo__ 11 s)
-            (aset fl__ 19 save-lnum)
-            (aset fl__ 20 save-col)
-            (aset fl__ 21 limit)
-            (aset fo__ 12 (Boolean/valueOf (boolean t37)))
-            (aset fo__ 13 rst_2)
-            st)))))
-
-(defn- regmatch__12 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^objects scan (aget fo__ 14)
-        ^ints len (aget fo__ 15)
-        ^ints len_3 (aget fo__ 16)
-        ^ints len_4 (aget fo__ 17)
-        ^S_regstar_S rst (aget fo__ 18)]
-    (loop [st st0__
-           ^BytePtr next_ (aget fo__ 1)
-           op (aget fl__ 0)
-           c (aget fl__ 1)
-           ^S_regitem_S rp (aget fo__ 2)
-           no (aget fl__ 2)
-           status (aget fl__ 3)
-           cmp (aget fl__ 4)
-           ^T_pos_T pos (aget fo__ 3)
-           col (aget fl__ 5)
-           ^S_window_S wp (aget fo__ 4)
-           lnum (aget fl__ 6)
-           this-class (aget fl__ 7)
-           ^BytePtr opnd (aget fo__ 5)
-           ^BytePtr q (aget fo__ 6)
-           len_2 (aget fl__ 8)
-           i (aget fl__ 9)
-           i_2 (aget fl__ 10)
-           ^BytePtr opnd_2 (aget fo__ 7)
-           opndc (aget fl__ 11)
-           inpc (aget fl__ 12)
-           i_3 (aget fl__ 13)
-           ^Ptr bp (aget fo__ 8)
-           r (aget fl__ 14)
-           till (aget fo__ 9)
-           idx (aget fl__ 15)
-           with-nl (aget fo__ 10)
-           oc (aget fl__ 16)
-           cc (aget fl__ 17)
-           level (aget fl__ 18)
-           ^BytePtr s (aget fo__ 11)
-           save-lnum (aget fl__ 19)
-           save-col (aget fl__ 20)
-           limit (aget fl__ 21)
-           t37 (aget fo__ 12)
-           ^S_regstar_S rst_2 (aget fo__ 13)]
-      (case st
-        315
-          (if (and (== status (e RA_MATCH)) (reg-save-equal? ed (g ed behind-pos)))
-            (recur 338 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 316 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        316
-          (let [no (e OK)
-                limit (+ (bit-shift-left (bit-and (.at ^BytePtr (.rs-scan rp) 3) 0xff) 24) (bit-shift-left (bit-and (.at ^BytePtr (.rs-scan rp) 4) 0xff) 16) (bit-shift-left (bit-and (.at ^BytePtr (.rs-scan rp) 5) 0xff) 8) (bit-and (.at ^BytePtr (.rs-scan rp) 6) 0xff))]
-            (if (nil? (.reg-match (g ed rex)))
-              (recur 321 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 317 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        317
-          (if (BytePtr/eq ^BytePtr (.ptr ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))) ^BytePtr (.line (g ed rex)))
-            (recur 320 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 318 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        318
-          (let [t39 (i32 (+ (long (utf-head-off ed (.line (g ed rex)) (.add ^BytePtr (.ptr ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))) (- 1)))) 1))]
-            (.set-ptr ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))) (.add ^BytePtr (.ptr ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))) (- t39)))
-            (if (and (> limit 0) (> (.sub ^BytePtr (.ptr ^A_5 (.-rs-u (g ed behind-pos))) ^BytePtr (.ptr ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))))) limit))
-              (recur 319 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 330 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        319
-          (let [no (e FAIL)]
-            (recur 330 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        320
-          (let [no (e FAIL)]
-            (recur 330 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        321
-          (if (and (> limit 0) (>= (i32 (- (if (< (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))))) (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u (g ed behind-pos))))) (i32 (long (musl-strlen ed (.line (g ed rex))))) (.col ^T_lpos_T (.-pos ^A_5 (.-rs-u (g ed behind-pos))))) (.col ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))))))) limit))
-            (recur 329 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 322 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        322
-          (if (== (.col ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))))) 0)
-            (recur 324 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 323 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        323
-          (let [^BytePtr line (reg-getline ed (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))))))
-                t38 (i32 (+ (long (utf-head-off ed line (.add (.add line (.col ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))))) (- 1)))) 1))]
-            (.set-col ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))) (i32 (- (.col ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))))) t38)))
-            (recur 330 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        324
-          (let [t37 (< (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp))))) (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u (g ed behind-pos)))))]
-            (if t37
-              (recur 326 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 325 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        325
-          (do (.set-lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))) (dec (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))))))
-              (let [t37 (nil? (reg-getline ed (.lnum ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))))))]
-                (recur 326 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        326
-          (if t37
-            (recur 328 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 327 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        327
-          (do (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
-              (.set-col ^T_lpos_T (.-pos ^A_5 (.-rs-u ^T_regsave_T (.-regsave ^A_6 (.-rs-un rp)))) (i32 (long (musl-strlen ed (.line (g ed rex))))))
-              (recur 330 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        328
-          (let [no (e FAIL)]
-            (recur 330 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        329
-          (let [no (e FAIL)]
-            (recur 330 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        330
-          (if (== no (e OK))
-            (recur 336 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 331 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        331
-          (do (.set (g ed behind-pos) (.-save-behind ^S_regbehind_S (regstack-behind-top ed)))
-              (if (== (.rs-no rp) (e NOBEHIND))
-                (recur 334 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                (recur 332 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        332
-          (if (== status (e RA_MATCH))
-            (recur 333 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 335 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        333
-          (let [status (e RA_NOMATCH)]
-            (restore-subexpr ed (regstack-behind-top ed))
-            (recur 335 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        334
-          (do (reg-restore ed (.-save-after ^S_regbehind_S (regstack-behind-top ed)) (g ed backpos))
-              (let [status (e RA_MATCH)]
-                (recur 335 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        335
-          (do (regstack-pop ed (Ptr. scan 0))
-              (.set-ga-len (g ed regstack-behind) (i32 (dec (.ga-len (g ed regstack-behind)))))
-              (g! ed regstack-bytes (i32 (- (g ed regstack-bytes) 376)))
-              (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        336
-          (do (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
-              (aset scan 0 (.add (.add ^BytePtr (.rs-scan rp) 3) 4))
-              (if (== status (e RA_MATCH))
-                (recur 337 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        337
-          (let [status (e RA_NOMATCH)]
-            (restore-subexpr ed (regstack-behind-top ed))
-            (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        338
-          (do (.set (g ed behind-pos) (.-save-behind ^S_regbehind_S (regstack-behind-top ed)))
-              (if (== (.rs-no rp) (e BEHIND))
-                (recur 340 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                (recur 339 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        339
-          (let [status (e RA_NOMATCH)]
-            (restore-subexpr ed (regstack-behind-top ed))
-            (recur 341 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        340
-          (do (reg-restore ed (.-save-after ^S_regbehind_S (regstack-behind-top ed)) (g ed backpos))
-              (recur 341 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        341
-          (do (regstack-pop ed (Ptr. scan 0))
-              (.set-ga-len (g ed regstack-behind) (i32 (dec (.ga-len (g ed regstack-behind)))))
-              (g! ed regstack-bytes (i32 (- (g ed regstack-bytes) 376)))
-              (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        342
-          (if (== status (e RA_NOMATCH))
-            (recur 344 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 343 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        343
-          (do (reg-save ed (.-save-after ^S_regbehind_S (regstack-behind-top ed)) (g ed backpos))
-              (let [^S_regbehind_S t36 (regstack-behind-top ed)]
-                (.set ^T_regsave_T (.-save-behind t36) (g ed behind-pos))
-                (.set (g ed behind-pos) (.-regsave ^A_6 (.-rs-un rp)))
-                (.set-rs-state rp (e RS_BEHIND2))
-                (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
-                (aset scan 0 (.add (.add ^BytePtr (.rs-scan rp) 3) 4))
-                (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        (do (aset fo__ 1 next_)
-            (aset fl__ 0 op)
-            (aset fl__ 1 c)
-            (aset fo__ 2 rp)
-            (aset fl__ 2 no)
-            (aset fl__ 3 status)
-            (aset fl__ 4 cmp)
-            (aset fo__ 3 pos)
-            (aset fl__ 5 col)
-            (aset fo__ 4 wp)
-            (aset fl__ 6 lnum)
-            (aset fl__ 7 this-class)
-            (aset fo__ 5 opnd)
-            (aset fo__ 6 q)
-            (aset fl__ 8 len_2)
-            (aset fl__ 9 i)
-            (aset fl__ 10 i_2)
-            (aset fo__ 7 opnd_2)
-            (aset fl__ 11 opndc)
-            (aset fl__ 12 inpc)
-            (aset fl__ 13 i_3)
-            (aset fo__ 8 bp)
-            (aset fl__ 14 r)
-            (aset fo__ 9 (Boolean/valueOf (boolean till)))
-            (aset fl__ 15 idx)
-            (aset fo__ 10 (Boolean/valueOf (boolean with-nl)))
-            (aset fl__ 16 oc)
-            (aset fl__ 17 cc)
-            (aset fl__ 18 level)
-            (aset fo__ 11 s)
-            (aset fl__ 19 save-lnum)
-            (aset fl__ 20 save-col)
-            (aset fl__ 21 limit)
-            (aset fo__ 12 (Boolean/valueOf (boolean t37)))
-            (aset fo__ 13 rst_2)
-            st)))))
-
-(defn- regmatch__13 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^objects scan (aget fo__ 14)
-        ^ints len (aget fo__ 15)
-        ^ints len_3 (aget fo__ 16)
-        ^ints len_4 (aget fo__ 17)
-        ^S_regstar_S rst (aget fo__ 18)]
-    (loop [st st0__
-           ^BytePtr next_ (aget fo__ 1)
-           op (aget fl__ 0)
-           c (aget fl__ 1)
-           ^S_regitem_S rp (aget fo__ 2)
-           no (aget fl__ 2)
-           status (aget fl__ 3)
-           cmp (aget fl__ 4)
-           ^T_pos_T pos (aget fo__ 3)
-           col (aget fl__ 5)
-           ^S_window_S wp (aget fo__ 4)
-           lnum (aget fl__ 6)
-           this-class (aget fl__ 7)
-           ^BytePtr opnd (aget fo__ 5)
-           ^BytePtr q (aget fo__ 6)
-           len_2 (aget fl__ 8)
-           i (aget fl__ 9)
-           i_2 (aget fl__ 10)
-           ^BytePtr opnd_2 (aget fo__ 7)
-           opndc (aget fl__ 11)
-           inpc (aget fl__ 12)
-           i_3 (aget fl__ 13)
-           ^Ptr bp (aget fo__ 8)
-           r (aget fl__ 14)
-           till (aget fo__ 9)
-           idx (aget fl__ 15)
-           with-nl (aget fo__ 10)
-           oc (aget fl__ 16)
-           cc (aget fl__ 17)
-           level (aget fl__ 18)
-           ^BytePtr s (aget fo__ 11)
-           save-lnum (aget fl__ 19)
-           save-col (aget fl__ 20)
-           limit (aget fl__ 21)
-           t37 (aget fo__ 12)
-           ^S_regstar_S rst_2 (aget fo__ 13)]
-      (case st
-        344
-          (do (regstack-pop ed (Ptr. scan 0))
-              (.set-ga-len (g ed regstack-behind) (i32 (dec (.ga-len (g ed regstack-behind)))))
-              (g! ed regstack-bytes (i32 (- (g ed regstack-bytes) 376)))
-              (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        345
-          (if (== status (if (== (.rs-no rp) (e NOMATCH)) (e RA_MATCH) (e RA_NOMATCH)))
-            (recur 348 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 346 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        346
-          (let [status (e RA_CONT)]
-            (if (== (.rs-no rp) (e SUBPAT))
-              (recur 349 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-              (recur 347 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        347
-          (do (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
-              (recur 349 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        348
-          (let [status (e RA_NOMATCH)]
-            (recur 349 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        349
-          (do (regstack-pop ed (Ptr. scan 0))
-              (if (== status (e RA_CONT))
-                (recur 350 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        350
-          (do (aset scan 0 (regnext ed (aget scan 0)))
-              (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        351
-          (if (== status (e RA_NOMATCH))
-            (recur 352 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 353 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        352
-          (do (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
-              (recur 353 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
         353
-          (do (regstack-pop ed (Ptr. scan 0))
-              (if (== status (e RA_NOMATCH))
-                (recur 354 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        354
-          (do (aset scan 0 (.add ^BytePtr (aget scan 0) 3))
-              (let [status (e RA_CONT)]
-                (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        355
-          (if (== status (e RA_NOMATCH))
-            (recur 356 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 357 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        356
-          (do (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
-              (aset (g ed brace-count) (.rs-no rp) (unchecked-int (dec (long (aget (g ed brace-count) (.rs-no rp))))))
-              (let [status (e RA_CONT)]
-                (recur 357 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        357
-          (do (regstack-pop ed (Ptr. scan 0))
-              (if (== status (e RA_CONT))
-                (recur 358 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-                (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)))
-        358
-          (do (aset scan 0 (regnext ed (aget scan 0)))
-              (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        359
-          (if (== status (e RA_NOMATCH))
-            (recur 360 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 361 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        360
-          (do (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
-              (aset (g ed brace-count) (.rs-no rp) (unchecked-int (dec (long (aget (g ed brace-count) (.rs-no rp))))))
-              (recur 361 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        361
-          (do (regstack-pop ed (Ptr. scan 0))
-              (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        362
-          (if (== status (e RA_MATCH))
-            (recur 368 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 363 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        363
-          (if (== status (e RA_BREAK))
-            (recur 365 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 364 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        364
-          (do (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
-              (aset scan 0 (.rs-scan rp))
-              (recur 365 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        365
-          (if (or (nil? (aget scan 0)) (not (== (bit-and (.get ^BytePtr (aget scan 0)) 0xff) (e BRANCH))))
-            (recur 367 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 366 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        366
-          (do (.set-rs-scan rp (regnext ed (aget scan 0)))
-              (reg-save ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
-              (aset scan 0 (.add ^BytePtr (aget scan 0) 3))
-              (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        367
-          (let [status (e RA_NOMATCH)]
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
             (regstack-pop ed (Ptr. scan 0))
-            (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+            (if (== status (e RA_NOMATCH))
+              (recur 354)
+              (recur 380)))
+        354
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (aset scan 0 (.add ^BytePtr (aget scan 0) 3))
+            (let [status (e RA_CONT)]
+              (aset fl__ 3 status)
+              (recur 380)))
+        355
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (if (== status (e RA_NOMATCH))
+              (recur 356)
+              (recur 357)))
+        356
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
+            (aset (g ed brace-count) (.rs-no rp) (unchecked-int (dec (long (aget (g ed brace-count) (.rs-no rp))))))
+            (let [status (e RA_CONT)]
+              (aset fl__ 3 status)
+              (recur 357)))
+        357
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (regstack-pop ed (Ptr. scan 0))
+            (if (== status (e RA_CONT))
+              (recur 358)
+              (recur 380)))
+        358
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (aset scan 0 (regnext ed (aget scan 0)))
+            (recur 380))
+        359
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (if (== status (e RA_NOMATCH))
+              (recur 360)
+              (recur 361)))
+        360
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
+            (aset (g ed brace-count) (.rs-no rp) (unchecked-int (dec (long (aget (g ed brace-count) (.rs-no rp))))))
+            (recur 361))
+        361
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (regstack-pop ed (Ptr. scan 0))
+            (recur 380))
+        362
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (if (== status (e RA_MATCH))
+              (recur 368)
+              (recur 363)))
+        363
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (if (== status (e RA_BREAK))
+              (recur 365)
+              (recur 364)))
+        364
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (reg-restore ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
+            (aset scan 0 (.rs-scan rp))
+            (recur 365))
+        365
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (if (or (nil? (aget scan 0)) (not (== (bit-and (.get ^BytePtr (aget scan 0)) 0xff) (e BRANCH))))
+              (recur 367)
+              (recur 366)))
+        366
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (.set-rs-scan rp (regnext ed (aget scan 0)))
+            (reg-save ed (.-regsave ^A_6 (.-rs-un rp)) (g ed backpos))
+            (aset scan 0 (.add ^BytePtr (aget scan 0) 3))
+            (recur 380))
+        367
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)
+                status (e RA_NOMATCH)]
+            (regstack-pop ed (Ptr. scan 0))
+            (aset fl__ 3 status)
+            (recur 380))
         368
-          (do (regstack-pop ed (Ptr. scan 0))
-              (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (regstack-pop ed (Ptr. scan 0))
+            (recur 380))
         369
-          (if (== status (e RA_NOMATCH))
-            (recur 370 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 373 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (if (== status (e RA_NOMATCH))
+              (recur 370)
+              (recur 373)))
         370
-          (if (nil? (.reg-match (g ed rex)))
-            (recur 372 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 371 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (if (nil? (.reg-match (g ed rex)))
+              (recur 372)
+              (recur 371)))
         371
-          (do (.put (.add ^Ptr (.reg-endp (g ed rex)) (.rs-no rp)) (.ptr ^A_5 (.-se-u ^T_save_se_T (.-sesave ^A_6 (.-rs-un rp)))))
-              (recur 373 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (.put (.add ^Ptr (.reg-endp (g ed rex)) (.rs-no rp)) (.ptr ^A_5 (.-se-u ^T_save_se_T (.-sesave ^A_6 (.-rs-un rp)))))
+            (recur 373))
         372
-          (do (.set ^T_lpos_T (.get (.add ^Ptr (.reg-endpos (g ed rex)) (.rs-no rp))) (.-pos ^A_5 (.-se-u ^T_save_se_T (.-sesave ^A_6 (.-rs-un rp)))))
-              (recur 373 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (.set ^T_lpos_T (.get (.add ^Ptr (.reg-endpos (g ed rex)) (.rs-no rp))) (.-pos ^A_5 (.-se-u ^T_save_se_T (.-sesave ^A_6 (.-rs-un rp)))))
+            (recur 373))
         373
-          (do (regstack-pop ed (Ptr. scan 0))
-              (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (regstack-pop ed (Ptr. scan 0))
+            (recur 380))
         374
-          (if (== status (e RA_NOMATCH))
-            (recur 375 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 378 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (if (== status (e RA_NOMATCH))
+              (recur 375)
+              (recur 378)))
         375
-          (if (nil? (.reg-match (g ed rex)))
-            (recur 377 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 376 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
-        (do (aset fo__ 1 next_)
-            (aset fl__ 0 op)
-            (aset fl__ 1 c)
-            (aset fo__ 2 rp)
-            (aset fl__ 2 no)
-            (aset fl__ 3 status)
-            (aset fl__ 4 cmp)
-            (aset fo__ 3 pos)
-            (aset fl__ 5 col)
-            (aset fo__ 4 wp)
-            (aset fl__ 6 lnum)
-            (aset fl__ 7 this-class)
-            (aset fo__ 5 opnd)
-            (aset fo__ 6 q)
-            (aset fl__ 8 len_2)
-            (aset fl__ 9 i)
-            (aset fl__ 10 i_2)
-            (aset fo__ 7 opnd_2)
-            (aset fl__ 11 opndc)
-            (aset fl__ 12 inpc)
-            (aset fl__ 13 i_3)
-            (aset fo__ 8 bp)
-            (aset fl__ 14 r)
-            (aset fo__ 9 (Boolean/valueOf (boolean till)))
-            (aset fl__ 15 idx)
-            (aset fo__ 10 (Boolean/valueOf (boolean with-nl)))
-            (aset fl__ 16 oc)
-            (aset fl__ 17 cc)
-            (aset fl__ 18 level)
-            (aset fo__ 11 s)
-            (aset fl__ 19 save-lnum)
-            (aset fl__ 20 save-col)
-            (aset fl__ 21 limit)
-            (aset fo__ 12 (Boolean/valueOf (boolean t37)))
-            (aset fo__ 13 rst_2)
-            st)))))
-
-(defn- regmatch__14 ^long [^Editor ed ^longs fl__ ^objects fo__ ^long st0__]
-  (let [^objects scan (aget fo__ 14)
-        ^ints len (aget fo__ 15)
-        ^ints len_3 (aget fo__ 16)
-        ^ints len_4 (aget fo__ 17)
-        ^S_regstar_S rst (aget fo__ 18)]
-    (loop [st st0__
-           ^BytePtr next_ (aget fo__ 1)
-           op (aget fl__ 0)
-           c (aget fl__ 1)
-           ^S_regitem_S rp (aget fo__ 2)
-           no (aget fl__ 2)
-           status (aget fl__ 3)
-           cmp (aget fl__ 4)
-           ^T_pos_T pos (aget fo__ 3)
-           col (aget fl__ 5)
-           ^S_window_S wp (aget fo__ 4)
-           lnum (aget fl__ 6)
-           this-class (aget fl__ 7)
-           ^BytePtr opnd (aget fo__ 5)
-           ^BytePtr q (aget fo__ 6)
-           len_2 (aget fl__ 8)
-           i (aget fl__ 9)
-           i_2 (aget fl__ 10)
-           ^BytePtr opnd_2 (aget fo__ 7)
-           opndc (aget fl__ 11)
-           inpc (aget fl__ 12)
-           i_3 (aget fl__ 13)
-           ^Ptr bp (aget fo__ 8)
-           r (aget fl__ 14)
-           till (aget fo__ 9)
-           idx (aget fl__ 15)
-           with-nl (aget fo__ 10)
-           oc (aget fl__ 16)
-           cc (aget fl__ 17)
-           level (aget fl__ 18)
-           ^BytePtr s (aget fo__ 11)
-           save-lnum (aget fl__ 19)
-           save-col (aget fl__ 20)
-           limit (aget fl__ 21)
-           t37 (aget fo__ 12)
-           ^S_regstar_S rst_2 (aget fo__ 13)]
-      (case st
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (if (nil? (.reg-match (g ed rex)))
+              (recur 377)
+              (recur 376)))
         376
-          (do (.put (.add ^Ptr (.reg-startp (g ed rex)) (.rs-no rp)) (.ptr ^A_5 (.-se-u ^T_save_se_T (.-sesave ^A_6 (.-rs-un rp)))))
-              (recur 378 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (.put (.add ^Ptr (.reg-startp (g ed rex)) (.rs-no rp)) (.ptr ^A_5 (.-se-u ^T_save_se_T (.-sesave ^A_6 (.-rs-un rp)))))
+            (recur 378))
         377
-          (do (.set ^T_lpos_T (.get (.add ^Ptr (.reg-startpos (g ed rex)) (.rs-no rp))) (.-pos ^A_5 (.-se-u ^T_save_se_T (.-sesave ^A_6 (.-rs-un rp)))))
-              (recur 378 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (.set ^T_lpos_T (.get (.add ^Ptr (.reg-startpos (g ed rex)) (.rs-no rp))) (.-pos ^A_5 (.-se-u ^T_save_se_T (.-sesave ^A_6 (.-rs-un rp)))))
+            (recur 378))
         378
-          (do (regstack-pop ed (Ptr. scan 0))
-              (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (regstack-pop ed (Ptr. scan 0))
+            (recur 380))
         379
-          (do (regstack-pop ed (Ptr. scan 0))
-              (recur 380 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (regstack-pop ed (Ptr. scan 0))
+            (recur 380))
         380
-          (if (or (== status (e RA_CONT)) (Ptr/is (.add (GA_Ptr_S_regitem_S (g ed regstack)) (i32 (- (.ga-len (g ed regstack)) 1))) rp))
-            (recur 382 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 381 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [^S_regitem_S rp (aget fo__ 2)
+                status (aget fl__ 3)]
+            (if (or (== status (e RA_CONT)) (Ptr/is (.add (GA_Ptr_S_regitem_S (g ed regstack)) (i32 (- (.ga-len (g ed regstack)) 1))) rp))
+              (recur 382)
+              (recur 381)))
         381
-          (recur 291 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
+          (let [status (aget fl__ 3)]
+            (recur 291))
         382
-          (if (== status (e RA_CONT))
-            (recur 1 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 383 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [status (aget fl__ 3)]
+            (if (== status (e RA_CONT))
+              (recur 1)
+              (recur 383)))
         383
-          (if (or (== (.ga-len (g ed regstack)) 0) (== status (e RA_FAIL)))
-            (recur 384 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 1 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [status (aget fl__ 3)]
+            (if (or (== (.ga-len (g ed regstack)) 0) (== status (e RA_FAIL)))
+              (recur 384)
+              (recur 1)))
         384
-          (if (nil? (aget scan 0))
-            (recur 385 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2)
-            (recur 386 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [status (aget fl__ 3)]
+            (if (nil? (aget scan 0))
+              (recur 385)
+              (recur 386)))
         385
-          (do (iemsg ed (BytePtr. (g ed e-corrupted-regexp-program) 0))
-              (recur 386 next_ op c rp no status cmp pos col wp lnum this-class opnd q len_2 i i_2 opnd_2 opndc inpc i_3 bp r till idx with-nl oc cc level s save-lnum save-col limit t37 rst_2))
+          (let [status (aget fl__ 3)]
+            (iemsg ed (BytePtr. (g ed e-corrupted-regexp-program) 0))
+            (recur 386))
         386
-          (do (aset fo__ 0 (Long/valueOf (if (== status (e RA_MATCH)) 1 0)))
-              -1)
-        (do (aset fo__ 1 next_)
-            (aset fl__ 0 op)
-            (aset fl__ 1 c)
-            (aset fo__ 2 rp)
-            (aset fl__ 2 no)
-            (aset fl__ 3 status)
-            (aset fl__ 4 cmp)
-            (aset fo__ 3 pos)
-            (aset fl__ 5 col)
-            (aset fo__ 4 wp)
-            (aset fl__ 6 lnum)
-            (aset fl__ 7 this-class)
-            (aset fo__ 5 opnd)
-            (aset fo__ 6 q)
-            (aset fl__ 8 len_2)
-            (aset fl__ 9 i)
-            (aset fl__ 10 i_2)
-            (aset fo__ 7 opnd_2)
-            (aset fl__ 11 opndc)
-            (aset fl__ 12 inpc)
-            (aset fl__ 13 i_3)
-            (aset fo__ 8 bp)
-            (aset fl__ 14 r)
-            (aset fo__ 9 (Boolean/valueOf (boolean till)))
-            (aset fl__ 15 idx)
-            (aset fo__ 10 (Boolean/valueOf (boolean with-nl)))
-            (aset fl__ 16 oc)
-            (aset fl__ 17 cc)
-            (aset fl__ 18 level)
-            (aset fo__ 11 s)
-            (aset fl__ 19 save-lnum)
-            (aset fl__ 20 save-col)
-            (aset fl__ 21 limit)
-            (aset fo__ 12 (Boolean/valueOf (boolean t37)))
-            (aset fo__ 13 rst_2)
-            st)))))
+          (let [status (aget fl__ 3)]
+            (aset fo__ 0 (Long/valueOf (if (== status (e RA_MATCH)) 1 0)))
+            -1)
+        st))))
 
 (defn regmatch ^long [^Editor ed ^BytePtr scan__2 ^IntPtr timed-out]
   (let [^objects scan (doto (object-array 1) (aset 0 scan__2))
         ^ints len (int-array 1)
         ^ints len_3 (int-array 1)
         ^ints len_4 (int-array 1)
-        ^S_regstar_S rst (new-S_regstar_S)]
-    (let [fl__ (long-array 22)
-          fo__ (object-array 19)]
-      (aset fl__ 0 0)
-      (aset fl__ 1 0)
-      (aset fl__ 2 0)
-      (aset fl__ 3 0)
-      (aset fl__ 4 0)
-      (aset fl__ 5 0)
-      (aset fl__ 6 0)
-      (aset fl__ 7 0)
-      (aset fl__ 8 0)
-      (aset fl__ 9 0)
-      (aset fl__ 10 0)
-      (aset fl__ 11 0)
-      (aset fl__ 12 0)
-      (aset fl__ 13 0)
-      (aset fl__ 14 0)
-      (aset fo__ 9 false)
-      (aset fl__ 15 0)
-      (aset fo__ 10 false)
-      (aset fl__ 16 0)
-      (aset fl__ 17 0)
-      (aset fl__ 18 0)
-      (aset fl__ 19 0)
-      (aset fl__ 20 0)
-      (aset fl__ 21 0)
-      (aset fo__ 12 false)
-      (aset fo__ 14 scan)
-      (aset fo__ 15 len)
-      (aset fo__ 16 len_3)
-      (aset fo__ 17 len_4)
-      (aset fo__ 18 rst)
-      (loop [st 0]
-        (let [r__ (long (cond
-                    (<= st 6) (regmatch__0 ed fl__ fo__ st)
-                    (<= st 7) (regmatch__1 ed fl__ fo__ st)
-                    (<= st 38) (regmatch__2 ed fl__ fo__ st)
-                    (<= st 70) (regmatch__3 ed fl__ fo__ st)
-                    (<= st 99) (regmatch__4 ed fl__ fo__ st)
-                    (<= st 131) (regmatch__5 ed fl__ fo__ st)
-                    (<= st 162) (regmatch__6 ed fl__ fo__ st)
-                    (<= st 196) (regmatch__7 ed fl__ fo__ st)
-                    (<= st 230) (regmatch__8 ed fl__ fo__ st)
-                    (<= st 262) (regmatch__9 ed fl__ fo__ st)
-                    (<= st 291) (regmatch__10 ed fl__ fo__ st)
-                    (<= st 314) (regmatch__11 ed fl__ fo__ st)
-                    (<= st 343) (regmatch__12 ed fl__ fo__ st)
-                    (<= st 375) (regmatch__13 ed fl__ fo__ st)
-                    :else (regmatch__14 ed fl__ fo__ st)))]
-          (if (neg? r__)
-            (long (aget fo__ 0))
-            (recur r__)))))))
+        ^S_regstar_S rst (new-S_regstar_S)
+        ^longs fl__ (long-array 22)
+        ^objects fo__ (object-array 19)]
+    (aset fl__ 0 0)
+    (aset fl__ 1 0)
+    (aset fl__ 2 0)
+    (aset fl__ 3 0)
+    (aset fl__ 4 0)
+    (aset fl__ 5 0)
+    (aset fl__ 6 0)
+    (aset fl__ 7 0)
+    (aset fl__ 8 0)
+    (aset fl__ 9 0)
+    (aset fl__ 10 0)
+    (aset fl__ 11 0)
+    (aset fl__ 12 0)
+    (aset fl__ 13 0)
+    (aset fl__ 14 0)
+    (aset fo__ 9 false)
+    (aset fl__ 15 0)
+    (aset fo__ 10 false)
+    (aset fl__ 16 0)
+    (aset fl__ 17 0)
+    (aset fl__ 18 0)
+    (aset fl__ 19 0)
+    (aset fl__ 20 0)
+    (aset fl__ 21 0)
+    (aset fo__ 12 false)
+    (aset fo__ 14 scan)
+    (aset fo__ 15 len)
+    (aset fo__ 16 len_3)
+    (aset fo__ 17 len_4)
+    (aset fo__ 18 rst)
+    (loop [st 0]
+      (let [r__ (if (<= st 6)
+                  (regmatch__0 ed fl__ fo__ st)
+                  (if (<= st 7)
+                    (regmatch__1 ed fl__ fo__ st)
+                    (if (<= st 51)
+                      (regmatch__2 ed fl__ fo__ st)
+                      (if (<= st 93)
+                        (regmatch__3 ed fl__ fo__ st)
+                        (if (<= st 136)
+                          (regmatch__4 ed fl__ fo__ st)
+                          (if (<= st 181)
+                            (regmatch__5 ed fl__ fo__ st)
+                            (if (<= st 229)
+                              (regmatch__6 ed fl__ fo__ st)
+                              (if (<= st 274)
+                                (regmatch__7 ed fl__ fo__ st)
+                                (if (<= st 311)
+                                  (regmatch__8 ed fl__ fo__ st)
+                                  (if (<= st 352)
+                                    (regmatch__9 ed fl__ fo__ st)
+                                    (regmatch__10 ed fl__ fo__ st)))))))))))]
+        (if (neg? r__)
+          (long (aget fo__ 0))
+          (recur r__))))))
 
 (defn regtry ^long [^Editor ed ^S_regprog prog ^long col ^IntPtr timed-out]
   (.set-input (g ed rex) (.add ^BytePtr (.line (g ed rex)) col))

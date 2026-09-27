@@ -712,13 +712,28 @@ func (c *cgen) splitAt() int {
 // group, or -1 when the function returns.  The function runs the groups.
 func (s *shaper) split() string {
 	f := s.f
-	// every block a state: a group's size is then the sum of small ones
-	s.state = map[*lblock]int{}
-	s.states = nil
+	s.splitting = true
+	// the machine's own states when each fits a group -- a state is then
+	// its block and the blocks written in place after it, fewer jumps --
+	// and every block a state when one does not
 	carried := map[*lvar]bool{}
-	for _, b := range f.lf.blocks {
-		s.state[b] = len(s.states)
-		s.states = append(s.states, b)
+	fits := true
+	for _, st := range s.states {
+		if s.cost(s.emit(st, nil)) > f.c.splitAt()/4 {
+			fits = false
+			break
+		}
+	}
+	if !fits {
+		s.state = map[*lblock]int{}
+		s.states = nil
+		for _, b := range f.lf.blocks {
+			s.state[b] = len(s.states)
+			s.states = append(s.states, b)
+		}
+		s.all = true
+	}
+	for _, b := range s.states {
 		for v := range s.live[b] {
 			if f.rebindable(v) {
 				carried[v] = true
@@ -726,7 +741,6 @@ func (s *shaper) split() string {
 		}
 	}
 	s.vars = f.lf.sortedVars(carried)
-	s.all = true
 	// the frame
 	s.slot = map[*lvar]int{}
 	nl, no := 0, 1
@@ -760,7 +774,6 @@ func (s *shaper) split() string {
 		size += n
 	}
 	ngroups := g + 1
-	s.splitting = true
 	var defs strings.Builder
 	name := f.c.fnName(f.name)
 	var loads []string
@@ -771,25 +784,65 @@ func (s *shaper) split() string {
 		}
 		loads = append(loads, fmt.Sprintf("^%s %s (aget fo__ %d)", h, v.name, s.slot[v]))
 	}
+	// THE FRAME IS WHERE THE CARRIED VARIABLES LIVE.  A state -- one block,
+	// every block being one here -- reads from the frame the variables live at
+	// its start or written in it, and writes back those it writes before each
+	// jump; a jump is (recur k), the state alone, and a state of another group
+	// is returned, nothing to store.  (Carried as the loop's bindings, every
+	// jump passed them all, and every jump to another group stored them all
+	// and the group reloaded them.)
+	carried = map[*lvar]bool{}
+	for _, v := range s.vars {
+		carried[v] = true
+	}
 	for g := 0; g < ngroups; g++ {
 		s.cur = g
-		binds := []string{"st st0__"}
-		for _, v := range s.vars {
-			if isIntJ(f.vars[v].jt) {
-				binds = append(binds, fmt.Sprintf("%s (aget fl__ %d)", v.name, s.slot[v]))
-			} else {
-				binds = append(binds, fmt.Sprintf("%s (aget fo__ %d)", f.bindName(v), s.slot[v]))
-			}
-		}
 		var b strings.Builder
-		fmt.Fprintf(&b, "(loop [%s]\n  (case st\n", strings.Join(binds, "\n       "))
+		b.WriteString("(loop [st st0__]\n  (case st\n")
 		for i, st := range s.states {
-			if s.group[i] == g {
-				fmt.Fprintf(&b, "    %d\n%s\n", i, indent(s.emit(st, nil), 4))
+			if s.group[i] != g {
+				continue
 			}
+			written := map[*lvar]bool{}
+			for _, rb := range s.stateRegion(st) {
+				for _, stp := range rb.steps {
+					for _, v := range f.lf.stepWrites(stp) {
+						if carried[v] {
+							written[v] = true
+						}
+					}
+				}
+			}
+			var loadBinds []string
+			s.stores = nil
+			for _, v := range s.vars {
+				if !s.live[st][v] && !written[v] {
+					continue
+				}
+				if isIntJ(f.vars[v].jt) {
+					loadBinds = append(loadBinds, fmt.Sprintf("%s (aget fl__ %d)", v.name, s.slot[v]))
+				} else if f.vars[v].jt == "boolean" {
+					loadBinds = append(loadBinds, fmt.Sprintf("%s (boolean (aget fo__ %d))", v.name, s.slot[v]))
+				} else {
+					loadBinds = append(loadBinds, fmt.Sprintf("%s (aget fo__ %d)", f.bindName(v), s.slot[v]))
+				}
+				if written[v] {
+					if isIntJ(f.vars[v].jt) {
+						s.stores = append(s.stores, fmt.Sprintf("(aset fl__ %d %s)", s.slot[v], v.name))
+					} else {
+						s.stores = append(s.stores, fmt.Sprintf("(aset fo__ %d %s)", s.slot[v], boxed(v.name, f.vars[v].jt)))
+					}
+				}
+			}
+			body := s.emit(st, nil)
+			if len(loadBinds) > 0 {
+				body = "(let [" + strings.Join(loadBinds, "\n      ") + "]\n" + indent(body, 2) + ")"
+			}
+			fmt.Fprintf(&b, "    %d\n%s\n", i, indent(body, 4))
 		}
-		// a state of another group: the frame stored, and it is the next
-		b.WriteString(indent(s.leave("st"), 4) + "))")
+		s.stores = nil
+		// a state of another group: it is the next, the frame current
+		b.WriteString("    st))")
 		body := b.String()
 		if len(loads) > 0 {
 			body = "(let [" + strings.Join(loads, "\n      ") + "]\n" + indent(body, 2) + ")"
@@ -799,7 +852,7 @@ func (s *shaper) split() string {
 	s.pre = defs.String()
 	// the function: the frame filled, the groups run
 	var b strings.Builder
-	fmt.Fprintf(&b, "(let [fl__ (long-array %d)\n      fo__ (object-array %d)]\n", nl, no)
+	fmt.Fprintf(&b, "(let [^longs fl__ (long-array %d)\n      ^objects fo__ (object-array %d)]\n", nl, no)
 	for _, v := range s.vars {
 		init := s.initial(v)
 		if s.live[f.lf.blocks[0]][v] && !v.param {
@@ -814,21 +867,25 @@ func (s *shaper) split() string {
 	for _, v := range fixed {
 		fmt.Fprintf(&b, "  (aset fo__ %d %s)\n", s.slot[v], v.name)
 	}
-	b.WriteString("  (loop [st 0]\n    (let [r__ (long (cond")
-	for g := 0; g < ngroups; g++ {
+	// which group runs a state: nested ifs on the groups' ranges, not a cond
+	// -- whose last clause is an if with no else, so the value would be an
+	// Object, boxed at every return of a group and cast back
+	dispatch := ""
+	for g := ngroups - 1; g >= 0; g-- {
+		call := fmt.Sprintf("(%s__%d ed fl__ fo__ st)", name, g)
+		if g == ngroups-1 {
+			dispatch = call
+			continue
+		}
 		last := -1
 		for i := range s.states {
 			if s.group[i] == g {
 				last = i
 			}
 		}
-		if g == ngroups-1 {
-			fmt.Fprintf(&b, "\n                :else (%s__%d ed fl__ fo__ st)", name, g)
-		} else {
-			fmt.Fprintf(&b, "\n                (<= st %d) (%s__%d ed fl__ fo__ st)", last, name, g)
-		}
+		dispatch = fmt.Sprintf("(if (<= st %d)\n  %s\n  %s)", last, call, indent(dispatch, 2)[2:])
 	}
-	b.WriteString("))]\n      (if (neg? r__)\n        ")
+	b.WriteString("  (loop [st 0]\n    (let [r__ " + indent(dispatch, 14)[14:] + "]\n      (if (neg? r__)\n        ")
 	switch {
 	case f.ret == "void":
 		b.WriteString("nil")
@@ -843,6 +900,23 @@ func (s *shaper) split() string {
 	return b.String()
 }
 
+// stateRegion is a state's block and the blocks written in place after it:
+// every block reached from it without entering another state.
+func (s *shaper) stateRegion(st *lblock) []*lblock {
+	seen := map[*lblock]bool{st: true}
+	out := []*lblock{st}
+	for i := 0; i < len(out); i++ {
+		for _, t := range out[i].term.to {
+			if _, isState := s.state[t]; isState || seen[t] {
+				continue
+			}
+			seen[t] = true
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
 // boxed is a value of Java type jt as an Object: a primitive boxed.
 func boxed(s, jt string) string {
 	switch {
@@ -852,19 +926,4 @@ func boxed(s, jt string) string {
 		return "(Boolean/valueOf (boolean " + s + "))"
 	}
 	return s
-}
-
-// leave is a split machine's group's value r, the carried variables
-// stored in the frame first.
-func (s *shaper) leave(r string) string {
-	f := s.f
-	var st []string
-	for _, v := range s.vars {
-		if isIntJ(f.vars[v].jt) {
-			st = append(st, fmt.Sprintf("(aset fl__ %d %s)", s.slot[v], v.name))
-		} else {
-			st = append(st, fmt.Sprintf("(aset fo__ %d %s)", s.slot[v], boxed(v.name, f.vars[v].jt)))
-		}
-	}
-	return "(do " + strings.Join(append(st, r), "\n    ") + ")"
 }

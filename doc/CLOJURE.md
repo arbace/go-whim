@@ -448,13 +448,22 @@ machines**: `(loop [st 0, x x, ...] (case st 0 ... 1 ...))`, each block no
 rule nests a state, each jump to one `(recur k x ...)` with the variables
 live at some state, and the joins still written in place inside the states.
 A function whose machine is too large for a method is **split** (1:
-`regmatch`): every block a state, the states in groups, each
-group `(defn- f__N ^long [ed fl__ fo__ st])` running its own states on a
-frame of the carried variables (`fl__` their longs, `fo__` the rest and the
-result) and returning the next group's state or -1; the function fills the
-frame and runs the groups. The size is guessed from the text and the
-recurs' width (`Profile.CljSplit`, default 110,000); the largest function
-left whole, `ex_substitute`, compiles.
+`regmatch`): the machine's states -- every block one only where a state
+would not fit a group -- in groups, each group `(defn- f__N ^long [ed fl__
+fo__ st])` running its own states and returning the next group's state or
+-1; the function fills the frame and runs the groups, choosing one by nested
+`if`s on their ranges (a `cond` would make the value an Object). **The frame
+is where the carried variables live** (`fl__` their longs, `fo__` the rest
+and the result): a state reads from it what is live at its start or written
+in it, writes back what it writes before each jump, and a jump is `(recur
+k)`, the state alone -- so a jump to another group stores nothing and the
+group loads nothing. (Carried as the loop's bindings, every jump passed all
+37 of `regmatch`'s, and every jump to another group stored them and the
+next group reloaded them; `doc/PARALLEL-SUBSTITUTE.md` measured the Clojure
+matcher 15-22 times the C.) The size is guessed from the text and the
+recurs' width (`Profile.CljSplit`, default 110,000), a group a quarter of it
+-- larger groups measured slower, compiled later; the largest function left
+whole, `ex_substitute`, compiles.
 
 **The tables** (`clj_tables.go`, `doc/CLOJURE-IDIOMS.md` item 4). A
 file-scope array of structs whose initializer is all constants is written

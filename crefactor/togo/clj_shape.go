@@ -57,6 +57,7 @@ type shaper struct {
 	vars    []*lvar // what a state machine's recur carries
 	// a split machine's
 	splitting bool
+	stores    []string // a split machine's state: what it writes back to the frame before a jump
 	slot      map[*lvar]int
 	group     []int
 	cur       int
@@ -670,6 +671,13 @@ func (s *shaper) edge(from, t *lblock, ctx *sctx) string {
 		if k, ok := s.state[t]; ok {
 			if ctx.region {
 				f.no(nil, "a jump to a state from inside a join's region")
+			}
+			if s.splitting {
+				// the frame holds the variables: the state's writes, then the jump
+				if len(s.stores) == 0 {
+					return fmt.Sprintf("(recur %d)", k)
+				}
+				return "(do " + strings.Join(s.stores, "\n    ") + fmt.Sprintf("\n    (recur %d))", k)
 			}
 			parts := []string{"recur", fmt.Sprint(k)}
 			for _, v := range s.vars {
