@@ -275,6 +275,10 @@ func (f *fnEmit) conv(v val, to string) string {
 		return v.s
 	}
 	switch {
+	case f.isIntGo(want) && from == "byte" && v.c != nil && v.c.Kind() == cc.Char:
+		// a plain char is signed (gcc, x86-64), held as a byte: its value
+		// widened is its int8's, as C's is -- and as the Java's is
+		return to + "(int8(" + v.s + "))"
 	case f.isIntGo(want) && (f.isIntGo(from) || v.konst):
 		return to + "(" + v.s + ")"
 	case want == "any":

@@ -7315,19 +7315,19 @@ func musl_toupper(c int32) int32 {
 func musl_atoi(s Ptr[byte]) int32 {
 	var n int32 = 0
 	var neg int32 = 0
-	for musl_isspace(int32(s.Get())) {
+	for musl_isspace(int32(int8(s.Get()))) {
 		s = s.Add(1)
 	}
-	if int32(s.Get()) == '-' {
+	if int32(int8(s.Get())) == '-' {
 		neg = 1
 		s = s.Add(1)
-	} else if int32(s.Get()) == '+' {
+	} else if int32(int8(s.Get())) == '+' {
 		s = s.Add(1)
 	}
-	for musl_isdigit(int32(s.Get())) {
+	for musl_isdigit(int32(int8(s.Get()))) {
 		var t1 Ptr[byte] = s
 		s = s.Add(1)
-		n = (10 * n) - (int32(t1.Get()) - '0')
+		n = (10 * n) - (int32(int8(t1.Get())) - '0')
 	}
 	var t2 int32
 	if neg != 0 {
@@ -7341,19 +7341,19 @@ func musl_atoi(s Ptr[byte]) int32 {
 func musl_atol(s Ptr[byte]) int64 {
 	var n int64 = 0
 	var neg int32 = 0
-	for musl_isspace(int32(s.Get())) {
+	for musl_isspace(int32(int8(s.Get()))) {
 		s = s.Add(1)
 	}
-	if int32(s.Get()) == '-' {
+	if int32(int8(s.Get())) == '-' {
 		neg = 1
 		s = s.Add(1)
-	} else if int32(s.Get()) == '+' {
+	} else if int32(int8(s.Get())) == '+' {
 		s = s.Add(1)
 	}
-	for musl_isdigit(int32(s.Get())) {
+	for musl_isdigit(int32(int8(s.Get()))) {
 		var t1 Ptr[byte] = s
 		s = s.Add(1)
-		n = (10 * n) - int64((int32(t1.Get()) - '0'))
+		n = (10 * n) - int64((int32(int8(t1.Get())) - '0'))
 	}
 	var t2 int64
 	if neg != 0 {
@@ -7371,20 +7371,20 @@ func musl_strtol(s Ptr[byte], end *Ptr[byte], base int32) int64 {
 	var neg int32 = 0
 	var any_ int32 = 0
 	var over int32 = 0
-	for musl_isspace(int32(p.Get())) {
+	for musl_isspace(int32(int8(p.Get()))) {
 		p = p.Add(1)
 	}
-	if int32(p.Get()) == '-' {
+	if int32(int8(p.Get())) == '-' {
 		neg = 1
 		p = p.Add(1)
-	} else if int32(p.Get()) == '+' {
+	} else if int32(int8(p.Get())) == '+' {
 		p = p.Add(1)
 	}
 	lim = (18446744073709551615 >> 1) + uint64(neg)
-	for (base == 10) && musl_isdigit(int32(p.Get())) {
+	for (base == 10) && musl_isdigit(int32(int8(p.Get()))) {
 		var t1 Ptr[byte] = p
 		p = p.Add(1)
-		d := uint64((int32(t1.Get()) - '0'))
+		d := uint64((int32(int8(t1.Get())) - '0'))
 		any_ = 1
 		if (over != 0) || (n > ((lim - d) / 10)) {
 			over = 1
@@ -9180,7 +9180,7 @@ func (ed *Editor) vim_iswordp(p Ptr[byte]) bool {
 
 func (ed *Editor) vim_iswordp_buf(p Ptr[byte], buf *S_file_buffer) bool {
 	var c int32 = int32(p.Get())
-	if int32(ed.mb_bytelen_tab[int(c)]) > 1 {
+	if int32(int8(ed.mb_bytelen_tab[int(c)])) > 1 {
 		c = ed.utf_ptr2char(p)
 	}
 	return (ed.vim_iswordc_buf(c, buf))
@@ -9255,7 +9255,7 @@ func (ed *Editor) win_nolbr_chartabsize(cts *chartabsize_T, headp *int32) int32 
 		return (n - (col % n))
 	}
 	n = ed.ptr2cells(s)
-	if ((n == 2) && (int32(ed.mb_bytelen_tab[int(s.Get())]) > 1)) && ed.in_win_border(wp, col) {
+	if ((n == 2) && (int32(int8(ed.mb_bytelen_tab[int(s.Get())])) > 1)) && ed.in_win_border(wp, col) {
 		if headp != nil {
 			*headp = 1
 		}
@@ -9315,7 +9315,7 @@ func (ed *Editor) getvcol(wp *S_window_S, pos *pos_T, start *colnr_T, cursor *co
 				} else {
 					incr = int32(ed.g_chartab[int(c)]) & CT_CELL_MASK
 				}
-				if (((incr == 2) && (wp.w_onebuf_opt.wo_wrap != 0)) && (int32(ed.mb_bytelen_tab[int(ptr.Get())]) > 1)) && ed.in_win_border(wp, vcol) {
+				if (((incr == 2) && (wp.w_onebuf_opt.wo_wrap != 0)) && (int32(int8(ed.mb_bytelen_tab[int(ptr.Get())])) > 1)) && ed.in_win_border(wp, vcol) {
 					incr++
 					head = 1
 				}
@@ -11181,7 +11181,7 @@ func (ed *Editor) win_line(wp *S_window_S, lnum linenr_T, startrow int32, endrow
 					if ed.screen_cur_col != wp.w_width {
 						ed.screen_char((ed.LineOffset[int(wlv.screen_row-1)]+uint32(ed.topframe.fr_width))-1, wlv.screen_row-1, (ed.topframe.fr_width - 1))
 					}
-					if int32(ed.mb_bytelen_tab[int(ed.ScreenLines.At(int(ed.LineOffset[int(wlv.screen_row-1)]+uint32((ed.topframe.fr_width-1)))))]) > 1 {
+					if int32(int8(ed.mb_bytelen_tab[int(ed.ScreenLines.At(int(ed.LineOffset[int(wlv.screen_row-1)]+uint32((ed.topframe.fr_width-1)))))])) > 1 {
 						ed.out_char(' ')
 					} else {
 						ed.out_char(uint32(ed.ScreenLines.At(int(ed.LineOffset[int(wlv.screen_row-1)] + uint32((ed.topframe.fr_width - 1))))))
@@ -11284,7 +11284,7 @@ func (ed *Editor) update_screen(type_arg int32) bool {
 	if type_ == UPD_INVERTED {
 		ed.update_curswant()
 	}
-	if (ed.curwin.w_redr_type < type_) && !((((type_ == UPD_VALID) && (ed.curwin.w_lines[0].wl_valid != 0)) && (ed.curwin.w_topline == ed.curwin.w_lines[0].wl_lnum)) || ((((((type_ == UPD_INVERTED) && (ed.VIsual_active != 0)) && (ed.curwin.w_old_cursor_lnum == ed.curwin.w_cursor.lnum)) && (int32(ed.curwin.w_old_visual_mode) == ed.VIsual_mode)) && ((ed.curwin.w_valid & VALID_VIRTCOL) != 0)) && (ed.curwin.w_old_curswant == ed.curwin.w_curswant))) {
+	if (ed.curwin.w_redr_type < type_) && !((((type_ == UPD_VALID) && (ed.curwin.w_lines[0].wl_valid != 0)) && (ed.curwin.w_topline == ed.curwin.w_lines[0].wl_lnum)) || ((((((type_ == UPD_INVERTED) && (ed.VIsual_active != 0)) && (ed.curwin.w_old_cursor_lnum == ed.curwin.w_cursor.lnum)) && (int32(int8(ed.curwin.w_old_visual_mode)) == ed.VIsual_mode)) && ((ed.curwin.w_valid & VALID_VIRTCOL) != 0)) && (ed.curwin.w_old_curswant == ed.curwin.w_curswant))) {
 		ed.curwin.w_redr_type = type_
 	}
 	if (ed.redraw_tabline != 0) || (type_ >= UPD_NOT_VALID) {
@@ -11774,7 +11774,7 @@ func (ed *Editor) win_update(wp *S_window_S) {
 		var from linenr_T
 		var to linenr_T
 		if ed.VIsual_active != 0 {
-			if (ed.VIsual_mode != int32(wp.w_old_visual_mode)) || (type_ == UPD_INVERTED_ALL) {
+			if (ed.VIsual_mode != int32(int8(wp.w_old_visual_mode))) || (type_ == UPD_INVERTED_ALL) {
 				if ed.curwin.w_cursor.lnum < ed.VIsual.lnum {
 					from = ed.curwin.w_cursor.lnum
 					to = ed.VIsual.lnum
@@ -13049,7 +13049,7 @@ func (ed *Editor) get_literal(noReduceKeys int32) int32 {
 			if (nc < 0) || (nc > 255) {
 				t1 = 1
 			} else {
-				t1 = int32(ed.mb_bytelen_tab[int(nc)])
+				t1 = int32(int8(ed.mb_bytelen_tab[int(nc)]))
 			}
 			t2 = t1 == 1
 		}
@@ -13172,7 +13172,7 @@ func (ed *Editor) insertchar(c int32, flags int32, second_indent int32) {
 				if (c < 0) || (c > 255) {
 					t1 = 1
 				} else {
-					t1 = int32(ed.mb_bytelen_tab[int(c)])
+					t1 = int32(int8(ed.mb_bytelen_tab[int(c)]))
 				}
 				t2 = (t1 == 1)
 			}
@@ -13696,7 +13696,7 @@ func (ed *Editor) mb_replace_pop_ins(cc int32) {
 	var buf Ptr[byte] = Mk[byte](22)
 	var i int32
 	var c int32
-	n = int32(ed.mb_bytelen_tab[int(cc)])
+	n = int32(int8(ed.mb_bytelen_tab[int(cc)]))
 	if n > 1 {
 		buf.Set(0, byte(cc))
 		i = 1
@@ -13712,7 +13712,7 @@ func (ed *Editor) mb_replace_pop_ins(cc int32) {
 		if c == -1 {
 			break
 		}
-		n = int32(ed.mb_bytelen_tab[int(c)])
+		n = int32(int8(ed.mb_bytelen_tab[int(c)]))
 		if n == 1 {
 			ed.replace_push(c)
 			break
@@ -16440,7 +16440,7 @@ func (ed *Editor) do_one_cmd(cmdlinep *Ptr[byte], flags int32, fgetline func(int
 		ed.curwin.w_cursor.lnum = 1
 		ed.curwin.w_cursor.col = 0
 	}
-	if (!errormsg.Nil() && (int32(errormsg.Get()) != NUL)) && (ed.did_emsg == 0) {
+	if (!errormsg.Nil() && (int32(int8(errormsg.Get())) != NUL)) && (ed.did_emsg == 0) {
 		if ((sourcing != 0) || (ed.KeyTyped == 0)) && !did_append_cmd {
 			if errormsg != ed.IObuff {
 				musl_strcpy(ed.IObuff, errormsg)
@@ -16491,7 +16491,7 @@ func (ed *Editor) ex_range_without_command(eap *S_exarg) Ptr[byte] {
 
 func checkforcmd_opt(pp *Ptr[byte], cmd Ptr[byte], len_ int32, noparen bool) bool {
 	var i int32 = 0
-	for ; int32(cmd.At(int(i))) != NUL; i++ {
+	for ; int32(int8(cmd.At(int(i)))) != NUL; i++ {
 		if int32(cmd.At(int(i))) != int32((*pp).At(int(i))) {
 			break
 		}
@@ -20228,7 +20228,7 @@ func (ed *Editor) read_redo(init_ bool, old_redo bool) int32 {
 			if (c < 0) || (c > 255) {
 				t1 = 1
 			} else {
-				t1 = int32(ed.mb_bytelen_tab[int(c)])
+				t1 = int32(int8(ed.mb_bytelen_tab[int(c)]))
 			}
 			n = t1
 		} else {
@@ -20554,7 +20554,7 @@ func (ed *Editor) gotchars_add_byte(state *gotchars_state_T, byte_ char_u) bool 
 		if (c < 0) || (c > 255) {
 			t4 = 1
 		} else {
-			t4 = int32(ed.mb_bytelen_tab[int(c)])
+			t4 = int32(int8(ed.mb_bytelen_tab[int(c)]))
 		}
 		state.pending_mbyte = uint32(t4 - 1)
 	}
@@ -20822,7 +20822,7 @@ func (ed *Editor) vgetc() int32 {
 			if (c < 0) || (c > 255) {
 				t3 = 1
 			} else {
-				t3 = int32(ed.mb_bytelen_tab[int(c)])
+				t3 = int32(int8(ed.mb_bytelen_tab[int(c)]))
 			}
 			n = t3
 			if n > 1 {
@@ -21085,7 +21085,7 @@ func (ed *Editor) handle_mapping(keylenp *int32, timedout *int32, mapdepth *int3
 					}
 					p1 := mp.m_keys
 					p2 := ed.mb_unescape(&p1)
-					if !p2.Nil() && (int32(ed.mb_bytelen_tab[int(tb_c1)]) > ed.utfc_ptr2len(p2)) {
+					if !p2.Nil() && (int32(int8(ed.mb_bytelen_tab[int(tb_c1)])) > ed.utfc_ptr2len(p2)) {
 						mlen = 0
 					}
 					keylen = mp.m_keylen
@@ -22836,7 +22836,7 @@ func (ed *Editor) highlight_list_arg(id int32, didh int32, type_ int32, iarg int
 	ed.syn_list_header(didh, int32(((uint64(ed.vim_strsize(ts)) + musl_strlen(name)) + 1)), id)
 	didh = TRUE
 	if ed.got_int == 0 {
-		if int32(name.Get()) != NUL {
+		if int32(int8(name.Get())) != NUL {
 			ed.msg_puts_attr(name, ed.highlight_attr[3])
 			ed.msg_puts_attr(S("="), ed.highlight_attr[3])
 		}
@@ -26212,7 +26212,7 @@ func (ed *Editor) mb_init() Ptr[byte] {
 	var n int32
 	i = 0
 	for ; i < 256; i++ {
-		n = int32(ed.utf8len_tab[int(i)])
+		n = int32(int8(ed.utf8len_tab[int(i)]))
 		ed.mb_bytelen_tab[int(i)] = byte(n)
 	}
 	ed.init_chartab()
@@ -26225,7 +26225,7 @@ func (ed *Editor) mb_get_class(p Ptr[byte]) int32 {
 }
 
 func (ed *Editor) mb_get_class_buf(p Ptr[byte], buf *S_file_buffer) int32 {
-	if int32(ed.mb_bytelen_tab[int(p.At(0))]) == 1 {
+	if int32(int8(ed.mb_bytelen_tab[int(p.At(0))])) == 1 {
 		if (int32(p.At(0)) == NUL) || ((int32(p.At(0)) == (' ')) || (int32(p.At(0)) == 9)) {
 			return 0
 		}
@@ -26334,7 +26334,7 @@ func (ed *Editor) utf_ptr2char_and_len(p Ptr[byte], lenp *int32) int32 {
 		*lenp = t1
 		return int32(p.At(0))
 	}
-	len_ = int32(ed.utf8len_tab_zero[int(p.At(0))])
+	len_ = int32(int8(ed.utf8len_tab_zero[int(p.At(0))]))
 	if (len_ <= 1) || ((int32(p.At(1)) & 0xc0) != 0x80) {
 		*lenp = 1
 		return int32(p.At(0))
@@ -26390,7 +26390,7 @@ func (ed *Editor) utf_ptr2char_and_len_len(p Ptr[byte], size int32, lenp *int32)
 		*lenp = 1
 		return int32(p.At(0))
 	}
-	len_ = int32(ed.utf8len_tab_zero[int(p.At(0))])
+	len_ = int32(int8(ed.utf8len_tab_zero[int(p.At(0))]))
 	if len_ <= 1 {
 		*lenp = 1
 		return int32(p.At(0))
@@ -26469,7 +26469,7 @@ func (ed *Editor) utf_safe_read_char_adv(s *Ptr[byte], n *usize) int32 {
 	if (*n) == 0 {
 		return 0
 	}
-	k = int32(ed.utf8len_tab_zero[int((*s).Get())])
+	k = int32(int8(ed.utf8len_tab_zero[int((*s).Get())]))
 	if k == 1 {
 		(*n)--
 		var t1 Ptr[byte] = (*s)
@@ -26985,7 +26985,7 @@ func (ed *Editor) utf_head_off(base Ptr[byte], p Ptr[byte]) int32 {
 		for q.Gt(base) && ((int32(q.Get()) & 0xc0) == 0x80) {
 			q = q.Add(-1)
 		}
-		len_ = int32(ed.utf8len_tab[int(q.Get())])
+		len_ = int32(int8(ed.utf8len_tab[int(q.Get())]))
 		if (len_ != int32((int64(s.Sub(q)) + 1))) && (len_ != int32((int64(p.Sub(q)) + 1))) {
 			return 0
 		}
@@ -27947,7 +27947,7 @@ func (ed *Editor) msg_attr_keep(s Ptr[byte], attr int32, keep bool) bool {
 		return true
 	}
 	ed.msg_attr_keep_entered++
-	if (s != ed.keep_msg) || ((((int32(s.Get()) != '<') && (ed.last_msg_hist != nil)) && !ed.last_msg_hist.msg.Nil()) && (musl_strcmp(s, ed.last_msg_hist.msg) != 0)) {
+	if (s != ed.keep_msg) || ((((int32(int8(s.Get())) != '<') && (ed.last_msg_hist != nil)) && !ed.last_msg_hist.msg.Nil()) && (musl_strcmp(s, ed.last_msg_hist.msg) != 0)) {
 		ed.add_msg_hist(s, -1, attr)
 	}
 	ed.msg_start()
@@ -28752,7 +28752,7 @@ func (ed *Editor) msg_outtrans_special(strstart Ptr[byte], from bool, maxlen int
 		} else {
 			text = ed.str2special(&str, (from), false)
 		}
-		if (int32(text.At(0)) != NUL) && (int32(text.At(1)) == NUL) {
+		if (int32(int8(text.At(0))) != NUL) && (int32(int8(text.At(1))) == NUL) {
 			text = ed.transchar_byte_buf(nil, int32(text.At(0)))
 		}
 		len_ = ed.vim_strsize(text)
@@ -28807,7 +28807,7 @@ func (ed *Editor) str2special(sp *Ptr[byte], replace_spaces bool, replace_others
 			special = true
 		}
 	}
-	if !(c < 0) && (int32(ed.mb_bytelen_tab[int(c)]) > 1) {
+	if !(c < 0) && (int32(int8(ed.mb_bytelen_tab[int(c)])) > 1) {
 		var p_2 Ptr[byte]
 		*sp = str
 		p_2 = ed.mb_unescape(sp)
@@ -29915,7 +29915,7 @@ func (ed *Editor) get_keystroke() int32 {
 			}
 			break
 		}
-		if int32(ed.mb_bytelen_tab[int(n)]) > len_ {
+		if int32(int8(ed.mb_bytelen_tab[int(n)])) > len_ {
 			continue
 		}
 		var t7 int32
@@ -32991,7 +32991,7 @@ func (ed *Editor) normal_cmd_get_more_chars(idx_arg int32, cap_ *S_cmdarg_S, nee
 			ed.no_mapping--
 			for {
 				c = ed.vpeekc()
-				if !((c > 0) && ((c >= 0x100) || (int32(ed.mb_bytelen_tab[int(ed.vpeekc())]) > 1))) {
+				if !((c > 0) && ((c >= 0x100) || (int32(int8(ed.mb_bytelen_tab[int(ed.vpeekc())])) > 1))) {
 					break
 				}
 				c = ed.plain_vgetc()
@@ -36169,7 +36169,7 @@ func (ed *Editor) get_op_type(char1 int32, char2 int32) int32 {
 	}
 	i = 0
 	for ; ; i++ {
-		if (int32(ed.opchars[int(i)][0]) == char1) && (int32(ed.opchars[int(i)][1]) == char2) {
+		if (int32(int8(ed.opchars[int(i)][0])) == char1) && (int32(int8(ed.opchars[int(i)][1])) == char2) {
 			break
 		}
 		if i == 29 {
@@ -36181,15 +36181,15 @@ func (ed *Editor) get_op_type(char1 int32, char2 int32) int32 {
 }
 
 func (ed *Editor) op_on_lines(op int32) int32 {
-	return int32(ed.opchars[int(op)][2]) & OPF_LINES
+	return int32(int8(ed.opchars[int(op)][2])) & OPF_LINES
 }
 
 func (ed *Editor) get_op_char(optype int32) int32 {
-	return int32(ed.opchars[int(optype)][0])
+	return int32(int8(ed.opchars[int(optype)][0]))
 }
 
 func (ed *Editor) get_extra_op_char(optype int32) int32 {
-	return int32(ed.opchars[int(optype)][1])
+	return int32(int8(ed.opchars[int(optype)][1]))
 }
 
 func (ed *Editor) op_shift(oap *S_oparg_S, curs_top bool, amount int32) {
@@ -40340,11 +40340,11 @@ func (ed *Editor) findoption(arg Ptr[byte]) int32 {
 		opt_idx = 1
 		for ; opt_idx < last_opt_idx; opt_idx++ {
 			s = ed.options.Ref(int(opt_idx)).fullname
-			if int32(s.At(0)) != int32(p.At(0)) {
-				if (int32(s.At(0)) == 't') && (int32(s.At(1)) == '_') {
+			if int32(int8(s.At(0))) != int32(int8(p.At(0))) {
+				if (int32(int8(s.At(0))) == 't') && (int32(int8(s.At(1))) == '_') {
 					ed.findoption_quick_tab[26] = int16(opt_idx)
 				} else {
-					ed.findoption_quick_tab[int((int32(s.At(0)) - 'a'))] = int16(opt_idx)
+					ed.findoption_quick_tab[int((int32(int8(s.At(0))) - 'a'))] = int16(opt_idx)
 				}
 			}
 			p = s
@@ -40361,7 +40361,7 @@ func (ed *Editor) findoption(arg Ptr[byte]) int32 {
 	}
 	for {
 		s = ed.options.Ref(int(opt_idx)).fullname
-		if !(!s.Nil() && (int32(s.At(0)) == int32(arg.At(0)))) {
+		if !(!s.Nil() && (int32(int8(s.At(0))) == int32(arg.At(0)))) {
 			break
 		}
 		if musl_strcmp(arg, s) == 0 {
@@ -40369,7 +40369,7 @@ func (ed *Editor) findoption(arg Ptr[byte]) int32 {
 		}
 		opt_idx++
 	}
-	if !s.Nil() && (int32(s.At(0)) != int32(arg.At(0))) {
+	if !s.Nil() && (int32(int8(s.At(0))) != int32(arg.At(0))) {
 		s = Ptr[byte]{}
 	}
 	if s.Nil() && !is_term_opt {
@@ -40697,7 +40697,7 @@ func (ed *Editor) set_term_defaults() {
 }
 
 func istermoption(p Ptr[S_vimoption]) bool {
-	return ((int32(p.P().fullname.At(0)) == 't') && (int32(p.P().fullname.At(1)) == '_'))
+	return ((int32(int8(p.P().fullname.At(0))) == 't') && (int32(int8(p.P().fullname.At(1))) == '_'))
 }
 
 func (ed *Editor) istermoption_idx(opt_idx int32) bool {
@@ -45649,8 +45649,8 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					if with_nl {
 						idx -= DELIM_NL
 					}
-					oc = int32(S("([{<").At(int(idx)))
-					cc = int32(S(")]}>").At(int(idx)))
+					oc = int32(int8(S("([{<").At(int(idx))))
+					cc = int32(int8(S(")]}>").At(int(idx))))
 					for {
 						if int32(s.Get()) == NUL {
 							if ((!with_nl || !(ed.rex.reg_match == nil)) || ed.rex.reg_line_lbr) || (ed.rex.lnum >= ed.rex.reg_maxline) {
@@ -52116,22 +52116,22 @@ func vim_strnicmp_asc(s1 Ptr[byte], s2 Ptr[byte], len_ usize) int32 {
 	var i int32 = 0
 	for len_ > 0 {
 		var t1 int32
-		if (int32(s1.Get()) < 'A') || (int32(s1.Get()) > 'Z') {
-			t1 = int32(s1.Get())
+		if (int32(int8(s1.Get())) < 'A') || (int32(int8(s1.Get())) > 'Z') {
+			t1 = int32(int8(s1.Get()))
 		} else {
-			t1 = int32(s1.Get()) + ('a' - 'A')
+			t1 = int32(int8(s1.Get())) + ('a' - 'A')
 		}
 		var t2 int32
-		if (int32(s2.Get()) < 'A') || (int32(s2.Get()) > 'Z') {
-			t2 = int32(s2.Get())
+		if (int32(int8(s2.Get())) < 'A') || (int32(int8(s2.Get())) > 'Z') {
+			t2 = int32(int8(s2.Get()))
 		} else {
-			t2 = int32(s2.Get()) + ('a' - 'A')
+			t2 = int32(int8(s2.Get())) + ('a' - 'A')
 		}
 		i = t1 - t2
 		if i != 0 {
 			break
 		}
-		if int32(s1.Get()) == NUL {
+		if int32(int8(s1.Get())) == NUL {
 			break
 		}
 		s1 = s1.Add(1)
@@ -52551,7 +52551,7 @@ func (ed *Editor) tgoto(cm Ptr[byte], x int32, y int32) Ptr[byte] {
 	e = ed.tgoto_buf.Add(29).Tail()
 	s = ed.tgoto_buf
 	for ; s.Lt(View(e)) && (cm.Get() != 0); cm = cm.Add(1) {
-		if int32(cm.Get()) != '%' {
+		if int32(int8(cm.Get())) != '%' {
 			var t1 Ptr[byte] = s
 			s = s.Add(1)
 			t1.Put(cm.Get())
@@ -52576,7 +52576,7 @@ func (ed *Editor) tgoto(cm Ptr[byte], x int32, y int32) Ptr[byte] {
 			var t4 Ptr[byte] = s
 			s = s.Add(1)
 			cm = cm.Add(1)
-			t4.Put(byte((int32(cm.Get()) + y)))
+			t4.Put(byte((int32(int8(cm.Get())) + y)))
 			y = x
 		case '%':
 			var t5 Ptr[byte] = s
@@ -57863,12 +57863,12 @@ func (ed *Editor) command_line_scan(parmp *mparm_T) {
 	argv = argv[1:]
 	argv_idx = 1
 	for argc > 0 {
-		if int32(argv[0].At(0)) == '+' {
+		if int32(int8(argv[0].At(0))) == '+' {
 			if parmp.n_commands >= MAX_ARG_CMDS {
 				ed.mainerr(ME_EXTRA_CMD, Ptr[byte]{})
 			}
 			argv_idx = -1
-			if int32(argv[0].At(1)) == NUL {
+			if int32(int8(argv[0].At(1))) == NUL {
 				var t1 int32 = parmp.n_commands
 				parmp.n_commands++
 				parmp.commands[int(t1)] = S("$")
@@ -57880,7 +57880,7 @@ func (ed *Editor) command_line_scan(parmp *mparm_T) {
 		} else {
 			ed.mainerr(ME_UNKNOWN_OPTION, argv[0])
 		}
-		if (argv_idx <= 0) || (int32(argv[0].At(int(argv_idx))) == NUL) {
+		if (argv_idx <= 0) || (int32(int8(argv[0].At(int(argv_idx)))) == NUL) {
 			argc--
 			argv = argv[1:]
 			argv_idx = 1

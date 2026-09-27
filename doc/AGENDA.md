@@ -9,17 +9,6 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 Each moves method sizes: `whim test --java --clojure`'s heavy case, which
 times every editor, is judged with the suites.
 
-1. **The Go's plain `char` is unsigned; the C's and the Java's are signed**
-   (`doc/IR-SCHEMA.md`, step 0). gcc on x86-64 makes `char` signed, and the
-   Java and Clojure backends follow it; the Go printer writes `byte`. A probe:
-   `char x = *s; return x < 0;` is `int32(x) < 0` in the Go -- never true --
-   and `(int) x < 0` in the Java. Editor.java has 44 sign-extending reads in 16
-   functions; the ones the survey read are equality or ASCII comparisons,
-   where the two agree, and no suite sees a difference -- so a case must be
-   found or written that would (a byte of 128 or more where a plain char is
-   compared or widened), then the Go printer made to agree (about 20 lines),
-   the suites and whim-editor-check the proof.
-
 ## Known stale, not yet scoped
 
 - **The `insert` case is timed for the editors on the JVM.** Its keys end in
