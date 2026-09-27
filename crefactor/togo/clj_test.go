@@ -247,9 +247,8 @@ func TestCljSplit(t *testing.T) {
 		harness   string
 	}{
 		{"flow", javaFlowC, Profile{CljSplit: 1}, javaHarnessC},
-		{"goto", javaGotoC, Profile{CljSplit: 1}, javaHarnessC},
 		{"extra", lowerExtraC, Profile{CljSplit: 1}, javaHarnessC},
-		{"shapes", cljShapesC, Profile{CljSplit: 1}, javaHarnessC},
+		{"machine", cljMachineC, Profile{CljSplit: 1}, javaHarnessC},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			prog := cljSame(t, c.src, c.prof, c.harness)
@@ -261,7 +260,7 @@ func TestCljSplit(t *testing.T) {
 // The shapes: a loop with nothing that jumps out of it is a loop over what
 // it changes -- a goto backwards too -- a join whose arms change one
 // variable it reads a let of an if, and a join whose arms change two a
-// state machine.
+// let of a tuple, taken apart.
 const cljShapesC = javaHost + `
 int sum(int n)
 {
@@ -323,9 +322,125 @@ func TestCljShapes(t *testing.T) {
 		`(?s)\(defn sum \^long \[\^Editor ed \^long n\]\n  \(let \[t 0\n\s+i 0\]\n\s+\(loop \[t t\n\s+i i\]`,
 		`(?s)\(defn pick .*\(let \[r \(if \(> x 0\)`,
 		`(?s)\(defn back .*\(loop \[n n\n\s+t t\]`,
-		`(?s)\(defn two .*\(case st`,
+		`(?s)\(defn two .*j__\d+ \(if \(> x 0\).*\[a b\]\)\s+\[a b\]\)\s+a \(long \(nth j__\d+ 0\)\)\s+b \(long \(nth j__\d+ 1\)\)`,
+		`;; 5 of 5 functions written \(5 structured, 0 state machines\)`)
+}
+
+// The nesting's four rules, each on a function that was a state machine
+// before them, run as the C runs: a join of two variables (two, above); a
+// return inside a join's region, handed out as [-1 v]; a loop left to two
+// places, as a value taken apart by a case on its exit; a loop inside a
+// join's region.  And what stays a machine: an irreducible loop.
+const cljNestC = javaHost + `
+int early(int x)
+{
+    int a = 0, b = 0;
+    if (x > 0)
+    {
+        if (x > 100)
+            return -1;
+        a = x;
+        b = 2 * x;
+    }
+    out(a);
+    out(b);
+    out(a * b);
+    a += b;
+    out(a);
+    return a + b;
+}
+
+int search(int *v, int n, int want)
+{
+    int i;
+    for (i = 0; i < n; i++)
+    {
+        if (v[i] == want)
+            break;
+        if (v[i] < 0)
+            goto negative;
+    }
+    out(i);
+    out(i * 2);
+    out(i * 3);
+    return i;
+negative:
+    out(-i);
+    out(-2 * i);
+    out(-3 * i);
+    return -1;
+}
+
+int inner(int x)
+{
+    int s = 0;
+    if (x > 0)
+    {
+        for (int i = 0; i < x; i++)
+            s += i;
+    }
+    else
+        s = -1;
+    out(s);
+    out(s + 1);
+    out(s + 2);
+    return s * 2;
+}
+
+int twist(int n)
+{
+    int t = 0;
+    if (n > 5)
+        goto inside;
+top:
+    t += 1;
+inside:
+    t += 2;
+    if (--n > 0)
+        goto top;
+    return t;
+}
+
+static int vals[] = { 3, 1, 4, 1, 5, -9, 2 };
+
+void run(void)
+{
+    out(early(3) + early(-3) + early(300));
+    out(search(vals, 7, 4) + search(vals, 7, 2) + search(vals, 5, 8));
+    out(inner(4) + inner(-4));
+    out(twist(3) + twist(8));
+}
+`
+
+func TestCljNesting(t *testing.T) {
+	prog := cljSame(t, cljNestC, Profile{}, javaHarnessC)
+	cljMatch(t, prog,
+		`(?s)\(defn early .*\[-1 -1\].*\(if \(== \(long \(nth j__\d+ 0\)\) -1\)`,
+		`(?s)\(defn search .*\(case \(long \(nth l__\d+ 0\)\)`,
+		`(?s)\(defn inner .*\(let \[s \(long \(if \(> x 0\)`,
+		`(?s)\(defn twist .*\(case st`,
 		`;; 5 of 5 functions written \(4 structured, 1 state machines\)`)
 }
+
+// cljMachineC is a function the nesting leaves a state machine -- a loop
+// entered in its middle -- for the split's test.
+const cljMachineC = javaHost + `
+int twist(int n)
+{
+    int t = 0;
+    if (n > 5)
+        goto inside;
+top:
+    t += 1;
+inside:
+    t += 2;
+    if (--n > 0)
+        goto top;
+    return t;
+}
+
+void run(void) { out(twist(3) + twist(8)); }
+`
 
 // The control: the comparison sees a translation that is wrong.  Each
 // mutation undoes one rule of the Clojure's -- an unsigned int's range, a

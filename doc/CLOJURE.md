@@ -425,20 +425,27 @@ done for what it does bound to `_`), its terminator the `let`'s body: an
 `if`, a `case`, a value. Blocks are then written in place of the one edge
 into them; a **join** of a branch -- where an if's or a switch's arms meet
 again -- is written once after the branch when every path from it reaches the
-join and nothing else, and the arms change at most one variable the join
-reads: `(let [r (if (> x 0) 1 -1)] ...)`, or `(do (if ...) ...)` with none; a
+join or returns, and nothing outside enters it: `(let [r (if (> x 0) 1 -1)]
+...)` when the arms change one variable the join reads, `(do (if ...) ...)`
+with none, and with several, or a return inside, a **tuple** taken apart
+after the branch -- `[a b]` at the join, `[0 a b]` and `[-1 v]` where the
+region returns v, the tag telling them apart (`doc/CLOJURE-IDIOMS.md` item 2:
+rules J and R); a loop inside the region is written as a value (P); a
 **natural loop**, where the function is otherwise structured, is `(loop [t t
 i i] ...)` over the variables it changes that its head reads, its back edges
 `recur`, the code after it where it leaves (each exit the one way into what
-follows) -- or, nested in a loop reachable from there, `(do (loop ...)
-after)`, which needs one exit and nothing changed that is read after; a
+follows) -- or, nested in a loop or a join's region, after the loop: `(do
+(loop ...) after)` when it leaves to one place and changes nothing read
+there, and otherwise as a value, a tuple at each exit -- `[k i p]` at its
+k-th exit, `[-1 v]` where it returns -- and a `case` on k going on at that
+exit (L); a
 small block that returns is written at each way into it. A function all of
-whose blocks nest so is **structured** (1,358); the others (334) are **state
+whose blocks nest so is **structured** (1,550); the others (144) are **state
 machines**: `(loop [st 0, x x, ...] (case st 0 ... 1 ...))`, each block no
 rule nests a state, each jump to one `(recur k x ...)` with the variables
 live at some state, and the joins still written in place inside the states.
-A function whose machine is too large for a method is **split** (2:
-`win_line`, `regmatch`): every block a state, the states in groups, each
+A function whose machine is too large for a method is **split** (1:
+`regmatch`): every block a state, the states in groups, each
 group `(defn- f__N ^long [ed fl__ fo__ st])` running its own states on a
 frame of the carried variables (`fl__` their longs, `fo__` the rest and the
 result) and returning the next group's state or -1; the function fills the

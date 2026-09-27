@@ -220,6 +220,29 @@ What `check_cursor_lnum` (8677) becomes with the rules of this item alone:
 
 ### 2. Control flow: the 334 state machines
 
+**Done**: the four rules, in `clj_shape.go`, on one mechanism -- a region
+that must hand out several values, or a return, hands out a tuple taken
+apart after it: J (a join's several variables, `[a b]`), R (a return in a
+join's region or a loop, `[-1 v]`, the tag chosen on after it), L (a loop
+whose changes an exit reads, or left to several places, a value: `[k i p]`
+at its k-th exit, each exit carrying what it reads, and a `case` on k), P
+(a loop inside a join's region, written as a value; a state machine finds
+its joins again without it, since a loop's head is a state there). **1,550
+structured and 144 state machines** (from 1,360 and 334): 190, more than
+the 154 measured, since a loop may also leave straight to the end of the
+region around it. The bytecode 2,764,964 -> 2,512,605 bytes, methods over
+8,000 bytes 80 -> 59, `win_line` no longer split (split parts 62 -> 43);
+`editor.clj` 71,933 -> 68,016 lines; the heavy session's time unchanged
+(4.1 s against 4.3 s, medians of five, alternating). A loop's value is an
+Object, so a join whose region holds one converts its variable back
+(`(long ...)`), and a boolean loop variable is primitive on the way in and
+at each recur (a step may bind the literal `true`, a `Boolean`). What is
+left: 91 a join entered from outside its region or left elsewhere, 45 a
+loop's exit with another way in, 6 irreducible loops, 2 a return where the
+code must reach a join. `TestCljNesting` holds each rule to the C; its
+control -- the loop exits' arms misnumbered -- fails all 45 cases.
+
+
 - **The pattern.** 1,358 functions are structured (`let`, `if`, `case`,
   `loop`/`recur`) and 334 are state machines, `(loop [st 0 x x ...] (case st
   ...))`, 2 of them split. The machines are the long ones: 11,721 of the
