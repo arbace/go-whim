@@ -446,6 +446,17 @@ frame and runs the groups. The size is guessed from the text and the
 recurs' width (`Profile.CljSplit`, default 110,000); the largest function
 left whole, `ex_substitute`, compiles.
 
+**The tidy** (`clj_tidy.go`, `doc/CLOJURE-IDIOMS.md` item 1). What the
+nesting composes, block by block, is then read back as forms, one `defn` at
+a time, and rewritten by rules each of which keeps the value used, or where
+the value is thrown away keeps what is done: a step bound to `_` is done in
+the body (`(do (a) (b))`), `(if c x nil)` is `(when c x)`, a `let` whose
+body is a `let` is one, `(let [x v] x)` is `v` (its hint on the form when
+it has one a form can carry), `(and (and a b) c)` is `(and a b c)`, and a
+state machine's unreachable default goes. It runs after the split, so no
+method grows: 80 methods over 8,000 bytes before and after, the bytecode
+9,200 bytes less.
+
 **The namespace's own limit, found on the way**: compiled ahead of time
 (the glue's build), every top-level form adds about 24 bytes to one method
 of the namespace's class, `load()` -- and 64 KB hold about 2,700. A declare

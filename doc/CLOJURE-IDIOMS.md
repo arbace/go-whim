@@ -135,6 +135,19 @@ reflection (0 of each), with a test and a control.
 
 ### 1. The printer's noise: what clj-kondo sees
 
+**Done**: `clj_tidy.go` reads each `defn` and `defn-` of the finished
+namespace back into forms, rewrites them and prints them in the printer's
+layout. clj-kondo (with `e`, `g`, `g!` told) **2,989 -> 737 warnings**:
+redundant `let` 1,426 -> 0, redundant `do` 828 -> 0, redundant nested calls
+1,255 -> 5; what is left is the unused bindings (item 7). `_` bindings
+11,813 -> 1,104 (the rest bound between named ones), `(let [` 13,074 ->
+5,518, `when`/`when-not` 0 -> 1,925, the machines' `"no state"` 332 -> 0;
+`editor.clj` 76,894 -> 71,933 lines. It runs after the split, so the census
+does not move: 11,980 methods, 80 over 8,000 bytes, the largest 56,994 --
+the split's guess needs no re-deriving; 9,200 bytes less bytecode. Not done
+from this item's table: `NUL` as `zero?` and a conversion of a constant.
+
+
 clj-kondo, with the namespace's three macros told to it (`e`, `g`, `g!`, whose
 arguments are names, not vars), gives `editor.clj` **0 errors and 2,993
 warnings**, and the glue 1 note (`cljmain.clj:29`, a redundant `long`):

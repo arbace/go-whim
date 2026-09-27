@@ -196,7 +196,9 @@ crefactor/         the generic C machinery, A GO MODULE OF ITS OWN
                    doc/JAVA.md), and its Clojure backend (lower*.go, the
                    lowered form -- a function as basic blocks, `-lowerc
                    F.c` prints it back as C -- and clj*.go: `whim skel ...
-                   -clj F.clj`, doc/CLOJURE.md). Its tests
+                   -clj F.clj`, doc/CLOJURE.md; clj_tidy.go reads the
+                   printed forms back and takes their noise out, as
+                   java_tidy.go the Java's redundant parentheses). Its tests
                    run in it: `cd crefactor && go test ./...`
 internal/whim/     what the generic side is told about vim: profile.go (the
                    sweep), xform.go, analysis.go (dead's roots, reach's and ccx's
@@ -267,7 +269,7 @@ doc/               GOALS.md (what holds for every phase), AGENDA.md (what is not
                    declined), JAVA.md (the Java backend: its design and milestones),
                    JAVA-IDIOMS.md and CLOJURE-IDIOMS.md (how the Java and the
                    Clojure editors could be idiomatic, measured and ranked;
-                   surveys; done: CLOJURE-IDIOMS.md's item 0 and
+                   surveys; done: CLOJURE-IDIOMS.md's items 0-1 and
                    JAVA-IDIOMS.md's items 1-3, 4's masks and 6.1 (phase 174)),
                    PIPELINE-COMPACTION.md (which phases could be dropped, merged,
                    split or reordered, measured byte for byte), CLOJURE.md (the
