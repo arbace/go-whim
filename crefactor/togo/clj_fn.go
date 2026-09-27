@@ -389,6 +389,9 @@ func (f *cfn) initInto(p cplace, in *cc.Initializer) {
 			f.initInto(f.memberPlace(p.obj, fl), l.Initializer)
 		}
 	case *cc.ArrayType:
+		if f.name == "init-globals" && f.tableData(p, x, in) {
+			return // a table: its rows, as data (clj_tables.go)
+		}
 		i := int64(0)
 		for l := in.InitializerList; l != nil; l = l.InitializerList {
 			if d := f.designator(l); d != nil {

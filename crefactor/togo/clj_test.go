@@ -544,3 +544,41 @@ func TestCljNames(t *testing.T) {
 		`\(e MAX_N\)`,
 		`\(g ed calls-made\)`)
 }
+
+// A table of constants -- numbers, enumerators, strings, functions -- is its
+// rows, data filled into the struct objects at start; a table holding an
+// address is its stores still.
+const cljTablesC = javaHost + `enum { RED = 1, BLUE = 4 };
+struct entry { int key; const char *name; int (*fn)(int); _Bool on; };
+int twice(int x) { return 2 * x; }
+int thrice(int x) { return 3 * x; }
+static struct entry table[] = {
+    { RED, "red", twice, 1 },
+    { BLUE, "blue", thrice },
+    { 7, 0, 0, 0 },
+};
+static int target;
+struct ref { int *p; };
+static struct ref refs[] = { { &target } };
+
+void run(void)
+{
+    for (int i = 0; i < 3; i++)
+    {
+        out(table[i].key);
+        outs(table[i].name ? table[i].name : "-");
+        out(table[i].fn ? table[i].fn(5) : -1);
+        out(table[i].on);
+    }
+    *refs[0].p = 9;
+    out(target);
+}
+`
+
+func TestCljTables(t *testing.T) {
+	prog := cljSame(t, cljTablesC, Profile{}, javaHarnessC)
+	cljMatch(t, prog,
+		`\(def \^:private table-table\n  \(read-string "\[\[RED \\"red\\" twice true\] \[BLUE \\"blue\\" thrice false\] \[7 nil nil false\]\]"\)\)`,
+		`\(fill-S_entry! \(g ed table\) table-table\)`,
+		`\(\.set-p \^S_ref \(aget \(g ed refs\) 0\)`)
+}

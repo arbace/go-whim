@@ -9,8 +9,13 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 Each moves method sizes: `whim test --java --clojure`'s heavy case, which
 times every editor, is judged with the suites.
 
-1. **vijure: address-taken members, then constants as shared data**
-   (`CLOJURE-IDIOMS.md` items 5 and 4), in the survey's order.
+1. **`src/editor.c` goes.** Only `whim gen` reads it (the Go editor, and the
+   tracked Editor.java and editor.clj); `whim java` and `whim clj` cut the
+   core from `whim-vim.c` themselves (`braaam.Cut`), and the Makefile's awk
+   recipe is a second implementation of the one cut. `whim gen` reads
+   `src/whim-vim.c` and cuts with the Go `Cut`, moved out of braaam; the
+   `src/editor.c` target, recipe and file go; `go tool whim cut` prints the
+   core for reading.
 
 ## Known stale, not yet scoped
 
@@ -22,6 +27,9 @@ times every editor, is judged with the suites.
   after the nesting rules alike), and `whim test --clojure` failed once on
   it (2026-09-27). The C and the Go are far from the second. A fix belongs
   in the case (no undo message) or the host (a clock the suite pins).
+  The wide suite's `keys` group failed once each for the Java and the
+  Clojure editors the same day, under a load of 60 or more from another
+  project, and not in eight reruns: the same kind, not identified.
 
 
 ## Declined, with the reason recorded

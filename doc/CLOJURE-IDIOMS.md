@@ -370,6 +370,22 @@ keeps the C name a grep. `TestCljNames`.
 
 ### 4. The constants as data
 
+**Done for the tables** (`clj_tables.go`): a file-scope array of structs
+whose initializer is all constants -- numbers, enumerators (kept by name),
+booleans, strings, nulls, functions' names -- is its rows, namespace data
+read once from a string, `(def ^:private table-cmdnames (read-string
+"[[\"append\" 1 ex-append ...] ...]"))`, and each editor's objects are
+filled from it by a `fill-S_x!` written once per struct type. 21 tables
+(the Unicode intervals and case tables, `nv-cmds`, `cmdnames`, the
+terminals' capabilities ...); a table holding an address stays code.
+`editor.clj` 69,590 -> 64,083 lines. The proof: every one of the 497
+file-scope objects of a new editor is the same, field by field, before and
+after (a changed row is seen); start-up 15-20 ms longer (the rows parsed).
+**Not done: the messages** as data the editors share -- 216 byte arrays that
+nothing may write, which needs the proof that nothing writes them through a
+pointer either, and no suite could see its failure (one editor a process).
+
+
 - **The pattern.** The C's file-scope objects are per editor, in slots
   filled at `new-editor` by 17 `init-globals-N` and 2 `make-objects-N`
   functions -- 9,535 lines (67,401-76,935), and 20 of item 0's 80 huge

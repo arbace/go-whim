@@ -68,11 +68,16 @@ func init() {
 
 // cgen is the Clojure backend's state for one translation unit.
 type cgen struct {
-	g           *gen
-	j           *jgen // the Java backend's decisions
-	ns, hostNS  string
-	hostFns     map[string]bool
-	preds       map[string]bool   // the functions that are questions (clj_names.go)
+	g          *gen
+	j          *jgen // the Java backend's decisions
+	ns, hostNS string
+	hostFns    map[string]bool
+	preds      map[string]bool // the functions that are questions (clj_names.go)
+	// the tables as data (clj_tables.go)
+	tables      []string
+	fillers     []string
+	fillerNames map[string]string
+	fillerUsed  map[string]bool
 	slots       map[string]*cslot // by the analysis's key
 	slotOrder   []*cslot
 	nL, nZ, nO  int
@@ -178,6 +183,7 @@ func (g *gen) writeClj(path string) error {
 		}
 	}
 	c.preds = c.predicates()
+	c.fillerNames, c.fillerUsed = map[string]string{}, map[string]bool{}
 	var hostNames []string
 	for name := range g.a.fnDecls {
 		p := g.p
@@ -571,6 +577,7 @@ func (c *cgen) editorText(inits []string) (string, string) {
 	}
 	head := b.String()
 	b.Reset()
+	b.WriteString(c.tablesText())
 	b.WriteString(fnsText.String())
 	fmt.Fprintf(&b, `(defn new-editor
   "An editor on host, a whim.host.Host: the C's file-scope objects as they start."

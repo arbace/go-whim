@@ -456,6 +456,13 @@ frame and runs the groups. The size is guessed from the text and the
 recurs' width (`Profile.CljSplit`, default 110,000); the largest function
 left whole, `ex_substitute`, compiles.
 
+**The tables** (`clj_tables.go`, `doc/CLOJURE-IDIOMS.md` item 4). A
+file-scope array of structs whose initializer is all constants is written
+as its rows -- `(def ^:private table-t (read-string "[...]"))`, read once
+-- and a `(fill-S_x! (g ed t) table-t)` at `new-editor`, not a store per
+member: each editor still has its own objects, filled with the values the
+stores would have written.
+
 **The tidy** (`clj_tidy.go`, `doc/CLOJURE-IDIOMS.md` item 1). What the
 nesting composes, block by block, is then read back as forms, one `defn` at
 a time, and rewritten by rules each of which keeps the value used, or where
