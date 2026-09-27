@@ -36,9 +36,9 @@ void f(struct s *o)
 	got := string(out)
 	for _, want := range []string{
 		"bump__a(o);", "twice__a(o);", // taken: every address of s.a goes
-		"peek(o, &o->b);",           // peek names b
-		"keep(&o->c);",              // keep keeps the pointer
-		"bump(&o->d);",              // d's address is kept elsewhere too
+		"peek(o, &o->b);", // peek names b
+		"keep(&o->c);",    // keep keeps the pointer
+		"bump(&o->d);",    // d's address is kept elsewhere too
 		"typeof(s0__->a) a0__ = s0__->a;",
 	} {
 		if !strings.Contains(got, want) {

@@ -731,7 +731,6 @@ func params(fd *cc.FunctionDefinition) []*cc.Declarator {
 	return out
 }
 
-
 // mentions says text names name as an identifier.
 func mentions(text []byte, name string) bool {
 	for i := 0; ; {
