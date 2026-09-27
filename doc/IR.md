@@ -3,7 +3,7 @@
 2026-09-27. An assessment, not a plan of record: nothing here is built. It
 answers two questions -- where in the chain a feature that matters to the Go,
 Java and Clojure editors but not to the C should be introduced (a parallel
-`:s/.../.../g` on 64 cores is the example), and what an intermediate
+`:%s/.../.../g` over a whole buffer on 64 cores is the example), and what an intermediate
 representation between the C and the three translations would be. Two
 surveys measure what this rests on: `doc/PARALLEL-SUBSTITUTE.md` (how much of a
 substitution is matching, and what stands in the way of doing it in
@@ -64,7 +64,7 @@ meaning; a change of language is not.
    the pipeline is for (`GOALS.md`, *Adding a phase*). Every target inherits
    a phase, the C stays the oracle, and a phase is a program over upstream,
    so it survives a moved upstream.
-2. **Speed that does not change behaviour -- a parallel `:s`: between the C
+2. **Speed that does not change behaviour -- a parallel `:%s`: between the C
    and the targets.** It cannot be written in the C core (no threads, no
    libc) and should not be written three times. Define it in C as a
    sequential **primitive** whose C body *is* its meaning, and let each
@@ -75,7 +75,11 @@ meaning; a change of language is not.
 Writing a feature separately in each derivation is right only for
 presentation: names, data tables, JIT flags -- what the idiom surveys did.
 
-## The parallel :s, concretely
+## The parallel :%s, concretely
+
+It is a range that gives a substitution work to share: `:%s` (every line),
+`1,$`, a visual range, `:g/.../s//`. A bare `:s` substitutes in one line and
+gains nothing.
 
 It is a refactor of the C first, then one primitive:
 
@@ -136,7 +140,7 @@ shared decisions one piece at a time, the suites green throughout.
 ## Recommendation
 
 - **The C stays the centre** for behaviour.
-- **The parallel `:s` now,** as two C phases and a primitive with per-target
+- **The parallel `:%s` now,** as two C phases and a primitive with per-target
   bodies: the cheapest route to the 64 cores, and fully verifiable.
 - **The IR is the long-term architecture:** start it when there are several
   speed features to share, not for one.
