@@ -21,12 +21,6 @@ times every editor, is judged with the suites.
    3.1, 9.8 and 0.60 s; the Java 0.66, 1.8 and 0.18. What would take it:
    the large regions written as functions of their own (the variables in
    the frame, as the split's groups have them), each small enough for C1.
-2. **`:g` on `match_lines`.** `ex_global`'s marking pass is a second loop
-   that matches every line of a range on its own, and phases 176-177 made
-   that a primitive with a parallel body; `:g/pat/cmd` over a large buffer
-   would share the gain `:%s` has (`doc/PARALLEL-SUBSTITUTE.md`). Not
-   measured.
-
 ## Known stale, not yet scoped
 
 - **The `insert` case is timed for the editors on the JVM.** Its keys end in

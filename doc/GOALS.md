@@ -2236,6 +2236,8 @@ declared `delta.md`.
 - [Phase 175 — a member's address a call hands back is a local's](../internal/phase/175/GOAL.md)
 - [Phase 176 — the regex engine's state is a parameter](../internal/phase/176/GOAL.md)
 - [Phase 177 — a line's match on its own](../internal/phase/177/GOAL.md)
+- [Phase 178 — :g marks the lines match_lines finds](../internal/phase/178/GOAL.md)
+- [Phase 179 — no mark is cleared when none was set](../internal/phase/179/GOAL.md)
 
 ## Appendix to Part II — the plan phases 83 onwards were built from
 

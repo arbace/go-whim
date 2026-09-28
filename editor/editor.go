@@ -16061,9 +16061,17 @@ func (ed *Editor) ex_global(eap *S_exarg) {
 			ed.global_exe_one(cmd, lnum)
 		}
 	} else {
+		var t2 Ptr[linefound_T]
+		if eap.line2 > eap.line1 {
+			t2 = ed.match_range(&regmatch, false, eap.line1, eap.line2)
+		} else {
+			t2 = Ptr[linefound_T]{}
+		}
+		found := t2
+		found_count := ed.curbuf.b_ml.ml_line_count
 		lnum = eap.line1
 		for ; (lnum <= eap.line2) && (ed.got_int == 0); lnum++ {
-			match = int32(ed.vim_regexec_multi(&regmatch, ed.curwin, ed.curbuf, lnum, 0, nil))
+			match = int32(ed.search_found(found, eap.line1, found_count, &regmatch, lnum, 0))
 			if regmatch.regprog == nil {
 				break
 			}
@@ -27785,7 +27793,7 @@ func (ed *Editor) ml_clearmarked() {
 	var dp *S_data_block
 	var lnum linenr_T
 	var i int32
-	if ed.curbuf.b_ml.ml_root == nil {
+	if (ed.curbuf.b_ml.ml_root == nil) || (ed.lowest_marked == 0) {
 		return
 	}
 	lnum = ed.lowest_marked

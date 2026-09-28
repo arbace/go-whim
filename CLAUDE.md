@@ -21,8 +21,8 @@ slim-vim.c  --whim-->  whim-vim.c
   that repository's `main` points to, and records the commit in `src/upstream.sha`.
   It is not tracked here. **Never edit it**; a change to the input belongs in
   arbace/slim-vim.
-- **whim** (the `Makefile`) removes capability on purpose, phases 0-177 from 180,870
-  lines to 75,642. It is two arcs, a coda, an empty phase, five for the Go's
+- **whim** (the `Makefile`) removes capability on purpose, phases 0-179 from 180,870
+  lines to 75,644. It is two arcs, a coda, an empty phase, five for the Go's
   sake, the headers, the gotos, and the parallel `:%s`:
   - **phases 0-82** (`GOALS.md` Part I) leave an editor with no runtime to
     install, 84,025 lines at q82;
@@ -100,6 +100,11 @@ slim-vim.c  --whim-->  whim-vim.c
     core, each on an engine of its own (a runtime body,
     `internal/whim/gen.go`). Exact whatever the pattern: nothing the editor
     does moves.
+  - **phase 178** has `:g`'s marking pass ask `match_range` too, one search
+    a line (`:g/\v(a|b)+c/d` at 500,000 lines: Go 9.1 -> 0.8 s, Clojure 106
+    -> 5.6); **phase 179** returns from `ml_clearmarked` when nothing is
+    marked -- its loop read line 0's slot, index -1, which the Go, Java and
+    Clojure editors failed on for any `:g` that matched nothing.
 
   Phase 83 is the line between the two arcs.
 
@@ -110,7 +115,7 @@ slim-vim.c  --whim-->  whim-vim.c
   baselines and `make whim-verify`) was removed after `448e9a8`, the last commit
   that has it. What proves a change now is two things: `make whim-build-check`,
   the committed product back byte for byte, which sees the text; and `make
-  whim-test` (`internal/suite`), which sees the editor -- 73 key sessions
+  whim-test` (`internal/suite`), which sees the editor -- 80 key sessions
   (`internal/suite/cases.md`) fed from a file on stdin, so that a run's output
   never depends on timing, to a build of the working tree's
   `src/whim-vim.c` and to one of HEAD's, required to print the same screens and
@@ -118,11 +123,11 @@ slim-vim.c  --whim-->  whim-vim.c
   move at least one of them, and a case that runs out of keys before its `:q!`
   refused. Then the same cases on the GO editor (`editor/` built), required to
   answer exactly as the C candidate does -- the one check that `editor.go` is
-  the editor and not only what `internal/gen` writes (the same control moves 69
-  of the 73 there; six cases of the regex engine -- alternation, groups,
+  the editor and not only what `internal/gen` writes (the same control moves 76
+  of the 80 there; six cases of the regex engine -- alternation, groups,
   counts, back-references, look-behind, classes -- since the Go editor
-  was found matching no `\|` in `doc/PARALLEL-SUBSTITUTE.md`; and 22 `par_*`
-  cases, each a `:%s` over 3,000 numbered lines built by keys with every
+  was found matching no `\|` in `doc/PARALLEL-SUBSTITUTE.md`; and 29 `par_*`
+  cases, each a `:%s` or a `:g` over 3,000 numbered lines built by keys with every
   line printed after it, one for each thing that sends phase 177's
   matching back to the loop, across the parallel editors' chunks). About
   11 s, the four builds side by side. **`make
@@ -134,11 +139,11 @@ slim-vim.c  --whim-->  whim-vim.c
   (`braaam/`, built from the candidate): the same cases, required to answer as
   the C candidate does, with a control of its own (`" INSERT"` changed in the
   generated `Editor.java`) that must move the Java editor's own answers; the
-  Java editor answers all 73 and all 240 as the C does (`doc/JAVA.md`,
+  Java editor answers all 80 and all 240 as the C does (`doc/JAVA.md`,
   milestone 2), its control seen as the Go's is. **`--clojure`** adds the
   CLOJURE editor (`vijure/`) the same way, its control `" INSERT"` changed
   in the generated `editor.clj`, written by `crefactor/togo`'s Clojure backend
-  (`doc/CLOJURE.md`, milestones 1-2); the Clojure editor answers all 73 and
+  (`doc/CLOJURE.md`, milestones 1-2); the Clojure editor answers all 80 and
   all 240 as the C does, and `--clojure-editor F` runs it on a namespace
   written already. Both suites are exact under load (`internal/suite/stress_test.go`:
   0 differing runs of 6,720 for the wide suite). **Both end with the heavy
@@ -331,10 +336,10 @@ make                 # all: through whim-vim.c (produced only when slim-vim.c mo
                      # and the generated editors, bin/whim (the Go editor), the
                      # C binaries bin/whim-vim and bin/slim-vim, bin/braaam and
                      # braaam.jar, bin/vijure and vijure.jar (packed from its build)
-make whim-build      # the 147 phases in one process: slim-vim.c -> whim-vim.c
+make whim-build      # the 149 phases in one process: slim-vim.c -> whim-vim.c
 make whim-build-check  # the same, required to give the committed bytes back
 make whim-editor-check # refuse a tracked editor.go, Editor.java or editor.clj that is not what the generator writes
-make whim-test        # the quick suite: 73 key sessions, required to behave as HEAD's does
+make whim-test        # the quick suite: 80 key sessions, required to behave as HEAD's does
 make whim-test-wide   # the optional wide suite: 240 cases, keys, Ex commands, argv, a terminal
 make bin/braaam       # the editor in Java: Editor.java generated, compiled, and a launcher
 make whim-test-java   # the quick suite with the Java editor too (whim test --java; --wide --java)
@@ -357,7 +362,7 @@ make help            # every target, with a line each
   in one process, in memory. **Its log is a line a phase** -- the name, the acts its
   steps reported, the lines its edits and the sweep took, the lines left, the
   time; `-v` writes every act, and a phase that refuses writes its whole report
-  before the reason. Measured: 147 phases, **961 s**, 75,642 lines. A
+  before the reason. Measured: 149 phases, **959 s**, 75,644 lines. A
   whole run keeps every boundary in `.cache/boundaries/` (qNNN.c) and seals the
   set with the input's digest (`manifest`).
 - **The sweep is one closure** (`crefactor/sweep`'s `Prune`): the text parsed
@@ -375,8 +380,8 @@ make help            # every target, with a line each
   snapshots for the input on disk, it checks that phase 0 seeds the input into
   q000 and that EVERY phase N, run on q(N-1), gives qN -- all phases at once,
   `--jobs N` at a time (default: every core) -- and that the last snapshot is the
-  committed `whim-vim.c`. Measured: **72 s**, 146 links 64 at a time, bound by
-  the machine's load and no longer by one link (phase 54 was 44 s alone), against 961 s in
+  committed `whim-vim.c`. Measured: **69 s**, 148 links 64 at a time, bound by
+  the machine's load and no longer by one link (phase 54 was 44 s alone), against 959 s in
   order; and a phase whose program was changed -- on purpose (a control),
   or phase 177's while it was being written -- is named and fails the check. That is
   the induction a run in order walks, so it proves the same thing; a phase whose
@@ -421,7 +426,7 @@ ours belongs inside `.claude/`. Outside `make`, run with `TMPDIR=$PWD/.tmp`.
 ## The pipeline
 
 A phase is a function of the tree it is handed, so the pipeline is
-`p_N = f_N(p_{N-1})` -- 147 of them, in order, numbered 0-177: 8 phases that
+`p_N = f_N(p_{N-1})` -- 149 of them, in order, numbered 0-179: 8 phases that
 edit nothing any more are records only (a `GOAL.md`, no plan entry), and the
 14 same-purpose groups of `doc/PIPELINE-COMPACTION.md` §3d -- 39-40, 44-48,
 51-53, 72-73, 100-102, 105-107, 117-119, 121-122, 143-145, 148-149, 151-152,
@@ -476,7 +481,7 @@ design.
 
 ## Adding a phase
 
-`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 178.
+`GOALS.md` Part II, *Adding a phase*, has the process; the next phase is 180.
 The pipeline's goal is met; a phase now is for the Go editor, where the C is
 the cause of what the generator cannot make idiomatic. What a new one takes:
 `internal/phase/NNN/` with `GOAL.md`, and `edit.go` in package `pNNN` registering

@@ -24334,8 +24334,10 @@ public abstract class Editor {
                 global_exe_one(cmd, lnum);
             }
         } else {
+            Ptr<T_linefound_T> found = eap.line2 > eap.line1 ? match_range(regmatch, false, eap.line1, eap.line2) : null;
+            long found_count = curbuf.b_ml.ml_line_count;
             for (lnum = eap.line1; lnum <= eap.line2 && got_int == 0; lnum++) {
-                match = (int) vim_regexec_multi(regmatch, curwin, curbuf, lnum, 0, null);
+                match = (int) search_found(found, eap.line1, found_count, regmatch, lnum, 0);
                 if (regmatch.regprog == null) {
                     break;
                 }
@@ -35329,7 +35331,7 @@ public abstract class Editor {
         S_data_block dp = null;
         long lnum = 0;
         int i = 0;
-        if (curbuf.b_ml.ml_root == null) {
+        if (curbuf.b_ml.ml_root == null || lowest_marked == 0L) {
             return;
         }
         for (lnum = lowest_marked; lnum <= curbuf.b_ml.ml_line_count; ) {

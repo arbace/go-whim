@@ -16495,9 +16495,11 @@ ex_global(exarg_T *eap)
     }
     else
     {
+        linefound_T *found = eap->line2 > eap->line1 ? match_range(&regmatch, false, eap->line1, eap->line2) : nullptr;
+        linenr_T found_count = curbuf->b_ml.ml_line_count;
         for (lnum = eap->line1; lnum <= eap->line2 && !got_int; ++lnum)
         {
-            match = vim_regexec_multi(&regmatch, curwin, curbuf, lnum, (colnr_T)0, nullptr);
+            match = search_found(found, eap->line1, found_count, &regmatch, lnum, (colnr_T)0);
             if (regmatch.regprog == nullptr)
             {
                 break;
@@ -33528,7 +33530,7 @@ ml_clearmarked(void)
     DATA_BL *dp;
     linenr_T lnum;
     int i;
-    if (curbuf->b_ml.ml_root == nullptr)
+    if (curbuf->b_ml.ml_root == nullptr || lowest_marked == 0)
     {
         return;
     }

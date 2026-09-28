@@ -57498,7 +57498,7 @@
 ;; C: ml_clearmarked
 (defn ml-clearmarked [^Editor ed]
   (let [^longs tl__ (long-array 1)]
-    (when-not (nil? (.ml-root ^S_memline (.-b-ml (g ed curbuf))))
+    (when-not (or (nil? (.ml-root ^S_memline (.-b-ml (g ed curbuf)))) (== (g ed lowest-marked) 0))
       (let [lnum (g ed lowest-marked)]
         (loop [lnum lnum]
           (if (<= lnum (.ml-line-count ^S_memline (.-b-ml (g ed curbuf))))
@@ -57580,11 +57580,13 @@
                 which-pat (aget tl__ 1)]
             (if (search-regcomp ed pat patlen (Ptr. used-pat 0) (e RE_BOTH) which-pat (e SEARCH_HIS) regmatch)
               (if (zero? (g ed global-busy))
-                (let [lnum (.line1 eap)
+                (let [^Ptr found (when (> (.line2 eap) (.line1 eap)) (match-range ed regmatch false (.line1 eap) (.line2 eap)))
+                      found-count (.ml-line-count ^S_memline (.-b-ml (g ed curbuf)))
+                      lnum (.line1 eap)
                       l__2 (loop [lnum lnum
                                   ndone ndone]
                              (if (and (<= lnum (.line2 eap)) (zero? (g ed got-int)))
-                               (let [match (i32 (long (vim-regexec-multi ed regmatch (g ed curwin) (g ed curbuf) lnum 0 nil)))]
+                               (let [match (i32 (long (search-found ed found (.line1 eap) found-count regmatch lnum 0)))]
                                  (if (nil? (.regprog regmatch))
                                    (do (aset tl__ 2 ndone)
                                        0)

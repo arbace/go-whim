@@ -802,4 +802,12 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "edit", Args: []string{"whim177"}},
 		}},
+	{N: 178, Name: ":g marks the lines match_lines finds",
+		Steps: []Step{
+			{Op: "edit", Args: []string{"whim178"}},
+		}},
+	{N: 179, Name: "no mark is cleared when none was set",
+		Steps: []Step{
+			{Op: "edit", Args: []string{"whim179"}},
+		}},
 }

@@ -88,4 +88,11 @@ par_range	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC c
 par_global	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:g/7 /s/a/A/g\r:set nomore\r:%p\r:q!\r
 par_nomatch	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:%s/nomatch/x/\r:set nomore\r:%p\r:q!\r
 par_mmp	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:set mmp=1\r:silent! %s/\\v(.)*$/X/g\r:set nomore\r:%p\r:q!\r
+par_gdelete	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:g/abc/d\r:set nomore\r:%p\r:q!\r
+par_gbranch	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:g/\\v(a|b)+c/normal A!\r:set nomore\r:%p\r:q!\r
+par_vglobal	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:v/7/s/a/A/g\r:set nomore\r:%p\r:q!\r
+par_grange	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:100,2000g/5 /d\r:set nomore\r:%p\r:q!\r
+par_gjoin	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:g/ABC.*\\n\\d/s/$/;/\r:set nomore\r:%p\r:q!\r
+par_gcursor	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x011500G:g/\\%#\\d/d\r:set nomore\r:%p\r:q!\r
+par_gnomatch	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:g/nomatch/d\r:v/./d\r:set nomore\r:%p\r:q!\r
 ```
