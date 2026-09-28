@@ -13,6 +13,7 @@
   contract, says what either side may assume."
   (:import (java.util Collections Map WeakHashMap)
            (java.util.function IntConsumer)
+           (java.util.concurrent.atomic AtomicLong)
            (whim.host Host Host$TtyKeys Printf Printf$Core)
            (whim.rt BytePtr IntPtr)))
 
@@ -163,13 +164,15 @@
 (def ^:private ^Map arenas (Collections/synchronizedMap (WeakHashMap.)))
 
 (defn- arena
-  "The one-element array holding the bytes ed's host has handed out."
-  ^longs [ed]
+  "The count of the bytes ed's host has handed out: added to atomically, since
+  the regex engine may run on several threads at once (Rt/chunks)."
+  ^AtomicLong [ed]
   (let [h (host ed)]
-    (or (.get arenas h)
-        (let [a (long-array 1)]
-          (.put arenas h a)
-          a))))
+    (locking arenas
+      (or (.get arenas h)
+          (let [a (AtomicLong.)]
+            (.put arenas h a)
+            a)))))
 
 (defn- host-arena-exhausted [ed ^long used ^long n]
   (let [m (str "whim-vim: host arena exhausted: " (Long/toUnsignedString host-arena-bytes) " bytes, "
@@ -183,13 +186,11 @@
 (defn host-alloc
   "n zeroed bytes, a BytePtr as Object: the storage a C allocation is."
   [ed ^long n]
-  (let [a (arena ed)
-        used (aget a 0)
-        want (bit-and (+ n 15) (bit-not 15))] ; alignof(max_align_t) is 16
+  (let [want (bit-and (+ n 15) (bit-not 15)) ; alignof(max_align_t) is 16
+        used (.getAndAdd (arena ed) want)]
     (when (or (neg? (Long/compareUnsigned want n))
               (pos? (Long/compareUnsigned want (- host-arena-bytes used))))
       (host-arena-exhausted ed used n))
-    (aset a 0 (+ used want))
     (BytePtr/alloc n)))
 
 ;; --- vim-snprintf, whim.host.Printf given what it needs of the core

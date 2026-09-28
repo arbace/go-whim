@@ -2234,6 +2234,8 @@ declared `delta.md`.
 - [Phase 173 — a goto out of its block is a break](../internal/phase/173/GOAL.md)
 - [Phase 174 — no address of a position's line or column](../internal/phase/174/GOAL.md)
 - [Phase 175 — a member's address a call hands back is a local's](../internal/phase/175/GOAL.md)
+- [Phase 176 — the regex engine's state is a parameter](../internal/phase/176/GOAL.md)
+- [Phase 177 — a line's match on its own](../internal/phase/177/GOAL.md)
 
 ## Appendix to Part II — the plan phases 83 onwards were built from
 

@@ -156,9 +156,13 @@ func writeSources(dir string, want func(string) bool) ([]string, error) {
 //     library through java.lang.foreign, and without it the JVM prints a
 //     warning on the editor's screen.
 //   - -XX:-UsePerfData: no hsperfdata file under /tmp for every run.
-//   - -XX:+UseSerialGC and -XX:TieredStopAtLevel=1: a short-lived,
-//     single-threaded program starts faster with them (measured in
-//     doc/JAVA.md).
+//   - -XX:TieredStopAtLevel=1: a short-lived program starts faster with
+//     it (measured in doc/JAVA.md).
+//   - -XX:+UseParallelGC: the regex engine runs on every core in a :%s
+//     (match_lines, phase 177), each thread allocating; the serial collector
+//     stopped them all while one thread collected -- 3.1 s of a 100,000-line
+//     :%s/\v(a|b)+c/X/g, against 0.98 s with this -- and it starts as fast
+//     (0.28 s against 0.27 on a short session).
 //   - -XX:-DontCompileHugeMethods: HotSpot never compiles a method of more
 //     than 8,000 bytes of bytecode by default, and the generated editors
 //     have hot ones that big (the Java editor regmatch, the Clojure editor 60
@@ -171,7 +175,7 @@ func writeSources(dir string, want func(string) bool) ([]string, error) {
 var JVMFlags = []string{
 	"--enable-native-access=ALL-UNNAMED",
 	"-XX:-UsePerfData",
-	"-XX:+UseSerialGC",
+	"-XX:+UseParallelGC",
 	"-XX:TieredStopAtLevel=1",
 	"-XX:-DontCompileHugeMethods",
 }

@@ -65,6 +65,7 @@ type optmagic_T = int32
 type paste_mode_T = int32
 type reg_getline_flags_T = int32
 type regbehind_T = S_regbehind_S
+type regengine_T = S_regengine_S
 type regitem_T = S_regitem_S
 type regprog_T = S_regprog
 type regstar_T = S_regstar_S
@@ -812,6 +813,21 @@ type S_exarg struct {
 	ea_getline  func(int32, int32, getline_opt_T) Ptr[byte]
 }
 
+type regsearch_T struct {
+	col      colnr_T
+	nmatch   int64
+	matchcol colnr_T
+	nsub     int32
+	pos      int32
+}
+
+type linefound_T struct {
+	searches Ptr[regsearch_T]
+	pos      []lpos_T
+	n        int32
+	next     int32
+}
+
 type winlinevars_T struct {
 	draw_state               int32
 	lnum                     linenr_T
@@ -1045,18 +1061,39 @@ type regexec_T struct {
 	reg_maxcol         colnr_T
 }
 
-type decomp_T struct {
-	a int32
-	b int32
-	c int32
-}
-
 type regsave_T struct {
 	rs_u struct { // C union: every member is its own field here
 		ptr Ptr[byte]
 		pos lpos_T
 	}
 	rs_len int32
+}
+
+type S_regengine_S struct {
+	rex             regexec_T
+	rex_in_use      int32
+	regstack        S_growarray
+	regstack_star   S_growarray
+	regstack_behind S_growarray
+	backpos         S_growarray
+	regstack_bytes  int32
+	behind_pos      regsave_T
+	bl_minval       int64
+	bl_maxval       int64
+	brace_min       [10]int64
+	brace_max       [10]int64
+	brace_count     [10]int32
+	reg_tofree      Ptr[byte]
+	reg_tofreelen   uint32
+	reg_toolong     int32
+	alone           string_T
+	failed          bool
+}
+
+type decomp_T struct {
+	a int32
+	b int32
+	c int32
 }
 
 type save_se_T struct {
@@ -3099,32 +3136,17 @@ type Editor struct {
 	prevchr_len                                            int32
 	at_start                                               int32
 	prev_at_start                                          int32
-	reg_tofree                                             Ptr[byte]
-	reg_tofreelen                                          uint32
-	rex                                                    regexec_T
-	rex_in_use                                             int32
+	reg_engine                                             S_regengine_S
 	decomp_table                                           [48]decomp_T
 	num_complex_braces                                     int32
 	regcode                                                Ptr[byte]
 	reg_calc_size_node                                     Ptr[byte] // C: array of 1 char_u
 	regsize                                                int64
-	reg_toolong                                            int32
 	bt_reg_parse_depth                                     int32
 	had_endbrace                                           [10]byte
-	brace_min                                              [10]int64
-	brace_max                                              [10]int64
-	brace_count                                            [10]int32
 	one_exactly                                            int32
 	classchars                                             Ptr[byte]
 	classcodes                                             [27]int32
-	regstack                                               S_growarray
-	regstack_star                                          S_growarray
-	regstack_behind                                        S_growarray
-	regstack_bytes                                         int32
-	backpos                                                S_growarray
-	behind_pos                                             regsave_T
-	bl_minval                                              int64
-	bl_maxval                                              int64
 	y_regs                                                 [37]yankreg_T
 	y_current                                              *yankreg_T
 	y_append                                               int32
@@ -7172,6 +7194,14 @@ func ga_grow_inner(gap *S_growarray, n int32) bool {
 	gap.ga_maxlen = gap.ga_len + n
 	GaGrowTo(gap, int(gap.ga_maxlen))
 	return true
+}
+
+func (ed *Editor) match_lines(rmp *regmmatch_T, do_all bool, buf *S_file_buffer, lines Ptr[string_T], line1 linenr_T, n linenr_T, found Ptr[linefound_T]) bool {
+	return Chunks(int(n), func(from, to int) bool {
+		re := new(S_regengine_S)
+		ed.match_chunk(re, rmp, do_all, buf, lines, line1, linenr_T(from), linenr_T(to), found)
+		return !re.failed
+	})
 }
 
 func musl_strcasecmp(ls Ptr[byte], rs Ptr[byte]) int32 {
@@ -15233,6 +15263,52 @@ func (ed *Editor) check_regexp_delim(c int32) bool {
 	return true
 }
 
+func (ed *Editor) match_range(rmp *regmmatch_T, do_all bool, line1 linenr_T, line2 linenr_T) Ptr[linefound_T] {
+	var n linenr_T = (line2 - line1) + 1
+	lines := Mk[string_T](int(n))
+	var k linenr_T = 0
+	for ; k < n; k++ {
+		lines.Ref(int(k)).string_ = ed.ml_get(line1 + k)
+		lines.Ref(int(k)).length = usize(ed.ml_get_len(line1 + k))
+	}
+	found := Mk[linefound_T](int(n))
+	var t1 Ptr[linefound_T]
+	if ed.match_lines(rmp, (do_all), ed.curbuf, lines, line1, n, found) {
+		t1 = found
+	} else {
+		t1 = Ptr[linefound_T]{}
+	}
+	return t1
+}
+
+func (ed *Editor) search_found(found Ptr[linefound_T], line1 linenr_T, count linenr_T, rmp *regmmatch_T, lnum linenr_T, col colnr_T) int64 {
+	if !found.Nil() {
+		var f *linefound_T = found.Ref(int((lnum - line1) - (ed.curbuf.b_ml.ml_line_count - count)))
+		if (f.next < f.n) && (f.searches.Ref(int(f.next)).col == col) {
+			var s *regsearch_T = f.searches.Ref(int(f.next))
+			f.next++
+			if s.nmatch > 0 {
+				var k int32 = 0
+				for ; k < NSUBEXP; k++ {
+					if k < s.nsub {
+						rmp.startpos[int(k)] = f.pos[int(s.pos+(2*k))]
+						rmp.endpos[int(k)] = f.pos[int((s.pos+(2*k))+1)]
+					} else {
+						rmp.startpos[int(k)].lnum = -1
+						rmp.startpos[int(k)].col = -1
+						rmp.endpos[int(k)].lnum = -1
+						rmp.endpos[int(k)].col = -1
+					}
+				}
+				rmp.rmm_matchcol = s.matchcol
+			}
+			return s.nmatch
+		}
+		f.next = f.n
+	}
+	return ed.vim_regexec_multi(rmp, ed.curwin, ed.curbuf, lnum, col, nil)
+}
+
 func (ed *Editor) ex_substitute(eap *S_exarg) {
 	var copycol colnr_T
 	var matchcol colnr_T
@@ -15470,9 +15546,17 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 		}
 	}
 	line2 = eap.line2
+	var t4 Ptr[linefound_T]
+	if (ed.ex_substitute_subflags.do_ask == 0) && (line2 > eap.line1) {
+		t4 = ed.match_range(&regmatch, (ed.ex_substitute_subflags.do_all != 0), eap.line1, line2)
+	} else {
+		t4 = Ptr[linefound_T]{}
+	}
+	found := t4
+	found_count := ed.curbuf.b_ml.ml_line_count
 	lnum = eap.line1
 	for ; (lnum <= line2) && !got_quit; lnum++ {
-		nmatch = ed.vim_regexec_multi(&regmatch, ed.curwin, ed.curbuf, lnum, 0, nil)
+		nmatch = ed.search_found(found, eap.line1, found_count, &regmatch, lnum, 0)
 		if nmatch != 0 {
 			var prev_matchcol colnr_T = MAXCOL
 			var new_start string_T
@@ -15634,13 +15718,13 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 						}
 					}
 					ed.curwin.w_cursor.col = regmatch.startpos[0].col
-					var t4 int32
+					var t5 int32
 					if ed.magic_isset() != 0 {
-						t4 = REGSUB_MAGIC
+						t5 = REGSUB_MAGIC
 					} else {
-						t4 = 0
+						t5 = 0
 					}
-					sublen = uint64(ed.vim_regsub_multi(&regmatch, sub_firstlnum-regmatch.startpos[0].lnum, sub, sub_firstline.string_, 0, REGSUB_BACKSLASH|t4))
+					sublen = uint64(ed.vim_regsub_multi(&regmatch, sub_firstlnum-regmatch.startpos[0].lnum, sub, sub_firstline.string_, 0, REGSUB_BACKSLASH|t5))
 					if nmatch > ((ed.curbuf.b_ml.ml_line_count - sub_firstlnum) + 1) {
 						nmatch = (ed.curbuf.b_ml.ml_line_count - sub_firstlnum) + 1
 						skip_match = true
@@ -15679,13 +15763,13 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 					if (new_start_size - copy_len) < sublen {
 						sublen = (new_start_size - copy_len) - 1
 					}
-					var t5 int32
+					var t6 int32
 					if ed.magic_isset() != 0 {
-						t5 = REGSUB_MAGIC
+						t6 = REGSUB_MAGIC
 					} else {
-						t5 = 0
+						t6 = 0
 					}
-					n = uint64(ed.vim_regsub_multi(&regmatch, sub_firstlnum-regmatch.startpos[0].lnum, sub, new_end, int32(sublen), (REGSUB_COPY|REGSUB_BACKSLASH)|t5))
+					n = uint64(ed.vim_regsub_multi(&regmatch, sub_firstlnum-regmatch.startpos[0].lnum, sub, new_end, int32(sublen), (REGSUB_COPY|REGSUB_BACKSLASH)|t6))
 					if n > 0 {
 						new_start.length += n - 1
 					}
@@ -15746,12 +15830,12 @@ func (ed *Editor) ex_substitute(eap *S_exarg) {
 				}
 				lastone = (((((skip_match || (ed.got_int != 0)) || got_quit) || (lnum > line2)) || !((ed.ex_substitute_subflags.do_all != 0) || do_again)) || (((int32(sub_firstline.string_.At(int(matchcol))) == NUL) && (nmatch <= 1)) && (re_multiline(regmatch.regprog) == 0)))
 				nmatch = -1
-				var t6 bool = (lastone || (nmatch_tl > 0)) || ((ed.ex_substitute_subflags.do_ask != 0) && did_split)
-				if !t6 {
-					nmatch = ed.vim_regexec_multi(&regmatch, ed.curwin, ed.curbuf, sub_firstlnum, matchcol, nil)
-					t6 = nmatch == 0
+				var t7 bool = (lastone || (nmatch_tl > 0)) || ((ed.ex_substitute_subflags.do_ask != 0) && did_split)
+				if !t7 {
+					nmatch = ed.search_found(found, eap.line1, found_count, &regmatch, sub_firstlnum, matchcol)
+					t7 = nmatch == 0
 				}
-				if t6 || (regmatch.startpos[0].lnum > 0) {
+				if t7 || (regmatch.startpos[0].lnum > 0) {
 					if !new_start.string_.Nil() {
 						musl_strcpy(new_start.string_.Add(int(new_start.length)), sub_firstline.string_.Add(int(copycol)))
 						new_start.length += sub_firstline.length - uint64(copycol)
@@ -42318,17 +42402,20 @@ func (ed *Editor) read_limits(minval *int64, maxval *int64) int32 {
 	return OK
 }
 
-func (ed *Editor) reg_iswordc(c int32) bool {
-	return (ed.vim_iswordc_buf(c, ed.rex.reg_buf))
+func (ed *Editor) reg_iswordc(re *S_regengine_S, c int32) bool {
+	return (ed.vim_iswordc_buf(c, re.rex.reg_buf))
 }
 
-func (ed *Editor) reg_getline_common(lnum linenr_T, flags reg_getline_flags_T, line *Ptr[byte], length *colnr_T) {
+func (ed *Editor) reg_getline_common(re *S_regengine_S, lnum linenr_T, flags reg_getline_flags_T, line *Ptr[byte], length *colnr_T) {
 	get_line := flags & RGLF_LINE
 	get_length := flags & RGLF_LENGTH
+	if !re.alone.string_.Nil() && (lnum != 0) {
+		re.failed = true
+	}
 	var firstlnum linenr_T
 	var maxline linenr_T
-	firstlnum = ed.rex.reg_firstlnum + lnum
-	maxline = ed.rex.reg_maxline
+	firstlnum = re.rex.reg_firstlnum + lnum
+	maxline = re.rex.reg_maxline
 	if firstlnum < 1 {
 		if get_line != 0 {
 			*line = Ptr[byte]{}
@@ -42347,43 +42434,64 @@ func (ed *Editor) reg_getline_common(lnum linenr_T, flags reg_getline_flags_T, l
 		}
 		return
 	}
+	if !re.alone.string_.Nil() {
+		if get_line != 0 {
+			var t1 Ptr[byte]
+			if lnum == 0 {
+				t1 = re.alone.string_
+			} else {
+				t1 = S("")
+			}
+			*line = t1
+		}
+		if get_length != 0 {
+			var t2 int32
+			if lnum == 0 {
+				t2 = int32(re.alone.length)
+			} else {
+				t2 = 0
+			}
+			*length = t2
+		}
+		return
+	}
 	if get_line != 0 {
-		*line = ed.ml_get_buf(ed.rex.reg_buf, firstlnum, false)
+		*line = ed.ml_get_buf(re.rex.reg_buf, firstlnum, false)
 	}
 	if get_length != 0 {
-		*length = ed.ml_get_buf_len(ed.rex.reg_buf, firstlnum)
+		*length = ed.ml_get_buf_len(re.rex.reg_buf, firstlnum)
 	}
 }
 
-func (ed *Editor) reg_getline(lnum linenr_T) Ptr[byte] {
+func (ed *Editor) reg_getline(re *S_regengine_S, lnum linenr_T) Ptr[byte] {
 	var line Ptr[byte]
-	ed.reg_getline_common(lnum, RGLF_LINE, &line, nil)
+	ed.reg_getline_common(re, lnum, RGLF_LINE, &line, nil)
 	return line
 }
 
-func (ed *Editor) reg_getline_len(lnum linenr_T) colnr_T {
+func (ed *Editor) reg_getline_len(re *S_regengine_S, lnum linenr_T) colnr_T {
 	var length colnr_T
-	ed.reg_getline_common(lnum, RGLF_LENGTH, nil, &length)
+	ed.reg_getline_common(re, lnum, RGLF_LENGTH, nil, &length)
 	return length
 }
 
-func (ed *Editor) reg_prev_class() int32 {
-	if ed.rex.input.Gt(ed.rex.line) {
-		return ed.mb_get_class_buf(ed.rex.input.Add(-1).Add(-int(ed.utf_head_off(ed.rex.line, ed.rex.input.Add(-1)))), ed.rex.reg_buf)
+func (ed *Editor) reg_prev_class(re *S_regengine_S) int32 {
+	if re.rex.input.Gt(re.rex.line) {
+		return ed.mb_get_class_buf(re.rex.input.Add(-1).Add(-int(ed.utf_head_off(re.rex.line, re.rex.input.Add(-1)))), re.rex.reg_buf)
 	}
 	return -1
 }
 
-func (ed *Editor) reg_match_visual() bool {
+func (ed *Editor) reg_match_visual(re *S_regengine_S) bool {
 	var top pos_T
 	var bot pos_T
 	var lnum linenr_T
 	var col colnr_T
 	var t1 *S_window_S
-	if ed.rex.reg_win == nil {
+	if re.rex.reg_win == nil {
 		t1 = ed.curwin
 	} else {
-		t1 = ed.rex.reg_win
+		t1 = re.rex.reg_win
 	}
 	wp := t1
 	var mode int32
@@ -42393,7 +42501,7 @@ func (ed *Editor) reg_match_visual() bool {
 	var end2 colnr_T
 	var cols colnr_T
 	var curswant colnr_T
-	if ((ed.rex.reg_buf != ed.curbuf) || (ed.VIsual.lnum == 0)) || !(ed.rex.reg_match == nil) {
+	if ((re.rex.reg_buf != ed.curbuf) || (ed.VIsual.lnum == 0)) || !(re.rex.reg_match == nil) {
 		return false
 	}
 	if ed.VIsual_active != 0 {
@@ -42444,11 +42552,11 @@ func (ed *Editor) reg_match_visual() bool {
 		mode = ed.curbuf.b_visual.vi_mode
 		curswant = ed.curbuf.b_visual.vi_curswant
 	}
-	lnum = ed.rex.lnum + ed.rex.reg_firstlnum
+	lnum = re.rex.lnum + re.rex.reg_firstlnum
 	if (lnum < top.lnum) || (lnum > bot.lnum) {
 		return false
 	}
-	col = int32(int64(ed.rex.input.Sub(ed.rex.line)))
+	col = int32(int64(re.rex.input.Sub(re.rex.line)))
 	if mode == 'v' {
 		if ((lnum == top.lnum) && (col < top.col)) || ((lnum == bot.lnum) && (col >= (bot.col + B2i((int32(ed.p_sel.Get()) != 'e'))))) {
 			return false
@@ -42465,9 +42573,9 @@ func (ed *Editor) reg_match_visual() bool {
 		if ((top.col == MAXCOL) || (bot.col == MAXCOL)) || (curswant == MAXCOL) {
 			end = MAXCOL
 		}
-		ed.rex.line = ed.reg_getline(ed.rex.lnum)
-		ed.rex.input = ed.rex.line.Add(int(col))
-		cols = ed.win_linetabsize(wp, ed.rex.reg_firstlnum+ed.rex.lnum, ed.rex.line, col)
+		re.rex.line = ed.reg_getline(re, re.rex.lnum)
+		re.rex.input = re.rex.line.Add(int(col))
+		cols = ed.win_linetabsize(wp, re.rex.reg_firstlnum+re.rex.lnum, re.rex.line, col)
 		if (cols < start) || (cols > (end - B2i((int32(ed.p_sel.Get()) == 'e')))) {
 			return false
 		}
@@ -42475,52 +42583,58 @@ func (ed *Editor) reg_match_visual() bool {
 	return true
 }
 
-func (ed *Editor) prog_magic_wrong() bool {
+func (ed *Editor) prog_magic_wrong(re *S_regengine_S) bool {
 	var prog *S_regprog
 	var t1 *S_regprog
-	if ed.rex.reg_match == nil {
-		t1 = ed.rex.reg_mmatch.regprog
+	if re.rex.reg_match == nil {
+		t1 = re.rex.reg_mmatch.regprog
 	} else {
-		t1 = ed.rex.reg_match.regprog
+		t1 = re.rex.reg_match.regprog
 	}
 	prog = t1
 	if int32(prog.program.Get()) != REGMAGIC {
-		ed.iemsg(ed.e_corrupted_regexp_program)
+		if !re.alone.string_.Nil() {
+			re.failed = true
+		} else {
+			ed.iemsg(ed.e_corrupted_regexp_program)
+		}
 		return true
 	}
 	return false
 }
 
-func (ed *Editor) cleanup_subexpr() {
-	if ed.rex.need_clear_subexpr == 0 {
+func cleanup_subexpr(re *S_regengine_S) {
+	if re.rex.need_clear_subexpr == 0 {
 		return
 	}
-	if ed.rex.reg_match == nil {
+	if re.rex.reg_match == nil {
 		var t1 byte = 0xff
 		for t2 := 0; t2 < 10; t2++ {
-			ed.rex.reg_startpos.Ref(t2).lnum = linenr_T(uint64(t1) * 0x0101010101010101)
-			ed.rex.reg_startpos.Ref(t2).col = colnr_T(uint32(t1) * 0x01010101)
+			re.rex.reg_startpos.Ref(t2).lnum = linenr_T(uint64(t1) * 0x0101010101010101)
+			re.rex.reg_startpos.Ref(t2).col = colnr_T(uint32(t1) * 0x01010101)
 		}
 		var t3 byte = 0xff
 		for t4 := 0; t4 < 10; t4++ {
-			ed.rex.reg_endpos.Ref(t4).lnum = linenr_T(uint64(t3) * 0x0101010101010101)
-			ed.rex.reg_endpos.Ref(t4).col = colnr_T(uint32(t3) * 0x01010101)
+			re.rex.reg_endpos.Ref(t4).lnum = linenr_T(uint64(t3) * 0x0101010101010101)
+			re.rex.reg_endpos.Ref(t4).col = colnr_T(uint32(t3) * 0x01010101)
 		}
 	} else {
-		Zero(ed.rex.reg_startp, 10)
-		Zero(ed.rex.reg_endp, 10)
+		Zero(re.rex.reg_startp, 10)
+		Zero(re.rex.reg_endp, 10)
 	}
-	ed.rex.need_clear_subexpr = FALSE
+	re.rex.need_clear_subexpr = FALSE
 }
 
-func (ed *Editor) reg_nextline() {
-	ed.rex.lnum++
-	ed.rex.line = ed.reg_getline(ed.rex.lnum)
-	ed.rex.input = ed.rex.line
-	ed.fast_breakcheck()
+func (ed *Editor) reg_nextline(re *S_regengine_S) {
+	re.rex.lnum++
+	re.rex.line = ed.reg_getline(re, re.rex.lnum)
+	re.rex.input = re.rex.line
+	if re.alone.string_.Nil() {
+		ed.fast_breakcheck()
+	}
 }
 
-func (ed *Editor) match_with_backref(start_lnum linenr_T, start_col colnr_T, end_lnum linenr_T, end_col colnr_T, bytelen *int32) int32 {
+func (ed *Editor) match_with_backref(re *S_regengine_S, start_lnum linenr_T, start_col colnr_T, end_lnum linenr_T, end_col colnr_T, bytelen *int32) int32 {
 	clnum := start_lnum
 	ccol := start_col
 	var len_ int32
@@ -42529,24 +42643,24 @@ func (ed *Editor) match_with_backref(start_lnum linenr_T, start_col colnr_T, end
 		*bytelen = 0
 	}
 	for {
-		if ed.rex.line != ed.reg_tofree {
-			len_ = int32(musl_strlen(ed.rex.line))
-			if ed.reg_tofree.Nil() || (len_ >= int32(ed.reg_tofreelen)) {
+		if re.rex.line != re.reg_tofree {
+			len_ = int32(musl_strlen(re.rex.line))
+			if re.reg_tofree.Nil() || (len_ >= int32(re.reg_tofreelen)) {
 				len_ += 50
-				ed.reg_tofree = Alloc(int(len_))
-				ed.reg_tofreelen = uint32(len_)
+				re.reg_tofree = Alloc(int(len_))
+				re.reg_tofreelen = uint32(len_)
 			}
-			musl_strcpy(ed.reg_tofree, ed.rex.line)
-			ed.rex.input = ed.reg_tofree.Add(int(int64(ed.rex.input.Sub(ed.rex.line))))
-			ed.rex.line = ed.reg_tofree
+			musl_strcpy(re.reg_tofree, re.rex.line)
+			re.rex.input = re.reg_tofree.Add(int(int64(re.rex.input.Sub(re.rex.line))))
+			re.rex.line = re.reg_tofree
 		}
-		p = ed.reg_getline(clnum)
+		p = ed.reg_getline(re, clnum)
 		if clnum == end_lnum {
 			len_ = end_col - ccol
 		} else {
-			len_ = ed.reg_getline_len(clnum) - ccol
+			len_ = ed.reg_getline_len(re, clnum) - ccol
 		}
-		if ((ed.rex.reg_ic == 0) && (ed.cstrncmp(p.Add(int(ccol)), ed.rex.input, &len_) != 0)) || ((ed.rex.reg_ic != 0) && (ed.mb_strnicmp(p.Add(int(ccol)), ed.rex.input, usize(len_)) != 0)) {
+		if ((re.rex.reg_ic == 0) && (ed.cstrncmp(re, p.Add(int(ccol)), re.rex.input, &len_) != 0)) || ((re.rex.reg_ic != 0) && (ed.mb_strnicmp(p.Add(int(ccol)), re.rex.input, usize(len_)) != 0)) {
 			return RA_NOMATCH
 		}
 		if bytelen != nil {
@@ -42555,10 +42669,10 @@ func (ed *Editor) match_with_backref(start_lnum linenr_T, start_col colnr_T, end
 		if clnum == end_lnum {
 			break
 		}
-		if ed.rex.lnum >= ed.rex.reg_maxline {
+		if re.rex.lnum >= re.rex.reg_maxline {
 			return RA_NOMATCH
 		}
-		ed.reg_nextline()
+		ed.reg_nextline(re)
 		if bytelen != nil {
 			*bytelen = 0
 		}
@@ -42595,9 +42709,9 @@ func (ed *Editor) mb_decompose(c int32, c1 *int32, c2 *int32, c3 *int32) {
 	}
 }
 
-func (ed *Editor) cstrncmp(s1 Ptr[byte], s2 Ptr[byte], n *int32) int32 {
+func (ed *Editor) cstrncmp(re *S_regengine_S, s1 Ptr[byte], s2 Ptr[byte], n *int32) int32 {
 	var result int32
-	if ed.rex.reg_ic == 0 {
+	if re.rex.reg_ic == 0 {
 		result = musl_strncmp(s1, s2, usize((*n)))
 	} else {
 		p := s1
@@ -42623,7 +42737,7 @@ func (ed *Editor) cstrncmp(s1 Ptr[byte], s2 Ptr[byte], n *int32) int32 {
 			*n = n2
 		}
 	}
-	if (result != 0) && ed.rex.reg_icombine {
+	if (result != 0) && re.rex.reg_icombine {
 		var str1 Ptr[byte]
 		var str2 Ptr[byte]
 		var c1 int32
@@ -42638,12 +42752,12 @@ func (ed *Editor) cstrncmp(s1 Ptr[byte], s2 Ptr[byte], n *int32) int32 {
 		for int32(int64(str1.Sub(s1))) < (*n) {
 			c1 = ed.mb_ptr2char_adv(&str1)
 			c2 = ed.mb_ptr2char_adv(&str2)
-			if (c1 != c2) && ((ed.rex.reg_ic == 0) || (ed.utf_fold(c1) != ed.utf_fold(c2))) {
+			if (c1 != c2) && ((re.rex.reg_ic == 0) || (ed.utf_fold(c1) != ed.utf_fold(c2))) {
 				ed.mb_decompose(c1, &c11, &junk, &junk)
 				ed.mb_decompose(c2, &c12, &junk, &junk)
 				c1 = c11
 				c2 = c12
-				if (c11 != c12) && ((ed.rex.reg_ic == 0) || (ed.utf_fold(c11) != ed.utf_fold(c12))) {
+				if (c11 != c12) && ((re.rex.reg_ic == 0) || (ed.utf_fold(c11) != ed.utf_fold(c12))) {
 					break
 				}
 			}
@@ -42656,11 +42770,11 @@ func (ed *Editor) cstrncmp(s1 Ptr[byte], s2 Ptr[byte], n *int32) int32 {
 	return result
 }
 
-func (ed *Editor) cstrchr(s Ptr[byte], c int32) Ptr[byte] {
+func (ed *Editor) cstrchr(re *S_regengine_S, s Ptr[byte], c int32) Ptr[byte] {
 	var p Ptr[byte]
 	var cc int32
 	var lc int32
-	if ed.rex.reg_ic == 0 {
+	if re.rex.reg_ic == 0 {
 		return ed.vim_strchr(s, c)
 	}
 	if c > 0x80 {
@@ -42770,28 +42884,29 @@ func (ed *Editor) regtilde(source Ptr[byte], magic int32) Ptr[byte] {
 }
 
 func (ed *Editor) vim_regsub_multi(rmp *regmmatch_T, lnum linenr_T, source Ptr[byte], dest Ptr[byte], destlen int32, flags int32) int32 {
+	re := &ed.reg_engine
 	var result int32
 	var rex_save regexec_T
-	rex_in_use_save := ed.rex_in_use
-	if ed.rex_in_use != 0 {
-		rex_save = ed.rex
+	rex_in_use_save := re.rex_in_use
+	if re.rex_in_use != 0 {
+		rex_save = re.rex
 	}
-	ed.rex_in_use = TRUE
-	ed.rex.reg_match = nil
-	ed.rex.reg_mmatch = rmp
-	ed.rex.reg_buf = ed.curbuf
-	ed.rex.reg_firstlnum = lnum
-	ed.rex.reg_maxline = ed.curbuf.b_ml.ml_line_count - lnum
-	ed.rex.reg_line_lbr = false
-	result = ed.vim_regsub_both(source, dest, destlen, flags)
-	ed.rex_in_use = rex_in_use_save
-	if ed.rex_in_use != 0 {
-		ed.rex = rex_save
+	re.rex_in_use = TRUE
+	re.rex.reg_match = nil
+	re.rex.reg_mmatch = rmp
+	re.rex.reg_buf = ed.curbuf
+	re.rex.reg_firstlnum = lnum
+	re.rex.reg_maxline = ed.curbuf.b_ml.ml_line_count - lnum
+	re.rex.reg_line_lbr = false
+	result = ed.vim_regsub_both(re, source, dest, destlen, flags)
+	re.rex_in_use = rex_in_use_save
+	if re.rex_in_use != 0 {
+		re.rex = rex_save
 	}
 	return result
 }
 
-func (ed *Editor) vim_regsub_both(source Ptr[byte], dest Ptr[byte], destlen int32, flags int32) int32 {
+func (ed *Editor) vim_regsub_both(re *S_regengine_S, source Ptr[byte], dest Ptr[byte], destlen int32, flags int32) int32 {
 	var l int32
 	var charlen_2 int32
 
@@ -42810,7 +42925,7 @@ func (ed *Editor) vim_regsub_both(source Ptr[byte], dest Ptr[byte], destlen int3
 		ed.iemsg(ed.e_null_argument)
 		return 0
 	}
-	if ed.prog_magic_wrong() {
+	if ed.prog_magic_wrong(re) {
 		return 0
 	}
 	src = source
@@ -42947,31 +43062,31 @@ func (ed *Editor) vim_regsub_both(source Ptr[byte], dest Ptr[byte], destlen int3
 				src = src.Add(int(totlen - 1))
 				dst = dst.Add(1)
 			} else {
-				if ed.rex.reg_match == nil {
-					clnum = ed.rex.reg_mmatch.startpos[int(no)].lnum
-					if (clnum < 0) || (ed.rex.reg_mmatch.endpos[int(no)].lnum < 0) {
+				if re.rex.reg_match == nil {
+					clnum = re.rex.reg_mmatch.startpos[int(no)].lnum
+					if (clnum < 0) || (re.rex.reg_mmatch.endpos[int(no)].lnum < 0) {
 						s = Ptr[byte]{}
 					} else {
-						s = ed.reg_getline(clnum).Add(int(ed.rex.reg_mmatch.startpos[int(no)].col))
-						if ed.rex.reg_mmatch.endpos[int(no)].lnum == clnum {
-							len_ = ed.rex.reg_mmatch.endpos[int(no)].col - ed.rex.reg_mmatch.startpos[int(no)].col
+						s = ed.reg_getline(re, clnum).Add(int(re.rex.reg_mmatch.startpos[int(no)].col))
+						if re.rex.reg_mmatch.endpos[int(no)].lnum == clnum {
+							len_ = re.rex.reg_mmatch.endpos[int(no)].col - re.rex.reg_mmatch.startpos[int(no)].col
 						} else {
-							len_ = ed.reg_getline_len(clnum) - ed.rex.reg_mmatch.startpos[int(no)].col
+							len_ = ed.reg_getline_len(re, clnum) - re.rex.reg_mmatch.startpos[int(no)].col
 						}
 					}
 				} else {
-					s = ed.rex.reg_match.startp[int(no)]
-					if ed.rex.reg_match.endp[int(no)].Nil() {
+					s = re.rex.reg_match.startp[int(no)]
+					if re.rex.reg_match.endp[int(no)].Nil() {
 						s = Ptr[byte]{}
 					} else {
-						len_ = int32(int64(ed.rex.reg_match.endp[int(no)].Sub(s)))
+						len_ = int32(int64(re.rex.reg_match.endp[int(no)].Sub(s)))
 					}
 				}
 				if !s.Nil() {
 					for {
 						if len_ == 0 {
-							if ed.rex.reg_match == nil {
-								if ed.rex.reg_mmatch.endpos[int(no)].lnum == clnum {
+							if re.rex.reg_match == nil {
+								if re.rex.reg_mmatch.endpos[int(no)].lnum == clnum {
 									break
 								}
 								if copy_ != 0 {
@@ -42983,11 +43098,11 @@ func (ed *Editor) vim_regsub_both(source Ptr[byte], dest Ptr[byte], destlen int3
 								}
 								dst = dst.Add(1)
 								clnum++
-								s = ed.reg_getline(clnum)
-								if ed.rex.reg_mmatch.endpos[int(no)].lnum == clnum {
-									len_ = ed.rex.reg_mmatch.endpos[int(no)].col
+								s = ed.reg_getline(re, clnum)
+								if re.rex.reg_mmatch.endpos[int(no)].lnum == clnum {
+									len_ = re.rex.reg_mmatch.endpos[int(no)].col
 								} else {
-									len_ = ed.reg_getline_len(clnum)
+									len_ = ed.reg_getline_len(re, clnum)
 								}
 							} else {
 								break
@@ -43047,20 +43162,20 @@ func (ed *Editor) vim_regsub_both(source Ptr[byte], dest Ptr[byte], destlen int3
 	return int32((int64(dst.Sub(dest)) + 1))
 }
 
-func (ed *Editor) init_regexec_multi(rmp *regmmatch_T, win *S_window_S, buf *S_file_buffer, lnum linenr_T) {
-	ed.rex.reg_match = nil
-	ed.rex.reg_mmatch = rmp
-	ed.rex.reg_buf = buf
-	ed.rex.reg_win = win
-	ed.rex.reg_firstlnum = lnum
-	ed.rex.reg_maxline = ed.rex.reg_buf.b_ml.ml_line_count - lnum
-	ed.rex.reg_line_lbr = false
-	ed.rex.reg_ic = rmp.rmm_ic
-	ed.rex.reg_icombine = false
-	ed.rex.reg_maxcol = rmp.rmm_maxcol
+func init_regexec_multi(re *S_regengine_S, rmp *regmmatch_T, win *S_window_S, buf *S_file_buffer, lnum linenr_T) {
+	re.rex.reg_match = nil
+	re.rex.reg_mmatch = rmp
+	re.rex.reg_buf = buf
+	re.rex.reg_win = win
+	re.rex.reg_firstlnum = lnum
+	re.rex.reg_maxline = re.rex.reg_buf.b_ml.ml_line_count - lnum
+	re.rex.reg_line_lbr = false
+	re.rex.reg_ic = rmp.rmm_ic
+	re.rex.reg_icombine = false
+	re.rex.reg_maxcol = rmp.rmm_maxcol
 }
 
-func (ed *Editor) regcomp_start(expr Ptr[byte], re_flags int32) {
+func (ed *Editor) regcomp_start(re *S_regengine_S, expr Ptr[byte], re_flags int32) {
 	ed.initchr(expr)
 	if re_flags&RE_MAGIC != 0 {
 		ed.reg_magic = MAGIC_ON
@@ -43074,7 +43189,7 @@ func (ed *Editor) regcomp_start(expr Ptr[byte], re_flags int32) {
 	ed.regnpar = 1
 	ed.had_endbrace = [10]byte{}
 	ed.regsize = 0
-	ed.reg_toolong = FALSE
+	re.reg_toolong = FALSE
 	ed.bt_reg_parse_depth = 0
 	ed.regflags = 0
 }
@@ -43135,9 +43250,9 @@ func re_put_long(p Ptr[byte], val long_u) Ptr[byte] {
 	return p
 }
 
-func (ed *Editor) regnext(p Ptr[byte]) Ptr[byte] {
+func (ed *Editor) regnext(re *S_regengine_S, p Ptr[byte]) Ptr[byte] {
 	var offset int32
-	if (p == ed.reg_calc_size_node) || (ed.reg_toolong != 0) {
+	if (p == ed.reg_calc_size_node) || (re.reg_toolong != 0) {
 		return Ptr[byte]{}
 	}
 	offset = (((int32(p.Add(1).Get()) & 0377) << 8) + (int32(p.Add(2).Get()) & 0377))
@@ -43151,7 +43266,7 @@ func (ed *Editor) regnext(p Ptr[byte]) Ptr[byte] {
 	}
 }
 
-func (ed *Editor) regtail(p Ptr[byte], val Ptr[byte]) {
+func (ed *Editor) regtail(re *S_regengine_S, p Ptr[byte], val Ptr[byte]) {
 	var scan Ptr[byte]
 	var temp Ptr[byte]
 	var offset int32
@@ -43160,7 +43275,7 @@ func (ed *Editor) regtail(p Ptr[byte], val Ptr[byte]) {
 	}
 	scan = p
 	for {
-		temp = ed.regnext(scan)
+		temp = ed.regnext(re, scan)
 		if temp.Nil() {
 			break
 		}
@@ -43172,18 +43287,18 @@ func (ed *Editor) regtail(p Ptr[byte], val Ptr[byte]) {
 		offset = int32(int64(val.Sub(scan)))
 	}
 	if offset > 0xffff {
-		ed.reg_toolong = TRUE
+		re.reg_toolong = TRUE
 	} else {
 		scan.Add(1).Put(byte(((uint32(offset) >> 8) & 0377)))
 		scan.Add(2).Put(byte((offset & 0377)))
 	}
 }
 
-func (ed *Editor) regoptail(p Ptr[byte], val Ptr[byte]) {
+func (ed *Editor) regoptail(re *S_regengine_S, p Ptr[byte], val Ptr[byte]) {
 	if (p.Nil() || (p == ed.reg_calc_size_node)) || ((int32(p.Get()) != BRANCH) && ((int32(p.Get()) < BRACE_COMPLEX) || (int32(p.Get()) > (BRACE_COMPLEX + 9)))) {
 		return
 	}
-	ed.regtail(p.Add(3), val)
+	ed.regtail(re, p.Add(3), val)
 }
 
 func (ed *Editor) reginsert(op int32, opnd Ptr[byte]) {
@@ -43241,7 +43356,7 @@ func (ed *Editor) reginsert_nr(op int32, val int64, opnd Ptr[byte]) {
 	re_put_long(place, uint64(val))
 }
 
-func (ed *Editor) reginsert_limits(op int32, minval int64, maxval int64, opnd Ptr[byte]) {
+func (ed *Editor) reginsert_limits(re *S_regengine_S, op int32, minval int64, maxval int64, opnd Ptr[byte]) {
 	var src Ptr[byte]
 	var dst Ptr[byte]
 	var place Ptr[byte]
@@ -43269,7 +43384,7 @@ func (ed *Editor) reginsert_limits(op int32, minval int64, maxval int64, opnd Pt
 	t3.Put(NUL)
 	place = re_put_long(place, uint64(minval))
 	place = re_put_long(place, uint64(maxval))
-	ed.regtail(opnd, place)
+	ed.regtail(re, opnd, place)
 }
 
 func (ed *Editor) seen_endbrace(refnum int32) bool {
@@ -43331,7 +43446,7 @@ func (ed *Editor) regatom_delim(c int32, delim_nl bool, flagp *int32) Ptr[byte] 
 	return ret
 }
 
-func (ed *Editor) regatom(flagp *int32) Ptr[byte] {
+func (ed *Editor) regatom(re *S_regengine_S, flagp *int32) Ptr[byte] {
 	var lp Ptr[byte]
 	var refnum int32
 	var lastbranch Ptr[byte]
@@ -43444,7 +43559,7 @@ func (ed *Editor) regatom(flagp *int32) Ptr[byte] {
 				ed.rc_did_emsg = TRUE
 				return Ptr[byte]{}
 			}
-			ret = ed.reg(REG_PAREN, &flags)
+			ret = ed.reg(re, REG_PAREN, &flags)
 			if ret.Nil() {
 				return Ptr[byte]{}
 			}
@@ -43544,7 +43659,7 @@ func (ed *Editor) regatom(flagp *int32) Ptr[byte] {
 					ed.rc_did_emsg = TRUE
 					return Ptr[byte]{}
 				}
-				ret = ed.reg(REG_NPAREN, &flags)
+				ret = ed.reg(re, REG_NPAREN, &flags)
 				if ret.Nil() {
 					return Ptr[byte]{}
 				}
@@ -43600,14 +43715,14 @@ func (ed *Editor) regatom(flagp *int32) Ptr[byte] {
 					if ret.Nil() {
 						ret = br
 					} else {
-						ed.regtail(lastnode, br)
-						if ed.reg_toolong != 0 {
+						ed.regtail(re, lastnode, br)
+						if re.reg_toolong != 0 {
 							return Ptr[byte]{}
 						}
 					}
 					ed.ungetchr()
 					ed.one_exactly = TRUE
-					lastnode = ed.regatom(flagp)
+					lastnode = ed.regatom(re, flagp)
 					ed.one_exactly = FALSE
 					if lastnode.Nil() {
 						return Ptr[byte]{}
@@ -43628,18 +43743,18 @@ func (ed *Editor) regatom(flagp *int32) Ptr[byte] {
 				lastbranch = ed.regnode(BRANCH)
 				br = ed.regnode(NOTHING)
 				if ret != ed.reg_calc_size_node {
-					ed.regtail(lastnode, br)
-					ed.regtail(lastbranch, br)
+					ed.regtail(re, lastnode, br)
+					ed.regtail(re, lastbranch, br)
 					br = ret
 					for br != lastnode {
 						if int32(br.Get()) == BRANCH {
-							ed.regtail(br, lastbranch)
-							if ed.reg_toolong != 0 {
+							ed.regtail(re, br, lastbranch)
+							if re.reg_toolong != 0 {
 								return Ptr[byte]{}
 							}
 							br = br.Add(3)
 						} else {
-							br = ed.regnext(br)
+							br = ed.regnext(re, br)
 						}
 					}
 				}
@@ -43983,7 +44098,7 @@ func (ed *Editor) regatom(flagp *int32) Ptr[byte] {
 						case CLASS_KEYWORD:
 							cu = 1
 							for ; cu <= 255; cu++ {
-								if ed.reg_iswordc(cu) {
+								if ed.reg_iswordc(re, cu) {
 									ed.regmbc(cu)
 								}
 							}
@@ -44069,14 +44184,14 @@ func (ed *Editor) regatom(flagp *int32) Ptr[byte] {
 	return ret
 }
 
-func (ed *Editor) regpiece(flagp *int32) Ptr[byte] {
+func (ed *Editor) regpiece(re *S_regengine_S, flagp *int32) Ptr[byte] {
 	var ret Ptr[byte]
 	var op int32
 	var next Ptr[byte]
 	var flags int32
 	var minval int64
 	var maxval int64
-	ret = ed.regatom(&flags)
+	ret = ed.regatom(re, &flags)
 	if ret.Nil() {
 		return Ptr[byte]{}
 	}
@@ -44093,20 +44208,20 @@ func (ed *Editor) regpiece(flagp *int32) Ptr[byte] {
 			ed.reginsert(STAR, ret)
 		} else {
 			ed.reginsert(BRANCH, ret)
-			ed.regoptail(ret, ed.regnode(BACK))
-			ed.regoptail(ret, ret)
-			ed.regtail(ret, ed.regnode(BRANCH))
-			ed.regtail(ret, ed.regnode(NOTHING))
+			ed.regoptail(re, ret, ed.regnode(BACK))
+			ed.regoptail(re, ret, ret)
+			ed.regtail(re, ret, ed.regnode(BRANCH))
+			ed.regtail(re, ret, ed.regnode(NOTHING))
 		}
 	case -213:
 		if flags&SIMPLE != 0 {
 			ed.reginsert(PLUS, ret)
 		} else {
 			next = ed.regnode(BRANCH)
-			ed.regtail(ret, next)
-			ed.regtail(ed.regnode(BACK), ret)
-			ed.regtail(next, ed.regnode(BRANCH))
-			ed.regtail(ret, ed.regnode(NOTHING))
+			ed.regtail(re, ret, next)
+			ed.regtail(re, ed.regnode(BACK), ret)
+			ed.regtail(re, next, ed.regnode(BRANCH))
+			ed.regtail(re, ret, ed.regnode(NOTHING))
 		}
 		*flagp = ((WORST | HASWIDTH) | (flags & (HASNL | HASLOOKBH)))
 	case -192:
@@ -44140,10 +44255,10 @@ func (ed *Editor) regpiece(flagp *int32) Ptr[byte] {
 			return Ptr[byte]{}
 		}
 		if (lop == BEHIND) || (lop == NOBEHIND) {
-			ed.regtail(ret, ed.regnode(BHPOS))
+			ed.regtail(re, ret, ed.regnode(BHPOS))
 			(*flagp) |= HASLOOKBH
 		}
-		ed.regtail(ret, ed.regnode(END))
+		ed.regtail(re, ret, ed.regnode(END))
 		if (lop == BEHIND) || (lop == NOBEHIND) {
 			if nr < 0 {
 				nr = 0
@@ -44154,17 +44269,17 @@ func (ed *Editor) regpiece(flagp *int32) Ptr[byte] {
 		}
 	case -193, -195:
 		ed.reginsert(BRANCH, ret)
-		ed.regtail(ret, ed.regnode(BRANCH))
+		ed.regtail(re, ret, ed.regnode(BRANCH))
 		next = ed.regnode(NOTHING)
-		ed.regtail(ret, next)
-		ed.regoptail(ret, next)
+		ed.regtail(re, ret, next)
+		ed.regoptail(re, ret, next)
 	case -133:
 		if ed.read_limits(&minval, &maxval) == 0 {
 			return Ptr[byte]{}
 		}
 		if flags&SIMPLE != 0 {
 			ed.reginsert(BRACE_SIMPLE, ret)
-			ed.reginsert_limits(BRACE_LIMITS, minval, maxval, ret)
+			ed.reginsert_limits(re, BRACE_LIMITS, minval, maxval, ret)
 		} else {
 			if ed.num_complex_braces >= 10 {
 				var t2 Ptr[byte]
@@ -44179,9 +44294,9 @@ func (ed *Editor) regpiece(flagp *int32) Ptr[byte] {
 				return Ptr[byte]{}
 			}
 			ed.reginsert(BRACE_COMPLEX+ed.num_complex_braces, ret)
-			ed.regoptail(ret, ed.regnode(BACK))
-			ed.regoptail(ret, ret)
-			ed.reginsert_limits(BRACE_LIMITS, minval, maxval, ret)
+			ed.regoptail(re, ret, ed.regnode(BACK))
+			ed.regoptail(re, ret, ret)
+			ed.reginsert_limits(re, BRACE_LIMITS, minval, maxval, ret)
 			ed.num_complex_braces++
 		}
 		if (minval > 0) && (maxval > 0) {
@@ -44215,7 +44330,7 @@ func (ed *Editor) regpiece(flagp *int32) Ptr[byte] {
 	return ret
 }
 
-func (ed *Editor) regconcat(flagp *int32) Ptr[byte] {
+func (ed *Editor) regconcat(re *S_regengine_S, flagp *int32) Ptr[byte] {
 	var first Ptr[byte] = Ptr[byte]{}
 	var chain Ptr[byte] = Ptr[byte]{}
 	var latest Ptr[byte]
@@ -44252,15 +44367,15 @@ func (ed *Editor) regconcat(flagp *int32) Ptr[byte] {
 			ed.skipchr_keepstart()
 			ed.curchr = -1
 		default:
-			latest = ed.regpiece(&flags)
-			if latest.Nil() || (ed.reg_toolong != 0) {
+			latest = ed.regpiece(re, &flags)
+			if latest.Nil() || (re.reg_toolong != 0) {
 				return Ptr[byte]{}
 			}
 			(*flagp) |= flags & ((HASWIDTH | HASNL) | HASLOOKBH)
 			if chain.Nil() {
 				(*flagp) |= flags & SPSTART
 			} else {
-				ed.regtail(chain, latest)
+				ed.regtail(re, chain, latest)
 			}
 			chain = latest
 			if first.Nil() {
@@ -44274,7 +44389,7 @@ func (ed *Editor) regconcat(flagp *int32) Ptr[byte] {
 	return first
 }
 
-func (ed *Editor) regbranch(flagp *int32) Ptr[byte] {
+func (ed *Editor) regbranch(re *S_regengine_S, flagp *int32) Ptr[byte] {
 	var ret Ptr[byte]
 	var chain Ptr[byte] = Ptr[byte]{}
 	var latest Ptr[byte]
@@ -44282,21 +44397,21 @@ func (ed *Editor) regbranch(flagp *int32) Ptr[byte] {
 	*flagp = WORST | HASNL
 	ret = ed.regnode(BRANCH)
 	for {
-		latest = ed.regconcat(&flags)
+		latest = ed.regconcat(re, &flags)
 		if latest.Nil() {
 			return Ptr[byte]{}
 		}
 		(*flagp) |= flags & ((HASWIDTH | SPSTART) | HASLOOKBH)
 		(*flagp) &= ^HASNL | (flags & HASNL)
 		if !chain.Nil() {
-			ed.regtail(chain, latest)
+			ed.regtail(re, chain, latest)
 		}
 		if ed.peekchr() != -218 {
 			break
 		}
 		ed.skipchr()
-		ed.regtail(latest, ed.regnode(END))
-		if ed.reg_toolong != 0 {
+		ed.regtail(re, latest, ed.regnode(END))
+		if re.reg_toolong != 0 {
 			break
 		}
 		ed.reginsert(MATCH, latest)
@@ -44305,7 +44420,7 @@ func (ed *Editor) regbranch(flagp *int32) Ptr[byte] {
 	return ret
 }
 
-func (ed *Editor) reg(paren int32, flagp *int32) Ptr[byte] {
+func (ed *Editor) reg(re *S_regengine_S, paren int32, flagp *int32) Ptr[byte] {
 	var ret Ptr[byte]
 	var br Ptr[byte]
 	var ender Ptr[byte]
@@ -44339,14 +44454,14 @@ func (ed *Editor) reg(paren int32, flagp *int32) Ptr[byte] {
 		return Ptr[byte]{}
 	}
 	ed.bt_reg_parse_depth++
-	br = ed.regbranch(&flags)
+	br = ed.regbranch(re, &flags)
 	if br.Nil() {
 		ret = Ptr[byte]{}
 		ed.bt_reg_parse_depth--
 		return ret
 	}
 	if !ret.Nil() {
-		ed.regtail(ret, br)
+		ed.regtail(re, ret, br)
 	} else {
 		ret = br
 	}
@@ -44356,13 +44471,13 @@ func (ed *Editor) reg(paren int32, flagp *int32) Ptr[byte] {
 	(*flagp) |= flags & ((SPSTART | HASNL) | HASLOOKBH)
 	for ed.peekchr() == -132 {
 		ed.skipchr()
-		br = ed.regbranch(&flags)
-		if br.Nil() || (ed.reg_toolong != 0) {
+		br = ed.regbranch(re, &flags)
+		if br.Nil() || (re.reg_toolong != 0) {
 			ret = Ptr[byte]{}
 			ed.bt_reg_parse_depth--
 			return ret
 		}
-		ed.regtail(ret, br)
+		ed.regtail(re, ret, br)
 		if (flags & HASWIDTH) == 0 {
 			(*flagp) &= ^HASWIDTH
 		}
@@ -44381,10 +44496,10 @@ func (ed *Editor) reg(paren int32, flagp *int32) Ptr[byte] {
 		t3 = t2
 	}
 	ender = ed.regnode(t3)
-	ed.regtail(ret, ender)
+	ed.regtail(re, ret, ender)
 	br = ret
-	for ; !br.Nil(); br = ed.regnext(br) {
-		ed.regoptail(br, ender)
+	for ; !br.Nil(); br = ed.regnext(re, br) {
+		ed.regoptail(re, br, ender)
 	}
 	if (paren != REG_NOPAREN) && (ed.getchr() != -215) {
 		if paren == REG_NPAREN {
@@ -44443,7 +44558,7 @@ func (ed *Editor) reg(paren int32, flagp *int32) Ptr[byte] {
 	return ret
 }
 
-func (ed *Editor) bt_regcomp(expr Ptr[byte], re_flags int32) *S_regprog {
+func (ed *Editor) bt_regcomp(re *S_regengine_S, expr Ptr[byte], re_flags int32) *S_regprog {
 	var r *S_regprog
 	var scan Ptr[byte]
 	var longest Ptr[byte]
@@ -44455,20 +44570,20 @@ func (ed *Editor) bt_regcomp(expr Ptr[byte], re_flags int32) *S_regprog {
 		return nil
 	}
 	ed.init_class_tab()
-	ed.regcomp_start(expr, re_flags)
+	ed.regcomp_start(re, expr, re_flags)
 	ed.regcode = ed.reg_calc_size_node
 	ed.regc(REGMAGIC)
-	if ed.reg(REG_NOPAREN, &flags).Nil() {
+	if ed.reg(re, REG_NOPAREN, &flags).Nil() {
 		return nil
 	}
 	r = new(S_regprog)
 	r.program = Alloc(int(ed.regsize))
 	r.re_in_use = false
-	ed.regcomp_start(expr, re_flags)
+	ed.regcomp_start(re, expr, re_flags)
 	ed.regcode = r.program
 	ed.regc(REGMAGIC)
-	if ed.reg(REG_NOPAREN, &flags).Nil() || (ed.reg_toolong != 0) {
-		if ed.reg_toolong != 0 {
+	if ed.reg(re, REG_NOPAREN, &flags).Nil() || (re.reg_toolong != 0) {
+		if re.reg_toolong != 0 {
 			ed.emsg(gettext_(ed.e_pattern_too_long))
 			ed.rc_did_emsg = TRUE
 			return nil
@@ -44487,22 +44602,22 @@ func (ed *Editor) bt_regcomp(expr Ptr[byte], re_flags int32) *S_regprog {
 		r.regflags |= RF_LOOKBH
 	}
 	scan = r.program.Add(1)
-	if int32(ed.regnext(scan).Get()) == END {
+	if int32(ed.regnext(re, scan).Get()) == END {
 		scan = scan.Add(3)
 		if (int32(scan.Get()) == BOL) || (int32(scan.Get()) == RE_BOF) {
 			r.reganch++
-			scan = ed.regnext(scan)
+			scan = ed.regnext(re, scan)
 		}
 		if int32(scan.Get()) == EXACTLY {
 			r.regstart = ed.utf_ptr2char(scan.Add(3))
-		} else if (((((((int32(scan.Get()) == BOW) || (int32(scan.Get()) == EOW)) || (int32(scan.Get()) == NOTHING)) || (int32(scan.Get()) == (MOPEN + 0))) || (int32(scan.Get()) == NOPEN)) || (int32(scan.Get()) == (MCLOSE + 0))) || (int32(scan.Get()) == NCLOSE)) && (int32(ed.regnext(scan).Get()) == EXACTLY) {
-			r.regstart = ed.utf_ptr2char(ed.regnext(scan).Add(3))
+		} else if (((((((int32(scan.Get()) == BOW) || (int32(scan.Get()) == EOW)) || (int32(scan.Get()) == NOTHING)) || (int32(scan.Get()) == (MOPEN + 0))) || (int32(scan.Get()) == NOPEN)) || (int32(scan.Get()) == (MCLOSE + 0))) || (int32(scan.Get()) == NCLOSE)) && (int32(ed.regnext(re, scan).Get()) == EXACTLY) {
+			r.regstart = ed.utf_ptr2char(ed.regnext(re, scan).Add(3))
 		}
 		if (((flags&SPSTART != 0) || (int32(scan.Get()) == BOW)) || (int32(scan.Get()) == EOW)) && ((flags & HASNL) == 0) {
 			var scanlen usize
 			longest = Ptr[byte]{}
 			len_ = 0
-			for ; !scan.Nil(); scan = ed.regnext(scan) {
+			for ; !scan.Nil(); scan = ed.regnext(re, scan) {
 				if int32(scan.Get()) == EXACTLY {
 					scanlen = musl_strlen(scan.Add(3))
 					if scanlen >= uint64(len_) {
@@ -44547,48 +44662,48 @@ func (ed *Editor) coll_get_char() int32 {
 func bt_regfree(prog *S_regprog) {
 }
 
-func (ed *Editor) reg_save(save *regsave_T, gap *S_growarray) {
-	if ed.rex.reg_match == nil {
-		save.rs_u.pos.col = int32(int64(ed.rex.input.Sub(ed.rex.line)))
-		save.rs_u.pos.lnum = ed.rex.lnum
+func reg_save(re *S_regengine_S, save *regsave_T, gap *S_growarray) {
+	if re.rex.reg_match == nil {
+		save.rs_u.pos.col = int32(int64(re.rex.input.Sub(re.rex.line)))
+		save.rs_u.pos.lnum = re.rex.lnum
 	} else {
-		save.rs_u.ptr = ed.rex.input
+		save.rs_u.ptr = re.rex.input
 	}
 	save.rs_len = gap.ga_len
 }
 
-func (ed *Editor) reg_restore(save *regsave_T, gap *S_growarray) {
-	if ed.rex.reg_match == nil {
-		if ed.rex.lnum != save.rs_u.pos.lnum {
-			ed.rex.lnum = save.rs_u.pos.lnum
-			ed.rex.line = ed.reg_getline(ed.rex.lnum)
+func (ed *Editor) reg_restore(re *S_regengine_S, save *regsave_T, gap *S_growarray) {
+	if re.rex.reg_match == nil {
+		if re.rex.lnum != save.rs_u.pos.lnum {
+			re.rex.lnum = save.rs_u.pos.lnum
+			re.rex.line = ed.reg_getline(re, re.rex.lnum)
 		}
-		ed.rex.input = ed.rex.line.Add(int(save.rs_u.pos.col))
+		re.rex.input = re.rex.line.Add(int(save.rs_u.pos.col))
 	} else {
-		ed.rex.input = save.rs_u.ptr
+		re.rex.input = save.rs_u.ptr
 	}
 	gap.ga_len = save.rs_len
 }
 
-func (ed *Editor) reg_save_equal(save *regsave_T) bool {
-	if ed.rex.reg_match == nil {
-		return (ed.rex.lnum == save.rs_u.pos.lnum) && (ed.rex.input == ed.rex.line.Add(int(save.rs_u.pos.col)))
+func reg_save_equal(re *S_regengine_S, save *regsave_T) bool {
+	if re.rex.reg_match == nil {
+		return (re.rex.lnum == save.rs_u.pos.lnum) && (re.rex.input == re.rex.line.Add(int(save.rs_u.pos.col)))
 	}
-	return ed.rex.input == save.rs_u.ptr
+	return re.rex.input == save.rs_u.ptr
 }
 
-func (ed *Editor) save_se_multi(savep *save_se_T, posp *lpos_T) {
+func save_se_multi(re *S_regengine_S, savep *save_se_T, posp *lpos_T) {
 	savep.se_u.pos = (*posp)
-	posp.lnum = ed.rex.lnum
-	posp.col = int32(int64(ed.rex.input.Sub(ed.rex.line)))
+	posp.lnum = re.rex.lnum
+	posp.col = int32(int64(re.rex.input.Sub(re.rex.line)))
 }
 
-func (ed *Editor) save_se_one(savep *save_se_T, pp *Ptr[byte]) {
+func save_se_one(re *S_regengine_S, savep *save_se_T, pp *Ptr[byte]) {
 	savep.se_u.ptr = (*pp)
-	*pp = ed.rex.input
+	*pp = re.rex.input
 }
 
-func (ed *Editor) regrepeat(p []byte, maxcount int64) int32 {
+func (ed *Editor) regrepeat(re *S_regengine_S, p []byte, maxcount int64) int32 {
 	var l int32
 	var len__2 int32
 
@@ -44597,7 +44712,7 @@ func (ed *Editor) regrepeat(p []byte, maxcount int64) int32 {
 	var opnd Ptr[byte]
 	var mask int32
 	var testval int32 = 0
-	scan = ed.rex.input
+	scan = re.rex.input
 	opnd = View(p[3:])
 	switch int32(p[0]) {
 	case ANY, ANY + ADD_NL:
@@ -44606,12 +44721,12 @@ func (ed *Editor) regrepeat(p []byte, maxcount int64) int32 {
 				count++
 				scan = scan.Add(int(ed.utfc_ptr2len(scan)))
 			}
-			if (((!(ed.rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (ed.rex.lnum > ed.rex.reg_maxline)) || ed.rex.reg_line_lbr) || (count == maxcount) {
+			if (((!(re.rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (re.rex.lnum > re.rex.reg_maxline)) || re.rex.reg_line_lbr) || (count == maxcount) {
 				break
 			}
 			count++
-			ed.reg_nextline()
-			scan = ed.rex.input
+			ed.reg_nextline(re)
+			scan = re.rex.input
 			if ed.got_int != 0 {
 				break
 			}
@@ -44624,15 +44739,15 @@ func (ed *Editor) regrepeat(p []byte, maxcount int64) int32 {
 			if ed.vim_isIDc(ed.utf_ptr2char(scan)) && ((testval != 0) || !((uint32(scan.Get()) - '0') < 10)) {
 				scan = scan.Add(int(ed.utfc_ptr2len(scan)))
 			} else if int32(scan.Get()) == NUL {
-				if ((!(ed.rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (ed.rex.lnum > ed.rex.reg_maxline)) || ed.rex.reg_line_lbr {
+				if ((!(re.rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (re.rex.lnum > re.rex.reg_maxline)) || re.rex.reg_line_lbr {
 					break
 				}
-				ed.reg_nextline()
-				scan = ed.rex.input
+				ed.reg_nextline(re)
+				scan = re.rex.input
 				if ed.got_int != 0 {
 					break
 				}
-			} else if (ed.rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
+			} else if (re.rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
 				scan = scan.Add(1)
 			} else {
 				break
@@ -44644,18 +44759,18 @@ func (ed *Editor) regrepeat(p []byte, maxcount int64) int32 {
 		fallthrough
 	case SKWORD, SKWORD + ADD_NL:
 		for count < maxcount {
-			if ed.vim_iswordp_buf(scan, ed.rex.reg_buf) && ((testval != 0) || !((uint32(scan.Get()) - '0') < 10)) {
+			if ed.vim_iswordp_buf(scan, re.rex.reg_buf) && ((testval != 0) || !((uint32(scan.Get()) - '0') < 10)) {
 				scan = scan.Add(int(ed.utfc_ptr2len(scan)))
 			} else if int32(scan.Get()) == NUL {
-				if ((!(ed.rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (ed.rex.lnum > ed.rex.reg_maxline)) || ed.rex.reg_line_lbr {
+				if ((!(re.rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (re.rex.lnum > re.rex.reg_maxline)) || re.rex.reg_line_lbr {
 					break
 				}
-				ed.reg_nextline()
-				scan = ed.rex.input
+				ed.reg_nextline(re)
+				scan = re.rex.input
 				if ed.got_int != 0 {
 					break
 				}
-			} else if (ed.rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
+			} else if (re.rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
 				scan = scan.Add(1)
 			} else {
 				break
@@ -44670,15 +44785,15 @@ func (ed *Editor) regrepeat(p []byte, maxcount int64) int32 {
 			if ed.vim_isfilec(ed.utf_ptr2char(scan)) && ((testval != 0) || !((uint32(scan.Get()) - '0') < 10)) {
 				scan = scan.Add(int(ed.utfc_ptr2len(scan)))
 			} else if int32(scan.Get()) == NUL {
-				if ((!(ed.rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (ed.rex.lnum > ed.rex.reg_maxline)) || ed.rex.reg_line_lbr {
+				if ((!(re.rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (re.rex.lnum > re.rex.reg_maxline)) || re.rex.reg_line_lbr {
 					break
 				}
-				ed.reg_nextline()
-				scan = ed.rex.input
+				ed.reg_nextline(re)
+				scan = re.rex.input
 				if ed.got_int != 0 {
 					break
 				}
-			} else if (ed.rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
+			} else if (re.rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
 				scan = scan.Add(1)
 			} else {
 				break
@@ -44691,17 +44806,17 @@ func (ed *Editor) regrepeat(p []byte, maxcount int64) int32 {
 	case SPRINT, SPRINT + ADD_NL:
 		for count < maxcount {
 			if int32(scan.Get()) == NUL {
-				if ((!(ed.rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (ed.rex.lnum > ed.rex.reg_maxline)) || ed.rex.reg_line_lbr {
+				if ((!(re.rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (re.rex.lnum > re.rex.reg_maxline)) || re.rex.reg_line_lbr {
 					break
 				}
-				ed.reg_nextline()
-				scan = ed.rex.input
+				ed.reg_nextline(re)
+				scan = re.rex.input
 				if ed.got_int != 0 {
 					break
 				}
 			} else if (B2i(ed.vim_isprintc(ed.utf_ptr2char(scan))) == 1) && ((testval != 0) || !((uint32(scan.Get()) - '0') < 10)) {
 				scan = scan.Add(int(ed.utfc_ptr2len(scan)))
-			} else if (ed.rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
+			} else if (re.rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
 				scan = scan.Add(1)
 			} else {
 				break
@@ -44758,11 +44873,11 @@ func (ed *Editor) regrepeat(p []byte, maxcount int64) int32 {
 		}
 		for count < maxcount {
 			if int32(scan.Get()) == NUL {
-				if ((!(ed.rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (ed.rex.lnum > ed.rex.reg_maxline)) || ed.rex.reg_line_lbr {
+				if ((!(re.rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (re.rex.lnum > re.rex.reg_maxline)) || re.rex.reg_line_lbr {
 					break
 				}
-				ed.reg_nextline()
-				scan = ed.rex.input
+				ed.reg_nextline(re)
+				scan = re.rex.input
 				if ed.got_int != 0 {
 					break
 				}
@@ -44775,7 +44890,7 @@ func (ed *Editor) regrepeat(p []byte, maxcount int64) int32 {
 					scan = scan.Add(int(l))
 				} else if (int32(ed.class_tab[int(scan.Get())]) & mask) == testval {
 					scan = scan.Add(1)
-				} else if (ed.rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
+				} else if (re.rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
 					scan = scan.Add(1)
 				} else {
 					break
@@ -44786,7 +44901,7 @@ func (ed *Editor) regrepeat(p []byte, maxcount int64) int32 {
 	case EXACTLY:
 		var cu int32
 		var cl int32
-		if ed.rex.reg_ic != 0 {
+		if re.rex.reg_ic != 0 {
 			cu = ed.vim_toupper(int32(opnd.Get()))
 			cl = ed.vim_tolower(int32(opnd.Get()))
 			for (count < maxcount) && ((int32(scan.Get()) == cu) || (int32(scan.Get()) == cl)) {
@@ -44806,7 +44921,7 @@ func (ed *Editor) regrepeat(p []byte, maxcount int64) int32 {
 		var cf int32 = 0
 		len_ = ed.utfc_ptr2len(opnd)
 		if len_ > 1 {
-			if ed.rex.reg_ic != 0 {
+			if re.rex.reg_ic != 0 {
 				cf = ed.utf_fold(ed.utf_ptr2char(opnd))
 			}
 			for (count < maxcount) && (ed.utfc_ptr2len(scan) >= len_) {
@@ -44816,7 +44931,7 @@ func (ed *Editor) regrepeat(p []byte, maxcount int64) int32 {
 						break
 					}
 				}
-				if (i < len_) && ((ed.rex.reg_ic == 0) || (ed.utf_fold(ed.utf_ptr2char(scan)) != cf)) {
+				if (i < len_) && ((re.rex.reg_ic == 0) || (ed.utf_fold(ed.utf_ptr2char(scan)) != cf)) {
 					break
 				}
 				scan = scan.Add(int(len_))
@@ -44829,25 +44944,25 @@ func (ed *Editor) regrepeat(p []byte, maxcount int64) int32 {
 	case ANYBUT, ANYBUT + ADD_NL:
 		for count < maxcount {
 			if int32(scan.Get()) == NUL {
-				if ((!(ed.rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (ed.rex.lnum > ed.rex.reg_maxline)) || ed.rex.reg_line_lbr {
+				if ((!(re.rex.reg_match == nil) || !((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL)))) || (re.rex.lnum > re.rex.reg_maxline)) || re.rex.reg_line_lbr {
 					break
 				}
-				ed.reg_nextline()
-				scan = ed.rex.input
+				ed.reg_nextline(re)
+				scan = re.rex.input
 				if ed.got_int != 0 {
 					break
 				}
-			} else if (ed.rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
+			} else if (re.rex.reg_line_lbr && (int32(scan.Get()) == 10)) && ((int32(p[0]) >= (ANY + ADD_NL)) && (int32(p[0]) <= (NUPPER + ADD_NL))) {
 				scan = scan.Add(1)
 			} else {
 				len__2 = ed.utfc_ptr2len(scan)
 				if len__2 > 1 {
-					if B2i(ed.cstrchr(opnd, ed.utf_ptr2char(scan)).Nil()) == testval {
+					if B2i(ed.cstrchr(re, opnd, ed.utf_ptr2char(scan)).Nil()) == testval {
 						break
 					}
 					scan = scan.Add(int(len__2))
 				} else {
-					if B2i(ed.cstrchr(opnd, int32(scan.Get())).Nil()) == testval {
+					if B2i(ed.cstrchr(re, opnd, int32(scan.Get())).Nil()) == testval {
 						break
 					}
 					scan = scan.Add(1)
@@ -44856,94 +44971,102 @@ func (ed *Editor) regrepeat(p []byte, maxcount int64) int32 {
 			count++
 		}
 	case NEWL:
-		for (count < maxcount) && (((((int32(scan.Get()) == NUL) && (ed.rex.lnum <= ed.rex.reg_maxline)) && !ed.rex.reg_line_lbr) && (ed.rex.reg_match == nil)) || ((int32(scan.Get()) == 10) && ed.rex.reg_line_lbr)) {
+		for (count < maxcount) && (((((int32(scan.Get()) == NUL) && (re.rex.lnum <= re.rex.reg_maxline)) && !re.rex.reg_line_lbr) && (re.rex.reg_match == nil)) || ((int32(scan.Get()) == 10) && re.rex.reg_line_lbr)) {
 			count++
-			if ed.rex.reg_line_lbr {
-				ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+			if re.rex.reg_line_lbr {
+				re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 			} else {
-				ed.reg_nextline()
+				ed.reg_nextline(re)
 			}
-			scan = ed.rex.input
+			scan = re.rex.input
 			if ed.got_int != 0 {
 				break
 			}
 		}
 	default:
-		ed.iemsg(ed.e_corrupted_regexp_program)
+		if !re.alone.string_.Nil() {
+			re.failed = true
+		} else {
+			ed.iemsg(ed.e_corrupted_regexp_program)
+		}
 	}
-	ed.rex.input = scan
+	re.rex.input = scan
 	return int32(count)
 }
 
-func (ed *Editor) regstack_star_top() *S_regstar_S {
-	return GaData[S_regstar_S](&ed.regstack_star).Ref(int(ed.regstack_star.ga_len - 1))
+func regstack_star_top(re *S_regengine_S) *S_regstar_S {
+	return GaData[S_regstar_S](&re.regstack_star).Ref(int(re.regstack_star.ga_len - 1))
 }
 
-func (ed *Editor) regstack_behind_top() *S_regbehind_S {
-	return GaData[S_regbehind_S](&ed.regstack_behind).Ref(int(ed.regstack_behind.ga_len - 1))
+func regstack_behind_top(re *S_regengine_S) *S_regbehind_S {
+	return GaData[S_regbehind_S](&re.regstack_behind).Ref(int(re.regstack_behind.ga_len - 1))
 }
 
-func (ed *Editor) regstack_push(state regstate_T, scan Ptr[byte]) *S_regitem_S {
+func (ed *Editor) regstack_push(re *S_regengine_S, state regstate_T, scan Ptr[byte]) *S_regitem_S {
 	var rp *S_regitem_S
-	if int64((uint32(ed.regstack_bytes) >> 10)) >= ed.p_mmp {
-		ed.emsg(gettext_(ed.e_pattern_uses_more_memory_than_maxmempattern))
+	if int64((uint32(re.regstack_bytes) >> 10)) >= ed.p_mmp {
+		if !re.alone.string_.Nil() {
+			re.failed = true
+		} else {
+			ed.emsg(gettext_(ed.e_pattern_uses_more_memory_than_maxmempattern))
+		}
 		return nil
 	}
-	if !ga_grow(&ed.regstack, 1) {
+	if !ga_grow(&re.regstack, 1) {
 		return nil
 	}
-	rp = GaData[S_regitem_S](&ed.regstack).Ref(int(ed.regstack.ga_len))
+	rp = GaData[S_regitem_S](&re.regstack).Ref(int(re.regstack.ga_len))
 	rp.rs_state = state
 	rp.rs_scan = scan
-	ed.regstack.ga_len++
-	ed.regstack_bytes += 40
+	re.regstack.ga_len++
+	re.regstack_bytes += 40
 	return rp
 }
 
-func (ed *Editor) regstack_pop(scan *Ptr[byte]) {
-	var rp *S_regitem_S = GaData[S_regitem_S](&ed.regstack).Ref(int(ed.regstack.ga_len - 1))
+func regstack_pop(re *S_regengine_S, scan *Ptr[byte]) {
+	var rp *S_regitem_S = GaData[S_regitem_S](&re.regstack).Ref(int(re.regstack.ga_len - 1))
 	*scan = rp.rs_scan
-	ed.regstack.ga_len--
-	ed.regstack_bytes -= 40
+	re.regstack.ga_len--
+	re.regstack_bytes -= 40
 }
 
-func (ed *Editor) save_subexpr(bp *S_regbehind_S) {
+func save_subexpr(re *S_regengine_S, bp *S_regbehind_S) {
 	var i int32
-	bp.save_need_clear_subexpr = ed.rex.need_clear_subexpr
-	if ed.rex.need_clear_subexpr != 0 {
+	bp.save_need_clear_subexpr = re.rex.need_clear_subexpr
+	if re.rex.need_clear_subexpr != 0 {
 		return
 	}
 	i = 0
 	for ; i < NSUBEXP; i++ {
-		if ed.rex.reg_match == nil {
-			bp.save_start[int(i)].se_u.pos = *ed.rex.reg_startpos.Ref(int(i))
-			bp.save_end[int(i)].se_u.pos = *ed.rex.reg_endpos.Ref(int(i))
+		if re.rex.reg_match == nil {
+			bp.save_start[int(i)].se_u.pos = *re.rex.reg_startpos.Ref(int(i))
+			bp.save_end[int(i)].se_u.pos = *re.rex.reg_endpos.Ref(int(i))
 		} else {
-			bp.save_start[int(i)].se_u.ptr = ed.rex.reg_startp.At(int(i))
-			bp.save_end[int(i)].se_u.ptr = ed.rex.reg_endp.At(int(i))
+			bp.save_start[int(i)].se_u.ptr = re.rex.reg_startp.At(int(i))
+			bp.save_end[int(i)].se_u.ptr = re.rex.reg_endp.At(int(i))
 		}
 	}
 }
 
-func (ed *Editor) restore_subexpr(bp *S_regbehind_S) {
+func restore_subexpr(re *S_regengine_S, bp *S_regbehind_S) {
 	var i int32
-	ed.rex.need_clear_subexpr = bp.save_need_clear_subexpr
-	if ed.rex.need_clear_subexpr != 0 {
+	re.rex.need_clear_subexpr = bp.save_need_clear_subexpr
+	if re.rex.need_clear_subexpr != 0 {
 		return
 	}
 	i = 0
 	for ; i < NSUBEXP; i++ {
-		if ed.rex.reg_match == nil {
-			ed.rex.reg_startpos.Set(int(i), bp.save_start[int(i)].se_u.pos)
-			ed.rex.reg_endpos.Set(int(i), bp.save_end[int(i)].se_u.pos)
+		if re.rex.reg_match == nil {
+			re.rex.reg_startpos.Set(int(i), bp.save_start[int(i)].se_u.pos)
+			re.rex.reg_endpos.Set(int(i), bp.save_end[int(i)].se_u.pos)
 		} else {
-			ed.rex.reg_startp.Set(int(i), bp.save_start[int(i)].se_u.ptr)
-			ed.rex.reg_endp.Set(int(i), bp.save_end[int(i)].se_u.ptr)
+			re.rex.reg_startp.Set(int(i), bp.save_start[int(i)].se_u.ptr)
+			re.rex.reg_endp.Set(int(i), bp.save_end[int(i)].se_u.ptr)
 		}
 	}
 }
 
-func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
+func (ed *Editor) regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) int32 {
 	var pos *pos_T
 	var vcol long_u
 	var this_class int32
@@ -44971,33 +45094,35 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 	var rp *S_regitem_S
 	var no int32
 	var status int32
-	ed.regstack.ga_len = 0
-	ed.regstack_star.ga_len = 0
-	ed.regstack_behind.ga_len = 0
-	ed.regstack_bytes = 0
-	ed.backpos.ga_len = 0
+	re.regstack.ga_len = 0
+	re.regstack_star.ga_len = 0
+	re.regstack_behind.ga_len = 0
+	re.regstack_bytes = 0
+	re.backpos.ga_len = 0
 	for {
-		ed.fast_breakcheck()
+		if re.alone.string_.Nil() {
+			ed.fast_breakcheck()
+		}
 		for {
 			if (ed.got_int != 0) || scan.Nil() {
 				status = RA_FAIL
 				break
 			}
 			status = RA_CONT
-			next = ed.regnext(scan)
+			next = ed.regnext(re, scan)
 			op = int32(scan.Get())
-			if (((!ed.rex.reg_line_lbr && ((op >= (ANY + ADD_NL)) && (op <= (NUPPER + ADD_NL)))) && (ed.rex.reg_match == nil)) && (int32(ed.rex.input.Get()) == NUL)) && (ed.rex.lnum <= ed.rex.reg_maxline) {
-				ed.reg_nextline()
-			} else if (ed.rex.reg_line_lbr && ((op >= (ANY + ADD_NL)) && (op <= (NUPPER + ADD_NL)))) && (int32(ed.rex.input.Get()) == 10) {
-				ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+			if (((!re.rex.reg_line_lbr && ((op >= (ANY + ADD_NL)) && (op <= (NUPPER + ADD_NL)))) && (re.rex.reg_match == nil)) && (int32(re.rex.input.Get()) == NUL)) && (re.rex.lnum <= re.rex.reg_maxline) {
+				ed.reg_nextline(re)
+			} else if (re.rex.reg_line_lbr && ((op >= (ANY + ADD_NL)) && (op <= (NUPPER + ADD_NL)))) && (int32(re.rex.input.Get()) == 10) {
+				re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 			} else {
 				if (op >= (ANY + ADD_NL)) && (op <= (NUPPER + ADD_NL)) {
 					op -= ADD_NL
 				}
-				c = ed.utf_ptr2char(ed.rex.input)
+				c = ed.utf_ptr2char(re.rex.input)
 				switch op {
 				case BOL:
-					if ed.rex.input != ed.rex.line {
+					if re.rex.input != re.rex.line {
 						status = RA_NOMATCH
 					}
 				case EOL:
@@ -45005,50 +45130,70 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 						status = RA_NOMATCH
 					}
 				case RE_BOF:
-					if ((ed.rex.lnum != 0) || (ed.rex.input != ed.rex.line)) || ((ed.rex.reg_match == nil) && (ed.rex.reg_firstlnum > 1)) {
+					if !re.alone.string_.Nil() {
+						re.failed = true
+						status = RA_NOMATCH
+						break
+					}
+					if ((re.rex.lnum != 0) || (re.rex.input != re.rex.line)) || ((re.rex.reg_match == nil) && (re.rex.reg_firstlnum > 1)) {
 						status = RA_NOMATCH
 					}
 				case RE_EOF:
-					if (ed.rex.lnum != ed.rex.reg_maxline) || (c != NUL) {
+					if !re.alone.string_.Nil() {
+						re.failed = true
+						status = RA_NOMATCH
+						break
+					}
+					if (re.rex.lnum != re.rex.reg_maxline) || (c != NUL) {
 						status = RA_NOMATCH
 					}
 				case CURSOR:
-					if ((ed.rex.reg_win == nil) || ((ed.rex.lnum + ed.rex.reg_firstlnum) != ed.rex.reg_win.w_cursor.lnum)) || (int32(int64(ed.rex.input.Sub(ed.rex.line))) != ed.rex.reg_win.w_cursor.col) {
+					if !re.alone.string_.Nil() {
+						re.failed = true
+						status = RA_NOMATCH
+						break
+					}
+					if ((re.rex.reg_win == nil) || ((re.rex.lnum + re.rex.reg_firstlnum) != re.rex.reg_win.w_cursor.lnum)) || (int32(int64(re.rex.input.Sub(re.rex.line))) != re.rex.reg_win.w_cursor.col) {
 						status = RA_NOMATCH
 					}
 				case RE_MARK:
+					if !re.alone.string_.Nil() {
+						re.failed = true
+						status = RA_NOMATCH
+						break
+					}
 					var mark int32 = int32(scan.Add(3).At(0))
 					var cmp int32 = int32(scan.Add(3).At(1))
 					var t1 usize
-					if ed.rex.reg_match == nil {
-						t1 = usize(int64(ed.rex.input.Sub(ed.rex.line)))
+					if re.rex.reg_match == nil {
+						t1 = usize(int64(re.rex.input.Sub(re.rex.line)))
 					} else {
 						t1 = 0
 					}
 					col := t1
-					pos = ed.getmark_buf(ed.rex.reg_buf, mark, false)
-					if ed.rex.reg_match == nil {
-						ed.rex.line = ed.reg_getline(ed.rex.lnum)
-						ed.rex.input = ed.rex.line.Add(int(col))
+					pos = ed.getmark_buf(re.rex.reg_buf, mark, false)
+					if re.rex.reg_match == nil {
+						re.rex.line = ed.reg_getline(re, re.rex.lnum)
+						re.rex.input = re.rex.line.Add(int(col))
 					}
 					if (pos == nil) || (pos.lnum <= 0) {
 						status = RA_NOMATCH
 					} else {
 						var t2 colnr_T
-						if (pos.lnum == (ed.rex.lnum + ed.rex.reg_firstlnum)) && (pos.col == MAXCOL) {
-							t2 = ed.reg_getline_len(pos.lnum - ed.rex.reg_firstlnum)
+						if (pos.lnum == (re.rex.lnum + re.rex.reg_firstlnum)) && (pos.col == MAXCOL) {
+							t2 = ed.reg_getline_len(re, pos.lnum-re.rex.reg_firstlnum)
 						} else {
 							t2 = pos.col
 						}
 						pos_col := t2
 						var t6 bool
-						if pos.lnum == (ed.rex.lnum + ed.rex.reg_firstlnum) {
+						if pos.lnum == (re.rex.lnum + re.rex.reg_firstlnum) {
 							var t4 bool
-							if pos_col == int32(int64(ed.rex.input.Sub(ed.rex.line))) {
+							if pos_col == int32(int64(re.rex.input.Sub(re.rex.line))) {
 								t4 = ((cmp == '<') || (cmp == '>'))
 							} else {
 								var t3 bool
-								if pos_col < int32(int64(ed.rex.input.Sub(ed.rex.line))) {
+								if pos_col < int32(int64(re.rex.input.Sub(re.rex.line))) {
 									t3 = cmp != '>'
 								} else {
 									t3 = cmp != '<'
@@ -45058,7 +45203,7 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 							t6 = t4
 						} else {
 							var t5 bool
-							if pos.lnum < (ed.rex.lnum + ed.rex.reg_firstlnum) {
+							if pos.lnum < (re.rex.lnum + re.rex.reg_firstlnum) {
 								t5 = cmp != '>'
 							} else {
 								t5 = cmp != '<'
@@ -45070,36 +45215,51 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 						}
 					}
 				case RE_VISUAL:
-					if !ed.reg_match_visual() {
+					if !re.alone.string_.Nil() {
+						re.failed = true
+						status = RA_NOMATCH
+						break
+					}
+					if !ed.reg_match_visual(re) {
 						status = RA_NOMATCH
 					}
 				case RE_LNUM:
-					if !(ed.rex.reg_match == nil) || !re_num_cmp(uint64((ed.rex.lnum+ed.rex.reg_firstlnum)), scan) {
+					if !re.alone.string_.Nil() {
+						re.failed = true
+						status = RA_NOMATCH
+						break
+					}
+					if !(re.rex.reg_match == nil) || !re_num_cmp(uint64((re.rex.lnum+re.rex.reg_firstlnum)), scan) {
 						status = RA_NOMATCH
 					}
 				case RE_COL:
-					if !re_num_cmp(uint64(int64(ed.rex.input.Sub(ed.rex.line)))+1, scan) {
+					if !re_num_cmp(uint64(int64(re.rex.input.Sub(re.rex.line)))+1, scan) {
 						status = RA_NOMATCH
 					}
 				case RE_VCOL:
+					if !re.alone.string_.Nil() {
+						re.failed = true
+						status = RA_NOMATCH
+						break
+					}
 					var t7 *S_window_S
-					if ed.rex.reg_win == nil {
+					if re.rex.reg_win == nil {
 						t7 = ed.curwin
 					} else {
-						t7 = ed.rex.reg_win
+						t7 = re.rex.reg_win
 					}
 					wp := t7
 					var t8 linenr_T
-					if ed.rex.reg_match == nil {
-						t8 = ed.rex.reg_firstlnum + ed.rex.lnum
+					if re.rex.reg_match == nil {
+						t8 = re.rex.reg_firstlnum + re.rex.lnum
 					} else {
 						t8 = 1
 					}
 					lnum := t8
-					if (ed.rex.reg_match == nil) && ((lnum <= 0) || (lnum > wp.w_buffer.b_ml.ml_line_count)) {
+					if (re.rex.reg_match == nil) && ((lnum <= 0) || (lnum > wp.w_buffer.b_ml.ml_line_count)) {
 						lnum = 1
 					}
-					vcol = uint64(ed.win_linetabsize(wp, lnum, ed.rex.line, int32(int64(ed.rex.input.Sub(ed.rex.line)))))
+					vcol = uint64(ed.win_linetabsize(wp, lnum, re.rex.line, int32(int64(re.rex.input.Sub(re.rex.line)))))
 					if !re_num_cmp(vcol+1, scan) {
 						status = RA_NOMATCH
 					}
@@ -45107,19 +45267,19 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					if c == NUL {
 						status = RA_NOMATCH
 					} else {
-						this_class = ed.mb_get_class_buf(ed.rex.input, ed.rex.reg_buf)
+						this_class = ed.mb_get_class_buf(re.rex.input, re.rex.reg_buf)
 						if this_class <= 1 {
 							status = RA_NOMATCH
-						} else if ed.reg_prev_class() == this_class {
+						} else if ed.reg_prev_class(re) == this_class {
 							status = RA_NOMATCH
 						}
 					}
 				case EOW:
-					if ed.rex.input == ed.rex.line {
+					if re.rex.input == re.rex.line {
 						status = RA_NOMATCH
 					} else {
-						this_class_2 = ed.mb_get_class_buf(ed.rex.input, ed.rex.reg_buf)
-						prev_class = ed.reg_prev_class()
+						this_class_2 = ed.mb_get_class_buf(re.rex.input, re.rex.reg_buf)
+						prev_class = ed.reg_prev_class(re)
 						if ((this_class_2 == prev_class) || (prev_class == 0)) || (prev_class == 1) {
 							status = RA_NOMATCH
 						}
@@ -45128,207 +45288,207 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					if c == NUL {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case IDENT:
 					if !ed.vim_isIDc(c) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case SIDENT:
-					if ((uint32(ed.rex.input.Get()) - '0') < 10) || !ed.vim_isIDc(c) {
+					if ((uint32(re.rex.input.Get()) - '0') < 10) || !ed.vim_isIDc(c) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case KWORD:
-					if !ed.vim_iswordp_buf(ed.rex.input, ed.rex.reg_buf) {
+					if !ed.vim_iswordp_buf(re.rex.input, re.rex.reg_buf) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case SKWORD:
-					if ((uint32(ed.rex.input.Get()) - '0') < 10) || !ed.vim_iswordp_buf(ed.rex.input, ed.rex.reg_buf) {
+					if ((uint32(re.rex.input.Get()) - '0') < 10) || !ed.vim_iswordp_buf(re.rex.input, re.rex.reg_buf) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case FNAME:
 					if !ed.vim_isfilec(c) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case SFNAME:
-					if ((uint32(ed.rex.input.Get()) - '0') < 10) || !ed.vim_isfilec(c) {
+					if ((uint32(re.rex.input.Get()) - '0') < 10) || !ed.vim_isfilec(c) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case PRINT:
-					if !ed.vim_isprintc(ed.utf_ptr2char(ed.rex.input)) {
+					if !ed.vim_isprintc(ed.utf_ptr2char(re.rex.input)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case SPRINT:
-					if ((uint32(ed.rex.input.Get()) - '0') < 10) || !ed.vim_isprintc(ed.utf_ptr2char(ed.rex.input)) {
+					if ((uint32(re.rex.input.Get()) - '0') < 10) || !ed.vim_isprintc(ed.utf_ptr2char(re.rex.input)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case RE_WHITE:
 					if !((c == (' ')) || (c == 9)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case NWHITE:
 					if (c == NUL) || ((c == (' ')) || (c == 9)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case DIGIT:
 					if !((c < 0x100) && ((int32(ed.class_tab[int(c)]) & RI_DIGIT) != 0)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case NDIGIT:
 					if (c == NUL) || ((c < 0x100) && ((int32(ed.class_tab[int(c)]) & RI_DIGIT) != 0)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case HEX:
 					if !((c < 0x100) && ((int32(ed.class_tab[int(c)]) & RI_HEX) != 0)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case NHEX:
 					if (c == NUL) || ((c < 0x100) && ((int32(ed.class_tab[int(c)]) & RI_HEX) != 0)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case OCTAL:
 					if !((c < 0x100) && ((int32(ed.class_tab[int(c)]) & RI_OCTAL) != 0)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case NOCTAL:
 					if (c == NUL) || ((c < 0x100) && ((int32(ed.class_tab[int(c)]) & RI_OCTAL) != 0)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case WORD:
 					if !((c < 0x100) && ((int32(ed.class_tab[int(c)]) & RI_WORD) != 0)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case NWORD:
 					if (c == NUL) || ((c < 0x100) && ((int32(ed.class_tab[int(c)]) & RI_WORD) != 0)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case HEAD:
 					if !((c < 0x100) && ((int32(ed.class_tab[int(c)]) & RI_HEAD) != 0)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case NHEAD:
 					if (c == NUL) || ((c < 0x100) && ((int32(ed.class_tab[int(c)]) & RI_HEAD) != 0)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case ALPHA:
 					if !((c < 0x100) && ((int32(ed.class_tab[int(c)]) & RI_ALPHA) != 0)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case NALPHA:
 					if (c == NUL) || ((c < 0x100) && ((int32(ed.class_tab[int(c)]) & RI_ALPHA) != 0)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case LOWER:
 					if !((c < 0x100) && ((int32(ed.class_tab[int(c)]) & RI_LOWER) != 0)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case NLOWER:
 					if (c == NUL) || ((c < 0x100) && ((int32(ed.class_tab[int(c)]) & RI_LOWER) != 0)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case UPPER:
 					if !((c < 0x100) && ((int32(ed.class_tab[int(c)]) & RI_UPPER) != 0)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case NUPPER:
 					if (c == NUL) || ((c < 0x100) && ((int32(ed.class_tab[int(c)]) & RI_UPPER) != 0)) {
 						status = RA_NOMATCH
 					} else {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					}
 				case EXACTLY:
 					opnd = scan.Add(3)
-					if (int32(opnd.Get()) != int32(ed.rex.input.Get())) && (ed.rex.reg_ic == 0) {
+					if (int32(opnd.Get()) != int32(re.rex.input.Get())) && (re.rex.reg_ic == 0) {
 						status = RA_NOMATCH
 					} else if int32(opnd.Get()) == NUL {
 					} else {
-						if (int32(opnd.At(1)) == NUL) && (ed.rex.reg_ic == 0) {
+						if (int32(opnd.At(1)) == NUL) && (re.rex.reg_ic == 0) {
 							len_ = 1
 						} else {
 							len_ = int32(musl_strlen(opnd))
-							if ed.cstrncmp(opnd, ed.rex.input, &len_) != 0 {
+							if ed.cstrncmp(re, opnd, re.rex.input, &len_) != 0 {
 								status = RA_NOMATCH
 							}
 						}
-						if (((status != RA_NOMATCH) && ed.utf_iscomposing(ed.utf_ptr2char(ed.rex.input.Add(int(len_))))) && !ed.rex.reg_icombine) && (int32(next.Get()) != RE_COMPOSING) {
+						if (((status != RA_NOMATCH) && ed.utf_iscomposing(ed.utf_ptr2char(re.rex.input.Add(int(len_))))) && !re.rex.reg_icombine) && (int32(next.Get()) != RE_COMPOSING) {
 							status = RA_NOMATCH
 						}
 						if status != RA_NOMATCH {
-							ed.rex.input = ed.rex.input.Add(int(len_))
+							re.rex.input = re.rex.input.Add(int(len_))
 						}
 					}
 				case ANYOF, ANYBUT:
 					q := scan.Add(3)
 					if c == NUL {
 						status = RA_NOMATCH
-					} else if B2i(ed.cstrchr(q, c).Nil()) == B2i((op == ANYOF)) {
+					} else if B2i(ed.cstrchr(re, q, c).Nil()) == B2i((op == ANYOF)) {
 						status = RA_NOMATCH
 					} else {
 						var len__2 int32 = 0
 						len__2 = ed.utfc_ptr2len(q) - ed.utf_ptr2len(q)
-						ed.rex.input = ed.rex.input.Add(int(ed.utf_ptr2len(ed.rex.input)))
+						re.rex.input = re.rex.input.Add(int(ed.utf_ptr2len(re.rex.input)))
 						q = q.Add(int(ed.utf_ptr2len(q)))
 						if len__2 == 0 {
 							break
 						}
 						i = 0
 						for ; i < len__2; i++ {
-							if int32(q.At(int(i))) != int32(ed.rex.input.At(int(i))) {
+							if int32(q.At(int(i))) != int32(re.rex.input.At(int(i))) {
 								status = RA_NOMATCH
 								break
 							}
 						}
-						ed.rex.input = ed.rex.input.Add(int(len__2))
+						re.rex.input = re.rex.input.Add(int(len__2))
 					}
 				case MULTIBYTECODE:
 					opndc = 0
@@ -45342,125 +45502,125 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					if ed.utf_iscomposing(opndc) {
 						status = RA_NOMATCH
 						i_2 = 0
-						for ; int32(ed.rex.input.At(int(i_2))) != NUL; i_2 += ed.utf_ptr2len(ed.rex.input.Add(int(i_2))) {
-							inpc = ed.utf_ptr2char(ed.rex.input.Add(int(i_2)))
+						for ; int32(re.rex.input.At(int(i_2))) != NUL; i_2 += ed.utf_ptr2len(re.rex.input.Add(int(i_2))) {
+							inpc = ed.utf_ptr2char(re.rex.input.Add(int(i_2)))
 							if !ed.utf_iscomposing(inpc) {
 								if i_2 > 0 {
 									break
 								}
 							} else if opndc == inpc {
-								len__3 = i_2 + ed.utfc_ptr2len(ed.rex.input.Add(int(i_2)))
+								len__3 = i_2 + ed.utfc_ptr2len(re.rex.input.Add(int(i_2)))
 								status = RA_MATCH
 								break
 							}
 						}
 					} else {
-						if ed.cstrncmp(opnd_2, ed.rex.input, &len__3) != 0 {
+						if ed.cstrncmp(re, opnd_2, re.rex.input, &len__3) != 0 {
 							status = RA_NOMATCH
 							break
 						}
 					}
-					ed.rex.input = ed.rex.input.Add(int(len__3))
+					re.rex.input = re.rex.input.Add(int(len__3))
 				case RE_COMPOSING:
-					for ed.utf_iscomposing(ed.utf_ptr2char(ed.rex.input)) {
-						ed.rex.input = ed.rex.input.Add(int(ed.utf_ptr2len(ed.rex.input)))
+					for ed.utf_iscomposing(ed.utf_ptr2char(re.rex.input)) {
+						re.rex.input = re.rex.input.Add(int(ed.utf_ptr2len(re.rex.input)))
 					}
 				case NOTHING:
 				case BACK:
-					bp = GaData[S_backpos_S](&ed.backpos).Tail()
+					bp = GaData[S_backpos_S](&re.backpos).Tail()
 					i_3 = 0
-					for ; i_3 < ed.backpos.ga_len; i_3++ {
+					for ; i_3 < re.backpos.ga_len; i_3++ {
 						if bp[int(i_3)].bp_scan == scan {
 							break
 						}
 					}
-					if i_3 == ed.backpos.ga_len {
+					if i_3 == re.backpos.ga_len {
 						var t9 int32
-						if (ed.backpos.ga_maxlen - ed.backpos.ga_len) < 1 {
-							t9 = B2i(ga_grow_inner(&ed.backpos, 1))
+						if (re.backpos.ga_maxlen - re.backpos.ga_len) < 1 {
+							t9 = B2i(ga_grow_inner(&re.backpos, 1))
 						} else {
 							t9 = OK
 						}
 						if t9 == 0 {
 							status = RA_FAIL
 						} else {
-							bp = GaData[S_backpos_S](&ed.backpos).Tail()
+							bp = GaData[S_backpos_S](&re.backpos).Tail()
 							bp[int(i_3)].bp_scan = scan
-							ed.backpos.ga_len++
+							re.backpos.ga_len++
 						}
-					} else if ed.reg_save_equal(&bp[int(i_3)].bp_pos) {
+					} else if reg_save_equal(re, &bp[int(i_3)].bp_pos) {
 						status = RA_NOMATCH
 					}
 					if (status != RA_FAIL) && (status != RA_NOMATCH) {
-						ed.reg_save(&bp[int(i_3)].bp_pos, &ed.backpos)
+						reg_save(re, &bp[int(i_3)].bp_pos, &re.backpos)
 					}
 				case MOPEN + 0, MOPEN + 1, MOPEN + 2, MOPEN + 3, MOPEN + 4, MOPEN + 5, MOPEN + 6, MOPEN + 7, MOPEN + 8, MOPEN + 9:
 					no = op - MOPEN
-					ed.cleanup_subexpr()
-					rp = ed.regstack_push(RS_MOPEN, scan)
+					cleanup_subexpr(re)
+					rp = ed.regstack_push(re, RS_MOPEN, scan)
 					if rp == nil {
 						status = RA_FAIL
 					} else {
 						rp.rs_no = int16(no)
-						if ed.rex.reg_match == nil {
-							ed.save_se_multi(&rp.rs_un.sesave, ed.rex.reg_startpos.Ref(int(no)))
+						if re.rex.reg_match == nil {
+							save_se_multi(re, &rp.rs_un.sesave, re.rex.reg_startpos.Ref(int(no)))
 						} else {
-							ed.save_se_one(&rp.rs_un.sesave, ed.rex.reg_startp.Ref(int(no)))
+							save_se_one(re, &rp.rs_un.sesave, re.rex.reg_startp.Ref(int(no)))
 						}
 					}
 				case NOPEN, NCLOSE:
-					if ed.regstack_push(RS_NOPEN, scan) == nil {
+					if ed.regstack_push(re, RS_NOPEN, scan) == nil {
 						status = RA_FAIL
 					}
 				case MCLOSE + 0, MCLOSE + 1, MCLOSE + 2, MCLOSE + 3, MCLOSE + 4, MCLOSE + 5, MCLOSE + 6, MCLOSE + 7, MCLOSE + 8, MCLOSE + 9:
 					no = op - MCLOSE
-					ed.cleanup_subexpr()
-					rp = ed.regstack_push(RS_MCLOSE, scan)
+					cleanup_subexpr(re)
+					rp = ed.regstack_push(re, RS_MCLOSE, scan)
 					if rp == nil {
 						status = RA_FAIL
 					} else {
 						rp.rs_no = int16(no)
-						if ed.rex.reg_match == nil {
-							ed.save_se_multi(&rp.rs_un.sesave, ed.rex.reg_endpos.Ref(int(no)))
+						if re.rex.reg_match == nil {
+							save_se_multi(re, &rp.rs_un.sesave, re.rex.reg_endpos.Ref(int(no)))
 						} else {
-							ed.save_se_one(&rp.rs_un.sesave, ed.rex.reg_endp.Ref(int(no)))
+							save_se_one(re, &rp.rs_un.sesave, re.rex.reg_endp.Ref(int(no)))
 						}
 					}
 				case BACKREF + 1, BACKREF + 2, BACKREF + 3, BACKREF + 4, BACKREF + 5, BACKREF + 6, BACKREF + 7, BACKREF + 8, BACKREF + 9:
 					no = op - BACKREF
-					ed.cleanup_subexpr()
-					if !(ed.rex.reg_match == nil) {
-						if ed.rex.reg_startp.At(int(no)).Nil() || ed.rex.reg_endp.At(int(no)).Nil() {
+					cleanup_subexpr(re)
+					if !(re.rex.reg_match == nil) {
+						if re.rex.reg_startp.At(int(no)).Nil() || re.rex.reg_endp.At(int(no)).Nil() {
 							len__4 = 0
 						} else {
-							len__4 = int32(int64(ed.rex.reg_endp.At(int(no)).Sub(ed.rex.reg_startp.At(int(no)))))
-							if ed.cstrncmp(ed.rex.reg_startp.At(int(no)), ed.rex.input, &len__4) != 0 {
+							len__4 = int32(int64(re.rex.reg_endp.At(int(no)).Sub(re.rex.reg_startp.At(int(no)))))
+							if ed.cstrncmp(re, re.rex.reg_startp.At(int(no)), re.rex.input, &len__4) != 0 {
 								status = RA_NOMATCH
 							}
 						}
 					} else {
-						if (ed.rex.reg_startpos.Ref(int(no)).lnum < 0) || (ed.rex.reg_endpos.Ref(int(no)).lnum < 0) {
+						if (re.rex.reg_startpos.Ref(int(no)).lnum < 0) || (re.rex.reg_endpos.Ref(int(no)).lnum < 0) {
 							len__4 = 0
 						} else {
-							if (ed.rex.reg_startpos.Ref(int(no)).lnum == ed.rex.lnum) && (ed.rex.reg_endpos.Ref(int(no)).lnum == ed.rex.lnum) {
-								len__4 = ed.rex.reg_endpos.Ref(int(no)).col - ed.rex.reg_startpos.Ref(int(no)).col
-								if ed.cstrncmp(ed.rex.line.Add(int(ed.rex.reg_startpos.Ref(int(no)).col)), ed.rex.input, &len__4) != 0 {
+							if (re.rex.reg_startpos.Ref(int(no)).lnum == re.rex.lnum) && (re.rex.reg_endpos.Ref(int(no)).lnum == re.rex.lnum) {
+								len__4 = re.rex.reg_endpos.Ref(int(no)).col - re.rex.reg_startpos.Ref(int(no)).col
+								if ed.cstrncmp(re, re.rex.line.Add(int(re.rex.reg_startpos.Ref(int(no)).col)), re.rex.input, &len__4) != 0 {
 									status = RA_NOMATCH
 								}
 							} else {
-								r := ed.match_with_backref(ed.rex.reg_startpos.Ref(int(no)).lnum, ed.rex.reg_startpos.Ref(int(no)).col, ed.rex.reg_endpos.Ref(int(no)).lnum, ed.rex.reg_endpos.Ref(int(no)).col, &len__4)
+								r := ed.match_with_backref(re, re.rex.reg_startpos.Ref(int(no)).lnum, re.rex.reg_startpos.Ref(int(no)).col, re.rex.reg_endpos.Ref(int(no)).lnum, re.rex.reg_endpos.Ref(int(no)).col, &len__4)
 								if r != RA_MATCH {
 									status = r
 								}
 							}
 						}
 					}
-					ed.rex.input = ed.rex.input.Add(int(len__4))
+					re.rex.input = re.rex.input.Add(int(len__4))
 				case BRANCH:
 					if int32(next.Get()) != BRANCH {
 						next = scan.Add(3)
 					} else {
-						rp = ed.regstack_push(RS_BRANCH, scan)
+						rp = ed.regstack_push(re, RS_BRANCH, scan)
 						if rp == nil {
 							status = RA_FAIL
 						} else {
@@ -45469,62 +45629,66 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					}
 				case BRACE_LIMITS:
 					if int32(next.Get()) == BRACE_SIMPLE {
-						ed.bl_minval = ((((int64(scan.At(3)) << 24) + (int64(scan.At(4)) << 16)) + (int64(scan.At(5)) << 8)) + int64(scan.At(6)))
-						ed.bl_maxval = ((((int64(scan.Add(4).At(3)) << 24) + (int64(scan.Add(4).At(4)) << 16)) + (int64(scan.Add(4).At(5)) << 8)) + int64(scan.Add(4).At(6)))
+						re.bl_minval = ((((int64(scan.At(3)) << 24) + (int64(scan.At(4)) << 16)) + (int64(scan.At(5)) << 8)) + int64(scan.At(6)))
+						re.bl_maxval = ((((int64(scan.Add(4).At(3)) << 24) + (int64(scan.Add(4).At(4)) << 16)) + (int64(scan.Add(4).At(5)) << 8)) + int64(scan.Add(4).At(6)))
 					} else if (int32(next.Get()) >= BRACE_COMPLEX) && (int32(next.Get()) < (BRACE_COMPLEX + 10)) {
 						no = int32(next.Get()) - BRACE_COMPLEX
-						ed.brace_min[int(no)] = ((((int64(scan.At(3)) << 24) + (int64(scan.At(4)) << 16)) + (int64(scan.At(5)) << 8)) + int64(scan.At(6)))
-						ed.brace_max[int(no)] = ((((int64(scan.Add(4).At(3)) << 24) + (int64(scan.Add(4).At(4)) << 16)) + (int64(scan.Add(4).At(5)) << 8)) + int64(scan.Add(4).At(6)))
-						ed.brace_count[int(no)] = 0
+						re.brace_min[int(no)] = ((((int64(scan.At(3)) << 24) + (int64(scan.At(4)) << 16)) + (int64(scan.At(5)) << 8)) + int64(scan.At(6)))
+						re.brace_max[int(no)] = ((((int64(scan.Add(4).At(3)) << 24) + (int64(scan.Add(4).At(4)) << 16)) + (int64(scan.Add(4).At(5)) << 8)) + int64(scan.Add(4).At(6)))
+						re.brace_count[int(no)] = 0
 					} else {
-						ed.internal_error(S("BRACE_LIMITS"))
+						if !re.alone.string_.Nil() {
+							re.failed = true
+						} else {
+							ed.internal_error(S("BRACE_LIMITS"))
+						}
 						status = RA_FAIL
 					}
 				case BRACE_COMPLEX + 0, BRACE_COMPLEX + 1, BRACE_COMPLEX + 2, BRACE_COMPLEX + 3, BRACE_COMPLEX + 4, BRACE_COMPLEX + 5, BRACE_COMPLEX + 6, BRACE_COMPLEX + 7, BRACE_COMPLEX + 8, BRACE_COMPLEX + 9:
 					no = op - BRACE_COMPLEX
-					ed.brace_count[int(no)]++
+					re.brace_count[int(no)]++
 					var t10 int64
-					if ed.brace_min[int(no)] <= ed.brace_max[int(no)] {
-						t10 = ed.brace_min[int(no)]
+					if re.brace_min[int(no)] <= re.brace_max[int(no)] {
+						t10 = re.brace_min[int(no)]
 					} else {
-						t10 = ed.brace_max[int(no)]
+						t10 = re.brace_max[int(no)]
 					}
-					if int64(ed.brace_count[int(no)]) <= t10 {
-						rp = ed.regstack_push(RS_BRCPLX_MORE, scan)
+					if int64(re.brace_count[int(no)]) <= t10 {
+						rp = ed.regstack_push(re, RS_BRCPLX_MORE, scan)
 						if rp == nil {
 							status = RA_FAIL
 						} else {
 							rp.rs_no = int16(no)
-							ed.reg_save(&rp.rs_un.regsave, &ed.backpos)
+							reg_save(re, &rp.rs_un.regsave, &re.backpos)
 							next = scan.Add(3)
 						}
 						break
 					}
-					if ed.brace_min[int(no)] <= ed.brace_max[int(no)] {
-						if int64(ed.brace_count[int(no)]) <= ed.brace_max[int(no)] {
-							rp = ed.regstack_push(RS_BRCPLX_LONG, scan)
+					if re.brace_min[int(no)] <= re.brace_max[int(no)] {
+						if int64(re.brace_count[int(no)]) <= re.brace_max[int(no)] {
+							rp = ed.regstack_push(re, RS_BRCPLX_LONG, scan)
 							if rp == nil {
 								status = RA_FAIL
 							} else {
 								rp.rs_no = int16(no)
-								ed.reg_save(&rp.rs_un.regsave, &ed.backpos)
+								reg_save(re, &rp.rs_un.regsave, &re.backpos)
 								next = scan.Add(3)
 							}
 						}
 					} else {
-						if int64(ed.brace_count[int(no)]) <= ed.brace_min[int(no)] {
-							rp = ed.regstack_push(RS_BRCPLX_SHORT, scan)
+						if int64(re.brace_count[int(no)]) <= re.brace_min[int(no)] {
+							rp = ed.regstack_push(re, RS_BRCPLX_SHORT, scan)
 							if rp == nil {
 								status = RA_FAIL
 							} else {
-								ed.reg_save(&rp.rs_un.regsave, &ed.backpos)
+								reg_save(re, &rp.rs_un.regsave, &re.backpos)
 							}
 						}
 					}
 				case BRACE_SIMPLE, STAR, PLUS:
 					if int32(next.Get()) == EXACTLY {
 						rst.nextb = int32(next.Add(3).Get())
-						if ed.rex.reg_ic != 0 {
+						if re.rex.reg_ic != 0 {
 							if ed.vim_isupper(rst.nextb) {
 								rst.nextb_ic = ed.vim_tolower(rst.nextb)
 							} else {
@@ -45547,10 +45711,10 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 						rst.minval = t11
 						rst.maxval = (32767 << 16)
 					} else {
-						rst.minval = ed.bl_minval
-						rst.maxval = ed.bl_maxval
+						rst.minval = re.bl_minval
+						rst.maxval = re.bl_maxval
 					}
-					rst.count = int64(ed.regrepeat(scan.Add(3).Tail(), rst.maxval))
+					rst.count = int64(ed.regrepeat(re, scan.Add(3).Tail(), rst.maxval))
 					if ed.got_int != 0 {
 						status = RA_FAIL
 						break
@@ -45562,25 +45726,29 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 						t12 = rst.count >= rst.maxval
 					}
 					if t12 {
-						if int64((uint32(ed.regstack_bytes) >> 10)) >= ed.p_mmp {
-							ed.emsg(gettext_(ed.e_pattern_uses_more_memory_than_maxmempattern))
+						if int64((uint32(re.regstack_bytes) >> 10)) >= ed.p_mmp {
+							if !re.alone.string_.Nil() {
+								re.failed = true
+							} else {
+								ed.emsg(gettext_(ed.e_pattern_uses_more_memory_than_maxmempattern))
+							}
 							status = RA_FAIL
-						} else if !ga_grow(&ed.regstack_star, 1) {
+						} else if !ga_grow(&re.regstack_star, 1) {
 							status = RA_FAIL
 						} else {
-							ed.regstack_star.ga_len++
-							ed.regstack_bytes += 32
+							re.regstack_star.ga_len++
+							re.regstack_bytes += 32
 							var t13 regstate_T
 							if rst.minval <= rst.maxval {
 								t13 = RS_STAR_LONG
 							} else {
 								t13 = RS_STAR_SHORT
 							}
-							rp = ed.regstack_push(t13, scan)
+							rp = ed.regstack_push(re, t13, scan)
 							if rp == nil {
 								status = RA_FAIL
 							} else {
-								*ed.regstack_star_top() = rst
+								*regstack_star_top(re) = rst
 								status = RA_BREAK
 							}
 						}
@@ -45588,47 +45756,51 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 						status = RA_NOMATCH
 					}
 				case NOMATCH, MATCH, SUBPAT:
-					rp = ed.regstack_push(RS_NOMATCH, scan)
+					rp = ed.regstack_push(re, RS_NOMATCH, scan)
 					if rp == nil {
 						status = RA_FAIL
 					} else {
 						rp.rs_no = int16(op)
-						ed.reg_save(&rp.rs_un.regsave, &ed.backpos)
+						reg_save(re, &rp.rs_un.regsave, &re.backpos)
 						next = scan.Add(3)
 					}
 				case BEHIND, NOBEHIND:
-					if int64((uint32(ed.regstack_bytes) >> 10)) >= ed.p_mmp {
-						ed.emsg(gettext_(ed.e_pattern_uses_more_memory_than_maxmempattern))
+					if int64((uint32(re.regstack_bytes) >> 10)) >= ed.p_mmp {
+						if !re.alone.string_.Nil() {
+							re.failed = true
+						} else {
+							ed.emsg(gettext_(ed.e_pattern_uses_more_memory_than_maxmempattern))
+						}
 						status = RA_FAIL
-					} else if !ga_grow(&ed.regstack_behind, 1) {
+					} else if !ga_grow(&re.regstack_behind, 1) {
 						status = RA_FAIL
 					} else {
-						ed.regstack_behind.ga_len++
-						ed.regstack_bytes += 376
-						rp = ed.regstack_push(RS_BEHIND1, scan)
+						re.regstack_behind.ga_len++
+						re.regstack_bytes += 376
+						rp = ed.regstack_push(re, RS_BEHIND1, scan)
 						if rp == nil {
 							status = RA_FAIL
 						} else {
-							ed.save_subexpr(ed.regstack_behind_top())
+							save_subexpr(re, regstack_behind_top(re))
 							rp.rs_no = int16(op)
-							ed.reg_save(&rp.rs_un.regsave, &ed.backpos)
+							reg_save(re, &rp.rs_un.regsave, &re.backpos)
 						}
 					}
 				case BHPOS:
-					if ed.rex.reg_match == nil {
-						if (ed.behind_pos.rs_u.pos.col != int32(int64(ed.rex.input.Sub(ed.rex.line)))) || (ed.behind_pos.rs_u.pos.lnum != ed.rex.lnum) {
+					if re.rex.reg_match == nil {
+						if (re.behind_pos.rs_u.pos.col != int32(int64(re.rex.input.Sub(re.rex.line)))) || (re.behind_pos.rs_u.pos.lnum != re.rex.lnum) {
 							status = RA_NOMATCH
 						}
-					} else if ed.behind_pos.rs_u.ptr != ed.rex.input {
+					} else if re.behind_pos.rs_u.ptr != re.rex.input {
 						status = RA_NOMATCH
 					}
 				case NEWL:
-					if ((((c != NUL) || !(ed.rex.reg_match == nil)) || (ed.rex.lnum > ed.rex.reg_maxline)) || ed.rex.reg_line_lbr) && ((c != 10) || !ed.rex.reg_line_lbr) {
+					if ((((c != NUL) || !(re.rex.reg_match == nil)) || (re.rex.lnum > re.rex.reg_maxline)) || re.rex.reg_line_lbr) && ((c != 10) || !re.rex.reg_line_lbr) {
 						status = RA_NOMATCH
-					} else if ed.rex.reg_line_lbr {
-						ed.rex.input = ed.rex.input.Add(int(ed.utfc_ptr2len(ed.rex.input)))
+					} else if re.rex.reg_line_lbr {
+						re.rex.input = re.rex.input.Add(int(ed.utfc_ptr2len(re.rex.input)))
 					} else {
-						ed.reg_nextline()
+						ed.reg_nextline(re)
 					}
 				case END:
 					status = RA_MATCH
@@ -45643,9 +45815,9 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					idx := op - t14
 					with_nl := idx >= DELIM_NL
 					var level int32 = 1
-					s := ed.rex.input
-					save_lnum := ed.rex.lnum
-					var save_col colnr_T = int32(int64(ed.rex.input.Sub(ed.rex.line)))
+					s := re.rex.input
+					save_lnum := re.rex.lnum
+					var save_col colnr_T = int32(int64(re.rex.input.Sub(re.rex.line)))
 					if with_nl {
 						idx -= DELIM_NL
 					}
@@ -45653,11 +45825,11 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					cc = int32(int8(S(")]}>").At(int(idx))))
 					for {
 						if int32(s.Get()) == NUL {
-							if ((!with_nl || !(ed.rex.reg_match == nil)) || ed.rex.reg_line_lbr) || (ed.rex.lnum >= ed.rex.reg_maxline) {
+							if ((!with_nl || !(re.rex.reg_match == nil)) || re.rex.reg_line_lbr) || (re.rex.lnum >= re.rex.reg_maxline) {
 								break
 							}
-							ed.reg_nextline()
-							s = ed.rex.input
+							ed.reg_nextline(re)
+							s = re.rex.input
 							if ed.got_int != 0 {
 								break
 							}
@@ -45678,11 +45850,11 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 						}
 					}
 					if level >= 1 {
-						if (ed.rex.reg_match == nil) && (ed.rex.lnum != save_lnum) {
-							ed.rex.lnum = save_lnum
-							ed.rex.line = ed.reg_getline(ed.rex.lnum)
+						if (re.rex.reg_match == nil) && (re.rex.lnum != save_lnum) {
+							re.rex.lnum = save_lnum
+							re.rex.line = ed.reg_getline(re, re.rex.lnum)
 						}
-						ed.rex.input = ed.rex.line.Add(int(save_col))
+						re.rex.input = re.rex.line.Add(int(save_col))
 						status = RA_NOMATCH
 					} else {
 						var t15 Ptr[byte]
@@ -45691,10 +45863,14 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 						} else {
 							t15 = s
 						}
-						ed.rex.input = t15
+						re.rex.input = t15
 					}
 				default:
-					ed.iemsg(ed.e_corrupted_regexp_program)
+					if !re.alone.string_.Nil() {
+						re.failed = true
+					} else {
+						ed.iemsg(ed.e_corrupted_regexp_program)
+					}
 					status = RA_FAIL
 				}
 			}
@@ -45703,67 +45879,67 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 			}
 			scan = next
 		}
-		for (ed.regstack.ga_len > 0) && (status != RA_FAIL) {
-			rp = GaData[S_regitem_S](&ed.regstack).Ref(int(ed.regstack.ga_len - 1))
+		for (re.regstack.ga_len > 0) && (status != RA_FAIL) {
+			rp = GaData[S_regitem_S](&re.regstack).Ref(int(re.regstack.ga_len - 1))
 			switch rp.rs_state {
 			case RS_NOPEN:
-				ed.regstack_pop(&scan)
+				regstack_pop(re, &scan)
 			case RS_MOPEN:
 				if status == RA_NOMATCH {
-					if ed.rex.reg_match == nil {
-						ed.rex.reg_startpos.Add(int(rp.rs_no)).Put(rp.rs_un.sesave.se_u.pos)
+					if re.rex.reg_match == nil {
+						re.rex.reg_startpos.Add(int(rp.rs_no)).Put(rp.rs_un.sesave.se_u.pos)
 					} else {
-						ed.rex.reg_startp.Add(int(rp.rs_no)).Put(rp.rs_un.sesave.se_u.ptr)
+						re.rex.reg_startp.Add(int(rp.rs_no)).Put(rp.rs_un.sesave.se_u.ptr)
 					}
 				}
-				ed.regstack_pop(&scan)
+				regstack_pop(re, &scan)
 			case RS_MCLOSE:
 				if status == RA_NOMATCH {
-					if ed.rex.reg_match == nil {
-						ed.rex.reg_endpos.Add(int(rp.rs_no)).Put(rp.rs_un.sesave.se_u.pos)
+					if re.rex.reg_match == nil {
+						re.rex.reg_endpos.Add(int(rp.rs_no)).Put(rp.rs_un.sesave.se_u.pos)
 					} else {
-						ed.rex.reg_endp.Add(int(rp.rs_no)).Put(rp.rs_un.sesave.se_u.ptr)
+						re.rex.reg_endp.Add(int(rp.rs_no)).Put(rp.rs_un.sesave.se_u.ptr)
 					}
 				}
-				ed.regstack_pop(&scan)
+				regstack_pop(re, &scan)
 			case RS_BRANCH:
 				if status == RA_MATCH {
-					ed.regstack_pop(&scan)
+					regstack_pop(re, &scan)
 				} else {
 					if status != RA_BREAK {
-						ed.reg_restore(&rp.rs_un.regsave, &ed.backpos)
+						ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
 						scan = rp.rs_scan
 					}
 					if scan.Nil() || (int32(scan.Get()) != BRANCH) {
 						status = RA_NOMATCH
-						ed.regstack_pop(&scan)
+						regstack_pop(re, &scan)
 					} else {
-						rp.rs_scan = ed.regnext(scan)
-						ed.reg_save(&rp.rs_un.regsave, &ed.backpos)
+						rp.rs_scan = ed.regnext(re, scan)
+						reg_save(re, &rp.rs_un.regsave, &re.backpos)
 						scan = scan.Add(3)
 					}
 				}
 			case RS_BRCPLX_MORE:
 				if status == RA_NOMATCH {
-					ed.reg_restore(&rp.rs_un.regsave, &ed.backpos)
-					ed.brace_count[int(rp.rs_no)]--
+					ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
+					re.brace_count[int(rp.rs_no)]--
 				}
-				ed.regstack_pop(&scan)
+				regstack_pop(re, &scan)
 			case RS_BRCPLX_LONG:
 				if status == RA_NOMATCH {
-					ed.reg_restore(&rp.rs_un.regsave, &ed.backpos)
-					ed.brace_count[int(rp.rs_no)]--
+					ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
+					re.brace_count[int(rp.rs_no)]--
 					status = RA_CONT
 				}
-				ed.regstack_pop(&scan)
+				regstack_pop(re, &scan)
 				if status == RA_CONT {
-					scan = ed.regnext(scan)
+					scan = ed.regnext(re, scan)
 				}
 			case RS_BRCPLX_SHORT:
 				if status == RA_NOMATCH {
-					ed.reg_restore(&rp.rs_un.regsave, &ed.backpos)
+					ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
 				}
-				ed.regstack_pop(&scan)
+				regstack_pop(re, &scan)
 				if status == RA_NOMATCH {
 					scan = scan.Add(3)
 					status = RA_CONT
@@ -45780,113 +45956,113 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 				} else {
 					status = RA_CONT
 					if int32(rp.rs_no) != SUBPAT {
-						ed.reg_restore(&rp.rs_un.regsave, &ed.backpos)
+						ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
 					}
 				}
-				ed.regstack_pop(&scan)
+				regstack_pop(re, &scan)
 				if status == RA_CONT {
-					scan = ed.regnext(scan)
+					scan = ed.regnext(re, scan)
 				}
 			case RS_BEHIND1:
 				if status == RA_NOMATCH {
-					ed.regstack_pop(&scan)
-					ed.regstack_behind.ga_len--
-					ed.regstack_bytes -= 376
+					regstack_pop(re, &scan)
+					re.regstack_behind.ga_len--
+					re.regstack_bytes -= 376
 				} else {
-					ed.reg_save(&ed.regstack_behind_top().save_after, &ed.backpos)
-					ed.regstack_behind_top().save_behind = ed.behind_pos
-					ed.behind_pos = rp.rs_un.regsave
+					reg_save(re, &regstack_behind_top(re).save_after, &re.backpos)
+					regstack_behind_top(re).save_behind = re.behind_pos
+					re.behind_pos = rp.rs_un.regsave
 					rp.rs_state = RS_BEHIND2
-					ed.reg_restore(&rp.rs_un.regsave, &ed.backpos)
+					ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
 					scan = rp.rs_scan.Add(3).Add(4)
 				}
 			case RS_BEHIND2:
-				if (status == RA_MATCH) && ed.reg_save_equal(&ed.behind_pos) {
-					ed.behind_pos = ed.regstack_behind_top().save_behind
+				if (status == RA_MATCH) && reg_save_equal(re, &re.behind_pos) {
+					re.behind_pos = regstack_behind_top(re).save_behind
 					if int32(rp.rs_no) == BEHIND {
-						ed.reg_restore(&ed.regstack_behind_top().save_after, &ed.backpos)
+						ed.reg_restore(re, &regstack_behind_top(re).save_after, &re.backpos)
 					} else {
 						status = RA_NOMATCH
-						ed.restore_subexpr(ed.regstack_behind_top())
+						restore_subexpr(re, regstack_behind_top(re))
 					}
-					ed.regstack_pop(&scan)
-					ed.regstack_behind.ga_len--
-					ed.regstack_bytes -= 376
+					regstack_pop(re, &scan)
+					re.regstack_behind.ga_len--
+					re.regstack_bytes -= 376
 				} else {
 					no = OK
 					limit = ((((int64(rp.rs_scan.At(3)) << 24) + (int64(rp.rs_scan.At(4)) << 16)) + (int64(rp.rs_scan.At(5)) << 8)) + int64(rp.rs_scan.At(6)))
-					if ed.rex.reg_match == nil {
+					if re.rex.reg_match == nil {
 						var t18 bool = limit > 0
 						if t18 {
 							var t17 int32
-							if rp.rs_un.regsave.rs_u.pos.lnum < ed.behind_pos.rs_u.pos.lnum {
-								t17 = int32(musl_strlen(ed.rex.line))
+							if rp.rs_un.regsave.rs_u.pos.lnum < re.behind_pos.rs_u.pos.lnum {
+								t17 = int32(musl_strlen(re.rex.line))
 							} else {
-								t17 = ed.behind_pos.rs_u.pos.col
+								t17 = re.behind_pos.rs_u.pos.col
 							}
 							t18 = (int64(t17-rp.rs_un.regsave.rs_u.pos.col) >= limit)
 						}
 						if t18 {
 							no = FAIL
 						} else if rp.rs_un.regsave.rs_u.pos.col == 0 {
-							var t19 bool = rp.rs_un.regsave.rs_u.pos.lnum < ed.behind_pos.rs_u.pos.lnum
+							var t19 bool = rp.rs_un.regsave.rs_u.pos.lnum < re.behind_pos.rs_u.pos.lnum
 							if !t19 {
 								rp.rs_un.regsave.rs_u.pos.lnum--
-								t19 = ed.reg_getline(rp.rs_un.regsave.rs_u.pos.lnum).Nil()
+								t19 = ed.reg_getline(re, rp.rs_un.regsave.rs_u.pos.lnum).Nil()
 							}
 							if t19 {
 								no = FAIL
 							} else {
-								ed.reg_restore(&rp.rs_un.regsave, &ed.backpos)
-								rp.rs_un.regsave.rs_u.pos.col = int32(musl_strlen(ed.rex.line))
+								ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
+								rp.rs_un.regsave.rs_u.pos.col = int32(musl_strlen(re.rex.line))
 							}
 						} else {
-							line := ed.reg_getline(rp.rs_un.regsave.rs_u.pos.lnum)
+							line := ed.reg_getline(re, rp.rs_un.regsave.rs_u.pos.lnum)
 							rp.rs_un.regsave.rs_u.pos.col -= ed.utf_head_off(line, line.Add(int(rp.rs_un.regsave.rs_u.pos.col)).Add(-1)) + 1
 						}
 					} else {
-						if rp.rs_un.regsave.rs_u.ptr == ed.rex.line {
+						if rp.rs_un.regsave.rs_u.ptr == re.rex.line {
 							no = FAIL
 						} else {
-							rp.rs_un.regsave.rs_u.ptr = rp.rs_un.regsave.rs_u.ptr.Add(-int((ed.utf_head_off(ed.rex.line, rp.rs_un.regsave.rs_u.ptr.Add(-1)) + 1)))
-							if (limit > 0) && (int64(ed.behind_pos.rs_u.ptr.Sub(rp.rs_un.regsave.rs_u.ptr)) > limit) {
+							rp.rs_un.regsave.rs_u.ptr = rp.rs_un.regsave.rs_u.ptr.Add(-int((ed.utf_head_off(re.rex.line, rp.rs_un.regsave.rs_u.ptr.Add(-1)) + 1)))
+							if (limit > 0) && (int64(re.behind_pos.rs_u.ptr.Sub(rp.rs_un.regsave.rs_u.ptr)) > limit) {
 								no = FAIL
 							}
 						}
 					}
 					if no == OK {
-						ed.reg_restore(&rp.rs_un.regsave, &ed.backpos)
+						ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
 						scan = rp.rs_scan.Add(3).Add(4)
 						if status == RA_MATCH {
 							status = RA_NOMATCH
-							ed.restore_subexpr(ed.regstack_behind_top())
+							restore_subexpr(re, regstack_behind_top(re))
 						}
 					} else {
-						ed.behind_pos = ed.regstack_behind_top().save_behind
+						re.behind_pos = regstack_behind_top(re).save_behind
 						if int32(rp.rs_no) == NOBEHIND {
-							ed.reg_restore(&ed.regstack_behind_top().save_after, &ed.backpos)
+							ed.reg_restore(re, &regstack_behind_top(re).save_after, &re.backpos)
 							status = RA_MATCH
 						} else {
 							if status == RA_MATCH {
 								status = RA_NOMATCH
-								ed.restore_subexpr(ed.regstack_behind_top())
+								restore_subexpr(re, regstack_behind_top(re))
 							}
 						}
-						ed.regstack_pop(&scan)
-						ed.regstack_behind.ga_len--
-						ed.regstack_bytes -= 376
+						regstack_pop(re, &scan)
+						re.regstack_behind.ga_len--
+						re.regstack_bytes -= 376
 					}
 				}
 			case RS_STAR_LONG, RS_STAR_SHORT:
-				rst_2 := ed.regstack_star_top()
+				rst_2 := regstack_star_top(re)
 				if status == RA_MATCH {
-					ed.regstack_pop(&scan)
-					ed.regstack_star.ga_len--
-					ed.regstack_bytes -= 32
+					regstack_pop(re, &scan)
+					re.regstack_star.ga_len--
+					re.regstack_bytes -= 32
 					break
 				}
 				if status != RA_BREAK {
-					ed.reg_restore(&rp.rs_un.regsave, &ed.backpos)
+					ed.reg_restore(re, &rp.rs_un.regsave, &re.backpos)
 				}
 				for {
 					if status != RA_BREAK {
@@ -45895,23 +46071,25 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 							if rst_2.count < rst_2.minval {
 								break
 							}
-							if ed.rex.input == ed.rex.line {
-								if ed.rex.lnum == 0 {
+							if re.rex.input == re.rex.line {
+								if re.rex.lnum == 0 {
 									status = RA_NOMATCH
 									break
 								}
-								ed.rex.lnum--
-								ed.rex.line = ed.reg_getline(ed.rex.lnum)
-								if ed.rex.line.Nil() {
+								re.rex.lnum--
+								re.rex.line = ed.reg_getline(re, re.rex.lnum)
+								if re.rex.line.Nil() {
 									break
 								}
-								ed.rex.input = ed.rex.line.Add(int(ed.reg_getline_len(ed.rex.lnum)))
-								ed.fast_breakcheck()
+								re.rex.input = re.rex.line.Add(int(ed.reg_getline_len(re, re.rex.lnum)))
+								if re.alone.string_.Nil() {
+									ed.fast_breakcheck()
+								}
 							} else {
-								ed.rex.input = ed.rex.input.Add(-int((ed.utf_head_off(ed.rex.line, ed.rex.input.Add(-1)) + 1)))
+								re.rex.input = re.rex.input.Add(-int((ed.utf_head_off(re.rex.line, re.rex.input.Add(-1)) + 1)))
 							}
 						} else {
-							if (rst_2.count == rst_2.minval) || (ed.regrepeat(rp.rs_scan.Add(3).Tail(), 1) == 0) {
+							if (rst_2.count == rst_2.minval) || (ed.regrepeat(re, rp.rs_scan.Add(3).Tail(), 1) == 0) {
 								break
 							}
 							rst_2.count++
@@ -45922,231 +46100,241 @@ func (ed *Editor) regmatch(scan Ptr[byte], timed_out *int32) int32 {
 					} else {
 						status = RA_NOMATCH
 					}
-					if ((rst_2.nextb == NUL) || (int32(ed.rex.input.Get()) == rst_2.nextb)) || (int32(ed.rex.input.Get()) == rst_2.nextb_ic) {
-						ed.reg_save(&rp.rs_un.regsave, &ed.backpos)
-						scan = ed.regnext(rp.rs_scan)
+					if ((rst_2.nextb == NUL) || (int32(re.rex.input.Get()) == rst_2.nextb)) || (int32(re.rex.input.Get()) == rst_2.nextb_ic) {
+						reg_save(re, &rp.rs_un.regsave, &re.backpos)
+						scan = ed.regnext(re, rp.rs_scan)
 						status = RA_CONT
 						break
 					}
 				}
 				if status != RA_CONT {
-					ed.regstack_pop(&scan)
-					ed.regstack_star.ga_len--
-					ed.regstack_bytes -= 32
+					regstack_pop(re, &scan)
+					re.regstack_star.ga_len--
+					re.regstack_bytes -= 32
 					status = RA_NOMATCH
 				}
 			}
-			if (status == RA_CONT) || PtrIs(GaData[S_regitem_S](&ed.regstack).Add(int(ed.regstack.ga_len-1)), rp) {
+			if (status == RA_CONT) || PtrIs(GaData[S_regitem_S](&re.regstack).Add(int(re.regstack.ga_len-1)), rp) {
 				break
 			}
 		}
 		if status == RA_CONT {
 			continue
 		}
-		if (ed.regstack.ga_len == 0) || (status == RA_FAIL) {
+		if (re.regstack.ga_len == 0) || (status == RA_FAIL) {
 			if scan.Nil() {
-				ed.iemsg(ed.e_corrupted_regexp_program)
+				if !re.alone.string_.Nil() {
+					re.failed = true
+				} else {
+					ed.iemsg(ed.e_corrupted_regexp_program)
+				}
 			}
 			return B2i((status == RA_MATCH))
 		}
 	}
 }
 
-func (ed *Editor) regtry(prog *S_regprog, col colnr_T, timed_out *int32) int64 {
-	ed.rex.input = ed.rex.line.Add(int(col))
-	ed.rex.need_clear_subexpr = TRUE
-	if ed.regmatch(prog.program.Add(1), timed_out) == 0 {
+func (ed *Editor) regtry(re *S_regengine_S, prog *S_regprog, col colnr_T, timed_out *int32) int64 {
+	re.rex.input = re.rex.line.Add(int(col))
+	re.rex.need_clear_subexpr = TRUE
+	if ed.regmatch(re, prog.program.Add(1), timed_out) == 0 {
 		return 0
 	}
-	ed.cleanup_subexpr()
-	if ed.rex.reg_match == nil {
-		if ed.rex.reg_startpos.Ref(0).lnum < 0 {
-			ed.rex.reg_startpos.Ref(0).lnum = 0
-			ed.rex.reg_startpos.Ref(0).col = col
+	cleanup_subexpr(re)
+	if re.rex.reg_match == nil {
+		if re.rex.reg_startpos.Ref(0).lnum < 0 {
+			re.rex.reg_startpos.Ref(0).lnum = 0
+			re.rex.reg_startpos.Ref(0).col = col
 		}
-		if ed.rex.reg_endpos.Ref(0).lnum < 0 {
-			ed.rex.reg_endpos.Ref(0).lnum = ed.rex.lnum
-			ed.rex.reg_endpos.Ref(0).col = int32(int64(ed.rex.input.Sub(ed.rex.line)))
+		if re.rex.reg_endpos.Ref(0).lnum < 0 {
+			re.rex.reg_endpos.Ref(0).lnum = re.rex.lnum
+			re.rex.reg_endpos.Ref(0).col = int32(int64(re.rex.input.Sub(re.rex.line)))
 		} else {
-			ed.rex.lnum = ed.rex.reg_endpos.Ref(0).lnum
+			re.rex.lnum = re.rex.reg_endpos.Ref(0).lnum
 		}
 	} else {
-		if ed.rex.reg_startp.At(0).Nil() {
-			ed.rex.reg_startp.Set(0, ed.rex.line.Add(int(col)))
+		if re.rex.reg_startp.At(0).Nil() {
+			re.rex.reg_startp.Set(0, re.rex.line.Add(int(col)))
 		}
-		if ed.rex.reg_endp.At(0).Nil() {
-			ed.rex.reg_endp.Set(0, ed.rex.input)
+		if re.rex.reg_endp.At(0).Nil() {
+			re.rex.reg_endp.Set(0, re.rex.input)
 		}
 	}
-	return 1 + ed.rex.lnum
+	return 1 + re.rex.lnum
 }
 
-func (ed *Editor) cstrncmp__regmlen(s1 Ptr[byte], s2 Ptr[byte], s2__ *S_regprog) int32 {
-	regmlen2__ := s2__.regmlen
-	r__ := ed.cstrncmp(s1, s2, &regmlen2__)
-	s2__.regmlen = regmlen2__
-	return r__
-}
-
-func (ed *Editor) bt_regexec_both(line Ptr[byte], startcol colnr_T, timed_out *int32) int64 {
+func (ed *Editor) bt_regexec_both(re *S_regengine_S, line Ptr[byte], startcol colnr_T, timed_out *int32) int64 {
 	var prog *S_regprog
 	var s Ptr[byte]
 	col := startcol
 	var retval int64 = 0
-	if ed.regstack.ga_data == nil {
-		ga_init2(&ed.regstack, 40, REGSTACK_INITIAL/40)
-		ga_grow(&ed.regstack, REGSTACK_INITIAL/40)
-		ed.regstack.ga_growsize = (REGSTACK_INITIAL * 8) / 40
-		ga_init2(&ed.regstack_star, 32, 16)
-		ga_init2(&ed.regstack_behind, 376, 4)
+	if re.regstack.ga_data == nil {
+		ga_init2(&re.regstack, 40, REGSTACK_INITIAL/40)
+		ga_grow(&re.regstack, REGSTACK_INITIAL/40)
+		re.regstack.ga_growsize = (REGSTACK_INITIAL * 8) / 40
+		ga_init2(&re.regstack_star, 32, 16)
+		ga_init2(&re.regstack_behind, 376, 4)
 	}
-	if ed.backpos.ga_data == nil {
-		ga_init2(&ed.backpos, 32, BACKPOS_INITIAL)
-		ga_grow(&ed.backpos, BACKPOS_INITIAL)
-		ed.backpos.ga_growsize = BACKPOS_INITIAL * 8
+	if re.backpos.ga_data == nil {
+		ga_init2(&re.backpos, 32, BACKPOS_INITIAL)
+		ga_grow(&re.backpos, BACKPOS_INITIAL)
+		re.backpos.ga_growsize = BACKPOS_INITIAL * 8
 	}
-	if ed.rex.reg_match == nil {
-		prog = ed.rex.reg_mmatch.regprog
-		line = ed.reg_getline(0)
-		ed.rex.reg_startpos = View(ed.rex.reg_mmatch.startpos[:])
-		ed.rex.reg_endpos = View(ed.rex.reg_mmatch.endpos[:])
+	if re.rex.reg_match == nil {
+		prog = re.rex.reg_mmatch.regprog
+		line = ed.reg_getline(re, 0)
+		re.rex.reg_startpos = View(re.rex.reg_mmatch.startpos[:])
+		re.rex.reg_endpos = View(re.rex.reg_mmatch.endpos[:])
 	} else {
-		prog = ed.rex.reg_match.regprog
-		ed.rex.reg_startp = View(ed.rex.reg_match.startp[:])
-		ed.rex.reg_endp = View(ed.rex.reg_match.endp[:])
+		prog = re.rex.reg_match.regprog
+		re.rex.reg_startp = View(re.rex.reg_match.startp[:])
+		re.rex.reg_endp = View(re.rex.reg_match.endp[:])
 	}
 	for {
 		if (prog == nil) || line.Nil() {
-			ed.iemsg(ed.e_null_argument)
+			if !re.alone.string_.Nil() {
+				re.failed = true
+			} else {
+				ed.iemsg(ed.e_null_argument)
+			}
 			break
 		}
-		if ed.prog_magic_wrong() {
+		if ed.prog_magic_wrong(re) {
 			break
 		}
-		if (ed.rex.reg_maxcol > 0) && (col >= ed.rex.reg_maxcol) {
+		if (re.rex.reg_maxcol > 0) && (col >= re.rex.reg_maxcol) {
 			break
 		}
 		if prog.regflags&RF_ICASE != 0 {
-			ed.rex.reg_ic = TRUE
+			re.rex.reg_ic = TRUE
 		} else if prog.regflags&RF_NOICASE != 0 {
-			ed.rex.reg_ic = FALSE
+			re.rex.reg_ic = FALSE
 		}
 		if prog.regflags&RF_ICOMBINE != 0 {
-			ed.rex.reg_icombine = true
+			re.rex.reg_icombine = true
+		}
+		if (!prog.regmust.Nil() && !re.alone.string_.Nil()) && ((re.rex.reg_ic != 0) || re.rex.reg_icombine) {
+			re.failed = true
+			break
 		}
 		if !prog.regmust.Nil() {
-			var c int32 = ed.utf_ptr2char(prog.regmust)
+			var c int32
+			regmlen := prog.regmlen
+			c = ed.utf_ptr2char(prog.regmust)
 			s = line.Add(int(col))
-			if ed.rex.reg_ic == 0 {
+			if re.rex.reg_ic == 0 {
 				for {
 					s = ed.vim_strchr(s, c)
 					if s.Nil() {
 						break
 					}
-					if ed.cstrncmp__regmlen(s, prog.regmust, prog) == 0 {
+					if ed.cstrncmp(re, s, prog.regmust, &regmlen) == 0 {
 						break
 					}
 					s = s.Add(int(ed.utfc_ptr2len(s)))
 				}
 			} else {
 				for {
-					s = ed.cstrchr(s, c)
+					s = ed.cstrchr(re, s, c)
 					if s.Nil() {
 						break
 					}
-					if ed.cstrncmp__regmlen(s, prog.regmust, prog) == 0 {
+					if ed.cstrncmp(re, s, prog.regmust, &regmlen) == 0 {
 						break
 					}
 					s = s.Add(int(ed.utfc_ptr2len(s)))
 				}
 			}
+			if re.alone.string_.Nil() {
+				prog.regmlen = regmlen
+			}
 			if s.Nil() {
 				break
 			}
 		}
-		ed.rex.line = line
-		ed.rex.lnum = 0
-		ed.reg_toolong = FALSE
+		re.rex.line = line
+		re.rex.lnum = 0
+		re.reg_toolong = FALSE
 		if prog.reganch != 0 {
-			var c_2 int32 = ed.utf_ptr2char(ed.rex.line.Add(int(col)))
-			if ((prog.regstart == NUL) || (prog.regstart == c_2)) || ((ed.rex.reg_ic != 0) && ((ed.utf_fold(prog.regstart) == ed.utf_fold(c_2)) || (((c_2 < 255) && (prog.regstart < 255)) && (ed.vim_tolower(prog.regstart) == ed.vim_tolower(c_2))))) {
-				retval = ed.regtry(prog, col, timed_out)
+			var c_2 int32 = ed.utf_ptr2char(re.rex.line.Add(int(col)))
+			if ((prog.regstart == NUL) || (prog.regstart == c_2)) || ((re.rex.reg_ic != 0) && ((ed.utf_fold(prog.regstart) == ed.utf_fold(c_2)) || (((c_2 < 255) && (prog.regstart < 255)) && (ed.vim_tolower(prog.regstart) == ed.vim_tolower(c_2))))) {
+				retval = ed.regtry(re, prog, col, timed_out)
 			} else {
 				retval = 0
 			}
 		} else {
 			for ed.got_int == 0 {
 				if prog.regstart != NUL {
-					s = ed.cstrchr(ed.rex.line.Add(int(col)), prog.regstart)
+					s = ed.cstrchr(re, re.rex.line.Add(int(col)), prog.regstart)
 					if s.Nil() {
 						retval = 0
 						break
 					}
-					col = int32(int64(s.Sub(ed.rex.line)))
+					col = int32(int64(s.Sub(re.rex.line)))
 				}
-				if (ed.rex.reg_maxcol > 0) && (col >= ed.rex.reg_maxcol) {
+				if (re.rex.reg_maxcol > 0) && (col >= re.rex.reg_maxcol) {
 					retval = 0
 					break
 				}
-				retval = ed.regtry(prog, col, timed_out)
+				retval = ed.regtry(re, prog, col, timed_out)
 				if retval > 0 {
 					break
 				}
-				if ed.rex.lnum != 0 {
-					ed.rex.lnum = 0
-					ed.rex.line = ed.reg_getline(0)
+				if re.rex.lnum != 0 {
+					re.rex.lnum = 0
+					re.rex.line = ed.reg_getline(re, 0)
 				}
-				if int32(ed.rex.line.At(int(col))) == NUL {
+				if int32(re.rex.line.At(int(col))) == NUL {
 					break
 				}
-				col += ed.utfc_ptr2len(ed.rex.line.Add(int(col)))
+				col += ed.utfc_ptr2len(re.rex.line.Add(int(col)))
 			}
 		}
 		break
 	}
-	if ed.reg_tofreelen > 400 {
-		ed.reg_tofree = Ptr[byte]{}
+	if re.reg_tofreelen > 400 {
+		re.reg_tofree = Ptr[byte]{}
 	}
-	if ed.regstack.ga_maxlen > 51 {
-		ga_clear(&ed.regstack)
+	if re.regstack.ga_maxlen > 51 {
+		ga_clear(&re.regstack)
 	}
-	if ed.backpos.ga_maxlen > BACKPOS_INITIAL {
-		ga_clear(&ed.backpos)
+	if re.backpos.ga_maxlen > BACKPOS_INITIAL {
+		ga_clear(&re.backpos)
 	}
 	if retval > 0 {
-		if ed.rex.reg_match == nil {
-			var start *lpos_T = &ed.rex.reg_mmatch.startpos[0]
-			var end *lpos_T = &ed.rex.reg_mmatch.endpos[0]
+		if re.rex.reg_match == nil {
+			var start *lpos_T = &re.rex.reg_mmatch.startpos[0]
+			var end *lpos_T = &re.rex.reg_mmatch.endpos[0]
 			if (end.lnum < start.lnum) || ((end.lnum == start.lnum) && (end.col < start.col)) {
-				ed.rex.reg_mmatch.endpos[0] = ed.rex.reg_mmatch.startpos[0]
+				re.rex.reg_mmatch.endpos[0] = re.rex.reg_mmatch.startpos[0]
 			}
-			ed.rex.reg_mmatch.rmm_matchcol = col
+			re.rex.reg_mmatch.rmm_matchcol = col
 		} else {
-			if ed.rex.reg_match.endp[0].Lt(ed.rex.reg_match.startp[0]) {
-				ed.rex.reg_match.endp[0] = ed.rex.reg_match.startp[0]
+			if re.rex.reg_match.endp[0].Lt(re.rex.reg_match.startp[0]) {
+				re.rex.reg_match.endp[0] = re.rex.reg_match.startp[0]
 			}
-			ed.rex.reg_match.rm_matchcol = col
+			re.rex.reg_match.rm_matchcol = col
 		}
 	}
 	return retval
 }
 
-func (ed *Editor) bt_regexec_nl(rmp *regmatch_T, line Ptr[byte], col colnr_T, line_lbr bool) int32 {
-	ed.rex.reg_match = rmp
-	ed.rex.reg_mmatch = nil
-	ed.rex.reg_maxline = 0
-	ed.rex.reg_line_lbr = (line_lbr)
-	ed.rex.reg_buf = ed.curbuf
-	ed.rex.reg_win = nil
-	ed.rex.reg_ic = B2i(rmp.rm_ic)
-	ed.rex.reg_icombine = false
-	ed.rex.reg_maxcol = 0
-	return int32(ed.bt_regexec_both(line, col, nil))
+func (ed *Editor) bt_regexec_nl(re *S_regengine_S, rmp *regmatch_T, line Ptr[byte], col colnr_T, line_lbr bool) int32 {
+	re.rex.reg_match = rmp
+	re.rex.reg_mmatch = nil
+	re.rex.reg_maxline = 0
+	re.rex.reg_line_lbr = (line_lbr)
+	re.rex.reg_buf = ed.curbuf
+	re.rex.reg_win = nil
+	re.rex.reg_ic = B2i(rmp.rm_ic)
+	re.rex.reg_icombine = false
+	re.rex.reg_maxcol = 0
+	return int32(ed.bt_regexec_both(re, line, col, nil))
 }
 
-func (ed *Editor) bt_regexec_multi(rmp *regmmatch_T, win *S_window_S, buf *S_file_buffer, lnum linenr_T, col colnr_T, timed_out *int32) int64 {
-	ed.init_regexec_multi(rmp, win, buf, lnum)
-	return ed.bt_regexec_both(Ptr[byte]{}, col, timed_out)
+func (ed *Editor) bt_regexec_multi(re *S_regengine_S, rmp *regmmatch_T, win *S_window_S, buf *S_file_buffer, lnum linenr_T, col colnr_T, timed_out *int32) int64 {
+	init_regexec_multi(re, rmp, win, buf, lnum)
+	return ed.bt_regexec_both(re, Ptr[byte]{}, col, timed_out)
 }
 
 func re_num_cmp(val long_u, scan Ptr[byte]) bool {
@@ -46161,10 +46349,11 @@ func re_num_cmp(val long_u, scan Ptr[byte]) bool {
 }
 
 func (ed *Editor) vim_regcomp(expr_arg Ptr[byte], re_flags int32) *S_regprog {
+	re := &ed.reg_engine
 	var prog *S_regprog = nil
 	expr := expr_arg
-	ed.rex.reg_buf = ed.curbuf
-	prog = ed.bt_regcomp(expr, re_flags)
+	re.rex.reg_buf = ed.curbuf
+	prog = ed.bt_regcomp(re, expr, re_flags)
 	if prog != nil {
 		prog.re_engine = BACKTRACKING_ENGINE
 		prog.re_flags = uint32(re_flags)
@@ -46179,27 +46368,28 @@ func vim_regfree(prog *S_regprog) {
 }
 
 func (ed *Editor) vim_regexec_string(rmp *regmatch_T, line Ptr[byte], col colnr_T, nl bool) bool {
+	re := &ed.reg_engine
 	var result int32
 	var rex_save regexec_T
-	rex_in_use_save := ed.rex_in_use
+	rex_in_use_save := re.rex_in_use
 	if rmp.regprog.re_in_use {
 		ed.emsg(gettext_(ed.e_cannot_use_pattern_recursively))
 		return false
 	}
 	rmp.regprog.re_in_use = true
-	if ed.rex_in_use != 0 {
-		rex_save = ed.rex
+	if re.rex_in_use != 0 {
+		rex_save = re.rex
 	}
-	ed.rex_in_use = TRUE
-	ed.rex.reg_startp = Ptr[Ptr[byte]]{}
-	ed.rex.reg_endp = Ptr[Ptr[byte]]{}
-	ed.rex.reg_startpos = Ptr[lpos_T]{}
-	ed.rex.reg_endpos = Ptr[lpos_T]{}
-	result = ed.bt_regexec_nl(rmp, line, col, (nl))
+	re.rex_in_use = TRUE
+	re.rex.reg_startp = Ptr[Ptr[byte]]{}
+	re.rex.reg_endp = Ptr[Ptr[byte]]{}
+	re.rex.reg_startpos = Ptr[lpos_T]{}
+	re.rex.reg_endpos = Ptr[lpos_T]{}
+	result = ed.bt_regexec_nl(re, rmp, line, col, (nl))
 	rmp.regprog.re_in_use = false
-	ed.rex_in_use = rex_in_use_save
-	if ed.rex_in_use != 0 {
-		ed.rex = rex_save
+	re.rex_in_use = rex_in_use_save
+	if re.rex_in_use != 0 {
+		re.rex = rex_save
 	}
 	return result > 0
 }
@@ -46208,24 +46398,104 @@ func (ed *Editor) vim_regexec(rmp *regmatch_T, line Ptr[byte], col colnr_T) bool
 	return (ed.vim_regexec_string(rmp, line, col, false))
 }
 
+func (ed *Editor) match_chunk(re *S_regengine_S, rmp *regmmatch_T, do_all bool, buf *S_file_buffer, lines Ptr[string_T], line1 linenr_T, from linenr_T, to linenr_T, found Ptr[linefound_T]) {
+	m := (*rmp)
+	var searches S_growarray
+	var pos S_growarray
+	ga_init2(&searches, 32, 64)
+	ga_init2(&pos, 16, 64)
+	i := from
+	for ; (i < to) && !re.failed; i++ {
+		line := lines.Ref(int(i)).string_
+		var col colnr_T = 0
+		var matchcol colnr_T = 0
+		var prev_matchcol colnr_T = MAXCOL
+		first := searches.ga_len
+		re.alone = *lines.Ref(int(i))
+		for {
+			r := ed.bt_regexec_multi(re, &m, ed.curwin, buf, line1+i, col, nil)
+			if (re.failed || !ga_grow(&searches, 1)) || !ga_grow(&pos, 2*NSUBEXP) {
+				re.failed = true
+				break
+			}
+			var s *regsearch_T = GaData[regsearch_T](&searches).Ref(int(searches.ga_len))
+			searches.ga_len++
+			s.col = col
+			var t1 int64
+			if r <= 0 {
+				t1 = 0
+			} else {
+				t1 = r
+			}
+			s.nmatch = t1
+			s.matchcol = m.rmm_matchcol
+			s.nsub = 0
+			s.pos = pos.ga_len
+			if s.nmatch == 0 {
+				break
+			}
+			var k int32 = 0
+			for ; k < NSUBEXP; k++ {
+				if (((m.startpos[int(k)].lnum != -1) || (m.startpos[int(k)].col != -1)) || (m.endpos[int(k)].lnum != -1)) || (m.endpos[int(k)].col != -1) {
+					s.nsub = k + 1
+				}
+			}
+			var k_2 int32 = 0
+			for ; k_2 < s.nsub; k_2++ {
+				var t2 int32 = pos.ga_len
+				pos.ga_len++
+				GaData[lpos_T](&pos).Set(int(t2), m.startpos[int(k_2)])
+				var t3 int32 = pos.ga_len
+				pos.ga_len++
+				GaData[lpos_T](&pos).Set(int(t3), m.endpos[int(k_2)])
+			}
+			if !do_all {
+				break
+			}
+			if (matchcol == prev_matchcol) && (m.endpos[0].col == matchcol) {
+				if int32(line.At(int(matchcol))) == NUL {
+					break
+				}
+				matchcol += ed.utfc_ptr2len(line.Add(int(matchcol)))
+			} else {
+				matchcol = m.endpos[0].col
+				prev_matchcol = matchcol
+			}
+			if int32(line.At(int(matchcol))) == NUL {
+				break
+			}
+			col = matchcol
+		}
+		found.Ref(int(i)).n = searches.ga_len - first
+		found.Ref(int(i)).next = first
+	}
+	i_2 := from
+	for ; i_2 < to; i_2++ {
+		found.Ref(int(i_2)).searches = GaData[regsearch_T](&searches).Add(int(found.Ref(int(i_2)).next))
+		found.Ref(int(i_2)).pos = GaData[lpos_T](&pos).Tail()
+		found.Ref(int(i_2)).next = 0
+	}
+}
+
 func (ed *Editor) vim_regexec_multi(rmp *regmmatch_T, win *S_window_S, buf *S_file_buffer, lnum linenr_T, col colnr_T, timed_out *int32) int64 {
+	re := &ed.reg_engine
 	var result int32
 	var rex_save regexec_T
-	rex_in_use_save := ed.rex_in_use
+	rex_in_use_save := re.rex_in_use
 	if rmp.regprog.re_in_use {
 		ed.emsg(gettext_(ed.e_cannot_use_pattern_recursively))
 		return FALSE
 	}
 	rmp.regprog.re_in_use = true
-	if ed.rex_in_use != 0 {
-		rex_save = ed.rex
+	if re.rex_in_use != 0 {
+		rex_save = re.rex
 	}
-	ed.rex_in_use = TRUE
-	result = int32(ed.bt_regexec_multi(rmp, win, buf, lnum, col, timed_out))
+	re.rex_in_use = TRUE
+	result = int32(ed.bt_regexec_multi(re, rmp, win, buf, lnum, col, timed_out))
 	rmp.regprog.re_in_use = false
-	ed.rex_in_use = rex_in_use_save
-	if ed.rex_in_use != 0 {
-		ed.rex = rex_save
+	re.rex_in_use = rex_in_use_save
+	if re.rex_in_use != 0 {
+		re.rex = rex_save
 	}
 	var t1 int64
 	if result <= 0 {

@@ -66,4 +66,26 @@ ex_errors	:nosuchcommand\r:s/x/y/\r:q!\r
 regex_errors	/\\%[\r/\\zx\r/a\\@\r/\\(\\(\\(\\(\\(\\(\\(\\(\\(\\(\r:q!\r
 removed	:let x = 1\r:echo 1 + 1\r:q!\r
 version	:version\r\r:q!\r
+par_literal	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:%s/the/THE/g\r:set nomore\r:%p\r:q!\r
+par_class	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:%s/[ab]\\+c/X/g\r:set nomore\r:%p\r:q!\r
+par_branch	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:%s/\\v(a|b)+c/X/g\r:set nomore\r:%p\r:q!\r
+par_number	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:%s/\\<\\d*[05]\\>/<&>/\r:set nomore\r:%p\r:q!\r
+par_empty	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:%s/x*/-/g\r:set nomore\r:%p\r:q!\r
+par_split	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:%s/abc/1\\r2/g\r:%s/abba/Y/g\r:set nomore\r:%p\r:q!\r
+par_join	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:%s/ABC.*\\n/J/\r:set nomore\r:%p\r:q!\r
+par_cursor	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x011500G:%s/\\%#\\d\\+/C/\r:set nomore\r:%p\r:q!\r
+par_visual	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x011400GVjj\e:%s/\\%Vab/V/g\r:set nomore\r:%p\r:q!\r
+par_mark	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x012100Gma:%s/\\%'a\\d/M/\r:set nomore\r:%p\r:q!\r
+par_lnum	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:%s/abc\\|\\%2000l\\d\\+/<&>\\r/g\r:set nomore\r:%p\r:q!\r
+par_behind	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:%s/\\(ab\\)\\@<=c/C/g\r:set nomore\r:%p\r:q!\r
+par_backref	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:%s/\\v(a)(b)\\2\\1/[\\1\\2]/g\r:set nomore\r:%p\r:q!\r
+par_count	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:%s/ab/xx/gn\r:set nomore\r:%p\r:q!\r
+par_ignorecase	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:%s/abc/q/gi\r:set nomore\r:%p\r:q!\r
+par_confirm	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:%s/abba/Z/gc\ryyn\x05yyq:set nomore\r:%p\r:q!\r
+par_repeat	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:%s/abab/1/\r:%&&\r:%~\r:set nomore\r:%p\r:q!\r
+par_undo	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:%s/cat/dog/g\ru\x12:set nomore\r:%p\r:q!\r
+par_range	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:1000,2000s/cat/dog/g\r:set nomore\r:%p\r:q!\r
+par_global	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:g/7 /s/a/A/g\r:set nomore\r:%p\r:q!\r
+par_nomatch	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:%s/nomatch/x/\r:set nomore\r:%p\r:q!\r
+par_mmp	i0 the cat abab abc x\r0 foo(a, b) = abba; the end\r0 needle and ABC cabbage\eggVGy999PggVGg\x01:set mmp=1\r:silent! %s/\\v(.)*$/X/g\r:set nomore\r:%p\r:q!\r
 ```

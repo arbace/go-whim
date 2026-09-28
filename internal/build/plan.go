@@ -794,4 +794,12 @@ var Plan = []Phase{
 		Steps: []Step{
 			{Op: "memberout"},
 		}},
+	{N: 176, Name: "the regex engine's state is a parameter",
+		Steps: []Step{
+			{Op: "stateparam", Args: []string{"--at-least", "43"}},
+		}},
+	{N: 177, Name: "a line's match on its own",
+		Steps: []Step{
+			{Op: "edit", Args: []string{"whim177"}},
+		}},
 }

@@ -31,7 +31,8 @@ the Java backend's type and pointer decisions whole (`jgen`), and a lowered
 form -- a function as basic blocks, 1,800 lines, printable back as C -- sits
 under the Clojure printer alone. There is already one per-target escape
 hatch: `Profile.RuntimeBodies`, a function whose body each target writes
-natively (used once, for `ga_grow_inner`).
+natively (used for `ga_grow_inner`, and for `match_lines`, the parallel
+`:%s`'s primitive: phases 176-177).
 
 ## Should editor.go be the centre?
 
@@ -81,23 +82,31 @@ It is a range that gives a substitution work to share: `:%s` (every line),
 `1,$`, a visual range, `:g/.../s//`. A bare `:s` substitutes in one line and
 gains nothing.
 
-It is a refactor of the C first, then one primitive:
+It was built as a refactor of the C first, then one primitive (2026-09-28;
+`internal/phase/176` and `177` have the account and the measurements):
 
-1. **A phase: the regex engine's state is a parameter.** Today it is global
-   -- `rex` (307 uses) and the `reg_*` flags -- so no two matches can run at
-   once. As a struct passed in, the C reads better too.
-2. **A phase: `ex_substitute` becomes snapshot, match, apply.** Copy the
-   range's lines first (`ml_get` writes its line cache on every read, so it
-   is not safe to call concurrently); find the matches with a new function,
-   `match_lines(state, lines, n, results)`, pure given its inputs; then apply
-   them in order, keeping undo, marks and messages exactly as they are.
+1. **Phase 176: the regex engine's state is a parameter.** `rex`, its
+   stacks and the look-behind and brace variables are one struct,
+   `regengine_T`, handed down from the four functions the editor calls the
+   engine by -- a generic transform, `crefactor/xform`'s `StateParam`.
+2. **Phase 177: a line's match on its own.** Not the split into snapshot,
+   match and apply sketched here first: the engine can match one line
+   handed to it and nothing else, and fails where a match would need more
+   (another line, the cursor, a mark, a message); `match_lines` makes every
+   search `ex_substitute`'s loop will make on each line of the range, that
+   way, and records them; and the loop, left as it was, takes a search's
+   answer from the record when it holds that search. So nothing about undo,
+   marks, splits or messages moved, and a pattern that needs more simply
+   takes today's path.
 3. **Per target: `match_lines`'s parallel body** -- goroutines over chunks in
-   Go, a fork-join pool in Java, `pmap` or futures in Clojure.
+   Go (`editor/chunks.go`), the common fork-join pool in Java and Clojure
+   (`Rt.chunks`), each chunk on an engine of its own; `RuntimeBodies` is the
+   mechanism.
 
 Only the matching runs in parallel, so the speed-up is bounded by the share
-of the time that is matching (Amdahl). A replacement with `\=` expressions,
-or a pattern whose matching has side effects, stays on the sequential path,
-which the phase detects. `PARALLEL-SUBSTITUTE.md` measures that share.
+of the time that is matching (Amdahl): at 500,000 lines the Go editor gained
+27 times on a backtracking pattern and 1.7 on a literal that hits most
+lines.
 
 ## An intermediate representation
 
@@ -141,7 +150,8 @@ shared decisions one piece at a time, the suites green throughout.
 
 - **The C stays the centre** for behaviour.
 - **The parallel `:%s` now,** as two C phases and a primitive with per-target
-  bodies: the cheapest route to the 64 cores, and fully verifiable.
+  bodies: the cheapest route to the 64 cores, and fully verifiable. Done:
+  phases 176-177.
 - **The IR is the long-term architecture:** start it when there are several
   speed features to share, not for one.
 - **`editor.go` is not the centre.**

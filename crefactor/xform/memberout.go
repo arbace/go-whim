@@ -621,10 +621,14 @@ func wrapper(src []byte, fd *cc.FunctionDefinition, name string, args []moArg) (
 // its name's, where the canonical print writes its specifiers (`    static
 // char_u *`).  A span of the definition does not reach them, and one of its
 // specifiers reaches what the parser makes up (__func__'s declaration).
-func defStart(fd *cc.FunctionDefinition, src []byte) int {
-	a := declName(fd.Declarator)
+func defStart(fd *cc.FunctionDefinition, src []byte) int { return declStart(fd.Declarator, src) }
+
+// declStart is defStart for a function's declarator, a definition's or a
+// prototype's.
+func declStart(d *cc.Declarator, src []byte) int {
+	a := declName(d)
 	if a < 0 {
-		a, _ = sweep.Span(fd.Declarator, file, src)
+		a, _ = sweep.Span(d, file, src)
 	}
 	for a > 0 && src[a-1] != '\n' {
 		a--

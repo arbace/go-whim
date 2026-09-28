@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import whim.host.Exit;
 import whim.host.Host;
 import whim.host.Printf;
@@ -252,11 +253,11 @@ final class Whim extends Editor implements Printf.Core {
     // (and its exhaustion message) are kept.  They are the core's, not a
     // Host's.
     static final long HOST_ARENA_BYTES = 1024L * 1024 * 1024;
-    private long hostArenaUsed;
+    private final AtomicLong hostArenaUsed = new AtomicLong();
 
-    private void hostArenaExhausted(long n) {
+    private void hostArenaExhausted(long n, long used) {
         String m = "whim-vim: host arena exhausted: " + Long.toUnsignedString(HOST_ARENA_BYTES) + " bytes, "
-                + Long.toUnsignedString(hostArenaUsed) + " used, request " + Long.toUnsignedString(n) + "\n";
+                + Long.toUnsignedString(used) + " used, request " + Long.toUnsignedString(n) + "\n";
         BytePtr b = BytePtr.alloc(m.length() + 1);
         for (int i = 0; i < m.length(); i++) {
             b.set(i, (byte) m.charAt(i));
@@ -265,14 +266,18 @@ final class Whim extends Editor implements Printf.Core {
         host_exit(1);
     }
 
-    /** n zeroed bytes, a BytePtr as Object: the storage a C allocation is. */
+    /**
+     * n zeroed bytes, a BytePtr as Object: the storage a C allocation is.  The
+     * count is added to atomically: the regex engine may run on several
+     * threads at once (Rt.chunks), each allocating.
+     */
     @Override
     Object host_alloc(long n) {
         long want = (n + 15) & ~15L; // alignof(max_align_t) is 16
-        if (Long.compareUnsigned(want, n) < 0 || Long.compareUnsigned(want, HOST_ARENA_BYTES - hostArenaUsed) > 0) {
-            hostArenaExhausted(n);
+        long used = hostArenaUsed.getAndAdd(want);
+        if (Long.compareUnsigned(want, n) < 0 || Long.compareUnsigned(want, HOST_ARENA_BYTES - used) > 0) {
+            hostArenaExhausted(n, used);
         }
-        hostArenaUsed += want;
         return BytePtr.alloc(n);
     }
 

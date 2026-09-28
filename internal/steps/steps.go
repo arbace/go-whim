@@ -110,6 +110,7 @@ var ops = map[string]Step{
 	"gotoloop":          Step(xform.GotoLoop()),
 	"gotoblock":         Step(xform.GotoBlock()),
 	"memberout":         Step(xform.MemberOut(whim.Core)),
+	"stateparam":        Step(xform.StateParam(whim.RegEngine)),
 	"query-empty":       queryEmpty,
 	"query-dropoptions": queryDropOptions,
 }

@@ -314,6 +314,8 @@ func ex_change(eap *S_exarg)
 func ex_z(eap *S_exarg)
 func skip_substitute(start Ptr[byte], delimiter int32) Ptr[byte]
 func check_regexp_delim(c int32) bool
+func match_range(rmp *regmmatch_T, do_all bool, line1 linenr_T, line2 linenr_T) Ptr[linefound_T]
+func search_found(found Ptr[linefound_T], line1 linenr_T, count linenr_T, rmp *regmmatch_T, lnum linenr_T, col colnr_T) int64
 func ex_substitute(eap *S_exarg)
 func do_sub_msg(count_only int32) bool
 func global_exe_one(cmd Ptr[byte], lnum linenr_T)
@@ -1298,71 +1300,72 @@ func gethexchrs(maxinputlen int32) vimlong_T
 func getdecchrs() vimlong_T
 func getoctchrs() int64
 func read_limits(minval *int64, maxval *int64) int32
-func reg_iswordc(c int32) bool
-func reg_getline_common(lnum linenr_T, flags reg_getline_flags_T, line *Ptr[byte], length *colnr_T)
-func reg_getline(lnum linenr_T) Ptr[byte]
-func reg_getline_len(lnum linenr_T) colnr_T
-func reg_prev_class() int32
-func reg_match_visual() bool
-func prog_magic_wrong() bool
-func cleanup_subexpr()
-func reg_nextline()
-func match_with_backref(start_lnum linenr_T, start_col colnr_T, end_lnum linenr_T, end_col colnr_T, bytelen *int32) int32
+func reg_iswordc(re *S_regengine_S, c int32) bool
+func reg_getline_common(re *S_regengine_S, lnum linenr_T, flags reg_getline_flags_T, line *Ptr[byte], length *colnr_T)
+func reg_getline(re *S_regengine_S, lnum linenr_T) Ptr[byte]
+func reg_getline_len(re *S_regengine_S, lnum linenr_T) colnr_T
+func reg_prev_class(re *S_regengine_S) int32
+func reg_match_visual(re *S_regengine_S) bool
+func prog_magic_wrong(re *S_regengine_S) bool
+func cleanup_subexpr(re *S_regengine_S)
+func reg_nextline(re *S_regengine_S)
+func match_with_backref(re *S_regengine_S, start_lnum linenr_T, start_col colnr_T, end_lnum linenr_T, end_col colnr_T, bytelen *int32) int32
 func re_mult_next(what Ptr[byte]) bool
 func mb_decompose(c int32, c1 *int32, c2 *int32, c3 *int32)
-func cstrncmp(s1 Ptr[byte], s2 Ptr[byte], n *int32) int32
-func cstrchr(s Ptr[byte], c int32) Ptr[byte]
+func cstrncmp(re *S_regengine_S, s1 Ptr[byte], s2 Ptr[byte], n *int32) int32
+func cstrchr(re *S_regengine_S, s Ptr[byte], c int32) Ptr[byte]
 func do_upper(d *int32, c int32)
 func do_lower(d *int32, c int32)
 func regtilde(source Ptr[byte], magic int32) Ptr[byte]
 func vim_regsub_multi(rmp *regmmatch_T, lnum linenr_T, source Ptr[byte], dest Ptr[byte], destlen int32, flags int32) int32
-func vim_regsub_both(source Ptr[byte], dest Ptr[byte], destlen int32, flags int32) int32
-func init_regexec_multi(rmp *regmmatch_T, win *S_window_S, buf *S_file_buffer, lnum linenr_T)
-func regcomp_start(expr Ptr[byte], re_flags int32)
+func vim_regsub_both(re *S_regengine_S, source Ptr[byte], dest Ptr[byte], destlen int32, flags int32) int32
+func init_regexec_multi(re *S_regengine_S, rmp *regmmatch_T, win *S_window_S, buf *S_file_buffer, lnum linenr_T)
+func regcomp_start(re *S_regengine_S, expr Ptr[byte], re_flags int32)
 func use_multibytecode(c int32) bool
 func regc(b int32)
 func regmbc(c int32)
 func regnode(op int32) Ptr[byte]
 func re_put_long(p Ptr[byte], val long_u) Ptr[byte]
-func regnext(p Ptr[byte]) Ptr[byte]
-func regtail(p Ptr[byte], val Ptr[byte])
-func regoptail(p Ptr[byte], val Ptr[byte])
+func regnext(re *S_regengine_S, p Ptr[byte]) Ptr[byte]
+func regtail(re *S_regengine_S, p Ptr[byte], val Ptr[byte])
+func regoptail(re *S_regengine_S, p Ptr[byte], val Ptr[byte])
 func reginsert(op int32, opnd Ptr[byte])
 func reginsert_nr(op int32, val int64, opnd Ptr[byte])
-func reginsert_limits(op int32, minval int64, maxval int64, opnd Ptr[byte])
+func reginsert_limits(re *S_regengine_S, op int32, minval int64, maxval int64, opnd Ptr[byte])
 func seen_endbrace(refnum int32) bool
 func regatom_delim(c int32, delim_nl bool, flagp *int32) Ptr[byte]
-func regatom(flagp *int32) Ptr[byte]
-func regpiece(flagp *int32) Ptr[byte]
-func regconcat(flagp *int32) Ptr[byte]
-func regbranch(flagp *int32) Ptr[byte]
-func reg(paren int32, flagp *int32) Ptr[byte]
-func bt_regcomp(expr Ptr[byte], re_flags int32) *S_regprog
+func regatom(re *S_regengine_S, flagp *int32) Ptr[byte]
+func regpiece(re *S_regengine_S, flagp *int32) Ptr[byte]
+func regconcat(re *S_regengine_S, flagp *int32) Ptr[byte]
+func regbranch(re *S_regengine_S, flagp *int32) Ptr[byte]
+func reg(re *S_regengine_S, paren int32, flagp *int32) Ptr[byte]
+func bt_regcomp(re *S_regengine_S, expr Ptr[byte], re_flags int32) *S_regprog
 func coll_get_char() int32
 func bt_regfree(prog *S_regprog)
-func reg_save(save *regsave_T, gap *S_growarray)
-func reg_restore(save *regsave_T, gap *S_growarray)
-func reg_save_equal(save *regsave_T) bool
-func save_se_multi(savep *save_se_T, posp *lpos_T)
-func save_se_one(savep *save_se_T, pp *Ptr[byte])
-func regrepeat(p []byte, maxcount int64) int32
-func regstack_star_top() *S_regstar_S
-func regstack_behind_top() *S_regbehind_S
-func regstack_push(state regstate_T, scan Ptr[byte]) *S_regitem_S
-func regstack_pop(scan *Ptr[byte])
-func save_subexpr(bp *S_regbehind_S)
-func restore_subexpr(bp *S_regbehind_S)
-func regmatch(scan Ptr[byte], timed_out *int32) int32
-func regtry(prog *S_regprog, col colnr_T, timed_out *int32) int64
-func cstrncmp__regmlen(s1 Ptr[byte], s2 Ptr[byte], s2__ *S_regprog) int32
-func bt_regexec_both(line Ptr[byte], startcol colnr_T, timed_out *int32) int64
-func bt_regexec_nl(rmp *regmatch_T, line Ptr[byte], col colnr_T, line_lbr bool) int32
-func bt_regexec_multi(rmp *regmmatch_T, win *S_window_S, buf *S_file_buffer, lnum linenr_T, col colnr_T, timed_out *int32) int64
+func reg_save(re *S_regengine_S, save *regsave_T, gap *S_growarray)
+func reg_restore(re *S_regengine_S, save *regsave_T, gap *S_growarray)
+func reg_save_equal(re *S_regengine_S, save *regsave_T) bool
+func save_se_multi(re *S_regengine_S, savep *save_se_T, posp *lpos_T)
+func save_se_one(re *S_regengine_S, savep *save_se_T, pp *Ptr[byte])
+func regrepeat(re *S_regengine_S, p []byte, maxcount int64) int32
+func regstack_star_top(re *S_regengine_S) *S_regstar_S
+func regstack_behind_top(re *S_regengine_S) *S_regbehind_S
+func regstack_push(re *S_regengine_S, state regstate_T, scan Ptr[byte]) *S_regitem_S
+func regstack_pop(re *S_regengine_S, scan *Ptr[byte])
+func save_subexpr(re *S_regengine_S, bp *S_regbehind_S)
+func restore_subexpr(re *S_regengine_S, bp *S_regbehind_S)
+func regmatch(re *S_regengine_S, scan Ptr[byte], timed_out *int32) int32
+func regtry(re *S_regengine_S, prog *S_regprog, col colnr_T, timed_out *int32) int64
+func bt_regexec_both(re *S_regengine_S, line Ptr[byte], startcol colnr_T, timed_out *int32) int64
+func bt_regexec_nl(re *S_regengine_S, rmp *regmatch_T, line Ptr[byte], col colnr_T, line_lbr bool) int32
+func bt_regexec_multi(re *S_regengine_S, rmp *regmmatch_T, win *S_window_S, buf *S_file_buffer, lnum linenr_T, col colnr_T, timed_out *int32) int64
 func re_num_cmp(val long_u, scan Ptr[byte]) bool
 func vim_regcomp(expr_arg Ptr[byte], re_flags int32) *S_regprog
 func vim_regfree(prog *S_regprog)
 func vim_regexec_string(rmp *regmatch_T, line Ptr[byte], col colnr_T, nl bool) bool
 func vim_regexec(rmp *regmatch_T, line Ptr[byte], col colnr_T) bool
+func match_chunk(re *S_regengine_S, rmp *regmmatch_T, do_all bool, buf *S_file_buffer, lines Ptr[string_T], line1 linenr_T, from linenr_T, to linenr_T, found Ptr[linefound_T])
+func match_lines(rmp *regmmatch_T, do_all bool, buf *S_file_buffer, lines Ptr[string_T], line1 linenr_T, n linenr_T, found Ptr[linefound_T]) bool
 func vim_regexec_multi(rmp *regmmatch_T, win *S_window_S, buf *S_file_buffer, lnum linenr_T, col colnr_T, timed_out *int32) int64
 func reset_y_append()
 func valid_yank_reg(regname int32, writing bool) bool

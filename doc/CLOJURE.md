@@ -308,7 +308,10 @@ clj: state machines, by the first thing that would not nest:
 
 The 8 are the Java's: the allocators and `musl_mem*`, whose calls are the
 runtime's. `ga_grow_inner` is a rule of the profile's, as for the Go and the
-Java (`RuntimeBody.Clj`, `internal/whim/gen.go`). The profile also names what
+Java (`RuntimeBody.Clj`, `internal/whim/gen.go`), and so is `match_lines`
+(phase 177): the C's loop over a range's lines, each matched alone, run in
+chunks at once through braaam's `Rt/chunks` and a `reify` of `Rt$Chunk`,
+each chunk on a regex engine of its own. The profile also names what
 the host reads of the core's state (`CljExports`: `IObuff`,
 `e_val_too_large`, each a function of the editor).
 

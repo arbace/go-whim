@@ -21,13 +21,11 @@ times every editor, is judged with the suites.
    3.1, 9.8 and 0.60 s; the Java 0.66, 1.8 and 0.18. What would take it:
    the large regions written as functions of their own (the variables in
    the frame, as the split's groups have them), each small enough for C1.
-2. **The parallel `:%s`** (`doc/IR.md`, `doc/PARALLEL-SUBSTITUTE.md`): worth it
-   only for regex-heavy patterns on large buffers (7.8-13 times at 16 cores;
-   literal and dense patterns 1.3-4.3). First cases that cross chunk
-   boundaries and one per condition that forces the sequential path (`c`,
-   multi-line patterns, `\%#`, `\%V` ...); then the two C phases (the regex
-   state a parameter: `rex` and kin, 40 functions; `ex_substitute`'s loop split,
-   431 of its 805 lines, `match_lines` about 60) and the per-target bodies.
+2. **`:g` on `match_lines`.** `ex_global`'s marking pass is a second loop
+   that matches every line of a range on its own, and phases 176-177 made
+   that a primitive with a parallel body; `:g/pat/cmd` over a large buffer
+   would share the gain `:%s` has (`doc/PARALLEL-SUBSTITUTE.md`). Not
+   measured.
 
 ## Known stale, not yet scoped
 
@@ -42,6 +40,10 @@ times every editor, is judged with the suites.
   The wide suite's `keys` group failed once each for the Java and the
   Clojure editors the same day, under a load of 60 or more from another
   project, and not in eight reruns: the same kind, not identified.
+  `undo_redo` is the same (its keys end in undo and redo, "0 seconds
+  ago"): the Java editor's quick suite and the Clojure editor's wide one
+  each failed on it once on 2026-09-28, beside a pipeline check, and not
+  in 32 runs 16 at a time.
 
 
 ## Declined, with the reason recorded

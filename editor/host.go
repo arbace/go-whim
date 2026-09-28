@@ -11,6 +11,8 @@
 // printf is the library's (format.go): it needs no operating system.
 package editor
 
+import "sync/atomic"
+
 // Host is what the core needs of the world it runs in: a terminal, a clock,
 // input with a timeout, the signals, output and an exit.
 type Host interface {
@@ -167,9 +169,9 @@ func (ed *Editor) host_write(s Ptr[byte], len_ int32) int32 {
 // its exhaustion message) are kept.  They are the core's, not a Host's.
 const HOST_ARENA_BYTES = 1024 * 1024 * 1024
 
-func (ed *Editor) host_arena_exhausted(n usize) {
+func (ed *Editor) host_arena_exhausted(n, used usize) {
 	m := "whim-vim: host arena exhausted: " + hostUtoa(HOST_ARENA_BYTES) + " bytes, " +
-		hostUtoa(ed.host_arena_used) + " used, request " + hostUtoa(n) + "\n"
+		hostUtoa(used) + " used, request " + hostUtoa(n) + "\n"
 	b := Mk[byte](len(m) + 1)
 	copy(b.Slice(len(m)), m)
 	ed.host_message(b, int32(len(m)), TRUE)
@@ -191,12 +193,14 @@ func hostUtoa(v usize) string {
 	return string(d[i:])
 }
 
-// host_alloc returns n zeroed bytes, a Ptr[byte] as `any`.
+// host_alloc returns n zeroed bytes, a Ptr[byte] as `any`.  The count is
+// added to atomically: the regex engine may run on several goroutines at
+// once (Chunks), each allocating.
 func (ed *Editor) host_alloc(n usize) any {
 	want := (n + 15) &^ usize(15) // alignof(max_align_t) is 16
-	if want < n || want > HOST_ARENA_BYTES-ed.host_arena_used {
-		ed.host_arena_exhausted(n)
+	used := atomic.AddUint64(&ed.host_arena_used, want) - want
+	if want < n || want > HOST_ARENA_BYTES-used {
+		ed.host_arena_exhausted(n, used)
 	}
-	ed.host_arena_used += want
 	return Alloc(int(n))
 }

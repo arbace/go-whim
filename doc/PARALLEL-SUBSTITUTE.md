@@ -7,6 +7,16 @@ that it is back at the item it pushed, and five tests of a terminal option's
 variable. It writes `PtrIs(p, q)` now, and six regex cases joined the
 quick suite; see the commit that fixed it.
 
+**Since built** (2026-09-28): phases 176 and 177, and a parallel body of
+`match_lines` in each target. The shape differs from section 3's: the
+engine matches a line *alone* and fails where a match would need more,
+`match_lines` records every search `ex_substitute`'s loop will make, and the
+loop takes each answer from the record when it holds that search -- so
+nothing of the loop moved and every pattern stays exact. At 500,000 lines
+the Go editor's `bt` went 10.2 -> 0.38 s, `cls` 2.9 -> 0.18, `dense` 1.16 ->
+0.59, `lit` 0.64 -> 0.37; the Java's and the Clojure's `bt` 18.3 -> 1.58 and
+123 -> 4.5 (`internal/phase/177/GOAL.md` has the table).
+
 2026-09-27. A survey; nothing in it is built. It measures what `doc/IR.md`'s
 proposal for `:%s/.../.../g` on many cores rests on: (1) a phase that makes the
 regex engine's state a parameter, (2) a phase that splits `ex_substitute` into

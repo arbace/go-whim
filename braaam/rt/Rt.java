@@ -1,6 +1,7 @@
 package whim.rt;
 
 import java.util.Arrays;
+import java.util.stream.LongStream;
 
 /**
  * What the generated code calls that is no pointer's: the functions of bytes
@@ -10,6 +11,34 @@ import java.util.Arrays;
  */
 public final class Rt {
     private Rt() {}
+
+    /** One chunk of a loop over a range: its work over [from, to), and whether it did. */
+    @FunctionalInterface
+    public interface Chunk {
+        boolean run(long from, long to);
+    }
+
+    /** The fewest elements a chunk is given: below it a thread costs more than it saves. */
+    static final long CHUNK_LEAST = 64;
+
+    /**
+     * work over [0, n) in chunks, on the common fork-join pool, and whether
+     * every chunk's work did: the parallel body of a function the C writes as
+     * one loop over the range (match_lines).  About four chunks a CPU, so that
+     * one slow chunk does not hold the rest, and none smaller than
+     * CHUNK_LEAST; a range of one chunk runs on the caller's thread.  The
+     * work must be the loop's over its part and write nothing another part
+     * reads.  A chunk that did not stops the chunks not yet started.
+     */
+    public static boolean chunks(long n, Chunk work) {
+        long w = 4L * Runtime.getRuntime().availableProcessors();
+        long size = Math.max(CHUNK_LEAST, (n + w - 1) / w);
+        if (size >= n) {
+            return work.run(0, n);
+        }
+        return LongStream.range(0, (n + size - 1) / size).parallel()
+                .allMatch(k -> work.run(k * size, Math.min(n, (k + 1) * size)));
+    }
 
     /** memmove and memcpy: n bytes from s to d, overlapping or not; d. */
     public static BytePtr memmove(BytePtr d, BytePtr s, long n) {

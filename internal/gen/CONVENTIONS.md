@@ -24,7 +24,9 @@ the generator -- `crefactor/togo`, which `internal/gen` runs -- is
 told them, one value, `whim.Gen` (`internal/whim/gen.go`, of type
 `togo.Profile`): the C functions `editor/crt.go` replaces, whose calls
 are translated and whose bodies are not (`alloc*`, `musl_mem*`, `musl_str*`,
-`ga_grow_inner`), `ga_grow_inner`'s body, which is a rule of the runtime's;
+`ga_grow_inner`, `match_lines`), the bodies of those two, which are rules
+of the runtime's (`match_lines`'s runs its loop over lines in chunks on
+goroutines, `Chunks` in `editor/chunks.go`: phase 177);
 the allocators and `vim_free`; `musl_memmove`/`memcpy`/`memset`/`memcmp` as
 the functions of bytes; `garray_T` and its `ga_data`; `usize` as sizeof's
 type; the `varp` parameters that pun; `_` as `gettext_`; and `editor.go`'s
