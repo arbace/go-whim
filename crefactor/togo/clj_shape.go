@@ -30,6 +30,7 @@ package togo
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -44,17 +45,26 @@ type shaper struct {
 	idom   map[*lblock]*lblock
 	// the joins written in place: join -> its branch, its value; and the
 	// branch's join
-	owner   map[*lblock]*lblock
-	value   map[*lblock][]*lvar // what a join's arms change that it reads
-	rets    map[*lblock]bool    // a join's region returns
-	looped  map[*lblock]bool    // a join's region holds a loop
-	joinOf  map[*lblock]*lblock
-	loops   map[*lblock]*sloop
-	byName  map[string]*lvar
-	machine bool // states: a jump to one is a recur
-	states  []*lblock
-	state   map[*lblock]int
-	vars    []*lvar // what a state machine's recur carries
+	owner  map[*lblock]*lblock
+	value  map[*lblock][]*lvar   // what a join's arms change that it reads
+	rets   map[*lblock]bool      // a join's region returns
+	looped map[*lblock]bool      // a join's region holds a loop
+	outs   map[*lblock][]*lblock // a join's region's other ways out: a break, a continue
+	noOuts bool                  // no join with other ways out: the second try
+	// the tuples' frame: a slot per variable a region hands out, in a long
+	// array or an Object array, and the return value's
+	tslot    map[*lvar]int
+	ntl, nto int
+	retSlot  int
+	frame    bool // the frame is used
+	region   map[*lblock]map[*lblock]bool
+	joinOf   map[*lblock]*lblock
+	loops    map[*lblock]*sloop
+	byName   map[string]*lvar
+	machine  bool // states: a jump to one is a recur
+	states   []*lblock
+	state    map[*lblock]int
+	vars     []*lvar // what a state machine's recur carries
 	// a split machine's
 	splitting bool
 	stores    []string // a split machine's state: what it writes back to the frame before a jump
@@ -73,7 +83,8 @@ type sloop struct {
 	body  map[*lblock]bool
 	vars  []*lvar
 	exits []*lblock
-	ok    bool // one way in from outside, and every back edge's source in it
+	tail  map[*lblock]bool // blocks on a way out, written in place in the loop
+	ok    bool             // one way in from outside, and every back edge's source in it
 }
 
 // sctx is where a block is written: in a join's region or a loop written
@@ -95,14 +106,30 @@ func (f *cfn) structure() (string, string, string) {
 	lf := f.lf
 	s := &shaper{f: f, live: lf.live()}
 	s.analyze()
-	if body, ok := s.structured(); ok {
-		return s.entryLets(body), "structured", ""
+	n0 := f.ntmp // an attempt that fails leaves no names behind
+	s.resetFrame()
+	if body, ok := s.fits(s.structured()); ok {
+		return s.entryLets(s.withFrame(body)), "structured", ""
 	}
+	// again without a region's other ways out: a join taken with them can
+	// leave a way out no place can take, where without it the function nests
+	why := s.why
+	s.noOuts = true
+	s.findJoins(true)
+	f.ntmp = n0
+	s.resetFrame()
+	if body, ok := s.fits(s.structured()); ok {
+		return s.entryLets(s.withFrame(body)), "structured", ""
+	}
+	s.noOuts = false
+	s.why = why
+	f.ntmp = n0
 	// a state machine: a jump to a state -- a loop's head is one -- cannot
 	// be inside a join's region, so the joins are found again without them
-	why := s.why
+	why = s.why
 	s.findJoins(false)
 	s.why = why
+	s.resetFrame()
 	body := s.machineBody()
 	if s.cost(body) > f.c.splitAt() {
 		b := s.split()
@@ -110,7 +137,21 @@ func (f *cfn) structure() (string, string, string) {
 		return b, "split", s.pre
 	}
 	f.why = s.why
-	return s.entryLets(body), "machine", ""
+	return s.entryLets(s.withFrame(body)), "machine", ""
+}
+
+// fits refuses a structured body past the bound a machine is split at: its
+// loops in expression position are closures Clojure writes, and one that
+// large is a method the first JIT tier gives up on (C1: "out of virtual
+// registers"), where the split machine's groups each compile -- measured on
+// regmatch, the one function past it, 3.1 s against 7.5 s on a 100,000-line
+// :%s.
+func (s *shaper) fits(body string, ok bool) (string, bool) {
+	if ok && s.cost(body) > s.f.c.splitAt() {
+		s.why = "structured, too large for one method"
+		return "", false
+	}
+	return body, ok
 }
 
 func (s *shaper) analyze() {
@@ -121,6 +162,17 @@ func (s *shaper) analyze() {
 	s.byName = map[string]*lvar{}
 	for _, v := range f.lf.vars {
 		s.byName[v.name] = v
+	}
+	for _, b := range f.lf.blocks {
+		mergeCases(b)
+	}
+	for _, b := range f.lf.blocks {
+		b.preds = nil
+	}
+	for _, b := range f.lf.blocks {
+		for _, t := range b.term.to {
+			t.preds = append(t.preds, b)
+		}
 	}
 	for _, b := range f.lf.blocks {
 		for _, t := range b.term.to {
@@ -142,6 +194,36 @@ func (s *shaper) analyze() {
 	s.dominators()
 	s.findLoops()
 	s.findJoins(true)
+}
+
+// mergeCases makes a switch's cases one per block: values the lowering's
+// later steps sent to one block (the empty blocks of `case 180: case 181:`
+// retargeted to the one after them) are one case, (case x (180 181) ...),
+// and values that go where the default goes are the default's -- so a block
+// a switch reaches is one way in, written once.
+func mergeCases(b *lblock) {
+	if b.term.kind != tSwitch || len(b.term.to) == 0 {
+		return
+	}
+	def := b.term.to[len(b.term.to)-1]
+	var to []*lblock
+	var cases [][]int64
+	idx := map[*lblock]int{}
+	for i, t := range b.term.to[:len(b.term.to)-1] {
+		if t == def {
+			continue
+		}
+		k, ok := idx[t]
+		if !ok {
+			k = len(to)
+			idx[t] = k
+			to = append(to, t)
+			cases = append(cases, nil)
+		}
+		cases[k] = append(cases[k], b.term.cases[i]...)
+	}
+	b.term.to = append(to, def)
+	b.term.cases = cases
 }
 
 // dominators computes each block's immediate dominator (Cooper, Harvey and
@@ -256,6 +338,36 @@ func (s *shaper) findLoops() {
 				}
 			}
 		}
+		// an exit that is only the way out to another exit -- one way in,
+		// every successor an exit (a break's `status = FAIL; break;`) -- is
+		// written in place inside the loop, on its way out: the loop's exit is
+		// where the ways out meet
+		l.tail = map[*lblock]bool{}
+		for changed := true; changed; {
+			changed = false
+			isExit := map[*lblock]bool{}
+			for _, x := range l.exits {
+				isExit[x] = true
+			}
+			for i, x := range l.exits {
+				if s.edges[x] != 1 || s.header[x] || x.id == 0 || len(x.term.to) == 0 {
+					continue
+				}
+				all := true
+				for _, t := range x.term.to {
+					if !isExit[t] || t == x {
+						all = false
+					}
+				}
+				if !all {
+					continue
+				}
+				l.tail[x] = true
+				l.exits = append(l.exits[:i:i], l.exits[i+1:]...)
+				changed = true
+				break
+			}
+		}
 		sort.Slice(l.exits, func(a, b int) bool { return l.exits[a].id < l.exits[b].id })
 		l.vars = f.lf.sortedVars(changed)
 		s.loops[h] = l
@@ -271,6 +383,8 @@ func (s *shaper) findJoins(loops bool) {
 	s.value = map[*lblock][]*lvar{}
 	s.rets = map[*lblock]bool{}
 	s.looped = map[*lblock]bool{}
+	s.outs = map[*lblock][]*lblock{}
+	s.region = map[*lblock]map[*lblock]bool{}
 	s.joinOf = map[*lblock]*lblock{}
 	for _, j := range f.lf.blocks {
 		if j.id == 0 || s.header[j] || s.dup[j] || s.edges[j] < 2 {
@@ -284,11 +398,39 @@ func (s *shaper) findJoins(loops bool) {
 		region := map[*lblock]bool{}
 		var stack []*lblock
 		ok, rets, looped := true, false, false
-		for _, t := range d.term.to {
-			if t != j && !region[t] {
+		// a way out that is not the join -- to a block the branch does not
+		// dominate: a break out of a switch, a continue of a loop around --
+		// is the region's value too, tagged, and taken after it
+		outs := map[*lblock]bool{}
+		// the loops the branch is in: leaving one is a way out, a break
+		var around []*sloop
+		for _, l := range s.loops {
+			if l.body[d] || l.tail[d] {
+				around = append(around, l)
+			}
+		}
+		leaves := func(t *lblock) bool {
+			for _, l := range around {
+				if !l.body[t] && !l.tail[t] {
+					return true
+				}
+			}
+			return false
+		}
+		enter := func(t *lblock) {
+			switch {
+			case t == j || region[t] || outs[t]:
+			case t == d:
+				ok = false // back to the branch: a loop, not a join
+			case !s.dominates(d, t) || leaves(t):
+				outs[t] = true
+			default:
 				region[t] = true
 				stack = append(stack, t)
 			}
+		}
+		for _, t := range d.term.to {
+			enter(t)
 		}
 		for len(stack) > 0 && ok {
 			b := stack[len(stack)-1]
@@ -304,7 +446,7 @@ func (s *shaper) findJoins(loops bool) {
 					break
 				}
 				looped = true
-			} else if s.edges[b] > 1 && s.owner[b] == nil && !s.dup[b] {
+			} else if s.edges[b] > 1 && s.owner[b] == nil && !s.dup[b] && !(loops && s.loopExit(b) != nil) {
 				ok = false // a join inside not written in place
 				break
 			}
@@ -312,17 +454,23 @@ func (s *shaper) findJoins(loops bool) {
 				rets = true // written as the region's value [-1 v]
 			}
 			for _, t := range b.term.to {
-				if t == j {
-					continue
-				}
-				if !region[t] {
-					region[t] = true
-					stack = append(stack, t)
-				}
+				enter(t)
 			}
 		}
 		if !ok {
 			continue
+		}
+		// a loop's exit is in the region only with its loop: written after
+		// the loop, which the region holds
+		for b := range region {
+			if s.edges[b] > 1 && s.owner[b] == nil && !s.dup[b] && !s.header[b] {
+				if l := s.loopExit(b); l == nil || !region[l.head] {
+					ok = false
+				}
+			}
+		}
+		if (!loops || s.noOuts) && len(outs) > 0 {
+			ok = false // a state machine's: its states take the jumps as they are
 		}
 		for _, p := range j.preds {
 			if p != d && !region[p] {
@@ -352,7 +500,55 @@ func (s *shaper) findJoins(loops bool) {
 		s.value[j] = f.lf.sortedVars(changed)
 		s.rets[j] = rets
 		s.looped[j] = looped
+		var os []*lblock
+		for o := range outs {
+			os = append(os, o)
+		}
+		sort.Slice(os, func(a, b int) bool { return os[a].id < os[b].id })
+		s.outs[j] = os
+		s.region[j] = region
 	}
+}
+
+// writtenIn is the rebindable variables the blocks write.
+func (s *shaper) writtenIn(blocks map[*lblock]bool) map[*lvar]bool {
+	out := map[*lvar]bool{}
+	for b := range blocks {
+		for _, st := range b.steps {
+			for _, v := range s.f.lf.stepWrites(st) {
+				if s.f.rebindable(v) {
+					out[v] = true
+				}
+			}
+		}
+	}
+	return out
+}
+
+// loopExit is the loop b is where a loop that nests is left: an exit of it
+// whose every way in is from the loop -- written after the loop, as its
+// value's continuation (loopForm), not a join -- or nil.  Of two loops b
+// leaves, the inner one: a block is the exit of each loop it ends.
+func (s *shaper) loopExit(b *lblock) *sloop {
+	var in *sloop
+	for _, l := range s.loops {
+		if !l.ok || !slices.Contains(l.exits, b) {
+			continue
+		}
+		whole := true
+		for _, p := range b.preds {
+			if !l.body[p] && !l.tail[p] {
+				whole = false
+			}
+		}
+		if !whole {
+			return nil
+		}
+		if in == nil || len(l.body) < len(in.body) || len(l.body) == len(in.body) && l.head.id < in.head.id {
+			in = l
+		}
+	}
+	return in
 }
 
 // hasLiteral says a block's text holds a string literal: the suite's
@@ -489,7 +685,8 @@ func (s *shaper) emitTerm(b *lblock, ctx *sctx) string {
 	if j := s.joinOf[b]; j != nil && !s.all {
 		// the branch, its arms ending at the join; then the join
 		vs := s.value[j]
-		if !s.rets[j] && len(vs) <= 1 {
+		outs := s.outs[j]
+		if !s.rets[j] && len(vs) <= 1 && len(outs) == 0 {
 			val := "nil"
 			if len(vs) == 1 {
 				val = vs[0].name
@@ -506,14 +703,29 @@ func (s *shaper) emitTerm(b *lblock, ctx *sctx) string {
 			}
 			return "(let [" + f.bindName(v) + " " + indent(inner, 6+len(f.bindName(v)))[6+len(f.bindName(v)):] + "]\n" + indent(rest, 2) + ")"
 		}
-		// a tuple: [0 x y] at the join, [-1 v] where the region returns
+		// a tuple: [0 x y] at the join, [k ...] at its k-th other way out,
+		// [-1 v] where the region returns
 		tag := ""
-		if s.rets[j] {
+		if s.rets[j] || len(outs) > 0 {
 			tag = "0"
 		}
-		inner := s.emitBranch(b, &sctx{stops: map[*lblock]string{j: tuple(tag, vs)}, retTag: s.rets[j], region: true, loops: ctx.loops})
+		stops := map[*lblock]string{j: s.tuple(tag, vs)}
+		conts := []*lblock{j}
+		per := [][]*lvar{vs}
+		for k, o := range outs {
+			var ovs []*lvar
+			for _, v := range f.lf.sortedVars(s.writtenIn(s.region[j])) {
+				if s.live[o][v] {
+					ovs = append(ovs, v)
+				}
+			}
+			stops[o] = s.tuple(fmt.Sprint(k+1), ovs)
+			conts = append(conts, o)
+			per = append(per, ovs)
+		}
+		inner := s.emitBranch(b, &sctx{stops: stops, retTag: s.rets[j], region: true, loops: ctx.loops})
 		r := f.tmpName("j")
-		return s.unpack(r, inner, []*lblock{j}, [][]*lvar{vs}, s.rets[j], ctx)
+		return s.unpackFrom(r, inner, b, conts, per, s.rets[j], ctx)
 	}
 	return s.emitBranch(b, ctx)
 }
@@ -528,17 +740,108 @@ func (s *shaper) primBool(v *lvar) string {
 	return v.name
 }
 
-// tuple is a region's value: a tag, when there is a choice to make after
-// it, then variables' values.
-func tuple(tag string, vs []*lvar) string {
-	var parts []string
-	if tag != "" {
-		parts = append(parts, tag)
+// tuple is a region's value: the variables it hands out written to the
+// frame, then its tag -- a primitive long, 0 where there is no choice to
+// make after it.  (A vector of them was made and taken apart at every
+// crossing, and boxed its numbers: in regmatch's opcode loop, every regex
+// operation.)
+func (s *shaper) tuple(tag string, vs []*lvar) string {
+	if tag == "" {
+		tag = "0"
 	}
+	var ws []string
 	for _, v := range vs {
-		parts = append(parts, v.name)
+		ws = append(ws, s.frameStore(v))
 	}
-	return "[" + strings.Join(parts, " ") + "]"
+	if len(ws) == 0 {
+		return tag
+	}
+	return "(do " + strings.Join(ws, "\n    ") + "\n    " + tag + ")"
+}
+
+// frameSlot is v's slot in the frame, given the first time it is asked.
+func (s *shaper) frameSlot(v *lvar) int {
+	s.frame = true
+	if k, ok := s.tslot[v]; ok {
+		return k
+	}
+	var k int
+	if isIntJ(s.f.vars[v].jt) {
+		k = s.ntl
+		s.ntl++
+	} else {
+		k = s.nto
+		s.nto++
+	}
+	s.tslot[v] = k
+	return k
+}
+
+// frameStore writes v to its slot; frameLoad reads it back as v's type.
+func (s *shaper) frameStore(v *lvar) string {
+	k := s.frameSlot(v)
+	if isIntJ(s.f.vars[v].jt) {
+		return fmt.Sprintf("(aset tl__ %d %s)", k, v.name)
+	}
+	return fmt.Sprintf("(aset to__ %d %s)", k, boxed(v.name, s.f.vars[v].jt))
+}
+
+func (s *shaper) frameLoad(v *lvar) string {
+	k := s.frameSlot(v)
+	switch jt := s.f.vars[v].jt; {
+	case isIntJ(jt):
+		return fmt.Sprintf("(aget tl__ %d)", k)
+	case jt == "boolean":
+		return fmt.Sprintf("(boolean (aget to__ %d))", k)
+	}
+	return fmt.Sprintf("(aget to__ %d)", k)
+}
+
+// frameRet is the return value's slot, written and read.
+func (s *shaper) frameRet(v string) (store, load string) {
+	f := s.f
+	if s.retSlot < 0 {
+		s.frame = true
+		if isIntJ(f.ret) {
+			s.retSlot = s.ntl
+			s.ntl++
+		} else if f.ret != "void" {
+			s.retSlot = s.nto
+			s.nto++
+		} else {
+			s.retSlot = 0
+		}
+	}
+	switch {
+	case f.ret == "void":
+		return "", "nil"
+	case isIntJ(f.ret):
+		return fmt.Sprintf("(aset tl__ %d %s)", s.retSlot, v), fmt.Sprintf("(aget tl__ %d)", s.retSlot)
+	case f.ret == "boolean":
+		return fmt.Sprintf("(aset to__ %d %s)", s.retSlot, boxed(v, f.ret)), fmt.Sprintf("(boolean (aget to__ %d))", s.retSlot)
+	}
+	return fmt.Sprintf("(aset to__ %d %s)", s.retSlot, v), fmt.Sprintf("(aget to__ %d)", s.retSlot)
+}
+
+// resetFrame starts a function's frame, or a group's, empty.
+func (s *shaper) resetFrame() {
+	s.tslot = map[*lvar]int{}
+	s.ntl, s.nto, s.retSlot, s.frame = 0, 0, -1, false
+}
+
+// withFrame binds the frame around body when body uses it.
+func (s *shaper) withFrame(body string) string {
+	if !s.frame {
+		return body
+	}
+	var arrays []string
+	if s.ntl > 0 {
+		arrays = append(arrays, fmt.Sprintf("^longs tl__ (long-array %d)", s.ntl))
+	}
+	if s.nto > 0 {
+		arrays = append(arrays, fmt.Sprintf("^objects to__ (object-array %d)", s.nto))
+	}
+	return "(let [" + strings.Join(arrays, "\n      ") + "]\n" + indent(body, 2) + ")"
 }
 
 // unpack is the code after a region whose value, value, is a tuple bound
@@ -546,19 +849,27 @@ func tuple(tag string, vs []*lvar) string {
 // variables vs[k] taken out of it and the code at conts[k] -- or, at tag -1, the function's return of what it holds, as a
 // return is where the region is (ret).
 func (s *shaper) unpack(r, value string, conts []*lblock, vs [][]*lvar, ret bool, ctx *sctx) string {
+	return s.unpackFrom(r, value, nil, conts, vs, ret, ctx)
+}
+
+// unpackFrom is unpack for a join's region: conts[0] is the join, written
+// in place, and the others its region's other ways out, each taken as a jump
+// from the branch, from, is taken where the join is (edge).
+func (s *shaper) unpackFrom(r, value string, from *lblock, conts []*lblock, vs [][]*lvar, ret bool, ctx *sctx) string {
 	f := s.f
-	first := 1 // past the tag
-	if len(conts) == 1 && !ret {
-		first = 0 // no tag: nothing to choose
-	}
+	_, retLoad := s.frameRet("")
 	at := func(k int) string {
 		x := conts[k]
 		var binds []string
-		for i, v := range vs[k] {
-			binds = append(binds, f.bindName(v)+" "+s.unboxed(fmt.Sprintf("(nth %s %d)", r, i+first), f.vars[v].jt))
+		for _, v := range vs[k] {
+			binds = append(binds, f.bindName(v)+" "+s.frameLoad(v))
 		}
 		body, ok := ctx.stops[x] // the end of the region around: its value
-		if !ok {
+		switch {
+		case ok:
+		case from != nil && k > 0:
+			body = s.edge(from, x, ctx) // a way out of the region, taken
+		default:
 			body = s.emit(x, ctx)
 		}
 		if len(binds) == 0 {
@@ -573,16 +884,16 @@ func (s *shaper) unpack(r, value string, conts []*lblock, vs [][]*lvar, ret bool
 	case len(conts) == 1 && !ret:
 		tail = at(0)
 	case len(conts) == 1:
-		tail = "(if (== (long (nth " + r + " 0)) -1)\n  " + indent(s.retOf(ctx, s.unboxed("(nth "+r+" 1)", f.ret)), 2)[2:] +
+		tail = "(if (== (long " + r + ") -1)\n  " + indent(s.retOf(ctx, retLoad), 2)[2:] +
 			"\n  " + indent(at(0), 2)[2:] + ")"
 	default:
 		var cb strings.Builder
-		fmt.Fprintf(&cb, "(case (long (nth %s 0))", r)
+		fmt.Fprintf(&cb, "(case (long %s)", r)
 		for k := range conts {
 			fmt.Fprintf(&cb, "\n  %d\n%s", k, indent(at(k), 4))
 		}
 		if ret {
-			fmt.Fprintf(&cb, "\n  %s", indent(s.retOf(ctx, s.unboxed("(nth "+r+" 1)", f.ret)), 2)[2:])
+			fmt.Fprintf(&cb, "\n  %s", indent(s.retOf(ctx, retLoad), 2)[2:])
 		}
 		cb.WriteString(")")
 		tail = cb.String()
@@ -606,7 +917,14 @@ func (s *shaper) unboxed(x, jt string) string {
 // region that can hand a return out, the region's value [-1 v].
 func (s *shaper) retOf(ctx *sctx, v string) string {
 	if ctx.retTag {
-		return "[-1 " + v + "]"
+		store, _ := s.frameRet(v)
+		if store == "" {
+			if v == "nil" || v == "" {
+				return "-1"
+			}
+			return "(do " + v + "\n    -1)" // a void function's: what it does, then the tag
+		}
+		return "(do " + store + "\n    -1)"
 	}
 	if len(ctx.stops) > 0 || ctx.region {
 		panic(errShape{"a return where the code must reach a join or a loop's end"})
@@ -641,19 +959,41 @@ func (s *shaper) emitBranch(b *lblock, ctx *sctx) string {
 		}
 		return "(if " + t.test + "\n  " + indent(a, 2)[2:] + "\n  " + indent(e, 2)[2:] + ")"
 	case tSwitch:
+		// Clojure's case writes an arm's body once per key: an arm of several
+		// keys is chosen by an index, (case (case x (1 2) 0 (3 4) 1 -1) 0 ...),
+		// so each body is written once
+		grouped := false
+		for _, vs := range b.term.cases {
+			grouped = grouped || len(vs) > 1
+		}
 		var sb strings.Builder
-		fmt.Fprintf(&sb, "(case %s", t.test)
-		for i, vs := range b.term.cases {
+		keyOf := func(vs []int64) string {
 			var ks []string
 			for _, v := range vs {
 				ks = append(ks, fmt.Sprint(v))
 			}
 			sort.Slice(ks, func(a, c int) bool { return ks[a] < ks[c] })
-			key := ks[0]
 			if len(ks) > 1 {
-				key = "(" + strings.Join(ks, " ") + ")"
+				return "(" + strings.Join(ks, " ") + ")"
 			}
-			fmt.Fprintf(&sb, "\n  %s\n%s", key, indent(s.edge(b, b.term.to[i], ctx), 4))
+			return ks[0]
+		}
+		if grouped {
+			var ib strings.Builder
+			fmt.Fprintf(&ib, "(case %s", t.test)
+			for i, vs := range b.term.cases {
+				fmt.Fprintf(&ib, " %s %d", keyOf(vs), i)
+			}
+			ib.WriteString(" -1)")
+			fmt.Fprintf(&sb, "(case %s", ib.String())
+			for i := range b.term.cases {
+				fmt.Fprintf(&sb, "\n  %d\n%s", i, indent(s.edge(b, b.term.to[i], ctx), 4))
+			}
+		} else {
+			fmt.Fprintf(&sb, "(case %s", t.test)
+			for i, vs := range b.term.cases {
+				fmt.Fprintf(&sb, "\n  %s\n%s", keyOf(vs), indent(s.edge(b, b.term.to[i], ctx), 4))
+			}
 		}
 		fmt.Fprintf(&sb, "\n%s)", indent(s.edge(b, b.term.to[len(b.term.to)-1], ctx), 2))
 		return sb.String()
@@ -736,7 +1076,7 @@ func (s *shaper) loopForm(l *sloop, ctx *sctx) string {
 			continue
 		}
 		for _, p := range x.preds {
-			if !l.body[p] {
+			if !l.body[p] && !l.tail[p] {
 				panic(errShape{"a loop's exit with another way in"})
 			}
 		}
@@ -747,7 +1087,14 @@ func (s *shaper) loopForm(l *sloop, ctx *sctx) string {
 	// what it changes that an exit reads, and whether it returns
 	out := map[*lvar]bool{}
 	rets := false
+	region := map[*lblock]bool{}
 	for b := range l.body {
+		region[b] = true
+	}
+	for b := range l.tail {
+		region[b] = true // a way out, written in place in the loop
+	}
+	for b := range region {
 		if b.term.kind == tRet || b.term.kind == tFall {
 			rets = true
 		}
@@ -801,7 +1148,7 @@ func (s *shaper) loopForm(l *sloop, ctx *sctx) string {
 		if len(l.exits) == 1 && !rets {
 			tag = ""
 		}
-		inner.stops[x] = tuple(tag, per[k])
+		inner.stops[x] = s.tuple(tag, per[k])
 	}
 	inner.retTag = rets
 	loop := "(loop [" + strings.Join(binds, "\n       ") + "]\n" + indent(s.emit(l.head, inner), 2) + ")"

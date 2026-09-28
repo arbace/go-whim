@@ -9,13 +9,18 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 Each moves method sizes: `whim test --java --clojure`'s heavy case, which
 times every editor, is judged with the suites.
 
-1. **vijure's `regmatch` structured.** Its split machine keeps its
-   variables in the frame now (2026-09-27): a 100,000-line `:%s` 2.8 times
-   faster on `\v(a|b)+c`, 1.9 on `[ab]\+c`, 1.5 on a literal -- still 5.5,
-   4.5 and 2.7 times the Java, which writes `regmatch` structured: it is a
-   machine for its loops (a `for (;;)` round the opcode `switch`, 93 `break`s,
-   the backtracking `while` and its `switch`; no `goto`). Find which nesting
-   rule each exit needs, and whether one more makes it structured.
+1. **vijure's `regmatch` structured, in methods C1 compiles.** The nesting
+   structures it now (2026-09-28: its loops' tails, a region's `break`s
+   and `continue`s, tuples in the frame), but its main loop, in expression
+   position, is a closure Clojure writes of 26,974 bytes, which the
+   launchers' `-XX:TieredStopAtLevel=1` leaves interpreted ("out of virtual
+   registers"); so a function past the split bound is not structured, and
+   `regmatch` stays split. Measured on a 100,000-line `:%s`, substitution
+   only: structured 7.5 s (`[ab]\+c`), 26.3 s (`\v(a|b)+c`), 0.76 s
+   (literal) under C1; 2.6, 4.9 and 1.1 s with every tier (C2); split
+   3.1, 9.8 and 0.60 s; the Java 0.66, 1.8 and 0.18. What would take it:
+   the large regions written as functions of their own (the variables in
+   the frame, as the split's groups have them), each small enough for C1.
 2. **The parallel `:%s`** (`doc/IR.md`, `doc/PARALLEL-SUBSTITUTE.md`): worth it
    only for regex-heavy patterns on large buffers (7.8-13 times at 16 cores;
    literal and dense patterns 1.3-4.3). First cases that cross chunk

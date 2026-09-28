@@ -297,13 +297,13 @@ control seen by 41 of the 45 and, wide, as the Go's is (94 keys, 6 pty).
 `<out.clj>.refused` (empty on `editor.c`), and logs the coverage:
 
 ```
-clj: 1693 of 1701 functions written (1358 structured, 334 state machines, 2 of them split), 8 the runtime's, 0 refused
+clj: 1699 of 1707 functions written (1624 structured, 74 state machines, 2 of them split), 8 the runtime's, 0 refused
 clj: state machines, by the first thing that would not nest:
-    232  a jump to a block with ways in: a join whose arms change more than one variable it reads, or leave it
-     52  a loop whose changes are read after it
-     36  a loop left to more than one place
-      8  a loop's exit with another way in
+     32  a jump to a block with ways in: a join whose region is entered from outside it, or left elsewhere
+     31  a loop's exit with another way in
       6  an irreducible loop
+      4  a loop's exit that is a loop or a join
+      1  structured, too large for one method
 ```
 
 The 8 are the Java's: the allocators and `musl_mem*`, whose calls are the
@@ -431,24 +431,40 @@ again -- is written once after the branch when every path from it reaches the
 join or returns, and nothing outside enters it: `(let [r (if (> x 0) 1 -1)]
 ...)` when the arms change one variable the join reads, `(do (if ...) ...)`
 with none, and with several, or a return inside, a **tuple** taken apart
-after the branch -- `[a b]` at the join, `[0 a b]` and `[-1 v]` where the
-region returns v, the tag telling them apart (`doc/CLOJURE-IDIOMS.md` item 2:
-rules J and R); a loop inside the region is written as a value (P); a
+after the branch (`doc/CLOJURE-IDIOMS.md` item 2: rules J and R). A tuple is
+a tag and the function's **frame**: the region stores what it changes in
+`tl__` (a `long[]`) and `to__` (an `Object[]`) and its value is the tag --
+0 at the join, -1 where it returns, its value in a slot of the frame -- and
+after it the variables are read back, `(let [a (aget tl__ 0) ...])`: no
+vector built, no long boxed. A region may also be left by a way that is not
+the join -- a `break` out of a switch, a `continue` or `break` of a loop
+around the branch -- tagged k+1 at its k-th such way and taken after the
+region where the branch is; tried first with these ways out, and again
+without them, where a join taken with them leaves one no place can take; a loop inside the region is written as a value (P); a
 **natural loop**, where the function is otherwise structured, is `(loop [t t
 i i] ...)` over the variables it changes that its head reads, its back edges
 `recur`, the code after it where it leaves (each exit the one way into what
 follows) -- or, nested in a loop or a join's region, after the loop: `(do
 (loop ...) after)` when it leaves to one place and changes nothing read
-there, and otherwise as a value, a tuple at each exit -- `[k i p]` at its
-k-th exit, `[-1 v]` where it returns -- and a `case` on k going on at that
-exit (L); a
-small block that returns is written at each way into it. A function all of
-whose blocks nest so is **structured** (1,550); the others (144) are **state
+there, and otherwise as a value, a tuple at each exit -- k at its k-th exit,
+-1 where it returns -- and a `case` on k going on at that exit (L); an
+exit whose one way in is from the loop, and whose every way on leaves by
+the loop's exits, is the loop's **tail**, written in place inside it; a
+small block that returns is written at each way into it. A `switch` whose
+arms are the same code is one arm with their keys; one with an arm of
+several keys is written as two `case`s, the key to the arm's index and the
+index to the arm, since Clojure's `case` writes an arm's body once per key
+(`regrepeat` went past 64 KB so). A function all of whose blocks nest so
+is **structured** (1,624) -- unless its text is past the bound a machine is
+split at (below; 1: `regmatch`): its loops in expression position are
+closures Clojure writes, and one that large is a method the first JIT tier
+gives up on (C1, "out of virtual registers": measured, a 100,000-line `:%s`
+7.5 s structured against 3.1 s split). The others (74) are **state
 machines**: `(loop [st 0, x x, ...] (case st 0 ... 1 ...))`, each block no
 rule nests a state, each jump to one `(recur k x ...)` with the variables
 live at some state, and the joins still written in place inside the states.
-A function whose machine is too large for a method is **split** (1:
-`regmatch`): the machine's states -- every block one only where a state
+A function whose machine is too large for a method is **split** (2:
+`regmatch` and `win_line`): the machine's states -- every block one only where a state
 would not fit a group -- in groups, each group `(defn- f__N ^long [ed fl__
 fo__ st])` running its own states and returning the next group's state or
 -1; the function fills the frame and runs the groups, choosing one by nested
@@ -512,8 +528,8 @@ reflection warning -- a failure, and required to print what gcc's build
 prints: integers, flow, strings, structs, the profile's allocators and
 functions of bytes, varargs, the growarray, member addresses, function
 pointers and unions, gotos, a dead label. `TestCljSplit` runs four with
-every state machine split; `TestCljShapes` requires a loop, a goto backwards
-and a join structured and a join of two variables a state machine;
+every state machine split; `TestCljShapes` requires a loop, a goto backwards,
+a join and a join of two variables (through the frame) structured;
 `TestCljControl` undoes one rule at a time -- an unsigned int's range, a
 short's, an unsigned char's widening, 64-bit unsigned division, a struct's
 copy, a function pointer, a join's test -- and each moves the output;

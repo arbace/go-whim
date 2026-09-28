@@ -797,6 +797,7 @@ func (s *shaper) split() string {
 	}
 	for g := 0; g < ngroups; g++ {
 		s.cur = g
+		s.resetFrame() // a group's tuples: a frame of its own, in its call
 		var b strings.Builder
 		b.WriteString("(loop [st st0__]\n  (case st\n")
 		for i, st := range s.states {
@@ -843,7 +844,7 @@ func (s *shaper) split() string {
 		s.stores = nil
 		// a state of another group: it is the next, the frame current
 		b.WriteString("    st))")
-		body := b.String()
+		body := s.withFrame(b.String())
 		if len(loads) > 0 {
 			body = "(let [" + strings.Join(loads, "\n      ") + "]\n" + indent(body, 2) + ")"
 		}

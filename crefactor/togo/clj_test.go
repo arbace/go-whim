@@ -322,7 +322,7 @@ func TestCljShapes(t *testing.T) {
 		`(?s)\(defn sum \^long \[\^Editor ed \^long n\]\n  \(let \[t 0\n\s+i 0\]\n\s+\(loop \[t t\n\s+i i\]`,
 		`(?s)\(defn pick .*\(let \[r \(if \(> x 0\)`,
 		`(?s)\(defn back .*\(loop \[n n\n\s+t t\]`,
-		`(?s)\(defn two .*j__\d+ \(if \(> x 0\).*\[a b\]\)\s+\[a b\]\)\s+a \(long \(nth j__\d+ 0\)\)\s+b \(long \(nth j__\d+ 1\)\)`,
+		`(?s)\(defn two .*j__\d+ \(if \(> x 0\).*\(aset tl__ 0 a\)\s+\(aset tl__ 1 b\)\s+0\)\)\s+a \(aget tl__ 0\)\s+b \(aget tl__ 1\)\]`,
 		`;; 5 of 5 functions written \(5 structured, 0 state machines\)`)
 }
 
@@ -415,8 +415,8 @@ void run(void)
 func TestCljNesting(t *testing.T) {
 	prog := cljSame(t, cljNestC, Profile{}, javaHarnessC)
 	cljMatch(t, prog,
-		`(?s)\(defn early .*\[-1 -1\].*\(if \(== \(long \(nth j__\d+ 0\)\) -1\)`,
-		`(?s)\(defn search .*\(case \(long \(nth l__\d+ 0\)\)`,
+		`(?s)\(defn early .*\(do \(aset tl__ 2 -1\)\s+-1\).*\(if \(== \(long j__\d+\) -1\)`,
+		`(?s)\(defn search .*\(aset tl__ 0 i\)\s+1\).*\(case \(long l__\d+\)`,
 		`(?s)\(defn inner .*\(let \[s \(long \(if \(> x 0\)`,
 		`(?s)\(defn twist .*\(case st`,
 		`;; 5 of 5 functions written \(4 structured, 1 state machines\)`)
