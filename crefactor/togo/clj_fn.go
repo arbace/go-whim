@@ -705,6 +705,16 @@ func (c *cgen) splitAt() int {
 	return 110000
 }
 
+// outlineAt is the size past which a region's code or a loop of a function
+// too large for one method is a function of its own (Profile.CljOutline):
+// small enough that C1, the first JIT tier, compiles every method.
+func (c *cgen) outlineAt() int {
+	if c.g.p.CljOutline > 0 {
+		return c.g.p.CljOutline
+	}
+	return 16000
+}
+
 // split is a state machine too large for one method: its states in groups,
 // each group a function of the editor, a frame of the carried variables
 // (fl__ their longs, fo__ the rest, fo__[0] the result) and the state to

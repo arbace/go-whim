@@ -63,6 +63,10 @@ type Profile struct {
 	// CljSplit is the size, in the backend's guess at bytecode, past which a
 	// function is split into functions of its states (0: its default).
 	CljSplit int
+	// CljOutline is the size, in the same guess, past which a region's code
+	// or a loop of a function too large for one method is written as a
+	// function of its own (0: the backend's default).
+	CljOutline int
 }
 
 // ByteFuncs are the program's memmove and memcpy (Memmove), memset

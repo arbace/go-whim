@@ -257,6 +257,27 @@ func TestCljSplit(t *testing.T) {
 	}
 }
 
+// A function too large for one method, its pieces -- a region's code, a
+// loop, a switch's arms in groups -- functions of their own
+// (Profile.CljOutline at its least, CljSplit small): the frame carries their
+// variables in, their values come back, and the programs print what the C
+// prints.
+func TestCljOutline(t *testing.T) {
+	for _, c := range []struct {
+		name, src string
+	}{
+		{"flow", javaFlowC},
+		{"extra", lowerExtraC},
+		{"shapes", cljShapesC},
+		{"goto", javaGotoC},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			prog := cljSame(t, c.src, Profile{CljSplit: 200, CljOutline: 1}, javaHarnessC)
+			cljMatch(t, prog, `\(defn- \w+__r0 (\^\w+ )?\[\^Editor ed \^longs tl__ \^objects to__\]`)
+		})
+	}
+}
+
 // The shapes: a loop with nothing that jumps out of it is a loop over what
 // it changes -- a goto backwards too -- a join whose arms change one
 // variable it reads a let of an if, and a join whose arms change two a

@@ -9,18 +9,8 @@ this file is a queue, not a record; the record is the commit and the `GOAL.md`.
 Each moves method sizes: `whim test --java --clojure`'s heavy case, which
 times every editor, is judged with the suites.
 
-1. **vijure's `regmatch` structured, in methods C1 compiles.** The nesting
-   structures it now (2026-09-28: its loops' tails, a region's `break`s
-   and `continue`s, tuples in the frame), but its main loop, in expression
-   position, is a closure Clojure writes of 26,974 bytes, which the
-   launchers' `-XX:TieredStopAtLevel=1` leaves interpreted ("out of virtual
-   registers"); so a function past the split bound is not structured, and
-   `regmatch` stays split. Measured on a 100,000-line `:%s`, substitution
-   only: structured 7.5 s (`[ab]\+c`), 26.3 s (`\v(a|b)+c`), 0.76 s
-   (literal) under C1; 2.6, 4.9 and 1.1 s with every tier (C2); split
-   3.1, 9.8 and 0.60 s; the Java 0.66, 1.8 and 0.18. What would take it:
-   the large regions written as functions of their own (the variables in
-   the frame, as the split's groups have them), each small enough for C1.
+Nothing queued.
+
 ## Known stale, not yet scoped
 
 - **The `insert` case is timed for the editors on the JVM.** Its keys end in

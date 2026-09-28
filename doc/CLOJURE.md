@@ -297,13 +297,12 @@ control seen by 41 of the 45 and, wide, as the Go's is (94 keys, 6 pty).
 `<out.clj>.refused` (empty on `editor.c`), and logs the coverage:
 
 ```
-clj: 1699 of 1707 functions written (1624 structured, 74 state machines, 2 of them split), 8 the runtime's, 0 refused
+clj: 1702 of 1710 functions written (1627 structured, 73 state machines, 1 of them split), 8 the runtime's, 0 refused
 clj: state machines, by the first thing that would not nest:
      32  a jump to a block with ways in: a join whose region is entered from outside it, or left elsewhere
      31  a loop's exit with another way in
       6  an irreducible loop
       4  a loop's exit that is a loop or a join
-      1  structured, too large for one method
 ```
 
 The 8 are the Java's: the allocators and `musl_mem*`, whose calls are the
@@ -458,16 +457,28 @@ arms are the same code is one arm with their keys; one with an arm of
 several keys is written as two `case`s, the key to the arm's index and the
 index to the arm, since Clojure's `case` writes an arm's body once per key
 (`regrepeat` went past 64 KB so). A function all of whose blocks nest so
-is **structured** (1,624) -- unless its text is past the bound a machine is
-split at (below; 1: `regmatch`): its loops in expression position are
-closures Clojure writes, and one that large is a method the first JIT tier
-gives up on (C1, "out of virtual registers": measured, a 100,000-line `:%s`
-7.5 s structured against 3.1 s split). The others (74) are **state
+is **structured** (1,627). One whose text is past the bound a machine is
+split at (below) is **outlined** (1: `regmatch`): whole, its loops in
+expression position are closures Clojure writes, and one that large is a
+method the first JIT tier gives up on (C1, "out of virtual registers":
+measured, a 100,000-line `:%s` 7.5 s so against 3.1 s split). So a region's
+code or a loop past `Profile.CljOutline` (default 16,000) is a function of
+its own, `(defn- f__rN [ed tl__ to__])` -- neither can recur to a loop
+around it -- and a `switch` whose arms together are past it has its large
+arms so and the rest in groups, each a `case` on the arm's index, which the
+switch computes and dispatches on (`regmatch`'s over its opcodes). A piece
+takes its variables through the frame: each it names that is live where it
+starts, and each fixed local it names, stored before the call and read at
+its start; its value is its code's, a primitive long where that is a tag.
+`regmatch` is 11 pieces, each compiled (none larger than 23 KB of text, and
+8,000 and 32,000 measured the same); on one CPU a 100,000-line `:%s` took
+it 1.66 s (literal), 8.5 (`\v(a|b)+c`) and 3.2 (`[ab]\+c`) against the split
+machine's 2.74, 12.9 and 4.62. The others (73) are **state
 machines**: `(loop [st 0, x x, ...] (case st 0 ... 1 ...))`, each block no
 rule nests a state, each jump to one `(recur k x ...)` with the variables
 live at some state, and the joins still written in place inside the states.
-A function whose machine is too large for a method is **split** (2:
-`regmatch` and `win_line`): the machine's states -- every block one only where a state
+A function whose machine is too large for a method is **split** (1:
+`win_line`): the machine's states -- every block one only where a state
 would not fit a group -- in groups, each group `(defn- f__N ^long [ed fl__
 fo__ st])` running its own states and returning the next group's state or
 -1; the function fills the frame and runs the groups, choosing one by nested
@@ -477,8 +488,8 @@ and the result): a state reads from it what is live at its start or written
 in it, writes back what it writes before each jump, and a jump is `(recur
 k)`, the state alone -- so a jump to another group stores nothing and the
 group loads nothing. (Carried as the loop's bindings, every jump passed all
-37 of `regmatch`'s, and every jump to another group stored them and the
-next group reloaded them; `doc/PARALLEL-SUBSTITUTE.md` measured the Clojure
+37 of `regmatch`'s -- a split machine then -- and every jump to another
+group stored them and the next group reloaded them; `doc/PARALLEL-SUBSTITUTE.md` measured the Clojure
 matcher 15-22 times the C.) The size is guessed from the text and the
 recurs' width (`Profile.CljSplit`, default 110,000), a group a quarter of it
 -- larger groups measured slower, compiled later; the largest function left
@@ -531,7 +542,8 @@ reflection warning -- a failure, and required to print what gcc's build
 prints: integers, flow, strings, structs, the profile's allocators and
 functions of bytes, varargs, the growarray, member addresses, function
 pointers and unions, gotos, a dead label. `TestCljSplit` runs four with
-every state machine split; `TestCljShapes` requires a loop, a goto backwards,
+every state machine split; `TestCljOutline` four with every piece of a
+function past a small bound outlined; `TestCljShapes` requires a loop, a goto backwards,
 a join and a join of two variables (through the frame) structured;
 `TestCljControl` undoes one rule at a time -- an unsigned int's range, a
 short's, an unsigned char's widening, 64-bit unsigned division, a struct's

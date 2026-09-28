@@ -74,6 +74,12 @@ type shaper struct {
 	pre       string // the groups' functions
 	all       bool   // every block is a state
 	why       string // why it is a state machine
+	// outlined pieces: a region's code or a loop past olimit, written as a
+	// function of its own that takes its variables through the frame
+	outlining bool
+	olimit    int
+	opre      []string      // the pieces' functions
+	fslot     map[*lvar]int // a fixed local's slot in to__, passed to a piece
 }
 
 // sloop is a natural loop: its head, the blocks it holds, and the
@@ -95,6 +101,7 @@ type sctx struct {
 	retTag bool // a return is the region's value [-1 v]
 	region bool // the code is a let's value, where no recur is
 	loops  []*sloop
+	vt     string // the Java type of the code's value ("" at the top: the function's)
 }
 
 // errShape is why a function cannot be structured: it is a state machine.
@@ -107,26 +114,49 @@ func (f *cfn) structure() (string, string, string) {
 	s := &shaper{f: f, live: lf.live()}
 	s.analyze()
 	n0 := f.ntmp // an attempt that fails leaves no names behind
-	s.resetFrame()
-	if body, ok := s.fits(s.structured()); ok {
-		return s.entryLets(s.withFrame(body)), "structured", ""
+	// structured, with a region's other ways out and then without: a join
+	// taken with them can leave a way out no place can take, where without
+	// it the function nests; and, when what nests is too large for one
+	// method, again with its large pieces as functions of their own
+	large := -1 // the try whose body nested but was too large
+	first := "" // why the first try did not nest
+	for try, noOuts := range []bool{false, true} {
+		if noOuts {
+			s.noOuts = true
+			s.findJoins(true)
+		}
+		f.ntmp = n0
+		s.resetFrame()
+		body, ok := s.structured()
+		if ok && s.cost(body) <= f.c.splitAt() {
+			return s.entryLets(s.withFrame(body)), "structured", ""
+		}
+		if ok && large < 0 {
+			large = try
+		}
+		if !ok && try == 0 {
+			first = s.why
+		}
 	}
-	// again without a region's other ways out: a join taken with them can
-	// leave a way out no place can take, where without it the function nests
-	why := s.why
-	s.noOuts = true
-	s.findJoins(true)
-	f.ntmp = n0
-	s.resetFrame()
-	if body, ok := s.fits(s.structured()); ok {
-		return s.entryLets(s.withFrame(body)), "structured", ""
+	why := "structured, too large for one method"
+	if large < 0 {
+		why = first
+	} else {
+		s.noOuts = large == 1
+		s.findJoins(true)
+		f.ntmp = n0
+		s.resetFrame()
+		s.outlining, s.olimit = true, f.c.outlineAt()
+		body, ok := s.structured()
+		if ok && s.cost(body) <= f.c.splitAt() {
+			return s.entryLets(s.withFrame(body)), "structured", strings.Join(s.opre, "")
+		}
+		s.outlining, s.opre = false, nil
 	}
 	s.noOuts = false
-	s.why = why
 	f.ntmp = n0
 	// a state machine: a jump to a state -- a loop's head is one -- cannot
 	// be inside a join's region, so the joins are found again without them
-	why = s.why
 	s.findJoins(false)
 	s.why = why
 	s.resetFrame()
@@ -138,20 +168,6 @@ func (f *cfn) structure() (string, string, string) {
 	}
 	f.why = s.why
 	return s.entryLets(s.withFrame(body)), "machine", ""
-}
-
-// fits refuses a structured body past the bound a machine is split at: its
-// loops in expression position are closures Clojure writes, and one that
-// large is a method the first JIT tier gives up on (C1: "out of virtual
-// registers"), where the split machine's groups each compile -- measured on
-// regmatch, the one function past it, 3.1 s against 7.5 s on a 100,000-line
-// :%s.
-func (s *shaper) fits(body string, ok bool) (string, bool) {
-	if ok && s.cost(body) > s.f.c.splitAt() {
-		s.why = "structured, too large for one method"
-		return "", false
-	}
-	return body, ok
 }
 
 func (s *shaper) analyze() {
@@ -691,7 +707,11 @@ func (s *shaper) emitTerm(b *lblock, ctx *sctx) string {
 			if len(vs) == 1 {
 				val = vs[0].name
 			}
-			inner := s.emitBranch(b, &sctx{stops: map[*lblock]string{j: val}, region: true, loops: ctx.loops})
+			vt := "void"
+			if len(vs) == 1 {
+				vt = f.vars[vs[0]].jt
+			}
+			inner := s.emitBranch(b, &sctx{stops: map[*lblock]string{j: val}, region: true, loops: ctx.loops, vt: vt})
 			rest := s.emit(j, ctx)
 			if len(vs) == 0 {
 				return "(do " + indent(inner, 4)[4:] + "\n  " + indent(rest, 2)[2:] + ")"
@@ -723,7 +743,7 @@ func (s *shaper) emitTerm(b *lblock, ctx *sctx) string {
 			conts = append(conts, o)
 			per = append(per, ovs)
 		}
-		inner := s.emitBranch(b, &sctx{stops: stops, retTag: s.rets[j], region: true, loops: ctx.loops})
+		inner := s.emitBranch(b, &sctx{stops: stops, retTag: s.rets[j], region: true, loops: ctx.loops, vt: "long"})
 		r := f.tmpName("j")
 		return s.unpackFrom(r, inner, b, conts, per, s.rets[j], ctx)
 	}
@@ -826,6 +846,7 @@ func (s *shaper) frameRet(v string) (store, load string) {
 // resetFrame starts a function's frame, or a group's, empty.
 func (s *shaper) resetFrame() {
 	s.tslot = map[*lvar]int{}
+	s.fslot = map[*lvar]int{}
 	s.ntl, s.nto, s.retSlot, s.frame = 0, 0, -1, false
 }
 
@@ -835,6 +856,10 @@ func (s *shaper) withFrame(body string) string {
 		return body
 	}
 	var arrays []string
+	if len(s.opre) > 0 {
+		// the pieces take both
+		s.ntl, s.nto = max(s.ntl, 1), max(s.nto, 1)
+	}
 	if s.ntl > 0 {
 		arrays = append(arrays, fmt.Sprintf("^longs tl__ (long-array %d)", s.ntl))
 	}
@@ -966,6 +991,26 @@ func (s *shaper) emitBranch(b *lblock, ctx *sctx) string {
 		for _, vs := range b.term.cases {
 			grouped = grouped || len(vs) > 1
 		}
+		// the arms; when together they are past olimit, each large one a
+		// function of its own (a switch of many small arms is past it too)
+		arms := make([]string, len(b.term.to))
+		total := 0
+		for i, t := range b.term.to {
+			arms[i] = s.edge(b, t, ctx)
+			total += len(arms[i])
+		}
+		if s.outlining && total > s.olimit && (ctx.region || len(ctx.loops) == 0 && len(ctx.stops) == 0) {
+			total = 0
+			for i, t := range b.term.to {
+				if _, stop := ctx.stops[t]; !stop {
+					arms[i] = s.outlineAt(arms[i], s.live[t], nil, s.valueType(ctx), s.olimit/2)
+				}
+				total += len(arms[i])
+			}
+			if total > s.olimit {
+				return s.switchGroups(b, arms, ctx)
+			}
+		}
 		var sb strings.Builder
 		keyOf := func(vs []int64) string {
 			var ks []string
@@ -987,15 +1032,15 @@ func (s *shaper) emitBranch(b *lblock, ctx *sctx) string {
 			ib.WriteString(" -1)")
 			fmt.Fprintf(&sb, "(case %s", ib.String())
 			for i := range b.term.cases {
-				fmt.Fprintf(&sb, "\n  %d\n%s", i, indent(s.edge(b, b.term.to[i], ctx), 4))
+				fmt.Fprintf(&sb, "\n  %d\n%s", i, indent(arms[i], 4))
 			}
 		} else {
 			fmt.Fprintf(&sb, "(case %s", t.test)
 			for i, vs := range b.term.cases {
-				fmt.Fprintf(&sb, "\n  %s\n%s", keyOf(vs), indent(s.edge(b, b.term.to[i], ctx), 4))
+				fmt.Fprintf(&sb, "\n  %s\n%s", keyOf(vs), indent(arms[i], 4))
 			}
 		}
-		fmt.Fprintf(&sb, "\n%s)", indent(s.edge(b, b.term.to[len(b.term.to)-1], ctx), 2))
+		fmt.Fprintf(&sb, "\n%s)", indent(arms[len(arms)-1], 2))
 		return sb.String()
 	}
 	return "nil"
@@ -1040,6 +1085,10 @@ func (s *shaper) edge(from, t *lblock, ctx *sctx) string {
 		return s.loopForm(l, ctx)
 	}
 	if s.inline(t) {
+		if ctx.region || len(ctx.loops) == 0 && len(ctx.stops) == 0 {
+			// no recur in it to a loop around: it may be a function of its own
+			return s.outline(s.emit(t, ctx), s.live[t], nil, s.valueType(ctx))
+		}
 		return s.emit(t, ctx)
 	}
 	panic(errShape{fmt.Sprintf("a jump to block %d with %d ways in: a join whose region is entered from outside it, or left elsewhere", t.id, s.edges[t])})
@@ -1066,8 +1115,14 @@ func (s *shaper) loopForm(l *sloop, ctx *sctx) string {
 		}
 	}
 	inner := &sctx{loops: append(append([]*sloop{}, ctx.loops...), l)}
+	// the loop, as a function of its own when it is large: it recurs to
+	// itself alone, and its variables' first values are what its head reads
+	loopOf := func() string {
+		return s.outline("(loop ["+strings.Join(binds, "\n       ")+"]\n"+indent(s.emit(l.head, inner), 2)+")", s.live[l.head], l.vars, inner.vt)
+	}
 	if tail {
-		return "(loop [" + strings.Join(binds, "\n       ") + "]\n" + indent(s.emit(l.head, inner), 2) + ")"
+		inner.vt = s.valueType(ctx)
+		return loopOf()
 	}
 	// after the loop: each exit the one way into what follows it, and
 	// neither a loop nor a join -- or the end of the region the loop is in
@@ -1133,12 +1188,14 @@ func (s *shaper) loopForm(l *sloop, ctx *sctx) string {
 		// region's, as that end's edge writes it
 		inner.stops = map[*lblock]string{l.exits[0]: ctx.stops[l.exits[0]]}
 		inner.retTag = ctx.retTag
-		return "(loop [" + strings.Join(binds, "\n       ") + "]\n" + indent(s.emit(l.head, inner), 2) + ")"
+		inner.vt = s.valueType(ctx)
+		return loopOf()
 	}
 	if len(l.exits) == 1 && len(vs) == 0 && !rets {
 		// a statement: (do (loop ...) after)
 		inner.stops = map[*lblock]string{l.exits[0]: "nil"}
-		loop := "(loop [" + strings.Join(binds, "\n       ") + "]\n" + indent(s.emit(l.head, inner), 2) + ")"
+		inner.vt = "void"
+		loop := loopOf()
 		return "(do " + indent(loop, 4)[4:] + "\n  " + indent(s.emit(l.exits[0], ctx), 2)[2:] + ")"
 	}
 	// a value: [k x y] at its k-th exit, [-1 v] where the function returns
@@ -1151,6 +1208,169 @@ func (s *shaper) loopForm(l *sloop, ctx *sctx) string {
 		inner.stops[x] = s.tuple(tag, per[k])
 	}
 	inner.retTag = rets
-	loop := "(loop [" + strings.Join(binds, "\n       ") + "]\n" + indent(s.emit(l.head, inner), 2) + ")"
-	return s.unpack(f.tmpName("l"), loop, l.exits, per, rets, ctx)
+	inner.vt = "long"
+	return s.unpack(f.tmpName("l"), loopOf(), l.exits, per, rets, ctx)
+}
+
+// valueType is the Java type of the value code in ctx yields: the region's
+// or the loop's, or at the top the function's.
+func (s *shaper) valueType(ctx *sctx) string {
+	if ctx.vt != "" {
+		return ctx.vt
+	}
+	return s.f.ret
+}
+
+// symbolRe is a Clojure symbol in the printed text.
+var symbolRe = regexp.MustCompile(`[^\s()\[\]{}"^;,@~'` + "`" + `]+`)
+
+// outline is text -- a region's code, or a loop, whose value is of Java
+// type vt -- as a call of a function of its own when it is past olimit, so
+// that no method is larger than the first JIT tier compiles.  The piece
+// takes the editor and the frame; its variables go through the frame: each
+// the text names that is live where it starts (live, and extra, the loop's
+// first values) is stored before the call and read at the piece's start,
+// and each fixed local it names -- a box, an object made at the start --
+// likewise.  The frame's slots are the function's, so the tuples the piece
+// hands out are where its caller reads them.
+func (s *shaper) outline(text string, live map[*lvar]bool, extra []*lvar, vt string) string {
+	return s.outlineAt(text, live, extra, vt, s.olimit)
+}
+
+// outlineAt is outline with a limit of its own: a switch's arm, when the
+// switch is past olimit, is outlined past a smaller one.
+func (s *shaper) outlineAt(text string, live map[*lvar]bool, extra []*lvar, vt string, limit int) string {
+	if !s.outlining || s.cost(text) < limit {
+		return text
+	}
+	return s.piece(text, live, extra, vt, nil, nil)
+}
+
+// piece is text as a call of a function of its own (outline): stores are
+// the caller's writes to the frame before the call beside the variables',
+// and loads the piece's reads of it after them.
+func (s *shaper) piece(text string, live map[*lvar]bool, extra []*lvar, vt string, stores, loads []string) string {
+	f := s.f
+	named := map[string]bool{}
+	for _, m := range symbolRe.FindAllString(text, -1) {
+		named[m] = true
+	}
+	takes := map[*lvar]bool{}
+	for _, v := range extra {
+		takes[v] = true
+	}
+	var vstores, vloads []string
+	for _, v := range f.lf.vars {
+		if !named[v.name] {
+			continue
+		}
+		cvr := f.vars[v]
+		if !f.rebindable(v) {
+			k, ok := s.fslot[v]
+			if !ok {
+				k = s.nto
+				s.nto++
+				s.fslot[v] = k
+			}
+			h := cljHint(cvr.jt)
+			if cvr.boxed {
+				h = cljHint(cvr.jt + "[]")
+			}
+			vstores = append(vstores, fmt.Sprintf("(aset to__ %d %s)", k, v.name))
+			if h != "" {
+				vloads = append(vloads, fmt.Sprintf("^%s %s (aget to__ %d)", h, v.name, k))
+			} else {
+				vloads = append(vloads, fmt.Sprintf("%s (aget to__ %d)", v.name, k))
+			}
+			continue
+		}
+		if !live[v] && !takes[v] {
+			continue // bound in the text
+		}
+		vstores = append(vstores, s.frameStore(v))
+		vloads = append(vloads, f.bindName(v)+" "+s.frameLoad(v))
+	}
+	stores = append(vstores, stores...)
+	loads = append(vloads, loads...)
+	s.frame = true
+	name := fmt.Sprintf("%s__r%d", f.c.fnName(f.name), len(s.opre))
+	ret, call := "", "("+name+" ed tl__ to__)"
+	switch h := cljHint(vt); {
+	case isIntJ(vt):
+		ret = "^long "
+	case vt == "boolean":
+		call = "(boolean " + call + ")"
+	case h != "":
+		ret = "^" + h + " "
+	}
+	body := text
+	if len(loads) > 0 {
+		body = "(let [" + strings.Join(loads, "\n      ") + "]\n" + indent(text, 2) + ")"
+	}
+	s.opre = append(s.opre, fmt.Sprintf("(defn- %s %s[^Editor ed ^longs tl__ ^objects to__]\n%s)\n\n", name, ret, indent(body, 2)))
+	if len(stores) == 0 {
+		return call
+	}
+	return "(do " + strings.Join(stores, "\n    ") + "\n    " + call + ")"
+}
+
+// switchGroups is switch b, its arms (arms, in b's order, the default last)
+// in groups of functions of their own: the arm's index computed, and each
+// group a case on it, called for the indices it holds.  A switch of many
+// small arms -- regmatch's over its opcodes -- is past what one method can
+// hold as a whole.
+func (s *shaper) switchGroups(b *lblock, arms []string, ctx *sctx) string {
+	f := s.f
+	t := f.terms[b]
+	var ib strings.Builder
+	fmt.Fprintf(&ib, "(case %s", t.test)
+	for i, vs := range b.term.cases {
+		var ks []string
+		for _, v := range vs {
+			ks = append(ks, fmt.Sprint(v))
+		}
+		sort.Strings(ks)
+		key := ks[0]
+		if len(ks) > 1 {
+			key = "(" + strings.Join(ks, " ") + ")"
+		}
+		fmt.Fprintf(&ib, " %s %d", key, i)
+	}
+	fmt.Fprintf(&ib, " %d)", len(arms)-1)
+	k := f.tmpName("k")
+	s.frame = true
+	slot := s.ntl
+	s.ntl++
+	type group struct{ from, to int }
+	var gs []group
+	size := 0
+	for i := range arms {
+		if len(gs) == 0 || size > 0 && size+len(arms[i]) > s.olimit/2 {
+			gs = append(gs, group{i, i})
+			size = 0
+		}
+		gs[len(gs)-1].to = i
+		size += len(arms[i])
+	}
+	vt := s.valueType(ctx)
+	calls := make([]string, len(gs))
+	for g, gr := range gs {
+		var cb strings.Builder
+		live := map[*lvar]bool{}
+		fmt.Fprintf(&cb, "(case %s", k)
+		for i := gr.from; i <= gr.to; i++ {
+			fmt.Fprintf(&cb, "\n  %d\n%s", i, indent(arms[i], 4))
+			for v := range s.live[b.term.to[i]] {
+				live[v] = true
+			}
+		}
+		cb.WriteString(")")
+		calls[g] = s.piece(cb.String(), live, nil, vt,
+			[]string{fmt.Sprintf("(aset tl__ %d %s)", slot, k)}, []string{fmt.Sprintf("%s (aget tl__ %d)", k, slot)})
+	}
+	dispatch := calls[len(calls)-1]
+	for g := len(gs) - 2; g >= 0; g-- {
+		dispatch = fmt.Sprintf("(if (<= %s %d)\n  %s\n  %s)", k, gs[g].to, indent(calls[g], 2)[2:], indent(dispatch, 2)[2:])
+	}
+	return "(let [" + k + " " + ib.String() + "]\n" + indent(dispatch, 2) + ")"
 }
